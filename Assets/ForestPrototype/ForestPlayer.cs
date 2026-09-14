@@ -116,7 +116,13 @@ public sealed class ForestPlayer : MonoBehaviour
         }
     }
 
-    private void OnEnable() => SetCursor(true);
+    private void OnEnable()
+    {
+        SetCursor(true);
+        // Locking warps the pointer to the window centre; the resulting delta
+        // spike must not rotate the view at the start of a session.
+        recentreGraceFrames = 2;
+    }
     private void OnDisable() => SetCursor(false);
     private void OnApplicationFocus(bool focused)
     {
@@ -145,6 +151,10 @@ public sealed class ForestPlayer : MonoBehaviour
         {
             capturedThisFrame = Cursor.lockState != CursorLockMode.Locked;
             SetCursor(true);
+            // The lock warp produces a delta spike on the next frame or two;
+            // suppress it so clicking to capture never throws the view.
+            if (capturedThisFrame)
+                recentreGraceFrames = 2;
         }
 
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
@@ -187,10 +197,10 @@ public sealed class ForestPlayer : MonoBehaviour
                 if (inRecentreGrace)
                 {
                     recentreGraceFrames--;
-                    // A cursor warp is reported as a delta on the next frame or two;
-                    // no real hand movement reaches that far in a single frame.
-                    if (rawDelta.magnitude > 250f)
-                        rawDelta = Vector2.zero;
+                    // A warp is reported as a delta on the next frame or two, and
+                    // the OS can split it across frames, so every delta inside
+                    // the grace window is discarded. Two frames is imperceptible.
+                    rawDelta = Vector2.zero;
                 }
 
                 Vector2 look = rawDelta * mouseSensitivity;
