@@ -27,6 +27,21 @@ public sealed class ForestEcologyController : MonoBehaviour
         RebuildGrid();
     }
 
+    private void OnEnable()
+    {
+        ForestTree.Felled += OnTreeFelled;
+    }
+
+    private void OnDisable()
+    {
+        ForestTree.Felled -= OnTreeFelled;
+    }
+
+    private void OnTreeFelled(ForestTree tree)
+    {
+        RecomputeCanopy();
+    }
+
     // One explicit step for editor, MCP and debug tooling. Nothing in normal
     // gameplay advances ecological time yet; one ecological year is not tied
     // to a game day or real-time minute.
@@ -58,7 +73,9 @@ public sealed class ForestEcologyController : MonoBehaviour
         RecomputeCanopy();
     }
 
-    // Coarse placeholder coverage, refined by the phase-9 crown-influence pass.
+    // Simplified local crown influence: each living crown shades a cell by a
+    // lateral falloff from its authoritative position, crown radius and height,
+    // combined as fractional cover (1 - product of gaps). No global percentage.
     [ContextMenu("Recompute canopy and light")]
     public void RecomputeCanopy()
     {
@@ -68,17 +85,22 @@ public sealed class ForestEcologyController : MonoBehaviour
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (ForestEcologyCell cell in cells)
         {
-            float canopy = 0f;
+            float gap = 1f;
             foreach (ForestTree tree in trees)
             {
                 if (tree == null || tree.IsStump)
                     continue;
                 Vector2 treePosition = new Vector2(tree.transform.position.x, tree.transform.position.z);
                 float distance = Vector2.Distance(cell.Center, treePosition);
-                float influence = Mathf.Clamp01(1f - distance / (tree.CrownRadius + cellSizeMeters * 0.5f));
-                if (influence > canopy)
-                    canopy = influence;
+                // Crown influence reaches half a cell beyond the crown so that
+                // cells overlapping the crown respond, not only its centre.
+                float reach = tree.CrownRadius * 1.5f + cellSizeMeters * 0.5f;
+                float lateral = Mathf.Clamp01(1f - distance / reach);
+                float vertical = Mathf.Clamp01(tree.Height / 8f);
+                float influence = Mathf.Clamp01(lateral * vertical);
+                gap *= 1f - influence;
             }
+            float canopy = Mathf.Clamp01(1f - gap);
             cell.Canopy = canopy;
             cell.Light = 1f - canopy;
         }

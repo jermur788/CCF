@@ -13,6 +13,7 @@ public enum ForestTreeStage
 [DisallowMultipleComponent]
 public sealed class ForestTree : MonoBehaviour
 {
+    public static event System.Action<ForestTree> Felled;
     [SerializeField] private string treeId = "";
     [SerializeField] private Transform trunk;
     [SerializeField] private Transform canopy;
@@ -105,6 +106,7 @@ public sealed class ForestTree : MonoBehaviour
         if (!CanChop)
             return;
         SetStage(ForestTreeStage.Stump);
+        Felled?.Invoke(this);
     }
 
     public void RestoreState(ForestTreeStage restoredStage, float restoredStageTimer, int restoredChopProgress)

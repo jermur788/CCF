@@ -119,6 +119,10 @@ public sealed class ForestSaveController : MonoBehaviour
             }
         }
 
+        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+        if (ecology != null)
+            ecology.RecomputeCanopy();
+
         SetMessage(data.version == ForestSaveData.CurrentVersion
             ? "Game loaded"
             : $"Game loaded (save v{data.version})");
