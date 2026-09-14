@@ -7,6 +7,11 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField] private int simulationSeed = 20260914;
     [SerializeField] private float standSizeMeters = 40f;
     [SerializeField] private float cellSizeMeters = 5f;
+    [Tooltip("[D] Maximum recorded recent opening per cell. A treatment that fells several trees in one cell counts once up to this cap, so a legitimate group opening stays serious without reading as catastrophic. Calibration from the spatial treatment experiments.")]
+    [SerializeField, Min(1f)] private float maxRecentOpeningPerCell = 2f;
+    [Tooltip("[D] Wind-risk band thresholds for the inspection card: low below the first, moderate below the second, high at or above it. Calibrated so an unthinned control stand (max ~7.8-8.6) reads moderate and a concentrated opening reads high.")]
+    [SerializeField] private float windLabelLowAt = 5f;
+    [SerializeField] private float windLabelHighAt = 12f;
     [SerializeField] private bool showDebugGrid;
     [SerializeField] private bool showSeedRain;
     [SerializeField] private bool logAnnualSummary;
@@ -29,6 +34,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     public ForestEcologyCell[] Cells => cells;
     public string LastMastLabel => lastMastLabel;
     public float LastMastMultiplier => lastMastMultiplier;
+    public float MaxRecentOpeningPerCell => maxRecentOpeningPerCell;
 
     public int SimulationSeed
     {
@@ -81,7 +87,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         {
             int index = GetCellIndex(tree.transform.position);
             if (index >= 0)
-                cells[index].RecentOpening += 1f;
+                cells[index].RecentOpening = Mathf.Min(cells[index].RecentOpening + 1f, maxRecentOpeningPerCell);
         }
         competitionCurrent = false;
         RecomputeCanopy();
@@ -156,7 +162,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         cell.RegenDensity = Mathf.Max(0f, density);
         cell.RegenHeight = Mathf.Max(0f, height);
         cell.RegenEstablishYear = establishYear;
-        cell.RecentOpening = Mathf.Max(0f, recentOpening);
+        cell.RecentOpening = Mathf.Clamp(recentOpening, 0f, maxRecentOpeningPerCell);
     }
 
     // Deterministically reproduces the mast roll for the current seed and year.
@@ -512,9 +518,13 @@ public sealed class ForestEcologyController : MonoBehaviour
     // Player-readable wind exposure band. Thresholds are [D] calibration.
     public string GetWindRiskLabel(ForestTree tree)
     {
-        float risk = GetWindRisk(tree);
-        if (risk < 4f) return "low";
-        if (risk < 7f) return "moderate";
+        return WindRiskBandLabel(GetWindRisk(tree));
+    }
+
+    public string WindRiskBandLabel(float risk)
+    {
+        if (risk < windLabelLowAt) return "low";
+        if (risk < windLabelHighAt) return "moderate";
         return "high";
     }
 
