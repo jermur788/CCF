@@ -1,0 +1,138 @@
+# CCF Unity Project — AI Development Instructions
+
+You are assisting with a 3D sustainable forestry survival game in Unity.
+
+## Current verified technical setup
+
+- Unity version: 6000.6.0f1
+- Rendering pipeline: Universal Render Pipeline (URP) 17.6.0
+- Input: Unity New Input System 1.20.0
+- Main playable scene: Assets/Scenes/ForestTest.unity
+- Current player controller: Assets/ForestPrototype/ForestPlayer.cs
+- Development environment: Linux
+- Editor: VS Code
+- Do not assume project details that you have not inspected.
+
+## Development priorities
+
+Work toward small, playable improvements.
+
+Prefer the simplest maintainable solution that solves the current problem.
+
+Do not build systems for speculative future features unless they are necessary now.
+
+The long-term game is a sustainable forestry survival game. Continuous-cover forestry, forest regeneration, harvesting, construction and visible ecological consequences are important to the design.
+
+Single-player development comes first. Future multiplayer should remain possible, but do not build multiplayer infrastructure unless specifically requested.
+
+## Before changing anything
+
+1. Inspect the relevant existing files first.
+2. Explain briefly what you found.
+3. State which files you intend to modify.
+4. Propose the smallest reasonable solution.
+5. Do not modify unrelated files.
+
+If the requested change could substantially affect architecture, gameplay design, packages, rendering, save data or project structure, explain the trade-offs before making the change.
+
+## Unity-specific rules
+
+- Match solutions to Unity 6000.6.0f1 and the packages actually installed.
+- Use URP-compatible materials, shaders and rendering features.
+- Use the New Input System. Do not introduce legacy UnityEngine.Input unless explicitly requested.
+- Do not edit generated folders such as Library, Temp, Logs or obj.
+- Do not manually edit Unity-generated project/solution files unless there is a specific reason.
+- Be careful when editing .unity, .prefab, .asset and .meta files as text.
+- Preserve .meta files and GUID relationships.
+- Do not delete assets unless explicitly authorised.
+- Do not add packages or external dependencies without explaining why they are needed.
+- Prefer built-in Unity functionality when it adequately solves the problem.
+
+## Code rules
+
+- Write clear C# suitable for someone learning Unity.
+- Prefer straightforward code over clever abstractions.
+- Use descriptive names.
+- Keep scripts focused on one clear responsibility where practical.
+- Avoid unnecessary managers, singletons, service locators, frameworks or dependency injection.
+- Avoid premature optimisation.
+- Add comments where they explain a non-obvious reason, not every line of code.
+- Do not silently rewrite working systems just because another architecture might be cleaner.
+
+## Ecology and gameplay
+
+Keep ecological simulation rules reasonably separate from graphics and player controls where doing so clearly helps maintenance or testing.
+
+Do not invent ecological facts. Flag ecological assumptions that need research.
+
+Distinguish:
+- established ecological knowledge,
+- simplified simulation rules,
+- deliberate gameplay choices.
+
+Do not assume that planting more trees is always environmentally beneficial.
+
+Forestry decisions should eventually create visible consequences for regeneration, canopy structure, habitat and long-term productivity.
+
+## AI change safety
+
+Before a substantial change:
+- check Git status if Git is available;
+- warn if there are unrelated uncommitted changes;
+- avoid overwriting user work.
+
+Never claim a feature works solely because the code compiles.
+
+After making a change:
+1. Check for compiler errors.
+2. Explain exactly what changed.
+3. Give clear Unity Editor steps needed to test it.
+4. State what behaviour should be observed.
+5. Report anything that you could not verify directly.
+
+For important gameplay features, verification should test actual player behaviour.
+
+Examples:
+- the player can move and interact correctly;
+- a tree can only be harvested once;
+- resources are awarded correctly;
+- construction consumes the correct resources;
+- regenerated trees behave consistently;
+- saved world changes survive reload.
+
+## Communication
+
+Assume the user is learning Unity and C#.
+
+Explain unfamiliar Unity/programming concepts in plain language when they first matter.
+
+Do not overwhelm the user with several alternative architectures when one clear solution is appropriate.
+
+Clearly distinguish:
+- verified facts,
+- assumptions,
+- proposed changes,
+- changes actually made,
+- unresolved questions.
+
+If an important piece of information is missing, inspect the project before asking the user when possible.
+
+Do not say a change has been completed unless you actually made it.
+
+## Current development direction
+
+Use Assets/Scenes/ForestTest.unity as the current prototype environment.
+
+The likely first playable loop is:
+
+walk/explore
+→ inspect a tree
+→ harvest it
+→ receive wood
+→ use wood to construct something
+→ allow basic regeneration/growth
+→ save and reload the changed world
+
+Do not implement the entire loop at once unless specifically asked.
+
+Build and verify one small part at a time.
