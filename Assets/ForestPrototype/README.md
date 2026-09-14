@@ -9,7 +9,7 @@ Open `Assets/Scenes/ForestTest.unity` in the CCF project, enter Play Mode, and c
 - Escape: release the mouse and stop horizontal movement.
 - Left click in the Game view: capture the mouse again.
 
-The scene contains a 40 x 40 metre ground, 68 primitive trees, four visible stone boundary ridges, one directional light and one first-person player. A winding dirt path leads from the spawn into a small clearing, with varied tree spacing and sizes. Ground, trunks and borders have collision; the thin path and clearing surfaces are decorative and have no colliders. Movement includes walking, running and jumping, with no additional gameplay. Gravity uses a CharacterController; the camera is a child of the player.
+The scene contains a 40 x 40 metre ground, 68 primitive trees, four visible stone boundary ridges, one directional light and one first-person player. A winding dirt path leads from the spawn into a small clearing, with varied tree spacing and sizes. Ground, trunks and borders have collision; the thin path and clearing surfaces are decorative and have no colliders. Movement includes walking, running and jumping. Trees can be inspected and harvested with four timed chops; harvested trees become visible stumps and add wood to the HUD. The clearing also contains an unbuilt Forestry Workbench site: aim at it and press E or left click, then spend 8 wood to reveal the workbench. A shortage message appears when the player has insufficient wood. Gravity uses a CharacterController; the camera is a child of the player.
 
 ## Project inspection
 
@@ -19,13 +19,13 @@ The scene contains a 40 x 40 metre ground, 68 primitive trees, four visible ston
 - The original SampleScene contains Main Camera, Directional Light and Global Volume, without a player/controller.
 - Other installed packages include AI Navigation 2.0.14, Test Framework 1.8.0, Timeline 6.6.0, uGUI 2.6.0 and Visual Scripting 1.9.12. No packages were added or changed.
 
-`ForestPlayer.cs` is the only runtime script added. `Editor/ForestSceneBuilder.cs` creates the scene through Tools > Forest Prototype > Create Test Scene, and refuses to overwrite an existing ForestTest scene. The scene is saved with ordinary editable objects, so it needs no runtime generation. The original scene and build scene list remain unchanged; opening ForestTest directly is enough for Editor Play Mode.
+`ForestPlayer.cs` is the existing runtime controller and remains separate from `ForestBuildable.cs`, which owns the prototype workbench interaction. `Editor/ForestSceneBuilder.cs` creates the baseline scene through Tools > Forest Prototype > Create Test Scene, and refuses to overwrite an existing ForestTest scene. The scene is saved with ordinary editable objects, so it needs no runtime generation. `ForestTest.unity` is the only enabled build scene; `SampleScene.unity` remains in the project as a template.
 
 ## Verification (13 September 2026)
 
 Unity 6000.6.0f1 compiled the full project in a temporary copy with the same Assets, Packages and ProjectSettings. Scene creation exited successfully (exit 0). A separate Unity run reopened the saved ForestTest scene and validated its scripts, material/shader references and player camera reference, with exactly one player, camera and audio listener (exit 0). The installed scene and scripts match those verified files byte for byte. Static checks on the scene in CCF also found no unresolved internal or asset GUID references. The package manifest, package lock, quality settings and original SampleScene match their original copies.
 
-Interactive Play Mode movement and visual appearance have NOT been tested. Open ForestTest, press Play, click Game view, then verify WASD, mouse look and collision against a trunk and border. No additional setup is required.
+Interactive Play Mode movement, harvesting, inspection, collision and visual appearance were verified by the user. Stumps remain inspectable after harvesting. Open ForestTest, press Play, click Game view, then verify the workbench shortage message and the funded build transition. No additional setup is required.
 
 Validation encountered an existing-editor project lock and a standalone licensing failure; both were handled by using an isolated copy launched through Unity Hub's Flatpak environment. An additive-scene startup error was fixed in the builder. One validation process exited with code 137; a retry with two worker threads passed. No C# compilation errors remain in the successful validation runs.
 
