@@ -95,6 +95,7 @@ public static class ForestSceneBuilder
             var plankRack = CreatePlankRack(sawPit.GetComponent<ForestBuildable>(), new Vector3(-6.9f, 0f, 10.3f));
             CreateSecondLogRack(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(2.2f, 0f, 12.8f));
             CreateGrindingStone(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(-2.5f, 0f, 9.4f));
+            ScatterNatureDetail();
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -432,6 +433,72 @@ public static class ForestSceneBuilder
         var solid = Visual(parent, name, localPosition, localScale, material);
         solid.AddComponent<BoxCollider>();
         return solid;
+    }
+
+    // Understory detail scattered across the stand: grass tufts, bushes,
+    // flowers and mushroom patches. Deterministic seed, kept off the dirt
+    // path, the clearing, the spawn area and the work area.
+    public static void ScatterNatureDetail()
+    {
+        var grass = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Grass/Prefabs/UNS_Grass.prefab");
+        var bush = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Bushes/Prefabs/UNS_Bush.prefab");
+        var flower = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Flowers/Prefabs/UNS_Flower.prefab");
+        var mushroom = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab");
+        if (grass == null)
+            return;
+
+        var keepOut = new List<Vector3>();
+        foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            if (root.name.StartsWith("Dirt Path") || root.name == "Forest Clearing")
+                keepOut.Add(root.transform.position);
+        }
+
+        var detail = new GameObject("Nature Detail");
+        detail.transform.position = Vector3.zero;
+        var random = new System.Random(9);
+        var plan = new (GameObject prefab, int count, float minScale, float maxScale)[]
+        {
+            (grass, 170, 0.85f, 1.35f),
+            (bush, 22, 0.8f, 1.2f),
+            (flower, 32, 0.8f, 1.2f),
+            (mushroom, 12, 0.8f, 1.1f)
+        };
+        foreach (var entry in plan)
+        {
+            if (entry.prefab == null)
+                continue;
+            int placed = 0;
+            int attempts = 0;
+            while (placed < entry.count && attempts < entry.count * 20)
+            {
+                attempts++;
+                float x = (float)random.NextDouble() * 38f - 19f;
+                float z = (float)random.NextDouble() * 38f - 19f;
+                var position = new Vector3(x, 0f, z);
+                if (Mathf.Abs(x) < 4.5f && z > 7.5f)
+                    continue; // work area
+                if (Mathf.Abs(x) < 2f && Mathf.Abs(z + 13f) < 2.5f)
+                    continue; // spawn spot
+                bool tooClose = false;
+                foreach (var keep in keepOut)
+                {
+                    if ((keep - position).sqrMagnitude < 1.7f * 1.7f)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if (tooClose)
+                    continue;
+                var tuft = (GameObject)PrefabUtility.InstantiatePrefab(entry.prefab, detail.transform);
+                tuft.transform.localPosition = position;
+                tuft.transform.localRotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
+                float scale = entry.minScale + (float)random.NextDouble() * (entry.maxScale - entry.minScale);
+                tuft.transform.localScale = Vector3.one * scale;
+                placed++;
+            }
+        }
     }
 
     public static GameObject CreateSawPit(ForestBuildable workbench, Vector3 position)
