@@ -139,3 +139,35 @@ The wood a felled tree gives is now a Survival-side conversion of Forestry's bio
 - The marking HUD (bottom-left) is now a treatment summary: "Marked for harvest: N — X.X m³ [M] mark / unmark", where N is the trees still standing with a mark and X.X is their summed `ForestTree.BiologicalStemVolumeM3`. Marking selects a treatment; it never fells, and the volume readout stays biological — any volume-to-wood conversion remains out of Forestry.
 - `ForestTreeMarkingManager` gained `LivingMarkedCount` and `MarkedVolumeM3`, recomputed each frame from a cached mark list that is rebuilt whenever the mark set changes and at least twice a second. A periodic sweep prunes marks whose tree disappeared without a felling event (and recreates a lost marker visual on a still-marked living tree), so destroyed trees cannot linger in the count or the volume. `Save`/`Load` and the felling auto-clear path needed no changes; save version stays 4.
 - Verified in Play Mode: marking T01 + T03 gave exactly the formula sum (1.7443 m3); unmarking T01 left exactly T03's volume (0.6472); felling T03 through `Fell()` cleared the mark, dropped count and volume to 0, and the stump reports 0 m3; save wrote `markedTreeIds: [T02]`, clear-then-load restored it with count 1 and volume 0.6857; destroying a marked tree's GameObject without a felling event was pruned by the sweep within one sweep interval; HUD visually shows "Marked for harvest: 2 — 2.5 m3"; no console errors.
+
+## Marking state hygiene + spatial treatment verification (14 September 2026)
+
+- Bug fix in `ForestTreeMarkingManager`: the mark set and marker registry are static, and play-mode sessions in one editor run do not domain-reload, so a fresh play session inherited the previous session's pending marks (a stale mark from HUD testing entered the first experiment run and was felled with the treatment). `Awake` now clears both statics so every session starts with an empty pending-treatment list. This touches no save data and no other stream's code.
+
+Spatial treatment verification (all agent-run Play Mode, deterministic seed 20260914, identical scene baseline: 68 trees, 71.6576 m3 standing, mean CI 3.704, mean cell light 0.390, max wind 7.78; treatments selected through the real marking manager and felled through `Fell()`; marking summary cross-checked exact in every run — 8/8, 11/11, 16/16 and volume sums exact; 10 ecological years each; control y5 regen sum 41.731 reproduces the earlier determinism anchor):
+
+| year 10 | control | dispersed-8 | group-8 | seed-tree-11 | heavy dispersed-16 |
+| --- | --- | --- | --- | --- | --- |
+| removed m3 | 0 | 7.612 | 8.520 | 10.296 (1 seed tree retained in block) | 15.659 |
+| living trees | 68 | 60 | 60 | 57 | 52 |
+| mean CI | 3.696 | 3.413 | 3.545 | 3.386 | 3.005 |
+| mean DBH growth cm/yr | 0.172 | 0.177 | 0.176 | 0.178 | 0.188 |
+| mean cell light | 0.126 | 0.177 | 0.185 | 0.177 | 0.203 |
+| light variance | 0.029 | 0.052 | 0.056 | 0.046 | 0.064 |
+| regen density sum | 39.25 | 43.09 | 46.17 | 48.43 | 49.36 |
+| max wind year 1 | 8.05 | 9.51 | 24.50 | 16.68 | 9.43 |
+| max wind year 10 | 8.63 | 7.01 | 10.63 | 8.48 | 7.36 |
+| standing volume m3 | 121.86 | 109.16 | 107.59 | 104.46 | 95.47 |
+
+Useful trade-offs (visibly and numerically different, same removal count for the first two):
+
+- **Dispersed selection (8)** is the low-exposure treatment: modest regeneration gain (+10% over control), the best per-tree competition relief among 8-tree treatments (mean CI 3.413), a small wind spike (9.5) that decays below baseline by year 10 (7.0), and the least total production loss (removed + standing = 116.8 vs 121.9 control).
+- **Small group opening (8, clustered)** produces the strongest regeneration response per tree removed (+18% over control, 46.2) but a 24.5 max-wind spike that still sits at 10.6 after ten years — the opening's edge trees read far into the "high" band. A real trade-off: canopy-gap regeneration versus exposure, exactly what CCF planning needs to reason about.
+- **Seed-tree retention (12-block minus the central T17)** combines the two: regeneration higher than the plain group opening from year 6 on (50.5 vs 48.7 peak, 48.4 vs 46.2 at y10) with wind max between the two (16.7). The retained seed tree measurably lifts gap seed rain — the mark/retain decision has a numeric consequence.
+- **Heavier dispersed opening (16)** gives the strongest growth release (+9.3% mean DBH growth, CI 3.01) and the highest regeneration (49.4) while keeping max wind near dispersed-8 levels (9.4) — spreading the same or double removal across the stand avoids the per-cell opening accumulation that clusters create. The cost is standing production: 95.5 m3 at y10 (−21.7% vs control).
+
+Responses too weak or too strong ([D] observations, nothing changed):
+
+- Too weak: the DBH growth response saturates. Even doubling removal intensity only lifts mean growth from 0.172 to 0.188 cm/yr (+9%) via the `1/(1 + CI/Ci50)` response; thinning barely feels rewarding at the stand level. If release should feel more significant, `Ci50` (or a steeper response curve) is the [D] lever — proposal only.
+- Too strong: clustered removals stack `RecentOpening` ~2 per cell, and `GetWindRisk` multiplies it linearly (`1 + WindOpeningWeight x RecentOpening`), so an 8-tree group opening reads as a 24.5 "high" — 3.2x the dispersed response and 2.5x the y10 value. Proposal [D]: cap or normalize per-cell `RecentOpening` (for example cap 2.0) or lower `WindOpeningWeight` so a legitimate group opening is serious but not catastrophic.
+- Wind band calibration: the unthinned control already reports max risk 7.8-8.6 ("high" >= 7) with no treatment at all, so the diagnostic bands read alarmist at rest. Proposal [D]: recalibrate the high threshold (or scale the susceptibility constant) so "high" means treatment-relevant exposure rather than the dense-stand norm.
