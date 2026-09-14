@@ -84,6 +84,9 @@ public static class ForestSceneBuilder
             CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
             CreateShelter(workbench.GetComponent<ForestBuildable>(), new Vector3(-5.6f, 0f, 12.2f));
             CreateTimberSledge(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.2f, 0f, 9.0f));
+            var sawPit = CreateSawPit(workbench.GetComponent<ForestBuildable>(), new Vector3(-4.9f, 0f, 9.3f));
+            var plankRack = CreatePlankRack(sawPit.GetComponent<ForestBuildable>(), new Vector3(-6.9f, 0f, 10.3f));
+            CreateSecondLogRack(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(2.2f, 0f, 12.8f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -414,6 +417,179 @@ public static class ForestSceneBuilder
         var solid = Visual(parent, name, localPosition, localScale, material);
         solid.AddComponent<BoxCollider>();
         return solid;
+    }
+
+    public static GameObject CreateSawPit(ForestBuildable workbench, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var sawPit = new GameObject("Saw Pit");
+        sawPit.transform.position = position;
+        var collider = sawPit.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.5f, 0f);
+        collider.size = new Vector3(3.4f, 1.0f, 2.2f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(sawPit.transform, false);
+        Visual(unbuilt.transform, "Footing Front", new Vector3(0f, 0.05f, -0.9f), new Vector3(3.2f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Footing Back", new Vector3(0f, 0.05f, 0.9f), new Vector3(3.2f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Stake Left", new Vector3(-1.5f, 0.35f, 0f), new Vector3(0.12f, 0.7f, 0.12f), bark);
+        Visual(unbuilt.transform, "Stake Right", new Vector3(1.5f, 0.35f, 0f), new Vector3(0.12f, 0.6f, 0.12f), bark);
+
+        var built = new GameObject("Built Saw Pit");
+        built.transform.SetParent(sawPit.transform, false);
+        Visual(built.transform, "Pit Rim Front", new Vector3(0f, 0.25f, -1.0f), new Vector3(3.2f, 0.3f, 0.2f), bark);
+        Visual(built.transform, "Pit Rim Back", new Vector3(0f, 0.3f, 1.0f), new Vector3(3.2f, 0.6f, 0.2f), bark);
+        Visual(built.transform, "Pit Rim Left", new Vector3(-1.6f, 0.3f, 0f), new Vector3(0.2f, 0.6f, 1.8f), bark);
+        Visual(built.transform, "Pit Rim Right", new Vector3(1.6f, 0.3f, 0f), new Vector3(0.2f, 0.6f, 1.8f), bark);
+        Visual(built.transform, "Saw Blade", new Vector3(0f, 0.55f, 0f), new Vector3(1.7f, 0.5f, 0.04f), stone);
+        Visual(built.transform, "Blade Post Left", new Vector3(-1.2f, 1.05f, 0f), new Vector3(0.14f, 1.5f, 0.14f), bark);
+        Visual(built.transform, "Blade Post Right", new Vector3(1.2f, 1.05f, 0f), new Vector3(0.14f, 1.5f, 0.14f), bark);
+        Visual(built.transform, "Trestle Beam", new Vector3(0f, 1.75f, 0f), new Vector3(2.6f, 0.14f, 0.16f), bark);
+        built.SetActive(false);
+
+        var buildable = sawPit.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 6;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("displayName").stringValue = "Saw Pit";
+        serialized.FindProperty("buildId").stringValue = "saw-pit-01";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = workbench;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        var sawPitComponent = sawPit.AddComponent<ForestSawPit>();
+        var sawSerialized = new SerializedObject(sawPitComponent);
+        sawSerialized.FindProperty("interactionDistance").floatValue = 4f;
+        sawSerialized.FindProperty("logRackSearchRadius").floatValue = 8f;
+        sawSerialized.FindProperty("logsPerBatch").intValue = 5;
+        sawSerialized.FindProperty("planksPerBatch").intValue = 2;
+        sawSerialized.ApplyModifiedPropertiesWithoutUndo();
+        return sawPit;
+    }
+
+    public static GameObject CreatePlankRack(ForestBuildable sawPit, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var rack = new GameObject("Plank Rack");
+        rack.transform.position = position;
+        var collider = rack.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.4f, 0f);
+        collider.size = new Vector3(2.0f, 0.8f, 1.4f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(rack.transform, false);
+        Visual(unbuilt.transform, "Foundation Marker", new Vector3(0f, 0.05f, 0f), new Vector3(2.0f, 0.1f, 1.2f), stone);
+        Visual(unbuilt.transform, "Corner Post A", new Vector3(-0.8f, 0.3f, -0.5f), new Vector3(0.1f, 0.6f, 0.1f), stone);
+        Visual(unbuilt.transform, "Corner Post B", new Vector3(0.8f, 0.3f, -0.5f), new Vector3(0.1f, 0.6f, 0.1f), stone);
+
+        var built = new GameObject("Built Visual");
+        built.transform.SetParent(rack.transform, false);
+        Visual(built.transform, "Platform", new Vector3(0f, 0.3f, 0f), new Vector3(1.9f, 0.12f, 1.3f), bark);
+        Visual(built.transform, "Post Left", new Vector3(-0.85f, 0.55f, -0.5f), new Vector3(0.1f, 0.5f, 0.1f), bark);
+        Visual(built.transform, "Post Right", new Vector3(0.85f, 0.55f, -0.5f), new Vector3(0.1f, 0.5f, 0.1f), bark);
+        Visual(built.transform, "Top Rail", new Vector3(0f, 0.8f, -0.5f), new Vector3(1.8f, 0.1f, 0.1f), bark);
+
+        var fillLow = new GameObject("Plank Fill Low");
+        fillLow.transform.SetParent(built.transform, false);
+        AddPlank(fillLow.transform, "Plank", new Vector3(0f, 0.42f, -0.3f), bark);
+
+        var fillMedium = new GameObject("Plank Fill Medium");
+        fillMedium.transform.SetParent(built.transform, false);
+        AddPlank(fillMedium.transform, "Plank", new Vector3(0f, 0.42f, 0.2f), bark);
+
+        var fillFull = new GameObject("Plank Fill Full");
+        fillFull.transform.SetParent(built.transform, false);
+        AddPlank(fillFull.transform, "Plank", new Vector3(0f, 0.56f, -0.05f), bark);
+        built.SetActive(false);
+
+        var storage = rack.AddComponent<ForestWoodStorage>();
+        var storageSerialized = new SerializedObject(storage);
+        storageSerialized.FindProperty("storageId").stringValue = "plank-rack-01";
+        storageSerialized.FindProperty("capacity").intValue = 40;
+        storageSerialized.FindProperty("interactionDistance").floatValue = 4f;
+        storageSerialized.FindProperty("displayName").stringValue = "Plank Rack";
+        storageSerialized.FindProperty("storesPlanks").boolValue = true;
+        storageSerialized.FindProperty("buildable").objectReferenceValue = sawPit;
+        storageSerialized.FindProperty("logFillLow").objectReferenceValue = fillLow;
+        storageSerialized.FindProperty("logFillMedium").objectReferenceValue = fillMedium;
+        storageSerialized.FindProperty("logFillFull").objectReferenceValue = fillFull;
+        storageSerialized.ApplyModifiedPropertiesWithoutUndo();
+        return rack;
+    }
+
+    public static GameObject CreateSecondLogRack(ForestBuildable sawPit, ForestWoodStorage plankRackStorage, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var rack = new GameObject("Log Rack II");
+        rack.transform.position = position;
+        var collider = rack.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.55f, 0f);
+        collider.size = new Vector3(1.8f, 1.1f, 1.1f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(rack.transform, false);
+        Visual(unbuilt.transform, "Foundation Marker", new Vector3(0f, 0.05f, 0f), new Vector3(1.8f, 0.1f, 1.0f), stone);
+        Visual(unbuilt.transform, "Corner Post A", new Vector3(-0.7f, 0.45f, -0.4f), new Vector3(0.1f, 0.9f, 0.1f), stone);
+        Visual(unbuilt.transform, "Corner Post B", new Vector3(0.7f, 0.45f, -0.4f), new Vector3(0.1f, 0.9f, 0.1f), stone);
+
+        var built = new GameObject("Built Visual");
+        built.transform.SetParent(rack.transform, false);
+        var frame = new GameObject("Rack Frame");
+        frame.transform.SetParent(built.transform, false);
+        Visual(frame.transform, "Frame Post Front Left", new Vector3(-0.75f, 0.5f, -0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Front Right", new Vector3(0.75f, 0.5f, -0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Back Left", new Vector3(-0.75f, 0.5f, 0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Back Right", new Vector3(0.75f, 0.5f, 0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Top Rail Left", new Vector3(-0.75f, 0.98f, 0f), new Vector3(0.1f, 0.1f, 0.92f), bark);
+        Visual(frame.transform, "Top Rail Right", new Vector3(0.75f, 0.98f, 0f), new Vector3(0.1f, 0.1f, 0.92f), bark);
+        var fillLow = new GameObject("Log Fill Low");
+        fillLow.transform.SetParent(built.transform, false);
+        AddLog(fillLow.transform, "Log", new Vector3(0f, 0.24f, -0.18f), bark);
+        AddLog(fillLow.transform, "Log", new Vector3(0f, 0.24f, 0.18f), bark);
+        built.SetActive(false);
+
+        var buildable = rack.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 4;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("plankCost").intValue = 4;
+        serialized.FindProperty("displayName").stringValue = "Log Rack II";
+        serialized.FindProperty("buildId").stringValue = "log-rack-build-02";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = sawPit;
+        serialized.FindProperty("plankSource").objectReferenceValue = plankRackStorage;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        var storage = rack.AddComponent<ForestWoodStorage>();
+        var storageSerialized = new SerializedObject(storage);
+        storageSerialized.FindProperty("storageId").stringValue = "log-rack-02";
+        storageSerialized.FindProperty("capacity").intValue = 100;
+        storageSerialized.FindProperty("interactionDistance").floatValue = 4f;
+        storageSerialized.FindProperty("displayName").stringValue = "Log Rack II";
+        storageSerialized.FindProperty("buildable").objectReferenceValue = buildable;
+        storageSerialized.FindProperty("logFillLow").objectReferenceValue = fillLow;
+        storageSerialized.ApplyModifiedPropertiesWithoutUndo();
+        return rack;
+    }
+
+    private static GameObject AddPlank(Transform parent, string name, Vector3 localPosition, Material material)
+    {
+        var plank = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        plank.name = name;
+        plank.transform.SetParent(parent, false);
+        plank.transform.localPosition = localPosition;
+        plank.transform.localScale = new Vector3(1.5f, 0.08f, 0.5f);
+        plank.GetComponent<Renderer>().sharedMaterial = material;
+        UnityEngine.Object.DestroyImmediate(plank.GetComponent<Collider>());
+        return plank;
     }
 
     public static GameObject CreateTimberSledge(ForestBuildable workbench, Vector3 position)

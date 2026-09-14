@@ -9,6 +9,9 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField, Min(0f)] private float storageSearchRadius = 6f;
     // While this buildable stands, the player can carry this many extra wood units.
     [SerializeField, Min(0)] private int carriedWoodCapacityBonus = 0;
+    // Plank-using buildables also require planks from a specific plank rack.
+    [SerializeField, Min(0)] private int plankCost = 0;
+    [SerializeField] private ForestWoodStorage plankSource;
     [SerializeField] private string displayName = "Forestry Workbench";
     [SerializeField] private string buildId = "workbench-01";
     [SerializeField] private ForestBuildable requiredBuildable;
@@ -100,21 +103,34 @@ public sealed class ForestBuildable : MonoBehaviour
             return;
         }
 
+        if (plankCost > 0)
+        {
+            int planks = plankSource != null ? plankSource.StoredWood : 0;
+            if (planks < plankCost)
+            {
+                SetMessage($"Need {plankCost} planks. Available: {planks}.", 3.5f);
+                return;
+            }
+        }
+
         // Carried timber pays first; whatever is missing comes out of nearby racks.
         int fromPlayer = Mathf.Min(carried, woodCost);
         int fromStorage = woodCost - fromPlayer;
         if (fromPlayer > 0)
             player.TrySpendWood(fromPlayer);
         SpendStoredWood(fromStorage);
+        if (plankCost > 0)
+            plankSource.TakeStoredWood(plankCost);
 
         isBuilt = true;
         SetVisuals(true);
+        string plankNote = plankCost > 0 ? $", {plankCost} planks" : "";
         string source = fromStorage <= 0
-            ? "all carried"
+            ? $"all carried{plankNote}"
             : fromPlayer <= 0
-                ? "all stored"
-                : $"{fromPlayer} carried, {fromStorage} stored";
-        SetMessage($"{displayName} built. Wood -{woodCost} ({source}).", 3.5f);
+                ? $"all stored{plankNote}"
+                : $"{fromPlayer} carried, {fromStorage} stored{plankNote}";
+        SetMessage($"{displayName} built. Wood -{woodCost}{plankNote}. ({source}).", 3.5f);
         Debug.Log($"FOREST_BUILD: {displayName} constructed for {woodCost} wood ({source}).", this);
     }
 
@@ -125,7 +141,7 @@ public sealed class ForestBuildable : MonoBehaviour
         int total = 0;
         foreach (ForestWoodStorage storage in storages)
         {
-            if (storage == null || !storage.IsActive || storage.StoredWood <= 0)
+            if (storage == null || !storage.IsActive || storage.StoresPlanks || storage.StoredWood <= 0)
                 continue;
             if (Vector3.Distance(transform.position, storage.transform.position) > storageSearchRadius)
                 continue;
@@ -210,7 +226,9 @@ public sealed class ForestBuildable : MonoBehaviour
         }
 
         string prompt = IsPrerequisiteMet
-            ? $"[E] Build {displayName} ({woodCost} Wood)"
+            ? (plankCost > 0
+                ? $"[E] Build {displayName} ({woodCost} Wood + {plankCost} Planks)"
+                : $"[E] Build {displayName} ({woodCost} Wood)")
             : $"Requires {requiredBuildable.DisplayName}";
         GUI.Box(new Rect(Screen.width * 0.5f - 240f, Screen.height * 0.5f + 40f, 480f, 58f), prompt, promptStyle);
     }

@@ -7,6 +7,9 @@ public sealed class ForestWoodStorage : MonoBehaviour
     [SerializeField, Min(1)] private int capacity = 100;
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField] private string displayName = "Log Rack";
+    // Plank racks hold sawn planks instead of wood units: the player never
+    // hand-carries planks, so deposit/withdraw input is skipped for them.
+    [SerializeField] private bool storesPlanks = false;
     [SerializeField] private ForestBuildable buildable;
     [SerializeField] private GameObject logFillLow;
     [SerializeField] private GameObject logFillMedium;
@@ -23,9 +26,11 @@ public sealed class ForestWoodStorage : MonoBehaviour
     private GUIStyle messageStyle;
 
     public string StorageId => storageId;
+    public string DisplayName => displayName;
     public int StoredWood => storedWood;
     public int Capacity => capacity;
     public int FreeCapacity => Mathf.Max(0, capacity - storedWood);
+    public bool StoresPlanks => storesPlanks;
     public ForestBuildable Buildable => buildable;
     public bool IsActive => buildable != null && buildable.IsBuilt;
 
@@ -43,7 +48,7 @@ public sealed class ForestWoodStorage : MonoBehaviour
             messageTimer -= Time.deltaTime;
 
         isLooking = false;
-        if (!IsActive || view == null || Cursor.lockState != CursorLockMode.Locked)
+        if (!IsActive || storesPlanks || view == null || Cursor.lockState != CursorLockMode.Locked)
             return;
 
         int hitCount = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hitBuffer, interactionDistance);
@@ -150,6 +155,17 @@ public sealed class ForestWoodStorage : MonoBehaviour
         storedWood -= taken;
         RefreshFill();
         return taken;
+    }
+
+    // Processing adds its output here; the caller reports the result.
+    public int AddStoredWood(int amount)
+    {
+        int added = Mathf.Clamp(amount, 0, FreeCapacity);
+        if (added <= 0)
+            return 0;
+        storedWood += added;
+        RefreshFill();
+        return added;
     }
 
     private void RefreshFill()
