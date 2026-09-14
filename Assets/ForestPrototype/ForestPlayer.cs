@@ -486,6 +486,9 @@ public sealed class ForestPlayer : MonoBehaviour
         GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
         GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);
 
+        if (!inspectedTree.IsStump)
+            GUILayout.Label($"• Standing Volume: {inspectedTree.BiologicalStemVolumeM3:F2} m³", cardBodyStyle);
+
         if (inspectedTree.IsStump)
         {
             GUILayout.Label("• CCF note: canopy gap created; future regeneration will grow from new individuals.", cardBodyStyle);
