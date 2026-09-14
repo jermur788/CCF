@@ -19,6 +19,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private Transform playerRoot;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private ForestTree aimedTree;
+    private readonly List<ForestTree> markedTreeCache = new List<ForestTree>();
+    private bool markedCacheDirty = true;
+    private float nextStaleSweepTime;
     private string message = "";
     private float messageTimer;
     private GUIStyle promptStyle;
@@ -27,6 +30,11 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private Material markerMaterial;
 
     public int MarkedCount => MarkedIds.Count;
+
+    // Treatment summary for the HUD: only trees still standing with a mark,
+    // and their summed biological stem volume. Marking selects; it never fells.
+    public int LivingMarkedCount { get; private set; }
+    public float MarkedVolumeM3 { get; private set; }
 
     public List<string> GetMarkedIds()
     {
@@ -64,6 +72,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void Update()
     {
+        UpdateMarkedSummary();
+
         if (messageTimer > 0f)
             messageTimer -= Time.deltaTime;
 
@@ -122,6 +132,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (!MarkedIds.Add(tree.TreeId))
             return;
         CreateMarker(tree);
+        markedCacheDirty = true;
         if (feedback)
             SetMessage($"Marked {tree.TreeId} for harvest ({MarkedIds.Count} marked)");
     }
@@ -133,6 +144,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (!MarkedIds.Remove(tree.TreeId))
             return;
         RemoveMarker(tree.TreeId);
+        markedCacheDirty = true;
         if (feedback)
             SetMessage($"Unmarked {tree.TreeId} ({MarkedIds.Count} marked)");
     }
@@ -143,6 +155,80 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         foreach (string id in ids)
             RemoveMarker(id);
         MarkedIds.Clear();
+        markedCacheDirty = true;
+    }
+
+    // The HUD summary must reflect exactly the trees still standing with a mark.
+    // Marks whose tree disappeared without a felling event are pruned by the sweep.
+    private void UpdateMarkedSummary()
+    {
+        if (markedCacheDirty || Time.unscaledTime >= nextStaleSweepTime)
+        {
+            markedCacheDirty = false;
+            nextStaleSweepTime = Time.unscaledTime + 0.5f;
+            SweepStaleMarks();
+            RebuildMarkedTreeCache();
+        }
+
+        int living = 0;
+        float volume = 0f;
+        foreach (ForestTree tree in markedTreeCache)
+        {
+            if (tree == null || tree.IsStump)
+                continue;
+            living++;
+            volume += tree.BiologicalStemVolumeM3;
+        }
+        LivingMarkedCount = living;
+        MarkedVolumeM3 = volume;
+    }
+
+    private void SweepStaleMarks()
+    {
+        if (MarkedIds.Count == 0 && MarkerObjects.Count == 0)
+            return;
+
+        var livingById = new Dictionary<string, ForestTree>();
+        foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (tree != null && !tree.IsStump && !string.IsNullOrEmpty(tree.TreeId))
+                livingById[tree.TreeId] = tree;
+        }
+
+        var stale = new List<string>();
+        foreach (string id in MarkedIds)
+        {
+            if (!livingById.TryGetValue(id, out ForestTree tree))
+            {
+                stale.Add(id);
+                continue;
+            }
+            // A living marked tree always keeps its visual; recreate if it was lost.
+            if (!MarkerObjects.TryGetValue(id, out GameObject marker) || marker == null)
+                CreateMarker(tree);
+        }
+
+        foreach (string id in stale)
+        {
+            MarkedIds.Remove(id);
+            RemoveMarker(id);
+        }
+
+        if (stale.Count > 0)
+            markedCacheDirty = true;
+    }
+
+    private void RebuildMarkedTreeCache()
+    {
+        markedTreeCache.Clear();
+        foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (tree == null || tree.IsStump || string.IsNullOrEmpty(tree.TreeId))
+                continue;
+            if (!MarkedIds.Contains(tree.TreeId))
+                continue;
+            markedTreeCache.Add(tree);
+        }
     }
 
     // Used by save loading; marks are keyed by the persistent tree id.
@@ -166,7 +252,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void CreateMarker(ForestTree tree)
     {
-        if (MarkerObjects.ContainsKey(tree.TreeId))
+        if (MarkerObjects.TryGetValue(tree.TreeId, out GameObject existing) && existing != null)
             return;
 
         var marker = new GameObject("Harvest Mark");
@@ -250,7 +336,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             };
             counterStyle.normal.textColor = new Color(0.95f, 0.85f, 0.65f);
         }
-        GUI.Label(new Rect(18f, Screen.height - 44f, 420f, 28f), $"Marked trees: {MarkedIds.Count}   [M] mark / unmark", counterStyle);
+        GUI.Label(new Rect(18f, Screen.height - 44f, 680f, 28f),
+            $"Marked for harvest: {LivingMarkedCount} — {MarkedVolumeM3:0.0} m³   [M] mark / unmark", counterStyle);
 
         if (aimedTree == null)
             return;

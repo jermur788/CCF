@@ -18,6 +18,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     private readonly Dictionary<ForestTree, float> competitionIndex = new Dictionary<ForestTree, float>();
     private readonly Dictionary<ForestTree, float> annualDbhGrowth = new Dictionary<ForestTree, float>();
     private readonly Dictionary<ForestTree, float> seedPotential = new Dictionary<ForestTree, float>();
+    private bool competitionCurrent;
     private string lastMastLabel = "normal";
     private float lastMastMultiplier = 1f;
 
@@ -82,6 +83,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             if (index >= 0)
                 cells[index].RecentOpening += 1f;
         }
+        competitionCurrent = false;
         RecomputeCanopy();
         RecomputeSeedRain();
     }
@@ -104,6 +106,7 @@ public sealed class ForestEcologyController : MonoBehaviour
 
         // Annual order follows the Sitka report's sequence.
         UpdateCompetition(s);             // 1. competition from current neighbours
+        competitionCurrent = true;
         RecomputeCanopy();                // 2. canopy/light from current crowns
         GrowAdults(s);                    // 3. adult DBH and height
         RelaxCrowns(s);                   // 4. crown relaxation toward competition-limited target
@@ -122,6 +125,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     {
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
+        competitionCurrent = false;
         // Cells not present in the save must return to a clean state, or a second
         // load in the same session would inherit later regeneration.
         if (cells != null)
@@ -135,6 +139,13 @@ public sealed class ForestEcologyController : MonoBehaviour
             }
         }
         RefreshMastForCurrentYear();
+    }
+
+    // Competition is computed during the annual update; on demand (inspection)
+    // it is computed lazily so the card is correct even before the first year.
+    public void InvalidateCompetition()
+    {
+        competitionCurrent = false;
     }
 
     public void RestoreCellState(int index, float density, float height, int establishYear, float recentOpening)
@@ -273,6 +284,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             }
             competitionIndex[target] = ci;
         }
+        competitionCurrent = true;
     }
 
     // DBH responds to competition; height follows age/site and is deliberately
@@ -479,7 +491,31 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     public float GetCompetitionIndex(ForestTree tree)
     {
+        if (!competitionCurrent)
+        {
+            TreeSpeciesDefinition s = ResolveSpecies();
+            if (s != null)
+                UpdateCompetition(s);
+        }
         return tree != null && competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+    }
+
+    // Player-readable interpretation of the competition index. Thresholds are [D] calibration.
+    public string GetCompetitionLabel(ForestTree tree)
+    {
+        float ci = GetCompetitionIndex(tree);
+        if (ci < 1f) return "open / released";
+        if (ci < 3f) return "moderate";
+        return "crowded";
+    }
+
+    // Player-readable wind exposure band. Thresholds are [D] calibration.
+    public string GetWindRiskLabel(ForestTree tree)
+    {
+        float risk = GetWindRisk(tree);
+        if (risk < 4f) return "low";
+        if (risk < 7f) return "moderate";
+        return "high";
     }
 
     public float GetAnnualDbhGrowth(ForestTree tree)

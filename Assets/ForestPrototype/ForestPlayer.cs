@@ -27,6 +27,8 @@ public sealed class ForestPlayer : MonoBehaviour
     private ForestTree aimedTree;
     private bool isInspecting;
     private ForestTree inspectedTree;
+    private ForestEcologyController inspectedTreeEcology;
+    private ForestTreeMarkingManager inspectedTreeMarking;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private string inspectedTreeName = "";
     private float inspectedTreeHeight;
@@ -34,6 +36,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private float lastChopTime = -1f;
     private float lookPixelsSinceRecentre;
     private float secondsSinceRecentre;
+    private int recentreGraceFrames;
     private float chopImpactTimer;
     private Vector3 defaultCameraLocalPos = new Vector3(0f, 1.65f, 0f);
     private string lastHarvestMessage = "";
@@ -45,7 +48,6 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle cardFooterStyle;
     private GUIStyle hudLabelStyle;
     private GUIStyle hudValueStyle;
-    private int recentreGraceFrames;
     private GUIStyle notificationStyle;
 
     public int MaxCarriedWood => maxCarriedWood;
@@ -304,6 +306,8 @@ public sealed class ForestPlayer : MonoBehaviour
         inspectedTreeName = tree.gameObject.name;
         inspectedTreeHeight = tree.Height;
         inspectedTreeDiameter = tree.Diameter;
+        inspectedTreeEcology = Object.FindFirstObjectByType<ForestEcologyController>();
+        inspectedTreeMarking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
         isInspecting = true;
     }
 
@@ -480,7 +484,7 @@ public sealed class ForestPlayer : MonoBehaviour
         }
 
         float cardWidth = 500f;
-        float cardHeight = 250f;
+        float cardHeight = 380f;
         Rect cardRect = new Rect(centerX - cardWidth * 0.5f, centerY - cardHeight * 0.5f, cardWidth, cardHeight);
         GUI.Box(cardRect, GUIContent.none, cardStyle);
 
@@ -490,13 +494,22 @@ public sealed class ForestPlayer : MonoBehaviour
         string speciesName = inspectedTree != null && inspectedTree.Species != null
             ? inspectedTree.Species.FullName
             : "Unknown species";
+        bool markedForHarvest = inspectedTreeMarking != null && inspectedTreeMarking.IsMarked(inspectedTree);
         GUILayout.Label($"• Species: {speciesName}", cardBodyStyle);
-        GUILayout.Label($"• Status: {inspectedTree.StageLabel}", cardBodyStyle);
+        GUILayout.Label($"• Status: {inspectedTree.StageLabel}{(markedForHarvest ? " — MARKED for harvest (M to unmark)" : "")}", cardBodyStyle);
+        GUILayout.Label($"• Age: {inspectedTree.AgeYears} years", cardBodyStyle);
         GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
         GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);
+        GUILayout.Label($"• Stem Volume: {inspectedTree.BiologicalStemVolumeM3:F2} m³", cardBodyStyle);
 
-        if (!inspectedTree.IsStump)
-            GUILayout.Label($"• Standing Volume: {inspectedTree.BiologicalStemVolumeM3:F2} m³", cardBodyStyle);
+        if (inspectedTreeEcology != null && !inspectedTree.IsStump)
+        {
+            GUILayout.Label($"• Local crowding: {inspectedTreeEcology.GetCompetitionLabel(inspectedTree)} (CI {inspectedTreeEcology.GetCompetitionIndex(inspectedTree):0.0})", cardBodyStyle);
+            float recentGrowth = inspectedTreeEcology.GetAnnualDbhGrowth(inspectedTree);
+            if (recentGrowth > 0.0001f)
+                GUILayout.Label($"• Recent DBH growth: {recentGrowth:F2} cm/year", cardBodyStyle);
+            GUILayout.Label($"• Wind vulnerability: {inspectedTreeEcology.GetWindRiskLabel(inspectedTree)}", cardBodyStyle);
+        }
 
         if (inspectedTree.IsStump)
         {
@@ -504,6 +517,15 @@ public sealed class ForestPlayer : MonoBehaviour
         }
         else
         {
+            if (inspectedTree.Species != null)
+            {
+                float maturity = inspectedTree.Species.Maturity(inspectedTree.AgeYears);
+                string reproduction = maturity <= 0.05f
+                    ? "not yet seed-bearing"
+                    : (maturity < 0.95f ? "maturing — some seed" : "seed-bearing");
+                GUILayout.Label($"• Reproduction: {reproduction}", cardBodyStyle);
+            }
+
             string ccfNote = inspectedTree.Stage == ForestTreeStage.Mature
                 ? "• CCF Status: Mature canopy tree — candidate for selective single-tree thinning."
                 : "• CCF Status: Young growing stock — retain for continuous crown cover.";
