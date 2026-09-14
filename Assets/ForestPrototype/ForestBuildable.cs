@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,6 +6,7 @@ public sealed class ForestBuildable : MonoBehaviour
 {
     [SerializeField, Min(1)] private int woodCost = 8;
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
+    [SerializeField, Min(0f)] private float storageSearchRadius = 6f;
     [SerializeField] private string displayName = "Forestry Workbench";
     [SerializeField] private string buildId = "workbench-01";
     [SerializeField] private ForestBuildable requiredBuildable;
@@ -14,6 +16,7 @@ public sealed class ForestBuildable : MonoBehaviour
     private Camera view;
     private Transform playerRoot;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
+    private readonly List<ForestWoodStorage> nearbyStorages = new List<ForestWoodStorage>();
     private bool isLooking;
     private bool isBuilt;
     private string message = "";
@@ -87,16 +90,58 @@ public sealed class ForestBuildable : MonoBehaviour
             return;
         }
 
-        if (!player.TrySpendWood(woodCost))
+        int carried = player.CarriedWood;
+        int stored = GatherNearbyStoredWood();
+        if (carried + stored < woodCost)
         {
-            SetMessage($"Not enough wood. Need {woodCost}, have {player.CarriedWood}.", 3f);
+            SetMessage($"Not enough wood. Need {woodCost} (carried {carried}, nearby stored {stored}).", 3.5f);
             return;
         }
 
+        // Carried timber pays first; whatever is missing comes out of nearby racks.
+        int fromPlayer = Mathf.Min(carried, woodCost);
+        int fromStorage = woodCost - fromPlayer;
+        if (fromPlayer > 0)
+            player.TrySpendWood(fromPlayer);
+        SpendStoredWood(fromStorage);
+
         isBuilt = true;
         SetVisuals(true);
-        SetMessage($"{displayName} built. Wood -{woodCost}.", 3.5f);
-        Debug.Log($"FOREST_BUILD: {displayName} constructed for {woodCost} wood.", this);
+        string source = fromStorage <= 0
+            ? "all carried"
+            : fromPlayer <= 0
+                ? "all stored"
+                : $"{fromPlayer} carried, {fromStorage} stored";
+        SetMessage($"{displayName} built. Wood -{woodCost} ({source}).", 3.5f);
+        Debug.Log($"FOREST_BUILD: {displayName} constructed for {woodCost} wood ({source}).", this);
+    }
+
+    private int GatherNearbyStoredWood()
+    {
+        nearbyStorages.Clear();
+        ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>();
+        int total = 0;
+        foreach (ForestWoodStorage storage in storages)
+        {
+            if (storage == null || !storage.IsActive || storage.StoredWood <= 0)
+                continue;
+            if (Vector3.Distance(transform.position, storage.transform.position) > storageSearchRadius)
+                continue;
+            nearbyStorages.Add(storage);
+            total += storage.StoredWood;
+        }
+        return total;
+    }
+
+    private void SpendStoredWood(int amount)
+    {
+        int remaining = amount;
+        foreach (ForestWoodStorage storage in nearbyStorages)
+        {
+            if (remaining <= 0)
+                break;
+            remaining -= storage.TakeStoredWood(remaining);
+        }
     }
 
     private void SetVisuals(bool built)

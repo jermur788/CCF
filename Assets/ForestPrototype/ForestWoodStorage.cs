@@ -141,6 +141,17 @@ public sealed class ForestWoodStorage : MonoBehaviour
         RefreshFill();
     }
 
+    // Construction pulls timber straight from an active rack; the buildable reports the result.
+    public int TakeStoredWood(int amount)
+    {
+        int taken = Mathf.Clamp(amount, 0, storedWood);
+        if (taken <= 0)
+            return 0;
+        storedWood -= taken;
+        RefreshFill();
+        return taken;
+    }
+
     private void RefreshFill()
     {
         float fraction = capacity > 0 ? (float)storedWood / capacity : 0f;
