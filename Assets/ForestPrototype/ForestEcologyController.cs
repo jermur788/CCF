@@ -538,6 +538,65 @@ public sealed class ForestEcologyController : MonoBehaviour
         return tree != null && seedPotential.TryGetValue(tree, out float value) ? value : 0f;
     }
 
+    // Player-readable regeneration state for one cell, built only from data the
+    // simulation already maintains. Classification names the binding constraint
+    // (seed / light / site disturbance); no new ecological mechanism.
+    public string RegenerationReportLine(Vector3 worldPosition)
+    {
+        TreeSpeciesDefinition s = ResolveSpecies();
+        if (s == null || cells == null)
+            return "";
+        int index = GetCellIndex(worldPosition);
+        if (index < 0)
+            return "";
+        ForestEcologyCell cell = cells[index];
+
+        float seedFactor = 1f - Mathf.Exp(-cell.SitkaSeedRain / s.SeedSaturationS50);
+        float lightResponse = s.JuvenileLightResponse(cell.Light);
+        string seedWord = seedFactor < 0.05f ? "none"
+            : seedFactor < 0.3f ? "thin"
+            : seedFactor < 0.7f ? "ok"
+            : "plenty";
+
+        string regenText;
+        if (cell.RegenDensity > 0f)
+        {
+            float progress = Mathf.Clamp01(cell.RegenHeight / s.PromotionHeightM) * 100f;
+            string state;
+            if (cell.RegenHeight >= s.PromotionHeightM)
+                state = $"ready to recruit ({cell.RegenHeight:0.0} m)";
+            else
+                state = $"{cell.RegenDensity:0.00}/m2 at {cell.RegenHeight:0.00} m, {progress:0}% grown";
+            regenText = $"regen {state}";
+        }
+        else
+        {
+            regenText = "no regeneration";
+        }
+
+        string constraint;
+        if (cell.RegenDensity > 0f && lightResponse < s.RegenPoorLightThreshold)
+            constraint = $"suppressed under shade (light response {lightResponse:0.00})";
+        else
+        {
+            float smallest = Mathf.Min(seedFactor, Mathf.Min(lightResponse, cell.EstablishmentSuitability));
+            if (seedFactor <= smallest + 0.001f && seedFactor < 0.3f)
+                constraint = seedFactor < 0.05f
+                    ? "seed-limited — no seed source within reach"
+                    : $"seed-limited (thin seed rain, {seedWord})";
+            else if (lightResponse <= smallest + 0.0001f && lightResponse < 0.3f)
+                constraint = $"light-limited under canopy (response {lightResponse:0.00})";
+            else if (cell.EstablishmentSuitability <= smallest + 0.0001f && cell.EstablishmentSuitability < 0.7f)
+                constraint = $"site settling after disturbance ({cell.EstablishmentSuitability:0.00})";
+            else if (cell.RegenDensity > 0f)
+                constraint = $"growing {s.RegenHeightGrowthMPerYear * lightResponse * cell.SiteProductivity:0.00} m/yr";
+            else
+                constraint = "establishment conditions good";
+        }
+
+        return $"Ground: {regenText} · light {cell.Light:0.00} · seed {seedWord} · suitability {cell.EstablishmentSuitability:0.00} · {constraint}";
+    }
+
     public float GetSiteProductivity(Vector3 worldPosition)
     {
         int index = GetCellIndex(worldPosition);

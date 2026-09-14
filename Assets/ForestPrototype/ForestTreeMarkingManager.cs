@@ -19,6 +19,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private Transform playerRoot;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private ForestTree aimedTree;
+    private ForestEcologyController ecologyCache;
+    private bool aimingAtGround;
+    private Vector3 aimedGroundPoint;
     private readonly List<ForestTree> markedTreeCache = new List<ForestTree>();
     private bool markedCacheDirty = true;
     private float nextStaleSweepTime;
@@ -87,6 +90,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             messageTimer -= Time.deltaTime;
 
         aimedTree = null;
+        aimingAtGround = false;
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
             return;
 
@@ -110,7 +114,17 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
         if (tree == null || tree.IsStump)
+        {
+            // Aiming at open ground: surface the local regeneration state.
+            if (ecologyCache == null)
+                ecologyCache = Object.FindFirstObjectByType<ForestEcologyController>();
+            if (ecologyCache != null)
+            {
+                aimingAtGround = true;
+                aimedGroundPoint = nearest.point;
+            }
             return;
+        }
 
         aimedTree = tree;
         Keyboard keyboard = Keyboard.current;
@@ -512,6 +526,24 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 outcomeStyle.normal.textColor = new Color(0.8f, 0.88f, 0.95f);
             }
             GUI.Label(new Rect(18f, Screen.height - 74f, Screen.width - 36f, 24f), TreatmentOutcome, outcomeStyle);
+        }
+
+        if (aimedTree == null && aimingAtGround && ecologyCache != null)
+        {
+            string report = ecologyCache.RegenerationReportLine(aimedGroundPoint);
+            if (!string.IsNullOrEmpty(report))
+            {
+                if (outcomeStyle == null)
+                {
+                    outcomeStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        fontSize = 17,
+                        alignment = TextAnchor.LowerLeft
+                    };
+                    outcomeStyle.normal.textColor = new Color(0.8f, 0.88f, 0.95f);
+                }
+                GUI.Label(new Rect(18f, Screen.height - 104f, Screen.width - 36f, 24f), report, outcomeStyle);
+            }
         }
 
         if (aimedTree == null)
