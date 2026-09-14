@@ -95,7 +95,6 @@ public static class ForestSceneBuilder
             var plankRack = CreatePlankRack(sawPit.GetComponent<ForestBuildable>(), new Vector3(-6.9f, 0f, 10.3f));
             CreateSecondLogRack(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(2.2f, 0f, 12.8f));
             CreateGrindingStone(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(-2.5f, 0f, 9.4f));
-            PlaceWorkAreaLogs();
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -433,24 +432,6 @@ public static class ForestSceneBuilder
         var solid = Visual(parent, name, localPosition, localScale, material);
         solid.AddComponent<BoxCollider>();
         return solid;
-    }
-
-    // Decorative harvested-log stack beside the Log Rack (Ultimate Nature prop).
-    private static void PlaceWorkAreaLogs()
-    {
-        var logPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Props/Logs/Prefabs/UNS_Log.prefab");
-        if (logPrefab == null)
-            return;
-        var logs = new GameObject("Work Area Logs");
-        logs.transform.position = Vector3.zero;
-        Vector3 basePos = new Vector3(1.1f, 0f, 10.6f);
-        for (int layer = 0; layer < 2; layer++)
-            for (int i = 0; i < 2; i++)
-            {
-                var log = (GameObject)PrefabUtility.InstantiatePrefab(logPrefab, logs.transform);
-                log.transform.localPosition = basePos + new Vector3(i * 0.5f, layer * 0.45f, layer * 0.12f);
-                log.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-            }
     }
 
     public static GameObject CreateSawPit(ForestBuildable workbench, Vector3 position)
