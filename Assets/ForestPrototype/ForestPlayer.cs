@@ -29,6 +29,9 @@ public sealed class ForestPlayer : MonoBehaviour
     private float inspectedTreeHeight;
     private float inspectedTreeDiameter;
     private float lastChopTime = -1f;
+    private bool skipLookDelta;
+    private float lookPixelsSinceRecentre;
+    private float secondsSinceRecentre;
     private float chopImpactTimer;
     private Vector3 defaultCameraLocalPos = new Vector3(0f, 1.65f, 0f);
     private string lastHarvestMessage = "";
@@ -154,10 +157,34 @@ public sealed class ForestPlayer : MonoBehaviour
             if (mouse != null && !capturedThisFrame)
             {
                 // Mouse delta is already a per-frame displacement; do not multiply by deltaTime.
-                Vector2 look = mouse.delta.ReadValue() * mouseSensitivity;
-                transform.Rotate(0f, look.x, 0f);
-                pitch = Mathf.Clamp(pitch - look.y, -85f, 85f);
-                view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                Vector2 rawDelta = mouse.delta.ReadValue();
+                if (skipLookDelta)
+                {
+                    // The frame right after a recentre reports the warp itself as a delta.
+                    skipLookDelta = false;
+                }
+                else
+                {
+                    Vector2 look = rawDelta * mouseSensitivity;
+                    transform.Rotate(0f, look.x, 0f);
+                    pitch = Mathf.Clamp(pitch - look.y, -85f, 85f);
+                    view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                    lookPixelsSinceRecentre += rawDelta.magnitude;
+                }
+
+                // On some Linux setups a locked cursor stops producing deltas once the
+                // pointer reaches a screen edge. Recentre before that can happen so the
+                // view can keep turning in one direction indefinitely; the periodic
+                // recentre also recovers if the pointer starts a session at an edge.
+                secondsSinceRecentre += Time.deltaTime;
+                if (lookPixelsSinceRecentre >= Mathf.Min(Screen.width, Screen.height) * 0.25f ||
+                    secondsSinceRecentre >= 2f)
+                {
+                    lookPixelsSinceRecentre = 0f;
+                    secondsSinceRecentre = 0f;
+                    mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+                    skipLookDelta = true;
+                }
             }
         }
 
