@@ -173,8 +173,6 @@ MonoBehaviour:
   diameterCm: 60.544098
   crownRadiusMeters: 1.654661
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &22192855
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,8 +227,6 @@ MonoBehaviour:
   diameterCm: 83.7358
   crownRadiusMeters: 2.089726
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &29216577
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -433,8 +429,6 @@ MonoBehaviour:
   diameterCm: 70.998505
   crownRadiusMeters: 1.590214
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &69693210
 GameObject:
   m_ObjectHideFlags: 0
@@ -489,8 +483,6 @@ MonoBehaviour:
   diameterCm: 50.806
   crownRadiusMeters: 1.8086
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &71501993
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -619,8 +611,6 @@ MonoBehaviour:
   diameterCm: 84.1885
   crownRadiusMeters: 1.860422
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &84753253
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,8 +665,6 @@ MonoBehaviour:
   diameterCm: 75.7747
   crownRadiusMeters: 2.0124955
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &87085516
 GameObject:
   m_ObjectHideFlags: 0
@@ -959,8 +947,6 @@ MonoBehaviour:
   diameterCm: 71.965996
   crownRadiusMeters: 2.0241995
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &105150747
 GameObject:
   m_ObjectHideFlags: 0
@@ -1129,8 +1115,6 @@ MonoBehaviour:
   diameterCm: 83.1431
   crownRadiusMeters: 1.5661474
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &128117360
 GameObject:
   m_ObjectHideFlags: 0
@@ -1561,8 +1545,6 @@ MonoBehaviour:
   diameterCm: 57.3339
   crownRadiusMeters: 1.6846105
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &152231100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1969,8 +1951,6 @@ MonoBehaviour:
   diameterCm: 70.603195
   crownRadiusMeters: 2.009429
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &191934411
 GameObject:
   m_ObjectHideFlags: 0
@@ -2025,8 +2005,6 @@ MonoBehaviour:
   diameterCm: 60.903503
   crownRadiusMeters: 1.969145
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &194579202
 GameObject:
   m_ObjectHideFlags: 0
@@ -2309,8 +2287,6 @@ MonoBehaviour:
   diameterCm: 68.9909
   crownRadiusMeters: 1.8344254
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &227301811
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2643,8 +2619,6 @@ MonoBehaviour:
   diameterCm: 79.669
   crownRadiusMeters: 1.968971
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &274445850
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2773,8 +2747,6 @@ MonoBehaviour:
   diameterCm: 80.931
   crownRadiusMeters: 1.904778
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &294120369
 GameObject:
   m_ObjectHideFlags: 0
@@ -3107,8 +3079,6 @@ MonoBehaviour:
   diameterCm: 54.288696
   crownRadiusMeters: 1.6420125
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &330898199
 GameObject:
   m_ObjectHideFlags: 0
@@ -3502,8 +3472,6 @@ MonoBehaviour:
   diameterCm: 54.7444
   crownRadiusMeters: 1.839921
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &391002981
 GameObject:
   m_ObjectHideFlags: 0
@@ -3672,8 +3640,6 @@ MonoBehaviour:
   diameterCm: 69.477394
   crownRadiusMeters: 1.9332736
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &403492852
 GameObject:
   m_ObjectHideFlags: 0
@@ -3728,8 +3694,6 @@ MonoBehaviour:
   diameterCm: 82.2355
   crownRadiusMeters: 1.889653
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &406656711
 GameObject:
   m_ObjectHideFlags: 0
@@ -3784,8 +3748,6 @@ MonoBehaviour:
   diameterCm: 64.8957
   crownRadiusMeters: 1.882188
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &412577895
 GameObject:
   m_ObjectHideFlags: 0
@@ -3921,8 +3883,6 @@ MonoBehaviour:
   diameterCm: 62.373604
   crownRadiusMeters: 2.0349615
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &420278284
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4051,8 +4011,6 @@ MonoBehaviour:
   diameterCm: 74.0991
   crownRadiusMeters: 1.6872525
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &430108347
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5103,8 +5061,6 @@ MonoBehaviour:
   diameterCm: 83.660194
   crownRadiusMeters: 2.0642745
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &530108182
 GameObject:
   m_ObjectHideFlags: 0
@@ -5643,8 +5599,6 @@ MonoBehaviour:
   diameterCm: 58.7976
   crownRadiusMeters: 1.567631
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &609482570
 GameObject:
   m_ObjectHideFlags: 0
@@ -5699,8 +5653,6 @@ MonoBehaviour:
   diameterCm: 53.4576
   crownRadiusMeters: 1.837973
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &612405454
 GameObject:
   m_ObjectHideFlags: 0
@@ -5943,8 +5895,6 @@ MonoBehaviour:
   diameterCm: 51.097797
   crownRadiusMeters: 1.549772
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &644212216
 GameObject:
   m_ObjectHideFlags: 0
@@ -6089,8 +6039,6 @@ MonoBehaviour:
   diameterCm: 62.5137
   crownRadiusMeters: 1.9683685
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &667700357
 GameObject:
   m_ObjectHideFlags: 0
@@ -6145,8 +6093,6 @@ MonoBehaviour:
   diameterCm: 79.196
   crownRadiusMeters: 1.7221355
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &668033669
 GameObject:
   m_ObjectHideFlags: 0
@@ -6315,8 +6261,6 @@ MonoBehaviour:
   diameterCm: 56.4458
   crownRadiusMeters: 1.9256995
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &747734574
 GameObject:
   m_ObjectHideFlags: 0
@@ -6485,8 +6429,6 @@ MonoBehaviour:
   diameterCm: 51.260197
   crownRadiusMeters: 1.607997
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &749745660
 GameObject:
   m_ObjectHideFlags: 0
@@ -6769,8 +6711,6 @@ MonoBehaviour:
   diameterCm: 51.328403
   crownRadiusMeters: 1.7487465
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &765930372
 GameObject:
   m_ObjectHideFlags: 0
@@ -7483,8 +7423,6 @@ MonoBehaviour:
   diameterCm: 75.534805
   crownRadiusMeters: 2.075898
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &835081397
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7613,8 +7551,6 @@ MonoBehaviour:
   diameterCm: 70.1975
   crownRadiusMeters: 1.846062
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &858233809
 GameObject:
   m_ObjectHideFlags: 0
@@ -8191,8 +8127,6 @@ MonoBehaviour:
   diameterCm: 66.1143
   crownRadiusMeters: 1.940485
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &920625437
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8509,8 +8443,6 @@ MonoBehaviour:
   diameterCm: 78.3641
   crownRadiusMeters: 1.5758995
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &983061609
 GameObject:
   m_ObjectHideFlags: 0
@@ -8679,8 +8611,6 @@ MonoBehaviour:
   diameterCm: 67.6261
   crownRadiusMeters: 1.599715
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &990944521
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9371,8 +9301,6 @@ MonoBehaviour:
   diameterCm: 69.3085
   crownRadiusMeters: 1.939896
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1027148937
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9501,8 +9429,6 @@ MonoBehaviour:
   diameterCm: 51.884502
   crownRadiusMeters: 2.07957
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1037457586
 GameObject:
   m_ObjectHideFlags: 0
@@ -9557,8 +9483,6 @@ MonoBehaviour:
   diameterCm: 73.5312
   crownRadiusMeters: 1.5064704
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1050864249
 GameObject:
   m_ObjectHideFlags: 0
@@ -10352,8 +10276,6 @@ MonoBehaviour:
   diameterCm: 64.7269
   crownRadiusMeters: 1.6249615
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1136235674
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10824,8 +10746,6 @@ MonoBehaviour:
   diameterCm: 50.2004
   crownRadiusMeters: 1.8792585
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1175504470
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10954,8 +10874,6 @@ MonoBehaviour:
   diameterCm: 74.5221
   crownRadiusMeters: 1.620794
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1186225175
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11312,8 +11230,6 @@ MonoBehaviour:
   diameterCm: 79.5593
   crownRadiusMeters: 1.5350705
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1194946488
 GameObject:
   m_ObjectHideFlags: 0
@@ -11784,8 +11700,6 @@ MonoBehaviour:
   diameterCm: 63.7906
   crownRadiusMeters: 1.921568
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1234304290
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12078,8 +11992,6 @@ MonoBehaviour:
   diameterCm: 83.6674
   crownRadiusMeters: 1.7070235
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1298177528
 GameObject:
   m_ObjectHideFlags: 0
@@ -12134,8 +12046,6 @@ MonoBehaviour:
   diameterCm: 60.356895
   crownRadiusMeters: 1.596308
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1321646039
 GameObject:
   m_ObjectHideFlags: 0
@@ -12190,8 +12100,6 @@ MonoBehaviour:
   diameterCm: 75.5311
   crownRadiusMeters: 1.814575
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1325237720
 GameObject:
   m_ObjectHideFlags: 0
@@ -12246,8 +12154,6 @@ MonoBehaviour:
   diameterCm: 71.848
   crownRadiusMeters: 1.525129
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1352470894
 GameObject:
   m_ObjectHideFlags: 0
@@ -12302,8 +12208,6 @@ MonoBehaviour:
   diameterCm: 66.4176
   crownRadiusMeters: 1.666348
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1354595441
 GameObject:
   m_ObjectHideFlags: 0
@@ -12620,8 +12524,6 @@ MonoBehaviour:
   diameterCm: 59.2181
   crownRadiusMeters: 1.5908695
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1431919009
 GameObject:
   m_ObjectHideFlags: 0
@@ -13540,8 +13442,6 @@ MonoBehaviour:
   diameterCm: 62.3204
   crownRadiusMeters: 1.59814
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1468022434
 GameObject:
   m_ObjectHideFlags: 0
@@ -13596,8 +13496,6 @@ MonoBehaviour:
   diameterCm: 82.469
   crownRadiusMeters: 2.0196254
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1468278502
 GameObject:
   m_ObjectHideFlags: 0
@@ -13970,8 +13868,6 @@ MonoBehaviour:
   diameterCm: 56.2434
   crownRadiusMeters: 1.810846
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1492716074
 GameObject:
   m_ObjectHideFlags: 0
@@ -14026,8 +13922,6 @@ MonoBehaviour:
   diameterCm: 80.1845
   crownRadiusMeters: 1.7636225
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1505823228
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14434,8 +14328,6 @@ MonoBehaviour:
   diameterCm: 56.907497
   crownRadiusMeters: 1.5139825
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1575049318
 GameObject:
   m_ObjectHideFlags: 0
@@ -14490,8 +14382,6 @@ MonoBehaviour:
   diameterCm: 75.7694
   crownRadiusMeters: 1.9891685
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1581512486
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14694,8 +14584,6 @@ MonoBehaviour:
   diameterCm: 69.963196
   crownRadiusMeters: 1.504169
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1595035914
 GameObject:
   m_ObjectHideFlags: 0
@@ -14750,8 +14638,6 @@ MonoBehaviour:
   diameterCm: 51.061703
   crownRadiusMeters: 2.007201
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1595498132
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15028,8 +14914,6 @@ MonoBehaviour:
   diameterCm: 68.1566
   crownRadiusMeters: 1.7298195
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1630528471
 GameObject:
   m_ObjectHideFlags: 0
@@ -16334,8 +16218,6 @@ MonoBehaviour:
   diameterCm: 81.5388
   crownRadiusMeters: 1.7423495
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1818472428
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16691,8 +16573,6 @@ MonoBehaviour:
   diameterCm: 80.2864
   crownRadiusMeters: 1.619259
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1893554166
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17123,8 +17003,6 @@ MonoBehaviour:
   diameterCm: 51.147198
   crownRadiusMeters: 1.6601815
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1955498180
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17253,8 +17131,6 @@ MonoBehaviour:
   diameterCm: 75.8453
   crownRadiusMeters: 1.9336005
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1964865793
 GameObject:
   m_ObjectHideFlags: 0
@@ -17423,8 +17299,6 @@ MonoBehaviour:
   diameterCm: 54.2014
   crownRadiusMeters: 1.898485
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &1977878125
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17553,8 +17427,6 @@ MonoBehaviour:
   diameterCm: 82.093605
   crownRadiusMeters: 1.596637
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1997929509
 GameObject:
   m_ObjectHideFlags: 0
@@ -17609,8 +17481,6 @@ MonoBehaviour:
   diameterCm: 69.5944
   crownRadiusMeters: 1.9058754
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &1997998533
 GameObject:
   m_ObjectHideFlags: 0
@@ -17779,8 +17649,6 @@ MonoBehaviour:
   diameterCm: 78.175804
   crownRadiusMeters: 1.5644186
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &2015765363
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18283,8 +18151,6 @@ MonoBehaviour:
   diameterCm: 53.4963
   crownRadiusMeters: 1.71513
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1001 &2071542458
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19190,8 +19056,6 @@ MonoBehaviour:
   diameterCm: 50.6635
   crownRadiusMeters: 1.851578
   chopsRequired: 4
-  stumpToSaplingSeconds: 20
-  saplingToYoungSeconds: 30
 --- !u!1 &2132014318
 GameObject:
   m_ObjectHideFlags: 0

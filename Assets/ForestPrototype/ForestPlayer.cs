@@ -412,12 +412,7 @@ public sealed class ForestPlayer : MonoBehaviour
 
         if (inspectedTree.IsStump)
         {
-            GUILayout.Label($"• Regrowth (simplified rule): sapling in {inspectedTree.RegrowthRemaining:F0}s", cardBodyStyle);
-            GUILayout.Label("• CCF note: canopy gap created; promotes regeneration in this prototype.", cardBodyStyle);
-        }
-        else if (inspectedTree.Stage == ForestTreeStage.Sapling)
-        {
-            GUILayout.Label($"• Regrowth (simplified rule): young tree in {inspectedTree.RegrowthRemaining:F0}s", cardBodyStyle);
+            GUILayout.Label("• CCF note: canopy gap created; future regeneration will grow from new individuals.", cardBodyStyle);
         }
         else
         {

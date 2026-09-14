@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// Simplified gameplay rules for the prototype, not researched forest ecology.
+// Legacy stage values kept for save compatibility. Harvesting now leaves a stump
+// indefinitely; future regeneration will create new individuals with new ids.
 public enum ForestTreeStage
 {
     Mature,
@@ -20,9 +21,6 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField, Min(1f)] private float diameterCm = 65f;
     [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
     [SerializeField, Min(1)] private int chopsRequired = 4;
-    // Placeholder timings for the prototype, not researched ecology.
-    [SerializeField, Min(0.1f)] private float stumpToSaplingSeconds = 20f;
-    [SerializeField, Min(0.1f)] private float saplingToYoungSeconds = 30f;
 
     private ForestTreeStage stage = ForestTreeStage.Mature;
     private int chopProgress;
@@ -50,22 +48,10 @@ public sealed class ForestTree : MonoBehaviour
             switch (stage)
             {
                 case ForestTreeStage.Stump: return "Harvested stump";
-                case ForestTreeStage.Sapling: return "Sapling (regrowing)";
+                case ForestTreeStage.Sapling: return "Sapling";
                 case ForestTreeStage.Young: return "Young growing stock";
                 default: return "Mature canopy tree";
             }
-        }
-    }
-
-    public float RegrowthRemaining
-    {
-        get
-        {
-            if (stage == ForestTreeStage.Stump)
-                return Mathf.Max(0f, stumpToSaplingSeconds - stageTimer);
-            if (stage == ForestTreeStage.Sapling)
-                return Mathf.Max(0f, saplingToYoungSeconds - stageTimer);
-            return 0f;
         }
     }
 
@@ -106,22 +92,6 @@ public sealed class ForestTree : MonoBehaviour
     {
         SetTrunkShape(heightMeters, MatureThickness);
         SetCanopyActive(true, MatureCanopyScale, heightMeters);
-    }
-
-    private void Update()
-    {
-        if (stage == ForestTreeStage.Stump)
-        {
-            stageTimer += Time.deltaTime;
-            if (stageTimer >= stumpToSaplingSeconds)
-                SetStage(ForestTreeStage.Sapling);
-        }
-        else if (stage == ForestTreeStage.Sapling)
-        {
-            stageTimer += Time.deltaTime;
-            if (stageTimer >= saplingToYoungSeconds)
-                SetStage(ForestTreeStage.Young);
-        }
     }
 
     public int AddChop()
