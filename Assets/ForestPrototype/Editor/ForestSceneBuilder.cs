@@ -82,6 +82,7 @@ public static class ForestSceneBuilder
             }
             var workbench = CreateWorkbench(new Vector3(-2.75f, 0f, 11f));
             CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
+            CreateShelter(workbench.GetComponent<ForestBuildable>(), new Vector3(-5.6f, 0f, 12.2f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -350,6 +351,56 @@ public static class ForestSceneBuilder
         storageSerialized.FindProperty("logFillFull").objectReferenceValue = fillFull;
         storageSerialized.ApplyModifiedPropertiesWithoutUndo();
         return rack;
+    }
+
+    public static GameObject CreateShelter(ForestBuildable workbench, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var shelter = new GameObject("Basic Shelter");
+        shelter.transform.position = position;
+        var collider = shelter.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 1.2f, 0f);
+        collider.size = new Vector3(4.2f, 2.4f, 3.3f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(shelter.transform, false);
+        Visual(unbuilt.transform, "Footing Front", new Vector3(0f, 0.05f, -1.4f), new Vector3(4.0f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Footing Back", new Vector3(0f, 0.05f, 1.4f), new Vector3(4.0f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Footing Left", new Vector3(-1.9f, 0.05f, 0f), new Vector3(0.14f, 0.1f, 2.9f), stone);
+        Visual(unbuilt.transform, "Footing Right", new Vector3(1.9f, 0.05f, 0f), new Vector3(0.14f, 0.1f, 2.9f), stone);
+        Visual(unbuilt.transform, "Stake Front Left", new Vector3(-1.9f, 0.35f, -1.4f), new Vector3(0.12f, 0.7f, 0.12f), bark);
+        Visual(unbuilt.transform, "Stake Front Right", new Vector3(1.9f, 0.35f, -1.4f), new Vector3(0.12f, 0.7f, 0.12f), bark);
+        Visual(unbuilt.transform, "Stake Back Left", new Vector3(-1.9f, 0.35f, 1.4f), new Vector3(0.12f, 0.7f, 0.12f), bark);
+        Visual(unbuilt.transform, "Stake Back Right", new Vector3(1.9f, 0.35f, 1.4f), new Vector3(0.12f, 0.7f, 0.12f), bark);
+
+        var built = new GameObject("Built Shelter");
+        built.transform.SetParent(shelter.transform, false);
+        Visual(built.transform, "Back Post Left", new Vector3(-1.9f, 1.2f, 1.4f), new Vector3(0.16f, 2.4f, 0.16f), bark);
+        Visual(built.transform, "Back Post Right", new Vector3(1.9f, 1.2f, 1.4f), new Vector3(0.16f, 2.4f, 0.16f), bark);
+        Visual(built.transform, "Front Post Left", new Vector3(-1.9f, 0.9f, -1.4f), new Vector3(0.16f, 1.8f, 0.16f), bark);
+        Visual(built.transform, "Front Post Right", new Vector3(1.9f, 0.9f, -1.4f), new Vector3(0.16f, 1.8f, 0.16f), bark);
+        Visual(built.transform, "Back Beam", new Vector3(0f, 2.3f, 1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
+        Visual(built.transform, "Front Beam", new Vector3(0f, 1.72f, -1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
+        Visual(built.transform, "Back Wall Board Low", new Vector3(0f, 0.55f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
+        Visual(built.transform, "Back Wall Board Middle", new Vector3(0f, 1.25f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
+        Visual(built.transform, "Back Wall Board High", new Vector3(0f, 1.95f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
+        var roof = Visual(built.transform, "Roof", new Vector3(0f, 2.12f, 0f), new Vector3(4.4f, 0.12f, 3.7f), bark);
+        roof.transform.localRotation = Quaternion.Euler(-12f, 0f, 0f);
+        built.SetActive(false);
+
+        var buildable = shelter.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 20;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("displayName").stringValue = "Basic Shelter";
+        serialized.FindProperty("buildId").stringValue = "shelter-01";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = workbench;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        return shelter;
     }
 
     private static GameObject Visual(Transform parent, string name, Vector3 localPosition, Vector3 localScale, Material material)
