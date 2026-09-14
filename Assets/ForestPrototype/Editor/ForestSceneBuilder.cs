@@ -87,7 +87,7 @@ public static class ForestSceneBuilder
             var sawPit = CreateSawPit(workbench.GetComponent<ForestBuildable>(), new Vector3(-4.9f, 0f, 9.3f));
             var plankRack = CreatePlankRack(sawPit.GetComponent<ForestBuildable>(), new Vector3(-6.9f, 0f, 10.3f));
             CreateSecondLogRack(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(2.2f, 0f, 12.8f));
-            CreateGrindingStone(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(-4.6f, 0f, 10.9f));
+            CreateGrindingStone(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(-2.5f, 0f, 9.4f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
