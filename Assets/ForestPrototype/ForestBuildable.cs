@@ -7,6 +7,8 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField, Min(1)] private int woodCost = 8;
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField, Min(0f)] private float storageSearchRadius = 6f;
+    // While this buildable stands, the player can carry this many extra wood units.
+    [SerializeField, Min(0)] private int carriedWoodCapacityBonus = 0;
     [SerializeField] private string displayName = "Forestry Workbench";
     [SerializeField] private string buildId = "workbench-01";
     [SerializeField] private ForestBuildable requiredBuildable;
@@ -155,6 +157,7 @@ public sealed class ForestBuildable : MonoBehaviour
     public string BuildId => buildId;
     public string DisplayName => displayName;
     public bool IsBuilt => isBuilt;
+    public int CarriedWoodCapacityBonus => carriedWoodCapacityBonus;
     public bool HasPrerequisite => requiredBuildable != null;
     public bool IsPrerequisiteMet => requiredBuildable == null || requiredBuildable.IsBuilt;
 

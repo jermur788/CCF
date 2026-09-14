@@ -83,6 +83,7 @@ public static class ForestSceneBuilder
             var workbench = CreateWorkbench(new Vector3(-2.75f, 0f, 11f));
             CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
             CreateShelter(workbench.GetComponent<ForestBuildable>(), new Vector3(-5.6f, 0f, 12.2f));
+            CreateTimberSledge(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.2f, 0f, 9.0f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -413,6 +414,49 @@ public static class ForestSceneBuilder
         var solid = Visual(parent, name, localPosition, localScale, material);
         solid.AddComponent<BoxCollider>();
         return solid;
+    }
+
+    public static GameObject CreateTimberSledge(ForestBuildable workbench, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var sledge = new GameObject("Timber Sledge");
+        sledge.transform.position = position;
+        var collider = sledge.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.4f, 0f);
+        collider.size = new Vector3(2.6f, 0.8f, 1.6f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(sledge.transform, false);
+        Visual(unbuilt.transform, "Footing Front", new Vector3(0f, 0.05f, -0.6f), new Vector3(2.4f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Footing Back", new Vector3(0f, 0.05f, 0.6f), new Vector3(2.4f, 0.1f, 0.14f), stone);
+        Visual(unbuilt.transform, "Stake Left", new Vector3(-1.1f, 0.3f, 0f), new Vector3(0.12f, 0.6f, 0.12f), bark);
+        Visual(unbuilt.transform, "Stake Right", new Vector3(1.1f, 0.3f, 0f), new Vector3(0.12f, 0.6f, 0.12f), bark);
+
+        var built = new GameObject("Built Sledge");
+        built.transform.SetParent(sledge.transform, false);
+        Visual(built.transform, "Runner Left", new Vector3(-0.8f, 0.12f, 0f), new Vector3(0.16f, 0.24f, 2.2f), bark);
+        Visual(built.transform, "Runner Right", new Vector3(0.8f, 0.12f, 0f), new Vector3(0.16f, 0.24f, 2.2f), bark);
+        Visual(built.transform, "Deck Front", new Vector3(0f, 0.5f, -0.5f), new Vector3(1.9f, 0.12f, 0.8f), bark);
+        Visual(built.transform, "Deck Back", new Vector3(0f, 0.12f, 0.5f), new Vector3(1.9f, 0.12f, 0.8f), bark);
+        Visual(built.transform, "Cross Rail Left", new Vector3(-0.8f, 0.45f, 0f), new Vector3(0.12f, 0.5f, 0.12f), bark);
+        Visual(built.transform, "Cross Rail Right", new Vector3(0.8f, 0.45f, 0f), new Vector3(0.12f, 0.5f, 0.12f), bark);
+        Visual(built.transform, "Handle Rail", new Vector3(0f, 0.68f, 0.9f), new Vector3(1.7f, 0.1f, 0.1f), bark);
+        built.SetActive(false);
+
+        var buildable = sledge.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 12;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("displayName").stringValue = "Timber Sledge";
+        serialized.FindProperty("buildId").stringValue = "timber-sledge-01";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = workbench;
+        serialized.FindProperty("carriedWoodCapacityBonus").intValue = 15;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        return sledge;
     }
 
     private static GameObject Visual(Transform parent, string name, Vector3 localPosition, Vector3 localScale, Material material)

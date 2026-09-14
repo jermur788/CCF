@@ -50,13 +50,26 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle hudValueStyle;
     private GUIStyle notificationStyle;
 
-    public int MaxCarriedWood => maxCarriedWood;
+    public int MaxCarriedWood => maxCarriedWood + BuiltCapacityBonus();
+
+    // Built structures can raise the carrying limit; the bonus is derived from
+    // built objects so it survives save/load without its own save field.
+    private int BuiltCapacityBonus()
+    {
+        int bonus = 0;
+        foreach (ForestBuildable buildable in Object.FindObjectsByType<ForestBuildable>())
+        {
+            if (buildable != null && buildable.IsBuilt)
+                bonus += buildable.CarriedWoodCapacityBonus;
+        }
+        return bonus;
+    }
     public int CarriedWood => carriedWood;
-    public int FreeWoodCapacity => Mathf.Max(0, maxCarriedWood - carriedWood);
+    public int FreeWoodCapacity => Mathf.Max(0, MaxCarriedWood - carriedWood);
 
     public bool CanCarryWood(int amount)
     {
-        return amount >= 0 && carriedWood + amount <= maxCarriedWood;
+        return amount >= 0 && carriedWood + amount <= MaxCarriedWood;
     }
 
     // Survival-side conversion: biological stem volume -> carried wood units,
@@ -379,14 +392,14 @@ public sealed class ForestPlayer : MonoBehaviour
         hudLabelStyle.normal.textColor = new Color(0.78f, 0.86f, 0.72f);
         GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 10f, hudWidth - 40f, 26f), "Carried Wood", hudLabelStyle);
 
-        bool atCapacity = carriedWood >= maxCarriedWood;
+        bool atCapacity = carriedWood >= MaxCarriedWood;
         if (hudValueStyle == null)
             hudValueStyle = new GUIStyle(GUI.skin.label);
         hudValueStyle.fontSize = 40;
         hudValueStyle.fontStyle = FontStyle.Bold;
         hudValueStyle.alignment = TextAnchor.MiddleLeft;
         hudValueStyle.normal.textColor = atCapacity ? new Color(1f, 0.62f, 0.4f) : Color.white;
-        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 34f, hudWidth - 40f, 52f), $"{carriedWood} / {maxCarriedWood}", hudValueStyle);
+        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 34f, hudWidth - 40f, 52f), $"{carriedWood} / {MaxCarriedWood}", hudValueStyle);
         GUI.color = previousColor;
         GUI.matrix = previousMatrix;
 
