@@ -9,6 +9,8 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField, Min(0f)] private float storageSearchRadius = 6f;
     // While this buildable stands, the player can carry this many extra wood units.
     [SerializeField, Min(0)] private int carriedWoodCapacityBonus = 0;
+    // While this buildable stands, axe swings recover this many seconds faster.
+    [SerializeField, Min(0)] private float swingCooldownReduction = 0f;
     // Plank-using buildables also require planks from a specific plank rack.
     [SerializeField, Min(0)] private int plankCost = 0;
     [SerializeField] private ForestWoodStorage plankSource;
@@ -174,6 +176,7 @@ public sealed class ForestBuildable : MonoBehaviour
     public string DisplayName => displayName;
     public bool IsBuilt => isBuilt;
     public int CarriedWoodCapacityBonus => carriedWoodCapacityBonus;
+    public float SwingCooldownReduction => swingCooldownReduction;
     public bool HasPrerequisite => requiredBuildable != null;
     public bool IsPrerequisiteMet => requiredBuildable == null || requiredBuildable.IsBuilt;
 
