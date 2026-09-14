@@ -57,9 +57,15 @@ public static class ForestSceneBuilder
                 float height = 4f + (float)random.NextDouble() * 2f;
                 var tree = new GameObject("Tree " + (++count));
                 tree.transform.SetParent(forest.transform);
-                Primitive("Trunk", PrimitiveType.Cylinder, new Vector3(px, height / 2, pz), new Vector3(0.65f, height / 2, 0.65f), bark, tree.transform);
+                var trunk = Primitive("Trunk", PrimitiveType.Cylinder, new Vector3(px, height / 2, pz), new Vector3(0.65f, height / 2, 0.65f), bark, tree.transform);
                 var canopy = Primitive("Canopy", PrimitiveType.Sphere, new Vector3(px, height, pz), new Vector3(3.3f, 3.6f, 3.3f), leaves, tree.transform);
                 UnityEngine.Object.DestroyImmediate(canopy.GetComponent<Collider>());
+                var treeState = tree.AddComponent<ForestTree>();
+                var serializedTree = new SerializedObject(treeState);
+                serializedTree.FindProperty("treeId").stringValue = "T" + count.ToString("00");
+                serializedTree.FindProperty("trunk").objectReferenceValue = trunk.transform;
+                serializedTree.FindProperty("canopy").objectReferenceValue = canopy.transform;
+                serializedTree.ApplyModifiedPropertiesWithoutUndo();
             }
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
@@ -157,6 +163,15 @@ public static class ForestSceneBuilder
                 players++;
                 if (obj.GetComponent<CharacterController>() == null || new SerializedObject(player).FindProperty("view").objectReferenceValue == null)
                     throw new InvalidOperationException("Incomplete player.");
+            }
+            var tree = obj.GetComponent<ForestTree>();
+            if (tree != null)
+            {
+                var serializedTree = new SerializedObject(tree);
+                if (string.IsNullOrEmpty(serializedTree.FindProperty("treeId").stringValue) ||
+                    serializedTree.FindProperty("trunk").objectReferenceValue == null ||
+                    serializedTree.FindProperty("canopy").objectReferenceValue == null)
+                    throw new InvalidOperationException("Incomplete tree state on " + obj.name);
             }
             cameras += obj.GetComponents<Camera>().Length;
             listeners += obj.GetComponents<AudioListener>().Length;

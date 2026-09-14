@@ -128,6 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 18654977}
+  - component: {fileID: 18654978}
   m_Layer: 0
   m_Name: Tree 8
   m_TagString: Untagged
@@ -152,6 +153,24 @@ Transform:
   - {fileID: 1161724312}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &18654978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 18654976}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T08
+  trunk: {fileID: 557466890}
+  canopy: {fileID: 1161724312}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &22192855
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,6 +180,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 22192856}
+  - component: {fileID: 22192857}
   m_Layer: 0
   m_Name: Tree 49
   m_TagString: Untagged
@@ -185,6 +205,24 @@ Transform:
   - {fileID: 1871392164}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &22192857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 22192855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T49
+  trunk: {fileID: 1997998534}
+  canopy: {fileID: 1871392164}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &39702872
 GameObject:
   m_ObjectHideFlags: 0
@@ -284,6 +322,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 51090348}
+  - component: {fileID: 51090349}
   m_Layer: 0
   m_Name: Tree 7
   m_TagString: Untagged
@@ -308,6 +347,24 @@ Transform:
   - {fileID: 1105821986}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &51090349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51090347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T07
+  trunk: {fileID: 1894417075}
+  canopy: {fileID: 1105821986}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &63044632
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,6 +464,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 69693211}
+  - component: {fileID: 69693212}
   m_Layer: 0
   m_Name: Tree 46
   m_TagString: Untagged
@@ -431,6 +489,24 @@ Transform:
   - {fileID: 1153024652}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &69693212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 69693210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T46
+  trunk: {fileID: 1188647217}
+  canopy: {fileID: 1153024652}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &81514225
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,6 +516,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 81514226}
+  - component: {fileID: 81514227}
   m_Layer: 0
   m_Name: Tree 30
   m_TagString: Untagged
@@ -464,6 +541,24 @@ Transform:
   - {fileID: 821441959}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &81514227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 81514225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T30
+  trunk: {fileID: 344072665}
+  canopy: {fileID: 821441959}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &84753253
 GameObject:
   m_ObjectHideFlags: 0
@@ -473,6 +568,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 84753254}
+  - component: {fileID: 84753255}
   m_Layer: 0
   m_Name: Tree 64
   m_TagString: Untagged
@@ -497,6 +593,24 @@ Transform:
   - {fileID: 472747914}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &84753255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84753253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T64
+  trunk: {fileID: 1354595442}
+  canopy: {fileID: 472747914}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &87085516
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,6 +848,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 91026031}
+  - component: {fileID: 91026032}
   m_Layer: 0
   m_Name: Tree 40
   m_TagString: Untagged
@@ -758,6 +873,24 @@ Transform:
   - {fileID: 1635926017}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &91026032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91026030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T40
+  trunk: {fileID: 1151893799}
+  canopy: {fileID: 1635926017}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &93477086
 GameObject:
   m_ObjectHideFlags: 0
@@ -971,6 +1104,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 118102656}
+  - component: {fileID: 118102657}
   m_Layer: 0
   m_Name: Tree 63
   m_TagString: Untagged
@@ -995,6 +1129,24 @@ Transform:
   - {fileID: 1288583329}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &118102657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118102655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T63
+  trunk: {fileID: 1013950328}
+  canopy: {fileID: 1288583329}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &128117360
 GameObject:
   m_ObjectHideFlags: 0
@@ -1322,6 +1474,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 141106066}
+  - component: {fileID: 141106067}
   m_Layer: 0
   m_Name: Tree 9
   m_TagString: Untagged
@@ -1346,6 +1499,24 @@ Transform:
   - {fileID: 1681921030}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &141106067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 141106065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T09
+  trunk: {fileID: 612405455}
+  canopy: {fileID: 1681921030}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &152886899
 GameObject:
   m_ObjectHideFlags: 0
@@ -1649,6 +1820,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 183241501}
+  - component: {fileID: 183241502}
   m_Layer: 0
   m_Name: Tree 16
   m_TagString: Untagged
@@ -1673,6 +1845,24 @@ Transform:
   - {fileID: 1437130359}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &183241502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 183241500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T16
+  trunk: {fileID: 1225178643}
+  canopy: {fileID: 1437130359}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &191934411
 GameObject:
   m_ObjectHideFlags: 0
@@ -1682,6 +1872,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 191934412}
+  - component: {fileID: 191934413}
   m_Layer: 0
   m_Name: Tree 42
   m_TagString: Untagged
@@ -1706,6 +1897,24 @@ Transform:
   - {fileID: 63044633}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &191934413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 191934411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T42
+  trunk: {fileID: 749745661}
+  canopy: {fileID: 63044633}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &194579202
 GameObject:
   m_ObjectHideFlags: 0
@@ -1943,6 +2152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 216157811}
+  - component: {fileID: 216157812}
   m_Layer: 0
   m_Name: Tree 39
   m_TagString: Untagged
@@ -1967,6 +2177,24 @@ Transform:
   - {fileID: 2134016716}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &216157812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216157810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T39
+  trunk: {fileID: 205737838}
+  canopy: {fileID: 2134016716}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &217798265
 GameObject:
   m_ObjectHideFlags: 0
@@ -2630,6 +2858,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 268241803}
+  - component: {fileID: 268241804}
   m_Layer: 0
   m_Name: Tree 54
   m_TagString: Untagged
@@ -2654,6 +2883,24 @@ Transform:
   - {fileID: 701510020}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &268241804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268241802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T54
+  trunk: {fileID: 194579203}
+  canopy: {fileID: 701510020}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &287582373
 GameObject:
   m_ObjectHideFlags: 0
@@ -2663,6 +2910,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 287582374}
+  - component: {fileID: 287582375}
   m_Layer: 0
   m_Name: Tree 26
   m_TagString: Untagged
@@ -2687,6 +2935,24 @@ Transform:
   - {fileID: 354173472}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &287582375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287582373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T26
+  trunk: {fileID: 1470689390}
+  canopy: {fileID: 354173472}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &294120369
 GameObject:
   m_ObjectHideFlags: 0
@@ -3080,6 +3346,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 329178657}
+  - component: {fileID: 329178658}
   m_Layer: 0
   m_Name: Tree 38
   m_TagString: Untagged
@@ -3104,6 +3371,24 @@ Transform:
   - {fileID: 1862214147}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &329178658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 329178656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T38
+  trunk: {fileID: 87085517}
+  canopy: {fileID: 1862214147}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &330898199
 GameObject:
   m_ObjectHideFlags: 0
@@ -3468,6 +3753,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 371955171}
+  - component: {fileID: 371955172}
   m_Layer: 0
   m_Name: Tree 27
   m_TagString: Untagged
@@ -3492,6 +3778,24 @@ Transform:
   - {fileID: 1426259608}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &371955172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371955170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T27
+  trunk: {fileID: 525021222}
+  canopy: {fileID: 1426259608}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &384188834
 GameObject:
   m_ObjectHideFlags: 0
@@ -3705,6 +4009,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 395555007}
+  - component: {fileID: 395555008}
   m_Layer: 0
   m_Name: Tree 62
   m_TagString: Untagged
@@ -3729,6 +4034,24 @@ Transform:
   - {fileID: 1798361065}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &395555008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 395555006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T62
+  trunk: {fileID: 1443295511}
+  canopy: {fileID: 1798361065}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &403492852
 GameObject:
   m_ObjectHideFlags: 0
@@ -3738,6 +4061,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 403492853}
+  - component: {fileID: 403492854}
   m_Layer: 0
   m_Name: Tree 67
   m_TagString: Untagged
@@ -3762,6 +4086,24 @@ Transform:
   - {fileID: 160075382}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &403492854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 403492852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T67
+  trunk: {fileID: 900605808}
+  canopy: {fileID: 160075382}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &406656711
 GameObject:
   m_ObjectHideFlags: 0
@@ -3771,6 +4113,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 406656712}
+  - component: {fileID: 406656713}
   m_Layer: 0
   m_Name: Tree 34
   m_TagString: Untagged
@@ -3795,6 +4138,24 @@ Transform:
   - {fileID: 1491836220}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &406656713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 406656711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T34
+  trunk: {fileID: 2082745558}
+  canopy: {fileID: 1491836220}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &412577895
 GameObject:
   m_ObjectHideFlags: 0
@@ -3833,7 +4194,6 @@ MonoBehaviour:
   mouseSensitivity: 0.12
   interactionDistance: 3.5
   promptFontSize: 36
-  chopsRequired: 4
   swingCooldown: 0.45
   woodCount: 0
 --- !u!143 &412577897
@@ -3886,6 +4246,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 414765903}
+  - component: {fileID: 414765904}
   m_Layer: 0
   m_Name: Tree 51
   m_TagString: Untagged
@@ -3910,6 +4271,24 @@ Transform:
   - {fileID: 1724403882}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &414765904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414765902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T51
+  trunk: {fileID: 391002982}
+  canopy: {fileID: 1724403882}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &421973771
 GameObject:
   m_ObjectHideFlags: 0
@@ -4009,6 +4388,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 424956766}
+  - component: {fileID: 424956767}
   m_Layer: 0
   m_Name: Tree 37
   m_TagString: Untagged
@@ -4033,6 +4413,24 @@ Transform:
   - {fileID: 227644416}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &424956767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424956765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T37
+  trunk: {fileID: 451501950}
+  canopy: {fileID: 227644416}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &450164785
 GameObject:
   m_ObjectHideFlags: 0
@@ -5086,6 +5484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 525327206}
+  - component: {fileID: 525327207}
   m_Layer: 0
   m_Name: Tree 22
   m_TagString: Untagged
@@ -5110,6 +5509,24 @@ Transform:
   - {fileID: 1057838599}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &525327207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 525327205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T22
+  trunk: {fileID: 2132014319}
+  canopy: {fileID: 1057838599}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &530108182
 GameObject:
   m_ObjectHideFlags: 0
@@ -5619,6 +6036,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 594370557}
+  - component: {fileID: 594370558}
   m_Layer: 0
   m_Name: Tree 59
   m_TagString: Untagged
@@ -5643,6 +6061,24 @@ Transform:
   - {fileID: 1964308095}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &594370558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 594370556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T59
+  trunk: {fileID: 1431919010}
+  canopy: {fileID: 1964308095}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &609482570
 GameObject:
   m_ObjectHideFlags: 0
@@ -5652,6 +6088,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 609482571}
+  - component: {fileID: 609482572}
   m_Layer: 0
   m_Name: Tree 11
   m_TagString: Untagged
@@ -5676,6 +6113,24 @@ Transform:
   - {fileID: 1752678049}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &609482572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 609482570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T11
+  trunk: {fileID: 983061610}
+  canopy: {fileID: 1752678049}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &612405454
 GameObject:
   m_ObjectHideFlags: 0
@@ -5799,6 +6254,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 642006796}
+  - component: {fileID: 642006797}
   m_Layer: 0
   m_Name: Tree 24
   m_TagString: Untagged
@@ -5823,6 +6279,24 @@ Transform:
   - {fileID: 217798266}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &642006797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642006795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T24
+  trunk: {fileID: 105150748}
+  canopy: {fileID: 217798266}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &644212216
 GameObject:
   m_ObjectHideFlags: 0
@@ -5922,6 +6396,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 647673390}
+  - component: {fileID: 647673391}
   m_Layer: 0
   m_Name: Tree 21
   m_TagString: Untagged
@@ -5946,6 +6421,24 @@ Transform:
   - {fileID: 321279899}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &647673391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 647673389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T21
+  trunk: {fileID: 1187946143}
+  canopy: {fileID: 321279899}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &654604234
 GameObject:
   m_ObjectHideFlags: 0
@@ -6045,6 +6538,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 667700358}
+  - component: {fileID: 667700359}
   m_Layer: 0
   m_Name: Tree 43
   m_TagString: Untagged
@@ -6069,6 +6563,24 @@ Transform:
   - {fileID: 421973772}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &667700359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667700357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T43
+  trunk: {fileID: 249901146}
+  canopy: {fileID: 421973772}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &668033669
 GameObject:
   m_ObjectHideFlags: 0
@@ -6552,6 +7064,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 737236923}
+  - component: {fileID: 737236924}
   m_Layer: 0
   m_Name: Tree 53
   m_TagString: Untagged
@@ -6576,6 +7089,24 @@ Transform:
   - {fileID: 1074261272}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &737236924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 737236922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T53
+  trunk: {fileID: 1760792766}
+  canopy: {fileID: 1074261272}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &747734574
 GameObject:
   m_ObjectHideFlags: 0
@@ -6699,6 +7230,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 748538557}
+  - component: {fileID: 748538558}
   m_Layer: 0
   m_Name: Tree 68
   m_TagString: Untagged
@@ -6723,6 +7255,24 @@ Transform:
   - {fileID: 1599891612}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &748538558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748538556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T68
+  trunk: {fileID: 88414544}
+  canopy: {fileID: 1599891612}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &749745660
 GameObject:
   m_ObjectHideFlags: 0
@@ -7050,6 +7600,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 764617207}
+  - component: {fileID: 764617208}
   m_Layer: 0
   m_Name: Tree 36
   m_TagString: Untagged
@@ -7074,6 +7625,24 @@ Transform:
   - {fileID: 2094981514}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &764617208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 764617206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T36
+  trunk: {fileID: 2110888839}
+  canopy: {fileID: 2094981514}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &765930372
 GameObject:
   m_ObjectHideFlags: 0
@@ -7564,6 +8133,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 829930081}
+  - component: {fileID: 829930082}
   m_Layer: 0
   m_Name: Tree 50
   m_TagString: Untagged
@@ -7588,6 +8158,24 @@ Transform:
   - {fileID: 1936555323}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &829930082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829930080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T50
+  trunk: {fileID: 1468278503}
+  canopy: {fileID: 1936555323}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &838407302
 GameObject:
   m_ObjectHideFlags: 0
@@ -7597,6 +8185,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 838407303}
+  - component: {fileID: 838407304}
   m_Layer: 0
   m_Name: Tree 33
   m_TagString: Untagged
@@ -7621,6 +8210,24 @@ Transform:
   - {fileID: 1759548714}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &838407304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 838407302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T33
+  trunk: {fileID: 1827065676}
+  canopy: {fileID: 1759548714}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &858233809
 GameObject:
   m_ObjectHideFlags: 0
@@ -8152,6 +8759,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 914507114}
+  - component: {fileID: 914507115}
   m_Layer: 0
   m_Name: Tree 44
   m_TagString: Untagged
@@ -8176,6 +8784,24 @@ Transform:
   - {fileID: 93477087}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &914507115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 914507113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T44
+  trunk: {fileID: 1898644846}
+  canopy: {fileID: 93477087}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &942625403
 GameObject:
   m_ObjectHideFlags: 0
@@ -8299,6 +8925,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 951487101}
+  - component: {fileID: 951487102}
   m_Layer: 0
   m_Name: Tree 23
   m_TagString: Untagged
@@ -8323,6 +8950,24 @@ Transform:
   - {fileID: 1258384371}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &951487102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951487100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T23
+  trunk: {fileID: 497005686}
+  canopy: {fileID: 1258384371}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &983061609
 GameObject:
   m_ObjectHideFlags: 0
@@ -8446,6 +9091,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 988987174}
+  - component: {fileID: 988987175}
   m_Layer: 0
   m_Name: Tree 45
   m_TagString: Untagged
@@ -8470,6 +9116,24 @@ Transform:
   - {fileID: 1007229074}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &988987175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 988987173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T45
+  trunk: {fileID: 908994562}
+  canopy: {fileID: 1007229074}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &992636430
 GameObject:
   m_ObjectHideFlags: 0
@@ -8909,6 +9573,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1017786442}
+  - component: {fileID: 1017786443}
   m_Layer: 0
   m_Name: Tree 25
   m_TagString: Untagged
@@ -8933,6 +9598,24 @@ Transform:
   - {fileID: 1533684711}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1017786443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1017786441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T25
+  trunk: {fileID: 747734575}
+  canopy: {fileID: 1533684711}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1031681089
 GameObject:
   m_ObjectHideFlags: 0
@@ -9032,6 +9715,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1036387137}
+  - component: {fileID: 1036387138}
   m_Layer: 0
   m_Name: Tree 18
   m_TagString: Untagged
@@ -9056,6 +9740,24 @@ Transform:
   - {fileID: 1858104184}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1036387138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1036387136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T18
+  trunk: {fileID: 1795095363}
+  canopy: {fileID: 1858104184}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1037457586
 GameObject:
   m_ObjectHideFlags: 0
@@ -9065,6 +9767,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1037457587}
+  - component: {fileID: 1037457588}
   m_Layer: 0
   m_Name: Tree 60
   m_TagString: Untagged
@@ -9089,6 +9792,24 @@ Transform:
   - {fileID: 1187824690}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1037457588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1037457586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T60
+  trunk: {fileID: 1781767721}
+  canopy: {fileID: 1187824690}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1050864249
 GameObject:
   m_ObjectHideFlags: 0
@@ -10171,6 +10892,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1131622581}
+  - component: {fileID: 1131622582}
   m_Layer: 0
   m_Name: Tree 66
   m_TagString: Untagged
@@ -10195,6 +10917,24 @@ Transform:
   - {fileID: 1510354532}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1131622582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1131622580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T66
+  trunk: {fileID: 128117361}
+  canopy: {fileID: 1510354532}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1151893798
 GameObject:
   m_ObjectHideFlags: 0
@@ -10726,6 +11466,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1170368556}
+  - component: {fileID: 1170368557}
   m_Layer: 0
   m_Name: Tree 12
   m_TagString: Untagged
@@ -10750,6 +11491,24 @@ Transform:
   - {fileID: 1059955214}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1170368557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170368555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T12
+  trunk: {fileID: 1964865794}
+  canopy: {fileID: 1059955214}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1182921085
 GameObject:
   m_ObjectHideFlags: 0
@@ -10759,6 +11518,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1182921086}
+  - component: {fileID: 1182921087}
   m_Layer: 0
   m_Name: Tree 65
   m_TagString: Untagged
@@ -10783,6 +11543,24 @@ Transform:
   - {fileID: 1031681090}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1182921087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1182921085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T65
+  trunk: {fileID: 1457545404}
+  canopy: {fileID: 1031681090}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1187824689
 GameObject:
   m_ObjectHideFlags: 0
@@ -11110,6 +11888,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1193644913}
+  - component: {fileID: 1193644914}
   m_Layer: 0
   m_Name: Tree 52
   m_TagString: Untagged
@@ -11134,6 +11913,24 @@ Transform:
   - {fileID: 1278715926}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1193644914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193644912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T52
+  trunk: {fileID: 858233810}
+  canopy: {fileID: 1278715926}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1194946488
 GameObject:
   m_ObjectHideFlags: 0
@@ -11575,6 +12372,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1226883745}
+  - component: {fileID: 1226883746}
   m_Layer: 0
   m_Name: Tree 55
   m_TagString: Untagged
@@ -11599,6 +12397,24 @@ Transform:
   - {fileID: 1124871408}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1226883746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226883744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T55
+  trunk: {fileID: 1164456219}
+  canopy: {fileID: 1124871408}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1234825059
 GameObject:
   m_ObjectHideFlags: 0
@@ -12058,6 +12874,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1288735574}
+  - component: {fileID: 1288735575}
   m_Layer: 0
   m_Name: Tree 61
   m_TagString: Untagged
@@ -12082,6 +12899,24 @@ Transform:
   - {fileID: 1084070354}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1288735575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1288735573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T61
+  trunk: {fileID: 759124390}
+  canopy: {fileID: 1084070354}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1298177528
 GameObject:
   m_ObjectHideFlags: 0
@@ -12091,6 +12926,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1298177529}
+  - component: {fileID: 1298177530}
   m_Layer: 0
   m_Name: Tree 14
   m_TagString: Untagged
@@ -12115,6 +12951,24 @@ Transform:
   - {fileID: 524834346}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1298177530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1298177528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T14
+  trunk: {fileID: 576729218}
+  canopy: {fileID: 524834346}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1310552644
 GameObject:
   m_ObjectHideFlags: 0
@@ -12214,6 +13068,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1321646040}
+  - component: {fileID: 1321646041}
   m_Layer: 0
   m_Name: Tree 31
   m_TagString: Untagged
@@ -12238,6 +13093,24 @@ Transform:
   - {fileID: 247808691}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1321646041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321646039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T31
+  trunk: {fileID: 1512655902}
+  canopy: {fileID: 247808691}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1325237720
 GameObject:
   m_ObjectHideFlags: 0
@@ -12247,6 +13120,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1325237721}
+  - component: {fileID: 1325237722}
   m_Layer: 0
   m_Name: Tree 6
   m_TagString: Untagged
@@ -12271,6 +13145,24 @@ Transform:
   - {fileID: 1741357166}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1325237722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325237720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T06
+  trunk: {fileID: 1780901181}
+  canopy: {fileID: 1741357166}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1352470894
 GameObject:
   m_ObjectHideFlags: 0
@@ -12280,6 +13172,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1352470895}
+  - component: {fileID: 1352470896}
   m_Layer: 0
   m_Name: Tree 47
   m_TagString: Untagged
@@ -12304,6 +13197,24 @@ Transform:
   - {fileID: 1626100182}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1352470896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352470894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T47
+  trunk: {fileID: 942625404}
+  canopy: {fileID: 1626100182}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1354595441
 GameObject:
   m_ObjectHideFlags: 0
@@ -12427,6 +13338,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1423739043}
+  - component: {fileID: 1423739044}
   m_Layer: 0
   m_Name: Tree 20
   m_TagString: Untagged
@@ -12451,6 +13363,24 @@ Transform:
   - {fileID: 1198511465}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1423739044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423739042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T20
+  trunk: {fileID: 1716830361}
+  canopy: {fileID: 1198511465}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1426259607
 GameObject:
   m_ObjectHideFlags: 0
@@ -13298,6 +14228,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1467583800}
+  - component: {fileID: 1467583801}
   m_Layer: 0
   m_Name: Tree 57
   m_TagString: Untagged
@@ -13322,6 +14253,24 @@ Transform:
   - {fileID: 685039440}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1467583801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467583799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T57
+  trunk: {fileID: 134411367}
+  canopy: {fileID: 685039440}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1468022434
 GameObject:
   m_ObjectHideFlags: 0
@@ -13331,6 +14280,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1468022435}
+  - component: {fileID: 1468022436}
   m_Layer: 0
   m_Name: Tree 4
   m_TagString: Untagged
@@ -13355,6 +14305,24 @@ Transform:
   - {fileID: 1432646747}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1468022436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468022434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T04
+  trunk: {fileID: 1651288185}
+  canopy: {fileID: 1432646747}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1468278502
 GameObject:
   m_ObjectHideFlags: 0
@@ -13682,6 +14650,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1485247230}
+  - component: {fileID: 1485247231}
   m_Layer: 0
   m_Name: Tree 56
   m_TagString: Untagged
@@ -13706,6 +14675,24 @@ Transform:
   - {fileID: 1234825060}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1485247231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1485247229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T56
+  trunk: {fileID: 1194946489}
+  canopy: {fileID: 1234825060}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1491836219
 GameObject:
   m_ObjectHideFlags: 0
@@ -13805,6 +14792,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1492716075}
+  - component: {fileID: 1492716076}
   m_Layer: 0
   m_Name: Tree 17
   m_TagString: Untagged
@@ -13829,6 +14817,24 @@ Transform:
   - {fileID: 674660506}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1492716076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1492716074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T17
+  trunk: {fileID: 1170263356}
+  canopy: {fileID: 674660506}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1510354531
 GameObject:
   m_ObjectHideFlags: 0
@@ -14222,6 +15228,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1573582222}
+  - component: {fileID: 1573582223}
   m_Layer: 0
   m_Name: Tree 2
   m_TagString: Untagged
@@ -14246,6 +15253,24 @@ Transform:
   - {fileID: 672623554}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1573582223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573582221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T02
+  trunk: {fileID: 1207008125}
+  canopy: {fileID: 672623554}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1575049318
 GameObject:
   m_ObjectHideFlags: 0
@@ -14255,6 +15280,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1575049319}
+  - component: {fileID: 1575049320}
   m_Layer: 0
   m_Name: Tree 1
   m_TagString: Untagged
@@ -14279,6 +15305,24 @@ Transform:
   - {fileID: 39702873}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1575049320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1575049318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T01
+  trunk: {fileID: 294120370}
+  canopy: {fileID: 39702873}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1592357264
 GameObject:
   m_ObjectHideFlags: 0
@@ -14288,6 +15332,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1592357265}
+  - component: {fileID: 1592357266}
   m_Layer: 0
   m_Name: Tree 19
   m_TagString: Untagged
@@ -14312,6 +15357,24 @@ Transform:
   - {fileID: 654604235}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1592357266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1592357264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T19
+  trunk: {fileID: 519647960}
+  canopy: {fileID: 654604235}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1595035914
 GameObject:
   m_ObjectHideFlags: 0
@@ -14321,6 +15384,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1595035915}
+  - component: {fileID: 1595035916}
   m_Layer: 0
   m_Name: Tree 10
   m_TagString: Untagged
@@ -14345,6 +15409,24 @@ Transform:
   - {fileID: 1913012444}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1595035916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595035914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T10
+  trunk: {fileID: 668033670}
+  canopy: {fileID: 1913012444}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1599891611
 GameObject:
   m_ObjectHideFlags: 0
@@ -14534,6 +15616,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1628438062}
+  - component: {fileID: 1628438063}
   m_Layer: 0
   m_Name: Tree 58
   m_TagString: Untagged
@@ -14558,6 +15641,24 @@ Transform:
   - {fileID: 754024684}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1628438063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628438061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T58
+  trunk: {fileID: 2122593294}
+  canopy: {fileID: 754024684}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1630528471
 GameObject:
   m_ObjectHideFlags: 0
@@ -16151,6 +17252,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1816370645}
+  - component: {fileID: 1816370646}
   m_Layer: 0
   m_Name: Tree 35
   m_TagString: Untagged
@@ -16175,6 +17277,24 @@ Transform:
   - {fileID: 384188835}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1816370646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816370644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T35
+  trunk: {fileID: 490682463}
+  canopy: {fileID: 384188835}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1827065675
 GameObject:
   m_ObjectHideFlags: 0
@@ -16517,6 +17637,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1870832845}
+  - component: {fileID: 1870832846}
   m_Layer: 0
   m_Name: Tree 41
   m_TagString: Untagged
@@ -16541,6 +17662,24 @@ Transform:
   - {fileID: 1310552645}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1870832846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1870832844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T41
+  trunk: {fileID: 1110468260}
+  canopy: {fileID: 1310552645}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1871392163
 GameObject:
   m_ObjectHideFlags: 0
@@ -16958,6 +18097,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1920874826}
+  - component: {fileID: 1920874827}
   m_Layer: 0
   m_Name: Tree 28
   m_TagString: Untagged
@@ -16982,6 +18122,24 @@ Transform:
   - {fileID: 561868758}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1920874827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1920874825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T28
+  trunk: {fileID: 466765666}
+  canopy: {fileID: 561868758}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1936555322
 GameObject:
   m_ObjectHideFlags: 0
@@ -17081,6 +18239,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1958478224}
+  - component: {fileID: 1958478225}
   m_Layer: 0
   m_Name: Tree 48
   m_TagString: Untagged
@@ -17105,6 +18264,24 @@ Transform:
   - {fileID: 234531880}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1958478225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1958478223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T48
+  trunk: {fileID: 992636431}
+  canopy: {fileID: 234531880}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1964308094
 GameObject:
   m_ObjectHideFlags: 0
@@ -17318,6 +18495,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1972766573}
+  - component: {fileID: 1972766574}
   m_Layer: 0
   m_Name: Tree 15
   m_TagString: Untagged
@@ -17342,6 +18520,24 @@ Transform:
   - {fileID: 450164786}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1972766574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1972766572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T15
+  trunk: {fileID: 152886900}
+  canopy: {fileID: 450164786}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1986756197
 GameObject:
   m_ObjectHideFlags: 0
@@ -17351,6 +18547,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1986756198}
+  - component: {fileID: 1986756199}
   m_Layer: 0
   m_Name: Tree 13
   m_TagString: Untagged
@@ -17375,6 +18572,24 @@ Transform:
   - {fileID: 134762080}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1986756199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1986756197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T13
+  trunk: {fileID: 1437378666}
+  canopy: {fileID: 134762080}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1997929509
 GameObject:
   m_ObjectHideFlags: 0
@@ -17384,6 +18599,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1997929510}
+  - component: {fileID: 1997929511}
   m_Layer: 0
   m_Name: Tree 5
   m_TagString: Untagged
@@ -17408,6 +18624,24 @@ Transform:
   - {fileID: 297062760}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1997929511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1997929509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T05
+  trunk: {fileID: 776168277}
+  canopy: {fileID: 297062760}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &1997998533
 GameObject:
   m_ObjectHideFlags: 0
@@ -17531,6 +18765,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2011244013}
+  - component: {fileID: 2011244014}
   m_Layer: 0
   m_Name: Tree 32
   m_TagString: Untagged
@@ -17555,6 +18790,24 @@ Transform:
   - {fileID: 1090692945}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2011244014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2011244012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T32
+  trunk: {fileID: 765930373}
+  canopy: {fileID: 1090692945}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &2026252564
 GameObject:
   m_ObjectHideFlags: 0
@@ -17790,6 +19043,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2064353796}
+  - component: {fileID: 2064353797}
   m_Layer: 0
   m_Name: Tree 29
   m_TagString: Untagged
@@ -17814,6 +19068,24 @@ Transform:
   - {fileID: 2144909747}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2064353797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064353795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T29
+  trunk: {fileID: 2122508523}
+  canopy: {fileID: 2144909747}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &2082745557
 GameObject:
   m_ObjectHideFlags: 0
@@ -18468,6 +19740,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2125737884}
+  - component: {fileID: 2125737885}
   m_Layer: 0
   m_Name: Tree 3
   m_TagString: Untagged
@@ -18492,6 +19765,24 @@ Transform:
   - {fileID: 254543012}
   m_Father: {fileID: 2095790890}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2125737885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2125737883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416cb663c59d4e758a01d0bf9b8cbc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTree
+  treeId: T03
+  trunk: {fileID: 2040297401}
+  canopy: {fileID: 254543012}
+  chopsRequired: 4
+  stumpToSaplingSeconds: 20
+  saplingToYoungSeconds: 30
 --- !u!1 &2132014318
 GameObject:
   m_ObjectHideFlags: 0

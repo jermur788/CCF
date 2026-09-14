@@ -9,7 +9,7 @@ Open `Assets/Scenes/ForestTest.unity` in the CCF project, enter Play Mode, and c
 - Escape: release the mouse and stop horizontal movement.
 - Left click in the Game view: capture the mouse again.
 
-The scene contains a 40 x 40 metre ground, 68 primitive trees, four visible stone boundary ridges, one directional light and one first-person player. A winding dirt path leads from the spawn into a small clearing, with varied tree spacing and sizes. Ground, trunks and borders have collision; the thin path and clearing surfaces are decorative and have no colliders. Movement includes walking, running and jumping. Trees can be inspected and harvested with four timed chops; harvested trees become visible stumps and add wood to the HUD. The clearing also contains an unbuilt Forestry Workbench site: aim at it and press E or left click, then spend 8 wood to reveal the workbench. A shortage message appears when the player has insufficient wood. Gravity uses a CharacterController; the camera is a child of the player.
+The scene contains a 40 x 40 metre ground, 68 primitive trees, four visible stone boundary ridges, one directional light and one first-person player. A winding dirt path leads from the spawn into a small clearing, with varied tree spacing and sizes. Ground, trunks and borders have collision; the thin path and clearing surfaces are decorative and have no colliders. Movement includes walking, running and jumping. Trees can be inspected and harvested with four timed chops; harvested trees become visible stumps and add wood to the HUD, then regrow through sapling to young tree using simplified prototype timings. The clearing also contains an unbuilt Forestry Workbench site: aim at it and press E or left click, then spend 8 wood to reveal the workbench. A shortage message appears when the player has insufficient wood. Gravity uses a CharacterController; the camera is a child of the player.
 
 ## Project inspection
 
@@ -38,3 +38,9 @@ Added Space to jump when grounded and either Shift key to run while held. Ceilin
 A second Space press while airborne adds one upward impulse (Second Jump Height defaults to 2 metres). There is no third jump until landing. Boundary ridges are now 5 metres high to contain the stronger jump. The 68 trees have varied spacing, heights and canopy sizes, with a winding dirt path and a small clearing. ForestSceneBuilder remains the original baseline scene generator and does not overwrite this edited scene.
 
 The updated controller compiled against the existing Unity project references. Static scene checks verified object/component links, hierarchy, one player and camera, and non-colliding path surfaces. This update has not been visually inspected in Unity or interactively play-tested by the assistant. Exit Play Mode and reopen ForestTest to load the updated layout.
+
+## Tree state and simplified regeneration (14 September 2026)
+
+Every tree now carries a `ForestTree` component with a stable `treeId`, cached trunk/canopy references, chop progress, and a stage (`Mature`, `Stump`, `Sapling`, `Young`). `ForestPlayer` resolves trees through this component instead of names or hierarchy, and stump inspection reads the same state. `ForestSceneBuilder` attaches the component when generating a fresh scene, and its validator checks the tree references.
+
+Regrowth is deliberately simplified gameplay, not researched forest ecology. Placeholder timings on the component are 20 seconds from stump to sapling and 30 seconds from sapling to young tree. Saplings cannot be chopped; young trees can be harvested for the same height-based wood yield. These demo values must be revisited once the ecological rules are researched.

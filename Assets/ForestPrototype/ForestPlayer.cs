@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,22 +14,19 @@ public sealed class ForestPlayer : MonoBehaviour
     [SerializeField, Min(0.01f)] private float mouseSensitivity = 0.12f;
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField, Range(18, 72)] private int promptFontSize = 36;
-    [SerializeField, Range(1, 10)] private int chopsRequired = 4;
     [SerializeField, Min(0.1f)] private float swingCooldown = 0.45f;
     [SerializeField] private int woodCount = 0;
     private CharacterController controller;
     private float pitch;
     private float verticalSpeed;
     private bool isLookingAtTree;
-    private bool isLookingAtStump;
-    private Transform aimedTrunkTransform;
+    private ForestTree aimedTree;
     private bool isInspecting;
-    private Transform inspectedTreeTransform;
+    private ForestTree inspectedTree;
+    private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private string inspectedTreeName = "";
     private float inspectedTreeHeight;
     private float inspectedTreeDiameter;
-    private readonly HashSet<Transform> harvestedTrees = new HashSet<Transform>();
-    private readonly Dictionary<Transform, int> treeChopProgress = new Dictionary<Transform, int>();
     private float lastChopTime = -1f;
     private float chopImpactTimer;
     private Vector3 defaultCameraLocalPos = new Vector3(0f, 1.65f, 0f);
@@ -162,25 +158,10 @@ public sealed class ForestPlayer : MonoBehaviour
         UpdateTreeInspection(interactPressed, harvestPressed);
     }
 
-    private bool IsStump(Transform trunk)
-    {
-        if (trunk == null) return false;
-        Transform root = trunk.parent != null && trunk.parent.name.StartsWith("Tree") ? trunk.parent : trunk;
-        return harvestedTrees.Contains(root) || trunk.localScale.y <= 0.25f;
-    }
-
-    private int GetChopCount(Transform trunk)
-    {
-        if (trunk == null) return 0;
-        Transform root = trunk.parent != null && trunk.parent.name.StartsWith("Tree") ? trunk.parent : trunk;
-        return treeChopProgress.TryGetValue(root, out int count) ? count : 0;
-    }
-
     private void UpdateTreeInspection(bool interactPressed, bool harvestPressed)
     {
         isLookingAtTree = false;
-        isLookingAtStump = false;
-        aimedTrunkTransform = null;
+        aimedTree = null;
 
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
         {
@@ -188,120 +169,101 @@ public sealed class ForestPlayer : MonoBehaviour
             return;
         }
 
-        // Cast a ray forward from the camera's eye position
-        if (Physics.Raycast(view.position, view.forward, out RaycastHit hit, interactionDistance))
+        // Cast a ray forward from the camera's eye position, ignoring the player's own collider
+        int hitCount = Physics.RaycastNonAlloc(view.position, view.forward, hitBuffer, interactionDistance);
+        bool found = false;
+        RaycastHit nearest = default;
+        for (int i = 0; i < hitCount; i++)
         {
-            // Trees in ForestTest are structured as a parent "Tree X" with a child "Trunk" collider
-            bool isTrunk = hit.collider != null && (hit.collider.name == "Trunk" ||
-                (hit.collider.transform.parent != null && hit.collider.transform.parent.name.StartsWith("Tree")));
-            if (isTrunk)
+            RaycastHit candidate = hitBuffer[i];
+            Transform candidateTransform = candidate.collider.transform;
+            if (candidateTransform == transform || candidateTransform.IsChildOf(transform))
+                continue;
+            if (!found || candidate.distance < nearest.distance)
+            {
+                nearest = candidate;
+                found = true;
+            }
+        }
+
+        if (found)
+        {
+            ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
+            if (tree != null)
             {
                 isLookingAtTree = true;
-                aimedTrunkTransform = hit.collider.transform;
-                isLookingAtStump = IsStump(aimedTrunkTransform);
+                aimedTree = tree;
             }
         }
 
         // If inspecting, close card if player steps or looks too far away
         if (isInspecting)
         {
-            if (inspectedTreeTransform == null || Vector3.Distance(view.position, inspectedTreeTransform.position) > interactionDistance + 1.5f)
+            if (inspectedTree == null || Vector3.Distance(view.position, inspectedTree.InteractionPoint) > interactionDistance + 1.5f)
             {
                 isInspecting = false;
             }
-            else if (harvestPressed && !IsStump(inspectedTreeTransform))
+            else if (harvestPressed && inspectedTree.CanChop)
             {
-                ChopTree(inspectedTreeTransform);
+                ChopTree(inspectedTree);
             }
             else if (interactPressed)
             {
                 isInspecting = false;
             }
         }
-        else if (isLookingAtTree && aimedTrunkTransform != null)
+        else if (isLookingAtTree && aimedTree != null)
         {
-            if (harvestPressed && !isLookingAtStump)
+            if (harvestPressed && aimedTree.CanChop)
             {
-                ChopTree(aimedTrunkTransform);
+                ChopTree(aimedTree);
             }
             else if (interactPressed)
             {
-                InspectTree(aimedTrunkTransform);
+                InspectTree(aimedTree);
             }
         }
     }
 
-    private void InspectTree(Transform trunk)
+    private void InspectTree(ForestTree tree)
     {
-        inspectedTreeTransform = trunk;
-        Transform root = trunk.parent != null && trunk.parent.name.StartsWith("Tree") ? trunk.parent : trunk;
-        inspectedTreeName = root.name;
-
-        // In this prototype, cylinder trunk localScale.y is half-height
-        inspectedTreeHeight = trunk.localScale.y * 2f;
-        // Trunk localScale.x is radius/diameter factor
-        inspectedTreeDiameter = trunk.localScale.x * 100f;
+        inspectedTree = tree;
+        inspectedTreeName = tree.gameObject.name;
+        inspectedTreeHeight = tree.Height;
+        inspectedTreeDiameter = tree.Diameter;
         isInspecting = true;
     }
 
-    private void ChopTree(Transform trunk)
+    private void ChopTree(ForestTree tree)
     {
-        if (trunk == null || IsStump(trunk)) return;
+        if (tree == null || !tree.CanChop) return;
 
         // Enforce axe swing cooldown for deliberate, physical rhythm
         if (Time.time < lastChopTime + swingCooldown) return;
         lastChopTime = Time.time;
 
-        Transform root = trunk.parent != null && trunk.parent.name.StartsWith("Tree") ? trunk.parent : trunk;
-        int currentChops = GetChopCount(trunk) + 1;
-        treeChopProgress[root] = currentChops;
+        int currentChops = tree.AddChop();
 
         // Camera impact recoil
         chopImpactTimer = 0.12f;
 
-        if (currentChops < chopsRequired)
+        if (currentChops < tree.ChopsRequired)
         {
-            lastHarvestMessage = $"Axe Chop! ({currentChops}/{chopsRequired})";
+            lastHarvestMessage = $"Axe Chop! ({currentChops}/{tree.ChopsRequired})";
             messageTimer = 1.2f;
         }
         else
         {
-            FellTree(trunk, root);
+            // Read the yield before falling, because falling shrinks the trunk
+            int yield = tree.WoodYield;
+            tree.Fell();
+            woodCount += yield;
+
+            lastHarvestMessage = $"Timber! +{yield} Wood collected from {tree.gameObject.name}";
+            messageTimer = 3.5f;
+
+            isInspecting = false;
         }
-    }
-
-    private void FellTree(Transform trunk, Transform root)
-    {
-        treeChopProgress.Remove(root);
-        harvestedTrees.Add(root);
-
-        // Calculate wood yield proportional to tree height (3 to 10 logs)
-        float currentHeight = trunk.localScale.y * 2f;
-        int yield = Mathf.Clamp(Mathf.RoundToInt(currentHeight), 3, 10);
-        woodCount += yield;
-
-        lastHarvestMessage = $"Timber! +{yield} Wood collected from {root.name}";
-        messageTimer = 3.5f;
-
-        // Remove canopy leaves
-        Transform canopy = root.Find("Canopy");
-        if (canopy != null)
-        {
-            Destroy(canopy.gameObject);
-        }
-
-        // Reduce trunk to a realistic stump (~0.35m high)
-        float stumpHeight = 0.35f;
-        trunk.localScale = new Vector3(trunk.localScale.x * 1.15f, stumpHeight * 0.5f, trunk.localScale.z * 1.15f);
-        trunk.localPosition = new Vector3(trunk.localPosition.x, stumpHeight * 0.5f, trunk.localPosition.z);
-
-        if (!root.name.Contains("(Stump)"))
-        {
-            root.name += " (Stump)";
-        }
-
-        isInspecting = false;
-        isLookingAtStump = true;
     }
 
     private void OnGUI()
@@ -380,16 +342,16 @@ public sealed class ForestPlayer : MonoBehaviour
             }
 
             string promptText;
-            if (isLookingAtStump)
+            if (aimedTree.CanChop)
             {
-                promptText = "[E] Inspect Stump (Harvested)";
+                int chops = aimedTree.ChopProgress;
+                promptText = chops > 0
+                    ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
+                    : "[E] Inspect  |  [F] Chop Tree";
             }
             else
             {
-                int chops = GetChopCount(aimedTrunkTransform);
-                promptText = chops > 0
-                    ? $"[E] Inspect  |  [F] Chop ({chops}/{chopsRequired})"
-                    : $"[E] Inspect  |  [F] Chop Tree";
+                promptText = $"[E] Inspect {aimedTree.StageLabel}";
             }
 
             float width = Mathf.Max(340f, promptText.Length * size * 0.52f);
@@ -433,42 +395,42 @@ public sealed class ForestPlayer : MonoBehaviour
         Rect cardRect = new Rect(centerX - cardWidth * 0.5f, centerY - cardHeight * 0.5f, cardWidth, cardHeight);
         GUI.Box(cardRect, GUIContent.none, cardStyle);
 
-        bool isStump = IsStump(inspectedTreeTransform);
         GUILayout.BeginArea(new Rect(cardRect.x + 20f, cardRect.y + 16f, cardWidth - 40f, cardHeight - 32f));
         GUILayout.Label($"🌲 Tree Inspection — {inspectedTreeName}", cardTitleStyle);
         GUILayout.Space(10);
         GUILayout.Label("• Species: Scots Pine (Pinus sylvestris)", cardBodyStyle);
+        GUILayout.Label($"• Status: {inspectedTree.StageLabel}", cardBodyStyle);
+        GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
+        GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);
 
-        if (isStump)
+        if (inspectedTree.IsStump)
         {
-            GUILayout.Label("• Status: Harvested tree stump", cardBodyStyle);
-            GUILayout.Label("• CCF Ecology: Canopy gap created; promotes seed germination and natural succession.", cardBodyStyle);
-            GUILayout.Label("• Wood Yield: Already harvested", cardBodyStyle);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("Press [E], [Left Click], or step away to close", cardFooterStyle);
+            GUILayout.Label($"• Regrowth (simplified rule): sapling in {inspectedTree.RegrowthRemaining:F0}s", cardBodyStyle);
+            GUILayout.Label("• CCF note: canopy gap created; promotes regeneration in this prototype.", cardBodyStyle);
+        }
+        else if (inspectedTree.Stage == ForestTreeStage.Sapling)
+        {
+            GUILayout.Label($"• Regrowth (simplified rule): young tree in {inspectedTree.RegrowthRemaining:F0}s", cardBodyStyle);
         }
         else
         {
-            GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
-            GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);
-
-            string ccfNote = inspectedTreeHeight >= 4.5f
+            string ccfNote = inspectedTree.Stage == ForestTreeStage.Mature
                 ? "• CCF Status: Mature canopy tree — candidate for selective single-tree thinning."
                 : "• CCF Status: Young growing stock — retain for continuous crown cover.";
             GUILayout.Label(ccfNote, cardBodyStyle);
 
-            int chops = GetChopCount(inspectedTreeTransform);
-            if (chops > 0)
+            if (inspectedTree.ChopProgress > 0)
             {
-                GUILayout.Label($"• Chopping Progress: {chops} / {chopsRequired} chops", cardBodyStyle);
+                GUILayout.Label($"• Chopping Progress: {inspectedTree.ChopProgress} / {inspectedTree.ChopsRequired} chops", cardBodyStyle);
             }
 
-            int estimatedYield = Mathf.Clamp(Mathf.RoundToInt(inspectedTreeHeight), 3, 10);
-            GUILayout.Label($"• Potential Wood Yield: {estimatedYield} Wood", cardBodyStyle);
-
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("Press [F] to Chop   |   Press [E] to Close", cardFooterStyle);
+            GUILayout.Label($"• Potential Wood Yield: {inspectedTree.WoodYield} Wood", cardBodyStyle);
         }
+
+        GUILayout.FlexibleSpace();
+        GUILayout.Label(inspectedTree.CanChop
+            ? "Press [F] to Chop   |   Press [E] to Close"
+            : "Press [E], [Left Click], or step away to close", cardFooterStyle);
         GUILayout.EndArea();
     }
 }
