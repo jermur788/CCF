@@ -77,8 +77,17 @@ Thumbs.db
 .kitwright/
 opencode.json
 
-# Asset Store packs imported for evaluation; trimmed subset gets committed
-# when a feature actually uses it (339 MB pack - do not commit wholesale).
-/Assets/InnerverseInteractive/
-/Assets/InnerverseInteractive.meta
+# Asset Store packs imported for evaluation; only the trimmed subset used by
+# features is committed (the full pack is 339 MB - do not commit wholesale).
+/Assets/InnerverseInteractive/*
+!/Assets/InnerverseInteractive.meta
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter
+/Assets/InnerverseInteractive/Ultimate Nature – Starter/*
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter.meta
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment
+/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/*
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Trees
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Shared
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Props
+!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Documentation
 

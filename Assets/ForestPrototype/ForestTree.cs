@@ -23,6 +23,17 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField, Min(1f)] private float diameterCm = 65f;
     [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
     [SerializeField, Min(1)] private int chopsRequired = 4;
+    // Optional polished visuals (Ultimate Nature spruce/stump). When set, the
+    // placeholder trunk/canopy stay as invisible interaction proxies and the
+    // polished meshes visualise the authoritative data instead.
+    [SerializeField] private GameObject visualPrefab;
+    [SerializeField] private GameObject stumpPrefab;
+    [SerializeField] private bool visualOverrideActive;
+
+    private GameObject polishedVisual;
+    private GameObject stumpVisual;
+    private float polishedNaturalHeight = -1f;
+    private float stumpNaturalHeight = -1f;
 
     private ForestTreeStage stage = ForestTreeStage.Mature;
     private int chopProgress;
@@ -108,6 +119,111 @@ public sealed class ForestTree : MonoBehaviour
     {
         SetTrunkShape(heightMeters, MatureThickness);
         SetCanopyActive(true, MatureCanopyScale, heightMeters);
+        ApplyVisualOverride(heightMeters);
+    }
+
+    public void SetVisualPrefabs(GameObject visual, GameObject stump)
+    {
+        visualPrefab = visual;
+        stumpPrefab = stump;
+        visualOverrideActive = visual != null;
+        RefreshVisuals();
+    }
+
+    private void ApplyVisualOverride(float targetHeight)
+    {
+        if (visualPrefab == null)
+            return;
+
+        Renderer trunkRenderer = trunk != null ? trunk.GetComponent<Renderer>() : null;
+        if (trunkRenderer != null)
+            trunkRenderer.enabled = false;
+        if (canopy != null)
+            canopy.gameObject.SetActive(false);
+
+        if (polishedVisual == null)
+        {
+            // The polished visual may already exist (saved with the scene from
+            // an editor pass); reuse it instead of duplicating children.
+            Transform existing = transform.Find("PolishedVisual");
+            polishedVisual = existing != null ? existing.gameObject : Instantiate(visualPrefab, transform);
+            polishedVisual.name = "PolishedVisual";
+        }
+        DestroyDuplicateChildren("PolishedVisual", polishedVisual.transform);
+        StripInteractionColliders(polishedVisual.transform);
+        if (polishedNaturalHeight < 0f)
+        {
+            Bounds bounds = LocalRenderBounds(polishedVisual.transform);
+            polishedNaturalHeight = Mathf.Max(0.1f, bounds.size.y);
+        }
+        polishedVisual.transform.localScale = Vector3.one * (targetHeight / polishedNaturalHeight);
+        polishedVisual.transform.localPosition = Vector3.zero;
+        polishedVisual.SetActive(!IsStump);
+
+        if (stumpPrefab != null)
+        {
+            if (stumpVisual == null)
+            {
+                Transform existingStump = transform.Find("StumpVisual");
+                stumpVisual = existingStump != null ? existingStump.gameObject : Instantiate(stumpPrefab, transform);
+                stumpVisual.name = "StumpVisual";
+                Bounds stumpBounds = LocalRenderBounds(stumpVisual.transform);
+                stumpNaturalHeight = Mathf.Max(0.1f, stumpBounds.size.y);
+            }
+            StripInteractionColliders(stumpVisual.transform);
+            stumpVisual.transform.localScale = Vector3.one * (0.35f / stumpNaturalHeight);
+            stumpVisual.transform.localPosition = Vector3.zero;
+            stumpVisual.SetActive(IsStump);
+        }
+        if (stumpVisual != null)
+            DestroyDuplicateChildren("StumpVisual", stumpVisual.transform);
+    }
+
+    private void DestroyDuplicateChildren(string childName, Transform keep)
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = transform.GetChild(i);
+            if (child != keep && child.name == childName)
+            {
+                if (Application.isPlaying)
+                    Destroy(child.gameObject);
+                else
+                    DestroyImmediate(child.gameObject);
+            }
+        }
+    }
+
+    // Polished visuals are display-only; strip their colliders so aim raycasts
+    // keep hitting the trunk proxy. Idempotent and safe in edit and play mode.
+    private void StripInteractionColliders(Transform root)
+    {
+        foreach (var collider in root.GetComponentsInChildren<Collider>())
+        {
+            if (Application.isPlaying)
+                Destroy(collider);
+            else
+                DestroyImmediate(collider);
+        }
+    }
+
+    private static Bounds LocalRenderBounds(Transform root)
+    {
+        Bounds bounds = new Bounds(root.position, Vector3.zero);
+        bool hasBounds = false;
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+        {
+            if (!hasBounds)
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        return bounds;
     }
 
     public int AddChop()
@@ -157,8 +273,9 @@ public sealed class ForestTree : MonoBehaviour
                 break;
             default:
                 ApplyMatureShape();
-                break;
+                return;
         }
+        ApplyVisualOverride(CurrentHeight);
     }
 
     // Simulation writes go through these so mesh scale can never drive tree state.
