@@ -49,6 +49,10 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        // These statics survive play-mode sessions without a domain reload;
+        // a fresh session must not inherit the previous session's pending marks.
+        MarkedIds.Clear();
+        MarkerObjects.Clear();
         view = Camera.main;
         ForestPlayer player = view != null ? view.GetComponentInParent<ForestPlayer>() : null;
         playerRoot = player != null ? player.transform : null;
