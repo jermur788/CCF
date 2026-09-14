@@ -42,7 +42,6 @@ public sealed class ForestPlayer : MonoBehaviour
     private string lastHarvestMessage = "";
     private float messageTimer;
     private GUIStyle promptStyle;
-    private GUIStyle cardStyle;
     private GUIStyle cardTitleStyle;
     private GUIStyle cardBodyStyle;
     private GUIStyle cardFooterStyle;
@@ -429,21 +428,24 @@ public sealed class ForestPlayer : MonoBehaviour
         // Floating harvest notification, kept clear of the enlarged HUD
         if (messageTimer > 0f)
         {
+            float noteScale = ForestHud.Scale;
             if (notificationStyle == null)
             {
-                notificationStyle = new GUIStyle(GUI.skin.box)
+                notificationStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 36,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter
                 };
                 notificationStyle.normal.textColor = new Color(1f, 0.95f, 0.55f);
             }
+            notificationStyle.fontSize = Mathf.RoundToInt(36f * noteScale);
 
-            float noteWidth = Mathf.Min(800f, Screen.width - 32f);
-            float noteHeight = 92f;
+            float noteWidth = Mathf.Min(800f * noteScale, Screen.width - 32f);
+            float noteHeight = 92f * noteScale;
             float noteY = 16f + hudHeight * hudScale + 8f;
-            GUI.Box(new Rect(centerX - noteWidth * 0.5f, noteY, noteWidth, noteHeight), lastHarvestMessage, notificationStyle);
+            Rect noteRect = new Rect(centerX - noteWidth * 0.5f, noteY, noteWidth, noteHeight);
+            ForestHud.Panel(noteRect);
+            GUI.Label(noteRect, lastHarvestMessage, notificationStyle);
         }
 
         if (Cursor.lockState != CursorLockMode.Locked) return;
@@ -457,10 +459,10 @@ public sealed class ForestPlayer : MonoBehaviour
         }
         else if (isLookingAtTree)
         {
-            int size = promptFontSize >= 18 ? promptFontSize : 36;
+            int size = Mathf.RoundToInt((promptFontSize >= 18 ? promptFontSize : 36) * ForestHud.Scale);
             if (promptStyle == null || promptStyle.fontSize != size)
             {
-                promptStyle = new GUIStyle(GUI.skin.box)
+                promptStyle = new GUIStyle(GUI.skin.label)
                 {
                     alignment = TextAnchor.MiddleCenter,
                     fontSize = size,
@@ -483,20 +485,20 @@ public sealed class ForestPlayer : MonoBehaviour
                 promptText = $"[E] Inspect {aimedTree.StageLabel}";
             }
 
-            float width = Mathf.Max(340f, promptText.Length * size * 0.52f);
-            float height = Mathf.Max(58f, size * 1.8f);
-            GUI.Box(new Rect(centerX - width * 0.5f, centerY + 40f, width, height), promptText, promptStyle);
+            float width = Mathf.Max(440f, promptText.Length * size * 0.52f + 48f);
+            float height = Mathf.Max(64f, size * 2.0f);
+            Rect promptRect = new Rect(centerX - width * 0.5f, centerY + 40f, width, height);
+            ForestHud.Panel(promptRect);
+            GUI.Label(promptRect, promptText, promptStyle);
         }
     }
 
     private void DrawInspectionCard(float centerX, float centerY)
     {
-        if (cardStyle == null)
+        if (cardTitleStyle == null)
         {
-            cardStyle = new GUIStyle(GUI.skin.box);
             cardTitleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 22,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft
             };
@@ -504,7 +506,6 @@ public sealed class ForestPlayer : MonoBehaviour
 
             cardBodyStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 17,
                 wordWrap = true,
                 alignment = TextAnchor.UpperLeft
             };
@@ -512,17 +513,21 @@ public sealed class ForestPlayer : MonoBehaviour
 
             cardFooterStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter
             };
             cardFooterStyle.normal.textColor = new Color(0.75f, 0.85f, 0.95f);
         }
 
-        float cardWidth = 500f;
-        float cardHeight = 380f;
+        float cardScale = ForestHud.Scale;
+        // Re-applied every frame so a stale cached style can never render the card small.
+        cardTitleStyle.fontSize = Mathf.RoundToInt(22f * cardScale);
+        cardBodyStyle.fontSize = Mathf.RoundToInt(17f * cardScale);
+        cardFooterStyle.fontSize = Mathf.RoundToInt(15f * cardScale);
+        float cardWidth = 500f * cardScale;
+        float cardHeight = 380f * cardScale;
         Rect cardRect = new Rect(centerX - cardWidth * 0.5f, centerY - cardHeight * 0.5f, cardWidth, cardHeight);
-        GUI.Box(cardRect, GUIContent.none, cardStyle);
+        ForestHud.Panel(cardRect);
 
         GUILayout.BeginArea(new Rect(cardRect.x + 20f, cardRect.y + 16f, cardWidth - 40f, cardHeight - 32f));
         GUILayout.Label($"🌲 Tree Inspection — {inspectedTreeName}", cardTitleStyle);

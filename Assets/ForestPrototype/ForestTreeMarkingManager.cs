@@ -19,6 +19,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private Transform playerRoot;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private ForestTree aimedTree;
+    private ForestEcologyController ecologyCache;
+    private bool aimingAtGround;
+    private Vector3 aimedGroundPoint;
     private readonly List<ForestTree> markedTreeCache = new List<ForestTree>();
     private bool markedCacheDirty = true;
     private float nextStaleSweepTime;
@@ -87,6 +90,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             messageTimer -= Time.deltaTime;
 
         aimedTree = null;
+        aimingAtGround = false;
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
             return;
 
@@ -110,7 +114,17 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
         if (tree == null || tree.IsStump)
+        {
+            // Aiming at open ground: surface the local regeneration state.
+            if (ecologyCache == null)
+                ecologyCache = Object.FindFirstObjectByType<ForestEcologyController>();
+            if (ecologyCache != null)
+            {
+                aimingAtGround = true;
+                aimedGroundPoint = nearest.point;
+            }
             return;
+        }
 
         aimedTree = tree;
         Keyboard keyboard = Keyboard.current;
@@ -469,35 +483,37 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void OnGUI()
     {
-        if (messageTimer > 0f && messageStyle == null)
+        float hudScale = ForestHud.Scale;
+        if (messageStyle == null)
         {
-            messageStyle = new GUIStyle(GUI.skin.box)
+            messageStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 36,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 wordWrap = true
             };
             messageStyle.normal.textColor = new Color(1f, 0.85f, 0.55f);
         }
+        messageStyle.fontSize = Mathf.RoundToInt(36f * hudScale);
         if (messageTimer > 0f)
         {
-            float hudScale = Mathf.Max(1f, Mathf.Min(Screen.width / 1280f, Screen.height / 720f));
-            float messageWidth = Mathf.Min(920f, Screen.width - 32f);
-            GUI.Box(new Rect(Screen.width * 0.5f - messageWidth * 0.5f, 16f + 92f * hudScale + 8f, messageWidth, 92f), message, messageStyle);
+            float messageWidth = Mathf.Min(920f * hudScale, Screen.width - 32f);
+            Rect messageRect = new Rect(Screen.width * 0.5f - messageWidth * 0.5f, 16f + 92f * hudScale + 8f, messageWidth, 92f * hudScale);
+            ForestHud.Panel(messageRect);
+            GUI.Label(messageRect, message, messageStyle);
         }
 
         if (counterStyle == null)
         {
             counterStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 22,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.LowerLeft
             };
             counterStyle.normal.textColor = new Color(0.95f, 0.85f, 0.65f);
         }
-        GUI.Label(new Rect(18f, Screen.height - 44f, 680f, 28f),
+        counterStyle.fontSize = Mathf.RoundToInt(22f * hudScale);
+        GUI.Label(new Rect(18f, Screen.height - 44f * hudScale, 680f * hudScale, 28f * hudScale),
             $"Marked for harvest: {LivingMarkedCount} — {MarkedVolumeM3:0.0} m³   [M] mark / unmark", counterStyle);
 
         if (!string.IsNullOrEmpty(TreatmentOutcome))
@@ -506,12 +522,30 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             {
                 outcomeStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 17,
                     alignment = TextAnchor.LowerLeft
                 };
                 outcomeStyle.normal.textColor = new Color(0.8f, 0.88f, 0.95f);
             }
-            GUI.Label(new Rect(18f, Screen.height - 74f, Screen.width - 36f, 24f), TreatmentOutcome, outcomeStyle);
+            outcomeStyle.fontSize = Mathf.RoundToInt(17f * hudScale);
+            GUI.Label(new Rect(18f, Screen.height - 74f * hudScale, Screen.width - 36f, 24f * hudScale), TreatmentOutcome, outcomeStyle);
+        }
+
+        if (aimedTree == null && aimingAtGround && ecologyCache != null)
+        {
+            string report = ecologyCache.RegenerationReportLine(aimedGroundPoint);
+            if (!string.IsNullOrEmpty(report))
+            {
+                if (outcomeStyle == null)
+                {
+                    outcomeStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        alignment = TextAnchor.LowerLeft
+                    };
+                    outcomeStyle.normal.textColor = new Color(0.8f, 0.88f, 0.95f);
+                }
+                outcomeStyle.fontSize = Mathf.RoundToInt(17f * hudScale);
+                GUI.Label(new Rect(18f, Screen.height - 104f * hudScale, Screen.width - 36f, 24f * hudScale), report, outcomeStyle);
+            }
         }
 
         if (aimedTree == null)
@@ -519,15 +553,19 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         if (promptStyle == null)
         {
-            promptStyle = new GUIStyle(GUI.skin.box)
+            promptStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 24,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
             promptStyle.normal.textColor = Color.white;
         }
+        promptStyle.fontSize = Mathf.RoundToInt(26f * hudScale);
         string prompt = IsMarked(aimedTree) ? "[M] Unmark" : "[M] Mark for Harvest";
-        GUI.Box(new Rect(Screen.width * 0.5f - 200f, Screen.height * 0.5f - 96f, 400f, 46f), prompt, promptStyle);
+        float promptWidth = 460f * hudScale;
+        float promptHeight = 56f * hudScale;
+        Rect promptRect = new Rect(Screen.width * 0.5f - promptWidth * 0.5f, Screen.height * 0.5f - 96f * hudScale, promptWidth, promptHeight);
+        ForestHud.Panel(promptRect);
+        GUI.Label(promptRect, prompt, promptStyle);
     }
 }
