@@ -119,6 +119,7 @@ public static class ForestSceneBuilder
             var gameState = new GameObject("Game State");
             gameState.AddComponent<ForestSaveController>();
             gameState.AddComponent<ForestEcologyController>();
+            gameState.AddComponent<ForestTreeMarkingManager>();
             var spawner = gameState.AddComponent<ForestTreeSpawner>();
             var spawnerSerialized = new SerializedObject(spawner);
             spawnerSerialized.FindProperty("defaultSpecies").objectReferenceValue = sitkaSpruce;
@@ -396,7 +397,7 @@ public static class ForestSceneBuilder
 
     private static void ValidateScene(Scene scene)
     {
-        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0, spawners = 0;
+        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0, spawners = 0, markingManagers = 0;
         var treeIds = new HashSet<string>();
         var buildableIds = new HashSet<string>();
         var storageIds = new HashSet<string>();
@@ -462,6 +463,8 @@ public static class ForestSceneBuilder
                     serializedSpawner.FindProperty("forestParent").objectReferenceValue == null)
                     throw new InvalidOperationException("Incomplete tree spawner on " + obj.name);
             }
+            if (obj.GetComponent<ForestTreeMarkingManager>() != null)
+                markingManagers++;
             var tree = obj.GetComponent<ForestTree>();
             if (tree != null)
             {
@@ -497,6 +500,7 @@ public static class ForestSceneBuilder
         if (saveControllers != 1) throw new InvalidOperationException("Unexpected save controller count.");
         if (ecologyControllers != 1) throw new InvalidOperationException("Unexpected ecology controller count.");
         if (spawners != 1) throw new InvalidOperationException("Unexpected tree spawner count.");
+        if (markingManagers != 1) throw new InvalidOperationException("Unexpected tree marking manager count.");
         Debug.Log("FOREST_VALIDATED: no missing scripts, materials or player references; one player, camera and listener.");
     }
 

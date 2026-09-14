@@ -4,13 +4,14 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
     public int wood;
     public int ecologicalYear;
     public int simulationSeed = 20260914;
+    public List<string> markedTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();
     public List<BuildableSaveData> buildables = new List<BuildableSaveData>();
     public List<WoodStorageSaveData> storages = new List<WoodStorageSaveData>();
