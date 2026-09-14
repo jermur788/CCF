@@ -40,6 +40,12 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle hudTextStyle;
     private GUIStyle notificationStyle;
 
+    public int WoodCount
+    {
+        get => woodCount;
+        set => woodCount = value;
+    }
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -276,8 +282,8 @@ public sealed class ForestPlayer : MonoBehaviour
         float hudScale = Mathf.Max(1f, Mathf.Min(Screen.width / 1280f, Screen.height / 720f));
         GUI.matrix = previousMatrix * Matrix4x4.Scale(new Vector3(hudScale, hudScale, 1f));
         // Top-left wood inventory HUD
-        float hudWidth = 190f;
-        float hudHeight = 46f;
+        float hudWidth = 380f;
+        float hudHeight = 92f;
         Rect hudRect = new Rect(16f, 16f, hudWidth, hudHeight);
         // Keep inventory visible even when Escape or loss of focus releases the mouse.
         Color previousColor = GUI.color;
@@ -285,36 +291,34 @@ public sealed class ForestPlayer : MonoBehaviour
         GUI.DrawTexture(hudRect, Texture2D.whiteTexture);
         GUI.color = Color.white;
         if (hudTextStyle == null)
-        {
-            hudTextStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 20,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleLeft
-            };
-            hudTextStyle.normal.textColor = Color.white;
-        }
-        GUI.Label(new Rect(hudRect.x + 14f, hudRect.y + 6f, hudWidth - 20f, 32f), $"Wood: {woodCount}", hudTextStyle);
+            hudTextStyle = new GUIStyle(GUI.skin.label);
+        // Re-applied every frame so a stale cached style can never render the counter dark or small.
+        hudTextStyle.fontSize = 40;
+        hudTextStyle.fontStyle = FontStyle.Bold;
+        hudTextStyle.alignment = TextAnchor.MiddleLeft;
+        hudTextStyle.normal.textColor = Color.white;
+        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 12f, hudWidth - 40f, 64f), $"Wood: {woodCount}", hudTextStyle);
         GUI.color = previousColor;
         GUI.matrix = previousMatrix;
 
-        // Floating harvest notification
+        // Floating harvest notification, kept clear of the enlarged HUD
         if (messageTimer > 0f)
         {
             if (notificationStyle == null)
             {
                 notificationStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 18,
+                    fontSize = 36,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter
                 };
                 notificationStyle.normal.textColor = new Color(1f, 0.95f, 0.55f);
             }
 
-            float noteWidth = 400f;
-            float noteHeight = 46f;
-            GUI.Box(new Rect(centerX - noteWidth * 0.5f, 30f, noteWidth, noteHeight), lastHarvestMessage, notificationStyle);
+            float noteWidth = Mathf.Min(800f, Screen.width - 32f);
+            float noteHeight = 92f;
+            float noteY = 16f + hudHeight * hudScale + 8f;
+            GUI.Box(new Rect(centerX - noteWidth * 0.5f, noteY, noteWidth, noteHeight), lastHarvestMessage, notificationStyle);
         }
 
         if (Cursor.lockState != CursorLockMode.Locked) return;

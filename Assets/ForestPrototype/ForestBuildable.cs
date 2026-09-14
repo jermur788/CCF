@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,11 +6,11 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField, Min(1)] private int woodCost = 8;
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField] private string displayName = "Forestry Workbench";
+    [SerializeField] private string buildId = "workbench-01";
     [SerializeField] private GameObject unbuiltVisual;
     [SerializeField] private GameObject builtVisual;
 
     private Camera view;
-    private FieldInfo woodField;
     private Transform playerRoot;
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private bool isLooking;
@@ -24,9 +23,6 @@ public sealed class ForestBuildable : MonoBehaviour
     private void Awake()
     {
         view = Camera.main;
-        woodField = typeof(ForestPlayer).GetField("woodCount", BindingFlags.Instance | BindingFlags.NonPublic);
-        if (woodField == null)
-            Debug.LogError("ForestBuildable could not find ForestPlayer.woodCount.", this);
 
         ForestPlayer player = view != null ? view.GetComponentInParent<ForestPlayer>() : null;
         playerRoot = player != null ? player.transform : null;
@@ -84,20 +80,14 @@ public sealed class ForestBuildable : MonoBehaviour
             return;
         }
 
-        if (woodField == null || woodField.FieldType != typeof(int))
-        {
-            SetMessage("Cannot build: wood inventory is unavailable.", 3f);
-            return;
-        }
-
-        int wood = (int)woodField.GetValue(player);
+        int wood = player.WoodCount;
         if (wood < woodCost)
         {
             SetMessage($"Not enough wood. Need {woodCost}, have {wood}.", 3f);
             return;
         }
 
-        woodField.SetValue(player, wood - woodCost);
+        player.WoodCount = wood - woodCost;
         isBuilt = true;
         SetVisuals(true);
         SetMessage($"{displayName} built. Wood -{woodCost}.", 3.5f);
@@ -112,13 +102,13 @@ public sealed class ForestBuildable : MonoBehaviour
             builtVisual.SetActive(built);
     }
 
-    private int GetWood()
-    {
-        if (view == null || woodField == null)
-            return 0;
+    public string BuildId => buildId;
+    public bool IsBuilt => isBuilt;
 
-        ForestPlayer player = view.GetComponentInParent<ForestPlayer>();
-        return player != null ? (int)woodField.GetValue(player) : 0;
+    public void RestoreBuiltState(bool built)
+    {
+        isBuilt = built;
+        SetVisuals(built);
     }
 
     private void SetMessage(string text, float duration)
@@ -135,7 +125,7 @@ public sealed class ForestBuildable : MonoBehaviour
             {
                 messageStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 18,
+                    fontSize = 36,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter,
                     wordWrap = true
@@ -143,7 +133,10 @@ public sealed class ForestBuildable : MonoBehaviour
                 messageStyle.normal.textColor = new Color(1f, 0.95f, 0.55f);
             }
 
-            GUI.Box(new Rect(Screen.width * 0.5f - 230f, 84f, 460f, 48f), message, messageStyle);
+            float hudScale = Mathf.Max(1f, Mathf.Min(Screen.width / 1280f, Screen.height / 720f));
+            float messageWidth = Mathf.Min(920f, Screen.width - 32f);
+            float messageY = 16f + 92f * hudScale + 8f;
+            GUI.Box(new Rect(Screen.width * 0.5f - messageWidth * 0.5f, messageY, messageWidth, 92f), message, messageStyle);
         }
 
         if (!isLooking)

@@ -101,6 +101,8 @@ public static class ForestSceneBuilder
             var serialized = new SerializedObject(controller);
             serialized.FindProperty("view").objectReferenceValue = camera.transform;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            var gameState = new GameObject("Game State");
+            gameState.AddComponent<ForestSaveController>();
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             ValidateScene(scene);
@@ -146,7 +148,7 @@ public static class ForestSceneBuilder
 
     private static void ValidateScene(Scene scene)
     {
-        int players = 0, cameras = 0, listeners = 0;
+        int players = 0, cameras = 0, listeners = 0, saveControllers = 0;
         foreach (var root in scene.GetRootGameObjects())
         foreach (var transform in root.GetComponentsInChildren<Transform>(true))
         {
@@ -175,8 +177,10 @@ public static class ForestSceneBuilder
             }
             cameras += obj.GetComponents<Camera>().Length;
             listeners += obj.GetComponents<AudioListener>().Length;
+            saveControllers += obj.GetComponents<ForestSaveController>().Length;
         }
         if (players != 1 || cameras != 1 || listeners != 1) throw new InvalidOperationException("Unexpected player/camera/listener count.");
+        if (saveControllers != 1) throw new InvalidOperationException("Unexpected save controller count.");
         Debug.Log("FOREST_VALIDATED: no missing scripts, materials or player references; one player, camera and listener.");
     }
 }

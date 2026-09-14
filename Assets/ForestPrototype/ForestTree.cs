@@ -34,6 +34,7 @@ public sealed class ForestTree : MonoBehaviour
     public bool CanChop => stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young;
     public int ChopsRequired => chopsRequired;
     public int ChopProgress => chopProgress;
+    public float StageTimer => stageTimer;
     public float Height => trunk != null ? trunk.localScale.y * 2f : 0f;
     public float Diameter => trunk != null ? trunk.localScale.x * 100f : 0f;
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
@@ -125,6 +126,13 @@ public sealed class ForestTree : MonoBehaviour
         if (!CanChop)
             return;
         SetStage(ForestTreeStage.Stump);
+    }
+
+    public void RestoreState(ForestTreeStage restoredStage, float restoredStageTimer, int restoredChopProgress)
+    {
+        SetStage(restoredStage);
+        stageTimer = Mathf.Max(0f, restoredStageTimer);
+        chopProgress = Mathf.Max(0, restoredChopProgress);
     }
 
     private void SetStage(ForestTreeStage next)

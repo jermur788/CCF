@@ -44,3 +44,7 @@ The updated controller compiled against the existing Unity project references. S
 Every tree now carries a `ForestTree` component with a stable `treeId`, cached trunk/canopy references, chop progress, and a stage (`Mature`, `Stump`, `Sapling`, `Young`). `ForestPlayer` resolves trees through this component instead of names or hierarchy, and stump inspection reads the same state. `ForestSceneBuilder` attaches the component when generating a fresh scene, and its validator checks the tree references.
 
 Regrowth is deliberately simplified gameplay, not researched forest ecology. Placeholder timings on the component are 20 seconds from stump to sapling and 30 seconds from sapling to young tree. Saplings cannot be chopped; young trees can be harvested for the same height-based wood yield. These demo values must be revisited once the ecological rules are researched.
+
+## Save and load (14 September 2026)
+
+Press F5 to save and F9 to load. The save file is `forest-save.json` under `Application.persistentDataPath`. It stores the wood count, every tree's stable id with stage, stage timer and chop progress, and each buildable's id with its built flag, so harvested trees resume regrowth from where they were. Trees are matched by `treeId`, not by scene object name. The controller lives on the `Game State` object.
