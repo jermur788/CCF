@@ -57,6 +57,7 @@ public static class ForestSceneBuilder
                 float height = 4f + (float)random.NextDouble() * 2f;
                 var tree = new GameObject("Tree " + (++count));
                 tree.transform.SetParent(forest.transform);
+                tree.transform.position = new Vector3(px, 0f, pz);
                 var trunk = Primitive("Trunk", PrimitiveType.Cylinder, new Vector3(px, height / 2, pz), new Vector3(0.65f, height / 2, 0.65f), bark, tree.transform);
                 var canopy = Primitive("Canopy", PrimitiveType.Sphere, new Vector3(px, height, pz), new Vector3(3.3f, 3.6f, 3.3f), leaves, tree.transform);
                 UnityEngine.Object.DestroyImmediate(canopy.GetComponent<Collider>());
@@ -170,10 +171,15 @@ public static class ForestSceneBuilder
             if (tree != null)
             {
                 var serializedTree = new SerializedObject(tree);
+                var trunkTransform = serializedTree.FindProperty("trunk").objectReferenceValue as Transform;
+                var canopyTransform = serializedTree.FindProperty("canopy").objectReferenceValue as Transform;
                 if (string.IsNullOrEmpty(serializedTree.FindProperty("treeId").stringValue) ||
-                    serializedTree.FindProperty("trunk").objectReferenceValue == null ||
-                    serializedTree.FindProperty("canopy").objectReferenceValue == null)
+                    trunkTransform == null ||
+                    canopyTransform == null)
                     throw new InvalidOperationException("Incomplete tree state on " + obj.name);
+                if (Mathf.Abs(trunkTransform.localPosition.x) > 0.001f || Mathf.Abs(trunkTransform.localPosition.z) > 0.001f ||
+                    Mathf.Abs(canopyTransform.localPosition.x) > 0.001f || Mathf.Abs(canopyTransform.localPosition.z) > 0.001f)
+                    throw new InvalidOperationException("Tree children are not centered on the root: " + obj.name);
             }
             cameras += obj.GetComponents<Camera>().Length;
             listeners += obj.GetComponents<AudioListener>().Length;

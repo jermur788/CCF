@@ -38,8 +38,7 @@ public sealed class ForestTree : MonoBehaviour
     public float Height => trunk != null ? trunk.localScale.y * 2f : 0f;
     public float Diameter => trunk != null ? trunk.localScale.x * 100f : 0f;
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
-    // Scene tree roots sit at the world origin, so measure from the trunk instead.
-    public Vector3 InteractionPoint => trunk != null ? trunk.position : transform.position;
+    public Vector3 InteractionPoint => transform.position;
 
     public string StageLabel
     {
