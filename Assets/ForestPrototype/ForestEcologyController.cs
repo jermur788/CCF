@@ -1,25 +1,62 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class ForestEcologyController : MonoBehaviour
 {
     [SerializeField] private int ecologicalYear;
+    [SerializeField] private int simulationSeed = 20260914;
     [SerializeField] private float standSizeMeters = 40f;
     [SerializeField] private float cellSizeMeters = 5f;
     [SerializeField] private bool showDebugGrid;
+    [SerializeField] private bool showSeedRain;
+    [SerializeField] private bool logAnnualSummary;
+    [SerializeField] private int debugCellIndex;
 
     private ForestEcologyCell[] cells;
     private int cellsPerAxis;
+    private TreeSpeciesDefinition species;
+    private readonly Dictionary<ForestTree, float> competitionIndex = new Dictionary<ForestTree, float>();
+    private readonly Dictionary<ForestTree, float> annualDbhGrowth = new Dictionary<ForestTree, float>();
+    private readonly Dictionary<ForestTree, float> seedPotential = new Dictionary<ForestTree, float>();
+    private string lastMastLabel = "normal";
+    private float lastMastMultiplier = 1f;
 
     public int EcologicalYear => ecologicalYear;
     public int CellCount => cells != null ? cells.Length : 0;
     public int CellsPerAxis => cellsPerAxis;
     public float CellSizeMeters => cellSizeMeters;
     public ForestEcologyCell[] Cells => cells;
+    public string LastMastLabel => lastMastLabel;
+    public float LastMastMultiplier => lastMastMultiplier;
+
+    public int SimulationSeed
+    {
+        get => simulationSeed;
+        set => simulationSeed = value;
+    }
 
     public bool ShowDebugGrid
     {
         get => showDebugGrid;
         set => showDebugGrid = value;
+    }
+
+    public bool ShowSeedRain
+    {
+        get => showSeedRain;
+        set => showSeedRain = value;
+    }
+
+    public bool LogAnnualSummary
+    {
+        get => logAnnualSummary;
+        set => logAnnualSummary = value;
+    }
+
+    public int DebugCellIndex
+    {
+        get => debugCellIndex;
+        set => debugCellIndex = value;
     }
 
     private void Awake()
@@ -39,7 +76,14 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void OnTreeFelled(ForestTree tree)
     {
+        if (cells != null && tree != null)
+        {
+            int index = GetCellIndex(tree.transform.position);
+            if (index >= 0)
+                cells[index].RecentOpening += 1f;
+        }
         RecomputeCanopy();
+        RecomputeSeedRain();
     }
 
     // One explicit step for editor, MCP and debug tooling. Nothing in normal
@@ -48,13 +92,74 @@ public sealed class ForestEcologyController : MonoBehaviour
     [ContextMenu("Advance one ecological year")]
     public void AdvanceOneYear()
     {
+        TreeSpeciesDefinition s = ResolveSpecies();
+        if (s == null || cells == null)
+        {
+            Debug.LogWarning("ForestEcologyController cannot advance a year without a species and a built grid.", this);
+            return;
+        }
+
         ecologicalYear++;
-        RecomputeCanopy();
+        var rng = new System.Random(unchecked(simulationSeed * 397) ^ ecologicalYear);
+
+        // Annual order follows the Sitka report's sequence.
+        UpdateCompetition(s);             // 1. competition from current neighbours
+        RecomputeCanopy();                // 2. canopy/light from current crowns
+        GrowAdults(s);                    // 3. adult DBH and height
+        RelaxCrowns(s);                   // 4. crown relaxation toward competition-limited target
+        RecomputeCanopy();                // 5. light reflects the new crowns
+        GrowExistingRegeneration(s);      // 6. existing regeneration grows before new establishment
+        UpdateMast(s, rng);               // 7. stand mast state for this year
+        ComputeSeedRain(s);               // 8. spatial seed dispersal (RecomputeSeedRain core)
+        EstablishNewCohorts(s);           // 9. new establishment from seed x light x suitability
+        PromoteCohorts(s, rng);           // 10. cohorts that reach tree size become individuals
+        UpdateEstablishmentSuitability(); // 11. simple disturbance response
+        DecayRecentOpening(s);            // 12. exposure decays with time
+        LogSummary(s);                    // 13. diagnostics
+    }
+
+    public void RestoreEcologyState(int year, int seed)
+    {
+        ecologicalYear = Mathf.Max(0, year);
+        simulationSeed = seed;
+        // Cells not present in the save must return to a clean state, or a second
+        // load in the same session would inherit later regeneration.
+        if (cells != null)
+        {
+            foreach (ForestEcologyCell cell in cells)
+            {
+                cell.RegenDensity = 0f;
+                cell.RegenHeight = 0f;
+                cell.RegenEstablishYear = -1;
+                cell.RecentOpening = 0f;
+            }
+        }
+        RefreshMastForCurrentYear();
+    }
+
+    public void RestoreCellState(int index, float density, float height, int establishYear, float recentOpening)
+    {
+        if (cells == null || index < 0 || index >= cells.Length)
+            return;
+        ForestEcologyCell cell = cells[index];
+        cell.RegenDensity = Mathf.Max(0f, density);
+        cell.RegenHeight = Mathf.Max(0f, height);
+        cell.RegenEstablishYear = establishYear;
+        cell.RecentOpening = Mathf.Max(0f, recentOpening);
+    }
+
+    // Deterministically reproduces the mast roll for the current seed and year.
+    public void RefreshMastForCurrentYear()
+    {
+        TreeSpeciesDefinition s = ResolveSpecies();
+        if (s == null)
+            return;
+        var rng = new System.Random(unchecked(simulationSeed * 397) ^ ecologicalYear);
+        UpdateMast(s, rng);
     }
 
     [ContextMenu("Rebuild ecology grid")]
-    public void RebuildGrid()
-    {
+    public void RebuildGrid()    {
         cellsPerAxis = Mathf.Max(1, Mathf.CeilToInt(standSizeMeters / cellSizeMeters));
         cells = new ForestEcologyCell[cellsPerAxis * cellsPerAxis];
         float origin = -standSizeMeters * 0.5f;
@@ -71,6 +176,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             };
         }
         RecomputeCanopy();
+        RecomputeSeedRain();
     }
 
     // Simplified local crown influence: each living crown shades a cell by a
@@ -82,7 +188,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (cells == null)
             return;
 
-        ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        ForestTree[] trees = FindTrees();
         foreach (ForestEcologyCell cell in cells)
         {
             float gap = 1f;
@@ -106,6 +212,388 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
+    [ContextMenu("Recompute seed rain")]
+    public void RecomputeSeedRain()
+    {
+        TreeSpeciesDefinition s = ResolveSpecies();
+        if (s == null || cells == null)
+            return;
+        ComputeSeedRain(s);
+    }
+
+    private ForestTree[] FindTrees()
+    {
+        return Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+    }
+
+    public TreeSpeciesDefinition ResolveSpecies()
+    {
+        if (species != null)
+            return species;
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (spawner != null && spawner.DefaultSpecies != null)
+        {
+            species = spawner.DefaultSpecies;
+            return species;
+        }
+        foreach (ForestTree tree in FindTrees())
+        {
+            if (tree.Species != null)
+            {
+                species = tree.Species;
+                return species;
+            }
+        }
+        return null;
+    }
+
+    // Hegyi competition: CI = sum over nearby living neighbours of
+    // (DBH_neighbour / DBH_target) / distance_m. Local positions only.
+    private void UpdateCompetition(TreeSpeciesDefinition s)
+    {
+        competitionIndex.Clear();
+        annualDbhGrowth.Clear();
+        ForestTree[] trees = FindTrees();
+        const float cutoffMeters = 20f; // [C] performance abstraction
+        foreach (ForestTree target in trees)
+        {
+            if (target == null || target.IsStump)
+                continue;
+            Vector2 targetPos = new Vector2(target.transform.position.x, target.transform.position.z);
+            float ci = 0f;
+            foreach (ForestTree neighbour in trees)
+            {
+                if (neighbour == null || neighbour == target || neighbour.IsStump)
+                    continue;
+                Vector2 neighbourPos = new Vector2(neighbour.transform.position.x, neighbour.transform.position.z);
+                float distance = Vector2.Distance(targetPos, neighbourPos);
+                if (distance > cutoffMeters)
+                    continue;
+                ci += (neighbour.Diameter / Mathf.Max(1f, target.Diameter)) / Mathf.Max(0.5f, distance);
+            }
+            competitionIndex[target] = ci;
+        }
+    }
+
+    // DBH responds to competition; height follows age/site and is deliberately
+    // not multiplied by the same competition factor (thinning affects girth more).
+    private void GrowAdults(TreeSpeciesDefinition s)
+    {
+        int yearsApplied = 1;
+        ForestTree[] trees = FindTrees();
+        foreach (ForestTree tree in trees)
+        {
+            if (tree == null || tree.IsStump)
+                continue;
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
+            float site = GetSiteProductivity(tree.transform.position);
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+
+            float dbhPotential = treeSpecies.PotentialDbhGrowthCmPerYear * site *
+                                 Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);
+            float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));
+            float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
+                                 Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+
+            tree.ApplyGrowth(dbhGrowth * yearsApplied, heightGrowth * yearsApplied);
+            tree.SetAgeYears(tree.AgeYears + yearsApplied);
+            annualDbhGrowth[tree] = dbhGrowth;
+        }
+    }
+
+    // Dynamic crown radius: potential from DBH, reduced by competition, reached
+    // gradually by relaxation rather than snapping.
+    private void RelaxCrowns(TreeSpeciesDefinition s)
+    {
+        ForestTree[] trees = FindTrees();
+        foreach (ForestTree tree in trees)
+        {
+            if (tree == null || tree.IsStump)
+                continue;
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
+            float potential = treeSpecies.PotentialCrownRadiusM(tree.Diameter);
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+            float factor = 1f / (1f + ci / treeSpecies.Ci50);
+            float target = potential * factor;
+            tree.RelaxCrownRadius(target, treeSpecies.CrownRelaxationPerYear);
+        }
+    }
+
+    private void UpdateMast(TreeSpeciesDefinition s, System.Random rng)
+    {
+        double roll = rng.NextDouble();
+        if (roll < s.MastGoodProbability)
+        {
+            lastMastLabel = "good";
+            lastMastMultiplier = s.MastGoodMultiplier;
+        }
+        else if (roll < s.MastGoodProbability + s.MastPoorProbability)
+        {
+            lastMastLabel = "poor";
+            lastMastMultiplier = s.MastPoorMultiplier;
+        }
+        else
+        {
+            lastMastLabel = "normal";
+            lastMastMultiplier = s.MastNormalMultiplier;
+        }
+    }
+
+    private void ComputeSeedRain(TreeSpeciesDefinition s)
+    {
+        if (cells == null)
+            return;
+        seedPotential.Clear();
+        ForestTree[] trees = FindTrees();
+        foreach (ForestTree tree in trees)
+        {
+            if (tree == null || tree.IsStump)
+                continue;
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
+            float maturity = treeSpecies.Maturity(tree.AgeYears);
+            float crown = Mathf.Clamp01(tree.CrownRadius / 4f);
+            seedPotential[tree] = maturity * crown * treeSpecies.SeedPotentialPerMatureTree * lastMastMultiplier;
+        }
+
+        foreach (ForestEcologyCell cell in cells)
+        {
+            float seedRain = 0f;
+            foreach (ForestTree tree in trees)
+            {
+                if (tree == null || tree.IsStump)
+                    continue;
+                if (!seedPotential.TryGetValue(tree, out float potential) || potential <= 0f)
+                    continue;
+                TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
+                Vector2 treePosition = new Vector2(tree.transform.position.x, tree.transform.position.z);
+                float distance = Vector2.Distance(cell.Center, treePosition);
+                if (distance > treeSpecies.SeedDispersalCutoffM)
+                    continue;
+                seedRain += potential * Mathf.Exp(-distance / treeSpecies.SeedDispersalScaleM);
+            }
+            cell.SitkaSeedRain = seedRain;
+        }
+    }
+
+    private void GrowExistingRegeneration(TreeSpeciesDefinition s)
+    {
+        foreach (ForestEcologyCell cell in cells)
+        {
+            if (cell.RegenDensity <= 0f)
+                continue;
+            float response = s.JuvenileLightResponse(cell.Light);
+            cell.RegenHeight += s.RegenHeightGrowthMPerYear * response * cell.SiteProductivity;
+            if (response < s.RegenPoorLightThreshold)
+                cell.RegenDensity *= 1f - s.RegenMortalityUnderPoorLight;
+            else
+                cell.RegenDensity = Mathf.Min(s.RegenDensityMax, cell.RegenDensity + 0.05f);
+            if (cell.RegenDensity < 0.01f)
+            {
+                cell.RegenDensity = 0f;
+                cell.RegenHeight = 0f;
+                cell.RegenEstablishYear = -1;
+            }
+        }
+    }
+
+    private void EstablishNewCohorts(TreeSpeciesDefinition s)
+    {
+        foreach (ForestEcologyCell cell in cells)
+        {
+            if (cell.SitkaSeedRain <= 0f)
+                continue;
+            float seedFactor = 1f - Mathf.Exp(-cell.SitkaSeedRain / s.SeedSaturationS50);
+            float lightResponse = s.JuvenileLightResponse(cell.Light);
+            float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
+            if (establishment <= 0.01f)
+                continue;
+            if (cell.RegenEstablishYear < 0)
+            {
+                cell.RegenEstablishYear = ecologicalYear;
+                cell.RegenHeight = s.RegenInitialHeightM;
+            }
+            cell.RegenDensity = Mathf.Min(s.RegenDensityMax, cell.RegenDensity + establishment * s.RegenDensityPerEstablishment);
+        }
+    }
+
+    private void PromoteCohorts(TreeSpeciesDefinition s, System.Random rng)
+    {
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (spawner == null)
+            return;
+
+        for (int i = 0; i < cells.Length; i++)
+        {
+            ForestEcologyCell cell = cells[i];
+            if (cell.RegenDensity <= 0f || cell.RegenHeight < s.PromotionHeightM)
+                continue;
+
+            float offsetX = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
+            float offsetZ = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
+            int age = Mathf.Max(1, ecologicalYear - Mathf.Max(0, cell.RegenEstablishYear));
+            float dbh = Mathf.Clamp(cell.RegenHeight * 1.5f, 2f, 20f); // [C] young-tree proportion
+            float crown = s.PotentialCrownRadiusM(dbh);
+            string id = "R" + ecologicalYear + "-" + i;
+            Vector3 position = new Vector3(cell.Center.x + offsetX, 0f, cell.Center.y + offsetZ);
+            ForestTree recruited = spawner.Spawn(id, position, age, dbh, cell.RegenHeight, crown);
+            if (recruited != null)
+                Debug.Log($"ECOLOGY recruited {id} at {position} height={cell.RegenHeight:0.00} dbh={dbh:0.0}");
+
+            cell.RegenDensity = 0f;
+            cell.RegenHeight = 0f;
+            cell.RegenEstablishYear = -1;
+        }
+    }
+
+    private void UpdateEstablishmentSuitability()
+    {
+        foreach (ForestEcologyCell cell in cells)
+        {
+            float target = Mathf.Clamp01(1f - 0.3f * Mathf.Clamp01(cell.RecentOpening));
+            cell.EstablishmentSuitability = Mathf.Lerp(cell.EstablishmentSuitability, target, 0.2f);
+        }
+    }
+
+    private void DecayRecentOpening(TreeSpeciesDefinition s)
+    {
+        float factor = Mathf.Pow(0.5f, 1f / s.WindThinningHalfLifeYears);
+        foreach (ForestEcologyCell cell in cells)
+            cell.RecentOpening *= factor;
+    }
+
+    // Diagnostic wind risk (calibration, not an annual mortality probability).
+    public float GetWindRisk(ForestTree tree)
+    {
+        TreeSpeciesDefinition s = tree != null && tree.Species != null ? tree.Species : ResolveSpecies();
+        if (s == null || tree == null || cells == null)
+            return 0f;
+        int index = GetCellIndex(tree.transform.position);
+        if (index < 0)
+            return 0f;
+        ForestEcologyCell cell = cells[index];
+        float slenderness = tree.Height / Mathf.Max(0.05f, tree.Diameter / 100f);
+        float opening = 0.25f + 0.75f * cell.Light; // [D] not risk-free when unthinned
+        float recent = 1f + s.WindOpeningWeight * cell.RecentOpening;
+        return s.StandWindSusceptibility * slenderness * opening * recent;
+    }
+
+    public float GetCompetitionIndex(ForestTree tree)
+    {
+        return tree != null && competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+    }
+
+    public float GetAnnualDbhGrowth(ForestTree tree)
+    {
+        return tree != null && annualDbhGrowth.TryGetValue(tree, out float value) ? value : 0f;
+    }
+
+    public float GetSeedPotential(ForestTree tree)
+    {
+        return tree != null && seedPotential.TryGetValue(tree, out float value) ? value : 0f;
+    }
+
+    public float GetSiteProductivity(Vector3 worldPosition)
+    {
+        int index = GetCellIndex(worldPosition);
+        return index >= 0 ? cells[index].SiteProductivity : 1f;
+    }
+
+    public int GetCellIndex(Vector3 worldPosition)
+    {
+        if (cells == null)
+            return -1;
+        float origin = -standSizeMeters * 0.5f;
+        int x = Mathf.FloorToInt((worldPosition.x - origin) / cellSizeMeters);
+        int z = Mathf.FloorToInt((worldPosition.z - origin) / cellSizeMeters);
+        if (x < 0 || z < 0 || x >= cellsPerAxis || z >= cellsPerAxis)
+            return -1;
+        return z * cellsPerAxis + x;
+    }
+
+    public int LivingTreeCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (ForestTree tree in FindTrees())
+                if (tree != null && !tree.IsStump)
+                    count++;
+            return count;
+        }
+    }
+
+    public float MeanDbhCm
+    {
+        get
+        {
+            float total = 0f;
+            int count = 0;
+            foreach (ForestTree tree in FindTrees())
+            {
+                if (tree == null || tree.IsStump)
+                    continue;
+                total += tree.Diameter;
+                count++;
+            }
+            return count > 0 ? total / count : 0f;
+        }
+    }
+
+    public int RegeneratingCellCount
+    {
+        get
+        {
+            if (cells == null)
+                return 0;
+            int count = 0;
+            foreach (ForestEcologyCell cell in cells)
+                if (cell.RegenDensity > 0f)
+                    count++;
+            return count;
+        }
+    }
+
+    public float MaxSeedRain
+    {
+        get
+        {
+            float max = 0f;
+            if (cells == null)
+                return max;
+            foreach (ForestEcologyCell cell in cells)
+                if (cell.SitkaSeedRain > max)
+                    max = cell.SitkaSeedRain;
+            return max;
+        }
+    }
+
+    public float MaxWindRisk
+    {
+        get
+        {
+            float max = 0f;
+            foreach (ForestTree tree in FindTrees())
+            {
+                if (tree == null || tree.IsStump)
+                    continue;
+                float risk = GetWindRisk(tree);
+                if (risk > max)
+                    max = risk;
+            }
+            return max;
+        }
+    }
+
+    private void LogSummary(TreeSpeciesDefinition s)
+    {
+        if (!logAnnualSummary)
+            return;
+        Debug.Log($"ECOLOGY year={ecologicalYear} mast={lastMastLabel}({lastMastMultiplier:0.0})"
+            + $" living={LivingTreeCount} meanDbh={MeanDbhCm:0.0}cm"
+            + $" seedMax={MaxSeedRain:0.000} regenCells={RegeneratingCellCount}"
+            + $" maxWind={MaxWindRisk:0.00}");
+    }
+
     private void OnGUI()
     {
         if (!showDebugGrid || cells == null || cellsPerAxis <= 0)
@@ -114,18 +602,37 @@ public sealed class ForestEcologyController : MonoBehaviour
         const float mapSize = 180f;
         float cell = mapSize / cellsPerAxis;
         Rect origin = new Rect(Screen.width - mapSize - 20f, 20f, mapSize, mapSize);
-        GUI.Box(new Rect(origin.x - 8f, origin.y - 26f, mapSize + 16f, mapSize + 34f), GUIContent.none);
+        GUI.Box(new Rect(origin.x - 8f, origin.y - 26f, mapSize + 16f, mapSize + 260f), GUIContent.none);
 
+        float seedMax = Mathf.Max(0.0001f, MaxSeedRain);
         for (int z = 0; z < cellsPerAxis; z++)
         for (int x = 0; x < cellsPerAxis; x++)
         {
             ForestEcologyCell data = cells[z * cellsPerAxis + x];
             Color previous = GUI.color;
-            GUI.color = Color.Lerp(new Color(0.95f, 0.9f, 0.45f), new Color(0.05f, 0.28f, 0.06f), data.Canopy);
+            GUI.color = showSeedRain
+                ? Color.Lerp(new Color(0.1f, 0.1f, 0.15f), new Color(0.95f, 0.85f, 0.35f), Mathf.Clamp01(data.SitkaSeedRain / seedMax))
+                : Color.Lerp(new Color(0.95f, 0.9f, 0.45f), new Color(0.05f, 0.28f, 0.06f), data.Canopy);
             GUI.DrawTexture(new Rect(origin.x + x * cell, origin.y + (cellsPerAxis - 1 - z) * cell, cell - 1f, cell - 1f), Texture2D.whiteTexture);
             GUI.color = previous;
         }
 
-        GUI.Label(new Rect(origin.x - 4f, origin.y - 22f, mapSize + 12f, 20f), $"CCF ecology — year {ecologicalYear} — {cellSizeMeters:0.#} m cells");
+        string mode = showSeedRain ? "seed rain (normalized)" : "canopy / light";
+        GUI.Label(new Rect(origin.x - 4f, origin.y - 22f, mapSize + 12f, 20f), $"CCF ecology {mode} — year {ecologicalYear} — {cellSizeMeters:0.#} m");
+
+        var info = new System.Text.StringBuilder();
+        info.AppendLine($"mast: {lastMastLabel} x{lastMastMultiplier:0.0}");
+        info.AppendLine($"trees: {LivingTreeCount}  mean DBH {MeanDbhCm:0.0} cm");
+        info.AppendLine($"seed max {MaxSeedRain:0.000}  regen cells {RegeneratingCellCount}");
+        info.AppendLine($"max wind risk {MaxWindRisk:0.00}");
+        if (debugCellIndex >= 0 && debugCellIndex < cells.Length)
+        {
+            ForestEcologyCell c = cells[debugCellIndex];
+            info.AppendLine($"cell {debugCellIndex} ({c.Center.x:0},{c.Center.y:0})");
+            info.AppendLine($"  light {c.Light:0.00} suitability {c.EstablishmentSuitability:0.00}");
+            info.AppendLine($"  seed {c.SitkaSeedRain:0.000} opening {c.RecentOpening:0.00}");
+            info.AppendLine($"  regen {c.RegenDensity:0.00} h {c.RegenHeight:0.00} m");
+        }
+        GUI.Label(new Rect(origin.x - 4f, origin.y + mapSize + 6f, mapSize + 12f, 240f), info.ToString());
     }
 }

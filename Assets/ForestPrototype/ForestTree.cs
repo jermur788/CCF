@@ -18,6 +18,7 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField] private Transform trunk;
     [SerializeField] private Transform canopy;
     [SerializeField] private TreeSpeciesDefinition species;
+    [SerializeField, Min(0)] private int ageYears = 45;
     [SerializeField, Min(0.1f)] private float heightMeters = 5f;
     [SerializeField, Min(1f)] private float diameterCm = 65f;
     [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
@@ -29,6 +30,7 @@ public sealed class ForestTree : MonoBehaviour
 
     public string TreeId => treeId;
     public TreeSpeciesDefinition Species => species;
+    public int AgeYears => ageYears;
     public ForestTreeStage Stage => stage;
     public bool IsStump => stage == ForestTreeStage.Stump;
     public bool CanChop => stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young;
@@ -121,8 +123,12 @@ public sealed class ForestTree : MonoBehaviour
         stage = next;
         chopProgress = 0;
         stageTimer = 0f;
+        ApplyStageShape(next);
+    }
 
-        switch (next)
+    private void ApplyStageShape(ForestTreeStage target)
+    {
+        switch (target)
         {
             case ForestTreeStage.Stump:
                 SetCanopyActive(false, Vector3.zero, 0f);
@@ -140,6 +146,48 @@ public sealed class ForestTree : MonoBehaviour
                 ApplyMatureShape();
                 break;
         }
+    }
+
+    // Simulation writes go through these so mesh scale can never drive tree state.
+    public void ApplyGrowth(float dbhDeltaCm, float heightDeltaM)
+    {
+        diameterCm = Mathf.Clamp(diameterCm + dbhDeltaCm, 1f, 200f);
+        heightMeters = Mathf.Clamp(heightMeters + heightDeltaM, 0.1f, 60f);
+        RefreshVisuals();
+    }
+
+    public void RelaxCrownRadius(float targetRadiusM, float relaxationPerYear)
+    {
+        crownRadiusMeters = Mathf.Max(0.1f, Mathf.Lerp(crownRadiusMeters, targetRadiusM, Mathf.Clamp01(relaxationPerYear)));
+        RefreshVisuals();
+    }
+
+    public void SetAgeYears(int age)
+    {
+        ageYears = Mathf.Max(0, age);
+    }
+
+    public void SetSimulationState(int age, float height, float dbhCm, float crownRadius)
+    {
+        ageYears = Mathf.Max(0, age);
+        heightMeters = Mathf.Clamp(height, 0.1f, 60f);
+        diameterCm = Mathf.Clamp(dbhCm, 1f, 200f);
+        crownRadiusMeters = Mathf.Max(0.1f, crownRadius);
+        RefreshVisuals();
+    }
+
+    public void InitializeForSpawn(string id, Transform trunkTransform, Transform canopyTransform, TreeSpeciesDefinition speciesDefinition, int age, float height, float dbhCm, float crownRadius)
+    {
+        treeId = id;
+        trunk = trunkTransform;
+        canopy = canopyTransform;
+        species = speciesDefinition;
+        SetSimulationState(age, height, dbhCm, crownRadius);
+    }
+
+    public void RefreshVisuals()
+    {
+        ApplyStageShape(stage);
     }
 
     private void SetTrunkShape(float height, float thickness)

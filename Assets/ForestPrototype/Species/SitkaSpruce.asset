@@ -15,3 +15,46 @@ MonoBehaviour:
   speciesId: sitka-spruce
   displayName: Sitka spruce
   latinName: Picea sitchensis
+  potentialDbhGrowthCmPerYear: 0.9
+  maxDbhCm: 120
+  potentialHeightGrowthMPerYear: 0.45
+  maxHeightM: 35
+  ci50: 3
+  crownRadiusIntercept: 0.9415
+  crownRadiusPerCmDbh: 0.07635
+  crownRelaxationPerYear: 0.15
+  maturityOnsetYears: 20
+  maturityFullYears: 30
+  seedPotentialPerMatureTree: 1
+  seedDispersalScaleM: 20
+  seedDispersalCutoffM: 150
+  mastGoodProbability: 0.15
+  mastPoorProbability: 0.35
+  mastGoodMultiplier: 1.5
+  mastNormalMultiplier: 1
+  mastPoorMultiplier: 0.4
+  seedSaturationS50: 10
+  lightResponseLight:
+  - 0
+  - 0.1
+  - 0.2
+  - 0.25
+  - 0.55
+  - 1
+  lightResponseFactor:
+  - 0
+  - 0.1
+  - 0.3
+  - 0.5
+  - 0.9
+  - 0.8
+  regenHeightGrowthMPerYear: 0.35
+  promotionHeightM: 3.5
+  regenInitialHeightM: 0.15
+  regenDensityPerEstablishment: 0.5
+  regenDensityMax: 1.5
+  regenMortalityUnderPoorLight: 0.2
+  regenPoorLightThreshold: 0.15
+  standWindSusceptibility: 1
+  windOpeningWeight: 1
+  windThinningHalfLifeYears: 3

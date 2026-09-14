@@ -39,6 +39,13 @@ public sealed class ForestSaveController : MonoBehaviour
         if (player != null)
             data.wood = player.CarriedWood;
 
+        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+        if (ecology != null)
+        {
+            data.ecologicalYear = ecology.EcologicalYear;
+            data.simulationSeed = ecology.SimulationSeed;
+        }
+
         foreach (ForestTree tree in trees)
         {
             if (tree == null) continue;
@@ -47,7 +54,13 @@ public sealed class ForestSaveController : MonoBehaviour
                 treeId = tree.TreeId,
                 stage = (int)tree.Stage,
                 stageTimer = tree.StageTimer,
-                chopProgress = tree.ChopProgress
+                chopProgress = tree.ChopProgress,
+                hasSimulation = true,
+                ageYears = tree.AgeYears,
+                heightMeters = tree.Height,
+                diameterCm = tree.Diameter,
+                crownRadiusMeters = tree.CrownRadius,
+                position = tree.transform.position
             });
         }
 
@@ -71,8 +84,29 @@ public sealed class ForestSaveController : MonoBehaviour
             });
         }
 
+        if (ecology != null && ecology.Cells != null)
+        {
+            ForestEcologyCell[] ecologyCells = ecology.Cells;
+            for (int i = 0; i < ecologyCells.Length; i++)
+            {
+                ForestEcologyCell cell = ecologyCells[i];
+                if (cell == null) continue;
+                // Seed rain is deterministic from trees + seed + year, so it is not saved.
+                if (cell.RegenDensity <= 0f && cell.RegenEstablishYear < 0 && cell.RecentOpening <= 0f)
+                    continue;
+                data.cells.Add(new ForestCellSaveData
+                {
+                    index = i,
+                    regenDensity = cell.RegenDensity,
+                    regenHeight = cell.RegenHeight,
+                    regenEstablishYear = cell.RegenEstablishYear,
+                    recentOpening = cell.RecentOpening
+                });
+            }
+        }
+
         File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}");
+        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
     }
 
     public void Load()
@@ -110,12 +144,43 @@ public sealed class ForestSaveController : MonoBehaviour
             if (tree != null && !string.IsNullOrEmpty(tree.TreeId))
                 treesById[tree.TreeId] = tree;
         }
+
+        // Recruited trees that are not part of this save must go, or the same save
+        // would diverge each time it is loaded.
         if (data.trees != null)
         {
+            var savedIds = new HashSet<string>();
+            foreach (TreeSaveData saved in data.trees)
+                savedIds.Add(saved.treeId);
+            foreach (ForestTree existing in trees)
+            {
+                if (existing != null && !string.IsNullOrEmpty(existing.TreeId) && !savedIds.Contains(existing.TreeId))
+                    Destroy(existing.gameObject);
+            }
+        }
+
+        if (data.trees != null)
+        {
+            ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
             foreach (TreeSaveData saved in data.trees)
             {
                 if (treesById.TryGetValue(saved.treeId, out ForestTree tree))
+                {
                     tree.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
+                    if (data.version >= 3 && saved.hasSimulation)
+                        tree.SetSimulationState(saved.ageYears, saved.heightMeters, saved.diameterCm, saved.crownRadiusMeters);
+                }
+                else if (data.version >= 3 && saved.hasSimulation && spawner != null)
+                {
+                    // A naturally recruited tree that is not in the scene yet.
+                    ForestTree recruited = spawner.Spawn(saved.treeId, saved.position, saved.ageYears, saved.diameterCm, saved.heightMeters, saved.crownRadiusMeters);
+                    if (recruited == null)
+                    {
+                        Debug.LogWarning($"Could not spawn recruited tree {saved.treeId} while loading.");
+                        continue;
+                    }
+                    recruited.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
+                }
             }
         }
 
@@ -145,7 +210,19 @@ public sealed class ForestSaveController : MonoBehaviour
 
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology != null)
+        {
+            if (data.version >= 3)
+            {
+                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed);
+                if (data.cells != null)
+                {
+                    foreach (ForestCellSaveData saved in data.cells)
+                        ecology.RestoreCellState(saved.index, saved.regenDensity, saved.regenHeight, saved.regenEstablishYear, saved.recentOpening);
+                }
+            }
             ecology.RecomputeCanopy();
+            ecology.RecomputeSeedRain();
+        }
 
         SetMessage(data.version == ForestSaveData.CurrentVersion
             ? "Game loaded"

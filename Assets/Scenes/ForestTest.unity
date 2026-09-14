@@ -169,6 +169,7 @@ MonoBehaviour:
   trunk: {fileID: 557466890}
   canopy: {fileID: 1955498181}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.932064
   diameterCm: 60.544098
   crownRadiusMeters: 1.654661
@@ -223,6 +224,7 @@ MonoBehaviour:
   trunk: {fileID: 1997998534}
   canopy: {fileID: 1012630055}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.160276
   diameterCm: 83.7358
   crownRadiusMeters: 2.089726
@@ -425,6 +427,7 @@ MonoBehaviour:
   trunk: {fileID: 1894417075}
   canopy: {fileID: 1377277626}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.581674
   diameterCm: 70.998505
   crownRadiusMeters: 1.590214
@@ -479,6 +482,7 @@ MonoBehaviour:
   trunk: {fileID: 1188647217}
   canopy: {fileID: 1730079738}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.64586
   diameterCm: 50.806
   crownRadiusMeters: 1.8086
@@ -607,6 +611,7 @@ MonoBehaviour:
   trunk: {fileID: 344072665}
   canopy: {fileID: 1595498133}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.97431
   diameterCm: 84.1885
   crownRadiusMeters: 1.860422
@@ -661,6 +666,7 @@ MonoBehaviour:
   trunk: {fileID: 1354595442}
   canopy: {fileID: 2100017795}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.400518
   diameterCm: 75.7747
   crownRadiusMeters: 2.0124955
@@ -943,6 +949,7 @@ MonoBehaviour:
   trunk: {fileID: 1151893799}
   canopy: {fileID: 1893554167}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.073494
   diameterCm: 71.965996
   crownRadiusMeters: 2.0241995
@@ -1111,6 +1118,7 @@ MonoBehaviour:
   trunk: {fileID: 1013950328}
   canopy: {fileID: 1016105159}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.50575
   diameterCm: 83.1431
   crownRadiusMeters: 1.5661474
@@ -1541,6 +1549,7 @@ MonoBehaviour:
   trunk: {fileID: 612405455}
   canopy: {fileID: 1175504471}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.601894
   diameterCm: 57.3339
   crownRadiusMeters: 1.6846105
@@ -1981,6 +1990,7 @@ MonoBehaviour:
   trunk: {fileID: 1225178643}
   canopy: {fileID: 274445851}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.003682
   diameterCm: 70.603195
   crownRadiusMeters: 2.009429
@@ -2035,6 +2045,7 @@ MonoBehaviour:
   trunk: {fileID: 749745661}
   canopy: {fileID: 294415239}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.819506
   diameterCm: 60.903503
   crownRadiusMeters: 1.969145
@@ -2317,6 +2328,7 @@ MonoBehaviour:
   trunk: {fileID: 205737838}
   canopy: {fileID: 430108348}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.327152
   diameterCm: 68.9909
   crownRadiusMeters: 1.8344254
@@ -2649,6 +2661,7 @@ MonoBehaviour:
   trunk: {fileID: 194579203}
   canopy: {fileID: 1443673515}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.662048
   diameterCm: 79.669
   crownRadiusMeters: 1.968971
@@ -2777,6 +2790,7 @@ MonoBehaviour:
   trunk: {fileID: 1470689390}
   canopy: {fileID: 2015765364}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.632398
   diameterCm: 80.931
   crownRadiusMeters: 1.904778
@@ -3199,6 +3213,7 @@ MonoBehaviour:
   trunk: {fileID: 87085517}
   canopy: {fileID: 1795188307}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.098736
   diameterCm: 54.288696
   crownRadiusMeters: 1.6420125
@@ -3592,6 +3607,7 @@ MonoBehaviour:
   trunk: {fileID: 525021222}
   canopy: {fileID: 1843281315}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.654302
   diameterCm: 54.7444
   crownRadiusMeters: 1.839921
@@ -3760,6 +3776,7 @@ MonoBehaviour:
   trunk: {fileID: 1443295511}
   canopy: {fileID: 501959115}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.706
   diameterCm: 69.477394
   crownRadiusMeters: 1.9332736
@@ -3814,6 +3831,7 @@ MonoBehaviour:
   trunk: {fileID: 900605808}
   canopy: {fileID: 1581512487}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.356856
   diameterCm: 82.2355
   crownRadiusMeters: 1.889653
@@ -3868,6 +3886,7 @@ MonoBehaviour:
   trunk: {fileID: 2082745558}
   canopy: {fileID: 1061301519}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.61285
   diameterCm: 64.8957
   crownRadiusMeters: 1.882188
@@ -4004,6 +4023,7 @@ MonoBehaviour:
   trunk: {fileID: 391002982}
   canopy: {fileID: 990944522}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.91233
   diameterCm: 62.373604
   crownRadiusMeters: 2.0349615
@@ -4132,6 +4152,7 @@ MonoBehaviour:
   trunk: {fileID: 451501950}
   canopy: {fileID: 1136235675}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.200428
   diameterCm: 74.0991
   crownRadiusMeters: 1.6872525
@@ -5362,6 +5383,7 @@ MonoBehaviour:
   trunk: {fileID: 2132014319}
   canopy: {fileID: 152231101}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.62884
   diameterCm: 83.660194
   crownRadiusMeters: 2.0642745
@@ -5990,6 +6012,7 @@ MonoBehaviour:
   trunk: {fileID: 1431919010}
   canopy: {fileID: 420278285}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.70027
   diameterCm: 58.7976
   crownRadiusMeters: 1.567631
@@ -6134,6 +6157,7 @@ MonoBehaviour:
   trunk: {fileID: 983061610}
   canopy: {fileID: 796997572}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.328218
   diameterCm: 53.4576
   crownRadiusMeters: 1.837973
@@ -6376,6 +6400,7 @@ MonoBehaviour:
   trunk: {fileID: 105150748}
   canopy: {fileID: 1556698991}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.850636
   diameterCm: 51.097797
   crownRadiusMeters: 1.549772
@@ -6520,6 +6545,7 @@ MonoBehaviour:
   trunk: {fileID: 1187946143}
   canopy: {fileID: 1609933718}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.834764
   diameterCm: 62.5137
   crownRadiusMeters: 1.9683685
@@ -6664,6 +6690,7 @@ MonoBehaviour:
   trunk: {fileID: 249901146}
   canopy: {fileID: 31263080}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.593546
   diameterCm: 79.196
   crownRadiusMeters: 1.7221355
@@ -6865,6 +6892,7 @@ MonoBehaviour:
   trunk: {fileID: 1760792766}
   canopy: {fileID: 1441542179}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.560412
   diameterCm: 56.4458
   crownRadiusMeters: 1.9256995
@@ -7033,6 +7061,7 @@ MonoBehaviour:
   trunk: {fileID: 88414544}
   canopy: {fileID: 1125236830}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.783972
   diameterCm: 51.260197
   crownRadiusMeters: 1.607997
@@ -7348,6 +7377,7 @@ MonoBehaviour:
   trunk: {fileID: 2110888839}
   canopy: {fileID: 1505823229}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.17839
   diameterCm: 51.328403
   crownRadiusMeters: 1.7487465
@@ -7756,6 +7786,7 @@ GameObject:
   - component: {fileID: 780226343}
   - component: {fileID: 780226342}
   - component: {fileID: 780226344}
+  - component: {fileID: 780226345}
   m_Layer: 0
   m_Name: Game State
   m_TagString: Untagged
@@ -7803,9 +7834,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestEcologyController
   ecologicalYear: 0
+  simulationSeed: 20260914
   standSizeMeters: 40
   cellSizeMeters: 5
   showDebugGrid: 0
+  showSeedRain: 0
+  logAnnualSummary: 1
+  debugCellIndex: 0
+--- !u!114 &780226345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780226341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f24d6242b31c0332fa6fb8af634a4b8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTreeSpawner
+  defaultSpecies: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  barkMaterial: {fileID: 2100000, guid: c2792981a9803b3aaad9fee7a4f58312, type: 2}
+  canopyPrefab: {fileID: 6058551966966761826, guid: 258dc4dafc4802c77926beb95e21e595, type: 3}
+  forestParent: {fileID: 2095790890}
 --- !u!1001 &796997571
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8205,6 +8256,7 @@ MonoBehaviour:
   trunk: {fileID: 1468278503}
   canopy: {fileID: 134401573}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.171282
   diameterCm: 75.534805
   crownRadiusMeters: 2.075898
@@ -8333,6 +8385,7 @@ MonoBehaviour:
   trunk: {fileID: 1827065676}
   canopy: {fileID: 810574649}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.87897
   diameterCm: 70.1975
   crownRadiusMeters: 1.846062
@@ -9269,6 +9322,7 @@ MonoBehaviour:
   trunk: {fileID: 1898644846}
   canopy: {fileID: 1669644172}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.401214
   diameterCm: 66.1143
   crownRadiusMeters: 1.940485
@@ -9585,6 +9639,7 @@ MonoBehaviour:
   trunk: {fileID: 497005686}
   canopy: {fileID: 1080443513}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.54701
   diameterCm: 78.3641
   crownRadiusMeters: 1.5758995
@@ -9753,6 +9808,7 @@ MonoBehaviour:
   trunk: {fileID: 908994562}
   canopy: {fileID: 129240975}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.609586
   diameterCm: 67.6261
   crownRadiusMeters: 1.599715
@@ -10443,6 +10499,7 @@ MonoBehaviour:
   trunk: {fileID: 747734575}
   canopy: {fileID: 164364117}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.30039
   diameterCm: 69.3085
   crownRadiusMeters: 1.939896
@@ -10571,6 +10628,7 @@ MonoBehaviour:
   trunk: {fileID: 1795095363}
   canopy: {fileID: 620683017}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.92209
   diameterCm: 51.884502
   crownRadiusMeters: 2.07957
@@ -10625,6 +10683,7 @@ MonoBehaviour:
   trunk: {fileID: 1781767721}
   canopy: {fileID: 560106079}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.687838
   diameterCm: 73.5312
   crownRadiusMeters: 1.5064704
@@ -11418,6 +11477,7 @@ MonoBehaviour:
   trunk: {fileID: 128117361}
   canopy: {fileID: 1371409539}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.596108
   diameterCm: 64.7269
   crownRadiusMeters: 1.6249615
@@ -11978,6 +12038,7 @@ MonoBehaviour:
   trunk: {fileID: 1964865794}
   canopy: {fileID: 2071542459}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.05029
   diameterCm: 50.2004
   crownRadiusMeters: 1.8792585
@@ -12106,6 +12167,7 @@ MonoBehaviour:
   trunk: {fileID: 1457545404}
   canopy: {fileID: 821401578}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.759392
   diameterCm: 74.5221
   crownRadiusMeters: 1.620794
@@ -12462,6 +12524,7 @@ MonoBehaviour:
   trunk: {fileID: 858233810}
   canopy: {fileID: 1240890487}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.919388
   diameterCm: 79.5593
   crownRadiusMeters: 1.5350705
@@ -12932,6 +12995,7 @@ MonoBehaviour:
   trunk: {fileID: 1164456219}
   canopy: {fileID: 2058425534}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.85172
   diameterCm: 63.7906
   crownRadiusMeters: 1.921568
@@ -13259,6 +13323,7 @@ MonoBehaviour:
   trunk: {fileID: 759124390}
   canopy: {fileID: 29216578}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.666142
   diameterCm: 83.6674
   crownRadiusMeters: 1.7070235
@@ -13313,6 +13378,7 @@ MonoBehaviour:
   trunk: {fileID: 576729218}
   canopy: {fileID: 1225618517}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.509622
   diameterCm: 60.356895
   crownRadiusMeters: 1.596308
@@ -13367,6 +13433,7 @@ MonoBehaviour:
   trunk: {fileID: 1512655902}
   canopy: {fileID: 1906124789}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.5397
   diameterCm: 75.5311
   crownRadiusMeters: 1.814575
@@ -13421,6 +13488,7 @@ MonoBehaviour:
   trunk: {fileID: 1780901181}
   canopy: {fileID: 1027148938}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.905672
   diameterCm: 71.848
   crownRadiusMeters: 1.525129
@@ -13475,6 +13543,7 @@ MonoBehaviour:
   trunk: {fileID: 942625404}
   canopy: {fileID: 2037606686}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.518608
   diameterCm: 66.4176
   crownRadiusMeters: 1.666348
@@ -13971,6 +14040,7 @@ MonoBehaviour:
   trunk: {fileID: 1716830361}
   canopy: {fileID: 1234304291}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.86058
   diameterCm: 59.2181
   crownRadiusMeters: 1.5908695
@@ -14889,6 +14959,7 @@ MonoBehaviour:
   trunk: {fileID: 134411367}
   canopy: {fileID: 835081398}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.5058
   diameterCm: 62.3204
   crownRadiusMeters: 1.59814
@@ -14943,6 +15014,7 @@ MonoBehaviour:
   trunk: {fileID: 1651288185}
   canopy: {fileID: 2098405594}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.37737
   diameterCm: 82.469
   crownRadiusMeters: 2.0196254
@@ -15315,6 +15387,7 @@ MonoBehaviour:
   trunk: {fileID: 1194946489}
   canopy: {fileID: 71501994}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.83602
   diameterCm: 56.2434
   crownRadiusMeters: 1.810846
@@ -15369,6 +15442,7 @@ MonoBehaviour:
   trunk: {fileID: 1170263356}
   canopy: {fileID: 1457858826}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.78639
   diameterCm: 80.1845
   crownRadiusMeters: 1.7636225
@@ -15775,6 +15849,7 @@ MonoBehaviour:
   trunk: {fileID: 1207008125}
   canopy: {fileID: 1727514667}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.391902
   diameterCm: 56.907497
   crownRadiusMeters: 1.5139825
@@ -15829,6 +15904,7 @@ MonoBehaviour:
   trunk: {fileID: 294120370}
   canopy: {fileID: 1106467014}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 4.866256
   diameterCm: 75.7694
   crownRadiusMeters: 1.9891685
@@ -16031,6 +16107,7 @@ MonoBehaviour:
   trunk: {fileID: 519647960}
   canopy: {fileID: 991298539}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.932312
   diameterCm: 69.963196
   crownRadiusMeters: 1.504169
@@ -16085,6 +16162,7 @@ MonoBehaviour:
   trunk: {fileID: 668033670}
   canopy: {fileID: 227301812}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.98394
   diameterCm: 51.061703
   crownRadiusMeters: 2.007201
@@ -16361,6 +16439,7 @@ MonoBehaviour:
   trunk: {fileID: 2122593294}
   canopy: {fileID: 1584287743}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.238476
   diameterCm: 68.1566
   crownRadiusMeters: 1.7298195
@@ -17761,6 +17840,7 @@ MonoBehaviour:
   trunk: {fileID: 490682463}
   canopy: {fileID: 1461252938}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.467268
   diameterCm: 81.5388
   crownRadiusMeters: 1.7423495
@@ -18116,6 +18196,7 @@ MonoBehaviour:
   trunk: {fileID: 1110468260}
   canopy: {fileID: 920903239}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.256954
   diameterCm: 80.2864
   crownRadiusMeters: 1.619259
@@ -18546,6 +18627,7 @@ MonoBehaviour:
   trunk: {fileID: 466765666}
   canopy: {fileID: 1977878126}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.47743
   diameterCm: 51.147198
   crownRadiusMeters: 1.6601815
@@ -18708,6 +18790,7 @@ MonoBehaviour:
   trunk: {fileID: 992636431}
   canopy: {fileID: 1186225176}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 5.192758
   diameterCm: 75.8453
   crownRadiusMeters: 1.9336005
@@ -18876,6 +18959,7 @@ MonoBehaviour:
   trunk: {fileID: 152886900}
   canopy: {fileID: 458882729}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.152786
   diameterCm: 54.2014
   crownRadiusMeters: 1.898485
@@ -19004,6 +19088,7 @@ MonoBehaviour:
   trunk: {fileID: 1437378666}
   canopy: {fileID: 920625438}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.085906
   diameterCm: 82.093605
   crownRadiusMeters: 1.596637
@@ -19058,6 +19143,7 @@ MonoBehaviour:
   trunk: {fileID: 776168277}
   canopy: {fileID: 2111524623}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.88521
   diameterCm: 69.5944
   crownRadiusMeters: 1.9058754
@@ -19226,6 +19312,7 @@ MonoBehaviour:
   trunk: {fileID: 765930373}
   canopy: {fileID: 1628377640}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.003578
   diameterCm: 78.175804
   crownRadiusMeters: 1.5644186
@@ -19908,6 +19995,7 @@ MonoBehaviour:
   trunk: {fileID: 2122508523}
   canopy: {fileID: 1818472429}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.664068
   diameterCm: 53.4963
   crownRadiusMeters: 1.71513
@@ -20813,6 +20901,7 @@ MonoBehaviour:
   trunk: {fileID: 2040297401}
   canopy: {fileID: 333435805}
   species: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
+  ageYears: 45
   heightMeters: 6.421048
   diameterCm: 50.6635
   crownRadiusMeters: 1.851578

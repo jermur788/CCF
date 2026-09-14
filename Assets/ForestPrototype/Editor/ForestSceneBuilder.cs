@@ -119,6 +119,13 @@ public static class ForestSceneBuilder
             var gameState = new GameObject("Game State");
             gameState.AddComponent<ForestSaveController>();
             gameState.AddComponent<ForestEcologyController>();
+            var spawner = gameState.AddComponent<ForestTreeSpawner>();
+            var spawnerSerialized = new SerializedObject(spawner);
+            spawnerSerialized.FindProperty("defaultSpecies").objectReferenceValue = sitkaSpruce;
+            spawnerSerialized.FindProperty("barkMaterial").objectReferenceValue = bark;
+            spawnerSerialized.FindProperty("canopyPrefab").objectReferenceValue = coniferCanopy;
+            spawnerSerialized.FindProperty("forestParent").objectReferenceValue = forest.transform;
+            spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             ValidateScene(scene);
@@ -389,10 +396,11 @@ public static class ForestSceneBuilder
 
     private static void ValidateScene(Scene scene)
     {
-        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0;
+        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0, spawners = 0;
         var treeIds = new HashSet<string>();
         var buildableIds = new HashSet<string>();
         var storageIds = new HashSet<string>();
+        var validatedSpecies = new HashSet<string>();
         foreach (var root in scene.GetRootGameObjects())
         foreach (var transform in root.GetComponentsInChildren<Transform>(true))
         {
@@ -435,6 +443,25 @@ public static class ForestSceneBuilder
                 if (!storage.Buildable.HasPrerequisite)
                     throw new InvalidOperationException("Wood storage buildable is missing its prerequisite: " + obj.name);
             }
+            var ecology = obj.GetComponent<ForestEcologyController>();
+            if (ecology != null)
+            {
+                var serializedEcology = new SerializedObject(ecology);
+                if (serializedEcology.FindProperty("standSizeMeters").floatValue <= 0f ||
+                    serializedEcology.FindProperty("cellSizeMeters").floatValue <= 0f)
+                    throw new InvalidOperationException("Invalid ecology grid configuration on " + obj.name);
+            }
+            var spawner = obj.GetComponent<ForestTreeSpawner>();
+            if (spawner != null)
+            {
+                spawners++;
+                var serializedSpawner = new SerializedObject(spawner);
+                if (serializedSpawner.FindProperty("defaultSpecies").objectReferenceValue == null ||
+                    serializedSpawner.FindProperty("barkMaterial").objectReferenceValue == null ||
+                    serializedSpawner.FindProperty("canopyPrefab").objectReferenceValue == null ||
+                    serializedSpawner.FindProperty("forestParent").objectReferenceValue == null)
+                    throw new InvalidOperationException("Incomplete tree spawner on " + obj.name);
+            }
             var tree = obj.GetComponent<ForestTree>();
             if (tree != null)
             {
@@ -449,6 +476,10 @@ public static class ForestSceneBuilder
                     throw new InvalidOperationException("Duplicate tree id: " + treeId);
                 if (species == null || string.IsNullOrEmpty(species.SpeciesId))
                     throw new InvalidOperationException("Missing species on " + obj.name);
+                if (serializedTree.FindProperty("ageYears").intValue < 0)
+                    throw new InvalidOperationException("Invalid tree age on " + obj.name);
+                if (validatedSpecies.Add(species.SpeciesId))
+                    ValidateSpecies(species);
                 if (Mathf.Abs(trunkTransform.localPosition.x) > 0.001f || Mathf.Abs(trunkTransform.localPosition.z) > 0.001f ||
                     Mathf.Abs(canopyTransform.localPosition.x) > 0.001f || Mathf.Abs(canopyTransform.localPosition.z) > 0.001f)
                     throw new InvalidOperationException("Tree children are not centered on the root: " + obj.name);
@@ -465,6 +496,22 @@ public static class ForestSceneBuilder
         if (players != 1 || cameras != 1 || listeners != 1) throw new InvalidOperationException("Unexpected player/camera/listener count.");
         if (saveControllers != 1) throw new InvalidOperationException("Unexpected save controller count.");
         if (ecologyControllers != 1) throw new InvalidOperationException("Unexpected ecology controller count.");
+        if (spawners != 1) throw new InvalidOperationException("Unexpected tree spawner count.");
         Debug.Log("FOREST_VALIDATED: no missing scripts, materials or player references; one player, camera and listener.");
+    }
+
+    private static void ValidateSpecies(TreeSpeciesDefinition species)
+    {
+        if (species.PotentialDbhGrowthCmPerYear <= 0f || species.MaxDbhCm <= 1f ||
+            species.PotentialHeightGrowthMPerYear <= 0f || species.MaxHeightM <= 1f ||
+            species.Ci50 <= 0f ||
+            species.SeedDispersalScaleM <= 0f || species.SeedSaturationS50 <= 0f ||
+            species.PromotionHeightM <= 0f)
+            throw new InvalidOperationException("Sitka growth data is incomplete on species " + species.SpeciesId);
+        var serialized = new SerializedObject(species);
+        var light = serialized.FindProperty("lightResponseLight");
+        var factor = serialized.FindProperty("lightResponseFactor");
+        if (light == null || factor == null || light.arraySize < 2 || light.arraySize != factor.arraySize)
+            throw new InvalidOperationException("Malformed species light curve on " + species.SpeciesId);
     }
 }
