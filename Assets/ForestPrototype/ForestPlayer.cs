@@ -16,6 +16,9 @@ public sealed class ForestPlayer : MonoBehaviour
     [SerializeField, Range(18, 72)] private int promptFontSize = 36;
     [SerializeField, Min(0.1f)] private float swingCooldown = 0.45f;
     [SerializeField, Min(1)] private int maxCarriedWood = 20;
+    // [D] gameplay calibration: biological stem volume converts to carried wood units here,
+    // keeping Forestry's biological numbers separate from the survival economy.
+    [SerializeField, Min(0.01f)] private float cubicMetersPerWoodUnit = 0.10f;
     [SerializeField] private int carriedWood = 0;
     private CharacterController controller;
     private float pitch;
@@ -52,6 +55,13 @@ public sealed class ForestPlayer : MonoBehaviour
     public bool CanCarryWood(int amount)
     {
         return amount >= 0 && carriedWood + amount <= maxCarriedWood;
+    }
+
+    // Survival-side conversion: biological stem volume -> carried wood units,
+    // clamped to the same 3..10 placeholder range as before.
+    private int TimberUnits(ForestTree tree)
+    {
+        return Mathf.Clamp(Mathf.RoundToInt(tree.BiologicalStemVolumeM3 / cubicMetersPerWoodUnit), 3, 10);
     }
 
     public int TryAddWood(int amount)
@@ -311,9 +321,10 @@ public sealed class ForestPlayer : MonoBehaviour
         // The felling stroke needs room for the whole yield; partial collection
         // is not allowed, and the tree keeps its existing chop progress.
         int nextChops = tree.ChopProgress + 1;
-        if (nextChops >= tree.ChopsRequired && !CanCarryWood(tree.WoodYield))
+        int units = TimberUnits(tree);
+        if (nextChops >= tree.ChopsRequired && !CanCarryWood(units))
         {
-            lastHarvestMessage = $"Need {tree.WoodYield} free wood capacity. Free space: {FreeWoodCapacity}.";
+            lastHarvestMessage = $"Need {units} free wood capacity. Free space: {FreeWoodCapacity}.";
             messageTimer = 3.5f;
             return;
         }
@@ -327,12 +338,10 @@ public sealed class ForestPlayer : MonoBehaviour
         }
         else
         {
-            // Read the yield before falling, because falling shrinks the trunk
-            int yield = tree.WoodYield;
             tree.Fell();
-            TryAddWood(yield);
+            TryAddWood(units);
 
-            lastHarvestMessage = $"Timber! +{yield} Wood collected from {tree.gameObject.name}";
+            lastHarvestMessage = $"Timber! +{units} Wood collected from {tree.gameObject.name}";
             messageTimer = 3.5f;
 
             isInspecting = false;
@@ -505,7 +514,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 GUILayout.Label($"• Chopping Progress: {inspectedTree.ChopProgress} / {inspectedTree.ChopsRequired} chops", cardBodyStyle);
             }
 
-            GUILayout.Label($"• Potential Wood Yield: {inspectedTree.WoodYield} Wood", cardBodyStyle);
+            GUILayout.Label($"• Potential Wood Yield: {TimberUnits(inspectedTree)} Wood", cardBodyStyle);
         }
 
         GUILayout.FlexibleSpace();
