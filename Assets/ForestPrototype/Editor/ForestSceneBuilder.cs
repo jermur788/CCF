@@ -360,12 +360,14 @@ public static class ForestSceneBuilder
 
         var shelter = new GameObject("Basic Shelter");
         shelter.transform.position = position;
-        var collider = shelter.AddComponent<BoxCollider>();
-        collider.center = new Vector3(0f, 1.2f, 0f);
-        collider.size = new Vector3(4.2f, 2.4f, 3.3f);
 
         var unbuilt = new GameObject("Unbuilt Site");
         unbuilt.transform.SetParent(shelter.transform, false);
+        // The site volume is the aim target while unbuilt; it deactivates with
+        // the site so the finished shelter stays walkable through its open front.
+        var siteCollider = unbuilt.AddComponent<BoxCollider>();
+        siteCollider.center = new Vector3(0f, 0.6f, 0f);
+        siteCollider.size = new Vector3(4.2f, 1.2f, 3.3f);
         Visual(unbuilt.transform, "Footing Front", new Vector3(0f, 0.05f, -1.4f), new Vector3(4.0f, 0.1f, 0.14f), stone);
         Visual(unbuilt.transform, "Footing Back", new Vector3(0f, 0.05f, 1.4f), new Vector3(4.0f, 0.1f, 0.14f), stone);
         Visual(unbuilt.transform, "Footing Left", new Vector3(-1.9f, 0.05f, 0f), new Vector3(0.14f, 0.1f, 2.9f), stone);
@@ -377,17 +379,18 @@ public static class ForestSceneBuilder
 
         var built = new GameObject("Built Shelter");
         built.transform.SetParent(shelter.transform, false);
-        Visual(built.transform, "Back Post Left", new Vector3(-1.9f, 1.2f, 1.4f), new Vector3(0.16f, 2.4f, 0.16f), bark);
-        Visual(built.transform, "Back Post Right", new Vector3(1.9f, 1.2f, 1.4f), new Vector3(0.16f, 2.4f, 0.16f), bark);
-        Visual(built.transform, "Front Post Left", new Vector3(-1.9f, 0.9f, -1.4f), new Vector3(0.16f, 1.8f, 0.16f), bark);
-        Visual(built.transform, "Front Post Right", new Vector3(1.9f, 0.9f, -1.4f), new Vector3(0.16f, 1.8f, 0.16f), bark);
-        Visual(built.transform, "Back Beam", new Vector3(0f, 2.3f, 1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
-        Visual(built.transform, "Front Beam", new Vector3(0f, 1.72f, -1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
-        Visual(built.transform, "Back Wall Board Low", new Vector3(0f, 0.55f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
-        Visual(built.transform, "Back Wall Board Middle", new Vector3(0f, 1.25f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
-        Visual(built.transform, "Back Wall Board High", new Vector3(0f, 1.95f, 1.42f), new Vector3(3.9f, 0.6f, 0.08f), bark);
-        var roof = Visual(built.transform, "Roof", new Vector3(0f, 2.12f, 0f), new Vector3(4.4f, 0.12f, 3.7f), bark);
-        roof.transform.localRotation = Quaternion.Euler(-12f, 0f, 0f);
+        Solid(built.transform, "Back Post Left", new Vector3(-1.9f, 1.35f, 1.4f), new Vector3(0.16f, 2.7f, 0.16f), bark);
+        Solid(built.transform, "Back Post Right", new Vector3(1.9f, 1.35f, 1.4f), new Vector3(0.16f, 2.7f, 0.16f), bark);
+        Solid(built.transform, "Front Post Left", new Vector3(-1.9f, 1.1f, -1.4f), new Vector3(0.16f, 2.2f, 0.16f), bark);
+        Solid(built.transform, "Front Post Right", new Vector3(1.9f, 1.1f, -1.4f), new Vector3(0.16f, 2.2f, 0.16f), bark);
+        Visual(built.transform, "Back Beam", new Vector3(0f, 2.62f, 1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
+        Visual(built.transform, "Front Beam", new Vector3(0f, 2.12f, -1.4f), new Vector3(3.96f, 0.14f, 0.14f), bark);
+        Solid(built.transform, "Back Wall Board Low", new Vector3(0f, 0.55f, 1.42f), new Vector3(3.9f, 0.55f, 0.08f), bark);
+        Solid(built.transform, "Back Wall Board Middle", new Vector3(0f, 1.2f, 1.42f), new Vector3(3.9f, 0.55f, 0.08f), bark);
+        Solid(built.transform, "Back Wall Board High", new Vector3(0f, 1.85f, 1.42f), new Vector3(3.9f, 0.55f, 0.08f), bark);
+        Solid(built.transform, "Back Wall Board Top", new Vector3(0f, 2.5f, 1.42f), new Vector3(3.9f, 0.55f, 0.08f), bark);
+        var roof = Solid(built.transform, "Roof", new Vector3(0f, 2.44f, 0f), new Vector3(4.4f, 0.12f, 3.7f), bark);
+        roof.transform.localRotation = Quaternion.Euler(-10f, 0f, 0f);
         built.SetActive(false);
 
         var buildable = shelter.AddComponent<ForestBuildable>();
@@ -401,6 +404,14 @@ public static class ForestSceneBuilder
         serialized.FindProperty("builtVisual").objectReferenceValue = built;
         serialized.ApplyModifiedPropertiesWithoutUndo();
         return shelter;
+    }
+
+    // Like Visual, but the cube keeps its collider for walk-in structures.
+    private static GameObject Solid(Transform parent, string name, Vector3 localPosition, Vector3 localScale, Material material)
+    {
+        var solid = Visual(parent, name, localPosition, localScale, material);
+        solid.AddComponent<BoxCollider>();
+        return solid;
     }
 
     private static GameObject Visual(Transform parent, string name, Vector3 localPosition, Vector3 localScale, Material material)
