@@ -44,7 +44,9 @@ public static class ForestSceneBuilder
             AssetDatabase.Refresh();
             var sitkaSpruce = Species("sitka-spruce", "Sitka spruce", "Picea sitchensis", SpeciesFolder + "/SitkaSpruce.asset");
             var coniferCanopy = GetOrCreateConiferCanopyPrefab();
-            var ground = Material("Forest Ground", new Color(0.22f, 0.29f, 0.12f));
+            // A plantation floor is needle litter, not meadow; green understory
+            // only establishes where the canopy opens.
+            var ground = Material("Forest Ground", new Color(0.30f, 0.23f, 0.12f));
             var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
             var rock = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
             Primitive("Ground", PrimitiveType.Cube, new Vector3(0, -0.5f, 0), new Vector3(40, 1, 40), ground);
@@ -435,9 +437,9 @@ public static class ForestSceneBuilder
         return solid;
     }
 
-    // Understory detail scattered across the stand: grass tufts, bushes,
-    // flowers and mushroom patches. Deterministic seed, kept off the dirt
-    // path, the clearing, the spawn area and the work area.
+    // Understory detail scattered across the stand, driven by the ecology
+    // grid: a plantation floor is needle litter, so green detail establishes
+    // only in the brightest cells (canopy gaps); litter fungi go anywhere.
     public static void ScatterNatureDetail()
     {
         var grass = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Grass/Prefabs/UNS_Grass.prefab");
@@ -446,6 +448,7 @@ public static class ForestSceneBuilder
         var mushroom = AssetDatabase.LoadAssetAtPath<GameObject>(NaturePackFolder + "/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab");
         if (grass == null)
             return;
+        var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
 
         var keepOut = new List<Vector3>();
         foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
@@ -457,12 +460,12 @@ public static class ForestSceneBuilder
         var detail = new GameObject("Nature Detail");
         detail.transform.position = Vector3.zero;
         var random = new System.Random(9);
-        var plan = new (GameObject prefab, int count, float minScale, float maxScale)[]
+        var plan = new (GameObject prefab, int count, float minScale, float maxScale, float minLight)[]
         {
-            (grass, 170, 0.85f, 1.35f),
-            (bush, 22, 0.8f, 1.2f),
-            (flower, 32, 0.8f, 1.2f),
-            (mushroom, 12, 0.8f, 1.1f)
+            (mushroom, 16, 0.8f, 1.1f, 0f),
+            (grass, 120, 0.85f, 1.35f, 0.50f),
+            (flower, 26, 0.8f, 1.2f, 0.55f),
+            (bush, 16, 0.8f, 1.2f, 0.65f)
         };
         foreach (var entry in plan)
         {
@@ -491,6 +494,8 @@ public static class ForestSceneBuilder
                 }
                 if (tooClose)
                     continue;
+                if (LightAt(position, ecology) < entry.minLight)
+                    continue; // too shaded for this species
                 var tuft = (GameObject)PrefabUtility.InstantiatePrefab(entry.prefab, detail.transform);
                 tuft.transform.localPosition = position;
                 tuft.transform.localRotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
@@ -499,6 +504,17 @@ public static class ForestSceneBuilder
                 placed++;
             }
         }
+    }
+
+    // Green establishment reads the ecology grid: light 0-1 per cell.
+    private static float LightAt(Vector3 position, ForestEcologyController ecology)
+    {
+        if (ecology == null || ecology.Cells == null)
+            return 0f;
+        int index = ecology.GetCellIndex(position);
+        if (index < 0 || index >= ecology.Cells.Length)
+            return 0f;
+        return ecology.Cells[index].Light;
     }
 
     public static GameObject CreateSawPit(ForestBuildable workbench, Vector3 position)
