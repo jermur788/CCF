@@ -12,6 +12,9 @@ public static class ForestSceneBuilder
     public const string ScenePath = "Assets/Scenes/ForestTest.unity";
     private const string MaterialFolder = "Assets/ForestPrototype/Materials";
     private const string SpeciesFolder = "Assets/ForestPrototype/Species";
+    private const string PrefabsFolder = "Assets/ForestPrototype/Prefabs";
+    private const string MeshesFolder = "Assets/ForestPrototype/Meshes";
+    private const string ConiferCanopyPath = PrefabsFolder + "/PF_ConiferCanopy.prefab";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -37,9 +40,9 @@ public static class ForestSceneBuilder
             Directory.CreateDirectory(MaterialFolder);
             AssetDatabase.Refresh();
             var sitkaSpruce = Species("sitka-spruce", "Sitka spruce", "Picea sitchensis", SpeciesFolder + "/SitkaSpruce.asset");
+            var coniferCanopy = GetOrCreateConiferCanopyPrefab();
             var ground = Material("Forest Ground", new Color(0.22f, 0.29f, 0.12f));
             var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
-            var leaves = Material("Leaves", new Color(0.10f, 0.29f, 0.12f));
             var rock = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
             Primitive("Ground", PrimitiveType.Cube, new Vector3(0, -0.5f, 0), new Vector3(40, 1, 40), ground);
             // Solid visible borders keep the player on the small test area.
@@ -62,8 +65,10 @@ public static class ForestSceneBuilder
                 tree.transform.SetParent(forest.transform);
                 tree.transform.position = new Vector3(px, 0f, pz);
                 var trunk = Primitive("Trunk", PrimitiveType.Cylinder, new Vector3(px, height / 2, pz), new Vector3(0.65f, height / 2, 0.65f), bark, tree.transform);
-                var canopy = Primitive("Canopy", PrimitiveType.Sphere, new Vector3(px, height, pz), new Vector3(3.3f, 3.6f, 3.3f), leaves, tree.transform);
-                UnityEngine.Object.DestroyImmediate(canopy.GetComponent<Collider>());
+                var canopy = (GameObject)PrefabUtility.InstantiatePrefab(coniferCanopy, tree.transform);
+                canopy.name = "Canopy";
+                canopy.transform.localPosition = new Vector3(0f, height, 0f);
+                canopy.transform.localScale = new Vector3(3.3f, 3.63f, 3.3f);
                 var treeState = tree.AddComponent<ForestTree>();
                 var serializedTree = new SerializedObject(treeState);
                 serializedTree.FindProperty("treeId").stringValue = "T" + count.ToString("00");
@@ -151,6 +156,73 @@ public static class ForestSceneBuilder
         serialized.ApplyModifiedPropertiesWithoutUndo();
         AssetDatabase.CreateAsset(species, path);
         return species;
+    }
+
+    // Placeholder conifer silhouette: three stacked cones sized so the canopy
+    // transform's unit space matches the old sphere envelope.
+    public static GameObject GetOrCreateConiferCanopyPrefab()
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ConiferCanopyPath);
+        if (prefab != null) return prefab;
+
+        var cone = GetOrCreateConiferConeMesh();
+        var leaves = Material("Leaves", new Color(0.10f, 0.29f, 0.12f));
+        var root = new GameObject("PF_ConiferCanopy");
+        AddCone(root.transform, cone, leaves, "Crown Lower", new Vector3(0f, -0.2f, 0f), new Vector3(1f, 0.6f, 1f));
+        AddCone(root.transform, cone, leaves, "Crown Middle", new Vector3(0f, 0.02f, 0f), new Vector3(0.7f, 0.6f, 0.7f));
+        AddCone(root.transform, cone, leaves, "Crown Upper", new Vector3(0f, 0.28f, 0f), new Vector3(0.4f, 0.44f, 0.4f));
+        Directory.CreateDirectory(PrefabsFolder);
+        prefab = PrefabUtility.SaveAsPrefabAsset(root, ConiferCanopyPath);
+        UnityEngine.Object.DestroyImmediate(root);
+        return prefab;
+    }
+
+    public static Mesh GetOrCreateConiferConeMesh()
+    {
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(MeshesFolder + "/ConiferCone.asset");
+        if (mesh != null) return mesh;
+
+        const int segments = 14;
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = 2f * Mathf.PI * i / segments;
+            vertices.Add(new Vector3(Mathf.Cos(angle) * 0.5f, -0.5f, Mathf.Sin(angle) * 0.5f));
+        }
+        int apex = vertices.Count;
+        vertices.Add(new Vector3(0f, 0.5f, 0f));
+        int baseCenter = vertices.Count;
+        vertices.Add(new Vector3(0f, -0.5f, 0f));
+        for (int i = 0; i < segments; i++)
+        {
+            int next = (i + 1) % segments;
+            triangles.Add(i);
+            triangles.Add(apex);
+            triangles.Add(next);
+            triangles.Add(baseCenter);
+            triangles.Add(i);
+            triangles.Add(next);
+        }
+
+        mesh = new Mesh { name = "ConiferCone" };
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        Directory.CreateDirectory(MeshesFolder);
+        AssetDatabase.CreateAsset(mesh, MeshesFolder + "/ConiferCone.asset");
+        return mesh;
+    }
+
+    private static void AddCone(Transform parent, Mesh mesh, Material material, string name, Vector3 localPosition, Vector3 localScale)
+    {
+        var cone = new GameObject(name);
+        cone.transform.SetParent(parent, false);
+        cone.transform.localPosition = localPosition;
+        cone.transform.localScale = localScale;
+        cone.AddComponent<MeshFilter>().sharedMesh = mesh;
+        cone.AddComponent<MeshRenderer>().sharedMaterial = material;
     }
 
     private static GameObject Primitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Material material, Transform parent = null)

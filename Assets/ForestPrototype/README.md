@@ -56,3 +56,7 @@ Each tree carries authoritative simulation values on `ForestTree`: `heightMeters
 ## Tree species (14 September 2026)
 
 `TreeSpeciesDefinition` is a small ScriptableObject holding only identity: `speciesId`, `displayName` and `latinName`. The first species asset is `Assets/ForestPrototype/Species/SitkaSpruce.asset` (Sitka spruce, Picea sitchensis), and all 68 plantation trees reference it. The inspection card shows the tree's species instead of a hardcoded name. The scene builder creates the asset when missing and assigns it to generated trees, and the validator rejects trees with a missing species and duplicate tree ids.
+
+## Conifer placeholder (14 September 2026)
+
+The spherical broadleaf canopy was replaced with a placeholder conifer silhouette: a generated `ConiferCone` mesh (`Assets/ForestPrototype/Meshes/ConiferCone.asset`, 14 segments) stacked three times in `Assets/ForestPrototype/Prefabs/PF_ConiferCanopy.prefab`. Every tree's `Canopy` child is now an instance of that prefab, keeping its previous position and scale, so the stand reads as one conifer plantation from player height. Gameplay is unchanged: felling still deactivates the canopy, and the stump, sapling and young stages reuse the same prefab at their placeholder scales. The scene builder creates the mesh and prefab when missing and instantiates them for generated trees.
