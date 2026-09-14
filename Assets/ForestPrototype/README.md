@@ -72,3 +72,7 @@ Automatic stump-to-sapling-to-young regrowth was removed. `ForestTree` no longer
 ## Ecological time (14 September 2026)
 
 `ForestEcologyController` on the `Game State` object holds an `ecologicalYear` and exposes one explicit step, `AdvanceOneYear()`, also available through its context menu, so the editor and MCP can advance exactly one year. Nothing in normal gameplay advances ecological time: the component has no `Update`, and one ecological year is deliberately not tied to a game day or a real-time minute. Verified: two calls moved the year from 0 to 2 with no change to `Time.timeScale`, and the validator now requires exactly one ecology controller.
+
+## Local ecology grid (14 September 2026)
+
+`ForestEcologyController` also owns a regeneration/environment grid over the 40 x 40 m stand: `standSizeMeters` and `cellSizeMeters` are serialized and configurable (5 m cells give 8 x 8 = 64 cells; 10 m cells give 16). Each `ForestEcologyCell` stores its centre position and canopy/light state. The initial pass is coarse placeholder coverage from nearby living crowns, to be replaced by the phase-9 crown-influence calculation. A toggleable debug view (`ShowDebugGrid`) draws a top-down heatmap of canopy/light in the top-right corner, labelled with the year and cell size. Verified: 64 cells built with varied values (0.00 to 0.69 canopy), the heatmap shows different local conditions, and the cell size rebuild was tested at 10 m (16 cells) before restoring 5 m.
