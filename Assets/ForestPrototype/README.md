@@ -52,3 +52,7 @@ Press F5 to save and F9 to load. The save file is `forest-save.json` under `Appl
 ## Tree simulation data (14 September 2026)
 
 Each tree carries authoritative simulation values on `ForestTree`: `heightMeters`, `diameterCm` and `crownRadiusMeters`, seeded once from the placeholder geometry during the phase-1 migration (derived visuals matched the existing scene with zero drift). Height, trunk diameter, crown radius and wood yield are read from this data; the primitive trunk and canopy only visualise it, and `Awake` re-applies the mature shape from the data. Scaling or replacing a placeholder mesh therefore cannot change a tree's height, timber quantity or ecological state. The scene builder writes the same values for generated trees, and the validator rejects non-positive tree data. `Height` remains stage-aware until phase 5 removes the placeholder regrowth cycle.
+
+## Tree species (14 September 2026)
+
+`TreeSpeciesDefinition` is a small ScriptableObject holding only identity: `speciesId`, `displayName` and `latinName`. The first species asset is `Assets/ForestPrototype/Species/SitkaSpruce.asset` (Sitka spruce, Picea sitchensis), and all 68 plantation trees reference it. The inspection card shows the tree's species instead of a hardcoded name. The scene builder creates the asset when missing and assigns it to generated trees, and the validator rejects trees with a missing species and duplicate tree ids.

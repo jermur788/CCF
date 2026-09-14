@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -10,6 +11,7 @@ public static class ForestSceneBuilder
 {
     public const string ScenePath = "Assets/Scenes/ForestTest.unity";
     private const string MaterialFolder = "Assets/ForestPrototype/Materials";
+    private const string SpeciesFolder = "Assets/ForestPrototype/Species";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -34,6 +36,7 @@ public static class ForestSceneBuilder
         {
             Directory.CreateDirectory(MaterialFolder);
             AssetDatabase.Refresh();
+            var sitkaSpruce = Species("sitka-spruce", "Sitka spruce", "Picea sitchensis", SpeciesFolder + "/SitkaSpruce.asset");
             var ground = Material("Forest Ground", new Color(0.22f, 0.29f, 0.12f));
             var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
             var leaves = Material("Leaves", new Color(0.10f, 0.29f, 0.12f));
@@ -66,6 +69,7 @@ public static class ForestSceneBuilder
                 serializedTree.FindProperty("treeId").stringValue = "T" + count.ToString("00");
                 serializedTree.FindProperty("trunk").objectReferenceValue = trunk.transform;
                 serializedTree.FindProperty("canopy").objectReferenceValue = canopy.transform;
+                serializedTree.FindProperty("species").objectReferenceValue = sitkaSpruce;
                 serializedTree.FindProperty("heightMeters").floatValue = height;
                 serializedTree.FindProperty("diameterCm").floatValue = 65f;
                 serializedTree.FindProperty("crownRadiusMeters").floatValue = 1.65f;
@@ -133,6 +137,22 @@ public static class ForestSceneBuilder
         return material;
     }
 
+    private static TreeSpeciesDefinition Species(string id, string displayName, string latinName, string path)
+    {
+        var species = AssetDatabase.LoadAssetAtPath<TreeSpeciesDefinition>(path);
+        if (species != null) return species;
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
+        species = ScriptableObject.CreateInstance<TreeSpeciesDefinition>();
+        species.name = displayName;
+        var serialized = new SerializedObject(species);
+        serialized.FindProperty("speciesId").stringValue = id;
+        serialized.FindProperty("displayName").stringValue = displayName;
+        serialized.FindProperty("latinName").stringValue = latinName;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.CreateAsset(species, path);
+        return species;
+    }
+
     private static GameObject Primitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Material material, Transform parent = null)
     {
         var obj = GameObject.CreatePrimitive(type);
@@ -153,6 +173,7 @@ public static class ForestSceneBuilder
     private static void ValidateScene(Scene scene)
     {
         int players = 0, cameras = 0, listeners = 0, saveControllers = 0;
+        var treeIds = new HashSet<string>();
         foreach (var root in scene.GetRootGameObjects())
         foreach (var transform in root.GetComponentsInChildren<Transform>(true))
         {
@@ -176,10 +197,14 @@ public static class ForestSceneBuilder
                 var serializedTree = new SerializedObject(tree);
                 var trunkTransform = serializedTree.FindProperty("trunk").objectReferenceValue as Transform;
                 var canopyTransform = serializedTree.FindProperty("canopy").objectReferenceValue as Transform;
-                if (string.IsNullOrEmpty(serializedTree.FindProperty("treeId").stringValue) ||
-                    trunkTransform == null ||
-                    canopyTransform == null)
+                string treeId = serializedTree.FindProperty("treeId").stringValue;
+                var species = serializedTree.FindProperty("species").objectReferenceValue as TreeSpeciesDefinition;
+                if (string.IsNullOrEmpty(treeId) || trunkTransform == null || canopyTransform == null)
                     throw new InvalidOperationException("Incomplete tree state on " + obj.name);
+                if (!treeIds.Add(treeId))
+                    throw new InvalidOperationException("Duplicate tree id: " + treeId);
+                if (species == null || string.IsNullOrEmpty(species.SpeciesId))
+                    throw new InvalidOperationException("Missing species on " + obj.name);
                 if (Mathf.Abs(trunkTransform.localPosition.x) > 0.001f || Mathf.Abs(trunkTransform.localPosition.z) > 0.001f ||
                     Mathf.Abs(canopyTransform.localPosition.x) > 0.001f || Mathf.Abs(canopyTransform.localPosition.z) > 0.001f)
                     throw new InvalidOperationException("Tree children are not centered on the root: " + obj.name);

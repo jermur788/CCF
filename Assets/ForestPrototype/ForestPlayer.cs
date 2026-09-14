@@ -402,7 +402,10 @@ public sealed class ForestPlayer : MonoBehaviour
         GUILayout.BeginArea(new Rect(cardRect.x + 20f, cardRect.y + 16f, cardWidth - 40f, cardHeight - 32f));
         GUILayout.Label($"🌲 Tree Inspection — {inspectedTreeName}", cardTitleStyle);
         GUILayout.Space(10);
-        GUILayout.Label("• Species: Scots Pine (Pinus sylvestris)", cardBodyStyle);
+        string speciesName = inspectedTree != null && inspectedTree.Species != null
+            ? inspectedTree.Species.FullName
+            : "Unknown species";
+        GUILayout.Label($"• Species: {speciesName}", cardBodyStyle);
         GUILayout.Label($"• Status: {inspectedTree.StageLabel}", cardBodyStyle);
         GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
         GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);

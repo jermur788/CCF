@@ -15,6 +15,7 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField] private string treeId = "";
     [SerializeField] private Transform trunk;
     [SerializeField] private Transform canopy;
+    [SerializeField] private TreeSpeciesDefinition species;
     [SerializeField, Min(0.1f)] private float heightMeters = 5f;
     [SerializeField, Min(1f)] private float diameterCm = 65f;
     [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
@@ -28,6 +29,7 @@ public sealed class ForestTree : MonoBehaviour
     private float stageTimer;
 
     public string TreeId => treeId;
+    public TreeSpeciesDefinition Species => species;
     public ForestTreeStage Stage => stage;
     public bool IsStump => stage == ForestTreeStage.Stump;
     public bool CanChop => stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young;
