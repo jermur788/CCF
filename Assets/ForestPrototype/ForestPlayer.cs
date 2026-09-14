@@ -29,7 +29,6 @@ public sealed class ForestPlayer : MonoBehaviour
     private float inspectedTreeHeight;
     private float inspectedTreeDiameter;
     private float lastChopTime = -1f;
-    private bool skipLookDelta;
     private float lookPixelsSinceRecentre;
     private float secondsSinceRecentre;
     private float chopImpactTimer;
@@ -43,6 +42,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle cardFooterStyle;
     private GUIStyle hudLabelStyle;
     private GUIStyle hudValueStyle;
+    private int recentreGraceFrames;
     private GUIStyle notificationStyle;
 
     public int MaxCarriedWood => maxCarriedWood;
@@ -158,19 +158,21 @@ public sealed class ForestPlayer : MonoBehaviour
             {
                 // Mouse delta is already a per-frame displacement; do not multiply by deltaTime.
                 Vector2 rawDelta = mouse.delta.ReadValue();
-                if (skipLookDelta)
+                bool inRecentreGrace = recentreGraceFrames > 0;
+                if (inRecentreGrace)
                 {
-                    // The frame right after a recentre reports the warp itself as a delta.
-                    skipLookDelta = false;
+                    recentreGraceFrames--;
+                    // A cursor warp is reported as a delta on the next frame or two;
+                    // no real hand movement reaches that far in a single frame.
+                    if (rawDelta.magnitude > 250f)
+                        rawDelta = Vector2.zero;
                 }
-                else
-                {
-                    Vector2 look = rawDelta * mouseSensitivity;
-                    transform.Rotate(0f, look.x, 0f);
-                    pitch = Mathf.Clamp(pitch - look.y, -85f, 85f);
-                    view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-                    lookPixelsSinceRecentre += rawDelta.magnitude;
-                }
+
+                Vector2 look = rawDelta * mouseSensitivity;
+                transform.Rotate(0f, look.x, 0f);
+                pitch = Mathf.Clamp(pitch - look.y, -85f, 85f);
+                view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                lookPixelsSinceRecentre += rawDelta.magnitude;
 
                 // On some Linux setups a locked cursor stops producing deltas once the
                 // pointer reaches a screen edge. Recentre before that can happen so the
@@ -183,7 +185,7 @@ public sealed class ForestPlayer : MonoBehaviour
                     lookPixelsSinceRecentre = 0f;
                     secondsSinceRecentre = 0f;
                     mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
-                    skipLookDelta = true;
+                    recentreGraceFrames = 2;
                 }
             }
         }
