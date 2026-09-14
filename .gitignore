@@ -77,18 +77,10 @@ Thumbs.db
 .kitwright/
 opencode.json
 
-# Asset Store packs imported for evaluation; only the trimmed subset used by
-# features is committed (the full pack is 339 MB - do not commit wholesale).
-/Assets/InnerverseInteractive/*
-!/Assets/InnerverseInteractive.meta
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter
-/Assets/InnerverseInteractive/Ultimate Nature – Starter/*
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter.meta
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment
-/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/*
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Trees
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Shared
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Props
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Vegetation
-!/Assets/InnerverseInteractive/Ultimate Nature – Starter/Documentation
+# Asset Store packs are locally acquired dependencies; their raw contents are
+# never committed. Every contributor imports the pack itself (see
+# Assets/ForestPrototype/Docs/UltimateNatureSetup.md for the setup and the
+# GUID verification checklist).
+/Assets/InnerverseInteractive/
+/Assets/InnerverseInteractive.meta
 
