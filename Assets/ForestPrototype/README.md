@@ -68,3 +68,7 @@ Automatic stump-to-sapling-to-young regrowth was removed. `ForestTree` no longer
 ## Versioned saves and dynamic discovery (14 September 2026)
 
 `ForestSaveData` now carries a `version` field (currently 1). Saves written before versioning load as version 1, a newer version logs a warning and loads best-effort, and future migrations have a marked place in `ForestSaveController.Load`. The controller no longer caches the player, trees or buildables in `Awake`; it discovers them at save and load time with `FindObjectsByType(FindObjectsInactive.Include, ...)`, so runtime-created trees and objects participate in saves. Verified: an unversioned save loaded correctly, a tree spawned at runtime (T69) was discovered, appeared in the new save with its chop progress, and was restored on load.
+
+## Ecological time (14 September 2026)
+
+`ForestEcologyController` on the `Game State` object holds an `ecologicalYear` and exposes one explicit step, `AdvanceOneYear()`, also available through its context menu, so the editor and MCP can advance exactly one year. Nothing in normal gameplay advances ecological time: the component has no `Update`, and one ecological year is deliberately not tied to a game day or a real-time minute. Verified: two calls moved the year from 0 to 2 with no change to `Time.timeScale`, and the validator now requires exactly one ecology controller.

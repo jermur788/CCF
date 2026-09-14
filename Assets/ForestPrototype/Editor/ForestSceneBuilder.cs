@@ -116,6 +116,7 @@ public static class ForestSceneBuilder
             serialized.ApplyModifiedPropertiesWithoutUndo();
             var gameState = new GameObject("Game State");
             gameState.AddComponent<ForestSaveController>();
+            gameState.AddComponent<ForestEcologyController>();
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             ValidateScene(scene);
@@ -244,7 +245,7 @@ public static class ForestSceneBuilder
 
     private static void ValidateScene(Scene scene)
     {
-        int players = 0, cameras = 0, listeners = 0, saveControllers = 0;
+        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0;
         var treeIds = new HashSet<string>();
         foreach (var root in scene.GetRootGameObjects())
         foreach (var transform in root.GetComponentsInChildren<Transform>(true))
@@ -288,9 +289,11 @@ public static class ForestSceneBuilder
             cameras += obj.GetComponents<Camera>().Length;
             listeners += obj.GetComponents<AudioListener>().Length;
             saveControllers += obj.GetComponents<ForestSaveController>().Length;
+            ecologyControllers += obj.GetComponents<ForestEcologyController>().Length;
         }
         if (players != 1 || cameras != 1 || listeners != 1) throw new InvalidOperationException("Unexpected player/camera/listener count.");
         if (saveControllers != 1) throw new InvalidOperationException("Unexpected save controller count.");
+        if (ecologyControllers != 1) throw new InvalidOperationException("Unexpected ecology controller count.");
         Debug.Log("FOREST_VALIDATED: no missing scripts, materials or player references; one player, camera and listener.");
     }
 }
