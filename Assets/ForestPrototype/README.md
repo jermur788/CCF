@@ -48,3 +48,7 @@ Regrowth is deliberately simplified gameplay, not researched forest ecology. Pla
 ## Save and load (14 September 2026)
 
 Press F5 to save and F9 to load. The save file is `forest-save.json` under `Application.persistentDataPath`. It stores the wood count, every tree's stable id with stage, stage timer and chop progress, and each buildable's id with its built flag, so harvested trees resume regrowth from where they were. Trees are matched by `treeId`, not by scene object name. The controller lives on the `Game State` object.
+
+## Tree simulation data (14 September 2026)
+
+Each tree carries authoritative simulation values on `ForestTree`: `heightMeters`, `diameterCm` and `crownRadiusMeters`, seeded once from the placeholder geometry during the phase-1 migration (derived visuals matched the existing scene with zero drift). Height, trunk diameter, crown radius and wood yield are read from this data; the primitive trunk and canopy only visualise it, and `Awake` re-applies the mature shape from the data. Scaling or replacing a placeholder mesh therefore cannot change a tree's height, timber quantity or ecological state. The scene builder writes the same values for generated trees, and the validator rejects non-positive tree data. `Height` remains stage-aware until phase 5 removes the placeholder regrowth cycle.

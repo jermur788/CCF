@@ -168,6 +168,9 @@ MonoBehaviour:
   treeId: T08
   trunk: {fileID: 557466890}
   canopy: {fileID: 1161724312}
+  heightMeters: 6.932064
+  diameterCm: 60.544098
+  crownRadiusMeters: 1.654661
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -220,6 +223,9 @@ MonoBehaviour:
   treeId: T49
   trunk: {fileID: 1997998534}
   canopy: {fileID: 1871392164}
+  heightMeters: 6.160276
+  diameterCm: 83.7358
+  crownRadiusMeters: 2.089726
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -362,6 +368,9 @@ MonoBehaviour:
   treeId: T07
   trunk: {fileID: 1894417075}
   canopy: {fileID: 1105821986}
+  heightMeters: 5.581674
+  diameterCm: 70.998505
+  crownRadiusMeters: 1.590214
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -504,6 +513,9 @@ MonoBehaviour:
   treeId: T46
   trunk: {fileID: 1188647217}
   canopy: {fileID: 1153024652}
+  heightMeters: 4.64586
+  diameterCm: 50.806
+  crownRadiusMeters: 1.8086
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -556,6 +568,9 @@ MonoBehaviour:
   treeId: T30
   trunk: {fileID: 344072665}
   canopy: {fileID: 821441959}
+  heightMeters: 5.97431
+  diameterCm: 84.1885
+  crownRadiusMeters: 1.860422
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -608,6 +623,9 @@ MonoBehaviour:
   treeId: T64
   trunk: {fileID: 1354595442}
   canopy: {fileID: 472747914}
+  heightMeters: 5.400518
+  diameterCm: 75.7747
+  crownRadiusMeters: 2.0124955
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -888,6 +906,9 @@ MonoBehaviour:
   treeId: T40
   trunk: {fileID: 1151893799}
   canopy: {fileID: 1635926017}
+  heightMeters: 5.073494
+  diameterCm: 71.965996
+  crownRadiusMeters: 2.0241995
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -1144,6 +1165,9 @@ MonoBehaviour:
   treeId: T63
   trunk: {fileID: 1013950328}
   canopy: {fileID: 1288583329}
+  heightMeters: 6.50575
+  diameterCm: 83.1431
+  crownRadiusMeters: 1.5661474
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -1514,6 +1538,9 @@ MonoBehaviour:
   treeId: T09
   trunk: {fileID: 612405455}
   canopy: {fileID: 1681921030}
+  heightMeters: 5.601894
+  diameterCm: 57.3339
+  crownRadiusMeters: 1.6846105
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -1860,6 +1887,9 @@ MonoBehaviour:
   treeId: T16
   trunk: {fileID: 1225178643}
   canopy: {fileID: 1437130359}
+  heightMeters: 5.003682
+  diameterCm: 70.603195
+  crownRadiusMeters: 2.009429
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -1912,6 +1942,9 @@ MonoBehaviour:
   treeId: T42
   trunk: {fileID: 749745661}
   canopy: {fileID: 63044633}
+  heightMeters: 5.819506
+  diameterCm: 60.903503
+  crownRadiusMeters: 1.969145
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -2192,6 +2225,9 @@ MonoBehaviour:
   treeId: T39
   trunk: {fileID: 205737838}
   canopy: {fileID: 2134016716}
+  heightMeters: 5.327152
+  diameterCm: 68.9909
+  crownRadiusMeters: 1.8344254
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -2898,6 +2934,9 @@ MonoBehaviour:
   treeId: T54
   trunk: {fileID: 194579203}
   canopy: {fileID: 701510020}
+  heightMeters: 4.662048
+  diameterCm: 79.669
+  crownRadiusMeters: 1.968971
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -2950,6 +2989,9 @@ MonoBehaviour:
   treeId: T26
   trunk: {fileID: 1470689390}
   canopy: {fileID: 354173472}
+  heightMeters: 6.632398
+  diameterCm: 80.931
+  crownRadiusMeters: 1.904778
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -3386,6 +3428,9 @@ MonoBehaviour:
   treeId: T38
   trunk: {fileID: 87085517}
   canopy: {fileID: 1862214147}
+  heightMeters: 5.098736
+  diameterCm: 54.288696
+  crownRadiusMeters: 1.6420125
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -3793,6 +3838,9 @@ MonoBehaviour:
   treeId: T27
   trunk: {fileID: 525021222}
   canopy: {fileID: 1426259608}
+  heightMeters: 4.654302
+  diameterCm: 54.7444
+  crownRadiusMeters: 1.839921
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -4049,6 +4097,9 @@ MonoBehaviour:
   treeId: T62
   trunk: {fileID: 1443295511}
   canopy: {fileID: 1798361065}
+  heightMeters: 5.706
+  diameterCm: 69.477394
+  crownRadiusMeters: 1.9332736
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -4101,6 +4152,9 @@ MonoBehaviour:
   treeId: T67
   trunk: {fileID: 900605808}
   canopy: {fileID: 160075382}
+  heightMeters: 6.356856
+  diameterCm: 82.2355
+  crownRadiusMeters: 1.889653
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -4153,6 +4207,9 @@ MonoBehaviour:
   treeId: T34
   trunk: {fileID: 2082745558}
   canopy: {fileID: 1491836220}
+  heightMeters: 6.61285
+  diameterCm: 64.8957
+  crownRadiusMeters: 1.882188
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -4286,6 +4343,9 @@ MonoBehaviour:
   treeId: T51
   trunk: {fileID: 391002982}
   canopy: {fileID: 1724403882}
+  heightMeters: 4.91233
+  diameterCm: 62.373604
+  crownRadiusMeters: 2.0349615
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -4428,6 +4488,9 @@ MonoBehaviour:
   treeId: T37
   trunk: {fileID: 451501950}
   canopy: {fileID: 227644416}
+  heightMeters: 6.200428
+  diameterCm: 74.0991
+  crownRadiusMeters: 1.6872525
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -5524,6 +5587,9 @@ MonoBehaviour:
   treeId: T22
   trunk: {fileID: 2132014319}
   canopy: {fileID: 1057838599}
+  heightMeters: 5.62884
+  diameterCm: 83.660194
+  crownRadiusMeters: 2.0642745
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -6076,6 +6142,9 @@ MonoBehaviour:
   treeId: T59
   trunk: {fileID: 1431919010}
   canopy: {fileID: 1964308095}
+  heightMeters: 5.70027
+  diameterCm: 58.7976
+  crownRadiusMeters: 1.567631
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -6128,6 +6197,9 @@ MonoBehaviour:
   treeId: T11
   trunk: {fileID: 983061610}
   canopy: {fileID: 1752678049}
+  heightMeters: 5.328218
+  diameterCm: 53.4576
+  crownRadiusMeters: 1.837973
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -6294,6 +6366,9 @@ MonoBehaviour:
   treeId: T24
   trunk: {fileID: 105150748}
   canopy: {fileID: 217798266}
+  heightMeters: 5.850636
+  diameterCm: 51.097797
+  crownRadiusMeters: 1.549772
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -6436,6 +6511,9 @@ MonoBehaviour:
   treeId: T21
   trunk: {fileID: 1187946143}
   canopy: {fileID: 321279899}
+  heightMeters: 4.834764
+  diameterCm: 62.5137
+  crownRadiusMeters: 1.9683685
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -6578,6 +6656,9 @@ MonoBehaviour:
   treeId: T43
   trunk: {fileID: 249901146}
   canopy: {fileID: 421973772}
+  heightMeters: 4.593546
+  diameterCm: 79.196
+  crownRadiusMeters: 1.7221355
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -7104,6 +7185,9 @@ MonoBehaviour:
   treeId: T53
   trunk: {fileID: 1760792766}
   canopy: {fileID: 1074261272}
+  heightMeters: 5.560412
+  diameterCm: 56.4458
+  crownRadiusMeters: 1.9256995
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -7270,6 +7354,9 @@ MonoBehaviour:
   treeId: T68
   trunk: {fileID: 88414544}
   canopy: {fileID: 1599891612}
+  heightMeters: 5.783972
+  diameterCm: 51.260197
+  crownRadiusMeters: 1.607997
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -7640,6 +7727,9 @@ MonoBehaviour:
   treeId: T36
   trunk: {fileID: 2110888839}
   canopy: {fileID: 2094981514}
+  heightMeters: 5.17839
+  diameterCm: 51.328403
+  crownRadiusMeters: 1.7487465
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -8218,6 +8308,9 @@ MonoBehaviour:
   treeId: T50
   trunk: {fileID: 1468278503}
   canopy: {fileID: 1936555323}
+  heightMeters: 5.171282
+  diameterCm: 75.534805
+  crownRadiusMeters: 2.075898
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -8270,6 +8363,9 @@ MonoBehaviour:
   treeId: T33
   trunk: {fileID: 1827065676}
   canopy: {fileID: 1759548714}
+  heightMeters: 6.87897
+  diameterCm: 70.1975
+  crownRadiusMeters: 1.846062
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -8844,6 +8940,9 @@ MonoBehaviour:
   treeId: T44
   trunk: {fileID: 1898644846}
   canopy: {fileID: 93477087}
+  heightMeters: 6.401214
+  diameterCm: 66.1143
+  crownRadiusMeters: 1.940485
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -9010,6 +9109,9 @@ MonoBehaviour:
   treeId: T23
   trunk: {fileID: 497005686}
   canopy: {fileID: 1258384371}
+  heightMeters: 4.54701
+  diameterCm: 78.3641
+  crownRadiusMeters: 1.5758995
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -9176,6 +9278,9 @@ MonoBehaviour:
   treeId: T45
   trunk: {fileID: 908994562}
   canopy: {fileID: 1007229074}
+  heightMeters: 6.609586
+  diameterCm: 67.6261
+  crownRadiusMeters: 1.599715
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -9658,6 +9763,9 @@ MonoBehaviour:
   treeId: T25
   trunk: {fileID: 747734575}
   canopy: {fileID: 1533684711}
+  heightMeters: 5.30039
+  diameterCm: 69.3085
+  crownRadiusMeters: 1.939896
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -9800,6 +9908,9 @@ MonoBehaviour:
   treeId: T18
   trunk: {fileID: 1795095363}
   canopy: {fileID: 1858104184}
+  heightMeters: 6.92209
+  diameterCm: 51.884502
+  crownRadiusMeters: 2.07957
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -9852,6 +9963,9 @@ MonoBehaviour:
   treeId: T60
   trunk: {fileID: 1781767721}
   canopy: {fileID: 1187824690}
+  heightMeters: 5.687838
+  diameterCm: 73.5312
+  crownRadiusMeters: 1.5064704
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -10977,6 +11091,9 @@ MonoBehaviour:
   treeId: T66
   trunk: {fileID: 128117361}
   canopy: {fileID: 1510354532}
+  heightMeters: 5.596108
+  diameterCm: 64.7269
+  crownRadiusMeters: 1.6249615
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -11551,6 +11668,9 @@ MonoBehaviour:
   treeId: T12
   trunk: {fileID: 1964865794}
   canopy: {fileID: 1059955214}
+  heightMeters: 5.05029
+  diameterCm: 50.2004
+  crownRadiusMeters: 1.8792585
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -11603,6 +11723,9 @@ MonoBehaviour:
   treeId: T65
   trunk: {fileID: 1457545404}
   canopy: {fileID: 1031681090}
+  heightMeters: 4.759392
+  diameterCm: 74.5221
+  crownRadiusMeters: 1.620794
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -11973,6 +12096,9 @@ MonoBehaviour:
   treeId: T52
   trunk: {fileID: 858233810}
   canopy: {fileID: 1278715926}
+  heightMeters: 5.919388
+  diameterCm: 79.5593
+  crownRadiusMeters: 1.5350705
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -12457,6 +12583,9 @@ MonoBehaviour:
   treeId: T55
   trunk: {fileID: 1164456219}
   canopy: {fileID: 1124871408}
+  heightMeters: 5.85172
+  diameterCm: 63.7906
+  crownRadiusMeters: 1.921568
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -12959,6 +13088,9 @@ MonoBehaviour:
   treeId: T61
   trunk: {fileID: 759124390}
   canopy: {fileID: 1084070354}
+  heightMeters: 6.666142
+  diameterCm: 83.6674
+  crownRadiusMeters: 1.7070235
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -13011,6 +13143,9 @@ MonoBehaviour:
   treeId: T14
   trunk: {fileID: 576729218}
   canopy: {fileID: 524834346}
+  heightMeters: 4.509622
+  diameterCm: 60.356895
+  crownRadiusMeters: 1.596308
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -13153,6 +13288,9 @@ MonoBehaviour:
   treeId: T31
   trunk: {fileID: 1512655902}
   canopy: {fileID: 247808691}
+  heightMeters: 6.5397
+  diameterCm: 75.5311
+  crownRadiusMeters: 1.814575
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -13205,6 +13343,9 @@ MonoBehaviour:
   treeId: T06
   trunk: {fileID: 1780901181}
   canopy: {fileID: 1741357166}
+  heightMeters: 5.905672
+  diameterCm: 71.848
+  crownRadiusMeters: 1.525129
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -13257,6 +13398,9 @@ MonoBehaviour:
   treeId: T47
   trunk: {fileID: 942625404}
   canopy: {fileID: 1626100182}
+  heightMeters: 5.518608
+  diameterCm: 66.4176
+  crownRadiusMeters: 1.666348
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -13423,6 +13567,9 @@ MonoBehaviour:
   treeId: T20
   trunk: {fileID: 1716830361}
   canopy: {fileID: 1198511465}
+  heightMeters: 4.86058
+  diameterCm: 59.2181
+  crownRadiusMeters: 1.5908695
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -14313,6 +14460,9 @@ MonoBehaviour:
   treeId: T57
   trunk: {fileID: 134411367}
   canopy: {fileID: 685039440}
+  heightMeters: 6.5058
+  diameterCm: 62.3204
+  crownRadiusMeters: 1.59814
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -14365,6 +14515,9 @@ MonoBehaviour:
   treeId: T04
   trunk: {fileID: 1651288185}
   canopy: {fileID: 1432646747}
+  heightMeters: 5.37737
+  diameterCm: 82.469
+  crownRadiusMeters: 2.0196254
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -14735,6 +14888,9 @@ MonoBehaviour:
   treeId: T56
   trunk: {fileID: 1194946489}
   canopy: {fileID: 1234825060}
+  heightMeters: 5.83602
+  diameterCm: 56.2434
+  crownRadiusMeters: 1.810846
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -14877,6 +15033,9 @@ MonoBehaviour:
   treeId: T17
   trunk: {fileID: 1170263356}
   canopy: {fileID: 674660506}
+  heightMeters: 5.78639
+  diameterCm: 80.1845
+  crownRadiusMeters: 1.7636225
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -15313,6 +15472,9 @@ MonoBehaviour:
   treeId: T02
   trunk: {fileID: 1207008125}
   canopy: {fileID: 672623554}
+  heightMeters: 5.391902
+  diameterCm: 56.907497
+  crownRadiusMeters: 1.5139825
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -15365,6 +15527,9 @@ MonoBehaviour:
   treeId: T01
   trunk: {fileID: 294120370}
   canopy: {fileID: 39702873}
+  heightMeters: 4.866256
+  diameterCm: 75.7694
+  crownRadiusMeters: 1.9891685
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -15417,6 +15582,9 @@ MonoBehaviour:
   treeId: T19
   trunk: {fileID: 519647960}
   canopy: {fileID: 654604235}
+  heightMeters: 6.932312
+  diameterCm: 69.963196
+  crownRadiusMeters: 1.504169
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -15469,6 +15637,9 @@ MonoBehaviour:
   treeId: T10
   trunk: {fileID: 668033670}
   canopy: {fileID: 1913012444}
+  heightMeters: 5.98394
+  diameterCm: 51.061703
+  crownRadiusMeters: 2.007201
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -15701,6 +15872,9 @@ MonoBehaviour:
   treeId: T58
   trunk: {fileID: 2122593294}
   canopy: {fileID: 754024684}
+  heightMeters: 6.238476
+  diameterCm: 68.1566
+  crownRadiusMeters: 1.7298195
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -17337,6 +17511,9 @@ MonoBehaviour:
   treeId: T35
   trunk: {fileID: 490682463}
   canopy: {fileID: 384188835}
+  heightMeters: 5.467268
+  diameterCm: 81.5388
+  crownRadiusMeters: 1.7423495
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -17722,6 +17899,9 @@ MonoBehaviour:
   treeId: T41
   trunk: {fileID: 1110468260}
   canopy: {fileID: 1310552645}
+  heightMeters: 5.256954
+  diameterCm: 80.2864
+  crownRadiusMeters: 1.619259
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18182,6 +18362,9 @@ MonoBehaviour:
   treeId: T28
   trunk: {fileID: 466765666}
   canopy: {fileID: 561868758}
+  heightMeters: 6.47743
+  diameterCm: 51.147198
+  crownRadiusMeters: 1.6601815
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18324,6 +18507,9 @@ MonoBehaviour:
   treeId: T48
   trunk: {fileID: 992636431}
   canopy: {fileID: 234531880}
+  heightMeters: 5.192758
+  diameterCm: 75.8453
+  crownRadiusMeters: 1.9336005
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18580,6 +18766,9 @@ MonoBehaviour:
   treeId: T15
   trunk: {fileID: 152886900}
   canopy: {fileID: 450164786}
+  heightMeters: 6.152786
+  diameterCm: 54.2014
+  crownRadiusMeters: 1.898485
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18632,6 +18821,9 @@ MonoBehaviour:
   treeId: T13
   trunk: {fileID: 1437378666}
   canopy: {fileID: 134762080}
+  heightMeters: 6.085906
+  diameterCm: 82.093605
+  crownRadiusMeters: 1.596637
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18684,6 +18876,9 @@ MonoBehaviour:
   treeId: T05
   trunk: {fileID: 776168277}
   canopy: {fileID: 297062760}
+  heightMeters: 6.88521
+  diameterCm: 69.5944
+  crownRadiusMeters: 1.9058754
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -18850,6 +19045,9 @@ MonoBehaviour:
   treeId: T32
   trunk: {fileID: 765930373}
   canopy: {fileID: 1090692945}
+  heightMeters: 6.003578
+  diameterCm: 78.175804
+  crownRadiusMeters: 1.5644186
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -19128,6 +19326,9 @@ MonoBehaviour:
   treeId: T29
   trunk: {fileID: 2122508523}
   canopy: {fileID: 2144909747}
+  heightMeters: 6.664068
+  diameterCm: 53.4963
+  crownRadiusMeters: 1.71513
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30
@@ -19825,6 +20026,9 @@ MonoBehaviour:
   treeId: T03
   trunk: {fileID: 2040297401}
   canopy: {fileID: 254543012}
+  heightMeters: 6.421048
+  diameterCm: 50.6635
+  crownRadiusMeters: 1.851578
   chopsRequired: 4
   stumpToSaplingSeconds: 20
   saplingToYoungSeconds: 30

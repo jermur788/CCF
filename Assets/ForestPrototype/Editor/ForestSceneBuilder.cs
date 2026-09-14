@@ -66,6 +66,9 @@ public static class ForestSceneBuilder
                 serializedTree.FindProperty("treeId").stringValue = "T" + count.ToString("00");
                 serializedTree.FindProperty("trunk").objectReferenceValue = trunk.transform;
                 serializedTree.FindProperty("canopy").objectReferenceValue = canopy.transform;
+                serializedTree.FindProperty("heightMeters").floatValue = height;
+                serializedTree.FindProperty("diameterCm").floatValue = 65f;
+                serializedTree.FindProperty("crownRadiusMeters").floatValue = 1.65f;
                 serializedTree.ApplyModifiedPropertiesWithoutUndo();
             }
             var sun = new GameObject("Sun").AddComponent<Light>();
@@ -180,6 +183,10 @@ public static class ForestSceneBuilder
                 if (Mathf.Abs(trunkTransform.localPosition.x) > 0.001f || Mathf.Abs(trunkTransform.localPosition.z) > 0.001f ||
                     Mathf.Abs(canopyTransform.localPosition.x) > 0.001f || Mathf.Abs(canopyTransform.localPosition.z) > 0.001f)
                     throw new InvalidOperationException("Tree children are not centered on the root: " + obj.name);
+                if (serializedTree.FindProperty("heightMeters").floatValue <= 0f ||
+                    serializedTree.FindProperty("diameterCm").floatValue <= 0f ||
+                    serializedTree.FindProperty("crownRadiusMeters").floatValue <= 0f)
+                    throw new InvalidOperationException("Tree simulation data is not positive: " + obj.name);
             }
             cameras += obj.GetComponents<Camera>().Length;
             listeners += obj.GetComponents<AudioListener>().Length;

@@ -15,6 +15,9 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField] private string treeId = "";
     [SerializeField] private Transform trunk;
     [SerializeField] private Transform canopy;
+    [SerializeField, Min(0.1f)] private float heightMeters = 5f;
+    [SerializeField, Min(1f)] private float diameterCm = 65f;
+    [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
     [SerializeField, Min(1)] private int chopsRequired = 4;
     // Placeholder timings for the prototype, not researched ecology.
     [SerializeField, Min(0.1f)] private float stumpToSaplingSeconds = 20f;
@@ -23,10 +26,6 @@ public sealed class ForestTree : MonoBehaviour
     private ForestTreeStage stage = ForestTreeStage.Mature;
     private int chopProgress;
     private float stageTimer;
-    private Vector3 matureTrunkScale;
-    private Vector3 matureCanopyScale;
-    private Vector3 matureCanopyLocalPosition;
-    private bool matureShapeCached;
 
     public string TreeId => treeId;
     public ForestTreeStage Stage => stage;
@@ -35,8 +34,10 @@ public sealed class ForestTree : MonoBehaviour
     public int ChopsRequired => chopsRequired;
     public int ChopProgress => chopProgress;
     public float StageTimer => stageTimer;
-    public float Height => trunk != null ? trunk.localScale.y * 2f : 0f;
-    public float Diameter => trunk != null ? trunk.localScale.x * 100f : 0f;
+    // Authoritative simulation values; placeholder meshes only visualise them.
+    public float Height => CurrentHeight;
+    public float Diameter => diameterCm;
+    public float CrownRadius => crownRadiusMeters;
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
     public Vector3 InteractionPoint => transform.position;
 
@@ -66,15 +67,23 @@ public sealed class ForestTree : MonoBehaviour
         }
     }
 
-    private float BaseThickness
+    private float CurrentHeight
     {
         get
         {
-            if (matureShapeCached && matureTrunkScale.x > 0f)
-                return matureTrunkScale.x;
-            return trunk != null ? trunk.localScale.x : 0.65f;
+            switch (stage)
+            {
+                case ForestTreeStage.Stump: return 0.35f;
+                case ForestTreeStage.Sapling: return 1.1f;
+                case ForestTreeStage.Young: return Mathf.Min(2.7f, heightMeters);
+                default: return heightMeters;
+            }
         }
     }
+
+    private float MatureThickness => diameterCm / 100f;
+
+    private Vector3 MatureCanopyScale => new Vector3(crownRadiusMeters * 2f, crownRadiusMeters * 2.2f, crownRadiusMeters * 2f);
 
     private void Awake()
     {
@@ -87,15 +96,14 @@ public sealed class ForestTree : MonoBehaviour
             Debug.LogError("ForestTree requires a trunk child.", this);
 
         if (stage == ForestTreeStage.Mature)
-        {
-            matureTrunkScale = trunk != null ? trunk.localScale : Vector3.one;
-            if (canopy != null)
-            {
-                matureCanopyScale = canopy.localScale;
-                matureCanopyLocalPosition = canopy.localPosition;
-            }
-            matureShapeCached = true;
-        }
+            ApplyMatureShape();
+    }
+
+    [ContextMenu("Apply visuals from data")]
+    private void ApplyMatureShape()
+    {
+        SetTrunkShape(heightMeters, MatureThickness);
+        SetCanopyActive(true, MatureCanopyScale, heightMeters);
     }
 
     private void Update()
@@ -144,21 +152,18 @@ public sealed class ForestTree : MonoBehaviour
         {
             case ForestTreeStage.Stump:
                 SetCanopyActive(false, Vector3.zero, 0f);
-                SetTrunkShape(0.35f, BaseThickness * 1.15f);
+                SetTrunkShape(0.35f, MatureThickness * 1.15f);
                 break;
             case ForestTreeStage.Sapling:
                 SetCanopyActive(true, new Vector3(1.1f, 1.2f, 1.1f), 1.1f);
-                SetTrunkShape(1.1f, BaseThickness * 0.45f);
+                SetTrunkShape(1.1f, MatureThickness * 0.45f);
                 break;
             case ForestTreeStage.Young:
-                SetCanopyActive(true, matureShapeCached ? matureCanopyScale * 0.6f : new Vector3(2f, 2.2f, 2f), 2.7f);
-                SetTrunkShape(2.7f, BaseThickness * 0.7f);
+                SetCanopyActive(true, MatureCanopyScale * 0.6f, 2.7f);
+                SetTrunkShape(2.7f, MatureThickness * 0.7f);
                 break;
             default:
-                SetCanopyActive(true, matureShapeCached ? matureCanopyScale : (canopy != null ? canopy.localScale : Vector3.one),
-                    matureShapeCached ? matureCanopyLocalPosition.y : (canopy != null ? canopy.localPosition.y : 5f));
-                if (matureShapeCached)
-                    SetTrunkShape(matureTrunkScale.y * 2f, matureTrunkScale.x);
+                ApplyMatureShape();
                 break;
         }
     }
