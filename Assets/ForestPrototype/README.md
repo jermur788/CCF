@@ -64,3 +64,7 @@ The spherical broadleaf canopy was replaced with a placeholder conifer silhouett
 ## Harvest stays harvested (14 September 2026)
 
 Automatic stump-to-sapling-to-young regrowth was removed. `ForestTree` no longer has an `Update` method; a chopped tree stays a stump with its canopy hidden. The stage enum values are kept so existing saves load, and legacy sapling/young trees from old saves still render and can be chopped, but nothing progresses on its own. Verified in Play Mode: a chopped tree stayed a stump past the old 20 second threshold (48 seconds of game time), and save then load preserved the stump. Future ecological regeneration will create new individuals with new ids.
+
+## Versioned saves and dynamic discovery (14 September 2026)
+
+`ForestSaveData` now carries a `version` field (currently 1). Saves written before versioning load as version 1, a newer version logs a warning and loads best-effort, and future migrations have a marked place in `ForestSaveController.Load`. The controller no longer caches the player, trees or buildables in `Awake`; it discovers them at save and load time with `FindObjectsByType(FindObjectsInactive.Include, ...)`, so runtime-created trees and objects participate in saves. Verified: an unversioned save loaded correctly, a tree spawned at runtime (T69) was discovered, appeared in the new save with its chop progress, and was restored on load.

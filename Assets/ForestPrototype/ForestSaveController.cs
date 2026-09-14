@@ -7,21 +7,11 @@ public sealed class ForestSaveController : MonoBehaviour
 {
     private const string SaveFileName = "forest-save.json";
 
-    private ForestPlayer player;
-    private ForestTree[] trees;
-    private ForestBuildable[] buildables;
     private string message = "";
     private float messageTimer;
     private GUIStyle messageStyle;
 
     private static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
-
-    private void Awake()
-    {
-        player = Object.FindFirstObjectByType<ForestPlayer>();
-        trees = Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None);
-        buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsSortMode.None);
-    }
 
     private void Update()
     {
@@ -40,6 +30,10 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Save()
     {
+        ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
+        ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
         ForestSaveData data = new ForestSaveData();
         if (player != null)
             data.wood = player.WoodCount;
@@ -67,7 +61,7 @@ public sealed class ForestSaveController : MonoBehaviour
         }
 
         File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        SetMessage($"Game saved: wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}");
+        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}");
     }
 
     public void Load()
@@ -84,6 +78,16 @@ public sealed class ForestSaveController : MonoBehaviour
             SetMessage("Save file unreadable");
             return;
         }
+
+        // Saves written before versioning load as version 1. Future migrations belong here.
+        if (data.version <= 0)
+            data.version = 1;
+        if (data.version > ForestSaveData.CurrentVersion)
+            Debug.LogWarning($"Save version {data.version} is newer than supported version {ForestSaveData.CurrentVersion}; loading best-effort.");
+
+        ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
+        ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
         if (player != null)
             player.WoodCount = data.wood;
@@ -115,7 +119,9 @@ public sealed class ForestSaveController : MonoBehaviour
             }
         }
 
-        SetMessage("Game loaded");
+        SetMessage(data.version == ForestSaveData.CurrentVersion
+            ? "Game loaded"
+            : $"Game loaded (save v{data.version})");
     }
 
     private void SetMessage(string text)

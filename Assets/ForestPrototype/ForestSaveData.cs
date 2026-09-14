@@ -4,6 +4,9 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
+    public const int CurrentVersion = 1;
+
+    public int version = CurrentVersion;
     public int wood;
     public List<TreeSaveData> trees = new List<TreeSaveData>();
     public List<BuildableSaveData> buildables = new List<BuildableSaveData>();
