@@ -15,7 +15,8 @@ public sealed class ForestPlayer : MonoBehaviour
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField, Range(18, 72)] private int promptFontSize = 36;
     [SerializeField, Min(0.1f)] private float swingCooldown = 0.45f;
-    [SerializeField] private int woodCount = 0;
+    [SerializeField, Min(1)] private int maxCarriedWood = 20;
+    [SerializeField] private int carriedWood = 0;
     private CharacterController controller;
     private float pitch;
     private float verticalSpeed;
@@ -37,13 +38,40 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle cardTitleStyle;
     private GUIStyle cardBodyStyle;
     private GUIStyle cardFooterStyle;
-    private GUIStyle hudTextStyle;
+    private GUIStyle hudLabelStyle;
+    private GUIStyle hudValueStyle;
     private GUIStyle notificationStyle;
 
-    public int WoodCount
+    public int MaxCarriedWood => maxCarriedWood;
+    public int CarriedWood => carriedWood;
+    public int FreeWoodCapacity => Mathf.Max(0, maxCarriedWood - carriedWood);
+
+    public bool CanCarryWood(int amount)
     {
-        get => woodCount;
-        set => woodCount = value;
+        return amount >= 0 && carriedWood + amount <= maxCarriedWood;
+    }
+
+    public int TryAddWood(int amount)
+    {
+        if (amount <= 0)
+            return 0;
+        int added = Mathf.Min(amount, FreeWoodCapacity);
+        carriedWood += added;
+        return added;
+    }
+
+    public bool TrySpendWood(int amount)
+    {
+        if (amount <= 0 || carriedWood < amount)
+            return false;
+        carriedWood -= amount;
+        return true;
+    }
+
+    // Used by save loading so legacy over-capacity saves keep every unit.
+    public void RestoreCarriedWood(int amount)
+    {
+        carriedWood = Mathf.Max(0, amount);
     }
 
     private void Awake()
@@ -248,10 +276,20 @@ public sealed class ForestPlayer : MonoBehaviour
         if (Time.time < lastChopTime + swingCooldown) return;
         lastChopTime = Time.time;
 
-        int currentChops = tree.AddChop();
-
         // Camera impact recoil
         chopImpactTimer = 0.12f;
+
+        // The felling stroke needs room for the whole yield; partial collection
+        // is not allowed, and the tree keeps its existing chop progress.
+        int nextChops = tree.ChopProgress + 1;
+        if (nextChops >= tree.ChopsRequired && !CanCarryWood(tree.WoodYield))
+        {
+            lastHarvestMessage = $"Need {tree.WoodYield} free wood capacity. Free space: {FreeWoodCapacity}.";
+            messageTimer = 3.5f;
+            return;
+        }
+
+        int currentChops = tree.AddChop();
 
         if (currentChops < tree.ChopsRequired)
         {
@@ -263,7 +301,7 @@ public sealed class ForestPlayer : MonoBehaviour
             // Read the yield before falling, because falling shrinks the trunk
             int yield = tree.WoodYield;
             tree.Fell();
-            woodCount += yield;
+            TryAddWood(yield);
 
             lastHarvestMessage = $"Timber! +{yield} Wood collected from {tree.gameObject.name}";
             messageTimer = 3.5f;
@@ -290,14 +328,23 @@ public sealed class ForestPlayer : MonoBehaviour
         GUI.color = new Color(0.06f, 0.09f, 0.05f, 0.95f);
         GUI.DrawTexture(hudRect, Texture2D.whiteTexture);
         GUI.color = Color.white;
-        if (hudTextStyle == null)
-            hudTextStyle = new GUIStyle(GUI.skin.label);
+        if (hudLabelStyle == null)
+            hudLabelStyle = new GUIStyle(GUI.skin.label);
         // Re-applied every frame so a stale cached style can never render the counter dark or small.
-        hudTextStyle.fontSize = 40;
-        hudTextStyle.fontStyle = FontStyle.Bold;
-        hudTextStyle.alignment = TextAnchor.MiddleLeft;
-        hudTextStyle.normal.textColor = Color.white;
-        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 12f, hudWidth - 40f, 64f), $"Wood: {woodCount}", hudTextStyle);
+        hudLabelStyle.fontSize = 22;
+        hudLabelStyle.fontStyle = FontStyle.Normal;
+        hudLabelStyle.alignment = TextAnchor.MiddleLeft;
+        hudLabelStyle.normal.textColor = new Color(0.78f, 0.86f, 0.72f);
+        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 10f, hudWidth - 40f, 26f), "Carried Wood", hudLabelStyle);
+
+        bool atCapacity = carriedWood >= maxCarriedWood;
+        if (hudValueStyle == null)
+            hudValueStyle = new GUIStyle(GUI.skin.label);
+        hudValueStyle.fontSize = 40;
+        hudValueStyle.fontStyle = FontStyle.Bold;
+        hudValueStyle.alignment = TextAnchor.MiddleLeft;
+        hudValueStyle.normal.textColor = atCapacity ? new Color(1f, 0.62f, 0.4f) : Color.white;
+        GUI.Label(new Rect(hudRect.x + 28f, hudRect.y + 34f, hudWidth - 40f, 52f), $"{carriedWood} / {maxCarriedWood}", hudValueStyle);
         GUI.color = previousColor;
         GUI.matrix = previousMatrix;
 

@@ -80,6 +80,8 @@ public static class ForestSceneBuilder
                 serializedTree.FindProperty("crownRadiusMeters").floatValue = 1.65f;
                 serializedTree.ApplyModifiedPropertiesWithoutUndo();
             }
+            var workbench = CreateWorkbench(new Vector3(-2.75f, 0f, 11f));
+            CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -226,6 +228,148 @@ public static class ForestSceneBuilder
         cone.AddComponent<MeshRenderer>().sharedMaterial = material;
     }
 
+    public static GameObject CreateWorkbench(Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var leaves = Material("Leaves", new Color(0.10f, 0.29f, 0.12f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var workbench = new GameObject("Forestry Workbench");
+        workbench.transform.position = position;
+        var collider = workbench.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.7f, 0f);
+        collider.size = new Vector3(2.4f, 1.4f, 1.2f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(workbench.transform, false);
+        Visual(unbuilt.transform, "Frame Post Front Left", new Vector3(-0.9f, 0.6f, -0.4f), new Vector3(0.14f, 1.2f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Post Front Right", new Vector3(0.9f, 0.6f, -0.4f), new Vector3(0.14f, 1.2f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Post Back Left", new Vector3(-0.9f, 0.6f, 0.4f), new Vector3(0.14f, 1.2f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Post Back Right", new Vector3(0.9f, 0.6f, 0.4f), new Vector3(0.14f, 1.2f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Rail Front", new Vector3(0f, 1.2f, -0.4f), new Vector3(2.04f, 0.12f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Rail Back", new Vector3(0f, 1.2f, 0.4f), new Vector3(2.04f, 0.12f, 0.14f), bark);
+        Visual(unbuilt.transform, "Frame Rail Left", new Vector3(-0.9f, 1.2f, 0f), new Vector3(0.14f, 0.12f, 0.94f), bark);
+        Visual(unbuilt.transform, "Frame Rail Right", new Vector3(0.9f, 1.2f, 0f), new Vector3(0.14f, 0.12f, 0.94f), bark);
+
+        var built = new GameObject("Built Workbench");
+        built.transform.SetParent(workbench.transform, false);
+        Visual(built.transform, "Workbench Top", new Vector3(0f, 1.25f, 0f), new Vector3(2.4f, 0.2f, 1.2f), bark);
+        Visual(built.transform, "Leg Front Left", new Vector3(-0.9f, 0.58f, -0.4f), new Vector3(0.18f, 1.15f, 0.18f), bark);
+        Visual(built.transform, "Leg Front Right", new Vector3(0.9f, 0.58f, -0.4f), new Vector3(0.18f, 1.15f, 0.18f), bark);
+        Visual(built.transform, "Leg Back Left", new Vector3(-0.9f, 0.58f, 0.4f), new Vector3(0.18f, 1.15f, 0.18f), bark);
+        Visual(built.transform, "Leg Back Right", new Vector3(0.9f, 0.58f, 0.4f), new Vector3(0.18f, 1.15f, 0.18f), bark);
+        Visual(built.transform, "Tool Rack", new Vector3(0f, 2.25f, 0f), new Vector3(2.8f, 0.16f, 1.6f), bark);
+        Visual(built.transform, "Rack Support Left", new Vector3(-1.1f, 1.76f, 0f), new Vector3(0.1f, 0.82f, 0.1f), bark);
+        Visual(built.transform, "Rack Support Right", new Vector3(1.1f, 1.76f, 0f), new Vector3(0.1f, 0.82f, 0.1f), bark);
+        built.SetActive(false);
+
+        var buildable = workbench.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 8;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("displayName").stringValue = "Forestry Workbench";
+        serialized.FindProperty("buildId").stringValue = "workbench-01";
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        return workbench;
+    }
+
+    public static GameObject CreateLogRack(ForestBuildable workbench, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var rack = new GameObject("Log Rack");
+        rack.transform.position = position;
+        var collider = rack.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.55f, 0f);
+        collider.size = new Vector3(1.8f, 1.1f, 1.1f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(rack.transform, false);
+        Visual(unbuilt.transform, "Foundation Marker", new Vector3(0f, 0.05f, 0f), new Vector3(1.8f, 0.1f, 1.0f), stone);
+        Visual(unbuilt.transform, "Corner Post A", new Vector3(-0.7f, 0.45f, -0.4f), new Vector3(0.1f, 0.9f, 0.1f), stone);
+        Visual(unbuilt.transform, "Corner Post B", new Vector3(0.7f, 0.45f, -0.4f), new Vector3(0.1f, 0.9f, 0.1f), stone);
+
+        var built = new GameObject("Built Visual");
+        built.transform.SetParent(rack.transform, false);
+        var frame = new GameObject("Rack Frame");
+        frame.transform.SetParent(built.transform, false);
+        Visual(frame.transform, "Frame Post Front Left", new Vector3(-0.75f, 0.5f, -0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Front Right", new Vector3(0.75f, 0.5f, -0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Back Left", new Vector3(-0.75f, 0.5f, 0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Frame Post Back Right", new Vector3(0.75f, 0.5f, 0.4f), new Vector3(0.12f, 1.0f, 0.12f), bark);
+        Visual(frame.transform, "Top Rail Left", new Vector3(-0.75f, 0.98f, 0f), new Vector3(0.1f, 0.1f, 0.92f), bark);
+        Visual(frame.transform, "Top Rail Right", new Vector3(0.75f, 0.98f, 0f), new Vector3(0.1f, 0.1f, 0.92f), bark);
+
+        var fillLow = new GameObject("Log Fill Low");
+        fillLow.transform.SetParent(built.transform, false);
+        AddLog(fillLow.transform, "Log", new Vector3(0f, 0.24f, -0.18f), bark);
+        AddLog(fillLow.transform, "Log", new Vector3(0f, 0.24f, 0.18f), bark);
+
+        var fillMedium = new GameObject("Log Fill Medium");
+        fillMedium.transform.SetParent(built.transform, false);
+        AddLog(fillMedium.transform, "Log", new Vector3(0f, 0.46f, -0.18f), bark);
+        AddLog(fillMedium.transform, "Log", new Vector3(0f, 0.46f, 0.18f), bark);
+
+        var fillFull = new GameObject("Log Fill Full");
+        fillFull.transform.SetParent(built.transform, false);
+        AddLog(fillFull.transform, "Log", new Vector3(0f, 0.68f, -0.26f), bark);
+        AddLog(fillFull.transform, "Log", new Vector3(0f, 0.68f, 0f), bark);
+        AddLog(fillFull.transform, "Log", new Vector3(0f, 0.68f, 0.26f), bark);
+        built.SetActive(false);
+
+        var buildable = rack.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 6;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("displayName").stringValue = "Log Rack";
+        serialized.FindProperty("buildId").stringValue = "log-rack-build-01";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = workbench;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        var storage = rack.AddComponent<ForestWoodStorage>();
+        var storageSerialized = new SerializedObject(storage);
+        storageSerialized.FindProperty("storageId").stringValue = "log-rack-01";
+        storageSerialized.FindProperty("capacity").intValue = 100;
+        storageSerialized.FindProperty("interactionDistance").floatValue = 4f;
+        storageSerialized.FindProperty("displayName").stringValue = "Log Rack";
+        storageSerialized.FindProperty("buildable").objectReferenceValue = buildable;
+        storageSerialized.FindProperty("logFillLow").objectReferenceValue = fillLow;
+        storageSerialized.FindProperty("logFillMedium").objectReferenceValue = fillMedium;
+        storageSerialized.FindProperty("logFillFull").objectReferenceValue = fillFull;
+        storageSerialized.ApplyModifiedPropertiesWithoutUndo();
+        return rack;
+    }
+
+    private static GameObject Visual(Transform parent, string name, Vector3 localPosition, Vector3 localScale, Material material)
+    {
+        var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        visual.name = name;
+        visual.transform.SetParent(parent, false);
+        visual.transform.localPosition = localPosition;
+        visual.transform.localScale = localScale;
+        visual.GetComponent<Renderer>().sharedMaterial = material;
+        UnityEngine.Object.DestroyImmediate(visual.GetComponent<Collider>());
+        return visual;
+    }
+
+    private static GameObject AddLog(Transform parent, string name, Vector3 localPosition, Material material)
+    {
+        var log = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        log.name = name;
+        log.transform.SetParent(parent, false);
+        log.transform.localPosition = localPosition;
+        log.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        log.transform.localScale = new Vector3(0.22f, 0.7f, 0.22f);
+        log.GetComponent<Renderer>().sharedMaterial = material;
+        UnityEngine.Object.DestroyImmediate(log.GetComponent<Collider>());
+        return log;
+    }
+
     private static GameObject Primitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Material material, Transform parent = null)
     {
         var obj = GameObject.CreatePrimitive(type);
@@ -247,6 +391,8 @@ public static class ForestSceneBuilder
     {
         int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0;
         var treeIds = new HashSet<string>();
+        var buildableIds = new HashSet<string>();
+        var storageIds = new HashSet<string>();
         foreach (var root in scene.GetRootGameObjects())
         foreach (var transform in root.GetComponentsInChildren<Transform>(true))
         {
@@ -261,8 +407,33 @@ public static class ForestSceneBuilder
             if (player != null)
             {
                 players++;
-                if (obj.GetComponent<CharacterController>() == null || new SerializedObject(player).FindProperty("view").objectReferenceValue == null)
+                var playerSerialized = new SerializedObject(player);
+                if (obj.GetComponent<CharacterController>() == null || playerSerialized.FindProperty("view").objectReferenceValue == null)
                     throw new InvalidOperationException("Incomplete player.");
+                if (playerSerialized.FindProperty("maxCarriedWood").intValue <= 0)
+                    throw new InvalidOperationException("Invalid player carrying capacity on " + obj.name);
+            }
+            var buildable = obj.GetComponent<ForestBuildable>();
+            if (buildable != null)
+            {
+                if (string.IsNullOrEmpty(buildable.BuildId))
+                    throw new InvalidOperationException("Missing buildable id on " + obj.name);
+                if (!buildableIds.Add(buildable.BuildId))
+                    throw new InvalidOperationException("Duplicate buildable id: " + buildable.BuildId);
+            }
+            var storage = obj.GetComponent<ForestWoodStorage>();
+            if (storage != null)
+            {
+                if (string.IsNullOrEmpty(storage.StorageId))
+                    throw new InvalidOperationException("Missing storage id on " + obj.name);
+                if (!storageIds.Add(storage.StorageId))
+                    throw new InvalidOperationException("Duplicate storage id: " + storage.StorageId);
+                if (storage.Capacity <= 0)
+                    throw new InvalidOperationException("Invalid storage capacity on " + obj.name);
+                if (storage.Buildable == null)
+                    throw new InvalidOperationException("Wood storage without a ForestBuildable: " + obj.name);
+                if (!storage.Buildable.HasPrerequisite)
+                    throw new InvalidOperationException("Wood storage buildable is missing its prerequisite: " + obj.name);
             }
             var tree = obj.GetComponent<ForestTree>();
             if (tree != null)

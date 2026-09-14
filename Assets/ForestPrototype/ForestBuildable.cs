@@ -7,6 +7,7 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField, Min(0.5f)] private float interactionDistance = 3.5f;
     [SerializeField] private string displayName = "Forestry Workbench";
     [SerializeField] private string buildId = "workbench-01";
+    [SerializeField] private ForestBuildable requiredBuildable;
     [SerializeField] private GameObject unbuiltVisual;
     [SerializeField] private GameObject builtVisual;
 
@@ -73,6 +74,12 @@ public sealed class ForestBuildable : MonoBehaviour
 
     private void TryBuild()
     {
+        if (!IsPrerequisiteMet)
+        {
+            SetMessage($"Requires {requiredBuildable.DisplayName}", 3f);
+            return;
+        }
+
         ForestPlayer player = view != null ? view.GetComponentInParent<ForestPlayer>() : null;
         if (player == null)
         {
@@ -80,14 +87,12 @@ public sealed class ForestBuildable : MonoBehaviour
             return;
         }
 
-        int wood = player.WoodCount;
-        if (wood < woodCost)
+        if (!player.TrySpendWood(woodCost))
         {
-            SetMessage($"Not enough wood. Need {woodCost}, have {wood}.", 3f);
+            SetMessage($"Not enough wood. Need {woodCost}, have {player.CarriedWood}.", 3f);
             return;
         }
 
-        player.WoodCount = wood - woodCost;
         isBuilt = true;
         SetVisuals(true);
         SetMessage($"{displayName} built. Wood -{woodCost}.", 3.5f);
@@ -103,7 +108,10 @@ public sealed class ForestBuildable : MonoBehaviour
     }
 
     public string BuildId => buildId;
+    public string DisplayName => displayName;
     public bool IsBuilt => isBuilt;
+    public bool HasPrerequisite => requiredBuildable != null;
+    public bool IsPrerequisiteMet => requiredBuildable == null || requiredBuildable.IsBuilt;
 
     public void RestoreBuiltState(bool built)
     {
@@ -153,7 +161,9 @@ public sealed class ForestBuildable : MonoBehaviour
             promptStyle.normal.textColor = Color.white;
         }
 
-        string prompt = $"[E] Build {displayName} ({woodCost} Wood)";
+        string prompt = IsPrerequisiteMet
+            ? $"[E] Build {displayName} ({woodCost} Wood)"
+            : $"Requires {requiredBuildable.DisplayName}";
         GUI.Box(new Rect(Screen.width * 0.5f - 240f, Screen.height * 0.5f + 40f, 480f, 58f), prompt, promptStyle);
     }
 }

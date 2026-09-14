@@ -33,10 +33,11 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
         ForestSaveData data = new ForestSaveData();
         if (player != null)
-            data.wood = player.WoodCount;
+            data.wood = player.CarriedWood;
 
         foreach (ForestTree tree in trees)
         {
@@ -60,8 +61,18 @@ public sealed class ForestSaveController : MonoBehaviour
             });
         }
 
+        foreach (ForestWoodStorage storage in storages)
+        {
+            if (storage == null) continue;
+            data.storages.Add(new WoodStorageSaveData
+            {
+                storageId = storage.StorageId,
+                storedWood = storage.StoredWood
+            });
+        }
+
         File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}");
+        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}");
     }
 
     public void Load()
@@ -88,9 +99,10 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
         if (player != null)
-            player.WoodCount = data.wood;
+            player.RestoreCarriedWood(data.wood);
 
         Dictionary<string, ForestTree> treesById = new Dictionary<string, ForestTree>();
         foreach (ForestTree tree in trees)
@@ -115,6 +127,18 @@ public sealed class ForestSaveController : MonoBehaviour
                 {
                     if (buildable != null && buildable.BuildId == saved.buildId)
                         buildable.RestoreBuiltState(saved.built);
+                }
+            }
+        }
+
+        if (data.storages != null)
+        {
+            foreach (WoodStorageSaveData saved in data.storages)
+            {
+                foreach (ForestWoodStorage storage in storages)
+                {
+                    if (storage != null && storage.StorageId == saved.storageId)
+                        storage.RestoreStoredWood(saved.storedWood);
                 }
             }
         }
