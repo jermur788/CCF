@@ -8888,6 +8888,7 @@ GameObject:
   - component: {fileID: 780226342}
   - component: {fileID: 780226344}
   - component: {fileID: 780226345}
+  - component: {fileID: 780226346}
   m_Layer: 0
   m_Name: Game State
   m_TagString: Untagged
@@ -8958,6 +8959,20 @@ MonoBehaviour:
   barkMaterial: {fileID: 2100000, guid: c2792981a9803b3aaad9fee7a4f58312, type: 2}
   canopyPrefab: {fileID: 6058551966966761826, guid: 258dc4dafc4802c77926beb95e21e595, type: 3}
   forestParent: {fileID: 2095790890}
+--- !u!114 &780226346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780226341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f466d6fed08095b6ea097d164490ce4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestTreeMarkingManager
+  interactionDistance: 8
+  markerColor: {r: 1, g: 0.35, b: 0.05, a: 1}
 --- !u!1001 &796997571
 PrefabInstance:
   m_ObjectHideFlags: 0

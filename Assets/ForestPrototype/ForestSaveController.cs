@@ -46,6 +46,10 @@ public sealed class ForestSaveController : MonoBehaviour
             data.simulationSeed = ecology.SimulationSeed;
         }
 
+        ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
+        if (marking != null)
+            data.markedTreeIds = marking.GetMarkedIds();
+
         foreach (ForestTree tree in trees)
         {
             if (tree == null) continue;
@@ -183,6 +187,10 @@ public sealed class ForestSaveController : MonoBehaviour
                 }
             }
         }
+
+        ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
+        if (marking != null)
+            marking.RestoreMarks(data.markedTreeIds);
 
         if (data.buildables != null)
         {

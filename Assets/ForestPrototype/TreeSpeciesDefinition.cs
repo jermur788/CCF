@@ -32,6 +32,10 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[D] Fraction of the gap to the target crown radius closed per year. Model calibration.")]
     [SerializeField, Range(0.01f, 1f)] private float crownRelaxationPerYear = 0.15f;
 
+    [Header("Timber")]
+    [Tooltip("[D] Form-height ratio: form height = tree height x this factor. Calibration for the biological stem-volume interface, not a measured constant.")]
+    [SerializeField, Range(0.2f, 0.8f)] private float formHeightRatio = 0.5f;
+
     [Header("Reproduction")]
     [Tooltip("[A] Age in years where seed production starts (research indicates onset around 20-25 years).")]
     [SerializeField, Min(0f)] private float maturityOnsetYears = 20f;
@@ -91,6 +95,7 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float PotentialHeightGrowthMPerYear => potentialHeightGrowthMPerYear;
     public float MaxHeightM => maxHeightM;
     public float Ci50 => ci50;
+    public float FormHeightRatio => formHeightRatio;
     public float CrownRadiusIntercept => crownRadiusIntercept;
     public float CrownRadiusPerCmDbh => crownRadiusPerCmDbh;
     public float CrownRelaxationPerYear => crownRelaxationPerYear;

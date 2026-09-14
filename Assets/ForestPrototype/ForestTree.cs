@@ -44,6 +44,19 @@ public sealed class ForestTree : MonoBehaviour
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
     public Vector3 InteractionPoint => transform.position;
 
+    // Biological timber interface: stem volume from DBH and form height.
+    // Volume_m3 = DBH_cm^2 * 0.00007854 * formHeight_m  (0.00007854 = pi/4 * 1e-4).
+    // Additive read-only output; gameplay wood yield stays separate.
+    public float BiologicalStemVolumeM3
+    {
+        get
+        {
+            if (species == null || IsStump)
+                return 0f;
+            return Diameter * Diameter * 0.00007854f * (Height * species.FormHeightRatio);
+        }
+    }
+
     public string StageLabel
     {
         get
