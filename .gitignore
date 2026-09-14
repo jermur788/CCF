@@ -80,4 +80,5 @@ opencode.json
 # Asset Store packs imported for evaluation; trimmed subset gets committed
 # when a feature actually uses it (339 MB pack - do not commit wholesale).
 /Assets/InnerverseInteractive/
+/Assets/InnerverseInteractive.meta
 
