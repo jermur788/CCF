@@ -72,3 +72,8 @@ crashlytics-build.properties
 ehthumbs.db
 Thumbs.db
 
+# Local agent / Unity MCP client configuration (machine-specific, not shared)
+.agents/
+.kitwright/
+opencode.json
+
