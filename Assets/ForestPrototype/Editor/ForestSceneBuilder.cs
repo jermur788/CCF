@@ -87,6 +87,7 @@ public static class ForestSceneBuilder
             var sawPit = CreateSawPit(workbench.GetComponent<ForestBuildable>(), new Vector3(-4.9f, 0f, 9.3f));
             var plankRack = CreatePlankRack(sawPit.GetComponent<ForestBuildable>(), new Vector3(-6.9f, 0f, 10.3f));
             CreateSecondLogRack(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(2.2f, 0f, 12.8f));
+            CreateGrindingStone(sawPit.GetComponent<ForestBuildable>(), plankRack.GetComponent<ForestWoodStorage>(), new Vector3(-4.6f, 0f, 10.9f));
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(48, -30, 0);
@@ -590,6 +591,45 @@ public static class ForestSceneBuilder
         plank.GetComponent<Renderer>().sharedMaterial = material;
         UnityEngine.Object.DestroyImmediate(plank.GetComponent<Collider>());
         return plank;
+    }
+
+    public static GameObject CreateGrindingStone(ForestBuildable sawPit, ForestWoodStorage plankRackStorage, Vector3 position)
+    {
+        var bark = Material("Bark", new Color(0.24f, 0.13f, 0.065f));
+        var stone = Material("Stone", new Color(0.35f, 0.38f, 0.31f));
+
+        var grinder = new GameObject("Grinding Stone");
+        grinder.transform.position = position;
+        var collider = grinder.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0f, 0.45f, 0f);
+        collider.size = new Vector3(1.4f, 0.9f, 1.2f);
+
+        var unbuilt = new GameObject("Unbuilt Site");
+        unbuilt.transform.SetParent(grinder.transform, false);
+        Visual(unbuilt.transform, "Foundation Marker", new Vector3(0f, 0.05f, 0f), new Vector3(1.4f, 0.1f, 1.2f), stone);
+        Visual(unbuilt.transform, "Stake", new Vector3(0.5f, 0.3f, -0.4f), new Vector3(0.1f, 0.6f, 0.1f), bark);
+
+        var built = new GameObject("Built Visual");
+        built.transform.SetParent(grinder.transform, false);
+        Visual(built.transform, "Stone Base", new Vector3(0f, 0.35f, 0f), new Vector3(1.2f, 0.7f, 1.0f), stone);
+        Visual(built.transform, "Grind Surface", new Vector3(0f, 0.75f, 0f), new Vector3(0.9f, 0.12f, 0.8f), stone);
+        Visual(built.transform, "Plank Rest", new Vector3(-0.75f, 0.55f, 0.3f), new Vector3(0.5f, 0.08f, 0.4f), bark);
+        built.SetActive(false);
+
+        var buildable = grinder.AddComponent<ForestBuildable>();
+        var serialized = new SerializedObject(buildable);
+        serialized.FindProperty("woodCost").intValue = 2;
+        serialized.FindProperty("interactionDistance").floatValue = 4f;
+        serialized.FindProperty("plankCost").intValue = 3;
+        serialized.FindProperty("swingCooldownReduction").floatValue = 0.20f;
+        serialized.FindProperty("displayName").stringValue = "Grinding Stone";
+        serialized.FindProperty("buildId").stringValue = "grinding-stone-01";
+        serialized.FindProperty("requiredBuildable").objectReferenceValue = sawPit;
+        serialized.FindProperty("plankSource").objectReferenceValue = plankRackStorage;
+        serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
+        serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        return grinder;
     }
 
     public static GameObject CreateTimberSledge(ForestBuildable workbench, Vector3 position)

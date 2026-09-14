@@ -51,9 +51,11 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle notificationStyle;
 
     public int MaxCarriedWood => maxCarriedWood + BuiltCapacityBonus();
+    public float EffectiveSwingCooldown => Mathf.Max(0.15f, swingCooldown - BuiltSwingCooldownReduction());
 
-    // Built structures can raise the carrying limit; the bonus is derived from
-    // built objects so it survives save/load without its own save field.
+    // Built structures can raise the carrying limit and speed up axe recovery;
+    // both bonuses are derived from built objects so they survive save/load
+    // without their own save fields.
     private int BuiltCapacityBonus()
     {
         int bonus = 0;
@@ -63,6 +65,17 @@ public sealed class ForestPlayer : MonoBehaviour
                 bonus += buildable.CarriedWoodCapacityBonus;
         }
         return bonus;
+    }
+
+    private float BuiltSwingCooldownReduction()
+    {
+        float reduction = 0f;
+        foreach (ForestBuildable buildable in Object.FindObjectsByType<ForestBuildable>())
+        {
+            if (buildable != null && buildable.IsBuilt)
+                reduction += buildable.SwingCooldownReduction;
+        }
+        return reduction;
     }
     public int CarriedWood => carriedWood;
     public int FreeWoodCapacity => Mathf.Max(0, MaxCarriedWood - carriedWood);
@@ -339,7 +352,7 @@ public sealed class ForestPlayer : MonoBehaviour
         if (tree == null || !tree.CanChop) return;
 
         // Enforce axe swing cooldown for deliberate, physical rhythm
-        if (Time.time < lastChopTime + swingCooldown) return;
+        if (Time.time < lastChopTime + EffectiveSwingCooldown) return;
         lastChopTime = Time.time;
 
         // Camera impact recoil
