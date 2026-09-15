@@ -1,0 +1,18 @@
+{
+  "fbx_reimport": "passed",
+  "height_metres": 25.057352378964424,
+  "meshes": [
+    {
+      "name": "Beech_Mature_01_Bark",
+      "triangles": 181022,
+      "materials": 1
+    },
+    {
+      "name": "Beech_Mature_01_Leaves",
+      "triangles": 174000,
+      "materials": 4
+    }
+  ],
+  "uvs_and_texture_files": "passed",
+  "unity_tested": false
+}
