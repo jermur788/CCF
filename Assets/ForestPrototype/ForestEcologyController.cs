@@ -740,6 +740,73 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
+    // One-line-per-metric stand summary for the starting scenario and any
+    // point in time. Density figures are diagnostic anchors, never targets.
+    public string StandDiagnostics()
+    {
+        var living = new List<ForestTree>();
+        foreach (ForestTree tree in FindTrees())
+            if (tree != null && !tree.IsStump)
+                living.Add(tree);
+        float areaHa = standSizeMeters * standSizeMeters / 10000f;
+        if (living.Count == 0)
+            return "stand empty";
+
+        var dbhs = new List<float>();
+        float ageSum = 0f, ciSum = 0f, basalArea = 0f;
+        int suppressed = 0;
+        foreach (ForestTree tree in living)
+        {
+            dbhs.Add(tree.Diameter);
+            ageSum += tree.AgeYears;
+            ciSum += GetCompetitionIndex(tree);
+            basalArea += (tree.Diameter / 100f) * (tree.Diameter / 100f) * Mathf.PI / 4f;
+        }
+        dbhs.Sort();
+        float meanDbh = 0f;
+        foreach (float d in dbhs) meanDbh += d;
+        meanDbh /= dbhs.Count;
+        int suppressedCount = 0;
+        foreach (ForestTree tree in living)
+            if (GetCompetitionIndex(tree) > 6f) // [D] suppressed-band reference
+                suppressedCount++;
+
+        float lightSum = 0f; int darkCells = 0;
+        foreach (ForestEcologyCell cell in cells)
+        {
+            if (cell == null) continue;
+            lightSum += cell.Light;
+            if (cell.Light < 0.15f) darkCells++;
+        }
+        float meanLight = cells != null && cells.Length > 0 ? lightSum / cells.Length : 0f;
+
+        float ha = standSizeMeters * standSizeMeters / 10000f;
+        var lines = new System.Text.StringBuilder();
+        lines.AppendLine($"living stems: {living.Count}  ({living.Count / areaHa:F0} stems/ha)");
+        lines.AppendLine($"basal area: {basalArea / areaHa:F1} m2/ha");
+        lines.AppendLine($"DBH mean {meanDbh:F1} cm, median {dbhs[dbhs.Count / 2]:F1}, range {dbhs[0]:F0}-{dbhs[dbhs.Count - 1]:F0}");
+        lines.AppendLine($"DBH histogram (2 cm bins): {DbhHistogram(dbhs)}");
+        lines.AppendLine($"mean age: {ageSum / living.Count:F1} y");
+        lines.AppendLine($"competition: mean CI {ciSum / living.Count:F2}; CI>4 {suppressedCount * 100f / living.Count:F0}% of stems");
+        lines.AppendLine($"canopy light: mean {meanLight:F2}; cells <0.15: {darkCells * 100 / Mathf.Max(1, cells.Length)}%");
+        return lines.ToString();
+    }
+
+    private string DbhHistogram(List<float> dbhs)
+    {
+        var bins = new SortedDictionary<int, int>();
+        foreach (float d in dbhs)
+        {
+            int bin = Mathf.FloorToInt(d / 2f) * 2;
+            bins.TryGetValue(bin, out int count);
+            bins[bin] = count + 1;
+        }
+        var sb = new System.Text.StringBuilder();
+        foreach (var pair in bins)
+            sb.Append($"{pair.Key}-{pair.Key + 2}:{pair.Value} ");
+        return sb.ToString().TrimEnd();
+    }
+
     public float MeanDbhCm
     {
         get
