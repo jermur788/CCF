@@ -36,6 +36,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private float lastChopTime = -1f;
     private float lookPixelsSinceRecentre;
     private float secondsSinceRecentre;
+    private float secondsSinceEdgeStall;
     private int recentreGraceFrames;
     private float chopImpactTimer;
     private Vector3 defaultCameraLocalPos = new Vector3(0f, 1.65f, 0f);
@@ -228,15 +229,25 @@ public sealed class ForestPlayer : MonoBehaviour
                 lookPixelsSinceRecentre += rawDelta.magnitude;
 
                 // On some Linux setups a locked cursor stops producing deltas once the
-                // pointer reaches a screen edge. Recentre before that can happen so the
-                // view can keep turning in one direction indefinitely; the periodic
-                // recentre also recovers if the pointer starts a session at an edge.
+                // pointer reaches a screen edge. Recentre only when that stall is
+                // actually happening: the pointer has drifted to the edge AND the
+                // deltas have gone quiet for a moment. The old unconditional
+                // two-second warp yanked the cursor back to the game window even
+                // while the player was reading or resting.
                 secondsSinceRecentre += Time.deltaTime;
-                if (lookPixelsSinceRecentre >= Mathf.Min(Screen.width, Screen.height) * 0.25f ||
-                    secondsSinceRecentre >= 2f)
+                Vector2 pointerPos = mouse.position.ReadValue();
+                bool nearEdge = pointerPos.x < 24f || pointerPos.y < 24f ||
+                                pointerPos.x > Screen.width - 24f || pointerPos.y > Screen.height - 24f;
+                if (rawDelta.magnitude < 0.5f)
+                    secondsSinceEdgeStall += Time.deltaTime;
+                else
+                    secondsSinceEdgeStall = 0f;
+                bool crossedPixelBudget = lookPixelsSinceRecentre >= Mathf.Min(Screen.width, Screen.height) * 0.25f;
+                if (crossedPixelBudget || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
                 {
                     lookPixelsSinceRecentre = 0f;
                     secondsSinceRecentre = 0f;
+                    secondsSinceEdgeStall = 0f;
                     mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
                     recentreGraceFrames = 2;
                 }
