@@ -213,16 +213,18 @@ Deterministic 80-year run from the scene baseline (seed 20260914, 68 mature tree
 
 | year 10/20/.../80 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| living trees | 68 | 76 | 82 | 86 | 90 | 94 | 95 | 98 |
-| recruits (R-ids) | 0 | 8 | 14 | 18 | 22 | 26 | 27 | 30 |
-| max recruit DBH cm | — | 6.36 | 7.43 | 8.55 | 9.76 | 11.03 | 12.38 | 13.80 |
-| max recruit height m | — | 6.48 | 9.94 | 12.98 | 15.65 | 18.00 | 20.07 | 21.88 |
+| living trees | 68 | 76 | 82 | 86 | 90 | 94 | 96 | 98 |
+| recruits (R-ids) | 0 | 8 | 14 | 18 | 22 | 26 | 28 | 30 |
+| max recruit DBH cm | — | 6.36 | 7.43 | 8.56 | 9.76 | 11.04 | 12.40 | 13.83 |
+| max recruit height m | — | 6.47 | 9.94 | 12.98 | 15.65 | 18.00 | 20.06 | 21.88 |
 | recruits age >= 30 | 0 | 0 | 0 | 13 | 20 | 26 | 27 | 30 |
-| regen density sum | 39.25 | 26.83 | 17.97 | 13.44 | 13.05 | 13.15 | 13.13 | 8.17 |
-| max seed rain | 8.88 | 23.84 | 25.17 | 10.13 | 25.67 | 39.40 | 26.48 | 10.77 |
-| mean DBH cm | 69.28 | 64.10 | 61.23 | 60.00 | 58.88 | 57.85 | 58.53 | 58.09 |
+| regen density sum | 39.57 | 26.81 | 17.08 | 12.52 | 12.75 | 13.18 | 12.66 | 10.62 |
+| max seed rain | 8.88 | 23.84 | 25.18 | 10.13 | 25.66 | 39.36 | 26.47 | 10.78 |
+| mean DBH cm | 69.28 | 64.10 | 61.23 | 60.00 | 58.87 | 57.84 | 57.96 | 58.08 |
 
-Milestones: first promotion year 13 (R13-51 / R13-59, two cells crossed 3.5 m the same year); first recruit reaching reproductive onset (age 20) year 21; first fully mature reproductive recruit (age 30, `Maturity` = 1) year 31 — `R15-0` with seed potential 0.022 measured through `GetSeedPotential`, so the second generation is demonstrably reproductive; stand max seed rain rises from the originals-only ~15 to 39.4 as recruits join the seed pool. Pole-phase growth is visible in the recruit DBH/height columns. The regen-sum decline (39 -> 8) is cohort turnover, not failure: established cohorts promote out (density resets) while suppressed cells die back under the closing canopy. Determinism re-verified across two independent play sessions — the per-decade rows match exactly; scene-query enumeration order is not guaranteed, so "first found" ids within one year can differ while the simulation state is identical.
+Milestones: first promotion year 13 (R13-43, R13-51 and R13-59, three cells crossing the promotion height the same year); first recruit reaching reproductive onset (age 20) year 21; first fully mature reproductive recruit (age 30, `Maturity` = 1) year 31 — `R15-0` with seed potential 0.022 measured through `GetSeedPotential`, so the second generation is demonstrably reproductive; stand max seed rain rises from the originals-only ~15 to 39.4 as recruits join the seed pool. Pole-phase growth is visible in the recruit DBH/height columns. The regen-sum decline (39.6 -> 10.6) is cohort turnover, not failure: established cohorts promote out (density resets) while suppressed cells die back under the closing canopy.
+
+**This table supersedes the first recorded baseline.** The annual simulation now consumes trees in a stable order — `FindTrees()` sorts by ordinal `TreeId`, so every order-sensitive accumulation (Hegyi competition sums, canopy gap products, growth, crown relaxation, seed rain) reproduces regardless of scene enumeration order — and `ResetForDeterministicRun()` makes the fixture a complete reset. Stable summation order legitimately moved the trajectory (e.g. year-70 living/recruits were 95/27 and are now 96/28; regen-sum and seed-rain columns carry different last decimals), so the earlier run is no longer the reference. Re-verified after both changes: three independent fresh sessions each ran fixture -> 80 years and produced the identical full-state hash `7E39B70A14959FAD` (FNV-1a over every tree and cell), and a same-session re-apply matched pass for pass.
 
 - The save/load toast was still the old translucent unscaled skin.box; it now uses the shared `ForestHud` solid panel and scale like every other prompt.
 
