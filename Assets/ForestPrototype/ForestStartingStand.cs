@@ -21,10 +21,10 @@ public sealed class ForestStartingStand : MonoBehaviour
     [SerializeField] private float standDepthMeters = 40f;
     [SerializeField, Min(1)] private int canonicalAgeYears = 20;
     [SerializeField, Min(1)] private int targetTreeCount = 336;
-    [Tooltip("19 x 19 planting lattice inside the stand borders.")]
-    [SerializeField, Min(2)] private int latticePerAxis = 19;
+    [Tooltip("20 x 20 planting lattice inside the stand borders - one slot more per axis than the 19 x 19 draft so the forest road and work-area clearances keep the living count at the 336-stem anchor.")]
+    [SerializeField, Min(2)] private int latticePerAxis = 21;
     [Tooltip("[D] Spacing between planting rows/trees inside the lattice.")]
-    [SerializeField, Min(0.5f)] private float latticeSpacingMeters = 2f;
+    [SerializeField, Min(0.5f)] private float latticeSpacingMeters = 1.9f;
     [Tooltip("[D] Mean DBH target at the canonical age (diagnostic anchor).")]
     [SerializeField, Min(5f)] private float meanDbhCm = 16f;
     [Tooltip("[D] DBH class bands: dominant / co-dominant, ordinary crop trees, suppressed.")]
@@ -35,6 +35,11 @@ public sealed class ForestStartingStand : MonoBehaviour
     [SerializeField] private float neighbourScanRadiusMeters = 4.2f;
     [SerializeField] private int crowdedNeighbourThreshold = 11;
     [SerializeField] private int openNeighbourThreshold = 7;
+    [Header("Clearings the plantation must not cover")]
+    [Tooltip("[D] No-tree corridor half-width around every Dirt Path segment.")]
+    [SerializeField, Min(0.5f)] private float pathCorridorRadiusMeters = 1.5f;
+    [Tooltip("[D] No-tree radius around the work-area clearing, the player start and every built structure.")]
+    [SerializeField, Min(1f)] private float clearingRadiusMeters = 2.2f;
 
     private void Awake()
     {
@@ -65,54 +70,106 @@ public sealed class ForestStartingStand : MonoBehaviour
         float originX = -span * 0.5f;
         float originZ = -span * 0.5f;
 
-        // Deterministic omissions: the lowest-hash lattice positions represent
-        // failed establishment or early mortality while keeping the rows.
-        var omitted = new HashSet<int>();
-        if (toOmit > 0)
-        {
-            var byHash = new List<(int index, uint hash)>();
-            for (int i = 0; i < total; i++)
-                byHash.Add((i, FnvHash($"omit-{i}")));
-            byHash.Sort((a, b) => a.hash.CompareTo(b.hash));
-            for (int i = 0; i < toOmit; i++)
-                omitted.Add(byHash[i].index);
-        }
+        // Clearance zones the plantation must respect: the forest road, the
+        // work-area clearing, the player start and built structures. Path
+        // planks get the road corridor radius; the rest get the clearing radius.
+        var exclusionPoints = CollectClearancePoints();
+        int clearanceOmitted = 0;
 
-        // Occupancy grid first, so DBH classes see the real neighbourhoods.
-        var occupied = new bool[perAxis, perAxis];
-        for (int r = 0; r < perAxis; r++)
-        for (int c = 0; c < perAxis; c++)
-            occupied[r, c] = !omitted.Contains(r * perAxis + c);
-
-        int spawned = 0;
+        // Slots with their final jittered world positions, so clearance is
+        // tested against where the tree would actually stand, not the raw
+        // lattice centre.
+        var slots = new List<(int r, int c, Vector3 position, string id)>();
         for (int r = 0; r < perAxis; r++)
         for (int c = 0; c < perAxis; c++)
         {
-            if (!occupied[r, c])
-                continue;
             string id = $"P{r:D2}{c:D2}";
             Vector2 centre = new Vector2(originX + c * spacing, originZ + r * spacing);
-            // Small deterministic planting jitter - keeps visible rows without
-            // looking surveyor-perfect.
             Vector2 jitter = FnvJitter(id);
             Vector3 position = new Vector3(
                 Mathf.Clamp(centre.x + jitter.x, -(standWidthMeters * 0.5f - 0.6f), standWidthMeters * 0.5f - 0.6f),
                 0f,
                 Mathf.Clamp(centre.y + jitter.y, -(standDepthMeters * 0.5f - 0.6f), standDepthMeters * 0.5f - 0.6f));
+            slots.Add((r, c, position, id));
+        }
 
-            int neighbours = CountNeighbours(occupied, r, c, spacing, neighbourScanRadiusMeters);
-            float dbh = DbhForClass(neighbours, id, position);
-            float height = HeightForDbh(dbh, id);
+        // 1. Clearance omissions first (forest road, work area, structures);
+        // they do not consume the mortality budget.
+        var omitted = new HashSet<int>();
+        for (int i = 0; i < slots.Count; i++)
+            if (InClearanceZone(slots[i].position, exclusionPoints))
+                omitted.Add(i);
+        clearanceOmitted = omitted.Count;
+
+        // 2. Mortality budget fills whatever omissions remain: the lowest-hash
+        // non-clearance slots represent failed establishment / early mortality
+        // while keeping the rows.
+        int remainingOmit = Mathf.Max(0, toOmit - clearanceOmitted);
+        if (remainingOmit > 0)
+        {
+            var byHash = new List<(int index, uint hash)>();
+            for (int i = 0; i < slots.Count; i++)
+                if (!omitted.Contains(i))
+                    byHash.Add((i, FnvHash($"omit-{i}")));
+            byHash.Sort((a, b) => a.hash.CompareTo(b.hash));
+            for (int i = 0; i < Mathf.Min(remainingOmit, byHash.Count); i++)
+                omitted.Add(byHash[i].index);
+        }
+
+        // 3. Occupancy grid first, so DBH classes see the real neighbourhoods.
+        var occupied = new bool[perAxis, perAxis];
+        for (int i = 0; i < slots.Count; i++)
+            occupied[slots[i].r, slots[i].c] = !omitted.Contains(i);
+
+        int spawned = 0;
+        foreach (var slot in slots)
+        {
+            if (omitted.Contains(slot.r * perAxis + slot.c))
+                continue;
+
+            int neighbours = CountNeighbours(occupied, slot.r, slot.c, spacing, neighbourScanRadiusMeters);
+            float dbh = DbhForClass(neighbours, slot.id, slot.position);
+            float height = HeightForDbh(dbh, slot.id);
             var species = spawner.DefaultSpecies;
             float crown = species != null ? species.PotentialCrownRadiusM(dbh) : 1.6f;
-            spawner.Spawn(id, position, canonicalAgeYears, dbh, height, crown);
+            spawner.Spawn(slot.id, slot.position, canonicalAgeYears, dbh, height, crown);
             spawned++;
         }
 
         ecology.InvalidateCompetition();
         ecology.RecomputeCanopy();
         ecology.RecomputeSeedRain();
-        Debug.Log($"STARTING_STAND: {spawned} stems planted ({spawned / (standWidthMeters * standDepthMeters / 10000f):F0} stems/ha), age {canonicalAgeYears}");
+        Debug.Log($"STARTING_STAND: {spawned} stems planted ({spawned / (standWidthMeters * standDepthMeters / 10000f):F0} stems/ha), age {canonicalAgeYears}, clearance omissions {clearanceOmitted}, mortality omissions {Mathf.Max(0, toOmit - clearanceOmitted)}");
+    }
+
+    // Clearance anchors: the forest road planks, the work-area clearing, the
+    // player start and every built structure. Trees never plant here.
+    private List<KeyValuePair<Vector3, float>> CollectClearancePoints()
+    {
+        var points = new List<KeyValuePair<Vector3, float>>();
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (t.name.StartsWith("Dirt Path"))
+                points.Add(new KeyValuePair<Vector3, float>(t.position, pathCorridorRadiusMeters));
+        }
+        var clearing = GameObject.Find("Forest Clearing");
+        if (clearing != null)
+            points.Add(new KeyValuePair<Vector3, float>(clearing.transform.position, clearingRadiusMeters));
+        var player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
+        if (player != null)
+            points.Add(new KeyValuePair<Vector3, float>(player.transform.position, clearingRadiusMeters));
+        foreach (var buildable in UnityEngine.Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (buildable != null)
+                points.Add(new KeyValuePair<Vector3, float>(buildable.transform.position, clearingRadiusMeters));
+        return points;
+    }
+
+    private bool InClearanceZone(Vector3 worldPosition, List<KeyValuePair<Vector3, float>> exclusionPoints)
+    {
+        foreach (var pair in exclusionPoints)
+            if (Vector2.Distance(new Vector2(worldPosition.x, worldPosition.z), new Vector2(pair.Key.x, pair.Key.z)) <= pair.Value)
+                return true;
+        return false;
     }
 
     // DBH from a smooth deterministic vigour field (so same-aged crop trees
