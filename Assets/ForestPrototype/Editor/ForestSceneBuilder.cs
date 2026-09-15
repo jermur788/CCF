@@ -18,6 +18,7 @@ public static class ForestSceneBuilder
     private const string NaturePackFolder = "Assets/InnerverseInteractive/Ultimate Nature – Starter";
     private const string NatureSprucePrefabPath = NaturePackFolder + "/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab";
     private const string NatureStumpPrefabPath = NaturePackFolder + "/Environment/Props/Logs/Prefabs/UNS_Stump.prefab";
+    private const string SitkaMaturePrefabPath = PrefabsFolder + "/SitkaMature01.prefab";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -84,10 +85,10 @@ public static class ForestSceneBuilder
                 serializedTree.FindProperty("diameterCm").floatValue = 65f;
                 serializedTree.FindProperty("crownRadiusMeters").floatValue = 1.65f;
                 serializedTree.ApplyModifiedPropertiesWithoutUndo();
-                var unsSpruce = AssetDatabase.LoadAssetAtPath<GameObject>(NatureSprucePrefabPath);
                 var unsStump = AssetDatabase.LoadAssetAtPath<GameObject>(NatureStumpPrefabPath);
-                if (unsSpruce != null && unsStump != null)
-                    treeState.SetVisualPrefabs(unsSpruce, unsStump);
+                var sitkaVisual = AssetDatabase.LoadAssetAtPath<GameObject>(SitkaMaturePrefabPath);
+                if (sitkaVisual != null && unsStump != null)
+                    treeState.SetVisualPrefabs(sitkaVisual, unsStump);
             }
             var workbench = CreateWorkbench(new Vector3(-2.75f, 0f, 11f));
             CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
@@ -142,11 +143,12 @@ public static class ForestSceneBuilder
             spawnerSerialized.FindProperty("barkMaterial").objectReferenceValue = bark;
             spawnerSerialized.FindProperty("canopyPrefab").objectReferenceValue = coniferCanopy;
             spawnerSerialized.FindProperty("forestParent").objectReferenceValue = forest.transform;
-            var unsSpruceForSpawner = AssetDatabase.LoadAssetAtPath<GameObject>(NatureSprucePrefabPath);
+            var sitkaVisualForSpawner = AssetDatabase.LoadAssetAtPath<GameObject>(SitkaMaturePrefabPath);
             var unsStumpForSpawner = AssetDatabase.LoadAssetAtPath<GameObject>(NatureStumpPrefabPath);
-            if (unsSpruceForSpawner != null)
+            if (sitkaVisualForSpawner != null)
             {
-                spawnerSerialized.FindProperty("visualPrefab").objectReferenceValue = unsSpruceForSpawner;
+                spawnerSerialized.FindProperty("visualPrefab").objectReferenceValue = sitkaVisualForSpawner;
+                spawnerSerialized.FindProperty("visualPrefabAlternative").objectReferenceValue = null;
                 spawnerSerialized.FindProperty("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
             }
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();

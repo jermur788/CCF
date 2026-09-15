@@ -29,6 +29,10 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField] private GameObject visualPrefab;
     [SerializeField] private GameObject stumpPrefab;
     [SerializeField] private bool visualOverrideActive;
+    // Which prefab the baked PolishedVisual child was built from. Recorded so
+    // a prefab swap (visual variety) replaces the old baked mesh instead of
+    // reusing it. Stump visuals never vary, so they need no marker.
+    [SerializeField] private string polishedVisualSourcePrefab = "";
 
     private GameObject polishedVisual;
     private GameObject stumpVisual;
@@ -141,13 +145,26 @@ public sealed class ForestTree : MonoBehaviour
         if (canopy != null)
             canopy.gameObject.SetActive(false);
 
+        Transform existing = transform.Find("PolishedVisual");
+        if (existing != null && polishedVisualSourcePrefab != visualPrefab.name)
+        {
+            // The baked visual was built from a different model (prefab swap);
+            // replace it so the authoritative prefab actually shows.
+            if (Application.isPlaying)
+                Destroy(existing.gameObject);
+            else
+                DestroyImmediate(existing.gameObject);
+            existing = null;
+            polishedNaturalHeight = -1f;
+        }
         if (polishedVisual == null)
         {
             // The polished visual may already exist (saved with the scene from
             // an editor pass); reuse it instead of duplicating children.
-            Transform existing = transform.Find("PolishedVisual");
             polishedVisual = existing != null ? existing.gameObject : Instantiate(visualPrefab, transform);
             polishedVisual.name = "PolishedVisual";
+            polishedVisualSourcePrefab = visualPrefab.name;
+            polishedNaturalHeight = -1f;
         }
         DestroyDuplicateChildren("PolishedVisual", polishedVisual.transform);
         StripInteractionColliders(polishedVisual.transform);

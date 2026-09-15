@@ -1,0 +1,16 @@
+{
+  "fbx_reimport": "passed",
+  "height_metres": 28.01122943405062,
+  "meshes": [
+    {
+      "name": "Sitka_Mature_01_Bark",
+      "triangles": 27264
+    },
+    {
+      "name": "Sitka_Mature_01_Needles",
+      "triangles": 22624
+    }
+  ],
+  "uvs_and_texture_files": "passed",
+  "unity_tested": false
+}
