@@ -2750,7 +2750,7 @@ MonoBehaviour:
   promptFontSize: 36
   swingCooldown: 0.45
   maxCarriedWood: 20
-  cubicMetersPerWoodUnit: 0.02
+  cubicMetersPerWoodUnit: 0.1
   carriedWood: 0
 --- !u!143 &412577897
 CharacterController:

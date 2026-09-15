@@ -18,7 +18,7 @@ public sealed class ForestPlayer : MonoBehaviour
     [SerializeField, Min(1)] private int maxCarriedWood = 20;
     // [D] gameplay calibration: biological stem volume converts to carried wood units here,
     // keeping Forestry's biological numbers separate from the survival economy.
-    [SerializeField, Min(0.01f)] private float cubicMetersPerWoodUnit = 0.02f;
+    [SerializeField, Min(0.01f)] private float cubicMetersPerWoodUnit = 0.1f;
     [SerializeField] private int carriedWood = 0;
     private CharacterController controller;
     private float pitch;
