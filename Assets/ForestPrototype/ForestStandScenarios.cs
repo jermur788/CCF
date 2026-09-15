@@ -93,6 +93,10 @@ public static class ForestStandScenarios
             return;
         }
         ClearAllTrees();
+        // Complete reset: the fixture must not inherit year, mast, cells,
+        // regeneration, opening or cache state from whatever ran before it,
+        // or a same-session re-apply diverges from a fresh run.
+        ecology.ResetForDeterministicRun();
         foreach (string row in LifecycleFixture.Split('\n'))
         {
             if (string.IsNullOrWhiteSpace(row))

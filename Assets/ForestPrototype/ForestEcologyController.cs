@@ -246,6 +246,24 @@ public sealed class ForestEcologyController : MonoBehaviour
         seedlingVisualsDirty = true;
     }
 
+    // Full deterministic reset for test fixtures and replays: every piece of
+    // state the annual update consumes returns to its fresh-play values.
+    // Loaded saves use the narrower RestoreEcologyState path; this method is
+    // the one that makes ApplyLifecycleFixture a complete reset.
+    public void ResetForDeterministicRun()
+    {
+        ecologicalYear = 0;
+        timeLapseAccumulator = 0f;
+        competitionCurrent = false;
+        competitionIndex.Clear();
+        annualDbhGrowth.Clear();
+        seedPotential.Clear();
+        RebuildGrid();
+        lastMastLabel = "normal";
+        lastMastMultiplier = 1f;
+        RefreshMastForCurrentYear();
+    }
+
     // Competition is computed during the annual update; on demand (inspection)
     // it is computed lazily so the card is correct even before the first year.
     public void InvalidateCompetition()
