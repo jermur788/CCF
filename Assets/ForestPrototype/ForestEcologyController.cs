@@ -678,6 +678,8 @@ public sealed class ForestEcologyController : MonoBehaviour
                 state = $"ready to recruit ({cell.RegenHeight:0.0} m)";
             else
                 state = $"{cell.RegenDensity:0.00}/m2 at {cell.RegenHeight:0.00} m, {progress:0}% grown";
+            if (cell.RegenEstablishYear >= 0)
+                state += $", age {Mathf.Max(1, ecologicalYear - cell.RegenEstablishYear)}";
             regenText = $"regen {state}";
         }
         else
