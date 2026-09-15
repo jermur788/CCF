@@ -50,6 +50,9 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle notificationStyle;
 
     public int MaxCarriedWood => maxCarriedWood + BuiltCapacityBonus();
+    // Read-only view for other systems (the marking HUD hides its prompt while
+    // the inspection card covers the crosshair).
+    public bool IsInspecting => isInspecting;
     public float EffectiveSwingCooldown => Mathf.Max(0.15f, swingCooldown - BuiltSwingCooldownReduction());
 
     // Built structures can raise the carrying limit and speed up axe recovery;
@@ -84,11 +87,14 @@ public sealed class ForestPlayer : MonoBehaviour
         return amount >= 0 && carriedWood + amount <= MaxCarriedWood;
     }
 
-    // Survival-side conversion: biological stem volume -> carried wood units,
-    // clamped to the same 3..10 placeholder range as before.
+    // Survival-side conversion: biological stem volume -> carried wood units.
+    // Floor 3 keeps very young trees worth a stroke; the ceiling 24 [D] lets
+    // volume differentiate again (the old 3..10 clamp made every tree above
+    // ~1 m3 give the same 10). A 24-unit trunk needs the Timber Sledge upgrade
+    // (capacity 35) or a big empty inventory to collect in one stroke.
     private int TimberUnits(ForestTree tree)
     {
-        return Mathf.Clamp(Mathf.RoundToInt(tree.BiologicalStemVolumeM3 / cubicMetersPerWoodUnit), 3, 10);
+        return Mathf.Clamp(Mathf.RoundToInt(tree.BiologicalStemVolumeM3 / cubicMetersPerWoodUnit), 3, 24);
     }
 
     public int TryAddWood(int amount)
@@ -567,7 +573,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 GUILayout.Label($"• Reproduction: {reproduction}", cardBodyStyle);
             }
 
-            string ccfNote = inspectedTree.Stage == ForestTreeStage.Mature
+            string ccfNote = inspectedTree.DisplayStage == ForestTreeStage.Mature
                 ? "• CCF Status: Mature canopy tree — candidate for selective single-tree thinning."
                 : "• CCF Status: Young growing stock — retain for continuous crown cover.";
             GUILayout.Label(ccfNote, cardBodyStyle);

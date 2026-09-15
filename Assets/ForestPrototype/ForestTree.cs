@@ -47,6 +47,24 @@ public sealed class ForestTree : MonoBehaviour
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
     public ForestTreeStage Stage => stage;
+    // Display stage derives from age for living trees so recruited trees read
+    // honestly ("young trees are not mature"); the stored stage stays
+    // authoritative for felling, chopping and saves.
+    public const int SaplingMaxAge = 5; // [D] display threshold
+    public ForestTreeStage DisplayStage
+    {
+        get
+        {
+            if (stage == ForestTreeStage.Stump || stage == ForestTreeStage.Sapling)
+                return stage;
+            int onset = species != null ? Mathf.RoundToInt(species.MaturityOnsetYears) : 20;
+            if (AgeYears < SaplingMaxAge)
+                return ForestTreeStage.Sapling;
+            if (AgeYears < onset)
+                return ForestTreeStage.Young;
+            return ForestTreeStage.Mature;
+        }
+    }
     public bool IsStump => stage == ForestTreeStage.Stump;
     public bool CanChop => stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young;
     public int ChopsRequired => chopsRequired;
@@ -76,9 +94,10 @@ public sealed class ForestTree : MonoBehaviour
     {
         get
         {
-            switch (stage)
+            if (stage == ForestTreeStage.Stump)
+                return "Harvested stump";
+            switch (DisplayStage)
             {
-                case ForestTreeStage.Stump: return "Harvested stump";
                 case ForestTreeStage.Sapling: return "Sapling";
                 case ForestTreeStage.Young: return "Young growing stock";
                 default: return "Mature canopy tree";

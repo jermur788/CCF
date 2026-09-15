@@ -20,6 +20,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private ForestTree aimedTree;
     private ForestEcologyController ecologyCache;
+    private ForestPlayer inspectionPlayer;
     private bool aimingAtGround;
     private Vector3 aimedGroundPoint;
     private readonly List<ForestTree> markedTreeCache = new List<ForestTree>();
@@ -64,6 +65,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         view = Camera.main;
         ForestPlayer player = view != null ? view.GetComponentInParent<ForestPlayer>() : null;
         playerRoot = player != null ? player.transform : null;
+        inspectionPlayer = player;
     }
 
     private void OnEnable()
@@ -548,7 +550,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             }
         }
 
-        if (aimedTree == null)
+        // The mark prompt stays off the crosshair while the inspection card is
+        // open, so it never covers the card text.
+        if (aimedTree == null || (inspectionPlayer != null && inspectionPlayer.IsInspecting))
             return;
 
         if (promptStyle == null)
