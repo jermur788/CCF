@@ -19,6 +19,7 @@ public static class ForestSceneBuilder
     private const string NatureSprucePrefabPath = NaturePackFolder + "/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab";
     private const string NatureStumpPrefabPath = NaturePackFolder + "/Environment/Props/Logs/Prefabs/UNS_Stump.prefab";
     private const string SitkaMaturePrefabPath = PrefabsFolder + "/SitkaMature01.prefab";
+    private const string SitkaSeedlingPrefabPath = PrefabsFolder + "/SitkaSeedling01.prefab";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -152,6 +153,14 @@ public static class ForestSceneBuilder
                 spawnerSerialized.FindProperty("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
             }
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
+            var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
+            if (ecology != null)
+            {
+                var ecologySerialized = new SerializedObject(ecology);
+                ecologySerialized.FindProperty("seedlingVisualPrefab").objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<GameObject>(SitkaSeedlingPrefabPath);
+                ecologySerialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             ValidateScene(scene);

@@ -1,0 +1,17 @@
+{
+  "Sitka_Seedling_01_LOD0": {
+    "triangles": 2188,
+    "height_metres": 1,
+    "meshes": 3
+  },
+  "Sitka_Seedling_01_LOD1": {
+    "triangles": 797,
+    "height_metres": 1,
+    "meshes": 3
+  },
+  "Sitka_Seedling_01_LOD2": {
+    "triangles": 158,
+    "height_metres": 1,
+    "meshes": 2
+  }
+}

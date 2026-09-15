@@ -19,6 +19,10 @@ public sealed class ForestEcologyController : MonoBehaviour
     [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T, which cycles 30 -> 10 -> 2.5 s/year -> off. Uses the same deterministic annual step as everything else.")]
     [SerializeField] private bool timeLapseEnabled;
     [SerializeField, Min(0.5f)] private float timeLapseSecondsPerYear = 30f;
+    [Tooltip("Optional visual-only seedling shown at a regenerating cell while its aggregated cohort grows (scaled by RegenHeight, removed on promotion). Pure display: the cohort state stays authoritative.")]
+    [SerializeField] private GameObject seedlingVisualPrefab;
+    private readonly Dictionary<int, GameObject> seedlingVisuals = new Dictionary<int, GameObject>();
+    private bool seedlingVisualsDirty = true;
     private float timeLapseAccumulator;
 
     private ForestEcologyCell[] cells;
@@ -78,6 +82,12 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void Update()
     {
+        if (seedlingVisualsDirty)
+        {
+            seedlingVisualsDirty = false;
+            SyncSeedlingVisuals();
+        }
+
         var keyboard = UnityEngine.InputSystem.Keyboard.current;
         if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
         {
@@ -106,6 +116,55 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
+    // Visual-only: one seedling per regenerating cell, scaled to the cohort's
+    // authoritative RegenHeight. Never affects simulation state.
+    private void SyncSeedlingVisuals()
+    {
+        if (cells == null)
+            return;
+        if (seedlingVisualPrefab == null)
+            return;
+        for (int i = 0; i < cells.Length; i++)
+        {
+            bool wanted = cells[i] != null && cells[i].RegenDensity > 0f && !Mathf.Approximately(cells[i].RegenHeight, 0f);
+            seedlingVisuals.TryGetValue(i, out GameObject visual);
+            if (wanted && visual == null)
+            {
+                Vector3 jitter = CellVisualJitter(i);
+                Vector3 position = new Vector3(cells[i].Center.x + jitter.x, 0f, cells[i].Center.y + jitter.z);
+                visual = Instantiate(seedlingVisualPrefab, position, Quaternion.Euler(0f, jitter.y, 0f), transform);
+                visual.name = $"Seedling cell {i}";
+                seedlingVisuals[i] = visual;
+            }
+            else if (!wanted && visual != null)
+            {
+                seedlingVisuals.Remove(i);
+                if (visual != null)
+                    Destroy(visual);
+                continue;
+            }
+            if (wanted && visual != null)
+            {
+                float scale = Mathf.Clamp(cells[i].RegenHeight, 0.15f, 3f);
+                visual.transform.localScale = Vector3.one * scale;
+                // The seedling sits on the ground regardless of parent scale.
+                visual.transform.position = new Vector3(visual.transform.position.x, 0f, visual.transform.position.z);
+            }
+        }
+    }
+
+    // Stable per-cell offset so the representative seedling does not jump
+    // between sessions, derived from the cell index only.
+    private Vector3 CellVisualJitter(int index)
+    {
+        uint hash = 2166136261u ^ (uint)index;
+        hash *= 16777619u;
+        float dx = ((hash & 0xFF) / 255f - 0.5f) * (cellSizeMeters * 0.5f);
+        hash *= 16777619u;
+        float dz = ((hash & 0xFF) / 255f - 0.5f) * (cellSizeMeters * 0.5f);
+        return new Vector3(dx, 0f, dz);
+    }
+
     private void OnEnable()
     {
         ForestTree.Felled += OnTreeFelled;
@@ -127,6 +186,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         competitionCurrent = false;
         RecomputeCanopy();
         RecomputeSeedRain();
+        seedlingVisualsDirty = true;
     }
 
     // One explicit step for editor, MCP and debug tooling. Nothing in normal
@@ -160,6 +220,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         UpdateEstablishmentSuitability(); // 11. simple disturbance response
         DecayRecentOpening(s);            // 12. exposure decays with time
         LogSummary(s);                    // 13. diagnostics
+        seedlingVisualsDirty = true;
     }
 
     public void RestoreEcologyState(int year, int seed)
@@ -181,6 +242,8 @@ public sealed class ForestEcologyController : MonoBehaviour
             }
         }
         RefreshMastForCurrentYear();
+        ClearSeedlingVisuals();
+        seedlingVisualsDirty = true;
     }
 
     // Competition is computed during the annual update; on demand (inspection)
@@ -196,6 +259,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             return;
         ForestEcologyCell cell = cells[index];
         cell.RegenDensity = Mathf.Max(0f, density);
+        seedlingVisualsDirty = true;
         cell.RegenHeight = Mathf.Max(0f, height);
         cell.RegenEstablishYear = establishYear;
         cell.RecentOpening = Mathf.Clamp(recentOpening, 0f, maxRecentOpeningPerCell);
@@ -230,6 +294,17 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
         RecomputeCanopy();
         RecomputeSeedRain();
+        ClearSeedlingVisuals();
+        seedlingVisualsDirty = true;
+    }
+
+    // Visual-only: drop every seedling indicator (grid rebuild or save load).
+    private void ClearSeedlingVisuals()
+    {
+        foreach (var visual in seedlingVisuals.Values)
+            if (visual != null)
+                Destroy(visual);
+        seedlingVisuals.Clear();
     }
 
     // Simplified local crown influence: each living crown shades a cell by a
