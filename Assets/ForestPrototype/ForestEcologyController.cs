@@ -424,21 +424,59 @@ public sealed class ForestEcologyController : MonoBehaviour
         annualDbhGrowth.Clear();
         ForestTree[] trees = FindTrees();
         const float cutoffMeters = 20f; // [C] performance abstraction
-        foreach (ForestTree target in trees)
+
+        // Spatial pass v1: the pair loop used to fetch every neighbour's
+        // transform.position from native code once per pair (~113k interop
+        // calls a year at first-thinning stocking - the dominant profile
+        // cost) and the 20 m cutoff pruned only ~1 pair in 5 inside this
+        // 40 m stand, so a bucket grid cannot prune much at this scale.
+        // Caching each tree's position and diameter once - in the same
+        // sorted order the loops already consume - and early-outing on the
+        // squared distance keeps every included pair, every operand and the
+        // summation order identical, so competition indices stay bit-exact.
+        int count = trees.Length;
+        var positions = new Vector2[count];
+        var diameters = new float[count];
+        var alive = new bool[count];
+        for (int i = 0; i < count; i++)
         {
-            if (target == null || target.IsStump)
+            ForestTree tree = trees[i];
+            if (tree == null || tree.IsStump)
                 continue;
-            Vector2 targetPos = new Vector2(target.transform.position.x, target.transform.position.z);
+            Vector3 p = tree.transform.position;
+            positions[i] = new Vector2(p.x, p.z);
+            diameters[i] = tree.Diameter;
+            alive[i] = true;
+        }
+        float cutoffSquared = cutoffMeters * cutoffMeters;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (!alive[i])
+                continue;
+            ForestTree target = trees[i];
+            Vector2 targetPos = positions[i];
+            float targetDiameter = diameters[i];
             float ci = 0f;
-            foreach (ForestTree neighbour in trees)
+            for (int j = 0; j < count; j++)
             {
-                if (neighbour == null || neighbour == target || neighbour.IsStump)
+                if (j == i || !alive[j])
                     continue;
-                Vector2 neighbourPos = new Vector2(neighbour.transform.position.x, neighbour.transform.position.z);
-                float distance = Vector2.Distance(targetPos, neighbourPos);
+                float dx = positions[j].x - targetPos.x;
+                float dz = positions[j].y - targetPos.y;
+                float squared = dx * dx + dz * dz;
+                // Slack band: the prune must never reject a pair the original
+                // Vector2.Distance check accepted, because sqrt can round a
+                // squared distance just above the cutoff down to the cutoff
+                // itself. Borderline pairs fall through to the exact call, so
+                // the final pair set and every summation operand stay
+                // identical to the linear scan.
+                if (squared > cutoffSquared * 1.00002f)
+                    continue;
+                float distance = Vector2.Distance(targetPos, positions[j]);
                 if (distance > cutoffMeters)
                     continue;
-                ci += (neighbour.Diameter / Mathf.Max(1f, target.Diameter)) / Mathf.Max(0.5f, distance);
+                ci += (diameters[j] / Mathf.Max(1f, targetDiameter)) / Mathf.Max(0.5f, distance);
             }
             competitionIndex[target] = ci;
         }
