@@ -367,9 +367,23 @@ public sealed class ForestEcologyController : MonoBehaviour
         ComputeSeedRain(s);
     }
 
+    private static int CompareTreeIds(ForestTree a, ForestTree b)
+    {
+        return string.CompareOrdinal(a != null ? a.TreeId : "", b != null ? b.TreeId : "");
+    }
+
+    // Scene enumeration order is not guaranteed between sessions (and the
+    // comments elsewhere already note it). Every annual update consumes trees
+    // for accumulation - Hegyi competition sums, canopy gap products, growth,
+    // crown relaxation and seed rain - and floating-point addition is not
+    // associative, so the order must be stable. Ids are unique, so an ordinal
+    // sort gives one deterministic snapshot per call; the cost at stand scale
+    // is negligible against the value of reproducible runs.
     private ForestTree[] FindTrees()
     {
-        return Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        System.Array.Sort(trees, CompareTreeIds);
+        return trees;
     }
 
     public TreeSpeciesDefinition ResolveSpecies()
