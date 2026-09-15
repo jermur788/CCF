@@ -32,7 +32,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private GUIStyle messageStyle;
     private GUIStyle counterStyle;
     private GUIStyle outcomeStyle;
-    private Material markerMaterial;
+    [SerializeField] private Material markerMaterial;
 
     public int MarkedCount => MarkedIds.Count;
 
@@ -431,6 +431,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (MarkerObjects.TryGetValue(tree.TreeId, out GameObject existing) && existing != null)
             return;
+        Material material = MarkerMaterial();
+        if (material == null)
+            return;
 
         var marker = new GameObject("Harvest Mark");
         marker.transform.SetParent(tree.transform, false);
@@ -442,7 +445,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         diamond.transform.localPosition = new Vector3(0f, tree.Height + 0.6f, 0f);
         diamond.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
         diamond.transform.localScale = Vector3.one * 0.45f;
-        diamond.GetComponent<Renderer>().sharedMaterial = MarkerMaterial();
+        diamond.GetComponent<Renderer>().sharedMaterial = material;
 
         GameObject disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         disc.name = "Disc";
@@ -450,7 +453,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         disc.transform.SetParent(marker.transform, false);
         disc.transform.localPosition = new Vector3(0f, 0.05f, 0f);
         disc.transform.localScale = new Vector3(1.2f, 0.02f, 1.2f);
-        disc.GetComponent<Renderer>().sharedMaterial = MarkerMaterial();
+        disc.GetComponent<Renderer>().sharedMaterial = material;
 
         MarkerObjects[tree.TreeId] = marker;
     }
@@ -472,6 +475,11 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
         if (shader == null)
             shader = Shader.Find("Unlit/Color");
+        if (shader == null)
+        {
+            Debug.LogError("Harvest mark material is missing (no serialized material and no shader found in this build). Assign the HarvestMark material asset to the marking manager.");
+            return null;
+        }
         markerMaterial = new Material(shader) { name = "HarvestMark" };
         markerMaterial.color = markerColor;
         return markerMaterial;

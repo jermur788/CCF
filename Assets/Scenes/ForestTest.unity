@@ -5818,6 +5818,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ForestTreeMarkingManager
   interactionDistance: 8
   markerColor: {r: 1, g: 0.35, b: 0.05, a: 1}
+  markerMaterial: {fileID: 2100000, guid: 422a95d89e8fe93739f4021dab40c487, type: 2}
 --- !u!114 &780226347
 MonoBehaviour:
   m_ObjectHideFlags: 0
