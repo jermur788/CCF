@@ -239,6 +239,9 @@ public sealed class ForestEcologyController : MonoBehaviour
                 cell.RegenHeight = 0f;
                 cell.RegenEstablishYear = -1;
                 cell.RecentOpening = 0f;
+                // Cells not present in the save return to fresh-grid semantics,
+                // including the smoothed establishment suitability.
+                cell.EstablishmentSuitability = 1f;
             }
         }
         RefreshMastForCurrentYear();
@@ -271,7 +274,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         competitionCurrent = false;
     }
 
-    public void RestoreCellState(int index, float density, float height, int establishYear, float recentOpening)
+    public void RestoreCellState(int index, float density, float height, int establishYear, float recentOpening, float establishmentSuitability = -1f)
     {
         if (cells == null || index < 0 || index >= cells.Length)
             return;
@@ -281,6 +284,12 @@ public sealed class ForestEcologyController : MonoBehaviour
         cell.RegenHeight = Mathf.Max(0f, height);
         cell.RegenEstablishYear = establishYear;
         cell.RecentOpening = Mathf.Clamp(recentOpening, 0f, maxRecentOpeningPerCell);
+        // Suitability is a smoothed disturbance response: genuine short history,
+        // so new saves persist it. Older saves reconstruct it deterministically
+        // from the restored opening instead of inheriting the live world.
+        cell.EstablishmentSuitability = establishmentSuitability >= 0f
+            ? Mathf.Clamp01(establishmentSuitability)
+            : Mathf.Clamp01(1f - 0.3f * cell.RecentOpening);
     }
 
     // Deterministically reproduces the mast roll for the current seed and year.

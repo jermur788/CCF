@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -56,4 +56,8 @@ public sealed class ForestCellSaveData
     public float regenHeight;
     public int regenEstablishYear;
     public float recentOpening;
+    // Smoothed disturbance response; a short history that cannot be rebuilt
+    // from the other fields, so it is saved. Older saves carry -1 and the
+    // loader reconstructs it deterministically from the opening.
+    public float establishmentSuitability = -1f;
 }

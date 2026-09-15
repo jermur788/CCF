@@ -96,7 +96,8 @@ public sealed class ForestSaveController : MonoBehaviour
                 ForestEcologyCell cell = ecologyCells[i];
                 if (cell == null) continue;
                 // Seed rain is deterministic from trees + seed + year, so it is not saved.
-                if (cell.RegenDensity <= 0f && cell.RegenEstablishYear < 0 && cell.RecentOpening <= 0f)
+                if (cell.RegenDensity <= 0f && cell.RegenEstablishYear < 0 && cell.RecentOpening <= 0f &&
+                    Mathf.Approximately(cell.EstablishmentSuitability, 1f))
                     continue;
                 data.cells.Add(new ForestCellSaveData
                 {
@@ -104,7 +105,8 @@ public sealed class ForestSaveController : MonoBehaviour
                     regenDensity = cell.RegenDensity,
                     regenHeight = cell.RegenHeight,
                     regenEstablishYear = cell.RegenEstablishYear,
-                    recentOpening = cell.RecentOpening
+                    recentOpening = cell.RecentOpening,
+                    establishmentSuitability = cell.EstablishmentSuitability
                 });
             }
         }
@@ -225,7 +227,7 @@ public sealed class ForestSaveController : MonoBehaviour
                 if (data.cells != null)
                 {
                     foreach (ForestCellSaveData saved in data.cells)
-                        ecology.RestoreCellState(saved.index, saved.regenDensity, saved.regenHeight, saved.regenEstablishYear, saved.recentOpening);
+                        ecology.RestoreCellState(saved.index, saved.regenDensity, saved.regenHeight, saved.regenEstablishYear, saved.recentOpening, saved.establishmentSuitability);
                 }
             }
             ecology.RecomputeCanopy();
