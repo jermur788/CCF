@@ -16,6 +16,10 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField] private bool showSeedRain;
     [SerializeField] private bool logAnnualSummary;
     [SerializeField] private int debugCellIndex;
+    [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T. Uses the same deterministic annual step as everything else.")]
+    [SerializeField] private bool timeLapseEnabled;
+    [SerializeField, Min(0.5f)] private float timeLapseSecondsPerYear = 30f;
+    private float timeLapseAccumulator;
 
     private ForestEcologyCell[] cells;
     private int cellsPerAxis;
@@ -26,6 +30,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     private bool competitionCurrent;
     private string lastMastLabel = "normal";
     private float lastMastMultiplier = 1f;
+    private GUIStyle timeLapseStyle;
 
     public int EcologicalYear => ecologicalYear;
     public int CellCount => cells != null ? cells.Length : 0;
@@ -69,6 +74,24 @@ public sealed class ForestEcologyController : MonoBehaviour
     private void Awake()
     {
         RebuildGrid();
+    }
+
+    private void Update()
+    {
+        var keyboard = UnityEngine.InputSystem.Keyboard.current;
+        if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
+        {
+            timeLapseEnabled = !timeLapseEnabled;
+            timeLapseAccumulator = 0f;
+        }
+        if (!timeLapseEnabled)
+            return;
+        timeLapseAccumulator += Time.deltaTime;
+        while (timeLapseAccumulator >= timeLapseSecondsPerYear)
+        {
+            timeLapseAccumulator -= timeLapseSecondsPerYear;
+            AdvanceOneYear();
+        }
     }
 
     private void OnEnable()
@@ -132,6 +155,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
         competitionCurrent = false;
+        timeLapseAccumulator = 0f;
         // Cells not present in the save must return to a clean state, or a second
         // load in the same session would inherit later regeneration.
         if (cells != null)
@@ -701,6 +725,23 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void OnGUI()
     {
+        if (timeLapseEnabled)
+        {
+            float hudScale = ForestHud.Scale;
+            if (timeLapseStyle == null)
+            {
+                timeLapseStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.LowerLeft
+                };
+                timeLapseStyle.normal.textColor = new Color(0.75f, 0.95f, 0.75f);
+            }
+            timeLapseStyle.fontSize = Mathf.RoundToInt(18f * hudScale);
+            GUI.Label(new Rect(18f, 16f + 92f * hudScale + 10f, 560f * hudScale, 26f * hudScale),
+                $"Time-lapse: year {ecologicalYear} — 1 year / {timeLapseSecondsPerYear:0} s   [T] stop", timeLapseStyle);
+        }
+
         if (!showDebugGrid || cells == null || cellsPerAxis <= 0)
             return;
 
