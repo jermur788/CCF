@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7090911891559894863}
+  - component: {fileID: 8345851201316118755}
   m_Layer: 0
   m_Name: SitkaMature01
   m_TagString: Untagged
@@ -33,6 +34,27 @@ Transform:
   - {fileID: 8885937602121387458}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &8345851201316118755
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894938356165337800}
+  serializedVersion: 3
+  m_LocalReferencePoint: {x: -0.07587886, y: 13.994517, z: -0.020436287}
+  m_Size: 28.011229
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.05
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 251544476381496383}
+    - renderer: {fileID: 8171411918124693867}
+  m_Enabled: 1
+  m_GlobalIlluminationLOD: 0
 --- !u!1 &1807190037951758603
 GameObject:
   m_ObjectHideFlags: 0
