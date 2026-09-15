@@ -248,19 +248,22 @@ public sealed class ForestSaveController : MonoBehaviour
         if (messageTimer <= 0f)
             return;
 
+        float hudScale = ForestHud.Scale;
         if (messageStyle == null)
         {
-            messageStyle = new GUIStyle(GUI.skin.box)
+            messageStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 36,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 wordWrap = true
             };
             messageStyle.normal.textColor = new Color(0.7f, 1f, 0.7f);
         }
+        messageStyle.fontSize = Mathf.RoundToInt(36f * hudScale);
 
-        float width = Mathf.Min(760f, Screen.width - 32f);
-        GUI.Box(new Rect(Screen.width * 0.5f - width * 0.5f, Screen.height - 116f, width, 88f), message, messageStyle);
+        float width = Mathf.Min(760f * hudScale, Screen.width - 32f);
+        Rect messageRect = new Rect(Screen.width * 0.5f - width * 0.5f, Screen.height - 116f * hudScale - 28f * hudScale, width, 88f * hudScale);
+        ForestHud.Panel(messageRect);
+        GUI.Label(messageRect, message, messageStyle);
     }
 }

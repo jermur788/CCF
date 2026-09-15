@@ -206,3 +206,22 @@ Responses too weak or too strong ([D] observations, nothing changed):
 - `ForestEcologyController.RegenerationReportLine(Vector3)` turns the regeneration data the simulation already keeps into one player-readable line per ground cell: existing regeneration (density/m2, height, percent grown toward `PromotionHeightM`, current growth rate m/yr), cell light, a qualitative seed word (none / thin / ok / plenty from the saturation factor), site suitability, and a named binding constraint — "seed-limited — no seed source within reach" (or thin seed rain), "light-limited under canopy (response N)", "site settling after disturbance (N)", "suppressed under shade" when below `RegenPoorLightThreshold`, or "growing N m/yr" / "establishment conditions good". No new mechanism: every input is existing state (`SitkaSeedRain`, `Light`, `EstablishmentSuitability`, `RegenDensity/Height`, the species light curve).
 - The marking HUD surfaces it when the player aims at open ground (the aim raycast resolves to a non-tree collider), on the same bottom-left stack as the treatment lines. `ForestTreeMarkingManager` now caches an ecology reference and the aimed ground point; tree aiming is unchanged. No scene change, no save change, no Survival contract touched.
 - Deterministic verification of contrasting seed sources from the identical baseline (deterministic seed, 3 years, same gap cells 41/49/57/56/40/48 of the densest 8-tree cluster): with seed sources retained, the gap seeded (gap seed 61.1, light 0.55-1.00, suitability recovering 0.85-0.89) and after 3 years every gap cell read "regen 0.66-0.89/m2 at ~0.75 m, 20-22% grown · growing 0.28-0.31 m/yr"; with all 68 mature trees felled (no seed anywhere), the same cells read "light 1.00 · seed none · seed-limited — no seed source within reach" with 0.000 regeneration — seed supply, not light or site, was the binding constraint. A closed-canopy baseline cell classifies as "light-limited under canopy (response 0.19)" with plenty of seed. Verified the report flips classification exactly as the underlying data changes, and no console errors.
+
+## Sitka full lifecycle test v1 (15 September 2026)
+
+Deterministic 80-year run from the scene baseline (seed 20260914, 68 mature trees, no felling, no player interaction; simulation state authoritative). The full chain proved out:
+
+| year 10/20/.../80 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| living trees | 68 | 76 | 82 | 86 | 90 | 94 | 95 | 98 |
+| recruits (R-ids) | 0 | 8 | 14 | 18 | 22 | 26 | 27 | 30 |
+| max recruit DBH cm | — | 6.36 | 7.43 | 8.55 | 9.76 | 11.03 | 12.38 | 13.80 |
+| max recruit height m | — | 6.48 | 9.94 | 12.98 | 15.65 | 18.00 | 20.07 | 21.88 |
+| recruits age >= 30 | 0 | 0 | 0 | 13 | 20 | 26 | 27 | 30 |
+| regen density sum | 39.25 | 26.83 | 17.97 | 13.44 | 13.05 | 13.15 | 13.13 | 8.17 |
+| max seed rain | 8.88 | 23.84 | 25.17 | 10.13 | 25.67 | 39.40 | 26.48 | 10.77 |
+| mean DBH cm | 69.28 | 64.10 | 61.23 | 60.00 | 58.88 | 57.85 | 58.53 | 58.09 |
+
+Milestones: first promotion year 13 (R13-51 / R13-59, two cells crossed 3.5 m the same year); first recruit reaching reproductive onset (age 20) year 21; first fully mature reproductive recruit (age 30, `Maturity` = 1) year 31 — `R15-0` with seed potential 0.022 measured through `GetSeedPotential`, so the second generation is demonstrably reproductive; stand max seed rain rises from the originals-only ~15 to 39.4 as recruits join the seed pool. Pole-phase growth is visible in the recruit DBH/height columns. The regen-sum decline (39 -> 8) is cohort turnover, not failure: established cohorts promote out (density resets) while suppressed cells die back under the closing canopy. Determinism re-verified across two independent play sessions — the per-decade rows match exactly; scene-query enumeration order is not guaranteed, so "first found" ids within one year can differ while the simulation state is identical.
+
+- The save/load toast was still the old translucent unscaled skin.box; it now uses the shared `ForestHud` solid panel and scale like every other prompt.
