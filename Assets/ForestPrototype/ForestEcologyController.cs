@@ -16,7 +16,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField] private bool showSeedRain;
     [SerializeField] private bool logAnnualSummary;
     [SerializeField] private int debugCellIndex;
-    [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T. Uses the same deterministic annual step as everything else.")]
+    [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T, which cycles 30 -> 10 -> 2.5 s/year -> off. Uses the same deterministic annual step as everything else.")]
     [SerializeField] private bool timeLapseEnabled;
     [SerializeField, Min(0.5f)] private float timeLapseSecondsPerYear = 30f;
     private float timeLapseAccumulator;
@@ -81,7 +81,19 @@ public sealed class ForestEcologyController : MonoBehaviour
         var keyboard = UnityEngine.InputSystem.Keyboard.current;
         if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
         {
-            timeLapseEnabled = !timeLapseEnabled;
+            // T cycles: off -> 30 s/yr -> 10 s/yr -> 2.5 s/yr -> off, so the
+            // multi-decade arc is watchable inside a minute or two.
+            if (!timeLapseEnabled)
+            {
+                timeLapseEnabled = true;
+                timeLapseSecondsPerYear = 30f;
+            }
+            else if (timeLapseSecondsPerYear > 10.5f)
+                timeLapseSecondsPerYear = 10f;
+            else if (timeLapseSecondsPerYear > 2.5f)
+                timeLapseSecondsPerYear = 2.5f;
+            else
+                timeLapseEnabled = false;
             timeLapseAccumulator = 0f;
         }
         if (!timeLapseEnabled)
@@ -739,7 +751,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             }
             timeLapseStyle.fontSize = Mathf.RoundToInt(18f * hudScale);
             GUI.Label(new Rect(18f, 16f + 92f * hudScale + 10f, 560f * hudScale, 26f * hudScale),
-                $"Time-lapse: year {ecologicalYear} — 1 year / {timeLapseSecondsPerYear:0} s   [T] stop", timeLapseStyle);
+                $"Time-lapse: year {ecologicalYear} — 1 year / {timeLapseSecondsPerYear:0.#} s   [T] speed / stop", timeLapseStyle);
         }
 
         if (!showDebugGrid || cells == null || cellsPerAxis <= 0)
