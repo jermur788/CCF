@@ -1,0 +1,17 @@
+{
+  "Sitka_Pole_01_LOD0": {
+    "triangles": 10552,
+    "height_m": 8,
+    "mesh_count": 3
+  },
+  "Sitka_Pole_01_LOD1": {
+    "triangles": 4210,
+    "height_m": 8,
+    "mesh_count": 3
+  },
+  "Sitka_Pole_01_LOD2": {
+    "triangles": 1390,
+    "height_m": 8,
+    "mesh_count": 3
+  }
+}

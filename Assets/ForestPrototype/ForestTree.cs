@@ -28,6 +28,9 @@ public sealed class ForestTree : MonoBehaviour
     // polished meshes visualise the authoritative data instead.
     [SerializeField] private GameObject visualPrefab;
     [SerializeField] private GameObject stumpPrefab;
+    [Tooltip("[D] Visual-only pole-stage model for living trees shorter than this height (the mature model takes over above it). The pole asset covers 3.5-12 m; the seedling cohort indicator covers the growth before promotion.")]
+    [SerializeField, Min(3f)] private float poleVisualMaxHeightM = 12f;
+    [SerializeField] private GameObject poleVisualPrefab;
     [SerializeField] private bool visualOverrideActive;
     // Which prefab the baked PolishedVisual child was built from. Recorded so
     // a prefab swap (visual variety) replaces the old baked mesh instead of
@@ -147,16 +150,34 @@ public sealed class ForestTree : MonoBehaviour
 
     public void SetVisualPrefabs(GameObject visual, GameObject stump)
     {
+        SetVisualStages(visual, null, stump);
+    }
+
+    // visual = mature model; pole = pole-stage model (optional, picked by
+    // height); stump = felled prop. Height-based model choice uses the pole
+    // asset inside its designed range and the mature asset above it.
+    public void SetVisualStages(GameObject visual, GameObject pole, GameObject stump)
+    {
         visualPrefab = visual;
+        poleVisualPrefab = pole;
         stumpPrefab = stump;
         visualOverrideActive = visual != null;
         RefreshVisuals();
+    }
+
+    private GameObject ModelForHeight(float targetHeight)
+    {
+        if (poleVisualPrefab != null && targetHeight < poleVisualMaxHeightM)
+            return poleVisualPrefab;
+        return visualPrefab;
     }
 
     private void ApplyVisualOverride(float targetHeight)
     {
         if (visualPrefab == null)
             return;
+
+        GameObject model = ModelForHeight(targetHeight);
 
         Renderer trunkRenderer = trunk != null ? trunk.GetComponent<Renderer>() : null;
         if (trunkRenderer != null)
@@ -165,24 +186,28 @@ public sealed class ForestTree : MonoBehaviour
             canopy.gameObject.SetActive(false);
 
         Transform existing = transform.Find("PolishedVisual");
-        if (existing != null && polishedVisualSourcePrefab != visualPrefab.name)
+        if (existing != null && polishedVisualSourcePrefab != model.name)
         {
-            // The baked visual was built from a different model (prefab swap);
-            // replace it so the authoritative prefab actually shows.
+            // The baked visual was built from a different model (prefab swap or
+            // a tree growing across the pole/mature boundary); replace it so the
+            // authoritative prefab actually shows. Destroy is deferred in play
+            // mode, so the cached field must be dropped here or a same-frame
+            // re-entry would skip the rebuild against the doomed instance.
             if (Application.isPlaying)
                 Destroy(existing.gameObject);
             else
                 DestroyImmediate(existing.gameObject);
             existing = null;
+            polishedVisual = null;
             polishedNaturalHeight = -1f;
         }
         if (polishedVisual == null)
         {
             // The polished visual may already exist (saved with the scene from
             // an editor pass); reuse it instead of duplicating children.
-            polishedVisual = existing != null ? existing.gameObject : Instantiate(visualPrefab, transform);
+            polishedVisual = existing != null ? existing.gameObject : Instantiate(model, transform);
             polishedVisual.name = "PolishedVisual";
-            polishedVisualSourcePrefab = visualPrefab.name;
+            polishedVisualSourcePrefab = model.name;
             polishedNaturalHeight = -1f;
         }
         DestroyDuplicateChildren("PolishedVisual", polishedVisual.transform);

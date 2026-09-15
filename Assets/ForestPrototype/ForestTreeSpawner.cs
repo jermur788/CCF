@@ -16,6 +16,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private GameObject visualPrefab;
     [SerializeField] private GameObject visualPrefabAlternative;
     [SerializeField] private GameObject stumpPrefab;
+    [SerializeField] private GameObject poleVisualPrefab;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
 
@@ -58,7 +59,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         var tree = root.AddComponent<ForestTree>();
         tree.InitializeForSpawn(treeId, trunk.transform, canopy.transform, defaultSpecies, ageYears, heightMeters, dbhCm, crownRadiusMeters);
         if (visualPrefab != null)
-            tree.SetVisualPrefabs(PickVisual(treeId, visualPrefab, visualPrefabAlternative), stumpPrefab);
+            tree.SetVisualStages(PickVisual(treeId, visualPrefab, visualPrefabAlternative), poleVisualPrefab, stumpPrefab);
         return tree;
     }
 }

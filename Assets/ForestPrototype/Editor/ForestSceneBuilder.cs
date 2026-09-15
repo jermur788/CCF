@@ -20,6 +20,7 @@ public static class ForestSceneBuilder
     private const string NatureStumpPrefabPath = NaturePackFolder + "/Environment/Props/Logs/Prefabs/UNS_Stump.prefab";
     private const string SitkaMaturePrefabPath = PrefabsFolder + "/SitkaMature01.prefab";
     private const string SitkaSeedlingPrefabPath = PrefabsFolder + "/SitkaSeedling01.prefab";
+    private const string SitkaPolePrefabPath = PrefabsFolder + "/SitkaPole01.prefab";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -88,8 +89,9 @@ public static class ForestSceneBuilder
                 serializedTree.ApplyModifiedPropertiesWithoutUndo();
                 var unsStump = AssetDatabase.LoadAssetAtPath<GameObject>(NatureStumpPrefabPath);
                 var sitkaVisual = AssetDatabase.LoadAssetAtPath<GameObject>(SitkaMaturePrefabPath);
+                var sitkaPole = AssetDatabase.LoadAssetAtPath<GameObject>(SitkaPolePrefabPath);
                 if (sitkaVisual != null && unsStump != null)
-                    treeState.SetVisualPrefabs(sitkaVisual, unsStump);
+                    treeState.SetVisualStages(sitkaVisual, sitkaPole, unsStump);
             }
             var workbench = CreateWorkbench(new Vector3(-2.75f, 0f, 11f));
             CreateLogRack(workbench.GetComponent<ForestBuildable>(), new Vector3(-0.3f, 0f, 11.5f));
@@ -150,6 +152,8 @@ public static class ForestSceneBuilder
             {
                 spawnerSerialized.FindProperty("visualPrefab").objectReferenceValue = sitkaVisualForSpawner;
                 spawnerSerialized.FindProperty("visualPrefabAlternative").objectReferenceValue = null;
+                spawnerSerialized.FindProperty("poleVisualPrefab").objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<GameObject>(SitkaPolePrefabPath);
                 spawnerSerialized.FindProperty("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
             }
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
