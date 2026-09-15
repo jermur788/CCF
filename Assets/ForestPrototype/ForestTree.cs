@@ -50,20 +50,21 @@ public sealed class ForestTree : MonoBehaviour
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
     public ForestTreeStage Stage => stage;
-    // Display stage derives from age for living trees so recruited trees read
-    // honestly ("young trees are not mature"); the stored stage stays
-    // authoritative for felling, chopping and saves.
-    public const int SaplingMaxAge = 5; // [D] display threshold
+    // Display stage derives from authoritative height for living trees so what
+    // the player sees matches what the card says (pole-looking trees are not
+    // called mature); the stored stage stays authoritative for felling,
+    // chopping and saves. Thresholds mirror the visual model chain:
+    // seedling cohort indicator below promotion (3.5 m [D]), pole asset below
+    // poleVisualMaxHeightM (12 m [D]), mature model above.
     public ForestTreeStage DisplayStage
     {
         get
         {
             if (stage == ForestTreeStage.Stump || stage == ForestTreeStage.Sapling)
                 return stage;
-            int onset = species != null ? Mathf.RoundToInt(species.MaturityOnsetYears) : 20;
-            if (AgeYears < SaplingMaxAge)
+            if (Height < 3.5f)
                 return ForestTreeStage.Sapling;
-            if (AgeYears < onset)
+            if (Height < poleVisualMaxHeightM)
                 return ForestTreeStage.Young;
             return ForestTreeStage.Mature;
         }
