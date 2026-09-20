@@ -10,6 +10,9 @@ public enum ForestTreeStage
     Young
 }
 
+// [D] Descriptive DBH bands, not age, reproductive or timber-quality classes.
+public enum ForestTreeSizeClass { Small, Medium, Large }
+
 [DisallowMultipleComponent]
 public sealed class ForestTree : MonoBehaviour
 {
@@ -49,6 +52,24 @@ public sealed class ForestTree : MonoBehaviour
     public string TreeId => treeId;
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
+    [SerializeField, Min(0f)] private float equivalentSuppressedYears;
+    // Recorded individual-tree history only; no inferred pre-spawn history.
+    public float EquivalentSuppressedYears => equivalentSuppressedYears;
+    public ForestTreeSizeClass SizeClass => Diameter < 10f ? ForestTreeSizeClass.Small
+        : Diameter < 30f ? ForestTreeSizeClass.Medium : ForestTreeSizeClass.Large;
+    public string SizeClassLabel => SizeClass == ForestTreeSizeClass.Small ? "Small (<10 cm DBH)"
+        : SizeClass == ForestTreeSizeClass.Medium ? "Medium (10–<30 cm DBH)" : "Large (≥30 cm DBH)";
+
+    public void RecordSuppressionYear(float suppression)
+    {
+        if (!IsStump && !float.IsNaN(suppression) && !float.IsInfinity(suppression))
+            equivalentSuppressedYears += Mathf.Clamp01(suppression);
+    }
+
+    public void RestoreSuppressionHistory(float years)
+    {
+        equivalentSuppressedYears = float.IsNaN(years) || float.IsInfinity(years) ? 0f : Mathf.Max(0f, years);
+    }
     public ForestTreeStage Stage => stage;
     // Display stage derives from authoritative height for living trees so what
     // the player sees matches what the card says (pole-looking trees are not

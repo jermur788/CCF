@@ -61,6 +61,7 @@ public sealed class ForestSaveController : MonoBehaviour
                 chopProgress = tree.ChopProgress,
                 hasSimulation = true,
                 ageYears = tree.AgeYears,
+                equivalentSuppressedYears = tree.EquivalentSuppressedYears,
                 heightMeters = tree.Height,
                 diameterCm = tree.Diameter,
                 crownRadiusMeters = tree.CrownRadius,
@@ -173,6 +174,7 @@ public sealed class ForestSaveController : MonoBehaviour
                 if (treesById.TryGetValue(saved.treeId, out ForestTree tree))
                 {
                     tree.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
+                    tree.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
                     if (data.version >= 3 && saved.hasSimulation)
                         tree.SetSimulationState(saved.ageYears, saved.heightMeters, saved.diameterCm, saved.crownRadiusMeters);
                 }
@@ -186,6 +188,7 @@ public sealed class ForestSaveController : MonoBehaviour
                         continue;
                     }
                     recruited.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
+                    recruited.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
                 }
             }
         }

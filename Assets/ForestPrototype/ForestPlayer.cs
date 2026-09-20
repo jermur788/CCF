@@ -541,8 +541,8 @@ public sealed class ForestPlayer : MonoBehaviour
         cardTitleStyle.fontSize = Mathf.RoundToInt(22f * cardScale);
         cardBodyStyle.fontSize = Mathf.RoundToInt(17f * cardScale);
         cardFooterStyle.fontSize = Mathf.RoundToInt(15f * cardScale);
-        float cardWidth = 500f * cardScale;
-        float cardHeight = 380f * cardScale;
+        float cardWidth = 580f * cardScale;
+        float cardHeight = 500f * cardScale;
         Rect cardRect = new Rect(centerX - cardWidth * 0.5f, centerY - cardHeight * 0.5f, cardWidth, cardHeight);
         ForestHud.Panel(cardRect);
 
@@ -554,15 +554,19 @@ public sealed class ForestPlayer : MonoBehaviour
             : "Unknown species";
         bool markedForHarvest = inspectedTreeMarking != null && inspectedTreeMarking.IsMarked(inspectedTree);
         GUILayout.Label($"• Species: {speciesName}", cardBodyStyle);
-        GUILayout.Label($"• Status: {inspectedTree.StageLabel}{(markedForHarvest ? " — MARKED for harvest (M to unmark)" : "")}", cardBodyStyle);
+        GUILayout.Label($"• Status: {(inspectedTree.IsStump ? "Harvested stump" : "Living tree")}{(markedForHarvest ? " — MARKED for harvest (M to unmark)" : "")}", cardBodyStyle);
         GUILayout.Label($"• Age: {inspectedTree.AgeYears} years", cardBodyStyle);
-        GUILayout.Label($"• Estimated Height: {inspectedTreeHeight:F1} m", cardBodyStyle);
-        GUILayout.Label($"• Trunk Diameter: {inspectedTreeDiameter:F0} cm", cardBodyStyle);
+        if (!inspectedTree.IsStump)
+            GUILayout.Label($"• Size: {inspectedTree.SizeClassLabel}", cardBodyStyle);
+        GUILayout.Label($"• Recorded suppression: {inspectedTree.EquivalentSuppressedYears:F2} equivalent years", cardBodyStyle);
+        GUILayout.Label($"• Estimated Height: {inspectedTree.Height:F1} m", cardBodyStyle);
+        GUILayout.Label($"• Trunk Diameter: {inspectedTree.Diameter:F1} cm", cardBodyStyle);
         GUILayout.Label($"• Stem Volume: {inspectedTree.BiologicalStemVolumeM3:F2} m³", cardBodyStyle);
 
         if (inspectedTreeEcology != null && !inspectedTree.IsStump)
         {
             GUILayout.Label($"• Local crowding: {inspectedTreeEcology.GetCompetitionLabel(inspectedTree)} (CI {inspectedTreeEcology.GetCompetitionIndex(inspectedTree):0.0})", cardBodyStyle);
+            GUILayout.Label($"• Current suppression: {inspectedTreeEcology.GetCurrentSuppression(inspectedTree):P0} of potential DBH growth", cardBodyStyle);
             float recentGrowth = inspectedTreeEcology.GetAnnualDbhGrowth(inspectedTree);
             if (recentGrowth > 0.0001f)
                 GUILayout.Label($"• Recent DBH growth: {recentGrowth:F2} cm/year", cardBodyStyle);
@@ -584,9 +588,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 GUILayout.Label($"• Reproduction: {reproduction}", cardBodyStyle);
             }
 
-            string ccfNote = inspectedTree.DisplayStage == ForestTreeStage.Mature
-                ? "• CCF Status: Mature canopy tree — candidate for selective single-tree thinning."
-                : "• CCF Status: Young growing stock — retain for continuous crown cover.";
+            string ccfNote = "• CCF: consider crown cover, neighbours and wind exposure before thinning.";
             GUILayout.Label(ccfNote, cardBodyStyle);
 
             if (inspectedTree.ChopProgress > 0)

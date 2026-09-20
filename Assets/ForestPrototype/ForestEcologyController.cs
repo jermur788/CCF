@@ -503,6 +503,9 @@ public sealed class ForestEcologyController : MonoBehaviour
             float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
                                  Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
 
+            // Diagnostic integration of the existing DBH competition response.
+            // Never feed this accumulated history back into growth in v1.
+            tree.RecordSuppressionYear(1f - (1f / (1f + ci / treeSpecies.Ci50)));
             tree.ApplyGrowth(dbhGrowth * yearsApplied, heightGrowth * yearsApplied);
             tree.SetAgeYears(tree.AgeYears + yearsApplied);
             annualDbhGrowth[tree] = dbhGrowth;
@@ -694,6 +697,16 @@ public sealed class ForestEcologyController : MonoBehaviour
                 UpdateCompetition(s);
         }
         return tree != null && competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+    }
+
+    // Fraction of potential DBH growth withheld by the existing competition response.
+    // This is a model diagnostic, not a measured physiological suppression index.
+    public float GetCurrentSuppression(ForestTree tree)
+    {
+        if (tree == null || tree.IsStump) return 0f;
+        TreeSpeciesDefinition s = tree.Species != null ? tree.Species : ResolveSpecies();
+        if (s == null) return 0f;
+        return Mathf.Clamp01(1f - 1f / (1f + GetCompetitionIndex(tree) / s.Ci50));
     }
 
     // Player-readable interpretation of the competition index. Thresholds are [D] calibration.

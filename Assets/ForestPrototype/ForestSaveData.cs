@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -28,6 +28,8 @@ public sealed class TreeSaveData
     // Version 3 simulation state; absent in legacy saves.
     public bool hasSimulation;
     public int ageYears;
+    // Version 6: recorded history; older saves start recording at zero.
+    public float equivalentSuppressedYears;
     public float heightMeters;
     public float diameterCm;
     public float crownRadiusMeters;
