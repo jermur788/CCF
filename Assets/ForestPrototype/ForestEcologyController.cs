@@ -19,7 +19,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T, which cycles 30 -> 10 -> 2.5 s/year -> off. Uses the same deterministic annual step as everything else.")]
     [SerializeField] private bool timeLapseEnabled;
     [SerializeField, Min(0.5f)] private float timeLapseSecondsPerYear = 30f;
-    [Tooltip("Optional visual-only seedling shown at a regenerating cell while its aggregated cohort grows (scaled by RegenHeight, removed on promotion). Pure display: the cohort state stays authoritative.")]
+    [Tooltip("Optional visual-only seedling shown for the default species while its regeneration cohort grows (scaled by cohort height, removed on promotion). Pure display: the cohort state stays authoritative.")]
     [SerializeField] private GameObject seedlingVisualPrefab;
     private readonly Dictionary<int, GameObject> seedlingVisuals = new Dictionary<int, GameObject>();
     private bool seedlingVisualsDirty = true;
@@ -31,6 +31,12 @@ public sealed class ForestEcologyController : MonoBehaviour
     private readonly Dictionary<ForestTree, float> competitionIndex = new Dictionary<ForestTree, float>();
     private readonly Dictionary<ForestTree, float> annualDbhGrowth = new Dictionary<ForestTree, float>();
     private readonly Dictionary<ForestTree, float> seedPotential = new Dictionary<ForestTree, float>();
+    private sealed class MastState
+    {
+        public string Label = "normal";
+        public float Multiplier = 1f;
+    }
+    private readonly Dictionary<string, MastState> mastBySpeciesId = new Dictionary<string, MastState>();
     private bool competitionCurrent;
     private string lastMastLabel = "normal";
     private float lastMastMultiplier = 1f;
@@ -44,6 +50,20 @@ public sealed class ForestEcologyController : MonoBehaviour
     public string LastMastLabel => lastMastLabel;
     public float LastMastMultiplier => lastMastMultiplier;
     public float MaxRecentOpeningPerCell => maxRecentOpeningPerCell;
+
+    public string GetMastLabel(TreeSpeciesDefinition targetSpecies)
+    {
+        if (targetSpecies != null && mastBySpeciesId.TryGetValue(targetSpecies.SpeciesId, out MastState state))
+            return state.Label;
+        return "normal";
+    }
+
+    public float GetMastMultiplier(TreeSpeciesDefinition targetSpecies)
+    {
+        if (targetSpecies != null && mastBySpeciesId.TryGetValue(targetSpecies.SpeciesId, out MastState state))
+            return state.Multiplier;
+        return targetSpecies != null ? targetSpecies.MastNormalMultiplier : 1f;
+    }
 
     public int SimulationSeed
     {
@@ -116,17 +136,20 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
-    // Visual-only: one seedling per regenerating cell, scaled to the cohort's
-    // authoritative RegenHeight. Never affects simulation state.
+    // Visual-only: one default-species seedling per regenerating cell, scaled to
+    // the cohort's authoritative height. Never affects simulation state.
     private void SyncSeedlingVisuals()
     {
         if (cells == null)
             return;
         if (seedlingVisualPrefab == null)
             return;
+        TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
+        string defaultSpeciesId = defaultSpecies != null ? defaultSpecies.SpeciesId : "";
         for (int i = 0; i < cells.Length; i++)
         {
-            bool wanted = cells[i] != null && cells[i].RegenDensity > 0f && !Mathf.Approximately(cells[i].RegenHeight, 0f);
+            ForestRegenerationCohort cohort = cells[i] != null ? cells[i].FindCohort(defaultSpeciesId) : null;
+            bool wanted = cohort != null && cohort.Density > 0f && !Mathf.Approximately(cohort.Height, 0f);
             seedlingVisuals.TryGetValue(i, out GameObject visual);
             if (wanted && visual == null)
             {
@@ -145,7 +168,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             }
             if (wanted && visual != null)
             {
-                float scale = Mathf.Clamp(cells[i].RegenHeight, 0.15f, 3f);
+                float scale = Mathf.Clamp(cohort.Height, 0.15f, 3f);
                 visual.transform.localScale = Vector3.one * scale;
                 // The seedling sits on the ground regardless of parent scale.
                 visual.transform.position = new Vector3(visual.transform.position.x, 0f, visual.transform.position.z);
@@ -212,10 +235,10 @@ public sealed class ForestEcologyController : MonoBehaviour
         GrowAdults(s);                    // 3. adult DBH and height
         RelaxCrowns(s);                   // 4. crown relaxation toward competition-limited target
         RecomputeCanopy();                // 5. light reflects the new crowns
-        GrowExistingRegeneration(s);      // 6. existing regeneration grows before new establishment
-        UpdateMast(s, rng);               // 7. stand mast state for this year
+        GrowExistingRegeneration();       // 6. existing regeneration grows before new establishment
+        UpdateAllMastStates(s, rng);      // 7. species-isolated mast state for this year
         ComputeSeedRain(s);               // 8. spatial seed dispersal (RecomputeSeedRain core)
-        EstablishNewCohorts(s);           // 9. new establishment from seed x light x suitability
+        EstablishNewCohorts();            // 9. new establishment from seed x light x suitability
         PromoteCohorts(s, rng);           // 10. cohorts that reach tree size become individuals
         UpdateEstablishmentSuitability(); // 11. simple disturbance response
         DecayRecentOpening(s);            // 12. exposure decays with time
@@ -235,9 +258,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         {
             foreach (ForestEcologyCell cell in cells)
             {
-                cell.RegenDensity = 0f;
-                cell.RegenHeight = 0f;
-                cell.RegenEstablishYear = -1;
+                cell.ClearRegeneration();
                 cell.RecentOpening = 0f;
                 // Cells not present in the save return to fresh-grid semantics,
                 // including the smoothed establishment suitability.
@@ -261,6 +282,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         competitionIndex.Clear();
         annualDbhGrowth.Clear();
         seedPotential.Clear();
+        mastBySpeciesId.Clear();
         RebuildGrid();
         lastMastLabel = "normal";
         lastMastMultiplier = 1f;
@@ -279,10 +301,41 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (cells == null || index < 0 || index >= cells.Length)
             return;
         ForestEcologyCell cell = cells[index];
-        cell.RegenDensity = Mathf.Max(0f, density);
+        TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
+        if (defaultSpecies != null && (density > 0f || establishYear >= 0))
+            cell.GetOrCreateCohort(defaultSpecies).Restore(density, height, establishYear);
+        RestoreCellEnvironment(cell, recentOpening, establishmentSuitability);
         seedlingVisualsDirty = true;
-        cell.RegenHeight = Mathf.Max(0f, height);
-        cell.RegenEstablishYear = establishYear;
+    }
+
+    public void RestoreCellState(int index, List<ForestRegenerationCohortSaveData> savedCohorts, float recentOpening, float establishmentSuitability = -1f)
+    {
+        if (cells == null || index < 0 || index >= cells.Length)
+            return;
+        ForestEcologyCell cell = cells[index];
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (savedCohorts != null && spawner != null)
+        {
+            savedCohorts.Sort((a, b) => string.CompareOrdinal(a != null ? a.speciesId : "", b != null ? b.speciesId : ""));
+            foreach (ForestRegenerationCohortSaveData saved in savedCohorts)
+            {
+                if (saved == null || saved.density <= 0f)
+                    continue;
+                TreeSpeciesDefinition cohortSpecies = spawner.ResolveSpecies(saved.speciesId);
+                if (cohortSpecies == null)
+                {
+                    Debug.LogWarning($"Unknown regeneration species '{saved.speciesId}' in cell {index}; cohort skipped.");
+                    continue;
+                }
+                cell.GetOrCreateCohort(cohortSpecies).Restore(saved.density, saved.height, saved.establishYear);
+            }
+        }
+        RestoreCellEnvironment(cell, recentOpening, establishmentSuitability);
+        seedlingVisualsDirty = true;
+    }
+
+    private void RestoreCellEnvironment(ForestEcologyCell cell, float recentOpening, float establishmentSuitability)
+    {
         cell.RecentOpening = Mathf.Clamp(recentOpening, 0f, maxRecentOpeningPerCell);
         // Suitability is a smoothed disturbance response: genuine short history,
         // so new saves persist it. Older saves reconstruct it deterministically
@@ -299,7 +352,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (s == null)
             return;
         var rng = new System.Random(unchecked(simulationSeed * 397) ^ ecologicalYear);
-        UpdateMast(s, rng);
+        UpdateAllMastStates(s, rng);
     }
 
     [ContextMenu("Rebuild ecology grid")]
@@ -530,131 +583,225 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
-    private void UpdateMast(TreeSpeciesDefinition s, System.Random rng)
+    private List<TreeSpeciesDefinition> RegenerationSpecies(TreeSpeciesDefinition defaultSpecies)
     {
-        double roll = rng.NextDouble();
-        if (roll < s.MastGoodProbability)
+        var enabled = new List<TreeSpeciesDefinition>();
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (spawner != null)
+            foreach (TreeSpeciesDefinition candidate in spawner.KnownSpecies)
+                if (candidate != null && candidate.SupportsRegeneration)
+                    enabled.Add(candidate);
+        if (defaultSpecies != null && defaultSpecies.SupportsRegeneration &&
+            !enabled.Exists(candidate => string.Equals(candidate.SpeciesId, defaultSpecies.SpeciesId, System.StringComparison.Ordinal)))
+            enabled.Add(defaultSpecies);
+        enabled.Sort((a, b) => string.CompareOrdinal(a.SpeciesId, b.SpeciesId));
+        return enabled;
+    }
+
+    private static bool SameSpecies(TreeSpeciesDefinition a, TreeSpeciesDefinition b)
+    {
+        return a != null && b != null && string.Equals(a.SpeciesId, b.SpeciesId, System.StringComparison.Ordinal);
+    }
+
+    private void UpdateAllMastStates(TreeSpeciesDefinition defaultSpecies, System.Random defaultRng)
+    {
+        mastBySpeciesId.Clear();
+        // Compatibility path: same seed and first random draw as the original Sitka-only model.
+        if (defaultSpecies != null && defaultSpecies.SupportsRegeneration)
+            UpdateMast(defaultSpecies, defaultRng, true);
+        foreach (TreeSpeciesDefinition candidate in RegenerationSpecies(defaultSpecies))
         {
-            lastMastLabel = "good";
-            lastMastMultiplier = s.MastGoodMultiplier;
-        }
-        else if (roll < s.MastGoodProbability + s.MastPoorProbability)
-        {
-            lastMastLabel = "poor";
-            lastMastMultiplier = s.MastPoorMultiplier;
-        }
-        else
-        {
-            lastMastLabel = "normal";
-            lastMastMultiplier = s.MastNormalMultiplier;
+            if (SameSpecies(candidate, defaultSpecies))
+                continue;
+            UpdateMast(candidate, SpeciesRandom(candidate.SpeciesId, 0x4D415354u), false);
         }
     }
 
-    private void ComputeSeedRain(TreeSpeciesDefinition s)
+    private void UpdateMast(TreeSpeciesDefinition targetSpecies, System.Random rng, bool isDefault)
+    {
+        double roll = rng.NextDouble();
+        var state = new MastState();
+        if (roll < targetSpecies.MastGoodProbability)
+        {
+            state.Label = "good";
+            state.Multiplier = targetSpecies.MastGoodMultiplier;
+        }
+        else if (roll < targetSpecies.MastGoodProbability + targetSpecies.MastPoorProbability)
+        {
+            state.Label = "poor";
+            state.Multiplier = targetSpecies.MastPoorMultiplier;
+        }
+        else
+        {
+            state.Label = "normal";
+            state.Multiplier = targetSpecies.MastNormalMultiplier;
+        }
+        mastBySpeciesId[targetSpecies.SpeciesId] = state;
+        if (isDefault)
+        {
+            lastMastLabel = state.Label;
+            lastMastMultiplier = state.Multiplier;
+        }
+    }
+
+    private System.Random SpeciesRandom(string speciesId, uint phase)
+    {
+        uint hash = 2166136261u;
+        string stableId = speciesId ?? "";
+        for (int i = 0; i < stableId.Length; i++)
+        {
+            hash ^= stableId[i];
+            hash *= 16777619u;
+        }
+        hash ^= phase;
+        hash *= 16777619u;
+        int seed = unchecked((simulationSeed * 397) ^ ecologicalYear ^ (int)hash);
+        return new System.Random(seed);
+    }
+
+    private void ComputeSeedRain(TreeSpeciesDefinition defaultSpecies)
     {
         if (cells == null)
             return;
+        foreach (ForestEcologyCell cell in cells)
+            cell.ClearSeedRain();
         seedPotential.Clear();
         ForestTree[] trees = FindTrees();
+        List<TreeSpeciesDefinition> enabled = RegenerationSpecies(defaultSpecies);
+        // Default first preserves the exact Sitka accumulation path. Additional
+        // species are ordinal and cannot consume or reorder Sitka operations.
+        if (defaultSpecies != null && defaultSpecies.SupportsRegeneration)
+            ComputeSpeciesSeedRain(defaultSpecies, trees);
+        foreach (TreeSpeciesDefinition candidate in enabled)
+            if (!SameSpecies(candidate, defaultSpecies))
+                ComputeSpeciesSeedRain(candidate, trees);
+    }
+
+    private void ComputeSpeciesSeedRain(TreeSpeciesDefinition targetSpecies, ForestTree[] trees)
+    {
+        float mastMultiplier = GetMastMultiplier(targetSpecies);
         foreach (ForestTree tree in trees)
         {
-            if (tree == null || tree.IsStump)
+            if (tree == null || tree.IsStump || !SameSpecies(tree.Species, targetSpecies))
                 continue;
-            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
-            if (!treeSpecies.SupportsRegeneration)
-                continue;
-            float maturity = treeSpecies.Maturity(tree.AgeYears);
+            float maturity = targetSpecies.Maturity(tree.AgeYears);
             float crown = Mathf.Clamp01(tree.CrownRadius / 4f);
-            seedPotential[tree] = maturity * crown * treeSpecies.SeedPotentialPerMatureTree * lastMastMultiplier;
+            seedPotential[tree] = maturity * crown * targetSpecies.SeedPotentialPerMatureTree * mastMultiplier;
         }
-
         foreach (ForestEcologyCell cell in cells)
         {
             float seedRain = 0f;
             foreach (ForestTree tree in trees)
             {
-                if (tree == null || tree.IsStump)
+                if (tree == null || tree.IsStump || !SameSpecies(tree.Species, targetSpecies))
                     continue;
                 if (!seedPotential.TryGetValue(tree, out float potential) || potential <= 0f)
                     continue;
-                TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
                 Vector2 treePosition = new Vector2(tree.transform.position.x, tree.transform.position.z);
                 float distance = Vector2.Distance(cell.Center, treePosition);
-                if (distance > treeSpecies.SeedDispersalCutoffM)
+                if (distance > targetSpecies.SeedDispersalCutoffM)
                     continue;
-                seedRain += potential * Mathf.Exp(-distance / treeSpecies.SeedDispersalScaleM);
+                seedRain += potential * Mathf.Exp(-distance / targetSpecies.SeedDispersalScaleM);
             }
-            cell.SitkaSeedRain = seedRain;
+            if (seedRain > 0f)
+                cell.GetOrCreateCohort(targetSpecies).SeedRain = seedRain;
         }
     }
 
-    private void GrowExistingRegeneration(TreeSpeciesDefinition s)
+    private void GrowExistingRegeneration()
     {
         foreach (ForestEcologyCell cell in cells)
         {
-            if (cell.RegenDensity <= 0f)
-                continue;
-            float response = s.JuvenileLightResponse(cell.Light);
-            cell.RegenHeight += s.RegenHeightGrowthMPerYear * response * cell.SiteProductivity;
-            if (response < s.RegenPoorLightThreshold)
-                cell.RegenDensity *= 1f - s.RegenMortalityUnderPoorLight;
-            else
-                cell.RegenDensity = Mathf.Min(s.RegenDensityMax, cell.RegenDensity + 0.05f);
-            if (cell.RegenDensity < 0.01f)
+            // Cohorts are stored in ordinal SpeciesId order.
+            for (int i = 0; i < cell.Regeneration.Count; i++)
             {
-                cell.RegenDensity = 0f;
-                cell.RegenHeight = 0f;
-                cell.RegenEstablishYear = -1;
+                ForestRegenerationCohort cohort = cell.Regeneration[i];
+                TreeSpeciesDefinition cohortSpecies = cohort.Species;
+                if (cohort.Density <= 0f || cohortSpecies == null)
+                    continue;
+                float response = cohortSpecies.JuvenileLightResponse(cell.Light);
+                cohort.Height += cohortSpecies.RegenHeightGrowthMPerYear * response * cell.SiteProductivity;
+                if (response < cohortSpecies.RegenPoorLightThreshold)
+                    cohort.Density *= 1f - cohortSpecies.RegenMortalityUnderPoorLight;
+                else
+                    cell.AddDensityWithSharedCapacity(cohort, 0.05f);
+                if (cohort.Density < 0.01f)
+                {
+                    cohort.Density = 0f;
+                    cohort.Height = 0f;
+                    cohort.EstablishYear = -1;
+                }
             }
         }
     }
 
-    private void EstablishNewCohorts(TreeSpeciesDefinition s)
+    private void EstablishNewCohorts()
     {
         foreach (ForestEcologyCell cell in cells)
         {
-            if (cell.SitkaSeedRain <= 0f)
-                continue;
-            float seedFactor = 1f - Mathf.Exp(-cell.SitkaSeedRain / s.SeedSaturationS50);
-            float lightResponse = s.JuvenileLightResponse(cell.Light);
-            float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
-            if (establishment <= 0.01f)
-                continue;
-            if (cell.RegenEstablishYear < 0)
+            // Snapshot because GetOrCreateCohort is not needed: seed computation
+            // already created a cohort only where real seed rain exists.
+            for (int i = 0; i < cell.Regeneration.Count; i++)
             {
-                cell.RegenEstablishYear = ecologicalYear;
-                cell.RegenHeight = s.RegenInitialHeightM;
+                ForestRegenerationCohort cohort = cell.Regeneration[i];
+                TreeSpeciesDefinition cohortSpecies = cohort.Species;
+                if (cohort.SeedRain <= 0f || cohortSpecies == null)
+                    continue;
+                float seedFactor = 1f - Mathf.Exp(-cohort.SeedRain / cohortSpecies.SeedSaturationS50);
+                float lightResponse = cohortSpecies.JuvenileLightResponse(cell.Light);
+                float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
+                if (establishment <= 0.01f)
+                    continue;
+                if (cohort.EstablishYear < 0)
+                {
+                    cohort.EstablishYear = ecologicalYear;
+                    cohort.Height = cohortSpecies.RegenInitialHeightM;
+                }
+                cell.AddDensityWithSharedCapacity(cohort, establishment * cohortSpecies.RegenDensityPerEstablishment);
             }
-            cell.RegenDensity = Mathf.Min(s.RegenDensityMax, cell.RegenDensity + establishment * s.RegenDensityPerEstablishment);
         }
     }
 
-    private void PromoteCohorts(TreeSpeciesDefinition s, System.Random rng)
+    private void PromoteCohorts(TreeSpeciesDefinition defaultSpecies, System.Random defaultRng)
     {
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
         if (spawner == null)
             return;
+        if (defaultSpecies != null && defaultSpecies.SupportsRegeneration)
+            PromoteSpeciesCohorts(spawner, defaultSpecies, defaultRng, true);
+        foreach (TreeSpeciesDefinition candidate in RegenerationSpecies(defaultSpecies))
+        {
+            if (SameSpecies(candidate, defaultSpecies))
+                continue;
+            PromoteSpeciesCohorts(spawner, candidate, SpeciesRandom(candidate.SpeciesId, 0x50524F4Du), false);
+        }
+    }
 
+    private void PromoteSpeciesCohorts(ForestTreeSpawner spawner, TreeSpeciesDefinition cohortSpecies, System.Random rng, bool isDefault)
+    {
         for (int i = 0; i < cells.Length; i++)
         {
             ForestEcologyCell cell = cells[i];
-            if (cell.RegenDensity <= 0f || cell.RegenHeight < s.PromotionHeightM)
+            ForestRegenerationCohort cohort = cell.FindCohort(cohortSpecies.SpeciesId);
+            if (cohort == null || cohort.Density <= 0f || cohort.Height < cohortSpecies.PromotionHeightM)
                 continue;
-
             float offsetX = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
             float offsetZ = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
-            int age = Mathf.Max(1, ecologicalYear - Mathf.Max(0, cell.RegenEstablishYear));
-            float dbh = Mathf.Clamp(cell.RegenHeight * 1.5f, 2f, 20f); // [C] young-tree proportion
-            float crown = s.PotentialCrownRadiusM(dbh);
-            string id = "R" + ecologicalYear + "-" + i;
+            int age = Mathf.Max(1, ecologicalYear - Mathf.Max(0, cohort.EstablishYear));
+            float dbh = Mathf.Clamp(cohort.Height * 1.5f, 2f, 20f); // [C] young-tree proportion
+            float crown = cohortSpecies.PotentialCrownRadiusM(dbh);
+            string id = isDefault
+                ? "R" + ecologicalYear + "-" + i
+                : "R" + ecologicalYear + "-" + i + "-" + cohortSpecies.SpeciesId;
             Vector3 position = new Vector3(cell.Center.x + offsetX, 0f, cell.Center.y + offsetZ);
-            ForestTree recruited = spawner.Spawn(id, s, position, age, dbh, cell.RegenHeight, crown);
+            ForestTree recruited = spawner.Spawn(id, cohortSpecies, position, age, dbh, cohort.Height, crown);
             if (recruited != null)
-                Debug.Log($"ECOLOGY recruited {id} at {position} height={cell.RegenHeight:0.00} dbh={dbh:0.0}");
-
-            cell.RegenDensity = 0f;
-            cell.RegenHeight = 0f;
-            cell.RegenEstablishYear = -1;
+            {
+                Debug.Log($"ECOLOGY recruited {id} ({cohortSpecies.SpeciesId}) at {position} height={cohort.Height:0.00} dbh={dbh:0.0}");
+                cohort.Density = 0f;
+                cohort.Height = 0f;
+                cohort.EstablishYear = -1;
+            }
         }
     }
 
@@ -743,6 +890,30 @@ public sealed class ForestEcologyController : MonoBehaviour
         return tree != null && seedPotential.TryGetValue(tree, out float value) ? value : 0f;
     }
 
+    public float GetSeedRain(int cellIndex, TreeSpeciesDefinition targetSpecies)
+    {
+        if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
+            return 0f;
+        ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
+        return cohort != null ? cohort.SeedRain : 0f;
+    }
+
+    public float GetRegenerationDensity(int cellIndex, TreeSpeciesDefinition targetSpecies)
+    {
+        if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
+            return 0f;
+        ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
+        return cohort != null ? cohort.Density : 0f;
+    }
+
+    public float GetRegenerationHeight(int cellIndex, TreeSpeciesDefinition targetSpecies)
+    {
+        if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
+            return 0f;
+        ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
+        return cohort != null ? cohort.Height : 0f;
+    }
+
     // Player-readable regeneration state for one cell, built only from data the
     // simulation already maintains. Classification names the binding constraint
     // (seed / light / site disturbance); no new ecological mechanism.
@@ -756,33 +927,27 @@ public sealed class ForestEcologyController : MonoBehaviour
             return "";
         ForestEcologyCell cell = cells[index];
 
-        float seedFactor = 1f - Mathf.Exp(-cell.SitkaSeedRain / s.SeedSaturationS50);
+        ForestRegenerationCohort defaultCohort = cell.FindCohort(s.SpeciesId);
+        float defaultSeedRain = defaultCohort != null ? defaultCohort.SeedRain : 0f;
+        float seedFactor = 1f - Mathf.Exp(-defaultSeedRain / s.SeedSaturationS50);
         float lightResponse = s.JuvenileLightResponse(cell.Light);
         string seedWord = seedFactor < 0.05f ? "none"
             : seedFactor < 0.3f ? "thin"
             : seedFactor < 0.7f ? "ok"
             : "plenty";
 
-        string regenText;
-        if (cell.RegenDensity > 0f)
+        var cohortText = new System.Text.StringBuilder();
+        foreach (ForestRegenerationCohort cohort in cell.Regeneration)
         {
-            float progress = Mathf.Clamp01(cell.RegenHeight / s.PromotionHeightM) * 100f;
-            string state;
-            if (cell.RegenHeight >= s.PromotionHeightM)
-                state = $"ready to recruit ({cell.RegenHeight:0.0} m)";
-            else
-                state = $"{cell.RegenDensity:0.00}/m2 at {cell.RegenHeight:0.00} m, {progress:0}% grown";
-            if (cell.RegenEstablishYear >= 0)
-                state += $", age {Mathf.Max(1, ecologicalYear - cell.RegenEstablishYear)}";
-            regenText = $"regen {state}";
+            if (cohort == null || cohort.Species == null || cohort.Density <= 0f)
+                continue;
+            if (cohortText.Length > 0) cohortText.Append(" · ");
+            cohortText.Append($"{cohort.Species.DisplayName} {cohort.Density:0.00}/m2 @ {cohort.Height:0.00} m");
         }
-        else
-        {
-            regenText = "no regeneration";
-        }
+        string regenText = cohortText.Length > 0 ? "regen " + cohortText : "no regeneration";
 
         string constraint;
-        if (cell.RegenDensity > 0f && lightResponse < s.RegenPoorLightThreshold)
+        if (defaultCohort != null && defaultCohort.Density > 0f && lightResponse < s.RegenPoorLightThreshold)
             constraint = $"suppressed under shade (light response {lightResponse:0.00})";
         else
         {
@@ -795,7 +960,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 constraint = $"light-limited under canopy (response {lightResponse:0.00})";
             else if (cell.EstablishmentSuitability <= smallest + 0.0001f && cell.EstablishmentSuitability < 0.7f)
                 constraint = $"site settling after disturbance ({cell.EstablishmentSuitability:0.00})";
-            else if (cell.RegenDensity > 0f)
+            else if (cell.HasRegeneration)
                 constraint = $"growing {s.RegenHeightGrowthMPerYear * lightResponse * cell.SiteProductivity:0.00} m/yr";
             else
                 constraint = "establishment conditions good";
@@ -926,7 +1091,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 return 0;
             int count = 0;
             foreach (ForestEcologyCell cell in cells)
-                if (cell.RegenDensity > 0f)
+                if (cell.HasRegeneration)
                     count++;
             return count;
         }
@@ -939,9 +1104,13 @@ public sealed class ForestEcologyController : MonoBehaviour
             float max = 0f;
             if (cells == null)
                 return max;
+            TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
             foreach (ForestEcologyCell cell in cells)
-                if (cell.SitkaSeedRain > max)
-                    max = cell.SitkaSeedRain;
+            {
+                ForestRegenerationCohort cohort = defaultSpecies != null ? cell.FindCohort(defaultSpecies.SpeciesId) : null;
+                if (cohort != null && cohort.SeedRain > max)
+                    max = cohort.SeedRain;
+            }
             return max;
         }
     }
@@ -1001,13 +1170,16 @@ public sealed class ForestEcologyController : MonoBehaviour
         GUI.Box(new Rect(origin.x - 8f, origin.y - 26f, mapSize + 16f, mapSize + 260f), GUIContent.none);
 
         float seedMax = Mathf.Max(0.0001f, MaxSeedRain);
+        TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
         for (int z = 0; z < cellsPerAxis; z++)
         for (int x = 0; x < cellsPerAxis; x++)
         {
             ForestEcologyCell data = cells[z * cellsPerAxis + x];
+            ForestRegenerationCohort defaultCohort = defaultSpecies != null ? data.FindCohort(defaultSpecies.SpeciesId) : null;
+            float defaultSeedRain = defaultCohort != null ? defaultCohort.SeedRain : 0f;
             Color previous = GUI.color;
             GUI.color = showSeedRain
-                ? Color.Lerp(new Color(0.1f, 0.1f, 0.15f), new Color(0.95f, 0.85f, 0.35f), Mathf.Clamp01(data.SitkaSeedRain / seedMax))
+                ? Color.Lerp(new Color(0.1f, 0.1f, 0.15f), new Color(0.95f, 0.85f, 0.35f), Mathf.Clamp01(defaultSeedRain / seedMax))
                 : Color.Lerp(new Color(0.95f, 0.9f, 0.45f), new Color(0.05f, 0.28f, 0.06f), data.Canopy);
             GUI.DrawTexture(new Rect(origin.x + x * cell, origin.y + (cellsPerAxis - 1 - z) * cell, cell - 1f, cell - 1f), Texture2D.whiteTexture);
             GUI.color = previous;
@@ -1026,8 +1198,9 @@ public sealed class ForestEcologyController : MonoBehaviour
             ForestEcologyCell c = cells[debugCellIndex];
             info.AppendLine($"cell {debugCellIndex} ({c.Center.x:0},{c.Center.y:0})");
             info.AppendLine($"  light {c.Light:0.00} suitability {c.EstablishmentSuitability:0.00}");
-            info.AppendLine($"  seed {c.SitkaSeedRain:0.000} opening {c.RecentOpening:0.00}");
-            info.AppendLine($"  regen {c.RegenDensity:0.00} h {c.RegenHeight:0.00} m");
+            info.AppendLine($"  opening {c.RecentOpening:0.00} occupancy {c.SharedOccupancy:0.00}");
+            foreach (ForestRegenerationCohort cohort in c.Regeneration)
+                info.AppendLine($"  {cohort.SpeciesId}: seed {cohort.SeedRain:0.000} regen {cohort.Density:0.00} h {cohort.Height:0.00} m");
         }
         GUI.Label(new Rect(origin.x - 4f, origin.y + mapSize + 6f, mapSize + 12f, 240f), info.ToString());
     }

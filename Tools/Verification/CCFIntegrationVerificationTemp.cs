@@ -161,7 +161,8 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
         ecology.AdvanceOneYear();
         Require(ecology.EcologicalYear == yearBefore + 1, "ecological year did not advance");
         Require(ecology.Cells != null && ecology.Cells.Length > 0, "ecology grid missing");
-        Require(ecology.Cells.All(c => c != null && IsFinite(c.Canopy) && IsFinite(c.Light) && IsFinite(c.SitkaSeedRain)), "canopy/light/seed rain contains invalid values");
+        TreeSpeciesDefinition defaultSpecies = ecology.ResolveSpecies();
+        Require(ecology.Cells.Select((c, i) => c != null && IsFinite(c.Canopy) && IsFinite(c.Light) && IsFinite(ecology.GetSeedRain(i, defaultSpecies))).All(valid => valid), "canopy/light/seed rain contains invalid values");
 
         int savedYear = ecology.EcologicalYear;
         string felledId = target.TreeId;
@@ -294,10 +295,12 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
                     if (cell == null) { HashFloat(ref hash, -1f); continue; }
                     HashFloat(ref hash, cell.Canopy);
                     HashFloat(ref hash, cell.Light);
-                    HashFloat(ref hash, cell.SitkaSeedRain);
-                    HashFloat(ref hash, cell.RegenDensity);
-                    HashFloat(ref hash, cell.RegenHeight);
-                    HashFloat(ref hash, cell.RegenEstablishYear);
+                    TreeSpeciesDefinition defaultSpecies = ecology.ResolveSpecies();
+                    ForestRegenerationCohort cohort = defaultSpecies != null ? cell.FindCohort(defaultSpecies.SpeciesId) : null;
+                    HashFloat(ref hash, cohort != null ? cohort.SeedRain : 0f);
+                    HashFloat(ref hash, cohort != null ? cohort.Density : 0f);
+                    HashFloat(ref hash, cohort != null ? cohort.Height : 0f);
+                    HashFloat(ref hash, cohort != null ? cohort.EstablishYear : -1f);
                     HashFloat(ref hash, cell.RecentOpening);
                     HashFloat(ref hash, cell.EstablishmentSuitability);
                 }

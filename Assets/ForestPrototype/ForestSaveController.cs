@@ -98,18 +98,28 @@ public sealed class ForestSaveController : MonoBehaviour
                 ForestEcologyCell cell = ecologyCells[i];
                 if (cell == null) continue;
                 // Seed rain is deterministic from trees + seed + year, so it is not saved.
-                if (cell.RegenDensity <= 0f && cell.RegenEstablishYear < 0 && cell.RecentOpening <= 0f &&
+                if (!cell.HasRegeneration && cell.RecentOpening <= 0f &&
                     Mathf.Approximately(cell.EstablishmentSuitability, 1f))
                     continue;
-                data.cells.Add(new ForestCellSaveData
+                var savedCell = new ForestCellSaveData
                 {
                     index = i,
-                    regenDensity = cell.RegenDensity,
-                    regenHeight = cell.RegenHeight,
-                    regenEstablishYear = cell.RegenEstablishYear,
                     recentOpening = cell.RecentOpening,
                     establishmentSuitability = cell.EstablishmentSuitability
-                });
+                };
+                foreach (ForestRegenerationCohort cohort in cell.Regeneration)
+                {
+                    if (cohort == null || cohort.Density <= 0f || string.IsNullOrEmpty(cohort.SpeciesId))
+                        continue;
+                    savedCell.cohorts.Add(new ForestRegenerationCohortSaveData
+                    {
+                        speciesId = cohort.SpeciesId,
+                        density = cohort.Density,
+                        height = cohort.Height,
+                        establishYear = cohort.EstablishYear
+                    });
+                }
+                data.cells.Add(savedCell);
             }
         }
 
@@ -245,7 +255,12 @@ public sealed class ForestSaveController : MonoBehaviour
                 if (data.cells != null)
                 {
                     foreach (ForestCellSaveData saved in data.cells)
-                        ecology.RestoreCellState(saved.index, saved.regenDensity, saved.regenHeight, saved.regenEstablishYear, saved.recentOpening, saved.establishmentSuitability);
+                    {
+                        if (data.version >= 8)
+                            ecology.RestoreCellState(saved.index, saved.cohorts, saved.recentOpening, saved.establishmentSuitability);
+                        else
+                            ecology.RestoreCellState(saved.index, saved.regenDensity, saved.regenHeight, saved.regenEstablishYear, saved.recentOpening, saved.establishmentSuitability);
+                    }
                 }
             }
             ecology.RecomputeCanopy();

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -57,12 +57,25 @@ public sealed class WoodStorageSaveData
 public sealed class ForestCellSaveData
 {
     public int index;
+    // Versions 1-7: one implicit default-Sitka cohort. Retained so JsonUtility
+    // can deserialize legacy saves; version 8 writes cohorts instead.
     public float regenDensity;
     public float regenHeight;
-    public int regenEstablishYear;
+    public int regenEstablishYear = -1;
+    // Version 8: explicit species-keyed regeneration state. Seed rain remains derived.
+    public List<ForestRegenerationCohortSaveData> cohorts = new List<ForestRegenerationCohortSaveData>();
     public float recentOpening;
     // Smoothed disturbance response; a short history that cannot be rebuilt
     // from the other fields, so it is saved. Older saves carry -1 and the
     // loader reconstructs it deterministically from the opening.
     public float establishmentSuitability = -1f;
+}
+
+[Serializable]
+public sealed class ForestRegenerationCohortSaveData
+{
+    public string speciesId = "";
+    public float density;
+    public float height;
+    public int establishYear = -1;
 }

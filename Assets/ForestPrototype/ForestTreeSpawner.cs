@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -29,6 +31,29 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private ForestSpeciesVisualSet[] speciesVisualSets;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
+
+    public IReadOnlyList<TreeSpeciesDefinition> KnownSpecies
+    {
+        get
+        {
+            var known = new List<TreeSpeciesDefinition>();
+            if (defaultSpecies != null && !string.IsNullOrEmpty(defaultSpecies.SpeciesId))
+                known.Add(defaultSpecies);
+            if (speciesVisualSets != null)
+            {
+                foreach (ForestSpeciesVisualSet set in speciesVisualSets)
+                {
+                    TreeSpeciesDefinition candidate = set != null ? set.species : null;
+                    if (candidate == null || string.IsNullOrEmpty(candidate.SpeciesId))
+                        continue;
+                    if (!known.Exists(s => string.Equals(s.SpeciesId, candidate.SpeciesId, StringComparison.Ordinal)))
+                        known.Add(candidate);
+                }
+            }
+            known.Sort((a, b) => string.CompareOrdinal(a.SpeciesId, b.SpeciesId));
+            return known;
+        }
+    }
 
     public TreeSpeciesDefinition ResolveSpecies(string speciesId)
     {
