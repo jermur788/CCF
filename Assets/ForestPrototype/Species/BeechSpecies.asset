@@ -61,7 +61,7 @@ MonoBehaviour:
   regenDensityMax: 1.5
   regenMortalityUnderPoorLight: 0.2
   regenPoorLightThreshold: 0.15
-  supportsRegeneration: 0
+  supportsRegeneration: 1
   standWindSusceptibility: 1
   windOpeningWeight: 1
   windThinningHalfLifeYears: 3
