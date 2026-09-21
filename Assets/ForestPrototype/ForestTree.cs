@@ -104,6 +104,9 @@ public sealed class ForestTree : MonoBehaviour
     public float Height => CurrentHeight;
     public float Diameter => diameterCm;
     public float CrownRadius => crownRadiusMeters;
+    public float SimulationHeightMeters => heightMeters;
+    public float SimulationDiameterCm => diameterCm;
+    public float SimulationCrownRadiusMeters => crownRadiusMeters;
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
     public Vector3 InteractionPoint => transform.position;
 

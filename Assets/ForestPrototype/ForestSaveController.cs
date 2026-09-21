@@ -63,9 +63,9 @@ public sealed class ForestSaveController : MonoBehaviour
                 hasSimulation = true,
                 ageYears = tree.AgeYears,
                 equivalentSuppressedYears = tree.EquivalentSuppressedYears,
-                heightMeters = tree.Height,
-                diameterCm = tree.Diameter,
-                crownRadiusMeters = tree.CrownRadius,
+                heightMeters = tree.SimulationHeightMeters,
+                diameterCm = tree.SimulationDiameterCm,
+                crownRadiusMeters = tree.SimulationCrownRadiusMeters,
                 position = tree.transform.position
             });
         }
