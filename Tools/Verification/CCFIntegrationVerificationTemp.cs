@@ -193,7 +193,11 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
         Require(ecology.EcologicalYear == savedYear, "ecological year did not restore");
         Require(loaded.All(t => t.EquivalentSuppressedYears == savedHistory[t.TreeId]), "history did not restore exactly on existing/respawned trees");
         string currentSave = File.ReadAllText(savePath);
-        File.WriteAllText(savePath, currentSave.Replace("\"version\": 6", "\"version\": 5"));
+        string currentVersionToken = $"\"version\": {ForestSaveData.CurrentVersion}";
+        Require(currentSave.Contains(currentVersionToken),
+            $"saved JSON did not contain expected version token {currentVersionToken}");
+        string legacySave = currentSave.Replace(currentVersionToken, "\"version\": 5");
+        File.WriteAllText(savePath, legacySave);
         saves.Load();
         Require(Trees().All(t => t.EquivalentSuppressedYears == 0f), "legacy history not reset to zero");
         Debug.Log($"VERIFY_INTERACTIONS_SAVELOAD_PASS felled={felledId} wood={savedWood} year={savedYear} trees={loaded.Length}");

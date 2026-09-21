@@ -4,7 +4,9 @@ The suppression-history slice is additive: age, physical dimensions and reproduc
 
 ## Regression contract
 
-- Unity 6000.6.0f1, Editor configuration.
+- Unity 6000.6.0f1, Editor play-mode configuration. The Unity executable may
+  report `buildType: Release`; that describes the Editor executable and does
+  not make this a standalone Release-player baseline.
 - Playable ForestTest: 336 P trees, 2,100 stems/ha, mean DBH 15.586 cm, basal area 41.099 m²/ha.
 - Separate 68-tree lifecycle fixture: 80 annual steps, 30 reproductive recruits.
 - Existing ecological-state hash: `7E39B70A14959FAD`, identical on two consecutive runs. This hash intentionally excludes the new diagnostic history so it detects changes to the established biological trajectory. History has separate assertions.
