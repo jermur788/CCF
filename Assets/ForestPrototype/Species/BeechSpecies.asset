@@ -10,48 +10,50 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 77fc5792932273fd281964634a89513f, type: 3}
-  m_Name: SitkaSpruce
+  m_Name: BeechSpecies
   m_EditorClassIdentifier: Assembly-CSharp::TreeSpeciesDefinition
-  speciesId: sitka-spruce
-  displayName: Sitka spruce
-  latinName: Picea sitchensis
-  potentialDbhGrowthCmPerYear: 0.9
+  speciesId: beech
+  displayName: European beech
+  latinName: Fagus sylvatica
+  potentialDbhGrowthCmPerYear: 0.4
   maxDbhCm: 120
-  potentialHeightGrowthMPerYear: 0.45
-  maxHeightM: 35
+  potentialHeightGrowthMPerYear: 0.4
+  maxHeightM: 40
   ci50: 3
   crownRadiusIntercept: 0.9415
   crownRadiusPerCmDbh: 0.07635
-  usePowerLawCrown: 0
+  usePowerLawCrown: 1
   crownAreaLogIntercept: 0.05
   crownAreaLogSlope: 1.01
   crownRelaxationPerYear: 0.15
   formHeightRatio: 0.5
-  maturityOnsetYears: 20
-  maturityFullYears: 30
+  maturityOnsetYears: 40
+  maturityFullYears: 60
   seedPotentialPerMatureTree: 1
-  seedDispersalScaleM: 20
-  seedDispersalCutoffM: 150
+  seedDispersalScaleM: 6
+  seedDispersalCutoffM: 50
   mastGoodProbability: 0.15
   mastPoorProbability: 0.35
-  mastGoodMultiplier: 1.5
-  mastNormalMultiplier: 1
-  mastPoorMultiplier: 0.4
-  seedSaturationS50: 10
+  mastGoodMultiplier: 1
+  mastNormalMultiplier: 0.4
+  mastPoorMultiplier: 0.1
+  seedSaturationS50: 5
   lightResponseLight:
   - 0
+  - 0.02
+  - 0.05
   - 0.1
   - 0.2
-  - 0.25
-  - 0.55
+  - 0.35
   - 1
   lightResponseFactor:
   - 0
-  - 0.1
-  - 0.3
-  - 0.5
-  - 0.9
-  - 0.8
+  - 0
+  - 0.15
+  - 0.35
+  - 0.65
+  - 1
+  - 1
   regenHeightGrowthMPerYear: 0.35
   promotionHeightM: 3.5
   regenInitialHeightM: 0.15
@@ -59,7 +61,7 @@ MonoBehaviour:
   regenDensityMax: 1.5
   regenMortalityUnderPoorLight: 0.2
   regenPoorLightThreshold: 0.15
-  supportsRegeneration: 1
+  supportsRegeneration: 0
   standWindSusceptibility: 1
   windOpeningWeight: 1
   windThinningHalfLifeYears: 3

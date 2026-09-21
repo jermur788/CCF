@@ -561,6 +561,8 @@ public sealed class ForestEcologyController : MonoBehaviour
             if (tree == null || tree.IsStump)
                 continue;
             TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : s;
+            if (!treeSpecies.SupportsRegeneration)
+                continue;
             float maturity = treeSpecies.Maturity(tree.AgeYears);
             float crown = Mathf.Clamp01(tree.CrownRadius / 4f);
             seedPotential[tree] = maturity * crown * treeSpecies.SeedPotentialPerMatureTree * lastMastMultiplier;
@@ -646,7 +648,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             float crown = s.PotentialCrownRadiusM(dbh);
             string id = "R" + ecologicalYear + "-" + i;
             Vector3 position = new Vector3(cell.Center.x + offsetX, 0f, cell.Center.y + offsetZ);
-            ForestTree recruited = spawner.Spawn(id, position, age, dbh, cell.RegenHeight, crown);
+            ForestTree recruited = spawner.Spawn(id, s, position, age, dbh, cell.RegenHeight, crown);
             if (recruited != null)
                 Debug.Log($"ECOLOGY recruited {id} at {position} height={cell.RegenHeight:0.00} dbh={dbh:0.0}");
 

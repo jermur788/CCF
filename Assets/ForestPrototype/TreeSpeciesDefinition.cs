@@ -29,6 +29,12 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[B] Potential crown radius relationship: radius_m = intercept + slope * DBH_cm. Evidence-derived British relationship.")]
     [SerializeField] private float crownRadiusIntercept = 0.9415f;
     [SerializeField] private float crownRadiusPerCmDbh = 0.07635f;
+    [Tooltip("[B] Use the evidence-derived Beech crown-area relationship instead of the linear Sitka relation.")]
+    [SerializeField] private bool usePowerLawCrown;
+    [Tooltip("[B] Crown-area log intercept: ln(CPA_m2) = intercept + slope * ln(DBH_cm).")]
+    [SerializeField] private float crownAreaLogIntercept = 0.05f;
+    [Tooltip("[B] Crown-area log slope: ln(CPA_m2) = intercept + slope * ln(DBH_cm).")]
+    [SerializeField] private float crownAreaLogSlope = 1.01f;
     [Tooltip("[D] Fraction of the gap to the target crown radius closed per year. Model calibration.")]
     [SerializeField, Range(0.01f, 1f)] private float crownRelaxationPerYear = 0.15f;
 
@@ -76,6 +82,8 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [SerializeField, Range(0f, 1f)] private float regenMortalityUnderPoorLight = 0.2f;
     [Tooltip("[D] Light response below which regeneration is considered suppressed.")]
     [SerializeField, Range(0f, 1f)] private float regenPoorLightThreshold = 0.15f;
+    [Tooltip("[A/B] Whether this species can produce and establish regeneration in the current simulation slice. Beech is disabled until its regeneration milestone.")]
+    [SerializeField] private bool supportsRegeneration = true;
 
     [Header("Wind risk (diagnostic only)")]
     [Tooltip("[D] Stand wind susceptibility multiplier. The Irish empirical model is stand-level and is not used as annual individual mortality.")]
@@ -98,6 +106,7 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float FormHeightRatio => formHeightRatio;
     public float CrownRadiusIntercept => crownRadiusIntercept;
     public float CrownRadiusPerCmDbh => crownRadiusPerCmDbh;
+    public bool UsesPowerLawCrown => usePowerLawCrown;
     public float CrownRelaxationPerYear => crownRelaxationPerYear;
     public float MaturityOnsetYears => maturityOnsetYears;
     public float MaturityFullYears => maturityFullYears;
@@ -117,12 +126,19 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float RegenDensityMax => regenDensityMax;
     public float RegenMortalityUnderPoorLight => regenMortalityUnderPoorLight;
     public float RegenPoorLightThreshold => regenPoorLightThreshold;
+    public bool SupportsRegeneration => supportsRegeneration;
     public float StandWindSusceptibility => standWindSusceptibility;
     public float WindOpeningWeight => windOpeningWeight;
     public float WindThinningHalfLifeYears => windThinningHalfLifeYears;
 
     public float PotentialCrownRadiusM(float dbhCm)
     {
+        if (usePowerLawCrown)
+        {
+            float dbh = Mathf.Max(0.1f, dbhCm);
+            float crownArea = Mathf.Exp(crownAreaLogIntercept + crownAreaLogSlope * Mathf.Log(dbh));
+            return Mathf.Max(0.1f, Mathf.Sqrt(crownArea / Mathf.PI));
+        }
         return Mathf.Max(0.1f, crownRadiusIntercept + crownRadiusPerCmDbh * dbhCm);
     }
 

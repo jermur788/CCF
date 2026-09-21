@@ -13,6 +13,11 @@ The suppression-history slice is additive: age, physical dimensions and reproduc
 
 ## Future mixed-species fixture
 
-`Assets/Scenes/MixedSpeciesTest.unity` is a separate copy of the unchanged playable scene, with its own asset GUID. At this checkpoint it is deliberately Sitka-only: Beech spawning and ecology belong to the next slice. Make later mixed-stand changes here, preserving ForestTest and the mature lifecycle fixture as controls. It is not added to the player build list.
+`Assets/Scenes/MixedSpeciesTest.unity` is a separate test scene with its own
+asset GUID. It preserves the normal 336-tree Sitka starting generator and
+adds four explicit Beech individuals at Play start. Beech reproduction is
+disabled in this slice. The canonical `ForestTest` and mature lifecycle
+fixture remain controls; MixedSpeciesTest is not added to the player build
+list.
 
 The verification harness has a `BeginMixedScaffold` entry point to run the same initial-stand and lifecycle checks starting in this scene. See SuppressionHistory.md for runner installation and cleanup.

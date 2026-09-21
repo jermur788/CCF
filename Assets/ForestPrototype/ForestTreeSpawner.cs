@@ -1,5 +1,14 @@
 using UnityEngine;
 
+[System.Serializable]
+public sealed class ForestSpeciesVisualSet
+{
+    public TreeSpeciesDefinition species;
+    public GameObject matureVisualPrefab;
+    public GameObject poleVisualPrefab;
+    public GameObject stumpPrefab;
+}
+
 // Simplest maintainable spawning path for naturally recruited trees: the same
 // factory is used by the ecology controller and by save loading, so ecological
 // logic never depends on how the placeholder tree is built.
@@ -17,8 +26,24 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private GameObject visualPrefabAlternative;
     [SerializeField] private GameObject stumpPrefab;
     [SerializeField] private GameObject poleVisualPrefab;
+    [SerializeField] private ForestSpeciesVisualSet[] speciesVisualSets;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
+
+    public TreeSpeciesDefinition ResolveSpecies(string speciesId)
+    {
+        if (string.IsNullOrEmpty(speciesId))
+            return defaultSpecies;
+        if (defaultSpecies != null && defaultSpecies.SpeciesId == speciesId)
+            return defaultSpecies;
+        if (speciesVisualSets != null)
+        {
+            foreach (ForestSpeciesVisualSet set in speciesVisualSets)
+                if (set != null && set.species != null && set.species.SpeciesId == speciesId)
+                    return set.species;
+        }
+        return null;
+    }
 
     // Stable 50/50 split between the two visuals, keyed by the tree id
     // (FNV-1a, character order — identical on every machine and session).
@@ -37,7 +62,13 @@ public sealed class ForestTreeSpawner : MonoBehaviour
 
     public ForestTree Spawn(string treeId, Vector3 groundPosition, int ageYears, float dbhCm, float heightMeters, float crownRadiusMeters)
     {
-        if (defaultSpecies == null || barkMaterial == null || canopyPrefab == null)
+        return Spawn(treeId, defaultSpecies, groundPosition, ageYears, dbhCm, heightMeters, crownRadiusMeters);
+    }
+
+    public ForestTree Spawn(string treeId, TreeSpeciesDefinition requestedSpecies, Vector3 groundPosition, int ageYears, float dbhCm, float heightMeters, float crownRadiusMeters)
+    {
+        TreeSpeciesDefinition species = requestedSpecies != null ? requestedSpecies : defaultSpecies;
+        if (species == null || barkMaterial == null || canopyPrefab == null)
         {
             Debug.LogError("ForestTreeSpawner is missing its species, bark material or canopy prefab.", this);
             return null;
@@ -57,9 +88,30 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         canopy.name = "Canopy";
 
         var tree = root.AddComponent<ForestTree>();
-        tree.InitializeForSpawn(treeId, trunk.transform, canopy.transform, defaultSpecies, ageYears, heightMeters, dbhCm, crownRadiusMeters);
-        if (visualPrefab != null)
-            tree.SetVisualStages(PickVisual(treeId, visualPrefab, visualPrefabAlternative), poleVisualPrefab, stumpPrefab);
+        tree.InitializeForSpawn(treeId, trunk.transform, canopy.transform, species, ageYears, heightMeters, dbhCm, crownRadiusMeters);
+        ApplySpeciesVisuals(tree, species);
         return tree;
+    }
+
+    public void ApplySpeciesVisuals(ForestTree tree, TreeSpeciesDefinition requestedSpecies)
+    {
+        if (tree == null)
+            return;
+        TreeSpeciesDefinition species = requestedSpecies != null ? requestedSpecies : defaultSpecies;
+        ForestSpeciesVisualSet speciesVisuals = FindVisualSet(species);
+        if (speciesVisuals != null)
+            tree.SetVisualStages(speciesVisuals.matureVisualPrefab, speciesVisuals.poleVisualPrefab, speciesVisuals.stumpPrefab != null ? speciesVisuals.stumpPrefab : stumpPrefab);
+        else if (species == defaultSpecies && visualPrefab != null)
+            tree.SetVisualStages(PickVisual(tree.TreeId, visualPrefab, visualPrefabAlternative), poleVisualPrefab, stumpPrefab);
+    }
+
+    private ForestSpeciesVisualSet FindVisualSet(TreeSpeciesDefinition species)
+    {
+        if (speciesVisualSets == null || species == null)
+            return null;
+        foreach (ForestSpeciesVisualSet set in speciesVisualSets)
+            if (set != null && set.species == species)
+                return set;
+        return null;
     }
 }

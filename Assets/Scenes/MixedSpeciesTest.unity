@@ -880,7 +880,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 6
   interactionDistance: 4
@@ -921,7 +921,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5865b81aefe6e6fcabbbe54075d7585d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestSawPit
   interactionDistance: 4
   logRackSearchRadius: 8
@@ -2002,7 +2002,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 436f078b26f9199afbb10621444462b2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestWoodStorage
   storageId: log-rack-02
   capacity: 100
@@ -2023,7 +2023,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 4
   interactionDistance: 4
@@ -2738,7 +2738,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a55d334698bbe902860f80d064b0d16, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestPlayer
   view: {fileID: 571414935}
   moveSpeed: 4
@@ -3579,7 +3579,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 2
   interactionDistance: 4
@@ -5253,7 +5253,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 12
   interactionDistance: 4
@@ -5658,7 +5658,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 8
   interactionDistance: 4
@@ -5741,7 +5741,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 760d3ace7f61434adadef80ffdacb9a0, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestSaveController
 --- !u!4 &780226343
 Transform:
@@ -5768,7 +5768,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b967cfd3bd0c7482974294930f9019c, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestEcologyController
   ecologicalYear: 0
   simulationSeed: 20260914
@@ -5794,7 +5794,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f24d6242b31c0332fa6fb8af634a4b8a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestTreeSpawner
   defaultSpecies: {fileID: 11400000, guid: 00cf9c56510434b8dae8bee17b419462, type: 2}
   barkMaterial: {fileID: 2100000, guid: c2792981a9803b3aaad9fee7a4f58312, type: 2}
@@ -5804,6 +5804,11 @@ MonoBehaviour:
   visualPrefabAlternative: {fileID: 0}
   stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
   poleVisualPrefab: {fileID: 6271525878068544356, guid: cdae1a7e37c9229c6a6e96857019476c, type: 3}
+  speciesVisualSets:
+  - species: {fileID: 11400000, guid: fe893569208ecfe83902e2100d696f16, type: 2}
+    matureVisualPrefab: {fileID: 663508896920788624, guid: 0a4c1a7964b8600408762c084d938386, type: 3}
+    poleVisualPrefab: {fileID: 0}
+    stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
 --- !u!114 &780226346
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5814,7 +5819,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f466d6fed08095b6ea097d164490ce4a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestTreeMarkingManager
   interactionDistance: 8
   markerColor: {r: 1, g: 0.35, b: 0.05, a: 1}
@@ -5829,7 +5834,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b5890bba5417d47981e9648522f0c32, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestStartingStand
   standWidthMeters: 40
   standDepthMeters: 40
@@ -6830,6 +6835,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 886044880}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &892574736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 892574738}
+  - component: {fileID: 892574737}
+  m_Layer: 0
+  m_Name: Mixed Species Test Stand
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &892574737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 892574736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2efaaf70b3177a22c8140ded6e81ea9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MixedSpeciesTestStand
+  beechSpecies: {fileID: 11400000, guid: fe893569208ecfe83902e2100d696f16, type: 2}
+  beechCount: 4
+--- !u!4 &892574738
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 892574736}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &894029524
 GameObject:
   m_ObjectHideFlags: 0
@@ -7561,7 +7612,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
@@ -8308,7 +8359,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 436f078b26f9199afbb10621444462b2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestWoodStorage
   storageId: plank-rack-01
   capacity: 40
@@ -8615,7 +8666,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 20
   interactionDistance: 4
@@ -11207,7 +11258,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 436f078b26f9199afbb10621444462b2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestWoodStorage
   storageId: log-rack-01
   capacity: 100
@@ -11228,7 +11279,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be2af264db0287bb82419f68cf38938, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ForestBuildable
   woodCost: 6
   interactionDistance: 4
@@ -18005,3 +18056,4 @@ SceneRoots:
   - {fileID: 273376902}
   - {fileID: 497075540}
   - {fileID: 843310674}
+  - {fileID: 892574738}

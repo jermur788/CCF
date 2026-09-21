@@ -70,6 +70,11 @@ public sealed class ForestTree : MonoBehaviour
     {
         equivalentSuppressedYears = float.IsNaN(years) || float.IsInfinity(years) ? 0f : Mathf.Max(0f, years);
     }
+
+    public void SetSpecies(TreeSpeciesDefinition speciesDefinition)
+    {
+        species = speciesDefinition;
+    }
     public ForestTreeStage Stage => stage;
     // Display stage derives from authoritative height for living trees so what
     // the player sees matches what the card says (pole-looking trees are not

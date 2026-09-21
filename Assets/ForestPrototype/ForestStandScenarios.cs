@@ -106,7 +106,7 @@ public static class ForestStandScenarios
                 continue;
             string[] coords = parts[1].Split(',');
             Vector3 position = new Vector3(float.Parse(coords[0]), 0f, float.Parse(coords[1]));
-            spawner.Spawn(parts[0], position, int.Parse(parts[2]), float.Parse(parts[3]),
+            spawner.Spawn(parts[0], spawner.DefaultSpecies, position, int.Parse(parts[2]), float.Parse(parts[3]),
                 float.Parse(parts[4]), float.Parse(parts[5]));
         }
         ecology.InvalidateCompetition();

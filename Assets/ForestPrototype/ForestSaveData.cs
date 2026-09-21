@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -22,6 +22,9 @@ public sealed class ForestSaveData
 public sealed class TreeSaveData
 {
     public string treeId = "";
+    // Version 7: explicit individual species identity. Legacy saves omit it
+    // and are loaded as the scene's default Sitka species.
+    public string speciesId = "";
     public int stage;
     public float stageTimer;
     public int chopProgress;

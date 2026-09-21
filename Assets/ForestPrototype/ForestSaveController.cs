@@ -56,6 +56,7 @@ public sealed class ForestSaveController : MonoBehaviour
             data.trees.Add(new TreeSaveData
             {
                 treeId = tree.TreeId,
+                speciesId = tree.Species != null ? tree.Species.SpeciesId : "",
                 stage = (int)tree.Stage,
                 stageTimer = tree.StageTimer,
                 chopProgress = tree.ChopProgress,
@@ -169,19 +170,33 @@ public sealed class ForestSaveController : MonoBehaviour
         if (data.trees != null)
         {
             ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+            if (spawner == null)
+            {
+                Debug.LogError("Cannot load tree species without a ForestTreeSpawner.");
+                return;
+            }
             foreach (TreeSaveData saved in data.trees)
             {
+                bool legacySpecies = data.version < 7 || string.IsNullOrEmpty(saved.speciesId);
+                TreeSpeciesDefinition savedSpecies = legacySpecies ? spawner.DefaultSpecies : spawner.ResolveSpecies(saved.speciesId);
+                if (!legacySpecies && savedSpecies == null)
+                {
+                    Debug.LogWarning($"Unknown saved species '{saved.speciesId}' for tree {saved.treeId}; loading it as {spawner.DefaultSpecies?.SpeciesId ?? "default"}.");
+                    savedSpecies = spawner.DefaultSpecies;
+                }
                 if (treesById.TryGetValue(saved.treeId, out ForestTree tree))
                 {
+                    tree.SetSpecies(savedSpecies);
+                    spawner.ApplySpeciesVisuals(tree, savedSpecies);
                     tree.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
                     tree.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
                     if (data.version >= 3 && saved.hasSimulation)
                         tree.SetSimulationState(saved.ageYears, saved.heightMeters, saved.diameterCm, saved.crownRadiusMeters);
                 }
-                else if (data.version >= 3 && saved.hasSimulation && spawner != null)
+                else if (data.version >= 3 && saved.hasSimulation)
                 {
                     // A naturally recruited tree that is not in the scene yet.
-                    ForestTree recruited = spawner.Spawn(saved.treeId, saved.position, saved.ageYears, saved.diameterCm, saved.heightMeters, saved.crownRadiusMeters);
+                    ForestTree recruited = spawner.Spawn(saved.treeId, savedSpecies, saved.position, saved.ageYears, saved.diameterCm, saved.heightMeters, saved.crownRadiusMeters);
                     if (recruited == null)
                     {
                         Debug.LogWarning($"Could not spawn recruited tree {saved.treeId} while loading.");

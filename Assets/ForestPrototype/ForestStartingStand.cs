@@ -132,7 +132,7 @@ public sealed class ForestStartingStand : MonoBehaviour
             float height = HeightForDbh(dbh, slot.id);
             var species = spawner.DefaultSpecies;
             float crown = species != null ? species.PotentialCrownRadiusM(dbh) : 1.6f;
-            spawner.Spawn(slot.id, slot.position, canonicalAgeYears, dbh, height, crown);
+            spawner.Spawn(slot.id, spawner.DefaultSpecies, slot.position, canonicalAgeYears, dbh, height, crown);
             spawned++;
         }
 
