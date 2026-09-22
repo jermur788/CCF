@@ -19,6 +19,13 @@ public sealed class ForestEcologyController : MonoBehaviour
     [Tooltip("Time-lapse: while enabled, one ecological year passes every Seconds Per Year of real time. Toggled in-game with T, which cycles 30 -> 10 -> 2.5 s/year -> off. Uses the same deterministic annual step as everything else.")]
     [SerializeField] private bool timeLapseEnabled;
     [SerializeField, Min(0.5f)] private float timeLapseSecondsPerYear = 30f;
+    [Header("Planting (Beech v1)")]
+    [Tooltip("[B] Biological age of nursery-stock Beech when planted, years. Evidence-derived from realistic bare-root/container stock.")]
+    [SerializeField, Min(0)] private int plantedJuvenileAgeYears = 3;
+    [Tooltip("[C] Representative height of a planted Beech juvenile, metres. Simulation abstraction; real stock spans roughly 0.4-0.9 m.")]
+    [SerializeField, Min(0.05f)] private float plantedJuvenileHeightM = 0.6f;
+    [Tooltip("[C] Relative regeneration density contributed by one planting. The cohort still promotes to a single tree; this only sets its share of the shared cell capacity.")]
+    [SerializeField, Min(0f)] private float plantedJuvenileDensity = 1f;
     [Tooltip("Optional visual-only seedling shown for the default species while its regeneration cohort grows (scaled by cohort height, removed on promotion). Pure display: the cohort state stays authoritative.")]
     [SerializeField] private GameObject seedlingVisualPrefab;
     private readonly Dictionary<int, GameObject> seedlingVisuals = new Dictionary<int, GameObject>();
@@ -327,7 +334,8 @@ public sealed class ForestEcologyController : MonoBehaviour
                     Debug.LogWarning($"Unknown regeneration species '{saved.speciesId}' in cell {index}; cohort skipped.");
                     continue;
                 }
-                cell.GetOrCreateCohort(cohortSpecies).Restore(saved.density, saved.height, saved.establishYear);
+                cell.GetOrCreateCohort(cohortSpecies).Restore(saved.density, saved.height, saved.establishYear,
+                    (RegenerationOrigin)saved.origin, saved.originYear);
             }
         }
         RestoreCellEnvironment(cell, recentOpening, establishmentSuitability);
@@ -344,6 +352,65 @@ public sealed class ForestEcologyController : MonoBehaviour
             ? Mathf.Clamp01(establishmentSuitability)
             : Mathf.Clamp01(1f - 0.3f * cell.RecentOpening);
     }
+
+    // Player-facing biological planting action. One call creates one Beech
+    // juvenile inside the existing regeneration architecture. It bypasses mast,
+    // seed production and dispersal, but not light, site suitability, shared
+    // capacity, juvenile growth, mortality, promotion or competition. The
+    // ecology, never a planting roll, decides whether the juvenile recruits.
+    public PlantingResult TryPlantBeech(Vector3 worldPosition)
+    {
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        TreeSpeciesDefinition beech = spawner != null ? spawner.ResolveSpecies("beech") : null;
+        return TryPlantJuvenile(beech, worldPosition);
+    }
+
+    // Generic form so Survival can plant any species whose ecology is enabled.
+    public PlantingResult TryPlantJuvenile(TreeSpeciesDefinition targetSpecies, Vector3 worldPosition)
+    {
+        if (targetSpecies == null)
+            return PlantingResult.Failed(PlantingOutcome.SpeciesUnavailable, "No species is available to plant.");
+        if (!targetSpecies.SupportsRegeneration)
+            return PlantingResult.Failed(PlantingOutcome.SpeciesCannotRegenerate,
+                $"{targetSpecies.DisplayName} regeneration is not enabled.");
+        if (cells == null)
+            return PlantingResult.Failed(PlantingOutcome.OutsideStand, "The ecology grid is not built.");
+
+        int index = GetCellIndex(worldPosition);
+        if (index < 0)
+            return PlantingResult.Failed(PlantingOutcome.OutsideStand, "The planting position is outside the stand.");
+        ForestEcologyCell cell = cells[index];
+
+        // One cohort per species per cell is the existing model. Planting does
+        // not overwrite or merge with a live same-species cohort.
+        ForestRegenerationCohort cohort = cell.FindCohort(targetSpecies.SpeciesId);
+        if (cohort != null && cohort.Density > 0f)
+            return PlantingResult.Failed(PlantingOutcome.AlreadyOccupied,
+                $"{targetSpecies.DisplayName} is already regenerating in this cell.", index);
+        if (cohort == null)
+            cohort = cell.GetOrCreateCohort(targetSpecies);
+        if (cohort == null)
+            return PlantingResult.Failed(PlantingOutcome.SpeciesUnavailable,
+                "Could not create a regeneration cohort.", index);
+
+        cohort.Height = plantedJuvenileHeightM;
+        cohort.EstablishYear = ecologicalYear - Mathf.Max(0, plantedJuvenileAgeYears);
+        cohort.Origin = RegenerationOrigin.Planted;
+        cohort.OriginYear = ecologicalYear;
+        cell.AddDensityWithSharedCapacity(cohort, plantedJuvenileDensity);
+        if (cohort.Density <= 0f)
+        {
+            cell.RemoveCohortIfEmpty(cohort);
+            return PlantingResult.Failed(PlantingOutcome.NoCapacity,
+                "This cell has no shared regeneration capacity left.", index);
+        }
+        seedlingVisualsDirty = true;
+        return PlantingResult.Planted(index);
+    }
+
+    public int PlantedJuvenileAgeYears => plantedJuvenileAgeYears;
+    public float PlantedJuvenileHeightM => plantedJuvenileHeightM;
+    public float PlantedJuvenileDensity => plantedJuvenileDensity;
 
     // Deterministically reproduces the mast roll for the current seed and year.
     public void RefreshMastForCurrentYear()
@@ -752,10 +819,14 @@ public sealed class ForestEcologyController : MonoBehaviour
                 float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
                 if (establishment <= 0.01f)
                     continue;
-                if (cohort.EstablishYear < 0)
+                // Planted cohorts are always established, even when their
+                // back-dated establishment year is negative. They only receive
+                // extra density here, never a height reset.
+                if (cohort.EstablishYear < 0 && cohort.Origin != RegenerationOrigin.Planted)
                 {
                     cohort.EstablishYear = ecologicalYear;
                     cohort.Height = cohortSpecies.RegenInitialHeightM;
+                    cohort.OriginYear = ecologicalYear;
                 }
                 cell.AddDensityWithSharedCapacity(cohort, establishment * cohortSpecies.RegenDensityPerEstablishment);
             }
@@ -787,12 +858,17 @@ public sealed class ForestEcologyController : MonoBehaviour
                 continue;
             float offsetX = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
             float offsetZ = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
-            int age = Mathf.Max(1, ecologicalYear - Mathf.Max(0, cohort.EstablishYear));
+            // Biological age comes from the establishment year, including the
+            // back-dated age of a planted juvenile. Planted cohorts are never
+            // reset, so the raw year is always meaningful here.
+            int age = Mathf.Max(1, ecologicalYear - cohort.EstablishYear);
             float dbh = Mathf.Clamp(cohort.Height * 1.5f, 2f, 20f); // [C] young-tree proportion
             float crown = cohortSpecies.PotentialCrownRadiusM(dbh);
+            // Id prefix is diagnostic provenance only; it does not affect ecology.
+            string prefix = cohort.Origin == RegenerationOrigin.Planted ? "PL" : "R";
             string id = isDefault
-                ? "R" + ecologicalYear + "-" + i
-                : "R" + ecologicalYear + "-" + i + "-" + cohortSpecies.SpeciesId;
+                ? prefix + ecologicalYear + "-" + i
+                : prefix + ecologicalYear + "-" + i + "-" + cohortSpecies.SpeciesId;
             Vector3 position = new Vector3(cell.Center.x + offsetX, 0f, cell.Center.y + offsetZ);
             ForestTree recruited = spawner.Spawn(id, cohortSpecies, position, age, dbh, cohort.Height, crown);
             if (recruited != null)

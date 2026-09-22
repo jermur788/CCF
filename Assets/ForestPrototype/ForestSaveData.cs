@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -62,7 +62,7 @@ public sealed class ForestCellSaveData
     public float regenDensity;
     public float regenHeight;
     public int regenEstablishYear = -1;
-    // Version 8: explicit species-keyed regeneration state. Seed rain remains derived.
+    // Version 8+: explicit species-keyed regeneration state. Seed rain remains derived.
     public List<ForestRegenerationCohortSaveData> cohorts = new List<ForestRegenerationCohortSaveData>();
     public float recentOpening;
     // Smoothed disturbance response; a short history that cannot be rebuilt
@@ -78,4 +78,7 @@ public sealed class ForestRegenerationCohortSaveData
     public float density;
     public float height;
     public int establishYear = -1;
+    // Version 9: diagnostic provenance. Legacy cohorts default to Natural.
+    public int origin;
+    public int originYear = -1;
 }

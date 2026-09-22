@@ -10,17 +10,26 @@ public sealed class ForestRegenerationCohort
     public float Density;
     public float Height;
     public int EstablishYear = -1;
+    // Diagnostic provenance only; never consumed by growth, mortality or
+    // reproduction. A planted cohort is otherwise an ordinary cohort.
+    public RegenerationOrigin Origin = RegenerationOrigin.Natural;
+    public int OriginYear = -1;
 
     public ForestRegenerationCohort(TreeSpeciesDefinition species)
     {
         Species = species;
     }
 
-    public void Restore(float density, float height, int establishYear)
+    public void Restore(float density, float height, int establishYear,
+        RegenerationOrigin origin = RegenerationOrigin.Natural, int originYear = -1)
     {
         Density = Mathf.Max(0f, density);
         Height = Mathf.Max(0f, height);
         EstablishYear = establishYear;
+        Origin = origin;
+        // Older saves carry no origin year; fall back to the establishment year
+        // so natural cohorts still expose a meaningful diagnostic value.
+        OriginYear = originYear >= 0 ? originYear : establishYear;
     }
 }
 
@@ -119,6 +128,10 @@ public sealed class ForestEcologyCell
         target.Density = Mathf.Min(targetMaximum, target.Density + requestedDensity);
     }
 
+    // Normalized shared capacity: each species contributes density / RegenDensityMax.
+    // A single-species cohort at its RegenDensityMax therefore reads occupancy 1,
+    // even though the cohort's own density value is RegenDensityMax (e.g. 1.5 for
+    // Beech). Density and occupancy are intentionally different quantities.
     // Wind exposure from recent local removals (diagnostic; decays annually).
     public float RecentOpening;
 }

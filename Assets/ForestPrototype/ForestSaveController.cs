@@ -116,7 +116,9 @@ public sealed class ForestSaveController : MonoBehaviour
                         speciesId = cohort.SpeciesId,
                         density = cohort.Density,
                         height = cohort.Height,
-                        establishYear = cohort.EstablishYear
+                        establishYear = cohort.EstablishYear,
+                        origin = (int)cohort.Origin,
+                        originYear = cohort.OriginYear
                     });
                 }
                 data.cells.Add(savedCell);
