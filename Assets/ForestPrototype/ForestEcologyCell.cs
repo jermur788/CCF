@@ -78,6 +78,11 @@ public sealed class ForestEcologyCell
             regeneration.Remove(cohort);
     }
 
+    public bool RemoveCohort(ForestRegenerationCohort cohort)
+    {
+        return cohort != null && regeneration.Remove(cohort);
+    }
+
     public void ClearSeedRain()
     {
         for (int i = regeneration.Count - 1; i >= 0; i--)

@@ -412,6 +412,66 @@ public sealed class ForestEcologyController : MonoBehaviour
     public float PlantedJuvenileHeightM => plantedJuvenileHeightM;
     public float PlantedJuvenileDensity => plantedJuvenileDensity;
 
+    // Read-only species snapshots for Survival/UI. Mutable ecology cells and
+    // cohorts never cross this boundary.
+    public RegenerationQueryResult QueryRegeneration(Vector3 worldPosition)
+    {
+        if (cells == null)
+            return RegenerationQueryResult.Failed(RegenerationQueryOutcome.OutsideEcologyArea,
+                "The ecology grid is not built.");
+
+        int index = GetCellIndex(worldPosition);
+        if (index < 0)
+            return RegenerationQueryResult.Failed(RegenerationQueryOutcome.OutsideEcologyArea,
+                "This position is outside the ecology area.");
+
+        ForestEcologyCell cell = cells[index];
+        var snapshots = new List<RegenerationCohortInfo>();
+        foreach (ForestRegenerationCohort cohort in cell.Regeneration)
+        {
+            if (cohort == null || cohort.Species == null || cohort.Density <= 0f)
+                continue;
+            snapshots.Add(new RegenerationCohortInfo(cohort));
+        }
+        if (snapshots.Count == 0)
+            return RegenerationQueryResult.Failed(RegenerationQueryOutcome.NoRegeneration,
+                "There is no regeneration in this cell.", index);
+        return RegenerationQueryResult.Found(index, snapshots.ToArray());
+    }
+
+    // Removes the complete selected-species cohort from one ecology cell.
+    // Individual promoted trees are separate biology and are never touched.
+    public UprootingResult TryUprootRegeneration(Vector3 worldPosition, TreeSpeciesDefinition targetSpecies)
+    {
+        if (targetSpecies == null || string.IsNullOrEmpty(targetSpecies.SpeciesId))
+            return UprootingResult.Failed(UprootingOutcome.InvalidSpecies,
+                "Choose a valid regeneration species.");
+        if (cells == null)
+            return UprootingResult.Failed(UprootingOutcome.OutsideEcologyArea,
+                "The ecology grid is not built.");
+
+        int index = GetCellIndex(worldPosition);
+        if (index < 0)
+            return UprootingResult.Failed(UprootingOutcome.OutsideEcologyArea,
+                "This position is outside the ecology area.");
+
+        ForestEcologyCell cell = cells[index];
+        if (!cell.HasRegeneration)
+            return UprootingResult.Failed(UprootingOutcome.NoRegeneration,
+                "There is no regeneration to uproot in this cell.", index);
+
+        ForestRegenerationCohort cohort = cell.FindCohort(targetSpecies.SpeciesId);
+        if (cohort == null || cohort.Density <= 0f)
+            return UprootingResult.Failed(UprootingOutcome.SpeciesNotPresent,
+                $"{targetSpecies.DisplayName} is not regenerating in this cell.", index);
+
+        if (!cell.RemoveCohort(cohort))
+            return UprootingResult.Failed(UprootingOutcome.SpeciesNotPresent,
+                $"{targetSpecies.DisplayName} is not regenerating in this cell.", index);
+        seedlingVisualsDirty = true;
+        return UprootingResult.Uprooted(index, targetSpecies.DisplayName);
+    }
+
     // Deterministically reproduces the mast roll for the current seed and year.
     public void RefreshMastForCurrentYear()
     {
