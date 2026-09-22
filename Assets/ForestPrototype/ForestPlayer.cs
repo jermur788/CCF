@@ -25,6 +25,8 @@ public sealed class ForestPlayer : MonoBehaviour
     private float verticalSpeed;
     private bool isLookingAtTree;
     private ForestTree aimedTree;
+    private bool isAimingGround;
+    private Vector3 aimedSurfacePoint;
     private bool isInspecting;
     private ForestTree inspectedTree;
     private ForestEcologyController inspectedTreeEcology;
@@ -179,6 +181,7 @@ public sealed class ForestPlayer : MonoBehaviour
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
                                (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame);
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
+        bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
 
         if (messageTimer > 0f)
         {
@@ -282,13 +285,14 @@ public sealed class ForestPlayer : MonoBehaviour
         if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
             verticalSpeed = 0f;
 
-        UpdateTreeInspection(interactPressed, harvestPressed);
+        UpdateTreeInspection(interactPressed, harvestPressed, plantPressed);
     }
 
-    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed)
+    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed, bool plantPressed)
     {
         isLookingAtTree = false;
         aimedTree = null;
+        isAimingGround = false;
 
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
         {
@@ -323,6 +327,14 @@ public sealed class ForestPlayer : MonoBehaviour
             }
         }
 
+        // Planting needs the aimed ground surface, not a tree: accept flat,
+        // upward-facing non-tree, non-structure surfaces within reach.
+        isAimingGround = found && !isLookingAtTree
+            && Vector3.Dot(nearest.normal, Vector3.up) > 0.7f
+            && nearest.collider.GetComponentInParent<ForestBuildable>() == null;
+        if (isAimingGround)
+            aimedSurfacePoint = nearest.point;
+
         // If inspecting, close card if player steps or looks too far away
         if (isInspecting)
         {
@@ -350,6 +362,27 @@ public sealed class ForestPlayer : MonoBehaviour
                 InspectTree(aimedTree);
             }
         }
+        else if (plantPressed && isAimingGround)
+        {
+            PlantBeechAt(aimedSurfacePoint);
+        }
+    }
+
+    // Player-facing Beech Planting v1: one explicit action, one planted
+    // juvenile. The ecology (never a planting roll) decides survival; both
+    // success and failure report the ecology's own player-readable reason.
+    private void PlantBeechAt(Vector3 groundPoint)
+    {
+        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+        if (ecology == null)
+        {
+            lastHarvestMessage = "No ecology to plant into.";
+            messageTimer = 2.5f;
+            return;
+        }
+        PlantingResult result = ecology.TryPlantBeech(groundPoint);
+        lastHarvestMessage = result.Message;
+        messageTimer = 3.5f;
     }
 
     private void InspectTree(ForestTree tree)
@@ -503,6 +536,28 @@ public sealed class ForestPlayer : MonoBehaviour
             }
 
             float width = Mathf.Max(440f, promptText.Length * size * 0.52f + 48f);
+            float height = Mathf.Max(64f, size * 2.0f);
+            Rect promptRect = new Rect(centerX - width * 0.5f, centerY + 40f, width, height);
+            ForestHud.Panel(promptRect);
+            GUI.Label(promptRect, promptText, promptStyle);
+        }
+        else if (isAimingGround)
+        {
+            int size = Mathf.RoundToInt((promptFontSize >= 18 ? promptFontSize : 36) * ForestHud.Scale);
+            if (promptStyle == null || promptStyle.fontSize != size)
+            {
+                promptStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = size,
+                    fontStyle = FontStyle.Bold,
+                    wordWrap = false
+                };
+                promptStyle.normal.textColor = Color.white;
+            }
+
+            string promptText = "[G] Plant Beech";
+            float width = Mathf.Max(300f, promptText.Length * size * 0.52f + 48f);
             float height = Mathf.Max(64f, size * 2.0f);
             Rect promptRect = new Rect(centerX - width * 0.5f, centerY + 40f, width, height);
             ForestHud.Panel(promptRect);

@@ -5783,6 +5783,9 @@ MonoBehaviour:
   debugCellIndex: 0
   timeLapseEnabled: 0
   timeLapseSecondsPerYear: 30
+  plantedJuvenileAgeYears: 3
+  plantedJuvenileHeightM: 0.6
+  plantedJuvenileDensity: 1
   seedlingVisualPrefab: {fileID: 5019830431154472659, guid: 95f25f41933759b06b299705cf53339a, type: 3}
 --- !u!114 &780226345
 MonoBehaviour:
@@ -5804,6 +5807,11 @@ MonoBehaviour:
   visualPrefabAlternative: {fileID: 0}
   stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
   poleVisualPrefab: {fileID: 6271525878068544356, guid: cdae1a7e37c9229c6a6e96857019476c, type: 3}
+  speciesVisualSets:
+  - species: {fileID: 11400000, guid: fe893569208ecfe83902e2100d696f16, type: 2}
+    matureVisualPrefab: {fileID: 663508896920788624, guid: 0a4c1a7964b8600408762c084d938386, type: 3}
+    poleVisualPrefab: {fileID: 0}
+    stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
 --- !u!114 &780226346
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -156,6 +156,22 @@ public static class ForestSceneBuilder
                     AssetDatabase.LoadAssetAtPath<GameObject>(SitkaPolePrefabPath);
                 spawnerSerialized.FindProperty("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
             }
+            // Beech visual set: promoted Beech trees (including planted
+            // juveniles that promote) get a species-correct mature visual
+            // instead of a Sitka one. No Beech pole/stump asset yet; the stump
+            // falls back to the shared default.
+            var beechSpecies = AssetDatabase.LoadAssetAtPath<TreeSpeciesDefinition>(SpeciesFolder + "/BeechSpecies.asset");
+            var beechVisual = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabsFolder + "/BeechMature01.prefab");
+            if (beechSpecies != null && beechVisual != null)
+            {
+                var speciesSets = spawnerSerialized.FindProperty("speciesVisualSets");
+                speciesSets.arraySize = 1;
+                var beechElement = speciesSets.GetArrayElementAtIndex(0);
+                beechElement.FindPropertyRelative("species").objectReferenceValue = beechSpecies;
+                beechElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue = beechVisual;
+                beechElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue = null;
+                beechElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
+            }
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
             var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
             if (ecology != null)
