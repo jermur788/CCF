@@ -20,16 +20,16 @@ abstraction, D = calibration.
 | Crown relaxation | 0.15/year | D | Provisional multi-year lateral crown response. |
 | Reproductive onset | 40 years | A/B | Open-grown onset; dense stands can be delayed. |
 | Full reproductive age | 60 years | B/C | Initial model ramp; suppression can delay effective reproduction. |
-| Seed dispersal scale/cutoff | 6 m / 50 m | B/C | Short local Beech seed shadow; reproduction is disabled in this slice. |
-| Juvenile light response | 0, 0.15, 0.35, 0.65, 1, 1 at 0, 2, 5, 10, 20, 35% light | A/B/C | Shade-tolerant persistence, but severe deep-shade stagnation. |
-| Regeneration support | disabled | Scope | Beech seed production/regeneration is intentionally deferred. |
+| Seed dispersal scale/cutoff | 6 m / 50 m | B/C | Short local Beech seed shadow; short scale means most seed lands near the parent, but the long cutoff allows occasional longer dispersal. |
+| Juvenile light response | 0, 0, 0.15, 0.35, 0.65, 1, 1 at 0, 2, 5, 10, 20, 35, 100% light | A/B/C | Shade-tolerant persistence, but severe deep-shade stagnation; strong response from ~20% light upwards. |
+| Regeneration support | enabled (v1) | Scope | Beech seed production, regeneration and promotion are active and tested. |
 
-The asset's regeneration fields remain populated for future work but are not
-used while `SupportsRegeneration` is false. Current mixed-species verification
-therefore tests only individual-tree growth, competition, canopy/light,
-inspection, felling and persistence.
+The asset's regeneration fields are used by the live ecology.
+Mixed-species verification tests natural regeneration, shared-space capacity,
+light-driven juvenile growth, promotion and persistence as well as
+individual-tree competition, canopy, felling and save/load.
 
-Site interpretation for later regeneration work: fresh/moist, well-drained
-mineral soil is preferred; drought and waterlogging should both be strong
-penalties. Beech should persist below a Sitka canopy but should not thrive at
-arbitrarily deep shade or spread without a Beech seed source.
+Site interpretation: fresh/moist, well-drained mineral soil is preferred;
+drought and waterlogging should both be strong penalties. Beech persists below
+a Sitka canopy but does not thrive at arbitrarily deep shade or spread without
+a Beech seed source.
