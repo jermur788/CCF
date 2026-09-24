@@ -1,0 +1,74 @@
+[
+  {
+    "stage": "Sapling",
+    "lod": 0,
+    "height_m": 2,
+    "triangles": 40714,
+    "meshes": 2,
+    "leaves": 372
+  },
+  {
+    "stage": "Sapling",
+    "lod": 1,
+    "height_m": 2,
+    "triangles": 11156,
+    "meshes": 2,
+    "leaves": 168
+  },
+  {
+    "stage": "Sapling",
+    "lod": 2,
+    "height_m": 2,
+    "triangles": 2824,
+    "meshes": 2,
+    "leaves": 84
+  },
+  {
+    "stage": "Young",
+    "lod": 0,
+    "height_m": 8,
+    "triangles": 272660,
+    "meshes": 2,
+    "leaves": 2484
+  },
+  {
+    "stage": "Young",
+    "lod": 1,
+    "height_m": 8,
+    "triangles": 74612,
+    "meshes": 2,
+    "leaves": 1114
+  },
+  {
+    "stage": "Young",
+    "lod": 2,
+    "height_m": 8,
+    "triangles": 17816,
+    "meshes": 2,
+    "leaves": 455
+  },
+  {
+    "stage": "Mature",
+    "lod": 0,
+    "height_m": 20,
+    "triangles": 607328,
+    "meshes": 2,
+    "leaves": 5508
+  },
+  {
+    "stage": "Mature",
+    "lod": 1,
+    "height_m": 20,
+    "triangles": 166054,
+    "meshes": 2,
+    "leaves": 2448
+  },
+  {
+    "stage": "Mature",
+    "lod": 2,
+    "height_m": 20,
+    "triangles": 39564,
+    "meshes": 2,
+    "leaves": 950
+  }
+]

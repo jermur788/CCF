@@ -1,0 +1,182 @@
+[
+  {
+    "file": "Sessile_Oak_Sapling_01/Sessile_Oak_Sapling_01_LOD0.fbx",
+    "height_m": 1.9973152888110688,
+    "minimum_z": -1.2210419342295609e-09,
+    "bounds_m": [
+      1.3273107409477234,
+      1.4446999430656433,
+      1.9973152888110688
+    ],
+    "triangles": 40714,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Sapling_01/Sessile_Oak_Sapling_01_LOD1.fbx",
+    "height_m": 2.0001027596286347,
+    "minimum_z": -1.2210419342295609e-09,
+    "bounds_m": [
+      1.3322435021400452,
+      1.4487416744232178,
+      2.0001027596286347
+    ],
+    "triangles": 11150,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Sapling_01/Sessile_Oak_Sapling_01_LOD2.fbx",
+    "height_m": 2.0001089585116913,
+    "minimum_z": -1.2210419342295609e-09,
+    "bounds_m": [
+      1.3322319388389587,
+      1.448729932308197,
+      2.0001089585116913
+    ],
+    "triangles": 2452,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Young_01/Sessile_Oak_Young_01_LOD0.fbx",
+    "height_m": 7.994464402755748,
+    "minimum_z": -5.325328178429345e-09,
+    "bounds_m": [
+      6.319603681564331,
+      6.198188066482544,
+      7.994464402755748
+    ],
+    "triangles": 272660,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Young_01/Sessile_Oak_Young_01_LOD1.fbx",
+    "height_m": 8.000270848831187,
+    "minimum_z": -5.325328178429345e-09,
+    "bounds_m": [
+      6.3254075050354,
+      6.207449197769165,
+      8.000270848831187
+    ],
+    "triangles": 74612,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Young_01/Sessile_Oak_Young_01_LOD2.fbx",
+    "height_m": 8.000265126785289,
+    "minimum_z": -5.325328178429345e-09,
+    "bounds_m": [
+      6.3253984451293945,
+      6.207451105117798,
+      8.000265126785289
+    ],
+    "triangles": 15332,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Mature_01/Sessile_Oak_Mature_01_LOD0.fbx",
+    "height_m": 19.991582915738253,
+    "minimum_z": -4.525485408635177e-08,
+    "bounds_m": [
+      25.13766574859619,
+      16.132269382476807,
+      19.991582915738253
+    ],
+    "triangles": 607328,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Mature_01/Sessile_Oak_Mature_01_LOD1.fbx",
+    "height_m": 20.0002003168613,
+    "minimum_z": -4.525485408635177e-08,
+    "bounds_m": [
+      25.15582847595215,
+      16.142873764038086,
+      20.0002003168613
+    ],
+    "triangles": 165240,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  },
+  {
+    "file": "Sessile_Oak_Mature_01/Sessile_Oak_Mature_01_LOD2.fbx",
+    "height_m": 20.00020794625583,
+    "minimum_z": -4.525485408635177e-08,
+    "bounds_m": [
+      25.15581703186035,
+      16.123011589050293,
+      20.00020794625583
+    ],
+    "triangles": 34056,
+    "mesh_count": 2,
+    "materials": [
+      "Oak_Furrowed_Bark",
+      "Oak_Leaf_1",
+      "Oak_Leaf_2",
+      "Oak_Leaf_3",
+      "Oak_Leaf_4"
+    ],
+    "uvs": true
+  }
+]

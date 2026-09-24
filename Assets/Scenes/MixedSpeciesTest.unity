@@ -2752,6 +2752,8 @@ MonoBehaviour:
   maxCarriedWood: 20
   cubicMetersPerWoodUnit: 0.1
   carriedWood: 0
+  uprootMinDuration: 1
+  uprootMaxDuration: 5
 --- !u!143 &412577897
 CharacterController:
   m_ObjectHideFlags: 0
@@ -5783,6 +5785,9 @@ MonoBehaviour:
   debugCellIndex: 0
   timeLapseEnabled: 0
   timeLapseSecondsPerYear: 30
+  plantedJuvenileAgeYears: 3
+  plantedJuvenileHeightM: 0.6
+  plantedJuvenileDensity: 1
   seedlingVisualPrefab: {fileID: 5019830431154472659, guid: 95f25f41933759b06b299705cf53339a, type: 3}
 --- !u!114 &780226345
 MonoBehaviour:
@@ -5806,12 +5811,14 @@ MonoBehaviour:
   poleVisualPrefab: {fileID: 6271525878068544356, guid: cdae1a7e37c9229c6a6e96857019476c, type: 3}
   speciesVisualSets:
   - species: {fileID: 11400000, guid: fe893569208ecfe83902e2100d696f16, type: 2}
+    seedlingVisualPrefab: {fileID: 0}
     matureVisualPrefab: {fileID: 663508896920788624, guid: 0a4c1a7964b8600408762c084d938386, type: 3}
     poleVisualPrefab: {fileID: 0}
     stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
   - species: {fileID: 11400000, guid: a9f84f1bc82d4ab6a64d0736e8d42951, type: 2}
-    matureVisualPrefab: {fileID: 0}
-    poleVisualPrefab: {fileID: 0}
+    seedlingVisualPrefab: {fileID: 8018757451531591485, guid: c4596a7c173caf3abb62f34a81a7c2de, type: 3}
+    matureVisualPrefab: {fileID: 7746927844066120545, guid: 359ba6891642a8f3bad63276b247fd7c, type: 3}
+    poleVisualPrefab: {fileID: 8526131444710653392, guid: 5e36da8824858cb6ea2d0fedd68b45f7, type: 3}
     stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
 --- !u!114 &780226346
 MonoBehaviour:

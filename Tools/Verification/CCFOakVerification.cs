@@ -105,6 +105,9 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
               oak.JuvenileSurvivalResponse(0.20f) >= 0.999f, "Oak survival thresholds are wrong");
         Check(!sitka.UsesDistinctJuvenileLightResponses && !beech.UsesDistinctJuvenileLightResponses,
             "Legacy species unexpectedly entered the distinct-response path");
+        GameObject saplingVisual = spawner.GetSeedlingVisualPrefab(oak);
+        Check(saplingVisual != null && saplingVisual.GetComponent<LODGroup>()?.GetLODs().Length == 3,
+            "Oak sapling LOD visual is not registered");
         Debug.Log("OAK_PARAMETERS_PASS");
     }
 
@@ -247,6 +250,10 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
         yield return RemoveAllTrees();
         ForestTree openOak = spawner.Spawn("OAK-OPEN", oak, Vector3.zero, 20, 20f, 8f,
             oak.PotentialCrownRadiusM(20f));
+        Transform youngVisual = openOak.transform.Find("PolishedVisual");
+        Check(youngVisual != null && youngVisual.GetComponent<LODGroup>()?.GetLODs().Length == 3 &&
+              youngVisual.GetComponentsInChildren<MeshFilter>(true).Any(m => m.sharedMesh != null && m.sharedMesh.name.Contains("Young")),
+            "Promoted young Oak is not using the young-tree LOD asset");
         ecology.AdvanceOneYear();
         float openGrowth = openOak.Diameter - 20f;
         Destroy(openOak.gameObject);
@@ -277,6 +284,10 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
         yield return RemoveAllTrees();
         ForestTree parent = spawner.Spawn("OAK-PARENT", oak, Vector3.zero, 80, 55f, 25f,
             oak.PotentialCrownRadiusM(55f));
+        Transform matureVisual = parent.transform.Find("PolishedVisual");
+        Check(matureVisual != null && matureVisual.GetComponent<LODGroup>()?.GetLODs().Length == 3 &&
+              matureVisual.GetComponentsInChildren<MeshFilter>(true).Any(m => m.sharedMesh != null && m.sharedMesh.name.Contains("Mature")),
+            "Mature Oak is not using the mature LOD asset");
         bool sawGoodMast = false;
         bool sawPoorMast = false;
         bool sawSeed = false;
@@ -353,6 +364,11 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
         VerifyLightGradientAndRelease();
         VerifyBeechComparisonAndMixedCell();
         VerifyPlanting();
+        yield return null;
+        GameObject sapling = GameObject.Find("Sessile oak seedling cell 20");
+        Check(sapling != null && sapling.GetComponent<LODGroup>()?.GetLODs().Length == 3,
+            "Oak regeneration is not using the sapling LOD asset");
+        Debug.Log("OAK_VISUAL_STAGES_PASS");
         yield return VerifyAdultCompetitionAndLifecycle();
         yield return VerifySaveLoadContinuation();
         Debug.Log("OAK_VERIFY_PASS");

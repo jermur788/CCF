@@ -21,6 +21,9 @@ public static class ForestSceneBuilder
     private const string SitkaMaturePrefabPath = PrefabsFolder + "/SitkaMature01.prefab";
     private const string SitkaSeedlingPrefabPath = PrefabsFolder + "/SitkaSeedling01.prefab";
     private const string SitkaPolePrefabPath = PrefabsFolder + "/SitkaPole01.prefab";
+    private const string OakSaplingPrefabPath = PrefabsFolder + "/SessileOakSapling01.prefab";
+    private const string OakYoungPrefabPath = PrefabsFolder + "/SessileOakYoung01.prefab";
+    private const string OakMaturePrefabPath = PrefabsFolder + "/SessileOakMature01.prefab";
 
     // Explicit command only: importing these scripts never replaces an open scene.
     [MenuItem("Tools/Forest Prototype/Create Test Scene")]
@@ -169,17 +172,20 @@ public static class ForestSceneBuilder
                 speciesSets.arraySize = oakSpecies != null ? 2 : 1;
                 var beechElement = speciesSets.GetArrayElementAtIndex(0);
                 beechElement.FindPropertyRelative("species").objectReferenceValue = beechSpecies;
+                beechElement.FindPropertyRelative("seedlingVisualPrefab").objectReferenceValue = null;
                 beechElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue = beechVisual;
                 beechElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue = null;
                 beechElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
                 if (oakSpecies != null)
                 {
-                    // Oak art is delivered separately. Register the ecology now;
-                    // spawned Oak uses the procedural fallback until those prefabs land.
                     var oakElement = speciesSets.GetArrayElementAtIndex(1);
                     oakElement.FindPropertyRelative("species").objectReferenceValue = oakSpecies;
-                    oakElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue = null;
-                    oakElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue = null;
+                    oakElement.FindPropertyRelative("seedlingVisualPrefab").objectReferenceValue =
+                        AssetDatabase.LoadAssetAtPath<GameObject>(OakSaplingPrefabPath);
+                    oakElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue =
+                        AssetDatabase.LoadAssetAtPath<GameObject>(OakMaturePrefabPath);
+                    oakElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue =
+                        AssetDatabase.LoadAssetAtPath<GameObject>(OakYoungPrefabPath);
                     oakElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
                 }
             }

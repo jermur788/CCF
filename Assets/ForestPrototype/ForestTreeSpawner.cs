@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class ForestSpeciesVisualSet
 {
     public TreeSpeciesDefinition species;
+    public GameObject seedlingVisualPrefab;
     public GameObject matureVisualPrefab;
     public GameObject poleVisualPrefab;
     public GameObject stumpPrefab;
@@ -68,6 +69,12 @@ public sealed class ForestTreeSpawner : MonoBehaviour
                     return set.species;
         }
         return null;
+    }
+
+    public GameObject GetSeedlingVisualPrefab(TreeSpeciesDefinition requestedSpecies)
+    {
+        ForestSpeciesVisualSet set = FindVisualSet(requestedSpecies);
+        return set != null ? set.seedlingVisualPrefab : null;
     }
 
     // Stable 50/50 split between the two visuals, keyed by the tree id

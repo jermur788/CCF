@@ -28,7 +28,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField, Min(0f)] private float plantedJuvenileDensity = 1f;
     [Tooltip("Optional visual-only seedling shown for the default species while its regeneration cohort grows (scaled by cohort height, removed on promotion). Pure display: the cohort state stays authoritative.")]
     [SerializeField] private GameObject seedlingVisualPrefab;
-    private readonly Dictionary<int, GameObject> seedlingVisuals = new Dictionary<int, GameObject>();
+    private readonly Dictionary<string, GameObject> seedlingVisuals = new Dictionary<string, GameObject>();
     private bool seedlingVisualsDirty = true;
     private float timeLapseAccumulator;
 
@@ -143,56 +143,79 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
     }
 
-    // Visual-only: one default-species seedling per regenerating cell, scaled to
-    // the cohort's authoritative height. Never affects simulation state.
+    // Visual-only: one representative per visible species cohort, scaled to the
+    // cohort's authoritative height. Never affects simulation state.
     private void SyncSeedlingVisuals()
     {
         if (cells == null)
             return;
-        if (seedlingVisualPrefab == null)
-            return;
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
         TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
         string defaultSpeciesId = defaultSpecies != null ? defaultSpecies.SpeciesId : "";
+        var wantedKeys = new HashSet<string>();
         for (int i = 0; i < cells.Length; i++)
         {
-            ForestRegenerationCohort cohort = cells[i] != null ? cells[i].FindCohort(defaultSpeciesId) : null;
-            bool wanted = cohort != null && cohort.Density > 0f && !Mathf.Approximately(cohort.Height, 0f);
-            seedlingVisuals.TryGetValue(i, out GameObject visual);
-            if (wanted && visual == null)
-            {
-                Vector3 jitter = CellVisualJitter(i);
-                Vector3 position = new Vector3(cells[i].Center.x + jitter.x, 0f, cells[i].Center.y + jitter.z);
-                visual = Instantiate(seedlingVisualPrefab, position, Quaternion.Euler(0f, jitter.y, 0f), transform);
-                visual.name = $"Seedling cell {i}";
-                seedlingVisuals[i] = visual;
-            }
-            else if (!wanted && visual != null)
-            {
-                seedlingVisuals.Remove(i);
-                if (visual != null)
-                    Destroy(visual);
+            if (cells[i] == null)
                 continue;
-            }
-            if (wanted && visual != null)
+            foreach (ForestRegenerationCohort cohort in cells[i].Regeneration)
             {
+                if (cohort == null || cohort.Species == null || cohort.Density <= 0f ||
+                    Mathf.Approximately(cohort.Height, 0f))
+                    continue;
+                GameObject prefab = cohort.SpeciesId == defaultSpeciesId
+                    ? seedlingVisualPrefab
+                    : spawner != null ? spawner.GetSeedlingVisualPrefab(cohort.Species) : null;
+                if (prefab == null)
+                    continue;
+                string key = i + ":" + cohort.SpeciesId;
+                wantedKeys.Add(key);
+                seedlingVisuals.TryGetValue(key, out GameObject visual);
+                if (visual == null)
+                {
+                    Vector3 jitter = CellVisualJitter(i, cohort.SpeciesId, cohort.SpeciesId == defaultSpeciesId);
+                    Vector3 position = new Vector3(cells[i].Center.x + jitter.x, 0f, cells[i].Center.y + jitter.z);
+                    visual = Instantiate(prefab, position, Quaternion.Euler(0f, jitter.y, 0f), transform);
+                    visual.name = $"{cohort.Species.DisplayName} seedling cell {i}";
+                    seedlingVisuals[key] = visual;
+                }
                 float scale = Mathf.Clamp(cohort.Height, 0.15f, 3f);
                 visual.transform.localScale = Vector3.one * scale;
-                // The seedling sits on the ground regardless of parent scale.
                 visual.transform.position = new Vector3(visual.transform.position.x, 0f, visual.transform.position.z);
             }
         }
+        var staleKeys = new List<string>();
+        foreach (KeyValuePair<string, GameObject> pair in seedlingVisuals)
+            if (!wantedKeys.Contains(pair.Key))
+                staleKeys.Add(pair.Key);
+        foreach (string key in staleKeys)
+        {
+            GameObject stale = seedlingVisuals[key];
+            seedlingVisuals.Remove(key);
+            if (stale != null)
+                Destroy(stale);
+        }
     }
 
-    // Stable per-cell offset so the representative seedling does not jump
-    // between sessions, derived from the cell index only.
-    private Vector3 CellVisualJitter(int index)
+    // Stable per-cell/species offset so representatives do not overlap or jump
+    // between sessions. The default species retains its legacy cell-only offset.
+    private Vector3 CellVisualJitter(int index, string speciesId, bool preserveLegacyDefault)
     {
         uint hash = 2166136261u ^ (uint)index;
         hash *= 16777619u;
+        if (!preserveLegacyDefault && !string.IsNullOrEmpty(speciesId))
+        {
+            foreach (char c in speciesId)
+            {
+                hash ^= c;
+                hash *= 16777619u;
+            }
+        }
         float dx = ((hash & 0xFF) / 255f - 0.5f) * (cellSizeMeters * 0.5f);
         hash *= 16777619u;
         float dz = ((hash & 0xFF) / 255f - 0.5f) * (cellSizeMeters * 0.5f);
-        return new Vector3(dx, 0f, dz);
+        hash *= 16777619u;
+        float rotation = preserveLegacyDefault ? 0f : (hash & 0xFFFF) / 65535f * 360f;
+        return new Vector3(dx, rotation, dz);
     }
 
     private void OnEnable()

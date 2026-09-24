@@ -22,6 +22,12 @@ Initial Oak calibration:
 - crown radius uses the age-free fallback derived from the requested Oak crown
   relationship: `0.10 + 0.1045 * DBH_cm`, relaxed at 0.12/year.
 
+The supplied 2 m sapling, 8 m young-tree and 20 m mature Oak models are imported
+as three-level Unity LOD prefabs. Regeneration uses the sapling visual, promoted
+young trees use the young visual, and taller individuals transition to the mature
+visual. The source models are normalized inside their prefab roots so the existing
+authoritative ecological height continues to control displayed height.
+
 The v1 dispersal model intentionally includes only the local exponential kernel.
 Jay-mediated long-distance dispersal, rodent handling and acorn predation are
 deferred; there is no hidden long-distance tail. Browsing, soil-moisture mapping,
