@@ -20,6 +20,11 @@ public sealed class ForestPlayer : MonoBehaviour
     // keeping Forestry's biological numbers separate from the survival economy.
     [SerializeField, Min(0.01f)] private float cubicMetersPerWoodUnit = 0.1f;
     [SerializeField] private int carriedWood = 0;
+    [Header("Regeneration Uprooting")]
+    [Tooltip("[D] Seconds required to pull up the sparsest regeneration cohort.")]
+    [SerializeField, Min(0.1f)] private float uprootMinDuration = 1f;
+    [Tooltip("[D] Seconds required to pull up a cohort at its species maximum density.")]
+    [SerializeField, Min(0.1f)] private float uprootMaxDuration = 5f;
     private CharacterController controller;
     private float pitch;
     private float verticalSpeed;
@@ -27,6 +32,19 @@ public sealed class ForestPlayer : MonoBehaviour
     private ForestTree aimedTree;
     private bool isAimingGround;
     private Vector3 aimedSurfacePoint;
+    private ForestEcologyController aimedEcology;
+    private RegenerationQueryResult aimedRegeneration;
+    private int aimedRegenerationCellIndex = -1;
+    private string selectedRegenerationSpeciesId = "";
+    private int selectedRegenerationIndex = -1;
+    private bool isUprooting;
+    private bool uprootNeedsRelease;
+    private float uprootProgress;
+    private float uprootDuration;
+    private int uprootTargetCellIndex = -1;
+    private string uprootTargetSpeciesId = "";
+    private TreeSpeciesDefinition uprootTargetSpecies;
+    private Vector3 uprootTargetPoint;
     private bool isInspecting;
     private ForestTree inspectedTree;
     private ForestEcologyController inspectedTreeEcology;
@@ -182,6 +200,8 @@ public sealed class ForestPlayer : MonoBehaviour
                                (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame);
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
         bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
+        bool uprootHeld = keyboard != null && keyboard.uKey.isPressed;
+        bool cycleRegenerationPressed = keyboard != null && keyboard.rKey.wasPressedThisFrame;
 
         if (messageTimer > 0f)
         {
@@ -285,10 +305,12 @@ public sealed class ForestPlayer : MonoBehaviour
         if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
             verticalSpeed = 0f;
 
-        UpdateTreeInspection(interactPressed, harvestPressed, plantPressed);
+        UpdateTreeInspection(interactPressed, harvestPressed, plantPressed,
+            uprootHeld, cycleRegenerationPressed);
     }
 
-    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed, bool plantPressed)
+    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed, bool plantPressed,
+        bool uprootHeld, bool cycleRegenerationPressed)
     {
         isLookingAtTree = false;
         aimedTree = null;
@@ -297,6 +319,8 @@ public sealed class ForestPlayer : MonoBehaviour
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
         {
             isInspecting = false;
+            ClearAimedRegeneration();
+            CancelUprooting();
             return;
         }
 
@@ -333,7 +357,19 @@ public sealed class ForestPlayer : MonoBehaviour
             && Vector3.Dot(nearest.normal, Vector3.up) > 0.7f
             && nearest.collider.GetComponentInParent<ForestBuildable>() == null;
         if (isAimingGround)
+        {
             aimedSurfacePoint = nearest.point;
+            RefreshAimedRegeneration();
+        }
+        else
+        {
+            ClearAimedRegeneration();
+        }
+
+        if (cycleRegenerationPressed && isAimingGround && aimedRegeneration.Success
+            && aimedRegeneration.Cohorts.Count > 1)
+            CycleRegenerationSelection();
+        UpdateUprooting(uprootHeld, Time.deltaTime);
 
         // If inspecting, close card if player steps or looks too far away
         if (isInspecting)
@@ -365,7 +401,157 @@ public sealed class ForestPlayer : MonoBehaviour
         else if (plantPressed && isAimingGround)
         {
             PlantBeechAt(aimedSurfacePoint);
+            RefreshAimedRegeneration();
         }
+    }
+
+    private void RefreshAimedRegeneration()
+    {
+        if (aimedEcology == null)
+            aimedEcology = Object.FindFirstObjectByType<ForestEcologyController>();
+        RegenerationQueryResult refreshed = aimedEcology != null
+            ? aimedEcology.QueryRegeneration(aimedSurfacePoint)
+            : RegenerationQueryResult.Failed(RegenerationQueryOutcome.OutsideEcologyArea,
+                "No ecology is available.");
+
+        int previousCell = aimedRegenerationCellIndex;
+        string previousSpecies = selectedRegenerationSpeciesId;
+        aimedRegeneration = refreshed;
+        aimedRegenerationCellIndex = refreshed.CellIndex;
+
+        if (!refreshed.Success || refreshed.Cohorts.Count == 0)
+        {
+            selectedRegenerationIndex = -1;
+            selectedRegenerationSpeciesId = "";
+            if (isUprooting)
+                CancelUprooting();
+            return;
+        }
+
+        int selected = -1;
+        if (previousCell == refreshed.CellIndex && !string.IsNullOrEmpty(previousSpecies))
+        {
+            for (int i = 0; i < refreshed.Cohorts.Count; i++)
+            {
+                if (refreshed.Cohorts[i].SpeciesId == previousSpecies)
+                {
+                    selected = i;
+                    break;
+                }
+            }
+        }
+        if (selected < 0)
+            selected = 0;
+
+        selectedRegenerationIndex = selected;
+        selectedRegenerationSpeciesId = refreshed.Cohorts[selected].SpeciesId;
+        if (isUprooting && (previousCell != refreshed.CellIndex
+            || uprootTargetSpeciesId != selectedRegenerationSpeciesId))
+            CancelUprooting();
+    }
+
+    private void ClearAimedRegeneration()
+    {
+        aimedRegeneration = default;
+        aimedRegenerationCellIndex = -1;
+        selectedRegenerationIndex = -1;
+        selectedRegenerationSpeciesId = "";
+    }
+
+    private void CycleRegenerationSelection()
+    {
+        if (!aimedRegeneration.Success || aimedRegeneration.Cohorts.Count <= 1)
+            return;
+        selectedRegenerationIndex = (selectedRegenerationIndex + 1) % aimedRegeneration.Cohorts.Count;
+        selectedRegenerationSpeciesId = aimedRegeneration.Cohorts[selectedRegenerationIndex].SpeciesId;
+        CancelUprooting();
+    }
+
+    private bool TryGetSelectedRegeneration(out RegenerationCohortInfo selected)
+    {
+        selected = default;
+        if (!aimedRegeneration.Success || selectedRegenerationIndex < 0
+            || selectedRegenerationIndex >= aimedRegeneration.Cohorts.Count)
+            return false;
+        RegenerationCohortInfo candidate = aimedRegeneration.Cohorts[selectedRegenerationIndex];
+        if (candidate.Species == null || candidate.Density <= 0f
+            || candidate.SpeciesId != selectedRegenerationSpeciesId)
+            return false;
+        selected = candidate;
+        return true;
+    }
+
+    private void UpdateUprooting(bool held, float deltaTime)
+    {
+        if (!held)
+        {
+            uprootNeedsRelease = false;
+            CancelUprooting();
+            return;
+        }
+        if (uprootNeedsRelease)
+            return;
+        if (isInspecting || isLookingAtTree || !isAimingGround || aimedEcology == null
+            || !TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
+        {
+            CancelUprooting();
+            return;
+        }
+
+        if (!isUprooting)
+        {
+            float densityFraction = selected.Density / Mathf.Max(0.01f, selected.Species.RegenDensityMax);
+            float minimum = Mathf.Max(0.1f, Mathf.Min(uprootMinDuration, uprootMaxDuration));
+            float maximum = Mathf.Max(minimum, Mathf.Max(uprootMinDuration, uprootMaxDuration));
+            uprootDuration = minimum + (maximum - minimum) * Mathf.Clamp01(densityFraction);
+            uprootProgress = 0f;
+            uprootTargetCellIndex = aimedRegenerationCellIndex;
+            uprootTargetSpeciesId = selected.SpeciesId;
+            uprootTargetSpecies = selected.Species;
+            uprootTargetPoint = aimedSurfacePoint;
+            isUprooting = true;
+        }
+
+        bool targetStillValid = aimedRegenerationCellIndex == uprootTargetCellIndex
+            && selectedRegenerationSpeciesId == uprootTargetSpeciesId
+            && selected.Species == uprootTargetSpecies;
+        if (!targetStillValid)
+        {
+            CancelUprooting();
+            return;
+        }
+
+        uprootProgress += Mathf.Max(0f, deltaTime);
+        if (uprootProgress < uprootDuration)
+            return;
+
+        // Latch before calling Forestry so one continuous hold can complete
+        // exactly once. A new cohort requires a fresh button press.
+        uprootNeedsRelease = true;
+        isUprooting = false;
+        UprootingResult result = aimedEcology.TryUprootRegeneration(uprootTargetPoint, uprootTargetSpecies);
+        lastHarvestMessage = result.Message;
+        messageTimer = 3.5f;
+        ResetUprootingProgress();
+        RefreshAimedRegeneration();
+    }
+
+    private void CancelUprooting()
+    {
+        if (!isUprooting && uprootProgress <= 0f)
+            return;
+        isUprooting = false;
+        ResetUprootingProgress();
+    }
+
+    private void ResetUprootingProgress()
+    {
+        uprootProgress = 0f;
+        uprootDuration = 0f;
+        uprootTargetCellIndex = -1;
+        uprootTargetSpeciesId = "";
+        uprootTargetSpecies = null;
+        uprootTargetPoint = default;
     }
 
     // Player-facing Beech Planting v1: one explicit action, one planted
@@ -557,8 +743,20 @@ public sealed class ForestPlayer : MonoBehaviour
             }
 
             string promptText = "[G] Plant Beech";
-            float width = Mathf.Max(300f, promptText.Length * size * 0.52f + 48f);
-            float height = Mathf.Max(64f, size * 2.0f);
+            if (TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
+            {
+                string progress = isUprooting && uprootDuration > 0f
+                    ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
+                    : "";
+                string selection = aimedRegeneration.Cohorts.Count > 1
+                    ? $"Selected: {selected.DisplayName}  |  [R] Cycle species\n"
+                    : "";
+                promptText = selection
+                    + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n"
+                    + "[G] Plant Beech";
+            }
+            float width = Mathf.Max(520f, promptText.Length * size * 0.28f + 48f);
+            float height = Mathf.Max(64f, size * (promptText.Contains("\n") ? 3.8f : 2.0f));
             Rect promptRect = new Rect(centerX - width * 0.5f, centerY + 40f, width, height);
             ForestHud.Panel(promptRect);
             GUI.Label(promptRect, promptText, promptStyle);
