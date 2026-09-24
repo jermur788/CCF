@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77fc5792932273fd281964634a89513f, type: 3}
+  m_Name: SessileOak
+  m_EditorClassIdentifier: Assembly-CSharp::TreeSpeciesDefinition
+  speciesId: sessile-oak
+  displayName: Sessile oak
+  latinName: Quercus petraea
+  potentialDbhGrowthCmPerYear: 0.4
+  maxDbhCm: 120
+  potentialHeightGrowthMPerYear: 0.4
+  maxHeightM: 40
+  ci50: 3
+  crownRadiusIntercept: 0.1
+  crownRadiusPerCmDbh: 0.1045
+  usePowerLawCrown: 0
+  crownAreaLogIntercept: 0.05
+  crownAreaLogSlope: 1.01
+  crownRelaxationPerYear: 0.12
+  formHeightRatio: 0.5
+  maturityOnsetYears: 40
+  maturityFullYears: 60
+  seedPotentialPerMatureTree: 1
+  seedDispersalScaleM: 4
+  seedDispersalCutoffM: 80
+  mastGoodProbability: 0.15
+  mastPoorProbability: 0.35
+  mastGoodMultiplier: 1
+  mastNormalMultiplier: 0.3
+  mastPoorMultiplier: 0.075
+  seedSaturationS50: 5
+  lightResponseLight:
+  - 0
+  - 0.01
+  - 0.05
+  - 0.1
+  - 0.15
+  - 0.2
+  - 0.3
+  - 0.4
+  - 0.5
+  - 1
+  lightResponseFactor:
+  - 0
+  - 0
+  - 0.02
+  - 0.07
+  - 0.15
+  - 0.3
+  - 0.6
+  - 0.8
+  - 1
+  - 1
+  useDistinctJuvenileLightResponses: 1
+  survivalResponseLight:
+  - 0
+  - 0.01
+  - 0.05
+  - 0.1
+  - 0.15
+  - 0.2
+  - 0.3
+  - 1
+  survivalResponseFactor:
+  - 0.2
+  - 0.3
+  - 0.55
+  - 0.75
+  - 0.9
+  - 1
+  - 1
+  - 1
+  establishmentResponseLight:
+  - 0
+  - 0.01
+  - 0.05
+  - 0.1
+  - 1
+  establishmentResponseFactor:
+  - 0.75
+  - 0.8
+  - 0.95
+  - 1
+  - 1
+  regenHeightGrowthMPerYear: 0.35
+  promotionHeightM: 3.5
+  promotionMinimumLight: 0.2
+  regenInitialHeightM: 0.18
+  regenDensityPerEstablishment: 0.5
+  regenDensityMax: 1.5
+  regenMortalityUnderPoorLight: 0.2
+  regenPoorLightThreshold: 0.15
+  supportsRegeneration: 1
+  standWindSusceptibility: 1
+  windOpeningWeight: 1
+  windThinningHalfLifeYears: 3

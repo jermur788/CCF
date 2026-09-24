@@ -405,7 +405,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 "This cell has no shared regeneration capacity left.", index);
         }
         seedlingVisualsDirty = true;
-        return PlantingResult.Planted(index);
+        return PlantingResult.Planted(index, targetSpecies.DisplayName);
     }
 
     public int PlantedJuvenileAgeYears => plantedJuvenileAgeYears;
@@ -846,9 +846,16 @@ public sealed class ForestEcologyController : MonoBehaviour
                 TreeSpeciesDefinition cohortSpecies = cohort.Species;
                 if (cohort.Density <= 0f || cohortSpecies == null)
                     continue;
-                float response = cohortSpecies.JuvenileLightResponse(cell.Light);
-                cohort.Height += cohortSpecies.RegenHeightGrowthMPerYear * response * cell.SiteProductivity;
-                if (response < cohortSpecies.RegenPoorLightThreshold)
+                float growthResponse = cohortSpecies.JuvenileLightResponse(cell.Light);
+                cohort.Height += cohortSpecies.RegenHeightGrowthMPerYear * growthResponse * cell.SiteProductivity;
+                if (cohortSpecies.UsesDistinctJuvenileLightResponses)
+                {
+                    float survival = cohortSpecies.JuvenileSurvivalResponse(cell.Light);
+                    cohort.Density *= survival;
+                    if (survival >= 0.999999f)
+                        cell.AddDensityWithSharedCapacity(cohort, 0.05f);
+                }
+                else if (growthResponse < cohortSpecies.RegenPoorLightThreshold)
                     cohort.Density *= 1f - cohortSpecies.RegenMortalityUnderPoorLight;
                 else
                     cell.AddDensityWithSharedCapacity(cohort, 0.05f);
@@ -875,7 +882,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 if (cohort.SeedRain <= 0f || cohortSpecies == null)
                     continue;
                 float seedFactor = 1f - Mathf.Exp(-cohort.SeedRain / cohortSpecies.SeedSaturationS50);
-                float lightResponse = cohortSpecies.JuvenileLightResponse(cell.Light);
+                float lightResponse = cohortSpecies.JuvenileEstablishmentResponse(cell.Light);
                 float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
                 if (establishment <= 0.01f)
                     continue;
@@ -914,7 +921,8 @@ public sealed class ForestEcologyController : MonoBehaviour
         {
             ForestEcologyCell cell = cells[i];
             ForestRegenerationCohort cohort = cell.FindCohort(cohortSpecies.SpeciesId);
-            if (cohort == null || cohort.Density <= 0f || cohort.Height < cohortSpecies.PromotionHeightM)
+            if (cohort == null || cohort.Density <= 0f || cohort.Height < cohortSpecies.PromotionHeightM ||
+                cell.Light < cohortSpecies.PromotionMinimumLight)
                 continue;
             float offsetX = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
             float offsetZ = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;

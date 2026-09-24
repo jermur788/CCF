@@ -68,10 +68,20 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[B anchors, C interpolation] Relative light (0-1) response anchors. Below ~10% strongly suppressed, 10-20% slow, ~20-25% transition, ~50-60% strong juvenile growth, high exposure plateaus/declines.")]
     [SerializeField] private float[] lightResponseLight = { 0f, 0.1f, 0.2f, 0.25f, 0.55f, 1f };
     [SerializeField] private float[] lightResponseFactor = { 0f, 0.1f, 0.3f, 0.5f, 0.9f, 0.8f };
+    [Tooltip("[C] Opt-in split for species whose germination, survival and growth have materially different light responses. Off preserves the legacy response exactly.")]
+    [SerializeField] private bool useDistinctJuvenileLightResponses;
+    [Tooltip("[B anchors, C interpolation] Annual fraction of an established cohort retained at each relative-light anchor when distinct responses are enabled.")]
+    [SerializeField] private float[] survivalResponseLight = { 0f, 1f };
+    [SerializeField] private float[] survivalResponseFactor = { 1f, 1f };
+    [Tooltip("[B anchors, C interpolation] Establishment response at each relative-light anchor when distinct responses are enabled. This is intentionally independent of juvenile growth.")]
+    [SerializeField] private float[] establishmentResponseLight = { 0f, 1f };
+    [SerializeField] private float[] establishmentResponseFactor = { 1f, 1f };
     [Tooltip("[C] Regeneration height growth in full light and full site productivity, m/year.")]
     [SerializeField, Min(0f)] private float regenHeightGrowthMPerYear = 0.35f;
     [Tooltip("[D] Height at which an aggregated cohort is promoted to an individual tree. Gameplay/simulation choice.")]
     [SerializeField, Min(0.5f)] private float promotionHeightM = 3.5f;
+    [Tooltip("[B/C] Minimum relative light for recruitment into the individual-tree layer. Zero preserves legacy species behaviour.")]
+    [SerializeField, Range(0f, 1f)] private float promotionMinimumLight;
     [Tooltip("[C] Seedling height at establishment, metres.")]
     [SerializeField, Min(0.01f)] private float regenInitialHeightM = 0.15f;
     [Tooltip("[C] Relative density added per unit of establishment.")]
@@ -121,12 +131,14 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float SeedSaturationS50 => seedSaturationS50;
     public float RegenHeightGrowthMPerYear => regenHeightGrowthMPerYear;
     public float PromotionHeightM => promotionHeightM;
+    public float PromotionMinimumLight => promotionMinimumLight;
     public float RegenInitialHeightM => regenInitialHeightM;
     public float RegenDensityPerEstablishment => regenDensityPerEstablishment;
     public float RegenDensityMax => regenDensityMax;
     public float RegenMortalityUnderPoorLight => regenMortalityUnderPoorLight;
     public float RegenPoorLightThreshold => regenPoorLightThreshold;
     public bool SupportsRegeneration => supportsRegeneration;
+    public bool UsesDistinctJuvenileLightResponses => useDistinctJuvenileLightResponses;
     public float StandWindSusceptibility => standWindSusceptibility;
     public float WindOpeningWeight => windOpeningWeight;
     public float WindThinningHalfLifeYears => windThinningHalfLifeYears;
@@ -154,20 +166,47 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     // Piecewise-linear interpolation between light-response anchors; [C] simulation design.
     public float JuvenileLightResponse(float relativeLight)
     {
-        if (lightResponseLight == null || lightResponseFactor == null || lightResponseLight.Length < 2)
-            return Mathf.Clamp01(relativeLight);
-        int count = Mathf.Min(lightResponseLight.Length, lightResponseFactor.Length);
+        return InterpolateResponse(relativeLight, lightResponseLight, lightResponseFactor,
+            Mathf.Clamp01(relativeLight));
+    }
+
+    public float JuvenileSurvivalResponse(float relativeLight)
+    {
+        if (!useDistinctJuvenileLightResponses)
+            return JuvenileLightResponse(relativeLight) < regenPoorLightThreshold
+                ? 1f - regenMortalityUnderPoorLight
+                : 1f;
+        return Mathf.Clamp01(InterpolateResponse(relativeLight, survivalResponseLight,
+            survivalResponseFactor, 1f));
+    }
+
+    public float JuvenileEstablishmentResponse(float relativeLight)
+    {
+        if (!useDistinctJuvenileLightResponses)
+            return JuvenileLightResponse(relativeLight);
+        return Mathf.Max(0f, InterpolateResponse(relativeLight, establishmentResponseLight,
+            establishmentResponseFactor, 1f));
+    }
+
+    private static float InterpolateResponse(float relativeLight, float[] lightAnchors,
+        float[] responseAnchors, float fallback)
+    {
+        if (lightAnchors == null || responseAnchors == null || lightAnchors.Length < 2)
+            return fallback;
+        int count = Mathf.Min(lightAnchors.Length, responseAnchors.Length);
+        if (count < 2)
+            return fallback;
         float light = Mathf.Clamp01(relativeLight);
-        if (light <= lightResponseLight[0])
-            return lightResponseFactor[0];
+        if (light <= lightAnchors[0])
+            return responseAnchors[0];
         for (int i = 1; i < count; i++)
         {
-            if (light <= lightResponseLight[i])
+            if (light <= lightAnchors[i])
             {
-                float t = Mathf.InverseLerp(lightResponseLight[i - 1], lightResponseLight[i], light);
-                return Mathf.Lerp(lightResponseFactor[i - 1], lightResponseFactor[i], t);
+                float t = Mathf.InverseLerp(lightAnchors[i - 1], lightAnchors[i], light);
+                return Mathf.Lerp(responseAnchors[i - 1], responseAnchors[i], t);
             }
         }
-        return lightResponseFactor[count - 1];
+        return responseAnchors[count - 1];
     }
 }

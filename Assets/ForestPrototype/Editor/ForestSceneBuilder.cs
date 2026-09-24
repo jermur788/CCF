@@ -162,15 +162,26 @@ public static class ForestSceneBuilder
             // falls back to the shared default.
             var beechSpecies = AssetDatabase.LoadAssetAtPath<TreeSpeciesDefinition>(SpeciesFolder + "/BeechSpecies.asset");
             var beechVisual = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabsFolder + "/BeechMature01.prefab");
+            var oakSpecies = AssetDatabase.LoadAssetAtPath<TreeSpeciesDefinition>(SpeciesFolder + "/SessileOak.asset");
             if (beechSpecies != null && beechVisual != null)
             {
                 var speciesSets = spawnerSerialized.FindProperty("speciesVisualSets");
-                speciesSets.arraySize = 1;
+                speciesSets.arraySize = oakSpecies != null ? 2 : 1;
                 var beechElement = speciesSets.GetArrayElementAtIndex(0);
                 beechElement.FindPropertyRelative("species").objectReferenceValue = beechSpecies;
                 beechElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue = beechVisual;
                 beechElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue = null;
                 beechElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
+                if (oakSpecies != null)
+                {
+                    // Oak art is delivered separately. Register the ecology now;
+                    // spawned Oak uses the procedural fallback until those prefabs land.
+                    var oakElement = speciesSets.GetArrayElementAtIndex(1);
+                    oakElement.FindPropertyRelative("species").objectReferenceValue = oakSpecies;
+                    oakElement.FindPropertyRelative("matureVisualPrefab").objectReferenceValue = null;
+                    oakElement.FindPropertyRelative("poleVisualPrefab").objectReferenceValue = null;
+                    oakElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
+                }
             }
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
             var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
@@ -912,6 +923,9 @@ public static class ForestSceneBuilder
                     serializedSpawner.FindProperty("canopyPrefab").objectReferenceValue == null ||
                     serializedSpawner.FindProperty("forestParent").objectReferenceValue == null)
                     throw new InvalidOperationException("Incomplete tree spawner on " + obj.name);
+                foreach (TreeSpeciesDefinition knownSpecies in spawner.KnownSpecies)
+                    if (knownSpecies != null && validatedSpecies.Add(knownSpecies.SpeciesId))
+                        ValidateSpecies(knownSpecies);
             }
             if (obj.GetComponent<ForestTreeMarkingManager>() != null)
                 markingManagers++;
@@ -961,11 +975,23 @@ public static class ForestSceneBuilder
             species.Ci50 <= 0f ||
             species.SeedDispersalScaleM <= 0f || species.SeedSaturationS50 <= 0f ||
             species.PromotionHeightM <= 0f)
-            throw new InvalidOperationException("Sitka growth data is incomplete on species " + species.SpeciesId);
+            throw new InvalidOperationException("Growth data is incomplete on species " + species.SpeciesId);
         var serialized = new SerializedObject(species);
         var light = serialized.FindProperty("lightResponseLight");
         var factor = serialized.FindProperty("lightResponseFactor");
         if (light == null || factor == null || light.arraySize < 2 || light.arraySize != factor.arraySize)
             throw new InvalidOperationException("Malformed species light curve on " + species.SpeciesId);
+        if (species.UsesDistinctJuvenileLightResponses)
+        {
+            var survivalLight = serialized.FindProperty("survivalResponseLight");
+            var survivalFactor = serialized.FindProperty("survivalResponseFactor");
+            var establishmentLight = serialized.FindProperty("establishmentResponseLight");
+            var establishmentFactor = serialized.FindProperty("establishmentResponseFactor");
+            if (survivalLight == null || survivalFactor == null || survivalLight.arraySize < 2 ||
+                survivalLight.arraySize != survivalFactor.arraySize || establishmentLight == null ||
+                establishmentFactor == null || establishmentLight.arraySize < 2 ||
+                establishmentLight.arraySize != establishmentFactor.arraySize)
+                throw new InvalidOperationException("Malformed distinct juvenile light curves on " + species.SpeciesId);
+        }
     }
 }

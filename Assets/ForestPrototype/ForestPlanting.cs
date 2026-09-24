@@ -39,9 +39,9 @@ public readonly struct PlantingResult
         Message = message;
     }
 
-    public static PlantingResult Planted(int cellIndex)
+    public static PlantingResult Planted(int cellIndex, string displayName = "Beech")
     {
-        return new PlantingResult(true, PlantingOutcome.Success, cellIndex, "Beech juvenile planted");
+        return new PlantingResult(true, PlantingOutcome.Success, cellIndex, $"{displayName} juvenile planted");
     }
 
     public static PlantingResult Failed(PlantingOutcome outcome, string message, int cellIndex = -1)

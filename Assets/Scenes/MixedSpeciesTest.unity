@@ -5809,6 +5809,10 @@ MonoBehaviour:
     matureVisualPrefab: {fileID: 663508896920788624, guid: 0a4c1a7964b8600408762c084d938386, type: 3}
     poleVisualPrefab: {fileID: 0}
     stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
+  - species: {fileID: 11400000, guid: a9f84f1bc82d4ab6a64d0736e8d42951, type: 2}
+    matureVisualPrefab: {fileID: 0}
+    poleVisualPrefab: {fileID: 0}
+    stumpPrefab: {fileID: 7110513248368685802, guid: 3aa54be08e092174ab6b689e524fdf44, type: 3}
 --- !u!114 &780226346
 MonoBehaviour:
   m_ObjectHideFlags: 0
