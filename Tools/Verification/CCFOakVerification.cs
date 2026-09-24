@@ -154,17 +154,52 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
     private void VerifyBeechComparisonAndMixedCell()
     {
         ClearCohorts();
-        ForestEcologyCell low = ecology.Cells[10];
-        low.Light = 0.10f;
-        ForestRegenerationCohort lowOak = low.GetOrCreateCohort(oak);
-        ForestRegenerationCohort lowBeech = low.GetOrCreateCohort(beech);
-        lowOak.Restore(0.45f, 0.18f, 1);
-        lowBeech.Restore(0.45f, 0.18f, 1);
+        float[] comparisonLight = { 0.10f, 0.20f, 0.30f, 0.50f };
+        var comparison = new List<Tuple<ForestRegenerationCohort, ForestRegenerationCohort>>();
+        for (int i = 0; i < comparisonLight.Length; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[10 + i];
+            cell.Light = comparisonLight[i];
+            ForestRegenerationCohort comparisonOak = cell.GetOrCreateCohort(oak);
+            ForestRegenerationCohort comparisonBeech = cell.GetOrCreateCohort(beech);
+            comparisonOak.Restore(0.45f, 0.18f, 1);
+            comparisonBeech.Restore(0.45f, 0.18f, 1);
+            comparison.Add(Tuple.Create(comparisonOak, comparisonBeech));
+        }
         GrowRegeneration.Invoke(ecology, null);
-        Check(lowBeech.Height > lowOak.Height && lowBeech.Density > lowOak.Density,
-            "Beech is not the stronger low-light regeneration strategy");
+        for (int i = 0; i < comparison.Count; i++)
+        {
+            ForestRegenerationCohort comparisonOak = comparison[i].Item1;
+            ForestRegenerationCohort comparisonBeech = comparison[i].Item2;
+            Check(comparisonBeech.Height >= comparisonOak.Height && comparisonBeech.Density >= comparisonOak.Density,
+                $"Beech is not at least as strong as Oak at {comparisonLight[i]:P0} light");
+        }
+        Check(comparison[0].Item2.Height > comparison[0].Item1.Height &&
+              comparison[0].Item2.Density > comparison[0].Item1.Density,
+            "Beech is not the stronger deep-shade regeneration strategy");
 
-        ForestEcologyCell mixed = ecology.Cells[11];
+        // Oak and Sitka share the same cohort machinery at closed, moderate
+        // and strong light without exceeding normalized cell capacity.
+        float[] sitkaLight = { 0.10f, 0.30f, 0.50f };
+        for (int i = 0; i < sitkaLight.Length; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[15 + i];
+            cell.Light = sitkaLight[i];
+            cell.GetOrCreateCohort(oak).Restore(0.6f, 0.18f, 1);
+            cell.GetOrCreateCohort(sitka).Restore(0.6f, 0.18f, 1);
+        }
+        GrowRegeneration.Invoke(ecology, null);
+        for (int i = 0; i < sitkaLight.Length; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[15 + i];
+            Check(cell.FindCohort(oak.SpeciesId).Height > 0.18f &&
+                  cell.FindCohort(sitka.SpeciesId).Height > 0.18f,
+                $"Oak/Sitka did not both respond at {sitkaLight[i]:P0} light");
+            Check(cell.SharedOccupancy <= 1.000001f,
+                $"Oak/Sitka capacity exceeded at {sitkaLight[i]:P0} light");
+        }
+
+        ForestEcologyCell mixed = ecology.Cells[19];
         mixed.Light = 0.5f;
         ForestRegenerationCohort s = mixed.GetOrCreateCohort(sitka);
         ForestRegenerationCohort b = mixed.GetOrCreateCohort(beech);
@@ -173,11 +208,11 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
         b.Restore(0.3f, 0.5f, 3, RegenerationOrigin.Natural, 3);
         o.Restore(0.3f, 0.6f, 4, RegenerationOrigin.Planted, 4);
         Check(mixed.SharedOccupancy <= 1.000001f, "Three-species occupancy exceeds one");
-        RegenerationQueryResult query = ecology.QueryRegeneration(CellPosition(11));
+        RegenerationQueryResult query = ecology.QueryRegeneration(CellPosition(19));
         Check(query.Success && query.Cohorts.Count == 3, "Three-species query did not return all cohorts");
         string sitkaBefore = CohortBytes(s);
         string beechBefore = CohortBytes(b);
-        UprootingResult removed = ecology.TryUprootRegeneration(CellPosition(11), oak);
+        UprootingResult removed = ecology.TryUprootRegeneration(CellPosition(19), oak);
         Check(removed.Success && mixed.FindCohort(oak.SpeciesId) == null, "Selective Oak uprooting failed");
         Check(CohortBytes(s) == sitkaBefore && CohortBytes(b) == beechBefore,
             "Selective Oak uprooting changed another species");
@@ -227,6 +262,17 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
         ecology.AdvanceOneYear();
         float crowdedGrowth = crowdedOak.Diameter - 20f;
         Check(crowdedGrowth < openGrowth, "Hegyi competition did not suppress Oak DBH growth");
+        float suppressionBeforeRelease = crowdedOak.EquivalentSuppressedYears;
+        foreach (ForestTree competitor in FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+                     .Where(t => t != crowdedOak).ToArray())
+            Destroy(competitor.gameObject);
+        yield return null;
+        float dbhBeforeRelease = crowdedOak.Diameter;
+        ecology.AdvanceOneYear();
+        float releasedGrowth = crowdedOak.Diameter - dbhBeforeRelease;
+        Check(releasedGrowth > crowdedGrowth, "Oak DBH did not release after competitors were removed");
+        Check(crowdedOak.EquivalentSuppressedYears >= suppressionBeforeRelease,
+            "Oak suppression history reset after release");
 
         yield return RemoveAllTrees();
         ForestTree parent = spawner.Spawn("OAK-PARENT", oak, Vector3.zero, 80, 55f, 25f,
