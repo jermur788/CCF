@@ -40,6 +40,14 @@ public sealed class ScenarioOneDefinition : ScriptableObject
         new ScenarioShopEntry { itemId = "sessile-oak-sapling", speciesId = "sessile-oak", displayName = "Sessile oak sapling", unitPriceCents = 550, plantingMinutes = 10 }
     };
 
+    [Header("Regeneration control — provisional gameplay calibration [D]")]
+    [SerializeField, Min(0)] private int removalBaseMinutes = 6;
+    [SerializeField, Min(0f)] private float removalMinutesPerCohortDensity = 3f;
+
+    [Header("Understorey — provisional functional-group calibration [D]")]
+    [SerializeField, Range(0f, 1f)] private float understoreyColonisationRate = 0.3f;
+    [SerializeField, Range(0f, 1f)] private float understoreyLossRate = 0.45f;
+
     [Header("Progression — provisional calibration [D]")]
     [SerializeField, Min(1)] private int minimumCompletionYear = 25;
 
@@ -52,6 +60,10 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public float FellingMinutesPerCubicMetre => fellingMinutesPerCubicMetre;
     public int MinimumCompletionYear => minimumCompletionYear;
     public IReadOnlyList<ScenarioShopEntry> ShopEntries => shopEntries;
+    public int RemovalBaseMinutes => removalBaseMinutes;
+    public float RemovalMinutesPerCohortDensity => removalMinutesPerCohortDensity;
+    public float UnderstoreyColonisationRate => understoreyColonisationRate;
+    public float UnderstoreyLossRate => understoreyLossRate;
 
     public ScenarioShopEntry FindShopEntry(string itemId)
     {

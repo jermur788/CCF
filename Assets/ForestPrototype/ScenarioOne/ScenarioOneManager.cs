@@ -14,6 +14,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
     [SerializeField] private List<ScenarioOneWorkOrder> workOrders = new List<ScenarioOneWorkOrder>();
     [SerializeField] private List<ScenarioInventoryEntry> inventory = new List<ScenarioInventoryEntry>();
     [SerializeField] private List<ScenarioAnnualReport> annualReports = new List<ScenarioAnnualReport>();
+    [SerializeField] private int nextManagementEventId = 1;
+    [SerializeField] private List<ScenarioManagementEvent> managementEvents = new List<ScenarioManagementEvent>();
+    [SerializeField] private List<ScenarioEcologicalSnapshot> ecologicalSnapshots = new List<ScenarioEcologicalSnapshot>();
+    [SerializeField] private List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
 
     private ForestEcologyController ecology;
     private ForestPlayer player;
@@ -21,7 +25,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private string feedback = "";
     private Vector2 scroll;
     private string selectedShopItemId = "";
+    private string selectedRemovalSpeciesId = "";
     private string purchaseQuantity = "1";
+    private bool annualReviewOpen;
     private GUIStyle titleStyle;
     private GUIStyle headingStyle;
     private GUIStyle bodyStyle;
@@ -37,6 +43,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public IReadOnlyList<ScenarioOneWorkOrder> WorkOrders => workOrders;
     public IReadOnlyList<ScenarioInventoryEntry> Inventory => inventory;
     public IReadOnlyList<ScenarioAnnualReport> AnnualReports => annualReports;
+    public IReadOnlyList<ScenarioManagementEvent> ManagementEvents => managementEvents;
+    public IReadOnlyList<ScenarioEcologicalSnapshot> EcologicalSnapshots => ecologicalSnapshots;
+    public IReadOnlyList<ScenarioUnderstoreyCell> UnderstoreyCells => understoreyCells;
     public bool WorkPlanOpen => workPlanOpen;
 
     public void ConfigureDefinition(ScenarioOneDefinition configuredDefinition)
@@ -63,6 +72,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
         SetWorkPlanOpen(false);
     }
 
+    private void Start()
+    {
+        EnsureBaselineSnapshot();
+    }
+
     private void Update()
     {
         Keyboard keyboard = Keyboard.current;
@@ -84,7 +98,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
         workOrders.Clear();
         inventory.Clear();
         annualReports.Clear();
+        nextManagementEventId = 1;
+        managementEvents.Clear();
+        ecologicalSnapshots.Clear();
+        understoreyCells.Clear();
         selectedShopItemId = "";
+        selectedRemovalSpeciesId = "";
         feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
     }
 
@@ -135,6 +154,18 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         entry.quantity += quantity;
         cashCents -= total;
+        RecordEvent(new ScenarioManagementEvent
+        {
+            year = CurrentYear,
+            eventType = ScenarioManagementEventType.StockPurchased,
+            outcome = ScenarioManagementOutcome.Succeeded,
+            taskType = ScenarioWorkType.PlantJuvenile,
+            speciesId = offer.speciesId,
+            stockItemId = offer.itemId,
+            quantity = quantity,
+            stockCostCents = total,
+            cashDeltaCents = -total
+        });
         feedback = $"Bought {quantity} {offer.displayName} for {Money(total)}. In stock: {entry.quantity}.";
         return true;
     }
@@ -168,7 +199,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
 
         int minutes = Mathf.Max(1, offer.plantingMinutes);
-        workOrders.Add(new ScenarioOneWorkOrder
+        var order = new ScenarioOneWorkOrder
         {
             workOrderId = nextWorkOrderId++,
             type = ScenarioWorkType.PlantJuvenile,
@@ -181,9 +212,57 @@ public sealed class ScenarioOneManager : MonoBehaviour
             estimatedMinutes = minutes,
             estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
             createdYear = ecology.EcologicalYear
-        });
+        };
+        workOrders.Add(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
         feedback = $"Designated {species.DisplayName} planting in cell {cellIndex}. "
             + "Stock and contractor cash are required for approval.";
+        return true;
+    }
+
+    public bool TryDesignateRegenerationRemoval(string speciesId, int cellIndex)
+    {
+        if (ecology == null)
+            ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
+        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+        TreeSpeciesDefinition species = !string.IsNullOrEmpty(speciesId) && spawner != null
+            ? spawner.ResolveSpecies(speciesId) : null;
+        if (ecology == null || ecology.Cells == null || definition == null
+            || cellIndex < 0 || cellIndex >= ecology.CellCount || species == null)
+        {
+            feedback = "Choose a registered species and a valid stand cell.";
+            return false;
+        }
+        if (HasOpenRegenerationRemovalOrder(speciesId, cellIndex))
+        {
+            feedback = "This species already has a regeneration-removal order in that cell.";
+            return false;
+        }
+        ForestRegenerationCohort cohort = ecology.Cells[cellIndex].FindCohort(speciesId);
+        if (cohort == null || cohort.Density <= 0f)
+        {
+            feedback = $"No {species.DisplayName} regeneration is present in that cell.";
+            return false;
+        }
+
+        int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.RemovalBaseMinutes
+            + cohort.Density * definition.RemovalMinutesPerCohortDensity));
+        var order = new ScenarioOneWorkOrder
+        {
+            workOrderId = nextWorkOrderId++,
+            type = ScenarioWorkType.RemoveRegeneration,
+            status = ScenarioWorkStatus.Pending,
+            speciesId = speciesId,
+            cellIndex = cellIndex,
+            worldPosition = new Vector3(ecology.Cells[cellIndex].Center.x, 0f, ecology.Cells[cellIndex].Center.y),
+            estimatedMinutes = minutes,
+            estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
+            expectedRegenerationDensity = cohort.Density,
+            createdYear = ecology.EcologicalYear
+        };
+        workOrders.Add(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
+        feedback = $"Designated removal of {species.DisplayName} regeneration in cell {cellIndex}.";
         return true;
     }
 
@@ -206,7 +285,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 continue;
             if (!living.TryGetValue(id, out ForestTree tree) || tree == null || !tree.CanChop)
                 continue;
-            workOrders.Add(CreateFellingOrder(tree));
+            ScenarioOneWorkOrder order = CreateFellingOrder(tree);
+            workOrders.Add(order);
+            RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
             added++;
         }
         if (added > 0)
@@ -224,6 +305,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         if (order == null)
             return false;
         workOrders.Remove(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCancelled, ScenarioManagementOutcome.Cancelled, CurrentYear);
         feedback = "Removed " + order.ShortLabel + ".";
         return true;
     }
@@ -235,6 +317,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         if (order == null)
             return false;
         workOrders.Remove(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCancelled, ScenarioManagementOutcome.Cancelled, CurrentYear);
         feedback = "Cancelled " + order.ShortLabel + ". Contractor cash and stock are available again.";
         return true;
     }
@@ -260,7 +343,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
             return false;
         }
         foreach (ScenarioOneWorkOrder order in pending)
+        {
             order.status = ScenarioWorkStatus.Approved;
+            RecordOrderEvent(order, ScenarioManagementEventType.OrderApproved, ScenarioManagementOutcome.None, CurrentYear);
+        }
         feedback = $"Approved {pending.Count} task{(pending.Count == 1 ? "" : "s")} for {Money(cost)}.";
         return true;
     }
@@ -274,6 +360,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
             feedback = "Annual advance is unavailable because the ecology controller is missing.";
             return false;
         }
+
+        EnsureBaselineSnapshot();
 
         ValidateOpenOrders();
         List<ScenarioOneWorkOrder> approved = workOrders
@@ -290,13 +378,42 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         var report = new ScenarioAnnualReport { year = ecology.EcologicalYear + 1 };
         foreach (ScenarioOneWorkOrder order in approved)
+        {
+            long beforeCash = cashCents;
+            long beforeCost = report.contractorCostCents;
+            long beforeRevenue = report.timberRevenueCents;
+            float beforeVolume = report.harvestedVolumeM3;
+            int beforeStock = order.type == ScenarioWorkType.PlantJuvenile ? GetStockQuantity(order.stockItemId) : 0;
+            float beforeRemovedDensity = report.removedRegenerationDensity;
             ResolveOrder(order, report);
+            ScenarioManagementEvent result = RecordOrderEvent(order, ScenarioManagementEventType.WorkResolved,
+                order.status == ScenarioWorkStatus.Completed ? ScenarioManagementOutcome.Succeeded : ScenarioManagementOutcome.Failed,
+                report.year);
+            result.contractorCostCents = report.contractorCostCents - beforeCost;
+            result.timberRevenueCents = report.timberRevenueCents - beforeRevenue;
+            result.biologicalVolumeM3 = report.harvestedVolumeM3 - beforeVolume;
+            result.regenerationDensityRemoved = report.removedRegenerationDensity - beforeRemovedDensity;
+            result.stockUsed = order.type == ScenarioWorkType.PlantJuvenile
+                ? beforeStock - GetStockQuantity(order.stockItemId) : 0;
+            result.cashDeltaCents = cashCents - beforeCash;
+            result.failureReason = order.status == ScenarioWorkStatus.Failed ? order.validationMessage : "";
+            result.ecologicalTreatment = order.status == ScenarioWorkStatus.Completed
+                ? TreatmentFor(order) : ScenarioEcologicalTreatment.None;
+        }
 
         // Scenario One's single authoritative annual sequence: approved work,
         // immediate financial settlement, then exactly one Forestry annual step.
         ecology.AdvanceOneYear();
+        AdvanceUnderstorey();
         report.closingCashCents = cashCents;
         annualReports.Add(report);
+        RecordEvent(new ScenarioManagementEvent
+        {
+            year = report.year,
+            eventType = ScenarioManagementEventType.YearAdvanced,
+            outcome = ScenarioManagementOutcome.Succeeded
+        });
+        RecordEcologicalSnapshot();
         feedback = $"Year {report.year} complete: {report.completedTasks} task(s), "
             + $"cost {Money(report.contractorCostCents)}, timber {Money(report.timberRevenueCents)}, "
             + $"closing cash {Money(cashCents)}.";
@@ -311,9 +428,13 @@ public sealed class ScenarioOneManager : MonoBehaviour
             initialized = initialized,
             cashCents = cashCents,
             nextWorkOrderId = nextWorkOrderId,
+            nextManagementEventId = nextManagementEventId,
             workOrders = CloneOrders(workOrders),
             inventory = CloneInventory(inventory),
-            annualReports = CloneReports(annualReports)
+            annualReports = CloneReports(annualReports),
+            managementEvents = CloneEvents(managementEvents),
+            ecologicalSnapshots = CloneSnapshots(ecologicalSnapshots),
+            understoreyCells = CloneUnderstorey(understoreyCells)
         };
     }
 
@@ -335,6 +456,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
         workOrders = CloneOrders(data.workOrders);
         inventory = CloneInventory(data.inventory);
         annualReports = CloneReports(data.annualReports);
+        managementEvents = CloneEvents(data.managementEvents);
+        ecologicalSnapshots = CloneSnapshots(data.ecologicalSnapshots);
+        understoreyCells = CloneUnderstorey(data.understoreyCells);
+        nextManagementEventId = Mathf.Max(1, data.nextManagementEventId);
+        if (managementEvents.Count > 0)
+            nextManagementEventId = Mathf.Max(nextManagementEventId, managementEvents.Max(item => item.eventId) + 1);
         ValidateOpenOrders();
         feedback = "Scenario management state loaded.";
     }
@@ -356,6 +483,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             targetTreeId = tree.TreeId,
             speciesId = speciesId,
             worldPosition = tree.transform.position,
+            cellIndex = ecology != null ? ecology.GetCellIndex(tree.transform.position) : -1,
             fellingOutcome = FellingMaterialOutcome.SellAndExtract,
             estimatedMinutes = minutes,
             estimatedCostCents = cost,
@@ -379,6 +507,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 break;
             case ScenarioWorkType.PlantJuvenile:
                 ResolvePlanting(order, report);
+                break;
+            case ScenarioWorkType.RemoveRegeneration:
+                ResolveRegenerationRemoval(order, report);
                 break;
             default:
                 Fail(order, report, "This task type is not enabled in the current Scenario One slice.");
@@ -450,6 +581,38 @@ public sealed class ScenarioOneManager : MonoBehaviour
         report.contractorCostCents += order.estimatedCostCents;
     }
 
+    private void ResolveRegenerationRemoval(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
+    {
+        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+        TreeSpeciesDefinition species = spawner != null ? spawner.ResolveSpecies(order.speciesId) : null;
+        if (species == null || ecology.GetCellIndex(order.worldPosition) != order.cellIndex)
+        {
+            Fail(order, report, "Regeneration species or target cell is unavailable.");
+            return;
+        }
+        if (cashCents < order.estimatedCostCents)
+        {
+            Fail(order, report, "Insufficient cash when the contractor attempted regeneration removal.");
+            return;
+        }
+        ForestRegenerationCohort cohort = ecology.Cells[order.cellIndex].FindCohort(order.speciesId);
+        float density = cohort != null ? cohort.Density : 0f;
+        UprootingResult result = ecology.TryUprootRegeneration(order.worldPosition, species);
+        if (!result.Success)
+        {
+            Fail(order, report, result.Message);
+            return;
+        }
+        cashCents -= order.estimatedCostCents;
+        order.status = ScenarioWorkStatus.Completed;
+        order.resolvedYear = report.year;
+        order.expectedRegenerationDensity = density;
+        report.completedTasks++;
+        report.regenerationRemovalTasks++;
+        report.removedRegenerationDensity += density;
+        report.contractorCostCents += order.estimatedCostCents;
+    }
+
     private static void Fail(ScenarioOneWorkOrder order, ScenarioAnnualReport report, string reason)
     {
         order.status = ScenarioWorkStatus.Failed;
@@ -462,6 +625,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         Dictionary<string, ForestTree> trees = LivingTreesById();
         var reservedStock = new Dictionary<string, int>(StringComparer.Ordinal);
         var designatedCells = new HashSet<string>(StringComparer.Ordinal);
+        var removalCells = new HashSet<string>(StringComparer.Ordinal);
         // Approved work reserves its stock before pending work is evaluated.
         foreach (ScenarioOneWorkOrder order in workOrders.Where(item => item.IsOpen)
                      .OrderBy(item => item.status == ScenarioWorkStatus.Approved ? 0 : 1)
@@ -474,6 +638,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Missing target tree ID.";
                 else if (!trees.TryGetValue(order.targetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
                     order.validationMessage = "Target tree is missing or already felled.";
+                else if (order.fellingOutcome != FellingMaterialOutcome.SellAndExtract)
+                    order.validationMessage = "Fallen-deadwood retention is not enabled yet.";
             }
             else if (order.type == ScenarioWorkType.PlantJuvenile)
             {
@@ -503,6 +669,25 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     }
                 }
             }
+            else if (order.type == ScenarioWorkType.RemoveRegeneration)
+            {
+                ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+                TreeSpeciesDefinition species = !string.IsNullOrEmpty(order.speciesId) && spawner != null
+                    ? spawner.ResolveSpecies(order.speciesId) : null;
+                if (species == null)
+                    order.validationMessage = "Regeneration species is unavailable.";
+                else if (ecology == null || order.cellIndex < 0 || order.cellIndex >= ecology.CellCount
+                    || ecology.GetCellIndex(order.worldPosition) != order.cellIndex)
+                    order.validationMessage = "Regeneration cell is outside the stand.";
+                else if (!removalCells.Add(order.speciesId + ":" + order.cellIndex))
+                    order.validationMessage = "Another order already removes this species in this cell.";
+                else
+                {
+                    ForestRegenerationCohort cohort = ecology.Cells[order.cellIndex].FindCohort(order.speciesId);
+                    if (cohort == null || cohort.Density <= 0f)
+                        order.validationMessage = "This species is no longer regenerating in the cell.";
+                }
+            }
             else
                 order.validationMessage = "This task type is not yet available.";
         }
@@ -516,6 +701,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private bool HasOpenPlantingOrder(string speciesId, int cellIndex)
     {
         return workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile && order.IsOpen
+            && order.speciesId == speciesId && order.cellIndex == cellIndex);
+    }
+
+    private bool HasOpenRegenerationRemovalOrder(string speciesId, int cellIndex)
+    {
+        return workOrders.Any(order => order.type == ScenarioWorkType.RemoveRegeneration && order.IsOpen
             && order.speciesId == speciesId && order.cellIndex == cellIndex);
     }
 
@@ -576,6 +767,14 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Space(8f);
 
         scroll = GUILayout.BeginScrollView(scroll, GUILayout.ExpandHeight(true));
+        if (GUILayout.Button(annualReviewOpen ? "Hide annual review" : "Show annual review", buttonStyle,
+                GUILayout.Height(30f * scale)))
+            annualReviewOpen = !annualReviewOpen;
+        if (annualReviewOpen)
+        {
+            DrawAnnualReview();
+            GUILayout.Space(12f);
+        }
         DrawNursery();
         GUILayout.Space(12f);
         DrawPlantingGrid();
@@ -584,9 +783,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
         List<ScenarioOneWorkOrder> visible = workOrders.Where(order => order.IsOpen)
             .OrderBy(order => order.workOrderId).ToList();
         if (visible.Count == 0)
-            GUILayout.Label("No work is planned. Mark trees or designate planting cells above.", bodyStyle);
+            GUILayout.Label("No work is planned. Mark trees, plant saplings or designate regeneration removal.", bodyStyle);
         foreach (ScenarioOneWorkOrder order in visible)
             DrawOrder(order);
+        GUILayout.Space(12f);
+        DrawRegenerationRemovalGrid();
         GUILayout.EndScrollView();
 
         GUILayout.Space(8f);
@@ -618,6 +819,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         if (order.type == ScenarioWorkType.PlantJuvenile)
             GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
                 + $"stock: {order.requiredStockQuantity} {order.stockItemId} · cell {order.cellIndex}", bodyStyle);
+        else if (order.type == ScenarioWorkType.RemoveRegeneration)
+            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
+                + $"whole {order.speciesId} cohort · cell {order.cellIndex} · estimated density {order.expectedRegenerationDensity:0.00}", bodyStyle);
         else
             GUILayout.Label($"{Minutes(order.estimatedMinutes)} · cost {Money(order.estimatedCostCents)} · "
                 + $"{order.expectedVolumeM3:0.00} m³ · expected revenue {Money(order.expectedRevenueCents)}", bodyStyle);
@@ -696,6 +900,109 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Label("Cells are numbered west to east, south to north. Grey cells already have this species or an open designation.", bodyStyle);
     }
 
+    private void DrawRegenerationRemovalGrid()
+    {
+        GUILayout.Label("REGENERATION CONTROL", headingStyle);
+        GUILayout.Label("Select a species, then designate cells containing its live regeneration for annual contractor removal.", bodyStyle);
+        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (ecology == null || ecology.Cells == null || spawner == null)
+            return;
+        GUILayout.BeginHorizontal();
+        foreach (TreeSpeciesDefinition species in spawner.KnownSpecies)
+        {
+            bool hasCohorts = ecology.Cells.Any(cell =>
+            {
+                ForestRegenerationCohort cohort = cell.FindCohort(species.SpeciesId);
+                return cohort != null && cohort.Density > 0f;
+            });
+            GUI.enabled = hasCohorts;
+            if (GUILayout.Button((selectedRemovalSpeciesId == species.SpeciesId ? "Selected: " : "Choose: ")
+                    + species.DisplayName, buttonStyle, GUILayout.Height(30f * ForestHud.Scale)))
+                selectedRemovalSpeciesId = species.SpeciesId;
+            GUI.enabled = true;
+        }
+        GUILayout.EndHorizontal();
+        if (string.IsNullOrEmpty(selectedRemovalSpeciesId))
+        {
+            GUILayout.Label("No species selected; available cohorts become selectable as the forest regenerates.", bodyStyle);
+            return;
+        }
+        int axis = ecology.CellsPerAxis;
+        for (int z = axis - 1; z >= 0; z--)
+        {
+            GUILayout.BeginHorizontal();
+            for (int x = 0; x < axis; x++)
+            {
+                int index = z * axis + x;
+                ForestRegenerationCohort cohort = ecology.Cells[index].FindCohort(selectedRemovalSpeciesId);
+                GUI.enabled = cohort != null && cohort.Density > 0f
+                    && !HasOpenRegenerationRemovalOrder(selectedRemovalSpeciesId, index);
+                if (GUILayout.Button($"{x + 1},{z + 1}", cellButtonStyle,
+                        GUILayout.Width(66f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale)))
+                    TryDesignateRegenerationRemoval(selectedRemovalSpeciesId, index);
+                GUI.enabled = true;
+            }
+            GUILayout.EndHorizontal();
+        }
+        GUILayout.Label("Only live selected-species cohorts can be designated. Each order removes the entire cohort in one cell.", bodyStyle);
+    }
+
+    private void DrawAnnualReview()
+    {
+        GUILayout.Label("ANNUAL REVIEW — ECOLOGICAL OUTCOMES", headingStyle);
+        if (ecologicalSnapshots.Count == 0)
+        {
+            GUILayout.Label("No ecological snapshot has been recorded yet.", bodyStyle);
+            return;
+        }
+        ScenarioEcologicalSnapshot initial = ecologicalSnapshots[0];
+        ScenarioEcologicalSnapshot current = ecologicalSnapshots[ecologicalSnapshots.Count - 1];
+        GUILayout.Label($"Year {current.year} (baseline year {initial.year}) · trees {current.livingTrees} "
+            + $"({current.livingTrees - initial.livingTrees:+#;-#;0}) · basal area "
+            + $"{current.basalAreaM2PerHa:0.0} m²/ha · mean DBH {current.meanDbhCm:0.0} cm", bodyStyle);
+        GUILayout.Label($"Mean light {current.meanLight:0.00} · mean canopy {current.meanCanopy:0.00} · "
+            + $"regenerating cells {current.occupiedRegenerationCells}/{ecology.CellCount} · "
+            + $"mean shared occupancy {current.meanSharedRegenerationOccupancy:0.00} · "
+            + $"recent opening {current.totalRecentOpening:0.0}", bodyStyle);
+        GUILayout.Label($"Functional-group cover [D] — moss {current.meanMosses:0.00}, ferns {current.meanFerns:0.00}, "
+            + $"grasses {current.meanGrasses:0.00}, forbs {current.meanForbs:0.00}, "
+            + $"shrubs {current.meanShrubs:0.00}, fungi {current.meanFungi:0.00}", bodyStyle);
+        foreach (ScenarioSpeciesOutcome species in current.species)
+            GUILayout.Label($"{species.speciesId}: {species.livingTrees} trees · {species.basalAreaM2PerHa:0.0} m²/ha · "
+                + $"regeneration in {species.regenerationCells} cell(s) (planted: {species.plantedRegenerationCells}) · "
+                + $"density {species.regenerationDensity:0.00}", bodyStyle);
+
+        GUILayout.Space(8f);
+        GUILayout.Label("RECENT ANNUAL REPORTS", headingStyle);
+        foreach (ScenarioAnnualReport report in annualReports.AsEnumerable().Reverse().Take(6))
+            GUILayout.Label($"Year {report.year}: {report.completedTasks} completed, {report.failedTasks} failed · "
+                + $"contractor {Money(report.contractorCostCents)} · timber {Money(report.timberRevenueCents)} · "
+                + $"volume {report.harvestedVolumeM3:0.00} m³ · regeneration removed "
+                + $"{report.regenerationRemovalTasks} cohort(s) / {report.removedRegenerationDensity:0.00} density · "
+                + $"cash {Money(report.closingCashCents)}", bodyStyle);
+        if (annualReports.Count == 0)
+            GUILayout.Label("Advance a year to record the first annual outcome.", bodyStyle);
+
+        GUILayout.Space(8f);
+        GUILayout.Label("RECENT MANAGEMENT EVENTS", headingStyle);
+        foreach (ScenarioManagementEvent entry in managementEvents.AsEnumerable().Reverse().Take(8))
+        {
+            string target = !string.IsNullOrEmpty(entry.targetTreeId)
+                ? "tree " + entry.targetTreeId
+                : entry.cellIndex >= 0 ? "cell " + entry.cellIndex : entry.stockItemId;
+            string action = entry.eventType == ScenarioManagementEventType.YearAdvanced
+                ? "Ecological year advanced"
+                : entry.eventType == ScenarioManagementEventType.StockPurchased
+                    ? $"Bought {entry.quantity} {entry.stockItemId}"
+                    : $"{entry.eventType} · {entry.taskType} {entry.speciesId} {target}";
+            string result = entry.eventType == ScenarioManagementEventType.WorkResolved
+                ? $" · {entry.outcome} · {entry.ecologicalTreatment}"
+                : "";
+            GUILayout.Label($"#{entry.eventId} · year {entry.year} · {action}{result} · cash {Money(entry.cashDeltaCents)}"
+                + (string.IsNullOrEmpty(entry.failureReason) ? "" : " · " + entry.failureReason), bodyStyle);
+        }
+    }
+
     private void DrawClosedPrompt()
     {
         if (closedPromptStyle == null)
@@ -760,6 +1067,169 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private static string Money(long cents) => $"€{cents / 100.0:0.00}";
     private static string Minutes(int minutes) => minutes < 60 ? minutes + " min" : $"{minutes / 60f:0.0} h";
 
+    private ScenarioManagementEvent RecordOrderEvent(ScenarioOneWorkOrder order,
+        ScenarioManagementEventType eventType, ScenarioManagementOutcome outcome, int year)
+    {
+        var entry = new ScenarioManagementEvent
+        {
+            year = year,
+            eventType = eventType,
+            outcome = outcome,
+            workOrderId = order.workOrderId,
+            taskType = order.type,
+            speciesId = order.speciesId,
+            targetTreeId = order.targetTreeId,
+            cellIndex = order.cellIndex >= 0 ? order.cellIndex
+                : (ecology != null ? ecology.GetCellIndex(order.worldPosition) : -1),
+            worldPosition = order.worldPosition,
+            stockItemId = order.stockItemId,
+            quantity = order.type == ScenarioWorkType.PlantJuvenile ? order.requiredStockQuantity : 1,
+            estimatedContractorCostCents = order.estimatedCostCents
+        };
+        RecordEvent(entry);
+        return entry;
+    }
+
+    private void RecordEvent(ScenarioManagementEvent entry)
+    {
+        entry.eventId = nextManagementEventId++;
+        entry.closingCashCents = cashCents;
+        managementEvents.Add(entry);
+    }
+
+    private static ScenarioEcologicalTreatment TreatmentFor(ScenarioOneWorkOrder order)
+    {
+        switch (order.type)
+        {
+            case ScenarioWorkType.FellTree:
+                return ScenarioEcologicalTreatment.TreeFelledAndExtracted;
+            case ScenarioWorkType.PlantJuvenile:
+                return ScenarioEcologicalTreatment.JuvenilePlanted;
+            case ScenarioWorkType.RemoveRegeneration:
+                return ScenarioEcologicalTreatment.RegenerationRemoved;
+            default:
+                return ScenarioEcologicalTreatment.None;
+        }
+    }
+
+    private void EnsureBaselineSnapshot()
+    {
+        EnsureUnderstoreyGrid();
+        if (ecologicalSnapshots.Count == 0)
+            RecordEcologicalSnapshot();
+    }
+
+    private void EnsureUnderstoreyGrid()
+    {
+        if (ecology == null || ecology.Cells == null)
+            return;
+        bool valid = understoreyCells.Count == ecology.CellCount;
+        if (valid)
+            for (int i = 0; i < ecology.CellCount; i++)
+                if (understoreyCells[i] == null || understoreyCells[i].cellIndex != i)
+                {
+                    valid = false;
+                    break;
+                }
+        if (valid)
+            return;
+
+        understoreyCells.Clear();
+        for (int i = 0; i < ecology.CellCount; i++)
+            understoreyCells.Add(ScenarioOneUnderstorey.Initially(i, ecology.Cells[i], ecology.EcologicalYear));
+    }
+
+    private void AdvanceUnderstorey()
+    {
+        EnsureUnderstoreyGrid();
+        for (int i = 0; i < understoreyCells.Count; i++)
+            ScenarioOneUnderstorey.Advance(understoreyCells[i], ecology.Cells[i], ecology.EcologicalYear,
+                definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+    }
+
+    private void RecordEcologicalSnapshot()
+    {
+        if (ecology == null || ecology.Cells == null || ecology.Cells.Length == 0)
+            return;
+        EnsureUnderstoreyGrid();
+        if (ecologicalSnapshots.Count > 0 && ecologicalSnapshots[ecologicalSnapshots.Count - 1].year == ecology.EcologicalYear)
+            return;
+
+        var snapshot = new ScenarioEcologicalSnapshot { year = ecology.EcologicalYear };
+        var bySpecies = new Dictionary<string, ScenarioSpeciesOutcome>(StringComparer.Ordinal);
+        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (spawner != null)
+            foreach (TreeSpeciesDefinition known in spawner.KnownSpecies)
+                bySpecies[known.SpeciesId] = new ScenarioSpeciesOutcome { speciesId = known.SpeciesId };
+
+        ScenarioSpeciesOutcome SpeciesOutcome(string speciesId)
+        {
+            if (!bySpecies.TryGetValue(speciesId, out ScenarioSpeciesOutcome outcome))
+            {
+                outcome = new ScenarioSpeciesOutcome { speciesId = speciesId };
+                bySpecies.Add(speciesId, outcome);
+            }
+            return outcome;
+        }
+
+        float areaHa = Mathf.Max(0.0001f, ecology.StandAreaHectares);
+        foreach (ForestTree tree in UnityEngine.Object.FindObjectsByType<ForestTree>(
+                     FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (tree == null || tree.IsStump)
+                continue;
+            string id = tree.Species != null ? tree.Species.SpeciesId : "unknown";
+            ScenarioSpeciesOutcome species = SpeciesOutcome(id);
+            float basalArea = Mathf.PI * Mathf.Pow(tree.Diameter / 200f, 2f) / areaHa;
+            species.livingTrees++;
+            species.basalAreaM2PerHa += basalArea;
+            snapshot.livingTrees++;
+            snapshot.basalAreaM2PerHa += basalArea;
+            snapshot.meanDbhCm += tree.Diameter;
+        }
+        if (snapshot.livingTrees > 0)
+            snapshot.meanDbhCm /= snapshot.livingTrees;
+        foreach (ForestEcologyCell cell in ecology.Cells)
+        {
+            snapshot.meanLight += cell.Light;
+            snapshot.meanCanopy += cell.Canopy;
+            snapshot.meanSharedRegenerationOccupancy += cell.SharedOccupancy;
+            snapshot.totalRecentOpening += cell.RecentOpening;
+            if (cell.HasRegeneration)
+                snapshot.occupiedRegenerationCells++;
+            foreach (ForestRegenerationCohort cohort in cell.Regeneration)
+            {
+                if (cohort == null || cohort.Density <= 0f || string.IsNullOrEmpty(cohort.SpeciesId))
+                    continue;
+                ScenarioSpeciesOutcome species = SpeciesOutcome(cohort.SpeciesId);
+                species.regenerationCells++;
+                species.regenerationDensity += cohort.Density;
+                if (cohort.Origin == RegenerationOrigin.Planted)
+                    species.plantedRegenerationCells++;
+            }
+        }
+        snapshot.meanLight /= ecology.CellCount;
+        snapshot.meanCanopy /= ecology.CellCount;
+        snapshot.meanSharedRegenerationOccupancy /= ecology.CellCount;
+        foreach (ScenarioUnderstoreyCell cell in understoreyCells)
+        {
+            snapshot.meanMosses += cell.mosses;
+            snapshot.meanFerns += cell.ferns;
+            snapshot.meanGrasses += cell.grasses;
+            snapshot.meanForbs += cell.forbs;
+            snapshot.meanShrubs += cell.shrubs;
+            snapshot.meanFungi += cell.fungi;
+        }
+        snapshot.meanMosses /= ecology.CellCount;
+        snapshot.meanFerns /= ecology.CellCount;
+        snapshot.meanGrasses /= ecology.CellCount;
+        snapshot.meanForbs /= ecology.CellCount;
+        snapshot.meanShrubs /= ecology.CellCount;
+        snapshot.meanFungi /= ecology.CellCount;
+        snapshot.species = bySpecies.Values.OrderBy(entry => entry.speciesId, StringComparer.Ordinal).ToList();
+        ecologicalSnapshots.Add(snapshot);
+    }
+
     private static List<ScenarioOneWorkOrder> CloneOrders(List<ScenarioOneWorkOrder> source)
     {
         if (source == null) return new List<ScenarioOneWorkOrder>();
@@ -783,8 +1253,28 @@ public sealed class ScenarioOneManager : MonoBehaviour
             contractorCostCents = item.contractorCostCents,
             timberRevenueCents = item.timberRevenueCents,
             harvestedVolumeM3 = item.harvestedVolumeM3,
+            regenerationRemovalTasks = item.regenerationRemovalTasks,
+            removedRegenerationDensity = item.removedRegenerationDensity,
             closingCashCents = item.closingCashCents
         }).ToList();
+    }
+
+    private static List<ScenarioManagementEvent> CloneEvents(List<ScenarioManagementEvent> source)
+    {
+        if (source == null) return new List<ScenarioManagementEvent>();
+        return source.Select(item => JsonUtility.FromJson<ScenarioManagementEvent>(JsonUtility.ToJson(item))).ToList();
+    }
+
+    private static List<ScenarioEcologicalSnapshot> CloneSnapshots(List<ScenarioEcologicalSnapshot> source)
+    {
+        if (source == null) return new List<ScenarioEcologicalSnapshot>();
+        return source.Select(item => JsonUtility.FromJson<ScenarioEcologicalSnapshot>(JsonUtility.ToJson(item))).ToList();
+    }
+
+    private static List<ScenarioUnderstoreyCell> CloneUnderstorey(List<ScenarioUnderstoreyCell> source)
+    {
+        if (source == null) return new List<ScenarioUnderstoreyCell>();
+        return source.Select(item => JsonUtility.FromJson<ScenarioUnderstoreyCell>(JsonUtility.ToJson(item))).ToList();
     }
 
     private struct WorkPlanTotals

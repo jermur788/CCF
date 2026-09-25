@@ -54,6 +54,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     public int CellCount => cells != null ? cells.Length : 0;
     public int CellsPerAxis => cellsPerAxis;
     public float CellSizeMeters => cellSizeMeters;
+    public float StandAreaHectares => standSizeMeters * standSizeMeters / 10000f;
     public ForestEcologyCell[] Cells => cells;
     public string LastMastLabel => lastMastLabel;
     public float LastMastMultiplier => lastMastMultiplier;

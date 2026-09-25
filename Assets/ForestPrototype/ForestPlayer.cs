@@ -578,6 +578,19 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void UpdateUprooting(bool held, float deltaTime)
     {
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        {
+            CancelUprooting();
+            if (!held)
+                uprootNeedsRelease = false;
+            else if (!uprootNeedsRelease)
+            {
+                lastHarvestMessage = "Regeneration removal is managed through [Tab] Work Plan.";
+                messageTimer = 3.5f;
+                uprootNeedsRelease = true;
+            }
+            return;
+        }
         if (!held)
         {
             uprootNeedsRelease = false;
@@ -852,15 +865,20 @@ public sealed class ForestPlayer : MonoBehaviour
             string promptText = plantingPrompt;
             if (!isPlantingMode && TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
             {
-                string progress = isUprooting && uprootDuration > 0f
-                    ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
-                    : "";
                 string selection = aimedRegeneration.Cohorts.Count > 1
                     ? $"Selected: {selected.DisplayName}  |  [R] Cycle species\n"
                     : "";
-                promptText = selection
-                    + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n"
-                    + plantingPrompt;
+                if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+                    promptText = selection + $"[Tab] Work Plan: remove {selected.DisplayName} regeneration";
+                else
+                {
+                    string progress = isUprooting && uprootDuration > 0f
+                        ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
+                        : "";
+                    promptText = selection
+                        + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n"
+                        + plantingPrompt;
+                }
             }
             float width = Mathf.Max(520f, promptText.Length * size * 0.28f + 48f);
             float height = Mathf.Max(64f, size * (promptText.Contains("\n") ? 3.8f : 2.0f));

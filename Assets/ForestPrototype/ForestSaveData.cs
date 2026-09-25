@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 10;
+    public const int CurrentVersion = 11;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -17,6 +17,7 @@ public sealed class ForestSaveData
     public List<WoodStorageSaveData> storages = new List<WoodStorageSaveData>();
     public List<ForestCellSaveData> cells = new List<ForestCellSaveData>();
     // Version 10: Scenario One management/economy state. Null in legacy saves.
+    // Version 11: structured management events within scenarioOne.
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -27,9 +28,13 @@ public sealed class ScenarioOneSaveData
     public bool initialized;
     public long cashCents;
     public int nextWorkOrderId = 1;
+    public int nextManagementEventId = 1;
     public List<ScenarioOneWorkOrder> workOrders = new List<ScenarioOneWorkOrder>();
     public List<ScenarioInventoryEntry> inventory = new List<ScenarioInventoryEntry>();
     public List<ScenarioAnnualReport> annualReports = new List<ScenarioAnnualReport>();
+    public List<ScenarioManagementEvent> managementEvents = new List<ScenarioManagementEvent>();
+    public List<ScenarioEcologicalSnapshot> ecologicalSnapshots = new List<ScenarioEcologicalSnapshot>();
+    public List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
 }
 
 [Serializable]
@@ -48,6 +53,8 @@ public sealed class ScenarioAnnualReport
     public long contractorCostCents;
     public long timberRevenueCents;
     public float harvestedVolumeM3;
+    public int regenerationRemovalTasks;
+    public float removedRegenerationDensity;
     public long closingCashCents;
 }
 

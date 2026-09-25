@@ -32,4 +32,8 @@ MonoBehaviour:
     displayName: Sessile oak sapling
     unitPriceCents: 550
     plantingMinutes: 10
+  removalBaseMinutes: 6
+  removalMinutesPerCohortDensity: 3
+  understoreyColonisationRate: 0.3
+  understoreyLossRate: 0.45
   minimumCompletionYear: 25

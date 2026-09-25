@@ -62,7 +62,57 @@ so the canonical Sitka lifecycle remains isolated.
 - let players cancel pending or approved orders before the annual resolution,
   immediately releasing approved reservations;
 - record unsuccessful planting without consuming stock or charging for work;
-- keep stock, planting orders and biological origin/year through save v10.
+- keep stock, planting orders and biological origin/year through save v10+.
+
+## Structured management history (save v11)
+
+Management events are persisted alongside orders and annual reports. Each has a
+monotonic event ID and a typed kind (purchase, create, approve, cancel, resolve,
+annual advance), year, work-order/task identity, species, tree ID or cell,
+quantity and stock item, estimated/actual contractor cost, materials consumed,
+timber revenue, biological volume, cash delta and closing balance. Executed
+tasks store success/failure, a diagnostic reason for failure and a separate
+ecological treatment type. Purchases and planning are recorded in the current
+ecological year; annual work resolution is recorded for the year it advances
+into. Forestry's planted-origin year remains the pre-advance ecological year.
+Versions 1–9 still start the configured economy; version 10 saves retain their
+existing orders/reports and begin an empty event history. Historic events are
+not fabricated from earlier summary strings.
+
+Each complete ecological year also stores a read-only stand snapshot. It
+includes living stem count, basal area per hectare, mean DBH, canopy/light,
+regeneration occupancy/opening and per-species trees and natural/planted cohort
+counts. These measurements are observed after Forestry's annual step; no
+ecology rule uses them. The first observation is the fresh or loaded stand
+baseline, and version-10 saves start observing from the load onward without
+inventing earlier snapshots. The Work Plan's expandable annual review compares
+current and baseline structure alongside recent reports and typed event history.
+
+## Species-selective regeneration control
+
+The Work Plan can designate an entire live species cohort in an ecology cell
+for contractor removal. Orders record the selected species/cell and estimated
+density, time and cost. Resolution uses Forestry's authoritative
+`TryUprootRegeneration` and charges only for a successful removal. The other
+species in the cell is untouched by the treatment. Failed or cancelled orders
+leave cash unspent. Annual reports and structured events store removed cohort
+density and the `RegenerationRemoved` treatment; no harvest revenue or stock is
+created. A `U` attempt in Scenario One directs the player to the Work Plan;
+other modes retain the existing player-facing hold-to-uproot interaction.
+Removal minutes are provisional gameplay calibration [D] on the definition.
+
+## Deterministic understorey functional groups
+
+Each ecology cell has saved moss, fern, grass, forb, shrub and litter-fungus
+cover proxies (0–1). Initial cover is derived from Forestry canopy/light and
+site state. The management annual step moves each group deterministically
+towards its shade/gap target with configurable colonisation and loss rates [D].
+Dark Sitka litter supports moss/fungi, while openings favour ferns and then
+herbaceous/shrub groups; returning shade reduces gap groups. There are no
+random rolls, detailed botanical species or feedback into tree growth. The
+annual review shows mean functional-group cover; the save retains individual
+cell state for continuation and replay. Existing scene-scattered Nature Detail
+props remain visual decoration rather than biological authority.
 
 Shop prices and planting minutes are provisional gameplay calibration [D] on
 the scenario definition. Purchases are settled immediately in integer cents;
@@ -89,9 +139,6 @@ defined outcome but is not selectable until the deadwood system is implemented.
 
 ## Next slices
 
-1. species-selective regeneration-removal orders;
-2. ecological outcome history and dashboard;
-3. deterministic functional-group understorey;
-4. fallen deadwood, then evidence-backed pruning;
-5. habitat-driven soundscape routing;
-6. tutorial, objectives and completion/failure state.
+1. fallen deadwood, then evidence-backed pruning;
+2. habitat-driven soundscape routing;
+3. tutorial, objectives and completion/failure state.

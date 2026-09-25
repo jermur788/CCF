@@ -77,6 +77,17 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
         Require(manager != null && ecology != null && spawner != null && saves != null, "scenario systems missing");
         Require(ecology.LivingTreeCount == 336, "fresh stand changed");
+        Require(manager.EcologicalSnapshots.Count == 1 && manager.EcologicalSnapshots[0].year == 0
+            && manager.EcologicalSnapshots[0].livingTrees == 336
+            && manager.EcologicalSnapshots[0].species.Single(entry => entry.speciesId == "sitka-spruce").livingTrees == 336
+            && Mathf.Abs(manager.EcologicalSnapshots[0].basalAreaM2PerHa - 41.099f) < 0.2f,
+            "initial ecological snapshot changed the canonical stand");
+        Require(manager.UnderstoreyCells.Count == ecology.CellCount
+            && manager.UnderstoreyCells.All(cell => cell.lastUpdatedYear == 0)
+            && manager.EcologicalSnapshots[0].meanMosses > manager.EcologicalSnapshots[0].meanGrasses
+            && manager.EcologicalSnapshots[0].meanFungi > 0f,
+            "fresh plantation floor does not read as shaded litter habitat");
+        VerifyUnderstoreyResponse(manager.Definition);
         Require(manager.Definition.ShopEntries.Count == 2, "shop offers missing");
         Require(spawner.ResolveSpecies("beech") != null && spawner.ResolveSpecies("sessile-oak") != null,
             "shop species missing from scene");
@@ -98,6 +109,14 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         Require(manager.CashCents == afterPurchases, "purchase settlement in cents differs");
         Require(manager.GetStockQuantity(beechOffer.itemId) == 1 && manager.GetStockQuantity(oakOffer.itemId) == 1,
             "stock quantities wrong");
+        Require(manager.ManagementEvents.Count == 2 && manager.ManagementEvents[0].eventId == 1
+            && manager.ManagementEvents[0].eventType == ScenarioManagementEventType.StockPurchased
+            && manager.ManagementEvents[0].speciesId == "beech"
+            && manager.ManagementEvents[0].quantity == 1
+            && manager.ManagementEvents[0].stockCostCents == beechOffer.unitPriceCents
+            && manager.ManagementEvents[0].cashDeltaCents == -beechOffer.unitPriceCents
+            && manager.ManagementEvents[1].eventId == 2 && manager.ManagementEvents[1].speciesId == "sessile-oak",
+            "purchase events lost species, quantities or exact-cent settlement");
 
         const int beechCell = 20, oakCell = 21, pendingCell = 22;
         Require(!manager.TryDesignatePlanting(beechOffer.itemId, -1), "outside cell designation accepted");
@@ -111,6 +130,9 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         Require(manager.ApprovePendingWork(), "affordable stocked work was not approved");
         Require(manager.WorkOrders.Count(order => order.status == ScenarioWorkStatus.Approved) == 2,
             "unstocked third task was approved");
+        Require(manager.ManagementEvents.Count(e => e.eventType == ScenarioManagementEventType.OrderCreated) == 3
+            && manager.ManagementEvents.Count(e => e.eventType == ScenarioManagementEventType.OrderApproved) == 2,
+            "planning and approval were not recorded independently");
         Require(manager.WorkOrders[2].status == ScenarioWorkStatus.Pending && !string.IsNullOrEmpty(manager.WorkOrders[2].validationMessage),
             "unstocked task did not remain pending with feedback");
         Require(manager.GetStockQuantity(beechOffer.itemId) == 1, "approval consumed stock early");
@@ -121,6 +143,12 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         Require(manager.CashCents == afterPurchases, "rejected post-approval purchase changed cash");
         Require(manager.AdvanceYear(), "annual resolution failed");
         Require(ecology.EcologicalYear == 1 && manager.AnnualReports.Count == 1, "ecology did not advance exactly once");
+        Require(manager.EcologicalSnapshots.Count == 2 && manager.EcologicalSnapshots[1].year == 1
+            && manager.EcologicalSnapshots[1].species.Single(entry => entry.speciesId == "beech").plantedRegenerationCells == 1
+            && manager.EcologicalSnapshots[1].species.Single(entry => entry.speciesId == "sessile-oak").plantedRegenerationCells == 1,
+            "post-year ecological snapshot lost planted species outcomes");
+        Require(manager.UnderstoreyCells.All(cell => cell.lastUpdatedYear == 1),
+            "functional groups were not updated once after the annual Forestry step");
         Require(manager.AnnualReports[0].completedTasks == 2 && manager.AnnualReports[0].contractorCostCents == contractorCost,
             "annual contractor reporting wrong");
         Require(manager.CashCents == afterPurchases - contractorCost, "contractor settlement wrong");
@@ -129,6 +157,16 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         Require(manager.WorkOrders[0].status == ScenarioWorkStatus.Completed
             && manager.WorkOrders[1].status == ScenarioWorkStatus.Completed
             && manager.WorkOrders[2].status == ScenarioWorkStatus.Pending, "order status incorrect after resolution");
+        ScenarioManagementEvent[] completed = manager.ManagementEvents.Where(e =>
+            e.eventType == ScenarioManagementEventType.WorkResolved).ToArray();
+        Require(completed.Length == 2 && completed[0].year == 1 && completed[1].year == 1
+            && completed[0].outcome == ScenarioManagementOutcome.Succeeded
+            && completed[0].ecologicalTreatment == ScenarioEcologicalTreatment.JuvenilePlanted
+            && completed[0].stockUsed == 1 && completed[0].contractorCostCents == manager.WorkOrders[0].estimatedCostCents
+            && completed[0].cashDeltaCents == -completed[0].contractorCostCents
+            && completed[0].cellIndex == beechCell && completed[1].cellIndex == oakCell
+            && manager.ManagementEvents.Last().eventType == ScenarioManagementEventType.YearAdvanced,
+            "successful biological treatments or annual boundary were not recorded structurally");
         VerifyPlanted(ecology, beechCell, "beech");
         VerifyPlanted(ecology, oakCell, "sessile-oak");
         Require(!manager.TryDesignatePlanting(beechOffer.itemId, beechCell), "live cohort was accepted as new planting");
@@ -163,6 +201,12 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
             "full-cell biology did not fail task");
         Require(manager.CashCents == cashBeforeFailure && manager.GetStockQuantity(beechOffer.itemId) == 1,
             "failed planting consumed cash or stock");
+        ScenarioManagementEvent failed = manager.ManagementEvents.Single(e =>
+            e.eventType == ScenarioManagementEventType.WorkResolved);
+        Require(failed.outcome == ScenarioManagementOutcome.Failed && failed.year == 1
+            && failed.cellIndex == fullCell && failed.stockUsed == 0 && failed.contractorCostCents == 0
+            && failed.cashDeltaCents == 0 && failed.ecologicalTreatment == ScenarioEcologicalTreatment.None
+            && !string.IsNullOrEmpty(failed.failureReason), "failed biological work was recorded as a treatment or charged");
 
         ScenarioOneSaveData failedState = manager.CaptureSaveData();
         long failedCost = manager.WorkOrders[0].estimatedCostCents;
@@ -189,11 +233,19 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         Require(manager.ReservedContractorCashCents == 0 && manager.GetReservedStockQuantity(beechOffer.itemId) == 0
             && manager.CashCents == cashBeforeFailure && manager.GetStockQuantity(beechOffer.itemId) == 1,
             "cancelling approved work left a cash or stock reservation stranded");
+        ScenarioManagementEvent cancelled = manager.ManagementEvents.Last();
+        Require(cancelled.eventType == ScenarioManagementEventType.OrderCancelled
+            && cancelled.outcome == ScenarioManagementOutcome.Cancelled
+            && cancelled.workOrderId == 2 && cancelled.stockUsed == 0 && cancelled.contractorCostCents == 0,
+            "approved cancellation was not recorded without a treatment");
         manager.RestoreSaveData(failedState);
         Require(manager.TryDesignatePlanting(beechOffer.itemId, saveCell), "save-test re-designation failed");
         ScenarioOneSaveData before = manager.CaptureSaveData();
         ScenarioOneSaveData json = JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(before));
         Require(JsonUtility.ToJson(json) == JsonUtility.ToJson(before), "scenario JSON round-trip changed state");
+        Require(before.managementEvents.Count == manager.ManagementEvents.Count
+            && before.nextManagementEventId == manager.ManagementEvents.Last().eventId + 1,
+            "history snapshot or next event ID is wrong");
         saves.Save();
         Require(ecology.TryPlantJuvenile(spawner.ResolveSpecies("beech"), Center(ecology, saveCell)).Success,
             "mutation before load failed");
@@ -208,6 +260,13 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
             "save-load order state changed");
         Require(string.IsNullOrEmpty(manager.WorkOrders[1].validationMessage),
             "restored order was validated against stale ecology");
+        Require(manager.ManagementEvents.Count == before.managementEvents.Count
+            && JsonUtility.ToJson(manager.ManagementEvents.Last()) == JsonUtility.ToJson(before.managementEvents.Last()),
+            "save/load changed structured history");
+        Require(JsonUtility.ToJson(manager.EcologicalSnapshots.Last()) == JsonUtility.ToJson(before.ecologicalSnapshots.Last()),
+            "save/load changed ecological outcome history");
+        Require(JsonUtility.ToJson(manager.UnderstoreyCells[0]) == JsonUtility.ToJson(before.understoreyCells[0]),
+            "save/load changed the annual functional-group state");
         Require(manager.ApprovePendingWork(), "restored pending order could not be approved");
         Require(manager.AdvanceYear() && ecology.EcologicalYear == 2, "restored order did not continue annual cycle");
         Require(manager.GetStockQuantity(beechOffer.itemId) == 0
@@ -216,6 +275,24 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         ForestRegenerationCohort continued = ecology.Cells[saveCell].FindCohort("beech");
         Require(continued != null && continued.Origin == RegenerationOrigin.Planted && continued.OriginYear == 1,
             "restored planting did not continue with the right provenance and year");
+
+        saves.Save();
+        ForestSaveData version10 = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(savePath));
+        version10.version = 10;
+        version10.scenarioOne.managementEvents = null;
+        version10.scenarioOne.ecologicalSnapshots = null;
+        version10.scenarioOne.understoreyCells = null;
+        version10.scenarioOne.nextManagementEventId = 0;
+        File.WriteAllText(savePath, JsonUtility.ToJson(version10));
+        saves.Load();
+        yield return null;
+        Require(manager.ManagementEvents.Count == 0 && manager.EcologicalSnapshots.Count == 0
+            && manager.UnderstoreyCells.Count == 0
+            && manager.WorkOrders.Count == 2
+            && manager.WorkOrders[1].status == ScenarioWorkStatus.Completed && manager.AnnualReports.Count == 2,
+            "version-10 migration lost work orders or invented historical events");
+        Require(manager.TryPurchaseStock(oakOffer.itemId, 1) && manager.ManagementEvents[0].eventId == 1,
+            "new events did not begin after a version-10 migration");
 
         saves.Save();
         ForestSaveData legacy = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(savePath));
@@ -227,6 +304,35 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
             && manager.Inventory.Count == 0 && manager.WorkOrders.Count == 0
             && ecology.Cells[saveCell].FindCohort("beech") != null,
             "version-9 migration lost ecology or failed to start the configured economy");
+
+        ForestTree target = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .First(tree => tree.TreeId == "P0000");
+        float targetVolume = target.BiologicalStemVolumeM3;
+        ForestTreeMarkingManager marking = FindFirstObjectByType<ForestTreeMarkingManager>();
+        marking.Mark(target, false);
+        Require(manager.AddMarkedTreesToWorkPlan() == 1 && manager.ApprovePendingWork(),
+            "felling history setup failed");
+        long fellingCost = manager.WorkOrders[0].estimatedCostCents;
+        long beforeFelling = manager.CashCents;
+        Require(manager.AdvanceYear(), "felling history year did not advance");
+        ScenarioManagementEvent felling = manager.ManagementEvents.Single(e =>
+            e.eventType == ScenarioManagementEventType.WorkResolved);
+        Require(felling.year == 3 && felling.targetTreeId == "P0000"
+            && felling.cellIndex == ecology.GetCellIndex(target.transform.position)
+            && felling.ecologicalTreatment == ScenarioEcologicalTreatment.TreeFelledAndExtracted
+            && felling.outcome == ScenarioManagementOutcome.Succeeded
+            && felling.contractorCostCents == fellingCost
+            && Mathf.Abs(felling.biologicalVolumeM3 - targetVolume) < 1e-6f
+            && felling.cashDeltaCents == manager.CashCents - beforeFelling
+            && felling.timberRevenueCents > 0 && felling.stockUsed == 0,
+            "felling event lost tree identity, biology or financial treatment");
+        Require(manager.EcologicalSnapshots.Count == 2 && manager.EcologicalSnapshots[0].year == 2
+            && manager.EcologicalSnapshots[1].year == 3
+            && manager.EcologicalSnapshots[1].livingTrees < manager.EcologicalSnapshots[0].livingTrees,
+            "post-migration baseline or canopy-opening outcome was not observed");
+        Require(manager.UnderstoreyCells.Count == ecology.CellCount
+            && manager.UnderstoreyCells.All(cell => cell.lastUpdatedYear == 3),
+            "understorey did not resume after legacy-save migration");
         Debug.Log("SCENARIO_ONE_PLANTING_DETAIL beech=" + beechCell + " oak=" + oakCell
             + " failureStockRetained=True saveVersion=" + ForestSaveData.CurrentVersion);
     }
@@ -235,6 +341,43 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
     {
         Vector2 center = ecology.Cells[index].Center;
         return new Vector3(center.x, 0f, center.y);
+    }
+
+    private static void VerifyUnderstoreyResponse(ScenarioOneDefinition definition)
+    {
+        var probe = new ForestEcologyCell { Light = 0.04f, Canopy = 0.95f };
+        ScenarioUnderstoreyCell dark = ScenarioOneUnderstorey.Initially(3, probe, 0);
+        ScenarioUnderstoreyCell replay = ScenarioOneUnderstorey.Initially(3, probe, 0);
+        float darkMoss = dark.mosses;
+        Require(dark.grasses == 0f && dark.forbs == 0f && dark.shrubs == 0f && dark.fungi > 0f,
+            "deep-shade understorey contains gap flora");
+        probe.Light = 0.9f;
+        probe.Canopy = 0.1f;
+        probe.RecentOpening = 2f;
+        for (int year = 1; year <= 8; year++)
+        {
+            ScenarioOneUnderstorey.Advance(dark, probe, year,
+                definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+            ScenarioOneUnderstorey.Advance(replay, probe, year,
+                definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+        }
+        Require(dark.grasses > 0.5f && dark.forbs > 0.5f && dark.shrubs > 0.5f
+            && dark.mosses < darkMoss && dark.lastUpdatedYear == 8,
+            "gap opening did not establish light-responsive functional groups");
+        Require(JsonUtility.ToJson(dark) == JsonUtility.ToJson(replay),
+            "fixed light history did not reproduce the same functional-group state");
+        ScenarioOneUnderstorey.Advance(dark, probe, 8,
+            definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+        Require(JsonUtility.ToJson(dark) == JsonUtility.ToJson(replay), "same-year understorey ran twice");
+        float gapGrass = dark.grasses;
+        probe.Light = 0.02f;
+        probe.Canopy = 0.95f;
+        probe.RecentOpening = 0f;
+        for (int year = 9; year <= 13; year++)
+            ScenarioOneUnderstorey.Advance(dark, probe, year,
+                definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+        Require(dark.grasses < gapGrass * 0.1f && dark.mosses > 0.5f,
+            "shade return did not suppress gap flora and recover litter groups");
     }
 
     private static void VerifyPlanted(ForestEcologyController ecology, int index, string speciesId)
