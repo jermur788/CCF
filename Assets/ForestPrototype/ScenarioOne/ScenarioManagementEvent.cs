@@ -8,7 +8,10 @@ public enum ScenarioManagementEventType
     OrderApproved,
     OrderCancelled,
     WorkResolved,
-    YearAdvanced
+    YearAdvanced,
+    ScenarioCompleted,
+    ScenarioFailed,
+    CenturyReviewed
 }
 
 public enum ScenarioManagementOutcome

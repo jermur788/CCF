@@ -21,6 +21,8 @@ public sealed class ScenarioEcologicalSnapshot
     public int livingTrees;
     public float basalAreaM2PerHa;
     public float meanDbhCm;
+    public float dbhCoefficientOfVariation;
+    public int cellCount;
     public float meanLight;
     public float meanCanopy;
     public int occupiedRegenerationCells;

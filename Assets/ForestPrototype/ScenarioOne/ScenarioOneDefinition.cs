@@ -62,6 +62,18 @@ public sealed class ScenarioOneDefinition : ScriptableObject
 
     [Header("Progression — provisional calibration [D]")]
     [SerializeField, Min(1)] private int minimumCompletionYear = 25;
+    [SerializeField, Min(2)] private int centuryReviewYear = 100;
+    [SerializeField, Min(0)] private int minimumRetainedOriginalTrees = 60;
+    [SerializeField, Range(0f, 1f)] private float minimumMeanCanopy = 0.35f;
+    [SerializeField, Min(0)] private int minimumRegenerationCells = 3;
+    [SerializeField, Min(0f)] private float minimumDeadwoodVolumeM3 = 0.02f;
+
+    [Header("Century reference — aspirational design targets [D], not a forecast")]
+    [SerializeField, Min(0)] private int referenceOriginalTrees = 120;
+    [SerializeField, Min(0)] private int referenceBroadleafPresence = 10;
+    [SerializeField, Min(0)] private int referenceRegenerationCells = 12;
+    [SerializeField, Min(0f)] private float referenceDeadwoodVolumeM3 = 0.5f;
+    [SerializeField, Range(0f, 1f)] private float referenceMeanCanopy = 0.65f;
 
     public string ScenarioId => scenarioId;
     public string DisplayName => displayName;
@@ -71,6 +83,16 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public int FellingBaseMinutes => fellingBaseMinutes;
     public float FellingMinutesPerCubicMetre => fellingMinutesPerCubicMetre;
     public int MinimumCompletionYear => minimumCompletionYear;
+    public int CenturyReviewYear => centuryReviewYear;
+    public int MinimumRetainedOriginalTrees => minimumRetainedOriginalTrees;
+    public float MinimumMeanCanopy => minimumMeanCanopy;
+    public int MinimumRegenerationCells => minimumRegenerationCells;
+    public float MinimumDeadwoodVolumeM3 => minimumDeadwoodVolumeM3;
+    public int ReferenceOriginalTrees => referenceOriginalTrees;
+    public int ReferenceBroadleafPresence => referenceBroadleafPresence;
+    public int ReferenceRegenerationCells => referenceRegenerationCells;
+    public float ReferenceDeadwoodVolumeM3 => referenceDeadwoodVolumeM3;
+    public float ReferenceMeanCanopy => referenceMeanCanopy;
     public IReadOnlyList<ScenarioShopEntry> ShopEntries => shopEntries;
     public int RemovalBaseMinutes => removalBaseMinutes;
     public float RemovalMinutesPerCohortDensity => removalMinutesPerCohortDensity;

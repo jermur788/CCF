@@ -47,3 +47,13 @@ MonoBehaviour:
   pruningBaseMinutes: 8
   pruningMinutesPerMetre: 2
   minimumCompletionYear: 25
+  centuryReviewYear: 100
+  minimumRetainedOriginalTrees: 60
+  minimumMeanCanopy: 0.35
+  minimumRegenerationCells: 3
+  minimumDeadwoodVolumeM3: 0.02
+  referenceOriginalTrees: 120
+  referenceBroadleafPresence: 10
+  referenceRegenerationCells: 12
+  referenceDeadwoodVolumeM3: 0.5
+  referenceMeanCanopy: 0.65

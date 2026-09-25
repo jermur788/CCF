@@ -53,20 +53,30 @@ public static class ScenarioSoundscape
     }
 
     public static ScenarioSoundscapeState Compute(ScenarioEcologicalSnapshot snapshot,
-        IReadOnlyList<ScenarioUnderstoreyCell> understorey, IReadOnlyList<ScenarioDeadwoodRecord> deadwood)
+        IReadOnlyList<ScenarioUnderstoreyCell> understorey, IReadOnlyList<ScenarioDeadwoodRecord> deadwood,
+        ScenarioOneDefinition definition = null)
     {
         var state = new ScenarioSoundscapeState { year = snapshot != null ? snapshot.year : 0 };
         if (snapshot == null)
             return state;
 
-        // Structural diversity: species richness plus DBH spread proxy [D].
-        int speciesCount = snapshot.species != null ? snapshot.species.Count : 0;
+        // Empty known species do not increase richness. Size variation is a
+        // measured stand property rather than the mean diameter itself.
+        int speciesCount = 0;
+        if (snapshot.species != null)
+            foreach (ScenarioSpeciesOutcome species in snapshot.species)
+                if (species != null && (species.livingTrees > 0 || species.regenerationCells > 0))
+                    speciesCount++;
         float richness = Mathf.Clamp01(speciesCount / 4f);
-        float dbhSpread = Mathf.Clamp01(snapshot.meanDbhCm / 40f);
-        state.structuralDiversity = Mathf.Clamp01(richness * 0.6f + dbhSpread * 0.4f);
+        float dbhSpread = Mathf.Clamp01(snapshot.dbhCoefficientOfVariation / 0.5f);
+        state.structuralDiversity = Mathf.Clamp01((richness * 0.6f + dbhSpread * 0.4f)
+            * (definition != null ? definition.CanopyDiversityHabitatWeight : 1f));
 
         // Deadwood habitat normalised to a working range [D].
-        state.deadwoodHabitat = Mathf.Clamp01(snapshot.deadwoodHabitatValue / 2f);
+        float deadwoodValue = deadwood != null ? ScenarioDeadwood.TotalHabitatValue(deadwood)
+            : snapshot.deadwoodHabitatValue;
+        state.deadwoodHabitat = Mathf.Clamp01(deadwoodValue / 2f
+            * (definition != null ? definition.DeadwoodHabitatWeight : 1f));
 
         // Mean functional-group evenness across the stand.
         float evennessSum = 0f;
@@ -79,15 +89,17 @@ public static class ScenarioSoundscape
                 evennessCount++;
             }
         }
-        state.understoreyDiversity = evennessCount > 0 ? evennessSum / evennessCount : 0f;
+        state.understoreyDiversity = Mathf.Clamp01((evennessCount > 0 ? evennessSum / evennessCount : 0f)
+            * (definition != null ? definition.UnderstoreyHabitatWeight : 1f));
 
         state.canopyOpenness = Mathf.Clamp01(snapshot.meanLight);
-        state.regenerationActivity = snapshot.occupiedRegenerationCells /
-            Mathf.Max(1, snapshot.species != null ? 64 : 64);
+        int cells = snapshot.cellCount > 0 ? snapshot.cellCount : understorey != null ? understorey.Count : 0;
+        state.regenerationActivity = Mathf.Clamp01(snapshot.occupiedRegenerationCells / (float)Mathf.Max(1, cells));
 
         state.layers.Add(Layer("woodland-birds", "Woodland birdsong",
-            0.25f + 0.4f * state.structuralDiversity + 0.35f * state.understoreyDiversity,
-            "structural diversity + understorey diversity"));
+            0.2f + 0.35f * state.structuralDiversity + 0.25f * state.understoreyDiversity
+                + 0.2f * state.regenerationActivity,
+            "structural diversity + understorey diversity + regeneration"));
         state.layers.Add(Layer("canopy-wind", "Wind in the canopy",
             0.2f + 0.6f * Mathf.Clamp01(snapshot.meanCanopy),
             "canopy cover"));
@@ -98,7 +110,8 @@ public static class ScenarioSoundscape
             0.15f + 0.85f * state.deadwoodHabitat,
             "deadwood habitat value"));
         state.layers.Add(Layer("litter-stillness", "Litter and fungi stillness",
-            0.3f + 0.5f * Mathf.Clamp01(1f - state.canopyOpenness),
+            0.3f + 0.3f * Mathf.Clamp01(1f - state.canopyOpenness)
+                + 0.2f * Mathf.Clamp01((snapshot.meanMosses + snapshot.meanFungi) * 0.5f),
             "shade and moss/fungi cover"));
         return state;
     }

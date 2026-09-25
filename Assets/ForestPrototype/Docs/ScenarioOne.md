@@ -20,7 +20,7 @@ Management work is separated into:
    output;
 3. execution: Scenario One's annual contractor resolver;
 4. effect: the existing authoritative Forestry APIs (`ForestTree.Fell`, generic
-   planting and species-selective regeneration removal).
+   planting, species-selective regeneration removal and `ForestTree.TryPrune`).
 
 Later manual or multiplayer executors can consume the same work order without a
 second ecology implementation.
@@ -109,7 +109,8 @@ player switch before approval. Extraction pays timber revenue and records
 harvested volume. Retention pays no revenue, calls the same `ForestTree.Fell()`,
 and creates a management-layer `ScenarioDeadwoodRecord` holding the tree/species
 identity, position, cell, original stem volume and size. A simple fallen-stem
-marker is spawned at the felling position for presentation only; Forestry's
+marker is spawned at the felling position and rebuilt from saved records on
+load for presentation only; Forestry's
 authoritative stump visual is untouched.
 
 Deadwood decays deterministically once per ecological year: roughly 3% volume
@@ -134,6 +135,10 @@ biological light-interception change is represented without a second crown model
 Pruning state (lifts, crown base, last lift year) persists on the tree in save
 v11; legacy saves load as unpruned. The management event stream records
 `TreePruned` treatments with the tree identity and contractor cost.
+Lift heights, recovery interval and the crown-radius proxy are provisional [D]
+and require silvicultural calibration before being described as measured Irish
+pruning responses. Pruned trees retain a reduced crown target during subsequent
+Forestry crown relaxation; the unpruned Sitka annual path is unchanged.
 
 ## Deterministic understorey functional groups
 
@@ -161,6 +166,42 @@ origin, yearly settlement, failed planting, save/load continuation and v9 migrat
 
 Felling supports both `SellAndExtract` and `RetainAsFallenDeadwood` outcomes.
 
+## Habitat soundscape routing
+
+The annual soundscape derives five 0–1 layer targets from recorded stand
+structure, live species presence, grid-normalized regeneration, understorey
+evenness, canopy and retained-deadwood habitat. The routing is reconstructed
+after loading and does not alter ecology. `ScenarioOneSoundscapePlayer` can
+crossfade looping 2D `AudioSource`s when clips are assigned by layer ID;
+this project contains no licensed audio clips, so unassigned layers remain
+silent. The provisional habitat weights [D] are configurable on the scenario
+definition.
+
+## Tutorial, outcomes and Century Review (save v12)
+
+The Work Plan shows a five-step onboarding path: mark a tree, purchase stock,
+plan/approve work, advance a year and inspect the annual review. Existing
+structured work/events provide the milestones; review-opened state survives
+save/load. Felling input in Scenario One points to marking and the Work Plan;
+the direct Forestry chopping entry point remains available for non-scenario
+modes and regression tooling.
+
+Starting in the provisional minimum year, completion requires a contractor
+opening, live original-species canopy, ongoing regeneration, continuous canopy,
+retained deadwood and persistent planted presence of every species offered in
+the scenario nursery. All threshold values live on `ScenarioOneDefinition` [D]
+and are evaluated from the current ecological snapshot plus authoritative
+work-order history. An irreversible cash lock with a positive contractor rate
+fails early; reaching the Century Review year without satisfying the objectives
+also fails. Completion is retained as an achievement, and a completed scenario
+may continue to Year 100. Year 100 records an immutable Century Review and
+stops further annual management. The review compares actual structural metrics
+against **aspirational design targets**, not a simulated no-management future;
+the reference values need calibration before being presented as an ecological
+forecast. Versions 1–11 retain their biological and management state and
+initialize the new outcome/review fields safely. No completed or failed past
+scenarios are inferred from pre-v12 summaries.
+
 ## Protected baseline
 
 - fresh `ForestTest`: exactly 336 original Sitka;
@@ -172,5 +213,8 @@ Felling supports both `SellAndExtract` and `RetainAsFallenDeadwood` outcomes.
 
 ## Next slices
 
-1. habitat-driven soundscape routing;
-2. tutorial, objectives and completion/failure state.
+1. balance and long-run integration verification on the shared Forestry
+   worktree (including the unmodified Sitka suite, provenance, uprooting,
+   save/load and the scene validator);
+2. Irish price and pruning calibration with source, reference year and unit;
+3. installed audio clips and the authored reference-future trajectory.

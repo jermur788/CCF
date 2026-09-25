@@ -137,15 +137,17 @@ public sealed class ForestTree : MonoBehaviour
     private const int MaxPruningLifts = 3;
     private const float CrownRadiusReductionPerLift = 0.08f;
     private const int MinimumYearsBetweenLifts = 5;
+    public float PrunedCrownTargetFactor => pruningLifts == 0
+        ? 1f : Mathf.Pow(1f - CrownRadiusReductionPerLift, pruningLifts);
 
     // Applies one clear-stem pruning lift. targetCrownBaseHeightM must exceed
     // the current crown base and stay below 60% of tree height [D]. year is the
     // ecological year used for the recovery-interval check. Returns null on
     // success or a player-readable rejection reason.
-    public string TryPrune(float targetCrownBaseHeightM, int year)
+    public string CanPrune(float targetCrownBaseHeightM, int year)
     {
-        if (IsStump)
-            return "Cannot prune a stump.";
+        if (!CanChop)
+            return "Only living trees can be pruned.";
         if (pruningLifts >= MaxPruningLifts)
             return $"Already pruned {pruningLifts} times (maximum {MaxPruningLifts}).";
         if (lastPruningYear >= 0 && year - lastPruningYear < MinimumYearsBetweenLifts)
@@ -153,13 +155,23 @@ public sealed class ForestTree : MonoBehaviour
         float treeHeight = Height;
         if (targetCrownBaseHeightM <= crownBaseHeightM)
             return "Target crown base must exceed the current pruned height.";
-        if (targetCrownBaseHeightM <= 0f || targetCrownBaseHeightM >= treeHeight * 0.6f)
+        if (float.IsNaN(targetCrownBaseHeightM) || float.IsInfinity(targetCrownBaseHeightM)
+            || targetCrownBaseHeightM <= 0f || targetCrownBaseHeightM >= treeHeight * 0.6f)
             return "Target crown base must be positive and below 60% of tree height.";
 
+        return null;
+    }
+
+    public string TryPrune(float targetCrownBaseHeightM, int year)
+    {
+        string rejection = CanPrune(targetCrownBaseHeightM, year);
+        if (rejection != null)
+            return rejection;
         crownBaseHeightM = targetCrownBaseHeightM;
         crownRadiusMeters = Mathf.Max(0.1f, crownRadiusMeters * (1f - CrownRadiusReductionPerLift));
         pruningLifts++;
         lastPruningYear = year;
+        RefreshVisuals();
         return null;
     }
 

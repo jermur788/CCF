@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 12;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -18,6 +18,7 @@ public sealed class ForestSaveData
     public List<ForestCellSaveData> cells = new List<ForestCellSaveData>();
     // Version 10: Scenario One management/economy state. Null in legacy saves.
     // Version 11: structured management events within scenarioOne.
+    // Version 12: objective outcome, tutorial review and century comparison.
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -37,6 +38,11 @@ public sealed class ScenarioOneSaveData
     public List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
     public List<ScenarioDeadwoodRecord> deadwoodRecords = new List<ScenarioDeadwoodRecord>();
     public int nextDeadwoodId = 1;
+    public ScenarioOneOutcome outcome;
+    public int outcomeYear = -1;
+    public string outcomeReason = "";
+    public bool annualReviewSeen;
+    public ScenarioCenturyReview centuryReview;
 }
 
 [Serializable]

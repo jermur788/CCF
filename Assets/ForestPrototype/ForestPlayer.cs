@@ -403,7 +403,7 @@ public sealed class ForestPlayer : MonoBehaviour
             }
             else if (harvestPressed && inspectedTree.CanChop)
             {
-                ChopTree(inspectedTree);
+                TryHarvestInteraction(inspectedTree);
             }
             else if (interactPressed)
             {
@@ -415,7 +415,7 @@ public sealed class ForestPlayer : MonoBehaviour
             if (harvestPressed && aimedTree.CanChop)
             {
                 ExitPlantingMode();
-                ChopTree(aimedTree);
+                TryHarvestInteraction(aimedTree);
             }
             else if (interactPressed)
             {
@@ -697,6 +697,19 @@ public sealed class ForestPlayer : MonoBehaviour
         isInspecting = true;
     }
 
+    private void TryHarvestInteraction(ForestTree tree)
+    {
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        {
+            lastHarvestMessage = "Mark with [M], then fell through [Tab] Work Plan.";
+            messageTimer = 3.5f;
+            return;
+        }
+        ChopTree(tree);
+    }
+
+    // Kept as the existing direct interaction entry point for non-scenario
+    // modes and Forestry verification; Scenario One input uses work orders.
     private void ChopTree(ForestTree tree)
     {
         if (tree == null || !tree.CanChop) return;
@@ -827,9 +840,11 @@ public sealed class ForestPlayer : MonoBehaviour
             if (aimedTree.CanChop)
             {
                 int chops = aimedTree.ChopProgress;
-                promptText = chops > 0
-                    ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
-                    : "[E] Inspect  |  [F] Chop Tree";
+                promptText = Object.FindFirstObjectByType<ScenarioOneManager>() != null
+                    ? "[E] Inspect  |  [M] Mark  |  [Tab] Work Plan"
+                    : chops > 0
+                        ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
+                        : "[E] Inspect  |  [F] Chop Tree";
             }
             else
             {
@@ -1011,12 +1026,15 @@ public sealed class ForestPlayer : MonoBehaviour
                 GUILayout.Label($"• Chopping Progress: {inspectedTree.ChopProgress} / {inspectedTree.ChopsRequired} chops", cardBodyStyle);
             }
 
-            GUILayout.Label($"• Potential Wood Yield: {TimberUnits(inspectedTree)} Wood", cardBodyStyle);
+            if (Object.FindFirstObjectByType<ScenarioOneManager>() == null)
+                GUILayout.Label($"• Potential Wood Yield: {TimberUnits(inspectedTree)} Wood", cardBodyStyle);
         }
 
         GUILayout.FlexibleSpace();
         GUILayout.Label(inspectedTree.CanChop
-            ? "Press [F] to Chop   |   Press [E] to Close"
+            ? Object.FindFirstObjectByType<ScenarioOneManager>() != null
+                ? "[M] Mark  |  [Tab] Work Plan  |  [E] Close"
+                : "Press [F] to Chop   |   Press [E] to Close"
             : "Press [E], [Left Click], or step away to close", cardFooterStyle);
         GUILayout.EndArea();
     }

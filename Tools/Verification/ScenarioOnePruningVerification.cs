@@ -99,7 +99,7 @@ public sealed class ScenarioOnePruningVerificationRunner : MonoBehaviour
         Check(!manager.TryDesignatePruning("P0001"), "duplicate pruning designation accepted");
         Check(manager.WorkOrders.Count == 1 && manager.WorkOrders[0].type == ScenarioWorkType.PruneTree
             && manager.WorkOrders[0].targetTreeId == "P0001"
-            && Mathf.Abs(manager.WorkOrders[0].expectedRegenerationDensity
+            && Mathf.Abs(manager.WorkOrders[0].targetCrownBaseHeightM
                 - manager.Definition.NextPruningTargetHeightM(0)) < 1e-4f,
             "pruning order is wrong");
         Check(manager.ApprovePendingWork(), "pruning approval failed");
@@ -109,6 +109,8 @@ public sealed class ScenarioOnePruningVerificationRunner : MonoBehaviour
         Check(orderTarget.PruningLifts == 1 && orderTarget.CrownBaseHeightM > 0f
             && orderTarget.CrownRadius < crownBefore,
             "work-order pruning did not change the tree");
+        Check(orderTarget.PrunedCrownTargetFactor < 1f, "pruning is not retained in the crown target");
+        Check(!manager.TryDesignatePruning("P0001"), "a new lift bypassed the recovery interval");
         Check(manager.CashCents == beforeCash - cost, "pruning settlement is wrong");
 
         ScenarioManagementEvent resolved = manager.ManagementEvents.Single(entry =>
@@ -126,7 +128,7 @@ public sealed class ScenarioOnePruningVerificationRunner : MonoBehaviour
         saves.Load();
         yield return null;
         Check(orderTarget.PruningLifts == 1
-            && Mathf.Abs(orderTarget.CrownBaseHeightM - before.workOrders[0].expectedRegenerationDensity) < 1e-4f,
+            && Mathf.Abs(orderTarget.CrownBaseHeightM - before.workOrders[0].targetCrownBaseHeightM) < 1e-4f,
             "save/load changed pruning history");
         Check(JsonUtility.ToJson(manager.CaptureSaveData()) == JsonUtility.ToJson(before),
             "save/load changed the complete scenario state");

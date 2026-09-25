@@ -41,6 +41,7 @@ public sealed class ScenarioOneWorkOrder
     public long expectedRevenueCents;
     public float expectedVolumeM3;
     public float expectedRegenerationDensity;
+    public float targetCrownBaseHeightM;
     public string validationMessage = "";
     public int createdYear;
     public int resolvedYear = -1;
@@ -56,7 +57,8 @@ public sealed class ScenarioOneWorkOrder
                 case ScenarioWorkType.FellTree: return "Fell " + targetTreeId;
                 case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " in cell " + cellIndex;
                 case ScenarioWorkType.RemoveRegeneration: return "Remove " + speciesId + " regeneration in cell " + cellIndex;
-                case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to " + expectedRegenerationDensity.ToString("0.0") + " m";
+                case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to "
+                    + (targetCrownBaseHeightM > 0f ? targetCrownBaseHeightM : expectedRegenerationDensity).ToString("0.0") + " m";
                 default: return type.ToString();
             }
         }

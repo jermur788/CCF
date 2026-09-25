@@ -750,6 +750,8 @@ public sealed class ForestEcologyController : MonoBehaviour
             float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
             float factor = 1f / (1f + ci / treeSpecies.Ci50);
             float target = potential * factor;
+            if (tree.PruningLifts > 0)
+                target *= tree.PrunedCrownTargetFactor;
             tree.RelaxCrownRadius(target, treeSpecies.CrownRelaxationPerYear);
         }
     }
