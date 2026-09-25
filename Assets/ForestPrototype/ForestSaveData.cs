@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 9;
+    public const int CurrentVersion = 10;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -16,6 +16,39 @@ public sealed class ForestSaveData
     public List<BuildableSaveData> buildables = new List<BuildableSaveData>();
     public List<WoodStorageSaveData> storages = new List<WoodStorageSaveData>();
     public List<ForestCellSaveData> cells = new List<ForestCellSaveData>();
+    // Version 10: Scenario One management/economy state. Null in legacy saves.
+    public ScenarioOneSaveData scenarioOne;
+}
+
+[Serializable]
+public sealed class ScenarioOneSaveData
+{
+    public string scenarioId = "scenario-one";
+    public bool initialized;
+    public long cashCents;
+    public int nextWorkOrderId = 1;
+    public List<ScenarioOneWorkOrder> workOrders = new List<ScenarioOneWorkOrder>();
+    public List<ScenarioInventoryEntry> inventory = new List<ScenarioInventoryEntry>();
+    public List<ScenarioAnnualReport> annualReports = new List<ScenarioAnnualReport>();
+}
+
+[Serializable]
+public sealed class ScenarioInventoryEntry
+{
+    public string itemId = "";
+    public int quantity;
+}
+
+[Serializable]
+public sealed class ScenarioAnnualReport
+{
+    public int year;
+    public int completedTasks;
+    public int failedTasks;
+    public long contractorCostCents;
+    public long timberRevenueCents;
+    public float harvestedVolumeM3;
+    public long closingCashCents;
 }
 
 [Serializable]

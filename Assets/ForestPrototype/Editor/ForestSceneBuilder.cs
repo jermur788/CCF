@@ -143,6 +143,11 @@ public static class ForestSceneBuilder
             gameState.AddComponent<ForestSaveController>();
             gameState.AddComponent<ForestEcologyController>();
             gameState.AddComponent<ForestTreeMarkingManager>();
+            var scenario = gameState.AddComponent<ScenarioOneManager>();
+            var scenarioSerialized = new SerializedObject(scenario);
+            scenarioSerialized.FindProperty("definition").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<ScenarioOneDefinition>(ScenarioOneSetup.DefinitionPath);
+            scenarioSerialized.ApplyModifiedPropertiesWithoutUndo();
             var spawner = gameState.AddComponent<ForestTreeSpawner>();
             var spawnerSerialized = new SerializedObject(spawner);
             spawnerSerialized.FindProperty("defaultSpecies").objectReferenceValue = sitkaSpruce;
@@ -864,7 +869,8 @@ public static class ForestSceneBuilder
 
     private static void ValidateScene(Scene scene)
     {
-        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0, spawners = 0, markingManagers = 0;
+        int players = 0, cameras = 0, listeners = 0, saveControllers = 0, ecologyControllers = 0,
+            spawners = 0, markingManagers = 0, scenarioManagers = 0;
         var treeIds = new HashSet<string>();
         var buildableIds = new HashSet<string>();
         var storageIds = new HashSet<string>();
@@ -935,6 +941,14 @@ public static class ForestSceneBuilder
             }
             if (obj.GetComponent<ForestTreeMarkingManager>() != null)
                 markingManagers++;
+            var scenarioManager = obj.GetComponent<ScenarioOneManager>();
+            if (scenarioManager != null)
+            {
+                scenarioManagers++;
+                var serializedScenario = new SerializedObject(scenarioManager);
+                if (serializedScenario.FindProperty("definition").objectReferenceValue == null)
+                    throw new InvalidOperationException("Scenario One manager has no definition.");
+            }
             var tree = obj.GetComponent<ForestTree>();
             if (tree != null)
             {
@@ -971,6 +985,7 @@ public static class ForestSceneBuilder
         if (ecologyControllers != 1) throw new InvalidOperationException("Unexpected ecology controller count.");
         if (spawners != 1) throw new InvalidOperationException("Unexpected tree spawner count.");
         if (markingManagers != 1) throw new InvalidOperationException("Unexpected tree marking manager count.");
+        if (scenarioManagers != 1) throw new InvalidOperationException("Unexpected Scenario One manager count.");
         Debug.Log("FOREST_VALIDATED: no missing scripts, materials or player references; one player, camera and listener.");
     }
 

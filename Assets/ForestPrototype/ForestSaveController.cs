@@ -50,6 +50,10 @@ public sealed class ForestSaveController : MonoBehaviour
         if (marking != null)
             data.markedTreeIds = marking.GetMarkedIds();
 
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
+            data.scenarioOne = scenario.CaptureSaveData();
+
         foreach (ForestTree tree in trees)
         {
             if (tree == null) continue;
@@ -268,6 +272,12 @@ public sealed class ForestSaveController : MonoBehaviour
             ecology.RecomputeCanopy();
             ecology.RecomputeSeedRain();
         }
+
+        // Management orders must validate against the restored ecology cells,
+        // especially planted or naturally established cohorts.
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
+            scenario.RestoreSaveData(data.version >= 10 ? data.scenarioOne : null);
 
         SetMessage(data.version == ForestSaveData.CurrentVersion
             ? "Game loaded"

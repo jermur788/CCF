@@ -2752,6 +2752,9 @@ MonoBehaviour:
   maxCarriedWood: 20
   cubicMetersPerWoodUnit: 0.1
   carriedWood: 0
+  plantingSpeciesIds:
+  - beech
+  - sessile-oak
   uprootMinDuration: 1
   uprootMaxDuration: 5
 --- !u!143 &412577897
@@ -5726,6 +5729,7 @@ GameObject:
   - component: {fileID: 780226345}
   - component: {fileID: 780226346}
   - component: {fileID: 780226347}
+  - component: {fileID: 780226348}
   m_Layer: 0
   m_Name: Game State
   m_TagString: Untagged
@@ -5862,6 +5866,25 @@ MonoBehaviour:
   openNeighbourThreshold: 2
   pathCorridorRadiusMeters: 1.5
   clearingRadiusMeters: 2.2
+--- !u!114 &780226348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780226341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ae56901fc244dd8a1f831fe3c0fcd77, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioOneManager
+  definition: {fileID: 11400000, guid: dffa36baf55b8087d88ab50ab2ee8849, type: 2}
+  initialized: 0
+  cashCents: 0
+  nextWorkOrderId: 1
+  workOrders: []
+  inventory: []
+  annualReports: []
 --- !u!1 &802882693
 GameObject:
   m_ObjectHideFlags: 0

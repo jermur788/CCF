@@ -437,6 +437,12 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void EnterPlantingMode()
     {
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        {
+            lastHarvestMessage = "Planting is managed through [Tab] Work Plan.";
+            messageTimer = 3.5f;
+            return;
+        }
         if (plantingSpeciesIds == null || plantingSpeciesIds.Length == 0)
         {
             lastHarvestMessage = "No species are available for planting.";
@@ -648,6 +654,12 @@ public sealed class ForestPlayer : MonoBehaviour
     // shared capacity, growth, mortality, promotion and player-readable feedback.
     private void PlantSpeciesAt(string speciesId, Vector3 groundPoint)
     {
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        {
+            lastHarvestMessage = "Planting is managed through [Tab] Work Plan.";
+            messageTimer = 3.5f;
+            return;
+        }
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology == null)
         {
@@ -832,9 +844,11 @@ public sealed class ForestPlayer : MonoBehaviour
                 promptStyle.normal.textColor = Color.white;
             }
 
-            string plantingPrompt = isPlantingMode
-                ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
-                : "[G] Open planting";
+            string plantingPrompt = Object.FindFirstObjectByType<ScenarioOneManager>() != null
+                ? "[Tab] Work Plan: designate planting"
+                : isPlantingMode
+                    ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
+                    : "[G] Open planting";
             string promptText = plantingPrompt;
             if (!isPlantingMode && TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
             {

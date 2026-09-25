@@ -493,6 +493,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void OnGUI()
     {
+        ScenarioOneManager scenario = UnityEngine.Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null && scenario.WorkPlanOpen)
+            return;
         float hudScale = ForestHud.Scale;
         if (messageStyle == null)
         {

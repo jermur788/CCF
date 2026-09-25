@@ -48,6 +48,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     private string lastMastLabel = "normal";
     private float lastMastMultiplier = 1f;
     private GUIStyle timeLapseStyle;
+    private bool managementAnnualControl;
 
     public int EcologicalYear => ecologicalYear;
     public int CellCount => cells != null ? cells.Length : 0;
@@ -116,6 +117,12 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
 
         var keyboard = UnityEngine.InputSystem.Keyboard.current;
+        if (managementAnnualControl)
+        {
+            timeLapseEnabled = false;
+            timeLapseAccumulator = 0f;
+            return;
+        }
         if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
         {
             // T cycles: off -> 30 s/yr -> 10 s/yr -> 2.5 s/yr -> off, so the
@@ -140,6 +147,19 @@ public sealed class ForestEcologyController : MonoBehaviour
         {
             timeLapseAccumulator -= timeLapseSecondsPerYear;
             AdvanceOneYear();
+        }
+    }
+
+    // Scenario One owns deliberate annual progression through its Work Plan.
+    // This only disables the real-time debug driver; tests and management code
+    // still call the same authoritative AdvanceOneYear method directly.
+    public void SetManagementAnnualControl(bool enabled)
+    {
+        managementAnnualControl = enabled;
+        if (enabled)
+        {
+            timeLapseEnabled = false;
+            timeLapseAccumulator = 0f;
         }
     }
 
