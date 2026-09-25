@@ -20,6 +20,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
     [SerializeField] private List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
     [SerializeField] private int nextDeadwoodId = 1;
     [SerializeField] private List<ScenarioDeadwoodRecord> deadwoodRecords = new List<ScenarioDeadwoodRecord>();
+    [SerializeField] private ScenarioSoundscapeState soundscapeState = new ScenarioSoundscapeState();
     [SerializeField] private FellingMaterialOutcome planningFellingOutcome = FellingMaterialOutcome.SellAndExtract;
 
     private ForestEcologyController ecology;
@@ -50,6 +51,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public IReadOnlyList<ScenarioEcologicalSnapshot> EcologicalSnapshots => ecologicalSnapshots;
     public IReadOnlyList<ScenarioUnderstoreyCell> UnderstoreyCells => understoreyCells;
     public IReadOnlyList<ScenarioDeadwoodRecord> DeadwoodRecords => deadwoodRecords;
+    public ScenarioSoundscapeState SoundscapeState => soundscapeState;
     public FellingMaterialOutcome PlanningFellingOutcome
     {
         get => planningFellingOutcome;
@@ -1215,6 +1217,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Label($"Fallen deadwood [D] — {current.deadwoodCount} log(s), "
             + $"{current.deadwoodVolumeM3:0.00} m³ remaining, mean decay class {current.meanDeadwoodDecayClass:0.0}, "
             + $"habitat value {current.deadwoodHabitatValue:0.00}", bodyStyle);
+        if (soundscapeState != null && soundscapeState.layers.Count > 0)
+        {
+            GUILayout.Label($"Soundscape routing — birds {soundscapeState.layers[0].volume:0.00}, "
+                + $"wind {soundscapeState.layers[1].volume:0.00}, insects {soundscapeState.layers[2].volume:0.00}, "
+                + $"woodpeckers {soundscapeState.layers[3].volume:0.00}, stillness {soundscapeState.layers[4].volume:0.00}", bodyStyle);
+        }
         foreach (ScenarioSpeciesOutcome species in current.species)
             GUILayout.Label($"{species.speciesId}: {species.livingTrees} trees · {species.basalAreaM2PerHa:0.0} m²/ha · "
                 + $"regeneration in {species.regenerationCells} cell(s) (planted: {species.plantedRegenerationCells}) · "
@@ -1505,6 +1513,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         snapshot.species = bySpecies.Values.OrderBy(entry => entry.speciesId, StringComparer.Ordinal).ToList();
         ecologicalSnapshots.Add(snapshot);
+        soundscapeState = ScenarioSoundscape.Compute(snapshot, understoreyCells, deadwoodRecords);
     }
 
     private static List<ScenarioOneWorkOrder> CloneOrders(List<ScenarioOneWorkOrder> source)
