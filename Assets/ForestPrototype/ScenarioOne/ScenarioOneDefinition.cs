@@ -54,6 +54,12 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Min(0f)] private float understoreyHabitatWeight = 1f;
     [SerializeField, Min(0f)] private float canopyDiversityHabitatWeight = 1f;
 
+    [Header("Pruning — provisional gameplay calibration [D]")]
+    [Tooltip("Target clear-stem heights (metres) for successive pruning lifts, following common Sitka clear-stem practice.")]
+    [SerializeField] private float[] pruningLiftTargetHeightsM = { 2.5f, 5f, 6.5f };
+    [SerializeField, Min(0)] private int pruningBaseMinutes = 8;
+    [SerializeField, Min(0f)] private float pruningMinutesPerMetre = 2f;
+
     [Header("Progression — provisional calibration [D]")]
     [SerializeField, Min(1)] private int minimumCompletionYear = 25;
 
@@ -74,6 +80,18 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public float DeadwoodHabitatWeight => deadwoodHabitatWeight;
     public float UnderstoreyHabitatWeight => understoreyHabitatWeight;
     public float CanopyDiversityHabitatWeight => canopyDiversityHabitatWeight;
+    public IReadOnlyList<float> PruningLiftTargetHeightsM => pruningLiftTargetHeightsM;
+    public int PruningBaseMinutes => pruningBaseMinutes;
+    public float PruningMinutesPerMetre => pruningMinutesPerMetre;
+
+    // Target crown-base height for the next lift on a tree, or -1 if no lift is
+    // currently valid (tree already at the configured maximum).
+    public float NextPruningTargetHeightM(int currentLifts)
+    {
+        if (pruningLiftTargetHeightsM == null || currentLifts < 0 || currentLifts >= pruningLiftTargetHeightsM.Length)
+            return -1f;
+        return pruningLiftTargetHeightsM[currentLifts];
+    }
 
     public ScenarioShopEntry FindShopEntry(string itemId)
     {

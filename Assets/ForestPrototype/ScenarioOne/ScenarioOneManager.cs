@@ -278,6 +278,59 @@ public sealed class ScenarioOneManager : MonoBehaviour
         return true;
     }
 
+    // Designates one evidence-backed clear-stem pruning lift on a living tree.
+    // The target height is the next configured lift for the tree's current lift
+    // count; Forestry rejects invalid lifts at resolution time.
+    public bool TryDesignatePruning(string treeId)
+    {
+        if (definition == null)
+            return false;
+        Dictionary<string, ForestTree> trees = LivingTreesById();
+        if (!trees.TryGetValue(treeId, out ForestTree tree) || tree == null || !tree.CanChop)
+        {
+            feedback = "Choose a living tree to prune.";
+            return false;
+        }
+        if (HasOpenTreeOrder(treeId, ScenarioWorkType.PruneTree))
+        {
+            feedback = "This tree already has an open pruning order.";
+            return false;
+        }
+        float targetHeight = definition.NextPruningTargetHeightM(tree.PruningLifts);
+        if (targetHeight <= 0f)
+        {
+            feedback = $"{tree.TreeId} has already received the maximum configured pruning lifts.";
+            return false;
+        }
+        if (targetHeight >= tree.Height * 0.6f)
+        {
+            feedback = $"{tree.TreeId} is too short for the next lift ({targetHeight:0.0} m target).";
+            return false;
+        }
+
+        int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.PruningBaseMinutes
+            + targetHeight * definition.PruningMinutesPerMetre));
+        var order = new ScenarioOneWorkOrder
+        {
+            workOrderId = nextWorkOrderId++,
+            type = ScenarioWorkType.PruneTree,
+            status = ScenarioWorkStatus.Pending,
+            targetTreeId = tree.TreeId,
+            speciesId = tree.Species != null ? tree.Species.SpeciesId : "",
+            worldPosition = tree.transform.position,
+            cellIndex = ecology != null ? ecology.GetCellIndex(tree.transform.position) : -1,
+            estimatedMinutes = minutes,
+            estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
+            expectedVolumeM3 = 0f,
+            createdYear = ecology != null ? ecology.EcologicalYear : 0
+        };
+        order.expectedRegenerationDensity = targetHeight;
+        workOrders.Add(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
+        feedback = $"Designated pruning lift {tree.PruningLifts + 1} on {tree.TreeId} to {targetHeight:0.0} m.";
+        return true;
+    }
+
     public int AddMarkedTreesToWorkPlan()
     {
         ForestTreeMarkingManager marking = UnityEngine.Object.FindFirstObjectByType<ForestTreeMarkingManager>();
@@ -535,6 +588,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
             case ScenarioWorkType.RemoveRegeneration:
                 ResolveRegenerationRemoval(order, report);
                 break;
+            case ScenarioWorkType.PruneTree:
+                ResolvePruning(order, report);
+                break;
             default:
                 Fail(order, report, "This task type is not enabled in the current Scenario One slice.");
                 break;
@@ -697,6 +753,36 @@ public sealed class ScenarioOneManager : MonoBehaviour
         report.contractorCostCents += order.estimatedCostCents;
     }
 
+    private void ResolvePruning(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
+    {
+        Dictionary<string, ForestTree> trees = LivingTreesById();
+        if (!trees.TryGetValue(order.targetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
+        {
+            Fail(order, report, "Target tree is no longer eligible for pruning.");
+            return;
+        }
+        if (cashCents < order.estimatedCostCents)
+        {
+            Fail(order, report, "Insufficient cash when the contractor attempted pruning.");
+            return;
+        }
+
+        float targetHeight = order.expectedRegenerationDensity;
+        string rejection = tree.TryPrune(targetHeight, report.year);
+        if (rejection != null)
+        {
+            Fail(order, report, rejection);
+            return;
+        }
+
+        cashCents -= order.estimatedCostCents;
+        order.status = ScenarioWorkStatus.Completed;
+        order.resolvedYear = report.year;
+        order.expectedVolumeM3 = 0f;
+        report.completedTasks++;
+        report.contractorCostCents += order.estimatedCostCents;
+    }
+
     private static void Fail(ScenarioOneWorkOrder order, ScenarioAnnualReport report, string reason)
     {
         order.status = ScenarioWorkStatus.Failed;
@@ -772,6 +858,15 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     if (cohort == null || cohort.Density <= 0f)
                         order.validationMessage = "This species is no longer regenerating in the cell.";
                 }
+            }
+            else if (order.type == ScenarioWorkType.PruneTree)
+            {
+                if (string.IsNullOrEmpty(order.targetTreeId))
+                    order.validationMessage = "Missing target tree ID.";
+                else if (!trees.TryGetValue(order.targetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
+                    order.validationMessage = "Target tree is missing or no longer eligible for pruning.";
+                else if (definition != null && definition.NextPruningTargetHeightM(tree.PruningLifts) < 0f)
+                    order.validationMessage = "Tree has already received the maximum pruning lifts.";
             }
             else
                 order.validationMessage = "This task type is not yet available.";
@@ -907,6 +1002,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         else if (order.type == ScenarioWorkType.RemoveRegeneration)
             GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
                 + $"whole {order.speciesId} cohort · cell {order.cellIndex} · estimated density {order.expectedRegenerationDensity:0.00}", bodyStyle);
+        else if (order.type == ScenarioWorkType.PruneTree)
+            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
+                + $"clear-stem lift to {order.expectedRegenerationDensity:0.0} m · tree {order.targetTreeId}", bodyStyle);
         else
         {
             string outcomeLabel = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood
@@ -1054,6 +1152,44 @@ public sealed class ScenarioOneManager : MonoBehaviour
             GUILayout.EndHorizontal();
         }
         GUILayout.Label("Only live selected-species cohorts can be designated. Each order removes the entire cohort in one cell.", bodyStyle);
+        GUILayout.Space(12f);
+        DrawPruningSection();
+    }
+
+    private void DrawPruningSection()
+    {
+        GUILayout.Label("PRUNING — CLEAR-STEM LIFTS", headingStyle);
+        GUILayout.Label("Designate evidence-backed pruning lifts on living trees. Each lift raises the clear stem "
+            + "and modestly reduces crown radius; Forestry enforces lift limits and recovery intervals.", bodyStyle);
+        if (definition == null)
+            return;
+        Dictionary<string, ForestTree> trees = LivingTreesById();
+        var eligible = trees.Values
+            .Where(tree => tree != null && tree.CanChop && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
+                && definition.NextPruningTargetHeightM(tree.PruningLifts) < tree.Height * 0.6f
+                && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree))
+            .OrderBy(tree => tree.TreeId, StringComparer.Ordinal)
+            .ToList();
+        if (eligible.Count == 0)
+        {
+            GUILayout.Label("No trees currently accept another pruning lift.", bodyStyle);
+            return;
+        }
+        foreach (ForestTree tree in eligible.Take(12))
+        {
+            float target = definition.NextPruningTargetHeightM(tree.PruningLifts);
+            GUILayout.BeginHorizontal(GUI.skin.box);
+            GUILayout.Label($"{tree.TreeId} · {tree.Species?.DisplayName ?? "unknown"} · "
+                + $"lift {tree.PruningLifts + 1} to {target:0.0} m · height {tree.Height:0.0} m · "
+                + $"DBH {tree.Diameter:0.0} cm", bodyStyle, GUILayout.MinWidth(420f * ForestHud.Scale));
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Designate pruning", buttonStyle,
+                    GUILayout.Width(180f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale)))
+                TryDesignatePruning(tree.TreeId);
+            GUILayout.EndHorizontal();
+        }
+        if (eligible.Count > 12)
+            GUILayout.Label($"...and {eligible.Count - 12} more eligible trees.", bodyStyle);
     }
 
     private void DrawAnnualReview()
@@ -1222,6 +1358,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 return ScenarioEcologicalTreatment.JuvenilePlanted;
             case ScenarioWorkType.RemoveRegeneration:
                 return ScenarioEcologicalTreatment.RegenerationRemoved;
+            case ScenarioWorkType.PruneTree:
+                return ScenarioEcologicalTreatment.TreePruned;
             default:
                 return ScenarioEcologicalTreatment.None;
         }

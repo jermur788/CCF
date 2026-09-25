@@ -71,6 +71,16 @@ public sealed class ForestTree : MonoBehaviour
         equivalentSuppressedYears = float.IsNaN(years) || float.IsInfinity(years) ? 0f : Mathf.Max(0f, years);
     }
 
+    // Restores pruning history recorded by the management layer. Version 11+
+    // saves carry the lift count, crown base and interval state; earlier saves
+    // load as unpruned.
+    public void RestorePruningHistory(int lifts, float crownBase, int lastYear)
+    {
+        pruningLifts = Mathf.Max(0, lifts);
+        crownBaseHeightM = Mathf.Max(0f, crownBase);
+        lastPruningYear = lastYear;
+    }
+
     public void SetSpecies(TreeSpeciesDefinition speciesDefinition)
     {
         species = speciesDefinition;
@@ -109,6 +119,49 @@ public sealed class ForestTree : MonoBehaviour
     public float SimulationCrownRadiusMeters => crownRadiusMeters;
     public int WoodYield => Mathf.Clamp(Mathf.RoundToInt(Height), 3, 10);
     public Vector3 InteractionPoint => transform.position;
+
+    // Evidence-backed pruning state. Crown-base height records the highest
+    // pruning lift; crown radius shrinks deterministically per lift so the
+    // biological light-interception change is represented without adding a
+    // second crown model. Lifts follow common Sitka clear-stem practice [D].
+    [SerializeField, Min(0)] private int pruningLifts;
+    [SerializeField, Min(0f)] private float crownBaseHeightM;
+    [SerializeField] private int lastPruningYear = -1;
+    public int PruningLifts => pruningLifts;
+    public float CrownBaseHeightM => crownBaseHeightM;
+    public int LastPruningYear => lastPruningYear;
+
+    // [D] Pruning model calibration shared by all species: each lift removes a
+    // fixed fraction of the current crown radius, with a hard cap of three lifts
+    // and a minimum recovery interval between lifts.
+    private const int MaxPruningLifts = 3;
+    private const float CrownRadiusReductionPerLift = 0.08f;
+    private const int MinimumYearsBetweenLifts = 5;
+
+    // Applies one clear-stem pruning lift. targetCrownBaseHeightM must exceed
+    // the current crown base and stay below 60% of tree height [D]. year is the
+    // ecological year used for the recovery-interval check. Returns null on
+    // success or a player-readable rejection reason.
+    public string TryPrune(float targetCrownBaseHeightM, int year)
+    {
+        if (IsStump)
+            return "Cannot prune a stump.";
+        if (pruningLifts >= MaxPruningLifts)
+            return $"Already pruned {pruningLifts} times (maximum {MaxPruningLifts}).";
+        if (lastPruningYear >= 0 && year - lastPruningYear < MinimumYearsBetweenLifts)
+            return $"Wait {MinimumYearsBetweenLifts - (year - lastPruningYear)} more year(s) before the next lift.";
+        float treeHeight = Height;
+        if (targetCrownBaseHeightM <= crownBaseHeightM)
+            return "Target crown base must exceed the current pruned height.";
+        if (targetCrownBaseHeightM <= 0f || targetCrownBaseHeightM >= treeHeight * 0.6f)
+            return "Target crown base must be positive and below 60% of tree height.";
+
+        crownBaseHeightM = targetCrownBaseHeightM;
+        crownRadiusMeters = Mathf.Max(0.1f, crownRadiusMeters * (1f - CrownRadiusReductionPerLift));
+        pruningLifts++;
+        lastPruningYear = year;
+        return null;
+    }
 
     // Biological timber interface: stem volume from DBH and form height.
     // Volume_m3 = DBH_cm^2 * 0.00007854 * formHeight_m  (0.00007854 = pi/4 * 1e-4).

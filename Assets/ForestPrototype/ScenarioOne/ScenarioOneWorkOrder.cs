@@ -56,7 +56,7 @@ public sealed class ScenarioOneWorkOrder
                 case ScenarioWorkType.FellTree: return "Fell " + targetTreeId;
                 case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " in cell " + cellIndex;
                 case ScenarioWorkType.RemoveRegeneration: return "Remove " + speciesId + " regeneration in cell " + cellIndex;
-                case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId;
+                case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to " + expectedRegenerationDensity.ToString("0.0") + " m";
                 default: return type.ToString();
             }
         }

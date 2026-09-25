@@ -40,4 +40,10 @@ MonoBehaviour:
   deadwoodHabitatWeight: 1
   understoreyHabitatWeight: 1
   canopyDiversityHabitatWeight: 1
+  pruningLiftTargetHeightsM:
+  - 2.5
+  - 5
+  - 6.5
+  pruningBaseMinutes: 8
+  pruningMinutesPerMetre: 2
   minimumCompletionYear: 25

@@ -70,6 +70,9 @@ public sealed class ForestSaveController : MonoBehaviour
                 heightMeters = tree.SimulationHeightMeters,
                 diameterCm = tree.SimulationDiameterCm,
                 crownRadiusMeters = tree.SimulationCrownRadiusMeters,
+                pruningLifts = tree.PruningLifts,
+                crownBaseHeightM = tree.CrownBaseHeightM,
+                lastPruningYear = tree.LastPruningYear,
                 position = tree.transform.position
             });
         }
@@ -206,6 +209,9 @@ public sealed class ForestSaveController : MonoBehaviour
                     spawner.ApplySpeciesVisuals(tree, savedSpecies);
                     tree.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
                     tree.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
+                    tree.RestorePruningHistory(data.version >= 11 ? saved.pruningLifts : 0,
+                        data.version >= 11 ? saved.crownBaseHeightM : 0f,
+                        data.version >= 11 ? saved.lastPruningYear : -1);
                     if (data.version >= 3 && saved.hasSimulation)
                         tree.SetSimulationState(saved.ageYears, saved.heightMeters, saved.diameterCm, saved.crownRadiusMeters);
                 }
@@ -220,6 +226,9 @@ public sealed class ForestSaveController : MonoBehaviour
                     }
                     recruited.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
                     recruited.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
+                    recruited.RestorePruningHistory(data.version >= 11 ? saved.pruningLifts : 0,
+                        data.version >= 11 ? saved.crownBaseHeightM : 0f,
+                        data.version >= 11 ? saved.lastPruningYear : -1);
                 }
             }
         }

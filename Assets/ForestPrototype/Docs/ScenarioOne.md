@@ -121,6 +121,20 @@ count, remaining volume, mean decay class and habitat value. Deadwood never
 feeds back into Forestry tree growth, competition or regeneration. Records
 persist in save v11 alongside orders, events and understorey state.
 
+## Evidence-backed pruning
+
+Felling, planting and regeneration-removal orders are joined by `PruneTree`
+orders. The Work Plan lists living trees that accept another clear-stem lift
+and lets the player designate one. Target crown-base heights follow common Sitka
+clear-stem practice [D]: 2.5 m, 5 m and 6.5 m for successive lifts. Forestry's
+`ForestTree.TryPrune` enforces a three-lift cap, a minimum five-year recovery
+interval, and a crown-base target below 60% of tree height. Each lift raises the
+recorded crown base and reduces crown radius by a deterministic 8% [D] so the
+biological light-interception change is represented without a second crown model.
+Pruning state (lifts, crown base, last lift year) persists on the tree in save
+v11; legacy saves load as unpruned. The management event stream records
+`TreePruned` treatments with the tree identity and contractor cost.
+
 ## Deterministic understorey functional groups
 
 Each ecology cell has saved moss, fern, grass, forb, shrub and litter-fungus
@@ -158,6 +172,5 @@ Felling supports both `SellAndExtract` and `RetainAsFallenDeadwood` outcomes.
 
 ## Next slices
 
-1. evidence-backed pruning;
-2. habitat-driven soundscape routing;
-3. tutorial, objectives and completion/failure state.
+1. habitat-driven soundscape routing;
+2. tutorial, objectives and completion/failure state.

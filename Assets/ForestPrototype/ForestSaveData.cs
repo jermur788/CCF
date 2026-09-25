@@ -81,6 +81,10 @@ public sealed class TreeSaveData
     public float heightMeters;
     public float diameterCm;
     public float crownRadiusMeters;
+    // Version 11: pruning history. Older saves load as unpruned.
+    public int pruningLifts;
+    public float crownBaseHeightM;
+    public int lastPruningYear = -1;
     public UnityEngine.Vector3 position;
 }
 
