@@ -25,8 +25,22 @@ public static class CCFOakPlayerPlantingVerification
 
 public sealed class CCFOakPlayerPlantingRunner : MonoBehaviour
 {
-    private static readonly MethodInfo PlantSpecies = typeof(ForestPlayer).GetMethod(
-        "PlantSpeciesAt", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo EnterPlantingMode = typeof(ForestPlayer).GetMethod(
+        "EnterPlantingMode", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo ExitPlantingMode = typeof(ForestPlayer).GetMethod(
+        "ExitPlantingMode", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo SelectPlantingSpecies = typeof(ForestPlayer).GetMethod(
+        "SelectPlantingSpecies", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo CyclePlantingSpecies = typeof(ForestPlayer).GetMethod(
+        "CyclePlantingSpecies", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo SelectedPlantingSpeciesId = typeof(ForestPlayer).GetMethod(
+        "SelectedPlantingSpeciesId", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo PlantSelectedSpecies = typeof(ForestPlayer).GetMethod(
+        "PlantSelectedSpeciesAt", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo IsPlantingMode = typeof(ForestPlayer).GetField(
+        "isPlantingMode", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo PlantingSpeciesIds = typeof(ForestPlayer).GetField(
+        "plantingSpeciesIds", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo LastMessage = typeof(ForestPlayer).GetField(
         "lastHarvestMessage", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly MethodInfo Promote = typeof(ForestEcologyController).GetMethod(
@@ -59,17 +73,36 @@ public sealed class CCFOakPlayerPlantingRunner : MonoBehaviour
         ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
         Check(player != null && ecology != null && spawner != null && saves != null,
             "Required ForestTest systems are missing");
-        Check(PlantSpecies != null && LastMessage != null && Promote != null,
-            "Oak player planting path or lifecycle methods are missing");
+        Check(EnterPlantingMode != null && ExitPlantingMode != null && SelectPlantingSpecies != null &&
+              CyclePlantingSpecies != null && SelectedPlantingSpeciesId != null &&
+              PlantSelectedSpecies != null && IsPlantingMode != null && PlantingSpeciesIds != null &&
+              LastMessage != null && Promote != null,
+            "Planting hotbar, common action or lifecycle methods are missing");
         TreeSpeciesDefinition oak = spawner.ResolveSpecies("sessile-oak");
         Check(oak != null, "Oak is unavailable to the player planting path");
 
+        string[] plantingSpecies = (string[])PlantingSpeciesIds.GetValue(player);
+        Check(plantingSpecies != null && plantingSpecies.Length >= 2 &&
+              plantingSpecies[0] == "beech" && plantingSpecies[1] == oak.SpeciesId,
+            "Planting hotbar does not expose Beech and Oak in its configured options");
+        EnterPlantingMode.Invoke(player, null);
+        Check((bool)IsPlantingMode.GetValue(player), "Planting mode did not open");
+        Check((string)SelectedPlantingSpeciesId.Invoke(player, null) == "beech",
+            "Planting mode did not preserve its default Beech selection");
+        SelectPlantingSpecies.Invoke(player, new object[] { 1 });
+        Check((string)SelectedPlantingSpeciesId.Invoke(player, null) == oak.SpeciesId,
+            "Oak could not be selected through hotbar slot 2");
+        CyclePlantingSpecies.Invoke(player, null);
+        Check((string)SelectedPlantingSpeciesId.Invoke(player, null) == "beech",
+            "The scalable next-species control did not cycle the planting list");
+        SelectPlantingSpecies.Invoke(player, new object[] { 1 });
+
         ForestEcologyCell cell = ecology.Cells[0];
         Vector3 point = new Vector3(cell.Center.x, 0f, cell.Center.y);
-        PlantSpecies.Invoke(player, new object[] { oak.SpeciesId, point });
+        PlantSelectedSpecies.Invoke(player, new object[] { point });
         ForestRegenerationCohort cohort = cell.FindCohort(oak.SpeciesId);
         Check(cohort != null && cohort.Origin == RegenerationOrigin.Planted,
-            "[O] path did not create a planted Oak cohort");
+            "The selected-species planting action did not create a planted Oak cohort");
         Check(cohort.OriginYear == ecology.EcologicalYear &&
               cohort.EstablishYear == ecology.EcologicalYear - ecology.PlantedJuvenileAgeYears,
             "Player-planted Oak provenance or biological age is wrong");
@@ -79,17 +112,20 @@ public sealed class CCFOakPlayerPlantingRunner : MonoBehaviour
         Check((string)LastMessage.GetValue(player) == "Sessile oak juvenile planted",
             "Player feedback did not use Forestry's success message");
         float densityBeforeDuplicate = cohort.Density;
-        PlantSpecies.Invoke(player, new object[] { oak.SpeciesId, point });
+        PlantSelectedSpecies.Invoke(player, new object[] { point });
         Check(cell.FindCohort(oak.SpeciesId) == cohort &&
               Mathf.Approximately(cohort.Density, densityBeforeDuplicate),
             "A repeated player action duplicated or changed the Oak cohort");
         Check(((string)LastMessage.GetValue(player)).Contains("already regenerating"),
             "Player feedback did not use Forestry's duplicate-cohort message");
+        ExitPlantingMode.Invoke(player, null);
+        Check(!(bool)IsPlantingMode.GetValue(player), "Planting mode did not exit cleanly");
         yield return null;
         GameObject sapling = GameObject.Find("Sessile oak seedling cell 0");
         Check(sapling != null && sapling.GetComponent<LODGroup>()?.GetLODs().Length == 3,
             "Player-planted Oak did not receive the sapling visual");
-        Debug.Log("OAK_PLAYER_PLANT_PASS control=O origin=Planted");
+        Debug.Log("PLANTING_HOTBAR_PASS options=Beech,Oak commonAction=G cancel=Escape");
+        Debug.Log("OAK_PLAYER_PLANT_PASS origin=Planted");
 
         // Drive the same authoritative cohort through the existing promotion
         // boundary, then through the existing height-based mature visual switch.

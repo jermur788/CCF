@@ -22,6 +22,9 @@ public sealed class ForestPlayer : MonoBehaviour
     // keeping Forestry's biological numbers separate from the survival economy.
     [SerializeField, Min(0.01f)] private float cubicMetersPerWoodUnit = 0.1f;
     [SerializeField] private int carriedWood = 0;
+    [Header("Planting")]
+    [Tooltip("Species offered by the planting hotbar. Add future plantable species here instead of assigning another permanent key.")]
+    [SerializeField] private string[] plantingSpeciesIds = { BeechSpeciesId, OakSpeciesId };
     [Header("Regeneration Uprooting")]
     [Tooltip("[D] Seconds required to pull up the sparsest regeneration cohort.")]
     [SerializeField, Min(0.1f)] private float uprootMinDuration = 1f;
@@ -35,6 +38,8 @@ public sealed class ForestPlayer : MonoBehaviour
     private bool isAimingGround;
     private Vector3 aimedSurfacePoint;
     private ForestEcologyController aimedEcology;
+    private bool isPlantingMode;
+    private int selectedPlantingSpeciesIndex;
     private RegenerationQueryResult aimedRegeneration;
     private int aimedRegenerationCellIndex = -1;
     private string selectedRegenerationSpeciesId = "";
@@ -71,6 +76,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private GUIStyle hudLabelStyle;
     private GUIStyle hudValueStyle;
     private GUIStyle notificationStyle;
+    private GUIStyle plantingHotbarStyle;
 
     public int MaxCarriedWood => maxCarriedWood + BuiltCapacityBonus();
     // Read-only view for other systems (the marking HUD hides its prompt while
@@ -183,7 +189,9 @@ public sealed class ForestPlayer : MonoBehaviour
         bool capturedThisFrame = false;
         if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
         {
-            if (isInspecting)
+            if (isPlantingMode)
+                ExitPlantingMode();
+            else if (isInspecting)
                 isInspecting = false;
             else
                 SetCursor(false);
@@ -201,8 +209,9 @@ public sealed class ForestPlayer : MonoBehaviour
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
                                (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame);
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
-        bool plantBeechPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
-        bool plantOakPressed = keyboard != null && keyboard.oKey.wasPressedThisFrame;
+        bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
+        bool plantingSlot1Pressed = keyboard != null && keyboard.digit1Key.wasPressedThisFrame;
+        bool plantingSlot2Pressed = keyboard != null && keyboard.digit2Key.wasPressedThisFrame;
         bool uprootHeld = keyboard != null && keyboard.uKey.isPressed;
         bool cycleRegenerationPressed = keyboard != null && keyboard.rKey.wasPressedThisFrame;
 
@@ -308,16 +317,27 @@ public sealed class ForestPlayer : MonoBehaviour
         if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
             verticalSpeed = 0f;
 
-        UpdateTreeInspection(interactPressed, harvestPressed, plantBeechPressed, plantOakPressed,
-            uprootHeld, cycleRegenerationPressed);
+        UpdateTreeInspection(interactPressed, harvestPressed, plantPressed, plantingSlot1Pressed,
+            plantingSlot2Pressed, uprootHeld, cycleRegenerationPressed);
     }
 
     private void UpdateTreeInspection(bool interactPressed, bool harvestPressed,
-        bool plantBeechPressed, bool plantOakPressed, bool uprootHeld, bool cycleRegenerationPressed)
+        bool plantPressed, bool plantingSlot1Pressed, bool plantingSlot2Pressed,
+        bool uprootHeld, bool cycleRegenerationPressed)
     {
         isLookingAtTree = false;
         aimedTree = null;
         isAimingGround = false;
+
+        if (isPlantingMode)
+        {
+            if (plantingSlot1Pressed)
+                SelectPlantingSpecies(0);
+            else if (plantingSlot2Pressed)
+                SelectPlantingSpecies(1);
+            else if (cycleRegenerationPressed)
+                CyclePlantingSpecies();
+        }
 
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
         {
@@ -369,10 +389,10 @@ public sealed class ForestPlayer : MonoBehaviour
             ClearAimedRegeneration();
         }
 
-        if (cycleRegenerationPressed && isAimingGround && aimedRegeneration.Success
+        if (!isPlantingMode && cycleRegenerationPressed && isAimingGround && aimedRegeneration.Success
             && aimedRegeneration.Cohorts.Count > 1)
             CycleRegenerationSelection();
-        UpdateUprooting(uprootHeld, Time.deltaTime);
+        UpdateUprooting(!isPlantingMode && uprootHeld, Time.deltaTime);
 
         // If inspecting, close card if player steps or looks too far away
         if (isInspecting)
@@ -394,23 +414,84 @@ public sealed class ForestPlayer : MonoBehaviour
         {
             if (harvestPressed && aimedTree.CanChop)
             {
+                ExitPlantingMode();
                 ChopTree(aimedTree);
             }
             else if (interactPressed)
             {
+                ExitPlantingMode();
                 InspectTree(aimedTree);
             }
         }
-        else if (plantBeechPressed && isAimingGround)
+        else if (plantPressed && isAimingGround)
         {
-            PlantSpeciesAt(BeechSpeciesId, aimedSurfacePoint);
-            RefreshAimedRegeneration();
+            if (!isPlantingMode)
+                EnterPlantingMode();
+            else
+            {
+                PlantSelectedSpeciesAt(aimedSurfacePoint);
+                RefreshAimedRegeneration();
+            }
         }
-        else if (plantOakPressed && isAimingGround)
+    }
+
+    private void EnterPlantingMode()
+    {
+        if (plantingSpeciesIds == null || plantingSpeciesIds.Length == 0)
         {
-            PlantSpeciesAt(OakSpeciesId, aimedSurfacePoint);
-            RefreshAimedRegeneration();
+            lastHarvestMessage = "No species are available for planting.";
+            messageTimer = 2.5f;
+            return;
         }
+        selectedPlantingSpeciesIndex = Mathf.Clamp(selectedPlantingSpeciesIndex, 0, plantingSpeciesIds.Length - 1);
+        isPlantingMode = true;
+        CancelUprooting();
+    }
+
+    private void ExitPlantingMode()
+    {
+        isPlantingMode = false;
+    }
+
+    private void SelectPlantingSpecies(int index)
+    {
+        if (!isPlantingMode || plantingSpeciesIds == null || index < 0 || index >= plantingSpeciesIds.Length)
+            return;
+        selectedPlantingSpeciesIndex = index;
+    }
+
+    private void CyclePlantingSpecies()
+    {
+        if (!isPlantingMode || plantingSpeciesIds == null || plantingSpeciesIds.Length <= 1)
+            return;
+        selectedPlantingSpeciesIndex = (selectedPlantingSpeciesIndex + 1) % plantingSpeciesIds.Length;
+    }
+
+    private string SelectedPlantingSpeciesId()
+    {
+        if (plantingSpeciesIds == null || plantingSpeciesIds.Length == 0)
+            return "";
+        selectedPlantingSpeciesIndex = Mathf.Clamp(selectedPlantingSpeciesIndex, 0, plantingSpeciesIds.Length - 1);
+        return plantingSpeciesIds[selectedPlantingSpeciesIndex];
+    }
+
+    private TreeSpeciesDefinition ResolvePlantingSpecies(string speciesId)
+    {
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        return spawner != null ? spawner.ResolveSpecies(speciesId) : null;
+    }
+
+    private string PlantingSpeciesDisplayName(int index)
+    {
+        if (plantingSpeciesIds == null || index < 0 || index >= plantingSpeciesIds.Length)
+            return "Unavailable";
+        TreeSpeciesDefinition species = ResolvePlantingSpecies(plantingSpeciesIds[index]);
+        return species != null ? species.DisplayName : plantingSpeciesIds[index];
+    }
+
+    private void PlantSelectedSpeciesAt(Vector3 groundPoint)
+    {
+        PlantSpeciesAt(SelectedPlantingSpeciesId(), groundPoint);
     }
 
     private void RefreshAimedRegeneration()
@@ -574,8 +655,7 @@ public sealed class ForestPlayer : MonoBehaviour
             messageTimer = 2.5f;
             return;
         }
-        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
-        TreeSpeciesDefinition targetSpecies = spawner != null ? spawner.ResolveSpecies(speciesId) : null;
+        TreeSpeciesDefinition targetSpecies = ResolvePlantingSpecies(speciesId);
         PlantingResult result = ecology.TryPlantJuvenile(targetSpecies, groundPoint);
         lastHarvestMessage = result.Message;
         messageTimer = 3.5f;
@@ -752,9 +832,11 @@ public sealed class ForestPlayer : MonoBehaviour
                 promptStyle.normal.textColor = Color.white;
             }
 
-            const string plantingPrompt = "[G] Plant Beech  |  [O] Plant Oak";
+            string plantingPrompt = isPlantingMode
+                ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
+                : "[G] Open planting";
             string promptText = plantingPrompt;
-            if (TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
+            if (!isPlantingMode && TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
             {
                 string progress = isUprooting && uprootDuration > 0f
                     ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
@@ -772,6 +854,43 @@ public sealed class ForestPlayer : MonoBehaviour
             ForestHud.Panel(promptRect);
             GUI.Label(promptRect, promptText, promptStyle);
         }
+
+        if (isPlantingMode)
+            DrawPlantingHotbar(centerX);
+    }
+
+    private void DrawPlantingHotbar(float centerX)
+    {
+        float scale = ForestHud.Scale;
+        if (plantingHotbarStyle == null)
+        {
+            plantingHotbarStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold,
+                wordWrap = false
+            };
+        }
+        plantingHotbarStyle.fontSize = Mathf.RoundToInt(20f * scale);
+        plantingHotbarStyle.normal.textColor = Color.white;
+
+        string options = "";
+        for (int i = 0; plantingSpeciesIds != null && i < plantingSpeciesIds.Length; i++)
+        {
+            if (i > 0)
+                options += "   ";
+            string slot = i < 2 ? $"[{i + 1}] " : "";
+            string selected = i == selectedPlantingSpeciesIndex ? "▶ " : "";
+            options += selected + slot + PlantingSpeciesDisplayName(i);
+        }
+
+        string selectedName = PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex);
+        string text = $"PLANTING — Selected: {selectedName}\n{options}   |   [R] Next   [G] Plant   [Esc] Exit";
+        float width = Mathf.Min(Screen.width - 32f, 940f * scale);
+        float height = 82f * scale;
+        Rect rect = new Rect(centerX - width * 0.5f, Screen.height - height - 20f * scale, width, height);
+        ForestHud.Panel(rect);
+        GUI.Label(rect, text, plantingHotbarStyle);
     }
 
     private void DrawInspectionCard(float centerX, float centerY)
