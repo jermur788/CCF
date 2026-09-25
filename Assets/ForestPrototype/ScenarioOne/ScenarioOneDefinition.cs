@@ -48,6 +48,12 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Range(0f, 1f)] private float understoreyColonisationRate = 0.3f;
     [SerializeField, Range(0f, 1f)] private float understoreyLossRate = 0.45f;
 
+    [Header("Deadwood and felling outcome — provisional gameplay calibration [D]")]
+    [SerializeField] private FellingMaterialOutcome defaultFellingOutcome = FellingMaterialOutcome.SellAndExtract;
+    [SerializeField, Min(0f)] private float deadwoodHabitatWeight = 1f;
+    [SerializeField, Min(0f)] private float understoreyHabitatWeight = 1f;
+    [SerializeField, Min(0f)] private float canopyDiversityHabitatWeight = 1f;
+
     [Header("Progression — provisional calibration [D]")]
     [SerializeField, Min(1)] private int minimumCompletionYear = 25;
 
@@ -64,6 +70,10 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public float RemovalMinutesPerCohortDensity => removalMinutesPerCohortDensity;
     public float UnderstoreyColonisationRate => understoreyColonisationRate;
     public float UnderstoreyLossRate => understoreyLossRate;
+    public FellingMaterialOutcome DefaultFellingOutcome => defaultFellingOutcome;
+    public float DeadwoodHabitatWeight => deadwoodHabitatWeight;
+    public float UnderstoreyHabitatWeight => understoreyHabitatWeight;
+    public float CanopyDiversityHabitatWeight => canopyDiversityHabitatWeight;
 
     public ScenarioShopEntry FindShopEntry(string itemId)
     {

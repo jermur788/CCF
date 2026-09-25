@@ -18,6 +18,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
     [SerializeField] private List<ScenarioManagementEvent> managementEvents = new List<ScenarioManagementEvent>();
     [SerializeField] private List<ScenarioEcologicalSnapshot> ecologicalSnapshots = new List<ScenarioEcologicalSnapshot>();
     [SerializeField] private List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
+    [SerializeField] private int nextDeadwoodId = 1;
+    [SerializeField] private List<ScenarioDeadwoodRecord> deadwoodRecords = new List<ScenarioDeadwoodRecord>();
+    [SerializeField] private FellingMaterialOutcome planningFellingOutcome = FellingMaterialOutcome.SellAndExtract;
 
     private ForestEcologyController ecology;
     private ForestPlayer player;
@@ -46,6 +49,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public IReadOnlyList<ScenarioManagementEvent> ManagementEvents => managementEvents;
     public IReadOnlyList<ScenarioEcologicalSnapshot> EcologicalSnapshots => ecologicalSnapshots;
     public IReadOnlyList<ScenarioUnderstoreyCell> UnderstoreyCells => understoreyCells;
+    public IReadOnlyList<ScenarioDeadwoodRecord> DeadwoodRecords => deadwoodRecords;
+    public FellingMaterialOutcome PlanningFellingOutcome
+    {
+        get => planningFellingOutcome;
+        set => planningFellingOutcome = value;
+    }
     public bool WorkPlanOpen => workPlanOpen;
 
     public void ConfigureDefinition(ScenarioOneDefinition configuredDefinition)
@@ -102,6 +111,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         managementEvents.Clear();
         ecologicalSnapshots.Clear();
         understoreyCells.Clear();
+        nextDeadwoodId = 1;
+        deadwoodRecords.Clear();
+        planningFellingOutcome = definition.DefaultFellingOutcome;
         selectedShopItemId = "";
         selectedRemovalSpeciesId = "";
         feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
@@ -383,6 +395,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             long beforeCost = report.contractorCostCents;
             long beforeRevenue = report.timberRevenueCents;
             float beforeVolume = report.harvestedVolumeM3;
+            float beforeDeadwood = report.deadwoodCreatedM3;
             int beforeStock = order.type == ScenarioWorkType.PlantJuvenile ? GetStockQuantity(order.stockItemId) : 0;
             float beforeRemovedDensity = report.removedRegenerationDensity;
             ResolveOrder(order, report);
@@ -391,7 +404,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 report.year);
             result.contractorCostCents = report.contractorCostCents - beforeCost;
             result.timberRevenueCents = report.timberRevenueCents - beforeRevenue;
-            result.biologicalVolumeM3 = report.harvestedVolumeM3 - beforeVolume;
+            result.biologicalVolumeM3 = (report.harvestedVolumeM3 - beforeVolume)
+                + (report.deadwoodCreatedM3 - beforeDeadwood);
             result.regenerationDensityRemoved = report.removedRegenerationDensity - beforeRemovedDensity;
             result.stockUsed = order.type == ScenarioWorkType.PlantJuvenile
                 ? beforeStock - GetStockQuantity(order.stockItemId) : 0;
@@ -405,6 +419,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         // immediate financial settlement, then exactly one Forestry annual step.
         ecology.AdvanceOneYear();
         AdvanceUnderstorey();
+        report.deadwoodDecayedM3 = AdvanceDeadwood();
         report.closingCashCents = cashCents;
         annualReports.Add(report);
         RecordEvent(new ScenarioManagementEvent
@@ -434,7 +449,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
             annualReports = CloneReports(annualReports),
             managementEvents = CloneEvents(managementEvents),
             ecologicalSnapshots = CloneSnapshots(ecologicalSnapshots),
-            understoreyCells = CloneUnderstorey(understoreyCells)
+            understoreyCells = CloneUnderstorey(understoreyCells),
+            deadwoodRecords = CloneDeadwood(deadwoodRecords),
+            nextDeadwoodId = nextDeadwoodId
         };
     }
 
@@ -459,6 +476,13 @@ public sealed class ScenarioOneManager : MonoBehaviour
         managementEvents = CloneEvents(data.managementEvents);
         ecologicalSnapshots = CloneSnapshots(data.ecologicalSnapshots);
         understoreyCells = CloneUnderstorey(data.understoreyCells);
+        deadwoodRecords = CloneDeadwood(data.deadwoodRecords);
+        nextDeadwoodId = Mathf.Max(1, data.nextDeadwoodId);
+        if (deadwoodRecords.Count > 0)
+            nextDeadwoodId = Mathf.Max(nextDeadwoodId,
+                deadwoodRecords.Max(item => int.TryParse(item.deadwoodId != null && item.deadwoodId.StartsWith("DW")
+                    ? item.deadwoodId.Substring(2) : "0", out int id) ? id : 0) + 1);
+        planningFellingOutcome = definition != null ? definition.DefaultFellingOutcome : FellingMaterialOutcome.SellAndExtract;
         nextManagementEventId = Mathf.Max(1, data.nextManagementEventId);
         if (managementEvents.Count > 0)
             nextManagementEventId = Mathf.Max(nextManagementEventId, managementEvents.Max(item => item.eventId) + 1);
@@ -484,7 +508,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             speciesId = speciesId,
             worldPosition = tree.transform.position,
             cellIndex = ecology != null ? ecology.GetCellIndex(tree.transform.position) : -1,
-            fellingOutcome = FellingMaterialOutcome.SellAndExtract,
+            fellingOutcome = planningFellingOutcome,
             estimatedMinutes = minutes,
             estimatedCostCents = cost,
             expectedRevenueCents = revenue,
@@ -533,12 +557,39 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         float volume = tree.BiologicalStemVolumeM3;
         string speciesId = tree.Species != null ? tree.Species.SpeciesId : order.speciesId;
-        long revenue = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract
-            ? (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId), MidpointRounding.AwayFromZero)
-            : 0L;
+        bool retainDeadwood = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood;
+        long revenue = retainDeadwood
+            ? 0L
+            : (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId), MidpointRounding.AwayFromZero);
         cashCents -= order.estimatedCostCents;
         cashCents += revenue;
+
+        ScenarioDeadwoodRecord deadwood = null;
+        if (retainDeadwood)
+        {
+            deadwood = new ScenarioDeadwoodRecord
+            {
+                deadwoodId = "DW" + nextDeadwoodId++.ToString("0000"),
+                treeId = tree.TreeId,
+                speciesId = speciesId,
+                worldPosition = tree.transform.position,
+                cellIndex = ecology != null ? ecology.GetCellIndex(tree.transform.position) : -1,
+                originalVolumeM3 = volume,
+                remainingVolumeM3 = volume,
+                originalHeightMeters = tree.Height,
+                originalDiameterCm = tree.Diameter,
+                fallenYear = ecology != null ? ecology.EcologicalYear + 1 : 0,
+                lastDecayYear = ecology != null ? ecology.EcologicalYear + 1 : 0
+            };
+        }
+
         tree.Fell();
+        if (deadwood != null)
+        {
+            deadwood.visualName = SpawnFallenLogVisual(deadwood);
+            deadwoodRecords.Add(deadwood);
+        }
+
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = ecology.EcologicalYear + 1;
         order.expectedVolumeM3 = volume;
@@ -546,7 +597,40 @@ public sealed class ScenarioOneManager : MonoBehaviour
         report.completedTasks++;
         report.contractorCostCents += order.estimatedCostCents;
         report.timberRevenueCents += revenue;
-        report.harvestedVolumeM3 += volume;
+        if (retainDeadwood)
+        {
+            report.deadwoodCreated++;
+            report.deadwoodCreatedM3 += volume;
+        }
+        else
+            report.harvestedVolumeM3 += volume;
+    }
+
+    // Management-layer presentation only: a simple fallen stem marker at the
+    // felling position. Forestry's authoritative stump visual is untouched.
+    private string SpawnFallenLogVisual(ScenarioDeadwoodRecord record)
+    {
+        if (record == null)
+            return "";
+        var log = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        log.name = "Fallen Log " + record.deadwoodId;
+        log.transform.SetParent(transform, false);
+        float length = Mathf.Max(1f, record.originalHeightMeters * 0.8f);
+        float radius = Mathf.Max(0.05f, record.originalDiameterCm / 200f);
+        log.transform.position = new Vector3(record.worldPosition.x, radius, record.worldPosition.z);
+        log.transform.rotation = Quaternion.Euler(0f, (record.deadwoodId.GetHashCode() & 0xFFFF) / 65535f * 360f, 90f);
+        log.transform.localScale = new Vector3(radius * 2f, length * 0.5f, radius * 2f);
+        var collider = log.GetComponent<Collider>();
+        if (collider != null)
+            Destroy(collider);
+        var renderer = log.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            Shader shader = Shader.Find("Standard");
+            if (shader != null)
+                renderer.sharedMaterial = new Material(shader) { color = new Color(0.28f, 0.19f, 0.11f) };
+        }
+        return log.name;
     }
 
     private void ResolvePlanting(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
@@ -638,8 +722,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Missing target tree ID.";
                 else if (!trees.TryGetValue(order.targetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
                     order.validationMessage = "Target tree is missing or already felled.";
-                else if (order.fellingOutcome != FellingMaterialOutcome.SellAndExtract)
-                    order.validationMessage = "Fallen-deadwood retention is not enabled yet.";
+                else if (order.fellingOutcome != FellingMaterialOutcome.SellAndExtract
+                    && order.fellingOutcome != FellingMaterialOutcome.RetainAsFallenDeadwood)
+                    order.validationMessage = "Unknown felling material outcome.";
             }
             else if (order.type == ScenarioWorkType.PlantJuvenile)
             {
@@ -823,8 +908,32 @@ public sealed class ScenarioOneManager : MonoBehaviour
             GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
                 + $"whole {order.speciesId} cohort · cell {order.cellIndex} · estimated density {order.expectedRegenerationDensity:0.00}", bodyStyle);
         else
-            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · cost {Money(order.estimatedCostCents)} · "
-                + $"{order.expectedVolumeM3:0.00} m³ · expected revenue {Money(order.expectedRevenueCents)}", bodyStyle);
+        {
+            string outcomeLabel = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood
+                ? "Retain as fallen deadwood (no timber revenue)"
+                : "Sell and extract timber";
+            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
+                + $"{order.expectedVolumeM3:0.00} m³ · expected revenue {Money(order.expectedRevenueCents)} · {outcomeLabel}", bodyStyle);
+            if (order.status == ScenarioWorkStatus.Pending && GUILayout.Button(
+                order.fellingOutcome == FellingMaterialOutcome.SellAndExtract
+                    ? "Switch to fallen-deadwood retention"
+                    : "Switch to sell and extract", buttonStyle))
+            {
+                order.fellingOutcome = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract
+                    ? FellingMaterialOutcome.RetainAsFallenDeadwood
+                    : FellingMaterialOutcome.SellAndExtract;
+                if (order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood)
+                    order.expectedRevenueCents = 0L;
+                else
+                {
+                    float volume = order.expectedVolumeM3;
+                    order.expectedRevenueCents = (long)Math.Round(
+                        volume * definition.TimberValueCentsPerCubicMetre(order.speciesId),
+                        MidpointRounding.AwayFromZero);
+                }
+                feedback = $"Order #{order.workOrderId} felling outcome is now: {outcomeLabel}.";
+            }
+        }
         if (!string.IsNullOrEmpty(order.validationMessage))
             GUILayout.Label("Problem: " + order.validationMessage, mutedStyle);
         if (order.status == ScenarioWorkStatus.Pending && GUILayout.Button("Remove from plan", buttonStyle))
@@ -967,6 +1076,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Label($"Functional-group cover [D] — moss {current.meanMosses:0.00}, ferns {current.meanFerns:0.00}, "
             + $"grasses {current.meanGrasses:0.00}, forbs {current.meanForbs:0.00}, "
             + $"shrubs {current.meanShrubs:0.00}, fungi {current.meanFungi:0.00}", bodyStyle);
+        GUILayout.Label($"Fallen deadwood [D] — {current.deadwoodCount} log(s), "
+            + $"{current.deadwoodVolumeM3:0.00} m³ remaining, mean decay class {current.meanDeadwoodDecayClass:0.0}, "
+            + $"habitat value {current.deadwoodHabitatValue:0.00}", bodyStyle);
         foreach (ScenarioSpeciesOutcome species in current.species)
             GUILayout.Label($"{species.speciesId}: {species.livingTrees} trees · {species.basalAreaM2PerHa:0.0} m²/ha · "
                 + $"regeneration in {species.regenerationCells} cell(s) (planted: {species.plantedRegenerationCells}) · "
@@ -977,9 +1089,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
         foreach (ScenarioAnnualReport report in annualReports.AsEnumerable().Reverse().Take(6))
             GUILayout.Label($"Year {report.year}: {report.completedTasks} completed, {report.failedTasks} failed · "
                 + $"contractor {Money(report.contractorCostCents)} · timber {Money(report.timberRevenueCents)} · "
-                + $"volume {report.harvestedVolumeM3:0.00} m³ · regeneration removed "
-                + $"{report.regenerationRemovalTasks} cohort(s) / {report.removedRegenerationDensity:0.00} density · "
-                + $"cash {Money(report.closingCashCents)}", bodyStyle);
+                + $"extracted {report.harvestedVolumeM3:0.00} m³ · deadwood +{report.deadwoodCreatedM3:0.00} m³"
+                + (report.deadwoodDecayedM3 > 0f ? $" (−{report.deadwoodDecayedM3:0.00} decayed)" : "") + " · "
+                + $"regeneration removed {report.regenerationRemovalTasks} cohort(s) / "
+                + $"{report.removedRegenerationDensity:0.00} density · cash {Money(report.closingCashCents)}", bodyStyle);
         if (annualReports.Count == 0)
             GUILayout.Label("Advance a year to record the first annual outcome.", bodyStyle);
 
@@ -1102,7 +1215,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         switch (order.type)
         {
             case ScenarioWorkType.FellTree:
-                return ScenarioEcologicalTreatment.TreeFelledAndExtracted;
+                return order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood
+                    ? ScenarioEcologicalTreatment.TreeRetainedAsDeadwood
+                    : ScenarioEcologicalTreatment.TreeFelledAndExtracted;
             case ScenarioWorkType.PlantJuvenile:
                 return ScenarioEcologicalTreatment.JuvenilePlanted;
             case ScenarioWorkType.RemoveRegeneration:
@@ -1145,6 +1260,16 @@ public sealed class ScenarioOneManager : MonoBehaviour
         for (int i = 0; i < understoreyCells.Count; i++)
             ScenarioOneUnderstorey.Advance(understoreyCells[i], ecology.Cells[i], ecology.EcologicalYear,
                 definition.UnderstoreyColonisationRate, definition.UnderstoreyLossRate);
+    }
+
+    // Deterministic coarse-wood decay. Returns total volume lost this year so the
+    // annual report can record it. Deadwood never feeds back into Forestry biology.
+    private float AdvanceDeadwood()
+    {
+        float decayed = 0f;
+        foreach (ScenarioDeadwoodRecord record in deadwoodRecords)
+            decayed += ScenarioDeadwood.Decay(record, ecology.EcologicalYear);
+        return decayed;
     }
 
     private void RecordEcologicalSnapshot()
@@ -1226,6 +1351,20 @@ public sealed class ScenarioOneManager : MonoBehaviour
         snapshot.meanForbs /= ecology.CellCount;
         snapshot.meanShrubs /= ecology.CellCount;
         snapshot.meanFungi /= ecology.CellCount;
+
+        float decayClassSum = 0f;
+        foreach (ScenarioDeadwoodRecord record in deadwoodRecords)
+        {
+            if (record == null || record.remainingVolumeM3 <= 0f)
+                continue;
+            snapshot.deadwoodCount++;
+            snapshot.deadwoodVolumeM3 += record.remainingVolumeM3;
+            snapshot.deadwoodHabitatValue += ScenarioDeadwood.HabitatValue(record);
+            decayClassSum += record.DecayClass;
+        }
+        if (snapshot.deadwoodCount > 0)
+            snapshot.meanDeadwoodDecayClass = decayClassSum / snapshot.deadwoodCount;
+
         snapshot.species = bySpecies.Values.OrderBy(entry => entry.speciesId, StringComparer.Ordinal).ToList();
         ecologicalSnapshots.Add(snapshot);
     }
@@ -1255,6 +1394,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
             harvestedVolumeM3 = item.harvestedVolumeM3,
             regenerationRemovalTasks = item.regenerationRemovalTasks,
             removedRegenerationDensity = item.removedRegenerationDensity,
+            deadwoodCreated = item.deadwoodCreated,
+            deadwoodCreatedM3 = item.deadwoodCreatedM3,
+            deadwoodDecayedM3 = item.deadwoodDecayedM3,
             closingCashCents = item.closingCashCents
         }).ToList();
     }
@@ -1275,6 +1417,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
     {
         if (source == null) return new List<ScenarioUnderstoreyCell>();
         return source.Select(item => JsonUtility.FromJson<ScenarioUnderstoreyCell>(JsonUtility.ToJson(item))).ToList();
+    }
+
+    private static List<ScenarioDeadwoodRecord> CloneDeadwood(List<ScenarioDeadwoodRecord> source)
+    {
+        if (source == null) return new List<ScenarioDeadwoodRecord>();
+        return source.Select(item => JsonUtility.FromJson<ScenarioDeadwoodRecord>(JsonUtility.ToJson(item))).ToList();
     }
 
     private struct WorkPlanTotals

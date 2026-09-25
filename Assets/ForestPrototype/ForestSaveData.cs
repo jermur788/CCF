@@ -35,6 +35,8 @@ public sealed class ScenarioOneSaveData
     public List<ScenarioManagementEvent> managementEvents = new List<ScenarioManagementEvent>();
     public List<ScenarioEcologicalSnapshot> ecologicalSnapshots = new List<ScenarioEcologicalSnapshot>();
     public List<ScenarioUnderstoreyCell> understoreyCells = new List<ScenarioUnderstoreyCell>();
+    public List<ScenarioDeadwoodRecord> deadwoodRecords = new List<ScenarioDeadwoodRecord>();
+    public int nextDeadwoodId = 1;
 }
 
 [Serializable]
@@ -55,6 +57,9 @@ public sealed class ScenarioAnnualReport
     public float harvestedVolumeM3;
     public int regenerationRemovalTasks;
     public float removedRegenerationDensity;
+    public int deadwoodCreated;
+    public float deadwoodCreatedM3;
+    public float deadwoodDecayedM3;
     public long closingCashCents;
 }
 

@@ -101,6 +101,26 @@ created. A `U` attempt in Scenario One directs the player to the Work Plan;
 other modes retain the existing player-facing hold-to-uproot interaction.
 Removal minutes are provisional gameplay calibration [D] on the definition.
 
+## Fallen deadwood retention
+
+Felling orders can now choose between `SellAndExtract` and
+`RetainAsFallenDeadwood`. The Work Plan shows the outcome per order and lets the
+player switch before approval. Extraction pays timber revenue and records
+harvested volume. Retention pays no revenue, calls the same `ForestTree.Fell()`,
+and creates a management-layer `ScenarioDeadwoodRecord` holding the tree/species
+identity, position, cell, original stem volume and size. A simple fallen-stem
+marker is spawned at the felling position for presentation only; Forestry's
+authoritative stump visual is untouched.
+
+Deadwood decays deterministically once per ecological year: roughly 3% volume
+loss per year with a floor at 12% of the original stem [D]. Each record carries a
+diagnostic 0–5 decay class derived from volume loss. Habitat value [D] weights
+remaining volume by decay class, peaking at intermediate decay. Annual reports
+record deadwood created and volume decayed; ecological snapshots record log
+count, remaining volume, mean decay class and habitat value. Deadwood never
+feeds back into Forestry tree growth, competition or regeneration. Records
+persist in save v11 alongside orders, events and understorey state.
+
 ## Deterministic understorey functional groups
 
 Each ecology cell has saved moss, fern, grass, forb, shrub and litter-fungus
@@ -125,8 +145,7 @@ The disposable `Tools/Verification/ScenarioOnePlantingVerification.cs` runner
 checks both scene definitions, the fresh stand, purchases, both species' planted
 origin, yearly settlement, failed planting, save/load continuation and v9 migration.
 
-The first felling slice supports `SellAndExtract`. Fallen-deadwood retention is a
-defined outcome but is not selectable until the deadwood system is implemented.
+Felling supports both `SellAndExtract` and `RetainAsFallenDeadwood` outcomes.
 
 ## Protected baseline
 
@@ -139,6 +158,6 @@ defined outcome but is not selectable until the deadwood system is implemented.
 
 ## Next slices
 
-1. fallen deadwood, then evidence-backed pruning;
+1. evidence-backed pruning;
 2. habitat-driven soundscape routing;
 3. tutorial, objectives and completion/failure state.

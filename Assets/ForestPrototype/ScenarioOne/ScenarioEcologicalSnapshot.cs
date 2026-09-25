@@ -32,5 +32,9 @@ public sealed class ScenarioEcologicalSnapshot
     public float meanForbs;
     public float meanShrubs;
     public float meanFungi;
+    public int deadwoodCount;
+    public float deadwoodVolumeM3;
+    public float deadwoodHabitatValue;
+    public float meanDeadwoodDecayClass;
     public List<ScenarioSpeciesOutcome> species = new List<ScenarioSpeciesOutcome>();
 }

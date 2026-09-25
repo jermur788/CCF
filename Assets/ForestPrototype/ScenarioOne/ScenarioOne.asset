@@ -36,4 +36,8 @@ MonoBehaviour:
   removalMinutesPerCohortDensity: 3
   understoreyColonisationRate: 0.3
   understoreyLossRate: 0.45
+  defaultFellingOutcome: 0
+  deadwoodHabitatWeight: 1
+  understoreyHabitatWeight: 1
+  canopyDiversityHabitatWeight: 1
   minimumCompletionYear: 25
