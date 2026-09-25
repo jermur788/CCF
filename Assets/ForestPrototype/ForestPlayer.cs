@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public sealed class ForestPlayer : MonoBehaviour
 {
+    private const string BeechSpeciesId = "beech";
+    private const string OakSpeciesId = "sessile-oak";
     [SerializeField] private Transform view;
     [SerializeField, Min(0.1f)] private float moveSpeed = 4f;
     [SerializeField, Min(0.1f)] private float runSpeed = 7f;
@@ -199,7 +201,8 @@ public sealed class ForestPlayer : MonoBehaviour
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
                                (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame);
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
-        bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
+        bool plantBeechPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
+        bool plantOakPressed = keyboard != null && keyboard.oKey.wasPressedThisFrame;
         bool uprootHeld = keyboard != null && keyboard.uKey.isPressed;
         bool cycleRegenerationPressed = keyboard != null && keyboard.rKey.wasPressedThisFrame;
 
@@ -305,12 +308,12 @@ public sealed class ForestPlayer : MonoBehaviour
         if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
             verticalSpeed = 0f;
 
-        UpdateTreeInspection(interactPressed, harvestPressed, plantPressed,
+        UpdateTreeInspection(interactPressed, harvestPressed, plantBeechPressed, plantOakPressed,
             uprootHeld, cycleRegenerationPressed);
     }
 
-    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed, bool plantPressed,
-        bool uprootHeld, bool cycleRegenerationPressed)
+    private void UpdateTreeInspection(bool interactPressed, bool harvestPressed,
+        bool plantBeechPressed, bool plantOakPressed, bool uprootHeld, bool cycleRegenerationPressed)
     {
         isLookingAtTree = false;
         aimedTree = null;
@@ -398,9 +401,14 @@ public sealed class ForestPlayer : MonoBehaviour
                 InspectTree(aimedTree);
             }
         }
-        else if (plantPressed && isAimingGround)
+        else if (plantBeechPressed && isAimingGround)
         {
-            PlantBeechAt(aimedSurfacePoint);
+            PlantSpeciesAt(BeechSpeciesId, aimedSurfacePoint);
+            RefreshAimedRegeneration();
+        }
+        else if (plantOakPressed && isAimingGround)
+        {
+            PlantSpeciesAt(OakSpeciesId, aimedSurfacePoint);
             RefreshAimedRegeneration();
         }
     }
@@ -554,10 +562,10 @@ public sealed class ForestPlayer : MonoBehaviour
         uprootTargetPoint = default;
     }
 
-    // Player-facing Beech Planting v1: one explicit action, one planted
-    // juvenile. The ecology (never a planting roll) decides survival; both
-    // success and failure report the ecology's own player-readable reason.
-    private void PlantBeechAt(Vector3 groundPoint)
+    // Player-facing planting is only a species choice over Forestry's generic
+    // biological action. The ecology remains authoritative for cohort creation,
+    // shared capacity, growth, mortality, promotion and player-readable feedback.
+    private void PlantSpeciesAt(string speciesId, Vector3 groundPoint)
     {
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology == null)
@@ -566,7 +574,9 @@ public sealed class ForestPlayer : MonoBehaviour
             messageTimer = 2.5f;
             return;
         }
-        PlantingResult result = ecology.TryPlantBeech(groundPoint);
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        TreeSpeciesDefinition targetSpecies = spawner != null ? spawner.ResolveSpecies(speciesId) : null;
+        PlantingResult result = ecology.TryPlantJuvenile(targetSpecies, groundPoint);
         lastHarvestMessage = result.Message;
         messageTimer = 3.5f;
     }
@@ -742,7 +752,8 @@ public sealed class ForestPlayer : MonoBehaviour
                 promptStyle.normal.textColor = Color.white;
             }
 
-            string promptText = "[G] Plant Beech";
+            const string plantingPrompt = "[G] Plant Beech  |  [O] Plant Oak";
+            string promptText = plantingPrompt;
             if (TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
             {
                 string progress = isUprooting && uprootDuration > 0f
@@ -753,7 +764,7 @@ public sealed class ForestPlayer : MonoBehaviour
                     : "";
                 promptText = selection
                     + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n"
-                    + "[G] Plant Beech";
+                    + plantingPrompt;
             }
             float width = Mathf.Max(520f, promptText.Length * size * 0.28f + 48f);
             float height = Mathf.Max(64f, size * (promptText.Contains("\n") ? 3.8f : 2.0f));
