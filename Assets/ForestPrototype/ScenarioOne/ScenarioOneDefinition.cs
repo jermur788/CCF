@@ -22,6 +22,7 @@ public sealed class ScenarioOneDefinition : ScriptableObject
 {
     [Header("Identity")]
     [SerializeField] private string scenarioId = "scenario-one";
+    [SerializeField] private string definitionVersion = "scenario-one-v12";
     [SerializeField] private string displayName = "Scenario One — Sitka Plantation to Continuous-Cover Forest";
     [SerializeField] private ScenarioExecutionMode executionMode = ScenarioExecutionMode.ManagementOnly;
 
@@ -76,6 +77,7 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Range(0f, 1f)] private float referenceMeanCanopy = 0.65f;
 
     public string ScenarioId => scenarioId;
+    public string DefinitionVersion => definitionVersion;
     public string DisplayName => displayName;
     public ScenarioExecutionMode ExecutionMode => executionMode;
     public long StartingCashCents => startingCashCents;

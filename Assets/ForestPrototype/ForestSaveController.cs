@@ -21,6 +21,9 @@ public sealed class ForestSaveController : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null && scenario.ReferencePreviewActive)
+            return; // previewing the reference must never replace the player's save
 
         if (keyboard.f5Key.wasPressedThisFrame)
             Save();
@@ -29,6 +32,15 @@ public sealed class ForestSaveController : MonoBehaviour
     }
 
     public void Save()
+    {
+        ForestSaveData data = CaptureData();
+        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
+        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
+    }
+
+    // The same authoritative capture powers local saves and verified reference
+    // milestones without modifying the player's on-disk save slot.
+    public ForestSaveData CaptureData()
     {
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -132,8 +144,7 @@ public sealed class ForestSaveController : MonoBehaviour
             }
         }
 
-        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
+        return data;
     }
 
     public void Load()
@@ -144,7 +155,11 @@ public sealed class ForestSaveController : MonoBehaviour
             return;
         }
 
-        ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath));
+        LoadData(JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath)));
+    }
+
+    public void LoadData(ForestSaveData data)
+    {
         if (data == null)
         {
             SetMessage("Save file unreadable");
@@ -213,7 +228,10 @@ public sealed class ForestSaveController : MonoBehaviour
                         data.version >= 11 ? saved.crownBaseHeightM : 0f,
                         data.version >= 11 ? saved.lastPruningYear : -1);
                     if (data.version >= 3 && saved.hasSimulation)
+                    {
+                        tree.transform.position = saved.position;
                         tree.SetSimulationState(saved.ageYears, saved.heightMeters, saved.diameterCm, saved.crownRadiusMeters);
+                    }
                 }
                 else if (data.version >= 3 && saved.hasSimulation)
                 {

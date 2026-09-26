@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ScenarioOne
   m_EditorClassIdentifier: Assembly-CSharp::ScenarioOneDefinition
   scenarioId: scenario-one
+  definitionVersion: scenario-one-v12
   displayName: "Scenario One \u2014 Sitka Plantation to Continuous-Cover Forest"
   executionMode: 0
   startingCashCents: 1200000

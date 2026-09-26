@@ -1,0 +1,288 @@
+{
+    "scheduleId": "reference-future-v1",
+    "scenarioId": "scenario-one",
+    "simulationSeed": 20260914,
+    "futureTreeStride": 4,
+    "directives": [
+        {
+            "year": 0,
+            "action": 0,
+            "targeting": 0,
+            "baFraction": 0.0,
+            "count": 0,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Survey stand; identify retained future Sitka and broadleaf establishment areas."
+        },
+        {
+            "year": 0,
+            "action": 1,
+            "targeting": 0,
+            "baFraction": 0.15000000596046448,
+            "count": 0,
+            "deadwoodFraction": 0.10000000149011612,
+            "speciesId": "",
+            "note": "First selective thinning: ~15% BA around future trees; retain 10% as deadwood."
+        },
+        {
+            "year": 4,
+            "action": 1,
+            "targeting": 0,
+            "baFraction": 0.12999999523162842,
+            "count": 0,
+            "deadwoodFraction": 0.10000000149011612,
+            "speciesId": "",
+            "note": "Second selective thinning: ~13% BA; several moderate openings."
+        },
+        {
+            "year": 4,
+            "action": 2,
+            "targeting": 1,
+            "baFraction": 0.0,
+            "count": 12,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sessile-oak",
+            "note": "Plant Sessile Oak into brighter suitable openings."
+        },
+        {
+            "year": 4,
+            "action": 2,
+            "targeting": 2,
+            "baFraction": 0.0,
+            "count": 10,
+            "deadwoodFraction": 0.0,
+            "speciesId": "beech",
+            "note": "Plant Beech mainly in partial shade and gap edges."
+        },
+        {
+            "year": 9,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.10999999940395355,
+            "count": 0,
+            "deadwoodFraction": 0.15000000596046448,
+            "speciesId": "",
+            "note": "Third lighter thinning: ~11% BA around regeneration and future trees."
+        },
+        {
+            "year": 9,
+            "action": 3,
+            "targeting": 3,
+            "baFraction": 0.0,
+            "count": 5,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sitka-spruce",
+            "note": "Remove Sitka regeneration only where it crowds priority broadleaf patches."
+        },
+        {
+            "year": 13,
+            "action": 5,
+            "targeting": 6,
+            "baFraction": 0.0,
+            "count": 5,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Replace failed broadleaf pockets where conditions remain suitable."
+        },
+        {
+            "year": 14,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.10000000149011612,
+            "count": 0,
+            "deadwoodFraction": 0.20000000298023224,
+            "speciesId": "",
+            "note": "Fourth selective thinning: ~10% BA; release established Oak/Beech; retain deadwood."
+        },
+        {
+            "year": 19,
+            "action": 6,
+            "targeting": 0,
+            "baFraction": 0.0,
+            "count": 0,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Transition from even-aged crop to individual-tree/cohort management."
+        },
+        {
+            "year": 24,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.05000000074505806,
+            "count": 0,
+            "deadwoodFraction": 0.15000000596046448,
+            "speciesId": "",
+            "note": "Remove small number of immediate competitors around promising broadleaf and Sitka."
+        },
+        {
+            "year": 24,
+            "action": 4,
+            "targeting": 4,
+            "baFraction": 0.0,
+            "count": 10,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Prune selected worthwhile timber stems."
+        },
+        {
+            "year": 29,
+            "action": 3,
+            "targeting": 3,
+            "baFraction": 0.0,
+            "count": 3,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sitka-spruce",
+            "note": "Selectively remove excessive Sitka regeneration threatening mixed composition."
+        },
+        {
+            "year": 34,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.09000000357627869,
+            "count": 0,
+            "deadwoodFraction": 0.15000000596046448,
+            "speciesId": "",
+            "note": "Light selective harvest: ~9% BA where canopy reclosed; retain large structural Sitka."
+        },
+        {
+            "year": 39,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.07999999821186066,
+            "count": 0,
+            "deadwoodFraction": 0.5,
+            "speciesId": "",
+            "note": "Deadwood-focused intervention: retain larger proportion; do not maximize extraction."
+        },
+        {
+            "year": 44,
+            "action": 4,
+            "targeting": 4,
+            "baFraction": 0.0,
+            "count": 8,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Selective pruning / release of best younger timber stems."
+        },
+        {
+            "year": 49,
+            "action": 5,
+            "targeting": 6,
+            "baFraction": 0.0,
+            "count": 3,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Very limited planting: only where regeneration and previous planting have failed."
+        },
+        {
+            "year": 54,
+            "action": 1,
+            "targeting": 5,
+            "baFraction": 0.0,
+            "count": 8,
+            "deadwoodFraction": 0.25,
+            "speciesId": "",
+            "note": "Remove limited mature/over-dominant Sitka where younger cohorts can occupy space."
+        },
+        {
+            "year": 54,
+            "action": 3,
+            "targeting": 3,
+            "baFraction": 0.0,
+            "count": 5,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sitka-spruce",
+            "note": "Keep selected broadleaf parent patches free of immediate Sitka regeneration competition."
+        },
+        {
+            "year": 64,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.05000000074505806,
+            "count": 0,
+            "deadwoodFraction": 0.30000001192092896,
+            "speciesId": "",
+            "note": "Adaptive light management: intervene only where local closure justifies."
+        },
+        {
+            "year": 64,
+            "action": 3,
+            "targeting": 3,
+            "baFraction": 0.0,
+            "count": 6,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sitka-spruce",
+            "note": "Continue selective regeneration removal."
+        },
+        {
+            "year": 69,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.03999999910593033,
+            "count": 0,
+            "deadwoodFraction": 0.30000001192092896,
+            "speciesId": "",
+            "note": "Respond to canopy closure around mixed-age regeneration patches."
+        },
+        {
+            "year": 74,
+            "action": 1,
+            "targeting": 5,
+            "baFraction": 0.05000000074505806,
+            "count": 6,
+            "deadwoodFraction": 0.3499999940395355,
+            "speciesId": "",
+            "note": "Remove limited older canopy trees where younger cohorts are ready; retain legacy trees."
+        },
+        {
+            "year": 84,
+            "action": 4,
+            "targeting": 4,
+            "baFraction": 0.0,
+            "count": 5,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "Selected pruning of remaining worthwhile stems."
+        },
+        {
+            "year": 84,
+            "action": 3,
+            "targeting": 3,
+            "baFraction": 0.0,
+            "count": 2,
+            "deadwoodFraction": 0.0,
+            "speciesId": "sitka-spruce",
+            "note": "Light regeneration management."
+        },
+        {
+            "year": 84,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.029999999329447746,
+            "count": 0,
+            "deadwoodFraction": 0.30000001192092896,
+            "speciesId": "",
+            "note": "Renew a few lighter cells without resetting the canopy."
+        },
+        {
+            "year": 89,
+            "action": 1,
+            "targeting": 7,
+            "baFraction": 0.029999999329447746,
+            "count": 0,
+            "deadwoodFraction": 0.30000001192092896,
+            "speciesId": "",
+            "note": "Light-touch release; no major canopy disturbance."
+        },
+        {
+            "year": 99,
+            "action": 6,
+            "targeting": 0,
+            "baFraction": 0.0,
+            "count": 0,
+            "deadwoodFraction": 0.0,
+            "speciesId": "",
+            "note": "No final cosmetic treatment; record resulting forest as Reference Future v1."
+        }
+    ]
+}

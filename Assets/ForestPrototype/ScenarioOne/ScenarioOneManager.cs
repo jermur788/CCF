@@ -30,6 +30,13 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     private ForestEcologyController ecology;
     private ForestPlayer player;
+    private ScenarioReferenceArchive referenceArchive;
+    private ForestSaveData previewReturnData;
+    private Vector3 previewPlayerPosition;
+    private Quaternion previewPlayerRotation;
+    private Quaternion previewCameraRotation;
+    private int previewYear;
+    private bool referencePreviewActive;
     private Material deadwoodMaterial;
     private ScenarioOneSoundscapePlayer soundscapePlayer;
     private bool workPlanOpen;
@@ -73,6 +80,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         set => planningFellingOutcome = value;
     }
     public bool WorkPlanOpen => workPlanOpen;
+    public bool ReferencePreviewActive => referencePreviewActive;
 
     public void ConfigureDefinition(ScenarioOneDefinition configuredDefinition)
     {
@@ -106,6 +114,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private void Start()
     {
         EnsureBaselineSnapshot();
+        referenceArchive = ScenarioReferenceArchive.Load();
     }
 
     private void Update()
@@ -113,6 +122,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
+        if (referencePreviewActive)
+        {
+            if (keyboard.tabKey.wasPressedThisFrame || keyboard.escapeKey.wasPressedThisFrame)
+                EndReferencePreview();
+            return;
+        }
         if (keyboard.tabKey.wasPressedThisFrame)
             SetWorkPlanOpen(!workPlanOpen);
         else if (workPlanOpen && keyboard.escapeKey.wasPressedThisFrame)
@@ -148,6 +163,68 @@ public sealed class ScenarioOneManager : MonoBehaviour
         selectedShopItemId = "";
         selectedRemovalSpeciesId = "";
         feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
+    }
+
+    public bool TryBeginReferencePreview(int year)
+    {
+        if (referencePreviewActive)
+            return false;
+        if (referenceArchive == null)
+            referenceArchive = ScenarioReferenceArchive.Load();
+        ScenarioReferenceMilestone milestone = referenceArchive?.AtYear(year);
+        if (milestone?.world == null || !referenceArchive.Matches(definition, ecology))
+        {
+            feedback = "A compatible verified reference milestone is not available.";
+            return false;
+        }
+        ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
+        if (saves == null)
+        {
+            feedback = "The save controller is unavailable for reference preview.";
+            return false;
+        }
+        ForestSaveData example = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(milestone.world));
+        if (ScenarioReferenceArchive.WorldHash(example) != milestone.worldHash)
+        {
+            feedback = "Reference milestone hash mismatch; preview was not opened.";
+            return false;
+        }
+        previewReturnData = saves.CaptureData();
+        player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
+        if (player != null)
+        {
+            previewPlayerPosition = player.transform.position;
+            previewPlayerRotation = player.transform.rotation;
+        }
+        Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
+        previewCameraRotation = camera != null ? camera.transform.localRotation : Quaternion.identity;
+        SetWorkPlanOpen(false);
+        previewYear = year;
+        referencePreviewActive = true;
+        saves.LoadData(example);
+        return true;
+    }
+
+    public void EndReferencePreview()
+    {
+        if (!referencePreviewActive)
+            return;
+        referencePreviewActive = false;
+        ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
+        if (saves != null && previewReturnData != null)
+            saves.LoadData(previewReturnData);
+        previewReturnData = null;
+        player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
+        if (player != null)
+        {
+            player.transform.position = previewPlayerPosition;
+            player.transform.rotation = previewPlayerRotation;
+        }
+        Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
+        if (camera != null)
+            camera.transform.localRotation = previewCameraRotation;
+        previewYear = 0;
+        feedback = "Returned from Reference Future preview to your own forest.";
     }
 
     public int GetStockQuantity(string itemId)
@@ -596,8 +673,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
         outcomeYear = outcome == ScenarioOneOutcome.Active ? -1 : data.outcomeYear;
         outcomeReason = data.outcomeReason ?? "";
         annualReviewSeen = data.annualReviewSeen;
-        centuryReview = data.centuryReview == null ? null
-            : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
+        // JsonUtility can deserialize an omitted nullable serializable object
+        // as an empty instance (year 0). It is not a completed Century Review.
+        centuryReview = data.centuryReview == null || data.centuryReview.year < ReviewYear
+            ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
         RestoreDeadwoodVisuals();
         soundscapeState = ecologicalSnapshots.Count == 0 ? new ScenarioSoundscapeState()
             : ScenarioSoundscape.Compute(ecologicalSnapshots[ecologicalSnapshots.Count - 1],
@@ -880,6 +959,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
     {
         order.status = ScenarioWorkStatus.Failed;
         order.validationMessage = reason;
+        order.resolvedYear = report.year;
         report.failedTasks++;
     }
 
@@ -1012,6 +1092,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     private void OnGUI()
     {
+        if (referencePreviewActive)
+        {
+            DrawReferencePreviewPrompt();
+            return;
+        }
         if (!workPlanOpen)
         {
             DrawClosedPrompt();
@@ -1058,6 +1143,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             DrawAnnualReview();
             GUILayout.Space(12f);
         }
+        DrawReferencePreviewControls();
         DrawNursery();
         GUILayout.Space(12f);
         DrawPlantingGrid();
@@ -1093,6 +1179,32 @@ public sealed class ScenarioOneManager : MonoBehaviour
             SetWorkPlanOpen(false);
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
+    }
+
+    private void DrawReferencePreviewControls()
+    {
+        if (referenceArchive == null || !referenceArchive.Matches(definition, ecology))
+            return;
+        GUILayout.Label("EXPLORE ONE POSSIBLE REFERENCE FUTURE", headingStyle);
+        GUILayout.Label("Walk the verified forest at a milestone, then press [Tab] to return to your own stand. "
+            + "Your work and save slot are preserved.", bodyStyle);
+        GUILayout.BeginHorizontal();
+        foreach (int year in new[] { 20, 50, 100 })
+            if (GUILayout.Button("Visit year " + year, buttonStyle, GUILayout.Height(36f * ForestHud.Scale)))
+                TryBeginReferencePreview(year);
+        GUILayout.EndHorizontal();
+        GUILayout.Space(10f);
+    }
+
+    private void DrawReferencePreviewPrompt()
+    {
+        EnsureStyles();
+        float scale = ForestHud.Scale;
+        float width = Mathf.Min(650f * scale, Screen.width - 32f);
+        Rect panel = new Rect((Screen.width - width) * 0.5f, 16f, width, 80f * scale);
+        ForestHud.Panel(panel);
+        GUI.Label(new Rect(panel.x + 12f, panel.y + 8f, panel.width - 24f, panel.height - 16f),
+            $"REFERENCE FUTURE v1 — YEAR {previewYear}  ·  [Tab] Return to your forest", bodyStyle);
     }
 
     private void DrawOrder(ScenarioOneWorkOrder order)
@@ -1345,10 +1457,16 @@ public sealed class ScenarioOneManager : MonoBehaviour
             GUILayout.Label($"CENTURY REVIEW — YEAR {centuryReview.year}", headingStyle);
             GUILayout.Label($"Outcome: {centuryReview.outcome} · completed year "
                 + (centuryReview.completedYear >= 0 ? centuryReview.completedYear.ToString() : "not achieved")
-                + ". Reference values are provisional design targets [D], not a no-management forecast.", bodyStyle);
+                + (centuryReview.referenceId == "aspirational-design-targets"
+                    ? ". No compatible reference run loaded; these are provisional design targets [D]."
+                    : ". Compared with one verified Reference Future, not an optimal score or prescription."), bodyStyle);
             foreach (ScenarioObjectiveResult comparison in centuryReview.referenceComparisons)
                 GUILayout.Label($"{comparison.displayName}: actual {comparison.currentValue:0.##} · "
                     + $"reference {comparison.targetValue:0.##}", bodyStyle);
+            if (centuryReview.managementComparisons != null)
+                foreach (ScenarioReferenceManagementComparison comparison in centuryReview.managementComparisons)
+                    GUILayout.Label($"{comparison.displayName}: your forest {comparison.playerValue:0.##} · "
+                        + $"reference {comparison.referenceValue:0.##}", bodyStyle);
         }
 
         GUILayout.Space(8f);
@@ -1520,8 +1638,14 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         if (snapshot.year >= ReviewYear && centuryReview == null)
         {
+            ScenarioReferenceArchive compatible = referenceArchive != null
+                && referenceArchive.Matches(definition, ecology) ? referenceArchive : null;
+            string originalSpeciesId = OriginalSpeciesId;
+            int oldSitka = LivingTreesById().Values.Count(tree => tree.TreeId.StartsWith("P", StringComparison.Ordinal)
+                && tree.Species != null && tree.Species.SpeciesId == originalSpeciesId);
             centuryReview = ScenarioOneObjectives.Review(definition, snapshot, outcome,
-                outcome == ScenarioOneOutcome.Completed ? outcomeYear : -1, OriginalSpeciesId);
+                outcome == ScenarioOneOutcome.Completed ? outcomeYear : -1, originalSpeciesId,
+                compatible, managementEvents, annualReports, oldSitka);
             RecordEvent(new ScenarioManagementEvent
             {
                 year = snapshot.year,
@@ -1689,10 +1813,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         float areaHa = Mathf.Max(0.0001f, ecology.StandAreaHectares);
         foreach (ForestTree tree in UnityEngine.Object.FindObjectsByType<ForestTree>(
-                     FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                     FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                     .Where(item => item != null && !item.IsStump)
+                     .OrderBy(item => item.TreeId, StringComparer.Ordinal))
         {
-            if (tree == null || tree.IsStump)
-                continue;
             string id = tree.Species != null ? tree.Species.SpeciesId : "unknown";
             ScenarioSpeciesOutcome species = SpeciesOutcome(id);
             float basalArea = Mathf.PI * Mathf.Pow(tree.Diameter / 200f, 2f) / areaHa;

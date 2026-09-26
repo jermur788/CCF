@@ -121,6 +121,11 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             "first annual step ended the scenario or skipped tutorial review");
         Check(manager.DeadwoodRecords.Count == 1 && manager.DeadwoodRecords[0].remainingVolumeM3 > 0f,
             "retained deadwood missing from the conversion plan");
+        saves.Save();
+        saves.Load();
+        yield return null;
+        Check(manager.CenturyReview == null && manager.Outcome == ScenarioOneOutcome.Active,
+            "loading an early save created a phantom Year-0 Century Review");
         Check(manager.SoundscapeState.layers.Single(layer => layer.layerId == "woodpeckers").volume
             > baselineWoodpeckers, "retained deadwood did not change habitat-driven sound routing");
 
