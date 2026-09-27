@@ -158,7 +158,7 @@ public sealed class ForestSaveController : MonoBehaviour
         LoadData(JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath)));
     }
 
-    public void LoadData(ForestSaveData data)
+    public void LoadData(ForestSaveData data, bool showMessage = true)
     {
         if (data == null)
         {
@@ -306,9 +306,15 @@ public sealed class ForestSaveController : MonoBehaviour
         if (scenario != null)
             scenario.RestoreSaveData(data.version >= 10 ? data.scenarioOne : null);
 
-        SetMessage(data.version == ForestSaveData.CurrentVersion
-            ? "Game loaded"
-            : $"Game loaded (save v{data.version})");
+        if (showMessage)
+            SetMessage(data.version == ForestSaveData.CurrentVersion
+                ? "Game loaded"
+                : $"Game loaded (save v{data.version})");
+        else
+        {
+            message = "";
+            messageTimer = 0f;
+        }
     }
 
     private void SetMessage(string text)

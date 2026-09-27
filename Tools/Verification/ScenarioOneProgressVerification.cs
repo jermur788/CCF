@@ -77,6 +77,30 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
         Check(manager.GetComponent<ScenarioOneSoundscapePlayer>() != null
             && manager.SoundscapeState.layers.Count == 5,
             "habitat soundscape has no routing or audio backend");
+        ScenarioReferenceArchive reference = ScenarioReferenceArchive.Load();
+        if (reference != null)
+        {
+            Check(reference.Matches(manager.Definition, ecology), "frozen reference is incompatible");
+            ForestSaveData beforePreview = saves.CaptureData();
+            string beforeHash = ScenarioReferenceArchive.WorldHash(beforePreview);
+            Vector3 beforePosition = FindFirstObjectByType<ForestPlayer>().transform.position;
+            Check(manager.TryBeginReferencePreview(100), "Year-100 walkable preview would not open");
+            yield return null;
+            yield return null;
+            Check(manager.ReferencePreviewActive && ecology.EcologicalYear == 100
+                && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == reference.AtYear(100).worldHash,
+                "preview did not load the frozen real Year-100 world");
+            manager.EndReferencePreview();
+            yield return null;
+            yield return null;
+            string afterHash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+            float distance = Vector3.Distance(FindFirstObjectByType<ForestPlayer>().transform.position, beforePosition);
+            Debug.Log($"REFERENCE_PREVIEW_RETURN year={ecology.EcologicalYear} before={beforeHash} "
+                + $"after={afterHash} playerDistance={distance:0.000000}");
+            Check(!manager.ReferencePreviewActive && ecology.EcologicalYear == 0
+                && afterHash == beforeHash && distance < 0.1f,
+                "leaving the reference preview changed the player's own forest");
+        }
         float baselineWoodpeckers = manager.SoundscapeState.layers.Single(layer =>
             layer.layerId == "woodpeckers").volume;
         ScenarioSoundscapeState gridProbe = ScenarioSoundscape.Compute(new ScenarioEcologicalSnapshot
@@ -154,6 +178,14 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             && manager.CenturyReview.completedYear == manager.Definition.MinimumCompletionYear
             && manager.CenturyReview.referenceComparisons.Count >= 4,
             "the Century Review did not compare actual outcomes with reference targets");
+        if (reference != null)
+            Check(manager.CenturyReview.referenceId == reference.referenceId
+                && manager.CenturyReview.referenceScheduleHash == reference.scheduleHash
+                && manager.CenturyReview.managementComparisons.Count >= 6
+                && Mathf.Abs(manager.CenturyReview.referenceComparisons.Single(result =>
+                    result.objectiveId == "reference-deadwood").targetValue
+                    - reference.AtYear(100).world.scenarioOne.ecologicalSnapshots.Last().deadwoodVolumeM3) < 0.00001f,
+                "Century Review used provisional targets instead of the verified reference and its history");
         Check(!manager.AdvanceYear() && ecology.EcologicalYear == manager.Definition.CenturyReviewYear,
             "terminal century review allowed additional annual steps");
 

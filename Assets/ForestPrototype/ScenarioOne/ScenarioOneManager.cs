@@ -35,8 +35,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private Vector3 previewPlayerPosition;
     private Quaternion previewPlayerRotation;
     private Quaternion previewCameraRotation;
+    private float previewPlayerPitch;
     private int previewYear;
     private bool referencePreviewActive;
+    private bool referenceAuthoring;
     private Material deadwoodMaterial;
     private ScenarioOneSoundscapePlayer soundscapePlayer;
     private bool workPlanOpen;
@@ -81,6 +83,14 @@ public sealed class ScenarioOneManager : MonoBehaviour
     }
     public bool WorkPlanOpen => workPlanOpen;
     public bool ReferencePreviewActive => referencePreviewActive;
+
+    // Reference generation uses the same work and ecology, but must not
+    // compare its own Century Review against a previously frozen copy of itself.
+    // This transient flag does not enter saves or change any biological work.
+    public void SetReferenceAuthoring(bool active)
+    {
+        referenceAuthoring = active;
+    }
 
     public void ConfigureDefinition(ScenarioOneDefinition configuredDefinition)
     {
@@ -195,13 +205,15 @@ public sealed class ScenarioOneManager : MonoBehaviour
         {
             previewPlayerPosition = player.transform.position;
             previewPlayerRotation = player.transform.rotation;
+            previewPlayerPitch = player.LookPitch;
         }
         Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
         previewCameraRotation = camera != null ? camera.transform.localRotation : Quaternion.identity;
         SetWorkPlanOpen(false);
         previewYear = year;
         referencePreviewActive = true;
-        saves.LoadData(example);
+        saves.LoadData(example, false);
+        MoveToReferenceView(example);
         return true;
     }
 
@@ -212,19 +224,89 @@ public sealed class ScenarioOneManager : MonoBehaviour
         referencePreviewActive = false;
         ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
         if (saves != null && previewReturnData != null)
-            saves.LoadData(previewReturnData);
+            saves.LoadData(previewReturnData, false);
         previewReturnData = null;
         player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)
         {
             player.transform.position = previewPlayerPosition;
-            player.transform.rotation = previewPlayerRotation;
+            player.RestoreLook(previewPlayerRotation, previewPlayerPitch);
         }
         Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
         if (camera != null)
             camera.transform.localRotation = previewCameraRotation;
         previewYear = 0;
         feedback = "Returned from Reference Future preview to your own forest.";
+    }
+
+    // Presentation-only viewpoint for a walkable sample. The starting road
+    // viewpoint can intersect new century-old crowns or recruited stems;
+    // choose an open position near established broadleaf individuals without
+    // changing a single tree, cell or saved ecological value.
+    private void MoveToReferenceView(ForestSaveData world)
+    {
+        if (player == null || ecology == null || world?.trees == null)
+            return;
+        List<TreeSaveData> living = world.trees.Where(tree => tree != null
+            && tree.stage != (int)ForestTreeStage.Stump).ToList();
+        List<TreeSaveData> broadleaf = living.Where(tree => tree.speciesId == "beech"
+            || tree.speciesId == "sessile-oak").ToList();
+        if (broadleaf.Count == 0)
+            return;
+
+        float bestScore = float.NegativeInfinity;
+        Vector3 bestPosition = player.transform.position;
+        TreeSaveData bestTarget = null;
+        ForestBuildable[] buildables = UnityEngine.Object.FindObjectsByType<ForestBuildable>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int x = -17; x <= 17; x += 2)
+        for (int z = -17; z <= 17; z += 2)
+        {
+            var point = new Vector3(x, 0f, z);
+            int cell = ecology.GetCellIndex(point);
+            if (cell < 0)
+                continue;
+            float nearestTree = float.MaxValue;
+            foreach (TreeSaveData tree in living)
+                nearestTree = Mathf.Min(nearestTree,
+                    Vector2.Distance(new Vector2(x, z), new Vector2(tree.position.x, tree.position.z)));
+            if (nearestTree < 3.2f)
+                continue;
+            if (buildables.Any(buildable => buildable != null &&
+                Vector2.Distance(new Vector2(x, z), new Vector2(buildable.transform.position.x,
+                    buildable.transform.position.z)) < 3f))
+                continue;
+            TreeSaveData closestBroadleaf = null;
+            float broadleafDistance = float.MaxValue;
+            foreach (TreeSaveData tree in broadleaf)
+            {
+                float distance = Vector2.Distance(new Vector2(x, z),
+                    new Vector2(tree.position.x, tree.position.z));
+                if (distance < broadleafDistance)
+                {
+                    broadleafDistance = distance;
+                    closestBroadleaf = tree;
+                }
+            }
+            float score = Mathf.Min(nearestTree, 6f) * 2f
+                - Mathf.Abs(broadleafDistance - 10f) * 2f
+                + ecology.Cells[cell].Light * 6f;
+            if (score <= bestScore)
+                continue;
+            bestScore = score;
+            bestPosition = new Vector3(x, 0.08f, z);
+            bestTarget = closestBroadleaf;
+        }
+        if (bestTarget == null)
+            return;
+        CharacterController controller = player.GetComponent<CharacterController>();
+        if (controller != null)
+            controller.enabled = false;
+        player.transform.position = bestPosition;
+        player.LookToward(bestTarget.position + Vector3.up
+            * Mathf.Clamp(bestTarget.heightMeters * 0.3f, 2.5f, 7f));
+        if (controller != null)
+            controller.enabled = true;
     }
 
     public int GetStockQuantity(string itemId)
@@ -835,14 +917,20 @@ public sealed class ScenarioOneManager : MonoBehaviour
         var renderer = log.GetComponent<Renderer>();
         if (renderer != null)
         {
-            if (deadwoodMaterial == null)
+            ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+            if (spawner != null && spawner.BarkMaterial != null)
+                renderer.sharedMaterial = spawner.BarkMaterial;
+            else
             {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-                if (shader != null)
-                    deadwoodMaterial = new Material(shader) { color = new Color(0.28f, 0.19f, 0.11f) };
+                if (deadwoodMaterial == null)
+                {
+                    Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                    if (shader != null)
+                        deadwoodMaterial = new Material(shader) { color = new Color(0.28f, 0.19f, 0.11f) };
+                }
+                if (deadwoodMaterial != null)
+                    renderer.sharedMaterial = deadwoodMaterial;
             }
-            if (deadwoodMaterial != null)
-                renderer.sharedMaterial = deadwoodMaterial;
         }
         return log.name;
     }
@@ -1638,7 +1726,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         if (snapshot.year >= ReviewYear && centuryReview == null)
         {
-            ScenarioReferenceArchive compatible = referenceArchive != null
+            ScenarioReferenceArchive compatible = !referenceAuthoring && referenceArchive != null
                 && referenceArchive.Matches(definition, ecology) ? referenceArchive : null;
             string originalSpeciesId = OriginalSpeciesId;
             int oldSitka = LivingTreesById().Values.Count(tree => tree.TreeId.StartsWith("P", StringComparison.Ordinal)

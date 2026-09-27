@@ -52,6 +52,12 @@ public static class ScenarioReferenceVerification
                 || ScenarioReferenceArchive.WorldHash(milestone.world) != milestone.worldHash)
                 throw new InvalidOperationException("Reference Year " + year + " failed its full-world hash.");
         }
+        ScenarioReferenceArchive existing = ScenarioReferenceArchive.Load();
+        if (existing != null && (existing.startingStandHash != archive.startingStandHash
+            || existing.scheduleHash != archive.scheduleHash
+            || existing.AtYear(100)?.worldHash != archive.AtYear(100).worldHash))
+            throw new InvalidOperationException("Reference Future v1 is frozen with different content; "
+                + "author a new version rather than overwriting it.");
 
         Directory.CreateDirectory(ResourceFolder);
         File.WriteAllText(ResourceFolder + "/ScenarioOneReferenceScheduleV1.json",
@@ -69,6 +75,37 @@ public static class ScenarioReferenceVerification
             throw new InvalidOperationException("Frozen reference asset could not be reloaded.");
         Debug.Log($"REFERENCE_FUTURE_V1_FROZEN start={archive.startingStandHash} "
             + $"schedule={archive.scheduleHash} year100={archive.AtYear(100).worldHash}");
+    }
+
+    public static void ReportFrozen()
+    {
+        ScenarioReferenceArchive archive = ScenarioReferenceArchive.Load();
+        if (archive == null)
+            throw new InvalidOperationException("Verified Reference Future v1 resource not found.");
+        foreach (int year in new[] { 0, 20, 50, 100 })
+        {
+            ScenarioReferenceMilestone milestone = archive.AtYear(year);
+            if (milestone?.world?.scenarioOne == null
+                || ScenarioReferenceArchive.WorldHash(milestone.world) != milestone.worldHash)
+                throw new InvalidOperationException("Frozen milestone year " + year + " is incompatible.");
+            ScenarioOneSaveData state = milestone.world.scenarioOne;
+            ScenarioEcologicalSnapshot stand = state.ecologicalSnapshots.Last();
+            int Felled(ScenarioEcologicalTreatment treatment) => state.managementEvents.Count(entry =>
+                entry.eventType == ScenarioManagementEventType.WorkResolved
+                && entry.ecologicalTreatment == treatment && entry.outcome == ScenarioManagementOutcome.Succeeded);
+            Debug.Log($"REFERENCE_FROZEN_YEAR_{year} trees={stand.livingTrees} "
+                + $"sitka={stand.species.First(entry => entry.speciesId == "sitka-spruce").livingTrees} "
+                + $"oak={stand.species.First(entry => entry.speciesId == "sessile-oak").livingTrees} "
+                + $"beech={stand.species.First(entry => entry.speciesId == "beech").livingTrees} "
+                + $"regen={stand.occupiedRegenerationCells} light={stand.meanLight:0.000} "
+                + $"canopy={stand.meanCanopy:0.000} deadwood={stand.deadwoodVolumeM3:0.000} "
+                + $"grass={stand.meanGrasses:0.000} fern={stand.meanFerns:0.000} "
+                + $"pruned={Felled(ScenarioEcologicalTreatment.TreePruned)} "
+                + $"extracted={Felled(ScenarioEcologicalTreatment.TreeFelledAndExtracted)} "
+                + $"retained={Felled(ScenarioEcologicalTreatment.TreeRetainedAsDeadwood)} "
+                + $"regenRemoved={Felled(ScenarioEcologicalTreatment.RegenerationRemoved)} "
+                + $"events={state.managementEvents.Count} worldHash={milestone.worldHash}");
+        }
     }
 #endif
 
@@ -135,6 +172,11 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
 
         ScenarioReferenceSchedule schedule = ScenarioReferenceRunner.BuildSchedule();
         Check(schedule.directives.Count > 10, "schedule has too few directives");
+        ScenarioReferenceArchive frozen = ScenarioReferenceArchive.Load();
+        Check(frozen != null && frozen.Matches(manager.Definition, ecology)
+            && frozen.scheduleHash == ScenarioReferenceArchive.Hash(JsonUtility.ToJson(schedule)),
+            "frozen reference and authored schedule are missing or incompatible with this scenario");
+        manager.SetReferenceAuthoring(true);
         ScenarioReferenceSurvey survey = ScenarioReferenceRunner.Survey(manager, ecology,
             schedule.futureTreeStride);
         Check(survey.futureTreeIds.Count > 50, $"survey selected only {survey.futureTreeIds.Count} future trees");
@@ -157,10 +199,15 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         };
         archive.milestones.Add(CaptureFullWorld(saves, 0));
         archive.startingStandHash = archive.AtYear(0).worldHash;
+        if (frozen != null)
+            Check(archive.startingStandHash == frozen.startingStandHash,
+                "Year-0 world differs from the frozen reference start");
 
         var milestones = new Dictionary<int, ReferenceMilestone>();
         var uninterruptedWorlds = new Dictionary<int, ScenarioReferenceMilestone>();
         var yearLog = new StringBuilder();
+        float minimumAnnualCanopy = float.MaxValue;
+        int largestVeryOpenPatch = 0;
         for (int year = 0; year < 100; year++)
         {
             int currentYear = ecology.EcologicalYear;
@@ -179,6 +226,13 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
                 // No valid pending work is acceptable in low-intervention years.
             }
             Check(manager.AdvanceYear(), $"year {currentYear + 1} did not advance");
+            float canopy = ecology.Cells.Average(cell => cell.Canopy);
+            int openPatch = LargestVeryOpenPatch(ecology);
+            minimumAnnualCanopy = Mathf.Min(minimumAnnualCanopy, canopy);
+            largestVeryOpenPatch = Mathf.Max(largestVeryOpenPatch, openPatch);
+            Check(canopy >= 0.3f && openPatch <= 10,
+                $"year {currentYear + 1} lost continuous cover (canopy {canopy:0.00}, "
+                + $"contiguous very-open cells {openPatch})");
             if (currentYear + 1 == 5)
             {
                 string reasons = string.Join(" | ", manager.WorkOrders.Where(order => order.resolvedYear == 5
@@ -191,6 +245,9 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
             {
                 milestones[currentYear + 1] = CaptureMilestone(manager, ecology, spawner, currentYear + 1);
                 archive.milestones.Add(CaptureFullWorld(saves, currentYear + 1));
+                if (frozen != null)
+                    Check(archive.AtYear(currentYear + 1).worldHash == frozen.AtYear(currentYear + 1)?.worldHash,
+                        "Year-" + (currentYear + 1) + " world differs from frozen Reference Future v1");
             }
             if (currentYear + 1 > 50)
                 uninterruptedWorlds[currentYear + 1] = currentYear + 1 == 100
@@ -345,6 +402,8 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         report.AppendLine($"closing cash: {manager.CashCents / 100f:0.00} EUR");
         report.AppendLine($"completed tasks: {manager.AnnualReports.Sum(r => r.completedTasks)}");
         report.AppendLine($"failed tasks: {manager.AnnualReports.Sum(r => r.failedTasks)}");
+        report.AppendLine($"minimum annual mean canopy: {minimumAnnualCanopy:0.00}; "
+            + $"largest contiguous very-open patch: {largestVeryOpenPatch} of {ecology.CellCount} cells");
         foreach (ScenarioOneWorkOrder failed in manager.WorkOrders.Where(order => order.status == ScenarioWorkStatus.Failed))
             report.AppendLine($"failed #{failed.workOrderId} y{failed.resolvedYear} {failed.type} "
                 + $"{failed.speciesId} cell={failed.cellIndex} tree={failed.targetTreeId}: {failed.validationMessage}");
@@ -444,6 +503,7 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         m.canopyCover = canopySum / ecology.CellCount;
         m.meanLight = lightSum / ecology.CellCount;
         m.regenCells = regenCells;
+        m.largestVeryOpenPatch = LargestVeryOpenPatch(ecology);
         var presentSpecies = new HashSet<string>(regenSpecies, StringComparer.Ordinal);
         foreach (ForestTree tree in trees)
             presentSpecies.Add(tree.Species?.SpeciesId ?? "unknown");
@@ -503,6 +563,41 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
             .ToList();
     }
 
+    private static int LargestVeryOpenPatch(ForestEcologyController ecology)
+    {
+        int axis = ecology.CellsPerAxis;
+        bool[] visited = new bool[ecology.CellCount];
+        int largest = 0;
+        for (int i = 0; i < ecology.CellCount; i++)
+        {
+            if (visited[i] || ecology.Cells[i].Light < 0.8f) continue;
+            var queue = new Queue<int>();
+            queue.Enqueue(i);
+            visited[i] = true;
+            int patch = 0;
+            while (queue.Count > 0)
+            {
+                int current = queue.Dequeue();
+                patch++;
+                int x = current % axis;
+                int z = current / axis;
+                if (x > 0) Visit(current - 1);
+                if (x + 1 < axis) Visit(current + 1);
+                if (z > 0) Visit(current - axis);
+                if (z + 1 < axis) Visit(current + axis);
+            }
+            largest = Mathf.Max(largest, patch);
+
+            void Visit(int index)
+            {
+                if (visited[index] || ecology.Cells[index].Light < 0.8f) return;
+                visited[index] = true;
+                queue.Enqueue(index);
+            }
+        }
+        return largest;
+    }
+
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
@@ -539,6 +634,7 @@ public sealed class ReferenceMilestone
     public float maximumLight;
     public int brightCells;
     public int shadedCells;
+    public int largestVeryOpenPatch;
     public float deadwoodVolume;
     public int deadwoodCount;
     public float understoreyEvenness;
@@ -558,6 +654,7 @@ public sealed class ReferenceMilestone
             + $"sizeClasses={sizeClasses} richness={speciesRichness} "
             + $"canopy={canopyCover:0.00} light={meanLight:0.00} maxLight={maximumLight:0.00} "
             + $"brightCells={brightCells} shadedCells={shadedCells} "
+            + $"largestVeryOpenPatch={largestVeryOpenPatch} "
             + $"regenCells={regenCells} sitkaRegen={sitkaRegen}/{sitkaRegenDensity:0.00} "
             + $"oakRegen={oakRegen}/{oakRegenDensity:0.00} "
             + $"beechRegen={beechRegen}/{beechRegenDensity:0.00} "

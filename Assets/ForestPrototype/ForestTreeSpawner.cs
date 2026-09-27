@@ -32,6 +32,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private ForestSpeciesVisualSet[] speciesVisualSets;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
+    public Material BarkMaterial => barkMaterial;
 
     public IReadOnlyList<TreeSpeciesDefinition> KnownSpecies
     {

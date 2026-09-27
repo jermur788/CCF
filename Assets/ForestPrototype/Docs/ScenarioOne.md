@@ -202,6 +202,14 @@ forecast. Versions 1–11 retain their biological and management state and
 initialize the new outcome/review fields safely. No completed or failed past
 scenarios are inferred from pre-v12 summaries.
 
+`ScenarioOneReferenceFutureV1.md` documents the separately authored and
+verified 100-year Reference Future. Once its compatible frozen archive is
+present, the Work Plan offers walkable Year-20/50/100 previews that restore the
+player's previous full forest state on exit. At the actual Century Review, the
+player's structural and management comparisons use that reference's measured
+Year-100 save/history, not the provisional design targets. The reference is
+one possible path, not a score or a forestry prescription.
+
 ## Protected baseline
 
 - fresh `ForestTest`: exactly 336 original Sitka;

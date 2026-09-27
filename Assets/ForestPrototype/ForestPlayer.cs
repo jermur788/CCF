@@ -82,6 +82,28 @@ public sealed class ForestPlayer : MonoBehaviour
     // Read-only view for other systems (the marking HUD hides its prompt while
     // the inspection card covers the crosshair).
     public bool IsInspecting => isInspecting;
+    public float LookPitch => pitch;
+
+    // A reference preview changes view direction only. The caller stores the
+    // player's original yaw/pitch and restores them when returning to the run.
+    public void LookToward(Vector3 worldPoint)
+    {
+        if (view == null) return;
+        Vector3 direction = worldPoint - view.position;
+        float horizontal = new Vector2(direction.x, direction.z).magnitude;
+        if (horizontal <= 0.001f) return;
+        transform.rotation = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z));
+        pitch = Mathf.Clamp(-Mathf.Atan2(direction.y, horizontal) * Mathf.Rad2Deg, -85f, 85f);
+        view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+    }
+
+    public void RestoreLook(Quaternion yaw, float restoredPitch)
+    {
+        transform.rotation = yaw;
+        pitch = Mathf.Clamp(restoredPitch, -85f, 85f);
+        if (view != null)
+            view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+    }
     public float EffectiveSwingCooldown => Mathf.Max(0.15f, swingCooldown - BuiltSwingCooldownReduction());
 
     // Built structures can raise the carrying limit and speed up axe recovery;
@@ -753,6 +775,9 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void OnGUI()
     {
+        ScenarioOneManager preview = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (preview != null && preview.ReferencePreviewActive)
+            return;
         float centerX = Screen.width * 0.5f;
         float centerY = Screen.height * 0.5f;
 
