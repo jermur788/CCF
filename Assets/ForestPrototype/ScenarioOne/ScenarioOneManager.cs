@@ -1187,7 +1187,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         if (!workPlanOpen)
         {
-            DrawClosedPrompt();
+            DrawMainHud();
             return;
         }
         EnsureStyles();
@@ -1595,19 +1595,55 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
     }
 
-    private void DrawClosedPrompt()
+    private void DrawMainHud()
     {
+        EnsureStyles();
         if (closedPromptStyle == null)
         {
             closedPromptStyle = new GUIStyle(GUI.skin.label)
             {
-                alignment = TextAnchor.UpperRight,
+                alignment = TextAnchor.UpperLeft,
                 fontStyle = FontStyle.Bold
             };
             closedPromptStyle.normal.textColor = new Color(0.9f, 0.92f, 0.82f);
         }
-        closedPromptStyle.fontSize = Mathf.RoundToInt(18f * ForestHud.Scale);
-        GUI.Label(new Rect(Screen.width - 360f * ForestHud.Scale, 18f, 340f * ForestHud.Scale, 30f * ForestHud.Scale),
+        float scale = ForestHud.Scale;
+        closedPromptStyle.fontSize = Mathf.RoundToInt(16f * scale);
+        int stockTypes = definition?.ShopEntries?.Count ?? 0;
+        float width = Mathf.Min(410f * scale, Screen.width - 32f);
+        float height = (132f + Mathf.Max(1, stockTypes) * 26f) * scale;
+        Rect panel = new Rect(Screen.width - width - 16f, 16f, width, height);
+        ForestHud.Panel(panel);
+        float left = panel.x + 14f * scale;
+        float contentWidth = panel.width - 28f * scale;
+
+        GUI.Label(new Rect(left, panel.y + 10f * scale, contentWidth, 28f * scale),
+            $"SCENARIO ONE  ·  YEAR {CurrentYear}", closedPromptStyle);
+        GUI.Label(new Rect(left, panel.y + 39f * scale, contentWidth * 0.4f, 30f * scale),
+            "Cash", bodyStyle);
+        GUI.Label(new Rect(left, panel.y + 39f * scale, contentWidth, 30f * scale),
+            Money(cashCents), moneyStyle);
+        GUI.Label(new Rect(left, panel.y + 72f * scale, contentWidth, 24f * scale),
+            "Saplings ready to plant", bodyStyle);
+
+        if (stockTypes == 0)
+            GUI.Label(new Rect(left, panel.y + 98f * scale, contentWidth, 26f * scale),
+                "No saplings offered", bodyStyle);
+        else
+            for (int i = 0; i < stockTypes; i++)
+            {
+                ScenarioShopEntry offer = definition.ShopEntries[i];
+                if (offer == null)
+                    continue;
+                int reserved = GetReservedStockQuantity(offer.itemId);
+                int ready = Mathf.Max(0, GetStockQuantity(offer.itemId) - reserved);
+                float y = panel.y + (98f + i * 26f) * scale;
+                GUI.Label(new Rect(left, y, contentWidth * 0.55f, 26f * scale),
+                    offer.displayName, bodyStyle);
+                GUI.Label(new Rect(left + contentWidth * 0.56f, y, contentWidth * 0.44f, 26f * scale),
+                    reserved > 0 ? $"{ready} ready · {reserved} held" : $"{ready} ready", moneyStyle);
+            }
+        GUI.Label(new Rect(left, panel.y + panel.height - 26f * scale, contentWidth, 22f * scale),
             "[Tab] Work Plan", closedPromptStyle);
     }
 

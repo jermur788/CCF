@@ -39,6 +39,12 @@ controller is paused and the cursor is available. The current annual order is:
 4. run `ForestEcologyController.AdvanceOneYear()` exactly once;
 5. store the annual management report.
 
+Outside the Work Plan, the upper-right management HUD stays visible while
+walking: ecological year, current cash and the nursery species with saplings
+ready to plant. "Ready" is inventory minus stock reserved for approved orders;
+the reserved quantity is shown separately. The HUD hides in the full Work Plan
+and while exploring a reference-future preview.
+
 The old real-time ecology time-lapse is disabled while the management scenario is
 active. Verification harnesses can still invoke the same ecology method directly,
 so the canonical Sitka lifecycle remains isolated.
