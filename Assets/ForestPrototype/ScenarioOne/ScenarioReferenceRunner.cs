@@ -216,7 +216,7 @@ public static class ScenarioReferenceRunner
             manager.PlanningFellingOutcome = FellingMaterialOutcome.RetainAsFallenDeadwood;
             marking.ClearAll();
             for (int i = 0; i < retained && i < targets.Count; i++)
-                marking.Mark(targets[i], false);
+                marking.Mark(targets[i], TreeMarkType.Fell, false);
             manager.AddMarkedTreesToWorkPlan();
             marking.ClearAll();
         }
@@ -228,7 +228,7 @@ public static class ScenarioReferenceRunner
             manager.PlanningFellingOutcome = FellingMaterialOutcome.SellAndExtract;
             marking.ClearAll();
             for (int i = retained; i < targets.Count; i++)
-                marking.Mark(targets[i], false);
+                marking.Mark(targets[i], TreeMarkType.Fell, false);
             manager.AddMarkedTreesToWorkPlan();
             marking.ClearAll();
         }
