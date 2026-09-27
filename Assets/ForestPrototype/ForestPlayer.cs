@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -459,10 +460,22 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void EnterPlantingMode()
     {
-        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
         {
-            lastHarvestMessage = "Planting is managed through [Tab] Work Plan.";
-            messageTimer = 3.5f;
+            // Scenario One: only species with stock in inventory are plantable.
+            var owned = scenario.Inventory.Where(item => item != null && item.quantity > 0)
+                .Select(item => item.itemId).ToList();
+            if (owned.Count == 0)
+            {
+                lastHarvestMessage = "No saplings in stock. Purchase stock first.";
+                messageTimer = 2.5f;
+                return;
+            }
+            plantingSpeciesIds = owned.ToArray();
+            selectedPlantingSpeciesIndex = 0;
+            isPlantingMode = true;
+            CancelUprooting();
             return;
         }
         if (plantingSpeciesIds == null || plantingSpeciesIds.Length == 0)
@@ -519,6 +532,21 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void PlantSelectedSpeciesAt(Vector3 groundPoint)
     {
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
+        {
+            string itemId = SelectedPlantingSpeciesId();
+            if (scenario.TryDesignateExactPlanting(itemId, groundPoint))
+            {
+                lastHarvestMessage = "Planting marker placed. Contractor will plant next year.";
+            }
+            else
+            {
+                lastHarvestMessage = "Cannot place planting marker here.";
+            }
+            messageTimer = 3.5f;
+            return;
+        }
         PlantSpeciesAt(SelectedPlantingSpeciesId(), groundPoint);
     }
 
@@ -947,13 +975,21 @@ public sealed class ForestPlayer : MonoBehaviour
         plantingHotbarStyle.normal.textColor = Color.white;
 
         string options = "";
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         for (int i = 0; plantingSpeciesIds != null && i < plantingSpeciesIds.Length; i++)
         {
             if (i > 0)
                 options += "   ";
             string slot = i < 2 ? $"[{i + 1}] " : "";
             string selected = i == selectedPlantingSpeciesIndex ? "▶ " : "";
-            options += selected + slot + PlantingSpeciesDisplayName(i);
+            string stockInfo = "";
+            if (scenario != null)
+            {
+                int stock = scenario.GetStockQuantity(plantingSpeciesIds[i]);
+                int reserved = scenario.GetReservedStockQuantity(plantingSpeciesIds[i]);
+                stockInfo = $" ({stock - reserved} ready)";
+            }
+            options += selected + slot + PlantingSpeciesDisplayName(i) + stockInfo;
         }
 
         string selectedName = PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex);

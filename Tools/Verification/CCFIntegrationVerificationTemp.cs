@@ -141,7 +141,7 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
         Require(inspect != null && chop != null, "player interaction entry points missing");
         inspect.Invoke(player, new object[] { target });
         Require(player.IsInspecting, "tree inspection did not activate");
-        marking.Mark(target, false);
+        marking.Mark(target, TreeMarkType.Fell, false);
         Require(marking.IsMarked(target), "tree marking failed");
 
         player.RestoreCarriedWood(0);

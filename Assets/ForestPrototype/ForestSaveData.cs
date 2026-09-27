@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 12;
+    public const int CurrentVersion = 13;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -12,6 +12,7 @@ public sealed class ForestSaveData
     public int ecologicalYear;
     public int simulationSeed = 20260914;
     public List<string> markedTreeIds = new List<string>();
+    public List<string> cropTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();
     public List<BuildableSaveData> buildables = new List<BuildableSaveData>();
     public List<WoodStorageSaveData> storages = new List<WoodStorageSaveData>();
@@ -43,6 +44,9 @@ public sealed class ScenarioOneSaveData
     public string outcomeReason = "";
     public bool annualReviewSeen;
     public ScenarioCenturyReview centuryReview;
+    public float retainedTimberM3;
+    public List<PlantedJuvenileSaveData> plantedJuveniles = new List<PlantedJuvenileSaveData>();
+    public List<PlantingClearancePatch> clearancePatches = new List<PlantingClearancePatch>();
 }
 
 [Serializable]
@@ -66,6 +70,7 @@ public sealed class ScenarioAnnualReport
     public int deadwoodCreated;
     public float deadwoodCreatedM3;
     public float deadwoodDecayedM3;
+    public float keptForUseVolumeM3;
     public long closingCashCents;
 }
 
@@ -91,7 +96,22 @@ public sealed class TreeSaveData
     public int pruningLifts;
     public float crownBaseHeightM;
     public int lastPruningYear = -1;
+    public int markType;
     public UnityEngine.Vector3 position;
+}
+
+[Serializable]
+public sealed class PlantedJuvenileSaveData
+{
+    public string juvenileId = "";
+    public string speciesId = "";
+    public UnityEngine.Vector3 position;
+    public int cellIndex = -1;
+    public int plantingYear;
+    public float ageYears;
+    public float heightMeters;
+    public bool alive = true;
+    public string stockItemId = "";
 }
 
 [Serializable]

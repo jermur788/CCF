@@ -309,7 +309,7 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
             .First(tree => tree.TreeId == "P0000");
         float targetVolume = target.BiologicalStemVolumeM3;
         ForestTreeMarkingManager marking = FindFirstObjectByType<ForestTreeMarkingManager>();
-        marking.Mark(target, false);
+        marking.Mark(target, TreeMarkType.Fell, false);
         Require(manager.AddMarkedTreesToWorkPlan() == 1 && manager.ApprovePendingWork(),
             "felling history setup failed");
         long fellingCost = manager.WorkOrders[0].estimatedCostCents;

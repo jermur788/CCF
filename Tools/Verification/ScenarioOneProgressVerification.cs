@@ -127,7 +127,7 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
         Check(!target.IsStump && target.ChopProgress == 0,
             "Scenario One manual F input bypassed contractor felling");
         manager.PlanningFellingOutcome = FellingMaterialOutcome.RetainAsFallenDeadwood;
-        marking.Mark(target, false);
+        marking.Mark(target, TreeMarkType.Fell, false);
         Check(manager.AddMarkedTreesToWorkPlan() == 1 && manager.TutorialHint.StartsWith("2."),
             "marking did not advance the tutorial");
         Check(manager.TryPurchaseStock("beech-sapling", 1)

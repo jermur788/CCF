@@ -20,7 +20,8 @@ public enum ScenarioWorkStatus
 public enum FellingMaterialOutcome
 {
     SellAndExtract,
-    RetainAsFallenDeadwood
+    RetainAsFallenDeadwood,
+    KeepForUse
 }
 
 [Serializable]

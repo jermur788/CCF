@@ -86,7 +86,7 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
         float stemDiameter = target.Diameter;
         int cellIndex = ecology.GetCellIndex(target.transform.position);
         ForestTreeMarkingManager marking = FindFirstObjectByType<ForestTreeMarkingManager>();
-        marking.Mark(target, false);
+        marking.Mark(target, TreeMarkType.Fell, false);
         Check(manager.AddMarkedTreesToWorkPlan() == 1, "felling order not created");
 
         ScenarioOneWorkOrder order = manager.WorkOrders[0];
@@ -160,7 +160,7 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
         ForestTree second = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
             .First(tree => tree.TreeId == "P0001");
         float secondVolume = second.BiologicalStemVolumeM3;
-        marking.Mark(second, false);
+        marking.Mark(second, TreeMarkType.Fell, false);
         Check(manager.AddMarkedTreesToWorkPlan() == 1, "second felling order not created");
         ScenarioOneWorkOrder sellOrder = manager.WorkOrders.Last(o => o.targetTreeId == "P0001");
         Check(sellOrder.fellingOutcome == FellingMaterialOutcome.SellAndExtract

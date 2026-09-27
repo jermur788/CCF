@@ -121,6 +121,17 @@ public sealed class ForestBuildable : MonoBehaviour
         if (fromPlayer > 0)
             player.TrySpendWood(fromPlayer);
         SpendStoredWood(fromStorage);
+
+        // Retained timber stockpile (Scenario One KeepForUse) is available for
+        // construction after annual resolution. Physical transport is later work.
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null && scenario.RetainedTimberM3 > 0f)
+        {
+            float timberNeeded = woodCost * 0.1f; // [D] 0.1 m³ per wood unit
+            float timberSpent = scenario.TrySpendRetainedTimber(timberNeeded);
+            if (timberSpent > 0f)
+                Debug.Log($"FOREST_BUILD: {displayName} used {timberSpent:0.00} m³ retained timber.", this);
+        }
         if (plankCost > 0)
             plankSource.TakeStoredWood(plankCost);
 

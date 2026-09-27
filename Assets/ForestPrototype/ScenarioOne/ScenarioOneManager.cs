@@ -27,6 +27,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
     [SerializeField] private string outcomeReason = "";
     [SerializeField] private bool annualReviewSeen;
     [SerializeField] private ScenarioCenturyReview centuryReview;
+    [SerializeField] private float retainedTimberM3;
+    [SerializeField] private List<PlantedJuvenile> plantedJuveniles = new List<PlantedJuvenile>();
+    [SerializeField] private List<PlantingClearancePatch> clearancePatches = new List<PlantingClearancePatch>();
+    private int nextJuvenileId = 1;
 
     private ForestEcologyController ecology;
     private ForestPlayer player;
@@ -72,6 +76,126 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public int OutcomeYear => outcomeYear;
     public string OutcomeReason => outcomeReason;
     public ScenarioCenturyReview CenturyReview => centuryReview;
+    public float RetainedTimberM3 => retainedTimberM3;
+    public IReadOnlyList<PlantedJuvenile> PlantedJuveniles => plantedJuveniles;
+    public IReadOnlyList<PlantingClearancePatch> ClearancePatches => clearancePatches;
+
+    // Exact-position planting: creates a persistent PlantedJuvenile at the
+    // chosen ground position and reserves one sapling from inventory.
+    public bool TryDesignateExactPlanting(string itemId, Vector3 groundPosition)
+    {
+        if (!CanManage()) return false;
+        ScenarioShopEntry offer = definition?.FindShopEntry(itemId);
+        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+        TreeSpeciesDefinition species = offer != null && spawner != null ? spawner.ResolveSpecies(offer.speciesId) : null;
+        if (offer == null || species == null || !species.SupportsRegeneration)
+        {
+            feedback = "Choose a valid nursery species.";
+            return false;
+        }
+        if (GetStockQuantity(itemId) <= GetReservedStockQuantity(itemId))
+        {
+            feedback = $"No {offer.displayName} ready to plant. Purchase more stock.";
+            return false;
+        }
+        if (HasOpenExactPlantingAt(groundPosition))
+        {
+            feedback = "A planting marker already exists at this position.";
+            return false;
+        }
+        int cellIndex = ecology?.GetCellIndex(groundPosition) ?? -1;
+        if (cellIndex < 0)
+        {
+            feedback = "Planting position is outside the stand.";
+            return false;
+        }
+
+        int minutes = Mathf.Max(1, offer.plantingMinutes);
+        var order = new ScenarioOneWorkOrder
+        {
+            workOrderId = nextWorkOrderId++,
+            type = ScenarioWorkType.PlantJuvenile,
+            status = ScenarioWorkStatus.Pending,
+            speciesId = species.SpeciesId,
+            stockItemId = itemId,
+            requiredStockQuantity = 1,
+            cellIndex = cellIndex,
+            worldPosition = groundPosition,
+            estimatedMinutes = minutes,
+            estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
+            createdYear = ecology.EcologicalYear
+        };
+        workOrders.Add(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
+        feedback = $"Marked {species.DisplayName} planting at ({groundPosition.x:0.0}, {groundPosition.z:0.0}).";
+        return true;
+    }
+
+    private bool HasOpenExactPlantingAt(Vector3 position)
+    {
+        return workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile && order.IsOpen
+            && Vector3.Distance(order.worldPosition, position) < 0.5f);
+    }
+
+    // Spend retained timber for construction. Returns the volume actually spent.
+    public float TrySpendRetainedTimber(float requestedVolume)
+    {
+        if (requestedVolume <= 0f || retainedTimberM3 <= 0f)
+            return 0f;
+        float spent = Mathf.Min(requestedVolume, retainedTimberM3);
+        retainedTimberM3 -= spent;
+        return spent;
+    }
+    public int BatchPruneCropTrees()
+    {
+        if (!CanManage()) return 0;
+        if (definition == null) return 0;
+        Dictionary<string, ForestTree> trees = LivingTreesById();
+        var cropTrees = trees.Values.Where(t => t != null && t.IsCropTree && t.CanChop).ToList();
+        int eligible = 0, ineligible = 0, alreadyTreated = 0, scheduled = 0;
+        foreach (ForestTree tree in cropTrees)
+        {
+            if (HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree))
+            {
+                scheduled++;
+                continue;
+            }
+            float target = definition.NextPruningTargetHeightM(tree.PruningLifts);
+            if (target <= 0f)
+            {
+                alreadyTreated++;
+                continue;
+            }
+            if (target >= tree.Height * 0.6f || tree.CanPrune(target, CurrentYear + 1) != null)
+            {
+                ineligible++;
+                continue;
+            }
+            eligible++;
+            int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.PruningBaseMinutes
+                + target * definition.PruningMinutesPerMetre));
+            var order = new ScenarioOneWorkOrder
+            {
+                workOrderId = nextWorkOrderId++,
+                type = ScenarioWorkType.PruneTree,
+                status = ScenarioWorkStatus.Pending,
+                targetTreeId = tree.TreeId,
+                speciesId = tree.Species?.SpeciesId ?? "",
+                worldPosition = tree.transform.position,
+                cellIndex = ecology?.GetCellIndex(tree.transform.position) ?? -1,
+                estimatedMinutes = minutes,
+                estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
+                expectedVolumeM3 = 0f,
+                targetCrownBaseHeightM = target,
+                createdYear = ecology?.EcologicalYear ?? 0
+            };
+            workOrders.Add(order);
+            RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
+        }
+        feedback = $"Crop Tree pruning: {eligible} eligible, {ineligible} ineligible, "
+            + $"{alreadyTreated} already treated, {scheduled} scheduled.";
+        return eligible;
+    }
     public bool AnnualReviewSeen => annualReviewSeen;
     public IReadOnlyList<ScenarioObjectiveResult> Objectives => ScenarioOneObjectives.Evaluate(definition,
         ecologicalSnapshots.Count > 0 ? ecologicalSnapshots[ecologicalSnapshots.Count - 1] : null,
@@ -710,6 +834,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
             understoreyCells = CloneUnderstorey(understoreyCells),
             deadwoodRecords = CloneDeadwood(deadwoodRecords),
             nextDeadwoodId = nextDeadwoodId,
+            retainedTimberM3 = retainedTimberM3,
+            plantedJuveniles = plantedJuveniles.Select(j => new PlantedJuvenileSaveData
+            {
+                juvenileId = j.juvenileId, speciesId = j.speciesId, position = j.position,
+                cellIndex = j.cellIndex, plantingYear = j.plantingYear, ageYears = j.ageYears,
+                heightMeters = j.heightMeters, alive = j.alive, stockItemId = j.stockItemId
+            }).ToList(),
+            clearancePatches = clearancePatches.Select(p => new PlantingClearancePatch
+            {
+                center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear
+            }).ToList(),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -748,6 +883,20 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 deadwoodRecords.Max(item => int.TryParse(item.deadwoodId != null && item.deadwoodId.StartsWith("DW")
                     ? item.deadwoodId.Substring(2) : "0", out int id) ? id : 0) + 1);
         planningFellingOutcome = definition != null ? definition.DefaultFellingOutcome : FellingMaterialOutcome.SellAndExtract;
+        retainedTimberM3 = Mathf.Max(0f, data.retainedTimberM3);
+        plantedJuveniles = data.plantedJuveniles?.Select(j => new PlantedJuvenile
+        {
+            juvenileId = j.juvenileId, speciesId = j.speciesId, position = j.position,
+            cellIndex = j.cellIndex, plantingYear = j.plantingYear, ageYears = j.ageYears,
+            heightMeters = j.heightMeters, alive = j.alive, stockItemId = j.stockItemId
+        }).ToList() ?? new List<PlantedJuvenile>();
+        clearancePatches = data.clearancePatches?.Select(p => new PlantingClearancePatch
+        {
+            center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear
+        }).ToList() ?? new List<PlantingClearancePatch>();
+        nextJuvenileId = plantedJuveniles.Count > 0
+            ? plantedJuveniles.Max(j => int.TryParse(j.juvenileId?.StartsWith("PJ") == true ? j.juvenileId.Substring(2) : "0", out int id) ? id : 0) + 1
+            : 1;
         nextManagementEventId = Mathf.Max(1, data.nextManagementEventId);
         if (managementEvents.Count > 0)
             nextManagementEventId = Mathf.Max(nextManagementEventId, managementEvents.Max(item => item.eventId) + 1);
@@ -841,9 +990,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
         float volume = tree.BiologicalStemVolumeM3;
         string speciesId = tree.Species != null ? tree.Species.SpeciesId : order.speciesId;
         bool retainDeadwood = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood;
-        long revenue = retainDeadwood
-            ? 0L
-            : (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId), MidpointRounding.AwayFromZero);
+        bool keepForUse = order.fellingOutcome == FellingMaterialOutcome.KeepForUse;
+        long revenue = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract
+            ? (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId), MidpointRounding.AwayFromZero)
+            : 0L;
         cashCents -= order.estimatedCostCents;
         cashCents += revenue;
 
@@ -872,6 +1022,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
             deadwood.visualName = SpawnFallenLogVisual(deadwood);
             deadwoodRecords.Add(deadwood);
         }
+        if (keepForUse)
+            retainedTimberM3 += volume;
 
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = ecology.EcologicalYear + 1;
@@ -884,6 +1036,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
         {
             report.deadwoodCreated++;
             report.deadwoodCreatedM3 += volume;
+        }
+        else if (keepForUse)
+        {
+            report.keptForUseVolumeM3 += volume;
         }
         else
             report.harvestedVolumeM3 += volume;
@@ -975,10 +1131,60 @@ public sealed class ScenarioOneManager : MonoBehaviour
         ScenarioInventoryEntry stock = inventory.Find(item => item != null && item.itemId == order.stockItemId);
         stock.quantity -= order.requiredStockQuantity;
         cashCents -= order.estimatedCostCents;
+
+        // Persistent planted juvenile at exact position.
+        var juvenile = new PlantedJuvenile
+        {
+            juvenileId = "PJ" + nextJuvenileId++.ToString("0000"),
+            speciesId = order.speciesId,
+            position = order.worldPosition,
+            cellIndex = order.cellIndex,
+            plantingYear = report.year,
+            ageYears = 0f,
+            heightMeters = 0.1f,
+            alive = true,
+            stockItemId = order.stockItemId
+        };
+        plantedJuveniles.Add(juvenile);
+
+        // 1 m² Sitka regeneration clearance around the planting position.
+        ApplyPlantingClearance(order.worldPosition, report.year);
+
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = report.year;
         report.completedTasks++;
         report.contractorCostCents += order.estimatedCostCents;
+    }
+
+    // Reduces Sitka regeneration density in the affected ecology cell by the
+    // fraction of the cell covered by the 1 m² clearance patch. Overlapping
+    // patches are handled by tracking each patch separately; Sitka recolonises
+    // later through normal ecology (seed rain, establishment).
+    private void ApplyPlantingClearance(Vector3 position, int year)
+    {
+        var patch = new PlantingClearancePatch
+        {
+            center = position,
+            radiusMeters = 0.564f, // 1 m² circle
+            createdYear = year
+        };
+        clearancePatches.Add(patch);
+
+        int cellIndex = ecology.GetCellIndex(position);
+        if (cellIndex < 0)
+            return;
+        ForestEcologyCell cell = ecology.Cells[cellIndex];
+        ForestRegenerationCohort sitka = cell.FindCohort("sitka-spruce");
+        if (sitka == null || sitka.Density <= 0f)
+            return;
+
+        // Cell area = cellSizeMeters². Clearance area = π r² ≈ 1 m².
+        float cellArea = ecology.CellSizeMeters * ecology.CellSizeMeters;
+        float clearanceArea = Mathf.PI * patch.radiusMeters * patch.radiusMeters;
+        float fraction = Mathf.Clamp01(clearanceArea / cellArea);
+        sitka.Density = Mathf.Max(0f, sitka.Density * (1f - fraction));
+        if (sitka.Density <= 0.001f)
+            cell.RemoveCohortIfEmpty(sitka);
     }
 
     private void ResolveRegenerationRemoval(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
@@ -1070,7 +1276,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 else if (!trees.TryGetValue(order.targetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
                     order.validationMessage = "Target tree is missing or already felled.";
                 else if (order.fellingOutcome != FellingMaterialOutcome.SellAndExtract
-                    && order.fellingOutcome != FellingMaterialOutcome.RetainAsFallenDeadwood)
+                    && order.fellingOutcome != FellingMaterialOutcome.RetainAsFallenDeadwood
+                    && order.fellingOutcome != FellingMaterialOutcome.KeepForUse)
                     order.validationMessage = "Unknown felling material outcome.";
             }
             else if (order.type == ScenarioWorkType.PlantJuvenile)
@@ -1232,17 +1439,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
             GUILayout.Space(12f);
         }
         DrawReferencePreviewControls();
-        DrawNursery();
+        DrawSpatialSummary();
         GUILayout.Space(12f);
-        DrawPlantingGrid();
-        GUILayout.Space(12f);
-        GUILayout.Label("WORK ORDERS", headingStyle);
-        List<ScenarioOneWorkOrder> visible = workOrders.Where(order => order.IsOpen)
-            .OrderBy(order => order.workOrderId).ToList();
-        if (visible.Count == 0)
-            GUILayout.Label("No work is planned. Mark trees, plant saplings or designate regeneration removal.", bodyStyle);
-        foreach (ScenarioOneWorkOrder order in visible)
-            DrawOrder(order);
+        DrawWorkOrdersSummary();
         GUILayout.Space(12f);
         DrawRegenerationRemovalGrid();
         GUILayout.Space(12f);
@@ -1293,6 +1492,35 @@ public sealed class ScenarioOneManager : MonoBehaviour
         ForestHud.Panel(panel);
         GUI.Label(new Rect(panel.x + 12f, panel.y + 8f, panel.width - 24f, panel.height - 16f),
             $"REFERENCE FUTURE v1 — YEAR {previewYear}  ·  [Tab] Return to your forest", bodyStyle);
+    }
+
+    private void DrawSpatialSummary()
+    {
+        GUILayout.Label("SPATIAL SUMMARY — YOUR FORESTRY DECISIONS", headingStyle);
+        int fellingMarks = workOrders.Count(o => o.type == ScenarioWorkType.FellTree && o.IsOpen);
+        int plantingMarks = workOrders.Count(o => o.type == ScenarioWorkType.PlantJuvenile && o.IsOpen);
+        int pruningMarks = workOrders.Count(o => o.type == ScenarioWorkType.PruneTree && o.IsOpen);
+        int cropTrees = LivingTreesById().Values.Count(t => t != null && t.IsCropTree);
+        GUILayout.Label($"Felling marks: {fellingMarks}  |  Planting markers: {plantingMarks}  |  "
+            + $"Pruning tasks: {pruningMarks}  |  Crop Trees: {cropTrees}", bodyStyle);
+        GUILayout.Label($"Retained timber: {retainedTimberM3:0.00} m³  |  Planted juveniles: {plantedJuveniles.Count(j => j.alive)}  |  "
+            + $"Clearance patches: {clearancePatches.Count}", bodyStyle);
+        if (fellingMarks > 0)
+            GUILayout.Label("Felling outcomes: " + string.Join(", ", workOrders
+                .Where(o => o.type == ScenarioWorkType.FellTree && o.IsOpen)
+                .GroupBy(o => o.fellingOutcome)
+                .Select(g => $"{g.Key}: {g.Count()}")), bodyStyle);
+    }
+
+    private void DrawWorkOrdersSummary()
+    {
+        GUILayout.Label("WORK ORDERS", headingStyle);
+        List<ScenarioOneWorkOrder> visible = workOrders.Where(order => order.IsOpen)
+            .OrderBy(order => order.workOrderId).ToList();
+        if (visible.Count == 0)
+            GUILayout.Label("No work is planned. Mark trees in the forest, place planting markers, or designate pruning.", bodyStyle);
+        foreach (ScenarioOneWorkOrder order in visible)
+            DrawOrder(order);
     }
 
     private void DrawOrder(ScenarioOneWorkOrder order)
@@ -2044,6 +2272,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             deadwoodCreated = item.deadwoodCreated,
             deadwoodCreatedM3 = item.deadwoodCreatedM3,
             deadwoodDecayedM3 = item.deadwoodDecayedM3,
+            keptForUseVolumeM3 = item.keptForUseVolumeM3,
             closingCashCents = item.closingCashCents
         }).ToList();
     }

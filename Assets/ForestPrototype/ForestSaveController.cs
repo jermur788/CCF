@@ -60,7 +60,10 @@ public sealed class ForestSaveController : MonoBehaviour
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
         if (marking != null)
+        {
             data.markedTreeIds = marking.GetMarkedIds();
+            data.cropTreeIds = marking.GetCropTreeIds();
+        }
 
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         if (scenario != null)
@@ -85,6 +88,7 @@ public sealed class ForestSaveController : MonoBehaviour
                 pruningLifts = tree.PruningLifts,
                 crownBaseHeightM = tree.CrownBaseHeightM,
                 lastPruningYear = tree.LastPruningYear,
+                markType = (int)tree.MarkType,
                 position = tree.transform.position
             });
         }
@@ -227,6 +231,7 @@ public sealed class ForestSaveController : MonoBehaviour
                     tree.RestorePruningHistory(data.version >= 11 ? saved.pruningLifts : 0,
                         data.version >= 11 ? saved.crownBaseHeightM : 0f,
                         data.version >= 11 ? saved.lastPruningYear : -1);
+                    tree.RestoreMark(data.version >= 13 ? (TreeMarkType)saved.markType : TreeMarkType.None);
                     if (data.version >= 3 && saved.hasSimulation)
                     {
                         tree.transform.position = saved.position;
@@ -247,13 +252,14 @@ public sealed class ForestSaveController : MonoBehaviour
                     recruited.RestorePruningHistory(data.version >= 11 ? saved.pruningLifts : 0,
                         data.version >= 11 ? saved.crownBaseHeightM : 0f,
                         data.version >= 11 ? saved.lastPruningYear : -1);
+                    recruited.RestoreMark(data.version >= 13 ? (TreeMarkType)saved.markType : TreeMarkType.None);
                 }
             }
         }
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
         if (marking != null)
-            marking.RestoreMarks(data.markedTreeIds);
+            marking.RestoreMarks(data.markedTreeIds, data.version >= 13 ? data.cropTreeIds : null);
 
         if (data.buildables != null)
         {

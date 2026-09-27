@@ -9,6 +9,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 {
     [SerializeField, Min(0.5f)] private float interactionDistance = 8f; // [D] planning reach, calibration
     [SerializeField] private Color markerColor = new Color(1f, 0.35f, 0.05f, 1f);
+    [SerializeField] private Color cropTreeColor = new Color(0.15f, 0.4f, 0.95f, 1f);
 
     private static readonly Dictionary<string, GameObject> MarkerObjects = new Dictionary<string, GameObject>();
     private static readonly HashSet<string> MarkedIds = new HashSet<string>();
@@ -40,6 +41,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     // and their summed biological stem volume. Marking selects; it never fells.
     public int LivingMarkedCount { get; private set; }
     public float MarkedVolumeM3 { get; private set; }
+    public int LivingCropTreeCount { get; private set; }
 
     // Conditional consequence forecast for the pending treatment, rebuilt with
     // the summary sweep. Empty when nothing is marked.
@@ -48,6 +50,15 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     public List<string> GetMarkedIds()
     {
         return new List<string>(MarkedIds);
+    }
+
+    public List<string> GetCropTreeIds()
+    {
+        var result = new List<string>();
+        foreach (ForestTree tree in markedTreeCache)
+            if (tree != null && tree.IsCropTree)
+                result.Add(tree.TreeId);
+        return result;
     }
 
     public bool IsMarked(ForestTree tree)
@@ -136,7 +147,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void OnTreeFelled(ForestTree tree)
     {
-        // A fell is executed, so it leaves the pending harvest list.
+        if (tree != null)
+            tree.SetMark(TreeMarkType.None);
         Unmark(tree, false);
     }
 
@@ -144,28 +156,43 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (tree == null || tree.IsStump)
             return;
-        if (MarkedIds.Contains(tree.TreeId))
+        if (tree.MarkType == TreeMarkType.Fell)
             Unmark(tree);
         else
-            Mark(tree);
+            Mark(tree, TreeMarkType.Fell);
     }
 
-    public void Mark(ForestTree tree, bool feedback = true)
+    public void ToggleCropTree(ForestTree tree)
     {
         if (tree == null || tree.IsStump)
             return;
-        if (!MarkedIds.Add(tree.TreeId))
+        if (tree.MarkType == TreeMarkType.CropTree)
+            Unmark(tree);
+        else
+            Mark(tree, TreeMarkType.CropTree);
+    }
+
+    public void Mark(ForestTree tree, TreeMarkType type, bool feedback = true)
+    {
+        if (tree == null || tree.IsStump)
             return;
-        CreateMarker(tree);
+        RemoveMarker(tree.TreeId);
+        tree.SetMark(type);
+        MarkedIds.Add(tree.TreeId);
+        CreateMarker(tree, type);
         markedCacheDirty = true;
         if (feedback)
-            SetMessage($"Marked {tree.TreeId} for harvest ({MarkedIds.Count} marked)");
+        {
+            string label = type == TreeMarkType.CropTree ? "Crop Tree" : "harvest";
+            SetMessage($"Marked {tree.TreeId} as {label} ({MarkedIds.Count} marked)");
+        }
     }
 
     public void Unmark(ForestTree tree, bool feedback = true)
     {
         if (tree == null)
             return;
+        tree.SetMark(TreeMarkType.None);
         if (!MarkedIds.Remove(tree.TreeId))
             return;
         RemoveMarker(tree.TreeId);
@@ -180,6 +207,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         foreach (string id in ids)
             RemoveMarker(id);
         MarkedIds.Clear();
+        foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (tree != null && tree.MarkType != TreeMarkType.None)
+                tree.SetMark(TreeMarkType.None);
         markedCacheDirty = true;
     }
 
@@ -199,15 +229,19 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         int living = 0;
         float volume = 0f;
+        int cropTrees = 0;
         foreach (ForestTree tree in markedTreeCache)
         {
             if (tree == null || tree.IsStump)
                 continue;
             living++;
             volume += tree.BiologicalStemVolumeM3;
+            if (tree.IsCropTree)
+                cropTrees++;
         }
         LivingMarkedCount = living;
         MarkedVolumeM3 = volume;
+        LivingCropTreeCount = cropTrees;
 
         UpdateTreatmentOutcome();
     }
@@ -380,9 +414,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 stale.Add(id);
                 continue;
             }
-            // A living marked tree always keeps its visual; recreate if it was lost.
             if (!MarkerObjects.TryGetValue(id, out GameObject marker) || marker == null)
-                CreateMarker(tree);
+                CreateMarker(tree, tree.MarkType);
         }
 
         foreach (string id in stale)
@@ -409,29 +442,30 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     }
 
     // Used by save loading; marks are keyed by the persistent tree id.
-    public void RestoreMarks(List<string> ids)
+    public void RestoreMarks(List<string> fellIds, List<string> cropIds = null)
     {
         ClearAll();
-        if (ids == null)
-            return;
         var treesById = new Dictionary<string, ForestTree>();
         foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (tree != null && !string.IsNullOrEmpty(tree.TreeId))
                 treesById[tree.TreeId] = tree;
         }
-        foreach (string id in ids)
-        {
-            if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
-                Mark(tree, false);
-        }
+        if (fellIds != null)
+            foreach (string id in fellIds)
+                if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
+                    Mark(tree, TreeMarkType.Fell, false);
+        if (cropIds != null)
+            foreach (string id in cropIds)
+                if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
+                    Mark(tree, TreeMarkType.CropTree, false);
     }
 
-    private void CreateMarker(ForestTree tree)
+    private void CreateMarker(ForestTree tree, TreeMarkType type)
     {
         if (MarkerObjects.TryGetValue(tree.TreeId, out GameObject existing) && existing != null)
             return;
-        Material material = MarkerMaterial();
+        Material material = MarkerMaterial(type);
         if (material == null)
             return;
 
@@ -468,7 +502,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         }
     }
 
-    private Material MarkerMaterial()
+    private Material MarkerMaterial(TreeMarkType type)
     {
         if (markerMaterial != null)
             return markerMaterial;
@@ -481,7 +515,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             return null;
         }
         markerMaterial = new Material(shader) { name = "HarvestMark" };
-        markerMaterial.color = markerColor;
+        markerMaterial.color = type == TreeMarkType.CropTree ? cropTreeColor : markerColor;
         return markerMaterial;
     }
 
@@ -527,7 +561,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         }
         counterStyle.fontSize = Mathf.RoundToInt(22f * hudScale);
         GUI.Label(new Rect(18f, Screen.height - 44f * hudScale, 680f * hudScale, 28f * hudScale),
-            $"Marked for harvest: {LivingMarkedCount} — {MarkedVolumeM3:0.0} m³   [M] mark / unmark", counterStyle);
+            $"Fell marks: {LivingMarkedCount - LivingCropTreeCount}  |  Crop Trees: {LivingCropTreeCount}  |  Volume: {MarkedVolumeM3:0.0} m³   [M] mark / [C] crop", counterStyle);
 
         if (!string.IsNullOrEmpty(TreatmentOutcome))
         {

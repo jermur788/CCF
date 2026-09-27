@@ -13,6 +13,15 @@ public enum ForestTreeStage
 // [D] Descriptive DBH bands, not age, reproductive or timber-quality classes.
 public enum ForestTreeSizeClass { Small, Medium, Large }
 
+// Persistent management mark on a living tree. Mutually exclusive: a tree is
+// either marked for felling, designated a Crop Tree, or unmarked.
+public enum TreeMarkType
+{
+    None = 0,
+    Fell = 1,
+    CropTree = 2
+}
+
 [DisallowMultipleComponent]
 public sealed class ForestTree : MonoBehaviour
 {
@@ -48,10 +57,26 @@ public sealed class ForestTree : MonoBehaviour
     private ForestTreeStage stage = ForestTreeStage.Mature;
     private int chopProgress;
     private float stageTimer;
+    [SerializeField] private TreeMarkType markType = TreeMarkType.None;
 
     public string TreeId => treeId;
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
+    public TreeMarkType MarkType => markType;
+    public bool IsCropTree => markType == TreeMarkType.CropTree;
+    public bool IsMarkedForFell => markType == TreeMarkType.Fell;
+
+    // Mutually exclusive mark: setting one type clears the other automatically
+    // because the enum holds exactly one value at a time.
+    public void SetMark(TreeMarkType type)
+    {
+        markType = type;
+    }
+
+    public void RestoreMark(TreeMarkType type)
+    {
+        markType = type;
+    }
     [SerializeField, Min(0f)] private float equivalentSuppressedYears;
     // Recorded individual-tree history only; no inferred pre-spawn history.
     public float EquivalentSuppressedYears => equivalentSuppressedYears;
