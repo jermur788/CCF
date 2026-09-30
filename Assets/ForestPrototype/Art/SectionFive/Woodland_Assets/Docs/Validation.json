@@ -1,0 +1,359 @@
+[
+  {
+    "name": "SS_Log_Fresh_01",
+    "lod": 0,
+    "triangles": 576,
+    "dimensions_metres_xyz": [
+      3.1115500926971436,
+      0.64287368953228,
+      0.4487684667110443
+    ],
+    "material_count": 2,
+    "file": "SS_Log_Fresh_01/SS_Log_Fresh_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Log_Fresh_01",
+    "lod": 1,
+    "triangles": 300,
+    "dimensions_metres_xyz": [
+      3.1109455823898315,
+      0.6388522237539291,
+      0.44689127802848816
+    ],
+    "material_count": 2,
+    "file": "SS_Log_Fresh_01/SS_Log_Fresh_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Log_Fresh_01",
+    "lod": 2,
+    "triangles": 128,
+    "dimensions_metres_xyz": [
+      3.1096465587615967,
+      0.6248260736465454,
+      0.4497450292110443
+    ],
+    "material_count": 2,
+    "file": "SS_Log_Fresh_01/SS_Log_Fresh_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Log_Decayed_01",
+    "lod": 0,
+    "triangles": 1368,
+    "dimensions_metres_xyz": [
+      2.998409390449524,
+      0.7161507606506348,
+      0.43209755420684814
+    ],
+    "material_count": 3,
+    "file": "SS_Log_Decayed_01/SS_Log_Decayed_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Log_Decayed_01",
+    "lod": 1,
+    "triangles": 681,
+    "dimensions_metres_xyz": [
+      2.9959646463394165,
+      0.7200444936752319,
+      0.4360535740852356
+    ],
+    "material_count": 3,
+    "file": "SS_Log_Decayed_01/SS_Log_Decayed_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Log_Decayed_01",
+    "lod": 2,
+    "triangles": 280,
+    "dimensions_metres_xyz": [
+      2.995484232902527,
+      0.7076534032821655,
+      0.41252654790878296
+    ],
+    "material_count": 3,
+    "file": "SS_Log_Decayed_01/SS_Log_Decayed_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Stump_01",
+    "lod": 0,
+    "triangles": 444,
+    "dimensions_metres_xyz": [
+      0.8956139087677002,
+      0.898053914308548,
+      0.45024600625038147
+    ],
+    "material_count": 2,
+    "file": "SS_Stump_01/SS_Stump_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Stump_01",
+    "lod": 1,
+    "triangles": 308,
+    "dimensions_metres_xyz": [
+      0.8943850696086884,
+      0.89749675989151,
+      0.45024600625038147
+    ],
+    "material_count": 2,
+    "file": "SS_Stump_01/SS_Stump_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "SS_Stump_01",
+    "lod": 2,
+    "triangles": 224,
+    "dimensions_metres_xyz": [
+      0.8966450095176697,
+      0.8976300954818726,
+      0.4544779360294342
+    ],
+    "material_count": 2,
+    "file": "SS_Stump_01/SS_Stump_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bracken_Clump_01",
+    "lod": 0,
+    "triangles": 8904,
+    "dimensions_metres_xyz": [
+      1.1938970685005188,
+      1.2341234683990479,
+      1.018043041229248
+    ],
+    "material_count": 2,
+    "file": "Bracken_Clump_01/Bracken_Clump_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bracken_Clump_01",
+    "lod": 1,
+    "triangles": 3400,
+    "dimensions_metres_xyz": [
+      1.1938514113426208,
+      1.2342398762702942,
+      1.0189224481582642
+    ],
+    "material_count": 2,
+    "file": "Bracken_Clump_01/Bracken_Clump_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bracken_Clump_01",
+    "lod": 2,
+    "triangles": 954,
+    "dimensions_metres_xyz": [
+      1.1935524940490723,
+      1.0487136840820312,
+      1.0153335332870483
+    ],
+    "material_count": 2,
+    "file": "Bracken_Clump_01/Bracken_Clump_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "ShadeFern_Clump_01",
+    "lod": 0,
+    "triangles": 2720,
+    "dimensions_metres_xyz": [
+      1.1606686115264893,
+      1.1488771438598633,
+      0.5690373778343201
+    ],
+    "material_count": 2,
+    "file": "ShadeFern_Clump_01/ShadeFern_Clump_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "ShadeFern_Clump_01",
+    "lod": 1,
+    "triangles": 1176,
+    "dimensions_metres_xyz": [
+      1.1149060130119324,
+      1.1489470601081848,
+      0.568852424621582
+    ],
+    "material_count": 2,
+    "file": "ShadeFern_Clump_01/ShadeFern_Clump_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "ShadeFern_Clump_01",
+    "lod": 2,
+    "triangles": 376,
+    "dimensions_metres_xyz": [
+      1.1147096157073975,
+      1.1486144065856934,
+      0.5669193863868713
+    ],
+    "material_count": 2,
+    "file": "ShadeFern_Clump_01/ShadeFern_Clump_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bramble_Clump_01",
+    "lod": 0,
+    "triangles": 5796,
+    "dimensions_metres_xyz": [
+      1.6482594013214111,
+      1.4120500087738037,
+      0.9058144688606262
+    ],
+    "material_count": 2,
+    "file": "Bramble_Clump_01/Bramble_Clump_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bramble_Clump_01",
+    "lod": 1,
+    "triangles": 1400,
+    "dimensions_metres_xyz": [
+      1.6480756402015686,
+      1.329679250717163,
+      0.9045743942260742
+    ],
+    "material_count": 2,
+    "file": "Bramble_Clump_01/Bramble_Clump_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Bramble_Clump_01",
+    "lod": 2,
+    "triangles": 378,
+    "dimensions_metres_xyz": [
+      1.4460181593894958,
+      1.2733113169670105,
+      0.9028975963592529
+    ],
+    "material_count": 2,
+    "file": "Bramble_Clump_01/Bramble_Clump_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Moss_Deadwood_Patch_01",
+    "lod": 0,
+    "triangles": 1894,
+    "dimensions_metres_xyz": [
+      1.847036600112915,
+      1.3880934119224548,
+      0.13204577565193176
+    ],
+    "material_count": 2,
+    "file": "Moss_Deadwood_Patch_01/Moss_Deadwood_Patch_01_LOD0.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Moss_Deadwood_Patch_01",
+    "lod": 1,
+    "triangles": 1186,
+    "dimensions_metres_xyz": [
+      1.8167445659637451,
+      1.3640825152397156,
+      0.13204577565193176
+    ],
+    "material_count": 2,
+    "file": "Moss_Deadwood_Patch_01/Moss_Deadwood_Patch_01_LOD1.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  },
+  {
+    "name": "Moss_Deadwood_Patch_01",
+    "lod": 2,
+    "triangles": 707,
+    "dimensions_metres_xyz": [
+      1.8344832062721252,
+      1.3249760866165161,
+      0.13204577565193176
+    ],
+    "material_count": 2,
+    "file": "Moss_Deadwood_Patch_01/Moss_Deadwood_Patch_01_LOD2.fbx",
+    "fbx_reimport": "passed",
+    "uv_material_texture_checks": "passed",
+    "dimensions_ground_pivot": "passed",
+    "unity_tested": false,
+    "source_identity_transforms": "passed"
+  }
+]

@@ -18,10 +18,12 @@ public sealed class PlantedJuvenile
     public float heightMeters;
     public bool alive = true;
     public string stockItemId = "";
+    public string promotedTreeId = "";
+    public bool legacyCohortManaged;
 }
 
-// Spatial clearance patch around a planting site. Overlapping patches are
-// handled by the union of their areas when reducing Sitka regeneration density.
+// Spatial clearance patch around a planting site. Only patches made in the
+// current treatment year participate in a union: future seed rain recolonises.
 [Serializable]
 public sealed class PlantingClearancePatch
 {

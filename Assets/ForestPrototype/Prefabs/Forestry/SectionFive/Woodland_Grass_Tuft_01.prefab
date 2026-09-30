@@ -1,0 +1,290 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3843924798327549090
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4016950009428059904}
+  - component: {fileID: 5706109721560288311}
+  m_Layer: 0
+  m_Name: Woodland_Grass_Tuft_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4016950009428059904
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3843924798327549090}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 133811461935219617}
+  - {fileID: 6344490717368542701}
+  - {fileID: 1152975947633688797}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &5706109721560288311
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3843924798327549090}
+  serializedVersion: 3
+  m_LocalReferencePoint: {x: -0.010502517, y: 0.17866178, z: -0.0022571087}
+  m_Size: 0.82768357
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.35
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 4539268069678791913}
+  - screenRelativeHeight: 0.12
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2448528537307888627}
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 7966356925747870896}
+  m_Enabled: 1
+  m_GlobalIlluminationLOD: 0
+--- !u!1001 &455388775413654602
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4016950009428059904}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Grass_Tuft_01_LOD0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4084595467713845411, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: 4084595467713845411, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5fa8f36830e19618e8468483190459cc, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+--- !u!4 &133811461935219617 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+  m_PrefabInstance: {fileID: 455388775413654602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &4539268069678791913 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 4084595467713845411, guid: 57283a1a5fdb70ad19adda25f15564a7, type: 3}
+  m_PrefabInstance: {fileID: 455388775413654602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1696318814833862454
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4016950009428059904}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Grass_Tuft_01_LOD2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8720279032171027334, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: 8720279032171027334, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5fa8f36830e19618e8468483190459cc, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+--- !u!4 &1152975947633688797 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+  m_PrefabInstance: {fileID: 1696318814833862454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &7966356925747870896 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8720279032171027334, guid: 42d837dc6a5de1cc3b7fd58ecc6a3c6b, type: 3}
+  m_PrefabInstance: {fileID: 1696318814833862454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &6883349386365927942
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4016950009428059904}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -109077638242747915, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: -109077638242747915, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5fa8f36830e19618e8468483190459cc, type: 2}
+    - target: {fileID: 919132149155446097, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Grass_Tuft_01_LOD1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+--- !u!23 &2448528537307888627 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -109077638242747915, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+  m_PrefabInstance: {fileID: 6883349386365927942}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6344490717368542701 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 800cb47c10524402a8c070c183c41a45, type: 3}
+  m_PrefabInstance: {fileID: 6883349386365927942}
+  m_PrefabAsset: {fileID: 0}

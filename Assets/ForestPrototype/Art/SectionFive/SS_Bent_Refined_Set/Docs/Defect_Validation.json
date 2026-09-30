@@ -1,0 +1,141 @@
+{
+  "exports": [
+    {
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD0.fbx",
+      "stage": "Young",
+      "lod": 0,
+      "measured_landmark_x_m": [
+        0.4451187252998352,
+        1.0605469942092896,
+        1.0220669507980347,
+        0.812818169593811,
+        0.8151580095291138
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 0.8112858563661576
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD1.fbx",
+      "stage": "Young",
+      "lod": 1,
+      "measured_landmark_x_m": [
+        0.44526755809783936,
+        1.0605684518814087,
+        1.0219984650611877,
+        0.8127205967903137,
+        0.8150757551193237
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 0.8112857391436895
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD2.fbx",
+      "stage": "Young",
+      "lod": 2,
+      "measured_landmark_x_m": [
+        0.4448460340499878,
+        1.0595881938934326,
+        1.0216726064682007,
+        0.8126521706581116,
+        0.8149451017379761
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 0.8112852200865746
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD0.fbx",
+      "stage": "Mature",
+      "lod": 0,
+      "measured_landmark_x_m": [
+        1.3690121173858643,
+        3.2694694995880127,
+        3.1533799171447754,
+        2.4833956956863403,
+        2.4506155252456665
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 2.425024688243866
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD1.fbx",
+      "stage": "Mature",
+      "lod": 1,
+      "measured_landmark_x_m": [
+        1.369419813156128,
+        3.269532084465027,
+        3.1532119512557983,
+        2.483150005340576,
+        2.450409173965454
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 2.4250245292981467
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD2.fbx",
+      "stage": "Mature",
+      "lod": 2,
+      "measured_landmark_x_m": [
+        1.3687244653701782,
+        3.2656710147857666,
+        3.152171015739441,
+        2.4831881523132324,
+        2.450081706047058
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 2.425024062395096
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD0.fbx",
+      "stage": "PostMature",
+      "lod": 0,
+      "measured_landmark_x_m": [
+        1.828989565372467,
+        4.35115909576416,
+        4.161513566970825,
+        3.2447075843811035,
+        3.214675188064575
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 3.225901746749878
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD1.fbx",
+      "stage": "PostMature",
+      "lod": 1,
+      "measured_landmark_x_m": [
+        1.829614281654358,
+        4.3512537479400635,
+        4.161267518997192,
+        3.244353771209717,
+        3.214376926422119
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 3.2259016036987305
+    },
+    {
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD2.fbx",
+      "stage": "PostMature",
+      "lod": 2,
+      "measured_landmark_x_m": [
+        1.828396201133728,
+        4.344509601593018,
+        4.159511566162109,
+        3.2446569204330444,
+        3.2139041423797607
+      ],
+      "authored_landmark_alignment": "passed",
+      "measured_tip_offset_m": 3.2259010076522827
+    }
+  ],
+  "benchmark_texture_identity": "passed",
+  "benchmark_texture_sha256": {
+    "Sitka_Bark_BaseColor_v2.png": "e93ffd30393a8dfef974de06cd86012cfbbb2a462c010da81f825997719dc75a",
+    "Sitka_Bark_Normal_v2.png": "c1ebbb77b48d1ce9d156851c3b87443194f0159b9c7e19274b9c3a8d16163464",
+    "Sitka_Bark_Roughness_v2.png": "c9628c5790369d14945693e5cc1b2229961eba5b33e2ac2030c91ece5dffbcfd",
+    "Sitka_Bark_MetallicSmoothness_v2.png": "80af0885f5a7d09e2650e810f343bc9433d5b4903287b0dbe2c562527e4d2441",
+    "Sitka_NeedleSprigs_BaseColorAlpha.png": "596f2393bcda13d450d632b0e7840d96795ff784a9fc52942627495182d5e0c6"
+  },
+  "bent_cross_lod_landmark_alignment": "passed",
+  "unity_tested": false,
+  "scope": "World-space FBX probes and texture byte identity; not an engine acceptance test."
+}

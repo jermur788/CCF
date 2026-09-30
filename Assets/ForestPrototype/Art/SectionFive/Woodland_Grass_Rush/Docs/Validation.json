@@ -1,0 +1,307 @@
+{
+  "exports": [
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD0.fbx",
+      "dimensions_m": [
+        0.7867593169212341,
+        0.8276835680007935,
+        0.3571818470954895
+      ],
+      "triangles": 1364,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.7867592826464929,
+        0.8276835396748937,
+        0.35718184314544993
+      ],
+      "minimum_z": -1.0230713967751287e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD1.fbx",
+      "dimensions_m": [
+        0.7867593169212341,
+        0.7181553542613983,
+        0.357323557138443
+      ],
+      "triangles": 448,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.7867592826464929,
+        0.7181553180606033,
+        0.35732356077160626
+      ],
+      "minimum_z": -1.0233385902786141e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6067677736282349,
+        0.5894766300916672,
+        0.32816770672798157
+      ],
+      "triangles": 72,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6067677552975468,
+        0.5894765892292935,
+        0.3281677083241263
+      ],
+      "minimum_z": -8.158616468155107e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD0.fbx",
+      "dimensions_m": [
+        1.091612696647644,
+        1.0729255080223083,
+        0.5168874859809875
+      ],
+      "triangles": 1716,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.0916126770165704,
+        1.0729255054271458,
+        0.5168874746761873
+      ],
+      "minimum_z": -1.188399303067562e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD1.fbx",
+      "dimensions_m": [
+        1.091612696647644,
+        0.9259770512580872,
+        0.5169864892959595
+      ],
+      "triangles": 560,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.0916126770165704,
+        0.9259770338850288,
+        0.5169865041868842
+      ],
+      "minimum_z": -1.1885113356979643e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD2.fbx",
+      "dimensions_m": [
+        0.9804222285747528,
+        0.7783922553062439,
+        0.4750853180885315
+      ],
+      "triangles": 84,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.9804222269261871,
+        0.7783922464174353,
+        0.47508533465786545
+      ],
+      "minimum_z": -1.0145866530318706e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD0.fbx",
+      "dimensions_m": [
+        1.253640592098236,
+        1.2899826765060425,
+        0.2779771387577057
+      ],
+      "triangles": 2112,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.253640566461371,
+        1.2899826117116784,
+        0.277977133469577
+      ],
+      "minimum_z": -1.4503070408102112e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD1.fbx",
+      "dimensions_m": [
+        1.0610201060771942,
+        1.2259668707847595,
+        0.278111070394516
+      ],
+      "triangles": 672,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.0610201026271255,
+        1.225966844690416,
+        0.2781110679598473
+      ],
+      "minimum_z": -1.2940419695139287e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD2.fbx",
+      "dimensions_m": [
+        0.9948055744171143,
+        0.9383660852909088,
+        0.25535571575164795
+      ],
+      "triangles": 96,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.994805542644734,
+        0.9383660602304653,
+        0.2553557054682799
+      ],
+      "minimum_z": -1.2522555263835582e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6433573067188263,
+        0.7562621235847473,
+        0.8400958776473999
+      ],
+      "triangles": 5552,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6433572816098341,
+        0.7562621076641884,
+        0.8400958760193385
+      ],
+      "minimum_z": 3.767746640934971e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6128732264041901,
+        0.6780078709125519,
+        0.8402829766273499
+      ],
+      "triangles": 1344,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6128732162816846,
+        0.6780078277051154,
+        0.8402829513987106
+      ],
+      "minimum_z": 1.1380995140329903e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD2.fbx",
+      "dimensions_m": [
+        0.4649699479341507,
+        0.6102946102619171,
+        0.8403424024581909
+      ],
+      "triangles": 210,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.46496992979265883,
+        0.6102945794540563,
+        0.8403423894117825
+      ],
+      "minimum_z": -3.8929024251807435e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 0,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD0.fbx",
+      "dimensions_m": [
+        0.9947620928287506,
+        1.1049256324768066,
+        1.0984337329864502
+      ],
+      "triangles": 7440,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.9947620550968779,
+        1.1049255788340044,
+        1.0984337335277543
+      ],
+      "minimum_z": -3.6473144432686007e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 1,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD1.fbx",
+      "dimensions_m": [
+        0.9291276335716248,
+        0.9817240536212921,
+        1.0987391471862793
+      ],
+      "triangles": 1764,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.9291275961147036,
+        0.9817240443216466,
+        1.098739129367603
+      ],
+      "minimum_z": 5.153175916681018e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 2,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD2.fbx",
+      "dimensions_m": [
+        0.9290168285369873,
+        0.9754255712032318,
+        1.0990277528762817
+      ],
+      "triangles": 280,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.9290167791616142,
+        0.9754255834907553,
+        1.0990277494264606
+      ],
+      "minimum_z": 5.105450448132028e-09,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

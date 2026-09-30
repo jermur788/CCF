@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -26,6 +25,9 @@ public sealed class ForestPlayer : MonoBehaviour
     [Header("Planting")]
     [Tooltip("Species offered by the planting hotbar. Add future plantable species here instead of assigning another permanent key.")]
     [SerializeField] private string[] plantingSpeciesIds = { BeechSpeciesId, OakSpeciesId };
+    // Shop item IDs are Scenario One stock; species IDs above remain Survival's
+    // separate free-planting hotbar, and are never overwritten with shop items.
+    private string[] plantingItemIds = System.Array.Empty<string>();
     [Header("Regeneration Uprooting")]
     [Tooltip("[D] Seconds required to pull up the sparsest regeneration cohort.")]
     [SerializeField, Min(0.1f)] private float uprootMinDuration = 1f;
@@ -351,9 +353,14 @@ public sealed class ForestPlayer : MonoBehaviour
         isLookingAtTree = false;
         aimedTree = null;
         isAimingGround = false;
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (plantPressed && !isPlantingMode && scenario != null)
+            EnterPlantingMode();
 
         if (isPlantingMode)
         {
+            if (scenario != null)
+                RefreshPlantingInventory(scenario);
             if (plantingSlot1Pressed)
                 SelectPlantingSpecies(0);
             else if (plantingSlot2Pressed)
@@ -418,7 +425,11 @@ public sealed class ForestPlayer : MonoBehaviour
         UpdateUprooting(!isPlantingMode && uprootHeld, Time.deltaTime);
 
         // If inspecting, close card if player steps or looks too far away
-        if (isInspecting)
+        if (isPlantingMode && scenario != null && isAimingGround && interactPressed)
+        {
+            PlantSelectedSpeciesAt(aimedSurfacePoint);
+        }
+        else if (isInspecting)
         {
             if (inspectedTree == null || Vector3.Distance(view.position, inspectedTree.InteractionPoint) > interactionDistance + 1.5f)
             {
@@ -446,7 +457,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 InspectTree(aimedTree);
             }
         }
-        else if (plantPressed && isAimingGround)
+        else if (plantPressed && isAimingGround && scenario == null)
         {
             if (!isPlantingMode)
                 EnterPlantingMode();
@@ -463,16 +474,13 @@ public sealed class ForestPlayer : MonoBehaviour
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         if (scenario != null)
         {
-            // Scenario One: only species with stock in inventory are plantable.
-            var owned = scenario.Inventory.Where(item => item != null && item.quantity > 0)
-                .Select(item => item.itemId).ToList();
-            if (owned.Count == 0)
+            plantingItemIds = scenario.ReadyPlantingItemIds();
+            if (plantingItemIds.Length == 0)
             {
                 lastHarvestMessage = "No saplings in stock. Purchase stock first.";
                 messageTimer = 2.5f;
                 return;
             }
-            plantingSpeciesIds = owned.ToArray();
             selectedPlantingSpeciesIndex = 0;
             isPlantingMode = true;
             CancelUprooting();
@@ -492,28 +500,46 @@ public sealed class ForestPlayer : MonoBehaviour
     private void ExitPlantingMode()
     {
         isPlantingMode = false;
+        plantingItemIds = System.Array.Empty<string>();
+    }
+
+    private string[] ActivePlantingIds() => Object.FindFirstObjectByType<ScenarioOneManager>() != null
+        ? plantingItemIds : plantingSpeciesIds;
+
+    private void RefreshPlantingInventory(ScenarioOneManager scenario)
+    {
+        string selected = SelectedPlantingSpeciesId();
+        plantingItemIds = scenario.ReadyPlantingItemIds();
+        if (plantingItemIds.Length == 0)
+        {
+            ExitPlantingMode();
+            return;
+        }
+        int index = System.Array.IndexOf(plantingItemIds, selected);
+        selectedPlantingSpeciesIndex = index >= 0 ? index : 0;
     }
 
     private void SelectPlantingSpecies(int index)
     {
-        if (!isPlantingMode || plantingSpeciesIds == null || index < 0 || index >= plantingSpeciesIds.Length)
+        if (!isPlantingMode || index < 0 || index >= ActivePlantingIds().Length)
             return;
         selectedPlantingSpeciesIndex = index;
     }
 
     private void CyclePlantingSpecies()
     {
-        if (!isPlantingMode || plantingSpeciesIds == null || plantingSpeciesIds.Length <= 1)
+        if (!isPlantingMode || ActivePlantingIds().Length <= 1)
             return;
-        selectedPlantingSpeciesIndex = (selectedPlantingSpeciesIndex + 1) % plantingSpeciesIds.Length;
+        selectedPlantingSpeciesIndex = (selectedPlantingSpeciesIndex + 1) % ActivePlantingIds().Length;
     }
 
     private string SelectedPlantingSpeciesId()
     {
-        if (plantingSpeciesIds == null || plantingSpeciesIds.Length == 0)
+        string[] ids = ActivePlantingIds();
+        if (ids == null || ids.Length == 0)
             return "";
-        selectedPlantingSpeciesIndex = Mathf.Clamp(selectedPlantingSpeciesIndex, 0, plantingSpeciesIds.Length - 1);
-        return plantingSpeciesIds[selectedPlantingSpeciesIndex];
+        selectedPlantingSpeciesIndex = Mathf.Clamp(selectedPlantingSpeciesIndex, 0, ids.Length - 1);
+        return ids[selectedPlantingSpeciesIndex];
     }
 
     private TreeSpeciesDefinition ResolvePlantingSpecies(string speciesId)
@@ -524,10 +550,14 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private string PlantingSpeciesDisplayName(int index)
     {
-        if (plantingSpeciesIds == null || index < 0 || index >= plantingSpeciesIds.Length)
+        string[] ids = ActivePlantingIds();
+        if (ids == null || index < 0 || index >= ids.Length)
             return "Unavailable";
-        TreeSpeciesDefinition species = ResolvePlantingSpecies(plantingSpeciesIds[index]);
-        return species != null ? species.DisplayName : plantingSpeciesIds[index];
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
+            return scenario.Definition?.FindShopEntry(ids[index])?.displayName ?? ids[index];
+        TreeSpeciesDefinition species = ResolvePlantingSpecies(ids[index]);
+        return species != null ? species.DisplayName : ids[index];
     }
 
     private void PlantSelectedSpeciesAt(Vector3 groundPoint)
@@ -538,11 +568,12 @@ public sealed class ForestPlayer : MonoBehaviour
             string itemId = SelectedPlantingSpeciesId();
             if (scenario.TryDesignateExactPlanting(itemId, groundPoint))
             {
-                lastHarvestMessage = "Planting marker placed. Contractor will plant next year.";
+                lastHarvestMessage = "Planting marker placed. Approve it in the Work Plan.";
+                RefreshPlantingInventory(scenario);
             }
             else
             {
-                lastHarvestMessage = "Cannot place planting marker here.";
+                lastHarvestMessage = scenario.Feedback;
             }
             messageTimer = 3.5f;
             return;
@@ -628,14 +659,23 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void UpdateUprooting(bool held, float deltaTime)
     {
-        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
         {
             CancelUprooting();
             if (!held)
                 uprootNeedsRelease = false;
             else if (!uprootNeedsRelease)
             {
-                lastHarvestMessage = "Regeneration removal is managed through [Tab] Work Plan.";
+                if (!isPlantingMode && isAimingGround && TryGetSelectedRegeneration(out RegenerationCohortInfo selectedCohort))
+                {
+                    bool created = scenario.TryDesignateRegenerationRemoval(selectedCohort.SpeciesId, aimedRegenerationCellIndex);
+                    lastHarvestMessage = created
+                        ? $"Marked this cell's {selectedCohort.DisplayName} regeneration for contractor removal."
+                        : scenario.Feedback;
+                }
+                else
+                    lastHarvestMessage = "Aim at ground with regeneration to mark a removal.";
                 messageTimer = 3.5f;
                 uprootNeedsRelease = true;
             }
@@ -856,13 +896,18 @@ public sealed class ForestPlayer : MonoBehaviour
                 notificationStyle.normal.textColor = new Color(1f, 0.95f, 0.55f);
             }
             notificationStyle.fontSize = Mathf.RoundToInt(36f * noteScale);
+            notificationStyle.wordWrap = true;
 
-            float noteWidth = Mathf.Min(800f * noteScale, Screen.width - 32f);
-            float noteHeight = 92f * noteScale;
+            float noteWidth = Mathf.Min(920f * noteScale, Screen.width - 32f);
+            float notePadding = 16f * noteScale;
+            float noteTextWidth = Mathf.Max(1f, noteWidth - 2f * notePadding);
+            float noteHeight = Mathf.Max(92f * noteScale,
+                notificationStyle.CalcHeight(new GUIContent(lastHarvestMessage), noteTextWidth) + 2f * notePadding);
             float noteY = 16f + hudHeight * hudScale + 8f;
             Rect noteRect = new Rect(centerX - noteWidth * 0.5f, noteY, noteWidth, noteHeight);
             ForestHud.Panel(noteRect);
-            GUI.Label(noteRect, lastHarvestMessage, notificationStyle);
+            GUI.Label(new Rect(noteRect.x + notePadding, noteRect.y + notePadding,
+                noteTextWidth, noteRect.height - 2f * notePadding), lastHarvestMessage, notificationStyle);
         }
 
         if (Cursor.lockState != CursorLockMode.Locked) return;
@@ -888,13 +933,14 @@ public sealed class ForestPlayer : MonoBehaviour
                 };
                 promptStyle.normal.textColor = Color.white;
             }
+            promptStyle.wordWrap = false;
 
             string promptText;
             if (aimedTree.CanChop)
             {
                 int chops = aimedTree.ChopProgress;
                 promptText = Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                    ? "[E] Inspect  |  [M] Mark  |  [Tab] Work Plan"
+                    ? "[E] Inspect  |  [M] Fell  |  [C] Crop Tree  |  [Tab] Plan"
                     : chops > 0
                         ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
                         : "[E] Inspect  |  [F] Chop Tree";
@@ -926,7 +972,9 @@ public sealed class ForestPlayer : MonoBehaviour
             }
 
             string plantingPrompt = Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                ? "[Tab] Work Plan: designate planting"
+                ? isPlantingMode
+                    ? $"[Click] Mark {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)} planting site"
+                    : "[G] Planting mode  |  [Tab] Buy saplings"
                 : isPlantingMode
                     ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
                     : "[G] Open planting";
@@ -937,7 +985,7 @@ public sealed class ForestPlayer : MonoBehaviour
                     ? $"Selected: {selected.DisplayName}  |  [R] Cycle species\n"
                     : "";
                 if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
-                    promptText = selection + $"[Tab] Work Plan: remove {selected.DisplayName} regeneration";
+                    promptText = selection + $"[U] Mark {selected.DisplayName} removal in this cell\n" + plantingPrompt;
                 else
                 {
                     string progress = isUprooting && uprootDuration > 0f
@@ -948,11 +996,23 @@ public sealed class ForestPlayer : MonoBehaviour
                         + plantingPrompt;
                 }
             }
-            float width = Mathf.Max(520f, promptText.Length * size * 0.28f + 48f);
-            float height = Mathf.Max(64f, size * (promptText.Contains("\n") ? 3.8f : 2.0f));
+            // Measure actual rendered glyphs rather than estimating from the
+            // character count; longer species names otherwise clip both ends.
+            float widestLine = 0f;
+            promptStyle.wordWrap = false;
+            foreach (string line in promptText.Split('\n'))
+                widestLine = Mathf.Max(widestLine, promptStyle.CalcSize(new GUIContent(line)).x);
+            promptStyle.wordWrap = true;
+            float padding = 16f * ForestHud.Scale;
+            float screenWidth = Mathf.Max(1f, Screen.width - 32f);
+            float width = Mathf.Min(screenWidth, Mathf.Max(520f * ForestHud.Scale, widestLine + 2f * padding));
+            float contentWidth = Mathf.Max(1f, width - 2f * padding);
+            float height = Mathf.Max(64f * ForestHud.Scale,
+                promptStyle.CalcHeight(new GUIContent(promptText), contentWidth) + 2f * padding);
             Rect promptRect = new Rect(centerX - width * 0.5f, centerY + 40f, width, height);
             ForestHud.Panel(promptRect);
-            GUI.Label(promptRect, promptText, promptStyle);
+            GUI.Label(new Rect(promptRect.x + padding, promptRect.y + padding,
+                contentWidth, promptRect.height - 2f * padding), promptText, promptStyle);
         }
 
         if (isPlantingMode)
@@ -968,15 +1028,17 @@ public sealed class ForestPlayer : MonoBehaviour
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold,
-                wordWrap = false
+                wordWrap = true
             };
         }
         plantingHotbarStyle.fontSize = Mathf.RoundToInt(20f * scale);
+        plantingHotbarStyle.wordWrap = true;
         plantingHotbarStyle.normal.textColor = Color.white;
 
         string options = "";
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
-        for (int i = 0; plantingSpeciesIds != null && i < plantingSpeciesIds.Length; i++)
+        string[] optionsIds = ActivePlantingIds();
+        for (int i = 0; optionsIds != null && i < optionsIds.Length; i++)
         {
             if (i > 0)
                 options += "   ";
@@ -985,20 +1047,24 @@ public sealed class ForestPlayer : MonoBehaviour
             string stockInfo = "";
             if (scenario != null)
             {
-                int stock = scenario.GetStockQuantity(plantingSpeciesIds[i]);
-                int reserved = scenario.GetReservedStockQuantity(plantingSpeciesIds[i]);
+                int stock = scenario.GetStockQuantity(optionsIds[i]);
+                int reserved = scenario.GetReservedStockQuantity(optionsIds[i]);
                 stockInfo = $" ({stock - reserved} ready)";
             }
             options += selected + slot + PlantingSpeciesDisplayName(i) + stockInfo;
         }
 
         string selectedName = PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex);
-        string text = $"PLANTING — Selected: {selectedName}\n{options}   |   [R] Next   [G] Plant   [Esc] Exit";
+        string text = $"PLANTING — Selected: {selectedName}\n{options}   |   [R] Next   [{(scenario != null ? "Click" : "G")}] Plant   [Esc] Exit";
         float width = Mathf.Min(Screen.width - 32f, 940f * scale);
-        float height = 82f * scale;
+        float padding = 12f * scale;
+        float contentWidth = Mathf.Max(1f, width - 2f * padding);
+        float height = Mathf.Max(82f * scale,
+            plantingHotbarStyle.CalcHeight(new GUIContent(text), contentWidth) + 2f * padding);
         Rect rect = new Rect(centerX - width * 0.5f, Screen.height - height - 20f * scale, width, height);
         ForestHud.Panel(rect);
-        GUI.Label(rect, text, plantingHotbarStyle);
+        GUI.Label(new Rect(rect.x + padding, rect.y + padding,
+            contentWidth, rect.height - 2f * padding), text, plantingHotbarStyle);
     }
 
     private void DrawInspectionCard(float centerX, float centerY)
@@ -1043,9 +1109,9 @@ public sealed class ForestPlayer : MonoBehaviour
         string speciesName = inspectedTree != null && inspectedTree.Species != null
             ? inspectedTree.Species.FullName
             : "Unknown species";
-        bool markedForHarvest = inspectedTreeMarking != null && inspectedTreeMarking.IsMarked(inspectedTree);
+        bool markedForHarvest = inspectedTree != null && inspectedTree.IsMarkedForFell;
         GUILayout.Label($"• Species: {speciesName}", cardBodyStyle);
-        GUILayout.Label($"• Status: {(inspectedTree.IsStump ? "Harvested stump" : "Living tree")}{(markedForHarvest ? " — MARKED for harvest (M to unmark)" : "")}", cardBodyStyle);
+        GUILayout.Label($"• Status: {(inspectedTree.IsStump ? "Harvested stump" : "Living tree")}{(markedForHarvest ? " — MARKED for felling" : inspectedTree.IsCropTree ? " — BLUE Crop Tree" : "")}", cardBodyStyle);
         GUILayout.Label($"• Age: {inspectedTree.AgeYears} years", cardBodyStyle);
         if (!inspectedTree.IsStump)
             GUILayout.Label($"• Size: {inspectedTree.SizeClassLabel}", cardBodyStyle);
@@ -1094,7 +1160,7 @@ public sealed class ForestPlayer : MonoBehaviour
         GUILayout.FlexibleSpace();
         GUILayout.Label(inspectedTree.CanChop
             ? Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                ? "[M] Mark  |  [Tab] Work Plan  |  [E] Close"
+                 ? "[M] Fell  |  [C] Crop Tree  |  [Tab] Work Plan  |  [E] Close"
                 : "Press [F] to Chop   |   Press [E] to Close"
             : "Press [E], [Left Click], or step away to close", cardFooterStyle);
         GUILayout.EndArea();

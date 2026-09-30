@@ -1,0 +1,159 @@
+{
+  "exports": [
+    {
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD0.fbx",
+      "stage": "Young",
+      "lod": 0,
+      "probe_recess_m": [
+        0.0549999475479126,
+        0.051785945892333984,
+        0.05031847953796387,
+        0.05318725109100342,
+        0.04835951328277588
+      ],
+      "remaining_backing_m": 0.14019203186035156,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 1112
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD1.fbx",
+      "stage": "Young",
+      "lod": 1,
+      "probe_recess_m": [
+        0.0549999475479126,
+        0.048431992530822754,
+        0.04721474647521973,
+        0.05315756797790527,
+        0.048363566398620605
+      ],
+      "remaining_backing_m": 0.13927054405212402,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 640
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD2.fbx",
+      "stage": "Young",
+      "lod": 2,
+      "probe_recess_m": [
+        0.05499982833862305,
+        0.04363119602203369,
+        0.041977524757385254,
+        0.05150806903839111,
+        0.048780083656311035
+      ],
+      "remaining_backing_m": 0.15584421157836914,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 238
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD0.fbx",
+      "stage": "Mature",
+      "lod": 0,
+      "probe_recess_m": [
+        0.15999984741210938,
+        0.14945733547210693,
+        0.14518451690673828,
+        0.1495671272277832,
+        0.1458350419998169
+      ],
+      "remaining_backing_m": 0.30835390090942383,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 1114
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD1.fbx",
+      "stage": "Mature",
+      "lod": 1,
+      "probe_recess_m": [
+        0.15999996662139893,
+        0.14114272594451904,
+        0.1376044750213623,
+        0.149519681930542,
+        0.14587342739105225
+      ],
+      "remaining_backing_m": 0.30599844455718994,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 646
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD2.fbx",
+      "stage": "Mature",
+      "lod": 2,
+      "probe_recess_m": [
+        0.16000008583068848,
+        0.12888562679290771,
+        0.12425649166107178,
+        0.14727139472961426,
+        0.1447007656097412
+      ],
+      "remaining_backing_m": 0.3216346502304077,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 244
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD0.fbx",
+      "stage": "PostMature",
+      "lod": 0,
+      "probe_recess_m": [
+        0.23000001907348633,
+        0.21508026123046875,
+        0.20892345905303955,
+        0.21554648876190186,
+        0.20909392833709717
+      ],
+      "remaining_backing_m": 0.44566452503204346,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 1105
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD1.fbx",
+      "stage": "PostMature",
+      "lod": 1,
+      "probe_recess_m": [
+        0.22999989986419678,
+        0.20252633094787598,
+        0.19742536544799805,
+        0.21546602249145508,
+        0.20916473865509033
+      ],
+      "remaining_backing_m": 0.44229304790496826,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 643
+    },
+    {
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD2.fbx",
+      "stage": "PostMature",
+      "lod": 2,
+      "probe_recess_m": [
+        0.23000013828277588,
+        0.18355727195739746,
+        0.17695081233978271,
+        0.21207678318023682,
+        0.20778203010559082
+      ],
+      "remaining_backing_m": 0.4651975631713867,
+      "back_wall_unchanged": "passed",
+      "closed_stem_component": "passed",
+      "stem_component_faces": 244
+    }
+  ],
+  "benchmark_texture_identity": "passed",
+  "benchmark_texture_sha256": {
+    "Sitka_Bark_BaseColor_v2.png": "e93ffd30393a8dfef974de06cd86012cfbbb2a462c010da81f825997719dc75a",
+    "Sitka_Bark_Normal_v2.png": "c1ebbb77b48d1ce9d156851c3b87443194f0159b9c7e19274b9c3a8d16163464",
+    "Sitka_Bark_Roughness_v2.png": "c9628c5790369d14945693e5cc1b2229961eba5b33e2ac2030c91ece5dffbcfd",
+    "Sitka_Bark_MetallicSmoothness_v2.png": "80af0885f5a7d09e2650e810f343bc9433d5b4903287b0dbe2c562527e4d2441",
+    "Sitka_NeedleSprigs_BaseColorAlpha.png": "596f2393bcda13d450d632b0e7840d96795ff784a9fc52942627495182d5e0c6"
+  },
+  "bent_cross_lod_landmark_alignment": "not_applicable",
+  "unity_tested": false,
+  "scope": "World-space FBX probes and texture byte identity; not an engine acceptance test."
+}

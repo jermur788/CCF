@@ -1,0 +1,9 @@
+{
+  "original": "Textures/Broadleaf_Litter_BaseColorAlpha.png",
+  "assigned": "Textures/Broadleaf_Litter_BaseColorAlpha_v2.png",
+  "removed_red_fringe_pixels": 13902,
+  "rgb_edge_dilation_pixels": 16,
+  "cutoff": 0.4,
+  "original_preserved": "/home/jer/Documents/ChatGPT/Local Game Dev/Forest_Floor_Detail_Handoff_2026_09_29",
+  "method": "Remove saturated red fringe alpha; extend valid leaf RGB into transparent borders. Remaining alpha preserved."
+}

@@ -1,0 +1,79 @@
+{
+  "name": "Sitka_RingBarked_01",
+  "exports": [
+    {
+      "state": "Fresh",
+      "lod": 0,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD0.fbx",
+      "triangles": 44370,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    },
+    {
+      "state": "Fresh",
+      "lod": 1,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD1.fbx",
+      "triangles": 19882,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    },
+    {
+      "state": "Fresh",
+      "lod": 2,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD2.fbx",
+      "triangles": 6890,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    },
+    {
+      "state": "Dead",
+      "lod": 0,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD0.fbx",
+      "triangles": 18830,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    },
+    {
+      "state": "Dead",
+      "lod": 1,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD1.fbx",
+      "triangles": 4118,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    },
+    {
+      "state": "Dead",
+      "lod": 2,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD2.fbx",
+      "triangles": 1382,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false
+    }
+  ],
+  "source_family": "Sitka_Mature_Benchmark_01",
+  "timeline": "Fresh intervention and a later bare standing-dead appearance; no elapsed duration encoded"
+}

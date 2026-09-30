@@ -123,11 +123,28 @@ public sealed class ScenarioOneRemovalVerificationRunner : MonoBehaviour
             && Mathf.Abs(removed.regenerationDensityRemoved - removedDensity) < 1e-5f,
             "structured history lost the selective removal treatment");
 
-        // The old player U interaction must not bypass the Scenario One contractor.
+        // In Scenario One, U marks real aimed regeneration for contractor work;
+        // it must not manually remove the cell cohort or charge cash immediately.
+        typeof(ForestPlayer).GetField("aimedSurfacePoint", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(player, position);
+        typeof(ForestPlayer).GetField("isAimingGround", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(player, true);
+        typeof(ForestPlayer).GetMethod("RefreshAimedRegeneration", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(player, null);
+        string selectedSpecies = (string)typeof(ForestPlayer).GetField("selectedRegenerationSpeciesId",
+            BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
+        Check(!string.IsNullOrEmpty(selectedSpecies), "ground aim did not select a live cohort");
+        float beforeManualU = ecology.Cells[cellIndex].FindCohort(selectedSpecies).Density;
+        long beforeManualCash = manager.CashCents;
         MethodInfo manualUproot = typeof(ForestPlayer).GetMethod("UpdateUprooting", BindingFlags.Instance | BindingFlags.NonPublic);
         manualUproot.Invoke(player, new object[] { true, 100f });
-        Check(((string)typeof(ForestPlayer).GetField("lastHarvestMessage", BindingFlags.Instance | BindingFlags.NonPublic)
-            .GetValue(player)).Contains("Work Plan"), "manual U did not route to the Work Plan");
+        ScenarioOneWorkOrder aimedOrder = manager.WorkOrders.Last();
+        Check(aimedOrder.type == ScenarioWorkType.RemoveRegeneration && aimedOrder.IsOpen
+            && aimedOrder.speciesId == selectedSpecies && aimedOrder.cellIndex == cellIndex
+            && manager.CashCents == beforeManualCash
+            && ecology.Cells[cellIndex].FindCohort(selectedSpecies).Density == beforeManualU,
+            "in-world U did not create a contractor order without uprooting the cohort");
+        Check(manager.RemovePendingOrder(aimedOrder.workOrderId), "in-world removal mark could not be cancelled");
         manualUproot.Invoke(player, new object[] { false, 0f });
 
         // If the target disappears after approval, no labour is charged and no

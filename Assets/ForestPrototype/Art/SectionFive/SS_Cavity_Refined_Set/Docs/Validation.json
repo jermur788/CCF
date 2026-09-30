@@ -1,0 +1,214 @@
+{
+  "exports": [
+    {
+      "asset": "SS_Defect_Cavity_Young_02",
+      "stage": "Young",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD0.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        3.392542004585266,
+        3.578684091567993,
+        11.0
+      ],
+      "triangles": 23336,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.392542038428587,
+        3.5786838829747145,
+        10.999999772415858
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_Young_02",
+      "stage": "Young",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD1.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        3.392542004585266,
+        3.578684091567993,
+        11.0
+      ],
+      "triangles": 10664,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.392542038428587,
+        3.5786838829747145,
+        10.999999772368245
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_Young_02",
+      "stage": "Young",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Cavity_Young_02_LOD2.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        3.760625123977661,
+        3.9267375469207764,
+        11.0
+      ],
+      "triangles": 3828,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.760624915943481,
+        3.926737315326836,
+        10.999999772368245
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_Mature_02",
+      "stage": "Mature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD0.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        7.012023210525513,
+        6.918926954269409,
+        26.0
+      ],
+      "triangles": 43868,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.0120228535229785,
+        6.918926919028085,
+        25.999999467184672
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_Mature_02",
+      "stage": "Mature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD1.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        7.012023210525513,
+        6.918926954269409,
+        26.0
+      ],
+      "triangles": 19842,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.0120228535229785,
+        6.918926919028085,
+        25.999999467184967
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_Mature_02",
+      "stage": "Mature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Cavity_Mature_02_LOD2.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        7.6250224113464355,
+        7.6090028285980225,
+        26.0
+      ],
+      "triangles": 6998,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.625022412575277,
+        7.6090028072081415,
+        25.99999946718575
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_PostMature_02",
+      "stage": "PostMature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD0.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        8.33793306350708,
+        8.580730438232422,
+        31.0
+      ],
+      "triangles": 46620,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        8.337932858066267,
+        8.58073040406648,
+        30.999999377709724
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_PostMature_02",
+      "stage": "PostMature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD1.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        8.33793306350708,
+        8.580730438232422,
+        31.0
+      ],
+      "triangles": 21064,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        8.337932858066267,
+        8.58073040406648,
+        30.999999377711426
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Cavity_PostMature_02",
+      "stage": "PostMature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Cavity_PostMature_02_LOD2.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        8.911512851715088,
+        9.391435146331787,
+        31.0
+      ],
+      "triangles": 7414,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        8.911512557159824,
+        9.391434993022674,
+        30.999999377740117
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

@@ -201,7 +201,13 @@ public sealed class ForestSaveController : MonoBehaviour
             foreach (ForestTree existing in trees)
             {
                 if (existing != null && !string.IsNullOrEmpty(existing.TreeId) && !savedIds.Contains(existing.TreeId))
+                {
+                    // Destroy completes at frame end. Hide/remove from active
+                    // habitat queries now so a Year-0 reload cannot inherit
+                    // litter from doomed Year-100 broadleaf trees.
+                    existing.gameObject.SetActive(false);
                     Destroy(existing.gameObject);
+                }
             }
         }
 
@@ -259,7 +265,26 @@ public sealed class ForestSaveController : MonoBehaviour
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
         if (marking != null)
-            marking.RestoreMarks(data.markedTreeIds, data.version >= 13 ? data.cropTreeIds : null);
+        {
+            if (data.version >= 13 && data.trees != null)
+            {
+                // An early v13 draft accidentally put both colours in the Fell
+                // ID list and could omit blue IDs before its cache refreshed.
+                // The saved per-tree enum is authoritative for all v13 worlds.
+                var fellIds = new List<string>();
+                var cropIds = new List<string>();
+                foreach (TreeSaveData saved in data.trees)
+                {
+                    if (saved == null || saved.stage == (int)ForestTreeStage.Stump)
+                        continue;
+                    if (saved.markType == (int)TreeMarkType.Fell) fellIds.Add(saved.treeId);
+                    else if (saved.markType == (int)TreeMarkType.CropTree) cropIds.Add(saved.treeId);
+                }
+                marking.RestoreMarks(fellIds, cropIds);
+            }
+            else
+                marking.RestoreMarks(data.markedTreeIds);
+        }
 
         if (data.buildables != null)
         {

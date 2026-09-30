@@ -20,6 +20,8 @@ public sealed class ForestSaveData
     // Version 10: Scenario One management/economy state. Null in legacy saves.
     // Version 11: structured management events within scenarioOne.
     // Version 12: objective outcome, tutorial review and century comparison.
+    // Version 13: persistent two-type tree marks, exact-position individual
+    // plantings, treatment patches and retained construction timber.
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -47,6 +49,9 @@ public sealed class ScenarioOneSaveData
     public float retainedTimberM3;
     public List<PlantedJuvenileSaveData> plantedJuveniles = new List<PlantedJuvenileSaveData>();
     public List<PlantingClearancePatch> clearancePatches = new List<PlantingClearancePatch>();
+    // Distinguishes the early v13 draft (which duplicated cohorts with inert
+    // individual records) from authoritative individual planting v13.
+    public int interactionSchemaVersion;
 }
 
 [Serializable]
@@ -112,6 +117,8 @@ public sealed class PlantedJuvenileSaveData
     public float heightMeters;
     public bool alive = true;
     public string stockItemId = "";
+    public string promotedTreeId = "";
+    public bool legacyCohortManaged;
 }
 
 [Serializable]

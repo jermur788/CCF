@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-29",
+  "status": "offline_visual_review_completed",
+  "previews": [
+    {
+      "file": "Previews/benchmark.png",
+      "pixels": [
+        2000,
+        1600
+      ]
+    },
+    {
+      "file": "Previews/detail_Mature.png",
+      "pixels": [
+        1800,
+        1000
+      ]
+    },
+    {
+      "file": "Previews/detail_PostMature.png",
+      "pixels": [
+        1800,
+        1000
+      ]
+    },
+    {
+      "file": "Previews/detail_Young.png",
+      "pixels": [
+        1800,
+        1000
+      ]
+    },
+    {
+      "file": "Previews/lineup.png",
+      "pixels": [
+        2000,
+        1600
+      ]
+    },
+    {
+      "file": "Previews/lod_Mature.png",
+      "pixels": [
+        2000,
+        1500
+      ]
+    },
+    {
+      "file": "Previews/lod_PostMature.png",
+      "pixels": [
+        2000,
+        1500
+      ]
+    },
+    {
+      "file": "Previews/lod_Young.png",
+      "pixels": [
+        2000,
+        1500
+      ]
+    },
+    {
+      "file": "Previews/oblique_Mature.png",
+      "pixels": [
+        1300,
+        1500
+      ]
+    }
+  ],
+  "scope": [
+    "All three stage architectures in same-scale lineup",
+    "Full-tree LOD0/1/2 comparison for each stage",
+    "Cavity LOD0/1/2 close views for each stage",
+    "Benchmark/Bent/Cavity mature same-lighting comparison",
+    "Oblique mature cavity confirms visible recessed sidewall",
+    "Callus bark UV alignment and exposed-wood refinement"
+  ],
+  "observations": [
+    "Benchmark-family bark/needle colours and card scale are visually consistent.",
+    "LOD1 preserves near silhouette; LOD2 visibly redistributes clusters and is intended for distance.",
+    "Roots touch authored ground, and stage bases are distinct architectures."
+  ],
+  "texture_identity_report": "Defect_Validation.json",
+  "unity_tested": false,
+  "limits": "Offline renders and mesh probes do not establish Unity game-view readability, mip/compression quality, LOD transitions or runtime performance."
+}

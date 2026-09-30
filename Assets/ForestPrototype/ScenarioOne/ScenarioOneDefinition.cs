@@ -22,7 +22,7 @@ public sealed class ScenarioOneDefinition : ScriptableObject
 {
     [Header("Identity")]
     [SerializeField] private string scenarioId = "scenario-one";
-    [SerializeField] private string definitionVersion = "scenario-one-v12";
+    [SerializeField] private string definitionVersion = "scenario-one-v13";
     [SerializeField] private string displayName = "Scenario One — Sitka Plantation to Continuous-Cover Forest";
     [SerializeField] private ScenarioExecutionMode executionMode = ScenarioExecutionMode.ManagementOnly;
 

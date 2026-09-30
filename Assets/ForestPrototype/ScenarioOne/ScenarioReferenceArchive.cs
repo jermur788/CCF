@@ -12,6 +12,7 @@ public sealed class ScenarioReferenceMilestone
     public int year;
     public string worldHash = "";
     public ForestSaveData world;
+    [NonSerialized] public bool verifiedFrozenWorld;
 }
 
 // Frozen output of a verified run, not a fabricated Year-100 forest. Each
@@ -50,7 +51,51 @@ public sealed class ScenarioReferenceArchive
             using (var json = new MemoryStream())
             {
                 decoder.CopyTo(json);
-                return JsonUtility.FromJson<ScenarioReferenceArchive>(Encoding.UTF8.GetString(json.ToArray()));
+                string text = Encoding.UTF8.GetString(json.ToArray());
+                ScenarioReferenceArchive archive = JsonUtility.FromJson<ScenarioReferenceArchive>(text);
+                // v1 was serialized with the v12 save schema. Re-serializing its
+                // world with v13 adds fields and yields a *different* hash. Check
+                // the original embedded JSON instead, without rewriting the
+                // frozen archive or changing the authoritative simulation.
+                if (archive == null || archive.milestones == null)
+                    return null;
+                int offset = 0;
+                foreach (ScenarioReferenceMilestone milestone in archive.milestones)
+                {
+                    int key = text.IndexOf("\"world\"", offset, StringComparison.Ordinal);
+                    if (key < 0 || milestone == null)
+                        return null;
+                    int colon = text.IndexOf(':', key + 7);
+                    if (colon < 0)
+                        return null;
+                    int opening = colon + 1;
+                    while (opening < text.Length && char.IsWhiteSpace(text[opening])) opening++;
+                    if (opening >= text.Length || text[opening] != '{')
+                        return null;
+                    var compact = new StringBuilder();
+                    bool quoted = false, escaped = false;
+                    int depth = 0;
+                    int i = opening;
+                    for (; i < text.Length; i++)
+                    {
+                        char c = text[i];
+                        if (!quoted && char.IsWhiteSpace(c)) continue;
+                        compact.Append(c);
+                        if (c == '"' && !escaped) quoted = !quoted;
+                        if (!quoted)
+                        {
+                            if (c == '{') depth++;
+                            if (c == '}' && --depth == 0) { i++; break; }
+                        }
+                        if (quoted && c == '\\') escaped = !escaped;
+                        else escaped = false;
+                    }
+                    if (depth != 0 || Hash(compact.ToString()) != milestone.worldHash)
+                        return null;
+                    milestone.verifiedFrozenWorld = true;
+                    offset = i;
+                }
+                return archive;
             }
         }
         catch (Exception error)
@@ -63,10 +108,11 @@ public sealed class ScenarioReferenceArchive
     public bool Matches(ScenarioOneDefinition definition, ForestEcologyController ecology)
     {
         return definition != null && ecology != null && scenarioId == definition.ScenarioId
-            && definitionVersion == definition.DefinitionVersion
-            && saveVersion == ForestSaveData.CurrentVersion
+            && referenceId == "reference-future-v1" && definitionVersion == "scenario-one-v12"
+            && (definition.DefinitionVersion == "scenario-one-v12" || definition.DefinitionVersion == "scenario-one-v13")
+            && saveVersion == 12 && saveVersion <= ForestSaveData.CurrentVersion
             && simulationSeed == ecology.SimulationSeed
-            && AtYear(0)?.world != null && AtYear(100)?.world != null;
+            && AtYear(0)?.verifiedFrozenWorld == true && AtYear(100)?.verifiedFrozenWorld == true;
     }
 
     public static void Canonicalize(ForestSaveData data)
@@ -80,6 +126,7 @@ public sealed class ScenarioReferenceArchive
         data.buildables?.Sort((a, b) => string.CompareOrdinal(a.buildId, b.buildId));
         data.storages?.Sort((a, b) => string.CompareOrdinal(a.storageId, b.storageId));
         data.markedTreeIds?.Sort(StringComparer.Ordinal);
+        data.cropTreeIds?.Sort(StringComparer.Ordinal);
         ScenarioOneSaveData scenario = data.scenarioOne;
         if (scenario == null) return;
         scenario.workOrders?.Sort((a, b) => a.workOrderId.CompareTo(b.workOrderId));
@@ -92,6 +139,14 @@ public sealed class ScenarioReferenceArchive
                 snapshot.species?.Sort((a, b) => string.CompareOrdinal(a.speciesId, b.speciesId));
         scenario.understoreyCells?.Sort((a, b) => a.cellIndex.CompareTo(b.cellIndex));
         scenario.deadwoodRecords?.Sort((a, b) => string.CompareOrdinal(a.deadwoodId, b.deadwoodId));
+        scenario.plantedJuveniles?.Sort((a, b) => string.CompareOrdinal(a.juvenileId, b.juvenileId));
+        scenario.clearancePatches?.Sort((a, b) =>
+        {
+            int byYear = a.createdYear.CompareTo(b.createdYear);
+            if (byYear != 0) return byYear;
+            int byX = a.center.x.CompareTo(b.center.x);
+            return byX != 0 ? byX : a.center.z.CompareTo(b.center.z);
+        });
     }
 
     // Stable UTF-8 FNV-1a fingerprint of serialized content under the same

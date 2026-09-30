@@ -1,0 +1,227 @@
+{
+  "name": "Forest_Floor_Detail",
+  "revision": "2026-09-29_reviewed_v2",
+  "source": "Forest_Floor_Detail.blend",
+  "preview_source": "Forest_Floor_Preview.blend",
+  "units": "metres",
+  "pivot": "ground-level origin",
+  "blender_up": "+Z",
+  "fbx_forward": "-Z",
+  "fbx_up": "+Y",
+  "exports": [
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.459839403629303,
+        1.1818952560424805,
+        0.020111147314310074
+      ],
+      "triangles": 900,
+      "meshes": 1
+    },
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.459839403629303,
+        1.1818952560424805,
+        0.020658358931541443
+      ],
+      "triangles": 600,
+      "meshes": 1
+    },
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.428263247013092,
+        1.192570984363556,
+        0.014540533535182476
+      ],
+      "triangles": 200,
+      "meshes": 1
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.478960394859314,
+        1.1622290015220642,
+        0.019867343828082085
+      ],
+      "triangles": 900,
+      "meshes": 1
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.478960394859314,
+        1.1622290015220642,
+        0.02023146115243435
+      ],
+      "triangles": 600,
+      "meshes": 1
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.4891379475593567,
+        1.1425842642784119,
+        0.014850168488919735
+      ],
+      "triangles": 200,
+      "meshes": 1
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.478752613067627,
+        1.1310042142868042,
+        0.019694579765200615
+      ],
+      "triangles": 900,
+      "meshes": 1
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.478752613067627,
+        1.1310042142868042,
+        0.020366650074720383
+      ],
+      "triangles": 600,
+      "meshes": 1
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.4392762184143066,
+        1.1403986811637878,
+        0.014754141680896282
+      ],
+      "triangles": 200,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 0,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD0.fbx",
+      "dimensions_m": [
+        1.8210251927375793,
+        1.5725370049476624,
+        0.04848545789718628
+      ],
+      "triangles": 1716,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 1,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD1.fbx",
+      "dimensions_m": [
+        1.8209546208381653,
+        1.572593092918396,
+        0.04842141270637512
+      ],
+      "triangles": 1236,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 2,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD2.fbx",
+      "dimensions_m": [
+        1.6368892192840576,
+        1.3660928010940552,
+        0.04703349992632866
+      ],
+      "triangles": 272,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 0,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD0.fbx",
+      "dimensions_m": [
+        1.9605661034584045,
+        1.7962582111358643,
+        0.04875172674655914
+      ],
+      "triangles": 1716,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 1,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD1.fbx",
+      "dimensions_m": [
+        1.960611879825592,
+        1.796311378479004,
+        0.0487777404487133
+      ],
+      "triangles": 1236,
+      "meshes": 1
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 2,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD2.fbx",
+      "dimensions_m": [
+        1.955639660358429,
+        1.373297095298767,
+        0.0424666553735733
+      ],
+      "triangles": 272,
+      "meshes": 1
+    }
+  ],
+  "materials": [
+    {
+      "name": "Broadleaf_Litter",
+      "base_color_alpha": "Textures/Broadleaf_Litter_BaseColorAlpha_v2.png",
+      "alpha_clip": 0.4,
+      "double_sided": true,
+      "roughness": 0.94,
+      "metallic": 0,
+      "oak_uv_tiles": [
+        0,
+        2
+      ],
+      "beech_uv_tiles": [
+        1,
+        3
+      ]
+    },
+    {
+      "name": "Small_Deadwood",
+      "base_color": "Textures/Woodland_DecayedWood_Albedo.png",
+      "alpha_mode": "opaque",
+      "double_sided": true,
+      "roughness": 0.94,
+      "metallic": 0
+    }
+  ],
+  "visual_only": true,
+  "unity_tested": false,
+  "gameplay_parameters": null,
+  "revision_notes": [
+    "Leaf top faces now point upward.",
+    "Twig systems individually grounded; lateral joins follow curved stems.",
+    "Red atlas fringe removed and RGB borders extended 16 pixels; original atlas retained."
+  ]
+}

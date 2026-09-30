@@ -1,0 +1,222 @@
+{
+  "name": "Forestry_Ground_Additions",
+  "exports": [
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 0,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD0.fbx",
+      "dimensions_m": [
+        5.571592092514038,
+        3.3961541652679443,
+        2.845128059387207
+      ],
+      "triangles": 1928,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 1,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD1.fbx",
+      "dimensions_m": [
+        5.563537836074829,
+        3.252786874771118,
+        2.8467586040496826
+      ],
+      "triangles": 1080,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 2,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD2.fbx",
+      "dimensions_m": [
+        5.543480396270752,
+        3.1281079053878784,
+        2.5978009700775146
+      ],
+      "triangles": 548,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 0,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD0.fbx",
+      "dimensions_m": [
+        5.571592092514038,
+        3.3961541652679443,
+        2.845128059387207
+      ],
+      "triangles": 2026,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 1,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD1.fbx",
+      "dimensions_m": [
+        5.563537836074829,
+        3.252786874771118,
+        2.8467586040496826
+      ],
+      "triangles": 1143,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 2,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD2.fbx",
+      "dimensions_m": [
+        5.543480396270752,
+        3.1281079053878784,
+        2.5978009700775146
+      ],
+      "triangles": 583,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Green_01_LOD0.fbx",
+      "dimensions_m": [
+        6.669020414352417,
+        5.143657684326172,
+        1.361621618270874
+      ],
+      "triangles": 5868,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Green_01_LOD1.fbx",
+      "dimensions_m": [
+        6.6525232791900635,
+        5.1199541091918945,
+        1.335998773574829
+      ],
+      "triangles": 3348,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Green_01_LOD2.fbx",
+      "dimensions_m": [
+        5.990871906280518,
+        5.196212530136108,
+        1.4673876762390137
+      ],
+      "triangles": 1152,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Green_02_LOD0.fbx",
+      "dimensions_m": [
+        6.705887794494629,
+        5.346087455749512,
+        1.3624649047851562
+      ],
+      "triangles": 5868,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Green_02_LOD1.fbx",
+      "dimensions_m": [
+        6.6895787715911865,
+        5.323211669921875,
+        1.3321328163146973
+      ],
+      "triangles": 3348,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Green_02_LOD2.fbx",
+      "dimensions_m": [
+        6.4518351554870605,
+        4.062278747558594,
+        1.4240950345993042
+      ],
+      "triangles": 1152,
+      "meshes": 2
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Dry_01_LOD0.fbx",
+      "dimensions_m": [
+        6.221532583236694,
+        4.665257692337036,
+        1.0656143426895142
+      ],
+      "triangles": 5004,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Dry_01_LOD1.fbx",
+      "dimensions_m": [
+        6.221532583236694,
+        4.665257692337036,
+        1.0656143426895142
+      ],
+      "triangles": 4212,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Dry_01_LOD2.fbx",
+      "dimensions_m": [
+        5.474743485450745,
+        4.194605350494385,
+        0.945393443107605
+      ],
+      "triangles": 936,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Dry_02_LOD0.fbx",
+      "dimensions_m": [
+        6.2728739976882935,
+        4.829548358917236,
+        1.0774844884872437
+      ],
+      "triangles": 5004,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Dry_02_LOD1.fbx",
+      "dimensions_m": [
+        6.2728739976882935,
+        4.829548358917236,
+        1.0774844884872437
+      ],
+      "triangles": 4212,
+      "meshes": 1
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Dry_02_LOD2.fbx",
+      "dimensions_m": [
+        6.241639137268066,
+        3.1546413898468018,
+        0.9535315632820129
+      ],
+      "triangles": 936,
+      "meshes": 1
+    }
+  ],
+  "unity_tested": false
+}

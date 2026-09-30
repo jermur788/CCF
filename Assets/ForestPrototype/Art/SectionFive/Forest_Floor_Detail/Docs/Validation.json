@@ -1,0 +1,307 @@
+{
+  "exports": [
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.459839403629303,
+        1.1818952560424805,
+        0.020111147314310074
+      ],
+      "triangles": 900,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4598393686151638,
+        1.181895267374793,
+        0.020111174030519156
+      ],
+      "minimum_z": -1.4995021816289787e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.459839403629303,
+        1.1818952560424805,
+        0.020658358931541443
+      ],
+      "triangles": 600,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4598393686151638,
+        1.181895267374793,
+        0.020658356944286596
+      ],
+      "minimum_z": 1.2005585154868842e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Oak_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Oak_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.428263247013092,
+        1.192570984363556,
+        0.014540533535182476
+      ],
+      "triangles": 200,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.428263212704735,
+        1.1925709644628326,
+        0.014540517426516015
+      ],
+      "minimum_z": 1.2065580212458239e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.478960394859314,
+        1.1622290015220642,
+        0.019867343828082085
+      ],
+      "triangles": 900,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4789603856438305,
+        1.1622289781261874,
+        0.019867342293207434
+      ],
+      "minimum_z": -1.787201112497471e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.478960394859314,
+        1.1622290015220642,
+        0.02023146115243435
+      ],
+      "triangles": 600,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4789603856438305,
+        1.1622289781261872,
+        0.020231458591049332
+      ],
+      "minimum_z": -1.600337885026788e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Beech_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Beech_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.4891379475593567,
+        1.1425842642784119,
+        0.014850168488919735
+      ],
+      "triangles": 200,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.489137921427087,
+        1.142584241793773,
+        0.014850130404874045
+      ],
+      "minimum_z": 1.742633149715619e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 0,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        1.478752613067627,
+        1.1310042142868042,
+        0.019694579765200615
+      ],
+      "triangles": 900,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4787525609414445,
+        1.1310041939469744,
+        0.019694583661847363
+      ],
+      "minimum_z": 3.233135856704973e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 1,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        1.478752613067627,
+        1.1310042142868042,
+        0.020366650074720383
+      ],
+      "triangles": 600,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.4787525609414445,
+        1.1310041939469744,
+        0.020366654097821728
+      ],
+      "minimum_z": 3.233135856704973e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Mixed_LeafLitter_Patch_01",
+      "lod": 2,
+      "file": "FBX/Mixed_LeafLitter_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        1.4392762184143066,
+        1.1403986811637878,
+        0.014754141680896282
+      ],
+      "triangles": 200,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.439276243464434,
+        1.1403986486930466,
+        0.014754082756304849
+      ],
+      "minimum_z": 3.244931251077108e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 0,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD0.fbx",
+      "dimensions_m": [
+        1.8210251927375793,
+        1.5725370049476624,
+        0.04848545789718628
+      ],
+      "triangles": 1716,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.8210251973340235,
+        1.5725369674933023,
+        0.048485528628978994
+      ],
+      "minimum_z": -4.346633930306803e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 1,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD1.fbx",
+      "dimensions_m": [
+        1.8209546208381653,
+        1.572593092918396,
+        0.04842141270637512
+      ],
+      "triangles": 1236,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.8209545491422432,
+        1.572593043532085,
+        0.04842147988877145
+      ],
+      "minimum_z": -4.34758433565469e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_01",
+      "lod": 2,
+      "file": "FBX/Small_Deadwood_Scatter_01_LOD2.fbx",
+      "dimensions_m": [
+        1.6368892192840576,
+        1.3660928010940552,
+        0.04703349992632866
+      ],
+      "triangles": 272,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.6368891540865036,
+        1.3660927282170365,
+        0.04703355623920577
+      ],
+      "minimum_z": -3.1539503871320214e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 0,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD0.fbx",
+      "dimensions_m": [
+        1.9605661034584045,
+        1.7962582111358643,
+        0.04875172674655914
+      ],
+      "triangles": 1716,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9605660572521515,
+        1.796258124717561,
+        0.048751776013886215
+      ],
+      "minimum_z": -7.07128478179032e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 1,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD1.fbx",
+      "dimensions_m": [
+        1.960611879825592,
+        1.796311378479004,
+        0.0487777404487133
+      ],
+      "triangles": 1236,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9606118336183158,
+        1.7963113778827142,
+        0.04877779230542715
+      ],
+      "minimum_z": -7.07696186973503e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Small_Deadwood_Scatter_02",
+      "lod": 2,
+      "file": "FBX/Small_Deadwood_Scatter_02_LOD2.fbx",
+      "dimensions_m": [
+        1.955639660358429,
+        1.373297095298767,
+        0.0424666553735733
+      ],
+      "triangles": 272,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9556396047255475,
+        1.373297049354603,
+        0.04246667216310536
+      ],
+      "minimum_z": -4.5389127402507166e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

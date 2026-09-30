@@ -87,7 +87,8 @@ public static class ScenarioOneObjectives
                 planted |= orders != null && orders.Any(order => order != null
                     && order.type == ScenarioWorkType.PlantJuvenile
                     && order.status == ScenarioWorkStatus.Completed && order.speciesId == speciesId);
-                int present = species != null ? species.livingTrees + species.regenerationCells : 0;
+                int present = species != null ? species.livingTrees + species.regenerationCells
+                    + species.plantedJuveniles : 0;
                 Add(results, "introduced-" + speciesId, "Establish planted " + speciesId,
                     planted && present > 0 ? 1 : 0, 1);
             }
@@ -128,7 +129,7 @@ public static class ScenarioOneObjectives
                 ScenarioSpeciesOutcome species = Species(snapshot, speciesId);
                 ScenarioSpeciesOutcome referenceSpecies = reference != null ? Species(referenceSnapshot, speciesId) : null;
                 Add(review.referenceComparisons, "reference-" + speciesId, speciesId + " presence",
-                    species != null ? species.livingTrees + species.regenerationCells : 0,
+                    species != null ? species.livingTrees + species.regenerationCells + species.plantedJuveniles : 0,
                     referenceSpecies != null ? referenceSpecies.livingTrees + referenceSpecies.regenerationCells
                         : definition.ReferenceBroadleafPresence);
             }

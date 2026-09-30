@@ -1,0 +1,123 @@
+{
+  "exports": [
+    {
+      "state": "Fresh",
+      "lod": 0,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD0.fbx",
+      "triangles": 44370,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.000014115266737,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "state": "Fresh",
+      "lod": 1,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD1.fbx",
+      "triangles": 19882,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.00001411526703,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "state": "Fresh",
+      "lod": 2,
+      "file": "FBX/Sitka_RingBarked_01_Fresh_LOD2.fbx",
+      "triangles": 6890,
+      "meshes": 3,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.00001655667401,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "state": "Dead",
+      "lod": 0,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD0.fbx",
+      "triangles": 18830,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.000014115266737,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "state": "Dead",
+      "lod": 1,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD1.fbx",
+      "triangles": 4118,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.00001411526703,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "state": "Dead",
+      "lod": 2,
+      "file": "FBX/Sitka_RingBarked_01_Dead_LOD2.fbx",
+      "triangles": 1382,
+      "meshes": 2,
+      "height_m": 26,
+      "recess_depth_m": 0.01,
+      "band_lower_m": 1.04,
+      "band_upper_m": 1.32,
+      "unity_tested": false,
+      "fbx_reimport": "passed",
+      "measured_height_m": 26.00001655667401,
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "paired_stem_geometry": "identical",
+  "full_circumference_recess": [
+    {
+      "lod": 0,
+      "minimum_recess_m": 0.00959312915802002,
+      "maximum_recess_m": 0.01044464111328125,
+      "circumference_samples": 16
+    },
+    {
+      "lod": 1,
+      "minimum_recess_m": 0.00972302258014679,
+      "maximum_recess_m": 0.010208278894424438,
+      "circumference_samples": 16
+    },
+    {
+      "lod": 2,
+      "minimum_recess_m": 0.009254053235054016,
+      "maximum_recess_m": 0.01034650206565857,
+      "circumference_samples": 16
+    }
+  ],
+  "unity_tested": false
+}

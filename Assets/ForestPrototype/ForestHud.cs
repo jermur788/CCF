@@ -16,4 +16,14 @@ public static class ForestHud
         GUI.DrawTexture(rect, Texture2D.whiteTexture, ScaleMode.StretchToFill);
         GUI.color = Color.white;
     }
+
+    // Solid 1x1 face for style backgrounds, so dark-panel controls keep
+    // readable contrast instead of inheriting the light default skin.
+    public static Texture2D Solid(Color color)
+    {
+        var texture = new Texture2D(1, 1) { name = "ForestHud solid" };
+        texture.SetPixel(0, 0, color);
+        texture.Apply();
+        return texture;
+    }
 }

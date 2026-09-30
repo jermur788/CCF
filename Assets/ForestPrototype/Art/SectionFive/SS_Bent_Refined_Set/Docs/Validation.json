@@ -1,0 +1,214 @@
+{
+  "exports": [
+    {
+      "asset": "SS_Defect_Bent_Young_02",
+      "stage": "Young",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD0.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        3.7841371297836304,
+        3.5388035774230957,
+        11.0
+      ],
+      "triangles": 24082,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.7841368783085727,
+        3.538803632490697,
+        10.999999772368245
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_Young_02",
+      "stage": "Young",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD1.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        3.7841371297836304,
+        3.5388035774230957,
+        11.0
+      ],
+      "triangles": 10822,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.7841368783085727,
+        3.538803632490697,
+        10.999999772368245
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_Young_02",
+      "stage": "Young",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Bent_Young_02_LOD2.fbx",
+      "height_m": 11.0,
+      "authored_dbh_target_m": 0.18,
+      "dimensions_m": [
+        4.181393504142761,
+        3.9986066818237305,
+        11.0
+      ],
+      "triangles": 3730,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        4.181393262861818,
+        3.9986066375138294,
+        10.999999772368245
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_Mature_02",
+      "stage": "Mature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD0.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        7.763923168182373,
+        6.689318656921387,
+        26.0
+      ],
+      "triangles": 41182,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.763923090012597,
+        6.689318470978823,
+        25.999999467184672
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_Mature_02",
+      "stage": "Mature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD1.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        7.763923168182373,
+        6.689318656921387,
+        26.0
+      ],
+      "triangles": 18422,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.763923090012597,
+        6.689318470978823,
+        25.99999946718497
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_Mature_02",
+      "stage": "Mature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Bent_Mature_02_LOD2.fbx",
+      "height_m": 26.0,
+      "authored_dbh_target_m": 0.48,
+      "dimensions_m": [
+        8.036301612854004,
+        7.380712270736694,
+        26.0
+      ],
+      "triangles": 6330,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        8.036301623963524,
+        7.380712247216541,
+        25.999999467029923
+      ],
+      "minimum_z": -4.9595635872334525e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_PostMature_02",
+      "stage": "PostMature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD0.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        10.160713911056519,
+        8.664395570755005,
+        31.0
+      ],
+      "triangles": 45970,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        10.160713502748749,
+        8.664395058009104,
+        30.999999377670576
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_PostMature_02",
+      "stage": "PostMature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD1.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        10.160713911056519,
+        8.664395570755005,
+        31.0
+      ],
+      "triangles": 20550,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        10.160713502748749,
+        8.664395058009104,
+        30.999999377661943
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_Bent_PostMature_02",
+      "stage": "PostMature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_Bent_PostMature_02_LOD2.fbx",
+      "height_m": 31.0,
+      "authored_dbh_target_m": 0.7,
+      "dimensions_m": [
+        10.65641474723816,
+        9.484227180480957,
+        31.0
+      ],
+      "triangles": 7058,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        10.656414785614274,
+        9.484226834061783,
+        30.999999377584288
+      ],
+      "minimum_z": -7.23269701804946e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

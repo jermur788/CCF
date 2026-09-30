@@ -43,6 +43,9 @@ public sealed class ScenarioOneWorkOrder
     public float expectedVolumeM3;
     public float expectedRegenerationDensity;
     public float targetCrownBaseHeightM;
+    public bool requiresCropTree;
+    // v12 cell-based orders remain on the historical cohort pathway.
+    public bool exactPosition;
     public string validationMessage = "";
     public int createdYear;
     public int resolvedYear = -1;
@@ -56,7 +59,8 @@ public sealed class ScenarioOneWorkOrder
             switch (type)
             {
                 case ScenarioWorkType.FellTree: return "Fell " + targetTreeId;
-                case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " in cell " + cellIndex;
+                case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " at ("
+                    + worldPosition.x.ToString("0.0") + ", " + worldPosition.z.ToString("0.0") + ")";
                 case ScenarioWorkType.RemoveRegeneration: return "Remove " + speciesId + " regeneration in cell " + cellIndex;
                 case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to "
                     + (targetCrownBaseHeightM > 0f ? targetCrownBaseHeightM : expectedRegenerationDensity).ToString("0.0") + " m";

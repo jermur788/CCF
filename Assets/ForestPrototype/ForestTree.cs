@@ -48,6 +48,12 @@ public sealed class ForestTree : MonoBehaviour
     // a prefab swap (visual variety) replaces the old baked mesh instead of
     // reusing it. Stump visuals never vary, so they need no marker.
     [SerializeField] private string polishedVisualSourcePrefab = "";
+    // Explicit authored pruning states chosen by the tree's own pruning data.
+    [SerializeField] private ForestTreeVisualBase maturePruningBase;
+    [SerializeField] private ForestTreeVisualBase polePruningBase;
+    private ForestEcologyController ecologyForVisualYear;
+    private RecentAssetVisualCatalog recentVisualCatalog;
+    private bool useRecentStandVariants;
 
     private GameObject polishedVisual;
     private GameObject stumpVisual;
@@ -62,6 +68,7 @@ public sealed class ForestTree : MonoBehaviour
     public string TreeId => treeId;
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
+    public string ActiveVisualSource => polishedVisualSourcePrefab;
     public TreeMarkType MarkType => markType;
     public bool IsCropTree => markType == TreeMarkType.CropTree;
     public bool IsMarkedForFell => markType == TreeMarkType.Fell;
@@ -71,11 +78,13 @@ public sealed class ForestTree : MonoBehaviour
     public void SetMark(TreeMarkType type)
     {
         markType = type;
+        RefreshVisuals();
     }
 
     public void RestoreMark(TreeMarkType type)
     {
         markType = type;
+        RefreshVisuals();
     }
     [SerializeField, Min(0f)] private float equivalentSuppressedYears;
     // Recorded individual-tree history only; no inferred pre-spawn history.
@@ -281,23 +290,74 @@ public sealed class ForestTree : MonoBehaviour
         visualPrefab = visual;
         poleVisualPrefab = pole;
         stumpPrefab = stump;
-        visualOverrideActive = visual != null;
+        visualOverrideActive = visual != null || maturePruningBase != null || polePruningBase != null;
         RefreshVisuals();
+    }
+
+    public void SetPruningBases(ForestTreeVisualBase pole, ForestTreeVisualBase mature)
+    {
+        polePruningBase = pole;
+        maturePruningBase = mature;
+    }
+
+    public void SetRecentStandVariants(bool enabled)
+    {
+        useRecentStandVariants = enabled;
     }
 
     private GameObject ModelForHeight(float targetHeight)
     {
-        if (poleVisualPrefab != null && targetHeight < poleVisualMaxHeightM)
+        // Cosmetic stem variety only. Crop Tree designation and any recorded
+        // pruning use the fully authored pruning family; delivered defect
+        // references have no pruning states and never alter eligibility.
+        if (useRecentStandVariants && !IsStump && !IsCropTree && pruningLifts == 0)
+        {
+            if (recentVisualCatalog == null) recentVisualCatalog = RecentAssetVisualCatalog.Load();
+            uint hash = 2166136261u;
+            foreach (char c in treeId) hash = (hash ^ c) * 16777619u;
+            int family = (int)(hash % 10u);
+            GameObject[] variants = family == 0 ? recentVisualCatalog?.bentStages
+                : family == 1 ? recentVisualCatalog?.cavityStages : null;
+            // [D] Renderer-stage ranges only, measured against existing size
+            // state. They introduce no defect-development or biological age.
+            int visualStage = targetHeight < poleVisualMaxHeightM ? 0
+                : targetHeight >= 24f && Diameter >= 30f ? 2 : 1;
+            if (variants != null && variants.Length > visualStage && variants[visualStage] != null)
+                return variants[visualStage];
+        }
+        bool poleRange = targetHeight < poleVisualMaxHeightM;
+        ForestTreeVisualBase pruningBase = poleRange ? polePruningBase : maturePruningBase;
+        if (pruningBase != null)
+        {
+            GameObject state = pruningBase.PrefabFor(pruningLifts, ScarsLookHealed());
+            if (state != null)
+                return state;
+        }
+        if (poleRange && poleVisualPrefab != null)
             return poleVisualPrefab;
         return visualPrefab;
     }
 
+    // [D] visual-only scar age: pruning cuts read as recent until five years
+    // after the recorded lift, then as healed management history.
+    private bool ScarsLookHealed()
+    {
+        if (lastPruningYear < 0)
+            return true;
+        if (ecologyForVisualYear == null)
+            ecologyForVisualYear = Object.FindFirstObjectByType<ForestEcologyController>();
+        int year = ecologyForVisualYear != null ? ecologyForVisualYear.EcologicalYear : lastPruningYear;
+        return year - lastPruningYear >= 5;
+    }
+
     private void ApplyVisualOverride(float targetHeight)
     {
-        if (visualPrefab == null)
+        if (visualPrefab == null && maturePruningBase == null && polePruningBase == null)
             return;
 
         GameObject model = ModelForHeight(targetHeight);
+        if (model == null)
+            return;
 
         Renderer trunkRenderer = trunk != null ? trunk.GetComponent<Renderer>() : null;
         if (trunkRenderer != null)
@@ -314,7 +374,10 @@ public sealed class ForestTree : MonoBehaviour
             // mode, so the cached field must be dropped here or a same-frame
             // re-entry would skip the rebuild against the doomed instance.
             if (Application.isPlaying)
+            {
+                existing.gameObject.SetActive(false);
                 Destroy(existing.gameObject);
+            }
             else
                 DestroyImmediate(existing.gameObject);
             existing = null;
@@ -419,6 +482,7 @@ public sealed class ForestTree : MonoBehaviour
             return;
         SetStage(ForestTreeStage.Stump);
         Felled?.Invoke(this);
+        markType = TreeMarkType.None;
     }
 
     public void RestoreState(ForestTreeStage restoredStage, float restoredStageTimer, int restoredChopProgress)

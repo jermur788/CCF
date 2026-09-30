@@ -10,6 +10,8 @@ public sealed class ScenarioSpeciesOutcome
     public int regenerationCells;
     public float regenerationDensity;
     public int plantedRegenerationCells;
+    // V13 planted individuals before promotion (not Forestry cell cohorts).
+    public int plantedJuveniles;
 }
 
 // Ecological state observed after a Forestry annual step, not a replacement for

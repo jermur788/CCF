@@ -192,10 +192,10 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
             && manager.DeadwoodRecords[0].remainingVolumeM3 < manager.DeadwoodRecords[0].originalVolumeM3,
             "save/load changed deadwood records");
         Check(manager.SoundscapeState.year == ecology.EcologicalYear
-            && manager.SoundscapeState.layers.Count == 5,
+            && manager.SoundscapeState.layers.Count == 7,
             "loaded soundscape was not rebuilt from the saved ecological state");
-        Check(manager.transform.GetComponentsInChildren<Renderer>(true)
-                .Count(renderer => renderer != null && renderer.name == "Fallen Log DW0001") == 1,
+        Check(manager.transform.GetComponentsInChildren<Transform>(true)
+                .Count(visual => visual != null && visual.name == "Fallen Log DW0001") == 1,
             "save/load did not rebuild exactly one retained-log visual");
         Check(JsonUtility.ToJson(manager.CaptureSaveData()) == JsonUtility.ToJson(before),
             "save/load changed the complete scenario state");
@@ -208,8 +208,8 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
         yield return null;
         Check(manager.DeadwoodRecords.Count == 0 && manager.ManagementEvents.Count == 0,
             "version-9 migration invented deadwood history");
-        Check(manager.transform.GetComponentsInChildren<Renderer>(true)
-                .All(renderer => renderer == null || !renderer.name.StartsWith("Fallen Log ", StringComparison.Ordinal)),
+        Check(manager.transform.GetComponentsInChildren<Transform>(true)
+                .All(visual => visual == null || !visual.name.StartsWith("Fallen Log ", StringComparison.Ordinal)),
             "legacy migration left retained-log visuals in the scene");
 
         Debug.Log($"SCENARIO_ONE_DEADWOOD_DETAIL stem={stemVolume:0.0000} remaining={record.remainingVolumeM3:0.0000} "

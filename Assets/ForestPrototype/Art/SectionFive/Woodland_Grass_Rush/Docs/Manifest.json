@@ -1,0 +1,186 @@
+{
+  "name": "Woodland_Grass_Rush",
+  "exports": [
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD0.fbx",
+      "dimensions_m": [
+        0.7867593169212341,
+        0.8276835680007935,
+        0.3571818470954895
+      ],
+      "triangles": 1364,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD1.fbx",
+      "dimensions_m": [
+        0.7867593169212341,
+        0.7181553542613983,
+        0.357323557138443
+      ],
+      "triangles": 448,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6067677736282349,
+        0.5894766300916672,
+        0.32816770672798157
+      ],
+      "triangles": 72,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD0.fbx",
+      "dimensions_m": [
+        1.091612696647644,
+        1.0729255080223083,
+        0.5168874859809875
+      ],
+      "triangles": 1716,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD1.fbx",
+      "dimensions_m": [
+        1.091612696647644,
+        0.9259770512580872,
+        0.5169864892959595
+      ],
+      "triangles": 560,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_02",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_02_LOD2.fbx",
+      "dimensions_m": [
+        0.9804222285747528,
+        0.7783922553062439,
+        0.4750853180885315
+      ],
+      "triangles": 84,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 0,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD0.fbx",
+      "dimensions_m": [
+        1.253640592098236,
+        1.2899826765060425,
+        0.2779771387577057
+      ],
+      "triangles": 2112,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 1,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD1.fbx",
+      "dimensions_m": [
+        1.0610201060771942,
+        1.2259668707847595,
+        0.278111070394516
+      ],
+      "triangles": 672,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Grass_Tuft_03",
+      "lod": 2,
+      "file": "FBX/Woodland_Grass_Tuft_03_LOD2.fbx",
+      "dimensions_m": [
+        0.9948055744171143,
+        0.9383660852909088,
+        0.25535571575164795
+      ],
+      "triangles": 96,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6433573067188263,
+        0.7562621235847473,
+        0.8400958776473999
+      ],
+      "triangles": 5552,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6128732264041901,
+        0.6780078709125519,
+        0.8402829766273499
+      ],
+      "triangles": 1344,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Rush_Clump_01_LOD2.fbx",
+      "dimensions_m": [
+        0.4649699479341507,
+        0.6102946102619171,
+        0.8403424024581909
+      ],
+      "triangles": 210,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 0,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD0.fbx",
+      "dimensions_m": [
+        0.9947620928287506,
+        1.1049256324768066,
+        1.0984337329864502
+      ],
+      "triangles": 7440,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 1,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD1.fbx",
+      "dimensions_m": [
+        0.9291276335716248,
+        0.9817240536212921,
+        1.0987391471862793
+      ],
+      "triangles": 1764,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Rush_Clump_02",
+      "lod": 2,
+      "file": "FBX/Woodland_Rush_Clump_02_LOD2.fbx",
+      "dimensions_m": [
+        0.9290168285369873,
+        0.9754255712032318,
+        1.0990277528762817
+      ],
+      "triangles": 280,
+      "meshes": 1
+    }
+  ],
+  "unity_tested": false
+}

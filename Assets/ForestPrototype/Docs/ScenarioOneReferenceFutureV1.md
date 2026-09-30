@@ -22,6 +22,14 @@ step. No final trees or regeneration cells were hand-constructed.
 | Year-50 full-world hash | `D5E75D6D21D631AC` |
 | Year-100 full-world hash | `7AD177B3CC2F73C7` |
 
+This **v12 archive remains frozen** after the Scenario One v13 interaction
+overhaul. Newer code verifies the unmodified original v12 milestone JSON hashes
+before offering historical walkable previews; reserializing those worlds into
+v13 adds fields and cannot reproduce v12 full-world hashes. V12 cell-based
+planting orders continue to load on their historical cohort pathway. New
+exact-position planting is an individual v13 pathway and has no claim to be
+the same authored v12 reference run.
+
 The exact schedule is `ScenarioOne/Resources/ScenarioOneReferenceScheduleV1.json`;
 all decisions and their actual biological outcomes are in the saved management
 events inside `ScenarioOneReferenceFutureV1.bytes`. The compressed archive also
@@ -127,8 +135,12 @@ initial future-tree-centric releases maintained too much shade near maturing
 broadleaf parents: it recruited 39 Sitka by Year 100 but no new broadleaf
 individuals. The schedule was revised toward small, repeated **broadleaf-local
 releases** and species-selective Sitka cohort control in Years 10–90; no species
-ecology parameter was changed. Two pruning orders initially targeted trees
-also marked for felling; the driver now excludes same-year felling targets.
+ecology parameter was changed. The authoring driver attempted to avoid
+same-year pruning/felling, but inspection of the **frozen** archive shows one
+remaining case: `P0601` was both pruned and felled in Year 85. V13 Work Plan
+validation correctly excludes that pruning; a replay under v13 is not entitled
+to the exact v12 full-world hash. The historical archive is not rewritten to
+remove its recorded treatment.
 
 The Year-50 reload/replay found two **management-state defects**, not an
 ecology-parameter defect: ecological summaries accumulated tree floats in

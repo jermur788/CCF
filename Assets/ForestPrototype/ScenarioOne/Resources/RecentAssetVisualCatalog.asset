@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 624ab5916b0afefdca0f23ecf9162421, type: 3}
+  m_Name: RecentAssetVisualCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::RecentAssetVisualCatalog
+  grasses:
+  - {fileID: 3843924798327549090, guid: d4d183b043337a24792b3ee7ab053d28, type: 3}
+  - {fileID: 1483955821172592595, guid: 75b9054edc1beefdf9fff543dea42d38, type: 3}
+  - {fileID: 7829696371374223854, guid: 6c7b2fb89f324fedfbca9452ded137e8, type: 3}
+  rushes:
+  - {fileID: 8585502567996804121, guid: 98274ed5d15bb0046b4d7fcf31088ac4, type: 3}
+  - {fileID: 776281551105581663, guid: a9c3c2d9af8c420eda855a54e33ced25, type: 3}
+  bentStages:
+  - {fileID: 8580560922963343315, guid: 46a062cac903f8755a29f305b565d8bf, type: 3}
+  - {fileID: 8970741017082204727, guid: ddb84386c220f8be482dfec50aa7af54, type: 3}
+  - {fileID: 1650321866319762683, guid: 8f523184ae226b57881463dd8737d46f, type: 3}
+  cavityStages:
+  - {fileID: 6316094679336044285, guid: 0931da2adabd5d130867af5c00e0a42d, type: 3}
+  - {fileID: 4188525462106992833, guid: 70f02dd055be75245bbf4e3e72f92dfa, type: 3}
+  - {fileID: 5903276441220526552, guid: d04eed0afd7a318a5bac6b351af08756, type: 3}
+  rushDressingPositions:
+  - {x: -17, y: 0, z: -17}
+  - {x: 17, y: 0, z: -17}

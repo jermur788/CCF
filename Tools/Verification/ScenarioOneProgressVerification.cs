@@ -75,7 +75,9 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             && manager.Objectives.Count > 0 && manager.TutorialHint.StartsWith("1."),
             "fresh tutorial or objective state missing");
         Check(manager.GetComponent<ScenarioOneSoundscapePlayer>() != null
-            && manager.SoundscapeState.layers.Count == 5,
+            && manager.SoundscapeState.layers.Count == 7
+            && manager.GetComponent<ScenarioOneSoundscapePlayer>().AudibleLayerCount
+                == manager.GetComponent<ScenarioOneSoundscapePlayer>().BoundLayerCount,
             "habitat soundscape has no routing or audio backend");
         ScenarioReferenceArchive reference = ScenarioReferenceArchive.Load();
         if (reference != null)
@@ -87,9 +89,13 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             Check(manager.TryBeginReferencePreview(100), "Year-100 walkable preview would not open");
             yield return null;
             yield return null;
+            ForestSaveData preview = saves.CaptureData();
             Check(manager.ReferencePreviewActive && ecology.EcologicalYear == 100
-                && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == reference.AtYear(100).worldHash,
-                "preview did not load the frozen real Year-100 world");
+                && reference.AtYear(100).verifiedFrozenWorld
+                && preview.trees.Count == reference.AtYear(100).world.trees.Count
+                && preview.scenarioOne.ecologicalSnapshots.Last().livingTrees
+                    == reference.AtYear(100).world.scenarioOne.ecologicalSnapshots.Last().livingTrees,
+                "preview did not load the verified frozen v12 Year-100 forest");
             manager.EndReferencePreview();
             yield return null;
             yield return null;
@@ -101,8 +107,10 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
                 && afterHash == beforeHash && distance < 0.1f,
                 "leaving the reference preview changed the player's own forest");
         }
-        float baselineWoodpeckers = manager.SoundscapeState.layers.Single(layer =>
-            layer.layerId == "woodpeckers").volume;
+        float baselineConifer = manager.SoundscapeState.layers.Single(layer =>
+            layer.layerId == "conifer-birds").volume;
+        float baselineDeadwood = manager.SoundscapeState.deadwoodHabitat;
+        Check(baselineConifer > 0.4f, "fresh Sitka lost its conifer sound identity");
         ScenarioSoundscapeState gridProbe = ScenarioSoundscape.Compute(new ScenarioEcologicalSnapshot
         {
             cellCount = 4,
@@ -150,8 +158,9 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
         yield return null;
         Check(manager.CenturyReview == null && manager.Outcome == ScenarioOneOutcome.Active,
             "loading an early save created a phantom Year-0 Century Review");
-        Check(manager.SoundscapeState.layers.Single(layer => layer.layerId == "woodpeckers").volume
-            > baselineWoodpeckers, "retained deadwood did not change habitat-driven sound routing");
+        Check(manager.SoundscapeState.deadwoodHabitat > baselineDeadwood
+            && manager.SoundscapeState.layers.Single(layer => layer.layerId == "conifer-birds").volume > 0.4f,
+            "deadwood habitat was lost or one cut erased the conifer sound identity");
 
         // The managed forest survives until the configurable review year. A
         // deterministic fixture isolates progression scoring from growth rates:
@@ -198,7 +207,7 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             && manager.Outcome == ScenarioOneOutcome.Completed
             && manager.SoundscapeState.year == ecology.EcologicalYear
             && manager.CenturyReview.referenceComparisons.Count == completed.centuryReview.referenceComparisons.Count,
-            "v12 save/load changed completed objectives or the Century Review");
+            "v13 save/load changed completed objectives or the Century Review");
 
         manager.InitializeNewScenario();
         ecology.RestoreEcologyState(0, ecology.SimulationSeed);

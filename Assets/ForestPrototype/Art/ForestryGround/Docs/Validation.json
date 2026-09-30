@@ -1,0 +1,367 @@
+{
+  "exports": [
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 0,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD0.fbx",
+      "dimensions_m": [
+        5.571592092514038,
+        3.3961541652679443,
+        2.845128059387207
+      ],
+      "triangles": 1928,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.571591977515993,
+        3.3961540988014827,
+        2.845128120915394
+      ],
+      "minimum_z": 4.8331199317408886e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 1,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD1.fbx",
+      "dimensions_m": [
+        5.563537836074829,
+        3.252786874771118,
+        2.8467586040496826
+      ],
+      "triangles": 1080,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.563537778477269,
+        3.2527867918089535,
+        2.8467587325382606
+      ],
+      "minimum_z": -9.252895905614566e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_WindthrowBase_Fresh_01",
+      "lod": 2,
+      "file": "FBX/SS_WindthrowBase_Fresh_01_LOD2.fbx",
+      "dimensions_m": [
+        5.543480396270752,
+        3.1281079053878784,
+        2.5978009700775146
+      ],
+      "triangles": 548,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.543480405878711,
+        3.128107908574139,
+        2.5978008520497484
+      ],
+      "minimum_z": -6.79481071408361e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 0,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD0.fbx",
+      "dimensions_m": [
+        5.571592092514038,
+        3.3961541652679443,
+        2.845128059387207
+      ],
+      "triangles": 2026,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.571591977515993,
+        3.3961540988014827,
+        2.845128120915394
+      ],
+      "minimum_z": 4.8331199317408886e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 1,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD1.fbx",
+      "dimensions_m": [
+        5.563537836074829,
+        3.252786874771118,
+        2.8467586040496826
+      ],
+      "triangles": 1143,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.563537778477269,
+        3.2527867918089535,
+        2.8467587325382606
+      ],
+      "minimum_z": -9.252895905614566e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_WindthrowBase_Weathered_01",
+      "lod": 2,
+      "file": "FBX/SS_WindthrowBase_Weathered_01_LOD2.fbx",
+      "dimensions_m": [
+        5.543480396270752,
+        3.1281079053878784,
+        2.5978009700775146
+      ],
+      "triangles": 583,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.543480405878711,
+        3.128107908574139,
+        2.5978008520497484
+      ],
+      "minimum_z": -6.79481071408361e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Green_01_LOD0.fbx",
+      "dimensions_m": [
+        6.669020414352417,
+        5.143657684326172,
+        1.361621618270874
+      ],
+      "triangles": 5868,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.669020389265853,
+        5.1436577145006,
+        1.3616213978907314
+      ],
+      "minimum_z": 4.507198865798221e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Green_01_LOD1.fbx",
+      "dimensions_m": [
+        6.6525232791900635,
+        5.1199541091918945,
+        1.335998773574829
+      ],
+      "triangles": 3348,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.652523044663894,
+        5.119953948904786,
+        1.3359986516953726
+      ],
+      "minimum_z": 1.0021273285238316e-07,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_01",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Green_01_LOD2.fbx",
+      "dimensions_m": [
+        5.990871906280518,
+        5.196212530136108,
+        1.4673876762390137
+      ],
+      "triangles": 1152,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.990871905888497,
+        5.196212369268109,
+        1.4673875682382929
+      ],
+      "minimum_z": 3.026236068489495e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Green_02_LOD0.fbx",
+      "dimensions_m": [
+        6.705887794494629,
+        5.346087455749512,
+        1.3624649047851562
+      ],
+      "triangles": 5868,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.705887759047272,
+        5.3460875382018385,
+        1.3624646946778742
+      ],
+      "minimum_z": 4.36465159969139e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Green_02_LOD1.fbx",
+      "dimensions_m": [
+        6.6895787715911865,
+        5.323211669921875,
+        1.3321328163146973
+      ],
+      "triangles": 3348,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.6895785553102485,
+        5.32321156210368,
+        1.3321325993562725
+      ],
+      "minimum_z": 1.1083698591456061e-07,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Green_02",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Green_02_LOD2.fbx",
+      "dimensions_m": [
+        6.4518351554870605,
+        4.062278747558594,
+        1.4240950345993042
+      ],
+      "triangles": 1152,
+      "meshes": 2,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.451835030350793,
+        4.062278686921877,
+        1.4240949576700135
+      ],
+      "minimum_z": 2.6508124199981e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Dry_01_LOD0.fbx",
+      "dimensions_m": [
+        6.221532583236694,
+        4.665257692337036,
+        1.0656143426895142
+      ],
+      "triangles": 5004,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.22153230112346,
+        4.665257603445314,
+        1.0656142056840492
+      ],
+      "minimum_z": 4.405130515464365e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Dry_01_LOD1.fbx",
+      "dimensions_m": [
+        6.221532583236694,
+        4.665257692337036,
+        1.0656143426895142
+      ],
+      "triangles": 4212,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.22153230112346,
+        4.665257603445314,
+        1.0656142056840492
+      ],
+      "minimum_z": 4.405130515464365e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_01",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Dry_01_LOD2.fbx",
+      "dimensions_m": [
+        5.474743485450745,
+        4.194605350494385,
+        0.945393443107605
+      ],
+      "triangles": 936,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        5.474743224797919,
+        4.194605315804177,
+        0.9453933354008647
+      ],
+      "minimum_z": 4.405130515464365e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 0,
+      "file": "FBX/SS_Brash_Dry_02_LOD0.fbx",
+      "dimensions_m": [
+        6.2728739976882935,
+        4.829548358917236,
+        1.0774844884872437
+      ],
+      "triangles": 5004,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.272873852710262,
+        4.829548242909917,
+        1.0774843228511783
+      ],
+      "minimum_z": 4.120034255240979e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 1,
+      "file": "FBX/SS_Brash_Dry_02_LOD1.fbx",
+      "dimensions_m": [
+        6.2728739976882935,
+        4.829548358917236,
+        1.0774844884872437
+      ],
+      "triangles": 4212,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.272873852710262,
+        4.829548242909917,
+        1.0774843228511783
+      ],
+      "minimum_z": 4.120034255240979e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Brash_Dry_02",
+      "lod": 2,
+      "file": "FBX/SS_Brash_Dry_02_LOD2.fbx",
+      "dimensions_m": [
+        6.241639137268066,
+        3.1546413898468018,
+        0.9535315632820129
+      ],
+      "triangles": 936,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        6.241638959609588,
+        3.154641210156904,
+        0.9535314976210938
+      ],
+      "minimum_z": 4.120034255240979e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

@@ -1,0 +1,178 @@
+{
+  "exports": [
+    {
+      "asset": "SS_Defect_CoarseBranch_Young_01",
+      "stage": "Young",
+      "lod": 0,
+      "file": "FBX/SS_Defect_CoarseBranch_Young_01_LOD0.fbx",
+      "height_m": 11.5,
+      "dbh_target_m": 0.18,
+      "max_primary_branch_diameter_m": 0.084,
+      "triangles": 26344,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.840480718601924,
+        3.9780763829430175,
+        11.500036381025462
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_Young_01",
+      "stage": "Young",
+      "lod": 1,
+      "file": "FBX/SS_Defect_CoarseBranch_Young_01_LOD1.fbx",
+      "height_m": 11.5,
+      "dbh_target_m": 0.18,
+      "max_primary_branch_diameter_m": 0.084,
+      "triangles": 12194,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        3.840480718601924,
+        3.9780763829430175,
+        11.500036381025756
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_Young_01",
+      "stage": "Young",
+      "lod": 2,
+      "file": "FBX/SS_Defect_CoarseBranch_Young_01_LOD2.fbx",
+      "height_m": 11.5,
+      "dbh_target_m": 0.18,
+      "max_primary_branch_diameter_m": 0.084,
+      "triangles": 4078,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        4.216902981916746,
+        4.378308830426853,
+        11.500041263838924
+      ],
+      "minimum_z": -1.85983641721295e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_Mature_01",
+      "stage": "Mature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_CoarseBranch_Mature_01_LOD0.fbx",
+      "height_m": 25,
+      "dbh_target_m": 0.46,
+      "max_primary_branch_diameter_m": 0.23,
+      "triangles": 34894,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.688303966336605,
+        7.765963786585089,
+        25.000016576958195
+      ],
+      "minimum_z": -4.7529155124343545e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_Mature_01",
+      "stage": "Mature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_CoarseBranch_Mature_01_LOD1.fbx",
+      "height_m": 25,
+      "dbh_target_m": 0.46,
+      "max_primary_branch_diameter_m": 0.23,
+      "triangles": 15994,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        7.688303966336605,
+        7.765963786585089,
+        25.00001657695849
+      ],
+      "minimum_z": -4.7529155124343545e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_Mature_01",
+      "stage": "Mature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_CoarseBranch_Mature_01_LOD2.fbx",
+      "height_m": 25,
+      "dbh_target_m": 0.46,
+      "max_primary_branch_diameter_m": 0.23,
+      "triangles": 5378,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        8.315984616369349,
+        8.56043918476787,
+        25.000019018365467
+      ],
+      "minimum_z": -4.7529155124343545e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_PostMature_01",
+      "stage": "PostMature",
+      "lod": 0,
+      "file": "FBX/SS_Defect_CoarseBranch_PostMature_01_LOD0.fbx",
+      "height_m": 31,
+      "dbh_target_m": 0.69,
+      "max_primary_branch_diameter_m": 0.36,
+      "triangles": 36262,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        10.357840039480323,
+        9.976882975411296,
+        31.000011583799928
+      ],
+      "minimum_z": -7.129372980649911e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_PostMature_01",
+      "stage": "PostMature",
+      "lod": 1,
+      "file": "FBX/SS_Defect_CoarseBranch_PostMature_01_LOD1.fbx",
+      "height_m": 31,
+      "dbh_target_m": 0.69,
+      "max_primary_branch_diameter_m": 0.36,
+      "triangles": 16582,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        10.357840039480323,
+        9.976882975411296,
+        31.000011583800223
+      ],
+      "minimum_z": -7.129372980649911e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "SS_Defect_CoarseBranch_PostMature_01",
+      "stage": "PostMature",
+      "lod": 2,
+      "file": "FBX/SS_Defect_CoarseBranch_PostMature_01_LOD2.fbx",
+      "height_m": 31,
+      "dbh_target_m": 0.69,
+      "max_primary_branch_diameter_m": 0.36,
+      "triangles": 5586,
+      "meshes": 3,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        11.26190526585492,
+        10.785997932114576,
+        31.0000140252072
+      ],
+      "minimum_z": -7.129372980649911e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

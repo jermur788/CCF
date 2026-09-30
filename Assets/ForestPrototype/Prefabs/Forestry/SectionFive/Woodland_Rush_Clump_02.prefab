@@ -1,0 +1,298 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &776281551105581663
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 931954353979361782}
+  - component: {fileID: 3606889305974957618}
+  m_Layer: 0
+  m_Name: Woodland_Rush_Clump_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &931954353979361782
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776281551105581663}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8314330325685710303}
+  - {fileID: 3132112000771641965}
+  - {fileID: 7595014356977839556}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &3606889305974957618
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776281551105581663}
+  serializedVersion: 3
+  m_LocalReferencePoint: {x: -0.003216207, y: 0.5495139, z: 0.031448245}
+  m_Size: 1.1049256
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.35
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 4536333121562034774}
+  - screenRelativeHeight: 0.12
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2705609397079468865}
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 3211031413118647544}
+  m_Enabled: 1
+  m_GlobalIlluminationLOD: 0
+--- !u!1001 &3241965252141004166
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 931954353979361782}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8542898235211555129, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: -8542898235211555129, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 28c3f8a7636190dab87b8bf21fa2bb7e, type: 2}
+    - target: {fileID: -8542898235211555129, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6109e458134c313d58a5fc78593b572f, type: 2}
+    - target: {fileID: 919132149155446097, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Rush_Clump_02_LOD1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+--- !u!23 &2705609397079468865 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -8542898235211555129, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+  m_PrefabInstance: {fileID: 3241965252141004166}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3132112000771641965 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 282399385b8a02a55a10998d9a51cd49, type: 3}
+  m_PrefabInstance: {fileID: 3241965252141004166}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7992851589475502639
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 931954353979361782}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4439511145424603433, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: -4439511145424603433, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6109e458134c313d58a5fc78593b572f, type: 2}
+    - target: {fileID: 919132149155446097, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Rush_Clump_02_LOD2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+--- !u!23 &3211031413118647544 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4439511145424603433, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+  m_PrefabInstance: {fileID: 7992851589475502639}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7595014356977839556 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2982b9ed4f651a18c89f7219cd7c225e, type: 3}
+  m_PrefabInstance: {fileID: 7992851589475502639}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8424218519708387892
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 931954353979361782}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Rush_Clump_02_LOD0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5340315798751086690, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c23da85e095030cab930e8262d364ba1, type: 2}
+    - target: {fileID: 5340315798751086690, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 28c3f8a7636190dab87b8bf21fa2bb7e, type: 2}
+    - target: {fileID: 5340315798751086690, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6109e458134c313d58a5fc78593b572f, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+--- !u!23 &4536333121562034774 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5340315798751086690, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+  m_PrefabInstance: {fileID: 8424218519708387892}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8314330325685710303 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9855f5beeaa95b57d81f7bd395ecb729, type: 3}
+  m_PrefabInstance: {fileID: 8424218519708387892}
+  m_PrefabAsset: {fileID: 0}

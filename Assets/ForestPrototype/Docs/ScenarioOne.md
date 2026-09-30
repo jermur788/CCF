@@ -4,7 +4,7 @@ Scenario One is turning the canonical 40 x 40 m, 336-stem Sitka plantation into
 the first annual management scenario. It uses independent scenario
 progression and the management-first loop:
 
-`inspect -> decide -> mark -> plan -> approve -> advance one year -> observe`
+`walk -> mark trees / planting sites -> review and buy stock -> approve -> advance one year -> observe`
 
 The implementation started from shared baseline `05673d4`, save v9. Older
 summaries that describe save v8 or monthly progression are stale. Scenario One
@@ -19,8 +19,10 @@ Management work is separated into:
 2. requirement: estimated minutes, contractor cost, required stock and expected
    output;
 3. execution: Scenario One's annual contractor resolver;
-4. effect: the existing authoritative Forestry APIs (`ForestTree.Fell`, generic
-   planting, species-selective regeneration removal and `ForestTree.TryPrune`).
+4. effect: the existing authoritative Forestry APIs (`ForestTree.Fell`,
+   `ForestTree.TryPrune`, species-selective regeneration removal), plus the
+   Scenario One v13 individual planted-juvenile lifecycle. Legacy cell planting
+   remains on Forestry's cohort pathway for v12 saves and Reference Future v1.
 
 Later manual or multiplayer executors can consume the same work order without a
 second ecology implementation.
@@ -37,11 +39,14 @@ controller is paused and the cursor is available. The current annual order is:
 2. resolve work in ascending persistent work-order ID;
 3. settle contractor cost and immediate harvest revenue;
 4. run `ForestEcologyController.AdvanceOneYear()` exactly once;
-5. store the annual management report.
+5. advance the individually positioned planted juveniles against the same
+   species juvenile growth/survival response and their local cell light;
+6. store the annual management report.
 
 Outside the Work Plan, the upper-right management HUD stays visible while
 walking: ecological year, current cash and the nursery species with saplings
-ready to plant. "Ready" is inventory minus stock reserved for approved orders;
+ready to plant. "Ready" is inventory minus stock reserved for approved orders
+and pending exact-position planting markers;
 the reserved quantity is shown separately. The HUD hides in the full Work Plan
 and while exploring a reference-future preview.
 
@@ -62,9 +67,9 @@ so the canonical Sitka lifecycle remains isolated.
   saved forest and ecology;
 - purchase configurable Beech and Sessile Oak saplings in whole-number quantities;
 - designate persistent, species-specific planting work by ecology cell in the
-  Work Plan (one open order per species per cell);
+  Work Plan (one open order per species per cell) in the legacy v12 pathway;
 - reserve stock and contractor cash when approving, then consume one sapling
-  and pay the contractor only if `TryPlantJuvenile` succeeds;
+  and pay the contractor only if `TryPlantJuvenile` succeeds on the legacy path;
 - let players cancel pending or approved orders before the annual resolution,
   immediately releasing approved reservations;
 - record unsuccessful planting without consuming stock or charging for work;
@@ -96,20 +101,21 @@ current and baseline structure alongside recent reports and typed event history.
 
 ## Species-selective regeneration control
 
-The Work Plan can designate an entire live species cohort in an ecology cell
-for contractor removal. Orders record the selected species/cell and estimated
+The player can look at real ground with live regeneration, cycle the visible
+species with `[R]` and press `[U]` to mark its cell for contractor removal.
+Orders record the selected species/cell and estimated
 density, time and cost. Resolution uses Forestry's authoritative
 `TryUprootRegeneration` and charges only for a successful removal. The other
 species in the cell is untouched by the treatment. Failed or cancelled orders
 leave cash unspent. Annual reports and structured events store removed cohort
 density and the `RegenerationRemoved` treatment; no harvest revenue or stock is
-created. A `U` attempt in Scenario One directs the player to the Work Plan;
+created. The Work Plan reviews and approves this spatial choice;
 other modes retain the existing player-facing hold-to-uproot interaction.
 Removal minutes are provisional gameplay calibration [D] on the definition.
 
 ## Fallen deadwood retention
 
-Felling orders can now choose between `SellAndExtract` and
+Felling orders can choose `SellAndExtract`, `KeepForUse`, or
 `RetainAsFallenDeadwood`. The Work Plan shows the outcome per order and lets the
 player switch before approval. Extraction pays timber revenue and records
 harvested volume. Retention pays no revenue, calls the same `ForestTree.Fell()`,
@@ -118,6 +124,10 @@ identity, position, cell, original stem volume and size. A simple fallen-stem
 marker is spawned at the felling position and rebuilt from saved records on
 load for presentation only; Forestry's
 authoritative stump visual is untouched.
+`KeepForUse` settles no timber revenue and adds the harvested biological volume
+to the saved Scenario One timber stockpile. Each build can pay its wood cost
+from carried wood, nearby stored wood and the remaining retained stockpile,
+using 0.1 m³ per missing wood unit [D]; it never charges the same wood twice.
 
 Deadwood decays deterministically once per ecological year: roughly 3% volume
 loss per year with a floor at 12% of the original stem [D]. Each record carries a
@@ -162,26 +172,65 @@ props remain visual decoration rather than biological authority.
 Shop prices and planting minutes are provisional gameplay calibration [D] on
 the scenario definition. Purchases are settled immediately in integer cents;
 approved contractor work reserves its cost, and labour is settled on successful
-annual execution. Planting via the
-old direct `G` action is routed to the Work Plan in Scenario One. The existing
+annual execution. `[G]` enters planting mode in Scenario One when there is
+unreserved owned stock. `[R]` cycles the owned species and left click on ground
+sets each exact-position marker; `[Esc]` exits. Pending markers reserve one
+sapling, can be cancelled in the Work Plan and remain visible at their chosen
+positions through approval/save/load until contractor resolution. Completion
+creates a separately persistent individual with ID, stock/species identity,
+position, age, height and survival; promotion creates a tree at the same
+position. The internal 5×5 m grid still supplies light/site/natural regeneration.
+On planting, a ~0.56 m radius circular patch clears the proportional Sitka
+regeneration density in each intersected cell. Same-year overlapping patches
+are unioned rather than double-counted. The patch is not a permanent exclusion:
+normal seed rain can recolonise in subsequent years. The existing
 Forestry planting API remains available to other modes and verification tools.
+
+## Fell marks and the Work Plan
+
+`[M]` is the in-world decision; the Work Plan reviews, costs and approves it.
+Opening the Work Plan (and approving work) automatically imports any red Fell
+marks as felling orders, so a mark can never silently miss the annual plan. The
+explicit "Add marked trees" button remains for clarity. Importing felling
+orders consumes only red marks — blue Crop Tree designations persist.
+
+## Forestry interaction and compatibility (save v13)
+
+`[M]` marks a living tree red for felling; `[C]` designates it as a persistent
+blue Crop Tree, replacing any Fell mark. The two marks cannot coexist. Blue
+trunk bands persist through annual advances and save/load, and are removed only
+when the player explicitly unmarks or the tree is felled. Importing red Fell
+marks into the Work Plan consumes only red marks. Crop Tree pruning is an
+eligible batch in the Work Plan; the existing biological lift and recovery
+constraints remain authoritative, and scheduled-for-felling trees are excluded.
+Legacy v12 cell-designated planting/pruning work orders remain loadable.
+
+The frozen `scenario-one-v12` Reference Future v1 archive remains immutable:
+336 starting Sitka, schedule `56C8B99FA1E8DDD1`, Year-100 v12 world hash
+`7AD177B3CC2F73C7`. v13 loads its v12 milestone saves as a historical,
+walkable example and verifies their *original v12 JSON* before preview. A v13
+save necessarily has a different full-world hash and must not be presented as
+reproducing the frozen v12 bytes. The independent canonical Sitka lifecycle
+hash remains `7E39B70A14959FAD`.
 
 The disposable `Tools/Verification/ScenarioOnePlantingVerification.cs` runner
 checks both scene definitions, the fresh stand, purchases, both species' planted
 origin, yearly settlement, failed planting, save/load continuation and v9 migration.
 
-Felling supports both `SellAndExtract` and `RetainAsFallenDeadwood` outcomes.
+Headless Scenario One interaction verification exercises marking, batch
+pruning, owned-stock markers, exact planted individual promotion, overlapping
+clearance, retained-timber construction and the frozen v12 preview. The
+separate reference-continuation and full older regression gates remain required
+before integrating the v13 interaction overhaul.
 
-## Habitat soundscape routing
+## Habitat presentation and soundscape routing
 
-The annual soundscape derives five 0–1 layer targets from recorded stand
-structure, live species presence, grid-normalized regeneration, understorey
-evenness, canopy and retained-deadwood habitat. The routing is reconstructed
-after loading and does not alter ecology. `ScenarioOneSoundscapePlayer` can
-crossfade looping 2D `AudioSource`s when clips are assigned by layer ID;
-this project contains no licensed audio clips, so unassigned layers remain
-silent. The provisional habitat weights [D] are configurable on the scenario
-definition.
+`ScenarioHabitatPresentation.md` specifies the derived visual classes,
+source/continuity gate, seven habitat-linked sound layers with silence until
+recordings are assigned, and the Year-0/20/50/100 walkable-preview verification. All are
+presentation-only; existing Forestry and saved understorey proxies remain
+authoritative. The Century Review interprets the structural signals without
+adding wildlife objectives or claiming unverified ancient-woodland flora.
 
 ## Tutorial, outcomes and Century Review (save v12)
 
@@ -225,10 +274,15 @@ one possible path, not a score or a forestry prescription.
 - no monthly/seasonal time, networking, machinery or primitive crafting;
 - `.vscode/settings.json` remains worktree-local and unmodified.
 
-## Next slices
+## Remaining player-facing checks
 
-1. balance and long-run integration verification on the shared Forestry
-   worktree (including the unmodified Sitka suite, provenance, uprooting,
-   save/load and the scene validator);
-2. Irish price and pruning calibration with source, reference year and unit;
-3. installed audio clips and the authored reference-future trajectory.
+1. Confirm the blue trunk band, planting pegs, eight ground-layer types,
+   changing log appearance and any newly assigned recordings in an actual
+   walkable Game view at Years 0, 20, 50 and 100.
+2. The full Forestry integration suite, four-year presentation gate and
+   interaction/canonical/reference-replay gate passed in `/home/jer/CCF`, where
+   **Ultimate Nature – Starter** is installed locally. The isolated worktree
+   lacks that gitignored pack; its pack-dependent visual assertion is not a
+   gameplay regression.
+3. Calibrate provisional Irish price/pruning values only with a separately
+   verified source, reference year and unit.

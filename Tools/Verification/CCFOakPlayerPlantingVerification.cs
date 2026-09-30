@@ -73,6 +73,12 @@ public sealed class CCFOakPlayerPlantingRunner : MonoBehaviour
         ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
         Check(player != null && ecology != null && spawner != null && saves != null,
             "Required ForestTest systems are missing");
+        // This suite verifies Forestry/Survival's direct planting pathway.
+        // Scenario One's owned-stock, contractor pathway has its own gate;
+        // remove that management component from this disposable play fixture.
+        ScenarioOneManager scenario = FindFirstObjectByType<ScenarioOneManager>();
+        if (scenario != null)
+            DestroyImmediate(scenario);
         Check(EnterPlantingMode != null && ExitPlantingMode != null && SelectPlantingSpecies != null &&
               CyclePlantingSpecies != null && SelectedPlantingSpeciesId != null &&
               PlantSelectedSpecies != null && IsPlantingMode != null && PlantingSpeciesIds != null &&

@@ -99,9 +99,15 @@ public sealed class ForestBuildable : MonoBehaviour
 
         int carried = player.CarriedWood;
         int stored = GatherNearbyStoredWood();
-        if (carried + stored < woodCost)
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        // [D] Same wood-unit conversion used for carried wood. Scenario stock
+        // covers the deficit after carried and nearby stored wood, exactly once.
+        const float cubicMetersPerWoodUnit = 0.1f;
+        int retainedUnits = scenario != null
+            ? Mathf.FloorToInt((scenario.RetainedTimberM3 + 0.00001f) / cubicMetersPerWoodUnit) : 0;
+        if (carried + stored + retainedUnits < woodCost)
         {
-            SetMessage($"Not enough wood. Need {woodCost} (carried {carried}, nearby stored {stored}).", 3.5f);
+            SetMessage($"Not enough wood. Need {woodCost} (carried {carried}, stored {stored}, retained {retainedUnits}).", 3.5f);
             return;
         }
 
@@ -115,34 +121,25 @@ public sealed class ForestBuildable : MonoBehaviour
             }
         }
 
-        // Carried timber pays first; whatever is missing comes out of nearby racks.
+        // Debit each source only for its own share of the construction cost.
         int fromPlayer = Mathf.Min(carried, woodCost);
-        int fromStorage = woodCost - fromPlayer;
+        int fromStorage = Mathf.Min(stored, woodCost - fromPlayer);
+        int fromRetained = woodCost - fromPlayer - fromStorage;
+        if (fromRetained > 0 && scenario.TrySpendRetainedTimber(fromRetained * cubicMetersPerWoodUnit) == 0f)
+        {
+            SetMessage("Retained timber is unavailable.", 3f);
+            return;
+        }
         if (fromPlayer > 0)
             player.TrySpendWood(fromPlayer);
         SpendStoredWood(fromStorage);
-
-        // Retained timber stockpile (Scenario One KeepForUse) is available for
-        // construction after annual resolution. Physical transport is later work.
-        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
-        if (scenario != null && scenario.RetainedTimberM3 > 0f)
-        {
-            float timberNeeded = woodCost * 0.1f; // [D] 0.1 m³ per wood unit
-            float timberSpent = scenario.TrySpendRetainedTimber(timberNeeded);
-            if (timberSpent > 0f)
-                Debug.Log($"FOREST_BUILD: {displayName} used {timberSpent:0.00} m³ retained timber.", this);
-        }
         if (plankCost > 0)
             plankSource.TakeStoredWood(plankCost);
 
         isBuilt = true;
         SetVisuals(true);
         string plankNote = plankCost > 0 ? $", {plankCost} planks" : "";
-        string source = fromStorage <= 0
-            ? $"all carried{plankNote}"
-            : fromPlayer <= 0
-                ? $"all stored{plankNote}"
-                : $"{fromPlayer} carried, {fromStorage} stored{plankNote}";
+        string source = $"{fromPlayer} carried, {fromStorage} stored, {fromRetained} retained{plankNote}";
         SetMessage($"{displayName} built. Wood -{woodCost}{plankNote}. ({source}).", 3.5f);
         Debug.Log($"FOREST_BUILD: {displayName} constructed for {woodCost} wood ({source}).", this);
     }

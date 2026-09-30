@@ -10,6 +10,8 @@ public sealed class ForestSpeciesVisualSet
     public GameObject matureVisualPrefab;
     public GameObject poleVisualPrefab;
     public GameObject stumpPrefab;
+    public ForestTreeVisualBase[] maturePruningBases;
+    public ForestTreeVisualBase[] polePruningBases;
 }
 
 // Simplest maintainable spawning path for naturally recruited trees: the same
@@ -29,6 +31,10 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private GameObject visualPrefabAlternative;
     [SerializeField] private GameObject stumpPrefab;
     [SerializeField] private GameObject poleVisualPrefab;
+    // Pruning-state base models for the default species, chosen per tree id.
+    [SerializeField] private ForestTreeVisualBase[] defaultMaturePruningBases;
+    [SerializeField] private ForestTreeVisualBase[] defaultPolePruningBases;
+    [SerializeField] private bool useRecentStandVariants;
     [SerializeField] private ForestSpeciesVisualSet[] speciesVisualSets;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
@@ -109,7 +115,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
 
         var root = new GameObject("Tree " + treeId);
         root.transform.SetParent(forestParent != null ? forestParent : transform, false);
-        root.transform.position = new Vector3(groundPosition.x, 0f, groundPosition.z);
+        root.transform.position = groundPosition;
         root.transform.rotation = Quaternion.identity;
 
         var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -131,11 +137,37 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         if (tree == null)
             return;
         TreeSpeciesDefinition species = requestedSpecies != null ? requestedSpecies : defaultSpecies;
+        tree.SetRecentStandVariants(useRecentStandVariants && species != null && species.SpeciesId == "sitka-spruce");
         ForestSpeciesVisualSet speciesVisuals = FindVisualSet(species);
         if (speciesVisuals != null)
+        {
+            tree.SetPruningBases(PickBase(tree.TreeId, speciesVisuals.polePruningBases),
+                PickBase(tree.TreeId, speciesVisuals.maturePruningBases));
             tree.SetVisualStages(speciesVisuals.matureVisualPrefab, speciesVisuals.poleVisualPrefab, speciesVisuals.stumpPrefab != null ? speciesVisuals.stumpPrefab : stumpPrefab);
+        }
         else if (species == defaultSpecies && visualPrefab != null)
+        {
+            tree.SetPruningBases(PickBase(tree.TreeId, defaultPolePruningBases),
+                PickBase(tree.TreeId, defaultMaturePruningBases));
             tree.SetVisualStages(PickVisual(tree.TreeId, visualPrefab, visualPrefabAlternative), poleVisualPrefab, stumpPrefab);
+        }
+    }
+
+    // Deterministic per-tree base pick so an individual keeps its model look
+    // across sessions and save/load, exactly like PickVisual.
+    public static ForestTreeVisualBase PickBase(string treeId, ForestTreeVisualBase[] bases)
+    {
+        if (bases == null || bases.Length == 0)
+            return null;
+        if (bases.Length == 1)
+            return bases[0];
+        uint hash = 2166136261u;
+        foreach (char c in treeId ?? "")
+        {
+            hash ^= c;
+            hash *= 16777619u;
+        }
+        return bases[hash % (uint)bases.Length];
     }
 
     private ForestSpeciesVisualSet FindVisualSet(TreeSpeciesDefinition species)

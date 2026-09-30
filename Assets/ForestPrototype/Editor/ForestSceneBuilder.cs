@@ -194,7 +194,11 @@ public static class ForestSceneBuilder
                     oakElement.FindPropertyRelative("stumpPrefab").objectReferenceValue = unsStumpForSpawner;
                 }
             }
+            ForestryAssetSetup.WireSpawnerAndScenario(spawnerSerialized, scenarioSerialized);
+            SectionFiveAssetSetup.WireSpawner(spawnerSerialized);
+            RecentDeliveriesAssetSetup.WireSpawner(spawnerSerialized);
             spawnerSerialized.ApplyModifiedPropertiesWithoutUndo();
+            scenarioSerialized.ApplyModifiedPropertiesWithoutUndo();
             var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
             if (ecology != null)
             {

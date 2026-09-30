@@ -21,8 +21,36 @@ public sealed class ScenarioOneSoundscapePlayer : MonoBehaviour
     private readonly Dictionary<string, AudioSource> sources = new Dictionary<string, AudioSource>(StringComparer.Ordinal);
     private readonly Dictionary<string, float> targets = new Dictionary<string, float>(StringComparer.Ordinal);
 
+    public int AudibleLayerCount => sources.Count;
+    public int BoundLayerCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (string layerId in targets.Keys)
+                if (clips.Exists(item => item != null && item.layerId == layerId && item.clip != null))
+                    count++;
+            return count;
+        }
+    }
+
+    private void OnEnable() => StopOldSyntheticSources();
+
+    private void StopOldSyntheticSources()
+    {
+        // Clear any procedural sources left behind by an Editor script reload
+        // during Play Mode. Unbound layers must be silent immediately.
+        foreach (AudioSource source in GetComponents<AudioSource>())
+            if (source.clip != null && source.clip.name.StartsWith("Habitat cue ", StringComparison.Ordinal))
+            {
+                source.Stop();
+                Destroy(source);
+            }
+    }
+
     public void Route(ScenarioSoundscapeState state)
     {
+        StopOldSyntheticSources();
         foreach (string key in new List<string>(targets.Keys))
             targets[key] = 0f;
         if (state == null || state.layers == null)
@@ -60,4 +88,5 @@ public sealed class ScenarioOneSoundscapePlayer : MonoBehaviour
                 Time.unscaledDeltaTime * masterVolume / Mathf.Max(0.05f, fadeSeconds));
         }
     }
+
 }
