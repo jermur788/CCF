@@ -333,9 +333,14 @@ public sealed class ForestTree : MonoBehaviour
             if (state != null)
                 return state;
         }
-        if (poleRange && poleVisualPrefab != null)
-            return poleVisualPrefab;
-        return visualPrefab;
+        // Legacy fallback only when no pruning family is assigned at all.
+        if (pruningBase == null)
+        {
+            if (poleRange && poleVisualPrefab != null)
+                return poleVisualPrefab;
+            return visualPrefab;
+        }
+        return null;
     }
 
     // [D] visual-only scar age: pruning cuts read as recent until five years
@@ -373,13 +378,10 @@ public sealed class ForestTree : MonoBehaviour
             // authoritative prefab actually shows. Destroy is deferred in play
             // mode, so the cached field must be dropped here or a same-frame
             // re-entry would skip the rebuild against the doomed instance.
-            if (Application.isPlaying)
-            {
-                existing.gameObject.SetActive(false);
-                Destroy(existing.gameObject);
-            }
-            else
-                DestroyImmediate(existing.gameObject);
+            existing.gameObject.SetActive(false);
+            // DestroyImmediate removes the old mesh in the same frame, avoiding
+            // the deferred-Destroy overlap artifact ("stuck together" trunks).
+            DestroyImmediate(existing.gameObject);
             existing = null;
             polishedVisual = null;
             polishedNaturalHeight = -1f;
