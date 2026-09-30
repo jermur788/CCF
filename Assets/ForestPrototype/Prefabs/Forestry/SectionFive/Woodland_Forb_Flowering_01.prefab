@@ -1,0 +1,314 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1160214443934416045
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523664865976350543}
+  - component: {fileID: 4475123855016677269}
+  m_Layer: 0
+  m_Name: Woodland_Forb_Flowering_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7523664865976350543
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160214443934416045}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6732636896858438140}
+  - {fileID: 6029266390775781797}
+  - {fileID: 686651624467374565}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &4475123855016677269
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160214443934416045}
+  serializedVersion: 3
+  m_LocalReferencePoint: {x: 0.018177003, y: 0.16726285, z: -0.011609107}
+  m_Size: 0.70071715
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.35
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2213925481678734616}
+  - screenRelativeHeight: 0.12
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 3629542213450869249}
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1700582774516374642}
+  m_Enabled: 1
+  m_GlobalIlluminationLOD: 0
+--- !u!1001 &1012680440624956942
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7523664865976350543}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7380154612938073476, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 819c048843d8166239a3e33d543af890, type: 2}
+    - target: {fileID: -7380154612938073476, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b5799c333fa8012dbb1d0060b08206de, type: 2}
+    - target: {fileID: -7380154612938073476, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1b515d4b4b93902128da621df2d07fd3, type: 2}
+    - target: {fileID: -7380154612938073476, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1279b7f2de2703a56aa026115a2f01c4, type: 2}
+    - target: {fileID: 919132149155446097, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Forb_Flowering_01_LOD2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+--- !u!4 &686651624467374565 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+  m_PrefabInstance: {fileID: 1012680440624956942}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1700582774516374642 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7380154612938073476, guid: 358d0422b51eaabb3acabd043746e096, type: 3}
+  m_PrefabInstance: {fileID: 1012680440624956942}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &6063807365799034446
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7523664865976350543}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Forb_Flowering_01_LOD1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7383723891675305039, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 819c048843d8166239a3e33d543af890, type: 2}
+    - target: {fileID: 7383723891675305039, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b5799c333fa8012dbb1d0060b08206de, type: 2}
+    - target: {fileID: 7383723891675305039, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1b515d4b4b93902128da621df2d07fd3, type: 2}
+    - target: {fileID: 7383723891675305039, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1279b7f2de2703a56aa026115a2f01c4, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+--- !u!23 &3629542213450869249 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7383723891675305039, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+  m_PrefabInstance: {fileID: 6063807365799034446}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6029266390775781797 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1e63dce8e0e33808d983e4a87348dd5c, type: 3}
+  m_PrefabInstance: {fileID: 6063807365799034446}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &6549809369512549911
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7523664865976350543}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: m_Name
+      value: Woodland_Forb_Flowering_01_LOD0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4926068921665559311, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 819c048843d8166239a3e33d543af890, type: 2}
+    - target: {fileID: 4926068921665559311, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b5799c333fa8012dbb1d0060b08206de, type: 2}
+    - target: {fileID: 4926068921665559311, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1b515d4b4b93902128da621df2d07fd3, type: 2}
+    - target: {fileID: 4926068921665559311, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1279b7f2de2703a56aa026115a2f01c4, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+--- !u!23 &2213925481678734616 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 4926068921665559311, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+  m_PrefabInstance: {fileID: 6549809369512549911}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6732636896858438140 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cf574f5ef612b4752914dc06291e0d8c, type: 3}
+  m_PrefabInstance: {fileID: 6549809369512549911}
+  m_PrefabAsset: {fileID: 0}

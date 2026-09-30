@@ -1,0 +1,70 @@
+{
+  "exports": [
+    {
+      "asset": "Ground_Moss_Patch_01",
+      "lod": 0,
+      "file": "FBX/Ground_Moss_Patch_01_LOD0.fbx",
+      "dimensions_m": [
+        2.0,
+        1.600000023841858,
+        0.014764402993023396
+      ],
+      "triangles": 6816,
+      "meshes": 1,
+      "low_tip_clusters": 560,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9999999552965164,
+        1.5999999642372131,
+        0.014764469156989828
+      ],
+      "minimum_z": -6.039831745852098e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Ground_Moss_Patch_01",
+      "lod": 1,
+      "file": "FBX/Ground_Moss_Patch_01_LOD1.fbx",
+      "dimensions_m": [
+        2.0,
+        1.600000023841858,
+        0.01451447606086731
+      ],
+      "triangles": 1562,
+      "meshes": 1,
+      "low_tip_clusters": 187,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9999999552965164,
+        1.5999999642372131,
+        0.014514540133221007
+      ],
+      "minimum_z": -6.039831745852098e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Ground_Moss_Patch_01",
+      "lod": 2,
+      "file": "FBX/Ground_Moss_Patch_01_LOD2.fbx",
+      "dimensions_m": [
+        2.0,
+        1.600000023841858,
+        0.00438503734767437
+      ],
+      "triangles": 168,
+      "meshes": 1,
+      "low_tip_clusters": 0,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.9999999552965164,
+        1.5999999642372131,
+        0.004385108399500089
+      ],
+      "minimum_z": -6.039831745852098e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

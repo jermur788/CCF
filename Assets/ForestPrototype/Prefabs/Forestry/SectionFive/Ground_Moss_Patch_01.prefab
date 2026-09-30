@@ -1,0 +1,278 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3274007837406526565
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8936226495570656414}
+  - component: {fileID: 2104430170748297472}
+  m_Layer: 0
+  m_Name: Ground_Moss_Patch_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8936226495570656414
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3274007837406526565}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 564942713124148379}
+  - {fileID: 927651709432715195}
+  - {fileID: 930799942748021284}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &2104430170748297472
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3274007837406526565}
+  serializedVersion: 3
+  m_LocalReferencePoint: {x: 0, y: 0.0073822015, z: 0}
+  m_Size: 2
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.35
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 5599816934837491146}
+  - screenRelativeHeight: 0.12
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 5477322782376726927}
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 3880976629259863362}
+  m_Enabled: 1
+  m_GlobalIlluminationLOD: 0
+--- !u!1001 &26367504184554352
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8936226495570656414}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: m_Name
+      value: Ground_Moss_Patch_01_LOD0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5614624033912661690, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 137c1f285cd1da85cbaff2ab20da1aad, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+--- !u!4 &564942713124148379 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+  m_PrefabInstance: {fileID: 26367504184554352}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5599816934837491146 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5614624033912661690, guid: 87cc9520d8e07f2c4b879b4f675a3c95, type: 3}
+  m_PrefabInstance: {fileID: 26367504184554352}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &816584393349410896
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8936226495570656414}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4082993406840659489, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 137c1f285cd1da85cbaff2ab20da1aad, type: 2}
+    - target: {fileID: 919132149155446097, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+      propertyPath: m_Name
+      value: Ground_Moss_Patch_01_LOD1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+--- !u!4 &927651709432715195 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+  m_PrefabInstance: {fileID: 816584393349410896}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5477322782376726927 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4082993406840659489, guid: a389535977f6ccfe2a2db80d01537249, type: 3}
+  m_PrefabInstance: {fileID: 816584393349410896}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &819766048483853775
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8936226495570656414}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4702994625769586547, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 137c1f285cd1da85cbaff2ab20da1aad, type: 2}
+    - target: {fileID: 919132149155446097, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+      propertyPath: m_Name
+      value: Ground_Moss_Patch_01_LOD2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+--- !u!4 &930799942748021284 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+  m_PrefabInstance: {fileID: 819766048483853775}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &3880976629259863362 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4702994625769586547, guid: 6eb9aedabfee1d121a0374fac2f15620, type: 3}
+  m_PrefabInstance: {fileID: 819766048483853775}
+  m_PrefabAsset: {fileID: 0}

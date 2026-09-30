@@ -1,0 +1,67 @@
+{
+  "exports": [
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 0,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6680762469768524,
+        0.7216620445251465,
+        0.47827431559562683
+      ],
+      "triangles": 13560,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6680762332362775,
+        0.7216620475152535,
+        0.47827429724500103
+      ],
+      "minimum_z": -7.73033789825153e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 1,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6676131784915924,
+        0.7214450836181641,
+        0.47815728187561035
+      ],
+      "triangles": 8072,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6676131671455536,
+        0.7214450675663873,
+        0.47815726243295364
+      ],
+      "minimum_z": -7.856814529929649e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 2,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6144661605358124,
+        0.6986614763736725,
+        0.46893492341041565
+      ],
+      "triangles": 2544,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6144661575302592,
+        0.6986614667659476,
+        0.468934901836851
+      ],
+      "minimum_z": -5.287432552136857e-09,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

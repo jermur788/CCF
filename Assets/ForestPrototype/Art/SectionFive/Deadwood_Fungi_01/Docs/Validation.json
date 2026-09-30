@@ -1,0 +1,127 @@
+{
+  "exports": [
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 0,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD0.fbx",
+      "dimensions_m": [
+        0.3012846112251282,
+        0.28432193398475647,
+        0.11078895628452301
+      ],
+      "triangles": 8676,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.3012846021067066,
+        0.2843219181635127,
+        0.11078896404200714
+      ],
+      "minimum_z": -3.1597154595718157e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 1,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD1.fbx",
+      "dimensions_m": [
+        0.3007091134786606,
+        0.28432534635066986,
+        0.11078895628452301
+      ],
+      "triangles": 3996,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.3007091168900775,
+        0.28432533231748913,
+        0.11078896404200714
+      ],
+      "minimum_z": -3.1597154595718157e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 2,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD2.fbx",
+      "dimensions_m": [
+        0.30004826188087463,
+        0.2837555259466171,
+        0.11066295951604843
+      ],
+      "triangles": 1584,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.30004825875055197,
+        0.28375551192617365,
+        0.11066296484183492
+      ],
+      "minimum_z": -3.4074105333404663e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 0,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD0.fbx",
+      "dimensions_m": [
+        0.30896125733852386,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 2088,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.308961260565491,
+        0.11006803300979062,
+        0.1473200002166628
+      ],
+      "minimum_z": 0.0,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 1,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD1.fbx",
+      "dimensions_m": [
+        0.3085085451602936,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 912,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.3085085323041259,
+        0.11006803300979062,
+        0.1473200002166628
+      ],
+      "minimum_z": 0.0,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 2,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD2.fbx",
+      "dimensions_m": [
+        0.3075680583715439,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 468,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.307568047324537,
+        0.11006803300979062,
+        0.1473200002166628
+      ],
+      "minimum_z": 0.0,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

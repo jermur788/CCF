@@ -1,0 +1,12 @@
+{
+  "status": "Offline previews inspected",
+  "previews": [
+    "Previews/close.png",
+    "Previews/hero.png",
+    "Previews/lods.png",
+    "Previews/profile.png",
+    "Previews/top.png"
+  ],
+  "unity_tested": false,
+  "limits": "Not an engine import/material, terrain-placement or performance acceptance test."
+}

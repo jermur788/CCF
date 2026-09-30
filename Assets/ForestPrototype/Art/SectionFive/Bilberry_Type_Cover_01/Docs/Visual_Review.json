@@ -1,0 +1,10 @@
+{
+  "status": "Offline previews inspected",
+  "previews": [
+    "Previews/close_Bilberry_Type_Cover_01.png",
+    "Previews/hero.png",
+    "Previews/lods_Bilberry_Type_Cover_01.png"
+  ],
+  "unity_tested": false,
+  "limits": "Not an engine import/material, terrain-placement or performance acceptance test."
+}

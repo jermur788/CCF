@@ -1,0 +1,154 @@
+{
+  "name": "Deadwood_Fungi_01",
+  "source": "Deadwood_Fungi_01.blend",
+  "family": "fungi",
+  "exports": [
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 0,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD0.fbx",
+      "dimensions_m": [
+        0.3012846112251282,
+        0.28432193398475647,
+        0.11078895628452301
+      ],
+      "triangles": 8676,
+      "meshes": 1
+    },
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 1,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD1.fbx",
+      "dimensions_m": [
+        0.3007091134786606,
+        0.28432534635066986,
+        0.11078895628452301
+      ],
+      "triangles": 3996,
+      "meshes": 1
+    },
+    {
+      "asset": "Deadwood_Mushroom_Cluster_01",
+      "lod": 2,
+      "file": "FBX/Deadwood_Mushroom_Cluster_01_LOD2.fbx",
+      "dimensions_m": [
+        0.30004826188087463,
+        0.2837555259466171,
+        0.11066295951604843
+      ],
+      "triangles": 1584,
+      "meshes": 1
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 0,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD0.fbx",
+      "dimensions_m": [
+        0.30896125733852386,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 2088,
+      "meshes": 1
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 1,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD1.fbx",
+      "dimensions_m": [
+        0.3085085451602936,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 912,
+      "meshes": 1
+    },
+    {
+      "asset": "Deadwood_Bracket_Cluster_01",
+      "lod": 2,
+      "file": "FBX/Deadwood_Bracket_Cluster_01_LOD2.fbx",
+      "dimensions_m": [
+        0.3075680583715439,
+        0.11006803810596466,
+        0.1473200023174286
+      ],
+      "triangles": 468,
+      "meshes": 1
+    }
+  ],
+  "materials": [
+    {
+      "name": "Fungi_Cap",
+      "color_linear": [
+        0.3,
+        0.2,
+        0.1
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false,
+      "base_color": "Textures/Fungi_Cap_BaseColor.png",
+      "normal": "Textures/Fungi_Cap_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Fungi_Cap_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Fungi_Cap_MetallicSmoothness.png"
+    },
+    {
+      "name": "Fungi_Underside",
+      "color_linear": [
+        0.62,
+        0.55,
+        0.42
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false,
+      "base_color": "Textures/Fungi_Underside_BaseColor.png",
+      "normal": "Textures/Fungi_Underside_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Fungi_Underside_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Fungi_Underside_MetallicSmoothness.png"
+    },
+    {
+      "name": "Bracket_Cap",
+      "color_linear": [
+        0.28,
+        0.18,
+        0.09
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false,
+      "base_color": "Textures/Bracket_Cap_BaseColor.png",
+      "normal": "Textures/Bracket_Cap_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Bracket_Cap_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Bracket_Cap_MetallicSmoothness.png"
+    },
+    {
+      "name": "Bracket_Pores",
+      "color_linear": [
+        0.63,
+        0.58,
+        0.46
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false,
+      "base_color": "Textures/Bracket_Pores_BaseColor.png",
+      "normal": "Textures/Bracket_Pores_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Bracket_Pores_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Bracket_Pores_MetallicSmoothness.png"
+    }
+  ],
+  "units": "metres",
+  "pivot": "ground-level origin",
+  "blender_up": "+Z",
+  "fbx_forward": "-Z",
+  "fbx_up": "+Y",
+  "visual_only": true,
+  "unity_tested": false,
+  "texture_provenance": "Procedurally authored colour/approximate normal/roughness; not scans",
+  "attachment_hint": "Bracket back is local Y=0; cap fronts point +Y. Align to substrate manually."
+}

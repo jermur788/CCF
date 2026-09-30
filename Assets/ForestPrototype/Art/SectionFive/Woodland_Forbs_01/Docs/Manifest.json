@@ -1,0 +1,139 @@
+{
+  "name": "Woodland_Forbs_01",
+  "source": "Woodland_Forbs_01.blend",
+  "family": "forbs",
+  "exports": [
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD0.fbx",
+      "dimensions_m": [
+        0.695845365524292,
+        0.7079645991325378,
+        0.14239493012428284
+      ],
+      "triangles": 1904,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6943071484565735,
+        0.7073736488819122,
+        0.1423151195049286
+      ],
+      "triangles": 1344,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6667690575122833,
+        0.7413389086723328,
+        0.13978920876979828
+      ],
+      "triangles": 576,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6775672137737274,
+        0.6620262563228607,
+        0.33444640040397644
+      ],
+      "triangles": 3682,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD1.fbx",
+      "dimensions_m": [
+        0.675506204366684,
+        0.6620262563228607,
+        0.3345257341861725
+      ],
+      "triangles": 2296,
+      "meshes": 1
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6931894719600677,
+        0.6848321557044983,
+        0.3342924118041992
+      ],
+      "triangles": 1288,
+      "meshes": 1
+    }
+  ],
+  "materials": [
+    {
+      "name": "Forb_Stems",
+      "color_linear": [
+        0.13,
+        0.23,
+        0.08
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false
+    },
+    {
+      "name": "Forb_Leaves",
+      "color_linear": [
+        0.08,
+        0.19,
+        0.06
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": true,
+      "base_color": "Textures/Woodland_Forb_Leaf_BaseColor.png",
+      "normal": "Textures/Woodland_Forb_Leaf_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Woodland_Forb_Leaf_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Woodland_Forb_Leaf_MetallicSmoothness.png"
+    },
+    {
+      "name": "Forb_Petals",
+      "color_linear": [
+        0.78,
+        0.77,
+        0.67
+      ],
+      "roughness": 0.86,
+      "alpha_mode": "opaque",
+      "double_sided": true
+    },
+    {
+      "name": "Forb_Flower_Centre",
+      "color_linear": [
+        0.44,
+        0.31,
+        0.075
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false
+    }
+  ],
+  "units": "metres",
+  "pivot": "ground-level origin",
+  "blender_up": "+Z",
+  "fbx_forward": "-Z",
+  "fbx_up": "+Y",
+  "visual_only": true,
+  "unity_tested": false,
+  "texture_provenance": "Procedurally authored colour/approximate normal/roughness; not scans",
+  "attachment_hint": null
+}

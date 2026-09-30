@@ -1,0 +1,127 @@
+{
+  "exports": [
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD0.fbx",
+      "dimensions_m": [
+        0.695845365524292,
+        0.7079645991325378,
+        0.14239493012428284
+      ],
+      "triangles": 1904,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6958453213607072,
+        0.7079645787122795,
+        0.14239494247007867
+      ],
+      "minimum_z": -3.189261883328167e-11,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6943071484565735,
+        0.7073736488819122,
+        0.1423151195049286
+      ],
+      "triangles": 1344,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6943071210166707,
+        0.7073736440547663,
+        0.14231509724121394
+      ],
+      "minimum_z": 9.975804492762537e-12,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Forb_Rosette_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Forb_Rosette_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6667690575122833,
+        0.7413389086723328,
+        0.13978920876979828
+      ],
+      "triangles": 576,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6667690128065118,
+        0.7413388653007056,
+        0.13978918224951345
+      ],
+      "minimum_z": 2.442197222130092e-09,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 0,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6775672137737274,
+        0.6620262563228607,
+        0.33444640040397644
+      ],
+      "triangles": 3682,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.6775671998210129,
+        0.6620262362907496,
+        0.33444639673187054
+      ],
+      "minimum_z": -1.0753351948610878e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 1,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD1.fbx",
+      "dimensions_m": [
+        0.675506204366684,
+        0.6620262563228607,
+        0.3345257341861725
+      ],
+      "triangles": 2296,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.675506195228408,
+        0.6620262362907503,
+        0.33452570424496664
+      ],
+      "minimum_z": -1.0712068356310026e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Woodland_Forb_Flowering_01",
+      "lod": 2,
+      "file": "FBX/Woodland_Forb_Flowering_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6931894719600677,
+        0.6848321557044983,
+        0.3342924118041992
+      ],
+      "triangles": 1288,
+      "meshes": 1,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        0.693189452889797,
+        0.6848321341584771,
+        0.33429237463419026
+      ],
+      "minimum_z": 1.2019157231238284e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

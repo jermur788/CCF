@@ -1,0 +1,11 @@
+{
+  "status": "Offline previews inspected",
+  "previews": [
+    "Previews/close_Woodland_Forb_Flowering_01.png",
+    "Previews/hero.png",
+    "Previews/lods_Woodland_Forb_Flowering_01.png",
+    "Previews/lods_Woodland_Forb_Rosette_01.png"
+  ],
+  "unity_tested": false,
+  "limits": "Not an engine import/material, terrain-placement or performance acceptance test."
+}

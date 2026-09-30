@@ -24,10 +24,20 @@ public static class RecentDeliveriesAssetSetup
         SectionFiveAssetSetup.CopyPackage("Woodland_Grass_Rush", Grass.Concat(Rush).ToArray(), true);
         SectionFiveAssetSetup.CopyPackage("SS_Bent_Refined_Set", Bent, true);
         SectionFiveAssetSetup.CopyPackage("SS_Cavity_Refined_Set", Cavity, true);
+        SectionFiveAssetSetup.CopyPackage("Bilberry_Type_Cover_01", new[] { "Bilberry_Type_Cover_01" }, true);
+        SectionFiveAssetSetup.CopyPackage("Woodland_Forbs_01", new[] { "Woodland_Forb_Rosette_01", "Woodland_Forb_Flowering_01" }, true);
+        SectionFiveAssetSetup.CopyPackage("Ground_Moss_Flat_01", new[] { "Ground_Moss_Patch_01" }, true);
+        SectionFiveAssetSetup.CopyPackage("Deadwood_Fungi_01", new[] { "Deadwood_Mushroom_Cluster_01", "Deadwood_Bracket_Cluster_01" }, true);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         foreach (string name in Grass.Concat(Rush)) SectionFiveAssetSetup.Build("Woodland_Grass_Rush", name, true);
         foreach (string name in Bent) SectionFiveAssetSetup.Build("SS_Bent_Refined_Set", name, true);
         foreach (string name in Cavity) SectionFiveAssetSetup.Build("SS_Cavity_Refined_Set", name, true);
+        SectionFiveAssetSetup.Build("Bilberry_Type_Cover_01", "Bilberry_Type_Cover_01", true);
+        SectionFiveAssetSetup.Build("Woodland_Forbs_01", "Woodland_Forb_Rosette_01", true);
+        SectionFiveAssetSetup.Build("Woodland_Forbs_01", "Woodland_Forb_Flowering_01", true);
+        SectionFiveAssetSetup.Build("Ground_Moss_Flat_01", "Ground_Moss_Patch_01", true);
+        SectionFiveAssetSetup.Build("Deadwood_Fungi_01", "Deadwood_Mushroom_Cluster_01", true);
+        SectionFiveAssetSetup.Build("Deadwood_Fungi_01", "Deadwood_Bracket_Cluster_01", true);
         RecentAssetVisualCatalog catalog = AssetDatabase.LoadAssetAtPath<RecentAssetVisualCatalog>(CatalogPath);
         if (catalog == null)
         {
@@ -36,13 +46,19 @@ public static class RecentDeliveriesAssetSetup
         }
         catalog.grasses = Grass.Select(Load).ToArray(); catalog.rushes = Rush.Select(Load).ToArray();
         catalog.bentStages = Bent.Select(Load).ToArray(); catalog.cavityStages = Cavity.Select(Load).ToArray();
+        catalog.bilberryCover = Load("Bilberry_Type_Cover_01");
+        catalog.herbRosette = Load("Woodland_Forb_Rosette_01");
+        catalog.herbFlowering = Load("Woodland_Forb_Flowering_01");
+        catalog.groundMoss = Load("Ground_Moss_Patch_01");
+        catalog.deadwoodMushroom = Load("Deadwood_Mushroom_Cluster_01");
+        catalog.deadwoodBracket = Load("Deadwood_Bracket_Cluster_01");
         EditorUtility.SetDirty(catalog);
         AssetDatabase.SaveAssets();
         WireMainGame();
         BuildReviewScene();
         ValidateAssets();
         ValidateReviewScene();
-        Debug.Log("RECENT_DELIVERIES_BUILD_PASS models=33 prefabs=11 grassVariants=3 reviewScene=" + ReviewScene);
+        Debug.Log("RECENT_DELIVERIES_BUILD_PASS models=57 prefabs=17 grassVariants=3 habitatAssets=6 reviewScene=" + ReviewScene);
     }
 
     [MenuItem("Tools/Forest Prototype/Use Recent Assets in Main Game")]

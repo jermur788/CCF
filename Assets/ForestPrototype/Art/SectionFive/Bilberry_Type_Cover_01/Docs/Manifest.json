@@ -1,0 +1,103 @@
+{
+  "name": "Bilberry_Type_Cover_01",
+  "source": "Bilberry_Type_Cover_01.blend",
+  "family": "bilberry",
+  "exports": [
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 0,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD0.fbx",
+      "dimensions_m": [
+        0.6680762469768524,
+        0.7216620445251465,
+        0.47827431559562683
+      ],
+      "triangles": 13560,
+      "meshes": 1
+    },
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 1,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD1.fbx",
+      "dimensions_m": [
+        0.6676131784915924,
+        0.7214450836181641,
+        0.47815728187561035
+      ],
+      "triangles": 8072,
+      "meshes": 1
+    },
+    {
+      "asset": "Bilberry_Type_Cover_01",
+      "lod": 2,
+      "file": "FBX/Bilberry_Type_Cover_01_LOD2.fbx",
+      "dimensions_m": [
+        0.6144661605358124,
+        0.6986614763736725,
+        0.46893492341041565
+      ],
+      "triangles": 2544,
+      "meshes": 1
+    }
+  ],
+  "materials": [
+    {
+      "name": "Bilberry_Stems",
+      "color_linear": [
+        0.16,
+        0.22,
+        0.095
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false
+    },
+    {
+      "name": "Bilberry_Leaves",
+      "color_linear": [
+        0.04,
+        0.12,
+        0.04
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": true,
+      "base_color": "Textures/Bilberry_Leaf_BaseColor.png",
+      "normal": "Textures/Bilberry_Leaf_Normal.png",
+      "normal_strength": 0.45,
+      "roughness_map": "Textures/Bilberry_Leaf_Roughness.png",
+      "unity_metallic_smoothness": "Textures/Bilberry_Leaf_MetallicSmoothness.png"
+    },
+    {
+      "name": "Bilberry_Berries",
+      "color_linear": [
+        0.035,
+        0.055,
+        0.095
+      ],
+      "roughness": 0.74,
+      "alpha_mode": "opaque",
+      "double_sided": false
+    },
+    {
+      "name": "Berry_Calyx",
+      "color_linear": [
+        0.045,
+        0.07,
+        0.035
+      ],
+      "roughness": 0.88,
+      "alpha_mode": "opaque",
+      "double_sided": false
+    }
+  ],
+  "units": "metres",
+  "pivot": "ground-level origin",
+  "blender_up": "+Z",
+  "fbx_forward": "-Z",
+  "fbx_up": "+Y",
+  "visual_only": true,
+  "unity_tested": false,
+  "texture_provenance": "Procedurally authored colour/approximate normal/roughness; not scans",
+  "attachment_hint": null
+}

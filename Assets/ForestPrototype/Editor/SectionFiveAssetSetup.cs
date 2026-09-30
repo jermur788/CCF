@@ -189,6 +189,7 @@ public static class SectionFiveAssetSetup
         string texture = null;
         bool cutout = false, twoSided = false;
         float cutoff = 0.4f, smoothness = 0.06f;
+        Color? tint = null;
         bool refinedTree = package == "SS_Bent_Refined_Set" || package == "SS_Cavity_Refined_Set";
         if (package == "Forest_Floor_Detail")
         {
@@ -210,6 +211,47 @@ public static class SectionFiveAssetSetup
         {
             if (key.Contains("grass") && !key.Contains("dry")) texture = "Woodland_Leaf_Albedo.png";
             twoSided = true; // geometric blade/stem silhouettes, no alpha cards
+        }
+        else if (package == "Bilberry_Type_Cover_01")
+        {
+            if (key == "bilberry_leaves")
+            {
+                texture = "Bilberry_Leaf_BaseColor.png";
+                cutout = true; twoSided = true; cutoff = 0.35f; smoothness = 0.12f;
+            }
+            else if (key == "bilberry_stems") { tint = new Color(0.16f, 0.22f, 0.095f); smoothness = 0.12f; }
+            else if (key == "bilberry_berries") { tint = new Color(0.035f, 0.055f, 0.095f); smoothness = 0.26f; }
+            else if (key == "berry_calyx") { tint = new Color(0.045f, 0.07f, 0.035f); smoothness = 0.12f; }
+            else throw new InvalidOperationException("Unmapped Bilberry material: " + name);
+        }
+        else if (package == "Woodland_Forbs_01")
+        {
+            if (key == "forb_leaves")
+            {
+                texture = "Woodland_Forb_Leaf_BaseColor.png";
+                cutout = true; twoSided = true; cutoff = 0.35f; smoothness = 0.12f;
+            }
+            else if (key == "forb_stems") { tint = new Color(0.13f, 0.23f, 0.08f); smoothness = 0.12f; }
+            else if (key == "forb_petals") { tint = new Color(0.78f, 0.77f, 0.67f); twoSided = true; smoothness = 0.14f; }
+            else if (key == "forb_flower_centre") { tint = new Color(0.44f, 0.31f, 0.075f); smoothness = 0.12f; }
+            else throw new InvalidOperationException("Unmapped Forbs material: " + name);
+        }
+        else if (package == "Deadwood_Fungi_01")
+        {
+            if (key == "fungi_cap") { texture = "Fungi_Cap_BaseColor.png"; smoothness = 0.14f; }
+            else if (key == "fungi_underside") { texture = "Fungi_Underside_BaseColor.png"; smoothness = 0.14f; }
+            else if (key == "bracket_cap") { texture = "Bracket_Cap_BaseColor.png"; smoothness = 0.14f; }
+            else if (key == "bracket_pores") { texture = "Bracket_Pores_BaseColor.png"; smoothness = 0.14f; }
+            else throw new InvalidOperationException("Unmapped Fungi material: " + name);
+        }
+        else if (package == "Ground_Moss_Flat_01")
+        {
+            if (key == "ground_moss" || key == "moss" || key.Contains("moss"))
+            {
+                texture = "Ground_Moss_BaseColorAlpha.png";
+                cutout = true; twoSided = true; cutoff = 0.45f; smoothness = 0.1f;
+            }
+            else throw new InvalidOperationException("Unmapped Moss material: " + name);
         }
         else if (refinedTree)
         {
@@ -250,6 +292,37 @@ public static class SectionFiveAssetSetup
                 importer.sRGBTexture = true; importer.SaveAndReimport();
             }
         }
+        // Textured habitat materials: apply normal and metallic/smoothness maps
+        // per the delivered Materials_URP.md specs (normal strength ~0.45,
+        // metallic 0, smoothness from MS alpha where supplied).
+        if (texture != null && (package == "Bilberry_Type_Cover_01" || package == "Woodland_Forbs_01"
+            || package == "Deadwood_Fungi_01" || package == "Ground_Moss_Flat_01"))
+        {
+            string normalName = texture.Replace("_BaseColor.png", "_Normal.png")
+                .Replace("_BaseColorAlpha.png", "_Normal.png");
+            string msName = texture.Replace("_BaseColor.png", "_MetallicSmoothness.png")
+                .Replace("_BaseColorAlpha.png", "_MetallicSmoothness.png");
+            string normalPath = Art + package + "/Textures/" + normalName;
+            string msPath = Art + package + "/Textures/" + msName;
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath) != null)
+            {
+                var nImp = (TextureImporter)AssetImporter.GetAtPath(normalPath);
+                if (nImp.textureType != TextureImporterType.NormalMap)
+                { nImp.textureType = TextureImporterType.NormalMap; nImp.SaveAndReimport(); }
+                material.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+                material.SetFloat("_BumpScale", 0.45f); material.EnableKeyword("_NORMALMAP");
+            }
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(msPath) != null)
+            {
+                var msImp = (TextureImporter)AssetImporter.GetAtPath(msPath);
+                if (msImp.sRGBTexture) { msImp.sRGBTexture = false; msImp.SaveAndReimport(); }
+                material.SetTexture("_MetallicGlossMap", AssetDatabase.LoadAssetAtPath<Texture2D>(msPath));
+                material.SetFloat("_SmoothnessTextureChannel", 0f);
+                material.SetFloat("_Metallic", 0f); material.SetFloat("_Smoothness", 1f);
+                material.EnableKeyword("_METALLICSPECGLOSSMAP");
+            }
+        }
+
         if (refinedTree && key == "ss_benchmark_bark")
         {
             string normalPath = Art + package + "/Textures/Sitka_Bark_Normal_v2.png";
@@ -262,6 +335,7 @@ public static class SectionFiveAssetSetup
             // roughness data. Use matte bark rather than reintroducing shine.
             material.SetTexture("_MetallicGlossMap", null); material.DisableKeyword("_METALLICSPECGLOSSMAP");
         }
+        if (tint.HasValue) { material.SetColor("_BaseColor", tint.Value); material.SetColor("_Color", tint.Value); }
         material.SetFloat("_Smoothness", smoothness); material.SetFloat("_Metallic", 0f);
         material.SetFloat("_Cull", twoSided ? 0f : 2f); material.doubleSidedGI = twoSided;
         material.SetFloat("_AlphaClip", cutout ? 1f : 0f); material.SetFloat("_Cutoff", cutoff);

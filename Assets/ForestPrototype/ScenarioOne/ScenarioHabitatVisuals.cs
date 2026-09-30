@@ -48,8 +48,10 @@ public static class ScenarioHabitatPalette
     }
 }
 
-// Eight collision-free display meshes. Each mesh is rebuilt from current cells
-// and log records on load/annual resolution; nothing here enters a world save.
+// Habitat presentation layer. Delivered assets (bilberry, herbs, ground moss,
+// deadwood fungi) replace procedural placeholders; remaining classes use
+// lightweight meshes. Rebuilt from current cells and log records on load/annual
+// resolution; nothing here enters a world save.
 [DisallowMultipleComponent]
 public sealed class ScenarioHabitatVisuals : MonoBehaviour
 {
@@ -139,13 +141,21 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
             foreach (ScenarioDeadwoodRecord log in deadwood)
             {
                 if (log == null || log.remainingVolumeM3 <= 0f || log.DecayClass < 2) continue;
-                for (int i = 0; i < Mathf.Min(4, log.DecayClass); i++)
+                int fungiCount = Mathf.Min(4, log.DecayClass);
+                for (int i = 0; i < fungiCount; i++)
                 {
-                    float angle = i * Mathf.PI * 2f / Mathf.Min(4, log.DecayClass);
+                    float angle = i * Mathf.PI * 2f / fungiCount;
                     Vector3 place = log.worldPosition + new Vector3(Mathf.Cos(angle), 0f,
                         Mathf.Sin(angle)) * Mathf.Max(0.18f, log.originalDiameterCm / 150f);
-                    AddPlant(vertices[7], triangles[7], place, HabitatVisualClass.DeadwoodFungi,
-                        angle, 0.7f + 0.1f * log.DecayClass);
+                    GameObject fungiPrefab = (i % 2 == 0 ? recentCatalog?.deadwoodMushroom
+                        : recentCatalog?.deadwoodBracket) ?? recentCatalog?.deadwoodMushroom
+                        ?? recentCatalog?.deadwoodBracket;
+                    if (fungiPrefab != null)
+                        authoredVertices[7] += Place(fungiPrefab, place, angle * Mathf.Rad2Deg,
+                            0.7f + 0.1f * log.DecayClass);
+                    else
+                        AddPlant(vertices[7], triangles[7], place, HabitatVisualClass.DeadwoodFungi,
+                            angle, 0.7f + 0.1f * log.DecayClass);
                 }
                 if (catalog != null)
                 {
@@ -173,8 +183,19 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
 
     private GameObject PrefabFor(HabitatVisualClass kind, int cell, int plant)
     {
+        if (recentCatalog == null) recentCatalog = RecentAssetVisualCatalog.Load();
         if (kind == HabitatVisualClass.Grass && recentCatalog?.grasses != null && recentCatalog.grasses.Length > 0)
             return recentCatalog.grasses[(cell + plant) % recentCatalog.grasses.Length];
+        if (kind == HabitatVisualClass.MossCarpet && recentCatalog?.groundMoss != null)
+            return recentCatalog.groundMoss;
+        if (kind == HabitatVisualClass.DwarfShrubType && recentCatalog?.bilberryCover != null)
+            return recentCatalog.bilberryCover;
+        if (kind == HabitatVisualClass.GenericHerbs && recentCatalog != null)
+        {
+            GameObject[] herbs = { recentCatalog.herbRosette, recentCatalog.herbFlowering };
+            GameObject pick = herbs[(cell + plant) % 2];
+            return pick ?? herbs[0] ?? herbs[1];
+        }
         if (catalog == null) return null;
         switch (kind)
         {

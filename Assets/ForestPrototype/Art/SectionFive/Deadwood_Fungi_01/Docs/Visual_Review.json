@@ -1,0 +1,14 @@
+{
+  "status": "Offline previews inspected",
+  "previews": [
+    "Previews/close_Deadwood_Mushroom_Cluster_01.png",
+    "Previews/context.png",
+    "Previews/hero.png",
+    "Previews/lods_Deadwood_Bracket_Cluster_01.png",
+    "Previews/lods_Deadwood_Mushroom_Cluster_01.png",
+    "Previews/underside_Deadwood_Bracket_Cluster_01.png",
+    "Previews/underside_Deadwood_Mushroom_Cluster_01.png"
+  ],
+  "unity_tested": false,
+  "limits": "Not an engine import/material, terrain-placement or performance acceptance test."
+}

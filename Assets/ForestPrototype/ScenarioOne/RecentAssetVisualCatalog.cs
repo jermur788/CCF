@@ -7,6 +7,12 @@ public sealed class RecentAssetVisualCatalog : ScriptableObject
     public GameObject[] rushes;
     public GameObject[] bentStages;
     public GameObject[] cavityStages;
+    public GameObject bilberryCover;
+    public GameObject herbRosette;
+    public GameObject herbFlowering;
+    public GameObject groundMoss;
+    public GameObject deadwoodMushroom;
+    public GameObject deadwoodBracket;
     [Tooltip("Authored floor-dressing anchors in the playable stand, not soil/moisture observations.")]
     public Vector3[] rushDressingPositions;
 
