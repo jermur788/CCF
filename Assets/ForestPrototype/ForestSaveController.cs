@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,6 +13,10 @@ public sealed class ForestSaveController : MonoBehaviour
     private GUIStyle messageStyle;
 
     private static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
+    // The new save is written here first and only swapped in once complete.
+    private static string TempSavePath => SavePath + ".tmp";
+    // The previous good save, kept by the swap so a bad save is recoverable.
+    private static string BackupSavePath => SavePath + ".bak";
 
     private void Update()
     {
@@ -34,8 +39,62 @@ public sealed class ForestSaveController : MonoBehaviour
     public void Save()
     {
         ForestSaveData data = CaptureData();
-        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
+        try
+        {
+            WriteSaveAtomically(JsonUtility.ToJson(data, true));
+        }
+        catch (System.Exception error) when (error is IOException || error is System.UnauthorizedAccessException)
+        {
+            Debug.LogError($"Saving to {SavePath} failed: {error}");
+            SetMessage("Save failed: the file could not be written. Your previous save is unchanged.");
+            return;
+        }
         SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
+    }
+
+    // Writing straight over the only save slot means a crash or full disk
+    // mid-write leaves a half-written file and no good save. Instead the new
+    // save goes to a temporary file, is flushed to disk, and then replaces
+    // the old one in a single step; the old save is kept as a .bak copy.
+    private static void WriteSaveAtomically(string json)
+    {
+        string temp = TempSavePath;
+        try
+        {
+            using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+            {
+                writer.Write(json);
+                writer.Flush();
+                stream.Flush(true);
+            }
+
+            if (!File.Exists(SavePath))
+            {
+                File.Move(temp, SavePath);
+                return;
+            }
+            try
+            {
+                File.Replace(temp, SavePath, BackupSavePath);
+            }
+            catch (System.PlatformNotSupportedException)
+            {
+                // Some platforms lack an atomic replace. Keep a backup, then copy.
+                File.Copy(SavePath, BackupSavePath, true);
+                File.Copy(temp, SavePath, true);
+                File.Delete(temp);
+            }
+        }
+        finally
+        {
+            // Never leave a stray temporary file behind after a failure.
+            if (File.Exists(temp))
+            {
+                try { File.Delete(temp); }
+                catch (IOException) { }
+            }
+        }
     }
 
     // The same authoritative capture powers local saves and verified reference
@@ -159,27 +218,53 @@ public sealed class ForestSaveController : MonoBehaviour
             return;
         }
 
-        LoadData(JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath)));
-    }
-
-    public void LoadData(ForestSaveData data, bool showMessage = true)
-    {
-        if (data == null)
+        ForestSaveData data;
+        try
         {
-            SetMessage("Save file unreadable");
+            data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath));
+        }
+        catch (System.Exception error) when (error is System.ArgumentException || error is IOException
+            || error is System.UnauthorizedAccessException)
+        {
+            // ArgumentException is JsonUtility's error for malformed JSON.
+            Debug.LogWarning($"Could not read save {SavePath}: {error}");
+            SetMessage(File.Exists(BackupSavePath)
+                ? $"Save file unreadable. The previous save is kept as {SaveFileName}.bak."
+                : "Save file unreadable.");
             return;
         }
+        LoadData(data);
+    }
 
+    // Returns false, without changing the world, when the data is not a
+    // usable save. Every check runs before the first change to the scene.
+    public bool LoadData(ForestSaveData data, bool showMessage = true)
+    {
         // Saves written before versioning load as version 1. Future migrations belong here.
-        if (data.version <= 0)
+        if (data != null && data.version <= 0)
             data.version = 1;
-        if (data.version > ForestSaveData.CurrentVersion)
-            Debug.LogWarning($"Save version {data.version} is newer than supported version {ForestSaveData.CurrentVersion}; loading best-effort.");
 
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+
+        string problem = ForestSaveValidation.Validate(data, trees.Length,
+            ecology != null ? ecology.CellCount : 0);
+        ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
+        if (problem == null && data.trees.Count > 0 && spawner == null)
+            problem = "the scene has no tree spawner to restore trees with";
+        if (problem != null)
+        {
+            Debug.LogWarning($"Save rejected before loading: {problem}. The current forest was not changed.");
+            if (showMessage)
+                SetMessage($"Save not loaded: {problem}.");
+            return false;
+        }
+
+        if (data.version > ForestSaveData.CurrentVersion)
+            Debug.LogWarning($"Save version {data.version} is newer than supported version {ForestSaveData.CurrentVersion}; loading best-effort.");
 
         if (player != null)
             player.RestoreCarriedWood(data.wood);
@@ -213,12 +298,6 @@ public sealed class ForestSaveController : MonoBehaviour
 
         if (data.trees != null)
         {
-            ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
-            if (spawner == null)
-            {
-                Debug.LogError("Cannot load tree species without a ForestTreeSpawner.");
-                return;
-            }
             foreach (TreeSaveData saved in data.trees)
             {
                 bool legacySpecies = data.version < 7 || string.IsNullOrEmpty(saved.speciesId);
@@ -310,7 +389,6 @@ public sealed class ForestSaveController : MonoBehaviour
             }
         }
 
-        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology != null)
         {
             if (data.version >= 3)
@@ -346,6 +424,7 @@ public sealed class ForestSaveController : MonoBehaviour
             message = "";
             messageTimer = 0f;
         }
+        return true;
     }
 
     private void SetMessage(string text)

@@ -441,7 +441,16 @@ public sealed class ScenarioOneManager : MonoBehaviour
         SetWorkPlanOpen(false);
         previewYear = year;
         referencePreviewActive = true;
-        saves.LoadData(example, false);
+        if (!saves.LoadData(example, false))
+        {
+            // The milestone was rejected before anything in the world changed,
+            // so the player's own forest is still in place.
+            referencePreviewActive = false;
+            previewReturnData = null;
+            previewYear = 0;
+            feedback = "The reference milestone could not be loaded; preview was not opened.";
+            return false;
+        }
         MoveToReferenceView(example);
         return true;
     }
@@ -452,8 +461,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
             return;
         referencePreviewActive = false;
         ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
-        if (saves != null && previewReturnData != null)
-            saves.LoadData(previewReturnData, false);
+        if (saves != null && previewReturnData != null && !saves.LoadData(previewReturnData, false))
+            Debug.LogError("Returning from the reference preview failed: the captured forest was rejected on reload.", this);
         previewReturnData = null;
         player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)

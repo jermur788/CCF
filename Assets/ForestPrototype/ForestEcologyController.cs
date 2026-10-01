@@ -302,6 +302,11 @@ public sealed class ForestEcologyController : MonoBehaviour
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
         competitionCurrent = false;
+        // Per-tree diagnostics from the pre-load timeline do not describe the
+        // loaded forest (and can be keyed by trees the load destroys). Growth
+        // reappears after the next annual step; competition is rebuilt on demand.
+        competitionIndex.Clear();
+        annualDbhGrowth.Clear();
         timeLapseAccumulator = 0f;
         // Cells not present in the save must return to a clean state, or a second
         // load in the same session would inherit later regeneration.
@@ -645,7 +650,9 @@ public sealed class ForestEcologyController : MonoBehaviour
     private void UpdateCompetition(TreeSpeciesDefinition s)
     {
         competitionIndex.Clear();
-        annualDbhGrowth.Clear();
+        // annualDbhGrowth is deliberately not cleared here. This method also
+        // runs lazily when a tree is inspected after a felling, and clearing
+        // the growth record then would erase last year's growth for every tree.
         ForestTree[] trees = FindTrees();
         const float cutoffMeters = 20f; // [C] performance abstraction
 
@@ -712,6 +719,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     private void GrowAdults(TreeSpeciesDefinition s)
     {
         int yearsApplied = 1;
+        // Last year's growth record is replaced only here, by this year's growth.
+        annualDbhGrowth.Clear();
         ForestTree[] trees = FindTrees();
         foreach (ForestTree tree in trees)
         {
