@@ -1483,7 +1483,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             juvenile.ageYears += 1f;
             juvenile.heightMeters += species.RegenHeightGrowthMPerYear
                 * species.JuvenileLightResponse(cell.Light) * cell.SiteProductivity;
-            if (SurvivalRoll(juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)
+            if (SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)
                 >= species.JuvenileSurvivalResponse(cell.Light))
             {
                 juvenile.alive = false;
@@ -1499,16 +1499,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
             if (tree != null)
                 juvenile.promotedTreeId = treeId;
         }
-    }
-
-    private static float SurvivalRoll(string id, int year, int seed)
-    {
-        uint hash = 2166136261u;
-        foreach (char c in id)
-            hash = (hash ^ c) * 16777619u;
-        hash = (hash ^ (uint)year) * 16777619u;
-        hash = (hash ^ (uint)seed) * 16777619u;
-        return (hash & 0xFFFFFFu) / 16777216f;
     }
 
     private void ResolveRegenerationRemoval(ScenarioOneWorkOrder order, ScenarioAnnualReport report)

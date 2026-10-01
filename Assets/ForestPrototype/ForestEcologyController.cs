@@ -5,6 +5,8 @@ public sealed class ForestEcologyController : MonoBehaviour
 {
     [SerializeField] private int ecologicalYear;
     [SerializeField] private int simulationSeed = 20260914;
+    // 0 replays the original RNG seeding; see SimulationRandom. Stored in saves.
+    [SerializeField] private int rngModelVersion = SimulationRandom.LegacyModel;
     [SerializeField] private float standSizeMeters = 40f;
     [SerializeField] private float cellSizeMeters = 5f;
     [Tooltip("[D] Maximum recorded recent opening per cell. A treatment that fells several trees in one cell counts once up to this cap, so a legitimate group opening stays serious without reading as catastrophic. Calibration from the spatial treatment experiments.")]
@@ -72,6 +74,12 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (targetSpecies != null && mastBySpeciesId.TryGetValue(targetSpecies.SpeciesId, out MastState state))
             return state.Multiplier;
         return targetSpecies != null ? targetSpecies.MastNormalMultiplier : 1f;
+    }
+
+    public int RngModelVersion
+    {
+        get => rngModelVersion;
+        set => rngModelVersion = SimulationRandom.NormalizeModel(value);
     }
 
     public int SimulationSeed
@@ -277,7 +285,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
 
         ecologicalYear++;
-        var rng = new System.Random(unchecked(simulationSeed * 397) ^ ecologicalYear);
+        var rng = SimulationRandom.Create(rngModelVersion, simulationSeed, ecologicalYear, 0);
 
         // Annual order follows the Sitka report's sequence.
         UpdateCompetition(s);             // 1. competition from current neighbours
@@ -297,10 +305,11 @@ public sealed class ForestEcologyController : MonoBehaviour
         seedlingVisualsDirty = true;
     }
 
-    public void RestoreEcologyState(int year, int seed)
+    public void RestoreEcologyState(int year, int seed, int rngModel = SimulationRandom.LegacyModel)
     {
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
+        rngModelVersion = SimulationRandom.NormalizeModel(rngModel);
         competitionCurrent = false;
         // Per-tree diagnostics from the pre-load timeline do not describe the
         // loaded forest (and can be keyed by trees the load destroys). Growth
@@ -527,7 +536,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         TreeSpeciesDefinition s = ResolveSpecies();
         if (s == null)
             return;
-        var rng = new System.Random(unchecked(simulationSeed * 397) ^ ecologicalYear);
+        var rng = SimulationRandom.Create(rngModelVersion, simulationSeed, ecologicalYear, 0);
         UpdateAllMastStates(s, rng);
     }
 
@@ -837,8 +846,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
         hash ^= phase;
         hash *= 16777619u;
-        int seed = unchecked((simulationSeed * 397) ^ ecologicalYear ^ (int)hash);
-        return new System.Random(seed);
+        return SimulationRandom.Create(rngModelVersion, simulationSeed, ecologicalYear, unchecked((int)hash));
     }
 
     private void ComputeSeedRain(TreeSpeciesDefinition defaultSpecies)
