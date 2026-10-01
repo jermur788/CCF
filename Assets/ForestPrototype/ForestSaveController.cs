@@ -115,6 +115,7 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             data.ecologicalYear = ecology.EcologicalYear;
             data.simulationSeed = ecology.SimulationSeed;
+            data.rngModelVersion = ecology.RngModelVersion;
         }
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
@@ -393,7 +394,7 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             if (data.version >= 3)
             {
-                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed);
+                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed, data.rngModelVersion);
                 if (data.cells != null)
                 {
                     foreach (ForestCellSaveData saved in data.cells)
