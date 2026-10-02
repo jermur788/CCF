@@ -22,6 +22,8 @@ The Overall Manager reviewed the available conversation history before Revision 
 
 Historical dates remain broad where exact dates were not reconstructed.
 
+The accepted canonical-context sync packet on 2026-10-02 updates D-007, D-009 and D-010 and confirms D-041: simulation-first progression, separate worker/execution choices, and a genuinely bounded Scenario One property. The earlier three-stage roadmap is retained below as superseded history.
+
 ## Decisions
 
 | ID | Date | Topic | Status | Decision or position | Implication / notes |
@@ -32,10 +34,10 @@ Historical dates remain broad where exact dates were not reconstructed.
 | D-004 | 2026 | Player experience | Confirmed | **decide → advance time → walk landscape → observe/experience consequences → understand why → decide again**. | Consequences must be visible in 3D, not only reports. |
 | D-005 | 2026 | Reference scenario | Confirmed | Irish Sitka plantation conversion toward continuous-cover forestry. | Ireland is reference content, not an engine assumption. |
 | D-006 | 2026 | Scenario sequencing | Confirmed | Complete Scenario One before broad scenario/biome generalisation. | Avoid premature regional abstraction. |
-| D-007 | 2026 | Gameplay stages | Confirmed | Stage 1 Management Simulation; Stage 2 Hybrid Solo; Stage 3 later physical cooperative world. | Preserve later execution modes without building them early. |
+| D-007 | 2026-10-02 | Gameplay stages | Confirmed | Simulation-first progression: Stage 1 Forestry Management Simulation; Stage 2 Expanded Land-Management Simulation; Stage 3 Optional Manual / Hybrid Solo; Stage 4 Physical Cooperative World. | Broaden simulation/menu-resolved land management before introducing optional manual execution; cooperation is later. Supersedes H-004. |
 | D-008 | 2026 | Stage 1 time | Confirmed | Discrete annual ecological steps. | Seasons/finer time may follow for physical survival play. |
-| D-009 | 2026 | Work architecture | Confirmed | Decisions create tasks; execution is separate from world effect. | Contractor/manual/cooperative execution can share one ecological outcome. |
-| D-010 | 2026 | Work Plan | Confirmed | Review, cost, approve and resolve contractor work; do not spatially design the forest. | Spatial decisions are made while walking. |
+| D-009 | 2026-10-02 | Work architecture | Confirmed | decision → task → labour/material/tool requirements → execution method → authoritative world result. | Contractor versus landowner is separate from simulated versus manual execution. Contractor simulation, landowner simulation, optional manual solo and later cooperative manual share authoritative ecology/construction results. |
+| D-010 | 2026-10-02 | Work Plan | Confirmed | Review, cost, choose contractor or landowner, approve and resolve work through simulation; do not spatially design the forest. | Spatial decisions are made while walking. Landowner work can be menu-simulated; manual physical execution is not required in Stage 1. |
 | D-011 | 2026 | Progression | Confirmed | No XP ladder as main progression. | Capability, costs, logistics, tools, processing and choices drive progression. |
 | D-012 | 2026 | Tools/crafting | Confirmed | Recognisable tools; no primitive stone-age crafting ladder. | Keep survival/construction plausible. |
 | D-013 | 2026 | Tree marks | Confirmed | Red Fell and Blue Crop Tree/future timber are mutually exclusive. | Persistence details belong in Overview. |
@@ -66,6 +68,7 @@ Historical dates remain broad where exact dates were not reconstructed.
 | D-038 | 2026 | Creative reference | Confirmed | Valheim informs exploration, gathering, building, progression and cooperation, not a specification. | Preserve useful experience without incompatible mechanics. |
 | D-039 | 2026-10-02 | Technical stack | Open | Review/integrate, review/revise or park the save/RNG/batch/edge stack. | Independent review required for save/determinism/reference-sensitive work; frozen during setup. |
 | D-040 | 2026-10-02 | Context generation | Confirmed | One full Git SHA snapshots the complete context/instruction-source set; deterministic committed-source composites/mirrors; live locks excluded. | No dirty content under an old SHA; lock changes do not require reattachment. |
+| D-041 | 2026-10-02 | Scenario One property | Confirmed | Scenario One uses a genuinely bounded property. | Retains the Irish forestry reference scenario. |
 
 ## Superseded early directions
 
@@ -74,6 +77,7 @@ Historical dates remain broad where exact dates were not reconstructed.
 | H-001 | First prototype | Superseded | Small woodland, one tree type, harvesting/construction/regeneration/save-load. | Implemented project progressed beyond it; current scope is Milestone. |
 | H-002 | Time progression | Superseded | Continuous acceleration/seasons/discrete time undecided. | D-008 annual Stage 1; later stages remain open. |
 | H-003 | Forestry economics | Superseded in part | Budgets/timber prices undecided. | Scenario One contains economy; calibration remains adjustable. |
+| H-004 | Gameplay stages | Superseded | Stage 1 Management Simulation; Stage 2 Hybrid Solo; Stage 3 physical cooperative world. | D-007 simulation-first four-stage roadmap, with expanded land-management simulation before optional manual execution. |
 
 ## New decision template
 

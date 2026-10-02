@@ -41,6 +41,8 @@ Valheim remains a reference for exploration, gathering, building, progression an
 
 Scenario One is the reference implementation: conversion of an even-aged Irish Sitka spruce plantation toward continuous-cover forestry.
 
+Scenario One is a genuinely bounded property.
+
 Ireland is the authored ecological and cultural context for this scenario, not a hard-coded assumption of the engine.
 
 The project should keep a practical separation between core simulation/game systems, scenario/regional ecological data, and presentation/content packs. That separation should serve actual maintainability and future regional scenarios without creating speculative infrastructure.
@@ -49,27 +51,45 @@ Scenario One should be completed to a strong standard before broadening to many 
 
 ## Staged gameplay direction
 
-### Stage 1 — Management Simulation
+### Stage 1 — Forestry Management Simulation
 
-The player inspects the forest, makes spatial management decisions, builds an annual Work Plan, approves contractor work, advances one ecological year, reviews the results, and walks the changed forest.
+The player inspects the forest, makes spatial management decisions, builds an annual Work Plan, chooses who does the work, resolves it through simulation, advances one ecological year, reviews the results, and walks the changed forest.
 
-**inspect → mark/plan → approve → contractor executes → advance one year → ecology/economy update → review → walk**
+**inspect → mark/plan → choose who does work → resolve through simulation → advance time → ecology/economy update → review → walk**
 
-Stage 1 is the current reference mode for Scenario One.
+Work may be assigned to a contractor or the landowner. Landowner execution can still be simulated through menus; manual physical execution is not required in Stage 1. Stage 1 is the current forestry-focused reference mode for Scenario One.
 
-### Stage 2 — Hybrid Solo
+### Stage 2 — Expanded Land-Management Simulation
 
-The player can choose whether to perform some work manually or contract it out. Survival, construction, material handling and direct forestry work become more important, while preserving the same authoritative ecological consequences.
+Broaden the simulation before introducing manual execution. The direction includes:
 
-### Stage 3 — Physical Cooperative World
+- fruit and nut trees;
+- ponds and water storage;
+- biodiversity/habitat works;
+- fencing, paths and infrastructure;
+- earthworks and landscaping;
+- timber construction;
+- cob/earth construction where suitable;
+- stone walls;
+- broader regenerative/property-management systems.
 
-A later cooperative mode may use a persistent shared world in which players physically perform forestry, construction and land-management work. Preserve reasonable future multiplayer options, but do not build multiplayer infrastructure before a milestone needs it.
+These remain simulation/menu-resolved systems. Detailed Stage 2 mechanics belong in later accepted task scopes.
+
+### Stage 3 — Optional Manual / Hybrid Solo
+
+The player may optionally perform tasks physically that already exist in the authoritative simulation. Manual execution is an alternative execution method, not a second ecology/construction system.
+
+### Stage 4 — Physical Cooperative World
+
+A later cooperative mode may use a persistent shared world in which players physically perform the same authoritative forestry, construction and land-management tasks. Preserve reasonable future multiplayer options, but do not build multiplayer infrastructure before a milestone needs it.
 
 ## Management architecture principle
 
 **Management decisions create tasks. How a task is executed is separate from what the task does to the world.**
 
-The same ecological action can be completed by a contractor in Stage 1, by the player in Stage 2, or by players in a future cooperative world without duplicating the ecological rule.
+**decision → task → labour/material/tool requirements → execution method → authoritative world result**
+
+Possible execution methods are contractor simulation, landowner simulation, manual solo, and later cooperative manual. Choosing contractor versus landowner is separate from choosing simulated versus manual execution. All execution methods share the same authoritative world result rather than duplicating ecology or construction rules.
 
 ## Time
 
@@ -82,6 +102,8 @@ Long time horizons are part of the experience. Advance through decades while ret
 Survival and construction support the land-management game rather than replacing it. Use recognisable tools and plausible materials rather than a primitive stone-age crafting ladder.
 
 Future progression may include shelters/buildings, paths/signs/access infrastructure, suitable forestry residues or retained timber, fencing/tree protection, timber processing, food and other land uses.
+
+Retained forest timber may feed construction, and smaller timber may have lower-grade uses. Cob/earth construction depends on suitable material, and stone may be used where available. Pond excavation and earthworks may generate potentially reusable earth or stone; do not assume all excavated soil is suitable clay.
 
 Progression should come from capability, logistics, cost, maintenance and knowledge rather than a conventional XP ladder.
 

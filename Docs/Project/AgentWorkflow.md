@@ -244,6 +244,22 @@ Before integration inspect exact branch/HEAD and expected/unexpected changes; pr
 
 Independent review matters for expensive/subtle failures: ecology, saves, determinism/reference, large refactors, multiplayer architecture and substantial performance changes. Routine reversible work does not automatically require two agents.
 
+## Manager continuation after worker handoff
+
+After receiving a worker handoff, the Overall Manager must immediately triage it and keep the work moving.
+
+If the handoff is sufficiently clear, no user decision is required, no blocking conflict or mandatory review gate exists, and the next step is already implied by the accepted roadmap or task sequence, issue the next required bounded task packet or handoff in the same response. Do not wait for the user to ask for a handoff.
+
+Return to the user for a decision only when the next step requires a genuine product/design choice, material scope change, unresolved conflict, unsafe integration choice, or materially ambiguous direction.
+
+Independent review is not automatically required after every handoff. Follow the current review policy and batch reviews where appropriate; if review is deferred, record the implementation state accurately and continue with the next safe task.
+
 ## Manager workflow
 
-Inspect accepted state → choose next playable outcome → split parallel-safe tasks → update locks → assign workers → bounded packets with one context commit → locked-context execution → handoffs → specification/evidence review → one integrator → integrated gates → update canonical context → commit → regenerate mirrors/composites → refresh attachments → next outcome.
+1. Inspect accepted state and choose the next playable outcome.
+2. Split parallel-safe tasks, update locks, assign workers, and issue bounded packets with one context commit.
+3. Workers execute against locked context and return implementation handoffs.
+4. Immediately triage each handoff against specification, evidence and the current review policy. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
+5. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
+6. Use one authorised integrator for approved work and run required integrated gates.
+7. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
