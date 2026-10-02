@@ -23,6 +23,8 @@ At the supplied baseline, forestry/survival branches matched main. The separatel
 
 These changes are not in the pinned baseline. Their integration/acceptance must not be inferred from a branch label. The migration packet freezes these exact commits; it authorises no stack modification or merge. Verify other worktrees live rather than treating this baseline as their current state.
 
+Later state (verified 2026-10-02): all four stack commits are ancestors of `main` (via merge `8ae7a25`), and the combined ecology package is integrated on top — see **Integrated ecology package** below.
+
 ## Engine and environment
 
 | Detail | Baseline value |
@@ -63,6 +65,8 @@ Most code is in `Assets/ForestPrototype/`:
 |---|---|
 | Individuals | ForestTree: ID/species/state, exclusive marks, pruning history |
 | Ecology | ForestEcologyController: competition, canopy/light, growth, crowns, regeneration, seeds/establishment/promotion, diagnostics |
+| Juvenile rules | JuvenileEcologyRules: shared juvenile survival/growth/promotion path for natural cohorts and exact planted juveniles |
+| Mortality | ForestTree.ApplyMortality(cause, year): explicit biological death, separate from Fell() |
 | Natural regeneration | Species-keyed, origin/history-aware cell cohorts |
 | Exact planting | Scenario One individual juveniles until promotion |
 | Management | ScenarioOneManager: work, economy/history, nursery/planting, treatment patches, retained timber, reference and Work Plan |
@@ -73,7 +77,7 @@ Most code is in `Assets/ForestPrototype/`:
 
 ## Save and interactions
 
-Baseline `ForestSaveData.CurrentVersion = 13`; definition `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`.
+Baseline `ForestSaveData.CurrentVersion = 13`. Current integrated `main`: `ForestSaveData.CurrentVersion = 14` (adds biological-mortality cause/year); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v13 saves restore; atomic save hardening is in place.
 
 V13 includes two-type marks, exact juveniles, clearance patches, retained construction timber, management/economy/history, understorey, deadwood, work orders and pruning history.
 
@@ -109,14 +113,41 @@ Historical reference, intentionally frozen after the v13 overhaul:
 | Definition / save | scenario-one-v12 / v12 |
 | Seed | 20260914 |
 | Start | 336 Sitka; 2,100 stems/ha |
-| Canonical lifecycle | 7E39B70A14959FAD |
+| Historical canonical lifecycle (pre-calibration) | 7E39B70A14959FAD — superseded for current ecology |
 | Initial full world | A564039D9B7CE31D |
 | Schedule hash | 56C8B99FA1E8DDD1 |
 | Year 20 | F7DF7DAB53B6FD32 |
 | Year 50 | D5E75D6D21D631AC |
 | Year 100 | 7AD177B3CC2F73C7 |
 
+Contract (D-042, `Docs/ReferenceFutureContract.md`): immutable archive; integrity checked on the original embedded JSON, never by reserialising through current save classes; frozen milestones load/preview under current code; Year-50 historical save continues deterministically under the current ecology (v12 → v14). Exact historical biology replay is not required; continuation divergence is diagnostic only. A new model gets a new reference version, not an edit to v1.
+
 Schedule: `Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceScheduleV1.json`. Existing scenario/reference/art documentation is in `Assets/ForestPrototype/Docs/`, including `ScenarioOneReferenceFutureV1.md`; other verification/design documents are in root Docs.
+
+## Integrated ecology package
+
+Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6daf` onto context commit `cd239d7`, with no conflicts. The resulting gameplay integration head is `b1e6c51`. Its code tree is identical to `6dc6daf`; only main's newer canonical-context docs differ.
+
+- **Shared juvenile ecology:** `JuvenileEcologyRules` is the single biological path for natural cohorts and exact planted juveniles. Legacy planted cohorts remain compatible, exact planted identity/position/provenance is kept, and promotion is deterministic.
+- **Mortality foundation:** `ForestTree.ApplyMortality(cause, year)` sets `biologicallyDead` with cause and year. It is idempotent, excludes the tree from living systems, persists in save v14 and restores without mortality/harvest events. Ecological death is separate from `Fell()` and yields no timber or cash. There is no automatic adult mortality, no storms and no assumed deadwood disposition.
+- **C8 growth/competition (Sitka):** Hegyi cutoff 8 m (`ForestEcologyController.HegyiCutoffMeters`; global), Sitka Ci50 5, Sitka potential DBH growth 1.2 cm/yr. The competition equation is unchanged. Beech/Oak keep Ci50 3 and 0.4 cm/yr.
+- **k10a10 light:** canopy shade reach = 1.0 × crown radius + half a 5 m cell (2.5 m) (`CanopyShadeReachPerCrownRadius`, shared by the marking forecast). Opacity is an implicit 1.0 and the light equation is unchanged.
+- **Calibrated canonical lifecycle (RNG model 0, 80 years):** `BFC55473C1506067`. The calibration measurement hash is `D48A19525E69DD8A`.
+
+Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each gate in its own process with an isolated `XDG_CONFIG_HOME`):
+
+| Gate | Result |
+|---|---|
+| Import/compile | 0 compiler errors |
+| EcologyCalibrationAdoptionVerification | PASS. Hash D48A19525E69DD8A. Interior/whole 0.3566/0.3877. Q/moderate/heavy 1.171/1.558/1.739 (interior 1.844). Edge 1.130. Light at Y5/Y10: control 0.029/0.043, Q 0.045/0.061, moderate 0.148/0.163, heavy 0.254/0.257 |
+| JuvenileMortalityFoundationVerification | PASS. Shared juvenile rules (30 combinations), promotion persistence and tree mortality all pass |
+| Canonical lifecycle, two separate processes | BFC55473C1506067 both times. The integration harness also reproduced it in A/B runs |
+| Save hardening / RNG model / batch recompute | PASS |
+| Scenario One interaction / habitat presentation | PASS. Year-0 grass: 4 patches in 3 supported cells; dark-cell negative control detected |
+| Reference Future v1 | Archive integrity, archive negative control, preview Y0/20/50/100, current continuation (v12 → v14, deterministic) and contract all PASS. Year 100 = 7AD177B3CC2F73C7 |
+| CCFIntegrationVerificationTemp, Beech, Oak, Oak player planting, planting | PASS |
+
+The frozen archive and schedule blobs are byte-identical to the pre-integration main. A rendered ForestTest Year-0 smoke used an offscreen batch-mode render with Ultimate Nature present locally. The stand rendered normally, and grass appeared only at the bright clearing/road edge. This was not an interactive play session.
 
 ## Art and storage
 

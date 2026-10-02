@@ -24,6 +24,8 @@ Historical dates remain broad where exact dates were not reconstructed.
 
 The accepted canonical-context sync packet on 2026-10-02 updates D-007, D-009 and D-010 and confirms D-041: simulation-first progression, separate worker/execution choices, and a genuinely bounded Scenario One property. The earlier three-stage roadmap is retained below as superseded history.
 
+The user explicitly accepted the Reference Future v1 contract on 2026-10-02; it is recorded as D-042 after the combined ecology package was integrated and verified on main.
+
 ## Decisions
 
 | ID | Date | Topic | Status | Decision or position | Implication / notes |
@@ -69,6 +71,7 @@ The accepted canonical-context sync packet on 2026-10-02 updates D-007, D-009 an
 | D-039 | 2026-10-02 | Technical stack | Open | Review/integrate, review/revise or park the save/RNG/batch/edge stack. | Independent review required for save/determinism/reference-sensitive work; frozen during setup. |
 | D-040 | 2026-10-02 | Context generation | Confirmed | One full Git SHA snapshots the complete context/instruction-source set; deterministic committed-source composites/mirrors; live locks excluded. | No dirty content under an old SHA; lock changes do not require reattachment. |
 | D-041 | 2026-10-02 | Scenario One property | Confirmed | Scenario One uses a genuinely bounded property. | Retains the Irish forestry reference scenario. |
+| D-042 | 2026-10-02 | Reference Future v1 contract | Confirmed | Reference Future v1 is a frozen, immutable historical archive. Verification covers archive integrity against original embedded historical data, load/preview of frozen milestones, and deterministic continuation of historical saves using the current ecology. Exact reproduction of historical biology by later ecology versions is not required, and no versioned historical ecology engine is retained. | Integrity must not be tested by reserializing historical saves through current save classes. Continued biology may diverge diagnostically. A reference for a new model would be a new version, not an edit to v1. Detail: `Docs/ReferenceFutureContract.md`. |
 
 ## Superseded early directions
 
