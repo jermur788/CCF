@@ -47,6 +47,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     }
     private readonly Dictionary<string, MastState> mastBySpeciesId = new Dictionary<string, MastState>();
     private bool competitionCurrent;
+    private int batchDepth;
+    private bool recomputePending;
     private string lastMastLabel = "normal";
     private float lastMastMultiplier = 1f;
     private GUIStyle timeLapseStyle;
@@ -257,6 +259,26 @@ public sealed class ForestEcologyController : MonoBehaviour
         ForestTree.Felled -= OnTreeFelled;
     }
 
+    // Defers the canopy and seed-rain rebuild that follows each felling until
+    // EndChangeBatch, so a work-order resolution that fells N trees rebuilds
+    // once. Cell light and seed rain are stale inside a batch; the final state
+    // is identical to rebuilding after every felling. Calls may nest.
+    public void BeginChangeBatch()
+    {
+        batchDepth++;
+    }
+
+    public void EndChangeBatch()
+    {
+        if (batchDepth == 0)
+            return;
+        if (--batchDepth > 0 || !recomputePending)
+            return;
+        recomputePending = false;
+        RecomputeCanopy();
+        RecomputeSeedRain();
+    }
+
     private void OnTreeFelled(ForestTree tree)
     {
         if (cells != null && tree != null)
@@ -266,6 +288,13 @@ public sealed class ForestEcologyController : MonoBehaviour
                 cells[index].RecentOpening = Mathf.Min(cells[index].RecentOpening + 1f, maxRecentOpeningPerCell);
         }
         competitionCurrent = false;
+        // Each felling used to rebuild the whole canopy and seed rain. Inside
+        // a batch the rebuild is deferred and done once when the batch ends.
+        if (batchDepth > 0)
+        {
+            recomputePending = true;
+            return;
+        }
         RecomputeCanopy();
         RecomputeSeedRain();
         seedlingVisualsDirty = true;
@@ -654,8 +683,19 @@ public sealed class ForestEcologyController : MonoBehaviour
         return null;
     }
 
-    // Hegyi competition: CI = sum over nearby living neighbours of
-    // (DBH_neighbour / DBH_target) / distance_m. Local positions only.
+    // Neighbours farther than this do not compete. [C] performance abstraction.
+    public const float HegyiCutoffMeters = 20f;
+
+    // One neighbour's Hegyi term: (DBH_neighbour / DBH_target) / distance_m.
+    // Shared by forecasts (the marking manager). The annual step keeps an
+    // identical inline copy in UpdateCompetition to stay bit-exact.
+    public static float HegyiTerm(float neighbourDbhCm, float targetDbhCm, float distanceMeters)
+    {
+        return (neighbourDbhCm / Mathf.Max(1f, targetDbhCm)) / Mathf.Max(0.5f, distanceMeters);
+    }
+
+    // Hegyi competition: CI = sum over nearby living neighbours of HegyiTerm.
+    // Local positions only.
     private void UpdateCompetition(TreeSpeciesDefinition s)
     {
         competitionIndex.Clear();
@@ -663,7 +703,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         // runs lazily when a tree is inspected after a felling, and clearing
         // the growth record then would erase last year's growth for every tree.
         ForestTree[] trees = FindTrees();
-        const float cutoffMeters = 20f; // [C] performance abstraction
+        const float cutoffMeters = HegyiCutoffMeters;
 
         // Spatial pass v1: the pair loop used to fetch every neighbour's
         // transform.position from native code once per pair (~113k interop
@@ -716,6 +756,10 @@ public sealed class ForestEcologyController : MonoBehaviour
                 float distance = Vector2.Distance(targetPos, positions[j]);
                 if (distance > cutoffMeters)
                     continue;
+                // Kept inline, not HegyiTerm: routing this hot loop through the shared
+                // function changed the 80-year anchor hash (7E39B70A14959FAD became
+                // DDBBCBDEFAA4E644) even with AggressiveInlining, so the annual step
+                // stays bit-exact. HegyiTerm is the same expression for forecasts.
                 ci += (diameters[j] / Mathf.Max(1f, targetDiameter)) / Mathf.Max(0.5f, distance);
             }
             competitionIndex[target] = ci;
