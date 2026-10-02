@@ -44,6 +44,13 @@ public static class ForestSaveValidation
                 return $"tree {tree.treeId} has an unknown stage ({tree.stage})";
             if (!IsFinite(tree.stageTimer))
                 return $"tree {tree.treeId} has an invalid stage timer";
+            if (data.version >= 14 && tree.biologicallyDead)
+            {
+                if (tree.stage == (int)ForestTreeStage.Stump)
+                    return $"tree {tree.treeId} cannot be both harvested and biologically dead";
+                if (string.IsNullOrWhiteSpace(tree.mortalityCause) || tree.mortalityYear < 0)
+                    return $"tree {tree.treeId} has an invalid mortality cause/year";
+            }
             if (data.version >= 3 && tree.hasSimulation)
             {
                 if (!IsFinite(tree.heightMeters) || !IsFinite(tree.diameterCm) || !IsFinite(tree.crownRadiusMeters)

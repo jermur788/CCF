@@ -26,6 +26,12 @@ public enum TreeMarkType
 public sealed class ForestTree : MonoBehaviour
 {
     public static event System.Action<ForestTree> Felled;
+    // Biological death is not management execution. Causes are stable string
+    // identifiers so later processes can add causes without changing enum IDs.
+    public static event System.Action<ForestTree> MortalityApplied;
+    [SerializeField] private bool biologicallyDead;
+    [SerializeField] private string mortalityCause = "";
+    [SerializeField] private int mortalityYear = -1;
     [SerializeField] private string treeId = "";
     [SerializeField] private Transform trunk;
     [SerializeField] private Transform canopy;
@@ -69,6 +75,10 @@ public sealed class ForestTree : MonoBehaviour
     public TreeSpeciesDefinition Species => species;
     public int AgeYears => ageYears;
     public string ActiveVisualSource => polishedVisualSourcePrefab;
+    public bool IsBiologicallyDead => biologicallyDead;
+    public bool IsLiving => !IsStump && !biologicallyDead;
+    public string MortalityCause => mortalityCause;
+    public int MortalityYear => mortalityYear;
     public TreeMarkType MarkType => markType;
     public bool IsCropTree => markType == TreeMarkType.CropTree;
     public bool IsMarkedForFell => markType == TreeMarkType.Fell;
@@ -77,13 +87,13 @@ public sealed class ForestTree : MonoBehaviour
     // because the enum holds exactly one value at a time.
     public void SetMark(TreeMarkType type)
     {
-        markType = type;
+        markType = IsLiving ? type : TreeMarkType.None;
         RefreshVisuals();
     }
 
     public void RestoreMark(TreeMarkType type)
     {
-        markType = type;
+        markType = IsLiving ? type : TreeMarkType.None;
         RefreshVisuals();
     }
     [SerializeField, Min(0f)] private float equivalentSuppressedYears;
@@ -96,7 +106,7 @@ public sealed class ForestTree : MonoBehaviour
 
     public void RecordSuppressionYear(float suppression)
     {
-        if (!IsStump && !float.IsNaN(suppression) && !float.IsInfinity(suppression))
+        if (IsLiving && !float.IsNaN(suppression) && !float.IsInfinity(suppression))
             equivalentSuppressedYears += Mathf.Clamp01(suppression);
     }
 
@@ -140,7 +150,7 @@ public sealed class ForestTree : MonoBehaviour
         }
     }
     public bool IsStump => stage == ForestTreeStage.Stump;
-    public bool CanChop => stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young;
+    public bool CanChop => IsLiving && (stage == ForestTreeStage.Mature || stage == ForestTreeStage.Young);
     public int ChopsRequired => chopsRequired;
     public int ChopProgress => chopProgress;
     public float StageTimer => stageTimer;
@@ -216,7 +226,7 @@ public sealed class ForestTree : MonoBehaviour
     {
         get
         {
-            if (species == null || IsStump)
+            if (species == null || !IsLiving)
                 return 0f;
             return Diameter * Diameter * 0.00007854f * (Height * species.FormHeightRatio);
         }
@@ -226,6 +236,8 @@ public sealed class ForestTree : MonoBehaviour
     {
         get
         {
+            if (biologicallyDead)
+                return $"Biologically dead ({mortalityCause}, year {mortalityYear})";
             if (stage == ForestTreeStage.Stump)
                 return "Harvested stump";
             switch (DisplayStage)
@@ -264,6 +276,12 @@ public sealed class ForestTree : MonoBehaviour
 
         if (trunk == null)
             Debug.LogError("ForestTree requires a trunk child.", this);
+
+        if (biologicallyDead)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
 
         if (stage == ForestTreeStage.Mature)
             ApplyMatureShape();
@@ -487,6 +505,43 @@ public sealed class ForestTree : MonoBehaviour
         markType = TreeMarkType.None;
     }
 
+    // Explicit foundation API only: no annual mortality trigger calls this.
+    // Physical data remains available for a later accepted deadwood resolver.
+    // Until a standing/fallen outcome is specified, hide the unsupported living
+    // representation rather than turning death into a harvested stump/art event.
+    public bool ApplyMortality(string cause, int year)
+    {
+        if (!IsLiving) return false;
+        if (string.IsNullOrWhiteSpace(cause) || year < 0)
+            throw new System.ArgumentException("Mortality requires a non-empty cause and non-negative year.");
+        biologicallyDead = true;
+        mortalityCause = cause.Trim();
+        mortalityYear = year;
+        markType = TreeMarkType.None;
+        chopProgress = 0;
+        gameObject.SetActive(false);
+        MortalityApplied?.Invoke(this);
+        return true;
+    }
+
+    // Save restoration is state restoration, not a new death/harvest event.
+    public void RestoreMortality(bool dead, string cause, int year)
+    {
+        if (dead && (string.IsNullOrWhiteSpace(cause) || year < 0))
+            throw new System.ArgumentException("Invalid persisted mortality cause/year.");
+        bool wasDead = biologicallyDead;
+        biologicallyDead = dead;
+        mortalityCause = dead ? cause.Trim() : "";
+        mortalityYear = dead ? year : -1;
+        if (dead)
+        {
+            markType = TreeMarkType.None;
+            gameObject.SetActive(false);
+        }
+        else if (wasDead)
+            gameObject.SetActive(true);
+    }
+
     public void RestoreState(ForestTreeStage restoredStage, float restoredStageTimer, int restoredChopProgress)
     {
         SetStage(restoredStage);
@@ -528,6 +583,7 @@ public sealed class ForestTree : MonoBehaviour
     // Simulation writes go through these so mesh scale can never drive tree state.
     public void ApplyGrowth(float dbhDeltaCm, float heightDeltaM)
     {
+        if (!IsLiving) return;
         diameterCm = Mathf.Clamp(diameterCm + dbhDeltaCm, 1f, 200f);
         heightMeters = Mathf.Clamp(heightMeters + heightDeltaM, 0.1f, 60f);
         RefreshVisuals();
@@ -535,6 +591,7 @@ public sealed class ForestTree : MonoBehaviour
 
     public void RelaxCrownRadius(float targetRadiusM, float relaxationPerYear)
     {
+        if (!IsLiving) return;
         crownRadiusMeters = Mathf.Max(0.1f, Mathf.Lerp(crownRadiusMeters, targetRadiusM, Mathf.Clamp01(relaxationPerYear)));
         RefreshVisuals();
     }
@@ -564,6 +621,11 @@ public sealed class ForestTree : MonoBehaviour
 
     public void RefreshVisuals()
     {
+        if (biologicallyDead)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
         ApplyStageShape(stage);
     }
 

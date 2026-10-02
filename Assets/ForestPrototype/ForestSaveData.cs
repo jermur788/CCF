@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 13;
+    public const int CurrentVersion = 14;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -25,6 +25,7 @@ public sealed class ForestSaveData
     // Version 12: objective outcome, tutorial review and century comparison.
     // Version 13: persistent two-type tree marks, exact-position individual
     // plantings, treatment patches and retained construction timber.
+    // Version 14: explicit biological tree mortality, separate from harvesting.
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -105,6 +106,10 @@ public sealed class TreeSaveData
     public float crownBaseHeightM;
     public int lastPruningYear = -1;
     public int markType;
+    // Older schemas omit these fields and restore no biological mortality.
+    public bool biologicallyDead;
+    public string mortalityCause = "";
+    public int mortalityYear = -1;
     public UnityEngine.Vector3 position;
 }
 

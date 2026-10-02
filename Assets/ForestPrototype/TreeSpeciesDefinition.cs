@@ -172,10 +172,13 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
 
     public float JuvenileSurvivalResponse(float relativeLight)
     {
-        if (!useDistinctJuvenileLightResponses)
-            return JuvenileLightResponse(relativeLight) < regenPoorLightThreshold
-                ? 1f - regenMortalityUnderPoorLight
-                : 1f;
+        return (float)JuvenileEcologyRules.SurvivalResponse(this, relativeLight);
+    }
+
+    // Species data/interpolation remains here; the biological response choice
+    // belongs to the shared rule layer, used by both juvenile representations.
+    internal float DistinctJuvenileSurvivalResponse(float relativeLight)
+    {
         return Mathf.Clamp01(InterpolateResponse(relativeLight, survivalResponseLight,
             survivalResponseFactor, 1f));
     }

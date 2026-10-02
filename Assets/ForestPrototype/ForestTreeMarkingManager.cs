@@ -84,12 +84,14 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void OnEnable()
     {
-        ForestTree.Felled += OnTreeFelled;
+        ForestTree.Felled += OnTreeNoLongerLiving;
+        ForestTree.MortalityApplied += OnTreeNoLongerLiving;
     }
 
     private void OnDisable()
     {
-        ForestTree.Felled -= OnTreeFelled;
+        ForestTree.Felled -= OnTreeNoLongerLiving;
+        ForestTree.MortalityApplied -= OnTreeNoLongerLiving;
     }
 
     private void OnDestroy()
@@ -131,7 +133,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             return;
 
         ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
-        if (tree == null || tree.IsStump)
+        if (tree == null || !tree.IsLiving)
         {
             // Aiming at open ground: surface the local regeneration state.
             if (ecologyCache == null)
@@ -152,14 +154,14 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             ToggleCropTree(tree);
     }
 
-    private void OnTreeFelled(ForestTree tree)
+    private void OnTreeNoLongerLiving(ForestTree tree)
     {
         Unmark(tree, false);
     }
 
     public void ToggleMark(ForestTree tree)
     {
-        if (tree == null || tree.IsStump)
+        if (tree == null || !tree.IsLiving)
             return;
         if (tree.MarkType == TreeMarkType.Fell)
             Unmark(tree);
@@ -169,7 +171,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     public void ToggleCropTree(ForestTree tree)
     {
-        if (tree == null || tree.IsStump)
+        if (tree == null || !tree.IsLiving)
             return;
         if (tree.MarkType == TreeMarkType.CropTree)
             Unmark(tree);
@@ -179,7 +181,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     public void Mark(ForestTree tree, TreeMarkType type, bool feedback = true)
     {
-        if (tree == null || tree.IsStump)
+        if (tree == null || !tree.IsLiving)
             return;
         if (type == TreeMarkType.None)
         {

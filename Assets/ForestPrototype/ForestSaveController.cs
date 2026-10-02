@@ -149,6 +149,9 @@ public sealed class ForestSaveController : MonoBehaviour
                 crownBaseHeightM = tree.CrownBaseHeightM,
                 lastPruningYear = tree.LastPruningYear,
                 markType = (int)tree.MarkType,
+                biologicallyDead = tree.IsBiologicallyDead,
+                mortalityCause = tree.MortalityCause,
+                mortalityYear = tree.MortalityYear,
                 position = tree.transform.position
             });
         }
@@ -310,6 +313,8 @@ public sealed class ForestSaveController : MonoBehaviour
                 }
                 if (treesById.TryGetValue(saved.treeId, out ForestTree tree))
                 {
+                    tree.RestoreMortality(data.version >= 14 && saved.biologicallyDead,
+                        saved.mortalityCause, saved.mortalityYear);
                     tree.SetSpecies(savedSpecies);
                     spawner.ApplySpeciesVisuals(tree, savedSpecies);
                     tree.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
@@ -334,6 +339,8 @@ public sealed class ForestSaveController : MonoBehaviour
                         continue;
                     }
                     recruited.RestoreState((ForestTreeStage)saved.stage, saved.stageTimer, saved.chopProgress);
+                    recruited.RestoreMortality(data.version >= 14 && saved.biologicallyDead,
+                        saved.mortalityCause, saved.mortalityYear);
                     recruited.RestoreSuppressionHistory(data.version >= 6 ? saved.equivalentSuppressedYears : 0f);
                     recruited.RestorePruningHistory(data.version >= 11 ? saved.pruningLifts : 0,
                         data.version >= 11 ? saved.crownBaseHeightM : 0f,
@@ -355,7 +362,8 @@ public sealed class ForestSaveController : MonoBehaviour
                 var cropIds = new List<string>();
                 foreach (TreeSaveData saved in data.trees)
                 {
-                    if (saved == null || saved.stage == (int)ForestTreeStage.Stump)
+                    if (saved == null || saved.stage == (int)ForestTreeStage.Stump
+                        || (data.version >= 14 && saved.biologicallyDead))
                         continue;
                     if (saved.markType == (int)TreeMarkType.Fell) fellIds.Add(saved.treeId);
                     else if (saved.markType == (int)TreeMarkType.CropTree) cropIds.Add(saved.treeId);

@@ -120,8 +120,8 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
 
         for (int i = 0; i < 2; i++) Check(manager.AdvanceYear(), "annual advance failed");
         ForestSaveData marked = saves.CaptureData();
-        Check(marked.version == 13 && marked.cropTreeIds.Count == 2 && marked.markedTreeIds.Count == 0,
-            "v13 save mixed red and blue IDs");
+        Check(marked.version == ForestSaveData.CurrentVersion && marked.cropTreeIds.Count == 2 && marked.markedTreeIds.Count == 0,
+            "current save mixed red and blue IDs");
         marks.Unmark(eligible[0], false);
         saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(marked)), false);
         yield return null;
@@ -343,7 +343,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         }
         ForestSaveData replay = saves.CaptureData();
         ForestSaveData expected = archive.AtYear(100).world;
-        Check(expected.version == 12 && replay.version == 13
+        Check(expected.version == 12 && replay.version == ForestSaveData.CurrentVersion
             && replay.ecologicalYear == 100 && expected.trees.Count == replay.trees.Count,
             "frozen v12 Year-50 replay lost Year-100 living/dead tree identities");
         var historicalSameYearPruneFell = new HashSet<string>(expected.scenarioOne.workOrders
@@ -385,7 +385,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
                     && other.establishYear == cohort.establishYear)),
                 "v12-v13 Year-100 ecology cell diverged: " + cell.index);
         }
-        Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_REPLAY_PASS year50=v12 year100=v13 trees="
+        Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_REPLAY_PASS year50=v12 year100=v" + replay.version + " trees="
             + replay.trees.Count + " historicalSameYearPruneFell=P0601 frozenYear100="
             + archive.AtYear(100).worldHash);
     }

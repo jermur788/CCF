@@ -252,14 +252,16 @@ public sealed class ForestEcologyController : MonoBehaviour
     private void OnEnable()
     {
         ForestTree.Felled += OnTreeFelled;
+        ForestTree.MortalityApplied += OnTreeMortality;
     }
 
     private void OnDisable()
     {
         ForestTree.Felled -= OnTreeFelled;
+        ForestTree.MortalityApplied -= OnTreeMortality;
     }
 
-    // Defers the canopy and seed-rain rebuild that follows each felling until
+    // Defers canopy and seed-rain rebuilds after living-tree removals until
     // EndChangeBatch, so a work-order resolution that fells N trees rebuilds
     // once. Cell light and seed rain are stale inside a batch; the final state
     // is identical to rebuilding after every felling. Calls may nest.
@@ -287,8 +289,24 @@ public sealed class ForestEcologyController : MonoBehaviour
             if (index >= 0)
                 cells[index].RecentOpening = Mathf.Min(cells[index].RecentOpening + 1f, maxRecentOpeningPerCell);
         }
+        QueueLivingCanopyRebuild();
+    }
+
+    private void OnTreeMortality(ForestTree tree)
+    {
+        // Cause-specific disturbance/exposure and deadwood outcomes are not
+        // calibrated here. Only remove living contributions and stale metrics.
+        competitionIndex.Remove(tree);
+        annualDbhGrowth.Remove(tree);
+        seedPotential.Remove(tree);
+        QueueLivingCanopyRebuild();
+    }
+
+    private void QueueLivingCanopyRebuild()
+    {
         competitionCurrent = false;
-        // Each felling used to rebuild the whole canopy and seed rain. Inside
+        seedlingVisualsDirty = true;
+        // Living-tree removal invalidates the whole canopy and seed rain. Inside
         // a batch the rebuild is deferred and done once when the batch ends.
         if (batchDepth > 0)
         {
@@ -297,7 +315,6 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
         RecomputeCanopy();
         RecomputeSeedRain();
-        seedlingVisualsDirty = true;
     }
 
     // One explicit step for editor, MCP and debug tooling. Nothing in normal
@@ -657,7 +674,13 @@ public sealed class ForestEcologyController : MonoBehaviour
     // is negligible against the value of reproducible runs.
     private ForestTree[] FindTrees()
     {
-        ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        ForestTree[] all = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        // One enumeration boundary excludes biological deaths even if external
+        // tooling reactivates an object. Stumps retain their legacy handling.
+        var candidates = new List<ForestTree>(all.Length);
+        foreach (ForestTree tree in all)
+            if (tree != null && !tree.IsBiologicallyDead) candidates.Add(tree);
+        ForestTree[] trees = candidates.ToArray();
         System.Array.Sort(trees, CompareTreeIds);
         return trees;
     }
@@ -953,18 +976,17 @@ public sealed class ForestEcologyController : MonoBehaviour
                 TreeSpeciesDefinition cohortSpecies = cohort.Species;
                 if (cohort.Density <= 0f || cohortSpecies == null)
                     continue;
-                float growthResponse = cohortSpecies.JuvenileLightResponse(cell.Light);
-                cohort.Height += cohortSpecies.RegenHeightGrowthMPerYear * growthResponse * cell.SiteProductivity;
-                if (cohortSpecies.UsesDistinctJuvenileLightResponses)
-                {
-                    float survival = cohortSpecies.JuvenileSurvivalResponse(cell.Light);
-                    cohort.Density *= survival;
-                    if (survival >= 0.999999f)
-                        cell.AddDensityWithSharedCapacity(cohort, 0.05f);
-                }
-                else if (growthResponse < cohortSpecies.RegenPoorLightThreshold)
-                    cohort.Density *= 1f - cohortSpecies.RegenMortalityUnderPoorLight;
-                else
+                float growthResponse = JuvenileEcologyRules.LightResponse(cohortSpecies, cell.Light);
+                JuvenileEcologyRules.GrowHeight(ref cohort.Height, cohortSpecies, cell.Light, cell.SiteProductivity);
+                double survival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light);
+                cohort.Density = (float)(cohort.Density * survival);
+                // Preserve the existing cohort-only infill/capacity abstraction.
+                // Every cohort still applies the shared survival response, so a
+                // future shared modifier cannot be bypassed by this adapter.
+                bool recoverDensity = cohortSpecies.UsesDistinctJuvenileLightResponses
+                    ? survival >= 0.999999f
+                    : growthResponse >= cohortSpecies.RegenPoorLightThreshold && survival == 1d;
+                if (recoverDensity)
                     cell.AddDensityWithSharedCapacity(cohort, 0.05f);
                 if (cohort.Density < 0.01f)
                 {
@@ -1028,8 +1050,8 @@ public sealed class ForestEcologyController : MonoBehaviour
         {
             ForestEcologyCell cell = cells[i];
             ForestRegenerationCohort cohort = cell.FindCohort(cohortSpecies.SpeciesId);
-            if (cohort == null || cohort.Density <= 0f || cohort.Height < cohortSpecies.PromotionHeightM ||
-                cell.Light < cohortSpecies.PromotionMinimumLight)
+            if (cohort == null || cohort.Density <= 0f ||
+                !JuvenileEcologyRules.CanPromote(cohortSpecies, cohort.Height, cell.Light))
                 continue;
             float offsetX = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
             float offsetZ = (float)(rng.NextDouble() - 0.5) * cellSizeMeters;
@@ -1037,7 +1059,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             // back-dated age of a planted juvenile. Planted cohorts are never
             // reset, so the raw year is always meaningful here.
             int age = Mathf.Max(1, ecologicalYear - cohort.EstablishYear);
-            float dbh = Mathf.Clamp(cohort.Height * 1.5f, 2f, 20f); // [C] young-tree proportion
+            float dbh = JuvenileEcologyRules.PromotionDbhCm(cohort.Height);
             float crown = cohortSpecies.PotentialCrownRadiusM(dbh);
             // Id prefix is diagnostic provenance only; it does not affect ecology.
             string prefix = cohort.Origin == RegenerationOrigin.Planted ? "PL" : "R";
@@ -1076,7 +1098,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     public float GetWindRisk(ForestTree tree)
     {
         TreeSpeciesDefinition s = tree != null && tree.Species != null ? tree.Species : ResolveSpecies();
-        if (s == null || tree == null || cells == null)
+        if (s == null || tree == null || !tree.IsLiving || cells == null)
             return 0f;
         int index = GetCellIndex(tree.transform.position);
         if (index < 0)
@@ -1090,6 +1112,7 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     public float GetCompetitionIndex(ForestTree tree)
     {
+        if (tree == null || !tree.IsLiving) return 0f;
         if (!competitionCurrent)
         {
             TreeSpeciesDefinition s = ResolveSpecies();
@@ -1138,7 +1161,7 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     public float GetSeedPotential(ForestTree tree)
     {
-        return tree != null && seedPotential.TryGetValue(tree, out float value) ? value : 0f;
+        return tree != null && tree.IsLiving && seedPotential.TryGetValue(tree, out float value) ? value : 0f;
     }
 
     public float GetSeedRain(int cellIndex, TreeSpeciesDefinition targetSpecies)

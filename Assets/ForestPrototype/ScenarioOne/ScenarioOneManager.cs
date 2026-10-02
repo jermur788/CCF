@@ -1490,18 +1490,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 continue;
             ForestEcologyCell cell = ecology.Cells[index];
             juvenile.ageYears += 1f;
-            juvenile.heightMeters += species.RegenHeightGrowthMPerYear
-                * species.JuvenileLightResponse(cell.Light) * cell.SiteProductivity;
-            if (SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)
-                >= species.JuvenileSurvivalResponse(cell.Light))
+            JuvenileEcologyRules.GrowHeight(ref juvenile.heightMeters, species, cell.Light, cell.SiteProductivity);
+            if (!JuvenileEcologyRules.Survives(species, cell.Light,
+                SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)))
             {
                 juvenile.alive = false;
                 continue;
             }
-            if (juvenile.heightMeters < species.PromotionHeightM || cell.Light < species.PromotionMinimumLight)
+            if (!JuvenileEcologyRules.CanPromote(species, juvenile.heightMeters, cell.Light))
                 continue;
             string treeId = "PL-" + juvenile.juvenileId;
-            float dbh = Mathf.Clamp(juvenile.heightMeters * 1.5f, 2f, 20f);
+            float dbh = JuvenileEcologyRules.PromotionDbhCm(juvenile.heightMeters);
             ForestTree tree = spawner.Spawn(treeId, species, juvenile.position,
                 Mathf.Max(1, Mathf.RoundToInt(juvenile.ageYears)), dbh, juvenile.heightMeters,
                 species.PotentialCrownRadiusM(dbh));
@@ -1699,7 +1698,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         foreach (ForestTree tree in UnityEngine.Object.FindObjectsByType<ForestTree>(
                      FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
-            if (tree != null && !tree.IsStump && !string.IsNullOrEmpty(tree.TreeId))
+            if (tree != null && tree.IsLiving && !string.IsNullOrEmpty(tree.TreeId))
                 result[tree.TreeId] = tree;
         }
         return result;
