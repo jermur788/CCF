@@ -308,8 +308,9 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             && FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Single(t => t.TreeId == promoted.TreeId)
                 .transform.position == oak.position, "promoted individual duplicated or moved on reload");
 
-        // This is the unchanged 80-year canonical Sitka fixture, with the
-        // exact same fingerprint as the original Forestry regression gate.
+        // The unchanged 80-year canonical Sitka fixture and fingerprint. The
+        // expected value is the calibrated lifecycle (C8 + k10a10); it was
+        // 7E39B70A14959FAD before that calibration.
         ForestStandScenarios.ApplyLifecycleFixture();
         for (int year = 0; year < 80; year++)
         {
@@ -317,13 +318,17 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             if (year % 10 == 9) yield return null;
         }
         string canonical = LifecycleHash(ecology);
-        Check(canonical == "7E39B70A14959FAD", "canonical Sitka lifecycle changed: " + canonical);
+        Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 
-        // The frozen Year-50 save is v12; under the v13 code its legacy
-        // cell-based management should still lead to the same Year-100 biology.
-        saves.LoadData(JsonUtility.FromJson<ForestSaveData>(
-            JsonUtility.ToJson(archive.AtYear(50).world)), false);
+        // The frozen Year-50 save is v12. It must still load and continue to
+        // Year 100 under current code, keeping every Year-50 tree's identity
+        // and position. Since the C8 + k10a10 calibration the continued
+        // biology is deliberately no longer the frozen v1 biology, so the
+        // Year-100 tree/cell comparison is reported, not required; the frozen
+        // archive itself must still verify unchanged.
+        ForestSaveData year50 = archive.AtYear(50).world;
+        saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(year50)), false);
         yield return null;
         yield return null;
         Check(ecology.EcologicalYear == 50, "frozen v12 Year-50 save failed to load");
@@ -344,8 +349,13 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         ForestSaveData replay = saves.CaptureData();
         ForestSaveData expected = archive.AtYear(100).world;
         Check(expected.version == 12 && replay.version == ForestSaveData.CurrentVersion
-            && replay.ecologicalYear == 100 && expected.trees.Count == replay.trees.Count,
-            "frozen v12 Year-50 replay lost Year-100 living/dead tree identities");
+            && replay.ecologicalYear == 100, "frozen v12 Year-50 continuation did not reach a current-schema Year 100");
+        // Stored v1 hashes, as before. Recomputing WorldHash re-serialises the
+        // v12 world through the current (v14) save classes, so it is not a
+        // valid archive-integrity check across schema versions.
+        Check(archive.AtYear(100).worldHash == "7AD177B3CC2F73C7"
+            && archive.AtYear(50).worldHash == "D5E75D6D21D631AC" && year50.version == 12,
+            "frozen Reference Future v1 archive no longer verifies");
         var historicalSameYearPruneFell = new HashSet<string>(expected.scenarioOne.workOrders
             .Where(order => order.status == ScenarioWorkStatus.Completed
                 && (order.type == ScenarioWorkType.PruneTree || order.type == ScenarioWorkType.FellTree))
@@ -356,38 +366,26 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         Check(historicalSameYearPruneFell.SetEquals(new[] { "P0601" }),
             "the known v12 same-year pruning/felling exception changed");
         Dictionary<string, TreeSaveData> replayTrees = replay.trees.ToDictionary(tree => tree.treeId);
+        foreach (TreeSaveData tree in year50.trees)
+            Check(replayTrees.TryGetValue(tree.treeId, out TreeSaveData actual)
+                && tree.speciesId == actual.speciesId && tree.position == actual.position,
+                "Year-50 tree identity/position lost in continuation: " + tree.treeId);
+        int sameTrees = 0, divergedTrees = 0, missingFrozen = 0;
+        float maxDbhDiff = 0f;
         foreach (TreeSaveData tree in expected.trees)
         {
-            Check(replayTrees.TryGetValue(tree.treeId, out TreeSaveData actual)
-                && tree.speciesId == actual.speciesId && tree.stage == actual.stage
-                && tree.ageYears == actual.ageYears && tree.position == actual.position
-                && tree.heightMeters == actual.heightMeters && tree.diameterCm == actual.diameterCm
-                && (tree.crownRadiusMeters == actual.crownRadiusMeters
-                    || (historicalSameYearPruneFell.Contains(tree.treeId)
-                        && tree.stage == (int)ForestTreeStage.Stump
-                        && tree.pruningLifts == actual.pruningLifts + 1)),
-                "v12-v13 Year-100 biological tree diverged: " + tree.treeId
-                + $" expected {tree.speciesId} stage={tree.stage} age={tree.ageYears} "
-                + $"pos={tree.position} H={tree.heightMeters:R} D={tree.diameterCm:R} C={tree.crownRadiusMeters:R}"
-                + $" actual {actual?.speciesId} stage={actual?.stage} age={actual?.ageYears} "
-                + $"pos={actual?.position} H={actual?.heightMeters:R} D={actual?.diameterCm:R} C={actual?.crownRadiusMeters:R}");
+            if (!replayTrees.TryGetValue(tree.treeId, out TreeSaveData actual)) { missingFrozen++; continue; }
+            bool same = tree.stage == actual.stage && tree.heightMeters == actual.heightMeters
+                && tree.diameterCm == actual.diameterCm && tree.crownRadiusMeters == actual.crownRadiusMeters;
+            if (same) sameTrees++; else divergedTrees++;
+            maxDbhDiff = Mathf.Max(maxDbhDiff, Mathf.Abs(tree.diameterCm - actual.diameterCm));
         }
-        Check(replay.cells.Count == expected.cells.Count, "v12-v13 Year-100 cell occupancy diverged");
-        var actualCells = replay.cells.ToDictionary(cell => cell.index);
-        foreach (ForestCellSaveData cell in expected.cells)
-        {
-            Check(actualCells.TryGetValue(cell.index, out ForestCellSaveData actual)
-                && cell.recentOpening == actual.recentOpening
-                && cell.establishmentSuitability == actual.establishmentSuitability
-                && cell.cohorts.Count == actual.cohorts.Count
-                && cell.cohorts.All(cohort => actual.cohorts.Any(other => other.speciesId == cohort.speciesId
-                    && other.density == cohort.density && other.height == cohort.height
-                    && other.establishYear == cohort.establishYear)),
-                "v12-v13 Year-100 ecology cell diverged: " + cell.index);
-        }
+        Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_DIVERGENCE expected=calibrated frozenTrees=" + expected.trees.Count
+            + " replayTrees=" + replay.trees.Count + " identical=" + sameTrees + " diverged=" + divergedTrees
+            + " frozenIdsAbsent=" + missingFrozen + " maxDbhDiffCm=" + maxDbhDiff.ToString("0.00"));
         Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_REPLAY_PASS year50=v12 year100=v" + replay.version + " trees="
             + replay.trees.Count + " historicalSameYearPruneFell=P0601 frozenYear100="
-            + archive.AtYear(100).worldHash);
+            + archive.AtYear(100).worldHash + " biology=calibrated");
     }
 
     private static string LifecycleHash(ForestEcologyController ecology)

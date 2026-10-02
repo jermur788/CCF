@@ -247,11 +247,15 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
         ForestEcologyController ecology = FindFirstObjectByType<ForestEcologyController>();
         string hashA = RunLifecycle(ecology, out int recruitsA, out int age30A);
         string hashB = RunLifecycle(ecology, out int recruitsB, out int age30B);
-        Require(recruitsA == 30 && recruitsB == 30, $"lifecycle recruits A={recruitsA} B={recruitsB}");
-        Require(age30A == 30 && age30B == 30, $"age-30 recruits A={age30A} B={age30B}");
-        Require(hashA == "7E39B70A14959FAD", "baseline ecology changed: " + hashA);
+        // Recruit counts were 30/30 before the C8 + k10a10 calibration
+        // (Docs/EcologyCalibrationAdoption.md); they are now reported and must
+        // match between the two runs rather than equal the old model's count.
+        Require(recruitsA == recruitsB, $"lifecycle recruits A={recruitsA} B={recruitsB}");
+        Require(age30A == age30B, $"age-30 recruits A={age30A} B={age30B}");
+        // Calibrated canonical lifecycle (was 7E39B70A14959FAD before C8 + k10a10).
+        Require(hashA == "BFC55473C1506067", "baseline ecology changed: " + hashA);
         Require(hashA == hashB, $"lifecycle hashes differ A={hashA} B={hashB}");
-        Debug.Log($"VERIFY_LIFECYCLE_PASS years=80 recruits=30 age30=30 hashA={hashA} hashB={hashB} match=True configuration=Editor");
+        Debug.Log($"VERIFY_LIFECYCLE_PASS years=80 recruits={recruitsA} age30={age30A} hashA={hashA} hashB={hashB} match=True configuration=Editor");
     }
 
     private static string RunLifecycle(ForestEcologyController ecology, out int recruits, out int age30)

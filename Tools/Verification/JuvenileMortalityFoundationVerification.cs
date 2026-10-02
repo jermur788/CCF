@@ -77,7 +77,8 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         MethodInfo hashMethod = typeof(ScenarioOneInteractionGate).GetMethod("LifecycleHash", BindingFlags.Static | BindingFlags.NonPublic);
         string hash = (string)hashMethod.Invoke(null, new object[] { ecology });
         Debug.Log("CANONICAL_ISOLATION_HASH " + hash);
-        Check(hash == "7E39B70A14959FAD", "Canonical lifecycle drift: " + hash);
+        // Calibrated canonical lifecycle (was 7E39B70A14959FAD before C8 + k10a10).
+        Check(hash == "BFC55473C1506067", "Canonical lifecycle drift: " + hash);
     }
 
     private IEnumerator Verify()
@@ -199,7 +200,10 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         manager.RestoreSaveData(original.scenarioOne);
         Vector3 position = new Vector3(ecology.Cells[27].Center.x, 0, ecology.Cells[27].Center.y);
         ForestTree focal = spawner.Spawn("MORTALITY-FOCAL", spawner.DefaultSpecies, position, 45, 30, 15, 4);
-        ForestTree neighbour = spawner.Spawn("MORTALITY-NEIGHBOUR", spawner.DefaultSpecies, position + Vector3.right * 12f, 45, 20, 12, 2);
+        // 6 m: inside the calibrated 8 m Hegyi cutoff (was 12 m under the 20 m
+        // cutoff) and outside the neighbour's own 4.5 m shade reach, so the
+        // focal cell still opens when the focal tree dies.
+        ForestTree neighbour = spawner.Spawn("MORTALITY-NEIGHBOUR", spawner.DefaultSpecies, position + Vector3.right * 6f, 45, 20, 12, 2);
         ecology.InvalidateCompetition(); ecology.RecomputeCanopy(); ecology.RecomputeSeedRain();
         int focalCell = ecology.GetCellIndex(position);
         float canopyBefore = ecology.Cells[focalCell].Canopy, ciBefore = ecology.GetCompetitionIndex(neighbour);

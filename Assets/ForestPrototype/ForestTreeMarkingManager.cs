@@ -338,7 +338,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                     continue;
                 Vector2 position = new Vector2(tree.transform.position.x, tree.transform.position.z);
                 float distance = Vector2.Distance(center, position);
-                float reach = tree.CrownRadius * 1.5f + eco.CellSizeMeters * 0.5f;
+                float reach = tree.CrownRadius * ForestEcologyController.CanopyShadeReachPerCrownRadius + eco.CellSizeMeters * 0.5f;
                 float lateral = Mathf.Clamp01(1f - distance / reach);
                 float vertical = Mathf.Clamp01(tree.Height / 8f);
                 gap *= 1f - Mathf.Clamp01(lateral * vertical);

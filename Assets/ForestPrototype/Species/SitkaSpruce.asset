@@ -15,11 +15,11 @@ MonoBehaviour:
   speciesId: sitka-spruce
   displayName: Sitka spruce
   latinName: Picea sitchensis
-  potentialDbhGrowthCmPerYear: 0.9
+  potentialDbhGrowthCmPerYear: 1.2
   maxDbhCm: 120
   potentialHeightGrowthMPerYear: 0.45
   maxHeightM: 35
-  ci50: 3
+  ci50: 5
   crownRadiusIntercept: 0.9415
   crownRadiusPerCmDbh: 0.07635
   usePowerLawCrown: 0

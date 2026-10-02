@@ -639,7 +639,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 float distance = Vector2.Distance(cell.Center, treePosition);
                 // Crown influence reaches half a cell beyond the crown so that
                 // cells overlapping the crown respond, not only its centre.
-                float reach = tree.CrownRadius * 1.5f + cellSizeMeters * 0.5f;
+                float reach = tree.CrownRadius * CanopyShadeReachPerCrownRadius + cellSizeMeters * 0.5f;
                 float lateral = Mathf.Clamp01(1f - distance / reach);
                 float vertical = Mathf.Clamp01(tree.Height / 8f);
                 float influence = Mathf.Clamp01(lateral * vertical);
@@ -706,8 +706,16 @@ public sealed class ForestEcologyController : MonoBehaviour
         return null;
     }
 
-    // Neighbours farther than this do not compete. [C] performance abstraction.
-    public const float HegyiCutoffMeters = 20f;
+    // Neighbours farther than this do not compete. [C] calibration: about two
+    // crown radii for 16-40 cm Sitka (Docs/SitkaGrowthCompetitionCalibration.md,
+    // candidate C8, with Sitka Ci50 = 5). Was 20 m.
+    public const float HegyiCutoffMeters = 8f;
+
+    // A crown shades cells out to this many crown radii plus half a cell.
+    // [C] calibration (Docs/CanopyLightCalibration.md, candidate k10a10). Was
+    // 1.5, which made thinned stands far darker than their basal area implies.
+    // Shared by the marking manager's light forecast.
+    public const float CanopyShadeReachPerCrownRadius = 1f;
 
     // One neighbour's Hegyi term: (DBH_neighbour / DBH_target) / distance_m.
     // Shared by forecasts (the marking manager). The annual step keeps an
@@ -731,8 +739,8 @@ public sealed class ForestEcologyController : MonoBehaviour
         // Spatial pass v1: the pair loop used to fetch every neighbour's
         // transform.position from native code once per pair (~113k interop
         // calls a year at first-thinning stocking - the dominant profile
-        // cost) and the 20 m cutoff pruned only ~1 pair in 5 inside this
-        // 40 m stand, so a bucket grid cannot prune much at this scale.
+        // cost) and the then 20 m cutoff pruned only ~1 pair in 5 inside this
+        // 40 m stand, so a bucket grid could not prune much at that scale.
         // Caching each tree's position and diameter once - in the same
         // sorted order the loops already consume - and early-outing on the
         // squared distance keeps every included pair, every operand and the
