@@ -66,19 +66,33 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
 
     private IEnumerator VerifyCanonical()
     {
-        ForestStandScenarios.ApplyLifecycleFixture();
         var ecology = FindFirstObjectByType<ForestEcologyController>();
-        ecology.RngModelVersion = SimulationRandom.LegacyModel;
-        for (int year = 0; year < 80; year++)
-        {
-            ecology.AdvanceOneYear();
-            if (year % 10 == 9) yield return null;
-        }
         MethodInfo hashMethod = typeof(ScenarioOneInteractionGate).GetMethod("LifecycleHash", BindingFlags.Static | BindingFlags.NonPublic);
-        string hash = (string)hashMethod.Invoke(null, new object[] { ecology });
+        // Scenario One applies its [C] browse pressure (0.2). The neutral anchor
+        // runs with browsing explicitly off; normal play runs with the scenario value.
+        float scenarioPressure = ecology.Browsing.BackgroundPressure;
+        string hash = null, scenarioHash = null;
+        foreach (float pressure in new[] { 0f, scenarioPressure })
+        {
+            ForestStandScenarios.ApplyLifecycleFixture();
+            ecology.RngModelVersion = SimulationRandom.LegacyModel;
+            ecology.Browsing.BackgroundPressure = pressure;
+            for (int year = 0; year < 80; year++)
+            {
+                ecology.AdvanceOneYear();
+                if (year % 10 == 9) yield return null;
+            }
+            string result = (string)hashMethod.Invoke(null, new object[] { ecology });
+            if (pressure == 0f && hash == null) hash = result; else scenarioHash = result;
+        }
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
         Debug.Log("CANONICAL_ISOLATION_HASH " + hash);
+        Debug.Log($"SCENARIO_ONE_LIFECYCLE_HASH pressure={scenarioPressure:0.00} hash={scenarioHash}");
         // Calibrated canonical lifecycle (was 7E39B70A14959FAD before C8 + k10a10).
         Check(hash == "BFC55473C1506067", "Canonical lifecycle drift: " + hash);
+        // Normal Scenario One play with low browse pressure 0.2 [C].
+        Check(scenarioPressure == 0.2f && scenarioHash == "3485B6630C9EA448",
+            $"Scenario One low-browsing lifecycle drift: pressure={scenarioPressure} hash={scenarioHash}");
     }
 
     private IEnumerator Verify()
@@ -91,6 +105,12 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         Check(ecology != null && manager != null && saves != null && spawner != null && marks != null, "Scene controllers missing");
         ForestSaveData original = saves.CaptureData();
         string originalHash = ScenarioReferenceArchive.WorldHash(original);
+        // These checks assert exact light-only identities between storage forms.
+        // Browsing (Scenario One pressure 0.2) is realised per individual and as
+        // an expected fraction per cohort, so it is verified statistically by
+        // BrowsingProtectionVerification instead; run this gate browse-neutral.
+        float scenarioPressure = ecology.Browsing.BackgroundPressure;
+        ecology.Browsing.BackgroundPressure = 0f;
 
         int combinations = 0;
         foreach (TreeSpeciesDefinition species in spawner.KnownSpecies.Where(s => s.SupportsRegeneration))
@@ -282,6 +302,7 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         }
         finally { ForestTree.Felled -= onFell; ForestTree.MortalityApplied -= onMortality; }
         Debug.Log("TREE_MORTALITY_FOUNDATION_VERIFY_PASS causeYear=True persistent=True livingExclusion=True noHarvest=True noDeadwoodPose=True batch=True noAnnualTrigger=True");
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
         Check(saves.LoadData(original, false), "Original world restore rejected");
         yield return null;
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == originalHash,

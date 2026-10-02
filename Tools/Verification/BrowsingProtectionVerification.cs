@@ -94,6 +94,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         EditorApplication.Exit(failure == null ? 0 : 1);
     }
 
+    private float scenarioPressure;
     private readonly Dictionary<string, object> generatorSettings = new Dictionary<string, object>();
     private float originalStandSize;
 
@@ -103,7 +104,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
     private IEnumerator Cleanup()
     {
         if (ecology == null || saves == null || original == null) yield break;
-        ecology.Browsing.BackgroundPressure = 0f;
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
         ecology.Browsing.ClearProtection();
         DestroyHarnessTrees();
         // The performance section resizes the stand; restore the scene's grid
@@ -133,8 +134,18 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         ForestStartingStand sceneGenerator = FindFirstObjectByType<ForestStartingStand>();
         if (sceneGenerator != null)
             foreach (string name in GeneratorFields) generatorSettings[name] = Field(typeof(ForestStartingStand), name).GetValue(sceneGenerator);
-        Check(ecology.Browsing.BackgroundPressure == 0f && !ecology.Browsing.HasProtection,
-            "production ForestTest must start with browsing off");
+        // Scenario One configures low pre-protection pressure [C]; no protection exists yet.
+        Check(manager.Definition != null && manager.Definition.BackgroundBrowsePressure == 0.2f,
+            "Scenario One browse pressure is not the documented 0.2 calibration");
+        scenarioPressure = ecology.Browsing.BackgroundPressure;
+        Check(scenarioPressure == manager.Definition.BackgroundBrowsePressure && !ecology.Browsing.HasProtection,
+            "production ForestTest did not apply the Scenario One browse pressure, or has protection");
+        Emit($"BROWSE_SCENARIO_ONE pressure={F(scenarioPressure)} band={BrowsingConditions.PressureBand(scenarioPressure)}");
+        // Player feedback: the existing ground/regeneration report names the browsing band.
+        ForestEcologyCell reportCell = ecology.Cells[0];
+        string report = ecology.RegenerationReportLine(new Vector3(reportCell.Center.x, 0f, reportCell.Center.y));
+        Check(report.Contains("browsing low"), "regeneration report does not show low browsing pressure: " + report);
+        Debug.Log("BROWSE_SCENARIO_ONE_REPORT " + report);
 
         TreeSpeciesDefinition sitka = spawner.ResolveSpecies("sitka-spruce");
         TreeSpeciesDefinition oak = spawner.ResolveSpecies("sessile-oak");
@@ -168,6 +179,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         }
         Debug.Log($"BROWSE_MATRIX_HASH {Fnv64(string.Join("\n", results.OrderBy(r => r.Key, StringComparer.Ordinal).Select(r => r.Key + r.Value.Describe())))}");
         VerifyOutcomes(results, sitka, oak, beech);
+        VerifyScenarioLowPressure(results, sitka, oak, beech);
         yield return null;
 
         VerifyEquivalence(oak);
@@ -455,6 +467,39 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         Debug.Log("BROWSE_REQUIRED_OUTCOMES_PASS");
     }
 
+    // Scenario One's configured pressure (0.2 = the matrix "low" level): browsing
+    // hinders susceptible regeneration without making it impossible.
+    private void VerifyScenarioLowPressure(Dictionary<string, Outcome> r, TreeSpeciesDefinition sitka,
+        TreeSpeciesDefinition oak, TreeSpeciesDefinition beech)
+    {
+        Check(Mathf.Approximately(Pressures[1], scenarioPressure), "matrix low level no longer matches Scenario One pressure");
+        int y10 = Array.IndexOf(Snapshots, 10), y20 = Array.IndexOf(Snapshots, 20);
+        var line = new StringBuilder("BROWSE_SCENARIO_ONE_LOW");
+        foreach (TreeSpeciesDefinition s in new[] { sitka, oak, beech })
+        foreach (int l in new[] { 2, 3 })
+        {
+            Outcome none = r[Key(s, l, 0, "none")], low = r[Key(s, l, 1, "none")];
+            line.Append($" {s.SpeciesId}/{LightNames[l]}: prom10 {F(none.Promoted[y10])}->{F(low.Promoted[y10])}"
+                + $" prom20 {F(none.Promoted[y20])}->{F(low.Promoted[y20])} surv20 {F(low.Survival[y20])}"
+                + $" browse10 {F(low.MeanBrowseEvents[y10])} median {none.MedianPromotionYear:0}->{low.MedianPromotionYear:0}");
+            // (1) Regeneration remains possible without protection.
+            Check(low.Promoted[y20] >= 0.75f * none.Promoted[y20] && low.Survival[y20] >= 0.85f,
+                $"low pressure made regeneration effectively impossible: {Key(s, l, 1, "none")}");
+        }
+        Emit(line.ToString());
+        Outcome oakLow = r[Key(oak, 3, 1, "none")], beechLow = r[Key(beech, 3, 1, "none")], sitkaLow = r[Key(sitka, 3, 1, "none")];
+        // (2) Browsing visibly slows susceptible juveniles.
+        Check(oakLow.MeanBrowseEvents[y10] > 0.5f && oakLow.Promoted[y10] < r[Key(oak, 3, 0, "none")].Promoted[y10],
+            "low pressure did not slow strong-light oak");
+        // (3) Oak > beech > Sitka.
+        Check(oakLow.MeanBrowseEvents[y10] > beechLow.MeanBrowseEvents[y10] && beechLow.MeanBrowseEvents[y10] > sitkaLow.MeanBrowseEvents[y10],
+            "low-pressure species ordering broken");
+        // (4) Poor light remains a separate bottleneck: oak/Sitka at 0.08 light fail with or without browsing.
+        Check(r[Key(oak, 0, 1, "none")].Promoted[Snapshots.Length - 1] == 0f && r[Key(oak, 0, 0, "none")].Promoted[Snapshots.Length - 1] == 0f,
+            "poor-light oak outcome changed by browsing");
+        Debug.Log("BROWSE_SCENARIO_ONE_LOW_PRESSURE_PASS");
+    }
+
     // ---------- 3. Natural/planted equivalence ----------
 
     private void VerifyEquivalence(TreeSpeciesDefinition oak)
@@ -654,10 +699,17 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         string onA = Run(0.6f);
         yield return null;
         string onB = Run(0.6f);
-        ecology.Browsing.BackgroundPressure = 0f;
+        yield return null;
+        // Normal Scenario One play: the configured low pressure.
+        string scenarioA = Run(scenarioPressure);
+        yield return null;
+        string scenarioB = Run(scenarioPressure);
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
         Emit($"BROWSE_LIFECYCLE neutral={neutral} browsing0.6A={onA} browsing0.6B={onB}");
+        Debug.Log($"BROWSE_SCENARIO_LIFECYCLE pressure={F(scenarioPressure)} A={scenarioA} B={scenarioB}");
         Check(neutral == "BFC55473C1506067", "neutral browsing changed the canonical lifecycle: " + neutral);
         Check(onA == onB, "browsing lifecycle not deterministic");
+        Check(scenarioA == scenarioB, "Scenario One low-pressure lifecycle not deterministic");
         Debug.Log("BROWSE_NEUTRAL_LIFECYCLE_PASS");
     }
 

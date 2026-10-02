@@ -308,6 +308,16 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public void ConfigureDefinition(ScenarioOneDefinition configuredDefinition)
     {
         definition = configuredDefinition;
+        if (Application.isPlaying)
+            ApplyBrowsingConfiguration();
+    }
+
+    // Browse pressure is scenario configuration, not saved state (v14). Applied
+    // in Start so it follows ForestEcologyController.Awake's stand default.
+    private void ApplyBrowsingConfiguration()
+    {
+        if (ecology != null && definition != null)
+            ecology.Browsing.BackgroundPressure = definition.BackgroundBrowsePressure;
     }
 
     private void Awake()
@@ -345,6 +355,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     private void Start()
     {
+        ApplyBrowsingConfiguration();
         EnsureBaselineSnapshot();
         referenceArchive = ScenarioReferenceArchive.Load();
     }

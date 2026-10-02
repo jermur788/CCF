@@ -311,6 +311,9 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         // The unchanged 80-year canonical Sitka fixture and fingerprint. The
         // expected value is the calibrated lifecycle (C8 + k10a10); it was
         // 7E39B70A14959FAD before that calibration.
+        // Neutral anchor: Scenario One's [C] browse pressure is explicitly off here.
+        float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
+        ecology.Browsing.BackgroundPressure = 0f;
         ForestStandScenarios.ApplyLifecycleFixture();
         for (int year = 0; year < 80; year++)
         {
@@ -318,6 +321,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             if (year % 10 == 9) yield return null;
         }
         string canonical = LifecycleHash(ecology);
+        ecology.Browsing.BackgroundPressure = scenarioBrowsePressure;
         Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 

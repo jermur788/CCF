@@ -45,6 +45,10 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Min(0)] private int removalBaseMinutes = 6;
     [SerializeField, Min(0f)] private float removalMinutesPerCohortDensity = 3f;
 
+    [Header("Browsing — Scenario One calibration [C] (Docs/BrowsingProtectionV1.md)")]
+    [Tooltip("[C] Scenario One gameplay calibration, not a measured deer density or universal constant. Low pre-protection pressure: hinders susceptible regeneration without making it impossible. 0 disables browsing.")]
+    [SerializeField, Range(0f, 1f)] private float backgroundBrowsePressure = 0.2f;
+
     [Header("Understorey — provisional functional-group calibration [D]")]
     [SerializeField, Range(0f, 1f)] private float understoreyColonisationRate = 0.3f;
     [SerializeField, Range(0f, 1f)] private float understoreyLossRate = 0.45f;
@@ -98,6 +102,7 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public IReadOnlyList<ScenarioShopEntry> ShopEntries => shopEntries;
     public int RemovalBaseMinutes => removalBaseMinutes;
     public float RemovalMinutesPerCohortDensity => removalMinutesPerCohortDensity;
+    public float BackgroundBrowsePressure => backgroundBrowsePressure;
     public float UnderstoreyColonisationRate => understoreyColonisationRate;
     public float UnderstoreyLossRate => understoreyLossRate;
     public FellingMaterialOutcome DefaultFellingOutcome => defaultFellingOutcome;

@@ -90,7 +90,8 @@ survival  = lightSurvival × (1 − browsedFraction × 0.04)
 
 | Parameter | Value | Tag | Note |
 |---|---|---|---|
-| `backgroundBrowsePressure` (ForestEcologyController) | 0 (off) | [S] | Scenario level is a product decision (see below) |
+| `backgroundBrowsePressure` (ForestEcologyController) | 0 (off) | [S] | Stand default for scenes without a scenario (e.g. fixtures) |
+| **Scenario One `backgroundBrowsePressure`** (`ScenarioOneDefinition`) | **0.2 (low)** | **[C] Scenario One calibration** | Pre-protection level, applied by `ScenarioOneManager.Start`. Not a deer density or a universal constant. A stronger normal level may follow once fencing/shelters are available |
 | Pressure bands for UI | <0.3 low, 0.3–0.65 moderate, >0.65 high | [C] | Report table; interpretation only |
 | Oak palatability | 1.0 | [E transferred] ordering, [S] number | Report range 0.8–1.0 |
 | Beech palatability | 0.5 | [E transferred]/[S] | Report range 0.35–0.7 |
@@ -117,7 +118,40 @@ Species default palatability is 0, so any species without configured values is n
 - **Protection never creates growth.** It only sets `protectionAccess`. The harness checks that every fenced outcome equals the browse-free trajectory exactly. A shelter or fence also becomes irrelevant once the juvenile is above escape height: a breach after escape changes nothing.
 - Fence deterioration from condition/age (the IS436 15-year horizon) is not modelled. That needs a condition/inspection/repair system, which is a work/maintenance task. The ecological interface is already there: whoever owns maintenance sets `breachedYear`, or removes the area.
 
-Pressure and protection are **configuration** in v1, held on `ForestEcologyController.Browsing` and not saved. That is why production keeps pressure at 0 and adds no protection: a player-created fence or shelter would have to be saved (see Persistence).
+Pressure and protection are **configuration** in v1, held on `ForestEcologyController.Browsing` and not saved. No production protection exists yet: a player-created fence or shelter would have to be saved (see Persistence).
+
+## Scenario One low pre-protection pressure
+
+User decision (2026-10-03): light browsing may be active before protection can be installed. It should hinder regeneration without making it impossible.
+
+- **One configuration point.** `ScenarioOneDefinition.backgroundBrowsePressure = 0.2` [C]. The asset does not serialise the field, so the code default applies. `ScenarioOneManager.Start` copies it to `ForestEcologyController.Browsing`. `Start` runs after the controller's `Awake`, which sets the stand default of 0.
+- **No v15.** Nothing new is saved.
+- **Turning it off.** Pressure 0 remains available by setting `Browsing.BackgroundPressure`. Tests and neutral anchors do this explicitly.
+
+Measured at 0.2 (40-year matrix, unprotected), shown as promoted fraction at year 10 then year 20, browsing off → 0.2:
+
+| Species, light | Year 10 | Year 20 | Survival yr 20 | Browse events by yr 10 | Median promotion yr |
+|---|---|---|---:|---:|---|
+| Oak, strong | 1.00 → 0.70 | 1.00 → 0.93 | 0.93 | 1.33 | 9 → 9 |
+| Oak, moderate | 0 → 0 | 1.00 → 0.90 | 0.93 | 1.42 | 12 → 12 |
+| Beech, strong/moderate | 1.00 → 0.88 | 1.00 → 0.98 | 0.98 | 0.42 | 9 → 9 |
+| Sitka, strong | 1.00 → 0.97 | 1.00 → 1.00 | 1.00 | 0.05 | 10 → 10 |
+| Sitka, moderate | 0 → 0 | 1.00 → 1.00 | 1.00 | 0.05 | 14 → 14 |
+
+Effects of the 0.2 setting:
+
+- Regeneration stays possible without protection. The gate requires year-20 promotion ≥75% of baseline and survival ≥0.85.
+- Susceptible juveniles are slowed and some are lost. Ordering is oak > beech > Sitka.
+- Poor light remains a separate bottleneck.
+- Adult C8/k10a10 ecology is untouched (the calibration gate passes unchanged).
+
+Lifecycle hashes:
+
+- **Normal Scenario One lifecycle** (canonical 80-year fixture at 0.2, RNG model 0): `3485B6630C9EA448`. Asserted by `JuvenileMortalityFoundationVerification.BeginCanonical` and reproduced in 8 separate Unity processes.
+- **Neutral anchor** (browsing explicitly 0): `BFC55473C1506067`, unchanged. The canonical, interaction and integration gates now set pressure 0 explicitly for this anchor.
+- **Reference Future v1.** The archive is unchanged. The historical Year-50 continuation now runs with the current Scenario One pressure: hash `230ED95DE18D3996` (was `0F99D51FC8747688` with browsing off). This is diagnostic only under the D-042 contract.
+
+Player feedback: the existing ground/regeneration report (shown on the aimed ground point) appends "browsing low", plus "(leaders at risk N%/yr)" where regeneration exists.
 
 ## Natural / planted shared response
 
@@ -240,7 +274,7 @@ Browsing adds well under 1% of the annual step, which is dominated by the existi
 
 ## Known limitations
 
-- Production pressure is 0. Scenario One shows no browsing until the level is decided and the player can protect juveniles.
+- Scenario One runs at a low pre-protection pressure (0.2 [C]). The player cannot yet install fences or shelters, so the only responses are light management and accepting slower oak.
 - There is no persisted browse history or form damage, and no player-created protection persistence (v15 decision).
 - Cohort mean-height smoothing (see above). Cohort infill continues under browsing, because it represents new seedling arrival; browse losses still apply to existing density.
 - One stand-level pressure; no edge, gap-attraction or density effects (deliberately off, per the report).

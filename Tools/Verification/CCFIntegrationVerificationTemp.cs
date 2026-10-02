@@ -261,7 +261,11 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
     private static string RunLifecycle(ForestEcologyController ecology, out int recruits, out int age30)
     {
         ForestStandScenarios.ApplyLifecycleFixture();
+        // Neutral anchor: Scenario One's [C] browse pressure is explicitly off here.
+        float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
+        ecology.Browsing.BackgroundPressure = 0f;
         for (int year = 1; year <= 80; year++) ecology.AdvanceOneYear();
+        ecology.Browsing.BackgroundPressure = scenarioBrowsePressure;
         ForestTree[] trees = Trees();
         recruits = trees.Count(t => !t.IsStump && t.TreeId.StartsWith("R", StringComparison.Ordinal));
         age30 = trees.Count(t => !t.IsStump && t.TreeId.StartsWith("R", StringComparison.Ordinal) && t.AgeYears >= 30);
