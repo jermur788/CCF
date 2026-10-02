@@ -11,9 +11,20 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-// Disposable Reference Future v1 runner. Copy into Assets/ForestPrototype,
-// run ScenarioReferenceVerification.Begin in Editor batchmode, then remove
-// the temporary Assets copy and generated .meta. Restores the user's save.
+// Disposable Reference Future v1 tooling. Copy into Assets/ForestPrototype,
+// run one entry point in Editor batchmode, then remove the temporary Assets
+// copy and generated .meta. Restores the user's save.
+//
+// Contract (Docs/ReferenceFutureContract.md): v1 is a frozen historical
+// archive. Verification covers ARCHIVE integrity (original embedded data,
+// never re-serialised through current save classes), PREVIEW of the frozen
+// milestones, and CONTINUATION of the historical Year-50 save with the current
+// ecology. Exact historical REPLAY by current code is not part of the contract.
+//   Begin                    archive + preview + continuation gate (play mode)
+//   ReportFrozen             archive integrity + frozen milestone report (no play mode; add -quit)
+//   BeginAuthoringCandidate  author a NEW candidate with the current model
+//                            (differences from v1 are diagnostics; Freeze
+//                            refuses to overwrite v1)
 public static class ScenarioReferenceVerification
 {
 #if UNITY_EDITOR
@@ -24,6 +35,11 @@ public static class ScenarioReferenceVerification
     {
         EditorSceneManager.OpenScene("Assets/Scenes/ForestTest.unity");
         EditorApplication.isPlaying = true;
+    }
+
+    public static void BeginAuthoringCandidate()
+    {
+        Begin();
     }
 
     // Explicit separate step: only freeze a candidate produced by the complete
@@ -79,14 +95,17 @@ public static class ScenarioReferenceVerification
 
     public static void ReportFrozen()
     {
+        // Integrity is checked against the archive's original embedded JSON.
+        // Re-hashing milestone.world here would serialise v12 data through the
+        // current (v14) save classes, which adds fields and changes the hash.
+        ReferenceArchiveIntegrity.Verify();
         ScenarioReferenceArchive archive = ScenarioReferenceArchive.Load();
         if (archive == null)
             throw new InvalidOperationException("Verified Reference Future v1 resource not found.");
         foreach (int year in new[] { 0, 20, 50, 100 })
         {
             ScenarioReferenceMilestone milestone = archive.AtYear(year);
-            if (milestone?.world?.scenarioOne == null
-                || ScenarioReferenceArchive.WorldHash(milestone.world) != milestone.worldHash)
+            if (milestone?.world?.scenarioOne == null || !milestone.verifiedFrozenWorld)
                 throw new InvalidOperationException("Frozen milestone year " + year + " is incompatible.");
             ScenarioOneSaveData state = milestone.world.scenarioOne;
             ScenarioEcologicalSnapshot stand = state.ecologicalSnapshots.Last();
@@ -125,7 +144,9 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
     {
         yield return null;
         Exception failure = null;
-        IEnumerator run = Run();
+        bool authoring = Array.Exists(Environment.GetCommandLineArgs(),
+            arg => arg.EndsWith("ScenarioReferenceVerification.BeginAuthoringCandidate", StringComparison.Ordinal));
+        IEnumerator run = authoring ? Run() : RunContract();
         while (true)
         {
             bool more;
@@ -199,9 +220,11 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         };
         archive.milestones.Add(CaptureFullWorld(saves, 0));
         archive.startingStandHash = archive.AtYear(0).worldHash;
+        // Authoring diagnostics only: a candidate built by the current model and
+        // schema is not expected to reproduce v1 (contract: no exact replay).
         if (frozen != null)
-            Check(archive.startingStandHash == frozen.startingStandHash,
-                "Year-0 world differs from the frozen reference start");
+            Debug.Log($"REFERENCE_AUTHORING_VS_V1 year=0 candidate={archive.startingStandHash} "
+                + $"v1={frozen.startingStandHash} identical={archive.startingStandHash == frozen.startingStandHash}");
 
         var milestones = new Dictionary<int, ReferenceMilestone>();
         var uninterruptedWorlds = new Dictionary<int, ScenarioReferenceMilestone>();
@@ -246,8 +269,9 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
                 milestones[currentYear + 1] = CaptureMilestone(manager, ecology, spawner, currentYear + 1);
                 archive.milestones.Add(CaptureFullWorld(saves, currentYear + 1));
                 if (frozen != null)
-                    Check(archive.AtYear(currentYear + 1).worldHash == frozen.AtYear(currentYear + 1)?.worldHash,
-                        "Year-" + (currentYear + 1) + " world differs from frozen Reference Future v1");
+                    Debug.Log($"REFERENCE_AUTHORING_VS_V1 year={currentYear + 1} "
+                        + $"candidate={archive.AtYear(currentYear + 1).worldHash} v1={frozen.AtYear(currentYear + 1)?.worldHash} "
+                        + $"identical={archive.AtYear(currentYear + 1).worldHash == frozen.AtYear(currentYear + 1)?.worldHash}");
             }
             if (currentYear + 1 > 50)
                 uninterruptedWorlds[currentYear + 1] = currentYear + 1 == 100
@@ -428,6 +452,124 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
             + $"y100sitka={y100.sitkaTrees} y100oak={y100.oakTrees} y100beech={y100.beechTrees} "
             + $"y100deadwood={y100.deadwoodVolume:0.00} y100canopy={y100.canopyCover:0.00} "
             + $"timber={totalTimber / 100f:0.00}");
+    }
+
+    // ---------- Reference Future v1 contract gate ----------
+
+    private IEnumerator RunContract()
+    {
+        ScenarioOneManager manager = FindFirstObjectByType<ScenarioOneManager>();
+        ForestEcologyController ecology = FindFirstObjectByType<ForestEcologyController>();
+        ForestTreeMarkingManager marking = FindFirstObjectByType<ForestTreeMarkingManager>();
+        ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
+        Check(manager != null && ecology != null && marking != null && saves != null, "scenario systems missing");
+        savePath = Path.Combine(Application.persistentDataPath, "forest-save.json");
+        if (File.Exists(savePath)) backup = File.ReadAllBytes(savePath);
+
+        // A. ARCHIVE: original embedded data and pinned v1 anchors.
+        ReferenceArchiveIntegrity.Verify();
+        ScenarioReferenceArchive archive = ScenarioReferenceArchive.Load();
+        Check(archive != null && archive.milestones.All(m => m.verifiedFrozenWorld)
+            && archive.Matches(manager.Definition, ecology),
+            "the archive loader did not verify every frozen milestone for this scenario");
+
+        // B. PREVIEW: each frozen milestone is shown exactly as stored, and the
+        // player's world returns unchanged afterwards.
+        string playerHash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        int playerYear = ecology.EcologicalYear;
+        foreach (int year in new[] { 0, 20, 50, 100 })
+        {
+            Check(manager.TryBeginReferencePreview(year), "frozen milestone could not be previewed: Year " + year);
+            yield return null;
+            yield return null;
+            Check(ecology.EcologicalYear == year, $"preview of Year {year} shows Year {ecology.EcologicalYear}");
+            CheckLiveTreesMatch(archive.AtYear(year).world, "preview Year " + year);
+            manager.EndReferencePreview();
+            yield return null;
+            yield return null;
+            Check(ecology.EcologicalYear == playerYear
+                && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == playerHash,
+                "ending the Year-" + year + " preview did not restore the player's world");
+            Debug.Log($"REFERENCE_PREVIEW_PASS year={year} trees={archive.AtYear(year).world.trees.Count} "
+                + $"worldHash={archive.AtYear(year).worldHash}");
+        }
+
+        // C. CONTINUATION: the historical Year-50 save continues with the
+        // current ecology; two independent continuations must agree exactly.
+        // Divergence from the frozen Year-100 biology is reported, not asserted.
+        ForestSaveData year50 = archive.AtYear(50).world;
+        var continuedHashes = new List<string>();
+        ForestSaveData continued = null;
+        for (int run = 0; run < 2; run++)
+        {
+            saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(year50)), false);
+            yield return null;
+            yield return null;
+            Check(ecology.EcologicalYear == 50, "historical Year-50 save did not load");
+            CheckLiveTreesMatch(year50, "historical Year-50 load");
+            var survey = new ScenarioReferenceSurvey
+            {
+                futureTreeIds = new HashSet<string>(archive.futureTreeIds, StringComparer.Ordinal),
+                oakPlantedCells = new List<int>(archive.oakPlantingCells),
+                beechPlantedCells = new List<int>(archive.beechPlantingCells)
+            };
+            ScenarioReferenceSchedule schedule = ScenarioReferenceRunner.BuildSchedule();
+            for (int year = 50; year < 100; year++)
+            {
+                ScenarioReferenceRunner.ExecuteYear(manager, ecology, marking, schedule, survey, year);
+                manager.ApprovePendingWork();
+                Check(manager.AdvanceYear(), $"continuation {run + 1} stopped at year {year + 1}");
+                yield return null;
+            }
+            continued = saves.CaptureData();
+            continuedHashes.Add(ScenarioReferenceArchive.WorldHash(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(continued))));
+        }
+        Check(continuedHashes[0] == continuedHashes[1],
+            $"historical continuation is not deterministic ({continuedHashes[0]} vs {continuedHashes[1]})");
+        Check(continued.version == ForestSaveData.CurrentVersion && continued.ecologicalYear == 100
+            && manager.CenturyReview != null && manager.CenturyReview.year == 100,
+            "continuation did not reach a current-schema Year 100 with its Century Review");
+        Check(continued.trees.Select(t => t.treeId).Distinct(StringComparer.Ordinal).Count() == continued.trees.Count,
+            "continuation produced duplicate tree ids");
+        Check(continued.trees.All(t => !t.biologicallyDead), "continuation applied tree mortality without an explicit cause");
+        Dictionary<string, TreeSaveData> continuedTrees = continued.trees.ToDictionary(t => t.treeId);
+        foreach (TreeSaveData tree in year50.trees)
+            Check(continuedTrees.TryGetValue(tree.treeId, out TreeSaveData later)
+                && later.speciesId == tree.speciesId && later.position == tree.position
+                && (tree.stage != (int)ForestTreeStage.Stump || later.stage == (int)ForestTreeStage.Stump),
+                "Year-50 tree identity, species, position or harvested state lost: " + tree.treeId);
+        var continuedEvents = continued.scenarioOne.managementEvents.ToDictionary(entry => entry.eventId);
+        foreach (var entry in year50.scenarioOne.managementEvents)
+            Check(continuedEvents.TryGetValue(entry.eventId, out var later)
+                && later.eventType == entry.eventType && later.year == entry.year,
+                "historical management event lost or rewritten: " + entry.eventId);
+        ForestSaveData frozen100 = archive.AtYear(100).world;
+        int same = frozen100.trees.Count(t => continuedTrees.TryGetValue(t.treeId, out TreeSaveData c)
+            && c.stage == t.stage && c.diameterCm == t.diameterCm && c.heightMeters == t.heightMeters);
+        Debug.Log($"REFERENCE_CONTINUATION_DIVERGENCE (diagnostic, not a failure) frozenTrees={frozen100.trees.Count} "
+            + $"continuedTrees={continued.trees.Count} identicalToFrozen={same}");
+        Debug.Log($"REFERENCE_CONTINUATION_PASS year50=v{year50.version} year100=v{continued.version} "
+            + $"deterministic=True continuedHash={continuedHashes[0]}");
+        Debug.Log("REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired");
+    }
+
+    // Every saved tree is present exactly once with its saved identity,
+    // species, position, stage and physical dimensions.
+    private static void CheckLiveTreesMatch(ForestSaveData data, string context)
+    {
+        List<ForestTree> live = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
+        Check(live.Select(t => t.TreeId).Distinct(StringComparer.Ordinal).Count() == live.Count,
+            context + ": duplicate tree ids in the scene");
+        Dictionary<string, ForestTree> byId = live.ToDictionary(t => t.TreeId, StringComparer.Ordinal);
+        Check(byId.Count == data.trees.Count, $"{context}: {byId.Count} scene trees for {data.trees.Count} saved");
+        foreach (TreeSaveData saved in data.trees)
+            Check(byId.TryGetValue(saved.treeId, out ForestTree tree)
+                && tree.Species != null && tree.Species.SpeciesId == saved.speciesId
+                && Mathf.Approximately(tree.transform.position.x, saved.position.x)
+                && Mathf.Approximately(tree.transform.position.z, saved.position.z)
+                && (int)tree.Stage == saved.stage && tree.AgeYears == saved.ageYears
+                && tree.Diameter == saved.diameterCm && tree.SimulationHeightMeters == saved.heightMeters,
+                $"{context}: tree {saved.treeId} not shown as stored");
     }
 
     private static ScenarioReferenceMilestone CaptureFullWorld(ForestSaveController saves, int year)
@@ -663,5 +805,136 @@ public sealed class ReferenceMilestone
             + $"grass={meanGrass:0.00} forb={meanForbs:0.00} shrub={meanShrubs:0.00} "
             + $"fern={meanFerns:0.00} grassyCells={grassyCells} "
             + $"soundscape[{soundscape}]";
+    }
+}
+
+// ARCHIVE integrity for Reference Future v1, independent of the archive
+// loader. Each milestone's "world" object and the "schedule" object are taken
+// from the archive's original embedded JSON text, whitespace outside strings
+// removed (the frozen hashes were computed on compact JSON), and hashed with
+// the archive's own FNV-1a. Nothing is deserialised into current save classes
+// and re-serialised. The pinned values are the frozen v1 anchors.
+public static class ReferenceArchiveIntegrity
+{
+    private const string ArchivePath = "Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceFutureV1.bytes";
+    private const string SchedulePath = "Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceScheduleV1.json";
+    private static readonly Dictionary<int, string> PinnedWorlds = new Dictionary<int, string>
+    {
+        { 0, "A564039D9B7CE31D" }, { 20, "F7DF7DAB53B6FD32" }, { 50, "D5E75D6D21D631AC" }, { 100, "7AD177B3CC2F73C7" }
+    };
+    private const string PinnedSchedule = "56C8B99FA1E8DDD1";
+
+    public static void Verify()
+    {
+        string text;
+        using (var compressed = new MemoryStream(File.ReadAllBytes(ArchivePath)))
+        using (var decoder = new GZipStream(compressed, CompressionMode.Decompress))
+        using (var json = new MemoryStream())
+        {
+            decoder.CopyTo(json);
+            text = Encoding.UTF8.GetString(json.ToArray());
+        }
+        VerifyText(text, true);
+        Debug.Log($"REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule={PinnedSchedule} "
+            + $"archiveFileFnv={ScenarioReferenceArchive.Hash(Convert.ToBase64String(File.ReadAllBytes(ArchivePath)))}");
+
+        // Negative control: one changed value inside the Year-100 embedded world
+        // (in memory only) must be rejected.
+        int lastWorld = text.LastIndexOf("\"world\"", StringComparison.Ordinal);
+        int target = text.IndexOf("\"diameterCm\"", lastWorld, StringComparison.Ordinal);
+        Require(lastWorld >= 0 && target > lastWorld, "negative control could not locate a Year-100 tree value");
+        int digit = target + "\"diameterCm\"".Length;
+        while (digit < text.Length && !char.IsDigit(text[digit])) digit++;
+        string tampered = text.Substring(0, digit) + (text[digit] == '9' ? '8' : (char)(text[digit] + 1)) + text.Substring(digit + 1);
+        bool rejected = false;
+        try { VerifyText(tampered, false); }
+        catch (InvalidOperationException) { rejected = true; }
+        Require(rejected, "a changed Year-100 value was not detected");
+        Debug.Log("REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected");
+    }
+
+    private static void VerifyText(string text, bool log)
+    {
+        // Stored metadata (strings and ints only; schema-insensitive reads).
+        ScenarioReferenceArchive stored = JsonUtility.FromJson<ScenarioReferenceArchive>(text);
+        Require(stored != null && stored.referenceId == "reference-future-v1" && stored.saveVersion == 12
+            && stored.milestones != null && stored.milestones.Count == 4, "archive metadata is not Reference Future v1");
+
+        List<string> worlds = EmbeddedObjects(text, "world");
+        Require(worlds.Count == stored.milestones.Count, $"found {worlds.Count} embedded worlds for {stored.milestones.Count} milestones");
+        for (int i = 0; i < worlds.Count; i++)
+        {
+            ScenarioReferenceMilestone milestone = stored.milestones[i];
+            string hash = ScenarioReferenceArchive.Hash(worlds[i]);
+            Require(PinnedWorlds.TryGetValue(milestone.year, out string pinned), "unexpected milestone year " + milestone.year);
+            Require(hash == milestone.worldHash && hash == pinned && milestone.world != null && milestone.world.version == 12,
+                $"Year-{milestone.year} embedded world hash {hash} (stored {milestone.worldHash}, pinned {pinned})");
+            if (log) Debug.Log($"REFERENCE_ARCHIVE_WORLD year={milestone.year} embeddedHash={hash} stored={milestone.worldHash} pinned=True version=12");
+        }
+        Require(stored.startingStandHash == PinnedWorlds[0], "starting-stand hash is not the Year-0 anchor");
+
+        List<string> schedules = EmbeddedObjects(text, "schedule");
+        Require(schedules.Count == 1, "archive must embed exactly one schedule");
+        string scheduleHash = ScenarioReferenceArchive.Hash(schedules[0]);
+        Require(scheduleHash == stored.scheduleHash && scheduleHash == PinnedSchedule,
+            $"embedded schedule hash {scheduleHash} (stored {stored.scheduleHash}, pinned {PinnedSchedule})");
+        string scheduleFile = Compact(File.ReadAllText(SchedulePath), 0, out _);
+        Require(scheduleFile == schedules[0], "schedule resource file differs from the archive's embedded schedule");
+    }
+
+    // Compact JSON of every object value whose key is exactly "key", in order.
+    private static List<string> EmbeddedObjects(string text, string key)
+    {
+        var result = new List<string>();
+        string token = "\"" + key + "\"";
+        int at = 0;
+        while ((at = text.IndexOf(token, at, StringComparison.Ordinal)) >= 0)
+        {
+            int colon = at + token.Length;
+            while (colon < text.Length && char.IsWhiteSpace(text[colon])) colon++;
+            if (colon >= text.Length || text[colon] != ':') { at += token.Length; continue; }
+            int open = colon + 1;
+            while (open < text.Length && char.IsWhiteSpace(text[open])) open++;
+            if (open < text.Length && text[open] == '{')
+            {
+                result.Add(Compact(text, open, out int end));
+                at = end;
+            }
+            else at = open;
+        }
+        return result;
+    }
+
+    // Copies one balanced JSON value starting at 'start' (or the whole text if
+    // it starts with whitespace before '{'), dropping whitespace outside strings.
+    private static string Compact(string text, int start, out int end)
+    {
+        var sb = new StringBuilder();
+        bool quoted = false, escaped = false;
+        int depth = 0;
+        int i = start;
+        for (; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (!quoted && char.IsWhiteSpace(c)) continue;
+            sb.Append(c);
+            if (quoted)
+            {
+                if (escaped) escaped = false;
+                else if (c == '\\') escaped = true;
+                else if (c == '"') quoted = false;
+                continue;
+            }
+            if (c == '"') quoted = true;
+            else if (c == '{' || c == '[') depth++;
+            else if ((c == '}' || c == ']') && --depth == 0) { i++; break; }
+        }
+        end = i;
+        return sb.ToString();
+    }
+
+    private static void Require(bool ok, string message)
+    {
+        if (!ok) throw new InvalidOperationException("Reference archive integrity: " + message);
     }
 }

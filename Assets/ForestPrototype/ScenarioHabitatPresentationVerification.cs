@@ -75,14 +75,9 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
         string ownVisualSignature = MainStandVisualSignature();
         VerifyMainTreeVariants();
         Sample opening = ReadSample(0, scenario, visuals, audio);
-        // Grass follows the understorey proxy, which is zero below 0.40 light.
-        // Under the calibrated canopy/light (k10a10) the scene's road and work
-        // clearing cells exceed 0.40 at Year 0, so grass there is expected;
-        // grass anywhere else, or with no bright cell, is not.
-        int brightCells = ecology.Cells.Count(cell => cell.Light > 0.40f);
-        Debug.Log($"HABITAT_YEAR0_GRASS patches={visuals.GrassPatchCount} cellsAbove0.40Light={brightCells}");
-        Check(RecentAssetVisualCatalog.Load()?.grasses?.Length == 3 && (brightCells > 0 || visuals.GrassPatchCount == 0),
-            "Grass catalog missing or grass appeared despite the Year-0 grass-cover proxy");
+        Check(RecentAssetVisualCatalog.Load()?.grasses?.Length == 3, "Grass catalog missing");
+        VerifyYear0GrassSupport(scenario, ecology, visuals);
+        VerifyGrassCheckDetectsUnsupportedPlacement(scenario, ecology, visuals);
         Check(SectionFiveVisualCatalog.Load() != null && visuals.LitterPatchCount == 0,
             "Section 5 catalog missing or broadleaf litter appeared in the pure-Sitka start");
         Check(opening.moss > 0 && opening.conifer > opening.mixed && opening.fungi == 0
@@ -145,6 +140,72 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
             && ScenarioHabitatPalette.SpecialistHerbSignal(
                 new ScenarioUnderstoreyCell { forbs = 1f }, visuals.OldWoodlandSourceConfidence) == 0f,
             "the frozen reference changed or unsourced old-woodland herbs appeared");
+    }
+
+    // Every Year-0 grass instance must be supported by its own cell. Year-0
+    // understorey is ScenarioOneUnderstorey.Target(cell), whose grass cover is
+    // zero unless the cell's authoritative light exceeds 0.40; the palette then
+    // places max(1, round(strength x 4)) grass instances in each cell whose
+    // grass strength is at least 0.025, jittered within the cell. So each
+    // cell's placed count must equal the rule's count (no unsupported, missing
+    // or displaced grass), and any cell holding grass must exceed 0.40 light.
+    // Under k10a10 that is the scene's open road / work-clearing cells.
+    private static void VerifyYear0GrassSupport(ScenarioOneManager scenario, ForestEcologyController ecology,
+        ScenarioHabitatVisuals visuals)
+    {
+        var grassNames = new System.Collections.Generic.HashSet<string>(RecentAssetVisualCatalog.Load().grasses
+            .Where(prefab => prefab != null).Select(prefab => prefab.name + "(Clone)"));
+        Transform[] patches = FindObjectsByType<Transform>(FindObjectsSortMode.None)
+            .Where(t => t.parent != null && t.parent.name == "Authored forest floor" && grassNames.Contains(t.name))
+            .ToArray();
+        Check(patches.Length == visuals.GrassPatchCount,
+            $"grass instances ({patches.Length}) disagree with the habitat layer's count ({visuals.GrassPatchCount})");
+        var placedPerCell = patches.GroupBy(t => ecology.GetCellIndex(t.position)).ToDictionary(g => g.Key, g => g.Count());
+        Check(!placedPerCell.ContainsKey(-1), "grass placed outside the ecology grid");
+        Check(scenario.UnderstoreyCells.Count == ecology.CellCount, "understorey cells do not cover the grid");
+        int supportedCells = 0;
+        for (int i = 0; i < ecology.CellCount; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[i];
+            float strength = ScenarioHabitatPalette.Strength(HabitatVisualClass.Grass, scenario.UnderstoreyCells[i],
+                cell, visuals.OldWoodlandSourceConfidence);
+            int expected = strength < 0.025f ? 0 : Mathf.Max(1, Mathf.RoundToInt(strength * 4f));
+            placedPerCell.TryGetValue(i, out int placed);
+            Check(placed == expected, $"cell {i}: {placed} grass instances where the presentation rule gives {expected} "
+                + $"(light {cell.Light:0.000}, grass cover {scenario.UnderstoreyCells[i].grasses:0.000})");
+            if (placed > 0)
+            {
+                Check(cell.Light > 0.40f, $"cell {i} has Year-0 grass at light {cell.Light:0.000}, below the 0.40 grass threshold");
+                supportedCells++;
+            }
+        }
+        Debug.Log($"HABITAT_YEAR0_GRASS patches={patches.Length} cellsWithGrass={supportedCells} "
+            + $"cellsAbove0.40Light={ecology.Cells.Count(cell => cell.Light > 0.40f)} unsupported=0");
+    }
+
+    // Negative control: move one real grass instance into the darkest cell
+    // (total count unchanged) and require the spatial check to reject it, then
+    // restore it and require the check to pass again.
+    private static void VerifyGrassCheckDetectsUnsupportedPlacement(ScenarioOneManager scenario,
+        ForestEcologyController ecology, ScenarioHabitatVisuals visuals)
+    {
+        var grassNames = new System.Collections.Generic.HashSet<string>(RecentAssetVisualCatalog.Load().grasses
+            .Where(prefab => prefab != null).Select(prefab => prefab.name + "(Clone)"));
+        Transform patch = FindObjectsByType<Transform>(FindObjectsSortMode.None)
+            .Where(t => t.parent != null && t.parent.name == "Authored forest floor" && grassNames.Contains(t.name))
+            .OrderBy(t => t.position.x).ThenBy(t => t.position.z).FirstOrDefault();
+        Check(patch != null, "negative control needs at least one Year-0 grass instance");
+        int dark = Enumerable.Range(0, ecology.CellCount).OrderBy(i => ecology.Cells[i].Light).ThenBy(i => i).First();
+        Check(ecology.Cells[dark].Light < 0.40f, "negative control found no dark cell");
+        Vector3 original = patch.position;
+        patch.position = new Vector3(ecology.Cells[dark].Center.x, original.y, ecology.Cells[dark].Center.y);
+        bool rejected = false;
+        try { VerifyYear0GrassSupport(scenario, ecology, visuals); }
+        catch (InvalidOperationException) { rejected = true; }
+        patch.position = original;
+        Check(rejected, "grass moved into a dark cell was not detected");
+        VerifyYear0GrassSupport(scenario, ecology, visuals);
+        Debug.Log($"HABITAT_YEAR0_GRASS_NEGATIVE_CONTROL_PASS movedToCell={dark} light={ecology.Cells[dark].Light:0.000} detected=True");
     }
 
     private static Sample ReadSample(int year, ScenarioOneManager scenario,

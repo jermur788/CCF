@@ -321,17 +321,24 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 
-        // The frozen Year-50 save is v12. It must still load and continue to
-        // Year 100 under current code, keeping every Year-50 tree's identity
-        // and position. Since the C8 + k10a10 calibration the continued
-        // biology is deliberately no longer the frozen v1 biology, so the
-        // Year-100 tree/cell comparison is reported, not required; the frozen
-        // archive itself must still verify unchanged.
-        ForestSaveData year50 = archive.AtYear(50).world;
-        saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(year50)), false);
+        // Reference Future v1 contract (Docs/ReferenceFutureContract.md). The
+        // archive is verified against its original embedded data by the loader
+        // and previewed above; this is CONTINUATION. The frozen v12 Year-50 world
+        // must load under the current schema and continue to Year 100 with the
+        // CURRENT ecology. Exact historical REPLAY is not part of the contract:
+        // continued biology may differ from the frozen Year-100 world and that
+        // difference is reported, not asserted. State integrity, history and
+        // determinism of the continuation are asserted.
+        ScenarioReferenceMilestone frozen50 = archive.AtYear(50), frozen100 = archive.AtYear(100);
+        Check(frozen50 != null && frozen50.verifiedFrozenWorld && frozen50.worldHash == "D5E75D6D21D631AC"
+            && frozen50.world.version == 12 && frozen100 != null && frozen100.verifiedFrozenWorld
+            && frozen100.worldHash == "7AD177B3CC2F73C7", "frozen v12 Year-50/100 milestones are not verified");
+        ForestSaveData year50 = frozen50.world;
+        saves.LoadData(CloneSave(year50), false);
         yield return null;
         yield return null;
         Check(ecology.EcologicalYear == 50, "frozen v12 Year-50 save failed to load");
+        CheckLiveTreesMatch(year50, "frozen v12 Year-50 load");
         var survey = new ScenarioReferenceSurvey
         {
             futureTreeIds = new HashSet<string>(archive.futureTreeIds, StringComparer.Ordinal),
@@ -339,24 +346,42 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             beechPlantedCells = new List<int>(archive.beechPlantingCells)
         };
         ScenarioReferenceSchedule schedule = ScenarioReferenceRunner.BuildSchedule();
+        ForestSaveData year75 = null;
+        ScenarioReferenceSurvey survey75 = null;
         for (int year = 50; year < 100; year++)
         {
             ScenarioReferenceRunner.ExecuteYear(manager, ecology, marks, schedule, survey, year);
             manager.ApprovePendingWork();
-            Check(manager.AdvanceYear(), "historical replay stopped at year " + (year + 1));
+            Check(manager.AdvanceYear(), "historical continuation stopped at year " + (year + 1));
+            if (ecology.EcologicalYear == 75)
+            {
+                year75 = CloneSave(saves.CaptureData());
+                survey75 = CopySurvey(survey);
+            }
             yield return null;
         }
-        ForestSaveData replay = saves.CaptureData();
-        ForestSaveData expected = archive.AtYear(100).world;
-        Check(expected.version == 12 && replay.version == ForestSaveData.CurrentVersion
-            && replay.ecologicalYear == 100, "frozen v12 Year-50 continuation did not reach a current-schema Year 100");
-        // Stored v1 hashes, as before. Recomputing WorldHash re-serialises the
-        // v12 world through the current (v14) save classes, so it is not a
-        // valid archive-integrity check across schema versions.
-        Check(archive.AtYear(100).worldHash == "7AD177B3CC2F73C7"
-            && archive.AtYear(50).worldHash == "D5E75D6D21D631AC" && year50.version == 12,
-            "frozen Reference Future v1 archive no longer verifies");
-        var historicalSameYearPruneFell = new HashSet<string>(expected.scenarioOne.workOrders
+        ForestSaveData continued = CloneSave(saves.CaptureData());
+        string continuedHash = ScenarioReferenceArchive.WorldHash(CloneSave(continued));
+        Check(continued.version == ForestSaveData.CurrentVersion && continued.ecologicalYear == 100
+            && manager.CenturyReview != null && manager.CenturyReview.year == 100,
+            "historical continuation did not reach a current-schema Year 100 with its Century Review");
+        Check(continued.trees.Select(tree => tree.treeId).Distinct(StringComparer.Ordinal).Count() == continued.trees.Count,
+            "historical continuation produced duplicate tree ids");
+        Check(continued.trees.All(tree => !tree.biologicallyDead),
+            "historical continuation applied tree mortality without an explicit cause");
+        Dictionary<string, TreeSaveData> continuedTrees = continued.trees.ToDictionary(tree => tree.treeId);
+        foreach (TreeSaveData tree in year50.trees)
+            Check(continuedTrees.TryGetValue(tree.treeId, out TreeSaveData later)
+                && tree.speciesId == later.speciesId && tree.position == later.position
+                && (tree.stage != (int)ForestTreeStage.Stump || later.stage == (int)ForestTreeStage.Stump),
+                "Year-50 tree identity, species, position or harvested state lost in continuation: " + tree.treeId);
+        var continuedEvents = continued.scenarioOne.managementEvents.ToDictionary(entry => entry.eventId);
+        foreach (var entry in year50.scenarioOne.managementEvents)
+            Check(continuedEvents.TryGetValue(entry.eventId, out var later)
+                && later.eventType == entry.eventType && later.year == entry.year,
+                "historical management event lost or rewritten in continuation: " + entry.eventId);
+        // The frozen archive's own known v12 exception (stored data, not re-simulated).
+        var historicalSameYearPruneFell = new HashSet<string>(frozen100.world.scenarioOne.workOrders
             .Where(order => order.status == ScenarioWorkStatus.Completed
                 && (order.type == ScenarioWorkType.PruneTree || order.type == ScenarioWorkType.FellTree))
             .GroupBy(order => new { order.targetTreeId, order.resolvedYear })
@@ -365,27 +390,80 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             .Select(group => group.Key.targetTreeId), StringComparer.Ordinal);
         Check(historicalSameYearPruneFell.SetEquals(new[] { "P0601" }),
             "the known v12 same-year pruning/felling exception changed");
-        Dictionary<string, TreeSaveData> replayTrees = replay.trees.ToDictionary(tree => tree.treeId);
-        foreach (TreeSaveData tree in year50.trees)
-            Check(replayTrees.TryGetValue(tree.treeId, out TreeSaveData actual)
-                && tree.speciesId == actual.speciesId && tree.position == actual.position,
-                "Year-50 tree identity/position lost in continuation: " + tree.treeId);
+
+        // Determinism: resuming the current-model Year-75 save reaches the same Year-100 world.
+        Check(year75 != null && survey75 != null, "continuation did not record its Year-75 checkpoint");
+        saves.LoadData(CloneSave(year75), false);
+        yield return null;
+        yield return null;
+        Check(ecology.EcologicalYear == 75, "Year-75 continuation checkpoint failed to load");
+        for (int year = 75; year < 100; year++)
+        {
+            ScenarioReferenceRunner.ExecuteYear(manager, ecology, marks, schedule, survey75, year);
+            manager.ApprovePendingWork();
+            Check(manager.AdvanceYear(), "resumed continuation stopped at year " + (year + 1));
+            yield return null;
+        }
+        Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == continuedHash,
+            "historical continuation is not deterministic across a Year-75 save/load");
+
+        // Persistence: the continued Year-100 world round-trips through save/load.
+        saves.LoadData(CloneSave(continued), false);
+        yield return null;
+        yield return null;
+        Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == continuedHash,
+            "continued Year-100 world changed across save/load");
+        CheckLiveTreesMatch(continued, "continued Year-100 reload");
+
+        // Diagnostic only: expected divergence from the frozen historical biology.
         int sameTrees = 0, divergedTrees = 0, missingFrozen = 0;
         float maxDbhDiff = 0f;
-        foreach (TreeSaveData tree in expected.trees)
+        foreach (TreeSaveData tree in frozen100.world.trees)
         {
-            if (!replayTrees.TryGetValue(tree.treeId, out TreeSaveData actual)) { missingFrozen++; continue; }
+            if (!continuedTrees.TryGetValue(tree.treeId, out TreeSaveData actual)) { missingFrozen++; continue; }
             bool same = tree.stage == actual.stage && tree.heightMeters == actual.heightMeters
                 && tree.diameterCm == actual.diameterCm && tree.crownRadiusMeters == actual.crownRadiusMeters;
             if (same) sameTrees++; else divergedTrees++;
             maxDbhDiff = Mathf.Max(maxDbhDiff, Mathf.Abs(tree.diameterCm - actual.diameterCm));
         }
-        Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_DIVERGENCE expected=calibrated frozenTrees=" + expected.trees.Count
-            + " replayTrees=" + replay.trees.Count + " identical=" + sameTrees + " diverged=" + divergedTrees
-            + " frozenIdsAbsent=" + missingFrozen + " maxDbhDiffCm=" + maxDbhDiff.ToString("0.00"));
-        Debug.Log("SCENARIO_ONE_LEGACY_REFERENCE_REPLAY_PASS year50=v12 year100=v" + replay.version + " trees="
-            + replay.trees.Count + " historicalSameYearPruneFell=P0601 frozenYear100="
-            + archive.AtYear(100).worldHash + " biology=calibrated");
+        Debug.Log("SCENARIO_ONE_HISTORICAL_CONTINUATION_DIVERGENCE (diagnostic, not a failure) frozenTrees="
+            + frozen100.world.trees.Count + " continuedTrees=" + continued.trees.Count + " identical=" + sameTrees
+            + " diverged=" + divergedTrees + " frozenIdsAbsent=" + missingFrozen + " maxDbhDiffCm=" + maxDbhDiff.ToString("0.00"));
+        Debug.Log("SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v" + continued.version
+            + " trees=" + continued.trees.Count + " year50TreesPreserved=" + year50.trees.Count
+            + " deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=" + continuedHash);
+    }
+
+    private static ForestSaveData CloneSave(ForestSaveData data) =>
+        JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+
+    private static ScenarioReferenceSurvey CopySurvey(ScenarioReferenceSurvey survey) => new ScenarioReferenceSurvey
+    {
+        futureTreeIds = new HashSet<string>(survey.futureTreeIds, StringComparer.Ordinal),
+        oakPlantedCells = new List<int>(survey.oakPlantedCells),
+        beechPlantedCells = new List<int>(survey.beechPlantedCells),
+        oakCandidateCells = survey.oakCandidateCells != null ? new List<int>(survey.oakCandidateCells) : null,
+        beechCandidateCells = survey.beechCandidateCells != null ? new List<int>(survey.beechCandidateCells) : null,
+        surveyedYear = survey.surveyedYear
+    };
+
+    // Every saved tree is present exactly once in the scene with its saved
+    // identity, species, position, stage and physical dimensions.
+    private static void CheckLiveTreesMatch(ForestSaveData data, string context)
+    {
+        List<ForestTree> live = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
+        Check(live.Select(tree => tree.TreeId).Distinct(StringComparer.Ordinal).Count() == live.Count,
+            context + ": duplicate tree ids in the scene");
+        Dictionary<string, ForestTree> byId = live.ToDictionary(tree => tree.TreeId, StringComparer.Ordinal);
+        Check(byId.Count == data.trees.Count, $"{context}: {byId.Count} scene trees for {data.trees.Count} saved");
+        foreach (TreeSaveData saved in data.trees)
+            Check(byId.TryGetValue(saved.treeId, out ForestTree tree)
+                && tree.Species != null && tree.Species.SpeciesId == saved.speciesId
+                && Mathf.Approximately(tree.transform.position.x, saved.position.x)
+                && Mathf.Approximately(tree.transform.position.z, saved.position.z)
+                && (int)tree.Stage == saved.stage && tree.AgeYears == saved.ageYears
+                && tree.Diameter == saved.diameterCm && tree.SimulationHeightMeters == saved.heightMeters,
+                $"{context}: tree {saved.treeId} not restored as saved");
     }
 
     private static string LifecycleHash(ForestEcologyController ecology)
