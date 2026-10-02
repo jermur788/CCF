@@ -11,6 +11,9 @@ public sealed class ForestSaveData
     public int wood;
     public int ecologicalYear;
     public int simulationSeed = 20260914;
+    // RNG scheme (SimulationRandom). Deliberately defaults to 0, the legacy
+    // scheme, so saves written before this field existed replay unchanged.
+    public int rngModelVersion;
     public List<string> markedTreeIds = new List<string>();
     public List<string> cropTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();

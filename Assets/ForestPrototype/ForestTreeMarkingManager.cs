@@ -351,7 +351,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         float lightAfter = lightAfterSum / affected.Count;
 
         // Competition and growth of the retained trees, current versus forecast.
-        const float competitionCutoffM = 20f; // matches UpdateCompetition's [C] cutoff
+        const float competitionCutoffM = ForestEcologyController.HegyiCutoffMeters;
         float growthNowSum = 0f, growthAfterSum = 0f;
         int remainingCount = 0;
         foreach (ForestTree tree in living)
@@ -376,7 +376,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 float distance = Vector2.Distance(position, neighbourPosition);
                 if (distance > competitionCutoffM)
                     continue;
-                ciAfter += (neighbour.Diameter / Mathf.Max(1f, tree.Diameter)) / Mathf.Max(0.5f, distance);
+                ciAfter += ForestEcologyController.HegyiTerm(neighbour.Diameter, tree.Diameter, distance);
             }
             growthAfterSum += potential * (1f / (1f + ciAfter / treeSpecies.Ci50));
             remainingCount++;

@@ -441,7 +441,16 @@ public sealed class ScenarioOneManager : MonoBehaviour
         SetWorkPlanOpen(false);
         previewYear = year;
         referencePreviewActive = true;
-        saves.LoadData(example, false);
+        if (!saves.LoadData(example, false))
+        {
+            // The milestone was rejected before anything in the world changed,
+            // so the player's own forest is still in place.
+            referencePreviewActive = false;
+            previewReturnData = null;
+            previewYear = 0;
+            feedback = "The reference milestone could not be loaded; preview was not opened.";
+            return false;
+        }
         MoveToReferenceView(example);
         return true;
     }
@@ -452,8 +461,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
             return;
         referencePreviewActive = false;
         ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
-        if (saves != null && previewReturnData != null)
-            saves.LoadData(previewReturnData, false);
+        if (saves != null && previewReturnData != null && !saves.LoadData(previewReturnData, false))
+            Debug.LogError("Returning from the reference preview failed: the captured forest was rejected on reload.", this);
         previewReturnData = null;
         player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)
@@ -892,32 +901,41 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
 
         var report = new ScenarioAnnualReport { year = ecology.EcologicalYear + 1 };
-        foreach (ScenarioOneWorkOrder order in approved)
+        // Fellings in this resolution share one canopy and seed-rain rebuild.
+        ecology.BeginChangeBatch();
+        try
         {
-            long beforeCash = cashCents;
-            long beforeCost = report.contractorCostCents;
-            long beforeRevenue = report.timberRevenueCents;
-            float beforeVolume = report.harvestedVolumeM3;
-            float beforeDeadwood = report.deadwoodCreatedM3;
-            float beforeKept = report.keptForUseVolumeM3;
-            int beforeStock = order.type == ScenarioWorkType.PlantJuvenile ? GetStockQuantity(order.stockItemId) : 0;
-            float beforeRemovedDensity = report.removedRegenerationDensity;
-            ResolveOrder(order, report);
-            ScenarioManagementEvent result = RecordOrderEvent(order, ScenarioManagementEventType.WorkResolved,
-                order.status == ScenarioWorkStatus.Completed ? ScenarioManagementOutcome.Succeeded : ScenarioManagementOutcome.Failed,
-                report.year);
-            result.contractorCostCents = report.contractorCostCents - beforeCost;
-            result.timberRevenueCents = report.timberRevenueCents - beforeRevenue;
-            result.biologicalVolumeM3 = (report.harvestedVolumeM3 - beforeVolume)
-                + (report.deadwoodCreatedM3 - beforeDeadwood)
-                + (report.keptForUseVolumeM3 - beforeKept);
-            result.regenerationDensityRemoved = report.removedRegenerationDensity - beforeRemovedDensity;
-            result.stockUsed = order.type == ScenarioWorkType.PlantJuvenile
-                ? beforeStock - GetStockQuantity(order.stockItemId) : 0;
-            result.cashDeltaCents = cashCents - beforeCash;
-            result.failureReason = order.status == ScenarioWorkStatus.Failed ? order.validationMessage : "";
-            result.ecologicalTreatment = order.status == ScenarioWorkStatus.Completed
-                ? TreatmentFor(order) : ScenarioEcologicalTreatment.None;
+            foreach (ScenarioOneWorkOrder order in approved)
+            {
+                long beforeCash = cashCents;
+                long beforeCost = report.contractorCostCents;
+                long beforeRevenue = report.timberRevenueCents;
+                float beforeVolume = report.harvestedVolumeM3;
+                float beforeDeadwood = report.deadwoodCreatedM3;
+                float beforeKept = report.keptForUseVolumeM3;
+                int beforeStock = order.type == ScenarioWorkType.PlantJuvenile ? GetStockQuantity(order.stockItemId) : 0;
+                float beforeRemovedDensity = report.removedRegenerationDensity;
+                ResolveOrder(order, report);
+                ScenarioManagementEvent result = RecordOrderEvent(order, ScenarioManagementEventType.WorkResolved,
+                    order.status == ScenarioWorkStatus.Completed ? ScenarioManagementOutcome.Succeeded : ScenarioManagementOutcome.Failed,
+                    report.year);
+                result.contractorCostCents = report.contractorCostCents - beforeCost;
+                result.timberRevenueCents = report.timberRevenueCents - beforeRevenue;
+                result.biologicalVolumeM3 = (report.harvestedVolumeM3 - beforeVolume)
+                    + (report.deadwoodCreatedM3 - beforeDeadwood)
+                    + (report.keptForUseVolumeM3 - beforeKept);
+                result.regenerationDensityRemoved = report.removedRegenerationDensity - beforeRemovedDensity;
+                result.stockUsed = order.type == ScenarioWorkType.PlantJuvenile
+                    ? beforeStock - GetStockQuantity(order.stockItemId) : 0;
+                result.cashDeltaCents = cashCents - beforeCash;
+                result.failureReason = order.status == ScenarioWorkStatus.Failed ? order.validationMessage : "";
+                result.ecologicalTreatment = order.status == ScenarioWorkStatus.Completed
+                    ? TreatmentFor(order) : ScenarioEcologicalTreatment.None;
+            }
+        }
+        finally
+        {
+            ecology.EndChangeBatch();
         }
 
         // Scenario One's single authoritative annual sequence: approved work,
@@ -1474,7 +1492,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             juvenile.ageYears += 1f;
             juvenile.heightMeters += species.RegenHeightGrowthMPerYear
                 * species.JuvenileLightResponse(cell.Light) * cell.SiteProductivity;
-            if (SurvivalRoll(juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)
+            if (SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)
                 >= species.JuvenileSurvivalResponse(cell.Light))
             {
                 juvenile.alive = false;
@@ -1490,16 +1508,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
             if (tree != null)
                 juvenile.promotedTreeId = treeId;
         }
-    }
-
-    private static float SurvivalRoll(string id, int year, int seed)
-    {
-        uint hash = 2166136261u;
-        foreach (char c in id)
-            hash = (hash ^ c) * 16777619u;
-        hash = (hash ^ (uint)year) * 16777619u;
-        hash = (hash ^ (uint)seed) * 16777619u;
-        return (hash & 0xFFFFFFu) / 16777216f;
     }
 
     private void ResolveRegenerationRemoval(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
