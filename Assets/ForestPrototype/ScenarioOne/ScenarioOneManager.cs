@@ -1490,9 +1490,19 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 continue;
             ForestEcologyCell cell = ecology.Cells[index];
             juvenile.ageYears += 1f;
-            JuvenileEcologyRules.GrowHeight(ref juvenile.heightMeters, species, cell.Light, cell.SiteProductivity);
+            // Browsing v1: same shared response as cohorts, realised as one
+            // deterministic annual event per individual (height before growth).
+            BrowseAssessment browse = ecology.AssessIndividualBrowse(juvenile.position, species, juvenile.heightMeters);
+            bool browsed = JuvenileEcologyRules.RealiseBrowse(browse.Probability, ecology.RngModelVersion,
+                juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed);
+            juvenile.lastBrowseAssessment = browse;
+            juvenile.lastBrowseAssessmentYear = ecology.EcologicalYear;
+            juvenile.lastYearBrowsed = browsed;
+            JuvenileEcologyRules.GrowHeight(ref juvenile.heightMeters, species, cell.Light, cell.SiteProductivity,
+                browsed ? 1f : 0f);
             if (!JuvenileEcologyRules.Survives(species, cell.Light,
-                SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed)))
+                SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId, ecology.EcologicalYear, ecology.SimulationSeed),
+                browsed))
             {
                 juvenile.alive = false;
                 continue;

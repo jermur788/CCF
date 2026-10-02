@@ -30,6 +30,10 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField, Min(0f)] private float plantedJuvenileDensity = 1f;
     [Tooltip("Optional visual-only seedling shown for the default species while its regeneration cohort grows (scaled by cohort height, removed on promotion). Pure display: the cohort state stays authoritative.")]
     [SerializeField] private GameObject seedlingVisualPrefab;
+    [Header("Browsing (Browsing & Protection v1)")]
+    [Tooltip("[S] Stand-level large-deer browse pressure 0-1 (not a deer density). 0 = browsing off, the pre-browsing behaviour exactly. Scenario level is a product/calibration decision; see Docs/BrowsingProtectionV1.md.")]
+    [SerializeField, Range(0f, 1f)] private float backgroundBrowsePressure;
+    private readonly BrowsingConditions browsing = new BrowsingConditions();
     private readonly Dictionary<string, GameObject> seedlingVisuals = new Dictionary<string, GameObject>();
     private bool seedlingVisualsDirty = true;
     private float timeLapseAccumulator;
@@ -116,7 +120,31 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void Awake()
     {
+        browsing.BackgroundPressure = backgroundBrowsePressure;
         RebuildGrid();
+    }
+
+    // Browsing conditions are configuration in v1 (pressure from the inspector,
+    // protection from scenario/work layers or tests); they are not saved.
+    public BrowsingConditions Browsing => browsing;
+
+    // Browse exposure of a natural/legacy cohort in this cell at its current height.
+    public BrowseAssessment AssessCohortBrowse(int cellIndex, TreeSpeciesDefinition targetSpecies, float height)
+    {
+        if (cells == null || cellIndex < 0 || cellIndex >= cells.Length)
+            return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, 0f, 1f, BrowseProtectionState.None);
+        float access = browsing.BackgroundPressure > 0f
+            ? browsing.CohortAccess(cells[cellIndex].Center, cellSizeMeters, ecologicalYear) : 1f;
+        BrowseProtectionState state = access <= 0f ? BrowseProtectionState.InsideIntactFence : BrowseProtectionState.None;
+        return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, browsing.BackgroundPressure, access, state);
+    }
+
+    // Browse exposure of one exact-position juvenile at its current height.
+    public BrowseAssessment AssessIndividualBrowse(Vector3 worldPosition, TreeSpeciesDefinition targetSpecies, float height)
+    {
+        var position = new Vector2(worldPosition.x, worldPosition.z);
+        BrowseProtectionState state = browsing.ProtectionAt(position, ecologicalYear, out float access);
+        return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, browsing.BackgroundPressure, access, state);
     }
 
     private void Update()
@@ -975,8 +1003,9 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void GrowExistingRegeneration()
     {
-        foreach (ForestEcologyCell cell in cells)
+        for (int cellIndex = 0; cellIndex < cells.Length; cellIndex++)
         {
+            ForestEcologyCell cell = cells[cellIndex];
             // Cohorts are stored in ordinal SpeciesId order.
             for (int i = 0; i < cell.Regeneration.Count; i++)
             {
@@ -984,16 +1013,24 @@ public sealed class ForestEcologyController : MonoBehaviour
                 TreeSpeciesDefinition cohortSpecies = cohort.Species;
                 if (cohort.Density <= 0f || cohortSpecies == null)
                     continue;
+                // Browsing v1: the cohort receives the expected browsed
+                // fraction (no RNG), evaluated at its height before growth.
+                float browsed = browsing.BackgroundPressure > 0f
+                    ? AssessCohortBrowse(cellIndex, cohortSpecies, cohort.Height).Probability : 0f;
+                cohort.LastBrowsedFraction = browsed;
+                cohort.LastBrowseAssessmentYear = ecologicalYear;
                 float growthResponse = JuvenileEcologyRules.LightResponse(cohortSpecies, cell.Light);
-                JuvenileEcologyRules.GrowHeight(ref cohort.Height, cohortSpecies, cell.Light, cell.SiteProductivity);
-                double survival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light);
+                JuvenileEcologyRules.GrowHeight(ref cohort.Height, cohortSpecies, cell.Light, cell.SiteProductivity, browsed);
+                double lightSurvival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light);
+                double survival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light, browsed);
                 cohort.Density = (float)(cohort.Density * survival);
                 // Preserve the existing cohort-only infill/capacity abstraction.
-                // Every cohort still applies the shared survival response, so a
-                // future shared modifier cannot be bypassed by this adapter.
+                // Infill represents continued seedling arrival, so it follows
+                // the light survival response; browse losses still apply to
+                // the existing density above.
                 bool recoverDensity = cohortSpecies.UsesDistinctJuvenileLightResponses
-                    ? survival >= 0.999999f
-                    : growthResponse >= cohortSpecies.RegenPoorLightThreshold && survival == 1d;
+                    ? lightSurvival >= 0.999999f
+                    : growthResponse >= cohortSpecies.RegenPoorLightThreshold && lightSurvival == 1d;
                 if (recoverDensity)
                     cell.AddDensityWithSharedCapacity(cohort, 0.05f);
                 if (cohort.Density < 0.01f)
@@ -1248,7 +1285,17 @@ public sealed class ForestEcologyController : MonoBehaviour
                 constraint = "establishment conditions good";
         }
 
-        return $"Ground: {regenText} · light {cell.Light:0.00} · seed {seedWord} · suitability {cell.EstablishmentSuitability:0.00} · {constraint}";
+        string browseText = "";
+        if (browsing.BackgroundPressure > 0f)
+        {
+            float worst = 0f;
+            foreach (ForestRegenerationCohort cohort in cell.Regeneration)
+                if (cohort != null && cohort.Species != null && cohort.Density > 0f)
+                    worst = Mathf.Max(worst, AssessCohortBrowse(index, cohort.Species, cohort.Height).Probability);
+            browseText = $" · browsing {BrowsingConditions.PressureBand(browsing.BackgroundPressure)}"
+                + (cell.HasRegeneration ? $" (leaders at risk {worst:P0}/yr)" : "");
+        }
+        return $"Ground: {regenText} · light {cell.Light:0.00} · seed {seedWord} · suitability {cell.EstablishmentSuitability:0.00} · {constraint}{browseText}";
     }
 
     public float GetSiteProductivity(Vector3 worldPosition)

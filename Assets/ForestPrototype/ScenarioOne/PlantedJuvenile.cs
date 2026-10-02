@@ -20,6 +20,11 @@ public sealed class PlantedJuvenile
     public string stockItemId = "";
     public string promotedTreeId = "";
     public bool legacyCohortManaged;
+    // Browsing v1 diagnostics of the most recent annual step. Not saved: the
+    // consequence of a browse event is already carried by height/alive.
+    [NonSerialized] public bool lastYearBrowsed;
+    [NonSerialized] public int lastBrowseAssessmentYear = -1;
+    [NonSerialized] public BrowseAssessment lastBrowseAssessment;
 }
 
 // Spatial clearance patch around a planting site. Only patches made in the

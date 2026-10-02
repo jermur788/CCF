@@ -14,6 +14,11 @@ public sealed class ForestRegenerationCohort
     // reproduction. A planted cohort is otherwise an ordinary cohort.
     public RegenerationOrigin Origin = RegenerationOrigin.Natural;
     public int OriginYear = -1;
+    // Browsing v1 diagnostic of the most recent annual step: expected fraction
+    // of this cohort whose leaders were browsed. Not saved; the biological
+    // consequence is already carried by Height and Density.
+    public float LastBrowsedFraction;
+    public int LastBrowseAssessmentYear = -1;
 
     public ForestRegenerationCohort(TreeSpeciesDefinition species)
     {

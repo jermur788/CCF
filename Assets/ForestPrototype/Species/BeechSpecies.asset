@@ -62,6 +62,9 @@ MonoBehaviour:
   regenMortalityUnderPoorLight: 0.2
   regenPoorLightThreshold: 0.15
   supportsRegeneration: 1
+  browsePalatability: 0.5
+  browseFullVulnerabilityHeightM: 1.2
+  browseEscapeHeightM: 1.8
   standWindSusceptibility: 1
   windOpeningWeight: 1
   windThinningHalfLifeYears: 3

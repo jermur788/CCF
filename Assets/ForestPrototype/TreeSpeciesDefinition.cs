@@ -95,6 +95,14 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[A/B] Whether this species can produce and establish regeneration in the current simulation slice. Beech is disabled until its regeneration milestone.")]
     [SerializeField] private bool supportsRegeneration = true;
 
+    [Header("Browsing (Docs/BrowsingProtectionV1.md)")]
+    [Tooltip("[E transferred ordering, S number] Relative large-deer leader-browse palatability 0-1. Zero = never browsed (neutral default).")]
+    [SerializeField, Range(0f, 1f)] private float browsePalatability;
+    [Tooltip("[S] Juvenile height (m) up to which leader browse vulnerability is full.")]
+    [SerializeField, Min(0f)] private float browseFullVulnerabilityHeightM = 1.2f;
+    [Tooltip("[E transferred ~1.8 m deer reach; S taper] Height (m) at which ordinary leader browsing stops.")]
+    [SerializeField, Min(0.01f)] private float browseEscapeHeightM = 1.8f;
+
     [Header("Wind risk (diagnostic only)")]
     [Tooltip("[D] Stand wind susceptibility multiplier. The Irish empirical model is stand-level and is not used as annual individual mortality.")]
     [SerializeField, Min(0f)] private float standWindSusceptibility = 1f;
@@ -138,6 +146,9 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float RegenMortalityUnderPoorLight => regenMortalityUnderPoorLight;
     public float RegenPoorLightThreshold => regenPoorLightThreshold;
     public bool SupportsRegeneration => supportsRegeneration;
+    public float BrowsePalatability => browsePalatability;
+    public float BrowseFullVulnerabilityHeightM => browseFullVulnerabilityHeightM;
+    public float BrowseEscapeHeightM => Mathf.Max(browseEscapeHeightM, browseFullVulnerabilityHeightM + 0.01f);
     public bool UsesDistinctJuvenileLightResponses => useDistinctJuvenileLightResponses;
     public float StandWindSusceptibility => standWindSusceptibility;
     public float WindOpeningWeight => windOpeningWeight;
