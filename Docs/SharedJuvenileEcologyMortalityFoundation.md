@@ -128,7 +128,10 @@ Required regression results:
 - `BATCH_RECOMPUTE_VERIFY_PASS`.
 - `SCENARIO_ONE_INTERACTION_VERIFY_PASS`.
 - `SCENARIO_HABITAT_PRESENTATION_VERIFY_PASS`.
-- Canonical lifecycle: `7E39B70A14959FAD`.
+- Canonical lifecycle: `7E39B70A14959FAD` (measured at this foundation commit).
+  **Superseded by later calibration:** the integrated C8 + k10a10 model
+  produces `BFC55473C1506067`; `Docs/EcologyCalibrationAdoption.md` is the
+  later authoritative calibration record.
 - Frozen Year-100 reference: `7AD177B3CC2F73C7`.
 - Historical Year-50 v12 continuation reaches Year-100 v14 with the existing
   documented P0601 same-year prune/fell exception, not a rewritten archive.

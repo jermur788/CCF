@@ -28,9 +28,9 @@ Create one reliable context and safe workflow for ChatGPT, OpenAI/OpenCode, Clau
 
 The current task packet authorises the repository migration/generator slice only; worktree Unity smoke runs, permanent Drive publication and project attachment refresh remain separately assigned milestone gates.
 
-## Existing technical stack frozen during setup
+## Existing technical stack (frozen during setup; now integrated)
 
-Exact snapshot:
+Historical snapshot as frozen at setup start:
 
 ```text
 0fc92ca main
@@ -42,10 +42,7 @@ Exact snapshot:
 
 Commit SHAs, not mutable branch names, define the anchors. This is pre-existing work, not new setup scope.
 
-- Do not add commits to, merge to main or discard this stack during setup.
-- Preserve it for a dedicated review/integrate/park decision.
-- Before local operations involving its worktrees, Overall Manager/user must confirm no worker is still writing them.
-- Save/load, RNG, ecology and frozen-reference changes require independent review and regression gates before eventual integration.
+Status (2026-10-02): resolved by D-039. The stack is in `main` via merge `8ae7a25`. The combined ecology package was integrated on top of it and verified at gameplay head `b1e6c51`: save v14, calibrated lifecycle `BFC55473C1506067`, Reference Future v1 Year 100 `7AD177B3CC2F73C7`. See the Unity Project Overview. The freeze no longer applies. Future save/load, RNG, ecology and frozen-reference changes still require independent review and regression gates before integration.
 
 ## Completion checks
 
@@ -58,7 +55,7 @@ Commit SHAs, not mutable branch names, define the anchors. This is pre-existing 
 - Stale review copies archived.
 - Distinct OpenAI/Claude worktrees and separate Libraries; worker smoke gates pass.
 - No temporary verification script or generated `.meta` remains in Assets.
-- Ownership and actual integration worktree are known; frozen stack preserved.
+- Ownership and actual integration worktree are known; the formerly frozen stack is integrated and verified (D-039).
 - Claude/assigned reviewer checks real clean-commit generator output with no unresolved MUST-fix workflow issue.
 
 ## Live coordination
