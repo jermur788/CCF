@@ -348,7 +348,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
                 juvenileId = "PJ" + (8000 + i).ToString("0000"), speciesId = species.SpeciesId, position = positions[i],
                 cellIndex = individualCell, plantingYear = MatrixBaseYear, ageYears = 3, heightMeters = 0.6f, alive = true
             });
-        manager.RestoreSaveData(state);
+        manager.RestoreSaveData(WithProtection(state));
 
         var outcome = new Outcome();
         var events = new Dictionary<string, int>();
@@ -604,6 +604,17 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
 
     // ---------- 4b. Scenario 1 readout: diagnosis, shelter contracts, visuals, review lines ----------
 
+    // Save v15 restore replaces protection (Clear, then saved shelters, then saved
+    // areas). Fixtures therefore prepare protection through the saved state: the
+    // records configured on ecology.Browsing are moved into the scenario state
+    // that RestoreSaveData then installs.
+    private ScenarioOneSaveData WithProtection(ScenarioOneSaveData state)
+    {
+        state.shelters = ecology.Browsing.Shelters.Select(x => JsonUtility.FromJson<BrowseShelter>(JsonUtility.ToJson(x))).ToList();
+        state.protectedAreas = ecology.Browsing.ProtectedAreas.Select(x => JsonUtility.FromJson<BrowseProtectedArea>(JsonUtility.ToJson(x))).ToList();
+        return state;
+    }
+
     private ScenarioOneSaveData PlantedState(params PlantedJuvenileSaveData[] juveniles)
     {
         ScenarioOneSaveData state = JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(original.scenarioOne));
@@ -667,6 +678,8 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         Check(stepped.LastYearBrowsed == "yes" || stepped.LastYearBrowsed == "no", "last-year browsing not recorded after step");
         RegenerationDiagnosis steppedSheltered = RegenerationDiagnostics.Diagnose(ecology, sheltered, manager.PlantedJuveniles, spawner);
         Check(steppedSheltered.LastYearBrowsed == "no" && steppedSheltered.ShelterStepsRemaining == 7, "sheltered step: " + steppedSheltered.Summary());
+        Check(RegenerationDiagnostics.ShelterLabel(ecology, sheltered) == $"deer shelter, {RegenerationDiagnostics.ShelterStepsRemaining(ecology.Browsing, sheltered, ecology.EcologicalYear + 1)} yr of protection left"
+              && RegenerationDiagnostics.ShelterLabel(ecology, exposed) == "", "inspection shelter label");
         manager.RestoreSaveData(PlantedState(Juvenile("PJ8101", oak, exposed, bright, 0.6f, MatrixBaseYear)));
         Check(RegenerationDiagnostics.Diagnose(ecology, exposed, manager.PlantedJuveniles, spawner).LastYearBrowsed == "n/a",
             "last-year browsing survived a load (it is not saved)");
@@ -674,8 +687,6 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
               && RegenerationDiagnostics.TreeOriginLabel("PL-PJ0001") == "planted juvenile PJ0001, promoted"
               && RegenerationDiagnostics.TreeOriginLabel("R12-5") == "natural regeneration, recruited in year 12"
               && RegenerationDiagnostics.TreeOriginLabel("PL3-4-beech") == "planted cohort, promoted in year 3", "inspection origin labels");
-        Check(RegenerationDiagnostics.ShelterLabel(ecology, sheltered) == $"deer shelter, {RegenerationDiagnostics.ShelterStepsRemaining(ecology.Browsing, sheltered, ecology.EcologicalYear + 1)} yr of protection left"
-              && RegenerationDiagnostics.ShelterLabel(ecology, exposed) == "", "inspection shelter label");
         Emit("BROWSE_DIAGNOSIS " + string.Join(" | ", new[] { dDark, dExposed, dSheltered, dTall, dReady, dEmpty }.Select(d => d.Summary())));
         DestroyHarnessTrees();
         Debug.Log("REGENERATION_DIAGNOSIS_VERIFY_PASS");
@@ -704,7 +715,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             ecology.Browsing.Shelters.Add(new BrowseShelter { shelterId = "T" + i, position = new Vector2(position.x, position.z),
                 installedYear = cases[i].installed, effectiveYears = 3 });
         }
-        manager.RestoreSaveData(PlantedState(juveniles.ToArray()));
+        manager.RestoreSaveData(WithProtection(PlantedState(juveniles.ToArray())));
         var protectedSteps = cases.ToDictionary(c => c.id, c => new List<int>());
         SetYear(E);
         for (int step = 1; step <= 5; step++)
@@ -726,27 +737,13 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         Debug.Log("SHELTER_TIMING_CONTRACT_PASS");
     }
 
-    private static string ProtectionJson(BrowsingConditions c)
-    {
-        var copy = new ProtectionSnapshot();
-        copy.shelters.AddRange(c.Shelters);
-        copy.areas.AddRange(c.ProtectedAreas);
-        return JsonUtility.ToJson(copy);
-    }
-
-    [Serializable]
-    private sealed class ProtectionSnapshot
-    {
-        public List<BrowseShelter> shelters = new List<BrowseShelter>();
-        public List<BrowseProtectedArea> areas = new List<BrowseProtectedArea>();
-    }
-
-    // Restore contract: ClearProtection(), then add saved shelters, then saved
-    // protected areas, on every restore. Equals the uninterrupted continuation.
+    // Restore contract through the production v15 path: RestoreSaveData clears
+    // protection, then installs saved shelters, then saved areas. Protection is
+    // prepared through the saved state.
     private IEnumerator VerifyProtectionRestoreContract(TreeSpeciesDefinition oak, TreeSpeciesDefinition beech)
     {
         string uninterrupted = null, restored = null, dropped = null;
-        int duplicateVisualCount = -1;
+        int savedShelters = -1, afterRepeatShelters = -1, afterRepeatAreas = -1, repeatVisuals = -1;
         for (int pass = 0; pass < 3; pass++)
         {
             Check(saves.LoadData(original, false), "restore world");
@@ -755,26 +752,31 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             Vector2 c = ecology.Cells.OrderByDescending(x => x.Light).ThenBy(x => x.Center.x).First().Center;
             ecology.Browsing.ProtectedAreas.Add(new BrowseProtectedArea { areaId = "R1", installedYear = ecology.EcologicalYear + 1,
                 polygon = new List<Vector2> { c + new Vector2(-4, -4), c + new Vector2(4, -4), c + new Vector2(4, 0), c + new Vector2(-4, 0) } });
+            manager.RestoreSaveData(WithProtection(manager.CaptureSaveData()));
             for (int y = 0; y < 5; y++) { ecology.AdvanceOneYear(); Invoke(manager, "AdvancePlantedJuveniles"); }
-            ForestSaveData mid = saves.CaptureData();
-            string protection = ProtectionJson(ecology.Browsing);
+            string midJson = JsonUtility.ToJson(saves.CaptureData());
             if (pass > 0)
             {
+                ForestSaveData mid = JsonUtility.FromJson<ForestSaveData>(midJson);
+                Check(mid.version == 15 && mid.scenarioOne.shelters.Count > 0 && mid.scenarioOne.protectedAreas.Count == 1, "v15 save lacks protection records");
+                savedShelters = mid.scenarioOne.shelters.Count;
+                if (pass == 2)
+                {
+                    // Negative control: the same save without its protection records.
+                    mid.scenarioOne.shelters.Clear();
+                    mid.scenarioOne.protectedAreas.Clear();
+                }
                 Check(saves.LoadData(mid, false), "load mid");
                 yield return null; yield return null;
-                ecology.Browsing.ClearProtection();
                 if (pass == 1)
                 {
-                    ProtectionSnapshot saved = JsonUtility.FromJson<ProtectionSnapshot>(protection);
-                    ecology.Browsing.Shelters.AddRange(saved.shelters);
-                    ecology.Browsing.ProtectedAreas.AddRange(saved.areas);
-                    // Without the Clear, a restore would duplicate records: biology is
-                    // unchanged (first match wins) but presentation double-counts.
-                    ProtectionSnapshot again = JsonUtility.FromJson<ProtectionSnapshot>(protection);
-                    ecology.Browsing.Shelters.AddRange(again.shelters);
+                    // Repeated restore must replace, never duplicate.
+                    Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(midJson), false), "repeat load mid");
+                    yield return null; yield return null;
+                    afterRepeatShelters = ecology.Browsing.Shelters.Count;
+                    afterRepeatAreas = ecology.Browsing.ProtectedAreas.Count;
                     ScenarioProtectionVisuals v = FindFirstObjectByType<ScenarioProtectionVisuals>();
-                    if (v != null) { v.RefreshNow(); duplicateVisualCount = v.VisualCount; }
-                    ecology.Browsing.Shelters.RemoveRange(saved.shelters.Count, again.shelters.Count);
+                    if (v != null) { v.RefreshNow(); repeatVisuals = v.VisualCount; }
                 }
             }
             for (int y = 0; y < 6; y++) { ecology.AdvanceOneYear(); Invoke(manager, "AdvancePlantedJuveniles"); }
@@ -782,10 +784,12 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             if (pass == 0) uninterrupted = hash; else if (pass == 1) restored = hash; else dropped = hash;
             yield return null;
         }
-        int shelterCount = JsonUtility.FromJson<ProtectionSnapshot>(ProtectionJson(ecology.Browsing)).shelters.Count;
-        Emit($"PROTECTION_RESTORE uninterrupted={uninterrupted} clearThenRestore={restored} clearWithoutRestore={dropped} duplicateVisuals={duplicateVisualCount}");
-        Check(uninterrupted == restored, "ClearProtection + restore did not equal the uninterrupted continuation");
-        Check(dropped != uninterrupted, "negative control: dropping protection on restore changed nothing (protection untested)");
+        Emit($"PROTECTION_RESTORE uninterrupted={uninterrupted} v15Restore={restored} withoutSavedProtection={dropped} "
+            + $"savedShelters={savedShelters} afterRepeatRestore shelters={afterRepeatShelters} areas={afterRepeatAreas} visuals={repeatVisuals}");
+        Check(uninterrupted == restored, "v15 restore did not equal the uninterrupted continuation");
+        Check(dropped != uninterrupted, "negative control: dropping saved protection changed nothing (protection untested)");
+        Check(afterRepeatShelters == savedShelters && afterRepeatAreas == 1, "repeated restore duplicated protection records");
+        Check(repeatVisuals < 0 || repeatVisuals <= savedShelters, "repeated restore duplicated shelter visuals");
         ecology.Browsing.ClearProtection();
         ecology.Browsing.BackgroundPressure = scenarioPressure;
         Debug.Log("PROTECTION_RESTORE_CONTRACT_PASS");
@@ -948,7 +952,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
                 ecology.Browsing.Shelters.Add(new BrowseShelter { shelterId = "PS" + i, position = new Vector2(position.x, position.z),
                     installedYear = ecology.EcologicalYear + 1, effectiveYears = 8 });
         }
-        manager.RestoreSaveData(state);
+        manager.RestoreSaveData(WithProtection(state));
     }
 
     // ---------- 6. Canonical lifecycle with browsing off and on ----------

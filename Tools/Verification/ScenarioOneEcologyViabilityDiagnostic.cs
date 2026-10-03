@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using CCF.Forestry.WorkEconomy;
 
 // Scenario 1 ecology viability diagnostic (Docs/Scenario1EcologyCompletion.md).
 // Diagnostic only, not a gate: it reports, it does not assert outcomes.
@@ -18,9 +19,9 @@ using UnityEngine;
 //   A. do nothing
 //   B. reasonable CCF plan: ~27% basal-area competitor-release thinning
 //      (resolved Year 1), 8 oak + 8 beech planted in the brightest cells
-//      (resolved Year 2) with half in FIXTURE shelters (timing contract),
+//      (resolved Year 2): half by the landowner in live shelters, half by contractor,
 //      ~20% second thinning resolved Year 12
-//   C. B without shelters
+//   C. B without shelters (same executors)
 public static class ScenarioOneEcologyViabilityDiagnostic
 {
     private const string Requested = "ScenarioOneEcologyViabilityDiagnostic.Requested";
@@ -128,13 +129,10 @@ public sealed class ScenarioOneEcologyViabilityRunner : MonoBehaviour
                 manager.TryPurchaseStock("sessile-oak-sapling", 8);
                 manager.TryPurchaseStock("beech-sapling", 8);
                 int[] bright = Enumerable.Range(0, ecology.CellCount).OrderByDescending(i => ecology.Cells[i].Light).ThenBy(i => i).Take(8).ToArray();
+                // Live planting: half by the owner with shelters (B) or without (C), half by contractor.
                 for (int k = 0; k < bright.Length; k++)
-                    PlantPair(bright[k], k < 4 ? "sessile-oak-sapling" : "beech-sapling", positions);
+                    PlantPair(bright[k], k < 4 ? "sessile-oak-sapling" : "beech-sapling", positions, shelters);
                 manager.ApprovePendingWork();
-                if (shelters)
-                    foreach (var p in positions.Where(p => p.shelter))
-                        ecology.Browsing.Shelters.Add(new BrowseShelter { shelterId = "VS" + positions.IndexOf(p),
-                            position = new Vector2(p.position.x, p.position.z), installedYear = ecology.EcologicalYear + 1, effectiveYears = 8 });
             }
             if (managed && ecology.EcologicalYear == 11)
             {
@@ -176,13 +174,13 @@ public sealed class ScenarioOneEcologyViabilityRunner : MonoBehaviour
         string objectives = ecology.EcologicalYear == 25
             ? " objectives=" + string.Join(",", manager.Objectives.Select(o => $"{o.objectiveId}:{(o.achieved ? "ok" : "no")}")) + " outcome=" + manager.Outcome
             : "";
-        Debug.Log($"VIABILITY {schedule} y{ecology.EcologicalYear} retainedOriginals={retained} canopy={F(s.meanCanopy)} light={F(s.meanLight)} "
+        Debug.Log($"VIABILITY {schedule} y{ecology.EcologicalYear} cash={manager.CashCents} retainedOriginals={retained} canopy={F(s.meanCanopy)} light={F(s.meanLight)} "
             + $"regenCells={s.occupiedRegenerationCells} deadwoodM3={F(s.deadwoodVolumeM3)} planted={manager.PlantedJuveniles.Count(j => j.alive)} "
             + $"oak[sheltered {Group(true, "sessile-oak")} | exposed {Group(false, "sessile-oak")}] "
             + $"beech[sheltered {Group(true, "beech")} | exposed {Group(false, "beech")}]{objectives}");
     }
 
-    private void PlantPair(int cell, string item, List<(Vector3 position, bool shelter)> positions)
+    private void PlantPair(int cell, string item, List<(Vector3 position, bool shelter)> positions, bool installShelters)
     {
         Vector2 c = ecology.Cells[cell].Center;
         int placed = 0;
@@ -192,7 +190,9 @@ public sealed class ScenarioOneEcologyViabilityRunner : MonoBehaviour
         {
             var p = new Vector3(c.x + ix * 0.9f, 0f, c.y + iz * 0.9f);
             if (ecology.GetCellIndex(p) != cell || (first.HasValue && Vector3.Distance(first.Value, p) < 0.8f)) continue;
-            if (!manager.TryDesignateExactPlanting(item, p)) continue;
+            bool first0 = placed == 0;
+            if (!manager.TryDesignateExactPlanting(item, p, first0 ? WorkExecutionMethod.LandownerSimulated : WorkExecutionMethod.Contractor,
+                    first0 && installShelters)) continue;
             positions.Add((p, placed == 0));
             first = first ?? p;
             placed++;

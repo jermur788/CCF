@@ -2304,6 +2304,14 @@ public sealed class ScenarioOneManager : MonoBehaviour
             GUILayout.Label($"Owner time {report.ownerMinutes} / {OwnerMinutesPerYear} min · remaining {Math.Max(0, OwnerMinutesPerYear - report.ownerMinutes)} min. Nursery purchases are charged once when bought; owner opportunity cost €0 [S].", bodyStyle);
         }
         // INTEGRATION: ScenarioEcologyReviewLines
+        if (ecologicalSnapshots.Count > 0)
+        {
+            ScenarioEcologicalSnapshot reviewCurrent = ecologicalSnapshots[ecologicalSnapshots.Count - 1];
+            ScenarioEcologicalSnapshot reviewPrevious = ecologicalSnapshots.Count > 1
+                ? ecologicalSnapshots[ecologicalSnapshots.Count - 2] : null;
+            foreach (string line in ScenarioEcologyReviewLines.Lines(reviewPrevious, reviewCurrent, ecology, plantedJuveniles))
+                GUILayout.Label(line, bodyStyle);
+        }
         if (ecologicalSnapshots.Count == 0)
         {
             GUILayout.Label("No ecological snapshot has been recorded yet.", bodyStyle);
