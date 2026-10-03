@@ -38,7 +38,8 @@ public static class ScenarioEcologyReviewLines
         var bySpecies = current.species.Where(s => s != null && (s.regenerationCells > 0 || s.plantedJuveniles > 0))
             .OrderBy(s => s.speciesId, System.StringComparer.Ordinal)
             .Select(s => $"{s.speciesId} {s.regenerationCells}"
-                + (s.plantedRegenerationCells > 0 ? $" ({s.plantedRegenerationCells} planted)" : ""))
+                + (s.plantedRegenerationCells > 0 ? $" ({s.plantedRegenerationCells} planted)" : "")
+                + (s.plantedJuveniles > 0 ? $" +{s.plantedJuveniles} planted juveniles" : ""))
             .ToList();
         string change = previous != null ? $" (was {previous.occupiedRegenerationCells})" : "";
         lines.Add(bySpecies.Count > 0
