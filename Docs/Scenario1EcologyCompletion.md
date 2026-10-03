@@ -231,6 +231,26 @@ Also clear protection in `InitializeNewScenario`. Reference preview entry and ex
 
 Unity 6000.6.0f1 batch mode, one isolated-config process per gate, on `task/scenario-one-ecology-completion`. Results are in the handoff.
 
+## Stretch delivered
+
+- **S1** `BrowseProtectionGeometry`: rectangle around a planting group with a 2 m margin, clipped to `ForestEcologyController.StandBounds`, with perimeter and area. It produces the `BrowseProtectedArea` a fencing job would add, using `installedYear` per the timing contract. Fixture `FENCE_GEOMETRY_VERIFY_PASS`: a group gives 26 m perimeter and 42 m²; a half-cell fence gives cohort access 0.6 under the 5×5 sampling [S]. There is no fencing gameplay.
+- **S2** Inspection card (text only): the origin line (original plantation / natural recruit year / planted cohort / planted juvenile) and the shelter status at the stem.
+- **S3** Human smoke checklist (below).
+- **S4** `Docs/BrowseHistoryFormDamageV16Proposal.md`: proposal only.
+
+## Human smoke checklist (ForestTest, Play mode)
+
+1. **Start.** Year 0, 336 Sitka. Aim at open ground and confirm the bottom report ends "browsing low". With no regeneration, there is no diagnosis line.
+2. **Inspect a tree.** The card shows "Origin: original plantation". There is no protection line.
+3. **Thin.** Mark crop trees (C) and fellings (M), add them to the Work Plan, approve and advance a year. Marked trees are gone. The aimed-ground report over a felled cell shows higher light within a few years.
+4. **Plant.** Plant oak in a bright opened cell and advance. Aim within about 0.7 m of the planted stem and confirm the diagnosis line reads, for example, "Sessile oak planted PJ0001 0.6x m · exposed to browsing: 20%/yr leader risk (low)".
+5. **Shelters** (after the live adapter, or with a test fixture). A pale-green 1.2 m tube appears at the stem. The diagnosis reads "protected by shelter (N yr left)". After its working life the tube turns grey and the diagnosis returns to "exposed" while the oak is below 1.8 m.
+6. **Dark ground.** Aim at regeneration under closed canopy: "light-limited: deep shade".
+7. **Tall juveniles.** A juvenile above 1.8 m reads "above browse reach".
+8. **Save/load** (F5/F9 on a scratch save only). The diagnosis "last year browsed" reads "n/a" after loading. Everything else is unchanged.
+9. **Annual review** (after integration patch 1). It shows up to six ecology lines: canopy change, opened cells, regeneration, planted trees, browsing band and protection.
+10. **Reference preview** (Tab). No shelters during the preview. After returning, the player's shelters reappear unchanged (requires the v15 restore contract).
+
 ## Blockers
 
 None. Open product decisions:
