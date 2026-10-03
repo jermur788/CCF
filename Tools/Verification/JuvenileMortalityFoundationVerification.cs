@@ -265,7 +265,7 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
                 && ecology.GetSeedPotential(focal) == 0, "Reactivation revived biological contributions");
             focal.RefreshVisuals();
             ForestSaveData deadSave = saves.CaptureData();
-            Check(deadSave.version == 14 && deadSave.trees.Single(t => t.treeId == focal.TreeId).biologicallyDead,
+            Check(deadSave.version == ForestSaveData.CurrentVersion && deadSave.version >= 14 && deadSave.trees.Single(t => t.treeId == focal.TreeId).biologicallyDead,
                 "Inactive dead record missing from save");
             DestroyImmediate(focal.gameObject);
             Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(deadSave)), false), "Mortality save rejected");
