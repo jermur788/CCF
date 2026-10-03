@@ -62,7 +62,7 @@ namespace CCF.Forestry.WorkEconomy
                 var timber = (TimberBatch[])task.Timber.Clone();
                 Array.Sort(timber, (a, b) => StringComparer.Ordinal.Compare(a.BatchId, b.BatchId));
                 var valued = new List<TimberValuation>();
-                long harvestedGrams = 0, forwardedGrams = 0, hauledGrams = 0;
+                long harvestedGrams = task.UnpricedHarvestGreenGrams, forwardedGrams = task.UnpricedForwardGreenGrams, hauledGrams = 0;
                 foreach (var batch in timber)
                 {
                     if (batch.Quantity == 0) continue;

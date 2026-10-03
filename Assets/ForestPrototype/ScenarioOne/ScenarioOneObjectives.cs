@@ -72,7 +72,7 @@ public static class ScenarioOneObjectives
             && entry.taskType == ScenarioWorkType.FellTree);
         felled |= orders != null && orders.Any(order => order != null
             && order.type == ScenarioWorkType.FellTree && order.status == ScenarioWorkStatus.Completed);
-        Add(results, "managed-opening", "Carry out contractor felling", felled ? 1 : 0, 1);
+        Add(results, "managed-opening", "Carry out a commissioned thinning", felled ? 1 : 0, 1);
         if (definition.ShopEntries != null)
             foreach (string speciesId in definition.ShopEntries.Where(item => item != null
                 && !string.IsNullOrEmpty(item.speciesId))

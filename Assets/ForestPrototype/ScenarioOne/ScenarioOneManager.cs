@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using CCF.Forestry.WorkEconomy;
 
 [DisallowMultipleComponent]
 public sealed class ScenarioOneManager : MonoBehaviour
@@ -34,6 +35,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private List<BrowseShelter> shelters = new List<BrowseShelter>();
     private List<BrowseProtectedArea> protectedAreas = new List<BrowseProtectedArea>();
     private int ownerMinutesUsedThisYear;
+    private WorkExecutionMethod planningPlantingMethod;
+    private bool planningInstallShelter;
+    private ScenarioHarvestJob cachedOpenHarvest, cachedApprovedHarvest;
+    private string cachedOpenHarvestKey, cachedApprovedHarvestKey;
     private readonly Dictionary<int, GameObject> plantingMarkers = new Dictionary<int, GameObject>();
     private Material plantingMarkerMaterial;
     private Material approvedPlantingMaterial;
@@ -94,11 +99,18 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public string Feedback => feedback;
     public IReadOnlyList<PlantedJuvenile> PlantedJuveniles => plantedJuveniles;
     public IReadOnlyList<PlantingClearancePatch> ClearancePatches => clearancePatches;
+    public int OwnerMinutesUsedThisYear => ownerMinutesUsedThisYear;
+    public int OwnerMinutesPerYear => definition != null ? definition.OwnerMinutesPerYear : 2400;
+    public IReadOnlyList<BrowseShelter> Shelters => shelters;
 
     // Exact-position planting: a pending order reserves one owned sapling;
     // the juvenile itself is created only when approved contractor work resolves.
     public bool TryDesignateExactPlanting(string itemId, Vector3 groundPosition)
+        => TryDesignateExactPlanting(itemId, groundPosition, planningPlantingMethod, planningInstallShelter);
+
+    public bool TryDesignateExactPlanting(string itemId, Vector3 groundPosition, WorkExecutionMethod method, bool installShelter)
     {
+        if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown execution method."; return false; }
         if (!CanManage()) return false;
         ScenarioShopEntry offer = definition?.FindShopEntry(itemId);
         ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
@@ -144,12 +156,15 @@ public sealed class ScenarioOneManager : MonoBehaviour
             cellIndex = cellIndex,
             worldPosition = groundPosition,
             exactPosition = true,
+            executionMethod = method,
+            installShelter = installShelter,
             estimatedMinutes = minutes,
             estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
             createdYear = ecology.EcologicalYear
         };
         workOrders.Add(order);
         ShowPlantingMarker(order);
+        ValidateOpenOrders();
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
         feedback = $"Marked {species.DisplayName} planting at ({groundPosition.x:0.0}, {groundPosition.z:0.0}).";
         return true;
@@ -382,6 +397,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     public void InitializeNewScenario()
     {
+        InvalidateEconomyQuotes();
         if (definition == null)
             throw new InvalidOperationException("Scenario One requires a definition asset.");
         initialized = true;
@@ -417,6 +433,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
         annualReviewSeen = false;
         centuryReview = null;
         planningFellingOutcome = definition.DefaultFellingOutcome;
+        planningPlantingMethod = WorkExecutionMethod.Contractor;
+        planningInstallShelter = false;
         selectedShopItemId = "";
         selectedRemovalSpeciesId = "";
         feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
@@ -585,8 +603,60 @@ public sealed class ScenarioOneManager : MonoBehaviour
             .Sum(order => order.requiredStockQuantity);
     }
 
-    public long ReservedContractorCashCents => workOrders.Where(order => order.status == ScenarioWorkStatus.Approved)
+    public long ReservedContractorCashCents => GetHarvestQuote(true).CostCents + workOrders
+        .Where(order => order.status == ScenarioWorkStatus.Approved && order.type != ScenarioWorkType.FellTree && string.IsNullOrEmpty(order.validationMessage))
         .Sum(order => order.estimatedCostCents);
+
+    private void InvalidateEconomyQuotes()
+    {
+        cachedOpenHarvest = null; cachedApprovedHarvest = null;
+        cachedOpenHarvestKey = null; cachedApprovedHarvestKey = null;
+    }
+
+    public ScenarioHarvestJob GetHarvestQuote(bool approvedOnly = false)
+    {
+        var trees = LivingTreesById();
+        var orders = workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.FellTree
+            && (!approvedOnly || order.status == ScenarioWorkStatus.Approved) && string.IsNullOrEmpty(order.validationMessage)).OrderBy(order => order.workOrderId).ToList();
+        int interventions = managementEvents.Where(entry => entry.eventType == ScenarioManagementEventType.WorkResolved
+            && entry.outcome == ScenarioManagementOutcome.Succeeded && entry.taskType == ScenarioWorkType.FellTree).Select(entry => entry.year).Distinct().Count();
+        string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":"
+            + string.Join("|", orders.Select(order => order.workOrderId + "/" + order.executionMethod + "/" + order.fellingOutcome + "/" + order.targetTreeId + "/"
+                + (trees.TryGetValue(order.targetTreeId ?? "", out var tree) ? tree.Species.SpeciesId + "/" + tree.Height.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
+                    + "/" + tree.Diameter.ToString("R", System.Globalization.CultureInfo.InvariantCulture) : "missing")));
+        var cached = approvedOnly ? cachedApprovedHarvest : cachedOpenHarvest;
+        if (cached != null && key == (approvedOnly ? cachedApprovedHarvestKey : cachedOpenHarvestKey)) return cached;
+        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents);
+        foreach (var order in job.Orders)
+        {
+            order.harvestJobId = job.JobId; order.estimatedCostCents = 0;
+            order.expectedRevenueCents = job.Resolution != null ? job.Resolution.Quote.Timber.Where(value => value.Batch.SourceTreeId == order.targetTreeId).Sum(value => value.SaleRevenueCents) : 0;
+        }
+        if (approvedOnly) { cachedApprovedHarvest = job; cachedApprovedHarvestKey = key; }
+        else { cachedOpenHarvest = job; cachedOpenHarvestKey = key; }
+        return job;
+    }
+
+    public ScenarioPlantingQuote GetPlantingQuote(ScenarioOneWorkOrder order, int availableOwnerMinutes = -1)
+        => ScenarioOneEconomyAdapter.QuotePlanting(order, definition, GetStockQuantity(order.stockItemId), cashCents,
+            availableOwnerMinutes < 0 ? OwnerMinutesPerYear : availableOwnerMinutes);
+
+    public void SetPlantingExecution(WorkExecutionMethod method)
+    {
+        if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown executor."; return; }
+        planningPlantingMethod = method;
+        foreach (var order in workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile))
+            if (order.executionMethod != method) { order.executionMethod = method; order.status = ScenarioWorkStatus.Pending; }
+        ValidateOpenOrders(); feedback = "Planting execution changed; review and approve the plan again.";
+    }
+
+    public void SetPlantingShelters(bool install)
+    {
+        planningInstallShelter = install;
+        foreach (var order in workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && order.exactPosition))
+            if (order.installShelter != install) { order.installShelter = install; order.status = ScenarioWorkStatus.Pending; }
+        ValidateOpenOrders(); feedback = "Shelter choice changed; review and approve the plan again.";
+    }
 
     public bool TryPurchaseStock(string itemId, int quantity)
     {
@@ -831,6 +901,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
             feedback = $"Added {added} marked tree{(added == 1 ? "" : "s")} to the Work Plan.";
         else if (report)
             feedback = "No new eligible marked trees were available.";
+        if (added > 0) GetHarvestQuote(false);
         return added;
     }
 
@@ -874,12 +945,12 @@ public sealed class ScenarioOneManager : MonoBehaviour
             feedback = "There is no valid pending work to approve.";
             return false;
         }
-        long cost = pending.Sum(order => order.estimatedCostCents);
-        long alreadyApproved = workOrders.Where(order => order.status == ScenarioWorkStatus.Approved
+        var allHarvest = GetHarvestQuote(false);
+        long cost = allHarvest.CostCents + workOrders.Where(order => order.IsOpen && order.type != ScenarioWorkType.FellTree
             && string.IsNullOrEmpty(order.validationMessage)).Sum(order => order.estimatedCostCents);
-        if (cost > cashCents - alreadyApproved)
+        if (!allHarvest.Eligible || cost > cashCents)
         {
-            feedback = $"Approval needs {Money(cost + alreadyApproved)} including approved work; available cash is {Money(cashCents)}.";
+            feedback = !allHarvest.Eligible ? allHarvest.Problem : $"Approval needs {Money(cost)} including approved work; available cash is {Money(cashCents)}.";
             return false;
         }
         foreach (ScenarioOneWorkOrder order in pending)
@@ -910,15 +981,18 @@ public sealed class ScenarioOneManager : MonoBehaviour
             .Where(order => order.status == ScenarioWorkStatus.Approved)
             .OrderBy(order => order.workOrderId)
             .ToList();
-        long requiredCash = approved.Where(order => string.IsNullOrEmpty(order.validationMessage))
+        var harvest = GetHarvestQuote(true);
+        long requiredCash = harvest.CostCents + approved.Where(order => order.type != ScenarioWorkType.FellTree && string.IsNullOrEmpty(order.validationMessage))
             .Sum(order => order.estimatedCostCents);
-        if (requiredCash > cashCents)
+        if (!harvest.Eligible || requiredCash > cashCents)
         {
-            feedback = $"Approved work costs {Money(requiredCash)}; available cash is {Money(cashCents)}.";
+            feedback = !harvest.Eligible ? harvest.Problem : $"Approved work costs {Money(requiredCash)}; available cash is {Money(cashCents)}.";
             return false;
         }
 
         var report = new ScenarioAnnualReport { year = ecology.EcologicalYear + 1 };
+        ownerMinutesUsedThisYear = 0;
+        bool harvestSettled = harvest.Orders.Count == 0;
         // Fellings in this resolution share one canopy and seed-rain rebuild.
         ecology.BeginChangeBatch();
         try
@@ -933,7 +1007,18 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 float beforeKept = report.keptForUseVolumeM3;
                 int beforeStock = order.type == ScenarioWorkType.PlantJuvenile ? GetStockQuantity(order.stockItemId) : 0;
                 float beforeRemovedDensity = report.removedRegenerationDensity;
-                ResolveOrder(order, report);
+                ScenarioPlantingQuote plantingQuote = order.type == ScenarioWorkType.PlantJuvenile && string.IsNullOrEmpty(order.validationMessage)
+                    ? GetPlantingQuote(order, OwnerMinutesPerYear - ownerMinutesUsedThisYear) : null;
+                if (order.type == ScenarioWorkType.FellTree)
+                {
+                    if (harvest.Orders.Contains(order)) ResolveFelling(order, report);
+                    else
+                    {
+                        order.status = ScenarioWorkStatus.Failed; order.resolvedYear = report.year;
+                        order.validationMessage = "Cancelled: target missing, dead, already felled or otherwise invalid; no harvest charge.";
+                    }
+                }
+                else ResolveOrder(order, report);
                 ScenarioManagementEvent result = RecordOrderEvent(order, ScenarioManagementEventType.WorkResolved,
                     order.status == ScenarioWorkStatus.Completed ? ScenarioManagementOutcome.Succeeded : ScenarioManagementOutcome.Failed,
                     report.year);
@@ -945,11 +1030,24 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 result.regenerationDensityRemoved = report.removedRegenerationDensity - beforeRemovedDensity;
                 result.stockUsed = order.type == ScenarioWorkType.PlantJuvenile
                     ? beforeStock - GetStockQuantity(order.stockItemId) : 0;
+                result.executionMethod = order.executionMethod;
+                if (order.status == ScenarioWorkStatus.Completed && plantingQuote != null)
+                {
+                    result.stockCostCents = plantingQuote.MaterialCents;
+                    result.ownerMinutes = plantingQuote.OwnerMinutes;
+                }
                 result.cashDeltaCents = cashCents - beforeCash;
                 result.failureReason = order.status == ScenarioWorkStatus.Failed ? order.validationMessage : "";
                 result.ecologicalTreatment = order.status == ScenarioWorkStatus.Completed
                     ? TreatmentFor(order) : ScenarioEcologicalTreatment.None;
+                if (!harvestSettled && order.type == ScenarioWorkType.FellTree && order.status == ScenarioWorkStatus.Completed
+                    && harvest.Orders.All(target => target.status == ScenarioWorkStatus.Completed))
+                {
+                    SettleHarvestJob(harvest, report, result);
+                    harvestSettled = true;
+                }
             }
+            if (!harvestSettled) throw new InvalidOperationException("Prevalidated atomic harvest world effect failed; financial settlement was not applied.");
         }
         finally
         {
@@ -965,6 +1063,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         report.deadwoodDecayedM3 = AdvanceDeadwood();
         RefreshFellingResidueVisuals();
         report.closingCashCents = cashCents;
+        report.ownerMinutes = ownerMinutesUsedThisYear;
         annualReports.Add(report);
         RecordEvent(new ScenarioManagementEvent
         {
@@ -979,6 +1078,23 @@ public sealed class ScenarioOneManager : MonoBehaviour
             + $"closing cash {Money(cashCents)}."
             + (outcome != ScenarioOneOutcome.Active ? " " + outcomeReason : "");
         return true;
+    }
+
+    private void SettleHarvestJob(ScenarioHarvestJob harvest, ScenarioAnnualReport report, ScenarioManagementEvent lastFellingEvent)
+    {
+        var resolution = ScenarioOneEconomyAdapter.ReResolveHarvest(harvest, definition, cashCents);
+        if (!resolution.Resolved) throw new InvalidOperationException("Prevalidated harvest can no longer settle.");
+        cashCents = checked(cashCents + resolution.ExternalCashFlowCents);
+        retainedTimberM3 += harvest.RetainedVolumeCm3 / 1000000f;
+        report.contractorCostCents += resolution.Quote.Costs.ContractorWorkCents;
+        report.timberRevenueCents += resolution.Quote.TimberSaleRevenueCents;
+        report.harvestMinimumAdjustmentCents = resolution.Quote.Costs.MinimumJobAdjustmentCents;
+        foreach (var product in resolution.Quote.Timber.GroupBy(value => value.Batch.Assortment).OrderBy(group => group.Key))
+            report.timberSales.Add(new ScenarioTimberSale { assortment = product.Key, soldVolumeCm3 = product.Sum(value => value.Batch.Quantity), revenueCents = product.Sum(value => value.SaleRevenueCents) });
+        lastFellingEvent.contractorCostCents = resolution.Quote.Costs.ContractorWorkCents;
+        lastFellingEvent.timberRevenueCents = resolution.Quote.TimberSaleRevenueCents;
+        lastFellingEvent.cashDeltaCents = resolution.ExternalCashFlowCents;
+        lastFellingEvent.closingCashCents = cashCents;
     }
 
     public ScenarioOneSaveData CaptureSaveData()
@@ -1028,6 +1144,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        InvalidateEconomyQuotes();
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
@@ -1053,6 +1170,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
         cashCents = Math.Max(0L, data.cashCents);
         nextWorkOrderId = Mathf.Max(1, data.nextWorkOrderId);
         workOrders = CloneOrders(data.workOrders);
+        planningPlantingMethod = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile)?.executionMethod ?? WorkExecutionMethod.Contractor;
+        planningInstallShelter = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && order.exactPosition)?.installShelter ?? false;
         inventory = CloneInventory(data.inventory);
         annualReports = CloneReports(data.annualReports);
         managementEvents = CloneEvents(data.managementEvents);
@@ -1111,11 +1230,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         float volume = tree.BiologicalStemVolumeM3;
         int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.FellingBaseMinutes
             + volume * definition.FellingMinutesPerCubicMetre));
-        long cost = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L);
+        long cost = 0; // Commissioned-job quote owns cost; never a per-tree minimum/hourly charge.
         string speciesId = tree.Species != null ? tree.Species.SpeciesId : "";
-        long revenue = planningFellingOutcome == FellingMaterialOutcome.SellAndExtract
-            ? (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId),
-                MidpointRounding.AwayFromZero) : 0L;
+        long revenue = 0; // Set from the grouped yield/market quote.
         return new ScenarioOneWorkOrder
         {
             workOrderId = nextWorkOrderId++,
@@ -1126,6 +1243,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
             worldPosition = tree.transform.position,
             cellIndex = ecology != null ? ecology.GetCellIndex(tree.transform.position) : -1,
             fellingOutcome = planningFellingOutcome,
+            executionMethod = WorkExecutionMethod.Contractor,
+            harvestJobId = CurrentYear + 1,
             estimatedMinutes = minutes,
             estimatedCostCents = cost,
             expectedRevenueCents = revenue,
@@ -1169,21 +1288,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
             Fail(order, report, "Target tree is no longer eligible for felling.");
             return;
         }
-        if (cashCents < order.estimatedCostCents)
-        {
-            Fail(order, report, "Insufficient cash when the contractor attempted the task.");
-            return;
-        }
-
         float volume = tree.BiologicalStemVolumeM3;
         string speciesId = tree.Species != null ? tree.Species.SpeciesId : order.speciesId;
         bool retainDeadwood = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood;
         bool keepForUse = order.fellingOutcome == FellingMaterialOutcome.KeepForUse;
-        long revenue = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract
-            ? (long)Math.Round(volume * definition.TimberValueCentsPerCubicMetre(speciesId), MidpointRounding.AwayFromZero)
-            : 0L;
-        cashCents -= order.estimatedCostCents;
-        cashCents += revenue;
+        // World effect only. All felling finance is settled once by AdvanceYear's commissioned job.
 
         ScenarioDeadwoodRecord deadwood = null;
         if (retainDeadwood)
@@ -1210,17 +1319,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
             deadwood.visualName = SpawnFallenLogVisual(deadwood);
             deadwoodRecords.Add(deadwood);
         }
-        if (keepForUse)
-            retainedTimberM3 += volume;
-
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = ecology.EcologicalYear + 1;
         SpawnFellingResidueVisual(order);
         order.expectedVolumeM3 = volume;
-        order.expectedRevenueCents = revenue;
         report.completedTasks++;
-        report.contractorCostCents += order.estimatedCostCents;
-        report.timberRevenueCents += revenue;
         if (retainDeadwood)
         {
             report.deadwoodCreated++;
@@ -1380,9 +1483,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
             Fail(order, report, "Planting species, stock or target cell is unavailable.");
             return;
         }
-        if (GetStockQuantity(order.stockItemId) < order.requiredStockQuantity || cashCents < order.estimatedCostCents)
+        var work = GetPlantingQuote(order, OwnerMinutesPerYear - ownerMinutesUsedThisYear);
+        if (GetStockQuantity(order.stockItemId) < order.requiredStockQuantity || !work.Eligible)
         {
-            Fail(order, report, "Insufficient stock or cash when the contractor attempted planting.");
+            Fail(order, report, string.IsNullOrEmpty(work.Problem) ? "Insufficient planting stock." : work.Problem);
             return;
         }
 
@@ -1399,7 +1503,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         ScenarioInventoryEntry stock = inventory.Find(item => item != null && item.itemId == order.stockItemId);
         stock.quantity -= order.requiredStockQuantity;
-        cashCents -= order.estimatedCostCents;
 
         if (order.exactPosition)
         {
@@ -1416,12 +1519,22 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 stockItemId = order.stockItemId
             });
             ApplyPlantingClearance(order.worldPosition, report.year);
+            if (order.installShelter)
+            {
+                var juvenile = plantedJuveniles[plantedJuveniles.Count - 1];
+                var shelter = new BrowseShelter { shelterId = "S-J" + juvenile.juvenileId,
+                    position = new Vector2(juvenile.position.x, juvenile.position.z), installedYear = report.year, effectiveYears = 8, failedYear = -1 };
+                shelters.Add(shelter); ecology.Browsing.Shelters.Add(shelter);
+            }
         }
+
+        cashCents = checked(cashCents + work.LedgerCashDelta);
+        ownerMinutesUsedThisYear = checked(ownerMinutesUsedThisYear + work.OwnerMinutes);
 
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = report.year;
         report.completedTasks++;
-        report.contractorCostCents += order.estimatedCostCents;
+        report.contractorCostCents += work.WorkCents;
     }
 
     // Compute the current year's new circular area in every touched 5x5m cell.
@@ -1630,6 +1743,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         var reservedStock = new Dictionary<string, int>(StringComparer.Ordinal);
         var designatedCells = new HashSet<string>(StringComparer.Ordinal);
         var removalCells = new HashSet<string>(StringComparer.Ordinal);
+        int reservedOwnerMinutes = 0;
         // Approved work reserves its stock before pending work is evaluated.
         foreach (ScenarioOneWorkOrder order in workOrders.Where(item => item.IsOpen)
                      .OrderBy(item => item.status == ScenarioWorkStatus.Approved ? 0 : 1)
@@ -1646,6 +1760,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     && order.fellingOutcome != FellingMaterialOutcome.RetainAsFallenDeadwood
                     && order.fellingOutcome != FellingMaterialOutcome.KeepForUse)
                     order.validationMessage = "Unknown felling material outcome.";
+                else if (order.executionMethod != WorkExecutionMethod.Contractor)
+                    order.validationMessage = "Scenario One harvest is contractor-only; owner production felling is ineligible.";
+                order.estimatedCostCents = 0;
             }
             else if (order.type == ScenarioWorkType.PlantJuvenile)
             {
@@ -1717,6 +1834,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
             }
             else
                 order.validationMessage = "This task type is not yet available.";
+            if (order.type == ScenarioWorkType.PlantJuvenile && string.IsNullOrEmpty(order.validationMessage))
+            {
+                if (!Enum.IsDefined(typeof(WorkExecutionMethod), order.executionMethod)) order.validationMessage = "Unknown execution method.";
+                else
+                {
+                    var quote = GetPlantingQuote(order, OwnerMinutesPerYear - reservedOwnerMinutes);
+                    order.estimatedCostCents = quote.CostCents; order.estimatedMinutes = quote.PersonMinutes;
+                    if (!quote.Eligible) order.validationMessage = quote.Problem;
+                    else reservedOwnerMinutes += quote.OwnerMinutes;
+                }
+            }
         }
     }
 
@@ -1793,8 +1921,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         ValidateOpenOrders();
         WorkPlanTotals totals = CalculateTotals();
-        GUILayout.Label($"Open tasks: {totals.openCount}   Contractor time: {Minutes(totals.minutes)}   "
-            + $"Contractor cost: {Money(totals.costCents)}   Expected timber: {Money(totals.revenueCents)}   "
+        GUILayout.Label($"Open tasks: {totals.openCount}   Non-harvest task time: {Minutes(totals.minutes)}   "
+            + $"External work/material cost: {Money(totals.costCents)}   Expected timber: {Money(totals.revenueCents)}   "
             + $"Expected net: {Money(totals.revenueCents - totals.costCents)}", bodyStyle);
         GUILayout.Label($"Approved contractor reserve: {Money(ReservedContractorCashCents)}   "
             + $"Uncommitted cash: {Money(cashCents - ReservedContractorCashCents)}", bodyStyle);
@@ -1802,6 +1930,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Label($"Scenario: {outcome} · {objectives.Count(item => item.achieved)}/{objectives.Count} "
             + $"objectives · Century Review year {ReviewYear}", headingStyle);
         GUILayout.Label(outcome == ScenarioOneOutcome.Failed ? outcomeReason : TutorialHint, bodyStyle);
+        GUILayout.Label("Light deer browsing slows unprotected oak; tree shelters protect planted trees.", mutedStyle);
         GUILayout.Space(8f);
 
         scroll = GUILayout.BeginScrollView(scroll, GUILayout.ExpandHeight(true));
@@ -1819,6 +1948,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         DrawReferencePreviewControls();
         DrawNursery();
+        DrawExecutionChoices();
+        DrawHarvestJobQuote();
         GUILayout.Space(12f);
         DrawSpatialSummary();
         GUILayout.Space(12f);
@@ -1931,9 +2062,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         GUILayout.Label(order.status.ToString(), bodyStyle, GUILayout.Width(100f * ForestHud.Scale));
         GUILayout.EndHorizontal();
         if (order.type == ScenarioWorkType.PlantJuvenile)
-            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
+            GUILayout.Label($"{order.executionMethod} · {Minutes(order.estimatedMinutes)} · external cost {Money(order.estimatedCostCents)} · "
                 + $"stock: {order.requiredStockQuantity} {order.stockItemId} · "
-                + $"position ({order.worldPosition.x:0.0}, {order.worldPosition.z:0.0})", bodyStyle);
+                + $"{(order.installShelter ? "with one tree shelter" : "without shelter")} · position ({order.worldPosition.x:0.0}, {order.worldPosition.z:0.0})", bodyStyle);
         else if (order.type == ScenarioWorkType.RemoveRegeneration)
             GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
                 + $"whole {order.speciesId} cohort · cell {order.cellIndex} · estimated density {order.expectedRegenerationDensity:0.00}", bodyStyle);
@@ -1946,8 +2077,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 ? "Retain as fallen deadwood (no timber revenue)"
                 : order.fellingOutcome == FellingMaterialOutcome.KeepForUse
                     ? "Keep for construction (no timber revenue)" : "Sell and extract timber";
-            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
-                + $"{order.expectedVolumeM3:0.00} m³ · expected revenue {Money(order.expectedRevenueCents)} · {outcomeLabel}", bodyStyle);
+            GUILayout.Label($"Contractor · commissioned job #{order.harvestJobId} (cost shown once above) · "
+                + $"{order.expectedVolumeM3:0.00} m³ · expected product revenue {Money(order.expectedRevenueCents)} · {outcomeLabel}", bodyStyle);
             if (order.status == ScenarioWorkStatus.Pending)
             {
                 GUILayout.BeginHorizontal();
@@ -1958,9 +2089,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
                     if (GUILayout.Button(choice.ToString(), buttonStyle))
                     {
                         order.fellingOutcome = choice;
-                        order.expectedRevenueCents = choice == FellingMaterialOutcome.SellAndExtract
-                            ? (long)Math.Round(order.expectedVolumeM3 * definition.TimberValueCentsPerCubicMetre(order.speciesId),
-                                MidpointRounding.AwayFromZero) : 0L;
+                        order.expectedRevenueCents = 0;
                         feedback = $"Order #{order.workOrderId}: {choice}.";
                     }
                 }
@@ -2006,6 +2135,41 @@ public sealed class ScenarioOneManager : MonoBehaviour
             }
             GUILayout.EndHorizontal();
         }
+    }
+
+    private void DrawExecutionChoices()
+    {
+        GUILayout.Label("WHO DOES THE WORK?", headingStyle);
+        GUILayout.Label("Harvest: Contractor only. Landowner production felling is ineligible (specialist work).", bodyStyle);
+        GUILayout.BeginHorizontal();
+        foreach (var method in new[] { WorkExecutionMethod.Contractor, WorkExecutionMethod.LandownerSimulated })
+        {
+            GUI.enabled = planningPlantingMethod != method;
+            if (GUILayout.Button("Planting: " + method, buttonStyle)) SetPlantingExecution(method);
+        }
+        GUI.enabled = true; GUILayout.EndHorizontal();
+        bool shelter = GUILayout.Toggle(planningInstallShelter, "With tree shelter — same executor as planting; one material item, " + Money(definition.TreeShelterMaterialCents) + " [D] placeholder");
+        if (shelter != planningInstallShelter) SetPlantingShelters(shelter);
+        int reserved = workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && string.IsNullOrEmpty(order.validationMessage)
+            && order.executionMethod == WorkExecutionMethod.LandownerSimulated).Sum(order => order.estimatedMinutes);
+        GUILayout.Label($"Next annual owner budget: {OwnerMinutesPerYear} min (40 h [C]); planned {reserved} min, remaining {Math.Max(0, OwnerMinutesPerYear - reserved)} min. Last resolved year used {ownerMinutesUsedThisYear} min. No owner wage cash.", bodyStyle);
+        GUILayout.Label("Choices apply to newly designated plantings and open planting orders; changed approved work requires approval again. Purchased saplings are consumed once.", mutedStyle);
+    }
+
+    private void DrawHarvestJobQuote()
+    {
+        var job = GetHarvestQuote(false);
+        if (job.Orders.Count == 0) return;
+        var costs = job.Resolution.Quote.Costs;
+        GUILayout.Label($"COMMISSIONED HARVEST JOB #{job.JobId} — {job.Orders.Count} trees", headingStyle);
+        GUILayout.Label("Small-job minimum applies once per commissioned job.", bodyStyle);
+        GUILayout.Label($"Modeled stem {job.TotalStemVolumeCm3 / 1000000d:0.000} m³ · retained {job.RetainedVolumeCm3 / 1000000d:0.000} m³ · deadwood/reference {job.DeadwoodVolumeCm3 / 1000000d:0.000} m³ · residue {job.ResidualVolumeCm3 / 1000000d:0.000} m³", bodyStyle);
+        foreach (var product in job.Yield.Assortments)
+            GUILayout.Label($"{product.Assortment} · {product.Disposition} · {product.VolumeCm3 / 1000000d:0.000} m³ / {product.Pieces} logs", bodyStyle);
+        GUILayout.Label($"Expected receipts {Money(job.RevenueCents)} · variable bundled work {Money(costs.ContractorWorkCents - costs.MinimumJobAdjustmentCents)} · minimum adjustment {Money(costs.MinimumJobAdjustmentCents)} · external cost {Money(job.CostCents)} · net {Money(job.RevenueCents - job.CostCents)}", bodyStyle);
+        GUILayout.Label(job.Eligible ? "Eligible — revalidated and re-quoted at annual resolution." : "Ineligible: " + job.Problem, mutedStyle);
+        if (job.HasUnmarketedSpecies) GUILayout.Label("No broadleaf timber market is configured: felling work is charged, sale revenue is zero for those stems. KeepForUse/deadwood still follow your choice.", mutedStyle);
+        GUILayout.Label("Over-bark game basis [S]; whole-stem work-equivalent quantity, not measured industrial taper. Kept timber is forwarded roadside without haulage.", mutedStyle);
     }
 
     private void DrawPlantingGrid()
@@ -2126,7 +2290,20 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     private void DrawAnnualReview()
     {
-        GUILayout.Label("ANNUAL REVIEW — ECOLOGICAL OUTCOMES", headingStyle);
+        GUILayout.Label("ANNUAL REVIEW — WORK, ECONOMY AND ECOLOGY", headingStyle);
+        if (annualReports.Count > 0)
+        {
+            var report = annualReports[annualReports.Count - 1];
+            var events = managementEvents.Where(entry => entry.year == report.year && entry.eventType == ScenarioManagementEventType.WorkResolved && entry.outcome == ScenarioManagementOutcome.Succeeded).ToList();
+            long harvestCost = events.Where(entry => entry.taskType == ScenarioWorkType.FellTree).Sum(entry => entry.contractorCostCents);
+            long materials = events.Sum(entry => entry.stockCostCents);
+            foreach (var product in report.timberSales ?? new List<ScenarioTimberSale>())
+                GUILayout.Label($"Sold {product.assortment}: {product.soldVolumeCm3 / 1000000d:0.000} m³ · {Money(product.revenueCents)}", bodyStyle);
+            GUILayout.Label($"Variable harvest work {Money(Math.Max(0, harvestCost - report.harvestMinimumAdjustmentCents))} · minimum adjustment {Money(report.harvestMinimumAdjustmentCents)} · other contractor work {Money(report.contractorCostCents - harvestCost)} · shelter materials {Money(materials)}", bodyStyle);
+            GUILayout.Label($"Net work settlement {Money(report.timberRevenueCents - report.contractorCostCents - materials)} · closing cash {Money(report.closingCashCents)} · retained timber this job {report.keptForUseVolumeM3:0.000} m³", bodyStyle);
+            GUILayout.Label($"Owner time {report.ownerMinutes} / {OwnerMinutesPerYear} min · remaining {Math.Max(0, OwnerMinutesPerYear - report.ownerMinutes)} min. Nursery purchases are charged once when bought; owner opportunity cost €0 [S].", bodyStyle);
+        }
+        // INTEGRATION: ScenarioEcologyReviewLines
         if (ecologicalSnapshots.Count == 0)
         {
             GUILayout.Label("No ecological snapshot has been recorded yet.", bodyStyle);
@@ -2346,15 +2523,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
             if (!order.IsOpen)
                 continue;
             result.openCount++;
-            result.minutes += order.estimatedMinutes;
-            result.costCents += order.estimatedCostCents;
-            result.revenueCents += order.expectedRevenueCents;
+            if (!string.IsNullOrEmpty(order.validationMessage)) continue;
+            if (order.type != ScenarioWorkType.FellTree) result.minutes += order.estimatedMinutes;
+            if (order.type != ScenarioWorkType.FellTree) result.costCents += order.estimatedCostCents;
             if (order.status == ScenarioWorkStatus.Approved)
             {
                 result.approvedCount++;
-                result.approvedCostCents += order.estimatedCostCents;
+                if (order.type != ScenarioWorkType.FellTree) result.approvedCostCents += order.estimatedCostCents;
             }
         }
+        var harvest = GetHarvestQuote(false); result.costCents += harvest.CostCents; result.revenueCents = harvest.RevenueCents;
+        result.approvedCostCents += GetHarvestQuote(true).CostCents;
         return result;
     }
 

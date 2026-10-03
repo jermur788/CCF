@@ -16,6 +16,10 @@ namespace CCF.Forestry.WorkEconomy
             Nonnegative(resources.AvailableCashCents); Nonnegative(resources.AvailableOwnerMinutes);
             Capabilities(resources.Capabilities); Tools(resources.Tools);
             Quantity(task.Quantity);
+            Nonnegative(task.UnpricedHarvestGreenGrams); Nonnegative(task.UnpricedForwardGreenGrams);
+            Require(task.UnpricedForwardGreenGrams <= task.UnpricedHarvestGreenGrams, "Unpriced forwarding exceeds harvested work quantity.");
+            Require(task.Type == ForestryTaskType.Harvest || task.UnpricedHarvestGreenGrams == 0, "Unpriced harvest quantity belongs to harvest work only.");
+            Require(task.Quantity.Amount > 0 || task.UnpricedHarvestGreenGrams == 0, "Zero work cannot carry unpriced harvested quantity.");
             Unique(task.TargetIds, x => x);
             Unique(book.TimberPrices, x => x.Id);
             foreach (var price in book.TimberPrices)
@@ -105,7 +109,7 @@ namespace CCF.Forestry.WorkEconomy
             if (task.Type == ForestryTaskType.Harvest)
             {
                 Require(book.FindHarvestSchedule(task.HarvestContext) != null, "Harvest context has no cost schedule.");
-                Require(task.Quantity.Amount == 0 || hasTimberQuantity, "Nonzero harvest needs quantified produced timber, including retained material.");
+                Require(task.Quantity.Amount == 0 || hasTimberQuantity || task.UnpricedHarvestGreenGrams > 0, "Nonzero harvest needs quantified produced timber or unpriced work quantity.");
             }
             else Require(!task.HasHarvestQuote, "Harvest quotes apply only to harvest work.");
             if (task.HasHarvestQuote)

@@ -74,6 +74,9 @@ namespace CCF.Forestry.WorkEconomy
         public string[] TargetIds = Array.Empty<string>();
         public MaterialRequirement[] Materials = Array.Empty<MaterialRequirement>();
         public TimberBatch[] Timber = Array.Empty<TimberBatch>();
+        // Work quantity without a market product (residues/unmarketed species). Never sale revenue.
+        public long UnpricedHarvestGreenGrams;
+        public long UnpricedForwardGreenGrams;
         public HarvestOperationContext HarvestContext;
         public int SiteCostBasisPoints = 10000; // 1.0, cost only, no automatic CCF premium.
         // Unity inline-class serialization does not preserve null as an optional-value marker.

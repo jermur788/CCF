@@ -33,6 +33,13 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Min(0f)] private float fellingMinutesPerCubicMetre = 10f;
     [SerializeField, Min(0)] private int sitkaTimberValueCentsPerCubicMetre = 7200;
     [SerializeField, Min(0)] private int broadleafTimberValueCentsPerCubicMetre = 6500;
+    [Header("Scenario One commissioned work — configurable foundation values")]
+    [Tooltip("[C] Once per commissioned annual harvest job, not per tree. Manager-approved production value €2,500.")]
+    [SerializeField, Min(0)] private long minimumHarvestJobCents = 250000;
+    [Tooltip("[C] Annual simulated owner work budget, 40 hours. No owner wage cash payment.")]
+    [SerializeField, Min(0)] private int ownerMinutesPerYear = 2400;
+    [Tooltip("[D] Scenario One placeholder material price, not a grant rate or claimed Irish retail quotation.")]
+    [SerializeField, Min(0)] private int treeShelterMaterialCents = 500;
 
     [Header("Planting stock — provisional gameplay calibration [D]")]
     [SerializeField] private List<ScenarioShopEntry> shopEntries = new List<ScenarioShopEntry>
@@ -86,6 +93,9 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public ScenarioExecutionMode ExecutionMode => executionMode;
     public long StartingCashCents => startingCashCents;
     public int ContractorHourlyRateCents => contractorHourlyRateCents;
+    public long MinimumHarvestJobCents => minimumHarvestJobCents;
+    public int OwnerMinutesPerYear => ownerMinutesPerYear;
+    public int TreeShelterMaterialCents => treeShelterMaterialCents;
     public int FellingBaseMinutes => fellingBaseMinutes;
     public float FellingMinutesPerCubicMetre => fellingMinutesPerCubicMetre;
     public int MinimumCompletionYear => minimumCompletionYear;
