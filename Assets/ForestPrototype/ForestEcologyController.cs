@@ -63,6 +63,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     public int CellsPerAxis => cellsPerAxis;
     public float CellSizeMeters => cellSizeMeters;
     public float StandAreaHectares => standSizeMeters * standSizeMeters / 10000f;
+    // Property (stand) bounds in world XZ; the grid is centred on the origin.
+    public Rect StandBounds => new Rect(-standSizeMeters * 0.5f, -standSizeMeters * 0.5f, standSizeMeters, standSizeMeters);
     public ForestEcologyCell[] Cells => cells;
     public string LastMastLabel => lastMastLabel;
     public float LastMastMultiplier => lastMastMultiplier;

@@ -193,6 +193,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         while (restore.MoveNext()) yield return restore.Current;
         IEnumerator visuals = VerifyShelterVisualsAndReviewLines(oak);
         while (visuals.MoveNext()) yield return visuals.Current;
+        VerifyFenceGeometry();
 
         IEnumerator production = VerifyProductionContinuity(oak, beech);
         while (production.MoveNext()) yield return production.Current;
@@ -829,6 +830,34 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             Check(lines.Any(l => l.Contains("1 sheltered") && l.Contains("expire within")), "protection/expiry line");
         ecology.Browsing.ClearProtection();
         Debug.Log("ECOLOGY_REVIEW_LINES_VERIFY_PASS");
+    }
+
+    // Stretch S1: fence geometry helper (no fencing gameplay).
+    private void VerifyFenceGeometry()
+    {
+        Rect property = ecology.StandBounds;
+        Check(property.width > 0f && Mathf.Approximately(property.center.x, 0f), "stand bounds");
+        // Planting group of three stems; +2 m margin.
+        var group = new[] { new Vector2(1f, 1f), new Vector2(3f, 2f), new Vector2(2f, 4f) };
+        List<Vector2> rect = BrowseProtectionGeometry.RectangleAround(group, property);
+        Check(rect.Count == 4 && rect[0] == new Vector2(-1f, -1f) && rect[2] == new Vector2(5f, 6f), "rectangle with margin");
+        Check(Mathf.Approximately(BrowseProtectionGeometry.PerimeterM(rect), 26f) && Mathf.Approximately(BrowseProtectionGeometry.AreaM2(rect), 42f), "perimeter/area");
+        // Clipped to the property at the stand edge.
+        float edge = property.xMax;
+        List<Vector2> clipped = BrowseProtectionGeometry.RectangleAround(new[] { new Vector2(edge - 0.5f, 0f) }, property);
+        Check(clipped.Count == 4 && Mathf.Approximately(clipped.Max(p => p.x), edge) && Mathf.Approximately(clipped.Min(p => p.x), edge - 2.5f), "clipped to property");
+        Check(BrowseProtectionGeometry.RectangleAround(new Vector2[0], property).Count == 0, "empty group");
+        // Cohort-fraction fixture: a fence over exactly the west half of a cell.
+        ForestEcologyCell cell = ecology.Cells[0];
+        float half = ecology.CellSizeMeters * 0.5f;
+        BrowseProtectedArea area = BrowseProtectionGeometry.AreaAround("G1",
+            new[] { new Vector2(cell.Center.x - half, cell.Center.y - half), new Vector2(cell.Center.x, cell.Center.y + half) }, property, 5, 0f);
+        var c = new BrowsingConditions();
+        c.ProtectedAreas.Add(area);
+        float access = c.CohortAccess(cell.Center, ecology.CellSizeMeters, 5);
+        Check(area.installedYear == 5 && area.breachedYear == -1 && Mathf.Abs(access - 0.6f) < 0.11f, "half-cell cohort fraction: " + access);
+        Emit($"FENCE_GEOMETRY group perimeter={F(BrowseProtectionGeometry.PerimeterM(rect))}m area={F(BrowseProtectionGeometry.AreaM2(rect))}m2 halfCellAccess={F(access)}");
+        Debug.Log("FENCE_GEOMETRY_VERIFY_PASS");
     }
 
     // ---------- 5. Production annual step: determinism and save/load continuity ----------
