@@ -59,4 +59,6 @@ public sealed class ScenarioManagementEvent
     public long cashDeltaCents;
     public long closingCashCents;
     public string failureReason = "";
+    public CCF.Forestry.WorkEconomy.WorkExecutionMethod executionMethod;
+    public int ownerMinutes;
 }

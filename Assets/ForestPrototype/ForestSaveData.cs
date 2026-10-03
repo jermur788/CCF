@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 14;
+    public const int CurrentVersion = 15;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -26,6 +26,7 @@ public sealed class ForestSaveData
     // Version 13: persistent two-type tree marks, exact-position individual
     // plantings, treatment patches and retained construction timber.
     // Version 14: explicit biological tree mortality, separate from harvesting.
+    // Version 15: scenario execution choices, protection and bounded economy reports.
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -56,6 +57,9 @@ public sealed class ScenarioOneSaveData
     // Distinguishes the early v13 draft (which duplicated cohorts with inert
     // individual records) from authoritative individual planting v13.
     public int interactionSchemaVersion;
+    public List<BrowseShelter> shelters = new List<BrowseShelter>();
+    public List<BrowseProtectedArea> protectedAreas = new List<BrowseProtectedArea>();
+    public int ownerMinutesUsedThisYear;
 }
 
 [Serializable]
@@ -81,6 +85,17 @@ public sealed class ScenarioAnnualReport
     public float deadwoodDecayedM3;
     public float keptForUseVolumeM3;
     public long closingCashCents;
+    public long harvestMinimumAdjustmentCents;
+    public int ownerMinutes;
+    public List<ScenarioTimberSale> timberSales = new List<ScenarioTimberSale>();
+}
+
+[Serializable]
+public sealed class ScenarioTimberSale
+{
+    public CCF.Forestry.WorkEconomy.TimberAssortment assortment;
+    public long soldVolumeCm3;
+    public long revenueCents;
 }
 
 [Serializable]

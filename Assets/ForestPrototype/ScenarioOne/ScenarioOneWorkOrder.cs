@@ -49,6 +49,9 @@ public sealed class ScenarioOneWorkOrder
     public string validationMessage = "";
     public int createdYear;
     public int resolvedYear = -1;
+    public CCF.Forestry.WorkEconomy.WorkExecutionMethod executionMethod;
+    public bool installShelter;
+    public int harvestJobId = -1;
 
     public bool IsOpen => status == ScenarioWorkStatus.Pending || status == ScenarioWorkStatus.Approved;
 

@@ -85,6 +85,56 @@ public static class ForestSaveValidation
             }
         }
 
+        if (data.version >= 15 && data.scenarioOne != null)
+        {
+            string problem = ValidateScenarioV15(data.scenarioOne, data.ecologicalYear);
+            if (problem != null) return problem;
+        }
+        return null;
+    }
+
+    private static string ValidateScenarioV15(ScenarioOneSaveData scenario, int year)
+    {
+        if (scenario.ownerMinutesUsedThisYear < 0) return "negative owner time";
+        if (scenario.workOrders != null)
+            foreach (var order in scenario.workOrders)
+                if (order == null || !System.Enum.IsDefined(typeof(CCF.Forestry.WorkEconomy.WorkExecutionMethod), order.executionMethod)
+                    || order.harvestJobId < -1 || order.estimatedCostCents < 0 || order.estimatedMinutes < 0)
+                    return "invalid v15 work order";
+        var ids = new HashSet<string>();
+        if (scenario.shelters != null)
+            foreach (var shelter in scenario.shelters)
+            {
+                if (shelter == null || string.IsNullOrWhiteSpace(shelter.shelterId) || !ids.Add(shelter.shelterId)
+                    || !IsFinite(shelter.position.x) || !IsFinite(shelter.position.y) || shelter.installedYear < 0
+                    || (long)shelter.installedYear > (long)year + 1 || shelter.effectiveYears <= 0
+                    || (long)shelter.installedYear + shelter.effectiveYears > int.MaxValue
+                    || shelter.failedYear < -1 || (shelter.failedYear >= 0 && shelter.failedYear < shelter.installedYear))
+                    return "invalid or duplicate shelter record";
+            }
+        ids.Clear();
+        if (scenario.protectedAreas != null)
+            foreach (var area in scenario.protectedAreas)
+            {
+                if (area == null || string.IsNullOrWhiteSpace(area.areaId) || !ids.Add(area.areaId) || area.polygon == null
+                    || area.polygon.Count < 3 || area.installedYear < 0 || (long)area.installedYear > (long)year + 1
+                    || area.breachedYear < -1 || (area.breachedYear >= 0 && area.breachedYear < area.installedYear))
+                    return "invalid or duplicate protected area";
+                foreach (var point in area.polygon) if (!IsFinite(point.x) || !IsFinite(point.y)) return "invalid protection polygon coordinate";
+            }
+        if (scenario.annualReports != null)
+            foreach (var report in scenario.annualReports)
+            {
+                if (report == null || report.ownerMinutes < 0 || report.harvestMinimumAdjustmentCents < 0) return "invalid v15 economy report";
+                var products = new HashSet<CCF.Forestry.WorkEconomy.TimberAssortment>();
+                if (report.timberSales != null) foreach (var sale in report.timberSales)
+                    if (sale == null || !System.Enum.IsDefined(typeof(CCF.Forestry.WorkEconomy.TimberAssortment), sale.assortment)
+                        || !products.Add(sale.assortment) || sale.soldVolumeCm3 < 0 || sale.revenueCents < 0) return "invalid timber sale report";
+            }
+        if (scenario.managementEvents != null)
+            foreach (var entry in scenario.managementEvents)
+                if (entry == null || entry.ownerMinutes < 0 || !System.Enum.IsDefined(typeof(CCF.Forestry.WorkEconomy.WorkExecutionMethod), entry.executionMethod))
+                    return "invalid v15 management event";
         return null;
     }
 

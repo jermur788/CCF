@@ -31,6 +31,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
     [SerializeField] private List<PlantedJuvenile> plantedJuveniles = new List<PlantedJuvenile>();
     [SerializeField] private List<PlantingClearancePatch> clearancePatches = new List<PlantingClearancePatch>();
     private int nextJuvenileId = 1;
+    private List<BrowseShelter> shelters = new List<BrowseShelter>();
+    private List<BrowseProtectedArea> protectedAreas = new List<BrowseProtectedArea>();
+    private int ownerMinutesUsedThisYear;
     private readonly Dictionary<int, GameObject> plantingMarkers = new Dictionary<int, GameObject>();
     private Material plantingMarkerMaterial;
     private Material approvedPlantingMaterial;
@@ -382,6 +385,10 @@ public sealed class ScenarioOneManager : MonoBehaviour
         if (definition == null)
             throw new InvalidOperationException("Scenario One requires a definition asset.");
         initialized = true;
+        shelters.Clear();
+        protectedAreas.Clear();
+        ownerMinutesUsedThisYear = 0;
+        ecology?.Browsing.ClearProtection();
         cashCents = definition.StartingCashCents;
         nextWorkOrderId = 1;
         workOrders.Clear();
@@ -1004,6 +1011,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear
             }).ToList(),
             interactionSchemaVersion = 2,
+            shelters = CloneRecords(ecology != null ? ecology.Browsing.Shelters : shelters),
+            protectedAreas = CloneRecords(ecology != null ? ecology.Browsing.ProtectedAreas : protectedAreas),
+            ownerMinutesUsedThisYear = ownerMinutesUsedThisYear,
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1014,7 +1024,21 @@ public sealed class ScenarioOneManager : MonoBehaviour
     }
 
     public void RestoreSaveData(ScenarioOneSaveData data)
+        => RestoreSaveData(data, ForestSaveData.CurrentVersion);
+
+    public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
+        ecology?.Browsing.ClearProtection();
+        ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
+        shelters = CloneRecords(data?.shelters);
+        protectedAreas = CloneRecords(data?.protectedAreas);
+        ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
+        if (ecology != null)
+        {
+            ecology.Browsing.Shelters.AddRange(shelters);
+            ecology.Browsing.ProtectedAreas.AddRange(protectedAreas);
+        }
         if (data == null)
         {
             // Versions 1-9 had no scenario state. Loading one starts the
@@ -2708,8 +2732,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
             deadwoodCreatedM3 = item.deadwoodCreatedM3,
             deadwoodDecayedM3 = item.deadwoodDecayedM3,
             keptForUseVolumeM3 = item.keptForUseVolumeM3,
-            closingCashCents = item.closingCashCents
+            closingCashCents = item.closingCashCents,
+            harvestMinimumAdjustmentCents = item.harvestMinimumAdjustmentCents,
+            ownerMinutes = item.ownerMinutes,
+            timberSales = CloneRecords(item.timberSales)
         }).ToList();
+    }
+
+    private static List<T> CloneRecords<T>(List<T> source)
+    {
+        if (source == null) return new List<T>();
+        return source.Where(item => item != null).Select(item => JsonUtility.FromJson<T>(JsonUtility.ToJson(item))).ToList();
     }
 
     private static List<ScenarioManagementEvent> CloneEvents(List<ScenarioManagementEvent> source)

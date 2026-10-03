@@ -422,7 +422,9 @@ public sealed class ForestSaveController : MonoBehaviour
         // especially planted or naturally established cohorts.
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         if (scenario != null)
-            scenario.RestoreSaveData(data.version >= 10 ? data.scenarioOne : null);
+            scenario.RestoreSaveData(data.version >= 10 ? data.scenarioOne : null, data.version);
+        else if (ecology != null)
+            ecology.Browsing.ClearProtection();
 
         if (showMessage)
             SetMessage(data.version == ForestSaveData.CurrentVersion
