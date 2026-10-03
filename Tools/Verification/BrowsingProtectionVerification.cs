@@ -186,6 +186,13 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         yield return null;
         VerifyExperiments(oak);
         yield return null;
+        VerifyRegenerationDiagnosis(oak, beech);
+        VerifyShelterTimingContract(oak);
+        yield return null;
+        IEnumerator restore = VerifyProtectionRestoreContract(oak, beech);
+        while (restore.MoveNext()) yield return restore.Current;
+        IEnumerator visuals = VerifyShelterVisualsAndReviewLines(oak);
+        while (visuals.MoveNext()) yield return visuals.Current;
 
         IEnumerator production = VerifyProductionContinuity(oak, beech);
         while (production.MoveNext()) yield return production.Current;
@@ -592,6 +599,236 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         Emit("BROWSE_EXPERIMENT reclosureFenced " + reclosure.Describe());
         Check(reclosure.Promoted[3] == 0f && reclosure.CohortPromotionYear < 0, "protected juveniles recruited under reclosed canopy");
         Debug.Log("BROWSE_EXPERIMENTS_PASS");
+    }
+
+    // ---------- 4b. Scenario 1 readout: diagnosis, shelter contracts, visuals, review lines ----------
+
+    private ScenarioOneSaveData PlantedState(params PlantedJuvenileSaveData[] juveniles)
+    {
+        ScenarioOneSaveData state = JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(original.scenarioOne));
+        state.interactionSchemaVersion = 2;
+        state.plantedJuveniles.Clear();
+        state.plantedJuveniles.AddRange(juveniles);
+        return state;
+    }
+
+    private static PlantedJuvenileSaveData Juvenile(string id, TreeSpeciesDefinition s, Vector3 position, int cell, float height, int year)
+        => new PlantedJuvenileSaveData { juvenileId = id, speciesId = s.SpeciesId, position = position, cellIndex = cell,
+            plantingYear = year, ageYears = 3, heightMeters = height, alive = true };
+
+    private void VerifyRegenerationDiagnosis(TreeSpeciesDefinition oak, TreeSpeciesDefinition beech)
+    {
+        foreach (ForestEcologyCell cell in ecology.Cells) cell.ClearRegeneration();
+        DestroyHarnessTrees();
+        ecology.Browsing.BackgroundPressure = 0.2f;
+        ecology.Browsing.ClearProtection();
+        SetYear(MatrixBaseYear);
+        int dark = 9, bright = 18, empty = 27;
+        ecology.Cells[dark].Light = 0.05f; ecology.Cells[bright].Light = 0.7f; ecology.Cells[empty].Light = 0.7f;
+        foreach (int i in new[] { dark, bright, empty }) ecology.Cells[i].SiteProductivity = 1f;
+        Vector3 Center(int i, float dx = 0f) => new Vector3(ecology.Cells[i].Center.x + dx, 0f, ecology.Cells[i].Center.y);
+
+        // Dark cell cohort: light-limited.
+        ecology.Cells[dark].GetOrCreateCohort(oak).Restore(0.5f, 0.3f, MatrixBaseYear, RegenerationOrigin.Natural, MatrixBaseYear);
+        // Bright cell: exposed, sheltered, above-reach and promoting exact planted oak.
+        Vector3 exposed = Center(bright, -2f), sheltered = Center(bright, -1f), tall = Center(bright, 1f), ready = Center(bright, 2f);
+        manager.RestoreSaveData(PlantedState(
+            Juvenile("PJ8101", oak, exposed, bright, 0.6f, MatrixBaseYear),
+            Juvenile("PJ8102", oak, sheltered, bright, 0.6f, MatrixBaseYear),
+            Juvenile("PJ8103", oak, tall, bright, 2.0f, MatrixBaseYear),
+            Juvenile("PJ8104", oak, ready, bright, oak.PromotionHeightM + 0.1f, MatrixBaseYear)));
+        ecology.Browsing.Shelters.Add(new BrowseShelter { shelterId = "D1", position = new Vector2(sheltered.x, sheltered.z),
+            installedYear = MatrixBaseYear + 1, effectiveYears = 8 });
+        IReadOnlyList<PlantedJuvenile> planted = manager.PlantedJuveniles;
+
+        RegenerationDiagnosis dDark = RegenerationDiagnostics.Diagnose(ecology, Center(dark), planted, spawner);
+        RegenerationDiagnosis dExposed = RegenerationDiagnostics.Diagnose(ecology, exposed, planted, spawner);
+        RegenerationDiagnosis dSheltered = RegenerationDiagnostics.Diagnose(ecology, sheltered, planted, spawner);
+        RegenerationDiagnosis dTall = RegenerationDiagnostics.Diagnose(ecology, tall, planted, spawner);
+        RegenerationDiagnosis dReady = RegenerationDiagnostics.Diagnose(ecology, ready, planted, spawner);
+        RegenerationDiagnosis dEmpty = RegenerationDiagnostics.Diagnose(ecology, Center(empty), planted, spawner);
+        Check(dDark.HasJuvenile && !dDark.IsPlantedIndividual && dDark.Limit == RegenerationLimit.LightLimited, "dark cohort not light-limited: " + dDark.Summary());
+        Check(dExposed.IsPlantedIndividual && dExposed.JuvenileId == "PJ8101" && dExposed.Limit == RegenerationLimit.BrowsedExposed
+              && Mathf.Abs(dExposed.Browse.Probability - 0.2f) < 1e-6f && dExposed.Summary().Contains("20%/yr"), "exposed oak: " + dExposed.Summary());
+        Check(dSheltered.Limit == RegenerationLimit.Protected && dSheltered.Browse.Protection == BrowseProtectionState.EffectiveShelter
+              && dSheltered.ShelterStepsRemaining == 8, "sheltered oak: " + dSheltered.Summary());
+        Check(dTall.Limit == RegenerationLimit.AboveBrowseReach && dTall.Stage == JuvenileStage.Sapling, "tall oak: " + dTall.Summary());
+        Check(dReady.Limit == RegenerationLimit.Promoting && dReady.Stage == JuvenileStage.ReadyToPromote, "ready oak: " + dReady.Summary());
+        Check(!dEmpty.HasJuvenile && dEmpty.Summary().StartsWith("Regeneration: none established"), "empty cell: " + dEmpty.Summary());
+        Check(dExposed.LastYearBrowsed == "n/a", "unrecorded last-year browsing must be n/a");
+        // Diagnosis is read-only.
+        Check(planted.First(j => j.juvenileId == "PJ8101").heightMeters == 0.6f && ecology.EcologicalYear == MatrixBaseYear, "diagnosis mutated state");
+
+        // After one annual step last-year browsing becomes authoritative; after a load it is n/a again.
+        SetYear(MatrixBaseYear + 1);
+        Invoke(manager, "AdvancePlantedJuveniles");
+        RegenerationDiagnosis stepped = RegenerationDiagnostics.Diagnose(ecology, exposed, manager.PlantedJuveniles, spawner);
+        Check(stepped.LastYearBrowsed == "yes" || stepped.LastYearBrowsed == "no", "last-year browsing not recorded after step");
+        RegenerationDiagnosis steppedSheltered = RegenerationDiagnostics.Diagnose(ecology, sheltered, manager.PlantedJuveniles, spawner);
+        Check(steppedSheltered.LastYearBrowsed == "no" && steppedSheltered.ShelterStepsRemaining == 7, "sheltered step: " + steppedSheltered.Summary());
+        manager.RestoreSaveData(PlantedState(Juvenile("PJ8101", oak, exposed, bright, 0.6f, MatrixBaseYear)));
+        Check(RegenerationDiagnostics.Diagnose(ecology, exposed, manager.PlantedJuveniles, spawner).LastYearBrowsed == "n/a",
+            "last-year browsing survived a load (it is not saved)");
+        Emit("BROWSE_DIAGNOSIS " + string.Join(" | ", new[] { dDark, dExposed, dSheltered, dTall, dReady, dEmpty }.Select(d => d.Summary())));
+        DestroyHarnessTrees();
+        Debug.Log("REGENERATION_DIAGNOSIS_VERIFY_PASS");
+    }
+
+    // A shelter recorded with installedYear = the planting order's resolution
+    // year (report.year = EcologicalYear + 1 = PlantedJuvenile.plantingYear)
+    // protects exactly effectiveYears annual steps starting with the first.
+    private void VerifyShelterTimingContract(TreeSpeciesDefinition oak)
+    {
+        foreach (ForestEcologyCell c in ecology.Cells) c.ClearRegeneration();
+        // Pressure 0 and moderate light: no fixture juvenile can die, and the
+        // recorded protection state comes from ProtectionAt whatever the pressure.
+        ecology.Browsing.BackgroundPressure = 0f;
+        ecology.Browsing.ClearProtection();
+        int E = MatrixBaseYear;                 // ecology year when work resolves
+        int resolutionYear = E + 1;             // report.year and plantingYear
+        int cell = 18;
+        ecology.Cells[cell].Light = 0.35f; ecology.Cells[cell].SiteProductivity = 1f;
+        var cases = new (string id, int installed)[] { ("PJ8201", resolutionYear), ("PJ8202", resolutionYear + 1), ("PJ8203", resolutionYear - 1) };
+        var juveniles = new List<PlantedJuvenileSaveData>();
+        for (int i = 0; i < cases.Length; i++)
+        {
+            Vector3 position = new Vector3(ecology.Cells[cell].Center.x - 1.5f + 1.5f * i, 0f, ecology.Cells[cell].Center.y);
+            juveniles.Add(Juvenile(cases[i].id, oak, position, cell, 0.6f, resolutionYear));
+            ecology.Browsing.Shelters.Add(new BrowseShelter { shelterId = "T" + i, position = new Vector2(position.x, position.z),
+                installedYear = cases[i].installed, effectiveYears = 3 });
+        }
+        manager.RestoreSaveData(PlantedState(juveniles.ToArray()));
+        var protectedSteps = cases.ToDictionary(c => c.id, c => new List<int>());
+        SetYear(E);
+        for (int step = 1; step <= 5; step++)
+        {
+            SetYear(E + step);   // AdvanceOneYear increments the year before the juvenile step
+            ecology.Cells[cell].Light = 0.35f;
+            Invoke(manager, "AdvancePlantedJuveniles");
+            Check(manager.PlantedJuveniles.All(j => j.alive), "timing fixture juvenile died");
+            foreach (PlantedJuvenile j in manager.PlantedJuveniles.Where(j => j.lastBrowseAssessmentYear == E + step))
+                if (j.lastBrowseAssessment.Protection == BrowseProtectionState.EffectiveShelter)
+                    protectedSteps[j.juvenileId].Add(step);
+        }
+        string Steps(string id) => string.Join(",", protectedSteps[id]);
+        Emit($"SHELTER_TIMING installed=resolution:{Steps("PJ8201")} installed=resolution+1:{Steps("PJ8202")} installed=resolution-1:{Steps("PJ8203")}");
+        Check(Steps("PJ8201") == "1,2,3", "shelter installed at the resolution year must protect steps 1..effectiveYears");
+        Check(!protectedSteps["PJ8202"].Contains(1), "installedYear = resolution+1 leaves the first step unprotected (off-by-one)");
+        Check(Steps("PJ8203") == "1,2", "installedYear = resolution-1 loses one protected step (off-by-one)");
+        ecology.Browsing.ClearProtection();
+        Debug.Log("SHELTER_TIMING_CONTRACT_PASS");
+    }
+
+    private static string ProtectionJson(BrowsingConditions c)
+    {
+        var copy = new ProtectionSnapshot();
+        copy.shelters.AddRange(c.Shelters);
+        copy.areas.AddRange(c.ProtectedAreas);
+        return JsonUtility.ToJson(copy);
+    }
+
+    [Serializable]
+    private sealed class ProtectionSnapshot
+    {
+        public List<BrowseShelter> shelters = new List<BrowseShelter>();
+        public List<BrowseProtectedArea> areas = new List<BrowseProtectedArea>();
+    }
+
+    // Restore contract: ClearProtection(), then add saved shelters, then saved
+    // protected areas, on every restore. Equals the uninterrupted continuation.
+    private IEnumerator VerifyProtectionRestoreContract(TreeSpeciesDefinition oak, TreeSpeciesDefinition beech)
+    {
+        string uninterrupted = null, restored = null, dropped = null;
+        int duplicateVisualCount = -1;
+        for (int pass = 0; pass < 3; pass++)
+        {
+            Check(saves.LoadData(original, false), "restore world");
+            yield return null; yield return null;
+            SetupProductionBrowsing(oak, beech, 0.7f);
+            Vector2 c = ecology.Cells.OrderByDescending(x => x.Light).ThenBy(x => x.Center.x).First().Center;
+            ecology.Browsing.ProtectedAreas.Add(new BrowseProtectedArea { areaId = "R1", installedYear = ecology.EcologicalYear + 1,
+                polygon = new List<Vector2> { c + new Vector2(-4, -4), c + new Vector2(4, -4), c + new Vector2(4, 0), c + new Vector2(-4, 0) } });
+            for (int y = 0; y < 5; y++) { ecology.AdvanceOneYear(); Invoke(manager, "AdvancePlantedJuveniles"); }
+            ForestSaveData mid = saves.CaptureData();
+            string protection = ProtectionJson(ecology.Browsing);
+            if (pass > 0)
+            {
+                Check(saves.LoadData(mid, false), "load mid");
+                yield return null; yield return null;
+                ecology.Browsing.ClearProtection();
+                if (pass == 1)
+                {
+                    ProtectionSnapshot saved = JsonUtility.FromJson<ProtectionSnapshot>(protection);
+                    ecology.Browsing.Shelters.AddRange(saved.shelters);
+                    ecology.Browsing.ProtectedAreas.AddRange(saved.areas);
+                    // Without the Clear, a restore would duplicate records: biology is
+                    // unchanged (first match wins) but presentation double-counts.
+                    ProtectionSnapshot again = JsonUtility.FromJson<ProtectionSnapshot>(protection);
+                    ecology.Browsing.Shelters.AddRange(again.shelters);
+                    ScenarioProtectionVisuals v = FindFirstObjectByType<ScenarioProtectionVisuals>();
+                    if (v != null) { v.RefreshNow(); duplicateVisualCount = v.VisualCount; }
+                    ecology.Browsing.Shelters.RemoveRange(saved.shelters.Count, again.shelters.Count);
+                }
+            }
+            for (int y = 0; y < 6; y++) { ecology.AdvanceOneYear(); Invoke(manager, "AdvancePlantedJuveniles"); }
+            string hash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+            if (pass == 0) uninterrupted = hash; else if (pass == 1) restored = hash; else dropped = hash;
+            yield return null;
+        }
+        int shelterCount = JsonUtility.FromJson<ProtectionSnapshot>(ProtectionJson(ecology.Browsing)).shelters.Count;
+        Emit($"PROTECTION_RESTORE uninterrupted={uninterrupted} clearThenRestore={restored} clearWithoutRestore={dropped} duplicateVisuals={duplicateVisualCount}");
+        Check(uninterrupted == restored, "ClearProtection + restore did not equal the uninterrupted continuation");
+        Check(dropped != uninterrupted, "negative control: dropping protection on restore changed nothing (protection untested)");
+        ecology.Browsing.ClearProtection();
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
+        Debug.Log("PROTECTION_RESTORE_CONTRACT_PASS");
+    }
+
+    private IEnumerator VerifyShelterVisualsAndReviewLines(TreeSpeciesDefinition oak)
+    {
+        ScenarioProtectionVisuals visuals = FindFirstObjectByType<ScenarioProtectionVisuals>();
+        Check(visuals != null, "shelter visuals did not self-bootstrap");
+        int year = ecology.EcologicalYear, upcoming = year + 1;
+        ecology.Browsing.ClearProtection();
+        BrowseShelter Make(string id, float x, int installed, int life, int failed) => new BrowseShelter
+            { shelterId = id, position = new Vector2(x, 0f), installedYear = installed, effectiveYears = life, failedYear = failed };
+        ecology.Browsing.Shelters.Add(Make("V1", -6, upcoming, 8, -1));        // effective
+        ecology.Browsing.Shelters.Add(Make("V2", -4, upcoming - 3, 8, -1));    // effective
+        ecology.Browsing.Shelters.Add(Make("V3", -2, upcoming - 7, 8, -1));    // effective, last step
+        ecology.Browsing.Shelters.Add(Make("V4", 0, upcoming - 8, 8, -1));     // expired
+        ecology.Browsing.Shelters.Add(Make("V5", 2, upcoming - 2, 8, upcoming)); // failed
+        ecology.Browsing.Shelters.Add(Make("V6", 4, upcoming + 2, 8, -1));    // not yet installed
+        visuals.RefreshNow();
+        int active = visuals.transform.Cast<Transform>().Count(t => t.gameObject.activeSelf);
+        Emit($"SHELTER_VISUALS effective={visuals.EffectiveVisualCount} drawn={visuals.VisualCount} activeChildren={active}");
+        Check(visuals.EffectiveVisualCount == 3, "effective shelter visuals != effective shelters");
+        Check(visuals.VisualCount == 5 && active == 5, "expired/failed shown, future hidden");
+        yield return null;
+        ecology.Browsing.ClearProtection();
+        visuals.RefreshNow();
+        Check(visuals.VisualCount == 0 && visuals.transform.Cast<Transform>().Count(t => t.gameObject.activeSelf) == 0,
+            "visuals remain after ClearProtection");
+        yield return null;
+        Debug.Log("SHELTER_VISUALS_VERIFY_PASS");
+
+        // Annual review lines over the current production world.
+        ecology.Browsing.BackgroundPressure = scenarioPressure;
+        ScenarioEcologicalSnapshot before = new ScenarioEcologicalSnapshot { year = year, meanCanopy = 0.9f, meanLight = 0.05f, occupiedRegenerationCells = 2 };
+        ScenarioEcologicalSnapshot after = new ScenarioEcologicalSnapshot { year = year + 1, meanCanopy = 0.8f, meanLight = 0.12f, occupiedRegenerationCells = 4 };
+        after.species.Add(new ScenarioSpeciesOutcome { speciesId = "sessile-oak", regenerationCells = 2, plantedJuveniles = 3 });
+        PlantedJuvenile first = manager.PlantedJuveniles.FirstOrDefault(j => j.alive && string.IsNullOrEmpty(j.promotedTreeId));
+        if (first != null)
+            ecology.Browsing.Shelters.Add(Make("RL", first.position.x, upcoming - 7, 8, -1));
+        if (first != null) ecology.Browsing.Shelters[0].position = new Vector2(first.position.x, first.position.z);
+        List<string> lines = ScenarioEcologyReviewLines.Lines(before, after, ecology, manager.PlantedJuveniles);
+        foreach (string line in lines) Debug.Log("ECOLOGY_REVIEW_LINE " + line);
+        Check(lines.Count >= 3 && lines.Count <= 6, "review line count");
+        Check(lines[0].StartsWith("Canopy 0.90 → 0.80") && lines.Any(l => l.StartsWith("Regenerating cells: 4 (was 2)")), "canopy/regeneration lines");
+        Check(lines.Any(l => l.StartsWith("Browsing pressure low")), "browse band line");
+        if (first != null)
+            Check(lines.Any(l => l.Contains("1 sheltered") && l.Contains("expire within")), "protection/expiry line");
+        ecology.Browsing.ClearProtection();
+        Debug.Log("ECOLOGY_REVIEW_LINES_VERIFY_PASS");
     }
 
     // ---------- 5. Production annual step: determinism and save/load continuity ----------

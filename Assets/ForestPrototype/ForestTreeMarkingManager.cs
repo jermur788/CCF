@@ -23,6 +23,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private ForestTree aimedTree;
     private ForestEcologyController ecologyCache;
+    private ScenarioOneManager diagnosisScenario;
+    private ForestTreeSpawner diagnosisSpawner;
     private ForestPlayer inspectionPlayer;
     private bool aimingAtGround;
     private Vector3 aimedGroundPoint;
@@ -643,6 +645,17 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 }
                 outcomeStyle.fontSize = Mathf.RoundToInt(17f * hudScale);
                 GUI.Label(new Rect(18f, Screen.height - 104f * hudScale, Screen.width - 36f, 24f * hudScale), report, outcomeStyle);
+                // Regeneration "why" line: the nearest exact planted juvenile, or the
+                // cell's leading cohort (read-only; Docs/Scenario1EcologyCompletion.md).
+                if (diagnosisScenario == null)
+                    diagnosisScenario = FindFirstObjectByType<ScenarioOneManager>();
+                if (diagnosisSpawner == null)
+                    diagnosisSpawner = FindFirstObjectByType<ForestTreeSpawner>();
+                RegenerationDiagnosis diagnosis = RegenerationDiagnostics.Diagnose(ecologyCache, aimedGroundPoint,
+                    diagnosisScenario != null ? diagnosisScenario.PlantedJuveniles : null, diagnosisSpawner);
+                if (diagnosis.HasJuvenile)
+                    GUI.Label(new Rect(18f, Screen.height - 134f * hudScale, Screen.width - 36f, 24f * hudScale),
+                        diagnosis.Summary(), outcomeStyle);
             }
         }
 

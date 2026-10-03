@@ -129,21 +129,23 @@ public sealed class ForestEcologyController : MonoBehaviour
     public BrowsingConditions Browsing => browsing;
 
     // Browse exposure of a natural/legacy cohort in this cell at its current height.
-    public BrowseAssessment AssessCohortBrowse(int cellIndex, TreeSpeciesDefinition targetSpecies, float height)
+    // year < 0 means the current ecological year (the annual step uses this);
+    // diagnostics pass EcologicalYear + 1 to describe the upcoming step.
+    public BrowseAssessment AssessCohortBrowse(int cellIndex, TreeSpeciesDefinition targetSpecies, float height, int year = -1)
     {
         if (cells == null || cellIndex < 0 || cellIndex >= cells.Length)
             return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, 0f, 1f, BrowseProtectionState.None);
         float access = browsing.BackgroundPressure > 0f
-            ? browsing.CohortAccess(cells[cellIndex].Center, cellSizeMeters, ecologicalYear) : 1f;
+            ? browsing.CohortAccess(cells[cellIndex].Center, cellSizeMeters, year < 0 ? ecologicalYear : year) : 1f;
         BrowseProtectionState state = access <= 0f ? BrowseProtectionState.InsideIntactFence : BrowseProtectionState.None;
         return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, browsing.BackgroundPressure, access, state);
     }
 
     // Browse exposure of one exact-position juvenile at its current height.
-    public BrowseAssessment AssessIndividualBrowse(Vector3 worldPosition, TreeSpeciesDefinition targetSpecies, float height)
+    public BrowseAssessment AssessIndividualBrowse(Vector3 worldPosition, TreeSpeciesDefinition targetSpecies, float height, int year = -1)
     {
         var position = new Vector2(worldPosition.x, worldPosition.z);
-        BrowseProtectionState state = browsing.ProtectionAt(position, ecologicalYear, out float access);
+        BrowseProtectionState state = browsing.ProtectionAt(position, year < 0 ? ecologicalYear : year, out float access);
         return JuvenileEcologyRules.AssessBrowse(targetSpecies, height, browsing.BackgroundPressure, access, state);
     }
 
