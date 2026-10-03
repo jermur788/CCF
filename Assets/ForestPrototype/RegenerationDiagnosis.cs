@@ -99,6 +99,42 @@ public static class RegenerationDiagnostics
     // Exact planted juveniles closer than this to the aimed point are diagnosed individually.
     public const float PlantedMatchRadiusM = 0.75f;
 
+    // Inspection-card origin from the existing id provenance (ids are diagnostic
+    // provenance only; ecology never reads them): PL-<juvenile> exact planted,
+    // PL<year>-.. legacy planted cohort, R<year>-.. natural recruit, else original.
+    public static string TreeOriginLabel(string treeId)
+    {
+        if (string.IsNullOrEmpty(treeId))
+            return "unknown";
+        if (treeId.StartsWith("PL-", StringComparison.Ordinal))
+            return "planted juvenile " + treeId.Substring(3) + ", promoted";
+        if (treeId.StartsWith("PL", StringComparison.Ordinal))
+            return "planted cohort, promoted in year " + YearOf(treeId, 2);
+        if (treeId.StartsWith("R", StringComparison.Ordinal))
+            return "natural regeneration, recruited in year " + YearOf(treeId, 1);
+        return "original plantation";
+    }
+
+    // Shelter status at a stem for the upcoming step, or "" when none applies.
+    public static string ShelterLabel(ForestEcologyController ecology, Vector3 worldPosition)
+    {
+        if (ecology == null || ecology.Browsing.Shelters.Count == 0)
+            return "";
+        int upcoming = ecology.EcologicalYear + 1;
+        BrowseProtectionState state = ecology.Browsing.ProtectionAt(new Vector2(worldPosition.x, worldPosition.z), upcoming, out _);
+        return state == BrowseProtectionState.EffectiveShelter
+                ? $"deer shelter, {ShelterStepsRemaining(ecology.Browsing, worldPosition, upcoming)} yr of protection left"
+            : state == BrowseProtectionState.ExpiredShelter ? "deer shelter expired (can be removed)"
+            : state == BrowseProtectionState.FailedShelter ? "deer shelter failed"
+            : "";
+    }
+
+    private static string YearOf(string id, int start)
+    {
+        int end = id.IndexOf('-', start);
+        return end > start ? id.Substring(start, end - start) : "?";
+    }
+
     // [C] Readout bands only; ecology always uses the scalar light value.
     public static string LightBand(float light)
         => light < 0.10f ? "deep shade" : light < 0.20f ? "shade" : light < 0.35f ? "partial shade"

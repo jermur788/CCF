@@ -670,6 +670,12 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         manager.RestoreSaveData(PlantedState(Juvenile("PJ8101", oak, exposed, bright, 0.6f, MatrixBaseYear)));
         Check(RegenerationDiagnostics.Diagnose(ecology, exposed, manager.PlantedJuveniles, spawner).LastYearBrowsed == "n/a",
             "last-year browsing survived a load (it is not saved)");
+        Check(RegenerationDiagnostics.TreeOriginLabel("P0000") == "original plantation"
+              && RegenerationDiagnostics.TreeOriginLabel("PL-PJ0001") == "planted juvenile PJ0001, promoted"
+              && RegenerationDiagnostics.TreeOriginLabel("R12-5") == "natural regeneration, recruited in year 12"
+              && RegenerationDiagnostics.TreeOriginLabel("PL3-4-beech") == "planted cohort, promoted in year 3", "inspection origin labels");
+        Check(RegenerationDiagnostics.ShelterLabel(ecology, sheltered) == $"deer shelter, {RegenerationDiagnostics.ShelterStepsRemaining(ecology.Browsing, sheltered, ecology.EcologicalYear + 1)} yr of protection left"
+              && RegenerationDiagnostics.ShelterLabel(ecology, exposed) == "", "inspection shelter label");
         Emit("BROWSE_DIAGNOSIS " + string.Join(" | ", new[] { dDark, dExposed, dSheltered, dTall, dReady, dEmpty }.Select(d => d.Summary())));
         DestroyHarnessTrees();
         Debug.Log("REGENERATION_DIAGNOSIS_VERIFY_PASS");

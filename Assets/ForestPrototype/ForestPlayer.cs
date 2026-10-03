@@ -1111,6 +1111,13 @@ public sealed class ForestPlayer : MonoBehaviour
             : "Unknown species";
         bool markedForHarvest = inspectedTree != null && inspectedTree.IsMarkedForFell;
         GUILayout.Label($"• Species: {speciesName}", cardBodyStyle);
+        if (inspectedTree != null)
+        {
+            GUILayout.Label($"• Origin: {RegenerationDiagnostics.TreeOriginLabel(inspectedTree.TreeId)}", cardBodyStyle);
+            string shelter = RegenerationDiagnostics.ShelterLabel(inspectedTreeEcology, inspectedTree.transform.position);
+            if (!string.IsNullOrEmpty(shelter))
+                GUILayout.Label($"• Protection: {shelter}", cardBodyStyle);
+        }
         GUILayout.Label($"• Status: {(inspectedTree.IsStump ? "Harvested stump" : "Living tree")}{(markedForHarvest ? " — MARKED for felling" : inspectedTree.IsCropTree ? " — BLUE Crop Tree" : "")}", cardBodyStyle);
         GUILayout.Label($"• Age: {inspectedTree.AgeYears} years", cardBodyStyle);
         if (!inspectedTree.IsStump)
