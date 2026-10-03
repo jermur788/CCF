@@ -100,7 +100,8 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
         order.fellingOutcome = FellingMaterialOutcome.RetainAsFallenDeadwood;
         order.expectedRevenueCents = 0L;
         Check(manager.ApprovePendingWork(), "deadwood-retention order approval failed");
-        long cost = order.estimatedCostCents;
+        long cost = manager.GetHarvestQuote(true).CostCents;
+        Debug.Log($"ECONOMIC_EXPECTATION deadwood/retention oldHourlyCents={Mathf.CeilToInt(manager.Definition.FellingBaseMinutes + stemVolume * manager.Definition.FellingMinutesPerCubicMetre) * manager.Definition.ContractorHourlyRateCents / 60L} newJobCents={cost}");
         long beforeCash = manager.CashCents;
         Check(manager.AdvanceYear() && ecology.EcologicalYear == 1, "deadwood year did not advance");
 
@@ -168,11 +169,11 @@ public sealed class ScenarioOneDeadwoodVerificationRunner : MonoBehaviour
             $"sell-and-extract order wrong: outcome={sellOrder.fellingOutcome} revenue={sellOrder.expectedRevenueCents} "
             + $"volume={sellOrder.expectedVolumeM3} species={sellOrder.speciesId} secondVolume={secondVolume}");
         Check(manager.ApprovePendingWork(), "sell order approval failed");
-        long sellCost = sellOrder.estimatedCostCents;
+        long sellCost = manager.GetHarvestQuote(true).CostCents;
+        long expectedRevenue = manager.GetHarvestQuote(true).RevenueCents;
+        Debug.Log($"ECONOMIC_EXPECTATION deadwood/sale oldWholeRevenueCents={(long)Math.Round(secondVolume * manager.Definition.TimberValueCentsPerCubicMetre("sitka-spruce"), MidpointRounding.AwayFromZero)} newProductRevenueCents={expectedRevenue} newJobCents={sellCost}");
         long beforeSell = manager.CashCents;
         Check(manager.AdvanceYear(), "sell year did not advance");
-        long expectedRevenue = (long)Math.Round(secondVolume * manager.Definition.TimberValueCentsPerCubicMetre("sitka-spruce"),
-            MidpointRounding.AwayFromZero);
         Check(manager.DeadwoodRecords.Count == 1, "extraction created phantom deadwood");
         Check(manager.CashCents == beforeSell - sellCost + expectedRevenue,
             "extraction settlement is wrong");

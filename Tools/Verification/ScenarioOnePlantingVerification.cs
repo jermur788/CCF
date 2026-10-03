@@ -312,7 +312,8 @@ public sealed class ScenarioOnePlantingVerificationRunner : MonoBehaviour
         marking.Mark(target, TreeMarkType.Fell, false);
         Require(manager.AddMarkedTreesToWorkPlan() == 1 && manager.ApprovePendingWork(),
             "felling history setup failed");
-        long fellingCost = manager.WorkOrders[0].estimatedCostCents;
+        long fellingCost = manager.GetHarvestQuote(true).CostCents;
+        Debug.Log($"ECONOMIC_EXPECTATION planting/felling oldHourlyCents={Mathf.CeilToInt(manager.Definition.FellingBaseMinutes + targetVolume * manager.Definition.FellingMinutesPerCubicMetre) * manager.Definition.ContractorHourlyRateCents / 60L} newJobCents={fellingCost} newProductRevenueCents={manager.GetHarvestQuote(true).RevenueCents}");
         long beforeFelling = manager.CashCents;
         Require(manager.AdvanceYear(), "felling history year did not advance");
         ScenarioManagementEvent felling = manager.ManagementEvents.Single(e =>
