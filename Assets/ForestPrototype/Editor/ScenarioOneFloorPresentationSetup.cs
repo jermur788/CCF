@@ -45,4 +45,27 @@ public static class ScenarioOneFloorPresentationSetup
         AssetDatabase.SaveAssets();
         Debug.Log("SCENARIO1_FLOOR_PRESENTATION_PASS moss=Ground_Moss_ShootMat_03 groundTexture=Forest_RootPlate_Soil_BaseColor tiling=16");
     }
+    [MenuItem("Tools/Forest Prototype/Scenario 1 Track Presentation")]
+    public static void TextureTrack()
+    {
+        var path = AssetDatabase.LoadAssetAtPath<Material>("Assets/ForestPrototype/Materials/Forest Path.mat");
+        var soil = AssetDatabase.LoadAssetAtPath<Texture2D>(SoilTexture);
+        if (path == null || soil == null)
+            throw new System.InvalidOperationException("Forest Path material or soil texture missing");
+        // Existing authored soil detail, with a lighter tint to keep access distinct
+        // from the dark needle-litter floor. No route geometry or ecology changes.
+        var tint = new Color(1.6f, 1.4f, 1.05f);
+        foreach (string property in new[] { "_BaseMap", "_MainTex" })
+        {
+            path.SetTexture(property, soil);
+            path.SetTextureScale(property, new Vector2(3f, 3f));
+        }
+        path.SetColor("_BaseColor", tint);
+        path.SetColor("_Color", tint);
+        path.SetFloat("_Smoothness", 0.05f);
+        EditorUtility.SetDirty(path);
+        AssetDatabase.SaveAssets();
+        Debug.Log("SCENARIO1_TRACK_PRESENTATION_PASS existingSoilTexture=true");
+    }
+
 }
