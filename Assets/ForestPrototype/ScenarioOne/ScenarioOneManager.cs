@@ -1321,8 +1321,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         order.status = ScenarioWorkStatus.Completed;
         order.resolvedYear = ecology.EcologicalYear + 1;
-        SpawnFellingResidueVisual(order);
         order.expectedVolumeM3 = volume;
+        SpawnFellingResidueVisual(order);
         report.completedTasks++;
         if (retainDeadwood)
         {
@@ -1454,22 +1454,72 @@ public sealed class ScenarioOneManager : MonoBehaviour
             hash *= 16777619u;
         }
         float angle = (hash & 0xFFFFu) / 65535f * 360f;
-        float distance = 0.9f + ((hash >> 16) & 0xFFu) / 255f * 1.1f;
+        string visualName = "Felling Residue " + order.workOrderId;
+        Transform existing = transform.Find(visualName);
+        if (existing != null && existing.gameObject.activeSelf) return;
         var site = Instantiate(prefab, transform);
-        site.name = "Felling Residue " + order.workOrderId;
-        site.transform.position = order.worldPosition
-            + new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad), 0f, Mathf.Sin(angle * Mathf.Deg2Rad)) * distance;
-        site.transform.rotation = Quaternion.Euler(0f, angle, 0f);
-        site.transform.localScale = Vector3.one * (0.85f + ((hash >> 24) & 0x3Fu) / 63f * 0.4f);
+        site.name = visualName;
         foreach (Collider collider in site.GetComponentsInChildren<Collider>())
             Destroy(collider);
+
+        // [D] A compact visual patch, not a residue mass or decay model. The
+        // authored brash piles are a whole crown's boughs, about 6.7 x 5.1 m
+        // and 1.4 m high, so they are sized here from their own bounds to a
+        // 1.9-2.4 m patch: still readable as recent work, but no longer
+        // reaching across neighbouring planting positions. The resolved stem
+        // volume only nudges the size, so live felling and save/load agree.
+        Bounds authored = FellingResidueLocalBounds(site.transform);
+        float footprintM = Mathf.Clamp(1.8f + 0.6f * Mathf.Pow(Mathf.Max(0f, order.expectedVolumeM3), 1f / 3f),
+            1.9f, 2.4f) * (0.92f + ((hash >> 24) & 0xFFu) / 255f * 0.16f);
+        float scale = footprintM / Mathf.Max(0.01f, Mathf.Max(authored.size.x, authored.size.z));
+        // Flattening pushes the overlapping boughs toward the ground plane so
+        // the patch reads as a low mat rather than a stack of separate pieces.
+        site.transform.localScale = new Vector3(scale, scale * 0.8f, scale);
+        site.transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+        // The patch lies beside the stump with its near edge at the stump,
+        // and its lowest point is set slightly into the ground so no bough hovers.
+        float distance = footprintM * 0.4f + 0.15f;
+        float direction = (angle + 40f + ((hash >> 16) & 0xFFu) / 255f * 100f) * Mathf.Deg2Rad;
+        Vector3 centre = order.worldPosition + new Vector3(Mathf.Cos(direction), 0f, Mathf.Sin(direction)) * distance;
+        Vector3 pivotOffset = site.transform.TransformVector(new Vector3(authored.center.x, authored.min.y, authored.center.z));
+        site.transform.position = centre - pivotOffset - Vector3.up * FellingResidueGroundSinkM;
+    }
+
+    private const float FellingResidueGroundSinkM = 0.01f;
+
+    // Renderer bounds in the residue root's own space, so sizing does not
+    // depend on the yaw it is later given.
+    private static Bounds FellingResidueLocalBounds(Transform root)
+    {
+        Bounds bounds = new Bounds();
+        bool first = true;
+        foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            Matrix4x4 toRoot = root.worldToLocalMatrix * renderer.transform.localToWorldMatrix;
+            Bounds local = renderer.localBounds;
+            for (int corner = 0; corner < 8; corner++)
+            {
+                Vector3 point = toRoot.MultiplyPoint3x4(local.center + Vector3.Scale(local.extents,
+                    new Vector3((corner & 1) == 0 ? -1 : 1, (corner & 2) == 0 ? -1 : 1, (corner & 4) == 0 ? -1 : 1)));
+                if (first) { bounds = new Bounds(point, Vector3.zero); first = false; }
+                else bounds.Encapsulate(point);
+            }
+        }
+        return bounds;
     }
 
     private void ClearFellingResidueVisuals()
     {
+        // Destroy is deferred to the end of the frame; hide and rename first so
+        // a same-frame refresh cannot show the old and new patch together.
         foreach (Transform child in transform)
             if (child.name.StartsWith("Felling Residue ", StringComparison.Ordinal))
+            {
+                child.gameObject.SetActive(false);
+                child.name = "Retired Felling Residue";
                 Destroy(child.gameObject);
+            }
     }
 
     private void ResolvePlanting(ScenarioOneWorkOrder order, ScenarioAnnualReport report)

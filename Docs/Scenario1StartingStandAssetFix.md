@@ -24,7 +24,7 @@ Presentation-only fix on `integration/scenario-one-complete` (base `e06ef1f`), f
 
 Deliberately **not** ported, because they are outside this presentation packet:
 - **Player branch-contact movement** (`ForestPlayer` → `PlantationBranchMovement.Resolve`: 35% slowdown and hard blocking in dense young stock [D]). This is a gameplay change. `PlantationBranchMovement.cs` is included only because `PlantationTreeVisual` registers contacts with it; with no player hook it does not affect movement.
-- **Compact felling-residue piles** (`ScenarioOneManager`, OpenCode-owned) and the matching interaction-harness check.
+- **Compact felling-residue piles** (`ScenarioOneManager`, OpenCode-owned) and the matching interaction-harness check. These were later ported separately; see `Scenario1CompactBrashFix.md`.
 - `PlantationIntegrationVerification` (it tests the movement hook), the `_Recovery` folder and unrelated documents.
 
 **Moss.** Adopted `Ground_Moss_Shoots_03` (`Ground_Moss_ShootMat_03`, LOD0/1/2):

@@ -117,6 +117,13 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             && order.status == ScenarioWorkStatus.Completed) == 2, "eligible Crop Trees not pruned together");
         Check(manager.RetainedTimberM3 > 0f && manager.AnnualReports.Last().keptForUseVolumeM3 > 0f
             && manager.AnnualReports.Last().timberRevenueCents == 0L, "KeepForUse was sold or not stored");
+        VerifyFellingResidue(manager);
+        string residueBeforeReload = FellingResidueSignature(manager);
+        Invoke(manager, "RefreshFellingResidueVisuals");
+        Invoke(manager, "RefreshFellingResidueVisuals");
+        VerifyFellingResidue(manager);
+        Check(FellingResidueSignature(manager) == residueBeforeReload,
+            "Same-frame refresh changed or duplicated the brash placement");
 
         for (int i = 0; i < 2; i++) Check(manager.AdvanceYear(), "annual advance failed");
         ForestSaveData marked = saves.CaptureData();
@@ -127,6 +134,9 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         yield return null;
         Check(eligible[0].IsCropTree && eligible[1].IsCropTree && marks.GetCropTreeIds().Count == 2,
             "blue mark did not survive years and save/load");
+        VerifyFellingResidue(manager);
+        Check(FellingResidueSignature(manager) == residueBeforeReload,
+            "Save/load changed compact felling residue before its dry appearance threshold");
         ForestSaveData oldV13Marks = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(marked));
         oldV13Marks.markedTreeIds.Add(eligible[0].TreeId);
         oldV13Marks.cropTreeIds.Clear();
@@ -175,6 +185,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
                 && stumpVisual != null && stumpVisual.gameObject.activeSelf,
                 "felled tree still shows its standing visual");
         }
+        VerifyFellingResidue(manager);
 
         // A red Fell mark must reach the annual plan without a hidden import
         // button: approval itself schedules any remaining marks.
@@ -468,6 +479,41 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
                 && (int)tree.Stage == saved.stage && tree.AgeYears == saved.ageYears
                 && tree.Diameter == saved.diameterCm && tree.SimulationHeightMeters == saved.heightMeters,
                 $"{context}: tree {saved.treeId} not restored as saved");
+    }
+
+    // Presentation only: each completed Sitka felling shows one compact,
+    // grounded brash patch beside its stump (see SpawnFellingResidueVisual).
+    private static void VerifyFellingResidue(ScenarioOneManager manager)
+    {
+        ScenarioOneWorkOrder[] completed = manager.WorkOrders.Where(order => order.type == ScenarioWorkType.FellTree
+            && order.status == ScenarioWorkStatus.Completed && order.speciesId == "sitka-spruce").ToArray();
+        Transform[] active = manager.transform.Cast<Transform>().Where(child => child.gameObject.activeSelf
+            && child.name.StartsWith("Felling Residue ", StringComparison.Ordinal)).ToArray();
+        Check(active.Length == completed.Length, "Felling residue missing or duplicated");
+        foreach (ScenarioOneWorkOrder order in completed)
+        {
+            Transform site = active.Single(child => child.name == "Felling Residue " + order.workOrderId);
+            Renderer[] renderers = site.GetComponentsInChildren<Renderer>(true);
+            Check(renderers.Length > 0, "Brash patch has no geometry");
+            Bounds bounds = renderers[0].bounds;
+            foreach (Renderer renderer in renderers.Skip(1)) bounds.Encapsulate(renderer.bounds);
+            // World bounds of a yawed 2.4 m patch can reach about 3.0 m.
+            Check(Mathf.Max(bounds.size.x, bounds.size.z) < 3.1f && bounds.size.y < 0.5f,
+                "Felling residue still overwhelms a planting row: " + bounds);
+            Check(DistanceXZ(bounds.center, order.worldPosition) < 1.6f
+                && Mathf.Abs(bounds.min.y - order.worldPosition.y + 0.01f) < 0.02f,
+                "Brash is scattered too far from its stump or not grounded: " + bounds);
+        }
+        Debug.Log("COMPACT_FELLING_RESIDUE_PASS piles=" + completed.Length + " sameFrameDuplicates=0");
+    }
+
+    private static string FellingResidueSignature(ScenarioOneManager manager)
+    {
+        return string.Join("|", manager.transform.Cast<Transform>()
+            .Where(child => child.gameObject.activeSelf && child.name.StartsWith("Felling Residue ", StringComparison.Ordinal))
+            .OrderBy(child => child.name, StringComparer.Ordinal)
+            .Select(child => child.name + ":" + child.position.ToString("F5") + ":" + child.localScale.ToString("F5")
+                + ":" + child.rotation.ToString("F5")));
     }
 
     private static string LifecycleHash(ForestEcologyController ecology)
