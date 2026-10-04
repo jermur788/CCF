@@ -18,9 +18,9 @@ public static class ForestSceneBuilder
     private const string NaturePackFolder = "Assets/InnerverseInteractive/Ultimate Nature – Starter";
     private const string NatureSprucePrefabPath = NaturePackFolder + "/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab";
     private const string NatureStumpPrefabPath = NaturePackFolder + "/Environment/Props/Logs/Prefabs/UNS_Stump.prefab";
-    private const string SitkaMaturePrefabPath = PrefabsFolder + "/SitkaMature01.prefab";
+    private const string SitkaMaturePrefabPath = PrefabsFolder + "/Forestry/Pruning/Sitka_Mature_Benchmark_01/Sitka_Mature_Benchmark_01_Unpruned.prefab";
     private const string SitkaSeedlingPrefabPath = PrefabsFolder + "/SitkaSeedling01.prefab";
-    private const string SitkaPolePrefabPath = PrefabsFolder + "/SitkaPole01.prefab";
+    private const string SitkaPolePrefabPath = PrefabsFolder + "/Forestry/Pruning/Sitka_Young_02/Sitka_Young_02_Unpruned.prefab";
     private const string OakSaplingPrefabPath = PrefabsFolder + "/SessileOakSapling01.prefab";
     private const string OakYoungPrefabPath = PrefabsFolder + "/SessileOakYoung01.prefab";
     private const string OakMaturePrefabPath = PrefabsFolder + "/SessileOakMature01.prefab";

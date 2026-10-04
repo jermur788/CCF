@@ -11,6 +11,47 @@ public static class ScenarioHabitatPresentationVerification
 {
     private const string Requested = "ScenarioHabitatPresentationVerification.Requested";
 
+    public static void VerifyActiveSitkaVisuals()
+    {
+        RecentAssetVisualCatalog catalog = RecentAssetVisualCatalog.Load();
+        if (catalog == null) throw new InvalidOperationException("Sitka variant catalog missing");
+        int count = 0;
+        int contactTrees = 0;
+        foreach (ForestTree tree in UnityEngine.Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None))
+        {
+            if (tree.IsStump || tree.Species == null || tree.Species.SpeciesId != "sitka-spruce") continue;
+            string source = tree.ActiveVisualSource;
+            bool approved = source.StartsWith("Sitka_Mature_Benchmark_01_", StringComparison.Ordinal)
+                || source.StartsWith("Sitka_Young_02_", StringComparison.Ordinal)
+                || source == "SS_Plantation_Pole_02" || source == "SS_Plantation_FirstThinning_02"
+                || catalog.bentStages.Concat(catalog.cavityStages).Any(prefab => prefab != null && prefab.name == source);
+            if (!approved) throw new InvalidOperationException("Legacy Sitka still active: " + tree.TreeId + " " + source);
+            Transform[] displays = tree.transform.Cast<Transform>()
+                .Where(child => child.name == "PolishedVisual" && child.gameObject.activeInHierarchy).ToArray();
+            if (displays.Length != 1 || tree.transform.Find("Trunk").GetComponent<Renderer>().enabled
+                || tree.transform.Find("Canopy").gameObject.activeInHierarchy)
+                throw new InvalidOperationException("Overlapping/missing Sitka visual: " + tree.TreeId);
+            PlantationTreeVisual plantation = displays[0].GetComponent<PlantationTreeVisual>();
+            if (plantation != null)
+            {
+                if (plantation.Contacts.Count > 0) contactTrees++;
+                for (int branch = 0; branch < plantation.Base.branches.Length; branch++)
+                {
+                    bool expected = tree.PruningLifts == 0 || PlantationTreeVisual.MinimumWorldY(
+                        plantation.Base.branches[branch].bounds, plantation.transform.localToWorldMatrix)
+                        - tree.transform.position.y >= tree.CrownBaseHeightM - 0.0001f;
+                    if (plantation.IsRetained(branch) != expected)
+                        throw new InvalidOperationException("Pruning/load retained the wrong branch system: " + tree.TreeId);
+                }
+            }
+            count++;
+        }
+        if (PlantationBranchMovement.RegisteredTreeCount != contactTrees)
+            throw new InvalidOperationException("Branch-contact registry retained stale or missing tree instances");
+        if (count == 0) throw new InvalidOperationException("No living Sitka to validate");
+        Debug.Log("ACTIVE_SITKA_VISUALS_PASS living=" + count + " legacy=0 activeDisplaysPerTree=1");
+    }
+
     public static void Begin()
     {
         EditorPrefs.SetBool(Requested, true);
@@ -211,6 +252,7 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
     private static Sample ReadSample(int year, ScenarioOneManager scenario,
         ScenarioHabitatVisuals visuals, ScenarioOneSoundscapePlayer audio)
     {
+        ScenarioHabitatPresentationVerification.VerifyActiveSitkaVisuals();
         RecentAssetVisualCatalog catalog = RecentAssetVisualCatalog.Load();
         Check(catalog != null && visuals.RushPatchCount == catalog.rushDressingPositions.Length * 2,
             "Rush accents were not placed in the playable stand");
@@ -244,7 +286,8 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
         ForestTree[] living = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(tree => !tree.IsStump).ToArray();
         int bent = living.Count(tree => catalog.bentStages.Any(prefab => prefab.name == tree.ActiveVisualSource));
         int cavity = living.Count(tree => catalog.cavityStages.Any(prefab => prefab.name == tree.ActiveVisualSource));
-        Check(bent > 0 && cavity > 0, "Recent tree variants are absent from the playable stand");
+        if (living.Count(tree => tree.Species.SpeciesId == "sitka-spruce" && tree.Height >= 20f) > 30)
+            Check(bent > 0 && cavity > 0, "Recent later-tree variants are absent from the playable stand");
         Debug.Log($"HABITAT_YEAR_{year} moss={sample.moss} shadeFern={sample.fern} "
             + $"brackenType={sample.bracken} grass={sample.grass} brambleType={sample.bramble} "
             + $"dwarfShrubType={sample.shrub} herbs={sample.herbs} logFungi={sample.fungi} "
@@ -261,8 +304,9 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
         foreach (GameObject[] family in new[] { catalog.bentStages, catalog.cavityStages })
         {
             Check(family != null && family.Length == 3, "Incomplete main tree family");
-            ForestTree tree = trees.FirstOrDefault(t => !t.IsStump && family.Any(prefab => prefab != null
-                && prefab.name == t.ActiveVisualSource));
+            int expectedFamily = family == catalog.bentStages ? 0 : 1;
+            ForestTree tree = trees.FirstOrDefault(t => !t.IsStump && t.Species.SpeciesId == "sitka-spruce"
+                && CosmeticFamily(t.TreeId) == expectedFamily);
             Check(tree != null, "An imported family exists only in the review scene");
             int age = tree.AgeYears;
             float height = tree.SimulationHeightMeters, dbh = tree.Diameter, crown = tree.CrownRadius;
@@ -272,26 +316,45 @@ public sealed class ScenarioHabitatPresentationGate : MonoBehaviour
                 // Disposable physical-size fixture verifies every delivered
                 // stage can be selected on a normal ForestTree, not a gallery
                 // object. Restore before any annual biology or hash check.
-                tree.SetSimulationState(age, new[] { 11f, 18f, 28f }[stage],
+                tree.SetSimulationState(age, new[] { 11f, 22f, 28f }[stage],
                     new[] { 18f, 26f, 35f }[stage], crown);
-                Check(tree.ActiveVisualSource == family[stage].name, "Main tree stage selection failed");
+                Check(stage == 0 ? tree.ActiveVisualSource == "SS_Plantation_Pole_02"
+                    : tree.ActiveVisualSource == family[stage].name, "Main tree stage selection failed");
+                ScenarioHabitatPresentationVerification.VerifyActiveSitkaVisuals();
             }
             tree.SetSimulationState(age, height, dbh, crown);
             tree.SetMark(TreeMarkType.CropTree);
             Check(!family.Any(prefab => prefab.name == tree.ActiveVisualSource),
                 "Crop Tree retained a visual with no pruning coverage");
+            Check(height < 20f ? tree.ActiveVisualSource == initialSource
+                : tree.ActiveVisualSource.StartsWith("Sitka_Mature_Benchmark_01_", StringComparison.Ordinal),
+                "Crop Tree switched back to a retired mature Sitka family");
+            ScenarioHabitatPresentationVerification.VerifyActiveSitkaVisuals();
             tree.SetMark(TreeMarkType.None);
             Check(tree.ActiveVisualSource == initialSource && tree.Height == height && tree.Diameter == dbh,
                 "Cosmetic designation changed tree biology or failed to restore its look");
         }
-        Debug.Log("MAIN_TREE_VARIANTS_PASS families=Bent,Cavity stages=Young,Mature,Older cropTreePruningFamily=True");
+        Debug.Log("MAIN_TREE_VARIANTS_PASS youngStock=Plantation02 laterFamilies=Bent,Cavity cropDesignationDoesNotPrune=True");
+    }
+
+    private static int CosmeticFamily(string id)
+    {
+        uint hash = 2166136261u;
+        foreach (char c in id) hash = (hash ^ c) * 16777619u;
+        return (int)(hash % 10u);
     }
 
     private static string MainStandVisualSignature()
     {
         return string.Join("|", FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
             .Where(tree => !tree.IsStump).OrderBy(tree => tree.TreeId, StringComparer.Ordinal)
-            .Select(tree => tree.TreeId + ":" + tree.ActiveVisualSource));
+            .Select(tree =>
+            {
+                var plantation = tree.transform.Find("PolishedVisual").GetComponent<PlantationTreeVisual>();
+                string systems = plantation == null ? "" : string.Join(",", plantation.Base.branches
+                    .Where((branch, i) => plantation.IsRetained(i)).Select(branch => branch.id));
+                return tree.TreeId + ":" + tree.ActiveVisualSource + ":" + systems;
+            }));
     }
 }
 #endif

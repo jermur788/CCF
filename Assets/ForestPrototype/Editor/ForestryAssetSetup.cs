@@ -134,8 +134,7 @@ public static class ForestryAssetSetup
     {
         if (spawner == null)
             return;
-        SetBaseArray(spawner.FindProperty("defaultMaturePruningBases"), Group.SitkaMature);
-        SetBaseArray(spawner.FindProperty("defaultPolePruningBases"), Group.SitkaPole);
+        WireSitkaVisuals(spawner);
         SerializedProperty sets = spawner.FindProperty("speciesVisualSets");
         for (int i = 0; i < sets.arraySize; i++)
         {
@@ -158,6 +157,41 @@ public static class ForestryAssetSetup
         scenario.FindProperty("fellingResidueDryPrefab").objectReferenceValue = PropPrefab("SS_Brash_Dry_01");
         scenario.FindProperty("fellingResidueDryAltPrefab").objectReferenceValue = PropPrefab("SS_Brash_Dry_02");
         scenario.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // The imported library includes earlier prototypes for reference. Only the
+    // benchmark mature family and replacement young family belong in the stand.
+    public static void WireSitkaVisuals(SerializedObject spawner)
+    {
+        SetBaseArray(spawner.FindProperty("defaultMaturePruningBases"), Group.SitkaMature);
+        SetBaseArray(spawner.FindProperty("defaultPolePruningBases"), Group.SitkaPole);
+        spawner.FindProperty("visualPrefab").objectReferenceValue =
+            RequiredStatePrefab("Sitka_Mature_Benchmark_01", 0);
+        spawner.FindProperty("visualPrefabAlternative").objectReferenceValue = null;
+        spawner.FindProperty("poleVisualPrefab").objectReferenceValue =
+            RequiredStatePrefab("Sitka_Young_02", 0);
+        spawner.ApplyModifiedPropertiesWithoutUndo();
+        PlantationAssetSetup.WireSpawner(spawner);
+    }
+
+    [MenuItem("Tools/Forest Prototype/Remove Legacy Sitka From Active Stand")]
+    public static void RemoveLegacySitkaFromStand()
+    {
+        foreach (string path in new[] { "Assets/Scenes/ForestTest.unity", "Assets/Scenes/MixedSpeciesTest.unity" })
+        {
+            Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
+            if (spawner == null)
+                throw new InvalidOperationException("No tree spawner in " + path);
+            WireSitkaVisuals(new SerializedObject(spawner));
+            foreach (GameObject root in scene.GetRootGameObjects())
+                foreach (ForestTree tree in root.GetComponentsInChildren<ForestTree>(true))
+                    if (tree.Species != null && tree.Species.SpeciesId == "sitka-spruce")
+                        spawner.ApplySpeciesVisuals(tree, tree.Species);
+            EditorSceneManager.SaveScene(scene);
+        }
+        ForestSceneBuilder.Validate();
+        Debug.Log("ACTIVE_SITKA_WIRING_PASS scenes=2 mature=Benchmark young=Young02 legacyFallbacks=0");
     }
 
     // Diagnostics: prints every embedded FBX material slot name so the
@@ -649,7 +683,13 @@ public static class ForestryAssetSetup
         var names = new List<string>();
         foreach (TreeBase treeBase in TreeBases)
             if (treeBase.group == group)
+            {
+                if (group == Group.SitkaMature && treeBase.name != "Sitka_Mature_Benchmark_01")
+                    continue;
+                if (group == Group.SitkaPole && treeBase.name != "Sitka_Young_02")
+                    continue;
                 names.Add(treeBase.name);
+            }
         property.arraySize = names.Count;
         for (int i = 0; i < names.Count; i++)
         {
@@ -659,11 +699,19 @@ public static class ForestryAssetSetup
             states.arraySize = StateKeys.Length;
             for (int state = 0; state < StateKeys.Length; state++)
             {
-                string prefabPath = $"{Prefabs}/Pruning/{names[i]}/{names[i]}_{StateKeys[state]}.prefab";
                 states.GetArrayElementAtIndex(state).objectReferenceValue =
-                    AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                    RequiredStatePrefab(names[i], state);
             }
         }
+    }
+
+    private static GameObject RequiredStatePrefab(string name, int state)
+    {
+        string path = $"{Prefabs}/Pruning/{name}/{name}_{StateKeys[state]}.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+            throw new InvalidOperationException("Missing active pruning-state prefab " + path);
+        return prefab;
     }
 
     // --- validation ------------------------------------------------------

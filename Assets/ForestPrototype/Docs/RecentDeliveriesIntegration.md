@@ -18,11 +18,13 @@ are stored in `ScenarioOne/Resources/RecentAssetVisualCatalog.asset`.
   0/19/16/11 patches at Years 0/20/50/100. No new competition rule or save data.
 - Refined bent/cavity stages now appear on ordinary Sitkas in **ForestTest
   and MixedSpeciesTest**. A persistent-tree-ID hash selects each cosmetic
-  family (roughly 10% bent, 10% cavity); existing height/DBH selects the
+  family on later trees (roughly 10% bent, 10% cavity); existing height/DBH selects the
   renderer stage [D]. Trees retain their simulation IDs, positions, physical
   state and biological rules. No disease, cavity development, timber penalty
-  or habitat bonus is simulated. Year 0 has 32 bent and 29 cavity looks;
-  the frozen Year-100 preview has 13 and 10 respectively.
+  or habitat bonus is simulated. Plantation 02 now supplies all young-stock
+  looks below 20 m [D], because low-branch defect treatments were not delivered.
+  The Year-0 stand has no defect substitutions; the current frozen Year-100
+  preview has 11 bent and 8 cavity looks on later trees.
 - Both rush models now have authored floor-dressing placements near the
   stand's southern corners: four clumps, with anchors stored in
   `RecentAssetVisualCatalog.rushDressingPositions`. These are scenery accents,
@@ -39,6 +41,33 @@ are stored in `ScenarioOne/Resources/RecentAssetVisualCatalog.asset`.
   fabricated in the engine.
 
 ## Render setup
+
+### Active Sitka library (October 2026)
+
+The main stand now uses only `Sitka_Mature_Benchmark_01` for straight mature
+trees and `Sitka_Young_02` for straight young trees, including their seven
+authored pruning states. The approved refined bent/cavity variants retain
+their existing deterministic distribution. The older Mature 01/02/03,
+OldLarge 01/02 and Pole 01 families are removed from the active spawner pools;
+the standalone `SitkaMature01` / `SitkaPole01` fallbacks are also replaced.
+The imported historical art remains available in the library.
+
+All scene creation and art-rewiring paths use the same restricted pools.
+Existing scenes can be updated using **Tools → Forest Prototype → Remove
+Legacy Sitka From Active Stand** (`ForestryAssetSetup.RemoveLegacySitkaFromStand`).
+Presentation verification rejects retired living-tree visuals at Years
+0/20/50/100 and checks exactly one active display per Sitka, including
+same-frame stage and Crop Tree swaps. The interaction gate also checks after
+real pruning and save/load. Tree identity and ecological state are unchanged.
+
+Player review identified a separate lower-branch architecture problem in the
+benchmark: its unpruned low bole retains only short stubs. The requested art
+revision and density-dependent movement requirements are specified in
+[`Docs/SitkaPlantationLowerBranchesBrief.md`](../../../Docs/SitkaPlantationLowerBranchesBrief.md).
+The ordinary pole/first-thinning revision is now integrated, with scale-aware
+pruning and branch-contact movement. See
+[`Docs/SitkaPlantation02Integration.md`](../../../Docs/SitkaPlantation02Integration.md)
+for ranges, variant coverage and verification.
 
 Materials are explicit URP/Lit: zero metallic and low smoothness. Geometric
 grass/rush silhouettes are opaque and double-sided, using the shared green

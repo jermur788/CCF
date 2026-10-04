@@ -87,6 +87,7 @@ public static class RecentDeliveriesAssetSetup
     public static void WireSpawner(SerializedObject spawner)
     {
         if (AssetDatabase.LoadAssetAtPath<RecentAssetVisualCatalog>(CatalogPath) == null) return;
+        ForestryAssetSetup.WireSitkaVisuals(spawner);
         spawner.FindProperty("useRecentStandVariants").boolValue = true;
         spawner.ApplyModifiedPropertiesWithoutUndo();
     }

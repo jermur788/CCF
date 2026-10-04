@@ -35,6 +35,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     [SerializeField] private ForestTreeVisualBase[] defaultMaturePruningBases;
     [SerializeField] private ForestTreeVisualBase[] defaultPolePruningBases;
     [SerializeField] private bool useRecentStandVariants;
+    [SerializeField] private bool usePlantationVisuals;
     [SerializeField] private ForestSpeciesVisualSet[] speciesVisualSets;
 
     public TreeSpeciesDefinition DefaultSpecies => defaultSpecies;
@@ -138,6 +139,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
             return;
         TreeSpeciesDefinition species = requestedSpecies != null ? requestedSpecies : defaultSpecies;
         tree.SetRecentStandVariants(useRecentStandVariants && species != null && species.SpeciesId == "sitka-spruce");
+        tree.SetPlantationVisuals(usePlantationVisuals && species != null && species.SpeciesId == "sitka-spruce");
         ForestSpeciesVisualSet speciesVisuals = FindVisualSet(species);
         if (speciesVisuals != null)
         {

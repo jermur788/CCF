@@ -54,6 +54,22 @@ placement/variant is hashed on the work-order id and rebuilt from saved orders
 on load and each annual step. Windthrow root plates are **not** placed: no
 uprooting process is simulated.
 
+After player review of excessive ground debris, each completed Sitka felling
+now produces one compact bundle beside the stump. The supplied brash models
+are about 6.7 m wide; the previous 0.85–1.25 scale covered multiple planting
+rows. Placement now normalises the union of all LOD bounds to a horizontal
+diameter of **0.95–1.55 m** [D], with a modest size variation from resolved
+stem volume. This is presentation calibration, not branch-mass or decay
+simulation. The pile centre sits half its diameter plus 0.2 m from the stump,
+and its lowest geometry is grounded. The same rule applies to green and dry
+variants and to existing saves when their residue is rebuilt.
+
+Refreshes deactivate and retire previous visuals before deferred destruction;
+repeated same-frame refreshes keep exactly one active pile per completed
+order. Interaction verification checks footprint/height, grounding, stump
+proximity, uniqueness, stable save/load placement and century-replay dry
+variants, alongside the unchanged canonical/reference results.
+
 ## Not spawned (awaiting a simulated state)
 
 - `Sitka_RingBarked_01` fresh/dead — implies a ring-barking treatment and

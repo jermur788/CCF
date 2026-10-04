@@ -41,7 +41,7 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField, Min(1f)] private float diameterCm = 65f;
     [SerializeField, Min(0.1f)] private float crownRadiusMeters = 1.65f;
     [SerializeField, Min(1)] private int chopsRequired = 4;
-    // Optional polished visuals (Ultimate Nature spruce/stump). When set, the
+    // Optional authored visuals. When set, the
     // placeholder trunk/canopy stay as invisible interaction proxies and the
     // polished meshes visualise the authoritative data instead.
     [SerializeField] private GameObject visualPrefab;
@@ -60,6 +60,8 @@ public sealed class ForestTree : MonoBehaviour
     private ForestEcologyController ecologyForVisualYear;
     private RecentAssetVisualCatalog recentVisualCatalog;
     private bool useRecentStandVariants;
+    private bool usePlantationVisuals;
+    private PlantationVisualCatalog plantationCatalog;
 
     private GameObject polishedVisual;
     private GameObject stumpVisual;
@@ -323,8 +325,18 @@ public sealed class ForestTree : MonoBehaviour
         useRecentStandVariants = enabled;
     }
 
+    public void SetPlantationVisuals(bool enabled) { usePlantationVisuals = enabled; }
+
     private GameObject ModelForHeight(float targetHeight)
     {
+        // [D] Young/first-thinning render range. Later trees keep the mature
+        // benchmark/approved variants; these thresholds do not change biology.
+        if (usePlantationVisuals && targetHeight < 20f)
+        {
+            if (plantationCatalog == null) plantationCatalog = PlantationVisualCatalog.Load();
+            if (plantationCatalog != null)
+                return targetHeight < poleVisualMaxHeightM ? plantationCatalog.polePrefab : plantationCatalog.firstThinningPrefab;
+        }
         // Cosmetic stem variety only. Crop Tree designation and any recorded
         // pruning use the fully authored pruning family; delivered defect
         // references have no pruning states and never alter eligibility.
@@ -397,9 +409,11 @@ public sealed class ForestTree : MonoBehaviour
             // mode, so the cached field must be dropped here or a same-frame
             // re-entry would skip the rebuild against the doomed instance.
             existing.gameObject.SetActive(false);
-            // DestroyImmediate removes the old mesh in the same frame, avoiding
-            // the deferred-Destroy overlap artifact ("stuck together" trunks).
-            DestroyImmediate(existing.gameObject);
+            existing.name = "RetiredVisual";
+            if (Application.isPlaying)
+                Destroy(existing.gameObject);
+            else
+                DestroyImmediate(existing.gameObject);
             existing = null;
             polishedVisual = null;
             polishedNaturalHeight = -1f;
@@ -415,12 +429,18 @@ public sealed class ForestTree : MonoBehaviour
         }
         DestroyDuplicateChildren("PolishedVisual", polishedVisual.transform);
         StripInteractionColliders(polishedVisual.transform);
-        if (polishedNaturalHeight < 0f)
+        PlantationTreeVisual plantation = polishedVisual.GetComponent<PlantationTreeVisual>();
+        if (plantation != null)
+            plantation.Apply(this, targetHeight, ScarsLookHealed());
+        else
         {
-            Bounds bounds = LocalRenderBounds(polishedVisual.transform);
-            polishedNaturalHeight = Mathf.Max(0.1f, bounds.size.y);
+            if (polishedNaturalHeight < 0f)
+            {
+                Bounds bounds = LocalRenderBounds(polishedVisual.transform);
+                polishedNaturalHeight = Mathf.Max(0.1f, bounds.size.y);
+            }
+            polishedVisual.transform.localScale = Vector3.one * (targetHeight / polishedNaturalHeight);
         }
-        polishedVisual.transform.localScale = Vector3.one * (targetHeight / polishedNaturalHeight);
         polishedVisual.transform.localPosition = Vector3.zero;
         polishedVisual.SetActive(!IsStump);
 
@@ -450,6 +470,8 @@ public sealed class ForestTree : MonoBehaviour
             Transform child = transform.GetChild(i);
             if (child != keep && child.name == childName)
             {
+                child.gameObject.SetActive(false);
+                child.name = "RetiredVisual";
                 if (Application.isPlaying)
                     Destroy(child.gameObject);
                 else

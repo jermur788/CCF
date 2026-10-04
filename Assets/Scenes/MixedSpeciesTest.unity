@@ -5809,10 +5809,10 @@ MonoBehaviour:
   barkMaterial: {fileID: 2100000, guid: c2792981a9803b3aaad9fee7a4f58312, type: 2}
   canopyPrefab: {fileID: 6058551966966761826, guid: 258dc4dafc4802c77926beb95e21e595, type: 3}
   forestParent: {fileID: 2095790890}
-  visualPrefab: {fileID: 894938356165337800, guid: f5471b288e575e9d3b6e72bd7bd9f3c5, type: 3}
+  visualPrefab: {fileID: 1718386207494797524, guid: 69a172cf4adc70f1fbcc66e989755893, type: 3}
   visualPrefabAlternative: {fileID: 0}
   stumpPrefab: {fileID: 6618240885240393932, guid: 3c9e69a2182e84cfba39e5e767a51b51, type: 3}
-  poleVisualPrefab: {fileID: 6271525878068544356, guid: cdae1a7e37c9229c6a6e96857019476c, type: 3}
+  poleVisualPrefab: {fileID: 7201548177320488735, guid: c54cc46c845eb788480bcfd416177fc8, type: 3}
   defaultMaturePruningBases:
   - label: Sitka_Mature_Benchmark_01
     pruningStates:
@@ -5823,61 +5823,7 @@ MonoBehaviour:
     - {fileID: 6731904950611110280, guid: cce5e4985694b022eae63fb3782410bb, type: 3}
     - {fileID: 8232906155028102430, guid: 936bb7e15fa3ce7a2b21f19c4d149da1, type: 3}
     - {fileID: 7604398487461745887, guid: fd55327ee5e70c4bbb0c2e691f32b485, type: 3}
-  - label: Sitka_Mature_01
-    pruningStates:
-    - {fileID: 5982058169228806443, guid: b3a74f27d72ef8c089cf2d51b3f67db6, type: 3}
-    - {fileID: 488142724331771969, guid: 74dc629a26c0e47d9838b767efb57212, type: 3}
-    - {fileID: 1494914717598078560, guid: 7fdb631da1203d5b093cce11d9d74907, type: 3}
-    - {fileID: 6657211402611773833, guid: 016864cef1a3314d79b0c61394de246e, type: 3}
-    - {fileID: 5391386575687529747, guid: c66a048f1ac7938dfbe89f9a88abab50, type: 3}
-    - {fileID: 7081074780285240806, guid: 2b7a1dca41f4748629ce326c1895d415, type: 3}
-    - {fileID: 8582944775896917928, guid: fba3cb5cc73c61b8fb197190f40aa6f8, type: 3}
-  - label: Sitka_Mature_02
-    pruningStates:
-    - {fileID: 1867440702648596719, guid: a28a0e6d1d30b133c87cfd10e96a3299, type: 3}
-    - {fileID: 6734425634125786854, guid: 0852aba8478d060978996b90fd359ebf, type: 3}
-    - {fileID: 4847028065313197684, guid: 224fa7f37faf1b02fa94dc89f4e68ab3, type: 3}
-    - {fileID: 2945519946115438525, guid: ef473f68459ad7e9d9fe55f96bdd5abb, type: 3}
-    - {fileID: 2031185519201173431, guid: 8211c6e488d0fd23183209bf158923a4, type: 3}
-    - {fileID: 3879391910459189065, guid: be3204d3f8d532acfbc189f9b31893cf, type: 3}
-    - {fileID: 251313665887977364, guid: 343dfd121d27610009618389cbdfdc2a, type: 3}
-  - label: Sitka_Mature_03
-    pruningStates:
-    - {fileID: 3088965572772454257, guid: 35e2a2515ca15f48e99c9299d7708df2, type: 3}
-    - {fileID: 2126901976597604344, guid: d1553c1e55f1d50e5bbc984308946de4, type: 3}
-    - {fileID: 7695417258532330934, guid: 2192b758419cd38358ed6cfde444fb26, type: 3}
-    - {fileID: 1567199612400808138, guid: 1b72614f6c0fd33779b4fc8332993035, type: 3}
-    - {fileID: 1828701815510651805, guid: 0b818600a02faf4a88a8f4ac989fafe3, type: 3}
-    - {fileID: 2579995935269172247, guid: f193add30d5409370b6b3f17491bf7dd, type: 3}
-    - {fileID: 78779783742829077, guid: 1c021597f81df5833bf6cef9e6711684, type: 3}
-  - label: Sitka_OldLarge_01
-    pruningStates:
-    - {fileID: 3901860823028916146, guid: a1409ce4707b3ca7481ce78e2a468de5, type: 3}
-    - {fileID: 3603943011265239684, guid: 45b71ab195d1bd60082af2229aa33a88, type: 3}
-    - {fileID: 6038868083320187509, guid: fdf74642799d68fa0848cb79f4735abf, type: 3}
-    - {fileID: 3663130505647688114, guid: ee1fb44c9885482239b894e11cfcb922, type: 3}
-    - {fileID: 7201774097584494394, guid: 53d4d78b12ffa5ebaa0c523e7a8b55c3, type: 3}
-    - {fileID: 4893704334188188496, guid: 9c4ec034b431cc36d8bc6510924c8235, type: 3}
-    - {fileID: 6557471056796140005, guid: 6a3e9333df664447ea30ebe762aaa199, type: 3}
-  - label: Sitka_OldLarge_02
-    pruningStates:
-    - {fileID: 2897430036080401667, guid: 70a2998a2af917565a67ab2f668503c7, type: 3}
-    - {fileID: 6581091429746531456, guid: b2bea6ffe2bcde251af4cead040b9650, type: 3}
-    - {fileID: 8784269805984091242, guid: 364329067a812e575b44dfb98bac31f3, type: 3}
-    - {fileID: 8414916774508039840, guid: d886f5babfa6fdd4284a6db1c4fa40ff, type: 3}
-    - {fileID: 5887196132500101524, guid: d7aeda02f34b2ecf7b51fbd0834a4f34, type: 3}
-    - {fileID: 1655942306011863075, guid: 84fcc3af18768220cbb4ef68c9647143, type: 3}
-    - {fileID: 8257051960125553105, guid: 8e678e9b6acda05a2b3f8a3417f2f67e, type: 3}
   defaultPolePruningBases:
-  - label: Sitka_Pole_01
-    pruningStates:
-    - {fileID: 1425042942893831039, guid: 6fc4c8b081234c78bb956c7cca208157, type: 3}
-    - {fileID: 5123484963346555918, guid: c8be7f391f575e7a3b66cbb5f59be3ca, type: 3}
-    - {fileID: 3836703405437164578, guid: d8f3ee8714e25c0f496c215401bfa8e0, type: 3}
-    - {fileID: 3602031536243666361, guid: 564d194ce27c75ccd8a3eba758ba57e1, type: 3}
-    - {fileID: 7857662684528127949, guid: 138c06edac635248bb9e1731f4aab098, type: 3}
-    - {fileID: 605330114135658718, guid: 817667d690250d5ca96df422f341ae78, type: 3}
-    - {fileID: 2635720802169816107, guid: 6a078f0cd40533203ac91d8acee79203, type: 3}
   - label: Sitka_Young_02
     pruningStates:
     - {fileID: 7201548177320488735, guid: c54cc46c845eb788480bcfd416177fc8, type: 3}
@@ -5888,6 +5834,7 @@ MonoBehaviour:
     - {fileID: 1591798664542837966, guid: feac2c0b6759b4687a90f8ce27e56b63, type: 3}
     - {fileID: 7013652939916360817, guid: 82923a1afc4e7dca18981b5e576f75e4, type: 3}
   useRecentStandVariants: 1
+  usePlantationVisuals: 1
   speciesVisualSets:
   - species: {fileID: 11400000, guid: fe893569208ecfe83902e2100d696f16, type: 2}
     seedlingVisualPrefab: {fileID: 270470453440934211, guid: b9f1c527854d7effcb86538d25c9a27b, type: 3}
