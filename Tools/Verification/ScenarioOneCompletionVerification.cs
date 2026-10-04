@@ -109,6 +109,13 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         ForestTreeSpawner spawner = FindFirstObjectByType<ForestTreeSpawner>();
         ScenarioProtectionVisuals visuals = FindFirstObjectByType<ScenarioProtectionVisuals>();
         Check(manager != null && ecology != null && saves != null && marking != null && spawner != null && visuals != null, "scene systems missing");
+        // The playthrough runs the new-game default (RNG model 1). Setting
+        // CCF_RNG_MODEL=0 replays legacy model 0, which reproduces the
+        // pre-model-1 completion anchor 568922E1A6D73CDD.
+        string forcedModel = Environment.GetEnvironmentVariable("CCF_RNG_MODEL");
+        if (!string.IsNullOrEmpty(forcedModel))
+            ecology.RngModelVersion = int.Parse(forcedModel, CultureInfo.InvariantCulture);
+        Debug.Log($"SCENARIO_ONE_COMPLETION_RNG_MODEL {ecology.RngModelVersion} forced={(string.IsNullOrEmpty(forcedModel) ? "no" : "yes")}");
         original = saves.CaptureData();
         scenarioPressure = ecology.Browsing.BackgroundPressure;
         ScenarioOneDefinition definition = manager.Definition;
@@ -380,7 +387,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         string finalHash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         Debug.Log($"SCENARIO_ONE_COMPLETION_OBJECTIVES year={minimumYear} outcome={outcomeAtMinimum} {objectives}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_CASH minimum={minCash} year30={manager.CashCents}");
-        Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash}");
+        Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,
             $"reasonable CCF plan did not complete at Year {minimumYear}: {objectives}");

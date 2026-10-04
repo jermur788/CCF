@@ -323,9 +323,13 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         // expected value is the calibrated lifecycle (C8 + k10a10); it was
         // 7E39B70A14959FAD before that calibration.
         // Neutral anchor: Scenario One's [C] browse pressure is explicitly off here.
+        // The canonical anchor is defined under legacy RNG model 0; new games
+        // default to model 1, so pin it here and restore the session model.
         float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
+        int sessionRngModel = ecology.RngModelVersion;
         ecology.Browsing.BackgroundPressure = 0f;
         ForestStandScenarios.ApplyLifecycleFixture();
+        ecology.RngModelVersion = SimulationRandom.LegacyModel;
         for (int year = 0; year < 80; year++)
         {
             ecology.AdvanceOneYear();
@@ -333,6 +337,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         }
         string canonical = LifecycleHash(ecology);
         ecology.Browsing.BackgroundPressure = scenarioBrowsePressure;
+        ecology.RngModelVersion = sessionRngModel;
         Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 

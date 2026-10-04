@@ -261,6 +261,8 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
     private static string RunLifecycle(ForestEcologyController ecology, out int recruits, out int age30)
     {
         ForestStandScenarios.ApplyLifecycleFixture();
+        // Canonical anchor is defined under legacy RNG model 0 (new games use model 1).
+        ecology.RngModelVersion = SimulationRandom.LegacyModel;
         // Neutral anchor: Scenario One's [C] browse pressure is explicitly off here.
         float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
         ecology.Browsing.BackgroundPressure = 0f;
