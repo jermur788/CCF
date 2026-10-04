@@ -26,7 +26,7 @@ Create one reliable context and safe workflow for ChatGPT, OpenAI/OpenCode, Clau
 12. Record verified local paths, branches, HEADs and commands in Overview.
 13. Commit canonical sources on a clean setup task branch, run the real generator at that full context SHA, then review actual composites/manifest before integrating to main.
 
-The current task packet authorises the repository migration/generator slice only; worktree Unity smoke runs, permanent Drive publication and project attachment refresh remain separately assigned milestone gates.
+The repository migration/generator slice is integrated in `main` (verified 2026-10-04). Worktree Unity smoke runs, permanent Drive publication and project attachment refresh remain separately assigned milestone gates.
 
 ## Existing technical stack (frozen during setup; now integrated)
 
@@ -66,6 +66,52 @@ Status (2026-10-02): resolved by D-039. The stack is in `main` via merge `8ae7a2
 
 No simultaneous writes to one Unity worktree, broad gameplay refactor, frozen-stack changes, Reference Future changes, Git LFS/history rewrite, Drive-as-canonical editing, or bundled browsing/understorey implementation.
 
-## Next queued gameplay milestone
+## Scenario 1 status (2026-10-04)
 
-**Regeneration Bottlenecks v1 — current direction, not active.** Likely browsing/shared response, accepted protection, causal understorey, competition/concealment, spot control/regrowth and deterministic persistence. Exact scope requires its own accepted packet.
+**FUNCTIONALLY COMPLETE — final asset/presentation acceptance pending.**
+
+Integrated on `main` and verified (see the Unity Project Overview, **Integrated Scenario 1**):
+- functional implementation, save schema v15;
+- browsing default 0.2;
+- shelters;
+- contractor/landowner execution;
+- timber yield and economy;
+- completion verification;
+- Plantation02 Sitka presentation, corrected forest-floor presentation and compact brash presentation.
+
+Acceptance record:
+- the automated completion gate passes;
+- the integration regression passed 27/27;
+- post-merge gates on `main` pass;
+- the user's interactive Scenario 1 smoke passed, with the starting-stand and compact-brash corrections accepted in play;
+- no performance problem was reported during that smoke.
+
+Still pending: final asset/presentation acceptance. Astra ForestFloorV1 remains an external candidate delivery and is not automatically adopted.
+
+Next task: **Scenario 1 Final Asset Acceptance Review**.
+
+Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
+- deer fencing as a production feature;
+- production understorey ecology;
+- vegetation-control simulation expansion;
+- storms/windthrow;
+- adult suppression mortality;
+- browse-history/form-damage persistence;
+- fence deterioration;
+- pruning-quality premium;
+- broadleaf market;
+- manual forestry;
+- co-op.
+
+Previously recorded presentation constraint: ring-barked, windthrow-root and defect assets stay unspawned until matching simulation state exists (D-020).
+
+Untriaged notes from presentation handoffs, for the asset review:
+- dry brash reads subtly at player distance;
+- the track/clearing ground material is still a flat colour.
+
+## Regeneration Bottlenecks v1
+
+Browsing & Protection v1 (shared browsing response, accepted shelter protection, deterministic restore) shipped as part of Scenario 1. The other candidate elements remain queued direction, not active, and each needs its own accepted packet:
+- causal understorey;
+- competition/concealment;
+- spot control/regrowth.

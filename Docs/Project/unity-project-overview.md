@@ -46,7 +46,9 @@ The MCP dependency is an unpinned Git URL in `Packages/manifest.json`; the lock 
 
 At main baseline `0fc92ca…`, `Docs/Project/`, root AGENTS/CLAUDE and `Tools/ProjectContext/` did not exist; root `AI_Instructions` existed and was stale. Decision Log/Milestone define the accepted migration target, not an already-integrated baseline fact.
 
-This task implements that migration on `task/project-context-migration` in `/home/jer/CCF-project-context-migration`, based exactly on the baseline SHA. It changes documentation/agent entry points and the stdlib Python generator only. It does not run Unity or claim the full worktree/tool/attachment setup milestone complete. Main integration and independent generated-output review are separate gates.
+The migration was implemented on `task/project-context-migration` (tip `42db4e9`, based on the baseline SHA). It changes documentation/agent entry points and the stdlib Python generator only.
+
+Later state (verified 2026-10-04): `42db4e9` is an ancestor of `main`, so the migrated context, entry points and generator are integrated. The generator has been run from clean context commits on `main` (outputs in ignored `Build/ProjectContext/`). Remaining setup-milestone gates (worker Unity smoke runs, permanent Drive publication, project attachment refresh) are tracked in the Current Milestone.
 
 ## Shared VS Code settings
 
@@ -77,7 +79,7 @@ Most code is in `Assets/ForestPrototype/`:
 
 ## Save and interactions
 
-Baseline `ForestSaveData.CurrentVersion = 13`. Current integrated `main`: `ForestSaveData.CurrentVersion = 14` (adds biological-mortality cause/year); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v13 saves restore; atomic save hardening is in place.
+Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated `main`: `ForestSaveData.CurrentVersion = 15` (Scenario 1 execution/protection/economy fields, below); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v14 saves restore; atomic save hardening is in place.
 
 V13 includes two-type marks, exact juveniles, clearance patches, retained construction timber, management/economy/history, understorey, deadwood, work orders and pruning history.
 
@@ -101,7 +103,7 @@ Felling outcomes: SellAndExtract, RetainAsFallenDeadwood, KeepForUse. Constructi
 12. Opening decay.
 13. Diagnostics.
 
-Browsing and researched three-group causal Understorey v1 are not authoritative systems at this baseline.
+At the Revision 5 baseline, browsing and researched three-group causal Understorey v1 were not authoritative systems. Browsing & Protection v1 is now integrated (see **Integrated Scenario 1**); causal Understorey v1 is still not authoritative.
 
 ## Reference Future v1
 
@@ -120,7 +122,7 @@ Historical reference, intentionally frozen after the v13 overhaul:
 | Year 50 | D5E75D6D21D631AC |
 | Year 100 | 7AD177B3CC2F73C7 |
 
-Contract (D-042, `Docs/ReferenceFutureContract.md`): immutable archive; integrity checked on the original embedded JSON, never by reserialising through current save classes; frozen milestones load/preview under current code; Year-50 historical save continues deterministically under the current ecology (v12 → v14). Exact historical biology replay is not required; continuation divergence is diagnostic only. A new model gets a new reference version, not an edit to v1.
+Contract (D-042, `Docs/ReferenceFutureContract.md`): immutable archive; integrity checked on the original embedded JSON, never by reserialising through current save classes; frozen milestones load/preview under current code; Year-50 historical save continues deterministically under the current ecology and save version (v12 → v14 at the ecology integration, v12 → v15 since Scenario 1). Exact historical biology replay is not required; continuation divergence is diagnostic only. A new model gets a new reference version, not an edit to v1.
 
 Schedule: `Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceScheduleV1.json`. Existing scenario/reference/art documentation is in `Assets/ForestPrototype/Docs/`, including `ScenarioOneReferenceFutureV1.md`; other verification/design documents are in root Docs.
 
@@ -148,6 +150,34 @@ Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each ga
 | CCFIntegrationVerificationTemp, Beech, Oak, Oak player planting, planting | PASS |
 
 The frozen archive and schedule blobs are byte-identical to the pre-integration main. A rendered ForestTest Year-0 smoke used an offscreen batch-mode render with Ultimate Nature present locally. The stand rendered normally, and grass appeared only at the bright clearing/road edge. This was not an interactive play session.
+
+## Integrated Scenario 1
+
+Fast-forwarded into `main` on 2026-10-04 from `integration/scenario-one-complete` at `dc975e4` (pre-merge main `bb314a4`). Detailed records: `Docs/BrowsingProtectionV1.md`, `Docs/Scenario1EcologyCompletion.md`, `Docs/Scenario1EconomyIntegration.md`, `Docs/Stage1WorkEconomyFoundation.md`, `Docs/TimberAssortmentYieldV1.md`, `Docs/SitkaPlantation02Integration.md`, `Docs/Scenario1StartingStandAssetFix.md`, `Docs/Scenario1CompactBrashFix.md`.
+
+- **Browsing & Protection v1:** shared juvenile browsing response for natural cohorts and exact planted juveniles. Scenario One background browse pressure defaults to 0.2 (`ScenarioOneDefinition.backgroundBrowsePressure`; the asset does not override it). Neutral pressure 0 keeps the calibrated lifecycle `BFC55473C1506067`; the Scenario One lifecycle at 0.2 is `3485B6630C9EA448`.
+- **Shelters:** tree shelters are coupled to exact planting and share its executor. A live shelter uses `installedYear` = resolution year and `effectiveYears` = 8. v15 restore clears protection, then restores saved shelters, then saved protected areas. `BrowseProtectionGeometry` builds fence-area records only; there is no fencing gameplay.
+- **Work and economy:** `WorkEconomy` settlement, contractor or landowner-simulated execution per order (harvest is contractor-only), owner minutes, and `TimberYield` assortment allocation with sell / KeepForUse / retained deadwood outcomes. Economy continuation hash `023F4B627B758284`.
+- **Save v15 bounded fields:** order executionMethod/installShelter/harvestJobId; scenario shelters/protectedAreas/ownerMinutesUsedThisYear; report minimum adjustment, owner minutes, retained volume and per-product sold volume/revenue; event executionMethod/ownerMinutes. No browse pressure, browse history or form damage is persisted.
+- **Regeneration diagnosis and review:** aimed-ground diagnosis line, shelter visuals and annual review ecology lines.
+- **Completion verification:** `Tools/Verification/ScenarioOneCompletionVerification.cs`, completion hash `568922E1A6D73CDD`.
+- **Presentation:** Plantation Sitka 02 forms for trees under 20 m (pole/first-thinning), with legacy Sitka families retired from the active stand. Moss uses `Ground_Moss_Shoots_03` cushions, and `Forest Ground.mat` uses the textured soil/needle-litter material. Felling brash is a compact grounded 1.9–2.4 m patch beside the stump [D].
+
+Integration regression (on `integration/scenario-one-complete`, Unity 6000.6.0f1, isolated-config batch processes): 27/27 gates PASS, after one fixture-version fix (`6ab31ce`).
+
+Post-merge verification on `main` at `dc975e4` (2026-10-04):
+
+| Gate | Result |
+|---|---|
+| Import/compile | 0 compiler errors |
+| ScenarioOneCompletionVerification | PASS, `568922E1A6D73CDD` |
+| Canonical lifecycle | `BFC55473C1506067`; Scenario One pressure 0.2 `3485B6630C9EA448` |
+| BrowsingProtectionVerification | PASS (with shelter visuals, review lines, regeneration diagnosis and fence geometry) |
+| Reference Future v1 | Contract PASS; Year 100 `7AD177B3CC2F73C7`; continuation v12 → v15 `9CDF21A541C5968D` |
+| Scenario One interaction | PASS, including compact felling residue |
+| Habitat presentation | PASS; legacy Sitka 0, one active display per tree at Years 0/20/50/100 |
+
+The user's interactive Scenario 1 smoke (2026-10-04) passed, including the starting-stand and compact-brash presentation corrections. No performance problem was reported. Final asset/presentation acceptance has not run. Astra ForestFloorV1 is an external candidate delivery and has not been adopted.
 
 ## Art and storage
 
@@ -182,6 +212,8 @@ The migration generator uses Python 3.10+ standard library, not Unity. Run `pyth
 ## Local worktrees
 
 The final integration/OpenAI/Claude worker layout and their independent Unity smoke gates are not established by this document. Target separate writable integration, OpenAI and Claude worktrees; preserve existing names if renaming would risk work. Check current paths/branches with `git worktree list` and record verified setup results through a separate assigned task.
+
+Observed 2026-10-04 (`git worktree list`): `/home/jer/CCF-main` is the integration/main worktree (now on `main`). `/home/jer/CCF` (`feature/forestry-ecology`) holds uncommitted user ecology/art work that must be preserved. Task worktrees `/home/jer/CCF-claude`, `/home/jer/CCF-openai`, `/home/jer/CCF-opencode-economy`, `/home/jer/CCF-context-sync`, `/home/jer/CCF-project-context-migration` and `/home/jer/CCF-review-ecology` remain on their task branches.
 
 ## Revision 5 provenance
 

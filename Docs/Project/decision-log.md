@@ -26,6 +26,8 @@ The accepted canonical-context sync packet on 2026-10-02 updates D-007, D-009 an
 
 The user explicitly accepted the Reference Future v1 contract on 2026-10-02; it is recorded as D-042 after the combined ecology package was integrated and verified on main.
 
+On 2026-10-04 the user's interactive Scenario 1 smoke passed and the Scenario 1 integration was merged to main and verified. The final-integration packet records this as D-043 (functionally complete; final asset/presentation acceptance pending) and the Scenario 1 deferral list as D-044. The D-023 notes are updated because browsing is now integrated.
+
 ## Decisions
 
 | ID | Date | Topic | Status | Decision or position | Implication / notes |
@@ -52,7 +54,7 @@ The user explicitly accepted the Reference Future v1 contract on 2026-10-02; it 
 | D-020 | 2026 | Presentation authority | Confirmed | Habitat/art/audio derives from authoritative state; do not invent causal states. | Ring-barking/windthrow/defect consequences require matching simulation state. |
 | D-021 | 2026 | UI | Confirmed | Add choices inside interfaces rather than permanent shortcut accumulation. | Prefer hotbar/tool/context patterns. |
 | D-022 | 2026 | Multiplayer | Current direction | Single-player first; cooperation later. | Preserve reasonable boundaries without speculative networking. |
-| D-023 | 2026 | Browsing | Current direction | Recruitment bottleneck through species/stage damage and suppressed height; shared response for cohorts and exact juveniles. | Research exists; not causally integrated. |
+| D-023 | 2026 | Browsing | Current direction | Recruitment bottleneck through species/stage damage and suppressed height; shared response for cohorts and exact juveniles. | Browsing & Protection v1 integrated on main 2026-10-04 (Scenario One background pressure 0.2, shelters). Browse history/form damage and fencing gameplay are not implemented (D-044). |
 | D-024 | 2026 | Understorey | Current direction | Investigate causal bramble, bracken and graminoid cover on the ecology grid, competition and bramble browse concealment. | Exact parameters need acceptance. |
 | D-025 | 2026-10-02 | Multi-agent | Confirmed | Dynamic OpenAI/Anthropic workers/reviewers; no permanent disciplinary ownership. | Assign by capability, tools, context, availability and quality. |
 | D-026 | 2026-10-02 | Overall Manager | Confirmed | Currently ChatGPT Game Dev project; user may reassign. | Maintains direction, boundaries and handoff review. |
@@ -72,6 +74,8 @@ The user explicitly accepted the Reference Future v1 contract on 2026-10-02; it 
 | D-040 | 2026-10-02 | Context generation | Confirmed | One full Git SHA snapshots the complete context/instruction-source set; deterministic committed-source composites/mirrors; live locks excluded. | No dirty content under an old SHA; lock changes do not require reattachment. |
 | D-041 | 2026-10-02 | Scenario One property | Confirmed | Scenario One uses a genuinely bounded property. | Retains the Irish forestry reference scenario. |
 | D-042 | 2026-10-02 | Reference Future v1 contract | Confirmed | Reference Future v1 is a frozen, immutable historical archive. Verification covers archive integrity against original embedded historical data, load/preview of frozen milestones, and deterministic continuation of historical saves using the current ecology. Exact reproduction of historical biology by later ecology versions is not required, and no versioned historical ecology engine is retained. | Integrity must not be tested by reserializing historical saves through current save classes. Continued biology may diverge diagnostically. A reference for a new model would be a new version, not an edit to v1. Detail: `Docs/ReferenceFutureContract.md`. |
+| D-043 | 2026-10-04 | Scenario 1 status | Confirmed | Scenario 1 is **functionally complete**: integrated on main at `dc975e4` with save v15, browsing default 0.2, shelters, contractor/landowner execution, timber yield/economy, completion verification, and the Plantation02 Sitka, forest-floor and compact-brash presentation. Automated completion gate, 27/27 integration regression, post-merge gates and the user's interactive smoke all passed. | Final asset/presentation acceptance is still pending (next: Scenario 1 Final Asset Acceptance Review). Astra ForestFloorV1 is an external candidate delivery, not automatically adopted. Anchors: neutral `BFC55473C1506067`, Scenario One `3485B6630C9EA448`, completion `568922E1A6D73CDD`, Reference Y100 `7AD177B3CC2F73C7`. |
+| D-044 | 2026-10-04 | Scenario 1 deferrals | Deferred | Outside the Scenario 1 minimum unless accepted elsewhere: deer fencing production feature, production understorey ecology, vegetation-control simulation expansion, storms/windthrow, adult suppression mortality, browse-history/form-damage persistence, fence deterioration, pruning-quality premium, broadleaf market, manual forestry, co-op. | Each needs its own accepted packet. The v16 browse-history/form-damage document is a proposal only. |
 
 ## Superseded early directions
 
