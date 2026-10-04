@@ -177,7 +177,7 @@ Post-merge verification on `main` at `dc975e4` (2026-10-04):
 | Scenario One interaction | PASS, including compact felling residue |
 | Habitat presentation | PASS; legacy Sitka 0, one active display per tree at Years 0/20/50/100 |
 
-The user's interactive Scenario 1 smoke (2026-10-04) passed, including the starting-stand and compact-brash presentation corrections. No performance problem was reported. Final asset/presentation acceptance has not run. Astra ForestFloorV1 is an external candidate delivery and has not been adopted.
+The user's interactive Scenario 1 smoke (2026-10-04) passed, including the starting-stand and compact-brash presentation corrections. No performance problem was reported. Final presentation acceptance passed and was fast-forwarded into `main` at `ec938b0`. That merge brought in the track/clearing soil texture (`Forest Path.mat`), HUD readability fixes, the disposable review harness `Tools/Verification/ScenarioOnePresentationReview.cs` (run via `run_final_presentation.py`) and the record `Docs/Scenario1FinalPresentationAcceptance.md`. Post-merge gates are unchanged (14/14 PASS, all anchors). Astra ForestFloorV1 was reviewed and not adopted.
 
 ## Art and storage
 

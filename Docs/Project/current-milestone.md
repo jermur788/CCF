@@ -68,7 +68,7 @@ No simultaneous writes to one Unity worktree, broad gameplay refactor, frozen-st
 
 ## Scenario 1 status (2026-10-04)
 
-**FUNCTIONALLY COMPLETE — final asset/presentation acceptance pending.**
+**FUNCTIONALLY COMPLETE; final presentation acceptance PASS (2026-10-04).** The functional and presentation baseline is integrated. Simulation follow-ups remain open (see below); this is not a permanent closure of Scenario 1 simulation work.
 
 Integrated on `main` and verified (see the Unity Project Overview, **Integrated Scenario 1**):
 - functional implementation, save schema v15;
@@ -86,9 +86,15 @@ Acceptance record:
 - the user's interactive Scenario 1 smoke passed, with the starting-stand and compact-brash corrections accepted in play;
 - no performance problem was reported during that smoke.
 
-Still pending: final asset/presentation acceptance. Astra ForestFloorV1 remains an external candidate delivery and is not automatically adopted.
+Final presentation acceptance (`Docs/Scenario1FinalPresentationAcceptance.md`, merged at `ec938b0`):
+- the ten-state rendered review passed: start, marking, pruning, thinning, dispositions, planting, protection, regeneration, later management, save/Reference;
+- track and work-clearing now use the existing soil texture;
+- inspection/HUD overlap and marking-summary/prompt clipping are fixed;
+- Astra ForestFloorV1 was reviewed (manifest verified) and **not adopted**: no demonstrated ground gap;
+- dry brash was accepted as subtle but understandable. Evidence limitation: the final review camera was occluded, so acceptance relies on an earlier close-range render;
+- performance was acceptable on the observed hardware (editor, GTX 980M: about 20–30 ms median frame). This is not a formal performance certification.
 
-Next task: **Scenario 1 Final Asset Acceptance Review**.
+Outstanding simulation decision: the post-Scenario-1 readiness study (`task/post-scenario1-systems-readiness` @ `7f58618`, **not merged**) found that, under the default RNG model 0, planted-juvenile survival and browse rolls are autocorrelated. Shaded planted stock survives far longer than the shared probability intends. The user approved the policy: new Scenario One games use RNG model 1; saves keep their recorded model; saves without the field and Reference Future v1 stay on model 0. **Active follow-on task:** Scenario 1 RNG model-1 default (`task/scenario-one-rng-model1-default`), for Manager integration review.
 
 Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
 - deer fencing as a production feature;
@@ -105,9 +111,9 @@ Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
 
 Previously recorded presentation constraint: ring-barked, windthrow-root and defect assets stay unspawned until matching simulation state exists (D-020).
 
-Untriaged notes from presentation handoffs, for the asset review:
-- dry brash reads subtly at player distance;
-- the track/clearing ground material is still a flat colour.
+Remaining presentation polish (not blockers):
+- moss cushions on the track edge;
+- deadwood volume is shown in objectives and history rather than as its own annual-review line.
 
 ## Regeneration Bottlenecks v1
 
