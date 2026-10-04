@@ -352,10 +352,23 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 ?? gameObject.AddComponent<ScenarioHabitatVisuals>();
         }
         if (!initialized && definition != null)
+        {
+            // A fresh session is a new game: it uses the corrected, versioned
+            // random domains. Loads replace this with the model recorded in the
+            // save (absent field = legacy model 0), so existing saves and the
+            // frozen Reference Future v1 keep their original behaviour.
+            // InitializeNewScenario stays model-neutral because v1-9 save loads
+            // also call it.
+            if (ecology != null)
+                ecology.RngModelVersion = NewGameRngModel;
             InitializeNewScenario();
+        }
         if (ecology != null)
             ecology.SetManagementAnnualControl(true);
     }
+
+    // RNG model for newly created Scenario One games (see Awake).
+    public const int NewGameRngModel = SimulationRandom.MixedModel;
 
     private void OnDestroy()
     {

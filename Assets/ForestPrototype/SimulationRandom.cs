@@ -6,8 +6,10 @@
 // correlated first draws from System.Random, which biases mast and survival rolls.
 //
 // Model 1 passes every seed through a splitmix64 finaliser so neighbouring
-// seeds, years and ids give independent draws. It is opt-in and stored in the
-// save (ForestSaveData.rngModelVersion); a save without the field is model 0.
+// seeds, years and ids give independent draws. New Scenario One games use it
+// (ScenarioOneManager.NewGameRngModel). The model is stored in the save
+// (ForestSaveData.rngModelVersion) and restored on load; a save without the
+// field, and the frozen Reference Future v1 archive, stay on model 0.
 public static class SimulationRandom
 {
     public const int LegacyModel = 0;
