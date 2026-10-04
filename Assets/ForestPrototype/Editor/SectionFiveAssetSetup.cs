@@ -114,6 +114,7 @@ public static class SectionFiveAssetSetup
         foreach (string texture in Directory.GetFiles(source + "/Textures", "*.png"))
         {
             if (Path.GetFileName(texture) == "Broadleaf_Litter_BaseColorAlpha.png") continue; // superseded atlas
+            if (Path.GetFileName(texture).Contains("_Normal_Raw")) continue;   // bake diagnostics, not game textures
             Copy(texture, target + "/Textures/" + Path.GetFileName(texture));
         }
         foreach (string document in new[] { "README.md", "README.txt", "Manifest.json", "Asset_Info.json",
@@ -253,6 +254,20 @@ public static class SectionFiveAssetSetup
             }
             else throw new InvalidOperationException("Unmapped Moss material: " + name);
         }
+        else if (package == "Ground_Moss_Shoots_03")
+        {
+            // Delivered spec (Manifest.json): opaque double-sided matte shoot
+            // colours (linear RGB), and alpha-clipped 0.40 double-sided atlas
+            // tufts/crowns with normal ~0.55 and MS smoothness from alpha.
+            twoSided = true; smoothness = 0.067f;
+            if (key == "moss_shoot_stem") tint = new Color(0.032f, 0.06f, 0.015f).gamma;
+            else if (key == "moss_shoot_leaf") tint = new Color(0.082f, 0.185f, 0.033f).gamma;
+            else if (key == "moss_shoot_tip") tint = new Color(0.14f, 0.285f, 0.055f).gamma;
+            else if (key == "moss_shoot_dryaccent") tint = new Color(0.145f, 0.115f, 0.04f).gamma;
+            else if (key == "moss_3d_tuft_sprites") { texture = "Moss_Tuft_Atlas_BaseColorAlpha.png"; cutout = true; cutoff = 0.4f; }
+            else if (key == "moss_3d_tuft_crowns") { texture = "Moss_Crown_Atlas_BaseColorAlpha.png"; cutout = true; cutoff = 0.4f; }
+            else throw new InvalidOperationException("Unmapped moss-shoot material: " + name);
+        }
         else if (refinedTree)
         {
             if (key == "ss_benchmark_bark") { texture = "Sitka_Bark_BaseColor_v2.png"; smoothness = 0.15f; }
@@ -323,6 +338,20 @@ public static class SectionFiveAssetSetup
             }
         }
 
+        if (package == "Ground_Moss_Shoots_03" && texture != null)
+        {
+            string normalPath = Art + package + "/Textures/" + texture.Replace("_BaseColorAlpha.png", "_Normal.png");
+            string msPath = Art + package + "/Textures/Moss_Tuft_MetallicSmoothness.png";
+            var nImp = (TextureImporter)AssetImporter.GetAtPath(normalPath);
+            if (nImp.textureType != TextureImporterType.NormalMap) { nImp.textureType = TextureImporterType.NormalMap; nImp.SaveAndReimport(); }
+            material.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+            material.SetFloat("_BumpScale", 0.55f); material.EnableKeyword("_NORMALMAP");
+            var msImp = (TextureImporter)AssetImporter.GetAtPath(msPath);
+            if (msImp.sRGBTexture) { msImp.sRGBTexture = false; msImp.SaveAndReimport(); }
+            material.SetTexture("_MetallicGlossMap", AssetDatabase.LoadAssetAtPath<Texture2D>(msPath));
+            material.SetFloat("_SmoothnessTextureChannel", 0f);
+            material.EnableKeyword("_METALLICSPECGLOSSMAP");
+        }
         if (refinedTree && key == "ss_benchmark_bark")
         {
             string normalPath = Art + package + "/Textures/Sitka_Bark_Normal_v2.png";

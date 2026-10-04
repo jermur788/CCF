@@ -1,0 +1,76 @@
+{
+  "exports": [
+    {
+      "asset": "Ground_Moss_ShootMat_03",
+      "lod": 0,
+      "file": "FBX/Ground_Moss_ShootMat_03_LOD0.fbx",
+      "dimensions_m": [
+        1.2213859558105469,
+        0.9702885746955872,
+        0.02900504693388939
+      ],
+      "triangles": 48640,
+      "meshes": 1,
+      "real_geometry_shoots": 338,
+      "small_crossed_tuft_cards": 2700,
+      "broad_horizontal_support_mesh": false,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.2213859285104434,
+        0.9702885602181246,
+        0.029005072805242782
+      ],
+      "minimum_z": -3.642408911665403e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Ground_Moss_ShootMat_03",
+      "lod": 1,
+      "file": "FBX/Ground_Moss_ShootMat_03_LOD1.fbx",
+      "dimensions_m": [
+        1.223723292350769,
+        0.9725128412246704,
+        0.03132544830441475
+      ],
+      "triangles": 8554,
+      "meshes": 1,
+      "real_geometry_shoots": 56,
+      "small_crossed_tuft_cards": 1806,
+      "broad_horizontal_support_mesh": false,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.2237232697667935,
+        0.9725127957102795,
+        0.03132547456080433
+      ],
+      "minimum_z": -3.646129316599948e-08,
+      "degenerate_faces": 0
+    },
+    {
+      "asset": "Ground_Moss_ShootMat_03",
+      "lod": 2,
+      "file": "FBX/Ground_Moss_ShootMat_03_LOD2.fbx",
+      "dimensions_m": [
+        1.232488751411438,
+        0.9808538854122162,
+        0.034560419619083405
+      ],
+      "triangles": 2760,
+      "meshes": 1,
+      "real_geometry_shoots": 0,
+      "small_crossed_tuft_cards": 920,
+      "broad_horizontal_support_mesh": false,
+      "fbx_reimport": "passed",
+      "measured_dimensions_m": [
+        1.2324887190947962,
+        0.9808538599769672,
+        0.03456047688467463
+      ],
+      "minimum_z": -3.660081267106924e-08,
+      "degenerate_faces": 0
+    }
+  ],
+  "source_transforms": "passed",
+  "packed_assigned_textures": "passed",
+  "unity_tested": false
+}

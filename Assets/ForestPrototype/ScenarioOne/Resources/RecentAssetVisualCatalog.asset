@@ -30,7 +30,7 @@ MonoBehaviour:
   bilberryCover: {fileID: 3613015086429431045, guid: 4ab4beeb5b0496bd9b2166798fc99965, type: 3}
   herbRosette: {fileID: 4103983478154050043, guid: b7577855b4c103f959a785d2c24a7006, type: 3}
   herbFlowering: {fileID: 1160214443934416045, guid: 9604c064de96c27fa811a432fdee94cf, type: 3}
-  groundMoss: {fileID: 3274007837406526565, guid: 1386351ae34cd0bb6bc3b3161de174eb, type: 3}
+  groundMoss: {fileID: 7469298942431593416, guid: 8394088696e2bda95bebeea5eb74472c, type: 3}
   deadwoodMushroom: {fileID: 1513702351051708420, guid: 5f6a396b3e935135087c9b01dde0612e, type: 3}
   deadwoodBracket: {fileID: 8514383251815753088, guid: 923648f6649970482b6cc2422ff64038, type: 3}
   rushDressingPositions:

@@ -125,7 +125,21 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
                     float size = 0.7f + strength * 0.6f;
                     Vector3 position = new Vector3(x, 0f, z);
                     GameObject prefab = PrefabFor((HabitatVisualClass)type, i, plant);
-                    if (prefab != null)
+                    if (prefab != null && type == (int)HabitatVisualClass.MossCarpet && prefab.name.StartsWith("Ground_Moss_ShootMat"))
+                    {
+                        // [D] Presentation: the ~1.2 m shoot/cushion mat is placed as a
+                        // small irregular cluster of cushions at the same habitat site,
+                        // not one wide sheet. Same sites and counts as before.
+                        for (int cushion = 0; cushion < 3; cushion++)
+                        {
+                            Vector3 offset = new Vector3(Jitter(i, type, plant * 3 + cushion, 3),
+                                0f, Jitter(i, type, plant * 3 + cushion, 4)) * 0.9f;
+                            float scale = 0.7f + 0.45f * Mathf.Abs(Jitter(i, type, plant * 3 + cushion, 5));
+                            authoredVertices[type] += Place(prefab, position + offset,
+                                (angle + cushion * 2.1f) * Mathf.Rad2Deg, scale);
+                        }
+                    }
+                    else if (prefab != null)
                     {
                         authoredVertices[type] += Place(prefab, position, angle * Mathf.Rad2Deg, size);
                         if (type == (int)HabitatVisualClass.Grass) GrassPatchCount++;
