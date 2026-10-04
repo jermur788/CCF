@@ -1951,7 +1951,9 @@ public sealed class ScenarioOneManager : MonoBehaviour
         }
         if (!workPlanOpen)
         {
-            DrawMainHud();
+            // The central inspection card owns this space while inspecting.
+            if (player == null || !player.IsInspecting)
+                DrawMainHud();
             return;
         }
         EnsureStyles();

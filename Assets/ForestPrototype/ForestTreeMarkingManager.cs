@@ -613,8 +613,14 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             counterStyle.normal.textColor = new Color(0.95f, 0.85f, 0.65f);
         }
         counterStyle.fontSize = Mathf.RoundToInt(22f * hudScale);
-        GUI.Label(new Rect(18f, Screen.height - 44f * hudScale, 680f * hudScale, 28f * hudScale),
-            $"Fell marks: {LivingMarkedCount}  |  Crop Trees: {LivingCropTreeCount}  |  Fell volume: {MarkedVolumeM3:0.0} m³   [M] Fell / [C] Crop", counterStyle);
+        // Use the available width and measured height: the full summary is longer
+        // than the former fixed 680-unit label and can wrap at smaller resolutions.
+        counterStyle.wordWrap = true;
+        string summary = $"Fell marks: {LivingMarkedCount}  |  Crop Trees: {LivingCropTreeCount}  |  Fell volume: {MarkedVolumeM3:0.0} m³   [M] Fell / [C] Crop";
+        float summaryWidth = Screen.width - 36f;
+        float summaryHeight = counterStyle.CalcHeight(new GUIContent(summary), summaryWidth);
+        GUI.Label(new Rect(18f, Screen.height - 16f * hudScale - summaryHeight,
+            summaryWidth, summaryHeight), summary, counterStyle);
 
         if (!string.IsNullOrEmpty(TreatmentOutcome))
         {
@@ -677,7 +683,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         string prompt = aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [M] Mark to Fell"
             : IsMarked(aimedTree) ? "[M] Unmark Fell  |  [C] Retain as Crop Tree"
             : "[M] Mark to Fell  |  [C] Retain as Crop Tree";
-        float promptWidth = 460f * hudScale;
+        // Size the panel to the text: the fixed 460-unit width wrapped the last word.
+        float promptWidth = Mathf.Min(Screen.width - 36f,
+            promptStyle.CalcSize(new GUIContent(prompt)).x + 32f * hudScale);
         float promptHeight = 56f * hudScale;
         Rect promptRect = new Rect(Screen.width * 0.5f - promptWidth * 0.5f, Screen.height * 0.5f - 96f * hudScale, promptWidth, promptHeight);
         ForestHud.Panel(promptRect);
