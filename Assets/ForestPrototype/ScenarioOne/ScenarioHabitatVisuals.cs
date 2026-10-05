@@ -107,48 +107,37 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
             EnsureMesh(type, shader);
         }
 
-        for (int i = 0; i < ecology.CellCount && i < understorey.Count; i++)
+        ScenarioOneManager clearanceOwner = GetComponent<ScenarioOneManager>();
+        foreach (HabitatVegetationSite site in VegetationSites(ecology, understorey, verifiedOldWoodlandSourceConfidence))
         {
-            ForestEcologyCell cell = ecology.Cells[i];
-            ScenarioUnderstoreyCell state = understorey[i];
-            if (cell == null || state == null || state.cellIndex != i) continue;
-            for (int type = 0; type < ClassCount - 1; type++)
+            if (site.IsRush) continue;
+            if (site.IsCompeting && clearanceOwner != null && clearanceOwner.IsVegetationDisplayCleared(site.Position)) continue;
+            int type = (int)site.Kind, i = site.CellIndex, plant = site.Plant;
+            Vector3 position = site.Position;
+            float angle = site.Angle, size = site.Size;
+            GameObject prefab = PrefabFor((HabitatVisualClass)type, i, plant);
+            if (prefab != null && type == (int)HabitatVisualClass.MossCarpet && prefab.name.StartsWith("Ground_Moss_ShootMat"))
             {
-                float strength = ScenarioHabitatPalette.Strength((HabitatVisualClass)type,
-                    state, cell, verifiedOldWoodlandSourceConfidence);
-                int count = strength < 0.025f ? 0 : Mathf.Max(1, Mathf.RoundToInt(strength * 4f));
-                for (int plant = 0; plant < count; plant++)
+                // [D] Presentation: the ~1.2 m shoot/cushion mat is placed as a
+                // small irregular cluster of cushions at the same habitat site,
+                // not one wide sheet. Same sites and counts as before.
+                for (int cushion = 0; cushion < 3; cushion++)
                 {
-                    float x = cell.Center.x + Jitter(i, type, plant, 0) * ecology.CellSizeMeters * 0.42f;
-                    float z = cell.Center.y + Jitter(i, type, plant, 1) * ecology.CellSizeMeters * 0.42f;
-                    float angle = Jitter(i, type, plant, 2) * Mathf.PI;
-                    float size = 0.7f + strength * 0.6f;
-                    Vector3 position = new Vector3(x, 0f, z);
-                    GameObject prefab = PrefabFor((HabitatVisualClass)type, i, plant);
-                    if (prefab != null && type == (int)HabitatVisualClass.MossCarpet && prefab.name.StartsWith("Ground_Moss_ShootMat"))
-                    {
-                        // [D] Presentation: the ~1.2 m shoot/cushion mat is placed as a
-                        // small irregular cluster of cushions at the same habitat site,
-                        // not one wide sheet. Same sites and counts as before.
-                        for (int cushion = 0; cushion < 3; cushion++)
-                        {
-                            Vector3 offset = new Vector3(Jitter(i, type, plant * 3 + cushion, 3),
-                                0f, Jitter(i, type, plant * 3 + cushion, 4)) * 0.9f;
-                            float scale = 0.7f + 0.45f * Mathf.Abs(Jitter(i, type, plant * 3 + cushion, 5));
-                            authoredVertices[type] += Place(prefab, position + offset,
-                                (angle + cushion * 2.1f) * Mathf.Rad2Deg, scale);
-                        }
-                    }
-                    else if (prefab != null)
-                    {
-                        authoredVertices[type] += Place(prefab, position, angle * Mathf.Rad2Deg, size);
-                        if (type == (int)HabitatVisualClass.Grass) GrassPatchCount++;
-                    }
-                    else
-                        AddPlant(vertices[type], triangles[type], position,
-                            (HabitatVisualClass)type, angle, size);
+                    Vector3 offset = new Vector3(Jitter(site.CellIndex, type, plant * 3 + cushion, 3),
+                        0f, Jitter(site.CellIndex, type, plant * 3 + cushion, 4)) * 0.9f;
+                    float scale = 0.7f + 0.45f * Mathf.Abs(Jitter(site.CellIndex, type, plant * 3 + cushion, 5));
+                    authoredVertices[type] += Place(prefab, position + offset,
+                        (angle + cushion * 2.1f) * Mathf.Rad2Deg, scale);
                 }
             }
+            else if (prefab != null)
+            {
+                authoredVertices[type] += Place(prefab, position, angle * Mathf.Rad2Deg, size);
+                if (type == (int)HabitatVisualClass.Grass) GrassPatchCount++;
+            }
+            else
+                AddPlant(vertices[type], triangles[type], position,
+                    (HabitatVisualClass)type, angle, size);
         }
 
         if (deadwood != null)
@@ -195,6 +184,28 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
         }
     }
 
+    public static IEnumerable<HabitatVegetationSite> VegetationSites(ForestEcologyController ecology,
+        IReadOnlyList<ScenarioUnderstoreyCell> understorey, float confidence)
+    {
+        if (ecology?.Cells == null || understorey == null) yield break;
+        for (int i = 0; i < ecology.CellCount && i < understorey.Count; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[i]; ScenarioUnderstoreyCell state = understorey[i];
+            if (cell == null || state == null || state.cellIndex != i) continue;
+            for (int type = 0; type < ClassCount - 1; type++)
+            {
+                float strength = ScenarioHabitatPalette.Strength((HabitatVisualClass)type, state, cell, confidence);
+                int count = strength < .025f ? 0 : Mathf.Max(1, Mathf.RoundToInt(strength * 4f));
+                for (int plant = 0; plant < count; plant++)
+                    yield return new HabitatVegetationSite { CellIndex = i, Plant = plant, Kind = (HabitatVisualClass)type,
+                        Position = new Vector3(cell.Center.x + Jitter(i, type, plant, 0) * ecology.CellSizeMeters * .42f,
+                            0f, cell.Center.y + Jitter(i, type, plant, 1) * ecology.CellSizeMeters * .42f),
+                        Angle = Jitter(i, type, plant, 2) * Mathf.PI, Size = .7f + strength * .6f };
+            }
+        }
+        foreach (HabitatVegetationSite rush in RushSites(ecology)) yield return rush;
+    }
+
     private GameObject PrefabFor(HabitatVisualClass kind, int cell, int plant)
     {
         if (recentCatalog == null) recentCatalog = RecentAssetVisualCatalog.Load();
@@ -220,24 +231,33 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
         }
     }
 
-    private void PlaceRushDressing(ForestEcologyController ecology)
+    public static IEnumerable<HabitatVegetationSite> RushSites(ForestEcologyController ecology)
     {
-        if (recentCatalog?.rushes == null || recentCatalog.rushes.Length == 0
-            || recentCatalog.rushDressingPositions == null) return;
-        // These are authored scenery accents. Distribution is not inferred
-        // from light, understorey diversity or unmodelled drainage/soil data.
-        for (int patch = 0; patch < recentCatalog.rushDressingPositions.Length; patch++)
+        RecentAssetVisualCatalog recent = RecentAssetVisualCatalog.Load();
+        if (recent?.rushes == null || recent.rushes.Length == 0 || recent.rushDressingPositions == null) yield break;
+        for (int patch = 0; patch < recent.rushDressingPositions.Length; patch++)
         {
-            Vector3 anchor = recentCatalog.rushDressingPositions[patch];
+            Vector3 anchor = recent.rushDressingPositions[patch];
             if (ecology.GetCellIndex(anchor) < 0) continue;
             for (int clump = 0; clump < 2; clump++)
             {
-                GameObject prefab = recentCatalog.rushes[(patch + clump) % recentCatalog.rushes.Length];
-                if (prefab == null) continue;
-                Place(prefab, anchor + new Vector3(clump * 0.5f, 0f, clump * 0.35f),
-                    patch * 47f + clump * 79f, clump == 0 ? 1f : 0.85f);
-                RushPatchCount++;
+                if (recent.rushes[(patch + clump) % recent.rushes.Length] == null) continue;
+                yield return new HabitatVegetationSite { IsRush = true, Kind = HabitatVisualClass.Grass,
+                    CellIndex = patch, Plant = clump, Position = anchor + new Vector3(clump * .5f, 0f, clump * .35f),
+                    Angle = (patch * 47f + clump * 79f) * Mathf.Deg2Rad, Size = clump == 0 ? 1f : .85f };
             }
+        }
+    }
+
+    private void PlaceRushDressing(ForestEcologyController ecology)
+    {
+        ScenarioOneManager owner = GetComponent<ScenarioOneManager>();
+        foreach (HabitatVegetationSite site in RushSites(ecology))
+        {
+            if (owner != null && owner.IsVegetationDisplayCleared(site.Position)) continue;
+            Place(recentCatalog.rushes[(site.CellIndex + site.Plant) % recentCatalog.rushes.Length],
+                site.Position, site.Angle * Mathf.Rad2Deg, site.Size);
+            RushPatchCount++;
         }
     }
 

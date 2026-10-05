@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using CCF.Forestry.WorkEconomy;
 
 [DisallowMultipleComponent]
-public sealed class ScenarioOneManager : MonoBehaviour
+public sealed partial class ScenarioOneManager : MonoBehaviour
 {
     [SerializeField] private ScenarioOneDefinition definition;
     [SerializeField] private bool initialized;
@@ -850,6 +850,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
         return true;
     }
 
+    // Historical species orders retain their scope for Reference/archive callers.
     public bool TryDesignateRegenerationRemoval(string speciesId, int cellIndex)
     {
         if (!CanManage()) return false;
@@ -894,6 +895,35 @@ public sealed class ScenarioOneManager : MonoBehaviour
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
         feedback = $"Designated removal of {species.DisplayName} regeneration in cell {cellIndex}.";
+        return true;
+    }
+
+    public bool TryDesignateVegetationClearance(int cellIndex)
+    {
+        if (!CanManage()) return false;
+        if (ecology == null || ecology.Cells == null || definition == null
+            || cellIndex < 0 || cellIndex >= ecology.CellCount)
+        { feedback = "Choose a valid stand cell."; return false; }
+        if (workOrders.Any(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration && o.cellIndex == cellIndex))
+        { feedback = "Vegetation clearance is already planned in this cell."; return false; }
+        if (workOrders.Any(o => o.type == ScenarioWorkType.RemoveRegeneration && string.IsNullOrEmpty(o.speciesId)
+            && o.status == ScenarioWorkStatus.Completed && o.resolvedYear == ecology.EcologicalYear && o.cellIndex == cellIndex))
+        { feedback = "This area was already cleared this year."; return false; }
+        ClearanceTargets targets = QueryClearance(ClearanceFootprint.Cell(ecology, cellIndex));
+        if (!targets.HasTargets) { feedback = "No competing vegetation is present in this cell."; return false; }
+        int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.RemovalBaseMinutes
+            + targets.Density * definition.RemovalMinutesPerCohortDensity));
+        var order = new ScenarioOneWorkOrder
+        {
+            workOrderId = nextWorkOrderId++, type = ScenarioWorkType.RemoveRegeneration,
+            status = ScenarioWorkStatus.Pending, speciesId = "", cellIndex = cellIndex,
+            worldPosition = targets.Footprint.Center, estimatedMinutes = minutes,
+            estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
+            expectedRegenerationDensity = targets.Density, createdYear = ecology.EcologicalYear
+        };
+        workOrders.Add(order);
+        RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
+        feedback = "Planned competing vegetation clearance in cell " + cellIndex + ". Review and approve in Work Plan.";
         return true;
     }
 
@@ -1648,6 +1678,7 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
         if (order.exactPosition)
         {
+            ApplyPlantingClearance(order.worldPosition, report.year);
             plantedJuveniles.Add(new PlantedJuvenile
             {
                 juvenileId = "PJ" + nextJuvenileId++.ToString("0000"),
@@ -1660,7 +1691,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 alive = true,
                 stockItemId = order.stockItemId
             });
-            ApplyPlantingClearance(order.worldPosition, report.year);
             if (order.installShelter)
             {
                 var juvenile = plantedJuveniles[plantedJuveniles.Count - 1];
@@ -1683,34 +1713,11 @@ public sealed class ScenarioOneManager : MonoBehaviour
     // Older patches are a history, not permanent exclusions from seed rain.
     private void ApplyPlantingClearance(Vector3 position, int year)
     {
-        var patch = new PlantingClearancePatch
-        {
-            center = position,
-            radiusMeters = Mathf.Sqrt(1f / Mathf.PI),
-            createdYear = year
-        };
-        var thisYear = clearancePatches.Where(p => p.createdYear == year).ToList();
-        float halfCell = ecology.CellSizeMeters * 0.5f;
-        float cellArea = ecology.CellSizeMeters * ecology.CellSizeMeters;
-        foreach (ForestEcologyCell cell in ecology.Cells)
-        {
-            if (Mathf.Abs(cell.Center.x - position.x) > halfCell + patch.radiusMeters
-                || Mathf.Abs(cell.Center.y - position.z) > halfCell + patch.radiusMeters)
-                continue;
-            ForestRegenerationCohort sitka = cell.FindCohort("sitka-spruce");
-            if (sitka == null || sitka.Density <= 0f)
-                continue;
-            float priorArea = ClearanceUnionArea(cell.Center, halfCell, thisYear);
-            thisYear.Add(patch);
-            float newArea = ClearanceUnionArea(cell.Center, halfCell, thisYear);
-            thisYear.RemoveAt(thisYear.Count - 1);
-            // Remaining uncovered area is the appropriate denominator because
-            // density was already reduced by previous clearances this year.
-            sitka.Density *= Mathf.Clamp01((cellArea - newArea) / Mathf.Max(0.0001f, cellArea - priorArea));
-            if (sitka.Density <= 0.001f)
-                cell.RemoveCohortIfEmpty(sitka);
-        }
-        clearancePatches.Add(patch);
+        ClearanceTargets targets = QueryClearance(ClearanceFootprint.Planting(position), year);
+        if (targets.AlreadyTreated) return;
+        ApplyClearance(targets, year);
+        clearancePatches.Add(new PlantingClearancePatch
+        { center = position, radiusMeters = targets.Footprint.Radius, createdYear = year });
     }
 
     // Deterministic vertical-strip integration of clipped circle union. A
@@ -1811,6 +1818,24 @@ public sealed class ScenarioOneManager : MonoBehaviour
 
     private void ResolveRegenerationRemoval(ScenarioOneWorkOrder order, ScenarioAnnualReport report)
     {
+        if (string.IsNullOrEmpty(order.speciesId))
+        {
+            if (ecology == null || order.cellIndex < 0 || order.cellIndex >= ecology.CellCount
+                || ecology.GetCellIndex(order.worldPosition) != order.cellIndex)
+            { Fail(order, report, "Clearance cell is unavailable."); return; }
+            ClearanceTargets targets = QueryClearance(ClearanceFootprint.Cell(ecology, order.cellIndex));
+            if (!targets.HasTargets) { Fail(order, report, "No competing vegetation remains."); return; }
+            if (cashCents < order.estimatedCostCents)
+            { Fail(order, report, "Insufficient cash for vegetation clearance."); return; }
+            ApplyClearance(targets, report.year);
+            cashCents -= order.estimatedCostCents;
+            order.status = ScenarioWorkStatus.Completed; order.resolvedYear = report.year;
+            order.expectedRegenerationDensity = targets.Density;
+            report.completedTasks++; report.regenerationRemovalTasks++;
+            report.removedRegenerationDensity += targets.Density;
+            report.contractorCostCents += order.estimatedCostCents;
+            return;
+        }
         ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
         TreeSpeciesDefinition species = spawner != null ? spawner.ResolveSpecies(order.speciesId) : null;
         if (species == null || ecology.GetCellIndex(order.worldPosition) != order.cellIndex)
@@ -1942,6 +1967,17 @@ public sealed class ScenarioOneManager : MonoBehaviour
             }
             else if (order.type == ScenarioWorkType.RemoveRegeneration)
             {
+                if (string.IsNullOrEmpty(order.speciesId))
+                {
+                    if (ecology == null || order.cellIndex < 0 || order.cellIndex >= ecology.CellCount
+                        || ecology.GetCellIndex(order.worldPosition) != order.cellIndex)
+                        order.validationMessage = "Clearance cell is outside the stand.";
+                    else if (!removalCells.Add("area:" + order.cellIndex))
+                        order.validationMessage = "Another order already clears this cell.";
+                    else if (!QueryClearance(ClearanceFootprint.Cell(ecology, order.cellIndex)).HasTargets)
+                        order.validationMessage = "No competing vegetation remains in this cell.";
+                    continue;
+                }
                 ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
                 TreeSpeciesDefinition species = !string.IsNullOrEmpty(order.speciesId) && spawner != null
                     ? spawner.ResolveSpecies(order.speciesId) : null;

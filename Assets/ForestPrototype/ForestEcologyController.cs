@@ -230,6 +230,9 @@ public sealed class ForestEcologyController : MonoBehaviour
                     : spawner != null ? spawner.GetSeedlingVisualPrefab(cohort.Species) : null;
                 if (prefab == null)
                     continue;
+                ScenarioOneManager clearanceOwner = Object.FindFirstObjectByType<ScenarioOneManager>();
+                if (clearanceOwner != null && clearanceOwner.IsVegetationDisplayCleared(RegenerationDisplayPosition(i, cohort.SpeciesId)))
+                    continue;
                 string key = i + ":" + cohort.SpeciesId;
                 wantedKeys.Add(key);
                 seedlingVisuals.TryGetValue(key, out GameObject visual);
@@ -261,6 +264,18 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     // Stable per-cell/species offset so representatives do not overlap or jump
     // between sessions. The default species retains its legacy cell-only offset.
+    public Vector3 RegenerationDisplayPosition(int index, string speciesId)
+    {
+        string defaultId = ResolveSpecies()?.SpeciesId ?? "";
+        Vector3 offset = CellVisualJitter(index, speciesId, speciesId == defaultId);
+        return new Vector3(cells[index].Center.x + offset.x, 0f, cells[index].Center.y + offset.z);
+    }
+
+    public void RefreshRegenerationDisplays()
+    {
+        seedlingVisualsDirty = true;
+    }
+
     private Vector3 CellVisualJitter(int index, string speciesId, bool preserveLegacyDefault)
     {
         uint hash = 2166136261u ^ (uint)index;

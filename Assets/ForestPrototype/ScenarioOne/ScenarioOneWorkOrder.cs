@@ -64,7 +64,9 @@ public sealed class ScenarioOneWorkOrder
                 case ScenarioWorkType.FellTree: return "Fell " + targetTreeId;
                 case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " at ("
                     + worldPosition.x.ToString("0.0") + ", " + worldPosition.z.ToString("0.0") + ")";
-                case ScenarioWorkType.RemoveRegeneration: return "Remove " + speciesId + " regeneration in cell " + cellIndex;
+                case ScenarioWorkType.RemoveRegeneration: return string.IsNullOrEmpty(speciesId)
+                    ? "Clear competing vegetation in cell " + cellIndex
+                    : "Remove " + speciesId + " regeneration in cell " + cellIndex;
                 case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to "
                     + (targetCrownBaseHeightM > 0f ? targetCrownBaseHeightM : expectedRegenerationDensity).ToString("0.0") + " m";
                 default: return type.ToString();
