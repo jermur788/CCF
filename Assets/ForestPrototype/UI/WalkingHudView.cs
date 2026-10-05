@@ -64,7 +64,9 @@ public sealed class WalkingHudView
         hotbarBox = UiKit.Box("hud-hotbar");
         hotbar = UiKit.Text("", "panel", "hud-prompt-box");
         hotbarBox.Add(hotbar);
-        Root.Add(hotbarBox);
+        // Keep planting controls beneath the footprint prompt, above the
+        // bottom-left ground report at every supported screen scale.
+        promptBox.Add(hotbarBox);
 
         reticle = UiKit.Box("reticle");
         Root.Add(reticle);
@@ -126,7 +128,7 @@ public sealed class WalkingHudView
         if (marks != null && marks.AimedTree != null && player != null && player.AimedTree != null && player.AimedTree.CanChop)
             action = "[E] Inspect   ·   " + marks.MarkPromptText() + "   ·   [Tab] Plan";
         prompt.text = action;
-        promptBox.style.display = string.IsNullOrEmpty(action) ? DisplayStyle.None : DisplayStyle.Flex;
+        prompt.style.display = string.IsNullOrEmpty(action) ? DisplayStyle.None : DisplayStyle.Flex;
 
         string note = marks != null && !string.IsNullOrEmpty(marks.TransientMessage) ? marks.TransientMessage
             : player != null ? player.TransientMessage : "";
@@ -136,6 +138,7 @@ public sealed class WalkingHudView
         string bar = player != null ? player.PlantingHotbarText() : "";
         hotbar.text = bar;
         hotbarBox.style.display = string.IsNullOrEmpty(bar) ? DisplayStyle.None : DisplayStyle.Flex;
+        promptBox.style.display = string.IsNullOrEmpty(action) && string.IsNullOrEmpty(bar) ? DisplayStyle.None : DisplayStyle.Flex;
 
         if (marks != null)
         {

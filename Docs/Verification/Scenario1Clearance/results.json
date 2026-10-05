@@ -1,0 +1,281 @@
+{
+  "base": "83574c8b83529dee4104be517019637bd41021f0",
+  "context": "691dd18a56c0da21cb08909e22ac0d0625d556b1",
+  "branch": "task/scenario-one-clearance-preview",
+  "unity": "6000.6.0f1",
+  "acceptance": "CLEARANCE_ACCEPTANCE_PASS",
+  "human_smoke": "pending",
+  "gates": [
+    {
+      "gate": "Import",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 270.09,
+      "markers": [],
+      "log_sha256": "49641611fda17a2c080d495316c83845bb811f1365d78a722455ba29283e1f8f"
+    },
+    {
+      "gate": "ClearanceVerification",
+      "mode": "default-rendered",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 65.17,
+      "markers": [
+        "CLEARANCE_WALKING_PREVIEW_PASS groundRay=true sharedQuery=true",
+        "CLEARANCE_RENDERED_UI_PASS preview 1600x900",
+        "CLEARANCE_RENDERED_UI_PASS preview-1280 1280x720",
+        "CLEARANCE_RENDERED_UI_PASS preview-1920 1920x1080",
+        "CLEARANCE_FIXTURES_PASS A B C D E F G H I J cohorts=3 exactJuveniles=1 groundPatches=12",
+        "CLEARANCE_RENDERED_UI_PASS planting-circle 1600x900",
+        "CLEARANCE_RENDERED_UI_PASS planting-circle-1280 1280x720",
+        "CLEARANCE_RENDERED_UI_PASS planting-circle-1920 1920x1080",
+        "CLEARANCE_CIRCLE_PASS area=1m2 species=3 inside=cleared outside=retained repeat=identical",
+        "CLEARANCE_REPEAT_MATRIX_PASS cells=64 identicalSpot=noTargets density=unchanged",
+        "CLEARANCE_ANNUAL_PASS completed=true debit=once treatmentYearDisplay=cleared",
+        "CLEARANCE_ACCEPTANCE_PASS"
+      ],
+      "log_sha256": "1aa5defe41701ad6ffab59f1a519c56171fb892daaa0187998b0a9c17ea996af"
+    },
+    {
+      "gate": "ScenarioOneInteractionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 76.55,
+      "markers": [
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=3 sameFrameDuplicates=0",
+        "SCENARIO_ONE_CANONICAL_SITKA_PASS hash=BFC55473C1506067",
+        "SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v15 trees=493 year50TreesPreserved=401 deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=9CDF21A541C5968D",
+        "SCENARIO_ONE_INTERACTION_VERIFY_PASS"
+      ],
+      "log_sha256": "00b5be811d170608d937886d9e421777fe993f2fd12360e54a5fc57b398da2a4"
+    },
+    {
+      "gate": "ScenarioOnePlantingVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 48.31,
+      "markers": [
+        "SCENARIO_ONE_PLANTING_VERIFY_PASS"
+      ],
+      "log_sha256": "712c535b8010924d7c61107d4e3ea9361ee7bcb46e77ea138932b66318828074"
+    },
+    {
+      "gate": "SaveHardeningVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 43.08,
+      "markers": [
+        "SAVE_HARDENING_VERIFY_PASS"
+      ],
+      "log_sha256": "5dc292f1f877708bd5904b0a90511ab4201398f2172990c2d02be0a2591ffa82"
+    },
+    {
+      "gate": "ScenarioOneEconomyIntegrationVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 55.93,
+      "markers": [
+        "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS assertions=120 worldRestored=true noSaveSlotWrites=true"
+      ],
+      "log_sha256": "834ffbe43c640ba00e69a338731a72496e52a935dab88b305d13744dc68287e7"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 59.17,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 00479F18970F9926 rngModel=1",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "75d6d9bf01221d723ff60be5f5f75b3d63dbdc294df34eb6c87514f88fcac2a6"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "model0",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 68.47,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 568922E1A6D73CDD rngModel=0",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "c971575dbd8d6f42084e519c1069d1a2ff10d8d43e67a6071c989ba324fede68"
+    },
+    {
+      "gate": "BrowsingProtectionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 137.63,
+      "markers": [
+        "BROWSE_NEUTRAL_RULE_PASS",
+        "BROWSE_RULE_UNITS_PASS",
+        "BROWSE_MATRIX_HASH 43C031F7B7919ABE",
+        "BROWSE_REQUIRED_OUTCOMES_PASS",
+        "BROWSE_SCENARIO_ONE_LOW_PRESSURE_PASS",
+        "BROWSE_SHARED_RESPONSE_EQUIVALENCE_PASS",
+        "BROWSE_EXPERIMENTS_PASS",
+        "REGENERATION_DIAGNOSIS_VERIFY_PASS",
+        "SHELTER_TIMING_CONTRACT_PASS",
+        "PROTECTION_RESTORE_CONTRACT_PASS",
+        "SHELTER_VISUALS_VERIFY_PASS",
+        "ECOLOGY_REVIEW_LINES_VERIFY_PASS",
+        "FENCE_GEOMETRY_VERIFY_PASS",
+        "BROWSE_SAVELOAD_DETERMINISM_PASS",
+        "BROWSE_NEUTRAL_LIFECYCLE_PASS",
+        "BROWSE_MEASUREMENT_HASH 7BA962111322B38E",
+        "BROWSE_SCENE_RESTORED_PASS",
+        "BROWSING_PROTECTION_VERIFY_PASS"
+      ],
+      "log_sha256": "adfe4437891be0b604ca03c4bda32819256a4504f73ddbaacef716db1b46518b"
+    },
+    {
+      "gate": "ScenarioReferenceVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 67.7,
+      "markers": [
+        "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+        "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+        "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+        "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+        "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+        "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+        "REFERENCE_CONTINUATION_PASS year50=v12 year100=v15 deterministic=True continuedHash=9CDF21A541C5968D",
+        "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+        "REFERENCE_FUTURE_V1_PASS"
+      ],
+      "log_sha256": "b6a40c12a4843f03740d744a407e8a2051432cceaea79b1bb2699869760a939a"
+    },
+    {
+      "gate": "RngModelPolicyVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 73.5,
+      "markers": [
+        "RNG_POLICY_NEW_GAME_PASS model=1",
+        "RNG_POLICY_MODEL0_COMPATIBILITY_PASS neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+        "RNG_POLICY_MODEL1_ANCHORS neutral=2A0B8C32AC0DE113 normal=506E8AF6D8514C6C repeat=identical",
+        "RNG_POLICY_SAVE_RETAINS_PASS model=1",
+        "RNG_POLICY_SAVE_RETAINS_PASS model=0",
+        "RNG_POLICY_LEGACY_ABSENT_FIELD_PASS model=0",
+        "RNG_POLICY_REFERENCE_V1_MODEL0_PASS years=20,50,100 playerModelRestored=1",
+        "RNG_POLICY_CONTINUATION_PASS model=0 year=20 hash=CDC4DE8F8EF471E5 plantedAliveOrPromoted=11/12 promoted=11 cash=1189950",
+        "RNG_POLICY_CONTINUATION_PASS model=1 year=20 hash=872094413305A082 plantedAliveOrPromoted=10/12 promoted=10 cash=1189950",
+        "RNG_MODEL_POLICY_VERIFY_PASS"
+      ],
+      "log_sha256": "5f23f8c083b96cae932f2843fb4562849a1c2043ecea1ac692abd9d8c55d78fa"
+    },
+    {
+      "gate": "ScenarioOnePresentationReview",
+      "mode": "default-rendered",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 172.32,
+      "markers": [
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=336 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=201 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=185 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=162 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=264 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=269 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=269 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=269 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=219 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=224 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=224 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=224 legacy=0 activeDisplaysPerTree=1",
+        "ACTIVE_SITKA_VISUALS_PASS living=224 legacy=0 activeDisplaysPerTree=1",
+        "SCENARIO_ONE_PRESENTATION_CAPTURE_PASS evidence=/home/jer/Documents/ChatGPT/Local Game Dev/CCF-clearance-preview/Build/ClearanceVerification/evidence visualAcceptance=REQUIRES_IMAGE_REVIEW"
+      ],
+      "log_sha256": "6fdf4d068187643cf94aefbbe5b9ea7d88173cee5d7472f3ffc2fa187ff24423"
+    }
+  ],
+  "verified_source_sha256": {
+    "Assets/ForestPrototype/ForestEcologyController.cs": "cd9ca6992dba19172206d05b6799e38a00795cfdd135fe14e62acefb1e93b005",
+    "Assets/ForestPrototype/ForestPlayer.cs": "1df2184555b44c3288b5363bf1dab9b9e21dd5ff7e96d45a0be54d6b4b5b919c",
+    "Assets/ForestPrototype/ForestTreeMarkingManager.cs": "9b3db022a953c04a91f87dd479764fecebfa4a5ecf5738a06c841302f0921c3b",
+    "Assets/ForestPrototype/ScenarioOne/ClearancePreview.cs": "aeda94068b9e9473ae0cc294a4e831d6f509880a240fe8fed758c22cb56f7edb",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioHabitatVisuals.cs": "a818855d450a65b2e076ff6b0c5dd69a95eb172e7bc26274e10963285629747d",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneClearance.cs": "4f3e1df1aa50b81e51ee3114ac24b5a65139dc898bcc08d3e503f631812f63dc",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": "be85fbbfec7ebdbcc28cd4836209d91aea4127acaf86a0f7fecfe1bbdac1933f",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneWorkOrder.cs": "ca2434dc873654ad4ca65d5ac8ca2e93596e0c6af0b7834c96a9294a1802df0f",
+    "Assets/ForestPrototype/ScenarioOne/VegetationClearance.cs": "8d1b3c2c21e464d9ada4fa08807114f861d342f2eb1778aefc44b077600f610e",
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "79dbfcc65522fb50f487c15d8f03a6198a65d3593379579538cf2ff3f2882350",
+    "Assets/ForestPrototype/UI/WalkingHudView.cs": "006b55a0c177155cbcd69e98cbc188c78180895c8311400e68dfa5bc11b27c79",
+    "Assets/ForestPrototype/UI/WorkPlanView.cs": "dc61a73aa27d225443caaa0052b28f05af89c67fe7b2043c6d513fca6bcf9904",
+    "Tools/Verification/ClearanceVerification.cs": "aee81420f7c8d1b3d6bdedfe9017f81345ce2259747d3f5986eea3acaa7ca79b",
+    "Tools/Verification/run_clearance_gate.py": "1251087278e6edb3b4628f3b26f98da50c3e303fe054b762eb3015fff70a5557"
+  },
+  "screenshots_sha256": {
+    "before.png": "c4252c4d0b5123f530fcca0677063553f5fb13f2de02c2f8e37d29613eda6122",
+    "preview-ui.png": "7c4c6ae0c18335be772fb8517e9ff5832e828886396b5a4dc6bd50ed54cc195b",
+    "after.png": "e70b0f3ad99d92b5b5e94e10ef2f722c824773c2d48267a181c6cf37320ae24f",
+    "loaded.png": "8ac47a2d89f59f2c932bfe2a223c02163e010771e51c12708b03cdaaff254a7b",
+    "preview-1280-ui.png": "1ed543f2939eb6199678b44f00fa4ef749b7e3cb116508024cbf3b848fda2d5c",
+    "preview-1920-ui.png": "bffd041f3d836a4b5a7d1ad297b966c2e2bd50ade99e575c51e5f68c892d8303",
+    "planting-circle-ui.png": "7c13ff03d51d6e4cc22b4a6d2910f57d5f178da931fa64fcb89327fa69da2ec5",
+    "planting-circle-1280-ui.png": "8765b74f6ffab77607262a7bcb352e36dc05d587be97ae2d8ec63d0f997a89f9",
+    "work-plan-ui.png": "8bc87a333d999180a6d75197c58be2c65b07f2d726490a8c637dbaaba894b5eb"
+  },
+  "limits": [
+    "Controlled mixed-population fixture and camera poses; not a human-input smoke pass.",
+    "Existing simulation regressions precede final HUD-only placement; final focused rendered fixture validates that placement at all three sizes.",
+    "Original user screenshot absent; exact individual mesh unconfirmed."
+  ]
+}

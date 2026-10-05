@@ -104,7 +104,7 @@
 .hud-message { position: absolute; top: 14px; left: 0; right: 0; align-items: center; }
 .hud-message Label { font-size: 18px; color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
 .reticle { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin-left: -2px; margin-top: -2px; background-color: rgba(255, 255, 255, 0.8); }
-.hud-hotbar { position: absolute; left: 0; right: 0; bottom: 70px; align-items: center; }
+.hud-hotbar { margin-top: 8px; align-items: center; align-self: flex-end; margin-right: 14px; max-width: 900px; }
 .waypoint-line { color: var(--accent); }
 
 /* ---- inspection ---- */
