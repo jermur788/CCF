@@ -219,16 +219,32 @@ public sealed class ScenarioOnePresentationCapture : MonoBehaviour
 
     private IEnumerator PlanUI(string name, bool review = false, float scrollY = 0)
     {
-        Call(manager, "SetWorkPlanOpen", true);
-        Field(manager, "annualReviewOpen", review);
-        Field(manager, "scroll", new Vector2(0, scrollY));
+        // UI Toolkit screens: the Work Plan or the Annual Review, scrolled for evidence.
+        ScenarioOneUiRoot uiRoot = manager.GetComponent<ScenarioOneUiRoot>();
+        if (review) uiRoot.ShowReview(); else uiRoot.ShowWorkPlan();
+        for (int i = 0; i < 3; i++) yield return null;
+        foreach (var view in uiRoot.RootElement.Query<UnityEngine.UIElements.ScrollView>().ToList())
+            if (view.resolvedStyle.display == UnityEngine.UIElements.DisplayStyle.Flex) view.scrollOffset = new Vector2(0, scrollY);
         foreach (var size in new[] { new Vector2Int(1600, 900), new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {
             ScenarioOnePresentationReview.SetGameSize(size.x, size.y);
             yield return Capture(name + "-" + size.x, true);
         }
         ScenarioOnePresentationReview.SetGameSize(1600, 900);
-        Call(manager, "SetWorkPlanOpen", false);
+        uiRoot.CloseAll();
+    }
+
+    private IEnumerator MapUI(string name)
+    {
+        ScenarioOneUiRoot uiRoot = manager.GetComponent<ScenarioOneUiRoot>();
+        uiRoot.ShowMap();
+        foreach (var size in new[] { new Vector2Int(1600, 900), new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
+        {
+            ScenarioOnePresentationReview.SetGameSize(size.x, size.y);
+            yield return Capture(name + "-" + size.x, true);
+        }
+        ScenarioOnePresentationReview.SetGameSize(1600, 900);
+        uiRoot.CloseAll();
     }
 
     private IEnumerator Review()
@@ -315,7 +331,7 @@ public sealed class ScenarioOnePresentationCapture : MonoBehaviour
         ScenarioOneWorkOrder firstPlant=manager.WorkOrders.First(o=>o.type==ScenarioWorkType.PlantJuvenile&&o.IsOpen);
         Vector3 plantingEye=firstPlant.worldPosition+new Vector3(1.5f,1.65f,2);
         Pose(plantingEye,firstPlant.worldPosition+Vector3.up*.5f);
-        yield return Capture("06-planting-markers",true); yield return PlanUI("06-planting-execution",false,650);
+        yield return Capture("06-planting-markers",true); yield return MapUI("06-stand-map"); yield return PlanUI("06-planting-execution",false,650);
         Check(manager.ApprovePendingWork()&&manager.AdvanceYear(),"plant resolve");
         Pose(plantingEye,firstPlant.worldPosition+Vector3.up*.55f);
         yield return Capture("07-oak-shelters",true); yield return Performance("PlantingShelters");
