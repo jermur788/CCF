@@ -136,6 +136,18 @@ Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6
 - **k10a10 light:** canopy shade reach = 1.0 × crown radius + half a 5 m cell (2.5 m) (`CanopyShadeReachPerCrownRadius`, shared by the marking forecast). Opacity is an implicit 1.0 and the light equation is unchanged.
 - **Calibrated canonical lifecycle (RNG model 0, 80 years):** `BFC55473C1506067`. The calibration measurement hash is `D48A19525E69DD8A`.
 
+**RNG model policy (D-046, main `4eab590`, verified 2026-10-05).** New games use model 1; loads keep the saved model; an absent field and Reference Future v1 mean model 0. `CCF_RNG_MODEL=0` makes the completion gate replay the legacy model.
+
+| Anchor | Model 0 (compatibility) | Model 1 (new-game default) |
+|---|---|---|
+| Neutral lifecycle | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion gate | `568922E1A6D73CDD` | `00479F18970F9926` (completed Year 25, min cash 589770 cents) |
+| Reference Future v1 Year 100 / continuation | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` | n/a (v1 is model 0) |
+| Policy save/load continuation (Year 20) | `CDC4DE8F8EF471E5` | `872094413305A082` |
+
+Post-merge gates PASS on main: completion ×2 per model, interaction, browsing, planting, save hardening, RNG model, economy integration (120 assertions), Reference, RngModelPolicyVerification. Lag-1 survival-roll correlation is 0.6748 under model 0 and −0.0041 under model 1.
+
 Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each gate in its own process with an isolated `XDG_CONFIG_HOME`):
 
 | Gate | Result |
