@@ -70,6 +70,7 @@
     -unity-font-style: bold;
     font-size: 14px;
 }
+.btn { flex-shrink: 0; }
 .btn:hover { background-color: rgba(84, 118, 80, 1); }
 .btn:disabled { opacity: 0.45; }
 .btn-primary { background-color: rgba(120, 104, 48, 0.95); border-color: rgba(232, 206, 120, 0.6); }
@@ -88,6 +89,8 @@
 .table-row Label { white-space: normal; }
 .cell-name { flex-grow: 3; flex-basis: 0; }
 .cell-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; }
+/* Line() values never wrap (a wrapped sign would split from its amount). */
+.line-value { flex-shrink: 0; white-space: nowrap; margin-left: 10px; -unity-text-align: middle-right; }
 
 /* ---- walking HUD ---- */
 .hud-status { position: absolute; top: 14px; right: 14px; width: 330px; }
@@ -105,7 +108,9 @@
 .waypoint-line { color: var(--accent); }
 
 /* ---- inspection ---- */
-.inspect { position: absolute; right: 14px; top: 160px; width: 380px; max-height: 78%; }
+/* Top-left, clear of the status panel (top-right) and the ground report (bottom-left). */
+.inspect { position: absolute; left: 14px; top: 14px; width: 380px; max-height: 72%; }
+.inspect * { flex-shrink: 0; }
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
 .stat { width: 50%; margin-bottom: 4px; }
 .stat-label { color: var(--ink-faint); font-size: 12px; }
@@ -115,6 +120,9 @@
 .modal-backdrop { background-color: rgba(0, 0, 0, 0.35); align-items: center; justify-content: center; }
 .modal { width: 92%; max-width: 1180px; height: 92%; max-height: 900px; }
 .modal-header { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+/* Fixed parts of a modal keep their height; only the scroll view shrinks. */
+.modal > * { flex-shrink: 0; }
+.modal > .unity-scroll-view { flex-shrink: 1; }
 .modal-footer { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 .columns { flex-direction: row; flex-wrap: wrap; }
 .column { flex-grow: 1; flex-basis: 300px; margin-right: 10px; }
@@ -129,7 +137,10 @@
     border-width: 2px; border-color: transparent;
     justify-content: space-between; padding: 2px 3px;
 }
-.map-cell Label { font-size: 11px; color: white; -unity-text-outline-width: 1px; -unity-text-outline-color: black; }
+.map-cell Label {
+    font-size: 13px; color: white; -unity-font-style: bold; align-self: flex-start;
+    background-color: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; margin-bottom: 1px;
+}
 .map-cell-selected { border-color: var(--accent); }
 .map-cell-player { border-color: white; }
 .map-side { width: 330px; margin-left: 12px; }

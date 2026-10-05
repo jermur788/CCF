@@ -223,7 +223,7 @@ public sealed class ScenarioOnePresentationCapture : MonoBehaviour
         ScenarioOneUiRoot uiRoot = manager.GetComponent<ScenarioOneUiRoot>();
         if (review) uiRoot.ShowReview(); else uiRoot.ShowWorkPlan();
         for (int i = 0; i < 3; i++) yield return null;
-        foreach (var view in uiRoot.RootElement.Query<UnityEngine.UIElements.ScrollView>().ToList())
+        foreach (var view in UnityEngine.UIElements.UQueryExtensions.Query<UnityEngine.UIElements.ScrollView>(uiRoot.RootElement).ToList())
             if (view.resolvedStyle.display == UnityEngine.UIElements.DisplayStyle.Flex) view.scrollOffset = new Vector2(0, scrollY);
         foreach (var size in new[] { new Vector2Int(1600, 900), new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {

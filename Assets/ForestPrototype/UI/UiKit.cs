@@ -52,7 +52,7 @@ public static class UiKit
     {
         VisualElement row = Box("table-row");
         row.Add(Text(name, "cell-name", "body"));
-        row.Add(Text(value, "cell-num", valueClass));
+        row.Add(Text(value, "line-value", valueClass));
         parent.Add(row);
     }
 

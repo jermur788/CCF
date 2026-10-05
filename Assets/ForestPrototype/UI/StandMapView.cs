@@ -88,7 +88,7 @@ public sealed class StandMapView
         Dictionary<int, (int fell, int crop)> marks = CountMarks(eco);
         float pressure = eco.Browsing.BackgroundPressure;
         int upcoming = eco.EcologicalYear + 1;
-        float size = Mathf.Clamp(560f / Mathf.Max(1, n), 30f, 64f);
+        float size = Mathf.Clamp(640f / Mathf.Max(1, n), 30f, 80f);
 
         for (int z = n - 1; z >= 0; z--)
         {
