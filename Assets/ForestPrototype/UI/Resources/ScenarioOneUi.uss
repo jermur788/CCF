@@ -1,0 +1,137 @@
+/* Scenario One UI tokens and layout primitives. Visual reference: the accepted
+   CCF UI mockups (dark translucent panels, compact semantic colour). Colours
+   always pair with text; meaning never depends on colour alone. */
+
+:root {
+    --panel-bg: rgba(14, 22, 16, 0.86);
+    --panel-border: rgba(160, 190, 150, 0.22);
+    --ink: rgb(236, 240, 228);
+    --ink-muted: rgb(176, 190, 168);
+    --ink-faint: rgb(132, 146, 126);
+    --accent: rgb(232, 206, 120);
+    --good: rgb(150, 214, 140);
+    --warn: rgb(240, 186, 110);
+    --bad: rgb(236, 128, 112);
+    --fell: rgb(214, 70, 58);
+    --crop: rgb(70, 130, 230);
+    --chip-bg: rgba(255, 255, 255, 0.08);
+}
+
+.root { flex-grow: 1; color: var(--ink); font-size: 15px; }
+.layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+
+.panel {
+    background-color: var(--panel-bg);
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 6px;
+    padding: 10px 14px;
+}
+
+.title { font-size: 22px; -unity-font-style: bold; color: var(--ink); }
+.subtitle { font-size: 15px; color: var(--ink-muted); }
+.heading { font-size: 16px; -unity-font-style: bold; color: var(--accent); margin-top: 6px; margin-bottom: 4px; }
+.body { white-space: normal; color: var(--ink); }
+.muted { white-space: normal; color: var(--ink-muted); font-size: 13px; }
+.faint { white-space: normal; color: var(--ink-faint); font-size: 12px; }
+.money { -unity-font-style: bold; color: var(--good); }
+.money-negative { -unity-font-style: bold; color: var(--bad); }
+.value { -unity-font-style: bold; color: var(--ink); }
+
+.row { flex-direction: row; align-items: center; }
+.row-wrap { flex-direction: row; flex-wrap: wrap; }
+.spread { flex-direction: row; justify-content: space-between; align-items: center; }
+.grow { flex-grow: 1; }
+.gap { margin-right: 10px; }
+
+.chip {
+    background-color: var(--chip-bg);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-right: 6px;
+    font-size: 13px;
+}
+.chip-fell { background-color: rgba(214, 70, 58, 0.85); color: white; -unity-font-style: bold; }
+.chip-crop { background-color: rgba(70, 130, 230, 0.85); color: white; -unity-font-style: bold; }
+.chip-ok { background-color: rgba(90, 160, 90, 0.75); color: white; }
+.chip-warn { background-color: rgba(200, 140, 50, 0.8); color: white; }
+.chip-bad { background-color: rgba(190, 70, 60, 0.85); color: white; }
+
+.key { color: var(--accent); -unity-font-style: bold; }
+
+.btn {
+    background-color: rgba(60, 86, 58, 0.95);
+    border-color: rgba(170, 200, 150, 0.35);
+    border-width: 1px;
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 4px 10px;
+    margin: 2px 4px 2px 0;
+    -unity-font-style: bold;
+    font-size: 14px;
+}
+.btn:hover { background-color: rgba(84, 118, 80, 1); }
+.btn:disabled { opacity: 0.45; }
+.btn-primary { background-color: rgba(120, 104, 48, 0.95); border-color: rgba(232, 206, 120, 0.6); }
+.btn-selected { background-color: rgba(84, 118, 80, 1); border-color: var(--accent); }
+
+.card {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+}
+
+.table-row { flex-direction: row; padding: 1px 0; }
+.table-row Label { white-space: normal; }
+.cell-name { flex-grow: 3; flex-basis: 0; }
+.cell-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; }
+
+/* ---- walking HUD ---- */
+.hud-status { position: absolute; top: 14px; right: 14px; width: 330px; }
+.hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 14px; }
+.hud-ground { max-width: 560px; margin-bottom: 8px; }
+.hud-prompt {
+    position: absolute; left: 0; right: 0; top: 56%;
+    align-items: center;
+}
+.hud-prompt-box { -unity-text-align: middle-center; font-size: 18px; -unity-font-style: bold; white-space: normal; max-width: 900px; }
+.hud-message { position: absolute; top: 14px; left: 0; right: 0; align-items: center; }
+.hud-message Label { font-size: 18px; color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
+.reticle { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin-left: -2px; margin-top: -2px; background-color: rgba(255, 255, 255, 0.8); }
+.hud-hotbar { position: absolute; left: 0; right: 0; bottom: 70px; align-items: center; }
+.waypoint-line { color: var(--accent); }
+
+/* ---- inspection ---- */
+.inspect { position: absolute; right: 14px; top: 160px; width: 380px; max-height: 78%; }
+.stat-grid { flex-direction: row; flex-wrap: wrap; }
+.stat { width: 50%; margin-bottom: 4px; }
+.stat-label { color: var(--ink-faint); font-size: 12px; }
+.stat-value { -unity-font-style: bold; font-size: 15px; white-space: normal; }
+
+/* ---- modal screens ---- */
+.modal-backdrop { background-color: rgba(0, 0, 0, 0.35); align-items: center; justify-content: center; }
+.modal { width: 92%; max-width: 1180px; height: 92%; max-height: 900px; }
+.modal-header { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.modal-footer { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.columns { flex-direction: row; flex-wrap: wrap; }
+.column { flex-grow: 1; flex-basis: 300px; margin-right: 10px; }
+
+/* ---- stand map ---- */
+.map-body { flex-direction: row; flex-grow: 1; }
+.map-left { flex-grow: 1; align-items: center; }
+.map-grid { flex-direction: column; }
+.map-row { flex-direction: row; }
+.map-cell {
+    width: 64px; height: 56px; margin: 1px;
+    border-width: 2px; border-color: transparent;
+    justify-content: space-between; padding: 2px 3px;
+}
+.map-cell Label { font-size: 11px; color: white; -unity-text-outline-width: 1px; -unity-text-outline-color: black; }
+.map-cell-selected { border-color: var(--accent); }
+.map-cell-player { border-color: white; }
+.map-side { width: 330px; margin-left: 12px; }
+.legend { flex-direction: row; align-items: center; margin-top: 6px; }
+.legend-swatch { width: 120px; height: 10px; margin: 0 6px; }

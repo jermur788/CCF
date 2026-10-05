@@ -841,10 +841,83 @@ public sealed class ForestPlayer : MonoBehaviour
         }
     }
 
+    // ----- Read-only presentation access (Scenario One UI Toolkit HUD) -----
+    public ForestTree InspectedTree => isInspecting ? inspectedTree : null;
+    public ForestTree AimedTree => isLookingAtTree ? aimedTree : null;
+    public bool IsAimingGround => isAimingGround;
+    public bool IsPlantingMode => isPlantingMode;
+    public string TransientMessage => messageTimer > 0f ? lastHarvestMessage : "";
+
+    // The contextual action line for whatever the player is aiming at, or ""
+    // when nothing actionable is aimed at. Shared by both HUD implementations.
+    public string InteractionPromptText()
+    {
+        if (isInspecting)
+            return "";
+        if (isLookingAtTree && aimedTree != null)
+        {
+            if (!aimedTree.CanChop)
+                return $"[E] Inspect {aimedTree.StageLabel}";
+            int chops = aimedTree.ChopProgress;
+            return Object.FindFirstObjectByType<ScenarioOneManager>() != null
+                ? "[E] Inspect  |  [M] Fell  |  [C] Crop Tree  |  [Tab] Plan"
+                : chops > 0
+                    ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
+                    : "[E] Inspect  |  [F] Chop Tree";
+        }
+        if (!isAimingGround)
+            return "";
+        string plantingPrompt = Object.FindFirstObjectByType<ScenarioOneManager>() != null
+            ? isPlantingMode
+                ? $"[Click] Mark {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)} planting site"
+                : "[G] Planting mode  |  [Tab] Buy saplings"
+            : isPlantingMode
+                ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
+                : "[G] Open planting";
+        if (isPlantingMode || !TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
+            return plantingPrompt;
+        string selection = aimedRegeneration.Cohorts.Count > 1
+            ? $"Selected: {selected.DisplayName}  |  [R] Cycle species\n"
+            : "";
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+            return selection + $"[U] Mark {selected.DisplayName} removal in this cell\n" + plantingPrompt;
+        string progress = isUprooting && uprootDuration > 0f
+            ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
+            : "";
+        return selection + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n" + plantingPrompt;
+    }
+
+    public string PlantingHotbarText()
+    {
+        if (!isPlantingMode)
+            return "";
+        string options = "";
+        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        string[] optionsIds = ActivePlantingIds();
+        for (int i = 0; optionsIds != null && i < optionsIds.Length; i++)
+        {
+            if (i > 0)
+                options += "   ";
+            string slot = i < 2 ? $"[{i + 1}] " : "";
+            string selected = i == selectedPlantingSpeciesIndex ? "▶ " : "";
+            string stockInfo = "";
+            if (scenario != null)
+            {
+                int stock = scenario.GetStockQuantity(optionsIds[i]);
+                int reserved = scenario.GetReservedStockQuantity(optionsIds[i]);
+                stockInfo = $" ({stock - reserved} ready)";
+            }
+            options += selected + slot + PlantingSpeciesDisplayName(i) + stockInfo;
+        }
+        string selectedName = PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex);
+        return $"PLANTING — Selected: {selectedName}\n{options}   |   [R] Next   [{(scenario != null ? "Click" : "G")}] Plant   [Esc] Exit";
+    }
+
     private void OnGUI()
     {
-        ScenarioOneManager preview = Object.FindFirstObjectByType<ScenarioOneManager>();
-        if (preview != null && preview.ReferencePreviewActive)
+        // Scenario One draws its walking HUD, prompts and inspection with UI
+        // Toolkit (ScenarioOneUiRoot); this IMGUI serves the other modes.
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
             return;
         float centerX = Screen.width * 0.5f;
         float centerY = Screen.height * 0.5f;
@@ -935,20 +1008,7 @@ public sealed class ForestPlayer : MonoBehaviour
             }
             promptStyle.wordWrap = false;
 
-            string promptText;
-            if (aimedTree.CanChop)
-            {
-                int chops = aimedTree.ChopProgress;
-                promptText = Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                    ? "[E] Inspect  |  [M] Fell  |  [C] Crop Tree  |  [Tab] Plan"
-                    : chops > 0
-                        ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
-                        : "[E] Inspect  |  [F] Chop Tree";
-            }
-            else
-            {
-                promptText = $"[E] Inspect {aimedTree.StageLabel}";
-            }
+            string promptText = InteractionPromptText();
 
             float width = Mathf.Max(440f, promptText.Length * size * 0.52f + 48f);
             float height = Mathf.Max(64f, size * 2.0f);
@@ -971,31 +1031,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 promptStyle.normal.textColor = Color.white;
             }
 
-            string plantingPrompt = Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                ? isPlantingMode
-                    ? $"[Click] Mark {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)} planting site"
-                    : "[G] Planting mode  |  [Tab] Buy saplings"
-                : isPlantingMode
-                    ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
-                    : "[G] Open planting";
-            string promptText = plantingPrompt;
-            if (!isPlantingMode && TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
-            {
-                string selection = aimedRegeneration.Cohorts.Count > 1
-                    ? $"Selected: {selected.DisplayName}  |  [R] Cycle species\n"
-                    : "";
-                if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
-                    promptText = selection + $"[U] Mark {selected.DisplayName} removal in this cell\n" + plantingPrompt;
-                else
-                {
-                    string progress = isUprooting && uprootDuration > 0f
-                        ? $"  {Mathf.Clamp01(uprootProgress / uprootDuration):P0}"
-                        : "";
-                    promptText = selection
-                        + $"[Hold U] Pull up {selected.DisplayName} seedlings{progress}\n"
-                        + plantingPrompt;
-                }
-            }
+            string promptText = InteractionPromptText();
             // Measure actual rendered glyphs rather than estimating from the
             // character count; longer species names otherwise clip both ends.
             float widestLine = 0f;
@@ -1035,27 +1071,7 @@ public sealed class ForestPlayer : MonoBehaviour
         plantingHotbarStyle.wordWrap = true;
         plantingHotbarStyle.normal.textColor = Color.white;
 
-        string options = "";
-        ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
-        string[] optionsIds = ActivePlantingIds();
-        for (int i = 0; optionsIds != null && i < optionsIds.Length; i++)
-        {
-            if (i > 0)
-                options += "   ";
-            string slot = i < 2 ? $"[{i + 1}] " : "";
-            string selected = i == selectedPlantingSpeciesIndex ? "▶ " : "";
-            string stockInfo = "";
-            if (scenario != null)
-            {
-                int stock = scenario.GetStockQuantity(optionsIds[i]);
-                int reserved = scenario.GetReservedStockQuantity(optionsIds[i]);
-                stockInfo = $" ({stock - reserved} ready)";
-            }
-            options += selected + slot + PlantingSpeciesDisplayName(i) + stockInfo;
-        }
-
-        string selectedName = PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex);
-        string text = $"PLANTING — Selected: {selectedName}\n{options}   |   [R] Next   [{(scenario != null ? "Click" : "G")}] Plant   [Esc] Exit";
+        string text = PlantingHotbarText();
         float width = Mathf.Min(Screen.width - 32f, 940f * scale);
         float padding = 12f * scale;
         float contentWidth = Mathf.Max(1f, width - 2f * padding);

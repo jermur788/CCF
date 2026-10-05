@@ -63,20 +63,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
     private ScenarioHabitatVisuals habitatVisuals;
     private bool workPlanOpen;
     private string feedback = "";
-    private Vector2 scroll;
-    private string selectedShopItemId = "";
-    private string selectedRemovalSpeciesId = "";
-    private string purchaseQuantity = "1";
-    private bool annualReviewOpen;
-    private GUIStyle titleStyle;
-    private GUIStyle headingStyle;
-    private GUIStyle bodyStyle;
-    private GUIStyle mutedStyle;
-    private GUIStyle moneyStyle;
-    private GUIStyle closedPromptStyle;
-    private GUIStyle buttonStyle;
-    private GUIStyle cellButtonStyle;
-    private GUIStyle inputStyle;
     private Texture2D buttonFace;
     private Texture2D buttonFaceHover;
     private Texture2D buttonFacePressed;
@@ -315,6 +301,99 @@ public sealed class ScenarioOneManager : MonoBehaviour
     public bool WorkPlanOpen => workPlanOpen;
     public bool ReferencePreviewActive => referencePreviewActive;
 
+    // ----- Read-only presentation access for the Scenario One UI screens -----
+    // The UI reads authoritative state and calls the public actions above; it
+    // owns no copy of cash, orders, marks, ecology or reports.
+    public int CurrentEcologicalYear => CurrentYear;
+    public int CenturyReviewYear => ReviewYear;
+    public int ReferencePreviewYear => previewYear;
+    public bool ReferenceArchiveAvailable => referenceArchive != null && referenceArchive.Matches(definition, ecology);
+    public WorkExecutionMethod PlanningPlantingMethod => planningPlantingMethod;
+    public bool PlanningInstallShelter => planningInstallShelter;
+    public bool CanAdvanceYearNow
+    {
+        get
+        {
+            WorkPlanTotals totals = CalculateTotals();
+            return outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear
+                && (totals.approvedCount == 0 || totals.approvedCostCents <= cashCents);
+        }
+    }
+    public bool CanEditWorkPlan => outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear;
+
+    public struct WorkPlanSummary
+    {
+        public int OpenCount, ApprovedCount, NonHarvestMinutes;
+        public long ExternalCostCents, ExpectedRevenueCents, ApprovedCostCents;
+    }
+
+    public WorkPlanSummary GetWorkPlanSummary()
+    {
+        WorkPlanTotals totals = CalculateTotals();
+        return new WorkPlanSummary
+        {
+            OpenCount = totals.openCount, ApprovedCount = totals.approvedCount, NonHarvestMinutes = totals.minutes,
+            ExternalCostCents = totals.costCents, ExpectedRevenueCents = totals.revenueCents,
+            ApprovedCostCents = totals.approvedCostCents
+        };
+    }
+
+    // Owner minutes reserved by open landowner-simulated planting orders.
+    public int PlannedOwnerMinutes => workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile
+        && string.IsNullOrEmpty(order.validationMessage) && order.executionMethod == WorkExecutionMethod.LandownerSimulated)
+        .Sum(order => order.estimatedMinutes);
+
+    public int CropTreeCount => LivingTreesById().Values.Count(tree => tree != null && tree.IsCropTree);
+
+    public int EligibleCropTreePruningCount
+    {
+        get
+        {
+            if (definition == null) return 0;
+            return LivingTreesById().Values.Count(tree => tree.IsCropTree
+                && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.FellTree)
+                && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree)
+                && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
+                && tree.CanPrune(definition.NextPruningTargetHeightM(tree.PruningLifts), CurrentYear + 1) == null);
+        }
+    }
+
+    public static float PruningTargetHeight(ScenarioOneWorkOrder order) => PruningTarget(order);
+    public static string FormatMoney(long cents) => Money(cents);
+    public static string FormatMinutes(int minutes) => Minutes(minutes);
+
+    // Pending felling orders can change their material outcome before approval.
+    public bool SetPendingFellingOutcome(int workOrderId, FellingMaterialOutcome choice)
+    {
+        ScenarioOneWorkOrder order = workOrders.Find(o => o != null && o.workOrderId == workOrderId);
+        if (order == null || order.type != ScenarioWorkType.FellTree || order.status != ScenarioWorkStatus.Pending)
+            return false;
+        order.fellingOutcome = choice;
+        order.expectedRevenueCents = 0;
+        InvalidateEconomyQuotes();
+        feedback = $"Order #{order.workOrderId}: {choice}.";
+        return true;
+    }
+
+    // Opening the annual review completes the tutorial's review step (saved).
+    public void MarkAnnualReviewSeen() => annualReviewSeen = true;
+
+    // Work Plan plus the other full-screen panels (map, annual review). While any
+    // is open the player is paused and the cursor is free; the marking manager
+    // ignores input. Only the UI changes the auxiliary flag.
+    public bool AnyPanelOpen => workPlanOpen || auxiliaryPanelOpen;
+    private bool auxiliaryPanelOpen;
+
+    public void OpenWorkPlan(bool open) => SetWorkPlanOpen(open);
+
+    public void SetAuxiliaryPanelOpen(bool open)
+    {
+        if (auxiliaryPanelOpen == open)
+            return;
+        auxiliaryPanelOpen = open;
+        ApplyPanelInputState();
+    }
+
     // Reference generation uses the same work and ecology, but must not
     // compare its own Century Review against a previously frozen copy of itself.
     // This transient flag does not enter saves or change any biological work.
@@ -350,6 +429,8 @@ public sealed class ScenarioOneManager : MonoBehaviour
                 ?? gameObject.AddComponent<ScenarioOneSoundscapePlayer>();
             habitatVisuals = GetComponent<ScenarioHabitatVisuals>()
                 ?? gameObject.AddComponent<ScenarioHabitatVisuals>();
+            if (GetComponent<ScenarioOneUiRoot>() == null)
+                gameObject.AddComponent<ScenarioOneUiRoot>();
         }
         if (!initialized && definition != null)
         {
@@ -448,8 +529,6 @@ public sealed class ScenarioOneManager : MonoBehaviour
         planningFellingOutcome = definition.DefaultFellingOutcome;
         planningPlantingMethod = WorkExecutionMethod.Contractor;
         planningInstallShelter = false;
-        selectedShopItemId = "";
-        selectedRemovalSpeciesId = "";
         feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
     }
 
@@ -1947,645 +2026,18 @@ public sealed class ScenarioOneManager : MonoBehaviour
         workPlanOpen = open;
         if (open)
             AddMarkedTreesToWorkPlan(false);
+        ApplyPanelInputState();
+    }
+
+    private void ApplyPanelInputState()
+    {
+        bool open = AnyPanelOpen;
         if (player == null)
             player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)
             player.enabled = !open;
         Cursor.lockState = open ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = open;
-    }
-
-    private void OnGUI()
-    {
-        if (referencePreviewActive)
-        {
-            DrawReferencePreviewPrompt();
-            return;
-        }
-        if (!workPlanOpen)
-        {
-            // The central inspection card owns this space while inspecting.
-            if (player == null || !player.IsInspecting)
-                DrawMainHud();
-            return;
-        }
-        EnsureStyles();
-        float scale = ForestHud.Scale;
-        float width = Mathf.Min(1120f * scale, Screen.width - 32f);
-        float height = Mathf.Min(760f * scale, Screen.height - 32f);
-        Rect panel = new Rect((Screen.width - width) * 0.5f, (Screen.height - height) * 0.5f, width, height);
-        ForestHud.Panel(panel);
-        GUILayout.BeginArea(new Rect(panel.x + 22f, panel.y + 18f, panel.width - 44f, panel.height - 36f));
-        GUILayout.Label("SCENARIO ONE — ANNUAL WORK PLAN", titleStyle);
-        GUILayout.BeginHorizontal();
-        GUILayout.Label($"Ecological year {CurrentYear}", headingStyle);
-        GUILayout.FlexibleSpace();
-        GUILayout.Label(Money(cashCents), moneyStyle);
-        GUILayout.EndHorizontal();
-        GUILayout.Space(8f);
-
-        ValidateOpenOrders();
-        WorkPlanTotals totals = CalculateTotals();
-        GUILayout.Label($"Open tasks: {totals.openCount}   Non-harvest task time: {Minutes(totals.minutes)}   "
-            + $"External work/material cost: {Money(totals.costCents)}   Expected timber: {Money(totals.revenueCents)}   "
-            + $"Expected net: {Money(totals.revenueCents - totals.costCents)}", bodyStyle);
-        GUILayout.Label($"Approved contractor reserve: {Money(ReservedContractorCashCents)}   "
-            + $"Uncommitted cash: {Money(cashCents - ReservedContractorCashCents)}", bodyStyle);
-        IReadOnlyList<ScenarioObjectiveResult> objectives = Objectives;
-        GUILayout.Label($"Scenario: {outcome} · {objectives.Count(item => item.achieved)}/{objectives.Count} "
-            + $"objectives · Century Review year {ReviewYear}", headingStyle);
-        GUILayout.Label(outcome == ScenarioOneOutcome.Failed ? outcomeReason : TutorialHint, bodyStyle);
-        GUILayout.Label("Light deer browsing slows unprotected oak; tree shelters protect planted trees.", mutedStyle);
-        GUILayout.Space(8f);
-
-        scroll = GUILayout.BeginScrollView(scroll, GUILayout.ExpandHeight(true));
-        if (GUILayout.Button(annualReviewOpen ? "Hide annual review" : "Show annual review", buttonStyle,
-                GUILayout.Height(30f * scale)))
-        {
-            annualReviewOpen = !annualReviewOpen;
-            if (annualReviewOpen)
-                annualReviewSeen = true;
-        }
-        if (annualReviewOpen)
-        {
-            DrawAnnualReview();
-            GUILayout.Space(12f);
-        }
-        DrawReferencePreviewControls();
-        DrawNursery();
-        DrawExecutionChoices();
-        DrawHarvestJobQuote();
-        GUILayout.Space(12f);
-        DrawSpatialSummary();
-        GUILayout.Space(12f);
-        DrawWorkOrdersSummary();
-        GUILayout.Space(12f);
-        DrawCropTreePruning();
-        GUILayout.EndScrollView();
-
-        GUILayout.Space(8f);
-        if (!string.IsNullOrEmpty(feedback))
-            GUILayout.Label(feedback, bodyStyle);
-        GUILayout.BeginHorizontal();
-        GUI.enabled = outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear;
-        if (GUILayout.Button("Add marked trees", buttonStyle, GUILayout.Height(42f * scale)))
-            AddMarkedTreesToWorkPlan();
-        if (GUILayout.Button("Approve pending work", buttonStyle, GUILayout.Height(42f * scale)))
-            ApprovePendingWork();
-        GUI.enabled = outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear
-            && (totals.approvedCount == 0 || totals.approvedCostCents <= cashCents);
-        if (GUILayout.Button("Advance one year", buttonStyle, GUILayout.Height(42f * scale)))
-            AdvanceYear();
-        GUI.enabled = true;
-        if (GUILayout.Button("Close", buttonStyle, GUILayout.Height(42f * scale)))
-            SetWorkPlanOpen(false);
-        GUILayout.EndHorizontal();
-        GUILayout.EndArea();
-    }
-
-    private void DrawReferencePreviewControls()
-    {
-        if (referenceArchive == null || !referenceArchive.Matches(definition, ecology))
-            return;
-        GUILayout.Label("EXPLORE REFERENCE FUTURE v1 (FROZEN v12)", headingStyle);
-        GUILayout.Label("Walk the verified historical v12 forest at a milestone, then press [Tab] to return to your own stand. "
-            + "Your work and save slot are preserved.", bodyStyle);
-        GUILayout.BeginHorizontal();
-        foreach (int year in new[] { 20, 50, 100 })
-            if (GUILayout.Button("Visit year " + year, buttonStyle, GUILayout.Height(36f * ForestHud.Scale)))
-                TryBeginReferencePreview(year);
-        GUILayout.EndHorizontal();
-        GUILayout.Space(10f);
-    }
-
-    private void DrawReferencePreviewPrompt()
-    {
-        EnsureStyles();
-        float scale = ForestHud.Scale;
-        float width = Mathf.Min(650f * scale, Screen.width - 32f);
-        Rect panel = new Rect((Screen.width - width) * 0.5f, 16f, width, 80f * scale);
-        ForestHud.Panel(panel);
-        GUI.Label(new Rect(panel.x + 12f, panel.y + 8f, panel.width - 24f, panel.height - 16f),
-            $"REFERENCE FUTURE v1 — YEAR {previewYear}  ·  [Tab] Return to your forest", bodyStyle);
-    }
-
-    private void DrawSpatialSummary()
-    {
-        GUILayout.Label("SPATIAL SUMMARY — YOUR FORESTRY DECISIONS", headingStyle);
-        int fellingMarks = workOrders.Count(o => o.type == ScenarioWorkType.FellTree && o.IsOpen);
-        int plantingMarks = workOrders.Count(o => o.type == ScenarioWorkType.PlantJuvenile && o.IsOpen);
-        int pruningMarks = workOrders.Count(o => o.type == ScenarioWorkType.PruneTree && o.IsOpen);
-        int cropTrees = LivingTreesById().Values.Count(t => t != null && t.IsCropTree);
-        GUILayout.Label($"Felling marks: {fellingMarks}  |  Planting markers: {plantingMarks}  |  "
-            + $"Pruning tasks: {pruningMarks}  |  Crop Trees: {cropTrees}", bodyStyle);
-        GUILayout.Label($"Retained timber: {retainedTimberM3:0.00} m³  |  Planted juveniles: "
-            + $"{plantedJuveniles.Count(j => j.alive && !j.legacyCohortManaged && string.IsNullOrEmpty(j.promotedTreeId))}  |  "
-            + $"Clearance patches: {clearancePatches.Count}", bodyStyle);
-        if (fellingMarks > 0)
-            GUILayout.Label("Felling outcomes: " + string.Join(", ", workOrders
-                .Where(o => o.type == ScenarioWorkType.FellTree && o.IsOpen)
-                .GroupBy(o => o.fellingOutcome)
-                .Select(g => $"{g.Key}: {g.Count()}")), bodyStyle);
-    }
-
-    private void DrawCropTreePruning()
-    {
-        GUILayout.Label("CROP TREE PRUNING", headingStyle);
-        if (definition == null)
-            return;
-        var cropTrees = LivingTreesById().Values.Where(tree => tree.IsCropTree).ToList();
-        int eligible = cropTrees.Count(tree => !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.FellTree)
-            && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree)
-            && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
-            && tree.CanPrune(definition.NextPruningTargetHeightM(tree.PruningLifts), CurrentYear + 1) == null);
-        GUILayout.Label($"{cropTrees.Count} designated blue · {eligible} eligible for a pruning lift. "
-            + "Biological limits, recovery interval and existing orders still apply.", bodyStyle);
-        GUI.enabled = eligible > 0;
-        if (GUILayout.Button($"Add {eligible} eligible Crop Tree pruning tasks", buttonStyle,
-                GUILayout.Height(36f * ForestHud.Scale)))
-            BatchPruneCropTrees();
-        GUI.enabled = true;
-    }
-
-    private void DrawWorkOrdersSummary()
-    {
-        GUILayout.Label("WORK ORDERS", headingStyle);
-        List<ScenarioOneWorkOrder> visible = workOrders.Where(order => order.IsOpen)
-            .OrderBy(order => order.workOrderId).ToList();
-        if (visible.Count == 0)
-            GUILayout.Label("No work is planned. Mark trees in the forest, place planting markers, or designate pruning.", bodyStyle);
-        foreach (ScenarioOneWorkOrder order in visible)
-            DrawOrder(order);
-    }
-
-    private void DrawOrder(ScenarioOneWorkOrder order)
-    {
-        GUILayout.BeginVertical(GUI.skin.box);
-        GUILayout.BeginHorizontal();
-        GUILayout.Label($"#{order.workOrderId}  {order.ShortLabel}", headingStyle);
-        GUILayout.FlexibleSpace();
-        GUILayout.Label(order.status.ToString(), bodyStyle, GUILayout.Width(100f * ForestHud.Scale));
-        GUILayout.EndHorizontal();
-        if (order.type == ScenarioWorkType.PlantJuvenile)
-            GUILayout.Label($"{order.executionMethod} · {Minutes(order.estimatedMinutes)} · external cost {Money(order.estimatedCostCents)} · "
-                + $"stock: {order.requiredStockQuantity} {order.stockItemId} · "
-                + $"{(order.installShelter ? "with one tree shelter" : "without shelter")} · position ({order.worldPosition.x:0.0}, {order.worldPosition.z:0.0})", bodyStyle);
-        else if (order.type == ScenarioWorkType.RemoveRegeneration)
-            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
-                + $"whole {order.speciesId} cohort · cell {order.cellIndex} · estimated density {order.expectedRegenerationDensity:0.00}", bodyStyle);
-        else if (order.type == ScenarioWorkType.PruneTree)
-            GUILayout.Label($"{Minutes(order.estimatedMinutes)} · contractor {Money(order.estimatedCostCents)} · "
-                + $"clear-stem lift to {PruningTarget(order):0.0} m · tree {order.targetTreeId}", bodyStyle);
-        else
-        {
-            string outcomeLabel = order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood
-                ? "Retain as fallen deadwood (no timber revenue)"
-                : order.fellingOutcome == FellingMaterialOutcome.KeepForUse
-                    ? "Keep for construction (no timber revenue)" : "Sell and extract timber";
-            GUILayout.Label($"Contractor · commissioned job #{order.harvestJobId} (cost shown once above) · "
-                + $"{order.expectedVolumeM3:0.00} m³ · expected product revenue {Money(order.expectedRevenueCents)} · {outcomeLabel}", bodyStyle);
-            if (order.status == ScenarioWorkStatus.Pending)
-            {
-                GUILayout.BeginHorizontal();
-                foreach (FellingMaterialOutcome choice in new[] { FellingMaterialOutcome.SellAndExtract,
-                    FellingMaterialOutcome.KeepForUse, FellingMaterialOutcome.RetainAsFallenDeadwood })
-                {
-                    GUI.enabled = order.fellingOutcome != choice;
-                    if (GUILayout.Button(choice.ToString(), buttonStyle))
-                    {
-                        order.fellingOutcome = choice;
-                        order.expectedRevenueCents = 0;
-                        feedback = $"Order #{order.workOrderId}: {choice}.";
-                    }
-                }
-                GUI.enabled = true;
-                GUILayout.EndHorizontal();
-            }
-        }
-        if (!string.IsNullOrEmpty(order.validationMessage))
-            GUILayout.Label("Problem: " + order.validationMessage, mutedStyle);
-        if (order.status == ScenarioWorkStatus.Pending && GUILayout.Button("Remove from plan", buttonStyle))
-            RemovePendingOrder(order.workOrderId);
-        if (order.status == ScenarioWorkStatus.Approved && GUILayout.Button("Cancel approved work", buttonStyle))
-            CancelApprovedOrder(order.workOrderId);
-        GUILayout.EndVertical();
-    }
-
-    private void DrawNursery()
-    {
-        GUILayout.Label("NURSERY — BUY PLANTING STOCK", headingStyle);
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Quantity to buy (whole saplings):", bodyStyle, GUILayout.Width(310f * ForestHud.Scale));
-        purchaseQuantity = GUILayout.TextField(purchaseQuantity, 12, inputStyle,
-            GUILayout.Width(110f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale));
-        GUILayout.EndHorizontal();
-        if (definition == null || definition.ShopEntries == null)
-            return;
-        foreach (ScenarioShopEntry offer in definition.ShopEntries)
-        {
-            if (offer == null)
-                continue;
-            GUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label($"{offer.displayName} · {Money(offer.unitPriceCents)} each · "
-                + $"owned {GetStockQuantity(offer.itemId)} · reserved {GetReservedStockQuantity(offer.itemId)}",
-                bodyStyle, GUILayout.Width(590f * ForestHud.Scale));
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Buy", buttonStyle, GUILayout.Width(80f * ForestHud.Scale),
-                    GUILayout.Height(30f * ForestHud.Scale)))
-            {
-                if (int.TryParse(purchaseQuantity, out int amount))
-                    TryPurchaseStock(offer.itemId, amount);
-                else
-                    feedback = "Enter a positive whole-number quantity to purchase.";
-            }
-            GUILayout.EndHorizontal();
-        }
-    }
-
-    private void DrawExecutionChoices()
-    {
-        GUILayout.Label("WHO DOES THE WORK?", headingStyle);
-        GUILayout.Label("Harvest: Contractor only. Landowner production felling is ineligible (specialist work).", bodyStyle);
-        GUILayout.BeginHorizontal();
-        foreach (var method in new[] { WorkExecutionMethod.Contractor, WorkExecutionMethod.LandownerSimulated })
-        {
-            GUI.enabled = planningPlantingMethod != method;
-            if (GUILayout.Button("Planting: " + method, buttonStyle)) SetPlantingExecution(method);
-        }
-        GUI.enabled = true; GUILayout.EndHorizontal();
-        bool shelter = GUILayout.Toggle(planningInstallShelter, "With tree shelter — same executor as planting; one material item, " + Money(definition.TreeShelterMaterialCents) + " [D] placeholder");
-        if (shelter != planningInstallShelter) SetPlantingShelters(shelter);
-        int reserved = workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && string.IsNullOrEmpty(order.validationMessage)
-            && order.executionMethod == WorkExecutionMethod.LandownerSimulated).Sum(order => order.estimatedMinutes);
-        GUILayout.Label($"Next annual owner budget: {OwnerMinutesPerYear} min (40 h [C]); planned {reserved} min, remaining {Math.Max(0, OwnerMinutesPerYear - reserved)} min. Last resolved year used {ownerMinutesUsedThisYear} min. No owner wage cash.", bodyStyle);
-        GUILayout.Label("Choices apply to newly designated plantings and open planting orders; changed approved work requires approval again. Purchased saplings are consumed once.", mutedStyle);
-    }
-
-    private void DrawHarvestJobQuote()
-    {
-        var job = GetHarvestQuote(false);
-        if (job.Orders.Count == 0) return;
-        var costs = job.Resolution.Quote.Costs;
-        GUILayout.Label($"COMMISSIONED HARVEST JOB #{job.JobId} — {job.Orders.Count} trees", headingStyle);
-        GUILayout.Label("Small-job minimum applies once per commissioned job.", bodyStyle);
-        GUILayout.Label($"Modeled stem {job.TotalStemVolumeCm3 / 1000000d:0.000} m³ · retained {job.RetainedVolumeCm3 / 1000000d:0.000} m³ · deadwood/reference {job.DeadwoodVolumeCm3 / 1000000d:0.000} m³ · residue {job.ResidualVolumeCm3 / 1000000d:0.000} m³", bodyStyle);
-        foreach (var product in job.Yield.Assortments)
-            GUILayout.Label($"{product.Assortment} · {product.Disposition} · {product.VolumeCm3 / 1000000d:0.000} m³ / {product.Pieces} logs", bodyStyle);
-        GUILayout.Label($"Expected receipts {Money(job.RevenueCents)} · variable bundled work {Money(costs.ContractorWorkCents - costs.MinimumJobAdjustmentCents)} · minimum adjustment {Money(costs.MinimumJobAdjustmentCents)} · external cost {Money(job.CostCents)} · net {Money(job.RevenueCents - job.CostCents)}", bodyStyle);
-        GUILayout.Label(job.Eligible ? "Eligible — revalidated and re-quoted at annual resolution." : "Ineligible: " + job.Problem, mutedStyle);
-        if (job.HasUnmarketedSpecies) GUILayout.Label("No broadleaf timber market is configured: felling work is charged, sale revenue is zero for those stems. KeepForUse/deadwood still follow your choice.", mutedStyle);
-        GUILayout.Label("Over-bark game basis [S]; whole-stem work-equivalent quantity, not measured industrial taper. Kept timber is forwarded roadside without haulage.", mutedStyle);
-    }
-
-    private void DrawPlantingGrid()
-    {
-        ScenarioShopEntry selected = definition != null ? definition.FindShopEntry(selectedShopItemId) : null;
-        GUILayout.Label("PLANTING DESIGNATIONS", headingStyle);
-        GUILayout.Label(selected != null
-            ? $"Selected: {selected.displayName}. Choose a stand cell; each order needs one sapling and contractor time. "
-                + "Occupied cells can still be designated for another species when space permits."
-            : "Select a nursery species above, then click a stand cell.", bodyStyle);
-        if (ecology == null || ecology.Cells == null)
-            return;
-        int axis = ecology.CellsPerAxis;
-        for (int z = axis - 1; z >= 0; z--)
-        {
-            GUILayout.BeginHorizontal();
-            for (int x = 0; x < axis; x++)
-            {
-                int index = z * axis + x;
-                ForestRegenerationCohort cohort = selected != null
-                    ? ecology.Cells[index].FindCohort(selected.speciesId) : null;
-                bool available = selected != null && (cohort == null || cohort.Density <= 0f)
-                    && !HasOpenPlantingOrder(selected.speciesId, index);
-                GUI.enabled = available;
-                if (GUILayout.Button($"{x + 1},{z + 1}", cellButtonStyle,
-                        GUILayout.Width(66f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale)))
-                    TryDesignatePlanting(selectedShopItemId, index);
-                GUI.enabled = true;
-            }
-            GUILayout.EndHorizontal();
-        }
-        GUILayout.Label("Cells are numbered west to east, south to north. Grey cells already have this species or an open designation.", bodyStyle);
-    }
-
-    private void DrawRegenerationRemovalGrid()
-    {
-        GUILayout.Label("REGENERATION CONTROL", headingStyle);
-        GUILayout.Label("Select a species, then designate cells containing its live regeneration for annual contractor removal.", bodyStyle);
-        ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
-        if (ecology == null || ecology.Cells == null || spawner == null)
-            return;
-        GUILayout.BeginHorizontal();
-        foreach (TreeSpeciesDefinition species in spawner.KnownSpecies)
-        {
-            bool hasCohorts = ecology.Cells.Any(cell =>
-            {
-                ForestRegenerationCohort cohort = cell.FindCohort(species.SpeciesId);
-                return cohort != null && cohort.Density > 0f;
-            });
-            GUI.enabled = hasCohorts;
-            if (GUILayout.Button((selectedRemovalSpeciesId == species.SpeciesId ? "Selected: " : "Choose: ")
-                    + species.DisplayName, buttonStyle, GUILayout.Height(30f * ForestHud.Scale)))
-                selectedRemovalSpeciesId = species.SpeciesId;
-            GUI.enabled = true;
-        }
-        GUILayout.EndHorizontal();
-        if (string.IsNullOrEmpty(selectedRemovalSpeciesId))
-        {
-            GUILayout.Label("No species selected; available cohorts become selectable as the forest regenerates.", bodyStyle);
-            return;
-        }
-        int axis = ecology.CellsPerAxis;
-        for (int z = axis - 1; z >= 0; z--)
-        {
-            GUILayout.BeginHorizontal();
-            for (int x = 0; x < axis; x++)
-            {
-                int index = z * axis + x;
-                ForestRegenerationCohort cohort = ecology.Cells[index].FindCohort(selectedRemovalSpeciesId);
-                GUI.enabled = cohort != null && cohort.Density > 0f
-                    && !HasOpenRegenerationRemovalOrder(selectedRemovalSpeciesId, index);
-                if (GUILayout.Button($"{x + 1},{z + 1}", cellButtonStyle,
-                        GUILayout.Width(66f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale)))
-                    TryDesignateRegenerationRemoval(selectedRemovalSpeciesId, index);
-                GUI.enabled = true;
-            }
-            GUILayout.EndHorizontal();
-        }
-        GUILayout.Label("Only live selected-species cohorts can be designated. Each order removes the entire cohort in one cell.", bodyStyle);
-    }
-
-    private void DrawPruningSection()
-    {
-        GUILayout.Label("PRUNING — CLEAR-STEM LIFTS", headingStyle);
-        GUILayout.Label("Designate evidence-backed pruning lifts on living trees. Each lift raises the clear stem "
-            + "and modestly reduces crown radius; Forestry enforces lift limits and recovery intervals.", bodyStyle);
-        if (definition == null)
-            return;
-        Dictionary<string, ForestTree> trees = LivingTreesById();
-        var eligible = trees.Values
-            .Where(tree => tree != null && tree.CanChop && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
-                && definition.NextPruningTargetHeightM(tree.PruningLifts) < tree.Height * 0.6f
-                && tree.CanPrune(definition.NextPruningTargetHeightM(tree.PruningLifts), CurrentYear + 1) == null
-                && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree))
-            .OrderBy(tree => tree.TreeId, StringComparer.Ordinal)
-            .ToList();
-        if (eligible.Count == 0)
-        {
-            GUILayout.Label("No trees currently accept another pruning lift.", bodyStyle);
-            return;
-        }
-        foreach (ForestTree tree in eligible.Take(12))
-        {
-            float target = definition.NextPruningTargetHeightM(tree.PruningLifts);
-            GUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label($"{tree.TreeId} · {tree.Species?.DisplayName ?? "unknown"} · "
-                + $"lift {tree.PruningLifts + 1} to {target:0.0} m · height {tree.Height:0.0} m · "
-                + $"DBH {tree.Diameter:0.0} cm", bodyStyle, GUILayout.MinWidth(420f * ForestHud.Scale));
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Designate pruning", buttonStyle,
-                    GUILayout.Width(180f * ForestHud.Scale), GUILayout.Height(30f * ForestHud.Scale)))
-                TryDesignatePruning(tree.TreeId);
-            GUILayout.EndHorizontal();
-        }
-        if (eligible.Count > 12)
-            GUILayout.Label($"...and {eligible.Count - 12} more eligible trees.", bodyStyle);
-    }
-
-    private void DrawAnnualReview()
-    {
-        GUILayout.Label("ANNUAL REVIEW — WORK, ECONOMY AND ECOLOGY", headingStyle);
-        if (annualReports.Count > 0)
-        {
-            var report = annualReports[annualReports.Count - 1];
-            var events = managementEvents.Where(entry => entry.year == report.year && entry.eventType == ScenarioManagementEventType.WorkResolved && entry.outcome == ScenarioManagementOutcome.Succeeded).ToList();
-            long harvestCost = events.Where(entry => entry.taskType == ScenarioWorkType.FellTree).Sum(entry => entry.contractorCostCents);
-            long materials = events.Sum(entry => entry.stockCostCents);
-            foreach (var product in report.timberSales ?? new List<ScenarioTimberSale>())
-                GUILayout.Label($"Sold {product.assortment}: {product.soldVolumeCm3 / 1000000d:0.000} m³ · {Money(product.revenueCents)}", bodyStyle);
-            GUILayout.Label($"Variable harvest work {Money(Math.Max(0, harvestCost - report.harvestMinimumAdjustmentCents))} · minimum adjustment {Money(report.harvestMinimumAdjustmentCents)} · other contractor work {Money(report.contractorCostCents - harvestCost)} · shelter materials {Money(materials)}", bodyStyle);
-            GUILayout.Label($"Net work settlement {Money(report.timberRevenueCents - report.contractorCostCents - materials)} · closing cash {Money(report.closingCashCents)} · retained timber this job {report.keptForUseVolumeM3:0.000} m³", bodyStyle);
-            GUILayout.Label($"Owner time {report.ownerMinutes} / {OwnerMinutesPerYear} min · remaining {Math.Max(0, OwnerMinutesPerYear - report.ownerMinutes)} min. Nursery purchases are charged once when bought; owner opportunity cost €0 [S].", bodyStyle);
-        }
-        // INTEGRATION: ScenarioEcologyReviewLines
-        if (ecologicalSnapshots.Count > 0)
-        {
-            ScenarioEcologicalSnapshot reviewCurrent = ecologicalSnapshots[ecologicalSnapshots.Count - 1];
-            ScenarioEcologicalSnapshot reviewPrevious = ecologicalSnapshots.Count > 1
-                ? ecologicalSnapshots[ecologicalSnapshots.Count - 2] : null;
-            foreach (string line in ScenarioEcologyReviewLines.Lines(reviewPrevious, reviewCurrent, ecology, plantedJuveniles))
-                GUILayout.Label(line, bodyStyle);
-        }
-        if (ecologicalSnapshots.Count == 0)
-        {
-            GUILayout.Label("No ecological snapshot has been recorded yet.", bodyStyle);
-            return;
-        }
-        ScenarioEcologicalSnapshot initial = ecologicalSnapshots[0];
-        ScenarioEcologicalSnapshot current = ecologicalSnapshots[ecologicalSnapshots.Count - 1];
-        GUILayout.Label($"Year {current.year} (baseline year {initial.year}) · trees {current.livingTrees} "
-            + $"({current.livingTrees - initial.livingTrees:+#;-#;0}) · basal area "
-            + $"{current.basalAreaM2PerHa:0.0} m²/ha · mean DBH {current.meanDbhCm:0.0} cm", bodyStyle);
-        GUILayout.Label($"Mean light {current.meanLight:0.00} · mean canopy {current.meanCanopy:0.00} · "
-            + $"regenerating cells {current.occupiedRegenerationCells}/{ecology.CellCount} · "
-            + $"mean shared occupancy {current.meanSharedRegenerationOccupancy:0.00} · "
-            + $"recent opening {current.totalRecentOpening:0.0}", bodyStyle);
-        GUILayout.Label($"Functional-group cover [D] — moss {current.meanMosses:0.00}, ferns {current.meanFerns:0.00}, "
-            + $"grasses {current.meanGrasses:0.00}, forbs {current.meanForbs:0.00}, "
-            + $"shrubs {current.meanShrubs:0.00}, fungi {current.meanFungi:0.00}", bodyStyle);
-        GUILayout.Label($"Fallen deadwood [D] — {current.deadwoodCount} log(s), "
-            + $"{current.deadwoodVolumeM3:0.00} m³ remaining, mean decay class {current.meanDeadwoodDecayClass:0.0}, "
-            + $"habitat value {current.deadwoodHabitatValue:0.00}", bodyStyle);
-        if (soundscapeState?.layers != null)
-            GUILayout.Label("Habitat sound cues [D] — " + string.Join(", ", soundscapeState.layers
-                .Select(layer => $"{layer.displayName} {layer.volume:0.00}")), bodyStyle);
-        foreach (ScenarioSpeciesOutcome species in current.species)
-            GUILayout.Label($"{species.speciesId}: {species.livingTrees} trees · {species.basalAreaM2PerHa:0.0} m²/ha · "
-                + $"cohorts in {species.regenerationCells} cell(s) (legacy planted: {species.plantedRegenerationCells}) · "
-                + $"individual planted juveniles {species.plantedJuveniles} · "
-                + $"density {species.regenerationDensity:0.00}", bodyStyle);
-
-        GUILayout.Space(8f);
-        GUILayout.Label("SCENARIO OBJECTIVES", headingStyle);
-        foreach (ScenarioObjectiveResult objective in Objectives)
-            GUILayout.Label($"{(objective.achieved ? "✓" : "○")} {objective.displayName}: "
-                + $"{objective.currentValue:0.##} / {objective.targetValue:0.##}", bodyStyle);
-        if (centuryReview != null)
-        {
-            GUILayout.Space(8f);
-            GUILayout.Label($"CENTURY REVIEW — YEAR {centuryReview.year}", headingStyle);
-            GUILayout.Label("HABITAT INTERPRETATION [D] — "
-                + ScenarioHabitatInterpretation.Describe(initial, current,
-                    habitatVisuals != null ? habitatVisuals.OldWoodlandSourceConfidence : 0f), bodyStyle);
-            GUILayout.Label($"Outcome: {centuryReview.outcome} · completed year "
-                + (centuryReview.completedYear >= 0 ? centuryReview.completedYear.ToString() : "not achieved")
-                + (centuryReview.referenceId == "aspirational-design-targets"
-                    ? ". No compatible reference run loaded; these are provisional design targets [D]."
-                     : ". Compared with the frozen v12 Reference Future, not an optimal score or prescription."), bodyStyle);
-            foreach (ScenarioObjectiveResult comparison in centuryReview.referenceComparisons)
-                GUILayout.Label($"{comparison.displayName}: actual {comparison.currentValue:0.##} · "
-                    + $"reference {comparison.targetValue:0.##}", bodyStyle);
-            if (centuryReview.managementComparisons != null)
-                foreach (ScenarioReferenceManagementComparison comparison in centuryReview.managementComparisons)
-                    GUILayout.Label($"{comparison.displayName}: your forest {comparison.playerValue:0.##} · "
-                        + $"reference {comparison.referenceValue:0.##}", bodyStyle);
-        }
-
-        GUILayout.Space(8f);
-        GUILayout.Label("RECENT ANNUAL REPORTS", headingStyle);
-        foreach (ScenarioAnnualReport report in annualReports.AsEnumerable().Reverse().Take(6))
-            GUILayout.Label($"Year {report.year}: {report.completedTasks} completed, {report.failedTasks} failed · "
-                + $"contractor {Money(report.contractorCostCents)} · timber {Money(report.timberRevenueCents)} · "
-                 + $"extracted {report.harvestedVolumeM3:0.00} m³ · kept {report.keptForUseVolumeM3:0.00} m³ · deadwood +{report.deadwoodCreatedM3:0.00} m³"
-                + (report.deadwoodDecayedM3 > 0f ? $" (−{report.deadwoodDecayedM3:0.00} decayed)" : "") + " · "
-                + $"regeneration removed {report.regenerationRemovalTasks} cohort(s) / "
-                + $"{report.removedRegenerationDensity:0.00} density · cash {Money(report.closingCashCents)}", bodyStyle);
-        if (annualReports.Count == 0)
-            GUILayout.Label("Advance a year to record the first annual outcome.", bodyStyle);
-
-        GUILayout.Space(8f);
-        GUILayout.Label("RECENT MANAGEMENT EVENTS", headingStyle);
-        foreach (ScenarioManagementEvent entry in managementEvents.AsEnumerable().Reverse().Take(8))
-        {
-            string target = !string.IsNullOrEmpty(entry.targetTreeId)
-                ? "tree " + entry.targetTreeId
-                : entry.cellIndex >= 0 ? "cell " + entry.cellIndex : entry.stockItemId;
-            string action = entry.eventType == ScenarioManagementEventType.YearAdvanced
-                ? "Ecological year advanced"
-                : entry.eventType == ScenarioManagementEventType.ScenarioCompleted
-                    ? "Scenario objectives completed"
-                    : entry.eventType == ScenarioManagementEventType.ScenarioFailed
-                        ? "Scenario failed"
-                        : entry.eventType == ScenarioManagementEventType.CenturyReviewed
-                            ? "Century Review recorded"
-                : entry.eventType == ScenarioManagementEventType.StockPurchased
-                    ? $"Bought {entry.quantity} {entry.stockItemId}"
-                    : $"{entry.eventType} · {entry.taskType} {entry.speciesId} {target}";
-            string result = entry.eventType == ScenarioManagementEventType.WorkResolved
-                ? $" · {entry.outcome} · {entry.ecologicalTreatment}"
-                : "";
-            GUILayout.Label($"#{entry.eventId} · year {entry.year} · {action}{result} · cash {Money(entry.cashDeltaCents)}"
-                + (string.IsNullOrEmpty(entry.failureReason) ? "" : " · " + entry.failureReason), bodyStyle);
-        }
-    }
-
-    private void DrawMainHud()
-    {
-        EnsureStyles();
-        float scale = ForestHud.Scale;
-        closedPromptStyle.fontSize = Mathf.RoundToInt(16f * scale);
-        int stockTypes = definition?.ShopEntries?.Count ?? 0;
-        float width = Mathf.Min(410f * scale, Screen.width - 32f);
-        float height = (132f + Mathf.Max(1, stockTypes) * 26f) * scale;
-        Rect panel = new Rect(Screen.width - width - 16f, 16f, width, height);
-        ForestHud.Panel(panel);
-        float left = panel.x + 14f * scale;
-        float contentWidth = panel.width - 28f * scale;
-
-        GUI.Label(new Rect(left, panel.y + 10f * scale, contentWidth, 28f * scale),
-            $"SCENARIO ONE  ·  YEAR {CurrentYear}", closedPromptStyle);
-        GUI.Label(new Rect(left, panel.y + 39f * scale, contentWidth * 0.4f, 30f * scale),
-            "Cash", bodyStyle);
-        GUI.Label(new Rect(left, panel.y + 39f * scale, contentWidth, 30f * scale),
-            Money(cashCents), moneyStyle);
-        GUI.Label(new Rect(left, panel.y + 72f * scale, contentWidth, 24f * scale),
-            "Saplings ready to plant", bodyStyle);
-
-        if (stockTypes == 0)
-            GUI.Label(new Rect(left, panel.y + 98f * scale, contentWidth, 26f * scale),
-                "No saplings offered", bodyStyle);
-        else
-            for (int i = 0; i < stockTypes; i++)
-            {
-                ScenarioShopEntry offer = definition.ShopEntries[i];
-                if (offer == null)
-                    continue;
-                int reserved = GetReservedStockQuantity(offer.itemId);
-                int ready = Mathf.Max(0, GetStockQuantity(offer.itemId) - reserved);
-                float y = panel.y + (98f + i * 26f) * scale;
-                GUI.Label(new Rect(left, y, contentWidth * 0.55f, 26f * scale),
-                    offer.displayName, bodyStyle);
-                GUI.Label(new Rect(left + contentWidth * 0.56f, y, contentWidth * 0.44f, 26f * scale),
-                    reserved > 0 ? $"{ready} ready · {reserved} held" : $"{ready} ready", moneyStyle);
-            }
-        GUI.Label(new Rect(left, panel.y + panel.height - 26f * scale, contentWidth, 22f * scale),
-            "[Tab] Work Plan", closedPromptStyle);
-    }
-
-    private void EnsureStyles()
-    {
-        float scale = ForestHud.Scale;
-        if (titleStyle == null)
-        {
-            titleStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold };
-            headingStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold };
-            bodyStyle = new GUIStyle(GUI.skin.label) { wordWrap = true };
-            mutedStyle = new GUIStyle(GUI.skin.label) { wordWrap = true };
-            moneyStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleRight };
-            closedPromptStyle = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.UpperLeft,
-                fontStyle = FontStyle.Bold
-            };
-            buttonStyle = new GUIStyle(GUI.skin.button)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontStyle = FontStyle.Bold
-            };
-            cellButtonStyle = new GUIStyle(buttonStyle);
-            inputStyle = new GUIStyle(GUI.skin.textField);
-            buttonFace = ForestHud.Solid(new Color(0.15f, 0.20f, 0.13f, 1f));
-            buttonFaceHover = ForestHud.Solid(new Color(0.24f, 0.32f, 0.19f, 1f));
-            buttonFacePressed = ForestHud.Solid(new Color(0.10f, 0.15f, 0.09f, 1f));
-        }
-
-        // Re-applied on every call: this project enters Play Mode without
-        // domain or scene reload, so these style objects survive between play
-        // sessions and code changes. Construction-time colours cannot be
-        // trusted; white on ForestHud's near-black panel is the readable pair.
-        titleStyle.fontSize = Mathf.RoundToInt(26f * scale);
-        headingStyle.fontSize = Mathf.RoundToInt(20f * scale);
-        bodyStyle.fontSize = Mathf.RoundToInt(17f * scale);
-        mutedStyle.fontSize = Mathf.RoundToInt(17f * scale);
-        moneyStyle.fontSize = Mathf.RoundToInt(20f * scale);
-        closedPromptStyle.fontSize = Mathf.RoundToInt(16f * scale);
-        buttonStyle.fontSize = Mathf.RoundToInt(16f * scale);
-        cellButtonStyle.fontSize = Mathf.RoundToInt(15f * scale);
-        inputStyle.fontSize = Mathf.RoundToInt(17f * scale);
-
-        White(titleStyle);
-        White(headingStyle);
-        White(bodyStyle);
-        White(closedPromptStyle);
-        White(buttonStyle);
-        White(cellButtonStyle);
-        SetTextColor(mutedStyle, new Color(1f, 0.72f, 0.55f));
-        SetTextColor(moneyStyle, new Color(0.65f, 1f, 0.68f));
-
-        buttonStyle.normal.background = buttonFace;
-        buttonStyle.hover.background = buttonFaceHover;
-        buttonStyle.active.background = buttonFacePressed;
-        buttonStyle.focused.background = buttonFaceHover;
-    }
-
-    private static void White(GUIStyle style)
-    {
-        SetTextColor(style, Color.white);
-    }
-
-    // GUIStyle has eight states; Unity itself tints controls when GUI.enabled
-    // is false. There is no separate disabled GUIStyleState.
-    private static void SetTextColor(GUIStyle style, Color enabled)
-    {
-        style.normal.textColor = enabled;
-        style.hover.textColor = enabled;
-        style.active.textColor = enabled;
-        style.focused.textColor = enabled;
-        style.onNormal.textColor = enabled;
-        style.onHover.textColor = enabled;
-        style.onActive.textColor = enabled;
-        style.onFocused.textColor = enabled;
     }
 
     private WorkPlanTotals CalculateTotals()

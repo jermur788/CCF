@@ -578,10 +578,26 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         messageTimer = 2.5f;
     }
 
+    // ----- Read-only presentation access (Scenario One UI Toolkit HUD) -----
+    public ForestTree AimedTree => aimedTree;
+    public bool AimingAtGround => aimingAtGround && aimedTree == null;
+    public Vector3 AimedGroundPoint => aimedGroundPoint;
+    public string TransientMessage => messageTimer > 0f ? message : "";
+
+    // The mark prompt for the aimed tree, or "" when no tree is aimed at.
+    public string MarkPromptText()
+    {
+        if (aimedTree == null)
+            return "";
+        return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [M] Mark to Fell"
+            : IsMarked(aimedTree) ? "[M] Unmark Fell  |  [C] Retain as Crop Tree"
+            : "[M] Mark to Fell  |  [C] Retain as Crop Tree";
+    }
+
     private void OnGUI()
     {
-        ScenarioOneManager scenario = UnityEngine.Object.FindFirstObjectByType<ScenarioOneManager>();
-        if (scenario != null && (scenario.WorkPlanOpen || scenario.ReferencePreviewActive))
+        // Scenario One draws this HUD with UI Toolkit (ScenarioOneUiRoot).
+        if (UnityEngine.Object.FindFirstObjectByType<ScenarioOneManager>() != null)
             return;
         float hudScale = ForestHud.Scale;
         if (messageStyle == null)
@@ -680,9 +696,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             promptStyle.normal.textColor = Color.white;
         }
         promptStyle.fontSize = Mathf.RoundToInt(26f * hudScale);
-        string prompt = aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [M] Mark to Fell"
-            : IsMarked(aimedTree) ? "[M] Unmark Fell  |  [C] Retain as Crop Tree"
-            : "[M] Mark to Fell  |  [C] Retain as Crop Tree";
+        string prompt = MarkPromptText();
         // Size the panel to the text: the fixed 460-unit width wrapped the last word.
         float promptWidth = Mathf.Min(Screen.width - 36f,
             promptStyle.CalcSize(new GUIContent(prompt)).x + 32f * hudScale);
