@@ -1,0 +1,148 @@
+{
+  "base": "8c5380dd95b397281bedc9bd153a69086b9aad9f",
+  "context": "691dd18a56c0da21cb08909e22ac0d0625d556b1",
+  "branch": "task/scenario-one-menu-tutorial",
+  "unity": "6000.6.0f1",
+  "status": "READY FOR USER SMOKE REVIEW",
+  "gates": [
+    {
+      "gate": "Import",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 505.95,
+      "markers": [],
+      "log_sha256": "5162ef800f918e1dcd0a4810d3cb02357036b5ad703d9480347cf8efb9ac3abb"
+    },
+    {
+      "gate": "MenuTutorialVerification",
+      "mode": "default-rendered",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 82.65,
+      "markers": [
+        "MENU_RENDERED_PASS WalkingHud 1280x720",
+        "MENU_RENDERED_PASS WalkingHud 1600x900",
+        "MENU_RENDERED_PASS WalkingHud 1920x1080",
+        "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+        "MENU_RENDERED_PASS TreeInspection 1280x720",
+        "MENU_RENDERED_PASS TreeInspection 1600x900",
+        "MENU_RENDERED_PASS TreeInspection 1920x1080",
+        "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+        "MENU_RENDERED_PASS StandMap 1280x720",
+        "MENU_RENDERED_PASS StandMap 1600x900",
+        "MENU_RENDERED_PASS StandMap 1920x1080",
+        "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+        "MENU_RENDERED_PASS WorkPlan 1280x720",
+        "MENU_RENDERED_PASS WorkPlan 1600x900",
+        "MENU_RENDERED_PASS WorkPlan 1920x1080",
+        "MENU_RENDERED_PASS AnnualReview 1280x720",
+        "MENU_RENDERED_PASS AnnualReview 1600x900",
+        "MENU_RENDERED_PASS AnnualReview 1920x1080",
+        "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+        "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+        "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+      ],
+      "log_sha256": "f2fced53e04e13594b65f380e8b3d364b75ccb35dce5239bdcbe9b05770fd6fd"
+    },
+    {
+      "gate": "ScenarioOneInteractionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 69.89,
+      "markers": [
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=3 sameFrameDuplicates=0",
+        "SCENARIO_ONE_CANONICAL_SITKA_PASS hash=BFC55473C1506067",
+        "SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v15 trees=493 year50TreesPreserved=401 deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=9CDF21A541C5968D",
+        "SCENARIO_ONE_INTERACTION_VERIFY_PASS"
+      ],
+      "log_sha256": "57764e37a9bd9790926641ea0cf2ff89b1844cffcce885984d38c327bbe3f5ea"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 58.27,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 00479F18970F9926 rngModel=1",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "f922531a801843c3c50d177024276332b4e6e5c0878307935f24e9def3cc59ba"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "model0",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 63.81,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 568922E1A6D73CDD rngModel=0",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "cf1f98bb5483bb0767e3e5cb3afa3a0c07874cd3ea5de08a98cadeb72aa009d8"
+    },
+    {
+      "gate": "SaveHardeningVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 51.47,
+      "markers": [
+        "SAVE_HARDENING_VERIFY_PASS"
+      ],
+      "log_sha256": "0014936c785ca95b68fba11e2760089ec974e6695bcb7e2bcb00499bbc4cadf7"
+    },
+    {
+      "gate": "ScenarioReferenceVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 68.94,
+      "markers": [
+        "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+        "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+        "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+        "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+        "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+        "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+        "REFERENCE_CONTINUATION_PASS year50=v12 year100=v15 deterministic=True continuedHash=9CDF21A541C5968D",
+        "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+        "REFERENCE_FUTURE_V1_PASS"
+      ],
+      "log_sha256": "e04f1e1480c3d425a5d41aaffeb49f5dea9ddfb1957038c73f2cfd7f0e9cf158"
+    }
+  ],
+  "verified_source_sha256": {
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": "4d0b8e96dec1093af1985a33b7a95edd3c16a09a657f5378e7c8afb29de983fa",
+    "Assets/ForestPrototype/UI/AnnualReviewView.cs": "c394f14b9b72d43c482fe8695d574a21c17acd5ddb487dc7cec23e37a59bfd80",
+    "Assets/ForestPrototype/UI/MenuHelpView.cs": "e9792e00415fdba68c6e06fabc924cbb1596238b63389e4b841850a909682792",
+    "Assets/ForestPrototype/UI/MenuHelpView.cs.meta": "988799b0cb13db0e0b86a0d95e5d4a2142841738edd90df7d9fb0063731c0aab",
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "510c068f63edfed5e4aa207fc8ce39ad926cbfa810e7cfed5a48757fd3af119c",
+    "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs": "b65107988c627b01bc118f354285d514335311f7e87e15351ec510c14987717b",
+    "Assets/ForestPrototype/UI/StandMapView.cs": "24486437a4194279d6529019f0faa29428bcae896ada3784493574f354300fe3",
+    "Assets/ForestPrototype/UI/WalkingHudView.cs": "5763984e6a5b4e7c3796824f223200c1c8fc822664c7bb8c0ae11449c93da305",
+    "Assets/ForestPrototype/UI/WorkPlanView.cs": "670cfbb77ee9d29c4a42a0d7ec24309d1951aee83649232f58c7171f3e4683b5",
+    "Tools/Verification/MenuTutorialVerification.cs": "fbe47f0e40776b031f1150bb90207d8376107e9e8533d9c66b362fd7678ee084"
+  },
+  "screenshots_sha256": {
+    "WalkingHud-1280.png": "f67c30a503925645983e2b855de93bdc980cbea599128de028eb1f600c022e5c",
+    "TreeInspection-1280.png": "484f133afc98f096f3ac170d951dc46a7caa2428ef8fc3b7c50b5b4cf7b9406b",
+    "StandMap-1280.png": "6d75598858551569cb4f4afb43c8903062bc69ed6e9f6be5c6675746cd6bd6db",
+    "WorkPlan-1280.png": "5486b58345707c0357d5cd492284420b2fe66cbbd37ac62032637f62e6bb1fb8",
+    "AnnualReview-1280.png": "ac5e681892cdc14368c9710a430e9f7cd904da82b66bef4b6b57ef23f3e8a4fe",
+    "map-waypoint.png": "da174501b095f7fe6cfbfcd543b061ce245eda982c702152b6ac599c09a6547f",
+    "annual-results-unread.png": "e9b2791eff1d6c894d4c356ba63c94401ba4e89153961e8d27e35f4c751a18f1",
+    "work-plan-review-gate.png": "bde65fe9c83933e7eb1164cb618fb4d7b2673d6572d447b3cb74443f38b3d001"
+  },
+  "source_coverage": "Final menu playthrough and model-0 completion used final runtime source. Interaction, model-1 completion, save-hardening and Reference preceded the final Work Plan Escape guard, which affects only keyboard input and is verified by the final playthrough. Final compile is covered by both final gates.",
+  "limits": [
+    "UI button callbacks exercised via Clickable.Invoke reflection; Editor synthetic mouse events did not deliver to runtime panel. Human mouse clicking remains pending.",
+    "Beginner comprehension requires human smoke review; scripted path and rendered explanations are verified.",
+    "Part N only: further player annual cycles are gated; no separate later-stage tutorial architecture exists in this base."
+  ]
+}

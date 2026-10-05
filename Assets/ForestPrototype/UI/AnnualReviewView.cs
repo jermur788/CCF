@@ -13,6 +13,7 @@ public sealed class AnnualReviewView
     public VisualElement Root { get; }
     private readonly Label title;
     private readonly ScrollView scroll;
+    private readonly VisualElement acknowledgement;
     private string shownKey = "";
 
     public AnnualReviewView(ScenarioOneUiRoot ui)
@@ -24,6 +25,7 @@ public sealed class AnnualReviewView
         VisualElement header = UiKit.Box("modal-header");
         title = UiKit.Add(header, "", "title");
         VisualElement buttons = UiKit.Box("row");
+        buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.AnnualReview)));
         buttons.Add(UiKit.Button("Open Work Plan", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);
@@ -31,16 +33,23 @@ public sealed class AnnualReviewView
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
+        acknowledgement = UiKit.Box("modal-footer");
+        UiKit.Add(acknowledgement, "Read WORK DONE, MONEY and FOREST before continuing.", "body");
+        var acknowledge = UiKit.Button("I've read the annual results", () => ui.AcknowledgeAnnualReview(), true, "btn-primary");
+        acknowledge.name = "annual-review-acknowledge";
+        acknowledgement.Add(acknowledge);
+        modal.Add(acknowledgement);
     }
 
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
-        string key = m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents;
+        string key = m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents + "|" + m.AnnualReviewSeen;
         if (!force && key == shownKey)
             return;
         shownKey = key;
         scroll.Clear();
+        acknowledgement.style.display = ui.NeedsAnnualReview ? DisplayStyle.Flex : DisplayStyle.None;
 
         ScenarioAnnualReport report = m.AnnualReports.Count > 0 ? m.AnnualReports[m.AnnualReports.Count - 1] : null;
         title.text = report != null ? $"Annual review · Year {report.year} complete" : "Annual review";

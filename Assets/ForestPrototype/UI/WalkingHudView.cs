@@ -36,6 +36,8 @@ public sealed class WalkingHudView
         browse = UiKit.Add(status, "", "body");
         waypoint = UiKit.Add(status, "", "body", "waypoint-line");
         access = UiKit.Add(status, "", "muted");
+        Button helpButton = UiKit.Button("Help [F1]", () => ui.ShowCurrentHelp());
+        status.Add(helpButton);
         Root.Add(status);
 
         VisualElement bottom = UiKit.Box("hud-bottom");
@@ -72,6 +74,7 @@ public sealed class WalkingHudView
         Root.Add(reticle);
 
         foreach (VisualElement e in Root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
+        helpButton.pickingMode = PickingMode.Position;
     }
 
     public void Refresh()

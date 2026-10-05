@@ -29,6 +29,7 @@ public sealed class StandMapView
         VisualElement header = UiKit.Box("modal-header");
         UiKit.Add(header, "Stand map", "title");
         VisualElement buttons = UiKit.Box("row");
+        buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
         buttons.Add(UiKit.Button("Work Plan", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Back to forest [N / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);

@@ -236,8 +236,19 @@ adding wildlife objectives or claiming unverified ancient-woodland flora.
 
 The Work Plan shows a five-step onboarding path: mark a tree, purchase stock,
 plan/approve work, advance a year and inspect the annual review. Existing
-structured work/events provide the milestones; review-opened state survives
-save/load. Felling input in Scenario One points to marking and the Work Plan;
+structured work/events provide the milestones. After actual annual results exist,
+the player explicitly acknowledges reading them; the existing review-seen state
+survives save/load. Merely opening an empty Year 0 review does not count.
+Further year advances in the player UI require this first acknowledgement.
+
+Short first-use introductions now teach HUD, Tree Inspection, Stand Map, Work
+Plan and Annual Review at their relevant screen. Help/F1 revisits explanations;
+local device preferences prevent repeat introductions without changing forest
+save data. The Map teaches finding patterns, selecting a cell, setting a
+waypoint and walking there to inspect before deciding. See
+`Docs/Scenario1MenuTeaching.md` for the Part N implementation and smoke steps.
+
+Felling input in Scenario One points to marking and the Work Plan;
 the direct Forestry chopping entry point remains available for non-scenario
 modes and regression tooling.
 

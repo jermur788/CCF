@@ -375,8 +375,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         return true;
     }
 
-    // Opening the annual review completes the tutorial's review step (saved).
-    public void MarkAnnualReviewSeen() => annualReviewSeen = true;
+    // Explicit acknowledgement of actual annual results completes the saved review step.
+    public void MarkAnnualReviewSeen()
+    {
+        if (annualReports.Count > 0) annualReviewSeen = true;
+    }
 
     // Work Plan plus the other full-screen panels (map, annual review). While any
     // is open the player is paused and the cursor is free; the marking manager
@@ -485,7 +488,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
         if (keyboard.tabKey.wasPressedThisFrame)
             SetWorkPlanOpen(!workPlanOpen);
-        else if (workPlanOpen && keyboard.escapeKey.wasPressedThisFrame)
+        else if (workPlanOpen && !auxiliaryPanelOpen && keyboard.escapeKey.wasPressedThisFrame)
             SetWorkPlanOpen(false);
     }
 
@@ -2115,6 +2118,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         get
         {
+            if (annualReports.Count > 0 && !annualReviewSeen)
+                return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
             if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderCreated
                 && entry.taskType == ScenarioWorkType.FellTree)
                 && !workOrders.Any(order => order.type == ScenarioWorkType.FellTree))

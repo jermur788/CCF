@@ -146,3 +146,9 @@
 .map-side { width: 330px; margin-left: 12px; }
 .legend { flex-direction: row; align-items: center; margin-top: 6px; }
 .legend-swatch { width: 120px; height: 10px; margin: 0 6px; }
+
+/* Contextual menu teaching: one screen at a time, bounded on small displays. */
+.menu-help-panel { width: 88%; max-width: 660px; max-height: 82%; }
+.menu-help-panel > * { flex-shrink: 0; margin-bottom: 10px; }
+.menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
+.menu-help-panel .body { font-size: 16px; }

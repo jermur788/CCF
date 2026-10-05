@@ -26,10 +26,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private AnnualReviewView review;
     private StandMapView map;
     private Label previewBanner;
+    private MenuHelpView help;
+    public MenuHelpView Help => help;
+    public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;
 
     private UiScreen screen = UiScreen.None;
     private bool workPlanWasOpen;
     private float nextModalRefresh;
+    private int helpClosedFrame = -1;
 
     public UiScreen CurrentScreen => screen;
     public ScenarioOneManager Manager => manager;
@@ -80,6 +84,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         previewBanner.style.top = 14;
         previewBanner.style.alignSelf = Align.Center;
         root.Add(previewBanner);
+        help = new MenuHelpView(this);
+        root.Add(help.Root);
     }
 
     private void OnDestroy()
@@ -93,8 +99,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (manager == null || document == null)
             return;
         bool preview = manager.ReferencePreviewActive;
-        if (!preview)
-            HandleKeys();
+        if (preview) CloseHelp();
+        else HandleKeys();
 
         bool planOpen = manager.WorkPlanOpen && !preview;
         if (planOpen && screen != UiScreen.None)
@@ -119,6 +125,15 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             if (player != null && player.InspectedTree != null)
                 inspection.Refresh(player.InspectedTree);
         }
+        if (!preview)
+        {
+            MenuHelpView.Menu context = HelpContext();
+            if (help.IsOpen && help.CurrentMenu != context) CloseHelp();
+            if (context != MenuHelpView.Menu.AnnualReview || manager.AnnualReports.Count > 0)
+                help.Introduce(context);
+            manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);
+        }
+
         if (Time.unscaledTime >= nextModalRefresh)
         {
             nextModalRefresh = Time.unscaledTime + 0.25f;
@@ -133,6 +148,16 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
+        if (help.IsOpen && keyboard.escapeKey.wasPressedThisFrame)
+        {
+            CloseHelp();
+            return;
+        }
+        if (keyboard.f1Key.wasPressedThisFrame)
+        {
+            if (help.IsOpen) CloseHelp(); else ShowHelp(HelpContext());
+            return;
+        }
         if (keyboard.nKey.wasPressedThisFrame)
         {
             if (manager.WorkPlanOpen) manager.OpenWorkPlan(false);
@@ -150,18 +175,62 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (screen == next)
             return;
         screen = next;
+        CloseHelp();
         manager.SetAuxiliaryPanelOpen(screen != UiScreen.None);
         if (screen == UiScreen.Review)
         {
-            manager.MarkAnnualReviewSeen();
             review.Refresh(true);
         }
         else if (screen == UiScreen.Map)
             map.Refresh(true);
     }
 
+    private MenuHelpView.Menu HelpContext()
+    {
+        if (manager.WorkPlanOpen) return MenuHelpView.Menu.WorkPlan;
+        if (screen == UiScreen.Map) return MenuHelpView.Menu.StandMap;
+        if (screen == UiScreen.Review) return MenuHelpView.Menu.AnnualReview;
+        if (player != null && player.InspectedTree != null) return MenuHelpView.Menu.TreeInspection;
+        return MenuHelpView.Menu.WalkingHud;
+    }
+
+    public void ShowCurrentHelp() => ShowHelp(HelpContext());
+
+    public void ShowHelp(MenuHelpView.Menu menu)
+    {
+        if (manager.ReferencePreviewActive) return;
+        help.Show(menu);
+        manager.SetAuxiliaryPanelOpen(true);
+    }
+
+    public void CloseHelp()
+    {
+        if (help == null || !help.IsOpen) return;
+        help.Close();
+        // Do not let this Escape/click also act on the forest in the same frame.
+        helpClosedFrame = Time.frameCount;
+        manager.SetAuxiliaryPanelOpen(true);
+    }
+
+    public void AcknowledgeAnnualReview()
+    {
+        if (screen != UiScreen.Review || manager.AnnualReports.Count == 0) return;
+        manager.MarkAnnualReviewSeen();
+        review.Refresh(true);
+    }
+
+    // A UI learning gate only: simulation/reference harness APIs remain unchanged.
+    public bool AdvanceFromWorkPlan()
+    {
+        if (NeedsAnnualReview) { ShowReview(); return false; }
+        if (!manager.AdvanceYear()) return false;
+        ShowReview();
+        return true;
+    }
+
     public void ShowWorkPlan()
     {
+        CloseHelp();
         SetScreen(UiScreen.None);
         manager.OpenWorkPlan(true);
         workPlan.Refresh(true);
@@ -181,6 +250,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public void CloseAll()
     {
+        CloseHelp();
         manager.OpenWorkPlan(false);
         SetScreen(UiScreen.None);
     }

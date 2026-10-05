@@ -32,6 +32,7 @@ public sealed class WorkPlanView
         header.Add(left);
         VisualElement right = UiKit.Box("row");
         cash = UiKit.Add(right, "", "money", "title");
+        right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
         right.Add(UiKit.Button("Stand map [N]", () => ui.ShowMap()));
         right.Add(UiKit.Button("Back to forest", () => ui.CloseAll()));
@@ -83,9 +84,11 @@ public sealed class WorkPlanView
         footer.Add(UiKit.Button("Approve pending work", () => { m.ApprovePendingWork(); Refresh(true); }, m.CanEditWorkPlan));
         footer.Add(UiKit.Button("Advance one year", () =>
         {
-            if (m.AdvanceYear()) ui.ShowReview();
-            else Refresh(true);
-        }, m.CanAdvanceYearNow, "btn-primary"));
+            if (ui.AdvanceFromWorkPlan()) return;
+            Refresh(true);
+        }, m.CanAdvanceYearNow && !ui.NeedsAnnualReview, "btn-primary"));
+        if (ui.NeedsAnnualReview)
+            footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));
         footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));
     }
 
@@ -93,7 +96,7 @@ public sealed class WorkPlanView
     {
         var sb = new StringBuilder();
         sb.Append(m.CurrentEcologicalYear).Append('|').Append(m.CashCents).Append('|').Append(m.Feedback).Append('|')
-          .Append(m.PlanningPlantingMethod).Append(m.PlanningInstallShelter).Append('|').Append(m.Outcome);
+          .Append(m.AnnualReviewSeen).Append('|').Append(m.PlanningPlantingMethod).Append(m.PlanningInstallShelter).Append('|').Append(m.Outcome);
         foreach (ScenarioOneWorkOrder o in m.WorkOrders)
             if (o.IsOpen) sb.Append(o.workOrderId).Append(o.status).Append(o.fellingOutcome).Append(o.executionMethod).Append(o.installShelter).Append(o.validationMessage).Append(';');
         foreach (ScenarioInventoryEntry e in m.Inventory) sb.Append(e.itemId).Append(e.quantity);
