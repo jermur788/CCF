@@ -261,11 +261,11 @@ public sealed class WorkPlanView
         List<ScenarioOneWorkOrder> removal = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration)
             .OrderBy(o => o.workOrderId).ToList();
         if (removal.Count == 0) return;
-        VisualElement card = Card($"Regeneration removal · {removal.Count} cell(s)", "Contractor removes the whole species cohort in each marked cell.");
+        VisualElement card = Card($"Vegetation clearance · {removal.Count} cell(s)", "Contractor clears competing vegetation in each marked area; standing trees remain.");
         foreach (ScenarioOneWorkOrder order in removal)
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
-            UiKit.Add(row, $"{ScenarioOneUiFacts.SpeciesName(order.speciesId)} · cell {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
+            UiKit.Add(row, $"{(string.IsNullOrEmpty(order.speciesId) ? "All competing vegetation" : ScenarioOneUiFacts.SpeciesName(order.speciesId))} · cell {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
                 + $"{ScenarioOneManager.FormatMinutes(order.estimatedMinutes)} · {UiKit.Money(order.estimatedCostCents)} · {Status(order)}", "body", "gap");
             AddRemove(m, row, order);
             Problem(card, order);

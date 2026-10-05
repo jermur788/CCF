@@ -33,6 +33,8 @@ public sealed class ForestPlayer : MonoBehaviour
     [SerializeField, Min(0.1f)] private float uprootMinDuration = 1f;
     [Tooltip("[D] Seconds required to pull up a cohort at its species maximum density.")]
     [SerializeField, Min(0.1f)] private float uprootMaxDuration = 5f;
+    private ClearancePreview clearancePreview;
+    public ClearancePreview Clearance => clearancePreview;
     private CharacterController controller;
     private float pitch;
     private float verticalSpeed;
@@ -177,6 +179,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        clearancePreview = GetComponent<ClearancePreview>() ?? gameObject.AddComponent<ClearancePreview>();
         if (view == null)
         {
             Debug.LogError("ForestPlayer requires a camera transform.", this);
@@ -195,7 +198,7 @@ public sealed class ForestPlayer : MonoBehaviour
         // spike must not rotate the view at the start of a session.
         recentreGraceFrames = 2;
     }
-    private void OnDisable() => SetCursor(false);
+    private void OnDisable() { clearancePreview?.Clear(); SetCursor(false); }
     private void OnApplicationFocus(bool focused)
     {
         if (!focused) SetCursor(false);
@@ -372,6 +375,7 @@ public sealed class ForestPlayer : MonoBehaviour
         if (view == null || Cursor.lockState != CursorLockMode.Locked)
         {
             isInspecting = false;
+            clearancePreview?.Clear();
             ClearAimedRegeneration();
             CancelUprooting();
             return;
@@ -387,6 +391,10 @@ public sealed class ForestPlayer : MonoBehaviour
             Transform candidateTransform = candidate.collider.transform;
             if (candidateTransform == transform || candidateTransform.IsChildOf(transform))
                 continue;
+            // Habitat and cohort displays are not ground/overstorey targets.
+            if (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
+                || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
+                    && candidate.collider.GetComponentInParent<ForestTree>() == null)) continue;
             if (!found || candidate.distance < nearest.distance)
             {
                 nearest = candidate;
@@ -422,6 +430,16 @@ public sealed class ForestPlayer : MonoBehaviour
         if (!isPlantingMode && cycleRegenerationPressed && isAimingGround && aimedRegeneration.Success
             && aimedRegeneration.Cohorts.Count > 1)
             CycleRegenerationSelection();
+        if (scenario != null && !scenario.AnyPanelOpen && !scenario.ReferencePreviewActive && !isInspecting && isAimingGround)
+        {
+            ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+            int index = ecology != null ? ecology.GetCellIndex(aimedSurfacePoint) : -1;
+            if (index >= 0)
+                clearancePreview.Show(scenario.QueryClearance(isPlantingMode
+                    ? ClearanceFootprint.Planting(aimedSurfacePoint) : ClearanceFootprint.Cell(ecology, index)));
+            else clearancePreview.Clear();
+        }
+        else clearancePreview?.Clear();
         UpdateUprooting(!isPlantingMode && uprootHeld, Time.deltaTime);
 
         // If inspecting, close card if player steps or looks too far away
@@ -667,15 +685,15 @@ public sealed class ForestPlayer : MonoBehaviour
                 uprootNeedsRelease = false;
             else if (!uprootNeedsRelease)
             {
-                if (!isPlantingMode && isAimingGround && TryGetSelectedRegeneration(out RegenerationCohortInfo selectedCohort))
+                if (!isPlantingMode && isAimingGround && clearancePreview != null && clearancePreview.Targets != null && clearancePreview.Targets.HasTargets)
                 {
-                    bool created = scenario.TryDesignateRegenerationRemoval(selectedCohort.SpeciesId, aimedRegenerationCellIndex);
+                    bool created = scenario.TryDesignateVegetationClearance(clearancePreview.Targets.Footprint.CellIndex);
                     lastHarvestMessage = created
-                        ? $"Marked this cell's {selectedCohort.DisplayName} regeneration for contractor removal."
+                        ? "Marked competing vegetation clearance. Review and approve in Work Plan."
                         : scenario.Feedback;
                 }
                 else
-                    lastHarvestMessage = "Aim at ground with regeneration to mark a removal.";
+                    lastHarvestMessage = "Aim at ground with competing vegetation to plan clearance.";
                 messageTimer = 3.5f;
                 uprootNeedsRelease = true;
             }
@@ -874,6 +892,12 @@ public sealed class ForestPlayer : MonoBehaviour
             : isPlantingMode
                 ? $"[G] Plant {PlantingSpeciesDisplayName(selectedPlantingSpeciesIndex)}"
                 : "[G] Open planting";
+        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        {
+            string preview = clearancePreview != null && clearancePreview.Visible ? clearancePreview.Label : "";
+            return preview + (isPlantingMode ? "\n" + plantingPrompt
+                : "\n[U] Plan area clearance · [Esc] Cancel preview\n" + plantingPrompt);
+        }
         if (isPlantingMode || !TryGetSelectedRegeneration(out RegenerationCohortInfo selected))
             return plantingPrompt;
         string selection = aimedRegeneration.Cohorts.Count > 1

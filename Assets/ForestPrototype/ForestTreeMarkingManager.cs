@@ -125,6 +125,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             Transform candidateTransform = candidate.collider.transform;
             if (playerRoot != null && (candidateTransform == playerRoot || candidateTransform.IsChildOf(playerRoot)))
                 continue;
+            if (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
+                || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
+                    && candidate.collider.GetComponentInParent<ForestTree>() == null)) continue;
             if (!found || candidate.distance < nearest.distance)
             {
                 nearest = candidate;
