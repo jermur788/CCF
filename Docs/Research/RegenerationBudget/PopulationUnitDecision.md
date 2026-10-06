@@ -22,4 +22,4 @@ Mixed-age options:
 
 Required decision: approve a bounded same-age admission policy under the existing save contract, or commission/version persisted age bands with a migration proposal. Neither is silently selected here.
 
-Research dependency: CCF Primary Literature Synthesis v1 was not supplied or found in Git/local pasted attachments. Its task-packet summary is not a substitute for the complete source. No universal coefficients or physical density targets are proposed from it.
+Research dependency (update 2026-10-06): the synthesis has since been located locally and is cited as supporting evidence in RepresentationProposal.md. Original note: CCF Primary Literature Synthesis v1 was not supplied or found in Git/local pasted attachments. Its task-packet summary is not a substitute for the complete source. No universal coefficients or physical density targets are proposed from it.

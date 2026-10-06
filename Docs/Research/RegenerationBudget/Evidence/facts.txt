@@ -1,0 +1,39 @@
+ENV engine=6000.6.0f1 years=100 managerPresent=True
+SPECIES sitka-spruce regenDensityMax=1.5 densityPerEstablishment=0.5 initialHeight=0.15 promotionHeight=3.5 promotionMinLight=0 distinctLight=False
+SPECIES beech regenDensityMax=1.5 densityPerEstablishment=0.5 initialHeight=0.15 promotionHeight=3.5 promotionMinLight=0 distinctLight=False
+SPECIES sessile-oak regenDensityMax=1.5 densityPerEstablishment=0.5 initialHeight=0.18 promotionHeight=3.5 promotionMinLight=0.2 distinctLight=True
+FX1_NO_SEED_NO_COHORT years=5 totalDensity=0 result=PASS no unsourced creation
+FX2_NO_SEED_EXISTING_COHORT light=0.9 start=0.2 after10=0.699352562 survivorsOnlyCounterfactual=0.199448481 unsourcedGain=0.4999041 seedArrival=0 trace: y1=0.24976 y2=0.2994603 y3=0.3493525 y4=0.399352521 y5=0.449352533 y6=0.499352545 y7=0.5493525 y8=0.599352539 y9=0.649352551 y10=0.699352562
+FX2_NO_SEED_EXISTING_COHORT light=0.3 start=0.2 after10=0.6990457 survivorsOnlyCounterfactual=0.19925341 unsourcedGain=0.4997923 seedArrival=0 trace: y1=0.24976 y2=0.2994603 y3=0.349144 y4=0.399045676 y5=0.4490457 y6=0.4990457 y7=0.5490457 y8=0.5990457 y9=0.6490457 y10=0.6990457
+FX2_NO_SEED_EXISTING_COHORT light=0.05 start=0.2 after10=0.0212185215 survivorsOnlyCounterfactual=0.0212185215 unsourcedGain=0 seedArrival=0 trace: y1=0.159808 y2=0.127692983 y3=0.1020318 y4=0.08152749 y5=0.06514372 y6=0.05205244 y7=0.04159198 y8=0.0332336538 y9=0.0265550185 y10=0.0212185215
+FX3_LATE_RECRUIT_INHERITS year=9 densityBefore=0.1 densityAfter=0.5110925 accepted=0.4110925 establishYearAfter=0 heightAfter=1.2 newRecruitAgeRecorded=9 newRecruitHeightRecorded=1.2 expectedNewRecruitHeight=0.15
+FX4_FULL_REJECTION_AGE_INIT occupancyBefore=1 sitkaDensityAfter=0 sitkaEstablishYear=1 sitkaHeight=0.15 defect=True
+FX5A_FULL_REJECTION before=1.5 after=1.5 accepted=0
+FX5B_OVERCAPACITY_CONTRACTION occupancyBefore=1.4 requested=0.01 sitkaBefore=1.05 sitkaAfter=0.450000018 change=-0.5999999
+FX6_PROMOTION_COMPRESSION cell=0 abundanceBefore=0.011 occupancyFraction=0.007333333 exactTrees=1 residualAbundance=0 exported=0.011
+FX6_PROMOTION_COMPRESSION cell=1 abundanceBefore=0.75 occupancyFraction=0.5 exactTrees=1 residualAbundance=0 exported=0.75
+FX6_PROMOTION_COMPRESSION cell=2 abundanceBefore=1.5 occupancyFraction=1 exactTrees=1 residualAbundance=0 exported=1.5
+FX6B_ORIGIN_AFTER_PROMOTION afterPromotion[density=0 origin=Planted originYear=0 establishYear=-1] afterNaturalArrival[density=0.399981856 origin=Planted establishYear=-1 height=0] defect=True
+FX7_SAVE_TWO_BANDS savedRecords=2 restoredCohorts=1 restored=[density=0.4 height=1.5 establishYear=2] bandsPreserved=False
+TREATMENT unthinned removal=0 livingStart=336 rngModel=1 seed=20260914 browsePressure=0.2
+FAITHFUL unthinned year=10 traced=E3E660907CED4934 ordinary=E3E660907CED4934 identical=True
+FAITHFUL unthinned year=25 traced=2E7E4D7E8A59C6D8 ordinary=2E7E4D7E8A59C6D8 identical=True
+FAITHFUL unthinned year=50 traced=019D00ECB7509ED5 ordinary=019D00ECB7509ED5 identical=True
+FAITHFUL unthinned year=100 traced=C5FCE8C50D63D6E1 ordinary=C5FCE8C50D63D6E1 identical=True
+TREATMENT remove_smallest_20 removal=0.2 livingStart=269 rngModel=1 seed=20260914 browsePressure=0.2
+FAITHFUL remove_smallest_20 year=10 traced=16B2F59B0449B540 ordinary=16B2F59B0449B540 identical=True
+FAITHFUL remove_smallest_20 year=25 traced=FDD4539DD94C2945 ordinary=FDD4539DD94C2945 identical=True
+FAITHFUL remove_smallest_20 year=50 traced=39FF9E41F003EC54 ordinary=39FF9E41F003EC54 identical=True
+FAITHFUL remove_smallest_20 year=100 traced=F52360D3213C2D8F ordinary=F52360D3213C2D8F identical=True
+TREATMENT remove_smallest_60 removal=0.6 livingStart=134 rngModel=1 seed=20260914 browsePressure=0.2
+FAITHFUL remove_smallest_60 year=10 traced=256E57E40EC6F049 ordinary=256E57E40EC6F049 identical=True
+FAITHFUL remove_smallest_60 year=25 traced=7A07F573E26FD0CC ordinary=7A07F573E26FD0CC identical=True
+FAITHFUL remove_smallest_60 year=50 traced=AC1A9854C6E606D5 ordinary=AC1A9854C6E606D5 identical=True
+FAITHFUL remove_smallest_60 year=100 traced=21E19EB6F886A401 ordinary=21E19EB6F886A401 identical=True
+CT_START year=15 selectedCell=12 density=1.5 stateHash=228259F3AD9901DF
+CT_END branch=control year=25 selectedCellDensity=0.545701861 regenerationHash=9AA1C291B027A4FD
+CT_CLEARANCE cell=12 removedRelativeDensity=1.5 cohorts=1 plantedKilled=0 understoreyCellsReset=0 occupancyBefore=1 occupancyAfter=0
+CT_END branch=clear_cell year=25 selectedCellDensity=1.5 regenerationHash=33E867C2097980D6
+CT_COVER_ONLY understoreyCellsZeroed=64 cohortsUntouched=true
+CT_END branch=cover_only year=25 selectedCellDensity=0.545701861 regenerationHash=9AA1C291B027A4FD
+REGEN_BUDGET_EVIDENCE_PASS
