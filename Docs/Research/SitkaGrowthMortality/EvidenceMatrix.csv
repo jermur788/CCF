@@ -1,0 +1,22 @@
+topic,claim_or_parameter,value,source,grade,used_for,status
+site,Irish age-30 top height class I/II/III/IV/V,27.6/23.3/20.4/17.4/16.0 m,Lekwadi et al. 2012 (S4) via CCF Primary Literature Synthesis v1,A,validation anchors,used
+site,Chapman-Richards Table 3 rounded coefficients,b0/b2/b3 per class,S4 Table 3 via synthesis,A (rounded),curve shape only,b0 rescaled to anchors; rounded values miss anchors by -0.08 to -2.19 m
+site,Top height largely independent of stocking and normal thinning,qualitative,S4 via synthesis,A,height must not respond to ordinary thinning,production complies
+site,First thinning ~15-17 yr (class I) to ~25-29 yr (class V),age range,S4 via synthesis,A,tutorial timing check,used qualitatively
+site,MAI/CAI intersections I-V,0.89/0.82/0.75/0.58/0.45 m/yr,S4 via synthesis,A,increment sanity check,not used directly
+height,Current height law,dH/dt = 0.45(1-H/35),SitkaSpruce.asset,D,audit,implies class IV-V pace
+height,Authored start heights,H = 2 + 0.62 DBH +/- 0.6 at age 20,ForestStartingStand,D,starting-state class,implies class III
+height,Top-height definition used (100 largest-DBH stems/ha),16 trees in 0.16 ha,common UK/Irish convention,I,measurement,needs checking against S4
+dbh,Potential DBH growth,1.2 cm/yr (evidence range 0.9-1.5),C8 calibration (Teagasc inference; Frenchpark),C,audit,unchanged
+dbh,Thinning response (stand mean DBH ratios moderate/heavy vs unthinned),1.28/1.38 vs observed 1.26/1.37,Frenchpark via C8 calibration,B/C,thinning-response verdict,supported
+dbh,Unthinned DBH growth after ~16 cm,0.27-0.8 cm/yr,Frenchpark inference via C8,C,absolute verdict,ages 20-40 inside band; later unsupported (no density feedback)
+crown,Open-grown potential crown radius,0.9415 + 0.07635 DBH m,Tabbush & White 1988 (S7),B,crown envelope,production uses
+crown,Pooled crown model with positive Hegyi coefficient,r = exp(-2.178 + 0.823 ln D + 0.109 Hegyi7),Davies & Pommerening 2008 (S1),B,not a causal rule,not used (warning respected)
+crown,Crown length declines with local basal area,CL = H exp(-max(0 0.586 H/D + 0.309 BA5)),S1,B,future crown-ratio hook,not implemented
+competition,Hegyi index (Dj/Di)/dist,8 m cutoff,C8 calibration,B (method) / C (cutoff),audit,scale-invariant: no carrying capacity
+mortality,Reineke self-thinning slope,-1.605,Reineke 1933 (general forestry),B,prototype C/D,not in supplied synthesis
+mortality,Maximum SDI for Sitka,1500-2200 tested,none,I,prototype C/D,needs Irish/UK evidence
+mortality,Suppression hazard onset/maximum,S0 0.5; pmax 0.10 (0.05-0.20),none,I,prototype A/D,needs evidence
+mortality,Low-growth floor,0.15 cm/yr,none,I,prototype B,rejected (inert)
+mortality,Plausible maximum basal area of closed Sitka,~80-90 m2/ha,general forestry knowledge,I,implausibility timing,needs source
+stability,H/D > ~80-100 associated with wind instability,ratio,general forestry knowledge,I,H/D warning,needs source before storm milestone

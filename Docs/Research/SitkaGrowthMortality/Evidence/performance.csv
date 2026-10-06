@@ -1,0 +1,5 @@
+requested_trees,living_trees,annual_step_ms,suppression_hazard_pass_ms,sdi_pass_ms
+336,336,135.1,0.61,0.17
+1300,1300,597.3,2.29,0.63
+3000,3000,1627.9,5.82,1.94
+5000,5000,2952.7,10.83,3.40

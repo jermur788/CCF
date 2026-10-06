@@ -1,0 +1,28 @@
+ENV engine=6000.6.0f1 years=100 rngModel=1 regenerationModel=1 browsePressure=0.2
+START trees=336 ages=[20] siteProductivityValues=[1] sitka potentialHeightGrowth=0.45 maxHeight=35 potentialDbh=1.2 maxDbh=120 ci50=5 formHeightRatio=0.5
+RUN E_none/unthinned years=100 deaths=0 deadwood_m3_ha=0.0 seconds=11.2 mortalityPassMsTotal=0.8
+RUN E_none/light_below years=100 deaths=0 deadwood_m3_ha=0.0 seconds=9.9 mortalityPassMsTotal=0.1
+RUN E_none/moderate_below years=100 deaths=0 deadwood_m3_ha=0.0 seconds=9.2 mortalityPassMsTotal=0.1
+RUN E_none/heavy_selective years=100 deaths=0 deadwood_m3_ha=0.0 seconds=9.2 mortalityPassMsTotal=0.1
+RUN A_suppression/unthinned years=100 deaths=134 deadwood_m3_ha=388.3 seconds=13.1 mortalityPassMsTotal=3338.4
+RUN A_suppression/light_below years=100 deaths=106 deadwood_m3_ha=113.8 seconds=11.8 mortalityPassMsTotal=2413.7
+RUN A_suppression/moderate_below years=100 deaths=99 deadwood_m3_ha=25.2 seconds=10.4 mortalityPassMsTotal=1740.3
+RUN A_suppression/heavy_selective years=100 deaths=70 deadwood_m3_ha=18.1 seconds=10.0 mortalityPassMsTotal=1305.9
+RUN B_low_growth/unthinned years=100 deaths=5 deadwood_m3_ha=0.3 seconds=11.6 mortalityPassMsTotal=183.5
+RUN B_low_growth/light_below years=100 deaths=19 deadwood_m3_ha=0.6 seconds=10.5 mortalityPassMsTotal=439.6
+RUN B_low_growth/moderate_below years=100 deaths=20 deadwood_m3_ha=0.5 seconds=9.3 mortalityPassMsTotal=337.9
+RUN B_low_growth/heavy_selective years=100 deaths=19 deadwood_m3_ha=0.5 seconds=9.4 mortalityPassMsTotal=325.9
+RUN C_self_thinning/unthinned years=100 deaths=484 deadwood_m3_ha=2002.2 seconds=14.5 mortalityPassMsTotal=6509.9
+RUN C_self_thinning/light_below years=100 deaths=374 deadwood_m3_ha=1833.7 seconds=12.0 mortalityPassMsTotal=4224.7
+RUN C_self_thinning/moderate_below years=100 deaths=333 deadwood_m3_ha=860.8 seconds=11.6 mortalityPassMsTotal=3311.2
+RUN C_self_thinning/heavy_selective years=100 deaths=303 deadwood_m3_ha=834.6 seconds=11.8 mortalityPassMsTotal=3015.1
+RUN D_suppression_plus_cap/unthinned years=100 deaths=395 deadwood_m3_ha=2075.6 seconds=14.1 mortalityPassMsTotal=5959.6
+RUN D_suppression_plus_cap/light_below years=100 deaths=363 deadwood_m3_ha=1844.5 seconds=13.0 mortalityPassMsTotal=4993.7
+RUN D_suppression_plus_cap/moderate_below years=100 deaths=273 deadwood_m3_ha=925.8 seconds=11.3 mortalityPassMsTotal=3209.1
+RUN D_suppression_plus_cap/heavy_selective years=100 deaths=202 deadwood_m3_ha=912.0 seconds=10.5 mortalityPassMsTotal=2412.9
+RUN A_suppression_hazard0.05/unthinned years=100 deaths=93 deadwood_m3_ha=344.1 seconds=12.6 mortalityPassMsTotal=2445.3
+RUN A_suppression_hazard0.20/unthinned years=100 deaths=169 deadwood_m3_ha=412.3 seconds=13.1 mortalityPassMsTotal=3891.7
+RUN C_self_thinning_sdi1500/unthinned years=100 deaths=561 deadwood_m3_ha=1838.3 seconds=13.9 mortalityPassMsTotal=6459.7
+RUN repeat:E_none/unthinned years=100 deaths=0 deadwood_m3_ha=0.0 seconds=11.1 mortalityPassMsTotal=0.1
+RUN repeat:A_suppression/unthinned years=100 deaths=134 deadwood_m3_ha=388.3 seconds=12.9 mortalityPassMsTotal=3290.7
+SITKA_DIAGNOSTICS_DONE
