@@ -262,12 +262,20 @@ public sealed class StandMapView
         waypointMarker = null;
     }
 
+    public bool TryGetWaypointTarget(out Vector2 target)
+    {
+        ForestEcologyController eco = ui.Ecology;
+        target = default;
+        if (waypointCell < 0 || eco == null || eco.Cells == null || waypointCell >= eco.Cells.Length)
+            return false;
+        target = eco.Cells[waypointCell].Center;
+        return true;
+    }
+
     public string WaypointDescription(Vector3 playerPosition)
     {
         ForestEcologyController eco = ui.Ecology;
-        if (waypointCell < 0 || eco == null || eco.Cells == null || waypointCell >= eco.Cells.Length)
-            return "";
-        Vector2 target = eco.Cells[waypointCell].Center;
+        if (!TryGetWaypointTarget(out Vector2 target)) return "";
         Vector2 delta = target - new Vector2(playerPosition.x, playerPosition.z);
         bool walking = ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Manager.AnyPanelOpen;
         if (walking && journeyStartedAway && delta.magnitude < eco.CellSizeMeters * 0.5f)

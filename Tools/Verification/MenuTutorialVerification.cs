@@ -175,6 +175,33 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         yield return CaptureScreen("map-waypoint");
         yield return Press(Key.M);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Learning.IsDone("map.return"), "M did not return with waypoint");
+        VisualElement hudPanel = ui.RootElement.Q("hud-waypoint-panel");
+        Label hudWaypoint = ui.RootElement.Q<Label>("hud-waypoint-label");
+        Label hudDirection = ui.RootElement.Q<Label>("hud-waypoint-direction");
+        VisualElement hudArrow = ui.RootElement.Q("hud-waypoint-arrow");
+        Vector2 direction = (ui.Ecology.Cells[target].Center - new Vector2(position.x, position.z)).normalized;
+        string destinationText = null;
+        foreach (int turn in new[] { 0, 90, -90, 180 })
+        {
+            Vector3 facing = Quaternion.Euler(0, -turn, 0) * new Vector3(direction.x, 0, direction.y);
+            player.RestoreLook(Quaternion.LookRotation(facing), 0);
+            yield return CaptureScreen("hud-waypoint-turn-" + turn);
+            float bearing = (float)hudArrow.GetType().GetProperty("BearingDegrees").GetValue(hudArrow);
+            Check(Mathf.Abs(Mathf.DeltaAngle(turn, bearing)) < 1, "HUD arrow bearing incorrect: " + turn);
+            string expected = turn == 0 ? "Ahead" : turn == 90 ? "Turn right" : turn == -90 ? "Turn left" : "Behind you";
+            Check(hudDirection.text.StartsWith(expected), "HUD turn instruction incorrect");
+            if (destinationText == null) destinationText = hudWaypoint.text;
+            Check(hudWaypoint.text == destinationText && player.transform.position == position, "Turning changed destination or moved player");
+        }
+        foreach (Vector2Int size in new[] { new Vector2Int(1280,720), new Vector2Int(1600,900), new Vector2Int(1920,1080) })
+        {
+            MenuTutorialVerification.SetGameSize(size.x, size.y);
+            yield return CaptureScreen("hud-waypoint-" + size.x);
+            Rect bounds = hudPanel.worldBound, viewport = ui.RootElement.worldBound;
+            Check(hudPanel.resolvedStyle.display == DisplayStyle.Flex && bounds.height > 40
+                && viewport.Contains(bounds.min) && viewport.Contains(bounds.max), "Waypoint panel hidden or clipped");
+            Check(!string.IsNullOrEmpty(hudWaypoint.text) && hudWaypoint.worldBound.height > 10, "Waypoint text invisible");
+        }
         Check(!ui.Learning.IsDone("map.arrive"), "Navigation credited before arrival");
         Vector2 destination = ui.Ecology.Cells[target].Center;
         player.transform.position = new Vector3(destination.x, player.transform.position.y, destination.y);
@@ -182,8 +209,14 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         for (int i = 0; i < 20; i++) yield return null;
         ui.Map.WaypointDescription(player.transform.position);
         Check(ui.Learning.IsDone("map.arrive") && ui.Learning.IsDone("map.inspectsite"), "Destination/site inspection not recorded");
+        yield return CaptureScreen("hud-waypoint-arrived");
+        Check(hudDirection.text.StartsWith("At destination") && hudArrow.resolvedStyle.display == DisplayStyle.None, "HUD arrival state missing");
         ui.ShowMap(); yield return null;
-        Check(!ui.Help.IsOpen, "Map introduction repeats"); ui.CloseAll(); yield return null;
+        Check(!ui.Help.IsOpen, "Map introduction repeats");
+        yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Clear waypoint"));
+        ui.CloseAll(); yield return CaptureScreen("hud-waypoint-cleared");
+        Check(hudPanel.resolvedStyle.display == DisplayStyle.None, "Cleared waypoint remains in HUD");
+        Debug.Log("HUD_WAYPOINT_PASS visible=true sizes=1280,1600,1920 bearings=0,90,-90,180 arrival=true clear=true noTeleport=true");
         Debug.Log("MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false");
 
         ui.ShowWorkPlan(); yield return null; yield return null;

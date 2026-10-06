@@ -10,6 +10,9 @@ public sealed class WalkingHudView
     public VisualElement Root { get; }
 
     private readonly Label statusTitle, cash, objectives, browse, access, waypoint;
+    private readonly VisualElement waypointPanel;
+    private readonly Label waypointDirection;
+    private readonly WaypointArrow waypointArrow;
     private readonly Label learning;
     private readonly VisualElement groundPanel;
     private readonly Label groundTitle, groundLight, groundBrowse, groundRegen, groundWhy;
@@ -35,7 +38,6 @@ public sealed class WalkingHudView
         cash = UiKit.Add(cashRow, "", "money");
         objectives = UiKit.Add(status, "", "body");
         browse = UiKit.Add(status, "", "body");
-        waypoint = UiKit.Add(status, "", "body", "waypoint-line");
         access = UiKit.Add(status, "", "muted");
         learning = UiKit.Add(status, "", "muted");
         VisualElement menuButtons = UiKit.Row(status, "row-wrap");
@@ -46,6 +48,20 @@ public sealed class WalkingHudView
         menuButtons.Add(objectivesButton);
         menuButtons.Add(helpButton);
         Root.Add(status);
+
+        waypointPanel = UiKit.Box("panel", "hud-waypoint", "row");
+        waypointPanel.name = "hud-waypoint-panel";
+        waypointPanel.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
+        waypointArrow = new WaypointArrow { name = "hud-waypoint-arrow" };
+        waypointPanel.Add(waypointArrow);
+        VisualElement destination = new VisualElement();
+        destination.style.flexGrow = 1;
+        waypoint = UiKit.Add(destination, "", "body", "waypoint-line");
+        waypoint.name = "hud-waypoint-label";
+        waypointDirection = UiKit.Add(destination, "", "muted");
+        waypointDirection.name = "hud-waypoint-direction";
+        waypointPanel.Add(destination);
+        Root.Add(waypointPanel);
 
         VisualElement bottom = UiKit.Box("hud-bottom");
         groundPanel = UiKit.Box("panel", "hud-ground");
@@ -112,7 +128,25 @@ public sealed class WalkingHudView
         int open = m.WorkOrders.Count(o => o.IsOpen);
         access.text = $"[M] Stand map   ·   [Tab] Work Plan ({open} task{(open == 1 ? "" : "s")})";
         waypoint.text = ui.Map.WaypointDescription(player != null ? player.transform.position : Vector3.zero);
-        waypoint.style.display = string.IsNullOrEmpty(waypoint.text) ? DisplayStyle.None : DisplayStyle.Flex;
+        Vector2 target = default;
+        bool hasWaypoint = player != null && ui.Map.TryGetWaypointTarget(out target);
+        waypointPanel.style.display = hasWaypoint ? DisplayStyle.Flex : DisplayStyle.None;
+        if (hasWaypoint)
+        {
+            // Screen arrows point up when the destination is ahead, right when
+            // it is to the player's right. Pitch does not change ground bearing.
+            Vector2 delta = target - new Vector2(player.transform.position.x, player.transform.position.z);
+            Vector2 forward = new Vector2(player.transform.forward.x, player.transform.forward.z);
+            float bearing = -Vector2.SignedAngle(forward, delta);
+            bool arrived = eco != null && delta.magnitude < eco.CellSizeMeters * 0.5f;
+            waypointArrow.style.display = arrived ? DisplayStyle.None : DisplayStyle.Flex;
+            waypointArrow.SetBearing(bearing);
+            waypointDirection.text = arrived ? "At destination · inspect the site"
+                : (Mathf.Abs(bearing) <= 22.5f ? "Ahead" : Mathf.Abs(bearing) >= 157.5f ? "Behind you"
+                    : bearing < 0f ? "Turn left" : "Turn right") + " · [M] Change destination";
+        }
+        // Transient messages get their own row below the navigation panel.
+        messageBox.style.top = hasWaypoint ? 100f : 14f;
 
         bool locked = UnityEngine.Cursor.lockState == CursorLockMode.Locked;
         reticle.style.display = locked ? DisplayStyle.Flex : DisplayStyle.None;
@@ -159,6 +193,39 @@ public sealed class WalkingHudView
                 + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop  [G] Plant";
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+    }
+
+    private sealed class WaypointArrow : VisualElement
+    {
+        private static readonly Vector2[] Outline = {
+            new Vector2(18, 3), new Vector2(31, 18), new Vector2(23, 18),
+            new Vector2(23, 32), new Vector2(13, 32), new Vector2(13, 18), new Vector2(5, 18)
+        };
+        public float BearingDegrees { get; private set; }
+        public WaypointArrow()
+        {
+            style.width = 36; style.height = 36; style.flexShrink = 0; style.marginRight = 12;
+            generateVisualContent += context =>
+            {
+                Painter2D painter = context.painter2D;
+                painter.fillColor = new Color(232f / 255f, 206f / 255f, 120f / 255f);
+                Quaternion rotation = Quaternion.Euler(0, 0, BearingDegrees);
+                Vector2 centre = new Vector2(18, 18);
+                painter.BeginPath();
+                for (int i = 0; i < Outline.Length; i++)
+                {
+                    Vector2 point = (Vector2)(rotation * (Vector3)(Outline[i] - centre)) + centre;
+                    if (i == 0) painter.MoveTo(point); else painter.LineTo(point);
+                }
+                painter.ClosePath(); painter.Fill();
+            };
+        }
+        public void SetBearing(float degrees)
+        {
+            if (Mathf.Approximately(degrees, BearingDegrees)) return;
+            BearingDegrees = degrees;
+            MarkDirtyRepaint();
         }
     }
 }

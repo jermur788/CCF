@@ -1,0 +1,39 @@
+{
+  "gate": "MenuTutorialVerification",
+  "mode": "default-rendered",
+  "exit_code": 0,
+  "status": "PASS",
+  "seconds": 70.98,
+  "markers": [
+    "MENU_RENDERED_PASS WalkingHud 1280x720",
+    "MENU_RENDERED_PASS WalkingHud 1600x900",
+    "MENU_RENDERED_PASS WalkingHud 1920x1080",
+    "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+    "MENU_RENDERED_PASS TreeInspection 1280x720",
+    "MENU_RENDERED_PASS TreeInspection 1600x900",
+    "MENU_RENDERED_PASS TreeInspection 1920x1080",
+    "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+    "MENU_RENDERED_PASS StandMap 1280x720",
+    "MENU_RENDERED_PASS StandMap 1600x900",
+    "MENU_RENDERED_PASS StandMap 1920x1080",
+    "HUD_WAYPOINT_PASS visible=true sizes=1280,1600,1920 bearings=0,90,-90,180 arrival=true clear=true noTeleport=true",
+    "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+    "MENU_RENDERED_PASS WorkPlan 1280x720",
+    "MENU_RENDERED_PASS WorkPlan 1600x900",
+    "MENU_RENDERED_PASS WorkPlan 1920x1080",
+    "MENU_RENDERED_PASS AnnualReview 1280x720",
+    "MENU_RENDERED_PASS AnnualReview 1600x900",
+    "MENU_RENDERED_PASS AnnualReview 1920x1080",
+    "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+    "LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true",
+    "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+    "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+  ],
+  "base": "593f4df46f442d691df83d36a8a049bd89eca29d",
+  "source_sha256": {
+    "Assets/ForestPrototype/UI/WalkingHudView.cs": "1fddffab04fa9825085a803f2937dcdc5cfe876e18100630afe9fd238df38d3a",
+    "Assets/ForestPrototype/UI/StandMapView.cs": "572db8038ef8612577646bd2d9b807e7e31c3ae9921f69bbe80ceaf9e9a11450",
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "d7816596d0a0a7a0f6248682b2b282cdb1ed4417c599580e033a1b3c222ae6ef",
+    "Tools/Verification/MenuTutorialVerification.cs": "4072197259c89da110712a94e35c69b1742d0cdaca278a66c4fc1cbae6feb844"
+  }
+}
