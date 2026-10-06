@@ -174,6 +174,8 @@ public sealed class RngModelPolicyGate : MonoBehaviour
         {
             ForestStandScenarios.ApplyLifecycleFixture();
             ecology.RngModelVersion = model;
+            // RNG policy anchors are defined under legacy regeneration (model 0).
+            ecology.RegenerationModelVersion = RegenerationModel.Legacy;
             ecology.Browsing.BackgroundPressure = pressure;
             ecology.Browsing.ClearProtection();
             for (int year = 0; year < 80; year++)
@@ -188,7 +190,7 @@ public sealed class RngModelPolicyGate : MonoBehaviour
 
     private IEnumerator Continuation(int model)
     {
-        ForestSaveData start = Clone(original); start.rngModelVersion = model;
+        ForestSaveData start = Clone(original); start.rngModelVersion = model; start.regenerationModel = RegenerationModel.Legacy;
         Check(saves.LoadData(start, false), "continuation start"); yield return null;
         Check(manager.TryPurchaseStock("sessile-oak-sapling", 12), "stock");
         int planted = 0;

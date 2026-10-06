@@ -758,7 +758,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             if (pass > 0)
             {
                 ForestSaveData mid = JsonUtility.FromJson<ForestSaveData>(midJson);
-                Check(mid.version == 15 && mid.scenarioOne.shelters.Count > 0 && mid.scenarioOne.protectedAreas.Count == 1, "v15 save lacks protection records");
+                Check(mid.version == ForestSaveData.CurrentVersion && mid.scenarioOne.shelters.Count > 0 && mid.scenarioOne.protectedAreas.Count == 1, "v15 save lacks protection records");
                 savedShelters = mid.scenarioOne.shelters.Count;
                 if (pass == 2)
                 {
@@ -965,6 +965,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         {
             ForestStandScenarios.ApplyLifecycleFixture();
             ecology.RngModelVersion = SimulationRandom.LegacyModel;
+            ecology.RegenerationModelVersion = RegenerationModel.Legacy;
             ecology.Browsing.BackgroundPressure = pressure;
             ecology.Browsing.ClearProtection();
             for (int year = 0; year < 80; year++) ecology.AdvanceOneYear();

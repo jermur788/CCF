@@ -263,6 +263,7 @@ public sealed class CCFIntegrationVerificationRunnerTemp : MonoBehaviour
         ForestStandScenarios.ApplyLifecycleFixture();
         // Canonical anchor is defined under legacy RNG model 0 (new games use model 1).
         ecology.RngModelVersion = SimulationRandom.LegacyModel;
+        ecology.RegenerationModelVersion = RegenerationModel.Legacy;
         // Neutral anchor: Scenario One's [C] browse pressure is explicitly off here.
         float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
         ecology.Browsing.BackgroundPressure = 0f;

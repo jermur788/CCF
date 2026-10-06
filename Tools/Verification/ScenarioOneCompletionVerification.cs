@@ -115,7 +115,13 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         string forcedModel = Environment.GetEnvironmentVariable("CCF_RNG_MODEL");
         if (!string.IsNullOrEmpty(forcedModel))
             ecology.RngModelVersion = int.Parse(forcedModel, CultureInfo.InvariantCulture);
+        // CCF_REGEN_MODEL=0 replays legacy single-cohort regeneration. Legacy
+        // anchors: RNG 0 + regen 0 = 568922E1A6D73CDD; RNG 1 + regen 0 = 00479F18970F9926.
+        string forcedRegeneration = Environment.GetEnvironmentVariable("CCF_REGEN_MODEL");
+        if (!string.IsNullOrEmpty(forcedRegeneration))
+            ecology.RegenerationModelVersion = int.Parse(forcedRegeneration, CultureInfo.InvariantCulture);
         Debug.Log($"SCENARIO_ONE_COMPLETION_RNG_MODEL {ecology.RngModelVersion} forced={(string.IsNullOrEmpty(forcedModel) ? "no" : "yes")}");
+        Debug.Log($"SCENARIO_ONE_COMPLETION_REGEN_MODEL {ecology.RegenerationModelVersion} forced={(string.IsNullOrEmpty(forcedRegeneration) ? "no" : "yes")}");
         original = saves.CaptureData();
         scenarioPressure = ecology.Browsing.BackgroundPressure;
         ScenarioOneDefinition definition = manager.Definition;
@@ -128,9 +134,9 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 15 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
-            "production conventions (v15, EUR 2,500 minimum, 2,400 owner min/yr)");
-        Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v15 minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
+        Check(ForestSaveData.CurrentVersion == 16 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+            "production conventions (v16, EUR 2,500 minimum, 2,400 owner min/yr)");
+        Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
         // ---- P1 INSPECT ----
         ForestTree sample = living.First(t => t.TreeId == "P0000");
@@ -320,7 +326,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.TryPurchaseStock(OakItem, 1) && TryPlantSingle(OakItem, WorkExecutionMethod.LandownerSimulated, true), "mid-plan owner sheltered planting not designated");
         ForestSaveData mid = saves.CaptureData();
         string midJson = JsonUtility.ToJson(mid);
-        Check(mid.version == 15 && mid.scenarioOne.shelters.Count == pairs.Count, "mid save is not v15 with shelters");
+        Check(mid.version == ForestSaveData.CurrentVersion && mid.scenarioOne.shelters.Count == pairs.Count, "mid save is not current-version with shelters");
         Check(mid.scenarioOne.workOrders.Count(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Approved && o.harvestJobId >= 0
               && o.executionMethod == WorkExecutionMethod.Contractor) == 3, "approved grouped harvest not saved");
         Check(mid.scenarioOne.workOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile && o.status == ScenarioWorkStatus.Pending
@@ -385,9 +391,10 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         while (toThirty.MoveNext()) yield return toThirty.Current;
         ScenarioEcologicalSnapshot y30 = manager.EcologicalSnapshots.Last();
         string finalHash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        string legacyLayoutHash = ScenarioReferenceArchive.LegacyV15WorldHash(saves.CaptureData()) ?? "n/a";
         Debug.Log($"SCENARIO_ONE_COMPLETION_OBJECTIVES year={minimumYear} outcome={outcomeAtMinimum} {objectives}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_CASH minimum={minCash} year30={manager.CashCents}");
-        Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion}");
+        Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion} regenerationModel={ecology.RegenerationModelVersion} legacyV15LayoutHash={legacyLayoutHash}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,
             $"reasonable CCF plan did not complete at Year {minimumYear}: {objectives}");

@@ -24,6 +24,10 @@ using UnityEditor.SceneManagement;
 // AdvanceOneYear and the full world state must be identical at 10/25/50/100
 // years, which proves the copies are faithful. All other stages are production.
 //
+// Regeneration model: pinned to 0 (legacy). This harness measures the BEFORE
+// state; its instrumented copies reproduce the legacy stage code. Model 1 is
+// verified by RegenerationModelVerification.
+//
 // Units: regeneration "density" is the production relative-abundance value
 // (normalised occupancy via RegenDensityMax). It is NOT stems/ha and no
 // conversion to a count is made anywhere in this harness.
@@ -96,9 +100,11 @@ public sealed class RegenerationBudgetRunner : MonoBehaviour
         DestroyAllTrees();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
+        e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
         stand.Generate();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
+        e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
         e.InvalidateCompetition();
         ForestTree[] ordered = Living().OrderBy(t => t.Diameter).ThenBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
         e.BeginChangeBatch();
@@ -398,6 +404,7 @@ public sealed class RegenerationBudgetRunner : MonoBehaviour
         DestroyAllTrees();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
+        e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
         e.RecomputeCanopy();
         foreach (ForestEcologyCell c in e.Cells) { c.ClearRegeneration(); c.Light = light; }
     }

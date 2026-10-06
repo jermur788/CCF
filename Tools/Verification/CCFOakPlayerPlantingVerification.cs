@@ -69,6 +69,9 @@ public sealed class CCFOakPlayerPlantingRunner : MonoBehaviour
         yield return null;
         ForestPlayer player = FindFirstObjectByType<ForestPlayer>();
         ForestEcologyController ecology = FindFirstObjectByType<ForestEcologyController>();
+        // Legacy single-cohort API contract: pinned to regeneration model 0
+        // (the scene's Scenario One manager starts new games on model 1).
+        ecology.RegenerationModelVersion = RegenerationModel.Legacy;
         ForestTreeSpawner spawner = FindFirstObjectByType<ForestTreeSpawner>();
         ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
         Check(player != null && ecology != null && spawner != null && saves != null,

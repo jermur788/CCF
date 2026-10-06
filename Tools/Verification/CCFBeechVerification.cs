@@ -19,10 +19,20 @@ public class CCFBeechRunner:MonoBehaviour {
  IEnumerator Test(){
  yield return null;
  ecology=FindFirstObjectByType<ForestEcologyController>();saves=FindFirstObjectByType<ForestSaveController>();
+ // Legacy single-cohort contract: regeneration model 0 unless CCF_REGEN_MODEL overrides it (diagnostics).
+ string forced=Environment.GetEnvironmentVariable("CCF_REGEN_MODEL");
+ ecology.RegenerationModelVersion=string.IsNullOrEmpty(forced)?RegenerationModel.Legacy:int.Parse(forced);
+ Debug.Log("BEECH_REGEN_MODEL "+ecology.RegenerationModelVersion);
  beech=FindFirstObjectByType<ForestTreeSpawner>().ResolveSpecies("beech");Check(beech!=null,"Beech absent");enabledBefore=beech.SupportsRegeneration;
  typeof(TreeSpeciesDefinition).GetField("supportsRegeneration",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(beech,true);
  string initial=Persisted(); bool shared=false;
- for(int i=0;i<100;i++){ecology.AdvanceOneYear();shared |= ecology.Cells.Any(c=>c.Regeneration.Count(x=>x.Density>0)>1);Check(ecology.Cells.All(c=>c.SharedOccupancy<=1.000001f),"capacity exceeded");}
+ double tReq=0,tAcc=0,tRej=0,tInf=0,tThr=0,tLight=0,maxReq=0; int tBands=0,tTrees=0,estYears=0;
+ for(int i=0;i<100;i++){ecology.AdvanceOneYear();shared |= ecology.Cells.Any(c=>c.Regeneration.Count(x=>x.Density>0)>1);Check(ecology.Cells.All(c=>c.SharedOccupancy<=1.000001f),"capacity exceeded");
+  var a=ecology.LastRegenerationAccount.For("beech");
+  tReq+=a.EstablishmentRequested;tAcc+=a.EstablishmentAccepted;tRej+=a.CapacityRejected;tInf+=a.InfillAccepted;tThr+=a.ThresholdExtinction;tLight+=a.LightLoss;tBands+=a.BandsCreated;tTrees+=a.ExactTreesCreated;
+  if(a.EstablishmentRequested>0){estYears++;maxReq=Math.Max(maxReq,a.EstablishmentRequested);}var bb=ecology.Cells.SelectMany(c=>c.Regeneration.Where(x=>x.SpeciesId=="beech"&&x.Density>0)).ToList();
+  if(i%10==9)Debug.Log($"BEECH_DIAG year={ecology.EcologicalYear} seed={a.SeedArrival:0.###} req={a.EstablishmentRequested:0.###} acc={a.EstablishmentAccepted:0.###} rej={a.CapacityRejected:0.###} infill={a.InfillAccepted:0.###} light={a.LightLoss:0.###} thr={a.ThresholdExtinction:0.###} promoted={a.ExactTreesCreated} bands={bb.Count} abundance={bb.Sum(x=>x.Density):0.###} maxH={(bb.Count>0?bb.Max(x=>x.Height):0):0.##} cellsLight>={(bb.Count>0?ecology.Cells.Where(c=>c.SpeciesDensity("beech")>0).Max(c=>c.Light):0):0.###}");}
+ Debug.Log($"BEECH_TOTALS model={ecology.RegenerationModelVersion} establishmentYears={estYears} requested={tReq:0.####} maxAnnualRequest={maxReq:0.####} accepted={tAcc:0.####} rejected={tRej:0.####} legacyInfill={tInf:0.####} lightLoss={tLight:0.####} thresholdExtinction={tThr:0.####} bandsCreated={tBands} exactTrees={tTrees}");
  string before=Persisted();string annualRain=Rain();
  Check(shared,"no shared cell during run");
  var trees=FindObjectsByType<ForestTree>(FindObjectsSortMode.None);Check(trees.Select(t=>t.TreeId).Distinct().Count()==trees.Length,"duplicate IDs");

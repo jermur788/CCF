@@ -549,7 +549,7 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         Debug.Log($"REFERENCE_CONTINUATION_DIVERGENCE (diagnostic, not a failure) frozenTrees={frozen100.trees.Count} "
             + $"continuedTrees={continued.trees.Count} identicalToFrozen={same}");
         Debug.Log($"REFERENCE_CONTINUATION_PASS year50=v{year50.version} year100=v{continued.version} "
-            + $"deterministic=True continuedHash={continuedHashes[0]}");
+            + $"deterministic=True continuedHash={continuedHashes[0]} legacyV15LayoutHash={ScenarioReferenceArchive.LegacyV15WorldHash(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(continued))) ?? "n/a"}");
         Debug.Log("REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired");
     }
 

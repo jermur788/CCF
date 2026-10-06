@@ -255,7 +255,7 @@ public sealed class ScenarioOnePresentationCapture : MonoBehaviour
         Check(manager != null && ecology != null && saves != null && player != null && cameraView != null, "scene systems");
         original = saves.CaptureData();
         Check(ecology.EcologicalYear == 0 && Living().Count == 336, "not fresh authoritative Year 0");
-        Check(ForestSaveData.CurrentVersion == 15 && manager.Definition.BackgroundBrowsePressure == .2f, "configuration");
+        Check(ForestSaveData.CurrentVersion == 16 && manager.Definition.BackgroundBrowsePressure == .2f, "configuration");
         Note("ENV engine=" + Application.unityVersion + " device=" + SystemInfo.graphicsDeviceName + " cpu=" + SystemInfo.processorType);
         Pose(new Vector3(-.43f, 1.75f, 5.25f), new Vector3(3, 1.5f, 1));
         yield return Capture("01-start", true); yield return Performance("Year0");

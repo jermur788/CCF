@@ -261,7 +261,13 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             cell.Center, half, new[] { onBoundary }));
         Check(Mathf.Abs(acrossCells - 1f) < 0.04f,
             "clearance on a cell corner did not cover its four actual neighbours");
-        ForestRegenerationCohort sitka = patchCell.GetOrCreateCohort(FindFirstObjectByType<ForestTreeSpawner>().DefaultSpecies);
+        // One probe cohort: existing Sitka records (age bands under regeneration
+        // model 1) are removed first so the probe cannot duplicate a band key.
+        TreeSpeciesDefinition probeSpecies = FindFirstObjectByType<ForestTreeSpawner>().DefaultSpecies;
+        for (int i = patchCell.Regeneration.Count - 1; i >= 0; i--)
+            if (patchCell.Regeneration[i].SpeciesId == probeSpecies.SpeciesId)
+                patchCell.RemoveCohort(patchCell.Regeneration[i]);
+        ForestRegenerationCohort sitka = patchCell.GetOrCreateCohort(probeSpecies);
         sitka.Restore(1f, 0.6f, ecology.EcologicalYear);
         Invoke(manager, "ApplyPlantingClearance", a, ecology.EcologicalYear);
         Invoke(manager, "ApplyPlantingClearance", b, ecology.EcologicalYear);
@@ -327,9 +333,11 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         // default to model 1, so pin it here and restore the session model.
         float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
         int sessionRngModel = ecology.RngModelVersion;
+        int sessionRegenerationModel = ecology.RegenerationModelVersion;
         ecology.Browsing.BackgroundPressure = 0f;
         ForestStandScenarios.ApplyLifecycleFixture();
         ecology.RngModelVersion = SimulationRandom.LegacyModel;
+        ecology.RegenerationModelVersion = RegenerationModel.Legacy;
         for (int year = 0; year < 80; year++)
         {
             ecology.AdvanceOneYear();
@@ -338,6 +346,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         string canonical = LifecycleHash(ecology);
         ecology.Browsing.BackgroundPressure = scenarioBrowsePressure;
         ecology.RngModelVersion = sessionRngModel;
+        ecology.RegenerationModelVersion = sessionRegenerationModel;
         Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 
@@ -451,7 +460,8 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
             + " diverged=" + divergedTrees + " frozenIdsAbsent=" + missingFrozen + " maxDbhDiffCm=" + maxDbhDiff.ToString("0.00"));
         Debug.Log("SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v" + continued.version
             + " trees=" + continued.trees.Count + " year50TreesPreserved=" + year50.trees.Count
-            + " deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=" + continuedHash);
+            + " deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=" + continuedHash
+            + " legacyV15LayoutHash=" + (ScenarioReferenceArchive.LegacyV15WorldHash(CloneSave(continued)) ?? "n/a"));
     }
 
     private static ForestSaveData CloneSave(ForestSaveData data) =>

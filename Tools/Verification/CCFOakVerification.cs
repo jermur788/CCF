@@ -353,6 +353,9 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
     {
         yield return null;
         ecology = FindFirstObjectByType<ForestEcologyController>();
+        // Legacy single-cohort API contract: pinned to regeneration model 0
+        // (the scene's Scenario One manager starts new games on model 1).
+        ecology.RegenerationModelVersion = RegenerationModel.Legacy;
         spawner = FindFirstObjectByType<ForestTreeSpawner>();
         saves = FindFirstObjectByType<ForestSaveController>();
         Check(ecology != null && spawner != null && saves != null, "Required scene systems are missing");
