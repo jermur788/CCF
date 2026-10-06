@@ -51,6 +51,7 @@ public sealed class ClearanceVerificationRunner : MonoBehaviour
     private ForestSaveController saves;
     private ForestPlayer player;
     private string output, savePath;
+    private readonly System.Collections.Generic.Dictionary<string, int?> helpPreferences = new System.Collections.Generic.Dictionary<string, int?>();
     private byte[] priorSave;
     private static void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); }
     private static object Call(object o, string name, params object[] args) => o.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(o, args);
@@ -69,6 +70,9 @@ public sealed class ClearanceVerificationRunner : MonoBehaviour
             yield return current;
         }
         if (savePath != null) { if (priorSave != null) File.WriteAllBytes(savePath, priorSave); else File.Delete(savePath); }
+        foreach (var entry in helpPreferences)
+            if (entry.Value.HasValue) PlayerPrefs.SetInt(entry.Key, entry.Value.Value); else PlayerPrefs.DeleteKey(entry.Key);
+        if (helpPreferences.Count > 0) PlayerPrefs.Save();
         if (failure == null) Debug.Log("CLEARANCE_ACCEPTANCE_PASS"); else Debug.LogError("CLEARANCE_VERIFY_FAIL " + failure);
 #if UNITY_EDITOR
         EditorApplication.ExitPlaymode(); EditorApplication.Exit(failure == null ? 0 : 1);
@@ -78,9 +82,24 @@ public sealed class ClearanceVerificationRunner : MonoBehaviour
     {
         ecology = FindFirstObjectByType<ForestEcologyController>(); manager = FindFirstObjectByType<ScenarioOneManager>();
         saves = FindFirstObjectByType<ForestSaveController>(); player = FindFirstObjectByType<ForestPlayer>();
+        // Run with the rendered launcher (run_clearance_gate.py --interactive).
+        Check(!Application.isBatchMode, "ClearanceVerification requires an interactive (non -batchmode) Editor: batch mode cannot lock the cursor, so walking aim, tree inspection and keyboard input to play mode are unavailable");
         output = Environment.GetEnvironmentVariable("CCF_ACCEPTANCE_OUTPUT"); Directory.CreateDirectory(output);
         savePath = Path.Combine(Application.persistentDataPath, "forest-save.json"); if (File.Exists(savePath)) priorSave = File.ReadAllBytes(savePath);
         ForestSaveData original = saves.CaptureData();
+        // Since the menu-teaching follow-up (466456f) a fresh profile opens the
+        // first-use HUD introduction, which pauses forest input (AnyPanelOpen)
+        // and therefore, by design, suppresses the walking clearance preview.
+        // Dismiss it as a player would; restore device preferences on exit.
+        ScenarioOneUiRoot teaching = manager.GetComponent<ScenarioOneUiRoot>();
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)))
+        {
+            string key = MenuHelpView.PreferencePrefix + menu;
+            helpPreferences[key] = PlayerPrefs.HasKey(key) ? PlayerPrefs.GetInt(key) : (int?)null;
+        }
+        if (teaching != null && teaching.Help != null && teaching.Help.IsOpen) teaching.CloseHelp();
+        yield return null; yield return null;
+        Check(!manager.AnyPanelOpen, "a UI panel is still open before the walking-ray fixture");
         ForestTree retained = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
             .Where(t => t.IsLiving && Mathf.Abs(ecology.Cells[ecology.GetCellIndex(t.transform.position)].Center.x) < 15f && Mathf.Abs(ecology.Cells[ecology.GetCellIndex(t.transform.position)].Center.y) < 15f)
             .OrderBy(t => t.transform.position.sqrMagnitude).ThenBy(t => t.TreeId, StringComparer.Ordinal).First();

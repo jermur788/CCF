@@ -108,6 +108,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     private IEnumerator Verify()
     {
         ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager; saves = FindFirstObjectByType<ForestSaveController>(); player = ui.Player;
+        // Run with the rendered launcher (run_clearance_gate.py --interactive).
+        Check(!Application.isBatchMode, "MenuTutorialVerification requires an interactive (non -batchmode) Editor: batch mode cannot lock the cursor, so walking aim, tree inspection and keyboard input to play mode are unavailable");
         output = Environment.GetEnvironmentVariable("CCF_ACCEPTANCE_OUTPUT"); Directory.CreateDirectory(output);
         foreach (string tail in new[] { "forest-save.json", "forest-save.json.bak", "forest-save.json.tmp" })
         {

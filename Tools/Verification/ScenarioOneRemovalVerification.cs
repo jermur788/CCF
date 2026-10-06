@@ -123,8 +123,12 @@ public sealed class ScenarioOneRemovalVerificationRunner : MonoBehaviour
             && Mathf.Abs(removed.regenerationDensityRemoved - removedDensity) < 1e-5f,
             "structured history lost the selective removal treatment");
 
-        // In Scenario One, U marks real aimed regeneration for contractor work;
-        // it must not manually remove the cell cohort or charge cash immediately.
+        // In Scenario One, U plans contractor work for the previewed area; it must
+        // not remove vegetation or charge cash immediately. Since the accepted
+        // clearance correction (Docs/Scenario1ClearanceCorrection.md) the
+        // walking control plans speciesless area clearance of the previewed
+        // cell through the shared authoritative query (empty species field);
+        // the species-selective API above remains for saved/legacy callers.
         typeof(ForestPlayer).GetField("aimedSurfacePoint", BindingFlags.Instance | BindingFlags.NonPublic)
             .SetValue(player, position);
         typeof(ForestPlayer).GetField("isAimingGround", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -134,18 +138,26 @@ public sealed class ScenarioOneRemovalVerificationRunner : MonoBehaviour
         string selectedSpecies = (string)typeof(ForestPlayer).GetField("selectedRegenerationSpeciesId",
             BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
         Check(!string.IsNullOrEmpty(selectedSpecies), "ground aim did not select a live cohort");
-        float beforeManualU = ecology.Cells[cellIndex].FindCohort(selectedSpecies).Density;
+        // The walking ray normally fills the preview each frame; batch mode has
+        // no cursor lock, so show the same authoritative cell query directly.
+        ClearanceTargets aimedTargets = manager.QueryClearance(ClearanceFootprint.Cell(ecology, cellIndex));
+        Check(aimedTargets.HasTargets && aimedTargets.Cohorts.Count > 0, "aimed cell has no clearance targets");
+        player.Clearance.Show(aimedTargets);
+        float beforeManualU = ecology.Cells[cellIndex].Regeneration.Where(c => c != null).Sum(c => c.Density);
         long beforeManualCash = manager.CashCents;
+        int ordersBeforeManualU = manager.WorkOrders.Count;
         MethodInfo manualUproot = typeof(ForestPlayer).GetMethod("UpdateUprooting", BindingFlags.Instance | BindingFlags.NonPublic);
         manualUproot.Invoke(player, new object[] { true, 100f });
+        Check(manager.WorkOrders.Count == ordersBeforeManualU + 1, "in-world U did not plan exactly one order: " + manager.Feedback);
         ScenarioOneWorkOrder aimedOrder = manager.WorkOrders.Last();
         Check(aimedOrder.type == ScenarioWorkType.RemoveRegeneration && aimedOrder.IsOpen
-            && aimedOrder.speciesId == selectedSpecies && aimedOrder.cellIndex == cellIndex
+            && string.IsNullOrEmpty(aimedOrder.speciesId) && aimedOrder.cellIndex == cellIndex
             && manager.CashCents == beforeManualCash
-            && ecology.Cells[cellIndex].FindCohort(selectedSpecies).Density == beforeManualU,
-            "in-world U did not create a contractor order without uprooting the cohort");
-        Check(manager.RemovePendingOrder(aimedOrder.workOrderId), "in-world removal mark could not be cancelled");
+            && ecology.Cells[cellIndex].Regeneration.Where(c => c != null).Sum(c => c.Density) == beforeManualU,
+            "in-world U did not create a speciesless area-clearance order without clearing the cell");
+        Check(manager.RemovePendingOrder(aimedOrder.workOrderId), "in-world clearance mark could not be cancelled");
         manualUproot.Invoke(player, new object[] { false, 0f });
+        player.Clearance.Clear();
 
         // If the target disappears after approval, no labour is charged and no
         // biological treatment is claimed in the event stream.
