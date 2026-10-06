@@ -119,8 +119,8 @@ flowchart TB
 
 | Item | Kind | Evidence |
 |---|---|---|
-| retained-canopy, continuous-canopy | Met at Year 0 with no action | Start: 336 Sitka, canopy ≈0.95 [LOG P4 canopy 0.951 before treatment] |
-| regeneration ≥3 | Met by natural Sitka regeneration with no action | Unmanaged control Y25 = 37 cells [LOG P11]. A model-0 harness log shows `regenCells=14` at Year 1 (Removal log, 402a2b4). Sitka maturity starts at age 20, so seed rain begins in Year 1 |
+| retained-canopy, continuous-canopy | Met at Year 0 with no action | Start: 336 Sitka, mean canopy 0.951 [HARNESS `Evidence/residual-stand.json` baseline] |
+| regeneration ≥3 | Met by natural Sitka regeneration with no action, **from Year 1** | Untreated stand: 14 regenerating cells at Year 1, 28 at Year 10, 37 at Year 20 [HARNESS T0, RNG 1 / regeneration 1]; unmanaged control Y25 = 37 [LOG P11]. Sitka maturity starts at age 20, so seed rain begins in Year 1 |
 | minimum-year | Met by advancing time | — |
 | tree.crop, fell.mark | Met by marks restored from a save, or by any tree | `LivingCropTreeCount > 0` |
 | *.plan / *.approve / *.result | Met by historical orders/events when a loaded forest's Work Plan or Review is opened | documented as intended in `Scenario1LearningObjectives.md` |

@@ -14,6 +14,7 @@ Evidence labels used in this folder:
 | **[EMP]** | Empirical ecology: CCF Primary Literature Synthesis v1. Supporting only |
 | **[INF]** | Game-design inference by this audit |
 | **[ACC]** | Accepted project decision (Decision Log ID given) |
+| **[HARNESS]** | Measured by this work's read-only harness (`ResidualStandEvaluationPrototype.md`, `Evidence/`) |
 
 ---
 
@@ -78,8 +79,8 @@ Code: `ScenarioOne/ScenarioOneObjectives.cs:49`. HUD shows only the count: "Fore
 |---|---|---|---|---|---|
 | minimum-year | Reach the management review year | year ≥ 25 | Time | no | yes |
 | retained-canopy | Retain original canopy trees | living Sitka ≥ 60 | Count of *all* living Sitka, including recruited trees | **yes (336)** | yes (356) [LOG P11] |
-| continuous-canopy | Keep continuous canopy | mean canopy ≥ 0.35 | Mean cell canopy | **yes (~0.95)** | yes (0.952) |
-| regeneration | Maintain regenerating cells | ≥ 3 occupied cells | Any species, any origin | no (no seed source at age 20) | **yes (37)** |
+| continuous-canopy | Keep continuous canopy | mean canopy ≥ 0.35 | Mean cell canopy | **yes (0.951)** | yes (0.952) |
+| regeneration | Maintain regenerating cells | ≥ 3 occupied cells | Any species, any origin | no (no seed source at age 20) — **but yes from Year 1 (14 cells) with no action** [HARNESS] | **yes (37)** |
 | fallen-deadwood | Retain fallen deadwood | ≥ 0.02 m³ | Volume on site | no | no |
 | managed-opening | Carry out a commissioned thinning | ≥ 1 completed FellTree | **One tree** | no | no |
 | introduced-beech | Establish planted beech | planted + present > 0 | One sapling or one promoted tree | no | no |
@@ -136,6 +137,8 @@ The Work Plan card "Reference Future v1 (frozen)" and the preview banner. It say
 | Medium | Clearance preview on every ground glance labels tree regeneration as competing vegetation | §2.7 |
 | Medium | The treatment forecast is unexplained and averages growth over the whole stand | §2.7 |
 | Medium | Device-level progress hides introductions from new players on a shared machine | §2.1, §2.2 |
+| Medium | Inspection labels do not discriminate: every plantation tree reads "Wind exposure: high" (336/336) and 328/336 read "crowded" at Year 0, so they cannot guide a choice | [HARNESS] `Evidence/residual-stand-trees.csv`; scene thresholds 5/12 |
+| Medium | Economics: the €2,500 harvest minimum exceeds the whole stand's notional roadside value (€1,702) at Year 0, so every first thinning loses money whatever is marked. Copy never explains this | [HARNESS]; `ResidualStandMetricAudit.md` §3 |
 | Medium | Only one Annual Review needs acknowledging, and no second intervention is asked for | §2.6, §1 item 9 |
 | Low | Term mismatches: "harvest"/"Fell"/"thinning"; "regeneration cohort removed" vs "vegetation clearance"; raw species ids | §2.4, §2.7 |
 | Low | Dead numbered tutorial text in `TutorialHint` | §2.5 |
