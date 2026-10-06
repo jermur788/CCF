@@ -10,6 +10,7 @@ public sealed class WalkingHudView
     public VisualElement Root { get; }
 
     private readonly Label statusTitle, cash, objectives, browse, access, waypoint;
+    private readonly Label learning;
     private readonly VisualElement groundPanel;
     private readonly Label groundTitle, groundLight, groundBrowse, groundRegen, groundWhy;
     private readonly Label markSummary, treatment;
@@ -36,8 +37,14 @@ public sealed class WalkingHudView
         browse = UiKit.Add(status, "", "body");
         waypoint = UiKit.Add(status, "", "body", "waypoint-line");
         access = UiKit.Add(status, "", "muted");
+        learning = UiKit.Add(status, "", "muted");
+        VisualElement menuButtons = UiKit.Row(status, "row-wrap");
+        Button mapButton = UiKit.Button("Map [M]", () => ui.ShowMap());
+        Button objectivesButton = UiKit.Button("Objectives [O]", () => ui.ShowObjectives());
         Button helpButton = UiKit.Button("Help [F1]", () => ui.ShowCurrentHelp());
-        status.Add(helpButton);
+        menuButtons.Add(mapButton);
+        menuButtons.Add(objectivesButton);
+        menuButtons.Add(helpButton);
         Root.Add(status);
 
         VisualElement bottom = UiKit.Box("hud-bottom");
@@ -75,6 +82,8 @@ public sealed class WalkingHudView
 
         foreach (VisualElement e in Root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
         helpButton.pickingMode = PickingMode.Position;
+        mapButton.pickingMode = PickingMode.Position;
+        objectivesButton.pickingMode = PickingMode.Position;
     }
 
     public void Refresh()
@@ -89,7 +98,8 @@ public sealed class WalkingHudView
         statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}";
         cash.text = UiKit.Money(m.CashCents);
         var objectiveList = m.Objectives;
-        objectives.text = $"Objectives {objectiveList.Count(o => o.achieved)} of {objectiveList.Count}";
+        objectives.text = $"Forest objectives {objectiveList.Count(o => o.achieved)} of {objectiveList.Count}";
+        learning.text = ui.Learning.Summary;
         int effective = 0, expired = 0;
         if (eco != null)
             foreach (BrowseShelter shelter in eco.Browsing.Shelters)
@@ -100,7 +110,7 @@ public sealed class WalkingHudView
         string band = eco != null ? BrowsingConditions.PressureBand(eco.Browsing.BackgroundPressure) : "none";
         browse.text = $"Browsing: {band} · shelters {effective} effective" + (expired > 0 ? $", {expired} expired/failed" : "");
         int open = m.WorkOrders.Count(o => o.IsOpen);
-        access.text = $"[N] Stand map   ·   [Tab] Work Plan ({open} task{(open == 1 ? "" : "s")})";
+        access.text = $"[M] Stand map   ·   [Tab] Work Plan ({open} task{(open == 1 ? "" : "s")})";
         waypoint.text = ui.Map.WaypointDescription(player != null ? player.transform.position : Vector3.zero);
         waypoint.style.display = string.IsNullOrEmpty(waypoint.text) ? DisplayStyle.None : DisplayStyle.Flex;
 
@@ -146,7 +156,7 @@ public sealed class WalkingHudView
         if (marks != null)
         {
             markSummary.text = $"Marked: FELL {marks.LivingMarkedCount} (red)  ·  CROP TREE {marks.LivingCropTreeCount} (blue)  ·  "
-                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [M] Fell  [C] Crop  [G] Plant";
+                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop  [G] Plant";
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
         }

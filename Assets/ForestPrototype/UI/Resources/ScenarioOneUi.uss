@@ -152,3 +152,8 @@
 .menu-help-panel > * { flex-shrink: 0; margin-bottom: 10px; }
 .menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
 .menu-help-panel .body { font-size: 16px; }
+
+/* Learning topics reveal one explanation at a time; the body scrolls. */
+.learning-topic { margin-top: 8px; margin-bottom: 8px; }
+.learning-topic > Toggle { font-size: 18px; color: var(--accent); -unity-font-style: bold; }
+.learning-topic .body { margin-bottom: 8px; }

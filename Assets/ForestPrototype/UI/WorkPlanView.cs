@@ -34,7 +34,8 @@ public sealed class WorkPlanView
         cash = UiKit.Add(right, "", "money", "title");
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
-        right.Add(UiKit.Button("Stand map [N]", () => ui.ShowMap()));
+        right.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
+        right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         right.Add(UiKit.Button("Back to forest", () => ui.CloseAll()));
         header.Add(right);
         modal.Add(header);

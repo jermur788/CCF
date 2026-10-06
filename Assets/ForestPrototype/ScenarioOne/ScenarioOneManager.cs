@@ -2120,10 +2120,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             if (annualReports.Count > 0 && !annualReviewSeen)
                 return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
+            ScenarioOneUiRoot teaching = GetComponent<ScenarioOneUiRoot>();
+            if (teaching != null && teaching.Learning != null)
+                return teaching.Learning.Summary + " · Learn at your own pace across years.";
             if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderCreated
                 && entry.taskType == ScenarioWorkType.FellTree)
                 && !workOrders.Any(order => order.type == ScenarioWorkType.FellTree))
-                return "1. Inspect a living tree, mark it with M, then import the mark into the Work Plan.";
+                return "1. Inspect a living tree, mark it with X, then import the mark into the Work Plan.";
             if (definition != null && definition.ShopEntries != null && definition.ShopEntries.Any(offer =>
                 offer != null && !managementEvents.Any(entry =>
                     entry.eventType == ScenarioManagementEventType.StockPurchased && entry.stockItemId == offer.itemId)

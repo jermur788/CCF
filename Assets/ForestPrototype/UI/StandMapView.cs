@@ -19,6 +19,8 @@ public sealed class StandMapView
     private int waypointCell = -1;
     private GameObject waypointMarker;
     private string shownKey = "";
+    private bool journeyStartedAway;
+    public bool HasWaypoint => waypointCell >= 0;
 
     public StandMapView(ScenarioOneUiRoot ui)
     {
@@ -30,8 +32,9 @@ public sealed class StandMapView
         UiKit.Add(header, "Stand map", "title");
         VisualElement buttons = UiKit.Box("row");
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
+        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Work Plan", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Back to forest [N / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        buttons.Add(UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);
         modal.Add(header);
 
@@ -79,7 +82,13 @@ public sealed class StandMapView
 
     private void AddLayerButton(string text, Layer value)
     {
-        layerButtons.Add(UiKit.Button(text, () => { layer = value; Refresh(true); }, true, layer == value ? "btn-selected" : "btn"));
+        layerButtons.Add(UiKit.Button(text, () =>
+        {
+            layer = value;
+            ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
+                : value == Layer.Browse ? "map.browse" : "map.marks");
+            Refresh(true);
+        }, true, layer == value ? "btn-selected" : "btn"));
     }
 
     private void BuildGrid(ForestEcologyController eco, int playerCell)
@@ -98,7 +107,7 @@ public sealed class StandMapView
             {
                 int index = z * n + x;
                 ForestEcologyCell c = eco.Cells[index];
-                var cell = new Button(() => { selectedCell = index; Refresh(true); }) { text = "", focusable = false };
+                var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); Refresh(true); }) { text = "", focusable = false };
                 cell.AddToClassList("map-cell");
                 cell.style.width = size;
                 cell.style.height = size * 0.875f;
@@ -220,6 +229,8 @@ public sealed class StandMapView
     private void SetWaypoint(ForestEcologyController eco, int index)
     {
         waypointCell = index;
+        journeyStartedAway = ui.Player != null && eco.GetCellIndex(ui.Player.transform.position) != index;
+        ui.Learning.Record("map.waypoint");
         Vector2 centre = eco.Cells[index].Center;
         if (waypointMarker == null)
         {
@@ -258,6 +269,14 @@ public sealed class StandMapView
             return "";
         Vector2 target = eco.Cells[waypointCell].Center;
         Vector2 delta = target - new Vector2(playerPosition.x, playerPosition.z);
+        bool walking = ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Manager.AnyPanelOpen;
+        if (walking && journeyStartedAway && delta.magnitude < eco.CellSizeMeters * 0.5f)
+        {
+            ui.Learning.Record("map.arrive");
+            if ((ui.Marking != null && ui.Marking.AimingAtGround && eco.GetCellIndex(ui.Marking.AimedGroundPoint) == waypointCell)
+                || (ui.Player != null && ui.Player.InspectedTree != null && eco.GetCellIndex(ui.Player.InspectedTree.transform.position) == waypointCell))
+                ui.Learning.Record("map.inspectsite");
+        }
         string cell = UiKit.CellLabel(waypointCell, eco.CellsPerAxis);
         if (delta.magnitude < eco.CellSizeMeters * 0.5f)
             return $"Waypoint {cell}: you are here";

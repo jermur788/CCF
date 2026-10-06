@@ -54,6 +54,12 @@ public static class MenuTutorialVerification
             Before[key] = PlayerPrefs.HasKey(key) ? PlayerPrefs.GetInt(key) : (int?)null;
             PlayerPrefs.DeleteKey(key);
         }
+        foreach (string id in LearningObjectivesView.StepIds)
+        {
+            string key = LearningObjectivesView.PreferencePrefix + id;
+            Before[key] = PlayerPrefs.HasKey(key) ? PlayerPrefs.GetInt(key) : (int?)null;
+            PlayerPrefs.DeleteKey(key);
+        }
     }
     public static readonly Dictionary<string, int?> Before = new Dictionary<string, int?>();
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -109,6 +115,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
             oldSaves[path] = File.Exists(path) ? File.ReadAllBytes(path) : null;
         }
         original = saves.CaptureData(); string initial = ScenarioReferenceArchive.WorldHash(original);
+        Check(ui.Learning.CompletedSteps == 0, "Learning fixture inherited progress");
         Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud, "HUD introduction missing at start");
         Check(manager.AnyPanelOpen && !player.enabled, "Help must release mouse and stop forest actions");
         yield return CaptureMenu(MenuHelpView.Menu.WalkingHud);
@@ -139,20 +146,42 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!player.IsInspecting, "E did not return from inspection");
         Debug.Log("MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true");
 
-        ui.ShowMap(); yield return null; yield return null;
+        int markedBeforeMap = ui.Marking.GetMarkedIds().Count;
+        yield return Press(Key.M);
+        Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map && ui.Marking.GetMarkedIds().Count == markedBeforeMap,
+            "M did not open map exclusively");
         Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.StandMap, "Map introduction missing");
         yield return CaptureMenu(MenuHelpView.Menu.StandMap);
         yield return Press(Key.Escape);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "Help Escape closed the map");
         Vector3 position = player.transform.position;
+        yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Set waypoint"));
+        yield return Press(Key.M);
+        ui.Map.WaypointDescription(position);
+        Check(!ui.Learning.IsDone("map.arrive"), "Waypoint on current cell credited a journey");
+        yield return Press(Key.M);
         int target = (ui.Ecology.GetCellIndex(position) + 1) % ui.Ecology.Cells.Length;
-        Field(ui.Map, "selectedCell", target); ui.Map.Refresh(true);
+        Button cellButton = ui.Map.Root.Query<Button>().ToList().First(b => b.ClassListContains("map-cell")
+            && b.Query<Label>().ToList().Any(l => l.text == UiKit.CellLabel(target, ui.Ecology.CellsPerAxis)));
+        yield return Click(cellButton);
+        foreach (string label in new[] { "Light", "Regeneration", "Browsing / protection", "Fell & crop marks" })
+            yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == label));
+        Check(new[] { "map.open", "map.select", "map.light", "map.regeneration", "map.browse", "map.marks" }.All(ui.Learning.IsDone),
+            "Map layer/cell learning not recorded");
         Button waypoint = ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Set waypoint");
         yield return Click(waypoint);
         Debug.Log("MENU_WAYPOINT_DIAGNOSTIC before=" + position + " after=" + player.transform.position + " description=" + ui.Map.WaypointDescription(position));
         Check(player.transform.position == position && !string.IsNullOrEmpty(ui.Map.WaypointDescription(position)), "Waypoint moved player or lacks HUD direction");
         yield return CaptureScreen("map-waypoint");
-        ui.CloseAll(); yield return null;
+        yield return Press(Key.M);
+        Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Learning.IsDone("map.return"), "M did not return with waypoint");
+        Check(!ui.Learning.IsDone("map.arrive"), "Navigation credited before arrival");
+        Vector2 destination = ui.Ecology.Cells[target].Center;
+        player.transform.position = new Vector3(destination.x, player.transform.position.y, destination.y);
+        player.LookToward(new Vector3(destination.x, -2, destination.y + 0.1f));
+        for (int i = 0; i < 20; i++) yield return null;
+        ui.Map.WaypointDescription(player.transform.position);
+        Check(ui.Learning.IsDone("map.arrive") && ui.Learning.IsDone("map.inspectsite"), "Destination/site inspection not recorded");
         ui.ShowMap(); yield return null;
         Check(!ui.Help.IsOpen, "Map introduction repeats"); ui.CloseAll(); yield return null;
         Debug.Log("MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false");
@@ -191,12 +220,105 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!ui.Help.IsOpen, "Annual introduction repeats after learning");
         Debug.Log("MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false");
 
+        yield return VerifyLearningObjectives();
+
         ui.CloseAll(); yield return null;
+        int learningBeforePreview = ui.Learning.CompletedSteps;
         Check(manager.TryBeginReferencePreview(20), "Reference preview unavailable"); yield return null;
         ui.ShowHelp(MenuHelpView.Menu.WalkingHud); Check(!ui.Help.IsOpen, "Help leaked into Reference preview");
         manager.EndReferencePreview(); yield return null;
+        Check(ui.Learning.CompletedSteps == learningBeforePreview, "Reference preview changed learning progress");
         foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu))) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
+    }
+
+    private IEnumerator VerifyLearningObjectives()
+    {
+        ui.CloseAll(); yield return null;
+        yield return Press(Key.O);
+        Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Objectives && manager.AnyPanelOpen && !player.enabled,
+            "O does not open learning objectives safely");
+        // Let the existing save/load notification expire before judging text.
+        yield return new WaitForSecondsRealtime(3.1f);
+        foreach (Vector2Int size in new[] { new Vector2Int(1280,720), new Vector2Int(1600,900), new Vector2Int(1920,1080) })
+        {
+            MenuTutorialVerification.SetGameSize(size.x, size.y);
+            yield return CaptureScreen("learning-map-" + size.x);
+            VisualElement panel = ui.Learning.Root.Children().First();
+            Rect viewport = ui.RootElement.worldBound, bounds = panel.worldBound;
+            Check(viewport.Contains(bounds.min) && viewport.Contains(bounds.max), "Learning objectives panel clipped");
+            Check(panel.Q<ScrollView>().contentViewport.worldBound.yMax <= bounds.yMax, "Learning body escapes panel");
+        }
+        string forestBeforeReading = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        yield return Click(ui.Learning.Root.Q<Button>("learn-map.compare"));
+        Check(ui.Learning.IsDone("map.compare") && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == forestBeforeReading,
+            "Reading acknowledgement changes forest or loses progress");
+        Check(!ui.Learning.Root.Q<Button>("learn-deadwood.read").enabledSelf, "Deadwood reading prerequisite missing");
+        var reloadedProgress = new LearningObjectivesView(ui);
+        Check(reloadedProgress.IsDone("map.compare") && reloadedProgress.CompletedSteps == ui.Learning.CompletedSteps,
+            "Learning preferences do not reload");
+        yield return Press(Key.O);
+        Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "O does not return to forest");
+
+        ForestTree[] eligible = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+            .Where(t => t.CanChop && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
+            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).Take(2).ToArray();
+        Check(eligible.Length == 2, "Learning fixture lacks pruning/felling candidates");
+        player.transform.position = eligible[0].transform.position - new Vector3(0, 0, 3);
+        player.LookToward(eligible[0].transform.position + Vector3.up * 1.3f);
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked; UnityEngine.Cursor.visible = false;
+        for (int i = 0; i < 5; i++) yield return null;
+        Debug.Log("LEARNING_AIM_DIAGNOSTIC cursor=" + UnityEngine.Cursor.lockState + " player=" + player.enabled
+            + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + eligible[0].transform.position
+            + " hits=" + string.Join(",", Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, 8)
+                .Select(h => h.collider.name)));
+        Check(ui.Marking.AimedTree != null, "Learning fixture does not aim at tree");
+        ForestTree aimed = ui.Marking.AimedTree;
+        yield return Press(Key.M); ui.CloseHelp();
+        Check(!aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "M also marked aimed tree");
+        ui.CloseAll(); yield return null; yield return null;
+        yield return Press(Key.X);
+        Check(aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "X does not mark Fell independently");
+        yield return Press(Key.X);
+        Check(!aimed.IsMarkedForFell, "X does not undo Fell mark");
+        ui.Marking.Mark(eligible[0], TreeMarkType.CropTree, false);
+        ui.Marking.Mark(eligible[1], TreeMarkType.Fell, false);
+        for (int i = 0; i < 30; i++) yield return null;
+        ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
+        yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Add marked trees"));
+        yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));
+        yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")));
+        Check(manager.TryPurchaseStock("beech-sapling", 1), "Learning nursery purchase failed");
+        ForestTree[] living = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(t => !t.IsStump).ToArray();
+        Vector3 planting = ui.Ecology.Cells.Select(c => new Vector3(c.Center.x - 0.35f, 0, c.Center.y))
+            .First(a => living.All(t => Vector2.Distance(new Vector2(a.x,a.z), new Vector2(t.transform.position.x,t.transform.position.z)) > 0.85f));
+        Check(manager.TryDesignateExactPlanting("beech-sapling", planting, CCF.Forestry.WorkEconomy.WorkExecutionMethod.Contractor, true),
+            "Learning planting designation failed");
+        int clearance = Enumerable.Range(0, ui.Ecology.Cells.Length)
+            .First(i => ui.Ecology.GetCellIndex(planting) != i && manager.QueryClearance(ClearanceFootprint.Cell(ui.Ecology, i)).HasTargets);
+        Check(manager.TryDesignateVegetationClearance(clearance), "Learning clearance designation failed");
+        ui.Learning.Observe();
+        foreach (string id in new[] { "fell.plan", "deadwood.plan", "prune.plan", "plant.stock", "plant.plan", "plant.shelter", "clear.plan" })
+            Check(ui.Learning.IsDone(id), "Learning action not recorded: " + id);
+        Check(!ui.Learning.IsDone("prune.result") && !ui.Learning.IsDone("deadwood.result"), "Planning falsely credited execution");
+        Check(manager.ApprovePendingWork(), "Learning job approval failed"); ui.Learning.Observe();
+        foreach (string id in new[] { "fell.approve", "prune.approve", "plant.approve", "clear.approve" })
+            Check(ui.Learning.IsDone(id), "Approval learning not recorded: " + id);
+        Check(ui.AdvanceFromWorkPlan(), "Learning jobs did not advance in later year"); yield return null;
+        ui.CloseHelp(); ui.Learning.Observe();
+        foreach (string id in new[] { "fell.result", "deadwood.result", "prune.result", "plant.result", "clear.result", "review.open", "review.read" })
+            Check(ui.Learning.IsDone(id), "Successful work result not recorded: " + id);
+        ui.CloseAll(); yield return null;
+        player.transform.position = manager.DeadwoodRecords.First().worldPosition + Vector3.right * 2;
+        yield return null; ui.Learning.Observe(); Check(ui.Learning.IsDone("deadwood.visit"), "Deadwood site visit not recorded");
+        ui.ShowObjectives();
+        foreach (Foldout topic in ui.Learning.Root.Query<Foldout>().ToList()) topic.value = topic.text.Contains("Fallen deadwood");
+        ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero;
+        yield return CaptureScreen("learning-deadwood");
+        saves.Save(); saves.Load(); yield return null;
+        Check(ui.Learning.IsDone("map.compare") && ui.Learning.IsDone("deadwood.result"), "Forest reload erased learning progress");
+        Check(manager.CurrentEcologicalYear > 1 && !ui.Learning.IsDone("prune.read"), "Optional learning forced into year one or auto-acknowledged");
+        Debug.Log("LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true");
     }
     private IEnumerator Click(Button button)
     {

@@ -809,7 +809,7 @@ public sealed class ForestPlayer : MonoBehaviour
     {
         if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
         {
-            lastHarvestMessage = "Mark with [M], then fell through [Tab] Work Plan.";
+            lastHarvestMessage = "Mark with [X], then fell through [Tab] Work Plan.";
             messageTimer = 3.5f;
             return;
         }
@@ -878,7 +878,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 return $"[E] Inspect {aimedTree.StageLabel}";
             int chops = aimedTree.ChopProgress;
             return Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                ? "[E] Inspect  |  [M] Fell  |  [C] Crop Tree  |  [Tab] Plan"
+                ? "[E] Inspect  |  [X] Fell  |  [C] Crop Tree  |  [Tab] Plan"
                 : chops > 0
                     ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
                     : "[E] Inspect  |  [F] Chop Tree";
@@ -1207,7 +1207,7 @@ public sealed class ForestPlayer : MonoBehaviour
         GUILayout.FlexibleSpace();
         GUILayout.Label(inspectedTree.CanChop
             ? Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                 ? "[M] Fell  |  [C] Crop Tree  |  [Tab] Work Plan  |  [E] Close"
+                 ? "[X] Fell  |  [C] Crop Tree  |  [Tab] Work Plan  |  [E] Close"
                 : "Press [F] to Chop   |   Press [E] to Close"
             : "Press [E], [Left Click], or step away to close", cardFooterStyle);
         GUILayout.EndArea();

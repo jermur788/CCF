@@ -80,12 +80,12 @@ public sealed class MenuHelpView
             case Menu.TreeInspection:
                 return "Inspect a tree with E to understand its size, growth, competition and management state. Use this before deciding which trees to favour or remove.\n\n"
                     + "DBH is trunk diameter measured at breast height. Crown/light describes growing space and light; the light value here is measured at the tree's ground cell. Competition shows whether neighbours restrict growth.\n\n"
-                    + "A Crop Tree is selected to retain and favour for future development. A Fell mark proposes removal. M and C change these marks; they do not execute work. You choose the trees—this screen does not select a correct answer.\n\n"
+                    + "A Crop Tree is selected to retain and favour for future development. A Fell mark proposes removal. X and C change these marks; they do not execute work. You choose the trees—this screen does not select a correct answer.\n\n"
                     + "Close Help, then press E to close inspection and return to walking.";
             case Menu.StandMap:
-                return "The Stand Map helps you find patterns across the forest that are difficult to see among the trees. Open it with N when looking for a site to inspect.\n\n"
+                return "The Stand Map helps you find patterns across the forest that are difficult to see among the trees. Open it with M when looking for a site to inspect.\n\n"
                     + "Use Light for darker/brighter areas, Regeneration for young growth, Browsing / protection for browsing and shelter conditions, and Fell & crop marks for your marked trees.\n\n"
-                    + "Select a cell, read its information, then choose Set Waypoint. Close the map with N, Esc or Back to forest. Follow the HUD direction and distance, then inspect the site directly before deciding what to do.\n\n"
+                    + "Select a cell, read its information, then choose Set Waypoint. Close the map with M, Esc or Back to forest. Follow the HUD direction and distance, then inspect the site directly before deciding what to do.\n\n"
                     + "The map helps you find where to look. It cannot mark, clear, plant or approve work remotely, and it does not make the forestry decision for you.";
             case Menu.WorkPlan:
                 return "The Work Plan turns decisions made in the forest into jobs you can review and approve. Open it with Tab after marking trees or planting/clearance sites.\n\n"
@@ -100,7 +100,8 @@ public sealed class MenuHelpView
             default:
                 return "The HUD shows the current year, cash, objectives and information about the ground or tree you are looking at. Current objective progress appears in the status panel.\n\n"
                     + "The forest is where you make management decisions. Look at ground to check light, regeneration and browsing conditions, or press E while looking at a tree to inspect it. Use these observations before marking work.\n\n"
-                    + "A waypoint's direction and distance appear here when one is active. N opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
+                    + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
+                    + "O opens Learning objectives: start with simple map steps, then revisit map layers and forestry lessons as you need them. Progress is remembered on this device, with no first-year deadline.\n\n"
                     + "Close this introduction to walk. Esc releases the mouse; click to resume looking around. Press F1 any time to revisit this screen's help.";
         }
     }

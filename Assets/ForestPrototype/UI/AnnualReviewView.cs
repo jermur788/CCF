@@ -26,6 +26,7 @@ public sealed class AnnualReviewView
         title = UiKit.Add(header, "", "title");
         VisualElement buttons = UiKit.Box("row");
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.AnnualReview)));
+        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Open Work Plan", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);

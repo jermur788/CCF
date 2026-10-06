@@ -7,11 +7,11 @@ using UnityEngine.UIElements;
 // time. Presentation only: every value is read from the authoritative systems
 // and every action calls an existing ScenarioOneManager / marking API.
 //
-// Keys: Tab Work Plan (owned by ScenarioOneManager), N stand map, Esc closes
-// the open map or review. M remains Fell marking.
+// Keys: Tab Work Plan (owned by ScenarioOneManager), M stand map, Esc closes
+// the open map or review. X marks trees for felling.
 public sealed class ScenarioOneUiRoot : MonoBehaviour
 {
-    public enum UiScreen { None, Map, Review }
+    public enum UiScreen { None, Map, Review, Objectives }
 
     private ScenarioOneManager manager;
     private ForestEcologyController ecology;
@@ -25,6 +25,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private WorkPlanView workPlan;
     private AnnualReviewView review;
     private StandMapView map;
+    private LearningObjectivesView learning;
+    public LearningObjectivesView Learning => learning;
     private Label previewBanner;
     private MenuHelpView help;
     public MenuHelpView Help => help;
@@ -68,6 +70,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.AddToClassList("root");
         root.pickingMode = PickingMode.Ignore;
 
+        learning = new LearningObjectivesView(this);
         hud = new WalkingHudView(this);
         inspection = new TreeInspectionView(this);
         workPlan = new WorkPlanView(this);
@@ -78,6 +81,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(workPlan.Root);
         root.Add(review.Root);
         root.Add(map.Root);
+        root.Add(learning.Root);
 
         previewBanner = UiKit.Text("", "panel", "body");
         previewBanner.style.position = Position.Absolute;
@@ -115,6 +119,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         workPlan.Root.style.display = planOpen ? DisplayStyle.Flex : DisplayStyle.None;
         review.Root.style.display = !preview && screen == UiScreen.Review ? DisplayStyle.Flex : DisplayStyle.None;
         map.Root.style.display = !preview && screen == UiScreen.Map ? DisplayStyle.Flex : DisplayStyle.None;
+        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;
         previewBanner.style.display = preview ? DisplayStyle.Flex : DisplayStyle.None;
         if (preview)
             previewBanner.text = $"REFERENCE FUTURE v1 — YEAR {manager.ReferencePreviewYear}  ·  [Tab] Return to your forest";
@@ -129,7 +134,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         {
             MenuHelpView.Menu context = HelpContext();
             if (help.IsOpen && help.CurrentMenu != context) CloseHelp();
-            if (context != MenuHelpView.Menu.AnnualReview || manager.AnnualReports.Count > 0)
+            if (screen != UiScreen.Objectives && (context != MenuHelpView.Menu.AnnualReview || manager.AnnualReports.Count > 0))
                 help.Introduce(context);
             manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);
         }
@@ -137,9 +142,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (Time.unscaledTime >= nextModalRefresh)
         {
             nextModalRefresh = Time.unscaledTime + 0.25f;
+            if (!preview) learning.Observe();
             if (planOpen) workPlan.Refresh(false);
             if (screen == UiScreen.Review) review.Refresh(false);
             if (screen == UiScreen.Map) map.Refresh(false);
+            if (screen == UiScreen.Objectives) learning.Refresh(false);
         }
     }
 
@@ -158,7 +165,12 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             if (help.IsOpen) CloseHelp(); else ShowHelp(HelpContext());
             return;
         }
-        if (keyboard.nKey.wasPressedThisFrame)
+        if (keyboard.oKey.wasPressedThisFrame)
+        {
+            if (manager.WorkPlanOpen) manager.OpenWorkPlan(false);
+            SetScreen(screen == UiScreen.Objectives ? UiScreen.None : UiScreen.Objectives);
+        }
+        else if (keyboard.mKey.wasPressedThisFrame)
         {
             if (manager.WorkPlanOpen) manager.OpenWorkPlan(false);
             SetScreen(screen == UiScreen.Map ? UiScreen.None : UiScreen.Map);
@@ -174,6 +186,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         if (screen == next)
             return;
+        if (screen == UiScreen.Map && next == UiScreen.None && map.HasWaypoint)
+            learning.Record("map.return");
         screen = next;
         CloseHelp();
         manager.SetAuxiliaryPanelOpen(screen != UiScreen.None);
@@ -182,7 +196,12 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             review.Refresh(true);
         }
         else if (screen == UiScreen.Map)
+        {
+            learning.Record("map.open");
             map.Refresh(true);
+        }
+        else if (screen == UiScreen.Objectives)
+            learning.Refresh(true);
     }
 
     private MenuHelpView.Menu HelpContext()
@@ -246,6 +265,12 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         manager.OpenWorkPlan(false);
         SetScreen(UiScreen.Map);
+    }
+
+    public void ShowObjectives()
+    {
+        manager.OpenWorkPlan(false);
+        SetScreen(UiScreen.Objectives);
     }
 
     public void CloseAll()

@@ -82,7 +82,7 @@ public sealed class TreeInspectionView
                 UiKit.Add(body, line, "body");
             UiKit.Add(body, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
         }
-        UiKit.Add(body, tree.CanChop ? "[M] Fell   [C] Crop Tree   [Tab] Work Plan   [E] Close" : "[E] Close", "muted");
+        UiKit.Add(body, tree.CanChop ? "[X] Fell   [C] Crop Tree   [Tab] Work Plan   [E] Close" : "[E] Close", "muted");
     }
 
     // Causal, non-prescriptive: names the limiting factor, not the remedy.

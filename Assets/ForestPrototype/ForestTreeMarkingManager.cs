@@ -153,7 +153,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         aimedTree = tree;
         Keyboard keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.mKey.wasPressedThisFrame)
+        if (keyboard != null && keyboard.xKey.wasPressedThisFrame)
             ToggleMark(tree);
         if (keyboard != null && keyboard.cKey.wasPressedThisFrame)
             ToggleCropTree(tree);
@@ -592,9 +592,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (aimedTree == null)
             return "";
-        return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [M] Mark to Fell"
-            : IsMarked(aimedTree) ? "[M] Unmark Fell  |  [C] Retain as Crop Tree"
-            : "[M] Mark to Fell  |  [C] Retain as Crop Tree";
+        return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [X] Mark to Fell"
+            : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Retain as Crop Tree"
+            : "[X] Mark to Fell  |  [C] Retain as Crop Tree";
     }
 
     private void OnGUI()
@@ -635,7 +635,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         // Use the available width and measured height: the full summary is longer
         // than the former fixed 680-unit label and can wrap at smaller resolutions.
         counterStyle.wordWrap = true;
-        string summary = $"Fell marks: {LivingMarkedCount}  |  Crop Trees: {LivingCropTreeCount}  |  Fell volume: {MarkedVolumeM3:0.0} m³   [M] Fell / [C] Crop";
+        string summary = $"Fell marks: {LivingMarkedCount}  |  Crop Trees: {LivingCropTreeCount}  |  Fell volume: {MarkedVolumeM3:0.0} m³   [X] Fell / [C] Crop";
         float summaryWidth = Screen.width - 36f;
         float summaryHeight = counterStyle.CalcHeight(new GUIContent(summary), summaryWidth);
         GUI.Label(new Rect(18f, Screen.height - 16f * hudScale - summaryHeight,

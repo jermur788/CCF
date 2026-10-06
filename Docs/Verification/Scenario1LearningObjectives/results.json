@@ -1,0 +1,133 @@
+{
+  "base": "466456f7148498a611da56695401bf58da606a16",
+  "context": "691dd18a56c0da21cb08909e22ac0d0625d556b1",
+  "branch": "task/scenario-one-menu-tutorial",
+  "unity": "6000.6.0f1",
+  "date": "2026-10-06",
+  "status": "PASS",
+  "topics": 8,
+  "steps": 42,
+  "controls": {
+    "map": "M",
+    "fell": "X",
+    "objectives": "O",
+    "crop": "C"
+  },
+  "gates": [
+    {
+      "gate": "MenuTutorialVerification",
+      "mode": "default-rendered",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 66.36,
+      "markers": [
+        "MENU_RENDERED_PASS WalkingHud 1280x720",
+        "MENU_RENDERED_PASS WalkingHud 1600x900",
+        "MENU_RENDERED_PASS WalkingHud 1920x1080",
+        "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+        "MENU_RENDERED_PASS TreeInspection 1280x720",
+        "MENU_RENDERED_PASS TreeInspection 1600x900",
+        "MENU_RENDERED_PASS TreeInspection 1920x1080",
+        "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+        "MENU_RENDERED_PASS StandMap 1280x720",
+        "MENU_RENDERED_PASS StandMap 1600x900",
+        "MENU_RENDERED_PASS StandMap 1920x1080",
+        "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+        "MENU_RENDERED_PASS WorkPlan 1280x720",
+        "MENU_RENDERED_PASS WorkPlan 1600x900",
+        "MENU_RENDERED_PASS WorkPlan 1920x1080",
+        "MENU_RENDERED_PASS AnnualReview 1280x720",
+        "MENU_RENDERED_PASS AnnualReview 1600x900",
+        "MENU_RENDERED_PASS AnnualReview 1920x1080",
+        "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+        "LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true",
+        "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+        "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+      ],
+      "log_sha256": "7e5a3f39a363b28e49265b1e7c6809dc97ca5445a3194276a1e8653a9b0542e1"
+    },
+    {
+      "gate": "ScenarioOneProgressVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 42.57,
+      "markers": [
+        "SCENARIO_ONE_PROGRESS_VERIFY_PASS"
+      ],
+      "log_sha256": "cd05dffeaa3e0210d0cee31f2b5c96059ec42455773e80a7334c8d4e683191c9"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 57.32,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 00479F18970F9926 rngModel=1",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "8cd4ecfb2fa6904e96d883666c67714756bcab91e2435dad2502cb5b06e38e8e"
+    },
+    {
+      "gate": "ScenarioReferenceVerification",
+      "mode": "default",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 69.19,
+      "markers": [
+        "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+        "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+        "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+        "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+        "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+        "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+        "REFERENCE_CONTINUATION_PASS year50=v12 year100=v15 deterministic=True continuedHash=9CDF21A541C5968D",
+        "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+        "REFERENCE_FUTURE_V1_PASS"
+      ],
+      "log_sha256": "8ec1d148ec4508d52aaec2ffddcbf67ff26620c520725e88c72de720f17063fb"
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "mode": "model0",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 57.33,
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_HASH 568922E1A6D73CDD rngModel=0",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ],
+      "log_sha256": "a95505f733802194ce1fb9396446bb61e635aaaadc348f64c704ab36f9736258"
+    }
+  ],
+  "source_sha256": {
+    "Assets/ForestPrototype/UI/WorkPlanView.cs": "1b9d405b3c7a6b5bbf12157295e1ff7cf8a904845e2004603373b8d7d4cfc2da",
+    "Assets/ForestPrototype/UI/TreeInspectionView.cs": "16593266a701b62e211c54b6f28ccd76d82dd09a4e2b105b07362c51a10de910",
+    "Assets/ForestPrototype/UI/ScenarioOneUiFacts.cs": "e3b4af280608dd5ff24e1f11678487e0bd8a6782d6850f735145590460ce4aa5",
+    "Assets/ForestPrototype/UI/MenuHelpView.cs": "c89b297fb8dc0ebef176ea72618ca6423b7a8745b12ac6ba13ff7ff4a0ce5eb7",
+    "Assets/ForestPrototype/UI/StandMapView.cs": "0b5b721f8f652786ce4d410c7e198f28a895adb5ac4fb4fb6bd99f679bd312a4",
+    "Assets/ForestPrototype/UI/UiKit.cs": "8f8bea2e59a0cad3e522d473d0c20f1442c2207b9d977a4eb5126f4df5547793",
+    "Assets/ForestPrototype/UI/WalkingHudView.cs": "9d2f9ed1b9111f98f0724837b5d4adb652f0ca65dbad044316e8032be7d0988e",
+    "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs": "18a55e17499cf31c78fed3d92a4f8dbebcafd3b41c2610fc7d9324d2873759e8",
+    "Assets/ForestPrototype/UI/LearningObjectivesView.cs": "316a2ac0172cd50f71526cd9a0687a4af04e7bd225a7a35576ca57a6d7a7e92a",
+    "Assets/ForestPrototype/UI/AnnualReviewView.cs": "b85fcd955cf040cd78d4ff33f0f6d0cfdfc8212166014bd1cfc767fbf7fb17b2",
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "f3bd9b5e76b095ecfba3eb5a5ce367ccd0cae83a6075ad4da8ac44494fd69ccc",
+    "Assets/ForestPrototype/UI/LearningObjectivesView.cs.meta": "69414dcaa4534319b699f9355010636ee525ed4f589951dc5f505a323f26156a",
+    "Assets/ForestPrototype/ForestPlayer.cs": "9d1c977e75c70fb3e2a3edbd706c2c42a675c263c384d11284a20758e6994f29",
+    "Assets/ForestPrototype/ForestTreeMarkingManager.cs": "46fddb3d3ae111d497d4f365625ab86f8a5dc9344d98bdd14f2b4b3353ffa654",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": "436e1817f5b9c957acbc7234b6cfeffbc6fe81713f9189f68d16514b359b3899",
+    "Tools/Verification/MenuTutorialVerification.cs": "6a9ca6da3f924b8f7feaf12dd7f0ab82f1add2a023ccca81be51791b93f0363a",
+    "Tools/Verification/ScenarioOneProgressVerification.cs": "7ec8eb6c186b7007f6b0f2d7651f8e6851efe31a93f5d4e830d1c9d9671a55d8"
+  },
+  "screenshots_sha256": {
+    "learning-map-1280.png": "c50614eaef3fcf4c44166b2147b976376b3cc2a992956a07808dfb0112a0242a",
+    "learning-deadwood.png": "bebbef1e347fff1772f016fdf3f8c32a04ada66f53fde12399213a1c21be4d3c"
+  },
+  "limitations": [
+    "UI button callbacks are invoked directly; physical mouse delivery and beginner comprehension still require human review.",
+    "Navigation arrival is a positioned fixture, not a hardware movement-input test.",
+    "Learning progress is local device/player progress across forests, separate from forest saves."
+  ],
+  "diagnostics": "Earlier fixture attempts aimed at an unsuitable stand-edge tree/base and failed their aiming precondition; one Cursor namespace ambiguity caused a compile failure in the disposable fixture. Final verification aims at a central trunk, captures the cursor, and passes. Failed attempts are not acceptance results."
+}

@@ -188,7 +188,7 @@ Forestry planting API remains available to other modes and verification tools.
 
 ## Fell marks and the Work Plan
 
-`[M]` is the in-world decision; the Work Plan reviews, costs and approves it.
+`[X]` is the in-world decision; the Work Plan reviews, costs and approves it.
 Opening the Work Plan (and approving work) automatically imports any red Fell
 marks as felling orders, so a mark can never silently miss the annual plan. The
 explicit "Add marked trees" button remains for clarity. Importing felling
@@ -196,7 +196,7 @@ orders consumes only red marks — blue Crop Tree designations persist.
 
 ## Forestry interaction and compatibility (save v13)
 
-`[M]` marks a living tree red for felling; `[C]` designates it as a persistent
+`[X]` marks a living tree red for felling; `[C]` designates it as a persistent
 blue Crop Tree, replacing any Fell mark. The two marks cannot coexist. Blue
 trunk bands persist through annual advances and save/load, and are removed only
 when the player explicitly unmarks or the tree is felled. Importing red Fell
@@ -246,7 +246,7 @@ Plan and Annual Review at their relevant screen. Help/F1 revisits explanations;
 local device preferences prevent repeat introductions without changing forest
 save data. The Map teaches finding patterns, selecting a cell, setting a
 waypoint and walking there to inspect before deciding. See
-`Docs/Scenario1MenuTeaching.md` for the Part N implementation and smoke steps.
+`Docs/Scenario1MenuTeaching.md` for the Part N implementation and smoke steps. The follow-up `Docs/Scenario1LearningObjectives.md` describes M for Map, X for Fell, and O for eight self-paced learning objectives with sub-objectives. Learning persists per player/device across years and forests; it does not change scenario success thresholds.
 
 Felling input in Scenario One points to marking and the Work Plan;
 the direct Forestry chopping entry point remains available for non-scenario

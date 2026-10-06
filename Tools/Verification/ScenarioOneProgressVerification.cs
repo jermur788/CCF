@@ -72,7 +72,7 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
         savePath = Path.Combine(Application.persistentDataPath, "forest-save.json");
         if (File.Exists(savePath)) backup = File.ReadAllBytes(savePath);
         Check(manager.Outcome == ScenarioOneOutcome.Active && manager.CenturyReview == null
-            && manager.Objectives.Count > 0 && manager.TutorialHint.StartsWith("1."),
+            && manager.Objectives.Count > 0 && manager.GetComponent<ScenarioOneUiRoot>()?.Learning != null,
             "fresh tutorial or objective state missing");
         Check(manager.GetComponent<ScenarioOneSoundscapePlayer>() != null
             && manager.SoundscapeState.layers.Count == 7
@@ -136,20 +136,21 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             "Scenario One manual F input bypassed contractor felling");
         manager.PlanningFellingOutcome = FellingMaterialOutcome.RetainAsFallenDeadwood;
         marking.Mark(target, TreeMarkType.Fell, false);
-        Check(manager.AddMarkedTreesToWorkPlan() == 1 && manager.TutorialHint.StartsWith("2."),
-            "marking did not advance the tutorial");
+        Check(manager.AddMarkedTreesToWorkPlan() == 1 && manager.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree
+            && o.status == ScenarioWorkStatus.Pending), "marking did not create a pending felling job");
         Check(manager.TryPurchaseStock("beech-sapling", 1)
             && manager.TryPurchaseStock("sessile-oak-sapling", 1)
-            && manager.TutorialHint.StartsWith("3."), "purchasing did not advance the tutorial");
+            && manager.GetStockQuantity("beech-sapling") == 1 && manager.GetStockQuantity("sessile-oak-sapling") == 1,
+            "purchasing did not provide nursery stock");
 
         int[] brightest = Enumerable.Range(0, ecology.CellCount)
             .OrderByDescending(index => ecology.Cells[index].Light).Take(3).ToArray();
         Check(manager.TryDesignatePlanting("beech-sapling", brightest[0])
             && manager.TryDesignatePlanting("sessile-oak-sapling", brightest[1])
-            && manager.ApprovePendingWork() && manager.TutorialHint.StartsWith("4."),
-            "work approval did not advance the tutorial");
+            && manager.ApprovePendingWork() && manager.WorkOrders.Count(o => o.status == ScenarioWorkStatus.Approved) == 3,
+            "work approval did not commit all three planned jobs");
         Check(manager.AdvanceYear() && ecology.EcologicalYear == 1
-            && manager.Outcome == ScenarioOneOutcome.Active && manager.TutorialHint.StartsWith("5."),
+            && manager.Outcome == ScenarioOneOutcome.Active && manager.AnnualReports.Count == 1 && !manager.AnnualReviewSeen,
             "first annual step ended the scenario or skipped tutorial review");
         Check(manager.DeadwoodRecords.Count == 1 && manager.DeadwoodRecords[0].remainingVolumeM3 > 0f,
             "retained deadwood missing from the conversion plan");
