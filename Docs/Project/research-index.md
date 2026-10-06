@@ -34,6 +34,10 @@ Topics: bramble/bracken/competitive graminoid cover, shared competition for natu
 
 Use the dedicated browsing/understorey reports for those systems where they supersede earlier broad recommendations.
 
+## CCF Primary Literature Synthesis v1
+
+`CCF_Primary_Literature_Synthesis_v1.pdf` (12 pp., 5 October 2026; local copy `~/Documents/CCF Game/`, SHA-256 prefix `5b7a5261860e2bec`; not committed to Git). **Supporting evidence, not decision authority.** Used in the regeneration accounting work (D-047) only to support keeping vegetation competition and browsing as separate causal mechanisms, and treating Sitka leader browsing mainly as height delay and form damage. Its bramble/bracken survival values (English oak) and Irish age-30 top-height anchors are transfer/validation anchors, not adopted coefficients.
+
 ## General reference
 
 `the-earth-care-manual_-a-permaculture-handbook-for-britain-and-other-temperate-climates-pdfdrive.com-.pdf` is general reference, not authority for CCF forestry/ecology decisions.

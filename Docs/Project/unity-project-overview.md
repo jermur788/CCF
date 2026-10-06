@@ -136,9 +136,9 @@ Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6
 - **k10a10 light:** canopy shade reach = 1.0 × crown radius + half a 5 m cell (2.5 m) (`CanopyShadeReachPerCrownRadius`, shared by the marking forecast). Opacity is an implicit 1.0 and the light equation is unchanged.
 - **Calibrated canonical lifecycle (RNG model 0, 80 years):** `BFC55473C1506067`. The calibration measurement hash is `D48A19525E69DD8A`.
 
-**RNG model policy (D-046, main `4eab590`, verified 2026-10-05).** New games use model 1; loads keep the saved model; an absent field and Reference Future v1 mean model 0. `CCF_RNG_MODEL=0` makes the completion gate replay the legacy model.
+**RNG model policy (D-046, main `4eab590`, verified 2026-10-05).** New games use model 1; loads keep the saved model; an absent field and Reference Future v1 mean model 0. `CCF_RNG_MODEL=0` makes the completion gate replay the legacy model. The anchors below were recorded under legacy regeneration (model 0); since D-047 they are reproduced with `regenerationModel = 0`, and JSON-based ones in the v15 layout.
 
-| Anchor | Model 0 (compatibility) | Model 1 (new-game default) |
+| Anchor | RNG model 0 (compatibility) | RNG model 1 + legacy regeneration |
 |---|---|---|
 | Neutral lifecycle | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
 | Scenario One lifecycle (browse 0.2) | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
@@ -147,6 +147,22 @@ Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6
 | Policy save/load continuation (Year 20) | `CDC4DE8F8EF471E5` | `872094413305A082` |
 
 Post-merge gates PASS on main: completion ×2 per model, interaction, browsing, planting, save hardening, RNG model, economy integration (120 assertions), Reference, RngModelPolicyVerification. Lag-1 survival-roll correlation is 0.6748 under model 0 and −0.0041 under model 1.
+
+**Regeneration Model 1 (D-047, main `4670e73`, verified 2026-10-06).** Save v16 field `regenerationModel`: new Scenario One games 1; v1–v15, a missing field and Reference Future v1 0. Implementation: `RegenerationModel.cs` (constants, `RepresentationThreshold` = 0.01, annual account), `ForestEcologyCell` (bands, accumulator, `AdmitDensity`), `ForestEcologyController` (model-1 establishment, `AdmitRecruitment`, `NormalizeBands`, oldest-band promotion, `LastRegenerationAccount`), `ForestSaveValidation` (band keys: 4 represented + 1 accumulator per species + origin). Model 0 arithmetic is unchanged. `ScenarioReferenceArchive.LegacyV15WorldHash` re-hashes model-0 worlds in the v15 layout, because the v16 field changes JSON world hashes even for identical biology. `CCF_REGEN_MODEL=0` replays legacy regeneration in the completion gate.
+
+| Anchor | Current new game (RNG 1 + regen 1) | Legacy (RNG 0 + regen 0) | RNG 1 + regen 0 |
+|---|---|---|---|
+| Neutral lifecycle | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion gate | `6F84AF319D301F87` (Year 25, min cash 589773) | `568922E1A6D73CDD` (v15 layout) | `00479F18970F9926` (v15 layout) |
+| Reference Future v1 Year 100 / continuation | n/a (v1 is model 0) | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` (v15 layout; v16 layout `C5EF2C4CC3443208`) | n/a |
+
+Verified at `4670e73` (isolated batch processes):
+- `RegenerationModelVerification`: 35/35 twice, with identical 100-year funnels. Exact recruited trees for unthinned / 20 % / 60 % removal are 20/33/75 at year 25, 30/49/94 at year 50 and 32/51/96 at year 100.
+- The legacy regeneration ledger (100 years, three treatments) is byte-identical to before (SHA-256 `71d61b94…`).
+- Completion (×2 model 1, plus RNG 0 / regen 0 and RNG 1 / regen 0), interaction, canonical lifecycle, juvenile foundation, Reference, RNG and RNG policy, browsing, save hardening, planting, CCF Beech/Oak/Oak-player/planting, pruning, deadwood, progress, economy (120) and viability (64), Stage 1 work economy, timber yield, batch recompute, ecology calibration and the integration harness: PASS.
+- ClearanceVerification, MenuTutorialVerification and ScenarioOneRemovalVerification fail identically on pre-merge `402a2b4` (pre-existing harness/batch-mode issues).
+- Under model 1, MixedSpeciesTest beech recruitment accumulates below threshold (accepted 0.0342, one crossing). It produces no trees, because of ledgered shade loss with zero structural extinction.
 
 Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each gate in its own process with an isolated `XDG_CONFIG_HOME`):
 

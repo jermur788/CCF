@@ -71,7 +71,7 @@ No simultaneous writes to one Unity worktree, broad gameplay refactor, frozen-st
 **FUNCTIONALLY COMPLETE; final presentation acceptance PASS (2026-10-04).** The functional and presentation baseline is integrated. Simulation follow-ups remain open (see below); this is not a permanent closure of Scenario 1 simulation work.
 
 Integrated on `main` and verified (see the Unity Project Overview, **Integrated Scenario 1**):
-- functional implementation, save schema v15;
+- functional implementation, save schema v15 (v16 from D-047);
 - browsing default 0.2;
 - shelters;
 - contractor/landowner execution;
@@ -114,6 +114,19 @@ Previously recorded presentation constraint: ring-barked, windthrow-root and def
 Remaining presentation polish (not blockers):
 - moss cushions on the track edge;
 - deadwood volume is shown in objectives and history rather than as its own annual-review line.
+
+## Regeneration Model 1 (2026-10-06)
+
+Integrated on main at `4670e73` (D-047), fast-forward from `402a2b4`. Save schema v16. New Scenario One games use regeneration model 1 (age bands with a sub-threshold accumulator; no seed-independent infill; corrected capacity, origin and promotion representation). Legacy saves and Reference Future v1 stay model 0, which is byte-identical to before.
+
+Scenario 1 under model 1 remains achievable and viable: completed in Year 25 with all 8 objectives (regeneration 51 cells against 3), lowest cash €5,897.73; planting, clearance, shelters and economy gates pass. No objective or economy recalibration.
+
+Open/deferred from this work:
+- physical juvenile stems/ha interpretation (undefined);
+- understorey cover has no causal regeneration effect (future calibrated competition mechanism, separate from browsing);
+- the 0.01 establishment-response cut-off remains an existing calibration rule;
+- promotion remains an abstract band → individual handoff;
+- pre-existing harness failures (Clearance, MenuTutorial, Removal) reproduce identically on `402a2b4`, recorded separately.
 
 ## Regeneration Bottlenecks v1
 
