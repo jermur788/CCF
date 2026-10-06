@@ -966,6 +966,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             ForestStandScenarios.ApplyLifecycleFixture();
             ecology.RngModelVersion = SimulationRandom.LegacyModel;
             ecology.RegenerationModelVersion = RegenerationModel.Legacy;
+            ecology.GrowthModelVersion = GrowthModel.Legacy;
             ecology.Browsing.BackgroundPressure = pressure;
             ecology.Browsing.ClearProtection();
             for (int year = 0; year < 80; year++) ecology.AdvanceOneYear();

@@ -85,6 +85,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = model;
+        e.GrowthModelVersion = GrowthModel.Legacy; // regeneration anchors are defined under legacy growth
         e.Browsing.BackgroundPressure = browsePressure;
         e.Browsing.ClearProtection();
         e.RecomputeCanopy();
@@ -480,7 +481,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
     {
         // New game default.
         Pass("POLICY_NEW_GAME_MODEL1", ScenarioOneManager.NewGameRegenerationModel == RegenerationModel.AgeBands
-            && original.regenerationModel == RegenerationModel.AgeBands && original.version == 16,
+            && original.regenerationModel == RegenerationModel.AgeBands && original.version == ForestSaveData.CurrentVersion,
             $"newGame={ScenarioOneManager.NewGameRegenerationModel} capturedModel={original.regenerationModel} version={original.version}");
 
         // SAVE_LOAD_PRESERVES_ALL_BANDS: multi-band cells through the real save path.
@@ -574,6 +575,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
                 ForestStandScenarios.ApplyLifecycleFixture();
                 e.RngModelVersion = rng;
                 e.RegenerationModelVersion = regen;
+                e.GrowthModelVersion = GrowthModel.Legacy;
                 e.Browsing.BackgroundPressure = pressure;
                 e.Browsing.ClearProtection();
                 for (int year = 0; year < 80; year++) { e.AdvanceOneYear(); if (year % 10 == 9) yield return null; }
@@ -596,12 +598,14 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = model;
+        e.GrowthModelVersion = GrowthModel.Legacy; // regeneration anchors are defined under legacy growth
         e.Browsing.BackgroundPressure = manager.Definition.BackgroundBrowsePressure;
         e.Browsing.ClearProtection();
         stand.Generate();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = model;
+        e.GrowthModelVersion = GrowthModel.Legacy; // regeneration anchors are defined under legacy growth
         e.InvalidateCompetition();
         ForestTree[] ordered = Living().OrderBy(t => t.Diameter).ThenBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
         e.BeginChangeBatch();

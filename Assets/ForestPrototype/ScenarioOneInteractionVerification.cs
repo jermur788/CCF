@@ -334,10 +334,12 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         float scenarioBrowsePressure = ecology.Browsing.BackgroundPressure;
         int sessionRngModel = ecology.RngModelVersion;
         int sessionRegenerationModel = ecology.RegenerationModelVersion;
+        int sessionGrowthModel = ecology.GrowthModelVersion;
         ecology.Browsing.BackgroundPressure = 0f;
         ForestStandScenarios.ApplyLifecycleFixture();
         ecology.RngModelVersion = SimulationRandom.LegacyModel;
         ecology.RegenerationModelVersion = RegenerationModel.Legacy;
+        ecology.GrowthModelVersion = GrowthModel.Legacy;
         for (int year = 0; year < 80; year++)
         {
             ecology.AdvanceOneYear();
@@ -347,6 +349,7 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         ecology.Browsing.BackgroundPressure = scenarioBrowsePressure;
         ecology.RngModelVersion = sessionRngModel;
         ecology.RegenerationModelVersion = sessionRegenerationModel;
+        ecology.GrowthModelVersion = sessionGrowthModel;
         Check(canonical == "BFC55473C1506067", "canonical Sitka lifecycle changed: " + canonical);
         Debug.Log("SCENARIO_ONE_CANONICAL_SITKA_PASS hash=" + canonical);
 

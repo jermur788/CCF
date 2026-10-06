@@ -77,6 +77,7 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
             ForestStandScenarios.ApplyLifecycleFixture();
             ecology.RngModelVersion = SimulationRandom.LegacyModel;
             ecology.RegenerationModelVersion = RegenerationModel.Legacy;
+            ecology.GrowthModelVersion = GrowthModel.Legacy;
             ecology.Browsing.BackgroundPressure = pressure;
             for (int year = 0; year < 80; year++)
             {
@@ -217,7 +218,7 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         // observable rather than saturated by the 336-tree starting stand.
         foreach (ForestTree tree in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             DestroyImmediate(tree.gameObject);
-        ecology.ResetForDeterministicRun(); ecology.RngModelVersion = 0; ecology.RegenerationModelVersion = RegenerationModel.Legacy;
+        ecology.ResetForDeterministicRun(); ecology.RngModelVersion = 0; ecology.RegenerationModelVersion = RegenerationModel.Legacy; ecology.GrowthModelVersion = GrowthModel.Legacy;
         manager.RestoreSaveData(original.scenarioOne);
         Vector3 position = new Vector3(ecology.Cells[27].Center.x, 0, ecology.Cells[27].Center.y);
         ForestTree focal = spawner.Spawn("MORTALITY-FOCAL", spawner.DefaultSpecies, position, 45, 30, 15, 4);

@@ -22,6 +22,7 @@ public class CCFBeechRunner:MonoBehaviour {
  // Legacy single-cohort contract: regeneration model 0 unless CCF_REGEN_MODEL overrides it (diagnostics).
  string forced=Environment.GetEnvironmentVariable("CCF_REGEN_MODEL");
  ecology.RegenerationModelVersion=string.IsNullOrEmpty(forced)?RegenerationModel.Legacy:int.Parse(forced);
+ ecology.GrowthModelVersion=GrowthModel.Legacy; // legacy contract
  Debug.Log("BEECH_REGEN_MODEL "+ecology.RegenerationModelVersion);
  beech=FindFirstObjectByType<ForestTreeSpawner>().ResolveSpecies("beech");Check(beech!=null,"Beech absent");enabledBefore=beech.SupportsRegeneration;
  typeof(TreeSpeciesDefinition).GetField("supportsRegeneration",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(beech,true);

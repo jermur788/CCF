@@ -232,6 +232,9 @@ public sealed class EcologyCalibrationAdoptionGate : MonoBehaviour
             DestroyImmediate(t.gameObject);
         Field(typeof(ForestEcologyController), "standSizeMeters").SetValue(ecology, size);
         ecology.ResetForDeterministicRun();
+        // The C8 DBH/light calibration and its "no automatic death" contract
+        // are defined under legacy growth (growth model 1 adds density mortality).
+        ecology.GrowthModelVersion = GrowthModel.Legacy;
         float spacing = (float)Field(typeof(ForestStartingStand), "latticeSpacingMeters").GetValue(generator);
         Field(typeof(ForestStartingStand), "standWidthMeters").SetValue(generator, size);
         Field(typeof(ForestStartingStand), "standDepthMeters").SetValue(generator, size);

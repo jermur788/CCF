@@ -101,10 +101,12 @@ public sealed class RegenerationBudgetRunner : MonoBehaviour
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
+        e.GrowthModelVersion = GrowthModel.Legacy;
         stand.Generate();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
+        e.GrowthModelVersion = GrowthModel.Legacy;
         e.InvalidateCompetition();
         ForestTree[] ordered = Living().OrderBy(t => t.Diameter).ThenBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
         e.BeginChangeBatch();
@@ -405,6 +407,7 @@ public sealed class RegenerationBudgetRunner : MonoBehaviour
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = RegenerationModel.Legacy; // BEFORE baseline: legacy regeneration
+        e.GrowthModelVersion = GrowthModel.Legacy;
         e.RecomputeCanopy();
         foreach (ForestEcologyCell c in e.Cells) { c.ClearRegeneration(); c.Light = light; }
     }

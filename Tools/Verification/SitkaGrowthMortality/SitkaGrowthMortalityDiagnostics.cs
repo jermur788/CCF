@@ -49,6 +49,7 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
     private const int StartAge = 20;
     private const float PlotHectares = 0.16f; // 40 m x 40 m stand
 
+    private static int ProductionGrowthModel => Environment.GetEnvironmentVariable("CCF_SITKA_MODE") == "model1" ? 1 : 0;
     private ForestEcologyController e;
     private ForestStartingStand stand;
     private ForestTreeSpawner spawner;
@@ -109,7 +110,27 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
         public float HazardMax;     // A/B/D annual hazard at maximum stress [I]
         public float SdiMax;        // C/D maximum stand density index per ha [I]; 0 = none
         public bool Suppression, LowGrowth;
+        // SDI/relative-density model (Comeau et al. 2010 British Sitka line):
+        // RD = N/ha * (Dq/25)^2.063 / 1868; pressure P = max(0, (RD - Rd0)/(1 - Rd0));
+        // tree hazard = M * P^2 * S^2 (S = current suppression).
+        public bool RelativeDensity;
+        public float Rd0, M;
     }
+
+    private const float ComeauSlope = 2.063f;     // [B] British Sitka maximum size-density slope (Comeau et al. 2010)
+    private const float ComeauMaxSdi = 1868f;     // [B] British Sitka maximum SDI at Dq 25 cm
+
+    private static float RelativeDensity(ForestTree[] trees)
+    {
+        if (trees.Length == 0) return 0f;
+        double dq = Math.Sqrt(trees.Average(t => (double)t.Diameter * t.Diameter));
+        return (float)(trees.Length / PlotHectares * Math.Pow(dq / SdiReferenceDqCm, ComeauSlope) / ComeauMaxSdi);
+    }
+
+    private float maxRdThisRun, maxAnnualRateThisRun;
+    private StreamWriter yearLog;
+    private string currentLabel = "";
+    private int dominantDeathsThisRun;
 
     private static readonly Mortality[] Mortalities =
     {
@@ -145,6 +166,51 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
     // Applied after each production annual step, on that step's competition.
     private void ApplyMortality(Mortality m)
     {
+        if (m.RelativeDensity)
+        {
+            ForestTree[] living = Living();
+            float rd = RelativeDensity(living);
+            maxRdThisRun = Mathf.Max(maxRdThisRun, rd);
+            float pressure = Mathf.Max(0f, (rd - m.Rd0) / (1f - m.Rd0));
+            if (pressure <= 0f) return;
+            float dominantDbh = living.Select(t => t.Diameter).OrderByDescending(d => d).ElementAt(Mathf.Max(0, living.Length / 5 - 1));
+            var victims = new List<ForestTree>();
+            // Vulnerability normalised across the stand: pressure sets how many
+            // die (expected rate M * P^2), suppression sets which.
+            double meanS2 = living.Average(t => { double v = Suppression(t); return v * v; });
+            foreach (ForestTree t in living)
+            {
+                float s = Suppression(t);
+                float hazard = meanS2 > 0 ? Mathf.Min(0.5f, (float)(m.M * pressure * pressure * s * s / meanS2)) : 0f;
+                if (SimulationRandom.Roll(SimulationRandom.MixedModel, "MORT-" + t.TreeId, e.EcologicalYear, e.SimulationSeed) < hazard)
+                    victims.Add(t);
+            }
+            // Boundary: the stand may not exceed the maximum size-density line
+            // (RD 1); the most suppressed survivors die until it is back on it.
+            var survivors = living.Except(victims).ToList();
+            if (RelativeDensity(survivors.ToArray()) > 1f)
+                foreach (ForestTree t in survivors.OrderByDescending(Suppression).ThenBy(t => t.TreeId, StringComparer.Ordinal).ToList())
+                {
+                    if (RelativeDensity(survivors.ToArray()) <= 1f) break;
+                    survivors.Remove(t);
+                    victims.Add(t);
+                }
+            maxAnnualRateThisRun = Mathf.Max(maxAnnualRateThisRun, victims.Count / (float)living.Length);
+            if (yearLog != null)
+            {
+                int planted = living.Count(t => t.TreeId.StartsWith("P")), plantedDead = victims.Count(t => t.TreeId.StartsWith("P"));
+                yearLog.WriteLine(string.Join(",", currentLabel, e.EcologicalYear, F(rd, "0.000"), living.Length, victims.Count, planted, plantedDead,
+                    living.Length - planted, victims.Count - plantedDead));
+            }
+            e.BeginChangeBatch();
+            foreach (ForestTree t in victims)
+            {
+                if (t.Diameter >= dominantDbh) dominantDeathsThisRun++;
+                Kill(t, "self-thinning");
+            }
+            e.EndChangeBatch();
+            return;
+        }
         if (m.Suppression || m.LowGrowth)
         {
             foreach (ForestTree t in Living())
@@ -183,17 +249,24 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
     {
         foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             DestroyImmediate(t.gameObject);
+        manager.InitializeNewScenario(); // per-run deadwood/management state
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = RegenerationModel.AgeBands;
+        // Calibration/diagnostic baseline: legacy growth (no production adult
+        // mortality); prototypes are applied by this harness. Mode "model1"
+        // runs production growth model 1 instead.
+        e.GrowthModelVersion = ProductionGrowthModel;
         e.Browsing.BackgroundPressure = manager.Definition.BackgroundBrowsePressure;
         e.Browsing.ClearProtection();
         stand.Generate();
         e.ResetForDeterministicRun();
         e.RngModelVersion = SimulationRandom.MixedModel;
         e.RegenerationModelVersion = RegenerationModel.AgeBands;
+        e.GrowthModelVersion = ProductionGrowthModel;
         e.InvalidateCompetition();
         deadThisRun = 0; deadwoodM3ThisRun = 0f; deadIds.Clear();
+        maxRdThisRun = 0f; maxAnnualRateThisRun = 0f; dominantDeathsThisRun = 0;
     }
 
     private string StandLine(string label, int age, ForestTree[] trees)
@@ -215,16 +288,21 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
         double vol = trees.Sum(t => (double)t.BiologicalStemVolumeM3) / PlotHectares;
         int recruits = trees.Count(t => !t.TreeId.StartsWith("P", StringComparison.Ordinal));
         float topHd = byDbh.Take(top).Average(t => t.Height * 100f / t.Diameter);
+        int fifth = Mathf.Max(1, n / 5);
+        float hdDominant = byDbh.Take(fifth).Average(t => t.Height * 100f / t.Diameter);
+        float hdSuppressed = byDbh.Skip(n - fifth).Average(t => t.Height * 100f / t.Diameter);
+        int deadwoodRecords = manager != null ? manager.DeadwoodRecords.Count : 0;
         return string.Join(",", label, age, n, F(n / PlotHectares, "0"), recruits, F(topHeight, "0.00"), F(dominantHeight, "0.00"),
             F(h.Average(), "0.00"), F(Q(h, 0.1f), "0.00"), F(Q(h, 0.5f), "0.00"), F(Q(h, 0.9f), "0.00"),
             F(d.Average(), "0.00"), F(dq, "0.00"), F(Q(d, 0.1f), "0.00"), F(Q(d, 0.5f), "0.00"), F(Q(d, 0.9f), "0.00"),
             F(ba, "0.00"), F(Sdi(trees), "0"), F(vol, "0.0"), F(hd.Average(), "0.0"), F(Q(hd, 0.9f), "0.0"), F(topHd, "0.0"),
-            F(ci.Average(), "0.00"), F(Q(ci, 0.9f), "0.00"), deadThisRun, F(deadwoodM3ThisRun / PlotHectares, "0.0"));
+            F(ci.Average(), "0.00"), F(Q(ci, 0.9f), "0.00"), deadThisRun, F(deadwoodM3ThisRun / PlotHectares, "0.0"), F(RelativeDensity(trees), "0.000"),
+            F(hdDominant, "0.0"), F(hdSuppressed, "0.0"), deadwoodRecords);
     }
 
     private const string StandHeader = "run,age,trees,stems_ha,recruits,top_height_m,dominant_height_m,mean_height_m,h_p10,h_p50,h_p90,"
         + "mean_dbh_cm,dq_cm,dbh_p10,dbh_p50,dbh_p90,basal_area_m2_ha,sdi_ha,volume_m3_ha,hd_mean,hd_p90,hd_top,ci_mean,ci_p90,"
-        + "cumulative_deaths,cumulative_deadwood_m3_ha";
+        + "cumulative_deaths,cumulative_deadwood_m3_ha,relative_density_comeau,hd_dominant_fifth,hd_suppressed_fifth,deadwood_records";
 
     private void TreeRows(StreamWriter w, string label, int age, ForestTree[] trees)
     {
@@ -251,6 +329,7 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
     private IEnumerator Run(Regime r, Mortality m, string label, StreamWriter standCsv, StreamWriter treeCsv, StreamWriter hashes)
     {
         Build();
+        currentLabel = label;
         var sw = Stopwatch.StartNew();
         double mortalityMs = 0;
         if (Ages.Contains(StartAge)) { standCsv.WriteLine(StandLine(label, StartAge, Living())); TreeRows(treeCsv, label, StartAge, Living()); }
@@ -259,6 +338,11 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
             int age = StartAge + y;
             if (r.Ages.Contains(age - 1)) Thin(r); // thinning at the start of the year reaching that age
             e.AdvanceOneYear();
+            if (ProductionGrowthModel == 1 && e.LastAdultMortality.Year == e.EcologicalYear)
+            {
+                deadThisRun += e.LastAdultMortality.Deaths;
+                deadwoodM3ThisRun += (float)e.LastAdultMortality.DeadStemVolumeM3;
+            }
             var msw = Stopwatch.StartNew();
             ApplyMortality(m);
             mortalityMs += msw.Elapsed.TotalMilliseconds;
@@ -276,53 +360,51 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
         using (SHA256 sha = SHA256.Create())
             hashes.WriteLine(label + "," + BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(state))).Replace("-", "").Substring(0, 16));
         hashes.Flush();
-        Fact($"RUN {label} years={years} deaths={deadThisRun} deadwood_m3_ha={F(deadwoodM3ThisRun / PlotHectares, "0.0")} seconds={F(sw.Elapsed.TotalSeconds, "0.0")} mortalityPassMsTotal={F(mortalityMs, "0.0")}");
+        Fact($"RUN {label} years={years} maxRD={F(maxRdThisRun, "0.000")} maxAnnualDeathRate={F(maxAnnualRateThisRun, "0.000")} dominantDeaths={dominantDeathsThisRun} deaths={deadThisRun} deadwood_m3_ha={F(deadwoodM3ThisRun / PlotHectares, "0.0")} seconds={F(sw.Elapsed.TotalSeconds, "0.0")} mortalityPassMsTotal={F(mortalityMs, "0.0")}");
     }
 
+    // Cost of the annual step at several tree counts. Each synthetic stand's
+    // DBH is chosen so it sits in the density hazard zone (relative density
+    // about 0.9 on the British Sitka line), so it neither collapses through the
+    // boundary nor escapes mortality. Identical stands are timed under growth
+    // model 0 and 1: the difference is the production mortality step,
+    // including its batched deaths.
     private IEnumerator Performance(StreamWriter perf)
     {
         foreach (int n in new[] { 336, 1300, 3000, 5000 })
-        {
-            foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                DestroyImmediate(t.gameObject);
-            e.ResetForDeterministicRun();
-            e.RngModelVersion = SimulationRandom.MixedModel;
-            e.RegenerationModelVersion = RegenerationModel.AgeBands;
-            int side = Mathf.CeilToInt(Mathf.Sqrt(n));
-            float spacing = 39f / side;
-            int made = 0;
-            for (int i = 0; i < side && made < n; i++)
-                for (int j = 0; j < side && made < n; j++, made++)
-                {
-                    float dbh = 12f + (made * 7919 % 100) / 10f;
-                    spawner.Spawn("PERF" + made.ToString("00000"), sitka, new Vector3(-19.5f + i * spacing, 0f, -19.5f + j * spacing), 30, dbh, 2f + 0.62f * dbh, sitka.PotentialCrownRadiusM(dbh));
-                }
-            e.InvalidateCompetition();
-            yield return null;
-            double stepMs = 0, aMs = 0, cMs = 0;
-            const int reps = 3;
-            for (int k = 0; k < reps; k++)
+            foreach (int growth in new[] { 0, 1 })
             {
-                var sw = Stopwatch.StartNew(); e.AdvanceOneYear(); stepMs += sw.Elapsed.TotalMilliseconds;
-                // Cost only: evaluate the hazard / SDI without killing.
-                sw.Restart();
-                ForestTree[] living = Living();
-                int risky = 0;
-                foreach (ForestTree t in living)
-                {
-                    float stress = Mathf.Clamp01((Suppression(t) - SuppressionOnset) / (1f - SuppressionOnset));
-                    if (SimulationRandom.Roll(1, "MORT-" + t.TreeId, e.EcologicalYear, e.SimulationSeed) < 0.1f * stress * stress) risky++;
-                }
-                aMs += sw.Elapsed.TotalMilliseconds;
-                sw.Restart();
-                float sdi = Sdi(living);
-                var ordered = living.OrderByDescending(Suppression).ThenBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
-                cMs += sw.Elapsed.TotalMilliseconds;
+                foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    DestroyImmediate(t.gameObject);
+                manager.InitializeNewScenario();
+                e.ResetForDeterministicRun();
+                e.RngModelVersion = SimulationRandom.MixedModel;
+                e.RegenerationModelVersion = RegenerationModel.AgeBands;
+                e.GrowthModelVersion = growth;
+                double perHa = n / PlotHectares;
+                float dq = (float)(SdiReferenceDqCm * Math.Pow(0.9 * ComeauMaxSdi / perHa, 1.0 / ComeauSlope));
+                int side = Mathf.CeilToInt(Mathf.Sqrt(n));
+                float spacing = 39f / side;
+                int made = 0;
+                for (int i = 0; i < side && made < n; i++)
+                    for (int j = 0; j < side && made < n; j++, made++)
+                    {
+                        float dbh = dq * (0.8f + (made * 7919 % 100) / 250f);
+                        spawner.Spawn("PERF" + made.ToString("00000"), sitka, new Vector3(-19.5f + i * spacing, 0f, -19.5f + j * spacing), 30, dbh, 2f + 0.62f * dbh, sitka.PotentialCrownRadiusM(dbh));
+                    }
+                e.InvalidateCompetition();
                 yield return null;
+                double stepMs = 0; int deaths = 0;
+                const int reps = 3;
+                for (int k = 0; k < reps; k++)
+                {
+                    var sw = Stopwatch.StartNew(); e.AdvanceOneYear(); stepMs += sw.Elapsed.TotalMilliseconds;
+                    if (growth == 1 && e.LastAdultMortality.Year == e.EcologicalYear) deaths += e.LastAdultMortality.Deaths;
+                    yield return null;
+                }
+                perf.WriteLine(string.Join(",", n, growth, F(dq, "0.0"), F(RelativeDensity(Living()), "0.000"), Living().Length, F(stepMs / reps, "0.0"), deaths));
+                perf.Flush();
             }
-            perf.WriteLine(string.Join(",", n, Living().Length, F(stepMs / reps, "0.0"), F(aMs / reps, "0.00"), F(cMs / reps, "0.00")));
-            perf.Flush();
-        }
     }
 
     // ---------- timber impact of height candidates (production economy) ----------
@@ -416,7 +498,7 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
             standCsv.WriteLine(StandHeader);
             treeCsv.WriteLine("run,stand_age,tree_id,tree_age,dbh_cm,height_m,ci,crown_radius_m,volume_m3,dbh_growth_cm,equivalent_suppressed_years");
             hashes.WriteLine("run,state_hash");
-            perf.WriteLine("requested_trees,living_trees,annual_step_ms,suppression_hazard_pass_ms,sdi_pass_ms");
+            perf.WriteLine("requested_trees,growth_model,target_dq_cm,relative_density_after,living_after,annual_step_ms_mean_of_3,deaths_in_3_years");
             Fact($"ENV engine={Application.unityVersion} years={years} rngModel=1 regenerationModel=1 browsePressure={F(manager.Definition.BackgroundBrowsePressure)}");
             if (Environment.GetEnvironmentVariable("CCF_SITKA_MODE") == "timber")
             {
@@ -426,6 +508,30 @@ public sealed class SitkaGrowthMortalityRunner : MonoBehaviour
                     yield return TimberImpact(timber);
                 }
                 Fact("SITKA_TIMBER_DONE");
+                yield break;
+            }
+            if (Environment.GetEnvironmentVariable("CCF_SITKA_MODE") == "model1")
+            {
+                yield return StartingStand(standCsv, treeCsv);
+                foreach (Regime r in Regimes)
+                    yield return Run(r, Mortalities[0], "growthModel1/" + r.Name, standCsv, treeCsv, hashes);
+                yield return Run(Regimes[0], Mortalities[0], "repeat:growthModel1/unthinned", standCsv, treeCsv, hashes);
+                yield return Performance(perf);
+                Fact("SITKA_MODEL1_DONE");
+                yield break;
+            }
+            if (Environment.GetEnvironmentVariable("CCF_SITKA_MODE") == "calibrate")
+            {
+                yearLog = new StreamWriter(Path.Combine(dir, "mortality_by_year.csv"));
+                yearLog.WriteLine("run,year,rd_before,living,deaths,planted_living,planted_deaths,recruit_living,recruit_deaths");
+                string only = Environment.GetEnvironmentVariable("CCF_SITKA_ONLY");
+                foreach (float rd0 in only != null ? new[] { 0.6f } : new[] { 0.5f, 0.6f, 0.7f })
+                    foreach (float mm in only != null ? new[] { 0.08f } : new[] { 0.02f, 0.04f, 0.08f })
+                        foreach (Regime r in Regimes)
+                            yield return Run(r, new Mortality { Name = "RD", RelativeDensity = true, Rd0 = rd0, M = mm },
+                                $"RD_onset{F(rd0, "0.0")}_m{F(mm, "0.00")}/{r.Name}", standCsv, treeCsv, hashes);
+                yearLog.Dispose(); yearLog = null;
+                Fact("SITKA_CALIBRATION_DONE");
                 yield break;
             }
             yield return StartingStand(standCsv, treeCsv);
