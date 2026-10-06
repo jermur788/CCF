@@ -304,8 +304,10 @@ public sealed class CCFOakVerificationRunner : MonoBehaviour
             sawPromotion |= FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
                 .Any(t => t != parent && t.Species == oak);
         }
+        // Ordered by tree ID: scene enumeration order is not stable, so the
+        // reported mature recruit must not depend on it.
         ForestTree[] recruits = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t != parent && t.Species == oak).ToArray();
+            .Where(t => t != parent && t.Species == oak).OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
         Check(sawGoodMast && sawPoorMast, "Oak did not show episodic mast states");
         Check(sawSeed && sawEstablishment && sawPromotion, "Oak lifecycle did not reach seed, establishment and promotion");
         ForestTree matureRecruit = recruits.FirstOrDefault(t => t.AgeYears >= 60);
