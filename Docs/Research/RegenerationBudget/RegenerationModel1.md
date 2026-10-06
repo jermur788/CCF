@@ -4,6 +4,88 @@ Implements the Manager decision "REGENERATION MODEL 1" on `task/regeneration-pop
 
 Juvenile abundance remains an **abstract relative abundance (occupancy)**. Nothing converts it to stems/ha or uses density × area. Promotion is an abstract representation handoff to one exact tree.
 
+## Final correction — 0.01 as a representation threshold (supersedes the per-band extinction below)
+
+Manager decision "REGENERATION MODEL 1 FINAL CORRECTION". No new save field; save v16 unchanged. Model 0 unchanged.
+
+- **Meaning of 0.01 (model 1):** a representation threshold for the combined species + origin juvenile population in a cell (`RegenerationModel.RepresentationThreshold`). It is not a stem count, a mortality probability, a per-year recruitment threshold or a per-band extinction. It never removes abundance.
+- **Sub-threshold accumulator:**
+  - At most one band below 0.01 per cell + species + origin. It is an ordinary cohort record (existing fields), so no new persisted state is needed.
+  - Accepted recruitment below 0.01 joins it; if there is none, the recruit becomes it. A represented band that decays below 0.01 merges into it.
+  - Natural and planted accumulators are separate.
+- **Accumulator state:** abundance is the exact sum; height, establishment year and origin year are abundance-weighted (years rounded half up). A recruit joining it does not take the older state: the result is the weighted combination.
+- **Losses:** the accumulator is subject to survival, browsing, clearance and the other existing juvenile losses. It receives no seed-independent infill and no free abundance, and its origin never changes. Abundance leaves only through biology (survival to exactly zero), clearance or promotion.
+- **Threshold crossing:**
+  - When an accumulator reaches 0.01 it is simply a represented band: same record, abundance conserved, species, origin and weighted age/height kept, deterministic.
+  - No tree is created by crossing; promotion follows the normal height/light rule.
+  - The ledger counts `ThresholdCrossings` (any merge in which a sub-threshold record becomes represented, including a decaying band rejoining an accumulator).
+- **Below-threshold promotion:** a band below 0.01 never promotes.
+- **Band limit:** four represented bands per species + origin + cell; the accumulator does not take a slot. Same-year records combine, so keys stay unique. Save validation allows four represented records plus one sub-threshold record per species + origin.
+- **Clearance:** after `ApplyClearance`, `NormalizeRegenerationBands` restores the invariants (a partially cleared remainder below 0.01 becomes the accumulator). It does nothing under model 0.
+- **Not changed:** the separate, pre-existing establishment cut-off (`seed factor × light response × suitability ≤ 0.01` → no recruitment request), shared with model 0. It applies to the establishment response, not abundance. Because of it, the smallest natural request is 0.005, although capacity admission can accept less.
+
+### Final verification (HEAD of this commit)
+
+- **RegenerationModelVerification:** 35/35 in two 100-year processes, identical funnels. New fixtures:
+  - ACCUMULATE_REPEATED_0005 (0.03 after 6 years, 3 crossings);
+  - ACCUMULATE_REPEATED_0002_DETERMINISTIC (0.02 after 10 years, identical repeat);
+  - ACCUMULATOR_NO_SEED_NO_NEW_ABUNDANCE, ACCUMULATOR_SURVIVAL_REDUCES (0.006 → 0.0020 at light 0.05), ACCUMULATOR_BROWSING_APPLIES (browsed fraction 0.063);
+  - ACCUMULATOR_CLEARANCE_REMOVES, ACCUMULATOR_ORIGINS_SEPARATE;
+  - THRESHOLD_CROSSING_CONSERVES (0.008 + 0.004 = 0.012; weighted year 6 and height), THRESHOLD_CROSSING_CREATES_NO_TREE;
+  - BELOW_THRESHOLD_CANNOT_PROMOTE (0.008 stays; 0.011 control promotes);
+  - ACCUMULATOR_TAKES_NO_BAND_SLOT;
+  - save/load with natural and planted accumulators; all earlier invariants retained. EXTINCTION_THRESHOLD_ACCOUNTED was removed (it tested the rejected rule).
+- **Model 0:** byte-identical again (legacy 100-year ledger `71d61b94…`, every evidence file and every model-0 funnel row identical).
+- **New model-1 anchors:** lifecycle neutral `962846D2F517B293`, normal `FBB8F470D85FF815`; completion `6F84AF319D301F87` (two identical runs).
+
+### Beech, MixedSpeciesTest, model 1, 100 years (`CCF_REGEN_MODEL=1`)
+
+| Quantity | Value |
+|---|---|
+| Seed arrival (dispersal intensity) | 93.19 |
+| Years with an establishment request | 5 |
+| Requested / accepted / capacity-rejected | 0.0879 / 0.0342 / 0.0537 |
+| Accepted below 0.01 (into accumulators) | 0.0342 (all of it) |
+| Threshold crossings | 1 |
+| Light loss / browse loss | 0.0334 / 0.0007 |
+| Threshold extinction (structural) | 0 |
+| Exact trees | 0 |
+| Remaining beech abundance | 0.0001 in 4 accumulators |
+
+The ledger balances: accepted 0.0342 = light 0.0334 + browse 0.0007 + remaining 0.0001. Low-rate recruitment now accumulates, and the zero-recruit outcome is biological shade loss in that stand, not structural erasure. Model 0 (pinned) still passes with 6 recruits, about 95 % of whose abundance came from legacy infill.
+
+### Model-1 funnels: legacy model 0 / 7fccb7b model 1 / corrected model 1
+
+Cumulative from year 1; relative abundance except trees and records. Data: `Evidence/model1_threshold_corrected_funnels.csv`.
+
+| Treatment | Year | Accepted establishment | Sub-threshold recruitment | Crossings | Threshold loss | Promotion exported | Exact trees | Remaining abundance | Accumulators now (abundance) |
+|---|---|---|---|---|---|---|---|---|---|
+| unthinned | 10 | 13.0 / 15.0 / **15.0** | 0.299 | 38 | 0.27 / 0.50 / **0** | 0.0 / 0.0 / **0.0** | 0 / 0 / **0** | 15.01 / 13.81 / **14.11** | 14 (0.0757) |
+| unthinned | 25 | 28.1 / 31.8 / **31.7** | 1.594 | 246 | 1.50 / 2.51 / **0** | 12.0 / 9.3 / **8.9** | 8 / 19 / **20** | 15.28 / 15.05 / **16.63** | 21 (0.0829) |
+| unthinned | 50 | 47.0 / 47.6 / **47.6** | 3.570 | 621 | 2.92 / 5.87 / **0** | 24.0 / 12.9 / **12.6** | 16 / 25 / **30** | 8.09 / 3.03 / **3.46** | 22 (0.0847) |
+| unthinned | 100 | 68.8 / 62.1 / **62.0** | 6.295 | 1212 | 3.37 / 11.88 / **0** | 25.1 / 12.9 / **12.6** | 21 / 26 / **32** | 1.24 / 0.30 / **0.78** | 30 (0.0535) |
+| 20 % | 10 | 19.9 / 23.5 / **23.5** | 0.411 | 51 | 0.38 / 0.60 / **0** | 0.0 / 0.0 / **0.0** | 0 / 0 / **0** | 24.40 / 22.17 / **22.53** | 17 (0.0613) |
+| 20 % | 25 | 42.0 / 47.4 / **48.2** | 1.335 | 230 | 1.25 / 2.69 / **0** | 18.0 / 16.0 / **16.2** | 12 / 30 / **33** | 25.15 / 22.32 / **23.75** | 33 (0.1603) |
+| 20 % | 50 | 71.1 / 67.0 / **68.0** | 2.620 | 550 | 1.96 / 6.48 / **0** | 41.2 / 22.6 / **21.4** | 29 / 45 / **49** | 12.09 / 7.23 / **7.58** | 30 (0.0973) |
+| 20 % | 100 | 99.0 / 90.6 / **90.3** | 6.478 | 1383 | 2.20 / 13.98 / **0** | 49.3 / 22.7 / **21.7** | 38 / 47 / **51** | 1.84 / 0.79 / **1.34** | 36 (0.1037) |
+| 60 % | 10 | 37.1 / 45.0 / **45.0** | 0.389 | 58 | 0.34 / 0.82 / **0** | 0.0 / 0.0 / **0.0** | 0 / 0 / **0** | 47.83 / 43.08 / **43.51** | 24 (0.1072) |
+| 60 % | 25 | 80.2 / 89.9 / **87.8** | 0.697 | 157 | 0.50 / 2.29 / **0** | 42.0 / 32.2 / **29.2** | 28 / 64 / **75** | 45.87 / 44.89 / **44.10** | 43 (0.1257) |
+| 60 % | 50 | 127.9 / 125.1 / **124.4** | 1.233 | 440 | 0.53 / 5.95 / **0** | 77.3 / 42.6 / **35.1** | 52 / 87 / **94** | 19.47 / 10.83 / **9.08** | 32 (0.1625) |
+| 60 % | 100 | 180.7 / 162.5 / **161.9** | 6.679 | 1843 | 0.60 / 20.54 / **0** | 85.2 / 42.9 / **35.3** | 60 / 88 / **96** | 3.59 / 0.71 / **2.12** | 35 (0.1669) |
+
+Reading:
+- **Threshold loss:** structural loss is gone (0, against 11.9–20.5 at 7fccb7b).
+- **Kept abundance:** what was previously deleted now persists, about 0.05–0.17 relative units held in 30–36 accumulators at year 100. More of it reaches promotion: exact recruited trees rise to 32 / 51 / 96, against 26 / 47 / 88 at 7fccb7b and 21 / 38 / 60 under model 0.
+- **Remaining abundance:** at year 100 it is higher than at 7fccb7b (0.78 / 1.34 / 2.12 against 0.30 / 0.79 / 0.71).
+- **Accepted establishment:** changes slightly, because capacity is now shared with retained small stock.
+- **Crossings:** these count reclassification events, including decaying bands rejoining an accumulator. They are not tree creation.
+
+### Scenario 1 (model 1, corrected)
+
+- **Completion:** completed in Year 25 with all 8 objectives (regeneration 51 cells against a target of 3; introduced beech and sessile oak met). Lowest cash €5,897.73. Two identical runs (`6F84AF319D301F87`). No objective or economy changes.
+- **Planting / shelters / economy:** ScenarioOnePlanting, CCFPlanting, BrowsingProtection, economy integration (120) and economy viability (64) pass.
+- **Clearance:** CLEARANCE_RELEASES_CAPACITY and ACCUMULATOR_CLEARANCE_REMOVES pass.
+
 ## Policy
 
 | Item | Behaviour |
@@ -33,7 +115,7 @@ Juvenile abundance remains an **abstract relative abundance (occupancy)**. Nothi
   - A fully rejected request creates no band and sets no establishment year.
   - No density-dependent loss of existing juveniles is modelled.
 - **Promotion:** in each cell and year, the oldest band of a species that meets the existing `CanPromote` rule (ties: Natural first) becomes one exact tree and is removed. Younger bands are untouched and can promote in later years.
-- **0.01 threshold:** kept. Under model 1 a band below 0.01 after survival is removed, and the loss is recorded as `ThresholdExtinction`. It cannot create abundance.
+- **0.01 threshold (superseded by the final correction above):** at 7fccb7b a band below 0.01 after survival was removed and the loss recorded as `ThresholdExtinction`. Model 1 now treats 0.01 as a representation threshold with a sub-threshold accumulator.
 - **Seed rain:** moved to a per-cell, per-species map (`SeedRainFor`). Model 0 still carries its legacy copy on the cohort record, so its arithmetic is unchanged.
 - **Accounting:** `ForestEcologyController.LastRegenerationAccount` reports per-species flows for each annual step in both models: seed arrival, requested, accepted, rejected, legacy infill, capacity contraction, light/browse loss, threshold extinction, bands created/merged, promotions, exported abundance and exact trees. It is diagnostic only and never saved.
 
@@ -96,7 +178,7 @@ Reading:
 
 ## Findings for the Manager
 
-1. **Sub-threshold recruitment cannot accumulate (decision item).** With one band per year and the kept 0.01 extinction threshold, any species whose accepted recruitment in a year is below about 0.01 cannot establish naturally. The wave is removed the following year.
+1. **Sub-threshold recruitment cannot accumulate — RESOLVED by the final correction above (historical record follows).** With one band per year and the kept 0.01 extinction threshold, any species whose accepted recruitment in a year is below about 0.01 cannot establish naturally. The wave is removed the following year.
    - In the MixedSpeciesTest stand, beech produced 6 natural recruits in 100 years under model 0, but about 95 % of that abundance came from legacy infill (1.80 against 0.10 seed-sourced).
    - Under model 1 it produced 15 bands totalling 0.046, all extinguished, and 0 recruits.
    - Scenario 1 completion is unaffected (its beech and oak objectives are met by planting). Later natural broadleaf recruitment from planted parents, or any low-seed species, would face the same limit.

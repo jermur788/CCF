@@ -115,11 +115,12 @@ public sealed class ForestEcologyCell
     }
 
     // The tallest living band of a species (display and diagnosis).
-    public ForestRegenerationCohort TallestBand(string speciesId)
+    public ForestRegenerationCohort TallestBand(string speciesId, float minimumDensity = 0f)
     {
         ForestRegenerationCohort best = null;
         foreach (ForestRegenerationCohort cohort in regeneration)
-            if (cohort != null && cohort.Density > 0f && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal)
+            if (cohort != null && cohort.Density > 0f && cohort.Density >= minimumDensity
+                && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal)
                 && (best == null || cohort.Height > best.Height))
                 best = cohort;
         return best;
@@ -128,6 +129,8 @@ public sealed class ForestEcologyCell
     // ----- Regeneration model 1: age bands -----
     // A band is identified by species + origin + establishment year. Bands are
     // kept in ordinal species order, then origin, then establishment year.
+    // Four bands at or above RegenerationModel.RepresentationThreshold, plus
+    // at most one sub-threshold accumulator, per species + origin + cell.
     public const int MaxBandsPerSpeciesOrigin = 4;
 
     public ForestRegenerationCohort FindBand(string speciesId, RegenerationOrigin origin, int establishYear)

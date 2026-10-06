@@ -100,10 +100,13 @@ public static class ForestSaveValidation
                         string group = cohort.speciesId + "|" + cohort.origin;
                         if (!bandKeys.Add(group + "|" + cohort.establishYear))
                             return $"ecology cell {cell.index} repeats regeneration band {cohort.speciesId} year {cohort.establishYear}";
-                        bandCounts.TryGetValue(group, out int count);
-                        if (count + 1 > ForestEcologyCell.MaxBandsPerSpeciesOrigin)
-                            return $"ecology cell {cell.index} exceeds {ForestEcologyCell.MaxBandsPerSpeciesOrigin} bands for {cohort.speciesId}";
-                        bandCounts[group] = count + 1;
+                        // Four represented bands plus at most one sub-threshold accumulator.
+                        string slot = group + (cohort.density < RegenerationModel.RepresentationThreshold ? "|sub" : "|band");
+                        int limit = cohort.density < RegenerationModel.RepresentationThreshold ? 1 : ForestEcologyCell.MaxBandsPerSpeciesOrigin;
+                        bandCounts.TryGetValue(slot, out int count);
+                        if (count + 1 > limit)
+                            return $"ecology cell {cell.index} exceeds the band limit for {cohort.speciesId}";
+                        bandCounts[slot] = count + 1;
                     }
                 }
             }

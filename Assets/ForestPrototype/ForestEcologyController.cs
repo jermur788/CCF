@@ -241,7 +241,8 @@ public sealed class ForestEcologyController : MonoBehaviour
                     Mathf.Approximately(cohort.Height, 0f))
                     continue;
                 // One visual per species per cell: the tallest band.
-                if (cohort != cells[i].TallestBand(cohort.SpeciesId))
+                float shown = UsesAgeBands ? RegenerationModel.RepresentationThreshold : 0f;
+                if (cohort.Density < shown || cohort != cells[i].TallestBand(cohort.SpeciesId, shown))
                     continue;
                 GameObject prefab = cohort.SpeciesId == defaultSpeciesId
                     ? seedlingVisualPrefab
@@ -599,22 +600,10 @@ public sealed class ForestEcologyController : MonoBehaviour
             return PlantingResult.Failed(PlantingOutcome.AlreadyOccupied,
                 $"{targetSpecies.DisplayName} is already regenerating in this cell.", index);
         int establishYear = ecologicalYear - Mathf.Max(0, plantedJuvenileAgeYears);
-        ForestRegenerationCohort band = cell.FindBand(targetSpecies.SpeciesId, RegenerationOrigin.Planted, establishYear);
-        bool created = band == null;
-        if (created)
-        {
-            band = new ForestRegenerationCohort(targetSpecies);
-            band.Restore(0f, plantedJuvenileHeightM, establishYear, RegenerationOrigin.Planted, ecologicalYear);
-        }
-        if (cell.AdmitDensity(band, plantedJuvenileDensity) <= 0f)
+        if (AdmitRecruitment(cell, targetSpecies, RegenerationOrigin.Planted, establishYear, ecologicalYear,
+                plantedJuvenileHeightM, plantedJuvenileDensity) <= 0f)
             return PlantingResult.Failed(PlantingOutcome.NoCapacity,
                 "This cell has no shared regeneration capacity left.", index);
-        if (created)
-        {
-            cell.InsertBand(band);
-            EnforceBandLimit(cell, targetSpecies, RegenerationOrigin.Planted, regenerationAccount.For(targetSpecies.SpeciesId));
-        }
-        seedlingVisualsDirty = true;
         return PlantingResult.Planted(index, targetSpecies.DisplayName);
     }
 
@@ -1142,21 +1131,22 @@ public sealed class ForestEcologyController : MonoBehaviour
                         else account.CapacityContraction += pre - cohort.Density;
                     }
                 }
+                // Model 1: 0.01 is a representation threshold, not a loss.
+                // Bands below it join the sub-threshold accumulator after the
+                // cell's survival step (NormalizeBands below).
+                if (UsesAgeBands)
+                    continue;
                 if (cohort.Density < 0.01f)
                 {
-                    // Extinction/reset threshold, accounted as its own loss.
+                    // Model 0 extinction/reset threshold, accounted as its own loss.
                     account.ThresholdExtinction += cohort.Density;
-                    if (UsesAgeBands)
-                    {
-                        cell.RemoveCohort(cohort);
-                        i--;
-                        continue;
-                    }
                     cohort.Density = 0f;
                     cohort.Height = 0f;
                     cohort.EstablishYear = -1;
                 }
             }
+            if (UsesAgeBands)
+                NormalizeCell(cell);
         }
     }
 
@@ -1224,53 +1214,168 @@ public sealed class ForestEcologyController : MonoBehaviour
                 if (establishment <= 0.01f)
                     continue;
                 float requested = establishment * bandSpecies.RegenDensityPerEstablishment;
-                ForestRegenerationCohort band = cell.FindBand(bandSpecies.SpeciesId, RegenerationOrigin.Natural, ecologicalYear);
-                bool created = band == null;
-                if (created)
-                {
-                    band = new ForestRegenerationCohort(bandSpecies);
-                    band.Restore(0f, bandSpecies.RegenInitialHeightM, ecologicalYear, RegenerationOrigin.Natural, ecologicalYear);
-                }
-                float accepted = cell.AdmitDensity(band, requested);
-                RegenerationSpeciesAccount account = regenerationAccount.For(bandSpecies.SpeciesId);
-                account.EstablishmentRequested += requested;
-                account.EstablishmentAccepted += accepted;
-                account.CapacityRejected += requested - accepted;
-                if (accepted <= 0f || !created)
-                    continue;
-                cell.InsertBand(band);
-                account.BandsCreated++;
-                EnforceBandLimit(cell, bandSpecies, RegenerationOrigin.Natural, account);
+                AdmitRecruitment(cell, bandSpecies, RegenerationOrigin.Natural, ecologicalYear, ecologicalYear,
+                    bandSpecies.RegenInitialHeightM, requested);
             }
         }
     }
 
-    // At most MaxBandsPerSpeciesOrigin bands per species + origin + cell. On
-    // overflow the two bands closest in establishment year are merged (ties:
-    // the oldest pair). Abundance is conserved; height, establishment year and
-    // origin year are abundance-weighted, the years rounded half up. The merged
-    // year lies between the two source years, so band keys stay unique.
-    private static void EnforceBandLimit(ForestEcologyCell cell, TreeSpeciesDefinition bandSpecies,
-        RegenerationOrigin origin, RegenerationSpeciesAccount account)
+    // Model 1: admits recruitment of one species + origin into a cell and
+    // returns the accepted abundance. Capacity admits only free shared
+    // occupancy; a fully rejected request creates nothing. A recruit of at
+    // least the representation threshold is its own band (same-year records
+    // combine). A smaller recruit joins the cell's sub-threshold accumulator
+    // for that species + origin, or becomes it. Natural recruitment is
+    // recorded as establishment; planting is not.
+    public float AdmitRecruitment(int cellIndex, TreeSpeciesDefinition bandSpecies, RegenerationOrigin origin,
+        int establishYear, int originYear, float height, float requested)
     {
-        List<ForestRegenerationCohort> bands = cell.Bands(bandSpecies.SpeciesId, origin);
-        while (bands.Count > ForestEcologyCell.MaxBandsPerSpeciesOrigin)
+        if (!UsesAgeBands || cells == null || cellIndex < 0 || cellIndex >= cells.Length)
+            return 0f;
+        return AdmitRecruitment(cells[cellIndex], bandSpecies, origin, establishYear, originYear, height, requested);
+    }
+
+    private float AdmitRecruitment(ForestEcologyCell cell, TreeSpeciesDefinition bandSpecies, RegenerationOrigin origin,
+        int establishYear, int originYear, float height, float requested)
+    {
+        if (bandSpecies == null || requested <= 0f)
+            return 0f;
+        // The probe only carries the species maximum; AdmitDensity adds the
+        // accepted abundance to it.
+        var recruit = new ForestRegenerationCohort(bandSpecies);
+        recruit.Restore(0f, height, establishYear, origin, originYear);
+        float accepted = cell.AdmitDensity(recruit, requested);
+        RegenerationSpeciesAccount account = regenerationAccount.For(bandSpecies.SpeciesId);
+        if (origin == RegenerationOrigin.Natural)
         {
-            int pair = 0;
-            int smallestGap = int.MaxValue;
-            for (int k = 0; k < bands.Count - 1; k++)
-            {
-                int gap = bands[k + 1].EstablishYear - bands[k].EstablishYear;
-                if (gap < smallestGap)
-                {
-                    smallestGap = gap;
-                    pair = k;
-                }
-            }
-            MergeBands(cell, bands[pair], bands[pair + 1]);
-            account.BandMerges++;
-            bands = cell.Bands(bandSpecies.SpeciesId, origin);
+            account.EstablishmentRequested += requested;
+            account.EstablishmentAccepted += accepted;
+            account.CapacityRejected += requested - accepted;
         }
+        if (accepted <= 0f)
+            return 0f;
+        ForestRegenerationCohort sameYear = cell.FindBand(bandSpecies.SpeciesId, origin, establishYear);
+        ForestRegenerationCohort accumulator = SubThresholdBand(cell, bandSpecies.SpeciesId, origin);
+        if (accepted < RegenerationModel.RepresentationThreshold)
+            account.SubThresholdRecruitment += accepted;
+        if (sameYear != null)
+            CombineBands(cell, sameYear, recruit, account);
+        else if (accepted < RegenerationModel.RepresentationThreshold && accumulator != null)
+            CombineBands(cell, accumulator, recruit, account);
+        else
+        {
+            cell.InsertBand(recruit);
+            account.BandsCreated++;
+        }
+        NormalizeBands(cell, bandSpecies.SpeciesId, origin, account);
+        seedlingVisualsDirty = true;
+        return accepted;
+    }
+
+    private static ForestRegenerationCohort SubThresholdBand(ForestEcologyCell cell, string speciesId, RegenerationOrigin origin)
+    {
+        foreach (ForestRegenerationCohort band in cell.Bands(speciesId, origin))
+            if (band.Density < RegenerationModel.RepresentationThreshold)
+                return band;
+        return null;
+    }
+
+    // Model 1: restores the band invariants for every species + origin in a
+    // cell (after survival, clearance or other external changes).
+    public void NormalizeRegenerationBands(int cellIndex)
+    {
+        if (!UsesAgeBands || cells == null || cellIndex < 0 || cellIndex >= cells.Length)
+            return;
+        NormalizeCell(cells[cellIndex]);
+        seedlingVisualsDirty = true;
+    }
+
+    private void NormalizeCell(ForestEcologyCell cell)
+    {
+        var groups = new List<KeyValuePair<string, RegenerationOrigin>>();
+        foreach (ForestRegenerationCohort band in cell.Regeneration)
+        {
+            var key = new KeyValuePair<string, RegenerationOrigin>(band.SpeciesId, band.Origin);
+            if (!groups.Contains(key))
+                groups.Add(key);
+        }
+        foreach (KeyValuePair<string, RegenerationOrigin> group in groups)
+            NormalizeBands(cell, group.Key, group.Value, regenerationAccount.For(group.Key));
+    }
+
+    // Band invariants per cell + species + origin, applied until stable:
+    //  - a band whose abundance is exactly zero is gone (no abundance is lost);
+    //  - at most one band below the representation threshold: the
+    //    sub-threshold accumulator (several merge, oldest pair first);
+    //  - establishment years are unique (a same-year pair combines);
+    //  - at most MaxBandsPerSpeciesOrigin bands at or above the threshold; on
+    //    overflow the closest-age pair of those merges (ties: oldest pair).
+    // The accumulator does not take one of the four slots. Merges conserve
+    // abundance and use abundance-weighted height, establishment year and
+    // origin year (years rounded half up), so no new recruit simply inherits
+    // an older band's state.
+    private static void NormalizeBands(ForestEcologyCell cell, string speciesId, RegenerationOrigin origin,
+        RegenerationSpeciesAccount account)
+    {
+        float threshold = RegenerationModel.RepresentationThreshold;
+        for (int guard = 0; guard < 64; guard++)
+        {
+            List<ForestRegenerationCohort> bands = cell.Bands(speciesId, origin);
+            ForestRegenerationCohort empty = bands.Find(b => b.Density <= 0f);
+            if (empty != null)
+            {
+                cell.RemoveCohort(empty);
+                continue;
+            }
+            List<ForestRegenerationCohort> small = bands.FindAll(b => b.Density < threshold);
+            if (small.Count > 1)
+            {
+                CombineBands(cell, small[0], small[1], account);
+                continue;
+            }
+            int collision = -1;
+            for (int k = 0; k < bands.Count - 1 && collision < 0; k++)
+                if (bands[k].EstablishYear == bands[k + 1].EstablishYear)
+                    collision = k;
+            if (collision >= 0)
+            {
+                CombineBands(cell, bands[collision], bands[collision + 1], account);
+                continue;
+            }
+            List<ForestRegenerationCohort> represented = bands.FindAll(b => b.Density >= threshold);
+            if (represented.Count > ForestEcologyCell.MaxBandsPerSpeciesOrigin)
+            {
+                int pair = 0;
+                int smallestGap = int.MaxValue;
+                for (int k = 0; k < represented.Count - 1; k++)
+                {
+                    int gap = represented[k + 1].EstablishYear - represented[k].EstablishYear;
+                    if (gap < smallestGap)
+                    {
+                        smallestGap = gap;
+                        pair = k;
+                    }
+                }
+                CombineBands(cell, represented[pair], represented[pair + 1], account);
+                account.BandMerges++;
+                continue;
+            }
+            return;
+        }
+        throw new System.InvalidOperationException($"Regeneration bands for {speciesId}/{origin} did not settle.");
+    }
+
+    // Merge with accounting: a sub-threshold record that ends up at or above
+    // the threshold is a threshold crossing (reclassification, not a tree).
+    private static ForestRegenerationCohort CombineBands(ForestEcologyCell cell, ForestRegenerationCohort a,
+        ForestRegenerationCohort b, RegenerationSpeciesAccount account)
+    {
+        bool hadSubThreshold = a.Density < RegenerationModel.RepresentationThreshold
+            || b.Density < RegenerationModel.RepresentationThreshold;
+        ForestRegenerationCohort merged = MergeBands(cell, a, b);
+        if (hadSubThreshold && merged.Density >= RegenerationModel.RepresentationThreshold)
+            account.ThresholdCrossings++;
+        return merged;
     }
 
     public static ForestRegenerationCohort MergeBands(ForestEcologyCell cell, ForestRegenerationCohort a, ForestRegenerationCohort b)
@@ -1359,7 +1464,8 @@ public sealed class ForestEcologyController : MonoBehaviour
         ForestRegenerationCohort oldest = null;
         foreach (ForestRegenerationCohort band in cell.Regeneration)
         {
-            if (band == null || band.Density <= 0f || band.SpeciesId != bandSpecies.SpeciesId
+            // A sub-threshold accumulator never promotes.
+            if (band == null || band.Density < RegenerationModel.RepresentationThreshold || band.SpeciesId != bandSpecies.SpeciesId
                 || !JuvenileEcologyRules.CanPromote(bandSpecies, band.Height, cell.Light))
                 continue;
             if (oldest == null || band.EstablishYear < oldest.EstablishYear

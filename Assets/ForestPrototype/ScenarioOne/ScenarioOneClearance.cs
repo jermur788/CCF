@@ -63,6 +63,10 @@ public sealed partial class ScenarioOneManager
             target.Cohort.Density *= target.RemainingFraction;
             if (target.Cohort.Density <= .001f) ecology.Cells[target.CellIndex].RemoveCohortIfEmpty(target.Cohort);
         }
+        // Regeneration model 1: partially cleared bands rejoin the band
+        // invariants (sub-threshold remainders form the accumulator). No-op in model 0.
+        foreach (int cellIndex in targets.Cohorts.Select(t => t.CellIndex).Distinct())
+            ecology.NormalizeRegenerationBands(cellIndex);
         foreach (PlantedJuvenile juvenile in targets.Juveniles) juvenile.alive = false;
         foreach (ScenarioUnderstoreyCell u in targets.Understorey)
         {

@@ -251,17 +251,19 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
                 && Describe(e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Planted)) == plantedBefore,
                 $"planted={Describe(e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Planted))}");
             // Keep recruiting for 12 more years: never more than four bands per species + origin.
-            int maxBands = 0;
+            int maxBands = 0, maxSub = 0;
             for (int y = 0; y < 12; y++)
             {
                 NextYear();
                 foreach (ForestEcologyCell c in e.Cells) c.ClearSeedRain();
                 e.Cells[0].SetSeedRain("sitka-spruce", 100f);
                 Grow(); Establish();
-                maxBands = Math.Max(maxBands, e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Natural).Count);
+                var current = e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Natural);
+                maxBands = Math.Max(maxBands, current.Count(b => b.Density >= RegenerationModel.RepresentationThreshold));
+                maxSub = Math.Max(maxSub, current.Count(b => b.Density < RegenerationModel.RepresentationThreshold));
             }
-            Pass("MAX_BAND_COUNT_RESPECTED", maxBands <= ForestEcologyCell.MaxBandsPerSpeciesOrigin,
-                $"max={maxBands} limit={ForestEcologyCell.MaxBandsPerSpeciesOrigin} final=[{Describe(e.Cells[0].Regeneration)}]");
+            Pass("MAX_BAND_COUNT_RESPECTED", maxBands <= ForestEcologyCell.MaxBandsPerSpeciesOrigin && maxSub <= 1,
+                $"maxRepresented={maxBands} maxAccumulators={maxSub} limit={ForestEcologyCell.MaxBandsPerSpeciesOrigin} final=[{Describe(e.Cells[0].Regeneration)}]");
         }
 
         // PROMOTION_REMOVES_ONLY_PROMOTED_BAND / YOUNGER_BANDS_SURVIVE_PROMOTION.
@@ -315,25 +317,156 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
                 $"acceptedWhenFull={F(blocked)} clearedBands={targets.Cohorts.Count} removed={F(targets.Density)} bandsAfter={bandsAfterClearance} acceptedNextYear={F(released)}");
         }
 
-        // EXTINCTION_THRESHOLD_ACCOUNTED: boundary behaviour and accounting.
+        SubThresholdAccumulator();
+    }
+
+    // ---------- sub-threshold accumulator (model 1) ----------
+
+    private float Recruit(int cell, TreeSpeciesDefinition s, RegenerationOrigin origin, float amount, float height = -1f)
+        => e.AdmitRecruitment(cell, s, origin, e.EcologicalYear, e.EcologicalYear, height < 0f ? s.RegenInitialHeightM : height, amount);
+
+    private float Total(int cell, string species, RegenerationOrigin origin) => e.Cells[cell].Bands(species, origin).Sum(b => b.Density);
+
+    private string AccumulateRun(float amount, int years)
+    {
+        EmptyWorld(RegenerationModel.AgeBands, 1f);
+        for (int y = 0; y < years; y++) { NextYear(); Grow(); Recruit(0, sitka, RegenerationOrigin.Natural, amount); }
+        return Describe(e.Cells[0].Regeneration);
+    }
+
+    private void SubThresholdAccumulator()
+    {
+        const float T = RegenerationModel.RepresentationThreshold;
+        float survivalFull = (float)JuvenileEcologyRules.SurvivalResponse(sitka, 1f, 0f);
+        Debug.Log($"REGEN_MODEL_INFO SURVIVAL_AT_FULL_LIGHT sitka={F(survivalFull)}");
+
+        // 1. Repeated 0.005 recruitment accumulates instead of vanishing yearly.
+        {
+            int c0 = Account(sitka).ThresholdCrossings;
+            AccumulateRun(0.005f, 6);
+            float total = Total(0, "sitka-spruce", RegenerationOrigin.Natural);
+            int crossings = Account(sitka).ThresholdCrossings - c0;
+            Pass("ACCUMULATE_REPEATED_0005", survivalFull == 1f && Mathf.Abs(total - 0.03f) < 1e-6f && crossings >= 1
+                && Living().Length == 0, $"years=6 total={F(total)} crossings={crossings} bands=[{Describe(e.Cells[0].Regeneration)}]");
+        }
+        // 2. Repeated 0.002 recruitment accumulates, deterministically.
+        {
+            string a = AccumulateRun(0.002f, 10);
+            float total = Total(0, "sitka-spruce", RegenerationOrigin.Natural);
+            string b = AccumulateRun(0.002f, 10);
+            Pass("ACCUMULATE_REPEATED_0002_DETERMINISTIC", a == b && Mathf.Abs(total - 0.02f) < 1e-6f,
+                $"years=10 total={F(total)} repeatIdentical={a == b} bands=[{a}]");
+        }
+        // 3. No seed: an accumulator never gains abundance.
         {
             EmptyWorld(RegenerationModel.AgeBands, 0.9f);
             NextYear();
-            float survival = (float)JuvenileEcologyRules.SurvivalResponse(sitka, 0.9f, 0f);
-            ForestRegenerationCohort atLimit = Band(0, sitka, RegenerationOrigin.Natural, 0, 0.01f / survival + 1e-6f, 0.3f);
-            ForestRegenerationCohort below = Band(1, sitka, RegenerationOrigin.Natural, 0, 0.0099f, 0.3f);
-            RegenerationSpeciesAccount acc = Account(sitka);
-            float t0 = acc.ThresholdExtinction;
-            float belowAfterSurvival = (float)(below.Density * survival);
-            Grow();
-            float extinguished = acc.ThresholdExtinction - t0;
-            bool kept = e.Cells[0].Regeneration.Contains(atLimit) && atLimit.Density >= 0.01f;
-            bool removed = e.Cells[1].Regeneration.Count == 0;
-            // No recruitment follows an extinction without seed.
-            for (int y = 0; y < 5; y++) { NextYear(); Establish(); }
-            bool noRebirth = e.Cells[1].Regeneration.Count == 0;
-            Pass("EXTINCTION_THRESHOLD_ACCOUNTED", kept && removed && noRebirth && Mathf.Abs(extinguished - belowAfterSurvival) < 1e-7f,
-                $"survival={F(survival)} keptAt={F(atLimit.Density)} removedBelow extinguished={F(extinguished)} expected={F(belowAfterSurvival)} noRebirth={noRebirth}");
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.006f);
+            float previous = Total(0, "sitka-spruce", RegenerationOrigin.Natural); bool rose = false;
+            for (int y = 0; y < 10; y++)
+            {
+                NextYear(); Grow(); Establish();
+                float now = Total(0, "sitka-spruce", RegenerationOrigin.Natural);
+                rose |= now > previous; previous = now;
+            }
+            Pass("ACCUMULATOR_NO_SEED_NO_NEW_ABUNDANCE", !rose && previous > 0f && previous <= 0.006f,
+                $"start=0.006 after10={F(previous)}");
+        }
+        // 4. Survival reduces an accumulator; it is not deleted for being small.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 0.05f);
+            NextYear();
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.006f);
+            for (int y = 0; y < 5; y++) { NextYear(); Grow(); }
+            float after = Total(0, "sitka-spruce", RegenerationOrigin.Natural);
+            Pass("ACCUMULATOR_SURVIVAL_REDUCES", after > 0f && after < 0.006f && e.Cells[0].Regeneration.Count == 1,
+                $"light=0.05 start=0.006 after5={F(after)}");
+        }
+        // 5. Browsing applies to the accumulator (beech, palatable, low height).
+        {
+            float Run(float pressure, out float browsed, out float height)
+            {
+                EmptyWorld(RegenerationModel.AgeBands, 0.6f, pressure);
+                NextYear();
+                Recruit(0, beech, RegenerationOrigin.Natural, 0.006f);
+                for (int y = 0; y < 5; y++) { NextYear(); Grow(); }
+                ForestRegenerationCohort band = e.Cells[0].Regeneration.Single();
+                browsed = band.LastBrowsedFraction; height = band.Height;
+                return band.Density;
+            }
+            float d0 = Run(0f, out float b0, out float h0);
+            float d1 = Run(manager.Definition.BackgroundBrowsePressure, out float b1, out float h1);
+            Pass("ACCUMULATOR_BROWSING_APPLIES", b0 == 0f && b1 > 0f && (h1 < h0 || d1 < d0),
+                $"unbrowsed d={F(d0)} h={F(h0)}; pressure={F(manager.Definition.BackgroundBrowsePressure)} d={F(d1)} h={F(h1)} browsedFraction={F(b1)}");
+        }
+        // 6. Clearance removes accumulator abundance.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 0.9f);
+            NextYear();
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.006f);
+            ClearanceTargets targets = manager.QueryClearance(ClearanceFootprint.Cell(e, 0), e.EcologicalYear);
+            typeof(ScenarioOneManager).GetMethod("ApplyClearance", Private).Invoke(manager, new object[] { targets, e.EcologicalYear });
+            Pass("ACCUMULATOR_CLEARANCE_REMOVES", targets.Cohorts.Count == 1 && Mathf.Abs(targets.Density - 0.006f) < 1e-7f
+                && e.Cells[0].Regeneration.Count == 0, $"removed={F(targets.Density)} remaining={e.Cells[0].Regeneration.Count}");
+        }
+        // 7. Natural and planted accumulators stay separate.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 0.9f);
+            NextYear();
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.004f);
+            Recruit(0, sitka, RegenerationOrigin.Planted, 0.004f);
+            NextYear();
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.004f);
+            var natural = e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Natural);
+            var planted = e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Planted);
+            Pass("ACCUMULATOR_ORIGINS_SEPARATE", natural.Count == 1 && planted.Count == 1 && Mathf.Abs(natural[0].Density - 0.008f) < 1e-7f
+                && planted[0].Density == 0.004f, $"bands=[{Describe(e.Cells[0].Regeneration)}]");
+        }
+        // 8 + 9. Crossing conserves abundance, weights state, creates no tree.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 1f);
+            for (int y = 0; y < 8; y++) NextYear();
+            Band(0, sitka, RegenerationOrigin.Natural, 5, 0.008f, 0.5f);
+            int trees = Living().Length, c0 = Account(sitka).ThresholdCrossings;
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.004f);
+            var bands = e.Cells[0].Regeneration.ToList();
+            float expectedHeight = (0.5f * 0.008f + sitka.RegenInitialHeightM * 0.004f) / 0.012f;
+            Pass("THRESHOLD_CROSSING_CONSERVES", bands.Count == 1 && Mathf.Abs(bands[0].Density - 0.012f) < 1e-7f
+                && bands[0].EstablishYear == 6 && Mathf.Abs(bands[0].Height - expectedHeight) < 1e-5f
+                && bands[0].Origin == RegenerationOrigin.Natural && Account(sitka).ThresholdCrossings - c0 == 1,
+                $"after=[{Describe(bands)}] expectedYear=6 expectedHeight={F(expectedHeight)}");
+            Promote();
+            Pass("THRESHOLD_CROSSING_CREATES_NO_TREE", Living().Length == trees && e.Cells[0].Regeneration.Count == 1,
+                $"treesBefore={trees} treesAfterCrossingAndPromotionStep={Living().Length}");
+        }
+        // 10. Below 0.01 cannot promote; a represented band of the same height can.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 1f);
+            for (int y = 0; y < 10; y++) NextYear();
+            Band(0, sitka, RegenerationOrigin.Natural, 0, 0.008f, sitka.PromotionHeightM + 1f);
+            Band(1, sitka, RegenerationOrigin.Natural, 0, 0.011f, sitka.PromotionHeightM + 1f);
+            Promote();
+            bool smallStayed = e.Cells[0].Regeneration.Count == 1;
+            bool controlPromoted = e.Cells[1].Regeneration.Count == 0 && Living().Length == 1;
+            Pass("BELOW_THRESHOLD_CANNOT_PROMOTE", smallStayed && controlPromoted,
+                $"accumulator0.008Stayed={smallStayed} control0.011Promoted={controlPromoted}");
+        }
+        // 14. With four represented bands an accumulator is a fifth record and
+        // takes no slot; a sub-threshold recruit joins it, no merge of bands.
+        {
+            EmptyWorld(RegenerationModel.AgeBands, 0.9f);
+            for (int y = 0; y < 12; y++) NextYear();
+            foreach (int year in new[] { 1, 4, 7, 10 }) Band(0, sitka, RegenerationOrigin.Natural, year, 0.1f, 0.5f);
+            int merges0 = Account(sitka).BandMerges;
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.004f);
+            NextYear();
+            Recruit(0, sitka, RegenerationOrigin.Natural, 0.004f);
+            var natural = e.Cells[0].Bands("sitka-spruce", RegenerationOrigin.Natural);
+            int represented = natural.Count(b => b.Density >= RegenerationModel.RepresentationThreshold);
+            int accumulators = natural.Count(b => b.Density < RegenerationModel.RepresentationThreshold);
+            string validation = ForestSaveValidation.Validate(saves.CaptureData(), 0, e.CellCount);
+            Pass("ACCUMULATOR_TAKES_NO_BAND_SLOT", represented == 4 && accumulators == 1 && Account(sitka).BandMerges == merges0
+                && validation == null, $"bands=[{Describe(natural)}] validation={validation ?? "ok"}");
         }
     }
 
@@ -359,6 +492,9 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         Band(5, sitka, RegenerationOrigin.Planted, -3, 0.4f, 0.8f);
         Band(5, beech, RegenerationOrigin.Natural, 0, 0.1f, 0.15f);
         Band(9, oak, RegenerationOrigin.Natural, -4, 0.0105f, 0.4f);
+        // Sub-threshold accumulators (natural and planted) alongside bands.
+        Band(5, sitka, RegenerationOrigin.Natural, -5, 0.004f, 0.3f);
+        Band(9, beech, RegenerationOrigin.Planted, -6, 0.003f, 0.7f);
         string before = RegenerationState();
         ForestSaveData data = saves.CaptureData();
         string json = JsonUtility.ToJson(data);
@@ -367,7 +503,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         yield return null;
         string after = RegenerationState();
         int sitkaRecords = data.cells.Single(c => c.index == 5).cohorts.Count(c => c.speciesId == "sitka-spruce");
-        Pass("SAVE_LOAD_PRESERVES_ALL_BANDS", before == after && validation == null && sitkaRecords == 3 && e.RegenerationModelVersion == 1,
+        Pass("SAVE_LOAD_PRESERVES_ALL_BANDS", before == after && validation == null && sitkaRecords == 4 && e.RegenerationModelVersion == 1,
             $"sitkaRecordsInCell5={sitkaRecords} validation={validation ?? "ok"} identical={before == after}");
 
         // Validation rejects a duplicate band key and a fifth band; model 0 keeps historical leniency.
@@ -475,14 +611,15 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
 
     private sealed class Totals
     {
-        public double Arrival, Requested, Accepted, Rejected, Infill, Contraction, Light, Browse, Threshold, Exported;
-        public int Trees, Bands, Merges;
+        public double Arrival, Requested, Accepted, Rejected, Infill, Contraction, Light, Browse, Threshold, Exported, SubRecruit;
+        public int Trees, Bands, Merges, Crossings;
         public void Add(RegenerationSpeciesAccount a)
         {
             Arrival += a.SeedArrival; Requested += a.EstablishmentRequested; Accepted += a.EstablishmentAccepted;
             Rejected += a.CapacityRejected; Infill += a.InfillAccepted; Contraction += a.CapacityContraction;
             Light += a.LightLoss; Browse += a.BrowseLoss; Threshold += a.ThresholdExtinction; Exported += a.PromotionExported;
             Trees += a.ExactTreesCreated; Bands += a.BandsCreated; Merges += a.BandMerges;
+            SubRecruit += a.SubThresholdRecruitment; Crossings += a.ThresholdCrossings;
         }
     }
 
@@ -514,12 +651,15 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
                             float standing = e.Cells.Sum(c => c.SpeciesDensity(pair.Key));
                             int bands = e.Cells.Sum(c => c.Regeneration.Count(r => r.SpeciesId == pair.Key && r.Density > 0f));
                             int occupied = e.Cells.Count(c => c.SpeciesDensity(pair.Key) > 0f);
+                            var subBands = e.Cells.SelectMany(c => c.Regeneration.Where(r => r.SpeciesId == pair.Key && r.Density > 0f
+                                && r.Density < RegenerationModel.RepresentationThreshold)).ToList();
                             int recruits = living.Count(tr => tr.Species.SpeciesId == pair.Key && (tr.TreeId.StartsWith("R") || tr.TreeId.StartsWith("PL")));
                             string row = string.Join(",", label, model, y, pair.Key, t.Arrival.ToString("0.###", Inv), t.Requested.ToString("0.####", Inv),
                                 t.Accepted.ToString("0.####", Inv), t.Rejected.ToString("0.####", Inv), t.Infill.ToString("0.####", Inv),
                                 t.Contraction.ToString("0.####", Inv), t.Light.ToString("0.####", Inv), t.Browse.ToString("0.####", Inv),
                                 t.Threshold.ToString("0.####", Inv), t.Exported.ToString("0.####", Inv), t.Trees, t.Bands, t.Merges,
-                                standing.ToString("0.####", Inv), bands, occupied, recruits, living.Length);
+                                standing.ToString("0.####", Inv), bands, occupied, recruits, living.Length,
+                                t.SubRecruit.ToString("0.#####", Inv), t.Crossings, subBands.Count, subBands.Sum(b => b.Density).ToString("0.#####", Inv));
                             line.AppendLine(row);
                             if (!repeat) w.WriteLine(row);
                         }
@@ -559,7 +699,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         yield return Anchors();
         using (var w = new StreamWriter(Path.Combine(dir, "model_funnels.csv")))
         {
-            w.WriteLine("treatment,regeneration_model,horizon,species,seed_arrival,establishment_requested,establishment_accepted,capacity_rejected,legacy_infill,capacity_contraction,light_loss,browse_loss,threshold_extinction,promotion_exported,exact_trees_created,bands_created,band_merges,remaining_abundance,remaining_bands,occupied_cells,recruited_trees_alive,living_trees");
+            w.WriteLine("treatment,regeneration_model,horizon,species,seed_arrival,establishment_requested,establishment_accepted,capacity_rejected,legacy_infill,capacity_contraction,light_loss,browse_loss,threshold_extinction,promotion_exported,exact_trees_created,bands_created,band_merges,remaining_abundance,remaining_bands,occupied_cells,recruited_trees_alive,living_trees,sub_threshold_recruitment,threshold_crossings,accumulators_now,accumulator_abundance_now");
             yield return Funnels(w);
         }
     }

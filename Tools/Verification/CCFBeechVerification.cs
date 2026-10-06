@@ -26,13 +26,14 @@ public class CCFBeechRunner:MonoBehaviour {
  beech=FindFirstObjectByType<ForestTreeSpawner>().ResolveSpecies("beech");Check(beech!=null,"Beech absent");enabledBefore=beech.SupportsRegeneration;
  typeof(TreeSpeciesDefinition).GetField("supportsRegeneration",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(beech,true);
  string initial=Persisted(); bool shared=false;
- double tReq=0,tAcc=0,tRej=0,tInf=0,tThr=0,tLight=0,maxReq=0; int tBands=0,tTrees=0,estYears=0;
+ double tSeed=0,tReq=0,tAcc=0,tRej=0,tInf=0,tThr=0,tLight=0,tBrowse=0,tSub=0,maxReq=0; int tBands=0,tTrees=0,estYears=0,tCross=0;
  for(int i=0;i<100;i++){ecology.AdvanceOneYear();shared |= ecology.Cells.Any(c=>c.Regeneration.Count(x=>x.Density>0)>1);Check(ecology.Cells.All(c=>c.SharedOccupancy<=1.000001f),"capacity exceeded");
   var a=ecology.LastRegenerationAccount.For("beech");
-  tReq+=a.EstablishmentRequested;tAcc+=a.EstablishmentAccepted;tRej+=a.CapacityRejected;tInf+=a.InfillAccepted;tThr+=a.ThresholdExtinction;tLight+=a.LightLoss;tBands+=a.BandsCreated;tTrees+=a.ExactTreesCreated;
+  tSeed+=a.SeedArrival;tBrowse+=a.BrowseLoss;tSub+=a.SubThresholdRecruitment;tCross+=a.ThresholdCrossings;tReq+=a.EstablishmentRequested;tAcc+=a.EstablishmentAccepted;tRej+=a.CapacityRejected;tInf+=a.InfillAccepted;tThr+=a.ThresholdExtinction;tLight+=a.LightLoss;tBands+=a.BandsCreated;tTrees+=a.ExactTreesCreated;
   if(a.EstablishmentRequested>0){estYears++;maxReq=Math.Max(maxReq,a.EstablishmentRequested);}var bb=ecology.Cells.SelectMany(c=>c.Regeneration.Where(x=>x.SpeciesId=="beech"&&x.Density>0)).ToList();
   if(i%10==9)Debug.Log($"BEECH_DIAG year={ecology.EcologicalYear} seed={a.SeedArrival:0.###} req={a.EstablishmentRequested:0.###} acc={a.EstablishmentAccepted:0.###} rej={a.CapacityRejected:0.###} infill={a.InfillAccepted:0.###} light={a.LightLoss:0.###} thr={a.ThresholdExtinction:0.###} promoted={a.ExactTreesCreated} bands={bb.Count} abundance={bb.Sum(x=>x.Density):0.###} maxH={(bb.Count>0?bb.Max(x=>x.Height):0):0.##} cellsLight>={(bb.Count>0?ecology.Cells.Where(c=>c.SpeciesDensity("beech")>0).Max(c=>c.Light):0):0.###}");}
- Debug.Log($"BEECH_TOTALS model={ecology.RegenerationModelVersion} establishmentYears={estYears} requested={tReq:0.####} maxAnnualRequest={maxReq:0.####} accepted={tAcc:0.####} rejected={tRej:0.####} legacyInfill={tInf:0.####} lightLoss={tLight:0.####} thresholdExtinction={tThr:0.####} bandsCreated={tBands} exactTrees={tTrees}");
+ var beechNow=ecology.Cells.SelectMany(c=>c.Regeneration.Where(x=>x.SpeciesId=="beech"&&x.Density>0)).ToList();
+ Debug.Log($"BEECH_TOTALS model={ecology.RegenerationModelVersion} seedArrival={tSeed:0.###} establishmentYears={estYears} requested={tReq:0.####} maxAnnualRequest={maxReq:0.####} accepted={tAcc:0.####} rejected={tRej:0.####} legacyInfill={tInf:0.####} lightLoss={tLight:0.####} browseLoss={tBrowse:0.####} thresholdExtinction={tThr:0.####} subThresholdRecruitment={tSub:0.####} thresholdCrossings={tCross} bandsCreated={tBands} exactTrees={tTrees} remainingBeech={beechNow.Sum(x=>x.Density):0.####} remainingRecords={beechNow.Count} accumulatorAbundance={beechNow.Where(x=>x.Density<RegenerationModel.RepresentationThreshold).Sum(x=>x.Density):0.#####}");
  string before=Persisted();string annualRain=Rain();
  Check(shared,"no shared cell during run");
  var trees=FindObjectsByType<ForestTree>(FindObjectsSortMode.None);Check(trees.Select(t=>t.TreeId).Distinct().Count()==trees.Length,"duplicate IDs");
