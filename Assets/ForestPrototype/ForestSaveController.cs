@@ -117,6 +117,7 @@ public sealed class ForestSaveController : MonoBehaviour
             data.simulationSeed = ecology.SimulationSeed;
             data.rngModelVersion = ecology.RngModelVersion;
             data.regenerationModel = ecology.RegenerationModelVersion;
+            data.growthModel = ecology.GrowthModelVersion;
         }
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
@@ -405,7 +406,9 @@ public sealed class ForestSaveController : MonoBehaviour
             {
                 // No automatic migration: saves before v16 are always model 0.
                 int regenerationModel = data.version >= 16 ? data.regenerationModel : RegenerationModel.Legacy;
-                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed, data.rngModelVersion, regenerationModel);
+                // No automatic migration: saves before v17 are always growth model 0.
+                int growthModel = data.version >= 17 ? data.growthModel : GrowthModel.Legacy;
+                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed, data.rngModelVersion, regenerationModel, growthModel);
                 if (data.cells != null)
                 {
                     foreach (ForestCellSaveData saved in data.cells)

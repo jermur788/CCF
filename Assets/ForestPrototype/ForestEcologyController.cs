@@ -9,6 +9,9 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField] private int rngModelVersion = SimulationRandom.LegacyModel;
     // 0 replays legacy single-cohort regeneration; 1 uses age bands. See RegenerationModel. Stored in saves.
     [SerializeField] private int regenerationModelVersion = RegenerationModel.Legacy;
+    // 0 replays legacy adult growth (no adult mortality); 1 uses the Class III
+    // Sitka height envelope and adult density mortality. See GrowthModel. Stored in saves.
+    [SerializeField] private int growthModelVersion = GrowthModel.Legacy;
     [SerializeField] private float standSizeMeters = 40f;
     [SerializeField] private float cellSizeMeters = 5f;
     [Tooltip("[D] Maximum recorded recent opening per cell. A treatment that fells several trees in one cell counts once up to this cap, so a legitimate group opening stays serious without reading as catastrophic. Calibration from the spatial treatment experiments.")]
@@ -101,6 +104,17 @@ public sealed class ForestEcologyController : MonoBehaviour
     }
 
     private bool UsesAgeBands => regenerationModelVersion >= RegenerationModel.AgeBands;
+
+    public int GrowthModelVersion
+    {
+        get => growthModelVersion;
+        set => growthModelVersion = GrowthModel.Normalize(value);
+    }
+
+    private bool UsesSiteClassGrowth => growthModelVersion >= GrowthModel.SiteClassDensity;
+
+    // Growth model 1 adult density mortality of the most recent annual step (diagnostic only).
+    public AdultMortalityAccount LastAdultMortality { get; private set; } = new AdultMortalityAccount();
 
     // Regeneration flows of the most recent annual step (diagnostic only).
     public RegenerationAnnualAccount LastRegenerationAccount => regenerationAccount;
@@ -406,6 +420,8 @@ public sealed class ForestEcologyController : MonoBehaviour
         RecomputeCanopy();                // 2. canopy/light from current crowns
         GrowAdults(s);                    // 3. adult DBH and height
         RelaxCrowns(s);                   // 4. crown relaxation toward competition-limited target
+        if (UsesSiteClassGrowth)
+            ApplyAdultDensityMortality(); // 4b. growth model 1: density self-thinning (batched)
         RecomputeCanopy();                // 5. light reflects the new crowns
         GrowExistingRegeneration();       // 6. existing regeneration grows before new establishment
         UpdateAllMastStates(s, rng);      // 7. species-isolated mast state for this year
@@ -419,8 +435,9 @@ public sealed class ForestEcologyController : MonoBehaviour
     }
 
     public void RestoreEcologyState(int year, int seed, int rngModel = SimulationRandom.LegacyModel,
-        int regenerationModel = RegenerationModel.Legacy)
+        int regenerationModel = RegenerationModel.Legacy, int growthModel = GrowthModel.Legacy)
     {
+        growthModelVersion = GrowthModel.Normalize(growthModel);
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
         rngModelVersion = SimulationRandom.NormalizeModel(rngModel);
@@ -927,6 +944,10 @@ public sealed class ForestEcologyController : MonoBehaviour
             float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));
             float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
                                  Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+            // Growth model 1: Sitka follows the Class III site envelope, keeping
+            // its relative height. Other species keep the legacy height law.
+            if (UsesSiteClassGrowth && SameSpeciesId(treeSpecies, SitkaGrowthModel.SpeciesId))
+                heightGrowth = SitkaGrowthModel.NextHeight(tree.Height, tree.AgeYears, yearsApplied) - tree.Height;
 
             // Diagnostic integration of the existing DBH competition response.
             // Never feed this accumulated history back into growth in v1.
@@ -935,6 +956,115 @@ public sealed class ForestEcologyController : MonoBehaviour
             tree.SetAgeYears(tree.AgeYears + yearsApplied);
             annualDbhGrowth[tree] = dbhGrowth;
         }
+    }
+
+    private static bool SameSpeciesId(TreeSpeciesDefinition species, string speciesId)
+    {
+        return species != null && string.Equals(species.SpeciesId, speciesId, System.StringComparison.Ordinal);
+    }
+
+    // Growth model 1: stand relative density (Comeau et al. 2010 British Sitka
+    // maximum size-density line) creates density pressure; suppressed trees
+    // carry most of the risk (SitkaGrowthModel). The stand may not exceed the
+    // maximum line: if it would, the most suppressed survivors die until it is
+    // back on it. Victims are collected first, then killed together inside one
+    // change batch, so the canopy and seed rain are rebuilt once. Deaths use the
+    // authoritative biological mortality path (cause "self-thinning", this
+    // year). Density does not feed DBH growth; the Hegyi response stays the
+    // only DBH competition term.
+    private void ApplyAdultDensityMortality()
+    {
+        var account = new AdultMortalityAccount { Year = ecologicalYear };
+        LastAdultMortality = account;
+        var living = new List<ForestTree>();
+        foreach (ForestTree tree in FindTrees())
+            if (tree != null && tree.IsLiving)
+                living.Add(tree);
+        account.LivingBefore = living.Count;
+        if (living.Count == 0 || StandAreaHectares <= 0f) return;
+        account.RelativeDensity = StandRelativeDensity(living, out account.StemsPerHectare, out account.QuadraticMeanDbhCm);
+        account.DensityPressure = SitkaGrowthModel.DensityPressure(account.RelativeDensity);
+        if (account.DensityPressure <= 0.0) return;
+
+        var suppression = new Dictionary<ForestTree, double>(living.Count);
+        double vulnerabilitySum = 0.0;
+        foreach (ForestTree tree in living)
+        {
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+            double s = treeSpecies != null ? 1.0 - 1.0 / (1.0 + ci / treeSpecies.Ci50) : 0.0;
+            suppression[tree] = s;
+            vulnerabilitySum += SitkaGrowthModel.Vulnerability(s);
+        }
+        double meanVulnerability = vulnerabilitySum / living.Count;
+
+        var victims = new List<ForestTree>();
+        var survivors = new List<ForestTree>(living.Count);
+        foreach (ForestTree tree in living)
+        {
+            double probability = SitkaGrowthModel.AnnualDeathProbability(account.DensityPressure, suppression[tree], meanVulnerability);
+            if (probability > 0.0 && SimulationRandom.Roll(rngModelVersion, "ADULT-MORT-" + tree.TreeId, ecologicalYear, simulationSeed) < probability)
+                victims.Add(tree);
+            else
+                survivors.Add(tree);
+        }
+        account.HazardDeaths = victims.Count;
+
+        if (StandRelativeDensity(survivors, out _, out _) > SitkaGrowthModel.MaximumRelativeDensity)
+        {
+            // Most suppressed first; ties by tree ID. Running sums keep this linear.
+            var order = new List<ForestTree>(survivors);
+            order.Sort((a, b) =>
+            {
+                int bySuppression = suppression[b].CompareTo(suppression[a]);
+                return bySuppression != 0 ? bySuppression : CompareTreeIds(a, b);
+            });
+            int count = survivors.Count;
+            double squaredDbhSum = 0.0;
+            foreach (ForestTree tree in survivors)
+                squaredDbhSum += (double)tree.Diameter * tree.Diameter;
+            foreach (ForestTree tree in order)
+            {
+                double rd = SitkaGrowthModel.RelativeDensity(count / StandAreaHectares, System.Math.Sqrt(squaredDbhSum / count));
+                if (rd <= SitkaGrowthModel.MaximumRelativeDensity || count <= 1)
+                    break;
+                count--;
+                squaredDbhSum -= (double)tree.Diameter * tree.Diameter;
+                victims.Add(tree);
+                account.BoundaryDeaths++;
+            }
+        }
+        if (victims.Count == 0) return;
+        BeginChangeBatch();
+        try
+        {
+            foreach (ForestTree tree in victims)
+            {
+                float volume = tree.BiologicalStemVolumeM3;
+                if (tree.ApplyMortality("self-thinning", ecologicalYear))
+                {
+                    account.Deaths++;
+                    account.DeadStemVolumeM3 += volume;
+                }
+            }
+        }
+        finally
+        {
+            EndChangeBatch();
+        }
+    }
+
+    private double StandRelativeDensity(List<ForestTree> trees, out double stemsPerHectare, out double quadraticMeanDbhCm)
+    {
+        stemsPerHectare = 0.0;
+        quadraticMeanDbhCm = 0.0;
+        if (trees.Count == 0 || StandAreaHectares <= 0f) return 0.0;
+        double squaredDbhSum = 0.0;
+        foreach (ForestTree tree in trees)
+            squaredDbhSum += (double)tree.Diameter * tree.Diameter;
+        stemsPerHectare = trees.Count / StandAreaHectares;
+        quadraticMeanDbhCm = System.Math.Sqrt(squaredDbhSum / trees.Count);
+        return SitkaGrowthModel.RelativeDensity(stemsPerHectare, quadraticMeanDbhCm);
     }
 
     // Dynamic crown radius: potential from DBH, reduced by competition, reached

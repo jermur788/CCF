@@ -63,6 +63,8 @@ public static class ForestSaveValidation
 
         if (data.regenerationModel < RegenerationModel.Legacy || data.regenerationModel > RegenerationModel.Latest)
             return $"unknown regeneration model {data.regenerationModel}";
+        if (data.growthModel < GrowthModel.Legacy || data.growthModel > GrowthModel.Latest)
+            return $"unknown growth model {data.growthModel}";
         bool ageBands = data.version >= 16 && data.regenerationModel >= RegenerationModel.AgeBands;
 
         if (data.cells != null)

@@ -447,6 +447,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             {
                 ecology.RngModelVersion = NewGameRngModel;
                 ecology.RegenerationModelVersion = NewGameRegenerationModel;
+                ecology.GrowthModelVersion = NewGameGrowthModel;
             }
             InitializeNewScenario();
         }
@@ -460,6 +461,50 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // Regeneration representation for newly created games (age bands). Loads
     // restore the saved model; saves before v16 and Reference v1 are model 0.
     public const int NewGameRegenerationModel = RegenerationModel.AgeBands;
+
+    // Adult growth for newly created games: Irish site Class III height and
+    // adult density mortality. Saves before v17 and Reference v1 are model 0.
+    public const int NewGameGrowthModel = GrowthModel.SiteClassDensity;
+
+    private void OnEnable()
+    {
+        ForestTree.MortalityApplied += OnTreeBiologicalDeath;
+    }
+
+    private void OnDisable()
+    {
+        ForestTree.MortalityApplied -= OnTreeBiologicalDeath;
+    }
+
+    // Growth model 1: a biological death leaves its stem as fallen deadwood,
+    // using the same record, log visual, decay and save path as felled
+    // deadwood. ApplyMortality raises this event once per death; restored
+    // deaths do not raise it, so each tree yields one record.
+    private void OnTreeBiologicalDeath(ForestTree tree)
+    {
+        if (tree == null || ecology == null || ecology.GrowthModelVersion < GrowthModel.SiteClassDensity)
+            return;
+        float volume = tree.Diameter * tree.Diameter * 0.00007854f * tree.Height
+            * (tree.Species != null ? tree.Species.FormHeightRatio : 0.5f);
+        if (volume <= 0f)
+            return;
+        var deadwood = new ScenarioDeadwoodRecord
+        {
+            deadwoodId = "DW" + nextDeadwoodId++.ToString("0000"),
+            treeId = tree.TreeId,
+            speciesId = tree.Species != null ? tree.Species.SpeciesId : "",
+            worldPosition = tree.transform.position,
+            cellIndex = ecology.GetCellIndex(tree.transform.position),
+            originalVolumeM3 = volume,
+            remainingVolumeM3 = volume,
+            originalHeightMeters = tree.Height,
+            originalDiameterCm = tree.Diameter,
+            fallenYear = ecology.EcologicalYear,
+            lastDecayYear = ecology.EcologicalYear
+        };
+        deadwood.visualName = SpawnFallenLogVisual(deadwood);
+        deadwoodRecords.Add(deadwood);
+    }
 
     private void OnDestroy()
     {

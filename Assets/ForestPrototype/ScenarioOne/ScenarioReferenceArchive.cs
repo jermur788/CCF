@@ -174,12 +174,26 @@ public sealed class ScenarioReferenceArchive
     // Returns null for model-1 worlds, which have no v15 equivalent.
     public static string LegacyV15WorldHash(ForestSaveData data)
     {
-        if (data == null || data.regenerationModel != RegenerationModel.Legacy)
+        if (data == null || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 15;
-        string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "");
+        string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
+        return Hash(json);
+    }
+
+    // As above for growth-model-0 worlds in the exact v16 layout (version 16,
+    // no growthModel field), so v16 anchors (any regeneration model) stay
+    // comparable after the v17 bump. Returns null for growth-model-1 worlds.
+    public static string LegacyV16WorldHash(ForestSaveData data)
+    {
+        if (data == null || data.growthModel != GrowthModel.Legacy)
+            return null;
+        ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+        Canonicalize(copy);
+        copy.version = 16;
+        string json = JsonUtility.ToJson(copy).Replace("\"growthModel\":0,", "");
         return Hash(json);
     }
 }
