@@ -1,6 +1,6 @@
 # Scenario 1 site productivity — decision paper
 
-**Status: decision required.** No canonical document sets Scenario One's site class or yield class, and none was supplied with the task packet. This paper recommends; it does not authorise production.
+**Status: decided (Manager continuation, 2026-10-07): Irish site Class III, implemented as growth model 1 (SitkaGrowthModel1.md).** The analysis below is retained as the decision basis.
 
 ## What the current game implies
 
