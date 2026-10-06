@@ -61,6 +61,10 @@ public static class ForestSaveValidation
             }
         }
 
+        if (data.regenerationModel < RegenerationModel.Legacy || data.regenerationModel > RegenerationModel.Latest)
+            return $"unknown regeneration model {data.regenerationModel}";
+        bool ageBands = data.version >= 16 && data.regenerationModel >= RegenerationModel.AgeBands;
+
         if (data.cells != null)
         {
             var cellIndices = new HashSet<int>();
@@ -81,6 +85,26 @@ public static class ForestSaveValidation
                 {
                     if (cohort != null && (!IsFinite(cohort.density) || !IsFinite(cohort.height)))
                         return $"ecology cell {cell.index} has an invalid regeneration cohort";
+                }
+                if (ageBands)
+                {
+                    // Repeated species records are valid bands when their keys differ.
+                    var bandKeys = new HashSet<string>();
+                    var bandCounts = new Dictionary<string, int>();
+                    foreach (ForestRegenerationCohortSaveData cohort in cell.cohorts)
+                    {
+                        if (cohort == null || cohort.density <= 0f)
+                            continue;
+                        if (cohort.origin != (int)RegenerationOrigin.Natural && cohort.origin != (int)RegenerationOrigin.Planted)
+                            return $"ecology cell {cell.index} has a regeneration band with an unknown origin";
+                        string group = cohort.speciesId + "|" + cohort.origin;
+                        if (!bandKeys.Add(group + "|" + cohort.establishYear))
+                            return $"ecology cell {cell.index} repeats regeneration band {cohort.speciesId} year {cohort.establishYear}";
+                        bandCounts.TryGetValue(group, out int count);
+                        if (count + 1 > ForestEcologyCell.MaxBandsPerSpeciesOrigin)
+                            return $"ecology cell {cell.index} exceeds {ForestEcologyCell.MaxBandsPerSpeciesOrigin} bands for {cohort.speciesId}";
+                        bandCounts[group] = count + 1;
+                    }
                 }
             }
         }

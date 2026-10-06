@@ -444,7 +444,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             // InitializeNewScenario stays model-neutral because v1-9 save loads
             // also call it.
             if (ecology != null)
+            {
                 ecology.RngModelVersion = NewGameRngModel;
+                ecology.RegenerationModelVersion = NewGameRegenerationModel;
+            }
             InitializeNewScenario();
         }
         if (ecology != null)
@@ -453,6 +456,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     // RNG model for newly created Scenario One games (see Awake).
     public const int NewGameRngModel = SimulationRandom.MixedModel;
+
+    // Regeneration representation for newly created games (age bands). Loads
+    // restore the saved model; saves before v16 and Reference v1 are model 0.
+    public const int NewGameRegenerationModel = RegenerationModel.AgeBands;
 
     private void OnDestroy()
     {
@@ -824,8 +831,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = "This species already has a planting order in that cell.";
             return false;
         }
-        ForestRegenerationCohort cohort = ecology.Cells[cellIndex].FindCohort(species.SpeciesId);
-        if (cohort != null && cohort.Density > 0f)
+        if (ecology.Cells[cellIndex].SpeciesDensity(species.SpeciesId) > 0f)
         {
             feedback = $"{species.DisplayName} is already regenerating in that cell.";
             return false;
@@ -873,15 +879,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = "This species already has a regeneration-removal order in that cell.";
             return false;
         }
-        ForestRegenerationCohort cohort = ecology.Cells[cellIndex].FindCohort(speciesId);
-        if (cohort == null || cohort.Density <= 0f)
+        // All bands of the species in the cell are the removal scope.
+        float speciesDensity = ecology.Cells[cellIndex].SpeciesDensity(speciesId);
+        if (speciesDensity <= 0f)
         {
             feedback = $"No {species.DisplayName} regeneration is present in that cell.";
             return false;
         }
 
         int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.RemovalBaseMinutes
-            + cohort.Density * definition.RemovalMinutesPerCohortDensity));
+            + speciesDensity * definition.RemovalMinutesPerCohortDensity));
         var order = new ScenarioOneWorkOrder
         {
             workOrderId = nextWorkOrderId++,
@@ -892,7 +899,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             worldPosition = new Vector3(ecology.Cells[cellIndex].Center.x, 0f, ecology.Cells[cellIndex].Center.y),
             estimatedMinutes = minutes,
             estimatedCostCents = DivideRoundUp((long)minutes * definition.ContractorHourlyRateCents, 60L),
-            expectedRegenerationDensity = cohort.Density,
+            expectedRegenerationDensity = speciesDensity,
             createdYear = ecology.EcologicalYear
         };
         workOrders.Add(order);
@@ -1851,8 +1858,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             Fail(order, report, "Insufficient cash when the contractor attempted regeneration removal.");
             return;
         }
-        ForestRegenerationCohort cohort = ecology.Cells[order.cellIndex].FindCohort(order.speciesId);
-        float density = cohort != null ? cohort.Density : 0f;
+        float density = ecology.Cells[order.cellIndex].SpeciesDensity(order.speciesId);
         UprootingResult result = ecology.TryUprootRegeneration(order.worldPosition, species);
         if (!result.Success)
         {
@@ -1949,8 +1955,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Another order already plants this species in this cell.";
                 else
                 {
-                    ForestRegenerationCohort cohort = ecology.Cells[order.cellIndex].FindCohort(order.speciesId);
-                    if (!order.exactPosition && cohort != null && cohort.Density > 0f)
+                    if (!order.exactPosition && ecology.Cells[order.cellIndex].SpeciesDensity(order.speciesId) > 0f)
                         order.validationMessage = "This species is already regenerating in the cell.";
                     else if (order.exactPosition && workOrders.Any(other => other != order && other.IsOpen
                         && other.workOrderId < order.workOrderId
@@ -1993,8 +1998,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Another order already removes this species in this cell.";
                 else
                 {
-                    ForestRegenerationCohort cohort = ecology.Cells[order.cellIndex].FindCohort(order.speciesId);
-                    if (cohort == null || cohort.Density <= 0f)
+                    if (ecology.Cells[order.cellIndex].SpeciesDensity(order.speciesId) <= 0f)
                         order.validationMessage = "This species is no longer regenerating in the cell.";
                 }
             }
@@ -2390,14 +2394,19 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             snapshot.totalRecentOpening += cell.RecentOpening;
             if (cell.HasRegeneration)
                 snapshot.occupiedRegenerationCells++;
+            // Cells are counted once per species (and once per planted species)
+            // even when a species holds several age bands.
+            var countedSpecies = new HashSet<string>();
+            var countedPlanted = new HashSet<string>();
             foreach (ForestRegenerationCohort cohort in cell.Regeneration)
             {
                 if (cohort == null || cohort.Density <= 0f || string.IsNullOrEmpty(cohort.SpeciesId))
                     continue;
                 ScenarioSpeciesOutcome species = SpeciesOutcome(cohort.SpeciesId);
-                species.regenerationCells++;
+                if (countedSpecies.Add(cohort.SpeciesId))
+                    species.regenerationCells++;
                 species.regenerationDensity += cohort.Density;
-                if (cohort.Origin == RegenerationOrigin.Planted)
+                if (cohort.Origin == RegenerationOrigin.Planted && countedPlanted.Add(cohort.SpeciesId))
                     species.plantedRegenerationCells++;
             }
         }

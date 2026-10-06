@@ -167,4 +167,19 @@ public sealed class ScenarioReferenceArchive
         Canonicalize(data);
         return Hash(JsonUtility.ToJson(data));
     }
+
+    // Compatibility check only: hashes a regeneration-model-0 world in the
+    // exact v15 byte layout (version 15, no regenerationModel field), so
+    // anchors recorded before save v16 can be compared after the schema bump.
+    // Returns null for model-1 worlds, which have no v15 equivalent.
+    public static string LegacyV15WorldHash(ForestSaveData data)
+    {
+        if (data == null || data.regenerationModel != RegenerationModel.Legacy)
+            return null;
+        ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+        Canonicalize(copy);
+        copy.version = 15;
+        string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "");
+        return Hash(json);
+    }
 }

@@ -88,8 +88,98 @@ public sealed class ForestEcologyCell
         return cohort != null && regeneration.Remove(cohort);
     }
 
+    // Seed arrival per species for the current year (rebuilt annually, never
+    // saved). Model 0 also keeps its legacy copy on the cohort record.
+    private readonly SortedDictionary<string, float> seedRainBySpecies = new SortedDictionary<string, float>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, float> SeedRainBySpecies => seedRainBySpecies;
+
+    public float SeedRainFor(string speciesId)
+    {
+        return !string.IsNullOrEmpty(speciesId) && seedRainBySpecies.TryGetValue(speciesId, out float value) ? value : 0f;
+    }
+
+    public void SetSeedRain(string speciesId, float seedRain)
+    {
+        if (!string.IsNullOrEmpty(speciesId))
+            seedRainBySpecies[speciesId] = seedRain;
+    }
+
+    // Total juvenile abundance of one species over all its bands.
+    public float SpeciesDensity(string speciesId)
+    {
+        float total = 0f;
+        foreach (ForestRegenerationCohort cohort in regeneration)
+            if (cohort != null && cohort.Density > 0f && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal))
+                total += cohort.Density;
+        return total;
+    }
+
+    // The tallest living band of a species (display and diagnosis).
+    public ForestRegenerationCohort TallestBand(string speciesId)
+    {
+        ForestRegenerationCohort best = null;
+        foreach (ForestRegenerationCohort cohort in regeneration)
+            if (cohort != null && cohort.Density > 0f && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal)
+                && (best == null || cohort.Height > best.Height))
+                best = cohort;
+        return best;
+    }
+
+    // ----- Regeneration model 1: age bands -----
+    // A band is identified by species + origin + establishment year. Bands are
+    // kept in ordinal species order, then origin, then establishment year.
+    public const int MaxBandsPerSpeciesOrigin = 4;
+
+    public ForestRegenerationCohort FindBand(string speciesId, RegenerationOrigin origin, int establishYear)
+    {
+        foreach (ForestRegenerationCohort cohort in regeneration)
+            if (cohort != null && cohort.Origin == origin && cohort.EstablishYear == establishYear
+                && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal))
+                return cohort;
+        return null;
+    }
+
+    public List<ForestRegenerationCohort> Bands(string speciesId, RegenerationOrigin origin)
+    {
+        var bands = new List<ForestRegenerationCohort>();
+        foreach (ForestRegenerationCohort cohort in regeneration)
+            if (cohort != null && cohort.Origin == origin && string.Equals(cohort.SpeciesId, speciesId, StringComparison.Ordinal))
+                bands.Add(cohort);
+        return bands;
+    }
+
+    public void InsertBand(ForestRegenerationCohort band)
+    {
+        int index = regeneration.FindIndex(c => CompareBands(c, band) > 0);
+        if (index < 0) regeneration.Add(band);
+        else regeneration.Insert(index, band);
+    }
+
+    private static int CompareBands(ForestRegenerationCohort a, ForestRegenerationCohort b)
+    {
+        int order = string.CompareOrdinal(a.SpeciesId, b.SpeciesId);
+        if (order != 0) return order;
+        order = ((int)a.Origin).CompareTo((int)b.Origin);
+        return order != 0 ? order : a.EstablishYear.CompareTo(b.EstablishYear);
+    }
+
+    // Model 1 admission: new abundance takes only free shared occupancy and
+    // never reduces existing stock. Returns the accepted abundance.
+    public float AdmitDensity(ForestRegenerationCohort target, float requestedDensity)
+    {
+        if (target == null || target.Species == null || requestedDensity <= 0f)
+            return 0f;
+        float free = Mathf.Max(0f, 1f - SharedOccupancy);
+        float accepted = Mathf.Min(requestedDensity, free * Mathf.Max(0.01f, target.Species.RegenDensityMax));
+        if (accepted <= 0f)
+            return 0f;
+        target.Density += accepted;
+        return accepted;
+    }
+
     public void ClearSeedRain()
     {
+        seedRainBySpecies.Clear();
         for (int i = regeneration.Count - 1; i >= 0; i--)
         {
             regeneration[i].SeedRain = 0f;
@@ -101,6 +191,7 @@ public sealed class ForestEcologyCell
     public void ClearRegeneration()
     {
         regeneration.Clear();
+        seedRainBySpecies.Clear();
     }
 
     public float SharedOccupancy

@@ -7,6 +7,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     [SerializeField] private int simulationSeed = 20260914;
     // 0 replays the original RNG seeding; see SimulationRandom. Stored in saves.
     [SerializeField] private int rngModelVersion = SimulationRandom.LegacyModel;
+    // 0 replays legacy single-cohort regeneration; 1 uses age bands. See RegenerationModel. Stored in saves.
+    [SerializeField] private int regenerationModelVersion = RegenerationModel.Legacy;
     [SerializeField] private float standSizeMeters = 40f;
     [SerializeField] private float cellSizeMeters = 5f;
     [Tooltip("[D] Maximum recorded recent opening per cell. A treatment that fells several trees in one cell counts once up to this cap, so a legitimate group opening stays serious without reading as catastrophic. Calibration from the spatial treatment experiments.")]
@@ -36,6 +38,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     private readonly BrowsingConditions browsing = new BrowsingConditions();
     private readonly Dictionary<string, GameObject> seedlingVisuals = new Dictionary<string, GameObject>();
     private bool seedlingVisualsDirty = true;
+    private RegenerationAnnualAccount regenerationAccount = new RegenerationAnnualAccount();
+    private readonly Dictionary<string, TreeSpeciesDefinition> regenerationSpeciesById = new Dictionary<string, TreeSpeciesDefinition>();
     private float timeLapseAccumulator;
 
     private ForestEcologyCell[] cells;
@@ -89,6 +93,17 @@ public sealed class ForestEcologyController : MonoBehaviour
         get => rngModelVersion;
         set => rngModelVersion = SimulationRandom.NormalizeModel(value);
     }
+
+    public int RegenerationModelVersion
+    {
+        get => regenerationModelVersion;
+        set => regenerationModelVersion = RegenerationModel.Normalize(value);
+    }
+
+    private bool UsesAgeBands => regenerationModelVersion >= RegenerationModel.AgeBands;
+
+    // Regeneration flows of the most recent annual step (diagnostic only).
+    public RegenerationAnnualAccount LastRegenerationAccount => regenerationAccount;
 
     public int SimulationSeed
     {
@@ -224,6 +239,9 @@ public sealed class ForestEcologyController : MonoBehaviour
             {
                 if (cohort == null || cohort.Species == null || cohort.Density <= 0f ||
                     Mathf.Approximately(cohort.Height, 0f))
+                    continue;
+                // One visual per species per cell: the tallest band.
+                if (cohort != cells[i].TallestBand(cohort.SpeciesId))
                     continue;
                 GameObject prefab = cohort.SpeciesId == defaultSpeciesId
                     ? seedlingVisualPrefab
@@ -378,6 +396,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         }
 
         ecologicalYear++;
+        regenerationAccount = new RegenerationAnnualAccount { Year = ecologicalYear, Model = regenerationModelVersion };
         var rng = SimulationRandom.Create(rngModelVersion, simulationSeed, ecologicalYear, 0);
 
         // Annual order follows the Sitka report's sequence.
@@ -398,11 +417,13 @@ public sealed class ForestEcologyController : MonoBehaviour
         seedlingVisualsDirty = true;
     }
 
-    public void RestoreEcologyState(int year, int seed, int rngModel = SimulationRandom.LegacyModel)
+    public void RestoreEcologyState(int year, int seed, int rngModel = SimulationRandom.LegacyModel,
+        int regenerationModel = RegenerationModel.Legacy)
     {
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
         rngModelVersion = SimulationRandom.NormalizeModel(rngModel);
+        regenerationModelVersion = RegenerationModel.Normalize(regenerationModel);
         competitionCurrent = false;
         // Per-tree diagnostics from the pre-load timeline do not describe the
         // loaded forest (and can be keyed by trees the load destroys). Growth
@@ -485,6 +506,14 @@ public sealed class ForestEcologyController : MonoBehaviour
                     Debug.LogWarning($"Unknown regeneration species '{saved.speciesId}' in cell {index}; cohort skipped.");
                     continue;
                 }
+                if (UsesAgeBands)
+                {
+                    // Every saved band is its own record (species + origin + establishment year).
+                    var band = new ForestRegenerationCohort(cohortSpecies);
+                    band.Restore(saved.density, saved.height, saved.establishYear, (RegenerationOrigin)saved.origin, saved.originYear);
+                    cell.InsertBand(band);
+                    continue;
+                }
                 cell.GetOrCreateCohort(cohortSpecies).Restore(saved.density, saved.height, saved.establishYear,
                     (RegenerationOrigin)saved.origin, saved.originYear);
             }
@@ -532,6 +561,9 @@ public sealed class ForestEcologyController : MonoBehaviour
             return PlantingResult.Failed(PlantingOutcome.OutsideStand, "The planting position is outside the stand.");
         ForestEcologyCell cell = cells[index];
 
+        if (UsesAgeBands)
+            return TryPlantJuvenileBand(cell, index, targetSpecies);
+
         // One cohort per species per cell is the existing model. Planting does
         // not overwrite or merge with a live same-species cohort.
         ForestRegenerationCohort cohort = cell.FindCohort(targetSpecies.SpeciesId);
@@ -554,6 +586,33 @@ public sealed class ForestEcologyController : MonoBehaviour
             cell.RemoveCohortIfEmpty(cohort);
             return PlantingResult.Failed(PlantingOutcome.NoCapacity,
                 "This cell has no shared regeneration capacity left.", index);
+        }
+        seedlingVisualsDirty = true;
+        return PlantingResult.Planted(index, targetSpecies.DisplayName);
+    }
+
+    // Model 1: a planted cohort is its own Planted-origin band. The same
+    // "already regenerating" rule applies so planting behaviour is unchanged.
+    private PlantingResult TryPlantJuvenileBand(ForestEcologyCell cell, int index, TreeSpeciesDefinition targetSpecies)
+    {
+        if (cell.SpeciesDensity(targetSpecies.SpeciesId) > 0f)
+            return PlantingResult.Failed(PlantingOutcome.AlreadyOccupied,
+                $"{targetSpecies.DisplayName} is already regenerating in this cell.", index);
+        int establishYear = ecologicalYear - Mathf.Max(0, plantedJuvenileAgeYears);
+        ForestRegenerationCohort band = cell.FindBand(targetSpecies.SpeciesId, RegenerationOrigin.Planted, establishYear);
+        bool created = band == null;
+        if (created)
+        {
+            band = new ForestRegenerationCohort(targetSpecies);
+            band.Restore(0f, plantedJuvenileHeightM, establishYear, RegenerationOrigin.Planted, ecologicalYear);
+        }
+        if (cell.AdmitDensity(band, plantedJuvenileDensity) <= 0f)
+            return PlantingResult.Failed(PlantingOutcome.NoCapacity,
+                "This cell has no shared regeneration capacity left.", index);
+        if (created)
+        {
+            cell.InsertBand(band);
+            EnforceBandLimit(cell, targetSpecies, RegenerationOrigin.Planted, regenerationAccount.For(targetSpecies.SpeciesId));
         }
         seedlingVisualsDirty = true;
         return PlantingResult.Planted(index, targetSpecies.DisplayName);
@@ -610,6 +669,19 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (!cell.HasRegeneration)
             return UprootingResult.Failed(UprootingOutcome.NoRegeneration,
                 "There is no regeneration to uproot in this cell.", index);
+
+        if (UsesAgeBands)
+        {
+            // The complete selected-species stock is every band of that species.
+            if (cell.SpeciesDensity(targetSpecies.SpeciesId) <= 0f)
+                return UprootingResult.Failed(UprootingOutcome.SpeciesNotPresent,
+                    $"{targetSpecies.DisplayName} is not regenerating in this cell.", index);
+            for (int i = cell.Regeneration.Count - 1; i >= 0; i--)
+                if (cell.Regeneration[i] != null && cell.Regeneration[i].SpeciesId == targetSpecies.SpeciesId)
+                    cell.RemoveCohort(cell.Regeneration[i]);
+            seedlingVisualsDirty = true;
+            return UprootingResult.Uprooted(index, targetSpecies.DisplayName);
+        }
 
         ForestRegenerationCohort cohort = cell.FindCohort(targetSpecies.SpeciesId);
         if (cohort == null || cohort.Density <= 0f)
@@ -991,6 +1063,7 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void ComputeSpeciesSeedRain(TreeSpeciesDefinition targetSpecies, ForestTree[] trees)
     {
+        regenerationSpeciesById[targetSpecies.SpeciesId] = targetSpecies;
         float mastMultiplier = GetMastMultiplier(targetSpecies);
         foreach (ForestTree tree in trees)
         {
@@ -1016,7 +1089,12 @@ public sealed class ForestEcologyController : MonoBehaviour
                 seedRain += potential * Mathf.Exp(-distance / targetSpecies.SeedDispersalScaleM);
             }
             if (seedRain > 0f)
-                cell.GetOrCreateCohort(targetSpecies).SeedRain = seedRain;
+            {
+                cell.SetSeedRain(targetSpecies.SpeciesId, seedRain);
+                // Model 0 also carries seed on a (possibly empty) cohort record.
+                if (!UsesAgeBands)
+                    cell.GetOrCreateCohort(targetSpecies).SeedRain = seedRain;
+            }
         }
     }
 
@@ -1042,18 +1120,38 @@ public sealed class ForestEcologyController : MonoBehaviour
                 JuvenileEcologyRules.GrowHeight(ref cohort.Height, cohortSpecies, cell.Light, cell.SiteProductivity, browsed);
                 double lightSurvival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light);
                 double survival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light, browsed);
+                RegenerationSpeciesAccount account = regenerationAccount.For(cohortSpecies.SpeciesId);
+                float before = cohort.Density;
                 cohort.Density = (float)(cohort.Density * survival);
-                // Preserve the existing cohort-only infill/capacity abstraction.
-                // Infill represents continued seedling arrival, so it follows
-                // the light survival response; browse losses still apply to
-                // the existing density above.
-                bool recoverDensity = cohortSpecies.UsesDistinctJuvenileLightResponses
-                    ? lightSurvival >= 0.999999f
-                    : growthResponse >= cohortSpecies.RegenPoorLightThreshold && lightSurvival == 1d;
-                if (recoverDensity)
-                    cell.AddDensityWithSharedCapacity(cohort, 0.05f);
+                // Accounting only: light loss first, then the additional browse loss.
+                float lightOnly = (float)(before * lightSurvival);
+                account.LightLoss += before - lightOnly;
+                account.BrowseLoss += lightOnly - cohort.Density;
+                // Model 0 keeps the legacy seed-independent infill. Model 1 has
+                // none: abundance only rises through seed-based establishment.
+                if (!UsesAgeBands)
+                {
+                    bool recoverDensity = cohortSpecies.UsesDistinctJuvenileLightResponses
+                        ? lightSurvival >= 0.999999f
+                        : growthResponse >= cohortSpecies.RegenPoorLightThreshold && lightSurvival == 1d;
+                    if (recoverDensity)
+                    {
+                        float pre = cohort.Density;
+                        cell.AddDensityWithSharedCapacity(cohort, 0.05f);
+                        if (cohort.Density >= pre) account.InfillAccepted += cohort.Density - pre;
+                        else account.CapacityContraction += pre - cohort.Density;
+                    }
+                }
                 if (cohort.Density < 0.01f)
                 {
+                    // Extinction/reset threshold, accounted as its own loss.
+                    account.ThresholdExtinction += cohort.Density;
+                    if (UsesAgeBands)
+                    {
+                        cell.RemoveCohort(cohort);
+                        i--;
+                        continue;
+                    }
                     cohort.Density = 0f;
                     cohort.Height = 0f;
                     cohort.EstablishYear = -1;
@@ -1064,6 +1162,11 @@ public sealed class ForestEcologyController : MonoBehaviour
 
     private void EstablishNewCohorts()
     {
+        if (UsesAgeBands)
+        {
+            EstablishNewBands();
+            return;
+        }
         foreach (ForestEcologyCell cell in cells)
         {
             // Snapshot because GetOrCreateCohort is not needed: seed computation
@@ -1074,6 +1177,7 @@ public sealed class ForestEcologyController : MonoBehaviour
                 TreeSpeciesDefinition cohortSpecies = cohort.Species;
                 if (cohort.SeedRain <= 0f || cohortSpecies == null)
                     continue;
+                regenerationAccount.For(cohortSpecies.SpeciesId).SeedArrival += cohort.SeedRain;
                 float seedFactor = 1f - Mathf.Exp(-cohort.SeedRain / cohortSpecies.SeedSaturationS50);
                 float lightResponse = cohortSpecies.JuvenileEstablishmentResponse(cell.Light);
                 float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
@@ -1088,9 +1192,102 @@ public sealed class ForestEcologyController : MonoBehaviour
                     cohort.Height = cohortSpecies.RegenInitialHeightM;
                     cohort.OriginYear = ecologicalYear;
                 }
-                cell.AddDensityWithSharedCapacity(cohort, establishment * cohortSpecies.RegenDensityPerEstablishment);
+                float requested = establishment * cohortSpecies.RegenDensityPerEstablishment;
+                float pre = cohort.Density;
+                cell.AddDensityWithSharedCapacity(cohort, requested);
+                RegenerationSpeciesAccount account = regenerationAccount.For(cohortSpecies.SpeciesId);
+                account.EstablishmentRequested += requested;
+                if (cohort.Density >= pre) account.EstablishmentAccepted += cohort.Density - pre;
+                else account.CapacityContraction += pre - cohort.Density;
+                account.CapacityRejected += requested - Mathf.Max(0f, cohort.Density - pre);
             }
         }
+    }
+
+    // Model 1 establishment. Each year's accepted recruitment of a species is
+    // a new Natural band with its own establishment year and initial height;
+    // it never joins an older band. Capacity admits only free shared occupancy
+    // and never shrinks existing stock. A fully rejected request creates nothing.
+    private void EstablishNewBands()
+    {
+        foreach (ForestEcologyCell cell in cells)
+        {
+            foreach (KeyValuePair<string, float> seed in cell.SeedRainBySpecies)
+            {
+                if (seed.Value <= 0f || !regenerationSpeciesById.TryGetValue(seed.Key, out TreeSpeciesDefinition bandSpecies)
+                    || bandSpecies == null)
+                    continue;
+                regenerationAccount.For(bandSpecies.SpeciesId).SeedArrival += seed.Value;
+                float seedFactor = 1f - Mathf.Exp(-seed.Value / bandSpecies.SeedSaturationS50);
+                float lightResponse = bandSpecies.JuvenileEstablishmentResponse(cell.Light);
+                float establishment = seedFactor * lightResponse * cell.EstablishmentSuitability;
+                if (establishment <= 0.01f)
+                    continue;
+                float requested = establishment * bandSpecies.RegenDensityPerEstablishment;
+                ForestRegenerationCohort band = cell.FindBand(bandSpecies.SpeciesId, RegenerationOrigin.Natural, ecologicalYear);
+                bool created = band == null;
+                if (created)
+                {
+                    band = new ForestRegenerationCohort(bandSpecies);
+                    band.Restore(0f, bandSpecies.RegenInitialHeightM, ecologicalYear, RegenerationOrigin.Natural, ecologicalYear);
+                }
+                float accepted = cell.AdmitDensity(band, requested);
+                RegenerationSpeciesAccount account = regenerationAccount.For(bandSpecies.SpeciesId);
+                account.EstablishmentRequested += requested;
+                account.EstablishmentAccepted += accepted;
+                account.CapacityRejected += requested - accepted;
+                if (accepted <= 0f || !created)
+                    continue;
+                cell.InsertBand(band);
+                account.BandsCreated++;
+                EnforceBandLimit(cell, bandSpecies, RegenerationOrigin.Natural, account);
+            }
+        }
+    }
+
+    // At most MaxBandsPerSpeciesOrigin bands per species + origin + cell. On
+    // overflow the two bands closest in establishment year are merged (ties:
+    // the oldest pair). Abundance is conserved; height, establishment year and
+    // origin year are abundance-weighted, the years rounded half up. The merged
+    // year lies between the two source years, so band keys stay unique.
+    private static void EnforceBandLimit(ForestEcologyCell cell, TreeSpeciesDefinition bandSpecies,
+        RegenerationOrigin origin, RegenerationSpeciesAccount account)
+    {
+        List<ForestRegenerationCohort> bands = cell.Bands(bandSpecies.SpeciesId, origin);
+        while (bands.Count > ForestEcologyCell.MaxBandsPerSpeciesOrigin)
+        {
+            int pair = 0;
+            int smallestGap = int.MaxValue;
+            for (int k = 0; k < bands.Count - 1; k++)
+            {
+                int gap = bands[k + 1].EstablishYear - bands[k].EstablishYear;
+                if (gap < smallestGap)
+                {
+                    smallestGap = gap;
+                    pair = k;
+                }
+            }
+            MergeBands(cell, bands[pair], bands[pair + 1]);
+            account.BandMerges++;
+            bands = cell.Bands(bandSpecies.SpeciesId, origin);
+        }
+    }
+
+    public static ForestRegenerationCohort MergeBands(ForestEcologyCell cell, ForestRegenerationCohort a, ForestRegenerationCohort b)
+    {
+        float total = a.Density + b.Density;
+        double weightA = a.Density, weightB = b.Density, sum = weightA + weightB;
+        float height = (float)((a.Height * weightA + b.Height * weightB) / sum);
+        int establishYear = (int)System.Math.Floor((a.EstablishYear * weightA + b.EstablishYear * weightB) / sum + 0.5);
+        int originYear = (int)System.Math.Floor((a.OriginYear * weightA + b.OriginYear * weightB) / sum + 0.5);
+        var merged = new ForestRegenerationCohort(a.Species);
+        merged.Restore(total, height, establishYear, a.Origin, originYear);
+        merged.LastBrowsedFraction = (float)((a.LastBrowsedFraction * weightA + b.LastBrowsedFraction * weightB) / sum);
+        merged.LastBrowseAssessmentYear = Mathf.Max(a.LastBrowseAssessmentYear, b.LastBrowseAssessmentYear);
+        cell.RemoveCohort(a);
+        cell.RemoveCohort(b);
+        cell.InsertBand(merged);
+        return merged;
     }
 
     private void PromoteCohorts(TreeSpeciesDefinition defaultSpecies, System.Random defaultRng)
@@ -1113,7 +1310,11 @@ public sealed class ForestEcologyController : MonoBehaviour
         for (int i = 0; i < cells.Length; i++)
         {
             ForestEcologyCell cell = cells[i];
-            ForestRegenerationCohort cohort = cell.FindCohort(cohortSpecies.SpeciesId);
+            // Model 1 promotes the oldest qualifying band only (ties: Natural
+            // first); younger bands are untouched. Model 0 has one cohort.
+            ForestRegenerationCohort cohort = UsesAgeBands
+                ? OldestQualifyingBand(cell, cohortSpecies)
+                : cell.FindCohort(cohortSpecies.SpeciesId);
             if (cohort == null || cohort.Density <= 0f ||
                 !JuvenileEcologyRules.CanPromote(cohortSpecies, cohort.Height, cell.Light))
                 continue;
@@ -1135,11 +1336,37 @@ public sealed class ForestEcologyController : MonoBehaviour
             if (recruited != null)
             {
                 Debug.Log($"ECOLOGY recruited {id} ({cohortSpecies.SpeciesId}) at {position} height={cohort.Height:0.00} dbh={dbh:0.0}");
+                // Abstract representation handoff: the band's abundance is
+                // exported to one exact tree. Not a stem-count conversion.
+                RegenerationSpeciesAccount account = regenerationAccount.For(cohortSpecies.SpeciesId);
+                account.PromotedBands++;
+                account.PromotionExported += cohort.Density;
+                account.ExactTreesCreated++;
+                if (UsesAgeBands)
+                {
+                    cell.RemoveCohort(cohort);
+                    continue;
+                }
                 cohort.Density = 0f;
                 cohort.Height = 0f;
                 cohort.EstablishYear = -1;
             }
         }
+    }
+
+    private static ForestRegenerationCohort OldestQualifyingBand(ForestEcologyCell cell, TreeSpeciesDefinition bandSpecies)
+    {
+        ForestRegenerationCohort oldest = null;
+        foreach (ForestRegenerationCohort band in cell.Regeneration)
+        {
+            if (band == null || band.Density <= 0f || band.SpeciesId != bandSpecies.SpeciesId
+                || !JuvenileEcologyRules.CanPromote(bandSpecies, band.Height, cell.Light))
+                continue;
+            if (oldest == null || band.EstablishYear < oldest.EstablishYear
+                || (band.EstablishYear == oldest.EstablishYear && band.Origin < oldest.Origin))
+                oldest = band;
+        }
+        return oldest;
     }
 
     private void UpdateEstablishmentSuitability()
@@ -1232,14 +1459,15 @@ public sealed class ForestEcologyController : MonoBehaviour
     {
         if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
             return 0f;
-        ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
-        return cohort != null ? cohort.SeedRain : 0f;
+        return cells[cellIndex].SeedRainFor(targetSpecies.SpeciesId);
     }
 
     public float GetRegenerationDensity(int cellIndex, TreeSpeciesDefinition targetSpecies)
     {
         if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
             return 0f;
+        if (UsesAgeBands)
+            return cells[cellIndex].SpeciesDensity(targetSpecies.SpeciesId);
         ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
         return cohort != null ? cohort.Density : 0f;
     }
@@ -1248,7 +1476,9 @@ public sealed class ForestEcologyController : MonoBehaviour
     {
         if (cells == null || cellIndex < 0 || cellIndex >= cells.Length || targetSpecies == null)
             return 0f;
-        ForestRegenerationCohort cohort = cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
+        ForestRegenerationCohort cohort = UsesAgeBands
+            ? cells[cellIndex].TallestBand(targetSpecies.SpeciesId)
+            : cells[cellIndex].FindCohort(targetSpecies.SpeciesId);
         return cohort != null ? cohort.Height : 0f;
     }
 
@@ -1265,8 +1495,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             return "";
         ForestEcologyCell cell = cells[index];
 
-        ForestRegenerationCohort defaultCohort = cell.FindCohort(s.SpeciesId);
-        float defaultSeedRain = defaultCohort != null ? defaultCohort.SeedRain : 0f;
+        float defaultSeedRain = cell.SeedRainFor(s.SpeciesId);
         float seedFactor = 1f - Mathf.Exp(-defaultSeedRain / s.SeedSaturationS50);
         float lightResponse = s.JuvenileLightResponse(cell.Light);
         string seedWord = seedFactor < 0.05f ? "none"
@@ -1280,12 +1509,13 @@ public sealed class ForestEcologyController : MonoBehaviour
             if (cohort == null || cohort.Species == null || cohort.Density <= 0f)
                 continue;
             if (cohortText.Length > 0) cohortText.Append(" · ");
-            cohortText.Append($"{cohort.Species.DisplayName} {cohort.Density:0.00}/m2 @ {cohort.Height:0.00} m");
+            // Relative abundance (occupancy), not a stem density.
+            cohortText.Append($"{cohort.Species.DisplayName} {cohort.Density:0.00} rel. @ {cohort.Height:0.00} m");
         }
         string regenText = cohortText.Length > 0 ? "regen " + cohortText : "no regeneration";
 
         string constraint;
-        if (defaultCohort != null && defaultCohort.Density > 0f && lightResponse < s.RegenPoorLightThreshold)
+        if (cell.SpeciesDensity(s.SpeciesId) > 0f && lightResponse < s.RegenPoorLightThreshold)
             constraint = $"suppressed under shade (light response {lightResponse:0.00})";
         else
         {
@@ -1455,9 +1685,9 @@ public sealed class ForestEcologyController : MonoBehaviour
             TreeSpeciesDefinition defaultSpecies = ResolveSpecies();
             foreach (ForestEcologyCell cell in cells)
             {
-                ForestRegenerationCohort cohort = defaultSpecies != null ? cell.FindCohort(defaultSpecies.SpeciesId) : null;
-                if (cohort != null && cohort.SeedRain > max)
-                    max = cohort.SeedRain;
+                float seedRain = defaultSpecies != null ? cell.SeedRainFor(defaultSpecies.SpeciesId) : 0f;
+                if (seedRain > max)
+                    max = seedRain;
             }
             return max;
         }
@@ -1523,8 +1753,7 @@ public sealed class ForestEcologyController : MonoBehaviour
         for (int x = 0; x < cellsPerAxis; x++)
         {
             ForestEcologyCell data = cells[z * cellsPerAxis + x];
-            ForestRegenerationCohort defaultCohort = defaultSpecies != null ? data.FindCohort(defaultSpecies.SpeciesId) : null;
-            float defaultSeedRain = defaultCohort != null ? defaultCohort.SeedRain : 0f;
+            float defaultSeedRain = defaultSpecies != null ? data.SeedRainFor(defaultSpecies.SpeciesId) : 0f;
             Color previous = GUI.color;
             GUI.color = showSeedRain
                 ? Color.Lerp(new Color(0.1f, 0.1f, 0.15f), new Color(0.95f, 0.85f, 0.35f), Mathf.Clamp01(defaultSeedRain / seedMax))
@@ -1548,7 +1777,7 @@ public sealed class ForestEcologyController : MonoBehaviour
             info.AppendLine($"  light {c.Light:0.00} suitability {c.EstablishmentSuitability:0.00}");
             info.AppendLine($"  opening {c.RecentOpening:0.00} occupancy {c.SharedOccupancy:0.00}");
             foreach (ForestRegenerationCohort cohort in c.Regeneration)
-                info.AppendLine($"  {cohort.SpeciesId}: seed {cohort.SeedRain:0.000} regen {cohort.Density:0.00} h {cohort.Height:0.00} m");
+                info.AppendLine($"  {cohort.SpeciesId} {cohort.Origin} y{cohort.EstablishYear}: seed {c.SeedRainFor(cohort.SpeciesId):0.000} regen {cohort.Density:0.00} h {cohort.Height:0.00} m");
         }
         GUI.Label(new Rect(origin.x - 4f, origin.y + mapSize + 6f, mapSize + 12f, 240f), info.ToString());
     }

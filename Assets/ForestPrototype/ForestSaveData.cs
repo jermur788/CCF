@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 15;
+    public const int CurrentVersion = 16;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -14,6 +14,11 @@ public sealed class ForestSaveData
     // RNG scheme (SimulationRandom). Deliberately defaults to 0, the legacy
     // scheme, so saves written before this field existed replay unchanged.
     public int rngModelVersion;
+    // Version 16: regeneration representation (RegenerationModel). Defaults to
+    // 0, legacy single-cohort regeneration, so older saves and Reference Future
+    // v1 replay unchanged. Under model 1 cells may hold several cohort records
+    // of one species: each is an age band keyed by species + origin + year.
+    public int regenerationModel;
     public List<string> markedTreeIds = new List<string>();
     public List<string> cropTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();
