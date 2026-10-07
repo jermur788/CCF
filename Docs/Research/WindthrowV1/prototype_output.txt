@@ -1,0 +1,70 @@
+CANDIDATE RANK CHECK (pairs that must hold: 11)
+
+== current_GetWindRisk: 7/11 required orderings hold
+   FAILS  OLD_SLEND > OLD_SUPP  (exposed dominant > sheltered suppressed tree)  23.852 vs 26.500
+   FAILS  OLD_SLEND > CROP_REL  (slender dominant > released stout crop tree)  23.852 vs 29.426
+   FAILS  OLD_SLEND > SHORT_STOUT  (tall slender > short stout)  23.852 vs 31.818
+   FAILS  Y0_DOM > Y0_SUP  (young dominant > young suppressed)  20.756 vs 21.573
+   order: HEAVY_NEW > GAP_NEW > LIGHT_NEW > GAP_OLD > EDGE_EST > SHORT_STOUT > CROP_REL > OLD_SUPP > OLD_SLEND > Y0_SUP > Y0_DOM > OLD_STABLE
+
+== hd_only: 6/11 required orderings hold
+   FAILS  HEAVY_NEW > OLD_SLEND  (recent heavy opening > same tree unthinned)  85.185 vs 85.185
+   FAILS  LIGHT_NEW > OLD_SLEND  (recent light opening > same tree unthinned)  85.185 vs 85.185
+   FAILS  HEAVY_NEW > LIGHT_NEW  (heavy recent opening > light recent opening)  85.185 vs 85.185
+   FAILS  OLD_SLEND > OLD_SUPP  (exposed dominant > sheltered suppressed tree)  85.185 vs 100.000
+   FAILS  Y0_DOM > Y0_SUP  (young dominant > young suppressed)  72.195 vs 79.167
+   order: OLD_SUPP > OLD_SLEND > HEAVY_NEW > LIGHT_NEW > GAP_NEW > Y0_SUP > GAP_OLD > Y0_DOM > EDGE_EST > CROP_REL > OLD_STABLE > SHORT_STOUT
+
+== height2_x_hd: 7/11 required orderings hold
+   FAILS  HEAVY_NEW > OLD_SLEND  (recent heavy opening > same tree unthinned)  1.502 vs 1.502
+   FAILS  LIGHT_NEW > OLD_SLEND  (recent light opening > same tree unthinned)  1.502 vs 1.502
+   FAILS  HEAVY_NEW > LIGHT_NEW  (heavy recent opening > light recent opening)  1.502 vs 1.502
+   FAILS  GAP_NEW > GAP_OLD  (new gap edge > stabilised gap edge)  1.448 vs 1.723
+   order: GAP_OLD > OLD_STABLE > OLD_SLEND > HEAVY_NEW > LIGHT_NEW > GAP_NEW > CROP_REL > EDGE_EST > OLD_SUPP > Y0_DOM > Y0_SUP > SHORT_STOUT
+
+== proposed_v1: 11/11 required orderings hold
+   order: HEAVY_NEW > GAP_NEW > LIGHT_NEW > GAP_OLD > OLD_SLEND > CROP_REL > EDGE_EST > OLD_STABLE > OLD_SUPP > Y0_DOM > Y0_SUP > SHORT_STOUT
+
+== proposed_v1_strong_openness: 11/11 required orderings hold
+   order: HEAVY_NEW > GAP_NEW > LIGHT_NEW > GAP_OLD > EDGE_EST > OLD_SLEND > CROP_REL > OLD_STABLE > OLD_SUPP > Y0_DOM > Y0_SUP > SHORT_STOUT
+
+PROPOSED v1 INDEX BY CASE:
+   Y0_DOM         0.600  Year 0 dominant, unthinned plantation (age 20)
+   Y0_SUP         0.031  Year 0 suppressed, unthinned (age 20)
+   OLD_SLEND      2.006  Unthinned age 35, slender dominant
+   OLD_SUPP       0.815  Unthinned age 35, slender suppressed (sheltered)
+   HEAVY_NEW      6.162  Age 35 dominant, heavy thinning around it this year
+   LIGHT_NEW      3.737  Age 35 dominant, light thinning nearby this year
+   GAP_NEW        5.149  Age 35 tree on a gap edge opened last year
+   GAP_OLD        2.901  Same gap edge 10 years later (opening decayed, stouter)
+   CROP_REL       1.562  Age 35 crop tree released by repeated light thinning
+   EDGE_EST       1.420  Long-established stand edge tree (road side), age 35
+   SHORT_STOUT    0.009  Short stout open-grown tree
+   OLD_STABLE     1.285  Age 100 dominant after self-thinning
+
+CURRENT LABEL CHECK (production bands low<5, moderate<12, high>=12):
+   Y0_DOM         20.76 high
+   Y0_SUP         21.57 high
+   OLD_SLEND      23.85 high
+   OLD_SUPP       26.50 high
+   HEAVY_NEW     130.97 high
+   LIGHT_NEW      55.37 high
+   GAP_NEW       117.46 high
+   GAP_OLD        50.47 high
+   CROP_REL       29.43 high
+   EDGE_EST       45.55 high
+   SHORT_STOUT    31.82 high
+   OLD_STABLE     15.50 high
+
+GROWTH MODEL 1 UNTHINNED DOMINANT TREE (interior; and with fresh heavy opening):
+   age  topH   domHD  current  proposed  proposed_heavy_open
+    20   14.6   72.2    20.76     0.586     1.791
+    30   20.9   83.4    23.98     1.600     4.886
+    40   24.1   83.7    24.06     2.145     6.553
+    50   26.4   77.4    22.25     2.201     6.722
+    60   28.2   70.3    20.21     2.073     6.331
+    80   30.1   57.4    16.50     1.570     4.795
+   100   30.9   49.9    14.35     1.251     3.821
+   120   31.1   43.4    12.48     0.954     2.915
+
+wrote ../../../Docs/Research/WindthrowV1/prototype_case_scores.csv
