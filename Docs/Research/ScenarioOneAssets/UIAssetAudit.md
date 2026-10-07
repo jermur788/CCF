@@ -1,0 +1,11 @@
+# UI asset readiness
+
+Stand Map, Work Plan, Annual Review and Tree Inspection were rendered at three requested sizes for primary menus, with inspection at 1920. The inspected 1280 Map/Work Plan panels fit; secondary small grey text against translucent forest is a WATCH readability issue. Work Plan nursery rows are textual buttons, with no necessity for decorative purchase icons. Year-0 Review is an empty-state view; populated annual result rows and dense pending Work Plan are separate acceptance cases.
+
+Current UI largely uses styled text/buttons and procedural marks rather than a unified sprite icon pack. This is usable B, not a finding that icons are missing mechanics. Icons for light, browse/protection, juvenile stage and eventually ground competition should supplement labels, with distinct silhouettes, accessible contrast and state names. Do not generate competition icons while the biological categories remain unresolved. 'Competition' in adult inspection is neighbouring-tree crowding, so a future ground vegetation icon must not conflate those meanings.
+
+Waypoints now have HUD bearing/direction/distance and arrival/clear state, in addition to the scene marker. MenuTutorialVerification provides actual interactive acceptance at 1280/1600/1920; do not report its headless suppression as a pass. Objective/help text and icons are pedagogy-owned; any future consistency pass requires its own ownership confirmation. Keep M map, O objectives, accepted action keys and progressive learning flow. No UI redesign or production copy in this audit.
+
+Creation priority P2: small labelled symbol consistency pass only where recognition testing finds benefit; 128/256 px source or vector-equivalent, no large 4K sheets. Inspect hover/disabled/selected/protected/browsed states, colour-independent recognition, font scaling, and text wrapping at all three sizes.
+
+Supplemental interactive regression captures also cover Tree Inspection at all three sizes and a year1 populated Annual Review, with the contextual help modal visible. Actual result rows are present; a heavily populated long-run review/nonempty dense plan remains a separate legibility acceptance case. The final standalone near-tree inspection capture has its help closed and confirms left inspection/right HUD separation.

@@ -1,0 +1,9 @@
+{
+  "rows": 43200,
+  "scope": "virtual response multipliers, not Unity trajectories",
+  "coefficients": "C/I; no empirical Irish universal coefficient",
+  "no_seed_checked": true,
+  "models": 5,
+  "processes": 5,
+  "status": "candidate comparison only; no production selection"
+}

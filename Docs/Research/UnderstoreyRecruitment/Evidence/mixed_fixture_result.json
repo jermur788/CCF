@@ -1,0 +1,27 @@
+{
+  "exit_code": 0,
+  "seconds": 84.06,
+  "markers": [
+    "UNDERSTOREY_CELL_LEDGER_PASS protected=true zeroSeed=true highSeed=true subthreshold=true residualBound=0.00001",
+    "UNDERSTOREY_RECOLONISATION_PASS years=1,3,5,10,20 productionRecurrence=true",
+    "UNDERSTOREY_PERFORMANCE_PASS counts=336,1300,3000,5000 simulationOnly=true",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear0 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear0 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear1 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear1 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear3 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear3 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear5 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0_protectFalse_clear5 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectFalse_clear0 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectFalse_clear0 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectFalse_clear3 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectFalse_clear3 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectTrue_clear0 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectTrue_clear0 repeat=1",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectTrue_clear3 repeat=0",
+    "UNDERSTOREY_MIXED_RUN_PASS browse0.800000011920929_protectTrue_clear3 repeat=1",
+    "UNDERSTOREY_FIXTURES_PASS"
+  ],
+  "status": "PASS"
+}

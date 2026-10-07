@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "seconds": 48.77,
+  "markers": [
+    "UNDERSTOREY_PERFORMANCE_PASS counts=336,1300,3000,5000 simulationOnly=true",
+    "UNDERSTOREY_FIXTURES_PASS"
+  ],
+  "status": "PASS",
+  "original_reporter_status": "FAIL",
+  "reporter_correction": "performance-only mode incorrectly expected diagnostics terminal marker; corrected against fixture terminal marker, exit0 and no compiler/fixture failure"
+}

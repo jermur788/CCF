@@ -1,0 +1,13 @@
+claim_or_parameter,source,grade,scope,selected_for_production,caveat
+Bramble/bracken associated with oak survival bottleneck,Harmer Morgan 2007 DOI 10.1093/forestry/cpm006,B,English fenced Q.robur seedlings,no coefficient,Not Irish sessile oak/Sitka/Beech universal mortality
+Deer exclusion changes vegetation composition,Perrin et al 2011 DOI 10.1016/j.foreco.2011.08.028,A,Irish woodland long-term exclosure,observation only,Not juvenile vegetation coefficient
+Dense competitive graminoids may constrain juveniles,Understorey_Dynamics_Irish_CCF_Report.pdf,B/I,type/site dependent,no,Grass association can differ; exclude blanket grass penalty
+Moss/fungi not given direct competition term,secondary synthesis and causal classification,I,game abstraction,no new term,Absence of selected effect is not proof of zero field interaction
+Competition strengths .15/.35/.60,candidate_sweep.py,C,virtual response ranges,no,Not fitted empirical rates
+"Response saturation .3, threshold .2, scale 1.3",candidate_sweep.py,C,virtual response forms,no,No model selection
+Virtual browse .04 and growth .9,candidate_sweep.py,C,separate toy browse terms,no,Not production browsing calibration
+Recovery .30 gain/.45 loss,ScenarioOneUnderstorey and live definition,D,current habitat proxies,existing unchanged,Fixed-environment recurrence only
+Current cover has no juvenile causal effect,48 runtime gap cases and source trace,I/runtime verified,a8596df,existing unchanged,Matched fixture not empirical biology
+Clearing creates capacity but removes juveniles,100-year baseline CSV and ApplyClearance,I/runtime verified,reduced stand matrix,existing unchanged,No quotes/cash; no candidate competition benefit
+Species response ranking,no sufficient primary species comparison located,unknown,Sitka/Oak/Beech,no,Do not fabricate decimal ranking
+Height-limited survival recommendation,evidence direction plus compounding sweep,I/C,future diagnostic design,no,Window and coefficient unresolved

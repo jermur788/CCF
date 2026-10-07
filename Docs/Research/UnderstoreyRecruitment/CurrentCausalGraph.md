@@ -1,6 +1,6 @@
 # Current causal graph — source verified
 
-Base/context: StartRecord.md. Runtime reproduction pending.
+Base/context: StartRecord.md. Runtime reproduction passed for 48 matched cases; the dashed links remain absent in unchanged production.
 
 ```mermaid
 flowchart LR

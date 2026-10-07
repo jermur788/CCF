@@ -1,6 +1,6 @@
 # Current understorey audit — source findings
 
-Base/context/scope: StartRecord.md. This is a preliminary source audit; runtime fixture and asset scene audit remain outstanding.
+Base/context/scope: StartRecord.md. Runtime gap reproduction completed: 48 matched cases and 144 controlled cell ledgers. See Evidence/*.csv and ImplementationRecord.md.
 
 ScenarioUnderstoreyCell persists cellIndex, lastUpdatedYear and six independent 0..1 habitat-cover proxies: mosses, ferns, grasses, forbs, shrubs, fungi. They are not mutually exclusive area fractions and are not individual species counts. ScenarioOneUnderstorey.Target derives each target from light/site/soil stability, establishment suitability and recent opening. Moss favours shade; ferns have an intermediate-light response; grasses/forbs/shrubs favour more open conditions; fungi track canopy/site. These response shapes are explicitly placeholder D, not calibrated Irish competition coefficients.
 
@@ -10,6 +10,6 @@ Area clearance zeroes ferns/grasses/forbs/shrubs and qualifying tree regeneratio
 
 Bramble, bracken, rushes and woody understorey have visual classes/catalogue entries but no corresponding separately persisted causal cover variables in ScenarioUnderstoreyCell. Mapping all ferns to bracken or all shrubs to bramble would change biological interpretation without evidence. Moss/fungi/litter/deadwood should not acquire a juvenile competition penalty merely from occupying visible ground.
 
-ForestEcologyController juvenile establishment uses seed/light/suitability and relative occupancy; age-band survival/growth use shared light/site/browsing rules. ScenarioOneManager exact planted advancement uses the same biological response helpers and individual RNG. Neither directly reads these habitat-cover fields. Browsing's vegetation exposure is a future hook rather than established bramble concealment causality. This is a code-level gap finding, not the requested matched-fixture runtime proof.
+ForestEcologyController juvenile establishment uses seed/light/suitability and relative occupancy; age-band survival/growth use shared light/site/browsing rules. ScenarioOneManager exact planted advancement uses the same biological response helpers and individual RNG. Neither directly reads these habitat-cover fields. Browsing's vegetation exposure is a future hook rather than established bramble concealment causality. Matched natural/planted runtime fixtures confirm this source-level gap for all three species.
 
 Research constraint: primary synthesis pp. 6–7 supports transferred English Q. robur survival direction/range under bramble/bracken and direct Irish long-term deer-exclosure vegetation release. Neither establishes a universal Sitka/Beech/Irish oak coefficient. Secondary understorey report distinguishes bracken/bramble/competitive graminoids from ordinary ferns/herbs/bilberry/moss/fungi; its proposed numbers remain calibration starting points. Candidate tests must retain these distinctions and disclose when existing proxies cannot identify a biological competitor.

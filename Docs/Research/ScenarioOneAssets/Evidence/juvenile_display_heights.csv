@@ -1,0 +1,6 @@
+adapter,species,recorded_height_m,rendered_bounds_height_m,root_scale_y
+natural,sitka-spruce,0.6,0.6,0.6
+natural,sessile-oak,0.6,0.6000327,0.6
+natural,beech,0.6,1.2,0.6
+planted,sessile-oak,0.6,0.6000001,0.5999674
+planted,beech,0.6,0.6,0.3

@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "seconds": 137.44,
+  "markers": [
+    "UNDERSTOREY_VISUAL_AUDIT_PASS sizes=3 stagedJuveniles=true stagedCover=true clearance=true"
+  ],
+  "status": "PASS"
+}

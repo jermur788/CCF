@@ -1,0 +1,9 @@
+# Simulation performance
+
+Measured in an isolated one-Editor run, workers=2, MemoryMax=8G. Synthetic 40×40 m stand, 64 cells, adult tree objects without meshes; 192 natural juvenile bands (3 species across64 cells) and30 exact planted individuals; actual growth1 annual advance plus planted advancement. Adults 336 / 1300 / 3000 / 5000 took approximately 61.8 / 334.7 / 889.7 / 1727.2 ms. These single-step timings include current production ecology; they are not replicated medians, realistic stand-density calibration or rendering frame rates.
+
+1000 passes of max(ferns,grasses,shrubs) over 64 cells took about 1.8–2.1 ms, or .0018–.0021 ms per pass. This merely checks the low cost of cell-local arithmetic, not a completed competition adapter including cohort iteration/ledger/random-survival and juvenile load. No new pairwise tree computation is proposed. A real candidate benchmark must retain representative juvenile bands/exact planted individuals and compare before/after annual distributions, including account/visual refresh costs.
+
+No rendering FPS/GPU profiler result was collected. High-poly broadleaf foliage, materials, transparency, shadows and accumulating deadwood are separately assessed in ScenarioOneAssets/PerformanceAssetAudit.md. Do not credit an art change as simulation optimisation or these synthetic timings as proof of adequate render performance.
+
+The loaded measurement was repeated after renaming synthetic children to the Trunk/Canopy names expected by Awake, removing setup-only log errors. Performance-only reporter initially expected the wrong terminal marker; its classification was corrected against exit0, both actual fixture/performance terminal markers, no compiler/fixture failure and no missing-trunk message. Evidence/performance_fixture_result.json records this correction explicitly. These corrections do not alter production.

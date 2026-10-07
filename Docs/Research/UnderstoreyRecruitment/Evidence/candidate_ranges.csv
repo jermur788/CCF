@@ -1,0 +1,16 @@
+process,strength,grade,min_existing_virtual_abundance,max_existing_virtual_abundance,scope
+establishment,0.15,C,1.0,1.0,relative response; no production light mortality or promotion
+establishment,0.35,C,1.0,1.0,relative response; no production light mortality or promotion
+establishment,0.6,C,1.0,1.0,relative response; no production light mortality or promotion
+establishment_growth,0.15,C,1.0,1.0,relative response; no production light mortality or promotion
+establishment_growth,0.35,C,1.0,1.0,relative response; no production light mortality or promotion
+establishment_growth,0.6,C,1.0,1.0,relative response; no production light mortality or promotion
+growth,0.15,C,1.0,1.0,relative response; no production light mortality or promotion
+growth,0.35,C,1.0,1.0,relative response; no production light mortality or promotion
+growth,0.6,C,1.0,1.0,relative response; no production light mortality or promotion
+survival,0.15,C,0.03875953108451435,0.24875438680096257,relative response; no production light mortality or promotion
+survival,0.35,C,0.00018124545836335,0.033007448729824584,relative response; no production light mortality or promotion
+survival,0.6,C,1.0995116277760014e-08,0.0019086383883196857,relative response; no production light mortality or promotion
+survival_growth,0.15,C,0.03875953108451435,0.24875438680096257,relative response; no production light mortality or promotion
+survival_growth,0.35,C,0.00018124545836335,0.033007448729824584,relative response; no production light mortality or promotion
+survival_growth,0.6,C,1.0995116277760014e-08,0.0019086383883196857,relative response; no production light mortality or promotion
