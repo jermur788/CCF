@@ -71,7 +71,7 @@ No simultaneous writes to one Unity worktree, broad gameplay refactor, frozen-st
 **FUNCTIONALLY COMPLETE; final presentation acceptance PASS (2026-10-04).** The functional and presentation baseline is integrated. Simulation follow-ups remain open (see below); this is not a permanent closure of Scenario 1 simulation work.
 
 Integrated on `main` and verified (see the Unity Project Overview, **Integrated Scenario 1**):
-- functional implementation, save schema v15 (v16 from D-047);
+- functional implementation, save schema v15 (v16 from D-047; v17 from D-048);
 - browsing default 0.2;
 - shelters;
 - contractor/landowner execution;
@@ -126,7 +126,36 @@ Open/deferred from this work:
 - understorey cover has no causal regeneration effect (future calibrated competition mechanism, separate from browsing);
 - the 0.01 establishment-response cut-off remains an existing calibration rule;
 - promotion remains an abstract band → individual handoff;
-- pre-existing harness failures (Clearance, MenuTutorial, Removal) reproduce identically on `402a2b4`, recorded separately.
+- harness red gates (Clearance, MenuTutorial, Removal) reproduced identically on `402a2b4`; reclassified in D-048 / pedagogy Workstream F as harness issues, not production failures (see Growth Model 1 below).
+
+## Growth Model 1 (2026-10-07)
+
+Integrated on main at `2cfbabc` (D-048), fast-forward from `3e4ee40`. Save schema v17.
+
+**New Scenario One model stack:** RNG model 1, regeneration model 1, growth model 1, save v17. Legacy saves keep their stored/versioned behaviours; Reference Future v1 stays frozen legacy behaviour (growth 0).
+
+**Growth model 1:**
+- **Site:** Irish site Class III; Sitka height follows the Class III site-potential curve. 20.4 m at age 30 is the published Irish anchor [A]; other ages are modelled curve values.
+- **Competition:** DBH and local Hegyi competition are unchanged. A separate British-Sitka SDI occupancy signal [B] drives self-thinning toward suppressed trees ([C] parameters).
+- **Deadwood:** self-thinning deaths become existing fallen deadwood.
+
+**Simulation validation outputs** (not empirical targets), unthinned: 1,706 / 900 / 538 / 344 / 256 stems/ha at ages 40 / 60 / 80 / 100 / 120; basal area 75.9 → 83.8 m²/ha; RD 0.83 → 0.97–0.99 (legacy growth: 416 m²/ha at 120).
+
+**Scenario 1 under the new stack:** completed in Year 25 with all 8 objectives; lowest cash €6,139.75. No economy or objective changes.
+
+**Harness gate status:**
+- **Removal:** stale harness contract (U now plans the accepted species-less area clearance). The corrected harness on `task/scenario-one-pedagogy-overnight` @ `60674f1` passes in batch on the integrated code.
+- **Clearance:** stale first-use-help assumption plus an interactive-input requirement. The corrected harness passes in an interactive Editor.
+- **MenuTutorial:** interactive-input requirement; passes in an interactive Editor.
+- The harness fixes are to be ported in the pedagogy P0 task. None is a production failure.
+
+**Open calibration items:**
+- realised top height 6–9 % below the Class III curve at older ages;
+- mortality onset/strength/exponent ([C]);
+- 0.5 stem form factor unvalidated;
+- Forest Yield cross-validation;
+- Irish maximum-density data;
+- recruit mortality pulses under a full canopy.
 
 ## Regeneration Bottlenecks v1
 

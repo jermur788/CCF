@@ -161,8 +161,27 @@ Verified at `4670e73` (isolated batch processes):
 - `RegenerationModelVerification`: 35/35 twice, with identical 100-year funnels. Exact recruited trees for unthinned / 20 % / 60 % removal are 20/33/75 at year 25, 30/49/94 at year 50 and 32/51/96 at year 100.
 - The legacy regeneration ledger (100 years, three treatments) is byte-identical to before (SHA-256 `71d61b94…`).
 - Completion (×2 model 1, plus RNG 0 / regen 0 and RNG 1 / regen 0), interaction, canonical lifecycle, juvenile foundation, Reference, RNG and RNG policy, browsing, save hardening, planting, CCF Beech/Oak/Oak-player/planting, pruning, deadwood, progress, economy (120) and viability (64), Stage 1 work economy, timber yield, batch recompute, ecology calibration and the integration harness: PASS.
-- ClearanceVerification, MenuTutorialVerification and ScenarioOneRemovalVerification fail identically on pre-merge `402a2b4` (pre-existing harness/batch-mode issues).
+- ClearanceVerification, MenuTutorialVerification and ScenarioOneRemovalVerification fail identically on pre-merge `402a2b4` in batch mode. Reclassified in D-048 as harness issues (stale contracts / interactive-input requirements), not production failures.
 - Under model 1, MixedSpeciesTest beech recruitment accumulates below threshold (accepted 0.0342, one crossing). It produces no trees, because of ledgered shade loss with zero structural extinction.
+
+**Growth model 1 (D-048, main `2cfbabc`, verified 2026-10-07).**
+- **Save:** v17 field `growthModel`: new Scenario One games 1; v1–16, a missing field and Reference Future v1 0.
+- **Implementation:** `SitkaGrowthModel.cs` (Class III curve: b0 34.362 from the 20.4 m age-30 anchor, b2 0.042, b3 1.563; Comeau 2010 RD; [C] mortality parameters); `ForestEcologyController` (Sitka relative-height step and `ApplyAdultDensityMortality`, batched, step 4b); `ScenarioOneManager.OnTreeBiologicalDeath` (one fallen-deadwood record per death); `ScenarioReferenceArchive.LegacyV16WorldHash` (v16 layout).
+- **Unchanged:** DBH, Hegyi, regeneration, browsing and economy.
+- **Replay switch:** `CCF_GROWTH_MODEL=0` replays legacy growth in the completion gate.
+
+| Anchor | New game (RNG 1, regen 1, growth 1) | RNG 1, regen 1, growth 0 | Legacy (0/0/0) | RNG 1, regen 0, growth 0 |
+|---|---|---|---|---|
+| Neutral lifecycle | `7E57B9DAEF5BF4D0` | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `35E2BF1C2F55C2DE` | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion | `D7C4DDD36B53FCCE` (Year 25; min cash 613,975) | `6F84AF319D301F87` (v16 layout) | `568922E1A6D73CDD` (v15 layout) | `00479F18970F9926` (v15 layout) |
+| Reference Future v1 Y100 / continuation | n/a | n/a | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` (v15 layout) | n/a |
+
+Verified at `2cfbabc` (isolated batch processes unless stated):
+- **New-model verification:** `SitkaGrowthModelVerification` 20/20; `RegenerationModelVerification` 35/35 with funnels byte-identical; growth-model-1 100-year runs identical to the source branch; the legacy regeneration ledger is byte-identical.
+- **Completion and lifecycle:** completion under four model stacks; interaction; canonical lifecycle; juvenile foundation; Reference; RNG and RNG policy.
+- **Gameplay and economy:** browsing; save hardening; planting; pruning; deadwood; progress; CCF Oak / Oak player / Beech / planting; batch recompute; Stage 1 work economy (420); timber yield (3,007); economy (120) and viability (64); ecology calibration; integration harness. All PASS.
+- **Red gates:** Removal fails with its stale harness and passes with the corrected harness (`60674f1`). Clearance and MenuTutorial pass in an interactive Editor with the corrected harnesses.
 
 Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each gate in its own process with an isolated `XDG_CONFIG_HOME`):
 
