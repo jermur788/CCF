@@ -6,7 +6,7 @@ AUDIT: ed960b7, accepted; historical evidence preserved.
 
 BRANCH: task/understorey-recruitment-causality.
 
-HEAD: final implementation/evidence commit and subsequent handoff tip recorded at delivery.
+HEAD: reviewed implementation/evidence commit b3bd5a3a51ad7dcae64f3aa4f4b799873d4d5218; subsequent handoff-only delivery tip reported in chat.
 
 PUSHED: audit checkpoint yes; continuation pushed after verified delivery commits (final tip in chat).
 
