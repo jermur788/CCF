@@ -10,7 +10,11 @@ From the published abstract:
 - the British Sitka slope of log N on log Dq is **−2.063**, steeper than Reineke's −1.605;
 - the maximum SDI is **1,868**.
 
-Site quality shifted the line's position slightly but not its slope (abstract, and the authors' conference summary). The full equation table was not accessible here. The intercept is therefore expressed through the published maximum SDI at the standard Reineke reference diameter of 25 cm; check this against the paper before integration.
+Site quality shifted the line's position slightly but not its slope (abstract, and the authors' conference summary).
+
+**Source verification (integration, 2026-10-07):** externally confirmed sufficiently to establish GB Sitka slope **−2.063**, GB Sitka maximum SDI **1,868**, and SDI reference **Dq = 25 cm** (`SDI = N/ha × (Dq/25)^2.063`; `RD = SDI/1868`).
+
+**Transfer warning (retained):** the paper explicitly reports regional differences in density–size relationships and recommends developing relationships for individual species and regions. 1,868 is a British value, not an Irish measured maximum; there is no direct Irish validation.
 
 Equation used (`SitkaGrowthModel.RelativeDensity`):
 

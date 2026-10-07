@@ -1,6 +1,6 @@
 # Proposed canonical decisions (for Manager integration)
 
-These are proposals only. `Docs/Project` is unchanged on this task branch; the integrator records accepted text and regenerates ProjectContext.
+Superseded by the accepted D-048 recorded at integration. These were proposals only. `Docs/Project` is unchanged on this task branch; the integrator records accepted text and regenerates ProjectContext.
 
 **D-048 (proposed) — Scenario One site and growth model 1.**
 - **Site:** Scenario One represents Irish Sitka site Class III (average; Lekwadi et al. 2012 age-30 top height 20.4 m), matching the authored starting stand (top height 14.63 m at age 20).

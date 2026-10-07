@@ -25,13 +25,15 @@ Not merged.
 
 **Height (Sitka only)** — `SitkaGrowthModel.SiteTopHeightM`, `NextHeight`:
 - **Envelope:** Lekwadi et al. (2012) Class III form `H = b0(1 − e^(−0.042 t))^1.563`, with b0 = **34.362** derived from the published age-30 anchor 20.4 m. The rounded paper b0 (34.228) is not used.
-- **Envelope values:** H20 14.21, H30 20.40, H40 24.89, H60 30.14, H80 32.51, H100 33.56 m.
+- **Evidence status:** 20.4 m at age 30 is the **direct published Irish Class III anchor [A]**. H20 14.21, H40 24.89, H60 30.14, H80 32.51 and H100 33.56 m are **modelled Class III curve values**, not independent measured Irish anchors.
 - **Individual trees** keep their relative height: `H ← H · E(age+1)/E(age)`. Suppressed trees stay shorter, there is no competition term, and thinning moves site top height only through which trees form the largest-DBH set.
 - **Other species** keep the legacy height law.
 
 **DBH:** unchanged. The Hegyi response `1/(1 + CI/Ci50)` remains the only DBH competition term, and density never enters DBH growth. Verified: identical per-tree DBH under growth 0 and 1 while no tree dies (fixture `DBH_UNCHANGED_BY_HEIGHT_MODEL`).
 
-**Density signal:** `RD = N/ha × (Dq/25)^2.063 / 1868`. This is the British Sitka maximum size–density line from Comeau et al. (2010) [B]; see AdultMortalityCalibration.md for the equation, units, source and transfer limitation.
+**Density signal:** `SDI = N/ha × (Dq/25)^2.063`, `RD = SDI/1868`. This is the British Sitka maximum size–density line from Comeau et al. (2010): slope −2.063, maximum SDI 1,868 and reference Dq 25 cm, all externally confirmed at integration [B]. It is British transfer evidence: the paper reports regional differences, and there is no Irish validation. See AdultMortalityCalibration.md.
+
+**Separation:** Hegyi measures local individual competition (the DBH response); SDI/RD measures stand occupancy (self-thinning pressure). The two are not merged.
 
 **Mortality** (`ForestEcologyController.ApplyAdultDensityMortality`, annual step 4b, after crowns, before canopy):
 1. Compute the stand RD and density pressure `P = max(0, (RD − 0.6)/0.4)` [C].
@@ -183,6 +185,10 @@ Synthetic stands sized to sit in the hazard zone (RD ≈ 0.9); mean annual step 
 - **Cost:** mostly per-death world work (deadwood record and log visual, marking handler), about 3 ms per death, against 13–25 ms in the unbatched prototype.
 - **Batching:** canopy and seed-rain rebuilds happen once per step.
 
+## Accepted status (integration, D-048)
+
+Accepted for model 1. The open calibration items below were recorded at integration and are **not** solved there.
+
 ## Known limitations / open
 
 - **Density relationship:** British, not Irish [B]. The intercept is via the published maximum SDI at Dq 25 cm; check against the full paper.
@@ -190,4 +196,6 @@ Synthetic stands sized to sit in the hazard zone (RD ≈ 0.9); mean annual step 
 - **Top height** drifts 6–9 % below the envelope after age 60 (dominance rule not implemented).
 - **Recruit pulses** promoted under a closed canopy at the line die quickly. Plausible, but it also reflects the promotion rule.
 - **Absolute volumes:** the 0.5 form factor is untested.
-- **Pre-existing failures:** Clearance, MenuTutorial and Removal.
+- **Recruit pulses:** newly promoted cohorts can die in concentrated pulses under a full canopy; a validation item for a later ecology review.
+- **Forest Yield cross-validation** remains desirable.
+- **Red gates reclassified (pedagogy Workstream F):** Removal is a stale harness contract; Clearance is a stale first-use-help assumption plus an interactive-input requirement; MenuTutorial is an interactive-input requirement. None is a production failure.
