@@ -155,7 +155,7 @@ public sealed class WorkPlanView
             long net = job.RevenueCents - job.CostCents;
             UiKit.Line(card, "Net for this job", UiKit.SignedMoney(net), net >= 0 ? "money" : "money-negative");
             if (costs.MinimumJobAdjustmentCents > 0)
-                UiKit.Add(card, "This visit is small, so the contractor's minimum charge dominates. Combining more trees into one visit spreads that cost.", "muted");
+                UiKit.Add(card, "The contractor's minimum charge dominates this visit. Grouping planned work into one visit spreads that cost, but felling extra trees only to cover it also removes growing stock you could keep.", "muted");
         }
         UiKit.Add(card, job.Eligible ? "Re-quoted and settled when the year is resolved." : "Cannot proceed: " + job.Problem, job.Eligible ? "faint" : "body");
         if (job.HasUnmarketedSpecies)
@@ -265,11 +265,11 @@ public sealed class WorkPlanView
         List<ScenarioOneWorkOrder> removal = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration)
             .OrderBy(o => o.workOrderId).ToList();
         if (removal.Count == 0) return;
-        VisualElement card = Card($"Vegetation clearance · {removal.Count} cell(s)", "Contractor clears competing vegetation in each marked area; standing trees remain.");
+        VisualElement card = Card($"Vegetation clearance · {removal.Count} cell(s)", "Contractor cuts back ground plants and any young trees in each marked area; standing trees remain and vegetation grows back later.");
         foreach (ScenarioOneWorkOrder order in removal)
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
-            UiKit.Add(row, $"{(string.IsNullOrEmpty(order.speciesId) ? "All competing vegetation" : ScenarioOneUiFacts.SpeciesName(order.speciesId))} · cell {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
+            UiKit.Add(row, $"{(string.IsNullOrEmpty(order.speciesId) ? "Ground plants and young trees" : ScenarioOneUiFacts.SpeciesName(order.speciesId))} · cell {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
                 + $"{ScenarioOneManager.FormatMinutes(order.estimatedMinutes)} · {UiKit.Money(order.estimatedCostCents)} · {Status(order)}", "body", "gap");
             AddRemove(m, row, order);
             Problem(card, order);

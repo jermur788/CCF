@@ -65,44 +65,50 @@ public sealed class MenuHelpView
     {
         switch (menu)
         {
-            case Menu.TreeInspection: return "Tree Inspection · understand one tree";
+            case Menu.TreeInspection: return "Tree Inspection · judge one tree and its neighbours";
             case Menu.StandMap: return "Stand Map · find where to look";
-            case Menu.WorkPlan: return "Work Plan · review and approve jobs";
-            case Menu.AnnualReview: return "Annual Review · learn from the year";
-            default: return "Walking HUD · your forest at a glance";
+            case Menu.WorkPlan: return "Work Plan · review how the work is done and what it costs";
+            case Menu.AnnualReview: return "Annual Review · what happened, and where to look next";
+            default: return "Your forest · continuous-cover forestry";
         }
     }
 
+    // Teaching copy only: it explains existing mechanics and must not claim an
+    // ecological effect the simulation does not model (D-020).
     public static string Explanation(Menu menu)
     {
         switch (menu)
         {
             case Menu.TreeInspection:
-                return "Inspect a tree with E to understand its size, growth, competition and management state. Use this before deciding which trees to favour or remove.\n\n"
-                    + "DBH is trunk diameter measured at breast height. Crown/light describes growing space and light; the light value here is measured at the tree's ground cell. Competition shows whether neighbours restrict growth.\n\n"
-                    + "A Crop Tree is selected to retain and favour for future development. A Fell mark proposes removal. X and C change these marks; they do not execute work. You choose the trees—this screen does not select a correct answer.\n\n"
-                    + "Close Help, then press E to close inspection and return to walking.";
+                return "Inspect a tree to judge its future, not just its size.\n\n"
+                    + "DBH is the trunk's diameter at breast height (1.3 m). The crown is the tree's living branches and leaves; the light value here is measured at the ground in the tree's cell. "
+                    + "Competition shows how strongly neighbours hold back this tree's growth: bigger, closer neighbours count most, small or distant ones count little.\n\n"
+                    + "Start with a tree worth keeping. Press C to make a healthy tree with room to grow a Crop Tree: a tree you deliberately keep and give space to develop. "
+                    + "Then inspect its neighbours to see which really compete with it. A tree being smaller or suppressed is not, on its own, a reason to remove it.\n\n"
+                    + "X proposes a tree for felling. Marks are proposals: nothing is cut until you approve work and advance a year. You choose the trees; this screen never picks a correct answer. Close Help, then E closes inspection.";
             case Menu.StandMap:
-                return "The Stand Map helps you find patterns across the forest that are difficult to see among the trees. Open it with M when looking for a site to inspect.\n\n"
-                    + "Use Light for darker/brighter areas, Regeneration for young growth, Browsing / protection for browsing and shelter conditions, and Fell & crop marks for your marked trees.\n\n"
-                    + "Select a cell, read its information, then choose Set Waypoint. Close the map with M, Esc or Back to forest. Follow the HUD direction and distance, then inspect the site directly before deciding what to do.\n\n"
-                    + "The map helps you find where to look. It cannot mark, clear, plant or approve work remotely, and it does not make the forestry decision for you.";
+                return "Use the Stand Map to find patterns that are hard to see while standing among the trees.\n\n"
+                    + "Choose a layer (Light, Regeneration, Browsing / protection, Fell & crop marks), select a cell and read its information. Then Set waypoint, close the map with M, Esc or Back to forest, and follow the HUD direction and distance.\n\n"
+                    + "When you arrive, inspect the actual trees and ground before deciding anything.\n\n"
+                    + "The map helps you find where to look. It cannot mark, clear, plant or approve work, and it does not make the forestry decision for you.";
             case Menu.WorkPlan:
-                return "The Work Plan turns decisions made in the forest into jobs you can review and approve. Open it with Tab after marking trees or planting/clearance sites.\n\n"
-                    + "Marked trees and tasks appear here. Review labour, material costs, cash after approved work and expected timber value. A contractor's minimum job charge can make a small harvest expensive. Some tasks let you choose contractor or landowner execution.\n\n"
-                    + "Review or remove jobs, choose available executors and purchase nursery stock here. Approve pending work commits the plan; Advance one year resolves approved jobs and forest change. Approval alone does not immediately change the forest.\n\n"
-                    + "Decide what should happen in the forest; review how it will happen and what it costs here. Use Tab or Back to forest to return.";
+                return "In the forest you decide what should happen: which trees to keep, which to fell, where to plant or clear. "
+                    + "The Work Plan reviews how that work will be carried out and what it will cost.\n\n"
+                    + "Check each job's labour, materials and timber income. A harvest visit always costs at least the contractor's minimum charge, so a small harvest can cost more than it earns. "
+                    + "Choose an executor where offered, buy nursery stock, and remove jobs you no longer want; add new jobs in the forest.\n\n"
+                    + "Approve pending work commits the plan. Advance one year carries it out and grows the forest; approval alone changes nothing. Tab or Back to forest returns you to the trees.";
             case Menu.AnnualReview:
-                return "After advancing time, the Annual Review shows what work happened and how the forest and finances changed. Read it before planning the next cycle.\n\n"
-                    + "WORK DONE: what did I do, and did any jobs fail?\nMONEY: what did it cost or earn, and what cash remains?\nFOREST: how did growth, light, regeneration and habitat respond?\n\n"
-                    + "Use these results to decide what to inspect next. This screen records outcomes; it does not choose or execute forestry work.\n\n"
-                    + "Close Help and read the three sections. After your first results, choose I've read the annual results to unlock further year advances. Use Esc or Walk the forest to return and inspect the changes; Open Work Plan returns to planning.";
+                return "The Annual Review records what actually happened this year. Read it as four questions:\n\n"
+                    + "WORK DONE: what work did I do, and did any job fail?\nMONEY: what did it cost or earn?\nFOREST: how did the forest change?\nNEXT: what should I go and inspect?\n\n"
+                    + "The figures point you to places; the forest itself is the evidence. Walk back to where you worked and look. "
+                    + "One thinning does not finish continuous-cover forestry: trees keep growing, openings close again, and you will reassess and act again in later years.\n\n"
+                    + "After your first results, choose I've read the annual results to unlock further years. Esc or Walk the forest returns you to the trees; Open Work Plan returns to planning.";
             default:
-                return "The HUD shows the current year, cash, objectives and information about the ground or tree you are looking at. Current objective progress appears in the status panel.\n\n"
-                    + "The forest is where you make management decisions. Look at ground to check light, regeneration and browsing conditions, or press E while looking at a tree to inspect it. Use these observations before marking work.\n\n"
-                    + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
-                    + "O opens Learning objectives: start with simple map steps, then revisit map layers and forestry lessons as you need them. Progress is remembered on this device, with no first-year deadline.\n\n"
-                    + "Close this introduction to walk. Esc releases the mouse; click to resume looking around. Press F1 any time to revisit this screen's help.";
+                return "You take over a Sitka spruce plantation planted 20 years ago. Your aim is continuous-cover forestry (CCF): managing the forest through repeated, selective work on individual trees, "
+                    + "while always keeping tree cover and letting new trees establish. CCF is a process, not one thinning and not one ideal shape of forest. Judge each decision by the forest you leave behind.\n\n"
+                    + "You make decisions here, in the forest. Look at the ground for light, young trees and browsing; press E on a tree to inspect it. Start with the trees you want to keep.\n\n"
+                    + "The status panel shows the year, cash and how many forest objectives are met. M opens the Stand Map, Tab the Work Plan, O your lessons. F5 saves and F9 loads.\n\n"
+                    + "Esc releases the mouse; click to look around again. Press F1 at any time to reopen this help.";
         }
     }
 }

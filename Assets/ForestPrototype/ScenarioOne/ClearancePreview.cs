@@ -9,7 +9,9 @@ public sealed class ClearancePreview : MonoBehaviour
     private readonly List<LineRenderer> lines = new List<LineRenderer>();
     public ClearanceTargets Targets { get; private set; }
     public bool Visible => root != null && root.activeSelf;
-    public string Label => Targets == null ? "" : "Clear competing vegetation · " + Targets.Footprint.SizeLabel + "\nAffected now: " + Targets.Summary;
+    // Names the young trees it would remove; makes no claim that clearing helps seedlings.
+    public string Label => Targets == null ? "" : "Clearance · " + Targets.Footprint.SizeLabel
+        + ": removes ground plants and young trees inside\nAffected now: " + Targets.Summary;
 
     public void Show(ClearanceTargets targets)
     {

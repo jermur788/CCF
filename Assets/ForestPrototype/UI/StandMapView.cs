@@ -209,7 +209,7 @@ public sealed class StandMapView
         {
             RegenerationDiagnosis empty = default;
             empty.Light = c.Light;
-            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(empty), "muted");
+            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(empty, eco, selectedCell), "muted");
         }
         foreach (RegenerationDiagnosis d in diagnoses.Take(6))
         {

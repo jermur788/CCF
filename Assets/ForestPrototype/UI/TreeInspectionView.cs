@@ -44,6 +44,8 @@ public sealed class TreeInspectionView
         else UiKit.Chip(marks, "No mark");
         string shelter = eco != null ? RegenerationDiagnostics.ShelterLabel(eco, tree.transform.position) : "";
         if (!string.IsNullOrEmpty(shelter)) UiKit.Chip(marks, shelter);
+        if (tree.IsCropTree && !tree.IsStump)
+            UiKit.Add(body, "Crop Tree: kept and given room to develop. Inspect its neighbours to see which really compete with it.", "muted");
 
         VisualElement grid = UiKit.Box("stat-grid");
         body.Add(grid);
@@ -82,7 +84,7 @@ public sealed class TreeInspectionView
                 UiKit.Add(body, line, "body");
             UiKit.Add(body, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
         }
-        UiKit.Add(body, tree.CanChop ? "[X] Fell   [C] Crop Tree   [Tab] Work Plan   [E] Close" : "[E] Close", "muted");
+        UiKit.Add(body, tree.CanChop ? "[C] Crop Tree   [X] Fell   [Tab] Work Plan   [E] Close   [F1] Help" : "[E] Close", "muted");
     }
 
     // Causal, non-prescriptive: names the limiting factor, not the remedy.

@@ -45,7 +45,7 @@ public sealed class ClearanceTargets
     public bool AlreadyTreated;
     // Cohorts are aggregate portions, not counted physical seedlings.
     public bool HasTargets => Cohorts.Count + Juveniles.Count + GroundPlants.Count + Understorey.Count > 0;
-    public string Summary => $"{Cohorts.Count} cohort{(Cohorts.Count == 1 ? "" : "s")} · {Juveniles.Count} sapling{(Juveniles.Count == 1 ? "" : "s")} · {GroundPlants.Count} ground patch{(GroundPlants.Count == 1 ? "" : "es")}";
+    public string Summary => $"{Cohorts.Count} young-tree group{(Cohorts.Count == 1 ? "" : "s")} · {Juveniles.Count} planted sapling{(Juveniles.Count == 1 ? "" : "s")} · {GroundPlants.Count} ground-plant patch{(GroundPlants.Count == 1 ? "" : "es")}";
 }
 
 public struct HabitatVegetationSite

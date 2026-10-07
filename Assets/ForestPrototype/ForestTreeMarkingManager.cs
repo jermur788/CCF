@@ -202,8 +202,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         markedCacheDirty = true;
         if (feedback)
         {
-            string label = type == TreeMarkType.CropTree ? "Crop Tree" : "harvest";
-            SetMessage($"Marked {tree.TreeId} as {label} ({MarkedIds.Count} marked)");
+            SetMessage(type == TreeMarkType.CropTree
+                ? $"{tree.TreeId} is now a Crop Tree. Inspect its neighbours to see what competes with it."
+                : $"Proposed {tree.TreeId} to fell ({MarkedIds.Count} proposed)");
         }
     }
 
@@ -421,8 +422,12 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             if (value > openingPeak)
                 openingPeak = value;
 
-        TreatmentOutcome = $"If felled now: keep {keepVolume:0.0} m3 · growth {(growthPercent >= 0f ? "+" : "")}{growthPercent:0}% · gap light {lightNow:0.00} → {lightAfter:0.00}"
-            + $" · wind peak {windPeak:0.0} ({eco.WindRiskBandLabel(windPeak)}) · opening {openingPeak:0.0} of {cap:0.#}";
+        // Information, not a recommendation. The growth figure is an average
+        // over every retained tree; release is local to each felled tree's
+        // neighbours, so the wording points the player back to their Crop Trees.
+        TreatmentOutcome = $"Estimate if these trees were felled (information, not advice): {keepVolume:0.0} m³ left standing · light in the opened cells {lightNow:0.00} → {lightAfter:0.00}"
+            + $" · opening {openingPeak:0.0} of {cap:0.#} · wind exposure peak {windPeak:0.0} ({eco.WindRiskBandLabel(windPeak)})"
+            + $"\nAverage growth of all retained trees {(growthPercent >= 0f ? "+" : "")}{growthPercent:0}%. Release is local: check your Crop Trees' own neighbours. Felling more is not automatically better; it also removes growing stock.";
     }
 
     private void SweepStaleMarks()
@@ -593,8 +598,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (aimedTree == null)
             return "";
         return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [X] Mark to Fell"
-            : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Retain as Crop Tree"
-            : "[X] Mark to Fell  |  [C] Retain as Crop Tree";
+            : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Keep as Crop Tree"
+            : "[C] Keep as Crop Tree  |  [X] Mark to Fell";
     }
 
     private void OnGUI()

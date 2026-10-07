@@ -167,7 +167,7 @@ public sealed class WalkingHudView
                     + ScenarioOneUiFacts.BrowseState(d, eco.Browsing.BackgroundPressure)
                 : $"Browsing: {band}";
             groundRegen.text = "Regeneration: " + ScenarioOneUiFacts.RegenerationSummary(eco, cell, m.PlantedJuveniles);
-            groundWhy.text = "Why: " + ScenarioOneUiFacts.Why(d);
+            groundWhy.text = "Why: " + ScenarioOneUiFacts.Why(d, eco, cell);
         }
 
         // One prompt: the player's action line, refined by the mark prompt.
@@ -190,7 +190,7 @@ public sealed class WalkingHudView
         if (marks != null)
         {
             markSummary.text = $"Marked: FELL {marks.LivingMarkedCount} (red)  ·  CROP TREE {marks.LivingCropTreeCount} (blue)  ·  "
-                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop  [G] Plant";
+                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [C] Crop  [X] Fell  [G] Plant";
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
         }

@@ -98,7 +98,7 @@ public sealed class AnnualReviewView
         }
         int pruned = done.Count(e => e.taskType == ScenarioWorkType.PruneTree);
         if (pruned > 0) UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
-        if (report.regenerationRemovalTasks > 0) UiKit.Add(c, $"{report.regenerationRemovalTasks} regeneration cohort(s) removed", "body");
+        if (report.regenerationRemovalTasks > 0) UiKit.Add(c, $"{report.regenerationRemovalTasks} clearance task(s) completed; young trees in those areas were removed", "body");
         if (felled + planted.Count + pruned + report.regenerationRemovalTasks == 0) UiKit.Add(c, "No work was resolved this year.", "body");
         var failed = resolved.Where(e => e.outcome != ScenarioManagementOutcome.Succeeded).ToList();
         UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
@@ -214,6 +214,9 @@ public sealed class AnnualReviewView
         UiKit.Add(card, $"OBJECTIVES {objectives.Count(o => o.achieved)} OF {objectives.Count}", "heading");
         foreach (ScenarioObjectiveResult o in objectives)
             UiKit.Add(card, $"{(o.achieved ? "✓ done" : "○ open")} · {o.displayName}: {o.currentValue:0.##} / {o.targetValue:0.##}", "body");
+        // Explains an existing objective; the objective itself is unchanged.
+        if (objectives.Any(o => o.objectiveId.StartsWith("introduced-") && !o.achieved))
+            UiKit.Add(card, "No oak or beech seed trees grow on this property, so planting is the only way these species can arrive.", "faint");
         UiKit.Add(card, m.Outcome == ScenarioOneOutcome.Completed ? $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear})."
             : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.TutorialHint, "muted");
         scroll.Add(card);

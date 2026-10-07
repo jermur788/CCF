@@ -23,6 +23,17 @@ public static class ScenarioOneUiFacts
         return Capitalise(BrowsingConditions.PressureBand(backgroundPressure)) + " browse risk — unprotected";
     }
 
+    // Seed-aware variant for a known cell: an empty cell that no seed reaches
+    // says so, because light is not the only reason nothing grows there.
+    public static string Why(RegenerationDiagnosis d, ForestEcologyController ecology, int cell)
+    {
+        if (!d.HasJuvenile && ecology != null && ecology.Cells != null && cell >= 0 && cell < ecology.Cells.Length
+            && !ecology.Cells[cell].SeedRainBySpecies.Values.Any(v => v > 0f))
+            return d.Light < 0.10f ? "No seed is reaching this spot yet, and it is too dark here for seedlings."
+                : "No seed is reaching this spot yet; seedlings need nearby seed-bearing trees.";
+        return Why(d);
+    }
+
     // One causal sentence; it explains the binding constraint, never prescribes an action.
     public static string Why(RegenerationDiagnosis d)
     {
