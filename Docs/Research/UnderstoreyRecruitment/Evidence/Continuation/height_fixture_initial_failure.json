@@ -1,0 +1,12 @@
+{
+  "gate": "JuvenileDisplayHeightVerification",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 43.37,
+  "mode": "batch",
+  "source_ref": "task-working-tree",
+  "source_sha256": "3689c3b883d869dd51099de7274ceeb902b231f266648e981756581fc59540f9",
+  "markers": [
+    "JUVENILE_DISPLAY_HEIGHT_VERIFY_FAIL System.InvalidOperationException: Sequence contains no matching element"
+  ]
+}

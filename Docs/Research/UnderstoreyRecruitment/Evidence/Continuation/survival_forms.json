@@ -1,0 +1,14 @@
+{
+  "rows": 1944,
+  "forms": [
+    "linear",
+    "saturating",
+    "threshold_saturation",
+    "type_weighted_saturation"
+  ],
+  "synthetic": true,
+  "stock_balance_tolerance": 1e-12,
+  "selected_for_next_trial": "linear",
+  "production_adoption": false,
+  "reason": "No empirical curve discriminator; linear has no shape or unequal-type coefficients. Unequal type weights change equal-cover responses but lack support."
+}

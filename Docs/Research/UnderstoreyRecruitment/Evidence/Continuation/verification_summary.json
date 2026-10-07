@@ -1,0 +1,21 @@
+{
+  "base_main": "a8596df9c52669a36709f09e85dfe6568640af49",
+  "audit": "ed960b7",
+  "production_controller_sha256": "6f3deef845697f299dac093d92fd3f1c2f750dd78409d764e5282be987387a52",
+  "unity": "6000.6.0f1",
+  "gates": 23,
+  "passed": 23,
+  "height_cases": 45,
+  "paired_cases": 30,
+  "max_height_or_pair_error_metres": 1.7000000007705296e-07,
+  "beech_06m": {
+    "species": "beech",
+    "authoritative_height_m": "0.6",
+    "refresh": "0",
+    "natural_world_height_m": "0.6",
+    "planted_world_height_m": "0.6"
+  },
+  "biology_modified": false,
+  "schema_modified": false,
+  "production_modification": "renderer height normalization only"
+}

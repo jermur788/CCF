@@ -1,3 +1,5 @@
+> Historical accepted audit handoff at ed960b7. For the manager continuation, use [ContinuationHandoff.md](ContinuationHandoff.md) and [ManagerContinuation.md](ManagerContinuation.md). The audit checkpoint has since been pushed; statements below describe the audit delivery time.
+
 # Understorey + recruitment causality handoff
 
 STATUS: **CALIBRATION READY — MODEL DECISION REQUIRED**. Production competition was not adopted. Asset readiness: **NEEDS TARGETED CREATION**, with reuse/correction first.

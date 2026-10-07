@@ -7,3 +7,13 @@ Conditional copy for AFTER a verified candidate lands: 'Dense competing vegetati
 Suggested existing diagnostic facts to extend later: competitor category LOW/MODERATE/HIGH; separate browse access; whether young trees are present in a clearance preview; recent treatment and recovery; species and actual juvenile height. Avoid unsupported precision. 'Competition' on adult inspection currently means adult-tree crowding, not this unimplemented juvenile ground-vegetation term. Map wording must distinguish those meanings.
 
 Learning objectives can use an observed contrast once the future candidate fixtures support it; do not require clearance everywhere, first-year completion, or a universal five-year repeat interval. Current HUD waypoint/map M bindings and tutorial ownership remain intact.
+
+## Manager continuation: exact conditional replacement
+
+Production remains model1, so retain current P1 survival/growth wording. Only after a verified model2 integration replace it with:
+
+“Dense bramble or bracken can reduce young-tree survival. Clearance can improve future survival where these competitors are limiting, but it also removes qualifying young trees inside the preview. Check the targets and cost before approving. Vegetation can return. Clearance does not create seed, improve light, prevent browsing, or directly increase height growth.”
+
+Model1/legacy teaching must retain: “Ground-cover removal does not directly improve young-tree survival or height growth in this model. It removes the qualifying vegetation and young trees shown in the preview.”
+
+Model2 behaviour proposal: teach inspection before treatment, distinguish bramble/bracken pressure from general habitat cover and adult-tree crowding, show vegetation loss separately from browse/light loss in diagnostic review, and allow deferred learning across years. No compulsory first-year clearance, blanket grass/fern removal, universal repeat interval or planting immunity. A shelter changes browse protection only. Copy is conditional; no UI or objective thresholds were edited.

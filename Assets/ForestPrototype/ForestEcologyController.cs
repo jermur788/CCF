@@ -277,7 +277,20 @@ public sealed class ForestEcologyController : MonoBehaviour
                     visual.name = $"{cohort.Species.DisplayName} seedling cell {i}";
                     seedlingVisuals[key] = visual;
                 }
-                float scale = Mathf.Clamp(cohort.Height, 0.15f, 3f);
+                float displayedHeight = Mathf.Clamp(cohort.Height, 0.15f, 3f);
+                // Prefab dimensions differ by species (Beech is natively 2 m).
+                // Measure at unit scale on each refresh so scaling never compounds.
+                visual.transform.localScale = Vector3.one;
+                Renderer[] renderers = visual.GetComponentsInChildren<Renderer>(true);
+                float minY = float.PositiveInfinity;
+                float maxY = float.NegativeInfinity;
+                foreach (Renderer renderer in renderers)
+                {
+                    minY = Mathf.Min(minY, renderer.bounds.min.y);
+                    maxY = Mathf.Max(maxY, renderer.bounds.max.y);
+                }
+                float nativeHeight = maxY - minY;
+                float scale = nativeHeight > 0.0001f ? displayedHeight / nativeHeight : displayedHeight;
                 visual.transform.localScale = Vector3.one * scale;
                 visual.transform.position = new Vector3(visual.transform.position.x, 0f, visual.transform.position.z);
             }
