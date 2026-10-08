@@ -87,7 +87,19 @@ Offline .NET timings, synthetic random stands (`offline-check-output.txt`; they 
 | `CropTreeCompetitorVerification` | **Unity interactive: NOT RUN** | Card fit and tags at 1280 / 1600 / 1920, with captures |
 | Regression (completion, lifecycle, Reference, Interaction, MenuTutorial, Clearance) | **NOT RUN** | Presentation-only change; must stay identical |
 
-### Commands when Unity is free (one Editor at a time)
+### Runner (preferred)
+
+`Tools/Verification/ScenarioOneCompletion/P2/run_p2_gates.py` refuses to start if any Unity Editor is running. It stages and always removes the harness, uses an isolated config (`Build/P2/config`) and an 8 GB memory cap, and runs batch ×2 and interactive ×1, comparing determinism hashes. It writes `Build/P2/results.json`. Then run the regression suite with the existing runner:
+
+```bash
+python3 Tools/Verification/ScenarioOneCompletion/P2/run_p2_gates.py
+```
+
+```bash
+python3 Tools/Verification/UnderstoreyRecruitment/run_regression.py
+```
+
+### Manual commands (equivalent; one Editor at a time)
 
 ```bash
 cp Tools/Verification/ScenarioOneCompletion/P2/CropTreeCompetitorVerification.cs Assets/ForestPrototype/
@@ -126,7 +138,12 @@ Expected tokens: `P2_RECONCILE_PASS`, `P2_SUPPRESSED_CASE_PASS`, `P2_RELEASE_PRE
 ## Overlaps
 
 - **Sol:** none. Sol's active work (storms worktree) owns ecology/save/manager. The storm packet locks `UI/*` and `ForestTreeMarkingManager` to the UI owner. The future storm UI (W5) will edit `TreeInspectionView` after this.
-- **P1 copy branch (`1a36ea9`, not on main):** it edits `TreeInspectionView` (footer, Crop Tree line), `WalkingHudView`, `MenuHelpView` (Tree Inspection text) and the marking manager's forecast string. Expect textual conflicts in those files when P1 is integrated. Resolve in favour of P1's wording plus this packet's sections.
+- **P1 copy branch (`1a36ea9`, not on main) — not integrated here, by instruction.** `git merge-tree` (P2 HEAD × P1) reports one textual conflict: **`MenuHelpView`** (both rewrite the Tree Inspection paragraph). `TreeInspectionView` and `WalkingHudView` auto-merge, but semantically:
+  - P1 adds a Crop Tree line ("Inspect its neighbours to see which really compete with it."). It would sit above P2's section lead and duplicate it. On a P2 Crop Tree card, drop P1's line or merge it into P2's lead.
+  - P1 reorders the footer (`[C] Crop Tree [X] Fell … [F1] Help`). P2's Crop Tree branch returns early with its own footer. Apply P1's order and `[F1] Help` to the P2 footer too.
+  - P1 reorders the marking-summary keys in `WalkingHudView` (no interaction with the forecast panel). P1 changes the forecast *string* in `ForestTreeMarkingManager` (untouched by P2). The two lines share the new panel.
+  - `MenuHelpView`: keep P1's positive-selection paragraph, then add P2's core message and the keys 1–5 sentence once (avoid repeating "start with a tree worth keeping").
+  - Resolve deliberately during P1-INT against final main + P2, then re-run P1's copy gate and this gate.
 
 ## Known limitations
 
