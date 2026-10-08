@@ -1,0 +1,23 @@
+GAME_ASSEMBLY_OK errors=0
+CHECK_ASSEMBLY_OK errors=0
+PASS A-no-work trees 336 BA 41.098 vol 39.867 crop 16/16 seed 0
+PASS B-light-distributed-reconciles-with-unity-T4 trees 336->321 BA 41.10->38.56 vol 37.12
+PASS B-light-distributed-pattern-T4 SpreadOut agreement 81/81 cells 14 largest 1 (25 m², 16%)
+PASS C-heavier-reconciles-with-unity-T3 trees 336->249 BA 41.10->28.03 vol 26.35
+PASS C-heavier-pattern-T3 SeveralOpenings agreement 81/81 cells 33 largest 7 (175 m², 22%)
+PASS D-same-volume-concentrated-reconciles-with-unity-T5 trees 336->288 BA 41.10->35.56 vol 34.65
+PASS D-same-volume-concentrated-pattern-T5 OneConcentratedOpening agreement 81/81 cells 11 largest 10 (250 m², 99%)
+PASS D-reference-release-reconciles-with-unity-T2 trees 336->306 BA 41.10->36.23 vol 34.68
+PASS D-reference-release-pattern-T2 NoLabel agreement 54/81 cells 23 largest 1 (25 m², 8%)
+PASS extra-clean-up-reconciles-with-unity-T1 trees 336->252 BA 41.10->34.81 vol 34.96
+PASS extra-clean-up-pattern-T1 NoLabel agreement 72/81 cells 39 largest 2 (50 m², 11%)
+PASS no-double-counting 
+PASS deterministic 
+PASS G-adequate-cash Comfortable expected 953400 headroom 703400
+PASS H-crosses-dead-end PendingCrossesMinimum expected 15000
+PASS I-revenue-avoids-false-warning Comfortable expected 360000
+PASS approved-crosses ApprovedCrossesMinimum
+PASS below-minimum-now BelowMinimumNow
+PASS approved-harvest-revenue-counts Comfortable
+PASS no-warning-without-cause Comfortable
+P3_OFFLINE_PASS

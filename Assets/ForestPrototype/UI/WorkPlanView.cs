@@ -71,6 +71,7 @@ public sealed class WorkPlanView
             + $"cash after approved work {UiKit.Money(m.CashCents - m.ReservedContractorCashCents)}";
 
         scroll.Clear();
+        WorkPlanOverview.Build(scroll, ui);
         BuildHarvest(m);
         BuildPlanting(m);
         BuildPruning(m);
