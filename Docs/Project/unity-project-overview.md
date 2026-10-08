@@ -298,3 +298,18 @@ Source `902903f`; implementation/evidence `49b01d8fc90ea0779ebfdc61a5a421af718da
 - Preserved model2 start/year1/completion: `FA855239CDDA32D8`, `02334804F65C0234`, `702766DECE591E21`. Historical model1 completion v17 layout `D7C4DDD36B53FCCE`; canonical and immutable Reference anchors retained.
 
 The original39 paid century simulations and measured storage/timing are preserved as reviewed source evidence; the clean integration reproduces critical checks, complete regression, state and performance, plus actual rendered model-aware pedagogy. See the integration handoff for exact results and limits; no clearance profit or universal treatment schedule is claimed.
+
+## Integrated dormant StormModel 1 (2026-10-08, D-050)
+
+Manager-approved source `857150b2f20afa52d7b36be88a835f07a4ee5a51` is integrated as the complete fast-forward from main `1fbefd8a40c69dd90abb83f2149e24b546a184cf` in `/media/jer/ZX20/CCF-integration-model2`, branch `integration/storms-windthrow`. Gameplay production bytes remain identical to the approved source. Exact publication/canonical/context revisions and reproduced verification are in `Docs/Verification/StormsWindthrowIntegration/IntegrationHandoff.md`.
+
+- Save 19; new Scenario One RNG 1/regeneration 2/growth 1/storm 0. Missing/historical saves and Reference Future v1 stay storms-off; no event history exists under StormModel 0.
+- Frozen StormModel 1 profile: annual .02; severity .02/.06/.18; equal weights; ReducedProposal; BoundedRational; neutral site/external edge. All are [C] gameplay calibration. The historical `ComparisonDefault` method name does not authorize silent recalibration under the same version.
+- Exactly root stormModel and event year/severity/directionDegrees/cropTreesLost are added. Death/deadwood/work records remain authoritative; no duplicate victims, fall bearings, thinning history, salvage history or calibration profile is persisted.
+- One uprooted/fallen outcome removes live stock, records cause/year, creates one deadwood record, updates existing recentOpening and batches canopy/seed rebuilds. Changed light/understorey feeds ordinary Model2 survival/recruitment.
+- Leave deadwood is default. Individual X-selection permits partial Sell/Keep through existing grouped harvest settlement and minimum; work multiplier 1.00, prices unchanged. Save/load and zero-volume extraction avoid duplicate salvage or material/crown resurrection.
+- Existing qualitative Stable/Watch/Exposed causal feedback, storms-off explanation, fallen-stem prompt, Work Plan salvage, Annual Review and walking/map waypoint remain. No exact player-facing hazard percentages or new lesson objectives.
+- Original root/log assets and a bounded rotated-crown prototype remain. 20 crowns within 35 m; existing LODs. This is not final art or performance acceptance.
+- Compatibility: v18 start FA855239CDDA32D8; altered-site fixture year1 02334804F65C0234; completion 702766DECE591E21. The original altered-site fixture leaves SiteProductivity0; independent clean year1 is 8333BAA4126E8A09. Legacy Model1 v17 completion D7C4DDD36B53FCCE and Reference 7AD177B3CC2F73C7 / 9CDF21A541C5968D remain unchanged. Full modern hashes include schema19.
+
+Current Editor-only performance is sufficient for dormant integration, not default activation or a Player-FPS claim. Before activation require standalone Player, developed/century and combined deadwood/windthrow profiling, plus acceptable crown/root behaviour. Bespoke art, optimisation, final activation decision, full lessons, surrounding directional exposure and snapped/snags remain separate scope. Future material Model1 recalibration needs a new storm version or approved persisted-profile architecture.

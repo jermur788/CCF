@@ -100,7 +100,7 @@ Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
 - deer fencing as a production feature;
 - production understorey ecology;
 - vegetation-control simulation expansion;
-- storms/windthrow;
+- enabling storms for new Scenario One games (dormant core accepted in D-050);
 - adult suppression mortality;
 - browse-history/form-damage persistence;
 - fence deterioration;
@@ -171,3 +171,15 @@ The accepted Scenario One model2 v1 definition is integrated in the clean ZX20 i
 Clearance has useful, wasted and harmful outcomes, costs real cash and can remove existing juveniles. Do not make it compulsory or teach a repeat interval. The learning-panel copy follows the active saved model, preserving legacy truth. Biological heights are unchanged; the Beech renderer fix is retained.
 
 Open calibration/playtest items: botanical type differences, bramble concealment, competitive graminoids, source/neighbor spread, stronger site/moisture calibration, target generalization beyond Scenario One, visual recognition and human clearance decisions. These do not block this accepted v1 integration. See `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` for exact commits/gates and publication state. Dirty `/home/jer/CCF-main` is preserved. Drive and platform-attachment publication remain pending.
+
+## Storms & Windthrow Model 1 — dormant integration (2026-10-08)
+
+Manager approved source `857150b2f20afa52d7b36be88a835f07a4ee5a51` on current main `1fbefd8a40c69dd90abb83f2149e24b546a184cf`; the complete two-commit branch was fast-forwarded into the clean ZX20 integration checkout and verified. Save 19; new-game RNG 1/regeneration 2/growth 1/storm 0. Existing/missing-field saves and frozen Reference stay storm 0. D-050 fixes the accepted Model1 profile and schema; no activation/default change is implied.
+
+Model1 supports one fallen/uprooted outcome, deterministic mortality/deadwood/opening, optional partial salvage through the existing work/economy path and shared Model2 causality. Existing causal inspection, salvage/work plan and disturbance-review UI is retained; no new tutorial objectives are introduced.
+
+The profile (.02 occurrence; .02/.06/.18 uniform severity; ReducedProposal; BoundedRational; neutral site/external edge) is frozen gameplay calibration [C]. Future material changes need StormModel 2 or an approved persisted-profile/version architecture.
+
+Open follow-ups: crown/root visual quality, combined developed/century deadwood and windthrow rendering, standalone Player profiling, final storm activation policy, full lesson/progression, directional outside-landscape exposure and snapped stems/snags. Current Editor measurements permit dormant integration only. Before default activation require standalone/developed/century/combined profiling and acceptable crown/root behaviour; no retrospective FPS target is introduced.
+
+Claude P2/P3 work touching TreeInspectionView, WorkPlanView, AnnualReviewView, ScenarioOneUiRoot or StandMapView must rebase/port onto the newly published main before final verification; conflicts are outside this integration. Exact source, regression, compatibility, context/publication and follow-up identities are in `Docs/Verification/StormsWindthrowIntegration/IntegrationHandoff.md`. Dirty `/home/jer/CCF-main` remains preserved.

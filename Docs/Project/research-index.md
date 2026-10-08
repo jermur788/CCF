@@ -50,3 +50,9 @@ Use the dedicated browsing/understorey reports for those systems where they supe
 ## Understorey Model2 v1 (D-049)
 
 `Docs/Research/UnderstoreyRecruitment/Model2Trial.md`, `Model2Handoff.md` and `Evidence/Model2/` retain the original calibration/paid-management evidence; `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` records the accepted clean integration. Field evidence supports plausible competition, while transfer to shared Sitka/Oak/Beech coefficients remains a deliberate abstraction. Initial/target/recovery values are accepted [C/I/D], not measured botanical rates. Do not generalize the tree site-productivity/soil-stability coupling beyond Scenario One without reassessment.
+
+## Storms & Windthrow Model 1 (D-050)
+
+`Docs/Research/WindthrowV1/` retains the readiness hypotheses, vulnerability/transform comparisons, forced and 144-world 25/50/100-year matrices, salvage calibration, save audit, rendered/performance evidence and asset/UI follow-ups. Manager accepted dormant Model1 integration from 857150b on 8 October 2026; post-integration reproduction is in `Docs/Verification/StormsWindthrowIntegration/`.
+
+Annual 2%, severity .02/.06/.18 uniform, ReducedProposal and BoundedRational are frozen [C] gameplay calibration, not measured Irish probabilities or engineering wind-risk constants. New Scenario One still uses storm 0. Evidence supports bounded causal trade-offs for the recorded fixtures/policy/seeds, not a universal win rate, optimum prescription or century ecosystem-health guarantee. Crown/root quality, combined rendering and standalone Player acceptance remain open. Material recalibration requires StormModel 2 or separately approved persisted-profile/version architecture.
