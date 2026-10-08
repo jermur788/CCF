@@ -48,7 +48,7 @@ At main baseline `0fc92ca…`, `Docs/Project/`, root AGENTS/CLAUDE and `Tools/Pr
 
 The migration was implemented on `task/project-context-migration` (tip `42db4e9`, based on the baseline SHA). It changes documentation/agent entry points and the stdlib Python generator only.
 
-Later state (verified 2026-10-04): `42db4e9` is an ancestor of `main`, so the migrated context, entry points and generator are integrated. The generator has been run from clean context commits on `main` (outputs in ignored `Build/ProjectContext/`). Remaining setup-milestone gates (worker Unity smoke runs, permanent Drive publication, project attachment refresh) are tracked in the Current Milestone.
+Later state (verified 2026-10-08): `42db4e9` is an ancestor of `main`, so the migrated context, entry points and generator are integrated. The generator has been run from clean context commits on `main` (outputs in ignored `Build/ProjectContext/`). After StormModel1 integration, all 15 permanent Drive mirror/composite files were refreshed and read back byte-for-byte at context `58d6b0b483198abcf0208713d9a759f89d90e318`; Game Dev instructions were saved/reopened against that composite and seven stamped canonical/manifest attachments were refreshed. The separate worker-worktree Unity smoke gates remain open; see Current Milestone.
 
 ## Shared VS Code settings
 
@@ -73,13 +73,13 @@ Most code is in `Assets/ForestPrototype/`:
 | Exact planting | Scenario One individual juveniles until promotion |
 | Management | ScenarioOneManager: work, economy/history, nursery/planting, treatment patches, retained timber, reference and Work Plan |
 | Save/load | ForestSaveController / ForestSaveData |
-| Understorey | Provisional functional-group state, not researched causal v1 |
+| Understorey | Scenario One Regeneration Model 2 stores independent bramble/bracken cover and applies shared juvenile-survival loss; other habitat cover remains non-causal |
 | Habitat/audio | Derived from ecology/understorey/deadwood/juveniles |
 | Art | Editor material/LOD/prefab/review-scene tooling |
 
 ## Save and interactions
 
-Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated schema: `ForestSaveData.CurrentVersion = 18` (Model2 competitor fields, below; the historical Scenario 1 v15 execution/protection/economy fields remain); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v14 saves restore; atomic save hardening is in place.
+Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated schema: `ForestSaveData.CurrentVersion = 19`; new Scenario One games use RNG model 1, regeneration model 2, growth model 1 and storm model 0. StormModel1 exists but is dormant by default. The schema includes the Model2 competitor fields and the D-050 storm fields; the historical Scenario 1 v15 execution/protection/economy fields remain. Definition: `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v18 saves restore; atomic save hardening is in place.
 
 V13 includes two-type marks, exact juveniles, clearance patches, retained construction timber, management/economy/history, understorey, deadwood, work orders and pruning history.
 
@@ -103,7 +103,7 @@ Felling outcomes: SellAndExtract, RetainAsFallenDeadwood, KeepForUse. Constructi
 12. Opening decay.
 13. Diagnostics.
 
-At the Revision 5 baseline, browsing and researched three-group causal Understorey v1 were not authoritative systems. Browsing & Protection v1 is now integrated (see **Integrated Scenario 1**); causal Understorey v1 is still not authoritative.
+At the Revision 5 baseline, browsing and researched three-group causal Understorey v1 were not authoritative systems. Browsing & Protection v1 is now integrated (see **Integrated Scenario 1**). Current Scenario One Regeneration Model 2 has independent bramble/bracken competitor state that causes juvenile survival loss. Other habitat cover remains non-causal; graminoids, concealment and richer botanical differences remain unimplemented.
 
 ## Reference Future v1
 

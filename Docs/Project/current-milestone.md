@@ -26,7 +26,7 @@ Create one reliable context and safe workflow for ChatGPT, OpenAI/OpenCode, Clau
 12. Record verified local paths, branches, HEADs and commands in Overview.
 13. Commit canonical sources on a clean setup task branch, run the real generator at that full context SHA, then review actual composites/manifest before integrating to main.
 
-The repository migration/generator slice is integrated in `main` (verified 2026-10-04). Worktree Unity smoke runs, permanent Drive publication and project attachment refresh remain separately assigned milestone gates.
+The repository migration/generator slice is integrated in `main` (verified 2026-10-04). Permanent Drive mirrors/composites and the ChatGPT Game Dev project instructions/attachments were refreshed and read back after Storm integration at context `58d6b0b483198abcf0208713d9a759f89d90e318`. This consistency cleanup supersedes that snapshot and republishes the corrected context. Independent Unity smoke runs in the worker worktrees remain open; these publication steps do not complete them.
 
 ## Existing technical stack (frozen during setup; now integrated)
 
@@ -51,7 +51,7 @@ Status (2026-10-02): resolved by D-039. The stack is in `main` via merge `8ae7a2
 - Committed generator refuses dirty/untracked sources, uses full context SHAs, writes hashes/mirrors and reproduces both composites deterministically from committed sources.
 - Valid legacy instructions are ported before retirement.
 - Shared VS Code settings unchanged.
-- Drive mirrors/composites match one context commit and stamps; platform project copies refreshed, with AgentWorkflow directly available.
+- Permanent Drive mirrors/composites match the refreshed context commit and stamps; ChatGPT Game Dev instructions and stamped canonical attachments have been refreshed, with AgentWorkflow directly available.
 - Stale review copies archived.
 - Distinct OpenAI/Claude worktrees and separate Libraries; worker smoke gates pass.
 - No temporary verification script or generated `.meta` remains in Assets.
@@ -98,7 +98,7 @@ Outstanding simulation decision: the post-Scenario-1 readiness study (`task/post
 
 Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
 - deer fencing as a production feature;
-- production understorey ecology;
+- richer production understorey beyond the accepted Scenario One Model 2 bramble/bracken juvenile-survival competition;
 - vegetation-control simulation expansion;
 - enabling storms for new Scenario One games (dormant core accepted in D-050);
 - adult suppression mortality;
@@ -159,18 +159,18 @@ Integrated on main at `2cfbabc` (D-048), fast-forward from `3e4ee40`. Save schem
 
 ## Regeneration Bottlenecks v1
 
-Browsing & Protection v1 (shared browsing response, accepted shelter protection, deterministic restore) shipped as part of Scenario 1. The other candidate elements remain queued direction, not active, and each needs its own accepted packet:
-- causal understorey;
+Browsing & Protection v1 (shared browsing response, accepted shelter protection, deterministic restore) shipped as part of Scenario 1. Scenario One Regeneration Model 2 now supplies the accepted bramble/bracken juvenile-survival competition (D-049); the other candidate elements remain queued direction, not active, and each needs its own accepted packet:
+- richer understorey beyond the accepted Scenario One Model 2 bramble/bracken juvenile-survival competition;
 - competition/concealment;
 - spot control/regrowth.
 
 ## Regeneration Model 2 (2026-10-08)
 
-The accepted Scenario One model2 v1 definition is integrated in the clean ZX20 integration checkout from current origin/main `a8596df`, using source `902903f`. Save18, new-game regeneration2; v17 regeneration1 and Reference0 unchanged. Independent competitor state applies shared linear juvenile-survival pressure, with separately accounted vegetation/light/browse loss. The accepted values and evidence grades are D-049; they are gameplay abstractions, not measured Irish constants.
+The accepted Scenario One Model 2 v1 definition (D-049) is part of current main `89a5f34d8ab54d51daaebf84ed55a5397ac07406`. Current Save 19 adds the dormant D-050 storm fields; new games use RNG 1/regeneration 2/growth 1/storm 0. Independent bramble/bracken competitor state applies shared linear juvenile-survival pressure, with separately accounted vegetation/light/browse loss. The accepted values and evidence grades are D-049; they are gameplay abstractions, not measured Irish constants.
 
 Clearance has useful, wasted and harmful outcomes, costs real cash and can remove existing juveniles. Do not make it compulsory or teach a repeat interval. The learning-panel copy follows the active saved model, preserving legacy truth. Biological heights are unchanged; the Beech renderer fix is retained.
 
-Open calibration/playtest items: botanical type differences, bramble concealment, competitive graminoids, source/neighbor spread, stronger site/moisture calibration, target generalization beyond Scenario One, visual recognition and human clearance decisions. These do not block this accepted v1 integration. See `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` for exact commits/gates and publication state. Dirty `/home/jer/CCF-main` is preserved. Drive and platform-attachment publication remain pending.
+Open calibration/playtest items: botanical type differences, bramble concealment, competitive graminoids, source/neighbor spread, stronger site/moisture calibration, target generalization beyond Scenario One, visual recognition and human clearance decisions. These do not block this accepted v1 integration. See `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` for its original verification. After Storm integration, D-050, Drive mirrors and Game Dev project instructions/attachments were republished at context `58d6b0b483198abcf0208713d9a759f89d90e318`; worker-worktree smoke gates remain open.
 
 ## Storms & Windthrow Model 1 — dormant integration (2026-10-08)
 
