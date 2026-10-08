@@ -75,6 +75,9 @@ public sealed class CompetitorAssessment
     }
 
     // Labels follow the camera, so they are placed after it has moved.
+    // Panels a label must not be drawn underneath (set by the UI root).
+    public readonly List<VisualElement> OccludingPanels = new List<VisualElement>();
+
     public void LateUpdate(ForestTree inspected)
     {
         bool assessing = ShowWorldMarkers && inspected != null && inspected.IsCropTree && Report != null && ReportTree == inspected;
@@ -95,6 +98,10 @@ public sealed class CompetitorAssessment
                     Vector2 point = RuntimePanelUtils.CameraTransformWorldToPanel(panel, world, camera);
                     labels[i].style.left = point.x - 12f;
                     labels[i].style.top = point.y - 12f;
+                    // A label under the card or side panel would show through it; turn to see that tree.
+                    foreach (VisualElement occluder in OccludingPanels)
+                        if (occluder != null && occluder.resolvedStyle.display == DisplayStyle.Flex && occluder.worldBound.Contains(point))
+                            visible = false;
                 }
             }
             labels[i].style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;

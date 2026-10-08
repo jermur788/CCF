@@ -10,7 +10,13 @@ public sealed class TreeInspectionView
 {
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
+    // Crop Tree competitor assessment, shown beside the card (right of the
+    // screen, under the status panel) so neither panel has to scroll and the
+    // centre of the view stays clear for aiming at the listed neighbours.
+    public VisualElement CompetitorPanel { get; }
+    public bool ShowsCompetitors { get; private set; }
     private readonly VisualElement body;
+    private readonly VisualElement competitorBody;
     private string shownKey = "";
 
     public TreeInspectionView(ScenarioOneUiRoot ui)
@@ -20,6 +26,17 @@ public sealed class TreeInspectionView
         Root.pickingMode = PickingMode.Ignore;
         body = new VisualElement();
         Root.Add(body);
+
+        CompetitorPanel = UiKit.Box("panel", "competitor-panel");
+        CompetitorPanel.name = "competitor-panel";
+        CompetitorPanel.pickingMode = PickingMode.Ignore;
+        CompetitorPanel.style.display = DisplayStyle.None;
+        CompetitorPanel.style.position = Position.Absolute;
+        CompetitorPanel.style.right = 14;
+        CompetitorPanel.style.top = 250;
+        CompetitorPanel.style.width = 440;
+        competitorBody = new VisualElement();
+        CompetitorPanel.Add(competitorBody);
     }
 
     public void Refresh(ForestTree tree)
@@ -34,10 +51,12 @@ public sealed class TreeInspectionView
             return;
         shownKey = key;
         body.Clear();
+        competitorBody.Clear();
         CropTreeCompetitionReport report = competitors != null && competitors.ReportTree == tree ? competitors.Report : null;
         bool assessing = tree.IsCropTree && !tree.IsStump && report != null;
-        // The competitor table needs a little more width than the standard card.
-        Root.style.width = assessing ? new StyleLength(440f) : new StyleLength(StyleKeyword.Null);
+        ShowsCompetitors = assessing;
+        if (assessing)
+            BuildCompetitors(report, competitors);
 
         string species = tree.Species != null ? tree.Species.DisplayName : "Unknown species";
         UiKit.Add(body, $"{species} · {tree.TreeId}", "title");
@@ -55,8 +74,7 @@ public sealed class TreeInspectionView
         body.Add(grid);
         UiKit.Stat(grid, "DBH", UiKit.F(tree.Diameter, "0.0") + " cm");
         UiKit.Stat(grid, "Height", UiKit.F(tree.Height, "0.0") + " m");
-        if (!assessing)
-            UiKit.Stat(grid, "Stem volume", UiKit.F(tree.BiologicalStemVolumeM3, "0.000") + " m³");
+        UiKit.Stat(grid, "Stem volume", UiKit.F(tree.BiologicalStemVolumeM3, "0.000") + " m³");
         UiKit.Stat(grid, "Age", tree.AgeYears + " yr");
         if (!tree.IsStump && eco != null)
         {
@@ -85,8 +103,8 @@ public sealed class TreeInspectionView
 
         if (assessing)
         {
-            BuildCompetitors(report, competitors);
-            UiKit.Add(body, "[1–5] Show in forest   [X] Fell   [C] Crop Tree   [E] Close", "muted");
+            // A kept tree needs no felling estimate; its competitors are listed in the side panel.
+            UiKit.Add(body, "Competitors are listed on the right.   [1–5] Show in forest   [X] Fell   [C] Crop Tree   [E] Close", "muted");
             return;
         }
         if (!tree.IsStump && report != null && tree.IsLiving)
@@ -107,9 +125,9 @@ public sealed class TreeInspectionView
     // the player's own Fell marks. Describes contribution; never names a tree to fell.
     private void BuildCompetitors(CropTreeCompetitionReport report, CompetitorAssessment competitors)
     {
-        UiKit.Add(body, "Competitors of this Crop Tree", "heading");
-        UiKit.Add(body, "Nearby trees that reduce its growing space. Being small or suppressed does not by itself make a tree a problem.", "muted");
-        UiKit.Add(body, CropTreeCompetition.DistributionSentence(report), "body");
+        UiKit.Add(competitorBody, "Competitors of this Crop Tree", "heading");
+        UiKit.Add(competitorBody, "Nearby trees that reduce its growing space. Being small or suppressed does not by itself make a tree a problem.", "muted");
+        UiKit.Add(competitorBody, CropTreeCompetition.DistributionSentence(report), "body");
         int listed = competitors.ListedCount;
         if (listed > 0)
         {
@@ -118,7 +136,7 @@ public sealed class TreeInspectionView
             head.Add(UiKit.Text("DBH", "competitor-num", "faint"));
             head.Add(UiKit.Text("Distance", "competitor-num", "faint"));
             head.Add(UiKit.Text("Share of competition", "competitor-share", "faint"));
-            body.Add(head);
+            competitorBody.Add(head);
         }
         var alsoNear = new List<string>();
         for (int i = 0; i < listed; i++)
@@ -132,29 +150,29 @@ public sealed class TreeInspectionView
             row.Add(UiKit.Text(UiKit.F(entry.DbhCm, "0.0") + " cm", "competitor-num", "body"));
             row.Add(UiKit.Text(UiKit.F(entry.DistanceM, "0.0") + " m", "competitor-num", "body"));
             row.Add(UiKit.Text(Percent(entry.Share) + "  " + CropTreeCompetition.StrengthLabel(entry.Strength), "competitor-share", "body"));
-            body.Add(row);
+            competitorBody.Add(row);
             if (entry.OtherCropTreesNearby > 0)
                 alsoNear.Add($"#{i + 1} ({entry.OtherCropTreesNearby})");
         }
         if (report.NeighbourCount > listed)
-            UiKit.Line(body, $"{report.NeighbourCount - listed} other nearby trees together", Percent(1f - report.ShareOfFirst(listed)), "body");
+            UiKit.Line(competitorBody, $"{report.NeighbourCount - listed} other nearby trees together", Percent(1f - report.ShareOfFirst(listed)), "body");
         if (alsoNear.Count > 0)
-            UiKit.Add(body, "Also within 8 m of other Crop Trees: " + string.Join(", ", alsoNear), "muted");
+            UiKit.Add(competitorBody, "Also within 8 m of other Crop Trees: " + string.Join(", ", alsoNear), "muted");
 
         if (report.HasPlannedRemovals)
         {
-            UiKit.Line(body, "Competition now → after your Fell marks",
+            UiKit.Line(competitorBody, "Competition now → after your Fell marks",
                 $"{UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")} ({SignedPercent(report.ChangeFraction)})");
-            UiKit.Add(body, $"{report.PlannedNeighbourCount} Fell-marked neighbour{(report.PlannedNeighbourCount == 1 ? "" : "s")} supply {Percent(report.PlannedShare)} of it. "
+            UiKit.Add(competitorBody, $"{report.PlannedNeighbourCount} Fell-marked neighbour{(report.PlannedNeighbourCount == 1 ? "" : "s")} supply {Percent(report.PlannedShare)} of it. "
                 + $"Growth held back: about {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionNow, competitors.TargetCi50))} now, "
                 + $"{Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionAfterPlanned, competitors.TargetCi50))} after. Estimate if nothing else changes.", "muted");
         }
         else
         {
-            UiKit.Line(body, "Competition now", UiKit.F(report.CompetitionNow, "0.00"));
-            UiKit.Add(body, "No neighbour is marked to fell. Marks you add with [X] show their effect here.", "muted");
+            UiKit.Line(competitorBody, "Competition now", UiKit.F(report.CompetitionNow, "0.00"));
+            UiKit.Add(competitorBody, "No neighbour is marked to fell. Marks you add with [X] show their effect here.", "muted");
         }
-        UiKit.Add(body, "Shares come from the size and distance of trees within 8 m. Strength describes share only; it is not advice.", "faint");
+        UiKit.Add(competitorBody, "Shares come from the size and distance of trees within 8 m. Strength describes share only; it is not advice.", "faint");
     }
 
     private static string Percent(float fraction) => Mathf.RoundToInt(fraction * 100f).ToString(UiKit.Inv) + " %";

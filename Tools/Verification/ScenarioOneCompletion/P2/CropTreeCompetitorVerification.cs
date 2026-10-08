@@ -78,14 +78,17 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         for (int i = 0; i < 5; i++) yield return null;
         output = Environment.GetEnvironmentVariable("CCF_ACCEPTANCE_OUTPUT");
         Exception failure = null;
-        IEnumerator checks = Verify();
-        while (true)
+        // Nested steps run inside this loop, so their failures are caught and the Editor exits.
+        var stack = new Stack<IEnumerator>();
+        stack.Push(Verify());
+        while (stack.Count > 0)
         {
             bool more;
             object current = null;
-            try { more = checks.MoveNext(); if (more) current = checks.Current; }
+            try { more = stack.Peek().MoveNext(); if (more) current = stack.Peek().Current; }
             catch (Exception error) { failure = error; break; }
-            if (!more) break;
+            if (!more) { stack.Pop(); continue; }
+            if (current is IEnumerator nested) { stack.Push(nested); continue; }
             yield return current;
         }
         if (marking != null) marking.ClearAll();
@@ -143,8 +146,6 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         // Real-stand A/B/C: Crop Tree P0707, small suppressed neighbour P0710 (6 m away), large close neighbour P0706.
         ForestTree crop = Tree("P0707");
         string before = WorldState();
-        var learningBefore = LearningIds();
-        string objectivesBefore = string.Join(",", manager.Objectives.Select(o => o.objectiveId + o.achieved));
         marking.Mark(crop, TreeMarkType.CropTree, false);
         yield return null;
         ui.Competitors.Update(crop);
@@ -198,6 +199,11 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         Debug.Log("P2_DETERMINISM_HASH " + StableHash(a));
 
         // 9. World markers appear only while assessing, and dismiss/reopen cleanly.
+        // 8/10. The whole assessment sequence below runs synchronously, so lessons and objectives are
+        // compared with no frame in between. (Lesson observers run on later frames and react to the
+        // marks this harness places; that is existing lesson behaviour, not the analysis.)
+        var learningBefore = LearningIds();
+        string objectivesBefore = string.Join(",", manager.Objectives.Select(o => o.objectiveId + o.achieved));
         ui.Competitors.Update(crop);
         Check(ActiveRings() == Mathf.Min(CropTreeCompetition.ListedCount, report.NeighbourCount), "rings missing while assessing");
         ui.Competitors.Clear();
@@ -208,13 +214,15 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         ui.Competitors.Update(Tree("P0710")); // not a Crop Tree: no markers
         Check(ActiveRings() == 0, "markers shown for a tree that is not a Crop Tree");
         ui.Competitors.Clear();
+        var learningAfter = LearningIds();
+        Check(learningAfter.SequenceEqual(learningBefore), "a learning step completed from the analysis: "
+            + string.Join(",", learningAfter.Except(learningBefore)));
+        Check(string.Join(",", manager.Objectives.Select(o => o.objectiveId + o.achieved)) == objectivesBefore, "objectives changed by the analysis");
 
         // 7/10. Inspecting competition wrote nothing: unmark the Crop Tree and compare.
         marking.Unmark(crop, false);
         yield return new WaitForSecondsRealtime(0.3f);
         Check(WorldState() == before, "world or scenario state changed by competitor analysis");
-        Check(LearningIds().SequenceEqual(learningBefore), "a learning step completed from the analysis");
-        Check(string.Join(",", manager.Objectives.Select(o => o.objectiveId + o.achieved)) == objectivesBefore, "objectives changed");
         Debug.Log("P2_NO_STATE_PASS marks, trees, scenario save data, lessons and objectives unchanged");
 
         // 8. Save round trip needs no new state: the captured data loads and the breakdown is identical.
@@ -247,7 +255,7 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
             marking.Mark(t, TreeMarkType.CropTree, false);
         watch.Restart();
         for (int i = 0; i < 10; i++) CropTreeCompetition.Summarise(SceneInput());
-        Debug.Log($"P2_PERF stems={SceneInput().Count} cropTrees={marking.LivingCropTreeCount} inspectMsIncludingSceneScan={inspectMs:F3} markChangeMs={watch.Elapsed.TotalMilliseconds / 10.0:F3}");
+        Debug.Log($"P2_PERF stems={SceneInput().Count} cropTrees={SceneInput().Count(t => t.CropTree)} inspectMsIncludingSceneScan={inspectMs:F3} markChangeMs={watch.Elapsed.TotalMilliseconds / 10.0:F3}");
         marking.ClearAll();
         yield return null;
 
@@ -306,14 +314,54 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
             Rect viewport = ui.RootElement.worldBound, bounds = card.worldBound;
             Check(card.resolvedStyle.display == DisplayStyle.Flex && viewport.Contains(bounds.min) && viewport.Contains(bounds.max),
                 $"inspection card clipped at {size.x}: {bounds} in {viewport}");
-            float contentBottom = card.Query<Label>().ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex).Max(l => l.worldBound.yMax);
-            Check(contentBottom <= bounds.yMax + 1f, $"card content overflows at {size.x}: {contentBottom} > {bounds.yMax}");
+            VisualElement panel = ui.RootElement.Q("competitor-panel");
+            Check(panel != null && panel.resolvedStyle.display == DisplayStyle.Flex, "competitor panel hidden at " + size.x);
+            // Select listed competitor 2 as keys 1-5 would (reflection: the setter is private).
+            // Mirrors HandleSelectionKeys: set the selection and bump the display version.
+            typeof(CompetitorAssessment).GetProperty("SelectedIndex").GetSetMethod(true).Invoke(ui.Competitors, new object[] { 1 });
+            PropertyInfo version = typeof(CompetitorAssessment).GetProperty("Version");
+            version.GetSetMethod(true).Invoke(ui.Competitors, new object[] { (int)version.GetValue(ui.Competitors) + 1 });
+            for (int i = 0; i < 3; i++)
+            {
+                UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+                inspect.Invoke(player, new object[] { crop });
+                yield return null;
+            }
+            yield return Capture("p2-inspection-" + size.x);
+            var layout = new System.Text.StringBuilder();
+            foreach ((string name, VisualElement element) in new[] { ("card", card), ("panel", panel) })
+            {
+                layout.Append($"\n {name} {element.worldBound}");
+                foreach (VisualElement child in element.Children().First().Children())
+                {
+                    string text = child is Label label ? label.text : string.Join(" | ", child.Query<Label>().ToList().Select(x => x.text));
+                    layout.Append($"\n  {child.layout.height:F0}px {(text.Length > 90 ? text.Substring(0, 90) : text)}");
+                }
+            }
+            Debug.Log($"P2_LAYOUT {size.x}:{layout}");
             VisualElement status = ui.RootElement.Q(className: "hud-status");
-            Check(status == null || !bounds.Overlaps(status.worldBound), "card overlaps HUD status at " + size.x);
+            VisualElement forecast = ui.RootElement.Q(className: "hud-forecast");
+            foreach ((string name, VisualElement element) in new[] { ("card", card), ("panel", panel) })
+            {
+                Rect b = element.worldBound;
+                Check(viewport.Contains(b.min) && viewport.Contains(b.max), $"{name} outside viewport at {size.x}: {b}");
+                float bottom = element.Query<Label>().ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex).Max(l => l.worldBound.yMax);
+                float right = element.Query<Label>().ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex).Max(l => l.worldBound.xMax);
+                Check(bottom <= b.yMax + 1f && right <= b.xMax + 1f, $"{name} content overflows at {size.x}: bottom {bottom} > {b.yMax} or right {right} > {b.xMax}");
+                Check(status == null || !b.Overlaps(status.worldBound), $"{name} overlaps HUD status at {size.x}");
+                Check(forecast == null || forecast.resolvedStyle.display != DisplayStyle.Flex || !b.Overlaps(forecast.worldBound), $"{name} overlaps the forecast panel at {size.x}");
+            }
+            Check(!card.worldBound.Overlaps(panel.worldBound), "card and competitor panel overlap at " + size.x);
             int tagsVisible = ui.RootElement.Query<Label>(className: "competitor-tag").ToList().Count(l => l.resolvedStyle.display == DisplayStyle.Flex);
             Check(tagsVisible > 0, "no competitor tags visible at " + size.x);
-            yield return Capture("p2-inspection-" + size.x);
-            Debug.Log($"P2_RENDERED_PASS {size.x}x{size.y} card={bounds} tagsVisible={tagsVisible}");
+            Check(ui.RootElement.Query<Label>(className: "competitor-tag").ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex)
+                .All(l => !card.worldBound.Contains(l.worldBound.center) && !panel.worldBound.Contains(l.worldBound.center)),
+                "a world label is drawn under a panel at " + size.x);
+            GameObject rings = GameObject.Find("Crop Tree competitor rings (runtime)");
+            var materials = rings.GetComponentsInChildren<LineRenderer>(false).Select(r => r.sharedMaterial.name).ToList();
+            Check(materials.Count(n => n.Contains("selected")) == 1 && materials.Count > 1, "selected ring not distinct: " + string.Join(",", materials));
+            Check(panel.Query<VisualElement>(className: "competitor-selected").ToList().Count == 1, "selected row not marked");
+            Debug.Log($"P2_RENDERED_PASS {size.x}x{size.y} card={card.worldBound} panel={panel.worldBound} tagsVisible={tagsVisible} rings={materials.Count}");
         }
         CropTreeCompetitorVerification.SetGameSize(1600, 900);
     }

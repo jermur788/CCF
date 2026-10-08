@@ -81,6 +81,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(hud.Root);
         competitors = new CompetitorAssessment(this, root);
         root.Add(inspection.Root);
+        root.Add(inspection.CompetitorPanel);
+        competitors.OccludingPanels.Add(inspection.Root);
+        competitors.OccludingPanels.Add(inspection.CompetitorPanel);
         root.Add(workPlan.Root);
         root.Add(review.Root);
         root.Add(map.Root);
@@ -119,7 +122,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
         bool walking = !preview && !planOpen && screen == UiScreen.None;
         hud.Root.style.display = walking ? DisplayStyle.Flex : DisplayStyle.None;
-        inspection.Root.style.display = walking && player != null && player.InspectedTree != null ? DisplayStyle.Flex : DisplayStyle.None;
+        bool inspecting = walking && player != null && player.InspectedTree != null;
+        inspection.Root.style.display = inspecting ? DisplayStyle.Flex : DisplayStyle.None;
         workPlan.Root.style.display = planOpen ? DisplayStyle.Flex : DisplayStyle.None;
         review.Root.style.display = !preview && screen == UiScreen.Review ? DisplayStyle.Flex : DisplayStyle.None;
         map.Root.style.display = !preview && screen == UiScreen.Map ? DisplayStyle.Flex : DisplayStyle.None;
@@ -137,6 +141,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else
             competitors.Clear();
+        PlaceCompetitorPanel(inspecting && inspection.ShowsCompetitors);
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -155,6 +160,20 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             if (screen == UiScreen.Map) map.Refresh(false);
             if (screen == UiScreen.Objectives) learning.Refresh(false);
         }
+    }
+
+    // The competitor panel sits on the right, just under the HUD status panel,
+    // and never extends past the bottom of the screen.
+    private void PlaceCompetitorPanel(bool show)
+    {
+        VisualElement panel = inspection.CompetitorPanel;
+        panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+        if (!show) return;
+        VisualElement status = hud.Root.Q(className: "hud-status");
+        float top = status != null && status.layout.height > 0f ? status.layout.yMax + 10f : 250f;
+        float available = document.rootVisualElement.layout.height - top - 14f;
+        panel.style.top = top;
+        if (available > 0f) panel.style.maxHeight = available;
     }
 
     private void LateUpdate()
