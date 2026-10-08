@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 017c91c03f5d9f9d29f95b6d7437ca21, type: 3}
+  m_Name: WindthrowVisualCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::WindthrowVisualCatalog
+  freshRootPlate: {fileID: 5332385324351457374, guid: d968b6fbbbb95b922b858249e3e08d25, type: 3}
+  weatheredRootPlate: {fileID: 8837266433645634582, guid: f09b09db09b80c52481b0c368b8792c8, type: 3}

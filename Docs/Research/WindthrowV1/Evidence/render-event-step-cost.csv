@@ -1,0 +1,5 @@
+condition,living_before,victims,intensity,total_annual_ms,evaluation_ms,mortality_ms,rebuild_ms,record_ms_subset_of_mortality,visual_creation_ms,canopy_rebuilds,seed_rebuilds
+victims-10,269,10,0.0296911187,97.252,2.7388,0.4157,19.8402,0.0282,3.1927,1,1
+victims-50,269,50,0.1610687,121.6306,2.8842,1.4434,16.1221,0.1129,19.2164,1,1
+victims-100,269,100,0.532405436,113.7462,2.9952,5.17,16.5249,0.3064,35.9687,1,1
+victims-500,1300,500,0.283883631,451.6524,14.379,13.3879,79.5741,1.23230000000001,181.4068,1,1

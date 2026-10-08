@@ -6,7 +6,8 @@ public enum ScenarioWorkType
     FellTree,
     PlantJuvenile,
     RemoveRegeneration,
-    PruneTree
+    PruneTree,
+    SalvageDeadwood
 }
 
 public enum ScenarioWorkStatus
@@ -62,6 +63,7 @@ public sealed class ScenarioOneWorkOrder
             switch (type)
             {
                 case ScenarioWorkType.FellTree: return "Fell " + targetTreeId;
+                case ScenarioWorkType.SalvageDeadwood: return "Salvage " + targetTreeId;
                 case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " at ("
                     + worldPosition.x.ToString("0.0") + ", " + worldPosition.z.ToString("0.0") + ")";
                 case ScenarioWorkType.RemoveRegeneration: return string.IsNullOrEmpty(speciesId)

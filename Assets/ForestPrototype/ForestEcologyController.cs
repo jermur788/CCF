@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class ForestEcologyController : MonoBehaviour
+public sealed partial class ForestEcologyController : MonoBehaviour
 {
     [SerializeField] private int ecologicalYear;
     [SerializeField] private int simulationSeed = 20260914;
@@ -428,6 +428,9 @@ public sealed class ForestEcologyController : MonoBehaviour
         regenerationAccount = new RegenerationAnnualAccount { Year = ecologicalYear, Model = regenerationModelVersion };
         var rng = SimulationRandom.Create(rngModelVersion, simulationSeed, ecologicalYear, 0);
 
+        // Resolve one event from the pre-growth stand; deaths are batched.
+        ResolveStormForYear();
+
         // Annual order follows the Sitka report's sequence.
         UpdateCompetition(s);             // 1. competition from current neighbours
         competitionCurrent = true;
@@ -450,14 +453,20 @@ public sealed class ForestEcologyController : MonoBehaviour
         PromoteCohorts(s, rng);           // 10. cohorts that reach tree size become individuals
         UpdateEstablishmentSuitability(); // 11. simple disturbance response
         DecayRecentOpening(s);            // 12. exposure decays with time
+        InvalidateStormContext();
         LogSummary(s);                    // 13. diagnostics
         seedlingVisualsDirty = true;
     }
 
     public void RestoreEcologyState(int year, int seed, int rngModel = SimulationRandom.LegacyModel,
-        int regenerationModel = RegenerationModel.Legacy, int growthModel = GrowthModel.Legacy)
+        int regenerationModel = RegenerationModel.Legacy, int growthModel = GrowthModel.Legacy, int stormModel = StormModel.None)
     {
         growthModelVersion = GrowthModel.Normalize(growthModel);
+        StormModelVersion = stormModel;
+        stormCalibration = StormCalibration.ComparisonDefault();
+        LastStormEvaluations = System.Array.Empty<StormTreeEvaluation>();
+        LastStormPerformance = new StormStepPerformance();
+        InvalidateStormContext();
         ecologicalYear = Mathf.Max(0, year);
         simulationSeed = seed;
         rngModelVersion = SimulationRandom.NormalizeModel(rngModel);
@@ -493,6 +502,9 @@ public sealed class ForestEcologyController : MonoBehaviour
     // the one that makes ApplyLifecycleFixture a complete reset.
     public void ResetForDeterministicRun()
     {
+        StormModelVersion = StormModel.None;
+        stormCalibration = StormCalibration.ComparisonDefault();
+        InvalidateStormContext();
         ecologicalYear = 0;
         timeLapseAccumulator = 0f;
         competitionCurrent = false;
@@ -769,6 +781,8 @@ public sealed class ForestEcologyController : MonoBehaviour
     [ContextMenu("Recompute canopy and light")]
     public void RecomputeCanopy()
     {
+        canopyRebuildCount++;
+        InvalidateStormContext();
         if (cells == null)
             return;
 
@@ -799,6 +813,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     [ContextMenu("Recompute seed rain")]
     public void RecomputeSeedRain()
     {
+        seedRebuildCount++;
         TreeSpeciesDefinition s = ResolveSpecies();
         if (s == null || cells == null)
             return;

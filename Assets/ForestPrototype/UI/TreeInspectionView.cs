@@ -27,7 +27,7 @@ public sealed class TreeInspectionView
         ForestEcologyController eco = ui.Ecology;
         // Rebuild only when something visible can have changed.
         string key = tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
-            + (eco != null ? eco.EcologicalYear : 0) + "|" + tree.IsStump;
+            + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump;
         if (key == shownKey)
             return;
         shownKey = key;
@@ -59,7 +59,7 @@ public sealed class TreeInspectionView
             UiKit.Stat(grid, "Competition", $"{eco.GetCompetitionLabel(tree)} (CI {UiKit.F(eco.GetCompetitionIndex(tree), "0.0")})");
             float growth = eco.GetAnnualDbhGrowth(tree);
             UiKit.Stat(grid, "DBH growth last year", growth > 0.0001f ? UiKit.F(growth, "0.00") + " cm" : "not yet recorded");
-            UiKit.Stat(grid, "Wind exposure", eco.GetWindRiskLabel(tree));
+            UiKit.Stat(grid, "Wind exposure", eco.GetStormExposureLabel(tree));
         }
         UiKit.Stat(grid, "Pruning", tree.PruningLifts > 0
             ? $"{tree.PruningLifts} lift(s), clear stem {UiKit.F(tree.CrownBaseHeightM, "0.0")} m" : "not pruned");
@@ -73,6 +73,7 @@ public sealed class TreeInspectionView
         {
             UiKit.Add(body, "Why", "heading");
             UiKit.Add(body, Diagnosis(tree, eco), "body");
+            UiKit.Add(body, eco.GetStormExposureExplanation(tree), "body");
         }
 
         if (!tree.IsStump && tree.CanChop)

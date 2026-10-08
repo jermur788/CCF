@@ -58,21 +58,34 @@ public static class ScenarioOneEconomyAdapter
     };
 
     public static ScenarioHarvestJob QuoteHarvest(IEnumerable<ScenarioOneWorkOrder> orders, Dictionary<string, ForestTree> trees,
-        ScenarioOneDefinition definition, int resolutionYear, int previousInterventions, long availableCash)
+        ScenarioOneDefinition definition, int resolutionYear, int previousInterventions, long availableCash,
+        IReadOnlyDictionary<string, ScenarioDeadwoodRecord> fallenStems = null, int salvageCostBasisPoints = 10000)
     {
         var job = new ScenarioHarvestJob { JobId = resolutionYear };
         var requests = new List<StemYieldRequest>(); var ids = new HashSet<string>(StringComparer.Ordinal);
         var shortResidualStems = new List<StemYieldResult>();
-        var book = PriceBook(definition); long fullWorkGrams = 0;
+        var book = PriceBook(definition); long fullWorkGrams = 0, salvageWorkGrams = 0;
+        if (salvageCostBasisPoints < 10000 || salvageCostBasisPoints > 15000) throw new ArgumentOutOfRangeException(nameof(salvageCostBasisPoints));
         foreach (var order in orders.OrderBy(x => x.workOrderId))
         {
-            if (order == null || !trees.TryGetValue(order.targetTreeId ?? "", out var tree) || tree == null || !tree.IsLiving || !tree.CanChop || !ids.Add(tree.TreeId)) continue;
+            if (order == null || !trees.TryGetValue(order.targetTreeId ?? "", out var tree) || tree == null || !ids.Add(tree.TreeId)) continue;
+            bool salvage = order.type == ScenarioWorkType.SalvageDeadwood;
+            ScenarioDeadwoodRecord fallen = null;
+            if (salvage)
+            {
+                if (!tree.IsBiologicallyDead || tree.MortalityCause != "windthrow" || fallenStems == null
+                    || !fallenStems.TryGetValue(tree.TreeId, out fallen) || fallen == null || fallen.remainingVolumeM3 <= 0 || fallen.DecayClass > 1) continue;
+                if (order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood) { job.Problem = "Leaving deadwood requires no salvage order or charge."; continue; }
+            }
+            else if (!tree.IsLiving || !tree.CanChop || order.type != ScenarioWorkType.FellTree) continue;
+            float stemVolume = salvage ? fallen.remainingVolumeM3 : tree.BiologicalStemVolumeM3;
             if (order.executionMethod != WorkExecutionMethod.Contractor) job.Problem = "Scenario One harvest is contractor-only; owner production felling is ineligible.";
             if (!Enum.IsDefined(typeof(FellingMaterialOutcome), order.fellingOutcome)) { job.Problem = "Unknown felling material outcome."; continue; }
-            long volume = checked((long)decimal.Floor((decimal)tree.BiologicalStemVolumeM3 * 1000000));
+            long volume = checked((long)decimal.Floor((decimal)stemVolume * 1000000));
             if (volume <= 0) { job.Problem = "Target has no representable modeled stem material."; continue; }
-            var stem = MerchantableStemModel.FromMetres(tree.TreeId, tree.Species.SpeciesId, tree.Diameter, tree.Height,
-                tree.BiologicalStemVolumeM3, "[S] Scenario One over-bark biological stem volume/diameter basis");
+            var stem = salvage ? WindthrowSalvage.Measurements(fallen, resolutionYear)
+                : MerchantableStemModel.FromMetres(tree.TreeId, tree.Species.SpeciesId, tree.Diameter, tree.Height,
+                stemVolume, "[S] Scenario One over-bark biological stem volume/diameter basis");
             stem.StemVolumeCm3 = volume;
             var disposition = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract ? TimberDisposition.SellAndExtract
                 : order.fellingOutcome == FellingMaterialOutcome.KeepForUse ? TimberDisposition.KeepForUse : TimberDisposition.RetainAsFallenDeadwood;
@@ -91,7 +104,9 @@ public static class ScenarioOneEconomyAdapter
             if (tree.Species.SpeciesId != "sitka-spruce") job.HasUnmarketedSpecies = true;
             // [S] Whole modeled volume is the work basis; unmarketed species use the configured fresh-volume
             // work-equivalent proxy, not a claimed broadleaf green density or a broadleaf sale deck.
-            fullWorkGrams = checked(fullWorkGrams + Grams(volume, book.FindDensity("sitka-fresh-roadside").KilogramsPerCubicMetre.Selected));
+            long stemGrams = Grams(volume, book.FindDensity("sitka-fresh-roadside").KilogramsPerCubicMetre.Selected);
+            fullWorkGrams = checked(fullWorkGrams + stemGrams);
+            if (salvage) salvageWorkGrams = checked(salvageWorkGrams + stemGrams);
         }
         job.Yield = TimberYieldCalculator.ResolveStandOperation("harvest-" + resolutionYear, requests.ToArray(), TimberYieldDefaults.CreateSitka());
         if (shortResidualStems.Count > 0)
@@ -124,6 +139,9 @@ public static class ScenarioOneEconomyAdapter
         job.Task = new ForestryTask { TaskId = job.Yield.OperationId, WorldOperationId = job.Yield.OperationId,
             Type = ForestryTaskType.Harvest, Quantity = new WorkQuantity { Amount = job.Orders.Count },
             TargetIds = job.Orders.Select(x => x.targetTreeId).ToArray(), Timber = batches,
+            // A candidate salvage multiplier applies only to its share of work;
+            // the existing grouped minimum remains one charge.
+            SiteCostBasisPoints = 10000 + (fullWorkGrams > 0 ? (int)decimal.Round((decimal)salvageWorkGrams * (salvageCostBasisPoints - 10000) / fullWorkGrams, 0, MidpointRounding.AwayFromZero) : 0),
             UnpricedHarvestGreenGrams = Math.Max(0, fullWorkGrams - pricedWork), UnpricedForwardGreenGrams = Math.Max(0, fullWorkGrams - pricedWork),
             HarvestContext = previousInterventions == 0 ? HarvestOperationContext.FirstThinning : previousInterventions == 1 ? HarvestOperationContext.SecondThinning : HarvestOperationContext.LaterThinning };
         job.Resolution = ForestryWorkCalculator.Resolve(job.Task, WorkExecutionMethod.Contractor, Contractor(availableCash), book);

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 18;
+    public const int CurrentVersion = 19;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -23,6 +23,8 @@ public sealed class ForestSaveData
     // growth with no adult mortality, so older saves and Reference Future v1
     // replay unchanged. 1 = Class III Sitka height + adult density mortality.
     public int growthModel;
+    // Version 19: independent storm mechanics. Missing legacy fields mean off.
+    public int stormModel;
     public List<string> markedTreeIds = new List<string>();
     public List<string> cropTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();
@@ -69,6 +71,7 @@ public sealed class ScenarioOneSaveData
     public List<BrowseShelter> shelters = new List<BrowseShelter>();
     public List<BrowseProtectedArea> protectedAreas = new List<BrowseProtectedArea>();
     public int ownerMinutesUsedThisYear;
+    public List<StormEventRecord> stormEvents = new List<StormEventRecord>();
 }
 
 [Serializable]

@@ -40,6 +40,7 @@ public sealed class ForestPlayer : MonoBehaviour
     private float verticalSpeed;
     private bool isLookingAtTree;
     private ForestTree aimedTree;
+    private ScenarioWindthrowVisual aimedWindthrow;
     private bool isAimingGround;
     private Vector3 aimedSurfacePoint;
     private ForestEcologyController aimedEcology;
@@ -355,6 +356,7 @@ public sealed class ForestPlayer : MonoBehaviour
     {
         isLookingAtTree = false;
         aimedTree = null;
+        aimedWindthrow = null;
         isAimingGround = false;
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         if (plantPressed && !isPlantingMode && scenario != null)
@@ -392,9 +394,10 @@ public sealed class ForestPlayer : MonoBehaviour
             if (candidateTransform == transform || candidateTransform.IsChildOf(transform))
                 continue;
             // Habitat and cohort displays are not ground/overstorey targets.
-            if (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
-                || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
-                    && candidate.collider.GetComponentInParent<ForestTree>() == null)) continue;
+            if (candidate.collider.GetComponentInParent<ScenarioWindthrowVisual>() == null
+                && (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
+                    || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
+                        && candidate.collider.GetComponentInParent<ForestTree>() == null))) continue;
             if (!found || candidate.distance < nearest.distance)
             {
                 nearest = candidate;
@@ -404,6 +407,7 @@ public sealed class ForestPlayer : MonoBehaviour
 
         if (found)
         {
+            aimedWindthrow = nearest.collider.GetComponentInParent<ScenarioWindthrowVisual>();
             ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
             if (tree != null)
             {
@@ -414,7 +418,7 @@ public sealed class ForestPlayer : MonoBehaviour
 
         // Planting needs the aimed ground surface, not a tree: accept flat,
         // upward-facing non-tree, non-structure surfaces within reach.
-        isAimingGround = found && !isLookingAtTree
+        isAimingGround = found && !isLookingAtTree && aimedWindthrow == null
             && Vector3.Dot(nearest.normal, Vector3.up) > 0.7f
             && nearest.collider.GetComponentInParent<ForestBuildable>() == null;
         if (isAimingGround)
@@ -449,7 +453,7 @@ public sealed class ForestPlayer : MonoBehaviour
         }
         else if (isInspecting)
         {
-            if (inspectedTree == null || Vector3.Distance(view.position, inspectedTree.InteractionPoint) > interactionDistance + 1.5f)
+            if (inspectedTree == null || inspectedTree.IsBiologicallyDead || Vector3.Distance(view.position, inspectedTree.InteractionPoint) > interactionDistance + 1.5f)
             {
                 isInspecting = false;
             }
@@ -872,6 +876,16 @@ public sealed class ForestPlayer : MonoBehaviour
     {
         if (isInspecting)
             return "";
+        if (aimedWindthrow != null)
+        {
+            var manager = Object.FindFirstObjectByType<ScenarioOneManager>();
+            if (manager == null) return "";
+            string id = aimedWindthrow.TreeId;
+            if (!manager.CanSalvage(id)) return "Windthrow deadwood · no eligible stem to salvage";
+            return manager.OpenSalvageOrder(id) != null
+                ? "Windthrow " + id + " · [X] Cancel salvage plan | [Tab] Review quote"
+                : "Windthrow " + id + " · [X] Plan optional salvage | [Tab] Review quote\nUnselected stems remain deadwood";
+        }
         if (isLookingAtTree && aimedTree != null)
         {
             if (!aimedTree.CanChop)
@@ -1174,7 +1188,7 @@ public sealed class ForestPlayer : MonoBehaviour
             float recentGrowth = inspectedTreeEcology.GetAnnualDbhGrowth(inspectedTree);
             if (recentGrowth > 0.0001f)
                 GUILayout.Label($"• Recent DBH growth: {recentGrowth:F2} cm/year", cardBodyStyle);
-            GUILayout.Label($"• Wind vulnerability: {inspectedTreeEcology.GetWindRiskLabel(inspectedTree)}", cardBodyStyle);
+            GUILayout.Label($"• Wind vulnerability: {inspectedTreeEcology.GetStormExposureLabel(inspectedTree)}", cardBodyStyle);
         }
 
         if (inspectedTree.IsStump)

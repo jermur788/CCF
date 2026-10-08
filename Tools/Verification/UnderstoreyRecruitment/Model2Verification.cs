@@ -31,7 +31,7 @@ public sealed class Model2VerificationRunner:MonoBehaviour
  ForestSaveData Clone(ForestSaveData d)=>JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(d));
  void Verify()
  {
-  var original=saves.CaptureData();Check(original.version==18&&original.regenerationModel==2,"new default18/2");
+  var original=saves.CaptureData();Check(original.version==19&&original.regenerationModel==2,"new default19/2");
   Check(ForestSaveValidation.Validate(original,336,e.CellCount)==null,"valid new state: "+ForestSaveValidation.Validate(original,336,e.CellCount));
   m.InitializeNewScenario();var immediatelySaved=saves.CaptureData();
   Check(immediatelySaved.scenarioOne.understoreyCells.Count==e.CellCount,"reset saved before first step has complete competitor grid");
@@ -71,7 +71,9 @@ public sealed class Model2VerificationRunner:MonoBehaviour
   CrossBorder(original);Overlap();Ledger();PairedSurvival();Recovery();SaveSize(original,captured);
   Check(saves.LoadData(original,false),"restore new save");
   e.Browsing.BackgroundPressure=.2f;
-  string a=ScenarioReferenceArchive.WorldHash(saves.CaptureData());e.AdvanceOneYear();Call(m,"AdvancePlantedJuveniles");string b=ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+  string a=ScenarioReferenceArchive.WorldHash(saves.CaptureData());string legacyStart=ScenarioReferenceArchive.LegacyV18WorldHash(saves.CaptureData());e.AdvanceOneYear();Call(m,"AdvancePlantedJuveniles");string b=ScenarioReferenceArchive.WorldHash(saves.CaptureData());string legacyYear=ScenarioReferenceArchive.LegacyV18WorldHash(saves.CaptureData());
+  Check(legacyStart=="FA855239CDDA32D8","historical model2 start v18 layout unchanged");Check(legacyYear=="02334804F65C0234","historical altered-site model2 fixture v18 layout unchanged");
+  Debug.Log("MODEL2_V18_COMPAT_ANCHOR start="+legacyStart+" alteredSiteOneYear="+legacyYear);
   Check(saves.LoadData(original,false),"repeatrestore");e.AdvanceOneYear();Call(m,"AdvancePlantedJuveniles");Check(b==ScenarioReferenceArchive.WorldHash(saves.CaptureData()),"model2repeat anchor");
   Debug.Log("MODEL2_ANCHOR start="+a+" oneYear="+b);
   for(int year=2;year<=8;year++){e.AdvanceOneYear();Call(m,"AdvancePlantedJuveniles");}

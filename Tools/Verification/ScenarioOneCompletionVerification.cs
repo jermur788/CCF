@@ -140,7 +140,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 18 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+        Check(ForestSaveData.CurrentVersion == 19 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
             "production conventions (v18, EUR 2,500 minimum, 2,400 owner min/yr)");
         Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
@@ -402,6 +402,11 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Debug.Log($"SCENARIO_ONE_COMPLETION_OBJECTIVES year={minimumYear} outcome={outcomeAtMinimum} {objectives}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_CASH minimum={minCash} year30={manager.CashCents}");
         Debug.Log("SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH " + (ScenarioReferenceArchive.LegacyV17WorldHash(saves.CaptureData()) ?? "n/a"));
+        string v18LayoutHash = ScenarioReferenceArchive.LegacyV18WorldHash(saves.CaptureData()) ?? "n/a";
+        Debug.Log("SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH " + v18LayoutHash);
+        if (ecology.RngModelVersion == 1 && ecology.RegenerationModelVersion == 2
+            && ecology.GrowthModelVersion == 1 && ecology.StormModelVersion == 0)
+            Check(v18LayoutHash == "702766DECE591E21", "accepted model2 completion retains its exact v18 world layout");
         Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion} regenerationModel={ecology.RegenerationModelVersion} growthModel={ecology.GrowthModelVersion} legacyV15LayoutHash={legacyLayoutHash} v16LayoutHash={v16LayoutHash}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,

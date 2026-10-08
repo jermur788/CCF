@@ -1,0 +1,19 @@
+# Storm default decision proposal
+
+Current user direction: keep model0 for new games. Worker recommendation for a later decision: **B — offer StormModel1 as a reviewed scenario option first**. Keep existing and new Scenario One games atStormModel0 until Manager explicitly accepts activation/UI/default policy. This branch implements and calibrates model1 but does not add a new-game selection screen, make it default, or merge itself into main.
+
+Task branch task/storms-windthrow-v1; published main base1fbefd8a40c69dd90abb83f2149e24b546a184cf, context62593b28e14a5b5818c414450f168c333df683d7. Save19 uses only approved compact model/events. Reference remains storms0. Exact final source/tests/implementation SHA are in Handoff.md.
+
+Proposed profile: annual2%, severities.02/.06/.18 equally weighted; ReducedProposal(D) with BoundedRational; existing nearby RecentOpening; neutral site/external edge1; no grace period; one uprooted/fallen outcome. Optional salvage uses existing1.00 work basis and unchanged prices/minimum. All numeric rates, coefficients, bands, dimensions-to-damage grading and cost choices are [C] game calibration, not empirical local hazard or engineering stability estimates.
+
+Evidence:144/144 worlds reach25/50/100,18 groups ×8 seeds. Every managed profile completes8/8 by25; unmanaged0/8. At2% uniform, managed wind victims average12.75/20.125/25 and wind crop losses1.625/3.25/4.375 across those horizons; lowest sampled cash€6054.60. At1%, many storms are absent/nearly negligible;5% uniform causes61.375 mean century victims/8.625 crop wind casualties. This supports a bounded moderate comparison, not a ≥90% population guarantee. Even no-storm completed worlds fail some current forest goals later; do not equate a frozen scenario completion with a sustained healthy century forest.
+
+Forced comparisons, direct152-check math and120-check Model2 causality support relative stature/shelter/opening distinctions without a hard small-tree immunity cutoff. Recent thinning increases a given retained tree’s exposure; total victims also depend on removed population and subsequent growth. Heavy thinning is not universally catastrophic. Detailed tables are in CalibrationResults, StormFrequencyComparison and VulnerabilityComparison.
+
+Salvage has meaningful selection/grade/minimum trade-offs without an added premium. Seven- and112-stem jobs remain at€2500; a763-stem quote-only stress test exposes1.00/1.15/1.25/1.50 work costs€12600.20/14490.23/15750.25/18900.30 with identical timber prices/output. That entire stress job exceeds starting cash; it is not an affordability guarantee. See SalvageCalibration.
+
+Performance is measured, with a20 nearby crown cap. Simulation-only5000-tree steps are about1.65s, so this is not a broad real-time scaling claim. Rendered Editor results and century deadwood limits are in PerformanceResults. Rotated green living crowns remain provisional/occluded in dense forest; human art/playtest acceptance is separate. AssetFollowupPacket describes a concrete follow-up without authorizing new binaries.
+
+Before activation: Manager reviews simulation/save/default choices and remaining art/manual-playtest limits, chooses option activation and a fixed compatible profile, then integration runs post-merge gates. A configurable/saved profile would require separate schema approval. A future default(A) needs reviewed wider/adaptive playtests; retaining default0(C) is available while art/tutorial follow-up proceeds. Neither an80%- or90%-style win requirement nor a changed Reference archive is proposed.
+
+Legacy audit disclosure: historical Model2 one-year02334804F65C0234 comes from an existing harness that leaves cell0.SiteProductivity=0. Untouched published main independently reproduces this fixture and clean one-year8333BAA4126E8A09. Preserve both meanings; no regeneration production rewrite or frozen Reference change is required.

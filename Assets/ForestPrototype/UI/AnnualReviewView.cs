@@ -66,10 +66,27 @@ public sealed class AnnualReviewView
         BuildWork(m, report, Column(columns, "Work done"));
         BuildMoney(m, report, Column(columns, "Money"));
         BuildForest(m, report, Column(columns, "Forest"));
+        BuildStorm(m, report);
         BuildTrends(m);
         BuildObjectives(m);
         if (m.CenturyReview != null)
             BuildCentury(m);
+    }
+
+    private void BuildStorm(ScenarioOneManager manager, ScenarioAnnualReport report)
+    {
+        StormDamageSummary summary = manager.StormDamageInYear(report.year);
+        if (summary == null) return;
+        var card = UiKit.Box("card"); card.name = "annual-storm-review"; scroll.Add(card);
+        UiKit.Add(card, "STORM AND WINDTHROW", "heading");
+        string severity = summary.Event.severity < .04f ? "Light" : summary.Event.severity < .12f ? "Moderate" : "Severe";
+        UiKit.Add(card, $"Year {summary.Event.year} · {severity} modelled event. These are game severity bands, not measured wind speeds.", "body");
+        UiKit.Add(card, $"{summary.TreesLost} trees lost, including {summary.Event.cropTreesLost} Crop Trees · {UiKit.F(summary.OriginalVolumeM3, "0.00")} m³ of original fallen stem material.", "body");
+        UiKit.Add(card, $"Damage touches {summary.AffectedCells} map cells. This cell footprint is approximate; it does not mean every affected cell is fully open.", "muted");
+        UiKit.Add(card, $"{UiKit.F(summary.DeadwoodRemainingM3, "0.00")} m³ remains as deadwood · {UiKit.F(summary.SalvagedVolumeM3, "0.00")} m³ salvaged since this event.", "body");
+        UiKit.Add(card, "Fallen trees stop contributing to canopy and seed rain. Openings increase light and recent exposure; bramble and bracken can respond, affecting small young trees through the existing competition model. Inspect the changed cells before choosing work.", "body");
+        UiKit.Add(card, "Salvage is optional. Aim at an eligible fallen stem and press X to add it to the Work Plan; choose Sell or Keep there. Unselected stems remain deadwood, and a small salvage visit may cost more than its timber earns.", "body");
+        if (summary.WaypointCell >= 0) card.Add(UiKit.Button("Mark storm damage on the map", () => ui.ShowStormWaypoint(summary.WaypointCell)));
     }
 
     private static VisualElement Column(VisualElement parent, string heading)
@@ -87,6 +104,8 @@ public sealed class AnnualReviewView
         List<ScenarioManagementEvent> done = resolved.Where(e => e.outcome == ScenarioManagementOutcome.Succeeded).ToList();
         Dictionary<int, ScenarioOneWorkOrder> orders = m.WorkOrders.ToDictionary(o => o.workOrderId);
         int felled = done.Count(e => e.taskType == ScenarioWorkType.FellTree);
+        int salvaged = done.Count(e => e.taskType == ScenarioWorkType.SalvageDeadwood);
+        if (salvaged > 0) UiKit.Add(c, $"{salvaged} windthrow stem(s) salvaged (contractor)", "body");
         if (felled > 0) UiKit.Add(c, $"{felled} tree(s) thinned (contractor)", "body");
         var planted = done.Where(e => e.taskType == ScenarioWorkType.PlantJuvenile).ToList();
         if (planted.Count > 0)
@@ -99,7 +118,7 @@ public sealed class AnnualReviewView
         int pruned = done.Count(e => e.taskType == ScenarioWorkType.PruneTree);
         if (pruned > 0) UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
         if (report.regenerationRemovalTasks > 0) UiKit.Add(c, $"{report.regenerationRemovalTasks} regeneration cohort(s) removed", "body");
-        if (felled + planted.Count + pruned + report.regenerationRemovalTasks == 0) UiKit.Add(c, "No work was resolved this year.", "body");
+        if (felled + salvaged + planted.Count + pruned + report.regenerationRemovalTasks == 0) UiKit.Add(c, "No work was resolved this year.", "body");
         var failed = resolved.Where(e => e.outcome != ScenarioManagementOutcome.Succeeded).ToList();
         UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
         foreach (ScenarioManagementEvent e in failed.Take(5))
@@ -110,7 +129,7 @@ public sealed class AnnualReviewView
     {
         var events = m.ManagementEvents.Where(e => e.year == report.year && e.eventType == ScenarioManagementEventType.WorkResolved
             && e.outcome == ScenarioManagementOutcome.Succeeded).ToList();
-        long harvestCost = events.Where(e => e.taskType == ScenarioWorkType.FellTree).Sum(e => e.contractorCostCents);
+        long harvestCost = events.Where(e => e.taskType == ScenarioWorkType.FellTree || e.taskType == ScenarioWorkType.SalvageDeadwood).Sum(e => e.contractorCostCents);
         long materials = events.Sum(e => e.stockCostCents);
         foreach (ScenarioTimberSale sale in report.timberSales ?? new List<ScenarioTimberSale>())
             UiKit.Line(c, $"Timber sold · {sale.assortment} ({UiKit.M3(sale.soldVolumeCm3)})", UiKit.SignedMoney(sale.revenueCents), "money");

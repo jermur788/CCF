@@ -1,0 +1,857 @@
+{
+  "final_confirmations": [
+    {
+      "gate": "StormCoreVerification",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": {
+        "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "production_source_unchanged": true,
+        "gate": "StormCoreVerification",
+        "treatment_timing": "early-established",
+        "status": "PASS",
+        "exit_code": 0,
+        "seconds": 43.06,
+        "source_sha256": "a1a426c0648223cc74f8ac9d5601f16c30af199cd62d2eca98c5336f93c82aef",
+        "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "run_branch": "task/storms-windthrow-v1",
+        "markers": [
+          "STORM_CORE_VERIFICATION_PASS checks=107"
+        ]
+      }
+    },
+    {
+      "gate": "StormSalvageVerification",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": {
+        "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "production_source_unchanged": true,
+        "gate": "StormSalvageVerification",
+        "treatment_timing": "early-established",
+        "status": "PASS",
+        "exit_code": 0,
+        "seconds": 47.68,
+        "source_sha256": "15e5e8f30c725a100525c5e8db284be31280967925c790a015778c335c75ff16",
+        "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "run_branch": "task/storms-windthrow-v1",
+        "markers": [
+          "STORM_SALVAGE_VERIFICATION_PASS checks=983"
+        ]
+      }
+    },
+    {
+      "gate": "StormPerformanceVerification",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": {
+        "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "production_source_unchanged": true,
+        "gate": "StormPerformanceVerification",
+        "treatment_timing": "early-established",
+        "status": "PASS",
+        "exit_code": 0,
+        "seconds": 84.27,
+        "source_sha256": "004b6a36f74101dba4a4cc6fe127ce2aecb4b47dde9e624d283a9ac136366483",
+        "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+        "run_branch": "task/storms-windthrow-v1",
+        "markers": [
+          "STORM_PERFORMANCE_VERIFICATION_PASS cases=40 exactIdRollVictims=true simulationOnly=true"
+        ]
+      }
+    },
+    {
+      "gate": "Tools-Verification-UnderstoreyRecruitment-run_model2.py",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": {
+        "gate": "Model2Verification",
+        "status": "PASS",
+        "exit_code": 0,
+        "seconds": 62.255003050000596,
+        "source_sha256": "2c86313109a2d935f06a4a9af3032bfe89a30538e8e67096dcdc9ff5b66ef3dd",
+        "markers": [
+          "MODEL2_V18_COMPAT_ANCHOR start=FA855239CDDA32D8 alteredSiteOneYear=02334804F65C0234",
+          "MODEL2_ANCHOR start=EBE7A228F630AE41 oneYear=671A28E277E0FDB1",
+          "MODEL2VERIFICATION_PASS checks=1400"
+        ]
+      }
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": [
+        {
+          "production_source_unchanged": true,
+          "gate": "ScenarioOneCompletionVerification",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 70.81,
+          "mode": "batch",
+          "source_ref": "integration-working-tree",
+          "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+          "run_branch": "task/storms-windthrow-v1",
+          "original_source_sha256": "770bb8062f3569fb382d59a8d04575684af990f0aa76b0bfee91abff3e283f1e",
+          "fixture_adjustment": null,
+          "source_sha256": "770bb8062f3569fb382d59a8d04575684af990f0aa76b0bfee91abff3e283f1e",
+          "markers": [
+            "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a",
+            "SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH 702766DECE591E21",
+            "SCENARIO_ONE_COMPLETION_HASH 84CD51EB6A951D9E rngModel=1 regenerationModel=2 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+            "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "gate": "ScenarioOneCompletionVerification-legacy-model1",
+      "status": "PASS",
+      "production_unchanged": true,
+      "result": [
+        {
+          "production_source_unchanged": true,
+          "gate": "ScenarioOneCompletionVerification",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 59.69,
+          "mode": "batch",
+          "source_ref": "integration-working-tree",
+          "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+          "run_branch": "task/storms-windthrow-v1",
+          "original_source_sha256": "770bb8062f3569fb382d59a8d04575684af990f0aa76b0bfee91abff3e283f1e",
+          "fixture_adjustment": null,
+          "source_sha256": "770bb8062f3569fb382d59a8d04575684af990f0aa76b0bfee91abff3e283f1e",
+          "markers": [
+            "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH D7C4DDD36B53FCCE",
+            "SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH D84C7FF6E753A8DF",
+            "SCENARIO_ONE_COMPLETION_HASH D2329E32C30FF35C rngModel=1 regenerationModel=1 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+            "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+          ]
+        }
+      ]
+    }
+  ],
+  "regression": [
+    {
+      "production_source_unchanged": true,
+      "gate": "SitkaGrowthModelVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 108.95,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "2abca1d507ae9352bd432e79e2da2139ab09821e16a9f9db0a571051e07df229",
+      "fixture_adjustment": null,
+      "source_sha256": "2abca1d507ae9352bd432e79e2da2139ab09821e16a9f9db0a571051e07df229",
+      "markers": [
+        "GROWTH_MODEL_PASS POLICY_NEW_GAME_GROWTH1 growth=1 regen=2 rng=1 version=19",
+        "GROWTH_MODEL_PASS POLICY_SAVE_SEMANTICS missing0=True v16->0=True explicit0=True explicit1=True invalidRejected=[unknown growth model 7]",
+        "GROWTH_MODEL_PASS POLICY_REFERENCE_V1_GROWTH0 previewGrowth0=True playerRestored=True",
+        "GROWTH_MODEL_PASS SITE_ENVELOPE_CLASS_III H20=14.21 H30=20.40 H40=24.89 H60=30.14 H80=32.51 H100=33.56 b0=34.362",
+        "GROWTH_MODEL_PASS INDIVIDUAL_RELATIVE_HEIGHT suppressed 10.00->10.493 dominant 14.20->14.900 (same ratio)",
+        "GROWTH_MODEL_PASS DBH_UNCHANGED_BY_HEIGHT_MODEL years=5 deaths=0 identicalDbh=True plantedTallerThanLegacy=True",
+        "GROWTH_MODEL_PASS TOP_HEIGHT_CLASS_III unthinned H20=14.63 H30=20.92 H40=24.14 H60=28.25 H80=30.11 H100=30.92",
+        "GROWTH_MODEL_PASS THINNING_WEAK_ON_TOP_HEIGHT maxRelativeDifference=0.063 heavy H20=14.63 H30=20.98 H40=25.14 H60=29.82 H80=31.99 H100=32.77",
+        "GROWTH_MODEL_PASS HEIGHT_DETERMINISTIC repeat identical=True",
+        "GROWTH_MODEL_PASS NO_DEATHS_BELOW_ONSET RD=0.435 onset=0.6 deaths=0",
+        "GROWTH_MODEL_PASS SUPPRESSED_DIE_MORE_THAN_DOMINANT deaths=73/196 mostSuppressedQuarter=0.653 leastSuppressedQuarter=0.143",
+        "GROWTH_MODEL_PASS DEATH_CAUSE_AND_YEAR allSelfThinningWithStepYear=True",
+        "GROWTH_MODEL_PASS DEADWOOD_CREATED_ONCE records=73 deaths=73",
+        "GROWTH_MODEL_PASS NO_DUPLICATE_DEATH secondApply=False recordsUnchanged=True",
+        "GROWTH_MODEL_PASS BOUNDARY_MAXIMUM_LINE maxRDAfterMortality=0.8938",
+        "GROWTH_MODEL_PASS THINNING_LOWERS_MORTALITY unthinned=73 thinned30pct=22",
+        "GROWTH_MODEL_PASS SAVE_LOAD_DETERMINISTIC uninterrupted=7EAE95881832688F resumed=7EAE95881832688F",
+        "GROWTH_MODEL_PASS LEGACY_ANCHORS_GROWTH0 neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+        "GROWTH_MODEL_PASS REGEN1_ANCHORS_GROWTH0 neutral=962846D2F517B293 normal=FBB8F470D85FF815",
+        "GROWTH_MODEL_PASS GROWTH1_DETERMINISTIC neutral=7E57B9DAEF5BF4D0 normal=35E2BF1C2F55C2DE",
+        "SITKA_GROWTH_MODEL_VERIFY_PASS checks=20"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "RegenerationModelVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 153.5,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "37c30d6e95972b6f2fec4c643a88fea7451fb0ff0ff509323f7bb2a19b8467c5",
+      "fixture_adjustment": null,
+      "source_sha256": "37c30d6e95972b6f2fec4c643a88fea7451fb0ff0ff509323f7bb2a19b8467c5",
+      "markers": [
+        "REGEN_MODEL_PASS POLICY_NEW_GAME_MODEL2 newGame=2 capturedModel=2 version=19",
+        "REGEN_MODEL_PASS SAVE_LOAD_PRESERVES_ALL_BANDS sitkaRecordsInCell5=4 validation=ok identical=True",
+        "REGEN_MODEL_PASS SAVE_VALIDATION_BAND_KEYS duplicate=[ecology cell 5 repeats regeneration band sitka-spruce year -5] fifthBand=[ecology cell 5 exceeds the band limit for beech]",
+        "REGEN_MODEL_PASS SAVE_LOAD_DETERMINISTIC_AROUND_THRESHOLD uninterrupted=63321B49594947D0 resumed=63321B49594947D0",
+        "REGEN_MODEL_PASS POLICY_OLD_SAVES_MODEL0 missingField=True v15WithField=True explicit0=True",
+        "REGEN_MODEL_PASS POLICY_REFERENCE_V1_MODEL0 previewModel0=True playerModelRestored=True",
+        "REGEN_MODEL_PASS NO_SEED_NO_NEW_ABUNDANCE light=0.9 start=0.2 after10=0.2 bands=1",
+        "REGEN_MODEL_PASS NO_SEED_NO_NEW_ABUNDANCE light=0.3 start=0.2 after10=0.2 bands=1",
+        "REGEN_MODEL_PASS NO_SEED_NO_NEW_ABUNDANCE light=0.05 start=0.2 after10=0.0214748345 bands=1",
+        "REGEN_MODEL_PASS NEW_RECRUIT_STARTS_AT_AGE_ZERO year=9 bands=[sitka-spruce/Natural/y0/d0.1/h1.2;sitka-spruce/Natural/y9/d0.41109246/h0.15]",
+        "REGEN_MODEL_PASS NEW_RECRUIT_GETS_INITIAL_HEIGHT recruitHeight=0.15 initial=0.15 olderBandHeight=1.2",
+        "REGEN_MODEL_PASS NATURAL_RECRUIT_REMAINS_NATURAL plantedPromoted=True after=[sitka-spruce/Natural/y2/d0.399981856/h0.15]",
+        "REGEN_MODEL_PASS PLANTED_RECRUIT_REMAINS_PLANTED planted=beech/Planted/y-2/d1/h0.6 after=[beech/Natural/y2/d0.49999997/h1.9000001;beech/Planted/y-2/d1/h2.69999981]",
+        "REGEN_MODEL_PASS CAPACITY_REJECTION_DOES_NOT_REMOVE_EXISTING_STOCK occupancy=1.4 sitka 1.05->1.05 beech 1.05->1.05 requested=0.411092281 accepted=0 rejected=0.41109252",
+        "REGEN_MODEL_PASS FULL_REJECTION_CREATES_NO_COHORT after=[beech/Natural/y0/d1.5/h0.5]",
+        "REGEN_MODEL_PASS BAND_MERGE_CONSERVES_ABUNDANCE naturalBefore=0.450000018 accepted=0.41109252 naturalAfter=0.861092448 bands=[sitka-spruce/Natural/y0/d0.1/h2;sitka-spruce/Natural/y2/d0.3/h0.9;sitka-spruce/Natural/y7/d0.05/h0.2;sitka-spruce/Natural/y8/d0.41109246/h0.15]",
+        "REGEN_MODEL_PASS BAND_MERGE_PRESERVES_ORIGIN planted=sitka-spruce/Planted/y4/d0.1/h0.9",
+        "REGEN_MODEL_PASS MAX_BAND_COUNT_RESPECTED maxRepresented=4 maxAccumulators=0 limit=4 final=[sitka-spruce/Natural/y0/d0.1/h5.45333338;sitka-spruce/Natural/y2/d0.3/h4.35333252;sitka-spruce/Natural/y8/d0.872184932/h3.470559;sitka-spruce/Natural/y10/d0.127815127/h3.02777743;sitka-spruce/Planted/y4/d0.1/h4.35333252]",
+        "REGEN_MODEL_PASS PROMOTION_REMOVES_ONLY_PROMOTED_BAND trees+=1 createdAge=10 remaining=[sitka-spruce/Natural/y3/d0.3/h3.8;sitka-spruce/Natural/y6/d0.2/h0.5]",
+        "REGEN_MODEL_PASS YOUNGER_BANDS_SURVIVE_PROMOTION second=sitka-spruce/Natural/y3/d0.3/h3.8 young=sitka-spruce/Natural/y6/d0.2/h0.5",
+        "REGEN_MODEL_PASS CLEARANCE_RELEASES_CAPACITY acceptedWhenFull=0 clearedBands=2 removed=1.5 bandsAfter=0 acceptedNextYear=0.41109252",
+        "REGEN_MODEL_PASS ACCUMULATE_REPEATED_0005 years=6 total=0.03 crossings=3 bands=[sitka-spruce/Natural/y2/d0.01/h1.41;sitka-spruce/Natural/y4/d0.01/h0.849999964;sitka-spruce/Natural/y6/d0.01/h0.290000021]",
+        "REGEN_MODEL_PASS ACCUMULATE_REPEATED_0002_DETERMINISTIC years=10 total=0.0200000014 repeatIdentical=True bands=[sitka-spruce/Natural/y3/d0.0100000007/h2.11;sitka-spruce/Natural/y8/d0.0100000007/h0.71]",
+        "REGEN_MODEL_PASS ACCUMULATOR_NO_SEED_NO_NEW_ABUNDANCE start=0.006 after10=0.006",
+        "REGEN_MODEL_PASS ACCUMULATOR_SURVIVAL_REDUCES light=0.05 start=0.006 after5=0.00196608016",
+        "REGEN_MODEL_PASS ACCUMULATOR_BROWSING_APPLIES unbrowsed d=0.006 h=1.9000001; pressure=0.2 d=0.005889774 h=1.75426006 browsedFraction=0.06266667",
+        "REGEN_MODEL_PASS ACCUMULATOR_CLEARANCE_REMOVES removed=0.006 remaining=0",
+        "REGEN_MODEL_PASS ACCUMULATOR_ORIGINS_SEPARATE bands=[sitka-spruce/Natural/y2/d0.008/h0.15;sitka-spruce/Planted/y1/d0.004/h0.15]",
+        "REGEN_MODEL_PASS THRESHOLD_CROSSING_CONSERVES after=[sitka-spruce/Natural/y6/d0.012/h0.383333325] expectedYear=6 expectedHeight=0.383333355",
+        "REGEN_MODEL_PASS THRESHOLD_CROSSING_CREATES_NO_TREE treesBefore=0 treesAfterCrossingAndPromotionStep=0",
+        "REGEN_MODEL_PASS BELOW_THRESHOLD_CANNOT_PROMOTE accumulator0.008Stayed=True control0.011Promoted=True",
+        "REGEN_MODEL_PASS ACCUMULATOR_TAKES_NO_BAND_SLOT bands=[sitka-spruce/Natural/y1/d0.1/h0.5;sitka-spruce/Natural/y4/d0.1/h0.5;sitka-spruce/Natural/y7/d0.1/h0.5;sitka-spruce/Natural/y10/d0.1/h0.5;sitka-spruce/Natural/y13/d0.008/h0.15] validation=ok",
+        "REGEN_MODEL_PASS LEGACY_ANCHORS_MODEL0 neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+        "REGEN_MODEL_PASS MODEL1_DETERMINISTIC neutral=962846D2F517B293 normal=FBB8F470D85FF815 repeat=identical",
+        "REGEN_MODEL_PASS MODEL1_FUNNEL_REPEAT_IDENTICAL treatments=3 years=100",
+        "REGENERATION_MODEL_VERIFY_PASS invariants=35"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioReferenceVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 73.58,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+      "fixture_adjustment": null,
+      "source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+      "markers": [
+        "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+        "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+        "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+        "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+        "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+        "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+        "REFERENCE_CONTINUATION_PASS year50=v12 year100=v19 deterministic=True continuedHash=5CFEB0C6A01A670B legacyV15LayoutHash=9CDF21A541C5968D",
+        "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+        "REFERENCE_FUTURE_V1_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneCompletionVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 63.33,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "2e75e1a1ecf938d2020486b77c6746983fe91956131bceb0de41938a56146f4b",
+      "fixture_adjustment": null,
+      "source_sha256": "2e75e1a1ecf938d2020486b77c6746983fe91956131bceb0de41938a56146f4b",
+      "markers": [
+        "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a",
+        "SCENARIO_ONE_COMPLETION_HASH 84CD51EB6A951D9E rngModel=1 regenerationModel=2 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+        "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneEconomyIntegrationVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 53.28,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "63937b29f4e492daabc9ab0d0d75c678cc4844a75acf4eaa7bc6aa0e78f347f4",
+      "fixture_adjustment": null,
+      "source_sha256": "63937b29f4e492daabc9ab0d0d75c678cc4844a75acf4eaa7bc6aa0e78f347f4",
+      "markers": [
+        "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS assertions=120 worldRestored=true noSaveSlotWrites=true"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "BrowsingProtectionVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 117.69,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "af192149ab0e1d0141ec62d7a2e900c8a31a8ff8fd7106e7f8c7ab052bfc70b4",
+      "fixture_adjustment": null,
+      "source_sha256": "af192149ab0e1d0141ec62d7a2e900c8a31a8ff8fd7106e7f8c7ab052bfc70b4",
+      "markers": [
+        "BROWSE_NEUTRAL_RULE_PASS",
+        "BROWSE_RULE_UNITS_PASS",
+        "BROWSE_MATRIX_HASH 92A0DA50D6F5D3D9",
+        "BROWSE_REQUIRED_OUTCOMES_PASS",
+        "BROWSE_SCENARIO_ONE_LOW_PRESSURE_PASS",
+        "BROWSE_SHARED_RESPONSE_EQUIVALENCE_PASS",
+        "BROWSE_EXPERIMENTS_PASS",
+        "REGENERATION_DIAGNOSIS_VERIFY_PASS",
+        "SHELTER_TIMING_CONTRACT_PASS",
+        "PROTECTION_RESTORE_CONTRACT_PASS",
+        "SHELTER_VISUALS_VERIFY_PASS",
+        "ECOLOGY_REVIEW_LINES_VERIFY_PASS",
+        "FENCE_GEOMETRY_VERIFY_PASS",
+        "BROWSE_SAVELOAD_DETERMINISM_PASS",
+        "BROWSE_NEUTRAL_LIFECYCLE_PASS",
+        "BROWSE_MEASUREMENT_HASH 188FDD43DC4E26E2",
+        "BROWSE_SCENE_RESTORED_PASS",
+        "BROWSING_PROTECTION_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOnePlantingVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 42.71,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "1297c9039da7583c27cbabd883dd624c6161d855bcee34c9edef9f5396ab7c77",
+      "fixture_adjustment": null,
+      "source_sha256": "1297c9039da7583c27cbabd883dd624c6161d855bcee34c9edef9f5396ab7c77",
+      "markers": [
+        "SCENARIO_ONE_PLANTING_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOnePruningVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 38.01,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "d15b70423f7fa2ca05ac6439f5bcd0e912a95c17e38cde99b233d4e5bcbc6e37",
+      "fixture_adjustment": null,
+      "source_sha256": "d15b70423f7fa2ca05ac6439f5bcd0e912a95c17e38cde99b233d4e5bcbc6e37",
+      "markers": [
+        "SCENARIO_ONE_PRUNING_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneDeadwoodVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 48.67,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "4230b0b898b694f65e82962484e7c32484b5d291443879e753c9a5a121c5ab99",
+      "fixture_adjustment": null,
+      "source_sha256": "4230b0b898b694f65e82962484e7c32484b5d291443879e753c9a5a121c5ab99",
+      "markers": [
+        "SCENARIO_ONE_DEADWOOD_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneProgressVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 42.75,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "7ec8eb6c186b7007f6b0f2d7651f8e6851efe31a93f5d4e830d1c9d9671a55d8",
+      "fixture_adjustment": null,
+      "source_sha256": "7ec8eb6c186b7007f6b0f2d7651f8e6851efe31a93f5d4e830d1c9d9671a55d8",
+      "markers": [
+        "SCENARIO_ONE_PROGRESS_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "SaveHardeningVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 43.55,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+      "fixture_adjustment": null,
+      "source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+      "markers": [
+        "SAVE_HARDENING_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "RngModelVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 33.27,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "396776365b08cf10bf8f81cf565b2bb630244b0926ae6c7dd8d2002b1fe3e397",
+      "fixture_adjustment": null,
+      "source_sha256": "396776365b08cf10bf8f81cf565b2bb630244b0926ae6c7dd8d2002b1fe3e397",
+      "markers": [
+        "RNG_MODEL_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "RngModelPolicyVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 69.13,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "e1e22db8984d3b3f350334b779df899cbad2631129213ac19538b25027be630a",
+      "fixture_adjustment": null,
+      "source_sha256": "e1e22db8984d3b3f350334b779df899cbad2631129213ac19538b25027be630a",
+      "markers": [
+        "RNG_POLICY_NEW_GAME_PASS model=1",
+        "RNG_POLICY_MODEL0_COMPATIBILITY_PASS neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+        "RNG_POLICY_SAVE_RETAINS_PASS model=1",
+        "RNG_POLICY_SAVE_RETAINS_PASS model=0",
+        "RNG_POLICY_LEGACY_ABSENT_FIELD_PASS model=0",
+        "RNG_POLICY_REFERENCE_V1_MODEL0_PASS years=20,50,100 playerModelRestored=1",
+        "RNG_POLICY_CONTINUATION_PASS model=0 year=20 hash=180500147252EE3B plantedAliveOrPromoted=11/12 promoted=11 cash=1189950",
+        "RNG_POLICY_CONTINUATION_PASS model=1 year=20 hash=AF831CEA6A3928D6 plantedAliveOrPromoted=10/12 promoted=10 cash=1189950",
+        "RNG_MODEL_POLICY_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneInteractionVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 62.89,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "2f56392da1b977770b72d47a372825b7c7004053ff7240845e540e3fd8761113",
+      "fixture_adjustment": null,
+      "source_sha256": "2f56392da1b977770b72d47a372825b7c7004053ff7240845e540e3fd8761113",
+      "markers": [
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+        "COMPACT_FELLING_RESIDUE_PASS piles=3 sameFrameDuplicates=0",
+        "SCENARIO_ONE_CANONICAL_SITKA_PASS hash=BFC55473C1506067",
+        "SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v19 trees=493 year50TreesPreserved=401 deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=5CFEB0C6A01A670B legacyV15LayoutHash=9CDF21A541C5968D",
+        "SCENARIO_ONE_INTERACTION_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "EcologyCalibrationAdoptionVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 84.51,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "e0d7fe1405d30e549f9db713c972bb975f752968b68e476c5b8189e5fecc3ce5",
+      "fixture_adjustment": null,
+      "source_sha256": "e0d7fe1405d30e549f9db713c972bb975f752968b68e476c5b8189e5fecc3ce5",
+      "markers": [
+        "ECOCAL_MEASUREMENT_HASH A7069BABA26FAA37",
+        "ECOLOGY_CALIBRATION_ADOPTION_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "CCFIntegrationVerificationTemp",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 48.0,
+      "mode": "batch",
+      "source_ref": "1a36ea97c724b3a026e76a0b5432349b46e6a298",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "4520185a2714a4f86222fb211db29168e43f0550172574cb60415a3d33200ba7",
+      "fixture_adjustment": "Synthetic v5 save uses historical regeneration/growth model0; P0 assertions unchanged",
+      "source_sha256": "d4ca1ed7f1eed7bfba3ee450acba5c91981fb533ad321b7cc2b46390385b6c4e",
+      "markers": [
+        "VERIFY_FRESH_PASS trees=336 stemsHa=2100 meanDbh=15.586 basalAreaHa=41.099 player=(-0.43, 0.08, 5.25)",
+        "VERIFY_INTERACTIONS_SAVELOAD_PASS felled=P0000 wood=3 year=1 trees=336",
+        "VERIFY_LIFECYCLE_PASS years=80 recruits=19 age30=19 hashA=BFC55473C1506067 hashB=BFC55473C1506067 match=True configuration=Editor",
+        "VERIFY_SUPPRESSION_PASS sameAgeDifferentSize=True release=True history=True noSecondPenalty=True",
+        "INTEGRATION_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ScenarioOneRemovalVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 43.13,
+      "mode": "batch",
+      "source_ref": "1a36ea97c724b3a026e76a0b5432349b46e6a298",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "ac460803ed9441a2f54971b31f08998edbc3ce5fd392d3a72d95001aba46d1de",
+      "fixture_adjustment": null,
+      "source_sha256": "ac460803ed9441a2f54971b31f08998edbc3ce5fd392d3a72d95001aba46d1de",
+      "markers": [
+        "SCENARIO_ONE_REMOVAL_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "ClearanceVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 55.66,
+      "mode": "interactive",
+      "source_ref": "1a36ea97c724b3a026e76a0b5432349b46e6a298",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "bc259708550afc2feff2c3abceea35cd0f175e07f8f21b68d7770416df3910e0",
+      "fixture_adjustment": null,
+      "source_sha256": "bc259708550afc2feff2c3abceea35cd0f175e07f8f21b68d7770416df3910e0",
+      "markers": [
+        "CLEARANCE_WALKING_PREVIEW_PASS groundRay=true sharedQuery=true",
+        "CLEARANCE_FIXTURES_PASS A B C D E F G H I J cohorts=3 exactJuveniles=1 groundPatches=5",
+        "CLEARANCE_CIRCLE_PASS area=1m2 species=3 inside=cleared outside=retained repeat=identical",
+        "CLEARANCE_REPEAT_MATRIX_PASS cells=64 identicalSpot=noTargets density=unchanged",
+        "CLEARANCE_ANNUAL_PASS completed=true debit=once treatmentYearDisplay=cleared",
+        "CLEARANCE_ACCEPTANCE_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "MenuTutorialVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 81.51,
+      "mode": "interactive",
+      "source_ref": "1a36ea97c724b3a026e76a0b5432349b46e6a298",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "a6d6d5cb05d056ba81cc2d34c089ca7212244b7349e41db545317abc78e6545f",
+      "fixture_adjustment": null,
+      "source_sha256": "a6d6d5cb05d056ba81cc2d34c089ca7212244b7349e41db545317abc78e6545f",
+      "markers": [
+        "MENU_RENDERED_PASS WalkingHud 1280x720",
+        "MENU_RENDERED_PASS WalkingHud 1600x900",
+        "MENU_RENDERED_PASS WalkingHud 1920x1080",
+        "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+        "MENU_RENDERED_PASS TreeInspection 1280x720",
+        "MENU_RENDERED_PASS TreeInspection 1600x900",
+        "MENU_RENDERED_PASS TreeInspection 1920x1080",
+        "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+        "MENU_RENDERED_PASS StandMap 1280x720",
+        "MENU_RENDERED_PASS StandMap 1600x900",
+        "MENU_RENDERED_PASS StandMap 1920x1080",
+        "HUD_WAYPOINT_PASS visible=true sizes=1280,1600,1920 bearings=0,90,-90,180 arrival=true clear=true noTeleport=true",
+        "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+        "MENU_RENDERED_PASS WorkPlan 1280x720",
+        "MENU_RENDERED_PASS WorkPlan 1600x900",
+        "MENU_RENDERED_PASS WorkPlan 1920x1080",
+        "MENU_RENDERED_PASS AnnualReview 1280x720",
+        "MENU_RENDERED_PASS AnnualReview 1600x900",
+        "MENU_RENDERED_PASS AnnualReview 1920x1080",
+        "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+        "LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true",
+        "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+        "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "TimberAssortmentYieldVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 37.54,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "4c80f34ee3472119a3d989f894894bfe2304a2de4461fd35c12c489e2ff4b555",
+      "fixture_adjustment": null,
+      "source_sha256": "4c80f34ee3472119a3d989f894894bfe2304a2de4461fd35c12c489e2ff4b555",
+      "markers": [
+        "TIMBER_YIELD_VERIFY_PASS fixtures=120 assertions=3007 evidenceSha256=88FAF806EBE8FD5F2047740AE965823F0EE4286BE23EE5AD1B209CD2A228C4A8",
+        "TIMBER_YIELD_ARCHIVE_DIAGNOSTIC_PASS readOnly=true"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "Stage1WorkEconomyFoundationVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 32.35,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "f1047d23aecc78615e60d85f47a7c5894b0239c1c68069959c9ead3981f54abb",
+      "fixture_adjustment": null,
+      "source_sha256": "f1047d23aecc78615e60d85f47a7c5894b0239c1c68069959c9ead3981f54abb",
+      "markers": [
+        "STAGE1_ECONOMY_VERIFY_PASS fixtures=66 assertions=420 evidenceSha256=05E5E664EE3D8F74D20D76B9E2629C48C6D30FDB8F955A5E9FA43228C8AB62E1"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "JuvenileMortalityFoundationVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 43.35,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "08983738d15ca186433fca9eb2eea778933a43c02c44ab005c05c89fc1aa4ed4",
+      "fixture_adjustment": null,
+      "source_sha256": "08983738d15ca186433fca9eb2eea778933a43c02c44ab005c05c89fc1aa4ed4",
+      "markers": [
+        "CANONICAL_ISOLATION_HASH BFC55473C1506067",
+        "SCENARIO_ONE_LIFECYCLE_HASH pressure=0.20 hash=3485B6630C9EA448",
+        "JUVENILE_CANONICAL_VERIFY_PASS"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "JuvenileDisplayHeightVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 43.17,
+      "mode": "batch",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "c62d8d6c3a43506901745dacf16aaf19efd0537ea65b58fe5310dface2786fc3",
+      "fixture_adjustment": null,
+      "source_sha256": "c62d8d6c3a43506901745dacf16aaf19efd0537ea65b58fe5310dface2786fc3",
+      "markers": [
+        "JUVENILE_DISPLAY_HEIGHT_VERIFY_PASS naturalSpecies=3 plantedSpecies=2 heights=5 refreshes=3 cases=45 pairedCases=30 toleranceMetres=0.002 authoritativeStateUnchanged=true"
+      ]
+    },
+    {
+      "production_source_unchanged": true,
+      "gate": "Model2PedagogyVerification",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 51.25,
+      "mode": "interactive",
+      "source_ref": "integration-working-tree",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "original_source_sha256": "7ef29035f01e4833a65885187efaddf2971fa3e2a1c93adcd5217dec68471d65",
+      "fixture_adjustment": null,
+      "source_sha256": "7ef29035f01e4833a65885187efaddf2971fa3e2a1c93adcd5217dec68471d65",
+      "markers": [
+        "MODEL2_PEDAGOGY_PASS checks=20 legacyTruth=true model2Copy=true readOnly=true renderedResolutions=3"
+      ]
+    }
+  ],
+  "focused": {
+    "StormMathVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormMathVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 39.24,
+      "source_sha256": "a32b7f926354f127e833fbf4e8b87a17da2a0100668713b92adba42a4894c529",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_MATH_VERIFICATION_PASS checks=152"
+      ]
+    },
+    "StormCoreVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormCoreVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 43.06,
+      "source_sha256": "a1a426c0648223cc74f8ac9d5601f16c30af199cd62d2eca98c5336f93c82aef",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_CORE_VERIFICATION_PASS checks=107"
+      ]
+    },
+    "StormRecruitmentVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormRecruitmentVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 48.35,
+      "source_sha256": "1f5e42993ced9ccabd7e3609b494dcf3ae5079564564d9d78ec4ba99b5084d9a",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_RECRUITMENT_VERIFICATION_PASS checks=120"
+      ]
+    },
+    "StormSalvageVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormSalvageVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 47.68,
+      "source_sha256": "15e5e8f30c725a100525c5e8db284be31280967925c790a015778c335c75ff16",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_SALVAGE_VERIFICATION_PASS checks=983"
+      ]
+    },
+    "StormPerformanceVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormPerformanceVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 84.27,
+      "source_sha256": "004b6a36f74101dba4a4cc6fe127ce2aecb4b47dde9e624d283a9ac136366483",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_PERFORMANCE_VERIFICATION_PASS cases=40 exactIdRollVictims=true simulationOnly=true"
+      ]
+    },
+    "StormForcedMatrix": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormForcedMatrix",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 115.88,
+      "source_sha256": "04a7bf3c008f720de6f39d71c61a2071dc773a5b52299305ef84fbff70939a43",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_FORCED_MATRIX_PASS cases=288 checks=672"
+      ]
+    },
+    "StormForcedMatrixRecent": {
+      "gate": "StormForcedMatrix",
+      "treatment_timing": "recent",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 149.96,
+      "source_sha256": "04a7bf3c008f720de6f39d71c61a2071dc773a5b52299305ef84fbff70939a43",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_FORCED_MATRIX_PASS cases=288 checks=790"
+      ]
+    },
+    "WindthrowVisualVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "WindthrowVisualVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 62.33,
+      "source_sha256": "f2701a8a328e8532168790869d890370df27a2136449941a9a81fbb66905ae5a",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "WINDTHROW_VISUAL_VERIFICATION_PASS checks=241"
+      ]
+    },
+    "StormUiVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormUiVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 308.04,
+      "source_sha256": "2b8c688bd8f77c55aa3991b9d0d2e349384167fff51a8d276e1aa41a0af776bb",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_UI_VERIFICATION_PASS checks=1167"
+      ]
+    },
+    "StormReplayVerification": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormReplayVerification",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 50.51,
+      "source_sha256": "ac97815c4c005a680d38f245cd2526414c2cad7e7cd12579317dacda8128c72e",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_REPLAY_VERIFICATION_PASS resolved=84796FAEF211823C future=52037B943B62DD39"
+      ]
+    },
+    "StormRngWrite": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormRngWrite",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 55.98,
+      "source_sha256": "4a67eb3fc03fd29a8fff090c0a99ae48258efd63255d54065b23962f7791555c",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_RNG_WRITE_PASS models=0,1 iterationOrder=true throughYear10=true"
+      ]
+    },
+    "StormRngReplay": {
+      "launch_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "production_source_unchanged": true,
+      "gate": "StormRngReplay",
+      "treatment_timing": "early-established",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 59.24,
+      "source_sha256": "5c55ab88fa0af1666fd4506732ae700eee46ef903d6312916324a19dba477ec3",
+      "run_head": "1fbefd8a40c69dd90abb83f2149e24b546a184cf",
+      "run_branch": "task/storms-windthrow-v1",
+      "markers": [
+        "STORM_RNG_REPLAY_PASS models=0,1 iterationOrder=true throughYear10=true"
+      ]
+    }
+  },
+  "note": "Runs used an uncommitted task implementation atop recorded base; tested_production_manifest identifies the exact production bytes."
+}

@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 // not migrate or repair anything, and every legacy version still passes.
 //
 // Kept free of scene lookups so it can be tested without Play mode.
-public static class ForestSaveValidation
+public static partial class ForestSaveValidation
 {
     // Highest ForestTreeStage value (Mature, Stump, Sapling, Young).
     private const int MaxTreeStage = 3;
@@ -61,6 +61,9 @@ public static class ForestSaveValidation
                     return $"tree {tree.treeId} has a negative age";
             }
         }
+
+        string stormProblem = ValidateStorms(data);
+        if (stormProblem != null) return stormProblem;
 
         if (data.regenerationModel < RegenerationModel.Legacy || data.regenerationModel > RegenerationModel.Latest)
             return $"unknown regeneration model {data.regenerationModel}";

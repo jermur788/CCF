@@ -30,7 +30,8 @@ public enum ScenarioEcologicalTreatment
     JuvenilePlanted,
     RegenerationRemoved,
     TreePruned,
-    TreeRetainedAsDeadwood
+    TreeRetainedAsDeadwood,
+    WindthrowSalvaged
 }
 
 [Serializable]

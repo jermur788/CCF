@@ -226,6 +226,15 @@ public sealed class StandMapView
         UiKit.Add(side, "A waypoint marks the cell in the forest and in the status panel. Walk there yourself; the map does not move you.", "faint");
     }
 
+    public bool SetWaypointCell(ForestEcologyController eco, int index)
+    {
+        if (eco == null || eco.Cells == null || index < 0 || index >= eco.CellCount) return false;
+        selectedCell = index;
+        SetWaypoint(eco, index);
+        Refresh(true);
+        return true;
+    }
+
     private void SetWaypoint(ForestEcologyController eco, int index)
     {
         waypointCell = index;

@@ -125,9 +125,10 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             Transform candidateTransform = candidate.collider.transform;
             if (playerRoot != null && (candidateTransform == playerRoot || candidateTransform.IsChildOf(playerRoot)))
                 continue;
-            if (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
-                || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
-                    && candidate.collider.GetComponentInParent<ForestTree>() == null)) continue;
+            if (candidate.collider.GetComponentInParent<ScenarioWindthrowVisual>() == null
+                && (candidate.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null
+                    || (candidate.collider.GetComponentInParent<ForestEcologyController>() != null
+                        && candidate.collider.GetComponentInParent<ForestTree>() == null))) continue;
             if (!found || candidate.distance < nearest.distance)
             {
                 nearest = candidate;
@@ -137,6 +138,14 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (!found)
             return;
 
+        ScenarioWindthrowVisual windthrow = nearest.collider.GetComponentInParent<ScenarioWindthrowVisual>();
+        if (windthrow != null)
+        {
+            ScenarioOneManager manager = Object.FindFirstObjectByType<ScenarioOneManager>();
+            if (Keyboard.current != null && Keyboard.current.xKey.wasPressedThisFrame && manager != null)
+                manager.ToggleSalvagePlan(windthrow.TreeId);
+            return;
+        }
         ForestTree tree = nearest.collider.GetComponentInParent<ForestTree>();
         if (tree == null || !tree.IsLiving)
         {
@@ -392,24 +401,9 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         float growthAfter = remainingCount > 0 ? growthAfterSum / remainingCount : 0f;
         float growthPercent = growthNow > 0.0001f ? (growthAfter - growthNow) / growthNow * 100f : 0f;
 
-        // Wind peak for the retained trees under forecast light and opening.
-        float windPeak = 0f;
-        foreach (ForestTree tree in living)
-        {
-            if (marked.Contains(tree))
-                continue;
-            int index = eco.GetCellIndex(tree.transform.position);
-            if (index < 0)
-                continue;
-            float light = forecastLight.TryGetValue(index, out float value) ? value : eco.Cells[index].Light;
-            float opening = forecastOpening.TryGetValue(index, out float value2) ? value2 : eco.Cells[index].RecentOpening;
-            float slenderness = tree.Height / Mathf.Max(0.05f, tree.Diameter / 100f);
-            float exposure = 0.25f + 0.75f * light;
-            float recent = 1f + species.WindOpeningWeight * opening;
-            float risk = species.StandWindSusceptibility * slenderness * exposure * recent;
-            if (risk > windPeak)
-                windPeak = risk;
-        }
+        // Read the same relative vulnerability used by actual storm failure.
+        // The preview rebuilds shelter from retained trees and leaves no cache mutation.
+        float windPeak = eco.ForecastStormPeak(living.FindAll(tree => !marked.Contains(tree)).ToArray(), forecastLight, forecastOpening);
 
         float keepVolume = 0f;
         foreach (ForestTree tree in living)
@@ -422,7 +416,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 openingPeak = value;
 
         TreatmentOutcome = $"If felled now: keep {keepVolume:0.0} m3 · growth {(growthPercent >= 0f ? "+" : "")}{growthPercent:0}% · gap light {lightNow:0.00} → {lightAfter:0.00}"
-            + $" · wind peak {windPeak:0.0} ({eco.WindRiskBandLabel(windPeak)}) · opening {openingPeak:0.0} of {cap:0.#}";
+            + $" · wind exposure {ForestEcologyController.StormExposureBand(windPeak)}{(eco.StormModelVersion == 0 ? " (storms off)" : "")} · opening {openingPeak:0.0} of {cap:0.#}";
     }
 
     private void SweepStaleMarks()

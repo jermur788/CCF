@@ -366,7 +366,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public bool SetPendingFellingOutcome(int workOrderId, FellingMaterialOutcome choice)
     {
         ScenarioOneWorkOrder order = workOrders.Find(o => o != null && o.workOrderId == workOrderId);
-        if (order == null || order.type != ScenarioWorkType.FellTree || order.status != ScenarioWorkStatus.Pending)
+        if (!IsHarvestOrder(order) || order.status != ScenarioWorkStatus.Pending
+            || (order.type == ScenarioWorkType.SalvageDeadwood && choice == FellingMaterialOutcome.RetainAsFallenDeadwood))
             return false;
         order.fellingOutcome = choice;
         order.expectedRevenueCents = 0;
@@ -448,6 +449,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 ecology.RngModelVersion = NewGameRngModel;
                 ecology.RegenerationModelVersion = NewGameRegenerationModel;
                 ecology.GrowthModelVersion = NewGameGrowthModel;
+                ecology.StormModelVersion = StormModel.None;
             }
             InitializeNewScenario();
         }
@@ -482,8 +484,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // deaths do not raise it, so each tree yields one record.
     private void OnTreeBiologicalDeath(ForestTree tree)
     {
-        if (tree == null || ecology == null || ecology.GrowthModelVersion < GrowthModel.SiteClassDensity)
+        if (tree == null || ecology == null || (ecology.GrowthModelVersion < GrowthModel.SiteClassDensity
+            && !(ecology.StormModelVersion == StormModel.WindthrowV1 && tree.MortalityCause == "windthrow")))
             return;
+        var stormRecordWatch = resolvingStorm ? System.Diagnostics.Stopwatch.StartNew() : null;
         float volume = tree.Diameter * tree.Diameter * 0.00007854f * tree.Height
             * (tree.Species != null ? tree.Species.FormHeightRatio : 0.5f);
         if (volume <= 0f)
@@ -502,8 +506,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             fallenYear = ecology.EcologicalYear,
             lastDecayYear = ecology.EcologicalYear
         };
-        deadwood.visualName = SpawnFallenLogVisual(deadwood);
         deadwoodRecords.Add(deadwood);
+        if (resolvingStorm)
+        {
+            pendingStormDeadwood.Add(deadwood);
+            stormDeadwoodMilliseconds += stormRecordWatch.Elapsed.TotalMilliseconds;
+        }
+        else deadwood.visualName = SpawnFallenLogVisual(deadwood);
     }
 
     private void OnDestroy()
@@ -564,6 +573,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ecologicalSnapshots.Clear();
         understoreyCells.Clear();
         nextDeadwoodId = 1;
+        stormEvents.Clear();
+        ClearStormVisualState();
+        pendingStormDeadwood.Clear();
+        resolvingStorm = false;
         ClearDeadwoodVisuals();
         ClearFellingResidueVisuals();
         deadwoodRecords.Clear();
@@ -752,7 +765,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     }
 
     public long ReservedContractorCashCents => GetHarvestQuote(true).CostCents + workOrders
-        .Where(order => order.status == ScenarioWorkStatus.Approved && order.type != ScenarioWorkType.FellTree && string.IsNullOrEmpty(order.validationMessage))
+        .Where(order => order.status == ScenarioWorkStatus.Approved && !IsHarvestOrder(order) && string.IsNullOrEmpty(order.validationMessage))
         .Sum(order => order.estimatedCostCents);
 
     private void InvalidateEconomyQuotes()
@@ -764,17 +777,20 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public ScenarioHarvestJob GetHarvestQuote(bool approvedOnly = false)
     {
         var trees = LivingTreesById();
-        var orders = workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.FellTree
+        foreach (var pair in windVictims) trees[pair.Key] = pair.Value;
+        var fallen = deadwoodRecords.Where(record => windVictims.ContainsKey(record.treeId)).ToDictionary(record => record.treeId, StringComparer.Ordinal);
+        var orders = workOrders.Where(order => order.IsOpen && IsHarvestOrder(order)
             && (!approvedOnly || order.status == ScenarioWorkStatus.Approved) && string.IsNullOrEmpty(order.validationMessage)).OrderBy(order => order.workOrderId).ToList();
         int interventions = managementEvents.Where(entry => entry.eventType == ScenarioManagementEventType.WorkResolved
             && entry.outcome == ScenarioManagementOutcome.Succeeded && entry.taskType == ScenarioWorkType.FellTree).Select(entry => entry.year).Distinct().Count();
         string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":"
             + string.Join("|", orders.Select(order => order.workOrderId + "/" + order.executionMethod + "/" + order.fellingOutcome + "/" + order.targetTreeId + "/"
                 + (trees.TryGetValue(order.targetTreeId ?? "", out var tree) ? tree.Species.SpeciesId + "/" + tree.Height.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
-                    + "/" + tree.Diameter.ToString("R", System.Globalization.CultureInfo.InvariantCulture) : "missing")));
+                    + "/" + tree.Diameter.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
+                    + "/" + (fallen.TryGetValue(tree.TreeId, out var record) ? record.remainingVolumeM3.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "/" + record.fallenYear : "living") : "missing")));
         var cached = approvedOnly ? cachedApprovedHarvest : cachedOpenHarvest;
         if (cached != null && key == (approvedOnly ? cachedApprovedHarvestKey : cachedOpenHarvestKey)) return cached;
-        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents);
+        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents, fallen);
         foreach (var order in job.Orders)
         {
             order.harvestJobId = job.JobId; order.estimatedCostCents = 0;
@@ -1124,7 +1140,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return false;
         }
         var allHarvest = GetHarvestQuote(false);
-        long cost = allHarvest.CostCents + workOrders.Where(order => order.IsOpen && order.type != ScenarioWorkType.FellTree
+        long cost = allHarvest.CostCents + workOrders.Where(order => order.IsOpen && !IsHarvestOrder(order)
             && string.IsNullOrEmpty(order.validationMessage)).Sum(order => order.estimatedCostCents);
         if (!allHarvest.Eligible || cost > cashCents)
         {
@@ -1160,7 +1176,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             .OrderBy(order => order.workOrderId)
             .ToList();
         var harvest = GetHarvestQuote(true);
-        long requiredCash = harvest.CostCents + approved.Where(order => order.type != ScenarioWorkType.FellTree && string.IsNullOrEmpty(order.validationMessage))
+        long requiredCash = harvest.CostCents + approved.Where(order => !IsHarvestOrder(order) && string.IsNullOrEmpty(order.validationMessage))
             .Sum(order => order.estimatedCostCents);
         if (!harvest.Eligible || requiredCash > cashCents)
         {
@@ -1187,9 +1203,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 float beforeRemovedDensity = report.removedRegenerationDensity;
                 ScenarioPlantingQuote plantingQuote = order.type == ScenarioWorkType.PlantJuvenile && string.IsNullOrEmpty(order.validationMessage)
                     ? GetPlantingQuote(order, OwnerMinutesPerYear - ownerMinutesUsedThisYear) : null;
-                if (order.type == ScenarioWorkType.FellTree)
+                if (IsHarvestOrder(order))
                 {
-                    if (harvest.Orders.Contains(order)) ResolveFelling(order, report);
+                    if (harvest.Orders.Contains(order))
+                    {
+                        if (order.type == ScenarioWorkType.SalvageDeadwood) ResolveSalvage(order, report);
+                        else ResolveFelling(order, report);
+                    }
                     else
                     {
                         order.status = ScenarioWorkStatus.Failed; order.resolvedYear = report.year;
@@ -1218,7 +1238,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 result.failureReason = order.status == ScenarioWorkStatus.Failed ? order.validationMessage : "";
                 result.ecologicalTreatment = order.status == ScenarioWorkStatus.Completed
                     ? TreatmentFor(order) : ScenarioEcologicalTreatment.None;
-                if (!harvestSettled && order.type == ScenarioWorkType.FellTree && order.status == ScenarioWorkStatus.Completed
+                if (!harvestSettled && IsHarvestOrder(order) && order.status == ScenarioWorkStatus.Completed
                     && harvest.Orders.All(target => target.status == ScenarioWorkStatus.Completed))
                 {
                     SettleHarvestJob(harvest, report, result);
@@ -1235,6 +1255,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // Scenario One's single authoritative annual sequence: approved work,
         // immediate financial settlement, then exactly one Forestry annual step.
         ecology.AdvanceOneYear();
+        report.deadwoodCreated += ecology.LastStormPerformance.Victims;
+        report.deadwoodCreatedM3 += deadwoodRecords.Where(record => record.fallenYear == report.year
+            && windVictims.ContainsKey(record.treeId)).Sum(record => record.originalVolumeM3);
         AdvancePlantedJuveniles();
         RefreshPlantingMarkers();
         AdvanceUnderstorey();
@@ -1314,6 +1337,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             shelters = CloneRecords(ecology != null ? ecology.Browsing.Shelters : shelters),
             protectedAreas = CloneRecords(ecology != null ? ecology.Browsing.ProtectedAreas : protectedAreas),
             ownerMinutesUsedThisYear = ownerMinutesUsedThisYear,
+            stormEvents = CloneStormEvents(stormEvents),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1363,6 +1387,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         understoreyCells = CloneUnderstorey(data.understoreyCells);
         ClearDeadwoodVisuals();
         deadwoodRecords = CloneDeadwood(data.deadwoodRecords);
+        stormEvents = saveVersion >= 19 ? CloneStormEvents(data.stormEvents) : new List<StormEventRecord>();
+        pendingStormDeadwood.Clear();
+        resolvingStorm = false;
         nextDeadwoodId = Mathf.Max(1, data.nextDeadwoodId);
         if (deadwoodRecords.Count > 0)
             nextDeadwoodId = Mathf.Max(nextDeadwoodId,
@@ -1399,6 +1426,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // as an empty instance (year 0). It is not a completed Century Review.
         centuryReview = data.centuryReview == null || data.centuryReview.year < ReviewYear
             ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
+        RestoreStormVisualState();
         RestoreDeadwoodVisuals();
         RefreshFellingResidueVisuals();
         habitatVisuals?.Rebuild(ecology, understoreyCells, deadwoodRecords, plantedJuveniles);
@@ -1449,6 +1477,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
         switch (order.type)
         {
+            case ScenarioWorkType.SalvageDeadwood:
+                ResolveSalvage(order, report);
+                break;
             case ScenarioWorkType.FellTree:
                 ResolveFelling(order, report);
                 break;
@@ -1530,6 +1561,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         if (record == null)
             return "";
+        if (TrySpawnWindthrowVisual(record, out string windName)) return windName;
         SectionFiveVisualCatalog catalog = SectionFiveVisualCatalog.Load();
         if (record.speciesId == "sitka-spruce" && catalog != null && catalog.freshLog != null && catalog.decayedLog != null)
         {
@@ -1617,7 +1649,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         ClearFellingResidueVisuals();
         foreach (ScenarioOneWorkOrder order in workOrders)
-            if (order != null && order.type == ScenarioWorkType.FellTree
+            if (IsHarvestOrder(order)
                 && order.status == ScenarioWorkStatus.Completed)
                 SpawnFellingResidueVisual(order);
     }
@@ -2021,6 +2053,14 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Scenario One harvest is contractor-only; owner production felling is ineligible.";
                 order.estimatedCostCents = 0;
             }
+            else if (order.type == ScenarioWorkType.SalvageDeadwood)
+            {
+                if (!CanSalvage(order.targetTreeId)) order.validationMessage = "Fallen stem is missing, already salvaged or too decayed.";
+                else if (order.fellingOutcome != FellingMaterialOutcome.SellAndExtract && order.fellingOutcome != FellingMaterialOutcome.KeepForUse)
+                    order.validationMessage = "Salvage can sell/extract or keep for use; leave unselected stems as deadwood.";
+                else if (order.executionMethod != WorkExecutionMethod.Contractor) order.validationMessage = "Scenario One salvage is contractor-only.";
+                order.estimatedCostCents = 0;
+            }
             else if (order.type == ScenarioWorkType.PlantJuvenile)
             {
                 ScenarioShopEntry offer = definition != null ? definition.FindShopEntry(order.stockItemId) : null;
@@ -2173,12 +2213,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 continue;
             result.openCount++;
             if (!string.IsNullOrEmpty(order.validationMessage)) continue;
-            if (order.type != ScenarioWorkType.FellTree) result.minutes += order.estimatedMinutes;
-            if (order.type != ScenarioWorkType.FellTree) result.costCents += order.estimatedCostCents;
+            if (!IsHarvestOrder(order)) result.minutes += order.estimatedMinutes;
+            if (!IsHarvestOrder(order)) result.costCents += order.estimatedCostCents;
             if (order.status == ScenarioWorkStatus.Approved)
             {
                 result.approvedCount++;
-                if (order.type != ScenarioWorkType.FellTree) result.approvedCostCents += order.estimatedCostCents;
+                if (!IsHarvestOrder(order)) result.approvedCostCents += order.estimatedCostCents;
             }
         }
         var harvest = GetHarvestQuote(false); result.costCents += harvest.CostCents; result.revenueCents = harvest.RevenueCents;
@@ -2339,6 +2379,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         switch (order.type)
         {
+            case ScenarioWorkType.SalvageDeadwood:
+                return ScenarioEcologicalTreatment.WindthrowSalvaged;
             case ScenarioWorkType.FellTree:
                 return order.fellingOutcome == FellingMaterialOutcome.RetainAsFallenDeadwood
                     ? ScenarioEcologicalTreatment.TreeRetainedAsDeadwood
@@ -2402,12 +2444,18 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         float decayed = 0f;
         foreach (ScenarioDeadwoodRecord record in deadwoodRecords)
         {
-            decayed += ScenarioDeadwood.Decay(record, ecology.EcologicalYear);
+            // Zero stem volume records preserve salvaged root-plate history.
+            // They must not reappear through the ordinary decay floor.
+            if (record != null && record.remainingVolumeM3 <= 0f && windVictims.ContainsKey(record.treeId))
+                record.lastDecayYear = ecology.EcologicalYear;
+            else decayed += ScenarioDeadwood.Decay(record, ecology.EcologicalYear);
             if (record == null)
                 continue;
             Transform visual = transform.Find("Fallen Log " + record.deadwoodId);
             if (visual == null)
                 continue;
+            ScenarioWindthrowVisual wind = visual.GetComponent<ScenarioWindthrowVisual>();
+            if (wind != null) { wind.Refresh(record); continue; }
             ScenarioFallenLogVisual authored = visual.GetComponent<ScenarioFallenLogVisual>();
             if (authored != null)
             {

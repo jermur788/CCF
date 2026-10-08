@@ -118,6 +118,7 @@ public sealed class ForestSaveController : MonoBehaviour
             data.rngModelVersion = ecology.RngModelVersion;
             data.regenerationModel = ecology.RegenerationModelVersion;
             data.growthModel = ecology.GrowthModelVersion;
+            data.stormModel = ecology.StormModelVersion;
         }
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
@@ -229,7 +230,8 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             string json = File.ReadAllText(SavePath);
             data = JsonUtility.FromJson<ForestSaveData>(json);
-            string competitionProblem = ForestSaveValidation.ValidateCompetitionJson(json, data);
+            string competitionProblem = ForestSaveValidation.ValidateStormJson(json, data)
+                ?? ForestSaveValidation.ValidateCompetitionJson(json, data);
             if (competitionProblem != null)
             {
                 SetMessage("Save refused: " + competitionProblem);
@@ -424,7 +426,8 @@ public sealed class ForestSaveController : MonoBehaviour
                 int regenerationModel = data.version >= 16 ? data.regenerationModel : RegenerationModel.Legacy;
                 // No automatic migration: saves before v17 are always growth model 0.
                 int growthModel = data.version >= 17 ? data.growthModel : GrowthModel.Legacy;
-                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed, data.rngModelVersion, regenerationModel, growthModel);
+                ecology.RestoreEcologyState(data.ecologicalYear, data.simulationSeed, data.rngModelVersion, regenerationModel, growthModel,
+                    data.version >= 19 ? data.stormModel : StormModel.None);
                 if (data.cells != null)
                 {
                     foreach (ForestCellSaveData saved in data.cells)

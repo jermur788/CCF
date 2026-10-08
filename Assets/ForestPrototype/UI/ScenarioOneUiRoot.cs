@@ -182,6 +182,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             SetScreen(UiScreen.None);
     }
 
+    public bool ShowStormWaypoint(int cell)
+    {
+        if (manager.ReferencePreviewActive || !map.SetWaypointCell(ecology, cell)) return false;
+        SetScreen(UiScreen.Map);
+        return true;
+    }
+
     public void SetScreen(UiScreen next)
     {
         if (screen == next)

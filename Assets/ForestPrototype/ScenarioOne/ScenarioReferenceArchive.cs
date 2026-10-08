@@ -132,6 +132,7 @@ public sealed class ScenarioReferenceArchive
         scenario.workOrders?.Sort((a, b) => a.workOrderId.CompareTo(b.workOrderId));
         scenario.inventory?.Sort((a, b) => string.CompareOrdinal(a.itemId, b.itemId));
         scenario.annualReports?.Sort((a, b) => a.year.CompareTo(b.year));
+        scenario.stormEvents?.Sort((a, b) => a.year.CompareTo(b.year));
         scenario.managementEvents?.Sort((a, b) => a.eventId.CompareTo(b.eventId));
         scenario.ecologicalSnapshots?.Sort((a, b) => a.year.CompareTo(b.year));
         if (scenario.ecologicalSnapshots != null)
@@ -174,13 +175,13 @@ public sealed class ScenarioReferenceArchive
     // Returns null for model-1 worlds, which have no v15 equivalent.
     public static string LegacyV15WorldHash(ForestSaveData data)
     {
-        if (data == null || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
+        if (!StormsInert(data) || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 15;
         string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
-        return Hash(WithoutCompetitionFields(json));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(json)));
     }
 
     // As above for growth-model-0 worlds in the exact v16 layout (version 16,
@@ -188,13 +189,13 @@ public sealed class ScenarioReferenceArchive
     // comparable after the v17 bump. Returns null for growth-model-1 worlds.
     public static string LegacyV16WorldHash(ForestSaveData data)
     {
-        if (data == null || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
+        if (!StormsInert(data) || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 16;
         string json = JsonUtility.ToJson(copy).Replace("\"growthModel\":0,", "");
-        return Hash(WithoutCompetitionFields(json));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(json)));
     }
     private static string WithoutCompetitionFields(string json)
         => System.Text.RegularExpressions.Regex.Replace(json,
@@ -203,11 +204,32 @@ public sealed class ScenarioReferenceArchive
     // Exact v17 compatibility only; never substitutes for model-2 world hashes.
     public static string LegacyV17WorldHash(ForestSaveData data)
     {
-        if (data == null || data.regenerationModel >= RegenerationModel.Competition) return null;
+        if (!StormsInert(data) || data.regenerationModel >= RegenerationModel.Competition) return null;
         var copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 17;
-        return Hash(WithoutCompetitionFields(JsonUtility.ToJson(copy)));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(JsonUtility.ToJson(copy))));
+    }
+
+    private static bool StormsInert(ForestSaveData data)
+        => data != null && data.stormModel == StormModel.None
+            && (data.scenarioOne?.stormEvents == null || data.scenarioOne.stormEvents.Count == 0);
+
+    private static string WithoutStormFields(string json)
+        => json.Replace("\"stormModel\":0,", "").Replace(",\"stormEvents\":[]", "");
+
+    // Compatibility only: retains the full accepted model-2 state and exact
+    // v18 layout. Active storm worlds deliberately have no historical hash.
+    public static string LegacyV18WorldHash(ForestSaveData data)
+    {
+        if (!StormsInert(data)) return null;
+        Canonicalize(data);
+        string json = JsonUtility.ToJson(data);
+        // Do not JSON-round-trip floating values merely to change a header.
+        // This comparator must use exactly the former WorldHash byte stream.
+        int firstComma = json.IndexOf(',');
+        json = "{\"version\":18" + json.Substring(firstComma);
+        return Hash(WithoutStormFields(json));
     }
 
 }

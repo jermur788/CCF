@@ -94,7 +94,7 @@ public sealed class SitkaGrowthModelVerificationRunner : MonoBehaviour
     private IEnumerator Policy()
     {
         Pass("POLICY_NEW_GAME_GROWTH1", ScenarioOneManager.NewGameGrowthModel == GrowthModel.SiteClassDensity && original.growthModel == 1
-            && original.version == 18 && original.regenerationModel == 2 && original.rngModelVersion == 1,
+            && original.version == 19 && original.regenerationModel == 2 && original.rngModelVersion == 1,
             $"growth={original.growthModel} regen={original.regenerationModel} rng={original.rngModelVersion} version={original.version}");
         string stripped = JsonUtility.ToJson(Clone(original)).Replace("\"growthModel\":1,", "");
         Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(stripped), false), "stripped load"); yield return null;

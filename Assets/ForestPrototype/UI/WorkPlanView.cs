@@ -116,11 +116,11 @@ public sealed class WorkPlanView
     private void BuildHarvest(ScenarioOneManager m)
     {
         ScenarioHarvestJob job = m.GetHarvestQuote(false);
-        List<ScenarioOneWorkOrder> fell = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.FellTree)
+        List<ScenarioOneWorkOrder> fell = m.WorkOrders.Where(o => o.IsOpen && ScenarioOneManager.IsHarvestOrder(o))
             .OrderBy(o => o.workOrderId).ToList();
         if (fell.Count == 0)
             return;
-        VisualElement card = Card($"Thinning job · {fell.Count} tree(s)", "One commissioned contractor visit · Contractor only — specialist harvesting work");
+        VisualElement card = Card($"Harvest and salvage job · {fell.Count} stem(s)", "One commissioned contractor visit · Contractor only — specialist harvesting work");
         if (job.Resolution != null)
         {
             var revenueByProduct = job.Resolution.Quote.Timber.GroupBy(v => v.Batch.Assortment)
@@ -157,6 +157,8 @@ public sealed class WorkPlanView
             if (costs.MinimumJobAdjustmentCents > 0)
                 UiKit.Add(card, "This visit is small, so the contractor's minimum charge dominates. Combining more trees into one visit spreads that cost.", "muted");
         }
+        if (fell.Any(order => order.type == ScenarioWorkType.SalvageDeadwood))
+            UiKit.Add(card, "Windthrow salvage is optional. Remove or cancel a salvage order to leave that stem as deadwood. Basal damage and time since the fall can reduce timber grade; the contractor minimum still applies once to the combined visit.", "muted");
         UiKit.Add(card, job.Eligible ? "Re-quoted and settled when the year is resolved." : "Cannot proceed: " + job.Problem, job.Eligible ? "faint" : "body");
         if (job.HasUnmarketedSpecies)
             UiKit.Add(card, "No broadleaf timber market is configured: those stems are charged for felling but earn no sale revenue.", "muted");
@@ -164,7 +166,7 @@ public sealed class WorkPlanView
         foreach (ScenarioOneWorkOrder order in fell)
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
-            UiKit.Chip(row, "■ FELL", "chip-fell");
+            UiKit.Chip(row, order.type == ScenarioWorkType.SalvageDeadwood ? "■ SALVAGE" : "■ FELL", "chip-fell");
             UiKit.Add(row, $"{order.targetTreeId} · {UiKit.F(order.expectedVolumeM3, "0.00")} m³ · {Status(order)}", "body", "gap");
             if (order.status == ScenarioWorkStatus.Pending)
             {
@@ -172,6 +174,7 @@ public sealed class WorkPlanView
                     (FellingMaterialOutcome.SellAndExtract, "Sell"), (FellingMaterialOutcome.KeepForUse, "Keep for use"),
                     (FellingMaterialOutcome.RetainAsFallenDeadwood, "Leave as deadwood") })
                 {
+                    if (order.type == ScenarioWorkType.SalvageDeadwood && choice == FellingMaterialOutcome.RetainAsFallenDeadwood) continue;
                     Button b = UiKit.Button(label, () => { m.SetPendingFellingOutcome(order.workOrderId, choice); Refresh(true); });
                     if (order.fellingOutcome == choice) b.AddToClassList("btn-selected");
                     row.Add(b);
