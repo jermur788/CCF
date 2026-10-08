@@ -16,8 +16,8 @@ PASS year0-P0707-top5 n=48 P0706:7.9% P0607:7.2% P0807:4.8% P0806:4.3% P0708:4.2
 INFO P0707 distribution: Competition is spread across many trees; no single neighbour dominates.
 PASS year0-T2-release-matches-unity-harness 6.0925 -> 4.8920 released=16/16 near=30/30 several=13
 PASS year0-T5-release-matches-unity-harness 6.0925 -> 5.1168 released=7/16 near=48/48 several=35
-PERF stems=336 crops=16 inspectMs=0.016 markChangeSummaryMs=0.32
-PERF stems=1300 crops=41 inspectMs=0.044 markChangeSummaryMs=2.04
-PERF stems=3000 crops=82 inspectMs=0.084 markChangeSummaryMs=7.97
-PERF stems=5000 crops=122 inspectMs=0.128 markChangeSummaryMs=19.91
+PERF stems=336 crops=16 inspectMs=0.018 markChangeSummaryMs=0.33
+PERF stems=1300 crops=41 inspectMs=0.041 markChangeSummaryMs=2.18
+PERF stems=3000 crops=82 inspectMs=0.096 markChangeSummaryMs=8.43
+PERF stems=5000 crops=122 inspectMs=0.135 markChangeSummaryMs=20.07
 P2_OFFLINE_PASS

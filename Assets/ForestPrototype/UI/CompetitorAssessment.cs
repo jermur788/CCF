@@ -86,6 +86,7 @@ public sealed class CompetitorAssessment
             if (visible)
             {
                 ForestTree tree = sceneTrees[Report.Ranked[i].TreeIndex];
+                if (tree == null) { labels[i].style.display = DisplayStyle.None; continue; }
                 Vector3 world = tree.transform.position + Vector3.up * (RingHeightM + 0.45f);
                 Vector3 toPoint = world - camera.transform.position;
                 visible = Vector3.Dot(toPoint, camera.transform.forward) > 0.2f;
@@ -154,12 +155,23 @@ public sealed class CompetitorAssessment
         Version++;
     }
 
-    // Marks, ecological year and living-tree count describe everything the
-    // breakdown depends on between annual steps (trees move or grow only then).
+    // Marks, the ecological year and the identity of the living tree objects
+    // describe everything the breakdown depends on between annual steps. The
+    // object identities matter because loading a save replaces every tree
+    // object without necessarily changing the year or the marks.
     private static string Signature(ForestTreeMarkingManager marking, ForestEcologyController eco)
     {
         var sb = new StringBuilder();
         sb.Append(eco != null ? eco.EcologicalYear : -1).Append('|');
+        int living = 0;
+        long identity = 17;
+        foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (tree == null || !tree.IsLiving) continue;
+            living++;
+            identity += System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(tree) * 31L;
+        }
+        sb.Append(living).Append(':').Append(identity).Append('|');
         if (marking != null)
         {
             List<string> fell = marking.GetMarkedIds();
@@ -208,10 +220,10 @@ public sealed class CompetitorAssessment
         if (count > 0) EnsureMarkers();
         for (int i = 0; i < rings.Count; i++)
         {
-            bool show = i < count;
+            ForestTree tree = i < count ? sceneTrees[Report.Ranked[i].TreeIndex] : null;
+            bool show = tree != null;
             rings[i].gameObject.SetActive(show);
             if (!show) continue;
-            ForestTree tree = sceneTrees[Report.Ranked[i].TreeIndex];
             bool selected = i == SelectedIndex;
             float radius = Mathf.Max(0.25f, tree.Diameter / 200f + (selected ? 0.25f : 0.15f));
             Vector3 centre = tree.transform.position + Vector3.up * RingHeightM;

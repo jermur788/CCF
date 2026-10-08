@@ -227,6 +227,16 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         for (int i = 0; i < 5; i++) yield return null;
         string reportAfter = Describe(CropTreeCompetition.Analyse(SceneInput(), SceneInput().FindIndex(t => t.Id == "P0707")));
         Check(reportBefore == reportAfter, "breakdown differs after save/load");
+        // The live assessment must follow the reloaded tree objects, not the destroyed ones.
+        ForestTree reloaded = Tree("P0707");
+        marking.Mark(reloaded, TreeMarkType.CropTree, false);
+        yield return new WaitForSecondsRealtime(0.3f);
+        ui.Competitors.Update(reloaded);
+        Check(ui.Competitors.ReportTree == reloaded && ui.Competitors.Report != null
+            && Describe(ui.Competitors.Report) == reportAfter && ActiveRings() > 0, "assessment did not rebuild after load");
+        ui.Competitors.Clear();
+        marking.Unmark(reloaded, false);
+        yield return new WaitForSecondsRealtime(0.3f);
         Debug.Log($"P2_SAVE_PASS version=v{ForestSaveData.CurrentVersion} no competitor fields; breakdown identical after load");
 
         // Performance: inspection and mark-change recalculation on the Year-0 stand.
