@@ -158,3 +158,19 @@
 .learning-topic { margin-top: 8px; margin-bottom: 8px; }
 .learning-topic > Toggle { font-size: 18px; color: var(--accent); -unity-font-style: bold; }
 .learning-topic .body { margin-bottom: 8px; }
+
+/* ---- Crop Tree competitors (inspection card, world tags) ---- */
+.competitor-row Label { font-size: 14px; white-space: nowrap; }
+.competitor-name { flex-grow: 2.2; flex-basis: 0; }
+.competitor-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 6px; }
+.competitor-share { flex-grow: 2; flex-basis: 0; }
+.competitor-selected Label { color: var(--accent); -unity-font-style: bold; }
+.competitor-tag {
+    width: 24px; height: 24px;
+    font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center;
+    color: rgb(20, 24, 18);
+    background-color: rgba(232, 206, 120, 0.92);
+    border-radius: 12px;
+}
+.competitor-tag-selected { background-color: white; border-width: 2px; border-color: var(--accent); }
+.hud-forecast { max-width: 900px; }

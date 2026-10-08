@@ -1,0 +1,23 @@
+GAME_ASSEMBLY_OK errors=0
+CHECK_ASSEMBLY_OK errors=0
+PASS 1-contributions-reconcile sum=2.122663 total=2.122663 authoritative=2.122663
+PASS 1b-shares-sum-to-one 
+PASS 4/5-suppressed-low-larger-high B(7cm,1.6m) 8.0% rank 8 Moderate; C(30cm,2.8m) 20.0% rank 1 Strong
+PASS 4/5-bands C Strong rank 1; B Moderate rank 8 of 10
+PASS outside-radius-excluded 
+PASS 2-marked-removal-preview 2.123 -> 1.699 (-20.0%)
+PASS 3-unrelated-removal-no-change 
+PASS 6-deterministic 
+PASS multi-crop-each-stem-once fells=3 near=2 several=1
+PASS multi-crop-release 0.756 -> 0.312
+PASS multi-crop-also-near F-shared also near 1 other Crop Tree(s)
+PASS year0-ci-matches-unity-export 327/336 within 0.01 (positions exported at 2 dp)
+PASS year0-P0707-top5 n=48 P0706:7.9% P0607:7.2% P0807:4.8% P0806:4.3% P0708:4.2% rest=72%
+INFO P0707 distribution: Competition is spread across many trees; no single neighbour dominates.
+PASS year0-T2-release-matches-unity-harness 6.0925 -> 4.8920 released=16/16 near=30/30 several=13
+PASS year0-T5-release-matches-unity-harness 6.0925 -> 5.1168 released=7/16 near=48/48 several=35
+PERF stems=336 crops=16 inspectMs=0.016 markChangeSummaryMs=0.32
+PERF stems=1300 crops=41 inspectMs=0.044 markChangeSummaryMs=2.04
+PERF stems=3000 crops=82 inspectMs=0.084 markChangeSummaryMs=7.97
+PERF stems=5000 crops=122 inspectMs=0.128 markChangeSummaryMs=19.91
+P2_OFFLINE_PASS

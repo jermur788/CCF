@@ -16,7 +16,8 @@ public sealed class WalkingHudView
     private readonly Label learning;
     private readonly VisualElement groundPanel;
     private readonly Label groundTitle, groundLight, groundBrowse, groundRegen, groundWhy;
-    private readonly Label markSummary, treatment;
+    private readonly Label markSummary, treatment, cropForecast;
+    private readonly VisualElement forecastPanel;
     private readonly VisualElement promptBox;
     private readonly Label prompt;
     private readonly VisualElement messageBox;
@@ -71,7 +72,14 @@ public sealed class WalkingHudView
         groundRegen = UiKit.Add(groundPanel, "", "body");
         groundWhy = UiKit.Add(groundPanel, "", "muted");
         bottom.Add(groundPanel);
-        treatment = UiKit.Add(bottom, "", "muted");
+        // The thinning forecast sits on its own panel so it stays readable over the forest.
+        forecastPanel = UiKit.Box("panel", "hud-forecast");
+        forecastPanel.style.alignSelf = Align.FlexStart;
+        forecastPanel.style.marginBottom = 6;
+        cropForecast = UiKit.Add(forecastPanel, "", "body");
+        cropForecast.name = "hud-crop-forecast";
+        treatment = UiKit.Add(forecastPanel, "", "body");
+        bottom.Add(forecastPanel);
         markSummary = UiKit.Add(bottom, "", "panel", "body");
         markSummary.style.alignSelf = Align.FlexStart;
         Root.Add(bottom);
@@ -193,7 +201,27 @@ public sealed class WalkingHudView
                 + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop  [G] Plant";
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
+            cropForecast.text = CropForecast(ui.Competitors != null ? ui.Competitors.Summary : null);
+            cropForecast.style.display = string.IsNullOrEmpty(cropForecast.text) ? DisplayStyle.None : DisplayStyle.Flex;
+            forecastPanel.style.display = treatment.style.display == DisplayStyle.Flex || cropForecast.style.display == DisplayStyle.Flex
+                ? DisplayStyle.Flex : DisplayStyle.None;
         }
+    }
+
+    // Release estimate across all Crop Trees for the current Fell marks.
+    // Each Fell-marked stem is counted once, however many Crop Trees it is near.
+    private static string CropForecast(CropTreeReleaseSummary summary)
+    {
+        if (summary == null || summary.PlannedFells == 0)
+            return "";
+        if (summary.CropTrees == 0)
+            return "Crop Trees: none chosen yet. Keep trees with [C] to see how your Fell marks affect them.";
+        int change = Mathf.RoundToInt(summary.ChangeFraction * 100f);
+        string signed = (change > 0 ? "+" : change < 0 ? "−" : "") + Mathf.Abs(change).ToString(UiKit.Inv) + " %";
+        return $"Crop Trees {summary.CropTrees}: competition around them {UiKit.F(summary.MeanCompetitionNow, "0.00")} → "
+            + $"{UiKit.F(summary.MeanCompetitionAfter, "0.00")} ({signed}) · {summary.CropTreesReleased} lose at least a tenth · "
+            + $"Fell marks within 8 m of a Crop Tree: {summary.PlannedNearACropTree} of {summary.PlannedFells}"
+            + (summary.PlannedNearSeveralCropTrees > 0 ? $" ({summary.PlannedNearSeveralCropTrees} near more than one)" : "");
     }
 
     private sealed class WaypointArrow : VisualElement
