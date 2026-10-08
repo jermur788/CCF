@@ -1,0 +1,62 @@
+[
+  {
+    "path": ".vscode/settings.json",
+    "import_sha256": "ec8e2c1474c5c1f8f7f989901c7dad4bdab5e1dfd5f5e0eea610a93c45737bc9",
+    "restored_sha256": "04d629e484c9278cf6b52e6051790e93278c0c6a08b5f3dc93dfedbe67cd8b5a"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat",
+    "import_sha256": "b158d1e681f2ba19b0918613bed432936760ac1e63ace67d6f29a3892da72a55",
+    "restored_sha256": "297bfa2377de1387d9d403ac7dfe12871c89eb96c83e8599ef373610e4b422b2"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat",
+    "import_sha256": "1fd084251b82cc78b44e9458aed2d031c91e97ccc6df7d069b5c317f6554906f",
+    "restored_sha256": "ad636ff1c5bf8e4a8838d2e10ff70be01b4b26403d75ce5af07eb65e7b0a6976"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat",
+    "import_sha256": "106f237bf5d8bcbb3d05cfc4c3eae57e6e90eaee729114bde15485a4cc81d3fd",
+    "restored_sha256": "8ed7a9fca4756ce27d6d5ea6054021d95b725bf39ae2d8c5b1c50e1dec087d2b"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat",
+    "import_sha256": "f21652fc10e1ac130eae6fc008d1ee31b79186c3f3dcbd9bd5f35a915df7a40d",
+    "restored_sha256": "c92681e854071a682487051a86d1b542170042857d38969144a4a9c583d0a678"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Underside.mat",
+    "import_sha256": "d2903a3b52a969651119451f65092adc3b467a67285096772af751bafbd95fd9",
+    "restored_sha256": "28d77be4f0b3597853ca47a6756a00eecb539273cb44d7d8bca2408b12637186"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Cap.mat",
+    "import_sha256": "47639d95b9074d435c2953080e3b0073a9d2cd305eaa62409295eb2d88586701",
+    "restored_sha256": "117888a2da6225b40022a4d7a3ae96082074b507b46bd8bd5be096a1a3d5b080"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Cap.mat",
+    "import_sha256": "ff4ebdd76b76076c68ce09851576e3d6e91a7f895e3ce8ab444c66feca831db2",
+    "restored_sha256": "6125be65f87301d1db9a30f20325bb47d0f52e989ace8b41f3d242ebe5556429"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Pores.mat",
+    "import_sha256": "d5761d7ac8780df5929d6f37235ce19e4540ae73a24faa2b86a8d2f9e1630077",
+    "restored_sha256": "beaad27a17af5d3d6ca445fde44fb72da34b7c4f214356253aa32042d348e5e8"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat",
+    "import_sha256": "b32b7b5f507c4f1dc049a08d97ca48beea36e7027eed0eeb6afdb41f2eb4dcd3",
+    "restored_sha256": "7e7d2207d8628c5a299748ae6abdfe144aae0fd45d06d7a8b5abf1a9944e2471"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat",
+    "import_sha256": "e2d8889265191156241a16516c28d30255be9ffaa127dbcfc4f2da920fb17a41",
+    "restored_sha256": "67467f78e289d2e4c762ce719909cecd370b7796bc0690e2d016d52fd5dfce15"
+  },
+  {
+    "path": "Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat",
+    "import_sha256": "39385672532b45322cee228e43886fc6006814e44f466ca228e1d4f6c8483774",
+    "restored_sha256": "c5415205a3fe1ce6b6b2aa9f8b62eef84798f0d21687e895f9ed6b9d268e8d84"
+  }
+]

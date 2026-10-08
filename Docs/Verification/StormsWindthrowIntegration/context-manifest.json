@@ -1,0 +1,37 @@
+{
+  "context": "58d6b0b483198abcf0208713d9a759f89d90e318",
+  "generated_files": {
+    "chatgpt-project-instructions.md": "e7e6f5879096e085f1f8eb7f0b0f3f7d2a95d9f5a5fde639131295db88a93ff8",
+    "claude-project-instructions.md": "189bc4e50aceb5693141dc7b6f814b17bbaef712a1c02dde478057a45bdae215"
+  },
+  "mirror_files": {
+    "mirrors/AGENTS.md": "abf79b2d094ce96d7f854d1b09336f3fb401e0856bc4ddbcebc9e10a97ab1222",
+    "mirrors/CLAUDE.md": "dcf55f43ff1341d20b7d8fa377e9ff4251d99cd92fea7e1d4abb7e3e072ea278",
+    "mirrors/Docs/Project/AgentWorkflow.md": "e5fff2a82efe35e7792a6d1cac13dd3c77c8df91e98956f1f23a5ed843d14a7a",
+    "mirrors/Docs/Project/current-milestone.md": "42aad4efee8fff49fc6137f5e863bdd5232dd12c281fa3d82d1eb6923dfabdca",
+    "mirrors/Docs/Project/decision-log.md": "f531cb1b886096b608fa27304ad20a72c564773f3963450878d0bd6180f0fa7b",
+    "mirrors/Docs/Project/game-brief.md": "884d66144dabbd7afc27969990107d46e448f8f706a08d56830952293b816b87",
+    "mirrors/Docs/Project/instructions/chatgpt-role.md": "662c51df2ccfcc9b25e83d8a5da984926a094662da25f6fd9d7018e905e31805",
+    "mirrors/Docs/Project/instructions/claude-role.md": "6e57a614377cf6fbee06a3dbd6dc150f8eff9d41c42377b3164f465dbd6ff26c",
+    "mirrors/Docs/Project/instructions/shared-project-instructions.md": "89c9b594c5143079e5b2efb3825eb65f40f2eb1eb31a1249f7cd48b1bb72d2c7",
+    "mirrors/Docs/Project/research-index.md": "b2e2584629b81a97a21e078dbe27e6dba2b6715213d390cead94be65f0ede04c",
+    "mirrors/Docs/Project/unity-project-overview.md": "4e6580cd1dbf0367e921d18e52d531559636208af5f52ed94b519d8adb85728b",
+    "mirrors/Tools/ProjectContext/generate_project_instructions.py": "b355a621d1a09a3de0c2d7fdff637824eed6c5c8a2112a340716cf8f17a3f2c0"
+  },
+  "preview": false,
+  "snapshot_timestamp": "2026-10-08T17:10:47+01:00",
+  "source_files": {
+    "AGENTS.md": "5624221724601335303d7d450605ba4e455e19c90b32412ed6bba93b4b12d34f",
+    "CLAUDE.md": "71bfbdb81e70cd6906e5c4d8a9f0bea09b5594487ef2fdb0e2c43218a5031399",
+    "Docs/Project/AgentWorkflow.md": "bd4584c02207442ca0ae9c2fee6760c8221bb0adee2661044299127820f8fbc0",
+    "Docs/Project/current-milestone.md": "ef9a7c5bd674b319ca6a37bcd1a36e65e49eba7aa69245db50732a7434c333dc",
+    "Docs/Project/decision-log.md": "17c53c22e267e292b6b4abd95e596d1461c1a1970505b7e0ce46195abaae8b6e",
+    "Docs/Project/game-brief.md": "6de70b7bb76156d51a71ffd4482222920fceac9746d4ad3863e778329f4b0d31",
+    "Docs/Project/instructions/chatgpt-role.md": "dbe0a6d8269cf1432fa2bf60bd9b49da8403557cebee4c0f25a4ff6fead8413c",
+    "Docs/Project/instructions/claude-role.md": "9a82843f192940484ffae1ceda1cfece83b6a82d948ef9cb56a49f76a0118788",
+    "Docs/Project/instructions/shared-project-instructions.md": "8286ebd13e11e7998af3dc4960bcb6e16a5428af56a13ed31fafdec4e48c9e2f",
+    "Docs/Project/research-index.md": "b0e613d150194831cc1f054e8cc34afd42b54fa1b715e896bb595a093a83f8f3",
+    "Docs/Project/unity-project-overview.md": "5d46f8f7000aae8e4676bd8f80d09008fd07a12b6bacb99b17e436c0030afbe4",
+    "Tools/ProjectContext/generate_project_instructions.py": "9e4ffa96b5969572db2816200c33e027a7e5d7ba4c4dc98e909701947b438411"
+  }
+}
