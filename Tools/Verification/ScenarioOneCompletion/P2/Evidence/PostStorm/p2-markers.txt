@@ -1,0 +1,23 @@
+P2_RECONCILE_PASS trees=336 worstAbsDiff=3.81E-006 cutoff=8
+P2_SUPPRESSED_CASE_PASS P0706 rank 1 7.9% Moderate; P0710 rank 43/48 1.1% Low
+P2_RELEASE_PREVIEW_PASS 8.145 -> 7.502 (-7.9%); far mark P2020 ignored
+P2_MULTI_CROP_PASS cropTrees=2 fells=1 nearSeveral=1 mean 8.034 -> 7.504
+P2_DETERMINISM_HASH F58FB0B1A421D28B
+P2_NO_STATE_PASS marks, trees, scenario save data, lessons and objectives unchanged
+P2_SAVE_PASS version=v19 no competitor fields; breakdown identical after load
+P2_PERF stems=336 cropTrees=16 inspectMsIncludingSceneScan=0.846 markChangeMs=2.468
+P2_STORM_COEXIST_PASS stormModel=0 wind 'Stable · storms off' unchanged; windthrown P0706 removed; competition 7.502 reconciles
+P2_RENDERED_PASS 1280x720 card=(x:13.75, y:13.75, width:380.00, height:602.50) panel=(x:1146.25, y:251.25, width:440.00, height:520.00) tagsVisible=2 rings=5
+P2_RENDERED_PASS 1600x900 card=(x:14.00, y:14.00, width:380.00, height:602.00) panel=(x:1146.00, y:249.00, width:440.00, height:512.00) tagsVisible=2 rings=5
+P2_RENDERED_PASS 1920x1080 card=(x:14.17, y:14.17, width:380.00, height:608.33) panel=(x:1145.83, y:250.83, width:440.00, height:511.67) tagsVisible=2 rings=5
+P2_COMPETITOR_VERIFY_PASS
+P2_RECONCILE_PASS trees=336 worstAbsDiff=3.81E-006 cutoff=8
+P2_SUPPRESSED_CASE_PASS P0706 rank 1 7.9% Moderate; P0710 rank 43/48 1.1% Low
+P2_RELEASE_PREVIEW_PASS 8.145 -> 7.502 (-7.9%); far mark P2020 ignored
+P2_MULTI_CROP_PASS cropTrees=2 fells=1 nearSeveral=1 mean 8.034 -> 7.504
+P2_DETERMINISM_HASH F58FB0B1A421D28B
+P2_NO_STATE_PASS marks, trees, scenario save data, lessons and objectives unchanged
+P2_SAVE_PASS version=v19 no competitor fields; breakdown identical after load
+P2_PERF stems=336 cropTrees=16 inspectMsIncludingSceneScan=0.592 markChangeMs=1.987
+P2_STORM_COEXIST_PASS stormModel=0 wind 'Stable · storms off' unchanged; windthrown P0706 removed; competition 7.502 reconciles
+P2_COMPETITOR_VERIFY_PASS

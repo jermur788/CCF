@@ -151,3 +151,87 @@ Expected tokens: `P2_RECONCILE_PASS`, `P2_SUPPRESSED_CASE_PASS`, `P2_RELEASE_PRE
 - Screen-projected labels draw over intervening trunks. That is intended for correspondence, but needs review in dense views.
 - The wind and competition labels in the stat grid are unchanged (outside P2).
 - The "Competition now" vs cached stat difference between annual steps (see API timing nuance).
+
+---
+
+## POST-STORM PORT (2026-10-08)
+
+| Item | Value |
+|---|---|
+| Source P2 checkpoint | `task/crop-tree-competitor-reasoning` @ `a219d7ac10ca421c0323fe0c90e542c0d43af8d7` (base `1fbefd8`). Left untouched as evidence |
+| New base / context | `341ccbf1b2877e8bf21c16761b883a0936a5f7b7` (StormModel1 dormant, save v19, RNG 1, regeneration 2, growth 1, storm 0 for new games) |
+| Branch | `task/crop-tree-competitor-reasoning-poststorm` |
+| Worktree | `/home/jer/CCF-claude` (Claude worktree; previously `task/post-scenario1-systems-readiness` @ `7f58618`, branch preserved; untracked `Claude outputs/` left untouched) |
+| Verified HEAD | `e8c7a06` (all runs below record this HEAD; production sources unchanged during every run) |
+
+### Port method
+
+`git cherry-pick -x` of the source commit `a219d7a`, then the two later P2-scoped commits from the same branch: `a121199` (gate runner + P1 port notes) and `33e8d55` (cache rebuild after a save load; guards for destroyed trees). Each was reviewed against current main, not blanket-resolved. Then three port commits:
+- `e99ff0a`: storm-state check in the gate;
+- `187e583`: runner Editor guard;
+- `facef6b`: side-panel layout + gate fixes.
+
+Plus `e8c7a06` (grammar).
+
+### Conflicts and resolution
+
+| File | Conflict | Resolution |
+|---|---|---|
+| `UI/TreeInspectionView.cs` | Textual: refresh key (main added `StormModelVersion`, P2 added the competitor `Version`) | Key keeps both |
+| `UI/TreeInspectionView.cs` | **Semantic, found by the rendered gate:** main's storm exposure explanation in "Why" (73 px) plus P2's competitor section measured ≈ 1,070 UI px against the card's 648 px limit at every resolution | Competitor section moved to its own **side panel** (right, under the HUD status, height capped to the screen). The card keeps all storm/tree information unchanged (Stable/Watch/Exposed label and storms-off explanation), with the standard width and stem volume restored. A kept tree shows "Competitors are listed on the right" instead of a felling estimate |
+| World labels | Number labels could show through the new panel | Hidden when their screen position falls inside the card or panel |
+| `UI/ScenarioOneUiRoot.cs`, `WalkingHudView.cs`, `MenuHelpView.cs`, `.uss` | None textual. Main's forecast string (wind exposure band) sits in P2's forecast panel; storm waypoint method untouched | — |
+| Input | Main's X on a windthrow visual toggles salvage (marking manager); digits 1–2 are planting slots in planting mode only | P2's 1–5 apply only while a Crop Tree card is open and not in planting mode. No new binding conflict |
+
+No ecology, Hegyi, save, storm, economy, objective or completion code changed. Windthrown trees are biologically dead and leave the competition set exactly as in `UpdateCompetition`.
+
+### Claude worktree smoke gate: PASS
+
+| Step | Result |
+|---|---|
+| Pre-write state | `/home/jer/CCF-claude`, branch `task/post-scenario1-systems-readiness` @ `7f58618`, clean except untracked `Claude outputs/` (user files, preserved). No Library |
+| Unity 6000.6.0f1 batch import (isolated config, 8 GB cap) | Exit 0, **0 compiler errors**, own Library created (3.1 GB, not copied or shared) |
+| Open ForestTest / harmless verification | `CropTreeCompetitorVerification` opens `ForestTest` and runs in play mode; no project errors. One Unity-internal `ArgumentOutOfRangeException` from QuickSearch indexing on the first Editor start of the fresh Library (`SearchDatabase.cs:351`), not project code |
+| Disposable script cleanup | The runner removes the staged `.cs` + `.meta` every run (also after the two forced stops) |
+| Serialized saves | Editor runs normalise `.vscode/settings.json` and seven `Art/SectionFive` materials; reverted after each run. No scene or prefab saved |
+| Final status | Clean except untracked `Claude outputs/` |
+
+Incidents (disclosed):
+- A first interactive run hung after an uncaught rendered failure (the nested coroutine was outside the gate's try/catch). I force-stopped it, which left `Temp/__Backupscenes` and a `mono_crash` dump. The next start then waited on the scene-restore dialog; I stopped it and removed only that backup and the dump.
+- The gate now runs nested steps inside its handler.
+- The Editor guard first self-matched its shell wrapper. It now anchors on the Editor path (`^…/Editor/Unity `).
+
+### Automated verification (HEAD `e8c7a06`)
+
+| Gate | Result |
+|---|---|
+| Offline type-check + logic (`run_offline_check.py`) | 0 errors; **P2_OFFLINE_PASS** |
+| `CropTreeCompetitorVerification` batch ×2 | **PASS / PASS**, determinism hash `F58FB0B1A421D28B` both runs |
+| Same, interactive (1280 / 1600 / 1920) | **PASS** (`P2_RENDERED_PASS` ×3, captures in `Evidence/PostStorm/`) |
+| Checks covered | reconcile with `GetCompetitionIndex` (worst 3.8e-6, 336 trees); planned Fell removal (8.145 → 7.502); unrelated far mark ignored; P0710 rank 43/48, 1.1 %, Low; P0706 rank 1, 7.9 %, Moderate; multi-Crop (1 fell, near 2 Crop Trees, counted once); no state written (world, scenario save data); lessons and objectives unchanged across the synchronous assessment; save v19 round trip, no competitor fields, rebuild after load; dismiss/reopen markers; **storm coexistence** (wind "Stable · storms off" unchanged by assessment; a windthrown neighbour leaves the breakdown, which still reconciles); card + panel fit, no overlap with status/forecast/each other; selected ring and row distinct; no label under a panel |
+| Regression (`WindthrowV1/run_regression.py`, 24 gates incl. interactive Clearance, MenuTutorial, Model2Pedagogy) | **24/24 PASS**; production unchanged during runs |
+| Storm gates (`run_storms.py`) | **StormUiVerification PASS** (interactive, connected input/layout); **StormCoreVerification PASS** |
+| Anchors | completion v19 `84CD51EB6A951D9E` (= storm integration record); v18-compatible `702766DECE591E21`; growth 1 `7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE`; legacy `BFC55473C1506067`; Reference `7AD177B3CC2F73C7` / `9CDF21A541C5968D` |
+
+### Fixture updates (transparent)
+
+- **Lessons/objectives check:** now compared across the synchronous assessment calls only. In interactive mode the existing lesson observer completes steps such as "Designate a Crop Tree" from the marks the gate itself places, which is not caused by the analysis. The check was moved, not weakened, and now names any step that changes.
+- **Selection in the rendered check:** uses reflection to set the selection and bump the display version, mirroring the key handler. Hardware key input is not simulated.
+- **PERF line:** counts Crop Trees from the scene (the marking manager's count refreshes a frame later).
+
+### Performance (Unity, Year-0 stand, 336 trees)
+
+- Inspection breakdown including the scene scan: 0.59–0.77 ms.
+- Mark-change summary with 16 Crop Trees: 1.1–2.2 ms.
+- No per-frame O(n²): the signature is checked 4× per second, and recalculation runs on inspection, mark, year or reload changes.
+- Larger stands: offline synthetic only (5,000 stems / 122 Crop Trees: 21 ms per mark change). A Unity run on a large stand was not done.
+
+### Manual play smoke: NOT PERFORMED by a human
+
+The 15-step manual smoke (inspect, designate, read, press 1–5, Fell-mark, unmark, close, storm UI) has **not** been done with real keyboard/mouse input. The rendered gate covers layout, selection state and marker lifecycle at three resolutions through scripted calls, and StormUiVerification covers storm input separately. Human review of readability, the close-range ring scale and the side-panel position is still required.
+
+### Known limitations (post-storm)
+
+- The side panel sits on the right under the HUD status. At close range a neighbour's world ring can appear large near the screen edge (perspective).
+- Labels for neighbours behind the camera or under a panel are hidden; the player turns to see them.
+- The P1 copy branch still overlaps `TreeInspectionView` / `MenuHelpView` / `WalkingHudView`. Its port notes above remain valid, plus the new side panel.

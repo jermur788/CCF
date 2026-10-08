@@ -1,0 +1,15 @@
+{
+  "launch_head": "e8c7a064ccc4532fc0edb45856e54dff332973fe",
+  "production_source_unchanged": true,
+  "gate": "StormUiVerification",
+  "treatment_timing": "early-established",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 303.09,
+  "source_sha256": "2b8c688bd8f77c55aa3991b9d0d2e349384167fff51a8d276e1aa41a0af776bb",
+  "run_head": "e8c7a064ccc4532fc0edb45856e54dff332973fe",
+  "run_branch": "task/crop-tree-competitor-reasoning-poststorm",
+  "markers": [
+    "STORM_UI_VERIFICATION_PASS checks=1167"
+  ]
+}
