@@ -163,7 +163,7 @@ public sealed class TreeInspectionView
         {
             UiKit.Line(competitorBody, "Competition now → after your Fell marks",
                 $"{UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")} ({SignedPercent(report.ChangeFraction)})");
-            UiKit.Add(competitorBody, $"{report.PlannedNeighbourCount} Fell-marked neighbour{(report.PlannedNeighbourCount == 1 ? "" : "s")} supply {Percent(report.PlannedShare)} of it. "
+            UiKit.Add(competitorBody, $"{report.PlannedNeighbourCount} Fell-marked neighbour{(report.PlannedNeighbourCount == 1 ? " supplies" : "s supply")} {Percent(report.PlannedShare)} of it. "
                 + $"Growth held back: about {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionNow, competitors.TargetCi50))} now, "
                 + $"{Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionAfterPlanned, competitors.TargetCi50))} after. Estimate if nothing else changes.", "muted");
         }
