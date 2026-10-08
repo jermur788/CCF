@@ -1,0 +1,10 @@
+{
+  "gate": "Model2Verification",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 49.86206656699869,
+  "source_sha256": "e7460a3bf86650026903de3c129cbcf0ae899264358294953785b6694bd59f0b",
+  "markers": [
+    "MODEL2VERIFICATION_FAIL System.Exception: historical hash ignores tiny appended cover values completely"
+  ]
+}

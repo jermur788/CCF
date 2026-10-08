@@ -198,7 +198,7 @@ public sealed class ScenarioReferenceArchive
     }
     private static string WithoutCompetitionFields(string json)
         => System.Text.RegularExpressions.Regex.Replace(json,
-            @",""(?:brambleCover|brackenCover|competitionUpdatedYear)"":-?[0-9.Ee+]+", "");
+            @",""(?:brambleCover|brackenCover|competitionUpdatedYear)"":-?[0-9]+(?:\.[0-9]+)?(?:[Ee][+-]?[0-9]+)?", "");
 
     // Exact v17 compatibility only; never substitutes for model-2 world hashes.
     public static string LegacyV17WorldHash(ForestSaveData data)

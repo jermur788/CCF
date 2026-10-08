@@ -1,0 +1,18 @@
+[
+  {
+    "gate": "Model2PedagogyVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 97.65,
+    "mode": "interactive",
+    "source_ref": "integration-working-tree",
+    "run_head": "902903ff6d9790c02bdd01e8cc6f0aab8c2f0774",
+    "run_branch": "integration/regeneration-model2",
+    "original_source_sha256": "7ef29035f01e4833a65885187efaddf2971fa3e2a1c93adcd5217dec68471d65",
+    "fixture_adjustment": null,
+    "source_sha256": "7ef29035f01e4833a65885187efaddf2971fa3e2a1c93adcd5217dec68471d65",
+    "markers": [
+      "MODEL2_PEDAGOGY_PASS checks=20 legacyTruth=true model2Copy=true readOnly=true renderedResolutions=3"
+    ]
+  }
+]

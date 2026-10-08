@@ -29,9 +29,11 @@ GATES=[
  ('TimberAssortmentYieldVerification','Tools/Verification/TimberAssortmentYieldVerification.cs',False,None),
  ('Stage1WorkEconomyFoundationVerification','Tools/Verification/Stage1WorkEconomyFoundationVerification.cs',False,None),
  ('JuvenileMortalityFoundationVerification','Tools/Verification/JuvenileMortalityFoundationVerification.cs',False,None),
- ('JuvenileDisplayHeightVerification','Tools/Verification/UnderstoreyRecruitment/JuvenileDisplayHeightVerification.cs',False,None)]
+ ('JuvenileDisplayHeightVerification','Tools/Verification/UnderstoreyRecruitment/JuvenileDisplayHeightVerification.cs',False,None),
+ ('Model2PedagogyVerification','Tools/Verification/UnderstoreyRecruitment/Model2PedagogyVerification.cs',True,None)]
 FINAL_MARKERS={'SitkaGrowthModelVerification': 'SITKA_GROWTH_MODEL_VERIFY_PASS', 'RegenerationModelVerification': 'REGENERATION_MODEL_VERIFY_PASS', 'ScenarioReferenceVerification': 'REFERENCE_FUTURE_V1_PASS', 'ScenarioOneCompletionVerification': 'SCENARIO_ONE_COMPLETION_VERIFY_PASS', 'ScenarioOneEconomyIntegrationVerification': 'SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS', 'BrowsingProtectionVerification': 'BROWSING_PROTECTION_VERIFY_PASS', 'ScenarioOnePlantingVerification': 'SCENARIO_ONE_PLANTING_VERIFY_PASS', 'ScenarioOnePruningVerification': 'SCENARIO_ONE_PRUNING_VERIFY_PASS', 'ScenarioOneDeadwoodVerification': 'SCENARIO_ONE_DEADWOOD_VERIFY_PASS', 'ScenarioOneProgressVerification': 'SCENARIO_ONE_PROGRESS_VERIFY_PASS', 'SaveHardeningVerification': 'SAVE_HARDENING_VERIFY_PASS', 'RngModelVerification': 'RNG_MODEL_VERIFY_PASS', 'RngModelPolicyVerification': 'RNG_MODEL_POLICY_VERIFY_PASS', 'ScenarioOneInteractionVerification': 'SCENARIO_ONE_INTERACTION_VERIFY_PASS', 'EcologyCalibrationAdoptionVerification': 'ECOLOGY_CALIBRATION_ADOPTION_VERIFY_PASS', 'CCFIntegrationVerificationTemp': 'INTEGRATION_VERIFY_PASS', 'ScenarioOneRemovalVerification': 'SCENARIO_ONE_REMOVAL_VERIFY_PASS', 'ClearanceVerification': 'CLEARANCE_ACCEPTANCE_PASS', 'MenuTutorialVerification': 'MENU_TUTORIAL_PLAYTHROUGH_PASS'}
 FINAL_MARKERS.update(TimberAssortmentYieldVerification='TIMBER_YIELD_VERIFY_PASS',Stage1WorkEconomyFoundationVerification='STAGE1_ECONOMY_VERIFY_PASS',JuvenileMortalityFoundationVerification='JUVENILE_CANONICAL_VERIFY_PASS',JuvenileDisplayHeightVerification='JUVENILE_DISPLAY_HEIGHT_VERIFY_PASS')
+FINAL_MARKERS['Model2PedagogyVerification']='MODEL2_PEDAGOGY_PASS'
 parser=argparse.ArgumentParser();parser.add_argument('--gate',choices=[g[0] for g in GATES]);args=parser.parse_args()
 result_path=out/('results-'+args.gate+'.json' if args.gate else 'results.json')
 if args.gate:GATES=[g for g in GATES if g[0]==args.gate]
@@ -63,7 +65,7 @@ for gate,path,interactive,ref in GATES:
   passed=code==0 and FINAL_MARKERS[gate] in content and not any('_FAIL' in s or 'error CS' in s for s in markers)
   # Explicit immutable Reference anchors; stop immediately if the archive/replay differs.
   if gate=='ScenarioReferenceVerification':passed=passed and '7AD177B3CC2F73C7' in content and '9CDF21A541C5968D' in content
-  result=dict(gate=gate,status='PASS' if passed else 'FAIL',exit_code=code,seconds=round(time.monotonic()-start,2),mode='interactive' if interactive else 'batch',source_ref=ref or 'task-working-tree',original_source_sha256=original_source_sha256,fixture_adjustment=fixture_adjustment,source_sha256=hashlib.sha256(data).hexdigest(),markers=markers)
+  result=dict(gate=gate,status='PASS' if passed else 'FAIL',exit_code=code,seconds=round(time.monotonic()-start,2),mode='interactive' if interactive else 'batch',source_ref=ref or 'integration-working-tree',run_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip(),run_branch=subprocess.check_output(['git','branch','--show-current'],cwd=ROOT).decode().strip(),original_source_sha256=original_source_sha256,fixture_adjustment=fixture_adjustment,source_sha256=hashlib.sha256(data).hexdigest(),markers=markers)
   results.append(result);result_path.write_text(json.dumps(results,indent=2)+'\n');print(json.dumps({k:result[k] for k in ['gate','status','seconds','exit_code']}),flush=True)
   if gate=='ScenarioReferenceVerification' and not passed:raise RuntimeError('STOP: unexpected Reference failure. See '+str(log))
  finally:

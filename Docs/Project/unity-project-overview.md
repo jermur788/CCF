@@ -79,7 +79,7 @@ Most code is in `Assets/ForestPrototype/`:
 
 ## Save and interactions
 
-Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated `main`: `ForestSaveData.CurrentVersion = 15` (Scenario 1 execution/protection/economy fields, below); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v14 saves restore; atomic save hardening is in place.
+Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated schema: `ForestSaveData.CurrentVersion = 18` (Model2 competitor fields, below; the historical Scenario 1 v15 execution/protection/economy fields remain); definition still `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. v1–v14 saves restore; atomic save hardening is in place.
 
 V13 includes two-type marks, exact juveniles, clearance patches, retained construction timber, management/economy/history, understorey, deadwood, work orders and pruning history.
 
@@ -148,9 +148,9 @@ Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6
 
 Post-merge gates PASS on main: completion ×2 per model, interaction, browsing, planting, save hardening, RNG model, economy integration (120 assertions), Reference, RngModelPolicyVerification. Lag-1 survival-roll correlation is 0.6748 under model 0 and −0.0041 under model 1.
 
-**Regeneration Model 1 (D-047, main `4670e73`, verified 2026-10-06).** Save v16 field `regenerationModel`: new Scenario One games 1; v1–v15, a missing field and Reference Future v1 0. Implementation: `RegenerationModel.cs` (constants, `RepresentationThreshold` = 0.01, annual account), `ForestEcologyCell` (bands, accumulator, `AdmitDensity`), `ForestEcologyController` (model-1 establishment, `AdmitRecruitment`, `NormalizeBands`, oldest-band promotion, `LastRegenerationAccount`), `ForestSaveValidation` (band keys: 4 represented + 1 accumulator per species + origin). Model 0 arithmetic is unchanged. `ScenarioReferenceArchive.LegacyV15WorldHash` re-hashes model-0 worlds in the v15 layout, because the v16 field changes JSON world hashes even for identical biology. `CCF_REGEN_MODEL=0` replays legacy regeneration in the completion gate.
+**Regeneration Model 1 (D-047, main `4670e73`, verified 2026-10-06).** Save v16 field `regenerationModel`: new games used1 before D-049 (current new games2); v1–v15, a missing field and Reference Future v1 0. Implementation: `RegenerationModel.cs` (constants, `RepresentationThreshold` = 0.01, annual account), `ForestEcologyCell` (bands, accumulator, `AdmitDensity`), `ForestEcologyController` (model-1 establishment, `AdmitRecruitment`, `NormalizeBands`, oldest-band promotion, `LastRegenerationAccount`), `ForestSaveValidation` (band keys: 4 represented + 1 accumulator per species + origin). Model 0 arithmetic is unchanged. `ScenarioReferenceArchive.LegacyV15WorldHash` re-hashes model-0 worlds in the v15 layout, because the v16 field changes JSON world hashes even for identical biology. `CCF_REGEN_MODEL=0` replays legacy regeneration in the completion gate.
 
-| Anchor | Current new game (RNG 1 + regen 1) | Legacy (RNG 0 + regen 0) | RNG 1 + regen 0 |
+| Historical v16 anchor | RNG 1 + regen 1 | Legacy (RNG 0 + regen 0) | RNG 1 + regen 0 |
 |---|---|---|---|
 | Neutral lifecycle | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
 | Scenario One lifecycle (browse 0.2) | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
@@ -170,7 +170,7 @@ Verified at `4670e73` (isolated batch processes):
 - **Unchanged:** DBH, Hegyi, regeneration, browsing and economy.
 - **Replay switch:** `CCF_GROWTH_MODEL=0` replays legacy growth in the completion gate.
 
-| Anchor | New game (RNG 1, regen 1, growth 1) | RNG 1, regen 1, growth 0 | Legacy (0/0/0) | RNG 1, regen 0, growth 0 |
+| Historical v17 anchor | RNG 1, regen 1, growth 1 | RNG 1, regen 1, growth 0 | Legacy (0/0/0) | RNG 1, regen 0, growth 0 |
 |---|---|---|---|---|
 | Neutral lifecycle | `7E57B9DAEF5BF4D0` | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
 | Scenario One lifecycle (browse 0.2) | `35E2BF1C2F55C2DE` | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
@@ -283,3 +283,18 @@ Source pack: Drive folder `1fUyti4nHlbKKwjWnvWsVvSbvFN-4mhm0` (Claude Review Pac
 | Tools/ProjectContext/generate_project_instructions.py | 1Q_Htq4yJ3xgfphDdCdYYz26VMccjoFOV850TMI-Cs_U |
 
 Migration normalises text layout/encoding, ports useful legacy rules, records the task scope/baseline, and makes the supplied generator executable with clear error handling. It does not advance gameplay design or incorporate the frozen stack.
+
+## Regeneration Model 2 — accepted Scenario One v1 (D-049, 2026-10-08)
+
+Source `902903f`; implementation/evidence `49b01d8fc90ea0779ebfdc61a5a421af718da1d6`. Integrated and verified in `/media/jer/ZX20/CCF-integration-model2`, preserving dirty local main. Exact final revision and reproduction are in `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md`.
+
+- Save18 adds exactly cell brambleCover/brackenCover and local-patch brambleCover/brackenCover/competitionUpdatedYear. Independent finite0..1 fractions may overlap; no habitat/mesh inference. Complete indexed grids, explicit JSON fields, finite bounds, deterministic patch keys, stand-contained centers and nonfuture timestamps are validated before loading. Immediate-reset saves capture their complete initial grid. No sixth persistent ecology state.
+- New Scenario One is RNG1/regeneration2/growth1. Existing v17 model1 is unchanged; legacy/missing-field policies and Reference0 remain unchanged.
+- Shared Sitka/Oak/Beech hazard `.35 × exposure × height vulnerability`, exposure=max(two covers), full below .3m, linear to zero at1.5m. Site/target/initial/recovery profile is exactly D-049; these are [C]/[I]/[D] choices, not empirical Irish constants. Target is restricted to Scenario One; site-diverse content needs renewed driver calibration.
+- Annual work/canopy changes precede competitor recovery and survival. Vegetation, light and browse losses remain separate runtime accounts. Height growth, seed/request/capacity/promotion rules and prices are unchanged. Natural abundance remains relative occupancy. Exact juveniles use an independent id-keyed vegetation domain.
+- Latest patch/year then stable geometry key wins independently of list order; weighted natural exposure counts overlaps once. Completed saved whole-cell work masks older local overrides only inside that cell. Clearance retains juvenile-removal semantics, zeros applicable competitors, then allows recovery.
+- Existing bramble/bracken art reads the new state; other habitat stays non-causal. Beech biological .6m renders at approximately .6m with matching planted semantics. Art recognition/human clearance playtests remain open.
+- The learning panel uses the approved concise clearance explanation for model2, and preserves no-competition teaching for model0/1. Its display refreshes after saved-model changes without changing forest or lesson progress.
+- Preserved model2 start/year1/completion: `FA855239CDDA32D8`, `02334804F65C0234`, `702766DECE591E21`. Historical model1 completion v17 layout `D7C4DDD36B53FCCE`; canonical and immutable Reference anchors retained.
+
+The original39 paid century simulations and measured storage/timing are preserved as reviewed source evidence; the clean integration reproduces critical checks, complete regression, state and performance, plus actual rendered model-aware pedagogy. See the integration handoff for exact results and limits; no clearance profit or universal treatment schedule is claimed.

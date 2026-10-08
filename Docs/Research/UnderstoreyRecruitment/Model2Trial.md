@@ -1,3 +1,5 @@
+> Delivered trial record. Manager accepted the central Model2 v1 calibration on 8 October 2026 (D-049). The clean integration and approved active-model P1 copy supersede the pending decision/status below; see [IntegrationHandoff](../../Verification/RegenerationModel2Integration/IntegrationHandoff.md). Original trial evidence and limitations remain preserved.
+
 # Save 18 / regeneration 2 integrated trial
 
 Manager approval: `018e2ec6-b25e-45ee-b560-308b529a8df3`, delivered 7 October 2026. Branch `task/understorey-recruitment-causality`, owned checkout `/media/jer/ZX20/CCF-understorey-recruitment`, context/base `a8596df9c52669a36709f09e85dfe6568640af49`. Earlier accepted audit `ed960b7` and continuation `7370ea0` remain historical evidence, not model-2 measurements. No main merge or canonical acceptance is claimed.

@@ -1,0 +1,20 @@
+[
+  {
+    "gate": "ScenarioOneCompletionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 63.46,
+    "mode": "batch",
+    "source_ref": "integration-working-tree",
+    "run_head": "902903ff6d9790c02bdd01e8cc6f0aab8c2f0774",
+    "run_branch": "integration/regeneration-model2",
+    "original_source_sha256": "81266eff213aa4b24b48f1f4b3eaba2674549271c8ad90baa98c687f57ff7e09",
+    "fixture_adjustment": null,
+    "source_sha256": "81266eff213aa4b24b48f1f4b3eaba2674549271c8ad90baa98c687f57ff7e09",
+    "markers": [
+      "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH D7C4DDD36B53FCCE",
+      "SCENARIO_ONE_COMPLETION_HASH D84C7FF6E753A8DF rngModel=1 regenerationModel=1 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+      "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+    ]
+  }
+]

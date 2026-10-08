@@ -1,3 +1,5 @@
+> Delivered trial record. Manager accepted the central Model2 v1 calibration on 8 October 2026 (D-049). The clean integration and approved active-model P1 copy supersede the pending decision/status below; see [IntegrationHandoff](../../Verification/RegenerationModel2Integration/IntegrationHandoff.md). Original trial evidence and limitations remain preserved.
+
 # Save18 / regeneration2 manager handoff
 
 **CALIBRATION READY — PARAMETER DECISION REQUIRED**

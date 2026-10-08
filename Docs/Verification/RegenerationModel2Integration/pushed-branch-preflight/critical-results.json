@@ -1,0 +1,143 @@
+[
+  {
+    "gate": "SitkaGrowthModelVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 121.24,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "a00f0f93926681662936f4da0f9872a06cf6b394dee802eaa39bd1d35a46bf4a",
+    "fixture_adjustment": null,
+    "source_sha256": "a00f0f93926681662936f4da0f9872a06cf6b394dee802eaa39bd1d35a46bf4a",
+    "markers": [
+      "GROWTH_MODEL_PASS POLICY_NEW_GAME_GROWTH1 growth=1 regen=2 rng=1 version=18",
+      "GROWTH_MODEL_PASS POLICY_SAVE_SEMANTICS missing0=True v16->0=True explicit0=True explicit1=True invalidRejected=[unknown growth model 7]",
+      "GROWTH_MODEL_PASS POLICY_REFERENCE_V1_GROWTH0 previewGrowth0=True playerRestored=True",
+      "GROWTH_MODEL_PASS SITE_ENVELOPE_CLASS_III H20=14.21 H30=20.40 H40=24.89 H60=30.14 H80=32.51 H100=33.56 b0=34.362",
+      "GROWTH_MODEL_PASS INDIVIDUAL_RELATIVE_HEIGHT suppressed 10.00->10.493 dominant 14.20->14.900 (same ratio)",
+      "GROWTH_MODEL_PASS DBH_UNCHANGED_BY_HEIGHT_MODEL years=5 deaths=0 identicalDbh=True plantedTallerThanLegacy=True",
+      "GROWTH_MODEL_PASS TOP_HEIGHT_CLASS_III unthinned H20=14.63 H30=20.92 H40=24.14 H60=28.25 H80=30.11 H100=30.92",
+      "GROWTH_MODEL_PASS THINNING_WEAK_ON_TOP_HEIGHT maxRelativeDifference=0.063 heavy H20=14.63 H30=20.98 H40=25.14 H60=29.82 H80=31.99 H100=32.77",
+      "GROWTH_MODEL_PASS HEIGHT_DETERMINISTIC repeat identical=True",
+      "GROWTH_MODEL_PASS NO_DEATHS_BELOW_ONSET RD=0.435 onset=0.6 deaths=0",
+      "GROWTH_MODEL_PASS SUPPRESSED_DIE_MORE_THAN_DOMINANT deaths=73/196 mostSuppressedQuarter=0.653 leastSuppressedQuarter=0.143",
+      "GROWTH_MODEL_PASS DEATH_CAUSE_AND_YEAR allSelfThinningWithStepYear=True",
+      "GROWTH_MODEL_PASS DEADWOOD_CREATED_ONCE records=73 deaths=73",
+      "GROWTH_MODEL_PASS NO_DUPLICATE_DEATH secondApply=False recordsUnchanged=True",
+      "GROWTH_MODEL_PASS BOUNDARY_MAXIMUM_LINE maxRDAfterMortality=0.8938",
+      "GROWTH_MODEL_PASS THINNING_LOWERS_MORTALITY unthinned=73 thinned30pct=22",
+      "GROWTH_MODEL_PASS SAVE_LOAD_DETERMINISTIC uninterrupted=D012EA25B8DAD17C resumed=D012EA25B8DAD17C",
+      "GROWTH_MODEL_PASS LEGACY_ANCHORS_GROWTH0 neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+      "GROWTH_MODEL_PASS REGEN1_ANCHORS_GROWTH0 neutral=962846D2F517B293 normal=FBB8F470D85FF815",
+      "GROWTH_MODEL_PASS GROWTH1_DETERMINISTIC neutral=7E57B9DAEF5BF4D0 normal=35E2BF1C2F55C2DE",
+      "SITKA_GROWTH_MODEL_VERIFY_PASS checks=20"
+    ]
+  },
+  {
+    "gate": "ScenarioReferenceVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 104.58,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+    "fixture_adjustment": null,
+    "source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+    "markers": [
+      "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+      "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+      "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+      "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+      "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+      "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+      "REFERENCE_CONTINUATION_PASS year50=v12 year100=v18 deterministic=True continuedHash=3F8CFC3E8EB8F6E4 legacyV15LayoutHash=9CDF21A541C5968D",
+      "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+      "REFERENCE_FUTURE_V1_PASS"
+    ]
+  },
+  {
+    "gate": "ScenarioOneCompletionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 71.93,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "81266eff213aa4b24b48f1f4b3eaba2674549271c8ad90baa98c687f57ff7e09",
+    "fixture_adjustment": null,
+    "source_sha256": "81266eff213aa4b24b48f1f4b3eaba2674549271c8ad90baa98c687f57ff7e09",
+    "markers": [
+      "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a",
+      "SCENARIO_ONE_COMPLETION_HASH 702766DECE591E21 rngModel=1 regenerationModel=2 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+      "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+    ]
+  },
+  {
+    "gate": "ScenarioOneEconomyIntegrationVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 64.17,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "bf1f315ab0b37bec4a6a1ef6f0d3f5604fbef9c88a3cfce10b7c725efd24acab",
+    "fixture_adjustment": null,
+    "source_sha256": "bf1f315ab0b37bec4a6a1ef6f0d3f5604fbef9c88a3cfce10b7c725efd24acab",
+    "markers": [
+      "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS assertions=120 worldRestored=true noSaveSlotWrites=true"
+    ]
+  },
+  {
+    "gate": "SaveHardeningVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 55.84,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+    "fixture_adjustment": null,
+    "source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+    "markers": [
+      "SAVE_HARDENING_VERIFY_PASS"
+    ]
+  },
+  {
+    "gate": "RngModelPolicyVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 84.22,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "e1e22db8984d3b3f350334b779df899cbad2631129213ac19538b25027be630a",
+    "fixture_adjustment": null,
+    "source_sha256": "e1e22db8984d3b3f350334b779df899cbad2631129213ac19538b25027be630a",
+    "markers": [
+      "RNG_POLICY_NEW_GAME_PASS model=1",
+      "RNG_POLICY_MODEL0_COMPATIBILITY_PASS neutral=BFC55473C1506067 normal=3485B6630C9EA448",
+      "RNG_POLICY_SAVE_RETAINS_PASS model=1",
+      "RNG_POLICY_SAVE_RETAINS_PASS model=0",
+      "RNG_POLICY_LEGACY_ABSENT_FIELD_PASS model=0",
+      "RNG_POLICY_REFERENCE_V1_MODEL0_PASS years=20,50,100 playerModelRestored=1",
+      "RNG_POLICY_CONTINUATION_PASS model=0 year=20 hash=912E1EF4397758F2 plantedAliveOrPromoted=11/12 promoted=11 cash=1189950",
+      "RNG_POLICY_CONTINUATION_PASS model=1 year=20 hash=3B07595690AD3A25 plantedAliveOrPromoted=10/12 promoted=10 cash=1189950",
+      "RNG_MODEL_POLICY_VERIFY_PASS"
+    ]
+  },
+  {
+    "gate": "ClearanceVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 85.03,
+    "mode": "interactive",
+    "source_ref": "1a36ea97c724b3a026e76a0b5432349b46e6a298",
+    "original_source_sha256": "bc259708550afc2feff2c3abceea35cd0f175e07f8f21b68d7770416df3910e0",
+    "fixture_adjustment": null,
+    "source_sha256": "bc259708550afc2feff2c3abceea35cd0f175e07f8f21b68d7770416df3910e0",
+    "markers": [
+      "CLEARANCE_WALKING_PREVIEW_PASS groundRay=true sharedQuery=true",
+      "CLEARANCE_FIXTURES_PASS A B C D E F G H I J cohorts=3 exactJuveniles=1 groundPatches=5",
+      "CLEARANCE_CIRCLE_PASS area=1m2 species=3 inside=cleared outside=retained repeat=identical",
+      "CLEARANCE_REPEAT_MATRIX_PASS cells=64 identicalSpot=noTargets density=unchanged",
+      "CLEARANCE_ANNUAL_PASS completed=true debit=once treatmentYearDisplay=cleared",
+      "CLEARANCE_ACCEPTANCE_PASS"
+    ]
+  }
+]

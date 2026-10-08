@@ -123,7 +123,7 @@ Scenario 1 under model 1 remains achievable and viable: completed in Year 25 wit
 
 Open/deferred from this work:
 - physical juvenile stems/ha interpretation (undefined);
-- understorey cover has no causal regeneration effect (future calibrated competition mechanism, separate from browsing);
+- model1 retains non-causal habitat cover; new-game Model2 adds separate bramble/bracken survival competition (D-049, below);
 - the 0.01 establishment-response cut-off remains an existing calibration rule;
 - promotion remains an abstract band → individual handoff;
 - harness red gates (Clearance, MenuTutorial, Removal) reproduced identically on `402a2b4`; reclassified in D-048 / pedagogy Workstream F as harness issues, not production failures (see Growth Model 1 below).
@@ -163,3 +163,11 @@ Browsing & Protection v1 (shared browsing response, accepted shelter protection,
 - causal understorey;
 - competition/concealment;
 - spot control/regrowth.
+
+## Regeneration Model 2 (2026-10-08)
+
+The accepted Scenario One model2 v1 definition is integrated in the clean ZX20 integration checkout from current origin/main `a8596df`, using source `902903f`. Save18, new-game regeneration2; v17 regeneration1 and Reference0 unchanged. Independent competitor state applies shared linear juvenile-survival pressure, with separately accounted vegetation/light/browse loss. The accepted values and evidence grades are D-049; they are gameplay abstractions, not measured Irish constants.
+
+Clearance has useful, wasted and harmful outcomes, costs real cash and can remove existing juveniles. Do not make it compulsory or teach a repeat interval. The learning-panel copy follows the active saved model, preserving legacy truth. Biological heights are unchanged; the Beech renderer fix is retained.
+
+Open calibration/playtest items: botanical type differences, bramble concealment, competitive graminoids, source/neighbor spread, stronger site/moisture calibration, target generalization beyond Scenario One, visual recognition and human clearance decisions. These do not block this accepted v1 integration. See `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` for exact commits/gates and publication state. Dirty `/home/jer/CCF-main` is preserved. Drive and platform-attachment publication remain pending.

@@ -1,0 +1,18 @@
+{
+  "head": "402a2b41108dc9aa91e225db9047956b0a91a97e",
+  "status": [
+    " M .vscode/settings.json",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat",
+    "?? Assets/_Recovery.meta",
+    "?? Assets/_Recovery/0.unity",
+    "?? Assets/_Recovery/0.unity.meta"
+  ],
+  "file_hashes_unchanged": true,
+  "checked_files": 11
+}

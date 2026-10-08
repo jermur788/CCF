@@ -81,6 +81,7 @@ public sealed class LearningObjectivesView
     private readonly Label progress;
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
     private int shownCount = -1;
+    private int shownRegenerationModel = -1;
     public VisualElement Root { get; }
     public static IEnumerable<string> StepIds => Topics.SelectMany(t => t.Steps).Select(s => s.Id);
     public bool IsDone(string id) => done.Contains(id);
@@ -127,10 +128,19 @@ public sealed class LearningObjectivesView
         PlayerPrefs.Save();
     }
 
+    public static string ClearanceExplanation(int regenerationModel)
+    {
+        if (regenerationModel == RegenerationModel.Competition)
+            return "Dense bramble or bracken can reduce the survival of small young trees. Clearing can reduce that competition, but it also removes young trees already growing inside the treatment area, and the vegetation can return.";
+        return "Clearing removes the vegetation and young trees shown in the preview. It does not change young-tree survival or growth in this saved forest. Vegetation can return.";
+    }
+
     public void Refresh(bool force)
     {
-        if (!force && shownCount == done.Count) return;
+        int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
+        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel) return;
         shownCount = done.Count;
+        shownRegenerationModel = regenerationModel;
         float position = scroll.scrollOffset.y;
         progress.text = $"{Topics.Count(t => t.Steps.All(s => IsDone(s.Id)))} of {Topics.Length} topics complete · {done.Count} of {StepIds.Count()} steps · " + Summary;
         scroll.Clear();
@@ -141,7 +151,9 @@ public sealed class LearningObjectivesView
                 value = expanded.TryGetValue(topic.Title, out bool open) ? open : topic == next };
             foldout.AddToClassList("learning-topic");
             foldout.RegisterValueChangedCallback(e => expanded[topic.Title] = e.newValue);
-            UiKit.Add(foldout, topic.Text, "body");
+            string explanation = topic.Steps[0].Id == "clear.read"
+                ? ClearanceExplanation(regenerationModel) : topic.Text;
+            UiKit.Add(foldout, explanation, "body");
             foreach (Step step in topic.Steps)
             {
                 VisualElement card = UiKit.Box("card");

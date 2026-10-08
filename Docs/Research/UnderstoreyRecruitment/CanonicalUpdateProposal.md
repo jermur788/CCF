@@ -1,3 +1,5 @@
+> Delivered trial record. Manager accepted the central Model2 v1 calibration on 8 October 2026 (D-049). The clean integration and approved active-model P1 copy supersede the pending decision/status below; see [IntegrationHandoff](../../Verification/RegenerationModel2Integration/IntegrationHandoff.md). Original trial evidence and limitations remain preserved.
+
 # Proposed canonical updates — not accepted entries
 
 Schema decision approved by Manager on 7 October 2026: five independent competitor fields, save18 and new Scenario One regeneration2; historical v17 regeneration1 and Reference0 unchanged. Implementation and actual model2 trial are on the owned task branch. Main integration, ecological coefficients and initial cover rule remain unaccepted. See Model2Trial.md and Model2Handoff.md. Earlier ManagerContinuation/ContinuationHandoff describe the historical pre-approval checkpoint.

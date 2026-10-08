@@ -1,3 +1,5 @@
+> Delivered trial record. Manager accepted the central Model2 v1 calibration on 8 October 2026 (D-049). The clean integration and approved active-model P1 copy supersede the pending decision/status below; see [IntegrationHandoff](../../Verification/RegenerationModel2Integration/IntegrationHandoff.md). Original trial evidence and limitations remain preserved.
+
 # Handoff to pedagogy/UI owner
 
 The opening audit notes below describe main/model1. The exact model2 replacement at the end supersedes the earlier provisional candidate copy for this branch.
@@ -19,3 +21,7 @@ Main remains model1. The owned branch now contains the approved save18/model2 st
 Model1/legacy teaching must retain: “Ground-cover removal does not directly improve young-tree survival or height growth in this model. It removes the qualifying vegetation and young trees shown in the preview.”
 
 Model2 behaviour proposal: teach inspection before treatment, distinguish bramble/bracken pressure from general habitat cover and adult-tree crowding, show vegetation loss separately from browse/light loss in diagnostic review, and allow deferred learning across years. No compulsory first-year clearance, blanket grass/fern removal, universal repeat interval or planting immunity. A shelter changes browse protection only. Copy is conditional; no UI or objective thresholds were edited.
+
+## Accepted integration copy
+
+The active learning panel now uses the Manager-approved concise Model2 explanation recorded in the integration handoff. Saved models0/1 retain their no-survival/growth-effect explanation. This is verified rendered UI, with no new objective IDs or persistence state.

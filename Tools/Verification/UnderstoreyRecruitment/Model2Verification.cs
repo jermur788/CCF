@@ -39,6 +39,11 @@ public sealed class Model2VerificationRunner:MonoBehaviour
   Check(saves.LoadData(immediatelySaved,false),"immediate reset save reloads");
   Check(saves.LoadData(original,false),"restore before remaining model2 cases");
   var model2LegacyGrowth=Clone(original);model2LegacyGrowth.growthModel=0;Check(ScenarioReferenceArchive.LegacyV16WorldHash(model2LegacyGrowth)==null&&ScenarioReferenceArchive.LegacyV17WorldHash(original)==null,"model2 never substituted by historical layout hash");
+  var exponent=Clone(original);exponent.version=17;exponent.regenerationModel=1;
+  foreach(var u in exponent.scenarioOne.understoreyCells){u.brambleCover=1e-10f;u.brackenCover=1e-11f;}
+  string tinyJson=JsonUtility.ToJson(exponent);Check(tinyJson.Contains("E-")||tinyJson.Contains("e-"),"fixture emits negative scientific exponent");
+  var zeros=Clone(exponent);foreach(var u in zeros.scenarioOne.understoreyCells)u.brambleCover=u.brackenCover=0;
+  Check(ScenarioReferenceArchive.LegacyV17WorldHash(exponent)==ScenarioReferenceArchive.LegacyV17WorldHash(zeros),"historical hash ignores tiny appended cover values completely");
   var old=Clone(original);old.version=17;old.regenerationModel=1;Check(saves.LoadData(old,false)&&e.RegenerationModelVersion==1,"v17 stays1");
   foreach(var u in m.UnderstoreyCells)u.brambleCover=u.brackenCover=1;
   e.RecomputeCanopy();e.AdvanceOneYear();Check(e.LastRegenerationAccount.Species.Values.Sum(a=>a.VegetationLoss)==0,"model1 ignores competitor state");

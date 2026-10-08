@@ -20,7 +20,7 @@ Topics: background browse pressure, shared natural/planted response, species/sta
 
 Primary implementation-oriented source: `Understorey_Dynamics_Irish_CCF_Report.pdf`.
 
-The same manager assessment/proposal distinction applies. Decision Log remains **Current direction**. Causal three-group v1 is not integrated at main baseline; exact coefficients/calibration await an accepted specification.
+The same manager assessment/proposal distinction applies. Decision Log remains **Current direction**. The earlier baseline had no causal three-group v1. D-049 now accepts Scenario One model2 for independent bramble/bracken survival competition only; graminoids/concealment remain open. Accepted coefficients are gameplay calibration, not empirical values.
 
 Topics: bramble/bracken/competitive graminoid cover, shared competition for natural/planted juveniles, cover lag/hysteresis, browse concealment, spot vegetation control rather than automatic tree-regeneration deletion.
 
@@ -46,3 +46,7 @@ Use the dedicated browsing/understorey reports for those systems where they supe
 ## General reference
 
 `the-earth-care-manual_-a-permaculture-handbook-for-britain-and-other-temperate-climates-pdfdrive.com-.pdf` is general reference, not authority for CCF forestry/ecology decisions.
+
+## Understorey Model2 v1 (D-049)
+
+`Docs/Research/UnderstoreyRecruitment/Model2Trial.md`, `Model2Handoff.md` and `Evidence/Model2/` retain the original calibration/paid-management evidence; `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` records the accepted clean integration. Field evidence supports plausible competition, while transfer to shared Sitka/Oak/Beech coefficients remains a deliberate abstraction. Initial/target/recovery values are accepted [C/I/D], not measured botanical rates. Do not generalize the tree site-productivity/soil-stability coupling beyond Scenario One without reassessment.
