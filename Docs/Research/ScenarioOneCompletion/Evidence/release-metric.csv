@@ -1,0 +1,7 @@
+treatment,removed_n,crop_ci_before_mean,crop_ci_after_mean,unity_ci_before,unity_ci_after,crop_ci_change_pct,crop_trees_released_ge10pct,meaningful_competitors_removed,removals_beyond_8m_of_any_crop
+T0,0,6.0925,6.0925,6.0924,6.0924,0.0,0,0,0
+T1,84,6.0925,5.0823,6.0924,5.0823,-16.58,14,1,6
+T2,30,6.0925,4.892,6.0924,4.8916,-19.7,16,10,0
+T3,87,6.0925,3.3797,6.0924,3.3794,-44.53,16,11,0
+T4,15,6.0925,5.4184,6.0924,5.4187,-11.06,10,6,0
+T5,48,6.0925,5.1168,6.0924,5.1171,-16.01,7,0,0

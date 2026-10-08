@@ -1,0 +1,7 @@
+treatment,description,central_verdict,cells_touched,opened_cells,opened_groups,largest_group_cells,share_in_largest_group,share_in_opened_cells,max_cell_share_removed,grid_agreement,grid_verdicts
+T0,no treatment,NO REMOVAL,,,,,,,,27/27,NO REMOVAL:27
+T1,novice clean-up: crowded stems in the smallest DBH quartile,SMALL GROUP OPENINGS,39,18,11,3,0.11,0.631,1.0,21/27,DISTRIBUTED REMOVAL:6; SMALL GROUP OPENINGS:21
+T2,crop-tree release: top 2 competitors (largest Hegyi term) per crop tree,SMALL GROUP OPENINGS,23,9,8,2,0.082,0.548,0.428,15/27,DISTRIBUTED REMOVAL:15; SMALL GROUP OPENINGS:12
+T3,heavy opening: top 6 competitors per crop tree,SMALL GROUP OPENINGS,33,29,8,8,0.221,0.955,0.818,27/27,SMALL GROUP OPENINGS:27
+T4,conservative: top 1 competitor per crop tree,DISTRIBUTED REMOVAL,14,2,2,1,0.155,0.201,0.378,27/27,DISTRIBUTED REMOVAL:27
+T5,"concentrated gap: nearest non-crop stems to one point, volume matched to T2",CONCENTRATED GAP,11,10,1,10,0.987,0.987,1.0,27/27,CONCENTRATED GAP:27

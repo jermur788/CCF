@@ -1,0 +1,17 @@
+CI_REPRODUCTION max_abs_error=0.2112 trees=336
+NEIGHBOURS_PER_CROP min=10 median=39 max=48
+TOP1_SHARE min=0.070 median=0.088 max=0.229
+TOP3_SHARE min=0.182 median=0.226 max=0.477
+NEIGHBOURS_GE_10PCT min=0 median=0 max=3
+RELEASE treatment=T0 removed_n=0 crop_ci_before_mean=6.0925 crop_ci_after_mean=6.0925 unity_ci_before=6.0924 unity_ci_after=6.0924 crop_ci_change_pct=0.0 crop_trees_released_ge10pct=0 meaningful_competitors_removed=0 removals_beyond_8m_of_any_crop=0
+RELEASE treatment=T1 removed_n=84 crop_ci_before_mean=6.0925 crop_ci_after_mean=5.0823 unity_ci_before=6.0924 unity_ci_after=5.0823 crop_ci_change_pct=-16.58 crop_trees_released_ge10pct=14 meaningful_competitors_removed=1 removals_beyond_8m_of_any_crop=6
+RELEASE treatment=T2 removed_n=30 crop_ci_before_mean=6.0925 crop_ci_after_mean=4.892 unity_ci_before=6.0924 unity_ci_after=4.8916 crop_ci_change_pct=-19.7 crop_trees_released_ge10pct=16 meaningful_competitors_removed=10 removals_beyond_8m_of_any_crop=0
+RELEASE treatment=T3 removed_n=87 crop_ci_before_mean=6.0925 crop_ci_after_mean=3.3797 unity_ci_before=6.0924 unity_ci_after=3.3794 crop_ci_change_pct=-44.53 crop_trees_released_ge10pct=16 meaningful_competitors_removed=11 removals_beyond_8m_of_any_crop=0
+RELEASE treatment=T4 removed_n=15 crop_ci_before_mean=6.0925 crop_ci_after_mean=5.4184 unity_ci_before=6.0924 unity_ci_after=5.4187 crop_ci_change_pct=-11.06 crop_trees_released_ge10pct=10 meaningful_competitors_removed=6 removals_beyond_8m_of_any_crop=0
+RELEASE treatment=T5 removed_n=48 crop_ci_before_mean=6.0925 crop_ci_after_mean=5.1168 unity_ci_before=6.0924 unity_ci_after=5.1171 crop_ci_change_pct=-16.01 crop_trees_released_ge10pct=7 meaningful_competitors_removed=0 removals_beyond_8m_of_any_crop=0
+PATTERN treatment=T0 central_verdict=NO REMOVAL grid_agreement=27/27 grid_verdicts=NO REMOVAL:27
+PATTERN treatment=T1 central_verdict=SMALL GROUP OPENINGS cells_touched=39 opened_cells=18 opened_groups=11 largest_group_cells=3 share_in_largest_group=0.11 share_in_opened_cells=0.631 max_cell_share_removed=1.0 grid_agreement=21/27 grid_verdicts=DISTRIBUTED REMOVAL:6; SMALL GROUP OPENINGS:21
+PATTERN treatment=T2 central_verdict=SMALL GROUP OPENINGS cells_touched=23 opened_cells=9 opened_groups=8 largest_group_cells=2 share_in_largest_group=0.082 share_in_opened_cells=0.548 max_cell_share_removed=0.428 grid_agreement=15/27 grid_verdicts=DISTRIBUTED REMOVAL:15; SMALL GROUP OPENINGS:12
+PATTERN treatment=T3 central_verdict=SMALL GROUP OPENINGS cells_touched=33 opened_cells=29 opened_groups=8 largest_group_cells=8 share_in_largest_group=0.221 share_in_opened_cells=0.955 max_cell_share_removed=0.818 grid_agreement=27/27 grid_verdicts=SMALL GROUP OPENINGS:27
+PATTERN treatment=T4 central_verdict=DISTRIBUTED REMOVAL cells_touched=14 opened_cells=2 opened_groups=2 largest_group_cells=1 share_in_largest_group=0.155 share_in_opened_cells=0.201 max_cell_share_removed=0.378 grid_agreement=27/27 grid_verdicts=DISTRIBUTED REMOVAL:27
+PATTERN treatment=T5 central_verdict=CONCENTRATED GAP cells_touched=11 opened_cells=10 opened_groups=1 largest_group_cells=10 share_in_largest_group=0.987 share_in_opened_cells=0.987 max_cell_share_removed=1.0 grid_agreement=27/27 grid_verdicts=CONCENTRATED GAP:27

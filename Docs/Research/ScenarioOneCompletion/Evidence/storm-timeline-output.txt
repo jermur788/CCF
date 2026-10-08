@@ -1,0 +1,5 @@
+seed=20260914 p=0.05: storms<=Y25=[(3, 'severe')] all<=Y100=[(3, 'severe'), (38, 'moderate'), (100, 'severe')]
+seed=20260914 p=0.08: storms<=Y25=[(3, 'severe'), (13, 'moderate')] all<=Y100=[(3, 'severe'), (13, 'moderate'), (31, 'moderate'), (38, 'moderate'), (56, 'moderate'), (100, 'severe')]
+seed=20260914 p=0.12: storms<=Y25=[(3, 'severe'), (13, 'moderate')] all<=Y100=[(3, 'severe'), (13, 'moderate'), (31, 'moderate'), (38, 'moderate'), (56, 'moderate'), (74, 'severe'), (86, 'severe'), (100, 'severe')]
+analytic p=0.08 years3-25: P(any storm)=0.853 P(any severe-or-extreme)=0.428
+200 alternative seeds, p=0.08: first-storm year median=11 p10=4 p90=25
