@@ -251,6 +251,29 @@ public sealed class CropTreeCompetitorVerificationRunner : MonoBehaviour
         marking.ClearAll();
         yield return null;
 
+        // 10. Storm state (post-storm port): the assessment leaves wind exposure untouched, and a
+        // windthrown neighbour (biologically dead) leaves the breakdown, which still reconciles.
+        ForestTree assessed = Tree("P0707");
+        marking.Mark(assessed, TreeMarkType.CropTree, false);
+        yield return new WaitForSecondsRealtime(0.3f);
+        string windBefore = ecology.GetStormExposureLabel(assessed) + "|" + ecology.GetStormExposureExplanation(assessed);
+        ui.Competitors.Update(assessed);
+        ui.Competitors.Clear();
+        Check(ecology.GetStormExposureLabel(assessed) + "|" + ecology.GetStormExposureExplanation(assessed) == windBefore,
+            "competitor assessment changed the storm exposure text");
+        ForestTree victim = Tree("P0706");
+        Check(victim.ApplyMortality("windthrow", ecology.EcologicalYear), "fixture windthrow death");
+        yield return new WaitForSecondsRealtime(0.3f);
+        ui.Competitors.Update(assessed);
+        ecology.InvalidateCompetition();
+        float afterDeath = ecology.GetCompetitionIndex(assessed);
+        Check(ui.Competitors.Report != null && ui.Competitors.Report.Ranked.All(e => e.Id != "P0706")
+            && Mathf.Abs(ui.Competitors.Report.CompetitionNow - afterDeath) <= 1e-4f,
+            $"windthrown neighbour still counted or breakdown out of step: {ui.Competitors.Report?.CompetitionNow} vs {afterDeath}");
+        ui.Competitors.Clear();
+        Debug.Log($"P2_STORM_COEXIST_PASS stormModel={ecology.StormModelVersion} wind '{ecology.GetStormExposureLabel(assessed)}' unchanged; "
+            + $"windthrown P0706 removed; competition {afterDeath:F3} reconciles");
+
         if (Application.isBatchMode)
         {
             Debug.Log("P2_RENDERED_SKIPPED batchmode (run interactively for layout and captures)");
