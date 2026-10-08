@@ -26,6 +26,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private AnnualReviewView review;
     private StandMapView map;
     private LearningObjectivesView learning;
+    private CompetitorAssessment competitors;
+    public CompetitorAssessment Competitors => competitors;
     public LearningObjectivesView Learning => learning;
     private Label previewBanner;
     private MenuHelpView help;
@@ -77,6 +79,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         review = new AnnualReviewView(this);
         map = new StandMapView(this);
         root.Add(hud.Root);
+        competitors = new CompetitorAssessment(this, root);
         root.Add(inspection.Root);
         root.Add(workPlan.Root);
         root.Add(review.Root);
@@ -95,6 +98,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private void OnDestroy()
     {
         if (map != null) map.DestroyWaypoint();
+        competitors?.Destroy();
         if (panelSettings != null) Destroy(panelSettings);
     }
 
@@ -126,10 +130,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
         if (walking)
         {
+            competitors.Update(player != null ? player.InspectedTree : null);
             hud.Refresh();
             if (player != null && player.InspectedTree != null)
                 inspection.Refresh(player.InspectedTree);
         }
+        else
+            competitors.Clear();
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -148,6 +155,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             if (screen == UiScreen.Map) map.Refresh(false);
             if (screen == UiScreen.Objectives) learning.Refresh(false);
         }
+    }
+
+    private void LateUpdate()
+    {
+        if (competitors == null || manager == null) return;
+        bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
+        competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
     }
 
     private void HandleKeys()

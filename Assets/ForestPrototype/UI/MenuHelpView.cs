@@ -81,6 +81,7 @@ public sealed class MenuHelpView
                 return "Inspect a tree with E to understand its size, growth, competition and management state. Use this before deciding which trees to favour or remove.\n\n"
                     + "DBH is trunk diameter measured at breast height. Crown/light describes growing space and light; the light value here is measured at the tree's ground cell. Competition shows whether neighbours restrict growth.\n\n"
                     + "A Crop Tree is selected to retain and favour for future development. A Fell mark proposes removal. X and C change these marks; they do not execute work. You choose the trees—this screen does not select a correct answer.\n\n"
+                    + "Crop Trees are trees you choose to favour for the future. Nearby trees can reduce their growing space, but being small or suppressed does not by itself make a tree a problem. Inspect which neighbours contribute most to competition before deciding what to remove. On a Crop Tree's card, keys 1–5 show its listed neighbours in the forest.\n\n"
                     + "Close Help, then press E to close inspection and return to walking.";
             case Menu.StandMap:
                 return "The Stand Map helps you find patterns across the forest that are difficult to see among the trees. Open it with M when looking for a site to inspect.\n\n"
