@@ -30,7 +30,7 @@ OUT = ROOT / "Build" / "P2"
 
 
 def other_unity_running():
-    found = subprocess.run(["pgrep", "-f", "Editor/Unity "], capture_output=True, text=True).stdout.split()
+    found = subprocess.run(["pgrep", "-f", "^" + UNITY + " "], capture_output=True, text=True).stdout.split()
     return [pid for pid in found if pid != str(os.getpid())]
 
 
