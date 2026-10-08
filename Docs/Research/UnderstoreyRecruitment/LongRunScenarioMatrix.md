@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Long-run Scenario One baseline matrix
 
 Actual production ecology: RNG1 / regeneration1 / growth1 / save17. Sixteen treatments × two repeats × 100 years; 3,200 annual species rows, 128 horizon hashes. All repeats matched at 10/25/50/100. Clearances call real ApplyClearance directly, with no work-plan quotes, cash settlement or history records: this is an isolated biological baseline, not a full paid management simulation. Smallest-stem removal fractions 0/.2/.4/.6 are initial experimental thinning, not repeated distributed selection or practitioner prescriptions.

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 // Checks a parsed save before it is allowed to touch the live world.
 //
@@ -65,6 +66,11 @@ public static class ForestSaveValidation
             return $"unknown regeneration model {data.regenerationModel}";
         if (data.growthModel < GrowthModel.Legacy || data.growthModel > GrowthModel.Latest)
             return $"unknown growth model {data.growthModel}";
+        if (data.regenerationModel == RegenerationModel.Competition)
+        {
+            string competition = ValidateCompetition(data, ecologyCellCount);
+            if (competition != null) return competition;
+        }
         bool ageBands = data.version >= 16 && data.regenerationModel >= RegenerationModel.AgeBands;
 
         if (data.cells != null)
@@ -121,6 +127,68 @@ public static class ForestSaveValidation
         }
         return null;
     }
+
+    private static string ValidateCompetition(ForestSaveData data, int count)
+    {
+        if (data.version < 18 || data.ecologicalYear < 0 || data.scenarioOne == null)
+            return "model 2 requires a version 18 Scenario One save";
+        var cells = data.scenarioOne.understoreyCells;
+        if (cells == null || cells.Count != (count > 0 ? count : data.cells?.Count ?? 0))
+            return "model 2 competitor grid is missing or incomplete";
+        var indices = new HashSet<int>();
+        int expectedIndex = 0;
+        foreach (var cell in cells)
+            if (cell == null || cell.cellIndex != expectedIndex++ || !indices.Add(cell.cellIndex)
+                || !Cover(cell.brambleCover) || !Cover(cell.brackenCover)
+                || cell.lastUpdatedYear < 0 || cell.lastUpdatedYear > data.ecologicalYear)
+                return "invalid model 2 cell competitor state";
+        var patches = data.scenarioOne.clearancePatches;
+        if (patches == null) return "model 2 clearance-patch state is missing";
+        var keys = new HashSet<(int, float, float, float)>();
+        foreach (var patch in patches)
+            if (patch == null || !IsFinite(patch.center.x) || !IsFinite(patch.center.y) || !IsFinite(patch.center.z)
+                || !IsFinite(patch.radiusMeters) || patch.radiusMeters <= 0f
+                || !Cover(patch.brambleCover) || !Cover(patch.brackenCover)
+                || patch.createdYear < 0 || patch.createdYear > data.ecologicalYear
+                || patch.competitionUpdatedYear < patch.createdYear || patch.competitionUpdatedYear > data.ecologicalYear
+                || !keys.Add((patch.createdYear, patch.center.x, patch.center.z, patch.radiusMeters)))
+                return "invalid or duplicate model 2 local competitor state";
+        return null;
+    }
+
+    private static bool Cover(float value) => IsFinite(value) && value >= 0f && value <= 1f;
+
+    // JsonUtility defaults missing numeric fields to zero. The disk-load path
+    // therefore checks field presence/types before parsed state touches the world.
+    public static string ValidateCompetitionJson(string json, ForestSaveData data)
+    {
+        if (data == null || data.regenerationModel != RegenerationModel.Competition) return null;
+        try
+        {
+            var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            var scenario = root["scenarioOne"] as JObject;
+            if (!(scenario?["understoreyCells"] is JArray cells) || !(scenario["clearancePatches"] is JArray patches))
+                return "model 2 requires explicit competitor lists";
+            foreach (var record in cells)
+                if (!(record is JObject cell) || !Number(cell["brambleCover"]) || !Number(cell["brackenCover"])
+                    || !Year(cell["lastUpdatedYear"], data.ecologicalYear))
+                    return "model 2 cell competitor fields are missing or invalid";
+            foreach (var record in patches)
+                if (!(record is JObject patch) || !Number(patch["brambleCover"]) || !Number(patch["brackenCover"])
+                    || !Year(patch["competitionUpdatedYear"], data.ecologicalYear))
+                    return "model 2 local competitor fields are missing or invalid";
+        }
+        catch (System.Exception) { return "invalid model 2 competitor JSON"; }
+        return null;
+    }
+    private static bool Number(JToken token)
+    {
+        if (token == null || (token.Type != JTokenType.Float && token.Type != JTokenType.Integer)) return false;
+        double value = token.Value<double>();
+        return !double.IsNaN(value) && !double.IsInfinity(value) && value >= 0d && value <= 1d;
+    }
+    private static bool Year(JToken token, int year)
+        => token?.Type == JTokenType.Integer && token.Value<long>() >= 0 && token.Value<long>() <= year;
 
     private static string ValidateScenarioV15(ScenarioOneSaveData scenario, int year)
     {

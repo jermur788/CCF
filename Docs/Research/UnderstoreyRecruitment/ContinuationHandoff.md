@@ -1,3 +1,5 @@
+> Historical checkpoint. The later approved-schema/model2 trial is described in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The results and status below belong to the earlier checkpoint.
+
 # UNDERSTOREY COMPETITION / REGENERATION MODEL 2 HANDOFF
 
 BASE: a8596df9c52669a36709f09e85dfe6568640af49; ancestry verified, origin/main unchanged at checkpoint.

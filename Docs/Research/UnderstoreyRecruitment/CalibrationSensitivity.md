@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Calibration and sensitivity
 
 43,200 virtual output rows compare five response forms × three strengths × five processes × three light levels × four covers × two browse levels × protection on/off × seed availability on/off × three clearance schedules × two horizons. Evidence: candidate_sensitivity.csv.gz, candidate_ranges.csv and candidate_summary.json. Reproduce with Tools/Verification/UnderstoreyRecruitment/candidate_sweep.py. These are dimensionless response experiments, not Unity trajectories, physical stems, predicted recruitment, or empirical calibration.

@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Implementation record
 
 Status: CALIBRATION READY — MODEL DECISION REQUIRED.

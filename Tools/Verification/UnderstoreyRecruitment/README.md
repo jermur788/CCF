@@ -1,3 +1,21 @@
+# Approved-schema model2 trial verification
+
+The owned task branch now has save18/regeneration2 candidate biology. Close Unity and run from `/media/jer/ZX20/CCF-understorey-recruitment`, one launcher at a time:
+
+```bash
+python3 Tools/Verification/UnderstoreyRecruitment/run_model2.py
+python3 Tools/Verification/UnderstoreyRecruitment/run_model2.py --gate Model2Matrix
+python3 Tools/Verification/UnderstoreyRecruitment/run_model2.py --gate Model2TargetedEconomy
+python3 Tools/Verification/UnderstoreyRecruitment/run_model2.py --gate Model2Performance
+python3 Tools/Verification/UnderstoreyRecruitment/run_regression.py
+CCF_REGEN_MODEL=1 python3 Tools/Verification/UnderstoreyRecruitment/run_regression.py --gate ScenarioOneCompletionVerification
+python3 Tools/Verification/UnderstoreyRecruitment/analyse_model2.py
+```
+
+State validation, overlapping area, paid cross-border cell clearance, same expected natural/planted survival and midrun reload run in Model2Verification. Model2Matrix records actual paid Work Plan trials to100yr, separated species losses and exact promotion/planting/shelter/cash/adult metrics. Performance uses paired model1/model2 fresh loaded worlds and concentrated/distributed patch histories. Regression runs the actual new-game default and retains historical explicitly pinned gates. Forced model1 completion is stored separately. Do not set CCF_REGEN_MODEL globally for the default suite.
+
+New evidence is under ignored `Build/UnderstoreyRecruitment/Model2`, retained reviewed evidence under `Docs/Research/UnderstoreyRecruitment/Evidence/Model2`. Source SHA, mode, terminal markers and runtime are recorded. Historical instructions/evidence below concern the earlier model1 audit/visual continuation. `run_regression.py` now writes Model2 outputs; it does not overwrite those historical results. See Model2Trial.md/Model2Handoff.md for current semantics and acceptance status.
+
 # Understorey recruitment diagnostics
 
 Base/canonical context: a8596df; audit commit 5c389cc. These are explicit disposable measurement scripts, not production simulation changes. Run from the task checkout with Unity closed. One launcher at a time. Unity 6000.6.0f1 path is configured in the launchers; adjust that path only for the installed Editor on another host.
@@ -13,11 +31,11 @@ python3 Tools/Verification/UnderstoreyRecruitment/analyse_evidence.py
 python3 Tools/Verification/UnderstoreyRecruitment/run_regression.py
 ```
 
-First invocation inventories actual imported Assets and runs gap fixtures/32 baseline worlds. `--skip-inventory` reruns biological diagnostics using existing inventory. `--fixtures` covers single-cell accounts, recovery, simulation-only benchmark with juvenile load and 16 mixed juvenile/protection/timing worlds. `--visual` launches an interactive Editor/Game view, stages synthetic patches, captures three resolutions and isolated species/planting/thinning/mortality views. Visual success means capture execution completed; adequacy is assessed manually in the reports. No command implements competition.
+First invocation inventories actual imported Assets and runs gap fixtures/32 baseline worlds. `--skip-inventory` reruns biological diagnostics using existing inventory. `--fixtures` covers single-cell accounts, recovery, simulation-only benchmark with juvenile load and 16 mixed juvenile/protection/timing worlds. `--visual` launches an interactive Editor/Game view, stages synthetic patches, captures three resolutions and isolated species/planting/thinning/mortality views. Visual success means capture execution completed; adequacy is assessed manually in the reports. The historical audit commands do not implement competition; run_model2 measures the current integrated trial.
 
 The wrapper stages one source under Assets/ForestPrototype and removes that source/meta in finally after the Editor exits. It uses a per-task config, one nonblocking file lock and a systemd user scope with 8G memory / 256M swap limits and two workers. Do not share/copy Library. Results/logs/raw captures are under ignored Build/UnderstoreyRecruitment. `analyse_evidence.py` copies useful CSV evidence, joins inventory metadata and compresses the 43,200 virtual candidate rows. Run it only after a successful inventory and baseline. It deliberately excludes camera PNGs and regression result publication; review those before copying.
 
-The regression launcher retains source SHA256/ref and batch versus interactive mode. Three final verification sources are read from commit 1a36ea9, the gate-contract correction, while production stays a8596df. That commit must be available in local Git objects; no checkout/cherry-pick is performed. Immutable Reference anchors are checked explicitly, and a Reference failure stops the sequence. No PASS means tested candidate ecology: all these gates concern unchanged production. Review individual logs after any failure.
+The regression launcher retains source SHA256/ref and batch versus interactive mode. Three final verification sources are read from commit 1a36ea9, the gate-contract correction, while production stays a8596df. That commit must be available in local Git objects; no checkout/cherry-pick is performed. Immutable Reference anchors are checked explicitly, and a Reference failure stops the sequence. That statement applied to the historical audit. Current regression measures the task branch model2 default plus explicit historical fixtures. Review individual logs after any failure.
 
 Diagnostics do not write disk save slots. Legacy gates have their own restore contracts; use the isolated config and inspect their result markers. After all Editors exit, inspect Git differences and restore only known Editor-generated tracked material/settings normalisation in the otherwise fresh owned checkout. Never overwrite someone else's changes. Exclude generated caches and staged Assets scripts from commits.
 

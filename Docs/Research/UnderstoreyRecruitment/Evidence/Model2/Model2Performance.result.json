@@ -1,0 +1,10 @@
+{
+  "gate": "Model2Performance",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 137.87934170799963,
+  "source_sha256": "19bfaabd93bac40037dfbdfd6635c42d0a5c556a3cfc9c80e5e785c3ea056960",
+  "markers": [
+    "MODEL2PERFORMANCE_PASS actualAnnual=true overlappingHistory=true"
+  ]
+}

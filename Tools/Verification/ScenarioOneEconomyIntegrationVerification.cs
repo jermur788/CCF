@@ -101,7 +101,7 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
 
     private IEnumerator Verify()
     {
-        Check(ForestSaveData.CurrentVersion == 17 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
+        Check(ForestSaveData.CurrentVersion == 18 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
         yield return Reset();
         var trees = Trees();
         Mark(trees[0], FellingMaterialOutcome.SellAndExtract); Mark(trees[1], FellingMaterialOutcome.KeepForUse); Mark(trees[2], FellingMaterialOutcome.RetainAsFallenDeadwood);
@@ -163,7 +163,7 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         Check(ecology.Browsing.Shelters.Count == 0, "historical preview replaces player protection with none");
         manager.EndReferencePreview(); yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 1 && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeProtectedPreview, "preview exit replaces exact saved protection/player state");
-        var legacy = Clone(shelteredSave); legacy.version = 14; Check(saves.LoadData(legacy, false), "v14 safe migration");
+        var legacy = Clone(shelteredSave); legacy.version = 14; legacy.regenerationModel = RegenerationModel.Legacy; legacy.growthModel = GrowthModel.Legacy; Check(saves.LoadData(legacy, false), "v14 safe migration");
         yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 0 && ecology.Browsing.ProtectedAreas.Count == 0 && manager.OwnerMinutesUsedThisYear == 0
             && manager.WorkOrders.All(o => o.executionMethod == WorkExecutionMethod.Contractor && !o.installShelter && o.harvestJobId == -1), "v14 defaults replace protection");

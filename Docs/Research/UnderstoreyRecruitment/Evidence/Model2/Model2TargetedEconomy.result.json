@@ -1,0 +1,16 @@
+{
+  "gate": "Model2TargetedEconomy",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 234.0082631350001,
+  "source_sha256": "66908d86ce346a881c6da9cd8ed80e6b3086bf64c2171390bddff6d052e6ae2e",
+  "markers": [
+    "MODEL2_MATRIX_CASE_PASS moderate-targeted-clear0 repeat=0",
+    "MODEL2_MATRIX_CASE_PASS moderate-targeted-clear1 repeat=0",
+    "MODEL2_MATRIX_CASE_PASS dense-opening-targeted-clear0 repeat=0",
+    "MODEL2_MATRIX_CASE_PASS dense-opening-targeted-clear1 repeat=0",
+    "MODEL2_MATRIX_CASE_PASS zero-competition-targeted-clear0 repeat=0",
+    "MODEL2_MATRIX_CASE_PASS zero-competition-targeted-clear1 repeat=0",
+    "MODEL2TARGETEDECONOMY_PASS horizons=10,25,50,100 paidWorkPlan=true"
+  ]
+}

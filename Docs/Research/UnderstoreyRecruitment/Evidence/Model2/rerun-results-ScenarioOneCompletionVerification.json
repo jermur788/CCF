@@ -1,0 +1,16 @@
+[
+  {
+    "gate": "ScenarioOneCompletionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 58.26,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "source_sha256": "81266eff213aa4b24b48f1f4b3eaba2674549271c8ad90baa98c687f57ff7e09",
+    "markers": [
+      "SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a",
+      "SCENARIO_ONE_COMPLETION_HASH 702766DECE591E21 rngModel=1 regenerationModel=2 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a",
+      "SCENARIO_ONE_COMPLETION_VERIFY_PASS"
+    ]
+  }
+]

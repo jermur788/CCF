@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Simulation performance
 
 Measured in an isolated one-Editor run, workers=2, MemoryMax=8G. Synthetic 40×40 m stand, 64 cells, adult tree objects without meshes; 192 natural juvenile bands (3 species across64 cells) and30 exact planted individuals; actual growth1 annual advance plus planted advancement. Adults 336 / 1300 / 3000 / 5000 took approximately 61.8 / 334.7 / 889.7 / 1727.2 ms. These single-step timings include current production ecology; they are not replicated medians, realistic stand-density calibration or rendering frame rates.

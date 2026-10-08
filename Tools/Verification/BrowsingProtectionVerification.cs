@@ -512,6 +512,10 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
 
     private void VerifyEquivalence(TreeSpeciesDefinition oak)
     {
+        // Isolate the historical shared browse response; model-2 matched exposure is
+        // covered separately by Model2Verification. Unequal cell cover is not equal input.
+        int previousRegenerationModel = ecology.RegenerationModelVersion;
+        ecology.RegenerationModelVersion = RegenerationModel.AgeBands;
         // Same inputs: one natural cohort and many exact individuals for one year.
         foreach (float light in new[] { 0.12f, 0.55f })
         {
@@ -567,6 +571,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
             Emit($"BROWSE_EQUIVALENCE light={F(light)} p={F(p)} indBrowsed={F(browsed / (float)n)} cohortIncrement={expectedIncrement:0.0000} indIncrement={increment:0.0000} "
                 + $"indSurvival={alive / (double)n:0.0000} expectedSurvival={expectedSurvival:0.0000} survivalGivenBrowsed={survivalGivenBrowsed:0.0000}");
         }
+        ecology.RegenerationModelVersion = previousRegenerationModel;
         Debug.Log("BROWSE_SHARED_RESPONSE_EQUIVALENCE_PASS");
     }
 

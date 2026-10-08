@@ -1,0 +1,29 @@
+{
+  "status": "CALIBRATION READY \u2014 PARAMETER DECISION REQUIRED",
+  "state_checks": 1396,
+  "full_suite_passed": 23,
+  "full_suite_total": 23,
+  "worlds": 39,
+  "century_world_steps": 3900,
+  "species_year_rows": 11700,
+  "historical_completion_layout": "D7C4DDD36B53FCCE",
+  "model2_completion": "702766DECE591E21",
+  "production_source_sha256": {
+    "Assets/ForestPrototype/ForestEcologyController.cs": "5f9d6265999d3ccf2f4f007dffc77008a0d7c456db8404720ff81550b8e4736b",
+    "Assets/ForestPrototype/ForestSaveController.cs": "5bdf1d989570e80123242b533fa35adec98e8d4490ebb8cdecbf77e261dad98a",
+    "Assets/ForestPrototype/ForestSaveData.cs": "21368532af1194c75a791dce97873e93631392fe9f2f7ae4753d4425cfd63517",
+    "Assets/ForestPrototype/ForestSaveValidation.cs": "6e5c85647a8d732945d824f10ff715022cec638861c1009c8197bd8585b54d28",
+    "Assets/ForestPrototype/RegenerationModel.cs": "997aa5b256a342c51f734dd38216244ab32177159bee8d51c19541b3ea64c34f",
+    "Assets/ForestPrototype/ScenarioOne/PlantedJuvenile.cs": "6731d382275e88ae78d1ad2194d2d21a0fc883fff0a53b05b146494b2a8b435b",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioHabitatVisuals.cs": "237574e7e3ff2201ef2dbfce8d2c189e4c6eee41fda9fca04d792ea5979c91dc",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneClearance.cs": "187fa5162b78b158adfb6bb9cf5566df457c99c4713b37dabd442c8c67fb1be5",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompetition.cs": "a714471fb40d94723af671830ec29fb04ec73b2d6f21c3a8a8aecaaf114090d3",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": "b6dd379a8d6d0f5da6d3e214c70ac7b6a7d5e196bb809cab5fc880110d999096",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneUnderstorey.cs": "fda9fea6b96a4bca5fbae36dab04fb0f36984ddb8a55ec41ee23a370c962b3db",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioReferenceArchive.cs": "67ae7802e730f28900aa1cd3c5c84a1a86438186de60a0c4f14525b4001af2f7",
+    "Assets/ForestPrototype/ScenarioOne/UnderstoreyCompetition.cs": "1d8c92895ae85f9191cb6de07ac5d30c845c2beef2d59927f8d8c019ef7f03cd"
+  },
+  "main_merged": false,
+  "saved_fields_added": 5,
+  "additional_fields_beyond_approved_schema": 0
+}

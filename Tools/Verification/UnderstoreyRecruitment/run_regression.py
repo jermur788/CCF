@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Sequential baseline verification after the visual-only continuation. Exact source/mode recorded."""
+"""Sequential applicable model-2 regression verification. Exact source/mode recorded."""
 import argparse,fcntl,hashlib,json,os,shutil,subprocess,time
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[3];out=ROOT/'Build/UnderstoreyRecruitment/Continuation/regression';out.mkdir(parents=True,exist_ok=True)
+ROOT=Path(__file__).resolve().parents[3];out=ROOT/('Build/UnderstoreyRecruitment/Model2/legacy-completion' if os.environ.get('CCF_REGEN_MODEL')=='1' else 'Build/UnderstoreyRecruitment/Model2/regression');out.mkdir(parents=True,exist_ok=True)
 config=ROOT/'Build/UnderstoreyRecruitment/config';lock=(ROOT/'Build/UnderstoreyRecruitment/launch.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
 # P0 mode corrections are used as disposable sources, not ported into owned UI files.
 P0='1a36ea97c724b3a026e76a0b5432349b46e6a298'
@@ -40,6 +40,15 @@ for gate,path,interactive,ref in GATES:
  target=ROOT/'Assets/ForestPrototype'/(gate+'.cs');staged=not path.startswith('Assets/');log=out/(gate+'.log')
  if staged and target.exists():raise RuntimeError('Existing staged source '+str(target))
  data=subprocess.check_output(['git','show',ref+':'+path],cwd=ROOT) if ref else (ROOT/path).read_bytes()
+ original_source_sha256=hashlib.sha256(data).hexdigest()
+ fixture_adjustment=None
+ if gate=='CCFIntegrationVerificationTemp':
+  # Preserve the immutable P0 source; only correct its synthetic v5 save fixture.
+  old=b'        string legacySave = currentSave.Replace(currentVersionToken, "\\"version\\": 5");'
+  replacement=b'        ForestSaveData legacyData = JsonUtility.FromJson<ForestSaveData>(currentSave);\n        legacyData.version = 5;\n        legacyData.regenerationModel = RegenerationModel.Legacy;\n        legacyData.growthModel = GrowthModel.Legacy;\n        string legacySave = JsonUtility.ToJson(legacyData);'
+  if data.count(old)!=1:raise RuntimeError('Immutable legacy fixture changed')
+  data=data.replace(old,replacement)
+  fixture_adjustment="Synthetic v5 save uses historical regeneration/growth model0; P0 assertions unchanged"
  if staged:target.write_bytes(data)
  unit='ccf-understorey-regression-'+str(time.time_ns());start=time.monotonic()
  try:
@@ -54,7 +63,7 @@ for gate,path,interactive,ref in GATES:
   passed=code==0 and FINAL_MARKERS[gate] in content and not any('_FAIL' in s or 'error CS' in s for s in markers)
   # Explicit immutable Reference anchors; stop immediately if the archive/replay differs.
   if gate=='ScenarioReferenceVerification':passed=passed and '7AD177B3CC2F73C7' in content and '9CDF21A541C5968D' in content
-  result=dict(gate=gate,status='PASS' if passed else 'FAIL',exit_code=code,seconds=round(time.monotonic()-start,2),mode='interactive' if interactive else 'batch',source_ref=ref or 'task-working-tree',source_sha256=hashlib.sha256(data).hexdigest(),markers=markers)
+  result=dict(gate=gate,status='PASS' if passed else 'FAIL',exit_code=code,seconds=round(time.monotonic()-start,2),mode='interactive' if interactive else 'batch',source_ref=ref or 'task-working-tree',original_source_sha256=original_source_sha256,fixture_adjustment=fixture_adjustment,source_sha256=hashlib.sha256(data).hexdigest(),markers=markers)
   results.append(result);result_path.write_text(json.dumps(results,indent=2)+'\n');print(json.dumps({k:result[k] for k in ['gate','status','seconds','exit_code']}),flush=True)
   if gate=='ScenarioReferenceVerification' and not passed:raise RuntimeError('STOP: unexpected Reference failure. See '+str(log))
  finally:

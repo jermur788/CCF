@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Clearance causality and timing
 
 Production currently removes vegetation and tree regeneration; it does not confer a vegetation-competition benefit. Gap fixtures prove identical natural/planted outcomes for cover 0 versus 1 at matched light, browse, species and age. Area clearance resets ferns/grasses/forbs/shrubs, preserves moss/fungi, and removes qualifying cohorts and exact juveniles. Circular planting clearance removes the overlapping fraction and exact individuals; it persists a patch and does not zero the whole containing cell's cover. A future response must respect the partial footprint.

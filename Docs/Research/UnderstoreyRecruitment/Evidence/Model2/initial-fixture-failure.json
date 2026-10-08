@@ -1,0 +1,10 @@
+{
+  "gate": "Model2Verification",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 49.55067195399897,
+  "source_sha256": "92c92600f640facb6727c147c45cb8a1acca5cc9b577801404988d242097d118",
+  "markers": [
+    "MODEL2VERIFICATION_FAIL System.Exception: patchroundtripload"
+  ]
+}

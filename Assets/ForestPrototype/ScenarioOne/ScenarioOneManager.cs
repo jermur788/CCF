@@ -458,9 +458,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // RNG model for newly created Scenario One games (see Awake).
     public const int NewGameRngModel = SimulationRandom.MixedModel;
 
-    // Regeneration representation for newly created games (age bands). Loads
+    // Regeneration representation for new games (age bands + competition trial). Loads
     // restore the saved model; saves before v16 and Reference v1 are model 0.
-    public const int NewGameRegenerationModel = RegenerationModel.AgeBands;
+    public const int NewGameRegenerationModel = RegenerationModel.Competition;
 
     // Adult growth for newly created games: Irish site Class III height and
     // adult density mortality. Saves before v17 and Reference v1 are model 0.
@@ -570,6 +570,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ClearPlantingMarkers();
         plantedJuveniles.Clear();
         clearancePatches.Clear();
+        InvalidateCompetition();
         habitatVisuals?.Rebuild(ecology, understoreyCells, deadwoodRecords, plantedJuveniles);
         nextJuvenileId = 1;
         retainedTimberM3 = 0f;
@@ -1276,6 +1277,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public ScenarioOneSaveData CaptureSaveData()
     {
+        // A freshly reset model-2 scenario must be saveable before its first
+        // annual step or map/inspection access initializes the vegetation grid.
+        if (ecology != null && ecology.RegenerationModelVersion == RegenerationModel.Competition)
+            EnsureUnderstoreyGrid();
         return new ScenarioOneSaveData
         {
             scenarioId = definition != null ? definition.ScenarioId : "scenario-one",
@@ -1301,7 +1306,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             }).ToList(),
             clearancePatches = clearancePatches.Select(p => new PlantingClearancePatch
             {
-                center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear
+                center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear,
+                brambleCover = p.brambleCover, brackenCover = p.brackenCover,
+                competitionUpdatedYear = p.competitionUpdatedYear
             }).ToList(),
             interactionSchemaVersion = 2,
             shelters = CloneRecords(ecology != null ? ecology.Browsing.Shelters : shelters),
@@ -1373,8 +1380,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }).ToList() ?? new List<PlantedJuvenile>();
         clearancePatches = data.clearancePatches?.Select(p => new PlantingClearancePatch
         {
-            center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear
+            center = p.center, radiusMeters = p.radiusMeters, createdYear = p.createdYear,
+                brambleCover = p.brambleCover, brackenCover = p.brackenCover,
+                competitionUpdatedYear = p.competitionUpdatedYear
         }).ToList() ?? new List<PlantingClearancePatch>();
+        InvalidateCompetition();
         nextJuvenileId = plantedJuveniles.Count > 0
             ? plantedJuveniles.Max(j => int.TryParse(j.juvenileId?.StartsWith("PJ") == true ? j.juvenileId.Substring(2) : "0", out int id) ? id : 0) + 1
             : 1;
@@ -1772,7 +1782,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (targets.AlreadyTreated) return;
         ApplyClearance(targets, year);
         clearancePatches.Add(new PlantingClearancePatch
-        { center = position, radiusMeters = targets.Footprint.Radius, createdYear = year });
+        { center = position, radiusMeters = targets.Footprint.Radius, createdYear = year,
+            competitionUpdatedYear = year, brambleCover = 0f, brackenCover = 0f });
+        InvalidateCompetition();
     }
 
     // Deterministic vertical-strip integration of clipped circle union. A
@@ -1827,6 +1839,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     private void AdvancePlantedJuveniles()
     {
+        PlantedCompetitionAccount = new PlantedCompetitionAnnualAccount { Year = ecology != null ? ecology.EcologicalYear : 0 };
         if (plantedJuveniles.Count == 0 || ecology?.Cells == null)
             return;
         ForestTreeSpawner spawner = UnityEngine.Object.FindFirstObjectByType<ForestTreeSpawner>();
@@ -1841,7 +1854,21 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             if (species == null || index < 0)
                 continue;
             ForestEcologyCell cell = ecology.Cells[index];
+            PlantedCompetitionSpeciesAccount population = PlantedCompetitionAccount.For(juvenile.speciesId);
+            population.Starting++;
             juvenile.ageYears += 1f;
+            if (ecology.RegenerationModelVersion == RegenerationModel.Competition)
+            {
+                float probability = UnderstoreyCompetition.LossProbability(CompetitionExposureAt(juvenile.position),
+                    juvenile.heightMeters, CompetitionCalibration);
+                if (probability > 0f && SimulationRandom.Roll(ecology.RngModelVersion,
+                    juvenile.juvenileId + "/vegetation", ecology.EcologicalYear, ecology.SimulationSeed) < probability)
+                {
+                    juvenile.alive = false;
+                    population.VegetationDeaths++;
+                    continue;
+                }
+            }
             // Browsing v1: same shared response as cohorts, realised as one
             // deterministic annual event per individual (height before growth).
             BrowseAssessment browse = ecology.AssessIndividualBrowse(juvenile.position, species, juvenile.heightMeters);
@@ -1857,8 +1884,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 browsed))
             {
                 juvenile.alive = false;
+                float roll = SimulationRandom.Roll(ecology.RngModelVersion, juvenile.juvenileId,
+                    ecology.EcologicalYear, ecology.SimulationSeed);
+                if (roll >= JuvenileEcologyRules.SurvivalResponse(species, cell.Light)) population.LightDeaths++;
+                else population.BrowseDeaths++;
                 continue;
             }
+            population.Remaining++;
             if (!JuvenileEcologyRules.CanPromote(species, juvenile.heightMeters, cell.Light))
                 continue;
             string treeId = "PL-" + juvenile.juvenileId;
@@ -1867,7 +1899,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 Mathf.Max(1, Mathf.RoundToInt(juvenile.ageYears)), dbh, juvenile.heightMeters,
                 species.PotentialCrownRadiusM(dbh));
             if (tree != null)
+            {
                 juvenile.promotedTreeId = treeId;
+                population.Remaining--;
+                population.Promoted++;
+            }
         }
     }
 
@@ -2342,7 +2378,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
         understoreyCells.Clear();
         for (int i = 0; i < ecology.CellCount; i++)
-            understoreyCells.Add(ScenarioOneUnderstorey.Initially(i, ecology.Cells[i], ecology.EcologicalYear));
+        {
+            var state = ScenarioOneUnderstorey.Initially(i, ecology.Cells[i], ecology.EcologicalYear);
+            if (ecology.RegenerationModelVersion == RegenerationModel.Competition)
+                UnderstoreyCompetition.Initialize(state, ecology.Cells[i], CompetitionCalibration);
+            understoreyCells.Add(state);
+        }
+        InvalidateCompetition();
     }
 
     private void AdvanceUnderstorey()

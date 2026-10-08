@@ -1,0 +1,50 @@
+[
+  {
+    "gate": "ScenarioOneCompletionVerification",
+    "initial_source_sha256": "fd56161e40995b9036e50f9ccb6239fe08332a39ec18a8c612e18013b8f4826d",
+    "failure_markers": [
+      "SCENARIO_ONE_COMPLETION_VERIFY_FAIL System.InvalidOperationException: v14-shaped save rejected"
+    ],
+    "final_status": "PASS"
+  },
+  {
+    "gate": "ScenarioOneEconomyIntegrationVerification",
+    "initial_source_sha256": "343a310d1807e4294651559a783757247af307de59825b80e11bf46ee56a6ec6",
+    "failure_markers": [
+      "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_FAIL System.InvalidOperationException: production conventions"
+    ],
+    "final_status": "PASS"
+  },
+  {
+    "gate": "BrowsingProtectionVerification",
+    "initial_source_sha256": "a23f2192c8d0e280d666f8fbf7f4744595bb21a1c568e684be7bbb642d214b73",
+    "failure_markers": [
+      "BROWSING_PROTECTION_VERIFY_FAIL System.InvalidOperationException: natural/legacy planted cohort browsing differs"
+    ],
+    "final_status": "PASS"
+  },
+  {
+    "gate": "ScenarioOnePruningVerification",
+    "initial_source_sha256": "4ee1d7ef30460b2f48d620b62b9de7ca0d13aa2cb46e10b48a91d5ac23b128c9",
+    "failure_markers": [
+      "SCENARIO_ONE_PRUNING_VERIFY_FAIL: System.InvalidOperationException: version-9 migration kept pruning history"
+    ],
+    "final_status": "PASS"
+  },
+  {
+    "gate": "ScenarioOneDeadwoodVerification",
+    "initial_source_sha256": "0ac6d4deaad88a2edc406a6f498443a50480d2a00e06be624d261be1238400d5",
+    "failure_markers": [
+      "SCENARIO_ONE_DEADWOOD_VERIFY_FAIL: System.InvalidOperationException: version-9 migration invented deadwood history"
+    ],
+    "final_status": "PASS"
+  },
+  {
+    "gate": "CCFIntegrationVerificationTemp",
+    "initial_source_sha256": "4520185a2714a4f86222fb211db29168e43f0550172574cb60415a3d33200ba7",
+    "failure_markers": [
+      "INTEGRATION_VERIFY_FAIL: System.InvalidOperationException: legacy history not reset to zero"
+    ],
+    "final_status": "PASS"
+  }
+]

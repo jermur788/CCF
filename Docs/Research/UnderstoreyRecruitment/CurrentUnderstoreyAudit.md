@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Current understorey audit — source findings
 
 Base/context/scope: StartRecord.md. Runtime gap reproduction completed: 48 matched cases and 144 controlled cell ledgers. See Evidence/*.csv and ImplementationRecord.md.

@@ -1,5 +1,7 @@
 # Handoff to pedagogy/UI owner
 
+The opening audit notes below describe main/model1. The exact model2 replacement at the end supersedes the earlier provisional candidate copy for this branch.
+
 No tutorial or UI production file changed. Current truthful teaching: inspect light, seed/regeneration and browse/protection separately; clearance removes qualifying vegetation AND young tree regeneration inside the preview; vegetation can regrow; review cost and targets before approving. Do not teach that removing displayed vegetation currently improves juvenile survival through an implemented competition term.
 
 Conditional copy for AFTER a verified candidate lands: 'Dense competing vegetation can limit young trees. Clearance may help where competition is limiting, but it costs money, can remove existing young trees, and vegetation can return. Check light, seed supply and browsing as well.' Describe bramble/bracken/competitive graminoids only if biology and visuals distinguish them. Do not label all moss, herbs, ordinary ferns or bilberry as harmful.
@@ -10,7 +12,7 @@ Learning objectives can use an observed contrast once the future candidate fixtu
 
 ## Manager continuation: exact conditional replacement
 
-Production remains model1, so retain current P1 survival/growth wording. Only after a verified model2 integration replace it with:
+Main remains model1. The owned branch now contains the approved save18/model2 state implementation and a candidate integrated trial; that does not make the candidate coefficients production-approved. Retain model1 wording on main. After Manager accepts and integrates model2, replace the current P1 statement “In this version, clearing does not change how well seedlings survive or grow.” with exactly:
 
 “Dense bramble or bracken can reduce young-tree survival. Clearance can improve future survival where these competitors are limiting, but it also removes qualifying young trees inside the preview. Check the targets and cost before approving. Vegetation can return. Clearance does not create seed, improve light, prevent browsing, or directly increase height growth.”
 

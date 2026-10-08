@@ -1,0 +1,16 @@
+[
+  {
+    "gate": "ScenarioOneEconomyIntegrationVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 58.15,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "original_source_sha256": "bf1f315ab0b37bec4a6a1ef6f0d3f5604fbef9c88a3cfce10b7c725efd24acab",
+    "fixture_adjustment": null,
+    "source_sha256": "bf1f315ab0b37bec4a6a1ef6f0d3f5604fbef9c88a3cfce10b7c725efd24acab",
+    "markers": [
+      "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS assertions=120 worldRestored=true noSaveSlotWrites=true"
+    ]
+  }
+]

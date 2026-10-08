@@ -1,0 +1,11 @@
+{
+  "gate": "Model2Verification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 38.73478287399985,
+  "source_sha256": "e5c6e7f94d258f1f04b81226709539a3092b10f7cd2eee93f49e093577b6eb8a",
+  "markers": [
+    "MODEL2_ANCHOR start=FA855239CDDA32D8 oneYear=02334804F65C0234",
+    "MODEL2VERIFICATION_PASS checks=1392"
+  ]
+}

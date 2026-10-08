@@ -227,7 +227,14 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestSaveData data;
         try
         {
-            data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(SavePath));
+            string json = File.ReadAllText(SavePath);
+            data = JsonUtility.FromJson<ForestSaveData>(json);
+            string competitionProblem = ForestSaveValidation.ValidateCompetitionJson(json, data);
+            if (competitionProblem != null)
+            {
+                SetMessage("Save refused: " + competitionProblem);
+                return;
+            }
         }
         catch (System.Exception error) when (error is System.ArgumentException || error is IOException
             || error is System.UnauthorizedAccessException)
@@ -258,6 +265,15 @@ public sealed class ForestSaveController : MonoBehaviour
 
         string problem = ForestSaveValidation.Validate(data, trees.Length,
             ecology != null ? ecology.CellCount : 0);
+        // Model-2 patches advance against the ecological cell at their center.
+        // Reject an inapplicable center before loading rather than accepting a
+        // state which would fail on the next annual step.
+        if (problem == null && data.regenerationModel == RegenerationModel.Competition)
+        {
+            if (ecology == null) problem = "model 2 requires an active ecology grid";
+            else if (data.scenarioOne.clearancePatches.Exists(p => ecology.GetCellIndex(p.center) < 0))
+                problem = "model 2 local competitor center is outside the stand grid";
+        }
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
         if (problem == null && data.trees.Count > 0 && spawner == null)
             problem = "the scene has no tree spawner to restore trees with";

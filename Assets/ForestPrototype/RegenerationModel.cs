@@ -12,7 +12,8 @@ public static class RegenerationModel
 {
     public const int Legacy = 0;
     public const int AgeBands = 1;
-    public const int Latest = AgeBands;
+    public const int Competition = 2;
+    public const int Latest = Competition;
 
     // Model 1 representation threshold for one species + origin population in
     // a cell. Abundance below it is held in a single sub-threshold accumulator
@@ -40,6 +41,8 @@ public sealed class RegenerationSpeciesAccount
     // shrink existing stock.
     public float InfillAccepted;
     public float CapacityContraction;
+    public float StartingAbundance;
+    public float VegetationLoss;
     public float LightLoss;
     public float BrowseLoss;
     // Model 0 only: abundance removed by the legacy 0.01 reset.

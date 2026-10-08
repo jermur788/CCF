@@ -14,6 +14,9 @@ public sealed class ScenarioUnderstoreyCell
     public float forbs;
     public float shrubs;
     public float fungi;
+    // Model 2: independent botanical competitor covers, not habitat proxies.
+    public float brambleCover;
+    public float brackenCover;
 }
 
 public static class ScenarioOneUnderstorey

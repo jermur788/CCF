@@ -136,6 +136,8 @@ public sealed class ScenarioOnePruningVerificationRunner : MonoBehaviour
         // Legacy migration loads as unpruned.
         ForestSaveData legacy = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(savePath));
         legacy.version = 9;
+        legacy.regenerationModel = RegenerationModel.Legacy;
+        legacy.growthModel = GrowthModel.Legacy;
         File.WriteAllText(savePath, JsonUtility.ToJson(legacy));
         saves.Load();
         yield return null;

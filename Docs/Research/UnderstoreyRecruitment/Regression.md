@@ -1,3 +1,5 @@
+> Historical model1 audit/supporting experiment. The approved-schema model2 implementation and new paid trials are documented in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The evidence below retains its original scope and is not relabelled as model2 results.
+
 # Regression on unchanged production
 
 All 19 sequential gates passed on a8596df production. Source ref/SHA256, execution mode, exit and exact markers are in Evidence/regression_results.json. Corrected contract sources from 1a36ea9 were used as disposable copies for integration/removal/clearance/menu; production was not cherry-picked or changed. Clearance/menu ran interactively in the actual Editor/Game view; other gates ran batch. One process at a time, isolated task config and fresh per-worktree Library.

@@ -41,6 +41,7 @@ public sealed class ForestEcologyController : MonoBehaviour
     private readonly BrowsingConditions browsing = new BrowsingConditions();
     private readonly Dictionary<string, GameObject> seedlingVisuals = new Dictionary<string, GameObject>();
     private bool seedlingVisualsDirty = true;
+    private ScenarioOneManager competitionOwner;
     private RegenerationAnnualAccount regenerationAccount = new RegenerationAnnualAccount();
     private readonly Dictionary<string, TreeSpeciesDefinition> regenerationSpeciesById = new Dictionary<string, TreeSpeciesDefinition>();
     private float timeLapseAccumulator;
@@ -436,6 +437,12 @@ public sealed class ForestEcologyController : MonoBehaviour
         if (UsesSiteClassGrowth)
             ApplyAdultDensityMortality(); // 4b. growth model 1: density self-thinning (batched)
         RecomputeCanopy();                // 5. light reflects the new crowns
+        if (regenerationModelVersion == RegenerationModel.Competition)
+        {
+            competitionOwner = Object.FindFirstObjectByType<ScenarioOneManager>();
+            if (competitionOwner == null) throw new System.InvalidOperationException("Model 2 requires Scenario One competitor state.");
+            competitionOwner.PrepareCompetitionForYear(ecologicalYear);
+        }
         GrowExistingRegeneration();       // 6. existing regeneration grows before new establishment
         UpdateAllMastStates(s, rng);      // 7. species-isolated mast state for this year
         ComputeSeedRain(s);               // 8. spatial seed dispersal (RecomputeSeedRain core)
@@ -1248,11 +1255,21 @@ public sealed class ForestEcologyController : MonoBehaviour
                     ? AssessCohortBrowse(cellIndex, cohortSpecies, cohort.Height).Probability : 0f;
                 cohort.LastBrowsedFraction = browsed;
                 cohort.LastBrowseAssessmentYear = ecologicalYear;
+                RegenerationSpeciesAccount account = regenerationAccount.For(cohortSpecies.SpeciesId);
+                account.StartingAbundance += cohort.Density;
+                if (regenerationModelVersion == RegenerationModel.Competition)
+                {
+                    if (competitionOwner == null) competitionOwner = Object.FindFirstObjectByType<ScenarioOneManager>();
+                    float loss = UnderstoreyCompetition.LossProbability(competitionOwner.CompetitionCellExposure(cellIndex),
+                        cohort.Height, competitionOwner.CompetitionCalibration);
+                    float start = cohort.Density;
+                    cohort.Density = (float)(start * (1d - loss));
+                    account.VegetationLoss += start - cohort.Density;
+                }
                 float growthResponse = JuvenileEcologyRules.LightResponse(cohortSpecies, cell.Light);
                 JuvenileEcologyRules.GrowHeight(ref cohort.Height, cohortSpecies, cell.Light, cell.SiteProductivity, browsed);
                 double lightSurvival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light);
                 double survival = JuvenileEcologyRules.SurvivalResponse(cohortSpecies, cell.Light, browsed);
-                RegenerationSpeciesAccount account = regenerationAccount.For(cohortSpecies.SpeciesId);
                 float before = cohort.Density;
                 cohort.Density = (float)(cohort.Density * survival);
                 // Accounting only: light loss first, then the additional browse loss.

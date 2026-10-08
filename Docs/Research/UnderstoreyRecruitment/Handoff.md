@@ -1,3 +1,5 @@
+> Historical checkpoint. The later approved-schema/model2 trial is described in [Model2Trial.md](Model2Trial.md) and [Model2Handoff.md](Model2Handoff.md). The results and status below belong to the earlier checkpoint.
+
 > Historical accepted audit handoff at ed960b7. For the manager continuation, use [ContinuationHandoff.md](ContinuationHandoff.md) and [ManagerContinuation.md](ManagerContinuation.md). The audit checkpoint has since been pushed; statements below describe the audit delivery time.
 
 # Understorey + recruitment causality handoff

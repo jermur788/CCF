@@ -35,4 +35,7 @@ public sealed class PlantingClearancePatch
     public Vector3 center;
     public float radiusMeters = 0.564f; // 1 m² circle
     public int createdYear;
+    public float brambleCover;
+    public float brackenCover;
+    public int competitionUpdatedYear;
 }

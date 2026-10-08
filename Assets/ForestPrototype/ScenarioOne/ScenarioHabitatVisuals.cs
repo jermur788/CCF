@@ -188,6 +188,8 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
         IReadOnlyList<ScenarioUnderstoreyCell> understorey, float confidence)
     {
         if (ecology?.Cells == null || understorey == null) yield break;
+        bool model2 = ecology.RegenerationModelVersion == RegenerationModel.Competition;
+        var owner = model2 ? UnityEngine.Object.FindFirstObjectByType<ScenarioOneManager>() : null;
         for (int i = 0; i < ecology.CellCount && i < understorey.Count; i++)
         {
             ForestEcologyCell cell = ecology.Cells[i]; ScenarioUnderstoreyCell state = understorey[i];
@@ -195,12 +197,24 @@ public sealed class ScenarioHabitatVisuals : MonoBehaviour
             for (int type = 0; type < ClassCount - 1; type++)
             {
                 float strength = ScenarioHabitatPalette.Strength((HabitatVisualClass)type, state, cell, confidence);
+                if (model2 && (HabitatVisualClass)type == HabitatVisualClass.BrambleType) strength = state.brambleCover;
+                if (model2 && (HabitatVisualClass)type == HabitatVisualClass.BrackenType) strength = state.brackenCover;
                 int count = strength < .025f ? 0 : Mathf.Max(1, Mathf.RoundToInt(strength * 4f));
                 for (int plant = 0; plant < count; plant++)
+                {
+                    Vector3 candidate = new Vector3(cell.Center.x + Jitter(i, type, plant, 0) * ecology.CellSizeMeters * .42f,
+                        0f, cell.Center.y + Jitter(i, type, plant, 1) * ecology.CellSizeMeters * .42f);
+                    if (model2 && ((HabitatVisualClass)type == HabitatVisualClass.BrambleType || (HabitatVisualClass)type == HabitatVisualClass.BrackenType))
+                    {
+                        Vector2 local = owner.CompetitionCoversAt(candidate);
+                        float localCover = (HabitatVisualClass)type == HabitatVisualClass.BrambleType ? local.x : local.y;
+                        if (localCover < .025f) continue;
+                    }
                     yield return new HabitatVegetationSite { CellIndex = i, Plant = plant, Kind = (HabitatVisualClass)type,
                         Position = new Vector3(cell.Center.x + Jitter(i, type, plant, 0) * ecology.CellSizeMeters * .42f,
                             0f, cell.Center.y + Jitter(i, type, plant, 1) * ecology.CellSizeMeters * .42f),
                         Angle = Jitter(i, type, plant, 2) * Mathf.PI, Size = .7f + strength * .6f };
+                }
             }
         }
         foreach (HabitatVegetationSite rush in RushSites(ecology)) yield return rush;

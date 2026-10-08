@@ -42,7 +42,8 @@ public sealed partial class ScenarioOneManager
             if (!footprint.IsCircle && i < understoreyCells.Count)
             {
                 ScenarioUnderstoreyCell u = understoreyCells[i];
-                if (u != null && u.ferns + u.grasses + u.forbs + u.shrubs > 0f) result.Understorey.Add(u);
+                if (u != null && u.ferns + u.grasses + u.forbs + u.shrubs > 0f
+                    || (u != null && ecology.RegenerationModelVersion == RegenerationModel.Competition && CompetitionCellExposure(i) > 0f)) result.Understorey.Add(u);
             }
         }
         foreach (PlantedJuvenile j in plantedJuveniles)
@@ -73,6 +74,9 @@ public sealed partial class ScenarioOneManager
             u.ferns = u.grasses = u.forbs = u.shrubs = 0f;
             u.lastUpdatedYear = year; // recolonisation resumes at the next annual step
         }
+        if (ecology.RegenerationModelVersion == RegenerationModel.Competition && !targets.Footprint.IsCircle)
+            ResetCellCompetition(targets.Footprint.CellIndex, year);
+        InvalidateCompetition();
         ecology.RefreshRegenerationDisplays();
     }
 

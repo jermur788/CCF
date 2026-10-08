@@ -480,8 +480,8 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
     private IEnumerator SaveLoadAndPolicy()
     {
         // New game default.
-        Pass("POLICY_NEW_GAME_MODEL1", ScenarioOneManager.NewGameRegenerationModel == RegenerationModel.AgeBands
-            && original.regenerationModel == RegenerationModel.AgeBands && original.version == ForestSaveData.CurrentVersion,
+        Pass("POLICY_NEW_GAME_MODEL2", ScenarioOneManager.NewGameRegenerationModel == RegenerationModel.Competition
+            && original.regenerationModel == RegenerationModel.Competition && original.version == ForestSaveData.CurrentVersion,
             $"newGame={ScenarioOneManager.NewGameRegenerationModel} capturedModel={original.regenerationModel} version={original.version}");
 
         // SAVE_LOAD_PRESERVES_ALL_BANDS: multi-band cells through the real save path.
@@ -504,7 +504,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         yield return null;
         string after = RegenerationState();
         int sitkaRecords = data.cells.Single(c => c.index == 5).cohorts.Count(c => c.speciesId == "sitka-spruce");
-        Pass("SAVE_LOAD_PRESERVES_ALL_BANDS", before == after && validation == null && sitkaRecords == 4 && e.RegenerationModelVersion == 1,
+        Pass("SAVE_LOAD_PRESERVES_ALL_BANDS", before == after && validation == null && sitkaRecords == 4 && e.RegenerationModelVersion == original.regenerationModel,
             $"sitkaRecordsInCell5={sitkaRecords} validation={validation ?? "ok"} identical={before == after}");
 
         // Validation rejects a duplicate band key and a fifth band; model 0 keeps historical leniency.
@@ -530,7 +530,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
         Pass("SAVE_LOAD_DETERMINISTIC_AROUND_THRESHOLD", uninterrupted == resumed, $"uninterrupted={uninterrupted} resumed={resumed}");
 
         // Missing field -> model 0; pre-v16 saves -> model 0 even if a field is present.
-        string stripped = JsonUtility.ToJson(Clone(original)).Replace("\"regenerationModel\":1,", "");
+        string stripped = JsonUtility.ToJson(Clone(original)).Replace("\"regenerationModel\":2,", "");
         Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(stripped), false), "stripped load");
         yield return null;
         bool missingIsZero = e.RegenerationModelVersion == RegenerationModel.Legacy;
@@ -556,7 +556,7 @@ public sealed class RegenerationModelVerificationRunner : MonoBehaviour
             previewZero &= e.RegenerationModelVersion == RegenerationModel.Legacy;
             manager.EndReferencePreview();
             yield return null; yield return null;
-            restored &= e.RegenerationModelVersion == RegenerationModel.AgeBands;
+            restored &= e.RegenerationModelVersion == original.regenerationModel;
         }
         Pass("POLICY_REFERENCE_V1_MODEL0", previewZero && restored, $"previewModel0={previewZero} playerModelRestored={restored}");
     }

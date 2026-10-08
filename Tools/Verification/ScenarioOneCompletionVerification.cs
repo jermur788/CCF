@@ -140,8 +140,8 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 17 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
-            "production conventions (v17, EUR 2,500 minimum, 2,400 owner min/yr)");
+        Check(ForestSaveData.CurrentVersion == 18 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+            "production conventions (v18, EUR 2,500 minimum, 2,400 owner min/yr)");
         Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
         // ---- P1 INSPECT ----
@@ -401,6 +401,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         string v16LayoutHash = ScenarioReferenceArchive.LegacyV16WorldHash(saves.CaptureData()) ?? "n/a";
         Debug.Log($"SCENARIO_ONE_COMPLETION_OBJECTIVES year={minimumYear} outcome={outcomeAtMinimum} {objectives}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_CASH minimum={minCash} year30={manager.CashCents}");
+        Debug.Log("SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH " + (ScenarioReferenceArchive.LegacyV17WorldHash(saves.CaptureData()) ?? "n/a"));
         Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion} regenerationModel={ecology.RegenerationModelVersion} growthModel={ecology.GrowthModelVersion} legacyV15LayoutHash={legacyLayoutHash} v16LayoutHash={v16LayoutHash}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,
@@ -412,6 +413,8 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         // ---- P10 COMPATIBILITY: a v14-shaped save restores with Contractor defaults and no shelters ----
         ForestSaveData legacy = JsonUtility.FromJson<ForestSaveData>(midJson);
         legacy.version = 14;
+        legacy.regenerationModel = RegenerationModel.Legacy;
+        legacy.growthModel = GrowthModel.Legacy;
         Check(saves.LoadData(legacy, false), "v14-shaped save rejected");
         yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 0 && ecology.Browsing.ProtectedAreas.Count == 0 && manager.Shelters.Count == 0, "v14 restore kept protection");

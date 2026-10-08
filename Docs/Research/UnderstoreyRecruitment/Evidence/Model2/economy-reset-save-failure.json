@@ -1,0 +1,14 @@
+[
+  {
+    "gate": "ScenarioOneEconomyIntegrationVerification",
+    "status": "FAIL",
+    "exit_code": 1,
+    "seconds": 58.55,
+    "mode": "batch",
+    "source_ref": "task-working-tree",
+    "source_sha256": "bf1f315ab0b37bec4a6a1ef6f0d3f5604fbef9c88a3cfce10b7c725efd24acab",
+    "markers": [
+      "SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_FAIL System.InvalidOperationException: same-plan repeated restore invalidates object-bound quotes"
+    ]
+  }
+]

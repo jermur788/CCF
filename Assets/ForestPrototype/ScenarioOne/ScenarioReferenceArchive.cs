@@ -180,20 +180,34 @@ public sealed class ScenarioReferenceArchive
         Canonicalize(copy);
         copy.version = 15;
         string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
-        return Hash(json);
+        return Hash(WithoutCompetitionFields(json));
     }
 
     // As above for growth-model-0 worlds in the exact v16 layout (version 16,
-    // no growthModel field), so v16 anchors (any regeneration model) stay
+    // no growthModel field), so historical v16 anchors (models 0/1) stay
     // comparable after the v17 bump. Returns null for growth-model-1 worlds.
     public static string LegacyV16WorldHash(ForestSaveData data)
     {
-        if (data == null || data.growthModel != GrowthModel.Legacy)
+        if (data == null || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 16;
         string json = JsonUtility.ToJson(copy).Replace("\"growthModel\":0,", "");
-        return Hash(json);
+        return Hash(WithoutCompetitionFields(json));
     }
+    private static string WithoutCompetitionFields(string json)
+        => System.Text.RegularExpressions.Regex.Replace(json,
+            @",""(?:brambleCover|brackenCover|competitionUpdatedYear)"":-?[0-9.Ee+]+", "");
+
+    // Exact v17 compatibility only; never substitutes for model-2 world hashes.
+    public static string LegacyV17WorldHash(ForestSaveData data)
+    {
+        if (data == null || data.regenerationModel >= RegenerationModel.Competition) return null;
+        var copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+        Canonicalize(copy);
+        copy.version = 17;
+        return Hash(WithoutCompetitionFields(JsonUtility.ToJson(copy)));
+    }
+
 }
