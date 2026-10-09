@@ -6,67 +6,46 @@ Define current scope. Verified implementation belongs in Overview; accepted deci
 
 ## Milestone
 
-**Multi-Agent Development Setup & Shared-Context Refresh**
+**Scenario One Completion & External-Test Readiness**
 
-Create one reliable context and safe workflow for ChatGPT, OpenAI/OpenCode, Claude Project chat, Claude Desktop/MCP and Claude Code/cloud without divergent truth or concurrent Unity writes. Finish this enabling milestone before routine parallel implementation.
+Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`; this does not mean S1-A or external-test readiness is implemented.
 
 ## In scope
 
-1. Canonical context in `Docs/Project/`: Game Brief, Decision Log, Current Milestone, Unity Project Overview, AgentWorkflow and supporting Research Index.
-2. Canonical `instructions/`: shared core, ChatGPT role and Claude role.
-3. Live coordination in `Docs/Project/coordination/active-tasks.md`, outside context snapshots.
-4. Root `AGENTS.md` and `CLAUDE.md` entry points.
-5. Deterministic `Tools/ProjectContext/generate_project_instructions.py`: role header + marked workflow authority + shared core; full context SHA/source paths; generated composites outside canonical paths in ignored `Build/ProjectContext/`.
-6. Port valid root `AI_Instructions` rules, then retire it.
-7. Keep tracked `.vscode/settings.json` unchanged; local differences use user settings/external `.code-workspace`.
-8. Drive as a read-only, one-way Git mirror: complete set at one SHA, source/context/timestamp stamps, refreshed project/chat copies.
-9. Establish/verify separate integration/main, OpenAI/OpenCode and Claude Desktop writable worktrees.
-10. One `Library` per Unity worktree.
-11. Minimum smoke gate independently in worker worktrees, including harness cleanup.
-12. Record verified local paths, branches, HEADs and commands in Overview.
-13. Commit canonical sources on a clean setup task branch, run the real generator at that full context SHA, then review actual composites/manifest before integrating to main.
+- S1-A: teaching readiness for the intended first management cycle.
+- S1-B: standalone-build readiness for the intended external test slice.
+- S1-C: review/history work needed to understand repeated intervention.
+- S1-D: second-intervention work needed for the full Scenario One loop.
+- Bounded task specifications, verification evidence and external-test feedback for each slice. Detailed mechanics remain subject to their own accepted packets.
 
-The repository migration/generator slice is integrated in `main` (verified 2026-10-04). Permanent Drive mirrors/composites and the ChatGPT Game Dev project instructions/attachments were refreshed and read back after Storm integration at context `58d6b0b483198abcf0208713d9a759f89d90e318`. This consistency cleanup supersedes that snapshot and republishes the corrected context. Independent Unity smoke runs in the worker worktrees remain open; these publication steps do not complete them.
+## Staged external testing
 
-## Existing technical stack (frozen during setup; now integrated)
+External testing may proceed in bounded stages: an initial first-cycle pilot after teaching and standalone-build readiness work, followed by full Scenario One testing after the review/history and second-intervention work is implemented.
 
-Historical snapshot as frozen at setup start:
+**Stage A — first-cycle pilot:** after P3 + S1-A + S1-B, test one coherent first management cycle through post-intervention observation. Full Scenario One completion is not a prerequisite for this bounded pilot.
 
-```text
-0fc92ca main
-  └─ 3b71e4b save-hardening-and-growth-cache
-      └─ 8aede39 rng-versioning
-          └─ 457c897 batch-recompute
-              └─ a31ec62 edge-bias-diagnostic
-```
-
-Commit SHAs, not mutable branch names, define the anchors. This is pre-existing work, not new setup scope.
-
-Status (2026-10-02): resolved by D-039. The stack is in `main` via merge `8ae7a25`. The combined ecology package was integrated on top of it and verified at gameplay head `b1e6c51`: save v14, calibrated lifecycle `BFC55473C1506067`, Reference Future v1 Year 100 `7AD177B3CC2F73C7`. See the Unity Project Overview. The freeze no longer applies. Future save/load, RNG, ecology and frozen-reference changes still require independent review and regression gates before integration.
+**Stage B — full-loop testing:** after S1-C + S1-D, test the full Scenario One repeated-intervention loop.
 
 ## Completion checks
 
-- All agreed context, instruction-source, research-index and entry-point paths are committed.
-- Live coordination exists and is excluded from context-commit semantics.
-- Committed generator refuses dirty/untracked sources, uses full context SHAs, writes hashes/mirrors and reproduces both composites deterministically from committed sources.
-- Valid legacy instructions are ported before retirement.
-- Shared VS Code settings unchanged.
-- Permanent Drive mirrors/composites match the refreshed context commit and stamps; ChatGPT Game Dev instructions and stamped canonical attachments have been refreshed, with AgentWorkflow directly available.
-- Stale review copies archived.
-- Distinct OpenAI/Claude worktrees and separate Libraries; worker smoke gates pass.
-- No temporary verification script or generated `.meta` remains in Assets.
-- Ownership and actual integration worktree are known; the formerly frozen stack is integrated and verified (D-039).
-- Claude/assigned reviewer checks real clean-commit generator output with no unresolved MUST-fix workflow issue.
+- No known player-facing blocker prevents an external tester from completing and understanding the intended test slice. The first-cycle pilot may precede full Scenario One completion; full-loop external testing follows the later review/history and second-intervention work.
+- Teaching and standalone-build readiness are verified for Stage A before that pilot is called ready.
+- Review/history and second-intervention work are implemented and verified before Stage B is called ready.
+- Each result identifies the committed implementation and the tested slice; research proposals and future infrastructure are not presented as shipped features.
+
+## Context and setup follow-ups
+
+The repository migration/generator is integrated. Permanent Drive context and Game Dev project instructions/attachments were refreshed after Storm integration and the subsequent canonical consistency cleanup. This post-P3 refresh regenerates the current canonical set; publication/read-back status belongs in its handoff. Independent Unity smoke checks in worker worktrees remain open and are not completed by documentation publication.
 
 ## Live coordination
 
-`Docs/Project/coordination/active-tasks.md` is maintained by Overall Manager/assigned integrator on integration/main coordination branch. Workers read it at task start; packets carry locks for workers without live access. Lock-only changes do not regenerate context mirrors/attachments.
+`Docs/Project/coordination/active-tasks.md` remains live coordination outside the context snapshot. Use exact base/context commits and one writer per worktree.
 
 ## Explicit exclusions
 
-No simultaneous writes to one Unity worktree, broad gameplay refactor, frozen-stack changes, Reference Future changes, Git LFS/history rewrite, Drive-as-canonical editing, or bundled browsing/understorey implementation.
+No Scenario Two, multi-scenario infrastructure, sandbox or Stage 2 implementation in this milestone refresh. No new save/model/economy parameters or research-proposed exact curriculum/mechanics are accepted by this documentation change.
 
-## Scenario 1 status (2026-10-04)
+## Historical Scenario 1 functional baseline (2026-10-04)
 
 **FUNCTIONALLY COMPLETE; final presentation acceptance PASS (2026-10-04).** The functional and presentation baseline is integrated. Simulation follow-ups remain open (see below); this is not a permanent closure of Scenario 1 simulation work.
 

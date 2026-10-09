@@ -74,6 +74,18 @@ If Git/Drive differ, Git wins; regenerate. Attached/project copies do not automa
 
 Use only currently available tools. Chats without repo/Unity tools may plan/research/review, not claim local implementation. Claude Desktop MCP can perform authorised local work; Code/cloud can implement but claim Unity verification only after actual runs. OpenAI/OpenCode can use available code/Unity/Blender/asset/integration tools.
 
+## Cost-aware task routing
+
+Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
+
+- **FREE HERE:** bounded planning, clarification, interpretation and coordination that the current chat can complete without a paid worker handoff.
+- **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
+- **SOL/CODEX:** repository/documentation work, implementation or local verification suited to available Codex tools.
+- **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
+- **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
+
+Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
+
 ## Multi-agent safety
 
 1. One writable local worktree per active local agent.

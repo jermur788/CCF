@@ -131,7 +131,7 @@ Schedule: `Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceSche
 Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6daf` onto context commit `cd239d7`, with no conflicts. The resulting gameplay integration head is `b1e6c51`. Its code tree is identical to `6dc6daf`; only main's newer canonical-context docs differ.
 
 - **Shared juvenile ecology:** `JuvenileEcologyRules` is the single biological path for natural cohorts and exact planted juveniles. Legacy planted cohorts remain compatible, exact planted identity/position/provenance is kept, and promotion is deterministic.
-- **Mortality foundation:** `ForestTree.ApplyMortality(cause, year)` sets `biologicallyDead` with cause and year. It is idempotent, excludes the tree from living systems, persists in save v14 and restores without mortality/harvest events. Ecological death is separate from `Fell()` and yields no timber or cash. There is no automatic adult mortality, no storms and no assumed deadwood disposition.
+- **Mortality foundation:** `ForestTree.ApplyMortality(cause, year)` sets `biologicallyDead` with cause and year. It is idempotent, excludes the tree from living systems, persists in save v14 and restores without mortality/harvest events. Ecological death is separate from `Fell()` and yields no timber or cash. At this historical v14 integration there was no automatic adult mortality or storm model, and no assumed deadwood disposition. Later D-048 adds adult density mortality and D-050 adds dormant StormModel 1; new games remain storm model 0.
 - **C8 growth/competition (Sitka):** Hegyi cutoff 8 m (`ForestEcologyController.HegyiCutoffMeters`; global), Sitka Ci50 5, Sitka potential DBH growth 1.2 cm/yr. The competition equation is unchanged. Beech/Oak keep Ci50 3 and 0.4 cm/yr.
 - **k10a10 light:** canopy shade reach = 1.0 × crown radius + half a 5 m cell (2.5 m) (`CanopyShadeReachPerCrownRadius`, shared by the marking forecast). Opacity is an implicit 1.0 and the light equation is unchanged.
 - **Calibrated canonical lifecycle (RNG model 0, 80 years):** `BFC55473C1506067`. The calibration measurement hash is `D48A19525E69DD8A`.
@@ -228,7 +228,7 @@ The user's interactive Scenario 1 smoke (2026-10-04) passed, including the start
 
 ## Art and storage
 
-Baseline committed presentation includes pruning families, refined Sitka benchmark, brash, logs/stumps/floor detail, bramble/bracken/fern/grass, other habitat, Oak/Beech juveniles, bent/cavity cosmetic variants, grass/rush and walkable LOD specimens. Ring-barked, windthrow root and some defect assets exist without causal spawning because matching state is absent.
+Baseline committed presentation includes pruning families, refined Sitka benchmark, brash, logs/stumps/floor detail, bramble/bracken/fern/grass, other habitat, Oak/Beech juveniles, bent/cavity cosmetic variants, grass/rush and walkable LOD specimens. Ring-barked and some defect assets remain without matching causal spawning. D-050 now supplies causal windthrow state and fallen/root presentation under dormant StormModel 1; storms remain off by default. Crown/root visual quality and activation acceptance remain follow-ups.
 
 Presentation must not invent ecology. Large binaries are ordinary Git objects; no new LFS/storage dependency or history rewrite is authorised.
 
@@ -313,3 +313,9 @@ Manager-approved source `857150b2f20afa52d7b36be88a835f07a4ee5a51` is integrated
 - Compatibility: v18 start FA855239CDDA32D8; altered-site fixture year1 02334804F65C0234; completion 702766DECE591E21. The original altered-site fixture leaves SiteProductivity0; independent clean year1 is 8333BAA4126E8A09. Legacy Model1 v17 completion D7C4DDD36B53FCCE and Reference 7AD177B3CC2F73C7 / 9CDF21A541C5968D remain unchanged. Full modern hashes include schema19.
 
 Current Editor-only performance is sufficient for dormant integration, not default activation or a Player-FPS claim. Before activation require standalone Player, developed/century and combined deadwood/windthrow profiling, plus acceptable crown/root behaviour. Bespoke art, optimisation, final activation decision, full lessons, surrounding directional exposure and snapped/snags remain separate scope. Future material Model1 recalibration needs a new storm version or approved persisted-profile architecture.
+
+## Integrated P3 Work Plan overview (2026-10-09)
+
+P3 is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`, directly after P2 at `869ee92a983a1af5fc470392eccc7557fbe45def`. The Work Plan includes MONEY and WHAT YOU ARE LEAVING: prospective cash/headroom, standing-tree/basal-area/volume before and after, retained crop/seed trees, spatial removal descriptions, P2 competition reuse, Model2 clearance explanations and deadwood estimates. Existing salvage controls, authoritative quotes and economy values are retained. Save19 and the rng1/regen2/growth1/storm0 new-game stack are unchanged.
+
+Source and focused verification tooling are in `Docs/Research/ScenarioOneCompletion/` and `Tools/Verification/ScenarioOneCompletion/P3/`. The historical Help/Escape failure is Manager-classified as a non-reproducible historical transient, not an established harness fault or production bug. S1-A, external-test readiness and future multi-scenario infrastructure are not claimed as implemented. Uncommitted local material changes are not part of this committed project state.

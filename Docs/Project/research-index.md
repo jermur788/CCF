@@ -12,7 +12,7 @@ The Revision 5 source reports these PDFs as Game Dev project/source uploads. Its
 
 Primary implementation-oriented source: `Irish_CCF_Browsing_Protection_v1_Report.pdf`.
 
-The Overall Manager's draft assessment is that research supports preparing a specification; this migration does not independently revalidate that assessment. Decision Log remains **Current direction**. No authoritative causal browsing system is integrated at the main baseline. Calibration/implementation need an accepted task.
+Browsing & Protection v1 is integrated in the Scenario One baseline (D-043): default browsing 0.2, shared natural/planted juvenile response, shelters/protection and save/load verification. The source report supports the research history; persistent browse/form history, concealment and richer protection mechanics are not thereby implemented.
 
 Topics: background browse pressure, shared natural/planted response, species/stage vulnerability, leader damage/recruitment delay, fencing/individual protection, bramble concealment, persistent browsing/form history.
 
@@ -42,6 +42,20 @@ Use the dedicated browsing/understorey reports for those systems where they supe
 
 - **Lekwadi et al. (2012)**, Irish Sitka site classification and top-height growth, via the CCF Primary Literature Synthesis v1 [A]. Only the age-30 Class III top height (20.4 m) is used as a published anchor; the rounded Table 3 coefficients do not reproduce the published anchors and are not used directly.
 - **Comeau, White, Kerr & Hale (2010)**, *Maximum density–size relationships for Sitka spruce and coastal Douglas-fir in Britain and Canada*, Forestry 83(5): 461–468 [B]. GB Sitka slope −2.063, maximum SDI 1,868, Dq 25 cm reference. British transfer evidence: the paper reports regional differences and recommends species/region-specific relationships; it is not Irish validation.
+
+## Current multi-species and forestry evidence
+
+The following supporting reports are available locally under `~/Documents/CCF Game/` unless noted. They are not committed research binaries and do not automatically adopt coefficients or mechanics.
+
+- `CCF Species Evidence Pack v1 — Multi-Species Continuous-Cover Forestry Research Report.pdf`: current species-specific evidence for assessing multi-species forestry and the limits of transferring Sitka relationships. Quantitative replacement design remains separate accepted work.
+- `CCF Academic Paper Consolidation.pdf` and `CCF Academic Paper Consolidation — Comprehensive Evidence Edition.pdf`: broader academic consolidation supporting source review and evidence gaps; the comprehensive edition extends the earlier consolidation.
+- `Irish Continuous-Cover Forestry Transformation Evidence_ ContinuFOR, TranSSFor, LISS and Related Iri.pdf`: Irish transformation evidence, indexed under its actual local filename.
+- `European_Pro_Silva_CCF_Practice_Synthesis.md`: practitioner/website synthesis, distinguished from empirical ecological measurements and Irish numerical calibration.
+- `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf`: underlying source research report, identified by the Manager. Distinguish it from the later specialist-chat handoff “Forestry Economics & Irish Timber Markets — Research Synthesis”; that synthesis is not the source report. The source PDF's local/Drive location has not been verified in this refresh. No prices, profitability targets or economic mechanics are adopted here.
+
+**GROWFOR scope:** five total modelled species — Sitka spruce, Douglas fir, lodgepole pine, Norway spruce and Scots pine. This evidence description does **not** add lodgepole pine to the game roster or claim these five species are implemented in CCF.
+
+D-051–D-054 accept forestry-first direction, independent scenario progression, the primary audience and fruit/nut sequencing. Research-proposed exact curricula and mechanics remain proposals: no six-scenario/two-branch sequence, marteloscope, Bio Tree, forest diary or other suggested feature is canonised by this index.
 
 ## General reference
 

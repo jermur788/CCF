@@ -16,7 +16,7 @@ The central loop is:
 
 Forestry is the first and most developed land-management system. Continuous-cover forestry is central to Scenario One: the player should be able to harvest timber while maintaining woodland cover, encourage or plant regeneration, manage competition and browsing, retain habitat structures, and gradually transform an even-aged plantation into a more structurally diverse forest.
 
-The long-term game may expand beyond forestry into restoration, biodiversity, water, food production and other forms of land use, but the project should first make one Irish forestry scenario understandable and enjoyable.
+The long-term game may expand beyond forestry into restoration, biodiversity, water, food production and other forms of land use. Scenario One is the forestry reference foundation, not the endpoint: Stage 1 should develop into a strong structured multi-scenario continuous-cover forestry simulator before broad Stage 2 expansion (D-051).
 
 ## Intended player experience
 
@@ -33,6 +33,10 @@ Consequences should be:
 
 The player should be able to experience the same place 10, 20, 50 or 100 years later and recognise both intentional management and unintended consequences.
 
+## Primary forestry audience
+
+The primary reference audience is smaller private woodland and farm-forest owners/managers, rather than industrial estates (D-053). Management choices, explanations and economic/logistical framing should serve that audience without assuming a single correct prescription.
+
 ## Creative reference
 
 Valheim remains a reference for exploration, gathering, building, progression and cooperative physical presence. It is an inspiration rather than a design specification. CCF should not inherit Valheim mechanics when they conflict with the land-management simulation, ecological credibility or the staged Scenario One direction.
@@ -47,7 +51,7 @@ Ireland is the authored ecological and cultural context for this scenario, not a
 
 The project should keep a practical separation between core simulation/game systems, scenario/regional ecological data, and presentation/content packs. That separation should serve actual maintainability and future regional scenarios without creating speculative infrastructure.
 
-Scenario One should be completed to a strong standard before broadening to many biomes or scenarios.
+Scenario One should establish a strong forestry foundation before broader scenario development. Forestry scenarios represent independent forests; the player carries knowledge and experience between them, rather than transferring the same forest or assuming shared inventories/economies. A custom sandbox comes later (D-052). Exact scenario count, curriculum, branching structure and progression mechanics require their own accepted scope.
 
 ## Staged gameplay direction
 
@@ -59,9 +63,11 @@ The player inspects the forest, makes spatial management decisions, builds an an
 
 Work may be assigned to a contractor or the landowner. Landowner execution can still be simulated through menus; manual physical execution is not required in Stage 1. Stage 1 is the current forestry-focused reference mode for Scenario One.
 
+Stage 1 develops beyond Scenario One through structured independent forestry scenarios before broad Stage 2 expansion. This is accepted direction, not a claim that multi-scenario infrastructure is implemented.
+
 ### Stage 2 — Expanded Land-Management Simulation
 
-Broaden the simulation before introducing manual execution. The direction includes:
+After forestry maturity, fruit and nut trees are the first intended Stage 2 slice (D-054). Broaden the simulation before introducing manual execution. The wider direction includes:
 
 - fruit and nut trees;
 - ponds and water storage;
