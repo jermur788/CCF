@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run task Unity operations with only the Manager-approved demo HDR held outside Assets."""
-import hashlib,json,shutil,signal,subprocess,sys
+import hashlib,json,re,shutil,signal,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
 GUID='83d5c6c30d68b7e4498cfef8c6e2a35a'
@@ -14,6 +14,7 @@ def main():
  # Check committed CCF content, not the licensed pack's own demonstration assets.
  matches=subprocess.run(['git','grep','-l',GUID,'HEAD','--','Assets/Scenes','Assets/ForestPrototype','ProjectSettings'],cwd=ROOT,capture_output=True,text=True)
  if matches.returncode not in [0,1] or matches.stdout.strip():raise SystemExit('STOP: tracked CCF reference or failed dependency search: '+matches.stdout+matches.stderr)
+ if re.search(r'^guid: (.+)$',(ROOT/Path(str(HDR)+'.meta')).read_text(),re.M).group(1)!=GUID:raise SystemExit('STOP: HDR meta GUID changed')
  records=[]
  for rel in [HDR,Path(str(HDR)+'.meta')]:
   source=ROOT/rel;dest=quarantine/rel.name

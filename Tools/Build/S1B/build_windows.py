@@ -23,12 +23,28 @@ def main():
  if smoke.exists():raise SystemExit('STOP: pre-existing smoke source')
  if args.smoke:smoke.write_bytes((ROOT/'Tools/Verification/S1B/StandalonePlayerSmoke.cs').read_bytes())
  target.write_bytes((ROOT/'Tools/Build/S1B/WindowsCandidateBuilder.cs').read_bytes());log=out.parent/(build_id+'-build.log')
+ # These files are rewritten by Unity/URP build callbacks, not S1-B source edits.
+ preserved=['.vscode/settings.json','Assets/Settings/DefaultVolumeProfile.asset','Assets/Settings/PC_RPAsset.asset','Assets/Settings/UniversalRenderPipelineGlobalSettings.asset','ProjectSettings/GraphicsSettings.asset','ProjectSettings/ProjectSettings.asset']
+ preserved += [str(f.relative_to(ROOT)) for f in (ROOT/'Assets/ForestPrototype/Art/SectionFive').rglob('*.mat')]
+ original={rel:(ROOT/rel).read_bytes() for rel in preserved}
+
  try:
-  code=subprocess.run([args.unity,'-batchmode','-nographics','-projectPath',str(ROOT),'-job-worker-count','2','-executeMethod','WindowsCandidateBuilder.Build','-logFile',str(log)],cwd=ROOT,env=env,timeout=3600).returncode
+  code=subprocess.run([args.unity,'-batchmode','-nographics','-projectPath',str(ROOT),'-job-worker-count','2','-executeMethod','WindowsCandidateBuilder.Build','-logFile',str(log)],cwd=ROOT,env=env,timeout=5400).returncode
  finally:
   for f in [target,Path(str(target)+'.meta'),stamp,Path(str(stamp)+'.meta'),smoke,Path(str(smoke)+'.meta')]:f.unlink(missing_ok=True)
+  changed=[rel for rel,data in original.items() if (ROOT/rel).read_bytes()!=data]
+  if changed:
+   (out.parent/(build_id+'-source-normalisation.diff')).write_bytes(subprocess.check_output(['git','diff','--',*changed],cwd=ROOT))
+   for rel in changed:(ROOT/rel).write_bytes(original[rel])
+  if git('status','--porcelain'):raise SystemExit('STOP: unexpected source drift after build; inspect Git diff')
+
  if code:raise SystemExit('Build failed; inspect '+str(log))
  if 'S1B_WINDOWS_BUILD_PASS' not in log.read_text(errors='replace'):raise SystemExit('Missing build success marker')
+ # Retain Unity's diagnostic backups beside the candidate, never inside it.
+ debug=out.parent/(build_id+'-developer-backups')
+ for directory in list(out.iterdir()):
+  if directory.is_dir() and any(word in directory.name.lower() for word in ['donotship','dontship','backupthisfolder']):
+   debug.mkdir(exist_ok=True);shutil.move(str(directory),str(debug/directory.name))
  (out/'build-identity.json').write_text(json.dumps(identity,indent=2)+'\n')
  (out/'README.txt').write_text((ROOT/'Docs/Verification/S1B/TesterREADME.md').read_text().replace('@BUILD_ID@',build_id).replace('@GIT_SHA@',sha))
  if args.smoke:
@@ -46,7 +62,7 @@ def main():
  shutil.copy2(ROOT/'Docs/Verification/S1B/RightsAudit.md',notices/'RightsAudit.md')
  (notices/'AssetCredits.txt').write_text('Ultimate Nature – Starter by Innerverse Interactive: locally licensed Unity Asset Store pack, embedded only. Project procedural/generated artwork: owner-confirmed private compiled-build rights. See RightsAudit.md and supplied notices.\n')
  files={str(f.relative_to(out)):dict(bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(out.rglob('*')) if f.is_file()}
- forbidden=[p for p in files if p.endswith(('.cs','.unitypackage','.ulf','.lic','.save')) or 'forest-save' in p.lower() or 'verification' in p.lower()]
+ forbidden=[p for p in files if p.endswith(('.cs','.unitypackage','.ulf','.lic','.save')) or 'forest-save' in p.lower() or 'verification' in p.lower() or any(word in p.lower() for word in ['donotship','dontship','backupthisfolder','performancetestrun']) or p.endswith('.pdb')]
  if forbidden:raise SystemExit('STOP: forbidden tester payload: '+str(forbidden))
  assert (out/'CCF.exe').is_file() and (out/'UnityPlayer.dll').is_file() and (out/'CCF_Data').is_dir()
  (out/'package-manifest.json').write_text(json.dumps(dict(identity=identity,files=files,looseSourceOrSecretsOrSavesFound=False),indent=2)+'\n')
