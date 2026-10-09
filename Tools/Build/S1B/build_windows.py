@@ -24,7 +24,7 @@ def main():
  if args.smoke:smoke.write_bytes((ROOT/'Tools/Verification/S1B/StandalonePlayerSmoke.cs').read_bytes())
  target.write_bytes((ROOT/'Tools/Build/S1B/WindowsCandidateBuilder.cs').read_bytes());log=out.parent/(build_id+'-build.log')
  # These files are rewritten by Unity/URP build callbacks, not S1-B source edits.
- preserved=['.vscode/settings.json','Assets/Settings/DefaultVolumeProfile.asset','Assets/Settings/PC_RPAsset.asset','Assets/Settings/UniversalRenderPipelineGlobalSettings.asset','ProjectSettings/GraphicsSettings.asset','ProjectSettings/ProjectSettings.asset']
+ preserved=['.vscode/settings.json','Assets/Settings/DefaultVolumeProfile.asset','Assets/Settings/PC_RPAsset.asset','Assets/Settings/UniversalRenderPipelineGlobalSettings.asset','ProjectSettings/GraphicsSettings.asset','ProjectSettings/ProjectSettings.asset','ProjectSettings/UnityConnectSettings.asset']
  preserved += [str(f.relative_to(ROOT)) for f in (ROOT/'Assets/ForestPrototype/Art/SectionFive').rglob('*.mat')]
  original={rel:(ROOT/rel).read_bytes() for rel in preserved}
 
