@@ -1,0 +1,254 @@
+{
+  "Build/P2/batch-1.log": {
+    "bytes": 207743,
+    "sha256": "250290b1b96c95df58cc2b1baa2f88b2d179632fdd6a6573dfa2e12629fd951e"
+  },
+  "Build/P2/batch-2.log": {
+    "bytes": 54286,
+    "sha256": "b10d5b371a9dedea24256fb55bfc469ca3ecf3ea47b2c81f4a385d1dc6cd2b8d"
+  },
+  "Build/P2/evidence/p2-inspection-1280.jpg": {
+    "bytes": 252192,
+    "sha256": "72f5f81f24fc9f5394d2ed047a917694730bf174a987812261efd5ed090f50f7"
+  },
+  "Build/P2/evidence/p2-inspection-1600.jpg": {
+    "bytes": 357857,
+    "sha256": "46797ac000d7e3072bebf80bd964bf241f258b2f39c83f8114fd0be6913c162b"
+  },
+  "Build/P2/evidence/p2-inspection-1920.jpg": {
+    "bytes": 476477,
+    "sha256": "817ec14a9c35e2844e92e929fe6966cd6129e5ae233e7a36b3be7bece7858598"
+  },
+  "Build/P2/interactive.log": {
+    "bytes": 142586,
+    "sha256": "84bbc49ff2eedd285287483d56d26502678d691106a896b0b6b089b9e97b977a"
+  },
+  "Build/P3/batch-1.log": {
+    "bytes": 220739,
+    "sha256": "eb58e6691a345d48f12f116ae4cd5affccef950937b0223614ec48c80c8c178d"
+  },
+  "Build/P3/batch-2.log": {
+    "bytes": 57775,
+    "sha256": "c528ab1a5b239e0dece89a1aed6201f722488b89bb3f344f120daf93a4fcf0d4"
+  },
+  "Build/P3/evidence/p3-workplan-1280.jpg": {
+    "bytes": 218589,
+    "sha256": "9c7681037c4ce59df70ce39cc706b6a9e2f01752ef9a7a303f27a4dc7703f193"
+  },
+  "Build/P3/evidence/p3-workplan-1600.jpg": {
+    "bytes": 311884,
+    "sha256": "58009c5d9ac5566b0c3e95a4c96aa8819912b98bd758bb06e64e41f50fccf4e3"
+  },
+  "Build/P3/evidence/p3-workplan-1920.jpg": {
+    "bytes": 414355,
+    "sha256": "89893451e717de1762d94037010b90b4878c4b21fab5878ed098f8edb74e800a"
+  },
+  "Build/P3/interactive.log": {
+    "bytes": 126514,
+    "sha256": "dd8dd719d2c7aff872bb403e948fe333f65b907ec485cc319c9208437c68b8ff"
+  },
+  "Build/S1A/clearance.log": {
+    "bytes": 237500,
+    "sha256": "3087f9b1ccaa0e5270eee57f7605cab21cc30a55062f84843cfc6bb3defc6c46"
+  },
+  "Build/S1A/editor-normalisation.diff": {
+    "bytes": 9271,
+    "sha256": "d53ed4bc6bb3dd4d9d2c64127e7cf3ca1fa16f2bec66b5a54b045a344fcf29a7"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-help-1280.png": {
+    "bytes": 1623197,
+    "sha256": "a8f85e33ec39df79aa8253c41b8bcb90791d63bcd10f39d7fc82c2b97ab486f7"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-help-1920.png": {
+    "bytes": 3132584,
+    "sha256": "9b34ad75d1f0a1a1a2b8954b409793999ca8866a529522ea69b7c8136574f868"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-inspection-1280.png": {
+    "bytes": 1717663,
+    "sha256": "579242322282c736866cca6f2b997665d482e0b972997e7fb38f7072566c7c4e"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-inspection-1920.png": {
+    "bytes": 3673824,
+    "sha256": "82c863c72f1be4929d57da7c6d3c0b48478d8bb3316bb7468201e0783aba9b0b"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-learning-1280.png": {
+    "bytes": 821079,
+    "sha256": "9004ac53619369d3ac9e8570683f692491d136d90e3c63087f7786f018a90bb4"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-learning-1920.png": {
+    "bytes": 1602041,
+    "sha256": "bab392f58b36395e9dfbaf1a5bb0e64aed7e4e912fe1580b0a73c9887d6c844d"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-nursery-1280.png": {
+    "bytes": 863665,
+    "sha256": "66adcd3809cbd4b88a9fb629f97d898a5a94bc0f2e084cc4f0545eb177a1a44a"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-nursery-1920.png": {
+    "bytes": 1757631,
+    "sha256": "d4b8c27ce66d495955c3f34666e3aadc95358b95b45bbfd04a4bb375eb95df18"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-objectives-1280.png": {
+    "bytes": 799664,
+    "sha256": "476f82b763895cb9065d43dafa29ad20b142002bbba2e8cc140388222b51f7e5"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-objectives-1920.png": {
+    "bytes": 1566777,
+    "sha256": "e39dcdf9691d721bfcc990b436fa7d29a7673d587bfcd2f11297635cb013c735"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-review-1280.png": {
+    "bytes": 730656,
+    "sha256": "09dfee2b1b88573bfb0bee9661c02efa19ad13e559f3a8471a7f8d7cbdeda9da"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-review-1920.png": {
+    "bytes": 1522641,
+    "sha256": "bb808886ac85d0328f98a17c4ad696c1835c0d2394ef0fedb26de6b66787e67b"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-workplan-1280.png": {
+    "bytes": 810855,
+    "sha256": "a5856bd8a10fc1fd5eb465fe1fc7084dff15e5f55624b8a4046658f64dac4582"
+  },
+  "Build/S1A/evidence/teaching-rendered/s1a-workplan-1920.png": {
+    "bytes": 1660480,
+    "sha256": "c3505f12ba2cdead0a7819076ead4af63606414123f911ff5dfa27d38da55408"
+  },
+  "Build/S1A/menu-standalone-1.log": {
+    "bytes": 322083,
+    "sha256": "4e3d5a7374b9c08b2360e9130e040e8a679f72e6f05a2b6df919ba4ba4c75f27"
+  },
+  "Build/S1A/menu-standalone-2.before-ground-fixture.log": {
+    "bytes": 124751,
+    "sha256": "6249d88920f4835abbb1a77218558f34e9b9bd4aaf827547a28ab4b99b91e45c"
+  },
+  "Build/S1A/menu-standalone-2.log": {
+    "bytes": 168692,
+    "sha256": "dc37badc4e56e98de86cc1b76887c3d1ffd21d19ec1d29ea9461a419d3837270"
+  },
+  "Build/S1A/remaining-launcher.log": {
+    "bytes": 6741,
+    "sha256": "77588d388d3ac76641ae14e6bdb2d954e8c351813a517aac55c711fe7f998add"
+  },
+  "Build/S1A/removal.log": {
+    "bytes": 208074,
+    "sha256": "88d19a67a99b195a36086a65ae451d67f17dde5e029b32d50448f14e53edb26d"
+  },
+  "Build/S1A/targeted-final-launcher.log": {
+    "bytes": 454,
+    "sha256": "046fb260bdf266b09daae28b133e44fcd5bfaaea03aca16c8c7948d92216000e"
+  },
+  "Build/S1A/targeted-launcher.log": {
+    "bytes": 1153,
+    "sha256": "a4efcb2d34b6c0e033477872387b5ee2f39c2e212af54f6c65511b2b333aa2e1"
+  },
+  "Build/S1A/teaching-batch-1.log": {
+    "bytes": 207182,
+    "sha256": "73a7ddbcddbbd1eb38971c22a7a44b957521067d28f0aa77b3bb32e4c7717ebc"
+  },
+  "Build/S1A/teaching-batch-2.log": {
+    "bytes": 47336,
+    "sha256": "19ec833390e8935b6dbe53c84b15684b8655ce92b7ec233aa426b42c0158707d"
+  },
+  "Build/S1A/teaching-rendered.log": {
+    "bytes": 170183,
+    "sha256": "7bc0d49c9686fb47f722045a9cb244454596bb13c64ed2211e32f2328ce04d1a"
+  },
+  "Build/WindthrowV1/Regression/BrowsingProtectionVerification.log": {
+    "bytes": 1542440,
+    "sha256": "f0b97897247d7ab8a326f2c9088f17c1ebf80accbe35037fa3dc9c408f79f757"
+  },
+  "Build/WindthrowV1/Regression/CCFIntegrationVerificationTemp.log": {
+    "bytes": 504993,
+    "sha256": "43eb75955ca9f5f0ba40a64b22499ef1ca8e13b1490ed7b8105ce4d49e2481dc"
+  },
+  "Build/WindthrowV1/Regression/ClearanceVerification.log": {
+    "bytes": 251792,
+    "sha256": "60db3e33236948417e28bef8bb57ccec6fdf0ef3687be2d1607bab26e219bcbc"
+  },
+  "Build/WindthrowV1/Regression/EcologyCalibrationAdoptionVerification.log": {
+    "bytes": 281698,
+    "sha256": "18a6745810f3739fab578c0d9f328b0fbb396558829f1de822d6280dc7adafb1"
+  },
+  "Build/WindthrowV1/Regression/JuvenileDisplayHeightVerification.log": {
+    "bytes": 191104,
+    "sha256": "7eb50c2c8ced42c584a17b381677fa3cbf7521c5d45f9d25a915c3754cb7bf36"
+  },
+  "Build/WindthrowV1/Regression/JuvenileMortalityFoundationVerification.log": {
+    "bytes": 462994,
+    "sha256": "d6c9484214945c1b43d917c2e990ff3398a9c95cd85d1e6fcdce0079db92fb8b"
+  },
+  "Build/WindthrowV1/Regression/MenuTutorialVerification.log": {
+    "bytes": 317038,
+    "sha256": "f81568579ce12774cfabc9858d8f61c8e9df5f075c1800aa75a7104bb57c6a01"
+  },
+  "Build/WindthrowV1/Regression/Model2PedagogyVerification.log": {
+    "bytes": 242427,
+    "sha256": "b2dff0dc7be7308c21584345f18fe1b9dd8360aa78be84132abfc2dc4e43a9f4"
+  },
+  "Build/WindthrowV1/Regression/RegenerationModelVerification.log": {
+    "bytes": 3004256,
+    "sha256": "7a522b7ebdccda27c728205de99df7a62c9e99ff82e5c97d56cd8941c0d7676a"
+  },
+  "Build/WindthrowV1/Regression/RngModelPolicyVerification.log": {
+    "bytes": 1148361,
+    "sha256": "0ad3c78e8d48930f68df93ef5a9146bb3dce77ca1acac349c56284a513985bfe"
+  },
+  "Build/WindthrowV1/Regression/RngModelVerification.log": {
+    "bytes": 180408,
+    "sha256": "db3e280bdb8a6358ccdfe0f247304754de2e3bb04f38bd763ad12ca9084e24a1"
+  },
+  "Build/WindthrowV1/Regression/SaveHardeningVerification.log": {
+    "bytes": 201588,
+    "sha256": "1a1ce0ad5e296e2845acf1f9fa4677fe798cc449318a1870c68f01e9cf042067"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneCompletionVerification.log": {
+    "bytes": 388509,
+    "sha256": "6c5b8d299e6ae3c244c21f8210d443a22039208f88c1824e5684be1c04c32577"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneDeadwoodVerification.log": {
+    "bytes": 205333,
+    "sha256": "870e88e530c2521aea477d7dc7239cac0b46e6d4f64cad2ff7ffdb0352b02bb5"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneEconomyIntegrationVerification.log": {
+    "bytes": 234346,
+    "sha256": "4647316500649314e22a833abc2fe6276a663ee0b3102039d41790c63f108003"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneInteractionVerification.log": {
+    "bytes": 680685,
+    "sha256": "1ebbed46d645fd2fa62d7dad1763a0c3c56b9ae65b9b732f5b58459f5eda242c"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOnePlantingVerification.log": {
+    "bytes": 202294,
+    "sha256": "eb3bbf5f70db04559574ffd81bc5cabcf57655e63bd0c0453f5cd0f3ff80d31b"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneProgressVerification.log": {
+    "bytes": 201123,
+    "sha256": "5bd6d9760c2ee261ab2b367e282c91e7799c2723ee09d7c8fdf5f53dae884e79"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOnePruningVerification.log": {
+    "bytes": 194204,
+    "sha256": "79b1c1c65cd2eacceb0ee27ccbfb51e36cb28501516ed290246dda7f59809855"
+  },
+  "Build/WindthrowV1/Regression/ScenarioOneRemovalVerification.log": {
+    "bytes": 193820,
+    "sha256": "5c9ef7b36c5488e22fb267008be8e26eb81bb610086e54410bedc94b88b5d042"
+  },
+  "Build/WindthrowV1/Regression/ScenarioReferenceVerification.log": {
+    "bytes": 659705,
+    "sha256": "d022cb7c6176391d6fc8226d0d419e613c78581d58fef7974d88c06c779ee1f9"
+  },
+  "Build/WindthrowV1/Regression/SitkaGrowthModelVerification.log": {
+    "bytes": 5243354,
+    "sha256": "d162739900a2cc55c77580690c64d44a26f24356a3068c6f55bcf5a77a8cd2d6"
+  },
+  "Build/WindthrowV1/Regression/Stage1WorkEconomyFoundationVerification.log": {
+    "bytes": 180105,
+    "sha256": "36c8d8fb8dd1611d9ea6bfa5255758ab30b144dab07b90e25e8a10fe1f20697d"
+  },
+  "Build/WindthrowV1/Regression/TimberAssortmentYieldVerification.log": {
+    "bytes": 211269,
+    "sha256": "d6b2cb4bb020f49d155e584d803c851f129604d76fb4f9f7a973185332d58397"
+  },
+  "Build/import.log": {
+    "bytes": 3666548,
+    "sha256": "7c7f57ee198cc4ef590758728ac4b39db3179ae2584e22310835a1be551fca6c"
+  }
+}

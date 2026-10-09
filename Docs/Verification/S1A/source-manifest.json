@@ -1,0 +1,18 @@
+{
+  "Assets/ForestPrototype/UI/MenuHelpView.cs": "07f761cedd8d26bdfbbaac5c475e5a19c298055e96be5d615b39869024f22ddf",
+  "Assets/ForestPrototype/UI/LearningObjectivesView.cs": "d26cdd886e157451ccf14448c2b670e4b2797991343a936f3d3c31fc2f223452",
+  "Assets/ForestPrototype/UI/ScenarioOneUiFacts.cs": "05f5087daa111a883ba1f2052707d655b86aac4b593fb4d090d2bb69594fcd33",
+  "Assets/ForestPrototype/UI/WalkingHudView.cs": "32777e6d71cc383acb319be079b0bdad99b9ffa12577121e8b9f8d6a6123367a",
+  "Assets/ForestPrototype/UI/StandMapView.cs": "96e658c09bdf6251a93df3c65db5545c8a5967216f48e81cadf5108e951cf23a",
+  "Assets/ForestPrototype/UI/WorkPlanView.cs": "5de7cbaf25aa9ec75fc343db385ace86f7c39e9c8d7ce9afab74f470b666cdf6",
+  "Assets/ForestPrototype/UI/AnnualReviewView.cs": "8b1082f7e7ed6b3bd84398ccce68e30c3d7441111c410a7cd836171d642ca974",
+  "Assets/ForestPrototype/ScenarioEcologyReviewLines.cs": "1cf55ca83f1d899fad679480d626692ba433ca6ce0eff1451ff6e3fec2060cbf",
+  "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "22d3058788b88b245b0fc9444a1706bb59a8c3ebb470ba45fa86d5f060701899",
+  "Tools/Verification/ScenarioOneTeachingCopyVerification.cs": "c618cfb6626e6285034b1853beb80da7c206759f9d17751a296a14fa14882087",
+  "Tools/Verification/run_s1a_gates.py": "bc88896b327ffe1d563003012a39be084984dd7d74a2595617479f841cd7f39c",
+  "Tools/Verification/S1A_README.md": "bccf4cef3a6e2001ff76aa5fbfc87b65f519c3af32443d8f4156946d03a08916",
+  "Tools/Verification/ClearanceVerification.cs": "bc259708550afc2feff2c3abceea35cd0f175e07f8f21b68d7770416df3910e0",
+  "Tools/Verification/MenuTutorialVerification.cs": "2b324dbbce4dea85716186b2c699ebcd17732b91afd5c7db4097ea2b3eb44ecc",
+  "Tools/Verification/ScenarioOneRemovalVerification.cs": "ac460803ed9441a2f54971b31f08998edbc3ce5fd392d3a72d95001aba46d1de",
+  "Tools/Verification/WindthrowV1/run_regression.py": "681ce93928eb0f6bb13ec51cbeef12cd201c1e41bbfe5ff35db7f97d97a8c1bf"
+}
