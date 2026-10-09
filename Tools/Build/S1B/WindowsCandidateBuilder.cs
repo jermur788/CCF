@@ -8,6 +8,15 @@ using UnityEngine;
 
 public static class WindowsCandidateBuilder
 {
+    private static bool CrashUploadAllowed()
+    {
+        // Installed 6000.6 exposes upload permission internally; the legacy
+        // public enabled flag checks a different cloud-diagnostics feature.
+        var p = typeof(UnityEditor.CrashReporting.CrashReportingSettings).GetProperty("canUploadReports",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+        if (p == null) throw new Exception("Installed crash-upload API changed");
+        return (bool)p.GetValue(null);
+    }
     public static void Build()
     {
         string output = Environment.GetEnvironmentVariable("CCF_BUILD_OUTPUT");
@@ -15,6 +24,7 @@ public static class WindowsCandidateBuilder
         string stamp = "Assets/ForestPrototype/UI/Resources/CCFBuildIdentity.json";
         var target = UnityEditor.Build.NamedBuildTarget.Standalone;
         var originalBackend = PlayerSettings.GetScriptingBackend(target);
+        bool originalEngineDiagnostics = UnityEditor.EngineDiagnostics.EngineDiagnosticsSettings.enabled;
         try
         {
             if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64)) throw new Exception("Windows x86-64 module unavailable");
@@ -23,7 +33,8 @@ public static class WindowsCandidateBuilder
                 if (File.Exists(path) || File.Exists(path + ".meta")) throw new Exception("Pre-existing performance resource: " + path);
             File.WriteAllText(stamp, identity); AssetDatabase.ImportAsset(stamp, ImportAssetOptions.ForceSynchronousImport);
             PlayerSettings.SetScriptingBackend(target, ScriptingImplementation.Mono2x);
-            if (UnityEditor.Analytics.AnalyticsSettings.enabled || UnityEditor.Analytics.AnalyticsSettings.deviceStatsEnabledInBuild || UnityEditor.CrashReporting.CrashReportingSettings.enabled)
+            UnityEditor.EngineDiagnostics.EngineDiagnosticsSettings.enabled = false;
+            if (UnityEditor.Analytics.AnalyticsSettings.enabled || UnityEditor.Analytics.AnalyticsSettings.deviceStatsEnabledInBuild || CrashUploadAllowed())
                 throw new Exception("Unexpected analytics/device-stats/crash-upload setting; inspect canonical disabled settings");
             Debug.Log("S1B_PRIVACY_SETTINGS_PASS analytics=false deviceStats=false crashUpload=false");
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
@@ -32,6 +43,7 @@ public static class WindowsCandidateBuilder
                 locationPathName = Path.Combine(output, "CCF.exe"), options = BuildOptions.DetailedBuildReport });
             File.WriteAllLines(Path.Combine(output, "included-assets.txt"), report.packedAssets.SelectMany(p => p.contents).Select(c => c.sourceAssetPath).Where(p => !string.IsNullOrEmpty(p)).Distinct().OrderBy(p => p));
             File.WriteAllText(Path.Combine(output, "build-result.txt"), $"{report.summary.result}\nErrors: {report.summary.totalErrors}\nWarnings: {report.summary.totalWarnings}\nBytes: {report.summary.totalSize}\nSeconds: {report.summary.totalTime.TotalSeconds}\n");
+            if (UnityEditor.Analytics.AnalyticsSettings.deviceStatsEnabledInBuild || CrashUploadAllowed()) throw new Exception("Unexpected upload setting after build");
             if (report.summary.result != BuildResult.Succeeded || report.summary.totalErrors != 0) throw new Exception("Windows candidate build failed");
             foreach (var file in Directory.GetFiles(Path.Combine(output, "CCF_Data/Managed"), "*.dll"))
             {
@@ -47,6 +59,7 @@ public static class WindowsCandidateBuilder
         {
             if (File.Exists(stamp)) AssetDatabase.DeleteAsset(stamp);
             PlayerSettings.SetScriptingBackend(target, originalBackend);
+            UnityEditor.EngineDiagnostics.EngineDiagnosticsSettings.enabled = originalEngineDiagnostics;
         }
         EditorApplication.Exit(0);
     }
