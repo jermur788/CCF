@@ -23,7 +23,7 @@ public static class WindowsCandidateBuilder
                 if (File.Exists(path) || File.Exists(path + ".meta")) throw new Exception("Pre-existing performance resource: " + path);
             File.WriteAllText(stamp, identity); AssetDatabase.ImportAsset(stamp, ImportAssetOptions.ForceSynchronousImport);
             PlayerSettings.SetScriptingBackend(target, ScriptingImplementation.Mono2x);
-            if (UnityEditor.Analytics.AnalyticsSettings.enabled || UnityEditor.Analytics.AnalyticsSettings.deviceStatsEnabledInBuild || UnityEditor.CrashReportingSettings.canUploadReports)
+            if (UnityEditor.Analytics.AnalyticsSettings.enabled || UnityEditor.Analytics.AnalyticsSettings.deviceStatsEnabledInBuild || UnityEditor.CrashReporting.CrashReportingSettings.canUploadReports)
                 throw new Exception("Unexpected analytics/device-stats/crash-upload setting; inspect canonical disabled settings");
             Debug.Log("S1B_PRIVACY_SETTINGS_PASS analytics=false deviceStats=false crashUpload=false");
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
