@@ -1,0 +1,102 @@
+[
+  {
+    "name": "s1b-teaching-batch",
+    "gate": "ScenarioOneTeachingCopyVerification",
+    "mode": "batch",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 50.5,
+    "markers": [
+      "S1A_READONLY_HASH EBE7A228F630AE41",
+      "S1A_NURSERY_PASS advisory=true actualCost=true noPlanting=true",
+      "S1A_TEACHING_VERIFY_PASS checks=20"
+    ]
+  },
+  {
+    "name": "s1b-teaching-rendered",
+    "gate": "ScenarioOneTeachingCopyVerification",
+    "mode": "interactive",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 105.1,
+    "markers": [
+      "S1A_READONLY_HASH EBE7A228F630AE41",
+      "S1A_NURSERY_PASS advisory=true actualCost=true noPlanting=true",
+      "S1A_RENDERED_PASS s1a-help-1280",
+      "S1A_RENDERED_PASS s1a-objectives-1280",
+      "S1A_RENDERED_PASS s1a-learning-1280",
+      "S1A_RENDERED_PASS s1a-inspection-1280",
+      "S1A_RENDERED_PASS s1a-workplan-1280",
+      "S1A_RENDERED_PASS s1a-nursery-1280",
+      "S1A_RENDERED_PASS s1a-help-1920",
+      "S1A_RENDERED_PASS s1a-objectives-1920",
+      "S1A_RENDERED_PASS s1a-learning-1920",
+      "S1A_RENDERED_PASS s1a-inspection-1920",
+      "S1A_RENDERED_PASS s1a-workplan-1920",
+      "S1A_RENDERED_PASS s1a-nursery-1920",
+      "S1A_RENDERED_PASS s1a-review-1280",
+      "S1A_RENDERED_PASS s1a-review-1920",
+      "S1A_TEACHING_VERIFY_PASS checks=57"
+    ]
+  },
+  {
+    "name": "s1b-menu",
+    "gate": "MenuTutorialVerification",
+    "mode": "interactive",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 98.9,
+    "markers": [
+      "MENU_RENDERED_PASS WalkingHud 1280x720",
+      "MENU_RENDERED_PASS WalkingHud 1600x900",
+      "MENU_RENDERED_PASS WalkingHud 1920x1080",
+      "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+      "MENU_RENDERED_PASS TreeInspection 1280x720",
+      "MENU_RENDERED_PASS TreeInspection 1600x900",
+      "MENU_RENDERED_PASS TreeInspection 1920x1080",
+      "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+      "MENU_RENDERED_PASS StandMap 1280x720",
+      "MENU_RENDERED_PASS StandMap 1600x900",
+      "MENU_RENDERED_PASS StandMap 1920x1080",
+      "HUD_WAYPOINT_PASS visible=true sizes=1280,1600,1920 bearings=0,90,-90,180 arrival=true clear=true noTeleport=true",
+      "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+      "MENU_RENDERED_PASS WorkPlan 1280x720",
+      "MENU_RENDERED_PASS WorkPlan 1600x900",
+      "MENU_RENDERED_PASS WorkPlan 1920x1080",
+      "MENU_RENDERED_PASS AnnualReview 1280x720",
+      "MENU_RENDERED_PASS AnnualReview 1600x900",
+      "MENU_RENDERED_PASS AnnualReview 1920x1080",
+      "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+      "LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true",
+      "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+      "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+    ]
+  },
+  {
+    "name": "s1b-clearance",
+    "gate": "ClearanceVerification",
+    "mode": "interactive",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 69.4,
+    "markers": [
+      "CLEARANCE_WALKING_PREVIEW_PASS groundRay=true sharedQuery=true",
+      "CLEARANCE_FIXTURES_PASS A B C D E F G H I J cohorts=3 exactJuveniles=1 groundPatches=5",
+      "CLEARANCE_CIRCLE_PASS area=1m2 species=3 inside=cleared outside=retained repeat=identical",
+      "CLEARANCE_REPEAT_MATRIX_PASS cells=64 identicalSpot=noTargets density=unchanged",
+      "CLEARANCE_ANNUAL_PASS completed=true debit=once treatmentYearDisplay=cleared",
+      "CLEARANCE_ACCEPTANCE_PASS"
+    ]
+  },
+  {
+    "name": "s1b-removal",
+    "gate": "ScenarioOneRemovalVerification",
+    "mode": "batch",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 55.1,
+    "markers": [
+      "SCENARIO_ONE_REMOVAL_VERIFY_PASS"
+    ]
+  }
+]

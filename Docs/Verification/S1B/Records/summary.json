@@ -1,0 +1,43 @@
+{
+  "branch": "task/s1-b-standalone-readiness",
+  "base": "4a68d528bb9d01036de9d4df1739b7de2c8c6002",
+  "context": "4a68d528bb9d01036de9d4df1739b7de2c8c6002",
+  "candidate_source": "b3ba9b8900b1f62b721aee6508aba6d64db93bfd",
+  "editor_verified_source": "85e3a80a21731ecc511e1a1b868e539713d29e52",
+  "production_assets_packages_settings_diff_since_editor_verification": [],
+  "session_menu": "PASS",
+  "editor_regression": "24/24 PASS",
+  "all_established_anchors_unchanged": true,
+  "windows_build": "PASS, zero errors",
+  "build_id": "CCF-S1-20261009-B06-b3ba9b8",
+  "archive_sha256": "c7d4da9d5316c3bb419b39f16e84827bc1a41ab07c75ade01316d063a1d22188",
+  "native_service_flags": [
+    {
+      "destination": "Build/S1B/CCF-S1-20261009-B06-b3ba9b8-Windows-x64/CCF.exe",
+      "services": {
+        "EnableUnityConnect": false,
+        "EnablePerformanceReporting": false,
+        "EnableAnalytics": false,
+        "EnableCrashReporting": false,
+        "EnableInsights": false
+      }
+    },
+    {
+      "destination": "Build/S1B/CCF-S1-20261009-B06-b3ba9b8-SMOKE-Windows-x64/CCF.exe",
+      "services": {
+        "EnableUnityConnect": false,
+        "EnablePerformanceReporting": false,
+        "EnableAnalytics": false,
+        "EnableCrashReporting": false,
+        "EnableInsights": false
+      }
+    }
+  ],
+  "wine_api_flow": "PASS",
+  "wine_visual_ui": "PARTIAL \u2014 LegacyRuntime font-face failure; native effect unknown",
+  "human_input_walking_native_fps": "NOT VERIFIED",
+  "hdr_restored_exact": true,
+  "ready_for_manager_review": true,
+  "stage_a_standalone_readiness": "CONDITIONAL",
+  "remaining_gate": "Native Windows technical smoke, including UI font/readability, mouse/keyboard, walking and performance; Manager integration and combined independent review precede pilot"
+}

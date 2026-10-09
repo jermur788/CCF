@@ -1,0 +1,35 @@
+[
+  {
+    "environment": "WINE COMPATIBILITY SMOKE \u2014 NOT NATIVE WINDOWS VERIFICATION",
+    "mode": "candidate-launch",
+    "executable": "/home/jer/CCF-s1b/Build/S1B/CCF-S1-20261009-B06-b3ba9b8-Windows-x64/CCF.exe",
+    "status": "PASS",
+    "process_exit": 1,
+    "observation_timeout": true,
+    "seconds": 35.3,
+    "log": "/home/jer/CCF-s1b/Build/S1B/wine-evidence-b06/candidate-launch-Player.log",
+    "human_input_or_native_performance_verified": false
+  },
+  {
+    "environment": "WINE COMPATIBILITY SMOKE \u2014 NOT NATIVE WINDOWS VERIFICATION",
+    "mode": "save",
+    "executable": "/home/jer/CCF-s1b/Build/S1B/CCF-S1-20261009-B06-b3ba9b8-SMOKE-Windows-x64/CCF.exe",
+    "status": "PASS",
+    "process_exit": 0,
+    "observation_timeout": false,
+    "seconds": 14.8,
+    "log": "/home/jer/CCF-s1b/Build/S1B/wine-evidence-b06/save-Player.log",
+    "human_input_or_native_performance_verified": false
+  },
+  {
+    "environment": "WINE COMPATIBILITY SMOKE \u2014 NOT NATIVE WINDOWS VERIFICATION",
+    "mode": "load",
+    "executable": "/home/jer/CCF-s1b/Build/S1B/CCF-S1-20261009-B06-b3ba9b8-SMOKE-Windows-x64/CCF.exe",
+    "status": "PASS",
+    "process_exit": 0,
+    "observation_timeout": false,
+    "seconds": 15.4,
+    "log": "/home/jer/CCF-s1b/Build/S1B/wine-evidence-b06/load-Player.log",
+    "human_input_or_native_performance_verified": false
+  }
+]

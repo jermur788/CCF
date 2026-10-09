@@ -1,0 +1,70 @@
+{
+  "head": "85e3a80a21731ecc511e1a1b868e539713d29e52",
+  "results": [
+    {
+      "run": "batch-1",
+      "mode": "batch",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 51.4,
+      "hash": "F7C2FC966816BBAD",
+      "markers": [
+        "P3_READONLY_PASS empty plan; world hash unchanged EBE7A228F630AE41",
+        "P3_RESIDUAL_PASS T2 336->306 BA 41.10->36.23 vol 39.87->34.68 pattern NoLabel (54/81)",
+        "P3_DETERMINISM_HASH F7C2FC966816BBAD",
+        "P3_WARNING_PASS H cash 473450 expected 248474 < minimum 250000",
+        "P3_WARNING_CLEARS_PASS",
+        "P3_CLEARANCE_F_PASS Clearance A1 cohorts 3 density 0.053->0.000 saplings 0 bramble 0.112 bracken 0.112 taller 0",
+        "P3_CLEARANCE_E_PASS Clearance A2 cohorts 0 density 0.000->0.000 saplings 0 bramble 0.066 bracken 0.066 taller 0",
+        "P3_RENDERED_SKIPPED batchmode (run interactively for layout and captures)",
+        "P3_WORKPLAN_VERIFY_PASS"
+      ]
+    },
+    {
+      "run": "batch-2",
+      "mode": "batch",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 40.2,
+      "hash": "F7C2FC966816BBAD",
+      "markers": [
+        "P3_READONLY_PASS empty plan; world hash unchanged EBE7A228F630AE41",
+        "P3_RESIDUAL_PASS T2 336->306 BA 41.10->36.23 vol 39.87->34.68 pattern NoLabel (54/81)",
+        "P3_DETERMINISM_HASH F7C2FC966816BBAD",
+        "P3_WARNING_PASS H cash 473450 expected 248474 < minimum 250000",
+        "P3_WARNING_CLEARS_PASS",
+        "P3_CLEARANCE_F_PASS Clearance A1 cohorts 3 density 0.053->0.000 saplings 0 bramble 0.112 bracken 0.112 taller 0",
+        "P3_CLEARANCE_E_PASS Clearance A2 cohorts 0 density 0.000->0.000 saplings 0 bramble 0.066 bracken 0.066 taller 0",
+        "P3_RENDERED_SKIPPED batchmode (run interactively for layout and captures)",
+        "P3_WORKPLAN_VERIFY_PASS"
+      ]
+    },
+    {
+      "run": "interactive",
+      "mode": "interactive",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 53.0,
+      "hash": "F7C2FC966816BBAD",
+      "markers": [
+        "P3_READONLY_PASS empty plan; world hash unchanged EBE7A228F630AE41",
+        "P3_RESIDUAL_PASS T2 336->306 BA 41.10->36.23 vol 39.87->34.68 pattern NoLabel (54/81)",
+        "P3_DETERMINISM_HASH F7C2FC966816BBAD",
+        "P3_WARNING_PASS H cash 473450 expected 248474 < minimum 250000",
+        "P3_WARNING_CLEARS_PASS",
+        "P3_CLEARANCE_F_PASS Clearance A1 cohorts 3 density 0.053->0.000 saplings 0 bramble 0.112 bracken 0.112 taller 0",
+        "P3_CLEARANCE_E_PASS Clearance A2 cohorts 0 density 0.000->0.000 saplings 0 bramble 0.066 bracken 0.066 taller 0",
+        "P3_RENDERED_PASS 1280x720",
+        "P3_RENDERED_PASS 1600x900",
+        "P3_RENDERED_PASS 1920x1080",
+        "P3_WORKPLAN_VERIFY_PASS"
+      ]
+    }
+  ],
+  "batch_hashes": [
+    "F7C2FC966816BBAD",
+    "F7C2FC966816BBAD"
+  ],
+  "deterministic": true,
+  "status": "PASS"
+}

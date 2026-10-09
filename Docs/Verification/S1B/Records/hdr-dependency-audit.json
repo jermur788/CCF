@@ -1,0 +1,121 @@
+{
+  "omitted_guid": "83d5c6c30d68b7e4498cfef8c6e2a35a",
+  "reference_audit": {
+    "scenes": {
+      "files": 4,
+      "references": []
+    },
+    "prefabs": {
+      "files": 143,
+      "references": []
+    },
+    "materials": {
+      "files": 94,
+      "references": []
+    },
+    "settings_packages_build": {
+      "files": 34,
+      "references": [],
+      "wrapper_constant_is_not_dependency": true
+    }
+  },
+  "required_pack_guids": [
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab.meta",
+      "guid": "1f9036ec905b920479091aca9ba81305",
+      "sha256": "e97b29da38e8d1088716816b091bd7ef840ef17064c3e44a41c1123d61e267c8"
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Props/Logs/Prefabs/UNS_Stump.prefab.meta",
+      "guid": "3aa54be08e092174ab6b689e524fdf44",
+      "sha256": "1f17d8579b45757de0c007f653cf5c61f87616097b8868a8152c8b047ff8496c"
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Bushes/Prefabs/UNS_Bush.prefab.meta",
+      "guid": "3f8eda438d8aeab4d9223c5b53f5ef62",
+      "sha256": "1be4815bea5b7644cc67936a87b58c6bd52390e0a9801b0af3971ee1953dbbbd"
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Flowers/Prefabs/UNS_Flower.prefab.meta",
+      "guid": "43999c511a596754fb989ff074c5955d",
+      "sha256": "68ad07f560a9f953da66ce28bf3e8a32cd4e202d9535dcd01fbe9e6678e98b3b"
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Grass/Prefabs/UNS_Grass.prefab.meta",
+      "guid": "4db940c31d61ac149801c850fc645d68",
+      "sha256": "6f345fb2e2259421d12642d206421b1a8b7a9b1d3824cad9609fe371470c93d8"
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab.meta",
+      "guid": "d0fa3c49b2c9cd84bb5a644c53ef025e",
+      "sha256": "6e16ed40a5817ca23d573573a00b9eea0c5dc2d9f4334708afb72bc5d60d0c92"
+    }
+  ],
+  "required_pack_assets_unchanged": true,
+  "required_asset_source_byte_comparison": [
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab",
+      "sha256": "ef74d0e123f86632744ab7692ed36bf725c2971adb15f8856aac7047a21d19ea",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Trees/Fir/Prefabs/UNS_Spruce_01.prefab.meta",
+      "sha256": "e97b29da38e8d1088716816b091bd7ef840ef17064c3e44a41c1123d61e267c8",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Props/Logs/Prefabs/UNS_Stump.prefab",
+      "sha256": "019a06064206d8c47093f496da776f5f97c91949053f50dcefba91bff6ca8ebc",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Props/Logs/Prefabs/UNS_Stump.prefab.meta",
+      "sha256": "1f17d8579b45757de0c007f653cf5c61f87616097b8868a8152c8b047ff8496c",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Bushes/Prefabs/UNS_Bush.prefab",
+      "sha256": "e5e74fc12b20ee9dc97f72106ffad89572f4791754cb25aeaf059c0ae243f8a7",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Bushes/Prefabs/UNS_Bush.prefab.meta",
+      "sha256": "1be4815bea5b7644cc67936a87b58c6bd52390e0a9801b0af3971ee1953dbbbd",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Flowers/Prefabs/UNS_Flower.prefab",
+      "sha256": "17f14ca141592304dc75a9bded57c3ae1145c19c1eb02268966e9ec8ac416d53",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Flowers/Prefabs/UNS_Flower.prefab.meta",
+      "sha256": "68ad07f560a9f953da66ce28bf3e8a32cd4e202d9535dcd01fbe9e6678e98b3b",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Grass/Prefabs/UNS_Grass.prefab",
+      "sha256": "e69e7ece98615fba7ad6b0922538c1ca7ec93de578d75e83aac821c6cff397a7",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Grass/Prefabs/UNS_Grass.prefab.meta",
+      "sha256": "6f345fb2e2259421d12642d206421b1a8b7a9b1d3824cad9609fe371470c93d8",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab",
+      "sha256": "eec206edb25e59b64dd48dd28169dfc9207d62fae8c73aab04ec29320aea41c2",
+      "exact_cached_package_bytes": true
+    },
+    {
+      "path": "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab.meta",
+      "sha256": "6e16ed40a5817ca23d573573a00b9eea0c5dc2d9f4334708afb72bc5d60d0c92",
+      "exact_cached_package_bytes": true
+    }
+  ],
+  "pack_notice_candidates": [
+    "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Documentation/UNS_Readme.txt\n00"
+  ],
+  "licensed_package_sha256": "251fff35b4569b6a8e2f91e3cce0fcd6bcab9cdbf6423079565d8d65b91fb79e"
+}

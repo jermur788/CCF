@@ -11,3 +11,5 @@ Perform before beginner external testing, on the exact extracted candidate. Reco
 - Attach log/reproduction steps and explicit PASS/FAIL for each check. Technical-test completion is separate from beginner comprehension testing.
 
 Manager inspection/integration and the planned Sonnet 5.5 xhigh combined S1-A + S1-B pre-pilot review precede the beginner pilot. Stage A remains conditional until this gate passes.
+
+Explicit B06 follow-up: verify every menu/HUD/Help/Learning/Map/Work Plan/Annual Review label and the build ID renders legibly. Wine produced LegacyRuntime font-face errors with an empty Windows Fonts folder; the effect on native Windows is unknown. Stop beginner release if native text fails. Wine API PASS does not satisfy this visual gate.
