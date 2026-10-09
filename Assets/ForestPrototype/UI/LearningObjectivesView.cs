@@ -31,21 +31,21 @@ public sealed class LearningObjectivesView
             new Step("map.return", "Return to the forest", "Press M or Esc, or use Back to forest. The HUD now gives the destination's compass direction and distance."),
             new Step("map.arrive", "Walk to the destination", "Follow the HUD direction and watch the distance decrease until it says you are here. Walk from outside the destination cell; setting a waypoint on your own cell is not this practice journey."),
             new Step("map.inspectsite", "Inspect the site on foot", "At the destination, look at the ground report or inspect a nearby tree with E. Compare what you see with the cell diagnosis before choosing any management work."),
-            new Step("map.regeneration", "Explore Regeneration", "Choose Regeneration. P counts living planted juveniles; the height is the tallest natural seedling cohort. Read the side panel for species and conditions. An empty cell is information, not an instruction to plant."),
+            new Step("map.regeneration", "Explore Regeneration", "Choose Regeneration. P counts living planted juveniles; the height is the tallest natural seedling cohort. Read the side panel for species and conditions. More light or an opening can create an opportunity for natural regeneration, but it needs seed and suitable conditions; success is not guaranteed. An empty cell is information, not an instruction to plant."),
             new Step("map.browse", "Explore Browsing / protection", "Choose Browsing / protection. The map shows site browsing pressure and shelters expected to be effective next year. S counts shelters; a dash means none. Visit young growth and compare its condition with the ground report."),
             new Step("map.marks", "Explore Fell & crop marks", "Choose Fell & crop marks. Squares count Fell proposals; diamonds count Crop Trees. Red means proposed removal, blue means retain/favour. This is a view of decisions made in the forest, not a remote marking tool."),
             new Step("map.compare", "Understand the limits of a map", "A cell summarises an area. Switch layers to compare light, young growth, protection and your marks, then walk there. A colour or a low number alone does not tell you which tree to fell.", true, "map.inspectsite")),
-        new Topic("2. Tree inspection and Crop Trees", "Read an individual tree before marking it. There is no single correct tree picked by this lesson.",
+        new Topic("2. Tree inspection and Crop Trees", "Begin with trees worth retaining and favouring, then inspect their competitors. Being smaller or suppressed is not by itself a reason to remove a tree. There is no single correct tree picked by this lesson.",
             new Step("tree.inspect", "Inspect a living tree", "Look at a tree and press E. Read its identity, age, height, DBH and competition. E closes inspection; F1 revisits the explanation."),
             new Step("tree.read", "Understand the measurements", "DBH is trunk diameter at breast height. Competition describes neighbours restricting growth. The light field is ground light in the tree's cell. Use the fields together with the tree and its neighbours, not as a command to remove it.", true, "tree.inspect"),
             new Step("tree.crop", "Designate a Crop Tree", "Aim at a living tree you want to retain and press C. A blue mark means retain/favour, not fell. Press C again to undo it. Choose a tree yourself after inspection; this designation is also used by crop-tree pruning.")),
-        new Topic("3. Felling", "Learn the proposal → plan → approval → results sequence. Take time to compare trees; no cutting is required in year one.",
+        new Topic("3. Felling", "Continuous-cover forestry needs repeated selective management. More felling is not automatically better: consider what remains, then return later to inspect and reassess. Learn the proposal → plan → approval → results sequence. Take time to compare trees; no cutting is required in year one.",
             new Step("fell.mark", "Propose a tree for felling", "Aim at a living tree and press X. The red mark is only a proposal. X again removes it. Crop and Fell marks are alternatives on the same tree; check the label before proceeding."),
             new Step("fell.plan", "Import the Fell mark into the Work Plan", "Press Tab. Opening the Work Plan automatically imports red Fell marks as jobs; Add marked trees can also refresh that import. Inspect each job's timber estimate, contractor cost and material outcome. Removing a pending job lets you reconsider."),
             new Step("fell.cost", "Read the harvest costs", "Compare total labour, timber income, net value and remaining cash. A small visit can be dominated by the contractor's minimum charge. Estimates are re-quoted when work resolves; no broadleaf timber market is configured in this scenario.", true, "fell.plan"),
             new Step("fell.approve", "Approve a felling job when ready", "Approve pending work commits the planned jobs. Approval does not immediately cut trees. Check every pending job first: that button can approve more than your felling proposal."),
             new Step("fell.result", "Review a successful felling result", "Advance a year when your plan is ready. Open Annual Review and read WORK DONE, MONEY and FOREST. Successful felling removes the standing tree; failed work needs its failure reason checked. Walk back to inspect the change.")),
-        new Topic("4. Pruning", "Pruning is a clear-stem treatment on retained Crop Trees, not felling. It costs contractor time and money. A tree may need to grow or recover before it is eligible.",
+        new Topic("4. Pruning", "Pruning removes lower branches from retained Crop Trees for future timber quality and a clearer stem. Scenario One records the treatment but applies no timber-price premium for pruning. It costs contractor time and money. A tree may need to grow or recover before it is eligible.",
             new Step("prune.read", "Understand eligibility", "The Work Plan reports how many Crop Trees are eligible. This game's configured lift heights are 2.5 m, 5 m and 6.5 m, with at most three lifts, at least five years between lifts and a crown-base limit below 60% of tree height. These are scenario rules, not a recommendation to prune every tree.", true, "tree.crop"),
             new Step("prune.plan", "Plan an eligible pruning lift", "In Work Plan, find Pruning and Add eligible crop tree pruning tasks. This can add several eligible trees; review each target height and cost, and remove jobs you do not want. If none are eligible, return in a later year."),
             new Step("prune.approve", "Approve the selected pruning work", "Check contractor cost and available cash, then approve pending work. A designated Crop Tree stays standing; the lift is executed during the annual work cycle."),
@@ -55,9 +55,9 @@ public sealed class LearningObjectivesView
             new Step("deadwood.plan", "Choose Leave as deadwood", "On a pending felling job, choose Leave as deadwood. Compare the new quote and cash balance before approving. This changes that job's outcome; it does not create a log until work succeeds."),
             new Step("deadwood.result", "Review retained deadwood", "Resolve the approved job in a later annual cycle and read FOREST in Annual Review. It reports newly retained volume and fallen logs on site. The scenario records decay over time; deadwood is not stored construction timber."),
             new Step("deadwood.visit", "Visit a retained fallen stem", "Walk back to within a few metres of a retained log and look at the site. Compare the standing-tree removal and the fallen stem with the recorded outcome. This lesson can wait until you choose a suitable habitat treatment.")),
-        new Topic("6. Planting and protection", "Use ground observations to choose a site. Planning a spot, paying for nursery stock and approving work are separate steps.",
+        new Topic("6. Planting and protection", "Use ground observations to choose a site. Planting is not automatically an improvement; natural regeneration is not required for every useful management outcome. Planning a spot, paying for nursery stock and approving work are separate steps.",
             new Step("plant.ground", "Read the ground report", "Look at the ground to see light, regeneration and browsing conditions. Use the map to locate another area if useful. Check existing growth before deciding whether planting is appropriate."),
-            new Step("plant.stock", "Buy nursery stock", "In Work Plan, open Nursery, choose a quantity and buy the species you intend to plant. Stock is paid for when bought; it is consumed when successful planting work uses it."),
+            new Step("plant.stock", "Buy nursery stock", "In Work Plan, open Nursery, choose a quantity and buy the species you intend to plant. Read the total purchase cost and cash warning before buying. Buying stock does not plant it. Contractor planting and shelter materials cost extra; using your own time for unsheltered planting has no external labour charge. Stock is consumed when successful planting work uses it."),
             new Step("plant.plan", "Mark a planting spot", "Back in the forest, press G for planting mode, select owned stock and click the intended ground spot. This creates a planned marker, not an immediately established tree. Esc leaves planting mode."),
             new Step("plant.execution", "Read executor and shelter choices", "Work Plan lets planting use contractor labour or your limited annual time. Shelters add material cost and use the same executor as planting. Check browsing and your budget; changed approved work needs approval again. Review each order before advancing.", true, "plant.plan"),
             new Step("plant.shelter", "Plan a shelter when appropriate", "Set Shelters ON in Work Plan and inspect the planting order's with shelter label. Do this only when you choose protection for the site; this optional practice can wait. The browsing layer later shows whether shelters remain effective."),
@@ -82,6 +82,7 @@ public sealed class LearningObjectivesView
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
     private int shownCount = -1;
     private int shownRegenerationModel = -1;
+    private string shownObjectives = "";
     public VisualElement Root { get; }
     public static IEnumerable<string> StepIds => Topics.SelectMany(t => t.Steps).Select(s => s.Id);
     public bool IsDone(string id) => done.Contains(id);
@@ -138,12 +139,19 @@ public sealed class LearningObjectivesView
     public void Refresh(bool force)
     {
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
-        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel) return;
+        string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));
+        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel && shownObjectives == objectiveText) return;
+        shownObjectives = objectiveText;
         shownCount = done.Count;
         shownRegenerationModel = regenerationModel;
         float position = scroll.scrollOffset.y;
         progress.text = $"{Topics.Count(t => t.Steps.All(s => IsDone(s.Id)))} of {Topics.Length} topics complete · {done.Count} of {StepIds.Count()} steps · " + Summary;
         scroll.Clear();
+        var success = new Foldout { text = "Current forest success objectives", value = true, name = "scenario-success-objectives" };
+        UiKit.Add(success, "These are the current scenario targets, separate from optional learning steps. They describe progress, not a prescription to fell, plant or clear.", "muted");
+        foreach (ScenarioObjectiveResult objective in ui.Manager.Objectives)
+            UiKit.Add(success, ScenarioOneUiFacts.ObjectiveLine(objective), "body");
+        scroll.Add(success);
         Topic next = Topics.FirstOrDefault(t => t.Steps.Any(s => !IsDone(s.Id)));
         foreach (Topic topic in Topics)
         {

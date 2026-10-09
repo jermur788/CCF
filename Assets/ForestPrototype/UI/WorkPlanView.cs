@@ -40,7 +40,7 @@ public sealed class WorkPlanView
         header.Add(right);
         modal.Add(header);
 
-        UiKit.Add(modal, "Tasks come from marks and planting spots you set while walking. Remove a task here; add new ones in the forest.", "muted");
+        UiKit.Add(modal, "Decide which trees to retain and what structure to leave in the forest. This plan reviews execution and cost. Tasks come from your marks and planting spots; remove a task here or add new ones in the forest.", "muted");
         summary = UiKit.Add(modal, "", "body");
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
@@ -247,6 +247,7 @@ public sealed class WorkPlanView
             .OrderBy(o => o.workOrderId).ToList();
         int eligible = m.EligibleCropTreePruningCount;
         VisualElement card = Card($"Pruning · {prune.Count} crop tree(s)", $"{m.CropTreeCount} crop trees designated (blue) · {eligible} eligible for a lift now · Contractor");
+        UiKit.Add(card, "Pruning is a retained-tree timber-quality treatment. The treatment is recorded, but Scenario One applies no timber-price premium for pruning.", "muted");
         card.Add(UiKit.Button($"Add {eligible} eligible crop tree pruning task(s)", () => { m.BatchPruneCropTrees(); Refresh(true); }, eligible > 0 && m.CanEditWorkPlan));
         if (prune.Count > 0)
         {
@@ -282,7 +283,7 @@ public sealed class WorkPlanView
 
     private void BuildNursery(ScenarioOneManager m)
     {
-        VisualElement card = Card("Nursery — planting stock", "Saplings are paid for when bought and used when planted.");
+        VisualElement card = Card("Nursery — planting stock", "Buying stock does not plant it. Contractor planting and shelter materials cost extra; unsheltered planting with your own time has no external labour charge. Review execution costs before spending your cash.");
         VisualElement qty = UiKit.Row(card, "row-wrap");
         UiKit.Add(qty, "Quantity:", "body", "gap");
         foreach (int amount in new[] { 1, 5, 10, 25 })
@@ -297,8 +298,29 @@ public sealed class WorkPlanView
             VisualElement row = UiKit.Row(card, "row-wrap");
             UiKit.Add(row, $"{offer.displayName} · {UiKit.Money(offer.unitPriceCents)} each · own {m.GetStockQuantity(offer.itemId)} · "
                 + $"reserved {m.GetReservedStockQuantity(offer.itemId)}", "body", "gap");
-            row.Add(UiKit.Button($"Buy {purchaseQuantity}", () => { m.TryPurchaseStock(offer.itemId, purchaseQuantity); Refresh(true); }, m.CanEditWorkPlan));
+            long purchaseCost = (long)purchaseQuantity * offer.unitPriceCents;
+            UiKit.Add(card, NurseryPurchaseSummary(m, offer, purchaseQuantity), "muted").name = "nursery-warning-" + offer.itemId;
+            row.Add(UiKit.Button($"Buy {purchaseQuantity} · {UiKit.Money(purchaseCost)}", () => { m.TryPurchaseStock(offer.itemId, purchaseQuantity); Refresh(true); }, m.CanEditWorkPlan));
         }
+    }
+
+    // Read existing quotes and minimums; this warning never rejects a purchase.
+    public static string NurseryPurchaseSummary(ScenarioOneManager m, ScenarioShopEntry offer, int quantity)
+    {
+        long cost = (long)quantity * offer.unitPriceCents;
+        CashOutlookInput current = WorkPlanOverview.OutlookInput(m, m.GetHarvestQuote(false), m.GetHarvestQuote(true));
+        CashOutlook after = CashOutlook.Evaluate(new CashOutlookInput(current.Cash - cost, current.MinimumHarvestCharge,
+            current.ApprovedHarvestCost, current.ApprovedHarvestRevenue, current.AllHarvestCost, current.AllHarvestRevenue,
+            current.ApprovedOtherCost, current.PendingOtherCost));
+        string text = $"Purchase now: {UiKit.Money(cost)}. Cash after purchase: {UiKit.Money(m.CashCents - cost)}; "
+            + $"uncommitted after approved work costs: {UiKit.Money(m.CashCents - cost - m.ReservedContractorCashCents)}. "
+            + "Stock remains in the nursery inventory until planting work succeeds. ";
+        if (cost > m.CashCents - m.ReservedContractorCashCents)
+            text += "This purchase exceeds your uncommitted cash. ";
+        string warning = WorkPlanOverview.WarningText(after, current.MinimumHarvestCharge);
+        return text + (string.IsNullOrEmpty(warning)
+            ? $"Expected cash after purchase and all planned work: {UiKit.Money(after.ExpectedIfAllApproved)}. Future planting work is extra; harvesting visits cost at least {UiKit.Money(current.MinimumHarvestCharge)}."
+            : "After this purchase: " + warning);
     }
 
     private void BuildReference(ScenarioOneManager m)

@@ -37,7 +37,7 @@ public static class ScenarioEcologyReviewLines
         // 3. Regeneration by species, natural versus planted.
         var bySpecies = current.species.Where(s => s != null && (s.regenerationCells > 0 || s.plantedJuveniles > 0))
             .OrderBy(s => s.speciesId, System.StringComparer.Ordinal)
-            .Select(s => $"{s.speciesId} {s.regenerationCells}"
+            .Select(s => $"{ScenarioOneUiFacts.SpeciesName(s.speciesId)} {s.regenerationCells}"
                 + (s.plantedRegenerationCells > 0 ? $" ({s.plantedRegenerationCells} planted)" : "")
                 + (s.plantedJuveniles > 0 ? $" +{s.plantedJuveniles} planted juveniles" : ""))
             .ToList();

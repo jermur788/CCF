@@ -175,7 +175,7 @@ public sealed class WalkingHudView
                     + ScenarioOneUiFacts.BrowseState(d, eco.Browsing.BackgroundPressure)
                 : $"Browsing: {band}";
             groundRegen.text = "Regeneration: " + ScenarioOneUiFacts.RegenerationSummary(eco, cell, m.PlantedJuveniles);
-            groundWhy.text = "Why: " + ScenarioOneUiFacts.Why(d);
+            groundWhy.text = "Why: " + ScenarioOneUiFacts.Why(d, eco, cell);
         }
 
         // One prompt: the player's action line, refined by the mark prompt.

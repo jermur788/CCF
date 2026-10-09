@@ -209,12 +209,12 @@ public sealed class StandMapView
         {
             RegenerationDiagnosis empty = default;
             empty.Light = c.Light;
-            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(empty), "muted");
+            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(empty, eco, selectedCell), "muted");
         }
         foreach (RegenerationDiagnosis d in diagnoses.Take(6))
         {
             UiKit.Add(side, $"{d.SpeciesName}{(d.IsPlantedIndividual ? " " + d.JuvenileId : "")}, {UiKit.F(d.Height, "0.00")} m — {ScenarioOneUiFacts.BrowseState(d, pressure)}", "body");
-            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(d), "muted");
+            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(d, eco, selectedCell), "muted");
         }
 
         int index = selectedCell;

@@ -24,8 +24,11 @@ public static class ScenarioOneUiFacts
     }
 
     // One causal sentence; it explains the binding constraint, never prescribes an action.
-    public static string Why(RegenerationDiagnosis d)
+    public static string Why(RegenerationDiagnosis d, ForestEcologyController ecology = null, int cell = -1)
     {
+        if (!d.HasJuvenile && ecology != null && cell >= 0 && cell < ecology.CellCount
+            && !ecology.Cells[cell].SeedRainBySpecies.Values.Any(seed => seed > 0f))
+            return "No seed is reaching this spot yet; an opening alone cannot establish natural regeneration.";
         if (!d.HasJuvenile)
             return d.Light < 0.10f ? "Too dark under the canopy for seedlings to establish." : "No regeneration has established here yet.";
         switch (d.Limit)
@@ -60,8 +63,23 @@ public static class ScenarioOneUiFacts
     {
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
         TreeSpeciesDefinition species = spawner != null ? spawner.ResolveSpecies(speciesId) : null;
-        return species != null ? species.DisplayName : speciesId;
+        if (species != null) return species.DisplayName;
+        switch (speciesId)
+        {
+            case "sitka-spruce": return "Sitka spruce";
+            case "sessile-oak": return "sessile oak";
+            case "beech": return "beech";
+            default: return "Unknown species";
+        }
     }
+
+    // Display only: keep objective IDs, recorded labels and achievement values intact.
+    public static string ObjectiveName(ScenarioObjectiveResult objective)
+        => objective.displayName.Replace("sitka-spruce", SpeciesName("sitka-spruce"))
+            .Replace("sessile-oak", SpeciesName("sessile-oak"));
+
+    public static string ObjectiveLine(ScenarioObjectiveResult objective)
+        => $"{(objective.achieved ? "✓ done" : "○ open")} · {ObjectiveName(objective)}: {objective.currentValue.ToString("0.##", UiKit.Inv)} / {objective.targetValue.ToString("0.##", UiKit.Inv)}";
 
     private static string Capitalise(string text) => string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
 }

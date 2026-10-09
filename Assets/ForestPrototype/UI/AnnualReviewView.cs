@@ -173,6 +173,7 @@ public sealed class AnnualReviewView
             if (sheltered > 0) UiKit.Add(c, $"{sheltered} planted juvenile(s) protected by shelters.", "body");
         }
 
+        UiKit.Add(c, "An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.", "muted");
         UiKit.Add(c, "Retained material", "heading");
         UiKit.Line(c, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
         UiKit.Line(c, "Retained usable timber (stock)", UiKit.F(m.RetainedTimberM3, "0.00") + " m³");
@@ -232,7 +233,7 @@ public sealed class AnnualReviewView
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"OBJECTIVES {objectives.Count(o => o.achieved)} OF {objectives.Count}", "heading");
         foreach (ScenarioObjectiveResult o in objectives)
-            UiKit.Add(card, $"{(o.achieved ? "✓ done" : "○ open")} · {o.displayName}: {o.currentValue:0.##} / {o.targetValue:0.##}", "body");
+            UiKit.Add(card, ScenarioOneUiFacts.ObjectiveLine(o), "body");
         UiKit.Add(card, m.Outcome == ScenarioOneOutcome.Completed ? $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear})."
             : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.TutorialHint, "muted");
         scroll.Add(card);
@@ -245,7 +246,7 @@ public sealed class AnnualReviewView
         UiKit.Add(card, $"CENTURY REVIEW — YEAR {century.year}", "heading");
         UiKit.Add(card, $"Outcome: {century.outcome}. Compared with the frozen Reference Future, not an optimal score or prescription.", "body");
         foreach (ScenarioObjectiveResult c in century.referenceComparisons)
-            UiKit.Add(card, $"{c.displayName}: yours {c.currentValue:0.##} · reference {c.targetValue:0.##}", "body");
+            UiKit.Add(card, $"{ScenarioOneUiFacts.ObjectiveName(c)}: yours {c.currentValue:0.##} · reference {c.targetValue:0.##}", "body");
         scroll.Add(card);
     }
 }

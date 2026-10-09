@@ -108,6 +108,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     private IEnumerator Verify()
     {
         ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager; saves = FindFirstObjectByType<ForestSaveController>(); player = ui.Player;
+        // Run with the rendered launcher (run_clearance_gate.py --interactive).
+        Check(!Application.isBatchMode, "MenuTutorialVerification requires an interactive (non -batchmode) Editor: batch mode cannot lock the cursor, so walking aim, tree inspection and keyboard input to play mode are unavailable");
         output = Environment.GetEnvironmentVariable("CCF_ACCEPTANCE_OUTPUT"); Directory.CreateDirectory(output);
         foreach (string tail in new[] { "forest-save.json", "forest-save.json.bak", "forest-save.json.tmp" })
         {
@@ -206,8 +208,29 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Vector2 destination = ui.Ecology.Cells[target].Center;
         player.transform.position = new Vector3(destination.x, player.transform.position.y, destination.y);
         player.LookToward(new Vector3(destination.x, -2, destination.y + 0.1f));
-        for (int i = 0; i < 20; i++) yield return null;
-        ui.Map.WaypointDescription(player.transform.position);
+        // Wait for actual walking/aim state, rather than assuming 20 frames
+        // cover the same input time on every rendered Editor run.
+        float arrivalDeadline = Time.realtimeSinceStartup + 1f;
+        while (Time.realtimeSinceStartup < arrivalDeadline && !ui.Learning.IsDone("map.inspectsite"))
+        {
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+            ui.Map.WaypointDescription(player.transform.position);
+            yield return null;
+        }
+        if (!ui.Learning.IsDone("map.inspectsite"))
+        {
+            // A stem/vegetation can obstruct the ground ray. The accepted
+            // lesson also permits inspecting a tree in the destination cell.
+            ForestTree destinationTree = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+                .Where(t => t.IsLiving && ui.Ecology.GetCellIndex(t.transform.position) == target)
+                .OrderBy(t => Vector3.Distance(t.transform.position, player.transform.position)).First();
+            player.LookToward(destinationTree.transform.position + Vector3.up * 1.3f);
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return Press(Key.E);
+            ui.Map.WaypointDescription(player.transform.position);
+            Debug.Log("MENU_DESTINATION_INSPECTION_FALLBACK tree=" + (player.InspectedTree != null ? player.InspectedTree.TreeId : "none"));
+            if (player.IsInspecting) yield return Press(Key.E);
+        }
         Check(ui.Learning.IsDone("map.arrive") && ui.Learning.IsDone("map.inspectsite"), "Destination/site inspection not recorded");
         yield return CaptureScreen("hud-waypoint-arrived");
         Check(hudDirection.text.StartsWith("At destination") && hudArrow.resolvedStyle.display == DisplayStyle.None, "HUD arrival state missing");
