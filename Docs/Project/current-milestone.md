@@ -8,11 +8,11 @@ Define current scope. Verified implementation belongs in Overview; accepted deci
 
 **Scenario One Completion & External-Test Readiness**
 
-Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`; this does not mean S1-A or external-test readiness is implemented.
+Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. Stage A is still **not ready** because S1-B remains outstanding; standalone Player testing is not complete.
 
 ## In scope
 
-- S1-A: teaching readiness for the intended first management cycle.
+- S1-A: teaching readiness for the intended first management cycle — integrated and verified.
 - S1-B: standalone-build readiness for the intended external test slice.
 - S1-C: review/history work needed to understand repeated intervention.
 - S1-D: second-intervention work needed for the full Scenario One loop.
