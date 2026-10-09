@@ -19,6 +19,10 @@ public sealed class ForestBuildable : MonoBehaviour
     [SerializeField] private ForestBuildable requiredBuildable;
     [SerializeField] private GameObject unbuiltVisual;
     [SerializeField] private GameObject builtVisual;
+    // CCF currently has no player building options, so construction sites stay hidden and cannot be
+    // built. Turn this on only for a structure the player can actually build; saved built structures
+    // still appear either way.
+    [SerializeField] private bool constructionAvailable = false;
 
     private Camera view;
     private Transform playerRoot;
@@ -48,7 +52,7 @@ public sealed class ForestBuildable : MonoBehaviour
             messageTimer -= Time.deltaTime;
 
         isLooking = false;
-        if (isBuilt || view == null || Cursor.lockState != CursorLockMode.Locked)
+        if (!constructionAvailable || isBuilt || view == null || Cursor.lockState != CursorLockMode.Locked)
             return;
 
         int hitCount = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hitBuffer, interactionDistance);
@@ -84,6 +88,9 @@ public sealed class ForestBuildable : MonoBehaviour
 
     private void TryBuild()
     {
+        if (!constructionAvailable)
+            return;
+
         if (!IsPrerequisiteMet)
         {
             SetMessage($"Requires {requiredBuildable.DisplayName}", 3f);
@@ -174,13 +181,20 @@ public sealed class ForestBuildable : MonoBehaviour
 
     private void SetVisuals(bool built)
     {
+        bool showSite = !built && constructionAvailable;
         if (unbuiltVisual != null)
-            unbuiltVisual.SetActive(!built);
+            unbuiltVisual.SetActive(showSite);
         if (builtVisual != null)
             builtVisual.SetActive(built);
+
+        // A hidden site must not leave an invisible solid box or an interaction target behind.
+        bool solid = built || constructionAvailable;
+        foreach (Collider siteCollider in GetComponentsInChildren<Collider>(true))
+            siteCollider.enabled = solid;
     }
 
     public string BuildId => buildId;
+    public bool ConstructionAvailable => constructionAvailable;
     public string DisplayName => displayName;
     public bool IsBuilt => isBuilt;
     public int CarriedWoodCapacityBonus => carriedWoodCapacityBonus;

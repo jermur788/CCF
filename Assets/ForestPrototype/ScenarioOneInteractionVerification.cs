@@ -156,6 +156,15 @@ public sealed class ScenarioOneInteractionGate : MonoBehaviour
         player.RestoreCarriedWood(0);
         foreach (ForestWoodStorage storage in FindObjectsByType<ForestWoodStorage>(FindObjectsSortMode.None))
             storage.RestoreStoredWood(0);
+        // There are no player building options yet, so a site defaults to unavailable: it must
+        // neither build nor spend timber.
+        Check(!build.ConstructionAvailable, "construction sites must default to unavailable");
+        float beforeUnavailable = manager.RetainedTimberM3;
+        Invoke(build, "TryBuild");
+        Check(!build.IsBuilt && Mathf.Abs(manager.RetainedTimberM3 - beforeUnavailable) < 0.0001f,
+            "an unavailable construction site built or spent timber");
+        // Keep the latent build mechanic covered for when a structure becomes buildable.
+        typeof(ForestBuildable).GetField("constructionAvailable", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(build, true);
         float beforeBuild = manager.RetainedTimberM3;
         Invoke(build, "TryBuild");
         Check(build.IsBuilt && player.CarriedWood == 0
