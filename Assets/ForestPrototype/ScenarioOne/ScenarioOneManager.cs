@@ -538,6 +538,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     private void Update()
     {
+        if (StandaloneSessionMenu.IsOpen) return; // Session controls own input while open.
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
