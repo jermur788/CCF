@@ -8,13 +8,14 @@ Define current scope. Verified implementation belongs in Overview; accepted deci
 
 **Scenario One Completion & External-Test Readiness**
 
-Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. S1-B Standalone-Build Readiness is integrated as the approved source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` plus the separate presentation correction `fac782072f23e28518e8840c621112fe4074db45` (D-055, unavailable construction frames hidden), and is post-integration verified with one open gate (P2 interactive rendered layout; see the Overview). Stage A is still **not ready**: the playable stand must first be enlarged to a minimum of 80 × 80 m (D-056, accepted, not implemented), no pilot Windows candidate exists (the first candidate B06 is historical evidence only), and native Windows technical smoke has not been performed.
+Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. S1-B Standalone-Build Readiness is integrated as the approved source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` plus the separate presentation correction `fac782072f23e28518e8840c621112fe4074db45` (D-055, unavailable construction frames hidden), and is post-integration verified with one open gate (P2 interactive rendered layout; see the Overview). The 80 × 80 m Scenario One stand expansion (D-056) is integrated and verified on main at `a309f99e0f2c6a770044604bbf88ee2e2471a5b5` (see the Overview). Stage A is still **not ready**: the area-sensitive Enlarged80 calibration is still required (the current absolute objective thresholds are proportionally much easier in the enlarged stand), no pilot Windows candidate exists (the first candidate B06 is historical evidence only), Player and native-Windows performance have not been measured, and native Windows technical smoke has not been performed.
 
 ## In scope
 
 - S1-A: teaching readiness for the intended first management cycle — integrated and verified.
 - S1-B: standalone-build readiness for the intended external test slice — integrated and verified (one open gate); the remaining release gate is native Windows technical smoke on the pilot candidate.
-- Scenario One stand expansion: enlarge the playable property to a minimum of 80 × 80 m before external pilot testing (D-056). Accepted and next required; **not implemented**; needs its own bounded packet and an inspect-before-write audit, not a uniform scale-up.
+- Scenario One stand expansion to 80 × 80 m (D-056): integrated and verified. New games use Enlarged80; Legacy40 saves and Reference Future v1 are unchanged.
+- Enlarged80 area-sensitive calibration: **next required task**. Objective thresholds, century targets and economy/workload values were deliberately not recalibrated when the stand was enlarged; their current meaning is recorded in `Docs/Verification/StandExpansion/Enlarged80Calibration.md`. It needs its own bounded packet and is not a uniform ×4 scale-up.
 - S1-C: review/history work needed to understand repeated intervention.
 - S1-D: second-intervention work needed for the full Scenario One loop.
 - Bounded task specifications, verification evidence and external-test feedback for each slice. Detailed mechanics remain subject to their own accepted packets.
@@ -23,11 +24,11 @@ Complete the teaching, standalone-build, review/history and second-intervention 
 
 External testing may proceed in bounded stages: an initial first-cycle pilot after teaching and standalone-build readiness work, followed by full Scenario One testing after the review/history and second-intervention work is implemented.
 
-**Stage A — first-cycle pilot:** after P3 + S1-A + S1-B and the enlarged ≥ 80 × 80 m stand (D-056), test one coherent first management cycle through post-intervention observation. Full Scenario One completion is not a prerequisite for this bounded pilot.
+**Stage A — first-cycle pilot:** after P3 + S1-A + S1-B and the enlarged 80 × 80 m stand (D-056, integrated) with its area-sensitive calibration, test one coherent first management cycle through post-intervention observation. Full Scenario One completion is not a prerequisite for this bounded pilot.
 
 **Stage B — full-loop testing:** after S1-C + S1-D, test the full Scenario One repeated-intervention loop.
 
-**Pre-pilot sequence (accepted 2026-10-10):** S1-B integration and hidden construction frames (done) → clean context publication → dedicated Scenario One ≥ 80 × 80 m stand-expansion task → full regression plus spatial/performance validation → new Windows pilot candidate built from the enlarged committed source → Sonnet 5.5 xhigh combined pre-pilot review of that candidate → fix genuine blockers only → native Windows technical smoke → beginner Stage-A pilot. B06 and any pre-expansion build are not sent to beginner testers. Reference Future v1 is not resized, regenerated, migrated or reinterpreted.
+**Pre-pilot sequence (accepted 2026-10-10):** S1-B integration and hidden construction frames (done) → Scenario One 80 × 80 m stand expansion with full regression and spatial validation (done, `a309f99`) → Enlarged80 area-sensitive calibration → minimal startup/title screen → standalone Player performance/build profiling → new Windows pilot candidate built from the enlarged committed source → Sonnet 5.5 xhigh combined pre-pilot review of that candidate → native Windows technical smoke → fix genuine blockers arising from those reviews → beginner Stage-A pilot. S1-C and S1-D are not prerequisites for the Stage-A first-cycle pilot. B06 and any pre-expansion build are not sent to beginner testers. Reference Future v1 is not resized, regenerated, migrated or reinterpreted.
 
 ## Completion checks
 
@@ -38,7 +39,7 @@ External testing may proceed in bounded stages: an initial first-cycle pilot aft
 
 ## Context and setup follow-ups
 
-The repository migration/generator is integrated. Permanent Drive context and Game Dev project instructions/attachments were refreshed after Storm integration and the subsequent canonical consistency cleanup. The post-S1-B refresh regenerates the current canonical set; publication/read-back status belongs in `Docs/Verification/S1BIntegration/IntegrationHandoff.md`, and Drive/attachments are not claimed current until that handoff records them. Independent Unity smoke checks in worker worktrees remain open and are not completed by documentation publication.
+The repository migration/generator is integrated. Permanent Drive context and Game Dev project instructions/attachments were refreshed after Storm integration and the subsequent canonical consistency cleanup. The post-80 m refresh regenerates the current canonical set from its context commit; its Drive publication and read-back status are reported in the integration handoff delivered to the Manager, and Drive/attachments are not claimed current by this document. Independent Unity smoke checks in worker worktrees remain open and are not completed by documentation publication.
 
 ## Live coordination
 

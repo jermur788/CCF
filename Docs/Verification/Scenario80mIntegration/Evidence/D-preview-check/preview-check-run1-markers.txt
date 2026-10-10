@@ -1,0 +1,2 @@
+INTEG_PREVIEW_CHECK geometry switched Enlarged80 -> Legacy40 -> Enlarged80
+INTEG_PREVIEW_VERIFY_FAIL: System.InvalidOperationException: player position restored ((13.50, 0.08, -8.25) vs (13.50, 0.10, -8.25))

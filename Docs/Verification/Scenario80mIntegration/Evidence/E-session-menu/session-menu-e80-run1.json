@@ -1,0 +1,12 @@
+{
+  "label": "session-menu-e80-run1",
+  "gate": "SessionMenuVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 97.8,
+  "geometry_env": null,
+  "markers": [
+    "S1B_SESSION_MENU_VERIFY_PASS"
+  ]
+}

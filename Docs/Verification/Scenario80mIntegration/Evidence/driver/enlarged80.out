@@ -1,0 +1,7 @@
+{"label": "run1", "status": "PASS", "exit_code": 0, "seconds": 94.8}
+    ENLARGED80_STARTUP_MS model=1 generate=1901.1 initializeScenario=216.7 trees=1344
+    ENLARGED80_LIGHT_BEFORE (modelled relative light) dense-interior=0.0029 property-edge=0.0009 selective=0.0014 concentrated=0.0039
+    ENLARGED80_LIGHT_AFTER (modelled relative light) dense-interior=0.0048 property-edge=0.0013 selective=0.0073 concentrated=1 cashDeltaCents=-230146
+    ENLARGED80_CHECK first-cycle intervention in two separated areas: ordering concentrated > selective >= dense interior (modelled relative light 1 > 0.0073 >= 0.0048; property-edge 0.0013)
+    ENLARGED80_STARTUP_MS model=1 generate=1877.6 initializeScenario=218.1 trees=1344
+    ENLARGED80_VERIFY_PASS checks=12

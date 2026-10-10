@@ -1,0 +1,16 @@
+{
+  "label": "preview-check-run2",
+  "gate": "IntegrationPreviewCheck",
+  "mode": "batch",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 77.7,
+  "geometry_env": null,
+  "markers": [
+    "INTEG_PREVIEW_CHECK geometry switched Enlarged80 -> Legacy40 -> Enlarged80",
+    "INTEG_PREVIEW_CHECK player transform, look pitch and camera restored exactly",
+    "INTEG_PREVIEW_CHECK waypoint cell, target and marker restored",
+    "INTEG_PREVIEW_CHECK Stand Map is back on the 16 x 16 grid",
+    "INTEG_PREVIEW_VERIFY_PASS"
+  ]
+}

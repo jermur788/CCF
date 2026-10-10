@@ -1,0 +1,12 @@
+{
+  "label": "session-menu-l40-run1",
+  "gate": "SessionMenuVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 48.7,
+  "geometry_env": "0",
+  "markers": [
+    "S1B_SESSION_MENU_VERIFY_PASS"
+  ]
+}

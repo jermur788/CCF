@@ -1,0 +1,13 @@
+head=a309f99e0f2c6a770044604bbf88ee2e2471a5b5 pre-unexpected-entries=1
+STEP stand-geometry exit=0 seconds=60
+STEP enlarged80 exit=0 seconds=95
+STEP preview-check exit=1 seconds=49
+STEP session-menu-e80 exit=0 seconds=98
+STEP session-menu-l40 exit=0 seconds=49
+STEP targeted exit=0 seconds=433
+STEP p2 exit=0 seconds=143
+STEP p3 exit=0 seconds=188
+STEP regression exit=0 seconds=2379
+STEP review exit=0 seconds=556
+post-unexpected-entries=12
+DONE

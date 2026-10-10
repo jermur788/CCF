@@ -1,0 +1,20 @@
+{"run": "batch-1", "status": "PASS", "seconds": 55.0, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "batch-2", "status": "PASS", "seconds": 54.8, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "interactive", "status": "PASS", "seconds": 78.0, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+P3_GATES_PASS deterministic=True
+NOTE git status after run (revert Editor normalisation if unrelated):
+ M .vscode/settings.json
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Cap.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Pores.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Cap.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Underside.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
+?? Build
+?? Library
+

@@ -1,0 +1,52 @@
+{
+  "world": {
+    "geometry": 1,
+    "cells": 256,
+    "trees": 1344
+  },
+  "map1280": {
+    "cells": 256,
+    "allCellsInsideScreen": true,
+    "smallestCellPx": "35",
+    "gridRect": "(x:288.75, y:120.00, width:680.00, height:600.00)",
+    "sidePanelRect": "(x:1045.00, y:120.00, width:330.00, height:725.00)",
+    "gridAndSideOverlap": false,
+    "modalRect": "(x:210.00, y:36.25, width:1180.00, height:827.50)",
+    "cellLabelTextOverflows": false,
+    "root": "(x:0.00, y:0.00, width:1600.00, height:900.00)"
+  },
+  "map1920": {
+    "cells": 256,
+    "allCellsInsideScreen": true,
+    "smallestCellPx": "35",
+    "gridRect": "(x:295.83, y:116.67, width:666.67, height:586.67)",
+    "sidePanelRect": "(x:1045.00, y:116.67, width:330.00, height:728.33)",
+    "gridAndSideOverlap": false,
+    "modalRect": "(x:210.00, y:35.83, width:1180.00, height:828.33)",
+    "cellLabelTextOverflows": false,
+    "root": "(x:0.00, y:0.00, width:1600.00, height:900.00)"
+  },
+  "inspect_interior": {
+    "tree": "PO0808",
+    "edgeDistanceM": "16.199",
+    "competitionIndex": "6.133"
+  },
+  "inspect_edge": {
+    "tree": "PO2239",
+    "edgeDistanceM": "2.341",
+    "competitionIndex": "8.446"
+  },
+  "advanceYearSeconds": "2.263",
+  "firstCycle": {
+    "marksImported": 20,
+    "cashBeforeCents": 1200000,
+    "cashAfterCents": 958787,
+    "livingTreesAfter": 1324
+  },
+  "walkingEstimate": {
+    "startToNorthEastAreaMeters": "30.796",
+    "northEastToSouthWestAreaMeters": "67.882",
+    "secondsWalking4mps_NE_to_SW": "16.971",
+    "secondsRunning7mps_NE_to_SW": "9.697"
+  }
+}
