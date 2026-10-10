@@ -2,6 +2,14 @@
 
 Task branch `task/scenario-one-80m-stand`, worktree `/home/jer/CCF-s1-80m`, BASE `11c3596072a0422d5426291e370129d209c56342`, context `8bed3996aefd1780c62744b648094efe5b394feb`. Audit date 2026-10-10 (Europe/Dublin). **No production file was modified.** Only this audit, a disposable measurement harness (`Tools/Verification/StandExpansion/`) and its evidence were added.
 
+> **Erratum (added with the 80B implementation).** The Legacy40 lattice description below (1.9 m spacing, span ±19 m) is the *code
+> default*, not what the scene uses. `ForestTest.unity` serializes `plantingSpacingMeters = 2.0`, so the real lattice is 21 × 21 at
+> **2.0 m** nominal spacing; its outermost rows would sit at ±20 m and are **clamped to ±19.4 m** (`standWidthMeters * 0.5 − 0.6`).
+> The clamp stacks the outermost row and column 1.4 m from their neighbours, which is why 61 Legacy40 trees stand exactly on the
+> ±19.4 m line (measured in `Enlarged80Verification`). Tree counts, IDs and positions measured in this audit came from the running
+> scene and are unaffected; only the prose description was wrong. The 80 m *candidate* benchmark here was a scratch
+> re-parameterisation, not the implemented generator (see `Enlarged80Handoff.md`).
+
 ## 0. Result
 
 **STOP — decision required.** The accepted ≥ 80 × 80 m expansion cannot be implemented inside the packet's decision rule, because the audit found that it needs four things the packet reserves for the Manager:

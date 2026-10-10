@@ -132,6 +132,16 @@ public sealed class StandExpansionAuditRunner : MonoBehaviour
             ["secondsFromEditorStartToHarnessStart"] = F(sceneReadySeconds)
         };
 
+        // Live mode (80B): measure the world exactly as it starts (no scratch candidate), under whatever geometry the
+        // new-game policy or the runner's Editor-only CCF_STAND_GEOMETRY override selected.
+        string liveLabel = Environment.GetEnvironmentVariable("CCF_AUDIT_LIVE_LABEL");
+        if (!string.IsNullOrEmpty(liveLabel))
+        {
+            root["liveGeometryModel"] = e.StandGeometryModelVersion;
+            yield return MeasureWorld(liveLabel);
+            yield break;
+        }
+
         yield return MeasureWorld("current-40m");
 
         // ---- Build the density-preserving 80 m candidate (play-mode scratch only) ----

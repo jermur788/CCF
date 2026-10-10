@@ -1,0 +1,19 @@
+[
+  {
+    "production_source_unchanged": true,
+    "gate": "ScenarioOnePlantingVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 55.79,
+    "mode": "batch",
+    "source_ref": "integration-working-tree",
+    "run_head": "9f49e2e7eee3c2ff565f6aef0980183c5400982c",
+    "run_branch": "task/scenario-one-80m-stand",
+    "original_source_sha256": "1297c9039da7583c27cbabd883dd624c6161d855bcee34c9edef9f5396ab7c77",
+    "fixture_adjustment": null,
+    "source_sha256": "1297c9039da7583c27cbabd883dd624c6161d855bcee34c9edef9f5396ab7c77",
+    "markers": [
+      "SCENARIO_ONE_PLANTING_VERIFY_PASS"
+    ]
+  }
+]

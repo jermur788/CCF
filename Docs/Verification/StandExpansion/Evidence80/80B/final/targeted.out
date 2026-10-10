@@ -1,0 +1,8 @@
+{"name": "teaching-batch-1", "status": "PASS", "seconds": 48.1}
+{"name": "teaching-batch-2", "status": "PASS", "seconds": 33.1}
+{"name": "teaching-rendered", "status": "PASS", "seconds": 61.5}
+{"name": "menu-standalone-1", "status": "PASS", "seconds": 76.6}
+{"name": "menu-standalone-2", "status": "PASS", "seconds": 66.3}
+{"name": "clearance", "status": "PASS", "seconds": 61.1}
+{"name": "removal", "status": "PASS", "seconds": 48.2}
+S1A_TARGETED_PASS

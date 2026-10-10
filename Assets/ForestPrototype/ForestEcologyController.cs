@@ -179,6 +179,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     private void Awake()
     {
         browsing.BackgroundPressure = backgroundBrowsePressure;
+        // The physical property (ground, boundary ridges, camera range) follows the ecology geometry. Added at
+        // runtime, like other scenario components, so the scene file stays the authored Legacy40 baseline.
+        if (GetComponent<StandWorldBoundary>() == null)
+            gameObject.AddComponent<StandWorldBoundary>();
         RebuildGrid();
     }
 

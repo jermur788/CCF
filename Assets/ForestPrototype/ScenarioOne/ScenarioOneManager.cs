@@ -450,6 +450,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 ecology.RegenerationModelVersion = NewGameRegenerationModel;
                 ecology.GrowthModelVersion = NewGameGrowthModel;
                 ecology.StormModelVersion = StormModel.None;
+                // Geometry is part of a new game's setup too (D-056): Enlarged80 by policy (Legacy40 only for the
+                // Editor-only verification override). A load replaces it with the geometry recorded in the save.
+                ecology.ApplyStandGeometry(StandGeometryPolicy.NewGameModelForSession);
             }
             InitializeNewScenario();
         }

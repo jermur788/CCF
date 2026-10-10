@@ -92,7 +92,10 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Check(StandGeometryModel.CellCount(StandGeometryModel.Legacy40) == 64 && StandGeometryModel.CellCount(StandGeometryModel.Enlarged80) == 256, "model cell counts 64/256");
         Check(StandGeometryModel.StandSizeMeters(0) == 40f && StandGeometryModel.StandSizeMeters(1) == 80f && StandGeometryModel.CellSizeMeters == 5f, "model sizes");
         Check(!StandGeometryModel.IsKnown(-1) && !StandGeometryModel.IsKnown(2) && !StandGeometryModel.IsKnown(7), "unknown models are not known");
-        Check(StandGeometryPolicy.NewGameModel == StandGeometryModel.Legacy40 && StandGeometryPolicy.NewGameModelForSession == StandGeometryModel.Legacy40, "80A: new games stay Legacy40");
+        // 80B: the production policy is Enlarged80 (Enlarged80Verification asserts that without any override). This
+        // foundation gate checks Legacy40 behaviour, so its runner sets the Editor-only Legacy40 override.
+        Check(StandGeometryPolicy.NewGameModel == StandGeometryModel.Enlarged80, "80B: the production new-game policy is Enlarged80");
+        Check(StandGeometryPolicy.NewGameModelForSession == StandGeometryModel.Legacy40, "this gate runs under the Editor-only Legacy40 verification override (CCF_STAND_GEOMETRY=0)");
         Check(e.StandGeometryModelVersion == StandGeometryModel.Legacy40 && e.CellCount == 64 && e.CellsPerAxis == 8, "fresh world is explicitly Legacy40 on an 8 x 8 grid");
         Check(Mathf.Approximately(e.StandBounds.width, 40f) && Mathf.Approximately(e.StandAreaHectares, 0.16f), "Legacy40 bounds 40 x 40 m, 0.16 ha");
         Check(LivingTrees() == 336, "the 336-tree Legacy40 starting world is unchanged");

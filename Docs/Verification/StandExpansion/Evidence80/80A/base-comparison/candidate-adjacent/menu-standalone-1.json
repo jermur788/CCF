@@ -1,0 +1,33 @@
+{
+  "name": "menu-standalone-1",
+  "gate": "MenuTutorialVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 75.9,
+  "markers": [
+    "MENU_RENDERED_PASS WalkingHud 1280x720",
+    "MENU_RENDERED_PASS WalkingHud 1600x900",
+    "MENU_RENDERED_PASS WalkingHud 1920x1080",
+    "MENU_HUD_PASS firstUse=true repeat=false F1=true Escape=true world=unchanged",
+    "MENU_RENDERED_PASS TreeInspection 1280x720",
+    "MENU_RENDERED_PASS TreeInspection 1600x900",
+    "MENU_RENDERED_PASS TreeInspection 1920x1080",
+    "MENU_INSPECTION_PASS DBH=true competition=true marksAreProposals=true",
+    "MENU_RENDERED_PASS StandMap 1280x720",
+    "MENU_RENDERED_PASS StandMap 1600x900",
+    "MENU_RENDERED_PASS StandMap 1920x1080",
+    "HUD_WAYPOINT_PASS visible=true sizes=1280,1600,1920 bearings=0,90,-90,180 arrival=true clear=true noTeleport=true",
+    "MENU_MAP_PASS selectCell=true waypoint=true HUDdirection=true noRemoteManagement=true repeat=false",
+    "MENU_RENDERED_PASS WorkPlan 1280x720",
+    "MENU_RENDERED_PASS WorkPlan 1600x900",
+    "MENU_RENDERED_PASS WorkPlan 1920x1080",
+    "MENU_RENDERED_PASS AnnualReview 1280x720",
+    "MENU_RENDERED_PASS AnnualReview 1600x900",
+    "MENU_RENDERED_PASS AnnualReview 1920x1080",
+    "MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false",
+    "LEARNING_OBJECTIVES_PASS mapSubsteps=true M=mapOnly X=fell O=objectives eightTopics=true readingExplicit=true actionsObserved=true laterYears=true profileReload=true worldUnchangedByReading=true",
+    "MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true",
+    "MENU_TUTORIAL_PLAYTHROUGH_PASS"
+  ]
+}

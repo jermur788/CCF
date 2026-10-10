@@ -1,0 +1,231 @@
+{
+  "environment": {
+    "unity": "6000.6.0f1",
+    "platform": "LinuxEditor",
+    "gpu": "NVIDIA GeForce GTX 980M",
+    "cpu": "Intel(R) Core(TM) i5-6300HQ CPU @ 2.30GHz",
+    "cores": 4,
+    "ramMB": 15873,
+    "batchMode": false,
+    "label": "UNITY EDITOR in play mode on Linux; NOT a Player or native Windows measurement",
+    "secondsFromEditorStartToHarnessStart": "4.011"
+  },
+  "liveGeometryModel": 1,
+  "enlarged80-live": {
+    "label": "enlarged80-live",
+    "geometry": {
+      "standMeters": "80 x 80",
+      "areaHa": "0.64",
+      "cellSizeM": "5",
+      "cellsPerAxis": 16,
+      "cells": 256,
+      "livingTrees": 1344,
+      "stemsPerHa": "2100",
+      "playerStart": "(-0.43, 0.03, 5.25)",
+      "maxTreeAbsXZ": "39.4"
+    },
+    "treeEdgeBands": {
+      "0-5m": {
+        "trees": 364,
+        "share": "0.271",
+        "meanDbhCm": "15.516",
+        "meanHeightM": "11.636",
+        "meanHegyiCI": "6.774"
+      },
+      "5-10m": {
+        "trees": 224,
+        "share": "0.167",
+        "meanDbhCm": "15.375",
+        "meanHeightM": "11.518",
+        "meanHegyiCI": "9.067"
+      },
+      ">10m": {
+        "trees": 756,
+        "share": "0.563",
+        "meanDbhCm": "15.409",
+        "meanHeightM": "11.539",
+        "meanHegyiCI": "9.31"
+      },
+      "within-8m-cutoff": {
+        "trees": 482,
+        "share": "0.359",
+        "meanDbhCm": "15.475",
+        "meanHeightM": "11.607",
+        "meanHegyiCI": "7.301"
+      },
+      "beyond-8m-true-interior": {
+        "trees": 862,
+        "share": "0.641",
+        "meanDbhCm": "15.408",
+        "meanHeightM": "11.536",
+        "meanHegyiCI": "9.299"
+      }
+    },
+    "meanHegyiCIAll": "8.583",
+    "dbhCm": {
+      "mean": "15.432",
+      "min": "9.646",
+      "max": "22.238"
+    },
+    "heightM": {
+      "mean": "11.562",
+      "min": "7.635",
+      "max": "15.71"
+    },
+    "ageYears": "20",
+    "areaShareBeyondEdge": {
+      "5m": "0.766",
+      "8m": "0.64",
+      "10m": "0.563"
+    },
+    "cellLightByEdgeBand": {
+      "0-5m": {
+        "cells": 60,
+        "meanLight": "0.002",
+        "meanCanopy": "0.998"
+      },
+      "5-10m": {
+        "cells": 52,
+        "meanLight": "0.002",
+        "meanCanopy": "0.998"
+      },
+      ">10m": {
+        "cells": 144,
+        "meanLight": "0.021",
+        "meanCanopy": "0.979"
+      }
+    },
+    "loops": {
+      "competitionPairIterations_NxN-1": 1804992,
+      "orderedPairsWithin8m": 50140,
+      "canopyAndSeedRainCellsTimesTrees": 344064,
+      "meanNeighboursWithin8m": "37.307"
+    },
+    "timingsMs_Editor": {
+      "recomputeCanopy": {
+        "median": "184.874",
+        "min": "177.648",
+        "max": "200.664"
+      },
+      "recomputeSeedRain": {
+        "median": "58.35",
+        "min": "56.708",
+        "max": "58.643"
+      },
+      "competitionHegyiPass": {
+        "median": "18.267",
+        "min": "17.492",
+        "max": "25.031"
+      }
+    },
+    "memoryBefore": {
+      "monoUsedMB": "62.191",
+      "unityAllocatedMB": "1887.002",
+      "unityReservedMB": "2754.508",
+      "gcTotalMB": "62.191",
+      "processRssMB": 4685
+    },
+    "renderedFrameTiming": {
+      "north": {
+        "medianMs": "43.822",
+        "p95Ms": "70.223",
+        "maxMs": "320.682"
+      },
+      "east": {
+        "medianMs": "37.735",
+        "p95Ms": "50.297",
+        "maxMs": "63.493"
+      },
+      "south": {
+        "medianMs": "37.492",
+        "p95Ms": "53.357",
+        "maxMs": "57.746"
+      },
+      "west": {
+        "medianMs": "41.848",
+        "p95Ms": "50.393",
+        "maxMs": "66.469"
+      },
+      "allHeadings": {
+        "medianMs": "40.457",
+        "p95Ms": "53.531",
+        "maxMs": "320.682",
+        "fpsAtMedian": "24.717"
+      },
+      "note": "Editor play-mode frame times at 1280x720 with the Editor open; stationary player, four headings. Not Player or native Windows frame times."
+    },
+    "annualAdvance": {
+      "cashBeforeCents": 1200000,
+      "advance1_noWork": {
+        "ok": true,
+        "ms": "1865.793",
+        "year": 1,
+        "feedback": ""
+      },
+      "fellMarksPlaced": 192,
+      "workOrdersImported": 192,
+      "approved": true,
+      "feedbackAfterApprove": "Approved 192 tasks for €2500.00.",
+      "ownerMinutesUsedAfterApprove": 0,
+      "ownerMinutesPerYear": 2400,
+      "advance2_interventionYear": {
+        "ok": true,
+        "ms": "2587.833",
+        "year": 2,
+        "feedback": ""
+      },
+      "advance3_postIntervention": {
+        "ok": true,
+        "ms": "1490.292",
+        "year": 3,
+        "feedback": ""
+      },
+      "cashAfterCents": 1051151,
+      "retainedTimberM3": "0",
+      "livingTreesAfter": 1152,
+      "reports": 3,
+      "interventionYearReportJson": "{\"year\":2,\"completedTasks\":192,\"failedTasks\":0,\"contractorCostCents\":250000,\"timberRevenueCents\":101151,\"harvestedVolumeM3\":23.414867401123047,\"regenerationRemovalTasks\":0,\"removedRegenerationDensity\":0.0,\"deadwoodCreated\":0,\"deadwoodCreatedM3\":0.0,\"deadwoodDecayedM3\":0.0,\"keptForUseVolumeM3\":0.0,\"closingCashCents\":1051151,\"harvestMinimumAdjustmentCents\":206238,\"ownerMinutes\":0,\"timberSales\":[{\"assortment\":0,\"soldVolumeCm3\":491185,\"revenueCents\":1662},{\"assortment\":1,\"soldVolumeCm3\":10261417,\"revenueCents\":42917},{\"assortment\":2,\"soldVolumeCm3\":9348131,\"revenueCents\":56572}]}"
+    },
+    "memoryAfter": {
+      "monoUsedMB": "82.18",
+      "unityAllocatedMB": "2011.424",
+      "unityReservedMB": "2756.57",
+      "gcTotalMB": "82.184",
+      "processRssMB": 4824
+    },
+    "annualStepSplit": [
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "986.587",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "915.124",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "920.885",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "1648.01",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "1582.89",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      }
+    ]
+  }
+}

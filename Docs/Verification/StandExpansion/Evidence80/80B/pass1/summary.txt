@@ -1,0 +1,10 @@
+base=b024633438ff93e838ca59a5bec00a4df2ade4e5 files=24
+STEP enlarged80 exit=0 seconds=104
+STEP stand-geometry exit=1 seconds=49
+STEP session-menu-e80 exit=0 seconds=57
+STEP session-menu-l40 exit=0 seconds=42
+STEP targeted exit=1 seconds=1
+STEP p2-batch exit=0 seconds=88
+STEP p3 exit=0 seconds=134
+STEP regression exit=0 seconds=1606
+DONE

@@ -1,0 +1,39 @@
+{"run": "batch-1", "status": "PASS", "seconds": 50.8, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "batch-2", "status": "PASS", "seconds": 39.4, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "interactive", "status": "PASS", "seconds": 52.5, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+P3_GATES_PASS deterministic=True
+NOTE git status after run (revert Editor normalisation if unrelated):
+ M .vscode/settings.json
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
+ M Assets/ForestPrototype/ForestEcologyController.cs
+ M Assets/ForestPrototype/ForestSaveController.cs
+ M Assets/ForestPrototype/ForestSaveData.cs
+ M Assets/ForestPrototype/ForestSaveValidation.cs
+ M Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs
+ M Assets/ForestPrototype/ScenarioOne/ScenarioReferenceArchive.cs
+ M Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs
+ M Assets/ForestPrototype/UI/StandMapView.cs
+ M Tools/Verification/ScenarioOneCompletionVerification.cs
+ M Tools/Verification/ScenarioOneEconomyIntegrationVerification.cs
+ M Tools/Verification/ScenarioOneTeachingCopyVerification.cs
+ M Tools/Verification/SitkaGrowthMortality/SitkaGrowthModelVerification.cs
+ M Tools/Verification/StandExpansion/StandExpansionAudit.cs
+ M Tools/Verification/StandExpansion/run_stand_audit.py
+ M Tools/Verification/UnderstoreyRecruitment/Model2Verification.cs
+ M Tools/Verification/WindthrowV1/StormCoreVerification.cs
+?? Assets/ForestPrototype/ForestSaveValidation.Geometry.cs
+?? Assets/ForestPrototype/ForestSaveValidation.Geometry.cs.meta
+?? Assets/ForestPrototype/StandGeometryModel.cs
+?? Assets/ForestPrototype/StandGeometryModel.cs.meta
+?? Build
+?? Library
+?? Tools/Verification/StandGeometry/
+?? Tools/Verification/__pycache__/
+?? mono_crash.mem.314004.1.blob
+

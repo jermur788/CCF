@@ -2,6 +2,7 @@
 """Isolated, sequential clearance/regression gate; disposable staging only."""
 import argparse,fcntl,json,os,shutil,subprocess,time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 ROOT=Path(__file__).resolve().parents[2]
 def check_anchors(gate, rng, log):
     expected = {

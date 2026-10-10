@@ -1,0 +1,53 @@
+{
+  "head": "b024633438ff93e838ca59a5bec00a4df2ade4e5",
+  "results": [
+    {
+      "run": "batch-1",
+      "mode": "batch",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 48.6,
+      "hash": "F58FB0B1A421D28B",
+      "markers": [
+        "P2_RECONCILE_PASS trees=336 worstAbsDiff=3.81E-006 cutoff=8",
+        "P2_SUPPRESSED_CASE_PASS P0706 rank 1 7.9% Moderate; P0710 rank 43/48 1.1% Low",
+        "P2_RELEASE_PREVIEW_PASS 8.145 -> 7.502 (-7.9%); far mark P2020 ignored",
+        "P2_MULTI_CROP_PASS cropTrees=2 fells=1 nearSeveral=1 mean 8.034 -> 7.504",
+        "P2_DETERMINISM_HASH F58FB0B1A421D28B",
+        "P2_NO_STATE_PASS marks, trees, scenario save data, lessons and objectives unchanged",
+        "P2_SAVE_PASS version=v20 no competitor fields; breakdown identical after load",
+        "P2_PERF stems=336 cropTrees=16 inspectMsIncludingSceneScan=0.746 markChangeMs=1.174",
+        "P2_STORM_COEXIST_PASS stormModel=0 wind 'Stable \u00b7 storms off' unchanged; windthrown P0706 removed; competition 7.502 reconciles",
+        "P2_RENDERED_SKIPPED batchmode (run interactively for layout and captures)",
+        "P2_COMPETITOR_VERIFY_PASS"
+      ]
+    },
+    {
+      "run": "batch-2",
+      "mode": "batch",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 38.7,
+      "hash": "F58FB0B1A421D28B",
+      "markers": [
+        "P2_RECONCILE_PASS trees=336 worstAbsDiff=3.81E-006 cutoff=8",
+        "P2_SUPPRESSED_CASE_PASS P0706 rank 1 7.9% Moderate; P0710 rank 43/48 1.1% Low",
+        "P2_RELEASE_PREVIEW_PASS 8.145 -> 7.502 (-7.9%); far mark P2020 ignored",
+        "P2_MULTI_CROP_PASS cropTrees=2 fells=1 nearSeveral=1 mean 8.034 -> 7.504",
+        "P2_DETERMINISM_HASH F58FB0B1A421D28B",
+        "P2_NO_STATE_PASS marks, trees, scenario save data, lessons and objectives unchanged",
+        "P2_SAVE_PASS version=v20 no competitor fields; breakdown identical after load",
+        "P2_PERF stems=336 cropTrees=16 inspectMsIncludingSceneScan=0.500 markChangeMs=1.445",
+        "P2_STORM_COEXIST_PASS stormModel=0 wind 'Stable \u00b7 storms off' unchanged; windthrown P0706 removed; competition 7.502 reconciles",
+        "P2_RENDERED_SKIPPED batchmode (run interactively for layout and captures)",
+        "P2_COMPETITOR_VERIFY_PASS"
+      ]
+    }
+  ],
+  "batch_hashes": [
+    "F58FB0B1A421D28B",
+    "F58FB0B1A421D28B"
+  ],
+  "deterministic": true,
+  "status": "PASS"
+}

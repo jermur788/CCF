@@ -2,6 +2,7 @@
 """One explicit isolated model2 Unity diagnostic at a time."""
 import argparse,fcntl,hashlib,json,os,shutil,subprocess,time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 p=argparse.ArgumentParser();p.add_argument('--gate',choices=['Model2Verification','Model2Matrix','Model2Performance','Model2TargetedEconomy'],default='Model2Verification');args=p.parse_args()
 r=Path(__file__).resolve().parents[3];out=r/'Build/UnderstoreyRecruitment/Model2';out.mkdir(parents=True,exist_ok=True)
 lock=(r/'Build/UnderstoreyRecruitment/launch.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)

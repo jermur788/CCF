@@ -1,0 +1,7 @@
+{"label": "80b-final", "status": "PASS", "exit_code": 0, "seconds": 54.1}
+    STAND_GEOMETRY_CHECK load order verified: model decided and validated first, grid applied before restore, both directions
+    STAND_GEOMETRY_CHECK Reference archive: Matches requires Legacy40; identity check is separate
+    STAND_GEOMETRY_CHECK preview from Legacy40: archive on its own grid; exact world restored
+    STAND_GEOMETRY_CHECK preview from Enlarged80: switched to Legacy40 and back; exact world, light and waypoint restored
+    STAND_GEOMETRY_START_WORLD_HASH EBE7A228F630AE41
+    STAND_GEOMETRY_VERIFY_PASS checks=10

@@ -1,0 +1,42 @@
+{"run": "batch-1", "status": "PASS", "seconds": 48.4, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "batch-2", "status": "PASS", "seconds": 39.9, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+{"run": "interactive", "status": "PASS", "seconds": 46.3, "exit_code": 0, "hash": "F7C2FC966816BBAD"}
+P3_GATES_PASS deterministic=True
+NOTE git status after run (revert Editor normalisation if unrelated):
+ M .vscode/settings.json
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
+ M Assets/ForestPrototype/ForestEcologyController.cs
+ M Assets/ForestPrototype/ForestStartingStand.cs
+ M Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs
+ M Assets/ForestPrototype/StandGeometryModel.cs
+ M Tools/Verification/ScenarioOneCompletion/P2/run_p2_gates.py
+ M Tools/Verification/ScenarioOneCompletion/P3/run_p3_gates.py
+ M Tools/Verification/StandExpansion/StandExpansionAudit.cs
+ M Tools/Verification/StandExpansion/run_stand_audit.py
+ M Tools/Verification/StandGeometry/StandGeometryVerification.cs
+ M Tools/Verification/StandGeometry/run_stand_geometry.py
+ M Tools/Verification/UnderstoreyRecruitment/run_diagnostics.py
+ M Tools/Verification/UnderstoreyRecruitment/run_model2.py
+ M Tools/Verification/UnderstoreyRecruitment/run_regression.py
+ M Tools/Verification/WindthrowV1/run_regression.py
+ M Tools/Verification/WindthrowV1/run_storms.py
+ M Tools/Verification/run_clearance_gate.py
+ M Tools/Verification/run_final_presentation.py
+ M Tools/Verification/run_s1a_gates.py
+ M Tools/Verification/run_scenario_one_economy_gate.py
+?? Assets/ForestPrototype/StandWorldBoundary.cs
+?? Assets/ForestPrototype/StandWorldBoundary.cs.meta
+?? Build
+?? Docs/Verification/StandExpansion/Enlarged80Calibration.md
+?? Library
+?? Tools/Verification/StandGeometry/Enlarged80Review.cs
+?? Tools/Verification/StandGeometry/Enlarged80Verification.cs
+?? Tools/Verification/StandGeometry/run_enlarged80.py
+?? Tools/Verification/StandGeometry/run_enlarged80_review.py
+

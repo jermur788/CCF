@@ -1,0 +1,7 @@
+{"label": "80b", "status": "PASS", "exit_code": 0, "seconds": 103.5}
+    ENLARGED80_CHECK Reference preview from Enlarged80: frozen 40 m archive at original positions; exact 80 m world restored
+    ENLARGED80_CHECK Stand Map builds 256 cells; labels A-P x 1-16; waypoints map to the correct world locations
+    ENLARGED80_LIGHT_BEFORE (modelled relative light) dense-interior=0.0029 property-edge=0.0009 selective=0.0014 concentrated=0.0039
+    ENLARGED80_LIGHT_AFTER (modelled relative light) dense-interior=0.0048 property-edge=0.0013 selective=0.0073 concentrated=1 cashDeltaCents=-230146
+    ENLARGED80_CHECK first-cycle intervention in two separated areas: ordering concentrated > selective >= dense interior (modelled relative light 1 > 0.0073 >= 0.0048; property-edge 0.0013)
+    ENLARGED80_VERIFY_PASS checks=12

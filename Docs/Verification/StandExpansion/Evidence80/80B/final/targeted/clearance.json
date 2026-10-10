@@ -1,0 +1,16 @@
+{
+  "name": "clearance",
+  "gate": "ClearanceVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 61.1,
+  "markers": [
+    "CLEARANCE_WALKING_PREVIEW_PASS groundRay=true sharedQuery=true",
+    "CLEARANCE_FIXTURES_PASS A B C D E F G H I J cohorts=3 exactJuveniles=1 groundPatches=5",
+    "CLEARANCE_CIRCLE_PASS area=1m2 species=3 inside=cleared outside=retained repeat=identical",
+    "CLEARANCE_REPEAT_MATRIX_PASS cells=64 identicalSpot=noTargets density=unchanged",
+    "CLEARANCE_ANNUAL_PASS completed=true debit=once treatmentYearDisplay=cleared",
+    "CLEARANCE_ACCEPTANCE_PASS"
+  ]
+}

@@ -1,0 +1,25 @@
+{"gate": "SitkaGrowthModelVerification", "status": "PASS", "seconds": 109.11, "exit_code": 0}
+{"gate": "RegenerationModelVerification", "status": "PASS", "seconds": 164.88, "exit_code": 0}
+{"gate": "ScenarioReferenceVerification", "status": "PASS", "seconds": 73.9, "exit_code": 0}
+{"gate": "ScenarioOneCompletionVerification", "status": "PASS", "seconds": 68.69, "exit_code": 0}
+{"gate": "ScenarioOneEconomyIntegrationVerification", "status": "PASS", "seconds": 63.69, "exit_code": 0}
+{"gate": "BrowsingProtectionVerification", "status": "PASS", "seconds": 133.59, "exit_code": 0}
+{"gate": "ScenarioOnePlantingVerification", "status": "PASS", "seconds": 49.19, "exit_code": 0}
+{"gate": "ScenarioOnePruningVerification", "status": "PASS", "seconds": 48.95, "exit_code": 0}
+{"gate": "ScenarioOneDeadwoodVerification", "status": "PASS", "seconds": 48.82, "exit_code": 0}
+{"gate": "ScenarioOneProgressVerification", "status": "PASS", "seconds": 48.68, "exit_code": 0}
+{"gate": "SaveHardeningVerification", "status": "PASS", "seconds": 48.59, "exit_code": 0}
+{"gate": "RngModelVerification", "status": "PASS", "seconds": 38.32, "exit_code": 0}
+{"gate": "RngModelPolicyVerification", "status": "PASS", "seconds": 84.3, "exit_code": 0}
+{"gate": "ScenarioOneInteractionVerification", "status": "PASS", "seconds": 73.46, "exit_code": 0}
+{"gate": "EcologyCalibrationAdoptionVerification", "status": "PASS", "seconds": 93.78, "exit_code": 0}
+{"gate": "CCFIntegrationVerificationTemp", "status": "PASS", "seconds": 59.44, "exit_code": 0}
+{"gate": "ScenarioOneRemovalVerification", "status": "PASS", "seconds": 48.66, "exit_code": 0}
+{"gate": "ClearanceVerification", "status": "PASS", "seconds": 67.41, "exit_code": 0}
+{"gate": "MenuTutorialVerification", "status": "PASS", "seconds": 82.39, "exit_code": 0}
+{"gate": "TimberAssortmentYieldVerification", "status": "PASS", "seconds": 43.55, "exit_code": 0}
+{"gate": "Stage1WorkEconomyFoundationVerification", "status": "PASS", "seconds": 38.39, "exit_code": 0}
+{"gate": "JuvenileMortalityFoundationVerification", "status": "PASS", "seconds": 53.56, "exit_code": 0}
+{"gate": "JuvenileDisplayHeightVerification", "status": "PASS", "seconds": 48.67, "exit_code": 0}
+{"gate": "Model2PedagogyVerification", "status": "PASS", "seconds": 58.29, "exit_code": 0}
+S1A_REGRESSION_PASS

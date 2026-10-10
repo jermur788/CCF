@@ -1,0 +1,11 @@
+{
+  "name": "removal",
+  "gate": "ScenarioOneRemovalVerification",
+  "mode": "batch",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 48.2,
+  "markers": [
+    "SCENARIO_ONE_REMOVAL_VERIFY_PASS"
+  ]
+}

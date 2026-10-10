@@ -2,6 +2,7 @@
 """One explicit disposable storm diagnostic with isolated configuration."""
 import argparse,fcntl,hashlib,json,os,shutil,subprocess,time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 r=Path(__file__).resolve().parents[3]
 p=argparse.ArgumentParser();p.add_argument('--gate',choices=['WindDisplayAudit','StormCoreVerification','WindthrowVisualVerification','StormForcedMatrix','StormSalvageVerification','StormLongRunCalibration','StormMathVerification','StormPerformanceVerification','StormReplayVerification','StormRecruitmentVerification','StormLongRunResume','StormUiVerification','StormRngWrite','StormRngReplay'],default='WindDisplayAudit');p.add_argument('--recent',action='store_true',help='Apply thinning immediately before each forced checkpoint');p.add_argument('--pilot',action='store_true');args=p.parse_args()
 out=r/'Build/WindthrowV1'/(args.gate+('Recent' if args.recent else '')+('Pilot' if args.pilot else ''));out.mkdir(parents=True,exist_ok=True)

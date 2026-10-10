@@ -18,6 +18,17 @@ public static class StandGeometryModel
 
     public const float CellSizeMeters = 5f;
 
+    // The accepted starting stock, kept as a density (D-056): the current plantation is 336 trees on 0.16 ha. The
+    // enlarged stand keeps the SAME stocking, so its starting count follows its area: 1,344 on 0.64 ha. Stocking is
+    // never reduced as a performance workaround.
+    public const float StartingStemsPerHectare = 2100f;
+
+    public static int StartingTreeTarget(int model)
+    {
+        float size = StandSizeMeters(model);
+        return Mathf.RoundToInt(StartingStemsPerHectare * size * size / 10000f);
+    }
+
     public static bool IsKnown(int model) => model == Legacy40 || model == Enlarged80;
 
     public static float StandSizeMeters(int model) => model == Enlarged80 ? 80f : 40f;
@@ -56,8 +67,9 @@ public static class StandGeometryModel
 // that authority; the verification override below exists only inside the Unity Editor.
 public static class StandGeometryPolicy
 {
-    // 80A: new games stay Legacy40 (zero player-facing change). 80B switches this to Enlarged80.
-    public const int NewGameModel = StandGeometryModel.Legacy40;
+    // New Scenario One games start in the enlarged 80 x 80 m property (80B). Saves <= v19, a missing field and
+    // Reference Future v1 stay Legacy40; a v20 save uses the geometry it states.
+    public const int NewGameModel = StandGeometryModel.Enlarged80;
 
 #if UNITY_EDITOR
     // Verification only. Compiled out of every Player, never serialized into a save, and honoured only

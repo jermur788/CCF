@@ -1,0 +1,6 @@
+base=b024633438ff93e838ca59a5bec00a4df2ade4e5 files=26
+STEP stand-geometry exit=0 seconds=55
+STEP enlarged80 exit=0 seconds=98
+STEP targeted exit=0 seconds=396
+STEP p2-interactive exit=1 seconds=63
+DONE

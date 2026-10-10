@@ -2,6 +2,7 @@
 """Sequential applicable model-2 regression verification. Exact source/mode recorded."""
 import argparse,fcntl,hashlib,json,os,shutil,subprocess,time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 ROOT=Path(__file__).resolve().parents[3];out=ROOT/('Build/UnderstoreyRecruitment/Model2/legacy-completion' if os.environ.get('CCF_REGEN_MODEL')=='1' else 'Build/UnderstoreyRecruitment/Model2/regression');out.mkdir(parents=True,exist_ok=True)
 config=ROOT/'Build/UnderstoreyRecruitment/config';lock=(ROOT/'Build/UnderstoreyRecruitment/launch.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
 # P0 mode corrections are used as disposable sources, not ported into owned UI files.

@@ -1,0 +1,14 @@
+{
+  "name": "menu-standalone-1",
+  "gate": "MenuTutorialVerification",
+  "mode": "interactive",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 62.7,
+  "markers": [
+    "MENU_RENDERED_PASS WalkingHud 1280x720",
+    "MENU_RENDERED_PASS WalkingHud 1600x900",
+    "MENU_RENDERED_PASS WalkingHud 1920x1080",
+    "MENU_TUTORIAL_FAIL System.InvalidOperationException: F1 does not reopen HUD help"
+  ]
+}

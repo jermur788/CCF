@@ -6,7 +6,10 @@ its .meta, uses an isolated Unity config under Build/StandExpansion/config (lice
 installed licence) and writes the log, audit-summary.json, per-world tree CSVs and screenshots under
 Build/StandExpansion/<label>/. It never writes the player's save file and never saves the scene.
 
-Usage: run_stand_audit.py <label> [--trees80 N] [--no-render]
+Usage: run_stand_audit.py <label> [--trees80 N] [--no-render] [--live-label NAME]
+
+--live-label measures the implemented world as it starts (no scratch 80 m candidate); set CCF_STAND_GEOMETRY=0 in the
+environment to measure it under the Editor-only Legacy40 verification override.
 """
 import argparse, os, shutil, subprocess, sys, time
 from pathlib import Path
@@ -23,6 +26,7 @@ def main():
     parser.add_argument("label")
     parser.add_argument("--trees80", default="1344")
     parser.add_argument("--no-render", action="store_true")
+    parser.add_argument("--live-label", default="")
     args = parser.parse_args()
     busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " "], capture_output=True, text=True).stdout.split()
     if busy:
@@ -41,6 +45,8 @@ def main():
            UNITY, "-projectPath", str(ROOT), "-job-worker-count", "2", "-executeMethod", GATE + ".Begin", "-logFile", str(log)]
     env = dict(os.environ, XDG_CONFIG_HOME=str(config), CCF_ACCEPTANCE_OUTPUT=str(out), CCF_AUDIT_TREES80=args.trees80,
                CCF_AUDIT_RENDER="0" if args.no_render else "1", DISPLAY=os.environ.get("DISPLAY", ":0"))
+    if args.live_label:
+        env["CCF_AUDIT_LIVE_LABEL"] = args.live_label
     start = time.monotonic()
     shutil.copy2(SOURCE, TARGET)
     try:

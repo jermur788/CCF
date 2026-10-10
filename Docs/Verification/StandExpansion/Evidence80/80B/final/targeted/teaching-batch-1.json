@@ -1,0 +1,13 @@
+{
+  "name": "teaching-batch-1",
+  "gate": "ScenarioOneTeachingCopyVerification",
+  "mode": "batch",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 48.1,
+  "markers": [
+    "S1A_READONLY_HASH EBE7A228F630AE41",
+    "S1A_NURSERY_PASS advisory=true actualCost=true noPlanting=true",
+    "S1A_TEACHING_VERIFY_PASS checks=20"
+  ]
+}

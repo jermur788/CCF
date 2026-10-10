@@ -2,6 +2,7 @@
 """Sequential isolated Unity diagnostics; stage exactly one disposable source."""
 import argparse,fcntl,json,os,shutil,subprocess,time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 parser=argparse.ArgumentParser();parser.add_argument('--visual',action='store_true');parser.add_argument('--skip-inventory',action='store_true');parser.add_argument('--fixtures',action='store_true');parser.add_argument('--performance-only',action='store_true');args=parser.parse_args()
 gate='UnderstoreyVisualAudit' if args.visual else 'UnderstoreyFixtures' if args.fixtures or args.performance_only else 'UnderstoreyDiagnostics'
 ROOT=Path(__file__).resolve().parents[3]

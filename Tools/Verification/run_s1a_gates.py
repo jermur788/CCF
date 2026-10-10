@@ -5,6 +5,7 @@ logs/results for repeats. --phase targeted|focused|regression; default all.
 """
 import argparse, fcntl, json, os, re, shutil, subprocess, time
 from pathlib import Path
+os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT/'Build/S1A'
 UNITY = '/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity'

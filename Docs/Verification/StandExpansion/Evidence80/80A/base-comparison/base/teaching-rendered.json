@@ -1,0 +1,27 @@
+{
+  "name": "teaching-rendered",
+  "gate": "ScenarioOneTeachingCopyVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 72.3,
+  "markers": [
+    "S1A_READONLY_HASH EBE7A228F630AE41",
+    "S1A_NURSERY_PASS advisory=true actualCost=true noPlanting=true",
+    "S1A_RENDERED_PASS s1a-help-1280",
+    "S1A_RENDERED_PASS s1a-objectives-1280",
+    "S1A_RENDERED_PASS s1a-learning-1280",
+    "S1A_RENDERED_PASS s1a-inspection-1280",
+    "S1A_RENDERED_PASS s1a-workplan-1280",
+    "S1A_RENDERED_PASS s1a-nursery-1280",
+    "S1A_RENDERED_PASS s1a-help-1920",
+    "S1A_RENDERED_PASS s1a-objectives-1920",
+    "S1A_RENDERED_PASS s1a-learning-1920",
+    "S1A_RENDERED_PASS s1a-inspection-1920",
+    "S1A_RENDERED_PASS s1a-workplan-1920",
+    "S1A_RENDERED_PASS s1a-nursery-1920",
+    "S1A_RENDERED_PASS s1a-review-1280",
+    "S1A_RENDERED_PASS s1a-review-1920",
+    "S1A_TEACHING_VERIFY_PASS checks=57"
+  ]
+}

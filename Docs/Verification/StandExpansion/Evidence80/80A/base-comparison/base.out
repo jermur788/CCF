@@ -1,0 +1,15 @@
+{"name": "teaching-batch-1", "status": "PASS", "seconds": 49.4}
+{"name": "teaching-batch-2", "status": "PASS", "seconds": 39.0}
+{"name": "teaching-rendered", "status": "PASS", "seconds": 72.3}
+{"name": "menu-standalone-1", "status": "FAIL", "seconds": 62.7}
+Traceback (most recent call last):
+  File "/home/jer/CCF-s1-80m/Tools/Verification/run_s1a_gates.py", line 79, in <module>
+    if __name__=='__main__': main()
+                             ^^^^^^
+  File "/home/jer/CCF-s1-80m/Tools/Verification/run_s1a_gates.py", line 54, in main
+    for name in ['menu-standalone-1','menu-standalone-2']: results.append(run_gate('MenuTutorialVerification',name,True))
+                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jer/CCF-s1-80m/Tools/Verification/run_s1a_gates.py", line 39, in run_gate
+    if not passed: raise RuntimeError('Gate failed; inspect '+str(log))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Gate failed; inspect /home/jer/CCF-s1-80m/Build/S1A/menu-standalone-1.log

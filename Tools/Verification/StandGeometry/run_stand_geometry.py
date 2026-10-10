@@ -36,6 +36,8 @@ def main():
            UNITY, "-projectPath", str(ROOT), "-job-worker-count", "2", "-executeMethod", GATE + ".Begin",
            "-batchmode", "-nographics", "-logFile", str(log)]
     env = dict(os.environ, XDG_CONFIG_HOME=str(config), DISPLAY=os.environ.get("DISPLAY", ":0"))
+    # This gate verifies Legacy40 behaviour, so it runs under the Editor-only Legacy40 verification override.
+    env.setdefault("CCF_STAND_GEOMETRY", "0")
     start = time.monotonic()
     shutil.copy2(SOURCE, TARGET)
     try:

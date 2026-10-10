@@ -1,0 +1,8 @@
+base=9f49e2e7eee3c2ff565f6aef0980183c5400982c files=22
+STEP stand-geometry exit=0 seconds=48
+STEP session-menu exit=0 seconds=81
+STEP targeted exit=1 seconds=264
+STEP p2-batch exit=0 seconds=101
+STEP p3 exit=0 seconds=143
+STEP regression exit=0 seconds=1650
+DONE
