@@ -1,0 +1,102 @@
+{
+  "task": "S1-B integration + unavailable building-frame removal",
+  "base_and_context_in": "4a68d528bb9d01036de9d4df1739b7de2c8c6002",
+  "approved_s1b_source": "4359e500c6b312ebcf957397b4fe53205f3f1ca4",
+  "tested_candidate_source_b06": "b3ba9b8900b1f62b721aee6508aba6d64db93bfd",
+  "integration_method": "fast-forward of the seven approved S1-B commits onto BASE (no merge commit), then one separate correction commit",
+  "building_frame_correction_commit": "fac782072f23e28518e8840c621112fe4074db45",
+  "verified_production_state": "fac782072f23e28518e8840c621112fe4074db45",
+  "verification_worktree": "/home/jer/CCF-s1a (clean, own Library, Unity 6000.6.0f1)",
+  "compile_import": "0 compiler errors in every gate log",
+  "session_menu_verification": {
+    "status": "PASS",
+    "seconds": 57.0
+  },
+  "targeted": {
+    "teaching-batch-1": {
+      "status": "PASS",
+      "seconds": 44.6,
+      "mode": "batch"
+    },
+    "teaching-batch-2": {
+      "status": "PASS",
+      "seconds": 33.0,
+      "mode": "batch"
+    },
+    "teaching-rendered": {
+      "status": "PASS",
+      "seconds": 62.1,
+      "mode": "interactive"
+    },
+    "menu-standalone-1": {
+      "status": "PASS",
+      "seconds": 76.1,
+      "mode": "interactive"
+    },
+    "menu-standalone-2": {
+      "status": "PASS",
+      "seconds": 67.0,
+      "mode": "interactive"
+    },
+    "clearance": {
+      "status": "PASS",
+      "seconds": 56.8,
+      "mode": "interactive"
+    },
+    "removal": {
+      "status": "PASS",
+      "seconds": 43.6,
+      "mode": "batch"
+    }
+  },
+  "teaching_read_only_hash": "EBE7A228F630AE41 (batch x2 and rendered identical)",
+  "p2_batch": {
+    "hashes": [
+      "F58FB0B1A421D28B",
+      "F58FB0B1A421D28B"
+    ],
+    "required": "F58FB0B1A421D28B",
+    "status": "PASS"
+  },
+  "p3": {
+    "hashes": [
+      "F7C2FC966816BBAD",
+      "F7C2FC966816BBAD",
+      "F7C2FC966816BBAD"
+    ],
+    "required": "F7C2FC966816BBAD",
+    "status": "PASS",
+    "runs": [
+      "batch-1",
+      "batch-2",
+      "interactive"
+    ]
+  },
+  "regression": {
+    "gates": 24,
+    "pass": 24
+  },
+  "anchors": {
+    "Model2 completion": "702766DECE591E21 present",
+    "Reference Y100": "7AD177B3CC2F73C7 present",
+    "Reference continuation": "9CDF21A541C5968D present",
+    "established modern 16-hex anchors vs committed baseline": "unchanged (no gate differs)"
+  },
+  "building_frames": {
+    "before": "7 ForestBuildable sites + Plank Rack foundation marker visible; 7/7 sites offered [E] Build; real TryBuild constructed with carried wood",
+    "after": "0 frame renderers, 0 solid site colliders, 0 build prompts at all sites, TryBuild no-op; exactly 35 renderers removed (all under Unbuilt Site), 0 added; 336 trees unchanged"
+  },
+  "open_gate": {
+    "name": "P2 interactive rendered layout (CropTreeCompetitorVerification --interactive)",
+    "status": "FAIL, deterministic in the current environment",
+    "detail": "world label (competitor tag 1) is drawn under the competitors panel at 1280x720. Fails identically at S1-A integrated c01de2d, approved S1-B tip 4359e50 and corrected fac7820; screenshots are pixel-identical across all three, with and without the Ultimate Nature pack. Same bytes passed for the S1-B worker 2026-10-09 22:27 and at S1-A integration. Not attributable to S1-B or to the frame correction; root cause not identified."
+  },
+  "not_verified": [
+    "native Windows technical smoke",
+    "readable text/build ID on native Windows",
+    "real keyboard/mouse walking",
+    "Windows performance/stability",
+    "a pilot Windows candidate (none exists; B06 is historical only)",
+    "80 x 80 stand expansion (not implemented)"
+  ]
+}

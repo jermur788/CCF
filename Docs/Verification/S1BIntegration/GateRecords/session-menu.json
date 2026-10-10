@@ -1,0 +1,20 @@
+{
+  "name": "session-menu-final",
+  "gate": "SessionMenuVerification",
+  "mode": "interactive",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 57.0,
+  "markers": [
+    "S1B_SESSION_CHECK Menu pauses time and opens",
+    "S1B_SESSION_CHECK Gameplay/shortcut/UI input blocked while menu open",
+    "S1B_SESSION_CHECK Opening menu leaves forest/save state unchanged",
+    "S1B_SESSION_CHECK Fresh-test route exposed",
+    "S1B_SESSION_CHECK Normal quit route exposed",
+    "S1B_SESSION_CHECK Close restores prior control state",
+    "S1B_SESSION_CHECK Menu roundtrip remains read-only",
+    "S1B_SESSION_CHECK Reference preview opens",
+    "S1B_SESSION_CHECK Reference preview cannot enter session save route",
+    "S1B_SESSION_MENU_VERIFY_PASS"
+  ]
+}

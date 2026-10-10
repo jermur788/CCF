@@ -1,0 +1,25 @@
+activeRenderers=3875 trees=336 shelters=0 buildablesInScene=7
+buildable id=grinding-stone-01 name='Grinding Stone' pos=(-2.5, 0.0, 9.4) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=2 unbuiltColliders=0 builtVisible=False builtRenderers=0
+buildable id=log-rack-build-01 name='Log Rack' pos=(-0.3, 0.0, 11.5) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=3 unbuiltColliders=0 builtVisible=False builtRenderers=0
+buildable id=log-rack-build-02 name='Log Rack II' pos=(2.2, 0.0, 12.8) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=3 unbuiltColliders=0 builtVisible=False builtRenderers=0
+buildable id=saw-pit-01 name='Saw Pit' pos=(-4.9, 0.0, 9.3) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=4 unbuiltColliders=0 builtVisible=False builtRenderers=0
+buildable id=shelter-01 name='Basic Shelter' pos=(-5.6, 0.0, 12.2) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=8 unbuiltColliders=1 builtVisible=False builtRenderers=0
+buildable id=timber-sledge-01 name='Timber Sledge' pos=(-0.2, 0.0, 9.0) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=4 unbuiltColliders=0 builtVisible=False builtRenderers=0
+buildable id=workbench-01 name='Forestry Workbench' pos=(-2.8, 0.0, 11.0) built=False rootActive=True constructionAvailableField=absent unbuiltVisible=True unbuiltRenderers=8 unbuiltColliders=0 builtVisible=False builtRenderers=0
+orphanFrameLikeRenderers=3
+  orphan Plank Rack/Unbuilt Site/Corner Post A
+  orphan Plank Rack/Unbuilt Site/Corner Post B
+  orphan Plank Rack/Unbuilt Site/Foundation Marker
+storage name='Log Rack' pos=(-0.3, 0.0, 11.5) linkedBuildable='log-rack-build-01' storageActive=False activeRenderersUnderRoot=3
+storage name='Log Rack II' pos=(2.2, 0.0, 12.8) linkedBuildable='log-rack-build-02' storageActive=False activeRenderersUnderRoot=3
+storage name='Plank Rack' pos=(-6.9, 0.0, 10.3) linkedBuildable='saw-pit-01' storageActive=False activeRenderersUnderRoot=3
+probe id=grinding-stone-01 playerPos=(-2.5, 0.0, 6.4) isLookingAtBuildable=True
+probe id=log-rack-build-01 playerPos=(-0.3, 0.0, 8.5) isLookingAtBuildable=True
+probe id=log-rack-build-02 playerPos=(2.2, 0.0, 9.7) isLookingAtBuildable=True
+probe id=saw-pit-01 playerPos=(-4.9, 0.0, 6.3) isLookingAtBuildable=True
+probe id=shelter-01 playerPos=(-5.6, 0.0, 9.2) isLookingAtBuildable=True
+probe id=timber-sledge-01 playerPos=(-0.2, 0.0, 6.0) isLookingAtBuildable=True
+probe id=workbench-01 playerPos=(-2.8, 0.0, 8.0) isLookingAtBuildable=True
+affordanceProbe: sitesShowingBuildPrompt=7 [grinding-stone-01,log-rack-build-01,log-rack-build-02,saw-pit-01,shelter-01,timber-sledge-01,workbench-01]
+tryBuildProbe id=workbench-01 woodCost=8 builtBefore=False builtAfter=True carriedAfter=0
+summary expect=visible visibleFrames=7 promptsOffered=7 orphanFrames=3

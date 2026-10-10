@@ -1,0 +1,41 @@
+1,8d0
+< Basic Shelter/Unbuilt Site/Footing Back
+< Basic Shelter/Unbuilt Site/Footing Front
+< Basic Shelter/Unbuilt Site/Footing Left
+< Basic Shelter/Unbuilt Site/Footing Right
+< Basic Shelter/Unbuilt Site/Stake Back Left
+< Basic Shelter/Unbuilt Site/Stake Back Right
+< Basic Shelter/Unbuilt Site/Stake Front Left
+< Basic Shelter/Unbuilt Site/Stake Front Right
+63,70d54
+< Forestry Workbench/Unbuilt Site/Frame Post Back Left
+< Forestry Workbench/Unbuilt Site/Frame Post Back Right
+< Forestry Workbench/Unbuilt Site/Frame Post Front Left
+< Forestry Workbench/Unbuilt Site/Frame Post Front Right
+< Forestry Workbench/Unbuilt Site/Frame Rail Back
+< Forestry Workbench/Unbuilt Site/Frame Rail Front
+< Forestry Workbench/Unbuilt Site/Frame Rail Left
+< Forestry Workbench/Unbuilt Site/Frame Rail Right
+3853,3854d3836
+< Grinding Stone/Unbuilt Site/Foundation Marker
+< Grinding Stone/Unbuilt Site/Stake
+3856,3861d3837
+< Log Rack II/Unbuilt Site/Corner Post A
+< Log Rack II/Unbuilt Site/Corner Post B
+< Log Rack II/Unbuilt Site/Foundation Marker
+< Log Rack/Unbuilt Site/Corner Post A
+< Log Rack/Unbuilt Site/Corner Post B
+< Log Rack/Unbuilt Site/Foundation Marker
+3863,3869d3838
+< Plank Rack/Unbuilt Site/Corner Post A
+< Plank Rack/Unbuilt Site/Corner Post B
+< Plank Rack/Unbuilt Site/Foundation Marker
+< Saw Pit/Unbuilt Site/Footing Back
+< Saw Pit/Unbuilt Site/Footing Front
+< Saw Pit/Unbuilt Site/Stake Left
+< Saw Pit/Unbuilt Site/Stake Right
+3871,3874d3839
+< Timber Sledge/Unbuilt Site/Footing Back
+< Timber Sledge/Unbuilt Site/Footing Front
+< Timber Sledge/Unbuilt Site/Stake Left
+< Timber Sledge/Unbuilt Site/Stake Right
