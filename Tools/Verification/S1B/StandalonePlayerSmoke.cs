@@ -43,10 +43,13 @@ public sealed class S1BStandalonePlayerSmoke : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(3);
         var menu = FindFirstObjectByType<StandaloneSessionMenu>();
-        Check(menu != null && StandaloneSessionMenu.IsOpen, "Initial session menu present");
+        Check(menu != null && StandaloneSessionMenu.IsOpen && menu.StartupScreenActive, "Initial startup screen present");
         Check(menu.BuildIdentity.gitSha.Length == 40 && menu.BuildIdentity.buildId.Contains(menu.BuildIdentity.gitSha.Substring(0,7)), "Exact committed build identity");
-        yield return Capture(savePhase ? "initial-menu-save" : "initial-menu-load");
-        menu.Close(); yield return null; yield return null;
+        yield return Capture(savePhase ? "initial-startup-save" : "initial-startup-load");
+        // Leave the title through its real buttons' handlers: Start New Scenario, or Continue for the saved forest.
+        if (savePhase) menu.StartNewScenario();
+        else { Check(menu.ContinueAvailable, "Continue offered for the saved forest"); menu.ContinueSavedForest(); }
+        yield return null; yield return null;
         var ui = FindFirstObjectByType<ScenarioOneUiRoot>(); var saves = FindFirstObjectByType<ForestSaveController>(); var manager = ui.Manager;
         ui.CloseHelp(); ui.CloseAll(); yield return null;
         Check(!StandaloneSessionMenu.IsOpen && FindFirstObjectByType<ForestPlayer>().enabled, "Forest control restored");
@@ -76,7 +79,7 @@ public sealed class S1BStandalonePlayerSmoke : MonoBehaviour
         }
         else
         {
-            saves.Load(); yield return null;
+            yield return null; // Continue on the startup screen already loaded the save
             string expected=File.ReadAllText(Path.Combine(output,"saved-world-hash.txt"));
             string actual=ScenarioReferenceArchive.WorldHash(saves.CaptureData());Check(actual==expected,"Same executable process-relaunch restores exact forest state");
             yield return Capture("loaded-forest");
