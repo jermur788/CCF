@@ -7,7 +7,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 // Standalone session controls only. Forest/save behaviour stays in existing APIs.
-public sealed class StandaloneSessionMenu : MonoBehaviour
+// The startup/title screen (StandaloneSessionMenu.Startup.cs) is a second card on this same menu, so it
+// shares the pause, input-isolation and restore logic below instead of duplicating it.
+public sealed partial class StandaloneSessionMenu : MonoBehaviour
 {
     [Serializable] public sealed class Identity { public string buildId; public string gitSha; }
     public static bool IsOpen { get; private set; }
@@ -25,11 +27,15 @@ public sealed class StandaloneSessionMenu : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
+        // Editor Play Mode enters the stand directly, as it always has, so development and every verification
+        // gate behave unchanged. Set CCF_STARTUP_SCREEN=1 to exercise the real startup screen in the Editor.
+        // This check is compiled out of Players: a Player always shows the startup screen.
+        if (Environment.GetEnvironmentVariable("CCF_STARTUP_SCREEN") != "1") return;
+#endif
         var host = new GameObject("Standalone session menu");
         DontDestroyOnLoad(host);
-        host.AddComponent<StandaloneSessionMenu>();
-#endif
+        host.AddComponent<StandaloneSessionMenu>().ShowStartupScreen();
     }
 
     private IEnumerator Start()
@@ -54,11 +60,13 @@ public sealed class StandaloneSessionMenu : MonoBehaviour
         card.style.paddingLeft = card.style.paddingRight = 24;
         root.Add(card);
         yield return null; yield return null;
-        Open();
+        if (startupScreen) yield return StartCoroutine(OpenStartupWhenReady());
+        else Open();
     }
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
+        // The startup screen is left only through its own buttons, never by F10.
+        if (!startupScreen && Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
         {
             if (IsOpen) Close(); else Open();
         }
@@ -79,12 +87,12 @@ public sealed class StandaloneSessionMenu : MonoBehaviour
         if (saves != null) saves.enabled = false;
         if (forestUi != null) { forestUi.enabled = false; forestUi.RootElement.style.display = DisplayStyle.None; }
         document.rootVisualElement.style.display = DisplayStyle.Flex;
-        MainCard();
+        if (startupScreen) StartupCard(); else MainCard();
     }
     public void Close()
     {
         if (!IsOpen) return;
-        IsOpen = false; Time.timeScale = previousTimeScale;
+        IsOpen = false; startupScreen = false; Time.timeScale = previousTimeScale;
         document.rootVisualElement.style.display = DisplayStyle.None;
         if (saves != null) saves.enabled = savesWereEnabled;
         if (forestUi != null) { forestUi.RootElement.style.display = DisplayStyle.Flex; forestUi.enabled = uiWasEnabled; }
@@ -95,10 +103,11 @@ public sealed class StandaloneSessionMenu : MonoBehaviour
         var label = new Label(text); label.style.whiteSpace = WhiteSpace.Normal;
         label.style.fontSize = size; label.style.color = Color.white; label.style.marginBottom = 12; card.Add(label);
     }
-    private void ActionButton(string text, System.Action action)
+    private Button ActionButton(string text, System.Action action)
     {
         var button = new Button(action) { text = text }; button.style.fontSize = 22;
         button.style.height = 46; button.style.marginBottom = 8; card.Add(button);
+        return button;
     }
     private void MainCard()
     {

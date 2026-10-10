@@ -226,7 +226,42 @@ public sealed class ForestSaveController : MonoBehaviour
             return;
         }
 
-        ForestSaveData data;
+        if (!TryReadSave(out ForestSaveData data, out string refusal))
+        {
+            SetMessage(refusal);
+            return;
+        }
+        LoadData(data);
+    }
+
+    // Read-only: would Load() accept the save file right now? The title screen offers Continue only when this is
+    // true. It runs exactly the checks Load() runs before it changes anything (the same two helpers), against the
+    // scene as it is, and never touches the scene. "problem" is a short player-readable reason when it returns false.
+    public bool CanLoad(out string problem)
+    {
+        if (!File.Exists(SavePath))
+        {
+            problem = "No saved forest on this device yet.";
+            return false;
+        }
+        if (!TryReadSave(out ForestSaveData data, out problem))
+            return false;
+        if (data != null && data.version <= 0)
+            data.version = 1; // as LoadData does before validating
+        string loadProblem = FindLoadProblem(data,
+            Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length,
+            Object.FindFirstObjectByType<ForestEcologyController>(),
+            Object.FindFirstObjectByType<ForestTreeSpawner>(),
+            out _);
+        problem = loadProblem == null ? null : $"Save not loaded: {loadProblem}.";
+        return loadProblem == null;
+    }
+
+    // File and JSON checks for the disk-load path. On failure "refusal" is the exact message Load() shows.
+    private static bool TryReadSave(out ForestSaveData data, out string refusal)
+    {
+        data = null;
+        refusal = null;
         try
         {
             string json = File.ReadAllText(SavePath);
@@ -236,8 +271,8 @@ public sealed class ForestSaveController : MonoBehaviour
                 ?? ForestSaveValidation.ValidateCompetitionJson(json, data);
             if (competitionProblem != null)
             {
-                SetMessage("Save refused: " + competitionProblem);
-                return;
+                refusal = "Save refused: " + competitionProblem;
+                return false;
             }
         }
         catch (System.Exception error) when (error is System.ArgumentException || error is IOException
@@ -245,12 +280,37 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             // ArgumentException is JsonUtility's error for malformed JSON.
             Debug.LogWarning($"Could not read save {SavePath}: {error}");
-            SetMessage(File.Exists(BackupSavePath)
+            refusal = File.Exists(BackupSavePath)
                 ? $"Save file unreadable. The previous save is kept as {SaveFileName}.bak."
-                : "Save file unreadable.");
-            return;
+                : "Save file unreadable.";
+            return false;
         }
-        LoadData(data);
+        return true;
+    }
+
+    // Every check that must pass before the first change to the scene. Returns null when the data can be loaded,
+    // otherwise a short player-readable reason. Shared by LoadData and CanLoad.
+    private static string FindLoadProblem(ForestSaveData data, int sceneTreeCount, ForestEcologyController ecology,
+        ForestTreeSpawner spawner, out int geometry)
+    {
+        // Cell-indexed records are checked against the grid of the geometry the save was made in, never
+        // against whatever grid is live: a Legacy40 save is not validated against an Enlarged80 world.
+        geometry = StandGeometryModel.ForSave(data);
+        int expectedCells = data != null && StandGeometryModel.IsKnown(geometry) ? StandGeometryModel.CellCount(geometry) : 0;
+        string problem = ForestSaveValidation.Validate(data, sceneTreeCount, expectedCells);
+        // Model-2 patches advance against the ecological cell at their center.
+        // Reject an inapplicable center before loading rather than accepting a
+        // state which would fail on the next annual step.
+        if (problem == null && data.regenerationModel == RegenerationModel.Competition)
+        {
+            int saveGeometry = geometry;
+            if (ecology == null) problem = "model 2 requires an active ecology grid";
+            else if (data.scenarioOne.clearancePatches.Exists(p => StandGeometryModel.CellIndex(saveGeometry, p.center) < 0))
+                problem = "model 2 local competitor center is outside the stand grid";
+        }
+        if (problem == null && data.trees.Count > 0 && spawner == null)
+            problem = "the scene has no tree spawner to restore trees with";
+        return problem;
     }
 
     // Returns false, without changing the world, when the data is not a
@@ -266,24 +326,9 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestBuildable[] buildables = Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
-
-        // Cell-indexed records are checked against the grid of the geometry the save was made in, never
-        // against whatever grid is live: a Legacy40 save is not validated against an Enlarged80 world.
-        int geometry = StandGeometryModel.ForSave(data);
-        int expectedCells = data != null && StandGeometryModel.IsKnown(geometry) ? StandGeometryModel.CellCount(geometry) : 0;
-        string problem = ForestSaveValidation.Validate(data, trees.Length, expectedCells);
-        // Model-2 patches advance against the ecological cell at their center.
-        // Reject an inapplicable center before loading rather than accepting a
-        // state which would fail on the next annual step.
-        if (problem == null && data.regenerationModel == RegenerationModel.Competition)
-        {
-            if (ecology == null) problem = "model 2 requires an active ecology grid";
-            else if (data.scenarioOne.clearancePatches.Exists(p => StandGeometryModel.CellIndex(geometry, p.center) < 0))
-                problem = "model 2 local competitor center is outside the stand grid";
-        }
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
-        if (problem == null && data.trees.Count > 0 && spawner == null)
-            problem = "the scene has no tree spawner to restore trees with";
+
+        string problem = FindLoadProblem(data, trees.Length, ecology, spawner, out int geometry);
         if (problem != null)
         {
             Debug.LogWarning($"Save rejected before loading: {problem}. The current forest was not changed.");
