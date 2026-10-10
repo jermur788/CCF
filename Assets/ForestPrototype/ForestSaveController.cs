@@ -119,6 +119,7 @@ public sealed class ForestSaveController : MonoBehaviour
             data.regenerationModel = ecology.RegenerationModelVersion;
             data.growthModel = ecology.GrowthModelVersion;
             data.stormModel = ecology.StormModelVersion;
+            data.standGeometryModel = ecology.StandGeometryModelVersion;
         }
 
         ForestTreeMarkingManager marking = Object.FindFirstObjectByType<ForestTreeMarkingManager>();
@@ -230,7 +231,8 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             string json = File.ReadAllText(SavePath);
             data = JsonUtility.FromJson<ForestSaveData>(json);
-            string competitionProblem = ForestSaveValidation.ValidateStormJson(json, data)
+            string competitionProblem = ForestSaveValidation.ValidateGeometryJson(json, data)
+                ?? ForestSaveValidation.ValidateStormJson(json, data)
                 ?? ForestSaveValidation.ValidateCompetitionJson(json, data);
             if (competitionProblem != null)
             {
@@ -265,15 +267,18 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestWoodStorage[] storages = Object.FindObjectsByType<ForestWoodStorage>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
 
-        string problem = ForestSaveValidation.Validate(data, trees.Length,
-            ecology != null ? ecology.CellCount : 0);
+        // Cell-indexed records are checked against the grid of the geometry the save was made in, never
+        // against whatever grid is live: a Legacy40 save is not validated against an Enlarged80 world.
+        int geometry = StandGeometryModel.ForSave(data);
+        int expectedCells = data != null && StandGeometryModel.IsKnown(geometry) ? StandGeometryModel.CellCount(geometry) : 0;
+        string problem = ForestSaveValidation.Validate(data, trees.Length, expectedCells);
         // Model-2 patches advance against the ecological cell at their center.
         // Reject an inapplicable center before loading rather than accepting a
         // state which would fail on the next annual step.
         if (problem == null && data.regenerationModel == RegenerationModel.Competition)
         {
             if (ecology == null) problem = "model 2 requires an active ecology grid";
-            else if (data.scenarioOne.clearancePatches.Exists(p => ecology.GetCellIndex(p.center) < 0))
+            else if (data.scenarioOne.clearancePatches.Exists(p => StandGeometryModel.CellIndex(geometry, p.center) < 0))
                 problem = "model 2 local competitor center is outside the stand grid";
         }
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
@@ -289,6 +294,11 @@ public sealed class ForestSaveController : MonoBehaviour
 
         if (data.version > ForestSaveData.CurrentVersion)
             Debug.LogWarning($"Save version {data.version} is newer than supported version {ForestSaveData.CurrentVersion}; loading best-effort.");
+
+        // First change to the world, after every check: put the ecology grid into the save's geometry so
+        // every cell-indexed record below is restored onto the grid it was made in.
+        if (ecology != null)
+            ecology.ApplyStandGeometry(geometry);
 
         if (player != null)
             player.RestoreCarriedWood(data.wood);

@@ -609,7 +609,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (referenceArchive == null)
             referenceArchive = ScenarioReferenceArchive.Load();
         ScenarioReferenceMilestone milestone = referenceArchive?.AtYear(year);
-        if (milestone?.world == null || !referenceArchive.Matches(definition, ecology))
+        // IdentityMatches, not Matches: preview applies the archive's Legacy40 geometry itself when it loads the
+        // archived world, and LoadData(previewReturnData) restores the player's own geometry and exact world on exit.
+        if (milestone?.world == null || !referenceArchive.IdentityMatches(definition, ecology))
         {
             feedback = "A compatible verified reference milestone is not available.";
             return false;

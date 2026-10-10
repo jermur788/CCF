@@ -84,7 +84,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
     {
         ui.CloseAll(); ui.CloseHelp();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
-        Check(ForestSaveData.CurrentVersion == 19 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
+        Check(ForestSaveData.CurrentVersion == 20 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
             && eco.GrowthModelVersion == 1 && eco.StormModelVersion == 0, "accepted model stack");
         string help = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
         Check(Has(help, "repeated process") && Has(help, "keeping tree cover") && Has(help, "not one thinning")

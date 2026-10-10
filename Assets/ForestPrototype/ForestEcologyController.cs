@@ -74,6 +74,32 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     // Property (stand) bounds in world XZ; the grid is centred on the origin.
     public Rect StandBounds => new Rect(-standSizeMeters * 0.5f, -standSizeMeters * 0.5f, standSizeMeters, standSizeMeters);
     public ForestEcologyCell[] Cells => cells;
+
+    // Version 20: the authoritative stand geometry (StandGeometryModel). The serialized standSizeMeters and
+    // cellSizeMeters are the Legacy40 values the scene was authored with; ApplyStandGeometry is the one path
+    // that changes them. New-game setup, load, Reference preview and verification all go through it.
+    private int standGeometryModelVersion = StandGeometryModel.Legacy40;
+    public int StandGeometryModelVersion => standGeometryModelVersion;
+
+    // Raised after the grid has been rebuilt for a different model, so views that hold cell indices or
+    // world boundary objects can follow. Not raised when the model is unchanged.
+    public event System.Action<int> StandGeometryApplied;
+
+    public void ApplyStandGeometry(int model)
+    {
+        if (!StandGeometryModel.IsKnown(model))
+            throw new System.ArgumentOutOfRangeException(nameof(model), $"unknown stand geometry model {model}");
+        bool changed = model != standGeometryModelVersion;
+        standGeometryModelVersion = model;
+        standSizeMeters = StandGeometryModel.StandSizeMeters(model);
+        cellSizeMeters = StandGeometryModel.CellSizeMeters;
+        // Before Awake the grid does not exist; Awake then builds it at the size set above.
+        if (cells != null && (changed || cells.Length != StandGeometryModel.CellCount(model)))
+            RebuildGrid();
+        if (changed)
+            StandGeometryApplied?.Invoke(model);
+    }
+
     public string LastMastLabel => lastMastLabel;
     public float LastMastMultiplier => lastMastMultiplier;
     public float MaxRecentOpeningPerCell => maxRecentOpeningPerCell;

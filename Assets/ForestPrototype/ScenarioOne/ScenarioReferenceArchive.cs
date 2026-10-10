@@ -105,7 +105,20 @@ public sealed class ScenarioReferenceArchive
         }
     }
 
+    // Reference Future v1 is Legacy40 permanently (D-056): its saved cell indices only mean something on
+    // the 40 x 40 m, 8 x 8 grid. It is never resized, regenerated, migrated or reinterpreted.
+    public const int RequiredStandGeometryModel = StandGeometryModel.Legacy40;
+
+    // True only when the archive is verified for this scenario AND the live world is in the archive's
+    // geometry. A wrong live geometry must never read as a match merely because scenario, seed and
+    // version agree.
     public bool Matches(ScenarioOneDefinition definition, ForestEcologyController ecology)
+        => IdentityMatches(definition, ecology) && ecology.StandGeometryModelVersion == RequiredStandGeometryModel;
+
+    // Everything except the live geometry. Reference preview uses this one: preview itself puts the world
+    // into the archive's geometry (LoadData applies it from the archived save, before any cell-indexed
+    // record is restored) and puts the player's own geometry and exact world back on exit.
+    public bool IdentityMatches(ScenarioOneDefinition definition, ForestEcologyController ecology)
     {
         return definition != null && ecology != null && scenarioId == definition.ScenarioId
             && referenceId == "reference-future-v1" && definitionVersion == "scenario-one-v12"
@@ -163,11 +176,40 @@ public sealed class ScenarioReferenceArchive
         return hash.ToString("X16");
     }
 
+    // Two explicit world identities (D-056). They are different on purpose.
+    //
+    // CurrentWorldHash is the geometry-aware v20 identity. It hashes the full current JSON, version header and
+    // standGeometryModel included, and NEVER strips or normalises the geometry field, so an Enlarged80 world can
+    // never hash like an otherwise equivalent Legacy40 world. New Enlarged80 anchors are labelled and use this.
+    //
+    // LegacyCompatibleWorldHash reproduces the historical pre-v20 layout (no geometry field, a v20 header read as
+    // v19) for Legacy40 worlds ONLY, so every historical anchor stays valid. It returns null for any other
+    // geometry: a non-Legacy40 world has no historical layout.
+    //
+    // WorldHash keeps the behaviour the existing gates were written against: a Legacy40 world is the legacy
+    // compatible identity, any other geometry is the geometry-aware current identity.
     public static string WorldHash(ForestSaveData data)
+        => GeometryIsLegacy(data) ? LegacyCompatibleWorldHash(data) : CurrentWorldHash(data);
+
+    public static string CurrentWorldHash(ForestSaveData data)
     {
         Canonicalize(data);
         return Hash(JsonUtility.ToJson(data));
     }
+
+    public static string LegacyCompatibleWorldHash(ForestSaveData data)
+    {
+        if (!GeometryIsLegacy(data))
+            return null;
+        Canonicalize(data);
+        string json = WithoutGeometryField(JsonUtility.ToJson(data));
+        return Hash(data.version == 20 ? "{\"version\":19" + json.Substring(json.IndexOf(',')) : json);
+    }
+
+    private static string WithoutGeometryField(string json) => json.Replace("\"standGeometryModel\":0,", "");
+
+    private static bool GeometryIsLegacy(ForestSaveData data)
+        => data != null && data.standGeometryModel == StandGeometryModel.Legacy40;
 
     // Compatibility check only: hashes a regeneration-model-0 world in the
     // exact v15 byte layout (version 15, no regenerationModel field), so
@@ -175,12 +217,12 @@ public sealed class ScenarioReferenceArchive
     // Returns null for model-1 worlds, which have no v15 equivalent.
     public static string LegacyV15WorldHash(ForestSaveData data)
     {
-        if (!StormsInert(data) || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 15;
-        string json = JsonUtility.ToJson(copy).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
+        string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
         return Hash(WithoutStormFields(WithoutCompetitionFields(json)));
     }
 
@@ -189,12 +231,12 @@ public sealed class ScenarioReferenceArchive
     // comparable after the v17 bump. Returns null for growth-model-1 worlds.
     public static string LegacyV16WorldHash(ForestSaveData data)
     {
-        if (!StormsInert(data) || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 16;
-        string json = JsonUtility.ToJson(copy).Replace("\"growthModel\":0,", "");
+        string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"growthModel\":0,", "");
         return Hash(WithoutStormFields(WithoutCompetitionFields(json)));
     }
     private static string WithoutCompetitionFields(string json)
@@ -204,11 +246,11 @@ public sealed class ScenarioReferenceArchive
     // Exact v17 compatibility only; never substitutes for model-2 world hashes.
     public static string LegacyV17WorldHash(ForestSaveData data)
     {
-        if (!StormsInert(data) || data.regenerationModel >= RegenerationModel.Competition) return null;
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || data.regenerationModel >= RegenerationModel.Competition) return null;
         var copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 17;
-        return Hash(WithoutStormFields(WithoutCompetitionFields(JsonUtility.ToJson(copy))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutGeometryField(JsonUtility.ToJson(copy)))));
     }
 
     private static bool StormsInert(ForestSaveData data)
@@ -222,9 +264,9 @@ public sealed class ScenarioReferenceArchive
     // v18 layout. Active storm worlds deliberately have no historical hash.
     public static string LegacyV18WorldHash(ForestSaveData data)
     {
-        if (!StormsInert(data)) return null;
+        if (!GeometryIsLegacy(data) || !StormsInert(data)) return null;
         Canonicalize(data);
-        string json = JsonUtility.ToJson(data);
+        string json = WithoutGeometryField(JsonUtility.ToJson(data));
         // Do not JSON-round-trip floating values merely to change a header.
         // This comparator must use exactly the former WorldHash byte stream.
         int firstComma = json.IndexOf(',');

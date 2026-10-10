@@ -34,7 +34,7 @@ public sealed class StormCoreVerificationRunner : MonoBehaviour
         var m = FindFirstObjectByType<ScenarioOneManager>();
         var saves = FindFirstObjectByType<ForestSaveController>();
         var initial = saves.CaptureData();
-        Check(initial.version == 19 && initial.stormModel == 0 && m.StormEvents.Count == 0, "new games remain storms-off v19");
+        Check(initial.version == 20 && initial.stormModel == 0 && m.StormEvents.Count == 0, "new games remain storms-off v20");
         Check(ScenarioReferenceArchive.LegacyV18WorldHash(initial) == "FA855239CDDA32D8", "accepted model2 start retains exact v18 layout anchor");
         Check(saves.LoadData(initial, false), "accepted loaded-start anchor fixture");
         e.Browsing.BackgroundPressure = .2f;

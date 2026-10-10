@@ -25,6 +25,8 @@ public sealed class StandMapView
     public StandMapView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
+        // The UI is built after the ecology already has its geometry (that event was raised before this existed).
+        if (ui.Ecology != null) heldGeometry = ui.Ecology.StandGeometryModelVersion;
         Root = UiKit.Box("layer", "modal-backdrop");
         VisualElement modal = UiKit.Box("panel", "modal");
         Root.Add(modal);
@@ -240,6 +242,11 @@ public sealed class StandMapView
         waypointCell = index;
         journeyStartedAway = ui.Player != null && eco.GetCellIndex(ui.Player.transform.position) != index;
         ui.Learning.Record("map.waypoint");
+        PlaceWaypointMarker(eco, index);
+    }
+
+    private void PlaceWaypointMarker(ForestEcologyController eco, int index)
+    {
         Vector2 centre = eco.Cells[index].Center;
         if (waypointMarker == null)
         {
@@ -256,6 +263,37 @@ public sealed class StandMapView
         if (Physics.Raycast(new Vector3(centre.x, 200f, centre.y), Vector3.down, out RaycastHit hit, 400f, ~0, QueryTriggerInteraction.Ignore))
             ground = hit.point.y;
         waypointMarker.transform.position = new Vector3(centre.x, ground + 3f, centre.y);
+    }
+
+    // The cell indices held here belong to one grid. When the stand geometry changes (a load, or Reference
+    // preview entering and leaving Legacy40) the selection and waypoint of the old grid are set aside rather
+    // than reinterpreted on the new grid, and the waypoint is put back if that geometry returns, so previewing
+    // the Reference does not lose it. Presentation state only; it never enters a save.
+    private int heldGeometry = StandGeometryModel.Legacy40;
+    private int stashedGeometry = -1, stashedWaypointCell = -1;
+
+    public void OnStandGeometryApplied(ForestEcologyController eco, int newModel)
+    {
+        if (newModel == heldGeometry)
+            return;
+        if (waypointCell >= 0)
+        {
+            stashedGeometry = heldGeometry;
+            stashedWaypointCell = waypointCell;
+        }
+        selectedCell = -1;
+        waypointCell = -1;
+        DestroyWaypoint();
+        shownKey = "";
+        heldGeometry = newModel;
+        if (stashedWaypointCell >= 0 && stashedGeometry == newModel && eco?.Cells != null && stashedWaypointCell < eco.Cells.Length)
+        {
+            waypointCell = stashedWaypointCell;
+            journeyStartedAway = ui.Player != null && eco.GetCellIndex(ui.Player.transform.position) != waypointCell;
+            PlaceWaypointMarker(eco, waypointCell);
+            stashedGeometry = -1;
+            stashedWaypointCell = -1;
+        }
     }
 
     private void ClearWaypoint()

@@ -101,7 +101,7 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
 
     private IEnumerator Verify()
     {
-        Check(ForestSaveData.CurrentVersion == 19 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
+        Check(ForestSaveData.CurrentVersion == 20 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
         yield return Reset();
         var trees = Trees();
         Mark(trees[0], FellingMaterialOutcome.SellAndExtract); Mark(trees[1], FellingMaterialOutcome.KeepForUse); Mark(trees[2], FellingMaterialOutcome.RetainAsFallenDeadwood);

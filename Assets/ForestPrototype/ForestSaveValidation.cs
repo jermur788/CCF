@@ -25,6 +25,10 @@ public static partial class ForestSaveValidation
             return "the file is empty or not a forest save";
         if (data.trees == null)
             return "the save has no tree list";
+        // The geometry decides which grid every cell-indexed record below is checked against.
+        string geometryProblem = ValidateGeometry(data);
+        if (geometryProblem != null)
+            return geometryProblem;
 
         // Felled trees stay as stumps and recruits are never removed, so a real
         // save of a populated forest always lists trees.

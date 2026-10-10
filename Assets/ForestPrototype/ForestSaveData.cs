@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 19;
+    public const int CurrentVersion = 20;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -25,6 +25,11 @@ public sealed class ForestSaveData
     public int growthModel;
     // Version 19: independent storm mechanics. Missing legacy fields mean off.
     public int stormModel;
+    // Version 20: the authoritative stand geometry (StandGeometryModel): 0 = Legacy40 (40 x 40 m, 64
+    // cells), 1 = Enlarged80 (80 x 80 m, 256 cells). Explicit on every v20 save. A missing field and
+    // every save before v20 mean Legacy40, so older saves and Reference Future v1 replay unchanged.
+    // Every cell-indexed record below is only meaningful against this geometry's grid.
+    public int standGeometryModel;
     public List<string> markedTreeIds = new List<string>();
     public List<string> cropTreeIds = new List<string>();
     public List<TreeSaveData> trees = new List<TreeSaveData>();

@@ -51,6 +51,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
         ecology = FindFirstObjectByType<ForestEcologyController>();
+        if (ecology != null)
+            ecology.StandGeometryApplied += OnStandGeometryApplied;
         player = FindFirstObjectByType<ForestPlayer>();
         marking = FindFirstObjectByType<ForestTreeMarkingManager>();
 
@@ -98,8 +100,16 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(help.Root);
     }
 
+    // The map holds cell indices of one grid; follow a geometry change instead of reading them on the new grid.
+    private void OnStandGeometryApplied(int model)
+    {
+        if (map != null) map.OnStandGeometryApplied(ecology, model);
+    }
+
     private void OnDestroy()
     {
+        if (ecology != null)
+            ecology.StandGeometryApplied -= OnStandGeometryApplied;
         if (map != null) map.DestroyWaypoint();
         competitors?.Destroy();
         if (panelSettings != null) Destroy(panelSettings);
