@@ -1,0 +1,25 @@
+{
+  "implementation_sha": "fa9f66dfed1b7f8a24295f379e2bb9e302e84a66",
+  "changed_production_files": [
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneDefinition.cs",
+      "sha256": "bd5105aa537a46a8371147f15d6a356e8f42296c7eb6fa65d6f2ecb36617b8a6"
+    },
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+      "sha256": "57df0f40442ef56a60007047d03a192281caedb36fa6e2df2efddd74082ff580"
+    },
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs",
+      "sha256": "f9e3eb919590bd7de7f75a3ddf3083a8c60c3f7d5144398cec35cdd74d4da5d7"
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+      "sha256": "6f6eb3ec00f1c3c73f92d6fbf407452896fe6aa9655b394c10458c802a34d5ca"
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneUiFacts.cs",
+      "sha256": "df1c818dc3d678e8c99da6db04c080bd92d3b33d423aacabf353e7a54492c895"
+    }
+  ]
+}

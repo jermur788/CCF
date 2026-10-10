@@ -1,0 +1,135 @@
+{
+  "implementation_sha": "fa9f66dfed1b7f8a24295f379e2bb9e302e84a66",
+  "base_context": "f4535caf606bca46f35f02408920408d6b9f20d3",
+  "files": [
+    {
+      "path": "ImplementationHandoff.md",
+      "bytes": 9052,
+      "sha256": "0c73dce06a3b66aceef832fe60f56532880ebeeed87e088df31f28ab7abe5089"
+    },
+    {
+      "path": "captures/annual-objectives-e80-1280.png",
+      "bytes": 795874,
+      "sha256": "135be500a864178c0593971be69d905671674dfcda6821cec475302b7a80ff46"
+    },
+    {
+      "path": "captures/annual-objectives-e80-1920.png",
+      "bytes": 1693814,
+      "sha256": "a0b91e2bf5941939b8d2eeecf1f2876ad71af5eca8340f448cfc70d4bb3e82e3"
+    },
+    {
+      "path": "captures/century-reference-l40-1280.png",
+      "bytes": 467550,
+      "sha256": "e8d0eeb22d18fbc8b4631b385a2a35b30421a589129c1f653a2f2d6845267ee6"
+    },
+    {
+      "path": "captures/century-reference-l40-1920.png",
+      "bytes": 947395,
+      "sha256": "8bb8608fcb53a91303040a54487fc0033c4175c9c9a7f423623c73ab8e045d8f"
+    },
+    {
+      "path": "captures/century-targets-e80-1280.png",
+      "bytes": 799771,
+      "sha256": "efa676d423ad381d1c87e78e3585174ee4b57c8bad9a3a91e1b7e08ecb106b69"
+    },
+    {
+      "path": "captures/century-targets-e80-1920.png",
+      "bytes": 1711306,
+      "sha256": "61bc80e98c78711a2d08cd99201045aa5215f4cb503f64b326c75bca13fd9154"
+    },
+    {
+      "path": "captures/objectives-e80-1280.png",
+      "bytes": 844055,
+      "sha256": "2858166e3be34e32a63f55adeb1204c2efd4a1e314a935648bb202915da57f45"
+    },
+    {
+      "path": "captures/objectives-e80-1920.png",
+      "bytes": 1775436,
+      "sha256": "d8ab56646c6401d70a9c4cd0534874793ca9a65344b238492bb5f157cbea49af"
+    },
+    {
+      "path": "editor-search-baseline.json",
+      "bytes": 1756,
+      "sha256": "bbeb9e9b7dce1693f5b6603c5660f04d464430d7979f568134be40b9a7b40843"
+    },
+    {
+      "path": "enlarged80.json",
+      "bytes": 4178,
+      "sha256": "93892abd352760fc48f5b59c577e9dd7586e16f29249633e9c1a123cee5a9620"
+    },
+    {
+      "path": "final-calibration-1.json",
+      "bytes": 396,
+      "sha256": "7841b7ca9dc7e345168805d5fa9d11e4eb5df65262b46915bbebe526ab3b4fb5"
+    },
+    {
+      "path": "final-calibration-2.json",
+      "bytes": 396,
+      "sha256": "e331f50de7b069136f49b5f4a0a3998792dd3e41996c7c68ba832130bfb4bb9e"
+    },
+    {
+      "path": "final-pipeline-results.json",
+      "bytes": 884,
+      "sha256": "add360de57d90eccec76540d3a9561ac2bb57906c385cc1e7d43393c0c5c666d"
+    },
+    {
+      "path": "final-production-sources.json",
+      "bytes": 943,
+      "sha256": "3fdcb258a8e75547cff6ea2f3bfb79a75456365fad2c747a81c7733be8716641"
+    },
+    {
+      "path": "final-rendered.json",
+      "bytes": 252,
+      "sha256": "2b8ebd987a8e13559cf3d34a9d719e633665cc31a3f72ca4d393890b3941c185"
+    },
+    {
+      "path": "final-viability-1.json",
+      "bytes": 651,
+      "sha256": "cd16b8355233e65c19f3103a28ee0480c6758908bf63acffbd949d75073d65f3"
+    },
+    {
+      "path": "final-viability-2.json",
+      "bytes": 651,
+      "sha256": "a4161fd9af907aaca1fd3c49af76ecc47a620de04e5d5e205e3412a90168e308"
+    },
+    {
+      "path": "p2-results.json",
+      "bytes": 4040,
+      "sha256": "286bf528553aa90d6eb1cca034e02f7e058803838137d46a5f332ee9ee51bbd1"
+    },
+    {
+      "path": "p3-results.json",
+      "bytes": 2888,
+      "sha256": "67c8d712320c12f9382f97145bec477b4dad97927e15146b03214edb5400db2a"
+    },
+    {
+      "path": "regression-results.json",
+      "bytes": 28019,
+      "sha256": "0d684cc2bc1385504a519ed3617b93a04c646212ee2bbc1aafeaf8832eb0fee6"
+    },
+    {
+      "path": "serialized-restoration.json",
+      "bytes": 5161,
+      "sha256": "6c5eb3ee8680f4fc754254cdb4b65367e7b3444a350851b1623977cc021298c2"
+    },
+    {
+      "path": "stand-geometry.json",
+      "bytes": 1444,
+      "sha256": "160a749aa8b0524ae4bd0e0eff60431e2a120a1b7f4deb65103fd8ec1616d660"
+    },
+    {
+      "path": "targeted-results.json",
+      "bytes": 6114,
+      "sha256": "9f212288acb6e7ecdafd49cd953ab6ffdc00e58fd8062202e2d21ad5daa8dd13"
+    }
+  ],
+  "required_anchors": {
+    "Enlarged80 start": "04A78188A6F8E6F9",
+    "Enlarged80 year 3": "081DB58CE3034648",
+    "P2": "F58FB0B1A421D28B",
+    "P3": "F7C2FC966816BBAD",
+    "Model2 v18 completion compatibility": "702766DECE591E21",
+    "Reference year 100": "7AD177B3CC2F73C7",
+    "Reference legacy-v15 continuation": "9CDF21A541C5968D"
+  }
+}

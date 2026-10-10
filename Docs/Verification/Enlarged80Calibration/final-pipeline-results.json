@@ -1,0 +1,57 @@
+[
+  {
+    "step": "final-calibration-1",
+    "exit_code": 0,
+    "seconds": 51.04
+  },
+  {
+    "step": "final-calibration-2",
+    "exit_code": 0,
+    "seconds": 49.94
+  },
+  {
+    "step": "final-viability-1",
+    "exit_code": 0,
+    "seconds": 125.27
+  },
+  {
+    "step": "final-viability-2",
+    "exit_code": 0,
+    "seconds": 124.73
+  },
+  {
+    "step": "calibration-rendered",
+    "exit_code": 0,
+    "seconds": 98.66
+  },
+  {
+    "step": "stand-geometry",
+    "exit_code": 0,
+    "seconds": 71.42
+  },
+  {
+    "step": "enlarged80",
+    "exit_code": 0,
+    "seconds": 106.25
+  },
+  {
+    "step": "targeted",
+    "exit_code": 0,
+    "seconds": 484.26
+  },
+  {
+    "step": "P2",
+    "exit_code": 0,
+    "disposition": "PASS"
+  },
+  {
+    "step": "P3",
+    "exit_code": 0,
+    "seconds": 122.84
+  },
+  {
+    "step": "full-regression",
+    "exit_code": 0,
+    "seconds": 1589.98
+  }
+]

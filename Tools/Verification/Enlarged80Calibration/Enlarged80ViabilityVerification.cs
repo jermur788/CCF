@@ -16,7 +16,7 @@ public static class Enlarged80ViabilityVerification
 public sealed class Enlarged80ViabilityRunner : MonoBehaviour
 {
     ScenarioOneManager manager; ForestEcologyController ecology; ForestTreeMarkingManager marking;
-    long minimumCash; 
+    long minimumCash;
     static void Check(bool ok,string why){if(!ok)throw new InvalidOperationException(why);}
     IEnumerator Start()
     {

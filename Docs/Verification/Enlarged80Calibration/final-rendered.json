@@ -1,0 +1,11 @@
+{
+  "gate": "AreaCalibrationReview",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 98.49,
+  "markers": [
+    "AREA_CALIBRATION_REVIEW_SIZE_PASS 1280x720",
+    "AREA_CALIBRATION_REVIEW_SIZE_PASS 1920x1080",
+    "AREA_CALIBRATION_REVIEW_PASS"
+  ]
+}

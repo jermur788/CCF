@@ -1,0 +1,12 @@
+{
+  "gate": "AreaCalibrationVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 50.88,
+  "markers": [
+    "AREA_CALIBRATION_VALUES Legacy40 retained=60 regen=3 deadwood=0.02 century=120/10/12/0.5",
+    "AREA_CALIBRATION_VALUES Enlarged80 retained=240 regen=12 deadwood=0.08 century=480/40/48/2",
+    "AREA_CALIBRATION_RESTORED_REVIEW_PASS",
+    "AREA_CALIBRATION_VERIFY_PASS"
+  ]
+}

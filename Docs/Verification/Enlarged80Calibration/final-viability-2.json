@@ -1,0 +1,14 @@
+{
+  "gate": "Enlarged80ViabilityVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 124.57,
+  "markers": [
+    "E80_ECONOMY_SMALL cost=250000 revenue=298",
+    "E80_VIABILITY_INTERVENTION year=0 trees=275 basalAreaShare=0.2703537",
+    "E80_ECONOMY_LARGE trees=276 cost=250000 revenue=207716 cash=1200000",
+    "E80_VIABILITY_INTERVENTION year=16 trees=186 basalAreaShare=0.2007469",
+    "E80_VIABILITY_RESULT completion=Completed completedYear=25 minimumCash=1145116 interventionYears=3 treesFelled=462 ownerMinutes=24 oak=8 beech=8 retained=793 regenCells=232 deadwood=58.73983 canopy=0.8837839",
+    "E80_VIABILITY_VERIFY_PASS"
+  ]
+}
