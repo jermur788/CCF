@@ -109,6 +109,25 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     public int ReferenceRegenerationCells => referenceRegenerationCells;
     public float ReferenceDeadwoodVolumeM3 => referenceDeadwoodVolumeM3;
     public float ReferenceMeanCanopy => referenceMeanCanopy;
+    // Serialized values remain the Legacy40 baseline. Only accepted extensive targets
+    // scale with property area; economy, canopy means and review years do not.
+    private static int TargetAreaFactor(int geometry)
+    {
+        if (!StandGeometryModel.IsKnown(geometry))
+            throw new ArgumentOutOfRangeException(nameof(geometry), geometry, "Unknown target calibration geometry");
+        float size = StandGeometryModel.StandSizeMeters(geometry);
+        float baseline = StandGeometryModel.StandSizeMeters(StandGeometryModel.Legacy40);
+        return Mathf.RoundToInt(size * size / (baseline * baseline));
+    }
+
+    public int EffectiveMinimumRetainedOriginalTrees(int geometry) => minimumRetainedOriginalTrees * TargetAreaFactor(geometry);
+    public int EffectiveMinimumRegenerationCells(int geometry) => minimumRegenerationCells * TargetAreaFactor(geometry);
+    public float EffectiveMinimumDeadwoodVolumeM3(int geometry) => minimumDeadwoodVolumeM3 * TargetAreaFactor(geometry);
+    public int EffectiveReferenceOriginalTrees(int geometry) => referenceOriginalTrees * TargetAreaFactor(geometry);
+    public int EffectiveReferenceBroadleafPresence(int geometry) => referenceBroadleafPresence * TargetAreaFactor(geometry);
+    public int EffectiveReferenceRegenerationCells(int geometry) => referenceRegenerationCells * TargetAreaFactor(geometry);
+    public float EffectiveReferenceDeadwoodVolumeM3(int geometry) => referenceDeadwoodVolumeM3 * TargetAreaFactor(geometry);
+
     public IReadOnlyList<ScenarioShopEntry> ShopEntries => shopEntries;
     public int RemovalBaseMinutes => removalBaseMinutes;
     public float RemovalMinutesPerCohortDensity => removalMinutesPerCohortDensity;

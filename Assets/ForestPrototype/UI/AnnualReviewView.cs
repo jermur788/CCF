@@ -244,9 +244,9 @@ public sealed class AnnualReviewView
         ScenarioCenturyReview century = m.CenturyReview;
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"CENTURY REVIEW — YEAR {century.year}", "heading");
-        UiKit.Add(card, $"Outcome: {century.outcome}. Compared with the frozen Reference Future, not an optimal score or prescription.", "body");
+        UiKit.Add(card, $"Outcome: {century.outcome}. {ScenarioOneUiFacts.CenturyComparisonDescription(century)}", "body");
         foreach (ScenarioObjectiveResult c in century.referenceComparisons)
-            UiKit.Add(card, $"{ScenarioOneUiFacts.ObjectiveName(c)}: yours {c.currentValue:0.##} · reference {c.targetValue:0.##}", "body");
+            UiKit.Add(card, $"{ScenarioOneUiFacts.ObjectiveName(c)}: yours {c.currentValue:0.##} · {ScenarioOneUiFacts.CenturyComparisonValueLabel(century)} {c.targetValue:0.##}", "body");
         scroll.Add(card);
     }
 }

@@ -48,7 +48,8 @@ public static class ScenarioOneObjectives
 {
     public static List<ScenarioObjectiveResult> Evaluate(ScenarioOneDefinition definition,
         ScenarioEcologicalSnapshot snapshot, IReadOnlyList<ScenarioManagementEvent> events,
-        string originalSpeciesId, IReadOnlyList<ScenarioOneWorkOrder> orders = null)
+        string originalSpeciesId, IReadOnlyList<ScenarioOneWorkOrder> orders = null,
+        int geometry = StandGeometryModel.Legacy40)
     {
         var results = new List<ScenarioObjectiveResult>();
         if (definition == null || snapshot == null)
@@ -58,13 +59,13 @@ public static class ScenarioOneObjectives
             definition.MinimumCompletionYear);
         ScenarioSpeciesOutcome original = Species(snapshot, originalSpeciesId);
         Add(results, "retained-canopy", "Retain original canopy trees", original != null ? original.livingTrees : 0,
-            definition.MinimumRetainedOriginalTrees);
+            definition.EffectiveMinimumRetainedOriginalTrees(geometry));
         Add(results, "continuous-canopy", "Keep continuous canopy", snapshot.meanCanopy,
             definition.MinimumMeanCanopy);
         Add(results, "regeneration", "Maintain regenerating cells", snapshot.occupiedRegenerationCells,
-            definition.MinimumRegenerationCells);
+            definition.EffectiveMinimumRegenerationCells(geometry));
         Add(results, "fallen-deadwood", "Retain fallen deadwood", snapshot.deadwoodVolumeM3,
-            definition.MinimumDeadwoodVolumeM3);
+            definition.EffectiveMinimumDeadwoodVolumeM3(geometry));
 
         bool felled = events != null && events.Any(entry => entry != null
             && entry.eventType == ScenarioManagementEventType.WorkResolved
@@ -100,7 +101,7 @@ public static class ScenarioOneObjectives
         string originalSpeciesId, ScenarioReferenceArchive reference = null,
         IReadOnlyList<ScenarioManagementEvent> playerEvents = null,
         IReadOnlyList<ScenarioAnnualReport> playerReports = null,
-        int playerLegacySitka = -1)
+        int playerLegacySitka = -1, int geometry = StandGeometryModel.Legacy40)
     {
         ForestSaveData referenceWorld = reference?.AtYear(100)?.world;
         ScenarioOneSaveData referenceScenario = referenceWorld?.scenarioOne;
@@ -120,7 +121,7 @@ public static class ScenarioOneObjectives
         ScenarioSpeciesOutcome referenceOriginal = reference != null ? Species(referenceSnapshot, originalSpeciesId) : null;
         Add(review.referenceComparisons, "original-trees", "Original-species trees",
             original != null ? original.livingTrees : 0,
-            referenceOriginal != null ? referenceOriginal.livingTrees : definition.ReferenceOriginalTrees);
+            referenceOriginal != null ? referenceOriginal.livingTrees : definition.EffectiveReferenceOriginalTrees(geometry));
         if (definition.ShopEntries != null)
             foreach (string speciesId in definition.ShopEntries.Where(item => item != null
                 && !string.IsNullOrEmpty(item.speciesId))
@@ -131,14 +132,14 @@ public static class ScenarioOneObjectives
                 Add(review.referenceComparisons, "reference-" + speciesId, speciesId + " presence",
                     species != null ? species.livingTrees + species.regenerationCells + species.plantedJuveniles : 0,
                     referenceSpecies != null ? referenceSpecies.livingTrees + referenceSpecies.regenerationCells
-                        : definition.ReferenceBroadleafPresence);
+                        : definition.EffectiveReferenceBroadleafPresence(geometry));
             }
         Add(review.referenceComparisons, "reference-regeneration", "Regenerating cells",
             snapshot.occupiedRegenerationCells,
-            reference != null ? referenceSnapshot.occupiedRegenerationCells : definition.ReferenceRegenerationCells);
+            reference != null ? referenceSnapshot.occupiedRegenerationCells : definition.EffectiveReferenceRegenerationCells(geometry));
         Add(review.referenceComparisons, "reference-deadwood", "Fallen deadwood m³",
             snapshot.deadwoodVolumeM3,
-            reference != null ? referenceSnapshot.deadwoodVolumeM3 : definition.ReferenceDeadwoodVolumeM3);
+            reference != null ? referenceSnapshot.deadwoodVolumeM3 : definition.EffectiveReferenceDeadwoodVolumeM3(geometry));
         Add(review.referenceComparisons, "reference-canopy", "Mean canopy",
             snapshot.meanCanopy,
             reference != null ? referenceSnapshot.meanCanopy : definition.ReferenceMeanCanopy);

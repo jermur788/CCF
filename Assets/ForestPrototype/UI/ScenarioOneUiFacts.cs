@@ -78,6 +78,16 @@ public static class ScenarioOneUiFacts
         => objective.displayName.Replace("sitka-spruce", SpeciesName("sitka-spruce"))
             .Replace("sessile-oak", SpeciesName("sessile-oak"));
 
+    public static string CenturyComparisonDescription(ScenarioCenturyReview review)
+    {
+        return review.referenceId == "aspirational-design-targets"
+            ? "Compared with Scenario One aspirational design targets: not a forecast, optimum or prescription."
+            : "Compared with the frozen Reference Future, not an optimal score or prescription.";
+    }
+
+    public static string CenturyComparisonValueLabel(ScenarioCenturyReview review) =>
+        review.referenceId == "aspirational-design-targets" ? "target" : "reference";
+
     public static string ObjectiveLine(ScenarioObjectiveResult objective)
         => $"{(objective.achieved ? "✓ done" : "○ open")} · {ObjectiveName(objective)}: {objective.currentValue.ToString("0.##", UiKit.Inv)} / {objective.targetValue.ToString("0.##", UiKit.Inv)}";
 

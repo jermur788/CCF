@@ -292,7 +292,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public bool AnnualReviewSeen => annualReviewSeen;
     public IReadOnlyList<ScenarioObjectiveResult> Objectives => ScenarioOneObjectives.Evaluate(definition,
         ecologicalSnapshots.Count > 0 ? ecologicalSnapshots[ecologicalSnapshots.Count - 1] : null,
-        managementEvents, OriginalSpeciesId, workOrders);
+        managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
     public FellingMaterialOutcome PlanningFellingOutcome
     {
         get => planningFellingOutcome;
@@ -2296,7 +2296,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (outcome == ScenarioOneOutcome.Active)
         {
             List<ScenarioObjectiveResult> objectives = ScenarioOneObjectives.Evaluate(definition,
-                snapshot, managementEvents, OriginalSpeciesId, workOrders);
+                snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
             if (objectives.Count > 0 && objectives.All(result => result.achieved))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,
                     $"Scenario complete in year {snapshot.year}. Continue to the Century Review.");
@@ -2317,7 +2317,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 && tree.Species != null && tree.Species.SpeciesId == originalSpeciesId);
             centuryReview = ScenarioOneObjectives.Review(definition, snapshot, outcome,
                 outcome == ScenarioOneOutcome.Completed ? outcomeYear : -1, originalSpeciesId,
-                compatible, managementEvents, annualReports, oldSitka);
+                compatible, managementEvents, annualReports, oldSitka, ecology.StandGeometryModelVersion);
             RecordEvent(new ScenarioManagementEvent
             {
                 year = snapshot.year,
