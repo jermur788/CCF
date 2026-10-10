@@ -96,6 +96,39 @@ public static class ScenarioOneObjectives
         return results;
     }
 
+    // A saved review keeps its original measurements/history. Its design targets
+    // must still follow the restored world's geometry, including pre-calibration saves.
+    public static void RefreshAspirationalTargets(ScenarioCenturyReview review,
+        ScenarioOneDefinition definition, int geometry)
+    {
+        if (review == null || definition == null || geometry == StandGeometryModel.Legacy40
+            || review.referenceId != "aspirational-design-targets")
+            return;
+        foreach (ScenarioObjectiveResult result in review.referenceComparisons)
+        {
+            if (result == null) continue;
+            switch (result.objectiveId)
+            {
+                case "original-trees":
+                    result.targetValue = definition.EffectiveReferenceOriginalTrees(geometry);
+                    break;
+                case "reference-regeneration":
+                    result.targetValue = definition.EffectiveReferenceRegenerationCells(geometry);
+                    break;
+                case "reference-deadwood":
+                    result.targetValue = definition.EffectiveReferenceDeadwoodVolumeM3(geometry);
+                    break;
+                default:
+                    if (definition.ShopEntries == null || !definition.ShopEntries.Any(entry => entry != null
+                        && result.objectiveId == "reference-" + entry.speciesId))
+                        continue;
+                    result.targetValue = definition.EffectiveReferenceBroadleafPresence(geometry);
+                    break;
+            }
+            result.achieved = result.currentValue >= result.targetValue;
+        }
+    }
+
     public static ScenarioCenturyReview Review(ScenarioOneDefinition definition,
         ScenarioEcologicalSnapshot snapshot, ScenarioOneOutcome outcome, int completedYear,
         string originalSpeciesId, ScenarioReferenceArchive reference = null,

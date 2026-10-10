@@ -54,6 +54,31 @@ public sealed class AreaCalibrationRunner : MonoBehaviour
         }
         var ecology=FindFirstObjectByType<ForestEcologyController>();
         Check(manager.Objectives.Single(x=>x.objectiveId=="retained-canopy").targetValue==d.EffectiveMinimumRetainedOriginalTrees(ecology.StandGeometryModelVersion),"manager UI target source");
+        // Restored pre-calibration E80 reviews must use the same current target layer.
+        var original=manager.CaptureSaveData();
+        var cached=manager.CaptureSaveData();
+        var century=new ScenarioEcologicalSnapshot {year=100};
+        century.species.Add(new ScenarioSpeciesOutcome {speciesId="sitka-spruce",livingTrees=200});
+        cached.centuryReview=ScenarioOneObjectives.Review(d,century,ScenarioOneOutcome.Active,-1,"sitka-spruce",geometry:StandGeometryModel.Legacy40);
+        string savedReview=JsonUtility.ToJson(cached.centuryReview);
+        manager.RestoreSaveData(cached,20);
+        Check(manager.CenturyReview.referenceComparisons.Single(x=>x.objectiveId=="original-trees").targetValue==480,"restored E80 century targets");
+        Check(manager.CenturyReview.referenceComparisons.Single(x=>x.objectiveId=="reference-deadwood").targetValue==2f,"restored E80 deadwood target");
+        Check(JsonUtility.ToJson(cached.centuryReview)==savedReview,"restore does not mutate input record");
+        Check(manager.CenturyReview.year==100 && manager.CenturyReview.outcome==ScenarioOneOutcome.Active
+            && manager.CenturyReview.referenceComparisons.Single(x=>x.objectiveId=="original-trees").currentValue==200
+            && !manager.CenturyReview.referenceComparisons.Single(x=>x.objectiveId=="original-trees").achieved,"cached measurements/history preserved, achieved recalibrated");
+        foreach(var pair in new[]{("reference-regeneration",48f),("reference-beech",40f),("reference-sessile-oak",40f)})
+            Check(manager.CenturyReview.referenceComparisons.Single(x=>x.objectiveId==pair.Item1).targetValue==pair.Item2,"restored target "+pair.Item1);
+        var legacyCopy=JsonUtility.FromJson<ScenarioCenturyReview>(savedReview);
+        ScenarioOneObjectives.RefreshAspirationalTargets(legacyCopy,d,StandGeometryModel.Legacy40);
+        Check(JsonUtility.ToJson(legacyCopy)==savedReview,"Legacy40 cached review unchanged");
+        cached.centuryReview.referenceId=ScenarioReferenceArchive.Load().referenceId;
+        string frozenSaved=JsonUtility.ToJson(cached.centuryReview);
+        manager.RestoreSaveData(cached,20);
+        Check(JsonUtility.ToJson(manager.CenturyReview)==frozenSaved,"frozen cached review unchanged");
+        manager.RestoreSaveData(original,20);
+        Debug.Log("AREA_CALIBRATION_RESTORED_REVIEW_PASS");
         bool rejected=false; try{d.EffectiveMinimumRetainedOriginalTrees(77);}catch(ArgumentOutOfRangeException){rejected=true;} Check(rejected,"unknown model rejected");
         var frozen=new ScenarioCenturyReview {referenceId=ScenarioReferenceArchive.Load().referenceId};
         Check(ScenarioOneUiFacts.CenturyComparisonDescription(frozen).Contains("frozen Reference Future") && ScenarioOneUiFacts.CenturyComparisonValueLabel(frozen)=="reference","frozen copy");

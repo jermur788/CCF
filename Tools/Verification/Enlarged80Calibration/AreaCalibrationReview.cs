@@ -11,6 +11,24 @@ using UnityEngine;
 using UnityEngine.UIElements;
 public static class AreaCalibrationReview
 {
+    const string PendingExit = "CCF.AreaCalibrationReview.ExitCode";
+    [InitializeOnLoadMethod]
+    static void InstallEditorExit() {
+        EditorApplication.update -= FinishEditorExit;
+        EditorApplication.update += FinishEditorExit;
+    }
+    static void FinishEditorExit() {
+        int code=SessionState.GetInt(PendingExit,-1);
+        if(code<0 || EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)return;
+        SessionState.EraseInt(PendingExit);
+        EditorApplication.Exit(code);
+    }
+    public static void Complete(int code) {
+        // SessionState survives the domain reload when Play Mode ends.
+        SessionState.SetInt(PendingExit,code);
+        EditorApplication.delayCall += EditorApplication.ExitPlaymode;
+    }
+
     public static void Begin(){EditorSceneManager.OpenScene("Assets/Scenes/ForestTest.unity");EditorApplication.isPlaying=true;}
     public static void SetGameSize(int width, int height)
     {
@@ -47,7 +65,8 @@ public sealed class AreaCalibrationReviewRunner : MonoBehaviour
         ui=FindFirstObjectByType<ScenarioOneUiRoot>();m=ui.Manager;saves=FindFirstObjectByType<ForestSaveController>();
         var stack=new Stack<IEnumerator>();stack.Push(Run());Exception failure=null;
         while(stack.Count>0){bool more;object current=null;try{more=stack.Peek().MoveNext();if(more)current=stack.Peek().Current;}catch(Exception e){failure=e;break;}if(!more){stack.Pop();continue;}if(current is IEnumerator nested){stack.Push(nested);continue;}yield return current;}
-        Debug.Log(failure==null?"AREA_CALIBRATION_REVIEW_PASS":"AREA_CALIBRATION_REVIEW_FAIL "+failure);EditorApplication.Exit(failure==null?0:1);
+        Debug.Log(failure==null?"AREA_CALIBRATION_REVIEW_PASS":"AREA_CALIBRATION_REVIEW_FAIL "+failure);
+        AreaCalibrationReview.Complete(failure==null?0:1);
     }
     IEnumerator Settle(){for(int i=0;i<14;i++){ui.CloseHelp();yield return null;}}
     IEnumerator Capture(string name)
@@ -72,18 +91,18 @@ public sealed class AreaCalibrationReviewRunner : MonoBehaviour
             ui.ShowReview();yield return Settle();
             Label objective=ui.RootElement.Query<Label>().ToList().First(x=>x.text==ScenarioOneUiFacts.ObjectiveLine(m.Objectives.First()));
             foreach(var result in m.Objectives)Check(ui.RootElement.Query<Label>().ToList().Any(x=>x.text==ScenarioOneUiFacts.ObjectiveLine(result)),"Annual Review target mismatch "+result.objectiveId);
-            var scroll=objective.GetFirstAncestorOfType<ScrollView>();scroll.ScrollTo(objective);yield return Settle();CheckLabels(scroll.Query<Label>().ToList());yield return Capture("annual-objectives-e80-"+width);
+            var scroll=objective.GetFirstAncestorOfType<ScrollView>();scroll.ScrollTo(objective.parent.Children().Last());yield return Settle();CheckLabels(scroll.Query<Label>().ToList());yield return Capture("annual-objectives-e80-"+width);
             var fallback=ScenarioOneObjectives.Review(m.Definition,m.EcologicalSnapshots.Last(),m.Outcome,-1,"sitka-spruce",geometry:StandGeometryModel.Enlarged80);fallback.year=100;
             typeof(ScenarioOneManager).GetField("centuryReview",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(m,fallback);
             // Reopen forces the existing view to render this presentation fixture; no saved asset/world edits.
             ui.ShowObjectives();ui.ShowReview();yield return Settle();
             Label copy=ui.RootElement.Query<Label>().ToList().FirstOrDefault(x=>x.text.Contains("aspirational design targets")&&x.text.Contains("not a forecast"));Check(copy!=null,"fallback wording");
-            scroll=copy.GetFirstAncestorOfType<ScrollView>();scroll.ScrollTo(copy);yield return Settle();CheckLabels(copy.parent.Query<Label>().ToList());
+            scroll=copy.GetFirstAncestorOfType<ScrollView>();scroll.ScrollTo(copy.parent.Children().Last());yield return Settle();CheckLabels(copy.parent.Query<Label>().ToList());
             Check(copy.parent.Query<Label>().ToList().All(x=>!x.text.Contains("frozen Reference Future")&&!x.text.Contains("· reference")),"fallback claims reference");yield return Capture("century-targets-e80-"+width);
             var reference=ScenarioReferenceArchive.Load();Check(saves.LoadData(reference.AtYear(100).world,false),"Legacy40 reference restore");yield return Settle();
             var frozen=ScenarioOneObjectives.Review(m.Definition,m.EcologicalSnapshots.Last(),m.Outcome,m.OutcomeYear,"sitka-spruce",reference,geometry:StandGeometryModel.Legacy40);
             typeof(ScenarioOneManager).GetField("centuryReview",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(m,frozen);ui.ShowObjectives();ui.ShowReview();yield return Settle();
-            Label frozenCopy=ui.RootElement.Query<Label>().ToList().FirstOrDefault(x=>x.text.Contains("Compared with the frozen Reference Future"));Check(frozenCopy!=null,"frozen wording");frozenCopy.GetFirstAncestorOfType<ScrollView>().ScrollTo(frozenCopy);yield return Settle();CheckLabels(frozenCopy.parent.Query<Label>().ToList());yield return Capture("century-reference-l40-"+width);
+            Label frozenCopy=ui.RootElement.Query<Label>().ToList().FirstOrDefault(x=>x.text.Contains("Compared with the frozen Reference Future"));Check(frozenCopy!=null,"frozen wording");frozenCopy.GetFirstAncestorOfType<ScrollView>().ScrollTo(frozenCopy.parent.Children().Last());yield return Settle();CheckLabels(frozenCopy.parent.Query<Label>().ToList());yield return Capture("century-reference-l40-"+width);
             Debug.Log("AREA_CALIBRATION_REVIEW_SIZE_PASS "+width+"x"+height);
         }
         Check(saves.LoadData(initial,false),"restore original");

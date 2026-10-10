@@ -1432,6 +1432,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // as an empty instance (year 0). It is not a completed Century Review.
         centuryReview = data.centuryReview == null || data.centuryReview.year < ReviewYear
             ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
+        ScenarioOneObjectives.RefreshAspirationalTargets(centuryReview, definition, ecology.StandGeometryModelVersion);
         RestoreStormVisualState();
         RestoreDeadwoodVisuals();
         RefreshFellingResidueVisuals();
