@@ -1,0 +1,217 @@
+{
+ "note": "SHA-256 of Phase 1 evidence; raw Editor logs and screenshots under ignored Build/ are listed here but only small files are committed",
+ "files": {
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/end-of-task-runner-output.txt": {
+   "sha256": "a2d63bc9afe7df6ace62cc10a81f2abfa1c3b715e447028a132e4db050987d0c",
+   "bytes": 1541
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/pointer-test-a_as_is-results.json": {
+   "sha256": "34d48f7e17dfb07c4c08e1d964c5357ec3eb1c249f1d48672ff05b6a0740e892",
+   "bytes": 1283
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/pointer-test-b_centre-results.json": {
+   "sha256": "e10abfd6b24fb1a3fdf85ce6787a3e8159168ae0f3c8ed72b9fba10e30f35b91",
+   "bytes": 1283
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/pointer-test-c_topleft-results.json": {
+   "sha256": "e3a5596021f757f9749328efd5c5bb498d689a1fffd26e3eb58c4c074d7cb933",
+   "bytes": 1283
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/pointer-test-summary.txt": {
+   "sha256": "30e16b5cec784ea7bc0a2e1e4d6d5b7710637897eb9d2cb5d369d4399c3728df",
+   "bytes": 329
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/start-inspection-1280.jpg": {
+   "sha256": "72f5f81f24fc9f5394d2ed047a917694730bf174a987812261efd5ed090f50f7",
+   "bytes": 252192
+  },
+  "Docs/Verification/StandExpansion/Evidence/P2Inherited/start-results.json": {
+   "sha256": "9aff6ee4eb3df657bb62402e7176e7c9bbf1207726422ae1d389fc5c49322bc4",
+   "bytes": 4032
+  },
+  "Docs/Verification/StandExpansion/Evidence/run1/audit-summary.json": {
+   "sha256": "3aaf74e036db94d25e29b2e843cc5cad956a4bd3c5aef4436179152f414a977d",
+   "bytes": 10676
+  },
+  "Docs/Verification/StandExpansion/Evidence/run1/trees-candidate-80m-density-preserving.csv": {
+   "sha256": "a26c9fe44294e2083f63cadc9ccc73290432bf68c9c7d717cce5bc47fc2c3ae4",
+   "bytes": 74322
+  },
+  "Docs/Verification/StandExpansion/Evidence/run1/trees-current-40m.csv": {
+   "sha256": "b16506984a880fefd4ec51c575417e66bf337220d0d09c63f48b3ac0f4884439",
+   "bytes": 18160
+  },
+  "Docs/Verification/StandExpansion/Evidence/run1/view-candidate-80m-density-preserving-north.jpg": {
+   "sha256": "553364edb15e20639ae86cd2f836a63deaf61c10257d441345edcc89b541bb85",
+   "bytes": 300273
+  },
+  "Docs/Verification/StandExpansion/Evidence/run1/view-current-40m-north.jpg": {
+   "sha256": "4fad7c657c83051421445d23fe18990a869bbf439adcd1717b3813a65c3aa91b",
+   "bytes": 294753
+  },
+  "Docs/Verification/StandExpansion/Evidence/run2/audit-summary.json": {
+   "sha256": "060eb0ad8640ccaa461e03ff6bd72455bd5773d4ebae4a76b72ae48e25e2782d",
+   "bytes": 10675
+  },
+  "Docs/Verification/StandExpansion/Evidence/run3/audit-summary.json": {
+   "sha256": "3992fb8789a7a0db3019371f9e8b7e6bf233c41f03101f4d7a5bc8ff98ef553c",
+   "bytes": 11874
+  },
+  "Build/StandExpansion/run1/audit-summary.json": {
+   "sha256": "3aaf74e036db94d25e29b2e843cc5cad956a4bd3c5aef4436179152f414a977d",
+   "bytes": 10676
+  },
+  "Build/StandExpansion/run1/editor.log": {
+   "sha256": "6d9835b573a972deae9bad65d97b59f83398fb20f0b5ee257b5eeb2194b5d724",
+   "bytes": 254264
+  },
+  "Build/StandExpansion/run1/trees-candidate-80m-density-preserving.csv": {
+   "sha256": "a26c9fe44294e2083f63cadc9ccc73290432bf68c9c7d717cce5bc47fc2c3ae4",
+   "bytes": 74322
+  },
+  "Build/StandExpansion/run1/trees-current-40m.csv": {
+   "sha256": "b16506984a880fefd4ec51c575417e66bf337220d0d09c63f48b3ac0f4884439",
+   "bytes": 18160
+  },
+  "Build/StandExpansion/run1/view-candidate-80m-density-preserving-east.jpg": {
+   "sha256": "307be32b0dea7df41c1a52bff23a552e4b987f952dbf77ba7e632e0c4aaa51b0",
+   "bytes": 212697
+  },
+  "Build/StandExpansion/run1/view-candidate-80m-density-preserving-north.jpg": {
+   "sha256": "553364edb15e20639ae86cd2f836a63deaf61c10257d441345edcc89b541bb85",
+   "bytes": 300273
+  },
+  "Build/StandExpansion/run1/view-candidate-80m-density-preserving-south.jpg": {
+   "sha256": "c5d5a7872e56da267d241d14c66b057ec02296ec0575547bb26f70da12ae0cfd",
+   "bytes": 234374
+  },
+  "Build/StandExpansion/run1/view-candidate-80m-density-preserving-west.jpg": {
+   "sha256": "ef9bc5574283d4d75495c4c32a9df48785b7c014e7b90ee9d7c633eb51e6770b",
+   "bytes": 243743
+  },
+  "Build/StandExpansion/run1/view-current-40m-east.jpg": {
+   "sha256": "3157b9194220b952d64011be6fca593475a06a15e019bd1bc3727623b2094d3e",
+   "bytes": 217781
+  },
+  "Build/StandExpansion/run1/view-current-40m-north.jpg": {
+   "sha256": "4fad7c657c83051421445d23fe18990a869bbf439adcd1717b3813a65c3aa91b",
+   "bytes": 294753
+  },
+  "Build/StandExpansion/run1/view-current-40m-south.jpg": {
+   "sha256": "4132bbbfd40ff007c95908b580777771371d98d9d09708875ea0baa5a9aca294",
+   "bytes": 254097
+  },
+  "Build/StandExpansion/run1/view-current-40m-west.jpg": {
+   "sha256": "7dfe1dc17f30244f198ece00e34219b16974f3f454f5723a0b8178824515a1c9",
+   "bytes": 258785
+  },
+  "Build/StandExpansion/run2/audit-summary.json": {
+   "sha256": "060eb0ad8640ccaa461e03ff6bd72455bd5773d4ebae4a76b72ae48e25e2782d",
+   "bytes": 10675
+  },
+  "Build/StandExpansion/run2/editor.log": {
+   "sha256": "be8c2c0bb9146f4961dc6ab7992e53e9f2a6c0c8d931d0f617c907e7cc922e0c",
+   "bytes": 253877
+  },
+  "Build/StandExpansion/run2/trees-candidate-80m-density-preserving.csv": {
+   "sha256": "a26c9fe44294e2083f63cadc9ccc73290432bf68c9c7d717cce5bc47fc2c3ae4",
+   "bytes": 74322
+  },
+  "Build/StandExpansion/run2/trees-current-40m.csv": {
+   "sha256": "b16506984a880fefd4ec51c575417e66bf337220d0d09c63f48b3ac0f4884439",
+   "bytes": 18160
+  },
+  "Build/StandExpansion/run3/audit-summary.json": {
+   "sha256": "3992fb8789a7a0db3019371f9e8b7e6bf233c41f03101f4d7a5bc8ff98ef553c",
+   "bytes": 11874
+  },
+  "Build/StandExpansion/run3/editor.log": {
+   "sha256": "421290099f076247a2be2fb89cb1e5403832437c6623a775242c99e5f0a98844",
+   "bytes": 263687
+  },
+  "Build/StandExpansion/run3/trees-candidate-80m-density-preserving.csv": {
+   "sha256": "a26c9fe44294e2083f63cadc9ccc73290432bf68c9c7d717cce5bc47fc2c3ae4",
+   "bytes": 74322
+  },
+  "Build/StandExpansion/run3/trees-current-40m.csv": {
+   "sha256": "b16506984a880fefd4ec51c575417e66bf337220d0d09c63f48b3ac0f4884439",
+   "bytes": 18160
+  },
+  "Build/Task/editor-normalization-final.diff": {
+   "sha256": "69a9a4d16a7c25459024de33beb4fd808232fa37773a8a64a031d47fa69aa7cf",
+   "bytes": 9274
+  },
+  "Build/Task/p2-end.out": {
+   "sha256": "a2d63bc9afe7df6ace62cc10a81f2abfa1c3b715e447028a132e4db050987d0c",
+   "bytes": 1541
+  },
+  "Build/Task/p2-start-inspection-1280.jpg": {
+   "sha256": "72f5f81f24fc9f5394d2ed047a917694730bf174a987812261efd5ed090f50f7",
+   "bytes": 252192
+  },
+  "Build/Task/p2-start-interactive.log": {
+   "sha256": "79dbb83795843465e3ee6a8146013aa90f15370b0b214b96ad3d3a9a7b345561",
+   "bytes": 147129
+  },
+  "Build/Task/p2-start-results.json": {
+   "sha256": "9aff6ee4eb3df657bb62402e7176e7c9bbf1207726422ae1d389fc5c49322bc4",
+   "bytes": 4032
+  },
+  "Build/Task/p2-start.out": {
+   "sha256": "b2dd09042fb6b9476272c543efbac045df09ed3a680d09f9c727dd18fa895072",
+   "bytes": 1126
+  },
+  "Build/Task/pointer-test/a_as_is/interactive.log": {
+   "sha256": "68c74dbb837a6a4148a9ca82353269da7778280d0d35103704efaa99710b8a0c",
+   "bytes": 101501
+  },
+  "Build/Task/pointer-test/a_as_is/p2-inspection-1280.jpg": {
+   "sha256": "368a00a7574e3e7a65a14c7144530c5f144cf95d17f4278e25f0a65bd1b66051",
+   "bytes": 255080
+  },
+  "Build/Task/pointer-test/a_as_is/results.json": {
+   "sha256": "34d48f7e17dfb07c4c08e1d964c5357ec3eb1c249f1d48672ff05b6a0740e892",
+   "bytes": 1283
+  },
+  "Build/Task/pointer-test/a_as_is.out": {
+   "sha256": "39628b41727de32227a8be131028156998ce425d67e576572e9b5e865053bbc2",
+   "bytes": 1345
+  },
+  "Build/Task/pointer-test/b_centre/interactive.log": {
+   "sha256": "f455725166ac79590b9ff1254dd6d83009edc209f642ba09e5146c8a8c5d3756",
+   "bytes": 101450
+  },
+  "Build/Task/pointer-test/b_centre/p2-inspection-1280.jpg": {
+   "sha256": "af94bd0a31540b9493ee6c6fdad4ff9518bb04c12c0517e3868144c47adb0947",
+   "bytes": 255080
+  },
+  "Build/Task/pointer-test/b_centre/results.json": {
+   "sha256": "e10abfd6b24fb1a3fdf85ce6787a3e8159168ae0f3c8ed72b9fba10e30f35b91",
+   "bytes": 1283
+  },
+  "Build/Task/pointer-test/b_centre.out": {
+   "sha256": "e99f18b2678ec8a66b1c09a82828a189c631b44e43a13c847a73c94975515c43",
+   "bytes": 1345
+  },
+  "Build/Task/pointer-test/c_topleft/interactive.log": {
+   "sha256": "52a028075d8b5249621a3a4560321501e432cd1925479d284529802f3068a33d",
+   "bytes": 101538
+  },
+  "Build/Task/pointer-test/c_topleft/p2-inspection-1280.jpg": {
+   "sha256": "368a00a7574e3e7a65a14c7144530c5f144cf95d17f4278e25f0a65bd1b66051",
+   "bytes": 255080
+  },
+  "Build/Task/pointer-test/c_topleft/results.json": {
+   "sha256": "e3a5596021f757f9749328efd5c5bb498d689a1fffd26e3eb58c4c074d7cb933",
+   "bytes": 1283
+  },
+  "Build/Task/pointer-test/c_topleft.out": {
+   "sha256": "720af99936dda590ecfa92f7455768019fb41da8c7f8937bf1f685970710a668",
+   "bytes": 1345
+  },
+  "Build/Task/pointer-test.out": {
+   "sha256": "30e16b5cec784ea7bc0a2e1e4d6d5b7710637897eb9d2cb5d369d4399c3728df",
+   "bytes": 329
+  }
+ }
+}

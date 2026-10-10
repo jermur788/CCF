@@ -1,0 +1,390 @@
+{
+  "environment": {
+    "unity": "6000.6.0f1",
+    "platform": "LinuxEditor",
+    "gpu": "NVIDIA GeForce GTX 980M",
+    "cpu": "Intel(R) Core(TM) i5-6300HQ CPU @ 2.30GHz",
+    "cores": 4,
+    "ramMB": 15873,
+    "batchMode": false,
+    "label": "UNITY EDITOR in play mode on Linux; NOT a Player or native Windows measurement",
+    "secondsFromEditorStartToHarnessStart": "2.19"
+  },
+  "current-40m": {
+    "label": "current-40m",
+    "geometry": {
+      "standMeters": "40 x 40",
+      "areaHa": "0.16",
+      "cellSizeM": "5",
+      "cellsPerAxis": 8,
+      "cells": 64,
+      "livingTrees": 336,
+      "stemsPerHa": "2100",
+      "playerStart": "(-0.43, 0.03, 5.25)",
+      "maxTreeAbsXZ": "19.4"
+    },
+    "treeEdgeBands": {
+      "0-5m": {
+        "trees": 155,
+        "share": "0.461",
+        "meanDbhCm": "15.749",
+        "meanHeightM": "11.768",
+        "meanHegyiCI": "7.365"
+      },
+      "5-10m": {
+        "trees": 109,
+        "share": "0.324",
+        "meanDbhCm": "15.544",
+        "meanHeightM": "11.586",
+        "meanHegyiCI": "9.079"
+      },
+      ">10m": {
+        "trees": 72,
+        "share": "0.214",
+        "meanDbhCm": "15.298",
+        "meanHeightM": "11.474",
+        "meanHegyiCI": "8.846"
+      },
+      "within-8m-cutoff": {
+        "trees": 224,
+        "share": "0.667",
+        "meanDbhCm": "15.599",
+        "meanHeightM": "11.661",
+        "meanHegyiCI": "7.935"
+      },
+      "beyond-8m-true-interior": {
+        "trees": 112,
+        "share": "0.333",
+        "meanDbhCm": "15.559",
+        "meanHeightM": "11.616",
+        "meanHegyiCI": "8.846"
+      }
+    },
+    "meanHegyiCIAll": "8.238",
+    "dbhCm": {
+      "mean": "15.586",
+      "min": "9.646",
+      "max": "21.12"
+    },
+    "heightM": {
+      "mean": "11.646",
+      "min": "7.635",
+      "max": "15.525"
+    },
+    "ageYears": "20",
+    "areaShareBeyondEdge": {
+      "5m": "0.563",
+      "8m": "0.36",
+      "10m": "0.25"
+    },
+    "cellLightByEdgeBand": {
+      "0-5m": {
+        "cells": 28,
+        "meanLight": "0.066",
+        "meanCanopy": "0.934"
+      },
+      "5-10m": {
+        "cells": 20,
+        "meanLight": "0.006",
+        "meanCanopy": "0.994"
+      },
+      ">10m": {
+        "cells": 16,
+        "meanLight": "0.072",
+        "meanCanopy": "0.928"
+      }
+    },
+    "loops": {
+      "competitionPairIterations_NxN-1": 112560,
+      "orderedPairsWithin8m": 11648,
+      "canopyAndSeedRainCellsTimesTrees": 21504,
+      "meanNeighboursWithin8m": "34.667"
+    },
+    "timingsMs_Editor": {
+      "recomputeCanopy": {
+        "median": "10.003",
+        "min": "9.643",
+        "max": "10.577"
+      },
+      "recomputeSeedRain": {
+        "median": "3.916",
+        "min": "3.694",
+        "max": "4.425"
+      },
+      "competitionHegyiPass": {
+        "median": "2.016",
+        "min": "1.779",
+        "max": "2.23"
+      }
+    },
+    "memoryBefore": {
+      "monoUsedMB": "52.324",
+      "unityAllocatedMB": "1824.089",
+      "unityReservedMB": "2748.508",
+      "gcTotalMB": "52.328",
+      "processRssMB": 4559
+    },
+    "annualAdvance": {
+      "cashBeforeCents": 1200000,
+      "advance1_noWork": {
+        "ok": true,
+        "ms": "288.348",
+        "year": 1,
+        "feedback": ""
+      },
+      "fellMarksPlaced": 48,
+      "workOrdersImported": 48,
+      "approved": true,
+      "feedbackAfterApprove": "Approved 48 tasks for €2500.00.",
+      "ownerMinutesUsedAfterApprove": 0,
+      "ownerMinutesPerYear": 2400,
+      "advance2_interventionYear": {
+        "ok": true,
+        "ms": "336.352",
+        "year": 2,
+        "feedback": ""
+      },
+      "advance3_postIntervention": {
+        "ok": true,
+        "ms": "248.827",
+        "year": 3,
+        "feedback": ""
+      },
+      "cashAfterCents": 978341,
+      "retainedTimberM3": "0",
+      "livingTreesAfter": 288,
+      "reports": 3,
+      "interventionYearReportJson": "{\"year\":2,\"completedTasks\":48,\"failedTasks\":0,\"contractorCostCents\":250000,\"timberRevenueCents\":28341,\"harvestedVolumeM3\":6.391990661621094,\"regenerationRemovalTasks\":0,\"removedRegenerationDensity\":0.0,\"deadwoodCreated\":0,\"deadwoodCreatedM3\":0.0,\"deadwoodDecayedM3\":0.0,\"keptForUseVolumeM3\":0.0,\"closingCashCents\":978341,\"harvestMinimumAdjustmentCents\":238053,\"ownerMinutes\":0,\"timberSales\":[{\"assortment\":0,\"soldVolumeCm3\":123587,\"revenueCents\":418},{\"assortment\":1,\"soldVolumeCm3\":2654574,\"revenueCents\":11105},{\"assortment\":2,\"soldVolumeCm3\":2778444,\"revenueCents\":16818}]}"
+    },
+    "memoryAfter": {
+      "monoUsedMB": "59.785",
+      "unityAllocatedMB": "1868.279",
+      "unityReservedMB": "2748.508",
+      "gcTotalMB": "59.785",
+      "processRssMB": 4629
+    },
+    "annualStepSplit": [
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "118.279",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "123.93",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "114.412",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "191.413",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "188.67",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      }
+    ]
+  },
+  "candidate80_generation_ms": "2209.316",
+  "candidate-80m-density-preserving": {
+    "label": "candidate-80m-density-preserving",
+    "geometry": {
+      "standMeters": "80 x 80",
+      "areaHa": "0.64",
+      "cellSizeM": "5",
+      "cellsPerAxis": 16,
+      "cells": 256,
+      "livingTrees": 1344,
+      "stemsPerHa": "2100",
+      "playerStart": "(-0.43, 0.03, 5.25)",
+      "maxTreeAbsXZ": "39.4"
+    },
+    "treeEdgeBands": {
+      "0-5m": {
+        "trees": 302,
+        "share": "0.225",
+        "meanDbhCm": "15.771",
+        "meanHeightM": "11.769",
+        "meanHegyiCI": "6.548"
+      },
+      "5-10m": {
+        "trees": 269,
+        "share": "0.2",
+        "meanDbhCm": "15.513",
+        "meanHeightM": "11.609",
+        "meanHegyiCI": "9.017"
+      },
+      ">10m": {
+        "trees": 773,
+        "share": "0.575",
+        "meanDbhCm": "15.404",
+        "meanHeightM": "11.561",
+        "meanHegyiCI": "9.673"
+      },
+      "within-8m-cutoff": {
+        "trees": 465,
+        "share": "0.346",
+        "meanDbhCm": "15.557",
+        "meanHeightM": "11.63",
+        "meanHegyiCI": "7.397"
+      },
+      "beyond-8m-true-interior": {
+        "trees": 879,
+        "share": "0.654",
+        "meanDbhCm": "15.482",
+        "meanHeightM": "11.61",
+        "meanHegyiCI": "9.603"
+      }
+    },
+    "meanHegyiCIAll": "8.84",
+    "dbhCm": {
+      "mean": "15.508",
+      "min": "9.569",
+      "max": "22.231"
+    },
+    "heightM": {
+      "mean": "11.617",
+      "min": "7.45",
+      "max": "15.778"
+    },
+    "ageYears": "20",
+    "areaShareBeyondEdge": {
+      "5m": "0.766",
+      "8m": "0.64",
+      "10m": "0.563"
+    },
+    "cellLightByEdgeBand": {
+      "0-5m": {
+        "cells": 60,
+        "meanLight": "0.013",
+        "meanCanopy": "0.987"
+      },
+      "5-10m": {
+        "cells": 52,
+        "meanLight": "0.005",
+        "meanCanopy": "0.995"
+      },
+      ">10m": {
+        "cells": 144,
+        "meanLight": "0.012",
+        "meanCanopy": "0.988"
+      }
+    },
+    "loops": {
+      "competitionPairIterations_NxN-1": 1804992,
+      "orderedPairsWithin8m": 51450,
+      "canopyAndSeedRainCellsTimesTrees": 344064,
+      "meanNeighboursWithin8m": "38.281"
+    },
+    "timingsMs_Editor": {
+      "recomputeCanopy": {
+        "median": "187.922",
+        "min": "184.517",
+        "max": "216.719"
+      },
+      "recomputeSeedRain": {
+        "median": "56.937",
+        "min": "56.627",
+        "max": "57.893"
+      },
+      "competitionHegyiPass": {
+        "median": "18.719",
+        "min": "17.899",
+        "max": "18.914"
+      }
+    },
+    "memoryBefore": {
+      "monoUsedMB": "70.238",
+      "unityAllocatedMB": "1937.09",
+      "unityReservedMB": "2750.57",
+      "gcTotalMB": "70.238",
+      "processRssMB": 4728
+    },
+    "annualAdvance": {
+      "cashBeforeCents": 1200000,
+      "advance1_noWork": {
+        "ok": true,
+        "ms": "2225.617",
+        "year": 1,
+        "feedback": ""
+      },
+      "fellMarksPlaced": 192,
+      "workOrdersImported": 192,
+      "approved": true,
+      "feedbackAfterApprove": "Approved 192 tasks for €2500.00.",
+      "ownerMinutesUsedAfterApprove": 0,
+      "ownerMinutesPerYear": 2400,
+      "advance2_interventionYear": {
+        "ok": true,
+        "ms": "2556.196",
+        "year": 2,
+        "feedback": ""
+      },
+      "advance3_postIntervention": {
+        "ok": true,
+        "ms": "1749.376",
+        "year": 3,
+        "feedback": ""
+      },
+      "cashAfterCents": 1068502,
+      "retainedTimberM3": "0",
+      "livingTreesAfter": 1152,
+      "reports": 3,
+      "interventionYearReportJson": "{\"year\":2,\"completedTasks\":192,\"failedTasks\":0,\"contractorCostCents\":250000,\"timberRevenueCents\":118502,\"harvestedVolumeM3\":26.438486099243164,\"regenerationRemovalTasks\":0,\"removedRegenerationDensity\":0.0,\"deadwoodCreated\":0,\"deadwoodCreatedM3\":0.0,\"deadwoodDecayedM3\":0.0,\"keptForUseVolumeM3\":0.0,\"closingCashCents\":1068502,\"harvestMinimumAdjustmentCents\":200587,\"ownerMinutes\":0,\"timberSales\":[{\"assortment\":0,\"soldVolumeCm3\":464750,\"revenueCents\":1573},{\"assortment\":1,\"soldVolumeCm3\":9995019,\"revenueCents\":41802},{\"assortment\":2,\"soldVolumeCm3\":12414655,\"revenueCents\":75127}]}"
+    },
+    "memoryAfter": {
+      "monoUsedMB": "79.535",
+      "unityAllocatedMB": "2080.652",
+      "unityReservedMB": "2750.57",
+      "gcTotalMB": "79.535",
+      "processRssMB": 4898
+    },
+    "annualStepSplit": [
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "1019.557",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "952.2",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "ecologyOnly_AdvanceOneYear",
+        "ms": "973.264",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "1613.135",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      },
+      {
+        "step": "manager_AdvanceYear",
+        "ok": true,
+        "ms": "1805.113",
+        "canopyRebuilds": 2,
+        "seedRebuilds": 0
+      }
+    ]
+  }
+}

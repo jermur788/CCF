@@ -1,0 +1,8 @@
+PT_ORIGINAL pointer=(489,823)
+PT_RESULT a_as_is exit=1 P2_COMPETITOR_VERIFY_FAIL pointer_after=(489,823)
+PT_MOVED centre
+PT_RESULT b_centre exit=1 P2_COMPETITOR_VERIFY_FAIL pointer_after=(960,540)
+PT_MOVED topleft
+PT_RESULT c_topleft exit=1 P2_COMPETITOR_VERIFY_FAIL pointer_after=(465,372)
+PT_RESTORED pointer=(489,823)
+PT_DONE
