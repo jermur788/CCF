@@ -1,0 +1,25 @@
+[
+  {
+    "production_source_unchanged": true,
+    "gate": "ScenarioOneInteractionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 63.42,
+    "mode": "batch",
+    "source_ref": "integration-working-tree",
+    "run_head": "06f28e40898e7c799331adf0a4dbcf3764a0a73a",
+    "run_branch": "task/scenario-one-startup-screen",
+    "original_source_sha256": "ab05f39664473c1ceb6ef6876901a6cca89feef35cdbf2d336cded719e98171d",
+    "fixture_adjustment": null,
+    "source_sha256": "ab05f39664473c1ceb6ef6876901a6cca89feef35cdbf2d336cded719e98171d",
+    "markers": [
+      "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+      "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+      "COMPACT_FELLING_RESIDUE_PASS piles=1 sameFrameDuplicates=0",
+      "COMPACT_FELLING_RESIDUE_PASS piles=3 sameFrameDuplicates=0",
+      "SCENARIO_ONE_CANONICAL_SITKA_PASS hash=BFC55473C1506067",
+      "SCENARIO_ONE_HISTORICAL_CONTINUATION_PASS year50=v12 year100=v20 trees=493 year50TreesPreserved=401 deterministicFromYear75=True roundTrip=True historicalSameYearPruneFell=P0601 continuedHash=5CFEB0C6A01A670B legacyV15LayoutHash=9CDF21A541C5968D",
+      "SCENARIO_ONE_INTERACTION_VERIFY_PASS"
+    ]
+  }
+]

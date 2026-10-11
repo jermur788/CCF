@@ -1,0 +1,67 @@
+[
+  {
+    "step": "startup-rendered",
+    "exit_code": 0,
+    "seconds": 101.91
+  },
+  {
+    "step": "startup-legacy40",
+    "exit_code": 0,
+    "seconds": 55.66
+  },
+  {
+    "step": "startup-boundary",
+    "exit_code": 0,
+    "seconds": 54.39
+  },
+  {
+    "step": "stand-geometry",
+    "exit_code": 0,
+    "seconds": 44.33
+  },
+  {
+    "step": "pre-regression-SaveHardeningVerification",
+    "exit_code": 0,
+    "seconds": 43.69
+  },
+  {
+    "step": "pre-regression-ScenarioReferenceVerification",
+    "exit_code": 0,
+    "seconds": 68.84
+  },
+  {
+    "step": "pre-regression-ScenarioOneInteractionVerification",
+    "exit_code": 0,
+    "seconds": 63.6
+  },
+  {
+    "step": "session-menu",
+    "exit_code": 0,
+    "seconds": 37.73
+  },
+  {
+    "step": "menu-standalone",
+    "exit_code": 0,
+    "seconds": 82.49
+  },
+  {
+    "step": "calibration",
+    "exit_code": 0,
+    "seconds": 50.28
+  },
+  {
+    "step": "full-regression",
+    "exit_code": 0,
+    "seconds": 1524.89
+  },
+  {
+    "step": "P2-batch",
+    "exit_code": 0,
+    "seconds": 81.5
+  },
+  {
+    "step": "P3-batch",
+    "exit_code": 0,
+    "seconds": 76.58
+  }
+]

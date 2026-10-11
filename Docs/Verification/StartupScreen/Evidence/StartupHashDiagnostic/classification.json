@@ -1,0 +1,22 @@
+{
+  "classification": "A",
+  "head_before": "1edf818866fe384e25440f86d62dbd5bdee05828",
+  "established_start": "04A78188A6F8E6F9",
+  "established_year3": "081DB58CE3034648",
+  "natural_capture": "CCF_NATURAL_CAPTURE current=EEED1DE3EDC65517 world=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0 ecologyCells=256 menuHosts=0",
+  "base_branch_identical": true,
+  "same_capture_source_sha256": "fd4a730371e18c133f238fea26bc95616786117d40224f5efe28faea8d8f7055",
+  "startup_actual": [
+    "STARTUP_HASH_DIAGNOSTIC initial freshHash=EEED1DE3EDC65517 current=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0",
+    "STARTUP_HASH_DIAGNOSTIC assertion current=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0",
+    "STARTUP_SCREEN_VERIFY_FAIL System.InvalidOperationException: Enlarged80 start anchor 04A78188A6F8E6F9 unchanged (valid for this generator and configuration only)"
+  ],
+  "canload": [
+    "CCF_CANLOAD_PROBE case=no-save accepted=False before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=No saved forest on this device yet.",
+    "CCF_CANLOAD_PROBE case=valid-v20 accepted=True before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=",
+    "CCF_CANLOAD_PROBE case=rejected-duplicate-ID accepted=False before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=Save not loaded: tree ID PO2208 appears twice.",
+    "CCF_CANLOAD_READONLY_PASS"
+  ],
+  "production_changed": false,
+  "cause": "Startup fixture compares an eight-frame natural-scene capture with an established anchor recorded by a deterministic reset/regeneration fixture. Base/branch natural captures are identical, and the unchanged authoritative gate retains both established anchors."
+}

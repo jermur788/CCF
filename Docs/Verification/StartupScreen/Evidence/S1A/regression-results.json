@@ -1,0 +1,8 @@
+[
+  {
+    "name": "regression",
+    "status": "PASS",
+    "count": 24,
+    "all_established_anchors_unchanged": true
+  }
+]

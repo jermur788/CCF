@@ -1,0 +1,27 @@
+[
+  {
+    "production_source_unchanged": true,
+    "gate": "ScenarioReferenceVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 68.63,
+    "mode": "batch",
+    "source_ref": "integration-working-tree",
+    "run_head": "06f28e40898e7c799331adf0a4dbcf3764a0a73a",
+    "run_branch": "task/scenario-one-startup-screen",
+    "original_source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+    "fixture_adjustment": null,
+    "source_sha256": "cf62aee9e246cc85d0c1fb7ec87e0d5f0c0f4190b5197f1216b7a848535d92ab",
+    "markers": [
+      "REFERENCE_ARCHIVE_INTEGRITY_PASS milestones=0,20,50,100 schedule=56C8B99FA1E8DDD1 archiveFileFnv=1A42C7BD0439E72F",
+      "REFERENCE_ARCHIVE_NEGATIVE_CONTROL_PASS tamperedYear100Value=detected",
+      "REFERENCE_PREVIEW_PASS year=0 trees=336 worldHash=A564039D9B7CE31D",
+      "REFERENCE_PREVIEW_PASS year=20 trees=352 worldHash=F7DF7DAB53B6FD32",
+      "REFERENCE_PREVIEW_PASS year=50 trees=401 worldHash=D5E75D6D21D631AC",
+      "REFERENCE_PREVIEW_PASS year=100 trees=517 worldHash=7AD177B3CC2F73C7",
+      "REFERENCE_CONTINUATION_PASS year50=v12 year100=v20 deterministic=True continuedHash=5CFEB0C6A01A670B legacyV15LayoutHash=9CDF21A541C5968D",
+      "REFERENCE_FUTURE_V1_CONTRACT_PASS archive=True preview=True continuation=True replay=NotRequired",
+      "REFERENCE_FUTURE_V1_PASS"
+    ]
+  }
+]

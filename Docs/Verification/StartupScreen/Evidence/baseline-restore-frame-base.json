@@ -1,0 +1,12 @@
+{
+  "mode": "restore",
+  "label": "restore-frame-base",
+  "head": "e8c73f25e6d93db818abdc6c794887f8f7c5ba43",
+  "exit_code": 0,
+  "seconds": 66.5,
+  "source_sha256": "5c1600270e534b07b3f3b57c1d1baab5e4df14cacca782488e806a8c62b9956b",
+  "markers": [
+    "CCF_RESTORE_FRAME_PROBE historicalLoaded=True restored=True fresh=EEED1DE3EDC65517 immediate=A18215FA96AEE4C9 settled=EEED1DE3EDC65517 freshTrees=1344 immediateTrees=1360 inactivePending=16 settledTrees=1344",
+    "CCF_RESTORE_FRAME_PROBE_PASS"
+  ]
+}

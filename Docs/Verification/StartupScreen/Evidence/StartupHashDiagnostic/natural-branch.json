@@ -1,0 +1,11 @@
+{
+  "mode": "capture",
+  "label": "natural-branch",
+  "head": "1edf818866fe384e25440f86d62dbd5bdee05828",
+  "exit_code": 0,
+  "seconds": 69.72,
+  "source_sha256": "fd4a730371e18c133f238fea26bc95616786117d40224f5efe28faea8d8f7055",
+  "markers": [
+    "CCF_NATURAL_CAPTURE current=EEED1DE3EDC65517 world=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0 ecologyCells=256 menuHosts=0"
+  ]
+}

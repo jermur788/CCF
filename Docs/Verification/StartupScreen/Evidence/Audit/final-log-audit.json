@@ -1,0 +1,302 @@
+[
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-batch-corrected.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-batch.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-real-input.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-bootstrap-help-diagnostic.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-rendered.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-batch-corrected-settled.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-bootstrap.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-legacy40.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-boundary.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupScreen/startup-rendered-input-attributed.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupHashDiagnostic/natural-branch.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupHashDiagnostic/restore-frame-branch.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupHashDiagnostic/failed-startup-actual.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StartupHashDiagnostic/canload-readonly.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/Enlarged80/startup-hash-diagnostic.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/StandGeometry/startup-port.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/Enlarged80Calibration/startup-port.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/SaveHardeningVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/JuvenileDisplayHeightVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/RngModelPolicyVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneProgressVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/Stage1WorkEconomyFoundationVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 0
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioReferenceVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneCompletionVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/TimberAssortmentYieldVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 0
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneInteractionVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/JuvenileMortalityFoundationVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/BrowsingProtectionVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/MenuTutorialVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/RngModelVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 0
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/pre-regression-ScenarioReferenceVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneEconomyIntegrationVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/pre-regression-SaveHardeningVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOnePlantingVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/pre-regression-ScenarioOneInteractionVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/EcologyCalibrationAdoptionVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOnePruningVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/CCFIntegrationVerificationTemp.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneDeadwoodVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/SitkaGrowthModelVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/RegenerationModelVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ScenarioOneRemovalVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/ClearanceVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/WindthrowV1/Regression/Model2PedagogyVerification.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/S1A/menu-startup-port.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/P2/batch-2.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/P2/batch-1.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/P3/batch-2.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/P3/batch-1.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  },
+  {
+    "log": "/media/jer/Files/CCF-startup-verify-local-output/Build/Audit/session-menu.log",
+    "zero_compiler_errors": true,
+    "zero_new_importer_errors": true,
+    "accepted_search_exceptions": 1
+  }
+]

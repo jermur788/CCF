@@ -1,0 +1,11 @@
+{
+  "mode": "capture",
+  "label": "natural-base",
+  "head": "e8c73f25e6d93db818abdc6c794887f8f7c5ba43",
+  "exit_code": 0,
+  "seconds": 597.5,
+  "source_sha256": "fd4a730371e18c133f238fea26bc95616786117d40224f5efe28faea8d8f7055",
+  "markers": [
+    "CCF_NATURAL_CAPTURE current=EEED1DE3EDC65517 world=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0 ecologyCells=256 menuHosts=0"
+  ]
+}

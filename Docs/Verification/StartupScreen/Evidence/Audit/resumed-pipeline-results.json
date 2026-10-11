@@ -1,0 +1,12 @@
+[
+  {
+    "step": "startup-bootstrap",
+    "exit_code": 0,
+    "seconds": 48.29
+  },
+  {
+    "step": "startup-rendered",
+    "exit_code": 1,
+    "seconds": 152.19
+  }
+]

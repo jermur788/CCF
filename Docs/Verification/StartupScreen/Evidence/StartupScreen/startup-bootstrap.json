@@ -1,0 +1,26 @@
+{
+  "gate": "StartupScreenVerification",
+  "mode": "bootstrap",
+  "stand_geometry": null,
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 48.09,
+  "skipped": [],
+  "markers": [
+    "CCF_STARTUP_SCREEN_OPEN continueAvailable=False reason=\"No saved forest on this device yet.\"",
+    "STARTUP_CHECK the scene starts at year 0",
+    "STARTUP_CHECK Bootstrap opened the startup screen on its own",
+    "STARTUP_CHECK bootstrapped title: time is paused",
+    "STARTUP_CHECK bootstrapped title: player, save shortcuts and forest UI are disabled",
+    "STARTUP_CHECK bootstrapped title: the mouse is free for the menu, not locked to the forest",
+    "STARTUP_CHECK the bootstrapped title leaves the world unchanged",
+    "STARTUP_CHECK button present: Start New Scenario",
+    "STARTUP_CHECK button enabled: Start New Scenario",
+    "STARTUP_CHECK Clickable callback entry point available",
+    "CCF_STARTUP_NEW_SCENARIO geometry=Enlarged80 year=0",
+    "STARTUP_CHECK bootstrapped Start New Scenario: menu closed and time running",
+    "STARTUP_CHECK bootstrapped Start New Scenario: player, save shortcuts and forest UI handed back",
+    "STARTUP_CHECK Start New Scenario enters the unchanged fresh world",
+    "STARTUP_SCREEN_VERIFY_PASS"
+  ]
+}

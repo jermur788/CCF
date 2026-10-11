@@ -1,0 +1,13 @@
+{
+  "mode": "startup",
+  "label": "failed-startup-actual",
+  "head": "1edf818866fe384e25440f86d62dbd5bdee05828",
+  "exit_code": 1,
+  "seconds": 80.1,
+  "source_sha256": "f218d769cddf7b5f2a39f7843d9faf831f6289761156d99f977a2a53ee917b5b",
+  "markers": [
+    "STARTUP_HASH_DIAGNOSTIC initial freshHash=EEED1DE3EDC65517 current=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0",
+    "STARTUP_HASH_DIAGNOSTIC assertion current=EEED1DE3EDC65517 geometry=1 year=0 trees=1344 cells=0",
+    "STARTUP_SCREEN_VERIFY_FAIL System.InvalidOperationException: Enlarged80 start anchor 04A78188A6F8E6F9 unchanged (valid for this generator and configuration only)"
+  ]
+}

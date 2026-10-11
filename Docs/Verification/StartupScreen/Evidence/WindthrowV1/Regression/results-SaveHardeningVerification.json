@@ -1,0 +1,19 @@
+[
+  {
+    "production_source_unchanged": true,
+    "gate": "SaveHardeningVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 43.46,
+    "mode": "batch",
+    "source_ref": "integration-working-tree",
+    "run_head": "06f28e40898e7c799331adf0a4dbcf3764a0a73a",
+    "run_branch": "task/scenario-one-startup-screen",
+    "original_source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+    "fixture_adjustment": null,
+    "source_sha256": "1615b23623158fd382cd0b81b7529c947eb3ab9b767de04f3137cad6f50ff325",
+    "markers": [
+      "SAVE_HARDENING_VERIFY_PASS"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "mode": "preflight",
+  "label": "canload-readonly",
+  "head": "1edf818866fe384e25440f86d62dbd5bdee05828",
+  "exit_code": 0,
+  "seconds": 42.95,
+  "source_sha256": "8365c5f38d0e7e044474fefb63a49d202bbb572ece5e9e3df0f5702c36e3a1df",
+  "markers": [
+    "CCF_CANLOAD_PROBE case=no-save accepted=False before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=No saved forest on this device yet.",
+    "CCF_CANLOAD_PROBE case=valid-v20 accepted=True before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=",
+    "CCF_CANLOAD_PROBE case=rejected-duplicate-ID accepted=False before=EEED1DE3EDC65517 after=EEED1DE3EDC65517 filesUnchanged=True reason=Save not loaded: tree ID PO2208 appears twice.",
+    "CCF_CANLOAD_READONLY_PASS"
+  ]
+}

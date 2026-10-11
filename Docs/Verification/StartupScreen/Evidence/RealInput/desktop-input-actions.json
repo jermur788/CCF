@@ -1,0 +1,54 @@
+{
+  "environment": "Linux Unity Editor, X11 desktop events",
+  "keyboard_navigation": "Observed real Tab focus Controls / Help; real Enter opened Controls; real Enter on focused Back returned to title",
+  "isolation_keys": [
+    "F10",
+    "w",
+    "a",
+    "s",
+    "d",
+    "e",
+    "Tab",
+    "m",
+    "o",
+    "x",
+    "c",
+    "F1",
+    "F5",
+    "F9",
+    "Escape",
+    "space",
+    "1"
+  ],
+  "state_after_isolation": {
+    "phase": "title-isolation",
+    "focus": "Controls / Help",
+    "worldHash": "EEED1DE3EDC65517",
+    "width": 1280,
+    "height": 720,
+    "buttons": [
+      "Start New Scenario",
+      "Continue",
+      "Controls / Help",
+      "Quit"
+    ],
+    "centers": [
+      {
+        "x": 800.0,
+        "y": 413.125
+      },
+      {
+        "x": 800.0,
+        "y": 473.75
+      },
+      {
+        "x": 800.0,
+        "y": 571.25
+      },
+      {
+        "x": 800.0,
+        "y": 631.875
+      }
+    ]
+  }
+}
