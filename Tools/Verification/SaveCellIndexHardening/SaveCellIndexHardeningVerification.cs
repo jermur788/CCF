@@ -129,7 +129,12 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         player.enabled=false; // Freeze movement during the no-mutation snapshots; no simulation changes.
         path=Path.Combine(Application.persistentDataPath,"forest-save.json"); Directory.CreateDirectory(Path.GetDirectoryName(path));
         foreach (string p in new[] { path,path+".bak",path+".tmp" }) originals[p]=File.Exists(p)?File.ReadAllBytes(p):null;
-        ForestSaveData enlarged=saves.CaptureData(); Check(enlarged.standGeometryModel==1 && enlarged.cells.Count==256,"gate must start on actual Enlarged80 policy");
+        ForestSaveData enlarged=saves.CaptureData(); Check(enlarged.standGeometryModel==1 && ecology.CellCount==256,"gate must start on actual Enlarged80 policy");
+        // Ecology saves intentionally omit pristine cells. Materialize a valid complete
+        // fixture so every boundary case can target a known record without relying on capture order.
+        var recorded = enlarged.cells.ToDictionary(c => c.index);
+        enlarged.cells = Enumerable.Range(0,256).Select(i => recorded.TryGetValue(i,out var cell)
+            ? cell : new ForestCellSaveData { index=i,establishmentSuitability=1f }).ToList();
         ForestSaveData legacy=Clone(enlarged); legacy.standGeometryModel=0;legacy.cells=legacy.cells.Take(64).ToList();legacy.scenarioOne.understoreyCells=legacy.scenarioOne.understoreyCells.Take(64).ToList();
         string[] fields={"ecology","understorey","juvenile","deadwood","event","FellTree","PlantJuvenile","RemoveRegeneration","PruneTree","SalvageDeadwood"};
         foreach (ForestSaveData basis in new[] { legacy,enlarged })
@@ -149,6 +154,8 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
             yield return Fixture("duplicate ecology geometry="+basis.standGeometryModel,duplicate,false);
             duplicate=Clone(basis);duplicate.scenarioOne.understoreyCells[1].cellIndex=0;
             yield return Fixture("duplicate understorey geometry="+basis.standGeometryModel,duplicate,false);
+            ForestSaveData sparse=Clone(basis);sparse.cells.RemoveAt(count-1);
+            yield return Fixture("sparse ecology grid geometry="+basis.standGeometryModel,sparse,true);
             ForestSaveData incomplete=Clone(basis);incomplete.scenarioOne.understoreyCells.RemoveAt(count-1);
             yield return Fixture("incomplete model2 grid geometry="+basis.standGeometryModel,incomplete,false);
             ForestSaveData order=Clone(basis);order.scenarioOne.understoreyCells.Reverse();
