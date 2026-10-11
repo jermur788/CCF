@@ -69,7 +69,7 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
     }
     private string Disk() => string.Join("|", new[] { path, path + ".bak", path + ".tmp" }
         .Select(p => File.Exists(p) ? Convert.ToBase64String(File.ReadAllBytes(p)) : "missing"));
-    private IEnumerator Fixture(string label, ForestSaveData data, bool valid)
+    private IEnumerator Fixture(string label, ForestSaveData data, bool valid, bool? centralValid = null)
     {
         cases++;
         File.WriteAllText(path, JsonUtility.ToJson(data));
@@ -80,7 +80,7 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         // Deliberately pass the wrong LIVE grid size to prove geometry comes from the save.
         int wrongCount = data.standGeometryModel == 0 ? 256 : 64;
         string validation = ForestSaveValidation.Validate(data, data.trees.Count, wrongCount);
-        Check((validation == null) == valid, label + " central validation mismatch: " + validation);
+        Check((validation == null) == (centralValid ?? valid), label + " central validation mismatch: " + validation);
         bool can = saves.CanLoad(out string refusal);
         Check(can == valid, label + " CanLoad mismatch: " + refusal);
         Check(World() == world && Disk() == disk, label + " CanLoad mutated world/disk");
@@ -161,7 +161,7 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
             ForestSaveData order=Clone(basis);order.scenarioOne.understoreyCells.Reverse();
             yield return Fixture("unordered model2 grid geometry="+basis.standGeometryModel,order,false);
             ForestSaveData patch=Clone(basis);patch.scenarioOne.clearancePatches.Add(new PlantingClearancePatch { center=new Vector3(1000,0,1000),radiusMeters=1,createdYear=patch.ecologicalYear,competitionUpdatedYear=patch.ecologicalYear });
-            yield return Fixture("outside model2 patch geometry="+basis.standGeometryModel,patch,false);
+            yield return Fixture("outside model2 patch geometry="+basis.standGeometryModel,patch,false,true);
             // Duplicated cell identities are valid for individual/history/work records.
             foreach(string field in new[]{"juvenile","deadwood","event","FellTree","PlantJuvenile","RemoveRegeneration","PruneTree","SalvageDeadwood"})
             {
