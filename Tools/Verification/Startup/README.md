@@ -38,3 +38,18 @@ Results: `Build/StartupScreen/<label>.json` and `.log` (ignored by Git); rendere
 - Reading the screenshots: the layout assertions are not a substitute for looking at the captures.
 
 Markers to look for in the log: `STARTUP_CHECK …` (each passed check), `STARTUP_SKIPPED …`, `STARTUP_PARITY …`, `STARTUP_RENDER_SIZE_PASS …`, and the final `STARTUP_SCREEN_VERIFY_PASS` or `…_FAIL`. The Player emits `CCF_STARTUP_SCREEN_OPEN`, `CCF_STARTUP_NEW_SCENARIO` and `CCF_STARTUP_CONTINUE` for Player.log evidence.
+
+## Local port verification additions
+
+The verification worker adds two bounded modes; production behaviour is unchanged:
+
+```sh
+python3 Tools/Verification/Startup/run_startup.py --mode boundary --label startup-boundary
+python3 Tools/Verification/Startup/run_startup.py --mode input --label startup-input
+```
+
+`boundary` records the current-world hash before and after CanLoad; checks no-save, valid current v20, valid historical Legacy40, malformed JSON and a duplicate-ID validation rejection; uses the actual Continue route; replaces an offered valid file before Continue to check immediate revalidation; and exercises one confirmed F10 fresh-test scene reload with a persistent menu host, checking host/overlay count, fresh identity and restored controls.
+
+`input` requires a graphical Editor and an external operator to deliver actual desktop input within each bounded phase (180 seconds). It does not invoke Clickable callbacks or enqueue InputSystem states. `state.json` in the captures directory reports phase, focused button, current hash and button centers. Phases cover Tab/Enter into Controls, Enter on Back, gameplay/F10 isolation, mouse Help/Back/Start, F10 open/close, F5 save and F9 load. The operator writes `isolation-done` only after delivering and recording the isolation inputs. These are Linux Editor input checks, not native Windows or Player evidence. No arrow-key claim is made.
+
+Both modes retain the original isolated-config and save backup/restoration contracts. The normal `batch`, `bootstrap`, `rendered` and explicit Legacy40 modes remain required. The rendered mode's synthetic keyboard checks remain distinct from the actual-input mode.

@@ -9,6 +9,8 @@ Modes:
   batch      -batchmode -nographics. Content, isolation, Continue/Start New/Controls/Quit routes, save-loader
              parity. Key presses and rendered checks are reported STARTUP_SKIPPED (they need an interactive Editor).
   bootstrap  batch with CCF_STARTUP_SCREEN=1: the real Bootstrap must open the title in the Editor by itself.
+  boundary   additional no-mutation, Continue revalidation and actual scene-restart probes.
+  input      graphical Editor waits for actual desktop mouse/keyboard input and records phase/focus state.
   rendered   interactive Editor (needs DISPLAY): virtual key presses, then layout checks and screenshots at
              1280x720 and 1920x1080 into Build/StartupScreen/<label>-captures.
 
@@ -22,7 +24,7 @@ GATE = 'StartupScreenVerification'
 DEFAULT_UNITY = '/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity'
 
 p = argparse.ArgumentParser()
-p.add_argument('--mode', choices=['batch', 'bootstrap', 'rendered'], required=True)
+p.add_argument('--mode', choices=['batch', 'bootstrap', 'rendered', 'boundary', 'input'], required=True)
 p.add_argument('--label', required=True)
 p.add_argument('--unity', default=os.environ.get('UNITY', DEFAULT_UNITY))
 p.add_argument('--stand-geometry', choices=['0', '1'], help='set the Editor-only CCF_STAND_GEOMETRY override')
@@ -47,11 +49,17 @@ cmd = [args.unity, '-projectPath', str(ROOT), '-job-worker-count', '2', '-execut
 env = dict(os.environ, XDG_CONFIG_HOME=str(config))
 env.pop('CCF_STAND_GEOMETRY', None)
 env.pop('CCF_STARTUP_SCREEN', None)
-if args.mode in ('batch', 'bootstrap'):
+env.pop('CCF_STARTUP_BOUNDARY', None)
+env.pop('CCF_STARTUP_INPUT', None)
+if args.mode in ('batch', 'bootstrap', 'boundary'):
     cmd += ['-batchmode', '-nographics']
+if args.mode == 'input':
+    env['CCF_STARTUP_INPUT'] = '1'
+if args.mode == 'boundary':
+    env['CCF_STARTUP_BOUNDARY'] = '1'
 if args.mode == 'bootstrap':
     env['CCF_STARTUP_SCREEN'] = '1'
-if args.mode == 'rendered':
+if args.mode in ('rendered', 'input'):
     env['DISPLAY'] = os.environ.get('DISPLAY', ':0')
     env['CCF_ACCEPTANCE_OUTPUT'] = str(OUT / (args.label + '-captures'))
 if args.stand_geometry is not None:

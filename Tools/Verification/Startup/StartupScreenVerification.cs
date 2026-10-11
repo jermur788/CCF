@@ -241,6 +241,16 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             yield return BootstrapRun(freshHash);
             yield break;
         }
+        if (Environment.GetEnvironmentVariable("CCF_STARTUP_INPUT") == "1")
+        {
+            yield return InputFlow(freshHash);
+            yield break;
+        }
+        if (Environment.GetEnvironmentVariable("CCF_STARTUP_BOUNDARY") == "1")
+        {
+            yield return BoundaryFlow(fresh, freshHash);
+            yield break;
+        }
         bool playerWasEnabled = player.enabled;
         yield return EditorDefaultPolicy();
         yield return NoSaveFlow(freshHash, playerWasEnabled);
@@ -250,6 +260,163 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Check(keysDelivered, "virtual key presses reached the game (the F10 control), so the key checks were meaningful");
         Check(faultyLines.Count == 0, "no exception was thrown from the menu or the save controller");
         Check(Hash() == freshHash, "the world ends exactly where it began");
+    }
+
+    [Serializable] private sealed class InputState
+    {
+        public string phase, focus, worldHash; public int width, height;
+        public string[] buttons; public Vector2[] centers;
+    }
+    private string inputDir;
+    private void InputSnapshot(StandaloneSessionMenu menu, string phase)
+    {
+        var buttons = Root(menu).Query<Button>().ToList();
+        var focus = Root(menu).focusController.focusedElement as Button;
+        var state = new InputState { phase = phase, focus = focus != null ? focus.text : "none",
+            worldHash = Hash(), width = Screen.width, height = Screen.height,
+            buttons = buttons.Select(b => b.text).ToArray(), centers = buttons.Select(b => b.worldBound.center).ToArray() };
+        File.WriteAllText(Path.Combine(inputDir, "state.json"), JsonUtility.ToJson(state));
+    }
+    private IEnumerator AwaitInput(StandaloneSessionMenu menu, string phase, Func<bool> done)
+    {
+        float deadline = Time.realtimeSinceStartup + 180f;
+        while (!done() && Time.realtimeSinceStartup < deadline)
+        {
+            InputSnapshot(menu, phase); yield return null;
+        }
+        Check(done(), "real input completed: " + phase);
+    }
+    // Receives actual desktop mouse/keyboard input. No button callback or synthetic InputSystem event is used.
+    private IEnumerator InputFlow(string freshHash)
+    {
+        inputDir = Environment.GetEnvironmentVariable("CCF_ACCEPTANCE_OUTPUT");
+        Check(!Application.isBatchMode && !string.IsNullOrEmpty(inputDir), "real input requires graphical Editor");
+        Directory.CreateDirectory(inputDir); DeleteSaveFiles();
+        StartupScreenVerification.SetGameSize(1280, 720); yield return Frames(14);
+        var menu = NewStartupMenu(); yield return WaitOpen(menu); yield return Frames(6);
+        yield return AwaitInput(menu, "title-tab-enter", () => Labels(menu).Contains("Controls"));
+        CheckForestHeldBack("real keyboard entered Controls / Help");
+        yield return AwaitInput(menu, "help-back-enter", () => ButtonTexts(menu).SequenceEqual(TitleButtons));
+        yield return AwaitInput(menu, "title-isolation", () => File.Exists(Path.Combine(inputDir, "isolation-done")));
+        CheckForestHeldBack("real gameplay keys and F10 on title");
+        Check(Hash() == freshHash && !File.Exists(savePath) && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None
+            && !manager.WorkPlanOpen, "real gameplay input did not leak through title");
+        yield return AwaitInput(menu, "mouse-help", () => Labels(menu).Contains("Controls"));
+        yield return AwaitInput(menu, "mouse-back", () => ButtonTexts(menu).SequenceEqual(TitleButtons));
+        yield return AwaitInput(menu, "mouse-start", () => !StandaloneSessionMenu.IsOpen);
+        CheckForestHandedBack("real mouse Start New", true);
+        Check(Hash() == freshHash, "real mouse Start New preserves fresh world");
+        yield return AwaitInput(menu, "stand-f10-open", () => StandaloneSessionMenu.IsOpen);
+        Check(!menu.StartupScreenActive, "real F10 opens full session card");
+        yield return AwaitInput(menu, "stand-f10-close", () => !StandaloneSessionMenu.IsOpen);
+        CheckForestHandedBack("real F10 close", true);
+        Check(manager.AdvanceYear(), "real input: prepare year-1 F5 fixture");
+        string year1 = Hash();
+        yield return AwaitInput(menu, "stand-f5", () => File.Exists(savePath));
+        Check(saves.CanLoad(out _), "real F5 writes valid save");
+        Check(manager.AdvanceYear(), "real input: advance to year-2 F9 fixture");
+        yield return AwaitInput(menu, "stand-f9", () => manager.CurrentEcologicalYear == 1);
+        Check(Hash() == year1, "real F9 restores exact saved year-1 world");
+        InputSnapshot(menu, "done"); yield return Dispose(menu); DeleteSaveFiles();
+        Debug.Log("STARTUP_REAL_INPUT_VERIFY_PASS mouse Tab Enter Back isolation F10 F5 F9");
+    }
+
+    // Additional port verification: hash BEFORE CanLoad, revalidate changed files on Continue,
+    // and exercise the actual F10 fresh-test scene reload with a persistent menu host.
+    private IEnumerator BoundaryFlow(ForestSaveData fresh, string freshHash)
+    {
+        DeleteSaveFiles();
+        Check(manager.AdvanceYear(), "boundary: prepare current v20 year-1 fixture");
+        saves.Save();
+        byte[] valid = Bytes(savePath);
+        Check(saves.LoadData(fresh, false), "boundary: restore fresh world");
+        yield return Frames(2);
+        ScenarioReferenceArchive reference = ScenarioReferenceArchive.Load();
+        Check(reference != null, "boundary: historical archive available");
+        byte[] legacy = Encoding.UTF8.GetBytes(JsonUtility.ToJson(reference.AtYear(20).world));
+        ForestSaveData duplicate = JsonUtility.FromJson<ForestSaveData>(Encoding.UTF8.GetString(valid));
+        duplicate.trees.Add(JsonUtility.FromJson<TreeSaveData>(JsonUtility.ToJson(duplicate.trees[0])));
+        byte[] rejected = Encoding.UTF8.GetBytes(JsonUtility.ToJson(duplicate));
+        var cases = new[] {
+            (name: "no save", bytes: (byte[])null, accepted: false),
+            (name: "current v20", bytes: valid, accepted: true),
+            (name: "Legacy40 historical", bytes: legacy, accepted: true),
+            (name: "malformed JSON", bytes: Encoding.UTF8.GetBytes("not json"), accepted: false),
+            (name: "validation rejected duplicate ID", bytes: rejected, accepted: false)
+        };
+        foreach (var c in cases)
+        {
+            DeleteSaveFiles();
+            if (c.bytes != null) File.WriteAllBytes(savePath, c.bytes);
+            string before = ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData());
+            int geometryBefore = ecology.StandGeometryModelVersion;
+            bool can = saves.CanLoad(out string note);
+            string after = ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData());
+            Check(can == c.accepted && before == after && geometryBefore == ecology.StandGeometryModelVersion,
+                "boundary: CanLoad no mutation: " + c.name);
+            Debug.Log("STARTUP_BOUNDARY_HASH " + c.name + " before=" + before + " after=" + after + " accepted=" + can);
+            var menu = NewStartupMenu();
+            yield return WaitOpen(menu);
+            Check(menu.ContinueAvailable == c.accepted && FindButton(menu, "Continue").enabledInHierarchy == c.accepted,
+                "boundary: Continue availability: " + c.name);
+            menu.ContinueSavedForest();
+            yield return Frames(2);
+            if (!c.accepted)
+                Check(StandaloneSessionMenu.IsOpen && before == ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData())
+                    && geometryBefore == ecology.StandGeometryModelVersion, "boundary: rejected Continue no mutation: " + c.name);
+            else
+            {
+                Check(!StandaloneSessionMenu.IsOpen && manager.CurrentEcologicalYear == (c.name.StartsWith("Legacy40") ? 20 : 1),
+                    "boundary: Continue restores expected year: " + c.name);
+                Check(ecology.StandGeometryModelVersion == (c.name.StartsWith("Legacy40") ? StandGeometryModel.Legacy40 : fresh.standGeometryModel),
+                    "boundary: Continue uses save geometry: " + c.name);
+                Check(Same(Bytes(savePath), c.bytes), "boundary: Continue preserves disk bytes: " + c.name);
+            }
+            yield return Dispose(menu);
+            Check(saves.LoadData(fresh, false) && Hash() == freshHash, "boundary: restore fresh after " + c.name);
+            yield return Frames(2);
+        }
+        File.WriteAllBytes(savePath, valid);
+        var changedMenu = NewStartupMenu();
+        yield return WaitOpen(changedMenu);
+        Check(changedMenu.ContinueAvailable, "boundary: Continue initially offered");
+        File.WriteAllBytes(savePath, rejected);
+        string beforeChanged = ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData());
+        changedMenu.ContinueSavedForest();
+        yield return Frames(2);
+        Check(StandaloneSessionMenu.IsOpen && !changedMenu.ContinueAvailable
+            && beforeChanged == ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData()),
+            "boundary: Continue revalidates changed file before load");
+        yield return Dispose(changedMenu);
+        DeleteSaveFiles();
+
+        // Keep both the verification runner and the menu through the actual scene reload, matching Bootstrap.
+        DontDestroyOnLoad(gameObject);
+        var persistentMenu = NewStartupMenu();
+        DontDestroyOnLoad(persistentMenu.gameObject);
+        yield return WaitOpen(persistentMenu);
+        persistentMenu.StartNewScenario();
+        persistentMenu.Open();
+        yield return Frames(2);
+        yield return Click(persistentMenu, "Start a fresh Scenario One test…");
+        Check(ButtonTexts(persistentMenu).SequenceEqual(new[] { "Confirm", "Cancel" }), "boundary: existing F10 restart confirmation");
+        yield return Click(persistentMenu, "Confirm");
+        yield return Frames(12);
+        ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager;
+        saves = FindFirstObjectByType<ForestSaveController>(); ecology = FindFirstObjectByType<ForestEcologyController>(); player = ui.Player;
+        var hosts = FindObjectsByType<StandaloneSessionMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Check(hosts.Length == 1 && hosts[0] == persistentMenu, "boundary: restart leaves exactly one session-menu host");
+        Check(!StandaloneSessionMenu.IsOpen && !persistentMenu.StartupScreenActive && Time.timeScale == 1f,
+            "boundary: restart enters usable direct stand");
+        Check(manager.CurrentEcologicalYear == 0 && Hash() == freshHash, "boundary: restart preserves fresh-world identity");
+        Check(persistentMenu.GetComponents<UIDocument>().Length == 1, "boundary: restart has exactly one session overlay");
+        persistentMenu.Open(); yield return Frames(2);
+        Check(StandaloneSessionMenu.IsOpen && !persistentMenu.StartupScreenActive && !player.enabled && !saves.enabled && !ui.enabled,
+            "boundary: restarted F10 session menu isolates newly created scene controls");
+        persistentMenu.Close(); yield return Frames(2);
+        Check(player.enabled && saves.enabled && ui.enabled && Time.timeScale == 1f, "boundary: restarted session restores controls");
+        yield return Dispose(persistentMenu);
+        Debug.Log("STARTUP_BOUNDARY_VERIFY_PASS");
     }
 
     // Editor Play Mode enters the stand directly unless CCF_STARTUP_SCREEN=1.
