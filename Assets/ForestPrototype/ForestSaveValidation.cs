@@ -30,6 +30,12 @@ public static partial class ForestSaveValidation
         if (geometryProblem != null)
             return geometryProblem;
 
+        // Do not trust a caller's live grid size: historical saves always use Legacy40.
+        ecologyCellCount = StandGeometryModel.CellCount(StandGeometryModel.ForSave(data));
+        string cellProblem = ValidateScenarioCellIndices(data.scenarioOne, ecologyCellCount);
+        if (cellProblem != null)
+            return cellProblem;
+
         // Felled trees stay as stumps and recruits are never removed, so a real
         // save of a populated forest always lists trees.
         if (data.trees.Count == 0 && liveTreeCount > 0)
@@ -87,8 +93,8 @@ public static partial class ForestSaveValidation
             {
                 if (cell == null)
                     return "an ecology cell record is missing";
-                if (cell.index < 0 || (ecologyCellCount > 0 && cell.index >= ecologyCellCount))
-                    return $"ecology cell {cell.index} is outside the stand grid";
+                string indexProblem = ValidateRequiredCellIndex(cell.index, ecologyCellCount, "ecology cell");
+                if (indexProblem != null) return indexProblem;
                 if (!cellIndices.Add(cell.index))
                     return $"ecology cell {cell.index} appears twice";
                 if (!IsFinite(cell.recentOpening) || !IsFinite(cell.establishmentSuitability)
@@ -132,6 +138,63 @@ public static partial class ForestSaveValidation
             string problem = ValidateScenarioV15(data.scenarioOne, data.ecologicalYear);
             if (problem != null) return problem;
         }
+        return null;
+    }
+
+    private static string ValidateRequiredCellIndex(int index, int count, string label)
+        => index >= 0 && index < count ? null : $"{label} {index} is outside the stand grid";
+
+    private static string ValidateOptionalCellIndex(int index, int count, string label)
+        => index == -1 ? null : ValidateRequiredCellIndex(index, count, label);
+
+    private static string ValidateScenarioCellIndices(ScenarioOneSaveData scenario, int count)
+    {
+        if (scenario == null) return null;
+        if (scenario.understoreyCells != null)
+        {
+            var indices = new HashSet<int>();
+            foreach (var cell in scenario.understoreyCells)
+            {
+                if (cell == null) return "an understorey cell record is missing";
+                string problem = ValidateRequiredCellIndex(cell.cellIndex, count, "understorey cell");
+                if (problem != null) return problem;
+                if (!indices.Add(cell.cellIndex)) return "an understorey cell appears twice";
+            }
+        }
+        if (scenario.workOrders != null)
+            foreach (var order in scenario.workOrders)
+            {
+                if (order == null) return "a work order record is missing";
+                // Cell-based planting/removal need an assigned cell; tree-based orders
+                // can carry the historical -1 sentinel and resolve by tree ID/position.
+                bool required = order.type == ScenarioWorkType.PlantJuvenile
+                    || order.type == ScenarioWorkType.RemoveRegeneration;
+                string problem = required
+                    ? ValidateRequiredCellIndex(order.cellIndex, count, "work order cell")
+                    : ValidateOptionalCellIndex(order.cellIndex, count, "work order cell");
+                if (problem != null) return problem;
+            }
+        if (scenario.plantedJuveniles != null)
+            foreach (var juvenile in scenario.plantedJuveniles)
+            {
+                if (juvenile == null) return "a planted juvenile record is missing";
+                string problem = ValidateOptionalCellIndex(juvenile.cellIndex, count, "planted juvenile cell");
+                if (problem != null) return problem;
+            }
+        if (scenario.deadwoodRecords != null)
+            foreach (var record in scenario.deadwoodRecords)
+            {
+                if (record == null) return "a deadwood record is missing";
+                string problem = ValidateOptionalCellIndex(record.cellIndex, count, "deadwood cell");
+                if (problem != null) return problem;
+            }
+        if (scenario.managementEvents != null)
+            foreach (var entry in scenario.managementEvents)
+            {
+                if (entry == null) return "a management event record is missing";
+                string problem = ValidateOptionalCellIndex(entry.cellIndex, count, "management event cell");
+                if (problem != null) return problem;
+            }
         return null;
     }
 
