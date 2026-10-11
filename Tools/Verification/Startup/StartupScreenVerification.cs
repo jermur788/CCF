@@ -228,6 +228,20 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Check(player.enabled == playerWasEnabled && saves.enabled && ui.enabled, when + ": player, save shortcuts and forest UI handed back");
     }
 
+    // Fresh isolated preferences can introduce the existing Walking Help after the title closes.
+    // Its modal input hold is independent of the startup menu. Close it through the established UI route.
+    private IEnumerator DismissWalkingIntroduction(string freshHash)
+    {
+        if (ui.Help.IsOpen)
+        {
+            Check(ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud && !player.enabled && saves.enabled && ui.enabled,
+                "existing Walking Help owns the post-title input hold");
+            ui.CloseHelp();
+            yield return Frames(3);
+            Check(!ui.Help.IsOpen && Hash() == freshHash, "closing Walking Help preserves the fresh world");
+        }
+    }
+
     // ---- the run -------------------------------------------------------------------------------------------
 
     private IEnumerator Run()
@@ -304,6 +318,12 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         yield return AwaitInput(menu, "mouse-help", () => Labels(menu).Contains("Controls"));
         yield return AwaitInput(menu, "mouse-back", () => ButtonTexts(menu).SequenceEqual(TitleButtons));
         yield return AwaitInput(menu, "mouse-start", () => !StandaloneSessionMenu.IsOpen);
+        if (ui.Help.IsOpen)
+        {
+            Check(ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud, "real input: existing Walking Help introduction");
+            yield return AwaitInput(menu, "stand-help-escape", () => !ui.Help.IsOpen);
+            yield return Frames(3);
+        }
         CheckForestHandedBack("real mouse Start New", true);
         Check(Hash() == freshHash, "real mouse Start New preserves fresh world");
         yield return AwaitInput(menu, "stand-f10-open", () => StandaloneSessionMenu.IsOpen);
@@ -406,6 +426,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         yield return Frames(12);
         ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager;
         saves = FindFirstObjectByType<ForestSaveController>(); ecology = FindFirstObjectByType<ForestEcologyController>(); player = ui.Player;
+        yield return DismissWalkingIntroduction(freshHash);
         var hosts = FindObjectsByType<StandaloneSessionMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         Check(hosts.Length == 1 && hosts[0] == persistentMenu, "boundary: restart leaves exactly one session-menu host");
         Check(!StandaloneSessionMenu.IsOpen && !persistentMenu.StartupScreenActive && Time.timeScale == 1f,
@@ -446,6 +467,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             Check(File.Exists(savePath), "Start New only waits when a save exists");
             yield return Click(menu, "Start New Scenario");
         }
+        yield return DismissWalkingIntroduction(freshHash);
         CheckForestHandedBack("bootstrapped Start New Scenario", true);
         Check(Hash() == freshHash, "Start New Scenario enters the unchanged fresh world");
     }
