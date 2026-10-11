@@ -53,3 +53,9 @@ python3 Tools/Verification/Startup/run_startup.py --mode input --label startup-i
 `input` requires a graphical Editor and an external operator to deliver actual desktop input within each bounded phase (180 seconds). It does not invoke Clickable callbacks or enqueue InputSystem states. `state.json` in the captures directory reports phase, focused button, current hash and button centers. Phases cover Tab/Enter into Controls, Enter on Back, gameplay/F10 isolation, mouse Help/Back/Start, F10 open/close, F5 save and F9 load. The operator writes `isolation-done` only after delivering and recording the isolation inputs. These are Linux Editor input checks, not native Windows or Player evidence. No arrow-key claim is made.
 
 Both modes retain the original isolated-config and save backup/restoration contracts. The normal `batch`, `bootstrap`, `rendered` and explicit Legacy40 modes remain required. The rendered mode's synthetic keyboard checks remain distinct from the actual-input mode.
+
+## Anchor attribution (Manager-authorised diagnostic)
+
+The startup fixture captures the natural ForestTest scene after eight frames, without regenerating it. It proves that opening/using the title and Start New preserve that fixture's captured fresh world. It does not equate that capture with the established deterministic-reset anchor.
+
+Run the unchanged `Enlarged80Verification` separately for the established start `04A78188A6F8E6F9` and year-3 `081DB58CE3034648` anchors. The diagnostic comparison on canonical base `e8c73f2` and startup HEAD `1edf818` found identical natural-scene captures, while the authoritative reset gate retained both anchors. The logged natural hash is diagnostic evidence, not a replacement anchor. No production code or established anchor changed.

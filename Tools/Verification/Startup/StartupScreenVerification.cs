@@ -519,8 +519,9 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         if (Environment.GetEnvironmentVariable("CCF_STAND_GEOMETRY") == null)
         {
             Check(ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "production default: Enlarged80");
-            Check(ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData()) == "04A78188A6F8E6F9",
-                "Enlarged80 start anchor 04A78188A6F8E6F9 unchanged (valid for this generator and configuration only)");
+            // This fixture captures the natural scene after eight frames. Its own freshHash is the
+            // no-mutation contract above; the unchanged Enlarged80Verification reset fixture separately
+            // verifies the established 04A78188A6F8E6F9 start and 081DB58CE3034648 year-3 anchors.
         }
         Check(!File.Exists(savePath), "Start New Scenario wrote no save");
 
