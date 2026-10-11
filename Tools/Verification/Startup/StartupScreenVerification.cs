@@ -373,8 +373,10 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
                 Check(Same(Bytes(savePath), c.bytes), "boundary: Continue preserves disk bytes: " + c.name);
             }
             yield return Dispose(menu);
-            Check(saves.LoadData(fresh, false) && Hash() == freshHash, "boundary: restore fresh after " + c.name);
+            Check(saves.LoadData(fresh, false), "fresh fixture accepted after: " + c.name);
+            // LoadData schedules out-of-save trees for end-of-frame destruction; CaptureData includes inactive trees.
             yield return Frames(2);
+            Check(Hash() == freshHash, "boundary: restore fresh after " + c.name);
         }
         File.WriteAllBytes(savePath, valid);
         var changedMenu = NewStartupMenu();
@@ -648,8 +650,10 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
                 Check(can == c.expected.Value, c.name + (c.expected.Value ? " is accepted" : " is refused"));
             if (can && c.name.StartsWith("Legacy40"))
                 Check(ecology.StandGeometryModelVersion == StandGeometryModel.Legacy40, "the loader, not the title, chose the save's own Legacy40 geometry");
-            Check(saves.LoadData(fresh, false) && Hash() == freshHash, "fresh world restored after: " + c.name);
+            Check(saves.LoadData(fresh, false), "fresh fixture accepted after: " + c.name);
+            // LoadData schedules out-of-save trees for end-of-frame destruction; CaptureData includes inactive trees.
             yield return Frames(2);
+            Check(Hash() == freshHash, "fresh world restored after: " + c.name);
         }
         if (legacy == null) skipped.Add("Legacy40 reference fixture (reference archive not available)");
         DeleteSaveFiles();
