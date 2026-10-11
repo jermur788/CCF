@@ -40,13 +40,16 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
     private IEnumerator Start()
     {
         yield return null; yield return null;
-        Exception failure = null; IEnumerator routine = Verify();
-        while (true)
+        Exception failure = null;
+        var routines = new Stack<IEnumerator>(); routines.Push(Verify());
+        while (routines.Count > 0)
         {
             bool more = false; object current = null;
-            try { more = routine.MoveNext(); if (more) current = routine.Current; }
+            try { more = routines.Peek().MoveNext(); if (more) current = routines.Peek().Current; }
             catch (Exception error) { failure = error; break; }
-            if (!more) break; yield return current;
+            if (!more) { routines.Pop(); continue; }
+            if (current is IEnumerator nested) routines.Push(nested);
+            else yield return current;
         }
         foreach (var entry in originals)
             if (entry.Value == null) { if (File.Exists(entry.Key)) File.Delete(entry.Key); }
@@ -174,14 +177,14 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         // Real title integration: valid enables Continue; malformed nested index disables it.
         File.WriteAllText(path,JsonUtility.ToJson(enlarged));
         var menu=FindFirstObjectByType<StandaloneSessionMenu>();if(menu==null)menu=new GameObject("Disposable startup menu").AddComponent<StandaloneSessionMenu>();
-        menu.ShowStartupScreen();for(int i=0;i<120&&!menu.IsOpen;i++)yield return null;
-        Check(menu.IsOpen && menu.ContinueAvailable,"valid save must enable Continue");
+        menu.ShowStartupScreen();for(int i=0;i<120&&!StandaloneSessionMenu.IsOpen;i++)yield return null;
+        Check(StandaloneSessionMenu.IsOpen && menu.ContinueAvailable,"valid save must enable Continue");
         ForestSaveData bad=Clone(legacy);Assign(bad,"juvenile",64);File.WriteAllText(path,JsonUtility.ToJson(bad));
         string before=World(),bytes=Disk();menu.ContinueSavedForest();yield return null;
-        Check(menu.IsOpen && !menu.ContinueAvailable && menu.ContinueNote.Length<120,"malformed nested save must disable Continue with concise refusal");
+        Check(StandaloneSessionMenu.IsOpen && !menu.ContinueAvailable && menu.ContinueNote.Length<120,"malformed nested save must disable Continue with concise refusal");
         Check(World()==before && Disk()==bytes,"rejected Continue mutated live world or disk");
         menu.StartNewScenario();yield return null;
-        Check(!menu.IsOpen && World()==before && Disk()==bytes,"Start New changed generated world or removed save");
+        Check(!StandaloneSessionMenu.IsOpen && World()==before && Disk()==bytes,"Start New changed generated world or removed save");
         Debug.Log("SAVE_CELL_STARTUP_PASS validContinue=enabled malformedContinue=disabled refusalLength="+menu.ContinueNote.Length+" startNew=unchanged");
     }
 }
