@@ -2260,7 +2260,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
             ScenarioOneUiRoot teaching = GetComponent<ScenarioOneUiRoot>();
             if (teaching != null && teaching.Learning != null)
+            {
+                // After the first review is acknowledged the line is the repeatable next step (derived from the recorded
+                // history); the lesson prompt follows it. Before that, the lesson prompt is unchanged.
+                if (annualReviewSeen)
+                    return NextStepHint + " · " + teaching.Learning.Summary;
                 return teaching.Learning.Summary + " · Learn at your own pace across years.";
+            }
             if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderCreated
                 && entry.taskType == ScenarioWorkType.FellTree)
                 && !workOrders.Any(order => order.type == ScenarioWorkType.FellTree))
@@ -2280,7 +2286,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                  return "3. Press G in the stand, place saplings on the ground and approve the planting markers.";
             if (annualReports.Count == 0)
                 return "4. Advance one ecological year to execute approved work.";
-            return annualReviewSeen ? "Tutorial complete. Continue management toward the Century Review."
+            return annualReviewSeen ? NextStepHint
                 : "5. Open the annual review to inspect ecological outcomes and management history.";
         }
     }

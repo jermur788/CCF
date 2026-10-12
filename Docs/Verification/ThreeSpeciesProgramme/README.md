@@ -12,7 +12,7 @@ This folder is a working record owned by this programme. It is not a canonical p
 ```text
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod     # TYPECHECK_CLEAN = no error beyond baseline-prod.txt
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode tools    # same, with UNITY_EDITOR and the Tools/Verification harnesses
-python3 Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py  # THREE_SPECIES_OFFLINE_PASS
+python3 Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py --suite all   # density 35 + timber 71 + history 70 checks
 ```
 
 Both need the .NET SDK (8+); the type-check also needs nuget.org once. Nothing is written inside the repository.
@@ -30,3 +30,4 @@ See the bottom table, updated as phases complete.
 | 4 | Species × site / canopy | Stopped on a design decision (no site identity in data or docs); options S0–S3 recorded |
 | 5 | Three-species qualification | Runbook prepared; needs Unity |
 | 6 | Oak/Beech timber and economy | Implemented behind growth model 2; pure layer verified offline (71 checks, Sitka identical to the unmodified base); Unity wiring type-checked, gate written not run; form-grade and formative-shaping sub-features stopped; see `Phase6-BroadleafTimber.md` |
+| 7–9 | Management history, repeated interventions, completion presentation | Implemented as derived history (no new persisted state, save stays v20); derivation and wording verified offline against the real record classes (70 checks); manager/UI wiring type-checked; Unity gate written, not run; see `Phase7to9-HistoryAndRepeatedInterventions.md` |

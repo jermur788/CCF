@@ -3,6 +3,7 @@
 
 Suites (default: all):
   density  MixedDensityModel (growth model 2) against the original Sitka route.
+  history  Derived Scenario One management history (S1-C) against the real persisted record classes.
   timber   Oak/Beech assortment ladders, prices and valuation against the real allocator and work
            calculator, plus proof that Sitka allocation is identical to the unmodified base commit.
 
@@ -13,7 +14,7 @@ written inside the repo.
 This proves pure arithmetic and decision rules only. It does not prove controller wiring, scene state, the
 Unity-side economy adapter or any Unity anchor hash.
 
-Usage: run_offline_check.py [--suite density|timber|all] [--out DIR]
+Usage: run_offline_check.py [--suite density|timber|history|all] [--out DIR]
 Exit code 0 and *_PASS tokens on success. Needs `dotnet` (SDK 8+).
 """
 import argparse
@@ -34,6 +35,15 @@ SUITES = {
         sources=[os.path.join(FP, "SitkaGrowthModel.cs"), os.path.join(FP, "MixedDensityModel.cs"),
                  os.path.join(HERE, "MixedDensityOfflineCheck.cs")],
         args=[ROOT]),
+    "history": dict(
+        startup="ScenarioHistoryOfflineCheck",
+        sources=[os.path.join(FP, "ScenarioOne", "ScenarioInterventionHistory.cs"), os.path.join(FP, "ScenarioOne", "ManagementHistoryText.cs"),
+                 os.path.join(FP, "ScenarioOne", "ScenarioManagementEvent.cs"), os.path.join(FP, "ScenarioOne", "ScenarioEcologicalSnapshot.cs"),
+                 os.path.join(FP, "ScenarioOne", "ScenarioDeadwoodRecord.cs"), os.path.join(FP, "ScenarioOne", "ScenarioOneWorkOrder.cs"),
+                 os.path.join(FP, "ForestSaveData.cs")]
+                + sorted(glob.glob(os.path.join(FP, "WorkEconomy", "*.cs")))
+                + [os.path.join(HERE, "UnityShim.cs"), os.path.join(HERE, "HistoryOfflineStubs.cs"), os.path.join(HERE, "ScenarioHistoryOfflineCheck.cs")],
+        args=[]),
     "timber": dict(
         startup="BroadleafTimberOfflineCheck",
         sources=sorted(glob.glob(os.path.join(FP, "TimberYield", "*.cs")) + glob.glob(os.path.join(FP, "WorkEconomy", "*.cs")))
@@ -52,6 +62,8 @@ PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
     <StartupObject>{startup}</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+{packages}  </ItemGroup>
+  <ItemGroup>
 {items}
   </ItemGroup>
 </Project>
@@ -67,7 +79,8 @@ def run_suite(name, out, dotnet):
             sys.exit("missing source " + source)
     items = "\n".join('    <Compile Include="%s" />' % s for s in suite["sources"])
     with open(os.path.join(work, "check.csproj"), "w") as handle:
-        handle.write(PROJECT.format(startup=suite["startup"], items=items))
+        packages = "".join('    <PackageReference Include="%s" Version="%s" />\n' % pkg for pkg in suite.get("packages", []))
+        handle.write(PROJECT.format(startup=suite["startup"], items=items, packages=packages))
     env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
     build = subprocess.run([dotnet, "build", "-nologo", "-v", "q", "-c", "Release"], cwd=work, env=env, capture_output=True, text=True)
     if build.returncode != 0:
@@ -82,13 +95,13 @@ def run_suite(name, out, dotnet):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--suite", choices=["density", "timber", "all"], default="all")
+    parser.add_argument("--suite", choices=["density", "timber", "history", "all"], default="all")
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-three-species-offline"))
     args = parser.parse_args()
     dotnet = shutil.which("dotnet")
     if not dotnet:
         sys.exit("dotnet SDK not found")
-    names = ["density", "timber"] if args.suite == "all" else [args.suite]
+    names = ["density", "timber", "history"] if args.suite == "all" else [args.suite]
     status = 0
     for name in names:
         code = run_suite(name, args.out, dotnet)

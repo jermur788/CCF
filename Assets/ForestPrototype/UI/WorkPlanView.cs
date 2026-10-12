@@ -72,6 +72,7 @@ public sealed class WorkPlanView
 
         scroll.Clear();
         WorkPlanOverview.Build(scroll, ui);
+        BuildAttention(m);
         BuildHarvest(m);
         BuildPlanting(m);
         BuildPruning(m);
@@ -112,6 +113,24 @@ public sealed class WorkPlanView
         if (!string.IsNullOrEmpty(sub)) UiKit.Add(card, sub, "muted");
         scroll.Add(card);
         return card;
+    }
+
+    // Open orders that carry a problem, or were planned a couple of years ago. They are never expired or deleted: this
+    // only says which ones to look at again, and why.
+    private void BuildAttention(ScenarioOneManager m)
+    {
+        System.Collections.Generic.IReadOnlyList<StaleOrderNote> notes = m.StaleOrders;
+        if (notes.Count == 0)
+            return;
+        VisualElement card = Card($"Orders needing attention · {notes.Count}", "Nothing is removed automatically. Change, cancel or approve each one, then check the quote.");
+        card.name = "orders-attention";
+        foreach (StaleOrderNote note in notes)
+        {
+            VisualElement row = UiKit.Row(card, "row-wrap");
+            UiKit.Chip(row, note.Order.status == ScenarioWorkStatus.Approved ? "APPROVED" : "PENDING", "chip-fell");
+            UiKit.Add(row, note.Order.ShortLabel, "body", "gap");
+            UiKit.Add(card, note.Reason, "muted");
+        }
     }
 
     private void BuildHarvest(ScenarioOneManager m)
