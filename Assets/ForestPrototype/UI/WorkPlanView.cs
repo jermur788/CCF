@@ -131,16 +131,17 @@ public sealed class WorkPlanView
             head.Add(UiKit.Text("Volume", "cell-num", "faint"));
             head.Add(UiKit.Text("Roadside value", "cell-num", "faint"));
             card.Add(head);
-            foreach (AssortmentYieldSummaryLine line in job.Yield.Assortments.Select(a => new AssortmentYieldSummaryLine(a.Assortment.ToString(), a.Disposition, a.VolumeCm3))
-                         .GroupBy(l => l.Name + "|" + l.Disposition).Select(g => new AssortmentYieldSummaryLine(g.First().Name, g.First().Disposition, g.Sum(x => x.Volume))))
+            foreach (AssortmentYieldSummaryLine line in job.Yield.Assortments.Select(a => new AssortmentYieldSummaryLine(a.Assortment, a.Disposition, a.VolumeCm3))
+                         .GroupBy(l => l.Assortment + "|" + l.Disposition).Select(g => new AssortmentYieldSummaryLine(g.First().Assortment, g.First().Disposition, g.Sum(x => x.Volume))))
             {
                 VisualElement row = UiKit.Box("table-row");
-                string name = line.Disposition == TimberDisposition.SellAndExtract ? line.Name
-                    : line.Disposition == TimberDisposition.KeepForUse ? line.Name + " (kept for use)" : line.Name + " (retained as deadwood)";
+                string label = TimberAssortmentLabels.Label(line.Assortment);
+                string name = line.Disposition == TimberDisposition.SellAndExtract ? label
+                    : line.Disposition == TimberDisposition.KeepForUse ? label + " (kept for use)" : label + " (retained as deadwood)";
                 row.Add(UiKit.Text(name, "cell-name", "body"));
                 row.Add(UiKit.Text(UiKit.M3(line.Volume), "cell-num", "body"));
                 long value = line.Disposition == TimberDisposition.SellAndExtract
-                    && System.Enum.TryParse(line.Name, out TimberAssortment asm) && revenueByProduct.TryGetValue(asm, out long v) ? v : 0;
+                    && revenueByProduct.TryGetValue(line.Assortment, out long v) ? v : 0;
                 row.Add(UiKit.Text(line.Disposition == TimberDisposition.SellAndExtract ? UiKit.Money(value) : "—", "cell-num", "body"));
                 card.Add(row);
             }
@@ -162,7 +163,7 @@ public sealed class WorkPlanView
             UiKit.Add(card, "Windthrow salvage is optional. Remove or cancel a salvage order to leave that stem as deadwood. Basal damage and time since the fall can reduce timber grade; the contractor minimum still applies once to the combined visit.", "muted");
         UiKit.Add(card, job.Eligible ? "Re-quoted and settled when the year is resolved." : "Cannot proceed: " + job.Problem, job.Eligible ? "faint" : "body");
         if (job.HasUnmarketedSpecies)
-            UiKit.Add(card, "No broadleaf timber market is configured: those stems are charged for felling but earn no sale revenue.", "muted");
+            UiKit.Add(card, "No timber market is configured for some of these stems' species: they are charged for felling but earn no sale revenue.", "muted");
 
         foreach (ScenarioOneWorkOrder order in fell)
         {
@@ -356,7 +357,7 @@ public sealed class WorkPlanView
 
     private readonly struct AssortmentYieldSummaryLine
     {
-        public readonly string Name; public readonly TimberDisposition Disposition; public readonly long Volume;
-        public AssortmentYieldSummaryLine(string name, TimberDisposition disposition, long volume) { Name = name; Disposition = disposition; Volume = volume; }
+        public readonly TimberAssortment Assortment; public readonly TimberDisposition Disposition; public readonly long Volume;
+        public AssortmentYieldSummaryLine(TimberAssortment assortment, TimberDisposition disposition, long volume) { Assortment = assortment; Disposition = disposition; Volume = volume; }
     }
 }
