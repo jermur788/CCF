@@ -127,7 +127,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (planOpen && screen != UiScreen.None)
             SetScreen(UiScreen.None);
         if (planOpen && !workPlanWasOpen)
+        {
+            // Re-entry: check every open order against the forest as it is now before showing it.
+            manager.RevalidateOpenOrders();
             workPlan.Refresh(true);
+        }
         workPlanWasOpen = planOpen;
 
         bool walking = !preview && !planOpen && screen == UiScreen.None;
@@ -243,6 +247,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         manager.SetAuxiliaryPanelOpen(screen != UiScreen.None);
         if (screen == UiScreen.Review)
         {
+            review.ShowLatest();
             review.Refresh(true);
         }
         else if (screen == UiScreen.Map)

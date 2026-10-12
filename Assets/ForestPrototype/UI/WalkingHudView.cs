@@ -110,6 +110,8 @@ public sealed class WalkingHudView
         objectivesButton.pickingMode = PickingMode.Position;
     }
 
+    private int hudEventCount = -1, hudInterventions;
+
     public void Refresh()
     {
         ScenarioOneManager m = ui.Manager;
@@ -119,7 +121,14 @@ public sealed class WalkingHudView
 
         string phase = m.Outcome == ScenarioOneOutcome.Completed ? "objectives met"
             : m.Outcome == ScenarioOneOutcome.Failed ? "failed" : "planning";
-        statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}";
+        // The intervention count is derived from the recorded events; recompute it only when they change.
+        if (m.ManagementEvents.Count != hudEventCount)
+        {
+            hudEventCount = m.ManagementEvents.Count;
+            hudInterventions = m.Interventions.Count;
+        }
+        statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}"
+            + (hudInterventions > 0 ? $" · {hudInterventions} intervention{(hudInterventions == 1 ? "" : "s")}" : "");
         cash.text = UiKit.Money(m.CashCents);
         var objectiveList = m.Objectives;
         objectives.text = $"Forest objectives {objectiveList.Count(o => o.achieved)} of {objectiveList.Count}";
