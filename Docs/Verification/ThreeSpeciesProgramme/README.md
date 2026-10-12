@@ -25,3 +25,7 @@ See the bottom table, updated as phases complete.
 |---|---|---|
 | 0 | Baseline qualification | Recorded (code-only); see `Phase0-Baseline.md` |
 | 1 | Species-aware mixed density (growth model 2) | Implemented, type-checked, offline-verified; Unity gate written, not run; see `Phase1-MixedDensity.md` |
+| 2 | Oak adult parity | Stopped on evidence; nothing changed; qualification gate written (not run); see `Phase2to5-BroadleafParity.md` |
+| 3 | Beech adult parity | Stopped on evidence; dormant crown constants confirmed unread; see `Phase2to5-BroadleafParity.md` |
+| 4 | Species × site / canopy | Stopped on a design decision (no site identity in data or docs); options S0–S3 recorded |
+| 5 | Three-species qualification | Runbook prepared; needs Unity |
