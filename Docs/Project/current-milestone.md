@@ -6,37 +6,57 @@ Define current scope. Verified implementation belongs in Overview; accepted deci
 
 ## Milestone
 
-**Scenario One Completion & External-Test Readiness**
+**Scenario One — Complete-Loop Three-Species Demo Readiness**
 
-Complete the teaching, standalone-build, review/history and second-intervention work needed for understandable external testing of the forestry reference foundation. P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. S1-B Standalone-Build Readiness is integrated as the approved source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` plus the separate presentation correction `fac782072f23e28518e8840c621112fe4074db45` (D-055, unavailable construction frames hidden), and is post-integration verified with one open gate (P2 interactive rendered layout; see the Overview). The 80 × 80 m Scenario One stand expansion (D-056) is integrated and verified on main at `a309f99e0f2c6a770044604bbf88ee2e2471a5b5` (see the Overview). Enlarged80 area-sensitive calibration (D-057) is integrated and post-integration verified on main at `23f84f9ac0d4a02d385869d3985e11a24cc5a23f`. Minimal startup/title screen (D-058) is **DONE**, integrated and Editor-verified on main at `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348`. Malformed cell-index save hardening is **DONE**, integrated and verified on main at `12cc8ef0659f54055088047c2c6727d874bdffd8`. Stage A is still **not ready**: standalone Player performance/build profiling is next, no pilot Windows candidate exists (the first candidate B06 is historical evidence only), Player and native-Windows performance have not been measured, and native Windows technical smoke has not been performed.
+Deliver a first external demo of the **complete** Scenario One in which Sitka spruce, Oak and Beech are represented to comparable modelling depth, and in which the player can run the full management cycle from first assessment to scenario completion (D-059, D-060). P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. S1-B Standalone-Build Readiness is integrated as the approved source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` plus the separate presentation correction `fac782072f23e28518e8840c621112fe4074db45` (D-055, unavailable construction frames hidden), and is post-integration verified with one open gate (P2 interactive rendered layout; see the Overview). The 80 × 80 m Scenario One stand expansion (D-056) is integrated and verified on main at `a309f99e0f2c6a770044604bbf88ee2e2471a5b5` (see the Overview). Enlarged80 area-sensitive calibration (D-057) is integrated and post-integration verified on main at `23f84f9ac0d4a02d385869d3985e11a24cc5a23f`. Minimal startup/title screen (D-058) is **DONE**, integrated and Editor-verified on main at `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348`. Malformed cell-index save hardening is **DONE**, integrated and verified on main at `12cc8ef0659f54055088047c2c6727d874bdffd8`.
+
+The species-parity audit at base `c1564b857972ee18917e8a461c457533a54cc3f1` is complete and its findings are recorded in the Unity Project Overview. Its accepted outcomes are D-059, D-061 and D-062. **Species parity P0 work has not started.** S1-C and S1-D are not implemented. No external-demo candidate exists: no pilot Windows candidate exists, Player and native-Windows performance have not been measured, and native Windows technical smoke has not been performed.
 
 ## In scope
 
-- S1-A: teaching readiness for the intended first management cycle — integrated and verified.
-- S1-B: standalone-build readiness for the intended external test slice — integrated and verified (one open gate); the remaining release gate is native Windows technical smoke on the pilot candidate.
+- **Sitka/Oak/Beech parity P0 (D-059, D-061, D-062)** — species-aware density / self-thinning with pure-Sitka preservation proven exact; Oak and Beech adult parameter parity with labelled transfer/ordinal evidence; species-specific regeneration, juvenile and browse traits; species-specific canopy, light and site traits; an Oak/Beech timber assortment and economic layer; player-facing inspection and teaching parity; and integrated multi-species verification.
+- **S1-C:** review/history work needed to understand repeated intervention. **PRE-DEMO (D-060).**
+- **S1-D:** second and subsequent intervention support needed for the full Scenario One loop. **PRE-DEMO (D-060).**
+- Scenario completion reachable and understandable by the player.
+- Integrated full Scenario One qualification, followed by a fresh post-parity/full-loop Windows candidate, independent review and native Windows smoke.
+- S1-A: teaching readiness for the management cycle — integrated and verified.
+- S1-B: standalone-build readiness — integrated and verified (one open gate).
 - Scenario One stand expansion to 80 × 80 m (D-056): integrated and verified. New games use Enlarged80; Legacy40 saves and Reference Future v1 are unchanged.
 - Enlarged80 area-sensitive calibration (D-057): **DONE**, integrated and verified at `23f84f9ac0d4a02d385869d3985e11a24cc5a23f`. Extensive objective/century targets are 4×; cash, contractor minimum, owner capacity, unit values, canopy means and years remain unchanged. This is gameplay continuity calibration, not empirical forestry thresholds.
 - Minimal startup/title screen (D-058): **DONE**, integrated and Editor-verified at `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348`; built-Player/native-Windows startup remains UNVERIFIED.
 - Malformed cell-index save hardening: **DONE**, integrated and verified at `12cc8ef0659f54055088047c2c6727d874bdffd8`; 131 bounded integration cases PASS, with valid sentinel/shared-cell semantics preserved and save v20 unchanged.
-- S1-C: review/history work needed to understand repeated intervention.
-- S1-D: second-intervention work needed for the full Scenario One loop.
 - Bounded task specifications, verification evidence and external-test feedback for each slice. Detailed mechanics remain subject to their own accepted packets.
 
-## Staged external testing
+## Pre-demo sequence
 
-External testing may proceed in bounded stages: an initial first-cycle pilot after teaching and standalone-build readiness work, followed by full Scenario One testing after the review/history and second-intervention work is implemented.
+The first external demo is the **complete** Scenario One (D-060). The intended sequence is:
 
-**Stage A — first-cycle pilot:** after P3 + S1-A + S1-B and the enlarged 80 × 80 m stand (D-056, integrated) with its area-sensitive calibration, test one coherent first management cycle through post-intervention observation. Full Scenario One completion is not a prerequisite for this bounded pilot.
+1. **Internal technical qualification** — builds, performance, platform smoke, current-slice reviews.
+2. **Sitka/Oak/Beech parity P0** (D-059, D-061, D-062).
+3. **S1-C** review/history.
+4. **S1-D** second and subsequent intervention support.
+5. **Scenario completion** reachable and understood.
+6. **Integrated full Scenario One qualification.**
+7. **Fresh post-parity/full-loop Windows candidate.**
+8. **Independent review + native Windows smoke.**
+9. **Beginner external testing of the complete Scenario One.**
 
-**Stage B — full-loop testing:** after S1-C + S1-D, test the full Scenario One repeated-intervention loop.
+**Build candidate policy.** B06 is historical evidence only and must not be sent to testers. **B07 is an internal technical baseline and is not the eventual external-demo candidate** (D-060); it is not started and not built. Any pre-parity or pre-full-loop build is an internal engineering build only: useful for engineering tests, never an external-demo candidate. The external-demo candidate is the fresh post-parity/full-loop Windows candidate built at step 7.
 
-**Pre-pilot sequence (accepted 2026-10-10):** S1-B integration and hidden construction frames (done) → Scenario One 80 × 80 m stand expansion with full regression and spatial validation (done, `a309f99`) → Enlarged80 area-sensitive calibration (done, `23f84f9`) → minimal startup/title screen (done, `b99ba69`, Editor-verified) → malformed cell-index save hardening (done, `12cc8ef`, bounded integration verified) → standalone Player performance/build profiling → new Windows pilot candidate built from the enlarged committed source → Sonnet 5.5 xhigh combined pre-pilot review of that candidate → native Windows technical smoke → fix genuine blockers arising from those reviews → beginner Stage-A pilot. S1-C and S1-D are not prerequisites for the Stage-A first-cycle pilot. Built-Player performance and native Windows text/input/performance remain unqualified until the corresponding gates pass; synthetic InputSystem graphical delivery remains unverified. The accepted Enlarged80 retained former-edge-band residual remains; no stocking reduction is authorised. B06 and any pre-expansion build are not sent to beginner testers. Reference Future v1 is not resized, regenerated, migrated or reinterpreted.
+**Carried forward from the accepted 2026-10-10 pre-pilot work:** the Enlarged80 retained former-edge-band residual remains; no stocking reduction is authorised. Reference Future v1 is not resized, regenerated, migrated or reinterpreted. Built-Player performance and native Windows text/input/performance remain unqualified until the corresponding gates pass; synthetic InputSystem graphical delivery remains unverified.
+
+**Superseded:** the previous "Stage A — first-cycle pilot" external boundary, and the statement that "S1-C and S1-D are not prerequisites for the Stage-A first-cycle pilot", are superseded by D-060. There is no longer a first-intervention external pilot as the intended Scenario One demo boundary.
 
 ## Completion checks
 
-- No known player-facing blocker prevents an external tester from completing and understanding the intended test slice. The first-cycle pilot may precede full Scenario One completion; full-loop external testing follows the later review/history and second-intervention work.
-- Teaching and standalone-build readiness, the enlarged stand and a native Windows technical smoke are verified for Stage A before that pilot is called ready.
-- Review/history and second-intervention work are implemented and verified before Stage B is called ready.
+- Before the first external demo, the player can start from the initial forest, assess it, make an intervention, advance time, observe consequences, understand and review previous management, make second and later interventions, repeat the management cycle, and reach Scenario One completion (D-060).
+- By scenario completion the player has an opportunity to learn the basic CCF management loop through repeated intervention and adaptation.
+- Sitka spruce, Oak and Beech are represented to comparable modelling depth before that demo (D-059). Comparable depth does not mean equal empirical precision; evidence quality may differ between species where labelled honestly.
+- Oak and Beech do not silently inherit materially inappropriate Sitka-specific assumptions (D-059). No wording or model treats Oak or Beech as Sitka under another name.
+- Mixed-stand density uses ordinal species-aware growing-space-demand classes (D-061). 100 % Sitka composition routes through the existing exact calibrated Sitka density implementation and existing Sitka arithmetic is unchanged. No DEC, no DMC, no mixture-productivity bonus. Sitka anchors are not silently re-baselined.
+- Oak and Beech have an appropriate timber assortment and economic layer (D-062) that does not simply reuse Sitka assortment boundaries or prices, and that labels empirical evidence, transfer and calibration distinctly.
+- Every species-sensitive mechanism uses species-specific behaviour where evidence shows material differences; where quantitative evidence is insufficient, the representation is ordinal/transfer/calibrated and **labelled accurately**. No pseudo-empirical coefficients.
+- Integrated full Scenario One qualification is green, followed by a fresh post-parity/full-loop Windows candidate, independent review and a native Windows technical smoke, before beginner external testing.
 - Each result identifies the committed implementation and the tested slice; research proposals and future infrastructure are not presented as shipped features.
 
 ## Context and setup follow-ups
@@ -49,7 +69,7 @@ The repository migration/generator is integrated. Permanent Drive context and Ga
 
 ## Explicit exclusions
 
-No Scenario Two, multi-scenario infrastructure, sandbox or Stage 2 implementation in this milestone refresh. No new save/model/economy parameters or research-proposed exact curriculum/mechanics are accepted by this documentation change.
+No Scenario Two, multi-scenario infrastructure, sandbox or Stage 2 implementation in this milestone refresh. No new save/model/economy parameters or research-proposed exact curriculum/mechanics are accepted by this documentation change. D-059–D-062 accept scope, direction and modelling constraints only; concrete coefficients, model versions, save fields and assortment/price values each require their own accepted implementation packet. Fruit/nut systems, performance optimisation work, pilot distribution, mixture productivity bonuses, invented broadleaf yield equations, Reference Future modification and stocking reduction remain out of scope.
 
 ## Historical Scenario 1 functional baseline (2026-10-04)
 
@@ -93,6 +113,8 @@ Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
 - broadleaf market;
 - manual forestry;
 - co-op.
+
+*This deferral list is the 2026-10-04 record. **"Broadleaf market" is reopened by D-062** and is now pre-demo scope. The remaining entries are unchanged unless separately accepted.*
 
 Previously recorded presentation constraint: ring-barked, windthrow-root and defect assets stay unspawned until matching simulation state exists (D-020).
 
