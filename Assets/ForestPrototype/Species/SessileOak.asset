@@ -20,6 +20,7 @@ MonoBehaviour:
   potentialHeightGrowthMPerYear: 0.4
   maxHeightM: 40
   ci50: 3
+  growingSpaceDemand: 2
   crownRadiusIntercept: 0.1
   crownRadiusPerCmDbh: 0.1045
   usePowerLawCrown: 0

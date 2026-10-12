@@ -140,6 +140,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
     private bool UsesSiteClassGrowth => growthModelVersion >= GrowthModel.SiteClassDensity;
 
+    // Growth model 2: stands that are not pure Sitka use the species-aware ordinal density (MixedDensityModel).
+    private bool UsesSpeciesAwareGrowth => growthModelVersion >= GrowthModel.SpeciesAware;
+
     // Growth model 1 adult density mortality of the most recent annual step (diagnostic only).
     public AdultMortalityAccount LastAdultMortality { get; private set; } = new AdultMortalityAccount();
 
@@ -1047,6 +1050,13 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 living.Add(tree);
         account.LivingBefore = living.Count;
         if (living.Count == 0 || StandAreaHectares <= 0f) return;
+        // Growth model 2: any non-Reference species switches the stand to the species-aware density. A stand of only
+        // Reference-class (Sitka) trees carries on below, untouched, so pure Sitka is exactly growth model 1.
+        if (UsesSpeciesAwareGrowth && HasNonReferenceDemand(living))
+        {
+            ApplySpeciesAwareDensityMortality(living, account);
+            return;
+        }
         account.RelativeDensity = StandRelativeDensity(living, out account.StemsPerHectare, out account.QuadraticMeanDbhCm);
         account.DensityPressure = SitkaGrowthModel.DensityPressure(account.RelativeDensity);
         if (account.DensityPressure <= 0.0) return;
@@ -1099,6 +1109,12 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 account.BoundaryDeaths++;
             }
         }
+        KillDensityVictims(victims, account);
+    }
+
+    // Both density routes end here: the victims die together inside one change batch.
+    private void KillDensityVictims(List<ForestTree> victims, AdultMortalityAccount account)
+    {
         if (victims.Count == 0) return;
         BeginChangeBatch();
         try
@@ -1117,6 +1133,49 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         {
             EndChangeBatch();
         }
+    }
+
+    private bool HasNonReferenceDemand(List<ForestTree> trees)
+    {
+        foreach (ForestTree tree in trees)
+        {
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            if (treeSpecies != null && treeSpecies.GrowingSpaceDemand != GrowingSpaceDemandClass.Reference)
+                return true;
+        }
+        return false;
+    }
+
+    // Growth model 2 density for stands that are not pure Sitka. The decision logic lives in MixedDensityModel (no
+    // Unity types, checked offline); this method only describes the living trees to it and applies the result.
+    // The per-tree roll uses the same random domain as the Sitka route, so no random stream is consumed.
+    private void ApplySpeciesAwareDensityMortality(List<ForestTree> living, AdultMortalityAccount account)
+    {
+        var stems = new DensityStem[living.Count];
+        for (int i = 0; i < living.Count; i++)
+        {
+            ForestTree tree = living[i];
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+            double suppression = treeSpecies != null ? 1.0 - 1.0 / (1.0 + ci / treeSpecies.Ci50) : 0.0;
+            stems[i] = new DensityStem(tree.TreeId, treeSpecies != null ? treeSpecies.SpeciesId : "",
+                treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
+                tree.Diameter, suppression);
+        }
+        DensityMortalityPlan plan = MixedDensityModel.Plan(stems, StandAreaHectares,
+            id => SimulationRandom.Roll(rngModelVersion, "ADULT-MORT-" + id, ecologicalYear, simulationSeed));
+        account.SpeciesAwareRoute = true;
+        account.StemsPerHectare = plan.StemsPerHectare;
+        account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
+        account.UnweightedRelativeDensity = plan.UnweightedRelativeDensity;
+        account.RelativeDensity = plan.RelativeDensity;
+        account.DensityPressure = plan.DensityPressure;
+        account.HazardDeaths = plan.HazardDeaths;
+        account.BoundaryDeaths = plan.BoundaryDeaths;
+        var victims = new List<ForestTree>(plan.VictimIndices.Count);
+        foreach (int index in plan.VictimIndices)
+            victims.Add(living[index]);
+        KillDensityVictims(victims, account);
     }
 
     private double StandRelativeDensity(List<ForestTree> trees, out double stemsPerHectare, out double quadraticMeanDbhCm)
