@@ -1,0 +1,22 @@
+[
+  {
+    "record": "AreaCalibrationVerification/.vscode/settings.json",
+    "sha256": "b490b756d2fdb3e775d0471975adf3c55613bfbce0ff4f874dc6898c7d3dfbcc"
+  },
+  {
+    "record": "StartupScreenVerification/.vscode/settings.json",
+    "sha256": "b490b756d2fdb3e775d0471975adf3c55613bfbce0ff4f874dc6898c7d3dfbcc"
+  },
+  {
+    "record": "StandGeometryVerification/.vscode/settings.json",
+    "sha256": "b490b756d2fdb3e775d0471975adf3c55613bfbce0ff4f874dc6898c7d3dfbcc"
+  },
+  {
+    "record": "SaveHardeningVerification/.vscode/settings.json",
+    "sha256": "b490b756d2fdb3e775d0471975adf3c55613bfbce0ff4f874dc6898c7d3dfbcc"
+  },
+  {
+    "record": "SaveCellIndexHardeningVerification/.vscode/settings.json",
+    "sha256": "b490b756d2fdb3e775d0471975adf3c55613bfbce0ff4f874dc6898c7d3dfbcc"
+  }
+]

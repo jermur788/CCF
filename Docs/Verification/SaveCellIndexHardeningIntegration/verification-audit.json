@@ -1,0 +1,15 @@
+{
+  "head": "12cc8ef0659f54055088047c2c6727d874bdffd8",
+  "all_bounded_pass": true,
+  "case_count": 131,
+  "rejected": 78,
+  "accepted": 53,
+  "source_invariant_markers_exact": true,
+  "source_harness_exact": true,
+  "emitted_gate_hash_sets_exact": true,
+  "stand_geometry_hash": "EBE7A228F630AE41",
+  "full_regression_required": false,
+  "tracked_bytes_exact": true,
+  "original_saves_exact": true,
+  "git_status": "clean"
+}

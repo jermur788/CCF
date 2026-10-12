@@ -1,0 +1,7 @@
+{
+  "gate": "compile-import",
+  "exit_code": 0,
+  "seconds": 704.55,
+  "compile_import_errors": [],
+  "git_status": " M .vscode/settings.json\n"
+}
