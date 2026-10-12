@@ -38,6 +38,7 @@ namespace CCF.Forestry.TimberYield
                 Require(spec.Priority >= 0 && spec.MinimumSmallEndDiameterMm > 0 && spec.MaximumSmallEndDiameterMm >= 0 && spec.MaximumLargeEndDiameterMm >= 0, "Invalid priority/diameter specification.");
                 Require(spec.MaximumSmallEndDiameterMm == 0 || spec.MaximumSmallEndDiameterMm >= spec.MinimumSmallEndDiameterMm, "Reversed diameter bounds.");
                 Require(spec.MaximumLargeEndDiameterMm == 0 || spec.MaximumLargeEndDiameterMm >= spec.MinimumSmallEndDiameterMm, "Large-end maximum below small-end minimum.");
+                Require(spec.MinimumMidDiameterMm >= 0 && (spec.MinimumMidDiameterMm == 0 || spec.MinimumMidDiameterMm >= spec.MinimumSmallEndDiameterMm), "Mid-log minimum must be zero or at least the small-end minimum.");
                 Require(spec.MinimumLengthMm > 0 && spec.MaximumLengthMm >= spec.MinimumLengthMm, "Invalid log length range.");
                 Require(spec.MinimumStartHeightMm >= 0 && (spec.MaximumEndHeightMm == 0 || spec.MaximumEndHeightMm > spec.MinimumStartHeightMm), "Invalid section bounds.");
                 Require(spec.NominalLengthsMm != null && spec.NominalLengthsMm.Length > 0, "Published/configured nominal lengths required.");
