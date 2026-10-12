@@ -1,0 +1,7 @@
+Assets/ForestPrototype/ForestBuildable.cs: error CS1501: No overload for method 'FindObjectsByType' takes 0 arguments
+Assets/ForestPrototype/ForestPlayer.cs: error CS1061: 'Mouse' does not contain a definition for 'WarpCursorPosition' and no accessible extension method 'WarpCursorPosition' accepting a first argument of type 'Mouse' could be found (are you missing a using directive or an assembly reference?)
+Assets/ForestPrototype/ForestPlayer.cs: error CS1501: No overload for method 'FindObjectsByType' takes 0 arguments
+Assets/ForestPrototype/ForestSawPit.cs: error CS1501: No overload for method 'FindObjectsByType' takes 0 arguments
+Assets/ForestPrototype/PlantationTreeVisual.cs: error CS1061: 'PlantationVisualCatalog' does not contain a definition for 'GetEntityId' and no accessible extension method 'GetEntityId' accepting a first argument of type 'PlantationVisualCatalog' could be found (are you missing a using directive or an assembly reference?)
+Assets/ForestPrototype/UI/WalkingHudView.cs: error CS0246: The type or namespace name 'Painter2D' could not be found (are you missing a using directive or an assembly reference?)
+Assets/ForestPrototype/UI/WalkingHudView.cs: error CS1061: 'MeshGenerationContext' does not contain a definition for 'painter2D' and no accessible extension method 'painter2D' accepting a first argument of type 'MeshGenerationContext' could be found (are you missing a using directive or an assembly reference?)
