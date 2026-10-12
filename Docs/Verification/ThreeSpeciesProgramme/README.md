@@ -29,3 +29,4 @@ See the bottom table, updated as phases complete.
 | 3 | Beech adult parity | Stopped on evidence; dormant crown constants confirmed unread; see `Phase2to5-BroadleafParity.md` |
 | 4 | Species × site / canopy | Stopped on a design decision (no site identity in data or docs); options S0–S3 recorded |
 | 5 | Three-species qualification | Runbook prepared; needs Unity |
+| 6 | Oak/Beech timber and economy | Implemented behind growth model 2; pure layer verified offline (71 checks, Sitka identical to the unmodified base); Unity wiring type-checked, gate written not run; form-grade and formative-shaping sub-features stopped; see `Phase6-BroadleafTimber.md` |

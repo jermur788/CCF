@@ -471,6 +471,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // adult density mortality. Saves before v17 and Reference v1 are model 0.
     public const int NewGameGrowthModel = GrowthModel.SiteClassDensity;
 
+    // The Oak and Beech timber market (D-062) belongs to the three-species package, growth model 2 (D-059): a game on
+    // model 0 or 1 keeps its original economy, where Oak and Beech earn no sale revenue. No new saved state is needed;
+    // the saved growth model already decides it.
+    public bool BroadleafMarketActive => ecology != null && ecology.GrowthModelVersion >= GrowthModel.SpeciesAware;
+
     private void OnEnable()
     {
         ForestTree.MortalityApplied += OnTreeBiologicalDeath;
@@ -789,14 +794,15 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             && (!approvedOnly || order.status == ScenarioWorkStatus.Approved) && string.IsNullOrEmpty(order.validationMessage)).OrderBy(order => order.workOrderId).ToList();
         int interventions = managementEvents.Where(entry => entry.eventType == ScenarioManagementEventType.WorkResolved
             && entry.outcome == ScenarioManagementOutcome.Succeeded && entry.taskType == ScenarioWorkType.FellTree).Select(entry => entry.year).Distinct().Count();
-        string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":"
+        string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":" + BroadleafMarketActive + ":"
             + string.Join("|", orders.Select(order => order.workOrderId + "/" + order.executionMethod + "/" + order.fellingOutcome + "/" + order.targetTreeId + "/"
                 + (trees.TryGetValue(order.targetTreeId ?? "", out var tree) ? tree.Species.SpeciesId + "/" + tree.Height.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
                     + "/" + tree.Diameter.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
+                    + "/p" + tree.PruningLifts + "/" + tree.CrownBaseHeightM.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
                     + "/" + (fallen.TryGetValue(tree.TreeId, out var record) ? record.remainingVolumeM3.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "/" + record.fallenYear : "living") : "missing")));
         var cached = approvedOnly ? cachedApprovedHarvest : cachedOpenHarvest;
         if (cached != null && key == (approvedOnly ? cachedApprovedHarvestKey : cachedOpenHarvestKey)) return cached;
-        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents, fallen);
+        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents, fallen, 10000, BroadleafMarketActive);
         foreach (var order in job.Orders)
         {
             order.harvestJobId = job.JobId; order.estimatedCostCents = 0;

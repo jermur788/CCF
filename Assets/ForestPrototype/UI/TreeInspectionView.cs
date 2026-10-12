@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CCF.Forestry.TimberYield;
 using CCF.Forestry.WorkEconomy;
 using UnityEngine;
@@ -114,7 +115,7 @@ public sealed class TreeInspectionView
         if (!tree.IsStump && tree.CanChop)
         {
             UiKit.Add(body, "If felled now — estimate", "heading");
-            foreach (string line in TimberEstimate(tree))
+            foreach (string line in TimberEstimate(tree, ui.Manager != null && ui.Manager.BroadleafMarketActive))
                 UiKit.Add(body, line, "body");
             UiKit.Add(body, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
         }
@@ -195,9 +196,12 @@ public sealed class TreeInspectionView
         return "Little local competition: the tree is growing close to its potential diameter growth.";
     }
 
-    private static IEnumerable<string> TimberEstimate(ForestTree tree)
+    private static IEnumerable<string> TimberEstimate(ForestTree tree, bool broadleafMarket)
     {
-        if (tree.Species == null || tree.Species.SpeciesId != "sitka-spruce")
+        string speciesId = tree.Species != null ? tree.Species.SpeciesId : "";
+        bool sitka = speciesId == "sitka-spruce";
+        TimberYieldConfiguration config = broadleafMarket ? TimberYieldDefaults.CreateScenarioOne() : TimberYieldDefaults.CreateSitka();
+        if (!config.Specifications.Any(spec => spec.SpeciesId == speciesId))
         {
             yield return "No timber market is configured for this species in Scenario One.";
             yield break;
@@ -211,12 +215,16 @@ public sealed class TreeInspectionView
         StemMeasurements stem = MerchantableStemModel.FromMetres(tree.TreeId, tree.Species.SpeciesId, tree.Diameter, tree.Height,
             volume, "[S] Scenario One over-bark biological stem volume/diameter basis");
         stem.StemVolumeCm3 = (long)System.Math.Floor(volume * 1000000d);
+        // Same grading input as the harvest quote: for Oak, the recorded pruning history is the stem's clear section.
+        bool qualityDependent = config.Specifications.Any(spec => spec.SpeciesId == speciesId && spec.RequiredQuality != StemQualityFlags.None);
+        if (qualityDependent)
+            stem.QualitySections = ScenarioOneEconomyAdapter.PrunedSections(tree, stem.TotalHeightMm);
         StandOperationYield result;
         try
         {
             result = TimberYieldCalculator.ResolveStandOperation("inspect-" + tree.TreeId,
                 new[] { new StemYieldRequest { Stem = stem, DefaultDisposition = TimberDisposition.SellAndExtract, ExtractRetainedToRoadside = true } },
-                TimberYieldDefaults.CreateSitka());
+                config);
         }
         catch (System.Exception)
         {
@@ -232,11 +240,27 @@ public sealed class TreeInspectionView
         {
             if (product.VolumeCm3 <= 0) continue;
             any = true;
-            yield return $"{product.Assortment}: {UiKit.M3(product.VolumeCm3)}";
+            yield return $"{TimberAssortmentLabels.Label(product.Assortment)}: {UiKit.M3(product.VolumeCm3)}";
         }
         if (result.ResidualVolumeCm3 > 0)
             yield return $"Tops and residue: {UiKit.M3(result.ResidualVolumeCm3)}";
         if (!any)
             yield return "Below merchantable size: residue only.";
+        if (sitka)
+            yield break;
+        // Oak and Beech: say why the grade is what it is, in terms of things the player can change or wait for.
+        yield return "Grade depends on size and form, not on species alone. Pruning changes which grades a log can reach; it does not set a price.";
+        bool premium = result.Stems.SelectMany(stem => stem.Logs).Any(log => log.Assortment == TimberAssortment.VeneerPlanking || log.Assortment == TimberAssortment.Beam);
+        if (speciesId == TimberYieldDefaults.OakSpeciesId)
+        {
+            if (tree.PruningLifts <= 0)
+                yield return "Not pruned: the clear first-grade veneer/planking class is unavailable. Pruning a Crop Tree makes its pruned section eligible once it is large enough.";
+            else
+                yield return $"Pruned to {UiKit.F(tree.CrownBaseHeightM, "0.0")} m: logs inside that section can reach first-grade veneer/planking if they are large and straight enough.";
+            if (!premium)
+                yield return "Premium Oak needs a large, straight log: about 45 cm mid-log diameter for veneer/planking, 30 cm for beams. Oak takes a long time to get there.";
+        }
+        else
+            yield return "Beech here is graded to second-quality planking or firewood; it has no veneer, beam or fencing class.";
     }
 }
