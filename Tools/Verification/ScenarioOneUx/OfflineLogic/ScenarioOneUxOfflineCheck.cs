@@ -20,6 +20,8 @@ public static class ScenarioOneUxOfflineCheck
         SavedProgressKeys();
         RoleBriefing();
         AdvanceWarning();
+        FirstUseBudget();
+        TeachingOrder();
         Console.WriteLine(failures == 0 ? $"SCENARIO_ONE_UX_PASS checks={checks}" : $"SCENARIO_ONE_UX_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
     }
@@ -87,6 +89,70 @@ public static class ScenarioOneUxOfflineCheck
         Check(AdvanceGuard.ReturnLabel == "Back to the plan" && AdvanceGuard.ApproveLabel == "Approve pending work", "the player can go back or approve");
         Check(Has(unapproved.Detail, "advance anyway") && Has(unapproved.Detail, "approve"), "the warning names both ways forward");
         Check(!Has(unapproved.Detail, "automatically"), "nothing is approved on the player's behalf");
+    }
+
+    // The packet's finding: roughly 770 words spread over five modal intros. First use must now be brief, with the full text
+    // still reachable, and the Annual Review must not open a help screen over its own acknowledgement.
+    private static void FirstUseBudget()
+    {
+        int firstUse = 0, full = 0;
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)))
+        {
+            string brief = MenuHelpView.Summary(menu);
+            string detail = MenuHelpView.Explanation(menu);
+            full += Words(detail);
+            if (brief == null) continue;
+            firstUse += Words(brief);
+            Check(Words(brief) <= 130, "first-use text is brief for " + menu, Words(brief) + " words");
+            Check(Words(detail) > Words(brief), "the full help for " + menu + " is still more detailed than its first-use text");
+        }
+        Check(full > 600, "the detailed help is kept, not deleted", full + " words");
+        Check(firstUse <= 300, "all first-use screens together stay short", firstUse + " words");
+        Check(firstUse * 2 < full, "first use is less than half of the full help text", firstUse + " of " + full + " words");
+        Check(MenuHelpView.Summary(MenuHelpView.Menu.AnnualReview) == null, "the Annual Review has no first-use help screen to stack over its acknowledgement");
+        string prompt = MenuHelpView.AnnualReviewReadPrompt;
+        Check(Has(prompt, "WORK DONE") && Has(prompt, "MONEY") && Has(prompt, "FOREST") && Has(prompt, "reassess") && Has(prompt, "walk back"),
+            "the review itself tells the player what to read and to walk back and reassess");
+        Check(Words(prompt) <= 50, "the in-review prompt is short", Words(prompt) + " words");
+        Check(Has(MenuHelpView.Summary(MenuHelpView.Menu.TreeInspection) ?? "", "proposals") && Has(MenuHelpView.Summary(MenuHelpView.Menu.TreeInspection) ?? "", "Crop Tree"),
+            "tree inspection first-use: marks are proposals, Crop Tree explained");
+        Check(Has(MenuHelpView.Summary(MenuHelpView.Menu.StandMap) ?? "", "not what to do"), "stand map first-use: navigation aid, not remote management");
+        Check(Has(MenuHelpView.Summary(MenuHelpView.Menu.WorkPlan) ?? "", "Approval alone changes nothing"), "work plan first-use: approval is not execution");
+    }
+
+    // First cycle: look at trees, choose a Crop Tree, mark, plan, approve, advance, read the review. The map is available but
+    // must not be the first persistent "next lesson".
+    private static void TeachingOrder()
+    {
+        string[] titles = LearningObjectivesView.Topics.Select(t => t.Title).ToArray();
+        Check(titles.Length == 8, "eight lesson topics");
+        Check(titles[0].EndsWith("Tree inspection and Crop Trees") && titles[1].EndsWith("Felling") && titles[2].EndsWith("Work Plan and Annual Review"),
+            "the first topics follow the first cycle", string.Join(" | ", titles));
+        Check(Array.FindIndex(titles, t => t.EndsWith("Stand Map")) == 3, "the Stand Map follows the first cycle");
+        for (int i = 0; i < titles.Length; i++)
+            Check(titles[i].StartsWith((i + 1) + ". "), "topic numbering matches position", titles[i]);
+
+        var done = new HashSet<string>();
+        var cues = new List<string>();
+        for (LearningObjectivesView.Step step = LearningObjectivesView.NextCueStep(done.Contains); step != null && cues.Count < 60;
+             step = LearningObjectivesView.NextCueStep(done.Contains))
+        {
+            cues.Add(step.Id);
+            done.Add(step.Id);
+        }
+        Check(cues.Count == SavedStepIds.Length && cues.Distinct().Count() == cues.Count, "walking the cue visits every step exactly once", cues.Count + " cues");
+        string[] firstCycle = { "tree.inspect", "tree.crop", "fell.mark", "fell.plan", "fell.approve", "fell.result", "plan.open", "review.open", "review.read" };
+        Check(cues.Take(firstCycle.Length).SequenceEqual(firstCycle), "the first cues are the first cycle", string.Join(",", cues.Take(firstCycle.Length)));
+        Check(!cues.Take(firstCycle.Length).Any(id => id.StartsWith("map.")), "no map step is among the first cues");
+        Check(cues[firstCycle.Length] == "map.open", "map practice follows once the first cycle is done");
+        // Reading acknowledgements never hold up the cue while something can still be done in the forest.
+        int firstReading = cues.FindIndex(id => LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == id).Reading);
+        int lastAction = cues.FindLastIndex(id => !LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == id).Reading);
+        Check(lastAction < firstReading, "every action step is cued before any reading step");
+        Check(LearningObjectivesView.CueText(LearningObjectivesView.NextCueStep(id => false)) == "Next lesson: Inspect a living tree · [O] Objectives", "the first cue reads as an invitation to inspect a tree");
+        Check(LearningObjectivesView.CueText(null) == "Learning complete · revisit with O", "all done reads as complete");
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "inspect trees, choose Crop Trees") && !Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "start with simple map steps"),
+            "the walking help describes the new lesson order");
     }
 
     private static void SavedProgressKeys()

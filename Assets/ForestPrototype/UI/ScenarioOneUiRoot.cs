@@ -161,7 +161,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         {
             MenuHelpView.Menu context = HelpContext();
             if (help.IsOpen && help.CurrentMenu != context) CloseHelp();
-            if (screen != UiScreen.Objectives && (context != MenuHelpView.Menu.AnnualReview || manager.AnnualReports.Count > 0))
+            // The Annual Review never opens a help screen over itself: its first-results guidance is inside the review,
+            // beside the acknowledgement button. Help [F1] still opens the full explanation on request.
+            if (screen != UiScreen.Objectives && context != MenuHelpView.Menu.AnnualReview)
                 help.Introduce(context);
             manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);
         }

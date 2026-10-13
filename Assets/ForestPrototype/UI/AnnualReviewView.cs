@@ -45,7 +45,7 @@ public sealed class AnnualReviewView
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
         acknowledgement = UiKit.Box("modal-footer");
-        UiKit.Add(acknowledgement, "Read WORK DONE, MONEY and FOREST before continuing.", "body");
+        UiKit.Add(acknowledgement, MenuHelpView.AnnualReviewReadPrompt, "body");
         var acknowledge = UiKit.Button("I've read the annual results", () => ui.AcknowledgeAnnualReview(), true, "btn-primary");
         acknowledge.name = "annual-review-acknowledge";
         acknowledgement.Add(acknowledge);

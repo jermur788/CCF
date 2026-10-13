@@ -164,7 +164,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
             Fits(ui.Learning.Root.Children().First(), "learning");
             var objectives = ui.Learning.Root.Q("scenario-success-objectives"); Fits(objectives, "objectives");
             Check(Has(Text(objectives), "sessile oak"), "rendered human species"); yield return Capture("s1a-objectives-" + size.x);
-            foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.text.StartsWith("2. Tree");
+            foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.text.StartsWith("1. Tree");
             ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero; yield return Settle(); yield return Capture("s1a-learning-" + size.x);
             ui.CloseAll(); ui.Marking.Mark(crop, TreeMarkType.CropTree, false);
             player.transform.position = crop.transform.position - new Vector3(0, 0, 2.2f); player.LookToward(crop.transform.position + Vector3.up * 1.3f);

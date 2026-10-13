@@ -253,7 +253,14 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!ui.Help.IsOpen, "Annual introduction shown before results exist");
         ui.ShowWorkPlan(); yield return null;
         Check(ui.AdvanceFromWorkPlan(), "First annual advance blocked"); yield return null; yield return null;
-        Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.AnnualReview && !manager.AnnualReviewSeen, "First results not introduced or prematurely acknowledged");
+        // The first results open WITHOUT a help screen stacked over the acknowledgement; the guidance is in the review itself.
+        Check(!ui.Help.IsOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !manager.AnnualReviewSeen,
+            "First results must open without a help screen over them, and without being acknowledged");
+        Button acknowledgeButton = ui.RootElement.Q<Button>("annual-review-acknowledge");
+        Check(acknowledgeButton != null && acknowledgeButton.parent.Query<Label>().ToList().Any(l => l.text == MenuHelpView.AnnualReviewReadPrompt),
+            "Annual Review lacks its in-screen reading guidance");
+        ui.ShowHelp(MenuHelpView.Menu.AnnualReview); yield return null;
+        Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.AnnualReview, "Help does not reopen the Annual Review explanation on request");
         yield return CaptureMenu(MenuHelpView.Menu.AnnualReview);
         yield return Press(Key.Escape);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !manager.AnnualReviewSeen, "Help Escape closed or acknowledged Annual Review");
