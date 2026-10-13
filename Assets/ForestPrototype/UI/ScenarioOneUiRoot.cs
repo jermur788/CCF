@@ -130,6 +130,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         {
             // Re-entry: check every open order against the forest as it is now before showing it.
             manager.RevalidateOpenOrders();
+            workPlan.CancelAdvanceConfirmation();
             workPlan.Refresh(true);
         }
         workPlanWasOpen = planOpen;

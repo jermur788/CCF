@@ -19,6 +19,7 @@ public static class ScenarioOneUxOfflineCheck
     {
         SavedProgressKeys();
         RoleBriefing();
+        AdvanceWarning();
         Console.WriteLine(failures == 0 ? $"SCENARIO_ONE_UX_PASS checks={checks}" : $"SCENARIO_ONE_UX_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
     }
@@ -65,6 +66,27 @@ public static class ScenarioOneUxOfflineCheck
         string full = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud);
         Check(Has(full, "Your role") && Has(full, "repeated process") && Has(full, "not one thinning"), "the full walking help keeps the role and the repeated-process teaching");
         Check(Words(full) > Words(brief), "the full help is longer than the briefing");
+    }
+
+    // The year-wasting trap: planned work that was never approved is silently skipped when time advances.
+    private static void AdvanceWarning()
+    {
+        AdvanceGuard.Decision none = AdvanceGuard.Evaluate(0, 0);
+        Check(!none.Warn, "no planned work: advancing needs no question");
+        AdvanceGuard.Decision unapproved = AdvanceGuard.Evaluate(3, 0);
+        Check(unapproved.Warn, "planned work with nothing approved: the player is asked first");
+        Check(unapproved.Headline == "You have planned work that has not been approved.", "the warning says the planned work has not been approved");
+        Check(Has(unapproved.Detail, "3 planned tasks") && Has(unapproved.Detail, "pending"), "the warning counts the pending tasks");
+        Check(Has(unapproved.Detail, "no work done"), "the warning says the year would pass with no work done");
+        Check(Has(AdvanceGuard.Evaluate(1, 0).Detail, "1 planned task is"), "the warning reads correctly for a single task");
+        Check(!AdvanceGuard.Evaluate(0, 4).Warn, "approved work and nothing pending: no question");
+        Check(!AdvanceGuard.Evaluate(2, 1).Warn, "some work approved: the year does something, so no question");
+        Check(!AdvanceGuard.Evaluate(-1, 0).Warn, "a negative count is treated as nothing pending");
+        // Waiting must stay possible, and approving must stay the player's own click.
+        Check(AdvanceGuard.AdvanceAnywayLabel == "Advance anyway", "the player can advance anyway");
+        Check(AdvanceGuard.ReturnLabel == "Back to the plan" && AdvanceGuard.ApproveLabel == "Approve pending work", "the player can go back or approve");
+        Check(Has(unapproved.Detail, "advance anyway") && Has(unapproved.Detail, "approve"), "the warning names both ways forward");
+        Check(!Has(unapproved.Detail, "automatically"), "nothing is approved on the player's behalf");
     }
 
     private static void SavedProgressKeys()
