@@ -26,10 +26,10 @@ using UnityEditor.SceneManagement;
 //     Pure Sitka under model 2 reports LegacySitkaExact; any Oak/Beech reports SpeciesAwareOccupancy.
 //   - PURE SITKA EXACT: model 2 equals model 1 year by year (route, relative density, pressure, hazard and
 //     boundary counts bit for bit, victim ids, tree-state hash) and reproduces the lifecycle anchors.
-//   - Pure Oak and pure Beech overcrowd, die from density pressure and are held at the capacity; the
-//     species-aware step never computes a Sitka relative density.
-//   - Mixed stands: occupancy follows the demand classes and equals the pure model's prediction from the
-//     real trees; replay is exact; below the onset nothing dies.
+//   - Pure Oak and pure Beech overcrowd, die from density pressure (a bounded annual loss, no hard ceiling) and
+//     their occupancy falls; the species-aware step never computes a Sitka relative density.
+//   - Mixed stands: dimensionless occupancy follows the demand classes and equals the pure model's prediction
+//     from the real trees; replay is exact; below the onset nothing dies.
 public static class MixedDensityVerification
 {
 #if UNITY_EDITOR
@@ -208,9 +208,9 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         bool ordered = true;
         foreach (float dbh in new[] { 6f, 15f, 30f, 55f, 90f })
         {
-            double r = MixedDensityModel.StemOccupancyM2(new DensityStem("a", sitka.GrowingSpaceDemand, dbh, 1.0));
-            double m = MixedDensityModel.StemOccupancyM2(new DensityStem("a", beech.GrowingSpaceDemand, dbh, 1.0));
-            double h = MixedDensityModel.StemOccupancyM2(new DensityStem("a", oak.GrowingSpaceDemand, dbh, 1.0));
+            double r = MixedDensityModel.StemOccupiedSpace(new DensityStem("a", sitka.GrowingSpaceDemand, dbh, 1.0));
+            double m = MixedDensityModel.StemOccupiedSpace(new DensityStem("a", beech.GrowingSpaceDemand, dbh, 1.0));
+            double h = MixedDensityModel.StemOccupiedSpace(new DensityStem("a", oak.GrowingSpaceDemand, dbh, 1.0));
             ordered &= r < m && m < h;
         }
         Pass("DEMAND_ORDER_ON_REAL_SPECIES_CLASSES", ordered, "Sitka < Beech < Oak at equal DBH");
@@ -293,10 +293,10 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
             referenceOccupancy < accounts["beech"].Occupancy && accounts["beech"].Occupancy < accounts["oak"].Occupancy
             && accounts["beech"].Route == DensityRoute.SpeciesAwareOccupancy && accounts["oak"].Route == DensityRoute.SpeciesAwareOccupancy
             && accounts["oak"].DensityPressure >= accounts["beech"].DensityPressure,
-            $"asReference={F(referenceOccupancy)} beech={F(accounts["beech"].Occupancy)} oak={F(accounts["oak"].Occupancy)} onset={F(MixedDensityModel.OvercrowdingOnset)}");
+            $"asReference={F(referenceOccupancy)} beech={F(accounts["beech"].Occupancy)} oak={F(accounts["oak"].Occupancy)} onset={F(MixedDensityModel.OnsetOccupancy)}");
 
-        // Intentionally overcrowded pure stands: occupancy beyond capacity, deaths from density pressure, held at capacity.
-        foreach ((string label, TreeSpeciesDefinition s, float perHectare) in new[] { ("BEECH", beech, 1100f), ("OAK", oak, 800f) })
+        // Intentionally overcrowded pure stands: occupancy well above the onset, deaths from density pressure, a bounded loss.
+        foreach ((string label, TreeSpeciesDefinition s, float perHectare) in new[] { ("BEECH", beech, 1300f), ("OAK", oak, 1000f) })
         {
             int count = StemCount(perHectare);
             Stand(2, _ => s, count, 24f, 10f);
@@ -309,7 +309,8 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
                 before > 1.0 && Math.Abs(step.Occupancy - before) <= 1e-12 && step.Route == DensityRoute.SpeciesAwareOccupancy && step.RelativeDensity == 0.0
                 && step.DensityPressure > 0.0 && step.Deaths > 0 && dead.Count == step.Deaths && dead.All(t => t.MortalityCause == "self-thinning"),
                 $"occupancyBefore={F(before)} {Describe(step)}");
-            Pass($"PURE_{label}_ENDS_AT_OR_BELOW_CAPACITY", after <= 1.0 + 1e-9 && Living().Length > 1, $"occupancyAfter={F(after)} living={Living().Length}/{count}");
+            Pass($"PURE_{label}_OCCUPANCY_FALLS_AFTER_THE_STEP_AND_LOSS_IS_BOUNDED", after < before && Living().Length > 1 && step.DensityPressure < 1.0 && step.Deaths < 0.2 * count && step.BoundaryDeaths == 0,
+                $"occupancy {F(before)} -> {F(after)} living={Living().Length}/{count} pressure={F(step.DensityPressure)}");
 
             // Over the years: every death is a recorded self-thinning death in a valid year with deadwood created exactly once.
             Stand(2, _ => s, count, 24f, 10f);
@@ -354,7 +355,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
             occupancy.Add(DensityStep().Occupancy);
             yield return null;
         }
-        double perStep = MixedDensityModel.StemOccupancyM2(new DensityStem("x", GrowingSpaceDemandClass.Reference, DbhOf(1, 24f, 10f), 0.0)) / e.StandAreaHectares / MixedDensityModel.OccupancyCapacityM2PerHa;
+        double perStep = MixedDensityModel.StemOccupiedSpace(new DensityStem("x", GrowingSpaceDemandClass.Reference, DbhOf(1, 24f, 10f), 0.0)) / e.StandAreaHectares / MixedDensityModel.OccupancyNormalization;
         Pass("MIXED_DOWNGRADING_A_HIGH_DEMAND_STEM_LOWERS_OCCUPANCY_IN_ORDER",
             occupancy[0] > occupancy[1] && occupancy[1] > occupancy[2]
             && Math.Abs((occupancy[0] - occupancy[1]) - 0.5 * perStep) <= 1e-9 && Math.Abs((occupancy[1] - occupancy[2]) - 0.5 * perStep) <= 1e-9,
@@ -415,7 +416,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         int below = 0, above = 0;
         for (int count = 20; count < 6000; count++)
         {
-            if (PlannedOccupancy(count, speciesOf, 24f, 10f) > MixedDensityModel.OvercrowdingOnset) { above = count; below = count - 1; break; }
+            if (PlannedOccupancy(count, speciesOf, 24f, 10f) > MixedDensityModel.OnsetOccupancy) { above = count; below = count - 1; break; }
         }
         Check(above > 0, "threshold bracket found");
         Stand(2, speciesOf, below, 24f, 10f);
@@ -435,16 +436,16 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         for (int y = 0; y < 5; y++) { e.AdvanceOneYear(); quietDeaths += e.LastAdultMortality.Deaths; quietRoute &= e.LastAdultMortality.Route == DensityRoute.SpeciesAwareOccupancy; yield return null; }
         Pass("BELOW_THRESHOLD_NO_DENSITY_DEATHS_OVER_YEARS", quietDeaths == 0 && quietRoute, $"deaths5y={quietDeaths} occupancyRoute={quietRoute}");
 
-        // G: well above the onset but under capacity: hazard deaths occur and nothing is thinned by the boundary.
+        // G: a modest excess over the onset: pressure starts, and deaths occur over the years (a small bounded loss).
         float perHectare = 100f;
         int zoneCount = 0;
         for (int c = 50; c < 6000; c++)
-            if (PlannedOccupancy(c, speciesOf, 24f, 10f) > 0.85) { zoneCount = c; perHectare = c / e.StandAreaHectares; break; }
+            if (PlannedOccupancy(c, speciesOf, 24f, 10f) > 1.2) { zoneCount = c; perHectare = c / e.StandAreaHectares; break; }
         Stand(2, speciesOf, zoneCount, 24f, 10f);
         yield return null;
         AdultMortalityAccount zone = DensityStep();
-        Pass("ABOVE_THRESHOLD_MIXED_STAND_DENSITY_MORTALITY_OCCURS", zone.Route == DensityRoute.SpeciesAwareOccupancy && zone.Occupancy > MixedDensityModel.OvercrowdingOnset && zone.Occupancy < 1.0
-            && zone.DensityPressure > 0.0 && zone.BoundaryDeaths == 0,
+        Pass("ABOVE_THRESHOLD_MIXED_STAND_HAS_PRESSURE", zone.Route == DensityRoute.SpeciesAwareOccupancy && zone.Occupancy > MixedDensityModel.OnsetOccupancy && zone.Occupancy < 1.5
+            && zone.DensityPressure > 0.0 && zone.DensityPressure < 1.0 && zone.BoundaryDeaths == 0,
             $"stemsPerHa={F(perHectare, "0")} {Describe(zone)}");
         Stand(2, speciesOf, zoneCount, 24f, 10f);
         yield return null;
@@ -452,13 +453,15 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         for (int y = 0; y < 8; y++) { e.AdvanceOneYear(); zoneDeaths += e.LastAdultMortality.Deaths; yield return null; }
         Pass("ABOVE_THRESHOLD_MIXED_STAND_LOSES_STEMS_OVER_YEARS", zoneDeaths > 0, $"deaths8y={zoneDeaths}");
 
-        // Above capacity: the boundary acts and the stand ends at or below it.
+        // Heavily overcrowded: more pressure than the modest case, deaths occur, the annual loss stays bounded (no hard ceiling).
         Stand(2, speciesOf, StemCount(1300f), 24f, 10f);
+        int crowdedStems = Living().Length;
         double crowdedBefore = OccupancyOfLiving();
         AdultMortalityAccount crowded = DensityStep();
         double crowdedAfter = OccupancyOfLiving();
-        Pass("ABOVE_CAPACITY_MIXED_STAND_ENDS_AT_OR_BELOW_CAPACITY", crowdedBefore > 1.0 && crowded.Deaths > 0 && crowdedAfter <= 1.0 + 1e-9,
-            $"occupancyBefore={F(crowdedBefore)} occupancyAfter={F(crowdedAfter)} {Describe(crowded)}");
+        Pass("HEAVY_OVERCROWDING_THINS_MORE_BUT_REMAINS_BOUNDED", crowdedBefore > 1.5 && crowded.DensityPressure > zone.DensityPressure && crowded.Deaths > 0
+            && crowded.Deaths < MixedDensityModel.MaximumAnnualLoss * 2.0 * crowdedStems && crowdedAfter < crowdedBefore,
+            $"occupancyBefore={F(crowdedBefore)} occupancyAfter={F(crowdedAfter)} stems={crowdedStems} {Describe(crowded)}");
     }
 
     // ---------- save / load through a dying mixed stand ----------

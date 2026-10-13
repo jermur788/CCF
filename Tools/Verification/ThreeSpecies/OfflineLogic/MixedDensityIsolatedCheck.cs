@@ -23,7 +23,8 @@ public static class MixedDensityIsolatedCheck
         for (int i = 0; i < 600; i++)
             stems.Add(new DensityStem("O" + i.ToString("D4"), i % 2 == 0 ? GrowingSpaceDemandClass.High : GrowingSpaceDemandClass.Intermediate, 30f, 1.0 + i % 5));
         DensityMortalityPlan plan = MixedDensityModel.Plan(stems, 0.64f, KeyedRoll);
-        bool ok = plan.Occupancy > 1.0 && plan.VictimIndices.Count > 0 && plan.OccupancyAfter <= 1.0 + 1e-12
+        bool ok = plan.Occupancy > 1.0 && plan.OvercrowdingPressure > 0.0 && plan.OvercrowdingPressure < 1.0 && plan.VictimIndices.Count > 0
+            && plan.ExpectedAnnualLoss < MixedDensityModel.MaximumAnnualLoss
             && MixedDensityModel.SelectRoute(true, true) == DensityRoute.SpeciesAwareOccupancy;
         Console.WriteLine(ok
             ? $"MIXED_DENSITY_ISOLATED_PASS compiledWithoutSitkaGrowthModel=true occupancy={plan.Occupancy:0.0000} victims={plan.VictimIndices.Count}"
