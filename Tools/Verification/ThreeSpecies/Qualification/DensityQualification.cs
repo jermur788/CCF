@@ -553,17 +553,23 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             yield return null;
             var ms = new List<double>(); var alloc = new List<double>();
             var sw = new System.Diagnostics.Stopwatch();
+            int collectedYears = 0;
             for (int y = 0; y < 15; y++)
             {
-                long before = GC.GetAllocatedBytesForCurrentThread();
+                // GC.GetAllocatedBytesForCurrentThread reports nothing under Unity's Mono (first run: 0.00 everywhere), so the Mono
+                // heap in use is read before and after; a year in which a collection ran is excluded because the delta is then meaningless.
+                long before = UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong(); int gcBefore = GC.CollectionCount(0);
                 sw.Restart();
                 e.AdvanceOneYear();
                 sw.Stop();
-                ms.Add(sw.Elapsed.TotalMilliseconds); alloc.Add((GC.GetAllocatedBytesForCurrentThread() - before) / (1024.0 * 1024.0));
+                long after = UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong();
+                ms.Add(sw.Elapsed.TotalMilliseconds);
+                if (GC.CollectionCount(0) == gcBefore) alloc.Add((after - before) / (1024.0 * 1024.0)); else collectedYears++;
                 yield return null;
             }
+            if (alloc.Count == 0) alloc.Add(double.NaN);
             var sorted = ms.OrderBy(v => v).ToList();
-            Measure($"PERF_ANNUAL_{c.label}", $"stems={StemCount(c.perHa)} years=15 meanMs={F(ms.Average(), "0.0")} medianMs={F(sorted[sorted.Count / 2], "0.0")} p95Ms={F(sorted[(int)(sorted.Count * 0.95)], "0.0")} maxMs={F(sorted.Last(), "0.0")} meanAllocMB={F(alloc.Average(), "0.00")} maxAllocMB={F(alloc.Max(), "0.00")}");
+            Measure($"PERF_ANNUAL_{c.label}", $"stems={StemCount(c.perHa)} years=15 meanMs={F(ms.Average(), "0.0")} medianMs={F(sorted[sorted.Count / 2], "0.0")} p95Ms={F(sorted[(int)(sorted.Count * 0.95)], "0.0")} maxMs={F(sorted.Last(), "0.0")} monoHeapGrowthMeanMB={F(alloc.Average(), "0.00")} max={F(alloc.Max(), "0.00")} yearsMeasured={alloc.Count(v => !double.IsNaN(v))}/15 yearsWithACollection={collectedYears}");
         }
         // The pure model on its own.
         Stand(2, k => k % 3 == 0 ? sitka : k % 3 == 1 ? beech : oak, StemCount(1300f), 24f, 10f);
