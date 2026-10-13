@@ -12,7 +12,7 @@ This folder is a working record owned by this programme. It is not a canonical p
 ```text
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod     # TYPECHECK_CLEAN = no error beyond baseline-prod.txt
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode tools    # same, with UNITY_EDITOR and the Tools/Verification harnesses
-python3 Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py --suite all   # density 68 (+ isolated compile) + timber 71 + history 70 checks
+python3 Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py --suite all   # density 91 (+ 2 isolated compiles) + timber 71 + history 70 checks
 python3 Tools/Verification/ThreeSpecies/run_unity_gates.py --dry-run                      # prints the Unity gate commands; running them needs Unity
 ```
 
@@ -25,7 +25,7 @@ See the bottom table, updated as phases complete.
 | Phase | Subject | State |
 |---|---|---|
 | 0 | Baseline qualification | Recorded (code-only); see `Phase0-Baseline.md` |
-| 1 | Species-aware mixed density (growth model 2) | **Reworked** after qualification C (Oak/Beech used the Sitka density arithmetic): pure-Sitka legacy route plus a species-aware occupancy route; type-checked, offline-verified; Unity gate rewritten, not run; see `Phase1-DensityRework.md` (supersedes `Phase1-MixedDensity.md`) |
+| 1 | Species-aware mixed density (growth model 2) | **Reworked twice** after qualification C (Oak/Beech used the Sitka density arithmetic) and a calibration correction (no basal-area capacity): pure-Sitka legacy route plus a dimensionless species-aware occupancy route; type-checked, offline-verified; Unity gate rewritten, not run; see `Phase1-DensityRework.md` (supersedes `Phase1-MixedDensity.md`) |
 | 2 | Oak adult parity | Stopped on evidence; nothing changed; qualification gate written (not run); see `Phase2to5-BroadleafParity.md` |
 | 3 | Beech adult parity | Stopped on evidence; dormant crown constants confirmed unread; see `Phase2to5-BroadleafParity.md` |
 | 4 | Species × site / canopy | Stopped on a design decision (no site identity in data or docs); options S0–S3 recorded |

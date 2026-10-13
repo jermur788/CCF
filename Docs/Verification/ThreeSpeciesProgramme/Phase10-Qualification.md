@@ -17,7 +17,7 @@ Offline execution proves the logic of the pure layers on the inputs the checks c
 | Phase | Deliverable | Code | Offline-executed | Type-checked | Unity gate written | Unity gate run |
 |---|---|---|---|---|---|---|
 | 0 | Baseline, type-check harness | yes | harness itself runs | n/a | n/a | no |
-| 1 | Species-aware mixed density, growth model 2 (reworked, see `Phase1-DensityRework.md`) | yes | 68 checks + isolated compile | yes | `MixedDensityVerification` | **no** |
+| 1 | Species-aware mixed density, growth model 2 (reworked, see `Phase1-DensityRework.md`) | yes | 91 checks + 2 isolated compiles | yes | `MixedDensityVerification` | **no** |
 | 2 | Oak adult parity | **stopped (evidence)** | — | — | `BroadleafAdultGrowthVerification` (pins the *current* contract) | **no** |
 | 3 | Beech adult parity | **stopped (evidence)** | — | — | same | **no** |
 | 4 | Species × site, canopy/light | **stopped (design decision)** | — | — | none | — |
