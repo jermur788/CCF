@@ -15,6 +15,10 @@ public sealed class WorkPlanView
     private readonly Label title, cash, owner, summary, feedback;
     private readonly ScrollView scroll;
     private readonly VisualElement footer;
+    // Asked before a year passes with planned work that was never approved (see AdvanceGuard). Inline, not another modal.
+    private readonly VisualElement advanceWarning;
+    private readonly Label advanceHeadline, advanceDetail;
+    private bool confirmingAdvance;
     private int purchaseQuantity = 5;
     private string shownSignature = "";
 
@@ -47,9 +51,61 @@ public sealed class WorkPlanView
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
 
+        advanceWarning = UiKit.Box("card");
+        advanceWarning.name = "advance-warning";
+        advanceWarning.style.display = DisplayStyle.None;
+        // Inline, like the cash warning, so this does not edit the shared stylesheet.
+        advanceWarning.style.borderLeftWidth = 4;
+        advanceWarning.style.borderLeftColor = new UnityEngine.Color(240f / 255f, 186f / 255f, 110f / 255f);
+        advanceHeadline = UiKit.Add(advanceWarning, "", "heading");
+        advanceDetail = UiKit.Add(advanceWarning, "", "body");
+        VisualElement choices = UiKit.Row(advanceWarning, "row-wrap");
+        choices.Add(UiKit.Button(AdvanceGuard.ReturnLabel, CancelAdvanceConfirmationAndRefresh, true, "btn-primary"));
+        choices.Add(UiKit.Button(AdvanceGuard.ApproveLabel, () => { ui.Manager.ApprovePendingWork(); Refresh(true); }));
+        choices.Add(UiKit.Button(AdvanceGuard.AdvanceAnywayLabel, () => { confirmingAdvance = false; AdvanceNow(); }));
+        modal.Add(advanceWarning);
+
         feedback = UiKit.Add(modal, "", "muted");
         footer = UiKit.Box("modal-footer");
         modal.Add(footer);
+    }
+
+    // The orders as "Approve pending work" would see them. Counted when asked (a click or a refresh), never per frame.
+    private static AdvanceGuard.Decision AdvanceDecision(ScenarioOneManager m)
+    {
+        int pending = 0, approved = 0;
+        foreach (ScenarioOneWorkOrder order in m.WorkOrders)
+        {
+            if (order.status == ScenarioWorkStatus.Approved) approved++;
+            else if (order.status == ScenarioWorkStatus.Pending && string.IsNullOrEmpty(order.validationMessage)) pending++;
+        }
+        return AdvanceGuard.Evaluate(pending, approved);
+    }
+
+    // Dropped whenever the plan is (re)opened, so an old question never greets the player on a later visit.
+    public void CancelAdvanceConfirmation() => confirmingAdvance = false;
+
+    private void CancelAdvanceConfirmationAndRefresh()
+    {
+        confirmingAdvance = false;
+        Refresh(true);
+    }
+
+    private void AdvanceNow()
+    {
+        if (ui.AdvanceFromWorkPlan()) return;
+        Refresh(true);
+    }
+
+    private void OnAdvanceClicked()
+    {
+        if (AdvanceDecision(ui.Manager).Warn)
+        {
+            confirmingAdvance = true;
+            Refresh(true);
+            return;
+        }
+        AdvanceNow();
     }
 
     public void Refresh(bool force)
@@ -82,14 +138,21 @@ public sealed class WorkPlanView
         scroll.schedule.Execute(() => scroll.scrollOffset = new UnityEngine.Vector2(0, scrollY));
 
         feedback.text = m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
+
+        // The question stays only while it still applies: approving, removing or cancelling the planned work answers it.
+        AdvanceGuard.Decision guard = AdvanceDecision(m);
+        if (!guard.Warn) confirmingAdvance = false;
+        advanceWarning.style.display = confirmingAdvance ? DisplayStyle.Flex : DisplayStyle.None;
+        if (confirmingAdvance)
+        {
+            advanceHeadline.text = guard.Headline;
+            advanceDetail.text = guard.Detail;
+        }
+
         footer.Clear();
         footer.Add(UiKit.Button("Add marked trees", () => { m.AddMarkedTreesToWorkPlan(); Refresh(true); }, m.CanEditWorkPlan));
         footer.Add(UiKit.Button("Approve pending work", () => { m.ApprovePendingWork(); Refresh(true); }, m.CanEditWorkPlan));
-        footer.Add(UiKit.Button("Advance one year", () =>
-        {
-            if (ui.AdvanceFromWorkPlan()) return;
-            Refresh(true);
-        }, m.CanAdvanceYearNow && !ui.NeedsAnnualReview, "btn-primary"));
+        footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview, "btn-primary"));
         if (ui.NeedsAnnualReview)
             footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));
         footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));

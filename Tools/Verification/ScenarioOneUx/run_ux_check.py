@@ -25,6 +25,7 @@ UI = os.path.join(ROOT, "Assets", "ForestPrototype", "UI")
 PURE_SOURCES = [
     "MenuHelpView.Text.cs",
     "LearningObjectivesView.Curriculum.cs",
+    "AdvanceGuard.cs",
 ]
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
