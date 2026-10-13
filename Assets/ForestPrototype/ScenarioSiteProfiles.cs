@@ -14,12 +14,13 @@ public static class ScenarioSiteProfiles
     public const int ScenarioOneReferenceVersion = 1;
 
     // Scenario One's canonical site: a versioned COMPATIBILITY reference (research v2 section 10). It is not a soil
-    // survey, not "optimal", and not a typical Irish Sitka gley. Moisture/drainage, fertility and exposure/climate are
-    // each explicitly Reference. Rooting/stability is Unknown because v2 leaves it "unspecified/reserved, not an invented
-    // measured depth"; Reference would claim a configured condition that v2 does not define.
+    // survey, not "optimal", and not a typical Irish Sitka gley. Moisture, drainage/aeration, fertility and
+    // exposure/climate are each explicitly Reference. Rooting/stability is Unknown because v2 leaves it
+    // "unspecified/reserved, not an invented measured depth"; Reference would claim a configured condition that v2 does not define.
     // Every numerical response at this site is exactly 1.0 (see SiteGrowthResponse).
     public static readonly SiteConditionProfile ScenarioOneReference = new SiteConditionProfile(
-        MoistureDrainageClass.Reference,
+        MoistureClass.Reference,
+        DrainageAerationClass.Reference,
         FertilityClass.Reference,
         ExposureClimateClass.Reference,
         RootingContextClass.Unknown);
