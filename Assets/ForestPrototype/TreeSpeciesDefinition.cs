@@ -26,7 +26,7 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [SerializeField, Min(0.01f)] private float ci50 = 3f;
 
     [Header("Density (growth model 2)")]
-    [Tooltip("[ORD] Ordinal growing-space demand of one stem relative to the calibrated Sitka reference (see MixedDensityModel). Reference = the British Sitka size-density line applies unchanged. Intermediate and High reach density-dependent mortality at lower stem numbers. An ordinal rank with a coarse calibrated weight, not a measured Oak/Beech maximum-density relationship. Only read by growth model 2.")]
+    [Tooltip("[ORD] Ordinal growing-space demand of one stem relative to the Sitka reference (see MixedDensityModel). Reference = Sitka: a stand of only Reference trees keeps the original Sitka density route. Intermediate and High stems take more of the stand's growing space than a Reference stem of the same size, so a stand containing them reaches density pressure sooner. An ordinal rank with a coarse [C] weight, not a measured Oak/Beech density relationship. Only read by growth model 2.")]
     [SerializeField] private GrowingSpaceDemandClass growingSpaceDemand = GrowingSpaceDemandClass.Reference;
 
     [Header("Crown")]

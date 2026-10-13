@@ -6,16 +6,17 @@ public sealed class AdultMortalityAccount
     public int LivingBefore;
     public double StemsPerHectare;
     public double QuadraticMeanDbhCm;
-    // The density that drives mortality. Under the species-aware route (growth model 2,
-    // stand with a non-Reference species) this is the demand-weighted density.
+    // Which implementation handled the step (None when the stand was empty). Under growth model 2 a stand of only
+    // Reference (Sitka) trees reports LegacySitkaExact; a stand with any Oak or Beech reports SpeciesAwareOccupancy.
+    public DensityRoute Route;
+    // LegacySitkaExact only: British Sitka relative density. Never computed for a species-aware step.
     public double RelativeDensity;
+    // SpeciesAwareOccupancy only: demand-weighted occupancy, 1.0 = capacity. Not a Sitka relative density.
+    public double Occupancy;
+    // The pressure that drove mortality on either route (each route defines its own onset).
     public double DensityPressure;
     public int HazardDeaths;
     public int BoundaryDeaths;
     public int Deaths;
     public double DeadStemVolumeM3;
-    // Growth model 2 only: true when the species-aware route handled the step, and the
-    // pooled Sitka-relationship density the Sitka-only route would have seen.
-    public bool SpeciesAwareRoute;
-    public double UnweightedRelativeDensity;
 }

@@ -140,7 +140,7 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
     private bool UsesSiteClassGrowth => growthModelVersion >= GrowthModel.SiteClassDensity;
 
-    // Growth model 2: stands that are not pure Sitka use the species-aware ordinal density (MixedDensityModel).
+    // Growth model 2: stands that are not pure Sitka use the species-aware occupancy route (MixedDensityModel).
     private bool UsesSpeciesAwareGrowth => growthModelVersion >= GrowthModel.SpeciesAware;
 
     // Growth model 1 adult density mortality of the most recent annual step (diagnostic only).
@@ -1050,13 +1050,16 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 living.Add(tree);
         account.LivingBefore = living.Count;
         if (living.Count == 0 || StandAreaHectares <= 0f) return;
-        // Growth model 2: any non-Reference species switches the stand to the species-aware density. A stand of only
-        // Reference-class (Sitka) trees carries on below, untouched, so pure Sitka is exactly growth model 1.
-        if (UsesSpeciesAwareGrowth && HasNonReferenceDemand(living))
+        // Growth model 2: any non-Reference species (Oak, Beech) switches the stand to the occupancy route in
+        // MixedDensityModel. Every other stand - all of models 0 and 1, and a pure-Sitka stand under model 2 - carries
+        // on below, untouched, so pure Sitka is exactly growth model 1.
+        bool anyNonReference = UsesSpeciesAwareGrowth && HasNonReferenceDemand(living);
+        if (MixedDensityModel.SelectRoute(UsesSpeciesAwareGrowth, anyNonReference) == DensityRoute.SpeciesAwareOccupancy)
         {
             ApplySpeciesAwareDensityMortality(living, account);
             return;
         }
+        account.Route = DensityRoute.LegacySitkaExact;
         account.RelativeDensity = StandRelativeDensity(living, out account.StemsPerHectare, out account.QuadraticMeanDbhCm);
         account.DensityPressure = SitkaGrowthModel.DensityPressure(account.RelativeDensity);
         if (account.DensityPressure <= 0.0) return;
@@ -1147,8 +1150,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     }
 
     // Growth model 2 density for stands that are not pure Sitka. The decision logic lives in MixedDensityModel (no
-    // Unity types, checked offline); this method only describes the living trees to it and applies the result.
-    // The per-tree roll uses the same random domain as the Sitka route, so no random stream is consumed.
+    // Unity types, checked offline, never touches SitkaGrowthModel); this method only describes the living trees to it
+    // and applies the result. Each tree carries its raw Hegyi index, not a species-specific suppression, so which
+    // trees die does not depend on species. The per-tree roll uses the same random domain as the Sitka route, so no
+    // random stream is consumed.
     private void ApplySpeciesAwareDensityMortality(List<ForestTree> living, AdultMortalityAccount account)
     {
         var stems = new DensityStem[living.Count];
@@ -1157,19 +1162,17 @@ public sealed partial class ForestEcologyController : MonoBehaviour
             ForestTree tree = living[i];
             TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
             float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
-            double suppression = treeSpecies != null ? 1.0 - 1.0 / (1.0 + ci / treeSpecies.Ci50) : 0.0;
-            stems[i] = new DensityStem(tree.TreeId, treeSpecies != null ? treeSpecies.SpeciesId : "",
+            stems[i] = new DensityStem(tree.TreeId,
                 treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
-                tree.Diameter, suppression);
+                tree.Diameter, ci);
         }
         DensityMortalityPlan plan = MixedDensityModel.Plan(stems, StandAreaHectares,
             id => SimulationRandom.Roll(rngModelVersion, "ADULT-MORT-" + id, ecologicalYear, simulationSeed));
-        account.SpeciesAwareRoute = true;
+        account.Route = DensityRoute.SpeciesAwareOccupancy;
         account.StemsPerHectare = plan.StemsPerHectare;
         account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
-        account.UnweightedRelativeDensity = plan.UnweightedRelativeDensity;
-        account.RelativeDensity = plan.RelativeDensity;
-        account.DensityPressure = plan.DensityPressure;
+        account.Occupancy = plan.Occupancy;
+        account.DensityPressure = plan.OvercrowdingPressure;
         account.HazardDeaths = plan.HazardDeaths;
         account.BoundaryDeaths = plan.BoundaryDeaths;
         var victims = new List<ForestTree>(plan.VictimIndices.Count);
