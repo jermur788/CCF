@@ -146,7 +146,8 @@ public static class WorkPlanOverview
         card.style.flexGrow = 1; card.style.flexBasis = 0; card.style.minWidth = 360;
         card.name = "workplan-leaving";
         UiKit.Add(card, "WHAT YOU ARE LEAVING", "heading");
-        UiKit.Add(card, "If all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened.", "muted");
+        UiKit.Add(card, "The residual stand: the trees left standing if all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened. "
+            + "Basal area is the cross-section area of the trunks per hectare, a standard measure of how much stand there is.", "muted");
 
         ResidualStandResult stand = ResidualStand.Compute(SceneTrees(eco, fell), eco.StandAreaHectares, eco.CellsPerAxis, eco.CellSizeMeters);
         if (stand.PlannedFells == 0)

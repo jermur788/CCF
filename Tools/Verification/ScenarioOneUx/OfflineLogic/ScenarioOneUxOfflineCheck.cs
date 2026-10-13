@@ -9,19 +9,24 @@
 // Prints SCENARIO_ONE_UX_PASS / SCENARIO_ONE_UX_FAIL.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 public static class ScenarioOneUxOfflineCheck
 {
     private static int failures, checks;
 
-    public static int Main()
+    public static int Main(string[] args)
     {
         SavedProgressKeys();
         RoleBriefing();
         AdvanceWarning();
         FirstUseBudget();
         TeachingOrder();
+        ControlsAndTerminology();
+        MarketWording();
+        StaleCopyScan(args.Length > 0 ? args[0] : null);
         Console.WriteLine(failures == 0 ? $"SCENARIO_ONE_UX_PASS checks={checks}" : $"SCENARIO_ONE_UX_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
     }
@@ -153,6 +158,78 @@ public static class ScenarioOneUxOfflineCheck
         Check(LearningObjectivesView.CueText(null) == "Learning complete · revisit with O", "all done reads as complete");
         Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "inspect trees, choose Crop Trees") && !Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "start with simple map steps"),
             "the walking help describes the new lesson order");
+    }
+
+    // Core forestry interactions must be in the controls list, and the startup card and the in-game help must agree.
+    private static void ControlsAndTerminology()
+    {
+        string[][] rows = ControlsReference.Rows;
+        string all = string.Join(" | ", rows.Select(r => r[0] + " " + r[1]));
+        // The startup-screen verification asserts these key labels and phrases.
+        foreach (string key in new[] { "W A S D", "Mouse", "E", "M", "Tab", "O", "F1", "Esc", "F5 / F9", "F10" })
+            Check(rows.Any(r => r[0] == key), "controls list keeps key " + key);
+        foreach (string phrase in new[] { "Stand Map", "Work Plan", "Learning objectives", "Session menu" })
+            Check(Has(all, phrase), "controls list still names " + phrase);
+        Check(rows.Any(r => r[0] == "E" && Has(r[1], "inspect")), "inspect is documented");
+        Check(rows.Any(r => r[0] == "Left-click" && Has(r[1], "inspect")), "left-click inspection is documented");
+        Check(rows.Any(r => r[0] == "X" && Has(r[1], "felling")), "the fell mark is documented");
+        Check(rows.Any(r => r[0] == "C" && Has(r[1], "Crop Tree") && Has(r[1], "competitors")), "the Crop Tree mark and competitor assessment are documented");
+        Check(rows.Any(r => r[0] == "1 – 5" && Has(r[1], "competitors")), "the number keys are documented");
+        Check(rows.Any(r => r[0] == "Tab" && Has(r[1], "Work Plan")) && rows.Any(r => r[0] == "M" && Has(r[1], "Stand Map")), "Work Plan and map keys are documented");
+        Check(rows.All(r => r.Length == 2 && r[0].Length > 0 && r[1].Length > 0 && r[1].Length <= 110), "every control row has a key and a short description");
+        var inKeysLine = new Dictionary<string, string>
+        {
+            { "E", "E or left-click" }, { "Left-click", "left-click" }, { "X", "X mark" }, { "C", "C mark" }, { "1 – 5", "1–5" }, { "G", "G planting" },
+            { "U", "U plan" }, { "M", "M Stand Map" }, { "Tab", "Tab Work Plan" }, { "O", "O Learning" }, { "F1", "F1 Help" }, { "F5 / F9", "F5 / F9" }, { "F10", "F10 Session" }
+        };
+        foreach (var pair in inKeysLine)
+            Check(rows.Any(r => r[0] == pair.Key) && ControlsReference.KeysLine.Contains(pair.Value), "the in-game keys line agrees with the controls list for " + pair.Key);
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), ControlsReference.KeysLine), "the full Walking HUD help includes the keys line");
+
+        // Jargon is expanded where it first appears.
+        string tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
+        int expanded = tree.IndexOf("competition index (CI)", StringComparison.Ordinal);
+        Match firstCi = Regex.Match(tree, @"\bCI\b");
+        Check(expanded >= 0 && firstCi.Success && firstCi.Index == expanded + "competition index (".Length, "CI is spelled out where it first appears in the inspection help");
+        string plan = MenuHelpView.Explanation(MenuHelpView.Menu.WorkPlan);
+        Check(Has(plan, "residual stand is what remains standing") && Has(plan, "basal area, the trunk cross-section area per hectare"), "residual stand and basal area are defined in the Work Plan help");
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "browsing is deer eating the shoots of young trees"), "browsing is defined in the Walking HUD help");
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.StandMap), "deer eating the shoots of young trees"), "browsing is defined in the Stand Map help");
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection), "left-click"), "inspection help mentions left-click");
+    }
+
+    // Oak and beech income depends on the saved forest's growth model, so the lesson must follow the active state and never
+    // claim a market is universally present or absent.
+    private static void MarketWording()
+    {
+        string present = LearningObjectivesView.MarketSentence(true), absent = LearningObjectivesView.MarketSentence(false);
+        Check(present != absent, "the market sentence follows the active model");
+        Check(Has(present, "oak and beech") && Has(present, "timber prices") && !Has(present, "no sale income"), "with the market active, oak and beech are priced");
+        Check(Has(absent, "only Sitka spruce earns timber income") && Has(absent, "no sale income") && !Has(absent, "have timber prices"), "without the market, oak and beech earn nothing");
+        LearningObjectivesView.Step cost = LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == "fell.cost");
+        Check(!Has(cost.Text, "no broadleaf timber market is configured"), "the fixed lesson text no longer claims there is no broadleaf market");
+        Check(LearningObjectivesView.StepText(cost, true).EndsWith(present) && LearningObjectivesView.StepText(cost, false).EndsWith(absent), "the harvest-cost lesson appends the sentence for the active forest");
+        LearningObjectivesView.Step other = LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == "fell.approve");
+        Check(LearningObjectivesView.StepText(other, true) == other.Text && LearningObjectivesView.StepText(other, false) == other.Text, "other lessons are unchanged by the market state");
+    }
+
+    // Obsolete player-facing guidance must not creep back into the shipped sources.
+    private static void StaleCopyScan(string root)
+    {
+        if (root == null) { Console.WriteLine("SKIP stale-copy scan (no repository root given)"); return; }
+        string[] obsolete =
+        {
+            "Open the Century Review in the Work Plan", "private first-cycle test", "Manage one cycle", "no broadleaf timber market is configured in this scenario",
+            "2. Buy Beech and Sessile Oak saplings from the nursery", "4. Advance one ecological year to execute approved work", "start with simple map steps"
+        };
+        string folder = Path.Combine(root, "Assets", "ForestPrototype");
+        string[] files = Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories).Where(f => !f.Contains(Path.DirectorySeparatorChar + "Editor" + Path.DirectorySeparatorChar)).ToArray();
+        Check(files.Length > 50, "the stale-copy scan found the production sources", files.Length + " files");
+        foreach (string phrase in obsolete)
+        {
+            string hit = files.FirstOrDefault(f => File.ReadAllText(f).Contains(phrase));
+            Check(hit == null, "obsolete guidance is gone: \"" + phrase + "\"", hit == null ? "" : Path.GetFileName(hit));
+        }
     }
 
     private static void SavedProgressKeys()

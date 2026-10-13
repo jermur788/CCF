@@ -26,6 +26,7 @@ PURE_SOURCES = [
     "MenuHelpView.Text.cs",
     "LearningObjectivesView.Curriculum.cs",
     "AdvanceGuard.cs",
+    "ControlsReference.cs",
 ]
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
@@ -65,7 +66,7 @@ def main():
         sys.stdout.write(build.stdout)
         sys.stderr.write(build.stderr)
         return build.returncode
-    run = subprocess.run([dotnet, "run", "--no-build", "-c", "Release"], cwd=args.out, env=env, capture_output=True, text=True)
+    run = subprocess.run([dotnet, "run", "--no-build", "-c", "Release", "--", ROOT], cwd=args.out, env=env, capture_output=True, text=True)
     sys.stdout.write(run.stdout)
     sys.stderr.write(run.stderr)
     return run.returncode

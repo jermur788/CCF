@@ -14,6 +14,7 @@ public sealed partial class LearningObjectivesView
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
     private int shownCount = -1;
     private int shownRegenerationModel = -1;
+    private int shownMarket = -1;
     private string shownObjectives = "";
     public VisualElement Root { get; }
     public bool IsDone(string id) => done.Contains(id);
@@ -75,11 +76,13 @@ public sealed partial class LearningObjectivesView
     public void Refresh(bool force)
     {
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
+        bool market = ui.Manager.BroadleafMarketActive;
         string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));
-        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel && shownObjectives == objectiveText) return;
+        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel && shownMarket == (market ? 1 : 0) && shownObjectives == objectiveText) return;
         shownObjectives = objectiveText;
         shownCount = done.Count;
         shownRegenerationModel = regenerationModel;
+        shownMarket = market ? 1 : 0;
         float position = scroll.scrollOffset.y;
         progress.text = $"{Topics.Count(t => t.Steps.All(s => IsDone(s.Id)))} of {Topics.Length} topics complete · {done.Count} of {StepIds.Count()} steps · " + Summary;
         scroll.Clear();
@@ -102,7 +105,7 @@ public sealed partial class LearningObjectivesView
             {
                 VisualElement card = UiKit.Box("card");
                 UiKit.Add(card, (IsDone(step.Id) ? "Done · " : "To do · ") + step.Title, "heading");
-                UiKit.Add(card, step.Text, "body");
+                UiKit.Add(card, StepText(step, market), "body");
                 if (step.Reading && !IsDone(step.Id))
                 {
                     bool ready = step.Requires == null || IsDone(step.Requires);

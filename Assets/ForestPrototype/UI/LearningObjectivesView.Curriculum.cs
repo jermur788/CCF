@@ -29,7 +29,7 @@ public sealed partial class LearningObjectivesView
         new Topic("2. Felling", "Continuous-cover forestry needs repeated selective management. More felling is not automatically better: consider what remains, then return later to inspect and reassess. Learn the proposal → plan → approval → results sequence. Take time to compare trees; no cutting is required in year one.",
             new Step("fell.mark", "Propose a tree for felling", "Aim at a living tree and press X. The red mark is only a proposal. X again removes it. Crop and Fell marks are alternatives on the same tree; check the label before proceeding."),
             new Step("fell.plan", "Import the Fell mark into the Work Plan", "Press Tab. Opening the Work Plan automatically imports red Fell marks as jobs; Add marked trees can also refresh that import. Inspect each job's timber estimate, contractor cost and material outcome. Removing a pending job lets you reconsider."),
-            new Step("fell.cost", "Read the harvest costs", "Compare total labour, timber income, net value and remaining cash. A small visit can be dominated by the contractor's minimum charge. Estimates are re-quoted when work resolves; no broadleaf timber market is configured in this scenario.", true, "fell.plan"),
+            new Step("fell.cost", "Read the harvest costs", "Compare total labour, timber income, net value and remaining cash. A small visit can be dominated by the contractor's minimum charge. Estimates are re-quoted when work resolves.", true, "fell.plan"),
             new Step("fell.approve", "Approve a felling job when ready", "Approve pending work commits the planned jobs. Approval does not immediately cut trees. Check every pending job first: that button can approve more than your felling proposal."),
             new Step("fell.result", "Review a successful felling result", "Advance a year when your plan is ready. Open Annual Review and read WORK DONE, MONEY and FOREST. Successful felling removes the standing tree; failed work needs its failure reason checked. Walk back to inspect the change.")),
         new Topic("3. Work Plan and Annual Review", "The forest is where you decide what should happen. The Work Plan reviews execution and cost; Annual Review records what actually happened.",
@@ -90,6 +90,16 @@ public sealed partial class LearningObjectivesView
                 if (step.Reading && !isDone(step.Id)) return step;
         return null;
     }
+
+    // Whether oak and beech earn timber income depends on the saved forest's growth model (ScenarioOneManager.BroadleafMarketActive),
+    // so a lesson must not say either way on its own. The Harvest card in the Work Plan reports the same thing per job.
+    public static string MarketSentence(bool broadleafMarketActive) => broadleafMarketActive
+        ? "In this forest oak and beech stems have timber prices as well as Sitka spruce, so check each job's roadside value."
+        : "In this forest only Sitka spruce earns timber income: felled oak or beech is charged for but earns no sale income.";
+
+    // The text shown for a step. Most steps are fixed; the harvest-cost reading adds the market sentence for the active forest.
+    public static string StepText(Step step, bool broadleafMarketActive)
+        => step.Id == "fell.cost" ? step.Text + " " + MarketSentence(broadleafMarketActive) : step.Text;
 
     public static string CueText(Step step) => step == null
         ? "Learning complete · revisit with O"

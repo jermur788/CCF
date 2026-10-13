@@ -2252,6 +2252,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
     }
 
+    // The one-line "what next" shown in the Work Plan and under the objectives of the Annual Review. Before the first review
+    // is acknowledged it is the next lesson; afterwards it is the repeatable next step derived from the recorded history.
+    // (An older chain of year-one hints used to follow when the UI root was missing. The UI root is always added at play
+    // time, so it never ran and its wording had gone stale.)
     public string TutorialHint
     {
         get
@@ -2259,35 +2263,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             if (annualReports.Count > 0 && !annualReviewSeen)
                 return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
             ScenarioOneUiRoot teaching = GetComponent<ScenarioOneUiRoot>();
-            if (teaching != null && teaching.Learning != null)
-            {
-                // After the first review is acknowledged the line is the repeatable next step (derived from the recorded
-                // history); the lesson prompt follows it. Before that, the lesson prompt is unchanged.
-                if (annualReviewSeen)
-                    return NextStepHint + " · " + teaching.Learning.Summary;
-                return teaching.Learning.Summary + " · Learn at your own pace across years.";
-            }
-            if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderCreated
-                && entry.taskType == ScenarioWorkType.FellTree)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.FellTree))
-                return "1. Inspect a living tree, mark it with X, then import the mark into the Work Plan.";
-            if (definition != null && definition.ShopEntries != null && definition.ShopEntries.Any(offer =>
-                offer != null && !managementEvents.Any(entry =>
-                    entry.eventType == ScenarioManagementEventType.StockPurchased && entry.stockItemId == offer.itemId)
-                && !inventory.Any(item => item.itemId == offer.itemId && item.quantity > 0)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile
-                    && order.stockItemId == offer.itemId)))
-                return "2. Buy Beech and Sessile Oak saplings from the nursery.";
-            if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderApproved
-                && entry.taskType == ScenarioWorkType.PlantJuvenile)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile
-                    && (order.status == ScenarioWorkStatus.Approved
-                        || order.status == ScenarioWorkStatus.Completed)))
-                 return "3. Press G in the stand, place saplings on the ground and approve the planting markers.";
-            if (annualReports.Count == 0)
-                return "4. Advance one ecological year to execute approved work.";
-            return annualReviewSeen ? NextStepHint
-                : "5. Open the annual review to inspect ecological outcomes and management history.";
+            string lesson = teaching != null && teaching.Learning != null ? teaching.Learning.Summary : null;
+            if (annualReviewSeen)
+                return lesson != null ? NextStepHint + " · " + lesson : NextStepHint;
+            return lesson != null ? lesson + " · Learn at your own pace across years." : NextStepHint;
         }
     }
 
@@ -2297,7 +2276,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return true;
         feedback = outcome == ScenarioOneOutcome.Failed
             ? "The scenario has failed. Review the outcome in the Work Plan."
-            : $"Year {ReviewYear} reached. Open the Century Review in the Work Plan.";
+            : $"Year {ReviewYear} reached. The Century Review is in the Annual Review.";
         return false;
     }
 
