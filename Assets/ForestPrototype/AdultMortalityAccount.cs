@@ -11,11 +11,13 @@ public sealed class AdultMortalityAccount
     public DensityRoute Route;
     // LegacySitkaExact only: British Sitka relative density. Never computed for a species-aware step.
     public double RelativeDensity;
-    // SpeciesAwareOccupancy only: demand-weighted occupancy, 1.0 = capacity. Not a Sitka relative density.
+    // SpeciesAwareOccupancy only: dimensionless demand-weighted occupancy; 1.0 is where overcrowding pressure starts.
+    // A simulation quantity, not a Sitka relative density and not a density limit for any species.
     public double Occupancy;
-    // The pressure that drove mortality on either route (each route defines its own onset).
+    // The pressure that drove mortality on either route (each route defines its own onset and scale).
     public double DensityPressure;
     public int HazardDeaths;
+    // LegacySitkaExact only: the species-aware route has no boundary stage.
     public int BoundaryDeaths;
     public int Deaths;
     public double DeadStemVolumeM3;

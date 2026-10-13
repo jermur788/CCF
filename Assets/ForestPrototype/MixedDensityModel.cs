@@ -8,41 +8,48 @@ using System.Collections.Generic;
 //                          boundary (SitkaGrowthModel). Nothing in this file runs, so pure Sitka is model 1 exactly.
 //   SpeciesAwareOccupancy  At least one living adult is not Reference class (Oak, Beech). Everything below applies.
 //
-// This file deliberately uses NOTHING from SitkaGrowthModel: the offline check compiles it without that file. The
-// Sitka size-density line, the Sitka hazard and the Sitka maximum line are evidence for Sitka only and are not
-// borrowed for other species.
+// This file uses NOTHING from SitkaGrowthModel (the offline check compiles it without that file), and
+// SitkaGrowthModel uses nothing from this file (it compiles without it). Changing any number here cannot change
+// pure Sitka.
 //
-// OCCUPANCY - WHEN a mixed stand is overcrowded. A simulation abstraction of how much of the stand's growing space
-// is taken up. It is NOT an SDI, NOT Reineke's rule, NOT the British Sitka relative density and NOT a biological
-// maximum-density law, and it claims no species-specific equation:
+// WHAT THIS IS. A dimensionless SIMULATION OCCUPANCY abstraction. It is a game mechanism for "how crowded is this
+// mixed stand, and how much does that thin it". It is NOT an SDI, NOT Reineke's rule, NOT the British Sitka relative
+// density, NOT a maximum basal area and NOT a maximum-density law for any species. No evidence for an Oak or Beech
+// maximum density is available, none is invented here, and occupancy 1.0 is not a measured density of anything. It
+// must be recalibrated if stronger broadleaf density evidence becomes available.
 //
-//   occupancy = sum over living stems of (demand weight x stem basal area) / stand area / capacity
+//   occupied space of a stem = demand weight x stem cross-section (pi/4 x DBH^2)
+//   occupancy                = sum over living stems of occupied space / stand area / OccupancyNormalization
+//   pressure                 = share of the occupancy that lies beyond the onset = max(0, 1 - 1/occupancy)
+//   expected annual loss     = MaximumAnnualLoss x pressure          (a fraction of the stand's stems)
 //
-//   - Stem basal area (pi/4 x DBH^2) is plain geometry. It is a size footprint, not a fitted size-density exponent.
-//   - The demand weight is the stem's ordinal growing-space-demand class (D-061). A High-demand stem takes more of
-//     the same space than a Reference stem of the same size. Species enter ONLY through this class.
-//   - The sum is plain addition. Species do not interact: no DEC, no DMC, no overyielding, no mixture bonus.
+//   - Stem cross-section is plain geometry, a size footprint, not a fitted size-density exponent.
+//   - The demand weight is the stem's ordinal growing-space-demand class (D-061). A higher class takes more of the
+//     same space than a Reference stem of the same size. Species enter ONLY through this class, and ONLY in the
+//     occupancy sum. The sum is plain addition: no DEC, no DMC, no overyielding, no mixture bonus.
+//   - Pressure starts at occupancy 1.0 by definition: OccupancyNormalization is the number that decides where that
+//     is. It is a divisor, not a limit. Nothing stops occupancy exceeding 1.0; the response is a bounded annual loss.
+//   - Pressure is below 1 and loss is below MaximumAnnualLoss however crowded the stand is, so the annual effect is
+//     bounded. Below the onset there is no density mortality and no random draw is consumed.
+//   - No species or class appears anywhere in the pressure or loss formulas.
 //
-// PRESSURE AND LOSS - HOW MUCH mortality. Pressure rises from 0 at the onset fraction of capacity to 1 at capacity and
-// keeps rising above it. The expected annual loss fraction of the stand is strength x pressure^2.
+// WHICH stems die is separate from how many. Only competitive position decides, never species or class: the existing
+// Hegyi index (species-neutral: neighbour diameters and distances only) becomes suppression through ONE common half
+// saturation, and risk is spread over stems in proportion to suppression^exponent so dominant stems rarely die. A
+// species' own Ci50 is deliberately NOT used: it already sets that species' growth response, so using it again here
+// double-counts it and removes Oak/Beech first at equal competition. Differential mortality would need its own
+// evidence.
 //
-// VICTIMS - WHICH stems die. Only competitive position decides, never species or class: the existing Hegyi index
-// (species-neutral: neighbour diameters and distances only) is turned into suppression with ONE common half
-// saturation. Risk is spread over stems in proportion to suppression^exponent and the boundary removes the most
-// suppressed first (ties by ordinal tree id). A species' own Ci50 is deliberately not used here: it would make
-// Oak/Beech (Ci50 3) read as more suppressed than Sitka (Ci50 5) at equal competition and so be removed first.
-// Shade tolerance belongs to a later, deliberate species-behaviour step, not to this one.
-//
-// Status of every number (labels: [ORD] ordinal rank, [C] simulation/gameplay calibration, not a measurement):
-//   - class weights 1.0 / 1.5 / 2.0: [ORD] rank, [C] magnitude, provisional (D-061). Not measured Oak or Beech data.
-//   - capacity 90 m2/ha of Reference-equivalent basal area: [C]. There is no evidence for any absolute capacity for
-//     Oak or Beech. 90 was chosen only so a stand of Reference-weight stems lands close to the accepted Sitka line
-//     (measured: occupancy is 5% below to 10% above Sitka relative density for Dq 8-80 cm at equal stems/ha), so
-//     adding the first Oak to a Sitka stand does not make the Sitka part suddenly immune or suddenly doomed. It is a
-//     continuity choice, not the Sitka equation and not a claim about any species.
-//   - onset 0.6, strength 0.08, loss cap 0.5, vulnerability exponent 4, neutral Ci 5: [C]. They give the same
-//     response shape as growth model 1 so Reference-weight stems behave alike either side of the route switch. They
-//     were not fitted to Oak or Beech and no evidence exists to do so. Recalibrate them here, in one place.
+// Calibration (labels: [ORD] ordinal rank, [C] simulation calibration, none of it a measurement):
+//   - class weights 1.0 / 1.5 / 2.0: [ORD] rank, [C] magnitude, provisional (D-061). Not Oak or Beech data.
+//   - OccupancyNormalization 55 and MaximumAnnualLoss 0.10: [C], the two numbers that set occupancy and loss. They
+//     were chosen only so this route lines up with the accepted Sitka behaviour near representative Scenario One
+//     Sitka structures (see Docs/Verification/ThreeSpeciesProgramme/Phase1-DensityRework.md), so adding the first Oak
+//     to a Sitka stand does not make its Sitka part suddenly immune or suddenly doomed. That is a continuity choice,
+//     not Sitka evidence for other species and not a claim about any species.
+//   - VulnerabilityExponent 4 and NeutralHalfSaturationCi 5: [C], the victim-allocation seam. Initial simulation
+//     calibration inherited numerically from growth model 1 for continuity (it keeps dominant stems from being
+//     picked). They decide which stems die, never how many. They are not supported mortality constants.
 //
 // No UnityEngine types: the model runs and is verified outside the Editor.
 
@@ -88,17 +95,37 @@ public readonly struct DensityStem
     }
 }
 
-// Outcome of one annual step. Victims are indices into the stem list the plan was made from, in the order they die:
-// hazard victims in ordinal tree-id order, then boundary victims most suppressed first.
+// The two numbers that set where occupancy pressure starts and how large the annual loss can get. Passed explicitly
+// so a check can change them and show what moves; production code always uses Default.
+public readonly struct OccupancyCalibration
+{
+    // Divisor of the weighted occupied space per hectare. Decides which stands reach occupancy 1.0 (the onset).
+    public readonly double Normalization;
+    // Upper bound of the expected annual loss fraction, approached only as occupancy grows without limit.
+    public readonly double MaximumAnnualLoss;
+
+    public OccupancyCalibration(double normalization, double maximumAnnualLoss)
+    {
+        if (!(normalization > 0.0))
+            throw new ArgumentOutOfRangeException(nameof(normalization), normalization, "normalization must be positive");
+        if (!(maximumAnnualLoss > 0.0 && maximumAnnualLoss < 1.0))
+            throw new ArgumentOutOfRangeException(nameof(maximumAnnualLoss), maximumAnnualLoss, "maximum annual loss must be in (0, 1)");
+        Normalization = normalization;
+        MaximumAnnualLoss = maximumAnnualLoss;
+    }
+
+    public static OccupancyCalibration Default => new OccupancyCalibration(MixedDensityModel.OccupancyNormalization, MixedDensityModel.MaximumAnnualLoss);
+}
+
+// Outcome of one annual step. Victims are indices into the stem list the plan was made from, in ordinal tree-id order.
 public sealed class DensityMortalityPlan
 {
     public double StemsPerHectare;          // all living stems (descriptive)
     public double QuadraticMeanDbhCm;       // all living stems pooled (descriptive)
-    public double Occupancy;                // before any death; 1.0 = capacity
-    public double OccupancyAfter;           // after the planned deaths
-    public double OvercrowdingPressure;
+    public double Occupancy;                // 1.0 = where overcrowding pressure starts
+    public double OvercrowdingPressure;     // 0 .. below 1
+    public double ExpectedAnnualLoss;       // fraction of the stand's stems, below MaximumAnnualLoss
     public int HazardDeaths;
-    public int BoundaryDeaths;
     public readonly List<int> VictimIndices = new List<int>();
 }
 
@@ -109,17 +136,16 @@ public static class MixedDensityModel
     public const double IntermediateWeight = 1.5;
     public const double HighWeight = 2.0;
 
-    // [C] occupancy capacity in m2/ha of Reference-equivalent basal area (see the header: a continuity choice).
-    public const double OccupancyCapacityM2PerHa = 90.0;
-    // [C] fraction of capacity at which overcrowding pressure starts.
-    public const double OvercrowdingOnset = 0.6;
-    // [C] expected annual loss fraction of the stand at pressure 1 (strength x pressure^2).
-    public const double OvercrowdingStrength = 0.08;
-    // [C] numerical bound on one stem's annual loss probability.
-    public const double MaximumAnnualLossProbability = 0.5;
-    // [C] spreads risk towards suppressed stems (suppression^exponent), as in growth model 1.
+    // [C] divisor that makes occupancy dimensionless. Not a limit, not a basal-area ceiling, no forestry meaning of
+    // its own; it only places the onset. See the header for how it was chosen.
+    public const double OccupancyNormalization = 55.0;
+    // Occupancy at which pressure starts. A definition, not a calibration: OccupancyNormalization moves the stands.
+    public const double OnsetOccupancy = 1.0;
+    // [C] upper bound of the expected annual loss fraction.
+    public const double MaximumAnnualLoss = 0.10;
+    // [C] victim-allocation seam, inherited numerically from growth model 1 for continuity: risk goes as suppression^exponent.
     public const double VulnerabilityExponent = 4.0;
-    // [C] one Hegyi half-saturation for every species, so suppression does not depend on species.
+    // [C] victim-allocation seam: one Hegyi half-saturation for every species, so suppression does not depend on species.
     public const double NeutralHalfSaturationCi = 5.0;
 
     public static double Weight(GrowingSpaceDemandClass demand)
@@ -149,43 +175,50 @@ public static class MixedDensityModel
         return speciesAwareGrowthModel && anyNonReferenceStem ? DensityRoute.SpeciesAwareOccupancy : DensityRoute.LegacySitkaExact;
     }
 
-    // ----- occupancy: WHEN -----
+    // ----- occupancy: how crowded -----
 
-    // One stem's occupancy in m2 of Reference-equivalent basal area: demand weight x pi/4 x DBH^2.
-    public static double StemOccupancyM2(DensityStem stem)
+    // One stem's occupied space: demand weight x cross-section pi/4 x DBH^2, in m2 of Reference-equivalent cross-section.
+    public static double StemOccupiedSpace(DensityStem stem)
     {
         double dbhM = stem.DbhCm / 100.0;
         return Weight(stem.Demand) * (Math.PI / 4.0) * dbhM * dbhM;
     }
 
-    private static double OccupancyFraction(double occupancyM2, float areaHectares)
+    private static double OccupancyOf(double occupiedSpace, float areaHectares, OccupancyCalibration calibration)
     {
-        return areaHectares <= 0f ? 0.0 : occupancyM2 / areaHectares / OccupancyCapacityM2PerHa;
+        return areaHectares <= 0f ? 0.0 : occupiedSpace / areaHectares / calibration.Normalization;
     }
 
-    // Stand occupancy, 1.0 = capacity. Stems are added in ordinal tree-id order, so the result does not depend on
-    // the order the caller lists them.
     public static double Occupancy(IReadOnlyList<DensityStem> stems, float areaHectares)
     {
-        double occupancyM2 = 0.0;
-        foreach (int i in CanonicalOrder(stems))
-            occupancyM2 += StemOccupancyM2(stems[i]);
-        return OccupancyFraction(occupancyM2, areaHectares);
+        return Occupancy(stems, areaHectares, OccupancyCalibration.Default);
     }
 
-    // 0 at or below the onset, 1 at capacity, above 1 beyond capacity.
+    // Stems are added in ordinal tree-id order, so the result does not depend on the order the caller lists them.
+    public static double Occupancy(IReadOnlyList<DensityStem> stems, float areaHectares, OccupancyCalibration calibration)
+    {
+        double occupiedSpace = 0.0;
+        foreach (int i in CanonicalOrder(stems))
+            occupiedSpace += StemOccupiedSpace(stems[i]);
+        return OccupancyOf(occupiedSpace, areaHectares, calibration);
+    }
+
+    // ----- pressure and loss: how much -----
+
+    // The share of the occupancy that lies beyond the onset: 0 at or below it, rising towards (never reaching) 1.
     public static double OvercrowdingPressure(double occupancy)
     {
-        return Math.Max(0.0, (occupancy - OvercrowdingOnset) / (1.0 - OvercrowdingOnset));
+        return occupancy <= OnsetOccupancy ? 0.0 : 1.0 - OnsetOccupancy / occupancy;
     }
 
-    // Expected fraction of the stand lost in a year at this pressure.
-    public static double ExpectedAnnualLoss(double pressure)
+    // Expected fraction of the stand's stems lost in a year: zero at no pressure, increasing with it, always below
+    // the maximum.
+    public static double ExpectedAnnualLoss(double pressure, OccupancyCalibration calibration)
     {
-        return pressure <= 0.0 ? 0.0 : OvercrowdingStrength * pressure * pressure;
+        return pressure <= 0.0 ? 0.0 : calibration.MaximumAnnualLoss * Math.Min(1.0, pressure);
     }
 
-    // ----- victims: WHICH -----
+    // ----- victims: which -----
 
     // 0..1 from the species-neutral Hegyi index, with one common half saturation.
     public static double Suppression(double competitionIndex)
@@ -199,40 +232,45 @@ public static class MixedDensityModel
         return Math.Pow(Math.Max(0.0, Math.Min(1.0, suppression)), VulnerabilityExponent);
     }
 
-    // Annual loss probability of one stem. Depends on pressure and competitive position only, never on class.
+    // Annual loss probability of one stem. Depends on the stand's expected loss and the stem's competitive position
+    // only, never on class or species.
     public static double AnnualLossProbability(double expectedAnnualLoss, double suppression, double meanVulnerability)
     {
         if (expectedAnnualLoss <= 0.0 || meanVulnerability <= 0.0)
             return 0.0;
-        return Math.Min(MaximumAnnualLossProbability, expectedAnnualLoss * Vulnerability(suppression) / meanVulnerability);
+        return Math.Min(1.0, expectedAnnualLoss * Vulnerability(suppression) / meanVulnerability);
     }
 
     // ----- one annual step -----
 
-    // roll(treeId) is the per-tree uniform [0,1) draw, so no random stream is consumed and the result does not
-    // depend on call order. Pressure first (occupancy -> pressure -> expected loss), then victims.
     public static DensityMortalityPlan Plan(IReadOnlyList<DensityStem> stems, float areaHectares, Func<string, double> roll)
+    {
+        return Plan(stems, areaHectares, roll, OccupancyCalibration.Default);
+    }
+
+    // roll(treeId) is the per-tree uniform [0,1) draw, so no random stream is consumed and the result does not
+    // depend on call order. Occupancy -> pressure -> expected loss first, then which stems.
+    public static DensityMortalityPlan Plan(IReadOnlyList<DensityStem> stems, float areaHectares, Func<string, double> roll, OccupancyCalibration calibration)
     {
         var plan = new DensityMortalityPlan();
         if (stems.Count == 0 || areaHectares <= 0f)
             return plan;
 
         int[] order = CanonicalOrder(stems);
-        double occupancyM2 = 0.0, squaredDbhSum = 0.0;
+        double occupiedSpace = 0.0, squaredDbhSum = 0.0;
         foreach (int i in order)
         {
-            occupancyM2 += StemOccupancyM2(stems[i]);
+            occupiedSpace += StemOccupiedSpace(stems[i]);
             squaredDbhSum += (double)stems[i].DbhCm * stems[i].DbhCm;
         }
         plan.StemsPerHectare = stems.Count / areaHectares;
         plan.QuadraticMeanDbhCm = Math.Sqrt(squaredDbhSum / stems.Count);
-        plan.Occupancy = OccupancyFraction(occupancyM2, areaHectares);
-        plan.OccupancyAfter = plan.Occupancy;
+        plan.Occupancy = OccupancyOf(occupiedSpace, areaHectares, calibration);
         plan.OvercrowdingPressure = OvercrowdingPressure(plan.Occupancy);
-        if (plan.OvercrowdingPressure <= 0.0)
+        plan.ExpectedAnnualLoss = ExpectedAnnualLoss(plan.OvercrowdingPressure, calibration);
+        if (plan.ExpectedAnnualLoss <= 0.0)
             return plan;
 
-        double expectedLoss = ExpectedAnnualLoss(plan.OvercrowdingPressure);
         var suppression = new double[stems.Count];
         double vulnerabilitySum = 0.0;
         foreach (int i in order)
@@ -242,46 +280,13 @@ public static class MixedDensityModel
         }
         double meanVulnerability = vulnerabilitySum / stems.Count;
 
-        var survivors = new List<int>(stems.Count);
-        double survivingM2 = 0.0;
         foreach (int i in order)
         {
-            double probability = AnnualLossProbability(expectedLoss, suppression[i], meanVulnerability);
+            double probability = AnnualLossProbability(plan.ExpectedAnnualLoss, suppression[i], meanVulnerability);
             if (probability > 0.0 && roll(stems[i].TreeId) < probability)
-            {
                 plan.VictimIndices.Add(i);
-            }
-            else
-            {
-                survivors.Add(i);
-                survivingM2 += StemOccupancyM2(stems[i]);
-            }
         }
         plan.HazardDeaths = plan.VictimIndices.Count;
-
-        // Boundary: occupancy may not stay above capacity. The most suppressed survivors die until it is back on it.
-        if (OccupancyFraction(survivingM2, areaHectares) > 1.0)
-        {
-            var boundary = new List<int>(survivors);
-            boundary.Sort((a, b) =>
-            {
-                int bySuppression = suppression[b].CompareTo(suppression[a]);
-                if (bySuppression != 0) return bySuppression;
-                int byId = string.CompareOrdinal(stems[a].TreeId, stems[b].TreeId);
-                return byId != 0 ? byId : a.CompareTo(b);
-            });
-            int remaining = survivors.Count;
-            foreach (int i in boundary)
-            {
-                if (remaining <= 1 || OccupancyFraction(survivingM2, areaHectares) <= 1.0)
-                    break;
-                survivingM2 -= StemOccupancyM2(stems[i]);
-                remaining--;
-                plan.VictimIndices.Add(i);
-                plan.BoundaryDeaths++;
-            }
-        }
-        plan.OccupancyAfter = OccupancyFraction(survivingM2, areaHectares);
         return plan;
     }
 

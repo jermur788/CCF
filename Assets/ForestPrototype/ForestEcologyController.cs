@@ -1174,7 +1174,6 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         account.Occupancy = plan.Occupancy;
         account.DensityPressure = plan.OvercrowdingPressure;
         account.HazardDeaths = plan.HazardDeaths;
-        account.BoundaryDeaths = plan.BoundaryDeaths;
         var victims = new List<ForestTree>(plan.VictimIndices.Count);
         foreach (int index in plan.VictimIndices)
             victims.Add(living[index]);
