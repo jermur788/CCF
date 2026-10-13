@@ -1,5 +1,7 @@
 # Phase 1 — species-aware mixed density (growth model 2)
 
+> **SUPERSEDED — read `Phase1-DensityRework.md` first.** The design described below (class-weighted Sitka relative density, Sitka hazard and Sitka maximum line applied to Oak/Beech) was rejected at qualification as a D-061 violation and replaced. Only "Why a new growth-model value instead of editing model 1" and "Persistence and save compatibility" remain accurate. The class table, architecture, file table, determinism notes (per-species accumulation no longer exists), offline counts and predictions below describe the rejected implementation.
+
 Authority: Manager packet decisions D-059 (three-species parity), D-061 (mixed-species density v1: ordinal species-aware growing-space demand). These are not yet in the locked `decision-log.md` (MiMo is syncing it); see the final handoff, "Canonical updates required".
 
 **Status: implemented, type-checked and checked offline. NOT RUN IN UNITY.** Nothing here is a Unity-verified fact.
