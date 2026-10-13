@@ -38,7 +38,7 @@ public sealed partial class LearningObjectivesView
     public LearningObjectivesView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
-        foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
+        ReloadProgress();
         Root = UiKit.Box("layer", "modal-backdrop");
         VisualElement modal = UiKit.Box("panel", "modal");
         modal.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
@@ -51,11 +51,27 @@ public sealed partial class LearningObjectivesView
         buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
-        UiKit.Add(modal, "Start simple. Open a topic to read its steps. There is no year-one deadline. Optional management practice can wait until it suits your forest. Progress is remembered on this device across forests; these lessons are separate from scenario success objectives.", "muted");
+        UiKit.Add(modal, "Start simple. Open a topic to read its steps. There is no year-one deadline. Optional management practice can wait until it suits your forest. Progress is remembered on this device across forests; these lessons are separate from scenario success objectives. To start them again for a new player, use Reset tutorial/help progress in the F10 menu.", "muted");
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
+    }
+
+    // Progress is saved per device, not per forest. These two let a facilitator start the next participant fresh without
+    // touching the forest or its save: ResetProgress forgets the saved steps, ReloadProgress makes this view follow.
+    public static void ResetProgress()
+    {
+        foreach (string id in StepIds) PlayerPrefs.DeleteKey(PreferencePrefix + id);
+        PlayerPrefs.Save();
+    }
+
+    public void ReloadProgress()
+    {
+        done.Clear();
+        foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
+        cueText = null;
+        shownCount = -1;
     }
 
     public void Record(string id)

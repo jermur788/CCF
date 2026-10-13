@@ -43,6 +43,14 @@ public sealed partial class MenuHelpView
 
     public static bool Introduced(Menu menu) => PlayerPrefs.GetInt(PreferencePrefix + menu, 0) == 1;
 
+    // Forgets which first-use screens this device has seen, so the next player meets them again. Local preferences only: the
+    // forest and its save are untouched.
+    public static void ResetProgress()
+    {
+        foreach (Menu menu in System.Enum.GetValues(typeof(Menu))) PlayerPrefs.DeleteKey(PreferencePrefix + menu);
+        PlayerPrefs.Save();
+    }
+
     // First use of a screen: the short text where the screen has one.
     public void Introduce(Menu menu)
     {

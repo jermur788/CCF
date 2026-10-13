@@ -22,6 +22,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     private bool playerWasEnabled, savesWereEnabled, uiWasEnabled;
     private float previousTimeScale;
     private Identity identity;
+    private string sessionNote;
     public Identity BuildIdentity => identity;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -92,7 +93,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     public void Close()
     {
         if (!IsOpen) return;
-        IsOpen = false; startupScreen = false; Time.timeScale = previousTimeScale;
+        IsOpen = false; startupScreen = false; sessionNote = null; Time.timeScale = previousTimeScale;
         document.rootVisualElement.style.display = DisplayStyle.None;
         if (saves != null) saves.enabled = savesWereEnabled;
         if (forestUi != null) { forestUi.RootElement.style.display = DisplayStyle.Flex; forestUi.enabled = uiWasEnabled; }
@@ -112,6 +113,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     private void MainCard()
     {
         card.Clear(); Text("CCF · Scenario One", 30); Text(identity.buildId);
+        if (!string.IsNullOrEmpty(sessionNote)) Text(sessionNote);
         Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
         ActionButton("Continue current forest [F10]", Close);
@@ -120,8 +122,17 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
             if (File.Exists(SavePath)) Confirm("Replace your existing forest save with the current forest? Use saves only with this build.", SaveAndClose);
             else SaveAndClose();
         });
+        ActionButton("Reset tutorial/help progress…", () => Confirm(
+            "Reset tutorial and help progress on this device? First-use screens and lesson steps start again for the next player. Your forest and your saved game are not changed.", ResetTeachingProgress));
         Text("F1 Help · O Learning · M Map · Tab Work Plan · F5 Save · F9 Load · F10 this menu. Learning introductions remain remembered on this device.");
         ActionButton("Quit CCF…", () => Confirm("Quit without saving automatically? Use Save first if you want to keep current progress.", Quit));
+    }
+    // For a facilitator handing the build to the next participant. Only the local help and lesson preferences are cleared.
+    public void ResetTeachingProgress()
+    {
+        if (forestUi != null) forestUi.ResetTeachingProgress();
+        sessionNote = "Tutorial and help progress reset on this device. Your forest and your saved game were not changed.";
+        MainCard();
     }
     private void Confirm(string prompt, System.Action action)
     {
