@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-// Species response to site descriptors (Oak/Beech site infrastructure v1).
+// Species response to site descriptors (Oak/Beech site infrastructure v1.1).
 //
 // DORMANT: nothing in the simulation reads these types. They separate three things that must not be mixed up:
 //   SITE DESCRIPTION           what the site is            ForestSiteProfile.cs
@@ -87,19 +87,22 @@ public sealed class SpeciesSiteResponse
     public const float NeutralGrowthMultiplier = 1f;
 
     public readonly string SpeciesId;
-    public readonly SiteAxisResponse<MoistureDrainageClass> Moisture;
+    public readonly SiteAxisResponse<MoistureClass> Moisture;
+    public readonly SiteAxisResponse<DrainageAerationClass> DrainageAeration;
     public readonly SiteAxisResponse<FertilityClass> Fertility;
     public readonly SiteAxisResponse<ExposureClimateClass> Exposure;
     // True for Sitka spruce: its existing site-class height, density and productivity routes stay authoritative, so
     // growth code wired to this seam later must bypass it for Sitka instead of multiplying by one (research v2 section 11).
     public readonly bool UsesLegacySiteRoute;
 
-    public SpeciesSiteResponse(string speciesId, SiteAxisResponse<MoistureDrainageClass> moisture,
-        SiteAxisResponse<FertilityClass> fertility, SiteAxisResponse<ExposureClimateClass> exposure, bool usesLegacySiteRoute)
+    public SpeciesSiteResponse(string speciesId, SiteAxisResponse<MoistureClass> moisture,
+        SiteAxisResponse<DrainageAerationClass> drainageAeration, SiteAxisResponse<FertilityClass> fertility,
+        SiteAxisResponse<ExposureClimateClass> exposure, bool usesLegacySiteRoute)
     {
         if (string.IsNullOrEmpty(speciesId)) throw new ArgumentException("A species id is required.", nameof(speciesId));
         SpeciesId = speciesId;
         Moisture = moisture ?? throw new ArgumentNullException(nameof(moisture));
+        DrainageAeration = drainageAeration ?? throw new ArgumentNullException(nameof(drainageAeration));
         Fertility = fertility ?? throw new ArgumentNullException(nameof(fertility));
         Exposure = exposure ?? throw new ArgumentNullException(nameof(exposure));
         UsesLegacySiteRoute = usesLegacySiteRoute;
@@ -122,8 +125,10 @@ public static class SpeciesSiteResponses
 
     // Sitka keeps its own site-class route; nothing about it is assessed here.
     public static readonly SpeciesSiteResponse SitkaSpruce = new SpeciesSiteResponse(SitkaSpruceId,
-        new SiteAxisResponse<MoistureDrainageClass>(SiteResponseBasis.Deferred,
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.Deferred,
             "Sitka keeps its existing site-class height, density and productivity routes (research v2 section 11); no moisture row is assigned."),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.Deferred,
+            "Sitka keeps its existing site-class routes (research v2 section 11); no drainage/aeration row is assigned."),
         new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Deferred,
             "Sitka keeps its existing site-class routes (research v2 section 11); no fertility row is assigned."),
         new SiteAxisResponse<ExposureClimateClass>(SiteResponseBasis.Deferred,
@@ -131,12 +136,17 @@ public static class SpeciesSiteResponses
         usesLegacySiteRoute: true);
 
     // Sessile oak (Quercus petraea), not interchangeable "oak spp.".
+    // The oak evidence is about DRAINAGE, not about water availability, so the two are kept apart: freer drainage being
+    // favoured must not become "dry sites are good" (research v2 sections 5 and 8).
     public static readonly SpeciesSiteResponse SessileOak = new SpeciesSiteResponse(SessileOakId,
-        new SiteAxisResponse<MoistureDrainageClass>(SiteResponseBasis.DirectOrTransferEvidence,
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.Deferred,
+            "Research v2 section 5 expressly does NOT establish a universal dry-site advantage or greater drought tolerance than beech at every stress level, "
+            + "and gives no other water-availability direction for sessile oak. None is encoded; the freer-draining tendency is recorded under drainage/aeration."),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.DirectOrTransferEvidence,
             "Research v2 sections 5 and 8: a relatively freer-draining, lighter-soil niche than pedunculate oak; avoid compacted or wet sites. "
-            + "Not a universal dry-site advantage and not greater drought tolerance than beech at every stress level. Moist well-aerated sites are not stated, so not assessed.",
-            (MoistureDrainageClass.DrierFreeDraining, SiteSuitability.Preferred),
-            (MoistureDrainageClass.PoorlyDrainedWaterloggingRisk, SiteSuitability.Limiting)),
+            + "A relative tendency, not a measured preference. Impeded drainage lies between the two stated ends and is not stated, so not assessed.",
+            (DrainageAerationClass.WellAerated, SiteSuitability.Preferred),
+            (DrainageAerationClass.WaterloggedRisk, SiteSuitability.Limiting)),
         new SiteAxisResponse<FertilityClass>(SiteResponseBasis.DirectOrTransferEvidence,
             "Research v2 section 8: tolerates some poorer mineral soils. An ordinal tolerance, not a claim that poor soil is best or that rich soil gives maximal productivity. Other classes not assessed.",
             (FertilityClass.Low, SiteSuitability.Tolerated)),
@@ -144,13 +154,19 @@ public static class SpeciesSiteResponses
             "Research v2 section 8 recognises exposure/form and frost considerations but gives no per-class direction. None is encoded."),
         usesLegacySiteRoute: false);
 
+    // Beech is where the split matters: moist is preferred and drought is limiting (water availability), while good
+    // aeration is preferred and waterlogging is limiting (drainage/aeration). "Moist wet soil is not waterlogging"
+    // (research v2 section 8), so Wetter is NOT recorded as limiting just because waterlogging is.
     public static readonly SpeciesSiteResponse Beech = new SpeciesSiteResponse(BeechId,
-        new SiteAxisResponse<MoistureDrainageClass>(SiteResponseBasis.DirectOrTransferEvidence,
-            "Research v2 sections 6 and 8: deep, moist, well-aerated soils preferred; drought and waterlogging are recognised limitations. "
-            + "A neutral numerical multiplier does not make waterlogged or droughty sites favourable for beech.",
-            (MoistureDrainageClass.MoistWellAerated, SiteSuitability.Preferred),
-            (MoistureDrainageClass.DrierFreeDraining, SiteSuitability.Limiting),
-            (MoistureDrainageClass.PoorlyDrainedWaterloggingRisk, SiteSuitability.Limiting)),
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "Research v2 sections 6 and 8: moist soils preferred and drought a recognised limitation. Wetter is not stated, and wet is not waterlogging, so not assessed.",
+            (MoistureClass.Moist, SiteSuitability.Preferred),
+            (MoistureClass.Drier, SiteSuitability.Limiting)),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "Research v2 sections 6 and 8: deep, well-aerated soils preferred and waterlogging a recognised limitation. "
+            + "A neutral numerical multiplier does not make waterlogged sites favourable for beech. Impeded drainage is not stated, so not assessed.",
+            (DrainageAerationClass.WellAerated, SiteSuitability.Preferred),
+            (DrainageAerationClass.WaterloggedRisk, SiteSuitability.Limiting)),
         new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Deferred,
             "Research v2 section 8 supports site suitability but gives no per-class direction and no universal ranking over oak. None is encoded."),
         new SiteAxisResponse<ExposureClimateClass>(SiteResponseBasis.Deferred,
