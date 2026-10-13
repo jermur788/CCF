@@ -289,6 +289,17 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         manager.SetAuxiliaryPanelOpen(true);
     }
 
+    // Test hygiene: the next participant starts with the first-use screens and lessons again. It clears the local help and
+    // lesson preferences only; the forest, its save and the learning-gate on the first review are not touched.
+    public void ResetTeachingProgress()
+    {
+        // Closing marks the open screen as seen, so close it first and clear afterwards.
+        if (help != null && help.IsOpen) help.Close();
+        MenuHelpView.ResetProgress();
+        LearningObjectivesView.ResetProgress();
+        if (learning != null) learning.ReloadProgress();
+    }
+
     public void AcknowledgeAnnualReview()
     {
         if (screen != UiScreen.Review || manager.AnnualReports.Count == 0) return;
