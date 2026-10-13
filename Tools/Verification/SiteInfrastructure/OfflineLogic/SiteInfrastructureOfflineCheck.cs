@@ -1,12 +1,14 @@
-// Offline verification for the dormant Oak/Beech site infrastructure v1:
+// Offline verification for the dormant Oak/Beech site infrastructure v1.1:
 //   Assets/ForestPrototype/ForestSiteProfile.cs, SpeciesSiteResponse.cs, ScenarioSiteProfiles.cs
 //
 // run_site_check.py builds this with ONLY those three production files, so a successful build is itself the proof that
 // they depend on nothing else: no UnityEngine, SitkaGrowthModel, TreeSpeciesDefinition, ForestEcologyController or save class.
 //
-// PROVES: the site axes are independent; Unknown and Reference stay distinct; every numerical response is exactly 1.0;
-// Oak/Beech/Sitka carry different qualitative descriptors; the Scenario One site is explicit; lookups are deterministic;
-// and, by reading source text, that no production or tool code calls the new types and the save version is unchanged.
+// PROVES: the five site descriptors (moisture, drainage/aeration, fertility, exposure/climate, rooting) are independent and
+// no composite moisture-and-drainage category exists; Unknown and Reference stay distinct in every descriptor; every numerical
+// response is exactly 1.0; Oak/Beech/Sitka carry different qualitative descriptors without conflating dry with free-draining
+// or wet with waterlogged; the Scenario One site is explicit; lookups are deterministic; and, by reading source text, that no
+// production or tool code calls the new types and the save version is unchanged.
 // DOES NOT PROVE: that any descriptor is ecologically right, that Unity imports or compiles the files, or any anchor hash.
 //
 // Guard H is about THIS packet. The future packet that deliberately wires the seam into growth must change guard H on
@@ -15,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 public static class SiteInfrastructureOfflineCheck
@@ -48,35 +51,58 @@ public static class SiteInfrastructureOfflineCheck
 
     private static readonly string[] NewTypeNames =
     {
-        "SiteConditionProfile", "MoistureDrainageClass", "FertilityClass", "ExposureClimateClass", "RootingContextClass",
+        "SiteConditionProfile", "MoistureClass", "DrainageAerationClass", "FertilityClass", "ExposureClimateClass", "RootingContextClass",
         "SiteSuitability", "SiteResponseBasis", "SiteAxisResponse", "SpeciesSiteResponse", "SpeciesSiteResponses",
         "SiteGrowthResponse", "ScenarioSiteProfiles",
     };
 
+    // The five descriptor fields of SiteConditionProfile, in declaration order.
+    private static readonly string[] DescriptorFieldNames = { "Moisture", "DrainageAeration", "Fertility", "ExposureClimate", "RootingContext" };
+
     private static List<SiteConditionProfile> AllProfiles()
     {
         var list = new List<SiteConditionProfile>();
-        foreach (MoistureDrainageClass moisture in Values<MoistureDrainageClass>())
-            foreach (FertilityClass fertility in Values<FertilityClass>())
-                foreach (ExposureClimateClass exposure in Values<ExposureClimateClass>())
-                    foreach (RootingContextClass rooting in Values<RootingContextClass>())
-                        list.Add(new SiteConditionProfile(moisture, fertility, exposure, rooting));
+        foreach (MoistureClass moisture in Values<MoistureClass>())
+            foreach (DrainageAerationClass drainage in Values<DrainageAerationClass>())
+                foreach (FertilityClass fertility in Values<FertilityClass>())
+                    foreach (ExposureClimateClass exposure in Values<ExposureClimateClass>())
+                        foreach (RootingContextClass rooting in Values<RootingContextClass>())
+                            list.Add(new SiteConditionProfile(moisture, drainage, fertility, exposure, rooting));
         return list;
     }
 
+    // A profile as five integers, and back. Lets the independence check treat all five descriptors the same way.
+    private static int[] Fields(SiteConditionProfile p) =>
+        new[] { (int)p.Moisture, (int)p.DrainageAeration, (int)p.Fertility, (int)p.ExposureClimate, (int)p.RootingContext };
+
+    private static SiteConditionProfile Make(int[] f) =>
+        new SiteConditionProfile((MoistureClass)f[0], (DrainageAerationClass)f[1], (FertilityClass)f[2], (ExposureClimateClass)f[3], (RootingContextClass)f[4]);
+
+    private static int[][] ValuesPerDescriptor() => new[]
+    {
+        Values<MoistureClass>().Select(v => (int)v).ToArray(), Values<DrainageAerationClass>().Select(v => (int)v).ToArray(),
+        Values<FertilityClass>().Select(v => (int)v).ToArray(), Values<ExposureClimateClass>().Select(v => (int)v).ToArray(),
+        Values<RootingContextClass>().Select(v => (int)v).ToArray(),
+    };
+
     private static bool SameSet(IEnumerable<string> actual, params string[] expected) =>
         new HashSet<string>(actual).SetEquals(expected);
+
+    // What a species says about each of the four assessable descriptors of a site, as one comparable string.
+    private static string Verdicts(SpeciesSiteResponse species, SiteConditionProfile site) =>
+        species.Moisture.SuitabilityOf(site.Moisture) + "|" + species.DrainageAeration.SuitabilityOf(site.DrainageAeration) + "|"
+        + species.Fertility.SuitabilityOf(site.Fertility) + "|" + species.Exposure.SuitabilityOf(site.ExposureClimate);
 
     public static int Main(string[] args)
     {
         root = args.Length > 0 ? args[0] : Directory.GetCurrentDirectory();
         List<SiteConditionProfile> profiles = AllProfiles();
 
-        CheckA_SiteAxesAreDistinct(profiles);
-        CheckB_UnknownIsNotReference(profiles);
+        CheckA_FiveIndependentDescriptors(profiles);
+        CheckB_UnknownIsNotReference();
         CheckC_NeutralNumericalResponse(profiles);
         CheckD_SpeciesIdentity();
-        CheckE_ScenarioOneReference(profiles);
+        CheckE_ScenarioOneReference();
         CheckF_Determinism(profiles);
         CheckG_NoSaveImpact();
         CheckH_NoCurrentGrowthEffect();
@@ -88,31 +114,40 @@ public static class SiteInfrastructureOfflineCheck
         return failures == 0 ? 0 : 1;
     }
 
-    // ---- A. The site axes are separate fields, not one scalar ---------------------------------------------------
+    // ---- A. Five independent descriptors, no composite moisture-and-drainage category -----------------------------
 
-    private static void CheckA_SiteAxesAreDistinct(List<SiteConditionProfile> profiles)
+    private static void CheckA_FiveIndependentDescriptors(List<SiteConditionProfile> profiles)
     {
         Check("A_DOMAIN_CATEGORIES_AS_SPECIFIED",
-            SameSet(Names<MoistureDrainageClass>(), "Unknown", "Reference", "DrierFreeDraining", "MoistWellAerated", "PoorlyDrainedWaterloggingRisk")
+            SameSet(Names<MoistureClass>(), "Unknown", "Reference", "Drier", "Moist", "Wetter")
+            && SameSet(Names<DrainageAerationClass>(), "Unknown", "Reference", "WellAerated", "Impeded", "WaterloggedRisk")
             && SameSet(Names<FertilityClass>(), "Unknown", "Reference", "Low", "Moderate", "High")
             && SameSet(Names<ExposureClimateClass>(), "Unknown", "Reference", "Sheltered", "Moderate", "Exposed")
             && SameSet(Names<RootingContextClass>(), "Unknown", "Reference"),
-            "no category was added beyond the packet's");
+            "coarse ordinal classes only; no category was added");
 
-        var domainTypes = new[] { typeof(MoistureDrainageClass), typeof(FertilityClass), typeof(ExposureClimateClass), typeof(RootingContextClass) };
-        Check("A_FOUR_DISTINCT_DOMAIN_TYPES", domainTypes.Distinct().Count() == 4);
+        // Structural proof of "five independent descriptors": exactly five public instance fields, each of its own type.
+        FieldInfo[] fields = typeof(SiteConditionProfile).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        Check("A_PROFILE_HAS_EXACTLY_FIVE_DESCRIPTOR_FIELDS_OF_FIVE_DISTINCT_TYPES",
+            fields.Length == 5 && SameSet(fields.Select(f => f.Name), DescriptorFieldNames) && fields.Select(f => f.FieldType).Distinct().Count() == 5,
+            string.Join(", ", fields.Select(f => f.Name + ":" + f.FieldType.Name)));
 
-        // Every combination is a distinct value, and equality is exactly "all four fields equal".
+        // The old composite scale must not survive under any name, in the build or in the source.
+        bool compositeTypeGone = typeof(SiteConditionProfile).Assembly.GetTypes().All(t => !t.Name.StartsWith("MoistureDrainage", StringComparison.Ordinal));
+        bool compositeSourceGone = NewProductionFiles().All(f => !Regex.IsMatch(File.ReadAllText(f), "MoistureDrainage|DrierFreeDraining|MoistWellAerated|PoorlyDrained"));
+        Check("A_NO_COMPOSITE_MOISTURE_DRAINAGE_CATEGORY_EXISTS", compositeTypeGone && compositeSourceGone,
+            "water availability and drainage/aeration are separate enums, not one scale with a value per pairing");
+
+        // Equality is exactly "all five fields equal", over every pair of the full product.
         bool equalityMatchesFields = true;
         for (int i = 0; i < profiles.Count && equalityMatchesFields; i++)
         {
+            int[] a = Fields(profiles[i]);
             for (int j = 0; j < profiles.Count; j++)
             {
-                SiteConditionProfile a = profiles[i], b = profiles[j];
-                bool fieldsEqual = a.MoistureDrainage == b.MoistureDrainage && a.Fertility == b.Fertility
-                    && a.ExposureClimate == b.ExposureClimate && a.RootingContext == b.RootingContext;
-                if (a.Equals(b) != fieldsEqual || (a == b) != fieldsEqual || (a != b) == fieldsEqual
-                    || (fieldsEqual && a.GetHashCode() != b.GetHashCode()))
+                bool fieldsEqual = a.SequenceEqual(Fields(profiles[j]));
+                if (profiles[i].Equals(profiles[j]) != fieldsEqual || (profiles[i] == profiles[j]) != fieldsEqual
+                    || (profiles[i] != profiles[j]) == fieldsEqual || (fieldsEqual && profiles[i].GetHashCode() != profiles[j].GetHashCode()))
                 {
                     equalityMatchesFields = false;
                     break;
@@ -120,70 +155,84 @@ public static class SiteInfrastructureOfflineCheck
             }
         }
         Check("A_EQUALITY_IS_EXACTLY_FIELDWISE", equalityMatchesFields, $"{profiles.Count}x{profiles.Count} pairs");
-        Check("A_EVERY_COMBINATION_IS_DISTINCT", new HashSet<SiteConditionProfile>(profiles).Count == profiles.Count && profiles.Count == 5 * 5 * 5 * 2,
+        Check("A_EVERY_COMBINATION_IS_DISTINCT", new HashSet<SiteConditionProfile>(profiles).Count == profiles.Count && profiles.Count == 5 * 5 * 5 * 5 * 2,
             $"combinations={profiles.Count}");
 
-        // Changing one domain must change nothing else.
-        var baseline = new SiteConditionProfile(MoistureDrainageClass.DrierFreeDraining, FertilityClass.High,
+        // Each of the five descriptors can take every value while the other four stay exactly as they were.
+        var baseline = new SiteConditionProfile(MoistureClass.Moist, DrainageAerationClass.Impeded, FertilityClass.High,
             ExposureClimateClass.Sheltered, RootingContextClass.Reference);
-        bool moistureOnly = Values<MoistureDrainageClass>().Where(v => v != baseline.MoistureDrainage).All(v =>
+        int[] baselineFields = Fields(baseline);
+        int[][] domain = ValuesPerDescriptor();
+        var independent = new bool[5];
+        for (int d = 0; d < 5; d++)
         {
-            var p = new SiteConditionProfile(v, baseline.Fertility, baseline.ExposureClimate, baseline.RootingContext);
-            return p != baseline && p.MoistureDrainage == v && p.Fertility == baseline.Fertility
-                && p.ExposureClimate == baseline.ExposureClimate && p.RootingContext == baseline.RootingContext;
-        });
-        bool fertilityOnly = Values<FertilityClass>().Where(v => v != baseline.Fertility).All(v =>
-        {
-            var p = new SiteConditionProfile(baseline.MoistureDrainage, v, baseline.ExposureClimate, baseline.RootingContext);
-            return p != baseline && p.Fertility == v && p.MoistureDrainage == baseline.MoistureDrainage
-                && p.ExposureClimate == baseline.ExposureClimate && p.RootingContext == baseline.RootingContext;
-        });
-        bool exposureOnly = Values<ExposureClimateClass>().Where(v => v != baseline.ExposureClimate).All(v =>
-        {
-            var p = new SiteConditionProfile(baseline.MoistureDrainage, baseline.Fertility, v, baseline.RootingContext);
-            return p != baseline && p.ExposureClimate == v && p.MoistureDrainage == baseline.MoistureDrainage
-                && p.Fertility == baseline.Fertility && p.RootingContext == baseline.RootingContext;
-        });
-        bool rootingOnly = Values<RootingContextClass>().Where(v => v != baseline.RootingContext).All(v =>
-        {
-            var p = new SiteConditionProfile(baseline.MoistureDrainage, baseline.Fertility, baseline.ExposureClimate, v);
-            return p != baseline && p.RootingContext == v && p.MoistureDrainage == baseline.MoistureDrainage
-                && p.Fertility == baseline.Fertility && p.ExposureClimate == baseline.ExposureClimate;
-        });
-        Check("A_MOISTURE_FERTILITY_EXPOSURE_ROOTING_VARY_INDEPENDENTLY", moistureOnly && fertilityOnly && exposureOnly && rootingOnly);
+            independent[d] = true;
+            foreach (int value in domain[d].Where(v => v != baselineFields[d]))
+            {
+                int[] changed = (int[])baselineFields.Clone();
+                changed[d] = value;
+                SiteConditionProfile p = Make(changed);
+                int[] after = Fields(p);
+                for (int other = 0; other < 5; other++)
+                    if (other != d && after[other] != baselineFields[other]) independent[d] = false;
+                if (after[d] != value || p == baseline) independent[d] = false;
+            }
+        }
+        Check("A_EACH_DESCRIPTOR_VARIES_WITHOUT_CHANGING_THE_OTHER_FOUR", independent.All(x => x),
+            "moisture=" + independent[0] + " drainage/aeration=" + independent[1] + " fertility=" + independent[2]
+            + " exposure/climate=" + independent[3] + " rooting=" + independent[4]);
+
+        // The reason for the split: every moisture class can be paired with every drainage/aeration class.
+        var pairings = new HashSet<(MoistureClass, DrainageAerationClass)>();
+        foreach (MoistureClass m in Values<MoistureClass>())
+            foreach (DrainageAerationClass a in Values<DrainageAerationClass>())
+            {
+                var p = new SiteConditionProfile(m, a, FertilityClass.Reference, ExposureClimateClass.Reference);
+                if (p.Moisture == m && p.DrainageAeration == a) pairings.Add((m, a));
+            }
+        var moistWellAerated = new SiteConditionProfile(MoistureClass.Moist, DrainageAerationClass.WellAerated, FertilityClass.Reference, ExposureClimateClass.Reference);
+        var moistWaterlogged = new SiteConditionProfile(MoistureClass.Moist, DrainageAerationClass.WaterloggedRisk, FertilityClass.Reference, ExposureClimateClass.Reference);
+        var wetWellAerated = new SiteConditionProfile(MoistureClass.Wetter, DrainageAerationClass.WellAerated, FertilityClass.Reference, ExposureClimateClass.Reference);
+        var wetWaterlogged = new SiteConditionProfile(MoistureClass.Wetter, DrainageAerationClass.WaterloggedRisk, FertilityClass.Reference, ExposureClimateClass.Reference);
+        var drierWaterlogged = new SiteConditionProfile(MoistureClass.Drier, DrainageAerationClass.WaterloggedRisk, FertilityClass.Reference, ExposureClimateClass.Reference);
+        Check("A_EVERY_MOISTURE_AND_DRAINAGE_PAIRING_IS_EXPRESSIBLE", pairings.Count == 25
+            && moistWellAerated != moistWaterlogged && wetWellAerated != wetWaterlogged && wetWellAerated != moistWellAerated && drierWaterlogged != moistWaterlogged,
+            "pairings=25: moist+well-aerated, moist+waterlogged, wetter+well-aerated and drier+waterlogged are four different sites");
     }
 
-    // ---- B. Unknown is not Reference ----------------------------------------------------------------------------
+    // ---- B. Unknown is not Reference, in all five descriptors ----------------------------------------------------
 
-    private static void CheckB_UnknownIsNotReference(List<SiteConditionProfile> profiles)
+    private static void CheckB_UnknownIsNotReference()
     {
-        Check("B_UNKNOWN_IS_ZERO_AND_REFERENCE_IS_ONE_IN_EVERY_DOMAIN",
-            (int)MoistureDrainageClass.Unknown == 0 && (int)MoistureDrainageClass.Reference == 1
+        Check("B_UNKNOWN_IS_ZERO_AND_REFERENCE_IS_ONE_IN_ALL_FIVE_DESCRIPTORS",
+            (int)MoistureClass.Unknown == 0 && (int)MoistureClass.Reference == 1
+            && (int)DrainageAerationClass.Unknown == 0 && (int)DrainageAerationClass.Reference == 1
             && (int)FertilityClass.Unknown == 0 && (int)FertilityClass.Reference == 1
             && (int)ExposureClimateClass.Unknown == 0 && (int)ExposureClimateClass.Reference == 1
-            && (int)RootingContextClass.Unknown == 0 && (int)RootingContextClass.Reference == 1,
+            && (int)RootingContextClass.Unknown == 0 && (int)RootingContextClass.Reference == 1
+            && default(MoistureClass) == MoistureClass.Unknown && default(DrainageAerationClass) == DrainageAerationClass.Unknown
+            && default(FertilityClass) == FertilityClass.Unknown && default(ExposureClimateClass) == ExposureClimateClass.Unknown
+            && default(RootingContextClass) == RootingContextClass.Unknown,
             "default(enum) is therefore Unknown, never Reference");
 
         var unknown = default(SiteConditionProfile);
-        var reference = new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Reference,
+        var reference = new SiteConditionProfile(MoistureClass.Reference, DrainageAerationClass.Reference, FertilityClass.Reference,
             ExposureClimateClass.Reference, RootingContextClass.Reference);
         Check("B_DEFAULT_PROFILE_IS_ALL_UNKNOWN",
-            unknown.MoistureDrainage == MoistureDrainageClass.Unknown && unknown.Fertility == FertilityClass.Unknown
-            && unknown.ExposureClimate == ExposureClimateClass.Unknown && unknown.RootingContext == RootingContextClass.Unknown
-            && unknown == SiteConditionProfile.Unspecified);
+            Fields(unknown).All(v => v == 0) && unknown == SiteConditionProfile.Unspecified);
         Check("B_ALL_UNKNOWN_PROFILE_DIFFERS_FROM_ALL_REFERENCE_PROFILE", unknown != reference && !unknown.Equals(reference));
 
-        // One domain at a time: Unknown and Reference are different states in each of the four domains.
-        bool eachDomain =
-            new SiteConditionProfile(MoistureDrainageClass.Unknown, FertilityClass.Reference, ExposureClimateClass.Reference, RootingContextClass.Reference)
-                != reference
-            && new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Unknown, ExposureClimateClass.Reference, RootingContextClass.Reference)
-                != reference
-            && new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Reference, ExposureClimateClass.Unknown, RootingContextClass.Reference)
-                != reference
-            && new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Reference, ExposureClimateClass.Reference, RootingContextClass.Unknown)
-                != reference;
-        Check("B_UNKNOWN_DIFFERS_FROM_REFERENCE_IN_EACH_DOMAIN_ALONE", eachDomain);
+        // One descriptor at a time: Unknown and Reference are different states in each of the five.
+        int[] allReference = Fields(reference);
+        var alone = new bool[5];
+        for (int d = 0; d < 5; d++)
+        {
+            int[] oneUnknown = (int[])allReference.Clone();
+            oneUnknown[d] = 0;
+            alone[d] = Make(oneUnknown) != reference && Fields(Make(oneUnknown))[d] == 0;
+        }
+        Check("B_UNKNOWN_DIFFERS_FROM_REFERENCE_IN_EACH_OF_THE_FIVE_DESCRIPTORS_ALONE", alone.All(x => x),
+            "moisture=" + alone[0] + " drainage/aeration=" + alone[1] + " fertility=" + alone[2] + " exposure/climate=" + alone[3] + " rooting=" + alone[4]);
 
         bool bothNeutral = RegisteredSpecies.All(id => Bits(SiteGrowthResponse.Resolve(id, unknown)) == Bits(1f)
             && Bits(SiteGrowthResponse.Resolve(id, reference)) == Bits(1f));
@@ -197,8 +246,10 @@ public static class SiteInfrastructureOfflineCheck
 
         // The compatibility reference is never recorded as suitable or unsuitable for a species.
         bool neverAssessed = SpeciesSiteResponses.All.All(r =>
-            r.Moisture.SuitabilityOf(MoistureDrainageClass.Unknown) == SiteSuitability.NotAssessed
-            && r.Moisture.SuitabilityOf(MoistureDrainageClass.Reference) == SiteSuitability.NotAssessed
+            r.Moisture.SuitabilityOf(MoistureClass.Unknown) == SiteSuitability.NotAssessed
+            && r.Moisture.SuitabilityOf(MoistureClass.Reference) == SiteSuitability.NotAssessed
+            && r.DrainageAeration.SuitabilityOf(DrainageAerationClass.Unknown) == SiteSuitability.NotAssessed
+            && r.DrainageAeration.SuitabilityOf(DrainageAerationClass.Reference) == SiteSuitability.NotAssessed
             && r.Fertility.SuitabilityOf(FertilityClass.Unknown) == SiteSuitability.NotAssessed
             && r.Fertility.SuitabilityOf(FertilityClass.Reference) == SiteSuitability.NotAssessed
             && r.Exposure.SuitabilityOf(ExposureClimateClass.Unknown) == SiteSuitability.NotAssessed
@@ -233,7 +284,7 @@ public static class SiteInfrastructureOfflineCheck
             UnregisteredSubjects.All(id => !SpeciesSiteResponses.TryGet(id, out SpeciesSiteResponse none) && none == null));
     }
 
-    // ---- D. Species keep different qualitative descriptors -----------------------------------------------------
+    // ---- D. Species keep different qualitative descriptors, each on its own axis ---------------------------------
 
     private static void CheckD_SpeciesIdentity()
     {
@@ -247,18 +298,41 @@ public static class SiteInfrastructureOfflineCheck
             && SpeciesSiteResponses.TryGet("sessile-oak", out SpeciesSiteResponse o) && o == oak
             && SpeciesSiteResponses.TryGet("beech", out SpeciesSiteResponse b) && b == beech);
 
-        // Moisture/drainage directions, exactly as research v2 sections 5, 6 and 8 state them.
-        Check("D_OAK_MOISTURE_FREER_DRAINING_PREFERRED_WET_LIMITING_MOIST_NOT_ASSESSED",
-            oak.Moisture.SuitabilityOf(MoistureDrainageClass.DrierFreeDraining) == SiteSuitability.Preferred
-            && oak.Moisture.SuitabilityOf(MoistureDrainageClass.PoorlyDrainedWaterloggingRisk) == SiteSuitability.Limiting
-            && oak.Moisture.SuitabilityOf(MoistureDrainageClass.MoistWellAerated) == SiteSuitability.NotAssessed
-            && oak.Moisture.Basis == SiteResponseBasis.DirectOrTransferEvidence);
-        Check("D_BEECH_MOISTURE_MOIST_AERATED_PREFERRED_DROUGHT_AND_WATERLOGGING_LIMITING",
-            beech.Moisture.SuitabilityOf(MoistureDrainageClass.MoistWellAerated) == SiteSuitability.Preferred
-            && beech.Moisture.SuitabilityOf(MoistureDrainageClass.DrierFreeDraining) == SiteSuitability.Limiting
-            && beech.Moisture.SuitabilityOf(MoistureDrainageClass.PoorlyDrainedWaterloggingRisk) == SiteSuitability.Limiting
-            && beech.Moisture.Basis == SiteResponseBasis.DirectOrTransferEvidence);
-        // Only what v2 states is encoded; the rest is deliberately left unassessed rather than invented.
+        // Sessile oak (research v2 sections 5 and 8): a freer-draining tendency, which is a DRAINAGE statement.
+        Check("D_OAK_DRAINAGE_WELL_AERATED_PREFERRED_WATERLOGGING_LIMITING_IMPEDED_NOT_ASSESSED",
+            oak.DrainageAeration.SuitabilityOf(DrainageAerationClass.WellAerated) == SiteSuitability.Preferred
+            && oak.DrainageAeration.SuitabilityOf(DrainageAerationClass.WaterloggedRisk) == SiteSuitability.Limiting
+            && oak.DrainageAeration.SuitabilityOf(DrainageAerationClass.Impeded) == SiteSuitability.NotAssessed
+            && oak.DrainageAeration.AssessedCount == 2 && oak.DrainageAeration.Basis == SiteResponseBasis.DirectOrTransferEvidence);
+        Check("D_OAK_MOISTURE_ENCODES_NO_DIRECTION_SO_DRY_IS_NEVER_GOOD",
+            oak.Moisture.AssessedCount == 0 && oak.Moisture.Basis == SiteResponseBasis.Deferred
+            && Values<MoistureClass>().All(c => oak.Moisture.SuitabilityOf(c) == SiteSuitability.NotAssessed),
+            "free drainage being favoured does not make Drier favourable, and v2 denies a universal dry-site advantage");
+
+        // Beech (research v2 sections 6 and 8): moist and drought are water availability; aeration and waterlogging are drainage.
+        Check("D_BEECH_MOISTURE_MOIST_PREFERRED_DROUGHT_LIMITING_WETTER_NOT_ASSESSED",
+            beech.Moisture.SuitabilityOf(MoistureClass.Moist) == SiteSuitability.Preferred
+            && beech.Moisture.SuitabilityOf(MoistureClass.Drier) == SiteSuitability.Limiting
+            && beech.Moisture.SuitabilityOf(MoistureClass.Wetter) == SiteSuitability.NotAssessed
+            && beech.Moisture.AssessedCount == 2 && beech.Moisture.Basis == SiteResponseBasis.DirectOrTransferEvidence);
+        Check("D_BEECH_DRAINAGE_WELL_AERATED_PREFERRED_WATERLOGGING_LIMITING_IMPEDED_NOT_ASSESSED",
+            beech.DrainageAeration.SuitabilityOf(DrainageAerationClass.WellAerated) == SiteSuitability.Preferred
+            && beech.DrainageAeration.SuitabilityOf(DrainageAerationClass.WaterloggedRisk) == SiteSuitability.Limiting
+            && beech.DrainageAeration.SuitabilityOf(DrainageAerationClass.Impeded) == SiteSuitability.NotAssessed
+            && beech.DrainageAeration.AssessedCount == 2 && beech.DrainageAeration.Basis == SiteResponseBasis.DirectOrTransferEvidence);
+        Check("D_WETTER_IS_NOT_WATERLOGGING_FOR_ANY_SPECIES",
+            SpeciesSiteResponses.All.All(r => r.Moisture.SuitabilityOf(MoistureClass.Wetter) == SiteSuitability.NotAssessed),
+            "a waterlogging limitation lives on the drainage/aeration axis only (research v2 section 8)");
+
+        // The split in action: beech gives the SAME moisture verdict and a DIFFERENT drainage verdict for two moist sites.
+        var moistWellAerated = new SiteConditionProfile(MoistureClass.Moist, DrainageAerationClass.WellAerated, FertilityClass.Reference, ExposureClimateClass.Reference);
+        var moistWaterlogged = new SiteConditionProfile(MoistureClass.Moist, DrainageAerationClass.WaterloggedRisk, FertilityClass.Reference, ExposureClimateClass.Reference);
+        Check("D_BEECH_TELLS_MOIST_WELL_AERATED_FROM_MOIST_WATERLOGGED",
+            Verdicts(beech, moistWellAerated) == "Preferred|Preferred|NotAssessed|NotAssessed"
+            && Verdicts(beech, moistWaterlogged) == "Preferred|Limiting|NotAssessed|NotAssessed",
+            "no combined category needed");
+
+        // Fertility and exposure: only what v2 states.
         Check("D_FERTILITY_ONLY_OAK_LOW_TOLERATED_IS_STATED",
             oak.Fertility.SuitabilityOf(FertilityClass.Low) == SiteSuitability.Tolerated && oak.Fertility.AssessedCount == 1
             && oak.Fertility.Basis == SiteResponseBasis.DirectOrTransferEvidence
@@ -267,58 +341,63 @@ public static class SiteInfrastructureOfflineCheck
             SpeciesSiteResponses.All.All(r => r.Exposure.AssessedCount == 0 && r.Exposure.Basis == SiteResponseBasis.Deferred));
 
         // Same neutral number, different qualitative meaning.
-        var dry = new SiteConditionProfile(MoistureDrainageClass.DrierFreeDraining, FertilityClass.Low, ExposureClimateClass.Moderate);
-        var wet = new SiteConditionProfile(MoistureDrainageClass.PoorlyDrainedWaterloggingRisk, FertilityClass.High, ExposureClimateClass.Exposed);
+        var drierLowFertility = new SiteConditionProfile(MoistureClass.Drier, DrainageAerationClass.WellAerated, FertilityClass.Low, ExposureClimateClass.Moderate);
         bool disagreeYetNeutral =
-            oak.Moisture.SuitabilityOf(dry.MoistureDrainage) != beech.Moisture.SuitabilityOf(dry.MoistureDrainage)
-            && oak.Fertility.SuitabilityOf(dry.Fertility) != beech.Fertility.SuitabilityOf(dry.Fertility)
-            && Bits(SiteGrowthResponse.Resolve("sessile-oak", dry)) == Bits(1f)
-            && Bits(SiteGrowthResponse.Resolve("beech", dry)) == Bits(1f);
+            oak.Moisture.SuitabilityOf(drierLowFertility.Moisture) != beech.Moisture.SuitabilityOf(drierLowFertility.Moisture)
+            && oak.Fertility.SuitabilityOf(drierLowFertility.Fertility) != beech.Fertility.SuitabilityOf(drierLowFertility.Fertility)
+            && Verdicts(oak, drierLowFertility) != Verdicts(beech, drierLowFertility)
+            && Bits(SiteGrowthResponse.Resolve("sessile-oak", drierLowFertility)) == Bits(1f)
+            && Bits(SiteGrowthResponse.Resolve("beech", drierLowFertility)) == Bits(1f);
         Check("D_OAK_AND_BEECH_DISAGREE_QUALITATIVELY_YET_BOTH_RETURN_1", disagreeYetNeutral,
-            "on a drier free-draining low-fertility site: oak Preferred/Tolerated vs beech Limiting/NotAssessed");
+            "on a drier, well-aerated, low-fertility site: oak NotAssessed/Preferred/Tolerated, beech Limiting/Preferred/NotAssessed");
+        var waterlogged = new SiteConditionProfile(MoistureClass.Reference, DrainageAerationClass.WaterloggedRisk, FertilityClass.High, ExposureClimateClass.Exposed);
         Check("D_WATERLOGGED_SITE_IS_LIMITING_FOR_BOTH_YET_NEUTRAL",
-            oak.Moisture.SuitabilityOf(wet.MoistureDrainage) == SiteSuitability.Limiting
-            && beech.Moisture.SuitabilityOf(wet.MoistureDrainage) == SiteSuitability.Limiting
-            && Bits(SiteGrowthResponse.Resolve("beech", wet)) == Bits(1f),
+            oak.DrainageAeration.SuitabilityOf(waterlogged.DrainageAeration) == SiteSuitability.Limiting
+            && beech.DrainageAeration.SuitabilityOf(waterlogged.DrainageAeration) == SiteSuitability.Limiting
+            && Bits(SiteGrowthResponse.Resolve("beech", waterlogged)) == Bits(1f),
             "neutral 1.0 does not mean favourable");
 
-        int differingCells = 0;
-        foreach (MoistureDrainageClass c in Values<MoistureDrainageClass>())
-            if (oak.Moisture.SuitabilityOf(c) != beech.Moisture.SuitabilityOf(c)) differingCells++;
-        foreach (FertilityClass c in Values<FertilityClass>())
-            if (oak.Fertility.SuitabilityOf(c) != beech.Fertility.SuitabilityOf(c)) differingCells++;
-        foreach (ExposureClimateClass c in Values<ExposureClimateClass>())
-            if (oak.Exposure.SuitabilityOf(c) != beech.Exposure.SuitabilityOf(c)) differingCells++;
-        Check("D_OAK_AND_BEECH_DESCRIPTORS_DIFFER", differingCells == 3, $"differing site classes={differingCells}");
+        int moistureDiffers = Values<MoistureClass>().Count(c => oak.Moisture.SuitabilityOf(c) != beech.Moisture.SuitabilityOf(c));
+        int drainageDiffers = Values<DrainageAerationClass>().Count(c => oak.DrainageAeration.SuitabilityOf(c) != beech.DrainageAeration.SuitabilityOf(c));
+        int fertilityDiffers = Values<FertilityClass>().Count(c => oak.Fertility.SuitabilityOf(c) != beech.Fertility.SuitabilityOf(c));
+        int exposureDiffers = Values<ExposureClimateClass>().Count(c => oak.Exposure.SuitabilityOf(c) != beech.Exposure.SuitabilityOf(c));
+        Check("D_OAK_AND_BEECH_DESCRIPTORS_DIFFER_IN_MOISTURE_AND_FERTILITY_ONLY",
+            moistureDiffers == 2 && drainageDiffers == 0 && fertilityDiffers == 1 && exposureDiffers == 0,
+            $"differing classes: moisture={moistureDiffers} drainage/aeration={drainageDiffers} fertility={fertilityDiffers} exposure/climate={exposureDiffers}");
 
         Check("D_SITKA_HAS_NO_ASSESSMENTS_AND_KEEPS_LEGACY_ROUTE",
             sitka.UsesLegacySiteRoute && !oak.UsesLegacySiteRoute && !beech.UsesLegacySiteRoute
-            && sitka.Moisture.AssessedCount == 0 && sitka.Fertility.AssessedCount == 0 && sitka.Exposure.AssessedCount == 0
-            && sitka.Moisture.Basis == SiteResponseBasis.Deferred && sitka.Fertility.Basis == SiteResponseBasis.Deferred
-            && sitka.Exposure.Basis == SiteResponseBasis.Deferred);
+            && sitka.Moisture.AssessedCount == 0 && sitka.DrainageAeration.AssessedCount == 0 && sitka.Fertility.AssessedCount == 0
+            && sitka.Exposure.AssessedCount == 0
+            && sitka.Moisture.Basis == SiteResponseBasis.Deferred && sitka.DrainageAeration.Basis == SiteResponseBasis.Deferred
+            && sitka.Fertility.Basis == SiteResponseBasis.Deferred && sitka.Exposure.Basis == SiteResponseBasis.Deferred);
 
         bool provenanceConsistent = SpeciesSiteResponses.All.All(r =>
-            !string.IsNullOrWhiteSpace(r.Moisture.Note) && !string.IsNullOrWhiteSpace(r.Fertility.Note) && !string.IsNullOrWhiteSpace(r.Exposure.Note)
+            !string.IsNullOrWhiteSpace(r.Moisture.Note) && !string.IsNullOrWhiteSpace(r.DrainageAeration.Note)
+            && !string.IsNullOrWhiteSpace(r.Fertility.Note) && !string.IsNullOrWhiteSpace(r.Exposure.Note)
             && (r.Moisture.Basis == SiteResponseBasis.Deferred) == (r.Moisture.AssessedCount == 0)
+            && (r.DrainageAeration.Basis == SiteResponseBasis.Deferred) == (r.DrainageAeration.AssessedCount == 0)
             && (r.Fertility.Basis == SiteResponseBasis.Deferred) == (r.Fertility.AssessedCount == 0)
             && (r.Exposure.Basis == SiteResponseBasis.Deferred) == (r.Exposure.AssessedCount == 0));
         Check("D_EVIDENCE_BASIS_NEVER_CLAIMS_A_DIRECTION_THAT_IS_NOT_ENCODED", provenanceConsistent);
         Check("D_NO_DATA_USES_THE_CALIBRATION_BASIS",
-            SpeciesSiteResponses.All.All(r => r.Moisture.Basis != SiteResponseBasis.Calibration && r.Fertility.Basis != SiteResponseBasis.Calibration
-                && r.Exposure.Basis != SiteResponseBasis.Calibration));
+            SpeciesSiteResponses.All.All(r => r.Moisture.Basis != SiteResponseBasis.Calibration && r.DrainageAeration.Basis != SiteResponseBasis.Calibration
+                && r.Fertility.Basis != SiteResponseBasis.Calibration && r.Exposure.Basis != SiteResponseBasis.Calibration));
     }
 
     // ---- E. Scenario One's canonical site -----------------------------------------------------------------------
 
-    private static void CheckE_ScenarioOneReference(List<SiteConditionProfile> profiles)
+    private static void CheckE_ScenarioOneReference()
     {
         bool found = ScenarioSiteProfiles.TryGet("scenario-one", out SiteConditionProfile site);
         Check("E_SCENARIO_ONE_SITE_IS_CONFIGURED", found && site == ScenarioSiteProfiles.ScenarioOneReference);
-        Check("E_SCENARIO_ONE_DECLARES_REFERENCE_MOISTURE_FERTILITY_EXPOSURE",
-            site.MoistureDrainage == MoistureDrainageClass.Reference && site.Fertility == FertilityClass.Reference
-            && site.ExposureClimate == ExposureClimateClass.Reference);
+        Check("E_SCENARIO_ONE_IS_REFERENCE_REFERENCE_REFERENCE_REFERENCE_UNKNOWN",
+            site.Moisture == MoistureClass.Reference && site.DrainageAeration == DrainageAerationClass.Reference
+            && site.Fertility == FertilityClass.Reference && site.ExposureClimate == ExposureClimateClass.Reference
+            && site.RootingContext == RootingContextClass.Unknown,
+            "moisture / drainage-aeration / fertility / exposure-climate / rooting");
         Check("E_SCENARIO_ONE_ROOTING_IS_UNKNOWN_BECAUSE_V2_LEAVES_IT_UNSPECIFIED",
-            site.RootingContext == RootingContextClass.Unknown && site != SiteConditionProfile.Unspecified,
+            site.RootingContext == RootingContextClass.Unknown && site != SiteConditionProfile.Unspecified && Fields(site).Count(v => v == 1) == 4,
             "so the canonical site itself shows Unknown and Reference as different states");
         Check("E_SCENARIO_ONE_SITE_IS_VERSIONED", ScenarioSiteProfiles.ScenarioOneReferenceVersion == 1);
         Check("E_SCENARIO_ONE_SITE_RESOLVES_TO_1_FOR_EVERY_SPECIES",
@@ -355,7 +434,7 @@ public static class SiteInfrastructureOfflineCheck
         List<int> first = Snapshot(profiles), second = Snapshot(profiles);
         Check("F_FULL_LOOKUP_TABLE_IS_IDENTICAL_ACROSS_PASSES", first.SequenceEqual(second), $"values={first.Count}");
 
-        var oakDry = new SiteConditionProfile(MoistureDrainageClass.DrierFreeDraining, FertilityClass.Low, ExposureClimateClass.Moderate);
+        var oakDry = new SiteConditionProfile(MoistureClass.Drier, DrainageAerationClass.WellAerated, FertilityClass.Low, ExposureClimateClass.Moderate);
         int reference = Bits(SiteGrowthResponse.Resolve("sessile-oak", oakDry));
         bool repeated = true;
         for (int i = 0; i < 1000; i++)
@@ -364,12 +443,13 @@ public static class SiteInfrastructureOfflineCheck
 
         bool descriptors = true;
         for (int i = 0; i < 200; i++)
-            if (SpeciesSiteResponses.Beech.Moisture.SuitabilityOf(MoistureDrainageClass.MoistWellAerated) != SiteSuitability.Preferred
+            if (SpeciesSiteResponses.Beech.Moisture.SuitabilityOf(MoistureClass.Moist) != SiteSuitability.Preferred
+                || SpeciesSiteResponses.Beech.DrainageAeration.SuitabilityOf(DrainageAerationClass.WaterloggedRisk) != SiteSuitability.Limiting
                 || !SpeciesSiteResponses.TryGet("beech", out SpeciesSiteResponse again) || again != SpeciesSiteResponses.Beech)
                 descriptors = false;
         Check("F_DESCRIPTOR_LOOKUPS_ARE_STABLE", descriptors);
         Check("F_LOOKUP_DOES_NOT_MUTATE_THE_PROFILE",
-            oakDry == new SiteConditionProfile(MoistureDrainageClass.DrierFreeDraining, FertilityClass.Low, ExposureClimateClass.Moderate));
+            oakDry == new SiteConditionProfile(MoistureClass.Drier, DrainageAerationClass.WellAerated, FertilityClass.Low, ExposureClimateClass.Moderate));
     }
 
     private static List<int> Snapshot(List<SiteConditionProfile> profiles)
@@ -380,7 +460,8 @@ public static class SiteInfrastructureOfflineCheck
                 values.Add(Bits(SiteGrowthResponse.Resolve(id, profile)));
         foreach (SpeciesSiteResponse response in SpeciesSiteResponses.All)
         {
-            foreach (MoistureDrainageClass c in Values<MoistureDrainageClass>()) values.Add((int)response.Moisture.SuitabilityOf(c));
+            foreach (MoistureClass c in Values<MoistureClass>()) values.Add((int)response.Moisture.SuitabilityOf(c));
+            foreach (DrainageAerationClass c in Values<DrainageAerationClass>()) values.Add((int)response.DrainageAeration.SuitabilityOf(c));
             foreach (FertilityClass c in Values<FertilityClass>()) values.Add((int)response.Fertility.SuitabilityOf(c));
             foreach (ExposureClimateClass c in Values<ExposureClimateClass>()) values.Add((int)response.Exposure.SuitabilityOf(c));
         }
@@ -412,7 +493,7 @@ public static class SiteInfrastructureOfflineCheck
         var typeRegex = TypeNameRegex();
         string[] ownFiles = NewProductionFiles().ToArray();
 
-        // The scanner must be able to see all twelve names in the new files, or the "none found" results below mean nothing.
+        // The scanner must be able to see every new name in the new files, or the "none found" results below mean nothing.
         var found = new HashSet<string>();
         foreach (string file in ownFiles)
             foreach (Match match in typeRegex.Matches(File.ReadAllText(file))) found.Add(match.Value);
@@ -454,14 +535,19 @@ public static class SiteInfrastructureOfflineCheck
 
     private static void CheckI_InputValidation()
     {
-        Check("I_UNDEFINED_ENUM_VALUES_ARE_REJECTED",
-            Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile((MoistureDrainageClass)99, FertilityClass.Low, ExposureClimateClass.Moderate))
-            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(MoistureDrainageClass.Reference, (FertilityClass)99, ExposureClimateClass.Moderate))
-            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Low, (ExposureClimateClass)99))
-            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(MoistureDrainageClass.Reference, FertilityClass.Low, ExposureClimateClass.Moderate, (RootingContextClass)99)));
+        const MoistureClass m = MoistureClass.Reference;
+        const DrainageAerationClass d = DrainageAerationClass.Reference;
+        const FertilityClass f = FertilityClass.Low;
+        const ExposureClimateClass e = ExposureClimateClass.Moderate;
+        Check("I_UNDEFINED_ENUM_VALUES_ARE_REJECTED_IN_ALL_FIVE_DESCRIPTORS",
+            Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile((MoistureClass)99, d, f, e))
+            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(m, (DrainageAerationClass)99, f, e))
+            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(m, d, (FertilityClass)99, e))
+            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(m, d, f, (ExposureClimateClass)99))
+            && Throws<ArgumentOutOfRangeException>(() => new SiteConditionProfile(m, d, f, e, (RootingContextClass)99)));
         Check("I_AXIS_RESPONSE_REJECTS_UNKNOWN_AND_REFERENCE_ENTRIES",
-            Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Ordinal, "n", (FertilityClass.Unknown, SiteSuitability.Preferred)))
-            && Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Ordinal, "n", (FertilityClass.Reference, SiteSuitability.Preferred))));
+            Throws<ArgumentException>(() => new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.Ordinal, "n", (DrainageAerationClass.Unknown, SiteSuitability.Preferred)))
+            && Throws<ArgumentException>(() => new SiteAxisResponse<MoistureClass>(SiteResponseBasis.Ordinal, "n", (MoistureClass.Reference, SiteSuitability.Preferred))));
         Check("I_AXIS_RESPONSE_REJECTS_INCONSISTENT_BASIS",
             Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Deferred, "n", (FertilityClass.Low, SiteSuitability.Tolerated)))
             && Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Ordinal, "n")));
@@ -470,9 +556,11 @@ public static class SiteInfrastructureOfflineCheck
                 (FertilityClass.Low, SiteSuitability.Tolerated), (FertilityClass.Low, SiteSuitability.Limiting)))
             && Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Ordinal, "n", (FertilityClass.Low, SiteSuitability.NotAssessed)))
             && Throws<ArgumentException>(() => new SiteAxisResponse<FertilityClass>(SiteResponseBasis.Deferred, "")));
+        SpeciesSiteResponse beech = SpeciesSiteResponses.Beech;
         Check("I_SPECIES_RESPONSE_REJECTS_MISSING_ID_OR_AXES",
-            Throws<ArgumentException>(() => new SpeciesSiteResponse("", SpeciesSiteResponses.Beech.Moisture, SpeciesSiteResponses.Beech.Fertility, SpeciesSiteResponses.Beech.Exposure, false))
-            && Throws<ArgumentNullException>(() => new SpeciesSiteResponse("x", null, SpeciesSiteResponses.Beech.Fertility, SpeciesSiteResponses.Beech.Exposure, false)));
+            Throws<ArgumentException>(() => new SpeciesSiteResponse("", beech.Moisture, beech.DrainageAeration, beech.Fertility, beech.Exposure, false))
+            && Throws<ArgumentNullException>(() => new SpeciesSiteResponse("x", null, beech.DrainageAeration, beech.Fertility, beech.Exposure, false))
+            && Throws<ArgumentNullException>(() => new SpeciesSiteResponse("x", beech.Moisture, null, beech.Fertility, beech.Exposure, false)));
     }
 
     // ---- helpers ------------------------------------------------------------------------------------------------
