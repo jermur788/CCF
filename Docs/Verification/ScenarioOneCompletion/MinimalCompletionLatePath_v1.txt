@@ -1,0 +1,410 @@
+MINIMAL_CHECK True untouched normal new game
+MINIMAL_STATE baseline year=0 outcome=Active cash=1200000 interventions=0 acknowledgements=0
+MINIMAL_OBJECTIVE baseline minimum-year 0/25 False
+MINIMAL_OBJECTIVE baseline retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE baseline continuous-canopy 0.9873368/0.35 True
+MINIMAL_OBJECTIVE baseline regeneration 0/12 False
+MINIMAL_OBJECTIVE baseline fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE baseline managed-opening 0/1 False
+MINIMAL_OBJECTIVE baseline introduced-beech 0/1 False
+MINIMAL_OBJECTIVE baseline introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT baseline {"year":0,"livingTrees":1344,"basalAreaM2PerHa":40.456520080566406,"meanDbhCm":15.432117462158203,"dbhCoefficientOfVariation":0.17314337193965912,"cellCount":256,"meanLight":0.012663250789046288,"meanCanopy":0.9873368144035339,"occupiedRegenerationCells":0,"meanSharedRegenerationOccupancy":0.0,"totalRecentOpening":0.0,"meanMosses":0.8295344710350037,"meanFerns":0.009233148768544197,"meanGrasses":0.0033997707068920135,"meanForbs":0.004072010517120361,"meanShrubs":0.002309982432052493,"meanFungi":0.6955678462982178,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":40.456520080566406,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=1 outcome=Active cash=1200000 interventions=0 acknowledgements=0
+MINIMAL_OBJECTIVE annual minimum-year 1/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.984208345/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 23/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":1,"livingTrees":1344,"basalAreaM2PerHa":42.51533508300781,"meanDbhCm":15.826532363891602,"dbhCoefficientOfVariation":0.1706383228302002,"cellCount":256,"meanLight":0.015791909769177437,"meanCanopy":0.984208345413208,"occupiedRegenerationCells":23,"meanSharedRegenerationOccupancy":0.004780643619596958,"totalRecentOpening":0.0,"meanMosses":0.8276110887527466,"meanFerns":0.009149017743766308,"meanGrasses":0.0037329429760575294,"meanForbs":0.004441455937922001,"meanShrubs":0.002723733661696315,"meanFungi":0.6950746774673462,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":42.51533508300781,"regenerationCells":23,"regenerationDensity":1.835767149925232,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI blocks advance before review
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=2 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 2/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.980931/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 25/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":2,"livingTrees":1344,"basalAreaM2PerHa":44.618709564208984,"meanDbhCm":16.219572067260742,"dbhCoefficientOfVariation":0.16829174757003784,"cellCount":256,"meanLight":0.019068807363510132,"meanCanopy":0.9809309840202332,"occupiedRegenerationCells":25,"meanSharedRegenerationOccupancy":0.008762229233980179,"totalRecentOpening":0.0,"meanMosses":0.8243322372436523,"meanFerns":0.00929404515773058,"meanGrasses":0.004244299605488777,"meanForbs":0.005056171678006649,"meanShrubs":0.003362184390425682,"meanFungi":0.6942878365516663,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":44.618709564208984,"regenerationCells":25,"regenerationDensity":3.3646953105926514,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=3 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 3/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.977579/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 56/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":3,"livingTrees":1344,"basalAreaM2PerHa":46.766021728515625,"meanDbhCm":16.611225128173828,"dbhCoefficientOfVariation":0.16609041392803192,"cellCount":256,"meanLight":0.022421302273869514,"meanCanopy":0.9775789976119995,"occupiedRegenerationCells":56,"meanSharedRegenerationOccupancy":0.015600715763866901,"totalRecentOpening":0.0,"meanMosses":0.8202143311500549,"meanFerns":0.009718358516693115,"meanGrasses":0.00489990646019578,"meanForbs":0.005771351046860218,"meanShrubs":0.0040296511724591255,"meanFungi":0.6933267712593079,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":46.766021728515625,"regenerationCells":56,"regenerationDensity":5.990674018859863,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=4 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 4/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.974196136/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 58/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":4,"livingTrees":1344,"basalAreaM2PerHa":48.956783294677734,"meanDbhCm":17.001569747924805,"dbhCoefficientOfVariation":0.16399730741977692,"cellCount":256,"meanLight":0.02580387517809868,"meanCanopy":0.9741961359977722,"occupiedRegenerationCells":58,"meanSharedRegenerationOccupancy":0.021105624735355377,"totalRecentOpening":0.0,"meanMosses":0.8156139850616455,"meanFerns":0.010456200689077377,"meanGrasses":0.005606363527476788,"meanForbs":0.006455826573073864,"meanShrubs":0.004744688980281353,"meanFungi":0.6922658681869507,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":48.956783294677734,"regenerationCells":58,"regenerationDensity":8.104562759399414,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=5 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 5/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.97094065/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 71/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":5,"livingTrees":1344,"basalAreaM2PerHa":51.19049072265625,"meanDbhCm":17.39047622680664,"dbhCoefficientOfVariation":0.1620432436466217,"cellCount":256,"meanLight":0.029059389606118202,"meanCanopy":0.9709406495094299,"occupiedRegenerationCells":71,"meanSharedRegenerationOccupancy":0.027171427384018898,"totalRecentOpening":0.0,"meanMosses":0.8107652068138123,"meanFerns":0.011482106521725655,"meanGrasses":0.006330912932753563,"meanForbs":0.007093245163559914,"meanShrubs":0.0054837544448673725,"meanFungi":0.6911693811416626,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":51.19049072265625,"regenerationCells":71,"regenerationDensity":10.433822631835938,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=6 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 6/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9678185/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 93/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":6,"livingTrees":1344,"basalAreaM2PerHa":53.46638488769531,"meanDbhCm":17.77804183959961,"dbhCoefficientOfVariation":0.16019003093242645,"cellCount":256,"meanLight":0.032181594520807266,"meanCanopy":0.9678184986114502,"occupiedRegenerationCells":93,"meanSharedRegenerationOccupancy":0.03424975275993347,"totalRecentOpening":0.0,"meanMosses":0.8058201670646667,"meanFerns":0.012793912552297115,"meanGrasses":0.0070157707668840885,"meanForbs":0.007684028707444668,"meanShrubs":0.006200212519615889,"meanFungi":0.690074622631073,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":53.46638488769531,"regenerationCells":93,"regenerationDensity":13.151898384094238,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=7 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 7/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1344/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.964940846/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 102/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0/0.08 False
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":7,"livingTrees":1344,"basalAreaM2PerHa":55.7840576171875,"meanDbhCm":18.164230346679688,"dbhCoefficientOfVariation":0.15844012796878815,"cellCount":256,"meanLight":0.035059358924627304,"meanCanopy":0.9649408459663391,"occupiedRegenerationCells":102,"meanSharedRegenerationOccupancy":0.03986600413918495,"totalRecentOpening":0.0,"meanMosses":0.8010422587394714,"meanFerns":0.014388461597263813,"meanGrasses":0.007635489106178284,"meanForbs":0.008220470510423183,"meanShrubs":0.006855728104710579,"meanFungi":0.6890195608139038,"deadwoodCount":0,"deadwoodVolumeM3":0.0,"deadwoodHabitatValue":0.0,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1344,"basalAreaM2PerHa":55.7840576171875,"regenerationCells":102,"regenerationDensity":15.308547973632813,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=8 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 8/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1342/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.962283731/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 120/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0.6763474/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":8,"livingTrees":1342,"basalAreaM2PerHa":58.02939224243164,"meanDbhCm":18.54474639892578,"dbhCoefficientOfVariation":0.15676862001419067,"cellCount":256,"meanLight":0.03771640360355377,"meanCanopy":0.962283730506897,"occupiedRegenerationCells":120,"meanSharedRegenerationOccupancy":0.04519136622548103,"totalRecentOpening":0.0,"meanMosses":0.7964702248573303,"meanFerns":0.016044579446315765,"meanGrasses":0.00818801112473011,"meanForbs":0.008672256022691727,"meanShrubs":0.007451399229466915,"meanFungi":0.6880202293395996,"deadwoodCount":2,"deadwoodVolumeM3":0.6763473749160767,"deadwoodHabitatValue":0.23672157526016235,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1342,"basalAreaM2PerHa":58.02939224243164,"regenerationCells":120,"regenerationDensity":17.353479385375977,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=9 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 9/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1342/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.960100234/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 124/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 0.656056941/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":9,"livingTrees":1342,"basalAreaM2PerHa":60.427513122558594,"meanDbhCm":18.92854881286621,"dbhCoefficientOfVariation":0.15520481765270233,"cellCount":256,"meanLight":0.03989966958761215,"meanCanopy":0.9601002335548401,"occupiedRegenerationCells":124,"meanSharedRegenerationOccupancy":0.04981621727347374,"totalRecentOpening":0.0,"meanMosses":0.7923168540000916,"meanFerns":0.017649482935667038,"meanGrasses":0.008664166554808617,"meanForbs":0.009050005115568638,"meanShrubs":0.008001994341611862,"meanFungi":0.6871267557144165,"deadwoodCount":2,"deadwoodVolumeM3":0.6560569405555725,"deadwoodHabitatValue":0.22961992025375366,"meanDeadwoodDecayClass":0.0,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1342,"basalAreaM2PerHa":60.427513122558594,"regenerationCells":124,"regenerationDensity":19.129426956176758,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=10 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 10/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1340/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.958115637/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 130/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 1.19315767/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":10,"livingTrees":1340,"basalAreaM2PerHa":62.7647705078125,"meanDbhCm":19.30954933166504,"dbhCoefficientOfVariation":0.15382778644561768,"cellCount":256,"meanLight":0.04188447818160057,"meanCanopy":0.9581156373023987,"occupiedRegenerationCells":130,"meanSharedRegenerationOccupancy":0.05474918335676193,"totalRecentOpening":0.0,"meanMosses":0.7885115742683411,"meanFerns":0.01922783814370632,"meanGrasses":0.009065099060535431,"meanForbs":0.009379608556628227,"meanShrubs":0.008490288630127907,"meanFungi":0.6863231658935547,"deadwoodCount":4,"deadwoodVolumeM3":1.19315767288208,"deadwoodHabitatValue":0.6403365135192871,"meanDeadwoodDecayClass":0.5,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1340,"basalAreaM2PerHa":62.7647705078125,"regenerationCells":130,"regenerationDensity":21.023679733276367,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal disk save validates
+MINIMAL_CHECK True normal disk load preserves history and outcome year10
+MINIMAL_CHECK True normal disk load preserves world year10
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=11 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 11/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1328/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9558702/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 142/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 4.3391695/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":11,"livingTrees":1328,"basalAreaM2PerHa":64.67606353759766,"meanDbhCm":19.693233489990234,"dbhCoefficientOfVariation":0.15263479948043823,"cellCount":256,"meanLight":0.04412979260087013,"meanCanopy":0.9558702111244202,"occupiedRegenerationCells":142,"meanSharedRegenerationOccupancy":0.059422798454761505,"totalRecentOpening":0.0,"meanMosses":0.7846136093139648,"meanFerns":0.020865218713879585,"meanGrasses":0.009386202320456505,"meanForbs":0.009657279588282108,"meanShrubs":0.008895580656826496,"meanFungi":0.6855270862579346,"deadwoodCount":16,"deadwoodVolumeM3":4.339169502258301,"deadwoodHabitatValue":1.7347584962844849,"meanDeadwoodDecayClass":0.125,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1328,"basalAreaM2PerHa":64.67606353759766,"regenerationCells":142,"regenerationDensity":22.818344116210938,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=12 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 12/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1322/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.954069/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 163/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 5.64834833/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":12,"livingTrees":1322,"basalAreaM2PerHa":66.92359924316406,"meanDbhCm":20.0825138092041,"dbhCoefficientOfVariation":0.151081845164299,"cellCount":256,"meanLight":0.045931100845336914,"meanCanopy":0.9540690183639526,"occupiedRegenerationCells":163,"meanSharedRegenerationOccupancy":0.06476715207099915,"totalRecentOpening":0.0,"meanMosses":0.7810098528862,"meanFerns":0.022407077252864838,"meanGrasses":0.009640656411647797,"meanForbs":0.009886568412184715,"meanShrubs":0.009223554283380508,"meanFungi":0.6848061084747314,"deadwoodCount":22,"deadwoodVolumeM3":5.648348331451416,"deadwoodHabitatValue":2.3698463439941406,"meanDeadwoodDecayClass":0.1818181872367859,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1322,"basalAreaM2PerHa":66.92359924316406,"regenerationCells":163,"regenerationDensity":24.870590209960938,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=13 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 13/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1308/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.95198/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 168/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 9.871676/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":13,"livingTrees":1308,"basalAreaM2PerHa":68.71722412109375,"meanDbhCm":20.457622528076172,"dbhCoefficientOfVariation":0.15136286616325378,"cellCount":256,"meanLight":0.0480196475982666,"meanCanopy":0.9519799947738647,"occupiedRegenerationCells":168,"meanSharedRegenerationOccupancy":0.06917303055524826,"totalRecentOpening":0.0,"meanMosses":0.7772985100746155,"meanFerns":0.02427029050886631,"meanGrasses":0.009840133599936962,"meanForbs":0.010100875049829483,"meanShrubs":0.009481635875999928,"meanFungi":0.6840799450874329,"deadwoodCount":37,"deadwoodVolumeM3":9.871676445007324,"deadwoodHabitatValue":4.884040355682373,"meanDeadwoodDecayClass":0.4324324429035187,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1308,"basalAreaM2PerHa":68.71722412109375,"regenerationCells":168,"regenerationDensity":26.562437057495117,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=14 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 14/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1289/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9504709/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 174/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 15.3028059/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":14,"livingTrees":1289,"basalAreaM2PerHa":70.31465148925781,"meanDbhCm":20.8436336517334,"dbhCoefficientOfVariation":0.1521255373954773,"cellCount":256,"meanLight":0.04952910542488098,"meanCanopy":0.9504709243774414,"occupiedRegenerationCells":174,"meanSharedRegenerationOccupancy":0.07088173180818558,"totalRecentOpening":0.0,"meanMosses":0.7729849219322205,"meanFerns":0.026901736855506897,"meanGrasses":0.00923788920044899,"meanForbs":0.009742519818246365,"meanShrubs":0.008807152509689331,"meanFungi":0.683384358882904,"deadwoodCount":58,"deadwoodVolumeM3":15.30280590057373,"deadwoodHabitatValue":7.216066360473633,"meanDeadwoodDecayClass":0.37931033968925476,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1289,"basalAreaM2PerHa":70.31465148925781,"regenerationCells":174,"regenerationDensity":27.218582153320313,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=15 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 15/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1258/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9477222/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 188/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 23.6861668/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":15,"livingTrees":1258,"basalAreaM2PerHa":71.3863296508789,"meanDbhCm":21.263286590576172,"dbhCoefficientOfVariation":0.15078294277191162,"cellCount":256,"meanLight":0.0522778294980526,"meanCanopy":0.9477221965789795,"occupiedRegenerationCells":188,"meanSharedRegenerationOccupancy":0.07703325152397156,"totalRecentOpening":0.0,"meanMosses":0.7673600316047668,"meanFerns":0.030284328386187553,"meanGrasses":0.008408998139202595,"meanForbs":0.009448160417377949,"meanShrubs":0.007699334062635899,"meanFungi":0.6825296878814697,"deadwoodCount":90,"deadwoodVolumeM3":23.686166763305664,"deadwoodHabitatValue":11.541050910949707,"meanDeadwoodDecayClass":0.41111111640930176,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1258,"basalAreaM2PerHa":71.3863296508789,"regenerationCells":188,"regenerationDensity":29.580772399902344,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=16 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 16/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1234/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9444426/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 191/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 31.212595/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":16,"livingTrees":1234,"basalAreaM2PerHa":72.6529769897461,"meanDbhCm":21.6569881439209,"dbhCoefficientOfVariation":0.15132060647010803,"cellCount":256,"meanLight":0.055557649582624435,"meanCanopy":0.9444425702095032,"occupiedRegenerationCells":191,"meanSharedRegenerationOccupancy":0.0827006995677948,"totalRecentOpening":0.0,"meanMosses":0.7610076069831848,"meanFerns":0.035073667764663696,"meanGrasses":0.0076126535423099995,"meanForbs":0.009125270880758762,"meanShrubs":0.0067643760703504086,"meanFungi":0.6815363764762878,"deadwoodCount":115,"deadwoodVolumeM3":31.212594985961914,"deadwoodHabitatValue":16.122875213623047,"meanDeadwoodDecayClass":0.52173912525177,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1234,"basalAreaM2PerHa":72.6529769897461,"regenerationCells":191,"regenerationDensity":31.75707244873047,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=17 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 17/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1190/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.938234746/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 202/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 47.6034851/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":17,"livingTrees":1190,"basalAreaM2PerHa":72.57352447509766,"meanDbhCm":22.032033920288086,"dbhCoefficientOfVariation":0.15425248444080353,"cellCount":256,"meanLight":0.06176530197262764,"meanCanopy":0.9382347464561462,"occupiedRegenerationCells":202,"meanSharedRegenerationOccupancy":0.08724698424339294,"totalRecentOpening":0.0,"meanMosses":0.7515097260475159,"meanFerns":0.042121771723032,"meanGrasses":0.0070432620123028755,"meanForbs":0.00903775729238987,"meanShrubs":0.005840227007865906,"meanFungi":0.6799940466880798,"deadwoodCount":162,"deadwoodVolumeM3":47.603485107421875,"deadwoodHabitatValue":24.615678787231445,"meanDeadwoodDecayClass":0.5679012537002563,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1190,"basalAreaM2PerHa":72.57352447509766,"regenerationCells":202,"regenerationDensity":33.502838134765625,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=18 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 18/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1170/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.935031056/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 210/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 54.09081/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":18,"livingTrees":1170,"basalAreaM2PerHa":74.02532958984375,"meanDbhCm":22.454425811767578,"dbhCoefficientOfVariation":0.15013951063156128,"cellCount":256,"meanLight":0.06496889144182205,"meanCanopy":0.9350310564041138,"occupiedRegenerationCells":210,"meanSharedRegenerationOccupancy":0.10029857605695724,"totalRecentOpening":0.0,"meanMosses":0.7442649602890015,"meanFerns":0.047624729573726654,"meanGrasses":0.007084849756211042,"meanForbs":0.009251094423234463,"meanShrubs":0.005636928603053093,"meanFungi":0.6786656379699707,"deadwoodCount":183,"deadwoodVolumeM3":54.0908088684082,"deadwoodHabitatValue":29.49109649658203,"meanDeadwoodDecayClass":0.6502732038497925,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1170,"basalAreaM2PerHa":74.02532958984375,"regenerationCells":210,"regenerationDensity":38.51467514038086,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=19 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 19/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1146/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9336784/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 210/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 63.9885025/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":19,"livingTrees":1146,"basalAreaM2PerHa":74.97381591796875,"meanDbhCm":22.82621192932129,"dbhCoefficientOfVariation":0.1522122174501419,"cellCount":256,"meanLight":0.06632155925035477,"meanCanopy":0.933678388595581,"occupiedRegenerationCells":210,"meanSharedRegenerationOccupancy":0.1081370934844017,"totalRecentOpening":0.0,"meanMosses":0.7383946776390076,"meanFerns":0.05265919864177704,"meanGrasses":0.00683406600728631,"meanForbs":0.00936177559196949,"meanShrubs":0.005040964111685753,"meanFungi":0.6776981949806213,"deadwoodCount":209,"deadwoodVolumeM3":63.988502502441406,"deadwoodHabitatValue":39.09275436401367,"meanDeadwoodDecayClass":0.8516746163368225,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1146,"basalAreaM2PerHa":74.97381591796875,"regenerationCells":210,"regenerationDensity":41.524658203125,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=20 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 20/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1116/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9324676/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 214/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 74.47756/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":20,"livingTrees":1116,"basalAreaM2PerHa":75.7351303100586,"meanDbhCm":23.244327545166016,"dbhCoefficientOfVariation":0.15330801904201508,"cellCount":256,"meanLight":0.06753236055374146,"meanCanopy":0.9324675798416138,"occupiedRegenerationCells":214,"meanSharedRegenerationOccupancy":0.11694850772619247,"totalRecentOpening":0.0,"meanMosses":0.7333160042762756,"meanFerns":0.057798586785793304,"meanGrasses":0.006252235732972622,"meanForbs":0.008932654745876789,"meanShrubs":0.004278375767171383,"meanFungi":0.6769305467605591,"deadwoodCount":240,"deadwoodVolumeM3":74.4775619506836,"deadwoodHabitatValue":45.208099365234375,"meanDeadwoodDecayClass":0.8541666865348816,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1116,"basalAreaM2PerHa":75.7351303100586,"regenerationCells":214,"regenerationDensity":44.908241271972656,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=21 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 21/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1091/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9298248/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 218/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 84.43217/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":21,"livingTrees":1091,"basalAreaM2PerHa":76.62464141845703,"meanDbhCm":23.638748168945313,"dbhCoefficientOfVariation":0.15556275844573975,"cellCount":256,"meanLight":0.07017520815134048,"meanCanopy":0.9298248291015625,"occupiedRegenerationCells":218,"meanSharedRegenerationOccupancy":0.12600953876972198,"totalRecentOpening":0.0,"meanMosses":0.7275437116622925,"meanFerns":0.06352194398641586,"meanGrasses":0.00550459697842598,"meanForbs":0.00849499087780714,"meanShrubs":0.0035241555888205767,"meanFungi":0.6760718822479248,"deadwoodCount":267,"deadwoodVolumeM3":84.43216705322266,"deadwoodHabitatValue":52.944698333740234,"meanDeadwoodDecayClass":0.9213483333587646,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1091,"basalAreaM2PerHa":76.62464141845703,"regenerationCells":218,"regenerationDensity":48.3876838684082,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=22 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 22/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1064/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9238888/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 221/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 91.9883347/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":22,"livingTrees":1064,"basalAreaM2PerHa":77.72821807861328,"meanDbhCm":24.11825180053711,"dbhCoefficientOfVariation":0.15289077162742615,"cellCount":256,"meanLight":0.07611120492219925,"meanCanopy":0.9238888025283813,"occupiedRegenerationCells":221,"meanSharedRegenerationOccupancy":0.13824857771396637,"totalRecentOpening":0.0,"meanMosses":0.7203136682510376,"meanFerns":0.06990305334329605,"meanGrasses":0.005667892750352621,"meanForbs":0.008824602700769901,"meanShrubs":0.0037520683836191893,"meanFungi":0.6747220158576965,"deadwoodCount":296,"deadwoodVolumeM3":91.98833465576172,"deadwoodHabitatValue":60.32052230834961,"meanDeadwoodDecayClass":1.0067567825317383,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1064,"basalAreaM2PerHa":77.72821807861328,"regenerationCells":221,"regenerationDensity":53.08742141723633,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=23 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 23/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 1029/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9208562/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 227/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 102.986481/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":23,"livingTrees":1029,"basalAreaM2PerHa":78.2791748046875,"meanDbhCm":24.619272232055664,"dbhCoefficientOfVariation":0.15084032714366913,"cellCount":256,"meanLight":0.07914385944604874,"meanCanopy":0.9208561778068542,"occupiedRegenerationCells":227,"meanSharedRegenerationOccupancy":0.15062455832958221,"totalRecentOpening":0.0,"meanMosses":0.7133277654647827,"meanFerns":0.07722615450620651,"meanGrasses":0.005525055807083845,"meanForbs":0.008576584048569202,"meanShrubs":0.0039042066782712936,"meanFungi":0.673464298248291,"deadwoodCount":332,"deadwoodVolumeM3":102.98648071289063,"deadwoodHabitatValue":69.41922760009766,"meanDeadwoodDecayClass":1.075301170349121,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":1029,"basalAreaM2PerHa":78.2791748046875,"regenerationCells":227,"regenerationDensity":57.8398323059082,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=24 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 24/25 False
+MINIMAL_OBJECTIVE annual retained-canopy 983/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.9113246/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 229/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 121.920418/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 0/1 False
+MINIMAL_OBJECTIVE annual introduced-beech 0/1 False
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT annual {"year":24,"livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"meanDbhCm":25.1158504486084,"dbhCoefficientOfVariation":0.147589311003685,"cellCount":256,"meanLight":0.08867528289556503,"meanCanopy":0.9113246202468872,"occupiedRegenerationCells":229,"meanSharedRegenerationOccupancy":0.15943844616413116,"totalRecentOpening":0.0,"meanMosses":0.7035089731216431,"meanFerns":0.08300703018903732,"meanGrasses":0.006871131714433432,"meanForbs":0.010173795744776726,"meanShrubs":0.004779159557074308,"meanFungi":0.6713192462921143,"deadwoodCount":380,"deadwoodVolumeM3":121.92041778564453,"deadwoodHabitatValue":80.3040542602539,"meanDeadwoodDecayClass":1.0815789699554443,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"regenerationCells":229,"regenerationDensity":61.2243766784668,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_STATE marked-pending year=24 outcome=Active cash=1200000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE marked-pending minimum-year 24/25 False
+MINIMAL_OBJECTIVE marked-pending retained-canopy 983/240 True
+MINIMAL_OBJECTIVE marked-pending continuous-canopy 0.9113246/0.35 True
+MINIMAL_OBJECTIVE marked-pending regeneration 229/12 True
+MINIMAL_OBJECTIVE marked-pending fallen-deadwood 121.920418/0.08 True
+MINIMAL_OBJECTIVE marked-pending managed-opening 0/1 False
+MINIMAL_OBJECTIVE marked-pending introduced-beech 0/1 False
+MINIMAL_OBJECTIVE marked-pending introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT marked-pending {"year":24,"livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"meanDbhCm":25.1158504486084,"dbhCoefficientOfVariation":0.147589311003685,"cellCount":256,"meanLight":0.08867528289556503,"meanCanopy":0.9113246202468872,"occupiedRegenerationCells":229,"meanSharedRegenerationOccupancy":0.15943844616413116,"totalRecentOpening":0.0,"meanMosses":0.7035089731216431,"meanFerns":0.08300703018903732,"meanGrasses":0.006871131714433432,"meanForbs":0.010173795744776726,"meanShrubs":0.004779159557074308,"meanFungi":0.6713192462921143,"deadwoodCount":380,"deadwoodVolumeM3":121.92041778564453,"deadwoodHabitatValue":80.3040542602539,"meanDeadwoodDecayClass":1.0815789699554443,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"regenerationCells":229,"regenerationDensity":61.2243766784668,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True buy exactly one sessile-oak-sapling
+MINIMAL_PLANT sessile-oak-sapling (11.00, 0.00, -19.00)
+MINIMAL_CHECK True buy exactly one beech-sapling
+MINIMAL_PLANT beech-sapling (11.00, 0.00, -17.50)
+MINIMAL_STATE planted-pending year=24 outcome=Active cash=1199000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE planted-pending minimum-year 24/25 False
+MINIMAL_OBJECTIVE planted-pending retained-canopy 983/240 True
+MINIMAL_OBJECTIVE planted-pending continuous-canopy 0.9113246/0.35 True
+MINIMAL_OBJECTIVE planted-pending regeneration 229/12 True
+MINIMAL_OBJECTIVE planted-pending fallen-deadwood 121.920418/0.08 True
+MINIMAL_OBJECTIVE planted-pending managed-opening 0/1 False
+MINIMAL_OBJECTIVE planted-pending introduced-beech 0/1 False
+MINIMAL_OBJECTIVE planted-pending introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT planted-pending {"year":24,"livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"meanDbhCm":25.1158504486084,"dbhCoefficientOfVariation":0.147589311003685,"cellCount":256,"meanLight":0.08867528289556503,"meanCanopy":0.9113246202468872,"occupiedRegenerationCells":229,"meanSharedRegenerationOccupancy":0.15943844616413116,"totalRecentOpening":0.0,"meanMosses":0.7035089731216431,"meanFerns":0.08300703018903732,"meanGrasses":0.006871131714433432,"meanForbs":0.010173795744776726,"meanShrubs":0.004779159557074308,"meanFungi":0.6713192462921143,"deadwoodCount":380,"deadwoodVolumeM3":121.92041778564453,"deadwoodHabitatValue":80.3040542602539,"meanDeadwoodDecayClass":1.0815789699554443,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"regenerationCells":229,"regenerationDensity":61.2243766784668,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True approve one combined plan
+MINIMAL_STATE approved-unresolved year=24 outcome=Active cash=1199000 interventions=0 acknowledgements=1
+MINIMAL_OBJECTIVE approved-unresolved minimum-year 24/25 False
+MINIMAL_OBJECTIVE approved-unresolved retained-canopy 983/240 True
+MINIMAL_OBJECTIVE approved-unresolved continuous-canopy 0.9113246/0.35 True
+MINIMAL_OBJECTIVE approved-unresolved regeneration 229/12 True
+MINIMAL_OBJECTIVE approved-unresolved fallen-deadwood 121.920418/0.08 True
+MINIMAL_OBJECTIVE approved-unresolved managed-opening 0/1 False
+MINIMAL_OBJECTIVE approved-unresolved introduced-beech 0/1 False
+MINIMAL_OBJECTIVE approved-unresolved introduced-sessile-oak 0/1 False
+MINIMAL_SNAPSHOT approved-unresolved {"year":24,"livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"meanDbhCm":25.1158504486084,"dbhCoefficientOfVariation":0.147589311003685,"cellCount":256,"meanLight":0.08867528289556503,"meanCanopy":0.9113246202468872,"occupiedRegenerationCells":229,"meanSharedRegenerationOccupancy":0.15943844616413116,"totalRecentOpening":0.0,"meanMosses":0.7035089731216431,"meanFerns":0.08300703018903732,"meanGrasses":0.006871131714433432,"meanForbs":0.010173795744776726,"meanShrubs":0.004779159557074308,"meanFungi":0.6713192462921143,"deadwoodCount":380,"deadwoodVolumeM3":121.92041778564453,"deadwoodHabitatValue":80.3040542602539,"meanDeadwoodDecayClass":1.0815789699554443,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":0},{"speciesId":"sitka-spruce","livingTrees":983,"basalAreaM2PerHa":77.75309753417969,"regenerationCells":229,"regenerationDensity":61.2243766784668,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=25 outcome=Completed cash=948000 interventions=1 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 25/25 True
+MINIMAL_OBJECTIVE annual retained-canopy 938/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.902876139/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 231/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 140.733185/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 1/1 True
+MINIMAL_OBJECTIVE annual introduced-beech 1/1 True
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT annual {"year":25,"livingTrees":938,"basalAreaM2PerHa":77.2138671875,"meanDbhCm":25.630578994750977,"dbhCoefficientOfVariation":0.14524014294147491,"cellCount":256,"meanLight":0.09712376445531845,"meanCanopy":0.9028761386871338,"occupiedRegenerationCells":231,"meanSharedRegenerationOccupancy":0.17625316977500916,"totalRecentOpening":0.7937005162239075,"meanMosses":0.6908740401268005,"meanFerns":0.09454727917909622,"meanGrasses":0.007782784756273031,"meanForbs":0.011006081476807594,"meanShrubs":0.00551203778013587,"meanFungi":0.6687805652618408,"deadwoodCount":426,"deadwoodVolumeM3":140.73318481445313,"deadwoodHabitatValue":94.34416198730469,"meanDeadwoodDecayClass":1.1643192768096924,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":938,"basalAreaM2PerHa":77.2138671875,"regenerationCells":231,"regenerationDensity":67.68121337890625,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_STATE candidate-completion year=25 outcome=Completed cash=948000 interventions=1 acknowledgements=1
+MINIMAL_OBJECTIVE candidate-completion minimum-year 25/25 True
+MINIMAL_OBJECTIVE candidate-completion retained-canopy 938/240 True
+MINIMAL_OBJECTIVE candidate-completion continuous-canopy 0.902876139/0.35 True
+MINIMAL_OBJECTIVE candidate-completion regeneration 231/12 True
+MINIMAL_OBJECTIVE candidate-completion fallen-deadwood 140.733185/0.08 True
+MINIMAL_OBJECTIVE candidate-completion managed-opening 1/1 True
+MINIMAL_OBJECTIVE candidate-completion introduced-beech 1/1 True
+MINIMAL_OBJECTIVE candidate-completion introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT candidate-completion {"year":25,"livingTrees":938,"basalAreaM2PerHa":77.2138671875,"meanDbhCm":25.630578994750977,"dbhCoefficientOfVariation":0.14524014294147491,"cellCount":256,"meanLight":0.09712376445531845,"meanCanopy":0.9028761386871338,"occupiedRegenerationCells":231,"meanSharedRegenerationOccupancy":0.17625316977500916,"totalRecentOpening":0.7937005162239075,"meanMosses":0.6908740401268005,"meanFerns":0.09454727917909622,"meanGrasses":0.007782784756273031,"meanForbs":0.011006081476807594,"meanShrubs":0.00551203778013587,"meanFungi":0.6687805652618408,"deadwoodCount":426,"deadwoodVolumeM3":140.73318481445313,"deadwoodHabitatValue":94.34416198730469,"meanDeadwoodDecayClass":1.1643192768096924,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":938,"basalAreaM2PerHa":77.2138671875,"regenerationCells":231,"regenerationDensity":67.68121337890625,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_COMPLETION year=25 plans=1 felled=1 planted=2 pruned=0 cost=251000 revenue=0 startingCash=1200000 closingCash=948000 otherDeaths=425
+MINIMAL_SUMMARY The Scenario One objectives were met in year 25.
+MINIMAL_SUMMARY You carried out 1 intervention:
+MINIMAL_SUMMARY   Intervention 1 · year 25: 1 felled · 2 planted (1 beech, 1 sessile-oak; 2 sheltered)
+MINIMAL_SUMMARY Stand, start → year 25: living trees 1344 → 938 · basal area 40.5 → 77.2 m²/ha · canopy 0.99 → 0.90 · regenerating cells 0 → 231 · fallen deadwood 0.0 → 140.7 m³.
+MINIMAL_SUMMARY Living trees at completion: 938 sitka-spruce.
+MINIMAL_SUMMARY Money: cash 12000.00 → 9480.00 · timber income 0.00 · work and materials 2510.00 · lowest cash 9480.00.
+MINIMAL_SUMMARY 425 tree deaths not caused by felling were recorded (self-thinning, windthrow or other biological death).
+MINIMAL_SUMMARY This describes the forest and your decisions at the year the objectives were met. It is not a score. The Century Review (year 100) is separate and you can keep managing toward it.
+MINIMAL_CHECK True normal disk save validates
+MINIMAL_CHECK True normal disk load preserves history and outcome year25
+MINIMAL_CHECK True normal disk load preserves world year25
+MINIMAL_CHECK True second intervention approval
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=26 outcome=Completed cash=698000 interventions=2 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 26/25 True
+MINIMAL_OBJECTIVE annual retained-canopy 907/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.8959432/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 232/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 153.502319/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 1/1 True
+MINIMAL_OBJECTIVE annual introduced-beech 1/1 True
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT annual {"year":26,"livingTrees":907,"basalAreaM2PerHa":77.49140930175781,"meanDbhCm":26.115455627441406,"dbhCoefficientOfVariation":0.14422394335269928,"cellCount":256,"meanLight":0.10405682027339935,"meanCanopy":0.8959432244300842,"occupiedRegenerationCells":232,"meanSharedRegenerationOccupancy":0.19375795125961304,"totalRecentOpening":1.4236609935760498,"meanMosses":0.6794362664222717,"meanFerns":0.10351897776126862,"meanGrasses":0.00941561907529831,"meanForbs":0.012860352173447609,"meanShrubs":0.006856204010546207,"meanFungi":0.6662663221359253,"deadwoodCount":459,"deadwoodVolumeM3":153.5023193359375,"deadwoodHabitatValue":106.57445526123047,"meanDeadwoodDecayClass":1.2309367656707764,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":907,"basalAreaM2PerHa":77.49140930175781,"regenerationCells":232,"regenerationDensity":74.403076171875,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True second intervention resolves
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=27 outcome=Completed cash=698000 interventions=2 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 27/25 True
+MINIMAL_OBJECTIVE annual retained-canopy 875/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.893191159/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 233/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 168.318222/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 1/1 True
+MINIMAL_OBJECTIVE annual introduced-beech 1/1 True
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT annual {"year":27,"livingTrees":875,"basalAreaM2PerHa":77.47512817382813,"meanDbhCm":26.579111099243164,"dbhCoefficientOfVariation":0.14602512121200562,"cellCount":256,"meanLight":0.1068090945482254,"meanCanopy":0.8931911587715149,"occupiedRegenerationCells":233,"meanSharedRegenerationOccupancy":0.20692962408065796,"totalRecentOpening":1.1299604177474976,"meanMosses":0.669276237487793,"meanFerns":0.11242371052503586,"meanGrasses":0.009812282398343086,"meanForbs":0.013995882123708725,"meanShrubs":0.0065651084296405315,"meanFungi":0.6643961071968079,"deadwoodCount":494,"deadwoodVolumeM3":168.31822204589844,"deadwoodHabitatValue":120.26658630371094,"meanDeadwoodDecayClass":1.2935222387313843,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":875,"basalAreaM2PerHa":77.47512817382813,"regenerationCells":233,"regenerationDensity":79.46101379394531,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=28 outcome=Completed cash=698000 interventions=2 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 28/25 True
+MINIMAL_OBJECTIVE annual retained-canopy 841/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.8874526/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 233/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 186.943054/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 1/1 True
+MINIMAL_OBJECTIVE annual introduced-beech 1/1 True
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT annual {"year":28,"livingTrees":841,"basalAreaM2PerHa":76.93699645996094,"meanDbhCm":26.987754821777344,"dbhCoefficientOfVariation":0.15335606038570404,"cellCount":256,"meanLight":0.11254735291004181,"meanCanopy":0.8874526023864746,"occupiedRegenerationCells":233,"meanSharedRegenerationOccupancy":0.22622549533843994,"totalRecentOpening":0.8968501687049866,"meanMosses":0.6581401228904724,"meanFerns":0.1224503219127655,"meanGrasses":0.009664682671427727,"meanForbs":0.014729524031281471,"meanShrubs":0.0059148939326405525,"meanFungi":0.6623844504356384,"deadwoodCount":532,"deadwoodVolumeM3":186.94305419921875,"deadwoodHabitatValue":133.36280822753906,"meanDeadwoodDecayClass":1.3439849615097046,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":841,"basalAreaM2PerHa":76.93699645996094,"regenerationCells":233,"regenerationDensity":86.87066650390625,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True pending order survives two years and is surfaced stale
+MINIMAL_CHECK True third intervention approval of stale order
+MINIMAL_CHECK True normal UI annual advance
+MINIMAL_STATE annual year=29 outcome=Completed cash=448000 interventions=3 acknowledgements=1
+MINIMAL_OBJECTIVE annual minimum-year 29/25 True
+MINIMAL_OBJECTIVE annual retained-canopy 814/240 True
+MINIMAL_OBJECTIVE annual continuous-canopy 0.884351/0.35 True
+MINIMAL_OBJECTIVE annual regeneration 234/12 True
+MINIMAL_OBJECTIVE annual fallen-deadwood 201.500961/0.08 True
+MINIMAL_OBJECTIVE annual managed-opening 1/1 True
+MINIMAL_OBJECTIVE annual introduced-beech 1/1 True
+MINIMAL_OBJECTIVE annual introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT annual {"year":29,"livingTrees":814,"basalAreaM2PerHa":76.9321060180664,"meanDbhCm":27.419736862182617,"dbhCoefficientOfVariation":0.1560325175523758,"cellCount":256,"meanLight":0.11564898490905762,"meanCanopy":0.8843510150909424,"occupiedRegenerationCells":234,"meanSharedRegenerationOccupancy":0.24643127620220184,"totalRecentOpening":1.5055309534072876,"meanMosses":0.6496508121490479,"meanFerns":0.1304774284362793,"meanGrasses":0.010334028862416744,"meanForbs":0.015832629054784775,"meanShrubs":0.005974870175123215,"meanFungi":0.6607607007026672,"deadwoodCount":561,"deadwoodVolumeM3":201.50096130371094,"deadwoodHabitatValue":145.6387481689453,"meanDeadwoodDecayClass":1.3957219123840332,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":814,"basalAreaM2PerHa":76.9321060180664,"regenerationCells":234,"regenerationDensity":94.62965393066406,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True third intervention resolves
+MINIMAL_STATE repeated-capability year=29 outcome=Completed cash=448000 interventions=3 acknowledgements=1
+MINIMAL_OBJECTIVE repeated-capability minimum-year 29/25 True
+MINIMAL_OBJECTIVE repeated-capability retained-canopy 814/240 True
+MINIMAL_OBJECTIVE repeated-capability continuous-canopy 0.884351/0.35 True
+MINIMAL_OBJECTIVE repeated-capability regeneration 234/12 True
+MINIMAL_OBJECTIVE repeated-capability fallen-deadwood 201.500961/0.08 True
+MINIMAL_OBJECTIVE repeated-capability managed-opening 1/1 True
+MINIMAL_OBJECTIVE repeated-capability introduced-beech 1/1 True
+MINIMAL_OBJECTIVE repeated-capability introduced-sessile-oak 1/1 True
+MINIMAL_SNAPSHOT repeated-capability {"year":29,"livingTrees":814,"basalAreaM2PerHa":76.9321060180664,"meanDbhCm":27.419736862182617,"dbhCoefficientOfVariation":0.1560325175523758,"cellCount":256,"meanLight":0.11564898490905762,"meanCanopy":0.8843510150909424,"occupiedRegenerationCells":234,"meanSharedRegenerationOccupancy":0.24643127620220184,"totalRecentOpening":1.5055309534072876,"meanMosses":0.6496508121490479,"meanFerns":0.1304774284362793,"meanGrasses":0.010334028862416744,"meanForbs":0.015832629054784775,"meanShrubs":0.005974870175123215,"meanFungi":0.6607607007026672,"deadwoodCount":561,"deadwoodVolumeM3":201.50096130371094,"deadwoodHabitatValue":145.6387481689453,"meanDeadwoodDecayClass":1.3957219123840332,"species":[{"speciesId":"beech","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sessile-oak","livingTrees":0,"basalAreaM2PerHa":0.0,"regenerationCells":0,"regenerationDensity":0.0,"plantedRegenerationCells":0,"plantedJuveniles":1},{"speciesId":"sitka-spruce","livingTrees":814,"basalAreaM2PerHa":76.9321060180664,"regenerationCells":234,"regenerationDensity":94.62965393066406,"plantedRegenerationCells":0,"plantedJuveniles":0}]}
+MINIMAL_CHECK True normal disk save validates
+MINIMAL_CHECK True normal disk load preserves history and outcome after-third
+MINIMAL_CHECK True normal disk load preserves world after-third
+MINIMAL_AUDIT_PASS
