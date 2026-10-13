@@ -7,7 +7,8 @@ public sealed partial class MenuHelpView
     public const string PreferencePrefix = "CCF.MenuHelp.v1.";
     private readonly ScenarioOneUiRoot ui;
     private readonly Label title, body;
-    private readonly Button close;
+    private readonly ScrollView scroll;
+    private readonly Button close, more;
     public VisualElement Root { get; }
     public bool IsOpen { get; private set; }
     public Menu CurrentMenu { get; private set; }
@@ -23,33 +24,49 @@ public sealed partial class MenuHelpView
         panel.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         Root.Add(panel);
         title = UiKit.Add(panel, "", "title");
-        var scroll = new ScrollView(ScrollViewMode.Vertical);
+        scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.style.flexShrink = 1;
         body = UiKit.Add(scroll, "", "body");
         body.name = "menu-help-text";
         panel.Add(scroll);
-        UiKit.Add(panel, "Revisit this explanation with Help or F1. Introductions appear only once on this device.", "muted");
+        UiKit.Add(panel, "Help [F1] reopens the full explanation of any screen. First-use introductions appear only once on this device.", "muted");
+        VisualElement buttons = UiKit.Box("row");
+        more = UiKit.Button("More detail", ShowDetail);
+        more.name = "menu-help-more";
+        buttons.Add(more);
         close = UiKit.Button("", () => ui.CloseHelp(), true, "btn-primary");
         close.name = "menu-help-close";
-        panel.Add(close);
+        close.style.flexGrow = 1;
+        buttons.Add(close);
+        panel.Add(buttons);
     }
 
     public static bool Introduced(Menu menu) => PlayerPrefs.GetInt(PreferencePrefix + menu, 0) == 1;
 
+    // First use of a screen: the short text where the screen has one.
     public void Introduce(Menu menu)
     {
-        if (!IsOpen && !Introduced(menu)) Show(menu);
+        if (!IsOpen && !Introduced(menu)) Display(menu, true);
     }
 
-    public void Show(Menu menu)
+    // F1 and the Help buttons: always the full explanation.
+    public void Show(Menu menu) => Display(menu, false);
+
+    private void Display(Menu menu, bool brief)
     {
         CurrentMenu = menu;
         IsOpen = true;
-        title.text = Title(menu);
-        body.text = Explanation(menu);
+        string summary = brief ? Summary(menu) : null;
+        title.text = summary != null ? SummaryTitle(menu) : Title(menu);
+        body.text = summary ?? Explanation(menu);
+        more.style.display = summary != null ? DisplayStyle.Flex : DisplayStyle.None;
+        scroll.scrollOffset = Vector2.zero;
         close.text = menu == Menu.AnnualReview ? "Read the results [Esc]" : "Continue [Esc]";
         Root.style.display = DisplayStyle.Flex;
     }
+
+    // Swaps the short first-use text for the full explanation without closing the screen.
+    private void ShowDetail() => Display(CurrentMenu, false);
 
     public void Close()
     {
