@@ -1,0 +1,62 @@
+UXQ_MEASURE START geometry=1 growthModel=1 year=0 screen=1280x720 sizes=(1280, 720)
+UXQ_PASS ROLE_FRESH_PLAYER_SEES_THE_WALKING_HUD_INTRODUCTION open=True menu=WalkingHud
+UXQ_PASS ROLE_TITLE_APPEARS_ONCE occurrences=1
+UXQ_MEASURE ROLE_BODY_WORDS words=101 (the patch states about 101)
+UXQ_PASS ROLE_PANEL_HAS_MORE_DETAIL_BUTTON button 'More detail' / menu-help-more
+UXQ_MEASURE TEXT_SIZE 01-role-first-use,1280x720,scale=0.800,texts=16,minPx=11.2,medianPx=12.0,under10px=0,under12px=5,outsideViewportNotScrolled=0
+UXQ_PASS ROLE_MORE_DETAIL_OPENS_THE_FULL_HELP words=342 hasKeysLine=True
+UXQ_MEASURE TEXT_SIZE 02-full-help-more-detail,1280x720,scale=0.800,texts=15,minPx=11.2,medianPx=12.0,under10px=0,under12px=4,outsideViewportNotScrolled=0
+UXQ_PASS ROLE_CONTINUE_CLOSES_AND_DOES_NOT_REOPEN open=False
+UXQ_PASS ROLE_PANEL_DOES_NOT_REOPEN_ON_ITS_OWN open=False playerEnabled=True
+UXQ_PASS ROLE_F1_REOPENS_THE_FULL_HELP open=True
+UXQ_PASS ROLE_ESC_CLOSES_HELP 
+UXQ_MEASURE CUE after=[fresh] cue=[Next lesson: Inspect a living tree · [O] Objectives]
+UXQ_PASS CUE_STARTS_WITH_INSPECT_A_LIVING_TREE Next lesson: Inspect a living tree · [O] Objectives
+UXQ_PASS LEARNING_STEP_IDS_ARE_42 count=42 sortedIdHash=8B92F8EF667532ED
+UXQ_PASS FIRST_CYCLE_CAN_AIM_AT_A_TREE P0000
+UXQ_PASS E_INSPECTS_THE_AIMED_TREE inspecting=True
+UXQ_PASS TREE_INSPECTION_FIRST_USE_SCREEN_OPENS_ONCE open=True menu=TreeInspection
+UXQ_MEASURE TREE_INSPECTION_FIRST_USE_WORDS words=65 (the patch states 65)
+UXQ_MEASURE TEXT_SIZE 03-tree-inspection-first-use,1280x720,scale=0.800,texts=48,minPx=10.4,medianPx=12.0,under10px=0,under12px=6,outsideViewportNotScrolled=0
+UXQ_MEASURE TEXT_SIZE 04-tree-inspection-card,1280x720,scale=0.800,texts=44,minPx=10.4,medianPx=12.0,under10px=0,under12px=4,outsideViewportNotScrolled=0
+UXQ_MEASURE CUE after=[inspected a tree] cue=[Next lesson: Designate a Crop Tree · [O] Objectives]
+UXQ_PASS C_MARKS_A_CROP_TREE cropTrees=1
+UXQ_MEASURE CUE after=[pressed C] cue=[Next lesson: Designate a Crop Tree · [O] Objectives]
+UXQ_PASS X_MARKS_THE_AIMED_TREE_FOR_FELLING P0001
+UXQ_MEASURE CUE after=[pressed X] cue=[Next lesson: Import the Fell mark into the Work Plan · [O] Objectives]
+UXQ_PASS TAB_OPENS_THE_WORK_PLAN panel=True playerEnabled=False
+UXQ_PASS WORK_PLAN_FIRST_USE_SCREEN_OPENS open=True menu=WorkPlan
+UXQ_MEASURE WORK_PLAN_FIRST_USE_WORDS words=50 (the patch states 50)
+UXQ_MEASURE TEXT_SIZE 05-work-plan-first-use,1280x720,scale=0.800,texts=105,minPx=10.4,medianPx=12.0,under10px=0,under12px=26,outsideViewportNotScrolled=0
+UXQ_MEASURE TEXT_SIZE 06-work-plan-pending,1280x720,scale=0.800,texts=100,minPx=10.4,medianPx=12.0,under10px=0,under12px=24,outsideViewportNotScrolled=0
+UXQ_MEASURE CUE after=[opened the Work Plan] cue=[Next lesson: Approve a felling job when ready · [O] Objectives]
+UXQ_PASS GUARD_ADVANCE_BUTTON_IS_AVAILABLE enabled=True
+UXQ_PASS GUARD_PENDING_ONLY_DOES_NOT_ADVANCE_AND_SHOWS_THE_CARD year=0 (was 0) cardVisible=True
+UXQ_PASS GUARD_CARD_SAYS_PLANNED_WORK_IS_NOT_APPROVED_AND_OFFERS_THREE_CHOICES You have planned work that has not been approved. / 1 planned task is still pending. Only approved work is carried out when you advance, so this year would pass with no work done. Go back and approve the plan if you want it carried out, or advance anyway if you mean to wait. / Back to the plan / Approve pending work / Advance anyway
+UXQ_MEASURE TEXT_SIZE 07-pending-work-warning-card,1280x720,scale=0.800,texts=105,minPx=10.4,medianPx=12.0,under10px=0,under12px=27,outsideViewportNotScrolled=0
+UXQ_PASS GUARD_BACK_TO_THE_PLAN_HIDES_THE_CARD_KEEPS_THE_ORDER_AND_THE_YEAR cardVisible=False year=0 pending=1
+UXQ_PASS GUARD_CARD_RETURNS_ON_A_SECOND_ADVANCE 
+UXQ_PASS GUARD_APPROVE_PENDING_WORK_NEEDS_THE_PLAYERS_CLICK_AND_THEN_APPROVES approved=1 year=0
+UXQ_MEASURE CUE after=[approved the plan] cue=[Next lesson: Review a successful felling result · [O] Objectives]
+UXQ_PASS ADVANCE_WITH_APPROVED_WORK_NEEDS_NO_QUESTION_AND_PASSES_THE_YEAR year=1
+UXQ_PASS FIRST_ANNUAL_REVIEW_OPENS_WITHOUT_A_HELP_MODAL screen=Review helpOpen=False seen=False
+UXQ_PASS ANNUAL_REVIEW_HAS_ITS_READING_GUIDANCE_INLINE_BESIDE_THE_ACKNOWLEDGEMENT prompt present=True
+UXQ_PASS ANNUAL_REVIEW_SHOWS_WORK_DONE_MONEY_FOREST_AND_THE_FIRST_INTERVENTION_PROMPT 
+UXQ_MEASURE TEXT_SIZE 08-annual-review-first,1280x720,scale=0.800,texts=69,minPx=11.2,medianPx=12.0,under10px=0,under12px=8,outsideViewportNotScrolled=0
+UXQ_PASS REVIEW_F1_OPENS_HELP_FOR_THE_REVIEW open=True menu=AnnualReview
+UXQ_MEASURE TEXT_SIZE 09-annual-review-help-f1,1280x720,scale=0.800,texts=73,minPx=11.2,medianPx=12.0,under10px=0,under12px=9,outsideViewportNotScrolled=0
+UXQ_PASS REVIEW_ESC_CLOSES_HELP_WITHOUT_CLOSING_THE_REVIEW helpOpen=False screen=Review seen=False
+UXQ_MEASURE CUE after=[first review open] cue=[Next lesson: Read and acknowledge the results · [O] Objectives]
+UXQ_PASS ACKNOWLEDGEMENT_IS_THE_ONE_HARD_GATE_AND_CLEARS_IT seen=True
+UXQ_MEASURE CUE after=[acknowledged the review] cue=[Next lesson: Open the map · [O] Objectives]
+UXQ_MEASURE TEXT_SIZE 10-hud-after-first-cycle,1280x720,scale=0.800,texts=11,minPx=11.2,medianPx=12.0,under10px=0,under12px=3,outsideViewportNotScrolled=0
+UXQ_PASS CUE_ORDER_FOLLOWS_INSPECT_CROP_FELL_PLAN_APPROVE_RESULT_REVIEW orderIndexes=[0,1,1,3,4,5,-1,7]
+UXQ_PASS CUE_IS_NOT_MAP_FIRST cues=Next lesson: Inspect a living tree · [O] Objectives || Next lesson: Designate a Crop Tree · [O] Objectives || Next lesson: Designate a Crop Tree · [O] Objectives || Next lesson: Import the Fell mark into the Work Plan · [O] Objectives || Next lesson: Approve a felling job when ready · [O] Objectives || Next lesson: Review a successful felling result · [O] Objectives || Next lesson: Read and acknowledge the results · [O] Objectives || Next lesson: Open the map ·
+UXQ_MEASURE PERF_CUE_GETTER calls=200000 totalMs=0.8 nsPerCall=4 monoHeapGrowthBytes=0 collections=0 lastValue=[Next lesson: Open the map · [O] Objectives]
+UXQ_PASS PERF_CUE_GETTER_DOES_NOT_ALLOCATE_PER_CALL 200000 calls grew the Mono heap by 0 bytes
+UXQ_MEASURE PERF_WORK_PLAN_SHOW_CPU opens=20 meanMs=33.57 maxMs=52.97 firstMs=42.37
+UXQ_MEASURE PERF_GUARD_CARD_CPU clicks=40 meanMs=25.68 maxMs=66.71 monoHeapGrowthBytes=2789376 year=1 (was 1)
+UXQ_PASS PERF_GUARD_CARD_REPEATED_USE_NEVER_ADVANCED_THE_YEAR year=1
+UXQ_MEASURE PERF_HELP_RESET_CPU cycles=10 meanMs=0.72 maxMs=1
+UX_QUAL_DONE shots=10 hardChecks=34
+UX_QUAL_DONE_MARKER
