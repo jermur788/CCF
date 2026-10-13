@@ -10,7 +10,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-// Disposable in-Editor gate for growth model 2 (species-aware mixed density, D-059/D-061).
+// Disposable in-Editor gate for growth model 2 density (D-059, D-061), reworked after the first
+// implementation was rejected for running Oak and Beech through the Sitka density equation.
 //
 // STATUS: written and type-checked in a code-only cloud session. NOT YET RUN IN UNITY.
 // Run it before treating growth model 2 as verified.
@@ -20,10 +21,15 @@ using UnityEditor.SceneManagement;
 // (use CCF_STAND_GEOMETRY=0 for the historical Legacy40 path, as the regression runners do),
 // then remove the copy and its .meta. Saves are captured/loaded in memory only.
 //
-// What it proves that the offline check (OfflineLogic/) cannot: the controller routes pure
-// Sitka to the untouched Sitka route and anything else to the species-aware route, the
-// species assets carry their classes, the save policy accepts model 2 and rejects 3, and
-// the lifecycle anchors are unchanged when model 2 runs a pure-Sitka stand.
+// What it proves that the offline check (OfflineLogic/) cannot, on the real controller:
+//   - ROUTE DIAGNOSTICS: every annual step records which route handled it (AdultMortalityAccount.Route).
+//     Pure Sitka under model 2 reports LegacySitkaExact; any Oak/Beech reports SpeciesAwareOccupancy.
+//   - PURE SITKA EXACT: model 2 equals model 1 year by year (route, relative density, pressure, hazard and
+//     boundary counts bit for bit, victim ids, tree-state hash) and reproduces the lifecycle anchors.
+//   - Pure Oak and pure Beech overcrowd, die from density pressure and are held at the capacity; the
+//     species-aware step never computes a Sitka relative density.
+//   - Mixed stands: occupancy follows the demand classes and equals the pure model's prediction from the
+//     real trees; replay is exact; below the onset nothing dies.
 public static class MixedDensityVerification
 {
 #if UNITY_EDITOR
@@ -57,6 +63,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
     private int passed;
 
     private static string F(double v, string f = "0.####") => v.ToString(f, Inv);
+    private static long Bits(double v) => BitConverter.DoubleToInt64Bits(v);
     private void Pass(string name, bool ok, string detail)
     {
         if (ok) passed++; else failures.Add(name + " " + detail);
@@ -94,26 +101,34 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         return e.LastAdultMortality;
     }
 
-    // Demand-weighted density of the living trees, computed with the production model.
-    private double WeightedRd(IEnumerable<ForestTree> trees)
+    private static string Describe(AdultMortalityAccount a)
+        => $"route={a.Route} occupancy={F(a.Occupancy)} sitkaRd={F(a.RelativeDensity)} pressure={F(a.DensityPressure)} hazard={a.HazardDeaths} boundary={a.BoundaryDeaths} deaths={a.Deaths}";
+
+    // The real living trees as the occupancy model sees them: class from the species asset, DBH, Hegyi index.
+    private List<DensityStem> StemsOfLiving()
     {
-        var stems = trees.Select(t => new DensityStem(t.TreeId, t.Species.SpeciesId, t.Species.GrowingSpaceDemand, t.Diameter, 0.0)).ToList();
-        return MixedDensityModel.RelativeDensity(stems, e.StandAreaHectares);
+        ForestTree first = Living().FirstOrDefault();
+        if (first != null) e.GetCompetitionIndex(first);
+        return Living().Select(t => new DensityStem(t.TreeId, t.Species.GrowingSpaceDemand, t.Diameter, e.GetCompetitionIndex(t))).ToList();
     }
 
-    private double SitkaRd(IEnumerable<ForestTree> trees)
+    private double OccupancyOfLiving() => MixedDensityModel.Occupancy(StemsOfLiving(), e.StandAreaHectares);
+
+    // The legacy relative density of the living trees, restated exactly as the controller's Sitka route computes it.
+    private double LegacyRdOfLiving()
     {
-        ForestTree[] a = trees.ToArray();
-        if (a.Length == 0) return 0;
-        double dq = Math.Sqrt(a.Average(t => (double)t.Diameter * t.Diameter));
-        return SitkaGrowthModel.RelativeDensity(a.Length / e.StandAreaHectares, dq);
+        ForestTree[] trees = Living();
+        if (trees.Length == 0) return 0.0;
+        double squaredDbhSum = 0.0;
+        foreach (ForestTree t in trees) squaredDbhSum += (double)t.Diameter * t.Diameter;
+        return SitkaGrowthModel.RelativeDensity(trees.Length / e.StandAreaHectares, Math.Sqrt(squaredDbhSum / trees.Length));
     }
 
-    // A regular grid of stems at the requested stems/ha over the current stand bounds.
     private float DbhOf(int k, float dbhMin, float spread) => dbhMin + ((k * 7919) % 100) / 100f * spread;
 
     private int StemCount(float stemsPerHectare) => Mathf.Max(1, Mathf.RoundToInt(stemsPerHectare * e.StandAreaHectares));
 
+    // A regular grid of stems over the current stand bounds.
     private void Stand(int growth, Func<int, TreeSpeciesDefinition> speciesOf, int count, float dbhMin, float spread)
     {
         foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -138,10 +153,11 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         e.RecomputeCanopy();
     }
 
-    private double PlannedWeightedRd(int n, Func<int, TreeSpeciesDefinition> speciesOf, float dbhMin, float spread)
+    // Occupancy the model predicts for a fixture BEFORE building it (the same ids, classes and sizes as Stand makes).
+    private double PlannedOccupancy(int n, Func<int, TreeSpeciesDefinition> speciesOf, float dbhMin, float spread)
     {
-        var stems = Enumerable.Range(0, n).Select(k => new DensityStem("T" + k.ToString("0000"), speciesOf(k).SpeciesId, speciesOf(k).GrowingSpaceDemand, DbhOf(k, dbhMin, spread), 0.0)).ToList();
-        return MixedDensityModel.RelativeDensity(stems, e.StandAreaHectares);
+        var stems = Enumerable.Range(0, n).Select(k => new DensityStem("T" + k.ToString("0000"), speciesOf(k).GrowingSpaceDemand, DbhOf(k, dbhMin, spread), 0.0)).ToList();
+        return MixedDensityModel.Occupancy(stems, e.StandAreaHectares);
     }
 
     // ---------- policy ----------
@@ -149,9 +165,10 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
     private IEnumerator Policy()
     {
         int newGame = ScenarioOneManager.NewGameGrowthModel;
-        Pass("POLICY_NEW_GAME_GROWTH", newGame == GrowthModel.SiteClassDensity || newGame == GrowthModel.SpeciesAware,
-            $"newGameGrowth={newGame} (1 until the Manager adopts model 2 for new games; 2 afterwards)");
+        Pass("POLICY_NEW_GAME_GROWTH_UNCHANGED", newGame == GrowthModel.SiteClassDensity,
+            $"newGameGrowth={newGame} (growth model 2 is NOT adopted; new games stay on model 1)");
         Pass("POLICY_VERSION_CONSTANTS", GrowthModel.SpeciesAware == 2 && GrowthModel.Latest == 2 && GrowthModel.Normalize(7) == 2, $"latest={GrowthModel.Latest}");
+        Pass("POLICY_SAVE_VERSION_UNCHANGED", ForestSaveData.CurrentVersion == 20, $"saveVersion={ForestSaveData.CurrentVersion}");
 
         ForestSaveData two = Clone(original); two.growthModel = GrowthModel.SpeciesAware;
         Check(saves.LoadData(two, false), "growth 2 load"); yield return null;
@@ -186,93 +203,165 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         Pass("SPECIES_CLASSES", sitka.GrowingSpaceDemand == GrowingSpaceDemandClass.Reference
             && beech.GrowingSpaceDemand == GrowingSpaceDemandClass.Intermediate && oak.GrowingSpaceDemand == GrowingSpaceDemandClass.High,
             $"sitka={sitka.GrowingSpaceDemand} beech={beech.GrowingSpaceDemand} oak={oak.GrowingSpaceDemand}");
+
+        // TEST E: at equal size a higher demand class takes more occupancy (pure function; no biological magnitude is asserted).
+        bool ordered = true;
+        foreach (float dbh in new[] { 6f, 15f, 30f, 55f, 90f })
+        {
+            double r = MixedDensityModel.StemOccupancyM2(new DensityStem("a", sitka.GrowingSpaceDemand, dbh, 1.0));
+            double m = MixedDensityModel.StemOccupancyM2(new DensityStem("a", beech.GrowingSpaceDemand, dbh, 1.0));
+            double h = MixedDensityModel.StemOccupancyM2(new DensityStem("a", oak.GrowingSpaceDemand, dbh, 1.0));
+            ordered &= r < m && m < h;
+        }
+        Pass("DEMAND_ORDER_ON_REAL_SPECIES_CLASSES", ordered, "Sitka < Beech < Oak at equal DBH");
         yield return null;
     }
 
-    // ---------- routing and exactness ----------
+    // ---------- TEST A: routing, call path and pure Sitka exactness ----------
 
-    private IEnumerator Routing()
+    private IEnumerator PureSitkaExact()
     {
-        // Pure Sitka under model 2 takes the Sitka route and behaves exactly as model 1, year by year.
-        var yearly = new Dictionary<int, List<int>> { [1] = new List<int>(), [2] = new List<int>() };
+        // Same stand, same seeds, same years, growth model 1 then growth model 2.
+        var years = new Dictionary<int, List<string>> { [1] = new List<string>(), [2] = new List<string>() };
+        var victims = new Dictionary<int, List<string>> { [1] = new List<string>(), [2] = new List<string>() };
         var finalHash = new Dictionary<int, string>();
-        bool everSpeciesAware = false;
+        int hazardYears = 0, boundaryYears = 0, totalDeaths = 0;
+        bool model2AlwaysLegacy = true, model2NeverOccupancy = true;
         foreach (int growth in new[] { 1, 2 })
         {
             Stand(growth, _ => sitka, StemCount(1200f), 24f, 10f);
             yield return null;
             for (int y = 0; y < 10; y++)
             {
+                HashSet<string> before = Living().Select(t => t.TreeId).ToHashSet();
                 e.AdvanceOneYear();
-                yearly[growth].Add(e.LastAdultMortality.Deaths);
-                if (growth == 2 && e.LastAdultMortality.SpeciesAwareRoute) everSpeciesAware = true;
+                AdultMortalityAccount a = e.LastAdultMortality;
+                years[growth].Add($"{a.Route}|{Bits(a.RelativeDensity):X16}|{Bits(a.DensityPressure):X16}|{Bits(a.StemsPerHectare):X16}|{Bits(a.QuadraticMeanDbhCm):X16}|{a.HazardDeaths}|{a.BoundaryDeaths}|{a.Deaths}|{a.LivingBefore}");
+                victims[growth].Add(string.Join(",", before.Except(Living().Select(t => t.TreeId)).OrderBy(id => id, StringComparer.Ordinal)));
+                if (growth == 2)
+                {
+                    model2AlwaysLegacy &= a.Route == DensityRoute.LegacySitkaExact;
+                    model2NeverOccupancy &= a.Route != DensityRoute.SpeciesAwareOccupancy && a.Occupancy == 0.0;
+                    if (a.HazardDeaths > 0) hazardYears++;
+                    if (a.BoundaryDeaths > 0) boundaryYears++;
+                    totalDeaths += a.Deaths;
+                }
                 yield return null;
             }
             finalHash[growth] = TreeStateHash();
         }
-        int totalDeaths = yearly[1].Sum();
-        Pass("PURE_SITKA_MODEL2_EQUALS_MODEL1", yearly[1].SequenceEqual(yearly[2]) && finalHash[1] == finalHash[2] && totalDeaths > 0 && !everSpeciesAware,
-            $"deathsPerYear={string.Join(",", yearly[1])} hash1={finalHash[1]} hash2={finalHash[2]} speciesAwareRouteUsed={everSpeciesAware}");
+        bool identical = years[1].SequenceEqual(years[2]) && victims[1].SequenceEqual(victims[2]) && finalHash[1] == finalHash[2];
+        Pass("PURE_SITKA_MODEL2_EXACTLY_EQUALS_MODEL1", identical && totalDeaths > 0 && hazardYears > 0,
+            $"yearsIdentical={years[1].SequenceEqual(years[2])} victimIdsIdentical={victims[1].SequenceEqual(victims[2])} hash1={finalHash[1]} hash2={finalHash[2]} deaths={totalDeaths} hazardYears={hazardYears} boundaryYears={boundaryYears}");
+        Pass("PURE_SITKA_MODEL2_CALLS_LEGACY_SITKA_ROUTE_ONLY", model2AlwaysLegacy && model2NeverOccupancy, $"alwaysLegacy={model2AlwaysLegacy} neverOccupancy={model2NeverOccupancy}");
 
-        // One Oak among Sitka switches the stand to the species-aware route; model 1 never does.
+        // Call path on the stand as built, both ways round.
+        Stand(2, _ => sitka, StemCount(900f), 24f, 10f);
+        double legacyRd = LegacyRdOfLiving();
+        AdultMortalityAccount pure = DensityStep();
+        Pass("CALL_PATH_PURE_SITKA_USES_SITKA_RELATIVE_DENSITY", pure.Route == DensityRoute.LegacySitkaExact && Math.Abs(pure.RelativeDensity - legacyRd) <= 1e-12 * Math.Max(1.0, legacyRd)
+            && pure.Occupancy == 0.0 && legacyRd > 0.0, $"{Describe(pure)} independentSitkaRd={F(legacyRd)}");
+
         Func<int, TreeSpeciesDefinition> oneOak = k => k == 0 ? oak : sitka;
         Stand(2, oneOak, StemCount(900f), 24f, 10f);
+        List<DensityStem> mixedStems = StemsOfLiving();
+        double predicted = MixedDensityModel.Occupancy(mixedStems, e.StandAreaHectares);
         AdultMortalityAccount mixed = DensityStep();
         Stand(1, oneOak, StemCount(900f), 24f, 10f);
         AdultMortalityAccount model1 = DensityStep();
-        Pass("ROUTE_SWITCHES_ON_NON_REFERENCE", mixed.SpeciesAwareRoute && !model1.SpeciesAwareRoute,
-            $"model2SpeciesAware={mixed.SpeciesAwareRoute} model1SpeciesAware={model1.SpeciesAwareRoute} weightedRd={F(mixed.RelativeDensity)} unweightedRd={F(mixed.UnweightedRelativeDensity)}");
-        Stand(2, _ => sitka, StemCount(900f), 24f, 10f);
-        Pass("ROUTE_PURE_SITKA_USES_SITKA_ROUTE", !DensityStep().SpeciesAwareRoute, "pure Sitka stand under model 2");
+        Pass("CALL_PATH_ONE_OAK_SWITCHES_TO_OCCUPANCY_ROUTE", mixed.Route == DensityRoute.SpeciesAwareOccupancy && mixed.RelativeDensity == 0.0
+            && Math.Abs(mixed.Occupancy - predicted) <= 1e-12 && model1.Route == DensityRoute.LegacySitkaExact && model1.RelativeDensity > 0.0 && model1.Occupancy == 0.0,
+            $"model2 {Describe(mixed)} predictedOccupancy={F(predicted)} | model1 {Describe(model1)}");
     }
 
-    // ---------- pure broadleaf stands and mixtures ----------
+    // ---------- TESTS B and C: pure Oak and pure Beech ----------
 
-    private IEnumerator Stands()
+    private IEnumerator PureBroadleaf()
     {
-        // Same stems, same sizes, three species. Sitka stays below the onset; Beech and Oak do not.
-        float onset = (float)SitkaGrowthModel.MortalityOnsetRelativeDensity;
+        // Same stems, same sizes, three species. The Sitka-class stand is below the onset; Beech and Oak are not.
         int n = StemCount(800f);
-        var results = new Dictionary<string, AdultMortalityAccount>();
-        foreach ((string label, TreeSpeciesDefinition s) in new[] { ("sitka", sitka), ("beech", beech), ("oak", oak) })
+        var sizes = Enumerable.Range(0, n).Select(k => new DensityStem("T" + k.ToString("0000"), GrowingSpaceDemandClass.Reference, DbhOf(k, 24f, 10f), 0.0)).ToList();
+        double referenceOccupancy = MixedDensityModel.Occupancy(sizes, e.StandAreaHectares);
+        var accounts = new Dictionary<string, AdultMortalityAccount>();
+        foreach ((string label, TreeSpeciesDefinition s) in new[] { ("beech", beech), ("oak", oak) })
         {
             Stand(2, _ => s, n, 24f, 10f);
-            results[label] = DensityStep();
+            accounts[label] = DensityStep();
             yield return null;
         }
-        Pass("DENSE_PURE_SPECIES_DIFFER_BY_CLASS",
-            results["sitka"].DensityPressure == 0.0 && results["beech"].DensityPressure > 0.0 && results["oak"].DensityPressure > results["beech"].DensityPressure
-            && results["oak"].RelativeDensity > results["beech"].RelativeDensity && results["beech"].RelativeDensity > results["sitka"].RelativeDensity,
-            $"sitkaRd={F(results["sitka"].RelativeDensity)} beechRd={F(results["beech"].RelativeDensity)} oakRd={F(results["oak"].RelativeDensity)} onset={F(onset)}");
+        Pass("DENSE_SAME_STEMS_OCCUPANCY_FOLLOWS_DEMAND_ORDER",
+            referenceOccupancy < accounts["beech"].Occupancy && accounts["beech"].Occupancy < accounts["oak"].Occupancy
+            && accounts["beech"].Route == DensityRoute.SpeciesAwareOccupancy && accounts["oak"].Route == DensityRoute.SpeciesAwareOccupancy
+            && accounts["oak"].DensityPressure >= accounts["beech"].DensityPressure,
+            $"asReference={F(referenceOccupancy)} beech={F(accounts["beech"].Occupancy)} oak={F(accounts["oak"].Occupancy)} onset={F(MixedDensityModel.OvercrowdingOnset)}");
 
-        // Pure Beech and pure Oak really self-thin over time and are held on the maximum line; cause and year are recorded.
-        foreach ((string label, TreeSpeciesDefinition s) in new[] { ("BEECH", beech), ("OAK", oak) })
+        // Intentionally overcrowded pure stands: occupancy beyond capacity, deaths from density pressure, held at capacity.
+        foreach ((string label, TreeSpeciesDefinition s, float perHectare) in new[] { ("BEECH", beech, 1100f), ("OAK", oak, 800f) })
         {
-            Stand(2, _ => s, n, 24f, 10f);
+            int count = StemCount(perHectare);
+            Stand(2, _ => s, count, 24f, 10f);
+            yield return null;
+            double before = OccupancyOfLiving();
+            AdultMortalityAccount step = DensityStep();
+            double after = OccupancyOfLiving();
+            var dead = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(t => t.IsBiologicallyDead).ToList();
+            Pass($"PURE_{label}_DENSE_OVERCROWDED_AND_DIES_FROM_DENSITY_PRESSURE",
+                before > 1.0 && Math.Abs(step.Occupancy - before) <= 1e-12 && step.Route == DensityRoute.SpeciesAwareOccupancy && step.RelativeDensity == 0.0
+                && step.DensityPressure > 0.0 && step.Deaths > 0 && dead.Count == step.Deaths && dead.All(t => t.MortalityCause == "self-thinning"),
+                $"occupancyBefore={F(before)} {Describe(step)}");
+            Pass($"PURE_{label}_ENDS_AT_OR_BELOW_CAPACITY", after <= 1.0 + 1e-9 && Living().Length > 1, $"occupancyAfter={F(after)} living={Living().Length}/{count}");
+
+            // Over the years: every death is a recorded self-thinning death in a valid year with deadwood created exactly once.
+            Stand(2, _ => s, count, 24f, 10f);
             yield return null;
             int deadwoodBefore = manager.DeadwoodRecords.Count;
             var died = new Dictionary<string, (int year, string cause)>();
-            double maxRdAfter = 0;
+            bool onlyOccupancyRoute = true;
             for (int y = 0; y < 10; y++)
             {
-                var before = Living().Select(t => t.TreeId).ToHashSet();
+                HashSet<string> alive = Living().Select(t => t.TreeId).ToHashSet();
                 e.AdvanceOneYear();
+                onlyOccupancyRoute &= e.LastAdultMortality.Route == DensityRoute.SpeciesAwareOccupancy && e.LastAdultMortality.RelativeDensity == 0.0;
                 foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                    if (t.IsBiologicallyDead && before.Contains(t.TreeId) && !died.ContainsKey(t.TreeId))
-                        died[t.TreeId] = ((int)typeof(ForestTree).GetField("mortalityYear", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(t), t.MortalityCause);
-                maxRdAfter = Math.Max(maxRdAfter, WeightedRd(Living()));
+                    if (t.IsBiologicallyDead && alive.Contains(t.TreeId) && !died.ContainsKey(t.TreeId))
+                        died[t.TreeId] = (t.MortalityYear, t.MortalityCause);
                 yield return null;
             }
             var records = manager.DeadwoodRecords.Skip(deadwoodBefore).ToList();
-            Pass($"PURE_{label}_SELF_THINS", died.Count > 0 && died.Values.All(v => v.cause == "self-thinning" && v.year >= 1 && v.year <= 10),
-                $"deaths={died.Count}/{n}");
-            Pass($"PURE_{label}_HELD_ON_MAXIMUM_LINE", maxRdAfter <= SitkaGrowthModel.MaximumRelativeDensity + 1e-6, $"maxWeightedRdAfterMortality={F(maxRdAfter)}");
-            Pass($"PURE_{label}_DEADWOOD_ONCE", records.Count == died.Count && records.Select(r => r.treeId).Distinct().Count() == records.Count,
-                $"records={records.Count} deaths={died.Count}");
+            Pass($"PURE_{label}_SELF_THINS_OVER_TEN_YEARS", died.Count > 0 && died.Values.All(v => v.cause == "self-thinning" && v.year >= 1 && v.year <= 10) && onlyOccupancyRoute,
+                $"deaths={died.Count}/{count} onlyOccupancyRoute={onlyOccupancyRoute}");
+            Pass($"PURE_{label}_DEADWOOD_ONCE", records.Count == died.Count && records.Select(r => r.treeId).Distinct().Count() == records.Count, $"records={records.Count} deaths={died.Count}");
         }
+    }
 
-        // Mixtures: Sitka+Oak, Sitka+Beech, Oak+Beech, all three. Weighted density exceeds the pooled Sitka-route density,
-        // deaths are suppression-biased, and a repeated run is identical.
+    // ---------- TEST D: mixed Sitka / Oak / Beech ----------
+
+    private IEnumerator Mixtures()
+    {
+        // Replacing a higher-demand stem by a lower class at the same place and size lowers occupancy in the ordinal direction.
+        // Two Oaks, then Oak+Beech, then Oak+Sitka. The remaining Oak keeps the stand on the occupancy route throughout.
+        int n = StemCount(900f);
+        var variants = new (string label, Func<int, TreeSpeciesDefinition> speciesOf)[]
+        {
+            ("TWO_OAK", k => k < 2 ? oak : sitka),
+            ("OAK_BEECH", k => k == 0 ? oak : k == 1 ? beech : sitka),
+            ("OAK_SITKA", k => k == 0 ? oak : sitka)
+        };
+        var occupancy = new List<double>();
+        foreach (var variant in variants)
+        {
+            Stand(2, variant.speciesOf, n, 24f, 10f);
+            occupancy.Add(DensityStep().Occupancy);
+            yield return null;
+        }
+        double perStep = MixedDensityModel.StemOccupancyM2(new DensityStem("x", GrowingSpaceDemandClass.Reference, DbhOf(1, 24f, 10f), 0.0)) / e.StandAreaHectares / MixedDensityModel.OccupancyCapacityM2PerHa;
+        Pass("MIXED_DOWNGRADING_A_HIGH_DEMAND_STEM_LOWERS_OCCUPANCY_IN_ORDER",
+            occupancy[0] > occupancy[1] && occupancy[1] > occupancy[2]
+            && Math.Abs((occupancy[0] - occupancy[1]) - 0.5 * perStep) <= 1e-9 && Math.Abs((occupancy[1] - occupancy[2]) - 0.5 * perStep) <= 1e-9,
+            $"twoOak={F(occupancy[0], "0.000000")} oakBeech={F(occupancy[1], "0.000000")} oakSitka={F(occupancy[2], "0.000000")} stepPerHalfWeight={F(0.5 * perStep, "0.000000")}");
+
+        // Four mixtures: occupancy equals the pure model's prediction from the real trees, deaths occur, replay is exact,
+        // and the occupancy is a plain sum (no mixture bonus).
         var mixes = new Dictionary<string, Func<int, TreeSpeciesDefinition>>
         {
             ["SITKA_OAK"] = k => k % 2 == 0 ? sitka : oak,
@@ -280,58 +369,103 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
             ["OAK_BEECH"] = k => k % 2 == 0 ? oak : beech,
             ["ALL_THREE"] = k => k % 3 == 0 ? sitka : k % 3 == 1 ? beech : oak
         };
+        int count = StemCount(900f);
         foreach (KeyValuePair<string, Func<int, TreeSpeciesDefinition>> mix in mixes)
         {
             string firstRun = null;
-            double weighted = 0, pooled = 0;
+            double observed = 0, predicted = 0, partsSum = 0;
             int deaths = 0;
-            bool speciesAware = false;
+            bool routed = true;
             for (int run = 0; run < 2; run++)
             {
-                Stand(2, mix.Value, n, 24f, 10f);
+                Stand(2, mix.Value, count, 24f, 10f);
                 yield return null;
                 if (run == 0)
                 {
+                    List<DensityStem> stems = StemsOfLiving();
+                    predicted = MixedDensityModel.Occupancy(stems, e.StandAreaHectares);
+                    partsSum = Enum.GetValues(typeof(GrowingSpaceDemandClass)).Cast<GrowingSpaceDemandClass>()
+                        .Sum(c => MixedDensityModel.Occupancy(stems.Where(s => s.Demand == c).ToList(), e.StandAreaHectares));
                     AdultMortalityAccount account = DensityStep();
-                    weighted = account.RelativeDensity; pooled = account.UnweightedRelativeDensity; speciesAware = account.SpeciesAwareRoute;
-                    Stand(2, mix.Value, n, 24f, 10f);
+                    observed = account.Occupancy;
+                    routed = account.Route == DensityRoute.SpeciesAwareOccupancy && account.RelativeDensity == 0.0;
+                    Stand(2, mix.Value, count, 24f, 10f);
                     yield return null;
                 }
-                for (int y = 0; y < 8; y++) { e.AdvanceOneYear(); if (run == 0) deaths += e.LastAdultMortality.Deaths; yield return null; }
+                for (int y = 0; y < 8; y++)
+                {
+                    e.AdvanceOneYear();
+                    if (run == 0) { deaths += e.LastAdultMortality.Deaths; routed &= e.LastAdultMortality.Route == DensityRoute.SpeciesAwareOccupancy; }
+                    yield return null;
+                }
                 string hash = TreeStateHash();
                 if (run == 0) firstRun = hash;
-                else Pass($"MIX_{mix.Key}", speciesAware && weighted > pooled && deaths > 0 && hash == firstRun,
-                    $"weightedRd={F(weighted)} pooledSitkaRouteRd={F(pooled)} deaths8y={deaths} replayIdentical={hash == firstRun}");
+                else Pass($"MIX_{mix.Key}", routed && Math.Abs(observed - predicted) <= 1e-12 && Math.Abs(predicted - partsSum) <= 1e-9 && deaths > 0 && hash == firstRun,
+                    $"occupancy={F(observed)} predicted={F(predicted)} sumOfClassParts={F(partsSum)} deaths8y={deaths} routed={routed} replayIdentical={hash == firstRun}");
             }
         }
     }
 
-    // ---------- onset threshold on the real controller ----------
+    // ---------- TESTS F and G: below and above the generic limits on the real controller ----------
 
-    private IEnumerator Threshold()
+    private IEnumerator Thresholds()
     {
-        // Find the stem count at which the weighted density first passes the onset, then check the controller either side.
+        // F: below the onset nothing dies. G: just over it pressure starts. Find the bracket with the pure model, check the controller.
         Func<int, TreeSpeciesDefinition> speciesOf = k => k % 2 == 0 ? sitka : oak;
         int below = 0, above = 0;
-        for (int count = 20; count < 4000; count++)
+        for (int count = 20; count < 6000; count++)
         {
-            if (PlannedWeightedRd(count, speciesOf, 24f, 10f) > SitkaGrowthModel.MortalityOnsetRelativeDensity) { above = count; below = count - 1; break; }
+            if (PlannedOccupancy(count, speciesOf, 24f, 10f) > MixedDensityModel.OvercrowdingOnset) { above = count; below = count - 1; break; }
         }
         Check(above > 0, "threshold bracket found");
         Stand(2, speciesOf, below, 24f, 10f);
         AdultMortalityAccount underOnset = DensityStep();
         Stand(2, speciesOf, above, 24f, 10f);
         AdultMortalityAccount overOnset = DensityStep();
-        Pass("ONSET_THRESHOLD_ON_CONTROLLER", underOnset.DensityPressure == 0.0 && underOnset.Deaths == 0 && overOnset.DensityPressure > 0.0 && overOnset.SpeciesAwareRoute,
-            $"stemsBelow={below} pressure={F(underOnset.DensityPressure, "0.000000")} stemsAbove={above} pressure={F(overOnset.DensityPressure, "0.000000")}");
+        Pass("BELOW_THRESHOLD_MIXED_STAND_NO_DENSITY_MORTALITY", underOnset.Route == DensityRoute.SpeciesAwareOccupancy && underOnset.DensityPressure == 0.0 && underOnset.Deaths == 0,
+            $"stems={below} {Describe(underOnset)}");
+        Pass("THRESHOLD_CROSSING_ON_CONTROLLER", overOnset.Route == DensityRoute.SpeciesAwareOccupancy && overOnset.DensityPressure > 0.0 && overOnset.Occupancy > underOnset.Occupancy,
+            $"stemsBelow={below} stemsAbove={above} pressureAbove={F(overOnset.DensityPressure, "0.000000")}");
+
+        // Well below the onset, across several years: no density mortality at all.
+        Stand(2, speciesOf, StemCount(250f), 24f, 10f);
         yield return null;
+        int quietDeaths = 0;
+        bool quietRoute = true;
+        for (int y = 0; y < 5; y++) { e.AdvanceOneYear(); quietDeaths += e.LastAdultMortality.Deaths; quietRoute &= e.LastAdultMortality.Route == DensityRoute.SpeciesAwareOccupancy; yield return null; }
+        Pass("BELOW_THRESHOLD_NO_DENSITY_DEATHS_OVER_YEARS", quietDeaths == 0 && quietRoute, $"deaths5y={quietDeaths} occupancyRoute={quietRoute}");
+
+        // G: well above the onset but under capacity: hazard deaths occur and nothing is thinned by the boundary.
+        float perHectare = 100f;
+        int zoneCount = 0;
+        for (int c = 50; c < 6000; c++)
+            if (PlannedOccupancy(c, speciesOf, 24f, 10f) > 0.85) { zoneCount = c; perHectare = c / e.StandAreaHectares; break; }
+        Stand(2, speciesOf, zoneCount, 24f, 10f);
+        yield return null;
+        AdultMortalityAccount zone = DensityStep();
+        Pass("ABOVE_THRESHOLD_MIXED_STAND_DENSITY_MORTALITY_OCCURS", zone.Route == DensityRoute.SpeciesAwareOccupancy && zone.Occupancy > MixedDensityModel.OvercrowdingOnset && zone.Occupancy < 1.0
+            && zone.DensityPressure > 0.0 && zone.BoundaryDeaths == 0,
+            $"stemsPerHa={F(perHectare, "0")} {Describe(zone)}");
+        Stand(2, speciesOf, zoneCount, 24f, 10f);
+        yield return null;
+        int zoneDeaths = 0;
+        for (int y = 0; y < 8; y++) { e.AdvanceOneYear(); zoneDeaths += e.LastAdultMortality.Deaths; yield return null; }
+        Pass("ABOVE_THRESHOLD_MIXED_STAND_LOSES_STEMS_OVER_YEARS", zoneDeaths > 0, $"deaths8y={zoneDeaths}");
+
+        // Above capacity: the boundary acts and the stand ends at or below it.
+        Stand(2, speciesOf, StemCount(1300f), 24f, 10f);
+        double crowdedBefore = OccupancyOfLiving();
+        AdultMortalityAccount crowded = DensityStep();
+        double crowdedAfter = OccupancyOfLiving();
+        Pass("ABOVE_CAPACITY_MIXED_STAND_ENDS_AT_OR_BELOW_CAPACITY", crowdedBefore > 1.0 && crowded.Deaths > 0 && crowdedAfter <= 1.0 + 1e-9,
+            $"occupancyBefore={F(crowdedBefore)} occupancyAfter={F(crowdedAfter)} {Describe(crowded)}");
     }
 
     // ---------- save / load through a dying mixed stand ----------
 
     private IEnumerator SaveLoad()
     {
-        Stand(2, k => k % 3 == 0 ? sitka : k % 3 == 1 ? beech : oak, StemCount(800f), 24f, 10f);
+        Stand(2, k => k % 3 == 0 ? sitka : k % 3 == 1 ? beech : oak, StemCount(900f), 24f, 10f);
         yield return null;
         for (int y = 0; y < 3; y++) { e.AdvanceOneYear(); yield return null; }
         string mid = JsonUtility.ToJson(saves.CaptureData());
@@ -378,9 +512,10 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         original = saves.CaptureData();
         yield return SpeciesData();
         yield return Policy();
-        yield return Routing();
-        yield return Stands();
-        yield return Threshold();
+        yield return PureSitkaExact();
+        yield return PureBroadleaf();
+        yield return Mixtures();
+        yield return Thresholds();
         yield return SaveLoad();
         yield return Anchors();
     }

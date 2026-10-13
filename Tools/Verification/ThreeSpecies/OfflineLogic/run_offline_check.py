@@ -2,7 +2,9 @@
 """Build and run the three-species offline logic checks on the plain .NET SDK.
 
 Suites (default: all):
-  density  MixedDensityModel (growth model 2) against the original Sitka route.
+  density  Growth model 2 density routes: pure-Sitka routing and legacy-route fingerprints, the species-aware
+           occupancy model (pure Oak, pure Beech, mixed fixtures), plus a compile of MixedDensityModel.cs
+           WITHOUT SitkaGrowthModel.cs (density-isolated), which proves the occupancy route has no Sitka arithmetic.
   history  Derived Scenario One management history (S1-C) against the real persisted record classes.
   timber   Oak/Beech assortment ladders, prices and valuation against the real allocator and work
            calculator, plus proof that Sitka allocation is identical to the unmodified base commit.
@@ -14,7 +16,7 @@ written inside the repo.
 This proves pure arithmetic and decision rules only. It does not prove controller wiring, scene state, the
 Unity-side economy adapter or any Unity anchor hash.
 
-Usage: run_offline_check.py [--suite density|timber|history|all] [--out DIR]
+Usage: run_offline_check.py [--suite density|density-isolated|timber|history|all] [--out DIR]
 Exit code 0 and *_PASS tokens on success. Needs `dotnet` (SDK 8+).
 """
 import argparse
@@ -35,6 +37,10 @@ SUITES = {
         sources=[os.path.join(FP, "SitkaGrowthModel.cs"), os.path.join(FP, "MixedDensityModel.cs"),
                  os.path.join(HERE, "MixedDensityOfflineCheck.cs")],
         args=[ROOT]),
+    "density-isolated": dict(
+        startup="MixedDensityIsolatedCheck",
+        sources=[os.path.join(FP, "MixedDensityModel.cs"), os.path.join(HERE, "MixedDensityIsolatedCheck.cs")],
+        args=[]),
     "history": dict(
         startup="ScenarioHistoryOfflineCheck",
         sources=[os.path.join(FP, "ScenarioOne", "ScenarioInterventionHistory.cs"), os.path.join(FP, "ScenarioOne", "ManagementHistoryText.cs"),
@@ -95,13 +101,15 @@ def run_suite(name, out, dotnet):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--suite", choices=["density", "timber", "history", "all"], default="all")
+    parser.add_argument("--suite", choices=["density", "density-isolated", "timber", "history", "all"], default="all")
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-three-species-offline"))
     args = parser.parse_args()
     dotnet = shutil.which("dotnet")
     if not dotnet:
         sys.exit("dotnet SDK not found")
-    names = ["density", "timber", "history"] if args.suite == "all" else [args.suite]
+    # "density" always includes its compile-time isolation proof.
+    groups = {"density": ["density", "density-isolated"], "all": ["density", "density-isolated", "timber", "history"]}
+    names = groups.get(args.suite, [args.suite])
     status = 0
     for name in names:
         code = run_suite(name, args.out, dotnet)
