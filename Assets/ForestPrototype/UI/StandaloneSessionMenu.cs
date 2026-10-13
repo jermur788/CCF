@@ -111,8 +111,8 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     }
     private void MainCard()
     {
-        card.Clear(); Text("CCF · private first-cycle test", 30); Text(identity.buildId);
-        Text("Manage one cycle, read the Annual Review, then walk and observe the changed forest. Choose your own forestry decisions.");
+        card.Clear(); Text("CCF · Scenario One", 30); Text(identity.buildId);
+        Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
         ActionButton("Continue current forest [F10]", Close);
         if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { Close(); saves?.Load(); });

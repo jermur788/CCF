@@ -17,6 +17,31 @@ public sealed partial class MenuHelpView
         }
     }
 
+    // The short text shown the first time a screen is met, or null when that screen has no short form and shows its full
+    // Explanation instead. The first-use screens stay brief so they do not pile up in front of the forest; the full
+    // Explanation is always one click ("More detail") or F1 away.
+    public static string Summary(Menu menu)
+    {
+        switch (menu)
+        {
+            case Menu.WalkingHud:
+                return "You manage a small Sitka spruce plantation. Your aim is to begin converting it toward continuous-cover forestry: a forest that keeps its tree cover while it renews gradually, rather than being cut all at once.\n\n"
+                    + "Forestry decisions play out over years. You look at the trees, decide which to keep and which to remove, commission the work in the Work Plan, then let time pass and see how the forest responds. There is no single perfect prescription to find: expect to revisit your management as the forest changes.\n\n"
+                    + "Start by looking around and pressing E on a tree to inspect it.";
+            default:
+                return null;
+        }
+    }
+
+    public static string SummaryTitle(Menu menu)
+    {
+        switch (menu)
+        {
+            case Menu.WalkingHud: return "Your role · Scenario One";
+            default: return Title(menu);
+        }
+    }
+
     public static string Explanation(Menu menu)
     {
         switch (menu)
@@ -43,7 +68,8 @@ public sealed partial class MenuHelpView
                     + "One thinning does not finish continuous-cover forestry. Walk back, inspect the forest response and reassess before the next intervention. Openings can create an opportunity for regeneration; seed, light, browsing and vegetation affect the outcome. Use these results to decide what to inspect next. This screen records outcomes; it does not choose or execute forestry work.\n\n"
                     + "Close Help and read the three sections. After your first results, choose I've read the annual results to unlock further year advances. Use Esc or Walk the forest to return and inspect the changes; Open Work Plan returns to planning.";
             default:
-                return "Continuous-cover forestry is a repeated process of selective management while keeping tree cover, not one thinning. Start with trees worth keeping: the forest you leave behind matters. More felling is not automatically better.\n\n"
+                return "Your role: you manage a small Sitka spruce plantation and begin converting it toward continuous-cover forestry. Decisions play out over years, and you revisit them as the forest changes.\n\n"
+                    + "Continuous-cover forestry is a repeated process of selective management while keeping tree cover, not one thinning. Start with trees worth keeping: the forest you leave behind matters. More felling is not automatically better.\n\n"
                     + "The HUD shows the current year, cash, objectives and information about the ground or tree you are looking at. Current objective progress appears in the status panel.\n\n"
                     + "The forest is where you make management decisions. Look at ground to check light, regeneration and browsing conditions, or press E while looking at a tree to inspect it. Use these observations before marking work.\n\n"
                     + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
