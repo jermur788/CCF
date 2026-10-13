@@ -28,10 +28,21 @@ public sealed partial class MenuHelpView
                 return "You manage a small Sitka spruce plantation. Your aim is to begin converting it toward continuous-cover forestry: a forest that keeps its tree cover while it renews gradually, rather than being cut all at once.\n\n"
                     + "Forestry decisions play out over years. You look at the trees, decide which to keep and which to remove, commission the work in the Work Plan, then let time pass and see how the forest responds. There is no single perfect prescription to find: expect to revisit your management as the forest changes.\n\n"
                     + "Start by looking around and pressing E on a tree to inspect it.";
+            case Menu.TreeInspection:
+                return "Start with a tree worth keeping, then see what competes with it. The card shows its size, light and the competition from its neighbours. Press C to mark a Crop Tree (keep and favour) or X to propose felling. Marks are only proposals: nothing is cut until you approve work in the Work Plan. You choose the trees; this screen never picks one for you.";
+            case Menu.StandMap:
+                return "The map helps you decide where to look, not what to do. Choose a layer, select a cell to read it, set a waypoint, then walk there and inspect the site yourself. It cannot mark, clear, plant or approve anything remotely.";
+            case Menu.WorkPlan:
+                return "The Work Plan turns your marks and planting spots into jobs you can review and approve. Check each cost and what you would leave behind, then approve the work you want. Approval alone changes nothing: Advance one year carries out the approved jobs, and jobs you have not approved wait.";
             default:
+                // The Annual Review has no first-use screen: its short guidance sits in the review itself (AnnualReviewReadPrompt).
                 return null;
         }
     }
+
+    // Shown inside the Annual Review, beside the button that acknowledges the first results, instead of a help screen opening
+    // on top of the review. The detailed explanation stays on Help [F1].
+    public const string AnnualReviewReadPrompt = "Read WORK DONE, MONEY and FOREST. One thinning does not finish continuous-cover forestry: when you have read them, walk back, inspect how the forest responded and reassess before the next intervention.";
 
     public static string SummaryTitle(Menu menu)
     {
@@ -73,7 +84,7 @@ public sealed partial class MenuHelpView
                     + "The HUD shows the current year, cash, objectives and information about the ground or tree you are looking at. Current objective progress appears in the status panel.\n\n"
                     + "The forest is where you make management decisions. Look at ground to check light, regeneration and browsing conditions, or press E while looking at a tree to inspect it. Use these observations before marking work.\n\n"
                     + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
-                    + "O opens Learning objectives: start with simple map steps, view current forest success objectives, then revisit map layers and forestry lessons as you need them. Progress is remembered on this device, with no first-year deadline.\n\n"
+                    + "O opens Learning objectives: the current forest success objectives, then short lessons in a suggested order. The first lessons follow a first cycle: inspect trees, choose Crop Trees, mark trees, plan and approve the work, advance a year and read the Annual Review. Map practice, pruning, deadwood, planting and clearance wait until you want them. Progress is remembered on this device, with no first-year deadline.\n\n"
                     + "Close this introduction to walk. Esc releases the mouse; click to resume looking around. Press F1 any time to revisit this screen's help.";
         }
     }

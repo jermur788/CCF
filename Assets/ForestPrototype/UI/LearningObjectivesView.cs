@@ -18,14 +18,19 @@ public sealed partial class LearningObjectivesView
     public VisualElement Root { get; }
     public bool IsDone(string id) => done.Contains(id);
     public int CompletedSteps => done.Count;
+    // The "Next lesson" line. The HUD reads it every frame, so it is rebuilt only when a step is recorded or progress is reset.
+    private string cueText;
+    private int cueDoneCount = -1;
     public string Summary
     {
         get
         {
-            Topic next = Topics.FirstOrDefault(t => t.Steps.Any(s => !IsDone(s.Id)));
-            if (next == null) return "Learning complete · revisit with O";
-            Step step = next.Steps.First(s => !IsDone(s.Id));
-            return "Next lesson: " + step.Title + " · [O] Objectives";
+            if (cueText == null || cueDoneCount != done.Count)
+            {
+                cueText = CueText(NextCueStep(IsDone));
+                cueDoneCount = done.Count;
+            }
+            return cueText;
         }
     }
 
