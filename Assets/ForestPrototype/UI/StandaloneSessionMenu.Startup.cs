@@ -35,20 +35,8 @@ public sealed partial class StandaloneSessionMenu
     private static readonly Color StartupKey = new Color(0.91f, 0.81f, 0.47f);
 
     // Keys a first-time tester needs to enter and control the stand. Not a tutorial: the in-game Help (F1) and
-    // Learning objectives (O) teach once the player is in the stand.
-    private static readonly string[][] ControlRows =
-    {
-        new[] { "W A S D", "Walk. Hold Shift to run, Space to jump" },
-        new[] { "Mouse", "Look around. Esc frees the mouse; click to take it back" },
-        new[] { "E", "Inspect the tree or object you are looking at" },
-        new[] { "M", "Stand Map" },
-        new[] { "Tab", "Work Plan" },
-        new[] { "O", "Learning objectives" },
-        new[] { "F1", "Help for the screen you are on" },
-        new[] { "Esc", "Free the mouse, or close the open panel" },
-        new[] { "F5 / F9", "Save / Load" },
-        new[] { "F10", "Session menu: new scenario, save, load, quit" },
-    };
+    // Learning objectives (O) teach once the player is in the stand. The list is ControlsReference, shared with the Walking HUD help.
+    private static readonly string[][] ControlRows = ControlsReference.Rows;
 
     // True from bootstrap until the player leaves the title screen. While true, F10 does nothing.
     private bool startupScreen;

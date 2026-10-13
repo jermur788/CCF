@@ -141,7 +141,7 @@ public sealed class WalkingHudView
                 if (shelter.IsEffective(eco.EcologicalYear + 1)) effective++; else expired++;
             }
         string band = eco != null ? BrowsingConditions.PressureBand(eco.Browsing.BackgroundPressure) : "none";
-        browse.text = $"Browsing: {band} · shelters {effective} effective" + (expired > 0 ? $", {expired} expired/failed" : "");
+        browse.text = $"Deer browsing: {band} · shelters {effective} effective" + (expired > 0 ? $", {expired} expired/failed" : "");
         int open = m.WorkOrders.Count(o => o.IsOpen);
         access.text = $"[M] Stand map   ·   [Tab] Work Plan ({open} task{(open == 1 ? "" : "s")})";
         waypoint.text = ui.Map.WaypointDescription(player != null ? player.transform.position : Vector3.zero);

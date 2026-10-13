@@ -82,7 +82,8 @@ public sealed class TreeInspectionView
             int cell = eco.GetCellIndex(tree.transform.position);
             float light = cell >= 0 ? eco.Cells[cell].Light : 0f;
             UiKit.Stat(grid, "Light at its cell (ground)", UiKit.F(light, "0.00") + " · " + RegenerationDiagnostics.LightBand(light));
-            UiKit.Stat(grid, "Competition", $"{eco.GetCompetitionLabel(tree)} (CI {UiKit.F(eco.GetCompetitionIndex(tree), "0.0")})");
+            // "CI" is spelled out: the first thing a beginner meets here is an unexplained abbreviation otherwise.
+            UiKit.Stat(grid, "Competition", $"{eco.GetCompetitionLabel(tree)} (competition index {UiKit.F(eco.GetCompetitionIndex(tree), "0.0")})");
             float growth = eco.GetAnnualDbhGrowth(tree);
             UiKit.Stat(grid, "DBH growth last year", growth > 0.0001f ? UiKit.F(growth, "0.00") + " cm" : "not yet recorded");
             UiKit.Stat(grid, "Wind exposure", eco.GetStormExposureLabel(tree));
