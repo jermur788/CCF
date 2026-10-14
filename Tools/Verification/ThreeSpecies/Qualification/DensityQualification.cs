@@ -43,7 +43,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     private const string Growth1Neutral = "7E57B9DAEF5BF4D0", Growth1Normal = "35E2BF1C2F55C2DE";
-    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,CONTINUITY,FINALBROADLEAF,SAVELOAD,PERF,LONGRUN";
+    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN";
 
     private ForestEcologyController e;
     private ScenarioOneManager manager;
@@ -345,7 +345,9 @@ public sealed class DensityQualificationRunner : MonoBehaviour
 
     // ---------- FAIRNESS: no species-driven victim selection ----------
 
-    private IEnumerator Fairness()
+    private IEnumerator Fairness() { yield return Fairness(1.6, ""); }
+
+    private IEnumerator Fairness(double targetOccupancy, string suffix)
     {
         var kinds = new[] { sitka, beech, oak };
         string[] names = { "sitka", "beech", "oak" };
@@ -354,7 +356,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         foreach (var design in designs)
         {
             Func<int, TreeSpeciesDefinition> baseMap = k => kinds[k % 3];
-            int count = CountForOccupancy(1.6, baseMap, design.dbhMin, design.spread);
+            int count = CountForOccupancy(targetOccupancy, baseMap, design.dbhMin, design.spread);
 
             // Competition index must not depend on species: same layout, species rotated, index per position identical.
             Stand(2, k => kinds[k % 3], count, design.dbhMin, design.spread, null, true);
@@ -362,7 +364,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             Stand(2, k => kinds[(k + 1) % 3], count, design.dbhMin, design.spread, null, true);
             var ciB = Living().ToDictionary(t => int.Parse(t.TreeId.Substring(1), Inv), t => e.GetCompetitionIndex(t));
             double maxDiff = ciA.Keys.Max(k => Math.Abs((double)ciA[k] - ciB[k]));
-            Hard($"FAIRNESS_{design.label}_COMPETITION_INDEX_IS_SPECIES_NEUTRAL", ciA.Count == ciB.Count && maxDiff == 0.0, $"stems={ciA.Count} maxAbsDifferenceAcrossRotatedSpecies={F(maxDiff, "0.0e+0")} (neutral ids, so any difference would come from species)");
+            Hard($"FAIRNESS{suffix}_{design.label}_COMPETITION_INDEX_IS_SPECIES_NEUTRAL", ciA.Count == ciB.Count && maxDiff == 0.0, $"stems={ciA.Count} maxAbsDifferenceAcrossRotatedSpecies={F(maxDiff, "0.0e+0")} (neutral ids, so any difference would come from species)");
 
             var obs = new double[3]; var exp = new double[3]; var variance = new double[3]; var n = new double[3]; var rankSum = new double[3];
             bool faithful = true; int totalVictims = 0;
@@ -395,7 +397,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 }
                 if (t % 10 == 9) yield return null;
             }
-            Hard($"FAIRNESS_{design.label}_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN", faithful && totalVictims > 0, $"trials={trials} stems={count} totalVictims={totalVictims}");
+            Hard($"FAIRNESS{suffix}_{design.label}_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN", faithful && totalVictims > 0, $"trials={trials} stems={count} totalVictims={totalVictims}");
             // Two separate questions. (1) Overall: do all deaths together match the Bernoulli expectation? (RNG / plan fidelity.)
             // (2) Between species: after allowing for any overall shift, does one species lose more or fewer stems than
             // its competition alone predicts? Only (2) can show species-driven selection.
@@ -408,13 +410,14 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 double z = variance[s] > 0 ? (obs[s] - exp[s]) / Math.Sqrt(variance[s]) : 0.0;
                 double zRel = variance[s] > 0 ? (obs[s] - ratio * exp[s]) / Math.Sqrt(variance[s]) : 0.0;
                 unbiased &= Math.Abs(zRel) < 4.0;
-                Measure($"FAIRNESS_{design.label}_{names[s].ToUpperInvariant()}", $"stemTrials={n[s]} deaths={obs[s]} expectedFromCompetitionOnly={F(exp[s], "0.0")} z={F(z, "0.00")} zRelativeToPooled={F(zRel, "0.00")} deathRate={F(obs[s] / Math.Max(1.0, n[s]), "0.0000")} meanCompetitionRankOfVictims={F(obs[s] > 0 ? rankSum[s] / obs[s] : 0.0, "0.000")}");
+                Measure($"FAIRNESS{suffix}_{design.label}_{names[s].ToUpperInvariant()}", $"stemTrials={n[s]} deaths={obs[s]} expectedFromCompetitionOnly={F(exp[s], "0.0")} z={F(z, "0.00")} zRelativeToPooled={F(zRel, "0.00")} deathRate={F(obs[s] / Math.Max(1.0, n[s]), "0.0000")} meanCompetitionRankOfVictims={F(obs[s] > 0 ? rankSum[s] / obs[s] : 0.0, "0.000")}");
             }
-            Measure($"FAIRNESS_{design.label}_POOLED", $"deaths={totalObs} expected={F(totalExp, "0.0")} ratio={F(ratio, "0.000")} pooledZ={F(pooledZ, "0.00")}");
-            Hard($"FAIRNESS_{design.label}_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION", Math.Abs(pooledZ) < 4.0, $"pooledZ={F(pooledZ, "0.00")}");
-            Hard($"FAIRNESS_{design.label}_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION", unbiased, "each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)");
+            Measure($"FAIRNESS{suffix}_{design.label}_POOLED", $"deaths={totalObs} expected={F(totalExp, "0.0")} ratio={F(ratio, "0.000")} pooledZ={F(pooledZ, "0.00")}");
+            Hard($"FAIRNESS{suffix}_{design.label}_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION", Math.Abs(pooledZ) < 4.0, $"pooledZ={F(pooledZ, "0.00")}");
+            Hard($"FAIRNESS{suffix}_{design.label}_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION", unbiased, "each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)");
         }
 
+        if (suffix != "") yield break;
         // The same selection inside a real annual step: victims should be the more competitively suppressed stems.
         double victimCi = 0, survivorCi = 0, victimN = 0, survivorN = 0, aucNum = 0, aucDen = 0;
         for (int t = 0; t < 12; t++)
@@ -562,6 +565,73 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         double step = Math.Abs(trajectories["felled-year3"][3] - trajectories["never"][3]), stepN = Math.Abs(trajectories["died-year3"][3] - trajectories["never"][3]);
         Hard("FINALBROADLEAF_NO_NEXT_YEAR_MASS_MORTALITY_AFTER_FELLING_OR_NATURAL_DEATH", step <= 0.05 * trajectories["never"][3] + 5.0 && stepN <= 0.05 * trajectories["never"][3] + 5.0,
             $"year4 deaths: never={F(trajectories["never"][3], "0.0")} felled={F(trajectories["felled-year3"][3], "0.0")} died={F(trajectories["died-year3"][3], "0.0")} (within 5% + 5 stems)");
+    }
+
+
+    // ---------- LATEMIX: a large old Sitka stand at high relative density, with and without a few small broadleaves ----------
+    // The long runs end in this state (Sitka BA 90-105 m2/ha, a handful of small Beech). The 1000-stem continuity fixtures are young and dense; this is
+    // the other end of the parameter space. Same Sitka stems every time; only the number of small broadleaves changes (0 uses the legacy route).
+
+    private void LateStand(int nSitka, float sitkaDbhMin, float sitkaSpread, int nBroad, int seed)
+    {
+        foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None)) DestroyImmediate(t.gameObject);
+        manager.InitializeNewScenario();
+        e.ResetForDeterministicRun();
+        e.RngModelVersion = SimulationRandom.MixedModel;
+        e.RegenerationModelVersion = RegenerationModel.AgeBands;
+        e.GrowthModelVersion = 2;
+        e.SimulationSeed = seed;
+        Rect bounds = e.StandBounds;
+        int total = nSitka + nBroad, perAxis = Mathf.CeilToInt(Mathf.Sqrt(total));
+        float spacing = (bounds.width - 2f) / perAxis;
+        int sitkaIndex = 0, broadIndex = 0;
+        for (int k = 0; k < total; k++)
+        {
+            bool broad = (int)((long)(k + 1) * nBroad / total) > (int)((long)k * nBroad / total);
+            TreeSpeciesDefinition s = broad ? (broadIndex % 2 == 0 ? beech : oak) : sitka;
+            float d = broad ? 12f + ((broadIndex++ * 7919) % 100) / 100f * 8f : sitkaDbhMin + ((sitkaIndex++ * 7919) % 100) / 100f * sitkaSpread;
+            string prefix = broad ? (s == oak ? "O" : "B") : "S";
+            var position = new Vector3(bounds.xMin + 1f + (k / perAxis + 0.5f) * spacing, 0f, bounds.yMin + 1f + (k % perAxis + 0.5f) * spacing);
+            spawner.Spawn(prefix + k.ToString("0000"), s, position, 40, d, 2f + 0.62f * d, s.PotentialCrownRadiusM(d));
+        }
+        e.InvalidateCompetition();
+        e.RecomputeCanopy();
+    }
+
+    private IEnumerator LateMix()
+    {
+        var regimes = new (string label, int nSitka, float dbhMin, float spread)[] { ("OLD_SITKA_N100_DBH78_98", 100, 78f, 20f), ("MID_SITKA_N150_DBH55_70", 150, 55f, 15f) };
+        int[] broadleaf = { 0, 1, 3, 12, 26 };
+        const int seeds = 12;
+        foreach (var regime in regimes)
+        {
+            var total = new List<double>[broadleaf.Length]; var sitkaLoss = new List<double>[broadleaf.Length]; var broadLoss = new List<double>[broadleaf.Length];
+            for (int bi = 0; bi < broadleaf.Length; bi++)
+            {
+                total[bi] = new List<double>(); sitkaLoss[bi] = new List<double>(); broadLoss[bi] = new List<double>();
+                string route = "";
+                for (int sd = 0; sd < seeds; sd++)
+                {
+                    LateStand(regime.nSitka, regime.dbhMin, regime.spread, broadleaf[bi], 14000 + sd);
+                    AdultMortalityAccount a = DensityStep(); route = a.Route.ToString();
+                    var dead = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).ToList();
+                    int sitkaDead = dead.Count(x => x.Species == sitka), broadDead = dead.Count - sitkaDead;
+                    total[bi].Add((double)a.Deaths / Math.Max(1, a.LivingBefore));
+                    sitkaLoss[bi].Add((double)sitkaDead / regime.nSitka);
+                    if (broadleaf[bi] > 0) broadLoss[bi].Add((double)broadDead / broadleaf[bi]);
+                }
+                Measure("LATEMIX", $"{regime.label} broadleaves={broadleaf[bi]} route={route} totalDeathFraction={F(total[bi].Average(), "0.000")} sitkaDeathFraction={F(sitkaLoss[bi].Average(), "0.000")} broadleafDeathFraction={(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.000") : "-")} sd={F(Sd(total[bi]), "0.000")} seeds={seeds}");
+                Csv($"latemix-{geo}.csv", $"{regime.label},{broadleaf[bi]},{route},{F(total[bi].Average(), "0.00000")},{F(sitkaLoss[bi].Average(), "0.00000")},{(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.00000") : "")}");
+                yield return null;
+            }
+            double se(int a, int b) => Math.Sqrt(Math.Pow(Sd(sitkaLoss[a]), 2) / seeds + Math.Pow(Sd(sitkaLoss[b]), 2) / seeds);
+            for (int bi = 1; bi < broadleaf.Length; bi++)
+            {
+                double d = Math.Abs(sitkaLoss[bi].Average() - sitkaLoss[0].Average()), tolerance = 0.005 + 3.0 * se(0, bi);
+                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND", d <= tolerance,
+                    $"sitkaLossDifference={F(d, "0.0000")} tolerance={F(tolerance, "0.0000")} (0.005 + 3 se of the difference of seed means; pure={F(sitkaLoss[0].Average(), "0.000")} mixed={F(sitkaLoss[bi].Average(), "0.000")})");
+            }
+        }
     }
 
     // ---------- ROLLS: the shared per-tree roll stream (SimulationRandom.Roll, unchanged by the branch) ----------
@@ -892,6 +962,8 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         if (wanted.Contains("CURVE")) { yield return Curve(); Debug.Log($"QUAL_PHASE_DONE CURVE t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("FAIRNESS")) { yield return Fairness(); Debug.Log($"QUAL_PHASE_DONE FAIRNESS t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("CONTINUITY")) { yield return Continuity(); Debug.Log($"QUAL_PHASE_DONE CONTINUITY t={started.Elapsed.TotalSeconds:0}s"); }
+        if (wanted.Contains("FAIRNESSHIGH")) { yield return Fairness(3.0, "_HIGH_LOSS"); Debug.Log($"QUAL_PHASE_DONE FAIRNESSHIGH t={started.Elapsed.TotalSeconds:0}s"); }
+        if (wanted.Contains("LATEMIX")) { yield return LateMix(); Debug.Log($"QUAL_PHASE_DONE LATEMIX t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("FINALBROADLEAF")) { yield return FinalBroadleaf(); Debug.Log($"QUAL_PHASE_DONE FINALBROADLEAF t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("SAVELOAD")) { yield return SaveLoad(); Debug.Log($"QUAL_PHASE_DONE SAVELOAD t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("PERF")) { yield return Perf(); Debug.Log($"QUAL_PHASE_DONE PERF t={started.Elapsed.TotalSeconds:0}s"); }
