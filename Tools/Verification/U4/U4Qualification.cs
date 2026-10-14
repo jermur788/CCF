@@ -826,22 +826,26 @@ public sealed class U4Gate : MonoBehaviour
         PlaceFixture("legacy-active-y25.json");
         yield return LoadFromDisk("UI-shallow25");
         manager.MarkAnnualReviewSeen();
+        ui.CloseHelp();
         ui.ShowReview();
         yield return null; yield return null; yield return null;
         Expect(AllObjectives() && manager.Outcome == ScenarioOneOutcome.Active, "UI shallow: eight of eight objectives, Active");
         var texts = VisibleTexts(ui.RootElement).ToList();
         string joined = string.Join(" // ", texts);
         Note("UI_shallow25_review_texts", joined);
-        string[] needles = { "second", "another", "two cycle", "two-cycle", "further", "reviewed", "acknowledge your" };
+        yield return new WaitForEndOfFrame();
+        ForceCapture("ui-shallow25-review");
+        string[] needles = { "second intervention", "another intervention", "second cycle", "another cycle", "two interventions", "two cycles", "required", "to complete", "completion", "acknowledge" };
         var hits = needles.Where(n => joined.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
         Note("UI_shallow25_guidance_needles_found", hits.Count == 0 ? "NONE" : string.Join(",", hits));
-        Finding(hits.Count > 0, "UI shallow: the Annual Review tells the player why 8 of 8 objectives are not yet a completion (searched: " + string.Join("/", needles) + ")");
+        Finding(hits.Count > 0, "UI shallow: the Annual Review (help closed) tells the player why 8 of 8 objectives are not yet a completion (searched: " + string.Join("/", needles) + ")");
         ui.CloseAll();
         yield return null; yield return null;
         var hud = VisibleTexts(ui.RootElement).ToList();
         Note("UI_shallow25_hud_texts", string.Join(" // ", hud));
         Note("UI_shallow25_hud_mentions_objectives", string.Join(" | ", hud.Where(t => t.IndexOf("objective", StringComparison.OrdinalIgnoreCase) >= 0)));
-        ForceCapture("ui-shallow25-review");
+        yield return new WaitForEndOfFrame();
+        ForceCapture("ui-shallow25-hud");
         // --- N2 shape: review only before first plan; footer is the way forward ---
         yield return null;
     }
