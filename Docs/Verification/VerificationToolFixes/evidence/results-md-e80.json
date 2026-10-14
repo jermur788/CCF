@@ -1,0 +1,20 @@
+{
+  "label": "md-e80",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 293.6,
+  "method": "MixedDensityVerification.Begin",
+  "marker": "MIXED_DENSITY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=1"
+  ],
+  "interactive": false,
+  "run_head": "2052a4ad4a0ac381e039a4a696dece7d19f31395",
+  "staged_sha256": {
+    "MixedDensityVerification.cs": "2ba4bae50f86c6167840505746b74fe18ee232ba52d9eddc3d8e077f6aa8c71b"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}
