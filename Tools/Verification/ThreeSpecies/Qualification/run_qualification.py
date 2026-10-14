@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
 STAGE = ROOT / "Assets" / "ForestPrototype"
-LICENCES = ROOT / "Build/UnderstoreyRecruitment/config/unity3d/Unity/licenses"
+LICENCES = Path.home() / ".config/unity3d/Unity/licenses"
 # Unity re-serialises these on every Editor run, independent of the code under test: the settings file gets its
 # solution name, and seven to eleven SectionFive materials get float round-trip noise in _Color (0.045 -> 0.044999972).
 # They are recorded in the result, never counted as an unexpected change.

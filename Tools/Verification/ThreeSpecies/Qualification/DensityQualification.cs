@@ -13,7 +13,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-// Disposable Unity qualification harness for the final density rework (a395e3f). It MEASURES and ASSERTS only what the
+// Disposable Unity qualification harness for the composite density v2 rework (a7a759d). It MEASURES and ASSERTS only what the
 // qualification packet asks for beyond MixedDensityVerification. It changes no production code, tunes nothing and
 // imposes no forestry threshold: HARD results are exactness, determinism, routing and mechanical-bias checks; everything
 // else is printed as QUAL_MEASURE for a human to judge.
@@ -43,7 +43,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     private const string Growth1Neutral = "7E57B9DAEF5BF4D0", Growth1Normal = "35E2BF1C2F55C2DE";
-    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,SAVELOAD,PERF,LONGRUN";
+    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,CONTINUITY,FINALBROADLEAF,SAVELOAD,PERF,LONGRUN";
 
     private ForestEcologyController e;
     private ScenarioOneManager manager;
@@ -154,6 +154,14 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         ForestTree first = Living().FirstOrDefault();
         if (first != null) e.GetCompetitionIndex(first);
         return Living().Select(t => new DensityStem(t.TreeId, t.Species.GrowingSpaceDemand, t.Diameter, e.GetCompetitionIndex(t))).ToList();
+    }
+
+    // The v2 controller route: the unchanged Sitka subset gives a required-death signal, then one composite plan allocates the deaths.
+    private DensityMortalityPlan CompositePlan(List<DensityStem> list)
+    {
+        Func<string, double> roll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed);
+        int referenceDeaths = SitkaSubsetDensitySignal.RequiredDeaths(list, e.StandAreaHectares, roll);
+        return MixedDensityModel.PlanComposite(list, e.StandAreaHectares, referenceDeaths, roll);
     }
 
     private double BasalAreaPerHectare(IEnumerable<ForestTree> trees)
@@ -308,12 +316,13 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             {
                 // target 1.0 means "just below the onset": the first stem count that reaches 1.0 is slightly above it.
                 int count = CountForOccupancy(target, design.speciesOf, 24f, 10f) - (target == 1.0 ? 1 : 0);
-                double occ = 0, expectedSum = 0, varSum = 0, observed = 0, stems = 0, pressure = 0;
+                double occ = 0, expectedSum = 0, varSum = 0, observed = 0, stems = 0, pressure = 0, planExpected = 0;
                 for (int s = 0; s < seeds; s++)
                 {
                     Stand(2, design.speciesOf, count, 24f, 10f, 5000 + s);
                     List<DensityStem> list = StemsOfLiving();
-                    DensityMortalityPlan plan = MixedDensityModel.Plan(list, e.StandAreaHectares, id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed));
+                    DensityMortalityPlan plan = CompositePlan(list);
+                    planExpected += plan.ExpectedAnnualLoss;
                     double meanVuln = list.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
                     foreach (DensityStem x in list)
                     {
@@ -328,7 +337,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                         Hard($"CURVE_{design.label}_{F(target)}_NO_DEATHS_AT_OR_BELOW_ONSET", false, $"seed={s} occupancy={F(a.Occupancy)} deaths={a.Deaths}");
                 }
                 double z = varSum > 0 ? (observed - expectedSum) / Math.Sqrt(varSum) : 0.0;
-                Measure($"CURVE_{design.label}", $"targetOccupancy={F(target)} stems={count} occupancy={F(occ)} pressure={F(pressure, "0.0000")} modelExpectedLossFraction={F(MixedDensityModel.ExpectedAnnualLoss(pressure, OccupancyCalibration.Default), "0.0000")} observedLossFraction={F(observed / Math.Max(1.0, stems), "0.0000")} expectedFromProbabilities={F(expectedSum / Math.Max(1.0, stems), "0.0000")} z={F(z, "0.00")} seeds={seeds}");
+                Measure($"CURVE_{design.label}", $"targetOccupancy={F(target)} stems={count} occupancy={F(occ)} pressure={F(pressure, "0.0000")} modelExpectedLossFraction={F(planExpected / seeds, "0.0000")} observedLossFraction={F(observed / Math.Max(1.0, stems), "0.0000")} expectedFromProbabilities={F(expectedSum / Math.Max(1.0, stems), "0.0000")} z={F(z, "0.00")} seeds={seeds}");
                 Csv($"curve-{geo}.csv", $"{design.label},{target},{count},{F(occ, "0.0000")},{F(pressure, "0.0000")},{F(observed / Math.Max(1.0, stems), "0.0000")},{F(expectedSum / Math.Max(1.0, stems), "0.0000")},{F(z, "0.00")}");
                 yield return null;
             }
@@ -363,7 +372,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 Stand(2, k => kinds[(k + rotation) % 3], count, design.dbhMin, design.spread, 7000 + t, true);
                 Dictionary<string, int> speciesIndex = Living().ToDictionary(x => x.TreeId, x => x.Species == sitka ? 0 : x.Species == beech ? 1 : 2, StringComparer.Ordinal);
                 List<DensityStem> list = StemsOfLiving();
-                DensityMortalityPlan plan = MixedDensityModel.Plan(list, e.StandAreaHectares, id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed));
+                DensityMortalityPlan plan = CompositePlan(list);
                 var predicted = new HashSet<string>(plan.VictimIndices.Select(i => list[i].TreeId), StringComparer.Ordinal);
                 double meanVuln = list.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
                 double[] sortedCi = list.Select(x => x.CompetitionIndex).OrderBy(v => v).ToArray();
@@ -423,6 +432,136 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         double auc = aucDen > 0 ? aucNum / aucDen : 0.0;
         Hard("ANNUAL_STEP_VICTIMS_ARE_THE_MORE_SUPPRESSED_STEMS", victimN > 0 && victimCi / victimN > survivorCi / survivorN && auc > 0.5,
             $"victims={victimN} meanCiVictims={F(victimCi / Math.Max(1, victimN))} meanCiSurvivors={F(survivorCi / Math.Max(1, survivorN))} auc={F(auc, "0.000")}");
+    }
+
+
+    // ---------- CONTINUITY / FINALBROADLEAF: the live controller across Sitka shares and at the last broadleaf ----------
+    // Tolerances are the density worker's own predeclared ones (CompositeDensityV2Predeclared.md): expected loss at 99.9% Sitka within .005
+    // of pure; adjacent shares within 2 x the composition change + .005; one broadleaf removed or dead within .005 and 5 deaths per 1000.
+    // Realised deaths are random, so each tolerance is widened by three standard errors of the difference of the seed means.
+
+    private static double Sd(IList<double> v)
+    {
+        if (v.Count < 2) return 0.0;
+        double m = v.Average(); return Math.Sqrt(v.Sum(x => (x - m) * (x - m)) / (v.Count - 1));
+    }
+
+    private Func<int, TreeSpeciesDefinition> ShareOf(int count, double sitkaShare)
+    {
+        int broadleaf = (int)Math.Round(count * (1.0 - sitkaShare));
+        return k => (int)((long)(k + 1) * broadleaf / count) > (int)((long)k * broadleaf / count) ? (k % 2 == 0 ? oak : beech) : sitka;
+    }
+
+    private IEnumerator Continuity()
+    {
+        const int count = 1000, seeds = 10;
+        var regimes = new (string label, float dbhMin, float spread)[] { ("DBH16_24", 16f, 8f), ("DBH24_34", 24f, 10f), ("DBH32_44", 32f, 12f) };
+        double[] shares = { 1.0, 0.999, 0.99, 0.95, 0.90 };
+        foreach (var regime in regimes)
+        {
+            var fractions = new List<double>[shares.Length];
+            var routes = new string[shares.Length];
+            for (int si = 0; si < shares.Length; si++)
+            {
+                fractions[si] = new List<double>();
+                Func<int, TreeSpeciesDefinition> speciesOf = ShareOf(count, shares[si]);
+                for (int sd = 0; sd < seeds; sd++)
+                {
+                    Stand(2, speciesOf, count, regime.dbhMin, regime.spread, 11000 + sd);
+                    int broadleaf = Living().Count(t => t.Species != sitka);
+                    AdultMortalityAccount a = DensityStep();
+                    routes[si] = a.Route.ToString();
+                    fractions[si].Add(a.LivingBefore > 0 ? (double)a.Deaths / a.LivingBefore : 0.0);
+                    if (sd == 0) Measure("CONTINUITY_STAND", $"{regime.label} sitkaShare={F(shares[si])} stems={a.LivingBefore} broadleaf={broadleaf} route={a.Route} occupancyOrRd={F(a.Route == DensityRoute.SpeciesAwareOccupancy ? a.Occupancy : a.RelativeDensity)} pressure={F(a.DensityPressure, "0.0000")}");
+                }
+                Measure("CONTINUITY", $"{regime.label} sitkaShare={F(shares[si])} route={routes[si]} meanDeathFraction={F(fractions[si].Average(), "0.0000")} sd={F(Sd(fractions[si]), "0.0000")} deathsPer1000={F(fractions[si].Average() * 1000.0, "0.0")}");
+                Csv($"continuity-{geo}.csv", $"{regime.label},{shares[si]},{routes[si]},{F(fractions[si].Average(), "0.00000")},{F(Sd(fractions[si]), "0.00000")},{seeds}");
+                yield return null;
+            }
+            Hard($"CONTINUITY_{regime.label}_PURE_SITKA_USES_THE_LEGACY_ROUTE_AND_ANY_BROADLEAF_THE_COMPOSITE_ROUTE",
+                routes[0] == "LegacySitkaExact" && routes.Skip(1).All(r => r == "SpeciesAwareOccupancy"), string.Join(",", routes));
+            double se(int a, int b) => Math.Sqrt(Math.Pow(Sd(fractions[a]), 2) / seeds + Math.Pow(Sd(fractions[b]), 2) / seeds);
+            double d999 = Math.Abs(fractions[1].Average() - fractions[0].Average());
+            Hard($"CONTINUITY_{regime.label}_99_9_PERCENT_SITKA_LOSS_MATCHES_PURE", d999 <= 0.005 + 3.0 * se(0, 1),
+                $"difference={F(d999, "0.0000")} tolerance={F(0.005 + 3.0 * se(0, 1), "0.0000")} (0.005 + 3 se)");
+            for (int i = 0; i + 1 < shares.Length; i++)
+            {
+                double d = Math.Abs(fractions[i + 1].Average() - fractions[i].Average());
+                double tolerance = 2.0 * (shares[i] - shares[i + 1]) + 0.005 + 3.0 * se(i, i + 1);
+                Hard($"CONTINUITY_{regime.label}_ADJACENT_{F(shares[i])}_TO_{F(shares[i + 1])}", d <= tolerance, $"difference={F(d, "0.0000")} tolerance={F(tolerance, "0.0000")} (2 x composition change + 0.005 + 3 se)");
+            }
+        }
+    }
+
+    private IEnumerator FinalBroadleaf()
+    {
+        const int count = 1000, seeds = 12;
+        var regimes = new (string label, float dbhMin, float spread)[] { ("DBH16_24", 16f, 8f), ("DBH24_34", 24f, 10f), ("DBH32_44", 32f, 12f) };
+        foreach (var regime in regimes)
+        {
+            var with = new List<double>(); var fell = new List<double>(); var natural = new List<double>(); var pure = new List<double>();
+            var withDeaths = new List<double>(); var fellDeaths = new List<double>(); var naturalDeaths = new List<double>();
+            Func<int, TreeSpeciesDefinition> one = ShareOf(count, 0.999), none = _ => sitka;
+            for (int sd = 0; sd < seeds; sd++)
+            {
+                int seed = 12000 + sd;
+                Stand(2, none, count, regime.dbhMin, regime.spread, seed);
+                AdultMortalityAccount p = DensityStep(); pure.Add((double)p.Deaths / Math.Max(1, p.LivingBefore));
+                Stand(2, one, count, regime.dbhMin, regime.spread, seed);
+                AdultMortalityAccount a = DensityStep(); with.Add((double)a.Deaths / Math.Max(1, a.LivingBefore)); withDeaths.Add(a.Deaths);
+                // deliberate removal of the last broadleaf through the felling path, then the next annual density step
+                Stand(2, one, count, regime.dbhMin, regime.spread, seed);
+                ForestTree last = Living().First(t => t.Species != sitka);
+                last.Fell(); e.InvalidateCompetition(); e.RecomputeCanopy();
+                AdultMortalityAccount b = DensityStep(); fell.Add((double)b.Deaths / Math.Max(1, b.LivingBefore)); fellDeaths.Add(b.Deaths);
+                // natural death of the last broadleaf through the ecology's own mortality path
+                Stand(2, one, count, regime.dbhMin, regime.spread, seed);
+                last = Living().First(t => t.Species != sitka);
+                last.ApplyMortality("self-thinning", e.EcologicalYear); e.InvalidateCompetition(); e.RecomputeCanopy();
+                AdultMortalityAccount c = DensityStep(); natural.Add((double)c.Deaths / Math.Max(1, c.LivingBefore)); naturalDeaths.Add(c.Deaths);
+                if (sd == 0) Measure("FINALBROADLEAF_ROUTES", $"{regime.label} withOneBroadleaf={a.Route} afterFelling={b.Route} afterNaturalDeath={c.Route} stems={a.LivingBefore}/{b.LivingBefore}/{c.LivingBefore}");
+                if (sd % 3 == 2) yield return null;
+            }
+            double sePair(IList<double> x, IList<double> y) { var d = x.Select((v, i) => v - y[i]).ToList(); return Sd(d) / Math.Sqrt(d.Count); }
+            double meanDiff(IList<double> x, IList<double> y) => x.Select((v, i) => v - y[i]).Average();
+            Measure("FINALBROADLEAF", $"{regime.label} deathsPer1000: pureSitka={F(pure.Average() * 1000.0, "0.0")} oneBroadleafPresent={F(with.Average() * 1000.0, "0.0")} afterFelling={F(fell.Average() * 1000.0, "0.0")} afterNaturalDeath={F(natural.Average() * 1000.0, "0.0")} seeds={seeds}");
+            Csv($"finalbroadleaf-{geo}.csv", $"{regime.label},{F(pure.Average(), "0.00000")},{F(with.Average(), "0.00000")},{F(fell.Average(), "0.00000")},{F(natural.Average(), "0.00000")},{seeds}");
+            foreach (var pair in new[] { ("FELLING", fell, fellDeaths), ("NATURAL_DEATH", natural, naturalDeaths) })
+            {
+                double d = Math.Abs(meanDiff(pair.Item2, with)), tol = 0.005 + 3.0 * sePair(pair.Item2, with);
+                double dd = Math.Abs(pair.Item3.Average() - withDeaths.Average());
+                Hard($"FINALBROADLEAF_{regime.label}_{pair.Item1}_LOSS_MATCHES_THE_STAND_WITH_IT", d <= tol && dd <= 5.0 + 3.0 * 1000.0 * sePair(pair.Item2, with), $"lossDifference={F(d, "0.0000")} tolerance={F(tol, "0.0000")} deathDifferencePer1000={F(dd, "0.0")} (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)");
+            }
+            double dp = Math.Abs(meanDiff(with, pure)), tolp = 0.005 + 3.0 * sePair(with, pure);
+            Hard($"FINALBROADLEAF_{regime.label}_ONE_BROADLEAF_VERSUS_PURE_SITKA", dp <= tolp, $"lossDifference={F(dp, "0.0000")} tolerance={F(tolp, "0.0000")}");
+        }
+
+        // The same event inside the full annual step (growth, competition, regeneration off): deaths per year around the last broadleaf's removal.
+        var trajectories = new Dictionary<string, List<double>>();
+        foreach (string mode in new[] { "never", "felled-year3", "died-year3" })
+        {
+            var deaths = new List<double>[6]; for (int i = 0; i < 6; i++) deaths[i] = new List<double>();
+            for (int sd = 0; sd < 6; sd++)
+            {
+                Stand(2, ShareOf(count, 0.999), count, 24f, 10f, 13000 + sd);
+                for (int year = 1; year <= 6; year++)
+                {
+                    if (year == 4 && mode != "never")
+                    {
+                        ForestTree last = Living().FirstOrDefault(t => t.Species != sitka);
+                        if (last != null) { if (mode == "felled-year3") last.Fell(); else last.ApplyMortality("self-thinning", e.EcologicalYear); e.InvalidateCompetition(); e.RecomputeCanopy(); }
+                    }
+                    e.AdvanceOneYear();
+                    deaths[year - 1].Add(e.LastAdultMortality.Deaths);
+                }
+                if (sd % 2 == 1) yield return null;
+            }
+            trajectories[mode] = deaths.Select(l => l.Average()).ToList();
+            Measure("FINALBROADLEAF_TRAJECTORY", $"{mode} meanDensityDeathsPerYear(y1..y6)={string.Join(" ", deaths.Select(l => F(l.Average(), "0.0")))}");
+        }
+        double step = Math.Abs(trajectories["felled-year3"][3] - trajectories["never"][3]), stepN = Math.Abs(trajectories["died-year3"][3] - trajectories["never"][3]);
+        Hard("FINALBROADLEAF_NO_NEXT_YEAR_MASS_MORTALITY_AFTER_FELLING_OR_NATURAL_DEATH", step <= 0.05 * trajectories["never"][3] + 5.0 && stepN <= 0.05 * trajectories["never"][3] + 5.0,
+            $"year4 deaths: never={F(trajectories["never"][3], "0.0")} felled={F(trajectories["felled-year3"][3], "0.0")} died={F(trajectories["died-year3"][3], "0.0")} (within 5% + 5 stems)");
     }
 
     // ---------- ROLLS: the shared per-tree roll stream (SimulationRandom.Roll, unchanged by the branch) ----------
@@ -576,7 +715,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         List<DensityStem> stems = StemsOfLiving();
         var timer = System.Diagnostics.Stopwatch.StartNew();
         const int reps = 200;
-        for (int i = 0; i < reps; i++) MixedDensityModel.Plan(stems, e.StandAreaHectares, id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed));
+        for (int i = 0; i < reps; i++) CompositePlan(stems);
         timer.Stop();
         Measure("PERF_PURE_PLAN", $"stems={stems.Count} meanMsPerPlan={F(timer.Elapsed.TotalMilliseconds / reps, "0.000")}");
     }
@@ -617,7 +756,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             AdultMortalityAccount a = e.LastAdultMortality;
             if (a.Route == DensityRoute.SpeciesAwareOccupancy)
             {
-                double expectedLoss = MixedDensityModel.ExpectedAnnualLoss(a.DensityPressure, OccupancyCalibration.Default);
+                double expectedLoss = a.DensityPressure;   // v2: the composite plan reports its expected annual loss as the pressure
                 foreach (ForestTree t in pre)
                 {
                     int s = SpeciesIndex(t);
@@ -752,6 +891,8 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         if (wanted.Contains("PARITY")) { yield return Parity(); Debug.Log($"QUAL_PHASE_DONE PARITY t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("CURVE")) { yield return Curve(); Debug.Log($"QUAL_PHASE_DONE CURVE t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("FAIRNESS")) { yield return Fairness(); Debug.Log($"QUAL_PHASE_DONE FAIRNESS t={started.Elapsed.TotalSeconds:0}s"); }
+        if (wanted.Contains("CONTINUITY")) { yield return Continuity(); Debug.Log($"QUAL_PHASE_DONE CONTINUITY t={started.Elapsed.TotalSeconds:0}s"); }
+        if (wanted.Contains("FINALBROADLEAF")) { yield return FinalBroadleaf(); Debug.Log($"QUAL_PHASE_DONE FINALBROADLEAF t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("SAVELOAD")) { yield return SaveLoad(); Debug.Log($"QUAL_PHASE_DONE SAVELOAD t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("PERF")) { yield return Perf(); Debug.Log($"QUAL_PHASE_DONE PERF t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("LONGRUN")) { yield return LongRun(); Debug.Log($"QUAL_PHASE_DONE LONGRUN t={started.Elapsed.TotalSeconds:0}s"); }
