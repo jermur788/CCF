@@ -1,0 +1,20 @@
+{
+  "label": "reh-n3",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 83.5,
+  "method": "N3CompletionVerification.Begin",
+  "marker": "N3_U4_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "1a4d01980a40a8dc8ec2987b7c09660230b49fac",
+  "staged_sha256": {
+    "N3CompletionVerification.cs": "fcbc9cb1de4e894c6f761c4547db8178095520b49a1f6b3be8ea42b746c0f4de"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

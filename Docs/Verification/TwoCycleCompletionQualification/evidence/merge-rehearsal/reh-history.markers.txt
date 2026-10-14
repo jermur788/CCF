@@ -1,0 +1,40 @@
+SCENARIO_HISTORY_PASS save version unchanged
+SCENARIO_HISTORY_PASS restore baseline
+SCENARIO_HISTORY_PASS a new game has no interventions and no completion review
+SCENARIO_HISTORY_PASS hint before any intervention
+SCENARIO_HISTORY_PASS buy oak stock
+SCENARIO_HISTORY_PASS designate sheltered planting
+SCENARIO_HISTORY_PASS cycle 1 resolves
+SCENARIO_HISTORY_PASS first intervention derived from real records: felled=3 planted=1
+SCENARIO_HISTORY_PASS money and the before/after snapshots exist; nothing 'since' yet
+SCENARIO_HISTORY_PASS reading the history twice does not duplicate it
+SCENARIO_HISTORY_PASS the first review is pending after the first year
+SCENARIO_HISTORY_PASS acknowledging once clears the gate
+SCENARIO_HISTORY_PASS two idle years advance without any further acknowledgement
+SCENARIO_HISTORY_PASS no recurring review gate
+SCENARIO_HISTORY_PASS idle years add no intervention but extend 'since'
+SCENARIO_HISTORY_PASS hint after idle years names the next intervention
+SCENARIO_HISTORY_PASS cycle 2 resolves
+SCENARIO_HISTORY_PASS second intervention is a new entry with its own snapshots
+SCENARIO_HISTORY_PASS the first intervention is unchanged by the second
+SCENARIO_HISTORY_PASS a fresh order is not stale
+SCENARIO_HISTORY_PASS two years pass with the order left pending
+SCENARIO_HISTORY_PASS the old order is neither expired nor deleted
+SCENARIO_HISTORY_PASS the old order is surfaced with its age: Planned in year 4, 2 years ago. Check it still suits the stand before approving or advancing.
+SCENARIO_HISTORY_PASS hint puts the stale order first
+SCENARIO_HISTORY_PASS cycle 3 resolves the old order
+SCENARIO_HISTORY_PASS third intervention: no two-cycle special case
+SCENARIO_HISTORY_PASS no stale orders remain once it is resolved
+SCENARIO_HISTORY_PASS other deaths in the second plan's year match an independent recount (0); felled-and-left stems are not counted
+SCENARIO_HISTORY_PASS both stems left as deadwood by plan 2 are on record for that year
+SCENARIO_HISTORY_PASS the save is still version 20
+SCENARIO_HISTORY_PASS reload
+SCENARIO_HISTORY_PASS history is identical after a save and load
+SCENARIO_HISTORY_PASS no extra records appeared on load
+SCENARIO_HISTORY_PASS no completion summary while active
+SCENARIO_HISTORY_PASS completion summary is for the completion year, not year 100
+SCENARIO_HISTORY_PASS completion totals match the interventions
+SCENARIO_HISTORY_PASS completion wording is produced
+SCENARIO_HISTORY_PASS hint after completion points to the summary
+SCENARIO_HISTORY_PASS management stays available after completion until the Century Review
+SCENARIO_HISTORY_VERIFY_PASS assertions=39

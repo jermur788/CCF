@@ -1,0 +1,20 @@
+{
+  "label": "reh-timber",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 81.9,
+  "method": "BroadleafTimberEconomyVerification.Begin",
+  "marker": "BROADLEAF_TIMBER_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "1a4d01980a40a8dc8ec2987b7c09660230b49fac",
+  "staged_sha256": {
+    "BroadleafTimberEconomyVerification.cs": "f0513043adbd4b98c5090d6a09aa66396ea714b2b2d37e657de2f68225f023d0"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}
