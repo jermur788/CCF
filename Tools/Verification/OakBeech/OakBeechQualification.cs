@@ -405,6 +405,10 @@ public sealed class OakBeechGate : MonoBehaviour
             bool approved = manager.ApprovePendingWork();
             Note($"release_{species}_workplan", $"added={added}/{moderateTargets.Count + strongTargets.Count} approved={approved} feedback={manager.Feedback}");
             PreStep();
+            // The felling resolves INSIDE this annual step, before the ecology step recomputes competition, so the competition index
+            // measured here (pre-felling) is not the one the step uses. That one transition is checked explicitly below instead of
+            // by the generic per-step law check.
+            foreach (Fix f in fix) f.hadPre = false;
             if (approved && added == moderateTargets.Count + strongTargets.Count)
             {
                 Need(manager.AdvanceYear(), "release resolution: " + manager.Feedback);
@@ -427,6 +431,13 @@ public sealed class OakBeechGate : MonoBehaviour
                 Expect(Mathf.Abs(a.h - b.h) < 1e-3f && Mathf.Abs(a.h - c.h) < 1e-3f, $"2D {species} year {year}: height identical released vs suppressed ({F(a.h, "0.000")}/{F(b.h, "0.000")}/{F(c.h, "0.000")})");
             }
             Row s51 = At(strong, 51), s50 = At(strong, 50), c51 = At(control, 51);
+            {
+                TreeSpeciesDefinition sp = species == Oak ? oak : beech;
+                float expectedD = Mathf.Clamp(s50.d + sp.PotentialDbhGrowthCmPerYear * Mathf.Clamp01(1f - s50.d / sp.MaxDbhCm) * (1f / (1f + 0f / sp.Ci50)), 1f, 200f);
+                float expectedH = Mathf.Clamp(s50.h + sp.PotentialHeightGrowthMPerYear * Mathf.Clamp01(1f - s50.h / sp.MaxHeightM), 0.1f, 60f);
+                Expect(Mathf.Abs(s51.d - expectedD) < 1e-3f && Mathf.Abs(s51.h - expectedH) < 1e-3f,
+                    $"2D {species}: the strongly released centre tree grows with CI = 0 in the release step (D {F(s50.d)} -> {F(s51.d)}, law {F(expectedD)}; H {F(s50.h)} -> {F(s51.h)}, law {F(expectedH)})");
+            }
             Note($"release_{species}_increment", $"year 50->51 dD strong {F(s51.d - s50.d, "0.000")} control {F(c51.d - a50.d, "0.000")} cm; strong CI {F(s50.ci)} -> {F(s51.ci)}");
             Expect(s51.d - s50.d > c51.d - a50.d, $"2D {species}: release raises the DBH increment immediately");
             Note($"release_{species}_deltaD_Y100", $"strong-control {F(At(strong, 100).d - At(control, 100).d, "0.00")} cm, moderate-control {F(At(moderate, 100).d - At(control, 100).d, "0.00")} cm");
