@@ -1,0 +1,615 @@
+{
+  "baseline": {
+    "Beech": {
+      "height_design_distance": 1.9029130630864963,
+      "oak_D60_proxy_ages": {},
+      "parameters": {
+        "Ci50": 3,
+        "Dmax": 120,
+        "Hmax": 40,
+        "Pd": 0.4,
+        "Ph": 0.4
+      },
+      "reasons": [],
+      "species": "Beech",
+      "stock_D25": {
+        "dense": 7.026805469228918,
+        "moderate": 8.30496191797827,
+        "strong": 9.695338596859395
+      },
+      "strong_dense_D100_ratio": 1.973994899108854,
+      "survives": true
+    },
+    "Oak": {
+      "height_design_distance": 0.9029130630864963,
+      "oak_D60_proxy_ages": {
+        "release50/dense": null,
+        "release50/moderate": null,
+        "release50/strong": null,
+        "stock/dense": null,
+        "stock/moderate": null,
+        "stock/strong": null
+      },
+      "parameters": {
+        "Ci50": 3,
+        "Dmax": 120,
+        "Hmax": 40,
+        "Pd": 0.4,
+        "Ph": 0.4
+      },
+      "reasons": [],
+      "species": "Oak",
+      "stock_D25": {
+        "dense": 7.026805469228918,
+        "moderate": 8.30496191797827,
+        "strong": 9.695338596859395
+      },
+      "strong_dense_D100_ratio": 1.973994899108854,
+      "survives": true
+    }
+  },
+  "candidate_count": 486,
+  "classification": "B",
+  "preregistration_sha256": "6fcdd45dd14eb0acba2ce1d0ad8eebdfd828b052ed7f6d2472ab7ebbdba48479",
+  "reason": "Many bounded families survive; targets identify release direction, not unique empirical rates; height bands are provisional [C].",
+  "sensitivity": {
+    "Beech": {
+      "Ci50": [
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 3
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 6.5
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 10
+        }
+      ],
+      "Dmax": [
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 80
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 120
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 160
+        }
+      ],
+      "Hmax": [
+        {
+          "mean_design_distance": 1.011690435238916,
+          "survival_fraction": 1.0,
+          "value": 35
+        },
+        {
+          "mean_design_distance": 0.6695069408739778,
+          "survival_fraction": 1.0,
+          "value": 42.5
+        },
+        {
+          "mean_design_distance": 0.7044892568098611,
+          "survival_fraction": 1.0,
+          "value": 50
+        }
+      ],
+      "Pd": [
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 0.4
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 0.9
+        },
+        {
+          "mean_design_distance": 0.7952288776409182,
+          "survival_fraction": 1.0,
+          "value": 1.4
+        }
+      ],
+      "Ph": [
+        {
+          "mean_design_distance": 1.8416134669272628,
+          "survival_fraction": 1.0,
+          "value": 0.4
+        },
+        {
+          "mean_design_distance": 0.32828575719946534,
+          "survival_fraction": 1.0,
+          "value": 0.75
+        },
+        {
+          "mean_design_distance": 0.21578740879602673,
+          "survival_fraction": 1.0,
+          "value": 1.1
+        }
+      ]
+    },
+    "Oak": {
+      "Ci50": [
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 2
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 5
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 0.8888888888888888,
+          "value": 8
+        }
+      ],
+      "Dmax": [
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 80
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 120
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 0.8888888888888888,
+          "value": 160
+        }
+      ],
+      "Hmax": [
+        {
+          "mean_design_distance": 0.3912802204297965,
+          "survival_fraction": 0.9629629629629629,
+          "value": 35
+        },
+        {
+          "mean_design_distance": 0.3679664692274656,
+          "survival_fraction": 0.9629629629629629,
+          "value": 42.5
+        },
+        {
+          "mean_design_distance": 0.5127392400547298,
+          "survival_fraction": 0.9629629629629629,
+          "value": 50
+        }
+      ],
+      "Pd": [
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 0.4
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 1.0,
+          "value": 0.8
+        },
+        {
+          "mean_design_distance": 0.4239953099039973,
+          "survival_fraction": 0.8888888888888888,
+          "value": 1.2
+        }
+      ],
+      "Ph": [
+        {
+          "mean_design_distance": 0.8416134669272626,
+          "survival_fraction": 0.9629629629629629,
+          "value": 0.4
+        },
+        {
+          "mean_design_distance": 0.05085539737473089,
+          "survival_fraction": 0.9629629629629629,
+          "value": 0.65
+        },
+        {
+          "mean_design_distance": 0.37951706540999847,
+          "survival_fraction": 0.9629629629629629,
+          "value": 0.9
+        }
+      ]
+    }
+  },
+  "sources_sha256": {
+    "Assets/ForestPrototype/ForestEcologyController.cs": "2c26c0c29d5bc376132e23a824defbae67c508afbe484481f74d0a807124a948",
+    "Assets/ForestPrototype/ForestTree.cs": "d98dbeec5660c4dc02b7587cdd582a9a4e079f19b44a2cc377951d4da4318c90",
+    "Assets/ForestPrototype/JuvenileEcologyRules.cs": "2e8d73acdc22b361c2a79ef93541cecc8bd0d04c267b5926b7523d4125ee6851",
+    "Assets/ForestPrototype/Species/BeechSpecies.asset": "eccc8d00595d8b8eafe4330dc15699a49fa6348a2a5f243b4b4dae27b96a46eb",
+    "Assets/ForestPrototype/Species/SessileOak.asset": "6a0d09127205532ae77d57415e41f3a61d38df13b1188a21fbf68a66518e661a",
+    "Assets/ForestPrototype/TreeSpeciesDefinition.cs": "0557a0f1e13e5d6c5b3f0cd084209c62d80431189e0a22e15092c344300b5a0e"
+  },
+  "species": {
+    "Beech": {
+      "D25_range": [
+        6.984909779343192,
+        22.920558730199776
+      ],
+      "lowest_diagnostic_distance": 0.0,
+      "lowest_distance_examples": [
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-058",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 3,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 6.984909779343192,
+            "moderate": 8.221306342990143,
+            "strong": 9.558758641111734
+          },
+          "strong_dense_D100_ratio": 1.9063495796717544,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-059",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 6.5,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 7.941649446475986,
+            "moderate": 9.209070904332469,
+            "strong": 10.174910189572055
+          },
+          "strong_dense_D100_ratio": 1.5487146341155904,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-060",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 10,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 8.520550047580514,
+            "moderate": 9.660670141571597,
+            "strong": 10.397715399169936
+          },
+          "strong_dense_D100_ratio": 1.3895607691811438,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-067",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 3,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 7.026805469228918,
+            "moderate": 8.30496191797827,
+            "strong": 9.695338596859395
+          },
+          "strong_dense_D100_ratio": 1.973994899108854,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-068",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 6.5,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 8.015263133415047,
+            "moderate": 9.331024604845528,
+            "strong": 10.338637678724947
+          },
+          "strong_dense_D100_ratio": 1.5947207334317095,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Beech-069",
+          "oak_D60_proxy_ages": {},
+          "parameters": {
+            "Ci50": 10,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 1.1
+          },
+          "reasons": [],
+          "species": "Beech",
+          "stock_D25": {
+            "dense": 8.615340668705464,
+            "moderate": 9.801618773731917,
+            "strong": 10.571695176285724
+          },
+          "strong_dense_D100_ratio": 1.4237453804794238,
+          "survives": true
+        }
+      ],
+      "rejected": 0,
+      "rejection_counts": {},
+      "survivor_parameter_support": {
+        "Ci50": [
+          3,
+          6.5,
+          10
+        ],
+        "Dmax": [
+          80,
+          120,
+          160
+        ],
+        "Hmax": [
+          35,
+          42.5,
+          50
+        ],
+        "Pd": [
+          0.4,
+          0.9,
+          1.4
+        ],
+        "Ph": [
+          0.4,
+          0.75,
+          1.1
+        ]
+      },
+      "survivors": 243
+    },
+    "Oak": {
+      "D25_range": [
+        6.585083682371802,
+        19.83050726113699
+      ],
+      "lowest_diagnostic_distance": 0.0,
+      "lowest_distance_examples": [
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-031",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 2,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 6.585083682371802,
+            "moderate": 7.679719150511746,
+            "strong": 9.11554758367204
+          },
+          "strong_dense_D100_ratio": 2.086903854952628,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-032",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 5,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 7.596060317136196,
+            "moderate": 8.892967320358046,
+            "strong": 9.99938215224367
+          },
+          "strong_dense_D100_ratio": 1.663054509896276,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-033",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 8,
+            "Dmax": 80,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 8.221306342990143,
+            "moderate": 9.438140106456778,
+            "strong": 10.291700566897735
+          },
+          "strong_dense_D100_ratio": 1.467226546490827,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-040",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 2,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 6.614920908832574,
+            "moderate": 7.7442450247100565,
+            "strong": 9.233684712478365
+          },
+          "strong_dense_D100_ratio": 2.1615744475242757,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-041",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 5,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 7.657748068747636,
+            "moderate": 9.00218211698915,
+            "strong": 10.15519616503399
+          },
+          "strong_dense_D100_ratio": 1.7167893681020618,
+          "survives": true
+        },
+        {
+          "height_design_distance": 0.0,
+          "id": "Oak-042",
+          "oak_D60_proxy_ages": {
+            "release50/dense": null,
+            "release50/moderate": null,
+            "release50/strong": null,
+            "stock/dense": null,
+            "stock/moderate": null,
+            "stock/strong": null
+          },
+          "parameters": {
+            "Ci50": 8,
+            "Dmax": 120,
+            "Hmax": 42.5,
+            "Pd": 0.4,
+            "Ph": 0.65
+          },
+          "reasons": [],
+          "species": "Oak",
+          "stock_D25": {
+            "dense": 8.30496191797827,
+            "moderate": 9.569611412755117,
+            "strong": 10.460773130569681
+          },
+          "strong_dense_D100_ratio": 1.5073294929180663,
+          "survives": true
+        }
+      ],
+      "rejected": 9,
+      "rejection_counts": {
+        "oak_proxy_before80": 9
+      },
+      "survivor_parameter_support": {
+        "Ci50": [
+          2,
+          5,
+          8
+        ],
+        "Dmax": [
+          80,
+          120,
+          160
+        ],
+        "Hmax": [
+          35,
+          42.5,
+          50
+        ],
+        "Pd": [
+          0.4,
+          0.8,
+          1.2
+        ],
+        "Ph": [
+          0.4,
+          0.65,
+          0.9
+        ]
+      },
+      "survivors": 234
+    }
+  }
+}
