@@ -76,6 +76,20 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
         return hash.ToString("X16");
     }
 
+    // Fixture control: the nine grid trees are the only stems the question is about. After about 40 years of age the parents seed the
+    // sparse stand and natural recruits promote into it; they would add competition (the closed-form law assumes CI 0 at 12 m
+    // spacing), change Living() and re-order the probe tree. Each annual step therefore removes every stem that is not a grid tree.
+    // This leaves the adult-growth checks exactly as written; it only stops the fixture being polluted.
+    private HashSet<string> fixtureIds = new HashSet<string>();
+    private int recruitsRemoved;
+
+    private void Step()
+    {
+        e.AdvanceOneYear();
+        foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (!fixtureIds.Contains(t.TreeId)) { recruitsRemoved++; DestroyImmediate(t.gameObject); }
+    }
+
     // 3 x 3 grid. Spacing above the 8 m Hegyi cutoff gives every tree a competition index of exactly 0.
     private void Grid(int growth, TreeSpeciesDefinition s, float spacing, float dbh = 5.25f, float height = 3.5f, int age = 12)
     {
@@ -87,6 +101,7 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
         e.RegenerationModelVersion = RegenerationModel.AgeBands;
         e.GrowthModelVersion = growth;
         string prefix = s == oak ? "O" : s == beech ? "B" : "S";
+        fixtureIds = new HashSet<string>(Enumerable.Range(0, 9).Select(k => prefix + k.ToString("00")));
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
                 spawner.Spawn(prefix + (i * 3 + j).ToString("00"), s, new Vector3((i - 1) * spacing, 0f, (j - 1) * spacing), age, dbh, height, s.PotentialCrownRadiusM(dbh));
@@ -136,12 +151,12 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
                 h[0] = probe.Height; d[0] = probe.Diameter;
                 for (int y = 1; y <= 60; y++)
                 {
-                    e.AdvanceOneYear();
+                    Step();
                     h[y] = probe.Height; d[y] = probe.Diameter;
                     if (y % 10 == 0) yield return null;
                 }
                 heights[growth] = h; dbhs[growth] = d; hashes[growth] = TreeStateHash();
-                Check(Living().Length == 9, $"{label} growth {growth}: sparse stand lost a tree");
+                Check(Living().Length == 9, $"{label} growth {growth}: sparse stand lost a tree or gained a recruit the fixture did not remove (living={Living().Length})");
             }
             // Closed-form law with ci = 0 and site = 1 (the production site scalar).
             float lh = 3.5f, ld = 5.25f; bool lawOk = true;
@@ -158,11 +173,11 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
 
             // Competition lowers DBH, not height.
             Grid(2, s, 12f); yield return null;
-            for (int y = 0; y < 30; y++) e.AdvanceOneYear();
+            for (int y = 0; y < 30; y++) Step();
             ForestTree isolated = Living()[4];
             float isolatedD = isolated.Diameter, isolatedH = isolated.Height;
             Grid(2, s, 2.5f); yield return null;
-            for (int y = 0; y < 30; y++) e.AdvanceOneYear();
+            for (int y = 0; y < 30; y++) Step();
             ForestTree crowdedCentre = Living().FirstOrDefault(t => t.TreeId.EndsWith("04"));
             Pass($"{label}_COMPETITION_REDUCES_DBH_NOT_HEIGHT", crowdedCentre != null && crowdedCentre.Diameter < isolatedD - 0.05f && Mathf.Abs(crowdedCentre.Height - isolatedH) < 1e-3f,
                 crowdedCentre == null ? "centre tree died" : $"isolated D={F(isolatedD)} H={F(isolatedH)} crowded D={F(crowdedCentre.Diameter)} H={F(crowdedCentre.Height)}");
@@ -172,26 +187,27 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
             for (int run = 0; run < 2; run++)
             {
                 Grid(2, s, 3.5f); yield return null;
-                for (int y = 0; y < 25; y++) e.AdvanceOneYear();
+                for (int y = 0; y < 25; y++) Step();
                 string hash = TreeStateHash();
                 if (run == 0) first = hash; else Pass($"{label}_REPLAY_IDENTICAL", hash == first, $"hash={hash}");
             }
             Grid(2, s, 3.5f); yield return null;
-            for (int y = 0; y < 10; y++) e.AdvanceOneYear();
+            for (int y = 0; y < 10; y++) Step();
             string mid = JsonUtility.ToJson(saves.CaptureData());
-            for (int y = 0; y < 15; y++) e.AdvanceOneYear();
+            for (int y = 0; y < 15; y++) Step();
             string uninterrupted = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
             Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(mid), false), label + " mid load");
             yield return null;
-            for (int y = 0; y < 15; y++) e.AdvanceOneYear();
+            for (int y = 0; y < 15; y++) Step();
             string resumed = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
             Pass($"{label}_SAVE_LOAD_CONTINUATION", uninterrupted == resumed, $"uninterrupted={uninterrupted} resumed={resumed}");
+            Pass($"{label}_FIXTURE_RECRUITS_REMOVED_REPORT", true, $"recruitsRemovedSoFar={recruitsRemoved} (natural regeneration promoted into the sparse stand and was removed each year; the checks above are unchanged)");
         }
 
         // Sitka under growth model 2 still follows the Class III envelope (the Sitka-only height gate is unchanged).
         Grid(2, sitka, 12f, 20f, 12f, 25); yield return null;
         ForestTree s0 = Living()[4]; float expected = SitkaGrowthModel.NextHeight(s0.Height, s0.AgeYears);
-        e.AdvanceOneYear();
+        Step();
         Pass("SITKA_HEIGHT_STILL_CLASS_III_UNDER_GROWTH2", Mathf.Abs(Living()[4].Height - expected) < 1e-4f, $"expected={F(expected, "0.0000")} got={F(Living()[4].Height, "0.0000")}");
     }
 
