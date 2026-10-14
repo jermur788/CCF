@@ -21,7 +21,7 @@ These are conservative central search choices, not measured Irish values or fitt
 
 Both candidates satisfy all preregistered hard guards and positive diameter release ordering; matched heights remain treatment-independent. Controlled new stock promotes representation atage10 but stays biologically young/small: age25 DBH9.802–14.656cm Oak /11.117–16.147cm Beech. These mathematical surviving-stock/full-light controls are not actual juvenile survival predictions. Earliest Oak D60 proxy isage127, later than ordinary scenario completion; no claim of veneer eligibility or a new production age gate. No timber threshold was used to choose coefficients. Beech multi-age provisional height distance0.1883 is retained rather than chasing an edge-of-grid zero; Oak distance0.0. Provisional band agreement is not empirical validation.
 
-Existing offline density33/timber71/history70 suites pass on the exact overnight base; production approximate type-check reports7 known baseline errors and no new errors. Evidence is in ProductionV1Evidence. No assertion, baseline or reference anchor changed.
+Existing offline density35/timber71/history70 suites pass on the exact overnight base; production approximate type-check reports7 known baseline errors and no new errors. Evidence is in ProductionV1Evidence. No assertion, baseline or reference anchor changed.
 
 ## Changed scope and remaining gates
 
