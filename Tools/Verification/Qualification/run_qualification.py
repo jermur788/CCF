@@ -67,9 +67,11 @@ def main():
     if not (config / "unity3d/Unity/licenses").exists():
         shutil.copytree(LICENCES, config / "unity3d/Unity/licenses")
 
-    busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " "], capture_output=True, text=True).stdout.split()
+    # Only an Editor on THIS project blocks the run. (The density-v3 session shares the machine and runs its own Editors on
+    # another project; its processes are watched for memory, not excluded.)
+    busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " .*-projectPath " + str(ROOT) + " "], capture_output=True, text=True).stdout.split()
     if busy:
-        raise SystemExit("Another Unity Editor is running: " + str(busy))
+        raise SystemExit("Another Unity Editor is running on this project: " + str(busy))
 
     staged = []
     for f in a.file:
