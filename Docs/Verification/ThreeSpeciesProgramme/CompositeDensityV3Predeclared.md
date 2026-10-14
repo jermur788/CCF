@@ -104,3 +104,7 @@ The first run of R2-R4 on the whole MIXED stands failed R2 (5-year-block change 
 * R2' for MIXED stands is therefore evaluated on the GENERIC component's loss fraction only (`GenericDeaths / LivingBefore`), with the same limits (5-year-block change at most 0.10; no year above 40 %), years 26-300.
 * R3' and R4 stay on the whole stand. R5' unchanged.
 * Pure stands are unaffected (they have no Sitka component).
+
+### Erratum (added when the handoff was written)
+
+The Trial 1 grid has **21** candidates (12 with m = 2, 9 with m = 1), not the 19 written in the Trial 1 outcome paragraph above. The grid itself is the one registered in section 5 and was not changed.
