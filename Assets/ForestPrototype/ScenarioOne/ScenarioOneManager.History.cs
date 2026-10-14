@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 // S1-C / S1-D read access to the derived management history (ScenarioInterventionHistory). Everything here is computed
 // on demand from persisted records; nothing is stored, so there is no new save field and no schema change.
@@ -20,9 +21,24 @@ public sealed partial class ScenarioOneManager
                 ecologicalSnapshots, deadwoodRecords, workOrders)
             : null;
 
-    // The repeatable "what next" line for every cycle after the first review.
+    // Presentation only: which "a reviewed second cycle is still missing" message applies now. It reads the same records as the
+    // completion rule and never records, approves or acknowledges anything.
+    public CompletionGuidanceState CompletionGuidance
+    {
+        get
+        {
+            if (outcome != ScenarioOneOutcome.Active || ecology == null) return CompletionGuidanceState.None;
+            IReadOnlyList<ScenarioObjectiveResult> objectives = Objectives;
+            bool allMet = objectives.Count > 0 && objectives.All(result => result.achieved);
+            return ScenarioOneCompletionGuidance.GuidanceState(managementEvents, workOrders, allMet);
+        }
+    }
+
+    // The repeatable "what next" line for every cycle after the first review. While a reviewed second cycle is still missing it
+    // says so (after completion and stale orders, which keep their priority).
     public string NextStepHint => ScenarioInterventionHistory.NextStepHint(Interventions, CurrentYear, StaleOrders.Count,
-        outcome == ScenarioOneOutcome.Completed, outcomeYear, ReviewYear);
+        outcome == ScenarioOneOutcome.Completed, outcomeYear, ReviewYear,
+        ScenarioOneCompletionGuidance.GuidanceText(CompletionGuidance));
 
     // Called by the UI when the player opens the Work Plan, so orders left from earlier years are checked against today's
     // forest (a target may have died, stock may have been used) and cached quotes are rebuilt. It only refreshes each

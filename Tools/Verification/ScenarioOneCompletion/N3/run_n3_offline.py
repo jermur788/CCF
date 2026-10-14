@@ -12,6 +12,7 @@ def method(text,signature):
     return text[start:end]
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,required=True);args=parser.parse_args();args.out.mkdir(parents=True,exist_ok=True)
+    assert hashlib.sha256((FP/'ScenarioOne/ScenarioOneCompletionRules.cs').read_bytes()).hexdigest() == '862eda3ffd4f0ca3a857474773bc54b04abb8d01d5f894bdf482e0c2851dbe3f'
     manager=(FP/'ScenarioOne/ScenarioOneManager.cs').read_text();enums=(FP/'ScenarioOne/ScenarioManagementEvent.cs').read_text()
     assert 'AnnualReviewAcknowledged = 9' in enums
     # Frozen pre-extension values from f4d0a1 compatibility contract.
@@ -25,6 +26,12 @@ def main():
     expected=dict(zip(['StockPurchased','OrderCreated','OrderApproved','OrderCancelled','WorkResolved','YearAdvanced','ScenarioCompleted','ScenarioFailed','CenturyReviewed','AnnualReviewAcknowledged'],range(10)))
     assert actual==expected,(actual,expected)
     assert 'if (outcome == ScenarioOneOutcome.Active)' in method(manager,'private void EvaluateProgress()')
+    # Guidance is presentation only: it must not appear in completion evaluation, restore or the acknowledgement handler.
+    for name in ['private void EvaluateProgress()','public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)','public void MarkAnnualReviewSeen()']:
+        assert 'Guidance' not in method(manager,name),name
+    history=(FP/'ScenarioOne/ScenarioOneManager.History.cs').read_text()
+    assert 'GuidanceText(CompletionGuidance)' in history and 'CompletionGuidanceState.None' in history
+    assert 'CompletionGuidanceState.AcknowledgeReview' in (FP/'UI/AnnualReviewView.cs').read_text()
     pred='objectives.Count > 0 && objectives.All(result => result.achieved)\n                && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders)'
     assert pred in manager
     restore=method(manager,'public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)')
@@ -52,7 +59,7 @@ public sealed class ManagerBoundaryBridge {
     shim=(ROOT/'Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs').read_text()
     shim=shim.replace('public static class Mathf\n    {','public static class Mathf\n    {\n        public static int RoundToInt(float v)=>(int)Math.Round(v);\n        public static int CeilToInt(float v)=>(int)Math.Ceiling(v);\n        public static int FloorToInt(float v)=>(int)Math.Floor(v);')
     (args.out/'UnityShim.cs').write_text(shim)
-    sources=[FP/f for f in ['ScenarioOne/ScenarioOneCompletionRules.cs','ScenarioOne/ScenarioManagementEvent.cs','ScenarioOne/ScenarioOneWorkOrder.cs','ScenarioOne/ScenarioEcologicalSnapshot.cs','ScenarioOne/ScenarioDeadwoodRecord.cs','ForestSaveData.cs','ForestSaveValidation.cs','ForestSaveValidation.Geometry.cs','ForestSaveValidation.Storms.cs','StandGeometryModel.cs','RegenerationModel.cs','SitkaGrowthModel.cs']]+sorted((FP/'WorkEconomy').glob('*.cs'))+sorted((HERE/'OfflineLogic').glob('*.cs'))+[args.out/'ManagerBoundaryBridge.cs',args.out/'UnityShim.cs']
+    sources=[FP/f for f in ['ScenarioOne/ScenarioOneCompletionRules.cs','ScenarioOne/ScenarioOneCompletionGuidance.cs','ScenarioOne/ScenarioManagementEvent.cs','ScenarioOne/ScenarioOneWorkOrder.cs','ScenarioOne/ScenarioEcologicalSnapshot.cs','ScenarioOne/ScenarioDeadwoodRecord.cs','ForestSaveData.cs','ForestSaveValidation.cs','ForestSaveValidation.Geometry.cs','ForestSaveValidation.Storms.cs','StandGeometryModel.cs','RegenerationModel.cs','SitkaGrowthModel.cs']]+sorted((FP/'WorkEconomy').glob('*.cs'))+sorted((HERE/'OfflineLogic').glob('*.cs'))+[args.out/'ManagerBoundaryBridge.cs',args.out/'UnityShim.cs']
     items=''.join('<Compile Include="'+str(f)+'" />' for f in sources)
     project='<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework><OutputType>Exe</OutputType><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><StartupObject>N3OfflineCheck</StartupObject></PropertyGroup><ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.3" />'+items+'</ItemGroup></Project>'
     (args.out/'n3.csproj').write_text(project)
