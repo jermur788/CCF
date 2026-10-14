@@ -1,0 +1,22 @@
+{
+  "label": "baseline-historical-completion",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 112.8,
+  "method": "ScenarioOneCompletionVerification.Begin",
+  "marker": "SCENARIO_ONE_COMPLETION_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "157ea7d12f361b824f56405284d46312e7c0b9fc",
+  "staged_sha256": {
+    "ScenarioOneCompletionVerification.cs": "af104d905986e255c4a4ddd87d445ce668cd68c1e7d118139d4788ddae0dbaf4"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": [
+    " M .vscode/settings.json"
+  ]
+}

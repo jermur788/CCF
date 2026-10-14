@@ -1,0 +1,12 @@
+U4_NOTE phase legacyE
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS E: CanLoad on the relaunched save
+U4_NOTE E_loaded year=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks= hash=36F4277766810343 outcome=Failed
+U4_PASS E: legacy Failed v20 loads as Failed
+U4_PASS E: stays Failed after re-evaluation
+U4_PASS E: no acknowledgement footer on a terminal scenario
+U4_NOTE E_outcome_year Failed@25 reason=No cash remains to hire a contractor; the management plan cannot continue.
+U4_NOTE E_advance_after_load False
+U4_PASS E: terminal outcome unchanged after another year/evaluation
+U4_VERIFY_PASS phase=legacyE checks=5 openFindings=0

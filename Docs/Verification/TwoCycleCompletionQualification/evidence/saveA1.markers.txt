@@ -1,0 +1,7 @@
+U4_NOTE phase saveA1
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS A1: first intervention, not yet acknowledged
+U4_PASS A1: save file written to the isolated slot
+U4_NOTE A1_saved year=1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks= hash=6BBA611A21AD376E bytes=2624704
+U4_VERIFY_PASS phase=saveA1 checks=2 openFindings=0

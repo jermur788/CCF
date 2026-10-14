@@ -1,0 +1,10 @@
+U4_NOTE phase legacyMake
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS legacy fixture: flag true, no event 9
+U4_PASS legacy ACTIVE Y1: fresh acknowledgement is reachable
+U4_PASS legacy fixture at Y25: eight objectives, still Active under U4 rules
+U4_PASS legacy COMPLETED fixture made
+U4_PASS legacy failed make: LoadData accepted
+U4_NOTE legacy_fixtures legacy-active-y1.json,legacy-active-y25.json,legacy-completed-y25.json,legacy-failed-y25.json
+U4_VERIFY_PASS phase=legacyMake checks=5 openFindings=0

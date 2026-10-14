@@ -1,0 +1,14 @@
+U4_NOTE phase legacyD
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS D: CanLoad on the relaunched save
+U4_NOTE D_loaded year=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks= hash=12F911A9ADFA7E49 outcome=Completed
+U4_PASS D: legacy Completed v20 loads as Completed
+U4_PASS D: stays Completed after re-evaluation
+U4_PASS D: no acknowledgement footer on a terminal scenario
+U4_PASS D: completion summary still produced for the legacy Completed save
+U4_NOTE D_interventions_in_legacy_summary 1
+U4_NOTE D_outcome_year Completed@25 reason=Scenario complete in year 25. Continue to the Century Review.
+U4_NOTE D_advance_after_load True
+U4_PASS D: terminal outcome unchanged after another year/evaluation
+U4_VERIFY_PASS phase=legacyD checks=6 openFindings=0

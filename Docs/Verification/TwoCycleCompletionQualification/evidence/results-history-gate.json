@@ -1,0 +1,20 @@
+{
+  "label": "history-gate",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 75.8,
+  "method": "ScenarioHistoryVerification.Begin",
+  "marker": "SCENARIO_HISTORY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "397ba0c78bd96562e97d379f13c6e453c79655cf",
+  "staged_sha256": {
+    "ScenarioHistoryVerification.cs": "1ff141c4b27a36a6142a639274ebea2f62e19b53e5725ea56619312b74f6ef4f"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

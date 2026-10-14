@@ -1,0 +1,20 @@
+{
+  "label": "historical-completion",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 83.6,
+  "method": "ScenarioOneCompletionVerification.Begin",
+  "marker": "SCENARIO_ONE_COMPLETION_VERIFY_PASS",
+  "marker_found": false,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "397ba0c78bd96562e97d379f13c6e453c79655cf",
+  "staged_sha256": {
+    "ScenarioOneCompletionVerification.cs": "af104d905986e255c4a4ddd87d445ce668cd68c1e7d118139d4788ddae0dbaf4"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

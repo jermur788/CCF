@@ -1,0 +1,146 @@
+U4_NOTE phase core
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS ForestSaveData.CurrentVersion == 20
+U4_PASS enum StockPurchased == 0
+U4_PASS enum OrderCreated == 1
+U4_PASS enum OrderApproved == 2
+U4_PASS enum OrderCancelled == 3
+U4_PASS enum WorkResolved == 4
+U4_PASS enum YearAdvanced == 5
+U4_PASS enum ScenarioCompleted == 6
+U4_PASS enum ScenarioFailed == 7
+U4_PASS enum CenturyReviewed == 8
+U4_PASS enum AnnualReviewAcknowledged == 9 and no other values
+U4_NOTE objectives_at_start minimum-year,retained-canopy,continuous-canopy,regeneration,fallen-deadwood,managed-opening,introduced-beech,introduced-sessile-oak
+U4_PASS eight objectives exist unchanged (count)
+U4_PASS fresh Year 0, Active
+U4_NOTE PLAN_A felled=275 basalAreaFraction=0.27 oakPairs=4 beechPairs=4
+U4_PASS exactly one intervention after Plan A
+U4_PASS first review pending
+U4_NOTE SCENARIO after Plan A (Y1, not acknowledged) | year=1 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks= eight=False interventions=1 needsFooterAck=True seenFlag=False
+U4_PASS acknowledgement recorded: id 877 year 1
+U4_PASS second click at the same boundary is idempotent
+U4_PASS no footer acknowledgement needed straight after the acknowledgement
+U4_NOTE SCENARIO 1A shallow at Y25 | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks=id877@Y1 eight=True interventions=1 needsFooterAck=False seenFlag=True
+U4_PASS 1A: all eight original objectives satisfied at Y25 on the shallow path: minimum-year=25/25:ok retained-canopy=921/240:ok continuous-canopy=0.906/0.35:ok regeneration=218/12:ok fallen-deadwood=64.624/0.08:ok managed-opening=1/1:ok introduced-beech=1/1:ok introduced-sessile-oak=1/1:ok
+U4_PASS 1A: shallow path is NOT COMPLETE
+U4_PASS 1A: nothing left to acknowledge (the guidance cannot be 'acknowledge again')
+U4_NOTE 1A_NextStepHint 24 years since intervention 1. Inspect the stand, read the history in the Annual Review, and plan intervention 2 if the forest needs it.
+U4_NOTE 1A_TutorialHint 24 years since intervention 1. Inspect the stand, read the history in the Annual Review, and plan intervention 2 if the forest needs it. · Next lesson: Open the map · [O] Objectives
+U4_NOTE 1A_objective_lines ✓ done · Reach the management review year: 25 / 25 // ✓ done · Retain original canopy trees: 921 / 240 // ✓ done · Keep continuous canopy: 0.91 / 0.35 // ✓ done · Maintain regenerating cells: 218 / 12 // ✓ done · Retain fallen deadwood: 64.62 / 0.08 // ✓ done · Carry out a commissioned thinning: 1 / 1 // ✓ done · Establish planted beech: 1 / 1 // ✓ done · Establish planted Sessile oak: 1 / 1
+U4_FINDING_OPEN 1A: player-facing hint/tutorial text explains that another reviewed management cycle is required (searched: second/another/two/cycle/reviewed/acknowledge)
+U4_PASS 1A: still Active with eight of eight objectives at Y30
+U4_PASS 1A: still one intervention
+U4_PASS V1: LoadData accepted
+U4_PASS V1: two interventions after Plan B
+U4_PASS V1: not complete at Y2 (minimum year objective unmet)
+U4_NOTE SCENARIO 1B V1 prune at Y2 | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS V1: COMPLETE at Y25 (outcome Completed year 25)
+U4_NOTE V1_work_types A: felled=275 basalAreaFraction=0.27 oakPairs=4 beechPairs=4 | B: PruneTree P0000
+U4_PASS V1: at least two real interventions (2)
+U4_PASS V1: completion summary lists >= 2 interventions
+U4_PASS V1: an acknowledgement event exists
+U4_PASS V1: event IDs strictly increase
+U4_NOTE V1_world_hash_Y25 572025058B227E92
+U4_PASS V2: LoadData accepted
+U4_NOTE SCENARIO 1B V2 thinning designated Y16 resolved Y17 | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y17[FellTreex187] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS V2: COMPLETE at Y25 (outcome Completed year 25); B = FellTree x187 (basal area 0.201)
+U4_PASS V2: at least two real interventions (2)
+U4_PASS V2: completion summary lists >= 2 interventions
+U4_PASS V2: an acknowledgement event exists
+U4_PASS V2: event IDs strictly increase
+U4_PASS V3: LoadData accepted
+U4_PASS V3: Active with plan B approved but unresolved (approved-but-unresolved does not complete)
+U4_PASS V3: explicit EvaluateProgress with approved-but-unresolved plan stays Active
+U4_NOTE SCENARIO 1B V3 planting resolved Y25 | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y25[PlantJuvenile(sessile-oak)x1] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS V3: COMPLETE at Y25, same year the second plan resolved; B = PlantJuvenile sessile-oak x1
+U4_PASS V3: at least two real interventions (2)
+U4_PASS V3: completion summary lists >= 2 interventions
+U4_PASS V3: an acknowledgement event exists
+U4_PASS V3: event IDs strictly increase
+U4_PASS V4: LoadData accepted
+U4_PASS V4: Y25 idle, Active
+U4_PASS V4: approved-but-unresolved second plan at Y25 stays Active after EvaluateProgress
+U4_PASS V4: COMPLETE at Y26 (outcome Completed year 26)
+U4_PASS N1: LoadData accepted
+U4_NOTE SCENARIO 1C N1 two years, no review between (no acknowledgement at all) | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1] acks= eight=True interventions=2 needsFooterAck=True seenFlag=False
+U4_PASS N1: eight objectives, two plans, no acknowledgement -> Active
+U4_PASS N1: footer acknowledgement is offered
+U4_PASS N1: a late acknowledgement (after both plans) does not retroactively complete
+U4_PASS N1: footer is gone once acknowledged
+U4_NOTE SCENARIO 1C N1 recovery: late ack then third plan | year=26 outcome=Completed outcomeYear=26 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1]; Y26[PruneTree(sitka-spruce)x1] acks=id904@Y25 eight=True interventions=3 needsFooterAck=False seenFlag=True
+U4_PASS N1: acknowledgement followed by a later plan completes (recoverable, no dead end)
+U4_PASS N2: LoadData accepted
+U4_PASS N2: review acknowledged in year 1, before any plan
+U4_NOTE SCENARIO 1C N2 review only before first plan | year=25 outcome=Active outcomeYear=-1 plans=Y2[FellTreex278,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y3[PruneTree(sitka-spruce)x1] acks=id2@Y1 eight=True interventions=2 needsFooterAck=True seenFlag=True
+U4_PASS N2: two interventions
+U4_PASS N2: review only before the first plan -> Active
+U4_PASS N2: footer acknowledgement is offered (the only way forward)
+U4_NOTE N2_hints_at_Y25 NextStep=22 years since intervention 2. Inspect the stand, read the history in the Annual Review, and plan intervention 3 if the forest needs it. | Tutorial=22 years since intervention 2. Inspect the stand, read the history in the Annual Review, and plan intervention 3 if the forest needs it. · Next lesson: Open the map · [O] Objectives
+U4_PASS N3: LoadData accepted
+U4_PASS N3: legacy-shaped state (flag true, no acknowledgement event)
+U4_NOTE SCENARIO 1C N3 annualReviewSeen legacy boolean alone, two plans | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1] acks= eight=True interventions=2 needsFooterAck=True seenFlag=True
+U4_PASS N3: legacy boolean alone is no completion proof
+U4_PASS N3: fresh acknowledgement reachable
+U4_PASS N4: LoadData accepted
+U4_PASS N4: a pending (unapproved) pruning order exists
+U4_NOTE SCENARIO 1C N4 pending-only second plan | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks=id877@Y1 eight=True interventions=1 needsFooterAck=False seenFlag=True
+U4_PASS N4: pending-only second plan -> Active, still one intervention
+U4_PASS N4: the unresolved order is still open
+U4_PASS N5: LoadData accepted
+U4_PASS N5: approving an empty Work Plan is refused
+U4_PASS N5: empty/refused plan -> Active
+U4_PASS N6: LoadData accepted
+U4_NOTE N6_setup prune+fell on P0000: felling added=1 approved=True feedback=Approved 1 task for €2500.00.
+U4_NOTE SCENARIO 1C N6 prune+fell on the same tree | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[FellTreex1] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_NOTE N6_failed_or_succeeded FellTree:Succeeded
+U4_PASS SYN same-year two plans with ack between: LoadData accepted
+U4_PASS SYN same-year two plans with ack between edited: LoadData accepted
+U4_NOTE SCENARIO SYNTHETIC SYN same-year two plans with ack between | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8,PruneTreex1] acks=id877@Y1,id901@Y1 eight=True interventions=1 needsFooterAck=True seenFlag=True
+U4_PASS SYN same-year two plans with ack between: eight objectives satisfied (isolates ordering)
+U4_PASS SYNTHETIC SYN same-year two plans with ack between: expected NOT complete, got Active
+U4_PASS SYN failed-only second plan after ack: LoadData accepted
+U4_PASS SYN failed-only second plan after ack edited: LoadData accepted
+U4_NOTE SCENARIO SYNTHETIC SYN failed-only second plan after ack | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks=id877@Y1,id901@Y1 eight=True interventions=1 needsFooterAck=False seenFlag=True
+U4_PASS SYN failed-only second plan after ack: eight objectives satisfied (isolates ordering)
+U4_PASS SYNTHETIC SYN failed-only second plan after ack: expected NOT complete, got Active
+U4_PASS SYN duplicate event IDs: LoadData accepted
+U4_PASS SYN duplicate event IDs edited: LoadData accepted
+U4_NOTE SCENARIO SYNTHETIC SYN duplicate event IDs | year=25 outcome=Active outcomeYear=-1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y3[PruneTreex1] acks=id877@Y1,id900@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS SYN duplicate event IDs: eight objectives satisfied (isolates ordering)
+U4_PASS SYNTHETIC SYN duplicate event IDs: expected NOT complete, got Active
+U4_PASS SYN control: valid ack then later plan: LoadData accepted
+U4_PASS SYN control: valid ack then later plan edited: LoadData accepted
+U4_NOTE SCENARIO SYNTHETIC SYN control: valid ack then later plan | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y3[PruneTreex1] acks=id877@Y1,id901@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS SYN control: valid ack then later plan: eight objectives satisfied (isolates ordering)
+U4_PASS SYNTHETIC SYN control: valid ack then later plan: expected COMPLETE, got Completed
+U4_PASS FAILED: LoadData accepted
+U4_PASS FAILED: cash is exactly zero (oak 3, beech 2663)
+U4_NOTE SCENARIO FAILED path | year=1 outcome=Failed outcomeYear=1 plans= acks= eight=False interventions=0 needsFooterAck=False seenFlag=False
+U4_PASS FAILED: no cash and no approved work fails the scenario
+U4_PASS FAILED: further years refused
+U4_PASS FAILED: acknowledgement and re-evaluation do not revive a failed scenario
+U4_PASS FAILED: no new plan can be made
+U4_PASS FAILED reload: LoadData accepted
+U4_PASS FAILED: remains Failed after in-process reload
+U4_NOTE FAILED_events 4 events; reason=No cash remains to hire a contractor; the management plan cannot continue.
+U4_PASS 1E: LoadData accepted
+U4_PASS 1E: two interventions from two resolved plans
+U4_PASS 1E: one acknowledgement event
+U4_PASS 1E: complete at Y25
+U4_PASS 1E: acknowledgement event is NOT counted as an intervention (still 2 after completion)
+U4_PASS 1E: completion summary shows at least two real interventions (2)
+U4_PASS 1E: intervention ordinals are 1..n
+U4_PASS 1E: interventions in year order
+U4_NOTE 1E_completion_text The Scenario One objectives were met in year 25. // You carried out 2 interventions: //   Intervention 1 · year 1: 275 felled · 16 planted (8 beech, 8 sessile-oak; 8 sheltered) //   Intervention 2 · year 2: 1 pruned // Stand, start → year 25: living trees 1344 → 927 · basal area 40.5 → 76.4 m²/ha · canopy 0.99 → 0.91 · regenerating cells 0 → 218 · fallen deadwood 0.0 → 64.6 m³. // Living trees at completion: 1 beech, 5 sessile-oak, 921 sitka-spruce. // Money: cash 12000.00 → 11517.66 · timber income 2153.41 · work and materials 2555.75 · lowest cash 11517.66. // 176 tree deaths not caused by felling were recorded (self-thinning, windthrow or other biological death). // This describes the forest and your decisions at the year the objectives were met. It is not a score. The Century Review (year 100) is separate and you can keep managing toward it.
+U4_PASS 1E: completion wording produced
+U4_PASS 1E: event IDs strictly increase
+U4_PASS 1E: the acknowledgement lies between resolved plans in recorded order
+U4_PASS 1E reload: LoadData accepted
+U4_PASS 1E: history identical after reload
+U4_PASS 1E: still Completed (year 25) after reload
+U4_PASS 1E: event order and the single acknowledgement survive reload
+U4_PASS 1E: reloaded world hash equals the uninterrupted V1 run
+U4_NOTE 1E_history_before_B_resolution_vs_end 1:1:275:0:16:0:254600:215341:0:1|2:2:0:1:0:0:975:0:1:2#1:1@0,2:1@0,3:1@0,4:1@0,5:1@0,6:1@0,7:1@0,8:1@0,9:1@0,10:1@0,11:1@0,12:1@0,13:1@0,14:1@0,15:1@0,16:1@0,17:1@0,18:1@0,19:1@0,20:1@0,21:1@0,22:1@0,23:1@0,24:1@0,25:1@0,26:1@0,27:1@0,28:1@0,29:1@0,30:1@0,31:1@0,32:1@0,33:1@0,34:1@0,35:1@0,36:1@0,37:1@0,38:1@0,39:1@0,40:1@0,41:1@0,42:1@0,43:1@0,44:1@0,45:1@0,46:1@0,47:1@0,48:1@0,49:1@0,50:1@0,51:1@0,52:1@0,53:1@0,54:1@0,55:1@0,56:1@0,57:1@0,58:1@0,59:1@0,60:1@0,61:1@0,62:1@0,63:1@0,64:1@0,65:1@0,66:1@0,67:1@0,68:1@0,69:1@0,70:1@0,71:1@0,72:1@0,73:1@0,74:1@0,75:1@0,76:1@0,77:1@0,78:1@0,79:1@0,80:1@0,81:1@0,82:1@0,83:1@0,84:1@0,85:1@0,86:1@0,87:1@0,88:1@0,89:1@0,90:1@0,91:1@0,92:1@0,93:1@0,94:1@0,95:1@0,96:1@0,97:1@0,98:1@0,99:1@0,100:1@0,101:1@0,102:1@0,103:1@0,104:1@0,105:1@0,106:1@0,107:1@0,108:1@0,109:1@0,110:1@0,111:1@0,112:1@0,113:1@0,114:1@0,115:1@0,116:1@0,117:1@0,118:1@0,119:1@0,120:1@0,121:1@0,122:1@0,123:1@0,124:1@0,125:1@0,126:1@0,127:1@0,128:1@0,129:1@0,130:1@0,131:1@0,132:1@0,133:1@0,134:1@0,135:1@0,136:1@0,137:1@0,138:1@0,139:1@0,140:1@0,141:1@0,142:1@0,143:1@0,144:1@0,145:1@0,146:1@0,147:1@0,148:1@0,149:1@0,150:1@0,151:1@0,152:1@0,153:1@0,154:1@0,155:1@0,156:1@0,157:1@0,158:1@0,159:1@0,160:1@0,161:1@0,162:1@0,163:1@0,164:1@0,165:1@0,166:1@0,167:1@0,168:1@0,169:1@0,170:1@0,171:1@0,172:1@0,173:1@0,174:1@0,175:1@0,176:1@0,177:1@0,178:1@0,179:1@0,180:1@0,181:1@0,182:1@0,183:1@0,184:1@0,185:1@0,186:1@0,187:1@0,188:1@0,189:1@0,190:1@0,191:1@0,192:1@0,193:1@0,194:1@0,195:1@0,196:1@0,197:1@0,198:1@0,199:1@0,200:1@0,201:1@0,202:1@0,203:1@0,204:1@0,205:1@0,206:1@0,207:1@0,208:1@0,209:1@0,210:1@0,211:1@0,212:1@0,213:1@0,214:1@0,215:1@0,216:1@0,217:1@0,218:1@0,219:1@0,220:1@0,221:1@0,222:1@0,223:1@0,224:1@0,225:1@0,226:1@0,227:1@0,228:1@0,229:1@0,230:1@0,231:1@0,232:1@0,233:1@0,234:1@0,235:1@0,236:1@0,237:1@0,238:1@0,239:1@0,240:1@0,241:1@0,242:1@0,243:1@0,244:1@0,245:1@0,246:1@0,247:1@0,248:1@0,249:1@0,250:1@0,251:1@0,252:1@0,253:1@0,254:1@0,255:1@0,256:1@0,257:1@0,258:1@0,259:1@0,260:1@0,261:1@0,262:1@0,263:1@0,264:1@0,265:1@0,266:1@0,267:1@0,268:1@0,269:1@0,270:1@0,271:1@0,272:1@0,273:1@0,274:1@0,275:1@0,276:0@0,277:0@0,278:1@0,279:1@0,280:1@0,281:1@0,282:1@0,283:1@0,284:1@0,285:1@0,286:1@0,287:1@0,288:1@0,289:1@0,290:1@0,291:1@0,292:1@0,293:1@0,294:2@0,295:2@0,296:2@0,297:2@0,298:2@0,299:2@0,300:2@0,301:2@0,302:2@0,303:2@0,304:2@0,305:2@0,306:2@0,307:2@0,308:2@0,309:2@0,310:2@0,311:2@0,312:2@0,313:2@0,314:2@0,315:2@0,316:2@0,317:2@0,318:2@0,319:2@0,320:2@0,321:2@0,322:2@0,323:2@0,324:2@0,325:2@0,326:2@0,327:2@0,328:2@0,329:2@0,330:2@0,331:2@0,332:2@0,333:2@0,334:2@0,335:2@0,336:2@0,337:2@0,338:2@0,339:2@0,340:2@0,341:2@0,342:2@0,343:2@0,344:2@0,345:2@0,346:2@0,347:2@0,348:2@0,349:2@0,350:2@0,351:2@0,352:2@0,353:2@0,354:2@0,355:2@0,356:2@0,357:2@0,358:2@0,359:2@0,360:2@0,361:2@0,362:2@0,363:2@0,364:2@0,365:2@0,366:2@0,367:2@0,368:2@0,369:2@0,370:2@0,371:2@0,372:2@0,373:2@0,374:2@0,375:2@0,376:2@0,377:2@0,378:2@0,379:2@0,380:2@0,381:2@0,382:2@0,383:2@0,384:2@0,385:2@0,386:2@0,387:2@0,388:2@0,389:2@0,390:2@0,391:2@0,392:2@0,393:2@0,394:2@0,395:2@0,396:2@0,397:2@0,398:2@0,399:2@0,400:2@0,401:2@0,402:2@0,403:2@0,404:2@0,405:2@0,406:2@0,407:2@0,408:2@0,409:2@0,410:2@0,411:2@0,412:2@0,413:2@0,414:2@0,415:2@0,416:2@0,417:2@0,418:2@0,419:2@0,420:2@0,421:2@0,422:2@0,423:2@0,424:2@0,425:2@0,426:2@0,427:2@0,428:2@0,429:2@0,430:2@0,431:2@0,432:2@0,433:2@0,434:2@0,435:2@0,436:2@0,437:2@0,438:2@0,439:2@0,440:2@0,441:2@0,442:2@0,443:2@0,444:2@0,445:2@0,446:2@0,447:2@0,448:2@0,449:2@0,450:2@0,451:2@0,452:2@0,453:2@0,454:2@0,455:2@0,456:2@0,457:2@0,458:2@0,459:2@0,460:2@0,461:2@0,462:2@0,463:2@0,464:2@0,465:2@0,466:2@0,467:2@0,468:2@0,469:2@0,470:2@0,471:2@0,472:2@0,473:2@0,474:2@0,475:2@0,476:2@0,477:2@0,478:2@0,479:2@0,480:2@0,481:2@0,482:2@0,483:2@0,484:2@0,485:2@0,486:2@0,487:2@0,488:2@0,489:2@0,490:2@0,491:2@0,492:2@0,493:2@0,494:2@0,495:2@0,496:2@0,497:2@0,498:2@0,499:2@0,500:2@0,501:2@0,502:2@0,503:2@0,504:2@0,505:2@0,506:2@0,507:2@0,508:2@0,509:2@0,510:2@0,511:2@0,512:2@0,513:2@0,514:2@0,515:2@0,516:2@0,517:2@0,518:2@0,519:2@0,520:2@0,521:2@0,522:2@0,523:2@0,524:2@0,525:2@0,526:2@0,527:2@0,528:2@0,529:2@0,530:2@0,531:2@0,532:2@0,533:2@0,534:2@0,535:2@0,536:2@0,537:2@0,538:2@0,539:2@0,540:2@0,541:2@0,542:2@0,543:2@0,544:2@0,545:2@0,546:2@0,547:2@0,548:2@0,549:2@0,550:2@0,551:2@0,552:2@0,553:2@0,554:2@0,555:2@0,556:2@0,557:2@0,558:2@0,559:2@0,560:2@0,561:2@0,562:2@0,563:2@0,564:2@0,565:2@0,566:2@0,567:2@0,568:2@0,569:2@0,570:2@0,571:2@0,572:2@0,573:2@0,574:2@0,575:2@0,576:2@0,577:2@0,578:2@0,579:2@0,580:2@0,581:2@0,582:2@0,583:2@0,584:2@0,585:4@1,586:4@1,587:4@1,588:4@1,589:4@1,590:4@1,591:4@1,592:4@1,593:4@1,594:4@1,595:4@1,596:4@1,597:4@1,598:4@1,599:4@1,600:4@1,601:4@1,602:4@1,603:4@1,604:4@1,605:4@1,606:4@1,607:4@1,608:4@1,609:4@1,610:4@1,611:4@1,612:4@1,613:4@1,614:4@1,615:4@1,616:4@1,617:4@1,618:4@1,619:4@1,620:4@1,621:4@1,622:4@1,623:4@1,624:4@1,625:4@1,626:4@1,627:4@1,628:4@1,629:4@1,630:4@1,631:4@1,632:4@1,633:4@1,634:4@1,635:4@1,636:4@1,637:4@1,638:4@1,639:4@1,640:4@1,641:4@1,642:4@1,643:4@1,644:4@1,645:4@1,646:4@1,647:4@1,648:4@1,649:4@1,650:4@1,651:4@1,652:4@1,653:4@1,654:4@1,655:4@1,656:4@1,657:4@1,658:4@1,659:4@1,660:4@1,661:4@1,662:4@1,663:4@1,664:4@1,665:4@1,666:4@1,667:4@1,668:4@1,669:4@1,670:4@1,671:4@1,672:4@1,673:4@1,674:4@1,675:4@1,676:4@1,677:4@1,678:4@1,679:4@1,680:4@1,681:4@1,682:4@1,683:4@1,684:4@1,685:4@1,686:4@1,687:4@1,688:4@1,689:4@1,690:4@1,691:4@1,692:4@1,693:4@1,694:4@1,695:4@1,696:4@1,697:4@1,698:4@1,699:4@1,700:4@1,701:4@1,702:4@1,703:4@1,704:4@1,705:4@1,706:4@1,707:4@1,708:4@1,709:4@1,710:4@1,711:4@1,712:4@1,713:4@1,714:4@1,715:4@1,716:4@1,717:4@1,718:4@1,719:4@1,720:4@1,721:4@1,722:4@1,723:4@1,724:4@1,725:4@1,726:4@1,727:4@1,728:4@1,729:4@1,730:4@1,731:4@1,732:4@1,733:4@1,734:4@1,735:4@1,736:4@1,737:4@1,738:4@1,739:4@1,740:4@1,741:4@1,742:4@1,743:4@1,744:4@1,745:4@1,746:4@1,747:4@1,748:4@1,749:4@1,750:4@1,751:4@1,752:4@1,753:4@1,754:4@1,755:4@1,756:4@1,757:4@1,758:4@1,759:4@1,760:4@1,761:4@1,762:4@1,763:4@1,764:4@1,765:4@1,766:4@1,767:4@1,768:4@1,769:4@1,770:4@1,771:4@1,772:4@1,773:4@1,774:4@1,775:4@1,776:4@1,777:4@1,778:4@1,779:4@1,780:4@1,781:4@1,782:4@1,783:4@1,784:4@1,785:4@1,786:4@1,787:4@1,788:4@1,789:4@1,790:4@1,791:4@1,792:4@1,793:4@1,794:4@1,795:4@1,796:4@1,797:4@1,798:4@1,799:4@1,800:4@1,801:4@1,802:4@1,803:4@1,804:4@1,805:4@1,806:4@1,807:4@1,808:4@1,809:4@1,810:4@1,811:4@1,812:4@1,813:4@1,814:4@1,815:4@1,816:4@1,817:4@1,818:4@1,819:4@1,820:4@1,821:4@1,822:4@1,823:4@1,824:4@1,825:4@1,826:4@1,827:4@1,828:4@1,829:4@1,830:4@1,831:4@1,832:4@1,833:4@1,834:4@1,835:4@1,836:4@1,837:4@1,838:4@1,839:4@1,840:4@1,841:4@1,842:4@1,843:4@1,844:4@1,845:4@1,846:4@1,847:4@1,848:4@1,849:4@1,850:4@1,851:4@1,852:4@1,853:4@1,854:4@1,855:4@1,856:4@1,857:4@1,858:4@1,859:4@1,860:4@1,861:4@1,862:4@1,863:4@1,864:4@1,865:4@1,866:4@1,867:4@1,868:4@1,869:4@1,870:4@1,871:4@1,872:4@1,873:4@1,874:4@1,875:4@1,876:5@1,877:9@1,878:1@1,879:2@1,880:4@2,881:5@2 >>> 1:1:275:0:16:0:254600:215341:0:1|2:2:0:1:0:0:975:0:1:2#1:1@0,2:1@0,3:1@0,4:1@0,5:1@0,6:1@0,7:1@0,8:1@0,9:1@0,10:1@0,11:1@0,12:1@0,13:1@0,14:1@0,15:1@0,16:1@0,17:1@0,18:1@0,19:1@0,20:1@0,21:1@0,22:1@0,23:1@0,24:1@0,25:1@0,26:1@0,27:1@0,28:1@0,29:1@0,30:1@0,31:1@0,32:1@0,33:1@0,34:1@0,35:1@0,36:1@0,37:1@0,38:1@0,39:1@0,40:1@0,41:1@0,42:1@0,43:1@0,44:1@0,45:1@0,46:1@0,47:1@0,48:1@0,49:1@0,50:1@0,51:1@0,52:1@0,53:1@0,54:1@0,55:1@0,56:1@0,57:1@0,58:1@0,59:1@0,60:1@0,61:1@0,62:1@0,63:1@0,64:1@0,65:1@0,66:1@0,67:1@0,68:1@0,69:1@0,70:1@0,71:1@0,72:1@0,73:1@0,74:1@0,75:1@0,76:1@0,77:1@0,78:1@0,79:1@0,80:1@0,81:1@0,82:1@0,83:1@0,84:1@0,85:1@0,86:1@0,87:1@0,88:1@0,89:1@0,90:1@0,91:1@0,92:1@0,93:1@0,94:1@0,95:1@0,96:1@0,97:1@0,98:1@0,99:1@0,100:1@0,101:1@0,102:1@0,103:1@0,104:1@0,105:1@0,106:1@0,107:1@0,108:1@0,109:1@0,110:1@0,111:1@0,112:1@0,113:1@0,114:1@0,115:1@0,116:1@0,117:1@0,118:1@0,119:1@0,120:1@0,121:1@0,122:1@0,123:1@0,124:1@0,125:1@0,126:1@0,127:1@0,128:1@0,129:1@0,130:1@0,131:1@0,132:1@0,133:1@0,134:1@0,135:1@0,136:1@0,137:1@0,138:1@0,139:1@0,140:1@0,141:1@0,142:1@0,143:1@0,144:1@0,145:1@0,146:1@0,147:1@0,148:1@0,149:1@0,150:1@0,151:1@0,152:1@0,153:1@0,154:1@0,155:1@0,156:1@0,157:1@0,158:1@0,159:1@0,160:1@0,161:1@0,162:1@0,163:1@0,164:1@0,165:1@0,166:1@0,167:1@0,168:1@0,169:1@0,170:1@0,171:1@0,172:1@0,173:1@0,174:1@0,175:1@0,176:1@0,177:1@0,178:1@0,179:1@0,180:1@0,181:1@0,182:1@0,183:1@0,184:1@0,185:1@0,186:1@0,187:1@0,188:1@0,189:1@0,190:1@0,191:1@0,192:1@0,193:1@0,194:1@0,195:1@0,196:1@0,197:1@0,198:1@0,199:1@0,200:1@0,201:1@0,202:1@0,203:1@0,204:1@0,205:1@0,206:1@0,207:1@0,208:1@0,209:1@0,210:1@0,211:1@0,212:1@0,213:1@0,214:1@0,215:1@0,216:1@0,217:1@0,218:1@0,219:1@0,220:1@0,221:1@0,222:1@0,223:1@0,224:1@0,225:1@0,226:1@0,227:1@0,228:1@0,229:1@0,230:1@0,231:1@0,232:1@0,233:1@0,234:1@0,235:1@0,236:1@0,237:1@0,238:1@0,239:1@0,240:1@0,241:1@0,242:1@0,243:1@0,244:1@0,245:1@0,246:1@0,247:1@0,248:1@0,249:1@0,250:1@0,251:1@0,252:1@0,253:1@0,254:1@0,255:1@0,256:1@0,257:1@0,258:1@0,259:1@0,260:1@0,261:1@0,262:1@0,263:1@0,264:1@0,265:1@0,266:1@0,267:1@0,268:1@0,269:1@0,270:1@0,271:1@0,272:1@0,273:1@0,274:1@0,275:1@0,276:0@0,277:0@0,278:1@0,279:1@0,280:1@0,281:1@0,282:1@0,283:1@0,284:1@0,285:1@0,286:1@0,287:1@0,288:1@0,289:1@0,290:1@0,291:1@0,292:1@0,293:1@0,294:2@0,295:2@0,296:2@0,297:2@0,298:2@0,299:2@0,300:2@0,301:2@0,302:2@0,303:2@0,304:2@0,305:2@0,306:2@0,307:2@0,308:2@0,309:2@0,310:2@0,311:2@0,312:2@0,313:2@0,314:2@0,315:2@0,316:2@0,317:2@0,318:2@0,319:2@0,320:2@0,321:2@0,322:2@0,323:2@0,324:2@0,325:2@0,326:2@0,327:2@0,328:2@0,329:2@0,330:2@0,331:2@0,332:2@0,333:2@0,334:2@0,335:2@0,336:2@0,337:2@0,338:2@0,339:2@0,340:2@0,341:2@0,342:2@0,343:2@0,344:2@0,345:2@0,346:2@0,347:2@0,348:2@0,349:2@0,350:2@0,351:2@0,352:2@0,353:2@0,354:2@0,355:2@0,356:2@0,357:2@0,358:2@0,359:2@0,360:2@0,361:2@0,362:2@0,363:2@0,364:2@0,365:2@0,366:2@0,367:2@0,368:2@0,369:2@0,370:2@0,371:2@0,372:2@0,373:2@0,374:2@0,375:2@0,376:2@0,377:2@0,378:2@0,379:2@0,380:2@0,381:2@0,382:2@0,383:2@0,384:2@0,385:2@0,386:2@0,387:2@0,388:2@0,389:2@0,390:2@0,391:2@0,392:2@0,393:2@0,394:2@0,395:2@0,396:2@0,397:2@0,398:2@0,399:2@0,400:2@0,401:2@0,402:2@0,403:2@0,404:2@0,405:2@0,406:2@0,407:2@0,408:2@0,409:2@0,410:2@0,411:2@0,412:2@0,413:2@0,414:2@0,415:2@0,416:2@0,417:2@0,418:2@0,419:2@0,420:2@0,421:2@0,422:2@0,423:2@0,424:2@0,425:2@0,426:2@0,427:2@0,428:2@0,429:2@0,430:2@0,431:2@0,432:2@0,433:2@0,434:2@0,435:2@0,436:2@0,437:2@0,438:2@0,439:2@0,440:2@0,441:2@0,442:2@0,443:2@0,444:2@0,445:2@0,446:2@0,447:2@0,448:2@0,449:2@0,450:2@0,451:2@0,452:2@0,453:2@0,454:2@0,455:2@0,456:2@0,457:2@0,458:2@0,459:2@0,460:2@0,461:2@0,462:2@0,463:2@0,464:2@0,465:2@0,466:2@0,467:2@0,468:2@0,469:2@0,470:2@0,471:2@0,472:2@0,473:2@0,474:2@0,475:2@0,476:2@0,477:2@0,478:2@0,479:2@0,480:2@0,481:2@0,482:2@0,483:2@0,484:2@0,485:2@0,486:2@0,487:2@0,488:2@0,489:2@0,490:2@0,491:2@0,492:2@0,493:2@0,494:2@0,495:2@0,496:2@0,497:2@0,498:2@0,499:2@0,500:2@0,501:2@0,502:2@0,503:2@0,504:2@0,505:2@0,506:2@0,507:2@0,508:2@0,509:2@0,510:2@0,511:2@0,512:2@0,513:2@0,514:2@0,515:2@0,516:2@0,517:2@0,518:2@0,519:2@0,520:2@0,521:2@0,522:2@0,523:2@0,524:2@0,525:2@0,526:2@0,527:2@0,528:2@0,529:2@0,530:2@0,531:2@0,532:2@0,533:2@0,534:2@0,535:2@0,536:2@0,537:2@0,538:2@0,539:2@0,540:2@0,541:2@0,542:2@0,543:2@0,544:2@0,545:2@0,546:2@0,547:2@0,548:2@0,549:2@0,550:2@0,551:2@0,552:2@0,553:2@0,554:2@0,555:2@0,556:2@0,557:2@0,558:2@0,559:2@0,560:2@0,561:2@0,562:2@0,563:2@0,564:2@0,565:2@0,566:2@0,567:2@0,568:2@0,569:2@0,570:2@0,571:2@0,572:2@0,573:2@0,574:2@0,575:2@0,576:2@0,577:2@0,578:2@0,579:2@0,580:2@0,581:2@0,582:2@0,583:2@0,584:2@0,585:4@1,586:4@1,587:4@1,588:4@1,589:4@1,590:4@1,591:4@1,592:4@1,593:4@1,594:4@1,595:4@1,596:4@1,597:4@1,598:4@1,599:4@1,600:4@1,601:4@1,602:4@1,603:4@1,604:4@1,605:4@1,606:4@1,607:4@1,608:4@1,609:4@1,610:4@1,611:4@1,612:4@1,613:4@1,614:4@1,615:4@1,616:4@1,617:4@1,618:4@1,619:4@1,620:4@1,621:4@1,622:4@1,623:4@1,624:4@1,625:4@1,626:4@1,627:4@1,628:4@1,629:4@1,630:4@1,631:4@1,632:4@1,633:4@1,634:4@1,635:4@1,636:4@1,637:4@1,638:4@1,639:4@1,640:4@1,641:4@1,642:4@1,643:4@1,644:4@1,645:4@1,646:4@1,647:4@1,648:4@1,649:4@1,650:4@1,651:4@1,652:4@1,653:4@1,654:4@1,655:4@1,656:4@1,657:4@1,658:4@1,659:4@1,660:4@1,661:4@1,662:4@1,663:4@1,664:4@1,665:4@1,666:4@1,667:4@1,668:4@1,669:4@1,670:4@1,671:4@1,672:4@1,673:4@1,674:4@1,675:4@1,676:4@1,677:4@1,678:4@1,679:4@1,680:4@1,681:4@1,682:4@1,683:4@1,684:4@1,685:4@1,686:4@1,687:4@1,688:4@1,689:4@1,690:4@1,691:4@1,692:4@1,693:4@1,694:4@1,695:4@1,696:4@1,697:4@1,698:4@1,699:4@1,700:4@1,701:4@1,702:4@1,703:4@1,704:4@1,705:4@1,706:4@1,707:4@1,708:4@1,709:4@1,710:4@1,711:4@1,712:4@1,713:4@1,714:4@1,715:4@1,716:4@1,717:4@1,718:4@1,719:4@1,720:4@1,721:4@1,722:4@1,723:4@1,724:4@1,725:4@1,726:4@1,727:4@1,728:4@1,729:4@1,730:4@1,731:4@1,732:4@1,733:4@1,734:4@1,735:4@1,736:4@1,737:4@1,738:4@1,739:4@1,740:4@1,741:4@1,742:4@1,743:4@1,744:4@1,745:4@1,746:4@1,747:4@1,748:4@1,749:4@1,750:4@1,751:4@1,752:4@1,753:4@1,754:4@1,755:4@1,756:4@1,757:4@1,758:4@1,759:4@1,760:4@1,761:4@1,762:4@1,763:4@1,764:4@1,765:4@1,766:4@1,767:4@1,768:4@1,769:4@1,770:4@1,771:4@1,772:4@1,773:4@1,774:4@1,775:4@1,776:4@1,777:4@1,778:4@1,779:4@1,780:4@1,781:4@1,782:4@1,783:4@1,784:4@1,785:4@1,786:4@1,787:4@1,788:4@1,789:4@1,790:4@1,791:4@1,792:4@1,793:4@1,794:4@1,795:4@1,796:4@1,797:4@1,798:4@1,799:4@1,800:4@1,801:4@1,802:4@1,803:4@1,804:4@1,805:4@1,806:4@1,807:4@1,808:4@1,809:4@1,810:4@1,811:4@1,812:4@1,813:4@1,814:4@1,815:4@1,816:4@1,817:4@1,818:4@1,819:4@1,820:4@1,821:4@1,822:4@1,823:4@1,824:4@1,825:4@1,826:4@1,827:4@1,828:4@1,829:4@1,830:4@1,831:4@1,832:4@1,833:4@1,834:4@1,835:4@1,836:4@1,837:4@1,838:4@1,839:4@1,840:4@1,841:4@1,842:4@1,843:4@1,844:4@1,845:4@1,846:4@1,847:4@1,848:4@1,849:4@1,850:4@1,851:4@1,852:4@1,853:4@1,854:4@1,855:4@1,856:4@1,857:4@1,858:4@1,859:4@1,860:4@1,861:4@1,862:4@1,863:4@1,864:4@1,865:4@1,866:4@1,867:4@1,868:4@1,869:4@1,870:4@1,871:4@1,872:4@1,873:4@1,874:4@1,875:4@1,876:5@1,877:9@1,878:1@1,879:2@1,880:4@2,881:5@2,882:5@3,883:5@4,884:5@5,885:5@6,886:5@7,887:5@8,888:5@9,889:5@10,890:5@11,891:5@12,892:5@13,893:5@14,894:5@15,895:5@16,896:5@17,897:5@18,898:5@19,899:5@20,900:5@21,901:5@22,902:5@23,903:5@24,904:5@25,905:6@25
+U4_VERIFY_PASS phase=core checks=112 openFindings=1

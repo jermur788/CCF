@@ -1,0 +1,18 @@
+SCENARIO_ONE_COMPLETION_RNG_MODEL 1 forced=no
+SCENARIO_ONE_COMPLETION_GROWTH_MODEL 1 forced=no
+SCENARIO_ONE_COMPLETION_REGEN_MODEL 2 forced=no
+SCENARIO_ONE_COMPLETION_PHASE P0 PASS trees=336 year=0 cash=1200000 pressure=0.200 shelters=0 save=v20 minimum=250000 ownerMin=2400
+SCENARIO_ONE_COMPLETION_PHASE P1 PASS tree=P0000 h=12.675 report='Ground: no regeneration · light 0.05 · seed none · suitability 1.00 · seed-limited — no seed source within reach · browsing low' diagnosis='Regeneration: none established here (light 0.05, deep shade)'
+SCENARIO_ONE_COMPLETION_PHASE P2 PASS crop=16 fell=72 basalAreaRemoved=0.272 deadwood=4 keepForUse=3 oneJob=1 cost=250000 revenue=48359 minimumAdjustment=228222 sold=9132570 retained=597306 ownerHarvest=refused
+SCENARIO_ONE_COMPLETION_PHASE P3 PASS year=1 felledOnce=72 cashDelta=-201641 ledger=-201641 retainedM3=0.597 deadwoodRecords=4 products=3 reviewLines=4
+SCENARIO_ONE_COMPLETION_PHASE P5 PASS pairs=8 owner=sheltered contractor=unsheltered stockCost=8000 plantingLedger=-4600 ownerMinutes=24 shelters=8 installedYear=2 visuals=8
+SCENARIO_ONE_COMPLETION_PHASE P4 PASS year=6 lightGain thinned=0.056 unthinned=0.053 canopy 0.951->0.897
+SCENARIO_ONE_COMPLETION_PHASE P6 PASS year=6 version=20 inMemory=True shelters=8 approvedHarvest=3 pendingOwnerShelter=1
+SCENARIO_ONE_COMPLETION_PHASE P7 PASS years=6->16 continued=CC36CB7434658553 restored=CC36CB7434658553 shelters=8 previewShelters=0->restored
+SCENARIO_ONE_COMPLETION_PHASE P8 PASS year6Pairs=8 shelteredTaller=2 browsesWhileSheltered=0 exposedOakBrowses=1 regenThinnedCells=22 oakPromoted sheltered=4 exposed=4 diagnosisY6=BrowsedExposed:2,Protected:2,AboveBrowseReach:12
+SCENARIO_ONE_COMPLETION_OBJECTIVES year=25 outcome=Active minimum-year=25/25:ok retained-canopy=209/60:ok continuous-canopy=0.885/0.35:ok regeneration=54/3:ok fallen-deadwood=4.405/0.02:ok managed-opening=1/1:ok introduced-beech=1/1:ok introduced-sessile-oak=1/1:ok
+SCENARIO_ONE_COMPLETION_CASH minimum=613986 year30=613986
+SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a
+SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH F5320B2FA2333B52
+SCENARIO_ONE_COMPLETION_SCENE_RESTORED
+SCENARIO_ONE_COMPLETION_VERIFY_FAIL System.InvalidOperationException: accepted model2 completion retains its exact v18 world layout

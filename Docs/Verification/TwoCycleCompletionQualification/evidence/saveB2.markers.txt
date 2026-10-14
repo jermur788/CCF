@@ -1,0 +1,16 @@
+U4_NOTE phase saveB2
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS B3: CanLoad on the relaunched save
+U4_NOTE B3_loaded year=1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks=id877@Y1 hash=EF7EE6CDC4FE31CD outcome=Active
+U4_PASS B: reloaded state: first intervention + one acknowledgement, Active
+U4_PASS B: no footer acknowledgement needed after reload
+U4_NOTE SCENARIO SAVE SEQUENCE B | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS B: COMPLETE at Y25 after relaunch(es); B = PruneTree P0000
+U4_PASS B: at least two real interventions (2)
+U4_PASS B: completion summary lists >= 2 interventions
+U4_PASS B: an acknowledgement event exists
+U4_PASS B: event IDs strictly increase
+U4_NOTE B_final_world_hash_Y25 572025058B227E92
+U4_PASS B: final world hash equals the uninterrupted run (572025058B227E92)
+U4_VERIFY_PASS phase=saveB2 checks=9 openFindings=0

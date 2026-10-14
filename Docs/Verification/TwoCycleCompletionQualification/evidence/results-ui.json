@@ -1,0 +1,23 @@
+{
+  "label": "ui",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 121.0,
+  "method": "U4Qualification.Begin",
+  "marker": "U4_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "U4_PHASE=ui",
+    "U4_OUT=/media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/data"
+  ],
+  "interactive": true,
+  "run_head": "397ba0c78bd96562e97d379f13c6e453c79655cf",
+  "staged_sha256": {
+    "U4Qualification.cs": "fa2fa6b495a6b620430f13a2712431fe7830a4ba2e7b2f2bc07e911683ff5998"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": [
+    " M .vscode/settings.json"
+  ]
+}

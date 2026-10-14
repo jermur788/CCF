@@ -1,0 +1,35 @@
+N3_U4_CHECK_PASS scene systems available
+N3_U4_CHECK_PASS after first real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS after first event count preserved
+N3_U4_CHECK_PASS unchanged eight objectives satisfied by isolated decision fixture
+N3_U4_CHECK_PASS old shallow path fails completion
+N3_U4_CHECK_PASS legacy true boolean exposes fresh acknowledgement
+N3_U4_CHECK_PASS real handler current year plus monotonic ID
+N3_U4_CHECK_PASS duplicate click idempotent
+N3_U4_CHECK_PASS after review real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS after review event count preserved
+N3_U4_CHECK_PASS review without second incomplete
+N3_U4_CHECK_PASS before second real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS before second event count preserved
+N3_U4_CHECK_PASS approval-only boundary incomplete
+N3_U4_CHECK_PASS no review real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS no review event count preserved
+N3_U4_CHECK_PASS legacy boolean alone cannot qualify
+N3_U4_CHECK_PASS same year real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS same year event count preserved
+N3_U4_CHECK_PASS same-year plans fail
+N3_U4_CHECK_PASS failed work real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS failed work event count preserved
+N3_U4_CHECK_PASS failed-only second fails
+N3_U4_CHECK_PASS second complete real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS second complete event count preserved
+N3_U4_CHECK_PASS valid non-prescriptive second pruning completes
+N3_U4_CHECK_PASS old Completed real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS old Completed event count preserved
+N3_U4_CHECK_PASS legacy terminal preserved Completed
+N3_U4_CHECK_PASS old Failed real JsonUtility/CaptureData/LoadData
+N3_U4_CHECK_PASS old Failed event count preserved
+N3_U4_CHECK_PASS legacy terminal preserved Failed
+N3_U4_CHECK_PASS v20 enum extension
+N3_U4_CHECK_PASS original world restored
+N3_U4_VERIFY_PASS

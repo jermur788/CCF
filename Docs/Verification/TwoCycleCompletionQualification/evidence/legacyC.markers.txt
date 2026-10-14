@@ -1,0 +1,14 @@
+U4_NOTE phase legacyC
+U4_NOTE head_geometry Enlarged80 growthModel=1 rngModel=1 regenModel=2
+U4_NOTE persistentDataPath /media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/U4/run/config/unity3d/DefaultCompany/CCF
+U4_PASS C: CanLoad on the relaunched save
+U4_NOTE C_loaded year=1 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8] acks= hash=2699768E1652A835 outcome=Active
+U4_PASS C: legacy ACTIVE v20 loads Active with annualReviewSeen == true
+U4_PASS C: no acknowledgement event fabricated on load
+U4_PASS C: first intervention intact
+U4_PASS C: fresh acknowledgement remains reachable
+U4_PASS C: re-evaluation does not complete
+U4_PASS C: fresh acknowledgement is recorded
+U4_NOTE SCENARIO 1D C legacy ACTIVE -> fresh ack -> second cycle | year=25 outcome=Completed outcomeYear=25 plans=Y1[FellTreex275,PlantJuvenile(sessile-oak)x8,PlantJuvenile(beech)x8]; Y2[PruneTree(sitka-spruce)x1] acks=id877@Y1 eight=True interventions=2 needsFooterAck=False seenFlag=True
+U4_PASS C: later second cycle completes (Y25)
+U4_VERIFY_PASS phase=legacyC checks=8 openFindings=0

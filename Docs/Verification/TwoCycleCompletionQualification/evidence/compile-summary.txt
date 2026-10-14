@@ -1,0 +1,5 @@
+compile (fresh Library import, batch, exit 0) of head 3ca0b11 (production-identical to eb7fd3d; harness commits only differ)
+error CS lines: 0
+warning CS lines: 490
+*** Tundra build success (87.85 seconds - 0:01:27), 949 items updated, 965 evaluated
+Exiting batchmode successfully now!
