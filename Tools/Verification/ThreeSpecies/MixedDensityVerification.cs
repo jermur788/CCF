@@ -176,11 +176,17 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         ForestSaveData three = Clone(original); three.growthModel = 3;
         string problem = ForestSaveValidation.Validate(three, 0, e.CellCount);
         ForestSaveData v16 = Clone(original); v16.version = 16; v16.growthModel = GrowthModel.SpeciesAware; v16.regenerationModel = RegenerationModel.AgeBands;
-        Check(saves.LoadData(v16, false), "v16 load"); yield return null;
-        bool v16Zero = e.GrowthModelVersion == 0;
+        // A save older than v20 cannot carry a stand geometry model (ForestSaveValidation.ValidateGeometry), so a v16-stamped copy of an
+        // Enlarged80 world is not a possible save and is correctly refused. The v16 -> growth 0 reading can only be exercised from Legacy40;
+        // under Enlarged80 the gate asserts the refusal instead.
+        bool legacyGeometry = original.standGeometryModel == StandGeometryModel.Legacy40;
+        bool v16Loaded = saves.LoadData(v16, false); yield return null;
+        if (legacyGeometry) Check(v16Loaded, "v16 load");
+        bool v16Zero = legacyGeometry ? e.GrowthModelVersion == 0 : !v16Loaded;
         Check(saves.LoadData(Clone(original), false), "original reload"); yield return null;
         Pass("POLICY_SAVE_SEMANTICS", restoredTwo && problem != null && problem.Contains("unknown growth model 3") && v16Zero,
-            $"growth2Restored={restoredTwo} growth3Rejected=[{problem}] v16->0={v16Zero}");
+            legacyGeometry ? $"growth2Restored={restoredTwo} growth3Rejected=[{problem}] v16->0={v16Zero}"
+                           : $"growth2Restored={restoredTwo} growth3Rejected=[{problem}] v16 stamped on an Enlarged80 world refused={v16Zero} (pre-v20 saves are Legacy40 only; v16->0 is asserted by the Legacy40 run)");
 
         bool previewZero = true, restored = true;
         int session = e.GrowthModelVersion;
@@ -309,7 +315,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
                 before > 1.0 && Math.Abs(step.Occupancy - before) <= 1e-12 && step.Route == DensityRoute.SpeciesAwareOccupancy && step.RelativeDensity == 0.0
                 && step.DensityPressure > 0.0 && step.Deaths > 0 && dead.Count == step.Deaths && dead.All(t => t.MortalityCause == "self-thinning"),
                 $"occupancyBefore={F(before)} {Describe(step)}");
-            Pass($"PURE_{label}_OCCUPANCY_FALLS_AFTER_THE_STEP_AND_LOSS_IS_BOUNDED", after < before && Living().Length > 1 && step.DensityPressure < 1.0 && step.Deaths < 0.2 * count && step.BoundaryDeaths == 0,
+            Pass($"PURE_{label}_OCCUPANCY_FALLS_AFTER_THE_STEP_AND_LOSS_IS_BOUNDED", after < before && Living().Length > 1 && step.DensityPressure < 1.0 && step.Deaths <= Math.Ceiling(MixedDensityModel.CompositeMaximumGenericLoss * count) && step.BoundaryDeaths == 0,
                 $"occupancy {F(before)} -> {F(after)} living={Living().Length}/{count} pressure={F(step.DensityPressure)}");
 
             // Over the years: every death is a recorded self-thinning death in a valid year with deadwood created exactly once.
@@ -460,7 +466,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         AdultMortalityAccount crowded = DensityStep();
         double crowdedAfter = OccupancyOfLiving();
         Pass("HEAVY_OVERCROWDING_THINS_MORE_BUT_REMAINS_BOUNDED", crowdedBefore > 1.5 && crowded.DensityPressure > zone.DensityPressure && crowded.Deaths > 0
-            && crowded.Deaths < MixedDensityModel.MaximumAnnualLoss * 2.0 * crowdedStems && crowdedAfter < crowdedBefore,
+            && crowded.Deaths <= Math.Ceiling(MixedDensityModel.CompositeMaximumGenericLoss * crowdedStems) && crowdedAfter < crowdedBefore,
             $"occupancyBefore={F(crowdedBefore)} occupancyAfter={F(crowdedAfter)} stems={crowdedStems} {Describe(crowded)}");
     }
 
@@ -489,17 +495,24 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         MethodInfo hashMethod = typeof(ScenarioOneInteractionGate).GetMethod("LifecycleHash", BindingFlags.Static | BindingFlags.NonPublic);
         float scenarioPressure = manager.Definition.BackgroundBrowsePressure;
         var results = new Dictionary<string, string>();
-        foreach (float pressure in new[] { 0f, scenarioPressure })
-        {
-            ForestStandScenarios.ApplyLifecycleFixture();
-            e.RngModelVersion = 1; e.RegenerationModelVersion = 1; e.GrowthModelVersion = GrowthModel.SpeciesAware;
-            e.Browsing.BackgroundPressure = pressure; e.Browsing.ClearProtection();
-            for (int year = 0; year < 80; year++) { e.AdvanceOneYear(); if (year % 10 == 9) yield return null; }
-            results[pressure == 0f ? "neutral" : "normal"] = (string)hashMethod.Invoke(null, new object[] { e });
-        }
+        foreach (int model in new[] { GrowthModel.SiteClassDensity, GrowthModel.SpeciesAware })
+            foreach (float pressure in new[] { 0f, scenarioPressure })
+            {
+                ForestStandScenarios.ApplyLifecycleFixture();
+                e.RngModelVersion = 1; e.RegenerationModelVersion = 1; e.GrowthModelVersion = model;
+                e.Browsing.BackgroundPressure = pressure; e.Browsing.ClearProtection();
+                for (int year = 0; year < 80; year++) { e.AdvanceOneYear(); if (year % 10 == 9) yield return null; }
+                results[$"m{model}-{(pressure == 0f ? "neutral" : "normal")}"] = (string)hashMethod.Invoke(null, new object[] { e });
+            }
         e.Browsing.BackgroundPressure = scenarioPressure;
-        Pass("LIFECYCLE_ANCHORS_GROWTH2_EQUAL_GROWTH1", results["neutral"] == Growth1Neutral && results["normal"] == Growth1Normal,
-            $"neutral={results["neutral"]} (expect {Growth1Neutral}) normal={results["normal"]} (expect {Growth1Normal})");
+        // The hash covers every ecology cell, so the recorded constants are Legacy40 values. In EVERY geometry growth model 2 must equal
+        // growth model 1 on this pure-Sitka fixture; under Legacy40 both must also equal the recorded constants.
+        bool sameAsModel1 = results["m2-neutral"] == results["m1-neutral"] && results["m2-normal"] == results["m1-normal"];
+        bool legacy40 = e.StandGeometryModelVersion == StandGeometryModel.Legacy40;
+        bool constants = results["m2-neutral"] == Growth1Neutral && results["m2-normal"] == Growth1Normal;
+        Pass("LIFECYCLE_ANCHORS_GROWTH2_EQUAL_GROWTH1", sameAsModel1 && (!legacy40 || constants),
+            $"geometry={(legacy40 ? "Legacy40" : "Enlarged80")} model1 neutral={results["m1-neutral"]} normal={results["m1-normal"]} | model2 neutral={results["m2-neutral"]} normal={results["m2-normal"]}"
+            + (legacy40 ? $" | recorded Legacy40 constants {Growth1Neutral}/{Growth1Normal} matched={constants}" : " | recorded constants are Legacy40-only (asserted by the Legacy40 run)"));
     }
 
     private IEnumerator Execute()

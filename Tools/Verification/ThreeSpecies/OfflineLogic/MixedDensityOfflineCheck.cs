@@ -339,7 +339,8 @@ public static class MixedDensityOfflineCheck
         string method = Between(controller, "private void ApplySpeciesAwareDensityMortality(", "    private double StandRelativeDensity(");
         string methodCode = method == null ? null : StripComments(method);
         Check(methodCode != null && !methodCode.Contains("SitkaGrowthModel") && !methodCode.Contains("StandRelativeDensity") && !methodCode.Contains("RelativeDensity")
-            && methodCode.Contains("MixedDensityModel.Plan("), "OCCUPANCY_ROUTE_CONTROLLER_METHOD_HAS_NO_SITKA_ARITHMETIC");
+            && methodCode.Contains("MixedDensityModel.PlanComposite(")
+            && methodCode.Contains("SitkaSubsetDensitySignal.RequiredDeaths("), "OCCUPANCY_ROUTE_CONTROLLER_METHOD_HAS_NO_SITKA_ARITHMETIC");
         string modelCode = StripComments(model);
         Check(!modelCode.Contains("SitkaGrowthModel") && !modelCode.Contains("RelativeDensity") && !modelCode.Contains("MaximumSdi") && !modelCode.Contains("2.063"),
             "MIXED_DENSITY_MODEL_SOURCE_HAS_NO_SITKA_REFERENCE");

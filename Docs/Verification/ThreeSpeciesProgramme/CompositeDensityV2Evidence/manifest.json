@@ -1,0 +1,38 @@
+[
+  {
+    "file": "production-typecheck.txt",
+    "raw_sha256": "890292ac5ff44d6cfc76590d27a69411e1854d0dc89cf53b7e53a9388da87ad9",
+    "committed_sha256": "890292ac5ff44d6cfc76590d27a69411e1854d0dc89cf53b7e53a9388da87ad9",
+    "formatting": "trailing whitespace trimmed only"
+  },
+  {
+    "file": "baseline-density-and-isolation.txt",
+    "raw_sha256": "f1ee5427a36b2d738c0d867ac36542feddb141339ba26b8ec8bca2a468b2feea",
+    "committed_sha256": "e6c0323aef12bdcee2b58ea35ddf394dca2e2a1848e0630bd662adddb2cf64c6",
+    "formatting": "trailing whitespace trimmed only"
+  },
+  {
+    "file": "final-composite.txt",
+    "raw_sha256": "b8618b14095caf0f90e46ef33c715455f48dcddb2c144d8940e5520221870bcb",
+    "committed_sha256": "b8618b14095caf0f90e46ef33c715455f48dcddb2c144d8940e5520221870bcb",
+    "formatting": "trailing whitespace trimmed only"
+  },
+  {
+    "file": "tools-typecheck.txt",
+    "raw_sha256": "58cb647b285f14a561eb074db987a9bd1d34653cfe4c1bd9cec35f776b689fa4",
+    "committed_sha256": "58cb647b285f14a561eb074db987a9bd1d34653cfe4c1bd9cec35f776b689fa4",
+    "formatting": "trailing whitespace trimmed only"
+  },
+  {
+    "file": "timber-history.txt",
+    "raw_sha256": "fe0b375d75b61ef195e7eb36252bd0acb918e043749bcf755f4e7bcfa04b6967",
+    "committed_sha256": "fe0b375d75b61ef195e7eb36252bd0acb918e043749bcf755f4e7bcfa04b6967",
+    "formatting": "trailing whitespace trimmed only"
+  },
+  {
+    "file": "initial-run.txt",
+    "raw_sha256": "ac2f2b313dcfe9e2183863f090c7b6dc7c28a0db26853e0e9c94198aa5a6cd02",
+    "committed_sha256": "22aacc74870fc71e586062ec64aa838ed26b4845bf516437a2b5b0a86f6beebe",
+    "formatting": "trailing whitespace trimmed only"
+  }
+]

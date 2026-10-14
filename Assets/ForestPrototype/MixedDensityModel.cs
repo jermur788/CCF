@@ -1,3 +1,5 @@
+// V2 controller uses PlanComposite (MixedDensityModel.Composite.cs). The legacy generic Plan below
+// remains an independently tested occupancy primitive; it is no longer the full mixed controller route.
 using System;
 using System.Collections.Generic;
 
@@ -129,7 +131,7 @@ public sealed class DensityMortalityPlan
     public readonly List<int> VictimIndices = new List<int>();
 }
 
-public static class MixedDensityModel
+public static partial class MixedDensityModel
 {
     // [ORD/C] class weights. Coarse, deliberately round ordinal steps, not fitted values.
     public const double ReferenceWeight = 1.0;

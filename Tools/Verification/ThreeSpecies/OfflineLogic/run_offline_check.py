@@ -4,8 +4,8 @@
 Suites (default: all):
   density  Growth model 2 density routes: pure-Sitka routing and legacy-route fingerprints, the dimensionless
            species-aware occupancy model (pure Oak, pure Beech, mixed fixtures, generic mortality, calibration),
-           plus two isolated compiles that prove the routes cannot reach each other's arithmetic:
-             density-isolated        MixedDensityModel.cs WITHOUT SitkaGrowthModel.cs
+           plus composite continuity/long-run checks and two isolated compiles that prove arithmetic-module isolation:
+             density-isolated        MixedDensityModel.cs + its composite planner WITHOUT SitkaGrowthModel.cs
              density-sitka-isolated  SitkaGrowthModel.cs WITHOUT MixedDensityModel.cs
   history  Derived Scenario One management history (S1-C) against the real persisted record classes.
   timber   Oak/Beech assortment ladders, prices and valuation against the real allocator and work
@@ -18,7 +18,7 @@ written inside the repo.
 This proves pure arithmetic and decision rules only. It does not prove controller wiring, scene state, the
 Unity-side economy adapter or any Unity anchor hash.
 
-Usage: run_offline_check.py [--suite density|density-isolated|density-sitka-isolated|timber|history|all] [--out DIR]
+Usage: run_offline_check.py [--suite density|density-composite|density-isolated|density-sitka-isolated|timber|history|all] [--out DIR]
 Exit code 0 and *_PASS tokens on success. Needs `dotnet` (SDK 8+).
 """
 import argparse
@@ -34,6 +34,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
 FP = os.path.join(ROOT, "Assets", "ForestPrototype")
 
 SUITES = {
+    "density-composite": dict(startup="CompositeDensityOfflineCheck", sources=[os.path.join(FP,"SitkaGrowthModel.cs"),os.path.join(FP,"MixedDensityModel.cs"),os.path.join(FP,"MixedDensityModel.Composite.cs"),os.path.join(FP,"SitkaSubsetDensitySignal.cs"),os.path.join(HERE,"CompositeDensityOfflineCheck.cs")],args=[]),
     "density": dict(
         startup="MixedDensityOfflineCheck",
         sources=[os.path.join(FP, "SitkaGrowthModel.cs"), os.path.join(FP, "MixedDensityModel.cs"),
@@ -41,7 +42,7 @@ SUITES = {
         args=[ROOT]),
     "density-isolated": dict(
         startup="MixedDensityIsolatedCheck",
-        sources=[os.path.join(FP, "MixedDensityModel.cs"), os.path.join(HERE, "MixedDensityIsolatedCheck.cs")],
+        sources=[os.path.join(FP, "MixedDensityModel.cs"), os.path.join(FP,"MixedDensityModel.Composite.cs"), os.path.join(HERE, "MixedDensityIsolatedCheck.cs")],
         args=[]),
     "density-sitka-isolated": dict(
         startup="SitkaIsolatedCheck",
@@ -107,15 +108,15 @@ def run_suite(name, out, dotnet):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--suite", choices=["density", "density-isolated", "density-sitka-isolated", "timber", "history", "all"], default="all")
+    parser.add_argument("--suite", choices=["density", "density-composite", "density-isolated", "density-sitka-isolated", "timber", "history", "all"], default="all")
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-three-species-offline"))
     args = parser.parse_args()
     dotnet = shutil.which("dotnet")
     if not dotnet:
         sys.exit("dotnet SDK not found")
     # "density" always includes its two compile-time isolation proofs.
-    groups = {"density": ["density", "density-isolated", "density-sitka-isolated"],
-              "all": ["density", "density-isolated", "density-sitka-isolated", "timber", "history"]}
+    groups = {"density": ["density", "density-composite", "density-isolated", "density-sitka-isolated"],
+              "all": ["density", "density-composite", "density-isolated", "density-sitka-isolated", "timber", "history"]}
     names = groups.get(args.suite, [args.suite])
     status = 0
     for name in names:

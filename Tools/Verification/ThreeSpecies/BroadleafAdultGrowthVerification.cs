@@ -76,6 +76,12 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
         return hash.ToString("X16");
     }
 
+    private static void RemoveRecruits()
+    {
+        foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (t.TreeId.StartsWith("R", StringComparison.Ordinal)) DestroyImmediate(t.gameObject);
+    }
+
     // 3 x 3 grid. Spacing above the 8 m Hegyi cutoff gives every tree a competition index of exactly 0.
     private void Grid(int growth, TreeSpeciesDefinition s, float spacing, float dbh = 5.25f, float height = 3.5f, int age = 12)
     {
@@ -137,6 +143,10 @@ public sealed class BroadleafAdultGrowthVerificationRunner : MonoBehaviour
                 for (int y = 1; y <= 60; y++)
                 {
                     e.AdvanceOneYear();
+                    // Over 60 years the nine adults seed and recruit hundreds of promoted trees (observed: 92 living Oak and 246 living
+                    // Beech at year 60 under every growth model), which breaks both the nine-tree premise and ci == 0. Recruits are
+                    // removed between years so the stand stays sparse; adult growth itself is untouched.
+                    RemoveRecruits();
                     h[y] = probe.Height; d[y] = probe.Diameter;
                     if (y % 10 == 0) yield return null;
                 }

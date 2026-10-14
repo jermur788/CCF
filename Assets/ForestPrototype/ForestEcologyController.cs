@@ -1149,8 +1149,8 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         return false;
     }
 
-    // Growth model 2 density for stands that are not pure Sitka. The decision logic lives in MixedDensityModel (no
-    // Unity types, checked offline, never touches SitkaGrowthModel); this method only describes the living trees to it
+    // Growth model 2 composite pressure for mixed stands. The Sitka-only subset signal
+    // and generic occupancy are calculated separately; this method describes the living trees to them
     // and applies the result. Each tree carries its raw Hegyi index, not a species-specific suppression, so which
     // trees die does not depend on species. The per-tree roll uses the same random domain as the Sitka route, so no
     // random stream is consumed.
@@ -1166,8 +1166,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
                 tree.Diameter, ci);
         }
-        DensityMortalityPlan plan = MixedDensityModel.Plan(stems, StandAreaHectares,
-            id => SimulationRandom.Roll(rngModelVersion, "ADULT-MORT-" + id, ecologicalYear, simulationSeed));
+        System.Func<string, double> roll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-" + id, ecologicalYear, simulationSeed);
+        int referenceDeaths = SitkaSubsetDensitySignal.RequiredDeaths(stems, StandAreaHectares, roll);
+        DensityMortalityPlan plan = MixedDensityModel.PlanComposite(stems, StandAreaHectares, referenceDeaths, roll);
         account.Route = DensityRoute.SpeciesAwareOccupancy;
         account.StemsPerHectare = plan.StemsPerHectare;
         account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
