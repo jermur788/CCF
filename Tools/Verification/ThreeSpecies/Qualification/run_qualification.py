@@ -4,7 +4,7 @@
 A small generic runner for the final-density qualification. The shipped run_unity_gates.py stages exactly one file
 and has no way to add a second (the per-year probe) or to read a marker other than its own, and its default config
 folder carries no licence. This runner:
-  - refuses to start if any Editor from this Unity install is already running (anchored pgrep, so it never matches itself);
+  - refuses to start if an Editor on THIS project is already running (anchored pgrep, so it never matches itself);
   - copies the licence into an isolated XDG_CONFIG_HOME under --out, so no real EditorPrefs or save is touched;
   - stages each --file under Assets/ForestPrototype/ and ALWAYS removes it and its .meta afterwards;
   - runs   <unity> -projectPath <repo> -executeMethod <method> -logFile <log>   inside a memory-capped systemd scope;
@@ -63,7 +63,8 @@ def main():
     if not (config / "unity3d/Unity/licenses").exists():
         shutil.copytree(LICENCES, config / "unity3d/Unity/licenses")
 
-    busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " "], capture_output=True, text=True).stdout.split()
+    # One Editor per PROJECT (they would fight over this Library and Temp); an Editor on another worktree may run beside it.
+    busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " .*-projectPath " + str(ROOT) + "( |$)"], capture_output=True, text=True).stdout.split()
     if busy:
         raise SystemExit("Another Unity Editor is running: " + str(busy))
 
