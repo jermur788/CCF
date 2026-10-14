@@ -1,0 +1,172 @@
+[
+ {
+  "label": "fast-e80",
+  "status": "PASS",
+  "seconds": 1265.9,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1",
+   "CCF_QUAL_PHASES=RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,CONTINUITY,FINALBROADLEAF,SAVELOAD,PERF"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "fast-l40",
+  "status": "PASS",
+  "seconds": 595.2,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0",
+   "CCF_QUAL_PHASES=RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,CONTINUITY,FINALBROADLEAF,SAVELOAD,PERF"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-mixed-l40",
+  "status": "PASS",
+  "seconds": 85.9,
+  "marker": "MIXED_DENSITY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-mixed-e80",
+  "status": "PASS",
+  "seconds": 317.4,
+  "marker": "MIXED_DENSITY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-broadleaf-growth",
+  "status": "PASS",
+  "seconds": 66.3,
+  "marker": "BROADLEAF_GROWTH_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-broadleaf-growth-e80",
+  "status": "PASS",
+  "seconds": 66.6,
+  "marker": "BROADLEAF_GROWTH_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-broadleaf-timber",
+  "status": "PASS",
+  "seconds": 58.2,
+  "marker": "BROADLEAF_TIMBER_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "gate-history-2",
+  "status": "PASS",
+  "seconds": 77.2,
+  "marker": "SCENARIO_HISTORY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "long-l40-300",
+  "status": "PASS",
+  "seconds": 188.9,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0",
+   "CCF_QUAL_PHASES=LONGRUN",
+   "CCF_QUAL_YEARS=300",
+   "CCF_QUAL_SCENARIOS=A,B,C,D,G"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "long-e80-100",
+  "status": "PASS",
+  "seconds": 579.2,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1",
+   "CCF_QUAL_PHASES=LONGRUN",
+   "CCF_QUAL_YEARS=100",
+   "CCF_QUAL_SCENARIOS=A,B,C,D,G"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "long-e80-300",
+  "status": "PASS",
+  "seconds": 563.5,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1",
+   "CCF_QUAL_PHASES=LONGRUN",
+   "CCF_QUAL_YEARS=300",
+   "CCF_QUAL_SCENARIOS=A,B,C,G",
+   "CCF_QUAL_REPLAY=0"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "2622fe0e10f5"
+ },
+ {
+  "label": "latemix-e80",
+  "status": "PASS",
+  "seconds": 74.6,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=1",
+   "CCF_QUAL_PHASES=LATEMIX"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "58c0d9b0797f"
+ },
+ {
+  "label": "latemix-l40",
+  "status": "PASS",
+  "seconds": 54.9,
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+   "CCF_STAND_GEOMETRY=0",
+   "CCF_QUAL_PHASES=LATEMIX"
+  ],
+  "unexpected_tree_changes": [],
+  "run_head": "58c0d9b0797f"
+ }
+]

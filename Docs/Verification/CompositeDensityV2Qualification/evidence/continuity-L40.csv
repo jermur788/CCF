@@ -1,0 +1,15 @@
+DBH16_24,1,LegacySitkaExact,0.54610,0.00436,10
+DBH16_24,0.999,SpeciesAwareOccupancy,0.54500,0.00427,10
+DBH16_24,0.99,SpeciesAwareOccupancy,0.53380,0.00418,10
+DBH16_24,0.95,SpeciesAwareOccupancy,0.49720,0.00794,10
+DBH16_24,0.9,SpeciesAwareOccupancy,0.47200,0.01343,10
+DBH24_34,1,LegacySitkaExact,0.79610,0.00218,10
+DBH24_34,0.999,SpeciesAwareOccupancy,0.79500,0.00236,10
+DBH24_34,0.99,SpeciesAwareOccupancy,0.78660,0.00237,10
+DBH24_34,0.95,SpeciesAwareOccupancy,0.75190,0.00166,10
+DBH24_34,0.9,SpeciesAwareOccupancy,0.70860,0.00165,10
+DBH32_44,1,LegacySitkaExact,0.88120,0.00148,10
+DBH32_44,0.999,SpeciesAwareOccupancy,0.88020,0.00148,10
+DBH32_44,0.99,SpeciesAwareOccupancy,0.87130,0.00134,10
+DBH32_44,0.95,SpeciesAwareOccupancy,0.83440,0.00107,10
+DBH32_44,0.9,SpeciesAwareOccupancy,0.78910,0.00129,10

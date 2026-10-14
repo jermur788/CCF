@@ -1,0 +1,38 @@
+QUAL_START geometry=E80 areaHa=0.64 cells=256 phases=LATEMIX,FAIRNESSHIGH
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_COMPETITION_INDEX_IS_SPECIES_NEUTRAL stems=996 maxAbsDifferenceAcrossRotatedSpecies=0.0e+0 (neutral ids, so any difference would come from species)
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN trials=150 stems=996 totalVictims=16003
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_SITKA stemTrials=49800 deaths=5440 expectedFromCompetitionOnly=5332.8 z=1.56 zRelativeToPooled=1.54 deathRate=0.1092 meanCompetitionRankOfVictims=0.550
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_BEECH stemTrials=49800 deaths=5360 expectedFromCompetitionOnly=5332.8 z=0.40 zRelativeToPooled=0.37 deathRate=0.1076 meanCompetitionRankOfVictims=0.555
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_OAK stemTrials=49800 deaths=5203 expectedFromCompetitionOnly=5332.8 z=-1.89 zRelativeToPooled=-1.91 deathRate=0.1045 meanCompetitionRankOfVictims=0.555
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_POOLED deaths=16003 expected=15998.4 ratio=1.000 pooledZ=0.04
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION pooledZ=0.04
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_MATCHED_EQUAL_DBH_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_COMPETITION_INDEX_IS_SPECIES_NEUTRAL stems=1060 maxAbsDifferenceAcrossRotatedSpecies=0.0e+0 (neutral ids, so any difference would come from species)
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN trials=150 stems=1060 totalVictims=17052
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_SITKA stemTrials=53000 deaths=5798 expectedFromCompetitionOnly=5683.0 z=1.62 zRelativeToPooled=1.61 deathRate=0.1094 meanCompetitionRankOfVictims=0.580
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_BEECH stemTrials=53000 deaths=5682 expectedFromCompetitionOnly=5682.9 z=-0.01 zRelativeToPooled=-0.03 deathRate=0.1072 meanCompetitionRankOfVictims=0.581
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_OAK stemTrials=53000 deaths=5572 expectedFromCompetitionOnly=5683.0 z=-1.57 zRelativeToPooled=-1.58 deathRate=0.1051 meanCompetitionRankOfVictims=0.579
+QUAL_MEASURE E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_POOLED deaths=17052 expected=17048.9 ratio=1.000 pooledZ=0.03
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION pooledZ=0.03
+QUAL_PASS E80 FAIRNESS_HIGH_LOSS_UNEQUAL_DBH_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)
+QUAL_PHASE_DONE FAIRNESSHIGH t=350s
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=0 route=LegacySitkaExact totalDeathFraction=0.150 sitkaDeathFraction=0.150 broadleafDeathFraction=- sd=0.037 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=1 route=SpeciesAwareOccupancy totalDeathFraction=0.143 sitkaDeathFraction=0.134 broadleafDeathFraction=1.000 sd=0.029 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=3 route=SpeciesAwareOccupancy totalDeathFraction=0.129 sitkaDeathFraction=0.103 broadleafDeathFraction=1.000 sd=0.018 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=12 route=SpeciesAwareOccupancy totalDeathFraction=0.125 sitkaDeathFraction=0.023 broadleafDeathFraction=0.972 sd=0.018 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=26 route=SpeciesAwareOccupancy totalDeathFraction=0.118 sitkaDeathFraction=0.000 broadleafDeathFraction=0.571 sd=0.022 seeds=12
+QUAL_PASS E80 LATEMIX_OLD_SITKA_N100_DBH78_98_1_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0158 tolerance=0.0459 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.134)
+QUAL_FAIL E80 LATEMIX_OLD_SITKA_N100_DBH78_98_3_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0467 tolerance=0.0409 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.103)
+QUAL_FAIL E80 LATEMIX_OLD_SITKA_N100_DBH78_98_12_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.1267 tolerance=0.0405 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.023)
+QUAL_FAIL E80 LATEMIX_OLD_SITKA_N100_DBH78_98_26_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.1500 tolerance=0.0370 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.000)
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=0 route=LegacySitkaExact totalDeathFraction=0.031 sitkaDeathFraction=0.031 broadleafDeathFraction=- sd=0.009 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=1 route=SpeciesAwareOccupancy totalDeathFraction=0.031 sitkaDeathFraction=0.029 broadleafDeathFraction=0.250 sd=0.009 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=3 route=SpeciesAwareOccupancy totalDeathFraction=0.028 sitkaDeathFraction=0.016 broadleafDeathFraction=0.639 sd=0.010 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=12 route=SpeciesAwareOccupancy totalDeathFraction=0.028 sitkaDeathFraction=0.006 broadleafDeathFraction=0.299 sd=0.010 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=26 route=SpeciesAwareOccupancy totalDeathFraction=0.029 sitkaDeathFraction=0.003 broadleafDeathFraction=0.183 sd=0.009 seeds=12
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_1_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0017 tolerance=0.0160 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.029)
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_3_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0150 tolerance=0.0168 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.016)
+QUAL_FAIL E80 LATEMIX_MID_SITKA_N150_DBH55_70_12_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0250 tolerance=0.0141 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.006)
+QUAL_FAIL E80 LATEMIX_MID_SITKA_N150_DBH55_70_26_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0283 tolerance=0.0138 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.003)
+QUAL_PHASE_DONE LATEMIX t=365s
+DENSITY_QUAL_FAIL geometry=E80 exception= hardFailures=[LATEMIX_OLD_SITKA_N100_DBH78_98_3_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0467 tolerance=0.0409 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.103) | LATEMIX_OLD_SITKA_N100_DBH78_98_12_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.1267 tolerance=0.0405 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.023) | LATEMIX_OLD_SITKA_N100_DBH78_98_26_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.1500 tolerance=0.0370 (0.005 + 3 se of the difference of seed means; pure=0.150 mixed=0.000) | LATEMIX_MID_SITKA_N150_DBH55_70_12_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0250 tolerance=0.0141 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.006) | LATEMIX_MID_SITKA_N150_DBH55_70_26_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND sitkaLossDifference=0.0283 tolerance=0.0138 (0.005 + 3 se of the difference of seed means; pure=0.031 mixed=0.003)]

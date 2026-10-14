@@ -1,0 +1,145 @@
+QUAL_START geometry=E80 areaHa=0.64 cells=256 phases=RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,CONTINUITY,FINALBROADLEAF,SAVELOAD,PERF
+QUAL_PASS E80 CLASS_RATIOS_REFERENCE_BEECH_OAK_1.0_1.5_2.0 dbh5:0.001963/0.002945/0.003927 dbh12:0.011310/0.016965/0.022619 dbh25:0.049087/0.073631/0.098175 dbh50:0.196350/0.294524/0.392699 dbh80:0.502655/0.753982/1.005310
+QUAL_PASS E80 NO_DEC_DMC_OR_MIXTURE_BONUS_MEMBER members=42 bannedTokensPresent=[]
+QUAL_PASS E80 PRESSURE_LOSS_VICTIM_FORMULAS_TAKE_NUMBERS_ONLY stemHasNoSpecies=True offenders=[]
+QUAL_PHASE_DONE RATIOS t=0s
+QUAL_MEASURE E80 ROLLS_UNIFORMITY p=0.0100 fractionBelow=0.01022 z=1.23 draws=320000
+QUAL_MEASURE E80 ROLLS_UNIFORMITY p=0.0375 fractionBelow=0.03787 z=1.10 draws=320000
+QUAL_MEASURE E80 ROLLS_UNIFORMITY p=0.1000 fractionBelow=0.10073 z=1.37 draws=320000
+QUAL_MEASURE E80 ROLLS_UNIFORMITY p=0.5000 fractionBelow=0.50026 z=0.30 draws=320000
+QUAL_MEASURE E80 ROLLS_ADJACENT_SEED_CORRELATION corr=0.0007 pairs=319200 (independent draws give about 0 +- 0.0018)
+QUAL_PASS E80 ROLLS_ADJACENT_SEEDS_UNCORRELATED corr=0.0007
+QUAL_PHASE_DONE ROLLS t=2s
+QUAL_PASS E80 LIFECYCLE_80Y_MODEL2_EQUALS_MODEL1_IN_THIS_GEOMETRY model1 neutral=1FE6639780636394 normal=702DE05F33384139 | model2 neutral=1FE6639780636394 normal=702DE05F33384139
+QUAL_MEASURE E80 LIFECYCLE_ENLARGED80_VALUES_ARE_NOT_LEGACY40_CONSTANTS geometry cells=256 (hash covers every cell, so it cannot equal the Legacy40 constants) neutral=1FE6639780636394 normal=702DE05F33384139
+QUAL_PHASE_DONE ANCHORS t=157s
+QUAL_PASS E80 PURE_SITKA_DENSE_100Y_MODEL2_EXACTLY_EQUALS_MODEL1 stems=768 rowsEqual=True victimIdsEqual=True hash1=1261440A3A6F6986 hash2=1261440A3A6F6986 legacyRouteEveryYear=True rowHash=49F46B0EC0F61399
+QUAL_MEASURE E80 PURE_SITKA_DENSE_MORTALITY deathYears=100 first=1 totalDeaths=1643 hazard=1094 boundary=549 years=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60]
+QUAL_PASS E80 PURE_SITKA_MODERATE_100Y_MODEL2_EXACTLY_EQUALS_MODEL1 stems=384 rowsEqual=True victimIdsEqual=True hash1=ED1AAAAF3F42C591 hash2=ED1AAAAF3F42C591 legacyRouteEveryYear=True rowHash=43D20C9EE9D5001E
+QUAL_MEASURE E80 PURE_SITKA_MODERATE_MORTALITY deathYears=81 first=20 totalDeaths=971 hazard=575 boundary=396 years=[20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79]
+QUAL_PHASE_DONE SITKA100 t=267s
+QUAL_PASS E80 SPARSE_MIXED_STAND_GROWS_IDENTICALLY_UNDER_MODEL1_AND_MODEL2 hash1=F4665F5465377934 hash2=F4665F5465377934 densityDeaths1=0 densityDeaths2=0 maxOccupancy=0.6254 (growth, height and age are bit-identical, so the occupancy route adds no growth or productivity effect)
+QUAL_PHASE_DONE PARITY t=286s
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=0.9 stems=239 occupancy=0.9015 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=1 stems=264 occupancy=0.9982 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=1.05 stems=279 occupancy=1.0546 pressure=0.0001 modelExpectedLossFraction=0.0001 observedLossFraction=0.0000 expectedFromProbabilities=0.0001 z=-0.71 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=1.2 stems=319 occupancy=1.2026 pressure=0.0020 modelExpectedLossFraction=0.0020 observedLossFraction=0.0018 expectedFromProbabilities=0.0020 z=-0.29 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=1.5 stems=398 occupancy=1.5022 pressure=0.0123 modelExpectedLossFraction=0.0123 observedLossFraction=0.0126 expectedFromProbabilities=0.0123 z=0.17 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=2 stems=530 occupancy=2.0014 pressure=0.0454 modelExpectedLossFraction=0.0454 observedLossFraction=0.0456 expectedFromProbabilities=0.0454 z=0.06 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_OAK targetOccupancy=3 stems=795 occupancy=3.0037 pressure=0.1380 modelExpectedLossFraction=0.1380 observedLossFraction=0.1381 expectedFromProbabilities=0.1380 z=0.01 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=0.9 stems=319 occupancy=0.9019 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=1 stems=352 occupancy=0.9976 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=1.05 stems=371 occupancy=1.0511 pressure=0.0001 modelExpectedLossFraction=0.0001 observedLossFraction=0.0000 expectedFromProbabilities=0.0001 z=-0.76 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=1.2 stems=424 occupancy=1.2003 pressure=0.0020 modelExpectedLossFraction=0.0020 observedLossFraction=0.0020 expectedFromProbabilities=0.0020 z=-0.05 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=1.5 stems=530 occupancy=1.5011 pressure=0.0122 modelExpectedLossFraction=0.0122 observedLossFraction=0.0121 expectedFromProbabilities=0.0122 z=-0.10 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=2 stems=707 occupancy=2.002 pressure=0.0455 modelExpectedLossFraction=0.0455 observedLossFraction=0.0456 expectedFromProbabilities=0.0455 z=0.06 seeds=12
+QUAL_MEASURE E80 CURVE_PURE_BEECH targetOccupancy=3 stems=1060 occupancy=3.0022 pressure=0.1379 modelExpectedLossFraction=0.1379 observedLossFraction=0.1379 expectedFromProbabilities=0.1379 z=0.01 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=0.9 stems=319 occupancy=0.9012 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=1 stems=352 occupancy=0.9968 pressure=0.0000 modelExpectedLossFraction=0.0000 observedLossFraction=0.0000 expectedFromProbabilities=0.0000 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=1.05 stems=371 occupancy=1.0502 pressure=0.0001 modelExpectedLossFraction=0.0001 observedLossFraction=0.0000 expectedFromProbabilities=0.0001 z=-0.66 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=1.2 stems=425 occupancy=1.2015 pressure=0.0016 modelExpectedLossFraction=0.0016 observedLossFraction=0.0016 expectedFromProbabilities=0.0016 z=0.00 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=1.5 stems=531 occupancy=1.5032 pressure=0.0096 modelExpectedLossFraction=0.0096 observedLossFraction=0.0097 expectedFromProbabilities=0.0096 z=0.11 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=2 stems=707 occupancy=2.0003 pressure=0.0352 modelExpectedLossFraction=0.0352 observedLossFraction=0.0352 expectedFromProbabilities=0.0352 z=0.02 seeds=12
+QUAL_MEASURE E80 CURVE_MIXED_THREE targetOccupancy=3 stems=1060 occupancy=3.0002 pressure=0.1069 modelExpectedLossFraction=0.1069 observedLossFraction=0.1070 expectedFromProbabilities=0.1069 z=0.02 seeds=12
+QUAL_PHASE_DONE CURVE t=406s
+QUAL_PASS E80 FAIRNESS_MATCHED_EQUAL_DBH_COMPETITION_INDEX_IS_SPECIES_NEUTRAL stems=532 maxAbsDifferenceAcrossRotatedSpecies=0.0e+0 (neutral ids, so any difference would come from species)
+QUAL_PASS E80 FAIRNESS_MATCHED_EQUAL_DBH_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN trials=150 stems=532 totalVictims=1095
+QUAL_MEASURE E80 FAIRNESS_MATCHED_EQUAL_DBH_SITKA stemTrials=26600 deaths=380 expectedFromCompetitionOnly=362.2 z=0.94 zRelativeToPooled=0.79 deathRate=0.0143 meanCompetitionRankOfVictims=0.574
+QUAL_MEASURE E80 FAIRNESS_MATCHED_EQUAL_DBH_BEECH stemTrials=26600 deaths=335 expectedFromCompetitionOnly=362.2 z=-1.44 zRelativeToPooled=-1.59 deathRate=0.0126 meanCompetitionRankOfVictims=0.580
+QUAL_MEASURE E80 FAIRNESS_MATCHED_EQUAL_DBH_OAK stemTrials=26600 deaths=380 expectedFromCompetitionOnly=362.2 z=0.94 zRelativeToPooled=0.79 deathRate=0.0143 meanCompetitionRankOfVictims=0.569
+QUAL_MEASURE E80 FAIRNESS_MATCHED_EQUAL_DBH_POOLED deaths=1095 expected=1086.5 ratio=1.008 pooledZ=0.26
+QUAL_PASS E80 FAIRNESS_MATCHED_EQUAL_DBH_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION pooledZ=0.26
+QUAL_PASS E80 FAIRNESS_MATCHED_EQUAL_DBH_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)
+QUAL_PASS E80 FAIRNESS_UNEQUAL_DBH_COMPETITION_INDEX_IS_SPECIES_NEUTRAL stems=566 maxAbsDifferenceAcrossRotatedSpecies=0.0e+0 (neutral ids, so any difference would come from species)
+QUAL_PASS E80 FAIRNESS_UNEQUAL_DBH_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN trials=150 stems=566 totalVictims=1164
+QUAL_MEASURE E80 FAIRNESS_UNEQUAL_DBH_SITKA stemTrials=28300 deaths=396 expectedFromCompetitionOnly=386.3 z=0.50 zRelativeToPooled=0.41 deathRate=0.0140 meanCompetitionRankOfVictims=0.623
+QUAL_MEASURE E80 FAIRNESS_UNEQUAL_DBH_BEECH stemTrials=28300 deaths=362 expectedFromCompetitionOnly=386.2 z=-1.24 zRelativeToPooled=-1.33 deathRate=0.0128 meanCompetitionRankOfVictims=0.626
+QUAL_MEASURE E80 FAIRNESS_UNEQUAL_DBH_OAK stemTrials=28300 deaths=406 expectedFromCompetitionOnly=386.3 z=1.01 zRelativeToPooled=0.92 deathRate=0.0143 meanCompetitionRankOfVictims=0.602
+QUAL_MEASURE E80 FAIRNESS_UNEQUAL_DBH_POOLED deaths=1164 expected=1158.8 ratio=1.005 pooledZ=0.16
+QUAL_PASS E80 FAIRNESS_UNEQUAL_DBH_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION pooledZ=0.16
+QUAL_PASS E80 FAIRNESS_UNEQUAL_DBH_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)
+QUAL_PASS E80 ANNUAL_STEP_VICTIMS_ARE_THE_MORE_SUPPRESSED_STEMS victims=617 meanCiVictims=5.183 meanCiSurvivors=4.7853 auc=0.623
+QUAL_PHASE_DONE FAIRNESS t=599s
+QUAL_MEASURE E80 CONTINUITY_STAND DBH16_24 sitkaShare=1 stems=1000 broadleaf=0 route=LegacySitkaExact occupancyOrRd=0.5329 pressure=0.0000
+QUAL_MEASURE E80 CONTINUITY DBH16_24 sitkaShare=1 route=LegacySitkaExact meanDeathFraction=0.0000 sd=0.0000 deathsPer1000=0.0
+QUAL_MEASURE E80 CONTINUITY_STAND DBH16_24 sitkaShare=0.999 stems=1000 broadleaf=1 route=SpeciesAwareOccupancy occupancyOrRd=0.9014 pressure=0.0000
+QUAL_MEASURE E80 CONTINUITY DBH16_24 sitkaShare=0.999 route=SpeciesAwareOccupancy meanDeathFraction=0.0000 sd=0.0000 deathsPer1000=0.0
+QUAL_MEASURE E80 CONTINUITY_STAND DBH16_24 sitkaShare=0.99 stems=1000 broadleaf=10 route=SpeciesAwareOccupancy occupancyOrRd=0.9065 pressure=0.0000
+QUAL_MEASURE E80 CONTINUITY DBH16_24 sitkaShare=0.99 route=SpeciesAwareOccupancy meanDeathFraction=0.0000 sd=0.0000 deathsPer1000=0.0
+QUAL_MEASURE E80 CONTINUITY_STAND DBH16_24 sitkaShare=0.95 stems=1000 broadleaf=50 route=SpeciesAwareOccupancy occupancyOrRd=0.9219 pressure=0.0000
+QUAL_MEASURE E80 CONTINUITY DBH16_24 sitkaShare=0.95 route=SpeciesAwareOccupancy meanDeathFraction=0.0000 sd=0.0000 deathsPer1000=0.0
+QUAL_MEASURE E80 CONTINUITY_STAND DBH16_24 sitkaShare=0.9 stems=1000 broadleaf=100 route=SpeciesAwareOccupancy occupancyOrRd=0.9446 pressure=0.0000
+QUAL_MEASURE E80 CONTINUITY DBH16_24 sitkaShare=0.9 route=SpeciesAwareOccupancy meanDeathFraction=0.0000 sd=0.0000 deathsPer1000=0.0
+QUAL_PASS E80 CONTINUITY_DBH16_24_PURE_SITKA_USES_THE_LEGACY_ROUTE_AND_ANY_BROADLEAF_THE_COMPOSITE_ROUTE LegacySitkaExact,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy
+QUAL_PASS E80 CONTINUITY_DBH16_24_99_9_PERCENT_SITKA_LOSS_MATCHES_PURE difference=0.0000 tolerance=0.0050 (0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH16_24_ADJACENT_1_TO_0.999 difference=0.0000 tolerance=0.0070 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH16_24_ADJACENT_0.999_TO_0.99 difference=0.0000 tolerance=0.0230 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH16_24_ADJACENT_0.99_TO_0.95 difference=0.0000 tolerance=0.0850 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH16_24_ADJACENT_0.95_TO_0.9 difference=0.0000 tolerance=0.1050 (2 x composition change + 0.005 + 3 se)
+QUAL_MEASURE E80 CONTINUITY_STAND DBH24_34 sitkaShare=1 stems=1000 broadleaf=0 route=LegacySitkaExact occupancyOrRd=1.1437 pressure=1.3592
+QUAL_MEASURE E80 CONTINUITY DBH24_34 sitkaShare=1 route=LegacySitkaExact meanDeathFraction=0.1478 sd=0.0104 deathsPer1000=147.8
+QUAL_MEASURE E80 CONTINUITY_STAND DBH24_34 sitkaShare=0.999 stems=1000 broadleaf=1 route=SpeciesAwareOccupancy occupancyOrRd=1.8898 pressure=0.1561
+QUAL_MEASURE E80 CONTINUITY DBH24_34 sitkaShare=0.999 route=SpeciesAwareOccupancy meanDeathFraction=0.1472 sd=0.0106 deathsPer1000=147.2
+QUAL_MEASURE E80 CONTINUITY_STAND DBH24_34 sitkaShare=0.99 stems=1000 broadleaf=10 route=SpeciesAwareOccupancy occupancyOrRd=1.9001 pressure=0.1496
+QUAL_MEASURE E80 CONTINUITY DBH24_34 sitkaShare=0.99 route=SpeciesAwareOccupancy meanDeathFraction=0.1410 sd=0.0104 deathsPer1000=141.0
+QUAL_MEASURE E80 CONTINUITY_STAND DBH24_34 sitkaShare=0.95 stems=1000 broadleaf=50 route=SpeciesAwareOccupancy occupancyOrRd=1.9331 pressure=0.1274
+QUAL_MEASURE E80 CONTINUITY DBH24_34 sitkaShare=0.95 route=SpeciesAwareOccupancy meanDeathFraction=0.1166 sd=0.0092 deathsPer1000=116.6
+QUAL_MEASURE E80 CONTINUITY_STAND DBH24_34 sitkaShare=0.9 stems=1000 broadleaf=100 route=SpeciesAwareOccupancy occupancyOrRd=1.9808 pressure=0.1015
+QUAL_MEASURE E80 CONTINUITY DBH24_34 sitkaShare=0.9 route=SpeciesAwareOccupancy meanDeathFraction=0.0917 sd=0.0093 deathsPer1000=91.7
+QUAL_PASS E80 CONTINUITY_DBH24_34_PURE_SITKA_USES_THE_LEGACY_ROUTE_AND_ANY_BROADLEAF_THE_COMPOSITE_ROUTE LegacySitkaExact,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy
+QUAL_PASS E80 CONTINUITY_DBH24_34_99_9_PERCENT_SITKA_LOSS_MATCHES_PURE difference=0.0006 tolerance=0.0191 (0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH24_34_ADJACENT_1_TO_0.999 difference=0.0006 tolerance=0.0211 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH24_34_ADJACENT_0.999_TO_0.99 difference=0.0062 tolerance=0.0371 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH24_34_ADJACENT_0.99_TO_0.95 difference=0.0244 tolerance=0.0982 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH24_34_ADJACENT_0.95_TO_0.9 difference=0.0249 tolerance=0.1174 (2 x composition change + 0.005 + 3 se)
+QUAL_MEASURE E80 CONTINUITY_STAND DBH32_44 sitkaShare=1 stems=1000 broadleaf=0 route=LegacySitkaExact occupancyOrRd=1.9948 pressure=3.4869
+QUAL_MEASURE E80 CONTINUITY DBH32_44 sitkaShare=1 route=LegacySitkaExact meanDeathFraction=0.5086 sd=0.0080 deathsPer1000=508.6
+QUAL_MEASURE E80 CONTINUITY_STAND DBH32_44 sitkaShare=0.999 stems=1000 broadleaf=1 route=SpeciesAwareOccupancy occupancyOrRd=3.2405 pressure=0.5281
+QUAL_MEASURE E80 CONTINUITY DBH32_44 sitkaShare=0.999 route=SpeciesAwareOccupancy meanDeathFraction=0.5073 sd=0.0081 deathsPer1000=507.3
+QUAL_MEASURE E80 CONTINUITY_STAND DBH32_44 sitkaShare=0.99 stems=1000 broadleaf=10 route=SpeciesAwareOccupancy occupancyOrRd=3.2579 pressure=0.5234
+QUAL_MEASURE E80 CONTINUITY DBH32_44 sitkaShare=0.99 route=SpeciesAwareOccupancy meanDeathFraction=0.4995 sd=0.0102 deathsPer1000=499.5
+QUAL_MEASURE E80 CONTINUITY_STAND DBH32_44 sitkaShare=0.95 stems=1000 broadleaf=50 route=SpeciesAwareOccupancy occupancyOrRd=3.3152 pressure=0.5008
+QUAL_MEASURE E80 CONTINUITY DBH32_44 sitkaShare=0.95 route=SpeciesAwareOccupancy meanDeathFraction=0.4734 sd=0.0129 deathsPer1000=473.4
+QUAL_MEASURE E80 CONTINUITY_STAND DBH32_44 sitkaShare=0.9 stems=1000 broadleaf=100 route=SpeciesAwareOccupancy occupancyOrRd=3.3969 pressure=0.4749
+QUAL_MEASURE E80 CONTINUITY DBH32_44 sitkaShare=0.9 route=SpeciesAwareOccupancy meanDeathFraction=0.4478 sd=0.0166 deathsPer1000=447.8
+QUAL_PASS E80 CONTINUITY_DBH32_44_PURE_SITKA_USES_THE_LEGACY_ROUTE_AND_ANY_BROADLEAF_THE_COMPOSITE_ROUTE LegacySitkaExact,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy,SpeciesAwareOccupancy
+QUAL_PASS E80 CONTINUITY_DBH32_44_99_9_PERCENT_SITKA_LOSS_MATCHES_PURE difference=0.0013 tolerance=0.0158 (0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH32_44_ADJACENT_1_TO_0.999 difference=0.0013 tolerance=0.0178 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH32_44_ADJACENT_0.999_TO_0.99 difference=0.0078 tolerance=0.0353 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH32_44_ADJACENT_0.99_TO_0.95 difference=0.0261 tolerance=0.1006 (2 x composition change + 0.005 + 3 se)
+QUAL_PASS E80 CONTINUITY_DBH32_44_ADJACENT_0.95_TO_0.9 difference=0.0256 tolerance=0.1249 (2 x composition change + 0.005 + 3 se)
+QUAL_PHASE_DONE CONTINUITY t=803s
+QUAL_MEASURE E80 FINALBROADLEAF_ROUTES DBH16_24 withOneBroadleaf=SpeciesAwareOccupancy afterFelling=LegacySitkaExact afterNaturalDeath=LegacySitkaExact stems=1000/999/999
+QUAL_MEASURE E80 FINALBROADLEAF DBH16_24 deathsPer1000: pureSitka=0.0 oneBroadleafPresent=0.0 afterFelling=0.0 afterNaturalDeath=0.0 seeds=12
+QUAL_PASS E80 FINALBROADLEAF_DBH16_24_FELLING_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0000 tolerance=0.0050 deathDifferencePer1000=0.0 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH16_24_NATURAL_DEATH_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0000 tolerance=0.0050 deathDifferencePer1000=0.0 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH16_24_ONE_BROADLEAF_VERSUS_PURE_SITKA lossDifference=0.0000 tolerance=0.0050
+QUAL_MEASURE E80 FINALBROADLEAF_ROUTES DBH24_34 withOneBroadleaf=SpeciesAwareOccupancy afterFelling=LegacySitkaExact afterNaturalDeath=LegacySitkaExact stems=1000/999/999
+QUAL_MEASURE E80 FINALBROADLEAF DBH24_34 deathsPer1000: pureSitka=149.7 oneBroadleafPresent=148.9 afterFelling=149.1 afterNaturalDeath=149.1 seeds=12
+QUAL_PASS E80 FINALBROADLEAF_DBH24_34_FELLING_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0002 tolerance=0.0056 deathDifferencePer1000=0.1 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH24_34_NATURAL_DEATH_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0002 tolerance=0.0056 deathDifferencePer1000=0.1 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH24_34_ONE_BROADLEAF_VERSUS_PURE_SITKA lossDifference=0.0008 tolerance=0.0058
+QUAL_MEASURE E80 FINALBROADLEAF_ROUTES DBH32_44 withOneBroadleaf=SpeciesAwareOccupancy afterFelling=LegacySitkaExact afterNaturalDeath=LegacySitkaExact stems=1000/999/999
+QUAL_MEASURE E80 FINALBROADLEAF DBH32_44 deathsPer1000: pureSitka=504.8 oneBroadleafPresent=504.1 afterFelling=504.3 afterNaturalDeath=504.3 seeds=12
+QUAL_PASS E80 FINALBROADLEAF_DBH32_44_FELLING_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0002 tolerance=0.0056 deathDifferencePer1000=0.3 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH32_44_NATURAL_DEATH_LOSS_MATCHES_THE_STAND_WITH_IT lossDifference=0.0002 tolerance=0.0056 deathDifferencePer1000=0.3 (predeclared <= 0.005 and <= 5 per 1000, widened by 3 se)
+QUAL_PASS E80 FINALBROADLEAF_DBH32_44_ONE_BROADLEAF_VERSUS_PURE_SITKA lossDifference=0.0008 tolerance=0.0059
+QUAL_MEASURE E80 FINALBROADLEAF_TRAJECTORY never meanDensityDeathsPerYear(y1..y6)=165.3 68.8 48.8 42.3 37.0 27.7
+QUAL_MEASURE E80 FINALBROADLEAF_TRAJECTORY felled-year3 meanDensityDeathsPerYear(y1..y6)=165.3 68.8 48.8 42.5 34.3 28.5
+QUAL_MEASURE E80 FINALBROADLEAF_TRAJECTORY died-year3 meanDensityDeathsPerYear(y1..y6)=165.3 68.8 48.8 42.5 34.3 28.5
+QUAL_PASS E80 FINALBROADLEAF_NO_NEXT_YEAR_MASS_MORTALITY_AFTER_FELLING_OR_NATURAL_DEATH year4 deaths: never=42.3 felled=42.5 died=42.5 (within 5% + 5 stems)
+QUAL_PHASE_DONE FINALBROADLEAF t=1129s
+QUAL_PASS E80 SAVE_V20_MODEL2_MIXED_ADDS_NO_PERSISTED_FIELD version=20 keys(model1)=96 keys(model2)=96 onlyIn2=[] onlyIn1=[]
+QUAL_PASS E80 SAVE_UNSUPPORTED_GROWTH_MODELS_3_AND_99_REJECTED_WITHOUT_CHANGE model3 loaded=False problem=[unknown growth model 3] | model99 loaded=False problem=[unknown growth model 99] | worldUnchanged=True
+QUAL_MEASURE E80 SAVE_NEWER_FILE_VERSION_BEHAVIOUR version21 validateProblem=[] loaded=True (best-effort by existing design)
+QUAL_PASS E80 SAVE_DISK_ROUND_TRIP_MIXED_CONTINUES_IDENTICALLY canLoad=True [] model2Kept=True uninterrupted=1547EB06D7B40192 resumed=1547EB06D7B40192
+QUAL_PASS E80 SAVE_RESTORE_THROUGH_DYING_MIXED_STAND_REPRODUCES_MORTALITY deathsAfterRestore=[14,13,12,12,11,10,10,10,11,11] uninterrupted=[14,13,12,12,11,10,10,10,11,11] hashA=C85FA28433300D62 hashB=C85FA28433300D62
+QUAL_PHASE_DONE SAVELOAD t=1164s
+QUAL_MEASURE E80 PERF_ANNUAL_SITKA_MODEL1 stems=768 years=15 meanMs=494.2 medianMs=487.1 p95Ms=676.1 maxMs=676.1 monoHeapGrowthMeanMB=1.06 max=1.67 yearsMeasured=14/15 yearsWithACollection=1
+QUAL_MEASURE E80 PERF_ANNUAL_SITKA_MODEL2_LEGACY_ROUTE stems=768 years=15 meanMs=494.6 medianMs=476.7 p95Ms=684.0 maxMs=684.0 monoHeapGrowthMeanMB=0.90 max=1.66 yearsMeasured=14/15 yearsWithACollection=1
+QUAL_MEASURE E80 PERF_ANNUAL_MIXED_BELOW_ONSET stems=160 years=15 meanMs=94.8 medianMs=82.8 p95Ms=170.1 maxMs=170.1 monoHeapGrowthMeanMB=1.16 max=2.45 yearsMeasured=14/15 yearsWithACollection=1
+QUAL_MEASURE E80 PERF_ANNUAL_MIXED_DENSE stems=832 years=15 meanMs=514.2 medianMs=506.9 p95Ms=692.8 maxMs=692.8 monoHeapGrowthMeanMB=1.48 max=2.48 yearsMeasured=11/15 yearsWithACollection=4
+QUAL_MEASURE E80 PERF_ANNUAL_OAK_DENSE stems=640 years=15 meanMs=351.4 medianMs=333.2 p95Ms=481.0 maxMs=481.0 monoHeapGrowthMeanMB=0.87 max=1.63 yearsMeasured=15/15 yearsWithACollection=0
+QUAL_MEASURE E80 PERF_PURE_PLAN stems=832 meanMsPerPlan=1.690
+QUAL_PHASE_DONE PERF t=1204s
+DENSITY_QUAL_PASS geometry=E80 hardChecks=49

@@ -1,0 +1,29 @@
+QUAL_START geometry=E80 areaHa=0.64 cells=256 phases=LATEMIX
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=0 route=LegacySitkaExact totalDeathFraction=0.150 sitkaDeathFraction=0.150 broadleafDeathFraction=- sd=0.037 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=1 route=SpeciesAwareOccupancy totalDeathFraction=0.143 sitkaDeathFraction=0.134 broadleafDeathFraction=1.000 sd=0.029 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=3 route=SpeciesAwareOccupancy totalDeathFraction=0.129 sitkaDeathFraction=0.103 broadleafDeathFraction=1.000 sd=0.018 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=12 route=SpeciesAwareOccupancy totalDeathFraction=0.125 sitkaDeathFraction=0.023 broadleafDeathFraction=0.972 sd=0.018 seeds=12
+QUAL_MEASURE E80 LATEMIX OLD_SITKA_N100_DBH78_98 broadleaves=26 route=SpeciesAwareOccupancy totalDeathFraction=0.118 sitkaDeathFraction=0.000 broadleafDeathFraction=0.571 sd=0.022 seeds=12
+QUAL_PASS E80 LATEMIX_OLD_SITKA_N100_DBH78_98_1_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0073 tolerance=0.0457 (0.005 + 3 se; pure=0.150 mixed=0.143)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING OLD_SITKA_N100_DBH78_98 broadleaves=1 sitkaLoss 0.150 (pure) -> 0.134 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_OLD_SITKA_N100_DBH78_98_3_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0206 tolerance=0.0407 (0.005 + 3 se; pure=0.150 mixed=0.129)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING OLD_SITKA_N100_DBH78_98 broadleaves=3 sitkaLoss 0.150 (pure) -> 0.103 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_OLD_SITKA_N100_DBH78_98_12_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0250 tolerance=0.0407 (0.005 + 3 se; pure=0.150 mixed=0.125)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING OLD_SITKA_N100_DBH78_98 broadleaves=12 sitkaLoss 0.150 (pure) -> 0.023 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_OLD_SITKA_N100_DBH78_98_26_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0323 tolerance=0.0421 (0.005 + 3 se; pure=0.150 mixed=0.118)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING OLD_SITKA_N100_DBH78_98 broadleaves=26 sitkaLoss 0.150 (pure) -> 0.000 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=0 route=LegacySitkaExact totalDeathFraction=0.031 sitkaDeathFraction=0.031 broadleafDeathFraction=- sd=0.009 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=1 route=SpeciesAwareOccupancy totalDeathFraction=0.031 sitkaDeathFraction=0.029 broadleafDeathFraction=0.250 sd=0.009 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=3 route=SpeciesAwareOccupancy totalDeathFraction=0.028 sitkaDeathFraction=0.016 broadleafDeathFraction=0.639 sd=0.010 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=12 route=SpeciesAwareOccupancy totalDeathFraction=0.028 sitkaDeathFraction=0.006 broadleafDeathFraction=0.299 sd=0.010 seeds=12
+QUAL_MEASURE E80 LATEMIX MID_SITKA_N150_DBH55_70 broadleaves=26 route=SpeciesAwareOccupancy totalDeathFraction=0.029 sitkaDeathFraction=0.003 broadleafDeathFraction=0.183 sd=0.009 seeds=12
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_1_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0002 tolerance=0.0162 (0.005 + 3 se; pure=0.031 mixed=0.031)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING MID_SITKA_N150_DBH55_70 broadleaves=1 sitkaLoss 0.031 (pure) -> 0.029 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_3_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0028 tolerance=0.0166 (0.005 + 3 se; pure=0.031 mixed=0.028)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING MID_SITKA_N150_DBH55_70 broadleaves=3 sitkaLoss 0.031 (pure) -> 0.016 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_12_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0033 tolerance=0.0165 (0.005 + 3 se; pure=0.031 mixed=0.028)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING MID_SITKA_N150_DBH55_70 broadleaves=12 sitkaLoss 0.031 (pure) -> 0.006 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PASS E80 LATEMIX_MID_SITKA_N150_DBH55_70_26_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS totalLossDifference=0.0018 tolerance=0.0161 (0.005 + 3 se; pure=0.031 mixed=0.029)
+QUAL_MEASURE E80 LATEMIX_SITKA_SHIELDING MID_SITKA_N150_DBH55_70 broadleaves=26 sitkaLoss 0.031 (pure) -> 0.003 (mixed); the required deaths are taken from the most suppressed stems of any species
+QUAL_PHASE_DONE LATEMIX t=15s
+DENSITY_QUAL_PASS geometry=E80 hardChecks=8
