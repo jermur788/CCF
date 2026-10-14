@@ -46,6 +46,27 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     // Growth-model-1 pure-Sitka lifecycle anchors (SitkaGrowthModelVerification). Model 2 must reproduce them.
     private const string Growth1Neutral = "7E57B9DAEF5BF4D0", Growth1Normal = "35E2BF1C2F55C2DE";
+    // Enlarged80 lifecycle values under growth model 1 (and, identically, model 2). OBSERVED in the density-v2 Unity qualification
+    // (U3); they are not Manager-accepted anchors and are pinned here only so the Enlarged80 run checks against Enlarged80 values.
+    private const string Growth1NeutralE80 = "1FE6639780636394", Growth1NormalE80 = "702DE05F33384139";
+
+    // Stand-geometry expectations are explicit: each geometry is checked against its own values and nothing falls back to another
+    // geometry's anchors. An unknown geometry fails loudly instead of being compared with the wrong table.
+    private static bool TryLifecycleExpectation(int geometry, out string neutral, out string normal, out string basis)
+    {
+        if (geometry == StandGeometryModel.Legacy40)
+        {
+            neutral = Growth1Neutral; normal = Growth1Normal; basis = "accepted Legacy40 anchors (SitkaGrowthModelVerification)";
+            return true;
+        }
+        if (geometry == StandGeometryModel.Enlarged80)
+        {
+            neutral = Growth1NeutralE80; normal = Growth1NormalE80; basis = "observed Enlarged80 growth-model-1 values (U3), not accepted anchors";
+            return true;
+        }
+        neutral = normal = basis = null;
+        return false;
+    }
 
     private ForestEcologyController e;
     private ScenarioOneManager manager;
@@ -158,12 +179,29 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         bool restoredTwo = e.GrowthModelVersion == 2;
         ForestSaveData three = Clone(original); three.growthModel = 3;
         string problem = ForestSaveValidation.Validate(three, 0, e.CellCount);
+        // A v16 save is a Legacy40 format (saves up to v19 must state Legacy40). Under Legacy40 it loads and maps to growth model 0.
+        // Under Enlarged80 the same labelled save carries the wrong geometry and must be REFUSED, leaving the session untouched.
+        bool legacyGeometry = e.StandGeometryModelVersion == StandGeometryModel.Legacy40;
         ForestSaveData v16 = Clone(original); v16.version = 16; v16.growthModel = GrowthModel.SpeciesAware; v16.regenerationModel = RegenerationModel.AgeBands;
-        Check(saves.LoadData(v16, false), "v16 load"); yield return null;
-        bool v16Zero = e.GrowthModelVersion == 0;
+        int sessionGrowth = e.GrowthModelVersion;
+        bool v16Accepted = saves.LoadData(v16, false); yield return null;
+        bool v16Behaviour;
+        string v16Detail;
+        if (legacyGeometry)
+        {
+            Check(v16Accepted, "v16 load (Legacy40)");
+            v16Behaviour = v16Accepted && e.GrowthModelVersion == 0;
+            v16Detail = $"v16->0={v16Behaviour}";
+        }
+        else
+        {
+            Check(!v16Accepted, "v16-labelled save with Enlarged80 geometry is refused");
+            v16Behaviour = !v16Accepted && e.GrowthModelVersion == sessionGrowth;
+            v16Detail = $"v16(Enlarged80 geometry)refused={!v16Accepted} sessionUnchanged={e.GrowthModelVersion == sessionGrowth} (the v16->0 mapping is a Legacy40 property, checked in the Legacy40 run)";
+        }
         Check(saves.LoadData(Clone(original), false), "original reload"); yield return null;
-        Pass("POLICY_SAVE_SEMANTICS", restoredTwo && problem != null && problem.Contains("unknown growth model 3") && v16Zero,
-            $"growth2Restored={restoredTwo} growth3Rejected=[{problem}] v16->0={v16Zero}");
+        Pass("POLICY_SAVE_SEMANTICS", restoredTwo && problem != null && problem.Contains("unknown growth model 3") && v16Behaviour,
+            $"geometry={StandGeometryModel.Label(e.StandGeometryModelVersion)} growth2Restored={restoredTwo} growth3Rejected=[{problem}] {v16Detail}");
 
         bool previewZero = true, restored = true;
         int session = e.GrowthModelVersion;
@@ -351,18 +389,30 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
     {
         MethodInfo hashMethod = typeof(ScenarioOneInteractionGate).GetMethod("LifecycleHash", BindingFlags.Static | BindingFlags.NonPublic);
         float scenarioPressure = manager.Definition.BackgroundBrowsePressure;
-        var results = new Dictionary<string, string>();
-        foreach (float pressure in new[] { 0f, scenarioPressure })
+        int geometry = e.StandGeometryModelVersion;
+        string geometryLabel = StandGeometryModel.Label(geometry);
+        bool known = TryLifecycleExpectation(geometry, out string expectNeutral, out string expectNormal, out string basis);
+        // Measure growth model 1 and model 2 in THIS geometry, so equality does not depend on any pinned value.
+        var byGrowth = new Dictionary<int, Dictionary<string, string>>();
+        foreach (int growth in new[] { GrowthModel.SiteClassDensity, GrowthModel.SpeciesAware })
         {
-            ForestStandScenarios.ApplyLifecycleFixture();
-            e.RngModelVersion = 1; e.RegenerationModelVersion = 1; e.GrowthModelVersion = GrowthModel.SpeciesAware;
-            e.Browsing.BackgroundPressure = pressure; e.Browsing.ClearProtection();
-            for (int year = 0; year < 80; year++) { e.AdvanceOneYear(); if (year % 10 == 9) yield return null; }
-            results[pressure == 0f ? "neutral" : "normal"] = (string)hashMethod.Invoke(null, new object[] { e });
+            byGrowth[growth] = new Dictionary<string, string>();
+            foreach (float pressure in new[] { 0f, scenarioPressure })
+            {
+                ForestStandScenarios.ApplyLifecycleFixture();
+                e.RngModelVersion = 1; e.RegenerationModelVersion = 1; e.GrowthModelVersion = growth;
+                e.Browsing.BackgroundPressure = pressure; e.Browsing.ClearProtection();
+                for (int year = 0; year < 80; year++) { e.AdvanceOneYear(); if (year % 10 == 9) yield return null; }
+                byGrowth[growth][pressure == 0f ? "neutral" : "normal"] = (string)hashMethod.Invoke(null, new object[] { e });
+            }
         }
         e.Browsing.BackgroundPressure = scenarioPressure;
-        Pass("LIFECYCLE_ANCHORS_GROWTH2_EQUAL_GROWTH1", results["neutral"] == Growth1Neutral && results["normal"] == Growth1Normal,
-            $"neutral={results["neutral"]} (expect {Growth1Neutral}) normal={results["normal"]} (expect {Growth1Normal})");
+        Dictionary<string, string> m1 = byGrowth[GrowthModel.SiteClassDensity], m2 = byGrowth[GrowthModel.SpeciesAware];
+        Pass("LIFECYCLE_ANCHORS_MODEL2_EQUALS_MODEL1_MEASURED", m1["neutral"] == m2["neutral"] && m1["normal"] == m2["normal"],
+            $"geometry={geometryLabel} neutral model1={m1["neutral"]} model2={m2["neutral"]} normal model1={m1["normal"]} model2={m2["normal"]}");
+        Pass("LIFECYCLE_ANCHORS_GROWTH2_EQUAL_GROWTH1", known && m2["neutral"] == expectNeutral && m2["normal"] == expectNormal,
+            known ? $"geometry={geometryLabel} neutral={m2["neutral"]} (expect {expectNeutral}) normal={m2["normal"]} (expect {expectNormal}); basis: {basis}"
+                  : $"no lifecycle expectation is defined for stand geometry {geometry}; refusing to compare it with another geometry's anchors");
     }
 
     private IEnumerator Execute()
