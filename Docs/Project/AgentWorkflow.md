@@ -86,6 +86,61 @@ Use the least costly capable route for the task, considering actual tools, conte
 
 Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
 
+## Verification cost policy
+
+Use the cheapest verification tier that can answer the current risk. Do not
+repeatedly run full Unity qualification on intermediate implementation or
+calibration branches.
+
+### Tier 1 — FAST
+
+Target: **5–15 minutes**.
+
+Use during active implementation and calibration. Prefer compile/import where
+needed, feature-specific smoke, relevant offline/static tests and one
+representative deterministic runtime fixture. Stop when the immediate
+implementation question is answered.
+
+### Tier 2 — FEATURE QUALIFICATION
+
+Target: **20–60 minutes**.
+
+Use when a bounded feature is ready to hand off. Run the specific Unity
+behaviour the feature changes, important negative cases, save/load only when
+persistence is relevant, and a narrow regression set covering plausible
+collateral damage.
+
+### Tier 3 — FULL INTEGRATED QUALIFICATION
+
+Several hours can be acceptable, but reserve this tier for integrated milestone
+or release candidates. This is where exhaustive regression, all required
+reference anchors, multiple long-run simulations, broad save/load coverage,
+rendered UX matrices, Player profiling, multiple resolutions and platform
+qualification belong.
+
+Do not rerun Tier 3 merely because documentation, verification tooling,
+calibration evidence or an unrelated subsystem changed.
+
+Repeated long simulations, multiple seeds and multiple stand geometries require
+a stated uncertainty they are intended to resolve. Stop once that question has
+sufficient evidence; do not expand testing into open-ended certification.
+
+During feature iteration, prefer offline/reduced-model testing for parameter
+search and use Unity to confirm representative runtime equivalence. Do not use
+Unity as the parameter-search loop.
+
+After a feature passes its bounded qualification, defer broad regression to the
+next integrated candidate unless the feature directly threatens a frozen
+reference, save compatibility, deterministic behaviour or another high-risk
+shared system.
+
+Escalation to a higher tier requires at least one of:
+
+- a failed gate;
+- a concrete newly discovered risk;
+- a direct threat to a protected reference/save/determinism contract; or
+- explicit Manager approval.
+
 ## Multi-agent safety
 
 1. One writable local worktree per active local agent.
@@ -142,8 +197,22 @@ MUST-NOT-CHANGE HASHES / ANCHORS:
 -
 INTENTIONALLY CHANGED HASHES / ANCHORS:
 None unless explicitly authorised.
+VERIFICATION TIER:
+Tier 1 / Tier 2 / Tier 3
+
+TIME BUDGET:
+<target>
+
+QUESTION THIS VERIFICATION MUST ANSWER:
+<one explicit question>
+
 VERIFICATION:
 -
+DO NOT ESCALATE TO A HIGHER TIER WITHOUT:
+- a failed gate;
+- a concrete newly discovered risk;
+- a direct protected-reference/save/determinism risk; or
+- Manager approval.
 STOP AND ASK IF:
 Required work materially changes design, ecology, unauthorised save
 architecture, frozen/reference behaviour, dependencies, destructive
