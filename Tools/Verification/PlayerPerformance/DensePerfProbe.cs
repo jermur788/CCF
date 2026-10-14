@@ -140,8 +140,8 @@ public sealed class DensePerfProbe : MonoBehaviour
                 case "continue_load": yield return ContinueLoad(); break;
                 case "settle": yield return new WaitForSecondsRealtime(step.seconds); break;
                 case "view": SetView(step.arg); yield return null; yield return null; break;
-                case "window": yield return Window(step.name, step.seconds, false); break;
-                case "walk": yield return Window(step.name, step.seconds, true); break;
+                case "window": yield return RecordWindow(step.name, step.seconds, false); break;
+                case "walk": yield return RecordWindow(step.name, step.seconds, true); break;
                 case "marks": PlaceMarks(step.n, step.arg); yield return null; yield return null; break;
                 case "time_marking": yield return TimeMarking(step.name, step.n); break;
                 case "toggle":
@@ -408,7 +408,7 @@ public sealed class DensePerfProbe : MonoBehaviour
         return new Series { name = name, mean = values.Average(), median = Percentile(sorted, 0.5), p95 = Percentile(sorted, 0.95), p99 = Percentile(sorted, 0.99), max = sorted[sorted.Count - 1], min = sorted[0] };
     }
 
-    private IEnumerator Window(string name, double seconds, bool walk)
+    private IEnumerator RecordWindow(string name, double seconds, bool walk)
     {
         var dt = new List<double>(4096);
         var main = new List<double>(4096); var render = new List<double>(4096); var gpu = new List<double>(4096); var cpuFrame = new List<double>(4096);
