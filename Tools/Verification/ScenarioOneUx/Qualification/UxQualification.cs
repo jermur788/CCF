@@ -216,22 +216,28 @@ public sealed class UxQualificationRunner : MonoBehaviour
         float panelWidth = root.worldBound.width;
         if (panelWidth <= 0) return;
         float scale = Screen.width / panelWidth;
-        var sizes = new List<float>(); int clipped = 0;
+        var sizes = new List<float>(); int clipped = 0; var offenders = new List<string>();
         foreach (TextElement t in root.Query<TextElement>().ToList())
         {
             if (!Visible(t) || string.IsNullOrWhiteSpace(t.text)) continue;
+            // The numbered Crop Tree tags are anchored to trees in the world and are off screen whenever the tree is behind the camera.
+            if (t.ClassListContains("competitor-tag")) continue;
             sizes.Add(t.resolvedStyle.fontSize * scale);
             Rect b = t.worldBound; Rect rb = root.worldBound;
             bool inScroll = false;
             for (VisualElement p = t.parent; p != null; p = p.parent) if (p is ScrollView) { inScroll = true; break; }
-            if (!inScroll && (b.xMin < rb.xMin - 2 || b.yMin < rb.yMin - 2 || b.xMax > rb.xMax + 2 || b.yMax > rb.yMax + 2)) clipped++;
+            if (!inScroll && (b.xMin < rb.xMin - 2 || b.yMin < rb.yMin - 2 || b.xMax > rb.xMax + 2 || b.yMax > rb.yMax + 2))
+            {
+                clipped++;
+                if (offenders.Count < 4) offenders.Add($"[{Short(t.text)}] .{string.Join(".", t.GetClasses())} {b}");
+            }
         }
         if (sizes.Count == 0) return;
         sizes.Sort();
         string row = $"{state},{size.x}x{size.y},scale={F(scale, "0.000")},texts={sizes.Count},minPx={F(sizes[0], "0.0")},medianPx={F(sizes[sizes.Count / 2], "0.0")},under10px={sizes.Count(s => s < 10f)},under12px={sizes.Count(s => s < 12f)},outsideViewportNotScrolled={clipped}";
         fontRows.Add(row);
         Measure("TEXT_SIZE", row);
-        if (size.x >= 1280) Hard($"NO_TEXT_OUTSIDE_THE_VIEWPORT_{state}_{size.x}x{size.y}", clipped == 0, $"outsideViewportNotScrolled={clipped}");
+        if (size.x >= 1280) Hard($"NO_TEXT_OUTSIDE_THE_VIEWPORT_{state}_{size.x}x{size.y}", clipped == 0, $"outsideViewportNotScrolled={clipped} {string.Join(" ; ", offenders)}");
     }
 
     // Runs one phase (flattening its nested coroutines) and turns an exception into a recorded failure, then puts the UI back to a neutral
@@ -322,6 +328,8 @@ public sealed class UxQualificationRunner : MonoBehaviour
 
     private IEnumerator FirstCycle()
     {
+        // ROLE normally closes the first-use role panel; the cycle cannot aim at a tree while it is open, so it also runs alone.
+        if (ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud) { ui.CloseHelp(); yield return null; yield return null; }
         LogCue("fresh");
         Hard("CUE_STARTS_WITH_INSPECT_A_LIVING_TREE", cues[0].Contains("Inspect a living tree"), cues[0]);
         Hard("LEARNING_STEP_IDS_ARE_42", LearningObjectivesView.StepIds.Count() == 42, $"count={LearningObjectivesView.StepIds.Count()} sortedIdHash={Fnv(string.Join("|", LearningObjectivesView.StepIds.OrderBy(s => s, StringComparer.Ordinal)))}");
@@ -910,6 +918,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
         ecology.InvalidateCompetition(); ecology.RecomputeCanopy(); yield return null; yield return null;
 
         // The bottom-left HUD stack at its tallest: a Crop Tree and several Fell marks give the mark summary and the forecast panel.
+        int fellBefore = marks.LivingMarkedCount, cropBefore = marks.LivingCropTreeCount;   // earlier phases may leave marks
         ForestTree cropTree = sitka[1];
         ForestTree[] fells = sitka.Skip(2).Take(4).ToArray();
         marks.Mark(cropTree, TreeMarkType.CropTree, false);
@@ -924,21 +933,23 @@ public sealed class UxQualificationRunner : MonoBehaviour
         marks.Mark(plainOak, TreeMarkType.CropTree, false); yield return null; yield return null;
         for (int i = 0; i < 6; i++) { KeepInspecting(plainOak); yield return null; }
         yield return ShootInspection("29-inspect-oak-crop-tree-competitors", plainOak, "competitors");
-        marks.Mark(plainOak, TreeMarkType.CropTree, false);   // unmark
+        marks.Unmark(plainOak, false);
         ecology.GrowthModelVersion = 1; ecology.InvalidateCompetition(); yield return null;
         yield return ShootInspection("30-inspect-oak-model1", prunedOak, "estimate");
 
-        foreach (ForestTree f in fells) marks.Mark(f, TreeMarkType.Fell, false);
-        marks.Mark(cropTree, TreeMarkType.CropTree, false);
+        foreach (ForestTree f in fells) marks.Unmark(f, false);
+        marks.Unmark(cropTree, false);
         foreach (ForestTree t in new[] { prunedOak, plainOak, beechTree }) if (t != null) DestroyImmediate(t.gameObject);
         ecology.GrowthModelVersion = model; ecology.InvalidateCompetition(); ecology.RecomputeCanopy(); yield return null;
-        Hard("INSPECTION_FIXTURE_LEFT_NO_MARKS", marks.LivingMarkedCount == 0 && marks.LivingCropTreeCount == 0, $"fell={marks.LivingMarkedCount} crop={marks.LivingCropTreeCount}");
+        Hard("INSPECTION_FIXTURE_LEFT_THE_MARKS_AS_IT_FOUND_THEM", marks.LivingMarkedCount == fellBefore && marks.LivingCropTreeCount == cropBefore,
+            $"fell={marks.LivingMarkedCount} (was {fellBefore}) crop={marks.LivingCropTreeCount} (was {cropBefore})");
     }
 
     // The "Deadwood volume" row of WHAT YOU ARE LEAVING: a long value must not squeeze its name into a column a syllable wide.
     private IEnumerator DeadwoodLine()
     {
         ui.CloseAll(); ui.CloseHelp(); yield return null;
+        int fellBefore = marks.LivingMarkedCount;
         ForestTree t = null; yield return AimAt(tr => !tr.IsMarkedForFell && !marks.GetCropTreeIds().Contains(tr.TreeId) && manager.WorkOrders.All(o => o.targetTreeId != tr.TreeId), x => t = x);
         Hard("DEADWOOD_FIXTURE_TREE", t != null, t != null ? t.TreeId : "none");
         yield return Press(Key.X);
@@ -976,8 +987,8 @@ public sealed class UxQualificationRunner : MonoBehaviour
         });
         if (order != null) manager.RemovePendingOrder(order.workOrderId);
         ui.CloseAll(); yield return null;
-        if (t != null && t.IsMarkedForFell) marks.Mark(t, TreeMarkType.Fell, false);   // a second mark unmarks
-        Hard("DEADWOOD_FIXTURE_LEFT_NO_MARKS", marks.LivingMarkedCount == 0, $"fell={marks.LivingMarkedCount}");
+        if (t != null) marks.Unmark(t, false);
+        Hard("DEADWOOD_FIXTURE_LEFT_THE_MARKS_AS_IT_FOUND_THEM", marks.LivingMarkedCount == fellBefore, $"fell={marks.LivingMarkedCount} (was {fellBefore})");
     }
 
     // ---- section 8/10: the startup Controls card (last: the startup screen is left only through Start/Continue) ----

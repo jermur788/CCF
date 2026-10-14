@@ -508,12 +508,19 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             skipped.Add("virtual key presses on the title (need an interactive Editor)");
         else
         {
+            // On a device that has never seen the first-use role panel the forest UI has already "opened" it internally before the title came
+            // up, but the whole forest UI is hidden behind the title, so a player sees nothing. Judge what a player can see, and that the keys
+            // changed nothing, rather than that internal flag.
+            bool helpOpenBefore = ui.Help.IsOpen;
+            MenuHelpView.Menu helpMenuBefore = ui.Help.CurrentMenu;
             foreach (Key key in new[] { Key.F10, Key.W, Key.E, Key.Tab, Key.M, Key.O, Key.X, Key.C, Key.F1, Key.F5, Key.F9, Key.Escape, Key.Space, Key.Digit1 })
                 yield return Press(key);
             Check(StandaloneSessionMenu.IsOpen && menu.StartupScreenActive, "F10 and gameplay keys do not leave the title");
             CheckForestHeldBack("after key presses");
-            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Help.IsOpen,
-                "no key opened a forest panel or advanced time");
+            Check(ui.RootElement.resolvedStyle.display == DisplayStyle.None, "no forest panel, help included, is displayed behind the title");
+            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None
+                && ui.Help.IsOpen == helpOpenBefore && (!helpOpenBefore || ui.Help.CurrentMenu == helpMenuBefore),
+                "no key opened or changed a forest panel or advanced time");
             Check(Hash() == freshHash && !File.Exists(savePath), "no key changed the world or wrote a save (F5)");
         }
 
