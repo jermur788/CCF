@@ -735,6 +735,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             yield return Click(menu, "Controls / Help");
             yield return Frames(6);
             CheckLayout(menu, "controls-" + width);
+            yield return CheckControlsScroll(menu, "controls-" + width);
             yield return Capture(output, "startup-controls-" + width);
             yield return Dispose(menu);
             Debug.Log("STARTUP_RENDER_SIZE_PASS " + width + "x" + height);
@@ -743,6 +744,50 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
     }
 
     private static string Describe(VisualElement element) => (element as TextElement)?.text ?? element.name ?? element.GetType().Name;
+
+    private static bool InsideWithMargin(Rect r, Rect bounds)
+        => r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f;
+
+    private static ScrollView ScrollAncestor(VisualElement element)
+    {
+        for (VisualElement p = element.parent; p != null; p = p.parent) if (p is ScrollView scroller) return scroller;
+        return null;
+    }
+
+    // The part of an element a player can see now: inside a scrolling list that is the part within its viewport, unless the other element
+    // is in the same list (two rows of one list must not overlap wherever the list is scrolled to).
+    private static Rect VisibleRect(VisualElement element, VisualElement other)
+    {
+        Rect r = element.worldBound;
+        ScrollView scroller = ScrollAncestor(element);
+        if (scroller == null || scroller == ScrollAncestor(other)) return r;
+        Rect port = scroller.contentViewport.worldBound;
+        float x0 = Mathf.Max(r.xMin, port.xMin), x1 = Mathf.Min(r.xMax, port.xMax), y0 = Mathf.Max(r.yMin, port.yMin), y1 = Mathf.Min(r.yMax, port.yMax);
+        return new Rect(x0, y0, Mathf.Max(0f, x1 - x0), Mathf.Max(0f, y1 - y0));
+    }
+
+    // The Controls card scrolls: it must scroll to its last row, and Back must stay on screen while it does.
+    private IEnumerator CheckControlsScroll(StandaloneSessionMenu menu, string name)
+    {
+        VisualElement root = Root(menu);
+        ScrollView list = root.Query<ScrollView>().ToList().FirstOrDefault(v => v.resolvedStyle.display != DisplayStyle.None);
+        Check(list != null, name + ": the controls list is a scroll view");
+        bool overflows = list.contentContainer.layout.height > list.contentViewport.layout.height + 1f;
+        Debug.Log($"STARTUP_CONTROLS_SCROLL {name} content={list.contentContainer.layout.height:0} viewport={list.contentViewport.layout.height:0} scrolls={overflows}");
+        if (overflows)
+        {
+            list.scrollOffset = new Vector2(0f, list.verticalScroller.highValue);
+            yield return Frames(4);
+            string lastKey = ControlsReference.Rows[ControlsReference.Rows.Length - 1][0];
+            Label last = root.Query<Label>().ToList().FirstOrDefault(l => l.text == lastKey);
+            Rect port = list.contentViewport.worldBound;
+            Check(last != null && last.worldBound.yMin >= port.yMin - 1f && last.worldBound.yMax <= port.yMax + 1f, name + ": scrolled to the end, the last control is visible: " + lastKey);
+            Button back = root.Query<Button>().ToList().FirstOrDefault(b => b.text == "Back");
+            Check(back != null && InsideWithMargin(back.worldBound, root.worldBound), name + ": Back stays on screen while the list is scrolled");
+            list.scrollOffset = Vector2.zero;
+            yield return Frames(2);
+        }
+    }
 
     private static void CheckLayout(StandaloneSessionMenu menu, string name)
     {
@@ -757,12 +802,22 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         {
             Rect r = element.worldBound;
             Check(!float.IsNaN(r.x) && !float.IsNaN(r.y) && r.width > 0f && r.height > 0f, name + ": laid out: " + Describe(element));
-            Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
-                name + ": fully on screen (no clipping): " + Describe(element));
+            ScrollView scroller = ScrollAncestor(element);
+            if (scroller == null)
+                Check(InsideWithMargin(r, bounds), name + ": fully on screen (no clipping): " + Describe(element));
+            else
+            {
+                // A row of a scrolling list (the Controls card) need not be on screen at once. It has to be reachable: the list itself is fully
+                // on screen, the row fits the list's viewport, and it lies inside the scrollable content. CheckControlsScroll scrolls to the end.
+                Rect port = scroller.contentViewport.worldBound, content = scroller.contentContainer.worldBound;
+                Check(InsideWithMargin(port, bounds), name + ": the scrolling list holding '" + Describe(element) + "' is fully on screen");
+                Check(r.height <= port.height + 1f && r.xMin >= port.xMin - 1f && r.xMax <= port.xMax + 1f, name + ": fits the list's viewport: " + Describe(element));
+                Check(r.yMin >= content.yMin - 1f && r.yMax <= content.yMax + 1f, name + ": lies inside the scrollable content: " + Describe(element));
+            }
         }
         for (int i = 0; i < shown.Count; i++)
             for (int j = i + 1; j < shown.Count; j++)
-                Check(!shown[i].worldBound.Overlaps(shown[j].worldBound), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
+                Check(!VisibleRect(shown[i], shown[j]).Overlaps(VisibleRect(shown[j], shown[i])), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
         foreach (Button button in root.Query<Button>().ToList())
             Check(button.worldBound.height >= 40f, name + ": button tall enough to click: " + button.text);
 
