@@ -1,0 +1,68 @@
+PASS old shallow path no second plan
+PASS valid two cycle same-year acknowledgement after first
+PASS same-year plans fail
+PASS no intervening review
+PASS review before first same year
+PASS review after second does not retroactively count
+PASS failed-only second plan
+PASS missing completed order cannot fabricate second plan
+PASS approval alone fails
+PASS empty work fails
+PASS duplicate IDs ambiguous
+PASS review inside first plan before its final failed resolution cannot count
+PASS mixed-success plan counts after entire plan resolved
+PASS second task non-prescriptive pruning
+PASS after first typed production validator
+PASS after first raw geometry
+PASS after first raw storm
+PASS after first raw competitor
+PASS after first deterministic field roundtrip
+PASS restored first incomplete
+PASS after review typed production validator
+PASS after review raw geometry
+PASS after review raw storm
+PASS after review raw competitor
+PASS after review deterministic field roundtrip
+PASS restored review still requires second
+PASS before second typed production validator
+PASS before second raw geometry
+PASS before second raw storm
+PASS before second raw competitor
+PASS before second deterministic field roundtrip
+PASS pending boundary incomplete
+PASS after second typed production validator
+PASS after second raw geometry
+PASS after second raw storm
+PASS after second raw competitor
+PASS after second deterministic field roundtrip
+PASS restored second qualifies
+PASS legacy true boolean typed production validator
+PASS legacy true boolean raw geometry
+PASS legacy true boolean raw storm
+PASS legacy true boolean raw competitor
+PASS legacy true boolean deterministic field roundtrip
+PASS legacy boolean alone fails
+PASS legacy fresh acknowledgement available
+PASS actual manager handler current year monotonic ID
+PASS actual handler duplicate click idempotent
+PASS fresh late review cannot retroactively qualify
+PASS legacy fresh review then future plan qualifies
+PASS no report cannot acknowledge
+PASS legacy Completed typed production validator
+PASS legacy Completed raw geometry
+PASS legacy Completed raw storm
+PASS legacy Completed raw competitor
+PASS legacy Completed deterministic field roundtrip
+PASS actual restore assignments preserve Completed
+PASS terminal stable Completed
+PASS legacy Failed typed production validator
+PASS legacy Failed raw geometry
+PASS legacy Failed raw storm
+PASS legacy Failed raw competitor
+PASS legacy Failed deterministic field roundtrip
+PASS actual restore assignments preserve Failed
+PASS terminal stable Failed
+PASS actual completion predicate still requires all eight objectives
+PASS growth-version refusal retained
+PASS enum9 schema20
+N3_OFFLINE_PASS checks=67 NOT_UNITY_VERIFIED

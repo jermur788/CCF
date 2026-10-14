@@ -71,7 +71,7 @@ public sealed class AnnualReviewView
             return;
         shownKey = key;
         scroll.Clear();
-        acknowledgement.style.display = ui.NeedsAnnualReview && !historical ? DisplayStyle.Flex : DisplayStyle.None;
+        acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
         earlierYear.SetEnabled(report != null && m.AnnualReports.Any(r => r.year < report.year));
         laterYear.SetEnabled(historical);
         title.text = report == null ? "Annual review"
