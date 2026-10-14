@@ -367,32 +367,54 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         float lightAfter = lightAfterSum / affected.Count;
 
         // Competition and growth of the retained trees, current versus forecast.
+        // The competition-after sum is a loop over every pair of living trees. Calling transform.position and Diameter inside the pair loop cost about
+        // 0.7 s per call at 1344 trees (Development Player), so each tree's position, diameter and marked state are read once into arrays. Pairs clearly
+        // beyond the cutoff are skipped with a squared-distance test that is slightly wider than the cutoff, then the same exact distance test and the same
+        // additions in the same order follow, so the result is bit for bit what the plain loop gives.
         const float competitionCutoffM = ForestEcologyController.HegyiCutoffMeters;
+        const float prefilterCutoffM = competitionCutoffM + 0.01f;
+        int livingCount = living.Count;
+        var positionX = new float[livingCount];
+        var positionZ = new float[livingCount];
+        var diameter = new float[livingCount];
+        var isMarked = new bool[livingCount];
+        for (int i = 0; i < livingCount; i++)
+        {
+            Vector3 point = living[i].transform.position;
+            positionX[i] = point.x;
+            positionZ[i] = point.z;
+            diameter[i] = living[i].Diameter;
+            isMarked[i] = marked.Contains(living[i]);
+        }
         float growthNowSum = 0f, growthAfterSum = 0f;
         int remainingCount = 0;
-        foreach (ForestTree tree in living)
+        for (int i = 0; i < livingCount; i++)
         {
-            if (marked.Contains(tree))
+            if (isMarked[i])
                 continue;
+            ForestTree tree = living[i];
             TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
-            Vector2 position = new Vector2(tree.transform.position.x, tree.transform.position.z);
+            Vector2 position = new Vector2(positionX[i], positionZ[i]);
             float site = eco.GetSiteProductivity(tree.transform.position);
-            float sizeFactor = Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);
+            float sizeFactor = Mathf.Clamp01(1f - diameter[i] / treeSpecies.MaxDbhCm);
             float potential = treeSpecies.PotentialDbhGrowthCmPerYear * site * sizeFactor;
 
             float ciNow = eco.GetCompetitionIndex(tree);
             growthNowSum += potential * (1f / (1f + ciNow / treeSpecies.Ci50));
 
             float ciAfter = 0f;
-            foreach (ForestTree neighbour in living)
+            for (int j = 0; j < livingCount; j++)
             {
-                if (neighbour == tree || marked.Contains(neighbour))
+                if (j == i || isMarked[j])
                     continue;
-                Vector2 neighbourPosition = new Vector2(neighbour.transform.position.x, neighbour.transform.position.z);
-                float distance = Vector2.Distance(position, neighbourPosition);
+                float dx = positionX[j] - positionX[i];
+                float dz = positionZ[j] - positionZ[i];
+                if (dx * dx + dz * dz > prefilterCutoffM * prefilterCutoffM)
+                    continue;
+                float distance = Vector2.Distance(position, new Vector2(positionX[j], positionZ[j]));
                 if (distance > competitionCutoffM)
                     continue;
-                ciAfter += ForestEcologyController.HegyiTerm(neighbour.Diameter, tree.Diameter, distance);
+                ciAfter += ForestEcologyController.HegyiTerm(diameter[j], diameter[i], distance);
             }
             growthAfterSum += potential * (1f / (1f + ciAfter / treeSpecies.Ci50));
             remainingCount++;
