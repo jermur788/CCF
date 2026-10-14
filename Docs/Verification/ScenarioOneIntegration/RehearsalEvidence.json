@@ -1,0 +1,288 @@
+{
+  "scope": "PARTIAL, not a candidate, density omitted, local-only marking exercised",
+  "base": "c1564b857972ee18917e8a461c457533a54cc3f1",
+  "steps": [
+    {
+      "step": "site",
+      "source": "435f55c0f4054241a74c97ff0dbf380897bf1691",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 2c14826] feat: add multidimensional forest site data infrastructure\n Date: Tue Oct 13 20:12:40 2026 +0100\n 6 files changed, 339 insertions(+)\n create mode 100644 Assets/ForestPrototype/ForestSiteProfile.cs\n create mode 100644 Assets/ForestPrototype/ForestSiteProfile.cs.meta\n create mode 100644 Assets/ForestPrototype/ScenarioSiteProfiles.cs\n create mode 100644 Assets/ForestPrototype/ScenarioSiteProfiles.cs.meta\n create mode 100644 Assets/ForestPrototype/SpeciesSiteResponse.cs\n create mode 100644 Assets/ForestPrototype/SpeciesSiteResponse.cs.meta\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "site",
+      "source": "fdbe64fe021acd0cde36cc4b197c3b40b7a81478",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 cf5b891] test: verify neutral species-site response infrastructure\n Date: Tue Oct 13 20:12:40 2026 +0100\n 2 files changed, 584 insertions(+)\n create mode 100644 Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs\n create mode 100755 Tools/Verification/SiteInfrastructure/run_site_check.py\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "site",
+      "source": "e49b1955f6eab990d4b1ba7e6e7811e152629037",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 8edb088] refactor: separate moisture from drainage in site profile\n Date: Tue Oct 13 20:23:31 2026 +0100\n 3 files changed, 76 insertions(+), 40 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "site",
+      "source": "47539847d7e2531824c30f3dfe635d55404699a8",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 b37872d] test: verify independent site moisture and drainage descriptors\n Date: Tue Oct 13 20:23:31 2026 +0100\n 1 file changed, 218 insertions(+), 130 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "timber",
+      "source": "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "exit": 1,
+      "stdout": "CONFLICT (file location): Tools/Verification/ThreeSpecies/OfflineLogic/BroadleafTimberOfflineCheck.cs added in 8d21e27 (feat: add oak and beech timber ladders and prices (pure layer)) inside a directory that was renamed in HEAD, suggesting it should perhaps be moved to Tools/Verification/SiteInfrastructure/BroadleafTimberOfflineCheck.cs.\nCONFLICT (file location): Tools/Verification/ThreeSpecies/OfflineLogic/SitkaYieldFixture.cs added in 8d21e27 (feat: add oak and beech timber ladders and prices (pure layer)) inside a directory that was renamed in HEAD, suggesting it should perhaps be moved to Tools/Verification/SiteInfrastructure/SitkaYieldFixture.cs.\nAuto-merging Tools/Verification/SiteInfrastructure/run_site_check.py\nCONFLICT (content): Merge conflict in Tools/Verification/SiteInfrastructure/run_site_check.py\n",
+      "stderr": "error: could not apply 8d21e27... feat: add oak and beech timber ladders and prices (pure layer)\nhint: After resolving the conflicts, mark them with\nhint: \"git add/rm <pathspec>\", then run\nhint: \"git cherry-pick --continue\".\nhint: You can instead skip this commit with \"git cherry-pick --skip\".\nhint: To abort and get back to the state before \"git cherry-pick\",\nhint: run \"git cherry-pick --abort\".\n",
+      "conflicts": [
+        "Tools/Verification/SiteInfrastructure/BroadleafTimberOfflineCheck.cs",
+        "Tools/Verification/SiteInfrastructure/SitkaYieldFixture.cs",
+        "Tools/Verification/SiteInfrastructure/run_site_check.py"
+      ]
+    },
+    {
+      "step": "economy",
+      "source": "855827f96225003c6387b0da43107c509603391a",
+      "exit": 1,
+      "stdout": "CONFLICT (modify/delete): Docs/Verification/ThreeSpeciesProgramme/README.md deleted in HEAD and modified in 855827f (feat: add oak and beech timber economy behind growth model 2).  Version 855827f (feat: add oak and beech timber economy behind growth model 2) of Docs/Verification/ThreeSpeciesProgramme/README.md left in tree.\n",
+      "stderr": "error: could not apply 855827f... feat: add oak and beech timber economy behind growth model 2\nhint: After resolving the conflicts, mark them with\nhint: \"git add/rm <pathspec>\", then run\nhint: \"git cherry-pick --continue\".\nhint: You can instead skip this commit with \"git cherry-pick --skip\".\nhint: To abort and get back to the state before \"git cherry-pick\",\nhint: run \"git cherry-pick --abort\".\n",
+      "conflicts": [
+        "Docs/Verification/ThreeSpeciesProgramme/README.md"
+      ]
+    },
+    {
+      "step": "history",
+      "source": "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 6dbe8d2] feat: add scenario-one management history, year drill-down and completion summary\n Author: Claude <noreply@anthropic.com>\n Date: Mon Oct 12 23:08:23 2026 +0000\n 18 files changed, 1214 insertions(+), 22 deletions(-)\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta\n create mode 100644 Docs/Verification/ThreeSpeciesProgramme/Phase7to9-HistoryAndRepeatedInterventions.md\n create mode 100644 Tools/Verification/ThreeSpecies/OfflineLogic/HistoryOfflineStubs.cs\n create mode 100644 Tools/Verification/ThreeSpecies/OfflineLogic/ScenarioHistoryOfflineCheck.cs\n create mode 100644 Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs\n create mode 100644 Tools/Verification/ThreeSpecies/ScenarioHistoryVerification.cs\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "growth",
+      "source": "ea52050ea62206a13b36a100bd03ec9d8488da39",
+      "exit": 1,
+      "stdout": "Auto-merging Assets/ForestPrototype/Species/BeechSpecies.asset\nCONFLICT (content): Merge conflict in Assets/ForestPrototype/Species/BeechSpecies.asset\nAuto-merging Assets/ForestPrototype/Species/SessileOak.asset\nCONFLICT (content): Merge conflict in Assets/ForestPrototype/Species/SessileOak.asset\n",
+      "stderr": "error: could not apply ea52050... feat: calibrate oak beech growth with conservative ordinal values\nhint: After resolving the conflicts, mark them with\nhint: \"git add/rm <pathspec>\", then run\nhint: \"git cherry-pick --continue\".\nhint: You can instead skip this commit with \"git cherry-pick --skip\".\nhint: To abort and get back to the state before \"git cherry-pick\",\nhint: run \"git cherry-pick --abort\".\n",
+      "conflicts": [
+        "Assets/ForestPrototype/Species/BeechSpecies.asset",
+        "Assets/ForestPrototype/Species/SessileOak.asset"
+      ]
+    },
+    {
+      "step": "N3",
+      "source": "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 381e020] feat: require reviewed two-cycle scenario-one completion in save v20\n Date: Wed Oct 14 18:33:12 2026 +0100\n 14 files changed, 646 insertions(+), 4 deletions(-)\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs.meta\n create mode 100644 Docs/Verification/ScenarioOneCompletion/N3Evidence/existing-offline.txt\n create mode 100644 Docs/Verification/ScenarioOneCompletion/N3Evidence/n3-offline.txt\n create mode 100644 Docs/Verification/ScenarioOneCompletion/N3Evidence/typecheck-prod.txt\n create mode 100644 Docs/Verification/ScenarioOneCompletion/N3Evidence/typecheck-tools.txt\n create mode 100644 Docs/Verification/ScenarioOneCompletion/N3TwoCycleCompletionImplementationHandoff.md\n create mode 100644 Tools/Verification/ScenarioOneCompletion/N3/N3CompletionVerification.cs\n create mode 100644 Tools/Verification/ScenarioOneCompletion/N3/OfflineLogic/N3OfflineCheck.cs\n create mode 100644 Tools/Verification/ScenarioOneCompletion/N3/OfflineLogic/SaveNeighbours.cs\n create mode 100644 Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "U4",
+      "source": "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 e49706a] feat: explain reviewed two-cycle completion without changing rules\n Date: Thu Oct 15 00:14:50 2026 +0100\n 9 files changed, 170 insertions(+), 4 deletions(-)\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs\n create mode 100644 Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs.meta\n create mode 100644 Docs/Verification/ScenarioOneIntegration/U4GuidanceHandoff.md\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "9a865db4b3ae35b84f4a2ed97486266b90450e37",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 f7c8d78] refactor: split help text and lesson list into pure partial files\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:04:21 2026 +0000\n 8 files changed, 272 insertions(+), 119 deletions(-)\n create mode 100644 Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs\n create mode 100644 Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs.meta\n create mode 100644 Assets/ForestPrototype/UI/MenuHelpView.Text.cs\n create mode 100644 Assets/ForestPrototype/UI/MenuHelpView.Text.cs.meta\n create mode 100644 Tools/Verification/ScenarioOneUx/OfflineLogic/ScenarioOneUxOfflineCheck.cs\n create mode 100644 Tools/Verification/ScenarioOneUx/run_ux_check.py\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "c89cebcf9863a3ee6ff501ffcef6a40e1fe99e06",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 4878059] feat: clarify scenario-one role and first-cycle guidance\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:05:56 2026 +0000\n 4 files changed, 80 insertions(+), 11 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "7203fee21eaae06500cb031bae261efed9dca925",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 e906320] fix: warn before advancing with unapproved work\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:07:31 2026 +0000\n 6 files changed, 137 insertions(+), 5 deletions(-)\n create mode 100644 Assets/ForestPrototype/UI/AdvanceGuard.cs\n create mode 100644 Assets/ForestPrototype/UI/AdvanceGuard.cs.meta\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "9b01a7baf83ca9878dedc38c5305b98d9d08b759",
+      "exit": 0,
+      "stdout": "Auto-merging Assets/ForestPrototype/UI/AnnualReviewView.cs\n[tmp/sol-overnight-a4 78d8ac2] ux: simplify first-use help and put the first cycle first\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:10:06 2026 +0000\n 8 files changed, 140 insertions(+), 30 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "58e7a67c3c96288e54df513e280c1fa28c17b8df",
+      "exit": 0,
+      "stdout": "Auto-merging Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs\n[tmp/sol-overnight-a4 9b702c4] ux: refresh controls, terminology and stale scenario guidance\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:15:29 2026 +0000\n 12 files changed, 152 insertions(+), 57 deletions(-)\n create mode 100644 Assets/ForestPrototype/UI/ControlsReference.cs\n create mode 100644 Assets/ForestPrototype/UI/ControlsReference.cs.meta\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX",
+      "source": "51e240f4a7998bbb2758f0f5f081d13e3751794b",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 d464f07] ux: add tutorial and help progress reset for test participants\n Author: Claude <noreply@anthropic.com>\n Date: Tue Oct 13 08:16:56 2026 +0000\n 4 files changed, 49 insertions(+), 3 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "UX follow-up",
+      "source": "5e4d66eabf6005dbeb0f2cb75594b0c514c01c73",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 156eb64] ux: fix HUD title truncation, inspection card overflow and Deadwood volume wrapping\n Date: Wed Oct 14 06:21:44 2026 +0100\n 5 files changed, 46 insertions(+), 14 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    },
+    {
+      "step": "marking LOCAL ONLY",
+      "source": "678283642aaeb60221eda0fe8cb3f97e27958048",
+      "exit": 0,
+      "stdout": "[tmp/sol-overnight-a4 fe52213] perf: read tree positions and diameters once in the treatment-forecast competition loop\n Date: Wed Oct 14 09:30:41 2026 +0100\n 1 file changed, 31 insertions(+), 9 deletions(-)\n",
+      "stderr": "",
+      "conflicts": []
+    }
+  ],
+  "diff_checks": [
+    {
+      "temporary_commit": "2c14826eed15cb42d663cecce4edbdb7f6d2573d",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "cf5b891397fb2ee6fe78da136d508c85238609eb",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "8edb088f7ad41a888cc4ec3b0851c9fb5315de3a",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "b37872d21706e6254670ce2c8066b5ee5a94ed6e",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "1579710bcb574d1f823e9043ba5dc211bb01b5fa",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "23628cf9721f47f049e2e4e9187b6fe8cda71d4d",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "6dbe8d2c9d33afb6a9ac43cc99860776c89701e3",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "681863f4e0a7c273ce432c8fcf2d51b7835f0231",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "381e020b7a7d30cccf87d7302694fcbd2ca1f42f",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "e49706a3c98340ebdd99b8060b79414e1724a355",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "f7c8d78a5fcae82ed5d1829d4e3c019c501a9868",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "48780591e768999c978c9bb7bd7fc9cd141752cb",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "e906320f3ac7a6bfc5d7f73fd7a1f3ab74f4bae4",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "78d8ac229e6f889e42fa09bf50ff0966285250f7",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "9b702c40772f43916375b44c07997084c26bc171",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "d464f07971b0f8aa052cbe942589b8db679bfbf0",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "156eb64fc0d327dde46e3ed4794391fdea1eabf3",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "fe52213f925769ab220724952263abc2c3576673",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "3df00cb93652693b06550696e438e48718b4c099",
+      "diff_check_exit": 0
+    },
+    {
+      "temporary_commit": "915af1225c40123243b6e9f952fcead69b4eee66",
+      "diff_check_exit": 0
+    }
+  ],
+  "production_manifest": {
+    "Assets/ForestPrototype/ForestSiteProfile.cs": "497bef8582424f34267f3a0d9c568b3ddf6640448bf8daed064032b450d5c0ec",
+    "Assets/ForestPrototype/ForestTreeMarkingManager.cs": "7385c0f1d128975830c847f8f6fcf0f7d84f799aef21d7caa13aa1d65c1e9387",
+    "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs": "1e85e90806e7bb27422ca18779c606c503d438f1a229a2e17943af441d33befb",
+    "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta": "79d6d4e58d9b3d380f1eb709bbf090d1ef717cd7ba185cf583c702463bbd39fe",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs": "e7f4865319908b8b738432ff9d7341034be39f654630d92410cab28e6eda52df",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta": "5da3d8ab7c7197a51989e7c4f89a6c4aa19113912659e7cb77ee9e238f10b065",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioManagementEvent.cs": "ad474a28ca6838e95703e4fd58ef5901aecd1d0581a2b546094e742d0ce8324f",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs": "f6057e8a20d30815501a1215fafea924ef8e26197ede701a529c876466a0f0b1",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs.meta": "db73a0b234d85021f81872fa79513ddc48151ecf079c2018a59e80c98a834d26",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs": "862eda3ffd4f0ca3a857474773bc54b04abb8d01d5f894bdf482e0c2851dbe3f",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs.meta": "316051117e2effb31fe9272f8285b42967f1c957e8ef145606f6d264e4270fed",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneEconomyAdapter.cs": "c5f3c9ffe535b23704e78b84e960e2af4f6ebccd7b453d840af46feb2df21f10",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs": "aa106f46753798aaea0e270e759e6fc3a9e427c9b962f2003c8ff4a61ba5b363",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta": "44b05318123b02585167a6f88e23cf5758836f9104c20d077f4ab1e0a108b909",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": "4d0de5bb91aac91bd327a48b517b12752b18fa0354650b1f6bf44ec09eea4dda",
+    "Assets/ForestPrototype/ScenarioSiteProfiles.cs": "9ab0b2b8b55102e8e8b329d8cfa3fa046d4fa479b5c3daebc3db316668b43d16",
+    "Assets/ForestPrototype/Species/BeechSpecies.asset": "cc7d5fce6397822c6f7632c29560939f76f00e2b131469f10a77ff5bdf26ac55",
+    "Assets/ForestPrototype/Species/SessileOak.asset": "9d68b8e590c31b1ac2dcfb1f9c61064b1319f3e4899f84dbc43db332058d0ba3",
+    "Assets/ForestPrototype/SpeciesSiteResponse.cs": "072f36f5429931015b6680103a2660174645113abb611e11eb0291038f257cab",
+    "Assets/ForestPrototype/TimberYield/TimberYieldCalculator.cs": "e58df12bb886be07bc62db4898432d8fca041be1bd6534a65ccf94952eac62dc",
+    "Assets/ForestPrototype/TimberYield/TimberYieldConfiguration.cs": "5a55f18c893222d90b3ea5ad7ba37c52384abf03cd69e95f735b2b2baef58313",
+    "Assets/ForestPrototype/TimberYield/TimberYieldValidation.cs": "48d8a8cc4c5e0c8b1099642e8d26e91a960eb9ae86d98c275ce7b1818fa17f48",
+    "Assets/ForestPrototype/UI/AdvanceGuard.cs": "a161b6bc1402762433e2f6c08e2af0947b9fdc93c552448a2cf90e6540ddf5ab",
+    "Assets/ForestPrototype/UI/AdvanceGuard.cs.meta": "cec8267bf4ea59b8469e3ffbdfd5e39a917d51b6f888fe493521c364f78b4848",
+    "Assets/ForestPrototype/UI/AnnualReviewView.cs": "fde985da852321be1d1006c32b94c753433748ee4cbb88fae328d2c42553b125",
+    "Assets/ForestPrototype/UI/ControlsReference.cs": "5d66b949115fafd940dcc1138d9e778363066034f61a15620485f6331f1f0f34",
+    "Assets/ForestPrototype/UI/ControlsReference.cs.meta": "74c74408127521f5475716f3c9e83880e9d16ba11f85d0c3ebf7325bf26f479a",
+    "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs": "f15486612774c0ae9746743cda771c62df5d197d0d95070e78935852ec138dc7",
+    "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs.meta": "82ca805a88c7c7e14890ca73fc9479563f07dfc5d343aae0084abd109acb7850",
+    "Assets/ForestPrototype/UI/LearningObjectivesView.cs": "5fa3e9c5243d45d92ff4dbaec5d226a4ea919b58fc6072d3305aecee7bcd3fa8",
+    "Assets/ForestPrototype/UI/MenuHelpView.Text.cs": "014b4dd9cc3ecfcec1031297b707f179876b5d3cd5e8fdd83526d99c5ba1d469",
+    "Assets/ForestPrototype/UI/MenuHelpView.Text.cs.meta": "f9db18c9a717c68e82a3c26082ad320919fa47e2e16169176eabb3a55bffb073",
+    "Assets/ForestPrototype/UI/MenuHelpView.cs": "d4e2a3dc9dd17588e1ad5cba770ec21d98d74a0b54676947a1d66d42a0f83bfe",
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": "b85ec1db613736bf820ecc610967bb1cfa4a199944878bc344e9e0d71d28b745",
+    "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs": "47acf7a2b788598ad347503dd7d4a800e287d7353f7b8c7eaaf01de14d1c60e7",
+    "Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs": "0146edd142d79aca38e73f3e7b187c90756116d8dd02b48a0b3f39e749a14946",
+    "Assets/ForestPrototype/UI/StandaloneSessionMenu.cs": "58513dfbab504f586263eb2e5249626dfb058bc6889c218f5a2f2858b17516e9",
+    "Assets/ForestPrototype/UI/TreeInspectionView.cs": "49929d8e31faa4522d202fa1d00a53f9ac5615acdfb9eb0d06e2b0d6b83bca60",
+    "Assets/ForestPrototype/UI/UiKit.cs": "89c0f016b2f482df7528bbdf1c342928cf594873bbcd9ef23d715a2789de210d",
+    "Assets/ForestPrototype/UI/WalkingHudView.cs": "2e429e9cd2c661c12f7e3255c1ad23c5c2867658c857ba855dd1952dbcef1345",
+    "Assets/ForestPrototype/UI/WorkPlanOverview.cs": "279c04daf63d61aff3237d66e20eb416e50ba6e420101ada2590caa69ad979bb",
+    "Assets/ForestPrototype/UI/WorkPlanView.cs": "3ca91b678d315e563d24a6603a25599ca203a7097f91fc5d7fd4b00ff761d8f5",
+    "Assets/ForestPrototype/WorkEconomy/ForestryWorkDomain.cs": "ce06ecfc6454cedc90612ef8f56c006eef2203f5bdb8bb2066dd33a7ca13f8f6",
+    "Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs": "06795486e980bf407f0cd6ace1785592ca58dbc6bb7884d41b32e220219d5017",
+    "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs": "1663160e6c3b8301c849051a1c9bc25322333dafe5225f95b77e810aa59fd59b"
+  }
+}

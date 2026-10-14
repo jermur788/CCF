@@ -1,0 +1,3 @@
+[prod] distinct errors: 8 (baseline 7)
+NEW  Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs: error CS0117: 'GrowthModel' does not contain a definition for 'SpeciesAware'
+TYPECHECK_NEW_ERRORS mode=prod
