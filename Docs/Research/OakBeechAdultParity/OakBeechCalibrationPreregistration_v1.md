@@ -33,7 +33,7 @@ Inspect source GrowAdults in ForestEcologyController, TreeSpeciesDefinition, For
 
 `ΔH = Ph * site * clamp01(1-H/Hmax)`
 
-Apply the production storage bounds D=clamp(D+ΔD,1,200), H=clamp(H+ΔH,.5,60); age advances by one. Check actual source bounds before porting. Binary floating-point Python reproduction is mathematical, not a C#/Unity float/hash equivalence claim. Confirm recurrence against its closed form where brakes are unsaturated; never rebaseline a Sitka anchor.
+Apply the production storage bounds D=clamp(D+ΔD,1,200), H=clamp(H+ΔH,.1,60); age advances by one. Check actual source bounds before porting. Binary floating-point Python reproduction is mathematical, not a C#/Unity float/hash equivalence claim. Confirm recurrence against its closed form where brakes are unsaturated; never rebaseline a Sitka anchor.
 
 Juvenile checkpoints: ages **5/10/20/30/40/50**. Controlled surviving stock starts age0, height.15 m; full-light no-browse/no-mortality height growth uses shipped .35 m/year, promotes at ≥3.5 m with D=clamp(height*1.5,2,20), then follows generic adult-tree storage kernel. Promotion is a representation boundary, not biological maturity. Keep an additional pure generic-tree control starting D2/H.5 age0 for isolating parameter effects; do not call it a planted sapling. Report both trajectories and distinguish from actual planted stock/light/browse history. Adult fixtures: start age50, D20 or40, H15 or25 (four controlled starting states); checkpoints **50/75/100/125/150**. Do not infer that these illustrative initial sizes were observed in Ireland.
 
