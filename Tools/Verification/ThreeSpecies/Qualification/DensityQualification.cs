@@ -156,13 +156,18 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         return Living().Select(t => new DensityStem(t.TreeId, t.Species.GrowingSpaceDemand, t.Diameter, e.GetCompetitionIndex(t))).ToList();
     }
 
-    // The v2 controller route: the unchanged Sitka subset gives a required-death signal, then one composite plan allocates the deaths.
-    private DensityMortalityPlan CompositePlan(List<DensityStem> list)
+    // The v3 controller route, rebuilt from the same inputs and the same keyed rolls the controller uses: the Sitka component first
+    // (original Sitka process on the Sitka stems alone), then the generic component among the stems it left standing.
+    private DensityComponentPlan ComponentPlan(List<DensityStem> list)
     {
-        Func<string, double> roll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed);
-        int referenceDeaths = SitkaSubsetDensitySignal.RequiredDeaths(list, e.StandAreaHectares, roll);
-        return MixedDensityModel.PlanComposite(list, e.StandAreaHectares, referenceDeaths, roll);
+        Func<string, double> sitkaRoll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed);
+        Func<string, double> genericRoll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-GENERIC-" + id, e.EcologicalYear, e.SimulationSeed);
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(list, e.StandAreaHectares, sitkaRoll);
+        return MixedDensityModel.PlanComponents(list, e.StandAreaHectares, sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll);
     }
+
+    // Sitka-component deaths of a step: the whole step on the legacy route (every stem is Sitka), the component's own victims otherwise.
+    private static int SitkaDeaths(AdultMortalityAccount a) => a.Route == DensityRoute.LegacySitkaExact ? a.Deaths : a.SitkaComponentDeaths;
 
     private double BasalAreaPerHectare(IEnumerable<ForestTree> trees)
     {
@@ -321,18 +326,21 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 {
                     Stand(2, design.speciesOf, count, 24f, 10f, 5000 + s);
                     List<DensityStem> list = StemsOfLiving();
-                    DensityMortalityPlan plan = CompositePlan(list);
-                    planExpected += plan.ExpectedAnnualLoss;
-                    double meanVuln = list.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
-                    foreach (DensityStem x in list)
+                    DensityComponentPlan plan = ComponentPlan(list);
+                    planExpected += plan.GenericLossFraction;
+                    // The generic component draws among the stems the Sitka component left standing: expected loss per eligible stem.
+                    var sitkaVictims = new HashSet<int>(plan.SitkaVictimIndices);
+                    var eligible = list.Where((x, i) => !sitkaVictims.Contains(i)).ToList();
+                    double meanVuln = eligible.Count == 0 ? 0.0 : eligible.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
+                    foreach (DensityStem x in eligible)
                     {
-                        double p = MixedDensityModel.AnnualLossProbability(plan.ExpectedAnnualLoss, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
+                        double p = MixedDensityModel.AnnualLossProbability(plan.GenericLossFraction, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
                         expectedSum += p; varSum += p * (1.0 - p);
                     }
                     AdultMortalityAccount a = DensityStep();
                     occ = a.Occupancy; pressure = a.DensityPressure;
-                    observed += a.Deaths; stems += a.LivingBefore;
-                    if (a.Deaths != plan.HazardDeaths) Hard($"CURVE_{design.label}_{F(target)}_CONTROLLER_MATCHES_PURE_PLAN", false, $"seed={s} controller={a.Deaths} plan={plan.HazardDeaths}");
+                    observed += a.GenericDeaths; stems += eligible.Count;
+                    if (a.Deaths != plan.VictimIndices.Count) Hard($"CURVE_{design.label}_{F(target)}_CONTROLLER_MATCHES_PURE_PLAN", false, $"seed={s} controller={a.Deaths} plan={plan.VictimIndices.Count}");
                     if (a.Occupancy <= MixedDensityModel.OnsetOccupancy && a.Deaths > 0)
                         Hard($"CURVE_{design.label}_{F(target)}_NO_DEATHS_AT_OR_BELOW_ONSET", false, $"seed={s} occupancy={F(a.Occupancy)} deaths={a.Deaths}");
                 }
@@ -374,18 +382,22 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 Stand(2, k => kinds[(k + rotation) % 3], count, design.dbhMin, design.spread, 7000 + t, true);
                 Dictionary<string, int> speciesIndex = Living().ToDictionary(x => x.TreeId, x => x.Species == sitka ? 0 : x.Species == beech ? 1 : 2, StringComparer.Ordinal);
                 List<DensityStem> list = StemsOfLiving();
-                DensityMortalityPlan plan = CompositePlan(list);
+                DensityComponentPlan plan = ComponentPlan(list);
                 var predicted = new HashSet<string>(plan.VictimIndices.Select(i => list[i].TreeId), StringComparer.Ordinal);
-                double meanVuln = list.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
-                double[] sortedCi = list.Select(x => x.CompetitionIndex).OrderBy(v => v).ToArray();
+                // v3: the Sitka component is Sitka-only by design. Species neutrality is asserted for the GENERIC component, i.e. among the
+                // stems it chose from (everything the Sitka component left standing), by competitive position alone.
+                var sitkaTaken = new HashSet<string>(plan.SitkaVictimIndices.Select(i => list[i].TreeId), StringComparer.Ordinal);
+                var eligibleList = list.Where(x => !sitkaTaken.Contains(x.TreeId)).ToList();
+                double meanVuln = eligibleList.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
+                double[] sortedCi = eligibleList.Select(x => x.CompetitionIndex).OrderBy(v => v).ToArray();
                 DensityStep();
                 var actual = new HashSet<string>(FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).Select(x => x.TreeId), StringComparer.Ordinal);
                 faithful &= predicted.SetEquals(actual);
-                totalVictims += actual.Count;
-                foreach (DensityStem x in list)
+                totalVictims += actual.Count - sitkaTaken.Count;
+                foreach (DensityStem x in eligibleList)
                 {
                     int s = speciesIndex[x.TreeId];
-                    double p = MixedDensityModel.AnnualLossProbability(plan.ExpectedAnnualLoss, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
+                    double p = MixedDensityModel.AnnualLossProbability(plan.GenericLossFraction, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
                     exp[s] += p; variance[s] += p * (1.0 - p); n[s]++;
                     if (actual.Contains(x.TreeId))
                     {
@@ -397,7 +409,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 }
                 if (t % 10 == 9) yield return null;
             }
-            Hard($"FAIRNESS{suffix}_{design.label}_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN", faithful && totalVictims > 0, $"trials={trials} stems={count} totalVictims={totalVictims}");
+            Hard($"FAIRNESS{suffix}_{design.label}_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN", faithful && totalVictims > 0, $"trials={trials} stems={count} genericVictims={totalVictims}");
             // Two separate questions. (1) Overall: do all deaths together match the Bernoulli expectation? (RNG / plan fidelity.)
             // (2) Between species: after allowing for any overall shift, does one species lose more or fewer stems than
             // its competition alone predicts? Only (2) can show species-driven selection.
@@ -463,27 +475,34 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         foreach (var regime in regimes)
         {
             var fractions = new List<double>[shares.Length];
+            var sitkaFractions = new List<double>[shares.Length];
             var routes = new string[shares.Length];
             for (int si = 0; si < shares.Length; si++)
             {
-                fractions[si] = new List<double>();
+                fractions[si] = new List<double>(); sitkaFractions[si] = new List<double>();
                 Func<int, TreeSpeciesDefinition> speciesOf = ShareOf(count, shares[si]);
                 for (int sd = 0; sd < seeds; sd++)
                 {
                     Stand(2, speciesOf, count, regime.dbhMin, regime.spread, 11000 + sd);
                     int broadleaf = Living().Count(t => t.Species != sitka);
+                    int sitkaStems = Living().Count(t => t.Species == sitka);
                     AdultMortalityAccount a = DensityStep();
                     routes[si] = a.Route.ToString();
                     fractions[si].Add(a.LivingBefore > 0 ? (double)a.Deaths / a.LivingBefore : 0.0);
+                    sitkaFractions[si].Add(sitkaStems > 0 ? (double)SitkaDeaths(a) / sitkaStems : 0.0);
                     if (sd == 0) Measure("CONTINUITY_STAND", $"{regime.label} sitkaShare={F(shares[si])} stems={a.LivingBefore} broadleaf={broadleaf} route={a.Route} occupancyOrRd={F(a.Route == DensityRoute.SpeciesAwareOccupancy ? a.Occupancy : a.RelativeDensity)} pressure={F(a.DensityPressure, "0.0000")}");
                 }
-                Measure("CONTINUITY", $"{regime.label} sitkaShare={F(shares[si])} route={routes[si]} meanDeathFraction={F(fractions[si].Average(), "0.0000")} sd={F(Sd(fractions[si]), "0.0000")} deathsPer1000={F(fractions[si].Average() * 1000.0, "0.0")}");
-                Csv($"continuity-{geo}.csv", $"{regime.label},{shares[si]},{routes[si]},{F(fractions[si].Average(), "0.00000")},{F(Sd(fractions[si]), "0.00000")},{seeds}");
+                Measure("CONTINUITY", $"{regime.label} sitkaShare={F(shares[si])} route={routes[si]} meanDeathFraction={F(fractions[si].Average(), "0.0000")} sd={F(Sd(fractions[si]), "0.0000")} deathsPer1000={F(fractions[si].Average() * 1000.0, "0.0")} sitkaComponentLossPerSitkaStem={F(sitkaFractions[si].Average(), "0.0000")} sd={F(Sd(sitkaFractions[si]), "0.0000")}");
+                Csv($"continuity-{geo}.csv", $"{regime.label},{shares[si]},{routes[si]},{F(fractions[si].Average(), "0.00000")},{F(Sd(fractions[si]), "0.00000")},{seeds},{F(sitkaFractions[si].Average(), "0.00000")},{F(Sd(sitkaFractions[si]), "0.00000")}");
                 yield return null;
             }
             Hard($"CONTINUITY_{regime.label}_PURE_SITKA_USES_THE_LEGACY_ROUTE_AND_ANY_BROADLEAF_THE_COMPOSITE_ROUTE",
                 routes[0] == "LegacySitkaExact" && routes.Skip(1).All(r => r == "SpeciesAwareOccupancy"), string.Join(",", routes));
             double se(int a, int b) => Math.Sqrt(Math.Pow(Sd(fractions[a]), 2) / seeds + Math.Pow(Sd(fractions[b]), 2) / seeds);
+            double seSitka(int a, int b) => Math.Sqrt(Math.Pow(Sd(sitkaFractions[a]), 2) / seeds + Math.Pow(Sd(sitkaFractions[b]), 2) / seeds);
+            double sitka999 = Math.Abs(sitkaFractions[1].Average() - sitkaFractions[0].Average());
+            Hard($"CONTINUITY_{regime.label}_SITKA_COMPONENT_LOSS_PER_SITKA_STEM_AT_99_9_PERCENT_MATCHES_PURE", sitka999 <= 0.005 + 3.0 * seSitka(0, 1),
+                $"difference={F(sitka999, "0.0000")} tolerance={F(0.005 + 3.0 * seSitka(0, 1), "0.0000")} (0.005 + 3 se; pure={F(sitkaFractions[0].Average(), "0.0000")} mixed={F(sitkaFractions[1].Average(), "0.0000")})");
             double d999 = Math.Abs(fractions[1].Average() - fractions[0].Average());
             Hard($"CONTINUITY_{regime.label}_99_9_PERCENT_SITKA_LOSS_MATCHES_PURE", d999 <= 0.005 + 3.0 * se(0, 1),
                 $"difference={F(d999, "0.0000")} tolerance={F(0.005 + 3.0 * se(0, 1), "0.0000")} (0.005 + 3 se)");
@@ -504,6 +523,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         {
             var with = new List<double>(); var fell = new List<double>(); var natural = new List<double>(); var pure = new List<double>();
             var withDeaths = new List<double>(); var fellDeaths = new List<double>(); var naturalDeaths = new List<double>();
+            var sitkaWith = new List<double>(); var sitkaFell = new List<double>(); var sitkaNatural = new List<double>();
             Func<int, TreeSpeciesDefinition> one = ShareOf(count, 0.999), none = _ => sitka;
             for (int sd = 0; sd < seeds; sd++)
             {
@@ -512,23 +532,32 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 AdultMortalityAccount p = DensityStep(); pure.Add((double)p.Deaths / Math.Max(1, p.LivingBefore));
                 Stand(2, one, count, regime.dbhMin, regime.spread, seed);
                 AdultMortalityAccount a = DensityStep(); with.Add((double)a.Deaths / Math.Max(1, a.LivingBefore)); withDeaths.Add(a.Deaths);
+                sitkaWith.Add((double)SitkaDeaths(a) / Math.Max(1, a.LivingBefore - 1));
                 // deliberate removal of the last broadleaf through the felling path, then the next annual density step
                 Stand(2, one, count, regime.dbhMin, regime.spread, seed);
                 ForestTree last = Living().First(t => t.Species != sitka);
                 last.Fell(); e.InvalidateCompetition(); e.RecomputeCanopy();
                 AdultMortalityAccount b = DensityStep(); fell.Add((double)b.Deaths / Math.Max(1, b.LivingBefore)); fellDeaths.Add(b.Deaths);
+                sitkaFell.Add((double)SitkaDeaths(b) / Math.Max(1, b.LivingBefore));
                 // natural death of the last broadleaf through the ecology's own mortality path
                 Stand(2, one, count, regime.dbhMin, regime.spread, seed);
                 last = Living().First(t => t.Species != sitka);
                 last.ApplyMortality("self-thinning", e.EcologicalYear); e.InvalidateCompetition(); e.RecomputeCanopy();
                 AdultMortalityAccount c = DensityStep(); natural.Add((double)c.Deaths / Math.Max(1, c.LivingBefore)); naturalDeaths.Add(c.Deaths);
+                sitkaNatural.Add((double)SitkaDeaths(c) / Math.Max(1, c.LivingBefore));
                 if (sd == 0) Measure("FINALBROADLEAF_ROUTES", $"{regime.label} withOneBroadleaf={a.Route} afterFelling={b.Route} afterNaturalDeath={c.Route} stems={a.LivingBefore}/{b.LivingBefore}/{c.LivingBefore}");
                 if (sd % 3 == 2) yield return null;
             }
             double sePair(IList<double> x, IList<double> y) { var d = x.Select((v, i) => v - y[i]).ToList(); return Sd(d) / Math.Sqrt(d.Count); }
             double meanDiff(IList<double> x, IList<double> y) => x.Select((v, i) => v - y[i]).Average();
             Measure("FINALBROADLEAF", $"{regime.label} deathsPer1000: pureSitka={F(pure.Average() * 1000.0, "0.0")} oneBroadleafPresent={F(with.Average() * 1000.0, "0.0")} afterFelling={F(fell.Average() * 1000.0, "0.0")} afterNaturalDeath={F(natural.Average() * 1000.0, "0.0")} seeds={seeds}");
-            Csv($"finalbroadleaf-{geo}.csv", $"{regime.label},{F(pure.Average(), "0.00000")},{F(with.Average(), "0.00000")},{F(fell.Average(), "0.00000")},{F(natural.Average(), "0.00000")},{seeds}");
+            Csv($"finalbroadleaf-{geo}.csv", $"{regime.label},{F(pure.Average(), "0.00000")},{F(with.Average(), "0.00000")},{F(fell.Average(), "0.00000")},{F(natural.Average(), "0.00000")},{seeds},{F(sitkaWith.Average(), "0.00000")},{F(sitkaFell.Average(), "0.00000")},{F(sitkaNatural.Average(), "0.00000")}");
+            Measure("FINALBROADLEAF_SITKA_COMPONENT", $"{regime.label} Sitka-component loss per Sitka stem: oneBroadleafPresent={F(sitkaWith.Average(), "0.0000")} afterFelling={F(sitkaFell.Average(), "0.0000")} afterNaturalDeath={F(sitkaNatural.Average(), "0.0000")}");
+            foreach (var pair in new[] { ("FELLING", sitkaFell), ("NATURAL_DEATH", sitkaNatural) })
+            {
+                double ds = Math.Abs(pair.Item2.Select((v, i) => v - sitkaWith[i]).Average()), tolS = 0.005 + 3.0 * sePair(pair.Item2, sitkaWith);
+                Hard($"FINALBROADLEAF_{regime.label}_{pair.Item1}_SITKA_COMPONENT_LOSS_IS_UNCHANGED", ds <= tolS, $"sitkaLossDifference={F(ds, "0.0000")} tolerance={F(tolS, "0.0000")} (0.005 + 3 se)");
+            }
             foreach (var pair in new[] { ("FELLING", fell, fellDeaths), ("NATURAL_DEATH", natural, naturalDeaths) })
             {
                 double d = Math.Abs(meanDiff(pair.Item2, with)), tol = 0.005 + 3.0 * sePair(pair.Item2, with);
@@ -606,13 +635,14 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         foreach (var regime in regimes)
         {
             var total = new List<double>[broadleaf.Length]; var sitkaLoss = new List<double>[broadleaf.Length]; var broadLoss = new List<double>[broadleaf.Length];
+            var sitkaComponent = new List<double>[broadleaf.Length]; var totalDeaths = new List<double>[broadleaf.Length];
             // The stems-per-hectare of the Enlarged80 stand (0.64 ha) on any geometry: counts scale with the area (Legacy40 is 0.16 ha).
             double areaScale = e.StandAreaHectares / 0.64;
             int sitkaCount = Mathf.Max(8, Mathf.RoundToInt((float)(regime.nSitka * areaScale)));
             int[] broadCount = broadleaf.Select(b => b == 0 ? 0 : Mathf.Max(1, Mathf.RoundToInt((float)(b * areaScale)))).ToArray();
             for (int bi = 0; bi < broadleaf.Length; bi++)
             {
-                total[bi] = new List<double>(); sitkaLoss[bi] = new List<double>(); broadLoss[bi] = new List<double>();
+                total[bi] = new List<double>(); sitkaLoss[bi] = new List<double>(); broadLoss[bi] = new List<double>(); sitkaComponent[bi] = new List<double>(); totalDeaths[bi] = new List<double>();
                 string route = "";
                 for (int sd = 0; sd < seeds; sd++)
                 {
@@ -621,22 +651,31 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                     var dead = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).ToList();
                     int sitkaDead = dead.Count(x => x.Species == sitka), broadDead = dead.Count - sitkaDead;
                     total[bi].Add((double)a.Deaths / Math.Max(1, a.LivingBefore));
+                    totalDeaths[bi].Add(a.Deaths);
                     sitkaLoss[bi].Add((double)sitkaDead / sitkaCount);
+                    sitkaComponent[bi].Add((double)SitkaDeaths(a) / sitkaCount);
                     if (broadCount[bi] > 0) broadLoss[bi].Add((double)broadDead / broadCount[bi]);
                 }
                 Measure("LATEMIX", $"{regime.label} sitkaStems={sitkaCount} broadleaves={broadCount[bi]} route={route} totalDeathFraction={F(total[bi].Average(), "0.000")} sitkaDeathFraction={F(sitkaLoss[bi].Average(), "0.000")} broadleafDeathFraction={(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.000") : "-")} sd={F(Sd(total[bi]), "0.000")} seeds={seeds}");
-                Csv($"latemix-{geo}.csv", $"{regime.label},{broadleaf[bi]},{route},{F(total[bi].Average(), "0.00000")},{F(sitkaLoss[bi].Average(), "0.00000")},{(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.00000") : "")}");
+                Csv($"latemix-{geo}.csv", $"{regime.label},{broadleaf[bi]},{route},{F(total[bi].Average(), "0.00000")},{F(sitkaLoss[bi].Average(), "0.00000")},{(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.00000") : "")},{F(sitkaComponent[bi].Average(), "0.00000")},{F(totalDeaths[bi].Average(), "0.000")}");
                 yield return null;
             }
-            // HARD: the declared property is continuity of the TOTAL annual loss (victims are species-neutral by design, so a small broadleaf can take a death
-            // the Sitka signal asked for). MEASURE: what that does to Sitka's own loss, which is not promised to stay the same.
+            // v3 (CompositeDensityV3Predeclared.md C3, C4): the Sitka component must NOT change when small broadleaves are added (it is the original Sitka
+            // process on the Sitka stems alone); the total gains at most the generic expectation, in stems. Both are HARD. The earlier (v2) fraction-based
+            // total-loss continuity is kept as a measure: the fraction falls as broadleaves enlarge the denominator, the stems lost do not.
+            double sePaired(IList<double> x, IList<double> y) { var d = x.Select((v, i) => v - y[i]).ToList(); return Sd(d) / Math.Sqrt(d.Count); }
             double seTotal(int a, int b) => Math.Sqrt(Math.Pow(Sd(total[a]), 2) / seeds + Math.Pow(Sd(total[b]), 2) / seeds);
             for (int bi = 1; bi < broadleaf.Length; bi++)
             {
-                double d = Math.Abs(total[bi].Average() - total[0].Average()), tolerance = 0.005 + 3.0 * seTotal(0, bi);
-                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS", d <= tolerance,
-                    $"totalLossDifference={F(d, "0.0000")} tolerance={F(tolerance, "0.0000")} (0.005 + 3 se; pure={F(total[0].Average(), "0.000")} mixed={F(total[bi].Average(), "0.000")})");
-                Measure("LATEMIX_SITKA_SHIELDING", $"{regime.label} broadleaves={broadleaf[bi]} sitkaLoss {F(sitkaLoss[0].Average(), "0.000")} (pure) -> {F(sitkaLoss[bi].Average(), "0.000")} (mixed); the required deaths are taken from the most suppressed stems of any species");
+                double dSitka = Math.Abs(sitkaComponent[bi].Average() - sitkaComponent[0].Average()), tolSitka = 0.005 + 3.0 * sePaired(sitkaComponent[bi], sitkaComponent[0]);
+                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_LEAVE_THE_SITKA_COMPONENT_LOSS_AS_IN_THE_PURE_STAND", dSitka <= tolSitka,
+                    $"sitkaComponentLossDifference={F(dSitka, "0.0000")} tolerance={F(tolSitka, "0.0000")} (0.005 + 3 se; pure={F(sitkaComponent[0].Average(), "0.000")} mixed={F(sitkaComponent[bi].Average(), "0.000")})");
+                double added = totalDeaths[bi].Average() - totalDeaths[0].Average(), seAdded = sePaired(totalDeaths[bi], totalDeaths[0]);
+                double upper = 0.5 + 0.005 * (sitkaCount + broadCount[bi]) + 3.0 * seAdded;
+                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_ADD_AT_MOST_THE_GENERIC_EXPECTATION_IN_STEMS", added <= upper && added >= -3.0 * seAdded - 0.5,
+                    $"addedDeathsPerYear={F(added, "0.000")} tolerance=[-{F(3.0 * seAdded + 0.5, "0.000")}, {F(upper, "0.000")}] (0.5 + 0.005 N + 3 se)");
+                Measure("LATEMIX_TOTAL_FRACTION", $"{regime.label} broadleaves={broadleaf[bi]} totalDeathFraction {F(total[0].Average(), "0.000")} (pure) -> {F(total[bi].Average(), "0.000")} (mixed; diff {F(Math.Abs(total[bi].Average() - total[0].Average()), "0.0000")}, 0.005 + 3 se = {F(0.005 + 3.0 * seTotal(0, bi), "0.0000")})");
+                Measure("LATEMIX_SITKA_SHIELDING", $"{regime.label} broadleaves={broadleaf[bi]} Sitka-component loss {F(sitkaComponent[0].Average(), "0.000")} (pure) -> {F(sitkaComponent[bi].Average(), "0.000")} (mixed); all Sitka stems dead {F(sitkaLoss[0].Average(), "0.000")} -> {F(sitkaLoss[bi].Average(), "0.000")} (adds the generic deaths that fall on Sitka)");
             }
         }
     }
@@ -792,7 +831,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         List<DensityStem> stems = StemsOfLiving();
         var timer = System.Diagnostics.Stopwatch.StartNew();
         const int reps = 200;
-        for (int i = 0; i < reps; i++) CompositePlan(stems);
+        for (int i = 0; i < reps; i++) ComponentPlan(stems);
         timer.Stop();
         Measure("PERF_PURE_PLAN", $"stems={stems.Count} meanMsPerPlan={F(timer.Elapsed.TotalMilliseconds / reps, "0.000")}");
     }
@@ -831,9 +870,12 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             double meanVuln = pre.Length == 0 ? 0.0 : pre.Average(t => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(ciPre[t])));
             e.AdvanceOneYear();
             AdultMortalityAccount a = e.LastAdultMortality;
-            if (a.Route == DensityRoute.SpeciesAwareOccupancy)
+            // Expected deaths from competitive position alone are only defined for the GENERIC component, so the cumulative attribution counts the
+            // years in which the Sitka component took nobody (every pure Oak/Beech year, and mixed years with no Sitka demand). In those years the
+            // generic component chose among all stems, with expected fraction GenericLossFraction.
+            if (a.Route == DensityRoute.SpeciesAwareOccupancy && a.SitkaComponentDeaths == 0)
             {
-                double expectedLoss = a.DensityPressure;   // v2: the composite plan reports its expected annual loss as the pressure
+                double expectedLoss = a.GenericLossFraction;
                 foreach (ForestTree t in pre)
                 {
                     int s = SpeciesIndex(t);
@@ -850,7 +892,14 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             int nS = living.Count(t => t.Species == sitka), nB = living.Count(t => t.Species == beech), nO = living.Count(t => t.Species == oak);
             double baS = BasalAreaPerHectare(living.Where(t => t.Species == sitka)), baB = BasalAreaPerHectare(living.Where(t => t.Species == beech)), baO = BasalAreaPerHectare(living.Where(t => t.Species == oak));
             int other = living.Length - (a.LivingBefore - a.Deaths);
-            string row = $"{name},{geo},{year},{a.LivingBefore},{a.Deaths},{a.HazardDeaths},{a.BoundaryDeaths},{a.Route},{F(a.Occupancy, "0.0000")},{F(a.RelativeDensity, "0.0000")},{F(a.DensityPressure, "0.0000")},{living.Length},{other},{F(ba, "0.00")},{F(occAfter, "0.0000")},{F(dq, "0.00")},{F(mean, "0.00")},{nS},{nB},{nO},{F(baS, "0.00")},{F(baB, "0.00")},{F(baO, "0.00")}";
+            // Who died this step, by the diameters the step used (growth precedes mortality in the annual order).
+            var livingIds = new HashSet<string>(living.Select(t => t.TreeId), StringComparer.Ordinal);
+            var diedNow = pre.Where(t => !livingIds.Contains(t.TreeId)).ToList();
+            double baPre = pre.Sum(t => Math.PI / 4.0 * (t.Diameter / 100.0) * (t.Diameter / 100.0)), baDead = diedNow.Sum(t => Math.PI / 4.0 * (t.Diameter / 100.0) * (t.Diameter / 100.0));
+            double deadBaFraction = baPre > 0 ? baDead / baPre : 0.0;
+            int bigBefore = pre.Count(t => t.Diameter >= 20f), bigDeaths = diedNow.Count(t => t.Diameter >= 20f);
+            int diedS = diedNow.Count(t => t.Species == sitka), diedB = diedNow.Count(t => t.Species == beech), diedO = diedNow.Count(t => t.Species == oak);
+            string row = $"{name},{geo},{year},{a.LivingBefore},{a.Deaths},{a.HazardDeaths},{a.BoundaryDeaths},{a.Route},{F(a.Occupancy, "0.0000")},{F(a.RelativeDensity, "0.0000")},{F(a.DensityPressure, "0.0000")},{living.Length},{other},{F(ba, "0.00")},{F(occAfter, "0.0000")},{F(dq, "0.00")},{F(mean, "0.00")},{nS},{nB},{nO},{F(baS, "0.00")},{F(baB, "0.00")},{F(baO, "0.00")},{SitkaDeaths(a)},{a.GenericDeaths},{F(deadBaFraction, "0.00000")},{bigBefore},{bigDeaths},{F(a.Route == DensityRoute.SpeciesAwareOccupancy ? a.SitkaSubsetRelativeDensity : a.RelativeDensity, "0.0000")},{diedS},{diedB},{diedO},{F(a.GenericLossFraction, "0.00000")},{F(a.NonReferenceShare, "0.0000")}";
             result.Rows.Add(row);
             result.Living.Add(living.Length); result.Deaths.Add(a.Deaths);
             result.OccupancyUsed.Add(a.Route == DensityRoute.SpeciesAwareOccupancy ? a.Occupancy : OccupancyOfTrees(living));
@@ -900,7 +949,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         }
         int horizon = int.TryParse(Environment.GetEnvironmentVariable("CCF_QUAL_YEARS"), out int h) && h >= 100 ? h : 100;
         bool replay = Environment.GetEnvironmentVariable("CCF_QUAL_REPLAY") != "0";
-        string header = "scenario,geo,year,livingBefore,densityDeaths,hazard,boundary,route,occupancyUsed,sitkaRd,pressure,livingAfter,netOther,baM2ha,occupancyAfter,dq,meanDbh,nSitka,nBeech,nOak,baSitka,baBeech,baOak";
+        string header = "scenario,geo,year,livingBefore,densityDeaths,hazard,boundary,route,occupancyUsed,sitkaRd,pressure,livingAfter,netOther,baM2ha,occupancyAfter,dq,meanDbh,nSitka,nBeech,nOak,baSitka,baBeech,baOak,sitkaComponentDeaths,genericDeaths,deadBaFraction,bigBefore,bigDeaths,sitkaRdBeforeStep,deathsSitka,deathsBeech,deathsOak,genericLossFraction,nonRefShare";
         Csv($"longrun-{geo}.csv", header);
         foreach (var sc in scenarios)
         {
