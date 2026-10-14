@@ -172,7 +172,8 @@ public static class WorkPlanOverview
         float plannedSalvage = m.DeadwoodRecords.Where(d => salvageIds.Contains(d.treeId)).Sum(d => d.remainingVolumeM3);
         float deadwoodAfter = Mathf.Max(0f, onSite - plannedSalvage) + plannedFellingDeadwood;
         if (plannedFellingDeadwood > 0f || plannedSalvage > 0f || onSite > 0f)
-            UiKit.Line(card, "Deadwood volume", $"{UiKit.F(onSite, "0.00")} m³ now → about {UiKit.F(deadwoodAfter, "0.00")} m³ after selected salvage and planned felling");
+            UiKit.Line(card, "Deadwood volume", $"{UiKit.F(onSite, "0.00")} m³ now → about {UiKit.F(deadwoodAfter, "0.00")} m³ after selected salvage and planned felling",
+                valueBelow: true);
         BuildCropTreeRelease(card, fell);
         foreach (IWorkPlanResidualRows provider in ExtraRows)
             foreach (ResidualRow row in provider.Rows(m, stand))

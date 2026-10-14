@@ -16,8 +16,13 @@ public sealed class TreeInspectionView
     // centre of the view stays clear for aiming at the listed neighbours.
     public VisualElement CompetitorPanel { get; }
     public bool ShowsCompetitors { get; private set; }
+    // The felling estimate takes the same slot for a tree that is not being assessed as a Crop Tree. Together with
+    // the main card it would not fit one panel: the cursor is locked here, so a panel cannot scroll.
+    public VisualElement EstimatePanel { get; }
+    public bool ShowsEstimate { get; private set; }
     private readonly VisualElement body;
     private readonly VisualElement competitorBody;
+    private readonly VisualElement estimateBody;
     private string shownKey = "";
 
     public TreeInspectionView(ScenarioOneUiRoot ui)
@@ -38,6 +43,17 @@ public sealed class TreeInspectionView
         CompetitorPanel.style.width = 440;
         competitorBody = new VisualElement();
         CompetitorPanel.Add(competitorBody);
+
+        EstimatePanel = UiKit.Box("panel", "estimate-panel");
+        EstimatePanel.name = "inspect-estimate";
+        EstimatePanel.pickingMode = PickingMode.Ignore;
+        EstimatePanel.style.display = DisplayStyle.None;
+        EstimatePanel.style.position = Position.Absolute;
+        EstimatePanel.style.right = 14;
+        EstimatePanel.style.top = 250;
+        EstimatePanel.style.width = 380;
+        estimateBody = new VisualElement();
+        EstimatePanel.Add(estimateBody);
     }
 
     public void Refresh(ForestTree tree)
@@ -53,6 +69,8 @@ public sealed class TreeInspectionView
         shownKey = key;
         body.Clear();
         competitorBody.Clear();
+        estimateBody.Clear();
+        ShowsEstimate = false;
         CropTreeCompetitionReport report = competitors != null && competitors.ReportTree == tree ? competitors.Report : null;
         bool assessing = tree.IsCropTree && !tree.IsStump && report != null;
         ShowsCompetitors = assessing;
@@ -115,10 +133,11 @@ public sealed class TreeInspectionView
 
         if (!tree.IsStump && tree.CanChop)
         {
-            UiKit.Add(body, "If felled now — estimate", "heading");
+            ShowsEstimate = true;
+            UiKit.Add(estimateBody, "If felled now — estimate", "heading");
             foreach (string line in TimberEstimate(tree, ui.Manager != null && ui.Manager.BroadleafMarketActive))
-                UiKit.Add(body, line, "body");
-            UiKit.Add(body, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
+                UiKit.Add(estimateBody, line, "body");
+            UiKit.Add(estimateBody, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
         }
         UiKit.Add(body, tree.CanChop ? "[X] Fell   [C] Crop Tree   [Tab] Work Plan   [E] Close" : "[E] Close", "muted");
     }

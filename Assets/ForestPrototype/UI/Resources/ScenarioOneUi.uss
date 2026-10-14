@@ -91,9 +91,16 @@
 .cell-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; }
 /* Line() values never wrap (a wrapped sign would split from its amount). */
 .line-value { flex-shrink: 0; white-space: nowrap; margin-left: 10px; -unity-text-align: middle-right; }
+/* A Line() whose value is a sentence rather than a figure: the value sits under the name instead of squeezing it
+   into a column a syllable wide. */
+.table-row-stacked { flex-direction: column; }
+.table-row-stacked .cell-name { flex-grow: 0; flex-basis: auto; }
+.table-row-stacked .line-value { margin-left: 0; -unity-text-align: upper-left; }
 
 /* ---- walking HUD ---- */
 .hud-status { position: absolute; top: 14px; right: 14px; width: 330px; }
+/* The title carries the year, phase and intervention count; it wraps rather than cutting the count off. */
+.hud-status .heading { white-space: normal; }
 .hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 14px; }
 .hud-ground { max-width: 560px; margin-bottom: 8px; }
 .hud-prompt {
@@ -109,9 +116,12 @@
 .waypoint-line { color: var(--accent); font-size: 18px; -unity-font-style: bold; }
 
 /* ---- inspection ---- */
-/* Top-left, clear of the status panel (top-right) and the ground report (bottom-left). */
-.inspect { position: absolute; left: 14px; top: 14px; width: 380px; max-height: 72%; }
+/* Top-left, clear of the status panel (top-right) and the ground report (bottom-left). The height cap leaves room above the
+   forecast and marking panels at the bottom-left; the felling estimate lives in its own panel (below). */
+.inspect { position: absolute; left: 14px; top: 14px; width: 380px; max-height: 80%; }
 .inspect * { flex-shrink: 0; }
+/* The felling estimate for a tree that is not being assessed as a Crop Tree: right-hand side, under the status panel. */
+.estimate-panel * { flex-shrink: 0; }
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
 .stat { width: 50%; margin-bottom: 4px; }
 .stat-label { color: var(--ink-faint); font-size: 15px; }
