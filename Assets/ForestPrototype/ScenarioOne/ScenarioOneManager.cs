@@ -290,6 +290,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         return eligible;
     }
     public bool AnnualReviewSeen => annualReviewSeen;
+    // A fresh acknowledgement stays available for legacy Active saves without inventing chronology.
+    public bool NeedsCompletionReviewAcknowledgement => outcome == ScenarioOneOutcome.Active
+        && ScenarioOneCompletionRules.NeedsReviewAcknowledgement(managementEvents, workOrders);
     public IReadOnlyList<ScenarioObjectiveResult> Objectives => ScenarioOneObjectives.Evaluate(definition,
         ecologicalSnapshots.Count > 0 ? ecologicalSnapshots[ecologicalSnapshots.Count - 1] : null,
         managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
@@ -379,7 +382,14 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // Explicit acknowledgement of actual annual results completes the saved review step.
     public void MarkAnnualReviewSeen()
     {
-        if (annualReports.Count > 0) annualReviewSeen = true;
+        if (annualReports.Count == 0) return;
+        annualReviewSeen = true;
+        if (ScenarioOneCompletionRules.ShouldRecordAcknowledgement(managementEvents, CurrentYear))
+            RecordEvent(new ScenarioManagementEvent
+            {
+                year = CurrentYear,
+                eventType = ScenarioManagementEventType.AnnualReviewAcknowledged
+            });
     }
 
     // Work Plan plus the other full-screen panels (map, annual review). While any
@@ -2310,7 +2320,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             List<ScenarioObjectiveResult> objectives = ScenarioOneObjectives.Evaluate(definition,
                 snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
-            if (objectives.Count > 0 && objectives.All(result => result.achieved))
+            if (objectives.Count > 0 && objectives.All(result => result.achieved)
+                && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,
                     $"Scenario complete in year {snapshot.year}. Continue to the Century Review.");
             else if (cashCents == 0L && definition.ContractorHourlyRateCents > 0

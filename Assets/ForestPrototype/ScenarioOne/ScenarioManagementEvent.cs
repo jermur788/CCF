@@ -11,7 +11,9 @@ public enum ScenarioManagementEventType
     YearAdvanced,
     ScenarioCompleted,
     ScenarioFailed,
-    CenturyReviewed
+    CenturyReviewed,
+    // Append-only v20 contract extension; all earlier numeric values remain unchanged.
+    AnnualReviewAcknowledged = 9
 }
 
 public enum ScenarioManagementOutcome
