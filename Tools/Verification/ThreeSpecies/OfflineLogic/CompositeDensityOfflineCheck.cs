@@ -521,6 +521,36 @@ public static class CompositeDensityOfflineCheck
         Check(high > 3 * Math.Max(1, low), "VICTIMS_ARE_THE_MORE_SUPPRESSED_STEMS", $"lowCompetitionDeaths={low} highCompetitionDeaths={high}");
     }
 
+    // ---------- the numbers the signal and the simulator copy from the species assets ----------
+    static string AssetValue(string text, string key)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(text, "^\\s*" + key + ":\\s*([-0-9.eE]+)\\s*$", System.Text.RegularExpressions.RegexOptions.Multiline);
+        return m.Success ? m.Groups[1].Value : null;
+    }
+
+    static void AssetGuards()
+    {
+        string root = Environment.GetEnvironmentVariable("CCF_REPO_ROOT");
+        if (string.IsNullOrEmpty(root)) { Check(false, "ASSET_GUARDS_NEED_CCF_REPO_ROOT"); return; }
+        var species = new (string file, SimSpecies sim, int demand)[]
+        {
+            ("SitkaSpruce.asset", SimSpecies.Sitka, 0), ("BeechSpecies.asset", SimSpecies.Beech, 1), ("SessileOak.asset", SimSpecies.Oak, 2)
+        };
+        foreach (var s in species)
+        {
+            string text = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "Assets", "ForestPrototype", "Species", s.file));
+            double Get(string key) => double.Parse(AssetValue(text, key) ?? "nan", CultureInfo.InvariantCulture);
+            // growingSpaceDemand is omitted from the asset when it is the default 0 (Reference)
+            string demand = AssetValue(text, "growingSpaceDemand");
+            int assetDemand = demand == null ? 0 : int.Parse(demand, CultureInfo.InvariantCulture);
+            Check((float)Get("potentialDbhGrowthCmPerYear") == s.sim.PotentialDbhGrowth && (float)Get("maxDbhCm") == s.sim.MaxDbh && (float)Get("ci50") == s.sim.Ci50 && assetDemand == s.demand && (int)s.sim.Demand == s.demand,
+                $"SIMULATOR_SPECIES_PARAMETERS_EQUAL_THE_{s.file.Replace(".asset", "").ToUpperInvariant()}_ASSET",
+                $"dbhGrowth={Get("potentialDbhGrowthCmPerYear")} maxDbh={Get("maxDbhCm")} ci50={Get("ci50")} demand={assetDemand}");
+        }
+        string sitkaAsset = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "Assets", "ForestPrototype", "Species", "SitkaSpruce.asset"));
+        Check(double.Parse(AssetValue(sitkaAsset, "ci50"), CultureInfo.InvariantCulture) == SitkaSubsetDensitySignal.SitkaCi50, "SITKA_SUBSET_SIGNAL_USES_THE_SITKA_ASSET_CI50", $"asset={AssetValue(sitkaAsset, "ci50")} signal={SitkaSubsetDensitySignal.SitkaCi50}");
+    }
+
     // ---------- reduced-simulator long runs: pure Oak, pure Beech, mixed ----------
     static void LongRuns()
     {
@@ -532,6 +562,7 @@ public static class CompositeDensityOfflineCheck
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
         string series = Environment.GetEnvironmentVariable("CCF_RECRUITMENT_SERIES");
         if (!string.IsNullOrEmpty(series)) DensityCalibrationSearch.LoadSeriesFile(series);
+        AssetGuards();
         Identities();
         ResponseShape();
         ContinuityReplacement();

@@ -72,7 +72,7 @@ def main():
     dotnet = shutil.which("dotnet") or sys.exit("dotnet SDK not found")
     root = Path(args.out)
     root.mkdir(parents=True, exist_ok=True)
-    env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1", CCF_RECRUITMENT_SERIES=str(HERE / "recruitment-series-v2.csv"))
+    env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1", CCF_RECRUITMENT_SERIES=str(HERE / "recruitment-series-v2.csv"), CCF_REPO_ROOT=str(ROOT))
     results = []
     survivors = []
     # the unmutated control must pass first, or "killed" means nothing

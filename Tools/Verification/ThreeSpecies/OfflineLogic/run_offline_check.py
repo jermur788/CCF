@@ -95,7 +95,7 @@ def run_suite(name, out, dotnet):
     with open(os.path.join(work, "check.csproj"), "w") as handle:
         packages = "".join('    <PackageReference Include="%s" Version="%s" />\n' % pkg for pkg in suite.get("packages", []))
         handle.write(PROJECT.format(startup=suite["startup"], items=items, packages=packages))
-    env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1", CCF_RECRUITMENT_SERIES=os.path.join(HERE, "recruitment-series-v2.csv"))
+    env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1", CCF_RECRUITMENT_SERIES=os.path.join(HERE, "recruitment-series-v2.csv"), CCF_REPO_ROOT=ROOT)
     build = subprocess.run([dotnet, "build", "-nologo", "-v", "q", "-c", "Release"], cwd=work, env=env, capture_output=True, text=True)
     if build.returncode != 0:
         sys.stdout.write(build.stdout)
