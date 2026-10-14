@@ -624,12 +624,15 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 Csv($"latemix-{geo}.csv", $"{regime.label},{broadleaf[bi]},{route},{F(total[bi].Average(), "0.00000")},{F(sitkaLoss[bi].Average(), "0.00000")},{(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.00000") : "")}");
                 yield return null;
             }
-            double se(int a, int b) => Math.Sqrt(Math.Pow(Sd(sitkaLoss[a]), 2) / seeds + Math.Pow(Sd(sitkaLoss[b]), 2) / seeds);
+            // HARD: the declared property is continuity of the TOTAL annual loss (victims are species-neutral by design, so a small broadleaf can take a death
+            // the Sitka signal asked for). MEASURE: what that does to Sitka's own loss, which is not promised to stay the same.
+            double seTotal(int a, int b) => Math.Sqrt(Math.Pow(Sd(total[a]), 2) / seeds + Math.Pow(Sd(total[b]), 2) / seeds);
             for (int bi = 1; bi < broadleaf.Length; bi++)
             {
-                double d = Math.Abs(sitkaLoss[bi].Average() - sitkaLoss[0].Average()), tolerance = 0.005 + 3.0 * se(0, bi);
-                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_LEAVE_THE_SITKA_LOSS_AS_IN_THE_PURE_STAND", d <= tolerance,
-                    $"sitkaLossDifference={F(d, "0.0000")} tolerance={F(tolerance, "0.0000")} (0.005 + 3 se of the difference of seed means; pure={F(sitkaLoss[0].Average(), "0.000")} mixed={F(sitkaLoss[bi].Average(), "0.000")})");
+                double d = Math.Abs(total[bi].Average() - total[0].Average()), tolerance = 0.005 + 3.0 * seTotal(0, bi);
+                Hard($"LATEMIX_{regime.label}_{broadleaf[bi]}_BROADLEAVES_KEEP_THE_TOTAL_LOSS_CONTINUOUS", d <= tolerance,
+                    $"totalLossDifference={F(d, "0.0000")} tolerance={F(tolerance, "0.0000")} (0.005 + 3 se; pure={F(total[0].Average(), "0.000")} mixed={F(total[bi].Average(), "0.000")})");
+                Measure("LATEMIX_SITKA_SHIELDING", $"{regime.label} broadleaves={broadleaf[bi]} sitkaLoss {F(sitkaLoss[0].Average(), "0.000")} (pure) -> {F(sitkaLoss[bi].Average(), "0.000")} (mixed); the required deaths are taken from the most suppressed stems of any species");
             }
         }
     }
