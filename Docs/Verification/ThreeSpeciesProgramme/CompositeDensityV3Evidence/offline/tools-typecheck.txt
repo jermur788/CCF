@@ -1,0 +1,2 @@
+[tools] distinct errors: 43 (baseline 43)
+TYPECHECK_CLEAN mode=tools

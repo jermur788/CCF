@@ -1,0 +1,139 @@
+[
+  {
+    "mutant": "control (no mutation)",
+    "control_passed": true,
+    "killed": false
+  },
+  {
+    "mutant": "discard-the-sitka-component",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I1_SITKA_COMPONENT_EQUALS_LITERAL_PORT_OF_THE_ORIGINAL_CONTROLLER_BLOCK states=400 identical=253 withHazardVictims=0 withBoundaryVictims=114",
+      "FAIL I1_AT_THE_REPLACEMENT_STATES_THE_SITKA_COMPONENT_EQUALS_THE_ORIGINAL_BLOCK_ON_THE_SITKA_STEMS draws=2400"
+    ],
+    "by_exception": false,
+    "meaning": "the Sitka density process demands nothing (the deaths vanish)"
+  },
+  {
+    "mutant": "remove-the-sitka-boundary-stage",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I1_SITKA_COMPONENT_EQUALS_LITERAL_PORT_OF_THE_ORIGINAL_CONTROLLER_BLOCK states=400 identical=325 withHazardVictims=147 withBoundaryVictims=0",
+      "FAIL I1_AT_THE_REPLACEMENT_STATES_THE_SITKA_COMPONENT_EQUALS_THE_ORIGINAL_BLOCK_ON_THE_SITKA_STEMS draws=2400",
+      "FAIL LONG_RUN_L40_C_MIXED_DENSE_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=1.258 limit=1.02",
+      "FAIL LONG_RUN_L40_G_MIXED_YOUNG_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=2.115 limit=1.02",
+      "FAIL LONG_RUN_E80_C_MIXED_DENSE_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=1.294 limit=1.02",
+      "FAIL LONG_RUN_E80_G_MIXED_YOUNG_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=2.282 limit=1.02"
+    ],
+    "by_exception": false,
+    "meaning": "the Sitka subset is never pulled back to its line"
+  },
+  {
+    "mutant": "broadleaf-enters-the-sitka-density",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I2_SITKA_COMPONENT_IS_UNCHANGED_BY_ANY_BROADLEAF trials=300 identical=5",
+      "FAIL I4_NO_OAK_OR_BEECH_STEM_IS_EVER_A_SITKA_COMPONENT_VICTIM trials=300"
+    ],
+    "by_exception": false,
+    "meaning": "Oak and Beech counted in the Sitka relative density and eligible as Sitka victims"
+  },
+  {
+    "mutant": "sitka-debt-dropped-from-the-union",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I3_VICTIM_UNIQUENESS_SITKA_AND_GENERIC_SETS_ARE_DISJOINT_AND_ADD_UP states=400 withGenericVictims=134 withSitkaVictims=0",
+      "FAIL COMPONENT_MORTALITY_ACCOUNTING_IS_CONSISTENT states=400",
+      "FAIL ACCOUNTING_FIXTURES_EXERCISE_BOTH_COMPONENTS",
+      "FAIL I6_NO_NON_REFERENCE_SHARE_MEANS_NO_GENERIC_DEATHS trials=100",
+      "FAIL I1_AT_THE_REPLACEMENT_STATES_THE_SITKA_COMPONENT_EQUALS_THE_ORIGINAL_BLOCK_ON_THE_SITKA_STEMS draws=2400",
+      "FAIL LONG_RUN_L40_C_MIXED_DENSE_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=3.370 limit=1.02",
+      "FAIL LONG_RUN_L40_G_MIXED_YOUNG_MEETS_R2_R4_WITH_R2_ON_THE_GENERIC_COMPONENT genericBlockChange=0.009 deadBA25y=3.4% bigStemLoss25y=10.4% slope201-300=-0.0004",
+      "FAIL LONG_RUN_E80_C_MIXED_DENSE_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=2.389 limit=1.02",
+      "FAIL LONG_RUN_E80_G_MIXED_YOUNG_SITKA_SUBSET_IS_HELD_AT_ITS_OWN_LINE_R5PRIME meanRdBeforeStep=6.005 limit=1.02"
+    ],
+    "by_exception": false,
+    "meaning": "the Sitka victims are computed but never killed"
+  },
+  {
+    "mutant": "generic-may-kill-a-sitka-victim-twice",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I3_VICTIM_UNIQUENESS_SITKA_AND_GENERIC_SETS_ARE_DISJOINT_AND_ADD_UP states=400 withGenericVictims=134 withSitkaVictims=133"
+    ],
+    "by_exception": false,
+    "meaning": "the generic draw ignores the stems the Sitka component already took"
+  },
+  {
+    "mutant": "untapered-generic-pressure",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I6_NO_NON_REFERENCE_SHARE_MEANS_NO_GENERIC_DEATHS trials=100",
+      "FAIL C4_SHIELDING_OLD_SITKA_N100_DBH78_98_BROADLEAVES_ADD_AT_MOST_THE_GENERIC_EXPECTATION worstAddedDeathsPerYear=7.395 tolerance=1.130",
+      "FAIL C4_SHIELDING_MID_SITKA_N150_DBH55_70_BROADLEAVES_ADD_AT_MOST_THE_GENERIC_EXPECTATION worstAddedDeathsPerYear=2.265 tolerance=1.380",
+      "FAIL C4_SHIELDING_DENSE_SITKA_N230_DBH45_60_BROADLEAVES_ADD_AT_MOST_THE_GENERIC_EXPECTATION worstAddedDeathsPerYear=3.993 tolerance=1.780"
+    ],
+    "by_exception": false,
+    "meaning": "the generic response no longer vanishes with the broadleaf share"
+  },
+  {
+    "mutant": "no-generic-mortality",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL ACCOUNTING_FIXTURES_EXERCISE_BOTH_COMPONENTS",
+      "FAIL I5_CLASS_LABELS_NEVER_ENTER_THE_GENERIC_ALLOCATION_AT_EQUAL_OCCUPANCY trials=120 genericVictimsCompared=0",
+      "FAIL GENERIC_RESPONSE_IS_MONOTONIC_AND_STRICTLY_INCREASING_ABOVE_THE_ONSET",
+      "FAIL GENERIC_DEATHS_MATCH_THE_EXPECTED_COUNT_OVER_MANY_YEARS mean=0.000 expected~0.000 se=0.000",
+      "FAIL GENERIC_ALLOCATION_DEPENDS_ON_COMPETITIVE_POSITION_ONLY_NOT_ON_WHICH_SPECIES_SITS_WHERE trials=120 genericVictimsCompared=0",
+      "FAIL VICTIMS_ARE_THE_MORE_SUPPRESSED_STEMS lowCompetitionDeaths=0 highCompetitionDeaths=0",
+      "FAIL LONG_RUN_L40_A_OAK_DENSE_MEETS_R1_R4 slope201-300=0.0282 slope151-250=0.0282 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=2.11",
+      "FAIL LONG_RUN_L40_B_BEECH_DENSE_MEETS_R1_R4 slope201-300=0.0210 slope151-250=0.0216 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=1.96",
+      "FAIL LONG_RUN_L40_E_OAK_YOUNG_MEETS_R1_R4 slope201-300=0.0251 slope151-250=0.0240 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=2.77",
+      "FAIL LONG_RUN_L40_F_BEECH_YOUNG_MEETS_R1_R4 slope201-300=0.0178 slope151-250=0.0177 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=2.69",
+      "FAIL LONG_RUN_E80_A_OAK_DENSE_MEETS_R1_R4 slope201-300=0.0265 slope151-250=0.0265 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=2.07",
+      "FAIL LONG_RUN_E80_B_BEECH_DENSE_MEETS_R1_R4 slope201-300=0.0202 slope151-250=0.0209 blockChange=0.000 deadBA25y=0.0% bigStemLoss25y=0.0% baY300/Y100=1.92"
+    ],
+    "by_exception": false,
+    "meaning": "broadleaves never die of density"
+  },
+  {
+    "mutant": "species-biased-allocation",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL I5_CLASS_LABELS_NEVER_ENTER_THE_GENERIC_ALLOCATION_AT_EQUAL_OCCUPANCY trials=120 genericVictimsCompared=2556",
+      "FAIL GENERIC_ALLOCATION_DEPENDS_ON_COMPETITIVE_POSITION_ONLY_NOT_ON_WHICH_SPECIES_SITS_WHERE trials=120 genericVictimsCompared=4825"
+    ],
+    "by_exception": false,
+    "meaning": "a class multiplier in the victim choice"
+  },
+  {
+    "mutant": "quota-rounded-up",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL C5_LAST_BROADLEAF_CHANGES_THE_TOTAL_BY_AT_MOST_ONE_STEM_A_YEAR maxDifference=1 meanDifference=1.0000"
+    ],
+    "by_exception": false,
+    "meaning": "any positive expected count always kills a stem (a one-stem step at the first broadleaf)"
+  },
+  {
+    "mutant": "response-reverted-to-v2-strength",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL LONG_RUN_L40_B_BEECH_DENSE_MEETS_R1_R4 slope201-300=0.0050 slope151-250=0.0056 blockChange=0.014 deadBA25y=0.8% bigStemLoss25y=0.7% baY300/Y100=1.52",
+      "FAIL LONG_RUN_L40_F_BEECH_YOUNG_MEETS_R1_R4 slope201-300=0.0049 slope151-250=0.0036 blockChange=0.006 deadBA25y=1.1% bigStemLoss25y=0.9% baY300/Y100=1.53",
+      "FAIL LONG_RUN_E80_B_BEECH_DENSE_MEETS_R1_R4 slope201-300=0.0040 slope151-250=0.0059 blockChange=0.007 deadBA25y=0.6% bigStemLoss25y=0.5% baY300/Y100=1.46",
+      "FAIL LONG_RUN_E80_F_BEECH_YOUNG_MEETS_R1_R4 slope201-300=0.0048 slope151-250=0.0038 blockChange=0.004 deadBA25y=1.0% bigStemLoss25y=0.7% baY300/Y100=1.48"
+    ],
+    "by_exception": false,
+    "meaning": "the weak v2 generic response (pure Beech keeps climbing)"
+  },
+  {
+    "mutant": "response-capped-at-an-occupancy",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL GENERIC_RESPONSE_IS_MONOTONIC_AND_STRICTLY_INCREASING_ABOVE_THE_ONSET"
+    ],
+    "by_exception": false,
+    "meaning": "a hidden maximum occupancy beyond which nothing changes"
+  }
+]

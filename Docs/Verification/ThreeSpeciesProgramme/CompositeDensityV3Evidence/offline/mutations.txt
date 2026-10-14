@@ -1,0 +1,13 @@
+control (no mutation) PASS
+discard-the-sitka-component KILLED failing_assertions=2
+remove-the-sitka-boundary-stage KILLED failing_assertions=6
+broadleaf-enters-the-sitka-density KILLED failing_assertions=2
+sitka-debt-dropped-from-the-union KILLED failing_assertions=9
+generic-may-kill-a-sitka-victim-twice KILLED failing_assertions=1
+untapered-generic-pressure KILLED failing_assertions=4
+no-generic-mortality KILLED failing_assertions=14
+species-biased-allocation KILLED failing_assertions=2
+quota-rounded-up KILLED failing_assertions=1
+response-reverted-to-v2-strength KILLED failing_assertions=4
+response-capped-at-an-occupancy KILLED failing_assertions=1
+{"mutants": 11, "killed": 11, "survivors": [], "control_passed": true}

@@ -1,0 +1,34 @@
+== L40: pure Sitka comparator Y201-300  Sitka-stem loss/yr 0.119  stems 56  RD_S 0.96
+  C_MIXED_DENSE v2 Y101-150: living   46 deaths/yr   7.9 (0.171) | Sitka stems   39 Sitka deaths/yr   7.2 (0.187 per Sitka stem) of 7.6 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y151-200: living   47 deaths/yr   7.8 (0.167) | Sitka stems   41 Sitka deaths/yr   7.1 (0.174 per Sitka stem) of 7.7 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y201-250: living   63 deaths/yr   7.8 (0.124) | Sitka stems   58 Sitka deaths/yr   7.3 (0.126 per Sitka stem) of 7.5 demanded of the Sitka subset | RD_S before 0.97 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y251-300: living   57 deaths/yr   6.2 (0.108) | Sitka stems   55 Sitka deaths/yr   5.9 (0.107 per Sitka stem) of 6.1 demanded of the Sitka subset | RD_S before 0.96 | generic deaths/yr 0.0
+  C_MIXED_DENSE v3 Y101-150: living   72 deaths/yr   7.7 (0.106) | Sitka stems   34 Sitka deaths/yr   5.6 (0.166 per Sitka stem) of 4.2 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 3.4
+  C_MIXED_DENSE v3 Y151-200: living   73 deaths/yr   8.3 (0.113) | Sitka stems   31 Sitka deaths/yr   5.2 (0.168 per Sitka stem) of 3.2 demanded of the Sitka subset | RD_S before 0.97 | generic deaths/yr 5.1
+  C_MIXED_DENSE v3 Y201-250: living   59 deaths/yr   7.3 (0.124) | Sitka stems   24 Sitka deaths/yr   4.3 (0.180 per Sitka stem) of 1.7 demanded of the Sitka subset | RD_S before 0.97 | generic deaths/yr 5.6
+  C_MIXED_DENSE v3 Y251-300: living   51 deaths/yr   7.4 (0.144) | Sitka stems   19 Sitka deaths/yr   4.0 (0.212 per Sitka stem) of 1.4 demanded of the Sitka subset | RD_S before 0.96 | generic deaths/yr 6.0
+  G_MIXED_YOUNG v2 Y101-150: living   41 deaths/yr   5.4 (0.130) | Sitka stems   41 Sitka deaths/yr   5.4 (0.130 per Sitka stem) of 5.4 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y151-200: living   38 deaths/yr   5.7 (0.148) | Sitka stems   38 Sitka deaths/yr   5.7 (0.148 per Sitka stem) of 5.7 demanded of the Sitka subset | RD_S before 0.98 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y201-250: living   50 deaths/yr   5.9 (0.116) | Sitka stems   50 Sitka deaths/yr   5.9 (0.116 per Sitka stem) of 5.9 demanded of the Sitka subset | RD_S before 0.97 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y251-300: living   53 deaths/yr   6.2 (0.117) | Sitka stems   53 Sitka deaths/yr   6.2 (0.117 per Sitka stem) of 6.2 demanded of the Sitka subset | RD_S before 0.95 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v3 Y101-150: living  111 deaths/yr   6.3 (0.056) | Sitka stems   43 Sitka deaths/yr   4.8 (0.111 per Sitka stem) of 4.8 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 1.5
+  G_MIXED_YOUNG v3 Y151-200: living   87 deaths/yr   5.8 (0.067) | Sitka stems   32 Sitka deaths/yr   4.6 (0.144 per Sitka stem) of 4.1 demanded of the Sitka subset | RD_S before 0.98 | generic deaths/yr 1.7
+  G_MIXED_YOUNG v3 Y201-250: living   85 deaths/yr   6.8 (0.080) | Sitka stems   32 Sitka deaths/yr   5.0 (0.157 per Sitka stem) of 3.8 demanded of the Sitka subset | RD_S before 0.98 | generic deaths/yr 3.0
+  G_MIXED_YOUNG v3 Y251-300: living   74 deaths/yr   6.2 (0.084) | Sitka stems   27 Sitka deaths/yr   3.9 (0.143 per Sitka stem) of 2.0 demanded of the Sitka subset | RD_S before 0.97 | generic deaths/yr 4.3
+== E80: pure Sitka comparator Y201-300  Sitka-stem loss/yr 0.001  stems 54  RD_S 0.99
+  C_MIXED_DENSE v2 Y101-150: living  149 deaths/yr  29.6 (0.199) | Sitka stems  129 Sitka deaths/yr  27.2 (0.210 per Sitka stem) of 29.2 demanded of the Sitka subset | RD_S before 1.01 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y151-200: living  147 deaths/yr  28.5 (0.193) | Sitka stems  138 Sitka deaths/yr  27.3 (0.198 per Sitka stem) of 28.4 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y201-250: living  176 deaths/yr  27.9 (0.159) | Sitka stems  168 Sitka deaths/yr  27.0 (0.161 per Sitka stem) of 27.7 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 0.0
+  C_MIXED_DENSE v2 Y251-300: living  193 deaths/yr  25.8 (0.134) | Sitka stems  184 Sitka deaths/yr  24.9 (0.135 per Sitka stem) of 25.6 demanded of the Sitka subset | RD_S before 0.98 | generic deaths/yr 0.0
+  C_MIXED_DENSE v3 Y101-150: living  249 deaths/yr  29.0 (0.116) | Sitka stems  121 Sitka deaths/yr  22.5 (0.186 per Sitka stem) of 21.9 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 7.1
+  C_MIXED_DENSE v3 Y151-200: living  270 deaths/yr  28.8 (0.107) | Sitka stems  116 Sitka deaths/yr  20.2 (0.174 per Sitka stem) of 17.1 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 11.7
+  C_MIXED_DENSE v3 Y201-250: living  257 deaths/yr  28.3 (0.110) | Sitka stems  107 Sitka deaths/yr  17.9 (0.168 per Sitka stem) of 12.1 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 16.2
+  C_MIXED_DENSE v3 Y251-300: living  223 deaths/yr  27.4 (0.123) | Sitka stems   93 Sitka deaths/yr  16.8 (0.180 per Sitka stem) of 9.4 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 18.1
+  G_MIXED_YOUNG v2 Y101-150: living  155 deaths/yr  14.9 (0.096) | Sitka stems  155 Sitka deaths/yr  14.9 (0.096 per Sitka stem) of 14.9 demanded of the Sitka subset | RD_S before 1.01 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y151-200: living  111 deaths/yr  18.3 (0.164) | Sitka stems  111 Sitka deaths/yr  18.3 (0.164 per Sitka stem) of 18.3 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y201-250: living  141 deaths/yr  22.4 (0.159) | Sitka stems  141 Sitka deaths/yr  22.4 (0.159 per Sitka stem) of 22.4 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v2 Y251-300: living  175 deaths/yr  22.4 (0.128) | Sitka stems  175 Sitka deaths/yr  22.4 (0.128 per Sitka stem) of 22.4 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 0.0
+  G_MIXED_YOUNG v3 Y101-150: living  401 deaths/yr  18.2 (0.045) | Sitka stems  163 Sitka deaths/yr  13.3 (0.081 per Sitka stem) of 13.3 demanded of the Sitka subset | RD_S before 1.01 | generic deaths/yr 4.9
+  G_MIXED_YOUNG v3 Y151-200: living  271 deaths/yr  19.2 (0.071) | Sitka stems  108 Sitka deaths/yr  15.5 (0.143 per Sitka stem) of 15.2 demanded of the Sitka subset | RD_S before 1.00 | generic deaths/yr 4.0
+  G_MIXED_YOUNG v3 Y201-250: living  278 deaths/yr  22.2 (0.080) | Sitka stems  105 Sitka deaths/yr  17.2 (0.165 per Sitka stem) of 15.1 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 7.1
+  G_MIXED_YOUNG v3 Y251-300: living  294 deaths/yr  24.3 (0.083) | Sitka stems  113 Sitka deaths/yr  16.4 (0.145 per Sitka stem) of 11.3 demanded of the Sitka subset | RD_S before 0.99 | generic deaths/yr 12.9

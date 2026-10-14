@@ -1,0 +1,29 @@
+[
+ {
+  "gate": "SitkaGrowthModelVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 200.01,
+  "mode": "batch",
+  "run_head": "cc4a5219cfc06e32a0f4d5dc88f640c3a5d2cbb5",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "RegenerationModelVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 677.81,
+  "mode": "batch",
+  "run_head": "cc4a5219cfc06e32a0f4d5dc88f640c3a5d2cbb5",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioReferenceVerification",
+  "status": "FAIL",
+  "exit_code": 198,
+  "seconds": 90.08,
+  "mode": "batch",
+  "run_head": "cc4a5219cfc06e32a0f4d5dc88f640c3a5d2cbb5",
+  "production_source_unchanged": true
+ }
+]

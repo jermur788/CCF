@@ -1,0 +1,63 @@
+== E80 A_OAK_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n 235 BA 33.0 occ 1.20 Dq 33.8   unity n 423 BA 46.6 occ 1.70 Dq 30.0
+  Y 50: sim n 208 BA 36.2 occ 1.32 Dq 37.6   unity n 399 BA 54.4 occ 1.98 Dq 33.3
+  Y100: sim n 143 BA 38.8 occ 1.41 Dq 47.0   unity n 263 BA 59.8 occ 2.17 Dq 43.0
+  Y200: sim n  83 BA 39.9 occ 1.45 Dq 62.6   unity n 150 BA 64.5 occ 2.35 Dq 59.2
+  Y300: sim n  64 BA 39.7 occ 1.45 Dq 71.1   unity n 100 BA 67.1 occ 2.44 Dq 74.0
+  occupancy slope Y201-300: sim -0.0002  unity 0.0002
+== E80 B_BEECH_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n 318 BA 43.5 occ 1.19 Dq 33.4   unity n 536 BA 60.3 occ 1.64 Dq 30.3
+  Y 50: sim n 299 BA 49.1 occ 1.34 Dq 36.6   unity n 663 BA 70.4 occ 1.92 Dq 29.4
+  Y100: sim n 216 BA 53.3 occ 1.45 Dq 44.9   unity n 454 BA 86.6 occ 2.36 Dq 39.4
+  Y200: sim n 149 BA 61.2 occ 1.67 Dq 57.8   unity n 311 BA104.5 occ 2.85 Dq 52.3
+  Y300: sim n 120 BA 65.8 occ 1.80 Dq 66.9   unity n 216 BA125.4 occ 3.42 Dq 68.8
+  occupancy slope Y201-300: sim 0.0013  unity 0.0054
+== E80 C_MIXED_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n 293 BA 52.7 occ 1.30 Dq 38.3   unity n 568 BA 75.9 occ 1.91 Dq 33.0
+  Y 50: sim n 242 BA 66.2 occ 1.51 Dq 47.2   unity n 537 BA100.7 occ 2.40 Dq 39.1
+  Y100: sim n 171 BA 90.2 occ 1.88 Dq 65.6   unity n 238 BA118.1 occ 2.44 Dq 63.6
+  Y200: sim n 112 BA 95.4 occ 1.86 Dq 83.3   unity n 130 BA 99.2 occ 1.83 Dq 78.9
+  Y300: sim n 229 BA 94.0 occ 1.85 Dq 57.8   unity n  97 BA 91.0 occ 1.67 Dq 87.4
+  occupancy slope Y201-300: sim 0.0005  unity -0.0004
+== E80 G_MIXED_YOUNG  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n1503 BA 48.7 occ 1.17 Dq 16.2   unity n1592 BA 50.9 occ 1.23 Dq 16.1
+  Y 50: sim n 781 BA 66.8 occ 1.37 Dq 26.4   unity n1318 BA 83.3 occ 1.82 Dq 22.7
+  Y100: sim n 199 BA 86.4 occ 1.57 Dq 59.5   unity n 231 BA 91.6 occ 1.67 Dq 56.8
+  Y200: sim n 113 BA 83.8 occ 1.52 Dq 77.8   unity n 117 BA 84.8 occ 1.54 Dq 76.8
+  Y300: sim n  79 BA 83.5 occ 1.52 Dq 92.8   unity n 196 BA 85.6 occ 1.56 Dq 59.7
+  occupancy slope Y201-300: sim 0.0001  unity 0.0001
+== L40 A_OAK_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n  55 BA 32.7 occ 1.19 Dq 34.8   unity n  93 BA 46.6 occ 1.69 Dq 31.9
+  Y 50: sim n  49 BA 36.7 occ 1.33 Dq 39.0   unity n  97 BA 54.7 occ 1.99 Dq 33.9
+  Y100: sim n  34 BA 38.0 occ 1.38 Dq 47.7   unity n  57 BA 59.7 occ 2.17 Dq 46.2
+  Y200: sim n  19 BA 39.1 occ 1.42 Dq 64.8   unity n  37 BA 61.0 occ 2.22 Dq 57.9
+  Y300: sim n  17 BA 39.1 occ 1.42 Dq 68.5   unity n  26 BA 63.2 occ 2.30 Dq 70.4
+  occupancy slope Y201-300: sim -0.0006  unity 0.0002
+== L40 B_BEECH_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n  90 BA 44.4 occ 1.21 Dq 31.7   unity n 149 BA 61.1 occ 1.67 Dq 28.9
+  Y 50: sim n  76 BA 48.8 occ 1.33 Dq 36.2   unity n 160 BA 71.0 occ 1.94 Dq 30.1
+  Y100: sim n  54 BA 53.8 occ 1.47 Dq 45.1   unity n 109 BA 83.9 occ 2.29 Dq 39.6
+  Y200: sim n  38 BA 60.0 occ 1.64 Dq 56.7   unity n  78 BA103.5 occ 2.82 Dq 52.0
+  Y300: sim n  30 BA 64.1 occ 1.75 Dq 66.0   unity n  63 BA123.0 occ 3.35 Dq 63.1
+  occupancy slope Y201-300: sim 0.0014  unity 0.0052
+== L40 C_MIXED_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n  77 BA 51.4 occ 1.29 Dq 36.9   unity n 149 BA 80.9 occ 2.01 Dq 33.3
+  Y 50: sim n  62 BA 62.7 occ 1.49 Dq 45.4   unity n 132 BA105.1 occ 2.48 Dq 40.3
+  Y100: sim n  49 BA 92.2 occ 2.00 Dq 61.9   unity n  73 BA126.6 occ 2.69 Dq 59.4
+  Y200: sim n  39 BA 87.1 occ 1.73 Dq 67.5   unity n  29 BA102.1 occ 1.92 Dq 84.7
+  Y300: sim n  61 BA 96.7 occ 1.89 Dq 56.8   unity n  70 BA 82.6 occ 1.50 Dq 49.0
+  occupancy slope Y201-300: sim -0.0009  unity -0.0018
+== L40 D_SITKA_DENSE  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n  85 BA 77.2 occ 1.40 Dq 43.0   unity n  91 BA 83.1 occ 1.51 Dq 43.1
+  Y 50: sim n  54 BA 86.3 occ 1.57 Dq 57.0   unity n  52 BA 86.1 occ 1.56 Dq 58.1
+  Y100: sim n  33 BA 83.7 occ 1.52 Dq 71.9   unity n  33 BA 83.3 occ 1.51 Dq 71.7
+  Y200: sim n  62 BA 85.5 occ 1.55 Dq 53.0   unity n  65 BA 86.3 occ 1.57 Dq 52.0
+  Y300: sim n  73 BA 81.3 occ 1.48 Dq 47.6   unity n  77 BA 83.4 occ 1.52 Dq 47.0
+  occupancy slope Y201-300: sim -0.0000  unity -0.0003
+== L40 G_MIXED_YOUNG  (v2 kernel, reduced simulator  vs  Unity v2 long run)
+  Y 25: sim n 376 BA 48.8 occ 1.17 Dq 16.3   unity n 398 BA 50.7 occ 1.22 Dq 16.1
+  Y 50: sim n 197 BA 66.8 occ 1.38 Dq 26.3   unity n 332 BA 81.8 occ 1.80 Dq 22.4
+  Y100: sim n  51 BA 85.1 occ 1.55 Dq 58.3   unity n  66 BA 93.6 occ 1.71 Dq 53.8
+  Y200: sim n  24 BA 81.5 occ 1.48 Dq 83.2   unity n  49 BA 85.4 occ 1.55 Dq 59.6
+  Y300: sim n  89 BA 84.7 occ 1.54 Dq 44.0   unity n  74 BA 83.5 occ 1.52 Dq 47.9
+  occupancy slope Y201-300: sim -0.0002  unity -0.0002
