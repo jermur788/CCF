@@ -190,13 +190,16 @@ public sealed class UxQualificationRunner : MonoBehaviour
     }
 
     // Screenshot at every requested size, plus a measurement of how large the text really is on that screen.
-    private IEnumerator Shoot(string state)
+    // everyFrame keeps a transient state alive (an inspected tree); check runs at the end of the frame, once per size, before the capture.
+    private IEnumerator Shoot(string state, Action everyFrame = null, Action<Vector2Int> check = null)
     {
         foreach (Vector2Int size in UxQualification.Sizes())
         {
             UxQualification.SetGameSize(size.x, size.y);
-            for (int i = 0; i < 6; i++) yield return null;
+            for (int i = 0; i < 6; i++) { everyFrame?.Invoke(); yield return null; }
+            everyFrame?.Invoke();
             yield return new WaitForEndOfFrame();
+            check?.Invoke(size);
             Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
             if (image == null || image.width < 600) throw new InvalidOperationException("no rendered capture for " + state);
             File.WriteAllBytes(Path.Combine(output, state + "-" + size.x + "x" + size.y + ".png"), image.EncodeToPNG());
@@ -228,6 +231,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
         string row = $"{state},{size.x}x{size.y},scale={F(scale, "0.000")},texts={sizes.Count},minPx={F(sizes[0], "0.0")},medianPx={F(sizes[sizes.Count / 2], "0.0")},under10px={sizes.Count(s => s < 10f)},under12px={sizes.Count(s => s < 12f)},outsideViewportNotScrolled={clipped}";
         fontRows.Add(row);
         Measure("TEXT_SIZE", row);
+        if (size.x >= 1280) Hard($"NO_TEXT_OUTSIDE_THE_VIEWPORT_{state}_{size.x}x{size.y}", clipped == 0, $"outsideViewportNotScrolled={clipped}");
     }
 
     // Runs one phase (flattening its nested coroutines) and turns an exception into a recorded failure, then puts the UI back to a neutral
@@ -276,6 +280,8 @@ public sealed class UxQualificationRunner : MonoBehaviour
         if (Want("RESET_FLOW")) yield return Safe("RESET_FLOW", ResetFlow());
         if (Want("CONTROLS_AND_TERMINOLOGY")) yield return Safe("CONTROLS_AND_TERMINOLOGY", ControlsAndTerminology());
         if (Want("MODEL_AWARE_COPY")) yield return Safe("MODEL_AWARE_COPY", ModelAwareCopy());
+        if (Want("INSPECTION_CASES")) yield return Safe("INSPECTION_CASES", InspectionCases());
+        if (Want("DEADWOOD_LINE")) yield return Safe("DEADWOOD_LINE", DeadwoodLine());
         if (Want("INPUT_SMOKE")) yield return Safe("INPUT_SMOKE", InputSmoke());
         if (Want("PRESERVATION")) yield return Safe("PRESERVATION", Preservation());
         if (Want("PERF_SANITY")) yield return Safe("PERF_SANITY", PerfSanity());
@@ -688,7 +694,11 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return Shoot("19-work-plan-stale-order");
         ui.CloseAll(); yield return null; yield return null;
         Hard("PRESERVED_HUD_SHOWS_THE_INTERVENTION_COUNT", Texts(UiRoot()).Contains("intervention"), Regex.Match(Texts(UiRoot()), @"[^\n]*intervention[^\n]*").Value);
-        yield return Shoot("20-hud-with-intervention-count");
+        yield return Shoot("20-hud-with-intervention-count", null, size =>
+        {
+            var problems = new List<string>(); CheckHudTitle(problems);
+            Hard($"HUD_TITLE_SHOWS_THE_WHOLE_INTERVENTION_COUNT_{size.x}x{size.y}", problems.Count == 0, string.Join(" ; ", problems));
+        });
         ui.ShowReview(); yield return null; yield return null;
         string review = Texts(UiRoot(), false);
         Hard("PRESERVED_ANNUAL_REVIEW_HAS_MANAGEMENT_HISTORY_AND_YEAR_STEPPING", review.IndexOf("management history", StringComparison.OrdinalIgnoreCase) >= 0 && review.Contains("Earlier year") && review.Contains("Later year"), Regex.Match(review, @"[^\n]*(MANAGEMENT|Management) (HISTORY|history)[^\n]*").Value);
@@ -795,6 +805,181 @@ public sealed class UxQualificationRunner : MonoBehaviour
         Measure("PERF_HELP_RESET_CPU", $"cycles=10 meanMs={F(helpMs.Average())} maxMs={F(helpMs.Max())}");
     }
 
+    // ---- U1.2: the three rendered defects ----
+
+    private static bool Inside(Rect inner, Rect outer, float tolerance = 1f)
+        => inner.xMin >= outer.xMin - tolerance && inner.yMin >= outer.yMin - tolerance && inner.xMax <= outer.xMax + tolerance && inner.yMax <= outer.yMax + tolerance;
+
+    private static bool Overlap(Rect a, Rect b, float inset = 2f)
+        => a.xMin + inset < b.xMax && b.xMin + inset < a.xMax && a.yMin + inset < b.yMax && b.yMin + inset < a.yMax;
+
+    private static string Short(string s) => string.IsNullOrEmpty(s) ? "" : (s.Length > 44 ? s.Substring(0, 44) + "..." : s).Replace("\n", " ");
+
+    private static void SetField(object target, string name, object value)
+        => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).SetValue(target, value);
+
+    // The title row of the HUD status panel: year, phase and the intervention count. It must show all of its text, wrapping if it has to.
+    private void CheckHudTitle(List<string> problems)
+    {
+        VisualElement status = UiRoot().Q(className: "hud-status");
+        Label title = status == null ? null : status.Query<Label>(className: "heading").ToList().FirstOrDefault();
+        if (title == null || !Visible(title)) { problems.Add("the HUD title is not visible"); return; }
+        if (ui.Manager.Interventions.Count > 0 && !title.text.Contains("intervention")) problems.Add($"the title has no intervention count: [{title.text}]");
+        float oneLine = title.MeasureTextSize(title.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
+        float available = title.contentRect.width;
+        if (oneLine > available + 1f)
+        {
+            Vector2 wrapped = title.MeasureTextSize(title.text, available, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
+            bool wraps = title.resolvedStyle.whiteSpace == WhiteSpace.Normal;
+            if (!wraps) problems.Add($"the title needs {F(oneLine)} but has {F(available)} and does not wrap: [{title.text}]");
+            else if (title.contentRect.height + 1f < wrapped.y) problems.Add($"the wrapped title needs {F(wrapped.y)} high but has {F(title.contentRect.height)}");
+        }
+        if (!Inside(title.worldBound, status.worldBound)) problems.Add($"the title {title.worldBound} leaves its panel {status.worldBound}");
+        Measure("HUD_TITLE", $"text=[{title.text}] oneLineWidth={F(oneLine)} available={F(available)} whiteSpace={title.resolvedStyle.whiteSpace} height={F(title.contentRect.height)}");
+    }
+
+    // One inspected tree: the card, the estimate or competitor panel beside it, and the HUD panels around them.
+    private void CheckInspectionLayout(string state, List<string> problems)
+    {
+        VisualElement root = UiRoot();
+        Rect screen = root.worldBound;
+        VisualElement card = root.Q(className: "inspect");
+        if (card == null || !Visible(card)) { problems.Add("the inspection card is not visible"); return; }
+        var panels = new List<(string name, VisualElement element)> { ("inspection card", card) };
+        VisualElement estimate = root.Q("inspect-estimate"), competitors = root.Q("competitor-panel");
+        if (estimate != null && Visible(estimate)) panels.Add(("estimate panel", estimate));
+        if (competitors != null && Visible(competitors)) panels.Add(("competitor panel", competitors));
+        foreach (var (name, element) in panels)
+        {
+            Rect b = element.worldBound;
+            if (!Inside(b, screen)) problems.Add($"{name} {b} leaves the screen {screen}");
+            foreach (TextElement t in element.Query<TextElement>().ToList())
+            {
+                if (!Visible(t) || string.IsNullOrWhiteSpace(t.text)) continue;
+                if (!Inside(t.worldBound, b)) { problems.Add($"{name}: text [{Short(t.text)}] {t.worldBound} is outside its panel {b}"); break; }
+            }
+            Measure("INSPECTION_PANEL", $"{state} {name} height={F(b.height)} ({F(100 * b.height / screen.height, "0")}% of the screen) bottom={F(b.yMax)} of {F(screen.yMax)}");
+        }
+        var hud = new List<(string name, VisualElement element)>();
+        VisualElement status = root.Q(className: "hud-status");
+        if (status != null && Visible(status)) hud.Add(("HUD status panel", status));
+        VisualElement bottom = root.Q(className: "hud-bottom");
+        if (bottom != null) foreach (VisualElement c in bottom.Children()) if (Visible(c) && c.worldBound.height > 0) hud.Add(("HUD bottom-left " + (c.ClassListContains("hud-forecast") ? "forecast" : c.ClassListContains("hud-ground") ? "ground report" : "mark summary"), c));
+        foreach (var p in panels) foreach (var h in hud)
+            if (Overlap(p.element.worldBound, h.element.worldBound)) problems.Add($"{p.name} {p.element.worldBound} overlaps the {h.name} {h.element.worldBound}");
+        for (int i = 0; i < panels.Count; i++) for (int j = i + 1; j < panels.Count; j++)
+            if (Overlap(panels[i].element.worldBound, panels[j].element.worldBound)) problems.Add($"{panels[i].name} overlaps {panels[j].name}");
+        CheckHudTitle(problems);
+    }
+
+    private void KeepInspecting(ForestTree tree)
+    {
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        typeof(ForestPlayer).GetMethod("InspectTree", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(player, new object[] { tree });
+        ui.CloseHelp();
+    }
+
+    private IEnumerator ShootInspection(string state, ForestTree tree, string expectation)
+    {
+        yield return Shoot(state, () => KeepInspecting(tree), size =>
+        {
+            var problems = new List<string>(); CheckInspectionLayout(state, problems);
+            bool wantsEstimate = expectation == "estimate", wantsCompetitors = expectation == "competitors";
+            VisualElement estimate = UiRoot().Q("inspect-estimate"), competitors = UiRoot().Q("competitor-panel");
+            if (wantsEstimate && (estimate == null || !Visible(estimate))) problems.Add("the felling estimate is not shown");
+            if (wantsCompetitors && (competitors == null || !Visible(competitors))) problems.Add("the competitor panel is not shown");
+            if (wantsEstimate && !Texts(UiRoot()).Contains("If felled now")) problems.Add("no 'If felled now' estimate text");
+            Hard($"INSPECTION_{state.ToUpperInvariant().Replace('-', '_')}_FITS_{size.x}x{size.y}", problems.Count == 0, string.Join(" ; ", problems));
+        });
+        SetField(player, "inspectedTree", null); SetField(player, "isInspecting", false);
+        yield return null; yield return null;
+    }
+
+    private IEnumerator InspectionCases()
+    {
+        ui.CloseAll(); ui.CloseHelp(); yield return null;
+        int model = ecology.GrowthModelVersion;
+        ecology.GrowthModelVersion = 2;                     // the broadleaf market is on, so Oak and Beech show their product lists
+        TreeSpeciesDefinition oak = spawner.ResolveSpecies("sessile-oak"), beech = spawner.ResolveSpecies("beech");
+        ForestTree[] sitka = Trees();
+        Vector3 at = sitka[0].transform.position;
+        ForestTree prunedOak = spawner.Spawn("QOAK1", oak, at + new Vector3(6, 0, 0), 80, 52f, 24f, oak.PotentialCrownRadiusM(52f));
+        ForestTree plainOak = spawner.Spawn("QOAK2", oak, at + new Vector3(-6, 0, 0), 80, 52f, 24f, oak.PotentialCrownRadiusM(52f));
+        ForestTree beechTree = spawner.Spawn("QBEECH1", beech, at + new Vector3(0, 0, 7), 80, 48f, 24f, beech.PotentialCrownRadiusM(48f));
+        SetField(prunedOak, "pruningLifts", 3); SetField(prunedOak, "crownBaseHeightM", 8f);   // a rendered-fixture state: the pruned-Oak product text is the longest
+        ecology.InvalidateCompetition(); ecology.RecomputeCanopy(); yield return null; yield return null;
+
+        // The bottom-left HUD stack at its tallest: a Crop Tree and several Fell marks give the mark summary and the forecast panel.
+        ForestTree cropTree = sitka[1];
+        ForestTree[] fells = sitka.Skip(2).Take(4).ToArray();
+        marks.Mark(cropTree, TreeMarkType.CropTree, false);
+        foreach (ForestTree f in fells) marks.Mark(f, TreeMarkType.Fell, false);
+        yield return null; yield return null;
+        Measure("INSPECTION_FIXTURE", $"growthModel={ecology.GrowthModelVersion} broadleafMarket={manager.BroadleafMarketActive} interventions={manager.Interventions.Count} fellMarks={fells.Length} prunedOakLifts={prunedOak.PruningLifts}");
+
+        yield return ShootInspection("25-inspect-sitka-with-marks", sitka[sitka.Length - 1], "estimate");
+        yield return ShootInspection("26-inspect-oak-pruned", prunedOak, "estimate");
+        yield return ShootInspection("27-inspect-oak-unpruned", plainOak, "estimate");
+        yield return ShootInspection("28-inspect-beech", beechTree, "estimate");
+        marks.Mark(plainOak, TreeMarkType.CropTree, false); yield return null; yield return null;
+        for (int i = 0; i < 6; i++) { KeepInspecting(plainOak); yield return null; }
+        yield return ShootInspection("29-inspect-oak-crop-tree-competitors", plainOak, "competitors");
+        marks.Mark(plainOak, TreeMarkType.CropTree, false);   // unmark
+        ecology.GrowthModelVersion = 1; ecology.InvalidateCompetition(); yield return null;
+        yield return ShootInspection("30-inspect-oak-model1", prunedOak, "estimate");
+
+        foreach (ForestTree f in fells) marks.Mark(f, TreeMarkType.Fell, false);
+        marks.Mark(cropTree, TreeMarkType.CropTree, false);
+        foreach (ForestTree t in new[] { prunedOak, plainOak, beechTree }) if (t != null) DestroyImmediate(t.gameObject);
+        ecology.GrowthModelVersion = model; ecology.InvalidateCompetition(); ecology.RecomputeCanopy(); yield return null;
+        Hard("INSPECTION_FIXTURE_LEFT_NO_MARKS", marks.LivingMarkedCount == 0 && marks.LivingCropTreeCount == 0, $"fell={marks.LivingMarkedCount} crop={marks.LivingCropTreeCount}");
+    }
+
+    // The "Deadwood volume" row of WHAT YOU ARE LEAVING: a long value must not squeeze its name into a column a syllable wide.
+    private IEnumerator DeadwoodLine()
+    {
+        ui.CloseAll(); ui.CloseHelp(); yield return null;
+        ForestTree t = null; yield return AimAt(tr => !tr.IsMarkedForFell && !marks.GetCropTreeIds().Contains(tr.TreeId) && manager.WorkOrders.All(o => o.targetTreeId != tr.TreeId), x => t = x);
+        Hard("DEADWOOD_FIXTURE_TREE", t != null, t != null ? t.TreeId : "none");
+        yield return Press(Key.X);
+        manager.AddMarkedTreesToWorkPlan();
+        ScenarioOneWorkOrder order = manager.WorkOrders.FirstOrDefault(o => o.IsOpen && o.targetTreeId == t.TreeId);
+        Hard("DEADWOOD_FELL_ORDER_EXISTS", order != null && manager.SetPendingFellingOutcome(order.workOrderId, FellingMaterialOutcome.RetainAsFallenDeadwood), "retain as deadwood");
+        ui.ShowWorkPlan(); for (int i = 0; i < 4; i++) yield return null; ui.CloseHelp(); yield return null;
+        Label NameLabel() => UiRoot().Query<Label>().ToList().FirstOrDefault(l => l.text == "Deadwood volume");
+        Hard("DEADWOOD_VOLUME_ROW_IS_SHOWN", NameLabel() != null, "planned deadwood > 0");
+        yield return Shoot("31-work-plan-deadwood-volume", () =>
+        {
+            Label name = NameLabel(); ScrollView sv = UiRoot().Query<ScrollView>().ToList().FirstOrDefault(Visible);
+            if (name != null && sv != null) sv.ScrollTo(name);
+        }, size =>
+        {
+            Label name = NameLabel(); var problems = new List<string>();
+            if (name == null) problems.Add("row missing");
+            else
+            {
+                VisualElement row = name.parent, card = UiRoot().Q("workplan-leaving");
+                Label value = row.Query<Label>().ToList().FirstOrDefault(l => l != name);
+                float oneLine = name.MeasureTextSize(name.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
+                if (oneLine > name.contentRect.width + 1f) problems.Add($"the name needs {F(oneLine)} but has {F(name.contentRect.width)} (wraps)");
+                if (value == null) problems.Add("no value label");
+                else
+                {
+                    Vector2 wrapped = value.MeasureTextSize(value.text, value.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
+                    if (value.contentRect.height + 1f < wrapped.y) problems.Add($"the value is clipped: needs {F(wrapped.y)} high, has {F(value.contentRect.height)}");
+                    if (card != null && !Inside(value.worldBound, card.worldBound)) problems.Add($"the value {value.worldBound} leaves its card {card.worldBound}");
+                }
+                if (card != null && !Inside(name.worldBound, card.worldBound)) problems.Add($"the name {name.worldBound} leaves its card {card.worldBound}");
+                Measure("DEADWOOD_ROW", $"{size.x}x{size.y} nameWidth={F(name.contentRect.width)} nameHeight={F(name.contentRect.height)} valueWidth={(value != null ? F(value.contentRect.width) : "-")} valueHeight={(value != null ? F(value.contentRect.height) : "-")}");
+            }
+            Hard($"DEADWOOD_VOLUME_NAME_DOES_NOT_WRAP_{size.x}x{size.y}", problems.Count == 0, string.Join(" ; ", problems));
+        });
+        if (order != null) manager.RemovePendingOrder(order.workOrderId);
+        ui.CloseAll(); yield return null;
+        if (t != null && t.IsMarkedForFell) marks.Mark(t, TreeMarkType.Fell, false);   // a second mark unmarks
+        Hard("DEADWOOD_FIXTURE_LEFT_NO_MARKS", marks.LivingMarkedCount == 0, $"fell={marks.LivingMarkedCount}");
+    }
+
     // ---- section 8/10: the startup Controls card (last: the startup screen is left only through Start/Continue) ----
     private IEnumerator StartupControls()
     {
@@ -814,6 +999,23 @@ public sealed class UxQualificationRunner : MonoBehaviour
         Button back = Btn(root, "Back");
         Rect bb = back != null ? back.worldBound : default; Rect rb = root.worldBound;
         Hard("STARTUP_CONTROLS_BACK_BUTTON_IS_ON_SCREEN", back != null && bb.xMin >= rb.xMin && bb.xMax <= rb.xMax && bb.yMin >= rb.yMin && bb.yMax <= rb.yMax, $"back={bb} viewport={rb}");
+        // The card may stay scrollable. It has to scroll to the last row and keep Back on screen while it does.
+        ScrollView list = root.Query<ScrollView>().ToList().FirstOrDefault(Visible);
+        Hard("STARTUP_CONTROLS_LIST_SCROLLS", list != null && list.contentContainer.layout.height > list.contentViewport.layout.height + 1f,
+            list == null ? "no scroll view" : $"content={F(list.contentContainer.layout.height)} viewport={F(list.contentViewport.layout.height)}");
+        if (list != null)
+        {
+            list.scrollOffset = new Vector2(0, list.verticalScroller.highValue);
+            for (int i = 0; i < 4; i++) yield return null;
+            string lastKey = ControlsReference.Rows.Last()[0];
+            Label lastRow = root.Query<Label>().ToList().FirstOrDefault(l => l.text == lastKey && Visible(l));
+            Rect port = list.contentViewport.worldBound;
+            Hard("STARTUP_CONTROLS_SCROLLS_TO_THE_LAST_ROW_WITH_BACK_STILL_VISIBLE", lastRow != null && Inside(lastRow.worldBound, port) && Btn(root, "Back") != null && Inside(Btn(root, "Back").worldBound, rb),
+                $"lastRow=[{lastKey}] row={(lastRow != null ? lastRow.worldBound.ToString() : "not visible")} viewport={port}");
+            yield return Shoot("24b-startup-controls-scrolled-to-end");
+            list.scrollOffset = Vector2.zero;
+            for (int i = 0; i < 3; i++) yield return null;
+        }
         yield return Invoke(back);
         Hard("STARTUP_BACK_RETURNS_TO_THE_TITLE", session.StartupScreenActive, "");
     }
