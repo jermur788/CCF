@@ -15,11 +15,16 @@ MonoBehaviour:
   speciesId: sessile-oak
   displayName: Sessile oak
   latinName: Quercus petraea
-  potentialDbhGrowthCmPerYear: 0.4
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  potentialDbhGrowthCmPerYear: 0.8
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
   maxDbhCm: 120
-  potentialHeightGrowthMPerYear: 0.4
-  maxHeightM: 40
-  ci50: 3
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  potentialHeightGrowthMPerYear: 0.65
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  maxHeightM: 42.5
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  ci50: 5
   growingSpaceDemand: 2
   crownRadiusIntercept: 0.1
   crownRadiusPerCmDbh: 0.1045
