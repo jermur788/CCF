@@ -856,7 +856,9 @@ public sealed class DensityQualificationRunner : MonoBehaviour
     private IEnumerator RunScenario(string name, int growth, Func<int, TreeSpeciesDefinition> speciesOf, float perHa, float dbhMin, float spread, int years, RunResult result)
     {
         int count = StemCount(perHa);
-        Stand(growth, speciesOf, count, dbhMin, spread);
+        // CCF_QUAL_SEED selects another deterministic stream (competition, rolls and recruitment all key on the simulation seed); unset = the default stream.
+        int? runSeed = int.TryParse(Environment.GetEnvironmentVariable("CCF_QUAL_SEED"), out int parsedSeed) ? parsedSeed : (int?)null;
+        Stand(growth, speciesOf, count, dbhMin, spread, runSeed);
         yield return null;
         int initial = Living().Length;
         for (int year = 1; year <= years; year++)
