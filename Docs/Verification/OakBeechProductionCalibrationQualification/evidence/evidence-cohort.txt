@@ -1,0 +1,46 @@
+OBQ_NOTE phase cohort
+OBQ_NOTE head geometry=Enlarged80 growthModel=1 rngModel=1 regenModel=2 saveVersion=20
+OBQ_PASS 2C: runtime rows are the chosen [C] rows
+OBQ_PASS candidate-m1 fresh: LoadData accepted
+OBQ_NOTE cohort_candidate-m1_sessile-oak_plus10 planted=8 aliveJuv=0 promoted=8 D mean 5.9 [5.7-6.0] H mean 4.7 [3.8-4.9] CI mean 13.7
+OBQ_NOTE cohort_candidate-m1_beech_plus10 planted=8 aliveJuv=4 promoted=4 D mean 6.0 [5.9-6.1] H mean 5.1 [5.0-5.1] CI mean 18.0
+OBQ_NOTE cohort_candidate-m1_sessile-oak_plus20 planted=8 aliveJuv=0 promoted=6 D mean 7.7 [7.4-7.9] H mean 10.1 [9.3-10.3] CI mean 16.0
+OBQ_NOTE cohort_candidate-m1_beech_plus20 planted=8 aliveJuv=0 promoted=6 D mean 7.5 [6.3-8.6] H mean 9.4 [6.9-11.2] CI mean 19.2
+OBQ_NOTE cohort_candidate-m1_sessile-oak_plus30 planted=8 aliveJuv=0 promoted=2 D mean 9.6 [9.1-10.1] H mean 14.9 [14.8-14.9] CI mean 11.5
+OBQ_NOTE cohort_candidate-m1_beech_plus30 planted=8 aliveJuv=0 promoted=2 D mean 11.6 [11.4-11.7] H mean 16.3 [16.3-16.3] CI mean 9.7
+OBQ_NOTE cohort_candidate-m1_sessile-oak_plus40 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_candidate-m1_beech_plus40 planted=8 aliveJuv=0 promoted=1 D mean 15.3 [15.3-15.3] H mean 20.6 [20.6-20.6] CI mean 5.6
+OBQ_NOTE cohort_candidate-m1_sessile-oak_plus50 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_candidate-m1_beech_plus50 planted=8 aliveJuv=0 promoted=1 D mean 19.9 [19.9-19.9] H mean 24.2 [24.2-24.2] CI mean 4.0
+OBQ_NOTE cohort_candidate-m1_sitka_Y51 living Sitka 440, mean D 37.8
+OBQ_NOTE cohort_candidate-m1_hash Y20=E7525F8A1C4BF1A4 Y30=0DE1095C98BC24ED Y51=1DAB8F93E9FF151E
+OBQ_NOTE candidate_Y30_hash 0DE1095C98BC24ED
+OBQ_NOTE candidate_largest_planted_DBH_at_plus50 oak 0 cm, beech 19.851 cm
+OBQ_NOTE candidate_planted_survivors_at_plus50 oak 0/8, beech 1/8 (largest DBH oak 0 cm, beech 19.851 cm)
+OBQ_PASS 2C: no planted Oak or Beech reaches the 45 cm veneer mid-log size within 50 years of planting (oak 0 cm, beech 19.851 cm); the lab D60 proxy is not reached
+OBQ_PASS 2C: no non-finite sizes
+OBQ_PASS 2E: CanLoad on the year-20 file
+OBQ_PASS 2E: species rows resolve identically after Load()
+OBQ_PASS 2E: loaded world hash equals the saved Year-20 hash
+OBQ_PASS 2E: cohort origin survives (16 saplings, planting year 1)
+OBQ_PASS 2E: trajectory continues deterministically (Y30 hash equals the uninterrupted run)
+OBQ_PASS comparison run uses the pre-calibration rows (in memory only)
+OBQ_PASS pre-calibration-m1 fresh: LoadData accepted
+OBQ_NOTE cohort_pre-calibration-m1_sessile-oak_plus10 planted=8 aliveJuv=0 promoted=8 D mean 5.7 [5.6-5.8] H mean 4.3 [3.8-4.5] CI mean 13.9
+OBQ_NOTE cohort_pre-calibration-m1_beech_plus10 planted=8 aliveJuv=4 promoted=4 D mean 5.7 [5.6-5.7] H mean 4.4 [4.4-4.5] CI mean 18.5
+OBQ_NOTE cohort_pre-calibration-m1_sessile-oak_plus20 planted=8 aliveJuv=0 promoted=6 D mean 6.3 [6.1-6.3] H mean 7.8 [7.3-7.9] CI mean 19.5
+OBQ_NOTE cohort_pre-calibration-m1_beech_plus20 planted=8 aliveJuv=0 promoted=6 D mean 5.9 [5.5-6.3] H mean 6.8 [5.4-7.9] CI mean 23.2
+OBQ_NOTE cohort_pre-calibration-m1_sessile-oak_plus30 planted=8 aliveJuv=0 promoted=1 D mean 6.9 [6.9-6.9] H mean 10.9 [10.9-10.9] CI mean 14.8
+OBQ_NOTE cohort_pre-calibration-m1_beech_plus30 planted=8 aliveJuv=0 promoted=1 D mean 6.8 [6.8-6.8] H mean 10.9 [10.9-10.9] CI mean 15.4
+OBQ_NOTE cohort_pre-calibration-m1_sessile-oak_plus40 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_pre-calibration-m1_beech_plus40 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_pre-calibration-m1_sessile-oak_plus50 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_pre-calibration-m1_beech_plus50 planted=8 aliveJuv=0 promoted=0 no promoted trees
+OBQ_NOTE cohort_pre-calibration-m1_sitka_Y51 living Sitka 442, mean D 38.0
+OBQ_NOTE cohort_pre-calibration-m1_hash Y20=4DB30C52CDCEBF0D Y30=87095E8C9E50E1CD Y51=52C9D70BF7645D68
+OBQ_PASS rows restored to the shipped values
+OBQ_PASS old save under new rows: LoadData accepted
+OBQ_NOTE old_save_under_new_rows_Y30_hash 1300178016D3140C (candidate uninterrupted 0DE1095C98BC24ED; pre-calibration uninterrupted 87095E8C9E50E1CD)
+OBQ_PASS 2E: an existing Oak/Beech save picks up the new rows on resume (documented: rows are not part of the save)
+OBQ_NOTE old_save_under_new_rows_matches_candidate False
+OBQ_VERIFY_PASS phase=cohort checks=14 failed=0

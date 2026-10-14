@@ -1,0 +1,23 @@
+{
+  "label": "release",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 79.9,
+  "method": "OakBeechQualification.Begin",
+  "marker": "OBQ_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "OBQ_PHASE=release",
+    "OBQ_OUT=/media/jer/Files/CCF-verify-oak-beech-796da99/Build/OBQ/data"
+  ],
+  "interactive": false,
+  "run_head": "c7685620f83e8e91d375f4723fd5787566d6008d",
+  "staged_sha256": {
+    "OakBeechQualification.cs": "85183a8f4e45d283514fa747232817eb9b3fe9735dfcb531191f51c2a1b92041"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": [
+    " M .vscode/settings.json"
+  ]
+}

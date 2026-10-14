@@ -1,0 +1,20 @@
+{
+  "label": "mixed-density-l40",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 63.9,
+  "method": "MixedDensityVerification.Begin",
+  "marker": "MIXED_DENSITY_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0"
+  ],
+  "interactive": false,
+  "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+  "staged_sha256": {
+    "MixedDensityVerification.cs": "f7f15ec3247c5c5ea1bb05090deddb231418187b1fea523e0dfeba46151c62e6"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

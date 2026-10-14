@@ -1,0 +1,29 @@
+OBQ_DEBUG old rows applied in memory to sessile-oak
+OBQ_DEBUG old rows applied in memory to beech
+BROADLEAF_GROWTH_PASS OAK_BEECH_ADULT_PARAMETERS_REPORT sharedAdultParameters=True dbhPot=0.4 heightPot=0.4 maxH=40 maxD=120 ci50=3
+OBQ_DEBUG OAK growth 0 year 50: living=21 ids=O00:sessile-oak:22.893,O01:sessile-oak:22.893,O02:sessile-oak:22.893,O03:sessile-oak:22.893,O04:sessile-oak:22.893,O05:sessile-oak:22.893,O06:sessile-oak:22.893,O07:sessile-oak:22.893,O08:sessile-oak:22.893,R50-11-sessile-oak:sessile-oak:5.289,R50-12-sessile-oak:sessile-oak:5.289,R50-25-sessile-oak:sessile-oak:5.289,R50-27-sessile-oak:sessile-oak:5.289,R50-28-sessile-oak:sessile-oak:5.289,R50-30-sessile-oak:sessile-oak:5.289,R50-33-sessile-oak:sessil
+BROADLEAF_GROWTH_CHECK_FAIL OAK growth 0: sparse stand lost a tree
+OBQ_DEBUG OAK growth 1 year 50: living=21 ids=O00:sessile-oak:22.893,O01:sessile-oak:22.893,O02:sessile-oak:22.893,O03:sessile-oak:22.893,O04:sessile-oak:22.893,O05:sessile-oak:22.893,O06:sessile-oak:22.893,O07:sessile-oak:22.893,O08:sessile-oak:22.893,R50-11-sessile-oak:sessile-oak:5.289,R50-12-sessile-oak:sessile-oak:5.289,R50-25-sessile-oak:sessile-oak:5.289,R50-27-sessile-oak:sessile-oak:5.289,R50-28-sessile-oak:sessile-oak:5.289,R50-30-sessile-oak:sessile-oak:5.289,R50-33-sessile-oak:sessil
+BROADLEAF_GROWTH_CHECK_FAIL OAK growth 1: sparse stand lost a tree
+OBQ_DEBUG OAK growth 2 year 50: living=21 ids=O00:sessile-oak:22.893,O01:sessile-oak:22.893,O02:sessile-oak:22.893,O03:sessile-oak:22.893,O04:sessile-oak:22.893,O05:sessile-oak:22.893,O06:sessile-oak:22.893,O07:sessile-oak:22.893,O08:sessile-oak:22.893,R50-11-sessile-oak:sessile-oak:5.289,R50-12-sessile-oak:sessile-oak:5.289,R50-25-sessile-oak:sessile-oak:5.289,R50-27-sessile-oak:sessile-oak:5.289,R50-28-sessile-oak:sessile-oak:5.289,R50-30-sessile-oak:sessile-oak:5.289,R50-33-sessile-oak:sessil
+BROADLEAF_GROWTH_CHECK_FAIL OAK growth 2: sparse stand lost a tree
+BROADLEAF_GROWTH_FAIL OAK_FOLLOWS_SPECIES_LAW_UNDER_GROWTH1 H20=10.15 H40=15.58 H60=20.03 D60=25.6 (ci 0, site 1)
+BROADLEAF_GROWTH_PASS OAK_GROWTH_INDEPENDENT_OF_GROWTH_MODEL_WHEN_NO_DENSITY hash0=BC70AFA8EA6CBA07 hash1=BC70AFA8EA6CBA07 hash2=BC70AFA8EA6CBA07
+BROADLEAF_GROWTH_PASS OAK_MONOTONE_AND_BOUNDED maxHeight=40
+BROADLEAF_GROWTH_PASS OAK_COMPETITION_REDUCES_DBH_NOT_HEIGHT isolated D=16.187 H=13.001 crowded D=11.005 H=13.001
+BROADLEAF_GROWTH_PASS OAK_REPLAY_IDENTICAL hash=17397093B95700BB
+BROADLEAF_GROWTH_PASS OAK_SAVE_LOAD_CONTINUATION uninterrupted=0C0B6019F86A645A resumed=0C0B6019F86A645A
+OBQ_DEBUG BEECH growth 0 year 43: living=33 ids=B00:beech:20.597,B01:beech:20.597,B02:beech:20.597,B03:beech:20.597,B04:beech:20.597,B05:beech:20.597,B06:beech:20.597,B07:beech:20.597,B08:beech:20.597,R43-11-beech:beech:5.482,R43-12-beech:beech:5.482,R43-18-beech:beech:5.482,R43-19-beech:beech:5.482,R43-20-beech:beech:5.482,R43-21-beech:beech:5.482,R43-25-beech:beech:5.482,R43-26-beech:beech:5.482,R43-27-beech:beech:5.482,R43-28-beech:beech:5.482,R43-29-beech:beech:5.482,R43-30-beech:beech:5.482
+BROADLEAF_GROWTH_CHECK_FAIL BEECH growth 0: sparse stand lost a tree
+OBQ_DEBUG BEECH growth 1 year 43: living=33 ids=B00:beech:20.597,B01:beech:20.597,B02:beech:20.597,B03:beech:20.597,B04:beech:20.597,B05:beech:20.597,B06:beech:20.597,B07:beech:20.597,B08:beech:20.597,R43-11-beech:beech:5.482,R43-12-beech:beech:5.482,R43-18-beech:beech:5.482,R43-19-beech:beech:5.482,R43-20-beech:beech:5.482,R43-21-beech:beech:5.482,R43-25-beech:beech:5.482,R43-26-beech:beech:5.482,R43-27-beech:beech:5.482,R43-28-beech:beech:5.482,R43-29-beech:beech:5.482,R43-30-beech:beech:5.482
+BROADLEAF_GROWTH_CHECK_FAIL BEECH growth 1: sparse stand lost a tree
+OBQ_DEBUG BEECH growth 2 year 43: living=33 ids=B00:beech:20.597,B01:beech:20.597,B02:beech:20.597,B03:beech:20.597,B04:beech:20.597,B05:beech:20.597,B06:beech:20.597,B07:beech:20.597,B08:beech:20.597,R43-11-beech:beech:5.482,R43-12-beech:beech:5.482,R43-18-beech:beech:5.482,R43-19-beech:beech:5.482,R43-20-beech:beech:5.482,R43-21-beech:beech:5.482,R43-25-beech:beech:5.482,R43-26-beech:beech:5.482,R43-27-beech:beech:5.482,R43-28-beech:beech:5.482,R43-29-beech:beech:5.482,R43-30-beech:beech:5.482
+BROADLEAF_GROWTH_CHECK_FAIL BEECH growth 2: sparse stand lost a tree
+BROADLEAF_GROWTH_FAIL BEECH_FOLLOWS_SPECIES_LAW_UNDER_GROWTH1 H20=10.15 H40=15.58 H60=20.03 D60=24.9 (ci 0, site 1)
+BROADLEAF_GROWTH_PASS BEECH_GROWTH_INDEPENDENT_OF_GROWTH_MODEL_WHEN_NO_DENSITY hash0=FA72EC90D34E5D65 hash1=FA72EC90D34E5D65 hash2=FA72EC90D34E5D65
+BROADLEAF_GROWTH_PASS BEECH_MONOTONE_AND_BOUNDED maxHeight=40
+BROADLEAF_GROWTH_PASS BEECH_COMPETITION_REDUCES_DBH_NOT_HEIGHT isolated D=16.187 H=13.001 crowded D=11.005 H=13.001
+BROADLEAF_GROWTH_PASS BEECH_REPLAY_IDENTICAL hash=1A5782A5C2FA2E02
+BROADLEAF_GROWTH_PASS BEECH_SAVE_LOAD_CONTINUATION uninterrupted=CAFCE62923FD0023 resumed=CAFCE62923FD0023
+BROADLEAF_GROWTH_PASS SITKA_HEIGHT_STILL_CLASS_III_UNDER_GROWTH2 expected=12.4179 got=12.4179
+BROADLEAF_GROWTH_VERIFY_FAIL  checks=[OAK growth 0: sparse stand lost a tree | OAK growth 1: sparse stand lost a tree | OAK growth 2: sparse stand lost a tree | OAK_FOLLOWS_SPECIES_LAW_UNDER_GROWTH1 H20=10.15 H40=15.58 H60=20.03 D60=25.6 (ci 0, site 1) | BEECH growth 0: sparse stand lost a tree | BEECH growth 1: sparse stand lost a tree | BEECH growth 2: sparse stand lost a tree | BEECH_FOLLOWS_SPECIES_LAW_UNDER_GROWTH1 H20=10.15 H40=15.58 H60=20.03 D60=24.9 (ci 0, site 1)]

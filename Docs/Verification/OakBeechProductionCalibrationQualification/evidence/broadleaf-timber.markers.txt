@@ -1,0 +1,30 @@
+BROADLEAF_TIMBER_PASS save version unchanged
+BROADLEAF_TIMBER_PASS broadleaf market is not on for new games until the Manager adopts growth model 2
+BROADLEAF_TIMBER_PASS restore baseline
+BROADLEAF_TIMBER_PASS model 1: market off
+BROADLEAF_TIMBER_PASS model 1: Oak and Beech unmarketed, Sitka sells
+BROADLEAF_TIMBER_PASS restore baseline
+BROADLEAF_TIMBER_PASS model 2: market on
+BROADLEAF_TIMBER_PASS model 2: nothing unmarketed, quote eligible
+BROADLEAF_TIMBER_PASS model 2: Oak and Beech earn revenue
+BROADLEAF_TIMBER_PASS unpruned large Oak: beam, no veneer/planking
+BROADLEAF_TIMBER_PASS Beech: second-quality planking and firewood only
+BROADLEAF_TIMBER_PASS Sitka revenue identical under model 1 and model 2
+BROADLEAF_TIMBER_PASS harvest cost identical under model 1 and model 2 for the same orders (generic, no species multiplier)
+BROADLEAF_TIMBER_PASS same whole-stem work volume
+BROADLEAF_TIMBER_PASS a pruning lift invalidates the cached quote
+BROADLEAF_TIMBER_PASS pruned large Oak: veneer/planking becomes eligible
+BROADLEAF_TIMBER_PASS no product changes price because of pruning
+BROADLEAF_TIMBER_PASS pruned Oak is worth more only through the products it can now reach
+BROADLEAF_TIMBER_PASS pruning Oak does not move Beech or Sitka
+BROADLEAF_TIMBER_PASS re-resolution at settlement reproduces the quote
+BROADLEAF_TIMBER_PASS approve
+BROADLEAF_TIMBER_PASS annual resolution
+BROADLEAF_TIMBER_PASS cash equals the job ledger
+BROADLEAF_TIMBER_PASS annual report records the new products
+BROADLEAF_TIMBER_PASS save with Oak/Beech product sales validates
+BROADLEAF_TIMBER_PASS save with Oak/Beech product sales loads
+BROADLEAF_TIMBER_PASS product sales and model survive a load
+BROADLEAF_TIMBER_PASS an undefined product is still rejected
+BROADLEAF_TIMBER_PASS save version still 20
+BROADLEAF_TIMBER_VERIFY_PASS assertions=29

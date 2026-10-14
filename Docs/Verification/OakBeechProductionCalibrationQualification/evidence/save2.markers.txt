@@ -1,0 +1,13 @@
+OBQ_NOTE phase save2
+OBQ_NOTE head geometry=Enlarged80 growthModel=1 rngModel=1 regenModel=2 saveVersion=20
+OBQ_PASS 2E relaunch: runtime rows are the chosen [C] rows in the new process
+OBQ_PASS 2E relaunch: CanLoad
+OBQ_NOTE save2_loaded year=20 hash=E7525F8A1C4BF1A4 plantedJuveniles=16 PJ0001:sessile-oak:plantedY1:age12:PL-PJ0001 | PJ0002:sessile-oak:plantedY1:age13:PL-PJ0002 | PJ0003:sessile-oak:plantedY1:age12:PL-PJ0003 | PJ0004:sessile-oak:plantedY1:age12:PL-PJ0004
+OBQ_PASS 2E relaunch: year 20 restored
+OBQ_PASS 2E relaunch: cohort origin/year survives
+OBQ_PASS 2E relaunch: loaded world hash equals the pre-exit hash
+OBQ_NOTE save2_oak planted=8 aliveJuv=0 promoted=7 D mean 7.5 [7.3-7.8] H mean 9.6 [8.8-9.8] CI mean 16.0
+OBQ_NOTE save2_beech planted=8 aliveJuv=0 promoted=6 D mean 7.3 [6.1-8.4] H mean 8.8 [6.3-10.6] CI mean 19.4
+OBQ_NOTE save2_Y30_hash 0DE1095C98BC24ED
+OBQ_PASS 2E relaunch: Y30 hash equals the uninterrupted run (0DE1095C98BC24ED)
+OBQ_VERIFY_PASS phase=save2 checks=6

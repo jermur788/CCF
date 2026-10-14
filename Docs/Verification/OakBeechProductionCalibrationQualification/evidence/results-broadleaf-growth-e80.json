@@ -1,0 +1,18 @@
+{
+  "label": "broadleaf-growth-e80",
+  "status": "FAIL",
+  "exit_code": 1,
+  "seconds": 95.6,
+  "method": "BroadleafAdultGrowthVerification.Begin",
+  "marker": "BROADLEAF_GROWTH_VERIFY_PASS",
+  "marker_found": false,
+  "env": [],
+  "interactive": false,
+  "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+  "staged_sha256": {
+    "BroadleafAdultGrowthVerification.cs": "7ad8bbc7bb6a6662537cfad459bfb5c86f251a54412aa68ddbbe31572b26c074"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

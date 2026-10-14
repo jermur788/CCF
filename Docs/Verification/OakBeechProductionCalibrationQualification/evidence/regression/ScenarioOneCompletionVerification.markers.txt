@@ -1,0 +1,4 @@
+SCENARIO_ONE_COMPLETION_OBJECTIVES year=25 outcome=Completed minimum-year=25/25:ok retained-canopy=210/60:ok continuous-canopy=0.889/0.35:ok regeneration=55/3:ok fallen-deadwood=4.93/0.02:ok managed-opening=1/1:ok introduced-beech=1/1:ok introduced-sessile-oak=1/1:ok
+SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a
+SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH D99EC9FC2C635064
+SCENARIO_ONE_COMPLETION_VERIFY_FAIL System.InvalidOperationException: accepted model2 completion retains its exact v18 world layout

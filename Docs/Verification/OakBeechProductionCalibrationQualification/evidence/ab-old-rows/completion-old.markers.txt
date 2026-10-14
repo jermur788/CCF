@@ -1,0 +1,7 @@
+DBG_OLD_ROWS applied beech
+DBG_OLD_ROWS applied sessile-oak
+SCENARIO_ONE_COMPLETION_OBJECTIVES year=25 outcome=Completed minimum-year=25/25:ok retained-canopy=209/60:ok continuous-canopy=0.885/0.35:ok regeneration=54/3:ok fallen-deadwood=4.405/0.02:ok managed-opening=1/1:ok introduced-beech=1/1:ok introduced-sessile-oak=1/1:ok
+SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH n/a
+SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH 702766DECE591E21
+SCENARIO_ONE_COMPLETION_HASH 84CD51EB6A951D9E rngModel=1 regenerationModel=2 growthModel=1 legacyV15LayoutHash=n/a v16LayoutHash=n/a
+SCENARIO_ONE_COMPLETION_VERIFY_PASS

@@ -1,0 +1,23 @@
+{
+  "label": "cohort-m2",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 308.9,
+  "method": "OakBeechQualification.Begin",
+  "marker": "OBQ_VERIFY_PASS",
+  "marker_found": true,
+  "env": [
+    "OBQ_PHASE=cohort",
+    "OBQ_OUT=/media/jer/Files/CCF-verify-oak-beech-796da99/Build/OBQ/data",
+    "OBQ_COHORT_MODEL=2",
+    "OBQ_TAG=-m2"
+  ],
+  "interactive": false,
+  "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+  "staged_sha256": {
+    "OakBeechQualification.cs": "e03a221d98b8fdb8dce67e4c668e30cf341e4b94df8be4113dc58923d0d65daf"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}

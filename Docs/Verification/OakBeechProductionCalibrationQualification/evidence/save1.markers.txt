@@ -1,0 +1,13 @@
+OBQ_NOTE phase save1
+OBQ_NOTE head geometry=Enlarged80 growthModel=1 rngModel=1 regenModel=2 saveVersion=20
+OBQ_PASS 2C: runtime rows are the chosen [C] rows
+OBQ_PASS save1 fresh: LoadData accepted
+OBQ_NOTE cohort_save1_sessile-oak_plus10 planted=8 aliveJuv=0 promoted=8 D mean 5.9 [5.7-6.0] H mean 4.7 [3.8-4.9] CI mean 13.7
+OBQ_NOTE cohort_save1_beech_plus10 planted=8 aliveJuv=4 promoted=4 D mean 6.0 [5.9-6.1] H mean 5.1 [5.0-5.1] CI mean 18.0
+OBQ_PASS 2E: save file written
+OBQ_PASS 2E: the save carries no species coefficients (nothing to migrate)
+OBQ_PASS 2E: saved version is 20
+OBQ_NOTE save1_state year=20 hash=E7525F8A1C4BF1A4 plantedJuveniles=16 PJ0001:sessile-oak:plantedY1:age12:PL-PJ0001 | PJ0002:sessile-oak:plantedY1:age13:PL-PJ0002 | PJ0003:sessile-oak:plantedY1:age12:PL-PJ0003 | PJ0004:sessile-oak:plantedY1:age12:PL-PJ0004
+OBQ_NOTE save1_oak planted=8 aliveJuv=0 promoted=7 D mean 7.5 [7.3-7.8] H mean 9.6 [8.8-9.8] CI mean 16.0
+OBQ_NOTE save1_beech planted=8 aliveJuv=0 promoted=6 D mean 7.3 [6.1-8.4] H mean 8.8 [6.3-10.6] CI mean 19.4
+OBQ_VERIFY_PASS phase=save1 checks=5

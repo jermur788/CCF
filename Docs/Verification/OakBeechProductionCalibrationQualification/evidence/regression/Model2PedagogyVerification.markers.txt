@@ -1,0 +1,1 @@
+MODEL2_PEDAGOGY_PASS checks=20 legacyTruth=true model2Copy=true readOnly=true renderedResolutions=3

@@ -1,0 +1,41 @@
+OBQ_NOTE phase release
+OBQ_NOTE head geometry=Enlarged80 growthModel=1 rngModel=1 regenModel=2 saveVersion=20
+OBQ_PASS 2D sessile-oak: the three matched stands are identical at year 50 (D 17.54/17.54/17.54, H 21.901/21.901/21.901)
+OBQ_NOTE release_sessile-oak_before CI at 50: 7.732
+OBQ_NOTE release_sessile-oak_workplan added=32/32 approved=True feedback=Approved 32 tasks for €2500.00.
+OBQ_NOTE release_sessile-oak_route Work Plan (commissioned felling)
+OBQ_PASS 2D sessile-oak: all three centre trees alive at year 100
+OBQ_PASS 2D sessile-oak year 55: released DBH strong 20.91 > moderate 19.383 > suppressed 18.873
+OBQ_PASS 2D sessile-oak year 55: height identical released vs suppressed (23.429/23.429/23.429)
+OBQ_PASS 2D sessile-oak year 60: released DBH strong 24.169 > moderate 21.195 > suppressed 20.185
+OBQ_PASS 2D sessile-oak year 60: height identical released vs suppressed (24.843/24.843/24.843)
+OBQ_PASS 2D sessile-oak year 75: released DBH strong 33.318 > moderate 26.457 > suppressed 24.008
+OBQ_PASS 2D sessile-oak year 75: height identical released vs suppressed (28.488/28.488/28.488)
+OBQ_PASS 2D sessile-oak year 100: released DBH strong 46.666 > moderate 34.654 > suppressed 30.031
+OBQ_PASS 2D sessile-oak year 100: height identical released vs suppressed (32.968/32.968/32.968)
+OBQ_PASS 2D sessile-oak: the strongly released centre tree grows with CI = 0 in the release step (D 17.54 -> 18.223, law 18.223; H 21.901 -> 22.216, law 22.216)
+OBQ_NOTE release_sessile-oak_increment year 50->51 dD strong 0.683 control 0.268 cm; strong CI 7.732 -> 0
+OBQ_PASS 2D sessile-oak: release raises the DBH increment immediately
+OBQ_NOTE release_sessile-oak_deltaD_Y100 strong-control 16.63 cm, moderate-control 4.62 cm
+OBQ_NOTE lawcheck_release_sessile-oak treeYears=5182 maxDeltaD=0.00E+000 maxDeltaH=0.00E+000
+OBQ_PASS 2D sessile-oak: kernel check holds through the release (0.00E+000/0.00E+000)
+OBQ_PASS 2D beech: the three matched stands are identical at year 50 (D 20.952/20.952/20.952, H 23.826/23.826/23.826)
+OBQ_NOTE release_beech_before CI at 50: 7.652
+OBQ_NOTE release_beech_workplan added=32/32 approved=True feedback=Approved 32 tasks for €2500.00.
+OBQ_NOTE release_beech_route Work Plan (commissioned felling)
+OBQ_PASS 2D beech: all three centre trees alive at year 100
+OBQ_PASS 2D beech year 55: released DBH strong 24.611 > moderate 23.204 > suppressed 22.645
+OBQ_PASS 2D beech year 55: height identical released vs suppressed (25.416/25.416/25.416)
+OBQ_PASS 2D beech year 60: released DBH strong 28.135 > moderate 25.409 > suppressed 24.307
+OBQ_PASS 2D beech year 60: height identical released vs suppressed (26.872/26.872/26.872)
+OBQ_PASS 2D beech year 75: released DBH strong 37.945 > moderate 31.752 > suppressed 29.117
+OBQ_PASS 2D beech year 75: height identical released vs suppressed (30.535/30.535/30.535)
+OBQ_PASS 2D beech year 100: released DBH strong 52.022 > moderate 41.447 > suppressed 36.589
+OBQ_PASS 2D beech year 100: height identical released vs suppressed (34.833/34.833/34.833)
+OBQ_PASS 2D beech: the strongly released centre tree grows with CI = 0 in the release step (D 20.952 -> 21.695, law 21.695; H 23.826 -> 24.155, law 24.155)
+OBQ_NOTE release_beech_increment year 50->51 dD strong 0.743 control 0.341 cm; strong CI 7.652 -> 0
+OBQ_PASS 2D beech: release raises the DBH increment immediately
+OBQ_NOTE release_beech_deltaD_Y100 strong-control 15.43 cm, moderate-control 4.86 cm
+OBQ_NOTE lawcheck_release_beech treeYears=5182 maxDeltaD=0.00E+000 maxDeltaH=0.00E+000
+OBQ_PASS 2D beech: kernel check holds through the release (0.00E+000/0.00E+000)
+OBQ_VERIFY_PASS phase=release checks=26 failed=0

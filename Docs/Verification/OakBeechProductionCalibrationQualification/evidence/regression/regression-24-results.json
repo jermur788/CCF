@@ -1,0 +1,223 @@
+[
+  {
+    "gate": "SitkaGrowthModelVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 145.02,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "RegenerationModelVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 215.56,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioReferenceVerification",
+    "status": "FAIL",
+    "exit_code": 0,
+    "seconds": 126.09,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true,
+    "note": "archive/preview anchors PASS; the Reference continuation anchor changed (see Handoff 2A and ab-old-rows/ref-old.markers.txt)"
+  },
+  {
+    "gate": "ScenarioOneCompletionVerification",
+    "status": "FAIL",
+    "exit_code": 255,
+    "seconds": 92.64,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true,
+    "note": "exact v18 layout hash assertion fails with the new rows; passes with old rows (ab-old-rows/completion-old.markers.txt)"
+  },
+  {
+    "gate": "ScenarioOneEconomyIntegrationVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 92.26,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "BrowsingProtectionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 190.21,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOnePlantingVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 90.73,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOnePruningVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 82.97,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOneDeadwoodVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 84.73,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOneProgressVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 84.88,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "SaveHardeningVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 68.66,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "RngModelVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 33.1,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "RngModelPolicyVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 79.62,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOneInteractionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 94.52,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "EcologyCalibrationAdoptionVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 132.86,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "CCFIntegrationVerificationTemp",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 90.49,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ScenarioOneRemovalVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 72.9,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "ClearanceVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 168.58,
+    "mode": "interactive",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true,
+    "note": "first chained run failed in 0.4 s (nested X display had died); this is the re-run on a restarted display"
+  },
+  {
+    "gate": "MenuTutorialVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 143.55,
+    "mode": "interactive",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true,
+    "note": "first chained run failed in 0.4 s (nested X display had died); this is the re-run on a restarted display"
+  },
+  {
+    "gate": "TimberAssortmentYieldVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 53.59,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "Stage1WorkEconomyFoundationVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 48.75,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "JuvenileMortalityFoundationVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 79.99,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "JuvenileDisplayHeightVerification",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 76.8,
+    "mode": "batch",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true
+  },
+  {
+    "gate": "Model2PedagogyVerification",
+    "status": "FAIL",
+    "exit_code": -9,
+    "seconds": 432.45,
+    "mode": "interactive",
+    "run_head": "479d0c2a611653c4192717de83ba69cab367eba2",
+    "production_source_unchanged": true,
+    "note": "gate printed MODEL2_PEDAGOGY_PASS checks=20 at 23:06:45; the graphical Editor then hung at exit and was killed (exit -9) at 23:11; see regression/Model2PedagogyVerification.markers.txt"
+  }
+]
