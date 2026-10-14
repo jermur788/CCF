@@ -1,0 +1,65 @@
+[
+  {
+    "mutant": "discard-sitka-signal",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure pressure equals actual legacy loss fraction"
+    ]
+  },
+  {
+    "mutant": "untapered-generic-pressure",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction",
+      "FAIL pure combined signal equals original legacy required count",
+      "FAIL pure pressure equals actual legacy loss fraction"
+    ]
+  },
+  {
+    "mutant": "no-generic-mortality",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL predeclared last50 stability Oak recruitment=False",
+      "FAIL predeclared last50 stability Oak recruitment=True",
+      "FAIL predeclared last50 stability Beech recruitment=False",
+      "FAIL predeclared last50 stability Beech recruitment=True"
+    ]
+  },
+  {
+    "mutant": "species-biased-allocation",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL class labels never enter neutral allocation at equal occupancy and signal"
+    ]
+  },
+  {
+    "mutant": "broadleaf-in-sitka-rd",
+    "killed": true,
+    "failing_assertions": [
+      "FAIL broadleaf never enters Sitka subset RD"
+    ]
+  }
+]
