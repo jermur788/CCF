@@ -606,21 +606,25 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         foreach (var regime in regimes)
         {
             var total = new List<double>[broadleaf.Length]; var sitkaLoss = new List<double>[broadleaf.Length]; var broadLoss = new List<double>[broadleaf.Length];
+            // The stems-per-hectare of the Enlarged80 stand (0.64 ha) on any geometry: counts scale with the area (Legacy40 is 0.16 ha).
+            double areaScale = e.StandAreaHectares / 0.64;
+            int sitkaCount = Mathf.Max(8, Mathf.RoundToInt((float)(regime.nSitka * areaScale)));
+            int[] broadCount = broadleaf.Select(b => b == 0 ? 0 : Mathf.Max(1, Mathf.RoundToInt((float)(b * areaScale)))).ToArray();
             for (int bi = 0; bi < broadleaf.Length; bi++)
             {
                 total[bi] = new List<double>(); sitkaLoss[bi] = new List<double>(); broadLoss[bi] = new List<double>();
                 string route = "";
                 for (int sd = 0; sd < seeds; sd++)
                 {
-                    LateStand(regime.nSitka, regime.dbhMin, regime.spread, broadleaf[bi], 14000 + sd);
+                    LateStand(sitkaCount, regime.dbhMin, regime.spread, broadCount[bi], 14000 + sd);
                     AdultMortalityAccount a = DensityStep(); route = a.Route.ToString();
                     var dead = FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).ToList();
                     int sitkaDead = dead.Count(x => x.Species == sitka), broadDead = dead.Count - sitkaDead;
                     total[bi].Add((double)a.Deaths / Math.Max(1, a.LivingBefore));
-                    sitkaLoss[bi].Add((double)sitkaDead / regime.nSitka);
-                    if (broadleaf[bi] > 0) broadLoss[bi].Add((double)broadDead / broadleaf[bi]);
+                    sitkaLoss[bi].Add((double)sitkaDead / sitkaCount);
+                    if (broadCount[bi] > 0) broadLoss[bi].Add((double)broadDead / broadCount[bi]);
                 }
-                Measure("LATEMIX", $"{regime.label} broadleaves={broadleaf[bi]} route={route} totalDeathFraction={F(total[bi].Average(), "0.000")} sitkaDeathFraction={F(sitkaLoss[bi].Average(), "0.000")} broadleafDeathFraction={(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.000") : "-")} sd={F(Sd(total[bi]), "0.000")} seeds={seeds}");
+                Measure("LATEMIX", $"{regime.label} sitkaStems={sitkaCount} broadleaves={broadCount[bi]} route={route} totalDeathFraction={F(total[bi].Average(), "0.000")} sitkaDeathFraction={F(sitkaLoss[bi].Average(), "0.000")} broadleafDeathFraction={(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.000") : "-")} sd={F(Sd(total[bi]), "0.000")} seeds={seeds}");
                 Csv($"latemix-{geo}.csv", $"{regime.label},{broadleaf[bi]},{route},{F(total[bi].Average(), "0.00000")},{F(sitkaLoss[bi].Average(), "0.00000")},{(broadLoss[bi].Count > 0 ? F(broadLoss[bi].Average(), "0.00000") : "")}");
                 yield return null;
             }
