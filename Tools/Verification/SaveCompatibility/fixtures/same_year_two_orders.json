@@ -1,0 +1,42 @@
+{
+  "testObject": {
+    "version": 20,
+    "growthModel": 1,
+    "scenarioOne": {
+      "outcome": 0,
+      "outcomeYear": -1,
+      "annualReviewSeen": true,
+      "managementEvents": [
+        {
+          "eventId": 1,
+          "year": 10,
+          "eventType": 4,
+          "workOrderId": 1,
+          "outcome": 1,
+          "executionMethod": 0,
+          "ownerMinutes": 0
+        },
+        {
+          "eventId": 2,
+          "year": 10,
+          "eventType": 9,
+          "workOrderId": 0,
+          "outcome": 0,
+          "executionMethod": 0,
+          "ownerMinutes": 0
+        },
+        {
+          "eventId": 3,
+          "year": 10,
+          "eventType": 4,
+          "workOrderId": 2,
+          "outcome": 1,
+          "executionMethod": 0,
+          "ownerMinutes": 0
+        }
+      ]
+    }
+  },
+  "expectedChronologyEligible": false,
+  "scope": "partial offline contract object; not a validated production save; eight objectives assumed separately"
+}

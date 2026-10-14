@@ -1,0 +1,81 @@
+{
+  "ForestTreeStage": {
+    "Mature": 0,
+    "Stump": 1,
+    "Sapling": 2,
+    "Young": 3
+  },
+  "TreeMarkType": {
+    "None": 0,
+    "Fell": 1,
+    "CropTree": 2
+  },
+  "RegenerationOrigin": {
+    "Natural": 0,
+    "Planted": 1
+  },
+  "WorkExecutionMethod": {
+    "Contractor": 0,
+    "LandownerSimulated": 1
+  },
+  "TimberAssortment": {
+    "Pulp": 0,
+    "Stake": 1,
+    "Pallet": 2,
+    "Sawlog": 3,
+    "VeneerPlanking": 4,
+    "Beam": 5,
+    "Fencing": 6,
+    "SecondPlanking": 7,
+    "Firewood": 8
+  },
+  "ScenarioManagementEventType": {
+    "StockPurchased": 0,
+    "OrderCreated": 1,
+    "OrderApproved": 2,
+    "OrderCancelled": 3,
+    "WorkResolved": 4,
+    "YearAdvanced": 5,
+    "ScenarioCompleted": 6,
+    "ScenarioFailed": 7,
+    "CenturyReviewed": 8
+  },
+  "ScenarioManagementOutcome": {
+    "None": 0,
+    "Succeeded": 1,
+    "Failed": 2,
+    "Cancelled": 3
+  },
+  "ScenarioEcologicalTreatment": {
+    "None": 0,
+    "TreeFelledAndExtracted": 1,
+    "JuvenilePlanted": 2,
+    "RegenerationRemoved": 3,
+    "TreePruned": 4,
+    "TreeRetainedAsDeadwood": 5,
+    "WindthrowSalvaged": 6
+  },
+  "ScenarioWorkType": {
+    "FellTree": 0,
+    "PlantJuvenile": 1,
+    "RemoveRegeneration": 2,
+    "PruneTree": 3,
+    "SalvageDeadwood": 4
+  },
+  "ScenarioWorkStatus": {
+    "Pending": 0,
+    "Approved": 1,
+    "Completed": 2,
+    "Failed": 3
+  },
+  "FellingMaterialOutcome": {
+    "SellAndExtract": 0,
+    "RetainAsFallenDeadwood": 1,
+    "KeepForUse": 2
+  },
+  "ScenarioOneOutcome": {
+    "Active": 0,
+    "Completed": 1,
+    "Failed": 2
+  }
+}

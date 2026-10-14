@@ -1,0 +1,14 @@
+{
+  "testObject": {
+    "version": 20,
+    "growthModel": 1,
+    "scenarioOne": {
+      "outcome": 1,
+      "outcomeYear": 25,
+      "annualReviewSeen": true,
+      "managementEvents": []
+    }
+  },
+  "expectedChronologyEligible": true,
+  "scope": "partial offline contract object; not a validated production save; eight objectives assumed separately"
+}
