@@ -1,0 +1,72 @@
+# category|name|scale     time markers are nanoseconds (scale 1e-6 gives ms); counters use scale 1
+# names verified against the Player's own marker dump (available-markers.txt of the discovery run)
+# --- frame totals reported by the engine
+Render|CPU Main Thread Frame Time|1e-6
+Render|CPU Render Thread Frame Time|1e-6
+Render|CPU Total Frame Time|1e-6
+Render|GPU Frame Time|1e-6
+Render|FrameTime.GPU|1e-6
+Internal|Main Thread|1e-6
+Internal|Idle|1e-6
+# --- waiting: pacing, present and thread hand-offs
+VSync|TimeUpdate.WaitForLastPresentationAndUpdateTime|1e-6
+VSync|WaitForTargetFPS|1e-6
+Render|WaitForLastPresentation|1e-6
+Render|Gfx.WaitForPresentOnGfxThread|1e-6
+Render|Gfx.PresentFrame|1e-6
+Render|Device.Present|1e-6
+Render|GfxDeviceVK.Present|1e-6
+Render|Graphics.PresentAndSync|1e-6
+Render|AcquireNextFrame|1e-6
+Render|Gfx.WaitForRenderThread|1e-6
+Render|WaitForRenderJobs|1e-6
+Internal|Gfx.WaitForGfxCommandWriteSpace|1e-6
+Internal|Gfx.WaitForGfxCommandsFromMainThread|1e-6
+Internal|Semaphore.WaitForSignal|1e-6
+Internal|CompleteAllJobs|1e-6
+# --- main-thread player loop stages
+PlayerLoop|EarlyUpdate.PresentBeforeUpdate|1e-6
+PlayerLoop|PreUpdate.PhysicsUpdate|1e-6
+PlayerLoop|FixedUpdate.PhysicsFixedUpdate|1e-6
+PlayerLoop|FixedUpdate.ScriptRunBehaviourFixedUpdate|1e-6
+PlayerLoop|Update.ScriptRunBehaviourUpdate|1e-6
+PlayerLoop|PreLateUpdate.ScriptRunBehaviourLateUpdate|1e-6
+PlayerLoop|PreLateUpdate.UIElementsUpdatePanels|1e-6
+PlayerLoop|PostLateUpdate.UpdateAllRenderers|1e-6
+PlayerLoop|PostLateUpdate.UpdateAllSkinnedMeshes|1e-6
+PlayerLoop|PostLateUpdate.PlayerUpdateCanvases|1e-6
+PlayerLoop|PostLateUpdate.UIElementsRepaintPanels|1e-6
+PlayerLoop|PostLateUpdate.FinishFrameRendering|1e-6
+PlayerLoop|PostLateUpdate.PresentAfterDraw|1e-6
+# --- rendering, CPU side and per pass
+Render|Camera.Render|1e-6
+Render|Culling|1e-6
+Render|RenderLoop|1e-6
+Render|RenderLoop.Draw|1e-6
+Render|RenderLoop.DrawSRPBatcher|1e-6
+Render|Draw Main Light Shadowmap|1e-6
+Render|DrawDepthNormalPrepass|1e-6
+Render|DrawOpaqueObjects|1e-6
+Render|DrawTransparentObjects|1e-6
+# --- what is drawn
+Render|SetPass Calls Count|1
+Render|SRP Batcher Draw Calls Count|1
+Render|Standard Draw Calls Count|1
+Render|Standard Instanced Draw Calls Count|1
+Render|BRG Draw Calls Count|1
+Render|Static Batched Draw Calls Count|1
+Render|Dynamic Batched Draw Calls Count|1
+Render|Instanced Batched Draw Calls Count|1
+Render|Triangles Count|1
+Render|Vertices Count|1
+Render|Shadow Casters Count|1
+Render|Visible Skinned Meshes Count|1
+Render|Render Textures Count|1
+Render|Render Textures Bytes|1
+Render|Video Memory Bytes|1
+# --- allocation and memory
+Memory|GC Allocated In Frame|1
+Memory|GC Allocation In Frame Count|1
+Memory|GC Used Memory|1
+Memory|Total Used Memory|1
+Memory|System Used Memory|1

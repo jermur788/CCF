@@ -40,7 +40,7 @@ def window_table(report, with_counters=True):
             main=fmt(mean_of(w, "cpuMainThreadFrameTime_ms")), render=fmt(mean_of(w, "cpuRenderThreadFrameTime_ms")), gpu=fmt(mean_of(w, "gpuFrameTime_ms")),
             alloc=fmt(alloc / 1024 if alloc is not None else None, 1), gc=w["gc0Delta"], focus=fmt(w["focusedFraction"], 3)))
     if with_counters:
-        names = sorted({s["name"] for w in report["windows"] for s in w["series"] if s["name"].split("/")[0] in ("Render", "Memory", "Internal", "Scripts")})
+        names = sorted({s["name"] for w in report["windows"] for s in w["series"] if s["name"].split("/")[0] in ("Render", "Memory", "Internal", "Scripts", "PlayerLoop", "VSync")})
         if names:
             rows += ["", "| window | " + " | ".join(n.split("/", 1)[1] for n in names) + " |", "|---|" + "---|" * len(names)]
             for w in report["windows"]:
