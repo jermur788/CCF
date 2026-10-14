@@ -93,7 +93,17 @@ def plan_profile(view, markers):
             step("profiler", name="profile_marks40.raw", seconds=6)]
 
 
-PLANS = dict(baseline=plan_baseline, discover=plan_discover, marks=plan_marks, ab=plan_ab, ops=plan_ops, profile=plan_profile)
+def plan_forecast(view, markers):
+    """Where UpdateTreatmentOutcome's time goes and, for before/after comparisons of a fix, the real forecast text and frame cost with marks."""
+    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg=view), step("window", name="warmup", seconds=45),
+             step("time_forecast", name="forecast", n=3, f=5), step("time_forecast", name="forecast", n=3, f=40)]
+    for n in [1, 5, 40]:
+        steps += [step("marks", n=n, arg="fell"), step("settle", seconds=1), step("time_marking", name=f"fell{n}", n=3), step("window", name=f"marks_fell_{n}", seconds=30)]
+    steps += [step("marks", n=0, arg="fell"), step("settle", seconds=2), step("window", name="marks_zero_repeat", seconds=10)]
+    return steps
+
+
+PLANS = dict(forecast=plan_forecast, baseline=plan_baseline, discover=plan_discover, marks=plan_marks, ab=plan_ab, ops=plan_ops, profile=plan_profile)
 
 
 def sh(cmd):

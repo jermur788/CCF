@@ -31,7 +31,7 @@ public sealed class DensePerfProbe : MonoBehaviour
     [Serializable]
     public class Window
     {
-        public string name, view, note, toggles, poseStart, poseEnd;
+        public string name, view, note, toggles, poseStart, poseEnd, treatment;
         public bool poseMoved;
         public int frames, marks, gc0Delta;
         public double seconds, meanMs, medianMs, p95Ms, p99Ms, maxMs, minMs, focusedFraction;
@@ -147,6 +147,7 @@ public sealed class DensePerfProbe : MonoBehaviour
                 case "walk": yield return RecordWindow(step.name, step.seconds, true); break;
                 case "marks": PlaceMarks(step.n, step.arg); yield return null; yield return null; break;
                 case "time_marking": yield return TimeMarking(step.name, step.n); break;
+                case "time_forecast": yield return TimeForecastParts(step.name, step.n, (int)step.f); break;
                 case "toggle":
                     try { Toggle(step.arg, step.f); }
                     catch (Exception e) { report.markerNotes += $"; toggle {step.arg} failed: {e.Message}"; Debug.LogWarning("CCF_PERF_TOGGLE_FAILED " + step.arg + " " + e); }
@@ -498,7 +499,7 @@ public sealed class DensePerfProbe : MonoBehaviour
             name = name, view = currentView, toggles = currentToggles, marks = marking != null ? marking.LivingMarkedCount + marking.LivingCropTreeCount : 0, frames = dt.Count, seconds = clock.Elapsed.TotalSeconds,
             meanMs = dt.Average(), medianMs = median, p95Ms = Percentile(sorted, 0.95), p99Ms = Percentile(sorted, 0.99), maxMs = sorted[sorted.Count - 1], minMs = sorted[0],
             gc0Delta = GC.CollectionCount(0) - gcStart, focusedFraction = (double)focused / dt.Count, series = series.ToArray(), hitches = hitches.ToArray(),
-            poseStart = poseStart, poseEnd = poseEnd, poseMoved = !walk && poseStart != poseEnd,
+            poseStart = poseStart, poseEnd = poseEnd, poseMoved = !walk && poseStart != poseEnd, treatment = marking != null ? marking.TreatmentOutcome : "",
             note = walk ? $"synthetic walk moved {Vector3.Distance(startPosition, player.transform.position):0.0} m" : ""
         };
         report.windows.Add(win);
@@ -548,6 +549,87 @@ public sealed class DensePerfProbe : MonoBehaviour
             }
             report.timings.Add(Summary("marking", label + " " + item.Item1, ms, bytes / calls));
         }
+    }
+
+    // Where the time in UpdateTreatmentOutcome goes, on live data, and whether an exact-arithmetic rewrite of its nested competition loop gives bit-identical
+    // results. "Original" copies the manager's loop line for line; "cached" reads positions and diameters once into arrays and skips distant pairs with a
+    // conservative squared-distance test before the same exact distance test, so the same additions happen in the same order.
+    private IEnumerator TimeForecastParts(string name, int calls, int markedCount)
+    {
+        var gather = new List<double>(); var storm = new List<double>(); var original = new List<double>(); var cached = new List<double>();
+        ForestTree[] living = null;
+        for (int i = 0; i < calls; i++)
+        {
+            var clock = Stopwatch.StartNew();
+            var list = new List<ForestTree>();
+            foreach (ForestTree t in FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) if (t != null && !t.IsStump) list.Add(t);
+            clock.Stop(); gather.Add(clock.Elapsed.TotalMilliseconds); living = list.ToArray();
+        }
+        var marked = new HashSet<ForestTree>(living.OrderBy(t => t.TreeId, StringComparer.Ordinal).Take(markedCount));
+        ForestTree[] retained = living.Where(t => !marked.Contains(t)).ToArray();
+        for (int i = 0; i < calls; i++)
+        {
+            var clock = Stopwatch.StartNew();
+            ecology.ForecastStormPeak(retained, new Dictionary<int, float>(), new Dictionary<int, float>());
+            clock.Stop(); storm.Add(clock.Elapsed.TotalMilliseconds);
+            yield return null;
+        }
+        const float cutoff = ForestEcologyController.HegyiCutoffMeters;
+        float[] a = new float[retained.Length], b = new float[retained.Length];
+        for (int rep = 0; rep < calls; rep++)
+        {
+            var clock = Stopwatch.StartNew();
+            int k = 0;
+            foreach (ForestTree tree in living)
+            {
+                if (marked.Contains(tree)) continue;
+                Vector2 position = new Vector2(tree.transform.position.x, tree.transform.position.z);
+                float ciAfter = 0f;
+                foreach (ForestTree neighbour in living)
+                {
+                    if (neighbour == tree || marked.Contains(neighbour)) continue;
+                    Vector2 np = new Vector2(neighbour.transform.position.x, neighbour.transform.position.z);
+                    float distance = Vector2.Distance(position, np);
+                    if (distance > cutoff) continue;
+                    ciAfter += ForestEcologyController.HegyiTerm(neighbour.Diameter, tree.Diameter, distance);
+                }
+                a[k++] = ciAfter;
+            }
+            clock.Stop(); original.Add(clock.Elapsed.TotalMilliseconds);
+            yield return null;
+            clock.Restart();
+            int n = living.Length;
+            var px = new float[n]; var pz = new float[n]; var dia = new float[n]; var isMarked = new bool[n];
+            for (int i = 0; i < n; i++) { Vector3 p = living[i].transform.position; px[i] = p.x; pz[i] = p.z; dia[i] = living[i].Diameter; isMarked[i] = marked.Contains(living[i]); }
+            float cutoffSq = (cutoff + 0.01f) * (cutoff + 0.01f);
+            k = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (isMarked[i]) continue;
+                Vector2 position = new Vector2(px[i], pz[i]);
+                float ciAfter = 0f;
+                for (int j = 0; j < n; j++)
+                {
+                    if (j == i || isMarked[j]) continue;
+                    float dx = px[j] - px[i], dz = pz[j] - pz[i];
+                    if (dx * dx + dz * dz > cutoffSq) continue;
+                    float distance = Vector2.Distance(position, new Vector2(px[j], pz[j]));
+                    if (distance > cutoff) continue;
+                    ciAfter += ForestEcologyController.HegyiTerm(dia[j], dia[i], distance);
+                }
+                b[k++] = ciAfter;
+            }
+            clock.Stop(); cached.Add(clock.Elapsed.TotalMilliseconds);
+            yield return null;
+        }
+        int different = 0;
+        for (int i = 0; i < a.Length; i++) if (BitConverter.SingleToInt32Bits(a[i]) != BitConverter.SingleToInt32Bits(b[i])) different++;
+        string label = $"{name}(trees={living.Length},marked={markedCount})";
+        report.timings.Add(Summary("forecast", label + " gather living trees (FindObjectsByType + filter)", gather, 0));
+        report.timings.Add(Summary("forecast", label + " eco.ForecastStormPeak", storm, 0));
+        report.timings.Add(Summary("forecast", label + " competition-after loop, original", original, 0, "bit-identical check below"));
+        report.timings.Add(Summary("forecast", label + " competition-after loop, cached arrays + squared prefilter", cached, 0,
+            $"results compared bit for bit with the original over {a.Length} retained trees: {different} differ"));
     }
 
     private IEnumerator TimeAdvance(string name, int repeats, bool restore)
