@@ -52,11 +52,13 @@ def plan_discover(view, markers):
 
 def plan_marks(view, markers):
     steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg=view), step("window", name="warmup", seconds=60)]
+    # With any mark a frame takes about a second at 1344 trees, so those windows are long enough for a handful of frames and the direct method timings use few calls.
     for n in [0, 1, 2, 5, 10, 20, 40]:
-        steps += [step("marks", n=n, arg="fell"), step("settle", seconds=1), step("time_marking", name=f"fell{n}", n=20), step("window", name=f"marks_fell_{n}", seconds=10)]
+        calls = 20 if n == 0 else 3
+        steps += [step("marks", n=n, arg="fell"), step("settle", seconds=1), step("time_marking", name=f"fell{n}", n=calls), step("window", name=f"marks_fell_{n}", seconds=10 if n == 0 else 30)]
     for n in [5, 20, 40]:
-        steps += [step("marks", n=n, arg="cropfell"), step("settle", seconds=1), step("time_marking", name=f"cropfell{n}", n=20), step("window", name=f"marks_cropfell_{n}", seconds=10)]
-    steps += [step("marks", n=0, arg="fell"), step("settle", seconds=1), step("window", name="marks_zero_repeat", seconds=10)]
+        steps += [step("marks", n=n, arg="cropfell"), step("settle", seconds=1), step("time_marking", name=f"cropfell{n}", n=3), step("window", name=f"marks_cropfell_{n}", seconds=30)]
+    steps += [step("marks", n=0, arg="fell"), step("settle", seconds=2), step("window", name="marks_zero_repeat", seconds=10)]
     return steps
 
 

@@ -480,7 +480,7 @@ public sealed class DensePerfProbe : MonoBehaviour
         if (walk && Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         if (walk) LockInput(true);
         string poseEnd = Pose();
-        Check(dt.Count >= 20, "frame sample count " + name);
+        Check(dt.Count >= 3, "frame sample count " + name);   // a frame can take a second or more (marking), so few samples is itself a result
         var sorted = dt.OrderBy(x => x).ToList();
         double median = Percentile(sorted, 0.5);
         var series = new List<Series> { Summarise("cpuMainThreadFrameTime_ms", main), Summarise("cpuRenderThreadFrameTime_ms", render), Summarise("gpuFrameTime_ms", gpu), Summarise("cpuFrameTime_ms", cpuFrame) };
