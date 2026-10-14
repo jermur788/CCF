@@ -43,7 +43,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     private const string Growth1Neutral = "7E57B9DAEF5BF4D0", Growth1Normal = "35E2BF1C2F55C2DE";
-    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN";
+    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,SITKACOMP,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN";
 
     private ForestEcologyController e;
     private ScenarioOneManager manager;
@@ -282,6 +282,34 @@ public sealed class DensityQualificationRunner : MonoBehaviour
     }
 
     // ---------- PARITY: a stand below the onset grows identically under model 1 and model 2 (no mixture productivity effect) ----------
+
+    // ---------- SITKACOMP: the Sitka component is the original controller block, checked live ----------
+    // On a pure-Sitka stand under growth model 2 the controller runs the ORIGINAL block (legacy route). SitkaSubsetDensitySignal.Resolve, given the very same
+    // stems, competition indices and keyed rolls, must name exactly the trees that block kills. This is the controller-level twin of the offline literal-port check.
+
+    private IEnumerator SitkaComp()
+    {
+        var fixtures = new (float perHa, float dbhMin, float spread)[] { (1200f, 24f, 10f), (900f, 30f, 12f), (1500f, 16f, 8f), (700f, 40f, 15f) };
+        int trials = 0, same = 0, deaths = 0, boundary = 0, legacyRoute = 0;
+        foreach (var fx in fixtures)
+            for (int sd = 0; sd < 6; sd++)
+            {
+                Stand(2, _ => sitka, StemCount(fx.perHa), fx.dbhMin, fx.spread, 15000 + sd);
+                List<DensityStem> list = StemsOfLiving();
+                Func<string, double> roll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed);
+                SitkaComponentResult resolved = SitkaSubsetDensitySignal.Resolve(list, e.StandAreaHectares, roll);
+                var predicted = new HashSet<string>(resolved.HazardVictimIndices.Concat(resolved.BoundaryVictimIndices).Select(i => list[i].TreeId), StringComparer.Ordinal);
+                AdultMortalityAccount a = DensityStep();
+                var actual = new HashSet<string>(FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).Select(x => x.TreeId), StringComparer.Ordinal);
+                trials++;
+                if (predicted.SetEquals(actual)) same++;
+                if (a.Route == DensityRoute.LegacySitkaExact) legacyRoute++;
+                deaths += actual.Count; boundary += a.BoundaryDeaths;
+                yield return null;
+            }
+        Hard("SITKACOMP_COMPONENT_VICTIMS_EQUAL_THE_ORIGINAL_CONTROLLER_BLOCK_ON_A_PURE_SITKA_STAND", same == trials && legacyRoute == trials && deaths > 0 && boundary > 0,
+            $"stands={trials} identicalVictimSets={same} legacyRoute={legacyRoute} victims={deaths} boundaryDeaths={boundary}");
+    }
 
     private IEnumerator Parity()
     {
@@ -1016,6 +1044,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         if (wanted.Contains("ROLLS")) { yield return Rolls(); Debug.Log($"QUAL_PHASE_DONE ROLLS t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("ANCHORS")) { yield return Anchors(); Debug.Log($"QUAL_PHASE_DONE ANCHORS t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("SITKA100")) { yield return Sitka100(); Debug.Log($"QUAL_PHASE_DONE SITKA100 t={started.Elapsed.TotalSeconds:0}s"); }
+        if (wanted.Contains("SITKACOMP")) { yield return SitkaComp(); Debug.Log($"QUAL_PHASE_DONE SITKACOMP t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("PARITY")) { yield return Parity(); Debug.Log($"QUAL_PHASE_DONE PARITY t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("CURVE")) { yield return Curve(); Debug.Log($"QUAL_PHASE_DONE CURVE t={started.Elapsed.TotalSeconds:0}s"); }
         if (wanted.Contains("FAIRNESS")) { yield return Fairness(); Debug.Log($"QUAL_PHASE_DONE FAIRNESS t={started.Elapsed.TotalSeconds:0}s"); }
