@@ -25,6 +25,12 @@ def main():
     expected=dict(zip(['StockPurchased','OrderCreated','OrderApproved','OrderCancelled','WorkResolved','YearAdvanced','ScenarioCompleted','ScenarioFailed','CenturyReviewed','AnnualReviewAcknowledged'],range(10)))
     assert actual==expected,(actual,expected)
     assert 'if (outcome == ScenarioOneOutcome.Active)' in method(manager,'private void EvaluateProgress()')
+    # Guidance is presentation only: it must not appear in completion evaluation, restore or the acknowledgement handler.
+    for name in ['private void EvaluateProgress()','public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)','public void MarkAnnualReviewSeen()']:
+        assert 'Guidance' not in method(manager,name),name
+    history=(FP/'ScenarioOne/ScenarioOneManager.History.cs').read_text()
+    assert 'GuidanceText(CompletionGuidance)' in history and 'CompletionGuidanceState.None' in history
+    assert 'CompletionGuidanceState.AcknowledgeReview' in (FP/'UI/AnnualReviewView.cs').read_text()
     pred='objectives.Count > 0 && objectives.All(result => result.achieved)\n                && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders)'
     assert pred in manager
     restore=method(manager,'public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)')

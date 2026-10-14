@@ -1,6 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// What the player should be told while a reviewed second cycle is still missing. Presentation only: it reads the same
+// chronology as the completion rule and never decides, records or changes anything.
+public enum CompletionGuidanceState
+{
+    None,
+    // A qualifying Work Plan exists but no acknowledgement has been recorded after it.
+    AcknowledgeReview,
+    // The first cycle is reviewed, all eight objectives are met, and only one qualifying Work Plan exists.
+    ObjectivesMetOneCycle,
+    // The first cycle is reviewed and the second cycle is not yet resolved.
+    AnotherIntervention
+}
+
 // Completion chronology is derived from existing v20 records, never from annualReviewSeen.
 // One annual resolution is one Work Plan, matching ScenarioInterventionHistory's year convention.
 public static class ScenarioOneCompletionRules
@@ -65,5 +78,38 @@ public static class ScenarioOneCompletionRules
             && e.year <= year).Select(e => e.eventId).DefaultIfEmpty(0).Max();
         return !events.Any(e => e != null && e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged
             && e.year == year && e.eventId > lastResolution);
+    }
+
+    // Which message applies. Precedence: acknowledge first (it blocks everything else), then "objectives met, one cycle", then
+    // the plain "another intervention". Nothing is returned once the reviewed two-cycle sequence exists or before any
+    // qualifying Work Plan, so the existing hints are untouched in those states.
+    public static CompletionGuidanceState GuidanceState(IReadOnlyList<ScenarioManagementEvent> events,
+        IReadOnlyList<ScenarioOneWorkOrder> orders, bool allObjectivesMet)
+    {
+        if (HasReviewedTwoCycleSequence(events, orders)) return CompletionGuidanceState.None;
+        List<ResolvedPlan> plans = Plans(events, orders);
+        if (plans.Count == 0) return CompletionGuidanceState.None;
+        if (NeedsReviewAcknowledgement(events, orders)) return CompletionGuidanceState.AcknowledgeReview;
+        return allObjectivesMet && plans.Count == 1
+            ? CompletionGuidanceState.ObjectivesMetOneCycle : CompletionGuidanceState.AnotherIntervention;
+    }
+
+    // Wording. The second intervention is never named: felling, pruning, planting or anything else qualifies.
+    public static string GuidanceText(CompletionGuidanceState state)
+    {
+        switch (state)
+        {
+            case CompletionGuidanceState.AcknowledgeReview:
+                return "Open the Annual Review and choose \u201cI've read the annual results\u201d. Scenario One completes only when an intervention "
+                    + "you have reviewed there is followed by another intervention.";
+            case CompletionGuidanceState.ObjectivesMetOneCycle:
+                return "All eight objectives are met, but Scenario One also needs a second management decision after you review the first. "
+                    + "Read what your intervention did in the Annual Review, then carry out another intervention when you judge the forest needs it.";
+            case CompletionGuidanceState.AnotherIntervention:
+                return "You have reviewed your intervention. Return to the forest and carry out another intervention when you judge the forest needs it; "
+                    + "Scenario One completes once the eight objectives are met and that second intervention is done.";
+            default:
+                return "";
+        }
     }
 }

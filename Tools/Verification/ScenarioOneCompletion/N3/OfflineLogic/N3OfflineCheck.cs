@@ -80,6 +80,36 @@ public static class N3OfflineCheck
         Check(active.CanComplete(true)&&!active.CanComplete(false),"actual completion predicate still requires all eight objectives");
         var invalid=Save(valid,orders);invalid.growthModel=99;Check(ForestSaveValidation.Validate(invalid,1,64)!=null,"growth-version refusal retained");
         Check((int)ScenarioManagementEventType.AnnualReviewAcknowledged==9&&ForestSaveData.CurrentVersion==20,"enum9 schema20");
+        // ---- completion guidance: presentation only. It reads the same chronology and decides, records and changes nothing. ----
+        var two=new List<ScenarioOneWorkOrder>{Order(1,10),Order(2,25)};
+        CompletionGuidanceState G(List<ScenarioManagementEvent> e,List<ScenarioOneWorkOrder> o,bool met)=>ScenarioOneCompletionRules.GuidanceState(e,o,met);
+        var planOnly=new List<ScenarioManagementEvent>{Work(1,10,1)};
+        var planThenReview=new List<ScenarioManagementEvent>{Work(1,10,1),Review(2,10)};
+        var firstPlan=new List<ScenarioOneWorkOrder>{Order(1,10)};
+        Check(G(new List<ScenarioManagementEvent>(),new List<ScenarioOneWorkOrder>(),true)==CompletionGuidanceState.None,"guidance none before any qualifying plan");
+        Check(G(planOnly,firstPlan,false)==CompletionGuidanceState.AcknowledgeReview&&G(planOnly,firstPlan,true)==CompletionGuidanceState.AcknowledgeReview,"guidance state 2 acknowledge: first plan, no acknowledgement, objectives met or not");
+        Check(G(new List<ScenarioManagementEvent>{Work(1,10,1),Work(2,25,2)},two,true)==CompletionGuidanceState.AcknowledgeReview,"guidance state 2 for two plans with no review at all (legacy boolean is not read)");
+        Check(G(new List<ScenarioManagementEvent>{Review(1,10),Work(2,10,1),Work(3,25,2)},two,true)==CompletionGuidanceState.AcknowledgeReview,"guidance state 2 when the only review came before the first plan");
+        Check(G(planThenReview,firstPlan,true)==CompletionGuidanceState.ObjectivesMetOneCycle,"guidance state 1: objectives met, one reviewed plan");
+        Check(G(planThenReview,firstPlan,false)==CompletionGuidanceState.AnotherIntervention,"guidance state 3: reviewed first plan, objectives not yet met");
+        Check(G(new List<ScenarioManagementEvent>{Work(1,10,1),Work(2,25,2),Review(3,25)},two,true)==CompletionGuidanceState.AnotherIntervention,"guidance state 3 (not state 1) after a late review of two plans");
+        Check(G(new List<ScenarioManagementEvent>{Work(1,10,1),Review(2,10),Work(3,25,2,ScenarioManagementOutcome.Failed)},new List<ScenarioOneWorkOrder>{Order(1,10),Order(2,25,ScenarioWorkStatus.Failed)},true)==CompletionGuidanceState.ObjectivesMetOneCycle,"guidance: a failed-only second plan is still one qualifying plan");
+        Check(G(planThenReview,new List<ScenarioOneWorkOrder>{Order(1,10),Order(2,25,ScenarioWorkStatus.Approved)},true)==CompletionGuidanceState.ObjectivesMetOneCycle,"guidance: an approved but unresolved second plan does not count");
+        Check(G(new List<ScenarioManagementEvent>{Work(1,10,1),Review(2,10),Work(3,10,3,ScenarioManagementOutcome.Failed),Work(4,25,2)},two,true)==CompletionGuidanceState.AcknowledgeReview,"guidance: a review inside the first plan does not count");
+        Check(G(valid,two,true)==CompletionGuidanceState.None&&G(valid,two,false)==CompletionGuidanceState.None,"guidance none once the reviewed two-cycle sequence exists");
+        Check(G(valid,two,true)==CompletionGuidanceState.None&&Chronology(valid,two),"guidance is silent exactly where the completion rule is satisfied");
+        Check(!Chronology(planOnly,firstPlan)&&G(planOnly,firstPlan,true)!=CompletionGuidanceState.None&&!Chronology(planThenReview,firstPlan)&&G(planThenReview,firstPlan,true)!=CompletionGuidanceState.None,"guidance speaks exactly where the completion rule is not satisfied");
+        var legacyBridge=new ManagerBoundaryBridge {CurrentYear=25,annualReports=legacy.scenarioOne.annualReports,managementEvents=new List<ScenarioManagementEvent>{Work(1,10,1),Work(2,25,2)},nextManagementEventId=3,annualReviewSeen=true};
+        Check(G(legacyBridge.managementEvents,two,true)==CompletionGuidanceState.AcknowledgeReview,"guidance: legacy Active save asks for the acknowledgement");
+        legacyBridge.MarkAnnualReviewSeen();
+        Check(G(legacyBridge.managementEvents,two,true)==CompletionGuidanceState.AnotherIntervention&&!Chronology(legacyBridge.managementEvents,two),"guidance moves on after the real handler records the acknowledgement; completion is unchanged");
+        string[] texts={ScenarioOneCompletionRules.GuidanceText(CompletionGuidanceState.AcknowledgeReview),ScenarioOneCompletionRules.GuidanceText(CompletionGuidanceState.ObjectivesMetOneCycle),ScenarioOneCompletionRules.GuidanceText(CompletionGuidanceState.AnotherIntervention)};
+        Check(texts.All(t=>t.Length>0)&&texts.Distinct().Count()==3&&ScenarioOneCompletionRules.GuidanceText(CompletionGuidanceState.None)=="","guidance text exists for exactly the three states and they differ");
+        Check(texts[0].Contains("Annual Review")&&texts[0].Contains("I've read the annual results"),"state 2 text names the Annual Review and its button");
+        Check(texts[1].Contains("All eight objectives")&&texts[1].Contains("Annual Review")&&texts[1].Contains("another intervention"),"state 1 text: objectives met, review, another decision");
+        Check(texts[2].Contains("Return to the forest")&&texts[2].Contains("another intervention"),"state 3 text: return to the forest, another intervention");
+        Check(texts.All(t=>new[]{"fell","prun","plant","thin","oak","beech","sitka","deadwood"}.All(w=>t.IndexOf(w,StringComparison.OrdinalIgnoreCase)<0)),"guidance never prescribes the second intervention");
+        Check(texts.All(t=>t.IndexOf("auto",StringComparison.OrdinalIgnoreCase)<0),"guidance does not promise automatic acknowledgement");
         Console.WriteLine("N3_OFFLINE_PASS checks="+checks+" NOT_UNITY_VERIFIED");return 0;
     }
 }

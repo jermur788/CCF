@@ -275,6 +275,12 @@ public static class ScenarioHistoryOfflineCheck
         Check(H(7, 1).StartsWith("1 planned order from earlier needs attention"), "HINT_SINGULAR_GRAMMAR", H(7, 1));
         Check(H(16, 3, true, 16).Contains("Objectives met in year 16") && H(16, 3, true, 16).Contains("Century Review (year 100)"), "COMPLETED_HINT_POINTS_TO_THE_SUMMARY_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE", H(16, 3, true, 16));
         Check(Enumerable.Range(0, 30).All(y => !string.IsNullOrEmpty(H(y, y % 3))), "A_HINT_EXISTS_FOR_EVERY_STATE_NO_DEAD_END");
+        // Completion guidance (U4): after completion and stale orders, before the history hint; null leaves every result above unchanged.
+        string G(int year, int stale, bool done, string guidance) => ScenarioInterventionHistory.NextStepHint(list.Where(i => i.Year <= year).ToList(), year, stale, done, done ? year : -1, 100, guidance);
+        Check(G(5, 0, false, null) == H(5, 0) && G(5, 0, false, "") == H(5, 0) && G(16, 3, true, null) == H(16, 3, true, 16), "HINT_UNCHANGED_WITHOUT_COMPLETION_GUIDANCE");
+        Check(G(5, 0, false, "GUIDANCE") == "GUIDANCE" && G(0, 0, false, "GUIDANCE") == "GUIDANCE", "COMPLETION_GUIDANCE_REPLACES_THE_HISTORY_HINT");
+        Check(G(20, 2, false, "GUIDANCE").StartsWith("2 planned orders"), "STALE_ORDERS_STILL_TAKE_PRIORITY_OVER_COMPLETION_GUIDANCE");
+        Check(G(16, 3, true, "GUIDANCE").Contains("Objectives met in year 16"), "COMPLETED_STILL_TAKES_PRIORITY_OVER_COMPLETION_GUIDANCE");
     }
 
     // ---------- wording ----------
