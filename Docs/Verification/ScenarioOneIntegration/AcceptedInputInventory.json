@@ -1,0 +1,436 @@
+{
+  "context": "c6dc136b7f1f8668d9f67f95f48968d290ad5067",
+  "integration_base": "c1564b857972ee18917e8a461c457533a54cc3f1",
+  "inputs": [
+    {
+      "name": "Density v3",
+      "branch": "task/mixed-density-architecture-v3",
+      "head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "delta_base": "c1564b857972ee18917e8a461c457533a54cc3f1",
+      "remote_branch_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "containing_pushed_branches": [
+        "task/mixed-density-architecture-v3"
+      ],
+      "status": "CONDITIONAL: awaiting exact-head final Tier-2 Queue B verdict",
+      "notes": "Pure Sitka/Model1 exact; density-owned files only; do not import its inherited timber/history wholesale.",
+      "production": [
+        "Assets/ForestPrototype/AdultMortalityAccount.cs",
+        "Assets/ForestPrototype/ForestEcologyController.cs",
+        "Assets/ForestPrototype/MixedDensityModel.Composite.cs",
+        "Assets/ForestPrototype/MixedDensityModel.Composite.cs.meta",
+        "Assets/ForestPrototype/MixedDensityModel.cs",
+        "Assets/ForestPrototype/MixedDensityModel.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs",
+        "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneEconomyAdapter.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+        "Assets/ForestPrototype/SitkaGrowthModel.cs",
+        "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs",
+        "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs.meta",
+        "Assets/ForestPrototype/Species/BeechSpecies.asset",
+        "Assets/ForestPrototype/Species/SessileOak.asset",
+        "Assets/ForestPrototype/TimberYield/TimberYieldCalculator.cs",
+        "Assets/ForestPrototype/TimberYield/TimberYieldConfiguration.cs",
+        "Assets/ForestPrototype/TimberYield/TimberYieldValidation.cs",
+        "Assets/ForestPrototype/TreeSpeciesDefinition.cs",
+        "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+        "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+        "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+        "Assets/ForestPrototype/UI/WalkingHudView.cs",
+        "Assets/ForestPrototype/UI/WorkPlanView.cs",
+        "Assets/ForestPrototype/WorkEconomy/ForestryWorkDomain.cs",
+        "Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs",
+        "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs",
+        "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs.meta"
+      ],
+      "verification": [
+        "Tools/Verification/CloudTypeCheck/InputSystemStub.cs",
+        "Tools/Verification/CloudTypeCheck/UnityEditorStub.cs",
+        "Tools/Verification/CloudTypeCheck/baseline-prod.txt",
+        "Tools/Verification/CloudTypeCheck/baseline-tools.txt",
+        "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+        "Tools/Verification/ThreeSpecies/BroadleafAdultGrowthVerification.cs",
+        "Tools/Verification/ThreeSpecies/BroadleafTimberEconomyVerification.cs",
+        "Tools/Verification/ThreeSpecies/MixedDensityVerification.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/BroadleafTimberOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/CompositeDensityOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/DensityCalibrationSearch.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/DensityTrajectorySim.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/HistoryOfflineStubs.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/MixedDensityIsolatedCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/MixedDensityOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/ScenarioHistoryOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/SitkaIsolatedCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/SitkaYieldFixture.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/recruitment-series-v2.csv",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/run_composite_mutations.py",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/run_density_trajectories.py",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+        "Tools/Verification/ThreeSpecies/Qualification/DensityProbe.cs",
+        "Tools/Verification/ThreeSpecies/Qualification/DensityQualification.cs",
+        "Tools/Verification/ThreeSpecies/Qualification/analyze_longrun.py",
+        "Tools/Verification/ThreeSpecies/Qualification/analyze_trial2.py",
+        "Tools/Verification/ThreeSpecies/Qualification/make_e80_completion_measurement.py",
+        "Tools/Verification/ThreeSpecies/Qualification/run_qualification.py",
+        "Tools/Verification/ThreeSpecies/Qualification/run_v3_remaining.sh",
+        "Tools/Verification/ThreeSpecies/ScenarioHistoryVerification.cs",
+        "Tools/Verification/ThreeSpecies/run_unity_gates.py"
+      ],
+      "docs": [
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/baseline-density-and-isolation.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/final-composite.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/initial-run.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/manifest.json",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/mutations.json",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/production-typecheck.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/timber-history.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/tools-typecheck.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Handoff.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Predeclared.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/git-diff-check.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/mutations.json",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/mutations.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/offline-composite-suite.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/offline-density-suite.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/offline-history.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/offline-timber.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/production-typecheck.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/offline/tools-typecheck.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/recruitment-series-v2.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-compare-v2-v3-kernels-at-0.50-1.60.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-diagnose-late-mixed-final-setting.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-diagnose-late-mixed-v2-setting.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-diagnostic-allocation-exponent-NOT-ADOPTED.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-hindcast-v2-kernel-vs-unity-v2.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-search-trial1.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/simulator/sim-search-trial2.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/continuity-E80.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/continuity-L40.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/curve-E80.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/curve-L40.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/extra-seed/longrun-L40-seed101.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/extra-seed/trial2-acceptance-L40-seed101.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/finalbroadleaf-E80.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/finalbroadleaf-L40.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/gate-runs.json",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/latemix-E80.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/latemix-L40.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/longrun-E80-300y.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/longrun-L40-300y.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/longrun-v2-vs-v3-tables.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-fast-e80.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-fast-l40.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-broadleaf-growth-e80.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-broadleaf-growth.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-broadleaf-timber.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-history.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-mixed-e80.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-gate-mixed-l40.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-long-e80-300.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-long-l40-300.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/markers-smoke-l40.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/longrun-E80-n1.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/longrun-E80-n2.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/longrun-L40-n1.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/longrun-L40-n2.csv",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/trial2-acceptance-E80-n1.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/trial2-acceptance-E80-n2.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/trial2-acceptance-L40-n1.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/neighbours/trial2-acceptance-L40-n2.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/regression-first-attempt-PARTIAL-aborted.json",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/shielding-and-continuity-tables.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/sitkacomp/markers-sitkacomp-e80.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/sitkacomp/markers-sitkacomp-l40.txt",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/trial2-acceptance-E80.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Evidence/unity/trial2-acceptance-L40.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Handoff.md",
+        "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV3Predeclared.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase0-Baseline.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase1-DensityRework.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase1-MixedDensity.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase10-Qualification.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase2to5-BroadleafParity.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase6-BroadleafTimber.md",
+        "Docs/Verification/ThreeSpeciesProgramme/Phase7to9-HistoryAndRepeatedInterventions.md",
+        "Docs/Verification/ThreeSpeciesProgramme/README.md"
+      ]
+    },
+    {
+      "name": "Dormant site",
+      "branch": "task/oak-beech-site-infrastructure-v1",
+      "head": "47539847d7e2531824c30f3dfe635d55404699a8",
+      "delta_base": "9d9d991cd5288c2a7e6818f28f7c83a927467ff4",
+      "remote_branch_head": "47539847d7e2531824c30f3dfe635d55404699a8",
+      "containing_pushed_branches": [
+        "task/oak-beech-site-infrastructure-v1"
+      ],
+      "status": "ACCEPTED DORMANT FOUNDATION",
+      "notes": "Five independent descriptors; numerical multiplier remains bit-exact 1.0; no save/default activation.",
+      "production": [
+        "Assets/ForestPrototype/ForestSiteProfile.cs",
+        "Assets/ForestPrototype/ForestSiteProfile.cs.meta",
+        "Assets/ForestPrototype/ScenarioSiteProfiles.cs",
+        "Assets/ForestPrototype/ScenarioSiteProfiles.cs.meta",
+        "Assets/ForestPrototype/SpeciesSiteResponse.cs",
+        "Assets/ForestPrototype/SpeciesSiteResponse.cs.meta"
+      ],
+      "verification": [
+        "Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs",
+        "Tools/Verification/SiteInfrastructure/run_site_check.py"
+      ],
+      "docs": []
+    },
+    {
+      "name": "Oak/Beech growth",
+      "branch": "task/oak-beech-ordinal-production-calibration-v1",
+      "head": "796da99029190ef71e68d5fa722f25240e696318",
+      "delta_base": "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "remote_branch_head": "796da99029190ef71e68d5fa722f25240e696318",
+      "containing_pushed_branches": [
+        "task/oak-beech-ordinal-production-calibration-v1",
+        "verify/oak-beech-production-calibration-796da99"
+      ],
+      "status": "CONDITIONAL: ordinal candidate; reported qualification B has unresolved anchor/resume-policy consequences",
+      "notes": "Only two species rows [C]; no Sitka/equation/site changes. Manager must explicitly accept attributable continuation/completion movements before rebaselining.",
+      "production": [
+        "Assets/ForestPrototype/Species/BeechSpecies.asset",
+        "Assets/ForestPrototype/Species/SessileOak.asset"
+      ],
+      "verification": [
+        "Tools/Calibration/OakBeechGrowth/check_production_v1.py",
+        "Tools/Calibration/OakBeechGrowth/kernel_controls.py",
+        "Tools/Calibration/OakBeechGrowth/production_v1_expected.csv",
+        "Tools/Calibration/OakBeechGrowth/production_v1_inputs.json"
+      ],
+      "docs": [
+        "Docs/Verification/Calibration/OakBeechProductionCalibrationV1Handoff.md",
+        "Docs/Verification/Calibration/ProductionV1Evidence/chosen-results.json",
+        "Docs/Verification/Calibration/ProductionV1Evidence/offline-regression.txt",
+        "Docs/Verification/Calibration/ProductionV1Evidence/production-typecheck.txt"
+      ]
+    },
+    {
+      "name": "N3 completion",
+      "branch": "task/scenario-one-two-cycle-completion-implementation-v1",
+      "head": "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "delta_base": "157ea7d12f361b824f56405284d46312e7c0b9fc",
+      "remote_branch_head": "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "containing_pushed_branches": [
+        "task/scenario-one-completion-guidance-v1",
+        "task/scenario-one-two-cycle-completion-implementation-v1",
+        "task/scenario-one-two-cycle-guidance-v1",
+        "tools/scenario-one-verification-fixture-fixes-v1",
+        "verify/scenario-one-two-cycle-eb7fd3d"
+      ],
+      "status": "ACCEPTED IMPLEMENTATION INPUT; integrated smoke required",
+      "notes": "Save20/event9; eight objectives plus reviewed distinct-year plans; old terminal outcomes retained.",
+      "production": [
+        "Assets/ForestPrototype/ScenarioOne/ScenarioManagementEvent.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+        "Assets/ForestPrototype/UI/AnnualReviewView.cs"
+      ],
+      "verification": [
+        "Tools/Verification/ScenarioOneCompletion/N3/N3CompletionVerification.cs",
+        "Tools/Verification/ScenarioOneCompletion/N3/OfflineLogic/N3OfflineCheck.cs",
+        "Tools/Verification/ScenarioOneCompletion/N3/OfflineLogic/SaveNeighbours.cs",
+        "Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py"
+      ],
+      "docs": [
+        "Docs/Verification/ScenarioOneCompletion/N3Evidence/existing-offline.txt",
+        "Docs/Verification/ScenarioOneCompletion/N3Evidence/n3-offline.txt",
+        "Docs/Verification/ScenarioOneCompletion/N3Evidence/typecheck-prod.txt",
+        "Docs/Verification/ScenarioOneCompletion/N3Evidence/typecheck-tools.txt",
+        "Docs/Verification/ScenarioOneCompletion/N3TwoCycleCompletionImplementationHandoff.md"
+      ]
+    },
+    {
+      "name": "U4 guidance",
+      "branch": "task/scenario-one-two-cycle-guidance-v1",
+      "head": "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "delta_base": "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "remote_branch_head": "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "containing_pushed_branches": [
+        "task/scenario-one-two-cycle-guidance-v1",
+        "tools/scenario-one-verification-fixture-fixes-v1"
+      ],
+      "status": "ACCEPTED BOUNDED SOURCE; offline only",
+      "notes": "Depends N3/history; separate presentation helper leaves rules unchanged. Do not also cherry-pick older guidance 40b0a765.",
+      "production": [
+        "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs",
+        "Assets/ForestPrototype/UI/AnnualReviewView.cs"
+      ],
+      "verification": [
+        "Tools/Verification/ScenarioOneCompletion/N3/OfflineLogic/N3OfflineCheck.cs",
+        "Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/ScenarioHistoryOfflineCheck.cs"
+      ],
+      "docs": [
+        "Docs/Verification/ScenarioOneIntegration/U4GuidanceHandoff.md"
+      ]
+    },
+    {
+      "name": "UX",
+      "branch": "ux/scenario-one-small-fixes-84e881a",
+      "head": "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "delta_base": "84e881aa6d0e96c5752f09492d5db37d2cc8925e",
+      "remote_branch_head": null,
+      "containing_pushed_branches": [
+        "audit/scenario-one-ux-followup-549eae3-review-v1"
+      ],
+      "status": "ACCEPTED BOUNDED SOURCE / B review; integrated rendered qualification required",
+      "notes": "Original UX base 84e881a is also needed; follow-up alone is not the complete UX. P3 text AF7405918195F0DE; world EBE7A228F630AE41 unchanged.",
+      "production": [
+        "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss",
+        "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+        "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+        "Assets/ForestPrototype/UI/UiKit.cs",
+        "Assets/ForestPrototype/UI/WorkPlanOverview.cs"
+      ],
+      "verification": [
+        "Tools/Verification/S1A_README.md",
+        "Tools/Verification/ScenarioOneUx/Qualification/UxQualification.cs",
+        "Tools/Verification/ScenarioOneUx/Qualification/make_startup_diagnostic.py",
+        "Tools/Verification/ScenarioOneUx/Qualification/run_qualification.py",
+        "Tools/Verification/Startup/StartupScreenVerification.cs",
+        "Tools/Verification/run_s1a_gates.py"
+      ],
+      "docs": [
+        "Docs/Verification/ScenarioOneUxFixes/Handoff.md",
+        "Docs/Verification/ScenarioOneUxFixes/evidence/before-fix-failures.txt",
+        "Docs/Verification/ScenarioOneUxFixes/evidence/final-hard-checks.txt",
+        "Docs/Verification/ScenarioOneUxFixes/evidence/p3-anchor-proof.txt",
+        "Docs/Verification/ScenarioOneUxFixes/evidence/text-sizes.csv",
+        "Docs/Verification/ScenarioOneUxQualification/Handoff.md",
+        "Docs/Verification/ScenarioOneUxQualification/README.md",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/gate-results.md",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/harness-checks.txt",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/perf-cpu-only.txt",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/startup-gate-diagnosis.md",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/text-sizes.csv",
+        "Docs/Verification/ScenarioOneUxQualification/evidence/ui-screenshots-index.md"
+      ]
+    },
+    {
+      "name": "Marking optimisation",
+      "branch": "perf/scenario1-dense-stand-player-v1",
+      "head": "678283642aaeb60221eda0fe8cb3f97e27958048",
+      "delta_base": "130bc36bad3cf09c42092bc176e61ddf645a1ad6",
+      "remote_branch_head": null,
+      "containing_pushed_branches": [],
+      "status": "BLOCKED PUBLICATION: local commit exists; no containing pushed ref found",
+      "notes": "Containing local branch head e788b09f97958fd0d416cf4f67d63e7ef599df77; preserve Hegyi additions/order/exact cutoff. Owner must publish.",
+      "production": [
+        "Assets/ForestPrototype/ForestTreeMarkingManager.cs"
+      ],
+      "verification": [],
+      "docs": []
+    },
+    {
+      "name": "Fixture fixes",
+      "branch": "tools/scenario-one-verification-fixture-fixes-v1",
+      "head": "4c5a8a4b80e2e1df4d343a2aebc21475d6f1401a",
+      "delta_base": "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "remote_branch_head": "4c5a8a4b80e2e1df4d343a2aebc21475d6f1401a",
+      "containing_pushed_branches": [
+        "tools/scenario-one-verification-fixture-fixes-v1"
+      ],
+      "status": "ACCEPTED VERIFICATION INPUT; integrated representative run required",
+      "notes": "Preserve density-v3 component assertions when resolving gate overlap; observed Enlarged80 values are not canonical replacement anchors.",
+      "production": [],
+      "verification": [
+        "Tools/Verification/ThreeSpecies/BroadleafAdultGrowthVerification.cs",
+        "Tools/Verification/ThreeSpecies/MixedDensityVerification.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/check_fixture_controls.py"
+      ],
+      "docs": [
+        "Docs/Verification/ScenarioOneIntegration/VerificationFixtureFixesHandoff.md"
+      ]
+    },
+    {
+      "name": "feat: add oak and beech timber ladders and prices (pure layer)",
+      "branch": "claude/stoic-mccarthy-gtzaub",
+      "head": "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "remote_branch_head": "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "status": "ACCEPTED PRODUCTION INPUT; feature/integrated gates still required",
+      "production": [
+        "Assets/ForestPrototype/TimberYield/TimberYieldCalculator.cs",
+        "Assets/ForestPrototype/TimberYield/TimberYieldConfiguration.cs",
+        "Assets/ForestPrototype/TimberYield/TimberYieldValidation.cs",
+        "Assets/ForestPrototype/WorkEconomy/ForestryWorkDomain.cs",
+        "Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs",
+        "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs",
+        "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs.meta"
+      ],
+      "verification": [
+        "Tools/Verification/ThreeSpecies/OfflineLogic/BroadleafTimberOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/SitkaYieldFixture.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py"
+      ],
+      "docs": [],
+      "notes": "Exact cherry-pick delta; do not merge entire overnight branch. Depends Model2 identity/density foundation; history depends timber economy."
+    },
+    {
+      "name": "feat: add oak and beech timber economy behind growth model 2",
+      "branch": "claude/stoic-mccarthy-gtzaub",
+      "head": "855827f96225003c6387b0da43107c509603391a",
+      "remote_branch_head": "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "status": "ACCEPTED PRODUCTION INPUT; feature/integrated gates still required",
+      "production": [
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneEconomyAdapter.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+        "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+        "Assets/ForestPrototype/UI/WorkPlanView.cs"
+      ],
+      "verification": [
+        "Tools/Verification/ThreeSpecies/BroadleafTimberEconomyVerification.cs"
+      ],
+      "docs": [
+        "Docs/Verification/ThreeSpeciesProgramme/Phase6-BroadleafTimber.md",
+        "Docs/Verification/ThreeSpeciesProgramme/README.md"
+      ],
+      "notes": "Exact cherry-pick delta; do not merge entire overnight branch. Depends Model2 identity/density foundation; history depends timber economy."
+    },
+    {
+      "name": "feat: add scenario-one management history, year drill-down and completion summary",
+      "branch": "claude/stoic-mccarthy-gtzaub",
+      "head": "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60",
+      "remote_branch_head": "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "status": "ACCEPTED PRODUCTION INPUT; feature/integrated gates still required",
+      "production": [
+        "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs",
+        "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta",
+        "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+        "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+        "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+        "Assets/ForestPrototype/UI/WalkingHudView.cs",
+        "Assets/ForestPrototype/UI/WorkPlanView.cs"
+      ],
+      "verification": [
+        "Tools/Verification/ThreeSpecies/OfflineLogic/HistoryOfflineStubs.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/ScenarioHistoryOfflineCheck.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs",
+        "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+        "Tools/Verification/ThreeSpecies/ScenarioHistoryVerification.cs"
+      ],
+      "docs": [
+        "Docs/Verification/ThreeSpeciesProgramme/Phase7to9-HistoryAndRepeatedInterventions.md",
+        "Docs/Verification/ThreeSpeciesProgramme/README.md"
+      ],
+      "notes": "Exact cherry-pick delta; do not merge entire overnight branch. Depends Model2 identity/density foundation; history depends timber economy."
+    }
+  ]
+}
