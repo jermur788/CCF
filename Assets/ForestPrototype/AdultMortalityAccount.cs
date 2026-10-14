@@ -16,9 +16,19 @@ public sealed class AdultMortalityAccount
     public double Occupancy;
     // The pressure that drove mortality on either route (each route defines its own onset and scale).
     public double DensityPressure;
+    // Hazard deaths. On the species-aware route: the Sitka component's hazard victims plus every generic victim.
     public int HazardDeaths;
-    // LegacySitkaExact only: the species-aware route has no boundary stage.
+    // The Sitka boundary stage. LegacySitkaExact: the whole stand. SpeciesAwareOccupancy: the Sitka component only;
+    // pure Oak or Beech stands never have one.
     public int BoundaryDeaths;
+    // SpeciesAwareOccupancy only, diagnostics (never saved). The Sitka component is the original Sitka density process
+    // run on the Sitka trees alone; the generic component is the occupancy response over the trees it left standing.
+    public double SitkaSubsetRelativeDensity;
+    public int SitkaComponentDeaths;
+    public int GenericDeaths;
+    // Generic response times the non-Reference share of the occupied space: the expected fraction of the remaining trees.
+    public double GenericLossFraction;
+    public double NonReferenceShare;
     public int Deaths;
     public double DeadStemVolumeM3;
 }

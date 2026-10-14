@@ -1,5 +1,6 @@
-// V2 controller uses PlanComposite (MixedDensityModel.Composite.cs). The legacy generic Plan below
-// remains an independently tested occupancy primitive; it is no longer the full mixed controller route.
+// The mixed-stand controller route (growth model 2) uses PlanComponents in MixedDensityModel.Composite.cs: the Sitka
+// component and the generic component are resolved separately. The generic Plan below remains an independently tested
+// occupancy primitive (single quota, one allocator); the controller no longer calls it.
 using System;
 using System.Collections.Generic;
 
@@ -120,7 +121,7 @@ public readonly struct OccupancyCalibration
 }
 
 // Outcome of one annual step. Victims are indices into the stem list the plan was made from, in ordinal tree-id order.
-public sealed class DensityMortalityPlan
+public class DensityMortalityPlan
 {
     public double StemsPerHectare;          // all living stems (descriptive)
     public double QuadraticMeanDbhCm;       // all living stems pooled (descriptive)

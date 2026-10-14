@@ -337,10 +337,11 @@ public static class MixedDensityOfflineCheck
         // The occupancy route's controller method and model must not touch any Sitka density arithmetic, and the
         // Sitka route must not touch the occupancy model: changing one cannot change the other.
         string method = Between(controller, "private void ApplySpeciesAwareDensityMortality(", "    private double StandRelativeDensity(");
-        string methodCode = method == null ? null : StripComments(method);
+        // The one diagnostic copy of the Sitka subset's relative density into the account (a read, never arithmetic) is allowed; any other mention is not.
+        string methodCode = method == null ? null : StripComments(method).Replace("account.SitkaSubsetRelativeDensity = sitka.RelativeDensity;", "");
         Check(methodCode != null && !methodCode.Contains("SitkaGrowthModel") && !methodCode.Contains("StandRelativeDensity") && !methodCode.Contains("RelativeDensity")
-            && methodCode.Contains("MixedDensityModel.PlanComposite(")
-            && methodCode.Contains("SitkaSubsetDensitySignal.RequiredDeaths("), "OCCUPANCY_ROUTE_CONTROLLER_METHOD_HAS_NO_SITKA_ARITHMETIC");
+            && methodCode.Contains("MixedDensityModel.PlanComponents(")
+            && methodCode.Contains("SitkaSubsetDensitySignal.Resolve("), "OCCUPANCY_ROUTE_CONTROLLER_METHOD_HAS_NO_SITKA_ARITHMETIC");
         string modelCode = StripComments(model);
         Check(!modelCode.Contains("SitkaGrowthModel") && !modelCode.Contains("RelativeDensity") && !modelCode.Contains("MaximumSdi") && !modelCode.Contains("2.063"),
             "MIXED_DENSITY_MODEL_SOURCE_HAS_NO_SITKA_REFERENCE");

@@ -1149,11 +1149,12 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         return false;
     }
 
-    // Growth model 2 composite pressure for mixed stands. The Sitka-only subset signal
-    // and generic occupancy are calculated separately; this method describes the living trees to them
-    // and applies the result. Each tree carries its raw Hegyi index, not a species-specific suppression, so which
-    // trees die does not depend on species. The per-tree roll uses the same random domain as the Sitka route, so no
-    // random stream is consumed.
+    // Growth model 2 mortality for stands with at least one Oak or Beech tree, resolved COMPONENT BY COMPONENT.
+    // The Sitka component runs the original Sitka density process on the Sitka trees alone and its victims are Sitka
+    // trees. The generic component turns total occupancy into a loss fraction of the remaining trees and chooses them
+    // by competitive position only. This method describes the living trees to the two (each carries its raw Hegyi
+    // index, never a species-specific suppression) and applies the union; the two sets cannot overlap. Each component
+    // rolls in its own keyed domain, so no random stream is consumed.
     private void ApplySpeciesAwareDensityMortality(List<ForestTree> living, AdultMortalityAccount account)
     {
         var stems = new DensityStem[living.Count];
@@ -1166,16 +1167,25 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
                 tree.Diameter, ci);
         }
-        System.Func<string, double> roll = id => SimulationRandom.Roll(rngModelVersion,
+        System.Func<string, double> sitkaRoll = id => SimulationRandom.Roll(rngModelVersion,
             "ADULT-MORT-" + id, ecologicalYear, simulationSeed);
-        int referenceDeaths = SitkaSubsetDensitySignal.RequiredDeaths(stems, StandAreaHectares, roll);
-        DensityMortalityPlan plan = MixedDensityModel.PlanComposite(stems, StandAreaHectares, referenceDeaths, roll);
+        System.Func<string, double> genericRoll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-GENERIC-" + id, ecologicalYear, simulationSeed);
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, StandAreaHectares, sitkaRoll);
+        DensityComponentPlan plan = MixedDensityModel.PlanComponents(stems, StandAreaHectares,
+            sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll);
         account.Route = DensityRoute.SpeciesAwareOccupancy;
         account.StemsPerHectare = plan.StemsPerHectare;
         account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
         account.Occupancy = plan.Occupancy;
         account.DensityPressure = plan.OvercrowdingPressure;
         account.HazardDeaths = plan.HazardDeaths;
+        account.BoundaryDeaths = plan.SitkaBoundaryDeaths;
+        account.SitkaSubsetRelativeDensity = sitka.RelativeDensity;
+        account.SitkaComponentDeaths = plan.SitkaHazardDeaths + plan.SitkaBoundaryDeaths;
+        account.GenericDeaths = plan.GenericDeaths;
+        account.GenericLossFraction = plan.GenericLossFraction;
+        account.NonReferenceShare = plan.NonReferenceShare;
         var victims = new List<ForestTree>(plan.VictimIndices.Count);
         foreach (int index in plan.VictimIndices)
             victims.Add(living[index]);

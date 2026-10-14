@@ -315,7 +315,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
                 before > 1.0 && Math.Abs(step.Occupancy - before) <= 1e-12 && step.Route == DensityRoute.SpeciesAwareOccupancy && step.RelativeDensity == 0.0
                 && step.DensityPressure > 0.0 && step.Deaths > 0 && dead.Count == step.Deaths && dead.All(t => t.MortalityCause == "self-thinning"),
                 $"occupancyBefore={F(before)} {Describe(step)}");
-            Pass($"PURE_{label}_OCCUPANCY_FALLS_AFTER_THE_STEP_AND_LOSS_IS_BOUNDED", after < before && Living().Length > 1 && step.DensityPressure < 1.0 && step.Deaths <= Math.Ceiling(MixedDensityModel.CompositeMaximumGenericLoss * count) && step.BoundaryDeaths == 0,
+            Pass($"PURE_{label}_OCCUPANCY_FALLS_AFTER_THE_STEP_AND_LOSS_IS_BOUNDED", after < before && Living().Length > 1 && step.DensityPressure < 1.0 && step.Deaths <= Math.Ceiling(MixedDensityModel.GenericMaximumAnnualLoss * count) && step.BoundaryDeaths == 0,
                 $"occupancy {F(before)} -> {F(after)} living={Living().Length}/{count} pressure={F(step.DensityPressure)}");
 
             // Over the years: every death is a recorded self-thinning death in a valid year with deadwood created exactly once.
@@ -466,7 +466,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         AdultMortalityAccount crowded = DensityStep();
         double crowdedAfter = OccupancyOfLiving();
         Pass("HEAVY_OVERCROWDING_THINS_MORE_BUT_REMAINS_BOUNDED", crowdedBefore > 1.5 && crowded.DensityPressure > zone.DensityPressure && crowded.Deaths > 0
-            && crowded.Deaths <= Math.Ceiling(MixedDensityModel.CompositeMaximumGenericLoss * crowdedStems) && crowdedAfter < crowdedBefore,
+            && crowded.Deaths <= Math.Ceiling(MixedDensityModel.GenericMaximumAnnualLoss * crowdedStems) && crowdedAfter < crowdedBefore,
             $"occupancyBefore={F(crowdedBefore)} occupancyAfter={F(crowdedAfter)} stems={crowdedStems} {Describe(crowded)}");
     }
 
