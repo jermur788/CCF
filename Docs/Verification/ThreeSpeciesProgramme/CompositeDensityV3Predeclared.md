@@ -96,3 +96,11 @@ What the failing sub-criteria show (offline diagnostics, `DensityCalibrationSear
 * Selection rule unchanged: the grid of section 5 (no new candidates), the passing set P under R1'-R4, the central candidate by the neighbour rule and the largest minimum normalised margin. The Unity harness must reproduce R1'-R4 and R5' for the selected candidate and its two nearest passing neighbours.
 
 Trial 2 is an engineering amendment made by the worker after seeing Trial 1; it is disclosed here so the Manager can accept or reject it. If it is rejected, the generic constants return to the v2 values (three constants in `MixedDensityModel.Composite.cs`) and the component architecture is unaffected.
+
+### Trial 2 addendum A4 (written after the first offline run of the Trial 2 acceptance on mixed stands, before it was re-run)
+
+The first run of R2-R4 on the whole MIXED stands failed R2 (5-year-block change 0.095-0.149, or a single year above 40 %). The unchanged legacy pure-Sitka route fails the same R2 by itself: on Legacy40 with the measured recruitment it has a largest single-year loss of 81 %, a largest 5-year-block change of 0.22 and 19 years above 40 % (the boundary stage of the original Sitka process on a stand of a few dozen stems). Those pulses belong to the Sitka component, which is exact and was not to be altered; a mixed-stand R2 that includes them tests the legacy model, not the generic kernel.
+
+* R2' for MIXED stands is therefore evaluated on the GENERIC component's loss fraction only (`GenericDeaths / LivingBefore`), with the same limits (5-year-block change at most 0.10; no year above 40 %), years 26-300.
+* R3' and R4 stay on the whole stand. R5' unchanged.
+* Pure stands are unaffected (they have no Sitka component).
