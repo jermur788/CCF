@@ -331,9 +331,18 @@ public sealed class OakBeechGate : MonoBehaviour
                 bool deathFree = deaths == 0;
                 Note("deaths_" + tag.Replace('/', '_'), deaths.ToString());
 
-                // Promotion: the new Scenario One cohort becomes a tree at the lab's age 10 with the lab's state.
-                Expect(fix.All(f => f.promotedYear == 10), $"2B {tag}: every sapling is promoted at year 10 (got {string.Join(",", fix.Select(f => f.promotedYear).Distinct())})");
-                Expect(Mathf.Abs(dense.promotedD - 5.475f) < 0.05f && Mathf.Abs(dense.promotedH - 3.65f) < 0.05f, $"2B {tag}: promotion state D={F(dense.promotedD, "0.000")} H={F(dense.promotedH, "0.000")} (lab 5.475/3.65)");
+                // Promotion: the planted stock becomes a tree when the juvenile law first reaches the promotion height. The expected
+                // year/state come from the runtime rows (planted height, juvenile rate, promotion height), NOT from the lab's assumed
+                // 0.15 m start: the shipped planting starts higher, so promotion is earlier than the lab's age 10.
+                {
+                    TreeSpeciesDefinition sp0 = species == Oak ? oak : beech;
+                    float h0 = e.PlantedJuvenileHeightM; int expectYear = 0;
+                    while (h0 < sp0.PromotionHeightM && expectYear < 60) { h0 = (expectYear == 0 ? e.PlantedJuvenileHeightM : h0) + sp0.RegenHeightGrowthMPerYear; expectYear++; }
+                    float expectH = h0, expectD = Mathf.Clamp(expectH * 1.5f, 2f, 20f);
+                    Expect(fix.All(f => f.promotedYear == expectYear), $"2B {tag}: every sapling is promoted in year {expectYear} (planted height {F(e.PlantedJuvenileHeightM)} m + {F(sp0.RegenHeightGrowthMPerYear)} m/y to {F(sp0.PromotionHeightM)} m); got {string.Join(",", fix.Select(f => f.promotedYear).Distinct())}");
+                    Expect(Mathf.Abs(dense.promotedD - expectD) < 1e-3f && Mathf.Abs(dense.promotedH - expectH) < 1e-3f, $"2B {tag}: promotion state D={F(dense.promotedD, "0.000")} H={F(dense.promotedH, "0.000")} equals the juvenile law (D {F(expectD, "0.000")}, H {F(expectH, "0.000")})");
+                    Note($"lab_vs_game_stock_{tag.Replace('/', '_')}", $"game promotes in year {dense.promotedYear} at D {F(dense.promotedD, "0.000")} H {F(dense.promotedH, "0.000")}; the lab's stock fixture assumed 0.15 m start -> age 10 at D 5.475 H 3.65");
+                }
                 // Release direction and height independence (regimes are the same species, same light, same site).
                 foreach (int age in new[] { 20, 30, 40, 50, 60 }.Concat(horizon >= 125 ? new[] { 75, 100, 125 } : new int[0]).Where(a => a <= horizon))
                 {
