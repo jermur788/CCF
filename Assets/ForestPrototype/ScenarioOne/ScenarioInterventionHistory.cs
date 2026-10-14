@@ -211,13 +211,17 @@ public static class ScenarioInterventionHistory
 
     // The one line that says what to do next, from the derived history alone. The tutorial steps before the first
     // review keep their own wording in ScenarioOneManager; this is the repeatable part for every later cycle.
+    // completionGuidance is the optional "a reviewed second cycle is still missing" line (ScenarioOneCompletionGuidance.GuidanceText).
+    // Completion and stale orders keep their priority; null or empty leaves every older result unchanged.
     public static string NextStepHint(IReadOnlyList<InterventionSummary> interventions, int currentYear, int staleOrderCount,
-        bool completed, int completionYear, int centuryYear)
+        bool completed, int completionYear, int centuryYear, string completionGuidance = null)
     {
         if (completed)
             return $"Objectives met in year {completionYear}. The completion summary is in the Annual Review. You can keep managing toward the Century Review (year {centuryYear}).";
         if (staleOrderCount > 0)
             return $"{staleOrderCount} planned order{(staleOrderCount == 1 ? "" : "s")} from earlier need{(staleOrderCount == 1 ? "s" : "")} attention in the Work Plan.";
+        if (!string.IsNullOrEmpty(completionGuidance))
+            return completionGuidance;
         if (interventions.Count == 0)
             return "No intervention yet. Inspect trees, mark them with X, import the marks into the Work Plan, approve and advance.";
         InterventionSummary last = interventions[interventions.Count - 1];

@@ -16,6 +16,8 @@ public sealed class AnnualReviewView
     private readonly VisualElement acknowledgement;
     private readonly Button earlierYear, laterYear;
     private string shownKey = "";
+    // The footer's first-review wording, captured once so the completion guidance can replace it and then give it back.
+    private string defaultAcknowledgementPrompt;
     // The year being read. -1 follows the latest year; a past year is a drill-down into that year's recorded review.
     private int viewYear = -1;
     private int lastLatestYear = -1;
@@ -72,6 +74,14 @@ public sealed class AnnualReviewView
         shownKey = key;
         scroll.Clear();
         acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
+        // Completion guidance only: after the first review the footer says why this acknowledgement matters. The first review keeps its wording.
+        Label acknowledgementPrompt = acknowledgement.Q<Label>();
+        if (acknowledgementPrompt != null)
+        {
+            if (defaultAcknowledgementPrompt == null) defaultAcknowledgementPrompt = acknowledgementPrompt.text;
+            acknowledgementPrompt.text = !ui.NeedsAnnualReview && m.CompletionGuidance == CompletionGuidanceState.AcknowledgeReview
+                ? ScenarioOneCompletionGuidance.GuidanceText(CompletionGuidanceState.AcknowledgeReview) : defaultAcknowledgementPrompt;
+        }
         earlierYear.SetEnabled(report != null && m.AnnualReports.Any(r => r.year < report.year));
         laterYear.SetEnabled(historical);
         title.text = report == null ? "Annual review"
