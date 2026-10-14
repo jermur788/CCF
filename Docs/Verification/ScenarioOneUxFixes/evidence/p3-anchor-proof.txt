@@ -1,0 +1,6 @@
+gate-logged hash        : AF7405918195F0DE
+recomputed from the text: AF7405918195F0DE
+new subtitle present once: True
+hash with ONLY the subtitle reverted to the old wording: F7C2FC966816BBAD
+equals the recorded old anchor F7C2FC966816BBAD : True
+observed new hash equals expected AF7405918195F0DE : True

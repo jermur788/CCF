@@ -1,0 +1,23 @@
+UXQ_FAIL INSPECTION_25_INSPECT_SITKA_WITH_MARKS_FITS_1280x720 inspection card: text [If felled now — estimate] (x:31.25, y:667.50, width:343.75, height:23.75) is outside its panel (x:13.75, y:13.75, width:380.00, height:648.75) ; the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · planning · 1 inte
+UXQ_FAIL INSPECTION_25_INSPECT_SITKA_WITH_MARKS_FITS_1920x1080 inspection card: text [Competition here comes from 13 trees within ...] (x:30.83, y:606.67, width:344.17, height:60.00) is outside its panel (x:14.17, y:14.17, width:380.00, height:647.50) ; the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Yea
+UXQ_FAIL INSPECTION_26_INSPECT_OAK_PRUNED_FITS_1280x720 inspection card: text [Competition here comes from 32 trees within ...] (x:31.25, y:631.25, width:343.75, height:58.75) is outside its panel (x:13.75, y:13.75, width:380.00, height:648.75) ; the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · pla
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_26-inspect-oak-pruned_1280x720 outsideViewportNotScrolled=4
+UXQ_FAIL INSPECTION_26_INSPECT_OAK_PRUNED_FITS_1920x1080 inspection card: text [Competition here comes from 32 trees within ...] (x:30.83, y:638.33, width:344.17, height:60.00) is outside its panel (x:14.17, y:14.17, width:380.00, height:647.50) ; the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Year 1 ·
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_26-inspect-oak-pruned_1920x1080 outsideViewportNotScrolled=4
+UXQ_FAIL INSPECTION_27_INSPECT_OAK_UNPRUNED_FITS_1280x720 inspection card: text [If felled now — estimate] (x:31.25, y:667.50, width:343.75, height:23.75) is outside its panel (x:13.75, y:13.75, width:380.00, height:648.75) ; the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · planning · 1 interven
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_27-inspect-oak-unpruned_1280x720 outsideViewportNotScrolled=3
+UXQ_FAIL INSPECTION_27_INSPECT_OAK_UNPRUNED_FITS_1920x1080 inspection card: text [Competition here comes from 35 trees within ...] (x:30.83, y:606.67, width:344.17, height:60.00) is outside its panel (x:14.17, y:14.17, width:380.00, height:647.50) ; the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Year 1 
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_27-inspect-oak-unpruned_1920x1080 outsideViewportNotScrolled=3
+UXQ_FAIL INSPECTION_28_INSPECT_BEECH_FITS_1280x720 inspection card: text [If felled now — estimate] (x:31.25, y:667.50, width:343.75, height:23.75) is outside its panel (x:13.75, y:13.75, width:380.00, height:648.75) ; the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · planning · 1 intervention] ;
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_28-inspect-beech_1280x720 outsideViewportNotScrolled=2
+UXQ_FAIL INSPECTION_28_INSPECT_BEECH_FITS_1920x1080 inspection card: text [Competition here comes from 31 trees within ...] (x:30.83, y:606.67, width:344.17, height:60.00) is outside its panel (x:14.17, y:14.17, width:380.00, height:647.50) ; the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Year 1 · plan
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_28-inspect-beech_1920x1080 outsideViewportNotScrolled=2
+UXQ_FAIL INSPECTION_29_INSPECT_OAK_CROP_TREE_COMPETITORS_FITS_1280x720 the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · planning · 1 intervention]
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_29-inspect-oak-crop-tree-competitors_1280x720 outsideViewportNotScrolled=5
+UXQ_FAIL INSPECTION_29_INSPECT_OAK_CROP_TREE_COMPETITORS_FITS_1920x1080 the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Year 1 · planning · 1 intervention]
+UXQ_FAIL NO_TEXT_OUTSIDE_THE_VIEWPORT_29-inspect-oak-crop-tree-competitors_1920x1080 outsideViewportNotScrolled=5
+UXQ_FAIL INSPECTION_30_INSPECT_OAK_MODEL1_FITS_1280x720 inspection card: text [Competition here comes from 32 trees within ...] (x:31.25, y:631.25, width:343.75, height:58.75) is outside its panel (x:13.75, y:13.75, width:380.00, height:648.75) ; the title needs 372.5 but has 290 and does not wrap: [Scenario One · Year 1 · pla
+UXQ_FAIL INSPECTION_30_INSPECT_OAK_MODEL1_FITS_1920x1080 inspection card: text [Competition here comes from 32 trees within ...] (x:30.83, y:638.33, width:344.17, height:60.00) is outside its panel (x:14.17, y:14.17, width:380.00, height:647.50) ; the title needs 372.5 but has 291.67 and does not wrap: [Scenario One · Year 1 ·
+UXQ_FAIL INSPECTION_FIXTURE_LEFT_NO_MARKS fell=4 crop=2
+UXQ_FAIL DEADWOOD_VOLUME_NAME_DOES_NOT_WRAP_1280x720 the name needs 120 but has 32.5 (wraps)
+UXQ_FAIL DEADWOOD_VOLUME_NAME_DOES_NOT_WRAP_1920x1080 the name needs 120 but has 34.17 (wraps)
