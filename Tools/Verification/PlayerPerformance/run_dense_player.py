@@ -34,11 +34,15 @@ def step(op, **kw):
 
 
 def plan_baseline(view, markers):
-    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=10)]
+    # The GPU reaches its steady thermal state (about 87 C, clocks down about 14%) after roughly 90 s of load, so the views are measured after a
+    # warm-up of the same scene and the first view is repeated at the end to show what is left of the drift.
+    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg="spawn"), step("window", name="warmup", seconds=90)]
     for v in VIEWS:
         steps += [step("view", arg=v), step("settle", seconds=2), step("window", name="view_" + v, seconds=15)]
     steps += [step("view", arg="spawn"), step("settle", seconds=2), step("window", name="view_spawn_repeat", seconds=15),
-              step("walk", name="walk", seconds=20), step("memory", name="after_walk"), step("capture", name="screenshot")]
+              step("view", arg="spawn:40"), step("settle", seconds=2), step("window", name="view_spawn_pitch40_ground", seconds=15),
+              step("view", arg="spawn:-25"), step("settle", seconds=2), step("window", name="view_spawn_pitch-25_up", seconds=15),
+              step("view", arg="spawn"), step("settle", seconds=2), step("walk", name="walk", seconds=20), step("memory", name="after_walk"), step("capture", name="screenshot")]
     return steps
 
 
@@ -47,7 +51,7 @@ def plan_discover(view, markers):
 
 
 def plan_marks(view, markers):
-    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=10), step("view", arg=view), step("settle", seconds=2)]
+    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg=view), step("window", name="warmup", seconds=60)]
     for n in [0, 1, 2, 5, 10, 20, 40]:
         steps += [step("marks", n=n, arg="fell"), step("settle", seconds=1), step("time_marking", name=f"fell{n}", n=20), step("window", name=f"marks_fell_{n}", seconds=10)]
     for n in [5, 20, 40]:
@@ -57,18 +61,19 @@ def plan_marks(view, markers):
 
 
 def plan_ab(view, markers):
-    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=10), step("view", arg=view), step("settle", seconds=2),
-             step("window", name="ab_base_1", seconds=12)]
-    conditions = [("ssao-off", 0), ("shadows-off", 0), ("shadow-distance", 25), ("shadow-resolution", 1024), ("shadow-cascades", 2), ("soft-shadows-off", 0),
+    """Each condition is bracketed by baseline windows (B C B C B ...): the drift is slow and close to linear, so the mean of the two baselines
+    on either side of a condition is the fair comparison. A warm-up first brings the GPU to its steady thermal state."""
+    conditions = [("ssao-off", 0), ("shadows-off", 0), ("shadow-distance", 25), ("shadow-cascades", 2), ("shadow-resolution", 1024), ("soft-shadows-off", 0),
                   ("lod-bias", 1), ("lod-bias", 3), ("render-scale", 0.75), ("msaa-off", 0)]
+    steps = [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg=view), step("window", name="warmup", seconds=90), step("window", name="ab_base_0", seconds=10)]
     for index, (what, value) in enumerate(conditions):
         label = what + (f"={value:g}" if value else "")
-        steps += [step("toggle", arg=what, f=value), step("settle", seconds=2), step("window", name="ab_" + label, seconds=12), step("reset"), step("settle", seconds=2)]
-        if index % 3 == 2:
-            steps += [step("window", name=f"ab_base_drift_{index // 3 + 2}", seconds=12)]
-    steps += [step("toggle", arg="ssao-off"), step("toggle", arg="shadows-off"), step("settle", seconds=2), step("window", name="ab_ssao-off+shadows-off", seconds=12), step("reset"), step("settle", seconds=2),
-              step("hud", arg="off"), step("settle", seconds=2), step("window", name="ab_hud-off", seconds=12), step("hud", arg="on"), step("settle", seconds=2),
-              step("window", name="ab_base_last", seconds=12)]
+        steps += [step("toggle", arg=what, f=value), step("settle", seconds=2), step("window", name="ab_" + label, seconds=10), step("reset"), step("settle", seconds=2),
+                  step("window", name=f"ab_base_{index + 1}", seconds=10)]
+    steps += [step("toggle", arg="ssao-off"), step("toggle", arg="shadows-off"), step("settle", seconds=2), step("window", name="ab_ssao-off+shadows-off", seconds=10), step("reset"), step("settle", seconds=2),
+              step("window", name=f"ab_base_{len(conditions) + 1}", seconds=10),
+              step("hud", arg="off"), step("settle", seconds=2), step("window", name="ab_hud-off", seconds=10), step("hud", arg="on"), step("settle", seconds=2),
+              step("window", name=f"ab_base_{len(conditions) + 2}", seconds=10)]
     return steps
 
 
@@ -80,7 +85,7 @@ def plan_ops(view, markers):
 
 
 def plan_profile(view, markers):
-    return [step("markers", arg=markers), step("start_new"), step("settle", seconds=10), step("view", arg=view), step("settle", seconds=2),
+    return [step("markers", arg=markers), step("start_new"), step("settle", seconds=4), step("view", arg=view), step("window", name="warmup", seconds=60),
             step("profiler", name="profile_marks0.raw", seconds=6), step("marks", n=10, arg="fell"), step("settle", seconds=1),
             step("profiler", name="profile_marks10.raw", seconds=6), step("marks", n=40, arg="fell"), step("settle", seconds=1),
             step("profiler", name="profile_marks40.raw", seconds=6)]

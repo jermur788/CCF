@@ -31,7 +31,8 @@ public sealed class DensePerfProbe : MonoBehaviour
     [Serializable]
     public class Window
     {
-        public string name, view, note, toggles;
+        public string name, view, note, toggles, poseStart, poseEnd;
+        public bool poseMoved;
         public int frames, marks, gc0Delta;
         public double seconds, meanMs, medianMs, p95Ms, p99Ms, maxMs, minMs, focusedFraction;
         public Series[] series;
@@ -141,6 +142,7 @@ public sealed class DensePerfProbe : MonoBehaviour
                 case "continue_load": yield return ContinueLoad(); break;
                 case "settle": yield return new WaitForSecondsRealtime(step.seconds); break;
                 case "view": SetView(step.arg); yield return null; yield return null; break;
+                case "input": LockInput(step.arg == "lock"); yield return null; break;
                 case "window": yield return RecordWindow(step.name, step.seconds, false); break;
                 case "walk": yield return RecordWindow(step.name, step.seconds, true); break;
                 case "marks": PlaceMarks(step.n, step.arg); yield return null; yield return null; break;
@@ -233,6 +235,7 @@ public sealed class DensePerfProbe : MonoBehaviour
         Check(player.enabled && !StandaloneSessionMenu.IsOpen, "forest control enabled");
         spawnPosition = player.transform.position; spawnRotation = player.transform.rotation; spawnPitch = player.LookPitch;
         report.shadowDistance = ShadowDistance();
+        LockInput(true);
         Memory("after_start_new");
     }
 
@@ -259,6 +262,9 @@ public sealed class DensePerfProbe : MonoBehaviour
     private void SetView(string view)
     {
         currentView = view;
+        float pitch = spawnPitch;
+        int colon = view.IndexOf(':');
+        if (colon >= 0) { pitch = float.Parse(view.Substring(colon + 1), System.Globalization.CultureInfo.InvariantCulture); view = view.Substring(0, colon); }
         Vector3 position = spawnPosition; float yaw = spawnRotation.eulerAngles.y;
         if (view.StartsWith("spawn") && view.Length > 5) yaw += float.Parse(view.Substring(5), System.Globalization.CultureInfo.InvariantCulture);
         else if (view.StartsWith("centre") || view.StartsWith("edge"))
@@ -275,7 +281,28 @@ public sealed class DensePerfProbe : MonoBehaviour
         if (controller != null) controller.enabled = false;
         player.transform.position = position;
         if (controller != null) controller.enabled = true;
-        player.RestoreLook(Quaternion.Euler(0f, yaw, 0f), spawnPitch);
+        player.RestoreLook(Quaternion.Euler(0f, yaw, 0f), pitch);
+        viewPose = Pose();
+    }
+
+    private string viewPose = "";
+
+    private string Pose()
+    {
+        Vector3 p = player.transform.position;
+        return $"x={p.x:0.00} y={p.y:0.00} z={p.z:0.00} yaw={player.transform.eulerAngles.y:0.0} pitch={player.LookPitch:0.0}";
+    }
+
+    // The Player window has focus, so a mouse nudge or a key press from whoever is at the desk would turn or move the camera and change the load
+    // mid-measurement. The devices are switched off while measuring (they are switched on for the synthetic walk) and every window records the
+    // camera pose at its start and end so a move is detected rather than assumed away.
+    private void LockInput(bool lockIt)
+    {
+        foreach (InputDevice device in new InputDevice[] { Mouse.current, Keyboard.current })
+        {
+            if (device == null) continue;
+            if (lockIt) InputSystem.DisableDevice(device); else InputSystem.EnableDevice(device);
+        }
     }
 
     private void PlaceMarks(int count, string kind)
@@ -419,6 +446,9 @@ public sealed class DensePerfProbe : MonoBehaviour
         var gcAtFrame = new List<int>(4096);
         var clock = Stopwatch.StartNew();
         Vector3 startPosition = player.transform.position;
+        string poseStart = Pose();
+        var poses = new List<Vector4>(4096);   // x, z, yaw, pitch per frame: a struct, so the probe adds no garbage of its own
+        if (walk) LockInput(false);
         while (clock.Elapsed.TotalSeconds < seconds)
         {
             if (walk)
@@ -444,8 +474,12 @@ public sealed class DensePerfProbe : MonoBehaviour
             }
             alloc.Add(frameAlloc);
             int gc = GC.CollectionCount(0); gcAtFrame.Add(gc - lastGc); lastGc = gc;
+            Vector3 pp = player.transform.position;
+            poses.Add(new Vector4(pp.x, pp.z, player.transform.eulerAngles.y, player.LookPitch));
         }
         if (walk && Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
+        if (walk) LockInput(true);
+        string poseEnd = Pose();
         Check(dt.Count >= 20, "frame sample count " + name);
         var sorted = dt.OrderBy(x => x).ToList();
         double median = Percentile(sorted, 0.5);
@@ -464,22 +498,24 @@ public sealed class DensePerfProbe : MonoBehaviour
             name = name, view = currentView, toggles = currentToggles, marks = marking != null ? marking.LivingMarkedCount + marking.LivingCropTreeCount : 0, frames = dt.Count, seconds = clock.Elapsed.TotalSeconds,
             meanMs = dt.Average(), medianMs = median, p95Ms = Percentile(sorted, 0.95), p99Ms = Percentile(sorted, 0.99), maxMs = sorted[sorted.Count - 1], minMs = sorted[0],
             gc0Delta = GC.CollectionCount(0) - gcStart, focusedFraction = (double)focused / dt.Count, series = series.ToArray(), hitches = hitches.ToArray(),
+            poseStart = poseStart, poseEnd = poseEnd, poseMoved = !walk && poseStart != poseEnd,
             note = walk ? $"synthetic walk moved {Vector3.Distance(startPosition, player.transform.position):0.0} m" : ""
         };
         report.windows.Add(win);
         // Per-frame CSV for later analysis.
-        var header = new List<string> { "frame", "dt_ms", "cpuMain_ms", "cpuRender_ms", "gpu_ms", "cpuFrame_ms", "gcAlloc_bytes", "gc0_delta" };
+        var header = new List<string> { "frame", "dt_ms", "cpuMain_ms", "cpuRender_ms", "gpu_ms", "cpuFrame_ms", "gcAlloc_bytes", "gc0_delta", "pose" };
         header.AddRange(markers.Select(m => m.category + "/" + m.name));
         var rows = new List<string> { string.Join(",", header) };
         for (int i = 0; i < dt.Count; i++)
         {
             var row = new List<string> { i.ToString(), dt[i].ToString("R", System.Globalization.CultureInfo.InvariantCulture) };
             Func<List<double>, string> at = list => i < list.Count ? list[i].ToString("R", System.Globalization.CultureInfo.InvariantCulture) : "";
-            row.Add(at(main)); row.Add(at(render)); row.Add(at(gpu)); row.Add(at(cpuFrame)); row.Add(at(alloc)); row.Add(gcAtFrame[i].ToString());
+            row.Add(at(main)); row.Add(at(render)); row.Add(at(gpu)); row.Add(at(cpuFrame)); row.Add(at(alloc)); row.Add(gcAtFrame[i].ToString()); row.Add(i < poses.Count ? $"{poses[i].x:0.00};{poses[i].y:0.00};{poses[i].z:0.0};{poses[i].w:0.0}" : "");
             foreach (Marker m in markers) row.Add(at(m.values));
             rows.Add(string.Join(",", row));
         }
         File.WriteAllLines(Path.Combine(output, name + "-frames.csv"), rows);
+        if (win.poseMoved) Debug.LogWarning($"CCF_PERF_CAMERA_MOVED {name} {poseStart} -> {poseEnd}");
         Debug.Log($"CCF_PERF_WINDOW {name} view={currentView} toggles=[{currentToggles}] frames={dt.Count} meanMs={win.meanMs:0.00} medianMs={win.medianMs:0.00} p95={win.p95Ms:0.00} p99={win.p99Ms:0.00} max={win.maxMs:0.00}");
     }
 

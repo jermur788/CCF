@@ -52,15 +52,15 @@ def gpu_valid(run, window_name):
 
 
 def window_table(report, with_counters=True, run=None):
-    rows = ["| window | view | toggles | marks | frames | mean ms | median | p95 | p99 | max | fps (median) | main ms | render ms | gpu ms (valid frames) | alloc KB/frame | gc0 | focus |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    rows = ["| window | view | toggles | marks | frames | mean ms | median | p95 | p99 | max | fps (median) | main ms | render ms | gpu ms (valid frames) | alloc KB/frame | gc0 | focus | camera |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for w in report["windows"]:
         alloc = mean_of(w, "GC Allocated In Frame")
-        rows.append("| {name} | {view} | {tog} | {marks} | {frames} | {mean} | {med} | {p95} | {p99} | {mx} | {fps} | {main} | {render} | {gpu} | {alloc} | {gc} | {focus} |".format(
+        rows.append("| {name} | {view} | {tog} | {marks} | {frames} | {mean} | {med} | {p95} | {p99} | {mx} | {fps} | {main} | {render} | {gpu} | {alloc} | {gc} | {focus} | {cam} |".format(
             name=w["name"], view=w["view"], tog=w["toggles"] or "-", marks=w["marks"], frames=w["frames"], mean=fmt(w["meanMs"]), med=fmt(w["medianMs"]), p95=fmt(w["p95Ms"]),
             p99=fmt(w["p99Ms"]), mx=fmt(w["maxMs"]), fps=fmt(1000 / w["medianMs"], 1) if w["medianMs"] else "-",
             main=fmt(mean_of(w, "cpuMainThreadFrameTime_ms")), render=fmt(mean_of(w, "cpuRenderThreadFrameTime_ms")), gpu=gpu_text(run, w),
-            alloc=fmt(alloc / 1024 if alloc is not None else None, 1), gc=w["gc0Delta"], focus=fmt(w["focusedFraction"], 3)))
+            alloc=fmt(alloc / 1024 if alloc is not None else None, 1), gc=w["gc0Delta"], focus=fmt(w["focusedFraction"], 3), cam=("MOVED " + w.get("poseStart", "") + " -> " + w.get("poseEnd", "")) if w.get("poseMoved") else "steady"))
     if with_counters:
         names = sorted({s["name"] for w in report["windows"] for s in w["series"] if s["name"].split("/")[0] in ("Render", "Memory", "Internal", "Scripts", "PlayerLoop", "VSync")})
         if names:
@@ -139,20 +139,27 @@ def marks_scaling(report):
 
 
 def ab_table(report, run=None):
-    windows = {w["name"]: w for w in report["windows"]}
-    bases = [w for w in report["windows"] if w["name"].startswith("ab_base")]
+    """Each condition against the mean of the baseline windows immediately before and after it (B C B C B ...), which cancels slow drift."""
+    windows = report["windows"]
+    bases = [w for w in windows if w["name"].startswith("ab_base")]
     if not bases:
         return "(no A/B windows)"
-    base_mean = statistics.mean(w["medianMs"] for w in bases)
-    spread = max(w["medianMs"] for w in bases) - min(w["medianMs"] for w in bases)
-    out = [f"baseline windows (median frame ms): " + ", ".join(f"{w['name']}={w['medianMs']:.2f}" for w in bases) + f"; mean {base_mean:.2f}, spread {spread:.2f} ms",
-           "", "| condition | median ms | mean ms | p95 | delta vs baseline mean | % | gpu ms | main ms | draw calls | triangles | verified |", "|---|---|---|---|---|---|---|---|---|---|---|"]
-    for w in report["windows"]:
+    out = ["baseline windows in order (median frame ms): " + ", ".join(f"{w['name'][3:]}={w['medianMs']:.1f}" for w in bases), "",
+           "| condition | median ms | bracket baseline | delta ms | % | gpu ms (valid) | main ms | scripts ms | triangles M | shadow casters | bracket spread | camera |",
+           "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for i, w in enumerate(windows):
         if not w["name"].startswith("ab_") or w["name"].startswith("ab_base"):
             continue
-        delta = w["medianMs"] - base_mean
-        out.append(f"| {w['name'][3:]} | {fmt(w['medianMs'])} | {fmt(w['meanMs'])} | {fmt(w['p95Ms'])} | {delta:+.2f} | {100 * delta / base_mean:+.1f} | {gpu_text(run, w)} | "
-                   f"{fmt(mean_of(w, 'cpuMainThreadFrameTime_ms'))} | {fmt(mean_of(w, 'Draw Calls Count'), 0)} | {fmt(mean_of(w, 'Triangles Count'), 0)} | {'beyond drift' if abs(delta) > spread else 'within drift'} |")
+        before = next((x for x in reversed(windows[:i]) if x["name"].startswith("ab_base")), None)
+        after = next((x for x in windows[i + 1:] if x["name"].startswith("ab_base")), None)
+        near = [x for x in (before, after) if x is not None]
+        base = statistics.mean(x["medianMs"] for x in near)
+        spread = max(x["medianMs"] for x in near) - min(x["medianMs"] for x in near) if len(near) == 2 else 0.0
+        delta = w["medianMs"] - base
+        tri = mean_of(w, "Triangles Count")
+        cam = "moved" if w.get("poseMoved") or any(x.get("poseMoved") for x in near) else "steady"
+        out.append(f"| {w['name'][3:]} | {fmt(w['medianMs'])} | {base:.2f} | {delta:+.2f} | {100 * delta / base:+.1f} | {gpu_text(run, w)} | {fmt(mean_of(w, 'cpuMainThreadFrameTime_ms'))} | "
+                   f"{fmt(mean_of(w, 'Update.ScriptRunBehaviourUpdate'))} | {fmt(tri / 1e6 if tri else None, 1)} | {fmt(mean_of(w, 'Shadow Casters Count'), 0)} | {spread:.2f} | {cam} |")
     return "\n".join(out)
 
 
