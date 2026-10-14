@@ -71,3 +71,28 @@ v3 must show the same stand with the Sitka-component loss per Sitka stem inside 
 ## 7. Limits stated in advance
 
 The reduced simulator uses a regular-grid fixture, the production Hegyi/growth equations, species parameters read from the assets, and an EXTERNAL recruitment series taken from the Unity v2 long runs; it has no canopy light, seed rain or juvenile cohorts. It screens candidates; it is not evidence about the game. Only the Unity harness counts for R1-R5.
+
+---
+
+## Trial 1 outcome and Trial 2 amendments (written after seeing Trial 1 output, before Trial 2 was run)
+
+**Trial 1 (sections 5 and 6 as registered above) was run on the reduced simulator before this section existed.** Result, recorded as it came out: the 19-candidate grid on the pure fixtures (Oak and Beech, dense and young, both geometries) produced an EMPTY passing set P. By the registered rule that is a STOP for extending the grid or changing the allocation exponent or adult growth, and none of those was done. The v2 setting itself fails R1 on every Beech fixture (occupancy slope +0.0040 to +0.0052 per year over Y201-Y300), reproducing the Unity v2 qualification (+0.0054/+0.0052).
+
+What the failing sub-criteria show (offline diagnostics, `DensityCalibrationSearch.cs` commands `search`, `dump`, `exponent`):
+
+1. R2 fails for every strong candidate in the first year only. The dense fixtures start at occupancy about 2.2 by construction (a qualification fixture, not a game state), so a strong response removes up to 48 % of the stems in year 1, then 3-6 %. That is a start-up transient, not an oscillation.
+2. R3's all-stem loss limit is not a property of the kernel. The stems that die are almost all the roughly 40 new 5-cm adult trees a year that enter the 120-300 stems of an old Beech stand (the recruitment series is an input measured on Unity v2); dead basal area is 0.2-1.5 % a year and mortality of stems at least 20 cm is 0.3-1.1 % a year in every strong candidate.
+3. R1's occupancy-ratio test (occupancy at Y300 over Y200 at most 1.10) mostly measures a young thicket still developing; the slope tests already carry the Manager's own metric.
+4. Separately: the victim-allocation exponent (4, inherited from the legacy Sitka seam) decides whether any loss reaches canopy trees. With the response held fixed, exponents 2, 1 and 0 flatten the occupancy slope completely but only by keeping thousands of small stems (E80 pure Beech at Y300: 258, 2043 and 3048 stems against 122 at exponent 4 for response 0.50/1.60). That is a structural change to the species-neutral allocation, which the packet did not authorise, and it was NOT adopted: it is a diagnostic for the Manager only.
+5. R5 as written (Sitka-component loss per Sitka stem within 25 % of a pure-Sitka comparator) is ill-posed: the Sitka subset's own demand depends on its own size and age structure, which differs between a pure and a mixed stand, and the Enlarged80 comparator has no recruitment series. It is still reported as registered; it is replaced for the diagnosis by R5' below.
+
+### Trial 2 definitions (these REPLACE the named Trial 1 parts; everything else in sections 1-6 stands unchanged)
+
+* R1' flattening: both slope tests exactly as in R1 (|slope Y201-Y300| at most 0.0025 per year, |slope Y151-Y250| at most 0.004 per year). The occupancy ratio is reported, not tested.
+* R2' no violent oscillation: R2 evaluated on years 26-300 only (the 5-year-block change at most 0.10; no year over 40 %). The first-25-year transient is reported separately.
+* R3' no prolonged extreme loss: every 25-year window after Y25 has mean annual dead basal area at most 4 % of living basal area AND mean annual loss of stems of at least 20 cm DBH at most 5 %. Mean annual loss of all stems is reported, not tested, with the recruit inflow beside it.
+* R4 unchanged.
+* R5' (mixed stands, closes the late-mixed diagnosis): over Y201-Y300 the mean Sitka-subset relative density seen at the start of the step is at most 1.02 (the Sitka stems are held at their own line), and every Sitka-component death is a Sitka stem (identity I4, measured).
+* Selection rule unchanged: the grid of section 5 (no new candidates), the passing set P under R1'-R4, the central candidate by the neighbour rule and the largest minimum normalised margin. The Unity harness must reproduce R1'-R4 and R5' for the selected candidate and its two nearest passing neighbours.
+
+Trial 2 is an engineering amendment made by the worker after seeing Trial 1; it is disclosed here so the Manager can accept or reject it. If it is rejected, the generic constants return to the v2 values (three constants in `MixedDensityModel.Composite.cs`) and the component architecture is unaffected.
