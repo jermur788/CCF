@@ -817,7 +817,12 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         }
         for (int i = 0; i < shown.Count; i++)
             for (int j = i + 1; j < shown.Count; j++)
-                Check(!VisibleRect(shown[i], shown[j]).Overlaps(VisibleRect(shown[j], shown[i])), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
+            {
+                Rect a = VisibleRect(shown[i], shown[j]), b = VisibleRect(shown[j], shown[i]);
+                // A row scrolled out of view has no visible area and cannot overlap anything.
+                bool overlap = a.width > 0f && a.height > 0f && b.width > 0f && b.height > 0f && a.Overlaps(b);
+                Check(!overlap, name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
+            }
         foreach (Button button in root.Query<Button>().ToList())
             Check(button.worldBound.height >= 40f, name + ": button tall enough to click: " + button.text);
 
