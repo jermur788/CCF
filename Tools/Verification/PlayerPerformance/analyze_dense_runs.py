@@ -29,15 +29,37 @@ def mean_of(window, name):
     return s["mean"] if s else None
 
 
-def window_table(report, with_counters=True):
-    rows = ["| window | view | toggles | marks | frames | mean ms | median | p95 | p99 | max | fps (median) | main ms | render ms | gpu ms | alloc KB/frame | gc0 | focus |",
+def gpu_valid(run, window_name):
+    """GPU frame time over the frames that carry a value (the engine reports 0 for frames without one): (mean, median, valid count, total)."""
+    path = run / (window_name + "-frames.csv")
+    if not path.exists():
+        return None
+    with path.open() as f:
+        reader = csv.DictReader(f)
+        values = []
+        total = 0
+        for row in reader:
+            total += 1
+            try:
+                v = float(row["gpu_ms"])
+            except (ValueError, KeyError):
+                continue
+            if v > 0:
+                values.append(v)
+    if not values:
+        return (None, None, 0, total)
+    return (statistics.mean(values), statistics.median(values), len(values), total)
+
+
+def window_table(report, with_counters=True, run=None):
+    rows = ["| window | view | toggles | marks | frames | mean ms | median | p95 | p99 | max | fps (median) | main ms | render ms | gpu ms (valid frames) | alloc KB/frame | gc0 | focus |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for w in report["windows"]:
         alloc = mean_of(w, "GC Allocated In Frame")
         rows.append("| {name} | {view} | {tog} | {marks} | {frames} | {mean} | {med} | {p95} | {p99} | {mx} | {fps} | {main} | {render} | {gpu} | {alloc} | {gc} | {focus} |".format(
             name=w["name"], view=w["view"], tog=w["toggles"] or "-", marks=w["marks"], frames=w["frames"], mean=fmt(w["meanMs"]), med=fmt(w["medianMs"]), p95=fmt(w["p95Ms"]),
             p99=fmt(w["p99Ms"]), mx=fmt(w["maxMs"]), fps=fmt(1000 / w["medianMs"], 1) if w["medianMs"] else "-",
-            main=fmt(mean_of(w, "cpuMainThreadFrameTime_ms")), render=fmt(mean_of(w, "cpuRenderThreadFrameTime_ms")), gpu=fmt(mean_of(w, "gpuFrameTime_ms")),
+            main=fmt(mean_of(w, "cpuMainThreadFrameTime_ms")), render=fmt(mean_of(w, "cpuRenderThreadFrameTime_ms")), gpu=gpu_text(run, w),
             alloc=fmt(alloc / 1024 if alloc is not None else None, 1), gc=w["gc0Delta"], focus=fmt(w["focusedFraction"], 3)))
     if with_counters:
         names = sorted({s["name"] for w in report["windows"] for s in w["series"] if s["name"].split("/")[0] in ("Render", "Memory", "Internal", "Scripts", "PlayerLoop", "VSync")})
@@ -50,6 +72,13 @@ def window_table(report, with_counters=True):
                     cells.append(fmt(s["mean"], 1) if s else "-")
                 rows.append(f"| {w['name']} | " + " | ".join(cells) + " |")
     return "\n".join(rows)
+
+
+def gpu_text(run, w):
+    g = gpu_valid(run, w["name"]) if run is not None else None
+    if g is None:
+        return fmt(mean_of(w, "gpuFrameTime_ms"))
+    return "none valid" if g[0] is None else f"{g[0]:.1f} ({g[2]}/{g[3]})"
 
 
 def hitch_table(report):
@@ -109,7 +138,7 @@ def marks_scaling(report):
     return "\n".join(out)
 
 
-def ab_table(report):
+def ab_table(report, run=None):
     windows = {w["name"]: w for w in report["windows"]}
     bases = [w for w in report["windows"] if w["name"].startswith("ab_base")]
     if not bases:
@@ -122,7 +151,7 @@ def ab_table(report):
         if not w["name"].startswith("ab_") or w["name"].startswith("ab_base"):
             continue
         delta = w["medianMs"] - base_mean
-        out.append(f"| {w['name'][3:]} | {fmt(w['medianMs'])} | {fmt(w['meanMs'])} | {fmt(w['p95Ms'])} | {delta:+.2f} | {100 * delta / base_mean:+.1f} | {fmt(mean_of(w, 'gpuFrameTime_ms'))} | "
+        out.append(f"| {w['name'][3:]} | {fmt(w['medianMs'])} | {fmt(w['meanMs'])} | {fmt(w['p95Ms'])} | {delta:+.2f} | {100 * delta / base_mean:+.1f} | {gpu_text(run, w)} | "
                    f"{fmt(mean_of(w, 'cpuMainThreadFrameTime_ms'))} | {fmt(mean_of(w, 'Draw Calls Count'), 0)} | {fmt(mean_of(w, 'Triangles Count'), 0)} | {'beyond drift' if abs(delta) > spread else 'within drift'} |")
     return "\n".join(out)
 
@@ -173,12 +202,12 @@ def main():
         if report.get("markerNotes"):
             print(f"marker notes: {report['markerNotes']}\n")
         if report["windows"]:
-            print("### frame windows\n\n" + window_table(report) + "\n")
+            print("### frame windows\n\n" + window_table(report, run=run) + "\n")
             print("### hitches\n\n" + hitch_table(report) + "\n")
             if any(w["name"].startswith("marks_fell_") for w in report["windows"]):
                 print("### marks scaling\n\n" + marks_scaling(report) + "\n")
             if any(w["name"].startswith("ab_") for w in report["windows"]):
-                print("### render A/B\n\n" + ab_table(report) + "\n")
+                print("### render A/B\n\n" + ab_table(report, run) + "\n")
         if report["timings"]:
             print("### timed operations\n\n" + timing_table(report) + "\n")
         if report["memory"]:
