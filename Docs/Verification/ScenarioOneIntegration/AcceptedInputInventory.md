@@ -109,7 +109,7 @@ Verification-only delta files:
 - Branch: `task/oak-beech-ordinal-production-calibration-v1`
 - Exact input: `796da99029190ef71e68d5fa722f25240e696318`
 - Pushed branch HEAD: `796da99029190ef71e68d5fa722f25240e696318`
-- Status: CONDITIONAL: ordinal candidate; reported qualification B has unresolved anchor/resume-policy consequences
+- Status: ACCEPTED ORDINAL INPUT / B caveats; final integrated anchor adjudication pending
 - Dependencies/anchors: Only two species rows [C]; no Sitka/equation/site changes. Manager must explicitly accept attributable continuation/completion movements before rebaselining.
 
 Production delta files:
@@ -313,4 +313,8 @@ Reported growth qualification at 2052a4ad4a0ac381e039a4a696dece7d19f31395 is B, 
 
 Existing older guidance ba48591 adds presentation methods to ScenarioOneCompletionRules and is superseded for this packet by A1's separate helper. Its concurrent qualification work is on a different worktree/source; it cannot qualify A1 automatically. Existing fixture 3a788a52 is the provenance for A2's two gate hunks, not an additional feature to integrate.
 
-STOP final integration for missing exact verdict/source publication, unexplained anchor movement, any change to save20/event0–9/defaults/eight objectives/frozen Reference, or conflicts requiring a gameplay decision. A partial rehearsal can capture available source interactions; it cannot clear these holds.
+STOP final integration for missing exact verdict/source publication; STOP qualification/publication for unexplained anchor movement, any change to save20/event0–9/defaults/eight objectives/frozen Reference, or conflicts requiring a gameplay decision. A partial rehearsal can capture available source interactions; it cannot clear these holds.
+
+## Located Manager anchor policy
+
+Published evidence at tools/verification-fixture-fixes-v1 @ 3a788a52def754edd22e322f79f2faf3c63b6fa1, Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md, records Manager policy of 2026-10-14: retain historical assertions now; establish any new expected values on the integrated candidate; frozen archive is not rebaselined. Accordingly growth is an accepted ordinal implementation input with B caveats, not a demand to pre-approve growth-only final hashes before candidate creation. No hash replacement is authorised by this inventory. Save-resume and promotion caveats remain disclosed for Manager review.

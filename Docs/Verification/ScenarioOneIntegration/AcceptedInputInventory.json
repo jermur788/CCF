@@ -195,7 +195,7 @@
         "task/oak-beech-ordinal-production-calibration-v1",
         "verify/oak-beech-production-calibration-796da99"
       ],
-      "status": "CONDITIONAL: ordinal candidate; reported qualification B has unresolved anchor/resume-policy consequences",
+      "status": "ACCEPTED ORDINAL INPUT / B caveats; final integrated anchor adjudication pending",
       "notes": "Only two species rows [C]; no Sitka/equation/site changes. Manager must explicitly accept attributable continuation/completion movements before rebaselining.",
       "production": [
         "Assets/ForestPrototype/Species/BeechSpecies.asset",
