@@ -432,7 +432,7 @@ public sealed class OakBeechGate : MonoBehaviour
             }
             Row s51 = At(strong, 51), s50 = At(strong, 50), c51 = At(control, 51);
             {
-                TreeSpeciesDefinition sp = species == Oak ? oak : beech;
+                TreeSpeciesDefinition sp = spawner.ResolveSpecies(species);
                 float expectedD = Mathf.Clamp(s50.d + sp.PotentialDbhGrowthCmPerYear * Mathf.Clamp01(1f - s50.d / sp.MaxDbhCm) * (1f / (1f + 0f / sp.Ci50)), 1f, 200f);
                 float expectedH = Mathf.Clamp(s50.h + sp.PotentialHeightGrowthMPerYear * Mathf.Clamp01(1f - s50.h / sp.MaxHeightM), 0.1f, 60f);
                 Expect(Mathf.Abs(s51.d - expectedD) < 1e-3f && Mathf.Abs(s51.h - expectedH) < 1e-3f,
