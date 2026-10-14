@@ -24,8 +24,8 @@ Only these two gates were run, on the calibrated growth head's Library (`verify/
 
 | gate | geometry | result |
 |---|---|---|
-| `BroadleafAdultGrowthVerification` | Enlarged80 | PASS, 16 checks; 540 Oak and 1 680 Beech recruits removed |
-| | Legacy40 | PASS, 16 checks; 540 and 1 272 recruits removed |
+| `BroadleafAdultGrowthVerification` | Enlarged80 | PASS, 16 checks; recruits removed: 540 after the Oak run, 1 680 cumulative after the Beech run |
+| | Legacy40 | PASS, 16 checks; recruits removed: 540 after the Oak run, 1 272 cumulative after the Beech run |
 | | Enlarged80 with the **pre-calibration Oak/Beech rows** applied in memory | PASS, 16 checks (the same gate failed there before the fix) |
 | `MixedDensityVerification` | Legacy40 | PASS, 23 checks; anchors `7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE`, model 1 = model 2 measured |
 | | Enlarged80 | PASS, 23 checks; `1FE6639780636394` / `702DE05F33384139`, model 1 = model 2 measured; v16-labelled Enlarged80 save refused |
