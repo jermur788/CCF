@@ -1,0 +1,2264 @@
+PASS WEIGHTS_ARE_THE_PROVISIONAL_CLASSES 1.0000 1.5000 2.0000
+PASS WEIGHT_ORDINAL_ORDER
+PASS WEIGHT_UNKNOWN_CLASS_FAILS_LOUD
+PASS WEIGHT_THREE_CLASSES_ONLY
+PASS CLASS_VALUES_MATCH_SERIALIZED_ASSETS
+PASS GROWTH_MODEL_VERSION_VALUES legacy=0 siteClass=1 speciesAware=2 latest=2
+PASS GROWTH_MODEL_NORMALIZE
+PASS ASSET_SITKA_UNCHANGED_DEFAULT_REFERENCE field=absent
+PASS ASSET_OAK_HIGH field=2
+PASS ASSET_BEECH_INTERMEDIATE field=1
+PASS ONLY_SITKA_IS_REFERENCE_CLASS SitkaSpruce.asset
+PASS ROUTE_PURE_SITKA_IS_LEGACY_SITKA_EXACT
+PASS ROUTE_ANY_OAK_OR_BEECH_IS_SPECIES_AWARE_OCCUPANCY trials=400 speciesAware=400
+PASS ROUTE_MODELS_BELOW_2_ALWAYS_LEGACY
+PASS ROUTE_ONE_OAK_FLIPS_AND_REMOVAL_FLIPS_BACK
+PASS LEGACY_SITKA_ARITHMETIC_UNCHANGED_FROM_BASE_C1564B8 1a81640dcd11cac8
+PASS LEGACY_CONTROLLER_DECISION_BLOCK_UNCHANGED_FROM_BASE_C1564B8 ee7dc266441de752
+PASS LEGACY_STAND_RELATIVE_DENSITY_UNCHANGED_FROM_BASE_C1564B8 80ef453c02a4298d
+PASS LEGACY_ROUTE_WIRING_ORDER select=51417 aware=51549 label=51639 legacy=51694
+PASS SPECIES_AWARE_ROUTE_IS_GATED_ON_GROWTH_MODEL_2
+PASS OCCUPANCY_ROUTE_CONTROLLER_METHOD_HAS_NO_SITKA_ARITHMETIC
+PASS MIXED_DENSITY_MODEL_SOURCE_HAS_NO_SITKA_REFERENCE
+PASS SITKA_ROUTE_AND_SITKA_MODEL_HAVE_NO_REFERENCE_TO_OCCUPANCY_MODEL
+PASS NO_PRODUCTION_IDENTIFIER_OR_STRING_EXPRESSES_A_SPECIES_MAXIMUM_DENSITY_OR_MAX_BASAL_AREA files=117 identifiers=89926 strings=4589 (one pre-existing regeneration tooltip allowlisted)
+PASS SOURCE_SCANNER_SEES_CODE_AND_SKIPS_COMMENTS identifiers=609 strings=4
+PASS CALIBRATION_CONSTANTS_ARE_NAMED_AS_NORMALIZATION_AND_LOSS_NOT_DENSITY_LIMITS ReferenceWeight,IntermediateWeight,HighWeight,OccupancyNormalization,OnsetOccupancy,MaximumAnnualLoss,VulnerabilityExponent,NeutralHalfSaturationCi
+PASS DOCUMENTATION_STATES_NO_SPECIES_CAPACITY
+PASS OCCUPANCY_IS_STEM_CROSS_SECTION_GEOMETRY_EXPONENT_TWO
+PASS OCCUPANCY_IS_ADDITIVE_NO_MIXTURE_BONUS_NO_DEC_NO_DMC worstRelativeDifference=1.80E-015
+PASS OCCUPANCY_SCALES_INVERSELY_WITH_AREA 1.2865 vs 0.6433
+PASS OCCUPANCY_INDEPENDENT_OF_LISTING_ORDER_BIT_FOR_BIT
+PASS OAK_OCCUPANCY_IS_NOT_WEIGHT_TIMES_SITKA_RELATIVE_DENSITY
+PASS DEMAND_ORDER_HIGHER_CLASS_GREATER_CONTRIBUTION_AT_EQUAL_SIZE
+PASS DEMAND_ORDER_CONTRIBUTIONS_FOLLOW_THE_PROVISIONAL_WEIGHTS
+PASS DEMAND_ORDER_RAISES_OCCUPANCY_AND_PRESSURE_FOR_SAME_STEMS occupancy reference=0.6997 beech=1.0496 oak=1.3994 pressure reference=0.0000 beech=0.0472 oak=0.2854
+PASS DEMAND_ORDER_HOLDS_AT_EVERY_SIZE_AND_OCCUPANCY_RISES_WITH_SIZE
+PASS MORTALITY_ZERO_REGION_AT_AND_BELOW_ONSET
+PASS PRESSURE_IS_THE_SHARE_OF_OCCUPANCY_BEYOND_THE_ONSET_AND_LOSS_IS_SCALE_TIMES_PRESSURE
+PASS LOSS_AT_TWICE_THE_ONSET_IS_HALF_THE_MAXIMUM
+PASS MORTALITY_MONOTONE_ABOVE_ONSET
+PASS MORTALITY_BOUNDED_PER_STEM_AND_PER_STAND largestExpectedShareOfStemsLost=0.08483 maximum=0.10
+PASS EXPECTED_DEATHS_EQUAL_STAND_EXPECTED_LOSS_TIMES_STEMS occupancy=2.7933 pressure=0.6420 expectedLoss=0.0642 expectedDeaths=57.8 observedMean=57.6 (-0.4 sigma)
+PASS DEFAULT_CALIBRATION_IS_THE_PRODUCTION_CONSTANTS
+PASS NORMALIZATION_CHANGE_MOVES_MIXED_ROUTE_OCCUPANCY_PRESSURE_AND_LOSS occupancy 0.6464 < 1.2928 < 2.5856; loss 0.0000 < 0.0226 < 0.0613
+PASS NORMALIZATION_CHANGE_ONLY_ADDS_OR_REMOVES_VICTIMS_NESTED victims 0 <= 9 <= 26
+PASS PURE_SITKA_NUMBERS_UNCHANGED_BY_ANY_NORMALIZATION_CHANGE_AND_NO_SHARED_STATE sitkaBitIdentical=True noMutableState=True invalidCalibrationRejected=True
+PASS NO_SPECIES_OR_CLASS_ARGUMENT_IN_ANY_MORTALITY_FORMULA methods=5
+PASS NO_SPECIES_CLASS_OR_WEIGHT_IN_ANY_MORTALITY_FORMULA_SOURCE
+PASS THE_CLASS_WEIGHT_IS_USED_ONLY_IN_THE_OCCUPANCY_SUM occurrences=2
+PASS PURE_OAK_DENSE_OCCUPANCY_EXCEEDS_THE_ONSET occupancy=2.0219 pressure=0.5054 expectedLoss=0.0505 stems=500
+PASS PURE_OAK_CAN_DIE_FROM_DENSITY_PRESSURE victims=28/500
+PASS PURE_OAK_OCCUPANCY_FALLS_AFTER_THINNING 2.0219 -> 1.9119
+PASS PURE_OAK_SELF_THINS_TOWARDS_THE_ONSET_OVER_12_YEARS_WITHOUT_BEING_REMOVED lost=183/500 occupancy 2.0219 -> 1.2831 (no growth in this fixture)
+PASS PURE_OAK_JUST_ABOVE_THE_ONSET_LOSES_FEW_STEMS occupancy=1.1978 deathsOver40Years=235
+PASS PURE_BEECH_DENSE_OCCUPANCY_EXCEEDS_THE_ONSET occupancy=1.8381 pressure=0.4560 expectedLoss=0.0456 stems=600
+PASS PURE_BEECH_CAN_DIE_FROM_DENSITY_PRESSURE victims=37/600
+PASS PURE_BEECH_OCCUPANCY_FALLS_AFTER_THINNING 1.8381 -> 1.7264
+PASS PURE_BEECH_SELF_THINS_TOWARDS_THE_ONSET_OVER_12_YEARS_WITHOUT_BEING_REMOVED lost=198/600 occupancy 1.8381 -> 1.2350 (no growth in this fixture)
+PASS PURE_BEECH_JUST_ABOVE_THE_ONSET_LOSES_FEW_STEMS occupancy=1.1908 deathsOver40Years=287
+PASS SAME_STEMS_COUNTED_AS_REFERENCE_ARE_HALF_AS_CROWDED_AS_OAK oak=2.0219 reference=1.0109
+PASS MIXED_REPLACING_SITKA_BY_OAK_RAISES_OCCUPANCY_STEP_BY_STEP
+PASS MIXED_REMOVING_OR_DOWNGRADING_A_HIGH_DEMAND_STEM_LOWERS_OCCUPANCY_IN_ORDER removed=1.10162 asSitka=1.10434 asBeech=1.10570 oak=1.10706
+PASS MIXED_REMOVING_A_STEM_LOWERS_OCCUPANCY_BY_EXACTLY_ITS_CONTRIBUTION drop=5.436E-003
+PASS MIXED_THREE_SPECIES_REPLAY_IDENTICAL 400321AE9DBA1EA2|50|5,23
+PASS MIXED_STAND_LOSES_STEMS_OF_ALL_THREE_CLASSES (no class is immune) reference=14 intermediate=15 high=21 occupancy=2.3914
+PASS BELOW_THRESHOLD_MIXED_STAND_NO_DENSITY_MORTALITY occupancy=0.6898 onset=1.00 victims=0 rolls=0
+PASS THRESHOLD_CROSSING_IS_EXACT stemsUnder=358 stemsOver=359 pressureOver=0.001270
+PASS AT_MOST_ONE_ROLL_PER_STEM rolls=359 stems=359
+PASS ABOVE_THRESHOLD_MIXED_STAND_DENSITY_MORTALITY_OCCURS occupancy=1.2851 pressure=0.2219 deaths=12 neverKillsDraw=0 alwaysKillsDraw=520
+PASS HEAVY_OVERCROWDING_THINS_MORE_BUT_REMAINS_BOUNDED occupancy=2.7933 expectedLoss=0.0642 deaths=60/900
+PASS PLAN_NO_DUPLICATE_VICTIMS trials=40
+PASS VICTIMS_ARE_LISTED_IN_ORDINAL_TREE_ID_ORDER trials=40
+PASS VICTIMS_MORE_SUPPRESSED_THAN_SURVIVORS trials=40 ok=40
+PASS ALL_THREE_CLASSES_LOSE_STEMS_IN_AGGREGATE reference=800 intermediate=797 high=835
+PASS SUPPRESSION_ONE_COMMON_SCALE
+PASS LOSS_PROBABILITY_RISES_WITH_COMPETITION
+PASS HAZARD_HAS_NO_SPECIES_PREFERENCE_AT_EQUAL_COMPETITION_AND_SIZE occupancy=1.6000 deaths=6778 reference=2298 intermediate=2313 high=2167 maxDeviation=2.38sigma
+PASS NEGATIVE_CONTROL_PER_SPECIES_CI50_WOULD_BE_DETECTED reference=1146 intermediate=2865 high=2727 maxDeviation=28.4sigma
+INFO calibration structures (regime age stems/ha Dq legacyRD occupancy onsetAlignedRD difference legacyHazardLoss genericLoss)
+INFO   unthinned   20  2100   15.8 0.436 0.748 0.449 +3.0% 0.0% 0.0%
+INFO   unthinned   30  2088   19.8 0.693 1.172 0.703 +1.5% 0.4% 1.5%
+INFO   unthinned   40  1706   23.8 0.824 1.379 0.827 +0.3% 2.5% 2.7%
+INFO   unthinned   50  1206   28.8 0.867 1.432 0.859 -0.9% 3.6% 3.0%
+INFO   unthinned   60   900   34.0 0.911 1.489 0.894 -1.9% 4.8% 3.3%
+INFO   unthinned   80   538   45.4 0.985 1.582 0.949 -3.7% 7.4% 3.7%
+INFO   unthinned  100   344   56.6 0.992 1.571 0.943 -5.0% 7.7% 3.6%
+INFO   unthinned  120   256   64.5 0.969 1.522 0.913 -5.8% 6.8% 3.4%
+PASS CALIBRATION_STRUCTURES_MATCH_THE_LEGACY_RELATIVE_DENSITY_CODE structures=32 largestDifferenceToRecordedRd=0.0020 (recorded inputs are rounded; guard 0.003)
+PASS CONTINUITY_ONSET_ALIGNED_OCCUPANCY_NEAR_LEGACY_RELATIVE_DENSITY_ON_RECORDED_STRUCTURES structures=32 worst=6.0% mean=2.75% (guard 7% and 3.5%)
+PASS OCCUPANCY_ONSET_FALLS_WITHIN_6_PERCENT_OF_THE_LEGACY_ONSET_AT_DQ_16_TO_64_CM
+INFO calibration loss by relative density (bin realisedLegacy% genericAtBinMid%)
+INFO   0.70 n=24 0.66% 1.43%
+INFO   0.80 n=61 2.19% 2.50%
+INFO   0.90 n=161 4.46% 3.33%
+PASS GENERIC_LOSS_TRACKS_REALISED_LEGACY_LOSS_IN_THE_HAZARD_ZONE_WITHIN_ONE_POINT records=363 meanAbsoluteDifference=0.74 percentage points over relative density 0.65-0.95 (guard 1.0)
+PASS REPLAY_IDENTICAL 400195209D535303|49|5,23
+PASS LISTING_ORDER_DOES_NOT_CHANGE_VICTIMS_OR_OCCUPANCY victims=49
+PASS DIFFERENT_YEARS_GIVE_DIFFERENT_DRAWS distinctOutcomes=12/12
+PASS EMPTY_STAND_NO_VICTIMS
+PASS ZERO_AREA_NO_VICTIMS
+PASS SINGLE_STEM_STAND_IS_HANDLED occupancy=2.3134 victims=1
+PASS NO_COMPETITION_NO_VULNERABLE_STEM_NO_DEATH occupancy=3.2130 expectedLoss=0.0689
+PASS ANY_NON_REFERENCE
+PASS ZERO_SIZE_AND_ZERO_PRESSURE_ARE_INERT
+THREE_SPECIES_OFFLINE_PASS checks=91
+CONTINUITY dbh=15 ci=1 sitka=100% expected=0 deaths=0
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=15 ci=1 sitka=99.9% expected=0 deaths=0
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=15 ci=1 sitka=99% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=1 sitka=95% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=1 sitka=90% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=3 sitka=100% expected=0 deaths=0
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=15 ci=3 sitka=99.9% expected=0 deaths=0
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=15 ci=3 sitka=99% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=3 sitka=95% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=3 sitka=90% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=8 sitka=100% expected=0 deaths=0
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=15 ci=8 sitka=99.9% expected=0 deaths=0
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=15 ci=8 sitka=99% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=8 sitka=95% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=15 ci=8 sitka=90% expected=0 deaths=0
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=1 sitka=100% expected=0.026000000000000023 deaths=26
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=25 ci=1 sitka=99.9% expected=0.02601501603833778 deaths=26
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=25 ci=1 sitka=99% expected=0.02515841070202962 deaths=25
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=1 sitka=95% expected=0.01698846451068925 deaths=17
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=1 sitka=90% expected=0.0095019777975065 deaths=10
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=3 sitka=100% expected=0.026000000000000023 deaths=26
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=25 ci=3 sitka=99.9% expected=0.02601501603833778 deaths=26
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=25 ci=3 sitka=99% expected=0.02515841070202962 deaths=25
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=3 sitka=95% expected=0.01698846451068925 deaths=17
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=3 sitka=90% expected=0.0095019777975065 deaths=10
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=8 sitka=100% expected=0.026000000000000023 deaths=26
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=25 ci=8 sitka=99.9% expected=0.02601501603833778 deaths=26
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=25 ci=8 sitka=99% expected=0.02515841070202962 deaths=25
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=8 sitka=95% expected=0.01698846451068925 deaths=17
+PASS adjacent composition tolerance
+CONTINUITY dbh=25 ci=8 sitka=90% expected=0.0095019777975065 deaths=10
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=1 sitka=100% expected=0.547 deaths=547
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=40 ci=1 sitka=99.9% expected=0.546166474768947 deaths=546
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=40 ci=1 sitka=99% expected=0.5387025708830365 deaths=539
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=1 sitka=95% expected=0.5102585375820883 deaths=510
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=1 sitka=90% expected=0.49745062276842966 deaths=498
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=3 sitka=100% expected=0.547 deaths=547
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=40 ci=3 sitka=99.9% expected=0.546166474768947 deaths=546
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=40 ci=3 sitka=99% expected=0.5387025708830365 deaths=539
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=3 sitka=95% expected=0.5102585375820883 deaths=510
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=3 sitka=90% expected=0.49745062276842966 deaths=498
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=8 sitka=100% expected=0.547 deaths=547
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=40 ci=8 sitka=99.9% expected=0.546166474768947 deaths=546
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=40 ci=8 sitka=99% expected=0.5387025708830365 deaths=539
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=8 sitka=95% expected=0.5102585375820883 deaths=510
+PASS adjacent composition tolerance
+CONTINUITY dbh=40 ci=8 sitka=90% expected=0.49745062276842966 deaths=498
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=1 sitka=100% expected=0.804 deaths=804
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=60 ci=1 sitka=99.9% expected=0.803098396728639 deaths=803
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=60 ci=1 sitka=99% expected=0.7950197608510696 deaths=795
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=1 sitka=95% expected=0.7598570500997264 deaths=760
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=1 sitka=90% expected=0.7174544829589495 deaths=718
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=3 sitka=100% expected=0.804 deaths=804
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=60 ci=3 sitka=99.9% expected=0.803098396728639 deaths=803
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=60 ci=3 sitka=99% expected=0.7950197608510696 deaths=795
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=3 sitka=95% expected=0.7598570500997264 deaths=760
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=3 sitka=90% expected=0.7174544829589495 deaths=718
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=8 sitka=100% expected=0.804 deaths=804
+PASS pure combined signal equals original legacy required count
+PASS pure pressure equals actual legacy loss fraction
+CONTINUITY dbh=60 ci=8 sitka=99.9% expected=0.803098396728639 deaths=803
+PASS adjacent composition tolerance
+PASS 99.9 percent pressure tolerance
+PASS deliberate final broadleaf removal continuity
+PASS natural final broadleaf death same surviving state continuity
+CONTINUITY dbh=60 ci=8 sitka=99% expected=0.7950197608510696 deaths=795
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=8 sitka=95% expected=0.7598570500997264 deaths=760
+PASS adjacent composition tolerance
+CONTINUITY dbh=60 ci=8 sitka=90% expected=0.7174544829589495 deaths=718
+PASS adjacent composition tolerance
+PASS permutation neutral victim IDs
+PASS class labels never enter neutral allocation at equal occupancy and signal
+PASS broadleaf never enters Sitka subset RD
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=False Y25 n=884 occupancy=1.4676794091543806 BA=40.361182849602706
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=False Y50 n=622 occupancy=1.5201118901761437 BA=41.803076045472366
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=False Y100 n=335 occupancy=1.448871956036431 BA=39.843977900419524
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=False Y200 n=150 occupancy=1.3425677969527892 BA=36.92061359096166
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=False Y300 n=89 occupancy=1.2607061047933112 BA=34.66941710689419
+STABILITY Oak recruitment=False ratio=1.0594532819051499 slope=-0.001184066973192186
+PASS predeclared last50 stability Oak recruitment=False
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=True Y25 n=950 occupancy=1.4660341960086067 BA=40.3159394891052
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=True Y50 n=726 occupancy=1.5325734916395266 BA=42.14577007805559
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=True Y100 n=481 occupancy=1.471967350914968 BA=40.47910124538318
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=True Y200 n=379 occupancy=1.4183960936740714 BA=39.00589170418732
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Oak recruitment=True Y300 n=376 occupancy=1.4149586181732972 BA=38.91136113002896
+STABILITY Oak recruitment=True ratio=1.0593416521418326 slope=0.0013521687789291713
+PASS predeclared last50 stability Oak recruitment=True
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=False Y25 n=987 occupancy=1.2290154780843452 BA=45.06389985583453
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=False Y50 n=802 occupancy=1.4700117394549022 BA=53.900429241911375
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=False Y100 n=445 occupancy=1.443465717394501 BA=52.927075121452845
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=False Y200 n=198 occupancy=1.3291421189832604 BA=48.73520994006948
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=False Y300 n=120 occupancy=1.2748713419258164 BA=46.745281492441656
+STABILITY Beech recruitment=False ratio=1.041316242250341 slope=-0.0007340513034499596
+PASS predeclared last50 stability Beech recruitment=False
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=True Y25 n=1061 occupancy=1.2329626957354825 BA=45.208631166474596
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=True Y50 n=922 occupancy=1.4832723752482855 BA=54.38665254346753
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=True Y100 n=603 occupancy=1.462525260376893 BA=53.62592501518686
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=True Y200 n=436 occupancy=1.4107784545750415 BA=51.728542178195276
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Beech recruitment=True Y300 n=416 occupancy=1.4017713062472388 BA=51.39828008022445
+STABILITY Beech recruitment=True ratio=1.0448755029221353 slope=0.0008884521375896187
+PASS predeclared last50 stability Beech recruitment=True
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=False Y25 n=938 occupancy=1.5480895557553964 BA=63.77723862538409
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=False Y50 n=644 occupancy=1.7996870828400084 BA=76.73709896586666
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=False Y100 n=313 occupancy=1.705537592600052 BA=75.07194902073675
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=False Y200 n=135 occupancy=1.5006783914422208 BA=66.16917099247637
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=False Y300 n=84 occupancy=1.3790277714474142 BA=60.849081255480876
+STABILITY Mixed recruitment=False ratio=1.066964643650484 slope=-0.0014464468049850633
+PASS predeclared last50 stability Mixed recruitment=False
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=True Y25 n=1009 occupancy=1.5561905464909893 BA=64.15125003377675
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=True Y50 n=745 occupancy=1.836149274908142 BA=78.76191904072157
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=True Y100 n=444 occupancy=1.7714282005674133 BA=78.85754772293205
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=True Y200 n=343 occupancy=1.637208384800197 BA=73.37095177128643
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+PASS long run finite occupancy
+LONG_RUN Mixed recruitment=True Y300 n=339 occupancy=1.660095142029849 BA=73.77837350350224
+STABILITY Mixed recruitment=True ratio=1.0546397241082004 slope=0.0009959532653738721
+PASS predeclared last50 stability Mixed recruitment=True
+COMPOSITE_DENSITY_PASS checks=1917 failures=0
+MIXED_DENSITY_ISOLATED_PASS compiledWithoutSitkaGrowthModel=true occupancy=2.1085 victims=26
+SITKA_MODEL_ISOLATED_PASS compiledWithoutMixedDensityModel=true relativeDensity=0.811598 pressure=0.528996
+PASS SCENARIO_YIELD_CONFIGURATION_VALIDATES specifications=11
+PASS OAK_LADDER_ORDER VeneerPlanking > Beam > Fencing > SecondPlanking > Firewood
+PASS BEECH_LADDER_IS_SHORT_AND_DOES_NOT_INHERIT_OAK SecondPlanking > Firewood
+PASS BEECH_HAS_NO_VENEER_BEAM_OR_FENCING_CLASS
+PASS SPECIFICATION_IDS_UNIQUE
+PASS ONLY_THE_THREE_SPECIES_HAVE_SPECIFICATIONS
+PASS OAK_VENEER_RULE_AS_APPROVED lengths=2800 mid>=450 required=Pruned
+PASS OAK_BEAM_RULE_AS_APPROVED lengths=2600 mid>=300
+PASS SITKA_SPECIFICATIONS_DO_NOT_USE_MID_LOG_RULE
+PASS SEVEN_BROADLEAF_PRICES_ONE_PER_SPECIES_AND_PRODUCT
+PASS NO_SITKA_PRICE_IN_BROADLEAF_TABLE
+PASS EVERY_LADDER_RUNG_HAS_AN_EXPLICIT_PRICE
+PASS OAK_PRICES_FOLLOW_THE_LADDER oak-veneer-planking=258 oak-beam=163 oak-fencing=112 oak-second-planking=67 oak-firewood=34
+PASS BEECH_USES_ITS_OWN_ENTRIES_WITH_THE_SAME_EVIDENCE_VALUES
+PASS PRICE_PARAMETERS_USE_LOW_REFERENCE_HIGH_SELECTED_WITH_SOURCES
+PASS FIREWOOD_PRICE_IS_LABELLED_CALIBRATION
+PASS NON_FIREWOOD_PRICES_ARE_LABELLED_EVIDENCE_INFERENCE
+PASS PROXY_DENSITY_EQUALS_THE_EXISTING_WORK_EQUIVALENT_DENSITY
+PASS BROADLEAF_DENSITY_ENTRIES_ARE_LABELLED_WORK_PROXIES_NOT_GREEN_DENSITIES
+PASS VENEER_REFERENCE_IS_ABOUT_230_EURO_PER_M3 229.6
+PASS NO_FALSE_PRECISION_BELOW_WHOLE_EURO_PER_TONNE
+PASS NO_FLAT_BROADLEAF_RATE
+PASS PRICE_BOOK_WITH_BROADLEAF_PRICES_PASSES_ENGINE_VALIDATION
+PASS SITKA_ALLOCATION_IDENTICAL_TO_UNMODIFIED_BASE_COMMIT stems=3000 logs=11592 fingerprint=CAA0388524E0D0E5 base=CAA0388524E0D0E5
+PASS SITKA_ALLOCATION_IDENTICAL_UNDER_THE_SCENARIO_CONFIGURATION fingerprint=CAA0388524E0D0E5
+PASS SITKA_NEVER_RECEIVES_AN_OAK_OR_BEECH_PRODUCT
+PASS SITKA_STAND_OPERATION_IDENTICAL_TO_UNMODIFIED_BASE_COMMIT sale=169245486 residual=130542728 summaries=12
+PASS EXISTING_ASSORTMENT_INTEGER_VALUES_UNCHANGED_FOR_SAVES
+PASS SITKA_PRODUCT_LABELS_UNCHANGED
+PASS SMALL_OAK_DBH12_CANNOT_BE_PREMIUM Firewood=3x/0.047m3
+PASS SMALL_OAK_DBH20_CANNOT_BE_PREMIUM Fencing=4x/0.185m3 Firewood=1x/0.016m3
+PASS SMALL_OAK_DBH25_CANNOT_BE_PREMIUM Fencing=5x/0.355m3 Firewood=1x/0.016m3
+PASS SMALL_OAK_DBH29_CANNOT_BE_PREMIUM Fencing=4x/0.275m3 SecondPlanking=2x/0.267m3
+PASS SMALL_OAK_YIELDS_FENCING_AND_FIREWOOD Fencing=4x/0.230m3 Firewood=1x/0.016m3
+PASS LARGE_PRUNED_OAK_REACHES_VENEER_AND_BEAM VeneerPlanking=2x/1.375m3 Beam=5x/1.766m3 Fencing=1x/0.108m3 Firewood=1x/0.038m3
+PASS VENEER_LOGS_LIE_WITHIN_THE_PRUNED_SECTION
+PASS VENEER_LOGS_ARE_LONGER_THAN_2_7_M
+PASS BEAM_LOGS_ARE_LONGER_THAN_2_5_M
+PASS OAK_VOLUME_CONSERVED_AND_SPECIES_EXPLICIT
+PASS UNPRUNED_LARGE_OAK_HAS_NO_VENEER_BUT_KEEPS_BEAM Beam=7x/3.117m3 Fencing=2x/0.164m3
+PASS FORKED_WHOLE_STEM_OAK_CAPPED_BELOW_VENEER_AND_BEAM Fencing=1x/0.091m3 SecondPlanking=8x/3.174m3
+PASS FORK_ABOVE_THE_PRUNED_BUTT_DOES_NOT_REMOVE_THE_CLEAN_BUTT_LOGS VeneerPlanking=2x/1.375m3 Beam=2x/0.725m3 Fencing=2x/0.174m3 SecondPlanking=3x/1.003m3
+PASS LOW_FORK_REMOVES_VENEER_AND_REDUCES_BEAM Beam=4x/1.376m3 Fencing=2x/0.204m3 SecondPlanking=3x/1.700m3
+PASS STEM_DEFECT_OAK_CAPPED_BELOW_VENEER_AND_BEAM Fencing=2x/0.173m3 Firewood=9x/3.102m3
+PASS UNUSABLE_OAK_FALLS_BACK_TO_FIREWOOD_ONLY Firewood=9x/1.522m3
+PASS WIND_DAMAGED_OAK_IS_FIREWOOD_ONLY Firewood=9x/1.522m3
+PASS DISPOSITION_DOES_NOT_CHANGE_THE_GRADING
+PASS LARGE_PRUNED_BEECH_DOES_NOT_INHERIT_THE_OAK_LADDER SecondPlanking=8x/3.174m3 Firewood=2x/0.113m3
+PASS LARGE_BEECH_REACHES_SECOND_QUALITY_PLANKING_AND_FIREWOOD SecondPlanking=8x/3.174m3 Firewood=2x/0.113m3
+PASS SAME_SIZE_AND_FORM_OAK_GETS_VENEER_BEECH_DOES_NOT oak=VeneerPlanking=2x/1.375m3 Beam=5x/1.766m3 Fencing=1x/0.108m3 Firewood=1x/0.038m3 | beech=SecondPlanking=8x/3.174m3 Firewood=2x/0.113m3
+PASS SMALL_BEECH_IS_FIREWOOD Firewood=5x/0.174m3
+PASS UNUSABLE_BEECH_FALLS_BACK_TO_FIREWOOD Firewood=10x/2.076m3
+PASS DEFECTIVE_BEECH_IS_FIREWOOD_NOT_PLANKING Firewood=10x/2.076m3
+PASS BEECH_ELIGIBILITY_DOES_NOT_DEPEND_ON_PRUNING_IN_P0
+PASS PRICE_BOOK_UNCHANGED_BY_GRADING
+PASS PRUNING_RAISES_VALUE_ONLY_THROUGH_ELIGIBILITY pruned=583.88 unpruned=468.45
+PASS PRUNING_UNLOCKS_THE_VENEER_CLASS_BUT_SETS_NO_PRICE
+PASS MORE_PRUNING_LIFTS_UNLOCK_MORE_CLEAR_LOGS 2.5m=0 5.0m=1 6.5m=2
+PASS GRADING_IS_DETERMINISTIC
+PASS BEAM_THRESHOLD_FOUND smallest dbh with a butt beam=30.3 cm at 22 m
+PASS BEAM_MID_LOG_BOUNDARY_IS_EXACT mid at threshold=300.4 mm, 0.1 cm below=299.4 mm
+PASS BELOW_THRESHOLD_STEM_IS_NOT_A_BEAM Fencing=6x/0.461m3 SecondPlanking=1x/0.131m3 Firewood=1x/0.020m3
+PASS VENEER_NEEDS_THE_45_CM_MID_LOG_DIAMETER dbh40=Beam=4x/1.004m3 Fencing=3x/0.272m3 SecondPlanking=1x/0.151m3 Firewood=1x/0.027m3 | dbh56=VeneerPlanking=2x/1.198m3 Beam=4x/1.370m3 Fencing=1x/0.099m3 SecondPlanking=1x/0.158m3 Firewood=1x/0.037m3
+PASS OAK_HARVEST_QUOTE_IS_ELIGIBLE_AND_EARNS_REVENUE revenue=583.88 cost=2500.00
+PASS REVENUE_IS_PER_PRODUCT_NOT_A_FLAT_RATE quote=58388 expected=58388.9
+PASS OAK_REVENUE_SPANS_SEVERAL_PRODUCT_PRICES Beam,Fencing,Firewood,VeneerPlanking
+PASS OAK_BATCHES_CARRY_THE_OAK_SPECIES
+PASS BEECH_REVENUE_ONLY_FROM_SECOND_PLANKING_AND_FIREWOOD revenue=192.71
+PASS HARVEST_COST_IS_GENERIC_NOT_PER_SPECIES sitka=250000 oak=250000 beech=250000
+PASS SITKA_QUOTE_UNAFFECTED_BY_BROADLEAF_PRICES revenue=27520 net=-222480
+PASS VALUATION_IS_DETERMINISTIC
+THREE_SPECIES_TIMBER_PASS checks=71
+PASS FOUR_INTERVENTIONS_IN_THE_RESOLVED_YEARS 1,6,16,25
+PASS ORDINALS_ARE_ONE_TO_FOUR_WITH_NO_TWO_CYCLE_SPECIAL_CASE
+PASS A_YEAR_IN_WHICH_EVERY_TASK_FAILED_IS_NOT_AN_INTERVENTION
+PASS FIRST_INTERVENTION_WORK_COUNTS felled=30 pruned=4 planted=6 sheltered=4
+PASS PLANTED_BY_SPECIES_IS_DETERMINISTICALLY_ORDERED beech=3,sessile-oak=3
+PASS A_PLAN_NEED_NOT_CONTAIN_FELLING tasks=4
+PASS MIXED_PLAN_COUNTS_AND_FAILURES felled=12 cleared=3 planted=2 failed=1
+PASS FOURTH_CYCLE_IS_BUILT_THE_SAME_WAY
+PASS AFTER_SNAPSHOT_IS_THE_PLANS_OWN_YEAR
+PASS BEFORE_SNAPSHOT_IS_THE_YEAR_BEFORE 0,5,15,24
+PASS NO_RECORDS_NO_INTERVENTIONS
+PASS PARTIAL_RECORDS_DEGRADE_WITHOUT_ERROR
+PASS EVENT_ORDER_DOES_NOT_CHANGE_THE_RESULT
+PASS FELLED_TREES_LEFT_AS_DEADWOOD_ARE_NOT_COUNTED_AS_OTHER_DEATHS year1 other deaths=0
+PASS NATURAL_DEATHS_IN_THE_PLANS_YEAR year6=2
+PASS NATURAL_DEATHS_SINCE_THE_PLAN_SUM_LATER_YEARS since year 1=14
+PASS NATURAL_DEATHS_SINCE_EXCLUDE_EARLIER_YEARS since year 6=9
+PASS NOTHING_SINCE_FOR_THE_LATEST_PLAN
+PASS COST_INCLUDES_CONTRACTOR_WORK_AND_MATERIALS cost=265600 revenue=180000
+PASS NET_AND_MINIMUM_JOB_ADJUSTMENT_ARE_REPORTED
+PASS SALES_BY_PRODUCT_RECONCILE_WITH_REVENUE
+PASS SALES_ARE_COPIES_NOT_THE_PERSISTED_OBJECTS
+PASS PRUNE_ONLY_PLAN_HAS_COST_AND_NO_REVENUE
+PASS CLOSING_CASH_COMES_FROM_THE_ANNUAL_REPORT
+PASS BEFORE_AFTER_AND_LATEST_ARE_THE_RIGHT_YEARS before=0 after=1 latest=25
+PASS DELTAS_CAN_BE_READ_FROM_THE_SNAPSHOT_PAIR
+PASS SPECIES_COMPOSITION_CHANGE_IS_AVAILABLE
+PASS THIRD_PLAN_USES_ITS_OWN_SNAPSHOTS
+PASS BUILD_IS_DETERMINISTIC_AND_REPEATABLE_NO_DUPLICATES 161 chars
+PASS HISTORY_IS_IDENTICAL_AFTER_A_SERIALISE_AND_RESTORE_OF_THE_RECORDS
+PASS BUILD_DOES_NOT_MUTATE_THE_PERSISTED_RECORDS
+PASS SUMMARY_TYPES_ARE_NOT_SERIALISABLE_SO_NOTHING_CAN_BE_SAVED
+PASS OLD_OPEN_ORDER_AND_PROBLEM_ORDER_ARE_SURFACED 900,901
+PASS STALE_REASON_SAYS_WHEN_IT_WAS_PLANNED Planned in year 18, 7 years ago. Check it still suits the stand before approving or advancing.
+PASS PROBLEM_ORDER_REASON_IS_THE_VALIDATION_MESSAGE
+PASS FRESH_AND_COMPLETED_ORDERS_ARE_NOT_FLAGGED
+PASS NOTHING_IS_EXPIRED_OR_DELETED
+PASS YOUNG_ORDERS_ARE_NOT_STALE_YET
+PASS COMPLETION_AT_THE_ACTUAL_COMPLETION_YEAR_NOT_YEAR_100 1,6,16
+PASS BASELINE_AND_COMPLETION_SNAPSHOTS
+PASS COMPLETION_TOTALS_COUNT_ONLY_UP_TO_THE_COMPLETION_YEAR felled=42 planted=8 pruned=8
+PASS COMPLETION_FINANCIAL_OUTCOME revenue=270000 cost=531700
+PASS COMPLETION_CASH_POSITION_AND_LOW_POINT
+PASS COMPLETION_COUNTS_NATURAL_DEATHS_UP_TO_THE_YEAR 9
+PASS COMPLETION_IS_NOT_TIED_TO_A_FIXED_YEAR
+PASS COMPLETION_DEGRADES_WITHOUT_RECORDS
+PASS HINT_BEFORE_ANY_INTERVENTION
+PASS HINT_RIGHT_AFTER_THE_FIRST_INTERVENTION
+PASS HINT_STAYS_ON_THE_JUST_DONE_PLAN_FOR_ONE_YEAR
+PASS HINT_LATER_NAMES_THE_NEXT_ORDINAL 4 years since intervention 1. Inspect the stand, read the history in the Annual Review, and plan intervention 2 if the forest needs it.
+PASS HINT_IS_THE_SAME_RULE_IN_THE_THIRD_CYCLE 4 years since intervention 3. Inspect the stand, read the history in the Annual Review, and plan intervention 4 if the forest needs it.
+PASS STALE_ORDERS_TAKE_PRIORITY_OVER_THE_HISTORY_HINT 2 planned orders from earlier need attention in the Work Plan.
+PASS HINT_SINGULAR_GRAMMAR 1 planned order from earlier needs attention in the Work Plan.
+PASS COMPLETED_HINT_POINTS_TO_THE_SUMMARY_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE Objectives met in year 16. The completion summary is in the Annual Review. You can keep managing toward the Century Review (year 100).
+PASS A_HINT_EXISTS_FOR_EVERY_STATE_NO_DEAD_END
+PASS TITLE_NAMES_THE_ORDINAL_AND_YEAR Intervention 2 · year 6
+PASS WORK_LINE_IS_READABLE_AND_COMPLETE 30 felled · 4 pruned · 6 planted (3 beech, 3 sessile oak; 4 sheltered)
+PASS PRUNE_ONLY_WORK_LINE 4 pruned
+PASS FAILED_TASKS_ARE_SAID_PLAINLY_WITH_THE_REASON 12 felled · 2 planted (2 sessile oak) · 3 cells cleared of competing growth · 1 task could not be done (Target crown base must exceed the current pruned height.)
+PASS MONEY_LINE_REPORTS_COST_INCOME_NET_AND_THE_MINIMUM Cost 2656.00 · timber income 1800.00 · net -856.00 (the cost includes a 600.00 small-job minimum)
+PASS NO_MINIMUM_NOTE_WHEN_THERE_WAS_NO_VISIT_MINIMUM
+PASS BEFORE_AFTER_LINE That year: living trees 336 → 335 · canopy 0.55 → 0.54 · mean light 0.20 → 0.21 · regenerating cells 0 → 2.
+PASS SINCE_LINE_REPORTS_RECORDED_CHANGE_WITHOUT_CLAIMING_CAUSE By year 25: living trees 335 → 169 · canopy 0.54 → 0.35 · regenerating cells 2 → 50 · fallen deadwood 0.3 → 7.5 m³. Living trees by species: sessile oak 3 → 5, Sitka spruce 329 → 161. 14 tree deaths recorded since that were not felled (self-thinning, windthrow or other biological death).
+PASS SINCE_LINE_FOR_THE_NEWEST_PLAN_SAYS_TO_WAIT_AND_WALK
+PASS NON_CAUSAL_NOTE_PRESENT
+PASS FIRST_PROMPT_INVITES_OBSERVATION_AND_PRESCRIBES_NOTHING You have carried out your first intervention (year 1). Before planning another, walk the forest and look at what changed: the opening you made, what is regenerating, and how the trees you kept are growing. Everything you do from here stays in the Management history below, so you can compare each decision with what followed.
+PASS COMPLETION_LISTS_EACH_INTERVENTION 10 lines
+PASS COMPLETION_SHOWS_STAND_COMPOSITION_AND_MONEY
+PASS COMPLETION_IS_NOT_A_SCORE_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE
+PASS NO_EMPTY_LINES
+THREE_SPECIES_HISTORY_PASS checks=70

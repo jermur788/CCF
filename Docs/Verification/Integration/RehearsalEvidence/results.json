@@ -1,0 +1,429 @@
+[
+  {
+    "step": 1,
+    "lane": "density",
+    "source": "a7a759ded087a824c1e8149e480ddf58ac0585eb",
+    "before": "c1564b857972ee18917e8a461c457533a54cc3f1",
+    "merge_exit": 0,
+    "merge_output": "Automatic merge went well; stopped before committing as requested\n",
+    "conflicts": [],
+    "changed_files": [
+      "Assets/ForestPrototype/AdultMortalityAccount.cs",
+      "Assets/ForestPrototype/ForestEcologyController.cs",
+      "Assets/ForestPrototype/MixedDensityModel.Composite.cs",
+      "Assets/ForestPrototype/MixedDensityModel.Composite.cs.meta",
+      "Assets/ForestPrototype/MixedDensityModel.cs",
+      "Assets/ForestPrototype/MixedDensityModel.cs.meta",
+      "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs",
+      "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioOneEconomyAdapter.cs",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta",
+      "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+      "Assets/ForestPrototype/SitkaGrowthModel.cs",
+      "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs",
+      "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs.meta",
+      "Assets/ForestPrototype/Species/BeechSpecies.asset",
+      "Assets/ForestPrototype/Species/SessileOak.asset",
+      "Assets/ForestPrototype/TimberYield/TimberYieldCalculator.cs",
+      "Assets/ForestPrototype/TimberYield/TimberYieldConfiguration.cs",
+      "Assets/ForestPrototype/TimberYield/TimberYieldValidation.cs",
+      "Assets/ForestPrototype/TreeSpeciesDefinition.cs",
+      "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+      "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+      "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+      "Assets/ForestPrototype/UI/WalkingHudView.cs",
+      "Assets/ForestPrototype/UI/WorkPlanView.cs",
+      "Assets/ForestPrototype/WorkEconomy/ForestryWorkDomain.cs",
+      "Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs",
+      "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs",
+      "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs.meta",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/baseline-density-and-isolation.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/final-composite.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/initial-run.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/manifest.json",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/mutations.json",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/production-typecheck.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/timber-history.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Evidence/tools-typecheck.txt",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Handoff.md",
+      "Docs/Verification/ThreeSpeciesProgramme/CompositeDensityV2Predeclared.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase0-Baseline.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase1-DensityRework.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase1-MixedDensity.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase10-Qualification.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase2to5-BroadleafParity.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase6-BroadleafTimber.md",
+      "Docs/Verification/ThreeSpeciesProgramme/Phase7to9-HistoryAndRepeatedInterventions.md",
+      "Docs/Verification/ThreeSpeciesProgramme/README.md",
+      "Tools/Verification/CloudTypeCheck/InputSystemStub.cs",
+      "Tools/Verification/CloudTypeCheck/UnityEditorStub.cs",
+      "Tools/Verification/CloudTypeCheck/baseline-prod.txt",
+      "Tools/Verification/CloudTypeCheck/baseline-tools.txt",
+      "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+      "Tools/Verification/ThreeSpecies/BroadleafAdultGrowthVerification.cs",
+      "Tools/Verification/ThreeSpecies/BroadleafTimberEconomyVerification.cs",
+      "Tools/Verification/ThreeSpecies/MixedDensityVerification.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/BroadleafTimberOfflineCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/CompositeDensityOfflineCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/HistoryOfflineStubs.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/MixedDensityIsolatedCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/MixedDensityOfflineCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/ScenarioHistoryOfflineCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/SitkaIsolatedCheck.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/SitkaYieldFixture.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/run_composite_mutations.py",
+      "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+      "Tools/Verification/ThreeSpecies/ScenarioHistoryVerification.cs",
+      "Tools/Verification/ThreeSpecies/run_unity_gates.py"
+    ],
+    "tests": [
+      {
+        "label": "diff-check",
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.03,
+        "log": "1-diff-check.txt",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tail": []
+      },
+      {
+        "label": "offline-all",
+        "command": [
+          "python3",
+          "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+          "--suite",
+          "all",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/1/offline"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 33.93,
+        "log": "1-offline-all.txt",
+        "raw_sha256": "ec275bb1647400b423112aa03fb2c614b6fd5a83c1d4b608a1c9cbbdbd0a0619",
+        "tail": [
+          "PASS COMPLETION_LISTS_EACH_INTERVENTION 10 lines",
+          "PASS COMPLETION_SHOWS_STAND_COMPOSITION_AND_MONEY ",
+          "PASS COMPLETION_IS_NOT_A_SCORE_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE ",
+          "PASS NO_EMPTY_LINES ",
+          "THREE_SPECIES_HISTORY_PASS checks=70"
+        ]
+      },
+      {
+        "label": "typecheck-prod",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "prod",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/1/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.28,
+        "log": "1-typecheck-prod.txt",
+        "raw_sha256": "890292ac5ff44d6cfc76590d27a69411e1854d0dc89cf53b7e53a9388da87ad9",
+        "tail": [
+          "[prod] distinct errors: 7 (baseline 7)",
+          "TYPECHECK_CLEAN mode=prod"
+        ]
+      },
+      {
+        "label": "typecheck-tools",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "tools",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/1/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 8.25,
+        "log": "1-typecheck-tools.txt",
+        "raw_sha256": "58cb647b285f14a561eb074db987a9bd1d34653cfe4c1bd9cec35f776b689fa4",
+        "tail": [
+          "[tools] distinct errors: 43 (baseline 43)",
+          "TYPECHECK_CLEAN mode=tools"
+        ]
+      }
+    ],
+    "temporary_head": "8a665fa3a8413816ac9f79c3c37562b5e388cb50"
+  },
+  {
+    "step": 2,
+    "lane": "site",
+    "source": "47539847d7e2531824c30f3dfe635d55404699a8",
+    "before": "8a665fa3a8413816ac9f79c3c37562b5e388cb50",
+    "merge_exit": 0,
+    "merge_output": "Automatic merge went well; stopped before committing as requested\n",
+    "conflicts": [],
+    "changed_files": [
+      "Assets/ForestPrototype/ForestSiteProfile.cs",
+      "Assets/ForestPrototype/ForestSiteProfile.cs.meta",
+      "Assets/ForestPrototype/ScenarioSiteProfiles.cs",
+      "Assets/ForestPrototype/ScenarioSiteProfiles.cs.meta",
+      "Assets/ForestPrototype/SpeciesSiteResponse.cs",
+      "Assets/ForestPrototype/SpeciesSiteResponse.cs.meta",
+      "Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs",
+      "Tools/Verification/SiteInfrastructure/run_site_check.py"
+    ],
+    "tests": [
+      {
+        "label": "diff-check",
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.01,
+        "log": "2-diff-check.txt",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tail": []
+      },
+      {
+        "label": "offline-all",
+        "command": [
+          "python3",
+          "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+          "--suite",
+          "all",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/2/offline"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 26.9,
+        "log": "2-offline-all.txt",
+        "raw_sha256": "7741598a795bbc6e1dd8adc2c980ad783e03cdbb2643aeaeef8d005b977ed2a2",
+        "tail": [
+          "PASS COMPLETION_LISTS_EACH_INTERVENTION 10 lines",
+          "PASS COMPLETION_SHOWS_STAND_COMPOSITION_AND_MONEY ",
+          "PASS COMPLETION_IS_NOT_A_SCORE_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE ",
+          "PASS NO_EMPTY_LINES ",
+          "THREE_SPECIES_HISTORY_PASS checks=70"
+        ]
+      },
+      {
+        "label": "typecheck-prod",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "prod",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/2/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.38,
+        "log": "2-typecheck-prod.txt",
+        "raw_sha256": "890292ac5ff44d6cfc76590d27a69411e1854d0dc89cf53b7e53a9388da87ad9",
+        "tail": [
+          "[prod] distinct errors: 7 (baseline 7)",
+          "TYPECHECK_CLEAN mode=prod"
+        ]
+      },
+      {
+        "label": "typecheck-tools",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "tools",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/2/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 7.8,
+        "log": "2-typecheck-tools.txt",
+        "raw_sha256": "58cb647b285f14a561eb074db987a9bd1d34653cfe4c1bd9cec35f776b689fa4",
+        "tail": [
+          "[tools] distinct errors: 43 (baseline 43)",
+          "TYPECHECK_CLEAN mode=tools"
+        ]
+      },
+      {
+        "label": "site",
+        "command": [
+          "python3",
+          "Tools/Verification/SiteInfrastructure/run_site_check.py",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/2/site"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 4.29,
+        "log": "2-site.txt",
+        "raw_sha256": "27c5838abec5d7828fa1b99e0a68200c9d53fe4c93ba9413de706186b5e7361b",
+        "tail": [
+          "PASS I_AXIS_RESPONSE_REJECTS_UNKNOWN_AND_REFERENCE_ENTRIES ",
+          "PASS I_AXIS_RESPONSE_REJECTS_INCONSISTENT_BASIS ",
+          "PASS I_AXIS_RESPONSE_REJECTS_DUPLICATES_NOTASSESSED_ENTRIES_AND_EMPTY_NOTES ",
+          "PASS I_SPECIES_RESPONSE_REJECTS_MISSING_ID_OR_AXES ",
+          "SITE_INFRASTRUCTURE_PASS checks=63 siteProfiles=1250 registeredSpecies=3 isolatedCompile=true"
+        ]
+      }
+    ],
+    "temporary_head": "467d71313d29aae5d95493e2a1171fd88f5cfefd"
+  },
+  {
+    "step": 3,
+    "lane": "ux",
+    "source": "84e881aa6d0e96c5752f09492d5db37d2cc8925e",
+    "before": "467d71313d29aae5d95493e2a1171fd88f5cfefd",
+    "merge_exit": 0,
+    "merge_output": "Automatic merge went well; stopped before committing as requested\n",
+    "conflicts": [],
+    "changed_files": [
+      "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+      "Assets/ForestPrototype/UI/AdvanceGuard.cs",
+      "Assets/ForestPrototype/UI/AdvanceGuard.cs.meta",
+      "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+      "Assets/ForestPrototype/UI/ControlsReference.cs",
+      "Assets/ForestPrototype/UI/ControlsReference.cs.meta",
+      "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs",
+      "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs.meta",
+      "Assets/ForestPrototype/UI/LearningObjectivesView.cs",
+      "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+      "Assets/ForestPrototype/UI/MenuHelpView.Text.cs.meta",
+      "Assets/ForestPrototype/UI/MenuHelpView.cs",
+      "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+      "Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs",
+      "Assets/ForestPrototype/UI/StandaloneSessionMenu.cs",
+      "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+      "Assets/ForestPrototype/UI/WalkingHudView.cs",
+      "Assets/ForestPrototype/UI/WorkPlanOverview.cs",
+      "Assets/ForestPrototype/UI/WorkPlanView.cs",
+      "Docs/Verification/ScenarioOneUxGap/Handoff.md",
+      "Tools/Verification/MenuTutorialVerification.cs",
+      "Tools/Verification/ScenarioOneTeachingCopyVerification.cs",
+      "Tools/Verification/ScenarioOneUx/OfflineLogic/ScenarioOneUxOfflineCheck.cs",
+      "Tools/Verification/ScenarioOneUx/run_ux_check.py"
+    ],
+    "tests": [
+      {
+        "label": "diff-check",
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.02,
+        "log": "3-diff-check.txt",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tail": []
+      },
+      {
+        "label": "offline-all",
+        "command": [
+          "python3",
+          "Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py",
+          "--suite",
+          "all",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/3/offline"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 27.05,
+        "log": "3-offline-all.txt",
+        "raw_sha256": "946954d85bc7a832c9a82463c3957e857cbfacf56e8bb377f3b84192488491c4",
+        "tail": [
+          "PASS COMPLETION_LISTS_EACH_INTERVENTION 10 lines",
+          "PASS COMPLETION_SHOWS_STAND_COMPOSITION_AND_MONEY ",
+          "PASS COMPLETION_IS_NOT_A_SCORE_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE ",
+          "PASS NO_EMPTY_LINES ",
+          "THREE_SPECIES_HISTORY_PASS checks=70"
+        ]
+      },
+      {
+        "label": "typecheck-prod",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "prod",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/3/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.63,
+        "log": "3-typecheck-prod.txt",
+        "raw_sha256": "890292ac5ff44d6cfc76590d27a69411e1854d0dc89cf53b7e53a9388da87ad9",
+        "tail": [
+          "[prod] distinct errors: 7 (baseline 7)",
+          "TYPECHECK_CLEAN mode=prod"
+        ]
+      },
+      {
+        "label": "typecheck-tools",
+        "command": [
+          "python3",
+          "Tools/Verification/CloudTypeCheck/run_typecheck.py",
+          "--mode",
+          "tools",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/3/typecheck"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 7.16,
+        "log": "3-typecheck-tools.txt",
+        "raw_sha256": "58cb647b285f14a561eb074db987a9bd1d34653cfe4c1bd9cec35f776b689fa4",
+        "tail": [
+          "[tools] distinct errors: 43 (baseline 43)",
+          "TYPECHECK_CLEAN mode=tools"
+        ]
+      },
+      {
+        "label": "site",
+        "command": [
+          "python3",
+          "Tools/Verification/SiteInfrastructure/run_site_check.py",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/3/site"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 4.16,
+        "log": "3-site.txt",
+        "raw_sha256": "3e38ed0c3e22b09195a3e53f101d35f9d00254965f0568d243c95d40822918c9",
+        "tail": [
+          "PASS I_AXIS_RESPONSE_REJECTS_UNKNOWN_AND_REFERENCE_ENTRIES ",
+          "PASS I_AXIS_RESPONSE_REJECTS_INCONSISTENT_BASIS ",
+          "PASS I_AXIS_RESPONSE_REJECTS_DUPLICATES_NOTASSESSED_ENTRIES_AND_EMPTY_NOTES ",
+          "PASS I_SPECIES_RESPONSE_REJECTS_MISSING_ID_OR_AXES ",
+          "SITE_INFRASTRUCTURE_PASS checks=63 siteProfiles=1250 registeredSpecies=3 isolatedCompile=true"
+        ]
+      },
+      {
+        "label": "ux",
+        "command": [
+          "python3",
+          "Tools/Verification/ScenarioOneUx/run_ux_check.py",
+          "--out",
+          "/media/jer/Files/CCF-serial-sol-20261014/rehearsal-results/3/ux"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 3.83,
+        "log": "3-ux.txt",
+        "raw_sha256": "26676b85bf2a3496f8e0a8e997fda4659b418fa54f6c5f6f933479ef2531fd89",
+        "tail": [
+          "PASS obsolete guidance is gone: \"no broadleaf timber market is configured in this scenario\" ",
+          "PASS obsolete guidance is gone: \"2. Buy Beech and Sessile Oak saplings from the nursery\" ",
+          "PASS obsolete guidance is gone: \"4. Advance one ecological year to execute approved work\" ",
+          "PASS obsolete guidance is gone: \"start with simple map steps\" ",
+          "SCENARIO_ONE_UX_PASS checks=176"
+        ]
+      }
+    ],
+    "temporary_head": "ffc98bdf8db85a7a70f53a33469a45535737f729"
+  }
+]

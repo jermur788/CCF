@@ -1,0 +1,177 @@
+PASS step ids are unique
+PASS the set of saved step ids is unchanged
+PASS prerequisite exists for tree.inspect
+PASS prerequisite exists for tree.read
+PASS prerequisite exists for tree.crop
+PASS prerequisite exists for fell.mark
+PASS prerequisite exists for fell.plan
+PASS prerequisite exists for fell.cost
+PASS prerequisite exists for fell.approve
+PASS prerequisite exists for fell.result
+PASS prerequisite exists for plan.open
+PASS prerequisite exists for plan.read
+PASS prerequisite exists for review.open
+PASS prerequisite exists for review.read
+PASS prerequisite exists for map.open
+PASS prerequisite exists for map.select
+PASS prerequisite exists for map.light
+PASS prerequisite exists for map.waypoint
+PASS prerequisite exists for map.return
+PASS prerequisite exists for map.arrive
+PASS prerequisite exists for map.inspectsite
+PASS prerequisite exists for map.regeneration
+PASS prerequisite exists for map.browse
+PASS prerequisite exists for map.marks
+PASS prerequisite exists for map.compare
+PASS prerequisite exists for prune.read
+PASS prerequisite exists for prune.plan
+PASS prerequisite exists for prune.approve
+PASS prerequisite exists for prune.result
+PASS prerequisite exists for deadwood.read
+PASS prerequisite exists for deadwood.plan
+PASS prerequisite exists for deadwood.result
+PASS prerequisite exists for deadwood.visit
+PASS prerequisite exists for plant.ground
+PASS prerequisite exists for plant.stock
+PASS prerequisite exists for plant.plan
+PASS prerequisite exists for plant.execution
+PASS prerequisite exists for plant.shelter
+PASS prerequisite exists for plant.approve
+PASS prerequisite exists for plant.result
+PASS prerequisite exists for clear.read
+PASS prerequisite exists for clear.plan
+PASS prerequisite exists for clear.approve
+PASS prerequisite exists for clear.result
+PASS learning preference prefix is unchanged
+PASS help title exists for WalkingHud
+PASS full help text exists for WalkingHud
+PASS help title exists for TreeInspection
+PASS full help text exists for TreeInspection
+PASS help title exists for StandMap
+PASS full help text exists for StandMap
+PASS help title exists for WorkPlan
+PASS full help text exists for WorkPlan
+PASS help title exists for AnnualReview
+PASS full help text exists for AnnualReview
+PASS the walking HUD has a short first-use text
+PASS the role briefing is short enough to read before play 101 words
+PASS briefing: the player manages a small plantation
+PASS briefing: the objective is to begin converting toward continuous-cover management
+PASS briefing: decisions happen over years
+PASS briefing: choose trees to keep/remove and commission work
+PASS briefing: the aim is not one perfect prescription
+PASS briefing: management is revisited as the forest changes
+PASS briefing does not front-load detail: basal area
+PASS briefing does not front-load detail: DBH
+PASS briefing does not front-load detail: competition index
+PASS briefing does not front-load detail: browsing
+PASS briefing does not front-load detail: residual
+PASS briefing does not front-load detail: regeneration
+PASS briefing does not front-load detail: Hegyi
+PASS the briefing has its own title
+PASS the full walking help keeps the role and the repeated-process teaching
+PASS the full help is longer than the briefing
+PASS no planned work: advancing needs no question
+PASS planned work with nothing approved: the player is asked first
+PASS the warning says the planned work has not been approved
+PASS the warning counts the pending tasks
+PASS the warning says the year would pass with no work done
+PASS the warning reads correctly for a single task
+PASS approved work and nothing pending: no question
+PASS some work approved: the year does something, so no question
+PASS a negative count is treated as nothing pending
+PASS the player can advance anyway
+PASS the player can go back or approve
+PASS the warning names both ways forward
+PASS nothing is approved on the player's behalf
+PASS first-use text is brief for WalkingHud 101 words
+PASS the full help for WalkingHud is still more detailed than its first-use text
+PASS first-use text is brief for TreeInspection 65 words
+PASS the full help for TreeInspection is still more detailed than its first-use text
+PASS first-use text is brief for StandMap 41 words
+PASS the full help for StandMap is still more detailed than its first-use text
+PASS first-use text is brief for WorkPlan 50 words
+PASS the full help for WorkPlan is still more detailed than its first-use text
+PASS the detailed help is kept, not deleted 954 words
+PASS all first-use screens together stay short 257 words
+PASS first use is less than half of the full help text 257 of 954 words
+PASS the Annual Review has no first-use help screen to stack over its acknowledgement
+PASS the review itself tells the player what to read and to walk back and reassess
+PASS the in-review prompt is short 31 words
+PASS tree inspection first-use: marks are proposals, Crop Tree explained
+PASS stand map first-use: navigation aid, not remote management
+PASS work plan first-use: approval is not execution
+PASS eight lesson topics
+PASS the first topics follow the first cycle 1. Tree inspection and Crop Trees | 2. Felling | 3. Work Plan and Annual Review | 4. Stand Map | 5. Pruning | 6. Fallen deadwood | 7. Planting and protection | 8. Vegetation clearance
+PASS the Stand Map follows the first cycle
+PASS topic numbering matches position 1. Tree inspection and Crop Trees
+PASS topic numbering matches position 2. Felling
+PASS topic numbering matches position 3. Work Plan and Annual Review
+PASS topic numbering matches position 4. Stand Map
+PASS topic numbering matches position 5. Pruning
+PASS topic numbering matches position 6. Fallen deadwood
+PASS topic numbering matches position 7. Planting and protection
+PASS topic numbering matches position 8. Vegetation clearance
+PASS walking the cue visits every step exactly once 42 cues
+PASS the first cues are the first cycle tree.inspect,tree.crop,fell.mark,fell.plan,fell.approve,fell.result,plan.open,review.open,review.read
+PASS no map step is among the first cues
+PASS map practice follows once the first cycle is done
+PASS every action step is cued before any reading step
+PASS the first cue reads as an invitation to inspect a tree
+PASS all done reads as complete
+PASS the walking help describes the new lesson order
+PASS controls list keeps key W A S D
+PASS controls list keeps key Mouse
+PASS controls list keeps key E
+PASS controls list keeps key M
+PASS controls list keeps key Tab
+PASS controls list keeps key O
+PASS controls list keeps key F1
+PASS controls list keeps key Esc
+PASS controls list keeps key F5 / F9
+PASS controls list keeps key F10
+PASS controls list still names Stand Map
+PASS controls list still names Work Plan
+PASS controls list still names Learning objectives
+PASS controls list still names Session menu
+PASS inspect is documented
+PASS left-click inspection is documented
+PASS the fell mark is documented
+PASS the Crop Tree mark and competitor assessment are documented
+PASS the number keys are documented
+PASS Work Plan and map keys are documented
+PASS every control row has a key and a short description
+PASS the in-game keys line agrees with the controls list for E
+PASS the in-game keys line agrees with the controls list for Left-click
+PASS the in-game keys line agrees with the controls list for X
+PASS the in-game keys line agrees with the controls list for C
+PASS the in-game keys line agrees with the controls list for 1 – 5
+PASS the in-game keys line agrees with the controls list for G
+PASS the in-game keys line agrees with the controls list for U
+PASS the in-game keys line agrees with the controls list for M
+PASS the in-game keys line agrees with the controls list for Tab
+PASS the in-game keys line agrees with the controls list for O
+PASS the in-game keys line agrees with the controls list for F1
+PASS the in-game keys line agrees with the controls list for F5 / F9
+PASS the in-game keys line agrees with the controls list for F10
+PASS the full Walking HUD help includes the keys line
+PASS CI is spelled out where it first appears in the inspection help
+PASS residual stand and basal area are defined in the Work Plan help
+PASS browsing is defined in the Walking HUD help
+PASS browsing is defined in the Stand Map help
+PASS inspection help mentions left-click
+PASS the market sentence follows the active model
+PASS with the market active, oak and beech are priced
+PASS without the market, oak and beech earn nothing
+PASS the fixed lesson text no longer claims there is no broadleaf market
+PASS the harvest-cost lesson appends the sentence for the active forest
+PASS other lessons are unchanged by the market state
+PASS the stale-copy scan found the production sources 117 files
+PASS obsolete guidance is gone: "Open the Century Review in the Work Plan"
+PASS obsolete guidance is gone: "private first-cycle test"
+PASS obsolete guidance is gone: "Manage one cycle"
+PASS obsolete guidance is gone: "no broadleaf timber market is configured in this scenario"
+PASS obsolete guidance is gone: "2. Buy Beech and Sessile Oak saplings from the nursery"
+PASS obsolete guidance is gone: "4. Advance one ecological year to execute approved work"
+PASS obsolete guidance is gone: "start with simple map steps"
+SCENARIO_ONE_UX_PASS checks=176
