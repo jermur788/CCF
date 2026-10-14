@@ -53,8 +53,8 @@ public static partial class MixedDensityModel
     // Zero at and below the onset, continuous, monotonic, bounded; the same for every species. It is not a broadleaf
     // relative density, not a maximum density and not a basal-area limit; occupancy is the ordinal growing-space
     // abstraction in MixedDensityModel.cs.
-    public const double GenericResponseStrength = 0.20;
-    public const double GenericMaximumAnnualLoss = 0.25;
+    public const double GenericResponseStrength = 1.60;
+    public const double GenericMaximumAnnualLoss = 0.50;
     public const double GenericResponseExponent = 2.0;
 
     // Key of the one extra draw that turns a fractional expected count into a whole number of stems.
