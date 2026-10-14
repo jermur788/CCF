@@ -84,6 +84,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         competitors = new CompetitorAssessment(this, root);
         root.Add(inspection.Root);
         root.Add(inspection.CompetitorPanel);
+        root.Add(inspection.EstimatePanel);
         competitors.OccludingPanels.Add(inspection.Root);
         competitors.OccludingPanels.Add(inspection.CompetitorPanel);
         root.Add(workPlan.Root);
@@ -156,7 +157,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else
             competitors.Clear();
-        PlaceCompetitorPanel(inspecting && inspection.ShowsCompetitors);
+        PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
+        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -179,11 +181,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
     }
 
-    // The competitor panel sits on the right, just under the HUD status panel,
-    // and never extends past the bottom of the screen.
-    private void PlaceCompetitorPanel(bool show)
+    // The competitor and estimate panels sit on the right, just under the HUD status panel,
+    // and never extend past the bottom of the screen.
+    private void PlaceSidePanel(VisualElement panel, bool show)
     {
-        VisualElement panel = inspection.CompetitorPanel;
         panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (!show) return;
         VisualElement status = hud.Root.Q(className: "hud-status");

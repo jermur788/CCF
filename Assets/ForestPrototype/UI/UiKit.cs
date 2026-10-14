@@ -47,10 +47,11 @@ public static class UiKit
         return row;
     }
 
-    // Label/value pair on one line (value right-aligned).
-    public static void Line(VisualElement parent, string name, string value, string valueClass = "value")
+    // Label/value pair on one line (value right-aligned). Pass valueBelow for a value that is a sentence, so it
+    // goes under the name instead of squeezing it.
+    public static void Line(VisualElement parent, string name, string value, string valueClass = "value", bool valueBelow = false)
     {
-        VisualElement row = Box("table-row");
+        VisualElement row = Box(valueBelow ? new[] { "table-row", "table-row-stacked" } : new[] { "table-row" });
         row.Add(Text(name, "cell-name", "body"));
         row.Add(Text(value, "line-value", valueClass));
         parent.Add(row);
