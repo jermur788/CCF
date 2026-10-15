@@ -26,7 +26,7 @@ Use the least costly capable route for the task, considering actual tools, conte
 
 Reserve highest-capability models for work where additional capability materially justifies the cost. Verify actual tools and availability before dispatch. Machine/provider/model defaults belong in operational routing configuration; subscription/account details are not canonical project policy. Worker-cost policy does not belong in the gameplay Decision Log.
 
-Where cost/capacity matters, record `harness / model / quota source` in the packet, operational board and ledger/handoff as relevant. Overall Manager explicitly assigns finite primary/reserve pools. Never silently switch quota source; never store credentials or account secrets in tracked files. Capacity exhaustion never waives, downgrades or satisfies a verification, review or acceptance gate: defer work or explicitly reroute it.
+Record `harness / model / quota source` where cost/capacity matters. Follow AgentWorkflow for Manager-assigned pools, explicit rerouting and secret handling. Capacity exhaustion never satisfies or waives any gate.
 
 ## Automatic continuation after worker handoff
 
