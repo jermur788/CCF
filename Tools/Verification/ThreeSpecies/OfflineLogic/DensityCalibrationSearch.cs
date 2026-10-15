@@ -62,16 +62,34 @@ public static class DensityCalibrationSearch
         }
     }
 
-    static SimConfig Config(Fixture f, SimKernel kernel, GenericResponseCalibration generic, int years = 300, int seed = 20261014)
+    // recruitMode (diagnostic stress only; "smooth" is what every earlier offline check used and is the default):
+    //   smooth     the block-average series issued as an even flow
+    //   pulse:P    same mean inflow, held back and issued as one cohort every P years (synchronised cohorts)
+    //   gap:A-B    smooth, except that no recruit arrives in years A..B (the inflow in the gap is lost, not saved up)
+    //   none       no recruit ever
+    // Recruitment in the reduced simulator is an external series; these modes only change WHEN the same kind of stems
+    // arrive, to show how a mortality rule behaves when recruits are not an even flow.
+    public static SimConfig ConfigFor(string fixturePrefix, string geometry, GenericResponseCalibration generic, int seed, string recruitMode = "smooth", int years = 300)
+    {
+        Fixture f = Fixtures(geometry).First(x => x.Name.StartsWith(fixturePrefix));
+        return Config(f, SimKernel.V3Components, generic, years, seed, recruitMode);
+    }
+
+    static SimConfig Config(Fixture f, SimKernel kernel, GenericResponseCalibration generic, int years = 300, int seed = 20261014, string recruitMode = "smooth")
     {
         string key = f.Geometry + "|" + f.SeriesKey;
         double[] rates = series.TryGetValue(key, out double[] r) ? r : new double[12];
         double cumulative = 0.0; int issued = 0;
+        int period = recruitMode.StartsWith("pulse:") ? int.Parse(recruitMode.Substring(6), CultureInfo.InvariantCulture) : 0;
+        int gapFrom = -1, gapTo = -1;
+        if (recruitMode.StartsWith("gap:")) { string[] g = recruitMode.Substring(4).Split('-'); gapFrom = int.Parse(g[0], CultureInfo.InvariantCulture); gapTo = int.Parse(g[1], CultureInfo.InvariantCulture); }
         var c = new SimConfig { SideMeters = f.Side, StemsPerHectare = f.PerHa, DbhMinCm = f.DbhMin, DbhSpreadCm = f.Spread, SpeciesOf = f.SpeciesOf,
             Years = years, Kernel = kernel, Generic = generic, Seed = seed };
         c.RecruitsFor = (year, trees) =>
         {
+            if (recruitMode == "none" || (gapFrom > 0 && year >= gapFrom && year <= gapTo)) return new List<SimSpecies>();
             cumulative += rates[Math.Min(11, (year - 1) / 25)];
+            if (period > 0 && year % period != 0) return new List<SimSpecies>();
             int total = (int)Math.Floor(cumulative + 1e-9);
             int n = total - issued;
             issued = total;

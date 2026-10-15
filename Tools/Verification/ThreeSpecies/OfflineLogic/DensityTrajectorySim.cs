@@ -44,6 +44,8 @@ public sealed class SimTree
     public string Id;
     public SimSpecies Species;
     public float X, Z, Dbh;
+    // Year the stem entered the stand as a new adult (0 = part of the starting stand). Diagnostic only.
+    public int BornYear;
 }
 
 public sealed class SimYear
@@ -60,6 +62,8 @@ public sealed class SimYear
     public int SitkaBefore, SitkaDeaths;
     public double SitkaRelativeDensityBefore;
     public int SitkaLiving, BeechLiving, OakLiving;
+    // The generic-component plan of this year's step (null for pure Sitka or the v2 kernel). Diagnostic only.
+    public DensityComponentPlan Plan;
 }
 
 public sealed class SimConfig
@@ -76,6 +80,9 @@ public sealed class SimConfig
     public int Seed = 20261014;
     // DIAGNOSTIC ONLY (not a production lever): replaces the common victim-allocation exponent (4) in the generic draw.
     public double? DiagnosticVulnerabilityExponent;
+    // DIAGNOSTIC ONLY: called after the victims are chosen and before they are removed, with the stand as the step saw it
+    // (trees, pre-growth competition indices, victim indices). Must not change the stand.
+    public Action<int, List<SimTree>, float[], List<int>, SimYear> OnVictims;
 
     public float AreaHectares => SideMeters * SideMeters / 10000f;
 }
@@ -150,6 +157,7 @@ public static class DensityTrajectorySim
             double baBefore = BasalArea(trees) / area;
             rec.BaM2Ha = baBefore;
             var victims = ChooseVictims(c, stems, year, rec, area);
+            c.OnVictims?.Invoke(year, trees, ci, victims, rec);
             double deadBa = 0.0;
             rec.BigBefore = trees.Count(t => t.Dbh >= 20f);
             rec.SitkaBefore = trees.Count(t => t.Species.Demand == GrowingSpaceDemandClass.Reference);
@@ -174,7 +182,7 @@ public static class DensityTrajectorySim
                     string id = "R" + year.ToString(CultureInfo.InvariantCulture) + "-" + (recruitSerial++).ToString(CultureInfo.InvariantCulture);
                     trees.Add(new SimTree
                     {
-                        Id = id, Species = species, Dbh = RecruitDbhCm,
+                        Id = id, Species = species, Dbh = RecruitDbhCm, BornYear = year,
                         X = (float)((Roll("RX" + id, year, c.Seed) - 0.5) * (c.SideMeters - 1f)),
                         Z = (float)((Roll("RZ" + id, year, c.Seed) - 0.5) * (c.SideMeters - 1f))
                     });
@@ -252,6 +260,7 @@ public static class DensityTrajectorySim
                 : MixedDensityModel.PlanComponents(stems, area, sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll, c.Generic);
             rec.SitkaComponentDeaths = plan.SitkaHazardDeaths + plan.SitkaBoundaryDeaths;
             rec.GenericDeaths = plan.GenericDeaths;
+            rec.Plan = plan;
             victims.AddRange(plan.VictimIndices);
             return victims;
         }
