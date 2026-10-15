@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""One persistent machine-wide ownership record, not a process supervisor."""
+import sys
+sys.dont_write_bytecode = True
+import argparse
+from contextlib import contextmanager
+from datetime import datetime, timezone
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import uuid
+from _ccf import ROOT, on_storage, storage_check
+
+DEFAULT = ROOT/'CCF-Ops/state/unity'
+
+def now(): return datetime.now(timezone.utc).isoformat()
+
+def process_identity(pid):
+    try:
+        raw=Path(f'/proc/{pid}/stat').read_text()
+        return {'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                'start_ticks':raw[raw.rfind(')')+2:].split()[19]}
+    except (FileNotFoundError, ProcessLookupError): return None
+
+def editors():
+    result=[]
+    for proc in Path('/proc').iterdir():
+        if not proc.name.isdigit(): continue
+        try:
+            argv=(proc/'cmdline').read_bytes().split(b'\0')
+            if argv and Path(os.fsdecode(argv[0])).name == 'Unity': result.append(int(proc.name))
+        except (OSError,ValueError): continue
+    return result
+
+@contextmanager
+def guarded(state):
+    state.mkdir(parents=True,exist_ok=True)
+    # Permanent guard inode; never unlink it. Metadata operations serialize here.
+    with (state/'guard').open('a+') as guard:
+        fcntl.flock(guard,fcntl.LOCK_EX)
+        try: yield
+        finally: fcntl.flock(guard,fcntl.LOCK_UN)
+
+def read_state(state):
+    path=state/'lock.json'
+    if not path.exists(): return None,None
+    raw=path.read_text()
+    try:
+        data=json.loads(raw)
+        required={'lock_id','owner','task_id','lane','branch','head','pid','process_identity','start_timestamp','eta','notes'}
+        if not isinstance(data,dict) or not required.issubset(data): raise ValueError('missing metadata fields')
+        if not all(isinstance(data[k],str) and data[k] for k in required-{'pid','process_identity'}): raise ValueError('invalid string metadata')
+        if not re.fullmatch('[0-9a-fA-F]{40}',data['head']): raise ValueError('invalid HEAD')
+        if data['pid'] is not None and (type(data['pid']) is not int or data['pid']<=0): raise ValueError('invalid PID')
+        if data['pid'] is not None and (not isinstance(data['process_identity'],dict) or set(data['process_identity'])!={'boot_id','start_ticks'}): raise ValueError('invalid process identity')
+        datetime.fromisoformat(data['start_timestamp'])
+        if datetime.fromisoformat(data['eta']).tzinfo is None: raise ValueError('ETA needs timezone')
+        return data,None
+    except (ValueError,TypeError,KeyError) as e: return None,{'error':str(e),'raw':raw}
+
+def inspect(data,malformed):
+    if malformed: return {'status':'malformed','previous':malformed,'unity_editor_pids':editors()}
+    if not data: return {'status':'free','metadata':None,'unity_editor_pids':editors()}
+    state='held'; reason='PID unknown; inspect manually' if data['pid'] is None else 'recorded process is alive'
+    if data['pid'] is not None:
+        identity=process_identity(data['pid'])
+        if identity is None: state='stale'; reason='recorded PID is absent'
+        elif identity!=data['process_identity']: state='stale'; reason='PID reused or machine rebooted'
+    return {'status':state,'metadata':data,'inspection':reason,
+            'eta_overdue':datetime.fromisoformat(data['eta']) < datetime.now(timezone.utc),
+            'unity_editor_pids':editors()}
+
+def event(state,kind,actor,reason,previous,inspection=None):
+    with (state/'history.jsonl').open('a') as f:
+        f.write(json.dumps({'timestamp':now(),'event':kind,'actor':actor,'reason':reason,'previous':previous,'inspection':inspection})+'\n')
+        f.flush(); os.fsync(f.fileno())
+
+def emit(value,machine):
+    if machine: print(json.dumps(value,indent=2))
+    else:
+        print('Unity lock: '+value['status'])
+        for k,v in value.items():
+            if k!='status': print(f'  {k}: {json.dumps(v,sort_keys=True) if isinstance(v,(dict,list)) else v}')
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('operation',choices=['status','acquire','release'])
+    p.add_argument('--json',action='store_true')
+    p.add_argument('--test-state-dir',type=Path,help='Isolated tests ONLY; must be under ZX20/CCF-Temp')
+    for key in ['owner','task-id','lane','branch','head','eta','notes','lock-id','reason']: p.add_argument('--'+key)
+    p.add_argument('--pid',type=int); p.add_argument('--force',action='store_true')
+    a=p.parse_args(); storage_check()
+    state=on_storage(a.test_state_dir or DEFAULT)
+    if a.test_state_dir and not state.is_relative_to(ROOT/'CCF-Temp'):
+        p.error('test state must be beneath ZX20/CCF-Temp')
+    if a.operation!='release' and a.force: p.error('--force only applies to release')
+    if a.operation=='status' and not state.exists():
+        emit(inspect(None,None),a.json); return 0
+    with guarded(state):
+        data,malformed=read_state(state)
+        if a.operation=='status': emit(inspect(data,malformed),a.json); return 0
+        if a.operation=='acquire':
+            for k in ['owner','task_id','lane','branch','head','eta','notes']:
+                if not (getattr(a,k) or '').strip(): p.error('--'+k.replace('_','-')+' is required')
+            if data or malformed: raise ValueError('lock exists; inspect status; stale/malformed records also require explicit release')
+            if not re.fullmatch('[0-9a-fA-F]{40}',a.head): p.error('--head must be a full SHA')
+            eta=datetime.fromisoformat(a.eta)
+            if eta.tzinfo is None or eta<=datetime.now(timezone.utc): p.error('--eta must be a future ISO timestamp with timezone')
+            lane=on_storage(a.lane)
+            if not lane.is_dir(): p.error('--lane must be an existing directory on ZX20')
+            identity=process_identity(a.pid) if a.pid else None
+            if a.pid is not None and (a.pid<=0 or identity is None): p.error('--pid must identify a live process; omit if unknown')
+            running=editors()
+            if running and running != [a.pid]: raise ValueError('Unity Editor already running with unclaimed/different PID(s): '+str(running))
+            data={'lock_id':uuid.uuid4().hex,'owner':a.owner,'task_id':a.task_id,'lane':str(lane),
+                  'branch':a.branch,'head':a.head,'pid':a.pid,'process_identity':identity,
+                  'start_timestamp':now(),'eta':a.eta,'notes':a.notes}
+            # Same-directory exclusive temporary file + rename, inside guard.
+            tmp=state/('metadata-'+data['lock_id']+'.tmp')
+            try:
+                with tmp.open('x') as f:
+                    json.dump(data,f,indent=2); f.write('\n'); f.flush(); os.fsync(f.fileno())
+                os.replace(tmp,state/'lock.json')
+            finally:
+                if tmp.exists(): tmp.unlink()
+            emit(inspect(data,None),a.json); return 0
+        if not data and not malformed: raise ValueError('no lock to release')
+        if a.force:
+            if not (a.owner or '').strip() or not (a.reason or '').strip(): p.error('force release requires --owner (actor) and --reason')
+            event(state,'force-release',a.owner,a.reason,data or malformed,inspect(data,malformed))
+        else:
+            if malformed: raise ValueError('malformed record requires explicit --force --owner --reason')
+            if (a.owner,a.task_id,a.lock_id)!=(data['owner'],data['task_id'],data['lock_id']): raise ValueError('release requires matching --owner --task-id --lock-id')
+            event(state,'release',a.owner,a.reason or 'owner release',data)
+        (state/'lock.json').unlink()
+        emit({'status':'released','forced':a.force,'previous':data or malformed,'unity_editor_pids':editors()},a.json)
+        return 0
+if __name__=='__main__':
+    try: sys.exit(main())
+    except (ValueError,OSError,KeyError,TypeError) as e: print('ERROR: '+str(e),file=sys.stderr); sys.exit(2)

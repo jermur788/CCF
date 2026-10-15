@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "storage": {
+    "root": "/media/jer/ZX20",
+    "uuid": "18D6-896E",
+    "fstype": "exfat"
+  },
+  "repository": "/media/jer/ZX20/CCF-Repository.git",
+  "board": "board/active.md",
+  "lanes": [
+    {
+      "lane": "U1",
+      "path": "/media/jer/ZX20/CCF-U1",
+      "purpose": "primary Unity; Library warm-up deferred"
+    },
+    {
+      "lane": "U2",
+      "path": "/media/jer/ZX20/CCF-U2",
+      "purpose": "secondary Unity; Library warm-up deferred"
+    },
+    {
+      "lane": "Integration",
+      "path": "/media/jer/ZX20/CCF-Integration",
+      "purpose": "clean integration; serialized single writer"
+    },
+    {
+      "lane": "NonUnity",
+      "path": "/media/jer/ZX20/CCF-NonUnity",
+      "purpose": "offline tools/tests/docs; never launch Unity"
+    }
+  ]
+}

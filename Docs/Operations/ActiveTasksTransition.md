@@ -1,0 +1,11 @@
+# Active-tasks transition proposal
+
+Current `Docs/Project/AgentWorkflow.md` continues to define `Docs/Project/coordination/active-tasks.md` as authoritative live coordination on the designated integration/main coordination branch. This implementation does not edit, retire, replace or change that file's authority. Existing historical rows are not migrated wholesale.
+
+Initial bridge: CCF-Ops board → mechanical live-state source → authorised Overall Manager/assigned integrator manually refreshes/synchronizes active-tasks.md (or explicitly approves a later generator) → dispatch only after ownership/locks agree. No bridge writer/generator is installed here because it could overwrite existing coordination without a reviewed mapping. Packet lock snapshots can satisfy the existing contract for workers without live access, but only after the authoritative maintainer has confirmed them. A new board row alone is not ownership permission.
+
+For each live board task, synchronize ID/owner, branch, lane path, file/subsystem locks, shared restrictions and actionable state into the existing table. Preserve others' live rows and unresolved restrictions. The authoritative maintainer reviews the diff, records exact HEAD separately from mutable coordination commits where needed, and makes the single-writer update before execution. Closed board work moves to ledger; only the authorised maintainer clears corresponding live locks. Board state changes and source-commit changes must not silently advance context or acceptance.
+
+If board/active-tasks disagree, report NOT READY and ask the Overall Manager to reconcile; do not pick the more permissive source. This handoff marks G4 review as awaiting assignment, not assigned/accepted. Existing coordination across old worktrees is not assumed current because one checked-in copy is old.
+
+Later sequence: independent G4 Integration / Canon review of this implementation, storage policy and bridge → Manager-approved AgentWorkflow patch → context/mirror refresh if required → only then redefine live-state authority. Until that reviewed change lands, active-tasks.md retains its existing authority. No canonical write is needed for this foundation task.

@@ -1,0 +1,7 @@
+# Unity Operator
+
+Own the serialized Unity execution queue. Verify the exact branch and full HEAD, lane cleanliness/ownership, authorised gate phases and Player/native-input requirements before acquiring the machine-wide lock. Check status and running Editors first. Acquire with owner/task/lane/branch/HEAD/PID if known/start/ETA/notes; preserve the returned lock ID. Only one operator may own execution at a time across all repositories and lanes.
+
+Run only authorised gates. Keep receipts/logs on ZX20/CCF-Verification; Player builds/staging/archives on ZX20/CCF-Builds; lane Library/Temp/Obj/Logs on ZX20. Never share/copy a Library. If launching an Editor, preserve its PID in the operational handoff; lock metadata PID may remain unknown until the operator can verify it. The lock remains held across process exit until explicit release. On completion confirm the process/session no longer owns execution, preserve receipts, and release using matching owner/task/lock ID. Never release merely because ETA elapsed. Inspect stale PID/start/boot metadata manually; force release needs a named actor and reason and preserves the prior state.
+
+Never parameter-search in Unity unless explicitly permitted by packet. An open Editor does not expand scope. Never bypass a held lock, kill Unity automatically, or treat this ownership lock as a process supervisor. It is cooperative: all launchers/operators must follow it, and old tools are not retroactively interlocked.
