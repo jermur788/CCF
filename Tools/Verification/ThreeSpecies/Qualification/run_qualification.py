@@ -55,13 +55,14 @@ def main():
     p.add_argument("--timeout", type=int, default=3600)
     p.add_argument("--env", action="append", default=[], help="KEY=VALUE passed to the Editor")
     p.add_argument("--window", default=None, help="WIDTHxHEIGHT for -screen-width/-screen-height (interactive only)")
+    p.add_argument("--license-dir", type=Path, default=LICENCES, help="licence source (e.g. a Flatpak Hub config); copied into the isolated run config")
     a = p.parse_args()
 
     out = Path(a.out)
     (out / "evidence").mkdir(parents=True, exist_ok=True)
     config = out / "config"
     if not (config / "unity3d/Unity/licenses").exists():
-        shutil.copytree(LICENCES, config / "unity3d/Unity/licenses")
+        shutil.copytree(a.license_dir, config / "unity3d/Unity/licenses")
 
     # One Editor per PROJECT (they would fight over this Library and Temp); an Editor on another worktree may run beside it.
     busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " .*-projectPath " + str(ROOT) + "( |$)"], capture_output=True, text=True).stdout.split()

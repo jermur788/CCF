@@ -381,18 +381,126 @@ public sealed class DensityQualificationRunner : MonoBehaviour
 
     // ---------- FAIRNESS: no species-driven victim selection ----------
 
+    // Independent specification oracle: never reads the allocator's quota, budget counters or chosen set.
+    // Species/demand affects pressure upstream, but NOT the conditional allocation below. This is a greedy
+    // priority-maximal set up to quota, not a maximum-cardinality knapsack (which is not the production contract).
+    private sealed class AllocationOracle
+    {
+        public readonly List<int> Priority = new List<int>();
+        public readonly HashSet<int> Chosen = new HashSet<int>();
+        public int Quota, PassedOver;
+        public double ExpectedCount, RoundingVariance, Budget;
+        public bool GuaranteedNonBinding, Fallback;
+    }
+
+    private static double OracleBa(DensityStem s) => Math.PI / 4.0 * (s.DbhCm / 100.0) * (s.DbhCm / 100.0);
+
+    private static AllocationOracle AllocationExpectation(IReadOnlyList<DensityStem> stems, float area,
+        ICollection<int> sitkaTaken, Func<string, double> roll)
+    {
+        var result = new AllocationOracle();
+        var canonical = Enumerable.Range(0, stems.Count).OrderBy(i => stems[i].TreeId, StringComparer.Ordinal).ToArray();
+        double occupied = 0, nonReference = 0, ba = 0;
+        foreach (int i in canonical)
+        {
+            double weight = stems[i].Demand == GrowingSpaceDemandClass.Reference ? MixedDensityModel.ReferenceWeight :
+                stems[i].Demand == GrowingSpaceDemandClass.Intermediate ? MixedDensityModel.IntermediateWeight : MixedDensityModel.HighWeight;
+            double space = weight * OracleBa(stems[i]);
+            ba += OracleBa(stems[i]); occupied += space;
+            if (stems[i].Demand != GrowingSpaceDemandClass.Reference) nonReference += space;
+            if (!sitkaTaken.Contains(i)) result.Priority.Add(i);
+        }
+        double excess = Math.Max(0, occupied / area / MixedDensityModel.OccupancyNormalization - MixedDensityModel.OnsetOccupancy);
+        double loss = MixedDensityModel.GenericMaximumAnnualLoss *
+            (1 - Math.Exp(-MixedDensityModel.GenericResponseStrength * Math.Pow(excess, MixedDensityModel.GenericResponseExponent)));
+        result.ExpectedCount = loss * (occupied > 0 ? nonReference / occupied : 0) * result.Priority.Count;
+        int floor = (int)Math.Floor(result.ExpectedCount + 1e-10);
+        double remainder = Math.Max(0, result.ExpectedCount - floor);
+        result.RoundingVariance = remainder * (1 - remainder);
+        result.Quota = Math.Min(result.Priority.Count, floor + (remainder > 0 && roll("~generic-quota") < remainder ? 1 : 0));
+        result.Budget = MixedDensityModel.GenericAnnualBasalAreaBudgetShare * ba;
+        // Decide applicability BEFORE observing any roll or victim. Filtering on realised budget binding
+        // conditions on the outcome and can itself bias a count test.
+        result.GuaranteedNonBinding = result.Priority.Select(i => OracleBa(stems[i])).OrderByDescending(v => v)
+            .Take(Math.Min(result.Priority.Count, (int)Math.Ceiling(result.ExpectedCount))).Sum() <= result.Budget + 1e-12;
+        var weights = result.Priority.ToDictionary(i => i, i => Math.Pow(
+            1 - 1 / (1 + Math.Max(0, stems[i].CompetitionIndex) / MixedDensityModel.NeutralHalfSaturationCi), MixedDensityModel.VulnerabilityExponent));
+        bool anyWeight = weights.Values.Any(w => w > 0);
+        var keys = result.Priority.ToDictionary(i => i, i => {
+            double w = anyWeight ? weights[i] : 1;
+            return w > 0 ? -Math.Log(Math.Max(1e-15, Math.Min(1 - 1e-15, roll(stems[i].TreeId)))) / w : double.PositiveInfinity;
+        });
+        result.Priority.Sort((a, b) => keys[a] != keys[b] ? keys[a].CompareTo(keys[b]) : string.CompareOrdinal(stems[a].TreeId, stems[b].TreeId));
+        double remaining = result.Budget;
+        foreach (int i in result.Priority)
+        {
+            if (result.Chosen.Count == result.Quota) break;
+            double cost = OracleBa(stems[i]);
+            if (cost > remaining + 1e-12) { result.PassedOver++; continue; }
+            result.Chosen.Add(i); remaining -= cost;
+        }
+        if (result.Quota > 0 && result.Chosen.Count == 0)
+        {
+            result.Fallback = true;
+            result.Chosen.Add(result.Priority[0]);
+        }
+        return result;
+    }
+
+    private static bool AllocationValid(IReadOnlyList<DensityStem> stems, AllocationOracle oracle, IEnumerable<int> victims)
+    {
+        int[] array = victims.ToArray();
+        var chosen = new HashSet<int>(array);
+        if (chosen.Count != array.Length || !chosen.SetEquals(oracle.Chosen)) return false;
+        double spent = chosen.Sum(i => OracleBa(stems[i]));
+        if (oracle.Fallback)
+            return chosen.Count == 1 && chosen.Contains(oracle.Priority[0]) && oracle.Priority.All(i => OracleBa(stems[i]) > oracle.Budget + 1e-12);
+        return spent <= oracle.Budget + 1e-12 && chosen.Count <= oracle.Quota &&
+            (chosen.Count == oracle.Quota || oracle.Priority.Where(i => !chosen.Contains(i)).All(i => spent + OracleBa(stems[i]) > oracle.Budget + 1e-12));
+    }
+
+    private static string CountVerdict(int trials, double observed, double expected, double variance)
+    {
+        if (trials < 30 || variance <= 0) return "NOT_APPLICABLE";
+        return Math.Abs((observed - expected) / Math.Sqrt(variance)) < 4 ? "PASS" : "FAIL";
+    }
+
+    private void FairnessOracleSelfTests()
+    {
+        var stems = Enumerable.Range(0, 16).Select(i => new DensityStem("T" + i.ToString("00"), GrowingSpaceDemandClass.High, i == 0 ? 80 : 10, 5)).ToList();
+        Func<string, double> roll = id => id == "~generic-quota" ? 0.9 : id == "T00" ? 0.999 : 0.5;
+        var oracle = AllocationExpectation(stems, .001f, new int[0], roll);
+        var plan = MixedDensityModel.PlanComponents(stems, .001f, new int[0], new int[0], roll);
+        Hard("FAIRNESS_SELFTEST_CORRECT_ALLOCATOR", AllocationValid(stems, oracle, plan.GenericVictimIndices) && oracle.PassedOver > 0 && oracle.Chosen.Count > 1, "oversized highest-priority stem skipped; smaller fitting stems selected");
+        var wrong = new HashSet<int>(oracle.Chosen);
+        int removed = oracle.Priority.First(wrong.Contains), replacement = oracle.Priority.Last(i => !wrong.Contains(i) && i != 0);
+        wrong.Remove(removed); wrong.Add(replacement);
+        Hard("FAIRNESS_SELFTEST_BROKEN_PRIORITY_REJECTED", !AllocationValid(stems, oracle, wrong), "same count and BA, wrong competitive priority");
+        Hard("FAIRNESS_SELFTEST_IGNORED_BUDGET_REJECTED", !AllocationValid(stems, oracle, oracle.Priority.Take(oracle.Quota)), "unbudgeted first-quota allocator rejected");
+        Hard("FAIRNESS_SELFTEST_ALWAYS_FIRST_REJECTED", !AllocationValid(stems, oracle, new[] { 0 }), "first oversized stem is forbidden when another fits");
+        Hard("FAIRNESS_SELFTEST_EMPTY_ALLOCATOR_REJECTED", !AllocationValid(stems, oracle, new int[0]), "nonempty valid allocation required");
+        var sparse = stems.Take(3).Select(s => new DensityStem(s.TreeId, s.Demand, 30, 5)).ToList();
+        var sparseOracle = AllocationExpectation(sparse, .001f, new int[0], roll);
+        var sparsePlan = MixedDensityModel.PlanComponents(sparse, .001f, new int[0], new int[0], roll);
+        Hard("FAIRNESS_SELFTEST_NEVER_STALL_FALLBACK", sparseOracle.Fallback && AllocationValid(sparse, sparseOracle, sparsePlan.GenericVictimIndices), "only allowed budget overrun: no eligible stem fits alone");
+        Hard("FAIRNESS_SELFTEST_ZERO_SAMPLES_NOT_GREEN", CountVerdict(0, 0, 0, 0) == "NOT_APPLICABLE" && CountVerdict(29, 0, 0, 1) == "NOT_APPLICABLE" && CountVerdict(150, 0, 0, 0) == "NOT_APPLICABLE", "zero/too few samples and zero variance cannot report statistical PASS");
+        Hard("FAIRNESS_SELFTEST_COUNT_DETECTS_BIAS", CountVerdict(150, 200, 100, 10) == "FAIL" && CountVerdict(150, 100, 100, 10) == "PASS", "rounded-quota count test has live positive and negative controls");
+    }
+
     private IEnumerator Fairness() { yield return Fairness(1.6, ""); }
 
     private IEnumerator Fairness(double targetOccupancy, string suffix)
     {
         var kinds = new[] { sitka, beech, oak };
-        string[] names = { "sitka", "beech", "oak" };
-        var designs = new (string label, float dbhMin, float spread)[] { ("MATCHED_EQUAL_DBH", 30f, 0f), ("UNEQUAL_DBH", 24f, 10f) };
-        const int trials = 150;
+        if (suffix == "") FairnessOracleSelfTests();
+        var designs = new (string label, float dbhMin, float spread, double occupancy, int trials)[] {
+            ("MATCHED_EQUAL_DBH", 30f, 0f, targetOccupancy, 150), ("UNEQUAL_DBH", 24f, 10f, targetOccupancy, 150),
+            ("NON_BINDING_CONTROL", 30f, 0f, 1.05, 30) };
         foreach (var design in designs)
         {
             Func<int, TreeSpeciesDefinition> baseMap = k => kinds[k % 3];
-            int count = CountForOccupancy(targetOccupancy, baseMap, design.dbhMin, design.spread);
+            int trials = design.trials;
+            int count = CountForOccupancy(design.occupancy, baseMap, design.dbhMin, design.spread);
 
             // Competition index must not depend on species: same layout, species rotated, index per position identical.
             Stand(2, k => kinds[k % 3], count, design.dbhMin, design.spread, null, true);
@@ -402,12 +510,11 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             double maxDiff = ciA.Keys.Max(k => Math.Abs((double)ciA[k] - ciB[k]));
             Hard($"FAIRNESS{suffix}_{design.label}_COMPETITION_INDEX_IS_SPECIES_NEUTRAL", ciA.Count == ciB.Count && maxDiff == 0.0, $"stems={ciA.Count} maxAbsDifferenceAcrossRotatedSpecies={F(maxDiff, "0.0e+0")} (neutral ids, so any difference would come from species)");
 
-            var obs = new double[3]; var exp = new double[3]; var variance = new double[3]; var n = new double[3]; var rankSum = new double[3];
-            // The overall-count test below compares deaths with the Bernoulli expectation of the UNBUDGETED response. Trials in which the
-            // generic step's basal-area budget acted are removed from that one comparison (the budget lowers the count by design; its exact
-            // arithmetic is checked offline and controller == pure plan is checked above); species neutrality still uses every trial.
-            double freeObs = 0, freeExp = 0, freeVar = 0; int budgetBoundTrials = 0;
-            bool faithful = true; int totalVictims = 0;
+            var obs = new int[3]; var expectedSpecies = new int[3];
+            double freeObs = 0, freeExp = 0, freeVar = 0;
+            int budgetBoundTrials = 0, nonBinding = 0, fallback = 0, allocationEvaluated = 0;
+            bool faithful = true, allocated = true, neutral = true, positionExact = true;
+            int totalVictims = 0;
             for (int t = 0; t < trials; t++)
             {
                 int rotation = t % 3;
@@ -415,54 +522,67 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 Dictionary<string, int> speciesIndex = Living().ToDictionary(x => x.TreeId, x => x.Species == sitka ? 0 : x.Species == beech ? 1 : 2, StringComparer.Ordinal);
                 List<DensityStem> list = StemsOfLiving();
                 DensityComponentPlan plan = ComponentPlan(list);
+                Func<string, double> roll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-GENERIC-" + id, e.EcologicalYear, e.SimulationSeed);
+                var oracle = AllocationExpectation(list, e.StandAreaHectares, plan.SitkaVictimIndices, roll);
+                allocated &= AllocationValid(list, oracle, plan.GenericVictimIndices) && plan.GenericQuota == oracle.Quota &&
+                    plan.GenericBudgetPassedOver == oracle.PassedOver && plan.GenericBudgetLimited == oracle.Quota - oracle.Chosen.Count;
+                allocationEvaluated++;
+                // Relabel demand while preserving total class occupancy, size, competition, ids, rolls and Sitka exclusion.
+                // Equal-DBH labels may be permuted freely: conditional allocation must not change at any position.
+                var relabeled = list.ToList();
+                var eligibleIndices = Enumerable.Range(0, list.Count).Where(i => !plan.SitkaVictimIndices.Contains(i)).ToArray();
+                if (design.spread == 0 && eligibleIndices.Length > 1)
+                {
+                    for (int k = 0; k < eligibleIndices.Length; k++)
+                    {
+                        int i = eligibleIndices[k];
+                        relabeled[i] = new DensityStem(list[i].TreeId, list[eligibleIndices[(k + 1) % eligibleIndices.Length]].Demand, list[i].DbhCm, list[i].CompetitionIndex);
+                    }
+                    var relabeledPlan = MixedDensityModel.PlanComponents(relabeled, e.StandAreaHectares, plan.SitkaVictimIndices, new int[0], roll);
+                    neutral &= new HashSet<int>(relabeledPlan.GenericVictimIndices).SetEquals(plan.GenericVictimIndices);
+                }
+                // Input/list-position invariance: the same physical stems and id-keyed draws in reverse storage order.
+                var reversed = list.AsEnumerable().Reverse().ToList();
+                var reversedPlan = MixedDensityModel.PlanComponents(reversed, e.StandAreaHectares, plan.SitkaVictimIndices.Select(i => list.Count - 1 - i).ToArray(), new int[0], roll);
+                neutral &= new HashSet<string>(reversedPlan.GenericVictimIndices.Select(i => reversed[i].TreeId)).SetEquals(plan.GenericVictimIndices.Select(i => list[i].TreeId));
                 var predicted = new HashSet<string>(plan.VictimIndices.Select(i => list[i].TreeId), StringComparer.Ordinal);
                 // v3: the Sitka component is Sitka-only by design. Species neutrality is asserted for the GENERIC component, i.e. among the
                 // stems it chose from (everything the Sitka component left standing), by competitive position alone.
                 var sitkaTaken = new HashSet<string>(plan.SitkaVictimIndices.Select(i => list[i].TreeId), StringComparer.Ordinal);
-                var eligibleList = list.Where(x => !sitkaTaken.Contains(x.TreeId)).ToList();
-                double meanVuln = eligibleList.Select(x => MixedDensityModel.Vulnerability(MixedDensityModel.Suppression(x.CompetitionIndex))).Average();
-                double[] sortedCi = eligibleList.Select(x => x.CompetitionIndex).OrderBy(v => v).ToArray();
                 DensityStep();
                 var actual = new HashSet<string>(FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).Select(x => x.TreeId), StringComparer.Ordinal);
                 faithful &= predicted.SetEquals(actual);
                 totalVictims += actual.Count - sitkaTaken.Count;
-                bool budgetActed = plan.GenericBudgetPassedOver > 0 || plan.GenericBudgetLimited > 0;
+                bool budgetActed = oracle.PassedOver > 0 || oracle.Chosen.Count < oracle.Quota;
                 if (budgetActed) budgetBoundTrials++;
-                foreach (DensityStem x in eligibleList)
+                if (oracle.Fallback) fallback++;
+                if (oracle.GuaranteedNonBinding)
                 {
-                    int s = speciesIndex[x.TreeId];
-                    double p = MixedDensityModel.AnnualLossProbability(plan.GenericLossFraction, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
-                    exp[s] += p; variance[s] += p * (1.0 - p); n[s]++;
-                    if (!budgetActed) { freeExp += p; freeVar += p * (1.0 - p); }
-                    if (actual.Contains(x.TreeId))
-                    {
-                        obs[s]++;
-                        if (!budgetActed) freeObs++;
-                        int lessThan = 0, equal = 0;
-                        foreach (double v in sortedCi) { if (v < x.CompetitionIndex) lessThan++; else if (v == x.CompetitionIndex) equal++; }
-                        rankSum[s] += (lessThan + 0.5 * equal) / sortedCi.Length;
-                    }
+                    nonBinding++; freeObs += actual.Count - sitkaTaken.Count;
+                    freeExp += oracle.ExpectedCount; freeVar += oracle.RoundingVariance;
+                }
+                foreach (int i in eligibleIndices)
+                {
+                    int s = speciesIndex[list[i].TreeId];
+                    bool died = actual.Contains(list[i].TreeId), expected = oracle.Chosen.Contains(i);
+                    if (died) obs[s]++;
+                    if (expected) expectedSpecies[s]++;
+                    positionExact &= died == expected;
                 }
                 if (t % 10 == 9) yield return null;
             }
             Hard($"FAIRNESS{suffix}_{design.label}_CONTROLLER_VICTIMS_EQUAL_THE_PURE_PLAN", faithful && totalVictims > 0, $"trials={trials} stems={count} genericVictims={totalVictims}");
-            // Two separate questions. (1) Overall: do all deaths together match the Bernoulli expectation? (RNG / plan fidelity.)
-            // (2) Between species: after allowing for any overall shift, does one species lose more or fewer stems than
-            // its competition alone predicts? Only (2) can show species-driven selection.
-            double totalObs = obs.Sum(), totalExp = exp.Sum(), totalVar = variance.Sum();
-            double pooledZ = freeVar > 0 ? (freeObs - freeExp) / Math.Sqrt(freeVar) : 0.0;   // trials the budget did not touch (0 if every trial was budget-bound)
-            double ratio = totalExp > 0 ? totalObs / totalExp : 1.0;
-            bool unbiased = true;
-            for (int s = 0; s < 3; s++)
-            {
-                double z = variance[s] > 0 ? (obs[s] - exp[s]) / Math.Sqrt(variance[s]) : 0.0;
-                double zRel = variance[s] > 0 ? (obs[s] - ratio * exp[s]) / Math.Sqrt(variance[s]) : 0.0;
-                unbiased &= Math.Abs(zRel) < 4.0;
-                Measure($"FAIRNESS{suffix}_{design.label}_{names[s].ToUpperInvariant()}", $"stemTrials={n[s]} deaths={obs[s]} expectedFromCompetitionOnly={F(exp[s], "0.0")} z={F(z, "0.00")} zRelativeToPooled={F(zRel, "0.00")} deathRate={F(obs[s] / Math.Max(1.0, n[s]), "0.0000")} meanCompetitionRankOfVictims={F(obs[s] > 0 ? rankSum[s] / obs[s] : 0.0, "0.000")}");
-            }
-            Measure($"FAIRNESS{suffix}_{design.label}_POOLED", $"deaths={totalObs} expected={F(totalExp, "0.0")} ratio={F(ratio, "0.000")} pooledZ={F(pooledZ, "0.00")} budgetBoundTrials={budgetBoundTrials} of {trials} (pooledZ uses only the others: freeDeaths={freeObs} freeExpected={F(freeExp, "0.0")})");
-            Hard($"FAIRNESS{suffix}_{design.label}_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION", Math.Abs(pooledZ) < 4.0, $"pooledZ={F(pooledZ, "0.00")}");
-            Hard($"FAIRNESS{suffix}_{design.label}_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION", unbiased, "each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)");
+            Hard($"FAIRNESS{suffix}_{design.label}_CONDITIONAL_ALLOCATION", allocated && positionExact && allocationEvaluated == trials && trials > 0,
+                $"evaluated={allocationEvaluated} excluded=0 budgetBound={budgetBoundTrials} fallback={fallback} oracle=independent-rounded-quota/exponential-priority/greedy-BA-budget");
+            Hard($"FAIRNESS{suffix}_{design.label}_NO_SPECIES_OR_POSITION_RESIDUAL", neutral && positionExact && obs.SequenceEqual(expectedSpecies),
+                $"actualBySpecies={string.Join(",", obs)} conditionalExpectedBySpecies={string.Join(",", expectedSpecies)}; exact per-position residual=0 required; label and storage-order invariance");
+            string verdict = CountVerdict(nonBinding, freeObs, freeExp, freeVar);
+            string detail = $"evaluated={nonBinding} N/A={trials - nonBinding} observed={freeObs} expected={F(freeExp)} variance={F(freeVar)} oracle=rounded-quota (NOT independent per-stem Bernoulli)";
+            if (verdict == "NOT_APPLICABLE")
+                Debug.Log($"QUAL_NOT_APPLICABLE {geo} FAIRNESS{suffix}_{design.label}_COUNT {detail}; too few preclassified non-binding trials or zero variance; no z-score");
+            else Hard($"FAIRNESS{suffix}_{design.label}_COUNT", verdict == "PASS", detail + $" z={F((freeObs - freeExp) / Math.Sqrt(freeVar), "0.00")}");
+            if (design.label == "NON_BINDING_CONTROL")
+                Hard($"FAIRNESS{suffix}_NON_BINDING_CONTROL_COVERAGE", nonBinding == trials && verdict == "PASS", $"required={trials} evaluated={nonBinding} statisticalVerdict={verdict}");
         }
 
         if (suffix != "") yield break;
