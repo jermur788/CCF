@@ -9,5 +9,5 @@ Ownership: Scratch fixture board/ledger only; no live task ownership.
 Verification tier: Tier 1
 Time budget: 5 minutes
 Acceptance criterion: Packet PASS; lane read succeeds; ACTIVE to VERIFY to mock PASS to ledger to closed board is evidenced.
-Expected handoff: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
+Handoff format: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
 Unity required: No

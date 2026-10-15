@@ -9,5 +9,5 @@ Ownership: Scratch fixture board/ledger only; no live task ownership.
 Time budget: 5 minutes
 Acceptance criterion: Packet PASS; lane read succeeds; ACTIVE to VERIFY to mock PASS to ledger to closed board is evidenced.
 Stop conditions: Storage mismatch, unknown work, ownership conflict, missing field or attempted production write.
-Expected handoff: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
+Handoff format: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
 Unity required: No

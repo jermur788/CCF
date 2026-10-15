@@ -37,6 +37,9 @@ def cli(name,*args,code=0): return run([sys.executable,'-B',OPS/'scripts'/name,*
 f=OPS/'tests/fixtures'
 check(cli('packet-lint',f/'valid.md').splitlines()[0]=='PASS','packet valid PASS')
 check(cli('packet-lint',f/'valid-unity.md').splitlines()[0]=='PASS','packet valid Unity PASS')
+unity_missing_lane=SCRATCH/'unity-missing-lane.md'
+unity_missing_lane.write_text('\n'.join(l for l in (f/'valid-unity.md').read_text().splitlines() if not l.startswith('Unity lane:'))+'\n')
+check(cli('packet-lint',unity_missing_lane,code=1).startswith('FAIL'),'Unity lane is required')
 for name in ['missing-base','missing-verification-tier','conflicting-unity-ownership','missing-stop-condition']:
     check(cli('packet-lint',f/(name+'.md'),code=1).startswith('FAIL'),'packet '+name+' FAIL')
 check(cli('packet-lint','--draft',f/'partial.md').startswith('WARN'),'partial draft WARN')
@@ -67,6 +70,8 @@ before={str(p):(p.stat().st_mtime_ns,p.read_bytes()) for p in metadata if p.is_f
 rows=json.loads(cli('lane-status','--config',config,'--json'))
 check(rows[0]['exists'] and rows[0]['registered_worktree'] and rows[0]['dirty'] is False,'lane clean')
 check(rows[0]['ahead_behind']==['0','0'],'lane ahead/behind local refs')
+check(rows[0]['zx20'] is True and rows[0]['backing_device']=='/dev/sda2','lane verifies backing device and ZX20 YES')
+check(rows[2]['zx20'] is True and rows[2]['backing_device']=='/dev/sda2','absent lane reports nearest-parent ZX20 device')
 check(rows[1]['dirty'] is True,'lane dirty is data, exit zero')
 check(not rows[2]['exists'] and not rows[2]['registered_worktree'],'lane missing tolerated')
 check(before=={str(p):(p.stat().st_mtime_ns,p.read_bytes()) for p in metadata if p.is_file()},'lane-status leaves Git metadata bytes/mtimes unchanged')
@@ -81,6 +86,14 @@ for malformed in [[], {'schema':1,'storage':[],'lanes':[{}]}, dict(cfg,lanes=[42
     config.write_text(json.dumps(malformed))
     p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
     check(p.returncode==2 and p.stderr.startswith('ERROR:') and 'Traceback' not in p.stderr,'malformed config shape fails clearly')
+config.write_text(json.dumps(cfg))
+# Read-only negative config: observe existing /; create no files or worktree there.
+off=json.loads(json.dumps(cfg)); off['lanes'].append({'lane':'off-storage','path':'/','purpose':'read-only negative sentinel'})
+config.write_text(json.dumps(off))
+off_rows=json.loads(cli('lane-status','--config',config,'--json'))
+check(off_rows[-1]['zx20'] is False and off_rows[-1]['backing_device']=='/dev/sdb2','off-storage reports actual root device and ZX20 NO')
+check('ZX20: NO' in cli('lane-status','--config',config),'off-storage human output clearly says ZX20: NO')
+check(off_rows[-1]['HEAD'] is None and any('STOP' in w for w in off_rows[-1]['conflict_warning']),'off-storage warning stops writable-lane inspection')
 config.write_text(json.dumps(cfg))
 broken_board=SCRATCH/'broken-board.md'; broken_board.write_text('| ID | State |\n|---|---|\n')
 check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board missing required fields FAIL')
@@ -142,7 +155,7 @@ packet_text=(OPS/'pilot/manager-packet.md').read_text()
 check(cli('packet-lint',OPS/'pilot/manager-packet.md').startswith('PASS'),'pilot manager packet lint')
 # Production lane inventory is read-only and archived in the pilot receipt.
 (pilot/'lane-status.json').write_text(cli('lane-status','--json'))
-values=['CCF-DUMMY-T1','ACTIVE','simulated worker','Codex / GPT-6.1 Sol / OpenAI allowance','NonUnity',source_branch,source_head,'operations dummy','isolated fixture only','No','None','Tier 1','mock handoff','None','produce simulated handoff']
+values=['CCF-DUMMY-T1','ACTIVE','simulated worker','Codex','GPT-6.1 Sol','OpenAI allowance','NonUnity',source_branch,source_head,'operations dummy','isolated fixture only','No','None','Tier 1','mock handoff','None','produce simulated handoff']
 def snapshot(state,action):
     values[1]=state; values[-1]=action
     board.write_text(header+'| '+' | '.join(values)+' |\n'); board_read(board)
@@ -156,7 +169,7 @@ Purpose: Prove offline board/handoff/ledger mechanics using a simulation.
 Worker route: Codex / GPT-6.1 Sol / OpenAI allowance
 Base: c6dc136b7f1f8668d9f67f95f48968d290ad5067
 Final HEAD: {source_head}
-Verification performed: Packet lint; read-only lane status; board schema; fixture handoff presence; mock verdict.
+Verification: Packet lint; read-only lane status; board schema; fixture handoff presence; mock verdict.
 Verdict: SIMULATED PASS; no independent gate or production acceptance.
 Integrated?: Simulated
 Canonical impact: None
@@ -164,8 +177,10 @@ Evidence path: {pilot}
 Date: {datetime.now(timezone.utc).date()}
 '''
 (pilot/'ledger.md').write_text(ledger)
-required={'task id','purpose','worker route','base','final head','verification performed','verdict','integrated?','canonical impact','evidence path','date'}
+required={'task id','purpose','worker route','base','final head','verification','verdict','integrated?','canonical impact','evidence path','date'}
 check(required.issubset(fields_read(ledger)),'pilot closed ledger required fields')
+for entry in (OPS/'ledger').glob('*.md'):
+    if entry.name!='README.md': check(required.issubset(fields_read(entry.read_text())),'stored ledger schema: '+entry.name)
 board.write_text(header)
 check(board_read(board)==[] and (pilot/'ledger.md').exists(),'pilot ledger exists before board close')
 result={'result':'PASS','checks':count,'scratch':str(SCRATCH),'pilot_evidence':str(pilot),'source_head':source_head,'unity_launched':False,'production_lock_acquired':False}

@@ -10,7 +10,7 @@ Purpose:
 Worker route:
 Base:
 Final HEAD:
-Verification performed:
+Verification:
 Verdict:
 Integrated?:
 Canonical impact:

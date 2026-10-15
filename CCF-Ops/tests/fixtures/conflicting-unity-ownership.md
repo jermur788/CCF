@@ -10,9 +10,10 @@ Verification tier: Tier 1
 Time budget: 5 minutes
 Acceptance criterion: Packet PASS; lane read succeeds; ACTIVE to VERIFY to mock PASS to ledger to closed board is evidenced.
 Stop conditions: Storage mismatch, unknown work, ownership conflict, missing field or attempted production write.
-Expected handoff: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
+Handoff format: Exact branch/base/context/HEAD and scratch receipt; explicitly simulated verdict.
 Unity required: Yes
 Exact HEAD: c6dc136b7f1f8668d9f67f95f48968d290ad5067
 Unity ownership: Operator-A, Operator-B
 Allowed phases: compile/import only
 Player/native input required: No
+Unity lane: /media/jer/ZX20/CCF-U1

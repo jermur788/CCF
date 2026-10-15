@@ -13,9 +13,10 @@ FIELDS = {
  'exclusions':['exclusions','out of scope'], 'ownership':['ownership','owned files / subsystems','owned files/subsystems'],
  'verification tier':['verification tier'], 'time budget':['time budget'],
  'question / acceptance criterion':['question','acceptance criterion','acceptance criteria','question this verification must answer'],
- 'stop conditions':['stop conditions','stop and ask if'], 'expected handoff':['expected handoff','handoff']}
+ 'stop conditions':['stop conditions','stop and ask if'], 'handoff format':['handoff format','expected handoff','handoff']}
 UNITY={'exact head':['exact head','head'],'unity ownership':['unity ownership','unity owner'],
-       'allowed phases':['allowed phases'],'player/native input required':['player/native input required','player/native input required?']}
+       'unity lane':['unity lane','lane','worktree'],
+       'allowed phases':['allowed phases'],'player/native input required':['player/native input required','player/native input required?','native player/input required','native player/input required?']}
 
 def lint(text,draft=False):
     fields=fields_read(text); errors=[]; warnings=[]

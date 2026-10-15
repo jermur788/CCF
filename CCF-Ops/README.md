@@ -1,4 +1,4 @@
-# CCF-Ops foundation v1
+# CCF-Ops foundation v1.1
 
 Versioned source: CCF repository `CCF-Ops/` on branch `ops/workflow-foundation-v1` in `/media/jer/ZX20/CCF-NonUnity`. Live deployment: `/media/jer/ZX20/CCF-Ops`. The deployment is an explicit copy, not a second repository or a symlink (ZX20 is exFAT). `deployment.json` records source commit and file hashes. Update scripts/roles/config deliberately from a reviewed commit; never overwrite the live board, ledger or state with a blanket recopy. Initial board is a source snapshot; the deployed board is the operational live copy. Reconcile with authoritative active-tasks before dispatch.
 
@@ -27,9 +27,9 @@ source /media/jer/ZX20/CCF-Ops/environment.sh
 /media/jer/ZX20/CCF-Ops/scripts/unity-lock status --json
 ```
 
-lane-status never fetches, refreshes the Git index, prunes, changes refs or modifies a lane. Missing/dirty/conflicted lanes return 0 and display warnings. Actual command/config/board errors return 2. Disk is approximate `du` allocation (exFAT overhead included); ahead/behind is local refs only, no network fetch. Config is lanes.json; malformed paths/duplicates/board/mount identity fail clearly. Missing paths are allowed; unexpected repositories are reported without changing them.
+lane-status never fetches, refreshes the Git index, prunes, changes refs or modifies a lane. Missing/dirty/conflicted lanes return 0 and display warnings. Actual command/config/board errors return 2. Disk is approximate `du` allocation (exFAT overhead included); ahead/behind is local refs only, no network fetch. Every row reports backing device and explicit ZX20: YES/NO. Off-storage lanes are reported ZX20: NO with a STOP warning and are not inspected as writable lanes. Config is lanes.json; malformed paths/duplicates/board/mount identity fail clearly. Missing paths are allowed; unexpected repositories are reported without changing them.
 
-packet-lint: PASS=0, WARN=0, FAIL=1, tool error=2. Explicit `--draft` downgrades missing fields to WARN; invalid explicit values still FAIL. Field syntax: `KEY: value`, multiline values, or Markdown heading followed by value. Required: routing, role, context, base, branch, scope, exclusions, ownership, verification tier (1/2/3), time budget, question/acceptance criterion, stop conditions, expected handoff. Full SHAs for context/base. Declare `Unity required: Yes/No`; omission warns. Unity additionally requires exact HEAD, a single named Unity owner, allowed phases, Player/native input Yes/No, and stop conditions. Duplicate fields/owners fail. This validates structure, not natural-language truth, permission or acceptance. Fixtures in tests/fixtures.
+packet-lint: PASS=0, WARN=0, FAIL=1, tool error=2. Explicit `--draft` downgrades missing fields to WARN; invalid explicit values still FAIL. Field syntax: `KEY: value`, multiline values, or Markdown heading followed by value. Required: routing, role, context, base, branch, scope, exclusions, ownership, verification tier (1/2/3), time budget, question/acceptance criterion, stop conditions, handoff format. Full SHAs for context/base. Declare `Unity required: Yes/No`; omission warns. Unity additionally requires exact HEAD, a single named Unity owner, an explicit Unity lane, allowed phases, Player/native input Yes/No, and stop conditions. Duplicate fields/owners fail. This validates structure, not natural-language truth, permission or acceptance. Fixtures in tests/fixtures.
 
 ## Machine-wide Unity ownership
 
@@ -46,9 +46,9 @@ Verify branch/HEAD independently before acquire; metadata is a declaration, not 
 
 ## Board, ledger and authority transition
 
-board/active.md has only actionable state, one row per live task and all required fields. Use None/N/A explicitly. IDs unique; HEAD exact or TBD only before assignment. States: READY, ACTIVE, WAITING, BLOCKED, VERIFY, INTEGRATE, DONE-PENDING-LEDGER. Unity queue position is an integer for queued work, None otherwise. Do not claim someone else's files. ledger/ stores compact closed summaries. Role/packet rules and mechanical checks do not change gameplay canon.
+board/active.md has only actionable state, one row per live task and all required fields: Task ID, State, Owner, Harness, Model, Quota source, Lane, Branch, HEAD, Subsystem, Locks, Unity required?, Unity queue position, Verification tier, Open gate, Dependency, Next action. Use None/N/A explicitly. IDs unique; HEAD exact or TBD only before assignment. States: READY, ACTIVE, WAITING, BLOCKED, VERIFY, INTEGRATE, DONE-PENDING-LEDGER. Unity queue position is an integer for queued work, None otherwise. Do not claim someone else's files. ledger/ stores compact closed summaries. Role/packet rules and mechanical checks do not change gameplay canon.
 
-Current authoritative coordination remains `Docs/Project/coordination/active-tasks.md` on the designated integration/main coordination branch. A board update cannot confer authority until that file/packet locks are reconciled by its authorised maintainer. See Docs/Operations/ActiveTasksTransition.md and AgentWorkflowProposedChanges.md. G4 is required before canonical AgentWorkflow changes.
+Current authoritative coordination remains `Docs/Project/coordination/active-tasks.md` on the designated integration/main coordination branch. A board update cannot confer authority until that file/packet locks are reconciled by its authorised maintainer. See ActiveTasksTransition.md and Docs/Operations/AgentWorkflowProposedChanges.md. G4 is required before canonical AgentWorkflow changes.
 
 ## Route identity placeholders
 
@@ -65,3 +65,5 @@ Claude A/B selection is an explicit Manager pool assignment, never silent accoun
 ## Offline checks / pilot
 
 `python3 -B tests/self-test.py` creates fixtures only under ZX20/CCF-Temp. It tests clean/dirty/missing lanes, config errors, packet PASS/FAIL/WARN, board/ledger schemas, lock acquire/reject/release/stale/force/malformed handling and concurrent acquisition. No Unity launch. Full receipt belongs in CCF-Verification/WorkflowFoundation. `pilot/manager-packet.md` and `pilot/README.md` describe an isolated, simulated Tier-1 chain; tests write its disposable board, handoff and ledger to scratch. No real worker thread or production gate is implied.
+
+This revision migrates only the board/ledger field names requested by the current packet; existing task states and ledger verdicts remain unchanged. Reviewer A/B/C meanings come from each Manager review packet, rather than an invented global rubric. Runtime updates preserve board, ledger and Unity lock state; no blanket deployment copy is used.

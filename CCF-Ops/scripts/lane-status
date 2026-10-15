@@ -5,14 +5,14 @@ sys.dont_write_bytecode = True
 import argparse
 import json
 from pathlib import Path
-from _ccf import command, config_read, board_read
+from _ccf import ROOT, command, config_read, board_read
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--config',type=Path,default=Path(__file__).resolve().parent.parent/'lanes.json')
     p.add_argument('--json',action='store_true')
     a=p.parse_args()
-    cfg,board=config_read(a.config); tasks=board_read(board)
+    cfg,board=config_read(a.config, permit_off_storage_lanes=True); tasks=board_read(board)
     blocks=command(['git','--git-dir='+cfg['repository'],'worktree','list','--porcelain']).split('\n\n')
     registered={}
     for block in blocks:
@@ -21,10 +21,19 @@ def main():
     result=[]
     for item in cfg['lanes']:
         path=Path(item['path']); exists=path.exists(); reg=registered.get(str(path.resolve()))
-        row=dict(lane=item['lane'],path=str(path),exists=exists,registered_worktree=bool(reg),branch=None,HEAD=None,dirty=None,ahead_behind=None,unity_library=(path/'Library').is_dir(),approx_disk_usage=None,owner=[],conflict_warning=[])
+        resolved=path.resolve()
+        probe=resolved
+        while not probe.exists(): probe=probe.parent
+        mount=json.loads(command(['findmnt','-J','-T',str(probe),'-o','SOURCE,TARGET,UUID']))['filesystems'][0]
+        zx20=(mount['source']=='/dev/sda2' and (mount['uuid'] or '').upper()=='18D6-896E' and resolved.is_relative_to(ROOT) and probe.stat().st_dev==ROOT.stat().st_dev)
+        row=dict(lane=item['lane'],path=str(path),resolved_path=str(resolved),backing_device=mount['source'],mount_point=mount['target'],zx20=zx20,exists=exists,registered_worktree=bool(reg),branch=None,HEAD=None,dirty=None,ahead_behind=None,unity_library=(path/'Library').is_dir(),approx_disk_usage=None,owner=[],conflict_warning=[])
         active=[t for t in tasks if t['Lane'] in {item['lane'],'CCF-'+item['lane'],str(path)}]
-        row['owner']=[t['Owner']+' ('+t['ID']+')' for t in active]
+        row['owner']=[t['Owner']+' ('+t['Task ID']+')' for t in active]
         if len(active)>1: row['conflict_warning'].append('multiple board tasks claim lane')
+        if not zx20:
+            row['conflict_warning'].append('ZX20: NO — STOP; lane is outside verified storage and was not inspected as a writable lane')
+            result.append(row)
+            continue
         if exists:
             row['approx_disk_usage']=command(['du','-sh',str(path)]).split('\t')[0]
             # Never let git discover an unrelated parent repository.
@@ -46,14 +55,14 @@ def main():
                     if row['dirty']: row['conflict_warning'].append('dirty: inspect ownership before writes')
                     for task in active:
                         if task['Branch'] != row['branch'] or task['HEAD'] != row['HEAD']:
-                            row['conflict_warning'].append('board branch/HEAD differs: '+task['ID'])
+                            row['conflict_warning'].append('board branch/HEAD differs: '+task['Task ID'])
             if not reg: row['conflict_warning'].append('not registered in configured repository')
         elif reg: row['conflict_warning'].append('registered path missing; do not prune automatically')
         result.append(row)
     if a.json: print(json.dumps(result,indent=2))
     else:
         for r in result:
-            print(f"{r['lane']} | {r['path']} | exists={r['exists']} registered={r['registered_worktree']}")
+            print(f"{r['lane']} | {r['path']} | backing device={r['backing_device']} | ZX20: {'YES' if r['zx20'] else 'NO'} | exists={r['exists']} registered={r['registered_worktree']}")
             print(f"  branch={r['branch']} HEAD={r['HEAD']} dirty={r['dirty']} ahead/behind={r['ahead_behind']}")
             print(f"  Library={r['unity_library']} disk~={r['approx_disk_usage']} owner={', '.join(r['owner']) or 'unassigned'}")
             print('  warnings: '+('; '.join(r['conflict_warning']) or 'none'))

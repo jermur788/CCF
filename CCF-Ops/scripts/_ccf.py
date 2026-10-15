@@ -6,8 +6,8 @@ import re
 import subprocess
 
 ROOT = Path('/media/jer/ZX20')
-BOARD_FIELDS = ['ID', 'State', 'Owner', 'Harness/model/quota source', 'Lane', 'Branch',
-                'HEAD', 'Subsystem', 'File/area locks', 'Unity required?',
+BOARD_FIELDS = ['Task ID', 'State', 'Owner', 'Harness', 'Model', 'Quota source',
+                'Lane', 'Branch', 'HEAD', 'Subsystem', 'Locks', 'Unity required?',
                 'Unity queue position', 'Verification tier', 'Open gate', 'Dependency', 'Next action']
 STATES = {'READY','ACTIVE','WAITING','BLOCKED','VERIFY','INTEGRATE','DONE-PENDING-LEDGER'}
 
@@ -32,12 +32,12 @@ def on_storage(path, root=ROOT):
 
 def storage_check(root=ROOT, uuid='18D6-896E', fstype='exfat'):
     root = Path(root).resolve(strict=True)
-    info = json.loads(command(['findmnt','-J','-T',str(root),'-o','TARGET,FSTYPE,UUID']))['filesystems'][0]
-    if info['target'] != str(root) or info['fstype'] != fstype or (info['uuid'] or '').lower() != uuid.lower():
+    info = json.loads(command(['findmnt','-J','-T',str(root),'-o','SOURCE,TARGET,FSTYPE,UUID']))['filesystems'][0]
+    if info['source'] != '/dev/sda2' or info['target'] != str(root) or info['fstype'] != fstype or (info['uuid'] or '').lower() != uuid.lower():
         raise ValueError(f'ZX20 mount identity mismatch: {info}')
     return root
 
-def config_read(path):
+def config_read(path, permit_off_storage_lanes=False):
     path = Path(path)
     cfg = json.loads(path.read_text())
     if not isinstance(cfg,dict) or cfg.get('schema') != 1 or not isinstance(cfg.get('lanes'), list) or not cfg['lanes']:
@@ -60,7 +60,9 @@ def config_read(path):
             raise ValueError('lane needs nonempty lane, purpose and absolute path')
         if not Path(lane['path']).is_absolute():
             raise ValueError('lane path must be absolute')
-        resolved = str(on_storage(lane['path'], root))
+        # Only the read-only inventory may observe off-storage paths so it can
+        # report ZX20: NO; mutation callers retain strict storage rejection.
+        resolved = str(Path(lane['path']).resolve() if permit_off_storage_lanes else on_storage(lane['path'], root))
         if lane['lane'] in seen_names or resolved in seen_paths:
             raise ValueError('duplicate lane name/path')
         seen_names.add(lane['lane']); seen_paths.add(resolved)
@@ -81,13 +83,13 @@ def board_read(path):
         if len(cells) != len(headers) or any(not c for c in cells):
             raise ValueError('malformed board row; use None/N/A for empty values')
         row = dict(zip(headers,cells))
-        if row['State'] not in STATES or row['ID'] in ids:
+        if row['State'] not in STATES or row['Task ID'] in ids:
             raise ValueError('invalid board state or duplicate ID')
         if row['Unity required?'] not in {'Yes','No'}:
             raise ValueError('Unity required? must be Yes/No')
         if row['HEAD'] != 'TBD' and not re.fullmatch(r'[0-9a-fA-F]{40}',row['HEAD']):
             raise ValueError('board HEAD must be exact SHA or TBD')
-        ids.add(row['ID']); rows.append(row)
+        ids.add(row['Task ID']); rows.append(row)
     return rows
 
 def fields_read(text):
