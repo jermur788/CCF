@@ -126,4 +126,3 @@
 * R4 worst 25-year basal-area ratio 0.90, Y300/Y100 1.09 (limits 0.5): PASS
 * R5' mean Sitka-subset relative density at the start of the step, Y201-300: 0.919 (limit 1.02): PASS
 * Trial 1 values for the record: occupancy Y300/Y200 1.12 (R1 limit 1.10)
-

@@ -1,7 +1,7 @@
 # DENSITY V3 HANDOFF: component-faithful mortality
 
 Role: Simulation Density Rework Engineer. **Not merged.** Growth Model 2 is still not the default. No species density capacity, no Oak/Beech SDI or maximum basal area, no DEC/DMC/mixture bonus. Pure Sitka, save v20, all anchors and every legacy-route fingerprint are unchanged.
-Everything here was run on this branch unless the "Unity status" section says otherwise. Evidence: `CompositeDensityV3Evidence/` next to this file; acceptance and every change of definition: `CompositeDensityV3Predeclared.md` (committed before the results it judges).
+Everything here was run on this branch unless the "Unity status" section says otherwise. Evidence: `CompositeDensityV3Evidence/` next to this file (text outputs have trailing whitespace trimmed, nothing else changed); acceptance and every change of definition: `CompositeDensityV3Predeclared.md` (committed before the results it judges).
 
 ## BRANCH / BASE / HEAD
 
