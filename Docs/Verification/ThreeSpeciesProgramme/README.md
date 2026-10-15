@@ -31,3 +31,7 @@ See the bottom table, updated as phases complete.
 | 5 | Three-species qualification | Runbook prepared; needs Unity |
 | 6 | Oak/Beech timber and economy | Implemented behind growth model 2; pure layer verified offline (71 checks, Sitka identical to the unmodified base); Unity wiring type-checked, gate written not run; form-grade and formative-shaping sub-features stopped; see `Phase6-BroadleafTimber.md` |
 | 7–9 | Management history, repeated interventions, completion presentation | Implemented as derived history (no new persisted state, save stays v20); derivation and wording verified offline against the real record classes (70 checks); manager/UI wiring type-checked; Unity gate written, not run; see `Phase7to9-HistoryAndRepeatedInterventions.md` |
+
+## Follow-up: density v3 canopy pulses (`fix/density-v3-canopy-pulses-v1`)
+
+Root cause, fix, sweep and the focused Unity gate for 25-37 % one-year basal-area losses in dense broadleaf stands: `CanopyPulseRootCause.md`; raw scan tables in `CanopyPulseEvidence/`. Offline and reduced-model only, not Unity-verified.

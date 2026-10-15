@@ -14,6 +14,8 @@ using System.Linq;
 //   I3  Sitka and generic victims are disjoint and add up; I5 order and class labels do not matter; I6 no broadleaf share, no generic deaths.
 //   I7  Replay is exact.
 //   C1-C5 Continuity of total and Sitka-component loss across 100 / 99.9 / 99 / 95 / 90 % Sitka, shielding by small broadleaves, the last broadleaf.
+//   B1-B6 The basal-area budget of the generic step (Docs/Verification/ThreeSpeciesProgramme/CanopyPulseRootCause.md): exact bound, maximal fill,
+//         inert when not needed, never stalls and is not a capacity, reproduces and removes the canopy pulse, class neutral.
 //   Reduced-simulator long runs (pure Oak, pure Beech, mixed) against the Trial 2 acceptance.
 public static class CompositeDensityOfflineCheck
 {
@@ -477,7 +479,7 @@ public static class CompositeDensityOfflineCheck
         double sum = 0, sumSq = 0, expected = 0;
         for (int year = 0; year < Seeds; year++)
         {
-            var p = Plan(stems, 0.16f, year);
+            var p = Plan(stems, 0.16f, year, BudgetOff());   // quota arithmetic only: the basal-area budget is tested in CanopyBudget()
             sum += p.Plan.GenericDeaths; sumSq += (double)p.Plan.GenericDeaths * p.Plan.GenericDeaths;
             expected = p.Plan.GenericLossFraction * p.Plan.EligibleForGeneric;   // eligible varies a little by year; the last year stands in
         }
@@ -519,6 +521,165 @@ public static class CompositeDensityOfflineCheck
             foreach (int v in p.GenericVictimIndices) { if (v < 100) low++; else high++; }
         }
         Check(high > 3 * Math.Max(1, low), "VICTIMS_ARE_THE_MORE_SUPPRESSED_STEMS", $"lowCompetitionDeaths={low} highCompetitionDeaths={high}");
+    }
+
+
+    // ---------- basal-area budget of the generic step (B1 .. B6) ----------
+    static double StemBa(DensityStem s) => Math.PI / 4.0 * (s.DbhCm / 100.0) * (s.DbhCm / 100.0);
+
+    // The production response with the budget switched off (a stem share cannot exceed 1).
+    static GenericResponseCalibration BudgetOff() =>
+        new GenericResponseCalibration(MixedDensityModel.GenericResponseStrength, MixedDensityModel.GenericMaximumAnnualLoss, MixedDensityModel.GenericResponseExponent, 1.0);
+
+    // Canopy-heavy broadleaf stand: nCanopy large stems with little competition, nSmall recruits with a lot.
+    static List<DensityStem> CanopyStand(Random r, int nCanopy, int nSmall, GrowingSpaceDemandClass demand = GrowingSpaceDemandClass.Intermediate)
+    {
+        var list = new List<DensityStem>();
+        for (int i = 0; i < nCanopy; i++)
+            list.Add(new DensityStem("C" + i.ToString("D4"), demand, (float)(55 + r.NextDouble() * 20), (float)(0.3 + r.NextDouble() * 2.5)));
+        for (int i = 0; i < nSmall; i++)
+            list.Add(new DensityStem("R" + i.ToString("D4"), demand, (float)(4 + r.NextDouble() * 3), (float)(8 + r.NextDouble() * 25)));
+        return list;
+    }
+
+    static void CanopyBudget()
+    {
+        var def = GenericResponseCalibration.Default;
+        var off = BudgetOff();
+        double budgetShare = def.BasalAreaBudgetShare;
+
+        // B0 the number is the labelled constant, is validated, and the three-argument constructor takes the production default.
+        bool refuses = Throws(() => new GenericResponseCalibration(1.6, 0.5, 2.0, 0.0)) && Throws(() => new GenericResponseCalibration(1.6, 0.5, 2.0, 1.01))
+            && Throws(() => new GenericResponseCalibration(1.6, 0.5, 2.0, double.NaN));
+        var three = new GenericResponseCalibration(1.6, 0.5, 2.0);
+        Check(budgetShare == MixedDensityModel.GenericAnnualBasalAreaBudgetShare && three.BasalAreaBudgetShare == budgetShare && refuses && budgetShare > 0.0 && budgetShare < 0.2,
+            "B0_BUDGET_IS_THE_LABELLED_CONSTANT_VALIDATED_AND_THE_DEFAULT", $"budget={F(budgetShare, "0.000")}");
+
+        // B1 exact bound, accounting, maximal fill and inertness over random canopy-heavy and mixed states.
+        var r = Rng(20261015);
+        int stalled = 0, stalledSubset = 0, states = 0, bound = 0, accounting = 0, maximal = 0, inertSame = 0, inert = 0, bindingDiffer = 0, binding = 0, quotaSame = 0, sitkaSame = 0, fallback = 0, limited = 0;
+        for (int s = 0; s < 800; s++)
+        {
+            int nCanopy = new[] { 6, 14, 24, 40, 80 }[s % 5], nSmall = new[] { 0, 2, 6, 20, 60 }[(s / 5) % 5];
+            var stems = CanopyStand(r, nCanopy, nSmall, s % 3 == 0 ? GrowingSpaceDemandClass.High : GrowingSpaceDemandClass.Intermediate);
+            if (s % 4 == 0) stems = stems.Concat(RandomSitka(r, 1 + s % 20, "S")).ToList();
+            stems = Shuffled(stems, r);
+            // area chosen so that the stand is overcrowded (occupancy 1.2 to 2.6), otherwise most states draw no quota at all
+            double target = 1.2 + 1.4 * r.NextDouble();
+            float area = (float)(stems.Sum(MixedDensityModel.StemOccupiedSpace) / (MixedDensityModel.OccupancyNormalization * target));
+            int year = r.Next(1000);
+            var on = Plan(stems, area, year);
+            var no = Plan(stems, area, year, off);
+            var plan = on.Plan;
+            if (plan.GenericQuota == 0) continue;
+            states++;
+            double standBa = stems.Sum(StemBa), budget = budgetShare * standBa;
+            var eligible = Enumerable.Range(0, stems.Count).Where(i => !plan.SitkaVictimIndices.Contains(i)).ToList();
+            var generic = plan.GenericVictimIndices;
+            double spent = generic.Sum(i => StemBa(stems[i]));
+            bool nothingFits = eligible.All(i => StemBa(stems[i]) > budget + 1e-12);
+            if (spent <= budget + 1e-9 || (generic.Count == 1 && nothingFits)) bound++;
+            if (generic.Count == 1 && nothingFits && spent > budget + 1e-9) fallback++;
+            if (plan.GenericQuota == plan.GenericDeaths + plan.GenericBudgetLimited && plan.GenericDeaths == generic.Count && Math.Abs(plan.GenericBasalAreaShare - spent / standBa) < 1e-9
+                && plan.GenericDeaths <= plan.GenericQuota) accounting++;
+            // maximal fill: if the quota was not met, every stem left standing among the eligible ones is too big for what remains of the budget
+            if (plan.GenericBudgetLimited == 0 || eligible.Where(i => !generic.Contains(i)).All(i => spent + StemBa(stems[i]) > budget + 1e-12 || (generic.Count == 1 && nothingFits))) maximal++;
+            // the quota draw does not depend on the budget; the Sitka component is not touched by it
+            if (no.Plan.GenericQuota == plan.GenericQuota) quotaSame++;
+            if (no.Plan.SitkaVictimIndices.SequenceEqual(plan.SitkaVictimIndices)) sitkaSame++;
+            if (plan.GenericBudgetPassedOver == 0 && plan.GenericBudgetLimited == 0)
+            {
+                inert++;
+                if (no.Generic.SequenceEqual(on.Generic)) inertSame++;
+            }
+            else if (generic.Count == 1 && nothingFits)
+            {
+                // never-stall fallback: the highest-priority stem, which is always one of the unbudgeted victims
+                stalled++;
+                if (no.Plan.GenericVictimIndices.Contains(generic[0])) stalledSubset++;
+            }
+            else
+            {
+                binding++;
+                if (!no.Generic.SequenceEqual(on.Generic)) bindingDiffer++;
+            }
+            if (plan.GenericBudgetLimited > 0) limited++;
+        }
+        Check(states >= 500 && bound == states, "B1_GENERIC_STEP_NEVER_EXCEEDS_THE_BASAL_AREA_BUDGET_EXCEPT_ONE_STEM_WHEN_NONE_FITS", $"states={states} fallbackStates={fallback}");
+        Check(accounting == states && quotaSame == states && sitkaSame == states, "B1_ACCOUNTING_QUOTA_AND_SITKA_COMPONENT_ARE_UNAFFECTED", $"states={states}");
+        Check(maximal == states, "B1_BUDGET_IS_FILLED_AS_FAR_AS_THE_QUOTA_ALLOWS", $"states={states} quotaNotMet={limited}");
+        Check(inert >= 100 && inertSame == inert && binding >= 100 && bindingDiffer == binding && stalled >= 5 && stalledSubset == stalled, "B2_BUDGET_CHANGES_NOTHING_WHEN_IT_IS_NOT_REACHED_AND_SOMETHING_WHEN_IT_IS", $"inertStates={inert} bindingStates={binding} neverStallStates={stalled}");
+
+        // B3 not a capacity and never stalls: a hugely overstocked stand of large trees is thinned a little every year until the pressure is gone.
+        var stand = CanopyStand(Rng(3), 70, 0, GrowingSpaceDemandClass.High);
+        double occ0 = MixedDensityModel.Occupancy(stand, 0.16f);
+        bool neverStalls = true, withinBudget = true; int years = 0; double occ = occ0, worstShare = 0.0;
+        var living = new List<DensityStem>(stand);
+        for (int year = 0; year < 400 && occ > 1.05; year++)
+        {
+            var p = Plan(living, 0.16f, year);
+            double ba = living.Sum(StemBa);
+            double share = p.Plan.GenericVictimIndices.Sum(i => StemBa(living[i])) / ba;
+            worstShare = Math.Max(worstShare, share);
+            if (p.Plan.GenericQuota >= 1 && p.Plan.GenericDeaths < 1) neverStalls = false;
+            if (share > budgetShare + 1e-9 && p.Plan.GenericVictimIndices.Count != 1) withinBudget = false;
+            var dead = new HashSet<int>(p.Plan.VictimIndices);
+            living = living.Where((x, i) => !dead.Contains(i)).ToList();
+            occ = MixedDensityModel.Occupancy(living, 0.16f);
+            years++;
+        }
+        Check(occ0 > 3.0 && occ <= 1.05 && neverStalls && withinBudget && years > 10 && years < 400, "B3_THE_BUDGET_IS_A_RATE_NOT_A_CAPACITY_AND_NEVER_STALLS_THE_RELIEF", $"occupancy {F(occ0, "0.00")} -> {F(occ, "0.00")} in {years} years, worst yearly share {F(worstShare)}");
+
+        // B4 the defect, reproduced and removed: 32 large stems, 3 recruits. Without the budget the shortfall falls on the canopy.
+        double offMax = 0.0, onMax = 0.0, offMean = 0.0; int offBig = 0, trials = 0, onBind = 0;
+        for (int year = 0; year < 200; year++)
+        {
+            var st = CanopyStand(Rng(11 + year % 7), 32, 3);
+            double ba = st.Sum(StemBa);
+            var a = Plan(st, 0.16f, year, off); var b = Plan(st, 0.16f, year);
+            double lossOff = a.Plan.GenericVictimIndices.Sum(i => StemBa(st[i])) / ba, lossOn = b.Plan.GenericVictimIndices.Sum(i => StemBa(st[i])) / ba;
+            trials++; offMax = Math.Max(offMax, lossOff); onMax = Math.Max(onMax, lossOn); offMean += lossOff / 200.0;
+            if (lossOff > 0.2) offBig++;
+            if (b.Plan.GenericBudgetPassedOver > 0) onBind++;
+        }
+        Check(offMax >= 0.25 && offBig >= 40, "B4_WITHOUT_THE_BUDGET_A_RECRUIT_SHORTAGE_REMOVES_A_QUARTER_OF_THE_CANOPY_BASAL_AREA", $"trials={trials} worstLoss={F(offMax)} meanLoss={F(offMean)} yearsOver20Percent={offBig}");
+        Check(onMax <= budgetShare + 1e-9 && onBind >= 100, "B4_WITH_THE_BUDGET_THE_SAME_STANDS_LOSE_AT_MOST_THE_BUDGET", $"worstLoss={F(onMax)} budget={F(budgetShare, "0.000")} yearsBudgetChangedTheVictims={onBind}");
+
+        // B5 recruits available: the budget stays out of the way (the accepted regime). 32 large stems and 40 recruits: the quota is paid by
+        // recruits, the victims are exactly those of the unbudgeted planner, and the planner reports that the budget never acted.
+        int inertYears = 0, identical5 = 0, richTrials = 0; double richMean = 0.0;
+        for (int year = 0; year < 200; year++)
+        {
+            var st = CanopyStand(Rng(21 + year % 7), 32, 40);
+            double ba = st.Sum(StemBa);
+            var a = Plan(st, 0.16f, year, off); var b = Plan(st, 0.16f, year);
+            richTrials++;
+            if (b.Plan.GenericBudgetPassedOver == 0 && b.Plan.GenericBudgetLimited == 0) inertYears++;
+            if (a.Generic.SequenceEqual(b.Generic)) identical5++;
+            richMean += b.Plan.GenericVictimIndices.Sum(i => StemBa(st[i])) / ba / 200.0;
+        }
+        Check(inertYears == richTrials && identical5 == richTrials, "B5_WITH_PLENTY_OF_RECRUITS_THE_BUDGET_NEVER_ACTS_AND_THE_VICTIMS_ARE_UNCHANGED", $"trials={richTrials} budgetActed={richTrials - inertYears} meanBasalAreaLoss={F(richMean)}");
+
+        // B6 class neutrality while the budget binds: stems come in equal-size pairs; swapping the two classes inside each pair
+        // changes neither the occupied space nor the basal area, so the generic victims must be exactly the same.
+        int same6 = 0, binding6 = 0, victims6 = 0;
+        for (int year = 0; year < 150; year++)
+        {
+            var a = new List<DensityStem>(); var b = new List<DensityStem>();
+            var rr = Rng(500 + year);
+            for (int pair = 0; pair < 16; pair++)
+            {
+                float dbh = 50f + (float)(rr.NextDouble() * 25), ci = (float)(0.3 + rr.NextDouble() * 2.5);
+                a.Add(new DensityStem("P" + (2 * pair).ToString("D3"), GrowingSpaceDemandClass.High, dbh, ci)); a.Add(new DensityStem("P" + (2 * pair + 1).ToString("D3"), GrowingSpaceDemandClass.Intermediate, dbh, ci));
+                b.Add(new DensityStem("P" + (2 * pair).ToString("D3"), GrowingSpaceDemandClass.Intermediate, dbh, ci)); b.Add(new DensityStem("P" + (2 * pair + 1).ToString("D3"), GrowingSpaceDemandClass.High, dbh, ci));
+            }
+            for (int k = 0; k < 4; k++) { a.Add(new DensityStem("Q" + k, GrowingSpaceDemandClass.High, 5f, 20f)); b.Add(new DensityStem("Q" + k, GrowingSpaceDemandClass.Intermediate, 5f, 20f)); }
+            var pa = Plan(a, 0.16f, year); var pb = Plan(b, 0.16f, year);
+            victims6 += pa.Generic.Count;
+            if (pa.Plan.GenericBudgetPassedOver > 0) binding6++;
+            if (pa.Generic.SequenceEqual(pb.Generic) && Math.Abs(pa.Plan.GenericBasalAreaShare - pb.Plan.GenericBasalAreaShare) < 1e-12) same6++;
+        }
+        Check(same6 == 150 && binding6 >= 40 && victims6 >= 300, "B6_THE_BUDGET_IS_CLASS_AND_SPECIES_NEUTRAL_WHILE_IT_BINDS", $"trials=150 budgetBound={binding6} genericVictimsCompared={victims6}");
     }
 
     // ---------- the numbers the signal and the simulator copy from the species assets ----------
@@ -568,6 +729,7 @@ public static class CompositeDensityOfflineCheck
         ContinuityReplacement();
         Shielding();
         GenericComponent();
+        CanopyBudget();
         LongRuns();
         Console.WriteLine($"COMPOSITE_DENSITY_{(failures == 0 ? "PASS" : "FAIL")} checks={checks} failures={failures}");
         return failures == 0 ? 0 : 1;

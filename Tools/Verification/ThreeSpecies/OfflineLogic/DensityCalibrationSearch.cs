@@ -248,6 +248,27 @@ public static class DensityCalibrationSearch
                 check(v.R1 && v.R2 && v.R3 && v.R4, $"LONG_RUN_{geo}_{fx.Name}_MEETS_R1_R4",
                     $"R1={v.R1} R2={v.R2} R3={v.R3} R4={v.R4} maxYearLoss26={f(v.MaxYearLoss26, "0.000")} minBaRatio25y={f(v.MinBaRatio25y, "0.000")} slope201-300={f(v.SlopeY201to300, "0.0000")} slope151-250={f(v.SlopeY151to250, "0.0000")} blockChange={f(v.MaxBlockChange26, "0.000")} deadBA25y={f(v.WorstWindowDeadBa * 100, "0.0")}% bigStemLoss25y={f(v.WorstWindowBigLoss * 100, "0.0")}% baY300/Y100={f(v.BaY300OverY100, "0.00")}");
             }
+        // CANOPY PULSES (CanopyPulseRootCause.md). The same pure stands, recruits arriving evenly (as above), as a cohort every five years and
+        // with a twenty-year gap. In every year the generic step must stay inside its basal-area budget (a stand of fewer than nine stems is
+        // exempt: there one stem can exceed the budget by itself and the planner takes it so the component never stalls).
+        double budget = cal.BasalAreaBudgetShare;
+        foreach (string geo in new[] { "L40", "E80" })
+            foreach (Fixture fx in Fixtures(geo).Where(x => pure.Contains(x.Name)))
+                foreach (string mode in new[] { "smooth", "pulse:5", "gap:100-120" })
+                {
+                    var y = DensityTrajectorySim.Run(Config(fx, SimKernel.V3Components, cal, 300, 20261014, mode));
+                    double worst = 0.0; int worstYear = 0, exempt = 0, over = 0, collapse = 0;
+                    for (int i = 0; i < y.Count; i++)
+                    {
+                        if (y[i].LivingBefore < 9) { exempt++; continue; }
+                        if (y[i].DeadBaFraction > worst) { worst = y[i].DeadBaFraction; worstYear = y[i].Year; }
+                        if (y[i].DeadBaFraction > budget + 1e-9) over++;
+                    }
+                    var v = TrajectoryMetrics.EvaluateT2(y);
+                    if (!v.R4) collapse++;
+                    check(over == 0 && collapse == 0, $"LONG_RUN_{geo}_{fx.Name}_{mode.Replace(':', '_').Replace('-', '_').ToUpperInvariant()}_NO_CANOPY_PULSE_ABOVE_THE_BUDGET_AND_NO_COLLAPSE",
+                        $"budget={f(budget, "0.000")} worstYearBaLoss={f(worst, "0.000")} (Y{worstYear}) yearsOverBudget={over} yearsExempt={exempt} R4={v.R4} minBaRatio25y={f(v.MinBaRatio25y, "0.000")}");
+                }
         foreach (string geo in new[] { "L40", "E80" })
             foreach (string name in new[] { "C_MIXED_DENSE", "G_MIXED_YOUNG" })
             {
@@ -269,6 +290,23 @@ public static class DensityCalibrationSearch
             var a = DensityTrajectorySim.Run(Config(fx, SimKernel.V2Combined, cal)); var b = DensityTrajectorySim.Run(Config(fx, SimKernel.V3Components, cal));
             check(a.Zip(b, (p, q) => p.LivingAfter == q.LivingAfter && p.Deaths == q.Deaths && p.Occupancy == q.Occupancy && p.BaM2Ha == q.BaM2Ha).All(x => x), $"LONG_RUN_{geo}_PURE_SITKA_IS_IDENTICAL_UNDER_THE_V2_AND_V3_KERNELS", "");
         }
+        // The same bound for the GENERIC component of the mixed stands (the Sitka component is the unchanged legacy process and is not budgeted).
+        foreach (string geo in new[] { "L40", "E80" })
+            foreach (string name in new[] { "C_MIXED_DENSE", "G_MIXED_YOUNG" })
+                foreach (string mode in new[] { "smooth", "pulse:5", "gap:100-120" })
+                {
+                    var y = DensityTrajectorySim.Run(Config(Fixtures(geo).First(x => x.Name == name), SimKernel.V3Components, cal, 300, 20261014, mode));
+                    double worst = 0.0; int over = 0, binding = 0;
+                    foreach (SimYear r in y)
+                    {
+                        if (r.Plan == null || r.Plan.EligibleForGeneric < 9) continue;
+                        worst = Math.Max(worst, r.Plan.GenericBasalAreaShare);
+                        if (r.Plan.GenericBasalAreaShare > budget + 1e-9) over++;
+                        if (r.Plan.GenericBudgetPassedOver > 0) binding++;
+                    }
+                    check(over == 0, $"LONG_RUN_{geo}_{name}_{mode.Replace(':', '_').Replace('-', '_').ToUpperInvariant()}_GENERIC_COMPONENT_STAYS_INSIDE_THE_BUDGET",
+                        $"budget={f(budget, "0.000")} worstGenericBaShare={f(worst, "0.000")} yearsOverBudget={over} yearsBudgetChangedVictims={binding}");
+                }
         // Negative control: the v2 setting under the same acceptance must fail on pure Beech (it did in Unity), so the test can fail.
         var v2cal = new GenericResponseCalibration(0.20, 0.25, 2.0);
         var beech = Fixtures("E80").First(x => x.Name == "B_BEECH_DENSE");

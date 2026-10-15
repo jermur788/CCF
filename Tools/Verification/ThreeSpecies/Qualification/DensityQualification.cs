@@ -403,6 +403,10 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             Hard($"FAIRNESS{suffix}_{design.label}_COMPETITION_INDEX_IS_SPECIES_NEUTRAL", ciA.Count == ciB.Count && maxDiff == 0.0, $"stems={ciA.Count} maxAbsDifferenceAcrossRotatedSpecies={F(maxDiff, "0.0e+0")} (neutral ids, so any difference would come from species)");
 
             var obs = new double[3]; var exp = new double[3]; var variance = new double[3]; var n = new double[3]; var rankSum = new double[3];
+            // The overall-count test below compares deaths with the Bernoulli expectation of the UNBUDGETED response. Trials in which the
+            // generic step's basal-area budget acted are removed from that one comparison (the budget lowers the count by design; its exact
+            // arithmetic is checked offline and controller == pure plan is checked above); species neutrality still uses every trial.
+            double freeObs = 0, freeExp = 0, freeVar = 0; int budgetBoundTrials = 0;
             bool faithful = true; int totalVictims = 0;
             for (int t = 0; t < trials; t++)
             {
@@ -422,14 +426,18 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 var actual = new HashSet<string>(FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(x => x.IsBiologicallyDead).Select(x => x.TreeId), StringComparer.Ordinal);
                 faithful &= predicted.SetEquals(actual);
                 totalVictims += actual.Count - sitkaTaken.Count;
+                bool budgetActed = plan.GenericBudgetPassedOver > 0 || plan.GenericBudgetLimited > 0;
+                if (budgetActed) budgetBoundTrials++;
                 foreach (DensityStem x in eligibleList)
                 {
                     int s = speciesIndex[x.TreeId];
                     double p = MixedDensityModel.AnnualLossProbability(plan.GenericLossFraction, MixedDensityModel.Suppression(x.CompetitionIndex), meanVuln);
                     exp[s] += p; variance[s] += p * (1.0 - p); n[s]++;
+                    if (!budgetActed) { freeExp += p; freeVar += p * (1.0 - p); }
                     if (actual.Contains(x.TreeId))
                     {
                         obs[s]++;
+                        if (!budgetActed) freeObs++;
                         int lessThan = 0, equal = 0;
                         foreach (double v in sortedCi) { if (v < x.CompetitionIndex) lessThan++; else if (v == x.CompetitionIndex) equal++; }
                         rankSum[s] += (lessThan + 0.5 * equal) / sortedCi.Length;
@@ -442,7 +450,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             // (2) Between species: after allowing for any overall shift, does one species lose more or fewer stems than
             // its competition alone predicts? Only (2) can show species-driven selection.
             double totalObs = obs.Sum(), totalExp = exp.Sum(), totalVar = variance.Sum();
-            double pooledZ = totalVar > 0 ? (totalObs - totalExp) / Math.Sqrt(totalVar) : 0.0;
+            double pooledZ = freeVar > 0 ? (freeObs - freeExp) / Math.Sqrt(freeVar) : 0.0;   // trials the budget did not touch (0 if every trial was budget-bound)
             double ratio = totalExp > 0 ? totalObs / totalExp : 1.0;
             bool unbiased = true;
             for (int s = 0; s < 3; s++)
@@ -452,7 +460,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 unbiased &= Math.Abs(zRel) < 4.0;
                 Measure($"FAIRNESS{suffix}_{design.label}_{names[s].ToUpperInvariant()}", $"stemTrials={n[s]} deaths={obs[s]} expectedFromCompetitionOnly={F(exp[s], "0.0")} z={F(z, "0.00")} zRelativeToPooled={F(zRel, "0.00")} deathRate={F(obs[s] / Math.Max(1.0, n[s]), "0.0000")} meanCompetitionRankOfVictims={F(obs[s] > 0 ? rankSum[s] / obs[s] : 0.0, "0.000")}");
             }
-            Measure($"FAIRNESS{suffix}_{design.label}_POOLED", $"deaths={totalObs} expected={F(totalExp, "0.0")} ratio={F(ratio, "0.000")} pooledZ={F(pooledZ, "0.00")}");
+            Measure($"FAIRNESS{suffix}_{design.label}_POOLED", $"deaths={totalObs} expected={F(totalExp, "0.0")} ratio={F(ratio, "0.000")} pooledZ={F(pooledZ, "0.00")} budgetBoundTrials={budgetBoundTrials} of {trials} (pooledZ uses only the others: freeDeaths={freeObs} freeExpected={F(freeExp, "0.0")})");
             Hard($"FAIRNESS{suffix}_{design.label}_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION", Math.Abs(pooledZ) < 4.0, $"pooledZ={F(pooledZ, "0.00")}");
             Hard($"FAIRNESS{suffix}_{design.label}_NO_SPECIES_DEPARTS_FROM_COMPETITION_EXPECTATION", unbiased, "each species |z relative to the pooled ratio| < 4 (species rotated through every position, neutral ids)");
         }
