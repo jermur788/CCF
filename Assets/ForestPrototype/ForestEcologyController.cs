@@ -140,6 +140,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
     private bool UsesSiteClassGrowth => growthModelVersion >= GrowthModel.SiteClassDensity;
 
+    // Growth model 2: stands that are not pure Sitka use the species-aware occupancy route (MixedDensityModel).
+    private bool UsesSpeciesAwareGrowth => growthModelVersion >= GrowthModel.SpeciesAware;
+
     // Growth model 1 adult density mortality of the most recent annual step (diagnostic only).
     public AdultMortalityAccount LastAdultMortality { get; private set; } = new AdultMortalityAccount();
 
@@ -1047,6 +1050,16 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 living.Add(tree);
         account.LivingBefore = living.Count;
         if (living.Count == 0 || StandAreaHectares <= 0f) return;
+        // Growth model 2: any non-Reference species (Oak, Beech) switches the stand to the occupancy route in
+        // MixedDensityModel. Every other stand - all of models 0 and 1, and a pure-Sitka stand under model 2 - carries
+        // on below, untouched, so pure Sitka is exactly growth model 1.
+        bool anyNonReference = UsesSpeciesAwareGrowth && HasNonReferenceDemand(living);
+        if (MixedDensityModel.SelectRoute(UsesSpeciesAwareGrowth, anyNonReference) == DensityRoute.SpeciesAwareOccupancy)
+        {
+            ApplySpeciesAwareDensityMortality(living, account);
+            return;
+        }
+        account.Route = DensityRoute.LegacySitkaExact;
         account.RelativeDensity = StandRelativeDensity(living, out account.StemsPerHectare, out account.QuadraticMeanDbhCm);
         account.DensityPressure = SitkaGrowthModel.DensityPressure(account.RelativeDensity);
         if (account.DensityPressure <= 0.0) return;
@@ -1099,6 +1112,12 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 account.BoundaryDeaths++;
             }
         }
+        KillDensityVictims(victims, account);
+    }
+
+    // Both density routes end here: the victims die together inside one change batch.
+    private void KillDensityVictims(List<ForestTree> victims, AdultMortalityAccount account)
+    {
         if (victims.Count == 0) return;
         BeginChangeBatch();
         try
@@ -1117,6 +1136,60 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         {
             EndChangeBatch();
         }
+    }
+
+    private bool HasNonReferenceDemand(List<ForestTree> trees)
+    {
+        foreach (ForestTree tree in trees)
+        {
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            if (treeSpecies != null && treeSpecies.GrowingSpaceDemand != GrowingSpaceDemandClass.Reference)
+                return true;
+        }
+        return false;
+    }
+
+    // Growth model 2 mortality for stands with at least one Oak or Beech tree, resolved COMPONENT BY COMPONENT.
+    // The Sitka component runs the original Sitka density process on the Sitka trees alone and its victims are Sitka
+    // trees. The generic component turns total occupancy into a loss fraction of the remaining trees and chooses them
+    // by competitive position only. This method describes the living trees to the two (each carries its raw Hegyi
+    // index, never a species-specific suppression) and applies the union; the two sets cannot overlap. Each component
+    // rolls in its own keyed domain, so no random stream is consumed.
+    private void ApplySpeciesAwareDensityMortality(List<ForestTree> living, AdultMortalityAccount account)
+    {
+        var stems = new DensityStem[living.Count];
+        for (int i = 0; i < living.Count; i++)
+        {
+            ForestTree tree = living[i];
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+            stems[i] = new DensityStem(tree.TreeId,
+                treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
+                tree.Diameter, ci);
+        }
+        System.Func<string, double> sitkaRoll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-" + id, ecologicalYear, simulationSeed);
+        System.Func<string, double> genericRoll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-GENERIC-" + id, ecologicalYear, simulationSeed);
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, StandAreaHectares, sitkaRoll);
+        DensityComponentPlan plan = MixedDensityModel.PlanComponents(stems, StandAreaHectares,
+            sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll);
+        account.Route = DensityRoute.SpeciesAwareOccupancy;
+        account.StemsPerHectare = plan.StemsPerHectare;
+        account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
+        account.Occupancy = plan.Occupancy;
+        account.DensityPressure = plan.OvercrowdingPressure;
+        account.HazardDeaths = plan.HazardDeaths;
+        account.BoundaryDeaths = plan.SitkaBoundaryDeaths;
+        account.SitkaSubsetRelativeDensity = sitka.RelativeDensity;
+        account.SitkaComponentDeaths = plan.SitkaHazardDeaths + plan.SitkaBoundaryDeaths;
+        account.GenericDeaths = plan.GenericDeaths;
+        account.GenericLossFraction = plan.GenericLossFraction;
+        account.NonReferenceShare = plan.NonReferenceShare;
+        var victims = new List<ForestTree>(plan.VictimIndices.Count);
+        foreach (int index in plan.VictimIndices)
+            victims.Add(living[index]);
+        KillDensityVictims(victims, account);
     }
 
     private double StandRelativeDensity(List<ForestTree> trees, out double stemsPerHectare, out double quadraticMeanDbhCm)

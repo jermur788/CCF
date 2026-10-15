@@ -25,6 +25,10 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[D] Hegyi competition index at which growth is halved. Model calibration, not a measured constant.")]
     [SerializeField, Min(0.01f)] private float ci50 = 3f;
 
+    [Header("Density (growth model 2)")]
+    [Tooltip("[ORD] Ordinal growing-space demand of one stem relative to the Sitka reference (see MixedDensityModel). Reference = Sitka: a stand of only Reference trees keeps the original Sitka density route. Intermediate and High stems take more of the stand's growing space than a Reference stem of the same size, so a stand containing them reaches density pressure sooner. An ordinal rank with a coarse [C] weight, not a measured Oak/Beech density relationship. Only read by growth model 2.")]
+    [SerializeField] private GrowingSpaceDemandClass growingSpaceDemand = GrowingSpaceDemandClass.Reference;
+
     [Header("Crown")]
     [Tooltip("[B] Potential crown radius relationship: radius_m = intercept + slope * DBH_cm. Evidence-derived British relationship.")]
     [SerializeField] private float crownRadiusIntercept = 0.9415f;
@@ -121,6 +125,7 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float PotentialHeightGrowthMPerYear => potentialHeightGrowthMPerYear;
     public float MaxHeightM => maxHeightM;
     public float Ci50 => ci50;
+    public GrowingSpaceDemandClass GrowingSpaceDemand => growingSpaceDemand;
     public float FormHeightRatio => formHeightRatio;
     public float CrownRadiusIntercept => crownRadiusIntercept;
     public float CrownRadiusPerCmDbh => crownRadiusPerCmDbh;

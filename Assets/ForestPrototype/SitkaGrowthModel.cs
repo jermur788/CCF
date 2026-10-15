@@ -6,11 +6,17 @@ using System;
 //   1 SiteClassDensity: Sitka height follows the Irish Class III top-height
 //     envelope (Scenario One site), and adult trees are thinned by stand
 //     density pressure acting on suppressed trees.
+//   2 SpeciesAware: model 1, plus species-aware adult density (D-059, D-061).
+//     A stand whose living trees are all Reference class (pure Sitka) runs
+//     exactly as model 1. Any other stand uses the ordinal growing-space
+//     demand density in MixedDensityModel. Not the default for new games
+//     until the Manager accepts the re-baselined anchors.
 public static class GrowthModel
 {
     public const int Legacy = 0;
     public const int SiteClassDensity = 1;
-    public const int Latest = SiteClassDensity;
+    public const int SpeciesAware = 2;
+    public const int Latest = SpeciesAware;
 
     public static int Normalize(int model)
     {
