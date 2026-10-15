@@ -16,6 +16,45 @@ Everything here was run on this branch unless the "Unity status" section says ot
 
 Production diff against the base, five files and nothing else: `SitkaSubsetDensitySignal.cs`, `MixedDensityModel.Composite.cs`, `MixedDensityModel.cs` (comment, `sealed` removed), `ForestEcologyController.cs` (only `ApplySpeciesAwareDensityMortality`), `AdultMortalityAccount.cs` (diagnostic fields, never saved). `SitkaGrowthModel.cs`, the legacy controller decision block and `StandRelativeDensity` are byte-identical.
 
+## B1 FINISH (overnight Unity queue, 2026-10-15, Tier 2): Legacy40 multi-seed classification, RESULT **B**
+
+**Question.** Are the Legacy40 failures systematic calibration failures or small-stand stochastic lumpiness? Setting under test: `Lmax 0.50, k 1.60, m 2`.
+
+**Code identity.** Source head `90e3496873da4e3b23038993ca5bd2fec3c2e7f1`. `git diff 90e3496 59bd791 -- Assets Packages ProjectSettings` is empty (the later commits are docs and evidence), so every run below used identical production and Unity-asset code. Nothing the queue forbade was rerun (neighbour settings, pure-Sitka identity, shielding, continuity, the 24 gates and the Phase-0 anchors stand as recorded above).
+
+**What ran** (real Unity 6000.6.0f1, batch, Linux, one Editor at a time; receipts in `CompositeDensityV3Evidence/unity/b1/receipts/`):
+
+| Piece | Runs | Receipt |
+|---|---|---|
+| Legacy40, fixtures A, B, E, F, 300 years, replay off | 5 seeds: default stream, 101 (earlier), 102, 103, 104 = 20 fixture-runs | seeds 102-104: PASS, exit 0, `run_head 90e3496`, `CCF_QUAL_SEED` as named |
+| One clean Enlarged80 chosen-setting qualification | `fast-e80-rerun` | **PASS, exit 0, 1,872 s, `DENSITY_QUAL_PASS geometry=E80 hardChecks=82`, run_head 90e3496, no `error CS`, no unexpected tree change** |
+| Extra comparator (not asked for, about 4 minutes in all) | `D_SITKA_DENSE_MODEL2` = the unchanged legacy Sitka route on the same Legacy40 stand, 5 seeds | PASS, exit 0 on head 59bd791 |
+
+Who ran what, plainly: the clean Enlarged80 receipt and Legacy40 seeds 102-104 are from the earlier density session's chain on this worktree (same harness, same head); I checked their receipts (status, exit code, marker, run head, seed variable) and that the committed CSVs are byte-identical to the Editor outputs. The comparator runs and all of the analysis below are from the overnight-queue session. Seed 101 and the default seed are the earlier runs, valid because production code has not changed since `8e1e7b9`.
+
+**Pass count, median, range, miss distance** (limits are the Trial 2 limits; full tables, every seed and every metric: `unity/b1/legacy40-five-seed-acceptance.md` and `.json`; reproduce with `Tools/Verification/ThreeSpecies/Qualification/analyze_seeds.py`, which uses the formulas of `analyze_trial2.py` unchanged and was checked against its output):
+
+| Pure stand, Legacy40 | passes every limit | R2' 5-year swing: median [min-max] (limit 0.10) | R1' slope Y201-300: median [max] (limit 0.0025) | misses |
+|---|---|---|---|---|
+| Oak dense | 3/5 | 0.095 [0.075-0.242] | 0.0013 [0.0030] | R2' 0.242 (+142 %) default seed; R2' 0.101 (+1 %) seed 102; R1' 0.0030 (+21 %) default seed |
+| Beech dense | **1/5** | **0.109** [0.085-0.139] | 0.0013 [0.0026] | R2' 0.128 (+28 %), 0.139 (+39 %), 0.109 (+9 %); R1' 0.0026 (+4 %) seed 103 |
+| Oak young | 4/5 | 0.063 [0.041-0.102] | 0.0015 [0.0019] | R2' 0.102 (+2 %) default seed |
+| Beech young | 5/5 | 0.043 [0.041-0.054] | 0.0016 [0.0021] | none |
+| **All four** | **13/20** | | | 8 misses in 7 runs |
+
+1. **Only two limits ever miss.** R2' (swing between adjacent 5-year blocks of the all-stem loss fraction) misses in 6 runs and R1' (occupancy slope) in 2. The other six limits pass in **20/20**: the Y151-250 occupancy slope, largest single-year loss (worst 0.354 against 0.40), dead basal area (worst 1.79 % against 4 %), big-stem loss (worst 3.23 % against 5 %), worst 25-year basal-area ratio (worst 0.742 against 0.5), Y300/Y100 basal area (lowest 0.97 against 0.5). No collapse, no extinction (lowest living fraction 0.07 of the start, in the young fixtures, which start at 2,500 stems per hectare).
+2. **The misses cluster just past the limits, with one exception.** Sorted by distance past the limit: +1 %, +2 %, +4 %, +9 %, +21 %, +28 %, +39 % and one event-driven outlier at +142 % (Oak dense, default seed: a canopy-opening event at Y261-270 took the stand from 29 stems into a quiet block, mean loss 0.279 to 0.037). Median miss +15 %. Excluding the outlier, nothing misses by more than 0.039 in absolute terms.
+3. **Medians are sound for three fixtures and sit on the limit for one.** Oak dense, Oak young, Beech young: medians pass every limit. **Beech dense: median R2' 0.109 (9 % over)**, and that is the only fixture whose median misses.
+4. **When the swing happens.** Every R2' maximum is late (between years 171 and 300), none in the dense-start transient; on Legacy40 it occurs with 22-73 living stems and in 19 of the 20 runs it is a drop from a high-loss block to a quieter one (for example 0.25-0.30 falling to 0.10-0.18 in the Beech dense runs): a pulse of recruit self-thinning followed by a quiet block. Table: `legacy40-five-seed-acceptance.md`, section "When and where".
+5. **The unchanged legacy Sitka route is lumpier on the same stand.** `D_SITKA_DENSE_MODEL2` (nothing v3 touches it): R2' **0.187-0.235 on all five seeds** and largest single-year loss **0.800-0.818**, against 0.041-0.139 (0.242 with the one canopy event) and 0.24-0.35 for the new broadleaf code. A 0.16 ha stand is lumpy under the old rules too; the predeclared A4 addendum said the same (the whole-stand R2 fails by itself on the legacy route).
+6. **What does not scale with stem count.** Enlarged80 (five times the area) on the same three seeds: Oak dense 0.049-0.063, Oak young 0.030-0.037 and Beech young 0.025-0.057 all pass with room, but **Beech dense is 0.073, 0.109, 0.101**, the same amplitude as Legacy40 (median 0.101 against 0.109). So for dense Beech the swing is not sampling noise that disappears with a bigger stand: it is the pulse cycle of the mortality plus recruitment, present on both geometries and marginally over a limit I wrote myself. For Oak and for young stands the Legacy40 misses are single-seed and tiny (+1 %, +2 %) apart from the one canopy event.
+
+**Classification: B.** Minor, stochastic or lumpy misses on Legacy40 for Oak; medians sound; no pathological trajectory: dead basal area, big-stem loss, single-year loss and basal-area retention are within limits in 20/20 runs, and the occupancy slope in 18/20 with both misses within 21 % of the limit. The qualification **is not A**: dense Beech misses the swing limit on both geometries (Legacy40 3 of 5 seeds, and a fourth seed misses the slope limit by +4 %; Enlarged80 2 of 3 seeds) so "robust across both geometries" is not supported. It **is not C**: nothing here shows `Lmax` or `k` to be wrong. The failing quantity is a temporal-variability measure with a self-registered 0.10 limit, while the criteria that test what the calibration is for (flattening, dead basal area, big-stem loss, single-year loss, basal-area retention) pass in all 12 Enlarged80 runs I have and in 18 to 20 of the 20 Legacy40 runs. A different `(Lmax, k)` moves the miss between criteria rather than removing it: the two neighbours I ran earlier (one default seed each) miss the young-Beech slope limit on Enlarged80 by 0.0001-0.0003, and `(0.35, 1.60)` still misses Oak dense R2' (0.121) on Legacy40.
+
+**What this does not show.** Five seeds on Legacy40 and three on Enlarged80 cannot give tight pass rates (1 of 5 for dense Beech has a wide interval). It says nothing about the Player, native Windows, or settings I did not run. The R2' limit is mine (Trial 2 amendment): the Manager may keep it, or accept dense Beech as a known marginal criterion (observed maximum 0.139, Enlarged80 maximum 0.109), or ask for a larger seed set; I changed no constant and none of that touches production code.
+
+**Left to the Manager.** Whether to keep 0.10 as the swing limit for dense Beech; whether Legacy40 must pass R2' at all (it is the legacy development scale and its own legacy Sitka route fails it five of five).
+
 ## ROOT CAUSE (measured, not assumed)
 
 v2 derived the Sitka subset's required deaths as a **count**, folded it into one whole-stand quota and let one weighted race over **every** stem pay it. Suppressed broadleaves are the weakest competitors, so they paid Sitka's debt. Two consequences, both visible in the v2 Unity long runs I already had:

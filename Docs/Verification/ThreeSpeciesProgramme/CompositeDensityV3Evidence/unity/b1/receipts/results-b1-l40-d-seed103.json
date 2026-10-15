@@ -1,0 +1,26 @@
+{
+  "label": "b1-l40-d-seed103",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 47.6,
+  "method": "DensityQualification.Begin",
+  "marker": "DENSITY_QUAL_PASS",
+  "marker_found": true,
+  "env": [
+    "CCF_STAND_GEOMETRY=0",
+    "CCF_QUAL_PHASES=LONGRUN",
+    "CCF_QUAL_YEARS=300",
+    "CCF_QUAL_SCENARIOS=D",
+    "CCF_QUAL_REPLAY=0",
+    "CCF_QUAL_SEED=103"
+  ],
+  "interactive": false,
+  "run_head": "59bd79145015422e375cd0a8eedf98e22db4748f",
+  "staged_sha256": {
+    "DensityQualification.cs": "f9a5e3066f3ed74f9c9ed36ac685d31a0a38d51d1cd04179110d95cfe05ad79d",
+    "DensityProbe.cs": "69881656c5a3c8682fd0fbaa464fc4a6ab4949d0422ce93af86bb5e2f571fbe2"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": []
+}
