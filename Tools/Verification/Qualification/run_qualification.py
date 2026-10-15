@@ -16,7 +16,8 @@ folder carries no licence. This runner:
     .vscode/settings.json (recorded, not failed);
   - writes results-<label>.json and <label>.markers.txt (the log lines that matter, without Unity's noise).
 
-PASS needs: exit 0, the --marker in the log, no `error CS` line and no unexpected working-tree change.
+PASS needs: exit 0, the --marker in the log, no `error CS` or UX assertion failure and no unexpected working-tree change.
+UXQ_UNVERIFIED records produce PASS_WITH_UNVERIFIED (exit 0); consumers must retain that qualification.
 """
 import argparse
 import hashlib
@@ -40,7 +41,18 @@ def is_known_rewrite(line):
         return True
     return line.startswith(" M Assets/ForestPrototype/Art/SectionFive/") and line.endswith(".mat")
 KEEP = ("U4_", "OBQ_", "QUAL_", "DENSITY_QUAL_", "E80_MEASUREMENT", "SCENARIO_ONE_COMPLETION", "SCENARIO_HISTORY", "BROADLEAF", "MIXED_DENSITY_",
-        "UX_QUAL", "error CS", "_PASS", "_FAIL", "_HASH")
+        "UX_QUAL", "UXQ_", "error CS", "_PASS", "_FAIL", "_HASH")
+
+
+def evaluate_log(code, marker, text, unexpected):
+    """A completion marker is not a pass when the UX harness reports failed assertions."""
+    lines = text.splitlines()
+    compile_errors = [line for line in lines if "error CS" in line]
+    assertion_failures = [line for line in lines if line.startswith(("UXQ_FAIL ", "UX_QUAL_FAILED "))]
+    unverified = [line for line in lines if line.startswith("UXQ_UNVERIFIED ")]
+    passed = code == 0 and marker in text and not compile_errors and not unexpected and not assertion_failures
+    status = ("PASS_WITH_UNVERIFIED" if unverified else "PASS") if passed else "FAIL"
+    return status, compile_errors, assertion_failures, unverified
 
 
 def git_state():
@@ -122,14 +134,15 @@ def main():
     new = sorted(after - before)
     rewrites = sorted(x for x in new if is_known_rewrite(x))
     unexpected = [x for x in new if not is_known_rewrite(x)]
-    compile_errors = [l for l in text.splitlines() if "error CS" in l]
-    passed = code == 0 and a.marker in text and not compile_errors and not unexpected
+    status, compile_errors, assertion_failures, unverified = evaluate_log(code, a.marker, text, unexpected)
+    passed = status != "FAIL"
     result = {
-        "label": a.label, "status": "PASS" if passed else "FAIL", "exit_code": code, "seconds": round(time.monotonic() - start, 1),
+        "label": a.label, "status": status, "exit_code": code, "seconds": round(time.monotonic() - start, 1),
         "method": a.method, "marker": a.marker, "marker_found": a.marker in text, "env": a.env, "interactive": a.interactive,
         "run_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
         "staged_sha256": digests, "compile_errors": compile_errors[:5], "unexpected_tree_changes": unexpected,
         "known_editor_rewrites": rewrites,
+        "assertion_failures": assertion_failures, "unverified_checks": unverified,
     }
     (out / ("results-" + a.label + ".json")).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ("label", "status", "exit_code", "seconds")}), flush=True)
