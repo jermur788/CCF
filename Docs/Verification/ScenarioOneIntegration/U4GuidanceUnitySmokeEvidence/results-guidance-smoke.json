@@ -1,0 +1,31 @@
+{
+  "label": "guidance-smoke",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 238.8,
+  "method": "U4GuidanceSmoke.Begin",
+  "marker": "U4_GUIDANCE_PASS",
+  "marker_found": true,
+  "env": [
+    "U4_OUT=/media/jer/Files/CCF-verify-two-cycle-eb7fd3d/Build/B2/data"
+  ],
+  "interactive": true,
+  "run_head": "48fd2da564577b34508765cd818eeb43f1e4faf2",
+  "staged_sha256": {
+    "U4GuidanceSmoke.cs": "eec479d75aa2a7a83381e8f6ad0227e71d521a0dfd7aeb71271b2517d2dc1f25"
+  },
+  "compile_errors": [],
+  "unexpected_tree_changes": [],
+  "known_editor_rewrites": [
+    " M .vscode/settings.json",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Cap.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Pores.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Cap.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Fungi_Underside.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat",
+    " M Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat"
+  ]
+}
