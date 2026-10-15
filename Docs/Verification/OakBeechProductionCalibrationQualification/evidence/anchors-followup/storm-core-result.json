@@ -1,0 +1,15 @@
+{
+  "launch_head": "2052a4ad4a0ac381e039a4a696dece7d19f31395",
+  "production_source_unchanged": true,
+  "gate": "StormCoreVerification",
+  "treatment_timing": "early-established",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 59.68,
+  "source_sha256": "27cdac431c0ef9aa6f9218f06a78be03d8319e4f01a58b12ae42f735d89b1bb9",
+  "run_head": "2052a4ad4a0ac381e039a4a696dece7d19f31395",
+  "run_branch": "verify/oak-beech-production-calibration-796da99",
+  "markers": [
+    "STORM_CORE_VERIFICATION_PASS checks=107"
+  ]
+}

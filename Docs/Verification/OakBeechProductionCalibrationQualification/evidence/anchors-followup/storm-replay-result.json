@@ -1,0 +1,15 @@
+{
+  "launch_head": "2052a4ad4a0ac381e039a4a696dece7d19f31395",
+  "production_source_unchanged": true,
+  "gate": "StormReplayVerification",
+  "treatment_timing": "early-established",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 47.33,
+  "source_sha256": "ac97815c4c005a680d38f245cd2526414c2cad7e7cd12579317dacda8128c72e",
+  "run_head": "2052a4ad4a0ac381e039a4a696dece7d19f31395",
+  "run_branch": "verify/oak-beech-production-calibration-796da99",
+  "markers": [
+    "STORM_REPLAY_VERIFICATION_PASS resolved=84796FAEF211823C future=52037B943B62DD39"
+  ]
+}
