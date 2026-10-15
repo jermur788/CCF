@@ -1,0 +1,6 @@
+[prod] distinct errors: 7 (baseline 7)
+TYPECHECK_CLEAN mode=prod
+prod exit=0
+[tools] distinct errors: 13 (baseline 43)
+TYPECHECK_CLEAN mode=tools
+tools exit=0

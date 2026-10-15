@@ -1,0 +1,20 @@
+# Budget sweep, 16 seeds x 5 recruitment regimes x 8 pure stands = 640 runs per row (budget 1.0 = off). Generated with the scan tool at the commits named in CanopyPulseRootCause.md; sweep CSVs predate the guard-years column. The "bound violations" column of these sweep tables used the weaker bound max(budget, largest stem); the exact rule was checked on the final setting only (scan-pure_default.csv, column boundViolations).
+setting | runs | bound violations (all years) | stress: worst BAloss, median, #>0.15 (n at worst) | year-1 BA loss median (base) | R1 pass stress | R2 pass stress | R3 fails | R4 fails | maxOcc y>=26 worse than base by >0.15 | smooth: cells whose median shift >1 base-SD (BA300, occ300, n300)
+off        | 640 | 0 | 0.419 0.204 453 [(0.186, 70), (0.196, 72), (0.202, 71), (0.195, 71), (0.179, 69)] | 0.227 (0.227) | 488/512 | 167/512 | 0 | 0 | 0 | none
+budget 0.10 | 640 | 0 | 0.145 0.100 0 [] | 0.048 (0.227) | 474/512 | 386/512 | 0 | 0 | 12 | ['L40/A_OAK_DENSE/baY300:+4.4sd', 'L40/A_OAK_DENSE/occY300:+4.3sd', 'L40/A_OAK_DENSE/nY300:-1.6sd', 'L40/E_OAK_YOUNG/baY300:+6.0sd', 'L40/E_OAK_YOUNG/occY300:+6.1sd', 'L40/E_OAK_YOUNG/nY300:-2.3sd']
+budget 0.11 | 640 | 0 | 0.145 0.110 0 [] | 0.053 (0.227) | 490/512 | 360/512 | 0 | 0 | 0 | ['L40/A_OAK_DENSE/baY300:+2.5sd', 'L40/A_OAK_DENSE/occY300:+2.4sd', 'L40/A_OAK_DENSE/nY300:-1.8sd', 'L40/E_OAK_YOUNG/baY300:+2.4sd', 'L40/E_OAK_YOUNG/occY300:+2.4sd', 'L40/E_OAK_YOUNG/nY300:-2.0sd']
+budget 0.115| 640 | 0 | 0.167 0.115 1 [(0.167, 6)] | 0.056 (0.227) | 492/512 | 343/512 | 0 | 0 | 0 | ['L40/A_OAK_DENSE/nY300:-1.2sd', 'L40/E_OAK_YOUNG/nY300:-1.0sd']
+budget 0.12 | 640 | 0 | 0.144 0.119 0 [] | 0.058 (0.227) | 492/512 | 341/512 | 0 | 0 | 0 | ['L40/A_OAK_DENSE/nY300:-1.1sd', 'L40/B_BEECH_DENSE/baY300:+1.1sd', 'L40/B_BEECH_DENSE/occY300:+1.1sd']
+budget 0.125| 640 | 0 | 0.145 0.124 0 [] | 0.060 (0.227) | 494/512 | 323/512 | 0 | 0 | 0 | none
+budget 0.13 | 640 | 0 | 0.130 0.129 0 [] | 0.063 (0.227) | 493/512 | 330/512 | 0 | 0 | 0 | none
+budget 0.14 | 640 | 0 | 0.140 0.139 0 [] | 0.069 (0.227) | 490/512 | 274/512 | 0 | 0 | 0 | none
+budget 0.15 | 640 | 0 | 0.150 0.148 0 [] | 0.073 (0.227) | 494/512 | 257/512 | 0 | 0 | 0 | none
+budget 0.175| 640 | 0 | 0.175 0.171 435 [(0.173, 70), (0.175, 72), (0.174, 70), (0.172, 70), (0.175, 71)] | 0.086 (0.227) | 490/512 | 201/512 | 0 | 0 | 0 | none
+
+# Weaker response instead of a budget (budget off; dense+young Beech, pulse:5 and gap:100-120, 8 seeds, both geometries, 64 runs)
+response (Lmax,k,m) | worst-year BA loss median / max | runs>=0.25 | runs>=0.15 | R1 pass | Y300 occupancy median
+0.50, 1.60, 2  | 0.216 / 0.419 | 16 | 59 | 51/64 | 1.71
+0.35, 1.60, 2  | 0.179 / 0.286 |  2 | 63 | 32/64 | 2.15
+0.50, 0.80, 2  | 0.188 / 0.290 |  3 | 55 | 35/64 | 2.04
+0.25, 0.20, 2  | 0.091 / 0.158 |  0 |  5 | 1/64 | 3.96
+0.15, 0.20, 2  | 0.068 / 0.125 |  0 |  0 | 0/64 | 5.60

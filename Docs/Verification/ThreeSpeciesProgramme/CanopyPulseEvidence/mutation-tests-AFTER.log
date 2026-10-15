@@ -1,0 +1,20 @@
+control (no mutation) RAN WITH KNOWN FAILURES ['LONG_RUN_E80_F_BEECH_YOUNG_MEETS_R1_R4', 'LONG_RUN_L40_B_BEECH_DENSE_MEETS_R1_R4', 'LONG_RUN_L40_F_BEECH_YOUNG_MEETS_R1_R4']
+discard-the-sitka-component KILLED new_failing_assertions=2
+remove-the-sitka-boundary-stage KILLED new_failing_assertions=2
+broadleaf-enters-the-sitka-density KILLED new_failing_assertions=2 (by exception)
+sitka-debt-dropped-from-the-union KILLED new_failing_assertions=5
+generic-may-kill-a-sitka-victim-twice KILLED new_failing_assertions=1
+untapered-generic-pressure KILLED new_failing_assertions=5
+no-generic-mortality KILLED new_failing_assertions=17
+species-biased-allocation KILLED new_failing_assertions=3
+quota-rounded-up KILLED new_failing_assertions=2
+response-reverted-to-v2-strength KILLED new_failing_assertions=6
+budget-removed KILLED new_failing_assertions=35
+budget-never-stall-rule-removed KILLED new_failing_assertions=1
+budget-first-stem-always-allowed KILLED new_failing_assertions=3
+budget-stops-at-the-first-stem-that-does-not-fit KILLED new_failing_assertions=7
+budget-weighted-by-class KILLED new_failing_assertions=10
+budget-constant-loosened KILLED new_failing_assertions=5
+budget-measured-on-the-wrong-total KILLED new_failing_assertions=8
+response-capped-at-an-occupancy KILLED new_failing_assertions=1
+{"mutants": 18, "killed": 18, "survivors": [], "control_passed": false, "control_known_failures": ["LONG_RUN_E80_F_BEECH_YOUNG_MEETS_R1_R4", "LONG_RUN_L40_B_BEECH_DENSE_MEETS_R1_R4", "LONG_RUN_L40_F_BEECH_YOUNG_MEETS_R1_R4"]}

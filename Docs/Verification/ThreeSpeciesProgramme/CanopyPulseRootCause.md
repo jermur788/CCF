@@ -168,4 +168,4 @@ CCF_CAL=0.5,1.6,2,0.15 python3 .../run_canopy_pulse_diagnostic.py scan ...      
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod|tools
 ```
 
-Raw scan tables are in `CanopyPulseEvidence/`.
+Raw scan tables, the budget sweep, the before/after suite logs, the mutation receipt and the type-check summary are in `CanopyPulseEvidence/`. Receipts were produced on the production commit `639ae2c3ac85474368c173118bd2718743346bd9`; later commits on this branch add evidence files only.
