@@ -1,0 +1,15 @@
+{
+  "check": "fixtures",
+  "exit": 0,
+  "seconds": 8.75,
+  "tail": [
+    "PASS unknown geometry no fallback",
+    "PASS O original adult identities and order preserved",
+    "PASS O one actual annual step, injected recruits removed each year",
+    "PASS B original adult identities and order preserved",
+    "PASS B one actual annual step, injected recruits removed each year",
+    "PASS S original adult identities and order preserved",
+    "PASS S one actual annual step, injected recruits removed each year",
+    "FIXTURE_CONTROLS_PASS checks=9 static-contracts=7 NOT_UNITY_VERIFIED"
+  ]
+}

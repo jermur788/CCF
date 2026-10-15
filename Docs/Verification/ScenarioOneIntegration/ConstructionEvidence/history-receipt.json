@@ -1,0 +1,15 @@
+{
+  "check": "history",
+  "exit": 0,
+  "seconds": 10.46,
+  "tail": [
+    "PASS SINCE_LINE_FOR_THE_NEWEST_PLAN_SAYS_TO_WAIT_AND_WALK ",
+    "PASS NON_CAUSAL_NOTE_PRESENT ",
+    "PASS FIRST_PROMPT_INVITES_OBSERVATION_AND_PRESCRIBES_NOTHING You have carried out your first intervention (year 1). Before planning another, walk the forest and look at what changed: the opening you made, what is regenerating, and how the trees you kept are growing. Everything you do from here stays in the Management history below, so you can compare each decision with what followed.",
+    "PASS COMPLETION_LISTS_EACH_INTERVENTION 10 lines",
+    "PASS COMPLETION_SHOWS_STAND_COMPOSITION_AND_MONEY ",
+    "PASS COMPLETION_IS_NOT_A_SCORE_AND_KEEPS_THE_CENTURY_REVIEW_SEPARATE ",
+    "PASS NO_EMPTY_LINES ",
+    "THREE_SPECIES_HISTORY_PASS checks=74"
+  ]
+}
