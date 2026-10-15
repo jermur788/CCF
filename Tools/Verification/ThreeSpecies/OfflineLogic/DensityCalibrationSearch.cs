@@ -228,7 +228,7 @@ public static class DensityCalibrationSearch
                 var v = TrajectoryMetrics.EvaluateT2(y);
                 Console.WriteLine($"LONG_RUN_TABLE {geo} {fx.Name} Y100 {Row(y, 100)} | Y200 {Row(y, 200)} | Y300 {Row(y, 300)} | firstYearLoss {f(v.FirstYearLoss * 100, "0")}% allStemLoss25y {f(v.WorstWindowStemLoss * 100, "0")}% recruits/yr {f(v.MeanRecruitsPerYear, "0.0")}");
                 check(v.R1 && v.R2 && v.R3 && v.R4, $"LONG_RUN_{geo}_{fx.Name}_MEETS_R1_R4",
-                    $"slope201-300={f(v.SlopeY201to300, "0.0000")} slope151-250={f(v.SlopeY151to250, "0.0000")} blockChange={f(v.MaxBlockChange26, "0.000")} deadBA25y={f(v.WorstWindowDeadBa * 100, "0.0")}% bigStemLoss25y={f(v.WorstWindowBigLoss * 100, "0.0")}% baY300/Y100={f(v.BaY300OverY100, "0.00")}");
+                    $"R1={v.R1} R2={v.R2} R3={v.R3} R4={v.R4} maxYearLoss26={f(v.MaxYearLoss26, "0.000")} minBaRatio25y={f(v.MinBaRatio25y, "0.000")} slope201-300={f(v.SlopeY201to300, "0.0000")} slope151-250={f(v.SlopeY151to250, "0.0000")} blockChange={f(v.MaxBlockChange26, "0.000")} deadBA25y={f(v.WorstWindowDeadBa * 100, "0.0")}% bigStemLoss25y={f(v.WorstWindowBigLoss * 100, "0.0")}% baY300/Y100={f(v.BaY300OverY100, "0.00")}");
             }
         foreach (string geo in new[] { "L40", "E80" })
             foreach (string name in new[] { "C_MIXED_DENSE", "G_MIXED_YOUNG" })

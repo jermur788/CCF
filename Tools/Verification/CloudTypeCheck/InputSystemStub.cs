@@ -16,7 +16,7 @@ namespace UnityEngine.InputSystem.Controls
 namespace UnityEngine.InputSystem
 {
     using UnityEngine.InputSystem.Controls;
-    public enum Key { None }
+    public enum Key { None, C, Digit2, E, Escape, F1, F10, G, M, O, Tab, U, X }
     public class Keyboard
     {
         public static Keyboard current => null;
@@ -95,4 +95,20 @@ namespace UnityEngine.InputSystem
         public Vector2Control position { get; } = new Vector2Control();
         public Vector2Control scroll { get; } = new Vector2Control();
     }
+}
+
+// Additional signatures used by the accepted disposable UX harness. Compile-only; no input behaviour is simulated.
+namespace UnityEngine.InputSystem
+{
+    public static class InputSystem
+    {
+        public static T AddDevice<T>() where T : new() => new T();
+        public static void QueueStateEvent<T>(object device, T state) { }
+    }
+}
+namespace UnityEngine.InputSystem.LowLevel
+{
+    public enum MouseButton { Left }
+    public struct KeyboardState { public KeyboardState(params UnityEngine.InputSystem.Key[] keys) { } }
+    public struct MouseState { public MouseState WithButton(MouseButton button) => this; }
 }

@@ -11,7 +11,9 @@ using System.Linq;
 //   DBH growth         D += potential x site x clamp01(1 - D / Dmax) x 1 / (1 + CI / Ci50)                  [float]
 //   density mortality  applied AFTER growth, with the competition index from BEFORE growth (as the annual step does)
 //
-// Species parameters are the values in the three species assets. Fixtures reproduce the Unity qualification harness
+// Species parameters are the accepted integrated species rows (Oak/Beech calibration 796da99).
+// Historical density-v3 screening evidence used .4/.4 with Ci50=3: reproduce it at 90e3496, not this integrated input set.
+// AssetGuards still requires exact agreement with the actual assets; no acceptance threshold changes. Fixtures reproduce the Unity qualification harness
 // (regular grid, the same DBH pattern, the same ids), so a run here can be set beside the matching Unity run.
 //
 // WHAT IT DOES NOT HAVE: canopy light, seed rain, juvenile cohorts, browsing, site variation (site = 1) or crown
@@ -33,8 +35,8 @@ public sealed class SimSpecies
     public float PotentialDbhGrowth, MaxDbh, Ci50;
 
     public static readonly SimSpecies Sitka = new SimSpecies { Prefix = "S", Demand = GrowingSpaceDemandClass.Reference, PotentialDbhGrowth = 1.2f, MaxDbh = 120f, Ci50 = 5f };
-    public static readonly SimSpecies Beech = new SimSpecies { Prefix = "B", Demand = GrowingSpaceDemandClass.Intermediate, PotentialDbhGrowth = 0.4f, MaxDbh = 120f, Ci50 = 3f };
-    public static readonly SimSpecies Oak = new SimSpecies { Prefix = "O", Demand = GrowingSpaceDemandClass.High, PotentialDbhGrowth = 0.4f, MaxDbh = 120f, Ci50 = 3f };
+    public static readonly SimSpecies Beech = new SimSpecies { Prefix = "B", Demand = GrowingSpaceDemandClass.Intermediate, PotentialDbhGrowth = 0.9f, MaxDbh = 120f, Ci50 = 6.5f };
+    public static readonly SimSpecies Oak = new SimSpecies { Prefix = "O", Demand = GrowingSpaceDemandClass.High, PotentialDbhGrowth = 0.8f, MaxDbh = 120f, Ci50 = 5f };
 }
 
 public sealed class SimTree

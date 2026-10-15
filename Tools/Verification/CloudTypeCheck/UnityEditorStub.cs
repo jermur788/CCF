@@ -35,11 +35,14 @@ namespace UnityEditor
         public static void CreateAsset(UnityEngine.Object o, string path) { }
     }
     public static class EditorUtility { public static void UnloadUnusedAssetsImmediate() { } }
+    public class Editor { }
+    public class ScriptableSingleton<T> where T : class { public static T instance => null; }
     public class EditorWindow : ScriptableObject
     {
         public static T GetWindow<T>() where T : EditorWindow => null;
         public static T GetWindow<T>(Type t) where T : EditorWindow => null;
         public static T GetWindow<T>(bool utility, string title) where T : EditorWindow => null;
+        public void Show() { }
         public void Focus() { }
         public void Repaint() { }
         public static EditorWindow GetWindow(Type t) => null;
