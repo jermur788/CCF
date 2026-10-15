@@ -145,6 +145,37 @@ public sealed class U4GuidanceGate : MonoBehaviour
 
     private string Joined(IEnumerable<string> texts) => string.Join(" // ", texts.Take(80));
 
+    // "Visible" the way a player means it: displayed AND fully inside the visible part of its scroll area and of the panel.
+    private static ScrollView ScrollAncestor(VisualElement e) { for (VisualElement p = e.parent; p != null; p = p.parent) if (p is ScrollView sv) return sv; return null; }
+
+    private bool OnScreen(VisualElement e, VisualElement root)
+    {
+        if (!Displayed(e)) return false;
+        Rect b = e.worldBound, panel = root.worldBound;
+        if (b.yMin < panel.yMin - 1f || b.yMax > panel.yMax + 1f || b.xMin < panel.xMin - 1f || b.xMax > panel.xMax + 1f) return false;
+        ScrollView sv = ScrollAncestor(e);
+        if (sv == null) return true;
+        Rect vp = sv.contentViewport.worldBound;
+        return b.yMin >= vp.yMin - 1f && b.yMax <= vp.yMax + 1f;
+    }
+
+    // Finds every displayed text containing the needle, records whether one is fully on screen as the panel opens, scrolls the
+    // scroll areas that hold them to the end, and requires one to be fully on screen afterwards (and before, if asked).
+    private IEnumerator OnScreenCheck(ScenarioOneUiRoot ui, string needle, string label, string capture, bool requireBeforeScroll = false)
+    {
+        var found = ui.RootElement.Query<TextElement>().ToList().Where(t => Displayed(t) && !string.IsNullOrEmpty(t.text) && t.text.Contains(needle)).ToList();
+        Expect(found.Count > 0, label + ": the text exists in the displayed panel (" + found.Count + " element(s))");
+        bool before = found.Any(t => OnScreen(t, ui.RootElement));
+        Note(label + "_onScreenWithoutScrolling", before.ToString());
+        if (requireBeforeScroll) Expect(before, label + ": fully on screen without scrolling");
+        foreach (ScrollView sv in found.Select(ScrollAncestor).Where(sc => sc != null).Distinct())
+            sv.verticalScroller.value = sv.verticalScroller.highValue;
+        yield return Frames();
+        bool after = found.Any(t => OnScreen(t, ui.RootElement));
+        Expect(after, label + ": fully on screen after scrolling the panel to its end");
+        if (capture != null) { yield return new WaitForEndOfFrame(); ForceCapture(capture); }
+    }
+
     // ============================================================ SMOKE ============================================================
     private IEnumerator Smoke()
     {
@@ -185,8 +216,7 @@ public sealed class U4GuidanceGate : MonoBehaviour
         Expect(!AnyText(texts, tAck) && !AnyText(texts, tOne) && !AnyText(texts, tAnother), "Y1: the first review shows none of the completion guidance");
         Button firstAck = FindAcknowledge(ui);
         Expect(firstAck != null && Displayed(firstAck), "Y1: the first-review acknowledgement control is shown");
-        string defaultFooter = texts.FirstOrDefault(t => t.IndexOf("annual results", StringComparison.OrdinalIgnoreCase) >= 0 && t != "I've read the annual results") ?? "(none found)";
-        Note("Y1_firstReview_footerOrPromptText", defaultFooter);
+        Note("Y1_firstReview_footerTexts", firstAck != null && firstAck.parent != null ? string.Join(" // ", firstAck.parent.Query<TextElement>().ToList().Select(t => t.text)) : "(no control)");
 
         manager.MarkAnnualReviewSeen();   // the U4 sequence, verbatim
         Expect(Acks().Count() == 1 && Acks().First().year == 1, "Y1: acknowledgement recorded in year 1");
@@ -199,16 +229,18 @@ public sealed class U4GuidanceGate : MonoBehaviour
         Expect(!manager.NeedsCompletionReviewAcknowledgement, "STATE 3: nothing left to acknowledge");
         yield return OpenReview(ui, texts);
         Note("STATE3_visibleTexts", Joined(texts));
+        yield return new WaitForEndOfFrame(); ForceCapture("state3-annual-review-first-screen");
         Expect(AnyText(texts, tAnother), "STATE 3: the text is visible in the Annual Review");
+        yield return OnScreenCheck(ui, tAnother, "STATE3_review", "state3-annual-review-scrolled");
         Expect(!AnyText(texts, tAck) && !AnyText(texts, tOne), "STATE 3: no other state's text is shown");
         Button b3 = FindAcknowledge(ui);
         Expect(b3 == null || !Displayed(b3), "STATE 3: the acknowledgement control is not offered");
-        yield return new WaitForEndOfFrame(); ForceCapture("state3-annual-review");
         ui.CloseAll(); yield return Frames(2);
-        ui.ShowWorkPlan(); yield return Frames();
+        ui.ShowWorkPlan(); ui.CloseHelp(); yield return Frames();
         var planTexts = VisibleTexts(ui.RootElement).ToList();
         Note("STATE3_workPlan_visibleTexts", Joined(planTexts));
         Expect(AnyText(planTexts, tAnother), "STATE 3: the text is visible in the Work Plan header");
+        yield return OnScreenCheck(ui, tAnother, "STATE3_workPlan", null, requireBeforeScroll: true);
         yield return new WaitForEndOfFrame(); ForceCapture("state3-work-plan");
         ui.CloseAll(); yield return Frames(2);
 
@@ -220,13 +252,15 @@ public sealed class U4GuidanceGate : MonoBehaviour
         Expect(manager.NextStepHint == tOne, "STATE 1: NextStepHint is exactly the state-1 text");
         yield return OpenReview(ui, texts);
         Note("STATE1_visibleTexts", Joined(texts));
+        yield return new WaitForEndOfFrame(); ForceCapture("state1-annual-review-first-screen");
         Expect(AnyText(texts, tOne), "STATE 1: the text is visible in the Annual Review");
+        yield return OnScreenCheck(ui, tOne, "STATE1_review", "state1-annual-review-scrolled");
         Expect(!AnyText(texts, tAck) && !AnyText(texts, tAnother), "STATE 1: no other state's text is shown");
         Expect(tOne.IndexOf("Annual Review", StringComparison.Ordinal) >= 0, "STATE 1: the text points at the Annual Review");
-        yield return new WaitForEndOfFrame(); ForceCapture("state1-annual-review");
         ui.CloseAll(); yield return Frames(2);
         var hud = VisibleTexts(ui.RootElement).ToList();
         Note("STATE1_hud_visibleTexts", Joined(hud));
+        Note("STATE1_hud_shows_guidance", AnyText(hud, "second management decision").ToString() + " (the HUD was deliberately not changed by the guidance commit)");
         yield return new WaitForEndOfFrame(); ForceCapture("state1-hud");
 
         // ---- completion logic unchanged: the U4 'V1' path reproduces the recorded outcome AND world hash ----
@@ -268,6 +302,7 @@ public sealed class U4GuidanceGate : MonoBehaviour
         yield return OpenReview(ui, texts);
         Note("STATE2_visibleTexts", Joined(texts));
         Expect(texts.Any(t => t == tAck), "STATE 2: the text is visible as the Annual Review footer prompt (exact element text)");
+        yield return OnScreenCheck(ui, tAck, "STATE2_review", null, requireBeforeScroll: true);
         Button b2 = FindAcknowledge(ui);
         Expect(b2 != null && Displayed(b2), "STATE 2: the acknowledgement control is shown");
         Expect(b2 != null && tAck.Contains(b2.text), "STATE 2: the text names the button the player must press: '" + (b2 != null ? b2.text : "(missing)") + "'");
