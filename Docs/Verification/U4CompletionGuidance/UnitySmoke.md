@@ -1,5 +1,7 @@
 # U4 completion guidance: Unity smoke (overnight queue job B2, Tier 1)
 
+> **CORRECTION, SUPERSEDED AS THE B2 ANSWER.** This record tests `ba48591` (`task/scenario-one-completion-guidance-v1`), the *earlier* guidance implementation. The integrator packet (`docs/scenario-one-integrator-packet-v1` @ `60394d7`) names the guidance head for the queue as **A1 = `a93a7220fd8b4d8246b3613d913360dad06988e8`** (`task/scenario-one-two-cycle-guidance-v1`, published 2026-10-15 00:14) and says `ba48591` is replaced by it. I ran this job without noticing that branch and wrote below that no other head existed; **that sentence was wrong.** The B2 answer for A1 is in the follow-up record on branch `verify/u4-guidance-a1-smoke-a93a722` (same gate, adapted to A1's class name and wording). What follows is still a true account of `ba48591` and is kept as evidence of the gate's method.
+
 **RESULT: PASS** (107 checks, 0 failed), with presentation observations below. Real Unity 6000.6.0f1, graphical Editor (nested X display, 1280x800 window), Linux. Not a Player, not native Windows.
 
 **Question.** Does the new completion guidance appear in the three intended states: (1) all objectives met plus one plan, (2) first plan plus missing qualifying review, (3) review complete and waiting for a second plan? Is the text visible, is the Annual Review direction correct, does the second intervention stay non-prescriptive, and did any completion logic change?
@@ -8,7 +10,7 @@
 
 | | |
 |---|---|
-| Guidance head under test | `task/scenario-one-completion-guidance-v1` @ `ba48591d874d666e72d421d1d0e5ff4dcfe3cd71` (origin read again before the final run: unchanged). The queue says "A1 exact head"; no other head was published, so this is the one tested. |
+| Guidance head under test | `task/scenario-one-completion-guidance-v1` @ `ba48591d874d666e72d421d1d0e5ff4dcfe3cd71` (origin read again before the final run: unchanged). **This is NOT the A1 head the queue meant** (see the correction above): it is the earlier implementation, the only guidance head I had found when I ran. |
 | Verification branch | `verify/u4-guidance-smoke-ba48591`, from `ba48591`; production diff against `ba48591` is **empty** (`git diff ba48591 HEAD -- Assets Packages ProjectSettings`). Added: the U4 gate and generic runner copied unchanged from `verify/scenario-one-two-cycle-eb7fd3d` (1d8cca2), and `Tools/Verification/U4Guidance/U4GuidanceSmoke.cs` |
 | Worktree | `/media/jer/Files/CCF-verify-two-cycle-eb7fd3d` (own Library; the demo-HDR quarantine wrapper was used) |
 | Geometry / models | Enlarged80, growth model 1, RNG 1, regeneration 2 (new-game defaults) |
