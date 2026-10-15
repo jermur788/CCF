@@ -56,7 +56,10 @@ def main():
         results.append(run_gate('ClearanceVerification','clearance',True))
         results.append(run_gate('ScenarioOneRemovalVerification','removal',False))
     if args.phase in ['focused','all']:
-        for phase,anchor in [('P2','F58FB0B1A421D28B'),('P3','F7C2FC966816BBAD')]:
+        # P3's hash covers the RENDERED Work Plan text ("WHAT YOU ARE LEAVING" + "MONEY"), so it moves when that wording is edited. It was F7C2FC966816BBAD
+        # until the Scenario One UX patch (84e881a) reworded the card subtitle; the world/simulation hash is unchanged (EBE7A228F630AE41).
+        # Intentional UX verification-anchor update; not simulation rebaseline.
+        for phase,anchor in [('P2','F58FB0B1A421D28B'),('P3','AF7405918195F0DE')]:
             subprocess.run(['python3',str(ROOT/f'Tools/Verification/ScenarioOneCompletion/{phase}/run_{phase.lower()}_gates.py')],cwd=ROOT,check=True)
             result=json.loads((ROOT/f'Build/{phase}/results.json').read_text())
             if result['status']!='PASS' or any(r['hash']!=anchor for r in result['results']): raise RuntimeError(phase+' anchor/gate failure')

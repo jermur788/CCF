@@ -21,7 +21,7 @@ The default `--phase all` runs those three phases sequentially. Logs, results an
 
 ## Compatibility gates
 
-P2 and P3 each run batch twice plus interactive once through their existing launchers. Required hashes: `F58FB0B1A421D28B` and `F7C2FC966816BBAD`. Full current regression requires all 24 gates and explicitly checks Model2 completion `702766DECE591E21`, Reference v1 year 100 `7AD177B3CC2F73C7` and continuation `9CDF21A541C5968D`. Every exercised 16-digit hash is also compared with the committed modern regression record in `Docs/Verification/StormsWindthrowIntegration/regression-results.json`, including the save-19 completion and continuation hashes.
+P2 and P3 each run batch twice plus interactive once through their existing launchers. Required hashes: `F58FB0B1A421D28B` and `AF7405918195F0DE`. The P3 hash covers the rendered Work Plan text (not simulation state); it was `F7C2FC966816BBAD` until the UX patch reworded the "WHAT YOU ARE LEAVING" subtitle (world hash `EBE7A228F630AE41` unchanged): intentional UX verification-anchor update; not simulation rebaseline. Full current regression requires all 24 gates and explicitly checks Model2 completion `702766DECE591E21`, Reference v1 year 100 `7AD177B3CC2F73C7` and continuation `9CDF21A541C5968D`. Every exercised 16-digit hash is also compared with the committed modern regression record in `Docs/Verification/StormsWindthrowIntegration/regression-results.json`, including the save-19 completion and continuation hashes.
 
 The regression now stages the reconciled current Clearance/Menu/Removal files directly. Its existing historical integration fixture and version-5 adjustment remain unchanged. Do not replace the modern suite with the historical pedagogy suite.
 
