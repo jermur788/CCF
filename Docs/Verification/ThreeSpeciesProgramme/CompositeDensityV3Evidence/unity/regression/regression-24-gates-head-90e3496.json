@@ -1,0 +1,218 @@
+[
+ {
+  "gate": "SitkaGrowthModelVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 138.23,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "RegenerationModelVerification",
+  "status": "FAIL",
+  "exit_code": 255,
+  "seconds": 174.94,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioReferenceVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 67.49,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneCompletionVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 59.12,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneEconomyIntegrationVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 52.17,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "BrowsingProtectionVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 118.48,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOnePlantingVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 43.36,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOnePruningVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 42.64,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneDeadwoodVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 42.34,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneProgressVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 42.39,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "SaveHardeningVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 42.87,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "RngModelVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 37.97,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "RngModelPolicyVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 72.89,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneInteractionVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 62.08,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "EcologyCalibrationAdoptionVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 82.34,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "CCFIntegrationVerificationTemp",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 47.55,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ScenarioOneRemovalVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 37.83,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "ClearanceVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 106.25,
+  "mode": "interactive",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "MenuTutorialVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 90.76,
+  "mode": "interactive",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "TimberAssortmentYieldVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 37.72,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "Stage1WorkEconomyFoundationVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 37.48,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "JuvenileMortalityFoundationVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 43.8,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "JuvenileDisplayHeightVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 42.11,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ },
+ {
+  "gate": "Model2PedagogyVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 50.72,
+  "mode": "interactive",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ }
+]

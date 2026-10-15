@@ -1,0 +1,12 @@
+{"run": "batch-1", "status": "PASS", "seconds": 43.1, "exit_code": 0, "hash": "F58FB0B1A421D28B"}
+{"run": "batch-2", "status": "PASS", "seconds": 32.7, "exit_code": 0, "hash": "F58FB0B1A421D28B"}
+{"run": "interactive", "status": "PASS", "seconds": 50.1, "exit_code": 0, "hash": "F58FB0B1A421D28B"}
+P2_GATES_PASS deterministic=True
+NOTE git status after run (revert Editor normalisation if unrelated):
+ M .vscode/settings.json
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Berry_Calyx.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Berries.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat
+ M Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Cap.mat
+ M Assets/ForestPrototype/Art/SectionFive/Deadwood_Fungi_01/Materials/Bracket_Pores.mat

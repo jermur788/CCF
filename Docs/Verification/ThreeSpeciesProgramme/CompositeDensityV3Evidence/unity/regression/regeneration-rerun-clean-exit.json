@@ -1,0 +1,11 @@
+[
+ {
+  "gate": "RegenerationModelVerification",
+  "status": "PASS",
+  "exit_code": 0,
+  "seconds": 148.32,
+  "mode": "batch",
+  "run_head": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+  "production_source_unchanged": true
+ }
+]
