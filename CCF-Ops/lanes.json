@@ -3,7 +3,9 @@
   "storage": {
     "root": "/media/jer/ZX20",
     "uuid": "18D6-896E",
-    "fstype": "exfat"
+    "fstype": "exfat",
+    "device": "/dev/sda2",
+    "minimum_free_bytes": 16106127360
   },
   "repository": "/media/jer/ZX20/CCF-Repository.git",
   "board": "board/active.md",
@@ -11,22 +13,36 @@
     {
       "lane": "U1",
       "path": "/media/jer/ZX20/CCF-U1",
-      "purpose": "primary Unity; Library warm-up deferred"
+      "purpose": "primary Unity; Library warm-up deferred",
+      "unity": true
     },
     {
       "lane": "U2",
       "path": "/media/jer/ZX20/CCF-U2",
-      "purpose": "secondary Unity; Library warm-up deferred"
+      "purpose": "secondary Unity; Library warm-up deferred",
+      "unity": true
     },
     {
       "lane": "Integration",
       "path": "/media/jer/ZX20/CCF-Integration",
-      "purpose": "clean integration; serialized single writer"
+      "purpose": "clean integration; serialized single writer",
+      "unity": false
     },
     {
       "lane": "NonUnity",
       "path": "/media/jer/ZX20/CCF-NonUnity",
-      "purpose": "offline tools/tests/docs; never launch Unity"
+      "purpose": "offline tools/tests/docs; never launch Unity",
+      "unity": false
+    }
+  ],
+  "git_stores": [
+    {
+      "name": "ZX20",
+      "git_dir": "/media/jer/ZX20/CCF-Repository.git"
+    },
+    {
+      "name": "legacy-SSD",
+      "git_dir": "/home/jer/CCF/.git"
     }
   ]
 }

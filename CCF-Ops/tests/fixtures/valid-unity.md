@@ -1,5 +1,6 @@
 Routing: SOL/CODEX
 Role: Primary
+Role file: roles/unity-operator.md
 Context: c6dc136b7f1f8668d9f67f95f48968d290ad5067
 Base: c6dc136b7f1f8668d9f67f95f48968d290ad5067
 Branch: ops/workflow-foundation-v1

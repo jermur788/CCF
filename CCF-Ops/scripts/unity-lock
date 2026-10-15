@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import re
 import uuid
-from _ccf import ROOT, on_storage, storage_check
+from _ccf import ROOT, on_storage, config_read, resolve_lane, require_storage, command, store_checkouts, branch_conflicts
 
 DEFAULT = ROOT/'CCF-Ops/state/unity'
 
@@ -72,9 +72,9 @@ def inspect(data,malformed):
             'eta_overdue':datetime.fromisoformat(data['eta']) < datetime.now(timezone.utc),
             'unity_editor_pids':editors()}
 
-def event(state,kind,actor,reason,previous,inspection=None):
+def event(state,kind,actor,reason,previous,inspection=None,manager_approval=None):
     with (state/'history.jsonl').open('a') as f:
-        f.write(json.dumps({'timestamp':now(),'event':kind,'actor':actor,'reason':reason,'previous':previous,'inspection':inspection})+'\n')
+        f.write(json.dumps({'timestamp':now(),'event':kind,'actor':actor,'reason':reason,'previous':previous,'inspection':inspection,'manager_approval':manager_approval})+'\n')
         f.flush(); os.fsync(f.fileno())
 
 def emit(value,machine):
@@ -88,10 +88,16 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('operation',choices=['status','acquire','release'])
     p.add_argument('--json',action='store_true')
+    p.add_argument('--config',type=Path,default=Path(__file__).resolve().parent.parent/'lanes.json')
+    p.add_argument('--manager-approval',help='Reference to explicit Overall Manager force-release approval; not self-authorisation')
     p.add_argument('--test-state-dir',type=Path,help='Isolated tests ONLY; must be under ZX20/CCF-Temp')
     for key in ['owner','task-id','lane','branch','head','eta','notes','lock-id','reason']: p.add_argument('--'+key)
     p.add_argument('--pid',type=int); p.add_argument('--force',action='store_true')
-    a=p.parse_args(); storage_check()
+    a=p.parse_args()
+    if a.config.resolve()!=Path(__file__).resolve().parent.parent/'lanes.json':
+        if not a.test_state_dir or not a.config.resolve().is_relative_to(ROOT/'CCF-Temp'):
+            p.error('alternate config is restricted to isolated ZX20 scratch tests')
+    cfg,_=config_read(a.config)
     state=on_storage(a.test_state_dir or DEFAULT)
     if a.test_state_dir and not state.is_relative_to(ROOT/'CCF-Temp'):
         p.error('test state must be beneath ZX20/CCF-Temp')
@@ -108,8 +114,21 @@ def main():
             if not re.fullmatch('[0-9a-fA-F]{40}',a.head): p.error('--head must be a full SHA')
             eta=datetime.fromisoformat(a.eta)
             if eta.tzinfo is None or eta<=datetime.now(timezone.utc): p.error('--eta must be a future ISO timestamp with timezone')
-            lane=on_storage(a.lane)
-            if not lane.is_dir(): p.error('--lane must be an existing directory on ZX20')
+            require_storage(cfg)
+            configured=resolve_lane(cfg,a.lane)
+            if not configured['unity']: raise ValueError('configured lane is not Unity-capable')
+            lane=on_storage(configured['path'])
+            if not lane.is_dir(): raise ValueError('configured Unity lane does not exist')
+            top=Path(command(['git','-C',str(lane),'rev-parse','--show-toplevel'])).resolve()
+            common=Path(command(['git','-C',str(lane),'rev-parse','--path-format=absolute','--git-common-dir'])).resolve()
+            if top!=lane or common!=Path(cfg['repository']).resolve(): raise ValueError('unexpected lane Git store')
+            actual_branch=command(['git','-C',str(lane),'rev-parse','--abbrev-ref','HEAD'])
+            actual_head=command(['git','-C',str(lane),'rev-parse','HEAD'])
+            if actual_branch!=a.branch or actual_head!=a.head: raise ValueError('lane branch/HEAD mismatch; worktree was not changed')
+            if command(['git','-C',str(lane),'status','--porcelain']): raise ValueError('Unity lane is dirty; inspect before execution')
+            checkouts=store_checkouts(cfg)
+            if not any(Path(c['path']).resolve()==lane for c in checkouts): raise ValueError('Unity lane is not registered')
+            if branch_conflicts(checkouts,actual_branch,lane): raise ValueError('branch has another writable checkout; dual-store/lane conflict')
             identity=process_identity(a.pid) if a.pid else None
             if a.pid is not None and (a.pid<=0 or identity is None): p.error('--pid must identify a live process; omit if unknown')
             running=editors()
@@ -129,7 +148,9 @@ def main():
         if not data and not malformed: raise ValueError('no lock to release')
         if a.force:
             if not (a.owner or '').strip() or not (a.reason or '').strip(): p.error('force release requires --owner (actor) and --reason')
-            event(state,'force-release',a.owner,a.reason,data or malformed,inspect(data,malformed))
+            if (a.manager_approval or '').strip().lower() in {'','none','n/a','-'}:
+                p.error('force release requires --manager-approval referencing explicit Overall Manager authorisation')
+            event(state,'force-release',a.owner,a.reason,data or malformed,inspect(data,malformed),a.manager_approval)
         else:
             if malformed: raise ValueError('malformed record requires explicit --force --owner --reason')
             if (a.owner,a.task_id,a.lock_id)!=(data['owner'],data['task_id'],data['lock_id']): raise ValueError('release requires matching --owner --task-id --lock-id')

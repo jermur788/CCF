@@ -1,5 +1,7 @@
 # ZX20 workflow foundation — current packet verification
 
+Historical receipt for the prior foundation refresh (49 checks). The G4 B-corrections receipt and current 70-check verification are in G4BCorrections.md; the rules there supersede the old operational descriptions below.
+
 This is an update/reuse pass of the existing foundation at `b09031c5cf3882915011638b3da5dee5d760abb2`, on `ops/workflow-foundation-v1`. Context remains `c6dc136b7f1f8668d9f67f95f48968d290ad5067`. No canonical authority change, new persistent lane, repository clone, cleanup or migration.
 
 ## Storage and lane preflight

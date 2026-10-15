@@ -1,73 +1,75 @@
 #!/usr/bin/env python3
-"""Read-only inventory; dirty/absent/conflicted lanes are data, not exit errors."""
+"""Read-only lane/storage/branch checks; --preflight gates a specific assignment."""
 import sys
 sys.dont_write_bytecode = True
 import argparse
 import json
 from pathlib import Path
-from _ccf import ROOT, command, config_read, board_read
+from _ccf import command, config_read, board_read, board_conflicts, storage_health, resolve_lane, store_checkouts, branch_conflicts
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--config',type=Path,default=Path(__file__).resolve().parent.parent/'lanes.json')
-    p.add_argument('--json',action='store_true')
-    a=p.parse_args()
-    cfg,board=config_read(a.config, permit_off_storage_lanes=True); tasks=board_read(board)
-    blocks=command(['git','--git-dir='+cfg['repository'],'worktree','list','--porcelain']).split('\n\n')
-    registered={}
-    for block in blocks:
-        entry=dict(line.split(' ',1) if ' ' in line else (line,True) for line in block.splitlines())
-        if 'worktree' in entry: registered[str(Path(entry['worktree']).resolve())]=entry
+    p.add_argument('--json',action='store_true');p.add_argument('--storage-only',action='store_true')
+    p.add_argument('--preflight',action='store_true');p.add_argument('--lane');p.add_argument('--branch')
+    p.add_argument('--test-free-bytes',type=int,help='Lower-only capacity simulation; scratch configs only')
+    a=p.parse_args();cfg,board=config_read(a.config,permit_off_storage_lanes=True)
+    if a.test_free_bytes is not None and not a.config.resolve().is_relative_to(Path(cfg['storage']['root'])/'CCF-Temp'):
+        p.error('capacity simulation is restricted to isolated scratch configs')
+    health=storage_health(cfg['storage'],a.test_free_bytes)
+    if a.storage_only:
+        print(json.dumps(health,indent=2) if a.json else f"{'READY' if health['ready'] else 'BLOCK'} / {health['status']} | device={health['backing_device']} rw={health['writable']} | free={health['free_bytes']} bytes ({health['free_gib']:.2f} GiB) threshold={health['minimum_free_bytes']} bytes ({health['minimum_free_gib']:.2f} GiB)")
+        return 0 if health['ready'] else 1
+    tasks=board_read(board);duplicates=board_conflicts(tasks,cfg);checkouts=store_checkouts(cfg)
+    selected=resolve_lane(cfg,a.lane) if a.preflight and a.lane else None
+    if a.preflight and (not selected or not a.branch):p.error('--preflight requires --lane and --branch')
     result=[]
     for item in cfg['lanes']:
-        path=Path(item['path']); exists=path.exists(); reg=registered.get(str(path.resolve()))
-        resolved=path.resolve()
-        probe=resolved
-        while not probe.exists(): probe=probe.parent
+        path=Path(item['path']);resolved=path.resolve();exists=path.exists();probe=resolved
+        while not probe.exists():probe=probe.parent
         mount=json.loads(command(['findmnt','-J','-T',str(probe),'-o','SOURCE,TARGET,UUID']))['filesystems'][0]
-        zx20=(mount['source']=='/dev/sda2' and (mount['uuid'] or '').upper()=='18D6-896E' and resolved.is_relative_to(ROOT) and probe.stat().st_dev==ROOT.stat().st_dev)
-        row=dict(lane=item['lane'],path=str(path),resolved_path=str(resolved),backing_device=mount['source'],mount_point=mount['target'],zx20=zx20,exists=exists,registered_worktree=bool(reg),branch=None,HEAD=None,dirty=None,ahead_behind=None,unity_library=(path/'Library').is_dir(),approx_disk_usage=None,owner=[],conflict_warning=[])
+        zx20=(mount['source']==cfg['storage']['device'] and (mount['uuid'] or '').lower()==cfg['storage']['uuid'].lower() and resolved.is_relative_to(Path(cfg['storage']['root'])) and probe.stat().st_dev==Path(cfg['storage']['root']).stat().st_dev)
+        registered=any(Path(c['path']).resolve()==resolved and Path(c['git_dir']).resolve()==Path(cfg['repository']).resolve() for c in checkouts)
+        row=dict(lane=item['lane'],path=str(path),resolved_path=str(resolved),backing_device=mount['source'],zx20=zx20,unity_capable=item['unity'],exists=exists,registered_worktree=registered,branch=None,HEAD=None,dirty=None,ahead_behind=None,unity_library=(path/'Library').is_dir(),approx_disk_usage=None,owner=[],conflict_warning=list(duplicates),storage=health,dual_store_conflicts=[])
         active=[t for t in tasks if t['Lane'] in {item['lane'],'CCF-'+item['lane'],str(path)}]
         row['owner']=[t['Owner']+' ('+t['Task ID']+')' for t in active]
-        if len(active)>1: row['conflict_warning'].append('multiple board tasks claim lane')
-        if not zx20:
-            row['conflict_warning'].append('ZX20: NO — STOP; lane is outside verified storage and was not inspected as a writable lane')
-            result.append(row)
-            continue
-        if exists:
+        if not health['ready']:row['conflict_warning'].append('BLOCK / '+health['status'])
+        if not zx20:row['conflict_warning'].append('ZX20: NO — STOP; writable-lane inspection skipped')
+        elif exists:
             row['approx_disk_usage']=command(['du','-sh',str(path)]).split('\t')[0]
-            # Never let git discover an unrelated parent repository.
-            if not (path/'.git').exists():
-                row['conflict_warning'].append('occupied path is not a Git worktree')
+            if not (path/'.git').exists():row['conflict_warning'].append('occupied path is not a Git worktree')
             else:
                 top=Path(command(['git','-C',str(path),'rev-parse','--show-toplevel'])).resolve()
                 common=Path(command(['git','-C',str(path),'rev-parse','--path-format=absolute','--git-common-dir'])).resolve()
-                if top != path.resolve() or common != Path(cfg['repository']).resolve():
-                    row['conflict_warning'].append('worktree belongs to unexpected repository')
+                if top!=resolved or common!=Path(cfg['repository']).resolve():row['conflict_warning'].append('worktree belongs to unexpected repository')
                 else:
                     row['HEAD']=command(['git','-C',str(path),'rev-parse','HEAD'])
                     row['branch']=command(['git','-C',str(path),'rev-parse','--abbrev-ref','HEAD'])
                     row['dirty']=bool(command(['git','-C',str(path),'status','--porcelain']))
+                    if row['dirty']:row['conflict_warning'].append('dirty: inspect ownership before writes')
                     upstream=command(['git','-C',str(path),'for-each-ref','--format=%(upstream)','refs/heads/'+row['branch']])
-                    if upstream:
-                        row['ahead_behind']=command(['git','-C',str(path),'rev-list','--left-right','--count','HEAD...'+upstream]).split()
-                    if reg and reg['HEAD'] != row['HEAD']: row['conflict_warning'].append('registration/HEAD mismatch')
-                    if row['dirty']: row['conflict_warning'].append('dirty: inspect ownership before writes')
+                    if upstream:row['ahead_behind']=command(['git','-C',str(path),'rev-list','--left-right','--count','HEAD...'+upstream]).split()
+                    assignment=a.branch if selected and selected['path']==item['path'] else row['branch']
+                    conflicts=branch_conflicts(checkouts,assignment,path);row['dual_store_conflicts']=conflicts
+                    if conflicts:row['conflict_warning'].append('BLOCK: branch has another writable checkout: '+assignment)
                     for task in active:
-                        if task['Branch'] != row['branch'] or task['HEAD'] != row['HEAD']:
-                            row['conflict_warning'].append('board branch/HEAD differs: '+task['Task ID'])
-            if not reg: row['conflict_warning'].append('not registered in configured repository')
-        elif reg: row['conflict_warning'].append('registered path missing; do not prune automatically')
+                        if task['Branch']!=row['branch'] or task['HEAD']!=row['HEAD']:row['conflict_warning'].append('board branch/HEAD differs: '+task['Task ID'])
+            if not registered:row['conflict_warning'].append('not registered in configured repository')
+        else:row['conflict_warning'].append('lane absent; no creation performed')
         result.append(row)
-    if a.json: print(json.dumps(result,indent=2))
+    if a.json:print(json.dumps(result,indent=2))
     else:
+        print(f"Storage: {'READY' if health['ready'] else 'BLOCK'} / {health['status']} | free={health['free_bytes']} bytes ({health['free_gib']:.2f} GiB) | threshold={health['minimum_free_bytes']} bytes ({health['minimum_free_gib']:.2f} GiB)")
         for r in result:
-            print(f"{r['lane']} | {r['path']} | backing device={r['backing_device']} | ZX20: {'YES' if r['zx20'] else 'NO'} | exists={r['exists']} registered={r['registered_worktree']}")
-            print(f"  branch={r['branch']} HEAD={r['HEAD']} dirty={r['dirty']} ahead/behind={r['ahead_behind']}")
-            print(f"  Library={r['unity_library']} disk~={r['approx_disk_usage']} owner={', '.join(r['owner']) or 'unassigned'}")
+            print(f"{r['lane']} | {r['path']} | device={r['backing_device']} | ZX20: {'YES' if r['zx20'] else 'NO'} | unity={r['unity_capable']} exists={r['exists']} registered={r['registered_worktree']}")
+            print(f"  branch={r['branch']} HEAD={r['HEAD']} dirty={r['dirty']} ahead/behind={r['ahead_behind']} Library={r['unity_library']} disk~={r['approx_disk_usage']} owner={', '.join(r['owner']) or 'unassigned'}")
             print('  warnings: '+('; '.join(r['conflict_warning']) or 'none'))
-    return 0
+    if a.preflight:
+        target=next(r for r in result if r['path']==selected['path'])
+        ready=health['ready'] and target['zx20'] and target['exists'] and target['registered_worktree'] and not target['conflict_warning']
+        if not a.json:print('READY' if ready else 'BLOCKED: resolve assignment conflicts before dispatch')
+        return 0 if ready else 1
+    return 0 if health['ready'] else 1
 if __name__=='__main__':
-    try: sys.exit(main())
-    except (ValueError,KeyError,TypeError,OSError) as e:
-        print('ERROR: '+str(e),file=sys.stderr); sys.exit(2)
+    try:sys.exit(main())
+    except (ValueError,KeyError,TypeError,OSError) as e:print('ERROR: '+str(e),file=sys.stderr);sys.exit(2)

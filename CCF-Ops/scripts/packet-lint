@@ -1,61 +1,77 @@
 #!/usr/bin/env python3
-"""Mechanical packet/board lint. PASS=0, WARN=0, FAIL=1, tool error=2."""
+"""Mechanical validation: PASS/WARN=0, FAIL=1, tool/config error=2."""
 import sys
 sys.dont_write_bytecode = True
 import argparse
 from pathlib import Path
 import re
-from _ccf import fields_read, board_read
+from _ccf import fields_read, board_read, board_conflicts, config_read, resolve_lane
 
 FIELDS = {
- 'routing':['routing','route'], 'role':['role'], 'context':['context','context commit'],
- 'base':['base','context/base'], 'branch':['branch'], 'scope':['scope','in scope'],
- 'exclusions':['exclusions','out of scope'], 'ownership':['ownership','owned files / subsystems','owned files/subsystems'],
+ 'routing':['routing','route'], 'role':['role'], 'role file':['role file','role-file'],
+ 'context':['context','context commit'], 'base':['base','context/base'],
+ 'branch':['branch'], 'scope':['scope','in scope'], 'exclusions':['exclusions','out of scope'],
+ 'ownership':['ownership','owned files / subsystems','owned files/subsystems','owned files'],
  'verification tier':['verification tier'], 'time budget':['time budget'],
  'question / acceptance criterion':['question','acceptance criterion','acceptance criteria','question this verification must answer'],
- 'stop conditions':['stop conditions','stop and ask if'], 'handoff format':['handoff format','expected handoff','handoff']}
-UNITY={'exact head':['exact head','head'],'unity ownership':['unity ownership','unity owner'],
-       'unity lane':['unity lane','lane','worktree'],
-       'allowed phases':['allowed phases'],'player/native input required':['player/native input required','player/native input required?','native player/input required','native player/input required?']}
+ 'stop conditions':['stop conditions','stop and ask if'],
+ 'handoff format':['handoff format','expected handoff','handoff']}
+UNITY = {'exact head':['exact head','head'], 'unity ownership':['unity ownership','unity owner'],
+         'unity lane':['unity lane','lane','worktree'], 'allowed phases':['allowed phases'],
+         'player/native input required':['player/native input required','player/native input required?',
+                                        'native player/input required','native player/input required?']}
+PLACEHOLDERS = {'none','n/a','-','tbd','todo','<required>',''}
 
-def lint(text,draft=False):
+def lint(text, cfg, draft=False):
     fields=fields_read(text); errors=[]; warnings=[]
-    def value(label,aliases,required=True):
-        vals=[v.strip() for k in aliases for v in fields.get(k,[]) if v.strip()]
-        if not vals or any(v.lower() in {'tbd','todo','<required>'} for v in vals):
-            if required: (warnings if draft else errors).append('missing '+label)
-            return ''
+    def value(label, aliases, required=True, allow_none=False):
+        vals=[v.strip() for k in aliases for v in fields.get(k,[])]
         if len(vals)>1: errors.append('duplicate/ambiguous '+label)
+        valid=bool(vals) and vals[0].lower() not in (PLACEHOLDERS-{'none'} if allow_none else PLACEHOLDERS)
+        if not valid:
+            if required: (warnings if draft else errors).append('missing/placeholder '+label)
+            return ''
         return vals[0]
-    vals={k:value(k,aliases) for k,aliases in FIELDS.items()}
+    vals={k:value(k, aliases, allow_none=(k=='role file')) for k,aliases in FIELDS.items()}
     for key in ['base','context']:
-        if vals[key] and not re.fullmatch('[0-9a-fA-F]{40}',vals[key]): errors.append(key+' must be a full 40-character SHA')
+        if vals[key] and not re.fullmatch('[0-9a-fA-F]{40}',vals[key]): errors.append(key+' must be a full SHA')
     if vals['verification tier'] and not re.fullmatch(r'(?:Tier\s*)?[123](?:\s*[-—].*)?',vals['verification tier'],re.I): errors.append('invalid verification tier')
-    required=value('Unity required',['unity required','unity required?'],False).lower()
-    if required not in {'yes','no','true','false',''}: errors.append('Unity required must be Yes/No')
-    unity=required in {'yes','true'} or any(alias in fields for aliases in UNITY.values() for alias in aliases)
-    if not required: warnings.append('declare Unity required: Yes/No explicitly')
+    declaration=value('Unity required',['unity required','unity required?']).lower()
+    if declaration not in {'yes','no','true','false',''}: errors.append('Unity required must be Yes/No')
+    # Generic Lane/HEAD/WORKTREE never determine Unity mode.
+    explicit_unity=any(k in fields for k in ['unity ownership','unity owner','unity lane'])
+    unity=declaration in {'yes','true'} or explicit_unity
+    if declaration in {'no','false'} and explicit_unity:
+        errors.append('Unity-specific ownership/lane conflicts with Unity required: No')
     if unity:
-        u={k:value(k,a) for k,a in UNITY.items()}
+        u={k:value(k,aliases) for k,aliases in UNITY.items()}
         if u['exact head'] and not re.fullmatch('[0-9a-fA-F]{40}',u['exact head']): errors.append('exact HEAD must be a full SHA')
         owner=u['unity ownership']
-        if owner and (re.search(r'[,;/&\n]|\band\b|\bor\b',owner,re.I) or owner.lower() in {'shared','anyone','none','unassigned'}): errors.append('conflicting Unity ownership: name exactly one owner')
-        if u['player/native input required'].lower() not in {'yes','no','true','false',''}: errors.append('Player/native input required must be Yes/No')
-        if required in {'no','false'}: errors.append('Unity fields conflict with Unity required: No')
+        if owner and (re.search(r'[,;/&\n]|\band\b|\bor\b',owner,re.I) or owner.lower() in {'shared','anyone','unassigned'}): errors.append('conflicting Unity ownership: name one owner')
+        if u['unity lane']:
+            try:
+                lane=resolve_lane(cfg,u['unity lane'])
+                if not lane['unity']: errors.append('Unity lane is not Unity-capable')
+            except ValueError as e: errors.append(str(e))
+        if u['player/native input required'].lower() not in {'yes','no','true','false',''}: errors.append('native Player/input required must be Yes/No')
     return errors,warnings
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('packet',type=Path); p.add_argument('--draft',action='store_true',help='Missing draft fields WARN; explicit malformed fields still FAIL'); p.add_argument('--board',action='store_true')
-    a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('packet',type=Path);p.add_argument('--draft',action='store_true');p.add_argument('--board',action='store_true')
+    p.add_argument('--config',type=Path,default=Path(__file__).resolve().parent.parent/'lanes.json')
+    a=p.parse_args();cfg,_=config_read(a.config)
     if a.board:
-        try: rows=board_read(a.packet)
-        except ValueError as e: print('FAIL: '+str(e)); return 1
-        print(f'PASS: board schema ({len(rows)} live tasks)'); return 0
-    errors,warnings=lint(a.packet.read_text(),a.draft)
+        try:
+            rows=board_read(a.packet);conflicts=board_conflicts(rows,cfg)
+            if conflicts: raise ValueError('; '.join(conflicts))
+        except ValueError as e: print('FAIL: '+str(e));return 1
+        print(f'PASS: board schema and duplicate checks ({len(rows)} live tasks)');return 0
+    errors,warnings=lint(a.packet.read_text(),cfg,a.draft)
     print('FAIL' if errors else 'WARN' if warnings else 'PASS')
-    for e in errors: print('  FAIL: '+e)
-    for w in warnings: print('  WARN: '+w)
+    for e in errors:print('  FAIL: '+e)
+    for w in warnings:print('  WARN: '+w)
     return 1 if errors else 0
 if __name__=='__main__':
-    try: sys.exit(main())
-    except (OSError,ValueError) as e: print('ERROR: '+str(e),file=sys.stderr); sys.exit(2)
+    try:sys.exit(main())
+    except (OSError,ValueError,KeyError,TypeError) as e:print('ERROR: '+str(e),file=sys.stderr);sys.exit(2)

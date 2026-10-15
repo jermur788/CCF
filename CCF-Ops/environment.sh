@@ -1,12 +1,15 @@
-# Source in a dedicated CCF task shell. No credentials or account setup.
-if ! python3 -B - <<'PY_CHECK'
-import json, subprocess, pathlib
-p=pathlib.Path('/media/jer/ZX20').resolve(strict=True)
-i=json.loads(subprocess.check_output(['findmnt','-J','-T',str(p),'-o','TARGET,FSTYPE,UUID'],text=True))['filesystems'][0]
-assert i['target']==str(p) and i['fstype']=='exfat' and (i['uuid'] or '').upper()=='18D6-896E', 'ZX20 mount mismatch'
+# Source in a dedicated Bash task shell; no global cache/account configuration.
+CCF_OPS_ENV_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+if ! python3 -B - "$CCF_OPS_ENV_DIR" <<'PY_CHECK'
+import sys
+from pathlib import Path
+ops=Path(sys.argv[1]);sys.path.insert(0,str(ops/'scripts'))
+from _ccf import config_read,require_storage,on_storage
+cfg,_=config_read(ops/'lanes.json');health=require_storage(cfg)
 for name in ['CCF-Temp','CCF-Builds','CCF-Verification']:
- q=p/name
- assert q.is_dir() and q.resolve().is_relative_to(p) and q.stat().st_dev==p.stat().st_dev, 'unsafe/missing output path: '+str(q)
+ p=on_storage(Path(cfg['storage']['root'])/name)
+ if not p.is_dir():raise ValueError('missing output directory: '+str(p))
+print(f"PASS: {health['backing_device']} rw; free={health['free_bytes']} bytes; minimum={health['minimum_free_bytes']} bytes")
 PY_CHECK
 then
   return 1 2>/dev/null || exit 1
