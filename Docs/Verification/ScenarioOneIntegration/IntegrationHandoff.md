@@ -55,7 +55,7 @@ No A3/A4/A5/A6 branch was merged. Only feature handoffs/docs from the selected s
 | Site | PASS 63, all 1250 profiles neutral, isolated compile |
 | git diff --check | PASS across candidate delta; no scene/prefab/material/package/settings drift |
 
-Commands are the existing runners under Tools/Verification/CloudTypeCheck, ThreeSpecies/OfflineLogic, ScenarioOneCompletion/N3, ScenarioOneUx, SiteInfrastructure and Calibration/OakBeechGrowth; all output directories were external. Reproduce ownership with `python3 Tools/Verification/ScenarioOneIntegration/check_sources.py --out <external-dir>`, growth with `python3 Tools/Calibration/OakBeechGrowth/check_integrated_v1.py --out <external.json>`. Full receipts/logs are in ConstructionEvidence; source/object hashes are in ConstructionManifest.json. Heavy .NET build outputs remain outside the repo.
+Commands are the existing runners under Tools/Verification/CloudTypeCheck, ThreeSpecies/OfflineLogic, ScenarioOneCompletion/N3, ScenarioOneUx, SiteInfrastructure and Calibration/OakBeechGrowth; all output directories were external. Reproduce ownership with `python3 Tools/Verification/ScenarioOneIntegration/check_sources.py --out <external-dir>`, growth with `python3 Tools/Calibration/OakBeechGrowth/check_integrated_v1.py --out <external.json>`. Full receipts/logs are in ConstructionEvidence (published log copies have trailing whitespace trimmed only; raw logs remain in the external construction directory); source/object hashes are in ConstructionManifest.json. Heavy .NET build outputs remain outside the repo.
 
 ## Explicit source-specific tooling adaptations
 
