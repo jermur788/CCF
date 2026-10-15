@@ -16,15 +16,17 @@ When understanding changes, update/propose the appropriate canonical file. After
 
 ## Cost-aware task routing
 
-Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
+Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Routing labels are stable capability handles:
 
-- **FREE HERE:** bounded planning, clarification, interpretation and coordination that the current chat can complete without a paid worker handoff.
-- **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
-- **SOL/CODEX:** repository/documentation work, implementation or local verification suited to available Codex tools.
-- **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
-- **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
+- **FREE HERE:** bounded planning, clarification and coordination.
+- **DEEP RESEARCH:** substantial evidence collection and synthesis; distinguish research from accepted mechanics.
+- **SOL/CODEX:** local/repository implementation, tooling, documentation and verification.
+- **REGULAR CLAUDE VALUE:** independent reasoning, review and gate work.
+- **CLAUDE CLOUD VALUE:** substantial cloud/Git-based implementation.
 
-Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
+Reserve highest-capability models for work where additional capability materially justifies the cost. Verify actual tools and availability before dispatch. Machine/provider/model defaults belong in operational routing configuration; subscription/account details are not canonical project policy. Worker-cost policy does not belong in the gameplay Decision Log.
+
+Where cost/capacity matters, record `harness / model / quota source` in the packet, operational board and ledger/handoff as relevant. Overall Manager explicitly assigns finite primary/reserve pools. Never silently switch quota source; never store credentials or account secrets in tracked files. Capacity exhaustion never waives, downgrades or satisfies a verification, review or acceptance gate: defer work or explicitly reroute it.
 
 ## Automatic continuation after worker handoff
 
@@ -32,4 +34,4 @@ When a worker returns an implementation handoff, triage it immediately. If the r
 
 Stop and ask the user only when a genuine product/design decision, scope change, unresolved conflict, unsafe integration choice, or materially ambiguous next step requires their input.
 
-Do not force an independent review after every handoff. Follow the current review policy and batch reviews where appropriate. When review is deliberately deferred, state that clearly and continue the work sequence when safe.
+Do not force an independent review after every handoff. Follow the review gates and batch reviews where appropriate. When review is deliberately deferred, state that clearly and continue the work sequence when safe.

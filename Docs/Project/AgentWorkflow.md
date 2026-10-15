@@ -34,6 +34,8 @@ Planning text does not override verified implementation facts. Research and agen
 
 Report conflicts and identify the authoritative file needing update.
 
+CCF-Ops role files, board state, lane/capacity configuration and operational scripts are coordination mechanisms only. They confer no product decision authority, implementation truth or acceptance authority. The project authority hierarchy above remains unchanged.
+
 ## Canonical context
 
 Shared sources: `Docs/Project/game-brief.md`, `decision-log.md`, `current-milestone.md`, `unity-project-overview.md`, `AgentWorkflow.md`; supporting `research-index.md`.
@@ -76,15 +78,17 @@ Use only currently available tools. Chats without repo/Unity tools may plan/rese
 
 ## Cost-aware task routing
 
-Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
+Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Routing labels are stable capability handles:
 
-- **FREE HERE:** bounded planning, clarification, interpretation and coordination that the current chat can complete without a paid worker handoff.
-- **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
-- **SOL/CODEX:** repository/documentation work, implementation or local verification suited to available Codex tools.
-- **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
-- **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
+- **FREE HERE:** bounded planning, clarification and coordination.
+- **DEEP RESEARCH:** substantial evidence collection and synthesis; distinguish research from accepted mechanics.
+- **SOL/CODEX:** local/repository implementation, tooling, documentation and verification.
+- **REGULAR CLAUDE VALUE:** independent reasoning, review and gate work.
+- **CLAUDE CLOUD VALUE:** substantial cloud/Git-based implementation.
 
-Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
+Reserve highest-capability models for work where additional capability materially justifies the cost. Verify actual tools and availability before dispatch. Machine/provider/model defaults belong in operational routing configuration; subscription/account details are not canonical project policy. Worker-cost policy does not belong in the gameplay Decision Log.
+
+Where cost/capacity matters, record `harness / model / quota source` in the packet, operational board and ledger/handoff as relevant. Overall Manager explicitly assigns finite primary/reserve pools. Never silently switch quota source; never store credentials or account secrets in tracked files. Capacity exhaustion never waives, downgrades or satisfies a verification, review or acceptance gate: defer work or explicitly reroute it.
 
 ## Verification cost policy
 
@@ -143,15 +147,25 @@ Escalation to a higher tier requires at least one of:
 
 ## Multi-agent safety
 
-1. One writable local worktree per active local agent.
-2. No concurrent writes to the same Unity worktree.
+1. One writable lane per active owner; one active owner per writable lane.
+2. No concurrent conflicting writes, and no two writable lanes on the same branch, including across separate Git stores. Threads/sessions are disposable; lanes persist. Occupancy implies no acceptance, memory or authority.
 3. Substantial tasks declare exact base, context commit and branch.
 4. One primary writer owns a subsystem/file set.
 5. Enforce high-conflict/asset safety from AGENTS through locks.
 6. Do not stash/discard/overwrite/clean/silently absorb unrelated user work.
 7. Major design, ecology, save architecture, dependencies, frozen-reference or destructive decisions return to Manager/user.
 
-Target paths are `/home/jer/CCF-main`, `/home/jer/CCF-openai`, `/home/jer/CCF-claude`; preserve existing paths if renaming risks work and record verified results in Overview.
+Use designated project storage and CCF-Ops lane configuration for persistent Unity, integration and non-Unity lanes. Preserve existing work rather than renaming or recreating lanes automatically.
+
+New substantial CCF development data—repositories/worktrees, Unity Library/cache data, builds, verification receipts and scratch/temp data—must use the designated external project storage volume. Verify backing-device identity, not merely path text. Moving existing data requires separate authorisation. Device identity, mount paths, filesystem details and capacity thresholds remain machine-local operational configuration.
+
+## Unity resource policy
+
+Serialize heavy Unity execution machine-wide under one ownership lock across lanes and Git stores. A Unity packet states Unity required, exact candidate HEAD, Unity lane/owner, allowed phases and Player/native-input requirement. Verify the clean lane's actual branch/HEAD and ownership before acquiring the lock; never bypass another owner or kill its process through the lock.
+
+The Integration lane constructs/integrates code and normally does not host the Editor. Post-integration Unity gates run in a designated Unity-capable lane (U1/U2 or a configured equivalent), placed cleanly at the exact integrated HEAD under the Unity lock. Do not duplicate the active integration branch into another writable lane; detached candidate validation or a distinct owned lane branch preserves branch ownership.
+
+Follow the verification-cost policy above: offline/reduced search first, Unity confirms candidate behavior, and stop when the stated uncertainty is answered. Availability of an Editor does not expand scope.
 
 ## Pre-write checks
 
@@ -160,25 +174,57 @@ Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS
 ## Roles
 
 - **Primary:** implements bounded authorised scope; reports readiness for review, not its own integration approval.
-- **Reviewer:** checks against accepted specification/context/evidence/gates; no competing implementation unless requested. Prefer an independent reviewer for high-risk simulation/save/reference work.
+- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested.
 - **Integrator:** deliberately integrates approved work and runs post-integration gates; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
+
+- **Execution Manager (T3):** inspect repository/live state, preflight packets, maintain assigned operational state/ledger, prepare bounded execution packets and report READY/BLOCKED. It cannot autonomously create/dispatch arbitrary worker threads, waive gates, override ownership or make product decisions.
+- **Unity Operator:** own serialized Unity execution, verify exact lane/branch/HEAD, hold the Unity lock, run only authorised gates and preserve evidence. It cannot expand scope.
+
+## Review gates
+
+Use explicit gates rather than standing reviewer ownership. Assign bounded reviewers independently of the implementing thread; use cross-family review where the packet requires it. Gate completion requires evidence and an explicit decision, not worker completion or capacity availability.
+
+| Gate | Trigger |
+|---|---|
+| G1 COST / LAUNCH | Tier-2/3 Unity; expensive multi-run queues; exceptional model/cost escalation. |
+| G2 ACCEPTANCE | Before evidence/handoff is treated as meeting its acceptance criterion. |
+| G3 MEASUREMENT INTEGRITY | Harness/fixture/threshold/expected-hash changes; calibration or measured evidence relied upon; any proposed weakening/waiver of a gate. |
+| G4 INTEGRATION / CANON | Integration into shared/main candidate state; canonical context/workflow/instruction changes; conflicting shared/serialized systems. |
+| G5 SCOPE / MILESTONE | Scope, milestone, product direction, dependency or save-format/history-policy change. |
+
+Protected density, ecology/calibration, save, RNG/determinism and frozen/reference behavior require G2, G3 where measurement/calibration is involved, and G4 at integration. A proposed waiver triggers review; that review does not itself authorise bypassing a mandatory gate. Product/scope decisions still return to the existing authority hierarchy.
+
+Canonical integration decisions remain APPROVED / NEEDS CHANGES / REJECTED. Per-packet A/B/C assessments are supplementary and must map explicitly to canonical decision status; they do not silently replace it. Deferred/batched review cannot mark an unmet mandatory gate satisfied.
+
+## Role persistence
+
+Loading sequence: entry instructions (`AGENTS.md` / `CLAUDE.md`) → role file → explicit task packet → first-message reminder. **This is not an authority order.** Scope and acceptance come from the packet, bounded by locked context and project authority. Role files constrain behavior and grant no extra authority. On conflict, STOP AND REPORT. The first-message reminder is reinforcement only, never the sole carrier of the role. Until entry-file wiring is in place, workers must receive ROLE FILE plus the explicit packet; do not assume automatic loading.
 
 ## Live task locks
 
 `Docs/Project/coordination/active-tasks.md` is single-writer live state maintained by Overall Manager/assigned integrator on integration/main coordination branch before parallel work. Workers read it live; packets carry locks where live access is absent. Lock changes do not refresh context. Sequence conflicting tasks or establish an interface. Do not rely on chat memory for ownership.
 
+CCF-Ops may maintain an operational board as a working view of live tasks, lanes and Unity queue. While active-tasks.md remains authoritative, the board grants no lock, ownership or permission. A task is READY only when the board and authoritative lock record agree; disagreement or a missing record means NOT READY. Overall Manager reconciles; never choose the more permissive record.
+
+The current temporary physical record is named in active-tasks.md itself. For this T0/T1 publication, Manager has designated `ops/workflow-foundation-v1:Docs/Project/coordination/active-tasks.md` as that record, explicitly overriding the usual integration/main location for this transition. Read the live designation before future dispatch; this is not a permanent branch rule. Active-tasks is not retired or redefined, and no board-authority/T3 transition occurs here.
+
 ## Standard task packet
+
+Fill every substantive field, including full base/context SHAs. The illustrative Tier 1 / Unity No defaults must be changed to match the assigned task. ROLE FILE is a reference or NONE. Existing aliases such as WORKTREE, BASE, STOP AND ASK IF and HANDOFF remain supported.
 
 ```text
 TASK PACKET
 PROJECT: CCF
 MANAGER: <designated Overall Manager>
-BASE: <exact implementation SHA>
-CONTEXT COMMIT: <full snapshot SHA>
-WORKTREE: <worker-specific path if local>
-BRANCH: <task branch>
+ROUTING: <harness / model / quota source>
+BASE:
+CONTEXT COMMIT:
+LANE:
+BRANCH:
 ROLE: Primary / Reviewer / Integrator
+ROLE FILE: NONE
+UNITY REQUIRED: No
 GOAL: <one concise player/system outcome>
 AUTHORITATIVE SOURCES:
 - Game Brief, Decision Log, Current Milestone, Overview, AgentWorkflow
@@ -198,7 +244,7 @@ MUST-NOT-CHANGE HASHES / ANCHORS:
 INTENTIONALLY CHANGED HASHES / ANCHORS:
 None unless explicitly authorised.
 VERIFICATION TIER:
-Tier 1 / Tier 2 / Tier 3
+Tier 1
 
 TIME BUDGET:
 <target>
@@ -217,7 +263,11 @@ STOP AND ASK IF:
 Required work materially changes design, ecology, unauthorised save
 architecture, frozen/reference behaviour, dependencies, destructive
 repository state or ownership boundaries.
+HANDOFF FORMAT:
+Standard worker handoff below, with exact HEAD, evidence, remaining gates and preserved unrelated work.
 ```
+
+If UNITY REQUIRED is Yes, add exact HEAD, Unity lane, Unity ownership, allowed phases and Player/native input required (Yes/No). Mechanical lint must verify the configured lane is Unity-capable. These fields supplement the packet; a lint PASS does not authorise execution.
 
 ## Standard worker handoff
 
@@ -271,6 +321,7 @@ Only reviewer/integrator records:
 ```text
 INTEGRATION DECISION
 Status: APPROVED / NEEDS CHANGES / REJECTED
+Gate: G1 / G2 / G3 / G4 / G5 (applicable gate and scope)
 Reviewed branch:
 Reviewed HEAD:
 Context commit:
@@ -321,7 +372,7 @@ Expected observable behaviour:
 - **VERIFIED:** required integrated runtime/regression/performance/player gates passed.
 - **ACCEPTED:** user/Manager accepts result.
 
-Before integration inspect exact branch/HEAD and expected/unexpected changes; preserve unrelated work; deliberately inspect serialized conflicts; integrate; import/compile in integration worktree; run required verification and AGENTS checks; report final integration/main HEAD.
+Before integration inspect exact branch/HEAD and expected/unexpected changes; preserve unrelated work; deliberately inspect serialized conflicts; integrate; perform required import/compile/runtime gates in the designated clean Unity lane at that exact integrated HEAD under the Unity lock; run required verification and AGENTS checks; report final integration/main HEAD.
 
 Independent review matters for expensive/subtle failures: ecology, saves, determinism/reference, large refactors, multiplayer architecture and substantial performance changes. Routine reversible work does not automatically require two agents.
 
@@ -333,14 +384,14 @@ If the handoff is sufficiently clear, no user decision is required, no blocking 
 
 Return to the user for a decision only when the next step requires a genuine product/design choice, material scope change, unresolved conflict, unsafe integration choice, or materially ambiguous direction.
 
-Independent review is not automatically required after every handoff. Follow the current review policy and batch reviews where appropriate; if review is deferred, record the implementation state accurately and continue with the next safe task.
+Independent review is not automatically required after every handoff. Follow the review gates and batch reviews where appropriate; if review is deferred, record the implementation state accurately and continue with the next safe task.
 
 ## Manager workflow
 
 1. Inspect accepted state and choose the next playable outcome.
 2. Split parallel-safe tasks, update locks, assign workers, and issue bounded packets with one context commit.
 3. Workers execute against locked context and return implementation handoffs.
-4. Immediately triage each handoff against specification, evidence and the current review policy. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
+4. Immediately triage each handoff against specification, evidence and the review gates. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
 5. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
 6. Use one authorised integrator for approved work and run required integrated gates.
 7. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
