@@ -27,6 +27,23 @@ COMPONENT_BA_FLAG_FIELDS = ("sitkaFired", "genericFired", "bothFired", "attribut
 COMPONENT_BA_QUANTUM = 1e-5
 COMPONENT_BA_FLOAT_SLACK = 1e-9
 
+# Explicit LONGRUN evidence-format contract. CURRENT is the default and demands component-ba evidence. PRE_COMPONENT_BA is
+# the historical format produced before component-BA instrumentation: ordinary LONGRUN evidence is still required and must
+# be complete/valid, but component-ba is not expected. Historical mode must NEVER be inferred (from a missing file, a date,
+# a candidate SHA or a directory name); a caller has to ask for it explicitly.
+EVIDENCE_FORMAT_CURRENT = "current"
+EVIDENCE_FORMAT_PRE_COMPONENT_BA = "pre-component-ba"
+EVIDENCE_FORMATS = (EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA)
+
+
+def normalize_evidence_format(value):
+    """Resolve the LONGRUN evidence format. Omission (None) means CURRENT; any explicit empty/unknown value is rejected."""
+    if value is None:
+        return EVIDENCE_FORMAT_CURRENT
+    if value not in EVIDENCE_FORMATS:
+        raise ValueError("Unknown evidence format %r; valid formats: %s" % (value, ", ".join(EVIDENCE_FORMATS)))
+    return value
+
 
 def component_ba_sum_tolerance():
     """Worst-case representation-only gap for combined - (sitka + generic): three independently rounded values."""
@@ -117,7 +134,7 @@ def read_component_ba_evidence(directory, env, text):
     harness's five-decimal serialisation (COMPONENT_BA_QUANTUM), so representation-only rounding is accepted while a
     materially larger discrepancy is rejected. No density threshold is applied.
     """
-    failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "both_fired_rows": 0,
+    failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "present": False, "both_fired_rows": 0,
                "sitka_fired_rows": 0, "generic_fired_rows": 0, "attribution_mismatch_rows": 0, "path": None}
     try:
         phases, selected, horizon, _ = density_request(env)
@@ -127,14 +144,19 @@ def read_component_ba_evidence(directory, env, text):
         geo = match.group(1) if match else {"0": "L40", "1": "E80"}.get(env.get("CCF_STAND_GEOMETRY"))
         if not geo:
             return dict(failure, error="component-ba geometry evidence is missing")
+        path = Path(directory) / f"component-ba-{geo}.csv"
         expected_geo = {"0": "L40", "1": "E80"}.get(env.get("CCF_STAND_GEOMETRY"))
         if expected_geo and expected_geo != geo:
-            return dict(failure, error="component-ba geometry does not match the requested geometry")
-        path = Path(directory) / f"component-ba-{geo}.csv"
+            return dict(failure, path=str(path), present=path.is_file(),
+                        error="component-ba geometry does not match the requested geometry")
+        if not path.is_file():
+            # Distinct from malformed: the historical pre-component-ba format legitimately has no such file, so the caller's
+            # explicit evidence-format decides whether this is acceptable. Validation itself never infers historical mode.
+            return dict(failure, path=str(path), error="component-ba file is missing: " + str(path))
         with path.open(newline="") as handle:
             reader = csv.DictReader(handle)
             if reader.fieldnames != COMPONENT_BA_COLUMNS:
-                return dict(failure, error=f"component-ba schema mismatch: {reader.fieldnames}")
+                return dict(failure, path=str(path), present=True, error=f"component-ba schema mismatch: {reader.fieldnames}")
             rows = list(reader)
         expected = {(scenario, year) for scenario in selected for year in range(1, horizon + 1)}
         keys = [(row["scenario"], int(row["year"])) for row in rows]
@@ -156,7 +178,7 @@ def read_component_ba_evidence(directory, env, text):
             if len(problems) > 20:
                 break
         return {
-            "path": str(path), "rows": len(rows), "expected_rows": len(expected), "complete": not problems,
+            "path": str(path), "present": True, "rows": len(rows), "expected_rows": len(expected), "complete": not problems,
             "error": None if not problems else "; ".join(problems[:20]),
             "both_fired_rows": sum(1 for row in rows if row["bothFired"] == "1"),
             "sitka_fired_rows": sum(1 for row in rows if row["sitkaFired"] == "1"),
@@ -215,7 +237,8 @@ def read_longrun_evidence(directory, env, text):
                 'component_ba': read_component_ba_evidence(directory, env, text)}
 
 
-def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=None, measurement_evidence=None):
+def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=None, measurement_evidence=None,
+                     evidence_format=None):
     lines = text.splitlines()
     compile_errors = [line for line in lines if "error CS" in line]
     failure_prefixes = (
@@ -226,6 +249,12 @@ def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=N
     )
     assertion_failures = [line for line in lines if line.startswith(failure_prefixes)]
     unverified = [line for line in lines if line.startswith("UXQ_UNVERIFIED ")]
+    try:
+        evidence_format = normalize_evidence_format(evidence_format)
+    except ValueError as error:
+        # An explicitly supplied, unknown/empty format rejects the invocation; it never silently falls back to historical.
+        evidence_format = EVIDENCE_FORMAT_CURRENT
+        assertion_failures.append(str(error))
     verdicts = list(re.finditer(r"^" + re.escape(marker) + r"(?:[ \t][^\n]*)?$", text, re.MULTILINE))
     verdict = verdicts[-1] if verdicts else None
     minimum = min_hard_checks
@@ -243,9 +272,17 @@ def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=N
                 if not measurement_evidence or not measurement_evidence.get('complete') or measurement_evidence.get('expected_rows', 0) <= 0 or measurement_evidence.get('rows') != measurement_evidence.get('expected_rows'):
                     coverage_errors.append('LONGRUN filter selected nothing or lacks complete expected measurement rows; downstream analysis cannot qualify this run.')
                 component_ba = measurement_evidence.get('component_ba') if measurement_evidence else None
-                if not component_ba or not component_ba.get('complete') or component_ba.get('rows') != component_ba.get('expected_rows'):
-                    detail = (component_ba or {}).get('error') or 'component-ba rows are missing'
-                    coverage_errors.append('component-ba per-component basal-area rows are missing or inconsistent; downstream analysis cannot split the mixed-stand basal-area loss (' + str(detail) + ').')
+                component_ba_inconsistent = (not component_ba or not component_ba.get('complete')
+                                             or component_ba.get('rows') != component_ba.get('expected_rows'))
+                detail = (component_ba or {}).get('error') or 'component-ba rows are missing'
+                if evidence_format == EVIDENCE_FORMAT_CURRENT:
+                    if component_ba_inconsistent:
+                        coverage_errors.append('component-ba per-component basal-area rows are missing or inconsistent; downstream analysis cannot split the mixed-stand basal-area loss (' + str(detail) + ').')
+                elif component_ba and component_ba.get('present'):
+                    # A file that was actually supplied is validated normally, even in historical mode; only its absence is
+                    # tolerated. Nothing else about the historical path is weakened.
+                    if component_ba_inconsistent:
+                        coverage_errors.append('component-ba was supplied but is incomplete or inconsistent; it is validated normally even in the pre-component-ba format (' + str(detail) + ').')
         except ValueError as error:
             coverage_errors.append(str(error))
         if not measurement_only:
@@ -279,5 +316,6 @@ def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=N
         'hard_checks': count, 'min_hard_checks': minimum, 'coverage_errors': coverage_errors,
         'measurement_only': measurement_only, 'measurement_evidence': measurement_evidence, 'perf_measurements': perf_measurements,
         'measurement_verdict': 'PENDING_DOWNSTREAM_ANALYSIS' if measurement_only else None,
+        'evidence_format': evidence_format,
         'game_view_dimensions': re.findall(r'U4_NOTE GAME_VIEW actual=(\d+x\d+)', text),
     }

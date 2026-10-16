@@ -28,7 +28,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "Qualification"))
-from qualification_results import density_request, evaluate_receipt, read_longrun_evidence
+from qualification_results import (EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA, density_request,
+                                   evaluate_receipt, read_longrun_evidence)
 
 ROOT = Path(__file__).resolve().parents[4]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
@@ -63,6 +64,8 @@ def main():
     p.add_argument("--window", default=None, help="WIDTHxHEIGHT for -screen-width/-screen-height (interactive only)")
     p.add_argument("--min-hard-checks", type=int, default=None, help="minimum terminal assertion count; check-bearing density phases require at least 1 automatically")
     p.add_argument("--license-dir", type=Path, default=LICENCES, help="licence source (e.g. a Flatpak Hub config); copied into the isolated run config")
+    p.add_argument("--evidence-format", choices=[EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA], default=EVIDENCE_FORMAT_CURRENT,
+                   help="LONGRUN evidence format: 'current' (default) requires component-ba; 'pre-component-ba' is only for historical receipts and must be requested explicitly")
     a = p.parse_args()
     if a.marker == "DENSITY_QUAL_PASS":
         request_env = dict(os.environ)
@@ -131,7 +134,7 @@ def main():
     rewrites = sorted(x for x in new if is_known_rewrite(x))
     unexpected = [x for x in new if not is_known_rewrite(x)]
     measurement = read_longrun_evidence(Path(env["CCF_DIAG_DIR"]), env, text) if a.marker == "DENSITY_QUAL_PASS" else None
-    evaluation = evaluate_receipt(code, a.marker, text, unexpected, a.min_hard_checks, env, measurement)
+    evaluation = evaluate_receipt(code, a.marker, text, unexpected, a.min_hard_checks, env, measurement, a.evidence_format)
     passed = evaluation["status"] != "FAIL"
     result = {
         "label": a.label, "status": "PASS" if passed else "FAIL", "exit_code": code, "seconds": round(time.monotonic() - start, 1),

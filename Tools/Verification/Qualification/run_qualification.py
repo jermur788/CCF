@@ -32,7 +32,8 @@ import sys
 import time
 from pathlib import Path
 
-from qualification_results import density_request, evaluate_receipt, read_longrun_evidence
+from qualification_results import (EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA, density_request,
+                                   evaluate_receipt, read_longrun_evidence)
 
 ROOT = Path(__file__).resolve().parents[3]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
@@ -49,9 +50,9 @@ KEEP = ("U4_", "OBQ_", "QUAL_", "DENSITY_QUAL_", "E80_MEASUREMENT", "SCENARIO_ON
         "UX_QUAL", "UXQ_", "SIGSEGV", "ShutdownControllerHIDAPI", "Application::CoreShutdown", "error CS", "_PASS", "_FAIL", "_HASH")
 
 
-def evaluate_log(code, marker, text, unexpected, min_hard_checks=None):
+def evaluate_log(code, marker, text, unexpected, min_hard_checks=None, evidence_format=None):
     """Compatibility tuple for the existing receipt tests; process status remains strict."""
-    result = evaluate_receipt(code, marker, text, unexpected, min_hard_checks)
+    result = evaluate_receipt(code, marker, text, unexpected, min_hard_checks, evidence_format=evidence_format)
     return tuple(result[key] for key in ("status", "compile_errors", "assertion_failures", "unverified_checks"))
 
 
@@ -72,6 +73,8 @@ def main():
     p.add_argument("--env", action="append", default=[], help="KEY=VALUE passed to the Editor")
     p.add_argument("--window", default=None, help="WIDTHxHEIGHT for -screen-width/-screen-height (interactive only)")
     p.add_argument("--min-hard-checks", type=int, default=None, help="minimum terminal assertion count; check-bearing density phases require at least 1 automatically")
+    p.add_argument("--evidence-format", choices=[EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA], default=EVIDENCE_FORMAT_CURRENT,
+                   help="LONGRUN evidence format: 'current' (default) requires component-ba; 'pre-component-ba' is only for historical receipts and must be requested explicitly")
     a = p.parse_args()
     if a.marker == "DENSITY_QUAL_PASS":
         request_env = dict(os.environ)
@@ -141,7 +144,7 @@ def main():
     rewrites = sorted(x for x in new if is_known_rewrite(x))
     unexpected = [x for x in new if not is_known_rewrite(x)]
     measurement = read_longrun_evidence(Path(env["CCF_DIAG_DIR"]), env, text) if a.marker == "DENSITY_QUAL_PASS" else None
-    evaluation = evaluate_receipt(code, a.marker, text, unexpected, a.min_hard_checks, env, measurement)
+    evaluation = evaluate_receipt(code, a.marker, text, unexpected, a.min_hard_checks, env, measurement, a.evidence_format)
     status = evaluation["status"]
     passed = status != "FAIL"
     result = {
