@@ -1,0 +1,248 @@
+{
+  "branch": "integration/scenario-one-tier3-candidate",
+  "tooling_head": "ec9068371eae998774ca93dc75c8ff5b74d5a743",
+  "production_base": "c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2",
+  "context": "cddad55213d3491b9f320a7a9a7a1bcd913b6ec8",
+  "evidence_root": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z",
+  "scope": "Authoritative focused Unity rerun evidence referenced by review (ScenarioHistoryVerification + U4GuidanceSmoke). Per-run isolated Unity config/licence trees are excluded as environment plumbing, not evidence.",
+  "results": {
+    "history-phase2": {
+      "status": "PASS",
+      "marker": "SCENARIO_HISTORY_VERIFY_PASS",
+      "hard_checks": 43,
+      "exit_code": 0,
+      "process_outcome": "PASS_CLEAN_SHUTDOWN"
+    },
+    "u4-phase2": {
+      "status": "PASS",
+      "marker": "U4_GUIDANCE_PASS",
+      "hard_checks": 113,
+      "exit_code": 0,
+      "game_view": "1280x720",
+      "process_outcome": "PASS_CLEAN_SHUTDOWN"
+    }
+  },
+  "excluded": "runs/*/config/** (isolated Unity config/licence/prefs)",
+  "files": [
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/history/command-line.txt",
+      "bytes": 502,
+      "sha256": "b0ed854d7864b6fea94df8e0c966a992aa713e3ab7d13460b7d35acbfadc22be"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/history/executed-assertions.txt",
+      "bytes": 2233,
+      "sha256": "109c7c0ae6b1b1b0bb271339ca48303ec3684226f1a39684459ae1afe4b63d8b"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/history/history-phase2.log",
+      "bytes": 275477,
+      "sha256": "6c5312a6f9785267ca80aa3a38c6fff246c8c9759d577b13d48c174019ac09ae"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/history/history-phase2.markers.txt",
+      "bytes": 3093,
+      "sha256": "45ed7963e7fe2f8c07672fbb7c28489efa8b80957fe58c66512c464ab76c2ea1"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/history/results-history-phase2.json",
+      "bytes": 928,
+      "sha256": "e91f51d5abffeb03b8f1aa773ecf9bb8e20f0991f133bf945b584583915937c5"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/logs/history-phase2.runner.txt",
+      "bytes": 79,
+      "sha256": "317bfd272340a8cbd4f6a0a515c0867a316678dc6c1a596364e1afc2f74cc2e6"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/logs/phase2.log",
+      "bytes": 340,
+      "sha256": "57dcefaa35d2a8ca4476e2bd68c088507b613e187db90aacb272cd0e6aac76b9"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/logs/u4-phase2.runner.txt",
+      "bytes": 75,
+      "sha256": "4f79516f06aaa0c604fc69aaa84ed4060b525cd8abb7dd1dfbd13368f19cea37"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/changed-files.txt",
+      "bytes": 1105,
+      "sha256": "a5b4668f8b28729401272c4bc6b1cda3476ed4cb2e2a9a2ad0d21c385e8047c0"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/commits.txt",
+      "bytes": 143,
+      "sha256": "ba56a61d0e65d33e488ed4855765a1d9e838e217ef00ca71ae3e7366e5372886"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/editor-rewrites-before-restore.diff",
+      "bytes": 7672,
+      "sha256": "f2e48f13eebc271e8753ac4f3f3a413bc48680e49dc6bd863c787d0aa493b008"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/environment.txt",
+      "bytes": 806,
+      "sha256": "6ab4a2bcd7de5b571b70ee203b5aaa240137717e3b5072ce6812cd2438a6891b"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/git-status-after-cleanup.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/git-status-before-cleanup.txt",
+      "bytes": 826,
+      "sha256": "7408358aaaa53f5dcbf455741bc0208858c1847dbb50fe38f81e7dbea6fe5bf4"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/head.txt",
+      "bytes": 41,
+      "sha256": "0d6168e14e8e5588d2f9f98de849dcfb5da743a257604a5b43c2753c4e70b673"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/lane-status-after.txt",
+      "bytes": 248,
+      "sha256": "3993d00cf0656c23ff55557437b48946fd4bcd7937a56c941474b06c70119174"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/lane-status-preflight.txt",
+      "bytes": 1198,
+      "sha256": "fe25f34c95264175b686425042b85d2d585c73e8c1488311dd464a77cc7ca664"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/lock-id.txt",
+      "bytes": 33,
+      "sha256": "d54e9bd4095988b193693e10fefdea8a51dd58a81558ce1a5a98869b0a24b631"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/production-invariant.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/unity-lock-acquire.txt",
+      "bytes": 563,
+      "sha256": "0c646e04f2fa2e0e7d15799f88d5bdd65fb742fdf383b18adfa960bf451166bf"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/unity-lock-after-release.json",
+      "bytes": 70,
+      "sha256": "a738a04700211be78fc4fcd8c75611407ffbe8dba9ba47b4ebf1f47a029578c8"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/unity-lock-release.txt",
+      "bytes": 518,
+      "sha256": "341c0f7f4ef413688c200ce3ddbeb3d63e4aecc712b1f0da9e95c2d4ab0e4721"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/preflight/unity-lock.json",
+      "bytes": 631,
+      "sha256": "8eac16599a882e0fe8ca9d8a65a80c78562274d0c4f3540bc62cc5db5398c56e"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state1-annual-review-first-screen.png",
+      "bytes": 758197,
+      "sha256": "9102d9773640d5b358f67d2441455b804157ba36aa8f0acbae0bda53b9fffa70"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state1-annual-review-scrolled.png",
+      "bytes": 745877,
+      "sha256": "a7cf0e3f62250b6637a25c34fff44f92ff0ce84c017746cd2c395021faf7dc93"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state1-hud.png",
+      "bytes": 1766295,
+      "sha256": "0361a6f2b3989d46c62fb641bc8ef08dee5eefe280dd862ccf48308a190c0484"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state2-annual-review-footer.png",
+      "bytes": 827724,
+      "sha256": "82fd3c7821387ef889c2de848a8de53e6e0bc5a66c8216da7950fc78eb9a70c0"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state3-annual-review-first-screen.png",
+      "bytes": 864369,
+      "sha256": "1e9426e262c68935b8fffdb124e2a47f75b0620ad1cdfd85d54e1fcdd72a3b31"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state3-annual-review-scrolled.png",
+      "bytes": 823113,
+      "sha256": "65964defa8e94159fe22ce908fceec0edb905221adef7fb063d74d124af8d4ef"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/screenshots/state3-work-plan.png",
+      "bytes": 875319,
+      "sha256": "001984f89ed1572d7dd3f953a078df1dbfae1dccbbb3fb2aac0c0f8ab6c828af"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/summary/SUMMARY.md",
+      "bytes": 5505,
+      "sha256": "684f4677d066587fdd63639e3d912de8b8da14034b4620ad33080083b2b8fc54"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/summary/results-index.json",
+      "bytes": 1559,
+      "sha256": "29fdda706bf4bb211f65148d24c6d4a59f11b4021d65ccb2e6a2aed59ead3fe3"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/command-line.txt",
+      "bytes": 595,
+      "sha256": "469b6e07848d821a8335fab2e71504c62698bf590626a5d3d7902e915663d9c1"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/evidence-guidance-smoke.txt",
+      "bytes": 30937,
+      "sha256": "897d1eb0d48f3a0973706ea345967ab821f4818c52d4f55cbe474a606119a23c"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state1-annual-review-first-screen.png",
+      "bytes": 758197,
+      "sha256": "9102d9773640d5b358f67d2441455b804157ba36aa8f0acbae0bda53b9fffa70"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state1-annual-review-scrolled.png",
+      "bytes": 745877,
+      "sha256": "a7cf0e3f62250b6637a25c34fff44f92ff0ce84c017746cd2c395021faf7dc93"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state1-hud.png",
+      "bytes": 1766295,
+      "sha256": "0361a6f2b3989d46c62fb641bc8ef08dee5eefe280dd862ccf48308a190c0484"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state2-annual-review-footer.png",
+      "bytes": 827724,
+      "sha256": "82fd3c7821387ef889c2de848a8de53e6e0bc5a66c8216da7950fc78eb9a70c0"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state3-annual-review-first-screen.png",
+      "bytes": 864369,
+      "sha256": "1e9426e262c68935b8fffdb124e2a47f75b0620ad1cdfd85d54e1fcdd72a3b31"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state3-annual-review-scrolled.png",
+      "bytes": 823113,
+      "sha256": "65964defa8e94159fe22ce908fceec0edb905221adef7fb063d74d124af8d4ef"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/evidence/state3-work-plan.png",
+      "bytes": 875319,
+      "sha256": "001984f89ed1572d7dd3f953a078df1dbfae1dccbbb3fb2aac0c0f8ab6c828af"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/results-u4-phase2.json",
+      "bytes": 1868,
+      "sha256": "53ef3da256f609b4024a9decd932c9fc2b51f4c55fc80a01cf55ec3d566ed6bf"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/u4-phase2.log",
+      "bytes": 705006,
+      "sha256": "ee0bf4c84b823bbc37e669d86b7f6d5256e8e99b980df64feaec94697c8441ff"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z/u4-guidance/u4-phase2.markers.txt",
+      "bytes": 8812,
+      "sha256": "cb038aa0dc53fde373fe954e660c633f8b559447884f030c05f8f148eb6ed149"
+    }
+  ]
+}

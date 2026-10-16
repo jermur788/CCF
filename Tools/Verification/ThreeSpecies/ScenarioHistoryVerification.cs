@@ -11,7 +11,9 @@ using CCF.Forestry.WorkEconomy;
 
 // Disposable in-Editor gate: Scenario One management history and repeated interventions (S1-C / S1-D).
 //
-// STATUS: original Unity run stopped at an obsolete hint assertion. Phase-2 correction is not yet Unity-rerun.
+// STATUS: original Unity run stopped at an obsolete hint assertion; the Phase-2 correction rerun PASSED on
+// 2026-10-16 at tooling HEAD ec9068371eae998774ca93dc75c8ff5b74d5a743 — SCENARIO_HISTORY_VERIFY_PASS assertions=43,
+// exit 0, clean shutdown (evidence: ScenarioOneCandidateV2-Phase2FocusedRerun-20261016T070954Z).
 // The derivation rules are executed offline against the real record classes (OfflineLogic/ScenarioHistoryOfflineCheck);
 // this gate covers what only Unity can: that real play produces the records those rules read, that three cycles behave
 // the same as one, that no recurring review gate appears, that old open orders are surfaced and kept, and that the history
