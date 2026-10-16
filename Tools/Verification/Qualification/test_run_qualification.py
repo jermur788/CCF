@@ -2,9 +2,18 @@
 import unittest
 
 from run_qualification import evaluate_log
-from qualification_results import PERF_LABELS, density_request, evaluate_receipt, read_longrun_evidence
+from qualification_results import COMPONENT_BA_COLUMNS, PERF_LABELS, density_request, evaluate_receipt, read_longrun_evidence
 from pathlib import Path
 import tempfile
+
+# A valid component-ba row with no deaths this year: both components zero, totals consistent, attribution exact.
+NO_DEATH_COMPONENT_BA_ROW = "100,10.00000,0,0,0,0.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0,0,0,1"
+
+
+def write_component_ba(path, scenarios, years, geo="E80"):
+    header = ",".join(COMPONENT_BA_COLUMNS) + "\n"
+    rows = [f"{scenario},{geo},{year},SpeciesAwareOccupancy,{NO_DEATH_COMPONENT_BA_ROW}\n" for scenario in scenarios for year in years]
+    Path(path).write_text(header + "".join(rows))
 
 
 class QualificationReceiptTests(unittest.TestCase):
@@ -120,6 +129,7 @@ class QualificationReceiptTests(unittest.TestCase):
             header = "scenario,geo,year\n"
             rows = [f"{scenario},E80,{year}\n" for scenario in ("B_BEECH_DENSE", "F_BEECH_YOUNG") for year in range(1, 101)]
             path.write_text(header + ''.join(rows))
+            write_component_ba(Path(tmp) / "component-ba-E80.csv", ("B_BEECH_DENSE", "F_BEECH_YOUNG"), range(1, 101))
             evidence = read_longrun_evidence(tmp, env, log)
             self.assertTrue(evidence['complete'])
             result = evaluate_receipt(0, "DENSITY_QUAL_PASS", log, [], env=env, measurement_evidence=evidence)
@@ -135,6 +145,18 @@ class QualificationReceiptTests(unittest.TestCase):
                 bad = read_longrun_evidence(tmp, env, log)
                 self.assertFalse(bad['complete'])
                 self.assertEqual("FAIL", evaluate_receipt(0, "DENSITY_QUAL_PASS", log, [], env=env, measurement_evidence=bad)['status'])
+            # component-ba is required evidence: complete longrun rows are not enough without it.
+            path.write_text(header + ''.join(rows))
+            component_ba = Path(tmp) / "component-ba-E80.csv"
+            component_ba.unlink()
+            missing = read_longrun_evidence(tmp, env, log)
+            self.assertTrue(missing['complete'])
+            self.assertFalse(missing['component_ba']['complete'])
+            self.assertEqual("FAIL", evaluate_receipt(0, "DENSITY_QUAL_PASS", log, [], env=env, measurement_evidence=missing)['status'])
+            component_ba.write_text("wrong,schema\n1,2\n")
+            schema = read_longrun_evidence(tmp, env, log)
+            self.assertFalse(schema['component_ba']['complete'])
+            self.assertEqual("FAIL", evaluate_receipt(0, "DENSITY_QUAL_PASS", log, [], env=env, measurement_evidence=schema)['status'])
 
     def test_existing_perf_only_phase_requires_its_measurements_not_hard_checks(self):
         env = {"CCF_QUAL_PHASES": "PERF"}
