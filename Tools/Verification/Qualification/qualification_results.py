@@ -1,11 +1,139 @@
 """Pure receipt/coverage evaluation shared by verification runners; never waives process exits."""
 import csv
+import math
 from pathlib import Path
 import re
 
 DENSITY_PHASES = "RATIOS,ROLLS,ANCHORS,SITKA100,SITKACOMP,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN".split(',')
 PERF_LABELS = {"PERF_ANNUAL_SITKA_MODEL1", "PERF_ANNUAL_SITKA_MODEL2_LEGACY_ROUTE", "PERF_ANNUAL_MIXED_BELOW_ONSET", "PERF_ANNUAL_MIXED_DENSE", "PERF_ANNUAL_OAK_DENSE", "PERF_PURE_PLAN"}
 DENSITY_SCENARIOS = ["A_OAK_DENSE", "B_BEECH_DENSE", "C_MIXED_DENSE", "D_SITKA_DENSE_MODEL2", "E_OAK_YOUNG", "F_BEECH_YOUNG", "G_MIXED_YOUNG", "C1_MIXED_DENSE_MODEL1", "G1_MIXED_YOUNG_MODEL1"]
+
+# Schema of the density harness's component-ba-<geo>.csv (verification-only per-component basal-area evidence; see
+# DensityQualification.cs ComponentBaHeader). The order is exact: a file whose header differs is rejected.
+COMPONENT_BA_COLUMNS = [
+    "scenario", "geo", "year", "route", "livingBefore", "baPreM2", "densityDeaths", "sitkaComponentDeaths", "genericDeaths",
+    "sitkaBaLossM2", "genericBaLossM2", "combinedBaLossM2", "sitkaBaFraction", "genericBaFraction", "combinedBaFraction",
+    "deadBaM2", "deadBaFraction", "sitkaFired", "genericFired", "bothFired", "attributionExact",
+]
+COMPONENT_BA_FLOAT_FIELDS = ("baPreM2", "sitkaBaLossM2", "genericBaLossM2", "combinedBaLossM2", "sitkaBaFraction",
+                             "genericBaFraction", "combinedBaFraction", "deadBaM2", "deadBaFraction")
+COMPONENT_BA_COUNT_FIELDS = ("livingBefore", "densityDeaths", "sitkaComponentDeaths", "genericDeaths")
+COMPONENT_BA_FLAG_FIELDS = ("sitkaFired", "genericFired", "bothFired", "attributionExact")
+
+
+def component_ba_row_problems(row):
+    """Per-row invariants. component total == reported total, zero components reported as zero, flags self-consistent."""
+    name = f"{row.get('scenario', '?')} Y{row.get('year', '?')}"
+    problems = []
+    values = {}
+    for field in COMPONENT_BA_FLOAT_FIELDS:
+        try:
+            value = float(row[field])
+        except (TypeError, ValueError):
+            problems.append(f"{name}: {field} is not a number")
+            value = None
+        if value is not None and not math.isfinite(value):
+            problems.append(f"{name}: {field} is not finite")
+        values[field] = value
+    for field in COMPONENT_BA_COUNT_FIELDS:
+        try:
+            int(row[field])
+        except (TypeError, ValueError):
+            problems.append(f"{name}: {field} is not an integer")
+    flags = {}
+    for field in COMPONENT_BA_FLAG_FIELDS:
+        flags[field] = row[field] in ("0", "1")
+        if not flags[field]:
+            problems.append(f"{name}: {field} is not 0/1")
+    if problems:
+        return problems
+    sitka_ba, generic_ba, combined_ba = values["sitkaBaLossM2"], values["genericBaLossM2"], values["combinedBaLossM2"]
+    dead_ba, ba_pre = values["deadBaM2"], values["baPreM2"]
+    tolerance = max(1e-9, 1e-6 * dead_ba)
+    # component total == reported total
+    if abs(combined_ba - (sitka_ba + generic_ba)) > tolerance:
+        problems.append(f"{name}: combinedBaLossM2 {combined_ba} != sitka+generic {sitka_ba + generic_ba}")
+    if abs(combined_ba - dead_ba) > tolerance:
+        problems.append(f"{name}: component total {combined_ba} != reported deadBaM2 {dead_ba}")
+    # The stored fractions are written to five decimals, so allow that rounding here rather than a tighter epsilon.
+    if abs(values["combinedBaFraction"] - values["deadBaFraction"]) > 1e-5:
+        problems.append(f"{name}: combinedBaFraction {values['combinedBaFraction']} != deadBaFraction {values['deadBaFraction']}")
+    if ba_pre > 0 and abs(values["combinedBaFraction"] - combined_ba / ba_pre) > 1e-5:
+        problems.append(f"{name}: combinedBaFraction does not equal combinedBaLossM2 / baPreM2")
+    # zero components reported as zero, fired components as positive
+    for label, fired_field, ba_field, count_field in (("sitka", "sitkaFired", "sitkaBaLossM2", "sitkaComponentDeaths"),
+                                                      ("generic", "genericFired", "genericBaLossM2", "genericDeaths")):
+        fired = row[fired_field] == "1"
+        if fired and (values[ba_field] <= 0.0 or int(row[count_field]) <= 0):
+            problems.append(f"{name}: {label} fired but {ba_field}/{count_field} is not positive")
+        if not fired and (abs(values[ba_field]) > tolerance or int(row[count_field]) != 0):
+            problems.append(f"{name}: {label} did not fire but {ba_field}/{count_field} is not zero")
+    both = row["bothFired"] == "1"
+    if both != (row["sitkaFired"] == "1" and row["genericFired"] == "1"):
+        problems.append(f"{name}: bothFired is not sitkaFired AND genericFired")
+    if int(row["densityDeaths"]) != int(row["sitkaComponentDeaths"]) + int(row["genericDeaths"]):
+        problems.append(f"{name}: densityDeaths != sitkaComponentDeaths + genericDeaths")
+    # The rebuilt component plan must match the controller's own counts and the actual dead set, or the row is unattributable.
+    if row["attributionExact"] != "1":
+        problems.append(f"{name}: attributionExact is 0 (the rebuilt component plan did not match the controller)")
+    return problems
+
+
+def read_component_ba_evidence(directory, env, text):
+    """Validate the harness's per-component basal-area CSV for a LONGRUN run.
+
+    Fails (complete=False with an error) on a missing file, a schema mismatch, missing/duplicate/partial scenario-year rows,
+    a geometry mismatch, non-numeric or non-finite values, inconsistent flags, a component total that does not match the
+    reported total, or a zero component reported as non-zero. No density threshold is applied.
+    """
+    failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "both_fired_rows": 0,
+               "sitka_fired_rows": 0, "generic_fired_rows": 0, "attribution_mismatch_rows": 0, "path": None}
+    try:
+        phases, selected, horizon, _ = density_request(env)
+        if "LONGRUN" not in phases:
+            return None
+        match = re.search(r"^QUAL_START geometry=(L40|E80)\b", text, re.MULTILINE)
+        geo = match.group(1) if match else {"0": "L40", "1": "E80"}.get(env.get("CCF_STAND_GEOMETRY"))
+        if not geo:
+            return dict(failure, error="component-ba geometry evidence is missing")
+        expected_geo = {"0": "L40", "1": "E80"}.get(env.get("CCF_STAND_GEOMETRY"))
+        if expected_geo and expected_geo != geo:
+            return dict(failure, error="component-ba geometry does not match the requested geometry")
+        path = Path(directory) / f"component-ba-{geo}.csv"
+        with path.open(newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != COMPONENT_BA_COLUMNS:
+                return dict(failure, error=f"component-ba schema mismatch: {reader.fieldnames}")
+            rows = list(reader)
+        expected = {(scenario, year) for scenario in selected for year in range(1, horizon + 1)}
+        keys = [(row["scenario"], int(row["year"])) for row in rows]
+        problems = []
+        if not rows:
+            problems.append("component-ba has no rows")
+        if len(keys) != len(set(keys)):
+            problems.append("component-ba has duplicate scenario-year rows")
+        if set(keys) != expected:
+            problems.append("component-ba is missing or has extra scenario-year rows")
+        if len(rows) != len(expected):
+            problems.append(f"component-ba row count {len(rows)} != expected {len(expected)}")
+        for row in rows:
+            if row["geo"] != geo:
+                problems.append("component-ba row geometry does not match the run")
+                break
+        for row in rows[:1000]:
+            problems.extend(component_ba_row_problems(row))
+            if len(problems) > 20:
+                break
+        return {
+            "path": str(path), "rows": len(rows), "expected_rows": len(expected), "complete": not problems,
+            "error": None if not problems else "; ".join(problems[:20]),
+            "both_fired_rows": sum(1 for row in rows if row["bothFired"] == "1"),
+            "sitka_fired_rows": sum(1 for row in rows if row["sitkaFired"] == "1"),
+            "generic_fired_rows": sum(1 for row in rows if row["genericFired"] == "1"),
+            "attribution_mismatch_rows": sum(1 for row in rows if row["attributionExact"] != "1"),
+        }
+    except (OSError, ValueError, KeyError, csv.Error) as error:
+        return dict(failure, error=str(error))
 
 
 def density_request(env):
@@ -49,9 +177,11 @@ def read_longrun_evidence(directory, env, text):
         expected = {(scenario, year) for scenario in selected for year in range(1, horizon + 1)}
         complete = bool(rows) and len(rows) == len(expected) and set(keys) == expected and all(row['geo'] == geo for row in rows)
         return {'path': str(path), 'rows': len(rows), 'expected_rows': len(expected), 'complete': complete,
-                'error': None if complete else 'LONGRUN filter selected nothing or produced missing/duplicate/unexpected measurement rows'}
+                'error': None if complete else 'LONGRUN filter selected nothing or produced missing/duplicate/unexpected measurement rows',
+                'component_ba': read_component_ba_evidence(directory, env, text)}
     except (OSError, ValueError, KeyError, csv.Error) as error:
-        return {'rows': 0, 'expected_rows': 0, 'complete': False, 'error': str(error)}
+        return {'rows': 0, 'expected_rows': 0, 'complete': False, 'error': str(error),
+                'component_ba': read_component_ba_evidence(directory, env, text)}
 
 
 def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=None, measurement_evidence=None):
@@ -81,6 +211,10 @@ def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=N
             if 'LONGRUN' in phases:
                 if not measurement_evidence or not measurement_evidence.get('complete') or measurement_evidence.get('expected_rows', 0) <= 0 or measurement_evidence.get('rows') != measurement_evidence.get('expected_rows'):
                     coverage_errors.append('LONGRUN filter selected nothing or lacks complete expected measurement rows; downstream analysis cannot qualify this run.')
+                component_ba = measurement_evidence.get('component_ba') if measurement_evidence else None
+                if not component_ba or not component_ba.get('complete') or component_ba.get('rows') != component_ba.get('expected_rows'):
+                    detail = (component_ba or {}).get('error') or 'component-ba rows are missing'
+                    coverage_errors.append('component-ba per-component basal-area rows are missing or inconsistent; downstream analysis cannot split the mixed-stand basal-area loss (' + str(detail) + ').')
         except ValueError as error:
             coverage_errors.append(str(error))
         if not measurement_only:

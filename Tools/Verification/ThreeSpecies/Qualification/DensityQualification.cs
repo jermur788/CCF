@@ -22,6 +22,10 @@ using UnityEditor.SceneManagement;
 //   -batchmode -nographics -executeMethod DensityQualification.Begin
 // (CCF_STAND_GEOMETRY=0 Legacy40, 1 Enlarged80; CCF_QUAL_PHASES=comma list; CCF_DIAG_DIR=output folder), then remove the
 // copy and its .meta. Saves are captured/loaded in memory, plus one disk round trip into the isolated config folder.
+//
+// LONGRUN also writes component-ba-<geo>.csv: one row per scenario-year giving the basal area the Sitka component and the
+// generic component each removed, the combined total, and whether each fired (verification-only; no production change). Read
+// it with Tools/Verification/ThreeSpecies/Qualification/component_ba.py.
 public static class DensityQualification
 {
 #if UNITY_EDITOR
@@ -219,6 +223,13 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         double sum = 0.0;
         foreach (ForestTree t in trees) sum += Math.PI / 4.0 * (t.Diameter / 100.0) * (t.Diameter / 100.0);
         return sum / e.StandAreaHectares;
+    }
+
+    // Plain cross-section at breast height of one stem, in square metres (no class weight, no per-hectare).
+    private static double StemBaM2(ForestTree t)
+    {
+        double dbhM = t.Diameter / 100.0;
+        return Math.PI / 4.0 * dbhM * dbhM;
     }
 
     private double OccupancyOfTrees(IEnumerable<ForestTree> trees)
@@ -1050,11 +1061,22 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         // Self-thinning deaths by species (Sitka, Beech, Oak): observed, and expected from competitive position alone.
         public readonly double[] Obs = new double[3], Exp = new double[3], Var = new double[3];
         public string Summary = "";
+        // Verification-only per-component basal-area rows (see component-ba-<geo>.csv) and how often each component fired.
+        public readonly List<string> ComponentRows = new List<string>();
+        public int BothFired, SitkaOnlyFired, GenericOnlyFired, NeitherFired, AttributionMismatch;
     }
 
     private static readonly int[] CheckpointYears = { 25, 50, 100, 150, 200, 300 };
     private int SpeciesIndex(ForestTree t) => t.Species == sitka ? 0 : t.Species == beech ? 1 : 2;
     private bool quietCheckpoints;
+
+    // Schema of component-ba-<geo>.csv. One row per scenario-year. sitkaBaLossM2 and genericBaLossM2 are the basal area of the
+    // stems each component killed (legacy route: the whole step is the Sitka component); combinedBaLossM2 is their sum and
+    // deadBaM2 the basal area of every stem that actually died this year. combinedBaLossM2 and deadBaM2 should agree; the
+    // offline reader (component_ba.py) proves it and rejects malformed or incomplete files. attributionExact is an
+    // instrumentation-integrity flag (the rebuilt component plan matched the controller's own counts and the actual dead set),
+    // never a forestry threshold.
+    private const string ComponentBaHeader = "scenario,geo,year,route,livingBefore,baPreM2,densityDeaths,sitkaComponentDeaths,genericDeaths,sitkaBaLossM2,genericBaLossM2,combinedBaLossM2,sitkaBaFraction,genericBaFraction,combinedBaFraction,deadBaM2,deadBaFraction,sitkaFired,genericFired,bothFired,attributionExact";
 
     private IEnumerator RunScenario(string name, int growth, Func<int, TreeSpeciesDefinition> speciesOf, float perHa, float dbhMin, float spread, int years, RunResult result)
     {
@@ -1102,6 +1124,43 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             var diedNow = pre.Where(t => !livingIds.Contains(t.TreeId)).ToList();
             double baPre = pre.Sum(t => Math.PI / 4.0 * (t.Diameter / 100.0) * (t.Diameter / 100.0)), baDead = diedNow.Sum(t => Math.PI / 4.0 * (t.Diameter / 100.0) * (t.Diameter / 100.0));
             double deadBaFraction = baPre > 0 ? baDead / baPre : 0.0;
+            // Verification-only per-component basal-area attribution. This changes no selection, threshold, RNG, equation or
+            // result: the annual density step ran on the post-growth stand with step 1's competition index and this year's keyed
+            // rolls, so the same component plan can be rebuilt from the pre-step stems, their diameters now (post-growth, the
+            // diameters the step used) and that index, and the basal area of the victims attributed to the component that chose
+            // them. The rebuild is checked against the controller's own counts and the stems that actually died; the outcome is
+            // recorded (attributionExact), never used as a forestry threshold.
+            double sitkaBaLoss = baDead, genericBaLoss = 0.0;   // legacy route: the whole step is the Sitka component, no generic
+            int sitkaComponentDeaths = a.Route == DensityRoute.LegacySitkaExact ? a.Deaths : a.SitkaComponentDeaths;
+            int genericComponentDeaths = a.Route == DensityRoute.LegacySitkaExact ? 0 : a.GenericDeaths;
+            bool attributionExact = a.Deaths == diedNow.Count;
+            if (a.Route == DensityRoute.SpeciesAwareOccupancy)
+            {
+                var stemsStep = new List<DensityStem>(pre.Length);
+                foreach (ForestTree t in pre)
+                {
+                    TreeSpeciesDefinition ts = t.Species != null ? t.Species : species;
+                    stemsStep.Add(new DensityStem(t.TreeId, ts != null ? ts.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference, t.Diameter, ciPre[t]));
+                }
+                DensityComponentPlan plan = ComponentPlan(stemsStep);
+                sitkaBaLoss = 0.0; genericBaLoss = 0.0;
+                foreach (int i in plan.SitkaVictimIndices) sitkaBaLoss += StemBaM2(pre[i]);
+                foreach (int i in plan.GenericVictimIndices) genericBaLoss += StemBaM2(pre[i]);
+                sitkaComponentDeaths = plan.SitkaVictimIndices.Count;
+                genericComponentDeaths = plan.GenericVictimIndices.Count;
+                var planIds = new HashSet<string>(plan.VictimIndices.Select(i => stemsStep[i].TreeId), StringComparer.Ordinal);
+                var deadIds = new HashSet<string>(diedNow.Select(t => t.TreeId), StringComparer.Ordinal);
+                attributionExact = plan.VictimIndices.Count == a.Deaths && sitkaComponentDeaths == a.SitkaComponentDeaths
+                    && genericComponentDeaths == a.GenericDeaths && planIds.SetEquals(deadIds);
+            }
+            if (!attributionExact) result.AttributionMismatch++;
+            double combinedBaLoss = sitkaBaLoss + genericBaLoss;
+            bool sitkaFired = sitkaComponentDeaths > 0, genericFired = genericComponentDeaths > 0;
+            if (sitkaFired && genericFired) result.BothFired++;
+            else if (sitkaFired) result.SitkaOnlyFired++;
+            else if (genericFired) result.GenericOnlyFired++;
+            else result.NeitherFired++;
+            result.ComponentRows.Add($"{name},{geo},{year},{a.Route},{a.LivingBefore},{F(baPre, "0.00000")},{a.Deaths},{sitkaComponentDeaths},{genericComponentDeaths},{F(sitkaBaLoss, "0.00000")},{F(genericBaLoss, "0.00000")},{F(combinedBaLoss, "0.00000")},{F(baPre > 0 ? sitkaBaLoss / baPre : 0.0, "0.00000")},{F(baPre > 0 ? genericBaLoss / baPre : 0.0, "0.00000")},{F(baPre > 0 ? combinedBaLoss / baPre : 0.0, "0.00000")},{F(baDead, "0.00000")},{F(deadBaFraction, "0.00000")},{(sitkaFired ? 1 : 0)},{(genericFired ? 1 : 0)},{(sitkaFired && genericFired ? 1 : 0)},{(attributionExact ? 1 : 0)}");
             int bigBefore = pre.Count(t => t.Diameter >= 20f), bigDeaths = diedNow.Count(t => t.Diameter >= 20f);
             int diedS = diedNow.Count(t => t.Species == sitka), diedB = diedNow.Count(t => t.Species == beech), diedO = diedNow.Count(t => t.Species == oak);
             string row = $"{name},{geo},{year},{a.LivingBefore},{a.Deaths},{a.HazardDeaths},{a.BoundaryDeaths},{a.Route},{F(a.Occupancy, "0.0000")},{F(a.RelativeDensity, "0.0000")},{F(a.DensityPressure, "0.0000")},{living.Length},{other},{F(ba, "0.00")},{F(occAfter, "0.0000")},{F(dq, "0.00")},{F(mean, "0.00")},{nS},{nB},{nO},{F(baS, "0.00")},{F(baB, "0.00")},{F(baO, "0.00")},{SitkaDeaths(a)},{a.GenericDeaths},{F(deadBaFraction, "0.00000")},{bigBefore},{bigDeaths},{F(a.Route == DensityRoute.SpeciesAwareOccupancy ? a.SitkaSubsetRelativeDensity : a.RelativeDensity, "0.0000")},{diedS},{diedB},{diedO},{F(a.GenericLossFraction, "0.00000")},{F(a.NonReferenceShare, "0.0000")}";
@@ -1155,6 +1214,10 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         expectedLongRunRows = scenarios.Length * horizon;
         string header = "scenario,geo,year,livingBefore,densityDeaths,hazard,boundary,route,occupancyUsed,sitkaRd,pressure,livingAfter,netOther,baM2ha,occupancyAfter,dq,meanDbh,nSitka,nBeech,nOak,baSitka,baBeech,baOak,sitkaComponentDeaths,genericDeaths,deadBaFraction,bigBefore,bigDeaths,sitkaRdBeforeStep,deathsSitka,deathsBeech,deathsOak,genericLossFraction,nonRefShare";
         Csv($"longrun-{geo}.csv", header);
+        // Verification-only per-component basal-area evidence: one machine-readable row per scenario-year, written for exactly
+        // the scenarios LONGRUN runs so Tier-3 can measure the Sitka and generic components' basal area annually in a mixed
+        // stand. See component_ba.py for the offline schema/consistency reader. It is not a threshold and not a new gate.
+        Csv($"component-ba-{geo}.csv", ComponentBaHeader);
         foreach (var sc in scenarios)
         {
             var r1 = new RunResult(); var r2 = new RunResult();
@@ -1162,8 +1225,12 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             yield return RunScenario(sc.name, sc.growth, sc.speciesOf, sc.perHa, sc.dbhMin, sc.spread, horizon, r1);
             if (r1.Rows.Count != horizon || r1.Living.Count != horizon)
                 throw new InvalidOperationException($"Incomplete LONGRUN measurements for {sc.name}: expectedYears={horizon} rows={r1.Rows.Count}");
+            if (r1.ComponentRows.Count != horizon)
+                throw new InvalidOperationException($"Incomplete component-ba measurements for {sc.name}: expectedYears={horizon} rows={r1.ComponentRows.Count}");
             longRunRows += r1.Rows.Count;
             foreach (string row in r1.Rows) Csv($"longrun-{geo}.csv", row);
+            foreach (string row in r1.ComponentRows) Csv($"component-ba-{geo}.csv", row);
+            Measure("COMPONENT_BA", $"scenario={sc.name} years={horizon} bothFiredYears={r1.BothFired} sitkaOnlyYears={r1.SitkaOnlyFired} genericOnlyYears={r1.GenericOnlyFired} neitherFiredYears={r1.NeitherFired} attributionMismatches={r1.AttributionMismatch} file=component-ba-{geo}.csv");
             if (replay)
             {
                 quietCheckpoints = true;   // the replay is only compared, not reported twice
