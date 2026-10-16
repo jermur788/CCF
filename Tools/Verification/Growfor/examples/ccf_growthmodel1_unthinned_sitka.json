@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "description": "CCF growth-model-1 pure-Sitka unthinned aggregate yearly slice, extracted verbatim for the BroadLynch2006_Sitka comparator demonstration. Not production data and not a project anchor.",
+    "source": "Docs/Research/SitkaGrowthMortality/Evidence/growth_model1_stand_development.csv",
+    "source_commit": "ec9068371eae998774ca93dc75c8ff5b74d5a743",
+    "run": "growthModel1/unthinned",
+    "columns": {"age": "age", "N": "stems_ha", "B": "basal_area_m2_ha", "H": "top_height_m", "V": "volume_m3_ha"},
+    "units": "age years; N stems/ha; B m2/ha; H m; V m3/ha"
+  },
+  "series": [
+    {"age": 20, "N": 2100, "B": 41.10, "H": 14.63, "V": 249.2},
+    {"age": 30, "N": 2088, "B": 64.50, "H": 20.92, "V": 559.8},
+    {"age": 40, "N": 1706, "B": 75.87, "H": 24.14, "V": 803.1},
+    {"age": 50, "N": 1206, "B": 78.81, "H": 26.44, "V": 939.6},
+    {"age": 60, "N": 900, "B": 81.92, "H": 28.25, "V": 1052.9},
+    {"age": 80, "N": 538, "B": 86.94, "H": 30.11, "V": 1204.0},
+    {"age": 100, "N": 344, "B": 86.36, "H": 30.92, "V": 1241.3},
+    {"age": 120, "N": 256, "B": 83.81, "H": 31.05, "V": 1218.8}
+  ]
+}
