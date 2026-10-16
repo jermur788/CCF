@@ -4,17 +4,16 @@
     "source": "Docs/Research/SitkaGrowthMortality/Evidence/growth_model1_stand_development.csv",
     "source_commit": "ec9068371eae998774ca93dc75c8ff5b74d5a743",
     "run": "growthModel1/unthinned",
-    "columns": {"age": "age", "N": "stems_ha", "B": "basal_area_m2_ha", "H": "top_height_m", "V": "volume_m3_ha"},
-    "units": "age years; N stems/ha; B m2/ha; H m; V m3/ha"
+    "units": "age years; stems_ha stems/ha; basal_area_m2_ha m2/ha; top_height_m m; volume_m3_ha m3/ha"
   },
   "series": [
-    {"age": 20, "N": 2100, "B": 41.10, "H": 14.63, "V": 249.2},
-    {"age": 30, "N": 2088, "B": 64.50, "H": 20.92, "V": 559.8},
-    {"age": 40, "N": 1706, "B": 75.87, "H": 24.14, "V": 803.1},
-    {"age": 50, "N": 1206, "B": 78.81, "H": 26.44, "V": 939.6},
-    {"age": 60, "N": 900, "B": 81.92, "H": 28.25, "V": 1052.9},
-    {"age": 80, "N": 538, "B": 86.94, "H": 30.11, "V": 1204.0},
-    {"age": 100, "N": 344, "B": 86.36, "H": 30.92, "V": 1241.3},
-    {"age": 120, "N": 256, "B": 83.81, "H": 31.05, "V": 1218.8}
+    {"age": 20, "stems_ha": 2100, "basal_area_m2_ha": 41.10, "top_height_m": 14.63, "volume_m3_ha": 249.2},
+    {"age": 30, "stems_ha": 2088, "basal_area_m2_ha": 64.50, "top_height_m": 20.92, "volume_m3_ha": 559.8},
+    {"age": 40, "stems_ha": 1706, "basal_area_m2_ha": 75.87, "top_height_m": 24.14, "volume_m3_ha": 803.1},
+    {"age": 50, "stems_ha": 1206, "basal_area_m2_ha": 78.81, "top_height_m": 26.44, "volume_m3_ha": 939.6},
+    {"age": 60, "stems_ha": 900, "basal_area_m2_ha": 81.92, "top_height_m": 28.25, "volume_m3_ha": 1052.9},
+    {"age": 80, "stems_ha": 538, "basal_area_m2_ha": 86.94, "top_height_m": 30.11, "volume_m3_ha": 1204.0},
+    {"age": 100, "stems_ha": 344, "basal_area_m2_ha": 86.36, "top_height_m": 30.92, "volume_m3_ha": 1241.3},
+    {"age": 120, "stems_ha": 256, "basal_area_m2_ha": 83.81, "top_height_m": 31.05, "volume_m3_ha": 1218.8}
   ]
 }

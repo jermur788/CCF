@@ -87,11 +87,28 @@ VOLUME_BETA6 = -0.2384
 # Integrated form (extraction section 9.2):
 #   ln B = -(1/b) ln[ B0^-b - (a b / c) H^d (N^c - N0^c) ]
 # NOTE: a,b,c,d here are the thinning coefficients, not growth-model objects.
+#
+# SOURCE FIDELITY: the PRINTSOURCE coefficients are c = -0.2877 and d = -0.5585
+# (both negative). The signs matter: with c > 0 the term (N^c - N0^c) changes
+# sign and the transition returns a nonphysical near-zero basal area. With the
+# printed negative signs the published reference case (B0=30 m2/ha, N0=1800
+# stems/ha, H=16 m, N=1200 stems/ha) gives B ~= 23.7697 m2/ha.
+#
+# Term-by-term check of (a b / c) H^d (N^c - N0^c) for B0=30,N0=1800,H=16,N=1200:
+#   a = 10.0991, b = 0.2371  -> a*b = 2.39449661
+#   a*b/c = 2.39449661 / -0.2877 = -8.32289402 (negative)
+#   H^d = 16^-0.5585 = 0.21256854 (positive)
+#   N^c = 1200^-0.2877 = 0.13005275, N0^c = 1800^-0.2877 = 0.11573324
+#   N^c - N0^c = 0.01431952 (positive because c < 0 and N < N0)
+#   product = (-8.32289402)(0.21256854)(0.01431952) = -0.02533388
+#   B0^-b = 30^-0.2371 = 0.44645177
+#   inner = 0.44645177 - (-0.02533388) = 0.47178565
+#   ln B = -(1/0.2371) ln(0.47178565) -> B ~= 23.7697 m2/ha.
 # ---------------------------------------------------------------------------
 THIN_A = 10.0991
 THIN_B = 0.2371
-THIN_C = 0.2877
-THIN_D = 0.5585
+THIN_C = -0.2877
+THIN_D = -0.5585
 
 # ---------------------------------------------------------------------------
 # Assortment UNML coefficients — extraction sections 10.3-10.4 (G2 pp.22,29).
@@ -294,9 +311,13 @@ def assortment(B0, N0, H, B1=None, N1=None, thinning=None):
     (no-thin) assortment, thinning-only predictors are dropped (source gap: the
     extraction does not print the exact crop predictor set — see README).
     """
+    if not (B0 > 0.0 and N0 > 0.0 and H > 0.0):
+        raise ValueError("assortment domain error: B0, N0 and H must all be positive")
     B1 = B0 if B1 is None else B1
     N1 = N0 if N1 is None else N1
     thinning = (B1 != B0 or N1 != N0) if thinning is None else thinning
+    if thinning and not (B1 > 0.0 and N1 > 0.0):
+        raise ValueError("assortment domain error: a thinning assortment requires positive B1 and N1")
     D0 = qmd(B0, N0)
     D1 = qmd(B1, N1)
     if thinning and D1 == D0:
