@@ -1139,7 +1139,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
                 var stemsStep = new List<DensityStem>(pre.Length);
                 foreach (ForestTree t in pre)
                 {
-                    TreeSpeciesDefinition ts = t.Species != null ? t.Species : species;
+                    TreeSpeciesDefinition ts = t.Species;
                     stemsStep.Add(new DensityStem(t.TreeId, ts != null ? ts.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference, t.Diameter, ciPre[t]));
                 }
                 DensityComponentPlan plan = ComponentPlan(stemsStep);
