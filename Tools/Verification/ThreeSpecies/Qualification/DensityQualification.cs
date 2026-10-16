@@ -39,11 +39,55 @@ public static class DensityQualification
     }
 }
 
+// Pure verification policy, exercised by the non-Unity self-test. No density rules or thresholds live here.
+public static class DensityQualificationCoverage
+{
+    public const string Phases = "RATIOS,ROLLS,ANCHORS,SITKA100,SITKACOMP,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN";
+    public const string Selectors = "A,B,C,D,E,F,G,C1,G1";
+
+    public static string[] SelectPhases(string filter)
+    {
+        string[] selected = (filter ?? Phases).Split(',').Select(token => token.Trim().ToUpperInvariant()).ToArray();
+        if (selected.Any(token => !Phases.Split(',').Contains(token)))
+            throw new InvalidOperationException("Unknown CCF_QUAL_PHASES token in [" + filter + "]. Valid phases: " + Phases);
+        return selected;
+    }
+
+    public static string[] ScenarioTokens(string filter)
+    {
+        if (filter == null) return Selectors.Split(',');
+        string[] tokens = filter.Split(',').Select(token => token.Trim()).ToArray();
+        if (tokens.Any(token => !Selectors.Split(',').Contains(token)))
+            throw new InvalidOperationException("CCF_QUAL_SCENARIOS filter selected nothing for an unknown token in [" + filter
+                + "]. Use short selectors: " + Selectors);
+        return tokens;
+    }
+
+    public static string[] SelectScenarios(string[] available, string filter)
+    {
+        string[] tokens = ScenarioTokens(filter);
+        string[] selected = available.Where(name => tokens.Any(token => name.StartsWith(token + "_", StringComparison.Ordinal))).ToArray();
+        if (selected.Length == 0)
+            throw new InvalidOperationException("CCF_QUAL_SCENARIOS filter selected nothing.");
+        return selected;
+    }
+
+    public static void RequireCoverage(int hardChecks, bool measurementOnly, int rows, int expectedRows)
+    {
+        if (measurementOnly)
+        {
+            if (expectedRows <= 0 || rows != expectedRows)
+                throw new InvalidOperationException("Measurement filter selected nothing or produced incomplete rows: " + rows + "/" + expectedRows);
+        }
+        else if (hardChecks <= 0)
+            throw new InvalidOperationException("No hard checks ran (hardChecks=0) for a check-bearing phase; the phase/filter may have selected nothing.");
+    }
+}
+
 public sealed class DensityQualificationRunner : MonoBehaviour
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     private const string Growth1Neutral = "7E57B9DAEF5BF4D0", Growth1Normal = "35E2BF1C2F55C2DE";
-    private const string DefaultPhases = "RATIOS,ROLLS,ANCHORS,SITKA100,SITKACOMP,PARITY,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,FINALBROADLEAF,LATEMIX,SAVELOAD,PERF,LONGRUN";
 
     private ForestEcologyController e;
     private ScenarioOneManager manager;
@@ -53,7 +97,8 @@ public sealed class DensityQualificationRunner : MonoBehaviour
     private TreeSpeciesDefinition sitka, oak, beech;
     private string geo, outDir;
     private readonly List<string> hardFailures = new List<string>();
-    private int hardPassed;
+    private int hardPassed, longRunRows, expectedLongRunRows, perfRecords, expectedPerfRecords;
+    private bool measurementOnly;
 
     private static string F(double v, string f = "0.####") => v.ToString(f, Inv);
     private static long Bits(double v) => BitConverter.DoubleToInt64Bits(v);
@@ -980,6 +1025,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             }
             if (alloc.Count == 0) alloc.Add(double.NaN);
             var sorted = ms.OrderBy(v => v).ToList();
+            perfRecords++;
             Measure($"PERF_ANNUAL_{c.label}", $"stems={StemCount(c.perHa)} years=15 meanMs={F(ms.Average(), "0.0")} medianMs={F(sorted[sorted.Count / 2], "0.0")} p95Ms={F(sorted[(int)(sorted.Count * 0.95)], "0.0")} maxMs={F(sorted.Last(), "0.0")} monoHeapGrowthMeanMB={F(alloc.Average(), "0.00")} max={F(alloc.Max(), "0.00")} yearsMeasured={alloc.Count(v => !double.IsNaN(v))}/15 yearsWithACollection={collectedYears}");
         }
         // The pure model on its own.
@@ -989,6 +1035,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         const int reps = 200;
         for (int i = 0; i < reps; i++) ComponentPlan(stems);
         timer.Stop();
+        perfRecords++;
         Measure("PERF_PURE_PLAN", $"stems={stems.Count} meanMsPerPlan={F(timer.Elapsed.TotalMilliseconds / reps, "0.000")}");
     }
 
@@ -1100,13 +1147,12 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             ("G1_MIXED_YOUNG_MODEL1", 1, three, 2500f, 8f, 6f)
         };
         string filter = Environment.GetEnvironmentVariable("CCF_QUAL_SCENARIOS");
-        if (!string.IsNullOrEmpty(filter))
-        {
-            var keep = new HashSet<string>(filter.Split(',').Select(s => s.Trim() + "_"), StringComparer.Ordinal);
-            scenarios = scenarios.Where(sc => keep.Any(k => sc.name.StartsWith(k, StringComparison.Ordinal))).ToArray();
-        }
+        string[] selected = DensityQualificationCoverage.SelectScenarios(scenarios.Select(sc => sc.name).ToArray(), filter);
+        scenarios = scenarios.Where(sc => selected.Contains(sc.name)).ToArray();
+        Measure("LONGRUN_SELECTION", $"filter=[{filter ?? "<all>"}] selected={scenarios.Length} scenarios={string.Join(",", selected)}");
         int horizon = int.TryParse(Environment.GetEnvironmentVariable("CCF_QUAL_YEARS"), out int h) && h >= 100 ? h : 100;
         bool replay = Environment.GetEnvironmentVariable("CCF_QUAL_REPLAY") != "0";
+        expectedLongRunRows = scenarios.Length * horizon;
         string header = "scenario,geo,year,livingBefore,densityDeaths,hazard,boundary,route,occupancyUsed,sitkaRd,pressure,livingAfter,netOther,baM2ha,occupancyAfter,dq,meanDbh,nSitka,nBeech,nOak,baSitka,baBeech,baOak,sitkaComponentDeaths,genericDeaths,deadBaFraction,bigBefore,bigDeaths,sitkaRdBeforeStep,deathsSitka,deathsBeech,deathsOak,genericLossFraction,nonRefShare";
         Csv($"longrun-{geo}.csv", header);
         foreach (var sc in scenarios)
@@ -1114,6 +1160,9 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             var r1 = new RunResult(); var r2 = new RunResult();
             quietCheckpoints = false;
             yield return RunScenario(sc.name, sc.growth, sc.speciesOf, sc.perHa, sc.dbhMin, sc.spread, horizon, r1);
+            if (r1.Rows.Count != horizon || r1.Living.Count != horizon)
+                throw new InvalidOperationException($"Incomplete LONGRUN measurements for {sc.name}: expectedYears={horizon} rows={r1.Rows.Count}");
+            longRunRows += r1.Rows.Count;
             foreach (string row in r1.Rows) Csv($"longrun-{geo}.csv", row);
             if (replay)
             {
@@ -1165,7 +1214,10 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         Check(sitka != null && oak != null && beech != null, "species resolve");
         original = saves.CaptureData();
         string phases = Environment.GetEnvironmentVariable("CCF_QUAL_PHASES");
-        var wanted = new HashSet<string>((string.IsNullOrEmpty(phases) ? DefaultPhases : phases).Split(',').Select(p => p.Trim().ToUpperInvariant()));
+        var wanted = new HashSet<string>(DensityQualificationCoverage.SelectPhases(phases));
+        DensityQualificationCoverage.ScenarioTokens(Environment.GetEnvironmentVariable("CCF_QUAL_SCENARIOS"));
+        expectedPerfRecords = wanted.Contains("PERF") ? 6 : 0;
+        measurementOnly = wanted.All(phase => phase == "PERF" || (phase == "LONGRUN" && Environment.GetEnvironmentVariable("CCF_QUAL_REPLAY") == "0"));
         Debug.Log($"QUAL_START geometry={geo} areaHa={F(e.StandAreaHectares, "0.00")} cells={e.CellCount} phases={string.Join(",", wanted)}");
         var started = System.Diagnostics.Stopwatch.StartNew();
         if (wanted.Contains("RATIOS")) { yield return Ratios(); Debug.Log($"QUAL_PHASE_DONE RATIOS t={started.Elapsed.TotalSeconds:0}s"); }
@@ -1203,8 +1255,10 @@ public sealed class DensityQualificationRunner : MonoBehaviour
         }
         try { if (original != null) { manager.EndReferencePreview(); saves.LoadData(original, false); } }
         catch (Exception ex) { failure = failure ?? ex.ToString(); }
+        try { DensityQualificationCoverage.RequireCoverage(hardPassed, measurementOnly, longRunRows + perfRecords, expectedLongRunRows + expectedPerfRecords); }
+        catch (Exception ex) { failure = failure ?? ex.Message; }
         bool ok = failure == null && hardFailures.Count == 0;
-        Debug.Log(ok ? $"DENSITY_QUAL_PASS geometry={geo} hardChecks={hardPassed}" : $"DENSITY_QUAL_FAIL geometry={geo} exception={failure} hardFailures=[{string.Join(" | ", hardFailures)}]");
+        Debug.Log(ok ? $"DENSITY_QUAL_PASS geometry={geo} hardChecks={hardPassed} measurementOnly={measurementOnly} longRunRows={longRunRows} expectedLongRunRows={expectedLongRunRows} perfRecords={perfRecords} expectedPerfRecords={expectedPerfRecords}" : $"DENSITY_QUAL_FAIL geometry={geo} exception={failure} hardFailures=[{string.Join(" | ", hardFailures)}]");
 #if UNITY_EDITOR
         EditorApplication.ExitPlaymode();
         EditorApplication.Exit(ok ? 0 : 1);

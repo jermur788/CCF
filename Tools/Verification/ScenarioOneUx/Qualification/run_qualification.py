@@ -26,6 +26,9 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "Qualification"))
+from qualification_results import evaluate_receipt
+
 ROOT = Path(__file__).resolve().parents[4]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
 STAGE = ROOT / "Assets" / "ForestPrototype"
@@ -38,7 +41,7 @@ def is_known_rewrite(line):
         return True
     return line.startswith(" M Assets/ForestPrototype/Art/SectionFive/") and line.endswith(".mat")
 KEEP = ("QUAL_", "DENSITY_QUAL_", "E80_MEASUREMENT", "SCENARIO_ONE_COMPLETION", "SCENARIO_HISTORY", "BROADLEAF", "MIXED_DENSITY_",
-        "UX_QUAL", "error CS", "_PASS", "_FAIL", "_HASH")
+        "UX_QUAL", "UXQ_", "SIGSEGV", "ShutdownControllerHIDAPI", "Application::CoreShutdown", "error CS", "_PASS", "_FAIL", "_HASH")
 
 
 def git_state():
@@ -46,7 +49,7 @@ def git_state():
     return set(out.splitlines())
 
 
-def main():
+def parse_args(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--label", required=True)
     p.add_argument("--out", required=True)
@@ -57,13 +60,22 @@ def main():
     p.add_argument("--timeout", type=int, default=3600)
     p.add_argument("--env", action="append", default=[], help="KEY=VALUE passed to the Editor")
     p.add_argument("--window", default=None, help="WIDTHxHEIGHT for -screen-width/-screen-height (interactive only)")
-    a = p.parse_args()
+    p.add_argument("--license-dir", type=Path, default=LICENCES, help="licence source copied into the isolated run config (e.g. renewed Hub licences)")
+    return p.parse_args(argv)
 
+
+def prepare_config(out, license_dir):
+    config = Path(out) / "config"
+    if not (config / "unity3d/Unity/licenses").exists():
+        shutil.copytree(license_dir, config / "unity3d/Unity/licenses")
+    return config
+
+
+def main():
+    a = parse_args()
     out = Path(a.out)
     (out / "evidence").mkdir(parents=True, exist_ok=True)
-    config = out / "config"
-    if not (config / "unity3d/Unity/licenses").exists():
-        shutil.copytree(LICENCES, config / "unity3d/Unity/licenses")
+    config = prepare_config(out, a.license_dir)
 
     busy = subprocess.run(["pgrep", "-f", "^" + UNITY + " "], capture_output=True, text=True).stdout.split()
     if busy:
@@ -118,14 +130,15 @@ def main():
     new = sorted(after - before)
     rewrites = sorted(x for x in new if is_known_rewrite(x))
     unexpected = [x for x in new if not is_known_rewrite(x)]
-    compile_errors = [l for l in text.splitlines() if "error CS" in l]
-    passed = code == 0 and a.marker in text and not compile_errors and not unexpected
+    evaluation = evaluate_receipt(code, a.marker, text, unexpected)
+    passed = evaluation["status"] != "FAIL"
     result = {
         "label": a.label, "status": "PASS" if passed else "FAIL", "exit_code": code, "seconds": round(time.monotonic() - start, 1),
         "method": a.method, "marker": a.marker, "marker_found": a.marker in text, "env": a.env, "interactive": a.interactive,
         "run_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
-        "staged_sha256": digests, "compile_errors": compile_errors[:5], "unexpected_tree_changes": unexpected,
+        "staged_sha256": digests, "unexpected_tree_changes": unexpected,
         "known_editor_rewrites": rewrites,
+        **evaluation,
     }
     (out / ("results-" + a.label + ".json")).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ("label", "status", "exit_code", "seconds")}), flush=True)

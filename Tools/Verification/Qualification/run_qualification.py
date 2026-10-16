@@ -16,7 +16,10 @@ folder carries no licence. This runner:
     .vscode/settings.json (recorded, not failed);
   - writes results-<label>.json and <label>.markers.txt (the log lines that matter, without Unity's noise).
 
-PASS needs: exit 0, the --marker in the log, no `error CS` or UX assertion failure and no unexpected working-tree change.
+PASS needs: exit 0, a terminal --marker verdict, no assertion/compile failures and no unexpected tree change.
+Check-bearing density phases require hardChecks >= 1. LONGRUN/replay=0 requires complete CSV rows instead;
+its measurement verdict remains pending downstream analysis. --min-hard-checks adds an explicit count requirement.
+A valid verdict followed by the known shutdown SIGSEGV is annotated separately, but remains FAIL with the raw non-zero exit.
 UXQ_UNVERIFIED records produce PASS_WITH_UNVERIFIED (exit 0); consumers must retain that qualification.
 """
 import argparse
@@ -28,6 +31,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+
+from qualification_results import density_request, evaluate_receipt, read_longrun_evidence
 
 ROOT = Path(__file__).resolve().parents[3]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
@@ -41,18 +46,13 @@ def is_known_rewrite(line):
         return True
     return line.startswith(" M Assets/ForestPrototype/Art/SectionFive/") and line.endswith(".mat")
 KEEP = ("U4_", "OBQ_", "QUAL_", "DENSITY_QUAL_", "E80_MEASUREMENT", "SCENARIO_ONE_COMPLETION", "SCENARIO_HISTORY", "BROADLEAF", "MIXED_DENSITY_",
-        "UX_QUAL", "UXQ_", "error CS", "_PASS", "_FAIL", "_HASH")
+        "UX_QUAL", "UXQ_", "SIGSEGV", "ShutdownControllerHIDAPI", "Application::CoreShutdown", "error CS", "_PASS", "_FAIL", "_HASH")
 
 
-def evaluate_log(code, marker, text, unexpected):
-    """A completion marker is not a pass when the UX harness reports failed assertions."""
-    lines = text.splitlines()
-    compile_errors = [line for line in lines if "error CS" in line]
-    assertion_failures = [line for line in lines if line.startswith(("UXQ_FAIL ", "UX_QUAL_FAILED "))]
-    unverified = [line for line in lines if line.startswith("UXQ_UNVERIFIED ")]
-    passed = code == 0 and marker in text and not compile_errors and not unexpected and not assertion_failures
-    status = ("PASS_WITH_UNVERIFIED" if unverified else "PASS") if passed else "FAIL"
-    return status, compile_errors, assertion_failures, unverified
+def evaluate_log(code, marker, text, unexpected, min_hard_checks=None):
+    """Compatibility tuple for the existing receipt tests; process status remains strict."""
+    result = evaluate_receipt(code, marker, text, unexpected, min_hard_checks)
+    return tuple(result[key] for key in ("status", "compile_errors", "assertion_failures", "unverified_checks"))
 
 
 def git_state():
@@ -71,7 +71,13 @@ def main():
     p.add_argument("--timeout", type=int, default=3600)
     p.add_argument("--env", action="append", default=[], help="KEY=VALUE passed to the Editor")
     p.add_argument("--window", default=None, help="WIDTHxHEIGHT for -screen-width/-screen-height (interactive only)")
+    p.add_argument("--min-hard-checks", type=int, default=None, help="minimum terminal assertion count; check-bearing density phases require at least 1 automatically")
     a = p.parse_args()
+    if a.marker == "DENSITY_QUAL_PASS":
+        request_env = dict(os.environ)
+        request_env.update(item.split("=", 1) for item in a.env)
+        try: density_request(request_env)
+        except ValueError as error: raise SystemExit(str(error))
 
     out = Path(a.out)
     (out / "evidence").mkdir(parents=True, exist_ok=True)
@@ -134,15 +140,17 @@ def main():
     new = sorted(after - before)
     rewrites = sorted(x for x in new if is_known_rewrite(x))
     unexpected = [x for x in new if not is_known_rewrite(x)]
-    status, compile_errors, assertion_failures, unverified = evaluate_log(code, a.marker, text, unexpected)
+    measurement = read_longrun_evidence(Path(env["CCF_DIAG_DIR"]), env, text) if a.marker == "DENSITY_QUAL_PASS" else None
+    evaluation = evaluate_receipt(code, a.marker, text, unexpected, a.min_hard_checks, env, measurement)
+    status = evaluation["status"]
     passed = status != "FAIL"
     result = {
         "label": a.label, "status": status, "exit_code": code, "seconds": round(time.monotonic() - start, 1),
         "method": a.method, "marker": a.marker, "marker_found": a.marker in text, "env": a.env, "interactive": a.interactive,
         "run_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
-        "staged_sha256": digests, "compile_errors": compile_errors[:5], "unexpected_tree_changes": unexpected,
+        "staged_sha256": digests, "unexpected_tree_changes": unexpected,
         "known_editor_rewrites": rewrites,
-        "assertion_failures": assertion_failures, "unverified_checks": unverified,
+        **evaluation,
     }
     (out / ("results-" + a.label + ".json")).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ("label", "status", "exit_code", "seconds")}), flush=True)

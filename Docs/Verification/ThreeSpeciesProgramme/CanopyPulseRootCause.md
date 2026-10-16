@@ -175,6 +175,8 @@ The A1 hard receipts each report 77 checks, exit 0. **Eight fairness count asser
 
 The actual valid fixture selector was **`CCF_QUAL_SCENARIOS=B,F`**, with `CCF_QUAL_PHASES=LONGRUN CCF_QUAL_YEARS=300 CCF_QUAL_REPLAY=0`. The originally documented full-name selector matched no scenarios and produced rejected header-only outputs. Those unsuccessful receipts are preserved as such. Corrected `long-l40-bf` and `long-e80-bf` CSVs each contain 600 rows: both fixtures, years 1..300 exactly once. Original `max_ba_loss.py` output is `MAX_BA_LOSS_PASS yearsOverBudget=0`. Worst post-Y25 losses for dense/young Beech are 0.12040/0.12474 (Legacy40), 0.12495/0.12499 (Enlarged80); all four satisfy the recorded R1 and R4 checks. Pure-Sitka exactness, shielding/accounting, continuity and save/load evidence is in the A1 hard logs. These bounded results do not waive original offline G2/G4 misses or certify untested stands.
 
+Phase-2 tooling now rejects **each** unknown scenario or phase token, including a valid token combined with an unknown one. Use `B,F` for the Unity Beech fixtures and `C,G` for the mixed fixtures. Measurement-only `LONGRUN` with `CCF_QUAL_REPLAY=0` legitimately has `hardChecks=0`: it must supply every selected scenario/year CSV row exactly once, with the correct geometry, before the runner accepts collection. Its measurement verdict remains **PENDING_DOWNSTREAM_ANALYSIS** until `max_ba_loss.py` or the relevant analyser runs. Check-bearing phases still require hard checks. No density threshold changed. See [Phase-2 tooling handoff](../ScenarioOneIntegration/Phase2ToolingHandoff.md).
+
 Durable byte-for-byte originals now reside under `/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/`: `focused-a1-original/`, `fairness-original/`, `prior-tier2-original/` and `reduced-scans-original/`. Sources, sizes and SHA-256 hashes are in `../ScenarioOneIntegration/CandidateV2EvidenceManifest.json`. No required evidence category was unavailable; no historical receipt was recreated. **Unity was not run for these review corrections.**
 
 ## Reproduce
@@ -189,3 +191,5 @@ python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod|tools
 ```
 
 Raw scan tables, the budget sweep, the before/after suite logs, the mutation receipt and the type-check summary are in `CanopyPulseEvidence/`. These original offline receipts were produced on production commit `639ae2c3ac85474368c173118bd2718743346bd9`. The later fairness repair and review corrections are separate tooling/documentation changes, identified above; no production change is implied by those later receipts.
+
+The reduced-model diagnostic's `one`/`scan` commands above accept full fixture names. They use a different CLI from Unity's short `CCF_QUAL_SCENARIOS` selectors; do not copy their full names into that environment variable.

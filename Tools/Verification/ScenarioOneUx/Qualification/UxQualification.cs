@@ -80,6 +80,20 @@ public static class UxQualification
     }
 }
 
+// Explicit phase requests must all be known; a typo must not silently omit the requested coverage.
+public static class UxQualificationPhases
+{
+    public const string Known = "ROLE,FIRST_CYCLE,GUARD_VARIANTS,RESET_FLOW,CONTROLS_AND_TERMINOLOGY,MODEL_AWARE_COPY,INSPECTION_CASES,DEADWOOD_LINE,INPUT_SMOKE,F10_INPUT,PRESERVATION,PERF_SANITY,PERF_CPU_ONLY,STARTUP_CONTROLS";
+
+    public static string[] Select(string filter)
+    {
+        string[] phases = (filter ?? Known).Split(',').Select(token => token.Trim().ToUpperInvariant()).ToArray();
+        if (phases.Any(token => !Known.Split(',').Contains(token)))
+            throw new InvalidOperationException("Unknown CCF_UXQ_PHASES token in [" + filter + "]. Valid phases: " + Known);
+        return phases;
+    }
+}
+
 // F10 evidence is session-wide: a demonstrated transition removes the no-delivery exemption.
 // Kept free of Unity APIs so the offline regression executes this exact classifier.
 public sealed class F10DeliveryEvidence
@@ -309,7 +323,8 @@ public sealed class UxQualificationRunner : MonoBehaviour
         Measure("START", $"geometry={ecology.StandGeometryModelVersion} growthModel={ecology.GrowthModelVersion} year={ecology.EcologicalYear} screen={Screen.width}x{Screen.height} sizes={string.Join(",", UxQualification.Sizes())}");
 
         string only = Environment.GetEnvironmentVariable("CCF_UXQ_PHASES");
-        bool Want(string n) => string.IsNullOrEmpty(only) || only.Split(',').Contains(n);
+        string[] selectedPhases = UxQualificationPhases.Select(only);
+        bool Want(string n) => selectedPhases.Contains(n);
         if (Want("ROLE")) yield return Safe("ROLE", Role());
         if (Want("FIRST_CYCLE")) yield return Safe("FIRST_CYCLE", FirstCycle());
         if (Want("GUARD_VARIANTS")) yield return Safe("GUARD_VARIANTS", GuardVariants());

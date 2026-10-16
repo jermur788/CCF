@@ -11,7 +11,7 @@ using CCF.Forestry.WorkEconomy;
 
 // Disposable in-Editor gate: Scenario One management history and repeated interventions (S1-C / S1-D).
 //
-// STATUS: written and type-checked in a code-only cloud session. NOT YET RUN IN UNITY.
+// STATUS: original Unity run stopped at an obsolete hint assertion. Phase-2 correction is not yet Unity-rerun.
 // The derivation rules are executed offline against the real record classes (OfflineLogic/ScenarioHistoryOfflineCheck);
 // this gate covers what only Unity can: that real play produces the records those rules read, that three cycles behave
 // the same as one, that no recurring review gate appears, that old open orders are surfaced and kept, and that the history
@@ -47,6 +47,7 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
     private ForestSaveData original;
     private string originalHash;
     private int assertions;
+    private readonly List<string> markedTargets = new List<string>();
 
     private void Check(bool ok, string what) { assertions++; Debug.Log($"SCENARIO_HISTORY_{(ok ? "PASS" : "FAIL")} {what}"); if (!ok) throw new InvalidOperationException(what); }
     private ForestSaveData Clone(ForestSaveData d) => JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(d));
@@ -81,6 +82,7 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
 
     private ScenarioOneWorkOrder Mark(ForestTree tree, FellingMaterialOutcome outcome)
     {
+        markedTargets.Add(tree.TreeId);
         manager.PlanningFellingOutcome = outcome; marks.Mark(tree, TreeMarkType.Fell, false);
         manager.AddMarkedTreesToWorkPlan();
         return manager.WorkOrders.Single(order => order.type == ScenarioWorkType.FellTree && order.targetTreeId == tree.TreeId && order.IsOpen);
@@ -134,7 +136,13 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
         if (ui != null) Check(!ui.NeedsAnnualReview, "no recurring review gate");
         Check(manager.Interventions.Count == 1 && manager.Interventions[0].Latest != null && manager.Interventions[0].Latest.year == 3 && manager.Interventions[0].YearsObserved == 2,
             "idle years add no intervention but extend 'since'");
-        Check(manager.NextStepHint.Contains("2 years since intervention 1") && manager.NextStepHint.Contains("plan intervention 2"), "hint after idle years names the next intervention");
+        Check(manager.CompletionGuidance == CompletionGuidanceState.AnotherIntervention,
+            "reviewed first cycle with unmet objectives asks for another intervention");
+        Check(manager.NextStepHint == ScenarioOneCompletionGuidance.GuidanceText(CompletionGuidanceState.AnotherIntervention),
+            "U4 two-cycle guidance takes priority over the older idle-years hint (acknowledgement year >= first year)");
+        string historyOnlyHint = ScenarioInterventionHistory.NextStepHint(manager.Interventions, 3, 0, false, -1, manager.CenturyReviewYear, null);
+        Check(historyOnlyHint.Contains("2 years since intervention 1") && historyOnlyHint.Contains("plan intervention 2"),
+            "older idle-years wording remains available independently when guidance is null");
 
         // ---- cycle 2: felling left as deadwood; its trees are not 'other deaths' ----
         var second = Trees();
@@ -144,6 +152,9 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
         var after2 = manager.Interventions;
         Check(after2.Count == 2 && after2[1].Ordinal == 2 && after2[1].Year == 4 && after2[1].Felled == 2 && after2[1].Before.year == 3 && after2[1].After.year == 4, "second intervention is a new entry with its own snapshots");
         Check(after2[0].Felled == 3 && after2[0].Year == 1, "the first intervention is unchanged by the second");
+        Check(ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(manager.ManagementEvents, manager.WorkOrders)
+            && manager.CompletionGuidance == CompletionGuidanceState.None,
+            "second resolved cycle follows the review chronologically and clears U4 guidance");
 
         // ---- an old open order is surfaced and kept ----
         var third = Trees();
@@ -176,6 +187,9 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
         yield return null; yield return null;
         Check(Fingerprint(manager.Interventions) == before, "history is identical after a save and load");
         Check(manager.ManagementEvents.Count == data.scenarioOne.managementEvents.Count, "no extra records appeared on load");
+        Check(markedTargets.Count == 6 && markedTargets.All(id => manager.WorkOrders.Any(order =>
+            order.type == ScenarioWorkType.FellTree && order.targetTreeId == id && order.status == ScenarioWorkStatus.Completed)),
+            "all six marked trees across three cycles retain their completed work orders after reload");
 
         // ---- completion summary at the actual completion year (the outcome is forced; objective logic is not under test) ----
         Check(manager.CompletionReview == null, "no completion summary while active");
