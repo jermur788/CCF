@@ -105,7 +105,7 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
     private IEnumerator Verify()
     {
         Check(ForestSaveData.CurrentVersion == 20, "save version unchanged");
-        Check(ScenarioOneManager.NewGameGrowthModel == GrowthModel.SiteClassDensity, "broadleaf market is not on for new games until the Manager adopts growth model 2");
+        Check(ScenarioOneManager.NewGameGrowthModel == GrowthModel.SpeciesAware, "broadleaf market is on for new games: growth model 2 is the new-game default");
 
         // ---- growth model 1: original economy ----
         yield return Reset(GrowthModel.SiteClassDensity);
