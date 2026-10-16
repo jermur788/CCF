@@ -124,8 +124,12 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         // CCF_GROWTH_MODEL=0 replays legacy adult growth (no adult mortality);
         // with it, regeneration-model-1 games reproduce 6F84AF319D301F87 (v16 layout).
         string forcedGrowth = Environment.GetEnvironmentVariable("CCF_GROWTH_MODEL");
+        // Historical layout runs explicitly request CCF_GROWTH_MODEL=1 before the fixture capture.
         if (!string.IsNullOrEmpty(forcedGrowth))
-            ecology.GrowthModelVersion = int.Parse(forcedGrowth, CultureInfo.InvariantCulture);
+            ecology.GrowthModelVersion = forcedGrowth == "1" ? GrowthModel.SiteClassDensity
+                : int.Parse(forcedGrowth, CultureInfo.InvariantCulture);
+        else
+            Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "fresh Scenario One uses growth model 2");
         Debug.Log($"SCENARIO_ONE_COMPLETION_GROWTH_MODEL {ecology.GrowthModelVersion} forced={(string.IsNullOrEmpty(forcedGrowth) ? "no" : "yes")}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_REGEN_MODEL {ecology.RegenerationModelVersion} forced={(string.IsNullOrEmpty(forcedRegeneration) ? "no" : "yes")}");
         original = saves.CaptureData();
@@ -223,6 +227,15 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(review1.Count >= 3 && review1.Any(l => l.StartsWith("Browsing pressure low")), "annual ecology review lines missing");
         Pass("P3", $"year=1 felledOnce={fellCounts.Count} cashDelta={manager.CashCents - cashBefore} ledger={ledger} retainedM3={F(manager.RetainedTimberM3)} "
             + $"deadwoodRecords={manager.DeadwoodRecords.Count} products={year1.timberSales.Count} reviewLines={review1.Count}");
+
+        // The fresh model-2 fixture follows the accepted two-cycle chronology through the real review handler.
+        // Keep the historical model-1 playthrough unchanged for its original exact-layout assertion.
+        if (ecology.GrowthModelVersion == GrowthModel.SpeciesAware)
+        {
+            manager.MarkAnnualReviewSeen();
+            Check(manager.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged && e.year == 1),
+                "model-2 fixture records the first Annual Review acknowledgement before its next work plan");
+        }
 
         // ---- P5 PLANT / PROTECT (designated in Year 1, resolved as Year 2) ----
         int pairsPerSpecies = 4;
@@ -404,9 +417,27 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Debug.Log("SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH " + (ScenarioReferenceArchive.LegacyV17WorldHash(saves.CaptureData()) ?? "n/a"));
         string v18LayoutHash = ScenarioReferenceArchive.LegacyV18WorldHash(saves.CaptureData()) ?? "n/a";
         Debug.Log("SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH " + v18LayoutHash);
-        if (ecology.RngModelVersion == 1 && ecology.RegenerationModelVersion == 2
-            && ecology.GrowthModelVersion == 1 && ecology.StormModelVersion == 0)
-            Check(v18LayoutHash == "702766DECE591E21", "accepted model2 completion retains its exact v18 world layout");
+        if (ecology.RngModelVersion == 1 && ecology.RegenerationModelVersion == 2 && ecology.StormModelVersion == 0)
+        {
+            if (ecology.GrowthModelVersion == GrowthModel.SiteClassDensity)
+                Check(v18LayoutHash == "702766DECE591E21", "historical growth-model-1 completion retains its exact v18 world layout");
+            else
+            {
+                Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "current completion fixture uses growth model 2");
+                ForestSaveData completed = saves.CaptureData();
+                Check(completed.version == 20 && completed.growthModel == GrowthModel.SpeciesAware
+                    && completed.standGeometryModel == StandGeometryModel.Legacy40
+                    && completed.ecologicalYear == 30 && completed.scenarioOne.outcome == ScenarioOneOutcome.Completed
+                    && completed.scenarioOne.outcomeYear == minimumYear,
+                    "growth-model-2 completion has the expected v20/model/geometry/year/outcome layout");
+                Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed)), false),
+                    "growth-model-2 completed layout loads");
+                yield return null; yield return null;
+                Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == finalHash,
+                    "growth-model-2 completion preserves its exact current layout through save/load");
+                Debug.Log("SCENARIO_ONE_COMPLETION_GROWTH2_LAYOUT_PASS " + finalHash);
+            }
+        }
         Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion} regenerationModel={ecology.RegenerationModelVersion} growthModel={ecology.GrowthModelVersion} legacyV15LayoutHash={legacyLayoutHash} v16LayoutHash={v16LayoutHash}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,
