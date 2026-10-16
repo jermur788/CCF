@@ -120,7 +120,7 @@ def main():
 
         # 5. existing output refused
         p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base], capture_output=True, text=True, env=env)
-        check(p.returncode != 0, "existing output refused")
+        check(p.returncode != 0 and "refusing to overwrite" in p.stderr, "existing output refused cleanly")
 
         # 6. nonzero process
         p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base, "--sequence", "L02"],
@@ -144,28 +144,50 @@ def main():
         check(p.returncode != 0 and "committed and clean" in p.stderr, "dirty source refused")
         subprocess.run(["git", "-C", str(proj), "checkout", "--", "keep.txt"], check=True)
 
-        # 10. smoke launcher — command construction + PASS/FAIL
+        # 10. smoke launcher — shared-output protocol, stale-evidence and PASS/FAIL
         player = scratch / "mock-player"
+        # Faithful harness model: SAVE writes saved-world-hash.txt into --ccf-smoke-output;
+        # LOAD reads that SAME location and fails if it is absent (as StandalonePlayerSmoke does).
         mock_script(player, (
-            "import sys,os\n"
-            "a=sys.argv; d=a[a.index('--ccf-smoke-output')+1]\n"
-            "os.makedirs(d,exist_ok=True)\n"
+            "import os,sys\n"
+            "a=sys.argv\n"
+            "d=a[a.index('--ccf-smoke-output')+1]; os.makedirs(d,exist_ok=True)\n"
             "log=a[a.index('-logFile')+1]\n"
-            "bad=os.environ.get('MOCK_FATAL')=='1'\n"
-            "mk=('S1B_PLAYER_SAVE_PHASE_PASS' if '--ccf-smoke-save' in a else 'S1B_PLAYER_LOAD_RESET_PHASE_PASS')\n"
-            "open(log,'w').write(('S1B_SMOKE_FAIL boom\\n' if bad else mk+' ok\\n'))\n"
-            "open(os.path.join(d,'phase-pass.txt'),'w').write('ok\\n')\n"
-            "sys.exit(1 if bad else 0)\n"))
-        cmd, _ = rs.phase_command(player, scratch / "ev0", scratch / "ev0/l.log", "save", {})
-        check("--ccf-smoke-save" in cmd and cmd[0] == str(player), "smoke save command")
-        cmd, _ = rs.phase_command(player, scratch / "ev0", scratch / "ev0/l.log", "load", {})
-        check("--ccf-smoke-load" in cmd, "smoke load command")
+            "if os.environ.get('MOCK_FATAL')=='1':\n"
+            "    open(log,'w').write('S1B_SMOKE_FAIL boom\\n'); sys.exit(1)\n"
+            "if '--ccf-smoke-save' in a:\n"
+            "    open(os.path.join(d,'saved-world-hash.txt'),'w').write('HASH\\n')\n"
+            "    open(log,'w').write('S1B_PLAYER_SAVE_PHASE_PASS ok\\n'); sys.exit(0)\n"
+            "if os.path.exists(os.path.join(d,'saved-world-hash.txt')):\n"
+            "    open(log,'w').write('S1B_PLAYER_LOAD_RESET_PHASE_PASS ok\\n'); sys.exit(0)\n"
+            "open(log,'w').write('S1B_SMOKE_FAIL missing saved-world-hash.txt\\n'); sys.exit(1)\n"))
+
+        def smoke_out_of(cmd):
+            return cmd[cmd.index("--ccf-smoke-output") + 1]
+        pd = scratch / "ev0"
+        c_save, _ = rs.phase_command(player, rs.smoke_output_dir(pd), pd / "s.log", "save", {})
+        c_load, _ = rs.phase_command(player, rs.smoke_output_dir(pd), pd / "l.log", "load", {})
+        check("--ccf-smoke-save" in c_save and c_save[0] == str(player), "smoke save command")
+        check("--ccf-smoke-load" in c_load, "smoke load command")
+        check(smoke_out_of(c_save) == smoke_out_of(c_load)
+              and smoke_out_of(c_save).endswith("/smoke"),
+              "SAVE and LOAD share one --ccf-smoke-output (regression vs 335d4fb)")
+
         ev = scratch / "ev"
         p = subprocess.run([sys.executable, str(S1B / "run_linux_player_smoke.py"), "--player", str(player),
                             "--evidence-root", str(ev), "--label", "smoke-ok", "--display", ":0"],
                            capture_output=True, text=True)
         check(p.returncode == 0 and (ev / "smoke-ok/smoke-summary.json").is_file()
-              and '"overall": "PASS"' in (ev / "smoke-ok/smoke-summary.json").read_text(), "smoke both phases PASS")
+              and '"overall": "PASS"' in (ev / "smoke-ok/smoke-summary.json").read_text(), "smoke both phases PASS (shared dir)")
+
+        # Stale evidence cannot carry over: the same label is a fresh, refused directory.
+        before = (ev / "smoke-ok/smoke-summary.json").read_text()
+        p = subprocess.run([sys.executable, str(S1B / "run_linux_player_smoke.py"), "--player", str(player),
+                            "--evidence-root", str(ev), "--label", "smoke-ok", "--display", ":0"],
+                           capture_output=True, text=True)
+        check(p.returncode != 0 and (ev / "smoke-ok/smoke-summary.json").read_text() == before,
+              "stale label refused (fresh run dir, prior evidence unchanged)")
+
         p = subprocess.run([sys.executable, str(S1B / "run_linux_player_smoke.py"), "--player", str(player),
                             "--evidence-root", str(ev), "--label", "smoke-bad", "--display", ":0", "--phase", "save"],
                            capture_output=True, text=True, env=dict(os.environ, MOCK_FATAL="1"))
