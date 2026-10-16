@@ -6,6 +6,8 @@ Temporary authoritative physical record designated by Overall Manager/user for t
 `ops/workflow-foundation-v1:Docs/Project/coordination/active-tasks.md`.
 Only Overall Manager/assigned integrator or the explicitly assigned T1 editor maintains these locks. This designation names one physical record; it does not promote the CCF-Ops board. Future designation is a live coordination change, not a permanent branch requirement.
 
+Phase 1 worktree stabilisation (2026-10-16) materialises this record in the neutral coordination anchor `/media/jer/ZX20/CCF-Primary` (linked worktree of the bare common store `/media/jer/ZX20/CCF-Repository.git`, currently checked out on `ops/workflow-foundation-v1`). The anchor's branch is transitional; its role as coordination anchor persists.
+
 ## Live tasks / temporary locks
 
 HEAD pins identify the execution/reviewed implementation snapshot, not the later commit containing this live record. READY is readiness for the stated next action, never integration, verification or acceptance. NONE means no assigned worker; no branch/worktree presence grants ownership.
@@ -15,10 +17,32 @@ HEAD pins identify the execution/reviewed implementation snapshot, not the later
 | CCF-DENSITY-INTEGRATION-INPUT | READY | NONE | Unassigned | Unassigned | Unassigned | None | fix/density-v3-canopy-pulses-v1 | 271193c786e256e4f55017d34d07209eccb6af3c | Accepted density integration input | No active worker; preserve historical dirty checkout | No | None | Tier 1 | G4 integration | Accepted production 639ae2c3ac85474368c173118bd2718743346bd9; tested oracle hashes matched pushed repair | DONE publication / READY-FOR-INTEGRATION; Manager assigns integration owner |
 | CCF-CANDIDATE-V2 | READY | NONE | Unassigned | Unassigned | Unassigned | None | integration/scenario-one-final-candidate-v2 | c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2 | Shared candidate provenance / integration | No active worker; no acceptance or new Unity execution implied | No | None | Tier 1 | G4 candidate review and handoff | Density repair published; candidate contains accepted density and exact F10 input | Manager obtains candidate handoff and assigns bounded G4; candidate not accepted/verified by existence |
 | CCF-T2-OPERATIONAL-PILOT | WAITING | NONE | Unassigned | Unassigned | Unassigned | None | None | cddad55213d3491b9f320a7a9a7a1bcd913b6ec8 | Operations pilot | No ownership until bounded packet and record agreement | No | None | Tier 1 | T2 pilot; later separate G4 for board authority | Published T0/T1 context; Manager assignment | Prepare bounded append-only history and duplicate-protection pilot; one real Tier-1 task with T1/board agreement |
+| CCF-COMPONENT-BA | READY-FOR-INTEGRATION | NONE | Unassigned | Unassigned | Unassigned | CCF-DensityInstrumentation | tooling/density-component-ba-measurement | 1e642a2b1649ac000b7176ad16131b8c8e4466ef | Component-BA density measurement | No active writer; lane clean | No | None | Tier 1 | G4 integration | Approved Component-BA stream through `1e642a2` | Manager assigns integration owner |
+| CCF-GROWFOR | READY-FOR-INTEGRATION | NONE | Unassigned | Unassigned | Unassigned | CCF-Growfor | tooling/growfor-sitka-benchmark | a94c664b226d64a9dd114bca5e3f910526b19ff6 | BroadLynch2006 Sitka offline benchmark | No active writer; lane clean | No | None | Tier 1 | G4 integration | Approved GROWFOR stream through `a94c664` | Manager assigns integration owner |
+| CCF-TIER3-PREFLIGHT | PRESERVED | NONE | Unassigned | Unassigned | Unassigned | CCF-Tier3Preflight | ops/tier3-final-preflight | a5e4ddcaed51250939abcb4aefa6d2018a8c5742 | Tier-3 preflight runbook and adjudicated findings | No active writer; lane clean | No | None | Tier 1 | waiting for final candidate | Preflight prerequisites recorded | Preserve; await final candidate / Manager prerequisites |
+| CCF-MODEL2-LANE | OCCUPIED / PROTECTED | NOT ESTABLISHED | Unassigned | Unassigned | Unassigned | CCF-U1 | feature/scenario-one-model2-default | 40b241926ee880bcc4d65ccbc1f3ce11b7406b70 | Scenario One growth model 2 | 4 modified tracked verification files; DO NOT TOUCH; owner identity not provable from record | Yes | Unassigned | Tier 1 | dirty working tree unresolved | Model-2 lane | Owner (if any) discloses/parks uncommitted verification edits before lane reuse |
 
 ## Unity ownership
 
 IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs at reconciliation. Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
+
+Reconciled 2026-10-16: no Editor process and no `UnityLockfile` were observed machine-wide. `CCF-U1` holds the only warmed Library (~8.1G) and recent Editor log activity, so its lane is treated as occupied/protected even though no live Unity lock is held.
+
+## Physical lanes (permanent path roles)
+
+Path role persists; branch changes between closed tasks. No branch/worktree presence grants ownership.
+
+| Lane | Permanent role | Current branch | HEAD | Working state | Owner |
+|---|---|---|---|---|---|
+| `/media/jer/ZX20/CCF-Primary` | T3/repository coordination anchor | ops/workflow-foundation-v1 (transitional) | dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e | clean, ordinary checkout, no Library | NONE |
+| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | 40b241926ee880bcc4d65ccbc1f3ce11b7406b70 | dirty (4 modified tracked files), warm Library | NOT ESTABLISHED |
+| `/media/jer/ZX20/CCF-U2` | second Unity implementation/review lane | lane/u2 | c6dc136b7f1f8668d9f67f95f48968d290ad5067 | clean, no Library | NONE |
+| `/media/jer/ZX20/CCF-Integration` | integration/qualification lane | integration/scenario-one-tier3-candidate | 971c5f8cc75e571a159a5f38415d0005fdf30ae4 | clean, no Library | NONE |
+| `/media/jer/ZX20/CCF-NonUnity` | offline/tooling lane | tooling/linux-player-tier3 | 5010613f67bbc2435504b25876947ff092d0532c | clean, sparse, no Library | NONE |
+| `/media/jer/ZX20/CCF-Review` | reusable detached/read-only review shell | DETACHED | c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2 | clean, sparse, no Library | NONE |
+| `/media/jer/ZX20/CCF-Repository.git` | permanent bare common Git store | (bare) | n/a | bare; backs all lanes | n/a |
+
+Specialist temporary lanes (retire only after integration/preservation, Phase 2): `CCF-DensityInstrumentation`, `CCF-Growfor`, `CCF-Tier3Preflight`. Detached review worktrees `CCF-CBA-Review`, `CCF-CBA-Review2`, `CCF-Growfor-Review` are audit-classified safe but are NOT removed until T3 project registrations are reconciled (Phase 2).
 
 ## Reconciliation and preservation holds
 
@@ -33,3 +57,5 @@ Manager ruling: no current density/integration worker ownership is established f
 - Old completed coordination rows are removed as stale live-table noise; their Git history remains intact. The generic unassigned local setup row is superseded by the observed persistent-lane foundation, not a claim that every historical task was accepted. The old standing G4-assignment-pending board row is reconciled to this explicitly assigned reviewed-corrections publication task, without inventing a reviewer verdict.
 
 Evidence (2026-10-15): `/media/jer/ZX20/CCF-Verification/CanonicalWorkflowPublication-20261015T221131Z/preflight.json` and `ownership-reconciliation/repository-checks.json`. These are local receipts, not a cloud dependency; exact live task locks above travel in packets. Designated storage/device/capacity settings remain CCF-Ops machine configuration.
+
+Evidence (2026-10-16): read-only worktree rationalisation `/media/jer/ZX20/CCF-Verification/WorktreeRationalisation-20261016-221954/` (AUDIT.md, worktree-audit.tsv, active-task-reconciliation.md); Phase 1 stabilisation `/media/jer/ZX20/CCF-Verification/T3WorktreeStabilisation-20261016-223249/`.
