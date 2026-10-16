@@ -25,7 +25,9 @@ HEAD pins identify the execution/reviewed implementation snapshot, not the later
 
 ## Unity ownership
 
-IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs (verified 2026-10-16 21:53Z). Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
+2026-10-16 22:50Z: CCF-TIER3-REPIN reserves lane CCF-U1 (detached `e8ca1f8`) and will acquire the production unity-lock for phases 5-7 only (compile sanity, historical model-1 completion `CCF_GROWTH_MODEL=1 CCF_STAND_GEOMETRY=0`, model-2 smoke `ModelDefaultVerification`). No Tier-3, LONGRUN or Linux Player run. Lock ID is in `unity-lock status`; this line is superseded when the lock is released.
+
+(previous state) IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs (verified 2026-10-16 21:53Z). Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
 
 Correction 2026-10-16: the earlier reconciliation recorded the lock as FREE, but `lock.json` was in fact still held by `Codex-model2-interaction` (task `CCF-MODEL2-INTERACTION-FOLLOWUP`, lock `0dcf88e8367747c8b86ba6cc512aef8a`, no PID, ETA 21:45Z passed), which finished its acceptance runs at 20:27Z and never released. It was force-released at 21:53:47Z under Overall Manager approval `OM-2026-10-16-MODEL2-STALE-LOCK-01` after confirming no Unity process, no `UnityLockfile`, no `CCF-U1` writes for 60 minutes and no live owner. Receipt: `history.jsonl` event `force-release`; copy in `ScenarioOneModel2EvidenceAdoption-20261016T215201Z/lock-disposal.txt`.
 
@@ -38,7 +40,7 @@ Path role persists; branch changes between closed tasks. No branch/worktree pres
 | Lane | Permanent role | Current branch | HEAD | Working state | Owner |
 |---|---|---|---|---|---|
 | `/media/jer/ZX20/CCF-Primary` | T3/repository coordination anchor | ops/workflow-foundation-v1 (transitional) | dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e | clean, ordinary checkout, no Library | NONE |
-| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | clean, pushed, warm Library; no active writer | NONE |
+| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | clean, pushed, warm Library; TEMPORARILY RESERVED 2026-10-16 for CCF-TIER3-REPIN (user-approved): detached at local integration HEAD `e8ca1f87a89a763a7350e66d1373268af3c86e6f` (Assets/Packages/ProjectSettings byte-identical to `b81f737`) for Unity phases 5-7; to be restored to `feature/scenario-one-model2-default` @ `b81f737` afterwards | CCF-TIER3-REPIN (Claude Code) |
 | `/media/jer/ZX20/CCF-U2` | second Unity implementation/review lane | lane/u2 | c6dc136b7f1f8668d9f67f95f48968d290ad5067 | clean, no Library | NONE |
 | `/media/jer/ZX20/CCF-Integration` | integration/qualification lane | integration/scenario-one-tier3-candidate | 971c5f8cc75e571a159a5f38415d0005fdf30ae4 | clean, no Library | CCF-TIER3-REPIN (Claude Code, claimed 2026-10-16T22:27Z) |
 | `/media/jer/ZX20/CCF-NonUnity` | offline/tooling lane | tooling/linux-player-tier3 | 5010613f67bbc2435504b25876947ff092d0532c | clean, sparse, no Library | NONE |
