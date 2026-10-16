@@ -20,13 +20,15 @@ HEAD pins identify the execution/reviewed implementation snapshot, not the later
 | CCF-COMPONENT-BA | READY-FOR-INTEGRATION | NONE | Unassigned | Unassigned | Unassigned | CCF-DensityInstrumentation | tooling/density-component-ba-measurement | 1e642a2b1649ac000b7176ad16131b8c8e4466ef | Component-BA density measurement | No active writer; lane clean | No | None | Tier 1 | G4 integration | Approved Component-BA stream through `1e642a2` | Manager assigns integration owner |
 | CCF-GROWFOR | READY-FOR-INTEGRATION | NONE | Unassigned | Unassigned | Unassigned | CCF-Growfor | tooling/growfor-sitka-benchmark | a94c664b226d64a9dd114bca5e3f910526b19ff6 | BroadLynch2006 Sitka offline benchmark | No active writer; lane clean | No | None | Tier 1 | G4 integration | Approved GROWFOR stream through `a94c664` | Manager assigns integration owner |
 | CCF-TIER3-PREFLIGHT | PRESERVED | NONE | Unassigned | Unassigned | Unassigned | CCF-Tier3Preflight | ops/tier3-final-preflight | a5e4ddcaed51250939abcb4aefa6d2018a8c5742 | Tier-3 preflight runbook and adjudicated findings | No active writer; lane clean | No | None | Tier 1 | waiting for final candidate | Preflight prerequisites recorded | Preserve; await final candidate / Manager prerequisites |
-| CCF-MODEL2-LANE | OCCUPIED / PROTECTED | NOT ESTABLISHED | Unassigned | Unassigned | Unassigned | CCF-U1 | feature/scenario-one-model2-default | 40b241926ee880bcc4d65ccbc1f3ce11b7406b70 | Scenario One growth model 2 | 4 modified tracked verification files; DO NOT TOUCH; owner identity not provable from record | Yes | Unassigned | Tier 1 | dirty working tree unresolved | Model-2 lane | Owner (if any) discloses/parks uncommitted verification edits before lane reuse |
+| CCF-MODEL2-LANE | PENDING INDEPENDENT REVIEW | NONE | Unassigned | Unassigned | Unassigned | CCF-U1 | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | Scenario One growth model 2 (production `40b2419` + verification-only `b81f737`) | No active writer; lane clean; branch pushed (origin = local); Unity lock FREE | No for review; Yes only if review finds the evidence insufficient | None | Tier 1 | Independent review of the full delta and RAW runtime evidence; Codex-reported Unity results are NOT accepted | Codex evidence root `ScenarioOneModel2InteractionFollowup-20261016T194525Z` (claims only); adoption receipts `ScenarioOneModel2EvidenceAdoption-20261016T215201Z` | Manager assigns a different Claude session for independent delta/raw-evidence review; no Unity rerun unless that review finds the evidence insufficient |
 
 ## Unity ownership
 
-IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs at reconciliation. Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
+IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs (verified 2026-10-16 21:53Z). Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
 
-Reconciled 2026-10-16: no Editor process and no `UnityLockfile` were observed machine-wide. `CCF-U1` holds the only warmed Library (~8.1G) and recent Editor log activity, so its lane is treated as occupied/protected even though no live Unity lock is held.
+Correction 2026-10-16: the earlier reconciliation recorded the lock as FREE, but `lock.json` was in fact still held by `Codex-model2-interaction` (task `CCF-MODEL2-INTERACTION-FOLLOWUP`, lock `0dcf88e8367747c8b86ba6cc512aef8a`, no PID, ETA 21:45Z passed), which finished its acceptance runs at 20:27Z and never released. It was force-released at 21:53:47Z under Overall Manager approval `OM-2026-10-16-MODEL2-STALE-LOCK-01` after confirming no Unity process, no `UnityLockfile`, no `CCF-U1` writes for 60 minutes and no live owner. Receipt: `history.jsonl` event `force-release`; copy in `ScenarioOneModel2EvidenceAdoption-20261016T215201Z/lock-disposal.txt`.
+
+Reconciled 2026-10-16: no Editor process and no `UnityLockfile` were observed machine-wide. `CCF-U1` holds the only warmed Library (~8.1G); it is now clean at the pushed model-2 HEAD, with no active writer.
 
 ## Physical lanes (permanent path roles)
 
@@ -35,7 +37,7 @@ Path role persists; branch changes between closed tasks. No branch/worktree pres
 | Lane | Permanent role | Current branch | HEAD | Working state | Owner |
 |---|---|---|---|---|---|
 | `/media/jer/ZX20/CCF-Primary` | T3/repository coordination anchor | ops/workflow-foundation-v1 (transitional) | dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e | clean, ordinary checkout, no Library | NONE |
-| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | 40b241926ee880bcc4d65ccbc1f3ce11b7406b70 | dirty (4 modified tracked files), warm Library | NOT ESTABLISHED |
+| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | clean, pushed, warm Library; no active writer | NONE |
 | `/media/jer/ZX20/CCF-U2` | second Unity implementation/review lane | lane/u2 | c6dc136b7f1f8668d9f67f95f48968d290ad5067 | clean, no Library | NONE |
 | `/media/jer/ZX20/CCF-Integration` | integration/qualification lane | integration/scenario-one-tier3-candidate | 971c5f8cc75e571a159a5f38415d0005fdf30ae4 | clean, no Library | NONE |
 | `/media/jer/ZX20/CCF-NonUnity` | offline/tooling lane | tooling/linux-player-tier3 | 5010613f67bbc2435504b25876947ff092d0532c | clean, sparse, no Library | NONE |
