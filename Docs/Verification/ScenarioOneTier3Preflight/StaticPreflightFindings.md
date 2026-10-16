@@ -253,12 +253,32 @@ non-passes wherever the reduced-model evidence is cited.
   `with_demo_hdr_quarantined.py` are **EXCLUDED from Tier-3** (see §6).
 - **B5 —** do not wrap Tier-3 steps with `with_demo_hdr_quarantined.py`; it is
   excluded and targets `/home/jer/CCF-s1b`.
-- **B6 — model-2 new-game gate pending.** `feature/scenario-one-model2-default`
-  is the same SHA as the candidate; §9 cannot pass until that branch lands and
-  `RngModelPolicyVerification`/new-game anchors are updated together.
+- **B6 — model-2 new-game pending review/re-pin.** `feature/scenario-one-model2-default`
+  is now at `40b2419` (production `NewGameGrowthModel = GrowthModel.SpeciesAware`,
+  new `ModelDefaultVerification` gate). The focused Unity gate passed but the
+  implementation **remains pending independent review / re-pin**; it is not yet an
+  accepted Tier-3 input and §4–§6 must be re-run on the re-pinned branch.
 - **B7 — reduced-model R2 misses.** **Adjudicated: ACCEPTED KNOWN C-LEVEL
   LIMITATION** (see §4). Recorded values 0.423 / 0.407 / 0.417 against the
   unchanged 0.40 criterion; they remain failures/non-passes in evidence.
+
+### Operating conditions (required)
+
+Recorded to match `README.md` and the runbook: **1)** full (non-sparse) checkout
+required; **2)** external machine-wide Unity lock required; **3)** explicit
+licence seeding required; **4)** U4 (`U4GuidanceSmoke`) is authoritative for
+actual 1280×720 verification (the broad `UxQualification` matrix does not
+hard-assert it).
+
+### Current state (Manager-reported, 2026-10-16 follow-up)
+
+- Corrected F10 Unity delivery **passed on model-2 branch `40b2419`**.
+- Native Windows F10 **remains outstanding**.
+- Model-2 implementation **passed focused Unity, pending independent review /
+  re-pin**.
+- Cue-order failure **remains an unresolved review item**.
+- Component-BA stream is **not yet accepted/integrated**.
+- Linux Player build/smoke **waits for the final re-pinned candidate**.
 
 ### 6. Tools EXCLUDED from Tier-3 (explicit)
 

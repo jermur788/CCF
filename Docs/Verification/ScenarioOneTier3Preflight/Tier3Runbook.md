@@ -32,10 +32,13 @@ explicit `--out "$EV/..."`; several runners default their scratch/output to
 
 ---
 
-## 1. Preflight Git checks (no Unity)
+## 1. Full-checkout preflight Git checks (no Unity)
 
-Run in the **Tier-3 lane** — a *full* checkout at the candidate SHA, not a
-sparse Non-Unity worktree (see `StaticPreflightFindings.md` §B1).
+**Operating condition 1 — full checkout required.** Run in the **Tier-3 lane** —
+a *full (non-sparse)* checkout at the candidate SHA, not a sparse Non-Unity
+worktree. The sparse worktree lacks `Assets/` and yields a false typecheck
+NEW_ERRORS cascade and unusable offline/build runners (see
+`StaticPreflightFindings.md` §B1).
 
 ```sh
 cd <full-tier3-lane>
@@ -55,13 +58,14 @@ If any check fails, **stop**.
 
 ---
 
-## 2. Machine-wide Unity lock (no Unity)
+## 2. External machine-wide Unity lock (required)
 
-The runners only partially guard concurrency: the base and ThreeSpecies
-`run_qualification.py` refuse an Editor *on this project*, the UX runner refuses
-*any* Editor from this install, and `build_linux.py` has **no** guard. Hold an
-explicit machine-wide lock for the whole sequence and assert no Unity is running
-before the first launch.
+**Operating condition 2 — external machine-wide lock required.** The runners
+only partially guard concurrency: the base and ThreeSpecies `run_qualification.py`
+refuse an Editor *on this project*, the UX runner refuses *any* Editor from this
+install, and `build_linux.py` has **no** guard. Hold an **external** machine-wide
+lock for the whole sequence and assert no Unity is running before the first
+launch.
 
 ```sh
 export T3_LOCK=/media/jer/ZX20/CCF-Temp/tier3-unity.lock
@@ -74,12 +78,13 @@ Keep file descriptor 9 held for every step; release at cleanup (step 14).
 
 ---
 
-## 3. Isolated XDG / save / config and licence
+## 3. Isolated XDG / save / config and explicit licence seeding (required)
 
-Every Unity runner copies a licence into `<out>/config/unity3d/Unity/licenses`
-and sets `XDG_CONFIG_HOME=<out>/config`, so no real EditorPrefs or player save
-is touched. Pass `--license-dir "$LIC"` **explicitly** on every runner that
-supports it.
+**Operating condition 3 — explicit licence seeding required.** Every Unity
+runner copies a licence into `<out>/config/unity3d/Unity/licenses` and sets
+`XDG_CONFIG_HOME=<out>/config`, so no real EditorPrefs or player save is
+touched. Pass `--license-dir "$LIC"` **explicitly** on every runner that
+supports it; pre-seed the config where a runner cannot.
 
 - ThreeSpecies and UX `run_qualification.py` support `--license-dir` (default
   `~/.config/unity3d/Unity/licenses`).
@@ -195,6 +200,12 @@ respectively, exit 0, clean shutdown.
 
 ## 7. UX 1280×720 and F10 (graphical Editor)
 
+**Operating condition 4 — U4 is authoritative for actual 1280×720
+verification.** `U4GuidanceSmoke` (7b) hard-asserts that the real Game view is
+1280×720; the broad `UxQualification` matrix (7a) does **not**, so 7a alone is
+not proof of actual 1280×720. Treat 7b as authoritative and use 7a only as
+supporting broad-layout evidence.
+
 ```sh
 QU=Tools/Verification/ScenarioOneUx/Qualification/run_qualification.py
 HU=Tools/Verification/ScenarioOneUx/Qualification/UxQualification.cs
@@ -274,24 +285,39 @@ unchanged 0.40 criterion); it stays a non-pass in evidence.
 
 ---
 
-## 9. Model-2 new-game verification (only once the model-2 branch exists)
+## 9. Model-2 new-game verification
 
-At base `971c5f8`, `feature/scenario-one-model2-default` is the same SHA as the
-candidate, so there is nothing new to verify yet. When that branch carries the
-production change:
+Manager-reported state: `feature/scenario-one-model2-default` is at **`40b2419`**
+(`feat: start new Scenario One games on growth model 2`; production =
+`ScenarioOneManager.NewGameGrowthModel = GrowthModel.SpeciesAware`, plus two
+comment updates). The focused Unity gate passed, but the implementation
+**remains pending independent review / re-pin**, so this is not yet an accepted
+Tier-3 input. Primary gate:
 
 ```sh
-python3 $Q3 --label rng-policy-model2 --out "$EV/model2/rng" \
+python3 $Q3 --label model-default --out "$EV/model2/default" \
+  --method ModelDefaultVerification.Begin \
+  --file Tools/Verification/ModelDefault/ModelDefaultVerification.cs \
+  --marker MODEL_DEFAULT_VERIFY_PASS --min-hard-checks 1 \
+  --license-dir "$LIC" --timeout 3600 --env CCF_STAND_GEOMETRY=0
+```
+
+**Expected:** `MODEL_DEFAULT_VERIFY_PASS checks=<n>` (new game on growth model 2,
+`NEW_GAME_CONSTANT_IS_SPECIES_AWARE`, disk-reload retains model 2, pure-Sitka
+still routes as model 1). The RNG-policy gate remains relevant for the rng/regen
+part of the new-game default:
+
+```sh
+python3 $Q3 --label rng-policy --out "$EV/model2/rng" \
   --method RngModelPolicyVerification.Begin \
   --file Tools/Verification/RngModelPolicyVerification.cs \
   --marker RNG_MODEL_POLICY_VERIFY_PASS --license-dir "$LIC" --timeout 3600 \
   --env CCF_STAND_GEOMETRY=0
 ```
 
-**Expected on the model-2 branch:** `RNG_POLICY_NEW_GAME_PASS model=2`
-(currently the harness asserts `NewGameRngModel == 1`, so this gate fails until
-the branch and its expectation are updated together). Also re-run §4–§6 on that
-branch, because new-game hashes/anchors change with the new default.
+Also re-run §4–§6 on the re-pinned model-2 branch, because new-game
+hashes/anchors change with the new default. **Linux Player build/smoke waits for
+the final re-pinned candidate** (§11).
 
 ---
 

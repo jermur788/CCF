@@ -118,11 +118,30 @@
     "main_ssd_default_outputs": "/tmp defaults in offline runners, typecheck and several scripts; runbook forces TMPDIR/--out onto ZX20"
   },
   "blockers_or_prerequisites": ["B1 full worktree required", "B2 machine-wide lock required", "B3 licence seeding required", "B4 EXCLUDED tools: check_sources.py, check_production_v1.py, with_demo_hdr_quarantined.py", "B5 do not wrap Tier-3 with the demo-HDR wrapper", "B6 model-2 new-game branch pending", "B7 reduced-model R2 misses adjudicated ACCEPTED KNOWN C-LEVEL LIMITATION (0.423/0.407/0.417 vs 0.40; remain non-passes)"],
+  "operating_conditions_required": {
+    "full_checkout_required": true,
+    "external_machine_wide_unity_lock_required": true,
+    "explicit_licence_seeding_required": true,
+    "u4_authoritative_for_actual_1280x720": true
+  },
   "model2_new_game_gate": {
     "branch": "feature/scenario-one-model2-default",
-    "state": "branch exists but equals candidate SHA; no production change yet",
-    "gate": "RngModelPolicyVerification.Begin via ThreeSpecies/Qualification/run_qualification.py",
-    "expected_after_change": "RNG_POLICY_NEW_GAME_PASS model=2 (currently asserts model=1)"
+    "head": "40b241926ee880bcc4d65ccbc1f3ce11b7406b70",
+    "subject": "feat: start new Scenario One games on growth model 2",
+    "production_change": "ScenarioOneManager.NewGameGrowthModel = GrowthModel.SpeciesAware (model 2)",
+    "gate": "ModelDefaultVerification.Begin via ThreeSpecies/Qualification/run_qualification.py",
+    "expected_marker": "MODEL_DEFAULT_VERIFY_PASS checks=<n>",
+    "state": "focused Unity passed; pending independent review / re-pin; not yet an accepted Tier-3 input",
+    "linux_player_build_smoke_waits_for_final_repin": true
+  },
+  "current_state_manager_reported": {
+    "date": "2026-10-16",
+    "f10_corrected_unity_delivery": "passed on model-2 branch 40b2419",
+    "native_windows_f10": "outstanding",
+    "model2_implementation": "passed focused Unity; pending independent review / re-pin",
+    "cue_order_failure": "unresolved review item",
+    "component_ba_stream": "not yet accepted/integrated",
+    "linux_player_build_smoke": "waits for the final re-pinned candidate"
   },
   "unity_not_run": true
 }

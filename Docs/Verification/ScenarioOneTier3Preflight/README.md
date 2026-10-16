@@ -42,9 +42,46 @@ resolved *before* launch.
   0.417, against the unchanged 0.40 criterion. These remain
   failures/non-passes in evidence and no threshold or production value was
   altered to remove them.
-- **PENDING:** the model-2 new-game branch does not yet carry a distinct
-  production change (`feature/scenario-one-model2-default` == base SHA), so the
-  model-2 new-game gate is prepared but cannot pass until that branch exists.
+- **PENDING (review/re-pin):** the model-2 new-game branch now exists at
+  `40b2419` (`feat: start new Scenario One games on growth model 2`) and its
+  focused Unity gate passed, but the implementation remains pending independent
+  review / re-pin; see "Current state" below.
+
+## Operating conditions (required)
+
+All four are **required** before the Tier-3 Unity qualification; later
+outstanding work must wait on the final re-pinned candidate.
+
+1. **Full checkout required.** Run in a **full (non-sparse) worktree** at the
+   candidate SHA. The sparse Non-Unity worktree lacks `Assets/` and produces a
+   false `run_typecheck.py` NEW_ERRORS cascade and unusable offline/build
+   runners. (Findings §B1.)
+2. **External machine-wide Unity lock required.** Hold an **external**
+   machine-wide lock (e.g. `flock` on a ZX20 lock file) plus a no-Unity
+   assertion for the whole sequence; `build_linux.py` has no editor guard and
+   the other runners guard only per-project/per-install. (Runbook §2.)
+3. **Explicit licence seeding required.** Every XDG-isolated runner must copy
+   the licence **explicitly** (`--license-dir`, or a pre-seeded config);
+   `run_unity_gates.py`, `run_model2.py` and the regression runners never seed
+   one. (Runbook §3.)
+4. **U4 is authoritative for actual 1280×720 verification.** `U4GuidanceSmoke`
+   hard-asserts the real Game view is 1280×720; the broad `UxQualification`
+   harness does **not**, so the broad UX run alone is not proof of actual
+   1280×720. (Runbook §7.)
+
+## Current state (Manager-reported, 2026-10-16 follow-up)
+
+- Corrected F10 Unity delivery **passed on model-2 branch `40b2419`**.
+- **Native Windows F10 remains outstanding.**
+- Model-2 implementation **passed focused Unity but remains pending independent
+  review / re-pin** (branch `feature/scenario-one-model2-default` at `40b2419`;
+  gate `ModelDefaultVerification.Begin`, marker `MODEL_DEFAULT_VERIFY_PASS`).
+- The **cue-order failure remains an unresolved review item**.
+- The **component-BA stream is not yet accepted/integrated**.
+- **Linux Player build/smoke waits for the final re-pinned candidate.**
+
+These are the Manager's current-state statements as supplied in the follow-up;
+the preflight itself was not re-run.
 
 ## Files
 
@@ -92,5 +129,5 @@ Static test results: unit 22/22; F10 13/13+2; history 74; N3 88; UX 176;
                      timber 71; typecheck prod 7/7 CLEAN, tools 13 vs baseline 43 CLEAN;
                      build_linux 22/22; fixture controls 9+7; growth 360/7; site 63;
                      P2 PASS; P3 PASS; composite mutations all KILLED (control shows same 3 FAIL)
-Status:             READY (prerequisites) / 3 reduced-model R2 misses adjudicated: ACCEPTED KNOWN C-LEVEL LIMITATION / model-2 gate pending
+Status:             READY (prerequisites) / 3 reduced-model R2 misses adjudicated: ACCEPTED KNOWN C-LEVEL LIMITATION / model-2 at 40b2419 passed focused Unity, pending review+re-pin
 ```
