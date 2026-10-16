@@ -26,7 +26,7 @@ HEAD pins identify the execution/reviewed implementation snapshot, not the later
 
 ## Unity ownership
 
-2026-10-16 23:10Z: IDLE; OWNER NONE; lock FREE; no Editor. CCF-TIER3-REPIN held lock `bdaf5c7c1ef940c6b7f2b86308a3a791` (U1 detached `e8ca1f8`) from 22:42Z; a separate recovery session released it normally at 23:01:41Z while this task's Editor was starting, so this task's compile probe and model-1 completion gate (23:03-23:06Z) ran with the record FREE. No other Unity process was started by anyone. Not re-acquired; no further Unity run by this task. Findings: `ScenarioOneFinalTier3Repin-20261016T222700Z/HANDOFF.md`.
+2026-10-16 23:24Z: IDLE; OWNER NONE; unity-lock FREE (metadata null); no Unity Editor process observed machine-wide (verified 2026-10-16 23:24:26Z). Unity event record (operational lock-record race, reconciled here): CCF-TIER3-REPIN (the known task owner, `Claude-tier3-repin`) held lock `bdaf5c7c1ef940c6b7f2b86308a3a791` (lane CCF-U1, U1 detached `e8ca1f8`) from 22:42:40Z; a separate recovery session released that record **normally** at 23:01:41Z on a momentary no-Editor observation, while CCF-TIER3-REPIN's Editor was in fact relaunching within seconds — so briefly the lock record and process ownership disagreed. CCF-TIER3-REPIN continued its compile probe and historical model-1 completion gate (23:03-23:06Z) with the record FREE, then, **after its Editor exited, acquired the lock normally as required before its next launch** (lock `2a260b0b4142454e956534d8cb1e6fc0`, owner `Claude-tier3-repin`, lane CCF-U1, head `fd74c9a`, 23:10:59Z, notes "F2 repair claim; Phase 5 compile + model-1 gate"), ran Phase-5 compile (PASS, `compile_errors: []`) and a second model-1 gate (FAIL), and released it **normally** at 23:18:30Z. No second owner was authorised to acquire Unity at any point; the interval of disagreement was a lock-record race under one known owner, not a second owner. Findings: `ScenarioOneFinalTier3Repin-20261016T222700Z/HANDOFF.md`, `ScenarioOneRepinPhaseB-20261016T231142Z/HANDOFF.md`.
 
 (previous state) IDLE; OWNER NONE. Production unity-lock status FREE, metadata null, no observed Editor PIDs (verified 2026-10-16 21:53Z). Do not acquire until a real Unity packet is assigned. No Unity qualification was rerun.
 
@@ -40,15 +40,20 @@ Path role persists; branch changes between closed tasks. No branch/worktree pres
 
 | Lane | Permanent role | Current branch | HEAD | Working state | Owner |
 |---|---|---|---|---|---|
-| `/media/jer/ZX20/CCF-Primary` | T3/repository coordination anchor | ops/workflow-foundation-v1 (transitional) | dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e | clean, ordinary checkout, no Library | NONE |
-| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | clean, pushed, warm Library; reservation by CCF-TIER3-REPIN ENDED 2026-10-16 23:10Z, restored to `feature/scenario-one-model2-default` @ `b81f737`, Editor `.vscode/settings.json` rewrite reverted, no Editor running | NONE |
+| `/media/jer/ZX20/CCF-Primary` | T3/repository coordination anchor | ops/workflow-foundation-v1 (transitional) | 435155b04c946203ac8acdf5d98df0480d8c49c8 | clean tracked tree; one preserved untracked file `Docs/ScenarioTwoPreProductionAudit.md` (do not touch); no Library | NONE |
+| `/media/jer/ZX20/CCF-U1` | Unity implementation lane | feature/scenario-one-model2-default | b81f737ebdca790794352018efc1f1edd3e1e516 | clean, pushed, warm Library (~8.1 G, sole warm lane); CCF-TIER3-REPIN reservation ended 2026-10-16 23:18Z (restored to `feature/scenario-one-model2-default` @ `b81f737`; Editor `.vscode/settings.json` rewrite reverted); claimed transiently (detached/placeholder) for CCF-MODEL1-HISTORICAL-FIXTURE Unity, no Editor running | CCF-MODEL1-HISTORICAL-FIXTURE (Unity, not running) |
 | `/media/jer/ZX20/CCF-U2` | second Unity implementation/review lane | lane/u2 | c6dc136b7f1f8668d9f67f95f48968d290ad5067 | clean, no Library | NONE |
-| `/media/jer/ZX20/CCF-Integration` | integration/qualification lane | integration/scenario-one-tier3-candidate | 971c5f8cc75e571a159a5f38415d0005fdf30ae4 | clean, no Library | NONE (CCF-TIER3-REPIN relinquished 2026-10-17 00:12 IST; branch HEAD has since advanced to `fd74c9a` by another session's F2 repair, not by this task) |
+| `/media/jer/ZX20/CCF-Integration` | integration/qualification lane | integration/scenario-one-tier3-candidate | fd74c9a7813b6dadcff3b1902764cc6c06b6b4cd | clean, no Library; unpushed (origin branch still `971c5f8`); HEAD advanced to `fd74c9a` (F2 repair); CCF-TIER3-REPIN relinquished 2026-10-16 23:10Z | CCF-MODEL1-HISTORICAL-FIXTURE (commits) |
 | `/media/jer/ZX20/CCF-NonUnity` | offline/tooling lane | tooling/linux-player-tier3 | 5010613f67bbc2435504b25876947ff092d0532c | clean, sparse, no Library | NONE |
 | `/media/jer/ZX20/CCF-Review` | reusable detached/read-only review shell | DETACHED | c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2 | clean, sparse, no Library | NONE |
-| `/media/jer/ZX20/CCF-Repository.git` | permanent bare common Git store | (bare) | n/a | bare; backs all lanes | n/a |
+| `/media/jer/ZX20/CCF-Repository.git` | permanent bare common Git store | (bare) | n/a | bare (`core.bare=true`); backs all lanes | n/a |
+| `/media/jer/ZX20/CCF-DensityInstrumentation` | specialist temporary lane (Phase 2 retirement candidate) | tooling/density-component-ba-measurement | 1e642a2b1649ac000b7176ad16131b8c8e4466ef | clean, no Library | NONE |
+| `/media/jer/ZX20/CCF-Growfor` | specialist temporary lane (Phase 2 retirement candidate) | tooling/growfor-sitka-benchmark | a94c664b226d64a9dd114bca5e3f910526b19ff6 | clean, no Library | NONE |
+| `/media/jer/ZX20/CCF-Tier3Preflight` | specialist temporary lane (Phase 2 retirement candidate) | ops/tier3-final-preflight | a5e4ddcaed51250939abcb4aefa6d2018a8c5742 | clean, no Library | NONE |
 
-Specialist temporary lanes (retire only after integration/preservation, Phase 2): `CCF-DensityInstrumentation`, `CCF-Growfor`, `CCF-Tier3Preflight`. Detached review worktrees `CCF-CBA-Review`, `CCF-CBA-Review2`, `CCF-Growfor-Review` are audit-classified safe but are NOT removed until T3 project registrations are reconciled (Phase 2).
+Detached review worktrees `CCF-CBA-Review`, `CCF-CBA-Review2`, `CCF-Growfor-Review`: verified ABSENT (non-present paths) at 2026-10-16 23:24Z, not registered in `git worktree list`, and not referenced by any live task — recorded **RETIRED / NON-PRESENT**; do not recreate.
+
+Repository topology: the `CCF-Repository.git` common store is a verified bare repository (`core.bare=true`); no topology change was made. `main`: local `refs/heads/main` `402a2b41108dc9aa91e225db9047956b0a91a97e` is an ancestor of `refs/remotes/origin/main` `c1564b857972ee18917e8a461c457533a54cc3f1` (behind by 76, not diverged); no ref was updated.
 
 ## Reconciliation and preservation holds
 
