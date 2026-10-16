@@ -608,7 +608,8 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
 //       (nothing is saved, no asset is marked dirty, no production file is edited);
 //   (b) the play acknowledges the Annual Review through the REAL production handler, so Completed is reached through the unchanged
 //       N3 rule; the v18 hash is then taken on a projection of the captured save that removes the event-type-9 records (which cannot
-//       exist in a v18 layout) and closes the event-id sequence they occupied. The live manager is never modified by the projection.
+//       exist in a v18 layout), closes the event-id sequence they occupied, and restores annualReviewSeen to the historical
+//       never-acknowledged value (false). The live manager is never modified by the projection.
 // The expected anchor is NOT changed here, and nothing in this class relaxes any current-world or N3 assertion.
 // =====================================================================================================================
 internal sealed class HistoricalV18Model1Reconstruction
@@ -690,14 +691,14 @@ internal sealed class HistoricalV18Model1Reconstruction
         string unprojected = ScenarioReferenceArchive.LegacyV18WorldHash(captured) ?? "n/a";
         Debug.Log("SCENARIO_ONE_COMPLETION_HISTORICAL_V18_UNPROJECTED_HASH " + unprojected);
         Check(captured.scenarioOne != null && captured.scenarioOne.managementEvents != null, "historical projection: no scenario state");
-        ForestSaveData projected = ScenarioOneProjection(captured, out int removed, out int renumbered);
+        ForestSaveData projected = ScenarioOneProjection(captured, out int removed, out int renumbered, out bool seenBefore);
         Check(removed >= 1, "historical projection: the N3-compliant play recorded no event-type-9 acknowledgement to project out");
         string hash = ScenarioReferenceArchive.LegacyV18WorldHash(projected) ?? "n/a";
-        Debug.Log($"SCENARIO_ONE_COMPLETION_HISTORICAL_V18_PROJECTED_HASH {hash} removedEventType9={removed} renumberedLaterEvents={renumbered} nextEventId={projected.scenarioOne.nextManagementEventId}");
+        Debug.Log($"SCENARIO_ONE_COMPLETION_HISTORICAL_V18_PROJECTED_HASH {hash} removedEventType9={removed} renumberedLaterEvents={renumbered} nextEventId={projected.scenarioOne.nextManagementEventId} annualReviewSeen(before->projected)={seenBefore}->{projected.scenarioOne.annualReviewSeen}");
         return hash;
     }
 
-    private static ForestSaveData ScenarioOneProjection(ForestSaveData captured, out int removed, out int renumbered)
+    private static ForestSaveData ScenarioOneProjection(ForestSaveData captured, out int removed, out int renumbered, out bool annualReviewSeenBefore)
     {
         ScenarioOneSaveData scenario = captured.scenarioOne;
         List<int> removedIds = scenario.managementEvents
@@ -711,6 +712,11 @@ internal sealed class HistoricalV18Model1Reconstruction
         }
         removed = removedIds.Count;
         scenario.nextManagementEventId -= removed;
+        // ScenarioOneSaveData.annualReviewSeen is part of the hashed bytes. MarkAnnualReviewSeen() (the acknowledgement above) sets it and only a
+        // scenario reset clears it. The historical play never acknowledged (before 7840872 only the Annual Review button called the handler,
+        // and no gate version ever did), so the frozen v18 layout has it false. Restored on the captured copy only; the live manager is untouched.
+        annualReviewSeenBefore = scenario.annualReviewSeen;
+        scenario.annualReviewSeen = false;
         return captured;
     }
 }
