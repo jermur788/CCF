@@ -28,17 +28,27 @@ LOAD_MARKER = "S1B_PLAYER_LOAD_RESET_PHASE_PASS"
 FATAL = re.compile(r"S1B_SMOKE_FAIL|Unhandled exception|NullReferenceException|error CS")
 
 
-def phase_command(player, phase_dir, log, phase, extra_env):
-    out = phase_dir / "save" if phase == "save" else phase_dir / "load"
+def smoke_output_dir(phase_dir):
+    """One shared directory for BOTH phases.
+
+    StandalonePlayerSmoke.cs writes `saved-world-hash.txt` into `--ccf-smoke-output`
+    during SAVE and reads that same location during LOAD, so the two launches must
+    receive the identical path. `phase_dir` itself stays freshly created per run so
+    stale evidence cannot carry over.
+    """
+    return phase_dir / "smoke"
+
+
+def phase_command(player, smoke_out, log, phase, extra_env):
     flag = "--ccf-smoke-save" if phase == "save" else "--ccf-smoke-load"
-    cmd = [str(player), "--ccf-smoke-output", str(out), flag, "-logFile", str(log)]
+    cmd = [str(player), "--ccf-smoke-output", str(smoke_out), flag, "-logFile", str(log)]
     env = dict(os.environ, **extra_env)
     return cmd, env
 
 
 def run_phase(player, phase_dir, phase, extra_env, timeout):
     log = phase_dir / f"player-{phase}.log"
-    cmd, env = phase_command(player, phase_dir, log, phase, extra_env)
+    cmd, env = phase_command(player, smoke_output_dir(phase_dir), log, phase, extra_env)
     start = time.monotonic()
     try:
         code = subprocess.run(cmd, env=env, timeout=timeout).returncode
@@ -75,11 +85,13 @@ def main():
     phase_dir = Path(a.evidence_root) / label
     phase_dir.mkdir(parents=True, exist_ok=False)
     xdg = phase_dir / "config"
+    smoke_out = smoke_output_dir(phase_dir)
+    smoke_out.mkdir(parents=True, exist_ok=True)
     extra_env = {"DISPLAY": a.display, "XDG_CONFIG_HOME": str(xdg)}
     # save and load share one persistentDataPath under the isolated config
     (phase_dir / "environment.json").write_text(json.dumps(
         {"player": str(player), "display": a.display, "xdg_config_home": str(xdg),
-         "timeout": a.timeout, "label": label}, indent=2) + "\n")
+         "smoke_output": str(smoke_out), "timeout": a.timeout, "label": label}, indent=2) + "\n")
 
     phases = ["save", "load"] if a.phase == "both" else [a.phase]
     results = [run_phase(player, phase_dir, ph, extra_env, a.timeout) for ph in phases]

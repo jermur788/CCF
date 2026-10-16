@@ -122,7 +122,9 @@ def main():
                    Path(str(smoke_target) + ".meta"), stamp):
         if staged.exists():
             raise SystemExit("STOP: pre-existing staged/identity file: " + str(staged))
-    out.mkdir(parents=True, exist_ok=False)
+    if out.exists():
+        raise SystemExit("STOP: output already exists; refusing to overwrite: " + str(out))
+    out.mkdir(parents=True)
 
     config = Path(a.output_root) / "config"
     licences = Path.home() / ".config/unity3d/Unity/licenses"
