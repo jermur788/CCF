@@ -134,7 +134,10 @@ def read_component_ba_evidence(directory, env, text):
     harness's five-decimal serialisation (COMPONENT_BA_QUANTUM), so representation-only rounding is accepted while a
     materially larger discrepancy is rejected. No density threshold is applied.
     """
-    failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "present": False, "both_fired_rows": 0,
+    # absent is True ONLY where the file genuinely does not exist (the explicit `not path.is_file()` branch below). Every
+    # other outcome (success, schema/parse/encoding error, OSError, malformed row) is absent=False: existence, once
+    # established, means the evidence must be validated and can never masquerade as historical absence.
+    failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "absent": False, "both_fired_rows": 0,
                "sitka_fired_rows": 0, "generic_fired_rows": 0, "attribution_mismatch_rows": 0, "path": None}
     try:
         phases, selected, horizon, _ = density_request(env)
@@ -147,16 +150,15 @@ def read_component_ba_evidence(directory, env, text):
         path = Path(directory) / f"component-ba-{geo}.csv"
         expected_geo = {"0": "L40", "1": "E80"}.get(env.get("CCF_STAND_GEOMETRY"))
         if expected_geo and expected_geo != geo:
-            return dict(failure, path=str(path), present=path.is_file(),
-                        error="component-ba geometry does not match the requested geometry")
+            return dict(failure, path=str(path), error="component-ba geometry does not match the requested geometry")
         if not path.is_file():
-            # Distinct from malformed: the historical pre-component-ba format legitimately has no such file, so the caller's
-            # explicit evidence-format decides whether this is acceptable. Validation itself never infers historical mode.
-            return dict(failure, path=str(path), error="component-ba file is missing: " + str(path))
+            # The ONLY absence signal. The historical pre-component-ba format legitimately has no such file, so the caller's
+            # explicit evidence-format decides whether this is acceptable. Absence is never inferred from an exception.
+            return dict(failure, path=str(path), absent=True, error="component-ba file is missing: " + str(path))
         with path.open(newline="") as handle:
             reader = csv.DictReader(handle)
             if reader.fieldnames != COMPONENT_BA_COLUMNS:
-                return dict(failure, path=str(path), present=True, error=f"component-ba schema mismatch: {reader.fieldnames}")
+                return dict(failure, path=str(path), error=f"component-ba schema mismatch: {reader.fieldnames}")
             rows = list(reader)
         expected = {(scenario, year) for scenario in selected for year in range(1, horizon + 1)}
         keys = [(row["scenario"], int(row["year"])) for row in rows]
@@ -178,14 +180,14 @@ def read_component_ba_evidence(directory, env, text):
             if len(problems) > 20:
                 break
         return {
-            "path": str(path), "present": True, "rows": len(rows), "expected_rows": len(expected), "complete": not problems,
+            "path": str(path), "absent": False, "rows": len(rows), "expected_rows": len(expected), "complete": not problems,
             "error": None if not problems else "; ".join(problems[:20]),
             "both_fired_rows": sum(1 for row in rows if row["bothFired"] == "1"),
             "sitka_fired_rows": sum(1 for row in rows if row["sitkaFired"] == "1"),
             "generic_fired_rows": sum(1 for row in rows if row["genericFired"] == "1"),
             "attribution_mismatch_rows": sum(1 for row in rows if row["attributionExact"] != "1"),
         }
-    except (OSError, ValueError, KeyError, csv.Error) as error:
+    except (OSError, ValueError, TypeError, KeyError, csv.Error) as error:
         return dict(failure, error=str(error))
 
 
@@ -232,7 +234,7 @@ def read_longrun_evidence(directory, env, text):
         return {'path': str(path), 'rows': len(rows), 'expected_rows': len(expected), 'complete': complete,
                 'error': None if complete else 'LONGRUN filter selected nothing or produced missing/duplicate/unexpected measurement rows',
                 'component_ba': read_component_ba_evidence(directory, env, text)}
-    except (OSError, ValueError, KeyError, csv.Error) as error:
+    except (OSError, ValueError, TypeError, KeyError, csv.Error) as error:
         return {'rows': 0, 'expected_rows': 0, 'complete': False, 'error': str(error),
                 'component_ba': read_component_ba_evidence(directory, env, text)}
 
@@ -278,11 +280,11 @@ def evaluate_receipt(code, marker, text, unexpected, min_hard_checks=None, env=N
                 if evidence_format == EVIDENCE_FORMAT_CURRENT:
                     if component_ba_inconsistent:
                         coverage_errors.append('component-ba per-component basal-area rows are missing or inconsistent; downstream analysis cannot split the mixed-stand basal-area loss (' + str(detail) + ').')
-                elif component_ba and component_ba.get('present'):
-                    # A file that was actually supplied is validated normally, even in historical mode; only its absence is
-                    # tolerated. Nothing else about the historical path is weakened.
+                elif not (component_ba and component_ba.get('absent') is True):
+                    # Historical mode tolerates ONLY explicit physical absence. A file that exists, or whose absence could
+                    # not be established, is validated normally; a present-but-invalid file fails.
                     if component_ba_inconsistent:
-                        coverage_errors.append('component-ba was supplied but is incomplete or inconsistent; it is validated normally even in the pre-component-ba format (' + str(detail) + ').')
+                        coverage_errors.append('component-ba was present but is incomplete or inconsistent; the pre-component-ba format tolerates only a genuinely absent file (' + str(detail) + ').')
         except ValueError as error:
             coverage_errors.append(str(error))
         if not measurement_only:

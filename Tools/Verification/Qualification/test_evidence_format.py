@@ -7,6 +7,7 @@ not expected. Historical mode must be requested explicitly and is never inferred
 No Unity: these exercise qualification_results.evaluate_receipt / read_longrun_evidence and the runner CLI (argument
 parsing only; a bad/empty --evidence-format must be rejected before any Editor could launch).
 """
+import os
 import subprocess
 import sys
 import tempfile
@@ -14,7 +15,7 @@ import unittest
 from pathlib import Path
 
 from qualification_results import (COMPONENT_BA_COLUMNS, EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_COMPONENT_BA,
-                                   evaluate_receipt, read_longrun_evidence)
+                                   evaluate_receipt, read_component_ba_evidence, read_longrun_evidence)
 
 ROOT = Path(__file__).resolve().parents[3]
 RUNNER = ROOT / "Tools/Verification/ThreeSpecies/Qualification/run_qualification.py"
@@ -136,6 +137,61 @@ class EvidenceFormatTests(unittest.TestCase):
             self.assertEqual("PASS", declared["status"])
             # The absence of component-ba must never itself select historical mode.
             self.assertNotEqual(default["evidence_format"], EVIDENCE_FORMAT_PRE_COMPONENT_BA)
+
+    # --- present-vs-absent polarity: historical mode tolerates ONLY explicit physical absence ---
+
+    def test_11_absence_is_explicit_and_never_inferred_from_an_error(self):
+        with tempfile.TemporaryDirectory(prefix="ccf-format-") as tmp:
+            write_longrun(tmp, longrun_rows())
+            self.assertIs(True, read_component_ba_evidence(tmp, ENV, LOG)["absent"])          # genuinely missing
+            write_component_ba(tmp, text="wrong,schema\n1,2\n")                               # present but malformed
+            self.assertIs(False, read_component_ba_evidence(tmp, ENV, LOG)["absent"])
+            write_component_ba(tmp, text="")                                                  # present but empty
+            self.assertIs(False, read_component_ba_evidence(tmp, ENV, LOG)["absent"])
+
+    def test_12_historical_bad_year_component_ba_fails(self):
+        with tempfile.TemporaryDirectory(prefix="ccf-format-") as tmp:
+            write_longrun(tmp, longrun_rows())
+            rows = [f"{scenario},E80,{year},SpeciesAwareOccupancy,{NO_DEATH_ROW}\n" for scenario in SCENARIOS for year in YEARS]
+            rows[0] = "B_BEECH_DENSE,E80,not-a-year,SpeciesAwareOccupancy," + NO_DEATH_ROW + "\n"
+            write_component_ba(tmp, body=rows)
+            self.assertIs(False, read_component_ba_evidence(tmp, ENV, LOG)["absent"])
+            self.assertEqual("FAIL", decision(tmp, EVIDENCE_FORMAT_PRE_COMPONENT_BA)["status"])
+            self.assertEqual("FAIL", decision(tmp, EVIDENCE_FORMAT_CURRENT)["status"])
+
+    def test_13_historical_invalid_utf8_component_ba_fails(self):
+        with tempfile.TemporaryDirectory(prefix="ccf-format-") as tmp:
+            write_longrun(tmp, longrun_rows())
+            (Path(tmp) / "component-ba-E80.csv").write_bytes(b"\xff\xfe\x00 not utf-8 \x80\x81")
+            self.assertIs(False, read_component_ba_evidence(tmp, ENV, LOG)["absent"])
+            self.assertEqual("FAIL", decision(tmp, EVIDENCE_FORMAT_PRE_COMPONENT_BA)["status"])
+
+    def test_14_historical_unreadable_component_ba_fails_or_skips(self):
+        with tempfile.TemporaryDirectory(prefix="ccf-format-") as tmp:
+            write_longrun(tmp, longrun_rows())
+            path = write_component_ba(tmp)
+            os.chmod(path, 0)
+            try:
+                if os.geteuid() == 0:
+                    self.skipTest("running as root; chmod 000 does not deny read")
+                try:
+                    path.read_bytes()
+                except PermissionError:
+                    pass
+                else:
+                    self.skipTest("platform does not enforce unreadability for this user")
+                self.assertIs(False, read_component_ba_evidence(tmp, ENV, LOG)["absent"])
+                self.assertEqual("FAIL", decision(tmp, EVIDENCE_FORMAT_PRE_COMPONENT_BA)["status"])
+            finally:
+                os.chmod(path, 0o644)
+
+    def test_15_historical_short_row_fails_gracefully_without_traceback(self):
+        with tempfile.TemporaryDirectory(prefix="ccf-format-") as tmp:
+            write_longrun(tmp, longrun_rows())
+            # A row with a missing year: int(None) raises TypeError unless it is handled explicitly.
+            write_component_ba(tmp, text=",".join(COMPONENT_BA_COLUMNS) + "\nB_BEECH_DENSE\n")
+            result = decision(tmp, EVIDENCE_FORMAT_PRE_COMPONENT_BA)
+            self.assertEqual("FAIL", result["status"])
 
 
 if __name__ == "__main__":
