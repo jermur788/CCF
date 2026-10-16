@@ -186,8 +186,8 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
     private IEnumerator Policy()
     {
         int newGame = ScenarioOneManager.NewGameGrowthModel;
-        Pass("POLICY_NEW_GAME_GROWTH_UNCHANGED", newGame == GrowthModel.SiteClassDensity,
-            $"newGameGrowth={newGame} (growth model 2 is NOT adopted; new games stay on model 1)");
+        Pass("POLICY_NEW_GAME_GROWTH_IS_SPECIES_AWARE", newGame == GrowthModel.SpeciesAware,
+            $"newGameGrowth={newGame} (growth model 2 is the new-game default; saves keep their stored model)");
         Pass("POLICY_VERSION_CONSTANTS", GrowthModel.SpeciesAware == 2 && GrowthModel.Latest == 2 && GrowthModel.Normalize(7) == 2, $"latest={GrowthModel.Latest}");
         Pass("POLICY_SAVE_VERSION_UNCHANGED", ForestSaveData.CurrentVersion == 20, $"saveVersion={ForestSaveData.CurrentVersion}");
 

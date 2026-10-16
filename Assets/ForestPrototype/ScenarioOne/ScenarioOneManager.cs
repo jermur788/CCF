@@ -477,9 +477,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // restore the saved model; saves before v16 and Reference v1 are model 0.
     public const int NewGameRegenerationModel = RegenerationModel.Competition;
 
-    // Adult growth for newly created games: Irish site Class III height and
-    // adult density mortality. Saves before v17 and Reference v1 are model 0.
-    public const int NewGameGrowthModel = GrowthModel.SiteClassDensity;
+    // Adult growth for newly created games: growth model 2 (species-aware adult density and the Oak/Beech timber market).
+    // A stand of only Sitka still runs exactly as model 1, so a fresh game behaves as before until an Oak or Beech tree
+    // stands in it. Loads keep the model stored in the save (0, 1 or 2) with no migration; saves before v17 and
+    // Reference v1 are model 0.
+    public const int NewGameGrowthModel = GrowthModel.SpeciesAware;
 
     // The Oak and Beech timber market (D-062) belongs to the three-species package, growth model 2 (D-059): a game on
     // model 0 or 1 keeps its original economy, where Oak and Beech earn no sale revenue. No new saved state is needed;

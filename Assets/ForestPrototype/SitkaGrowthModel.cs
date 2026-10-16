@@ -9,8 +9,8 @@ using System;
 //   2 SpeciesAware: model 1, plus species-aware adult density (D-059, D-061).
 //     A stand whose living trees are all Reference class (pure Sitka) runs
 //     exactly as model 1. Any other stand uses the ordinal growing-space
-//     demand density in MixedDensityModel. Not the default for new games
-//     until the Manager accepts the re-baselined anchors.
+//     demand density in MixedDensityModel. The default for new Scenario One
+//     games (ScenarioOneManager.NewGameGrowthModel); saves keep their stored model.
 public static class GrowthModel
 {
     public const int Legacy = 0;

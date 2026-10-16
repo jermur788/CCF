@@ -372,10 +372,90 @@ public sealed class UxQualificationRunner : MonoBehaviour
     private readonly List<string> cues = new List<string>();
     private void LogCue(string after) { string c = Cue(); cues.Add(c); Measure("CUE", $"after=[{after}] cue=[{c}]"); }
 
+    // Lesson observations run every 0.25 s; keep the current UI state across at least one observation tick.
+    private static IEnumerator WaitRealtime(float seconds)
+    {
+        double until = Time.realtimeSinceStartupAsDouble + seconds;
+        while (Time.realtimeSinceStartupAsDouble < until) yield return null;
+    }
+
+    private bool InspectionTargetReady(ForestTree tree)
+        => tree != null && tree.IsLiving && player.isActiveAndEnabled && !player.IsInspecting
+            && player.AimedTree == tree && UnityEngine.Cursor.lockState == CursorLockMode.Locked
+            && !ui.Help.IsOpen && !manager.AnyPanelOpen && !StandaloneSessionMenu.IsOpen
+            && Application.isFocused && EditorWindow.focusedWindow?.GetType().Name == "GameView";
+
+    private string InspectionState(ForestTree tree)
+    {
+        string Id(ForestTree t) => t == null ? "none" : t.TreeId;
+        Camera camera = Camera.main;
+        string rays = camera == null ? "no-camera" : string.Join(";", Physics.RaycastAll(camera.transform.position, camera.transform.forward, 8f)
+            .OrderBy(h => h.distance).Take(12).Select(h => $"{h.collider.name}:{Id(h.collider.GetComponentInParent<ForestTree>())}@{F(h.distance, "0.000")}"));
+        return $"frame={Time.frameCount} realtime={F(Time.realtimeSinceStartupAsDouble, "0.000")} intended={Id(tree)} "
+            + $"candidate={Id(player.AimedTree)} marking={Id(marks.AimedTree)} inspected={Id(player.InspectedTree)} "
+            + $"player={player.transform.position.ToString("F4")} camera={(camera == null ? "none" : camera.transform.position.ToString("F4"))} "
+            + $"forward={(camera == null ? "none" : camera.transform.forward.ToString("F4"))} "
+            + $"targetPointDistance={(camera != null && tree != null ? F(Vector3.Distance(camera.transform.position, tree.InteractionPoint), "0.000") : "none")} "
+            + $"enabled={player.isActiveAndEnabled} inspecting={player.IsInspecting} cursor={UnityEngine.Cursor.lockState} "
+            + $"focused={Application.isFocused}/{EditorWindow.focusedWindow?.GetType().Name} help={ui.Help.IsOpen}/{ui.Help.CurrentMenu} "
+            + $"screen={ui.CurrentScreen} panel={manager.AnyPanelOpen} session={StandaloneSessionMenu.IsOpen} "
+            + $"keyboard={Keyboard.current?.deviceId} prompt=[{player.InteractionPromptText()}] rays=[{rays}]";
+    }
+
+    private IEnumerator EnterInspection(ForestTree tree)
+    {
+        // Planning reaches 8 m; inspection has its own shorter raycast. Require the player's actual candidate.
+        double started = Time.realtimeSinceStartupAsDouble, deadline = started + 2.0;
+        int stableFrames = 0;
+        while (stableFrames < 3 && Time.realtimeSinceStartupAsDouble < deadline)
+        {
+            yield return null;
+            stableFrames = InspectionTargetReady(tree) && Keyboard.current != null && !Keyboard.current.eKey.isPressed
+                ? stableFrames + 1 : 0;
+        }
+        bool acquired = stableFrames == 3;
+        Hard("FIRST_CYCLE_INSPECTION_TARGET_ACQUIRED", acquired,
+            $"stableFrames={stableFrames} waitedSeconds={F(Time.realtimeSinceStartupAsDouble - started, "0.000")} " + InspectionState(tree));
+        if (!acquired) throw new InvalidOperationException("inspection target acquisition timed out; E was not emitted");
+
+        bool delivered = false, readyAtDelivery = false;
+        int deliveryEdges = 0;
+        void ObserveE()
+        {
+            if (Keyboard.current == null) return;
+            Measure("INSPECTION_INPUT_UPDATE", $"update={InputState.currentUpdateType} eDown={Keyboard.current.eKey.isPressed} "
+                + $"eEdge={Keyboard.current.eKey.wasPressedThisFrame} escEdge={Keyboard.current.escapeKey.wasPressedThisFrame} " + InspectionState(tree));
+            if (InputState.currentUpdateType != InputUpdateType.Dynamic || !Keyboard.current.eKey.wasPressedThisFrame) return;
+            delivered = true;
+            deliveryEdges++;
+            readyAtDelivery |= InspectionTargetReady(tree);
+            Measure("INSPECTION_E_DYNAMIC_EDGE", $"ready={InspectionTargetReady(tree)} " + InspectionState(tree));
+        }
+        InputSystem.onAfterUpdate += ObserveE;
+        try
+        {
+            Measure("INSPECTION_E_REQUEST", InspectionState(tree));
+            yield return Press(Key.E); // One unchanged synthetic press; never retry a delivered interaction.
+            deadline = Time.realtimeSinceStartupAsDouble + 2.0;
+            while (!(player.IsInspecting && player.InspectedTree == tree) && Time.realtimeSinceStartupAsDouble < deadline)
+                yield return null;
+            Hard("FIRST_CYCLE_E_DELIVERED_TO_READY_TARGET", delivered && readyAtDelivery,
+                $"dynamicEdge={delivered} readyAtDelivery={readyAtDelivery} " + InspectionState(tree));
+            bool entered = player.IsInspecting && player.InspectedTree == tree;
+            Measure("INSPECTION_E_RESULT", $"entered={entered} dynamicEdge={delivered} readyAtDelivery={readyAtDelivery} edges={deliveryEdges} " + InspectionState(tree));
+            if (!entered || !delivered || !readyAtDelivery)
+                throw new InvalidOperationException(!delivered ? "INPUT_NOT_DELIVERED: no Dynamic E edge; see interaction diagnostics"
+                    : !readyAtDelivery ? "NO_VALID_TARGET_AT_E_DELIVERY: see interaction diagnostics"
+                    : "VALID_TARGET_AND_E_DELIVERED_WITHOUT_INSPECTION: see interaction diagnostics");
+        }
+        finally { InputSystem.onAfterUpdate -= ObserveE; }
+    }
+
     private IEnumerator FirstCycle()
     {
         // ROLE normally closes the first-use role panel; the cycle cannot aim at a tree while it is open, so it also runs alone.
         if (ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud) { ui.CloseHelp(); yield return null; yield return null; }
+        yield return WaitRealtime(0.35f);
         LogCue("fresh");
         Hard("CUE_STARTS_WITH_INSPECT_A_LIVING_TREE", cues[0].Contains("Inspect a living tree"), cues[0]);
         Hard("LEARNING_STEP_IDS_ARE_42", LearningObjectivesView.StepIds.Count() == 42, $"count={LearningObjectivesView.StepIds.Count()} sortedIdHash={Fnv(string.Join("|", LearningObjectivesView.StepIds.OrderBy(s => s, StringComparer.Ordinal)))}");
@@ -383,23 +463,26 @@ public sealed class UxQualificationRunner : MonoBehaviour
         ForestTree crop = null;
         yield return AimAt(t => true, t => crop = t);
         Hard("FIRST_CYCLE_CAN_AIM_AT_A_TREE", crop != null, crop != null ? crop.TreeId : "no tree could be aimed at");
-        yield return Press(Key.E);
-        Hard("E_INSPECTS_THE_AIMED_TREE", player.IsInspecting, $"inspecting={player.IsInspecting}");
+        yield return EnterInspection(crop);
+        Hard("E_INSPECTS_THE_AIMED_TREE", player.IsInspecting && player.InspectedTree == crop, InspectionState(crop));
         bool introOpened = ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.TreeInspection;
         Hard("TREE_INSPECTION_FIRST_USE_SCREEN_OPENS_ONCE", introOpened, $"open={ui.Help.IsOpen} menu={ui.Help.CurrentMenu}");
         Measure("TREE_INSPECTION_FIRST_USE_WORDS", $"words={Words(ui.Help.Root.Q<Label>("menu-help-text")?.text)} (the patch states 65)");
         yield return Shoot("03-tree-inspection-first-use");
         yield return Invoke(ui.Help.Root.Q<Button>("menu-help-close"));
         yield return Shoot("04-tree-inspection-card");
+        yield return WaitRealtime(0.35f);
         LogCue("inspected a tree");
         yield return Press(Key.C);
         Hard("C_MARKS_A_CROP_TREE", marks.GetCropTreeIds().Contains(crop.TreeId), $"cropTrees={marks.GetCropTreeIds().Count}");
+        yield return WaitRealtime(0.35f);
         LogCue("pressed C");
         yield return Press(Key.E);                // leave inspection
         ForestTree fell = null;
         yield return AimAt(t => t != crop, t => fell = t);
         yield return Press(Key.X);
         Hard("X_MARKS_THE_AIMED_TREE_FOR_FELLING", fell != null && fell.IsMarkedForFell, fell != null ? fell.TreeId : "no second tree could be aimed at");
+        yield return WaitRealtime(0.35f);
         LogCue("pressed X");
 
         yield return Press(Key.Tab);
@@ -410,6 +493,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return Shoot("05-work-plan-first-use");
         if (ui.Help.IsOpen) yield return Invoke(ui.Help.Root.Q<Button>("menu-help-close"));
         yield return Shoot("06-work-plan-pending");
+        yield return WaitRealtime(0.35f);
         LogCue("opened the Work Plan");
 
         // --- the wasted-year guard, pending only (section 6a/6b) ---
@@ -428,6 +512,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
         Hard("GUARD_CARD_RETURNS_ON_A_SECOND_ADVANCE", Visible(card), "");
         yield return Invoke(Btn(card, AdvanceGuard.ApproveLabel));
         Hard("GUARD_APPROVE_PENDING_WORK_NEEDS_THE_PLAYERS_CLICK_AND_THEN_APPROVES", !Visible(card) && manager.WorkOrders.Any(o => o.status == ScenarioWorkStatus.Approved) && ecology.EcologicalYear == year0, $"approved={manager.WorkOrders.Count(o => o.status == ScenarioWorkStatus.Approved)} year={ecology.EcologicalYear}");
+        yield return WaitRealtime(0.35f);
         LogCue("approved the plan");
 
         // --- the real advance with approved work: the first Annual Review (section 7) ---
@@ -445,9 +530,11 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return Shoot("09-annual-review-help-f1");
         yield return Press(Key.Escape);
         Hard("REVIEW_ESC_CLOSES_HELP_WITHOUT_CLOSING_THE_REVIEW", !ui.Help.IsOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !manager.AnnualReviewSeen, $"helpOpen={ui.Help.IsOpen} screen={ui.CurrentScreen} seen={manager.AnnualReviewSeen}");
+        yield return WaitRealtime(0.35f);
         LogCue("first review open");
         yield return Invoke(ack);
         Hard("ACKNOWLEDGEMENT_IS_THE_ONE_HARD_GATE_AND_CLEARS_IT", manager.AnnualReviewSeen && !ui.NeedsAnnualReview, $"seen={manager.AnnualReviewSeen}");
+        yield return WaitRealtime(0.35f);
         LogCue("acknowledged the review");
         ui.CloseAll(); yield return null; yield return null;
         yield return Shoot("10-hud-after-first-cycle");
