@@ -80,6 +80,21 @@ public static class UxQualification
     }
 }
 
+// F10 evidence is session-wide: a demonstrated transition removes the no-delivery exemption.
+// Kept free of Unity APIs so the offline regression executes this exact classifier.
+public sealed class F10DeliveryEvidence
+{
+    private bool everDelivered;
+
+    public string Observe(bool beforeOpen, bool afterOpen, bool expectedOpen)
+    {
+        bool delivered = beforeOpen != afterOpen;
+        everDelivered |= delivered;
+        if (delivered && afterOpen == expectedOpen) return "PASS";
+        return everDelivered ? "FAIL" : "UNVERIFIED";
+    }
+}
+
 public sealed class UxQualificationRunner : MonoBehaviour
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
@@ -91,6 +106,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
     private ForestTreeSpawner spawner;
     private ForestPlayer player;
     private StandaloneSessionMenu session;
+    private readonly F10DeliveryEvidence f10Delivery = new F10DeliveryEvidence();
     private ForestSaveData original;
     private string output;
     private int shots, passed;
@@ -109,6 +125,14 @@ public sealed class UxQualificationRunner : MonoBehaviour
     {
         unverified.Add(detail);
         Debug.Log("UXQ_UNVERIFIED " + detail);
+    }
+    private void RecordF10Toggle(string name, bool beforeOpen, bool expectedOpen)
+    {
+        bool afterOpen = StandaloneSessionMenu.IsOpen;
+        string result = f10Delivery.Observe(beforeOpen, afterOpen, expectedOpen);
+        string detail = $"beforeOpen={beforeOpen} afterOpen={afterOpen} expectedOpen={expectedOpen}; synthetic Editor keys only; native/Player input not exercised";
+        if (result == "UNVERIFIED") Unverified(name + " " + detail);
+        else Hard(name, result == "PASS", detail);
     }
     private ForestSaveData Clone(ForestSaveData d) => JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(d));
     private string WorldHash() => ScenarioReferenceArchive.WorldHash(saves.CaptureData());
@@ -504,7 +528,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
     private IEnumerator ResetFlow()
     {
         yield return EnsureSession();
-        ui.CloseAll(); ui.CloseHelp(); yield return null;
+        session.Close(); ui.CloseAll(); ui.CloseHelp(); yield return null;
         saves.Save();                                           // a real save in the isolated config folder
         string savePath = Path.Combine(Application.persistentDataPath, "forest-save.json");
         string saveBefore = File.Exists(savePath) ? Fnv(File.ReadAllText(savePath)) : "none";
@@ -516,13 +540,10 @@ public sealed class UxQualificationRunner : MonoBehaviour
         bool reviewSeenBefore = manager.AnnualReviewSeen;
         Hard("RESET_PRECONDITION_SOMETHING_TO_RESET", helpSeen >= 3 && lessons >= 4 && reviewSeenBefore && saveBefore != "none", $"helpScreensSeen={helpSeen} lessonSteps={lessons} reviewAcknowledged={reviewSeenBefore} saveFile={saveBefore}");
 
+        bool beforeF10 = StandaloneSessionMenu.IsOpen;
         yield return Press(Key.F10);
-        if (StandaloneSessionMenu.IsOpen) Hard("F10_OPENS_THE_SESSION_MENU", true, "synthetic Editor input only");
-        else
-        {
-            Unverified("F10_RESET_OPEN synthetic control failed; native/Player input not exercised; continuing through direct Open()");
-            session.Open();
-        }
+        RecordF10Toggle("F10_OPENS_THE_SESSION_MENU", beforeF10, true);
+        if (!StandaloneSessionMenu.IsOpen) session.Open();
         Hard("SESSION_MENU_OPEN_FOR_RESET", StandaloneSessionMenu.IsOpen, "mechanical state, not native input evidence");
         Measure("SESSION_MENU_TEXT", Texts(SessionRoot()).Replace("\n", " / "));
         yield return Shoot("11-session-menu");
@@ -547,13 +568,10 @@ public sealed class UxQualificationRunner : MonoBehaviour
         Hard("RESET_SHOWS_A_NOTE_THAT_THE_FOREST_AND_SAVE_WERE_NOT_CHANGED", Texts(SessionRoot()).Contains("Tutorial and help progress reset on this device") && Texts(SessionRoot()).Contains("not changed"), Texts(SessionRoot()).Replace("\n", " / "));
         yield return Shoot("13-session-menu-after-reset");
 
+        beforeF10 = StandaloneSessionMenu.IsOpen;
         yield return Press(Key.F10);
-        if (!StandaloneSessionMenu.IsOpen) Hard("MENU_CLOSES_WITH_F10", true, "synthetic Editor input only");
-        else
-        {
-            Unverified("F10_RESET_CLOSE synthetic control failed; native/Player input not exercised; continuing through direct Close()");
-            session.Close();
-        }
+        RecordF10Toggle("MENU_CLOSES_WITH_F10", beforeF10, false);
+        if (StandaloneSessionMenu.IsOpen) session.Close();
         Hard("SESSION_MENU_CLOSED_AFTER_RESET", !StandaloneSessionMenu.IsOpen, "mechanical state, not native input evidence");
         for (int i = 0; i < 20; i++) yield return null;
         Hard("AFTER_RESET_THE_ROLE_PANEL_OPENS_ONCE", ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud && Count(Texts(ui.Help.Root), "Your role · Scenario One") == 1, $"open={ui.Help.IsOpen} menu={ui.Help.CurrentMenu} titles={Count(Texts(ui.Help.Root), "Your role · Scenario One")}");
@@ -644,19 +662,12 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return EnsureSession();
         if (session.StartupScreenActive) throw new InvalidOperationException("Leave the startup screen before testing stand F10");
         session.Close(); ui.CloseAll(); ui.CloseHelp(); yield return null;
+        bool beforeF10 = StandaloneSessionMenu.IsOpen;
         yield return Press(Key.F10);
-        bool opened = StandaloneSessionMenu.IsOpen;
+        RecordF10Toggle("INPUT_SESSIONMENU_OPENS", beforeF10, true);
+        beforeF10 = StandaloneSessionMenu.IsOpen;
         yield return Press(Key.F10);
-        bool closed = !StandaloneSessionMenu.IsOpen;
-        if (opened && closed)
-            Hard("INPUT_SESSIONMENU_OPENS_AND_CLOSES", true, "synthetic Editor keys only; native/Player input not exercised");
-        else
-        {
-            // Same boundary as StartupScreenVerification: queued state events are not native input.
-            // Earlier real Linux desktop input passed despite this synthetic control failing.
-            string note = $"F10_SYNTHETIC_DELIVERY opened={opened} closed={closed}; native/Player F10 remains UNVERIFIED; require actual input smoke";
-            Unverified(note);
-        }
+        RecordF10Toggle("INPUT_SESSIONMENU_CLOSES", beforeF10, false);
         // These are mechanical checks, not evidence that either synthetic key reached Update().
         session.Close();
         session.Open(); yield return null;

@@ -31,6 +31,18 @@ class QualificationReceiptTests(unittest.TestCase):
     def test_existing_success_marker_stays_a_pass(self):
         self.assertEqual("PASS", evaluate_log(0, "DENSITY_QUAL_PASS", "DENSITY_QUAL_PASS geometry=E80 hardChecks=20", [])[0])
 
+    def test_partial_delivery_failure_overrides_earlier_unverified(self):
+        log = "\n".join([
+            "UXQ_UNVERIFIED F10_OPENS_THE_SESSION_MENU beforeOpen=False afterOpen=False",
+            "UXQ_PASS MENU_CLOSES_WITH_F10 beforeOpen=True afterOpen=False",
+            "UXQ_FAIL INPUT_SESSIONMENU_OPENS beforeOpen=False afterOpen=False",
+            self.marker,
+        ])
+        status, _, failures, unverified = evaluate_log(0, self.marker, log, [])
+        self.assertEqual("FAIL", status)
+        self.assertEqual(1, len(failures))
+        self.assertEqual(1, len(unverified))
+
     def test_launch_compile_and_tree_failures_remain_failures(self):
         for code, log, changes in [(1, self.marker, []), (0, "", []), (0, "error CS1002\n" + self.marker, []), (0, self.marker, [" M Assets/Unexpected.cs"])]:
             with self.subTest(code=code, log=log, changes=changes):

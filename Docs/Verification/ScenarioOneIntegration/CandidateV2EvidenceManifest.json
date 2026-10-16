@@ -1,0 +1,885 @@
+{
+  "review_base": "c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2",
+  "context": "cddad55213d3491b9f320a7a9a7a1bcd913b6ec8",
+  "evidence_root": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016",
+  "preservation_date": "2026-10-16",
+  "original_files": [
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/e80-valid/fairness-e80-valid.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/e80-valid/fairness-e80-valid.log",
+      "bytes": 208716,
+      "sha256": "6f239702c5bad3af0488adf9cdecbb06d4d293e2851cc53d427bce523a752470",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/e80-valid/fairness-e80-valid.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/e80-valid/fairness-e80-valid.markers.txt",
+      "bytes": 7102,
+      "sha256": "bf6989b1e36f8b2c1755f9ff5a39a8111800eb45e341cd146bc2fb4efa720667",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/e80-valid/results-fairness-e80-valid.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/e80-valid/results-fairness-e80-valid.json",
+      "bytes": 666,
+      "sha256": "0f0d61cff5ef78bfe9c57b74a081db6dc583b2be18d2197dd49207d330a334ea",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40/fairness-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40/fairness-l40.log",
+      "bytes": 6348,
+      "sha256": "ea1076a1085e7e2081374e1efc66d210cd5e2602c7713fc51e082dbe1a0c3d41",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40/fairness-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40/fairness-l40.markers.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40/results-fairness-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40/results-fairness-l40.json",
+      "bytes": 661,
+      "sha256": "8a9b6c8e18f0307dcf503fa5603cf57a4e48bf62324fd3ed0c8bc46c28e224e3",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-graphical/fairness-l40-graphical.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-graphical/fairness-l40-graphical.log",
+      "bytes": 5453,
+      "sha256": "8a8f20fb274cd91a82f13230b9c2e81aa0cd3a308f9ca834beaa38783a799807",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-graphical/fairness-l40-graphical.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-graphical/fairness-l40-graphical.markers.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-graphical/results-fairness-l40-graphical.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-graphical/results-fairness-l40-graphical.json",
+      "bytes": 671,
+      "sha256": "a983cea95cb2bfbffd09b9f037aa4f21e5b2512a93bb635c8e7a911713caf030",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-renewed/fairness-l40-renewed.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-renewed/fairness-l40-renewed.log",
+      "bytes": 6358,
+      "sha256": "8bf7846df8143b3bffdd022a168a1db6daa85f07ddb73eb8f3acfd208de9a16f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-renewed/fairness-l40-renewed.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-renewed/fairness-l40-renewed.markers.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-renewed/results-fairness-l40-renewed.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-renewed/results-fairness-l40-renewed.json",
+      "bytes": 669,
+      "sha256": "9072b32a4b6b5ed65cba578764421b64b0bbb45f5b0a1873d2551e2776bd23c7",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-valid/fairness-l40-valid.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-valid/fairness-l40-valid.log",
+      "bytes": 214610,
+      "sha256": "c2fc94f2957340fdb716a97562625b01f9cf0920023d008dc0d5bc1fe56ecf9d",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-valid/fairness-l40-valid.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-valid/fairness-l40-valid.markers.txt",
+      "bytes": 7076,
+      "sha256": "39052294e45707d6640e226460c1f2349541ad678ccaddb3843dbfb89d20ef09",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "fairness-original",
+      "source": "/tmp/opencode/ccf-fairness-repair/l40-valid/results-fairness-l40-valid.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/fairness-original/l40-valid/results-fairness-l40-valid.json",
+      "bytes": 666,
+      "sha256": "8457cb48704086f5629de747827f6a8ffeea1aa4786bdb22a34ec494f0f6fe90",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/STRAND-A-HANDOFF.md",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/STRAND-A-HANDOFF.md",
+      "bytes": 10167,
+      "sha256": "2fb34f9f79c7aeeeb80a7df10d6455a08fc0b8b16d589fe24323e018fd40aa8d",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/beech-trajectory-summary.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/beech-trajectory-summary.json",
+      "bytes": 3630,
+      "sha256": "dbdb1fb1bd59bf305c0ebd18f3accb4a0cb52e5dbfcf1899f094a91fb15306a1",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/compile/compile.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/compile/compile.log",
+      "bytes": 3630354,
+      "sha256": "a7f90fcb789fda85bda2fd9bcf04bf18587243eb57f60a978b9fd54bf1fd2230",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/compile/result.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/compile/result.json",
+      "bytes": 110,
+      "sha256": "2fcf8f2dde900b332a0cc65dbace7c665b3668f60d8a274bd7ab3bc893016a9e",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/empty-csv-rejection.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/empty-csv-rejection.json",
+      "bytes": 285,
+      "sha256": "21380323444d1e838b3244326e0868b2305b57a2cac55929283af010683160a2",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/fairness-audit.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/fairness-audit.json",
+      "bytes": 3765,
+      "sha256": "6a490074b11b5681cfad441fc1c6350cbf642be4c68df8740bba3876529a8053",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/final-worktree.diff",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/final-worktree.diff",
+      "bytes": 597,
+      "sha256": "5916b17a35da6b4f854d1a8bcab3480fbafa8927da0bb2809c5e12abb1692d98",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/evidence/continuity-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/evidence/continuity-E80.csv",
+      "bytes": 1041,
+      "sha256": "eaad047117403f09ac8e86bbc75276151ed10393d3a52430196143e185fbb800",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/evidence/curve-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/evidence/curve-E80.csv",
+      "bytes": 1091,
+      "sha256": "b18f7356dd28e504905df9ba018d7f668fb24d5e73dde487384fc114c695e286",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/evidence/finalbroadleaf-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/evidence/finalbroadleaf-E80.csv",
+      "bytes": 204,
+      "sha256": "e9fa0b1b65d778a5ba8cc548eead1755995b1b8ae45e1b73d91734839a25587c",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/evidence/latemix-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/evidence/latemix-E80.csv",
+      "bytes": 845,
+      "sha256": "767bb863e1186ab4c8fdd0ca6ca36c2925ed1f838a7e4535f3f95946b86b9f4f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/hard-e80.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/hard-e80.log",
+      "bytes": 633523,
+      "sha256": "c49c6a458946e63f1d8a6d72e0a7fc17b2fdfc0fc1f91639c1d91232246aea67",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/hard-e80.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/hard-e80.markers.txt",
+      "bytes": 33090,
+      "sha256": "b799af01a79b5aad3d2ce2c1f62f0494eb427e192b2d691815ea8d5002f3d669",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80/results-hard-e80.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80/results-hard-e80.json",
+      "bytes": 725,
+      "sha256": "3dc036c53e708b7ebed60332b89c4b64cfb8180974ed41296524aaa3e4a93c85",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-e80.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-e80.stdout.txt",
+      "bytes": 75,
+      "sha256": "ad25229f2ba5134ad7e6bce501b4890e97148ebe3b33d98449689f32474e98f8",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/evidence/continuity-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/evidence/continuity-L40.csv",
+      "bytes": 1041,
+      "sha256": "96de94a791fb9a9b6ed7a1b605824c447e81f6a42149c0f54e0a735b6a13a7c7",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/evidence/curve-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/evidence/curve-L40.csv",
+      "bytes": 1078,
+      "sha256": "0d8089f4eced15237e5fd025cea8c183b7562508bc56d1d05bcc2119a0e5a737",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/evidence/finalbroadleaf-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/evidence/finalbroadleaf-L40.csv",
+      "bytes": 204,
+      "sha256": "b3cf48e3b1a491951a813bd05a691f20440d2f3dc7471c3354cce90ead3c383b",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/evidence/latemix-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/evidence/latemix-L40.csv",
+      "bytes": 840,
+      "sha256": "5e2c64f8050e69059e43e8681a1ebb1beb968f733c5c4bfae237df46eabf3512",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/hard-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/hard-l40.log",
+      "bytes": 387731,
+      "sha256": "aa7542240304b59a60f03102fa5796b36f698daaf6b286a5c1fbe065969bb47b",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/hard-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/hard-l40.markers.txt",
+      "bytes": 33011,
+      "sha256": "658a76d059c3600682e1450b39937ede38c91ee8d5c8a8c923acf0220ada8ff9",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40/results-hard-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40/results-hard-l40.json",
+      "bytes": 724,
+      "sha256": "0ab05028e08028fc55391afd4a069a82fb874d5ba8d6660d67818f3531200d13",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/hard-l40.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/hard-l40.stdout.txt",
+      "bytes": 74,
+      "sha256": "6373b1a501e31a98d8308ef7db629aae5142337ed72ebcd83f26578924986bbf",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-bf-results.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-bf-results.json",
+      "bytes": 1872,
+      "sha256": "099ec9a080022348cd80621722c75c00cd0c31fa2bc9ab490d482ddfa30ad704",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80/evidence/longrun-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80/evidence/longrun-E80.csv",
+      "bytes": 347,
+      "sha256": "388a109a6ad001a27d532be710371caa01c3b023e7084c29877fae8e7f48baaf",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80/long-e80.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80/long-e80.log",
+      "bytes": 201007,
+      "sha256": "fd7cbc6a53f457dfa38f6915684e6a99531484fe16a17893480316f590a66939",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80/long-e80.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80/long-e80.markers.txt",
+      "bytes": 134,
+      "sha256": "6e56b9bcfab361ce25230ea2a63211f769049dac32efbf78e66480f70af99212",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80/results-long-e80.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80/results-long-e80.json",
+      "bytes": 746,
+      "sha256": "c3a8a65f85dcdfd0e6fc198ef9969708b3e4578297f37b3741acf7c99a615bae",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80-bf/evidence/longrun-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf/evidence/longrun-E80.csv",
+      "bytes": 108408,
+      "sha256": "bdc7c0161369e9881b5216253265a019bbc77afd376bfbd37ccdaae0d2b3747f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80-bf/long-e80-bf.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf/long-e80-bf.log",
+      "bytes": 2779050,
+      "sha256": "498739f107abb2d87bbec86057c611ac380c1808717121c3546d1d80d3d24bee",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80-bf/long-e80-bf.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf/long-e80-bf.markers.txt",
+      "bytes": 6902,
+      "sha256": "b49d710277c6040efb4abbcbc763805bb1b8855a9956dfa3dfcf69b16286f16f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80-bf/results-long-e80-bf.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf/results-long-e80-bf.json",
+      "bytes": 726,
+      "sha256": "975d72476d2e776ce8691481400b3c3f957bd75df799fab78b11107a395a1516",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80-bf.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf.stdout.txt",
+      "bytes": 77,
+      "sha256": "2ee49656a8c4491527f8ee4f20a9c49f002cb41c7f09bab1588efa77a2940c26",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-e80.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80.stdout.txt",
+      "bytes": 73,
+      "sha256": "2343a324b43a5a76998a8ee746edde972c7238e9fb613c8d095b3706ed5b29b2",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40/evidence/longrun-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40/evidence/longrun-L40.csv",
+      "bytes": 347,
+      "sha256": "388a109a6ad001a27d532be710371caa01c3b023e7084c29877fae8e7f48baaf",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40/long-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40/long-l40.log",
+      "bytes": 200045,
+      "sha256": "b10ae27211debf2b1f73c2c8131f1bb4e43a6a4c75f45d2e395237a0ae666a31",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40/long-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40/long-l40.markers.txt",
+      "bytes": 133,
+      "sha256": "eca49ef6bf816d40c885e8f2f965778bc8c910a7fb56d814adb3a40db91f9b47",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40/results-long-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40/results-long-l40.json",
+      "bytes": 746,
+      "sha256": "6da1604a21f436551345f1d81ab3bba2ba995c7f0438eb9974ede2e9e9c36994",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40-bf/evidence/longrun-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf/evidence/longrun-L40.csv",
+      "bytes": 105824,
+      "sha256": "7cb5b74b6810179968a796c795389cf393265e305b9a792914fac4af3b0873b4",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40-bf/long-l40-bf.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf/long-l40-bf.log",
+      "bytes": 892897,
+      "sha256": "680957565812ed11d94c86df5c60aed015f47d28fb879e3e1b8147aec80b4698",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40-bf/long-l40-bf.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf/long-l40-bf.markers.txt",
+      "bytes": 6841,
+      "sha256": "986cfb8ce450097b8767d2a91e0749629a8f307db2e0bc5db44aa951ed66a2a5",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40-bf/results-long-l40-bf.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf/results-long-l40-bf.json",
+      "bytes": 725,
+      "sha256": "6f4d38679df68809ffb2b74329f6e220c8385432a31b1da457e095f9ddf83886",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40-bf.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf.stdout.txt",
+      "bytes": 76,
+      "sha256": "e8ab58aacd5b5507090047d43603e5be0fb4c6bd59ea9258c194a14dbff54c1d",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/long-l40.stdout.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40.stdout.txt",
+      "bytes": 73,
+      "sha256": "385dc3e58b90cc36ce4022c0e64892605939981783ba6b860a0a060bb99294dc",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/max-ba-loss-result.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/max-ba-loss-result.json",
+      "bytes": 1165,
+      "sha256": "464a98f980d379f9ae21e9a98321119b92b354948e2e1413fcc49f3046576f3c",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/max-ba-loss.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/max-ba-loss.txt",
+      "bytes": 813,
+      "sha256": "4260fd9b211e674da19e39cd0169195197490f5b80a2aaecf169fe7c24c7924f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/pure-sitka-prior-comparison.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/pure-sitka-prior-comparison.json",
+      "bytes": 2069,
+      "sha256": "002078d63f4fc33606feae34b014245c932319647a1a25db0393f2ebc87a5621",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/rejected-empty-long-runs.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/rejected-empty-long-runs.json",
+      "bytes": 2055,
+      "sha256": "6e3c094f884ffe9f0f3fadd3cd790c9a1f97540fd0ca1a508c615b5b43e119e9",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/rejected-empty-max-ba-loss.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/rejected-empty-max-ba-loss.txt",
+      "bytes": 117,
+      "sha256": "6de05917a46484a46667ab05ca20703b948c3547304b17cf181b57a79b26d842",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/a1/results.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/results.json",
+      "bytes": 3136,
+      "sha256": "973ed890f5b0f50cd640e33c0c8e07c997074bcaad52c069e36c69b52da38f83",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/evidence-manifest.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/evidence-manifest.json",
+      "bytes": 2241,
+      "sha256": "a6a014d2b1edd5c008494040307d6cf04aa8913fe0ad28dcefd31665e3da0fa4",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/final-result.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/final-result.json",
+      "bytes": 1102,
+      "sha256": "c1daf079af6da072046e03b41be652a9c9cbdd31e3affd6a02814a9159648869",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "focused-a1-original",
+      "source": "/media/jer/Files/CCF-college-strand-a-20261015-out/strand-state.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/strand-state.json",
+      "bytes": 1127,
+      "sha256": "40f9b1cc3a9fed0a31e479147b522cb45c3bbe9ff8a7e0e237aa28c44ee5af68",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-e80/dens-e80.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-e80/dens-e80.log",
+      "bytes": 6225294,
+      "sha256": "d407802b86427f245c82665ad44d8d9442abda18672918c017d66fec166fc0ac",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-e80/dens-e80.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-e80/dens-e80.markers.txt",
+      "bytes": 20389,
+      "sha256": "9352c5b16caed5aedb9dabfcdfabc85736b21cd1dc6bfe166fdb3477bf09264a",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-e80/evidence/longrun-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-e80/evidence/longrun-E80.csv",
+      "bytes": 326819,
+      "sha256": "cb9bd703948a492b363ee51c13915af91b71c32365aed80bf7f150cff54857fd",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-e80/results-dens-e80.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-e80/results-dens-e80.json",
+      "bytes": 732,
+      "sha256": "1d36c7708e0842549d2eb8c762fae65ab50c1e261fbb0f2ed35732b28938e1de",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-l40/dens-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-l40/dens-l40.log",
+      "bytes": 1938298,
+      "sha256": "d30531fecae4774585a03d6f81d200818ff98a29d5f7c6379da83388d6c9d67f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-l40/dens-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-l40/dens-l40.markers.txt",
+      "bytes": 20153,
+      "sha256": "1b71ac09faf6115c14653f9e343382fdf6d9e39b3f4995d71039b7863fe5db93",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-l40/evidence/longrun-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-l40/evidence/longrun-L40.csv",
+      "bytes": 316744,
+      "sha256": "9ffbb59f05a8942bf24a8cd70d0a06229cc166abc61b0a7f986b7b40efbe2442",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/dens-l40/results-dens-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/dens-l40/results-dens-l40.json",
+      "bytes": 731,
+      "sha256": "c527971aa61ca05a9b439de1bbe690e303fde7bdcb3f2127ac8779d6acdfdc05",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-e80/mixed-e80.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-e80/mixed-e80.log",
+      "bytes": 9453055,
+      "sha256": "4f53b24fcc4b0befe79a1a4808d684d456e945f0d17b880dc1c6235efde99d95",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-e80/mixed-e80.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-e80/mixed-e80.markers.txt",
+      "bytes": 4837,
+      "sha256": "3b21670abc5ed18372c43a397384a5f9f9519c1e8a5be92c1d672adacc1780a8",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-e80/results-mixed-e80.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-e80/results-mixed-e80.json",
+      "bytes": 537,
+      "sha256": "b76965507a98cf4334c34ac0d3972aab94876772c81d99dd6c2797cbc3b5eee0",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-l40/mixed-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-l40/mixed-l40.log",
+      "bytes": 3279583,
+      "sha256": "ab30903f70af1252e1cca10523fa28c61c1c9edbb77bd540389c9672531ffcbb",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-l40/mixed-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-l40/mixed-l40.markers.txt",
+      "bytes": 4693,
+      "sha256": "7f7e11596b5fd024748b33020f2c9816604537183329c4d21aebb8cd071c09db",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/mixed-l40/results-mixed-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/mixed-l40/results-mixed-l40.json",
+      "bytes": 536,
+      "sha256": "6c87c181469efed4ce4a31968991bdade34494d1ffc346204efec5f93c746763",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-e80/evidence/latemix-E80.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-e80/evidence/latemix-E80.csv",
+      "bytes": 845,
+      "sha256": "767bb863e1186ab4c8fdd0ca6ca36c2925ed1f838a7e4535f3f95946b86b9f4f",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-e80/results-sitka-e80.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-e80/results-sitka-e80.json",
+      "bytes": 670,
+      "sha256": "d83b0b6d6b59898a204143f4decb74d0bb72af55632d31af0ef0626c18a2c5fb",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-e80/sitka-e80.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-e80/sitka-e80.log",
+      "bytes": 1081251,
+      "sha256": "0167a4a0d48fb23f1f337915d72fab4eeeaae89e294303eea599feae411bc338",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-e80/sitka-e80.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-e80/sitka-e80.markers.txt",
+      "bytes": 9930,
+      "sha256": "9eb4caad16161bffaaa9740dc7f753c046a461fd553a4b3bf01e6d11fff86fdb",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-l40/evidence/latemix-L40.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-l40/evidence/latemix-L40.csv",
+      "bytes": 840,
+      "sha256": "5e2c64f8050e69059e43e8681a1ebb1beb968f733c5c4bfae237df46eabf3512",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-l40/results-sitka-l40.json",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-l40/results-sitka-l40.json",
+      "bytes": 670,
+      "sha256": "b246516d17da15164956b6d2c258c06a6333c565a1a18d0466e15379c26b1ae3",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-l40/sitka-l40.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-l40/sitka-l40.log",
+      "bytes": 521794,
+      "sha256": "40dd9aa182f36b606ee1a4a0d3aeb9a80cd4abd7b23820fc4564f0086beecc8d",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "prior-tier2-original",
+      "source": "/media/jer/Files/CCF-tier2-smoke-20261015-out/sitka-l40/sitka-l40.markers.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/prior-tier2-original/sitka-l40/sitka-l40.markers.txt",
+      "bytes": 9789,
+      "sha256": "ff044f2be469329d6517268aa5a91caa831c6f1ebc2b65146827fd1819a48a06",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/budget-sweep.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/budget-sweep.txt",
+      "bytes": 2891,
+      "sha256": "ec6c1af605b210a407a0e00eeac89045aea3aa705bb2ebf3f76ea835d23a4cef",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/composite-suite-BEFORE-base-planner.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/composite-suite-BEFORE-base-planner.log",
+      "bytes": 11963,
+      "sha256": "89911a12984def958cb09c7f08994f9534710ef89ea8dc7e041cb61def6fe9f1",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/mutation-tests-AFTER.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/mutation-tests-AFTER.log",
+      "bytes": 1530,
+      "sha256": "49f2fd318812e31b723dcd2745c06f54981f8f8f44d526bc172a79ed8843f081",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/offline-suites-AFTER-all.log",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/offline-suites-AFTER-all.log",
+      "bytes": 38819,
+      "sha256": "2e91bffe397273cd6fd1015c9ae13710f9ec53de922e30bc05af7684c26180dc",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/scan-mixed_base.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/scan-mixed_base.csv",
+      "bytes": 29857,
+      "sha256": "f03e49ebae06f4b2406e65f2e84781610807d18b2655e6d8f8857446feaef4f2",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/scan-mixed_default.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/scan-mixed_default.csv",
+      "bytes": 29860,
+      "sha256": "9aca955d0c89c1f7a27e51746713f4d93cde02e0964bcdbc58764414099000c0",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/scan-pure_base.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/scan-pure_base.csv",
+      "bytes": 97488,
+      "sha256": "eb6ba54088ad78d3e40bf6a4931d1208215efb0315d2204b0b24bf6ce84921e0",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/scan-pure_default.csv",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/scan-pure_default.csv",
+      "bytes": 97456,
+      "sha256": "5deaf3e190b47e3ab7fbda810f6a1ee377d974d0b6ed4fda2cf59668240bd7be",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    },
+    {
+      "group": "reduced-scans-original",
+      "source": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ThreeSpeciesProgramme/CanopyPulseEvidence/typecheck-summary.txt",
+      "preserved_path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/reduced-scans-original/typecheck-summary.txt",
+      "bytes": 159,
+      "sha256": "d99b2618de9614133fa7a55a78e859b835c0b4c08314ff5937c1fc1a9d41aea7",
+      "provenance": "existing original; byte-for-byte copy, not rerun"
+    }
+  ],
+  "unavailable_required_items": [],
+  "notes": [
+    "All required evidence categories recovered. Licence/config directories excluded.",
+    "Prior failed licence launches, vacuous fairness receipts and rejected header-only long runs remain original and are not promoted to passing evidence.",
+    "The valid four 300-year trajectories are focused-a1-original/a1/long-l40-bf and long-e80-bf; non-bf initial outputs are rejected empty runs.",
+    "Pure-Sitka, shielding/accounting, continuity and save/load assertions reside in focused-a1-original/a1/hard-l40 and hard-e80 logs/markers.",
+    "Fairness correction successes are fairness-original/l40-valid and e80-valid. Other fairness attempts are retained as failed-launch history.",
+    "Reduced scans were already committed at review base; durable copies retain identical bytes. New analysis/test outputs are separately identified, never original historical receipts."
+  ],
+  "new_review_outputs": [
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/f10.log",
+      "sha256": "b6423b96b164efda07e3446bd843d70c9ea666febf34fe3e7080750bc62176ba",
+      "bytes": 764,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/classification.log",
+      "sha256": "a131311ed2fdc0ef306d6eef9706a630c749343fdb86d8e72cd0f8c1f77569b8",
+      "bytes": 1106,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/ux.log",
+      "sha256": "76a6e25d5aeca0936946f011f3c8765b20116728880023d23ecdf6262a84f6f6",
+      "bytes": 9414,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/typecheck.log",
+      "sha256": "13bcf2e2a9aa48d882f9ba96316a6080feafb013b6a9f3fc73bc2dacdd5d9974",
+      "bytes": 7281,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/max-ba-loss-recheck.log",
+      "sha256": "54cb9b5884009b2daab1a13dca1a5240c70143a4b2c5c9c444f09ae6ec06421c",
+      "bytes": 893,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/scan_review_analysis.py",
+      "sha256": "9a29f959fdec79f4e916ee6c6de7f49b3164325943cfee48ad02adf99501c9d9",
+      "bytes": 3578,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/scan-review-analysis.json",
+      "sha256": "dc0029c639a42227bef2a98c0a013fa0ba9a96ee8ef8fc83956b0973315c2fee",
+      "bytes": 50362,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/scan-review-analysis.log",
+      "sha256": "a67ef5977716ee074277ed6ae651e0ef30b303677a6c451b0646df842b56796a",
+      "bytes": 240,
+      "provenance": "New non-Unity review output; not an original historical receipt"
+    }
+  ],
+  "tested_source_sha256": {
+    "Tools/Verification/ScenarioOneUx/Qualification/UxQualification.cs": "0fe7b7cb92f5bf27ed77980ac572a81a53980c234e59e45e05078d3a012e5e26",
+    "Tools/Verification/ScenarioOneUx/Qualification/run_f10_self_test.py": "4a1763a5ce0b82f5ed77571fa7876144e962eaf15a5b0fd54574e2d5ceeb9a30",
+    "Tools/Verification/Qualification/test_run_qualification.py": "b1b5f21f4a42d2418017e822f5525fa5234117385b1eb6c84757a23448672bb4"
+  },
+  "review_commands": [
+    "python3 Tools/Verification/ScenarioOneUx/Qualification/run_f10_self_test.py --out /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/f10",
+    "python3 -B -m unittest discover -s Tools/Verification/Qualification -p 'test_*.py' -v",
+    "python3 Tools/Verification/ScenarioOneUx/run_ux_check.py --out /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/ux",
+    "python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode tools --out /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/tests/typecheck",
+    "python3 -B /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/scan_review_analysis.py",
+    "python3 Tools/Verification/ThreeSpecies/Qualification/max_ba_loss.py /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-l40-bf/evidence/longrun-L40.csv /media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/focused-a1-original/a1/long-e80-bf/evidence/longrun-E80.csv",
+    "git diff --check",
+    "git diff c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2..HEAD -- Assets Packages ProjectSettings",
+    "git diff 639ae2c3ac85474368c173118bd2718743346bd9..HEAD -- Assets Packages ProjectSettings"
+  ],
+  "verification_results": {
+    "f10_self_test": "PASS 13 cases; actual extracted C# classifier plus both flow wiring checks",
+    "receipt_classifications": "PASS 6 tests",
+    "ux_offline": "PASS 176 checks",
+    "tools_typecheck": "CLEAN zero new errors; 13 existing vs baseline 43; approximate non-Unity compiler",
+    "stored_scan_audit": "PASS; original G2/G4 misses explicitly retained; amended G2 medians pass",
+    "max_ba_loss_recheck": "PASS yearsOverBudget=0; new analysis of original complete CSVs",
+    "unity": "NOT RUN",
+    "scope": "No Assets, Packages or ProjectSettings changes; no canonical context change"
+  }
+}

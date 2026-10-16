@@ -1,6 +1,6 @@
 # Density v3 canopy pulses: root cause and fix
 
-Task branch `fix/density-v3-canopy-pulses-v1`. Base `bc81627e8ca47fb619f6fbabcbf618dba0508e11` (`integration/scenario-one-final-candidate-v1`). Context commit `c6dc136b7f1f8668d9f67f95f48968d290ad5067`. Verification tier 1: offline and reduced-model only. **Not Unity-verified.** The implementation HEAD is read back with `git rev-parse HEAD` on the pushed branch.
+Task branch `fix/density-v3-canopy-pulses-v1`. Base `bc81627e8ca47fb619f6fbabcbf618dba0508e11` (`integration/scenario-one-final-candidate-v1`). Context commit `c6dc136b7f1f8668d9f67f95f48968d290ad5067`. Original implementation verification tier 1: offline and reduced-model only. **This original receipt did not run Unity.** Later focused Unity evidence is identified below; no Unity was run for the 2026-10-16 review corrections. The implementation HEAD is read back with `git rev-parse HEAD` on the pushed branch.
 
 ## Question
 
@@ -13,7 +13,7 @@ The two Tier-2 numbers come from a Unity run whose logs are not in this reposito
 * the production planner (`MixedDensityModel.PlanComponents`) was run unchanged through the existing reduced stand simulator on the fixtures the Unity qualification uses, with a new per-year decomposition tool (`CanopyPulseDiagnostic.cs`, `run_canopy_pulse_diagnostic.py`);
 * the simulator takes new adult trees from a smooth external series (25-year block means measured on an earlier runtime lineage). That is why every earlier offline check was blind to these pulses, so recruitment **timing** was varied while keeping the same mean inflow (`ConfigFor` recruitment modes).
 
-Everything below is a **reduced-model result about a mechanism**: that it exists, how large it gets and what bounds it. It does not say what the Unity run did in any particular year. Whether the Unity pulses come from exactly this recruit shortage is what the focused Unity gate at the end confirms.
+Everything below is a **reduced-model result about a mechanism**: that it exists, how large it gets and what bounds it. It does not say what the Unity run did in any particular year. The later focused Unity gate checks the observable pulse reduction, not a year-by-year proof of the original causal decomposition. Its original receipts are preserved as described below.
 
 ## Root cause (measured)
 
@@ -114,15 +114,32 @@ The criteria were committed in the first version of this file (commit `51468f2`)
 | id | criterion | result |
 |---|---|---|
 | G1 | exact bound: every generic step <= max(budget, one stem when none fits); no year >= 26 above 0.15 unless the stand has <= 10 stems | **PASS.** Zero violations of the exact rule in all 192,000 annual steps of the 640 pure runs (stands of nine or more stems never above the budget; smaller ones at most one stem); property test B1 over 795 random states (17 exercising the never-stall rule). Four of the 640 runs have a worst year above 0.125 (up to 0.145), each with seven stems. *The first implementation (first stem always allowed) missed the empirical clause: 8-9 stress runs reached 0.151-0.171 with 11-15 stems. I tightened the rule to the never-stall form before the final runs.* |
-| G2 | smooth runs: R1, R3, R4 verdicts unchanged; R2 not worse; Y300 BA within +-15 % and occupancy within +-0.15 of the base **per run** | verdicts: **PASS** (0 flips in 128 smooth runs; R2 not worse). Per-run tolerance: **not met in 4 of 128 smooth runs** (BA +-15 %: 2; occupancy: 4; stems < half: 1), all in Legacy40 stands of about 20 stems (dense Oak x3, dense Beech x1). **Amended after seeing this**, and disclosed as such: per-run comparison of chaotic 20-stem trajectories is not meaningful, because the base's own seed-to-seed range is as wide (dense Oak BA300 29.7-40.6, sd 2.9) and the guarded runs are tighter (36.0-40.1, sd 1.1). Amended G2': the cell median shifts by at most one base seed-SD on Y300 BA, occupancy and stems: **PASS**, no shifted cell. |
-| G3 | flattening retained: R1 passes in every stress cell where it passed at the base, pass count not lower | **PASS.** No cell passes fewer seeds; total 494 vs 488 of 512. |
-| G4 | no runaway or collapse: R4 in all runs; max occupancy <= base + 0.15; living stems at Y300 >= half of base | **PASS.** R3 and R4 fail in 0 of 640 runs; no run's max occupancy exceeds the base by 0.15; smallest cell-median stem ratio 0.82. |
-| G5 | mixed intact: identity, accounting, shielding, continuity and mixed long-run checks pass unmodified; Sitka victim sets identical | **PASS.** Composite suite 107 checks: all pre-existing identity/shielding/continuity/mixed checks pass; Sitka victim sets identical with the budget on and off in 795 of 795 states. Mixed matrix below. |
+| G2 | smooth runs: R1, R3, R4 verdicts unchanged; R2 not worse; Y300 BA within +-15 % and occupancy within +-0.15 of the base **per run** | **ORIGINAL G2 NOT MET.** Of 128 smooth pure runs, 2 miss BA +-15 %, 4 miss occupancy +-0.15 (4 distinct runs, all Legacy40: dense Oak x3, dense Beech x1). R1 flips in 1 run (fail -> pass); R3/R4 do not flip. R2 improves in aggregate (61 -> 71 passes), but 3 pass -> fail and 13 fail -> pass, so its per-run "not worse" clause also fails. One run falls below half the base stem count (G4). **Amended after seeing the results:** G2' compares cell medians on Y300 BA, occupancy and stems with one base seed-SD: **PASS** in all 8 pure cells (largest shift about 0.62 SD using the stored rounded CSVs). This post-hoc criterion does not make original G2 pass. |
+| G3 | flattening retained: R1 passes in every stress cell where it passed at the base, pass count not lower | **PASS at the stated cell/count level.** No stress cell passes fewer seeds; total 494 vs 488 of 512. At run level, 4 previously passing seeds fail and 10 previously failing seeds pass; aggregate improvement does not preserve every run. |
+| G4 | no runaway or collapse: R4 in all runs; max occupancy <= base + 0.15; living stems at Y300 >= half of base | **ORIGINAL G4 NOT MET.** R3/R4 pass all 640 pure runs and no pure run exceeds base max occupancy +0.15, but **5/640** finish below half the base living stems (1 smooth, 4 stress), all Legacy40 dense Oak. Smallest cell-median stem ratio 0.82 is an aggregate statistic, not proof of the per-run clause. Mixed excursions and its additional stem-count miss are disclosed below. |
+| G5 | mixed intact: identity, accounting, shielding, continuity and mixed long-run checks pass unmodified; Sitka victim sets identical | **PASS for the existing identity/accounting/shielding/continuity contracts and Sitka victim-set comparison** (795/795 states). This does not assert per-run trajectory preservation in the mixed scan; misses are listed below. The complete composite suite still has 3 failures, as reported in the suites table. |
 | G6 | pure Sitka and everything else unchanged | **PASS.** Density suite 91/91 with the three legacy-route fingerprints; both isolated compiles; only one production file differs from the base; 18/18 mutants killed. |
 
 ### Mixed stands (16 seeds per cell; budget off -> 0.125)
 
-From year 26 in the accepted even-flow regime the budget acts in 0 years in the median mixed run (5 of 64 runs have any such year, at most one) and R2'/R3/R4 pass 16/16 both ways; the dense-start transient in years 1-25 is budgeted as in the pure stands. Under cohort stress it acts in a median of 1 year (at most 10) and R2' (generic component only) goes from 5 to 14 of 16 for Legacy40 dense mixed, unchanged elsewhere. Y300 stems, BA and occupancy medians move by at most 1-12 % in the stress cells (Legacy40 dense mixed pulse:5: BA 72.3 -> 81.3, occupancy 1.78 -> 1.85). Occupancy slopes of the mixed gap runs (+0.0021 -> +0.0027 and +0.0041 -> +0.0037) are above the pure-stand limit as they were before; R1 is not required for mixed stands.
+From year 26 in the accepted even-flow regime the budget acts in 0 years in the median mixed run (5 of 64 runs have any such year, at most one) and R2'/R3/R4 pass 16/16 both ways; the dense-start transient in years 1-25 is budgeted as in the pure stands. Under cohort stress it acts in a median of 1 year (at most 10) and R2' (generic component only) goes from 5 to 14 of 16 for Legacy40 dense mixed pulse:5, from 0 to 1 for Legacy40 dense mixed gap:100-120, and from 5 to 6 for Enlarged80 dense mixed gap:100-120; other cell pass counts are unchanged. Y300 stems, BA and occupancy medians move by at most 1-12 % in the stress cells (Legacy40 dense mixed pulse:5: BA 72.3 -> 81.3, occupancy 1.78 -> 1.85). Occupancy slopes of the mixed gap runs (+0.0021 -> +0.0027 and +0.0041 -> +0.0037) are above the pure-stand limit as they were before; R1 is not required for mixed stands.
+
+### Per-run scan audit (review correction, 2026-10-16)
+
+Counts below are read from the existing `scan-pure_base.csv`, `scan-pure_default.csv`, `scan-mixed_base.csv` and `scan-mixed_default.csv`, matched by `(fixture, geo, mode, seed)`. They do not rerun or replace historical simulations. "Stress" is every stored non-smooth mode. BA tolerance means `abs(after - base) / base > 0.15`; occupancy tolerance means `abs(after - base) > 0.15`; the union counts each run once. Max occupancy is the stored `maxOccY26` value, not Y300 occupancy.
+
+| population | runs | Y300 BA misses | Y300 occupancy misses | either tolerance miss | Y300 stems < half base | max occupancy > base +0.15 | R1 pass -> fail / fail -> pass |
+|---|---:|---:|---:|---:|---:|---:|---|
+| pure smooth | 128 | 2 | 4 | 4 | 1 | 0 | 0 / 1 |
+| pure stress | 512 | 52 | 85 | 85 | 4 | 0 | 4 / 10 |
+| mixed smooth (even-flow) | 64 | 7 | 8 | 10 | 0 | 4 | 0 / 1 |
+| mixed stress | 128 | 19 | 27 | 30 | 1 | 10 | 2 / 6 |
+
+The mixed smooth misses and **14/192 mixed max-occupancy excursions** (4 smooth, 10 stress) are not explained away by small median shifts. The largest mixed max-occupancy increase is 0.34 (Legacy40 dense mixed, pulse:5, seed 7008: 1.91 -> 2.25). The mixed half-stem miss is Legacy40 dense mixed, pulse:5, seed 7013: 103 -> 48. Pure half-stem misses are Legacy40 dense Oak: smooth seed 7008 (40 -> 14), pulse:3 default seed 20261014 (39 -> 19), seeds 7010 (36 -> 14) and 7011 (37 -> 17), and gap:100-120 seed 7011 (32 -> 15). These fail the stated per-run clause; medians do not waive it.
+
+Run-level R1 is not invariant: **15 pure flips** (4 pass -> fail, 11 fail -> pass) and **9 mixed flips** (2 pass -> fail, 7 fail -> pass). Mixed R1 remains diagnostic, not a required pure-stand flattening gate. Mixed R2' also has 3 stress pass -> fail and 14 fail -> pass (90 -> 101 stress passes); all 64 smooth mixed R2'/R3/R4 pass both ways. The earlier cell-level/median discussion is retained as aggregate evidence only.
+
+**The generic/pure-broadleaf 12.5 % rule is not a total mixed-stand cap.** The unchanged Sitka component can remove additional BA in the same year. In the stored mixed scans, total one-year BA loss reaches **0.152 in smooth runs and 0.209 under stress** (Legacy40 young mixed, pulse:5, default seed 20261014, year 235). That does not violate the generic-component budget, but it must be disclosed as a total mixed loss. The generic bound includes its existing sparse-stand never-stall exception; it is a simulation calibration, not an ecological safety guarantee.
 
 ### Suites on the final tree
 
@@ -139,23 +156,26 @@ The composite suite's remaining three failures are the stem-loss R2 items alread
 
 ## Behaviour changes to be aware of
 
-* **The artificial dense start is spread over years.** The dense fixtures (1,300 stems/ha, occupancy 2.4) used to lose about 46-47 % of BA in year 1; the budget caps year 1 at 12.5 % and the stand reaches the same basal area by year 26 (L40 dense Beech 46.5 -> 46.8, E80 dense Oak 34.1 -> 34.2 m2/ha). This resolves the "start-up shock" listed as risk 5 in the v3 handoff.
+* **The artificial dense start is spread over years.** The dense fixtures (1,300 stems/ha, occupancy 2.4) used to lose about 46-47 % of BA in year 1; in these pure-broadleaf fixtures the generic budget caps year 1 at 12.5 % and the stand reaches the same basal area by year 26 (L40 dense Beech 46.5 -> 46.8, E80 dense Oak 34.1 -> 34.2 m2/ha). This resolves the "start-up shock" listed as risk 5 in the v3 handoff.
 * **R4 (25-year BA ratio) minimum is lower in dense-start fixtures** (0.80-0.97 -> 0.54-0.60) because the transient is now inside the first 26 years. From year 50 it is 0.87-0.98 (base 0.80-0.99). R4's limit 0.5 still holds in all 640 runs.
 * **Growth model 2 trajectories in which the budget acts will differ** from the base (dense or mixed stands with a recruit shortage). Growth model 2 is not the default (`ScenarioOneManager.NewGameGrowthModel` is 1) and no accepted model-2 hash exists in this branch, so no Manager-accepted anchor moves; pure Sitka and model 1 anchors cannot move because the changed code is never reached.
 
 ## Limits of this evidence
 
-* The Tier-2 pulses were not reproduced from the Unity run; the mechanism and magnitude were reproduced in the reduced model with synchronised or interrupted recruitment. If Unity's pulses have a different cause, the focused gate below will show it.
+* The original mechanism and magnitude were reproduced in the reduced model with synchronised or interrupted recruitment, without decomposing the earlier Tier-2 Unity pulse years. Later focused Unity fixtures show bounded losses; they do not by themselves prove that every original pulse had this cause.
 * Reduced simulator: smooth external recruitment from an earlier lineage, site 1, no canopy light, seed rain or browsing. A screen, not evidence about the game. The budget value rests on it.
 * Seeds: 16 per cell, 8 for the response-sensitivity table.
-* The edited Unity harness (`DensityQualification.cs`) was type-checked only (no new error against the approximate baseline), never run.
+* At the original implementation receipt, the edited Unity harness (`DensityQualification.cs`) was type-checked only. Subsequent A1/fairness runs below are separate historical receipts, not executions by this review-correction worker.
 
-## Focused Unity gate required next (Tier 1, not a campaign)
+## Original focused Unity follow-up and later receipts (Tier 1, not a campaign)
 
-1. Import and compile Unity 6000.6.0f1: no `error CS`.
-2. `DensityQualification` hard phases on both geometries (`CCF_STAND_GEOMETRY=0` and `1`): `CCF_QUAL_PHASES=SITKA100,SITKACOMP,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,LATEMIX,FINALBROADLEAF,SAVELOAD`. Expect every HARD check PASS; the pure-Sitka exactness (`PURE_SITKA_*_100Y_MODEL2_EXACTLY_EQUALS_MODEL1`, `SITKACOMP_*`) must be unchanged. `FAIRNESS*_OVERALL_DEATHS_MATCH_THE_BERNOULLI_EXPECTATION` was re-based in this change to the trials in which the budget did not act (the budget lowers the count by design); it prints `budgetBoundTrials`. If every trial is budget-bound it reports pooledZ 0, and the controller-equals-plan and species-neutrality checks still apply.
-3. The failing fixtures themselves, default seed, both geometries: `CCF_QUAL_PHASES=LONGRUN CCF_QUAL_SCENARIOS=B_BEECH_DENSE,F_BEECH_YOUNG CCF_QUAL_YEARS=300 CCF_QUAL_REPLAY=0`, then `python3 Tools/Verification/ThreeSpecies/Qualification/max_ba_loss.py <evidence>/longrun-L40.csv <evidence>/longrun-E80.csv`. Expect `MAX_BA_LOSS_PASS` (no year above 0.125 of BA for stands of nine stems or more), the former 37.3 % / 25.7 % years gone, Y300 occupancy and BA near the base's (dense Beech Enlarged80 Y300 about 66 m2/ha, occupancy about 1.8), and R1 flattening as before. If a pulse remains, read `genericDeaths`, `bigDeaths` and `livingBefore` of that year: it would mean Unity's pulse is not a generic-component recruit shortage.
-4. Not needed for this change: the 24-gate regression, anchors for pure Sitka (unchanged code path), seed campaigns, Player or Windows builds.
+The original follow-up requested compile/import; hard phases `SITKA100,SITKACOMP,CURVE,FAIRNESS,FAIRNESSHIGH,CONTINUITY,LATEMIX,FINALBROADLEAF,SAVELOAD` on both geometries; and the two Beech fixtures for 300 years. These were subsequently executed at `e5cfce3702aa746dab0d4eb66a78aa8c3ec67694` with production bytes from `639ae2c3ac85474368c173118bd2718743346bd9`.
+
+The A1 hard receipts each report 77 checks, exit 0. **Eight fairness count assertions were vacuous**, because all trials were excluded and zero variance produced z=0. They do not establish fairness. The separate repair published at `271193c786e256e4f55017d34d07209eccb6af3c` independently verifies budget-aware allocation and emits NOT APPLICABLE for inapplicable statistics; successful fairness-only receipts have 37 hard checks per geometry. See `FairnessOracleRepairHandoff.md`. The earlier instruction that zero-sample pooledZ=0 could support PASS was incorrect.
+
+The actual valid fixture selector was **`CCF_QUAL_SCENARIOS=B,F`**, with `CCF_QUAL_PHASES=LONGRUN CCF_QUAL_YEARS=300 CCF_QUAL_REPLAY=0`. The originally documented full-name selector matched no scenarios and produced rejected header-only outputs. Those unsuccessful receipts are preserved as such. Corrected `long-l40-bf` and `long-e80-bf` CSVs each contain 600 rows: both fixtures, years 1..300 exactly once. Original `max_ba_loss.py` output is `MAX_BA_LOSS_PASS yearsOverBudget=0`. Worst post-Y25 losses for dense/young Beech are 0.12040/0.12474 (Legacy40), 0.12495/0.12499 (Enlarged80); all four satisfy the recorded R1 and R4 checks. Pure-Sitka exactness, shielding/accounting, continuity and save/load evidence is in the A1 hard logs. These bounded results do not waive original offline G2/G4 misses or certify untested stands.
+
+Durable byte-for-byte originals now reside under `/media/jer/ZX20/CCF-Verification/CandidateV2ReviewCorrections-20261016/`: `focused-a1-original/`, `fairness-original/`, `prior-tier2-original/` and `reduced-scans-original/`. Sources, sizes and SHA-256 hashes are in `../ScenarioOneIntegration/CandidateV2EvidenceManifest.json`. No required evidence category was unavailable; no historical receipt was recreated. **Unity was not run for these review corrections.**
 
 ## Reproduce
 
@@ -168,4 +188,4 @@ CCF_CAL=0.5,1.6,2,0.15 python3 .../run_canopy_pulse_diagnostic.py scan ...      
 python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod|tools
 ```
 
-Raw scan tables, the budget sweep, the before/after suite logs, the mutation receipt and the type-check summary are in `CanopyPulseEvidence/`. Receipts were produced on the production commit `639ae2c3ac85474368c173118bd2718743346bd9`; later commits on this branch add evidence files only.
+Raw scan tables, the budget sweep, the before/after suite logs, the mutation receipt and the type-check summary are in `CanopyPulseEvidence/`. These original offline receipts were produced on production commit `639ae2c3ac85474368c173118bd2718743346bd9`. The later fairness repair and review corrections are separate tooling/documentation changes, identified above; no production change is implied by those later receipts.
