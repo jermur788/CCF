@@ -18,7 +18,9 @@ import subprocess
 import tempfile
 import unittest
 
-from qualification_results import COMPONENT_BA_COLUMNS, read_component_ba_evidence
+from qualification_results import (COMPONENT_BA_COLUMNS, COMPONENT_BA_FLOAT_SLACK, COMPONENT_BA_QUANTUM,
+                                   component_ba_fraction_tolerance, component_ba_row_problems,
+                                   component_ba_sum_tolerance, component_ba_total_tolerance, read_component_ba_evidence)
 
 CLI = Path(__file__).resolve().parents[1] / "ThreeSpecies/Qualification/component_ba.py"
 HARNESS = Path(__file__).resolve().parents[1] / "ThreeSpecies/Qualification/DensityQualification.cs"
@@ -51,6 +53,26 @@ def write_csv(path, rows, header=COMPONENT_BA_COLUMNS):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def quantised_row(s, g, combined, ba_pre=42.13765, dead=None,
+                  sitka_fraction=None, generic_fraction=None, combined_fraction=None, dead_fraction=None):
+    """A both-fired row whose fields are supplied as explicit serialised strings, so the 5-decimal representation
+    relationship (for example sitka+generic = 0.11794 while combined = 0.11793) can be set exactly. Fractions default to
+    five-decimal roundings of the parsed BA over the parsed denominator."""
+    sp, gp, cp, bp = float(s), float(g), float(combined), float(ba_pre)
+    dp = cp if dead is None else float(dead)
+    frac = lambda value: f"{value / bp:.5f}" if bp > 0 else "0.00000"
+    return {
+        "scenario": "C_MIXED_DENSE", "geo": "E80", "year": "1", "route": "SpeciesAwareOccupancy", "livingBefore": "1000",
+        "baPreM2": f"{bp:.5f}", "densityDeaths": "5", "sitkaComponentDeaths": "3", "genericDeaths": "2",
+        "sitkaBaLossM2": f"{sp:.5f}", "genericBaLossM2": f"{gp:.5f}", "combinedBaLossM2": f"{cp:.5f}",
+        "sitkaBaFraction": frac(sp) if sitka_fraction is None else sitka_fraction,
+        "genericBaFraction": frac(gp) if generic_fraction is None else generic_fraction,
+        "combinedBaFraction": frac(cp) if combined_fraction is None else combined_fraction,
+        "deadBaM2": f"{dp:.5f}", "deadBaFraction": frac(dp) if dead_fraction is None else dead_fraction,
+        "sitkaFired": "1", "genericFired": "1", "bothFired": "1", "attributionExact": "1",
+    }
 
 
 MIXED_ENV = {"CCF_QUAL_PHASES": "LONGRUN", "CCF_QUAL_REPLAY": "0", "CCF_QUAL_SCENARIOS": "C", "CCF_STAND_GEOMETRY": "1"}
@@ -152,6 +174,77 @@ class ComponentBaEvidenceTests(unittest.TestCase):
         self.assertIn('Csv($"component-ba-{geo}.csv", ComponentBaHeader)', source)
         self.assertIn("result.ComponentRows.Add(", source)
         self.assertIn("Incomplete component-ba measurements", source)
+
+    def test_quantisation_tolerances_are_derived_from_the_five_decimal_quantum(self):
+        self.assertEqual(1e-5, COMPONENT_BA_QUANTUM)
+        # three independently rounded BA fields; two independently rounded totals; fraction plus rounded numerator;
+        # each with only a tiny floating-point slack on top of the quantum term.
+        self.assertAlmostEqual(1.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK, component_ba_sum_tolerance(), places=15)
+        self.assertAlmostEqual(COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK, component_ba_total_tolerance(), places=15)
+        self.assertAlmostEqual(0.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK + 0.5 * COMPONENT_BA_QUANTUM / 42.0,
+                               component_ba_fraction_tolerance(42.0), places=15)
+        self.assertAlmostEqual(0.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK,
+                               component_ba_fraction_tolerance(0.0), places=15)
+        # The tolerances must still be far below any material discrepancy.
+        self.assertLess(component_ba_sum_tolerance(), 1e-4)
+        self.assertLess(component_ba_total_tolerance(), 1e-4)
+
+    def test_A_valid_quantised_both_fired_row_is_accepted(self):
+        # The review's example: sitka+generic independently round to 0.11794 while combined rounds to 0.11793, and the
+        # underlying unrounded values are self-consistent.
+        row = quantised_row("0.04532", "0.07261", "0.11794")
+        self.assertEqual(0.11793, float(row["sitkaBaLossM2"]) + float(row["genericBaLossM2"]))
+        self.assertEqual("0.11794", row["combinedBaLossM2"])
+        self.assertEqual([], component_ba_row_problems(row))
+
+    def test_B_discrepancy_at_the_representation_bound_is_accepted(self):
+        row = quantised_row("0.04532", "0.07261", "0.11793")
+        row["combinedBaLossM2"] = "0.117915"       # |0.117915 - 0.11793| = 1.5e-5, exactly the derived bound
+        row["deadBaM2"] = "0.117915"
+        row["combinedBaFraction"] = f"{0.117915 / float(row['baPreM2']):.5f}"
+        row["deadBaFraction"] = row["combinedBaFraction"]
+        self.assertEqual([], component_ba_row_problems(row))
+
+    def test_C_discrepancy_beyond_the_representation_bound_is_rejected(self):
+        row = quantised_row("0.04532", "0.07261", "0.11793")
+        row["combinedBaLossM2"] = "0.11803"        # 1e-4, materially beyond 1.5e-5
+        row["deadBaM2"] = "0.11803"
+        row["combinedBaFraction"] = f"{0.11803 / float(row['baPreM2']):.5f}"
+        row["deadBaFraction"] = row["combinedBaFraction"]
+        problems = component_ba_row_problems(row)
+        self.assertTrue(problems)
+        self.assertTrue(any("combinedBaLossM2" in problem for problem in problems), problems)
+
+    def test_D_fraction_rounding_within_the_derived_bound_is_accepted(self):
+        # Small stand basal area makes the numerator-rounding term visible: the derived bound is 1.05e-4, well above the
+        # old flat 1e-5. combined/baPreM2 = 0.6 and the stored fraction is 5e-5 away.
+        row = quantised_row("0.01000", "0.02000", "0.03000", ba_pre=0.05000,
+                            combined_fraction="0.60005", dead_fraction="0.60005")
+        self.assertLess(abs(0.60005 - 0.03 / 0.05), component_ba_fraction_tolerance(0.05))
+        self.assertEqual([], component_ba_row_problems(row))
+
+    def test_E_fraction_mismatch_beyond_the_derived_bound_is_rejected(self):
+        row = quantised_row("0.01000", "0.02000", "0.03000", ba_pre=0.05000,
+                            combined_fraction="0.65000", dead_fraction="0.65000")
+        problems = component_ba_row_problems(row)
+        self.assertTrue(problems)
+        self.assertTrue(any("combinedBaFraction" in problem for problem in problems), problems)
+
+    def test_full_quantised_both_fired_evidence_file_is_accepted(self):
+        # Regression for the review's blocker: 100 both-fired years with the 0.11794/0.11793 representation relationship
+        # must read as complete evidence, not be rejected by over-tight tolerances.
+        with tempfile.TemporaryDirectory(prefix="ccf-component-ba-") as tmp:
+            rows = [dict(quantised_row("0.04532", "0.07261", "0.11794"), year=str(year), scenario="C_MIXED_DENSE")
+                    for year in range(1, 101)]
+            write_csv(Path(tmp) / "component-ba-E80.csv", rows)
+            evidence = read_component_ba_evidence(tmp, MIXED_ENV, MIXED_LOG)
+            self.assertTrue(evidence["complete"], evidence["error"])
+            self.assertEqual(100, evidence["both_fired_rows"])
+            # The CLI must accept the same file (it shares component_ba_row_problems).
+            run = subprocess.run(["python3", "-B", str(CLI), str(Path(tmp) / "component-ba-E80.csv")],
+                                 capture_output=True, text=True)
+            self.assertEqual(0, run.returncode, run.stdout + run.stderr)
+            self.assertIn("COMPONENT_BA_PASS", run.stdout)
 
     def test_downstream_cli_accepts_complete_and_rejects_incomplete(self):
         with tempfile.TemporaryDirectory(prefix="ccf-component-ba-") as tmp:

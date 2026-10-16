@@ -20,6 +20,32 @@ COMPONENT_BA_FLOAT_FIELDS = ("baPreM2", "sitkaBaLossM2", "genericBaLossM2", "com
 COMPONENT_BA_COUNT_FIELDS = ("livingBefore", "densityDeaths", "sitkaComponentDeaths", "genericDeaths")
 COMPONENT_BA_FLAG_FIELDS = ("sitkaFired", "genericFired", "bothFired", "attributionExact")
 
+# The harness serialises every basal-area and fraction field to five decimals (DensityQualification F(..., "0.00000")),
+# so a self-consistent row can still show a small representation-only difference between independently rounded fields. The
+# reader derives its tolerances from that 5-decimal quantum instead of an unrealistically tight absolute epsilon: it accepts
+# what serialisation alone can explain and still rejects a difference materially larger than the quantum.
+COMPONENT_BA_QUANTUM = 1e-5
+COMPONENT_BA_FLOAT_SLACK = 1e-9
+
+
+def component_ba_sum_tolerance():
+    """Worst-case representation-only gap for combined - (sitka + generic): three independently rounded values."""
+    return 1.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK
+
+
+def component_ba_total_tolerance():
+    """Representation-only gap for combined - reported dead total: two independently rounded values."""
+    return COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK
+
+
+def component_ba_fraction_tolerance(ba_pre):
+    """Gap between a stored fraction and its BA numerator divided by the denominator: the fraction rounds (half a quantum)
+    and the numerator rounds (half a quantum divided by the denominator)."""
+    tolerance = 0.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK
+    if ba_pre > 0:
+        tolerance += 0.5 * COMPONENT_BA_QUANTUM / ba_pre
+    return tolerance
+
 
 def component_ba_row_problems(row):
     """Per-row invariants. component total == reported total, zero components reported as zero, flags self-consistent."""
@@ -49,24 +75,27 @@ def component_ba_row_problems(row):
         return problems
     sitka_ba, generic_ba, combined_ba = values["sitkaBaLossM2"], values["genericBaLossM2"], values["combinedBaLossM2"]
     dead_ba, ba_pre = values["deadBaM2"], values["baPreM2"]
-    tolerance = max(1e-9, 1e-6 * dead_ba)
-    # component total == reported total
-    if abs(combined_ba - (sitka_ba + generic_ba)) > tolerance:
+    # component total == reported total (quantisation-aware: the fields are independently rounded to five decimals)
+    if abs(combined_ba - (sitka_ba + generic_ba)) > component_ba_sum_tolerance():
         problems.append(f"{name}: combinedBaLossM2 {combined_ba} != sitka+generic {sitka_ba + generic_ba}")
-    if abs(combined_ba - dead_ba) > tolerance:
+    if abs(combined_ba - dead_ba) > component_ba_total_tolerance():
         problems.append(f"{name}: component total {combined_ba} != reported deadBaM2 {dead_ba}")
-    # The stored fractions are written to five decimals, so allow that rounding here rather than a tighter epsilon.
-    if abs(values["combinedBaFraction"] - values["deadBaFraction"]) > 1e-5:
+    fraction_tolerance = component_ba_fraction_tolerance(ba_pre)
+    if abs(values["combinedBaFraction"] - values["deadBaFraction"]) > component_ba_total_tolerance():
         problems.append(f"{name}: combinedBaFraction {values['combinedBaFraction']} != deadBaFraction {values['deadBaFraction']}")
-    if ba_pre > 0 and abs(values["combinedBaFraction"] - combined_ba / ba_pre) > 1e-5:
-        problems.append(f"{name}: combinedBaFraction does not equal combinedBaLossM2 / baPreM2")
+    for label, fraction_field, ba_field in (("combined", "combinedBaFraction", "combinedBaLossM2"),
+                                            ("sitka", "sitkaBaFraction", "sitkaBaLossM2"),
+                                            ("generic", "genericBaFraction", "genericBaLossM2")):
+        if ba_pre > 0 and abs(values[fraction_field] - values[ba_field] / ba_pre) > fraction_tolerance:
+            problems.append(f"{name}: {fraction_field} does not equal {ba_field} / baPreM2 within the 5-decimal quantum")
     # zero components reported as zero, fired components as positive
+    zero_tolerance = 0.5 * COMPONENT_BA_QUANTUM + COMPONENT_BA_FLOAT_SLACK
     for label, fired_field, ba_field, count_field in (("sitka", "sitkaFired", "sitkaBaLossM2", "sitkaComponentDeaths"),
                                                       ("generic", "genericFired", "genericBaLossM2", "genericDeaths")):
         fired = row[fired_field] == "1"
         if fired and (values[ba_field] <= 0.0 or int(row[count_field]) <= 0):
             problems.append(f"{name}: {label} fired but {ba_field}/{count_field} is not positive")
-        if not fired and (abs(values[ba_field]) > tolerance or int(row[count_field]) != 0):
+        if not fired and (abs(values[ba_field]) > zero_tolerance or int(row[count_field]) != 0):
             problems.append(f"{name}: {label} did not fire but {ba_field}/{count_field} is not zero")
     both = row["bothFired"] == "1"
     if both != (row["sitkaFired"] == "1" and row["genericFired"] == "1"):
@@ -84,7 +113,9 @@ def read_component_ba_evidence(directory, env, text):
 
     Fails (complete=False with an error) on a missing file, a schema mismatch, missing/duplicate/partial scenario-year rows,
     a geometry mismatch, non-numeric or non-finite values, inconsistent flags, a component total that does not match the
-    reported total, or a zero component reported as non-zero. No density threshold is applied.
+    reported total, or a zero component reported as non-zero. Numeric consistency uses a tolerance derived from the
+    harness's five-decimal serialisation (COMPONENT_BA_QUANTUM), so representation-only rounding is accepted while a
+    materially larger discrepancy is rejected. No density threshold is applied.
     """
     failure = {"rows": 0, "expected_rows": 0, "complete": False, "error": None, "both_fired_rows": 0,
                "sitka_fired_rows": 0, "generic_fired_rows": 0, "attribution_mismatch_rows": 0, "path": None}
