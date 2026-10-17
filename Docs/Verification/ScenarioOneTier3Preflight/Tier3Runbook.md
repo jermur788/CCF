@@ -339,7 +339,7 @@ the final re-pinned candidate** (§11).
 # socket-capable TMPDIR (tmpfs, not the exFAT ZX20 drive) so the Unity licensing client can start.
 export TMPDIR=/run/user/$(id -u)/ccf-build; mkdir -p "$TMPDIR"
 python3 Tools/Build/S1B/build_linux.py --smoke \
-  --unity "$UNITY" --art-pack "$CCF_ART_PACK_DIR" --date $(date -u +%Y%m%d) --sequence L01
+  --unity "$UNITY" --license-dir "$LIC" --art-pack "$CCF_ART_PACK_DIR" --date $(date -u +%Y%m%d) --sequence L01
 # -> /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-<date>-L01-<sha7>-SMOKE-Linux-x64/
 
 python3 Tools/Build/S1B/run_linux_player_smoke.py \

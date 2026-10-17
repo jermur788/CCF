@@ -41,10 +41,13 @@ tells a maintainer when the project's own references no longer match the committ
 
 ```sh
 source /media/jer/ZX20/CCF-Ops/environment.sh
-# The Unity licensing client needs a socket-capable TMPDIR (NOT the exFAT ZX20 drive) and a current licence.
+# The Unity licensing client needs a socket-capable TMPDIR (NOT the exFAT ZX20 drive; the build stops early if it
+# cannot create a Unix socket there) and a currently valid licence (--license-dir; the default ~/.config copy can be
+# stale and Unity then exits 198 "No valid Unity Editor license found").
 export TMPDIR=/run/user/$(id -u)/ccf-build; mkdir -p "$TMPDIR"
 python3 Tools/Build/S1B/build_linux.py --smoke \
   --unity /media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity \
+  --license-dir <Hub-managed Unity licences folder> \
   --art-pack <folder of the local Ultimate Nature - Starter pack> \
   --date 20261016 --sequence L01      # sequence must be L<nn> or S<nn>
 # -> /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-20261016-L01-<sha7>[-SMOKE]-Linux-x64/ (expects CCF.x86_64)
@@ -77,5 +80,5 @@ record `player-save.log`/`player-load.log`, and require the smoke markers
 ## Test
 
 ```sh
-python3 Tools/Build/S1B/test_build_linux.py   # 44 Unity-free checks
+python3 Tools/Build/S1B/test_build_linux.py   # 47 Unity-free checks
 ```

@@ -12,6 +12,7 @@ import importlib.util
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -54,6 +55,9 @@ def mock_script(path, body):
 
 def main():
     scratch = Path(tempfile.mkdtemp(prefix="linux-tooling-test-", dir=ROOT_STORE / "CCF-Temp"))
+    # Unity (and the tool's preflight) need a socket-capable TMPDIR; the exFAT scratch drive is not one.
+    sockdir = tempfile.mkdtemp(prefix="ccf-sock-", dir=os.environ.get("XDG_RUNTIME_DIR") or "/tmp")
+    os.environ["TMPDIR"] = sockdir
     try:
         # 1. syntax / import
         for script in [S1B / "build_linux.py", S1B / "run_linux_player_smoke.py"]:
@@ -98,12 +102,14 @@ def main():
             "proj=a[a.index('-projectPath')+1]\n"
             "if not os.path.isfile(os.path.join(proj,'Assets/ForestPrototype/Editor/LinuxPlayerBuilder.cs')) or os.path.exists(os.path.join(proj,'Assets/ForestPrototype/LinuxPlayerBuilder.cs')):\n"
             "    open(log,'w').write('builder not staged in the Editor folder only\\n'); sys.exit(9)\n"
+            "lic=os.path.join(os.environ['XDG_CONFIG_HOME'],'unity3d/Unity/licenses/LICENCE.txt')\n"
+            "licence_seen=open(lic).read().strip() if os.path.exists(lic) else 'NONE'\n"
             "if mode=='sleep':\n"
             "    import time; time.sleep(30)\n"
             "if mode=='fail':\n"
             "    open(log,'w').write('error CS mock\\n'); sys.exit(7)\n"
             "out=os.environ.get('CCF_BUILD_OUTPUT','')\n"
-            "if log: open(log,'w').write(('S1B_LINUX_BUILD_PASS mock\\n' if mode!='nooutput' else 'nothing\\n'))\n"
+            "if log: open(log,'w').write(('S1B_LINUX_BUILD_PASS mock\\n' if mode!='nooutput' else 'nothing\\n') + 'LICENCE_SEEN '+licence_seen+'\\n')\n"
             "if mode=='ok':\n"
             "    os.makedirs(os.path.join(out,'CCF_Data'),exist_ok=True)\n"
             "    b=os.path.join(out,'CCF.x86_64'); open(b,'w').write('bin')\n"
@@ -159,6 +165,30 @@ def main():
                            capture_output=True, text=True, env=env)
         check(p.returncode != 0 and "committed and clean" in p.stderr, "dirty source refused")
         subprocess.run(["git", "-C", str(proj), "checkout", "--", "keep.txt"], check=True)
+
+        # 9a. explicit Unity licence folder and the socket-capable TMPDIR preflight
+        lic = scratch / "valid-licence"; lic.mkdir(); (lic / "LICENCE.txt").write_text("VALID\n")
+        out_lic = scratch / "out-lic"
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base, "--output-root", str(out_lic), "--license-dir", str(lic)],
+                           capture_output=True, text=True, env=env)
+        log_lic = next(out_lic.glob("*-build.log")).read_text() if out_lic.exists() else ""
+        check(p.returncode == 0 and "LICENCE_SEEN VALID" in log_lic, "--license-dir licence is the one Unity sees")
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base, "--output-root", str(scratch / "out-nolic"),
+                            "--license-dir", str(scratch / "does-not-exist")], capture_output=True, text=True, env=env)
+        check(p.returncode != 0 and "--license-dir folder not found" in p.stderr, "missing --license-dir folder stops the build")
+        sock_probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            sock_probe.bind(str(scratch / ".s")); exfat_blocks_sockets = False
+        except OSError:
+            exfat_blocks_sockets = True
+        finally:
+            sock_probe.close()
+        if exfat_blocks_sockets:
+            p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base, "--output-root", str(scratch / "out-sock")],
+                               capture_output=True, text=True, env=dict(env, TMPDIR=str(scratch)))
+            check(p.returncode != 0 and "cannot create Unix sockets" in p.stderr, "TMPDIR that cannot hold Unix sockets stops the build early")
+        else:
+            check(True, "TMPDIR socket guard (scratch filesystem supports sockets here; guard exercised by the other builds)")
 
         # 9b. art-pack dependency: manifest generation, verification, explicit install, and the end-to-end preflight
         ap = load("art_pack", S1B / "art_pack.py")
@@ -337,6 +367,7 @@ def main():
         return 0
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+        shutil.rmtree(sockdir, ignore_errors=True)
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ import hashlib
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -64,6 +65,27 @@ PRESERVED = [
 
 def git(*args, cwd):
     return subprocess.check_output(["git", *args], cwd=cwd, text=True).strip()
+
+
+def require_socket_capable_tmpdir():
+    """Unity's licensing client creates a Unix socket under $TMPDIR. On exFAT (the ZX20 drive) it cannot, and the Editor
+    then hangs for minutes with an unrelated-looking licensing error; stop early with the real reason instead."""
+    import tempfile
+    path = os.path.join(tempfile.gettempdir(), ".ccf-sock-%d" % os.getpid())
+    if len(path.encode()) >= 100:
+        return   # cannot probe within the AF_UNIX path limit
+    probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        probe.bind(path)
+    except OSError as error:
+        raise SystemExit("STOP: TMPDIR %s cannot create Unix sockets (%s); Unity's licensing client would hang. "
+                         "Set TMPDIR to a socket-capable folder such as /run/user/<uid>/ccf-build." % (tempfile.gettempdir(), error))
+    finally:
+        probe.close()
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
 
 
 def build_id_for(date, sequence, sha, smoke):
@@ -115,6 +137,9 @@ def main():
     p.add_argument("--sequence", default="L01")
     p.add_argument("--smoke", action="store_true", help="stage the diagnostic StandalonePlayerSmoke; not a tester package")
     p.add_argument("--timeout", type=int, default=5400)
+    p.add_argument("--license-dir", default=None,
+                   help="folder holding the CURRENTLY VALID Unity licence (Hub-managed). Default: ~/.config/unity3d/Unity/licenses, "
+                        "which can be stale; Unity then stops with 'No valid Unity Editor license found'")
     p.add_argument("--art-pack", default=os.environ.get("CCF_ART_PACK_DIR"),
                    help="folder of the locally acquired Ultimate Nature - Starter pack (InnerverseInteractive, or its parent) "
                         "(default: $CCF_ART_PACK_DIR; else the pack must already be installed in the project)")
@@ -129,6 +154,11 @@ def main():
         raise SystemExit("STOP: source must be committed and clean")
     if not a.date.isdigit() or len(a.date) != 8 or not (a.sequence.startswith(("L", "S")) and a.sequence[1:].isdigit()):
         raise SystemExit("Invalid date/sequence (sequence e.g. L01)")
+
+    require_socket_capable_tmpdir()
+    licences = Path(a.license_dir) if a.license_dir else Path.home() / ".config/unity3d/Unity/licenses"
+    if a.license_dir and not licences.is_dir():
+        raise SystemExit("STOP: --license-dir folder not found: " + str(licences))
 
     sha = git("rev-parse", "HEAD", cwd=root)
     build_id = build_id_for(a.date, a.sequence, sha, a.smoke)
@@ -163,7 +193,6 @@ def main():
     out.mkdir(parents=True)
 
     config = Path(a.output_root) / "config"
-    licences = Path.home() / ".config/unity3d/Unity/licenses"
     if licences.is_dir():
         shutil.copytree(licences, config / "unity3d/Unity/licenses", dirs_exist_ok=True)
     env = dict(os.environ, XDG_CONFIG_HOME=str(config), CCF_BUILD_OUTPUT=str(out), CCF_BUILD_IDENTITY=json.dumps(identity))
