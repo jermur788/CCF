@@ -334,12 +334,16 @@ the final re-pinned candidate** (§11).
 ## 11. Linux Player build + smoke
 
 ```sh
+# The build needs the locally acquired Asset Store pack "Ultimate Nature - Starter" (gitignored, never committed);
+# pass its folder explicitly (see Tools/Build/S1B/README-linux.md), a sequence of the form L<nn>/S<nn>, and a
+# socket-capable TMPDIR (tmpfs, not the exFAT ZX20 drive) so the Unity licensing client can start.
+export TMPDIR=/run/user/$(id -u)/ccf-build; mkdir -p "$TMPDIR"
 python3 Tools/Build/S1B/build_linux.py --smoke \
-  --unity "$UNITY" --date $(date -u +%Y%m%d) --sequence T01
-# -> /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-<date>-T01-<sha7>-SMOKE-Linux-x64/
+  --unity "$UNITY" --art-pack "$CCF_ART_PACK_DIR" --date $(date -u +%Y%m%d) --sequence L01
+# -> /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-<date>-L01-<sha7>-SMOKE-Linux-x64/
 
 python3 Tools/Build/S1B/run_linux_player_smoke.py \
-  --player /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-<date>-T01-<sha7>-SMOKE-Linux-x64/CCF.x86_64 \
+  --player /media/jer/ZX20/CCF-Builds/S1B/CCF-S1-<date>-L01-<sha7>-SMOKE-Linux-x64/CCF.x86_64 \
   --display "${DISPLAY:-:0}" \
   --evidence-root /media/jer/ZX20/CCF-Verification
 ```

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "name": "Ultimate Nature – Starter",
+  "publisher": "Innerverse Interactive",
+  "source": "Unity Asset Store (product id 176906). Locally acquired dependency; NOT stored in this repository and never to be committed or redistributed.",
+  "assetStoreProductId": "176906",
+  "packageVersion": "1.3.0",
+  "uploadId": "964150",
+  "installFolder": "Assets/InnerverseInteractive",
+  "setupDoc": "Assets/ForestPrototype/Docs/UltimateNatureSetup.md",
+  "identityPolicy": "required files: exact sha256 + Unity GUID (enforced). fullContent: sha256 over every non-.meta file of the whole pack (recorded and compared; a mismatch is a warning because the build only consumes the required files).",
+  "required": [
+    {
+      "path": "Ultimate Nature – Starter/Environment/Props/Logs/Models/UNS_Stump.fbx",
+      "bytes": 79580,
+      "sha256": "98bfc4f8b312b9cce901d15ca899d016e966370d7c826090f1dee3955d904c42",
+      "guid": "e019a327afd8a364a8cae984935ca573"
+    },
+    {
+      "path": "Ultimate Nature – Starter/Environment/Props/Logs/Prefabs/UNS_Stump.prefab",
+      "bytes": 13173,
+      "sha256": "019a06064206d8c47093f496da776f5f97c91949053f50dcefba91bff6ca8ebc",
+      "guid": "3aa54be08e092174ab6b689e524fdf44"
+    },
+    {
+      "path": "Ultimate Nature – Starter/Environment/Shared/Palettes/Materials/UNS_Color_Palette.mat",
+      "bytes": 3984,
+      "sha256": "c515a745ee2784ae839998bb3f83ab6934124c19c5b5017c16cfeacc424f1e3f",
+      "guid": "b725cacc7387b1f4e991c4bdfcd832c8"
+    },
+    {
+      "path": "Ultimate Nature – Starter/Environment/Shared/Palettes/Textures/UNS_Color_Palette.png",
+      "bytes": 54104,
+      "sha256": "1c0cd97c3fdfd513686fe0e6d0d5bc7b3619f59a3c753af77f27304bf3cbbfbe",
+      "guid": "7a7b50c8e3f46334b94675bfece2d781"
+    },
+    {
+      "path": "Ultimate Nature – Starter/Environment/Vegetation/Mushrooms/Models/UNS_Mushroom_Patch.fbx",
+      "bytes": 48108,
+      "sha256": "d4eedf5d96b5b5bdcb58e4c7e19072e7fd6fd14ee00c06c7bd9f0caf37d1fde8",
+      "guid": "27c3f4d36f77dde429372ccba3513837"
+    },
+    {
+      "path": "Ultimate Nature – Starter/Environment/Vegetation/Mushrooms/Prefabs/UNS_Mushroom_Patch.prefab",
+      "bytes": 13246,
+      "sha256": "eec206edb25e59b64dd48dd28169dfc9207d62fae8c73aab04ec29320aea41c2",
+      "guid": "d0fa3c49b2c9cd84bb5a644c53ef025e"
+    }
+  ],
+  "requiredSetSha256": "440176a0e1c2745eb15bb7d588c7a6e76bdc31fad46d47873324ffc245e918ac",
+  "fullContent": {
+    "files": 97,
+    "bytes": 312737164,
+    "sha256": "f3b387fecd31dba360bcbb7cbd6014af123b92b9246b9a3c95ea67df96e1f5ba"
+  }
+}

@@ -9,6 +9,7 @@ Run:  python3 Tools/Build/S1B/test_build_linux.py
 Exit 0 = all checks PASS.
 """
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -27,6 +28,9 @@ def check(cond, label):
     assert cond, label
     checks += 1
     print("PASS:", label, flush=True)
+
+
+sys.path.insert(0, str(S1B))   # build_linux imports its sibling art_pack
 
 
 def load(name, path):
@@ -91,6 +95,9 @@ def main():
             "a=sys.argv\n"
             "log=a[a.index('-logFile')+1] if '-logFile' in a else None\n"
             "mode=os.environ.get('MOCK_MODE','ok')\n"
+            "proj=a[a.index('-projectPath')+1]\n"
+            "if not os.path.isfile(os.path.join(proj,'Assets/ForestPrototype/Editor/LinuxPlayerBuilder.cs')) or os.path.exists(os.path.join(proj,'Assets/ForestPrototype/LinuxPlayerBuilder.cs')):\n"
+            "    open(log,'w').write('builder not staged in the Editor folder only\\n'); sys.exit(9)\n"
             "if mode=='sleep':\n"
             "    import time; time.sleep(30)\n"
             "if mode=='fail':\n"
@@ -106,7 +113,8 @@ def main():
             "sys.exit(0)\n"))
 
         outroot = scratch / "out"
-        base = ["--project", str(proj), "--unity", str(mock), "--output-root", str(outroot), "--date", "20261016", "--sequence", "L01"]
+        base = ["--project", str(proj), "--unity", str(mock), "--output-root", str(outroot), "--date", "20261016", "--sequence", "L01",
+                "--no-art-pack-check"]
 
         # 4. success
         env = dict(os.environ, MOCK_MODE="ok")
@@ -117,6 +125,14 @@ def main():
         check((built / "CCF.x86_64").is_file() and os.access(built / "CCF.x86_64", os.X_OK)
               and (built / "CCF_Data").is_dir() and (built / "UnityPlayer.so").is_file(), "linux layout validated")
         check((built / "package-manifest.json").is_file() and (built / "build-identity.json").is_file(), "manifest + identity written")
+        check(not (proj / "Assets/ForestPrototype/Editor/LinuxPlayerBuilder.cs").exists()
+              and not (proj / "Assets/ForestPrototype/Editor/LinuxPlayerBuilder.cs.meta").exists(),
+              "builder staged in the Editor folder (mock Unity enforces it) and removed afterwards")
+        ident = json.loads((built / "build-identity.json").read_text())
+        check(ident["gitSha"] == proj_sha and ident["toolingSource"]["gitSha"] == proj_sha
+              and ident["toolingSource"]["builderStagedAt"] == "Assets/ForestPrototype/Editor/LinuxPlayerBuilder.cs"
+              and "Tools/Build/S1B/LinuxPlayerBuilder.cs" in ident["toolingSource"]["files"], "tooling source recorded in the build identity")
+        check(ident["artPack"] == {"verified": False, "reason": "--no-art-pack-check"}, "skipped art-pack check is recorded as unverified")
 
         # 5. existing output refused
         p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base], capture_output=True, text=True, env=env)
@@ -143,6 +159,126 @@ def main():
                            capture_output=True, text=True, env=env)
         check(p.returncode != 0 and "committed and clean" in p.stderr, "dirty source refused")
         subprocess.run(["git", "-C", str(proj), "checkout", "--", "keep.txt"], check=True)
+
+        # 9b. art-pack dependency: manifest generation, verification, explicit install, and the end-to-end preflight
+        ap = load("art_pack", S1B / "art_pack.py")
+        packs = scratch / "packs"
+
+        def make_pack(root, tamper=None):
+            base_dir = root / "Ultimate Nature \u2013 Starter/Env"
+            base_dir.mkdir(parents=True)
+            def asset(name, data, guid):
+                (base_dir / name).write_bytes(data)
+                (base_dir / (name + ".meta")).write_text(
+                    "fileFormatVersion: 2\nguid: %s\nAssetOrigin:\n  serializedVersion: 1\n  productId: 176906\n"
+                    "  packageName: \"Ultimate Nature \\u2013 Starter\"\n  packageVersion: 1.3.0\n  uploadId: 964150\n" % guid)
+            asset("a.prefab", b"%YAML prefab refs " + b"c" * 32, "a" * 32)
+            asset("b.fbx", b"fbx-bytes", "b" * 32)
+            asset("c.png", b"png-bytes", "c" * 32)
+            asset("unused.png", b"not needed", "d" * 32)
+            if tamper == "unrequired":
+                (base_dir / "b.fbx").write_bytes(b"other")
+            if tamper == "reqbytes":
+                (base_dir / "c.png").write_bytes(b"other")
+            if tamper == "guid":
+                (base_dir / "c.png.meta").write_text((base_dir / "c.png.meta").read_text().replace("c" * 32, "e" * 32))
+            if tamper == "missing":
+                (base_dir / "c.png").unlink()
+            return root
+
+        pkproj = scratch / "pkproj"
+        (pkproj / "Assets/Scenes").mkdir(parents=True)
+        (pkproj / "Assets/Scenes/x.unity").write_text("m_Prefab: {guid: %s, type: 3}\n" % ("a" * 32))
+        good = make_pack(packs / "good" / "InnerverseInteractive")
+        mani = ap.generate_manifest(pkproj, good)
+        check([e["path"].split("/")[-1] for e in mani["required"]] == ["a.prefab", "c.png"]
+              and mani["packageVersion"] == "1.3.0" and mani["assetStoreProductId"] == "176906",
+              "manifest = GUID-reference closure only (the unreferenced file and bytes are not pinned)")
+        mpath = scratch / "mani.json"
+        mpath.write_text(json.dumps(mani, ensure_ascii=False))
+        mdoc = ap.load_manifest(mpath)
+        check(ap.verify_pack(good, mdoc)["requiredFiles"] == 2, "matching pack verifies; extra pack files are allowed")
+        for kind, needle in (("reqbytes", "different bytes"), ("missing", "missing"), ("guid", "different GUID")):
+            bad = make_pack(packs / kind / "InnerverseInteractive", tamper=kind)
+            try:
+                ap.verify_pack(bad, mdoc)
+                failed = None
+            except ap.ArtPackError as error:
+                failed = str(error)
+            check(failed is not None and "does not match" in failed and needle in failed, "wrong pack refused: " + kind)
+        unreq = make_pack(packs / "unrequired" / "InnerverseInteractive", tamper="unrequired")
+        check(ap.verify_pack(unreq, mdoc)["requiredFiles"] == 2, "a change to a file the project does not need does not fail the preflight")
+        check(ap.digest_lines(["x"]) != ap.digest_lines(["y"]), "digest helper")
+        tampered = dict(mani, requiredSetSha256="0" * 64)
+        (scratch / "tampered.json").write_text(json.dumps(tampered, ensure_ascii=False))
+        try:
+            ap.load_manifest(scratch / "tampered.json"); inconsistent = False
+        except ap.ArtPackError:
+            inconsistent = True
+        check(inconsistent, "internally inconsistent manifest refused")
+
+        def mock_project(path):
+            (path / "Assets/ForestPrototype").mkdir(parents=True)
+            (path / "Assets/Scenes").mkdir(parents=True)
+            (path / "Assets/Scenes/x.unity").write_text("m_Prefab: {guid: %s, type: 3}\n" % ("a" * 32))
+            (path / "Tools/Build/S1B").mkdir(parents=True)
+            (path / "Tools/Verification/S1B").mkdir(parents=True)
+            shutil.copy2(S1B / "LinuxPlayerBuilder.cs", path / "Tools/Build/S1B/LinuxPlayerBuilder.cs")
+            shutil.copy2(mpath, path / "Tools/Build/S1B/art-pack-manifest.json")
+            (path / ".gitignore").write_text("/Assets/InnerverseInteractive/\n/Assets/InnerverseInteractive.meta\n")
+            subprocess.run(["git", "-C", str(path), "init", "-q"], check=True)
+            for k, v in [("user.email", "t@invalid"), ("user.name", "t"), ("commit.gpgsign", "false"), ("core.hooksPath", "/dev/null")]:
+                subprocess.run(["git", "-C", str(path), "config", k, v], check=True)
+            subprocess.run(["git", "-C", str(path), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(path), "commit", "-q", "-m", "seed"], check=True)
+            return path
+
+        proj2 = mock_project(scratch / "proj2")
+        out2 = scratch / "out2"
+        base2 = ["--project", str(proj2), "--unity", str(mock), "--output-root", str(out2), "--date", "20261016", "--sequence", "L01"]
+        envk = dict(os.environ, MOCK_MODE="ok")
+        envk.pop("CCF_ART_PACK_DIR", None)
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base2], capture_output=True, text=True, env=envk)
+        check(p.returncode != 0 and "required but not available" in p.stderr and "--art-pack" in p.stderr
+              and not out2.exists() and not (proj2 / "Assets/InnerverseInteractive").exists(),
+              "missing pack stops the build before output/staging with a clear message")
+        wrong = make_pack(packs / "wrongpack" / "InnerverseInteractive", tamper="reqbytes")
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base2, "--art-pack", str(wrong)], capture_output=True, text=True, env=envk)
+        check(p.returncode != 0 and "does not match" in p.stderr and not out2.exists(), "wrong pack stops the build")
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base2, "--art-pack", str(good)], capture_output=True, text=True, env=envk)
+        check(p.returncode == 0 and '"status": "PASS"' in p.stdout, "explicit --art-pack builds")
+        installed = sorted(x.relative_to(proj2 / "Assets/InnerverseInteractive").as_posix()
+                           for x in (proj2 / "Assets/InnerverseInteractive").rglob("*") if x.is_file())
+        check(installed == ["Ultimate Nature \u2013 Starter/Env/a.prefab", "Ultimate Nature \u2013 Starter/Env/a.prefab.meta",
+                            "Ultimate Nature \u2013 Starter/Env/c.png", "Ultimate Nature \u2013 Starter/Env/c.png.meta"],
+              "only the required files and their .meta are installed")
+        check(subprocess.check_output(["git", "-C", str(proj2), "status", "--porcelain"], text=True) == "",
+              "installed pack is gitignored; the committed tree stays clean")
+        built2 = next(out2.glob("*-Linux-x64"))
+        ident2 = json.loads((built2 / "build-identity.json").read_text())
+        pm2 = json.loads((built2 / "package-manifest.json").read_text())
+        ap2 = ident2["artPack"]
+        check(ap2["verified"] is True and ap2["requiredSetSha256"] == mani["requiredSetSha256"] and ap2["packageVersion"] == "1.3.0"
+              and ap2["assetStoreProductId"] == "176906" and ap2["committedToRepository"] is False
+              and pm2["identity"]["artPack"] == ap2 and ap2["fullContent"]["matchesManifest"] is True,
+              "build identity + package manifest record the verified pack (version, product, checksum)")
+        check(ident2["toolingSource"]["files"]["Tools/Build/S1B/art-pack-manifest.json"] == ap.sha256_file(proj2 / "Tools/Build/S1B/art-pack-manifest.json"),
+              "tooling source records the committed manifest hash")
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base2, "--sequence", "L02"], capture_output=True, text=True, env=envk)
+        check(p.returncode == 0, "already-installed pack is verified in place (no --art-pack needed)")
+        (proj2 / "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Env/a.prefab").write_bytes(b"corrupt")
+        p = subprocess.run([sys.executable, str(S1B / "build_linux.py"), *base2, "--sequence", "L03"], capture_output=True, text=True, env=envk)
+        check(p.returncode != 0 and "installed in the project" in p.stderr and "different bytes" in p.stderr, "corrupted installed pack stops the build")
+
+        # the committed manifest itself
+        real = ap.load_manifest()
+        text = (S1B / "art-pack-manifest.json").read_text(encoding="utf-8")
+        guids = {e["path"].split("/")[-1]: e["guid"] for e in real["required"]}
+        check(real["name"].startswith("Ultimate Nature") and real["packageVersion"] and real["assetStoreProductId"].isdigit()
+              and guids.get("UNS_Mushroom_Patch.prefab") == "d0fa3c49b2c9cd84bb5a644c53ef025e"
+              and guids.get("UNS_Stump.prefab") == "3aa54be08e092174ab6b689e524fdf44" and len(real["required"]) >= 2,
+              "committed manifest: pack identity and the documented prefab GUIDs")
+        check("/home/" not in text and "/media/" not in text and "/tmp/" not in text, "committed manifest holds no machine-specific path")
 
         # 10. smoke launcher — shared-output protocol, stale-evidence and PASS/FAIL
         player = scratch / "mock-player"
