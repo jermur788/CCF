@@ -6,7 +6,7 @@ Supporting evidence index, not a decision authority. Research recommendations do
 
 ## Source location
 
-The Revision 5 source reports these PDFs as Game Dev project/source uploads. Its permanent Drive `03 — Ecology Research` folder was not populated; do not imply the PDFs already live in Drive or Git. Preserve exact filenames when a separately authorised task mirrors research. This migration does not upload research binaries.
+Research sources are held as Game Dev project sources and mirrored under the Drive `CCF — Shared Project Context` folder; `03 — Ecology Research` is now populated. On 2026-10-16/17 the overlapping permanent research attachments were rationalised into four project-facing composites, each carrying per-claim provenance (file, page/section, original reference, evidence class) back to the originals. Research binaries are not committed to Git; preserve exact filenames and do not imply originals were deleted from Drive. See `## Research composites (2026-10-16)` and `## Scenario Two species evidence` below.
 
 ## D-023 — Browsing/protection
 
@@ -26,17 +26,21 @@ Topics: bramble/bracken/competitive graminoid cover, shared competition for natu
 
 ## Broader evidence
 
-- `Irish Atlantic Woodland Ecology for a Continuous-Cover Forestry Game Simulation.pdf`
-- `Atlantic Temperate Rainforest Under Continuous-Cover Forestry_ Game-Simulation Mechanisms.pdf`
-- `Irish_Sitka_CCF_Deep_Research_Report.pdf`
-- `Irish_CCF_ecology.pdf`
-- `Game Mechanics for Atlantic Temperate Rainforest (Continuous-Cover Forestry).pdf`
+Consolidated on 2026-10-16/17 into the ecology/regeneration and related composites (see `## Research composites (2026-10-16)`); the originals remain in the Drive archive. Status of each original:
 
-Use the dedicated browsing/understorey reports for those systems where they supersede earlier broad recommendations.
+- `Irish Atlantic Woodland Ecology for a Continuous-Cover Forestry Game Simulation.pdf` — **retained individual** project source (spatial regeneration/hydrology/species superset).
+- `Atlantic Temperate Rainforest Under Continuous-Cover Forestry_ Game-Simulation Mechanisms.pdf` — now held via Composite 1.
+- `Irish_Sitka_CCF_Deep_Research_Report.pdf` — now distributed across Composites 3–4.
+- `Irish_CCF_ecology.pdf` — now held via Composite 1.
+- `Game Mechanics for Atlantic Temperate Rainforest (Continuous-Cover Forestry).pdf` — now held via Composite 1.
+
+The dedicated browsing (`Irish_CCF_Browsing_Protection_v1_Report.pdf`) and understorey (`Understorey_Dynamics_Irish_CCF_Report.pdf`) reports are now held via Composites 1–2; use those composites for those systems where they supersede earlier broad recommendations.
 
 ## CCF Primary Literature Synthesis v1
 
 `CCF_Primary_Literature_Synthesis_v1.pdf` (12 pp., 5 October 2026; local copy `~/Documents/CCF Game/`, SHA-256 prefix `5b7a5261860e2bec`; not committed to Git). **Supporting evidence, not decision authority.** Used in the regeneration accounting work (D-047) only to support keeping vegetation competition and browsing as separate causal mechanisms, and treating Sitka leader browsing mainly as height delay and form damage. Its bramble/bracken survival values (English oak) and Irish age-30 top-height anchors are transfer/validation anchors, not adopted coefficients.
+
+As of the 2026-10-16/17 rationalisation this synthesis was distributed across Composites 1–4 (each section retaining its exact provenance) and detached from project sources; the original remains archived in Drive. Its Irish Sitka age-30 anchors (from Lekwadi et al. 2012) are preserved in Composite 3.
 
 ## Growth model 1 sources (D-048)
 
@@ -45,17 +49,36 @@ Use the dedicated browsing/understorey reports for those systems where they supe
 
 ## Current multi-species and forestry evidence
 
-The following supporting reports are available locally under `~/Documents/CCF Game/` unless noted. They are not committed research binaries and do not automatically adopt coefficients or mechanics.
+The following supporting reports are held as Game Dev project sources and/or archived under `~/Documents/CCF Game/` and the Drive `03 — Ecology Research` folder. They are not committed research binaries and do not automatically adopt coefficients or mechanics.
 
-- `CCF Species Evidence Pack v1 — Multi-Species Continuous-Cover Forestry Research Report.pdf`: current species-specific evidence for assessing multi-species forestry and the limits of transferring Sitka relationships. Quantitative replacement design remains separate accepted work.
-- `CCF Academic Paper Consolidation.pdf` and `CCF Academic Paper Consolidation — Comprehensive Evidence Edition.pdf`: broader academic consolidation supporting source review and evidence gaps; the comprehensive edition extends the earlier consolidation.
-- `Irish Continuous-Cover Forestry Transformation Evidence_ ContinuFOR, TranSSFor, LISS and Related Iri.pdf`: Irish transformation evidence, indexed under its actual local filename.
-- `European_Pro_Silva_CCF_Practice_Synthesis.md`: practitioner/website synthesis, distinguished from empirical ecological measurements and Irish numerical calibration.
-- `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf`: underlying source research report, identified by the Manager. Distinguish it from the later specialist-chat handoff “Forestry Economics & Irish Timber Markets — Research Synthesis”; that synthesis is not the source report. The source PDF's local/Drive location has not been verified in this refresh. No prices, profitability targets or economic mechanics are adopted here.
+- `CCF Species Evidence Pack v1 — Multi-Species Continuous-Cover Forestry Research Report.pdf` (**retained individual**): current species-specific evidence for assessing multi-species forestry and the limits of transferring Sitka relationships. Quantitative replacement design remains separate accepted work.
+- `CCF Academic Paper Consolidation — Comprehensive Evidence Edition.pdf` (**retained individual**): broader academic consolidation supporting source review and evidence gaps. The ordinary `CCF Academic Paper Consolidation.pdf` was verified fully superseded by the comprehensive edition and detached from project sources on 2026-10-16 (Drive copy retained).
+- `GROWFOR_Technical_Evidence_Extraction_v1.md` (**retained individual**): named `BroadLynch2006_Sitka` equations/coefficients, validity limits, assortment coefficients and G3/G4 validation anchors; the deep technical provenance for the GROWFOR/Broad–Lynch evidence.
+- Held via the four composites (originals in Drive archive): `Irish Continuous-Cover Forestry Transformation Evidence_ ContinuFOR, TranSSFor, LISS and Related Iri.pdf`, `European_Pro_Silva_CCF_Practice_Synthesis.md`, `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf`, and the ecology/browsing/understorey/Primary-Literature-Synthesis reports.
 
-**GROWFOR scope:** five total modelled species — Sitka spruce, Douglas fir, lodgepole pine, Norway spruce and Scots pine. This evidence description does **not** add lodgepole pine to the game roster or claim these five species are implemented in CCF.
+The earlier note that `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf` had no verified local/Drive location is superseded: the report is archived in Drive `03 — Ecology Research` and its content is preserved in Composite 4. Distinguish it from the later specialist-chat handoff “Forestry Economics & Irish Timber Markets — Research Synthesis”; that synthesis is not the source report. No prices, profitability targets or economic mechanics are adopted here.
+
+**GROWFOR scope:** the distributed GROWFOR manual's model-selection screen shows thinned/unthinned models for Sitka spruce, Norway spruce, Douglas fir, lodgepole pine, Scots pine and larch, plus an Ash thinned model (7 named species / 13 listed options); COFORD 2012 described completed models for five species and Japanese larch/ash still in production. This description does **not** add any of these to the game roster or claim they are implemented in CCF; see `GROWFOR_Technical_Evidence_Extraction_v1.md` §3, §17.
 
 D-051–D-054 accept forestry-first direction, independent scenario progression, the primary audience and fruit/nut sequencing. Research-proposed exact curricula and mechanics remain proposals: no six-scenario/two-branch sequence, marteloscope, Bio Tree, forest diary or other suggested feature is canonised by this index.
+
+## Research composites (2026-10-16)
+
+Four project-facing composites replace the overlapping permanent research attachments; each opens as supporting research (not decision authority) and carries exact per-claim provenance. Originals are archived in Drive.
+
+- `CCF_Ecology_and_Regeneration_Evidence_Composite.md` — light/canopy, regeneration/establishment, understorey competition, deadwood/veterans, epiphytes, invasives, hydrology/site, biodiversity/monitoring, succession.
+- `CCF_Browsing_Protection_and_Management_Evidence_Composite.md` — browser set, pressure vs damage, life-stage vulnerability, species palatability/recovery, browse algorithm, fencing/shelters, deer law/policy, parameter table.
+- `CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md` — density architecture and evidence, Pretzsch DEC/DMC, Irish Sitka site/height, individual-tree growth, crown geometry, oak/beech envelopes, GROWFOR summary anchors.
+- `CCF_CCF_Practice_Economics_and_Transformation_Evidence_Composite.md` — Irish transformation trials, positive selection, wind/stability, Pro Silva practice, timber economics, labour/protection/pruning, salvage and timber quality.
+
+The rationalisation evidence package (inventories, overlap matrix, removal-safety, provenance audit and handoff) is held outside the repository at `/media/jer/ZX20/CCF-Verification/ProjectSourceRationalisation-20261016T232710Z/`.
+
+## Scenario Two species evidence
+
+Scenario Two additions are **Sitka spruce, oak, beech, Scots pine, downy birch and common alder** (accepted roster). Two Scenario Two research sources were added to the Drive `03 — Ecology Research` library on 2026-10-17; both are supporting research, not decision authority.
+
+- `Scenario Two Species Evidence Closure.pdf` (11 pp., Drive ID `1qubNMuSMFw_ilSreOic_ktJp3XfNLA_k`; **held as a project source**): closure for the three Scenario Two additions — Scots pine READY FOR INITIAL PARAMETER DESIGN (Irish GROWFOR external; recommended domain ages 10–60, 100–5,000 stems/ha, 10–100 m²/ha BA, top height ≥5 m); downy birch and common alder PARTIAL (design possible with explicit abstractions). Self-reports overall PARTIALLY READY with 5 unresolved contradictions and an audit limitation; no implementation blockers. Common-alder commercial role = secondary commercial crop.
+- `Scenario Two Species Selection for Irish Continuous-Cover Forestry.pdf` (Drive ID `1WROZSOypheA1DwPU4fu8gYCsEoxOvu2Y`; **Drive archive only, not a permanent project source**): recommends Douglas fir + common alder. Its Douglas-fir recommendation is **superseded** by the accepted roster (which uses downy birch, not Douglas fir). Retained as archived context/history; do not treat its species recommendation as current authority.
 
 ## General reference
 
