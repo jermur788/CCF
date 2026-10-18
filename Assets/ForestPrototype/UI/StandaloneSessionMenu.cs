@@ -94,7 +94,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     {
         if (!IsOpen) return;
         IsOpen = false; startupScreen = false; sessionNote = null; Time.timeScale = previousTimeScale;
-        document.rootVisualElement.style.display = DisplayStyle.None;
+        if (document != null && document.rootVisualElement != null) document.rootVisualElement.style.display = DisplayStyle.None;
         if (saves != null) saves.enabled = savesWereEnabled;
         if (forestUi != null) { forestUi.RootElement.style.display = DisplayStyle.Flex; forestUi.enabled = uiWasEnabled; }
         if (player != null) player.enabled = playerWasEnabled;
