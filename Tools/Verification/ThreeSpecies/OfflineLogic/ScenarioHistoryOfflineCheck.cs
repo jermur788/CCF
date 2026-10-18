@@ -295,7 +295,7 @@ public static class ScenarioHistoryOfflineCheck
         Check(work == "30 felled · 4 pruned · 6 planted (3 beech, 3 sessile oak; 4 sheltered)", "WORK_LINE_IS_READABLE_AND_COMPLETE", work);
         Check(ManagementHistoryText.Work(b, context) == "4 pruned", "PRUNE_ONLY_WORK_LINE", ManagementHistoryText.Work(b, context));
         string mixed = ManagementHistoryText.Work(c, context);
-        Check(mixed.Contains("12 felled") && mixed.Contains("3 cells cleared") && mixed.Contains("1 task could not be done") && mixed.Contains("crown base"), "FAILED_TASKS_ARE_SAID_PLAINLY_WITH_THE_REASON", mixed);
+        Check(mixed.Contains("12 felled") && mixed.Contains("3 map squares cleared") && mixed.Contains("1 task could not be done") && mixed.Contains("crown base"), "FAILED_TASKS_ARE_SAID_PLAINLY_WITH_THE_REASON", mixed);
         string money = ManagementHistoryText.Money(a, context);
         Check(money.Contains("Cost 2656.00") && money.Contains("timber income 1800.00") && money.Contains("net -856.00") && money.Contains("small-job minimum"), "MONEY_LINE_REPORTS_COST_INCOME_NET_AND_THE_MINIMUM", money);
         Check(!ManagementHistoryText.Money(b, context).Contains("small-job"), "NO_MINIMUM_NOTE_WHEN_THERE_WAS_NO_VISIT_MINIMUM");

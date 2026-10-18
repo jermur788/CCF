@@ -57,6 +57,7 @@ SUITES = {
                  os.path.join(FP, "ForestSaveData.cs")]
                 + sorted(glob.glob(os.path.join(FP, "WorkEconomy", "*.cs")))
                 + [os.path.join(HERE, "UnityShim.cs"), os.path.join(HERE, "HistoryOfflineStubs.cs"), os.path.join(HERE, "ScenarioHistoryOfflineCheck.cs")],
+        bridges=["ui-facts"],
         args=[]),
     "timber": dict(
         startup="BroadleafTimberOfflineCheck",
@@ -64,6 +65,22 @@ SUITES = {
                 + [os.path.join(HERE, "SitkaYieldFixture.cs"), os.path.join(HERE, "BroadleafTimberOfflineCheck.cs")],
         args=[]),
 }
+
+# Generated compile-time bridges, written into the temporary project (never the repository).
+# ui-facts: post-rack, ScenarioOneWorkOrder.cs labels map squares through ScenarioOneUiFacts.SquareLabel, which needs a live
+# ForestEcologyController and UI Toolkit and is not in the suite's source list. With no ecology production returns its "#N"
+# fallback, and an offline run has none, so shim exactly that. The assert keeps the shim honest: it fails if production changes
+# the signature or the fallback (same approach as Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py).
+def bridge_ui_facts():
+    path = os.path.join(FP, "UI", "ScenarioOneUiFacts.cs")
+    with open(path) as handle:
+        facts = handle.read()
+    if "public static string SquareLabel(int cellIndex)" not in facts or '"#" + cellIndex' not in facts:
+        sys.exit("ScenarioOneUiFacts.SquareLabel signature or no-ecology fallback changed in " + path + "; update the offline shim")
+    return "UiFactsBridge.cs", "public static class ScenarioOneUiFacts { public static string SquareLabel(int cellIndex) => \"#\" + cellIndex; }\n"
+
+
+BRIDGES = {"ui-facts": bridge_ui_facts}
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -91,7 +108,14 @@ def run_suite(name, out, dotnet):
     for source in suite["sources"]:
         if not os.path.isfile(source):
             sys.exit("missing source " + source)
-    items = "\n".join('    <Compile Include="%s" />' % s for s in suite["sources"])
+    sources = list(suite["sources"])
+    for bridge in suite.get("bridges", []):
+        filename, text = BRIDGES[bridge]()
+        bridge_path = os.path.join(work, filename)
+        with open(bridge_path, "w") as handle:
+            handle.write(text)
+        sources.append(bridge_path)
+    items = "\n".join('    <Compile Include="%s" />' % s for s in sources)
     with open(os.path.join(work, "check.csproj"), "w") as handle:
         packages = "".join('    <PackageReference Include="%s" Version="%s" />\n' % pkg for pkg in suite.get("packages", []))
         handle.write(PROJECT.format(startup=suite["startup"], items=items, packages=packages))

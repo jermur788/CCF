@@ -39,9 +39,14 @@ ROOT = Path(__file__).resolve().parents[3]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
 STAGE = ROOT / "Assets" / "ForestPrototype"
 LICENCES = Path.home() / ".config/unity3d/Unity/licenses"
-# Unity re-serialises these on every Editor run, independent of the code under test: the settings file gets its
-# solution name, and seven to eleven SectionFive materials get float round-trip noise in _Color (0.045 -> 0.044999972).
-# They are recorded in the result, never counted as an unexpected change.
+# Unity re-serialises these on every Editor run that loads them, independent of the code under test: the settings file gets
+# its solution name, and seven to eleven SectionFive materials are normalised by URP 17.6 material validation. Five of them
+# change only by _Color float round-trip noise (0.045 -> 0.044999972). The two leaf materials (Bilberry_Leaves, Forb_Leaves)
+# change in content as well: _MainTex null -> its own _BaseMap texture and _AlphaToMask 0 -> 1. That is rendering-inert here
+# (both leaf textures are RGB with no alpha channel, MSAA is 1; ScenarioOneReleaseReadinessForensic-20261018T220834Z/
+# material-rewrite-analysis.md), but this check matches by path only, so it cannot tell noise from those content changes:
+# graphical gates must still diff the files and restore them byte-exactly. Matches are recorded in the result, never counted
+# as an unexpected change.
 def is_known_rewrite(line):
     if line == " M .vscode/settings.json":
         return True
