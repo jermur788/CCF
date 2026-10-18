@@ -1,30 +1,30 @@
 {
   "Assets/ForestPrototype/ForestEcologyController.cs": {
     "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "sha256": "29a69efe8c666f4452f3135784b41a8cda1360bbbecd8f16f00565bc4a3acd43"
+    "normalized_sha256": "fdcfec2a478f6a046d3956a051dee16429080df18d201a28a268b78a28c627c4"
   },
   "Assets/ForestPrototype/TreeSpeciesDefinition.cs": {
     "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "sha256": "762a33fe1c89a0840cba0703631d93a6988d4787ab45126df84efbcbb3ff4a55"
+    "normalized_sha256": "63c9078e7be818d4594978e1377485b1b1648ecb48dedd445766e58e6a011bfd"
   },
   "Assets/ForestPrototype/SitkaGrowthModel.cs": {
     "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "sha256": "c887fc29a4591f0be3002b756411256149a01139a10276d161622038c7389d2f"
+    "normalized_sha256": "0fc0253d596533368938c5b88c2273fe7c7cc204db48e7be086bfac2f920aae7"
   },
   "Assets/ForestPrototype/MixedDensityModel.cs": {
     "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "sha256": "88a85dbd42aa556a698b07ea36d6a5468793c5e18a868271d2ed66ccd722dbf3"
+    "normalized_sha256": "ef44be944a1fbec41a5734f9a6a3f455c81317d74601737a6f1d2b3bd431e65b"
   },
   "Assets/ForestPrototype/Species/SitkaSpruce.asset": {
     "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
-    "sha256": "a6634c76644e5fec31d728f1edbdd6cd2b23e85281d4dced288980eda6251563"
+    "normalized_sha256": "eca3d7efecbde27476cac7f104c9673761f43f2f1d90372534a4ee0ecdfed323"
   },
   "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs": {
     "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
-    "sha256": "f9e3eb919590bd7de7f75a3ddf3083a8c60c3f7d5144398cec35cdd74d4da5d7"
+    "normalized_sha256": "9e1c8564f50166093384ad9dd1b65899ed8482e52a5fe2f4bda4b6bab6cf6b13"
   },
   "Assets/ForestPrototype/ForestSaveData.cs": {
     "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
-    "sha256": "a4c8a16884b6944f6de244810763da3a669c7ddc3026f124951482f4893a4a68"
+    "normalized_sha256": "224173ce7b7fd0eae426c4a18fe037f37a5cbef39a38df163ad47efd059f24c7"
   }
 }

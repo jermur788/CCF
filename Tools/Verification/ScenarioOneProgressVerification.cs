@@ -163,6 +163,21 @@ public sealed class ScenarioOneProgressVerificationRunner : MonoBehaviour
             && manager.SoundscapeState.layers.Single(layer => layer.layerId == "conifer-birds").volume > 0.4f,
             "deadwood habitat was lost or one cut erased the conifer sound identity");
 
+        // Reviewed two-cycle chronology (N3, save v20): acknowledge the first Annual Review through the real
+        // production handler, then resolve a second work plan, so the review-year completion is supported by
+        // ScenarioOneCompletionRules.HasReviewedTwoCycleSequence rather than bypassed.
+        manager.MarkAnnualReviewSeen();
+        Check(manager.AnnualReviewSeen && manager.ManagementEvents.Any(entry => entry.eventType
+            == ScenarioManagementEventType.AnnualReviewAcknowledged && entry.year == 1),
+            "first Annual Review acknowledgement was not recorded before the second cycle");
+        manager.PlanningFellingOutcome = FellingMaterialOutcome.SellAndExtract;
+        ForestTree secondCycle = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .First(tree => tree.IsLiving && tree.TreeId != "P0000");
+        marking.Mark(secondCycle, TreeMarkType.Fell, false);
+        Check(manager.AddMarkedTreesToWorkPlan() == 1 && manager.ApprovePendingWork()
+            && manager.AdvanceYear() && ecology.EcologicalYear == 2,
+            "second-cycle work plan did not resolve at year 2");
+
         // The managed forest survives until the configurable review year. A
         // deterministic fixture isolates progression scoring from growth rates:
         // two planted broadleaf species and one Sitka cohort remain present.
