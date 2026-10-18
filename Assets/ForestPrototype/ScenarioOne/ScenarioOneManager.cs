@@ -82,7 +82,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public string OutcomeReason => outcomeReason;
     public ScenarioCenturyReview CenturyReview => centuryReview;
     public float RetainedTimberM3 => retainedTimberM3;
-    public string Feedback => feedback;
+    // The guidance shown when a scenario starts is chosen when it is read, so it follows the teaching stage: racks first while the
+    // opening rack stage is on, the usual marking route otherwise. Any later message replaces it and is returned as written.
+    private const string StartGuidanceToken = "\u0001start-guidance";
+    public string Feedback => feedback == StartGuidanceToken ? StartGuidance : feedback;
+    private string StartGuidance => RackFirstStageActive
+        ? "Scenario started. Start with extraction racks: press B in the forest and point at a planted row, then approve them in the Work Plan."
+        : "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
     public IReadOnlyList<PlantedJuvenile> PlantedJuveniles => plantedJuveniles;
     public IReadOnlyList<PlantingClearancePatch> ClearancePatches => clearancePatches;
     public int OwnerMinutesUsedThisYear => ownerMinutesUsedThisYear;
@@ -626,7 +632,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         planningFellingOutcome = definition.DefaultFellingOutcome;
         planningPlantingMethod = WorkExecutionMethod.Contractor;
         planningInstallShelter = false;
-        feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
+        feedback = StartGuidanceToken;
     }
 
     public bool TryBeginReferencePreview(int year)

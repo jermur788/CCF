@@ -271,7 +271,7 @@ public static class RackRows
 }
 
 // An even rack layout over a number of rows: every (rowsBetween + 1)th row, centred in the block. Evenly spaced, not a rule:
-// the number of rows left standing between racks is a management choice (about seven to nine is common in Irish thinning).
+// the number of rows left standing between racks is a scenario choice made by the caller.
 public static class RackLayout
 {
     public static List<int> RowIndices(int rowCount, int rowsBetween)

@@ -75,7 +75,9 @@ public static class ScenarioOneUiFacts
 
     // Display only: keep objective IDs, recorded labels and achievement values intact. The recorded label of the two regeneration
     // objectives uses the implementation word "cell"; the player reads plain forestry wording chosen by the objective's id.
-    public const string RegenerationObjectiveName = "Establish successful regeneration";
+    // The objective counts the 5 m × 5 m map squares that hold any young trees at all (seedlings and planted saplings included);
+    // it does not measure that the young trees are established or successful, so the wording says only that they are present.
+    public const string RegenerationObjectiveName = "Areas with young trees";
     public const string RegenerationAreasName = "Areas with young regeneration";
 
     public static string ObjectiveName(ScenarioObjectiveResult objective)
@@ -118,7 +120,7 @@ public static class ScenarioOneUiFacts
         string current = objective.currentValue.ToString("0.##", UiKit.Inv), target = objective.targetValue.ToString("0.##", UiKit.Inv);
         // The exact figure is the number of 5 m × 5 m map squares holding young trees; the line says what it counts.
         if (objective.objectiveId == "regeneration")
-            return $"{status} · {RegenerationObjectiveName}: young trees established in {current} map squares (at least {target} needed)";
+            return $"{status} · Young trees present in {current} {(current == "1" ? "area" : "areas")} (at least {target} needed)";
         return $"{status} · {ObjectiveName(objective)}: {current} / {target}";
     }
 
