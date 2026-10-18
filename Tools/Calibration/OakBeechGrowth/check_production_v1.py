@@ -1,26 +1,37 @@
 #!/usr/bin/env python3
-"""Actual species-row regression against frozen, preregistered lab checkpoints."""
-from pathlib import Path
-import argparse,csv,hashlib,json,re
-import kernel_controls as kernel
-HERE=Path(__file__).parent;ROOT=HERE.parents[2]
-FIELDS={'Pd':'potentialDbhGrowthCmPerYear','Ph':'potentialHeightGrowthMPerYear','Dmax':'maxDbhCm','Hmax':'maxHeightM','Ci50':'ci50'}
+"""RETIRED / SUPERSEDED - do NOT use as a release gate.
+
+This was the pre-density production calibration guard for the seven Oak/Beech
+integrated-calibration source files. It is superseded by
+Tools/Calibration/OakBeechGrowth/check_integrated_v1.py, which keeps the same chosen
+values, the same [C] checks, the same kernel/source-expression guards and the same 360
+frozen numerical expectations, and whose source-integrity guard is comment/whitespace
+insensitive (Tools/Verification/source_normalization.py).
+
+Why retired: this tool hashes the seven protected files by RAW bytes against a
+pre-density baseline, so it false-fails current code (the assertion reports
+Assets/ForestPrototype/ForestEcologyController.cs). It is excluded from the Tier-3
+static list (Docs/Verification/ScenarioOneTier3Preflight/), which records it as
+"retired; superseded by check_integrated_v1.py".
+
+Replacement path: Tools/Calibration/OakBeechGrowth/check_integrated_v1.py
+"""
+import sys
+
+_RETIRED_MESSAGE = (
+    "PRODUCTION_CALIBRATION_V1_RETIRED: check_production_v1.py performs NO validation and must not be "
+    "used as a gate. It hashes protected sources by raw bytes against a pre-density baseline and "
+    "false-fails current code. Use Tools/Calibration/OakBeechGrowth/check_integrated_v1.py "
+    "(INTEGRATED_CALIBRATION_V1_PASS, 360 checkpoints, normalized source guard). "
+    "Non-zero exit here is a retirement marker, not a code failure."
+)
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,required=True);args=parser.parse_args()
-    inputs=json.loads((HERE/'production_v1_inputs.json').read_text())
-    for f,digest in inputs['preserved_files_sha256'].items():assert hashlib.sha256((ROOT/f).read_bytes()).hexdigest()==digest,f
-    kernel.selfcheck();kernel.source_manifest();summaries={};trajectories={}
-    for species,file in [('Oak','SessileOak.asset'),('Beech','BeechSpecies.asset')]:
-        text=(ROOT/'Assets/ForestPrototype/Species'/file).read_text();values={k:float(re.search(r'^  '+field+r': ([\d.]+)',text,re.M).group(1)) for k,field in FIELDS.items()}
-        assert values==inputs['chosen'][species],(species,values)
-        for field in FIELDS.values():assert re.search(r'  # \[C\] Ordinal production calibration v1[^\n]*\n  '+field+':',text)
-        result,rows=kernel.assess(species,values);assert result['survives'],result
-        summaries[species]=result;trajectories[species]=rows
-    checkpoints=list(csv.DictReader((HERE/'production_v1_expected.csv').open()))
-    for row in checkpoints:
-        d,h,promoted=trajectories[row['species']][(row['fixture'],row['treatment'])][int(row['age'])]
-        assert format(d,'.12g')==row['D_cm'] and format(h,'.12g')==row['H_m'] and str(int(promoted))==row['promoted'],row
-    report={'scope':'NON-UNITY mathematical controls; no empirical/loader/runtime claim','checkpoint_count':len(checkpoints),'protected_files_exact':len(inputs['preserved_files_sha256']),'chosen':inputs['chosen'],'results':summaries}
-    args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(report,indent=2,sort_keys=True,allow_nan=False)+'\n')
-    print(f'PRODUCTION_CALIBRATION_V1_PASS checkpoints={len(checkpoints)} protected_files={len(inputs["preserved_files_sha256"])}')
-if __name__=='__main__':main()
+    sys.stderr.write(_RETIRED_MESSAGE + "\n")
+    print("PRODUCTION_CALIBRATION_V1_RETIRED superseded_by=Tools/Calibration/OakBeechGrowth/check_integrated_v1.py")
+    return 3
+
+
+if __name__ == '__main__':
+    sys.exit(main())

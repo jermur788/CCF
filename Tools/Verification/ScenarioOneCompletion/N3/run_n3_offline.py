@@ -3,6 +3,12 @@
 from pathlib import Path
 import argparse,hashlib,json,subprocess,sys
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[3];FP=ROOT/'Assets/ForestPrototype'
+sys.path.insert(0,str(ROOT/'Tools'/'Verification'))
+import source_normalization
+# Normalized (comment/whitespace-insensitive) sha256 of the accepted N3 completion-rules source.
+# Replaces the previous raw whole-file hash 862eda3ffd4f0ca3a857474773bc54b04abb8d01d5f894bdf482e0c2851dbe3f,
+# which suppressed all 88 N3 checks on any comment/whitespace edit. See Tools/Verification/source_normalization.py.
+N3_RULES_NORMALIZED_SHA256='8166775d17827112282a668f8d0859d6e31c6868fa4724c77c13dbf6d6f80648'
 def method(text,signature):
     start=text.index(signature);brace=text.index('{',start);depth=1;end=brace+1
     while depth:
@@ -12,7 +18,7 @@ def method(text,signature):
     return text[start:end]
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,required=True);args=parser.parse_args();args.out.mkdir(parents=True,exist_ok=True)
-    assert hashlib.sha256((FP/'ScenarioOne/ScenarioOneCompletionRules.cs').read_bytes()).hexdigest() == '862eda3ffd4f0ca3a857474773bc54b04abb8d01d5f894bdf482e0c2851dbe3f'
+    assert source_normalization.normalized_sha256(FP/'ScenarioOne/ScenarioOneCompletionRules.cs') == N3_RULES_NORMALIZED_SHA256
     manager=(FP/'ScenarioOne/ScenarioOneManager.cs').read_text();enums=(FP/'ScenarioOne/ScenarioManagementEvent.cs').read_text()
     assert 'AnnualReviewAcknowledged = 9' in enums
     # Frozen pre-extension values from f4d0a1 compatibility contract.

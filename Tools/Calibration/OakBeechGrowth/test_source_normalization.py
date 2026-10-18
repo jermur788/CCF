@@ -46,5 +46,16 @@ with tempfile.TemporaryDirectory() as tmp:
     (tmp / "m2.cs").write_text(original.replace("public static class GrowthModel", "public sealed class GrowthModel"))
     check(guard.normalized_sha256(tmp / "m2.cs") != guard.normalized_sha256(target), "code token change detected (SitkaGrowthModel.cs)")
 
+# N3 protected file: ScenarioOneCompletionRules.cs (guarded by N3/run_n3_offline.py)
+n3 = guard.ROOT / "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs"
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp); n3_text = n3.read_text()
+    (tmp / "n3c.cs").write_text("// added comment\n" + n3_text + "\n\n// trailing\n")
+    check(guard.normalized_sha256(tmp / "n3c.cs") == guard.normalized_sha256(n3), "N3 comment-only edit tolerated (ScenarioOneCompletionRules.cs)")
+    (tmp / "n3w.cs").write_text("\n\n   \n" + n3_text + "\n\t\n")
+    check(guard.normalized_sha256(tmp / "n3w.cs") == guard.normalized_sha256(n3), "N3 whitespace-only edit tolerated (ScenarioOneCompletionRules.cs)")
+    (tmp / "n3m.cs").write_text(n3_text.replace("if (plans.Count < 2) return false;", "if (plans.Count < 3) return false;"))
+    check(guard.normalized_sha256(tmp / "n3m.cs") != guard.normalized_sha256(n3), "N3 semantic mutation detected (ScenarioOneCompletionRules.cs)")
+
 print("SOURCE_NORMALIZATION_FAIL" if failures else "SOURCE_NORMALIZATION_PASS")
 raise SystemExit(1 if failures else 0)

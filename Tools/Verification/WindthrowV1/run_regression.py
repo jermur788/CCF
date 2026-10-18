@@ -39,7 +39,7 @@ FINAL_MARKERS['Model2PedagogyVerification']='MODEL2_PEDAGOGY_PASS'
 REFERENCE_ARCHIVE_YEAR100_HASH='7AD177B3CC2F73C7'
 # Documented current Reference continuation fingerprint (v15 layout). The continuation world is
 # forward-simulated from the frozen archive under live rules, so its fingerprint moves with accepted
-# calibration: the Oak/Beech ordinal [C] growth rows changed it 9CDF21A541C5968D -> BFFF66015A6619DA.
+# calibration: the accepted Oak/Beech ordinal [C] growth rows moved it (before/after in the provenance doc).
 # Provenance and policy: Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md
 REFERENCE_CONTINUATION_V15_LAYOUT_HASH='BFFF66015A6619DA'
 parser=argparse.ArgumentParser();parser.add_argument('--gate',choices=[g[0] for g in GATES]);args=parser.parse_args()
