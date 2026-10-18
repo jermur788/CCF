@@ -62,10 +62,16 @@ public sealed class ManagerBoundaryBridge {
 }
 '''
     (args.out/'ManagerBoundaryBridge.cs').write_text(bridge)
+    # Post-rack: ScenarioOneWorkOrder.cs labels map squares through ScenarioOneUiFacts.SquareLabel, which needs a live
+    # ForestEcologyController and UI Toolkit. With no ecology production returns its "#N" fallback, and an offline run has
+    # none, so shim exactly that. The assert keeps the shim honest: it fails if production changes the signature or fallback.
+    facts=(FP/'UI/ScenarioOneUiFacts.cs').read_text()
+    assert 'public static string SquareLabel(int cellIndex)' in facts and '"#" + cellIndex' in facts
+    (args.out/'UiFactsBridge.cs').write_text('public static class ScenarioOneUiFacts { public static string SquareLabel(int cellIndex) => "#" + cellIndex; }\n')
     shim=(ROOT/'Tools/Verification/ThreeSpecies/OfflineLogic/UnityShim.cs').read_text()
     shim=shim.replace('public static class Mathf\n    {','public static class Mathf\n    {\n        public static int RoundToInt(float v)=>(int)Math.Round(v);\n        public static int CeilToInt(float v)=>(int)Math.Ceiling(v);\n        public static int FloorToInt(float v)=>(int)Math.Floor(v);')
     (args.out/'UnityShim.cs').write_text(shim)
-    sources=[FP/f for f in ['ScenarioOne/ScenarioOneCompletionRules.cs','ScenarioOne/ScenarioOneCompletionGuidance.cs','ScenarioOne/ScenarioManagementEvent.cs','ScenarioOne/ScenarioOneWorkOrder.cs','ScenarioOne/ScenarioEcologicalSnapshot.cs','ScenarioOne/ScenarioDeadwoodRecord.cs','ForestSaveData.cs','ForestSaveValidation.cs','ForestSaveValidation.Geometry.cs','ForestSaveValidation.Storms.cs','StandGeometryModel.cs','RegenerationModel.cs','SitkaGrowthModel.cs']]+sorted((FP/'WorkEconomy').glob('*.cs'))+sorted((HERE/'OfflineLogic').glob('*.cs'))+[args.out/'ManagerBoundaryBridge.cs',args.out/'UnityShim.cs']
+    sources=[FP/f for f in ['ScenarioOne/ScenarioOneCompletionRules.cs','ScenarioOne/ScenarioOneCompletionGuidance.cs','ScenarioOne/ScenarioManagementEvent.cs','ScenarioOne/ScenarioOneWorkOrder.cs','ScenarioOne/ScenarioEcologicalSnapshot.cs','ScenarioOne/ScenarioDeadwoodRecord.cs','ForestSaveData.cs','ForestSaveValidation.cs','ForestSaveValidation.Geometry.cs','ForestSaveValidation.Storms.cs','StandGeometryModel.cs','RegenerationModel.cs','SitkaGrowthModel.cs']]+sorted((FP/'WorkEconomy').glob('*.cs'))+sorted((HERE/'OfflineLogic').glob('*.cs'))+[args.out/'ManagerBoundaryBridge.cs',args.out/'UiFactsBridge.cs',args.out/'UnityShim.cs']
     items=''.join('<Compile Include="'+str(f)+'" />' for f in sources)
     project='<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework><OutputType>Exe</OutputType><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><StartupObject>N3OfflineCheck</StartupObject></PropertyGroup><ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.3" />'+items+'</ItemGroup></Project>'
     (args.out/'n3.csproj').write_text(project)

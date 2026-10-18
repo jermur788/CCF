@@ -1,7 +1,8 @@
 # Scenario One verification debt repair — record
 
 Verification-only repairs to the four stale regression gates and F3. **No production file changed.**
-Prepared for later integration/rebase onto the accepted Scenario One line. Not merged.
+Originally prepared on the pre-rack base below; since transplanted onto the post-rack Scenario One line
+(see "Transplant onto the post-rack line" at the end).
 
 Base: `8942b5c3c2adb66164573f0c12a92b31adfcb0cf` (branch `tooling/scenario-one-verification-debt-repair`).
 
@@ -63,3 +64,32 @@ Second verification-only commit on the same branch (residual debt from
 Deferred: `check_sources.py` (owns a distinct production-ownership contract bound to a stale
 candidate-v1 list; needs a Manager re-scope, not a weakening); `Enlarged80ViabilityVerification`
 model selection (exact minimal fix documented, deferred — see the residual-debt audit).
+
+## Transplant onto the post-rack line
+
+The two commits above were cherry-picked (`-x`, so the source commits are recorded in each message) onto
+`integration/scenario-one-tier3-candidate` at `3bb584c` (rack-first revision: `f4d108a`, `aad4e6f`, `3bb584c`).
+No textual conflicts (the two lines share no changed file).
+
+- `Assets/`, `Packages/` and `ProjectSettings/` are byte-identical before and after (equal tree objects); no
+  `Assets/**/*.cs` changed. The only `.cs` files that differ are the three verification harnesses this record already
+  lists (`ScenarioOneEconomyIntegrationVerification`, `ScenarioOneProgressVerification`, `Model2PedagogyVerification`).
+- One post-rack adaptation, verification-only: the N3 offline runner compiles a hand-picked subset of production sources,
+  and rack-first made `ScenarioOneWorkOrder.cs` call `ScenarioOneUiFacts.SquareLabel`, so N3 no longer compiled
+  (already true on `3bb584c` before the transplant). `run_n3_offline.py` now shims that one method with production's own
+  no-ecology fallback (`"#" + cellIndex`) and asserts production still has that signature and fallback. All 88 N3 checks run.
+- `Model2PedagogyVerification` selects the clearance foldout by unnumbered title, which is what keeps it valid after
+  rack-first renumbered the topic from "7." to "9. Vegetation clearance".
+- Static checks on the integrated tree: py_compile, `git diff --check`, F3 (360 checkpoints, 7 protected files),
+  normalization tests, N3 (88), retired-guard behaviour, and a driver consistency check (both `run_regression.py`: 24
+  gates, every staged path resolves, every final marker is printed by its gate source; all four drivers define the
+  frozen archive anchor `7AD177B3CC2F73C7` and the continuation `BFFF66015A6619DA` separately; no `9CDF21A541C5968D`
+  left in any driver or script, only in recorded historical results such as `P2/Evidence/PostStorm/regression-results.json`).
+- Not Unity-run on the post-rack line. The Unity PASS recorded above was taken at `6b802155`, i.e. against pre-rack
+  production; it is not runtime evidence for the repaired harnesses on rack-first production.
+
+Residual tooling debt (recorded, not fixed here): `check_sources.py`; `Enlarged80ViabilityVerification` `CCF_GROWTH_MODEL`
+handling; duplicate regression runners; duplicate U4 harnesses; low-value source-substring guards; normalised SectionFive
+material serialization (Unity rewrites seven un-normalised materials when a session loads them; harmless, see the
+material-rewrite diagnosis). Also stale: `Docs/Project/unity-project-overview.md` still lists the Reference continuation
+as `9CDF21A541C5968D`; that canonical document needs a separate canon (G4) update.
