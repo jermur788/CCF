@@ -291,7 +291,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.ShowHelp(MenuHelpView.Menu.WalkingHud); Check(!ui.Help.IsOpen, "Help leaked into Reference preview");
         manager.EndReferencePreview(); yield return null;
         Check(ui.Learning.CompletedSteps == learningBeforePreview, "Reference preview changed learning progress");
-        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu))) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
+        // The rack screen is introduced by the rack tool itself on the first B press (verified by RackUxRack), not by walking to a screen.
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 
@@ -348,7 +349,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Marking.Mark(eligible[1], TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
-        yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Add marked trees"));
+        // The Work Plan folds the Fell marks in when it opens, so there is no separate "Add marked trees" step to click.
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")));
         Check(manager.TryPurchaseStock("beech-sapling", 1), "Learning nursery purchase failed");

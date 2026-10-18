@@ -64,6 +64,7 @@ public sealed class ForestTree : MonoBehaviour
     private PlantationVisualCatalog plantationCatalog;
 
     private GameObject polishedVisual;
+    private bool foliageDarkened;
     private GameObject stumpVisual;
     private float polishedNaturalHeight = -1f;
     private float stumpNaturalHeight = -1f;
@@ -417,6 +418,7 @@ public sealed class ForestTree : MonoBehaviour
             existing = null;
             polishedVisual = null;
             polishedNaturalHeight = -1f;
+            foliageDarkened = false;
         }
         if (polishedVisual == null)
         {
@@ -430,6 +432,12 @@ public sealed class ForestTree : MonoBehaviour
         DestroyDuplicateChildren("PolishedVisual", polishedVisual.transform);
         StripInteractionColliders(polishedVisual.transform);
         PlantationTreeVisual plantation = polishedVisual.GetComponent<PlantationTreeVisual>();
+        // Mature Sitka models carry the delivered needle material; the plantation model darkens it when it binds its renderers.
+        if (plantation == null && !foliageDarkened)
+        {
+            SitkaFoliage.Apply(polishedVisual);
+            foliageDarkened = true;
+        }
         if (plantation != null)
             plantation.Apply(this, targetHeight, ScarsLookHealed());
         else

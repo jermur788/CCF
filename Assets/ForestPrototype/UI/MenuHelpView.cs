@@ -2,9 +2,15 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 // Interface learning preferences are local to the player, not forest/save state.
+//
+// The help screen is a modal window: a dimmed backdrop that takes every pointer event, and inside it a title bar, a scrolling
+// body and a button bar. First-use screens show a short text with a "More detail" toggle; F1 and the Help buttons show the
+// full explanation directly.
 public sealed partial class MenuHelpView
 {
     public const string PreferencePrefix = "CCF.MenuHelp.v1.";
+    public const string MoreDetailLabel = "More detail";
+    public const string LessDetailLabel = "Less detail";
     private readonly ScenarioOneUiRoot ui;
     private readonly Label title, body;
     private readonly ScrollView scroll;
@@ -12,6 +18,8 @@ public sealed partial class MenuHelpView
     public VisualElement Root { get; }
     public bool IsOpen { get; private set; }
     public Menu CurrentMenu { get; private set; }
+    // True while the window shows the long explanation of a first-use screen that also has a short text (the toggle can go back).
+    public bool ShowingDetail { get; private set; }
 
     public MenuHelpView(ScenarioOneUiRoot ui)
     {
@@ -19,26 +27,32 @@ public sealed partial class MenuHelpView
         Root = UiKit.Box("layer", "modal-backdrop");
         Root.name = "menu-help";
         Root.style.display = DisplayStyle.None;
-        VisualElement panel = UiKit.Box("panel", "menu-help-panel");
-        // Opaque help stays readable over text-heavy map and review screens.
-        panel.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
+        UiKit.MakeModal(Root);
+
+        VisualElement panel = UiKit.Box("menu-help-panel");
+        panel.name = "menu-help-window";
         Root.Add(panel);
-        title = UiKit.Add(panel, "", "title");
+
+        VisualElement titleBar = UiKit.Box("menu-help-title");
+        title = UiKit.Add(titleBar, "", "title");
+        title.name = "menu-help-title";
+        panel.Add(titleBar);
+
         scroll = new ScrollView(ScrollViewMode.Vertical);
+        scroll.AddToClassList("menu-help-body");
         scroll.style.flexShrink = 1;
         body = UiKit.Add(scroll, "", "body");
         body.name = "menu-help-text";
         panel.Add(scroll);
-        UiKit.Add(panel, "Help [F1] reopens the full explanation of any screen. First-use introductions appear only once on this device.", "muted");
-        VisualElement buttons = UiKit.Box("row");
-        more = UiKit.Button("More detail", ShowDetail);
+
+        VisualElement bar = UiKit.Box("menu-help-bar");
+        more = UiKit.Button(MoreDetailLabel, ToggleDetail, true, "btn-ghost");
         more.name = "menu-help-more";
-        buttons.Add(more);
+        bar.Add(more);
         close = UiKit.Button("", () => ui.CloseHelp(), true, "btn-primary");
         close.name = "menu-help-close";
-        close.style.flexGrow = 1;
-        buttons.Add(close);
-        panel.Add(buttons);
+        bar.Add(close);
+        panel.Add(bar);
     }
 
     public static bool Introduced(Menu menu) => PlayerPrefs.GetInt(PreferencePrefix + menu, 0) == 1;
@@ -65,16 +79,30 @@ public sealed partial class MenuHelpView
         CurrentMenu = menu;
         IsOpen = true;
         string summary = brief ? Summary(menu) : null;
-        title.text = summary != null ? SummaryTitle(menu) : Title(menu);
-        body.text = summary ?? Explanation(menu);
-        more.style.display = summary != null ? DisplayStyle.Flex : DisplayStyle.None;
-        scroll.scrollOffset = Vector2.zero;
+        ShowingDetail = false;
+        Render(menu, summary);
         close.text = menu == Menu.AnnualReview ? "Read the results [Esc]" : "Continue [Esc]";
         Root.style.display = DisplayStyle.Flex;
+        if (ui.Manager != null) ui.Manager.SetModalOpen(true);
     }
 
-    // Swaps the short first-use text for the full explanation without closing the screen.
-    private void ShowDetail() => Display(CurrentMenu, false);
+    // One place that decides what the window shows. The toggle exists only for first-use screens that have a short text.
+    private void Render(Menu menu, string summary)
+    {
+        bool hasBrief = Summary(menu) != null && (summary != null || ShowingDetail);
+        title.text = summary != null ? SummaryTitle(menu) : Title(menu);
+        body.text = summary ?? Explanation(menu);
+        more.style.display = hasBrief ? DisplayStyle.Flex : DisplayStyle.None;
+        more.text = summary != null ? MoreDetailLabel : LessDetailLabel;
+        scroll.scrollOffset = Vector2.zero;
+    }
+
+    // The same button opens the long explanation and, on a second press, goes back to the short text.
+    private void ToggleDetail()
+    {
+        ShowingDetail = !ShowingDetail;
+        Render(CurrentMenu, ShowingDetail ? null : Summary(CurrentMenu));
+    }
 
     public void Close()
     {
@@ -82,6 +110,8 @@ public sealed partial class MenuHelpView
         PlayerPrefs.SetInt(PreferencePrefix + CurrentMenu, 1);
         PlayerPrefs.Save();
         IsOpen = false;
+        ShowingDetail = false;
         Root.style.display = DisplayStyle.None;
+        if (ui.Manager != null) ui.Manager.SetModalOpen(false);
     }
 }

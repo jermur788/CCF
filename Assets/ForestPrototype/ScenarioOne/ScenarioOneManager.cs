@@ -400,6 +400,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void OpenWorkPlan(bool open) => SetWorkPlanOpen(open);
 
+    // The help and first-use window is modal: while it is open it owns the keyboard, so Tab does not open the Work Plan behind it
+    // (the UI root applies the same rule to M and O). Set only by MenuHelpView when the window opens and closes.
+    public bool ModalOpen { get; private set; }
+    public void SetModalOpen(bool open) => ModalOpen = open;
+
     public void SetAuxiliaryPanelOpen(bool open)
     {
         if (auxiliaryPanelOpen == open)
@@ -568,6 +573,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 EndReferencePreview();
             return;
         }
+        if (ModalOpen) return;
         if (keyboard.tabKey.wasPressedThisFrame)
             SetWorkPlanOpen(!workPlanOpen);
         else if (workPlanOpen && !auxiliaryPanelOpen && keyboard.escapeKey.wasPressedThisFrame)
@@ -587,6 +593,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         cashCents = definition.StartingCashCents;
         nextWorkOrderId = 1;
         workOrders.Clear();
+        ClearRackGroups();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -909,17 +916,17 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             || offer == null || string.IsNullOrEmpty(offer.itemId) || species == null || !species.SupportsRegeneration
             || offer.plantingMinutes < 0)
         {
-            feedback = "Choose an available sapling and a valid stand cell.";
+            feedback = "Choose an available sapling and a valid spot in the stand.";
             return false;
         }
         if (HasOpenPlantingOrder(species.SpeciesId, cellIndex))
         {
-            feedback = "This species already has a planting order in that cell.";
+            feedback = "This species already has a planting order in that map square.";
             return false;
         }
         if (ecology.Cells[cellIndex].SpeciesDensity(species.SpeciesId) > 0f)
         {
-            feedback = $"{species.DisplayName} is already regenerating in that cell.";
+            feedback = $"{species.DisplayName} is already regenerating in that map square.";
             return false;
         }
 
@@ -940,7 +947,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = $"Designated {species.DisplayName} planting in cell {cellIndex}. "
+        feedback = $"Designated {species.DisplayName} planting in map square {ScenarioOneUiFacts.SquareLabel(cellIndex)}. "
             + "Stock and contractor cash are required for approval.";
         return true;
     }
@@ -957,19 +964,19 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (ecology == null || ecology.Cells == null || definition == null
             || cellIndex < 0 || cellIndex >= ecology.CellCount || species == null)
         {
-            feedback = "Choose a registered species and a valid stand cell.";
+            feedback = "Choose a registered species and a valid map square.";
             return false;
         }
         if (HasOpenRegenerationRemovalOrder(speciesId, cellIndex))
         {
-            feedback = "This species already has a regeneration-removal order in that cell.";
+            feedback = "This species already has a regeneration-removal order in that map square.";
             return false;
         }
         // All bands of the species in the cell are the removal scope.
         float speciesDensity = ecology.Cells[cellIndex].SpeciesDensity(speciesId);
         if (speciesDensity <= 0f)
         {
-            feedback = $"No {species.DisplayName} regeneration is present in that cell.";
+            feedback = $"No {species.DisplayName} regeneration is present in that map square.";
             return false;
         }
 
@@ -990,7 +997,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = $"Designated removal of {species.DisplayName} regeneration in cell {cellIndex}.";
+        feedback = $"Designated removal of {species.DisplayName} regeneration in map square {ScenarioOneUiFacts.SquareLabel(cellIndex)}.";
         return true;
     }
 
@@ -999,14 +1006,14 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (!CanManage()) return false;
         if (ecology == null || ecology.Cells == null || definition == null
             || cellIndex < 0 || cellIndex >= ecology.CellCount)
-        { feedback = "Choose a valid stand cell."; return false; }
+        { feedback = "Choose a valid map square."; return false; }
         if (workOrders.Any(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration && o.cellIndex == cellIndex))
-        { feedback = "Vegetation clearance is already planned in this cell."; return false; }
+        { feedback = "Vegetation clearance is already planned in this map square."; return false; }
         if (workOrders.Any(o => o.type == ScenarioWorkType.RemoveRegeneration && string.IsNullOrEmpty(o.speciesId)
             && o.status == ScenarioWorkStatus.Completed && o.resolvedYear == ecology.EcologicalYear && o.cellIndex == cellIndex))
         { feedback = "This area was already cleared this year."; return false; }
         ClearanceTargets targets = QueryClearance(ClearanceFootprint.Cell(ecology, cellIndex));
-        if (!targets.HasTargets) { feedback = "No competing vegetation is present in this cell."; return false; }
+        if (!targets.HasTargets) { feedback = "No competing vegetation is present in this map square."; return false; }
         int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.RemovalBaseMinutes
             + targets.Density * definition.RemovalMinutesPerCohortDensity));
         var order = new ScenarioOneWorkOrder
@@ -1019,7 +1026,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = "Planned competing vegetation clearance in cell " + cellIndex + ". Review and approve in Work Plan.";
+        feedback = "Planned competing vegetation clearance in map square " + ScenarioOneUiFacts.SquareLabel(cellIndex) + ". Review and approve in Work Plan.";
         return true;
     }
 
@@ -1377,6 +1384,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
         InvalidateEconomyQuotes();
+        ClearRackGroups();
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);

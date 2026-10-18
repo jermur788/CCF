@@ -211,14 +211,25 @@ public sealed class ForestPlayer : MonoBehaviour
         Cursor.visible = !locked;
     }
 
+    private ScenarioOneUiRoot uiRoot;
+
+    private bool PointerOverUiButton(Mouse mouse)
+    {
+        if (uiRoot == null) uiRoot = Object.FindFirstObjectByType<ScenarioOneUiRoot>();
+        return uiRoot != null && uiRoot.IsOverButton(mouse.position.ReadValue());
+    }
+
     private void Update()
     {
         var keyboard = Keyboard.current;
         var mouse = Mouse.current;
-        bool capturedThisFrame = false;
+        bool capturedThisFrame = false, pressedOnButton = false;
         if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
         {
-            if (isPlantingMode)
+            // Escape cancels an extraction rack (the rack tool leaves itself) without freeing the mouse, as it does for planting mode.
+            if (RackTool.AnyActive || RackTool.EscapeFrame == Time.frameCount)
+            { }
+            else if (isPlantingMode)
                 ExitPlantingMode();
             else if (isInspecting)
                 isInspecting = false;
@@ -227,16 +238,23 @@ public sealed class ForestPlayer : MonoBehaviour
         }
         else if (Application.isFocused && mouse != null && mouse.leftButton.wasPressedThisFrame)
         {
-            capturedThisFrame = Cursor.lockState != CursorLockMode.Locked;
-            SetCursor(true);
-            // The lock warp produces a delta spike on the next frame or two;
-            // suppress it so clicking to capture never throws the view.
-            if (capturedThisFrame)
-                recentreGraceFrames = 2;
+            // With the mouse free, a press on a HUD button belongs to that button. Taking the mouse back on the press would leave the
+            // button without its release, so Map, Objectives and Help did nothing when clicked; the press also must not inspect the
+            // tree behind the button.
+            pressedOnButton = Cursor.lockState != CursorLockMode.Locked && PointerOverUiButton(mouse);
+            if (!pressedOnButton)
+            {
+                capturedThisFrame = Cursor.lockState != CursorLockMode.Locked;
+                SetCursor(true);
+                // The lock warp produces a delta spike on the next frame or two;
+                // suppress it so clicking to capture never throws the view.
+                if (capturedThisFrame)
+                    recentreGraceFrames = 2;
+            }
         }
 
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
-                               (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame);
+                               (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame && !pressedOnButton);
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
         bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
         bool plantingSlot1Pressed = keyboard != null && keyboard.digit1Key.wasPressedThisFrame;
@@ -359,6 +377,13 @@ public sealed class ForestPlayer : MonoBehaviour
         aimedWindthrow = null;
         isAimingGround = false;
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+        // While an extraction rack is being aimed, the click and the other forest actions belong to the rack tool.
+        if (RackTool.AnyActive)
+        {
+            interactPressed = false; harvestPressed = false; plantPressed = false; uprootHeld = false;
+            isInspecting = false;
+            if (isPlantingMode) ExitPlantingMode();
+        }
         if (plantPressed && !isPlantingMode && scenario != null)
             EnterPlantingMode();
 
@@ -434,7 +459,7 @@ public sealed class ForestPlayer : MonoBehaviour
         if (!isPlantingMode && cycleRegenerationPressed && isAimingGround && aimedRegeneration.Success
             && aimedRegeneration.Cohorts.Count > 1)
             CycleRegenerationSelection();
-        if (scenario != null && !scenario.AnyPanelOpen && !scenario.ReferencePreviewActive && !isInspecting && isAimingGround)
+        if (scenario != null && !scenario.AnyPanelOpen && !scenario.ReferencePreviewActive && !isInspecting && isAimingGround && !RackTool.AnyActive)
         {
             ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
             int index = ecology != null ? ecology.GetCellIndex(aimedSurfacePoint) : -1;
@@ -886,13 +911,18 @@ public sealed class ForestPlayer : MonoBehaviour
                 ? "Windthrow " + id + " · [X] Cancel salvage plan | [Tab] Review quote"
                 : "Windthrow " + id + " · [X] Plan optional salvage | [Tab] Review quote\nUnselected stems remain deadwood";
         }
+        if (RackTool.AnyActive)
+            return "";
         if (isLookingAtTree && aimedTree != null)
         {
             if (!aimedTree.CanChop)
                 return $"[E] Inspect {aimedTree.StageLabel}";
             int chops = aimedTree.ChopProgress;
-            return Object.FindFirstObjectByType<ScenarioOneManager>() != null
-                ? "[E] Inspect  |  [X] Fell  |  [C] Crop Tree  |  [Tab] Plan"
+            ScenarioOneManager promptScenario = Object.FindFirstObjectByType<ScenarioOneManager>();
+            return promptScenario != null
+                ? promptScenario.RackFirstStageActive
+                    ? "[E] Inspect  |  [B] Create rack  |  [Tab] Plan"
+                    : "[E] Inspect  |  [X] Fell  |  [C] Crop Tree  |  [Tab] Plan"
                 : chops > 0
                     ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"
                     : "[E] Inspect  |  [F] Chop Tree";

@@ -26,6 +26,7 @@ public sealed class AnnualReviewView
     {
         this.ui = ui;
         Root = UiKit.Box("layer", "modal-backdrop");
+        UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
@@ -125,7 +126,7 @@ public sealed class AnnualReviewView
         string severity = summary.Event.severity < .04f ? "Light" : summary.Event.severity < .12f ? "Moderate" : "Severe";
         UiKit.Add(card, $"Year {summary.Event.year} · {severity} modelled event. These are game severity bands, not measured wind speeds.", "body");
         UiKit.Add(card, $"{summary.TreesLost} trees lost, including {summary.Event.cropTreesLost} Crop Trees · {UiKit.F(summary.OriginalVolumeM3, "0.00")} m³ of original fallen stem material.", "body");
-        UiKit.Add(card, $"Damage touches {summary.AffectedCells} map cells. This cell footprint is approximate; it does not mean every affected cell is fully open.", "muted");
+        UiKit.Add(card, $"Damage touches {summary.AffectedCells} map squares. This footprint is approximate; it does not mean every affected square is fully open.", "muted");
         UiKit.Add(card, $"{UiKit.F(summary.DeadwoodRemainingM3, "0.00")} m³ remains as deadwood · {UiKit.F(summary.SalvagedVolumeM3, "0.00")} m³ salvaged since this event.", "body");
         UiKit.Add(card, "Fallen trees stop contributing to canopy and seed rain. Openings increase light and recent exposure; bramble and bracken can respond, affecting small young trees through the existing competition model. Inspect the changed cells before choosing work.", "body");
         UiKit.Add(card, "Salvage is optional. Aim at an eligible fallen stem and press X to add it to the Work Plan; choose Sell or Keep there. Unselected stems remain deadwood, and a small salvage visit may cost more than its timber earns.", "body");
@@ -165,7 +166,7 @@ public sealed class AnnualReviewView
         var failed = resolved.Where(e => e.outcome != ScenarioManagementOutcome.Succeeded).ToList();
         UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
         foreach (ScenarioManagementEvent e in failed.Take(5))
-            UiKit.Add(c, $"· {e.taskType}: {e.failureReason}", "muted");
+            UiKit.Add(c, $"· {e.taskType}: {ScenarioOneUiFacts.PlainText(e.failureReason)}", "muted");
     }
 
     private static void BuildMoney(ScenarioOneManager m, ScenarioAnnualReport report, VisualElement c)

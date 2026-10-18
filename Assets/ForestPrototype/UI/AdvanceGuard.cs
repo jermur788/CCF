@@ -6,12 +6,12 @@
 // is always offered "Advance anyway". It also never approves anything for them.
 //
 // Pure (no UnityEngine) so Tools/Verification/ScenarioOneUx can check it on plain .NET. The caller counts the orders:
-//   pending  = status Pending and no validation problem (the same orders "Approve pending work" would approve);
+//   pending  = status Pending and no validation problem (the same orders "Approve Work Plan" would approve);
 //   approved = status Approved.
 public static class AdvanceGuard
 {
     public const string ReturnLabel = "Back to the plan";
-    public const string ApproveLabel = "Approve pending work";
+    public const string ApproveLabel = "Approve Work Plan";
     public const string AdvanceAnywayLabel = "Advance anyway";
 
     public readonly struct Decision

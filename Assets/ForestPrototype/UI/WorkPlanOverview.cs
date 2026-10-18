@@ -44,11 +44,6 @@ public static class WorkPlanOverview
         ScenarioHarvestJob approved = m.GetHarvestQuote(true);
         CashOutlook outlook = CashOutlook.Evaluate(OutlookInput(m, all, approved));
 
-        VisualElement doing = UiKit.Box("card", "workplan-overview");
-        doing.name = "workplan-doing";
-        UiKit.Add(doing, "WHAT ARE YOU DOING?", "heading");
-        UiKit.Add(doing, "The job cards below show each marked task, its cost or timber value, who carries it out, and whether it is pending or approved. These summaries are estimates until the year is resolved.", "muted");
-        parent.Add(doing);
         BuildWarning(parent, m, outlook);
         VisualElement columns = UiKit.Box("columns");
         parent.Add(columns);
@@ -158,7 +153,7 @@ public static class WorkPlanOverview
             UiKit.Line(card, "Basal area", $"{UiKit.F(stand.BasalAreaBefore, "0.0")} → {UiKit.F(stand.BasalAreaAfter, "0.0")} m²/ha");
             UiKit.Line(card, "Standing stem volume", $"{UiKit.F(stand.VolumeBefore, "0.0")} → {UiKit.F(stand.VolumeAfter, "0.0")} m³");
             UiKit.Line(card, "Removal across the stand",
-                $"{stand.CellsTouched} cell{(stand.CellsTouched == 1 ? "" : "s")} · largest opening {stand.LargestOpeningCells} cell{(stand.LargestOpeningCells == 1 ? "" : "s")} ({UiKit.F(stand.LargestOpeningM2, "0")} m²)");
+                $"{stand.CellsTouched} map square{(stand.CellsTouched == 1 ? "" : "s")} · largest opening {UiKit.F(stand.LargestOpeningM2, "0")} m²");
             string pattern = ResidualStand.PatternSentence(stand);
             if (!string.IsNullOrEmpty(pattern)) UiKit.Add(card, pattern, "muted");
         }
@@ -195,7 +190,7 @@ public static class WorkPlanOverview
         {
             ClearanceConsequence c = Consequence(m, eco, order.cellIndex, escape);
             string cell = UiKit.CellLabel(order.cellIndex, eco.CellsPerAxis);
-            UiKit.Line(card, $"Clearance {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no regeneration cohorts or planted saplings inside"
+            UiKit.Line(card, $"Clearance, square {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no regeneration cohorts or planted saplings inside"
                 : $"affects {c.CohortGroups} cohort portion{(c.CohortGroups == 1 ? "" : "s")} and {c.PlantedSaplings} planted sapling{(c.PlantedSaplings == 1 ? "" : "s")}");
             if (c.CohortGroups > 0)
                 UiKit.Add(card, $"Relative regeneration density in those cohort portions: {UiKit.F(c.CohortDensityBefore, "0.0")} → {UiKit.F(c.CohortDensityAfter, "0.0")} seedlings/ha equivalent. Cohorts are modelled groups, not individual seedling counts; a portion can remain after clearing.", "muted");

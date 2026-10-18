@@ -839,7 +839,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         List<string> lines = ScenarioEcologyReviewLines.Lines(before, after, ecology, manager.PlantedJuveniles);
         foreach (string line in lines) Debug.Log("ECOLOGY_REVIEW_LINE " + line);
         Check(lines.Count >= 3 && lines.Count <= 6, "review line count");
-        Check(lines[0].StartsWith("Canopy 0.90 → 0.80") && lines.Any(l => l.StartsWith("Regenerating cells: 4 (was 2)")), "canopy/regeneration lines");
+        Check(lines[0].StartsWith("Canopy 0.90 → 0.80") && lines.Any(l => l.StartsWith("Areas with young regeneration: 4 (was 2)")), "canopy/regeneration lines");
         Check(lines.Any(l => l.StartsWith("Browsing pressure low")), "browse band line");
         if (first != null)
             Check(lines.Any(l => l.Contains("1 sheltered") && l.Contains("expire within")), "protection/expiry line");

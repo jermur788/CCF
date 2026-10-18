@@ -47,7 +47,9 @@ public static class ScenarioOneUxOfflineCheck
         "fell.approve", "fell.result", "prune.read", "prune.plan", "prune.approve", "prune.result", "deadwood.read", "deadwood.plan",
         "deadwood.result", "deadwood.visit", "plant.ground", "plant.stock", "plant.plan", "plant.execution", "plant.shelter",
         "plant.approve", "plant.result", "clear.read", "clear.plan", "clear.approve", "clear.result", "plan.open", "plan.read",
-        "review.open", "review.read"
+        "review.open", "review.read",
+        // Added by the rack-first revision (the earlier ids above are unchanged, so saved progress is kept).
+        "rack.read", "rack.create", "rack.layout", "rack.approve", "rack.result", "rack.map"
     };
 
     private static int Words(string text) => text.Split(new[] { ' ', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
@@ -91,7 +93,7 @@ public static class ScenarioOneUxOfflineCheck
         Check(!AdvanceGuard.Evaluate(-1, 0).Warn, "a negative count is treated as nothing pending");
         // Waiting must stay possible, and approving must stay the player's own click.
         Check(AdvanceGuard.AdvanceAnywayLabel == "Advance anyway", "the player can advance anyway");
-        Check(AdvanceGuard.ReturnLabel == "Back to the plan" && AdvanceGuard.ApproveLabel == "Approve pending work", "the player can go back or approve");
+        Check(AdvanceGuard.ReturnLabel == "Back to the plan" && AdvanceGuard.ApproveLabel == "Approve Work Plan", "the player can go back or approve");
         Check(Has(unapproved.Detail, "advance anyway") && Has(unapproved.Detail, "approve"), "the warning names both ways forward");
         Check(!Has(unapproved.Detail, "automatically"), "nothing is approved on the player's behalf");
     }
@@ -130,10 +132,10 @@ public static class ScenarioOneUxOfflineCheck
     private static void TeachingOrder()
     {
         string[] titles = LearningObjectivesView.Topics.Select(t => t.Title).ToArray();
-        Check(titles.Length == 8, "eight lesson topics");
-        Check(titles[0].EndsWith("Tree inspection and Crop Trees") && titles[1].EndsWith("Felling") && titles[2].EndsWith("Work Plan and Annual Review"),
-            "the first topics follow the first cycle", string.Join(" | ", titles));
-        Check(Array.FindIndex(titles, t => t.EndsWith("Stand Map")) == 3, "the Stand Map follows the first cycle");
+        Check(titles.Length == 9, "nine lesson topics");
+        Check(titles[0].EndsWith("Extraction racks") && titles[1].EndsWith("Tree inspection and Crop Trees") && titles[2].EndsWith("Felling") && titles[3].EndsWith("Work Plan and Annual Review"),
+            "the first topics are the racks, then the first cycle of selective marking", string.Join(" | ", titles));
+        Check(Array.FindIndex(titles, t => t.EndsWith("Stand Map")) == 4, "the Stand Map follows the first cycle");
         for (int i = 0; i < titles.Length; i++)
             Check(titles[i].StartsWith((i + 1) + ". "), "topic numbering matches position", titles[i]);
 
@@ -146,7 +148,7 @@ public static class ScenarioOneUxOfflineCheck
             done.Add(step.Id);
         }
         Check(cues.Count == SavedStepIds.Length && cues.Distinct().Count() == cues.Count, "walking the cue visits every step exactly once", cues.Count + " cues");
-        string[] firstCycle = { "tree.inspect", "tree.crop", "fell.mark", "fell.plan", "fell.approve", "fell.result", "plan.open", "review.open", "review.read" };
+        string[] firstCycle = { "rack.create", "rack.layout", "rack.approve", "rack.result", "tree.inspect", "tree.crop", "fell.mark", "fell.plan", "fell.approve", "fell.result", "plan.open", "review.open", "review.read" };
         Check(cues.Take(firstCycle.Length).SequenceEqual(firstCycle), "the first cues are the first cycle", string.Join(",", cues.Take(firstCycle.Length)));
         Check(!cues.Take(firstCycle.Length).Any(id => id.StartsWith("map.")), "no map step is among the first cues");
         Check(cues[firstCycle.Length] == "map.open", "map practice follows once the first cycle is done");
@@ -154,9 +156,10 @@ public static class ScenarioOneUxOfflineCheck
         int firstReading = cues.FindIndex(id => LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == id).Reading);
         int lastAction = cues.FindLastIndex(id => !LearningObjectivesView.Topics.SelectMany(t => t.Steps).First(s => s.Id == id).Reading);
         Check(lastAction < firstReading, "every action step is cued before any reading step");
-        Check(LearningObjectivesView.CueText(LearningObjectivesView.NextCueStep(id => false)) == "Next lesson: Inspect a living tree · [O] Objectives", "the first cue reads as an invitation to inspect a tree");
+        Check(LearningObjectivesView.CueText(LearningObjectivesView.NextCueStep(id => false)) == "Next lesson: Create your first rack · [O] Objectives", "the first cue reads as an invitation to create a rack");
+        Check(cues.IndexOf("rack.result") < cues.IndexOf("tree.inspect") && cues.IndexOf("rack.result") < cues.IndexOf("fell.mark"), "selective marking is taught after the racks");
         Check(LearningObjectivesView.CueText(null) == "Learning complete · revisit with O", "all done reads as complete");
-        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "inspect trees, choose Crop Trees") && !Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "start with simple map steps"),
+        Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "create extraction racks") && Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "selective felling follow once the racks are open") && !Has(MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), "start with simple map steps"),
             "the walking help describes the new lesson order");
     }
 

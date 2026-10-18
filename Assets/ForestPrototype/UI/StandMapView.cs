@@ -22,12 +22,26 @@ public sealed class StandMapView
     private bool journeyStartedAway;
     public bool HasWaypoint => waypointCell >= 0;
 
+    // Plan rack: the Stand Map's way into the same rack tool the forest uses (RackPlanner / ScenarioOneManager.ConfirmRack). Pick a
+    // square on the row you want, check the preview, add it. Presentation state only: nothing changes until the rack is added.
+    private bool rackMode, rackHasPoint;
+    private float rackAngle;
+    private RackPoint rackPoint;
+    private RackProposal rackProposal;
+    private readonly HashSet<int> rackCells = new HashSet<int>();
+    public bool RackMode => rackMode;
+    public RackProposal RackPreview => rackProposal;
+    // Offered once the first rack has been made in the forest, or at once when the opening rack stage is not in play.
+    public bool RackPlanningAvailable => ui.Manager != null && ui.RackTool != null && ui.Ecology != null && ui.Manager.CanEditWorkPlan
+        && (!ui.Manager.RackFirstStageActive || ui.Learning.IsDone("rack.create"));
+
     public StandMapView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
         // The UI is built after the ecology already has its geometry (that event was raised before this existed).
         if (ui.Ecology != null) heldGeometry = ui.Ecology.StandGeometryModelVersion;
         Root = UiKit.Box("layer", "modal-backdrop");
+        UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
@@ -40,7 +54,8 @@ public sealed class StandMapView
         header.Add(buttons);
         modal.Add(header);
 
-        layerButtons = UiKit.Box("row");
+        layerButtons = UiKit.Box("map-tabs");
+        layerButtons.name = "map-tabs";
         modal.Add(layerButtons);
 
         VisualElement body = UiKit.Box("map-body");
@@ -48,7 +63,7 @@ public sealed class StandMapView
         grid = UiKit.Box("map-grid");
         left.Add(grid);
         legend = UiKit.Add(left, "", "muted");
-        UiKit.Add(left, "North is up. Columns A→ run west to east; rows 1→ run south to north. White border: you. Outlined: selected.", "faint");
+        UiKit.Add(left, "Each square is 5 m × 5 m. North is up. Columns A→ run west to east; rows 1→ run south to north. White border: you. Outlined: selected.", "faint");
         body.Add(left);
         side = UiKit.Box("card", "map-side");
         body.Add(side);
@@ -63,7 +78,8 @@ public sealed class StandMapView
         int playerCell = ui.Player != null ? eco.GetCellIndex(ui.Player.transform.position) : -1;
         if (selectedCell < 0) selectedCell = playerCell;
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|"
-            + (ui.Marking != null ? ui.Marking.LivingMarkedCount + "/" + ui.Marking.LivingCropTreeCount : "");
+            + (ui.Marking != null ? ui.Marking.LivingMarkedCount + "/" + ui.Marking.LivingCropTreeCount : "")
+            + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}";
         if (!force && key == shownKey)
             return;
         shownKey = key;
@@ -80,6 +96,14 @@ public sealed class StandMapView
         AddLayerButton("Regeneration", Layer.Regeneration);
         AddLayerButton("Browsing / protection", Layer.Browse);
         AddLayerButton("Fell & crop marks", Layer.Marks);
+        if (RackPlanningAvailable)
+        {
+            Button plan = UiKit.Button(rackMode ? "Plan rack: ON" : "Plan rack", ToggleRackMode, true,
+                rackMode ? new[] { "btn-selected" } : new[] { "btn-primary" });
+            plan.name = "map-plan-rack";
+            plan.style.marginLeft = 12;
+            layerButtons.Add(plan);
+        }
     }
 
     private void AddLayerButton(string text, Layer value)
@@ -90,7 +114,7 @@ public sealed class StandMapView
             ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
                 : value == Layer.Browse ? "map.browse" : "map.marks");
             Refresh(true);
-        }, true, layer == value ? "btn-selected" : "btn"));
+        }, true, layer == value ? new[] { "btn-selected" } : new string[0]));
     }
 
     private void BuildGrid(ForestEcologyController eco, int playerCell)
@@ -109,12 +133,14 @@ public sealed class StandMapView
             {
                 int index = z * n + x;
                 ForestEcologyCell c = eco.Cells[index];
-                var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); Refresh(true); }) { text = "", focusable = false };
+                var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); if (rackMode) PlaceRack(eco, index); Refresh(true); }) { text = "", focusable = false };
                 cell.AddToClassList("map-cell");
                 cell.style.width = size;
                 cell.style.height = size * 0.875f;
                 if (index == selectedCell) cell.AddToClassList("map-cell-selected");
                 if (index == playerCell) cell.AddToClassList("map-cell-player");
+                bool onRack = rackMode && rackCells.Contains(index);
+                if (onRack) cell.AddToClassList("map-cell-rack");
 
                 string value;
                 Color colour;
@@ -151,10 +177,11 @@ public sealed class StandMapView
                         colour = Color.Lerp(new Color(0.08f, 0.15f, 0.08f), new Color(0.85f, 0.8f, 0.45f), Mathf.Clamp01(c.Light));
                         break;
                 }
-                cell.style.backgroundColor = colour;
+                cell.style.backgroundColor = onRack ? Color.Lerp(colour, new Color(0.5f, 0.28f, 0.72f), 0.55f) : colour;
                 if (index == waypointCell) value = "⚑ " + value;
+                string squareName = UiKit.CellLabel(index, n) + (rackMode ? RackLayoutMark(c.Center, eco.CellSizeMeters) : "");
                 VisualElement labels = new VisualElement { pickingMode = PickingMode.Ignore };
-                Label name = UiKit.Text(UiKit.CellLabel(index, n));
+                Label name = UiKit.Text(squareName);
                 Label number = UiKit.Text(value);
                 name.pickingMode = number.pickingMode = PickingMode.Ignore;
                 labels.Add(name);
@@ -169,7 +196,7 @@ public sealed class StandMapView
         {
             case Layer.Regeneration: legend.text = "Value: P = planted juveniles alive, then tallest seedling cohort height. Brighter green = taller/more."; break;
             case Layer.Browse: legend.text = $"Site browsing pressure: {BrowsingConditions.PressureBand(pressure)}. S = shelters effective next year; — = no shelter."; break;
-            case Layer.Marks: legend.text = "■ = trees marked to fell, ◆ = crop trees (counts per cell)."; break;
+            case Layer.Marks: legend.text = "■ = trees marked to fell, ◆ = crop trees (counts per square)."; break;
             default: legend.text = "Value: ground light 0 (dark) to 1 (open). Brighter = more light."; break;
         }
     }
@@ -188,16 +215,155 @@ public sealed class StandMapView
         return counts;
     }
 
+    // "◇" on a square the planned rack layout still has to cross, "✓" where the layout's rack is already in the Work Plan.
+    private string RackLayoutMark(Vector2 centre, float size)
+    {
+        RackLayoutTracker layout = ui.RackLayout;
+        if (layout == null) return "";
+        foreach (RackLayoutLine line in layout.Lines)
+            if (Mathf.Abs(centre.y - line.AcrossM) <= size * 0.5f)
+                return line.Done ? " ✓" : " ◇";
+        return "";
+    }
+
+    private void ToggleRackMode()
+    {
+        rackMode = !rackMode;
+        rackHasPoint = false;
+        rackProposal = null;
+        rackCells.Clear();
+        if (rackMode)
+        {
+            ui.RackTool.Planner.Refresh();
+            rackAngle = ui.RackTool.Planner.DefaultAngle(0f, true);
+        }
+        ui.RackLayout?.Update(true);
+        Refresh(true);
+    }
+
+    // A pointed square becomes the rack's position; the planner puts the rack on the planted row nearest the square's centre.
+    private void PlaceRack(ForestEcologyController eco, int index)
+    {
+        Vector2 centre = eco.Cells[index].Center;
+        // A square the planned layout crosses puts the rack on that layout row (rows are about 1.9 m apart and a square is 5 m, so the
+        // centre of the square is usually nearer a different row); anywhere else the planner takes the row nearest the centre.
+        float across = centre.y;
+        float turn = RackGeometry.NormaliseAngle(rackAngle);
+        if (ui.RackLayout != null && (turn < 0.5f || turn > 179.5f))
+            foreach (RackLayoutLine line in ui.RackLayout.Lines)
+                if (Mathf.Abs(centre.y - line.AcrossM) <= eco.CellSizeMeters * 0.5f) { across = line.AcrossM; break; }
+        rackPoint = new RackPoint(centre.x, across);
+        rackHasPoint = true;
+        RebuildRack(eco);
+    }
+
+    private void RebuildRack(ForestEcologyController eco)
+    {
+        rackCells.Clear();
+        rackProposal = null;
+        if (!rackHasPoint) return;
+        RackPlanner planner = ui.RackTool.Planner;
+        planner.Refresh();
+        rackProposal = planner.Propose(rackPoint, rackAngle);
+        // Remember the snapped line so a nudge moves from the row actually shown.
+        RackPoint a = rackProposal.Selection.Start, b = rackProposal.Selection.End;
+        rackPoint = new RackPoint((a.X + b.X) * 0.5f, (a.Z + b.Z) * 0.5f);
+        float length = rackProposal.Selection.LengthM;
+        for (float t = 0f; t <= length; t += eco.CellSizeMeters * 0.5f)
+        {
+            float f = length > 0f ? t / length : 0f;
+            int cell = eco.GetCellIndex(new Vector3(Mathf.Lerp(a.X, b.X, f), 0f, Mathf.Lerp(a.Z, b.Z, f)));
+            if (cell >= 0) rackCells.Add(cell);
+        }
+    }
+
+    private void NudgeRack(ForestEcologyController eco, int direction)
+    {
+        if (!rackHasPoint) return;
+        IReadOnlyList<RackRow> rows = ui.RackTool.Planner.Rows(rackAngle);
+        float across = RackGeometry.Across(rackPoint, rackAngle);
+        int i = RackRows.Nearest(rows, across);
+        if (i < 0) return;
+        int target = Mathf.Clamp(i + direction, 0, rows.Count - 1);
+        RackPoint d = RackGeometry.Direction(rackAngle);
+        float along = RackGeometry.Along(rackPoint, rackAngle), c = rows[target].Centre;
+        rackPoint = new RackPoint(d.X * along - d.Z * c, d.Z * along + d.X * c);
+        RebuildRack(eco);
+        Refresh(true);
+    }
+
+    private void TurnRack(ForestEcologyController eco)
+    {
+        rackAngle = RackGeometry.NormaliseAngle(rackAngle + 90f);
+        RebuildRack(eco);
+        Refresh(true);
+    }
+
+    private void ConfirmRackFromMap(ForestEcologyController eco)
+    {
+        if (rackProposal == null) return;
+        ui.Manager.ConfirmRack(rackProposal, "map");
+        ui.RackLayout?.Update(true);
+        RebuildRack(eco);
+        Refresh(true);
+    }
+
+    // The rack card at the top of the side panel: figures from the same proposal the forest tool shows, and the few controls.
+    private void BuildRackCard(ForestEcologyController eco)
+    {
+        VisualElement card = UiKit.Box("card", "rack-panel");
+        card.name = "map-rack-card";
+        RackLayoutTracker layout = ui.RackLayout;
+        UiKit.Add(card, "Plan an extraction rack", "rack-heading");
+        if (layout != null && layout.Total > 0)
+            UiKit.Add(card, $"Planned layout: {layout.Done} of {layout.Total} racks in the Work Plan. ◇ marks squares on a rack still to do.", "muted");
+        RackProposal p = rackProposal;
+        if (p == null)
+            UiKit.Add(card, "Click a square on the planted row you want to open.", "body");
+        else
+        {
+            if (p.LayoutIndex >= 0) UiKit.Add(card, $"Planned rack {p.LayoutIndex + 1} of {p.LayoutCount}", "body");
+            else if (p.LayoutCount > 0) UiKit.Add(card, "Not on the planned layout", "body");
+            if (!p.CanConfirm)
+                UiKit.Add(card, string.IsNullOrEmpty(p.Problem) ? "No tree can be felled on this line." : p.Problem, "body");
+            else
+            {
+                UiKit.Add(card, $"{p.TreeCount} tree{(p.TreeCount == 1 ? "" : "s")}", "rack-line");
+                UiKit.Add(card, $"Estimated timber: {UiKit.F(p.SoldVolumeM3, "0.0")} m³ sold ({UiKit.F(p.StemVolumeM3, "0.0")} m³ stem volume)", "body");
+                UiKit.Add(card, $"Estimated net return: {UiKit.SignedMoney(p.NetCents)} (timber {UiKit.Money(p.RevenueCents)}, harvesting {UiKit.Money(p.CostCents)}; this rack on its own)", "body");
+            }
+            if (p.Selection.SkippedCropTrees > 0) UiKit.Add(card, $"{p.Selection.SkippedCropTrees} Crop Tree(s) on the line are kept.", "muted");
+        }
+        VisualElement row = UiKit.Row(card, "row-wrap");
+        row.Add(UiKit.Button("◀ Row", () => NudgeRack(eco, -1), rackProposal != null));
+        row.Add(UiKit.Button("Row ▶", () => NudgeRack(eco, 1), rackProposal != null));
+        row.Add(UiKit.Button("Turn 90°", () => TurnRack(eco), rackProposal != null));
+        Button add = UiKit.Button("Add rack to Work Plan", () => ConfirmRackFromMap(eco), p != null && p.CanConfirm, "btn-primary");
+        add.name = "map-rack-confirm";
+        card.Add(add);
+        Button cancel = UiKit.Button("Cancel", ToggleRackMode, true, "btn-ghost");
+        cancel.name = "map-rack-cancel";
+        card.Add(cancel);
+        UiKit.Add(card, "Nothing is cut until you approve the Work Plan.", "faint");
+        side.Add(card);
+    }
+
     private void BuildSide(ForestEcologyController eco)
     {
         side.Clear();
+        // Planning a rack: the rack card is the whole side panel (the square diagnosis is back when the mode is off).
+        if (rackMode)
+        {
+            BuildRackCard(eco);
+            return;
+        }
         if (selectedCell < 0 || selectedCell >= eco.Cells.Length)
         {
-            UiKit.Add(side, "Select a cell to see its diagnosis.", "body");
+            UiKit.Add(side, "Select a square to see its diagnosis.", "body");
             return;
         }
         ForestEcologyCell c = eco.Cells[selectedCell];
-        UiKit.Add(side, "Cell " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "heading");
+        UiKit.Add(side, "Square " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "heading");
         UiKit.Line(side, "Ground light", $"{UiKit.F(c.Light, "0.00")} ({RegenerationDiagnostics.LightBand(c.Light)})");
         UiKit.Line(side, "Canopy cover", UiKit.F(c.Canopy, "0.00"));
         UiKit.Add(side, "Regeneration: " + ScenarioOneUiFacts.RegenerationSummary(eco, selectedCell, ui.Manager.PlantedJuveniles), "body");
@@ -225,7 +391,7 @@ public sealed class StandMapView
             if (waypointCell == index) ClearWaypoint(); else SetWaypoint(eco, index);
             Refresh(true);
         }, true, "btn-primary"));
-        UiKit.Add(side, "A waypoint marks the cell in the forest and in the status panel. Walk there yourself; the map does not move you.", "faint");
+        UiKit.Add(side, "A waypoint marks the square in the forest and in the status panel. Walk there yourself; the map does not move you.", "faint");
     }
 
     public bool SetWaypointCell(ForestEcologyController eco, int index)

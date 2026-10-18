@@ -15,6 +15,16 @@ public static class UiKit
         return element;
     }
 
+    // A modal screen: the dimmed backdrop is the topmost element, takes every pointer event itself and lets none through to the
+    // forest, the HUD or another screen drawn behind it. (Keyboard gameplay is already off while a panel is open.)
+    public static void MakeModal(VisualElement backdrop)
+    {
+        backdrop.pickingMode = PickingMode.Position;
+        backdrop.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
+        backdrop.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+        backdrop.RegisterCallback<WheelEvent>(e => e.StopPropagation());
+    }
+
     public static Label Text(string text, params string[] classes)
     {
         var label = new Label(text);

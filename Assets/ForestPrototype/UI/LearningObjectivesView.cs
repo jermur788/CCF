@@ -40,6 +40,7 @@ public sealed partial class LearningObjectivesView
         this.ui = ui;
         ReloadProgress();
         Root = UiKit.Box("layer", "modal-backdrop");
+        UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal");
         modal.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         Root.Add(modal);
@@ -139,10 +140,27 @@ public sealed partial class LearningObjectivesView
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
     }
 
+    // The rack lessons follow the forest and the Work Plan, so they stay true after a save and load: a rack counts as planned when no
+    // tree on its line is left to plan, as approved when nothing felling is still pending, and as seen once its trees are gone.
+    private void ObserveRacks(ScenarioOneManager m)
+    {
+        if (m.RackGroups.Count > 0) Record("rack.create");
+        RackLayoutTracker layout = ui.RackLayout;
+        if (layout == null || !layout.Complete) return;
+        Record("rack.create");
+        Record("rack.layout");
+        bool pending = m.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending);
+        bool approved = m.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree
+            && (o.status == ScenarioWorkStatus.Approved || o.status == ScenarioWorkStatus.Completed));
+        if (!pending && approved) Record("rack.approve");
+        if (layout.Harvested && m.AnnualReports.Count > 0 && m.Interventions.Count > 0) Record("rack.result");
+    }
+
     public void Observe()
     {
         ScenarioOneManager m = ui.Manager;
         ForestPlayer p = ui.Player;
+        ObserveRacks(m);
         bool walking = ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !m.AnyPanelOpen;
         if (walking && p != null && p.InspectedTree != null && p.InspectedTree.IsLiving) Record("tree.inspect");
         if (walking && ui.Marking != null)

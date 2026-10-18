@@ -113,7 +113,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         aimedTree = null;
         aimingAtGround = false;
-        if (view == null || Cursor.lockState != CursorLockMode.Locked)
+        // While an extraction rack is being aimed, X and C do not mark the tree under the reticle.
+        if (view == null || Cursor.lockState != CursorLockMode.Locked || RackTool.AnyActive)
             return;
 
         int hitCount = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hitBuffer, interactionDistance);

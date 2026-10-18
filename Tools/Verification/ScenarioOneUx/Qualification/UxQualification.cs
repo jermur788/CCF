@@ -457,8 +457,9 @@ public sealed class UxQualificationRunner : MonoBehaviour
         if (ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud) { ui.CloseHelp(); yield return null; yield return null; }
         yield return WaitRealtime(0.35f);
         LogCue("fresh");
-        Hard("CUE_STARTS_WITH_INSPECT_A_LIVING_TREE", cues[0].Contains("Inspect a living tree"), cues[0]);
-        Hard("LEARNING_STEP_IDS_ARE_42", LearningObjectivesView.StepIds.Count() == 42, $"count={LearningObjectivesView.StepIds.Count()} sortedIdHash={Fnv(string.Join("|", LearningObjectivesView.StepIds.OrderBy(s => s, StringComparer.Ordinal)))}");
+        // Rack-first revision: the opening cue is the rack lesson; inspection is cued once the racks are open.
+        Hard("CUE_STARTS_WITH_CREATE_YOUR_FIRST_RACK", cues[0].Contains("Create your first rack"), cues[0]);
+        Hard("LEARNING_STEP_IDS_ARE_48_THE_42_SAVED_ONES_PLUS_SIX_RACK_STEPS", LearningObjectivesView.StepIds.Count() == 48, $"count={LearningObjectivesView.StepIds.Count()} sortedIdHash={Fnv(string.Join("|", LearningObjectivesView.StepIds.OrderBy(s => s, StringComparer.Ordinal)))}");
 
         ForestTree crop = null;
         yield return AimAt(t => true, t => crop = t);
@@ -540,16 +541,10 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return Shoot("10-hud-after-first-cycle");
 
         // The cue order: each new cue must come LATER in the packet's order than the one before; the map comes last.
-        string[] order = { "Inspect a living tree", "Designate a Crop Tree", "Propose a tree for felling", "Import the Fell mark into the Work Plan", "Approve a felling job", "Review a successful felling result", "Open actual annual results", "Open the map" };
-        int last = -1; bool monotonic = true; var seen = new List<string>();
-        foreach (string cue in cues)
-        {
-            int idx = Array.FindIndex(order, o => cue.Contains(o));
-            seen.Add(idx.ToString());
-            if (idx >= 0) { if (idx < last) monotonic = false; last = idx; }
-        }
+        // Rack-first revision: this storyline marks trees by hand (selective marking still works in every state), so the lesson cue
+        // never leaves the rack lesson: selective marking is not what the opening teaches, and the map is never first.
         bool mapEarly = cues.Take(cues.Count - 1).Any(c => c.Contains("Open the map"));
-        Hard("CUE_ORDER_FOLLOWS_INSPECT_CROP_FELL_PLAN_APPROVE_RESULT_REVIEW", monotonic && cues.Select(c => Array.FindIndex(order, o => c.Contains(o))).Distinct().Count(i => i >= 0) >= 5, $"orderIndexes=[{string.Join(",", seen)}]");
+        Hard("CUE_STAYS_ON_THE_RACK_LESSON_UNTIL_A_RACK_IS_PLANNED", cues.All(c => c.Contains("Create your first rack")), $"cues={string.Join(" || ", cues)}");
         Hard("CUE_IS_NOT_MAP_FIRST", !mapEarly, $"cues={string.Join(" || ", cues)}");
     }
 
@@ -662,7 +657,7 @@ public sealed class UxQualificationRunner : MonoBehaviour
         yield return Invoke(Btn(SessionRoot(), "Confirm"));
         int helpAfter = Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Count(MenuHelpView.Introduced);
         string saveAfter = File.Exists(savePath) ? Fnv(File.ReadAllText(savePath)) : "none";
-        Hard("RESET_CONFIRM_CLEARS_HELP_AND_LESSON_PROGRESS", helpAfter == 0 && ui.Learning.CompletedSteps == 0 && Cue().Contains("Inspect a living tree"), $"helpSeen {helpSeen}->{helpAfter} lessons {lessons}->{ui.Learning.CompletedSteps} cue=[{Cue()}]");
+        Hard("RESET_CONFIRM_CLEARS_HELP_AND_LESSON_PROGRESS", helpAfter == 0 && ui.Learning.CompletedSteps == 0 && Cue().Contains("Create your first rack"), $"helpSeen {helpSeen}->{helpAfter} lessons {lessons}->{ui.Learning.CompletedSteps} cue=[{Cue()}]");
         string objectivesAfter = string.Join(";", manager.Objectives.Select(o => ScenarioOneUiFacts.ObjectiveLine(o)));
         Hard("RESET_CONFIRM_KEEPS_FOREST_SAVE_OBJECTIVES_AND_REVIEW_ACKNOWLEDGEMENT", WorldHash() == worldBefore && saveAfter == saveBefore && objectivesAfter == objectivesBefore && manager.AnnualReviewSeen == reviewSeenBefore,
             $"worldUnchanged={WorldHash() == worldBefore} saveFileUnchanged={saveAfter == saveBefore} objectivesUnchanged={objectivesAfter == objectivesBefore} reviewAcknowledged={manager.AnnualReviewSeen}");
@@ -826,6 +821,9 @@ public sealed class UxQualificationRunner : MonoBehaviour
             yield return Press(modal.open);
             bool opened = manager.AnyPanelOpen || ui.Help.IsOpen || StandaloneSessionMenu.IsOpen;
             Vector3 position = player.transform.position;
+            // The first-use window is modal and owns the keyboard: the close key does nothing while it is open, so a screen that opens
+            // with one (the Stand Map here) has it dismissed first. F1 is the window itself and closes with Esc as before.
+            if (modal.open != Key.F1 && ui.Help.IsOpen) yield return Press(Key.Escape);
             yield return Press(modal.close);
             for (int i = 0; i < 4; i++) yield return null;
             bool closed = !manager.AnyPanelOpen && !ui.Help.IsOpen && !StandaloneSessionMenu.IsOpen;

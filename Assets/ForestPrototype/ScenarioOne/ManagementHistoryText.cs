@@ -35,7 +35,7 @@ public static class ManagementHistoryText
             string species = string.Join(", ", s.PlantedBySpecies.Select(p => $"{p.Value} {c.SpeciesName(p.Key)}"));
             parts.Add($"{s.Planted} planted ({species}" + (s.PlantedSheltered > 0 ? $"; {s.PlantedSheltered} sheltered" : "") + ")");
         }
-        if (s.RegenerationRemoved > 0) parts.Add($"{s.RegenerationRemoved} cell{Plural(s.RegenerationRemoved)} cleared of competing growth");
+        if (s.RegenerationRemoved > 0) parts.Add($"{s.RegenerationRemoved} map square{Plural(s.RegenerationRemoved)} cleared of competing growth");
         string text = parts.Count > 0 ? string.Join(" · ", parts) : "Work resolved";
         if (s.TasksFailed > 0)
             text += $" · {s.TasksFailed} task{Plural(s.TasksFailed)} could not be done" + (s.FailureReasons.Count > 0 ? $" ({s.FailureReasons[0]})" : "");
@@ -56,7 +56,7 @@ public static class ManagementHistoryText
         if (s.Before == null || s.After == null)
             return "The stand records either side of this plan are not available.";
         return $"That year: living trees {s.Before.livingTrees} → {s.After.livingTrees} · canopy {F2(s.Before.meanCanopy)} → {F2(s.After.meanCanopy)} · "
-            + $"mean light {F2(s.Before.meanLight)} → {F2(s.After.meanLight)} · regenerating cells {s.Before.occupiedRegenerationCells} → {s.After.occupiedRegenerationCells}.";
+            + $"average forest-floor light {F2(s.Before.meanLight)} → {F2(s.After.meanLight)} · areas with young regeneration {s.Before.occupiedRegenerationCells} → {s.After.occupiedRegenerationCells}.";
     }
 
     // What has been recorded since, up to the latest year.
@@ -67,7 +67,7 @@ public static class ManagementHistoryText
         ScenarioEcologicalSnapshot a = s.After, l = s.Latest;
         var text = new System.Text.StringBuilder();
         text.Append($"By year {l.year}: living trees {a.livingTrees} → {l.livingTrees} · canopy {F2(a.meanCanopy)} → {F2(l.meanCanopy)} · "
-            + $"regenerating cells {a.occupiedRegenerationCells} → {l.occupiedRegenerationCells} · fallen deadwood {F1(a.deadwoodVolumeM3)} → {F1(l.deadwoodVolumeM3)} m³.");
+            + $"areas with young regeneration {a.occupiedRegenerationCells} → {l.occupiedRegenerationCells} · fallen deadwood {F1(a.deadwoodVolumeM3)} → {F1(l.deadwoodVolumeM3)} m³.");
         var changes = new List<string>();
         foreach (ScenarioSpeciesOutcome now in l.species.Where(x => x != null).OrderBy(x => x.speciesId, StringComparer.Ordinal))
         {
@@ -101,7 +101,7 @@ public static class ManagementHistoryText
         if (x.Baseline != null && x.AtCompletion != null)
         {
             lines.Add($"Stand, start → year {x.AtCompletion.year}: living trees {x.Baseline.livingTrees} → {x.AtCompletion.livingTrees} · basal area {F1(x.Baseline.basalAreaM2PerHa)} → {F1(x.AtCompletion.basalAreaM2PerHa)} m²/ha · "
-                + $"canopy {F2(x.Baseline.meanCanopy)} → {F2(x.AtCompletion.meanCanopy)} · regenerating cells {x.Baseline.occupiedRegenerationCells} → {x.AtCompletion.occupiedRegenerationCells} · "
+                + $"canopy {F2(x.Baseline.meanCanopy)} → {F2(x.AtCompletion.meanCanopy)} · areas with young regeneration {x.Baseline.occupiedRegenerationCells} → {x.AtCompletion.occupiedRegenerationCells} · "
                 + $"fallen deadwood {F1(x.Baseline.deadwoodVolumeM3)} → {F1(x.AtCompletion.deadwoodVolumeM3)} m³.");
             var species = x.AtCompletion.species.Where(s => s != null && s.livingTrees > 0).OrderBy(s => s.speciesId, StringComparer.Ordinal)
                 .Select(s => $"{s.livingTrees} {c.SpeciesName(s.speciesId)}").ToList();

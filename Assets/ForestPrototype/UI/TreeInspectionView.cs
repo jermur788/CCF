@@ -7,9 +7,18 @@ using UnityEngine.UIElements;
 
 // Screen 2 — tree inspection. Authoritative tree state and a causal
 // diagnosis. It explains the tree's condition; it never names trees to fell.
+//
+// The card keeps to what a decision needs: species, age, DBH, height, mark and how crowded the tree is. The rest (stem volume,
+// light on the ground, growth, wind, pruning, reproduction) is one key away ([V] More detail), because the cursor is locked
+// while inspecting and a panel cannot be clicked or scrolled. The felling estimate is the "If felled now" panel on the right.
 public sealed class TreeInspectionView
 {
+    // Both side columns are this wide, so the status panel, the felling estimate and the competitor list line up on the right
+    // and the card lines up with them on the left.
+    public const float ColumnWidth = 400f;
+
     private readonly ScenarioOneUiRoot ui;
+    // The left column: the card, and under it the optional detail card. Transparent; its two children are the panels.
     public VisualElement Root { get; }
     // Crop Tree competitor assessment, shown beside the card (right of the
     // screen, under the status panel) so neither panel has to scroll and the
@@ -20,7 +29,11 @@ public sealed class TreeInspectionView
     // the main card it would not fit one panel: the cursor is locked here, so a panel cannot scroll.
     public VisualElement EstimatePanel { get; }
     public bool ShowsEstimate { get; private set; }
+    // [V] More detail. Presentation only, kept while the player moves from tree to tree.
+    public bool ShowsDetail { get; private set; }
+    private readonly VisualElement cardPanel, detailPanel;
     private readonly VisualElement body;
+    private readonly VisualElement detailBody;
     private readonly VisualElement competitorBody;
     private readonly VisualElement estimateBody;
     private string shownKey = "";
@@ -28,10 +41,22 @@ public sealed class TreeInspectionView
     public TreeInspectionView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
-        Root = UiKit.Box("panel", "inspect");
+        Root = UiKit.Box("inspect");
+        Root.name = "inspect-column";
         Root.pickingMode = PickingMode.Ignore;
-        body = new VisualElement();
-        Root.Add(body);
+        cardPanel = UiKit.Box("panel");
+        cardPanel.name = "inspect-card";
+        cardPanel.pickingMode = PickingMode.Ignore;
+        body = new VisualElement { pickingMode = PickingMode.Ignore };
+        cardPanel.Add(body);
+        Root.Add(cardPanel);
+        detailPanel = UiKit.Box("panel", "inspect-detail");
+        detailPanel.name = "inspect-detail";
+        detailPanel.pickingMode = PickingMode.Ignore;
+        detailPanel.style.display = DisplayStyle.None;
+        detailBody = new VisualElement { pickingMode = PickingMode.Ignore };
+        detailPanel.Add(detailBody);
+        Root.Add(detailPanel);
 
         CompetitorPanel = UiKit.Box("panel", "competitor-panel");
         CompetitorPanel.name = "competitor-panel";
@@ -40,7 +65,7 @@ public sealed class TreeInspectionView
         CompetitorPanel.style.position = Position.Absolute;
         CompetitorPanel.style.right = 14;
         CompetitorPanel.style.top = 250;
-        CompetitorPanel.style.width = 440;
+        CompetitorPanel.style.width = ColumnWidth;
         competitorBody = new VisualElement();
         CompetitorPanel.Add(competitorBody);
 
@@ -51,9 +76,16 @@ public sealed class TreeInspectionView
         EstimatePanel.style.position = Position.Absolute;
         EstimatePanel.style.right = 14;
         EstimatePanel.style.top = 250;
-        EstimatePanel.style.width = 380;
+        EstimatePanel.style.width = ColumnWidth;
         estimateBody = new VisualElement();
         EstimatePanel.Add(estimateBody);
+    }
+
+    // [V]: show or hide the detail card. Called by the UI root once per frame while a tree is being inspected.
+    public void ToggleDetail()
+    {
+        ShowsDetail = !ShowsDetail;
+        shownKey = "";
     }
 
     public void Refresh(ForestTree tree)
@@ -63,11 +95,12 @@ public sealed class TreeInspectionView
         CompetitorAssessment competitors = ui.Competitors;
         string key = tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
             + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump
-            + "|" + (competitors != null ? competitors.Version : 0);
+            + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail;
         if (key == shownKey)
             return;
         shownKey = key;
         body.Clear();
+        detailBody.Clear();
         competitorBody.Clear();
         estimateBody.Clear();
         ShowsEstimate = false;
@@ -78,8 +111,8 @@ public sealed class TreeInspectionView
             BuildCompetitors(report, competitors);
 
         string species = tree.Species != null ? tree.Species.DisplayName : "Unknown species";
-        UiKit.Add(body, $"{species} · {tree.TreeId}", "title");
-        UiKit.Add(body, "Origin: " + RegenerationDiagnostics.TreeOriginLabel(tree.TreeId), "muted");
+        UiKit.Add(body, species, "title");
+        UiKit.Add(body, $"{tree.TreeId} · {RegenerationDiagnostics.TreeOriginLabel(tree.TreeId)}", "muted");
 
         VisualElement marks = UiKit.Row(body, "row");
         if (tree.IsStump) UiKit.Chip(marks, "Harvested stump");
@@ -91,15 +124,53 @@ public sealed class TreeInspectionView
 
         VisualElement grid = UiKit.Box("stat-grid");
         body.Add(grid);
+        UiKit.Stat(grid, "Age", tree.AgeYears + " yr");
         UiKit.Stat(grid, "DBH", UiKit.F(tree.Diameter, "0.0") + " cm");
         UiKit.Stat(grid, "Height", UiKit.F(tree.Height, "0.0") + " m");
+        if (!tree.IsStump && eco != null)
+            UiKit.Stat(grid, "Growing space", Capitalise(eco.GetCompetitionLabel(tree)));
+        if (!tree.IsStump && eco != null)
+            UiKit.Add(body, Diagnosis(tree, eco), "body");
+
+        BuildDetail(tree, eco, report);
+        // During the opening rack stage the card does not advertise marking; it is introduced once the racks are open.
+        string marking = ui.Manager != null && ui.Manager.RackFirstStageActive ? "" : "[X] Fell  [C] Crop Tree  ";
+
+        if (assessing)
+        {
+            // A kept tree needs no felling estimate; its competitors are listed in the side panel.
+            UiKit.Add(body, "Competitors are listed on the right.  [1–5] Show in forest  " + marking + "[V] " + (ShowsDetail ? "Less" : "More") + " detail  [E] Close", "inspect-hint");
+            return;
+        }
+
+        if (!tree.IsStump && tree.CanChop)
+        {
+            ShowsEstimate = true;
+            UiKit.Add(estimateBody, "If felled now", "heading");
+            UiKit.Line(estimateBody, "Stem volume", UiKit.F(tree.BiologicalStemVolumeM3, "0.000") + " m³");
+            foreach (string line in TimberEstimate(tree, ui.Manager != null && ui.Manager.BroadleafMarketActive))
+                UiKit.Add(estimateBody, line, "body");
+            UiKit.Add(estimateBody, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
+        }
+        UiKit.Add(body, tree.CanChop
+            ? marking + "[V] " + (ShowsDetail ? "Less" : "More") + " detail  [Tab] Work Plan  [E] Close"
+            : "[V] " + (ShowsDetail ? "Less" : "More") + " detail  [E] Close", "inspect-hint");
+    }
+
+    // Everything that is not needed to decide: the second card, shown only on [V].
+    private void BuildDetail(ForestTree tree, ForestEcologyController eco, CropTreeCompetitionReport report)
+    {
+        detailPanel.style.display = ShowsDetail ? DisplayStyle.Flex : DisplayStyle.None;
+        if (!ShowsDetail) return;
+        UiKit.Add(detailBody, "More detail", "heading");
+        VisualElement grid = UiKit.Box("stat-grid");
+        detailBody.Add(grid);
         UiKit.Stat(grid, "Stem volume", UiKit.F(tree.BiologicalStemVolumeM3, "0.000") + " m³");
-        UiKit.Stat(grid, "Age", tree.AgeYears + " yr");
         if (!tree.IsStump && eco != null)
         {
             int cell = eco.GetCellIndex(tree.transform.position);
             float light = cell >= 0 ? eco.Cells[cell].Light : 0f;
-            UiKit.Stat(grid, "Light at its cell (ground)", UiKit.F(light, "0.00") + " · " + RegenerationDiagnostics.LightBand(light));
+            UiKit.Stat(grid, "Light at ground level here", UiKit.F(light, "0.00") + " · " + RegenerationDiagnostics.LightBand(light));
             // "CI" is spelled out: the first thing a beginner meets here is an unexplained abbreviation otherwise.
             UiKit.Stat(grid, "Competition", $"{eco.GetCompetitionLabel(tree)} (competition index {UiKit.F(eco.GetCompetitionIndex(tree), "0.0")})");
             float growth = eco.GetAnnualDbhGrowth(tree);
@@ -113,34 +184,14 @@ public sealed class TreeInspectionView
             float maturity = tree.Species.Maturity(tree.AgeYears);
             UiKit.Stat(grid, "Reproduction", maturity <= 0.05f ? "not yet seed-bearing" : maturity < 0.95f ? "maturing" : "seed-bearing");
         }
-
         if (!tree.IsStump && eco != null)
-        {
-            UiKit.Add(body, "Why", "heading");
-            UiKit.Add(body, Diagnosis(tree, eco), "body");
-            UiKit.Add(body, eco.GetStormExposureExplanation(tree), "body");
-        }
-
-        if (assessing)
-        {
-            // A kept tree needs no felling estimate; its competitors are listed in the side panel.
-            UiKit.Add(body, "Competitors are listed on the right.   [1–5] Show in forest   [X] Fell   [C] Crop Tree   [E] Close", "muted");
-            return;
-        }
-        if (!tree.IsStump && report != null && tree.IsLiving)
-            UiKit.Add(body, $"Competition here comes from {report.NeighbourCount} tree{(report.NeighbourCount == 1 ? "" : "s")} within "
-                + $"{UiKit.F(ForestEcologyController.HegyiCutoffMeters, "0")} m. If you want to keep this tree, mark it as a Crop Tree [C] to see which neighbours compete with it.", "muted");
-
-        if (!tree.IsStump && tree.CanChop)
-        {
-            ShowsEstimate = true;
-            UiKit.Add(estimateBody, "If felled now — estimate", "heading");
-            foreach (string line in TimberEstimate(tree, ui.Manager != null && ui.Manager.BroadleafMarketActive))
-                UiKit.Add(estimateBody, line, "body");
-            UiKit.Add(estimateBody, "Approximate stem-shape model; final grading happens when the job is resolved.", "faint");
-        }
-        UiKit.Add(body, tree.CanChop ? "[X] Fell   [C] Crop Tree   [Tab] Work Plan   [E] Close" : "[E] Close", "muted");
+            UiKit.Add(detailBody, eco.GetStormExposureExplanation(tree), "muted");
+        if (!tree.IsStump && report != null && tree.IsLiving && !tree.IsCropTree)
+            UiKit.Add(detailBody, $"Competition here comes from {report.NeighbourCount} tree{(report.NeighbourCount == 1 ? "" : "s")} within "
+                + $"{UiKit.F(ForestEcologyController.HegyiCutoffMeters, "0")} m. To see which neighbours compete with it, mark it as a Crop Tree [C].", "muted");
     }
+
+    private static string Capitalise(string text) => string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
 
     // Ranked neighbours of an inspected Crop Tree and the release estimate for
     // the player's own Fell marks. Describes contribution; never names a tree to fell.
