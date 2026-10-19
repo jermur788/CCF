@@ -227,12 +227,12 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         RackPlanner planner = ui.RackTool.Planner;
         ui.RackLayout.Update(true);
         int originalRemaining = ui.RackLayout.Lines.Sum(line => line.Remaining);
-        string worldBefore = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         float route = planner.LayoutLines[0];
         ForestTree partial = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
             .Where(t => t.IsLiving && Math.Abs(t.transform.position.z - route) < 0.6f && Math.Abs(t.transform.position.x) < 3f)
             .OrderBy(t => Math.Abs(t.transform.position.x)).First();
         yield return PreviewAt(partial);
+        string worldBefore = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         RackProposal p = ui.RackTool.Proposal;
         int addedRequired = p.TreeIds.Count(id => ui.RackLayout.Lines.Any(line => line.RemainingTreeIds.Contains(id)));
         Check(p.CanConfirm && p.LayoutIndex == 0 && addedRequired > 0 && addedRequired < ui.RackLayout.Lines[0].Remaining,
