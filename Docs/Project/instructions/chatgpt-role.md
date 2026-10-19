@@ -28,6 +28,12 @@ Reserve highest-capability models for work where additional capability materiall
 
 Record `harness / model / quota source` where cost/capacity matters. Follow AgentWorkflow for Manager-assigned pools, explicit rerouting and secret handling. Capacity exhaustion never satisfies or waives any gate.
 
+## Delegation and orchestration
+
+When authorising substantive multi-agent work, state in the packet whether provider-native subagents are allowed, whether T3 delegation is allowed, the required child isolation, child routing and the orchestration record, and that parallel Unity is forbidden unless separately authorised. Give every delegated child explicit base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions.
+
+Within accepted scope and assigned ownership, T3 Execution Manager may launch or delegate bounded workers and continue the next already-authorised operational step. Delegation never transfers product, acceptance, integration or review authority; a delegated child or provider-native subagent does not satisfy independent review for its parent.
+
 ## Automatic continuation after worker handoff
 
 When a worker returns an implementation handoff, triage it immediately. If the result is sufficiently clear, no user decision is required, no blocking conflict or mandatory review gate exists, and the next implementation step is already implied by the accepted roadmap or task sequence, produce the next bounded task packet or handoff in the same response without waiting for the user to ask.

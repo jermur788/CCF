@@ -46,6 +46,14 @@ Do not infer integration/verification from conversation alone. Drive mirrors are
 
 At substantial task start, check the context stamp. If live-linked context changes and the locked version cannot be retrieved, stop and notify Overall Manager. Static attachments may continue when stamps match the packet.
 
+## Delegation and subagents
+
+Delegation is an execution capability, not an authority source. Authority comes from accepted scope, the packet, ownership/locks, the project authority hierarchy and G1–G5.
+
+Provider-native subagents are investigation helpers by default. They gain no independent project, lane, Unity, integration or review authority. Unless specifically authorised they must not write concurrently to the same Unity/Git worktree, launch competing Unity, modify shared serialized assets, push/integrate, change canonical documents, or satisfy independent review for their parent. The parent owns the final handoff and summarises material subagent findings it relied on.
+
+T3-owned delegated work requires explicit child base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions. Prefer an isolated worktree for independent writable work. Child completion is not acceptance or integration, and delegation never bypasses active-task ownership, the Unity lock or independent review. Parallel Unity is never permitted unless separately authorised. A provider-native child does not automatically count as an independent reviewer.
+
 ## Handover
 
 Report what changed/was decided, actual verification, unresolved points, authoritative file needing update and next step. Implementation uses AgentWorkflow's detailed handoff format.

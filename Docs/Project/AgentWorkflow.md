@@ -174,12 +174,36 @@ Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS
 ## Roles
 
 - **Primary:** implements bounded authorised scope; reports readiness for review, not its own integration approval.
-- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested.
+- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested. A provider-native subagent of the implementing worker is not an independent reviewer.
 - **Integrator:** deliberately integrates approved work and runs post-integration gates; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
 
-- **Execution Manager (T3):** inspect repository/live state, preflight packets, maintain assigned operational state/ledger, prepare bounded execution packets and report READY/BLOCKED. It cannot autonomously create/dispatch arbitrary worker threads, waive gates, override ownership or make product decisions.
+- **Execution Manager (T3):** within an assigned packet and accepted roadmap, inspect repository/live state; preflight packets; maintain assigned operational state/ledger; inspect currently available provider capabilities; route bounded work through T3-owned orchestration; launch/delegate bounded workers; monitor delegated tasks; collect handoffs/results; compare child findings; inspect task/thread identities; resolve simple factual disagreements through direct read-only inspection; and automatically continue the next already-authorised operational step when no gate, conflict or user decision blocks it. It cannot make product/design decisions, alter accepted scope, waive G1–G5, grant itself ownership, bypass active-task ownership or the Unity lock, weaken verification, integrate unapproved work, treat worker completion as acceptance, or silently change quota/provider source.
 - **Unity Operator:** own serialized Unity execution, verify exact lane/branch/HEAD, hold the Unity lock, run only authorised gates and preserve evidence. It cannot expand scope.
+
+## Orchestration and delegation
+
+Capability to launch or delegate work is an orchestration interface, not an authority source. Authority still comes from accepted scope, the task packet, ownership/locks, the project authority hierarchy and G1–G5. Possession of a delegation command grants no permission to use it.
+
+Current orchestration interfaces may include `delegate_task` for disposable child investigations/reviews and `t3_thread_launch` for persistent workers attached to known CCF lanes. These names describe current tooling, not permanent policy; use the currently supported mechanism. Concrete provider/model names and quota assignments belong in operational configuration and task records, not in this canonical workflow.
+
+### Provider-native subagents
+
+Workers may use provider-native subagents/background tasks for bounded side investigations when useful for repository reconnaissance, call-site tracing, save/data-flow inspection, test inspection, failure diagnosis, API/document inspection, or read-only comparison of implementation options. Do not require subagents for trivial work.
+
+By default they are investigation helpers. They do not gain independent project authority, lane ownership, Unity ownership, integration authority or review authority. Unless specifically authorised they must not independently write concurrently to the same Unity/Git worktree, launch competing Unity processes, modify shared serialized assets, push/integrate, change canonical documents, or satisfy an independent review gate for their parent. The parent worker owns the final handoff and must summarise any material subagent findings it relied on.
+
+### T3-owned delegated work
+
+T3 delegation is appropriate when cross-provider/model work is useful, formal independent review is required, separately tracked child work is useful, isolated writable work is required, or filesystem/worktree isolation matters.
+
+For independent writable work, prefer an isolated worktree. For persistent workers attached to known CCF lanes, use the currently supported persistent-thread launch mechanism. For disposable child investigations or reviews, use the currently supported delegated-task mechanism.
+
+Every delegated child must receive explicit base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions. A delegated child inherits no product, ownership, integration or acceptance authority beyond that packet. Child completion is a result for the parent/Manager to review, not acceptance, integration or a satisfied gate. Delegation must not bypass active-task ownership, the Unity lock or the independent-review requirement. Parallel Unity is never permitted unless separately authorised.
+
+### Review boundary
+
+A provider-native child of an implementing worker does not automatically count as an independent reviewer. Formal independent review still requires a separately assigned review role/task consistent with the gates below and independent of the implementing thread. The review boundary is unchanged by delegation; G1–G5 are not waived, weakened or satisfied by child completion.
 
 ## Review gates
 
@@ -213,11 +237,33 @@ The current temporary physical record is named in active-tasks.md itself. For th
 
 Fill every substantive field, including full base/context SHAs. The illustrative Tier 1 / Unity No defaults must be changed to match the assigned task. ROLE FILE is a reference or NONE. Existing aliases such as WORKTREE, BASE, STOP AND ASK IF and HANDOFF remain supported.
 
+The DELEGATION, CHILD ROUTING, ORCHESTRATION RECORD and CHILD CONTEXT REQUIREMENT blocks are for substantive delegated or parallel work. Omit them, or mark NONE/N/A, when no delegation occurs; do not turn them into ceremony for tiny reversible tasks. Every delegated child still receives explicit base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions.
+
 ```text
 TASK PACKET
 PROJECT: CCF
 MANAGER: <designated Overall Manager>
-ROUTING: <harness / model / quota source>
+ROUTING: <parent harness / model / quota source>
+DELEGATION:
+  Native subagents: <Allowed / Read-only only / Not allowed>
+  T3 delegation: <Allowed / Not allowed>
+  Writable child isolation: <Required / Not permitted / As assigned>
+  Parallel Unity: Never unless separately authorised.
+CHILD ROUTING:
+  Preferred child provider/model:
+  Review provider/model if required:
+ORCHESTRATION RECORD:
+  Parent thread:
+  Delegated task IDs:
+  Child thread IDs:
+CHILD CONTEXT REQUIREMENT:
+  Child base:
+  Child context commit:
+  Child scope:
+  Child exclusions:
+  Child ownership/locks:
+  Child acceptance criteria:
+  Child stop conditions:
 BASE:
 CONTEXT COMMIT:
 LANE:

@@ -21,3 +21,11 @@ Perform local repository/Unity/Blender/asset tasks only with connected tools and
 ### Claude Code / cloud
 
 Follow CLAUDE.md, AGENTS.md and packet. Without actual Unity runs, return the standard NOT UNITY-VERIFIED handoff.
+
+### Native subagents and background tasks
+
+Use Claude-native subagents/background tasks when available for a bounded side problem and when context isolation, parallel analysis or diagnostic efficiency materially helps. Good uses: repository reconnaissance; call-site tracing; test inspection; failure diagnosis; API/docs investigation; independent read-only checks inside accepted scope. Do not spawn agents mechanically or for trivial work.
+
+By default native subagents are investigation helpers, not independent writers. They must not concurrently modify the same Unity worktree, launch competing Unity, integrate, change canonical documents, or satisfy independent review for the parent. They gain no project, lane, Unity, integration or review authority. The parent owns the final handoff and must summarise material subagent findings it relied on.
+
+If a task needs independent writable files, formal independent review, another provider/model, or durable separate task identity, return that requirement to T3-owned orchestration.
