@@ -281,16 +281,19 @@ public sealed class WalkingHudView
         }
         else
         {
-            rackTrees.text = $"Valid placement · {p.TreeCount} tree{(p.TreeCount == 1 ? "" : "s")}";
+            rackTrees.text = $"Can add to Work Plan · {p.TreeCount} tree{(p.TreeCount == 1 ? "" : "s")}";
             rackTimber.text = $"Estimated timber: {UiKit.F(p.SoldVolumeM3, "0.0")} m³ sold ({UiKit.F(p.StemVolumeM3, "0.0")} m³ stem volume)";
             rackMoney.text = $"Estimated net return: {UiKit.SignedMoney(p.NetCents)}  (timber {UiKit.Money(p.RevenueCents)}, harvesting {UiKit.Money(p.CostCents)}; this rack on its own)";
             rackTimber.style.display = rackMoney.style.display = DisplayStyle.Flex;
         }
         string notes = "";
+        if (ui.Learning.TeachingRacks && ui.RackLayout != null)
+            notes = p != null ? ui.RackLayout.PreviewFeedback(p)
+                : ui.RackLayout.HasProgress ? ui.Learning.CurrentInstruction : "";
         if (p != null && p.Selection != null)
         {
-            if (p.Selection.SkippedCropTrees > 0) notes += $"{p.Selection.SkippedCropTrees} Crop Tree{(p.Selection.SkippedCropTrees == 1 ? " is" : "s are")} kept.  ";
-            if (p.Selection.AlreadyPlanned > 0 && p.CanConfirm) notes += $"{p.Selection.AlreadyPlanned} already in the Work Plan.";
+            if (p.Selection.SkippedCropTrees > 0) notes += "  " + $"{p.Selection.SkippedCropTrees} Crop Tree{(p.Selection.SkippedCropTrees == 1 ? " is" : "s are")} kept.  ";
+            if (p.Selection.AlreadyPlanned > 0 && p.CanConfirm) notes += "  " + $"{p.Selection.AlreadyPlanned} already in the Work Plan.";
         }
         rackNote.text = notes;
         rackNote.style.display = string.IsNullOrEmpty(notes) ? DisplayStyle.None : DisplayStyle.Flex;

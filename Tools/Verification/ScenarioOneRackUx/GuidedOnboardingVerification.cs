@@ -146,6 +146,7 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         yield return Shoot("04-map-overview");
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == original, "intro/objective/map presentation leaves forest hash unchanged");
         ui.CloseAll(); if (ui.Help.IsOpen) ui.CloseHelp();
+        yield return VerifyRackFeedback();
         // Establish a clear view of the first stem on an authored access row; input chooses it.
         ui.RackTool.Planner.Refresh();
         float row = ui.RackTool.Planner.LayoutLines[0];
@@ -219,6 +220,94 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.ShowObjectives(); yield return Pause(25);
         Check(ui.RootElement.Q<Foldout>("scenario-success-objectives") != null, "full goals remain accessible after progression");
         yield return Shoot("12-objective-two-after-year");
+    }
+    // Focused FIX-1 regression: compare feedback predictions with actual existing work/layout results.
+    IEnumerator VerifyRackFeedback()
+    {
+        RackPlanner planner = ui.RackTool.Planner;
+        ui.RackLayout.Update(true);
+        int originalRemaining = ui.RackLayout.Lines.Sum(line => line.Remaining);
+        string worldBefore = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        float route = planner.LayoutLines[0];
+        ForestTree partial = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+            .Where(t => t.IsLiving && Math.Abs(t.transform.position.z - route) < 0.6f && Math.Abs(t.transform.position.x) < 3f)
+            .OrderBy(t => Math.Abs(t.transform.position.x)).First();
+        yield return PreviewAt(partial);
+        RackProposal p = ui.RackTool.Proposal;
+        int addedRequired = p.TreeIds.Count(id => ui.RackLayout.Lines.Any(line => line.RemainingTreeIds.Contains(id)));
+        Check(p.CanConfirm && p.LayoutIndex == 0 && addedRequired > 0 && addedRequired < ui.RackLayout.Lines[0].Remaining,
+            "partial fixture covers some but not all of one required route");
+        Check(ui.RackLayout.PreviewFeedback(p).Contains("no whole route yet") && ui.RackLayout.PreviewFeedback(p).Contains("Plan rack"),
+            "partial preview explains remaining work and map action");
+        Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == worldBefore, "feedback preview leaves forest unchanged");
+        yield return CaptureRackPanel("fix1-partial-preview");
+        int added = manager.ConfirmRack(p, "forest");
+        int group = manager.RackGroups.Last().Id;
+        Check(added > 0 && ui.RackLayout.PlannedTrees == addedRequired && ui.RackLayout.Done == 0,
+            "partial confirmation adds real work but no false completed route");
+        Check(ui.Learning.CurrentInstruction.Contains(addedRequired + " trees") && ui.Learning.CurrentInstruction.Contains("5 still need work")
+            && ui.Learning.CurrentInstruction.Contains("Plan rack on Stand Map"), "partial result recognises actual progress, remaining routes and next action");
+        ui.RackTool.Exit(); ui.ShowObjectives(); yield return Pause(); yield return Shoot("fix1-partial-result");
+        ui.CloseAll(); manager.RemoveRackGroup(group); ui.RackLayout.Update(true);
+
+        ForestTree outside = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+            .Where(t => t.IsLiving && Math.Abs(t.transform.position.x) < 3f
+                && planner.LayoutLines.All(z => Math.Abs(t.transform.position.z - z) > 4f))
+            .OrderBy(t => Math.Abs(t.transform.position.x)).First();
+        yield return PreviewAt(outside);
+        p = ui.RackTool.Proposal;
+        Check(p.CanConfirm && p.LayoutIndex < 0 && !p.TreeIds.Any(id => ui.RackLayout.Lines.Any(line => line.RemainingTreeIds.Contains(id))),
+            "off-route fixture is legal work with no required-route coverage");
+        Check(ui.RackLayout.PreviewFeedback(p).Contains("will not advance Objective 1") && ui.RackLayout.PreviewFeedback(p).Contains("marked route"),
+            "off-route preview explains why and what to try next");
+        yield return CaptureRackPanel("fix1-off-route-preview");
+        added = manager.ConfirmRack(p, "forest"); group = manager.RackGroups.Last().Id;
+        Check(added > 0 && ui.RackLayout.Done == 0 && ui.RackLayout.PlannedTrees == 0 && ui.Learning.CurrentTopicIndex == 0,
+            "off-route confirmation does not falsely advance objective");
+        Check(ui.Learning.CurrentInstruction.Contains("none is on the required access routes") && ui.Learning.CurrentInstruction.Contains("Plan rack"),
+            "off-route result explains uncredited work and next action");
+        // Keep the real tool open to verify the after-confirmation guidance in its panel as well as the objective card.
+        ui.RackTool.ReselectOrigin(); yield return Pause(); yield return CaptureRackPanel("fix1-off-route-result-hud");
+        ui.RackTool.Exit(); ui.ShowObjectives(); yield return Pause(); yield return Shoot("fix1-off-route-result");
+        ui.CloseAll(); manager.RemoveRackGroup(group); ui.RackLayout.Update(true);
+
+        p = planner.Propose(new RackPoint(0f, route), 0f);
+        Check(p.CanConfirm && ui.RackLayout.PreviewFeedback(p).Contains("fully plan 1 required access route"),
+            "full-route preview predicts completion without changing rules");
+        manager.ConfirmRack(p, "map"); group = manager.RackGroups.Last().Id;
+        Check(ui.RackLayout.Done == 1 && ui.Learning.CurrentTopicIndex == 0 && ui.Learning.CurrentInstruction.Contains("4 still need work"),
+            "full-route confirmation preserves actual completion and year gate");
+        ui.ShowObjectives(); yield return Pause(); yield return Shoot("fix1-full-route-result");
+        ui.CloseAll(); manager.RemoveRackGroup(group); ui.RackLayout.Update(true);
+        Check(ui.RackLayout.Done == 0 && ui.RackLayout.PlannedTrees == 0 && ui.RackLayout.Lines.Sum(line => line.Remaining) == originalRemaining,
+            "removing fixture work restores original required-route counts");
+        ui.RackTool.Enter(); ui.RackTool.ReselectOrigin(); yield return Pause(); yield return CaptureRackPanel("fix1-choose-start"); ui.RackTool.Exit();
+    }
+    IEnumerator PreviewAt(ForestTree tree)
+    {
+        ui.RackTool.Exit();
+        Vector3 position = tree.transform.position;
+        ui.Player.transform.position = new Vector3(position.x - 1f, ui.Player.transform.position.y, position.z);
+        ui.Player.LookToward(position + Vector3.up * 1.2f);
+        ui.RackTool.Enter(); ui.RackTool.SelectOrigin(new RackPoint(position.x, position.z));
+        yield return Pause(25);
+    }
+    IEnumerator CaptureRackPanel(string label)
+    {
+        foreach (Vector2Int size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })
+        {
+            RackUxShots.SetGameSize(size.x,size.y); yield return Pause(18);
+            VisualElement panel = ui.RootElement.Q("hud-rack-panel");
+            Label title = panel.Query<Label>().ToList().First(e => e.ClassListContains("rack-heading"));
+            Vector2 wrapped = title.MeasureTextSize(title.text, title.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
+            Check(Visible(panel) && panel.worldBound.Contains(title.worldBound.min) && panel.worldBound.Contains(title.worldBound.max)
+                && title.contentRect.height + 1f >= wrapped.y, label + " heading contained and fully wrapped " + size);
+            var labels = panel.Query<Label>().ToList().Where(Visible).ToArray();
+            Check(labels.All(e => panel.worldBound.Contains(e.worldBound.min) && panel.worldBound.Contains(e.worldBound.max))
+                && labels.Zip(labels.Skip(1), (a,b) => a.worldBound.yMax <= b.worldBound.yMin + 1f).All(ok => ok)
+                && ui.RootElement.worldBound.Contains(panel.worldBound.max), label + " panel text fits without overlap " + size);
+            yield return Shoot(label, false);
+        }
     }
     // A real PhysX ray with more colliders than the tool's non-alloc buffer: selection must still use the nearest point.
     // All objects are temporary, above the stand, and removed before normal feature qualification continues.

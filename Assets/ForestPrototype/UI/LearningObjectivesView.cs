@@ -47,14 +47,16 @@ public sealed partial class LearningObjectivesView
                 return pending ? "The rack layout is planned. Open Work Plan [Tab], review the cost and approve the rack work. Then advance one year."
                     : "Your rack work is ready. Open Work Plan [Tab] and choose Advance one year. Objective 2 follows that year advance.";
             }
-            return layout != null && layout.Done > 0
-                ? $"{layout.Done} of {layout.Total} access racks planned. Complete the layout with B, or use Plan rack on the Stand Map [M]."
+            return layout != null && layout.HasProgress
+                ? layout.ProgressInstruction
                 : "Press B, then click the tree or ground point where your rack should start. Aim along the route and click again to add it to the Work Plan.";
         }
     }
     public string Summary => TeachingRacks
         ? (ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
-            : "Current objective: create access racks · [B] Choose a start · [O] Details")
+            : ui.RackLayout != null && ui.RackLayout.HasProgress
+                ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} fully planned · [M] Plan rack to finish · [O] Details"
+                : "Current objective: create access racks · [B] Choose a start · [O] Details")
         : "Current objective: " + CurrentTitle + " · [O] Details";
 
     public LearningObjectivesView(ScenarioOneUiRoot ui)

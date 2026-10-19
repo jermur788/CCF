@@ -138,6 +138,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     // A rack was added to the Work Plan, from the forest or from the map: the first lesson step is done either way.
     private void OnRackConfirmed(RackGroup group, string source)
     {
+        rackLayout?.Update(true);
         learning?.Record("rack.create");
         if (source == "map") learning?.Record("rack.map");
     }

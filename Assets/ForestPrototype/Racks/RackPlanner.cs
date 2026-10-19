@@ -247,7 +247,8 @@ public sealed class RackPlanner
                 Remaining = selection.Trees.Count,
                 Planned = selection.AlreadyPlanned,
                 Done = selection.Trees.Count == 0,
-                TreesLeft = inCorridor
+                TreesLeft = inCorridor,
+                RemainingTreeIds = selection.Trees.Select(tree => tree.Id).ToList()
             });
         }
         return lines;
@@ -257,6 +258,8 @@ public sealed class RackPlanner
 // One planned layout rack and how far it has got.
 public sealed class RackLayoutLine
 {
+    // Read-only presentation evidence from the same selection that supplies Remaining; never saved or used to qualify work.
+    public List<string> RemainingTreeIds = new List<string>();
     public int Index;
     public float AcrossM;
     public RackPoint Start, End;
