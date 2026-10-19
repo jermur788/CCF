@@ -123,6 +123,7 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
     {
         ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager;
         saves = FindFirstObjectByType<ForestSaveController>();
+        VerifyDenseAim();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         Check(manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0, "genuinely fresh year-zero forest");
         Check(ui.Help.IsOpen && Text().Contains("Transforming a Sitka Plantation"), "fresh scenario introduction appears");
@@ -209,6 +210,41 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.ShowObjectives(); yield return Pause(25);
         Check(ui.RootElement.Q<Foldout>("scenario-success-objectives") != null, "full goals remain accessible after progression");
         yield return Shoot("12-objective-two-after-year");
+    }
+    // A real PhysX ray with more colliders than the tool's non-alloc buffer: selection must still use the nearest point.
+    // All objects are temporary, above the stand, and removed before normal feature qualification continues.
+    void VerifyDenseAim()
+    {
+        Camera camera = Camera.main;
+        Vector3 savedPosition = camera.transform.position;
+        Quaternion savedRotation = camera.transform.rotation;
+        var colliders = new List<GameObject>();
+        try
+        {
+            Vector3 start = new Vector3(-30f,100f,0f), direction = new Vector3(0.6f,-0.8f,0f);
+            camera.transform.position = start; camera.transform.rotation = Quaternion.LookRotation(direction);
+            for (int i = 0; i < 24; i++)
+            {
+                var point = new GameObject("Ground");
+                point.transform.position = start + direction*(5f+i);
+                point.AddComponent<BoxCollider>(); colliders.Add(point);
+            }
+            Physics.SyncTransforms();
+            RaycastHit[] all = Physics.RaycastAll(start,direction,80f);
+            Check(all.Length > 16, "dense-origin fixture saturates the 16-hit buffer");
+            Vector3 expected = all.OrderBy(hit => hit.distance).First().point;
+            object[] arguments = { default(RackPoint) };
+            bool found = (bool)typeof(RackTool).GetMethod("TryAim", BindingFlags.NonPublic|BindingFlags.Instance).Invoke(ui.RackTool,arguments);
+            RackPoint selected = (RackPoint)arguments[0];
+            Check(found && Math.Abs(selected.X-expected.x)<0.001f && Math.Abs(selected.Z-expected.z)<0.001f,
+                "dense-origin selection uses the actual nearest point");
+        }
+        finally
+        {
+            foreach (GameObject point in colliders) DestroyImmediate(point);
+            camera.transform.position = savedPosition; camera.transform.rotation = savedRotation;
+            Physics.SyncTransforms();
+        }
     }
     void Update()
     {
