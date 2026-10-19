@@ -65,10 +65,10 @@ public static class ScenarioOneUxOfflineCheck
         Check(Words(brief) <= 130, "the role briefing is short enough to read before play", Words(brief) + " words");
         Check(Has(brief, "plantation"), "briefing: the player manages a small plantation");
         Check(Has(brief, "continuous-cover"), "briefing: the objective is to begin converting toward continuous-cover management");
-        Check(Has(brief, "over years") || Has(brief, "play out over years"), "briefing: decisions happen over years");
-        Check(Has(brief, "keep") && Has(brief, "remove") && Has(brief, "Work Plan"), "briefing: choose trees to keep/remove and commission work");
-        Check(Has(brief, "no single perfect prescription"), "briefing: the aim is not one perfect prescription");
-        Check(Has(brief, "revisit"), "briefing: management is revisited as the forest changes");
+        Check(Has(brief, "next generation") && Has(brief, "productive"), "briefing: productive woodland and its next generation");
+        Check(Has(brief, "even-aged") && Has(brief, "same time"), "briefing: the starting stand is explained plainly");
+        Check(Has(brief, "one step at a time"), "briefing: sequential learning");
+        Check(Has(brief, "access racks") && Has(brief, "start"), "briefing: access racks are the first action");
         foreach (string jargon in new[] { "basal area", "DBH", "competition index", "browsing", "residual", "regeneration", "Hegyi" })
             Check(!Has(brief, jargon), "briefing does not front-load detail: " + jargon);
         Check(MenuHelpView.SummaryTitle(MenuHelpView.Menu.WalkingHud) != MenuHelpView.Title(MenuHelpView.Menu.WalkingHud), "the briefing has its own title");
@@ -132,8 +132,12 @@ public static class ScenarioOneUxOfflineCheck
     private static void TeachingOrder()
     {
         string[] titles = LearningObjectivesView.Topics.Select(t => t.Title).ToArray();
+        Check(LearningObjectivesView.GuidedTopicIndex(true, false, 0, id => false) == 0, "fresh forest teaches rack objective first");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, false, 3, id => true) == 0, "old device credits and empty years cannot skip rack work");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, true, 0, id => false) == 0, "objective 2 waits for annual advance even if rack flag is ready");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, true, 1, id => false) == 1, "harvested racks plus one annual advance activate objective 2");
         Check(titles.Length == 9, "nine lesson topics");
-        Check(titles[0].EndsWith("Extraction racks") && titles[1].EndsWith("Tree inspection and Crop Trees") && titles[2].EndsWith("Felling") && titles[3].EndsWith("Work Plan and Annual Review"),
+        Check(titles[0].EndsWith("Create access racks") && titles[1].EndsWith("Tree inspection and Crop Trees") && titles[2].EndsWith("Felling") && titles[3].EndsWith("Work Plan and Annual Review"),
             "the first topics are the racks, then the first cycle of selective marking", string.Join(" | ", titles));
         Check(Array.FindIndex(titles, t => t.EndsWith("Stand Map")) == 4, "the Stand Map follows the first cycle");
         for (int i = 0; i < titles.Length; i++)

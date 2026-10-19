@@ -74,6 +74,9 @@ public sealed partial class MenuHelpView
     // F1 and the Help buttons: always the full explanation.
     public void Show(Menu menu) => Display(menu, false);
 
+    // A fresh scenario gets its premise even on a device that has seen HUD help before. Session-only; no new preference/save field.
+    public void ShowScenarioIntroduction() => Display(Menu.WalkingHud, true);
+
     private void Display(Menu menu, bool brief)
     {
         CurrentMenu = menu;

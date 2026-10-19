@@ -26,11 +26,12 @@ public sealed partial class MenuHelpView
         switch (menu)
         {
             case Menu.WalkingHud:
-                return "You manage a small Sitka spruce plantation. Your aim is to begin converting it toward continuous-cover forestry: a forest that keeps its tree cover while it renews gradually, rather than being cut all at once.\n\n"
-                    + "Forestry decisions play out over years. You look at the trees, decide which to keep and which to remove, commission the work in the Work Plan, then let time pass and see how the forest responds. There is no single perfect prescription to find: expect to revisit your management as the forest changes.\n\n"
-                    + "Start by creating extraction racks: press B in the forest and point at a planted row.";
+                return "You are managing an even-aged Sitka spruce plantation: the trees were planted at the same time.\n\n"
+                    + "Your goal is to guide it toward continuous-cover forestry: keeping tree cover as the woodland renews, while keeping it productive and making room for the next generation of trees.\n\n"
+                    + "You will learn the management process one step at a time. Start by creating access racks so forestry work can take place through the stand.\n\n"
+                    + "Close this introduction, then press O for your current objective, or B to choose the start of your first rack.";
             case Menu.Rack:
-                return "Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Point at a planted row, turn the corridor with the mouse wheel, and click to add it to the Work Plan. Nothing is cut until you approve the plan.";
+                return "Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Click a tree or ground point where the rack should start. The start stays fixed while you aim. The preview extends forward only. Click again to add it to the Work Plan; right-click reselects the start, and Esc cancels. Nothing is cut until you approve the plan.";
             case Menu.TreeInspection:
                 return "Start with a tree worth keeping, then see what competes with it. The card shows its size and how crowded it is; press V for more detail. Press C to mark a Crop Tree (keep and favour) or X to propose felling. Marks are only proposals: nothing is cut until you approve work in the Work Plan.";
             case Menu.StandMap:
@@ -51,7 +52,7 @@ public sealed partial class MenuHelpView
     {
         switch (menu)
         {
-            case Menu.WalkingHud: return "Your role · Scenario One";
+            case Menu.WalkingHud: return "Scenario One — Transforming a Sitka Plantation";
             default: return Title(menu);
         }
     }
@@ -62,7 +63,7 @@ public sealed partial class MenuHelpView
         {
             case Menu.Rack:
                 return "An extraction rack is a straight corridor of felled trees across the plantation. The harvesting machine drives along it, so the rest of the stand can be thinned later without driving through standing trees. Racks are permanent extraction routes: they stay open for this and future thinnings.\n\n"
-                    + "Press B in the forest to create a rack. Point at the planted row you want to open: the violet corridor shows where it would run, from one edge of the stand to the other, and violet rings and posts mark every tree it would take. Turn it with the mouse wheel; click or press Enter to add it to the Work Plan; Esc or B cancels. Nothing changes until you click.\n\n"
+                    + "Press B in the forest to create a rack. Click the intended starting tree or ground point: its ring and post mark the fixed origin. Aim to pivot the violet corridor forward from that point; the arrow shows the direction and violet rings mark the trees it would take. The mouse wheel adjusts the direction. Click or press Enter again to add it to the Work Plan; right-click reselects the start; Esc or B cancels. No work is added by choosing a start.\n\n"
                     + "This plantation follows an authored rack plan: five evenly spaced racks across the planted rows, with seven rows left standing between racks. The status line counts how many are in the Work Plan. After your first rack, the Stand Map can plan the rest: open it with M and choose Plan rack, which marks the squares of a planned rack that are still to do (◇) and those already in the Work Plan (✓).\n\n"
                     + "A rack keeps any Crop Tree on its line. Racks are felled in one contractor visit together with any other felling you have planned, so the visit minimum is shared. A rack is still ordinary felling work: approve it in the Work Plan [Tab], then advance a year.";
             case Menu.TreeInspection:

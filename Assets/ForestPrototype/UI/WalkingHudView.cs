@@ -153,7 +153,7 @@ public sealed class WalkingHudView
             + (hudInterventions > 0 ? $" · {hudInterventions} intervention{(hudInterventions == 1 ? "" : "s")}" : "");
         cash.text = UiKit.Money(m.CashCents);
         var objectiveList = m.Objectives;
-        objectives.text = $"Forest objectives {objectiveList.Count(o => o.achieved)} of {objectiveList.Count}";
+        objectives.text = "Current objective · " + ui.Learning.CurrentTitle;
         learning.text = ui.Learning.Summary;
         int effective = 0, expired = 0;
         if (eco != null)
@@ -212,7 +212,7 @@ public sealed class WalkingHudView
         // One prompt: the player's action line, refined by the mark prompt.
         string action = player != null && locked ? player.InteractionPromptText() : "";
         // During the opening rack stage the prompt points at racks; selective marking is introduced once the racks are open.
-        bool rackStage = m.RackFirstStageActive;
+        bool rackStage = ui.Learning.TeachingRacks;
         RackTool rackTool = ui.RackTool;
         bool racking = rackTool != null && rackTool.Active;
         if (racking)
@@ -267,13 +267,13 @@ public sealed class WalkingHudView
     {
         RackProposal p = tool.Proposal;
         bool onLayout = p != null && p.LayoutIndex >= 0;
-        rackHeading.text = "Extraction rack" + (onLayout ? $" · planned rack {p.LayoutIndex + 1} of {p.LayoutCount}"
+        rackHeading.text = (tool.HasOrigin ? "Rack start fixed · aim forward" : "Choose a rack start") + (onLayout ? $" · planned rack {p.LayoutIndex + 1} of {p.LayoutCount}"
             : p != null && p.LayoutCount > 0 ? " · not on the planned layout" : "");
         rackTrees.style.display = DisplayStyle.Flex;
         rackTimber.style.display = rackMoney.style.display = rackNote.style.display = DisplayStyle.None;
         if (p == null || p.Selection == null)
         {
-            rackTrees.text = "Aim at a planted row.";
+            rackTrees.text = "Choose your start: aim at a tree or the ground, then click. The start ring shows the point you are choosing.";
         }
         else if (!p.CanConfirm)
         {
@@ -281,7 +281,7 @@ public sealed class WalkingHudView
         }
         else
         {
-            rackTrees.text = $"{p.TreeCount} tree{(p.TreeCount == 1 ? "" : "s")}";
+            rackTrees.text = $"Valid placement · {p.TreeCount} tree{(p.TreeCount == 1 ? "" : "s")}";
             rackTimber.text = $"Estimated timber: {UiKit.F(p.SoldVolumeM3, "0.0")} m³ sold ({UiKit.F(p.StemVolumeM3, "0.0")} m³ stem volume)";
             rackMoney.text = $"Estimated net return: {UiKit.SignedMoney(p.NetCents)}  (timber {UiKit.Money(p.RevenueCents)}, harvesting {UiKit.Money(p.CostCents)}; this rack on its own)";
             rackTimber.style.display = rackMoney.style.display = DisplayStyle.Flex;
@@ -294,7 +294,8 @@ public sealed class WalkingHudView
         }
         rackNote.text = notes;
         rackNote.style.display = string.IsNullOrEmpty(notes) ? DisplayStyle.None : DisplayStyle.Flex;
-        rackKeys.text = $"[Mouse wheel] Turn ({Mathf.RoundToInt(tool.AngleDegrees)}°)    [Click] Add to Work Plan    [Esc] Cancel";
+        rackKeys.text = tool.HasOrigin ? "[Aim / wheel] Pivot from start   [Click / Enter] Add rack   [Right-click] New start   [Esc / B] Cancel"
+            : "[Click / Enter] Fix this start   [Esc / B] Cancel";
     }
 
     // Release estimate across all Crop Trees for the current Fell marks.

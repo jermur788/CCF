@@ -22,9 +22,9 @@ public sealed partial class LearningObjectivesView
         { Title = title; Text = text; Steps = steps; }
     }
     public static readonly Topic[] Topics = {
-        new Topic("1. Extraction racks", "Scenario One begins by opening machine routes through the plantation, before any selective thinning. Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Nothing is cut until you approve the work and advance a year.",
+        new Topic("1. Create access racks", "Scenario One begins by opening machine routes through the plantation, before any selective thinning. Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Nothing is cut until you approve the work and advance a year.",
             new Step("rack.read", "What an extraction rack is", "A rack is a straight corridor of trees felled across the plantation so machinery can drive along it. It is permanent: it stays open for this and later thinnings. This plantation follows an authored rack plan of five evenly spaced racks across the planted rows (seven rows left standing between them). The status line and the Stand Map show how many are done.", true),
-            new Step("rack.create", "Create your first rack", "Press B in the forest, point at a planted row, turn the corridor with the mouse wheel and click to add it to the Work Plan. The violet corridor and rings show what it would take; Esc cancels without changing anything."),
+            new Step("rack.create", "Create your first rack", "Press B in the forest. Click the intended starting tree or ground point to fix the origin. Aim to pivot the violet corridor forward; the mouse wheel adjusts its direction. Click again to add the previewed trees to the Work Plan. Right-click chooses another start; Esc or B cancels."),
             new Step("rack.layout", "Complete the rack layout", "Open the rest of the authored rack plan: five racks in all. Use B in the forest, or open the Stand Map [M] and choose Plan rack, which shows the rows still to do. The status line counts the racks already in the Work Plan."),
             new Step("rack.approve", "Approve the rack work", "Open the Work Plan [Tab]. Each rack is one group with its trees, timber and income. Check the cost, then choose Approve Work Plan. Approval does not cut anything yet."),
             new Step("rack.result", "Advance a year and see the racks", "Advance one year and read the Annual Review. Then walk a rack: it is now an open corridor of stumps across the plantation. Inspecting trees, Crop Trees and selective felling come next.")),
@@ -80,6 +80,16 @@ public sealed partial class LearningObjectivesView
             new Step("clear.approve", "Approve clearance when ready", "Approve the chosen work after checking what will be removed. Pending jobs can be removed if you change your mind. The plan is resolved at the annual cycle, not at designation."),
             new Step("clear.result", "Read clearance results", "Read the successful work result. Then revisit the footprint on foot to compare removed competing growth with the planned area. Standing trees are not part of this operation, and the site can develop new vegetation later."))
     };
+
+    // Presentation only. A planned layout is still objective 1 until its work is actually carried out in an annual cycle.
+    // This reads the existing stand/year state, so device-wide practice credits cannot skip the opening rack lesson.
+    public static int GuidedTopicIndex(bool hasLayout, bool racksHarvested, int ecologicalYear, System.Func<string, bool> isDone)
+    {
+        if (hasLayout && (!racksHarvested || ecologicalYear <= 0)) return 0;
+        for (int i = hasLayout ? 1 : 0; i < Topics.Length; i++)
+            if (Topics[i].Steps.Any(step => !isDone(step.Id))) return i;
+        return Topics.Length - 1;
+    }
 
     public static IEnumerable<string> StepIds => Topics.SelectMany(t => t.Steps).Select(s => s.Id);
 

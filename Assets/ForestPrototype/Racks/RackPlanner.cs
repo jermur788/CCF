@@ -171,6 +171,19 @@ public sealed class RackPlanner
         return ProposeBetween(start, end, widthM, angle, across, new RackProposal { AngleDegrees = angle, LayoutCount = layoutLines.Count });
     }
 
+    // Forest placement uses the already supported bounded segment, with the chosen origin unchanged (no row snapping).
+    // The map's whole-row proposals, width, authored layout, quoting and felling eligibility remain the same.
+    public RackProposal ProposeFromOrigin(RackPoint origin, float directionDegrees)
+    {
+        if (RackGeometry.ClipForwardToSquare(origin, directionDegrees, HalfExtentM, out RackPoint end))
+            return ProposeBetween(origin, end);
+        return new RackProposal
+        {
+            Selection = new RackSelection { Start = origin, End = origin, WidthM = RackGeometry.DefaultWidthM },
+            Problem = "Choose a starting point inside the woodland and aim into the stand."
+        };
+    }
+
     private RackProposal ProposeBetween(RackPoint start, RackPoint end, float widthM, float angle, float across, RackProposal proposal)
     {
         proposal.Selection = RackGeometry.Select(trees, start, end, widthM);

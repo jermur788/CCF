@@ -11,7 +11,7 @@ public static class ControlsReference
         new[] { "Mouse", "Look around. Esc frees the mouse; click to take it back" },
         new[] { "E", "Inspect the tree or object you are looking at. V on the card shows more detail" },
         new[] { "Left-click", "Also inspects the tree you look at; after Esc the first click only retakes the mouse" },
-        new[] { "B", "Extraction rack: aim at a planted row, the wheel turns it, a click adds it to the Work Plan" },
+        new[] { "B", "Access rack: click a start, aim forward, click to add; right-click reselects, Esc cancels" },
         new[] { "X", "Mark the tree for felling: a proposal only. X again removes the mark" },
         new[] { "C", "Mark it as a Crop Tree to keep and favour; its competitors appear on the card" },
         new[] { "1 – 5", "On a Crop Tree's card, show its competitors in the forest (in planting mode, 1 and 2 pick the stock)" },
