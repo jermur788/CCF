@@ -257,16 +257,23 @@ public sealed class RackTool : MonoBehaviour
             return false;
         Transform me = ui.Player != null ? ui.Player.transform : null;
         int count = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hits, AimReachM);
+        RaycastHit[] aimedHits = hits;
+        // A full non-alloc buffer may omit the nearest hit. Dense rows must not make the selected start jump to a farther tree.
+        if (count == hits.Length)
+        {
+            aimedHits = Physics.RaycastAll(view.transform.position, view.transform.forward, AimReachM);
+            count = aimedHits.Length;
+        }
         bool found = false;
         RaycastHit nearest = default;
         for (int i = 0; i < count; i++)
         {
-            Transform t = hits[i].collider.transform;
+            Transform t = aimedHits[i].collider.transform;
             if (me != null && (t == me || t.IsChildOf(me)))
                 continue;
-            if (!found || hits[i].distance < nearest.distance)
+            if (!found || aimedHits[i].distance < nearest.distance)
             {
-                nearest = hits[i];
+                nearest = aimedHits[i];
                 found = true;
             }
         }
