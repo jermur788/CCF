@@ -32,7 +32,7 @@ Record `harness / model / quota source` where cost/capacity matters. Follow Agen
 
 When authorising substantive multi-agent work, state in the packet whether provider-native subagents are allowed, whether T3 delegation is allowed, the required child isolation, child routing and the orchestration record, and that parallel Unity is forbidden unless separately authorised. Give every delegated child explicit base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions.
 
-Within accepted scope and assigned ownership, T3 Execution Manager may launch or delegate bounded workers and continue the next already-authorised operational step. Delegation never transfers product, acceptance, integration or review authority; a delegated child or provider-native subagent does not satisfy independent review for its parent.
+Within accepted scope and assigned ownership, T3 Execution Manager may launch or delegate bounded workers and continue the next already-authorised operational step. A provider-native implementation helper/child is not independent of its implementing parent and cannot satisfy that parent task's formal independent-review gate. A separately assigned T3 reviewer may perform formal independent review when genuinely independent of the implementation being reviewed and given an explicit reviewer assignment/packet; delegation or completion by itself never satisfies a gate. Delegation never transfers product, acceptance or integration authority.
 
 ## Automatic continuation after worker handoff
 

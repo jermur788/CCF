@@ -174,7 +174,7 @@ Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS
 ## Roles
 
 - **Primary:** implements bounded authorised scope; reports readiness for review, not its own integration approval.
-- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested. A provider-native subagent of the implementing worker is not an independent reviewer.
+- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task; authorisation does not change this.
 - **Integrator:** deliberately integrates approved work and runs post-integration gates; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
 
@@ -191,7 +191,7 @@ Current orchestration interfaces may include `delegate_task` for disposable chil
 
 Workers may use provider-native subagents/background tasks for bounded side investigations when useful for repository reconnaissance, call-site tracing, save/data-flow inspection, test inspection, failure diagnosis, API/document inspection, or read-only comparison of implementation options. Do not require subagents for trivial work.
 
-By default they are investigation helpers. They do not gain independent project authority, lane ownership, Unity ownership, integration authority or review authority. Unless specifically authorised they must not independently write concurrently to the same Unity/Git worktree, launch competing Unity processes, modify shared serialized assets, push/integrate, change canonical documents, or satisfy an independent review gate for their parent. The parent worker owns the final handoff and must summarise any material subagent findings it relied on.
+By default they are investigation helpers. They do not gain independent project authority, lane ownership, Unity ownership, integration authority or review authority. A provider-native helper/subagent must never concurrently write the same Unity worktree as its parent or another writer, and a helper working beneath an implementation parent must never satisfy that parent task's formal independent-review gate. Unless specifically authorised, it must not launch competing Unity processes, modify shared serialized assets, push/integrate, or change canonical documents. The parent worker owns the final handoff and must summarise any material subagent findings it relied on.
 
 ### T3-owned delegated work
 
@@ -203,7 +203,7 @@ Every delegated child must receive explicit base, context commit, scope, exclusi
 
 ### Review boundary
 
-A provider-native child of an implementing worker does not automatically count as an independent reviewer. Formal independent review still requires a separately assigned review role/task consistent with the gates below and independent of the implementing thread. The review boundary is unchanged by delegation; G1–G5 are not waived, weakened or satisfied by child completion.
+A provider-native helper or child working beneath an implementation parent does not count as an independent reviewer for that parent task; authorisation or convenience does not change this. Formal independent review requires a separately assigned review role/task, independent of the implementing thread and consistent with the gates below. A separately assigned reviewer may be launched or delegated through T3 when genuinely independent of the implementation being reviewed and given an explicit reviewer assignment/packet. Delegation or completion alone never satisfies a gate. The review boundary is unchanged; G1–G5 are not waived, weakened or satisfied by child completion.
 
 ## Review gates
 
