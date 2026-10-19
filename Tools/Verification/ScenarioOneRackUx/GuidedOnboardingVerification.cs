@@ -156,7 +156,6 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.Player.LookToward(position + Vector3.up * 1.2f);
         Check(ui.Player.transform.position.x > -ui.RackTool.Planner.HalfExtentM, "real-input fixture vantage stays on stand ground");
         RackUxShots.SetGameSize(1280,720);
-        EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView")).maximized = true;
         yield return Pause(30);
         phase = "WAIT_REAL_INPUT";
         File.WriteAllText(Path.Combine(output,"real-input-target.txt"), target.TreeId + " " + position);
