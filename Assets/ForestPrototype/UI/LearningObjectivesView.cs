@@ -187,7 +187,7 @@ public sealed partial class LearningObjectivesView
         public RackLessonDiagram()
         {
             name = "rack-lesson-diagram";
-            style.height = 150; style.minHeight = 150; style.flexShrink = 0;
+            style.height = 165; style.minHeight = 165; style.flexShrink = 0;
             style.maxWidth = 620; style.marginTop = 8; style.marginBottom = 8;
             pickingMode = PickingMode.Ignore;
             generateVisualContent += context =>

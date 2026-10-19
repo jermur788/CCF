@@ -89,6 +89,7 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         output = Environment.GetEnvironmentVariable("CCF_DIAG_DIR");
         Directory.CreateDirectory(output);
         yield return Pause(15);
+        yield return new WaitForSecondsRealtime(2f);
         Exception error = null;
         var stack = new Stack<IEnumerator>(); stack.Push(Verify());
         while (stack.Count > 0)
@@ -148,11 +149,14 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.RackTool.Planner.Refresh();
         float row = ui.RackTool.Planner.LayoutLines[0];
         ForestTree target = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t.IsLiving && Math.Abs(t.transform.position.z-row) < 0.8f).OrderBy(t => t.transform.position.x).First();
+            .Where(t => t.IsLiving && Math.Abs(t.transform.position.z-row) < 0.8f
+                && t.transform.position.x > -ui.RackTool.Planner.HalfExtentM + 3f).OrderBy(t => t.transform.position.x).First();
         Vector3 position = target.transform.position;
         ui.Player.transform.position = new Vector3(position.x-3f, ui.Player.transform.position.y, position.z);
         ui.Player.LookToward(position + Vector3.up * 1.2f);
+        Check(ui.Player.transform.position.x > -ui.RackTool.Planner.HalfExtentM, "real-input fixture vantage stays on stand ground");
         RackUxShots.SetGameSize(1280,720);
+        EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView")).maximized = true;
         yield return Pause(30);
         phase = "WAIT_REAL_INPUT";
         File.WriteAllText(Path.Combine(output,"real-input-target.txt"), target.TreeId + " " + position);
@@ -184,6 +188,14 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.RackLayout.Update(true);
         Check(ui.RackLayout.Complete, "authoritative rack requirement complete");
         Check(ui.Learning.CurrentTopicIndex == 0, "objective 2 stays secondary after planning racks");
+        ui.RackTool.Enter();
+        ui.RackTool.SelectOrigin(new RackPoint(position.x, position.z));
+        ui.Player.LookToward(position + Vector3.right * 10f + Vector3.up * 1.2f);
+        yield return Pause(30);
+        Check(ui.RackTool.Proposal != null && !ui.RackTool.Proposal.CanConfirm, "already planned rack is invalid with a reason");
+        Check(Text().Contains("already in the Work Plan"), "invalid rack reason is visible in HUD");
+        yield return Shoot("10b-invalid-already-planned-rack", false);
+        ui.RackTool.Exit();
         manager.ApprovePendingWork();
         ui.ShowObjectives(); yield return Pause(25);
         Check(ui.Learning.CurrentTopicIndex == 0 && ui.Learning.CurrentInstruction.Contains("Advance one year"), "completed rack lesson clearly requests annual advance");
@@ -229,7 +241,7 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         nextTelemetry = Time.unscaledTime+0.2f;
         RackProposal proposal = tool.Proposal;
         File.WriteAllText(Path.Combine(output,"real-input-state.txt"),
-            "phase="+phase+"\nfocused="+Application.isFocused+"\nactive="+tool.Active+"\nhelp="+ui.Help.IsOpen+"\nlocked="+Cursor.lockState+
+            "phase="+phase+"\nfocused="+Application.isFocused+"\nactive="+tool.Active+"\nhelp="+ui.Help.IsOpen+"\nlocked="+UnityEngine.Cursor.lockState+
             "\norigin="+tool.HasOrigin+"\npoint="+tool.Origin+"\nangle="+tool.AngleDegrees+"\ntrees="+(proposal!=null?proposal.TreeCount:0)+
             "\nvalid="+(proposal!=null&&proposal.CanConfirm)+"\nselections="+originSelections+"\nreselect="+reselections+"\ncancel="+cancellations+
             "\nconfirmed="+tool.ConfirmedCount+"\n");
