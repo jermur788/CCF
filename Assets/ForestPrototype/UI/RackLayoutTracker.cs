@@ -24,7 +24,7 @@ public sealed class RackLayoutTracker
     public int Version => stamp;
     public int PlannedTrees => Lines.Sum(line => line.Planned);
     private bool HasFellingWork => ui.Manager.WorkOrders.Any(order => order.IsOpen && order.type == ScenarioWorkType.FellTree);
-    public bool HasProgress => Done > 0 || PlannedTrees > 0 || HasFellingWork || ui.Manager.Interventions.Count > 0;
+    public bool HasProgress => Total > 0 && (Done > 0 || PlannedTrees > 0 || HasFellingWork || ui.Manager.Interventions.Count > 0);
 
     // Explain actual required-route coverage, not merely whether a legal felling proposal can be added.
     // The tree IDs come from the existing layout selector; no qualification or completion rule is duplicated here.
