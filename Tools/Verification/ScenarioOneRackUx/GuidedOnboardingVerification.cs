@@ -207,6 +207,15 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         Check(manager.CurrentEcologicalYear == previousYear+1, "exactly one ecological year advanced");
         Check(ui.RackLayout.Harvested, "rack work actually executed");
         Check(ui.Learning.CurrentTopicIndex == 1, "objective 2 becomes primary only after annual advance");
+        var preferences = LearningObjectivesView.StepIds.ToDictionary(id => id, id => PlayerPrefs.GetInt(LearningObjectivesView.PreferencePrefix+id,-1));
+        foreach (string id in LearningObjectivesView.StepIds) PlayerPrefs.SetInt(LearningObjectivesView.PreferencePrefix+id,1);
+        var previousDevice = new LearningObjectivesView(ui);
+        Check(previousDevice.IsDone("tree.crop") && previousDevice.CurrentTopicIndex == 1,
+            "old device practice credits cannot skip objective 2 in this forest");
+        foreach (var item in preferences)
+            if (item.Value < 0) PlayerPrefs.DeleteKey(LearningObjectivesView.PreferencePrefix+item.Key);
+            else PlayerPrefs.SetInt(LearningObjectivesView.PreferencePrefix+item.Key,item.Value);
+        PlayerPrefs.Save();
         ui.ShowObjectives(); yield return Pause(25);
         Check(ui.RootElement.Q<Foldout>("scenario-success-objectives") != null, "full goals remain accessible after progression");
         yield return Shoot("12-objective-two-after-year");

@@ -9,6 +9,9 @@ public sealed partial class LearningObjectivesView
 {
     private readonly ScenarioOneUiRoot ui;
     private readonly HashSet<string> done = new HashSet<string>();
+    // Current-session teaching actions are transient. Device-wide practice credits remain in the existing preference keys.
+    // Only actions observed while their lesson is current can move the guide on; old credits cannot skip objective 2.
+    private readonly HashSet<string> guidedActions = new HashSet<string>();
     private readonly ScrollView scroll;
     private readonly Label progress;
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
@@ -22,7 +25,9 @@ public sealed partial class LearningObjectivesView
     private string shownGuidance = "";
     public int CurrentTopicIndex => GuidedTopicIndex(
         ui.Ecology != null && ScenarioOneRackLayout.AppliesTo(ui.Ecology.StandGeometryModelVersion),
-        ui.RackLayout != null && ui.RackLayout.Harvested, ui.Manager.CurrentEcologicalYear, IsDone);
+        ui.RackLayout != null && ui.RackLayout.Harvested, ui.Manager.CurrentEcologicalYear, GuidedIsDone);
+    private bool GuidedIsDone(string id) => guidedActions.Contains(id)
+        || (IsDone(id) && Topics.SelectMany(topic => topic.Steps).Any(step => step.Id == id && step.Reading));
     public bool TeachingRacks => CurrentTopicIndex == 0;
     public string CurrentTitle => Topics[CurrentTopicIndex].Title;
     public string CurrentInstruction
@@ -32,7 +37,7 @@ public sealed partial class LearningObjectivesView
             if (!TeachingRacks)
             {
                 Topic topic = Topics[CurrentTopicIndex];
-                Step next = topic.Steps.FirstOrDefault(step => !step.Reading && !IsDone(step.Id));
+                Step next = topic.Steps.FirstOrDefault(step => !step.Reading && !GuidedIsDone(step.Id));
                 return next != null ? next.Text : topic.Text;
             }
             RackLayoutTracker layout = ui.RackLayout;
@@ -87,13 +92,16 @@ public sealed partial class LearningObjectivesView
     public void ReloadProgress()
     {
         done.Clear();
+        guidedActions.Clear();
         foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
         shownCount = -1;
     }
 
     public void Record(string id)
     {
-        if (done.Contains(id) || !StepIds.Contains(id)) return;
+        if (!StepIds.Contains(id)) return;
+        if (Topics[CurrentTopicIndex].Steps.Any(step => step.Id == id)) guidedActions.Add(id);
+        if (done.Contains(id)) return;
         done.Add(id);
         PlayerPrefs.SetInt(PreferencePrefix + id, 1);
         PlayerPrefs.Save();
@@ -138,7 +146,7 @@ public sealed partial class LearningObjectivesView
         else UiKit.Add(current, active.Text, "body");
         var details = new Foldout { text = "Learn why / lesson details", value = expanded.TryGetValue(active.Title, out bool detailsOpen) && detailsOpen };
         details.RegisterValueChangedCallback(e => expanded[active.Title] = e.newValue);
-        BuildTopic(details, active, regenerationModel, market);
+        BuildTopic(details, active, regenerationModel, market, true);
         current.Add(details);
         scroll.Add(current);
 
@@ -160,17 +168,18 @@ public sealed partial class LearningObjectivesView
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
     }
 
-    private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market)
+    private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market, bool current = false)
     {
         UiKit.Add(parent, topic.Steps[0].Id == "clear.read" ? ClearanceExplanation(regenerationModel) : topic.Text, "body");
         foreach (Step step in topic.Steps)
         {
+            bool complete = current ? GuidedIsDone(step.Id) : IsDone(step.Id);
             VisualElement card = UiKit.Box("card");
-            UiKit.Add(card, (IsDone(step.Id) ? "Done · " : "To do · ") + step.Title, "heading");
+            UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
             UiKit.Add(card, StepText(step, market), "body");
-            if (step.Reading && !IsDone(step.Id))
+            if (step.Reading && !complete)
             {
-                bool ready = step.Requires == null || IsDone(step.Requires);
+                bool ready = step.Requires == null || (current ? GuidedIsDone(step.Requires) : IsDone(step.Requires));
                 Button read = UiKit.Button("I've read and understood this", () => { Record(step.Id); Refresh(true); }, ready);
                 read.name = "learn-" + step.Id;
                 card.Add(read);
