@@ -162,6 +162,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Map.WaypointDescription(position);
         Check(!ui.Learning.IsDone("map.arrive"), "Waypoint on current cell credited a journey");
         yield return Press(Key.M);
+        // Square IDs belong to the secondary Light layer; the beginner overview shows access and position.
+        yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Light"));
         int target = (ui.Ecology.GetCellIndex(position) + 1) % ui.Ecology.Cells.Length;
         Button cellButton = ui.Map.Root.Query<Button>().ToList().First(b => b.ClassListContains("map-cell")
             && b.Query<Label>().ToList().Any(l => l.text == UiKit.CellLabel(target, ui.Ecology.CellsPerAxis)));
