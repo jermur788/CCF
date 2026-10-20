@@ -131,11 +131,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(previewBanner);
         help = new MenuHelpView(this);
         root.Add(help.Root);
+        if (manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
+            help.ShowScenarioIntroduction();
     }
 
     // A rack was added to the Work Plan, from the forest or from the map: the first lesson step is done either way.
     private void OnRackConfirmed(RackGroup group, string source)
     {
+        rackLayout?.Update(true);
         learning?.Record("rack.create");
         if (source == "map") learning?.Record("rack.map");
     }

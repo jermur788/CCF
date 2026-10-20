@@ -67,6 +67,22 @@ public static class RackGeometry
         return new RackPoint((float)Math.Cos(r), (float)Math.Sin(r));
     }
 
+    // A directed ray from the player's chosen point to the existing stand boundary. Unlike ClipLineToSquare this
+    // keeps the start exactly where it was chosen and never extends behind it. Angles retain their full 360° direction.
+    public static bool ClipForwardToSquare(RackPoint origin, float angleDegrees, float halfExtentM, out RackPoint end)
+    {
+        end = origin;
+        if (Math.Abs(origin.X) > halfExtentM || Math.Abs(origin.Z) > halfExtentM)
+            return false;
+        RackPoint d = Direction(angleDegrees);
+        float tMin = 0f, tMax = float.PositiveInfinity;
+        if (!Slab(origin.X, d.X, halfExtentM, ref tMin, ref tMax)
+            || !Slab(origin.Z, d.Z, halfExtentM, ref tMin, ref tMax) || tMax < Epsilon)
+            return false;
+        end = new RackPoint(origin.X + d.X * tMax, origin.Z + d.Z * tMax);
+        return true;
+    }
+
     // Signed distance of a point from the line through the origin at this angle (positive to the left of the direction).
     public static float Across(RackPoint p, float angleDegrees)
     {

@@ -80,6 +80,13 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     private Dictionary<string, byte[]> oldSaves = new Dictionary<string, byte[]>();
     private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private static void Field(object target, string name, object value) => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+    private bool SameGroundPosition(Vector3 before, Vector3 after)
+    {
+        // Closing a panel lets the controller settle vertically within its existing skin; a waypoint must not move it across the stand.
+        float skin = player.GetComponent<CharacterController>().skinWidth;
+        return Vector2.Distance(new Vector2(before.x, before.z), new Vector2(after.x, after.z)) < 0.001f
+            && Mathf.Abs(before.y - after.y) <= skin + 0.001f;
+    }
     private IEnumerator Start()
     {
         yield return null; yield return null;
@@ -162,6 +169,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Map.WaypointDescription(position);
         Check(!ui.Learning.IsDone("map.arrive"), "Waypoint on current cell credited a journey");
         yield return Press(Key.M);
+        // Square IDs belong to the secondary Light layer; the beginner overview shows access and position.
+        yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Light"));
         int target = (ui.Ecology.GetCellIndex(position) + 1) % ui.Ecology.Cells.Length;
         Button cellButton = ui.Map.Root.Query<Button>().ToList().First(b => b.ClassListContains("map-cell")
             && b.Query<Label>().ToList().Any(l => l.text == UiKit.CellLabel(target, ui.Ecology.CellsPerAxis)));
@@ -173,7 +182,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Button waypoint = ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Set waypoint");
         yield return Click(waypoint);
         Debug.Log("MENU_WAYPOINT_DIAGNOSTIC before=" + position + " after=" + player.transform.position + " description=" + ui.Map.WaypointDescription(position));
-        Check(player.transform.position == position && !string.IsNullOrEmpty(ui.Map.WaypointDescription(position)), "Waypoint moved player or lacks HUD direction");
+        Check(SameGroundPosition(position, player.transform.position) && !string.IsNullOrEmpty(ui.Map.WaypointDescription(position)), "Waypoint moved player or lacks HUD direction");
         yield return CaptureScreen("map-waypoint");
         yield return Press(Key.M);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Learning.IsDone("map.return"), "M did not return with waypoint");
@@ -193,7 +202,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
             string expected = turn == 0 ? "Ahead" : turn == 90 ? "Turn right" : turn == -90 ? "Turn left" : "Behind you";
             Check(hudDirection.text.StartsWith(expected), "HUD turn instruction incorrect");
             if (destinationText == null) destinationText = hudWaypoint.text;
-            Check(hudWaypoint.text == destinationText && player.transform.position == position, "Turning changed destination or moved player");
+            Check(hudWaypoint.text == destinationText && SameGroundPosition(position, player.transform.position), "Turning changed destination or moved player");
         }
         foreach (Vector2Int size in new[] { new Vector2Int(1280,720), new Vector2Int(1600,900), new Vector2Int(1920,1080) })
         {

@@ -19,6 +19,7 @@ public static class ScenarioOneUxOfflineCheck
 
     public static int Main(string[] args)
     {
+        SequentialLessons();
         SavedProgressKeys();
         RoleBriefing();
         AdvanceWarning();
@@ -29,6 +30,36 @@ public static class ScenarioOneUxOfflineCheck
         StaleCopyScan(args.Length > 0 ? args[0] : null);
         Console.WriteLine(failures == 0 ? $"SCENARIO_ONE_UX_PASS checks={checks}" : $"SCENARIO_ONE_UX_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
+    }
+
+    private static void SequentialLessons()
+    {
+        var f = new ScenarioOneTeachingSequence.Facts();
+        void Stage(int n, string why) => Check(ScenarioOneTeachingSequence.Current(f) == n, why);
+        Stage(0, "access first"); f.Year = 9; Stage(0, "idle years never replace rack work");
+        f.AccessOpen = true; Stage(1, "post-access observation before selection");
+        f.CropTrees = 3; Stage(1, "early marks cannot bypass access review");
+        f.AccessReviewed = true; f.CropTrees = 0; Stage(1, "positive selection required");
+        f.CropTrees = 1; Stage(2, "one meaningful crop tree, no arbitrary quota");
+        f.ReleasePlanned = true; Stage(3, "habitat decision before release execution");
+        f.DeadwoodExecuted = true; Stage(3, "deadwood alone cannot replace selective release");
+        f.ReleaseExecuted = true; Stage(4, "return to review after second intervention");
+        f.ReleaseReviewed = true; Stage(4, "review chronology still authoritative");
+        f.ReviewedTwoCycles = true; Stage(5, "next generation follows reviewed repeat management");
+        f.BeechEstablished = true; Stage(5, "both existing introduced species goals retained");
+        f.OakEstablished = true; f.PlantingYear = f.Year; Stage(6, "planting year not enough observation time");
+        f.EstablishmentReviewed = true; Stage(6, "early review does not remove year gate");
+        f.Year++; f.EstablishmentReviewed = false; Stage(6, "later annual results need acknowledgement");
+        f.EstablishmentReviewed = true; Stage(7, "ongoing synthesis after later observation");
+        f.Year += 5; Stage(7, "multiple extra years do not corrupt sequence");
+        f.OakEstablished = false; Stage(5, "loss of introduced species gives useful recovery lesson");
+        Check(ScenarioOneTeachingSequence.Lessons.Length == 8, "eight teaching lessons separate from scenario predicates");
+        Check(ScenarioOneTeachingSequence.Lessons.Select(l => l.Id).Distinct().Count() == 8, "unique stable teaching IDs");
+        foreach (var lesson in ScenarioOneTeachingSequence.Lessons)
+        {
+            Check(!string.IsNullOrWhiteSpace(lesson.Concept) && !string.IsNullOrWhiteSpace(lesson.Action), "why and action: " + lesson.Id);
+            Check(!string.IsNullOrWhiteSpace(lesson.Caption), "visual brief: " + lesson.Id);
+        }
     }
 
     private static void Check(bool ok, string name, string detail = "")
@@ -65,10 +96,10 @@ public static class ScenarioOneUxOfflineCheck
         Check(Words(brief) <= 130, "the role briefing is short enough to read before play", Words(brief) + " words");
         Check(Has(brief, "plantation"), "briefing: the player manages a small plantation");
         Check(Has(brief, "continuous-cover"), "briefing: the objective is to begin converting toward continuous-cover management");
-        Check(Has(brief, "over years") || Has(brief, "play out over years"), "briefing: decisions happen over years");
-        Check(Has(brief, "keep") && Has(brief, "remove") && Has(brief, "Work Plan"), "briefing: choose trees to keep/remove and commission work");
-        Check(Has(brief, "no single perfect prescription"), "briefing: the aim is not one perfect prescription");
-        Check(Has(brief, "revisit"), "briefing: management is revisited as the forest changes");
+        Check(Has(brief, "next generation") && Has(brief, "productive"), "briefing: productive woodland and its next generation");
+        Check(Has(brief, "even-aged") && Has(brief, "same time"), "briefing: the starting stand is explained plainly");
+        Check(Has(brief, "one step at a time"), "briefing: sequential learning");
+        Check(Has(brief, "access racks") && Has(brief, "start"), "briefing: access racks are the first action");
         foreach (string jargon in new[] { "basal area", "DBH", "competition index", "browsing", "residual", "regeneration", "Hegyi" })
             Check(!Has(brief, jargon), "briefing does not front-load detail: " + jargon);
         Check(MenuHelpView.SummaryTitle(MenuHelpView.Menu.WalkingHud) != MenuHelpView.Title(MenuHelpView.Menu.WalkingHud), "the briefing has its own title");
@@ -132,8 +163,12 @@ public static class ScenarioOneUxOfflineCheck
     private static void TeachingOrder()
     {
         string[] titles = LearningObjectivesView.Topics.Select(t => t.Title).ToArray();
+        Check(LearningObjectivesView.GuidedTopicIndex(true, false, 0, id => false) == 0, "fresh forest teaches rack objective first");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, false, 3, id => true) == 0, "old device credits and empty years cannot skip rack work");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, true, 0, id => false) == 0, "objective 2 waits for annual advance even if rack flag is ready");
+        Check(LearningObjectivesView.GuidedTopicIndex(true, true, 1, id => false) == 1, "harvested racks plus one annual advance activate objective 2");
         Check(titles.Length == 9, "nine lesson topics");
-        Check(titles[0].EndsWith("Extraction racks") && titles[1].EndsWith("Tree inspection and Crop Trees") && titles[2].EndsWith("Felling") && titles[3].EndsWith("Work Plan and Annual Review"),
+        Check(titles[0].EndsWith("Create access racks") && titles[1].EndsWith("Tree inspection and Crop Trees") && titles[2].EndsWith("Felling") && titles[3].EndsWith("Work Plan and Annual Review"),
             "the first topics are the racks, then the first cycle of selective marking", string.Join(" | ", titles));
         Check(Array.FindIndex(titles, t => t.EndsWith("Stand Map")) == 4, "the Stand Map follows the first cycle");
         for (int i = 0; i < titles.Length; i++)

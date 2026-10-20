@@ -19,21 +19,36 @@ public sealed partial class LearningObjectivesView
     public VisualElement Root { get; }
     public bool IsDone(string id) => done.Contains(id);
     public int CompletedSteps => done.Count;
-    // The "Next lesson" line. The HUD reads it every frame, so it is rebuilt only when a step is recorded or progress is reset.
-    private string cueText;
-    private int cueDoneCount = -1;
-    public string Summary
+    private string shownGuidance = "";
+    public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());
+    public bool TeachingRacks => CurrentTopicIndex == 0;
+    public string CurrentTitle => ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex].Title;
+    public string CurrentInstruction
     {
         get
         {
-            if (cueText == null || cueDoneCount != done.Count)
+            if (!TeachingRacks)
             {
-                cueText = CueText(NextCueStep(IsDone));
-                cueDoneCount = done.Count;
+                return TeachingInstruction(TeachingFacts());
             }
-            return cueText;
+            RackLayoutTracker layout = ui.RackLayout;
+            if (layout != null && layout.Complete)
+            {
+                bool pending = ui.Manager.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending);
+                return pending ? "The rack layout is planned. Open Work Plan [Tab], review the cost and approve the rack work. Then advance one year."
+                    : "Your rack work is ready. Open Work Plan [Tab] and choose Advance one year. Objective 2 follows that year advance.";
+            }
+            return layout != null && layout.HasProgress
+                ? layout.ProgressInstruction
+                : "Press B, then click the tree or ground point where your rack should start. Aim along the route and click again to add it to the Work Plan.";
         }
     }
+    public string Summary => TeachingRacks
+        ? (ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
+            : ui.RackLayout != null && ui.RackLayout.HasProgress
+                ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} fully planned · [M] Plan rack to finish · [O] Details"
+                : "Current objective: create access racks · [B] Choose a start · [O] Details")
+        : "Current objective: " + CurrentTitle + " · [O] Details";
 
     public LearningObjectivesView(ScenarioOneUiRoot ui)
     {
@@ -45,14 +60,14 @@ public sealed partial class LearningObjectivesView
         modal.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Learning objectives", "title");
+        UiKit.Add(header, "Scenario One · one objective at a time", "title");
         VisualElement buttons = UiKit.Row(header);
         buttons.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
         buttons.Add(UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
-        UiKit.Add(modal, "Start simple. Open a topic to read its steps. There is no year-one deadline. Optional management practice can wait until it suits your forest. Progress is remembered on this device across forests; these lessons are separate from scenario success objectives. To start them again for a new player, use Reset tutorial/help progress in the F10 menu.", "muted");
+
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         scroll.style.flexGrow = 1;
@@ -71,13 +86,13 @@ public sealed partial class LearningObjectivesView
     {
         done.Clear();
         foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
-        cueText = null;
         shownCount = -1;
     }
 
     public void Record(string id)
     {
-        if (done.Contains(id) || !StepIds.Contains(id)) return;
+        if (!StepIds.Contains(id)) return;
+        if (done.Contains(id)) return;
         done.Add(id);
         PlayerPrefs.SetInt(PreferencePrefix + id, 1);
         PlayerPrefs.Save();
@@ -92,52 +107,120 @@ public sealed partial class LearningObjectivesView
 
     public void Refresh(bool force)
     {
+        if (force) sequenceFacts = null;
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
         bool market = ui.Manager.BroadleafMarketActive;
         string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));
-        if (!force && shownCount == done.Count && shownRegenerationModel == regenerationModel && shownMarket == (market ? 1 : 0) && shownObjectives == objectiveText) return;
+        string guidance = CurrentTitle + CurrentInstruction;
+        if (!force && shownGuidance == guidance && shownCount == done.Count && shownRegenerationModel == regenerationModel && shownMarket == (market ? 1 : 0) && shownObjectives == objectiveText) return;
+        shownGuidance = guidance;
         shownObjectives = objectiveText;
         shownCount = done.Count;
         shownRegenerationModel = regenerationModel;
         shownMarket = market ? 1 : 0;
         float position = scroll.scrollOffset.y;
-        progress.text = $"{Topics.Count(t => t.Steps.All(s => IsDone(s.Id)))} of {Topics.Length} topics complete · {done.Count} of {StepIds.Count()} steps · " + Summary;
+        progress.text = "Learn the management process one step at a time. [O] returns to this objective.";
         scroll.Clear();
-        var success = new Foldout { text = "Current forest success objectives", value = true, name = "scenario-success-objectives" };
-        UiKit.Add(success, "These are the current scenario targets, separate from optional learning steps. They describe progress, not a prescription to fell, plant or clear.", "muted");
+        VisualElement current = UiKit.Box("card");
+        current.name = "current-objective";
+        current.style.borderLeftWidth = 4;
+        current.style.borderLeftColor = new Color(0.91f, 0.81f, 0.47f);
+        UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
+        UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
+        var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
+        UiKit.Add(current, lesson.Concept, "body").name = "current-objective-concept";
+        UiKit.Add(current, CurrentInstruction, "body").name = "current-objective-instruction";
+        UiKit.Add(current, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
+        if (TeachingRacks)
+        {
+            current.Add(new RackLessonDiagram());
+            UiKit.Add(current, lesson.Caption, "muted");
+        }
+        else current.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        scroll.Add(current);
+        var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
+        for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");
+        if (CurrentTopicIndex == 0) UiKit.Add(completed, "Your first lesson is in progress.", "muted");
+        scroll.Add(completed);
+        var later = new Foldout { text = "Later in this scenario", value = false, name = "future-lessons" };
+        UiKit.Add(later, "Observe the consequences, favour future trees, secure young trees and repeat the management cycle. Lessons follow your forest and saved work history.", "muted");
+        scroll.Add(later);
+
+        var success = new Foldout { text = "All scenario goals", value = expanded.TryGetValue("goals", out bool goalsOpen) && goalsOpen, name = "scenario-success-objectives" };
+        success.RegisterValueChangedCallback(e => expanded["goals"] = e.newValue);
+        UiKit.Add(success, "These forest success targets are evaluated throughout the scenario. The current lesson above guides what to learn next.", "muted");
         foreach (ScenarioObjectiveResult objective in ui.Manager.Objectives)
             UiKit.Add(success, ScenarioOneUiFacts.ObjectiveLine(objective), "body");
         scroll.Add(success);
-        Topic next = Topics.FirstOrDefault(t => t.Steps.Any(s => !IsDone(s.Id)));
+        var library = new Foldout { text = "All learning topics / optional practice", value = false };
+        UiKit.Add(library, "Practice credits are remembered on this device across forests. They do not determine scenario success. Reset tutorial/help progress in F10 starts that optional record again.", "muted");
         foreach (Topic topic in Topics)
         {
-            var foldout = new Foldout { text = $"{topic.Title} · {topic.Steps.Count(s => IsDone(s.Id))}/{topic.Steps.Length}",
-                value = expanded.TryGetValue(topic.Title, out bool open) ? open : topic == next };
-            foldout.AddToClassList("learning-topic");
-            foldout.RegisterValueChangedCallback(e => expanded[topic.Title] = e.newValue);
-            string explanation = topic.Steps[0].Id == "clear.read"
-                ? ClearanceExplanation(regenerationModel) : topic.Text;
-            UiKit.Add(foldout, explanation, "body");
-            foreach (Step step in topic.Steps)
-            {
-                VisualElement card = UiKit.Box("card");
-                UiKit.Add(card, (IsDone(step.Id) ? "Done · " : "To do · ") + step.Title, "heading");
-                UiKit.Add(card, StepText(step, market), "body");
-                if (step.Reading && !IsDone(step.Id))
-                {
-                    bool ready = step.Requires == null || IsDone(step.Requires);
-                    Button read = UiKit.Button("I've read and understood this", () => { Record(step.Id); Refresh(true); }, ready);
-                    read.name = "learn-" + step.Id;
-                    card.Add(read);
-                    if (!ready) UiKit.Add(card, "First complete: " + Topics.SelectMany(t => t.Steps).First(s => s.Id == step.Requires).Title, "muted");
-                }
-                else if (!step.Reading && !IsDone(step.Id))
-                    UiKit.Add(card, "Progress updates when you perform this step in the game.", "faint");
-                foldout.Add(card);
-            }
-            scroll.Add(foldout);
+            var foldout = new Foldout { text = topic.Title, value = false };
+            BuildTopic(foldout, topic, regenerationModel, market);
+            library.Add(foldout);
         }
+        scroll.Add(library);
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
+    }
+
+    private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market)
+    {
+        UiKit.Add(parent, topic.Steps[0].Id == "clear.read" ? ClearanceExplanation(regenerationModel) : topic.Text, "body");
+        foreach (Step step in topic.Steps)
+        {
+            bool complete = IsDone(step.Id);
+            VisualElement card = UiKit.Box("card");
+            UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
+            UiKit.Add(card, StepText(step, market), "body");
+            if (step.Reading && !complete)
+            {
+                bool ready = step.Requires == null || IsDone(step.Requires);
+                Button read = UiKit.Button("I've read and understood this", () => { Record(step.Id); Refresh(true); }, ready);
+                read.name = "learn-" + step.Id;
+                card.Add(read);
+                if (!ready) UiKit.Add(card, "First complete: " + Topics.SelectMany(t => t.Steps).First(s => s.Id == step.Requires).Title, "muted");
+            }
+            parent.Add(card);
+        }
+    }
+
+    // Original, unscaled plan view informed by the supplied book photographs (pp.39–41) and stand diagram (p.66).
+    // No source artwork, dimensions, machinery prescription or new asset dependency is reproduced.
+    private sealed class RackLessonDiagram : VisualElement
+    {
+        public RackLessonDiagram()
+        {
+            name = "rack-lesson-diagram";
+            style.height = 165; style.minHeight = 165; style.flexShrink = 0;
+            style.maxWidth = 620; style.marginTop = 8; style.marginBottom = 8;
+            pickingMode = PickingMode.Ignore;
+            generateVisualContent += context =>
+            {
+                Painter2D p = context.painter2D;
+                float width = contentRect.width, centre = width * 0.5f;
+                p.fillColor = new Color(0.42f, 0.29f, 0.50f);
+                p.BeginPath(); p.MoveTo(new Vector2(centre - 21, 8)); p.LineTo(new Vector2(centre + 21, 8));
+                p.LineTo(new Vector2(centre + 21, 143)); p.LineTo(new Vector2(centre - 21, 143)); p.ClosePath(); p.Fill();
+                p.fillColor = new Color(0.40f, 0.66f, 0.39f);
+                for (int row = 0; row < 3; row++)
+                    for (int column = 0; column < 6; column++)
+                    {
+                        float x = centre + (column < 3 ? -1 : 1) * (53 + (column % 3) * 36);
+                        float y = 20 + row * 42;
+                        p.BeginPath(); p.MoveTo(new Vector2(x, y)); p.LineTo(new Vector2(x - 11, y + 23));
+                        p.LineTo(new Vector2(x + 11, y + 23)); p.ClosePath(); p.Fill();
+                    }
+                p.strokeColor = new Color(0.96f, 0.86f, 0.53f); p.lineWidth = 3;
+                p.BeginPath(); p.MoveTo(new Vector2(centre, 132)); p.LineTo(new Vector2(centre, 25));
+                p.LineTo(new Vector2(centre - 9, 36)); p.MoveTo(new Vector2(centre, 25)); p.LineTo(new Vector2(centre + 9, 36)); p.Stroke();
+                p.fillColor = p.strokeColor; p.BeginPath(); p.Arc(new Vector2(centre, 132), 6, 0, 360); p.Fill();
+            };
+            Label caption = UiKit.Text("Standing trees     ←     Rack / access route     →     Standing trees", "faint");
+            caption.style.unityTextAlign = TextAnchor.MiddleCenter;
+            caption.style.position = Position.Absolute; caption.style.left = 0; caption.style.right = 0; caption.style.bottom = 0;
+            Add(caption);
+        }
     }
 
     // The rack lessons follow the forest and the Work Plan, so they stay true after a save and load: a rack counts as planned when no

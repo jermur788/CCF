@@ -318,7 +318,17 @@ public sealed class WorkPlanView
         RackGroup captured = rack;
         buttons.Add(UiKit.Button(approved ? "Cancel approval" : "Remove rack", () => { m.RemoveRackGroup(captured.Id); Refresh(true); }));
         bool open = expandedRacks.Contains(rack.Id);
-        buttons.Add(UiKit.Button(open ? "Hide trees" : "Show trees", () => { if (!expandedRacks.Remove(captured.Id)) expandedRacks.Add(captured.Id); Refresh(true); }, true, "btn-ghost"));
+        // This expands the rack's real job list; it does not select trees in the forest. Use the normal enabled style.
+        if (orders.Count > 0)
+        {
+            Button showTrees = UiKit.Button(open ? "Hide trees" : $"Show trees ({orders.Count})", () =>
+            {
+                if (!expandedRacks.Remove(captured.Id)) expandedRacks.Add(captured.Id);
+                Refresh(true);
+            });
+            showTrees.name = "rack-show-trees-" + rack.Id;
+            buttons.Add(showTrees);
+        }
         if (open)
             foreach (ScenarioOneWorkOrder order in orders)
                 UiKit.Add(box, $"{order.targetTreeId} · {UiKit.F(order.expectedVolumeM3, "0.00")} m³ · {Status(order)}", "muted");

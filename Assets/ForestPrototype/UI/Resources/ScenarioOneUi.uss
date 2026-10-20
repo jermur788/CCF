@@ -269,6 +269,6 @@
 
 /* ---- extraction racks ---- */
 .rack-panel { border-color: rgba(190, 126, 240, 0.7); }
-.rack-heading { font-size: 16px; -unity-font-style: bold; color: rgb(206, 156, 246); margin-bottom: 4px; }
+.rack-heading { white-space: normal; font-size: 16px; -unity-font-style: bold; color: rgb(206, 156, 246); margin-bottom: 4px; }
 .rack-line { white-space: normal; color: var(--ink); }
 .rack-keys { white-space: normal; color: var(--ink-muted); font-size: 14px; margin-top: 4px; }

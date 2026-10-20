@@ -69,6 +69,22 @@ public static class RackOfflineCheck
             Check(poly.Count >= 3 && poly.All(p => Math.Abs(p.X) <= 40.001f && Math.Abs(p.Z) <= 40.001f), "corridor polygon is cut to the stand at " + ang + " degrees", poly.Count + " vertices");
         }
         Check(!RackGeometry.ClipLineToSquare(new RackPoint(100, 100), 0f, 40f, out _, out _), "a line outside the stand is rejected");
+        // Directed placement: exactly the selected origin, both senses of an axis, rotation and stand-edge rejection.
+        RackPoint fixedOrigin = new RackPoint(3f, -2f);
+        foreach (float direction in new[] { 0f, 15f, 90f, 135f, 180f, 225f, 270f, 359f })
+        {
+            Check(RackGeometry.ClipForwardToSquare(fixedOrigin, direction, 40f, out RackPoint finish), "forward ray clips " + direction);
+            RackPoint dir = RackGeometry.Direction(direction);
+            float length = (finish.X-fixedOrigin.X)*dir.X + (finish.Z-fixedOrigin.Z)*dir.Z;
+            Check(length > 0 && (Math.Abs(Math.Abs(finish.X)-40f) < 0.001f || Math.Abs(Math.Abs(finish.Z)-40f) < 0.001f), "forward endpoint on boundary " + direction);
+            RackSelection forward = RackGeometry.Select(trees, fixedOrigin, finish, RackGeometry.DefaultWidthM);
+            Check(forward.Start.X == fixedOrigin.X && forward.Start.Z == fixedOrigin.Z, "selected origin never moves " + direction);
+            Check(forward.Trees.All(t => (t.X-fixedOrigin.X)*dir.X + (t.Z-fixedOrigin.Z)*dir.Z >= -0.001f), "no selected tree behind origin " + direction);
+            var polygon = RackGeometry.CorridorPolygon(fixedOrigin, finish, RackGeometry.DefaultWidthM, 40f);
+            Check(polygon.All(t => (t.X-fixedOrigin.X)*dir.X + (t.Z-fixedOrigin.Z)*dir.Z >= -0.001f), "no preview polygon behind origin " + direction);
+        }
+        Check(!RackGeometry.ClipForwardToSquare(new RackPoint(41,0), 180f, 40f, out _), "origin outside stand is rejected");
+        Check(!RackGeometry.ClipForwardToSquare(new RackPoint(40,0), 0f, 40f, out _), "outward aim at stand edge is rejected");
         Console.WriteLine(failed == 0 ? "RACK_OFFLINE_PASS checks=" + passed : "RACK_OFFLINE_FAIL failed=" + failed);
         return failed == 0 ? 0 : 1;
     }

@@ -8,13 +8,13 @@ using UnityEngine.UIElements;
 // never recommends where to fell or plant.
 public sealed class StandMapView
 {
-    private enum Layer { Light, Regeneration, Browse, Marks }
+    private enum Layer { Access, Light, Regeneration, Browse, Marks }
 
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
     private readonly VisualElement grid, side, layerButtons;
     private readonly Label legend;
-    private Layer layer = Layer.Light;
+    private Layer layer = Layer.Access;
     private int selectedCell = -1;
     private int waypointCell = -1;
     private GameObject waypointMarker;
@@ -63,7 +63,7 @@ public sealed class StandMapView
         grid = UiKit.Box("map-grid");
         left.Add(grid);
         legend = UiKit.Add(left, "", "muted");
-        UiKit.Add(left, "Each square is 5 m × 5 m. North is up. Columns A→ run west to east; rows 1→ run south to north. White border: you. Outlined: selected.", "faint");
+        UiKit.Add(left, "NORTH ↑ · woodland boundary around the grid · white outline / YOU: your position · gold outline: selected destination.", "faint");
         body.Add(left);
         side = UiKit.Box("card", "map-side");
         body.Add(side);
@@ -92,6 +92,7 @@ public sealed class StandMapView
     private void BuildLayerButtons()
     {
         layerButtons.Clear();
+        AddLayerButton("Access & position", Layer.Access);
         AddLayerButton("Light", Layer.Light);
         AddLayerButton("Regeneration", Layer.Regeneration);
         AddLayerButton("Browsing / protection", Layer.Browse);
@@ -111,7 +112,7 @@ public sealed class StandMapView
         layerButtons.Add(UiKit.Button(text, () =>
         {
             layer = value;
-            ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
+            if (value != Layer.Access) ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
                 : value == Layer.Browse ? "map.browse" : "map.marks");
             Refresh(true);
         }, true, layer == value ? new[] { "btn-selected" } : new string[0]));
@@ -146,6 +147,13 @@ public sealed class StandMapView
                 Color colour;
                 switch (layer)
                 {
+                    case Layer.Access:
+                    {
+                        string rack = RackLayoutMark(c.Center, eco.CellSizeMeters);
+                        value = index == playerCell ? "YOU" : index == waypointCell ? "GO" : rack.Trim();
+                        colour = rack.Length > 0 ? new Color(0.40f, 0.27f, 0.49f) : new Color(0.18f, 0.29f, 0.18f);
+                        break;
+                    }
                     case Layer.Regeneration:
                     {
                         float tallest = 0f;
@@ -179,7 +187,8 @@ public sealed class StandMapView
                 }
                 cell.style.backgroundColor = onRack ? Color.Lerp(colour, new Color(0.5f, 0.28f, 0.72f), 0.55f) : colour;
                 if (index == waypointCell) value = "⚑ " + value;
-                string squareName = UiKit.CellLabel(index, n) + (rackMode ? RackLayoutMark(c.Center, eco.CellSizeMeters) : "");
+                string squareName = layer == Layer.Access && !rackMode ? ""
+                    : UiKit.CellLabel(index, n) + (rackMode ? RackLayoutMark(c.Center, eco.CellSizeMeters) : "");
                 VisualElement labels = new VisualElement { pickingMode = PickingMode.Ignore };
                 Label name = UiKit.Text(squareName);
                 Label number = UiKit.Text(value);
@@ -194,6 +203,7 @@ public sealed class StandMapView
 
         switch (layer)
         {
+            case Layer.Access: legend.text = "YOU: your position · ◇: rack route still to plan · ✓: rack planned or open · ⚑: waypoint. Select a place, then walk there."; break;
             case Layer.Regeneration: legend.text = "Value: P = planted juveniles alive, then tallest seedling cohort height. Brighter green = taller/more."; break;
             case Layer.Browse: legend.text = $"Site browsing pressure: {BrowsingConditions.PressureBand(pressure)}. S = shelters effective next year; — = no shelter."; break;
             case Layer.Marks: legend.text = "■ = trees marked to fell, ◆ = crop trees (counts per square)."; break;
@@ -363,10 +373,23 @@ public sealed class StandMapView
             return;
         }
         ForestEcologyCell c = eco.Cells[selectedCell];
-        UiKit.Add(side, "Square " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "heading");
-        UiKit.Line(side, "Ground light", $"{UiKit.F(c.Light, "0.00")} ({RegenerationDiagnostics.LightBand(c.Light)})");
-        UiKit.Line(side, "Canopy cover", UiKit.F(c.Canopy, "0.00"));
-        UiKit.Add(side, "Regeneration: " + ScenarioOneUiFacts.RegenerationSummary(eco, selectedCell, ui.Manager.PlantedJuveniles), "body");
+        VisualElement diagnosis = side;
+        if (layer == Layer.Access)
+        {
+            UiKit.Add(side, "Your woodland · north is up", "heading");
+            UiKit.Add(side, "The grid shows your stand and its planned access routes. White marks where you are standing.", "body");
+            UiKit.Add(side, ui.Learning.Summary, "body");
+            if (ui.RackLayout != null && ui.RackLayout.Total > 0)
+                UiKit.Add(side, $"Access racks: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned or open.", "muted");
+            UiKit.Add(side, "Selected destination: " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "body");
+            var details = new Foldout { text = "Site details · light and young trees", value = false, name = "map-site-details" };
+            side.Add(details);
+            diagnosis = details;
+        }
+        UiKit.Add(diagnosis, "Square " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "heading");
+        UiKit.Line(diagnosis, "Ground light", $"{UiKit.F(c.Light, "0.00")} ({RegenerationDiagnostics.LightBand(c.Light)})");
+        UiKit.Line(diagnosis, "Canopy cover", UiKit.F(c.Canopy, "0.00"));
+        UiKit.Add(diagnosis, "Regeneration: " + ScenarioOneUiFacts.RegenerationSummary(eco, selectedCell, ui.Manager.PlantedJuveniles), "body");
 
         float pressure = eco.Browsing.BackgroundPressure;
         var diagnoses = RegenerationDiagnostics.DiagnoseCell(eco, selectedCell);
@@ -377,12 +400,12 @@ public sealed class StandMapView
         {
             RegenerationDiagnosis empty = default;
             empty.Light = c.Light;
-            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(empty, eco, selectedCell), "muted");
+            UiKit.Add(diagnosis, "Why: " + ScenarioOneUiFacts.Why(empty, eco, selectedCell), "muted");
         }
         foreach (RegenerationDiagnosis d in diagnoses.Take(6))
         {
-            UiKit.Add(side, $"{d.SpeciesName}{(d.IsPlantedIndividual ? " " + d.JuvenileId : "")}, {UiKit.F(d.Height, "0.00")} m — {ScenarioOneUiFacts.BrowseState(d, pressure)}", "body");
-            UiKit.Add(side, "Why: " + ScenarioOneUiFacts.Why(d, eco, selectedCell), "muted");
+            UiKit.Add(diagnosis, $"{d.SpeciesName}{(d.IsPlantedIndividual ? " " + d.JuvenileId : "")}, {UiKit.F(d.Height, "0.00")} m — {ScenarioOneUiFacts.BrowseState(d, pressure)}", "body");
+            UiKit.Add(diagnosis, "Why: " + ScenarioOneUiFacts.Why(d, eco, selectedCell), "muted");
         }
 
         int index = selectedCell;

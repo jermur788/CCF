@@ -22,6 +22,42 @@ public sealed class RackLayoutTracker
     // True when every rack of the layout has been harvested: no fellable tree is left in any corridor.
     public bool Harvested => Total > 0 && Lines.All(line => line.TreesLeft == 0);
     public int Version => stamp;
+    public int PlannedTrees => Lines.Sum(line => line.Planned);
+    private bool HasFellingWork => ui.Manager.WorkOrders.Any(order => order.IsOpen && order.type == ScenarioWorkType.FellTree);
+    public bool HasProgress => Total > 0 && (Done > 0 || PlannedTrees > 0 || HasFellingWork || ui.Manager.Interventions.Count > 0);
+
+    // Explain actual required-route coverage, not merely whether a legal felling proposal can be added.
+    // The tree IDs come from the existing layout selector; no qualification or completion rule is duplicated here.
+    public string PreviewFeedback(RackProposal proposal)
+    {
+        if (Total == 0 || proposal == null || !proposal.CanConfirm) return "";
+        var selected = new HashSet<string>(proposal.TreeIds);
+        int covered = 0, finished = 0;
+        foreach (RackLayoutLine line in Lines)
+        {
+            int added = line.RemainingTreeIds.Count(selected.Contains);
+            covered += added;
+            if (!line.Done && added == line.Remaining) finished++;
+        }
+        if (covered == 0)
+            return "This rack adds no trees on the required access routes, so it will not advance Objective 1. Use Plan rack on Stand Map [M] to choose a marked route.";
+        if (finished > 0)
+            return $"This will fully plan {finished} required access route{(finished == 1 ? "" : "s")}. {Total - Done - finished} of {Total} routes will still need work. Use Plan rack on Stand Map [M] for the rest.";
+        int remaining = Lines.Sum(line => line.Remaining) - covered;
+        return $"Adds {covered} trees on required access routes, but no whole route yet. {remaining} trees on those routes still need planning. Use Plan rack on Stand Map [M] to finish them.";
+    }
+
+    public string ProgressInstruction
+    {
+        get
+        {
+            string next = $"{Done} of {Total} required access routes fully planned; {Total - Done} still need work. Use Plan rack on Stand Map [M] to finish the marked routes.";
+            if (PlannedTrees > 0) return $"{PlannedTrees} trees on the required routes are in your Work Plan. " + next;
+            if (HasFellingWork && Done == 0)
+                return "Your Work Plan has felling work, but none is on the required access routes. " + next;
+            return next;
+        }
+    }
 
     public void Update(bool force = false)
     {

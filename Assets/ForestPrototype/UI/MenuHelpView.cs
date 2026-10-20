@@ -15,6 +15,7 @@ public sealed partial class MenuHelpView
     private readonly Label title, body;
     private readonly ScrollView scroll;
     private readonly Button close, more;
+    private TeachingDiagram premiseDiagram;
     public VisualElement Root { get; }
     public bool IsOpen { get; private set; }
     public Menu CurrentMenu { get; private set; }
@@ -39,6 +40,7 @@ public sealed partial class MenuHelpView
         panel.Add(titleBar);
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
+        scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         scroll.AddToClassList("menu-help-body");
         scroll.style.flexShrink = 1;
         body = UiKit.Add(scroll, "", "body");
@@ -74,6 +76,9 @@ public sealed partial class MenuHelpView
     // F1 and the Help buttons: always the full explanation.
     public void Show(Menu menu) => Display(menu, false);
 
+    // A fresh scenario gets its premise even on a device that has seen HUD help before. Session-only; no new preference/save field.
+    public void ShowScenarioIntroduction() => Display(Menu.WalkingHud, true);
+
     private void Display(Menu menu, bool brief)
     {
         CurrentMenu = menu;
@@ -92,6 +97,12 @@ public sealed partial class MenuHelpView
         bool hasBrief = Summary(menu) != null && (summary != null || ShowingDetail);
         title.text = summary != null ? SummaryTitle(menu) : Title(menu);
         body.text = summary ?? Explanation(menu);
+        if (premiseDiagram != null) premiseDiagram.RemoveFromHierarchy();
+        if (menu == Menu.WalkingHud && summary != null)
+        {
+            premiseDiagram = new TeachingDiagram(-1, "Assess before acting: compare the even-aged starting stand with a forest of varied ages. Schematic, not a promised outcome.");
+            scroll.Add(premiseDiagram);
+        }
         more.style.display = hasBrief ? DisplayStyle.Flex : DisplayStyle.None;
         more.text = summary != null ? MoreDetailLabel : LessDetailLabel;
         scroll.scrollOffset = Vector2.zero;

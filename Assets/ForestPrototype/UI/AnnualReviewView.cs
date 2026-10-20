@@ -69,12 +69,13 @@ public sealed class AnnualReviewView
             if (report == null) { report = latest; viewYear = -1; }
         }
         bool historical = report != null && latest != null && report.year != latest.year;
-        string key = m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents + "|" + m.AnnualReviewSeen + "|" + viewYear + "|" + m.ManagementEvents.Count;
+        bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
+        string key = m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents + "|" + m.AnnualReviewSeen + "|" + viewYear + "|" + m.ManagementEvents.Count + "|" + teachingReview;
         if (!force && key == shownKey)
             return;
         shownKey = key;
         scroll.Clear();
-        acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
+        acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement || teachingReview) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
         // Completion guidance only: after the first review the footer says why this acknowledgement matters. The first review keeps its wording.
         Label acknowledgementPrompt = acknowledgement.Q<Label>();
         if (acknowledgementPrompt != null)
