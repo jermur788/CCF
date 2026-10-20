@@ -81,6 +81,7 @@ public sealed class TeachingDiagram : VisualElement
                 for (int t = -1; t <= 1; t++)
                 {
                     if (lesson == 2 && c == 2 && t == 1) continue;
+                    if (lesson == -1 && c == 1 && t == 0) continue;
                     float size = (lesson == -1 || lesson == 7) && c > 0 ? 15 + (t + 1) * 8 : 26;
                     Tree(x + t * 29, y, size, (lesson == 1 || lesson == 2) && c > 0 && t == 0 ? Gold : Green);
                 }

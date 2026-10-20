@@ -40,6 +40,7 @@ public sealed partial class MenuHelpView
         panel.Add(titleBar);
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
+        scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         scroll.AddToClassList("menu-help-body");
         scroll.style.flexShrink = 1;
         body = UiKit.Add(scroll, "", "body");

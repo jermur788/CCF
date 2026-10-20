@@ -82,7 +82,20 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
             Destroy(image); shots++;
             VisualElement current = ui.RootElement.Q("current-objective");
             if (current != null && Visible(current))
+            {
                 Check(ui.RootElement.worldBound.Contains(current.worldBound.min) && ui.RootElement.worldBound.Contains(current.worldBound.max), "current objective fits " + size);
+                var elements = new[] { "current-objective-title", "current-objective-concept", "current-objective-instruction", "current-objective-progress" }
+                    .Select(name => current.Q<TextElement>(name)).ToArray();
+                foreach (var text in elements)
+                {
+                    Check(text != null && current.worldBound.Contains(text.worldBound.min) && current.worldBound.Contains(text.worldBound.max), "objective text stays inside card " + size);
+                    if (text != null) Check(text.MeasureTextSize(text.text, text.contentRect.width, VisualElement.MeasureMode.AtMost, 0, VisualElement.MeasureMode.Undefined).y <= text.contentRect.height + 2f,
+                        "objective text fully wrapped " + size);
+                }
+                for (int i = 1; i < elements.Length; i++)
+                    if (elements[i-1] != null && elements[i] != null) Check(elements[i-1].worldBound.yMax <= elements[i].worldBound.yMin + 1,
+                        "objective title/concept/action/progress do not overlap " + size);
+            }
         }
     }
     IEnumerator Start()

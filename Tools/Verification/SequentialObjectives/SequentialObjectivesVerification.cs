@@ -21,6 +21,7 @@ public sealed partial class GuidedOnboardingRunner
     IEnumerator LessonShot(string label)
     {
         ui.CloseHelp(); ui.ShowObjectives(); ui.Learning.Refresh(true);
+        ui.Learning.Root.Q<Foldout>("scenario-success-objectives").value = false;
         var scroller = ui.Learning.Root.Q<ScrollView>(); scroller.scrollOffset = Vector2.zero;
         yield return Pause(25);
         string hash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
