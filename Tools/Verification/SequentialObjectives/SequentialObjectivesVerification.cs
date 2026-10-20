@@ -44,6 +44,13 @@ public sealed partial class GuidedOnboardingRunner
         ui.RackLayout.Update(true); ui.Learning.ReloadProgress(); Stage(index, "save/load " + label);
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "save world hash retained: " + label);
     }
+    IEnumerator AcknowledgeResults(string label)
+    {
+        ui.ShowReview(); ui.CloseHelp(); yield return Pause(30);
+        var button = ui.RootElement.Q<Button>("annual-review-acknowledge");
+        Check(button != null && Visible(button) && button.enabledInHierarchy, "reachable saved-review action: " + label);
+        yield return Click(button);
+    }
     IEnumerator VerifySequentialObjectives()
     {
         string[] goalIds = manager.Objectives.Select(o => o.objectiveId).ToArray();
@@ -52,7 +59,7 @@ public sealed partial class GuidedOnboardingRunner
         Stage(1, "post rack, before annual acknowledgement");
         Check(ui.Learning.CurrentInstruction.Contains("Read the Annual Review"), "observation cue precedes crop action");
         RoundTrip(1, "access year boundary");
-        manager.MarkAnnualReviewSeen(); Stage(1, "reviewed but no future tree yet");
+        yield return AcknowledgeResults("access"); Stage(1, "reviewed but no future tree yet");
         yield return LessonShot("02-future-trees");
         var trees = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(t => t.IsLiving && t.CanChop).ToArray();
         ForestTree crop = trees.OrderByDescending(t => t.Diameter).First();
@@ -81,7 +88,7 @@ public sealed partial class GuidedOnboardingRunner
         RoundTrip(4, "second intervention resolved");
         yield return LessonShot("05-response-and-repeated-management");
         ui.ShowReview(); ui.CloseHelp(); yield return Pause(25); yield return Shoot("sequence-history-after-second-intervention");
-        manager.MarkAnnualReviewSeen(); Stage(5, "review unlocks regeneration/protection");
+        yield return AcknowledgeResults("release after N3"); Stage(5, "review unlocks regeneration/protection");
         yield return LessonShot("06-regeneration-and-protection");
         ui.CloseAll();
         foreach (string item in new[] { "beech-sapling", "sessile-oak-sapling" })
@@ -105,11 +112,11 @@ public sealed partial class GuidedOnboardingRunner
         Check(manager.AdvanceYear(), "resolve planting"); Stage(6, "planting year needs later observation");
         RoundTrip(6, "planting time gate");
         yield return LessonShot("07-establishment-advance");
-        manager.MarkAnnualReviewSeen(); Stage(6, "planting-year acknowledgement cannot skip extra year");
+        yield return AcknowledgeResults("planting year"); Stage(6, "planting-year acknowledgement cannot skip extra year");
         ui.CloseAll(); Check(manager.AdvanceYear(), "later observation year"); Stage(6, "later year still needs review");
         RoundTrip(6, "later observation before acknowledgement");
         yield return LessonShot("07-establishment-review");
-        manager.MarkAnnualReviewSeen(); Stage(7, "ongoing transformation, no false scenario completion");
+        yield return AcknowledgeResults("later observation year"); Stage(7, "ongoing transformation, no false scenario completion");
         Check(manager.Outcome == ScenarioOneOutcome.Active, "teaching path does not replace scenario completion or minimum year");
         yield return LessonShot("08-continue-transformation");
         RoundTrip(7, "ongoing transformation");

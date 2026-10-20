@@ -53,6 +53,19 @@ public sealed partial class LearningObjectivesView
         };
     }
 
+    // Expose the existing persisted acknowledgement at later teaching boundaries, even after N3 is satisfied.
+    public bool NeedsReviewAcknowledgement
+    {
+        get
+        {
+            var f = TeachingFacts(); int index = ScenarioOneTeachingSequence.Current(f);
+            if (index == 1) return !f.AccessReviewed;
+            if (index == 4) return !f.ReleaseReviewed;
+            return index == 6 && !ui.Manager.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged
+                && e.year == ui.Manager.CurrentEcologicalYear);
+        }
+    }
+
     private string TeachingInstruction(ScenarioOneTeachingSequence.Facts f)
     {
         int index = ScenarioOneTeachingSequence.Current(f);
@@ -60,6 +73,8 @@ public sealed partial class LearningObjectivesView
             return "The racks are open. Read the Annual Review and choose I've read the annual results. Then walk back to inspect the changed stand before selecting future trees.";
         if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted)
             return "Fallen wood is already present. Review the selected release, costs and retained canopy in Work Plan [Tab]. Approve the work, then Advance one year to see the response.";
+        if (index == 4 && !f.ReviewedTwoCycles && f.ReleaseReviewed)
+            return "Results reviewed. Walk back and reassess the changed forest, then resolve another justified Work Plan in a later year. Your earlier plans had no review between them; this later cycle can demonstrate adaptive management.";
         if (index == 4 && !f.ReviewedTwoCycles)
             return "Read and acknowledge the Annual Review before the next intervention. Reassess the forest and resolve another justified Work Plan in a later year; the scenario needs a reviewed second management cycle.";
         if (index == 6 && f.Year <= f.PlantingYear)
@@ -79,7 +94,7 @@ public sealed partial class LearningObjectivesView
             case 1: return !f.AccessReviewed ? "Rack work done · read the annual results" : $"Future trees selected: {f.CropTrees} · choose at least one";
             case 2: return "Future tree selected · plan a nearby competitor for removal";
             case 3: return (f.ReleaseExecuted ? "Release done" : "Release planned") + (f.DeadwoodExecuted ? " · fallen wood present" : " · fallen wood still needed");
-            case 4: return "Second intervention resolved · review the response before acting again";
+            case 4: return f.ReviewedTwoCycles ? "Second intervention resolved · review the response before acting again" : "Review before later work · a reviewed second cycle is still needed";
             case 5: return $"Beech: {(f.BeechEstablished ? "present" : "still needed")} · sessile oak: {(f.OakEstablished ? "present" : "still needed")}";
             case 6: return $"Planting year {f.PlantingYear} · current year {f.Year}";
             default: return $"Scenario goals met: {ui.Manager.Objectives.Count(o => o.achieved)} of {ui.Manager.Objectives.Count} · review the individual goals below";
