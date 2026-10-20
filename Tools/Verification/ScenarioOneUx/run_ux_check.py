@@ -26,6 +26,7 @@ PURE_SOURCES = [
     "MenuHelpView.Text.cs",
     "LearningObjectivesView.Curriculum.cs",
     "AdvanceGuard.cs",
+    "ScenarioOneTeachingSequence.cs",
     "ControlsReference.cs",
 ]
 

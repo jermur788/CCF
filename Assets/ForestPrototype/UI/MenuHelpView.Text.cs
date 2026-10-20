@@ -28,7 +28,7 @@ public sealed partial class MenuHelpView
             case Menu.WalkingHud:
                 return "You are managing an even-aged Sitka spruce plantation: the trees were planted at the same time.\n\n"
                     + "Your goal is to guide it toward continuous-cover forestry: keeping tree cover as the woodland renews, while keeping it productive and making room for the next generation of trees.\n\n"
-                    + "You will learn the management process one step at a time. Start by creating access racks so forestry work can take place through the stand.\n\n"
+                    + "Learn one step at a time. Before acting, compare rows, tree sizes and ground light. Start by creating access racks.\n\n"
                     + "Close this introduction, then press O for your current objective, or B to choose the start of your first rack.";
             case Menu.Rack:
                 return "Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Click a tree or ground point where the rack should start. The start stays fixed while you aim. The preview extends forward only. Click again to add it to the Work Plan; right-click reselects the start, and Esc cancels. Nothing is cut until you approve the plan.";

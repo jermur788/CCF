@@ -9,9 +9,6 @@ public sealed partial class LearningObjectivesView
 {
     private readonly ScenarioOneUiRoot ui;
     private readonly HashSet<string> done = new HashSet<string>();
-    // Current-session teaching actions are transient. Device-wide practice credits remain in the existing preference keys.
-    // Only actions observed while their lesson is current can move the guide on; old credits cannot skip objective 2.
-    private readonly HashSet<string> guidedActions = new HashSet<string>();
     private readonly ScrollView scroll;
     private readonly Label progress;
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
@@ -23,22 +20,16 @@ public sealed partial class LearningObjectivesView
     public bool IsDone(string id) => done.Contains(id);
     public int CompletedSteps => done.Count;
     private string shownGuidance = "";
-    public int CurrentTopicIndex => GuidedTopicIndex(
-        ui.Ecology != null && ScenarioOneRackLayout.AppliesTo(ui.Ecology.StandGeometryModelVersion),
-        ui.RackLayout != null && ui.RackLayout.Harvested, ui.Manager.CurrentEcologicalYear, GuidedIsDone);
-    private bool GuidedIsDone(string id) => guidedActions.Contains(id)
-        || (IsDone(id) && Topics.SelectMany(topic => topic.Steps).Any(step => step.Id == id && step.Reading));
+    public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());
     public bool TeachingRacks => CurrentTopicIndex == 0;
-    public string CurrentTitle => Topics[CurrentTopicIndex].Title;
+    public string CurrentTitle => ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex].Title;
     public string CurrentInstruction
     {
         get
         {
             if (!TeachingRacks)
             {
-                Topic topic = Topics[CurrentTopicIndex];
-                Step next = topic.Steps.FirstOrDefault(step => !step.Reading && !GuidedIsDone(step.Id));
-                return next != null ? next.Text : topic.Text;
+                return TeachingInstruction(TeachingFacts());
             }
             RackLayoutTracker layout = ui.RackLayout;
             if (layout != null && layout.Complete)
@@ -94,7 +85,6 @@ public sealed partial class LearningObjectivesView
     public void ReloadProgress()
     {
         done.Clear();
-        guidedActions.Clear();
         foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
         shownCount = -1;
     }
@@ -102,7 +92,6 @@ public sealed partial class LearningObjectivesView
     public void Record(string id)
     {
         if (!StepIds.Contains(id)) return;
-        if (Topics[CurrentTopicIndex].Steps.Any(step => step.Id == id)) guidedActions.Add(id);
         if (done.Contains(id)) return;
         done.Add(id);
         PlayerPrefs.SetInt(PreferencePrefix + id, 1);
@@ -118,6 +107,7 @@ public sealed partial class LearningObjectivesView
 
     public void Refresh(bool force)
     {
+        if (force) sequenceFacts = null;
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
         bool market = ui.Manager.BroadleafMarketActive;
         string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));
@@ -137,20 +127,24 @@ public sealed partial class LearningObjectivesView
         current.style.borderLeftColor = new Color(0.91f, 0.81f, 0.47f);
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
+        var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
+        UiKit.Add(current, lesson.Concept, "body").name = "current-objective-concept";
         UiKit.Add(current, CurrentInstruction, "body").name = "current-objective-instruction";
-        Topic active = Topics[CurrentTopicIndex];
+        UiKit.Add(current, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
         if (TeachingRacks)
         {
-            UiKit.Add(current, "Racks are planned access routes through the plantation. They let forestry workers reach trees and bring timber out. Their layout shapes how the woodland can be managed later.", "body");
             current.Add(new RackLessonDiagram());
-            UiKit.Add(current, "The clear strip is the rack. Standing trees remain on either side. Start near the woodland edge and aim along a row to open it forward from your chosen point.", "muted");
+            UiKit.Add(current, lesson.Caption, "muted");
         }
-        else UiKit.Add(current, active.Text, "body");
-        var details = new Foldout { text = "Learn why / lesson details", value = expanded.TryGetValue(active.Title, out bool detailsOpen) && detailsOpen };
-        details.RegisterValueChangedCallback(e => expanded[active.Title] = e.newValue);
-        BuildTopic(details, active, regenerationModel, market, true);
-        current.Add(details);
+        else current.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
         scroll.Add(current);
+        var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
+        for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");
+        if (CurrentTopicIndex == 0) UiKit.Add(completed, "Your first lesson is in progress.", "muted");
+        scroll.Add(completed);
+        var later = new Foldout { text = "Later in this scenario", value = false, name = "future-lessons" };
+        UiKit.Add(later, "Observe the consequences, favour future trees, secure young trees and repeat the management cycle. Lessons follow your forest and saved work history.", "muted");
+        scroll.Add(later);
 
         var success = new Foldout { text = "All scenario goals", value = expanded.TryGetValue("goals", out bool goalsOpen) && goalsOpen, name = "scenario-success-objectives" };
         success.RegisterValueChangedCallback(e => expanded["goals"] = e.newValue);
@@ -170,18 +164,18 @@ public sealed partial class LearningObjectivesView
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
     }
 
-    private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market, bool current = false)
+    private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market)
     {
         UiKit.Add(parent, topic.Steps[0].Id == "clear.read" ? ClearanceExplanation(regenerationModel) : topic.Text, "body");
         foreach (Step step in topic.Steps)
         {
-            bool complete = current ? GuidedIsDone(step.Id) : IsDone(step.Id);
+            bool complete = IsDone(step.Id);
             VisualElement card = UiKit.Box("card");
             UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
             UiKit.Add(card, StepText(step, market), "body");
             if (step.Reading && !complete)
             {
-                bool ready = step.Requires == null || (current ? GuidedIsDone(step.Requires) : IsDone(step.Requires));
+                bool ready = step.Requires == null || IsDone(step.Requires);
                 Button read = UiKit.Button("I've read and understood this", () => { Record(step.Id); Refresh(true); }, ready);
                 read.name = "learn-" + step.Id;
                 card.Add(read);

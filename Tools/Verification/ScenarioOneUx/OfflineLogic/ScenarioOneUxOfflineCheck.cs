@@ -19,6 +19,7 @@ public static class ScenarioOneUxOfflineCheck
 
     public static int Main(string[] args)
     {
+        SequentialLessons();
         SavedProgressKeys();
         RoleBriefing();
         AdvanceWarning();
@@ -29,6 +30,36 @@ public static class ScenarioOneUxOfflineCheck
         StaleCopyScan(args.Length > 0 ? args[0] : null);
         Console.WriteLine(failures == 0 ? $"SCENARIO_ONE_UX_PASS checks={checks}" : $"SCENARIO_ONE_UX_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
+    }
+
+    private static void SequentialLessons()
+    {
+        var f = new ScenarioOneTeachingSequence.Facts();
+        void Stage(int n, string why) => Check(ScenarioOneTeachingSequence.Current(f) == n, why);
+        Stage(0, "access first"); f.Year = 9; Stage(0, "idle years never replace rack work");
+        f.AccessOpen = true; Stage(1, "post-access observation before selection");
+        f.CropTrees = 3; Stage(1, "early marks cannot bypass access review");
+        f.AccessReviewed = true; f.CropTrees = 0; Stage(1, "positive selection required");
+        f.CropTrees = 1; Stage(2, "one meaningful crop tree, no arbitrary quota");
+        f.ReleasePlanned = true; Stage(3, "habitat decision before release execution");
+        f.DeadwoodExecuted = true; Stage(3, "deadwood alone cannot replace selective release");
+        f.ReleaseExecuted = true; Stage(4, "return to review after second intervention");
+        f.ReleaseReviewed = true; Stage(4, "review chronology still authoritative");
+        f.ReviewedTwoCycles = true; Stage(5, "next generation follows reviewed repeat management");
+        f.BeechEstablished = true; Stage(5, "both existing introduced species goals retained");
+        f.OakEstablished = true; f.PlantingYear = f.Year; Stage(6, "planting year not enough observation time");
+        f.EstablishmentReviewed = true; Stage(6, "early review does not remove year gate");
+        f.Year++; f.EstablishmentReviewed = false; Stage(6, "later annual results need acknowledgement");
+        f.EstablishmentReviewed = true; Stage(7, "ongoing synthesis after later observation");
+        f.Year += 5; Stage(7, "multiple extra years do not corrupt sequence");
+        f.OakEstablished = false; Stage(5, "loss of introduced species gives useful recovery lesson");
+        Check(ScenarioOneTeachingSequence.Lessons.Length == 8, "eight teaching lessons separate from scenario predicates");
+        Check(ScenarioOneTeachingSequence.Lessons.Select(l => l.Id).Distinct().Count() == 8, "unique stable teaching IDs");
+        foreach (var lesson in ScenarioOneTeachingSequence.Lessons)
+        {
+            Check(!string.IsNullOrWhiteSpace(lesson.Concept) && !string.IsNullOrWhiteSpace(lesson.Action), "why and action: " + lesson.Id);
+            Check(!string.IsNullOrWhiteSpace(lesson.Caption), "visual brief: " + lesson.Id);
+        }
     }
 
     private static void Check(bool ok, string name, string detail = "")

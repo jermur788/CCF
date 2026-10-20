@@ -36,8 +36,9 @@ public static class GuidedOnboardingVerification
     }
 }
 
-public sealed class GuidedOnboardingRunner : MonoBehaviour
+public sealed partial class GuidedOnboardingRunner : MonoBehaviour
 {
+    partial void AddSequenceChecks(List<IEnumerator> extras);
     ScenarioOneUiRoot ui;
     ScenarioOneManager manager;
     ForestSaveController saves;
@@ -220,6 +221,8 @@ public sealed class GuidedOnboardingRunner : MonoBehaviour
         ui.ShowObjectives(); yield return Pause(25);
         Check(ui.RootElement.Q<Foldout>("scenario-success-objectives") != null, "full goals remain accessible after progression");
         yield return Shoot("12-objective-two-after-year");
+        var extras = new List<IEnumerator>(); AddSequenceChecks(extras);
+        foreach (var extra in extras) yield return extra;
     }
     // Focused FIX-1 regression: compare feedback predictions with actual existing work/layout results.
     IEnumerator VerifyRackFeedback()
