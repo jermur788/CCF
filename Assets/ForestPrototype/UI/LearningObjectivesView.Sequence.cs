@@ -17,13 +17,20 @@ public sealed partial class LearningObjectivesView
         var routes = ui.RackTool != null && ui.RackTool.Planner != null ? ui.RackTool.Planner.LayoutLines : null;
         if (routes != null && routes.Count > 0)
             firstFellingYear = orders.Where(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Completed
+                && o.targetTreeId.StartsWith("P", System.StringComparison.Ordinal)
                 && routes.Any(z => Mathf.Abs(o.worldPosition.z - z) <= RackGeometry.DefaultWidthM * .5f))
                 .Select(o => o.resolvedYear).DefaultIfEmpty(int.MaxValue).Max();
         var laterFelling = orders.Where(o => o.type == ScenarioWorkType.FellTree && o.createdYear >= firstFellingYear).ToList();
         // The real competition cutoff identifies a relevant neighbour, without prescribing a release percentage.
         // This is a teaching predicate only, never a work-validation or scenario-completion rule.
-        var cropTrees = Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t.IsLiving && t.IsCropTree).ToList();
+        var trees = Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None);
+        var cropTrees = trees.Where(t => t.IsLiving && t.IsCropTree).ToList();
+        // The original plantation P-ID contract is also used by RackPlanner to recover the authored rows.
+        // Later recruitment in an access corridor needs maintenance, not a restart of the first lesson.
+        var originalAccessTrees = routes != null ? trees.Where(t => t.TreeId.StartsWith("P", System.StringComparison.Ordinal)
+            && routes.Any(z => Mathf.Abs(t.transform.position.z - z) <= RackGeometry.DefaultWidthM * .5f)).ToList() : null;
+        bool originalAccessOpen = originalAccessTrees != null && originalAccessTrees.Count > 0
+            && originalAccessTrees.All(t => !t.CanChop || t.IsCropTree);
         bool NearCrop(ScenarioOneWorkOrder o) => cropTrees.Any(t => t.TreeId != o.targetTreeId && Vector2.Distance(
             new Vector2(t.transform.position.x, t.transform.position.z),
             new Vector2(o.worldPosition.x, o.worldPosition.z)) <= ForestEcologyController.HegyiCutoffMeters);
@@ -39,7 +46,7 @@ public sealed partial class LearningObjectivesView
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
             AccessOpen = ui.RackLayout != null && ui.RackLayout.Total > 0
-                ? ui.RackLayout.Harvested && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
+                ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
             AccessReviewed = Reviewed(firstFellingYear), CropTrees = cropTrees.Count,
             ReleasePlanned = plannedRelease, ReleaseExecuted = release.Count > 0,
             DeadwoodExecuted = Goal("fallen-deadwood") || m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.WorkResolved

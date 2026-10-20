@@ -123,6 +123,20 @@ public sealed partial class GuidedOnboardingRunner
         ui.CloseAll(); Check(manager.AdvanceYear() && manager.AdvanceYear(), "multiple advances after teaching path"); Stage(7, "extra advances preserve valid progression");
         Check(goalIds.SequenceEqual(manager.Objectives.Select(o => o.objectiveId)) && targets.SequenceEqual(manager.Objectives.Select(o => o.targetValue)), "all eight goal IDs and targets unchanged");
         Check(ForestSaveData.CurrentVersion == 20, "no save schema change");
+        // A later generation can refill an original access corridor. The real rack tool should report maintenance;
+        // a completed teaching lesson must not restart. This is a disposable stand-in for a promoted young tree.
+        string beforeRegrowth = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        var originalTree = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).First(t => t.CanChop);
+        var regrowth = Instantiate(originalTree.gameObject).GetComponent<ForestTree>();
+        typeof(ForestTree).GetField("treeId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(regrowth, "REGROWTH_TEACHING_CHECK");
+        regrowth.SetMark(TreeMarkType.None);
+        regrowth.transform.position = new Vector3(0, originalTree.transform.position.y, ui.RackTool.Planner.LayoutLines[0]);
+        ui.RackLayout.Update(true);
+        Check(!ui.RackLayout.Harvested, "live rack tracker still reports actual later regrowth");
+        Stage(7, "later access maintenance does not restart initial lesson");
+        Destroy(regrowth.gameObject); yield return Pause(2); ui.RackLayout.Update(true);
+        Check(beforeRegrowth == ScenarioReferenceArchive.WorldHash(saves.CaptureData()), "regrowth fixture removed without changing saved world");
     }
 }
 #endif

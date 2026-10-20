@@ -26,7 +26,7 @@ The browser proposal informed the curriculum; it is not an accepted silvicultura
 
 - Main concept: deliberate permanent access, before later management of retained trees.
 - Action: choose origin, aim forward, confirm; finish authored routes with map assistance; review costs, approve and execute.
-- Completion: existing `RackLayoutTracker.Harvested` with ecological year > 0. Legacy geometry uses completed felling as its available access proxy; no new authored layout is invented.
+- Completion: the original plantation trees on the existing authored corridor coordinates are no longer fellable non-Crop Trees, with ecological year > 0. This matches the initial rack tracker requirement; later recruitment does not restart the lesson, while the real rack tracker continues to report maintenance. The existing P-ID namespace already identifies plantation rows in RackPlanner. Legacy geometry uses completed felling as its available access proxy; no new authored layout is invented.
 - Time: explicit annual resolution, normally year 0 → 1. No next concept before execution. Pending/approved phases retain rack guidance.
 - Observe afterward: opened route and standing trees either side, compared with annual work/cost results in lesson 2.
 - Explanation: permanent routes let later work reach trees while retaining the forest between them.
@@ -51,7 +51,7 @@ The browser proposal informed the curriculum; it is not an accepted silvicultura
 - Main concept: selective competitor removal, retaining forest structure.
 - Why here: positive selection gives a reason for removal, rather than a target felling percentage.
 - Action: inspect crop-tree competitors, mark a relevant neighbour and bring it into Work Plan; read predicted release and residual stand.
-- Completion: a valid open felling order created in/after the last resolved access-route felling year, within the existing Hegyi competition cutoff of a living Crop Tree; or completed later felling within that same competition cutoff. Access chronology uses the existing authored corridor coordinates/width to exclude split-year rack work from later release evidence.
+- Completion: a valid open felling order created in/after the last resolved access-route felling year, within the existing Hegyi competition cutoff of a living Crop Tree; or completed later felling within that same competition cutoff. Access chronology uses completed original P-ID felling and the existing authored corridor coordinates/width to exclude split-year rack work from later release evidence.
 - Time: no advance yet. The following material/habitat decision belongs before execution.
 - Observe afterward: review predicted versus actual response after execution; do not promise growth in one year.
 - Explanation: a selected neighbour may restrict growing space; more felling is not automatically better.
