@@ -1009,18 +1009,13 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
             float dbhPotential = treeSpecies.PotentialDbhGrowthCmPerYear * site *
                                  Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);
-            float heightPotential = treeSpecies.PotentialHeightGrowthMPerYear * site *
-                                    Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
-            // Optional age phases (Scenario Two species foundation). A species with no phases skips this block, so
-            // the arithmetic for Sitka, Oak and Beech is exactly the original.
-            if (treeSpecies.HasGrowthAgePhases)
-            {
-                treeSpecies.GrowthAgeFactors(tree.AgeYears, out float dbhPhaseFactor, out float heightPhaseFactor);
-                dbhPotential *= dbhPhaseFactor;
-                heightPotential *= heightPhaseFactor;
-            }
             float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));
-            float heightGrowth = heightPotential;
+            float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
+                                 Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+            // Keep the no-phase arithmetic and its locals in their original layout: the
+            // legacy Mono lifecycle anchors depend on the exact floating-point evaluation.
+            if (treeSpecies.HasGrowthAgePhases)
+                ApplyGrowthAgeFactors(treeSpecies, tree.AgeYears, ref dbhGrowth, ref heightGrowth);
             // Growth model 1: Sitka follows the Class III site envelope, keeping
             // its relative height. Other species keep the legacy height law.
             if (UsesSiteClassGrowth && SameSpeciesId(treeSpecies, SitkaGrowthModel.SpeciesId))
@@ -1033,6 +1028,14 @@ public sealed partial class ForestEcologyController : MonoBehaviour
             tree.SetAgeYears(tree.AgeYears + yearsApplied);
             annualDbhGrowth[tree] = dbhGrowth;
         }
+    }
+
+    private static void ApplyGrowthAgeFactors(TreeSpeciesDefinition species, int ageYears,
+        ref float dbhGrowth, ref float heightGrowth)
+    {
+        species.GrowthAgeFactors(ageYears, out float dbhFactor, out float heightFactor);
+        dbhGrowth *= dbhFactor;
+        heightGrowth *= heightFactor;
     }
 
     private static bool SameSpeciesId(TreeSpeciesDefinition species, string speciesId)

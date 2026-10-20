@@ -430,13 +430,12 @@ public static class ScenarioTwoSpeciesFoundationOfflineCheck
         int mast = eco.IndexOf("float mastMultiplier = GetMastMultiplier(targetSpecies);", StringComparison.Ordinal);
         Check("G_SEED_RAIN_GATE_SITS_AFTER_REGISTRATION_AND_BEFORE_ANY_SEED_ACCUMULATION", register > 0 && gate > register && mast > gate);
         Check("G_ADULT_GROWTH_USES_PHASES_ONLY_WHEN_THEY_EXIST",
-            Regex.IsMatch(eco, @"if \(treeSpecies\.HasGrowthAgePhases\)\s*\{\s*treeSpecies\.GrowthAgeFactors\(tree\.AgeYears"));
+            Regex.IsMatch(eco, @"if \(treeSpecies\.HasGrowthAgePhases\)\s*ApplyGrowthAgeFactors\(treeSpecies, tree\.AgeYears"));
         string flat = Regex.Replace(eco, @"\s+", " ");
         Check("G_THE_LEGACY_GROWTH_EXPRESSIONS_ARE_PRESERVED_VERBATIM",
             flat.Contains("float dbhPotential = treeSpecies.PotentialDbhGrowthCmPerYear * site * Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);")
-            && flat.Contains("float heightPotential = treeSpecies.PotentialHeightGrowthMPerYear * site * Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);")
-            && flat.Contains("float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));")
-            && flat.Contains("float heightGrowth = heightPotential;"));
+            && flat.Contains("float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site * Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);")
+            && flat.Contains("float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));"));
         string marking = File.ReadAllText(Path.Combine(fp, "ForestTreeMarkingManager.cs"));
         Check("G_THE_THINNING_FORECAST_USES_THE_SAME_PHASES", marking.Contains("treeSpecies.HasGrowthAgePhases") && marking.Contains("GrowthAgeFactors(tree.AgeYears"));
         string spawner = File.ReadAllText(Path.Combine(fp, "ForestTreeSpawner.cs"));
