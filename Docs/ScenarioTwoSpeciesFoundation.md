@@ -7,7 +7,8 @@ candidate), locked CONTEXT `36cd791b329189e0ae38931d06ae51af1a1173ce`, branch
 decision authority.
 
 **Status: foundation only.** It makes the three species *representable* without silently inheriting Sitka behaviour. It does
-not calibrate them: **growth, juvenile light response and (for pine) browse and seed behaviour are deliberately on HOLD**, so
+not calibrate them: **growth and juvenile light responses remain on HOLD for all three, browse remains on HOLD for pine, and
+the wind kernel remains on HOLD for alder**, so
 none of the three species is simulation-ready yet, and none is registered in any scene or save.
 
 ## 1. What changed
@@ -17,11 +18,11 @@ none of the three species is simulation-ready yet, and none is registered in any
 | Explicit configuration | `SpeciesParameterState` (Unspecified / Set / Placeholder / Hold), `NaturalSeedDispersal` (Unspecified / None / Wind / WindAndWater), `GrowthAgePhase`, and a pure `SpeciesConfigurationPolicy` that decides whether a definition is valid and simulation-ready | `SpeciesConfigurationPolicy.cs` (new, no UnityEngine) |
 | Species definition | Six new serialized fields (`growthState`, `growthAgePhases`, `browseState`, `juvenileLightState`, `naturalSeedDispersal`, `seedKernelState`) and read-only properties. **No existing default was changed.** | `TreeSpeciesDefinition.cs` |
 | Registration | Only simulation-ready species are registered (`KnownSpecies`) or resolved (`ResolveSpecies`); an unready species is reported once in `Awake` | `ForestTreeSpawner.cs` |
-| Age phases | Adult growth multiplies the potential increments by the factors of the tree's age phase; no phases = the original expression, unchanged | `ForestEcologyController.cs` (`GrowAdults`), `ForestTreeMarkingManager.cs` (thinning forecast) |
+| Age phases | Adult growth applies age-phase factors to DBH and height increments; the no-phase expression and local-variable layout retain the original exact arithmetic | `ForestEcologyController.cs` (`GrowAdults`), `ForestTreeMarkingManager.cs` (thinning forecast) |
 | Seed rain | Planting-only and undeclared species put no seed on the ground (gate after species registration, before any accumulation) | `ForestEcologyController.cs` (`ComputeSpeciesSeedRain`) |
 | Site rules | Scenario Two rows appended to the dormant site data (`ScenarioTwoSpeciesSiteResponses`); the Scenario One catalog is untouched | `SpeciesSiteResponse.cs` (additive only) |
 | Species data | Three new assets in their own folder | `Species/ScenarioTwo/{ScotsPine,DownyBirch,CommonAlder}.asset` |
-| Verification | Offline check and runner, site-rules check, in-Editor check (not yet run) | `Tools/Verification/ScenarioTwoSpeciesFoundation/`, `Tools/Verification/SiteInfrastructure/` |
+| Verification | Offline check and runner, site-rules check, in-Editor runtime checks | `Tools/Verification/ScenarioTwoSpeciesFoundation/`, `Tools/Verification/SiteInfrastructure/` |
 
 Not touched: the Sitka, Oak and Beech assets, `SitkaGrowthModel.cs`, the density model, juvenile rules, the save and
 reference-archive code, scenes, packages, project settings. The runner proves this by git blob id against BASE.
@@ -122,13 +123,33 @@ the alder wind kernel, juvenile light responses, pine browse, ramp lengths, mast
 
 ## 8. Verification
 
-Run on this branch (offline, no Unity): `python3 -I Tools/Verification/ScenarioTwoSpeciesFoundation/run_species_foundation_check.py`
-(83 checks plus the scope check against BASE), `python3 -I Tools/Verification/SiteInfrastructure/run_scenario_two_site_check.py`
-(12), and the existing offline suites. **Not run: any Unity step.** The in-Editor check
-`Tools/Verification/ScenarioTwoSpeciesFoundation/UnityLogic/ScenarioTwoSpeciesFoundationVerification.cs` is written and
-compile-checked only. When Unity is available it needs: compile/import of the new assets, that check, then the existing Scenario One
-gates for the "unchanged" requirement (Reference continuation hash, completion anchors `702766DECE591E21` and the model-2 anchor,
-Oak/Beech growth, mixed density, browsing, juvenile mortality).
+Completion verification is recorded under
+`/media/jer/ZX20/CCF-Verification/ScenarioTwoSpeciesFoundationComplete-20261020T100426Z/` (see `HANDOFF.md` for the exact source
+and candidate commits, receipts, remaining HOLDs and operational release). The Unity cache is the Manager-authorised linked
+root `/media/jer/Files/CCF-UnityCache/U2/project`; source and evidence remain on ZX20. Unity version: 6000.6.0f1.
+
+- Offline: species foundation 83 checks and all 28 protected-file comparisons; Scenario Two site rules 12; existing site
+  infrastructure 63. The new site catalog remains dormant.
+- Runtime: all 27 species foundation checks passed. The gate checks real asset import, readiness,
+  empty-ID default resolution, age phases, planting-only seed behaviour, per-species wind cutoffs, alder wind beyond 30 m, authored-only colonisation and non-zero browsing. Run this
+  gate with `CCF_STAND_GEOMETRY=1`: the seed-distance fixture needs Enlarged80; Legacy40 cannot reach its far-distance probe.
+- Protected regressions: all 21 simulation/save/economy gates passed on the final source. Supplemental mixed density
+  (34 checks), broadleaf adult growth (16 checks), and historical growth-model-1 completion (`702766DECE591E21`) also passed.
+  Exact receipts are listed in the handoff. Historical lifecycle checks use
+  `CCF_STAND_GEOMETRY=0`; frozen anchors are never rebaselined. No graphical UI, standalone Player or native-Windows claim is made.
+
+**Regression found and fixed during completion.** The first candidate (`ac4f34c`) passed the feature checks but failed eight
+legacy/reference gates. A same-environment detached BASE comparison passed all eight. The extra `heightPotential` local and
+reordered growth calculations had perturbed the Mono floating-point path. The fix restores the original DBH/height declarations
+and their order, and places the optional phase-factor locals in a helper reached only by phased species. Targeted canonical
+verification restored `BFC55473C1506067` (neutral) and `3485B6630C9EA448` (normal browsing), with the full growth gate also restoring
+`962846D2F517B293` / `FBB8F470D85FF815` (regeneration 1) and `7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE` (growth 1). Earlier failed receipts
+are retained for audit. The current model-2 completion fingerprint also matches the pinned BASE receipt exactly
+(`9C77EB4BEE427FB9`); the original candidate had drifted to `FE4AE5F67F45404C` despite passing the round-trip-only completion
+assertion. A separate readiness fix rejects an unready default when `ResolveSpecies` receives null or an empty ID.
+
+Production pine, birch and alder remain **not simulation-ready**. These checks qualify the foundation and synthetic fixtures;
+they do not supply ecological calibration or release any HOLD.
 
 ## 9. To calibrate a species later
 

@@ -11,7 +11,8 @@ Two parts, neither needing Unity:
      OfflineLogic/ScenarioTwoSpeciesFoundationOfflineCheck.cs, and the check is run against this repository's files.
 
 It proves pure rules, the text of the species assets and the source wiring. It does NOT prove Unity import/compile, that a
-ScriptableObject loads, or any runtime behaviour or anchor hash. The Unity-side check is in UnityLogic/ and has NOT been run.
+ScriptableObject loads, or any runtime behaviour or anchor hash. The Unity-side check is in UnityLogic/;
+runtime evidence is recorded in Docs/ScenarioTwoSpeciesFoundation.md.
 
 Usage: run_species_foundation_check.py [--base SHA] [--out DIR]
 Exit code 0 and SCENARIO_TWO_SPECIES_FOUNDATION_PASS on success. Needs `git` and `dotnet` (SDK 8+).
