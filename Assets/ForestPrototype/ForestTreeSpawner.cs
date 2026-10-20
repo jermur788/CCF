@@ -95,7 +95,7 @@ public sealed class ForestTreeSpawner : MonoBehaviour
     public TreeSpeciesDefinition ResolveSpecies(string speciesId)
     {
         if (string.IsNullOrEmpty(speciesId))
-            return defaultSpecies;
+            return defaultSpecies != null && defaultSpecies.IsSimulationReady ? defaultSpecies : null;
         if (defaultSpecies != null && defaultSpecies.SpeciesId == speciesId)
             return defaultSpecies.IsSimulationReady ? defaultSpecies : null;
         if (speciesVisualSets != null)

@@ -28,12 +28,13 @@ using UnityEditor.SceneManagement;
 //
 // Fixture species use MADE-UP numbers to exercise the rules. They are NOT species values and are never saved.
 //
-// STATUS: written and compile-checked against the Unity 6000.6.0f1 managed assemblies with Roslyn. NOT YET RUN IN UNITY.
+// STATUS: run in Unity 6000.6.0f1; see the task handoff for the exact candidate and evidence.
 // It does not replace the existing Scenario One gates; run those for the "unchanged" requirement (see
 // Docs/ScenarioTwoSpeciesFoundation.md, Verification).
 //
 // Copy into Assets/ForestPrototype, run with
-//   CCF_STAND_GEOMETRY=0 <UNITY> -batchmode -nographics -executeMethod ScenarioTwoSpeciesFoundationVerification.Begin
+//   CCF_STAND_GEOMETRY=1 <UNITY> -batchmode -nographics -executeMethod ScenarioTwoSpeciesFoundationVerification.Begin
+// Enlarged80 is required by the seed-distance fixture (Legacy40 cannot reach beyond 30 m).
 // then remove the copy and its .meta. Saves are captured/restored in memory only; the scene is never saved.
 public static class ScenarioTwoSpeciesFoundationVerification
 {
@@ -255,6 +256,24 @@ public sealed class ScenarioTwoSpeciesFoundationVerificationRunner : MonoBehavio
         RegisterInSpawner(ready);
         Pass("U3_READY_SPECIES_IS_REGISTERED", spawner.KnownSpecies.Any(s => s.SpeciesId == "s2-ready") && spawner.ResolveSpecies("s2-ready") == ready, "registered and resolvable");
         RestoreSpawner();
+        FieldInfo defaultField = typeof(ForestTreeSpawner).GetField("defaultSpecies", BindingFlags.NonPublic | BindingFlags.Instance);
+        TreeSpeciesDefinition originalDefault = (TreeSpeciesDefinition)defaultField.GetValue(spawner);
+        try
+        {
+            defaultField.SetValue(spawner, minimal);
+            Pass("U3_UNREADY_DEFAULT_CANNOT_BYPASS_RESOLUTION_WITH_AN_EMPTY_ID",
+                spawner.ResolveSpecies(null) == null && spawner.ResolveSpecies("") == null
+                && spawner.ResolveSpecies(minimal.SpeciesId) == null
+                && !spawner.KnownSpecies.Contains(minimal), "null, empty and explicit IDs all reject the unready default");
+            defaultField.SetValue(spawner, ready);
+            Pass("U3_READY_DEFAULT_RESOLVES_WITH_AN_EMPTY_ID",
+                spawner.ResolveSpecies(null) == ready && spawner.ResolveSpecies("") == ready,
+                "the default fallback remains available for a ready species");
+        }
+        finally
+        {
+            defaultField.SetValue(spawner, originalDefault);
+        }
 
         // ---- U4: age phases in the real adult growth
         TreeSpeciesDefinition phased = Fixture("s2-phased");
