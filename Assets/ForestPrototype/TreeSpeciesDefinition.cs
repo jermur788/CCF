@@ -26,7 +26,7 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [SerializeField, Min(0.01f)] private float ci50 = 3f;
 
     [Header("Density (growth model 2)")]
-    [Tooltip("[ORD] Ordinal growing-space demand of one stem relative to the Sitka reference (see MixedDensityModel). Reference = Sitka: a stand of only Reference trees keeps the original Sitka density route. Intermediate and High stems take more of the stand's growing space than a Reference stem of the same size, so a stand containing them reaches density pressure sooner. An ordinal rank with a coarse [C] weight, not a measured Oak/Beech density relationship. Only read by growth model 2.")]
+    [Tooltip("[ORD] Ordinal growing-space demand of one stem relative to the Sitka reference (see MixedDensityModel). Reference = Sitka: a stand of only Reference trees keeps the original Sitka density route. Intermediate and High stems take more of the stand's growing space than a Reference stem of the same size, so a stand containing them reaches density pressure sooner. An ordinal rank with a coarse [C] weight, not a measured density relationship for any species; Intermediate for Scots pine, downy birch and common alder is an initial ORDINAL PLACEHOLDER, not a shared measured maximum-density coefficient. Reference is reserved for sitka-spruce: any other species set to Reference is invalid (SpeciesConfigurationPolicy) and is not registered. Only read by growth model 2.")]
     [SerializeField] private GrowingSpaceDemandClass growingSpaceDemand = GrowingSpaceDemandClass.Reference;
 
     [Header("Crown")]
@@ -107,6 +107,20 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     [Tooltip("[E transferred ~1.8 m deer reach; S taper] Height (m) at which ordinary leader browsing stops.")]
     [SerializeField, Min(0.01f)] private float browseEscapeHeightM = 1.8f;
 
+    [Header("Explicit configuration (Scenario Two species foundation)")]
+    [Tooltip("Whether growth (potential increments, size bounds, Ci50, crown envelope, form ratio) was filled in for this species. Unspecified is invalid for any species except the three established Scenario One species. Hold = deliberately not set; the species is then not simulation-ready and the numeric growth fields are inert sentinels.")]
+    [SerializeField] private SpeciesParameterState growthState;
+    [Tooltip("[C] Optional age phases of adult growth: factors that multiply the potential DBH and height increments from the stated tree age onward. Empty = one fixed increment for life (every established species). The first phase must start at age 0. The factors are relative to the species' own potential increments; no species asset supplies a phase table yet.")]
+    [SerializeField] private GrowthAgePhase[] growthAgePhases = new GrowthAgePhase[0];
+    [Tooltip("Whether browse susceptibility was declared. Unspecified is invalid for any new species because a palatability of 0 makes it browse-proof. Set with palatability 0 declares browse-proof deliberately. Hold = not set (species not simulation-ready).")]
+    [SerializeField] private SpeciesParameterState browseState;
+    [Tooltip("Whether the juvenile light-response arrays (establishment, survival, growth) were filled in for this species rather than inheriting the legacy Sitka-calibrated response.")]
+    [SerializeField] private SpeciesParameterState juvenileLightState;
+    [Tooltip("How seed reaches the ground. None = planting-only (no seed rain). Wind = the existing exponential wind kernel. WindAndWater = the same wind kernel plus a declared water-dispersal capability; the simulation has no water carrier, so nothing is moved by water. Unspecified: established species keep the existing wind behaviour, any other species does not disperse.")]
+    [SerializeField] private NaturalSeedDispersal naturalSeedDispersal;
+    [Tooltip("Whether the wind-kernel fields (scale, cutoff, maturity onset and ramp, seed potential, mast regime) were filled in for this species rather than inheriting the Sitka values. Only read when naturalSeedDispersal is Wind or WindAndWater.")]
+    [SerializeField] private SpeciesParameterState seedKernelState;
+
     [Header("Wind risk (diagnostic only)")]
     [Tooltip("[D] Stand wind susceptibility multiplier. The Irish empirical model is stand-level and is not used as annual individual mortality.")]
     [SerializeField, Min(0f)] private float standWindSusceptibility = 1f;
@@ -158,6 +172,76 @@ public sealed class TreeSpeciesDefinition : ScriptableObject
     public float StandWindSusceptibility => standWindSusceptibility;
     public float WindOpeningWeight => windOpeningWeight;
     public float WindThinningHalfLifeYears => windThinningHalfLifeYears;
+
+    // ---- Explicit configuration (Scenario Two species foundation) ----
+    public SpeciesParameterState GrowthState => growthState;
+    public SpeciesParameterState BrowseState => browseState;
+    public SpeciesParameterState JuvenileLightState => juvenileLightState;
+    public SpeciesParameterState SeedKernelState => seedKernelState;
+    public NaturalSeedDispersal SeedDispersal => naturalSeedDispersal;
+    public bool HasWaterDispersalCapability => naturalSeedDispersal == NaturalSeedDispersal.WindAndWater;
+    public bool IsEstablishedScenarioOneSpecies => SpeciesConfigurationPolicy.IsEstablishedScenarioOneSpecies(speciesId);
+    public bool HasGrowthAgePhases => GrowthAgePhases.HasPhases(growthAgePhases);
+
+    // Full validation of this definition (see SpeciesConfigurationPolicy). Allocates; not for per-frame use.
+    public SpeciesConfigurationReport ConfigurationReport => SpeciesConfigurationPolicy.Evaluate(ToConfigurationFacts());
+
+    // True when the species may run in the simulation: no configuration error and no area on HOLD. The three
+    // established Scenario One species are ready without declaring anything (allocation-free quick path).
+    public bool IsSimulationReady
+    {
+        get
+        {
+            // Established species with no age phases need no further check (and allocate nothing).
+            if (!HasGrowthAgePhases && SpeciesConfigurationPolicy.IsEstablishedAndValid(speciesId, growingSpaceDemand))
+                return true;
+            return SpeciesConfigurationPolicy.Evaluate(ToConfigurationFacts()).IsReady;
+        }
+    }
+
+    // Does this species put seed on the ground by itself? (Rules and reasons: SpeciesConfigurationPolicy.)
+    public bool DispersesSeedNaturally =>
+        SpeciesConfigurationPolicy.DispersesSeedNaturally(speciesId, naturalSeedDispersal, supportsRegeneration, seedKernelState);
+
+    // Factors for the adult growth phase a tree of this age is in. No phases returns 1 and 1.
+    public void GrowthAgeFactors(int ageYears, out float dbhFactor, out float heightFactor)
+    {
+        GrowthAgePhases.FactorsAt(growthAgePhases, ageYears, out dbhFactor, out heightFactor);
+    }
+
+    private SpeciesConfigurationFacts ToConfigurationFacts()
+    {
+        return new SpeciesConfigurationFacts
+        {
+            SpeciesId = speciesId,
+            GrowingSpaceDemand = growingSpaceDemand,
+            GrowthState = growthState,
+            BrowseState = browseState,
+            JuvenileLightState = juvenileLightState,
+            SeedKernelState = seedKernelState,
+            SeedDispersal = naturalSeedDispersal,
+            SupportsRegeneration = supportsRegeneration,
+            UsesDistinctJuvenileLightResponses = useDistinctJuvenileLightResponses,
+            BrowsePalatability = browsePalatability,
+            PotentialDbhGrowthCmPerYear = potentialDbhGrowthCmPerYear,
+            PotentialHeightGrowthMPerYear = potentialHeightGrowthMPerYear,
+            MaxDbhCm = maxDbhCm,
+            MaxHeightM = maxHeightM,
+            CrownRadiusIntercept = crownRadiusIntercept,
+            CrownRadiusPerCmDbh = crownRadiusPerCmDbh,
+            UsesPowerLawCrown = usePowerLawCrown,
+            MaturityOnsetYears = maturityOnsetYears,
+            MaturityFullYears = maturityFullYears,
+            MastGoodProbability = mastGoodProbability,
+            MastPoorProbability = mastPoorProbability,
+            MastGoodMultiplier = mastGoodMultiplier,
+            MastNormalMultiplier = mastNormalMultiplier,
+            MastPoorMultiplier = mastPoorMultiplier,
+            SeedDispersalScaleM = seedDispersalScaleM,
+            SeedDispersalCutoffM = seedDispersalCutoffM,
+            AgePhases = growthAgePhases,
+        };
+    }
 
     public float PotentialCrownRadiusM(float dbhCm)
     {

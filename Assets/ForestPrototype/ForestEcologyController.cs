@@ -1009,9 +1009,18 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
             float dbhPotential = treeSpecies.PotentialDbhGrowthCmPerYear * site *
                                  Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);
+            float heightPotential = treeSpecies.PotentialHeightGrowthMPerYear * site *
+                                    Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+            // Optional age phases (Scenario Two species foundation). A species with no phases skips this block, so
+            // the arithmetic for Sitka, Oak and Beech is exactly the original.
+            if (treeSpecies.HasGrowthAgePhases)
+            {
+                treeSpecies.GrowthAgeFactors(tree.AgeYears, out float dbhPhaseFactor, out float heightPhaseFactor);
+                dbhPotential *= dbhPhaseFactor;
+                heightPotential *= heightPhaseFactor;
+            }
             float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));
-            float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
-                                 Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+            float heightGrowth = heightPotential;
             // Growth model 1: Sitka follows the Class III site envelope, keeping
             // its relative height. Other species keep the legacy height law.
             if (UsesSiteClassGrowth && SameSpeciesId(treeSpecies, SitkaGrowthModel.SpeciesId))
@@ -1321,6 +1330,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     private void ComputeSpeciesSeedRain(TreeSpeciesDefinition targetSpecies, ForestTree[] trees)
     {
         regenerationSpeciesById[targetSpecies.SpeciesId] = targetSpecies;
+        // Planting-only and undeclared species put no seed on the ground. Established species with no declaration are
+        // unaffected (DispersesSeedNaturally is then just supportsRegeneration, which is already true here).
+        if (!targetSpecies.DispersesSeedNaturally)
+            return;
         float mastMultiplier = GetMastMultiplier(targetSpecies);
         foreach (ForestTree tree in trees)
         {

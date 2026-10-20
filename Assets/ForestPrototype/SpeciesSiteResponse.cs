@@ -202,3 +202,112 @@ public static class SiteGrowthResponse
             ? response.GrowthMultiplier(site)
             : SpeciesSiteResponse.NeutralGrowthMultiplier;
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Scenario Two species. Appended to this dormant data file (not a new file) so the dormancy checks that scan every
+// production file for these type names keep their meaning. The Scenario One catalog above is unchanged.
+// ---------------------------------------------------------------------------------------------------------------
+
+// Qualitative site responses for the three Scenario Two species (SCENARIO-TWO-SPECIES-MODEL-FOUNDATION-V1).
+//
+// DORMANT, exactly like SpeciesSiteResponses: nothing in the simulation reads these tables and every numerical growth
+// effect is the neutral 1.0 (SpeciesSiteResponse.GrowthMultiplier). They are a separate catalog on purpose. The
+// Scenario One catalog (SpeciesSiteResponses.All) holds exactly Sitka, Oak and Beech and its offline check asserts
+// that, so adding rows there would change a protected check; this file reuses only the response TYPES.
+//
+// ONLY UNCONTESTED RULES ARE ENCODED. A direction is recorded when the rechecked sources state it and none of them
+// contradicts it. Anything contested, single-page-and-low-confidence, or merely inferred is left Deferred (no
+// direction), and the note says why. Nothing here is a growth coefficient, and "wet" is never taken to mean
+// "waterlogged": water availability (Moisture) and drainage/aeration are separate axes (see ForestSiteProfile.cs).
+//
+// COMMON ALDER AND WATERLOGGING IS ON HOLD. The sources conflict: Forest Research asks for "a high, but not
+// stagnant, water table" while also calling alder "remarkably tolerant of wet soil conditions", and the USDA Silvics
+// account says seedlings survive flooding that kills most trees but were killed when fully submerged and hardly
+// affected when the water stood flush with the soil. The conflict is NOT resolved here: alder's drainage/aeration
+// axis encodes no direction at all, for any class, and must not be hardened into a species constant until a later
+// decision (OD-07) rules on it.
+//
+// Provenance tags follow Docs/ScenarioTwoSpeciesFoundation.md. The evidence-pack identifiers (SP-, DB-, CA-) are the
+// rows of the Scenario Two species parameter synthesis, which is supporting evidence, not decision authority.
+public static class ScenarioTwoSpeciesSiteResponses
+{
+    public const string ScotsPineId = "scots-pine";
+    public const string DownyBirchId = "downy-birch";
+    public const string CommonAlderId = "common-alder";
+
+    // Scots pine (Pinus sylvestris).
+    public static readonly SpeciesSiteResponse ScotsPine = new SpeciesSiteResponse(ScotsPineId,
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.Deferred,
+            "SP-13: Forest Research and UCC describe light, sandy, stony, low-fertility soils, which is a soil-texture statement, not a water-availability direction. "
+            + "No dry-site preference is encoded, so dry is never taken to be good."),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.Ordinal,
+            "SP-13: the Species Evidence Pack matrix records a poor fit to wet stagnant sites (direction only, one source; the Forest Research page does not mention waterlogging). "
+            + "Wetter is not waterlogged, so no moisture class is marked limiting. Other classes not stated.",
+            (DrainageAerationClass.WaterloggedRisk, SiteSuitability.Limiting)),
+        new SiteAxisResponse<FertilityClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "SP-13: Forest Research (grows well on acid to neutral, light soils of low fertility) and UCC (acidic soils with low fertility). "
+            + "An ordinal tolerance, not a claim that poor soil is best: Forest Research adds that pine grows vigorously on more fertile sites. Other classes not stated.",
+            (FertilityClass.Low, SiteSuitability.Tolerated)),
+        new SiteAxisResponse<ExposureClimateClass>(SiteResponseBasis.Deferred,
+            "SP-13: Forest Research gives one ordinal rating (Moderate; suffers from exposure). Single page, low confidence; no per-class direction is encoded."),
+        usesLegacySiteRoute: false);
+
+    // Downy birch (Betula pubescens). Not interchangeable with silver birch (B. pendula): the wet-soil tolerance below
+    // is the point of difference.
+    public static readonly SpeciesSiteResponse DownyBirch = new SpeciesSiteResponse(DownyBirchId,
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "DB-09: Forest Research (most moist soils; moister soils of very poor to medium nutrient status) and Teagasc (tolerant of wet or waterlogged conditions). "
+            + "Moist preferred, Wetter tolerated. Drier is not stated, so not assessed. No wetness bonus is implied.",
+            (MoistureClass.Moist, SiteSuitability.Preferred),
+            (MoistureClass.Wetter, SiteSuitability.Tolerated)),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "DB-09: Teagasc says downy birch tolerates wet or waterlogged conditions, heavy clays and wet peatlands, unlike silver birch (the Forest Research page does not state it). "
+            + "A tolerance, not a preference. Other classes not stated.",
+            (DrainageAerationClass.WaterloggedRisk, SiteSuitability.Tolerated)),
+        new SiteAxisResponse<FertilityClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "DB-09: Forest Research gives soils of very poor to medium nutrient status. An ordinal tolerance. High fertility is not assessed.",
+            (FertilityClass.Low, SiteSuitability.Tolerated),
+            (FertilityClass.Moderate, SiteSuitability.Tolerated)),
+        new SiteAxisResponse<ExposureClimateClass>(SiteResponseBasis.Deferred,
+            "DB-09: Forest Research rates exposure Moderate and says frost resistant and windfirm. Single source, low confidence; no per-class direction is encoded."),
+        usesLegacySiteRoute: false);
+
+    // Common alder (Alnus glutinosa).
+    public static readonly SpeciesSiteResponse CommonAlder = new SpeciesSiteResponse(CommonAlderId,
+        new SiteAxisResponse<MoistureClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "CA-09: Forest Research (high water table; riparian planting), USDA Silvics (seedlings need constant moisture and are drought-sensitive) and Claessens (natural regeneration needs high light and moisture) agree on water availability. "
+            + "Wetter preferred, Moist tolerated, Drier limiting. This is water AVAILABILITY only; it says nothing about waterlogging.",
+            (MoistureClass.Wetter, SiteSuitability.Preferred),
+            (MoistureClass.Moist, SiteSuitability.Tolerated),
+            (MoistureClass.Drier, SiteSuitability.Limiting)),
+        new SiteAxisResponse<DrainageAerationClass>(SiteResponseBasis.Deferred,
+            "HOLD - OPEN CONTRADICTION (C-13), deliberately not resolved in code. Forest Research: a high but not stagnant water table, yet remarkably tolerant of wet soil. "
+            + "USDA Silvics: seedlings survive flooding that kills most trees, but died when fully submerged and were hardly hindered when water stood flush with the soil. "
+            + "Survival tolerance and growth under low soil oxygen are different claims. No class, including WaterloggedRisk and WellAerated, is assessed."),
+        new SiteAxisResponse<FertilityClass>(SiteResponseBasis.DirectOrTransferEvidence,
+            "CA-09: Forest Research requires a medium to rich nutrient supply. Moderate and High preferred; Low not stated. Nitrogen fixation is real but the simulation has no nutrient mechanic, so no soil-nitrogen effect is implied.",
+            (FertilityClass.Moderate, SiteSuitability.Preferred),
+            (FertilityClass.High, SiteSuitability.Preferred)),
+        new SiteAxisResponse<ExposureClimateClass>(SiteResponseBasis.Deferred,
+            "CA-09: Forest Research says not tolerant of exposure; Teagasc says moderately resistant to salt spray. Different stressors, low confidence; no per-class direction is encoded (C-17)."),
+        usesLegacySiteRoute: false);
+
+    private static readonly SpeciesSiteResponse[] all = { ScotsPine, DownyBirch, CommonAlder };
+
+    // Fixed order: Scots pine, downy birch, common alder.
+    public static IReadOnlyList<SpeciesSiteResponse> All => all;
+
+    public static bool TryGet(string speciesId, out SpeciesSiteResponse response)
+    {
+        foreach (SpeciesSiteResponse candidate in all)
+        {
+            if (string.Equals(candidate.SpeciesId, speciesId, StringComparison.Ordinal))
+            {
+                response = candidate;
+                return true;
+            }
+        }
+        response = null;
+        return false;
+    }
+}

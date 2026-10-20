@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77fc5792932273fd281964634a89513f, type: 3}
+  m_Name: CommonAlder
+  m_EditorClassIdentifier: Assembly-CSharp::TreeSpeciesDefinition
+  speciesId: common-alder
+  displayName: Common alder
+  latinName: Alnus glutinosa
+  # [HOLD] Scenario Two species foundation: growth is deliberately NOT set (no held equations for this species).
+  # The four numbers below are inert sentinels (0 / 1), not values; ignored while growthState is Hold (3).
+  # See Docs/ScenarioTwoSpeciesFoundation.md.
+  potentialDbhGrowthCmPerYear: 0
+  maxDbhCm: 1
+  potentialHeightGrowthMPerYear: 0
+  maxHeightM: 1
+  ci50: 3
+  # [ORD] Intermediate: user-accepted ORDINAL PLACEHOLDER for density class (not a measured density coefficient). Reference is reserved for sitka-spruce.
+  growingSpaceDemand: 1
+  # [HOLD] Crown, form and Ci50 follow growthState: not set. Defaults left in place are inert while growth is on Hold.
+  crownRadiusIntercept: 0.9415
+  crownRadiusPerCmDbh: 0.07635
+  usePowerLawCrown: 0
+  crownAreaLogIntercept: 0.05
+  crownAreaLogSlope: 1.01
+  crownRelaxationPerYear: 0.15
+  formHeightRatio: 0.5
+  maturityOnsetYears: 20
+  maturityFullYears: 30
+  seedPotentialPerMatureTree: 1
+  # [HOLD] naturalSeedDispersal WindAndWater (3): wind AND water CAPABILITY declared. The simulation has no water carrier, so water propagation is not implemented, and the wind kernel is on Hold (no scale evidence beyond 'usually 30-60 m').
+  # Scale / cutoff are inert sentinels (1 / 1). This is NOT a 30 m cutoff: 30 m is the distance saplings are found from the parent where wind is the only vector (USDA Silvics).
+  seedDispersalScaleM: 1
+  seedDispersalCutoffM: 1
+  mastGoodProbability: 0.15
+  mastPoorProbability: 0.35
+  mastGoodMultiplier: 1.5
+  mastNormalMultiplier: 1
+  mastPoorMultiplier: 0.4
+  seedSaturationS50: 5
+  lightResponseLight:
+  - 0
+  - 0.1
+  - 0.2
+  - 0.25
+  - 0.55
+  - 1
+  lightResponseFactor:
+  - 0
+  - 0.1
+  - 0.3
+  - 0.5
+  - 0.9
+  - 0.8
+  # [HOLD] juvenileLightState Hold (3): juvenile light response is not set; the arrays above are the inert legacy defaults.
+  # Alder reports ~5 % light for establishment and ~20 % for survival (USDA Silvics, not Irish): a RANGE for a calibration packet, not entered.
+  useDistinctJuvenileLightResponses: 0
+  survivalResponseLight:
+  - 0
+  - 1
+  survivalResponseFactor:
+  - 1
+  - 1
+  establishmentResponseLight:
+  - 0
+  - 1
+  establishmentResponseFactor:
+  - 1
+  - 1
+  regenHeightGrowthMPerYear: 0.35
+  promotionHeightM: 3.5
+  promotionMinimumLight: 0
+  regenInitialHeightM: 0.15
+  regenDensityPerEstablishment: 0.5
+  regenDensityMax: 1.5
+  regenMortalityUnderPoorLight: 0.2
+  regenPoorLightThreshold: 0.15
+  supportsRegeneration: 1
+  # [SET, C] Browsing v1 initial value 0.2 (very low per Browsing v1); heights 1.2 / 1.8 m. Must not be 0.
+  browsePalatability: 0.2
+  browseFullVulnerabilityHeightM: 1.2
+  browseEscapeHeightM: 1.8
+  # Explicit configuration states: 0 Unspecified, 1 Set, 2 Placeholder, 3 Hold. naturalSeedDispersal: 1 None (planting-only), 2 Wind, 3 WindAndWater.
+  growthState: 3
+  growthAgePhases: []
+  browseState: 1
+  juvenileLightState: 3
+  naturalSeedDispersal: 3
+  seedKernelState: 3
+  standWindSusceptibility: 1
+  windOpeningWeight: 1
+  windThinningHalfLifeYears: 3

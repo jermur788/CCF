@@ -399,6 +399,11 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             float site = eco.GetSiteProductivity(tree.transform.position);
             float sizeFactor = Mathf.Clamp01(1f - diameter[i] / treeSpecies.MaxDbhCm);
             float potential = treeSpecies.PotentialDbhGrowthCmPerYear * site * sizeFactor;
+            if (treeSpecies.HasGrowthAgePhases)
+            {
+                treeSpecies.GrowthAgeFactors(tree.AgeYears, out float dbhPhaseFactor, out float heightPhaseFactor);
+                potential *= dbhPhaseFactor;
+            }
 
             float ciNow = eco.GetCompetitionIndex(tree);
             growthNowSum += potential * (1f / (1f + ciNow / treeSpecies.Ci50));
