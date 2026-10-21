@@ -30,6 +30,8 @@ using Debug = UnityEngine.Debug;
 //
 // Run (graphical Editor, ideally a private Xephyr so the window has focus):
 //   -executeMethod CameraLookDiagnosis.Begin   CCF_DIAG_DIR=<folder>   CCF_LOOK_TAG=before|after   [CCF_LOOK_REAL=1] [CCF_LOOK_GC=1]
+// Real-input rotation totals include cursor-warp artefacts. A gap between driver travel and total yaw is NOT lost player input.
+// The CSV is diagnostic evidence only: identify warp landing and discarded frames separately before claiming benefit or safety.
 // Results: CAMLOOK_* lines in the log, plus camlook-<tag>-frames.csv and camlook-<tag>-summary.json in CCF_DIAG_DIR.
 public static class CameraLookDiagnosis
 {
@@ -430,13 +432,14 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
             string realJson = "";
             if (realReports.TryGetValue(name, out DriverReport report))
             {
-                // End to end: pixels the OS pointer really moved (driver) -> pixels Unity reported (raw) -> pixels ForestPlayer applied.
+                // Rotation totals include warp artefacts as well as intended input. Keep them for diagnosis, never as a retained-input metric.
+                Debug.Log("CAMLOOK_REAL_UNQUALIFIED total yaw includes warp artefacts; rotation gap does not measure lost player input or establish safety.");
                 double rawSum = slice.Sum(f => (double)f.rawX), rawAbs = slice.Sum(f => (double)Mathf.Abs(f.rawX));
                 double appliedPx = slice.Sum(f => (double)f.yawDelta) / sensitivity;
                 double sent = report.sentPx;
                 double appliedAbsPx = slice.Sum(f => (double)Mathf.Abs(f.yawDelta)) / sensitivity;
                 double sentAbsGame = report.sentAbsPx * pointerGain;           // the driver already divided its motion by the gain, so this is what Unity should see
-                double lossAbsPct = sentAbsGame > 1 ? 100.0 * (1.0 - appliedAbsPx / sentAbsGame) : 0.0;
+                double rotationGapPct = sentAbsGame > 1 ? 100.0 * (1.0 - appliedAbsPx / sentAbsGame) : 0.0;
                 int pinned = slice.Count(f => f.pointerX <= screenLeftGameX + 2f || f.pointerX >= screenRightGameX - 2f);
                 float overshoot = Mathf.Max(0f, Mathf.Max(-slice.Min(f => f.pointerX), slice.Max(f => f.pointerX) - Screen.width));
                 int recentres = 0;
@@ -448,10 +451,10 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 int zeroApplied = slice.Count(f => Mathf.Abs(f.rawX) > 0.5f && Mathf.Abs(f.yawDelta) < 0.0001f);
                 Debug.Log($"CAMLOOK_REAL name={name} sentPx={sent:0} events={report.events} rawReportedPx={rawSum:0} ({reportedPct:0.0}% of sent) appliedPxEquivalent={appliedPx:0} " +
                     $"({appliedPct:0.0}% of sent) lossVsSentPct={(100.0 - appliedPct):0.0} rawAbsPx={rawAbs:0} spikeFrames>3x={spikeFrames} biggestRawPx={biggestRaw:0} framesRawNonZeroButAppliedZero={zeroApplied} " +
-                    $"PATH sentAbsPx={report.sentAbsPx:0} gain={pointerGain:0.000} expectedGamePx={sentAbsGame:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres} pinnedAtDisplayEdgeFrames={pinned} maxBeyondViewPx={overshoot:0}");
+                    $"PATH sentAbsPx={report.sentAbsPx:0} gain={pointerGain:0.000} expectedGamePx={sentAbsGame:0} totalAbsYawPxIncludingWarps={appliedAbsPx:0} rotationGapIncludingWarpsPct={rotationGapPct:0.0} pointerJumps={recentres} pinnedAtDisplayEdgeFrames={pinned} maxBeyondViewPx={overshoot:0}");
                 realJson = ", \"sentPx\": " + sent.ToString("0", Inv) + ", \"rawReportedPx\": " + rawSum.ToString("0", Inv) + ", \"appliedPxEq\": " + appliedPx.ToString("0", Inv)
                     + ", \"appliedPctOfSent\": " + appliedPct.ToString("0.0", Inv) + ", \"rawNonZeroAppliedZero\": " + zeroApplied
-                    + ", \"sentAbsPx\": " + report.sentAbsPx.ToString("0", Inv) + ", \"appliedAbsPx\": " + appliedAbsPx.ToString("0", Inv) + ", \"pathLossPct\": " + lossAbsPct.ToString("0.0", Inv)
+                    + ", \"sentAbsPx\": " + report.sentAbsPx.ToString("0", Inv) + ", \"totalAbsYawPxIncludingWarps\": " + appliedAbsPx.ToString("0", Inv) + ", \"rotationGapIncludingWarpsPct\": " + rotationGapPct.ToString("0.0", Inv)
                     + ", \"pointerJumps\": " + recentres + ", \"pinnedAtDisplayEdgeFrames\": " + pinned + ", \"maxBeyondViewPx\": " + overshoot.ToString("0", Inv);
             }
             json.Append("    { \"name\": \"" + name + "\", \"frames\": " + slice.Count + ", \"dtMedianMs\": " + median.ToString("0.00", Inv) + ", \"dtP99Ms\": " + p99.ToString("0.00", Inv)

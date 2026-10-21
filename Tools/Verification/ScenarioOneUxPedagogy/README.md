@@ -32,3 +32,9 @@ staged, and restore them (`git checkout -- <those paths>`) only when the lane's 
 
 The offline checks prove what is drawn and in which order, not that a picture renders, fits or is understood. The screenshots must be read, not only counted. Frame times from the software-rendered
 nested display are not a player's frame times; the camera harness reports counts of lost input and the structure of the recentre, not a frame-rate claim. No learner has tested the pictures.
+
+## Camera evidence correction (independent review R1/R2)
+
+The experimental recenter-scheduling change was excluded from the final candidate. ForestPlayer.cs is byte-identical to accepted BASE 10d592f. Original cursor behaviour, including its known input-discard and possible late-landing snap, remains.
+
+Real-input total absolute yaw includes erroneous warp rotation. Comparing it with driver travel does not measure preserved hand movement; the historical pathLossPct field and published before/after benefit interpretation are withdrawn for BOTH old and experimental runs. Future output calls this rotationGapIncludingWarpsPct and explicitly warns that it is unqualified. Retained CSVs can diagnose event timing, but require intended-motion/warp attribution before any benefit claim. The edge-prediction safety argument was not established; no camera improvement or native smoothness qualification is claimed.

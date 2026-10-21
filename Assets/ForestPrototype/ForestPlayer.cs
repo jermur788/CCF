@@ -68,8 +68,6 @@ public sealed class ForestPlayer : MonoBehaviour
     private float inspectedTreeDiameter;
     private float lastChopTime = -1f;
     private float lookPixelsSinceRecentre;
-    // Where the pointer has got to since it was last recentred: the look deltas summed, so it needs no pointer position and no window offsets.
-    private Vector2 lookDriftSinceRecentre;
     private float secondsSinceRecentre;
     private float secondsSinceEdgeStall;
     private int recentreGraceFrames;
@@ -194,30 +192,12 @@ public sealed class ForestPlayer : MonoBehaviour
         }
     }
 
-    // A pause in look movement this long counts as "the player has stopped turning" (about three frames at 60 fps).
-    private const float RecentreAfterPauseSeconds = 0.05f;
-    // A due recentre does not wait for a pause once the pointer has drifted from where it was last recentred (the centre) to within this fraction
-    // of the screen's smaller side of an edge. Drift is the look deltas summed since that recentre, not the pointer's reported position, so it does
-    // not depend on where the Game view sits in a window.
-    private const float RecentreEdgeMarginFraction = 0.25f;
-    // A recentre lands about two frames after it is requested, and the pointer keeps travelling until it does. Drift is therefore projected this many
-    // frames ahead at the current speed, so a fast turn is recentred early enough to land before the edge, as before.
-    private const float RecentreLandsAfterFrames = 3f;
-
-    private bool DriftNearingEdge(Vector2 travelThisFrame)
-    {
-        Vector2 projected = lookDriftSinceRecentre + travelThisFrame * RecentreLandsAfterFrames;
-        float margin = Mathf.Min(Screen.width, Screen.height) * RecentreEdgeMarginFraction;
-        return Mathf.Abs(projected.x) > Screen.width * 0.5f - margin || Mathf.Abs(projected.y) > Screen.height * 0.5f - margin;
-    }
-
     private void OnEnable()
     {
         SetCursor(true);
         // Locking warps the pointer to the window centre; the resulting delta
         // spike must not rotate the view at the start of a session.
         recentreGraceFrames = 2;
-        lookDriftSinceRecentre = Vector2.zero;
     }
     private void OnDisable() { clearancePreview?.Clear(); SetCursor(false); }
     private void OnApplicationFocus(bool focused)
@@ -269,10 +249,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 // The lock warp produces a delta spike on the next frame or two;
                 // suppress it so clicking to capture never throws the view.
                 if (capturedThisFrame)
-                {
                     recentreGraceFrames = 2;
-                    lookDriftSinceRecentre = Vector2.zero;
-                }
             }
         }
 
@@ -332,7 +309,6 @@ public sealed class ForestPlayer : MonoBehaviour
                 pitch = Mathf.Clamp(pitch - look.y, -85f, 85f);
                 view.localRotation = Quaternion.Euler(pitch, 0f, 0f);
                 lookPixelsSinceRecentre += rawDelta.magnitude;
-                lookDriftSinceRecentre += rawDelta;
 
                 // On some Linux setups a locked cursor stops producing deltas once the
                 // pointer reaches a screen edge. Recentre only when that stall is
@@ -349,14 +325,9 @@ public sealed class ForestPlayer : MonoBehaviour
                 else
                     secondsSinceEdgeStall = 0f;
                 bool crossedPixelBudget = lookPixelsSinceRecentre >= Mathf.Min(Screen.width, Screen.height) * 0.25f;
-                // The budget only says a recentre is due. A recentre throws away the next two frames of look input, so doing it in the middle
-                // of a sweep drops real movement and shows as a periodic jerk (measured: a quarter of the look path in ordinary looking around).
-                // Do it when the player pauses, and at once only if the pointer has drifted close to an edge.
-                bool recentreDue = crossedPixelBudget && (secondsSinceEdgeStall >= RecentreAfterPauseSeconds || DriftNearingEdge(rawDelta));
-                if (recentreDue || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
+                if (crossedPixelBudget || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
                 {
                     lookPixelsSinceRecentre = 0f;
-                    lookDriftSinceRecentre = Vector2.zero;
                     secondsSinceRecentre = 0f;
                     secondsSinceEdgeStall = 0f;
                     mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
