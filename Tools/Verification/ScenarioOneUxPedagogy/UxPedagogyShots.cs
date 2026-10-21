@@ -222,6 +222,9 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         int under12 = ordered.Count(s => s.px < 12f);
         textRows.Add($"{state},{size.x}x{size.y},{scale.ToString("0.000", Inv)},{ordered.Count},{ordered[0].px.ToString("0.0", Inv)},{median.ToString("0.0", Inv)},{under12},\"{ordered[0].text.Replace("\"", "'")}\"");
         Check(ordered[0].ui >= hardMinUiUnits, $"TEXT_NOT_TINY_{state}", $"smallest={ordered[0].ui:0.0} UI units = {ordered[0].px:0.0}px \"{ordered[0].text}\" median={median:0.0}px labels={ordered.Count}");
+        // Bigger type must not squeeze rows together or cut a one-line cell off at its edge, on any screen this audit looks at.
+        AuditNotSquashed("TEXT_ROWS_NOT_SQUASHED_" + state, root);
+        AuditNotCutOff("TEXT_NOT_CUT_OFF_" + state, root);
     }
 
     // A row squeezed below its text height makes the lines print on top of each other (what a panel does when it is capped in height and its
@@ -242,6 +245,23 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         }
         Debug.Log($"UXP_SQUASH {name} {size.x}x{size.y} labels={labels} squashed={squashed.Count}");
         Check(squashed.Count == 0, name, squashed.Count == 0 ? $"labels={labels}" : string.Join(" | ", squashed.Take(4)));
+    }
+
+    // One-line cells must show all their text: a label whose text is wider than its box is cut off at the edge ("Moderat").
+    private void AuditNotCutOff(string name, VisualElement root)
+    {
+        if (root == null) { Fail(name, "missing element"); return; }
+        var cut = new List<string>();
+        int labels = 0;
+        foreach (TextElement label in root.Query<TextElement>().ToList())
+        {
+            if (!Visible(label) || string.IsNullOrWhiteSpace(label.text) || label is Button || label.resolvedStyle.whiteSpace != WhiteSpace.NoWrap) continue;
+            labels++;
+            Vector2 natural = label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+            if (natural.x > label.worldBound.width + 0.5f) cut.Add($"\"{label.text}\" text={natural.x:0} box={label.worldBound.width:0}");
+        }
+        Debug.Log($"UXP_CUTOFF {name} {size.x}x{size.y} oneLineLabels={labels} cut={cut.Count}");
+        Check(cut.Count == 0, name, cut.Count == 0 ? $"oneLineLabels={labels}" : string.Join(" | ", cut.Take(4)));
     }
 
     private void AuditContained(string name, VisualElement child, VisualElement bound)
@@ -567,6 +587,7 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             VisualElement competitorPanel = ui.RootElement.Q("competitor-panel");
             float lastLabelBottom = competitorPanel.Query<TextElement>().ToList().Where(Visible).Max(l => l.worldBound.yMax);
             Check(lastLabelBottom <= competitorPanel.worldBound.yMax + 1f, "COMPETITOR_LIST_IS_NOT_CLIPPED", $"lastLabelBottom={lastLabelBottom:0} panelBottom={competitorPanel.worldBound.yMax:0}");
+            AuditNotCutOff("COMPETITOR_LIST_TEXT_IS_NOT_CUT_OFF", ui.RootElement.Q("competitor-panel"));
             AuditNotSquashed("HUD_COLUMN_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q("hud-right-column"));
             AuditNotSquashed("INSPECTION_CARD_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q(className: "inspect"));
             yield return Shot("07-selected-competitor-ring");

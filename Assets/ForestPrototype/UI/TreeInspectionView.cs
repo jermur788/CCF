@@ -209,7 +209,7 @@ public sealed class TreeInspectionView
             head.Add(UiKit.Text("#  Tree", "competitor-name", "faint"));
             head.Add(UiKit.Text("DBH", "competitor-num", "faint"));
             head.Add(UiKit.Text("Distance", "competitor-num", "faint"));
-            head.Add(UiKit.Text("Share of competition", "competitor-share", "faint"));
+            head.Add(UiKit.Text("Share", "competitor-share", "faint")); // the full "Share of competition" never fitted this column on one line
             competitorBody.Add(head);
         }
         var alsoNear = new List<string>();
