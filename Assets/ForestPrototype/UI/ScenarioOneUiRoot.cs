@@ -166,6 +166,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (manager != null)
             manager.RackConfirmed -= OnRackConfirmed;
         if (map != null) map.DestroyWaypoint();
+        mapSource?.Dispose();
         competitors?.Destroy();
         indicator?.Destroy();
         if (panelSettings != null) Destroy(panelSettings);

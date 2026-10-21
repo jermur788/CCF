@@ -170,8 +170,9 @@
 .waypoint-line { color: var(--accent); font-size: var(--fs-lead); -unity-font-style: bold; }
 
 /* ---- HUD minimap: the Stand Map's map, reduced. Its size is set in HudMinimapView; it takes no pointer input. ---- */
-.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; }
-.hud-minimap-north { position: absolute; left: 0; right: 0; top: 7px; -unity-text-align: upper-center; font-size: 13px; -unity-font-style: bold; color: var(--ink); }
+/* The map surfaces (this frame and the full map window) use the charcoal / slate survey palette; the rest of the HUD keeps its own. */
+.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; background-color: rgba(24, 28, 30, 0.94); border-color: rgba(168, 180, 176, 0.36); border-radius: 4px; }
+.hud-minimap-north { position: absolute; font-size: 13px; -unity-font-style: bold; color: rgb(232, 234, 224); width: 12px; -unity-text-align: upper-center; }
 
 /* ---- inspection ---- */
 /* Left column, top-left, clear of the status panel (top-right) and the ground report (bottom-left). The scenario UI root sets the
@@ -221,41 +222,97 @@
 .column { flex-grow: 1; flex-basis: 300px; margin-right: 10px; }
 
 /* ---- stand map ---- */
+/* The Stand Map window is a property plan, so it uses a charcoal / slate survey palette (the reference sheet's), scoped to .modal-map so no
+   other window changes: panels and cards in charcoal, off-white labels, a quiet ochre accent for the selected state and the primary action.
+   The map itself is drawn by StandMapSurface (the forest picture, an optional translucent layer, then fine linework); the 5 m squares are
+   invisible buttons over it that only show an outline when pointed at or selected. */
+.modal-map {
+    --map-panel: rgb(24, 28, 30);
+    --map-card: rgb(32, 37, 39);
+    --map-rule: rgba(168, 180, 176, 0.18);
+    --map-ink: rgb(228, 232, 226);
+    --map-ink-muted: rgb(164, 174, 170);
+    --map-ink-faint: rgb(128, 138, 134);
+    --map-accent: rgb(224, 172, 72);
+    background-color: var(--map-panel);
+    border-color: rgba(168, 180, 176, 0.30);
+    height: 96%;
+    max-width: 1500px;
+}
+.modal-map .modal-header { border-bottom-color: var(--map-rule); }
+.modal-map .title, .modal-map .heading { color: var(--map-ink); }
+.modal-map .body { color: var(--map-ink); }
+.modal-map .muted { color: var(--map-ink-muted); font-size: var(--fs-sm); }
+.modal-map .faint { color: var(--map-ink-faint); }
+.modal-map .card { background-color: var(--map-card); border-color: var(--map-rule); }
+.modal-map .btn { background-color: rgb(46, 53, 55); border-color: rgba(168, 180, 176, 0.26); }
+.modal-map .btn:hover { background-color: rgb(60, 69, 71); }
+.modal-map .btn:active { background-color: rgb(38, 44, 46); }
+.modal-map .btn-primary { background-color: rgb(102, 86, 42); border-color: rgba(224, 172, 72, 0.60); }
+.modal-map .btn-primary:hover { background-color: rgb(126, 106, 50); }
+.modal-map .btn-primary:active { background-color: rgb(86, 72, 34); }
+.modal-map .btn-selected { background-color: rgb(58, 84, 72); border-color: var(--map-accent); border-width: 2px; }
+.modal-map .btn-selected:hover { background-color: rgb(68, 98, 84); }
+.modal-map .btn-ghost { background-color: rgba(255, 255, 255, 0.04); border-color: var(--map-rule); }
+.modal-map .btn-ghost:hover { background-color: rgba(255, 255, 255, 0.10); }
+.modal-map .rack-panel { border-color: rgba(224, 172, 72, 0.55); }
+.modal-map .rack-heading { color: var(--map-ink); }
+
+.map-tabs { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
 .map-body { flex-direction: row; flex-grow: 1; }
-.map-left { flex-grow: 1; align-items: center; }
-/* The frame is exactly the map square (size set in StandMapView). The cell buttons are placed in it from the shared map transform,
-   and the canvas draws paths, racks, you and the destination over them from the same transform. */
+/* The map column is as wide as the map and its labels and never shrinks: the cards beside it take what is left, so nothing can slide over the map. */
+.map-left { flex-grow: 0; flex-shrink: 0; width: 726px; align-items: flex-start; }
+.map-wrap { flex-direction: row; }
+.map-column { flex-shrink: 0; }
+/* The frame is exactly the map square (size set in StandMapView). The surface draws the plan in it and the square buttons are placed over it
+   from the shared map transform. */
+/* No border: the surface, the lines and the square buttons all fill exactly this square, and a border would shrink them. The dashed property boundary is its edge. */
+.map-frame { background-color: rgb(70, 66, 50); }
 .map-grid { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .map-canvas { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+/* A square shows nothing until it is pointed at or selected. */
 .map-cell {
-    margin: 0;
-    border-width: 2px; border-color: transparent; border-radius: 2px; padding: 0 1px;
-    justify-content: space-between;
+    margin: 0; padding: 0;
+    border-width: 1.5px; border-color: transparent; border-radius: 1px;
+    background-color: rgba(0, 0, 0, 0);
+    min-height: 0;
 }
-.map-cell:hover { border-color: rgba(255, 255, 255, 0.55); }
-/* The cells are about 38 UI units square: two stacked labels (square name, value) must fit inside the border and padding, so the
-   labels carry no margin of their own (the default Label margin pushed the second label out of its square). */
-.map-cell Label {
-    font-size: 13px; color: white; -unity-font-style: bold; align-self: flex-start;
-    background-color: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; margin: 0;
-}
-.map-cell-selected { border-color: var(--accent); }
-.map-cell-player { border-color: white; }
-.map-cell-rack { border-color: rgba(190, 126, 240, 0.95); }
-.map-side { width: 330px; margin-left: 12px; }
-/* Seam between the shared type scale and the full map's fixed 608-unit square (found by the integrated Stand Map parity gate and the combined map-window audit).
-   At the shared sizes: the legend under the map needs a little more height than the standard 92% window; the card, declared 330 wide, was squeezed to about 258 by the
-   long symbol legend and then ran past the window once the "Site details" foldout was open; the card heading ran past the card; and Unity's foldout title label
-   (flex-shrink 0) ran past its row so "light and young trees" was drawn clipped. Style only - no map geometry, text, rack, objective, save or ecology change. */
-.modal-map { height: 96%; }
-/* The card keeps its declared width (the long symbol legend wraps instead of squeezing it). */
-.map-side { flex-shrink: 0; }
-/* The one-line map key keeps the 16px it was approved at; at the shared 18px it was 795 wide and, beside the full-width card, wrapped to two lines. */
-.map-left .muted { font-size: var(--fs-sm); }
-.map-side .heading { white-space: normal; }
+.map-cell:hover { border-color: rgba(255, 255, 255, 0.38); background-color: rgba(255, 255, 255, 0.05); }
+.map-cell:active { background-color: rgba(255, 255, 255, 0.10); }
+.map-cell:focus { border-color: transparent; }
+.map-cell-selected, .map-cell-selected:hover { border-color: var(--map-accent); }
+/* You stand in this square: the plan draws you, so the square itself says nothing. */
+.map-cell-player { }
+.map-cell-rack { background-color: rgba(255, 255, 255, 0.06); }
+
+/* Survey labels: easting along the bottom, northing along the left, "N" and the scale length on the map. */
+.map-north-labels { width: 30px; flex-shrink: 0; position: relative; margin-right: 4px; }
+.map-east-labels { position: relative; height: 18px; flex-shrink: 0; }
+.map-axis-label { position: absolute; font-size: 13px; color: var(--map-ink-faint); width: 40px; }
+.map-axis-east { top: 2px; -unity-text-align: upper-center; }
+.map-axis-north { right: 2px; width: 28px; height: 18px; -unity-text-align: middle-right; }
+.map-north-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); width: 12px; -unity-text-align: upper-center; }
+.map-scale-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); }
+.map-caption { font-size: 13px; color: var(--map-ink-faint); white-space: nowrap; overflow: hidden; max-width: 688px; margin-top: 0; }
+
+/* Two columns to the right of the map: the overview and legend, then the card for the square or the rack (the card has the window's full height). */
+.map-col-a { width: 336px; flex-shrink: 0; margin-left: 14px; }
+.map-col-b { flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 300px; margin-left: 12px; }
+.map-card { margin-bottom: 8px; padding: 7px 10px 8px 10px; }
+.map-card-title { font-size: 14px; -unity-font-style: bold; color: var(--map-ink-muted); margin-bottom: 4px; }
+.map-overview-row { flex-direction: row; }
+.map-mini-frame { flex-shrink: 0; margin-right: 12px; border-width: 1px; border-color: var(--map-rule); background-color: rgb(70, 66, 50); position: relative; }
+.map-facts { flex-grow: 1; flex-shrink: 1; justify-content: center; }
+.map-fact { font-size: 14px; color: var(--map-ink); white-space: normal; margin-bottom: 2px; }
+.map-legend-body { flex-direction: column; }
+.map-legend-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
+.map-legend-text { font-size: var(--fs-xs); color: var(--map-ink); margin-left: 8px; white-space: normal; flex-shrink: 1; }
+.map-legend-note { font-size: 13px; color: var(--map-ink-faint); margin-left: 8px; white-space: nowrap; }
+.map-side { flex-shrink: 0; margin-bottom: 0; }
+.map-side .heading { white-space: normal; margin-top: 2px; }
+.map-note { white-space: normal; color: var(--map-ink-muted); font-size: var(--fs-sm); margin-bottom: 6px; }
 /* The foldout title wraps within its row (the lines inside the foldout keep their one-line values, so only the title label is named). */
 .map-side .unity-foldout__text { white-space: normal; flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 0; }
-.map-tabs { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
 .legend { flex-direction: row; align-items: center; margin-top: 6px; }
 .legend-swatch { width: 120px; height: 10px; margin: 0 6px; }
 
