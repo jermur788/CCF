@@ -217,13 +217,13 @@ public sealed class TreeInspectionView
         {
             CompetitorEntry entry = report.Ranked[i];
             bool selected = i == competitors.SelectedIndex;
-            string mark = entry.PlannedFell ? "  ■ Fell" : entry.CropTree ? "  ◆ Crop" : "";
+            string mark = entry.PlannedFell ? " ■ Fell" : entry.CropTree ? " ◆ Crop" : "";
             VisualElement row = UiKit.Box("table-row", "competitor-row");
             if (selected) row.AddToClassList("competitor-selected");
             row.Add(UiKit.Text($"{(selected ? "▶" : "")}{i + 1}  {entry.Id}{mark}", "competitor-name", "body"));
             row.Add(UiKit.Text(UiKit.F(entry.DbhCm, "0.0") + " cm", "competitor-num", "body"));
             row.Add(UiKit.Text(UiKit.F(entry.DistanceM, "0.0") + " m", "competitor-num", "body"));
-            row.Add(UiKit.Text(Percent(entry.Share) + "  " + CropTreeCompetition.StrengthLabel(entry.Strength), "competitor-share", "body"));
+            row.Add(UiKit.Text(Percent(entry.Share) + " " + CropTreeCompetition.StrengthLabel(entry.Strength), "competitor-share", "body"));
             competitorBody.Add(row);
             if (entry.OtherCropTreesNearby > 0)
                 alsoNear.Add($"#{i + 1} ({entry.OtherCropTreesNearby})");
