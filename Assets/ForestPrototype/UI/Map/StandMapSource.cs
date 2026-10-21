@@ -131,7 +131,7 @@ public sealed class StandMapSource
         sceneryRead = true;
         model.Paths.Clear();
         model.Landmarks.Clear();
-        List<Transform> planks = Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        List<Transform> planks = Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude)
             .Where(t => t.name.StartsWith(PathPlankPrefix, System.StringComparison.Ordinal))
             .OrderBy(t => t.name, System.StringComparer.Ordinal).ToList();
         MapPath current = null;
