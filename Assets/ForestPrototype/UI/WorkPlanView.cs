@@ -114,7 +114,8 @@ public sealed class WorkPlanView
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
-        string signature = Signature(m);
+        // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
+        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex;
         if (!force && signature == shownSignature)
             return;
         shownSignature = signature;
@@ -335,8 +336,20 @@ public sealed class WorkPlanView
         card.Add(box);
     }
 
+    // A section the current objective does not use: greyed and disabled with one short explanation, never hidden.
+    private void LockedCard(string heading)
+    {
+        VisualElement card = Card(heading, ScenarioOneWorkPlanFocus.LaterObjectiveNote);
+        card.AddToClassList("card-locked");
+        card.SetEnabled(false);
+    }
+
+    private bool PlantingOpen(ScenarioOneManager m) => ScenarioOneWorkPlanFocus.PlantingOpen(ui.Learning.CurrentTopicIndex,
+        m.WorkOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile) || m.Inventory.Any(e => e.quantity > 0));
+
     private void BuildPlanting(ScenarioOneManager m)
     {
+        if (!PlantingOpen(m)) { LockedCard("Planting"); return; }
         List<ScenarioOneWorkOrder> plant = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.PlantJuvenile)
             .OrderBy(o => o.workOrderId).ToList();
         string species = plant.Count == 0 ? "no planting spots marked"
@@ -390,6 +403,8 @@ public sealed class WorkPlanView
 
     private void BuildPruning(ScenarioOneManager m)
     {
+        if (!ScenarioOneWorkPlanFocus.PruningOpen(ui.Learning.CurrentTopicIndex, m.WorkOrders.Any(o => o.type == ScenarioWorkType.PruneTree)))
+        { LockedCard("Pruning"); return; }
         List<ScenarioOneWorkOrder> prune = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.PruneTree)
             .OrderBy(o => o.workOrderId).ToList();
         int eligible = m.EligibleCropTreePruningCount;
@@ -430,6 +445,7 @@ public sealed class WorkPlanView
 
     private void BuildNursery(ScenarioOneManager m)
     {
+        if (!PlantingOpen(m)) { LockedCard("Nursery — planting stock"); return; }
         VisualElement card = Card("Nursery — planting stock", "Buying stock does not plant it. Contractor planting and shelter materials cost extra; unsheltered planting with your own time has no external labour charge. Review execution costs before spending your cash.");
         VisualElement qty = UiKit.Row(card, "row-wrap");
         UiKit.Add(qty, "Quantity:", "body", "gap");

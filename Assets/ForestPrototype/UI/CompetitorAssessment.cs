@@ -20,7 +20,8 @@ public sealed class CompetitorAssessment
     private const float RingHeightM = 1.3f; // breast height, where DBH is measured
 
     private static readonly Color ListedColour = new Color(232f / 255f, 206f / 255f, 120f / 255f, 0.9f);
-    private static readonly Color SelectedColour = new Color(1f, 1f, 1f, 1f);
+    // The selected competitor uses the selected-tree ochre (never white); it is told from the thin gold listed rings by its thicker line.
+    private static readonly Color SelectedColour = InspectedTreeIndicator.SelectColour;
 
     private readonly ScenarioOneUiRoot ui;
     private readonly VisualElement labelLayer;
@@ -96,8 +97,8 @@ public sealed class CompetitorAssessment
                 if (visible)
                 {
                     Vector2 point = RuntimePanelUtils.CameraTransformWorldToPanel(panel, world, camera);
-                    labels[i].style.left = point.x - 12f;
-                    labels[i].style.top = point.y - 12f;
+                    labels[i].style.left = point.x - 14f;
+                    labels[i].style.top = point.y - 14f;
                     // A label under the card or side panel would show through it; turn to see that tree.
                     foreach (VisualElement occluder in OccludingPanels)
                         if (occluder != null && occluder.resolvedStyle.display == DisplayStyle.Flex && occluder.worldBound.Contains(point))

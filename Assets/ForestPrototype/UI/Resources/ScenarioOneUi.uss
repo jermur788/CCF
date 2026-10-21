@@ -19,14 +19,28 @@
     --fell: rgb(214, 70, 58);
     --crop: rgb(70, 130, 230);
     --rack: rgb(182, 118, 232);
+    /* Selected tree: a muted ochre, never white. The same colour as the world ring/outline (InspectedTreeIndicator.SelectColour). */
+    --select: rgb(222, 164, 58);
+    --select-ink: rgb(36, 24, 8);
     --chip-bg: rgba(255, 255, 255, 0.08);
     --btn-bg: rgba(60, 86, 58, 0.95);
     --btn-bg-hover: rgba(86, 122, 82, 1);
     --btn-bg-active: rgba(44, 66, 44, 1);
     --btn-border: rgba(170, 200, 150, 0.40);
+    /* Type scale. The panel scales with screen height (PanelSettings: 1600 x 900 reference), so one UI unit is 0.8 px at 1280 x 720 and
+       1.2 px at 1920 x 1080. At 720p the old 15 px body was 12 physical pixels, too small to read. Text sizes live here, not on
+       individual labels: change a token and every screen follows. Reading = long popup text (intro, help, objective detail). */
+    --fs-xs: 15px;
+    --fs-sm: 16px;
+    --fs-body: 18px;
+    --fs-reading: 20px;
+    --fs-heading: 20px;
+    --fs-title: 26px;
+    --fs-button: 16px;
+    --fs-lead: 20px;
 }
 
-.root { flex-grow: 1; color: var(--ink); font-size: 15px; }
+.root { flex-grow: 1; color: var(--ink); font-size: var(--fs-body); }
 .layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 
 .panel {
@@ -37,12 +51,12 @@
     padding: 10px 14px;
 }
 
-.title { font-size: 22px; -unity-font-style: bold; color: var(--ink); }
-.subtitle { font-size: 15px; color: var(--ink-muted); }
-.heading { font-size: 16px; -unity-font-style: bold; color: var(--accent); margin-top: 6px; margin-bottom: 4px; }
+.title { font-size: var(--fs-title); -unity-font-style: bold; color: var(--ink); }
+.subtitle { font-size: var(--fs-sm); color: var(--ink-muted); }
+.heading { font-size: var(--fs-heading); -unity-font-style: bold; color: var(--accent); margin-top: 6px; margin-bottom: 4px; }
 .body { white-space: normal; color: var(--ink); }
-.muted { white-space: normal; color: var(--ink-muted); font-size: 16px; }
-.faint { white-space: normal; color: var(--ink-faint); font-size: 15px; }
+.muted { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); }
+.faint { white-space: normal; color: var(--ink-faint); font-size: var(--fs-sm); }
 .money { -unity-font-style: bold; color: var(--good); }
 .money-negative { -unity-font-style: bold; color: var(--bad); }
 .value { -unity-font-style: bold; color: var(--ink); }
@@ -58,7 +72,7 @@
     border-radius: 4px;
     padding: 1px 6px;
     margin-right: 6px;
-    font-size: 13px;
+    font-size: var(--fs-xs);
 }
 .chip-fell { background-color: rgba(214, 70, 58, 0.85); color: white; -unity-font-style: bold; }
 .chip-crop { background-color: rgba(70, 130, 230, 0.85); color: white; -unity-font-style: bold; }
@@ -80,10 +94,10 @@
     color: var(--ink);
     padding: 5px 12px;
     margin: 2px 6px 2px 0;
-    min-height: 28px;
+    min-height: 32px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    font-size: 14px;
+    font-size: var(--fs-button);
     flex-shrink: 0;
 }
 .btn:hover { background-color: var(--btn-bg-hover); color: var(--ink); }
@@ -146,13 +160,13 @@
     position: absolute; left: 0; right: 0; top: 56%;
     align-items: center;
 }
-.hud-prompt-box { -unity-text-align: middle-center; font-size: 18px; -unity-font-style: bold; white-space: normal; max-width: 900px; }
+.hud-prompt-box { -unity-text-align: middle-center; font-size: var(--fs-lead); -unity-font-style: bold; white-space: normal; max-width: 900px; }
 .hud-message { position: absolute; top: 14px; left: 0; right: 0; align-items: center; }
-.hud-message Label { font-size: 18px; color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
+.hud-message Label { font-size: var(--fs-lead); color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
 .reticle { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin-left: -2px; margin-top: -2px; background-color: rgba(255, 255, 255, 0.8); }
 .hud-hotbar { margin-top: 8px; align-items: center; align-self: flex-end; margin-right: 14px; max-width: 900px; }
 .hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--accent); }
-.waypoint-line { color: var(--accent); font-size: 18px; -unity-font-style: bold; }
+.waypoint-line { color: var(--accent); font-size: var(--fs-lead); -unity-font-style: bold; }
 
 /* ---- inspection ---- */
 /* Left column, top-left, clear of the status panel (top-right) and the ground report (bottom-left). The scenario UI root sets the
@@ -165,11 +179,13 @@
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
 /* Two to a row at any width: a basis a little under half, grown to fill, so rounding can never push the second one down. */
 .stat { flex-basis: 46%; flex-grow: 1; margin-bottom: 4px; }
-.stat-label { color: var(--ink-faint); font-size: 15px; }
-.stat-value { -unity-font-style: bold; font-size: 15px; white-space: normal; }
-.inspect-hint { color: var(--ink-muted); font-size: 14px; white-space: normal; margin-top: 4px; }
+.stat-label { color: var(--ink-faint); font-size: var(--fs-sm); }
+.stat-value { -unity-font-style: bold; font-size: var(--fs-body); white-space: normal; }
+.inspect-hint { color: var(--ink-muted); font-size: var(--fs-sm); white-space: normal; margin-top: 4px; }
+/* The open card carries the selected-tree accent on its top and left edges, so the card and the ring on the tree read as one thing. */
+.inspect-selected { border-top-width: 3px; border-top-color: var(--select); border-left-width: 5px; border-left-color: var(--select); }
 .inspect-tag {
-    -unity-font-style: bold; font-size: 14px; color: rgb(20, 24, 18); background-color: rgba(240, 244, 236, 0.94);
+    -unity-font-style: bold; font-size: var(--fs-xs); color: var(--select-ink); background-color: var(--select);
     border-radius: 9px; padding: 0 7px; -unity-text-align: middle-center;
 }
 
@@ -238,7 +254,7 @@
     background-color: rgba(120, 160, 110, 0.10); border-top-left-radius: 8px; border-top-right-radius: 8px;
 }
 .menu-help-body { padding: 14px 20px 6px 20px; flex-shrink: 1; }
-.menu-help-body .body { font-size: 16px; margin-bottom: 10px; }
+.menu-help-body .body { font-size: var(--fs-reading); margin-bottom: 10px; }
 .menu-help-bar {
     flex-direction: row; align-items: center; justify-content: space-between;
     padding: 10px 20px 12px 20px; border-top-width: 1px; border-top-color: var(--frame-rule);
@@ -248,27 +264,49 @@
 
 /* Learning topics reveal one explanation at a time; the body scrolls. */
 .learning-topic { margin-top: 8px; margin-bottom: 8px; }
-.learning-topic > Toggle { font-size: 18px; color: var(--accent); -unity-font-style: bold; }
+.learning-topic > Toggle { font-size: var(--fs-heading); color: var(--accent); -unity-font-style: bold; }
 .learning-topic .body { margin-bottom: 8px; }
 
 /* ---- Crop Tree competitors (inspection card, world tags) ---- */
-.competitor-row Label { font-size: 14px; white-space: nowrap; }
+.competitor-row Label { font-size: var(--fs-sm); white-space: nowrap; }
 .competitor-name { flex-grow: 2.2; flex-basis: 0; }
 .competitor-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 6px; }
 .competitor-share { flex-grow: 2; flex-basis: 0; }
 .competitor-selected Label { color: var(--accent); -unity-font-style: bold; }
 .competitor-tag {
-    width: 24px; height: 24px;
-    font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center;
+    width: 28px; height: 28px;
+    font-size: var(--fs-sm); -unity-font-style: bold; -unity-text-align: middle-center;
     color: rgb(20, 24, 18);
     background-color: rgba(232, 206, 120, 0.92);
-    border-radius: 12px;
+    border-radius: 14px;
 }
-.competitor-tag-selected { background-color: white; border-width: 2px; border-color: var(--accent); }
+.competitor-tag-selected { background-color: var(--select); border-width: 3px; border-color: var(--select-ink); }
 .hud-forecast { max-width: 900px; }
 
 /* ---- extraction racks ---- */
 .rack-panel { border-color: rgba(190, 126, 240, 0.7); }
-.rack-heading { white-space: normal; font-size: 16px; -unity-font-style: bold; color: rgb(206, 156, 246); margin-bottom: 4px; }
+.rack-heading { white-space: normal; font-size: var(--fs-body); -unity-font-style: bold; color: rgb(206, 156, 246); margin-bottom: 4px; }
 .rack-line { white-space: normal; color: var(--ink); }
-.rack-keys { white-space: normal; color: var(--ink-muted); font-size: 14px; margin-top: 4px; }
+.rack-keys { white-space: normal; color: var(--ink-muted); font-size: var(--fs-sm); margin-top: 4px; }
+
+/* ---- top-right HUD column: the active-objective widget above the status panel ---- */
+.hud-right { position: absolute; top: 14px; right: 14px; width: 400px; }
+/* The status panel is positioned by the column here, not by the screen edge. */
+.hud-right .hud-status { position: relative; top: 0; right: 0; width: auto; }
+
+/* ---- active objective widget: what to do now, with an unmistakable NOW state ---- */
+.objective-widget { margin-bottom: 8px; border-left-width: 6px; border-left-color: var(--accent); border-color: rgba(232, 206, 120, 0.55); }
+.objective-header { flex-direction: row; align-items: center; }
+.objective-now {
+    background-color: var(--accent); color: rgb(36, 28, 8); -unity-font-style: bold; font-size: var(--fs-xs);
+    border-radius: 4px; padding: 1px 9px; margin-right: 10px;
+}
+.objective-step { color: var(--ink-muted); font-size: var(--fs-sm); }
+.objective-title { color: var(--ink); font-size: var(--fs-heading); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.objective-instruction { color: var(--ink); white-space: normal; margin-top: 2px; }
+.objective-progress { color: var(--accent); font-size: var(--fs-sm); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.objective-details { margin-top: 6px; align-self: flex-start; }
+
+/* ---- Work Plan sections the current objective does not use yet ---- */
+.card-locked { opacity: 0.55; }
+.card-locked .heading { color: var(--ink-faint); }

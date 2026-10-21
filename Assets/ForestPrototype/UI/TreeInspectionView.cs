@@ -44,7 +44,8 @@ public sealed class TreeInspectionView
         Root = UiKit.Box("inspect");
         Root.name = "inspect-column";
         Root.pickingMode = PickingMode.Ignore;
-        cardPanel = UiKit.Box("panel");
+        // The card carries the selected-tree accent (ochre top/left edge) that matches the ring and outline on the tree.
+        cardPanel = UiKit.Box("panel", "inspect-selected");
         cardPanel.name = "inspect-card";
         cardPanel.pickingMode = PickingMode.Ignore;
         body = new VisualElement { pickingMode = PickingMode.Ignore };

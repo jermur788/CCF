@@ -8,12 +8,14 @@ public sealed class WalkingHudView
 {
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
+    // Top-right column: the active-objective widget above the status panel. Panels that hang under the status panel start below it.
+    public VisualElement RightColumn { get; }
+    public ActiveObjectiveHudWidget ObjectiveWidget { get; }
 
-    private readonly Label statusTitle, cash, objectives, browse, access, waypoint;
+    private readonly Label statusTitle, cash, browse, access, waypoint;
     private readonly VisualElement waypointPanel;
     private readonly Label waypointDirection;
     private readonly WaypointArrow waypointArrow;
-    private readonly Label learning;
     private readonly VisualElement groundPanel;
     private readonly Label groundTitle, groundLight, groundBrowse, groundRegen, groundWhy;
     private readonly Label markSummary, treatment, cropForecast;
@@ -35,15 +37,17 @@ public sealed class WalkingHudView
         Root = UiKit.Box("layer");
         Root.pickingMode = PickingMode.Ignore;
 
+        RightColumn = UiKit.Box("hud-right");
+        RightColumn.name = "hud-right-column";
+        ObjectiveWidget = new ActiveObjectiveHudWidget(() => ui.ShowObjectives());
+        RightColumn.Add(ObjectiveWidget.Root);
         VisualElement status = UiKit.Box("panel", "hud-status");
         statusTitle = UiKit.Add(status, "", "heading");
         VisualElement cashRow = UiKit.Row(status, "spread");
         cashRow.Add(UiKit.Text("Cash", "body"));
         cash = UiKit.Add(cashRow, "", "money");
-        objectives = UiKit.Add(status, "", "body");
         browse = UiKit.Add(status, "", "body");
         access = UiKit.Add(status, "", "muted");
-        learning = UiKit.Add(status, "", "muted");
         VisualElement menuButtons = UiKit.Row(status, "row-wrap");
         Button mapButton = UiKit.Button("Map [M]", () => ui.ShowMap());
         Button objectivesButton = UiKit.Button("Objectives [O]", () => ui.ShowObjectives());
@@ -51,7 +55,8 @@ public sealed class WalkingHudView
         menuButtons.Add(mapButton);
         menuButtons.Add(objectivesButton);
         menuButtons.Add(helpButton);
-        Root.Add(status);
+        RightColumn.Add(status);
+        Root.Add(RightColumn);
 
         waypointPanel = UiKit.Box("panel", "hud-waypoint", "row");
         waypointPanel.name = "hud-waypoint-panel";
@@ -152,9 +157,7 @@ public sealed class WalkingHudView
         statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}"
             + (hudInterventions > 0 ? $" · {hudInterventions} intervention{(hudInterventions == 1 ? "" : "s")}" : "");
         cash.text = UiKit.Money(m.CashCents);
-        var objectiveList = m.Objectives;
-        objectives.text = "Current objective · " + ui.Learning.CurrentTitle;
-        learning.text = ui.Learning.Summary;
+        ObjectiveWidget.Apply(ui.Learning.HudModel());
         int effective = 0, expired = 0;
         if (eco != null)
             foreach (BrowseShelter shelter in eco.Browsing.Shelters)

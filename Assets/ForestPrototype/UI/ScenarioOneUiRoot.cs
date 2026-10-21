@@ -259,14 +259,15 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
     }
 
-    // The competitor and estimate panels sit on the right, just under the HUD status panel,
+    // The competitor and estimate panels sit on the right, just under the HUD status panel and objective widget,
     // and never extend past the bottom of the screen.
     private void PlaceSidePanel(VisualElement panel, bool show)
     {
         panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (!show) return;
-        VisualElement status = hud.Root.Q(className: "hud-status");
-        float top = status != null && status.layout.height > 0f ? status.layout.yMax + 10f : 250f;
+        // Under the top-right column (the objective widget and the status panel), whatever height they have.
+        VisualElement column = hud.RightColumn;
+        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 10f : 250f;
         float available = document.rootVisualElement.layout.height - top - 14f;
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
@@ -277,6 +278,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (competitors == null || manager == null) return;
         bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
         competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
+        indicator?.LateUpdate();
     }
 
     private void HandleKeys()
