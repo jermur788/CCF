@@ -26,10 +26,7 @@ public sealed partial class MenuHelpView
         switch (menu)
         {
             case Menu.WalkingHud:
-                return "You are managing an even-aged Sitka spruce plantation: the trees were planted at the same time.\n\n"
-                    + "Your goal is to guide it toward continuous-cover forestry: keeping tree cover as the woodland renews, while keeping it productive and making room for the next generation of trees.\n\n"
-                    + "Learn one step at a time. Before acting, compare rows, tree sizes and ground light. Start by creating access racks.\n\n"
-                    + "Close this introduction, then press O for your current objective, or B to choose the start of your first rack.";
+                return IntroductionText();
             case Menu.Rack:
                 return "Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Click a tree or ground point where the rack should start. The start stays fixed while you aim. The preview extends forward only. Click again to add it to the Work Plan; right-click reselects the start, and Esc cancels. Nothing is cut until you approve the plan.";
             case Menu.TreeInspection:
@@ -42,6 +39,38 @@ public sealed partial class MenuHelpView
                 // The Annual Review has no first-use screen: its short guidance sits in the review itself (AnnualReviewReadPrompt).
                 return null;
         }
+    }
+
+    // ---- the scenario introduction ----
+    // Shown once, when a fresh scenario starts. It is the one place that explains what this forest is, what the player is trying to do and why
+    // forestry here is a sequence of decisions over time, so it has more room than the other first-use screens, but it stays short and does not
+    // list the objectives: those arrive one at a time. MenuHelpView draws the parts separately (lead, picture, three blocks, how to begin);
+    // IntroductionText joins them as plain text for the checks that read the words.
+    public const int ScenarioIntroWordCap = 200;
+
+    public const string IntroLead =
+        "You are managing an even-aged Sitka spruce plantation: every tree was planted at the same time. "
+        + "Your task is to guide it, over many years, toward continuous-cover forestry.";
+
+    public static readonly string[][] IntroSections =
+    {
+        new[] { "What this forest is",
+            "Even-aged means one age: the trees are similar in size and stand in rows under a closed canopy. It is productive but uniform, and that uniformity is what you will gradually change." },
+        new[] { "What you are trying to do",
+            "Keep tree cover while the woodland renews, stays productive and makes room for the next generation of trees. You do it by walking the forest, inspecting trees and places, and choosing only work that is justified." },
+        new[] { "Why it takes many decisions",
+            "Continuous cover is not one big job but a cycle: look, decide a careful piece of work, carry it out, let years pass, then look again at how the forest responded. What you leave standing matters as much as what you remove." },
+    };
+
+    public const string IntroStart =
+        "Learn it one step at a time. The first step is to create access racks: close this window, then press B to choose where your first rack starts. "
+        + "Your current objective stays on screen; O opens its details.";
+
+    public static string IntroductionText()
+    {
+        string text = IntroLead;
+        foreach (string[] section in IntroSections) text += "\n\n" + section[0] + "\n" + section[1];
+        return text + "\n\n" + IntroStart;
     }
 
     // Shown inside the Annual Review, beside the button that acknowledges the first results, instead of a help screen opening

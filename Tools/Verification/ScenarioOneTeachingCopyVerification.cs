@@ -162,7 +162,9 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
             foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.name == "scenario-success-objectives";
             ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero; yield return Settle();
             Fits(ui.Learning.Root.Children().First(), "learning");
-            var objectives = ui.Learning.Root.Q("scenario-success-objectives"); Fits(objectives, "objectives");
+            // The current objective's card now fills the first screen, so the expanded goals list sits below it: scroll it into view, then require it to fit.
+            var objectives = ui.Learning.Root.Q("scenario-success-objectives");
+            ui.Learning.Root.Q<ScrollView>().ScrollTo(objectives); yield return Settle(); Fits(objectives, "objectives");
             Check(Has(Text(objectives), "sessile oak"), "rendered human species"); yield return Capture("s1a-objectives-" + size.x);
             foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.text.StartsWith("1. Tree");
             ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero; yield return Settle(); yield return Capture("s1a-learning-" + size.x);

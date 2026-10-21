@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,7 +16,9 @@ public sealed partial class MenuHelpView
     private readonly Label title, body;
     private readonly ScrollView scroll;
     private readonly Button close, more;
-    private TeachingDiagram premiseDiagram;
+    private readonly VisualElement window;
+    // The extra parts of the scenario introduction (picture, three explanations, how to begin), removed whenever the window shows something else.
+    private readonly List<VisualElement> introParts = new List<VisualElement>();
     public VisualElement Root { get; }
     public bool IsOpen { get; private set; }
     public Menu CurrentMenu { get; private set; }
@@ -32,6 +35,7 @@ public sealed partial class MenuHelpView
 
         VisualElement panel = UiKit.Box("menu-help-panel");
         panel.name = "menu-help-window";
+        window = panel;
         Root.Add(panel);
 
         VisualElement titleBar = UiKit.Box("menu-help-title");
@@ -95,17 +99,44 @@ public sealed partial class MenuHelpView
     private void Render(Menu menu, string summary)
     {
         bool hasBrief = Summary(menu) != null && (summary != null || ShowingDetail);
+        bool introduction = menu == Menu.WalkingHud && summary != null;
         title.text = summary != null ? SummaryTitle(menu) : Title(menu);
-        body.text = summary ?? Explanation(menu);
-        if (premiseDiagram != null) premiseDiagram.RemoveFromHierarchy();
-        if (menu == Menu.WalkingHud && summary != null)
+        // The introduction puts the body text beside its picture; take it back first so every other screen finds it where it always was.
+        if (body.parent != scroll) scroll.Insert(0, body);
+        foreach (VisualElement part in introParts) part.RemoveFromHierarchy();
+        introParts.Clear();
+        window.EnableInClassList("menu-help-intro", introduction);
+        if (introduction)
         {
-            premiseDiagram = new TeachingDiagram(-1, "Assess before acting: compare the even-aged starting stand with a forest of varied ages. Schematic, not a promised outcome.");
-            scroll.Add(premiseDiagram);
+            // The lead sits beside the picture of the stand and the passing of years, so the whole introduction fits the window without
+            // scrolling; then three short explanations and how to begin. The words are ordinary labels, so they follow the shared type scale.
+            body.text = IntroLead;
+            VisualElement top = UiKit.Box("intro-top");
+            scroll.Insert(0, top);
+            top.Add(body);
+            top.Add(new TeachingDiagram(-1, ""));
+            introParts.Add(top);
+            VisualElement sections = UiKit.Box("intro-sections");
+            foreach (string[] section in IntroSections)
+            {
+                VisualElement block = UiKit.Box("intro-block");
+                UiKit.Add(block, section[0], "intro-heading");
+                UiKit.Add(block, section[1], "intro-text");
+                sections.Add(block);
+            }
+            AddIntroPart(sections);
+            AddIntroPart(UiKit.Text(IntroStart, "intro-start"));
         }
+        else body.text = summary ?? Explanation(menu);
         more.style.display = hasBrief ? DisplayStyle.Flex : DisplayStyle.None;
         more.text = summary != null ? MoreDetailLabel : LessDetailLabel;
         scroll.scrollOffset = Vector2.zero;
+    }
+
+    private void AddIntroPart(VisualElement part)
+    {
+        scroll.Add(part);
+        introParts.Add(part);
     }
 
     // The same button opens the long explanation and, on a second press, goes back to the short text.

@@ -44,7 +44,8 @@ public sealed class TreeInspectionView
         Root = UiKit.Box("inspect");
         Root.name = "inspect-column";
         Root.pickingMode = PickingMode.Ignore;
-        cardPanel = UiKit.Box("panel");
+        // The card carries the selected-tree accent (ochre top/left edge) that matches the ring and outline on the tree.
+        cardPanel = UiKit.Box("panel", "inspect-selected");
         cardPanel.name = "inspect-card";
         cardPanel.pickingMode = PickingMode.Ignore;
         body = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -67,6 +68,7 @@ public sealed class TreeInspectionView
         CompetitorPanel.style.top = 250;
         CompetitorPanel.style.width = ColumnWidth;
         competitorBody = new VisualElement();
+        competitorBody.AddToClassList("competitor-body");
         CompetitorPanel.Add(competitorBody);
 
         EstimatePanel = UiKit.Box("panel", "estimate-panel");
@@ -207,7 +209,7 @@ public sealed class TreeInspectionView
             head.Add(UiKit.Text("#  Tree", "competitor-name", "faint"));
             head.Add(UiKit.Text("DBH", "competitor-num", "faint"));
             head.Add(UiKit.Text("Distance", "competitor-num", "faint"));
-            head.Add(UiKit.Text("Share of competition", "competitor-share", "faint"));
+            head.Add(UiKit.Text("Share", "competitor-share", "faint")); // the full "Share of competition" never fitted this column on one line
             competitorBody.Add(head);
         }
         var alsoNear = new List<string>();
@@ -215,13 +217,13 @@ public sealed class TreeInspectionView
         {
             CompetitorEntry entry = report.Ranked[i];
             bool selected = i == competitors.SelectedIndex;
-            string mark = entry.PlannedFell ? "  ■ Fell" : entry.CropTree ? "  ◆ Crop" : "";
+            string mark = entry.PlannedFell ? " ■ Fell" : entry.CropTree ? " ◆ Crop" : "";
             VisualElement row = UiKit.Box("table-row", "competitor-row");
             if (selected) row.AddToClassList("competitor-selected");
             row.Add(UiKit.Text($"{(selected ? "▶" : "")}{i + 1}  {entry.Id}{mark}", "competitor-name", "body"));
             row.Add(UiKit.Text(UiKit.F(entry.DbhCm, "0.0") + " cm", "competitor-num", "body"));
             row.Add(UiKit.Text(UiKit.F(entry.DistanceM, "0.0") + " m", "competitor-num", "body"));
-            row.Add(UiKit.Text(Percent(entry.Share) + "  " + CropTreeCompetition.StrengthLabel(entry.Strength), "competitor-share", "body"));
+            row.Add(UiKit.Text(Percent(entry.Share) + " " + CropTreeCompetition.StrengthLabel(entry.Strength), "competitor-share", "body"));
             competitorBody.Add(row);
             if (entry.OtherCropTreesNearby > 0)
                 alsoNear.Add($"#{i + 1} ({entry.OtherCropTreesNearby})");

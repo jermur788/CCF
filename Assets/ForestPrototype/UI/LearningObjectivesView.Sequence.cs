@@ -93,6 +93,45 @@ public sealed partial class LearningObjectivesView
         return ScenarioOneTeachingSequence.Lessons[index].Action;
     }
 
+    // The same lesson as CurrentInstruction but short enough for the always-visible HUD panel (ActiveObjectiveHudWidget). It follows the same
+    // states, so what the HUD asks for never contradicts the Objectives screen.
+    public ActiveObjectiveHudWidget.Model HudModel()
+    {
+        var f = TeachingFacts();
+        int index = ScenarioOneTeachingSequence.Current(f);
+        var lesson = ScenarioOneTeachingSequence.Lessons[index];
+        return new ActiveObjectiveHudWidget.Model
+        {
+            Number = index + 1,
+            Total = ScenarioOneTeachingSequence.Lessons.Length,
+            Title = lesson.Heading,
+            Instruction = HudInstruction(f, index, lesson),
+            Progress = TeachingProgress(f),
+            Complete = index == ScenarioOneTeachingSequence.Lessons.Length - 1 && ui.Manager.Outcome == ScenarioOneOutcome.Completed
+        };
+    }
+
+    private string HudInstruction(ScenarioOneTeachingSequence.Facts f, int index, ScenarioOneTeachingSequence.Lesson lesson)
+    {
+        if (index == 0)
+        {
+            RackLayoutTracker layout = ui.RackLayout;
+            if (layout != null && layout.Complete)
+                return ui.Manager.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending)
+                    ? "Open the Work Plan [Tab], approve the rack work, then advance one year."
+                    : "Open the Work Plan [Tab] and advance one year.";
+            if (layout != null && layout.HasProgress) return "Plan the remaining racks: [B] in the forest, or [M] on the Stand Map.";
+        }
+        if (index == 1 && !f.AccessReviewed) return "Read the Annual Review, then walk back and look at the opened stand.";
+        if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted) return "Review the release in the Work Plan [Tab], approve it and advance a year.";
+        if (index == 4) return f.ReleaseReviewed ? "Reassess the forest, then plan another justified job in a later year."
+            : "Read the Annual Review, reassess, then plan another justified job.";
+        if (index == 6) return f.Year <= f.PlantingYear ? "Read the review, inspect the planted trees, then advance one year."
+            : "Read the review and compare the planted trees with last year.";
+        if (index == 7 && ui.Manager.Outcome == ScenarioOneOutcome.Completed) return "Scenario goals achieved. Keep observing: transformation is ongoing.";
+        return lesson.HudAction;
+    }
+
     private string TeachingProgress(ScenarioOneTeachingSequence.Facts f)
     {
         switch (ScenarioOneTeachingSequence.Current(f))

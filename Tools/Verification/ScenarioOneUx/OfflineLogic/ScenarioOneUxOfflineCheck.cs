@@ -93,7 +93,9 @@ public static class ScenarioOneUxOfflineCheck
         string brief = MenuHelpView.Summary(MenuHelpView.Menu.WalkingHud);
         Check(brief != null, "the walking HUD has a short first-use text");
         if (brief == null) return;
-        Check(Words(brief) <= 130, "the role briefing is short enough to read before play", Words(brief) + " words");
+        // The scenario introduction has its own, larger cap: the product owner asked for more explanation there (what the forest is, what the player is
+        // trying to do, why it is a sequence of decisions) while still not listing the objectives. The other first-use screens keep the 130-word cap below.
+        Check(Words(brief) <= MenuHelpView.ScenarioIntroWordCap, "the scenario introduction stays short enough to read before play", Words(brief) + " of " + MenuHelpView.ScenarioIntroWordCap + " words");
         Check(Has(brief, "plantation"), "briefing: the player manages a small plantation");
         Check(Has(brief, "continuous-cover"), "briefing: the objective is to begin converting toward continuous-cover management");
         Check(Has(brief, "next generation") && Has(brief, "productive"), "briefing: productive woodland and its next generation");
@@ -140,8 +142,10 @@ public static class ScenarioOneUxOfflineCheck
             string detail = MenuHelpView.Explanation(menu);
             full += Words(detail);
             if (brief == null) continue;
-            firstUse += Words(brief);
-            Check(Words(brief) <= 130, "first-use text is brief for " + menu, Words(brief) + " words");
+            bool introduction = menu == MenuHelpView.Menu.WalkingHud;
+            // The introduction is shown once, at the start of a scenario, and has its own cap (RoleBriefing); the screens met later in play stay short together.
+            if (!introduction) firstUse += Words(brief);
+            Check(Words(brief) <= (introduction ? MenuHelpView.ScenarioIntroWordCap : 130), "first-use text is brief for " + menu, Words(brief) + " words");
             Check(Words(detail) > Words(brief), "the full help for " + menu + " is still more detailed than its first-use text");
         }
         Check(full > 600, "the detailed help is kept, not deleted", full + " words");

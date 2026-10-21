@@ -119,6 +119,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(inspection.EstimatePanel);
         competitors.OccludingPanels.Add(inspection.Root);
         competitors.OccludingPanels.Add(inspection.CompetitorPanel);
+        // The objective widget and status panel sit in this column: a numbered tag drawn over their text is unreadable, so it waits behind them too.
+        competitors.OccludingPanels.Add(hud.RightColumn);
         root.Add(workPlan.Root);
         root.Add(review.Root);
         root.Add(map.Root);
@@ -217,6 +219,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else
             competitors.Clear();
+        hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
         PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
         if (!preview)
@@ -259,14 +262,15 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
     }
 
-    // The competitor and estimate panels sit on the right, just under the HUD status panel,
+    // The competitor and estimate panels sit on the right, just under the HUD status panel and objective widget,
     // and never extend past the bottom of the screen.
     private void PlaceSidePanel(VisualElement panel, bool show)
     {
         panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (!show) return;
-        VisualElement status = hud.Root.Q(className: "hud-status");
-        float top = status != null && status.layout.height > 0f ? status.layout.yMax + 10f : 250f;
+        // Under the top-right column (the objective widget and the status panel), whatever height they have.
+        VisualElement column = hud.RightColumn;
+        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 10f : 250f;
         float available = document.rootVisualElement.layout.height - top - 14f;
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
@@ -277,6 +281,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (competitors == null || manager == null) return;
         bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
         competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
+        indicator?.LateUpdate();
     }
 
     private void HandleKeys()

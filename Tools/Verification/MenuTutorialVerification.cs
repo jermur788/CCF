@@ -305,6 +305,22 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 
+    // The Work Plan shows Planting, Nursery and Pruning greyed out ("Available in a later objective.") until the teaching stage that uses them
+    // (SCENARIO-ONE-UX-PEDAGOGY-V1; the locked state itself is checked by UxPedagogyShots). This check drives the whole plan, pruning
+    // included, so it presents the final stage by injecting the facts the Objectives view reads. Nothing here touches the forest or its save.
+    private void PresentFinalTeachingStage()
+    {
+        BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var facts = new ScenarioOneTeachingSequence.Facts
+        {
+            AccessOpen = true, Year = 5, AccessReviewed = true, CropTrees = 1, ReleasePlanned = true, ReleaseExecuted = true, DeadwoodExecuted = true,
+            ReleaseReviewed = true, ReviewedTwoCycles = true, BeechEstablished = true, OakEstablished = true, PlantingYear = 3, EstablishmentReviewed = true
+        };
+        typeof(LearningObjectivesView).GetField("sequenceFacts", flags).SetValue(ui.Learning, facts);
+        typeof(LearningObjectivesView).GetField("nextSequenceRefresh", flags).SetValue(ui.Learning, float.MaxValue);
+        Check(ui.Learning.CurrentTopicIndex == ScenarioOneWorkPlanFocus.PruningFromLesson, "Work Plan check presents the final teaching stage");
+    }
+
     private IEnumerator VerifyLearningObjectives()
     {
         ui.CloseAll(); yield return null;
@@ -357,6 +373,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Marking.Mark(eligible[0], TreeMarkType.CropTree, false);
         ui.Marking.Mark(eligible[1], TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
+        PresentFinalTeachingStage();
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
         // The Work Plan folds the Fell marks in when it opens, so there is no separate "Add marked trees" step to click.
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));
