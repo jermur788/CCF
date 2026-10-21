@@ -224,6 +224,26 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         Check(ordered[0].ui >= hardMinUiUnits, $"TEXT_NOT_TINY_{state}", $"smallest={ordered[0].ui:0.0} UI units = {ordered[0].px:0.0}px \"{ordered[0].text}\" median={median:0.0}px labels={ordered.Count}");
     }
 
+    // A row squeezed below its text height makes the lines print on top of each other (what a panel does when it is capped in height and its
+    // content is taller). Compares every visible label's box with the height its own text needs; a squashed one is reported with its words.
+    private void AuditNotSquashed(string name, VisualElement root)
+    {
+        if (root == null) { Fail(name, "missing element"); return; }
+        var squashed = new List<string>();
+        int labels = 0;
+        foreach (TextElement label in root.Query<TextElement>().ToList())
+        {
+            if (!Visible(label) || string.IsNullOrWhiteSpace(label.text) || label is Button) continue;
+            labels++;
+            bool wraps = label.resolvedStyle.whiteSpace == WhiteSpace.Normal;
+            Vector2 natural = label.MeasureTextSize(label.text, wraps ? label.worldBound.width : 0f, wraps ? VisualElement.MeasureMode.Exactly : VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+            if (natural.y > label.worldBound.height + 2f)
+                squashed.Add($"\"{(label.text.Length > 28 ? label.text.Substring(0, 28) : label.text)}\" needs {natural.y:0} has {label.worldBound.height:0}");
+        }
+        Debug.Log($"UXP_SQUASH {name} {size.x}x{size.y} labels={labels} squashed={squashed.Count}");
+        Check(squashed.Count == 0, name, squashed.Count == 0 ? $"labels={labels}" : string.Join(" | ", squashed.Take(4)));
+    }
+
     private void AuditContained(string name, VisualElement child, VisualElement bound)
     {
         if (child == null || bound == null) { Fail(name, "missing element"); return; }
@@ -541,6 +561,10 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             Debug.Log($"UXP_COMPETITOR_TAGS {size.x}x{size.y} shown={shownTags.Count} overPanels={coveredTags}");
             Check(shownTags.Count > 0, "COMPETITOR_TAGS_ARE_SHOWN", "the check below is empty without tags");
             Check(coveredTags == 0, "COMPETITOR_TAGS_DO_NOT_COVER_PANELS", $"tagsOverPanels={coveredTags}");
+            // The competitor list is longest with a Fell mark and other Crop Trees near: its rows must keep their height, and the HUD column above it too.
+            AuditNotSquashed("COMPETITOR_LIST_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q("competitor-panel"));
+            AuditNotSquashed("HUD_COLUMN_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q("hud-right-column"));
+            AuditNotSquashed("INSPECTION_CARD_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q(className: "inspect"));
             yield return Shot("07-selected-competitor-ring");
             ui.Marking.Mark(pose.Tree, TreeMarkType.None, false);
             ui.Marking.Mark(pose.Mark1, TreeMarkType.None, false);
