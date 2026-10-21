@@ -344,8 +344,16 @@ public sealed class WorkPlanView
         card.SetEnabled(false);
     }
 
-    private bool PlantingOpen(ScenarioOneManager m) => ScenarioOneWorkPlanFocus.PlantingOpen(ui.Learning.CurrentTopicIndex,
-        m.WorkOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile) || m.Inventory.Any(e => e.quantity > 0));
+    // Is planting offered as a normal action at the current teaching stage? The Work Plan and the HUD's key hint ask the same question here, so they
+    // never disagree. It only decides what is presented: the planting mechanic, its orders and its costs are unchanged.
+    public static bool PlantingOffered(ScenarioOneUiRoot ui)
+    {
+        ScenarioOneManager m = ui.Manager;
+        return ScenarioOneWorkPlanFocus.PlantingOpen(ui.Learning.CurrentTopicIndex,
+            m.WorkOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile) || m.Inventory.Any(e => e.quantity > 0));
+    }
+
+    private bool PlantingOpen(ScenarioOneManager m) => PlantingOffered(ui);
 
     private void BuildPlanting(ScenarioOneManager m)
     {

@@ -11,6 +11,9 @@ public sealed class WalkingHudView
     // Top-right column: the active-objective widget above the status panel. Panels that hang under the status panel start below it.
     public VisualElement RightColumn { get; }
     public ActiveObjectiveHudWidget ObjectiveWidget { get; }
+    private float nextObjectiveRefresh;
+    // The key hint for planting appears when the Work Plan offers planting (the G key itself always works).
+    private bool plantingOffered;
 
     private readonly Label statusTitle, cash, browse, access, waypoint;
     private readonly VisualElement waypointPanel;
@@ -157,7 +160,13 @@ public sealed class WalkingHudView
         statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}"
             + (hudInterventions > 0 ? $" · {hudInterventions} intervention{(hudInterventions == 1 ? "" : "s")}" : "");
         cash.text = UiKit.Money(m.CashCents);
-        ObjectiveWidget.Apply(ui.Learning.HudModel());
+        // The objective only changes when the teaching facts do (they are read about four times a second), so the panel is not rebuilt every frame.
+        if (Time.unscaledTime >= nextObjectiveRefresh)
+        {
+            nextObjectiveRefresh = Time.unscaledTime + 0.25f;
+            ObjectiveWidget.Apply(ui.Learning.HudModel());
+            plantingOffered = WorkPlanView.PlantingOffered(ui);
+        }
         int effective = 0, expired = 0;
         if (eco != null)
             foreach (BrowseShelter shelter in eco.Browsing.Shelters)
@@ -243,7 +252,7 @@ public sealed class WalkingHudView
         {
             markSummary.text = rackStage ? RackStageSummary(marks)
                 : $"Marked: FELL {marks.LivingMarkedCount} (red)  ·  CROP TREE {marks.LivingCropTreeCount} (blue)  ·  "
-                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop  [G] Plant";
+                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop" + (plantingOffered ? "  [G] Plant" : "");
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
             cropForecast.text = CropForecast(ui.Competitors != null ? ui.Competitors.Summary : null);
