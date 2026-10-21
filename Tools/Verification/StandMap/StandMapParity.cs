@@ -206,6 +206,7 @@ public sealed class StandMapParityRunner : MonoBehaviour
         yield return WholePlanParity();
         yield return CellLayout();
         yield return RackConfirmation();
+        yield return SaveAndLoad();
         yield return Waypoint();
         yield return PlanningPreviewIsFullMapOnly();
         yield return Layouts();
@@ -412,6 +413,36 @@ public sealed class StandMapParityRunner : MonoBehaviour
             ui.CloseAll(); yield return Settle(4);
         }
         else Unverified("an off-layout (cross-row) rack could not be confirmed by the planner here, so its appearance on the maps was not exercised");
+    }
+
+    // ---- save and load: what the two maps keep ----
+    // The planned layout is derived from the forest and the Work Plan, so it must come back. A rack confirmed OFF the layout is
+    // remembered only by the session's rack groups (existing design, no save field), so it is expected NOT to come back; this stage
+    // measures and reports exactly that, it does not change it.
+    private IEnumerator SaveAndLoad()
+    {
+        ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
+        if (saves == null) { Unverified("no save controller found, so the maps after a load were not exercised"); yield break; }
+        ui.CloseAll(); yield return Settle(6);
+        int toDo = Count(Mini, MapSymbol.RackToDo), planned = Count(Mini, MapSymbol.RackPlanned), open = Count(Mini, MapSymbol.RackOpen), other = Count(Mini, MapSymbol.RackOther);
+        Vector2 youBefore = Fraction(Mini, First(Mini, MapSymbol.Player));
+        int fellOrdersBefore = manager.WorkOrders.Count(o => o.IsOpen && o.type == ScenarioWorkType.FellTree);
+        ForestSaveData data = saves.CaptureData();
+        saves.LoadData(data, false);
+        for (int i = 0; i < 4; i++) yield return null;
+        yield return Wait(1.0f);
+        yield return Settle(10);
+        int toDoAfter = Count(Mini, MapSymbol.RackToDo), plannedAfter = Count(Mini, MapSymbol.RackPlanned), openAfter = Count(Mini, MapSymbol.RackOpen), otherAfter = Count(Mini, MapSymbol.RackOther);
+        Hard("LOAD_LAYOUT_RACKS_ARE_STILL_ON_THE_MINIMAP_IN_THE_SAME_STATES", toDoAfter == toDo && plannedAfter == planned && openAfter == open, $"toDo {toDo}->{toDoAfter} planned {planned}->{plannedAfter} open {open}->{openAfter}");
+        int fellOrdersAfter = manager.WorkOrders.Count(o => o.IsOpen && o.type == ScenarioWorkType.FellTree);
+        Hard("LOAD_THE_RACK_TREES_ARE_STILL_PLANNED_FELLING_JOBS", fellOrdersBefore > 0 && fellOrdersAfter == fellOrdersBefore, $"open felling orders {fellOrdersBefore}->{fellOrdersAfter}");
+        MapDrawItem you = First(Mini, MapSymbol.Player);
+        Hard("LOAD_THE_PLAYER_IS_STILL_SHOWN_AT_THE_SAME_PLACE", you != null && Distance(Fraction(Mini, you), youBefore) < 2e-3f, you == null ? "missing" : $"{youBefore} -> {Fraction(Mini, you)}");
+        ui.ShowMap(); yield return Settle(8);
+        Hard("LOAD_THE_FULL_MAP_AGREES_WITH_THE_MINIMAP", Count(Full, MapSymbol.RackToDo) == toDoAfter && Count(Full, MapSymbol.RackPlanned) == plannedAfter && Count(Full, MapSymbol.RackOther) == otherAfter, $"full toDo={Count(Full, MapSymbol.RackToDo)} planned={Count(Full, MapSymbol.RackPlanned)} other={Count(Full, MapSymbol.RackOther)}");
+        ui.CloseAll(); yield return Settle(4);
+        Note("LOAD_OFF_LAYOUT_RACKS", $"offLayoutRacksBeforeSaveLoad={other} afterLoad={otherAfter}; rack groups after load={manager.RackGroups.Count} (RackGroups are session-only by existing design; see LOAD_THE_RACK_TREES_ARE_STILL_PLANNED_FELLING_JOBS for the trees; only the map's line for an off-layout rack is not restored)");
+        if (other > 0 && otherAfter == 0) Note("KNOWN_LIMIT_FOR_MANAGER_TRIAGE", "a rack confirmed OFF the planned layout is drawn on both maps this session but is not drawn after a save/load (rack groups are session-only; no save schema change was made)");
     }
 
     private MapSymbol MiniRackSymbol(int layoutIndex)
