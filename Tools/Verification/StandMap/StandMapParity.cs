@@ -24,6 +24,9 @@ using UnityEngine.UIElements;
 //   * the minimap carries no controls and no values, and the rack-planning preview exists on the full map only;
 //   * layout at several screen sizes (no overlap with the HUD, the map fits), with screenshots.
 //
+// Targets the Enlarged80 new-game world (16 x 16 squares, the authored five-rack layout, 67 felling orders). Under the Editor-only Legacy40
+// override (CCF_STAND_GEOMETRY=0) the geometry, position, facing and cell-layout checks still pass (95 of them were run), but the checks
+// that assume that authored layout (rack counts, minimum item/point counts, felling orders after a load) do not apply.
 // Run (graphical Editor):  -executeMethod StandMapParity.Begin   CCF_DIAG_DIR=<folder>  CCF_UI_SIZES=1920x1080,1280x720
 // Reads the game, plays it in memory, writes nothing but its evidence folder. Remove it from Assets afterwards.
 public static class StandMapParity
