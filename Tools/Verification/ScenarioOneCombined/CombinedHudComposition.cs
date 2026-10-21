@@ -432,6 +432,7 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
                 yield return Pause(6);
                 // Every layer press rebuilds the side card with a closed foldout, so the foldout is opened after the press (only the Access layer has one).
                 Foldout details = ui.Map.Root.Q<Foldout>("map-site-details");
+                if (l == 0) Check(details != null, "MAPWIN_ACCESS_LAYER_OFFERS_THE_SITE_DETAILS_FOLDOUT", "the foldout audit below would otherwise be skipped silently");
                 if (pass == 1 && details != null) { details.value = true; yield return Pause(8); Check(details.value && details.contentContainer.childCount > 0, "MAPWIN_FOLDOUT_IS_OPEN_WITH_ITS_LINES", $"children={details.contentContainer.childCount}"); }
                 string tag = $"MAPWIN_{(pass == 1 ? "FOLDOUT_" : "")}{layers[l].Replace(" ", "").Replace("/", "").Replace("&", "")}";
                 var texts = modal.Query<TextElement>().ToList().Where(t => Visible(t) && !string.IsNullOrWhiteSpace(t.text)).ToList();
