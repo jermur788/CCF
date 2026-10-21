@@ -140,7 +140,8 @@
 .hud-status { position: absolute; top: 14px; right: 14px; width: 400px; }
 /* The title carries the year, phase and intervention count; it wraps rather than cutting the count off. */
 .hud-status .heading { white-space: normal; }
-.hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 14px; }
+/* The right edge leaves the bottom-right corner to the minimap. */
+.hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 232px; }
 .hud-ground { max-width: 560px; margin-bottom: 8px; }
 .hud-prompt {
     position: absolute; left: 0; right: 0; top: 56%;
@@ -153,6 +154,10 @@
 .hud-hotbar { margin-top: 8px; align-items: center; align-self: flex-end; margin-right: 14px; max-width: 900px; }
 .hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--accent); }
 .waypoint-line { color: var(--accent); font-size: 18px; -unity-font-style: bold; }
+
+/* ---- HUD minimap: the Stand Map's map, reduced. Its size is set in HudMinimapView; it takes no pointer input. ---- */
+.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; }
+.hud-minimap-north { position: absolute; left: 0; right: 0; top: 7px; -unity-text-align: upper-center; font-size: 13px; -unity-font-style: bold; color: var(--ink); }
 
 /* ---- inspection ---- */
 /* Left column, top-left, clear of the status panel (top-right) and the ground report (bottom-left). The scenario UI root sets the
@@ -202,10 +207,12 @@
 /* ---- stand map ---- */
 .map-body { flex-direction: row; flex-grow: 1; }
 .map-left { flex-grow: 1; align-items: center; }
-.map-grid { flex-direction: column; }
-.map-row { flex-direction: row; }
+/* The frame is exactly the map square (size set in StandMapView). The cell buttons are placed in it from the shared map transform,
+   and the canvas draws paths, racks, you and the destination over them from the same transform. */
+.map-grid { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.map-canvas { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .map-cell {
-    width: 64px; height: 56px; margin: 1px;
+    margin: 0;
     border-width: 2px; border-color: transparent; border-radius: 2px; padding: 2px 3px;
     justify-content: space-between;
 }

@@ -13,6 +13,8 @@ public sealed class RackGroup
     // Session counter, 1-based; the player sees "Extraction rack N".
     public int Id;
     public float AngleDegrees, AcrossM, WidthM;
+    // The segment of ground the rack covers (world x/z), so the maps can draw it. Session-only like the rest of the group.
+    public RackPoint Start, End;
     // 0-based layout rack this one lies on, or -1.
     public int LayoutIndex = -1;
     // Work order ids still in the Work Plan.
@@ -128,6 +130,8 @@ public sealed partial class ScenarioOneManager
             return 0;
         }
         group.AcrossM = RackGeometry.Across(proposal.Selection.Start, proposal.AngleDegrees);
+        group.Start = proposal.Selection.Start;
+        group.End = proposal.Selection.End;
         rackGroups.Add(group);
         nextRackGroupId++;
         GetHarvestQuote(false);

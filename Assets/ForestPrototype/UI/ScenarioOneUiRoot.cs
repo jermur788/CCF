@@ -31,7 +31,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private RackTool rackTool;
     private RackLayoutTracker rackLayout;
     private PlannedFellMarkers plannedMarkers;
+    private StandMapSource mapSource;
     public CompetitorAssessment Competitors => competitors;
+    // The one map model both the Stand Map and the HUD minimap are drawn from.
+    public StandMapSource MapSource => mapSource;
+    public HudMinimapView Minimap => hud != null ? hud.Minimap : null;
     public InspectedTreeIndicator Indicator => indicator;
     public TreeInspectionView Inspection => inspection;
     public RackTool RackTool => rackTool;
@@ -98,6 +102,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
         // Extraction racks: the in-world tool lives on the player, the markers and layout tracker are presentation helpers.
         rackLayout = new RackLayoutTracker(this);
+        mapSource = new StandMapSource(this);
         if (manager != null)
         {
             rackTool = (player != null ? player.gameObject : gameObject).AddComponent<RackTool>();
@@ -139,6 +144,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private void OnRackConfirmed(RackGroup group, string source)
     {
         rackLayout?.Update(true);
+        // The maps are drawn from the same rack data: read it again now rather than at the next timer tick.
+        mapSource?.MarkRacksDirty();
         learning?.Record("rack.create");
         if (source == "map") learning?.Record("rack.map");
     }
@@ -147,6 +154,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private void OnStandGeometryApplied(int model)
     {
         if (map != null) map.OnStandGeometryApplied(ecology, model);
+        mapSource?.MarkRacksDirty();
     }
 
     private void OnDestroy()
@@ -267,7 +275,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (!show) return;
         VisualElement status = hud.Root.Q(className: "hud-status");
         float top = status != null && status.layout.height > 0f ? status.layout.yMax + 10f : 250f;
-        float available = document.rootVisualElement.layout.height - top - 14f;
+        // The minimap sits at the bottom right of this same column, so the panel stops above it.
+        float available = document.rootVisualElement.layout.height - top - 14f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
     }

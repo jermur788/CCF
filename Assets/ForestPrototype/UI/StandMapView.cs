@@ -10,10 +10,18 @@ public sealed class StandMapView
 {
     private enum Layer { Access, Light, Regeneration, Browse, Marks }
 
+    // Side of the map square in UI units. The cell buttons, and everything the canvas draws over them, are placed on this square by
+    // the shared map transform (StandMapTransform); the minimap uses the same transform at its own, smaller side.
+    public const float MapSidePx = 608f;
+
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
     private readonly VisualElement grid, side, layerButtons;
-    private readonly Label legend;
+    private readonly StandMapCanvas canvas;
+    private readonly Label legend, symbolLegend;
+    public StandMapCanvas Canvas => canvas;
+    // The cell grid, exposed so verification can compare its real layout with the shared transform.
+    public VisualElement Grid => grid;
     private Layer layer = Layer.Access;
     private int selectedCell = -1;
     private int waypointCell = -1;
@@ -60,10 +68,22 @@ public sealed class StandMapView
 
         VisualElement body = UiKit.Box("map-body");
         VisualElement left = UiKit.Box("map-left");
+        // One square frame holds the cell buttons (interaction and the analytical layers) and, over them, the shared map canvas
+        // (property edge, paths, racks, you, destination) drawn by the same code and symbols as the HUD minimap.
+        VisualElement frame = UiKit.Box("map-frame");
+        frame.name = "map-frame";
+        frame.style.width = MapSidePx;
+        frame.style.height = MapSidePx;
+        frame.style.flexShrink = 0;
         grid = UiKit.Box("map-grid");
-        left.Add(grid);
+        canvas = new StandMapCanvas(MapDetail.Full, false) { name = "map-canvas" };
+        canvas.AddToClassList("map-canvas");
+        frame.Add(grid);
+        frame.Add(canvas);
+        left.Add(frame);
         legend = UiKit.Add(left, "", "muted");
-        UiKit.Add(left, "NORTH ↑ · woodland boundary around the grid · white outline / YOU: your position · gold outline: selected destination.", "faint");
+        UiKit.Add(left, "NORTH ↑ · white outline / YOU: your position · gold outline: selected destination.", "faint");
+        symbolLegend = UiKit.Add(left, "Lines on the map — " + StandMapSymbols.Legend(MapDetail.Full), "faint");
         body.Add(left);
         side = UiKit.Box("card", "map-side");
         body.Add(side);
@@ -77,6 +97,11 @@ public sealed class StandMapView
             return;
         int playerCell = ui.Player != null ? eco.GetCellIndex(ui.Player.transform.position) : -1;
         if (selectedCell < 0) selectedCell = playerCell;
+        // The rack being planned here is drawn on this map only (the minimap filters it out). Then the canvas is given the shared
+        // model, which is re-read now so it is as current as the cells below.
+        ui.MapSource.Preview = rackMode ? rackProposal : null;
+        StandMapModel model = force ? ui.MapSource.Rebuild() : ui.MapSource.Model;
+        canvas.Sync(model);
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|"
             + (ui.Marking != null ? ui.Marking.LivingMarkedCount + "/" + ui.Marking.LivingCropTreeCount : "")
             + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}";
@@ -125,19 +150,25 @@ public sealed class StandMapView
         Dictionary<int, (int fell, int crop)> marks = CountMarks(eco);
         float pressure = eco.Browsing.BackgroundPressure;
         int upcoming = eco.EcologicalYear + 1;
-        float size = Mathf.Clamp(640f / Mathf.Max(1, n), 30f, 80f);
+        // Every cell is placed by the shared map transform (the same one the minimap and the canvas drawn over this grid use), so a
+        // square sits exactly where the world point at its centre is drawn.
+        StandMapTransform transform = ui.MapSource.Model.TransformFor(MapSidePx);
+        float size = transform.CellSidePx(n);
 
         for (int z = n - 1; z >= 0; z--)
         {
-            VisualElement row = UiKit.Box("map-row");
             for (int x = 0; x < n; x++)
             {
                 int index = z * n + x;
                 ForestEcologyCell c = eco.Cells[index];
                 var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); if (rackMode) PlaceRack(eco, index); Refresh(true); }) { text = "", focusable = false };
                 cell.AddToClassList("map-cell");
+                MapPosition corner = transform.CellTopLeft(index, n);
+                cell.style.position = Position.Absolute;
+                cell.style.left = corner.X;
+                cell.style.top = corner.Y;
                 cell.style.width = size;
-                cell.style.height = size * 0.875f;
+                cell.style.height = size;
                 if (index == selectedCell) cell.AddToClassList("map-cell-selected");
                 if (index == playerCell) cell.AddToClassList("map-cell-player");
                 bool onRack = rackMode && rackCells.Contains(index);
@@ -196,9 +227,8 @@ public sealed class StandMapView
                 labels.Add(name);
                 labels.Add(number);
                 cell.Add(labels);
-                row.Add(cell);
+                grid.Add(cell);
             }
-            grid.Add(row);
         }
 
         switch (layer)
@@ -232,7 +262,7 @@ public sealed class StandMapView
         if (layout == null) return "";
         foreach (RackLayoutLine line in layout.Lines)
             if (Mathf.Abs(centre.y - line.AcrossM) <= size * 0.5f)
-                return line.Done ? " ✓" : " ◇";
+                return line.Done ? StandMapSymbols.RackDoneMark : StandMapSymbols.RackToDoMark;
         return "";
     }
 
