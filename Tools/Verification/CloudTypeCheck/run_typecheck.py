@@ -45,6 +45,8 @@ TOOLS_EXCLUDE = [
     # Unity's own compiler against the project's references (Tools/Verification/ScenarioOneUxPedagogy/README.md).
     "Tools/Verification/ScenarioOneUxPedagogy/CameraLookDiagnosis.cs",
     "Tools/Verification/ScenarioOneUxPedagogy/UxPedagogyShots.cs",
+    # SCENARIO-ONE-PLAYER-TEST-REMEDIATION-V1 combined-integration harness: Editor window reflection and Unity.Profiling recorders; checked by Unity's own compiler.
+    "Tools/Verification/ScenarioOneCombined/CombinedHudComposition.cs",
 ]
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
