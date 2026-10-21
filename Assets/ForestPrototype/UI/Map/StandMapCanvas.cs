@@ -16,6 +16,7 @@ public sealed class StandMapCanvas : VisualElement
     private StandMapModel model;
     private int paintedVersion = -1;
     private float paintedSide = -1f;
+    private bool quiet, paintedQuiet;
     private List<MapDrawItem> lastPlan = new List<MapDrawItem>();
 
     public MapDetail Detail => detail;
@@ -23,6 +24,7 @@ public sealed class StandMapCanvas : VisualElement
     public IReadOnlyList<MapDrawItem> LastPlan => lastPlan;
     public float LastSidePx { get; private set; }
     public int PaintedVersion => paintedVersion;
+    public bool Quiet => quiet;
 
     public StandMapCanvas(MapDetail detail, bool fillsProperty)
     {
@@ -33,11 +35,13 @@ public sealed class StandMapCanvas : VisualElement
         RegisterCallback<GeometryChangedEvent>(_ => MarkDirtyRepaint());
     }
 
-    // Hand the canvas the current model; it repaints only when the model's content or its own size has changed.
-    public void Sync(StandMapModel next)
+    // Hand the canvas the current model; it repaints only when the model's content, its look or its own size has changed. Quiet
+    // draws the same shapes thinner (see StandMapDrawPlan), for a map with text laid over it.
+    public void Sync(StandMapModel next, bool quietStyle = false)
     {
         model = next;
-        if (model != null && (model.Version != paintedVersion || !Mathf.Approximately(Side(), paintedSide)))
+        quiet = quietStyle;
+        if (model != null && (model.Version != paintedVersion || quiet != paintedQuiet || !Mathf.Approximately(Side(), paintedSide)))
             MarkDirtyRepaint();
     }
 
@@ -51,8 +55,9 @@ public sealed class StandMapCanvas : VisualElement
         if (model == null || float.IsNaN(side) || side < 2f) return;
         paintedVersion = model.Version;
         paintedSide = side;
+        paintedQuiet = quiet;
         LastSidePx = side;
-        lastPlan = StandMapDrawPlan.Build(model, side, detail);
+        lastPlan = StandMapDrawPlan.Build(model, side, detail, quiet);
 
         Painter2D painter = context.painter2D;
         painter.lineJoin = LineJoin.Round;

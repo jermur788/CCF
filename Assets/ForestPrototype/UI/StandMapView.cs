@@ -83,7 +83,7 @@ public sealed class StandMapView
         left.Add(frame);
         legend = UiKit.Add(left, "", "muted");
         UiKit.Add(left, "NORTH ↑ · white outline / YOU: your position · gold outline: selected destination.", "faint");
-        symbolLegend = UiKit.Add(left, "Lines on the map — " + StandMapSymbols.Legend(MapDetail.Full), "faint");
+        symbolLegend = UiKit.Add(left, "On the map — " + StandMapSymbols.Legend(MapDetail.Full), "faint");
         body.Add(left);
         side = UiKit.Box("card", "map-side");
         body.Add(side);
@@ -101,7 +101,9 @@ public sealed class StandMapView
         // model, which is re-read now so it is as current as the cells below.
         ui.MapSource.Preview = rackMode ? rackProposal : null;
         StandMapModel model = force ? ui.MapSource.Rebuild() : ui.MapSource.Model;
-        canvas.Sync(model);
+        // The analytical layers (and rack planning) print text in every square, so the shared lines and markers are drawn quietly over
+        // them; the rack being planned keeps its full strength.
+        canvas.Sync(model, layer != Layer.Access || rackMode);
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|"
             + (ui.Marking != null ? ui.Marking.LivingMarkedCount + "/" + ui.Marking.LivingCropTreeCount : "")
             + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}";
@@ -181,7 +183,7 @@ public sealed class StandMapView
                     case Layer.Access:
                     {
                         string rack = RackLayoutMark(c.Center, eco.CellSizeMeters);
-                        value = index == playerCell ? "YOU" : index == waypointCell ? "GO" : rack.Trim();
+                        value = index == playerCell ? "YOU" : rack.Trim();
                         colour = rack.Length > 0 ? new Color(0.40f, 0.27f, 0.49f) : new Color(0.18f, 0.29f, 0.18f);
                         break;
                     }
@@ -216,8 +218,14 @@ public sealed class StandMapView
                         colour = Color.Lerp(new Color(0.08f, 0.15f, 0.08f), new Color(0.85f, 0.8f, 0.45f), Mathf.Clamp01(c.Light));
                         break;
                 }
+                // On the Access layer the shared map draws rack lines and you over the squares: keep this square's mark on the side of
+                // the square those are not on, so a ◇, ✓ or YOU is not hidden under a line or the arrow.
+                if (layer == Layer.Access && value.Length > 0)
+                {
+                    float drawnAt = DrawnThroughSquare(eco, c, index == playerCell);
+                    cell.style.justifyContent = drawnAt >= 0f && drawnAt < 0.5f ? Justify.FlexEnd : Justify.FlexStart;
+                }
                 cell.style.backgroundColor = onRack ? Color.Lerp(colour, new Color(0.5f, 0.28f, 0.72f), 0.55f) : colour;
-                if (index == waypointCell) value = "⚑ " + value;
                 string squareName = layer == Layer.Access && !rackMode ? ""
                     : UiKit.CellLabel(index, n) + (rackMode ? RackLayoutMark(c.Center, eco.CellSizeMeters) : "");
                 VisualElement labels = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -233,7 +241,7 @@ public sealed class StandMapView
 
         switch (layer)
         {
-            case Layer.Access: legend.text = "YOU: your position · ◇: rack route still to plan · ✓: rack planned or open · ⚑: waypoint. Select a place, then walk there."; break;
+            case Layer.Access: legend.text = "YOU: your position · ◇: rack route still to plan · ✓: rack planned or open. Select a place, then walk there."; break;
             case Layer.Regeneration: legend.text = "Value: P = planted juveniles alive, then tallest seedling cohort height. Brighter green = taller/more."; break;
             case Layer.Browse: legend.text = $"Site browsing pressure: {BrowsingConditions.PressureBand(pressure)}. S = shelters effective next year; — = no shelter."; break;
             case Layer.Marks: legend.text = "■ = trees marked to fell, ◆ = crop trees (counts per square)."; break;
@@ -253,6 +261,20 @@ public sealed class StandMapView
             counts[i] = tree.IsMarkedForFell ? (c.fell + 1, c.crop) : (c.fell, c.crop + 1);
         }
         return counts;
+    }
+
+    // Where, as a fraction down from the square's north edge, the map draws you or a planned rack line inside this square
+    // (0 = north edge, 1 = south edge); -1 when neither passes through it.
+    private float DrawnThroughSquare(ForestEcologyController eco, ForestEcologyCell cell, bool youAreHere)
+    {
+        float half = eco.CellSizeMeters * 0.5f;
+        if (youAreHere && ui.Player != null)
+            return Mathf.Clamp01((cell.Center.y + half - ui.Player.transform.position.z) / eco.CellSizeMeters);
+        if (ui.RackLayout != null)
+            foreach (RackLayoutLine line in ui.RackLayout.Lines)
+                if (Mathf.Abs(cell.Center.y - line.AcrossM) <= half)
+                    return Mathf.Clamp01((cell.Center.y + half - line.AcrossM) / eco.CellSizeMeters);
+        return -1f;
     }
 
     // "◇" on a square the planned rack layout still has to cross, "✓" where the layout's rack is already in the Work Plan.

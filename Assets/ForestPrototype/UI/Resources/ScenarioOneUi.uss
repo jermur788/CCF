@@ -213,13 +213,15 @@
 .map-canvas { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .map-cell {
     margin: 0;
-    border-width: 2px; border-color: transparent; border-radius: 2px; padding: 2px 3px;
+    border-width: 2px; border-color: transparent; border-radius: 2px; padding: 0 1px;
     justify-content: space-between;
 }
 .map-cell:hover { border-color: rgba(255, 255, 255, 0.55); }
+/* The cells are about 38 UI units square: two stacked labels (square name, value) must fit inside the border and padding, so the
+   labels carry no margin of their own (the default Label margin pushed the second label out of its square). */
 .map-cell Label {
     font-size: 13px; color: white; -unity-font-style: bold; align-self: flex-start;
-    background-color: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; margin-bottom: 1px;
+    background-color: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; margin: 0;
 }
 .map-cell-selected { border-color: var(--accent); }
 .map-cell-player { border-color: white; }

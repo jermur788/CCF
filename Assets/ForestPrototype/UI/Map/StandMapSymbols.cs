@@ -46,13 +46,13 @@ public static class StandMapSymbols
         Add(MapSymbol.Property, PropertyOutline, 0f, 1.5f, true, "pale outline", "edge of your woodland");
         Add(MapSymbol.Path, new MapColour(184, 150, 104, 205), 2.6f, 2f, true, "tan band", "forest path");
         Add(MapSymbol.Landmark, new MapColour(204, 214, 186, 220), 0f, 1.5f, true, "pale ring", "clearing");
-        Add(MapSymbol.RackToDo, new MapColour(182, 118, 232), 1.2f, 3f, true, "purple line", "rack route still to plan");
-        Add(MapSymbol.RackPlanned, new MapColour(150, 214, 140), 1.2f, 3f, true, "green line", "rack in the Work Plan");
-        Add(MapSymbol.RackOpen, new MapColour(228, 214, 170, 230), 1.2f, 3f, true, "cream line", "rack open (harvested)");
-        Add(MapSymbol.RackOther, new MapColour(206, 156, 246), 1.2f, 3f, true, "light purple line", "your rack, off the planned layout");
+        Add(MapSymbol.RackToDo, new MapColour(182, 118, 232), 1.2f, 3f, true, "purple line", "rack to plan");
+        Add(MapSymbol.RackPlanned, new MapColour(150, 214, 140), 1.2f, 3f, true, "green line", "rack in Work Plan");
+        Add(MapSymbol.RackOpen, new MapColour(228, 214, 170, 230), 1.2f, 3f, true, "cream line", "rack harvested");
+        Add(MapSymbol.RackOther, new MapColour(206, 156, 246), 1.2f, 3f, true, "light purple line", "your rack, off layout");
         Add(MapSymbol.RackPreview, new MapColour(255, 255, 255, 235), 1.2f, 3f, false, "white line", "rack you are planning");
         Add(MapSymbol.Waypoint, new MapColour(232, 206, 120), 0f, 1.5f, true, "gold diamond", "destination");
-        Add(MapSymbol.Player, new MapColour(255, 255, 255), 0f, 1.5f, true, "white arrow", "you, facing this way");
+        Add(MapSymbol.Player, new MapColour(255, 255, 255), 0f, 1.5f, true, "white arrow", "you, facing");
         return table;
     }
 

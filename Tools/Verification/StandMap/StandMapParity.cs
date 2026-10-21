@@ -306,10 +306,12 @@ public sealed class StandMapParityRunner : MonoBehaviour
         ui.ShowMap(); yield return Settle(8);
         var full = Full.LastPlan.ToList(); float fullSide = Full.LastSidePx;
         Note("PLAN_VERSIONS", $"minimap painted model version {Mini.PaintedVersion}, full map {Full.PaintedVersion} (the player did not move between the two)");
-        int matched = 0, missing = 0, points = 0;
+        int matched = 0, missing = 0, points = 0, expectedPoints = 0;
         float worst = 0f;
         foreach (MapDrawItem item in mini)
         {
+            // Every outline / line point of a symbol that is not a marker is compared (markers are sized from the side, not placed by it).
+            if (item.Symbol != MapSymbol.Player && item.Symbol != MapSymbol.Waypoint && item.Symbol != MapSymbol.Landmark) expectedPoints += item.Points.Count;
             MapDrawItem other = full.FirstOrDefault(o => o.Symbol == item.Symbol && o.SourceIndex == item.SourceIndex && o.Points.Count == item.Points.Count);
             if (other == null) { missing++; continue; }
             matched++;
@@ -323,7 +325,7 @@ public sealed class StandMapParityRunner : MonoBehaviour
             worst = Mathf.Max(worst, Distance(new Vector2(item.Anchor.X / miniSide, item.Anchor.Y / miniSide), new Vector2(other.Anchor.X / fullSide, other.Anchor.Y / fullSide)));
         }
         Hard("PLAN_EVERY_MINIMAP_ITEM_HAS_A_FULL_MAP_COUNTERPART", missing == 0 && matched == mini.Count && mini.Count >= 8, $"matched={matched} missing={missing} of {mini.Count}");
-        Hard("PLAN_PATH_RACK_AND_BOUNDARY_POINTS_ARE_AT_THE_SAME_FRACTIONS", worst < 1e-4f && points > 100, $"points={points} worst={worst:0.0e+0}");
+        Hard("PLAN_PATH_RACK_AND_BOUNDARY_POINTS_ARE_AT_THE_SAME_FRACTIONS", worst < 1e-4f && points == expectedPoints && points >= 60, $"points={points} of {expectedPoints} worst={worst:0.0e+0}");
         Hard("PLAN_FULL_MAP_HAS_NOTHING_THE_MINIMAP_HAS_MOVED", full.Count >= mini.Count, $"full={full.Count} mini={mini.Count}");
         Note("PLAN_COUNTS", $"minimap={mini.Count} ({Describe(mini)}) full={full.Count} ({Describe(full)})");
         ui.CloseAll(); yield return Settle(4);
@@ -451,6 +453,7 @@ public sealed class StandMapParityRunner : MonoBehaviour
         yield return Wait(0.3f);
         yield return Settle(6);
         Hard("PREVIEW_THE_FULL_MAP_DRAWS_THE_RACK_BEING_PLANNED", ui.Map.RackPreview != null && Count(Full, MapSymbol.RackPreview) == 1, $"preview={(ui.Map.RackPreview != null)} items={Count(Full, MapSymbol.RackPreview)}");
+        yield return Capture("stand-map-rack-planning");
         ui.CloseAll(); yield return Settle(8);
         Hard("PREVIEW_THE_MINIMAP_DOES_NOT", Count(Mini, MapSymbol.RackPreview) == 0 && ui.Minimap.Root.Query<Button>().ToList().Count == 0, "");
         ui.ShowMap(); yield return Settle(4);
@@ -486,10 +489,44 @@ public sealed class StandMapParityRunner : MonoBehaviour
             var cells = ui.Map.Root.Query<Button>(className: "map-cell").ToList();
             bool inside = cells.All(c => root.Contains(c.worldBound.min) && root.Contains(c.worldBound.max));
             Hard($"LAYOUT_{tag}_FULL_MAP_FITS_ON_SCREEN_AND_CLEARS_THE_SIDE_PANEL", inside && !frame.Overlaps(side) && cells.Count == eco.CellCount, $"frame={frame} side={side} root={root}");
-            var labelTexts = cells.SelectMany(c => c.Query<Label>().ToList()).Where(l => l.resolvedStyle.display == DisplayStyle.Flex).ToList();
-            int overflow = labelTexts.Count(l => l.worldBound.width > l.parent.worldBound.width + 1f || l.worldBound.height > l.parent.worldBound.height + 1f);
-            Note($"LAYOUT_{tag}", $"cell px={F(cells[0].worldBound.width, "0.0")} labelOverflow={overflow} frame={frame}");
-            yield return Capture("stand-map");
+            Note($"LAYOUT_{tag}", $"cell px={F(cells[0].worldBound.width, "0.0")} frame={frame}");
+            // Every layer: the text of each square has to sit inside its own square, and nothing on the screen may run past the
+            // bottom of the window (the legend lines under the map were once cut off by it).
+            string[] layerButtons = { "Access & position", "Light", "Regeneration", "Browsing / protection", "Fell & crop marks" };
+            string[] layerShots = { "stand-map", "stand-map-light", "stand-map-regeneration", "stand-map-browsing", "stand-map-marks" };
+            for (int l = 0; l < layerButtons.Length; l++)
+            {
+                {
+                    Button tab = ui.Map.Root.Q("map-tabs").Query<Button>().ToList().FirstOrDefault(b => b.text == layerButtons[l]);
+                    yield return Invoke(tab);
+                    yield return Settle(6);
+                }
+                string layerTag = $"LAYOUT_{tag}_{layerButtons[l].Replace(" ", "").Replace("/", "").Replace("&", "")}";
+                cells = ui.Map.Root.Query<Button>(className: "map-cell").ToList();
+                var spill = new List<string>();
+                int labelCount = 0;
+                float worstOver = 0f;
+                foreach (Button cell in cells)
+                    foreach (Label label in cell.Query<Label>().ToList())
+                    {
+                        if (string.IsNullOrEmpty(label.text)) continue;
+                        labelCount++;
+                        Rect lb = label.worldBound, cb = cell.worldBound;
+                        float over = Mathf.Max(Mathf.Max(cb.xMin - lb.xMin, lb.xMax - cb.xMax), Mathf.Max(cb.yMin - lb.yMin, lb.yMax - cb.yMax));
+                        worstOver = Mathf.Max(worstOver, over);
+                        if (over > 0.75f) spill.Add($"'{label.text}' label={lb} cell={cb}");
+                    }
+                Button first = cells[cells.Count - 1];
+                Note(layerTag + "_FIRST_CELL_GEOMETRY", $"cell={first.worldBound} " + string.Join(" ", first.Query<VisualElement>().ToList().Where(e => e != first).Select(e => $"{(e is Label lab ? "label'" + lab.text + "'" : "box")}={e.worldBound}")));
+                // The text is what has to be readable: a label may touch the square's edge, but none may stick out of the square.
+                Hard(layerTag + "_CELL_TEXT_STAYS_INSIDE_ITS_SQUARE", worstOver <= 0.75f, $"labels={labelCount} spill={spill.Count} worstOvershoot={worstOver:0.##} e.g. {string.Join(" ; ", spill.Take(2))}");
+                Hard(layerTag + "_OVERLAY_STYLE_IS_QUIET_ONLY_OVER_NUMBERS", Full.Quiet == (l != 0) && Full.LastPlan.Where(i => i.Symbol == MapSymbol.Player || i.Symbol == MapSymbol.Waypoint).All(i => i.Filled == (l == 0)),
+                    $"quiet={Full.Quiet} markersFilled={string.Join(",", Full.LastPlan.Where(i => i.Symbol == MapSymbol.Player || i.Symbol == MapSymbol.Waypoint).Select(i => i.Filled))}");
+                Rect modal = ui.Map.Root.Q(className: "modal").worldBound;
+                float lowest = ui.Map.Root.Query<Label>().ToList().Where(Visible).Where(t => !string.IsNullOrEmpty(t.text)).Max(t => t.worldBound.yMax);
+                Hard(layerTag + "_TEXT_ENDS_INSIDE_THE_WINDOW", lowest <= modal.yMax - 4f, $"lowestText={lowest:0.#} windowBottom={modal.yMax:0.#}");
+                yield return Capture(layerShots[l]);
+            }
             ui.CloseAll(); yield return Settle(4);
         }
     }

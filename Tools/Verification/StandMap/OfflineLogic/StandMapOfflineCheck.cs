@@ -150,6 +150,22 @@ public static class StandMapOfflineCheck
         List<MapDrawItem> again = StandMapDrawPlan.Build(model, 608f, MapDetail.Full);
         Check(again.Count == full.Count && again.Zip(full, (x, y) => x.Symbol == y.Symbol && x.Points.Count == y.Points.Count && Near(x.Anchor.X, y.Anchor.X, 1e-6f)).All(b => b), "the plan is deterministic");
 
+        // ---- quiet style (the full map's analytical layers print numbers over the map) ----
+        List<MapDrawItem> quiet = StandMapDrawPlan.Build(model, 608f, MapDetail.Full, true);
+        bool sameShapes = quiet.Count == full.Count;
+        for (int i = 0; sameShapes && i < quiet.Count; i++)
+        {
+            sameShapes = quiet[i].Symbol == full[i].Symbol && quiet[i].Points.Count == full[i].Points.Count && Near(quiet[i].Anchor.X, full[i].Anchor.X, 1e-6f) && Near(quiet[i].Anchor.Y, full[i].Anchor.Y, 1e-6f);
+            for (int k = 0; sameShapes && k < quiet[i].Points.Count; k++)
+                sameShapes = Near(quiet[i].Points[k].X, full[i].Points[k].X, 1e-6f) && Near(quiet[i].Points[k].Y, full[i].Points[k].Y, 1e-6f);
+        }
+        Check(sameShapes, "quiet style draws the same shapes at the same places");
+        Check(quiet.Where(i => i.Symbol == MapSymbol.Path || i.Symbol == MapSymbol.RackToDo || i.Symbol == MapSymbol.RackPlanned).All(i => i.WidthPx <= 2f && i.Colour.A < 255),
+            "quiet style: paths and racks are thin and translucent so a number under them stays readable");
+        Check(quiet.Where(i => i.Symbol == MapSymbol.Player || i.Symbol == MapSymbol.Waypoint).All(i => !i.Filled), "quiet style: you and the destination are outlines, not solid");
+        Check(quiet.Where(i => i.Symbol == MapSymbol.RackPreview).All(i => i.WidthPx == full.First(f => f.Symbol == MapSymbol.RackPreview).WidthPx), "quiet style leaves the rack being planned at full strength");
+        Check(StandMapDrawPlan.Build(model, 200f, MapDetail.Mini).Zip(small, (a, b) => a.WidthPx == b.WidthPx && a.Filled == b.Filled).All(b => b), "the normal plan is not affected by the quiet option");
+
         // ---- degenerate inputs ----
         Check(StandMapDrawPlan.Build(new StandMapModel(), 200f, MapDetail.Mini).Count == 0, "no property: nothing drawn");
         Check(StandMapDrawPlan.Build(model, 0f, MapDetail.Mini).Count == 0, "zero size: nothing drawn");

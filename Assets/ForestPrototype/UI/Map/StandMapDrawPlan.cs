@@ -25,11 +25,14 @@ public sealed class MapDrawItem
 public static class StandMapDrawPlan
 {
     private const int CirclePoints = 24;
+    // Quiet style, for a map that has text laid over it (the full map's analytical layers print a number in every square): the
+    // same shapes in the same places, but lines thin and translucent and markers drawn as outlines, so no number is hidden.
+    private const float QuietLinePx = 2f, QuietMarkerLinePx = 2.5f, QuietAlpha = 0.7f;
 
     // Markers (you, destination) scale with the map so they take the same share of it on a small and a large map.
     public static float MarkerRadiusPx(float sidePx) => Math.Max(6f, sidePx * 0.022f);
 
-    public static List<MapDrawItem> Build(StandMapModel model, float sidePx, MapDetail detail)
+    public static List<MapDrawItem> Build(StandMapModel model, float sidePx, MapDetail detail, bool quiet = false)
     {
         var plan = new List<MapDrawItem>();
         if (model == null || !model.HasProperty || sidePx <= 0f) return plan;
@@ -121,6 +124,29 @@ public static class StandMapDrawPlan
             item.Anchor = t.WorldToPixels(item.World);
             plan.Add(item);
         }
+        if (quiet) foreach (MapDrawItem item in plan) MakeQuiet(item);
         return plan;
+    }
+
+    // Only the look changes: the points, and so the places, stay exactly those of the normal plan. The rack being planned
+    // keeps its full strength (it is what the player is working on).
+    private static void MakeQuiet(MapDrawItem item)
+    {
+        switch (item.Symbol)
+        {
+            case MapSymbol.Path:
+            case MapSymbol.RackToDo:
+            case MapSymbol.RackPlanned:
+            case MapSymbol.RackOpen:
+            case MapSymbol.RackOther:
+                item.WidthPx = Math.Min(item.WidthPx, QuietLinePx);
+                item.Colour = new MapColour(item.Colour.R, item.Colour.G, item.Colour.B, (byte)(item.Colour.A * QuietAlpha));
+                break;
+            case MapSymbol.Waypoint:
+            case MapSymbol.Player:
+                item.Filled = false;
+                item.WidthPx = QuietMarkerLinePx;
+                break;
+        }
     }
 }
