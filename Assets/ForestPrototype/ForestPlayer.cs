@@ -192,6 +192,17 @@ public sealed class ForestPlayer : MonoBehaviour
         }
     }
 
+    // A pause in look movement this long counts as "the player has stopped turning" (about three frames at 60 fps).
+    private const float RecentreAfterPauseSeconds = 0.05f;
+    // A due recentre does not wait for a pause once the pointer is within this fraction of the screen's smaller side from any edge.
+    private const float RecentreEdgeMarginFraction = 0.25f;
+
+    private static bool PointerNearingEdge(Vector2 pointer)
+    {
+        float margin = Mathf.Min(Screen.width, Screen.height) * RecentreEdgeMarginFraction;
+        return pointer.x < margin || pointer.y < margin || pointer.x > Screen.width - margin || pointer.y > Screen.height - margin;
+    }
+
     private void OnEnable()
     {
         SetCursor(true);
@@ -325,7 +336,11 @@ public sealed class ForestPlayer : MonoBehaviour
                 else
                     secondsSinceEdgeStall = 0f;
                 bool crossedPixelBudget = lookPixelsSinceRecentre >= Mathf.Min(Screen.width, Screen.height) * 0.25f;
-                if (crossedPixelBudget || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
+                // The budget only says a recentre is due. A recentre throws away the next two frames of look input, so doing it in the middle
+                // of a sweep drops real movement and shows as a periodic jerk (measured: a quarter of the look path in ordinary looking around).
+                // Do it when the player pauses, and at once only if the pointer is already nearing an edge.
+                bool recentreDue = crossedPixelBudget && (secondsSinceEdgeStall >= RecentreAfterPauseSeconds || PointerNearingEdge(pointerPos));
+                if (recentreDue || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
                 {
                     lookPixelsSinceRecentre = 0f;
                     secondsSinceRecentre = 0f;
