@@ -408,6 +408,8 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     private bool Walking() => UnityEngine.Cursor.lockState == CursorLockMode.Locked && !UnityEngine.Cursor.visible && player.enabled && !manager.AnyPanelOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Help.IsOpen;
     private bool PanelState() => UnityEngine.Cursor.lockState == CursorLockMode.None && UnityEngine.Cursor.visible && !player.enabled && manager.AnyPanelOpen;
 
+    private Button FindPlanRack() => ui.RootElement.Query<Button>().ToList().FirstOrDefault(b => b.text != null && b.text.StartsWith("Plan rack", StringComparison.Ordinal) && Visible(b));
+
     private IEnumerator Settled(int frames = 14)
     {
         // The forest takes its mouse back through OnEnable of the player a frame after the panel closes.
@@ -445,8 +447,32 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         yield return Settled();
         Check(PanelState() && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "FOCUS_05_STAND_MAP_FREES_THE_MOUSE", FocusState());
         Check(!Visible(ui.Minimap.Root), "FOCUS_05_MINIMAP_IS_NOT_DRAWN_OVER_THE_FULL_MAP", FocusState());
-        Button plan = ui.RootElement.Query<Button>().ToList().FirstOrDefault(b => b.text != null && b.text.StartsWith("Plan rack", StringComparison.Ordinal) && Visible(b));
-        Check(plan != null, "FOCUS_06_PLAN_RACK_IS_OFFERED_ON_THE_MAP");
+        // Existing rack-first teaching design (identical on the base, Lane A and Lane B): the map offers "Plan rack" only once the first rack has been
+        // made in the forest. A new game has not made one yet.
+        bool gated = manager.RackFirstStageActive && !ui.Learning.IsDone("rack.create");
+        Check(gated, "FOCUS_05_A_NEW_GAME_IS_IN_THE_RACK_FIRST_STAGE", $"rackFirst={manager.RackFirstStageActive} rackCreateDone={ui.Learning.IsDone("rack.create")}");
+        Check(FindPlanRack() == null, "FOCUS_05_PLAN_RACK_WAITS_FOR_THE_FIRST_FOREST_RACK (existing design, unchanged)");
+        ui.CloseAll();
+        yield return Settled();
+        // The first rack, made through the real backend (the real B-key click flow with OS input is the guided gate's job).
+        RackPlanner planner = ui.RackTool.Planner;
+        planner.Refresh();
+        RackLayoutLine first = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
+        Check(first != null, "FOCUS_06_THE_PLANNED_LAYOUT_HAS_A_RACK_TO_MAKE");
+        if (first != null)
+        {
+            RackProposal proposal = planner.Propose(new RackPoint(0f, first.AcrossM), planner.DefaultAngle(0f, true));
+            Check(proposal != null && proposal.CanConfirm && proposal.LayoutIndex == first.Index, "FOCUS_06_THE_FIRST_RACK_CAN_BE_CONFIRMED", proposal == null ? "none" : $"layout={proposal.LayoutIndex} can={proposal.CanConfirm}");
+            if (proposal != null && proposal.CanConfirm) manager.ConfirmRack(proposal, "forest");
+            yield return Wait(0.5f);
+            Check(ui.Learning.IsDone("rack.create"), "FOCUS_06_THE_FIRST_RACK_IS_RECORDED_BY_THE_TEACHING");
+        }
+        Check(Visible(ui.Minimap.Root), "FOCUS_06_MINIMAP_SHOWS_THE_NEW_RACK_AFTER_CONFIRMATION", FocusState());
+        yield return Shot("c04b-hud-minimap-after-first-rack");
+        ui.ShowMap();
+        yield return Settled();
+        Button plan = FindPlanRack();
+        Check(plan != null, "FOCUS_06_PLAN_RACK_IS_OFFERED_ON_THE_MAP_AFTER_THE_FIRST_RACK");
         if (plan != null)
         {
             yield return Invoke(plan);
@@ -507,13 +533,37 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         yield return Pause(20);
         Rect b = ui.Ecology.StandBounds;
         Vector3 start = new Vector3(b.center.x - 6f, player.transform.position.y, b.center.y - 6f);
-        yield return Sample("map-closed-minimap-painting-while-walking", 240, f =>
+        Action<int> walk = f =>
         {
             // A slow walk and turn: the minimap repaints whenever the player's cell-rounded position or heading changes.
             float t = f / 240f;
             player.transform.position = start + new Vector3(Mathf.Sin(t * 6.28f) * 5f, 0f, Mathf.Cos(t * 6.28f) * 5f);
             player.LookToward(player.transform.position + Quaternion.Euler(0f, t * 720f, 0f) * Vector3.forward * 4f);
-        });
+        };
+        int paintedStart = ui.Minimap.Canvas.PaintedVersion, versionStart = ui.MapSource.Model.Version;
+        yield return Sample("map-closed-minimap-painting-while-walking", 240, walk);
+        Measure("perf", "model_versions_while_walking_240_frames", ui.MapSource.Model.Version - versionStart);
+        Measure("perf", "minimap_painted_version_advance_240_frames", ui.Minimap.Canvas.PaintedVersion - paintedStart);
+        // A/B: the same walk with the minimap taking no part (the shared map source detached for the sample, restored straight after).
+        FieldInfo sourceField = typeof(ScenarioOneUiRoot).GetField("mapSource", BindingFlags.Instance | BindingFlags.NonPublic);
+        object source = sourceField.GetValue(ui);
+        sourceField.SetValue(ui, null);
+        yield return Pause(10);
+        Check(!Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_IS_OFF_FOR_THE_COMPARISON");
+        yield return Sample("map-closed-walking-minimap-OFF", 240, walk);
+        sourceField.SetValue(ui, source);
+        yield return Pause(10);
+        Check(Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_COMES_BACK");
+        // The CPU cost of one draw-plan build for the minimap (the part of a repaint this code owns), measured directly.
+        StandMapModel model = ui.MapSource.Model;
+        float side = ui.Minimap.Canvas.LastSidePx > 1f ? ui.Minimap.Canvas.LastSidePx : 196f;
+        long allocBefore = GC.GetAllocatedBytesForCurrentThread();
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        const int builds = 400;
+        for (int i = 0; i < builds; i++) StandMapDrawPlan.Build(model, side, MapDetail.Mini, false);
+        watch.Stop();
+        Measure("perf", "minimap_draw_plan_build_ms_per_call", (float)watch.Elapsed.TotalMilliseconds / builds);
+        Measure("perf", "minimap_draw_plan_build_alloc_bytes_per_call", (GC.GetAllocatedBytesForCurrentThread() - allocBefore) / (float)builds);
         yield return Sample("map-closed-standing-still", 240, f => { });
         ui.ShowMap();
         yield return Pause(20);
