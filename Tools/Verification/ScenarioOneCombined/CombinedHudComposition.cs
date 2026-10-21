@@ -20,12 +20,14 @@ using Debug = UnityEngine.Debug;
 //   HUD   : objective widget, status panel and minimap visible, on screen and mutually clear at every one of the eight objective stages;
 //   PANELS: the felling-estimate panel (every ordinary E-inspection) stays above the minimap and unclipped; the competitor list (a Crop Tree with
 //           several competitors) is unclipped, the minimap steps aside for it and returns when the inspection ends (the R3 fix);
+//   MAP   : the Stand Map window with the shared type scale: every layer's text ends inside the window, nothing in the side card runs past the card or
+//           is cut off (found on the integrated tree by the Lane B parity gate: the legend ran past the window, the card heading past its card);
 //   FOCUS : cursor lock, visibility, player input and HUD visibility across inspect -> More detail -> Objectives -> Stand Map -> rack planning ->
 //           Work Plan -> help -> back to the forest, and a rapid open/close burst; the forest always gets its mouse back;
 //   PERF  : a bounded DIAGNOSTIC frame-time / GC sample with the map closed (minimap painting while the player moves), standing still, and the
 //           full Stand Map open. Editor frame times in a software-rendered nested display are not a player's frame times; there is no threshold.
 // Plays the new game in memory and writes nothing but its evidence folder (no save is written).
-// Run (graphical Editor, private Xephyr): -executeMethod CombinedHudComposition.Begin   CCF_ACCEPTANCE_OUTPUT=<folder>   [CCF_UI_SIZES=1280x720,1920x1080]
+// Run (graphical Editor, private Xephyr): -executeMethod CombinedHudComposition.Begin   CCF_ACCEPTANCE_OUTPUT=<folder>   [CCF_UI_SIZES=1280x720,1920x1080]   [CCF_COMBINED_SECTIONS=hud-stages,estimate,competitors,focus,map-window,perf]
 // Results: CHC_* lines in the log, <name>-<w>x<h>.png screenshots, combined-hud-measure.csv, combined-hud-perf.csv.
 public static class CombinedHudComposition
 {
@@ -62,6 +64,8 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     private int passes, failures, shotCount;
     private Vector2Int size;
     private Texture2D lastCapture;
+    // The sizes run one after the other in the SAME game: the first rack, once made, stays made.
+    private bool firstRackMade;
     private readonly List<string> measureRows = new List<string> { "state,size,measure,value" };
     private readonly List<string> perfRows = new List<string> { "size,mode,frames,meanMs,p50Ms,p95Ms,maxMs,gc0Collections,gcAllocBytesPerFrame" };
 
@@ -107,6 +111,7 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
             yield return Section("estimate", EstimateState());
             yield return Section("competitors", CompetitorState());
             yield return Section("focus", FocusTransitions());
+            yield return Section("map-window", MapWindow());
             yield return Section("perf", PerformanceSample());
         }
         File.WriteAllLines(Path.Combine(outDir, "combined-hud-measure.csv"), measureRows);
@@ -118,6 +123,9 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     // ---- plumbing ----
     private IEnumerator Section(string name, IEnumerator body)
     {
+        // CCF_COMBINED_SECTIONS=map-window,focus runs only those sections (a quick iteration aid while fixing one thing; a gate run leaves it unset and runs them all).
+        string only = Environment.GetEnvironmentVariable("CCF_COMBINED_SECTIONS");
+        if (!string.IsNullOrEmpty(only) && !only.Split(',').Contains(name)) yield break;
         while (true)
         {
             bool more;
@@ -136,8 +144,8 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     private void Fail(string name, string detail) => Check(false, name, detail);
     private void Measure(string state, string measure, float value)
     {
-        measureRows.Add($"{state},{size.x}x{size.y},{measure},{value.ToString("0.0", Inv)}");
-        Debug.Log($"CHC_MEASURE [{size.x}x{size.y}] {state} {measure}={value:0.0}");
+        measureRows.Add($"{state},{size.x}x{size.y},{measure},{value.ToString("0.####", Inv)}");
+        Debug.Log($"CHC_MEASURE [{size.x}x{size.y}] {state} {measure}={value.ToString("0.####", Inv)}");
     }
 
     private static IEnumerator Pause(int frames = 10) { for (int i = 0; i < frames; i++) yield return null; }
@@ -402,6 +410,53 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         AuditHudClear("after-competitors");
     }
 
+
+    // ---- 5: the Stand Map window under the shared (Lane A) type scale ----
+    private IEnumerator MapWindow()
+    {
+        ui.CloseAll(); ui.CloseHelp(); ForceStage(0);
+        ui.ShowMap();
+        yield return Settled();
+        VisualElement modal = ui.Map.Root.Q(className: "modal"), card = ui.Map.Root.Q(className: "map-side"), root = ui.RootElement;
+        Check(modal != null && card != null, "MAPWIN_WINDOW_AND_SIDE_CARD_EXIST");
+        if (modal == null || card == null) yield break;
+        Check(modal.worldBound.yMin >= 0f && modal.worldBound.yMax <= root.worldBound.yMax, "MAPWIN_WINDOW_IS_ON_SCREEN", modal.worldBound.ToString());
+        string[] layers = { "Access & position", "Light", "Regeneration", "Browsing / protection", "Fell & crop marks" };
+        for (int pass = 0; pass < 2; pass++)
+        {
+            // pass 1 repeats the audit with the side card's "Site details" foldout opened (its title is the longest line on the card, and its lines are the card's widest).
+            for (int l = 0; l < layers.Length; l++)
+            {
+                Button tab = ui.Map.Root.Q("map-tabs").Query<Button>().ToList().FirstOrDefault(b => b.text == layers[l]);
+                yield return Invoke(tab);
+                yield return Pause(6);
+                // Every layer press rebuilds the side card with a closed foldout, so the foldout is opened after the press (only the Access layer has one).
+                Foldout details = ui.Map.Root.Q<Foldout>("map-site-details");
+                if (pass == 1 && details != null) { details.value = true; yield return Pause(8); Check(details.value && details.contentContainer.childCount > 0, "MAPWIN_FOLDOUT_IS_OPEN_WITH_ITS_LINES", $"children={details.contentContainer.childCount}"); }
+                string tag = $"MAPWIN_{(pass == 1 ? "FOLDOUT_" : "")}{layers[l].Replace(" ", "").Replace("/", "").Replace("&", "")}";
+                var texts = modal.Query<TextElement>().ToList().Where(t => Visible(t) && !string.IsNullOrWhiteSpace(t.text)).ToList();
+                float lowest = texts.Max(t => t.worldBound.yMax);
+                Check(lowest <= modal.worldBound.yMax - 4f, tag + "_TEXT_ENDS_INSIDE_THE_WINDOW", $"lowestText={lowest:0.0} windowBottom={modal.worldBound.yMax:0.0}");
+                var past = card.Query<TextElement>().ToList().Where(t => Visible(t) && !string.IsNullOrWhiteSpace(t.text) && !(t is Button) && t.worldBound.xMax > card.worldBound.xMax + 0.5f)
+                    .Select(t => $"\"{(t.text.Length > 30 ? t.text.Substring(0, 30) : t.text)}\" right={t.worldBound.xMax:0.0} card={card.worldBound.xMax:0.0}").ToList();
+                Check(past.Count == 0, tag + "_SIDE_CARD_TEXT_STAYS_INSIDE_THE_CARD", string.Join(" | ", past.Take(3)));
+                var cut = new List<string>();
+                foreach (TextElement t in modal.Query<TextElement>().ToList())
+                {
+                    if (!Visible(t) || string.IsNullOrWhiteSpace(t.text) || t is Button || t.resolvedStyle.whiteSpace != WhiteSpace.NoWrap) continue;
+                    // The cell labels are sized by their squares and checked by the parity gate; this audit is for the words around the map.
+                    if (t.ClassListContains("map-cell") || t.GetFirstAncestorOfType<Button>() != null) continue;
+                    Vector2 natural = t.MeasureTextSize(t.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+                    if (natural.x > t.worldBound.width + 0.5f) cut.Add($"\"{t.text}\" text={natural.x:0} box={t.worldBound.width:0}");
+                }
+                Check(cut.Count == 0, tag + "_ONE_LINE_TEXT_IS_NOT_CUT_OFF", string.Join(" | ", cut.Take(3)));
+                if (l == 0) yield return Shot(pass == 0 ? "c08-stand-map-window-access" : "c08-stand-map-window-site-details-open");
+            }
+        }
+        ui.CloseAll();
+        yield return Settled();
+    }
+
     // ---- 4: cursor / focus across every transition ----
     private string FocusState() => $"lock={UnityEngine.Cursor.lockState} cursorVisible={UnityEngine.Cursor.visible} playerEnabled={player.enabled} panelOpen={manager.AnyPanelOpen} screen={ui.CurrentScreen} helpOpen={ui.Help.IsOpen} inspecting={player.IsInspecting} hudShown={Visible(ui.RootElement.Q(className: "hud-status"))}";
 
@@ -448,22 +503,28 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         Check(PanelState() && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "FOCUS_05_STAND_MAP_FREES_THE_MOUSE", FocusState());
         Check(!Visible(ui.Minimap.Root), "FOCUS_05_MINIMAP_IS_NOT_DRAWN_OVER_THE_FULL_MAP", FocusState());
         // Existing rack-first teaching design (identical on the base, Lane A and Lane B): the map offers "Plan rack" only once the first rack has been
-        // made in the forest. A new game has not made one yet.
+        // made in the forest. A new game has not made one yet; the second screen size runs in the same game, where it has.
         bool gated = manager.RackFirstStageActive && !ui.Learning.IsDone("rack.create");
-        Check(gated, "FOCUS_05_A_NEW_GAME_IS_IN_THE_RACK_FIRST_STAGE", $"rackFirst={manager.RackFirstStageActive} rackCreateDone={ui.Learning.IsDone("rack.create")}");
-        Check(FindPlanRack() == null, "FOCUS_05_PLAN_RACK_WAITS_FOR_THE_FIRST_FOREST_RACK (existing design, unchanged)");
+        if (!firstRackMade)
+        {
+            Check(gated, "FOCUS_05_A_NEW_GAME_IS_IN_THE_RACK_FIRST_STAGE", $"rackFirst={manager.RackFirstStageActive} rackCreateDone={ui.Learning.IsDone("rack.create")}");
+            Check(FindPlanRack() == null, "FOCUS_05_PLAN_RACK_WAITS_FOR_THE_FIRST_FOREST_RACK (existing design, unchanged)");
+        }
         ui.CloseAll();
         yield return Settled();
-        // The first rack, made through the real backend (the real B-key click flow with OS input is the guided gate's job).
-        RackPlanner planner = ui.RackTool.Planner;
-        planner.Refresh();
-        RackLayoutLine first = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
-        Check(first != null, "FOCUS_06_THE_PLANNED_LAYOUT_HAS_A_RACK_TO_MAKE");
-        if (first != null)
+        if (!firstRackMade)
         {
-            RackProposal proposal = planner.Propose(new RackPoint(0f, first.AcrossM), planner.DefaultAngle(0f, true));
-            Check(proposal != null && proposal.CanConfirm && proposal.LayoutIndex == first.Index, "FOCUS_06_THE_FIRST_RACK_CAN_BE_CONFIRMED", proposal == null ? "none" : $"layout={proposal.LayoutIndex} can={proposal.CanConfirm}");
-            if (proposal != null && proposal.CanConfirm) manager.ConfirmRack(proposal, "forest");
+            // The first rack, made through the real backend (the real B-key click flow with OS input is the guided gate's job).
+            RackPlanner planner = ui.RackTool.Planner;
+            planner.Refresh();
+            RackLayoutLine first = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
+            Check(first != null, "FOCUS_06_THE_PLANNED_LAYOUT_HAS_A_RACK_TO_MAKE");
+            if (first != null)
+            {
+                RackProposal proposal = planner.Propose(new RackPoint(0f, first.AcrossM), planner.DefaultAngle(0f, true));
+                Check(proposal != null && proposal.CanConfirm && proposal.LayoutIndex == first.Index, "FOCUS_06_THE_FIRST_RACK_CAN_BE_CONFIRMED", proposal == null ? "none" : $"layout={proposal.LayoutIndex} can={proposal.CanConfirm}");
+                if (proposal != null && proposal.CanConfirm) { manager.ConfirmRack(proposal, "forest"); firstRackMade = true; }
+            }
             yield return Wait(0.5f);
             Check(ui.Learning.IsDone("rack.create"), "FOCUS_06_THE_FIRST_RACK_IS_RECORDED_BY_THE_TEACHING");
         }
@@ -475,6 +536,9 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         Check(plan != null, "FOCUS_06_PLAN_RACK_IS_OFFERED_ON_THE_MAP_AFTER_THE_FIRST_RACK");
         if (plan != null)
         {
+            // Rack mode stays as the player left it when the map closes (only its own button changes it; same on the base). Start from OFF.
+            if (ui.Map.RackMode) { yield return Invoke(plan); plan = FindPlanRack(); }
+            Check(!ui.Map.RackMode, "FOCUS_06_RACK_MODE_STARTS_OFF");
             yield return Invoke(plan);
             Check(ui.Map.RackMode && PanelState(), "FOCUS_06_RACK_PLANNING_ON_THE_MAP_KEEPS_THE_POINTER_FREE", FocusState());
             int n = ui.Ecology.CellsPerAxis;
@@ -488,7 +552,16 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         }
         ui.CloseAll();
         yield return Settled();
-        Check(Walking() && !ui.Map.RackMode, "FOCUS_07_CLOSING_THE_MAP_ENDS_RACK_PLANNING_AND_GIVES_THE_MOUSE_BACK", FocusState());
+        Check(Walking(), "FOCUS_07_CLOSING_THE_MAP_GIVES_THE_MOUSE_BACK", FocusState());
+        Measure("focus", "rack_mode_still_on_after_the_map_closed (1 = yes, same as the base)", ui.Map.RackMode ? 1f : 0f);
+        if (ui.Map.RackMode)
+        {
+            // Leave the game as found: switch it off again so nothing else starts in rack mode.
+            ui.ShowMap(); yield return Settled();
+            Button off = FindPlanRack();
+            if (off != null) yield return Invoke(off);
+            ui.CloseAll(); yield return Settled();
+        }
         Check(Visible(ui.Minimap.Root), "FOCUS_07_MINIMAP_IS_BACK", FocusState());
 
         ui.ShowWorkPlan();
@@ -541,33 +614,39 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
             player.LookToward(player.transform.position + Quaternion.Euler(0f, t * 720f, 0f) * Vector3.forward * 4f);
         };
         int paintedStart = ui.Minimap.Canvas.PaintedVersion, versionStart = ui.MapSource.Model.Version;
-        yield return Sample("map-closed-minimap-painting-while-walking", 240, walk);
-        Measure("perf", "model_versions_while_walking_240_frames", ui.MapSource.Model.Version - versionStart);
-        Measure("perf", "minimap_painted_version_advance_240_frames", ui.Minimap.Canvas.PaintedVersion - paintedStart);
-        // A/B: the same walk with the minimap taking no part (the shared map source detached for the sample, restored straight after).
+        // A/B: the same walk with the minimap taking no part (the shared map source detached for the sample, restored straight after),
+        // interleaved ON, OFF, ON, OFF, ON, OFF so one noisy window (this machine is shared) cannot decide the comparison.
         FieldInfo sourceField = typeof(ScenarioOneUiRoot).GetField("mapSource", BindingFlags.Instance | BindingFlags.NonPublic);
         object source = sourceField.GetValue(ui);
-        sourceField.SetValue(ui, null);
-        yield return Pause(10);
-        Check(!Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_IS_OFF_FOR_THE_COMPARISON");
-        yield return Sample("map-closed-walking-minimap-OFF", 240, walk);
-        sourceField.SetValue(ui, source);
-        yield return Pause(10);
-        Check(Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_COMES_BACK");
+        for (int round = 1; round <= 3; round++)
+        {
+            yield return Sample("walking-minimap-ON-r" + round, 240, walk);
+            if (round == 1)
+            {
+                Measure("perf", "model_versions_while_walking_240_frames", ui.MapSource.Model.Version - versionStart);
+                Measure("perf", "minimap_painted_version_advance_240_frames", ui.Minimap.Canvas.PaintedVersion - paintedStart);
+            }
+            sourceField.SetValue(ui, null);
+            yield return Pause(10);
+            if (round == 1) Check(!Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_IS_OFF_FOR_THE_COMPARISON");
+            yield return Sample("walking-minimap-OFF-r" + round, 240, walk);
+            sourceField.SetValue(ui, source);
+            yield return Pause(10);
+            if (round == 1) Check(Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_COMES_BACK");
+        }
         // The CPU cost of one draw-plan build for the minimap (the part of a repaint this code owns), measured directly.
         StandMapModel model = ui.MapSource.Model;
         float side = ui.Minimap.Canvas.LastSidePx > 1f ? ui.Minimap.Canvas.LastSidePx : 196f;
-        long allocBefore = GC.GetAllocatedBytesForCurrentThread();
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        const int builds = 400;
+        const int builds = 2000;
         for (int i = 0; i < builds; i++) StandMapDrawPlan.Build(model, side, MapDetail.Mini, false);
         watch.Stop();
         Measure("perf", "minimap_draw_plan_build_ms_per_call", (float)watch.Elapsed.TotalMilliseconds / builds);
-        Measure("perf", "minimap_draw_plan_build_alloc_bytes_per_call", (GC.GetAllocatedBytesForCurrentThread() - allocBefore) / (float)builds);
-        yield return Sample("map-closed-standing-still", 240, f => { });
+        Measure("perf", "minimap_draw_plan_items", StandMapDrawPlan.Build(model, side, MapDetail.Mini, false).Count);
+        yield return Sample("standing-still-minimap-ON", 240, f => { });
         ui.ShowMap();
         yield return Pause(20);
-        yield return Sample("full-stand-map-open", 240, f => { });
+        yield return Sample("full-stand-map-open-HUD-hidden", 240, f => { });
         ui.CloseAll();
         yield return Pause(20);
     }
