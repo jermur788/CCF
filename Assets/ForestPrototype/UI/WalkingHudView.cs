@@ -34,6 +34,9 @@ public sealed class WalkingHudView
     // The extraction-rack preview card (top-left, where the inspection card would be: the rack tool and inspection never overlap).
     private readonly VisualElement rackPanel;
     private readonly Label rackHeading, rackTrees, rackTimber, rackMoney, rackNote, rackKeys;
+    // Bottom right: the Stand Map's map, reduced (same model, transform and symbols; see HudMinimapView).
+    private readonly HudMinimapView minimap;
+    public HudMinimapView Minimap => minimap;
 
     public WalkingHudView(ScenarioOneUiRoot ui)
     {
@@ -131,6 +134,9 @@ public sealed class WalkingHudView
         rackKeys = UiKit.Add(rackPanel, "", "rack-keys");
         Root.Add(rackPanel);
 
+        minimap = new HudMinimapView(ui);
+        Root.Add(minimap.Root);
+
         foreach (VisualElement e in Root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
         helpButton.pickingMode = PickingMode.Position;
         mapButton.pickingMode = PickingMode.Position;
@@ -154,6 +160,7 @@ public sealed class WalkingHudView
         ForestPlayer player = ui.Player;
         ForestTreeMarkingManager marks = ui.Marking;
 
+        minimap.Refresh();
         string phase = m.Outcome == ScenarioOneOutcome.Completed ? "objectives met"
             : m.Outcome == ScenarioOneOutcome.Failed ? "failed" : "planning";
         // The intervention count is derived from the recorded events; recompute it only when they change.
