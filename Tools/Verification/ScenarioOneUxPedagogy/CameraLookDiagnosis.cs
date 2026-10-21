@@ -128,6 +128,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
             $"real={real} gc={gc} loadavg={SafeRead("/proc/loadavg")}");
         if (player == null) { Debug.Log("CAMLOOK_UNVERIFIED no ForestPlayer"); Finish(1); yield break; }
 
+        LogGameView();
+        yield return Calibrate();
         yield return WarpCost(60);
         yield return Phase("idle", 360, 0f);
         foreach (float pixelsPerSecond in new[] { 120f, 360f, 720f, 1400f })
@@ -149,6 +151,67 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
         if (gc) yield return GcAttribution();
         Summarise();
         Finish(0);
+    }
+
+    // Game-pixels the pointer moves per pixel the driver sends. 1 when the Game view is shown 1:1; the Editor scales pointer travel when the
+    // view is drawn smaller or larger than its target size. The driver divides what it sends by this, so the motion Unity sees is what a player's hand would make.
+    private float pointerGain = 1f;
+
+    // What the Game view looks like, so a pointer that behaves oddly can be explained instead of guessed at.
+    private void LogGameView()
+    {
+        try
+        {
+            Type viewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
+            EditorWindow view = EditorWindow.GetWindow(viewType);
+            var sb = new StringBuilder($"CAMLOOK_VIEW window=({view.position.x:0},{view.position.y:0},{view.position.width:0},{view.position.height:0}) maximized={view.maximized} " +
+                $"screen={Screen.width}x{Screen.height} current={Screen.currentResolution.width}x{Screen.currentResolution.height} display={Display.main.renderingWidth}x{Display.main.renderingHeight}");
+            foreach (FieldInfo field in viewType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+            {
+                string lower = field.Name.ToLowerInvariant();
+                if (!lower.Contains("zoom") && !lower.Contains("scale") && !lower.Contains("targetsize") && !lower.Contains("selectedsize")) continue;
+                object value = field.GetValue(view);
+                sb.Append(' ').Append(field.Name).Append('=').Append(value == null ? "null" : value.ToString());
+                if (value != null && field.FieldType.Name == "ZoomableArea")
+                    foreach (string inner in new[] { "scale", "shownArea", "drawRect", "m_Scale", "m_DrawArea" })
+                    {
+                        FieldInfo f = field.FieldType.GetField(inner, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                        PropertyInfo prop = field.FieldType.GetProperty(inner, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                        object innerValue = f != null ? f.GetValue(value) : prop != null ? prop.GetValue(value) : null;
+                        if (innerValue != null) sb.Append(" [").Append(inner).Append('=').Append(innerValue).Append(']');
+                    }
+            }
+            Debug.Log(sb.ToString());
+        }
+        catch (Exception e) { Debug.Log("CAMLOOK_VIEW unavailable: " + e.Message); }
+    }
+
+    // Measure the gain with ForestPlayer off (so nothing recentres): the pointer is free, the driver sends 300 px, and the Game-space travel says how far
+    // one sent pixel really goes in this window. Also asks the driver for a screenshot of the display, so the layout can be read, not assumed.
+    private IEnumerator Calibrate()
+    {
+        Mouse mouse = Mouse.current;
+        if (mouse == null || player == null) yield break;
+        player.enabled = false;
+        for (int i = 0; i < 20; i++) yield return null;
+        mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+        for (int i = 0; i < 25; i++) yield return null;
+        Vector2 before = mouse.position.ReadValue();
+        File.WriteAllText(Path.Combine(outDir, "real-start-calib.txt"), "speed=300\nseconds=1.0\npattern=sweep\ngain=1\nshot=calib-start\n");
+        string report = Path.Combine(outDir, "real-driver-calib.json");
+        for (int i = 0; i < 200 && !File.Exists(report); i++) yield return null;
+        for (int i = 0; i < 10; i++) yield return null;
+        Vector2 after = mouse.position.ReadValue();
+        if (File.Exists(report))
+        {
+            DriverReport r = JsonUtility.FromJson<DriverReport>(File.ReadAllText(report));
+            float travelled = after.x - before.x;
+            if (Mathf.Abs((float)r.sentPx) > 10f) pointerGain = Mathf.Clamp(travelled / (float)r.sentPx, 0.2f, 8f);
+            Debug.Log($"CAMLOOK_CALIB sentPx={r.sentPx:0} pointerBefore=({before.x:0},{before.y:0}) pointerAfter=({after.x:0},{after.y:0}) travelledGamePx={travelled:0} gain={pointerGain:0.000}");
+        }
+        else Debug.Log("CAMLOOK_UNVERIFIED no calibration report");
+        player.enabled = true;
+        for (int i = 0; i < 30; i++) yield return null;
     }
 
     // The synchronous cost of the recentre call. ForestPlayer makes this call every time the look budget is spent.
@@ -207,7 +270,7 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
         Debug.Log($"CAMLOOK_REALSTART name={name} pointerAtStart=({start.x:0},{start.y:0}) gameCentre=({Screen.width * 0.5f:0},{Screen.height * 0.5f:0})");
         int first = frames.Count;
         File.WriteAllText(Path.Combine(outDir, "real-start-" + name + ".txt"),
-            "speed=" + signedSpeed.ToString("0", Inv) + "\nseconds=" + seconds.ToString("0.0", Inv) + "\npattern=" + pattern + "\n");
+            "speed=" + signedSpeed.ToString("0", Inv) + "\nseconds=" + seconds.ToString("0.0", Inv) + "\npattern=" + pattern + "\ngain=" + pointerGain.ToString("0.0000", Inv) + "\n");
         float end = Time.realtimeSinceStartup + seconds + 0.8f;
         while (Time.realtimeSinceStartup < end) yield return null;
         phases.Add((name, first, frames.Count - 1));
@@ -334,7 +397,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 double appliedPx = slice.Sum(f => (double)f.yawDelta) / sensitivity;
                 double sent = report.sentPx;
                 double appliedAbsPx = slice.Sum(f => (double)Mathf.Abs(f.yawDelta)) / sensitivity;
-                double lossAbsPct = report.sentAbsPx > 1 ? 100.0 * (1.0 - appliedAbsPx / report.sentAbsPx) : 0.0;
+                double sentAbsGame = report.sentAbsPx * pointerGain;           // the driver already divided its motion by the gain, so this is what Unity should see
+                double lossAbsPct = sentAbsGame > 1 ? 100.0 * (1.0 - appliedAbsPx / sentAbsGame) : 0.0;
                 int recentres = 0;
                 for (int i = 1; i < slice.Count; i++)
                     if (Vector2.Distance(new Vector2(slice[i].pointerX, slice[i].pointerY), new Vector2(slice[i - 1].pointerX, slice[i - 1].pointerY)) > 60f) recentres++;
@@ -344,7 +408,7 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 int zeroApplied = slice.Count(f => Mathf.Abs(f.rawX) > 0.5f && Mathf.Abs(f.yawDelta) < 0.0001f);
                 Debug.Log($"CAMLOOK_REAL name={name} sentPx={sent:0} events={report.events} rawReportedPx={rawSum:0} ({reportedPct:0.0}% of sent) appliedPxEquivalent={appliedPx:0} " +
                     $"({appliedPct:0.0}% of sent) lossVsSentPct={(100.0 - appliedPct):0.0} rawAbsPx={rawAbs:0} spikeFrames>3x={spikeFrames} biggestRawPx={biggestRaw:0} framesRawNonZeroButAppliedZero={zeroApplied} " +
-                    $"PATH sentAbsPx={report.sentAbsPx:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres}");
+                    $"PATH sentAbsPx={report.sentAbsPx:0} gain={pointerGain:0.000} expectedGamePx={sentAbsGame:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres}");
                 realJson = ", \"sentPx\": " + sent.ToString("0", Inv) + ", \"rawReportedPx\": " + rawSum.ToString("0", Inv) + ", \"appliedPxEq\": " + appliedPx.ToString("0", Inv)
                     + ", \"appliedPctOfSent\": " + appliedPct.ToString("0.0", Inv) + ", \"rawNonZeroAppliedZero\": " + zeroApplied
                     + ", \"sentAbsPx\": " + report.sentAbsPx.ToString("0", Inv) + ", \"appliedAbsPx\": " + appliedAbsPx.ToString("0", Inv) + ", \"pathLossPct\": " + lossAbsPct.ToString("0.0", Inv)
