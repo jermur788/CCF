@@ -520,11 +520,29 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         Check(newOchre >= 60, "SELECTION_IS_VISIBLE_" + pose.Name, $"newOchrePixels={newOchre}");
         if (pose.Mark1 != null)
         {
-            // Competitor ring: the selected competitor takes the same ochre, never white.
+            // Competitor ring: a Crop Tree lists the neighbours that compete with it, and the selected competitor takes the same ochre, never white.
+            // So the selected tree itself becomes a Crop Tree here (a tree with no mark lists no competitors, which would leave this check empty).
+            ui.Marking.Mark(pose.Tree, TreeMarkType.CropTree, false);
+            for (int i = 0; i < 12; i++)
+            {
+                UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+                player.LookToward(pose.LookAt);
+                inspect.Invoke(player, new object[] { pose.Tree });
+                yield return null;
+            }
+            Check(ui.Competitors.ListedCount > 0, "CROP_TREE_LISTS_COMPETITORS", $"listed={ui.Competitors.ListedCount}");
             PropertyInfo selected = typeof(CompetitorAssessment).GetProperty("SelectedIndex");
             if (ui.Competitors.ListedCount > 0 && selected != null) selected.GetSetMethod(true).Invoke(ui.Competitors, new object[] { 0 });
             yield return Pause(6);
+            // Numbered tags are drawn in the world layer: none may sit over a panel's text (the HUD column, the card or the competitor list).
+            var shownTags = ui.RootElement.Query<Label>(className: "competitor-tag").ToList().Where(Visible).ToList();
+            var coveredPanels = ui.RootElement.Query<VisualElement>().ToList().Where(e => (e.ClassListContains("panel") || e.ClassListContains("inspect")) && Visible(e)).ToList();
+            int coveredTags = shownTags.Count(t => coveredPanels.Any(p => p.worldBound.Contains(t.worldBound.center)));
+            Debug.Log($"UXP_COMPETITOR_TAGS {size.x}x{size.y} shown={shownTags.Count} overPanels={coveredTags}");
+            Check(shownTags.Count > 0, "COMPETITOR_TAGS_ARE_SHOWN", "the check below is empty without tags");
+            Check(coveredTags == 0, "COMPETITOR_TAGS_DO_NOT_COVER_PANELS", $"tagsOverPanels={coveredTags}");
             yield return Shot("07-selected-competitor-ring");
+            ui.Marking.Mark(pose.Tree, TreeMarkType.None, false);
             ui.Marking.Mark(pose.Mark1, TreeMarkType.None, false);
             ui.Marking.Mark(pose.Mark2, TreeMarkType.None, false);
         }
