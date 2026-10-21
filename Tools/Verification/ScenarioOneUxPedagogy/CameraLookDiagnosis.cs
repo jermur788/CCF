@@ -147,6 +147,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 sign = -sign;
                 for (int i = 0; i < 30; i++) yield return null;
             }
+            // Stress: fast turn-arounds (1800 px in 0.3 s each way). The recentre must still land before the pointer reaches the display's edge.
+            yield return RealPhase("real-flick", 0f, 9f, "flick");
         }
         if (gc) yield return GcAttribution();
         Summarise();
@@ -156,6 +158,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
     // Game-pixels the pointer moves per pixel the driver sends. 1 when the Game view is shown 1:1; the Editor scales pointer travel when the
     // view is drawn smaller or larger than its target size. The driver divides what it sends by this, so the motion Unity sees is what a player's hand would make.
     private float pointerGain = 1f;
+    // Where the display's own left and right edges are in Game coordinates (the Game view is centred in a wider window): a pointer pinned there is a stall.
+    private float screenLeftGameX = float.NegativeInfinity, screenRightGameX = float.PositiveInfinity;
 
     // What the Game view looks like, so a pointer that behaves oddly can be explained instead of guessed at.
     private void LogGameView()
@@ -182,6 +186,14 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                     }
             }
             Debug.Log(sb.ToString());
+            float zoom = 1f;
+            FieldInfo zoomField = viewType.GetField("m_ZoomArea", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            object zoomArea = zoomField != null ? zoomField.GetValue(view) : null;
+            PropertyInfo zoomScale = zoomArea != null ? zoomArea.GetType().GetProperty("scale", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public) : null;
+            if (zoomScale != null && zoomScale.GetValue(zoomArea) is Vector2 scaleVector && scaleVector.x > 0.01f) zoom = scaleVector.x;
+            float gap = Mathf.Max(0f, (view.position.width / zoom - Screen.width) * 0.5f);
+            screenLeftGameX = -gap; screenRightGameX = Screen.width + gap;
+            Debug.Log($"CAMLOOK_SCREENEDGES leftGameX={screenLeftGameX:0} rightGameX={screenRightGameX:0} zoom={zoom:0.00}");
         }
         catch (Exception e) { Debug.Log("CAMLOOK_VIEW unavailable: " + e.Message); }
     }
@@ -399,6 +411,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 double appliedAbsPx = slice.Sum(f => (double)Mathf.Abs(f.yawDelta)) / sensitivity;
                 double sentAbsGame = report.sentAbsPx * pointerGain;           // the driver already divided its motion by the gain, so this is what Unity should see
                 double lossAbsPct = sentAbsGame > 1 ? 100.0 * (1.0 - appliedAbsPx / sentAbsGame) : 0.0;
+                int pinned = slice.Count(f => f.pointerX <= screenLeftGameX + 2f || f.pointerX >= screenRightGameX - 2f);
+                float overshoot = Mathf.Max(0f, Mathf.Max(-slice.Min(f => f.pointerX), slice.Max(f => f.pointerX) - Screen.width));
                 int recentres = 0;
                 for (int i = 1; i < slice.Count; i++)
                     if (Vector2.Distance(new Vector2(slice[i].pointerX, slice[i].pointerY), new Vector2(slice[i - 1].pointerX, slice[i - 1].pointerY)) > 60f) recentres++;
@@ -408,11 +422,11 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 int zeroApplied = slice.Count(f => Mathf.Abs(f.rawX) > 0.5f && Mathf.Abs(f.yawDelta) < 0.0001f);
                 Debug.Log($"CAMLOOK_REAL name={name} sentPx={sent:0} events={report.events} rawReportedPx={rawSum:0} ({reportedPct:0.0}% of sent) appliedPxEquivalent={appliedPx:0} " +
                     $"({appliedPct:0.0}% of sent) lossVsSentPct={(100.0 - appliedPct):0.0} rawAbsPx={rawAbs:0} spikeFrames>3x={spikeFrames} biggestRawPx={biggestRaw:0} framesRawNonZeroButAppliedZero={zeroApplied} " +
-                    $"PATH sentAbsPx={report.sentAbsPx:0} gain={pointerGain:0.000} expectedGamePx={sentAbsGame:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres}");
+                    $"PATH sentAbsPx={report.sentAbsPx:0} gain={pointerGain:0.000} expectedGamePx={sentAbsGame:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres} pinnedAtDisplayEdgeFrames={pinned} maxBeyondViewPx={overshoot:0}");
                 realJson = ", \"sentPx\": " + sent.ToString("0", Inv) + ", \"rawReportedPx\": " + rawSum.ToString("0", Inv) + ", \"appliedPxEq\": " + appliedPx.ToString("0", Inv)
                     + ", \"appliedPctOfSent\": " + appliedPct.ToString("0.0", Inv) + ", \"rawNonZeroAppliedZero\": " + zeroApplied
                     + ", \"sentAbsPx\": " + report.sentAbsPx.ToString("0", Inv) + ", \"appliedAbsPx\": " + appliedAbsPx.ToString("0", Inv) + ", \"pathLossPct\": " + lossAbsPct.ToString("0.0", Inv)
-                    + ", \"pointerJumps\": " + recentres;
+                    + ", \"pointerJumps\": " + recentres + ", \"pinnedAtDisplayEdgeFrames\": " + pinned + ", \"maxBeyondViewPx\": " + overshoot.ToString("0", Inv);
             }
             json.Append("    { \"name\": \"" + name + "\", \"frames\": " + slice.Count + ", \"dtMedianMs\": " + median.ToString("0.00", Inv) + ", \"dtP99Ms\": " + p99.ToString("0.00", Inv)
                 + ", \"dtMaxMs\": " + max.ToString("0.00", Inv) + ", \"spikes\": " + spikes + ", \"gcBytesPerFrame\": " + gcPerFrame
