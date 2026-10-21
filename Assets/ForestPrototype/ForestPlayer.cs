@@ -196,10 +196,13 @@ public sealed class ForestPlayer : MonoBehaviour
     private const float RecentreAfterPauseSeconds = 0.05f;
     // A due recentre does not wait for a pause once the pointer is within this fraction of the screen's smaller side from any edge.
     private const float RecentreEdgeMarginFraction = 0.25f;
+    // A recentre lands about two frames after it is requested, and the pointer keeps travelling until it does. The margin therefore grows by the
+    // distance covered in this many frames at the current speed, so a fast turn is recentred early enough to land before the edge, as before.
+    private const float RecentreLandsAfterFrames = 3f;
 
-    private static bool PointerNearingEdge(Vector2 pointer)
+    private static bool PointerNearingEdge(Vector2 pointer, Vector2 travelThisFrame)
     {
-        float margin = Mathf.Min(Screen.width, Screen.height) * RecentreEdgeMarginFraction;
+        float margin = Mathf.Min(Screen.width, Screen.height) * RecentreEdgeMarginFraction + travelThisFrame.magnitude * RecentreLandsAfterFrames;
         return pointer.x < margin || pointer.y < margin || pointer.x > Screen.width - margin || pointer.y > Screen.height - margin;
     }
 
@@ -339,7 +342,7 @@ public sealed class ForestPlayer : MonoBehaviour
                 // The budget only says a recentre is due. A recentre throws away the next two frames of look input, so doing it in the middle
                 // of a sweep drops real movement and shows as a periodic jerk (measured: a quarter of the look path in ordinary looking around).
                 // Do it when the player pauses, and at once only if the pointer is already nearing an edge.
-                bool recentreDue = crossedPixelBudget && (secondsSinceEdgeStall >= RecentreAfterPauseSeconds || PointerNearingEdge(pointerPos));
+                bool recentreDue = crossedPixelBudget && (secondsSinceEdgeStall >= RecentreAfterPauseSeconds || PointerNearingEdge(pointerPos, rawDelta));
                 if (recentreDue || (nearEdge && secondsSinceEdgeStall >= 1.5f && secondsSinceRecentre >= 1.5f))
                 {
                     lookPixelsSinceRecentre = 0f;
