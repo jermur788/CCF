@@ -230,7 +230,7 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         float w = frame.worldBound.width, h = frame.worldBound.height;
         float want = intro ? TeachingDiagramPlan.IntroWidth / TeachingDiagramPlan.IntroHeight : TeachingDiagramPlan.LessonWidth / TeachingDiagramPlan.LessonHeight;
         Check(Mathf.Abs(w / h - want) < 0.03f, "DIAGRAM_KEEPS_PROPORTIONS_" + state, $"{w:0}x{h:0} ratio={w / h:0.000} want={want:0.000}");
-        Check(w / UiScale() >= 560f, "DIAGRAM_IS_LARGE_ENOUGH_" + state, $"width={w / UiScale():0} UI units (was 660 max, 156 tall)");
+        Check(w >= 560f, "DIAGRAM_IS_LARGE_ENOUGH_" + state, $"{w:0} x {h:0} UI units (was 660 max x 156)");
         var labels = frame.Query<Label>().ToList().Where(Visible).ToList();
         foreach (Label label in labels)
         {
@@ -258,7 +258,14 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         AuditContained("HELP_WINDOW_ON_SCREEN_" + state, window, ui.RootElement);
         Check(close != null && Visible(close) && close.worldBound.yMax <= window.worldBound.yMax + 1f, "HELP_CLOSE_BUTTON_REACHABLE_" + state);
         AuditText("help-" + state, window);
-        Debug.Log($"UXP_HELPWINDOW {state} {size.x}x{size.y} window={window.worldBound.width / UiScale():0}x{window.worldBound.height / UiScale():0} UI units");
+        Debug.Log($"UXP_HELPWINDOW {state} {size.x}x{size.y} window={window.worldBound.width:0}x{window.worldBound.height:0} UI units");
+        // Nothing the player must read may be hidden below the fold: the body fits its viewport (no vertical scrolling needed).
+        ScrollView body = ui.Help.Root.Q<ScrollView>();
+        if (body != null && state == "intro")
+        {
+            float content = body.contentContainer.layout.height, viewport = body.contentViewport.layout.height;
+            Check(content <= viewport + 1f, "INTRO_FITS_WITHOUT_SCROLLING_" + state, $"content={content:0} viewport={viewport:0} UI units");
+        }
     }
 
     // ---- sections ----
@@ -274,6 +281,10 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             Check(text.Contains(want), "INTRO_EXPLAINS_" + want.Replace(' ', '_'));
         AuditDiagram("intro", ui.Help.Root.Q("teaching-diagram"), true);
         AuditHelp("intro");
+        ScrollView introScroll = ui.Help.Root.Q<ScrollView>();
+        foreach (VisualElement part in ui.Help.Root.Query(className: "intro-block").ToList().Cast<VisualElement>().Concat(ui.Help.Root.Query(className: "intro-start").ToList()))
+            Check(introScroll != null && part.worldBound.yMax <= introScroll.contentViewport.worldBound.yMax + 1f && part.worldBound.yMin >= introScroll.contentViewport.worldBound.yMin - 1f,
+                "INTRO_PART_NOT_CLIPPED", $"{(part.ClassListContains("intro-block") ? "block" : "start")} y={part.worldBound.yMin:0}-{part.worldBound.yMax:0} viewport={introScroll?.contentViewport.worldBound.yMin:0}-{introScroll?.contentViewport.worldBound.yMax:0}");
         yield return Shot("01-intro");
         Button more = ui.Help.Root.Q<Button>("menu-help-more");
         string before = Texts(ui.Help.Root);
@@ -335,8 +346,10 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
     {
         for (int stage = 0; stage < 8; stage++)
         {
-            ui.CloseAll(); ui.CloseHelp(); ForceStage(stage);
-            ui.ShowObjectives(); ui.Learning.Refresh(false);
+            // ShowObjectives refreshes the view with the REAL facts, so open it first and inject the stage afterwards.
+            ui.CloseAll(); ui.CloseHelp();
+            ui.ShowObjectives();
+            ForceStage(stage);
             yield return Pause(16);
             string state = "objective-" + (stage + 1);
             VisualElement card = ui.Learning.Root.Q("current-objective");

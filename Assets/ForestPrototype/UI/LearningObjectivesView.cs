@@ -186,7 +186,7 @@ public sealed partial class LearningObjectivesView
     private static void AddObjectivePart(VisualElement card, string heading, string text, string name)
     {
         UiKit.Add(card, heading, "objective-part-heading");
-        UiKit.Add(card, text, "body").name = name;
+        UiKit.Add(card, text, "body", "objective-part-text").name = name;
     }
 
     // The rack lessons follow the forest and the Work Plan, so they stay true after a save and load: a rack counts as planned when no

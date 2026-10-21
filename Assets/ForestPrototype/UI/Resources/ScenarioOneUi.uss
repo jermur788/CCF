@@ -248,7 +248,7 @@
     width: 92%; max-width: 900px; max-height: 92%;
 }
 /* The scenario introduction has a picture and three explanations, so it is wider and taller than the other help windows. */
-.menu-help-intro { max-width: 1160px; }
+.menu-help-intro { max-width: 1160px; max-height: 95%; }
 .menu-help-panel > * { flex-shrink: 0; }
 .menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
 .menu-help-title {
@@ -327,8 +327,14 @@
 .intro-sections { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
 .intro-block { flex-basis: 300px; flex-grow: 1; margin-right: 22px; margin-bottom: 8px; }
 .intro-heading { color: var(--accent); -unity-font-style: bold; font-size: var(--fs-heading); margin-bottom: 3px; white-space: normal; }
-.intro-text { color: var(--ink); font-size: var(--fs-body); white-space: normal; }
+.intro-text { color: var(--ink); font-size: var(--fs-reading); white-space: normal; }
+/* The lead and the picture side by side: the picture takes whatever width the lead leaves. */
+.intro-top { flex-direction: row; align-items: center; }
+.intro-top > .body { flex-basis: 330px; flex-shrink: 0; margin-right: 24px; margin-bottom: 0; }
+.intro-top > .teaching-diagram { flex-grow: 1; flex-basis: 0; margin-top: 0; margin-bottom: 0; }
 .intro-start { color: var(--accent); font-size: var(--fs-reading); -unity-font-style: bold; white-space: normal; margin-top: 6px; margin-bottom: 8px; }
 
 /* ---- the current objective card: what to do / why / good practice ---- */
-.objective-part-heading { color: var(--accent); font-size: var(--fs-sm); -unity-font-style: bold; margin-top: 8px; margin-bottom: 1px; white-space: normal; }
+.objective-part-heading { color: var(--accent); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
+/* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
+.objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }

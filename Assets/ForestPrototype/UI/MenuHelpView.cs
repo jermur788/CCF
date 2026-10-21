@@ -101,15 +101,21 @@ public sealed partial class MenuHelpView
         bool hasBrief = Summary(menu) != null && (summary != null || ShowingDetail);
         bool introduction = menu == Menu.WalkingHud && summary != null;
         title.text = summary != null ? SummaryTitle(menu) : Title(menu);
+        // The introduction puts the body text beside its picture; take it back first so every other screen finds it where it always was.
+        if (body.parent != scroll) scroll.Insert(0, body);
         foreach (VisualElement part in introParts) part.RemoveFromHierarchy();
         introParts.Clear();
         window.EnableInClassList("menu-help-intro", introduction);
         if (introduction)
         {
-            // Lead, then the picture of the stand and the passing of years, then three short explanations and how to begin. The words
-            // are ordinary labels, so they follow the shared type scale like every other popup.
+            // The lead sits beside the picture of the stand and the passing of years, so the whole introduction fits the window without
+            // scrolling; then three short explanations and how to begin. The words are ordinary labels, so they follow the shared type scale.
             body.text = IntroLead;
-            AddIntroPart(new TeachingDiagram(-1, ""));
+            VisualElement top = UiKit.Box("intro-top");
+            scroll.Insert(0, top);
+            top.Add(body);
+            top.Add(new TeachingDiagram(-1, ""));
+            introParts.Add(top);
             VisualElement sections = UiKit.Box("intro-sections");
             foreach (string[] section in IntroSections)
             {
