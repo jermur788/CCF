@@ -128,6 +128,8 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
             $"real={real} gc={gc} loadavg={SafeRead("/proc/loadavg")}");
         if (player == null) { Debug.Log("CAMLOOK_UNVERIFIED no ForestPlayer"); Finish(1); yield break; }
 
+        SetGameViewScale(1f);
+        for (int i = 0; i < 20; i++) yield return null;
         LogGameView();
         yield return Calibrate();
         yield return WarpCost(60);
@@ -160,6 +162,30 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
     private float pointerGain = 1f;
     // Where the display's own left and right edges are in Game coordinates (the Game view is centred in a wider window): a pointer pinned there is a stall.
     private float screenLeftGameX = float.NegativeInfinity, screenRightGameX = float.PositiveInfinity;
+
+    // The Game view keeps whatever zoom it had when it was first laid out, so a window that was resized afterwards can be left at 0.44x. Pin it to 1x
+    // so the 1280 x 720 target is drawn 1:1 and the pointer's Game-space travel equals its travel on the display.
+    private static void SetGameViewScale(float value)
+    {
+        try
+        {
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            Type viewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
+            EditorWindow view = EditorWindow.GetWindow(viewType);
+            FieldInfo zoomField = viewType.GetField("m_ZoomArea", flags);
+            object zoomArea = zoomField != null ? zoomField.GetValue(view) : null;
+            if (zoomArea == null) return;
+            PropertyInfo scale = zoomArea.GetType().GetProperty("scale", flags);
+            if (scale != null && scale.CanWrite) scale.SetValue(zoomArea, new Vector2(value, value));
+            else
+            {
+                FieldInfo field = zoomArea.GetType().GetField("m_Scale", flags);
+                if (field != null) field.SetValue(zoomArea, new Vector2(value, value));
+            }
+            view.Repaint();
+        }
+        catch (Exception e) { Debug.Log("CAMLOOK_VIEW could not set the scale: " + e.Message); }
+    }
 
     // What the Game view looks like, so a pointer that behaves oddly can be explained instead of guessed at.
     private void LogGameView()
