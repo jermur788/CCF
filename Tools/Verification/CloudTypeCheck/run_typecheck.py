@@ -40,6 +40,11 @@ TOOLS_EXCLUDE = [
     "Tools/Verification/MenuTutorialVerification.cs",
     "Tools/Verification/Startup/StartupScreenVerification.cs",
     "Tools/Verification/WindthrowV1/StormUiVerification.cs",
+    # SCENARIO-ONE-UX-PEDAGOGY-V1 disposable Editor harnesses: they use Input System and Editor APIs this 2021.3 approximation does not stub
+    # (InputSystem.QueueDeltaStateEvent / settings, Mouse.WarpCursorPosition, EditorWindow.position / maximized). Their real compile check is
+    # Unity's own compiler against the project's references (Tools/Verification/ScenarioOneUxPedagogy/README.md).
+    "Tools/Verification/ScenarioOneUxPedagogy/CameraLookDiagnosis.cs",
+    "Tools/Verification/ScenarioOneUxPedagogy/UxPedagogyShots.cs",
 ]
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
