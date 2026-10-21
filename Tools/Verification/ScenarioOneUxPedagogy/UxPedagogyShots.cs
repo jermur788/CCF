@@ -157,10 +157,22 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         lastCapture = ScreenCapture.CaptureScreenshotAsTexture();
     }
 
+    // A capture of an Editor window that never got a real surface comes back uniform (white). Catch that instead of passing blank screenshots.
+    private static bool LooksBlank(Texture2D image)
+    {
+        Color32[] pixels = image.GetPixels32();
+        int step = Mathf.Max(1, pixels.Length / 4000), different = 0;
+        Color32 first = pixels[0];
+        for (int i = 0; i < pixels.Length; i += step)
+            if (Mathf.Abs(pixels[i].r - first.r) + Mathf.Abs(pixels[i].g - first.g) + Mathf.Abs(pixels[i].b - first.b) > 24) different++;
+        return different < 40;
+    }
+
     private IEnumerator Shot(string name)
     {
         yield return Capture();
         if (lastCapture == null || lastCapture.width < 600) { Fail("SHOT_" + name, "no rendered capture"); yield break; }
+        Check(!LooksBlank(lastCapture), "SHOT_IS_NOT_BLANK_" + name, "a uniform capture means the Game view had no real surface; do not read it as a screenshot");
         File.WriteAllBytes(Path.Combine(outDir, $"{name}-{size.x}x{size.y}.png"), lastCapture.EncodeToPNG());
         shotCount++;
         Debug.Log($"UXP_SHOT {name}-{size.x}x{size.y}.png {lastCapture.width}x{lastCapture.height}");
@@ -235,7 +247,7 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         foreach (Label label in labels)
         {
             Rect r = label.worldBound;
-            Check(r.xMin >= frame.worldBound.xMin - 1f && r.xMax <= frame.worldBound.xMax + 1f && r.yMax <= frame.worldBound.yMax + 1f, $"DIAGRAM_WORD_INSIDE_{state}", $"\"{label.text}\" {r}");
+            Check(r.xMin >= frame.worldBound.xMin - 1f && r.xMax <= frame.worldBound.xMax + 1f && r.yMax <= frame.worldBound.yMax + 1f, $"DIAGRAM_WORD_INSIDE_{state}", $"\"{label.text}\" {r} frame={frame.worldBound}");
             Vector2 natural = label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
             if (label.ClassListContains("diagram-legend"))
                 Check(natural.x <= r.width + 0.5f, $"DIAGRAM_LEGEND_FITS_{state}", $"\"{label.text}\" text={natural.x:0} box={r.width:0}");
@@ -351,6 +363,9 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             ui.ShowObjectives();
             ForceStage(stage);
             yield return Pause(16);
+            // The view restores its previous scroll position when it rebuilds; start every stage at the top, as a player opening it does.
+            ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero;
+            yield return Pause(4);
             string state = "objective-" + (stage + 1);
             VisualElement card = ui.Learning.Root.Q("current-objective");
             Check(card != null && Visible(card), "OBJECTIVE_CARD_VISIBLE_" + state);
@@ -358,6 +373,24 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             var names = new List<string> { "current-objective-title", "current-objective-concept", "current-objective-instruction", "current-objective-progress", "teaching-diagram" };
             if (stage == 0) names.Add("current-objective-practice");
             foreach (string name in names) AuditContained($"OBJECTIVE_PART_INSIDE_CARD_{state}_{name}", card.Q(name), card);
+            // The rules the guided onboarding gate holds the card to, restated here so this harness fails on them too: the whole card is on
+            // screen (with its picture) and its parts stack in the order title, why, what to do, progress without overlapping.
+            AuditContained($"OBJECTIVE_CARD_FITS_THE_SCREEN_{state}", card, ui.RootElement);
+            AuditContained($"OBJECTIVE_CARD_NEEDS_NO_SCROLLING_{state}", card, ui.Learning.Root.Q<ScrollView>().contentViewport);
+            string[] stack = { "current-objective-title", "current-objective-concept", "current-objective-instruction", "current-objective-progress" };
+            for (int i = 1; i < stack.Length; i++)
+            {
+                VisualElement above = card.Q(stack[i - 1]), below = card.Q(stack[i]);
+                Check(above != null && below != null && above.worldBound.yMax <= below.worldBound.yMin + 1f, $"OBJECTIVE_PARTS_DO_NOT_OVERLAP_{state}_{stack[i]}");
+            }
+            // A label that does not wrap must fit its box: a long progress heading in the narrower words column would otherwise run under the
+            // picture beside it, where no containment check sees it (found by reading the screenshots).
+            foreach (Label label in card.Query<Label>().ToList().Where(Visible))
+            {
+                if (label.resolvedStyle.whiteSpace != WhiteSpace.NoWrap) continue;
+                Vector2 natural = label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+                Check(natural.x <= label.worldBound.width + 1f, $"OBJECTIVE_NOWRAP_TEXT_FITS_{state}", $"\"{label.text}\" text={natural.x:0} box={label.worldBound.width:0}");
+            }
             if (stage == 0)
             {
                 Check(Visible(ui.RootElement.Q("rack-lesson-diagram")), "OBJECTIVE_1_RACK_DIAGRAM_VISIBLE");

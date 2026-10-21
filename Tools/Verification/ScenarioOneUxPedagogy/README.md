@@ -25,7 +25,8 @@ rm Assets/ForestPrototype/UxPedagogyShots.cs Assets/ForestPrototype/UxPedagogySh
 
 Run the Editor in a private Xephyr display (never on the user's desktop). Camera runs additionally need `CCF_LOOK_REAL=1` and an external XTEST driver for real pointer motion, and the Editor
 window must fill the display so the Game view draws at 1:1 (a 0.25x Game view multiplies pointer travel and leaves the pointer outside the view). The Unity Editor rewrites
-`.vscode/settings.json` and three SectionFive Forb materials on every run; revert those exact paths, they are not part of any candidate.
+`.vscode/settings.json` and some SectionFive materials (the Forb_* and Bilberry_* `.mat` files) on every run. They are not part of any candidate: commit by explicit path so they are never
+staged, and restore them (`git checkout -- <those paths>`) only when the lane's owner allows it.
 
 ## What this does not prove
 

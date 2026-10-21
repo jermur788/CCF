@@ -56,7 +56,7 @@ public sealed partial class LearningObjectivesView
         ReloadProgress();
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
-        VisualElement modal = UiKit.Box("panel", "modal");
+        VisualElement modal = UiKit.Box("panel", "modal", "modal-objectives");
         modal.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
@@ -128,13 +128,19 @@ public sealed partial class LearningObjectivesView
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
         var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
-        // What to do, why it matters and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
-        AddObjectivePart(current, "What to do", CurrentInstruction, "current-objective-instruction");
-        AddObjectivePart(current, "Why it matters", lesson.Concept, "current-objective-concept");
-        if (!string.IsNullOrEmpty(lesson.Practice)) AddObjectivePart(current, "What good practice looks like", lesson.Practice, "current-objective-practice");
-        UiKit.Add(current, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
+        // The words on the left and the picture on the right, so the whole objective is on screen at once; a window too narrow for both
+        // wraps the picture below the words.
+        VisualElement body = UiKit.Box("objective-body");
+        VisualElement words = UiKit.Box("objective-words");
+        // Why it matters, what to do and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
+        AddObjectivePart(words, "Why it matters", lesson.Concept, "current-objective-concept");
+        AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
+        if (!string.IsNullOrEmpty(lesson.Practice)) AddObjectivePart(words, "What good practice looks like", lesson.Practice, "current-objective-practice");
+        UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
+        body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
-        current.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        body.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        current.Add(body);
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
         for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");

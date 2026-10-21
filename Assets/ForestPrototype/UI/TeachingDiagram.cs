@@ -74,7 +74,14 @@ public sealed class TeachingDiagram : VisualElement
             Label label = texts[i].Key;
             Plan.Text text = texts[i].Value;
             label.style.left = text.X * s;
-            label.style.top = text.Y * s;
+            if (isLegend[i])
+            {
+                // The legend sits on the bottom edge of the picture: its box is as tall as its text (which has a floor), so anchoring from the top
+                // let it hang past the frame when the picture is drawn smaller.
+                label.style.top = StyleKeyword.Auto;
+                label.style.bottom = (stage.Height - text.Y - text.Height) * s;
+            }
+            else label.style.top = text.Y * s;
             label.style.width = text.Width * s;
             label.style.fontSize = Mathf.Max(isLegend[i] ? MinLegendSize : MinLabelSize, text.FontSize * s);
         }

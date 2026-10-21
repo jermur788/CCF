@@ -338,3 +338,11 @@
 .objective-part-heading { color: var(--accent); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
 /* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
 .objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }
+/* The Objectives window is wider than the other screens so the card's words and its picture sit side by side and the whole objective is on
+   screen at once (1472 of the 1600 UI units at any 16:9 size). */
+.modal-objectives { max-width: 1500px; }
+.objective-body { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+.objective-words { flex-basis: 500px; flex-grow: 1; margin-right: 22px; }
+/* The progress line wraps like the text around it: in this narrower column a long one would otherwise run on under the picture. */
+.objective-words > .heading { white-space: normal; }
+.objective-body > .teaching-diagram { flex-basis: 780px; flex-grow: 1; margin-top: 8px; }
