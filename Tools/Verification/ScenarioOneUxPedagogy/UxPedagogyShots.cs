@@ -258,6 +258,7 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             if (!Visible(label) || string.IsNullOrWhiteSpace(label.text) || label is Button || label.resolvedStyle.whiteSpace != WhiteSpace.NoWrap) continue;
             labels++;
             Vector2 natural = label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+            if (name.StartsWith("COMPETITOR")) Debug.Log($"UXP_CUTOFF_DETAIL {size.x} \"{label.text}\" text={natural.x:0.0} box={label.worldBound.width:0.0}");
             if (natural.x > label.worldBound.width + 0.5f) cut.Add($"\"{label.text}\" text={natural.x:0} box={label.worldBound.width:0}");
         }
         Debug.Log($"UXP_CUTOFF {name} {size.x}x{size.y} oneLineLabels={labels} cut={cut.Count}");
