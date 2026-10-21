@@ -56,7 +56,11 @@ public static class CameraLookDiagnosis
         group.GetType().GetMethod("AddCustomSize").Invoke(group, new[] { size });
         Type viewType = assembly.GetType("UnityEditor.GameView"); EditorWindow view = EditorWindow.GetWindow(viewType);
         viewType.GetProperty("selectedSizeIndex", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(view, index);
-        view.Show(); view.Focus(); view.Repaint();
+        view.Show(); view.Focus();
+        // A docked Game view smaller than the target is drawn scaled down, which multiplies pointer travel and leaves the pointer outside the
+        // view. Maximised, the 1280 x 720 target renders 1:1 and the pointer can sit inside it like a player's.
+        view.maximized = true;
+        view.Repaint();
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -83,7 +87,7 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
         public float rawX, rawY;                    // what the Input System reports as mouse.delta this frame (what ForestPlayer reads)
         public float pointerX, pointerY; public long gcBytes; public int gcCollections; public bool focused, locked;
     }
-    [Serializable] private class DriverReport { public float speed; public float seconds; public double sentPx; public int events; }
+    [Serializable] private class DriverReport { public float speed; public float seconds; public double sentPx; public double sentAbsPx; public int events; }
 
     private readonly List<Frame> frames = new List<Frame>();
     private readonly Dictionary<string, DriverReport> realReports = new Dictionary<string, DriverReport>();
@@ -132,9 +136,12 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
         {
             // Alternate direction so a pointer that really moves on screen is not driven into an edge by the test itself.
             float sign = 1f;
+            // How people actually look around: pan, pause, pan back, pause. The driver runs the pattern; speed is ignored.
+            yield return RealPhase("real-natural", 0f, 12.5f, "natural");
+            for (int i = 0; i < 30; i++) yield return null;
             foreach (float pixelsPerSecond in new[] { 120f, 360f, 720f, 1400f })
             {
-                yield return RealPhase("real-" + pixelsPerSecond.ToString("0", Inv), pixelsPerSecond * sign, 6f);
+                yield return RealPhase("real-" + pixelsPerSecond.ToString("0", Inv), pixelsPerSecond * sign, 6f, "sweep");
                 sign = -sign;
                 for (int i = 0; i < 30; i++) yield return null;
             }
@@ -189,12 +196,18 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
 
     // Real pointer motion: the external driver sees real-start-<name>.txt, sends `seconds` of XTEST relative motion at the stated
     // speed, and writes real-driver-<name>.json with the pixels it actually sent.
-    private IEnumerator RealPhase(string name, float signedSpeed, float seconds)
+    private IEnumerator RealPhase(string name, float signedSpeed, float seconds, string pattern)
     {
-        int first = frames.Count;
         queuedForNextFrame = 0f;
+        // Start every phase with the real pointer at the middle of the Game view, using Unity's own warp so the coordinates are Unity's.
+        Mouse mouse = Mouse.current;
+        if (mouse != null) mouse.WarpCursorPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+        for (int i = 0; i < 25; i++) yield return null;
+        Vector2 start = mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+        Debug.Log($"CAMLOOK_REALSTART name={name} pointerAtStart=({start.x:0},{start.y:0}) gameCentre=({Screen.width * 0.5f:0},{Screen.height * 0.5f:0})");
+        int first = frames.Count;
         File.WriteAllText(Path.Combine(outDir, "real-start-" + name + ".txt"),
-            "speed=" + signedSpeed.ToString("0", Inv) + "\nseconds=" + seconds.ToString("0.0", Inv) + "\n");
+            "speed=" + signedSpeed.ToString("0", Inv) + "\nseconds=" + seconds.ToString("0.0", Inv) + "\npattern=" + pattern + "\n");
         float end = Time.realtimeSinceStartup + seconds + 0.8f;
         while (Time.realtimeSinceStartup < end) yield return null;
         phases.Add((name, first, frames.Count - 1));
@@ -320,14 +333,22 @@ public sealed class CameraLookDiagnosisRunner : MonoBehaviour
                 double rawSum = slice.Sum(f => (double)f.rawX), rawAbs = slice.Sum(f => (double)Mathf.Abs(f.rawX));
                 double appliedPx = slice.Sum(f => (double)f.yawDelta) / sensitivity;
                 double sent = report.sentPx;
+                double appliedAbsPx = slice.Sum(f => (double)Mathf.Abs(f.yawDelta)) / sensitivity;
+                double lossAbsPct = report.sentAbsPx > 1 ? 100.0 * (1.0 - appliedAbsPx / report.sentAbsPx) : 0.0;
+                int recentres = 0;
+                for (int i = 1; i < slice.Count; i++)
+                    if (Vector2.Distance(new Vector2(slice[i].pointerX, slice[i].pointerY), new Vector2(slice[i - 1].pointerX, slice[i - 1].pointerY)) > 60f) recentres++;
                 double reportedPct = Math.Abs(sent) > 1 ? 100.0 * rawSum / sent : 0.0, appliedPct = Math.Abs(sent) > 1 ? 100.0 * appliedPx / sent : 0.0;
                 int spikeFrames = slice.Count(f => Mathf.Abs(f.rawX) > 3f * Mathf.Max(8f, (float)Math.Abs(sent) / Mathf.Max(1f, report.seconds) * median / 1000f));
                 float biggestRaw = slice.Max(f => Mathf.Abs(f.rawX));
                 int zeroApplied = slice.Count(f => Mathf.Abs(f.rawX) > 0.5f && Mathf.Abs(f.yawDelta) < 0.0001f);
                 Debug.Log($"CAMLOOK_REAL name={name} sentPx={sent:0} events={report.events} rawReportedPx={rawSum:0} ({reportedPct:0.0}% of sent) appliedPxEquivalent={appliedPx:0} " +
-                    $"({appliedPct:0.0}% of sent) lossVsSentPct={(100.0 - appliedPct):0.0} rawAbsPx={rawAbs:0} spikeFrames>3x={spikeFrames} biggestRawPx={biggestRaw:0} framesRawNonZeroButAppliedZero={zeroApplied}");
+                    $"({appliedPct:0.0}% of sent) lossVsSentPct={(100.0 - appliedPct):0.0} rawAbsPx={rawAbs:0} spikeFrames>3x={spikeFrames} biggestRawPx={biggestRaw:0} framesRawNonZeroButAppliedZero={zeroApplied} " +
+                    $"PATH sentAbsPx={report.sentAbsPx:0} appliedAbsPx={appliedAbsPx:0} pathLossPct={lossAbsPct:0.0} pointerJumps={recentres}");
                 realJson = ", \"sentPx\": " + sent.ToString("0", Inv) + ", \"rawReportedPx\": " + rawSum.ToString("0", Inv) + ", \"appliedPxEq\": " + appliedPx.ToString("0", Inv)
-                    + ", \"appliedPctOfSent\": " + appliedPct.ToString("0.0", Inv) + ", \"rawNonZeroAppliedZero\": " + zeroApplied;
+                    + ", \"appliedPctOfSent\": " + appliedPct.ToString("0.0", Inv) + ", \"rawNonZeroAppliedZero\": " + zeroApplied
+                    + ", \"sentAbsPx\": " + report.sentAbsPx.ToString("0", Inv) + ", \"appliedAbsPx\": " + appliedAbsPx.ToString("0", Inv) + ", \"pathLossPct\": " + lossAbsPct.ToString("0.0", Inv)
+                    + ", \"pointerJumps\": " + recentres;
             }
             json.Append("    { \"name\": \"" + name + "\", \"frames\": " + slice.Count + ", \"dtMedianMs\": " + median.ToString("0.00", Inv) + ", \"dtP99Ms\": " + p99.ToString("0.00", Inv)
                 + ", \"dtMaxMs\": " + max.ToString("0.00", Inv) + ", \"spikes\": " + spikes + ", \"gcBytesPerFrame\": " + gcPerFrame
