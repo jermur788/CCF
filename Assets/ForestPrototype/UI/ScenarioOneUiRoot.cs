@@ -219,6 +219,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else
             competitors.Clear();
+        hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
         PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
         if (!preview)

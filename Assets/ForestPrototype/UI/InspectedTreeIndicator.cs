@@ -17,7 +17,7 @@ public sealed class InspectedTreeIndicator
 {
     public static readonly Color SelectColour = new Color(222f / 255f, 164f / 255f, 58f / 255f, 1f);
     // Selection fill on the ground, and the colour of the outline where another tree hides it.
-    public static readonly Color SelectSoft = new Color(222f / 255f, 164f / 255f, 58f / 255f, 0.30f);
+    public static readonly Color SelectSoft = new Color(222f / 255f, 164f / 255f, 58f / 255f, 0.42f);
     private static readonly Color CasingColour = new Color(0.12f, 0.08f, 0.03f, 0.88f);
 
     private const int RingPoints = 48;
@@ -197,7 +197,9 @@ public sealed class InspectedTreeIndicator
         Vector3 foot = tree.transform.position;
         foot.y = GroundY(foot);
         float height = Mathf.Min(OutlineHeightM, Mathf.Max(1.5f, tree.Height * 0.6f));
-        float r0 = tree.Diameter / 200f + 0.05f, r1 = Mathf.Max(0.04f, r0 * 0.88f);
+        // DBH is measured at 1.3 m; the stem is wider lower down (root flare) and its mesh is not a clean cylinder, so the outline stands off the bark by
+        // a margin that grows with the trunk, or the near side of it would sit inside the bark and be hidden by it.
+        float r0 = tree.Diameter / 200f * 1.3f + 0.08f, r1 = Mathf.Max(0.05f, r0 * 0.88f);
         // 13 points: bottom-left, up the left edge, an arch over the top (7 points), down the right edge, bottom-right.
         outlinePoints[0] = foot - across * r0;
         outlinePoints[1] = foot + Vector3.up * (height * 0.5f) - across * ((r0 + r1) * 0.5f);

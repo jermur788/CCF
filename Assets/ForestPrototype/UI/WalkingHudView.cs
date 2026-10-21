@@ -10,6 +10,7 @@ public sealed class WalkingHudView
     public VisualElement Root { get; }
     // Top-right column: the active-objective widget above the status panel. Panels that hang under the status panel start below it.
     public VisualElement RightColumn { get; }
+    private readonly VisualElement statusPanel;
     public ActiveObjectiveHudWidget ObjectiveWidget { get; }
     private float nextObjectiveRefresh;
     // The key hint for planting appears when the Work Plan offers planting (the G key itself always works).
@@ -44,7 +45,7 @@ public sealed class WalkingHudView
         RightColumn.name = "hud-right-column";
         ObjectiveWidget = new ActiveObjectiveHudWidget(() => ui.ShowObjectives());
         RightColumn.Add(ObjectiveWidget.Root);
-        VisualElement status = UiKit.Box("panel", "hud-status");
+        VisualElement status = statusPanel = UiKit.Box("panel", "hud-status");
         statusTitle = UiKit.Add(status, "", "heading");
         VisualElement cashRow = UiKit.Row(status, "spread");
         cashRow.Add(UiKit.Text("Cash", "body"));
@@ -141,6 +142,10 @@ public sealed class WalkingHudView
     public void SetPromptMaxWidth(float width) => prompt.style.maxWidth = width;
 
     private int hudEventCount = -1, hudInterventions;
+
+    // The status panel (year, cash, browsing, key hints) steps aside while the competitor list is open: that list is the tallest thing in the right
+    // column and needs the room, the objective widget above stays, and the bottom bar repeats the key hints. Presentation only.
+    public void ShowStatus(bool show) => statusPanel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
 
     public void Refresh()
     {
