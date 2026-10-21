@@ -33,15 +33,16 @@ public sealed class ActiveObjectiveHudWidget
         now.name = "active-objective-now";
         step = UiKit.Add(header, "", "objective-step");
         step.name = "active-objective-step";
+        // On the header's right, so the shortcut costs no extra row (the tall column below it leaves the competitor list less room).
+        Button details = UiKit.Button("Details [O]", onDetails ?? (() => { }), true, "btn-ghost", "objective-details");
+        details.name = "active-objective-details";
+        header.Add(details);
         title = UiKit.Add(Root, "", "objective-title");
         title.name = "active-objective-title";
         instruction = UiKit.Add(Root, "", "objective-instruction");
         instruction.name = "active-objective-instruction";
         progress = UiKit.Add(Root, "", "objective-progress");
         progress.name = "active-objective-progress";
-        Button details = UiKit.Button("Objective details [O]", onDetails ?? (() => { }), true, "btn-ghost", "objective-details");
-        details.name = "active-objective-details";
-        Root.Add(details);
     }
 
     // The words shown for a model; separate from the elements so the offline check can read them.

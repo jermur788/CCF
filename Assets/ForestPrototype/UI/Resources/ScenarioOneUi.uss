@@ -307,7 +307,7 @@
 .objective-title { color: var(--ink); font-size: var(--fs-heading); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
 .objective-instruction { color: var(--ink); white-space: normal; margin-top: 2px; }
 .objective-progress { color: var(--accent); font-size: var(--fs-sm); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
-.objective-details { margin-top: 6px; align-self: flex-start; }
+.objective-details { margin: 0 0 0 auto; padding: 1px 10px; font-size: var(--fs-sm); }
 
 /* ---- Work Plan sections the current objective does not use yet ---- */
 .card-locked { opacity: 0.55; }
@@ -346,3 +346,9 @@
 /* The progress line wraps like the text around it: in this narrower column a long one would otherwise run on under the picture. */
 .objective-words > .heading { white-space: normal; }
 .objective-body > .teaching-diagram { flex-basis: 780px; flex-grow: 1; margin-top: 8px; }
+
+/* The competitor list is capped in height by the column above it. Its rows keep their height and anything beyond the cap is clipped, never squeezed
+   until the lines print over each other. */
+.competitor-panel { overflow: hidden; }
+.competitor-body { flex-shrink: 0; }
+.competitor-body > * { flex-shrink: 0; }

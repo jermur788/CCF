@@ -68,6 +68,7 @@ public sealed class TreeInspectionView
         CompetitorPanel.style.top = 250;
         CompetitorPanel.style.width = ColumnWidth;
         competitorBody = new VisualElement();
+        competitorBody.AddToClassList("competitor-body");
         CompetitorPanel.Add(competitorBody);
 
         EstimatePanel = UiKit.Box("panel", "estimate-panel");

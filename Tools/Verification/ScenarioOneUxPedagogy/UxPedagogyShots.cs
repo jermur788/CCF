@@ -563,6 +563,10 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
             Check(coveredTags == 0, "COMPETITOR_TAGS_DO_NOT_COVER_PANELS", $"tagsOverPanels={coveredTags}");
             // The competitor list is longest with a Fell mark and other Crop Trees near: its rows must keep their height, and the HUD column above it too.
             AuditNotSquashed("COMPETITOR_LIST_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q("competitor-panel"));
+            // ...and, because they keep their height, the whole list must still fit under the cap: nothing cut off at the bottom.
+            VisualElement competitorPanel = ui.RootElement.Q("competitor-panel");
+            float lastLabelBottom = competitorPanel.Query<TextElement>().ToList().Where(Visible).Max(l => l.worldBound.yMax);
+            Check(lastLabelBottom <= competitorPanel.worldBound.yMax + 1f, "COMPETITOR_LIST_IS_NOT_CLIPPED", $"lastLabelBottom={lastLabelBottom:0} panelBottom={competitorPanel.worldBound.yMax:0}");
             AuditNotSquashed("HUD_COLUMN_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q("hud-right-column"));
             AuditNotSquashed("INSPECTION_CARD_ROWS_ARE_NOT_SQUASHED", ui.RootElement.Q(className: "inspect"));
             yield return Shot("07-selected-competitor-ring");
