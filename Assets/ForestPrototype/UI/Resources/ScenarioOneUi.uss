@@ -243,6 +243,18 @@
 .map-cell-player { border-color: white; }
 .map-cell-rack { border-color: rgba(190, 126, 240, 0.95); }
 .map-side { width: 330px; margin-left: 12px; }
+/* Seam between the shared type scale and the full map's fixed 608-unit square (found by the integrated Stand Map parity gate and the combined map-window audit).
+   At the shared sizes: the legend under the map needs a little more height than the standard 92% window; the card, declared 330 wide, was squeezed to about 258 by the
+   long symbol legend and then ran past the window once the "Site details" foldout was open; the card heading ran past the card; and Unity's foldout title label
+   (flex-shrink 0) ran past its row so "light and young trees" was drawn clipped. Style only - no map geometry, text, rack, objective, save or ecology change. */
+.modal-map { height: 96%; }
+/* The card keeps its declared width (the long symbol legend wraps instead of squeezing it). */
+.map-side { flex-shrink: 0; }
+/* The one-line map key keeps the 16px it was approved at; at the shared 18px it was 795 wide and, beside the full-width card, wrapped to two lines. */
+.map-left .muted { font-size: var(--fs-sm); }
+.map-side .heading { white-space: normal; }
+/* The foldout title wraps within its row (the lines inside the foldout keep their one-line values, so only the title label is named). */
+.map-side .unity-foldout__text { white-space: normal; flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 0; }
 .map-tabs { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
 .legend { flex-direction: row; align-items: center; margin-top: 6px; }
 .legend-swatch { width: 120px; height: 10px; margin: 0 6px; }

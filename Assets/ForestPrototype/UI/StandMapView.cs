@@ -50,7 +50,7 @@ public sealed class StandMapView
         if (ui.Ecology != null) heldGeometry = ui.Ecology.StandGeometryModelVersion;
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
-        VisualElement modal = UiKit.Box("panel", "modal");
+        VisualElement modal = UiKit.Box("panel", "modal", "modal-map");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
         UiKit.Add(header, "Stand map", "title");
