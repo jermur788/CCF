@@ -40,7 +40,7 @@ public sealed partial class LearningObjectivesView
             }
             return layout != null && layout.HasProgress
                 ? layout.ProgressInstruction
-                : "Press B, then click the tree or ground point where your rack should start. Aim along the route and click again to add it to the Work Plan.";
+                : "Press B, click the tree or ground point where a rack should start, aim along the rows and click again to add it to the Work Plan. Then finish the marked routes on the Stand Map [M].";
         }
     }
     public string Summary => TeachingRacks
@@ -128,15 +128,13 @@ public sealed partial class LearningObjectivesView
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
         var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
-        UiKit.Add(current, lesson.Concept, "body").name = "current-objective-concept";
-        UiKit.Add(current, CurrentInstruction, "body").name = "current-objective-instruction";
+        // What to do, why it matters and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
+        AddObjectivePart(current, "What to do", CurrentInstruction, "current-objective-instruction");
+        AddObjectivePart(current, "Why it matters", lesson.Concept, "current-objective-concept");
+        if (!string.IsNullOrEmpty(lesson.Practice)) AddObjectivePart(current, "What good practice looks like", lesson.Practice, "current-objective-practice");
         UiKit.Add(current, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
-        if (TeachingRacks)
-        {
-            current.Add(new RackLessonDiagram());
-            UiKit.Add(current, lesson.Caption, "muted");
-        }
-        else current.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
+        current.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
         for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");
@@ -185,42 +183,10 @@ public sealed partial class LearningObjectivesView
         }
     }
 
-    // Original, unscaled plan view informed by the supplied book photographs (pp.39–41) and stand diagram (p.66).
-    // No source artwork, dimensions, machinery prescription or new asset dependency is reproduced.
-    private sealed class RackLessonDiagram : VisualElement
+    private static void AddObjectivePart(VisualElement card, string heading, string text, string name)
     {
-        public RackLessonDiagram()
-        {
-            name = "rack-lesson-diagram";
-            style.height = 165; style.minHeight = 165; style.flexShrink = 0;
-            style.maxWidth = 620; style.marginTop = 8; style.marginBottom = 8;
-            pickingMode = PickingMode.Ignore;
-            generateVisualContent += context =>
-            {
-                Painter2D p = context.painter2D;
-                float width = contentRect.width, centre = width * 0.5f;
-                p.fillColor = new Color(0.42f, 0.29f, 0.50f);
-                p.BeginPath(); p.MoveTo(new Vector2(centre - 21, 8)); p.LineTo(new Vector2(centre + 21, 8));
-                p.LineTo(new Vector2(centre + 21, 143)); p.LineTo(new Vector2(centre - 21, 143)); p.ClosePath(); p.Fill();
-                p.fillColor = new Color(0.40f, 0.66f, 0.39f);
-                for (int row = 0; row < 3; row++)
-                    for (int column = 0; column < 6; column++)
-                    {
-                        float x = centre + (column < 3 ? -1 : 1) * (53 + (column % 3) * 36);
-                        float y = 20 + row * 42;
-                        p.BeginPath(); p.MoveTo(new Vector2(x, y)); p.LineTo(new Vector2(x - 11, y + 23));
-                        p.LineTo(new Vector2(x + 11, y + 23)); p.ClosePath(); p.Fill();
-                    }
-                p.strokeColor = new Color(0.96f, 0.86f, 0.53f); p.lineWidth = 3;
-                p.BeginPath(); p.MoveTo(new Vector2(centre, 132)); p.LineTo(new Vector2(centre, 25));
-                p.LineTo(new Vector2(centre - 9, 36)); p.MoveTo(new Vector2(centre, 25)); p.LineTo(new Vector2(centre + 9, 36)); p.Stroke();
-                p.fillColor = p.strokeColor; p.BeginPath(); p.Arc(new Vector2(centre, 132), 6, 0, 360); p.Fill();
-            };
-            Label caption = UiKit.Text("Standing trees     ←     Rack / access route     →     Standing trees", "faint");
-            caption.style.unityTextAlign = TextAnchor.MiddleCenter;
-            caption.style.position = Position.Absolute; caption.style.left = 0; caption.style.right = 0; caption.style.bottom = 0;
-            Add(caption);
-        }
+        UiKit.Add(card, heading, "objective-part-heading");
+        UiKit.Add(card, text, "body").name = name;
     }
 
     // The rack lessons follow the forest and the Work Plan, so they stay true after a save and load: a rack counts as planned when no

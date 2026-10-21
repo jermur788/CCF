@@ -245,8 +245,10 @@
     border-color: var(--frame-border);
     border-width: 1px; border-radius: 8px;
     padding: 0;
-    width: 88%; max-width: 680px; max-height: 84%;
+    width: 92%; max-width: 900px; max-height: 92%;
 }
+/* The scenario introduction has a picture and three explanations, so it is wider and taller than the other help windows. */
+.menu-help-intro { max-width: 1160px; }
 .menu-help-panel > * { flex-shrink: 0; }
 .menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
 .menu-help-title {
@@ -310,3 +312,23 @@
 /* ---- Work Plan sections the current objective does not use yet ---- */
 .card-locked { opacity: 0.55; }
 .card-locked .heading { color: var(--ink-faint); }
+
+/* ---- the teaching pictures (introduction and lessons): the frame keeps its proportions, labels sit over its empty bands ---- */
+.teaching-diagram { align-self: stretch; margin-top: 8px; margin-bottom: 8px; }
+.teaching-diagram-frame {
+    width: 100%; flex-shrink: 0; align-self: center;
+    background-color: rgb(14, 22, 16); border-radius: 6px; border-width: 1px; border-color: var(--panel-border);
+}
+.diagram-label { position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
+.diagram-legend { position: absolute; white-space: nowrap; -unity-text-align: upper-left; color: var(--ink-muted); }
+.diagram-caption { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); margin-top: 6px; }
+
+/* ---- scenario introduction layout ---- */
+.intro-sections { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
+.intro-block { flex-basis: 300px; flex-grow: 1; margin-right: 22px; margin-bottom: 8px; }
+.intro-heading { color: var(--accent); -unity-font-style: bold; font-size: var(--fs-heading); margin-bottom: 3px; white-space: normal; }
+.intro-text { color: var(--ink); font-size: var(--fs-body); white-space: normal; }
+.intro-start { color: var(--accent); font-size: var(--fs-reading); -unity-font-style: bold; white-space: normal; margin-top: 6px; margin-bottom: 8px; }
+
+/* ---- the current objective card: what to do / why / good practice ---- */
+.objective-part-heading { color: var(--accent); font-size: var(--fs-sm); -unity-font-style: bold; margin-top: 8px; margin-bottom: 1px; white-space: normal; }
