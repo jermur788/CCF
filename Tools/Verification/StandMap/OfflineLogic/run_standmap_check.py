@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Build and run the shared-map (B5/B8) logic check on the plain .NET SDK.
 
-Compiles the PRODUCTION files RackGeometry.cs (RackPoint) and UI/Map/StandMapTransform.cs, StandMapModel.cs, StandMapSymbols.cs
-and StandMapDrawPlan.cs (none uses UnityEngine) with StandMapOfflineCheck.cs in a temporary project OUTSIDE the repository and
-runs it. No Unity Editor, no Library, nothing is written inside the repo.
+Compiles the PRODUCTION files RackGeometry.cs (RackPoint) and UI/Map/StandMapTransform.cs, StandMapModel.cs, StandMapSymbols.cs,
+StandMapGridPlan.cs, StandMapDrawPlan.cs, StandMapCanopyRaster.cs, StandMapOverlay.cs and StandMapLegend.cs (none uses UnityEngine)
+with StandMapOfflineCheck.cs in a temporary project OUTSIDE the repository and runs it. No Unity Editor, no Library, nothing is written
+inside the repo.
 
 Proves: the one world-to-map transform (north up, round trip, cell grid tiling), that the same world point has the same
-fractional position in the full-map and minimap plans, the shared symbol table and Mini/Full filter, heading, and that a change
-in the model reaches both plans. It does not prove anything about the Unity canvas, the layout or the live data source.
+fractional position in the full-map and minimap plans AND in the forest picture, the shared symbol table and Mini/Full filter, heading,
+the static/dynamic split and version counters, the local grid, dashes, rack corridor width, the analytical layers as overlays, the forest
+picture (placement, radius, determinism, time-sliced drawing) and that the legend names only what exists. It does not prove anything about
+the Unity canvas, the layout or the live data source.
 
 Usage: run_standmap_check.py [--out DIR]     Exit code 0 and STANDMAP_OFFLINE_PASS on success. Needs `dotnet` (SDK 8+).
 """
@@ -21,7 +24,11 @@ SOURCES = [
     os.path.join(MAP, "StandMapTransform.cs"),
     os.path.join(MAP, "StandMapModel.cs"),
     os.path.join(MAP, "StandMapSymbols.cs"),
+    os.path.join(MAP, "StandMapGridPlan.cs"),
     os.path.join(MAP, "StandMapDrawPlan.cs"),
+    os.path.join(MAP, "StandMapCanopyRaster.cs"),
+    os.path.join(MAP, "StandMapOverlay.cs"),
+    os.path.join(MAP, "StandMapLegend.cs"),
     os.path.join(HERE, "StandMapOfflineCheck.cs"),
 ]
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><LangVersion>9.0</LangVersion><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings><EnableDefaultCompileItems>false</EnableDefaultCompileItems><StartupObject>StandMapOfflineCheck</StartupObject></PropertyGroup>

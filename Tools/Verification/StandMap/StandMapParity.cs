@@ -27,6 +27,11 @@ using UnityEngine.UIElements;
 // Targets the Enlarged80 new-game world (16 x 16 squares, the authored five-rack layout, 67 felling orders). Under the Editor-only Legacy40
 // override (CCF_STAND_GEOMETRY=0) the geometry, position, facing and cell-layout checks still pass (95 of them were run), but the checks
 // that assume that authored layout (rack counts, minimum item/point counts, felling orders after a load) do not apply.
+// CHANGED for SCENARIO-ONE-PROFESSIONAL-MAP-REDESIGN-V1 (each only because the presentation it tested was replaced; every other check is as approved):
+//   * you are now a dot with a facing wedge, so the heading is read from the wedge (StandMapDrawPlan.HeadingOfWedge) instead of an arrow tip;
+//   * the whole-plan comparison leaves out the player dot and the north arrow with the other markers (they are sized from the map's side, not placed by it);
+//   * "cell text stays inside its square" became "no square carries any text" (the squares are invisible buttons now: the old check would pass on nothing);
+//   * "overlay style is quiet only over numbers" became "the base plan is the same under every layer" (the quiet style no longer exists: no numbers lie over the map).
 // Run (graphical Editor):  -executeMethod StandMapParity.Begin   CCF_DIAG_DIR=<folder>  CCF_UI_SIZES=1920x1080,1280x720
 // Reads the game, plays it in memory, writes nothing but its evidence folder. Remove it from Assets afterwards.
 public static class StandMapParity
@@ -63,7 +68,7 @@ public sealed class StandMapParityRunner : MonoBehaviour
     private ForestPlayer player;
     private RackPlanner planner;
     private string output;
-    private int shots, passed;
+    private int shots, passed, baseItemsAtAccess;
     private readonly List<string> failures = new List<string>(), evidence = new List<string>(), unverified = new List<string>();
 
     private static string F(double v, string f = "0.####") => v.ToString(f, Inv);
@@ -178,11 +183,8 @@ public sealed class StandMapParityRunner : MonoBehaviour
 
     private static float Distance(Vector2 a, Vector2 b) => (a - b).magnitude;
 
-    private static float HeadingFromArrow(StandMapCanvas canvas, MapDrawItem player)
-    {
-        MapPosition tip = player.Points[0];
-        return StandMapTransform.HeadingOf(tip.X - player.Anchor.X, -(tip.Y - player.Anchor.Y));
-    }
+    // You are a dot with a facing wedge whose apex is your position; the heading is read back from the drawn wedge.
+    private static float HeadingFromArrow(StandMapCanvas canvas, MapDrawItem player) => StandMapDrawPlan.HeadingOfWedge(player);
 
     private static float AngleDifference(float a, float b)
     {
@@ -315,14 +317,14 @@ public sealed class StandMapParityRunner : MonoBehaviour
         foreach (MapDrawItem item in mini)
         {
             // Every outline / line point of a symbol that is not a marker is compared (markers are sized from the side, not placed by it).
-            if (item.Symbol != MapSymbol.Player && item.Symbol != MapSymbol.Waypoint && item.Symbol != MapSymbol.Landmark) expectedPoints += item.Points.Count;
+            if (!IsMarker(item.Symbol)) expectedPoints += item.Points.Count;
             MapDrawItem other = full.FirstOrDefault(o => o.Symbol == item.Symbol && o.SourceIndex == item.SourceIndex && o.Points.Count == item.Points.Count);
             if (other == null) { missing++; continue; }
             matched++;
             for (int k = 0; k < item.Points.Count; k++)
             {
                 // Markers are sized from the map's own side; the line / outline points are the world mapping.
-                if (item.Symbol == MapSymbol.Player || item.Symbol == MapSymbol.Waypoint || item.Symbol == MapSymbol.Landmark) break;
+                if (IsMarker(item.Symbol)) break;
                 Vector2 a = new Vector2(item.Points[k].X / miniSide, item.Points[k].Y / miniSide), c = new Vector2(other.Points[k].X / fullSide, other.Points[k].Y / fullSide);
                 worst = Mathf.Max(worst, Distance(a, c)); points++;
             }
@@ -334,6 +336,9 @@ public sealed class StandMapParityRunner : MonoBehaviour
         Note("PLAN_COUNTS", $"minimap={mini.Count} ({Describe(mini)}) full={full.Count} ({Describe(full)})");
         ui.CloseAll(); yield return Settle(4);
     }
+
+    // Markers and furniture are sized from the map's own side, not placed by it; their anchors are still compared.
+    private static bool IsMarker(MapSymbol s) => s == MapSymbol.Player || s == MapSymbol.PlayerDot || s == MapSymbol.Waypoint || s == MapSymbol.Landmark || s == MapSymbol.NorthArrow;
 
     private static string Describe(IEnumerable<MapDrawItem> plan) => string.Join(",", plan.GroupBy(i => i.Symbol).Select(g => g.Key + "x" + g.Count()));
 
@@ -537,25 +542,13 @@ public sealed class StandMapParityRunner : MonoBehaviour
                 }
                 string layerTag = $"LAYOUT_{tag}_{layerButtons[l].Replace(" ", "").Replace("/", "").Replace("&", "")}";
                 cells = ui.Map.Root.Query<Button>(className: "map-cell").ToList();
-                var spill = new List<string>();
-                int labelCount = 0;
-                float worstOver = 0f;
-                foreach (Button cell in cells)
-                    foreach (Label label in cell.Query<Label>().ToList())
-                    {
-                        if (string.IsNullOrEmpty(label.text)) continue;
-                        labelCount++;
-                        Rect lb = label.worldBound, cb = cell.worldBound;
-                        float over = Mathf.Max(Mathf.Max(cb.xMin - lb.xMin, lb.xMax - cb.xMax), Mathf.Max(cb.yMin - lb.yMin, lb.yMax - cb.yMax));
-                        worstOver = Mathf.Max(worstOver, over);
-                        if (over > 0.75f) spill.Add($"'{label.text}' label={lb} cell={cb}");
-                    }
-                Button first = cells[cells.Count - 1];
-                Note(layerTag + "_FIRST_CELL_GEOMETRY", $"cell={first.worldBound} " + string.Join(" ", first.Query<VisualElement>().ToList().Where(e => e != first).Select(e => $"{(e is Label lab ? "label'" + lab.text + "'" : "box")}={e.worldBound}")));
-                // The text is what has to be readable: a label may touch the square's edge, but none may stick out of the square.
-                Hard(layerTag + "_CELL_TEXT_STAYS_INSIDE_ITS_SQUARE", worstOver <= 0.75f, $"labels={labelCount} spill={spill.Count} worstOvershoot={worstOver:0.##} e.g. {string.Join(" ; ", spill.Take(2))}");
-                Hard(layerTag + "_OVERLAY_STYLE_IS_QUIET_ONLY_OVER_NUMBERS", Full.Quiet == (l != 0) && Full.LastPlan.Where(i => i.Symbol == MapSymbol.Player || i.Symbol == MapSymbol.Waypoint).All(i => i.Filled == (l == 0)),
-                    $"quiet={Full.Quiet} markersFilled={string.Join(",", Full.LastPlan.Where(i => i.Symbol == MapSymbol.Player || i.Symbol == MapSymbol.Waypoint).Select(i => i.Filled))}");
+                // The squares are invisible buttons over the plan: none may carry text (the figures are read by pointing, or from the card).
+                int labelCount = cells.Sum(cell => cell.Query<Label>().ToList().Count(label => !string.IsNullOrEmpty(label.text)));
+                Hard(layerTag + "_NO_SQUARE_CARRIES_ANY_TEXT", labelCount == 0 && cells.All(cell => string.IsNullOrEmpty(cell.text)), $"labels={labelCount}");
+                // A layer adds to the same base plan (rings for Browsing and Marks); it never replaces it.
+                int baseItems = Full.LastPlan.Count(i => i.Symbol != MapSymbol.TreeMarkFell && i.Symbol != MapSymbol.TreeMarkCrop && i.Symbol != MapSymbol.Shelter && i.Symbol != MapSymbol.ShelterLapsed);
+                if (l == 0) baseItemsAtAccess = baseItems;
+                Hard(layerTag + "_THE_BASE_PLAN_IS_THE_SAME_UNDER_EVERY_LAYER", baseItems == baseItemsAtAccess && Full.LastPlan.Any(i => i.Symbol == MapSymbol.Property) && Full.LastPlan.Any(i => i.Symbol == MapSymbol.PlayerDot), $"base items {baseItems} vs {baseItemsAtAccess}");
                 Rect modal = ui.Map.Root.Q(className: "modal").worldBound;
                 float lowest = ui.Map.Root.Query<Label>().ToList().Where(Visible).Where(t => !string.IsNullOrEmpty(t.text)).Max(t => t.worldBound.yMax);
                 Hard(layerTag + "_TEXT_ENDS_INSIDE_THE_WINDOW", lowest <= modal.yMax - 4f, $"lowestText={lowest:0.#} windowBottom={modal.yMax:0.#}");
