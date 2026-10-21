@@ -153,6 +153,10 @@ public sealed class WalkingHudView
     // column and needs the room, the objective widget above stays, and the bottom bar repeats the key hints. Presentation only.
     public void ShowStatus(bool show) => statusPanel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
 
+    // The minimap steps aside for the same reason, while the competitor list needs the right column's full height (the map is for
+    // orientation while walking, not while studying one tree). It comes back as soon as the list closes. Presentation only.
+    public void ShowMinimap(bool show) => minimap.SetSuppressed(!show);
+
     public void Refresh()
     {
         ScenarioOneManager m = ui.Manager;

@@ -18,6 +18,7 @@ public sealed class HudMinimapView
     public VisualElement Root { get; }
     public StandMapCanvas Canvas => canvas;
     public bool Visible => Root.style.display != DisplayStyle.None;
+    private bool suppressed;
 
     // Space the minimap takes at the bottom right, for panels that stack above it (and a gap).
     public float ReservedHeightPx => Visible ? SidePx + FrameAllowancePx + 12f : 0f;
@@ -38,10 +39,17 @@ public sealed class HudMinimapView
         Root.style.display = DisplayStyle.None;
     }
 
+    // A panel that needs the whole right column asks the minimap to step aside (see WalkingHudView.ShowMinimap).
+    public void SetSuppressed(bool value)
+    {
+        suppressed = value;
+        if (value) Root.style.display = DisplayStyle.None;
+    }
+
     public void Refresh()
     {
         StandMapModel model = ui.MapSource != null ? ui.MapSource.Model : null;
-        bool show = model != null && model.HasProperty;
+        bool show = model != null && model.HasProperty && !suppressed;
         Root.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (show) canvas.Sync(model);
     }

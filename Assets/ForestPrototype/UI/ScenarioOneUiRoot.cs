@@ -126,6 +126,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         competitors.OccludingPanels.Add(inspection.CompetitorPanel);
         // The objective widget and status panel sit in this column: a numbered tag drawn over their text is unreadable, so it waits behind them too.
         competitors.OccludingPanels.Add(hud.RightColumn);
+        // The minimap is a HUD panel too: a tag drawn over the map would hide it.
+        competitors.OccludingPanels.Add(hud.Minimap.Root);
         root.Add(workPlan.Root);
         root.Add(review.Root);
         root.Add(map.Root);
@@ -228,6 +230,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         else
             competitors.Clear();
         hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
+        hud.ShowMinimap(!(inspecting && inspection.ShowsCompetitors));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
         PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
         if (!preview)
@@ -279,7 +282,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         // Under the top-right column (the objective widget and the status panel), whatever height they have.
         VisualElement column = hud.RightColumn;
         float top = column != null && column.layout.height > 0f ? column.layout.yMax + 10f : 250f;
-        // The minimap sits at the bottom right of this same column, so the panel stops above it.
+        // The minimap sits at the bottom right of this same column, so the panel stops above it. (The competitor list is the one
+        // panel too tall for that: it steps the minimap aside instead, so ReservedHeightPx is 0 while it is open.)
         float available = document.rootVisualElement.layout.height - top - 14f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
