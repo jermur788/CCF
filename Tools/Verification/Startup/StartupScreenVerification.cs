@@ -240,6 +240,9 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
 
     private void CheckForestHandedBack(string when, bool playerWasEnabled)
     {
+        Debug.Log("STARTUP_HANDED_BACK when=" + when + " menuOpen=" + StandaloneSessionMenu.IsOpen + " timeScale=" + Time.timeScale
+            + " player=" + player.enabled + " expectedPlayer=" + playerWasEnabled + " saves=" + saves.enabled + " ui=" + ui.enabled
+            + " help=" + ui.Help.IsOpen);
         Check(!StandaloneSessionMenu.IsOpen && Time.timeScale == 1f, when + ": menu closed and time running");
         Check(player.enabled == playerWasEnabled && saves.enabled && ui.enabled, when + ": player, save shortcuts and forest UI handed back");
     }
@@ -612,6 +615,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Check(saves.LoadData(fresh, false) && Hash() == freshHash, "fresh world restored behind the title");
         yield return Frames(2);
 
+        Debug.Log("STARTUP_PRE_SAVE_TITLE player=" + player.enabled + " saves=" + saves.enabled + " ui=" + ui.enabled + " help=" + ui.Help.IsOpen);
         StandaloneSessionMenu menu = NewStartupMenu();
         yield return WaitOpen(menu);
         CheckForestHeldBack("title with a save");
