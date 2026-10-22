@@ -6,6 +6,11 @@ using System.Collections.Generic;
 // tree once the list is rebuilt, so the id is what is kept.
 public static class CompetitorKeyboardTarget
 {
+    // Loading a save or starting a new scenario invalidates a choice made in the previous world, even when the inspected tree object
+    // and its rank look unchanged. The owner (CompetitorAssessment) clears the remembered id and the row when this is true.
+    public static bool WorldChanged(int chosenWorldVersion, int currentWorldVersion)
+        => chosenWorldVersion != currentWorldVersion;
+
     // A number key picks the listed row with that number; the same number again lets go. A number with no row behind it changes nothing.
     public static int Toggle(int selectedIndex, int pressedIndex, int listedCount)
     {

@@ -10,7 +10,7 @@ Nothing here writes into the repository, the player's save or the scene. Three l
 python3 -I Tools/Verification/ScenarioOneNonUi/run_nonui_offline.py --out <dir outside the repo>
 ```
 
-Compiles the production files that hold the rules (none uses `UnityEngine`) with `OfflineLogic/*.cs` and runs them. Expect `NONUI_KEYBOARD_PASS`, `NONUI_RACKBAY_PASS`, `NONUI_APPROACH_PASS` (36 keyboard + 77 rack + 49 approach checks for the V2 amendment). `OfflineLogic/core-stand-replica.csv` is the 336 Legacy40 core trees reproduced from the starting-stand generator (calibration data, not a verification of the generator itself); `StandApproachOfflineCheck` and `RackBayOfflineCheck` read it.
+Compiles the production files that hold the rules (none uses `UnityEngine`) with `OfflineLogic/*.cs` and runs them. Expect `NONUI_KEYBOARD_PASS`, `NONUI_RACKBAY_PASS`, `NONUI_APPROACH_PASS` (46 keyboard + 77 rack + 49 approach checks for the V2 amendment and the load-cleanup repair). `OfflineLogic/core-stand-replica.csv` is the 336 Legacy40 core trees reproduced from the starting-stand generator (calibration data, not a verification of the generator itself); `StandApproachOfflineCheck` and `RackBayOfflineCheck` read it.
 
 ## 2. Syntax / type compile of the game's runtime C# (no Unity)
 

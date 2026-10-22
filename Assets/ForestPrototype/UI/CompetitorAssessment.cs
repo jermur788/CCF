@@ -35,6 +35,7 @@ public sealed class CompetitorAssessment
     private string sceneSignature = "";
     private string reportTreeId = "";
     private float nextRefresh;
+    private int teachingWorldVersion = -1;
 
     public CropTreeCompetitionReport Report { get; private set; }
     public ForestTree ReportTree { get; private set; }
@@ -94,6 +95,16 @@ public sealed class CompetitorAssessment
     // inspection card is visible.
     public void Update(ForestTree inspected)
     {
+        // A load or a new scenario replaces the world under the list even when the scene reuses the same tree objects. The choice
+        // belongs to the previous world, so the remembered id, row and highlight are let go here, at the owner, and the cached
+        // report is rebuilt from the restored trees, marks and year.
+        if (ui.Manager != null && CompetitorKeyboardTarget.WorldChanged(teachingWorldVersion, ui.Manager.TeachingWorldVersion))
+        {
+            teachingWorldVersion = ui.Manager.TeachingWorldVersion;
+            sceneSignature = "";
+            nextRefresh = 0f;
+            Clear();
+        }
         if (Time.unscaledTime >= nextRefresh)
         {
             nextRefresh = Time.unscaledTime + RefreshInterval;

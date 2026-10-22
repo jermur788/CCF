@@ -23,6 +23,7 @@ public static class CompetitorKeyboardOfflineCheck
         Rebind();
         Target();
         Sequence();
+        Load();
         Console.WriteLine(failures == 0 ? $"NONUI_KEYBOARD_PASS checks={checks}" : $"NONUI_KEYBOARD_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
     }
@@ -93,5 +94,49 @@ public static class CompetitorKeyboardOfflineCheck
         listed = new List<string> { "P", "Q", "R" };
         Choose(CompetitorKeyboardTarget.Rebind(remembered, listed));
         Check(selected == -1, "7: a list for another Crop Tree starts with nothing chosen");
+    }
+
+    // A save load or a new scenario replaces the world under the list. The owner (CompetitorAssessment) watches the scenario's
+    // session version and clears the choice; the live gate rechecks the same cleanup through a real LoadData, including X afterwards
+    // and Crop Tree protection (a marking-manager rule, not a selection rule).
+    private static void Load()
+    {
+        var listed = new List<string> { "A", "B", "C", "D", "E" };
+        int selected = -1; string remembered = "";
+        int worldVersion = 7, chosenWorldVersion = worldVersion;
+        void Choose(int next) { selected = next; remembered = next >= 0 && next < listed.Count ? listed[next] : ""; }
+        void ResetIfNewWorld()
+        {
+            if (!CompetitorKeyboardTarget.WorldChanged(chosenWorldVersion, worldVersion)) return;
+            chosenWorldVersion = worldVersion;
+            selected = -1; remembered = ""; // what CompetitorAssessment.Update does on a world-version change
+        }
+
+        Choose(CompetitorKeyboardTarget.Toggle(selected, 2, listed.Count));
+        Check(selected == 2 && remembered == "C", "1: key 3 chooses a competitor before the load");
+        Check(CompetitorKeyboardTarget.TargetIndex(true, selected, listed.Count) == 2,
+            "2: the chosen row is the active X target before the load");
+        ResetIfNewWorld();
+        Check(selected == 2 && remembered == "C", "3: the same world does not invalidate a live choice");
+
+        worldVersion = 8; // the save is loaded
+        Check(CompetitorKeyboardTarget.WorldChanged(chosenWorldVersion, worldVersion), "3: a load is a new world");
+        ResetIfNewWorld();
+
+        Check(selected == -1 && remembered == "",
+            "4: a load clears the chosen row and the remembered tree id");
+        Check(CompetitorKeyboardTarget.TargetIndex(true, selected, listed.Count) == -1,
+            "5: after a load no competitor row is active for X");
+        Check(CompetitorKeyboardTarget.TargetIndex(true, selected, listed.Count) != 2,
+            "6/7: X cannot act on the pre-load competitor and falls back to the aimed tree");
+        Choose(CompetitorKeyboardTarget.Toggle(selected, 1, listed.Count));
+        Check(selected == 1 && remembered == "B" && CompetitorKeyboardTarget.TargetIndex(true, selected, listed.Count) == 1,
+            "8: a competitor can be chosen normally again after the load");
+        Choose(-1);
+        Check(CompetitorKeyboardTarget.TargetIndex(false, selected, listed.Count) == -1,
+            "10: closing the list after a load lets the choice go, as before");
+        Choose(CompetitorKeyboardTarget.Rebind(remembered, listed));
+        Check(selected == -1 && CompetitorKeyboardTarget.TargetIndex(true, selected, listed.Count) == -1,
+            "10: reopening competitor mode after a load starts with nothing chosen");
     }
 }

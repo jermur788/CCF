@@ -245,11 +245,57 @@ public sealed class CompetitorKeyboardVerificationRunner : MonoBehaviour
         if (!player.IsInspecting) yield return Inspect(cropB);
         yield return Press(Digit(3));
         Check(ui.Competitors.SelectedTree != null, "row 3 is chosen before the save is loaded");
+        string preLoadChoice = ui.Competitors.SelectedTree.TreeId;
         var markedBefore = new HashSet<string>(marks.GetMarkedIds());
         ForestSaveData data = saves.CaptureData();
         saves.LoadData(data, false);
         yield return Frames(12);
         Check(ui.Competitors.SelectedTree == null && ui.Competitors.SelectedIndex == -1, "after a load nothing is chosen, so X has no stale competitor to act on");
+        Check(ui.Competitors.Selected == null, "after a load no competitor row stays highlighted");
         Check(marks.GetMarkedIds().All(markedBefore.Contains), "the load did not leave a stray mark behind");
+
+        // X falls back to the aimed tree: the competitor chosen before the load is never touched.
+        Check(marks.AimedTree == cropB, "the reticle is back on the aimed Crop Tree after the load", "aimed " + (marks.AimedTree != null ? marks.AimedTree.TreeId : "none"));
+        yield return Press(Key.X);
+        Check(marks.TransientMessage.Contains("Crop Tree"), "after a load, X falls back to the aimed Crop Tree and refuses it", marks.TransientMessage);
+        yield return Frames(6);
+        Check(!ById(preLoadChoice).IsMarkedForFell && marks.GetMarkedIds().All(markedBefore.Contains),
+            "after a load, X never acts on the competitor chosen before it", preLoadChoice);
+
+        // Choosing works again after a load, and Crop Tree protection still refuses X on a tree still marked as a Crop Tree.
+        yield return Press(Digit(2));
+        Check(ui.Competitors.SelectedIndex == 1 && ui.Competitors.SelectedTree != null,
+            "a competitor can be chosen normally again after the load");
+        ForestTree reselected = ui.Competitors.SelectedTree;
+        bool reselectedWasCrop = reselected.IsCropTree;
+        if (!reselectedWasCrop) marks.Mark(reselected, TreeMarkType.CropTree, false);
+        yield return Frames(8);
+        Check(ui.Competitors.SelectedTree == reselected, "the reselected competitor stays chosen after a mark change");
+        yield return Press(Key.X);
+        Check(marks.TransientMessage.Contains("Crop Tree"), "with the Crop Tree message after a load", marks.TransientMessage);
+        yield return Frames(6);
+        Check(reselected.IsCropTree && !reselected.IsMarkedForFell,
+            "after a load, X still refuses a tree still marked as a Crop Tree", reselected.TreeId);
+        if (!reselectedWasCrop) marks.Unmark(reselected, false);
+        yield return Frames(4);
+
+        // Closing the list still lets the choice go; with no list, X acts on the aimed tree.
+        yield return Press(Key.E);
+        yield return Frames(8);
+        Check(!player.IsInspecting && ui.Competitors.SelectedTree == null && ui.Competitors.SelectedIndex == -1,
+            "closing the list after a load lets the choice go");
+        ForestTree afterLoadAim = null;
+        yield return Aim(t => !t.IsCropTree && t.TreeId != preLoadChoice, t => afterLoadAim = t);
+        Check(afterLoadAim != null, "another tree can be aimed at after the load");
+        yield return Press(Key.X);
+        yield return Frames(6);
+        Check(afterLoadAim.IsMarkedForFell && !ById(preLoadChoice).IsMarkedForFell,
+            "with no list after a load, X marks the aimed tree and never the old choice", afterLoadAim.TreeId);
+        yield return Press(Key.X);
+        yield return Frames(6);
+        Check(!afterLoadAim.IsMarkedForFell, "and X unmarks it");
+        yield return Inspect(cropB);
+        Check(ui.Competitors.SelectedIndex == -1 && ui.Competitors.SelectedTree == null,
+            "reopening competitor mode after a load starts with nothing chosen");
     }
 }
