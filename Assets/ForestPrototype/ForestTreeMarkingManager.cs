@@ -202,7 +202,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             return;
         if (tree.MarkType == TreeMarkType.CropTree)
         {
-            SetMessage($"{tree.TreeId} is a Crop Tree. Press C to remove the Crop Tree mark before marking it for felling.");
+            SetMessage($"{tree.TreeId} is a Crop Tree. Its Crop Tree mark must be removed first: inspect it and press C.");
             return;
         }
         if (tree.MarkType == TreeMarkType.Fell)
