@@ -777,6 +777,26 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
         yield return Capture("pmv-managed-browsing");
         yield return Invoke(Tab(0)); yield return Settle(6);
 
+        // a lapsed shelter, made the way the game makes one (a shelter broken or displaced in the current year, BrowseShelter.failedYear):
+        // effective + lapsed together, then every shelter lapsed (the effective row must go), then restored
+        List<BrowseShelter> shelterList = eco.Browsing.Shelters.Where(sh => sh != null).ToList();
+        if (shelterList.Count < 2) Unverified("fewer than two shelters existed after the story, so a lapsed shelter could not be set up for the legend check");
+        else
+        {
+            int[] originalFailed = shelterList.Select(sh => sh.failedYear).ToArray();
+            shelterList[0].failedYear = eco.EcologicalYear;
+            ui.CloseAll(); yield return Settle(6); ui.ShowMap(); yield return Settle(8); yield return Invoke(Tab(3)); yield return Wait(1.3f); yield return Settle(8);
+            kinds = ShelterKinds();
+            Hard("LEGEND_BROWSING_ONE_LAPSED_AMONG_EFFECTIVE_LISTS_BOTH_KINDS", kinds.effective >= 1 && kinds.lapsed == 1 && LegendRingTexts().SequenceEqual(ExpectedRingTexts(0, 0, kinds.effective, kinds.lapsed)), $"rows [{string.Join("; ", LegendRingTexts())}] effective {kinds.effective} lapsed {kinds.lapsed}");
+            foreach (BrowseShelter sh in shelterList) sh.failedYear = eco.EcologicalYear;
+            ui.CloseAll(); yield return Settle(6); ui.ShowMap(); yield return Settle(8); yield return Invoke(Tab(3)); yield return Wait(1.3f); yield return Settle(8);
+            kinds = ShelterKinds();
+            Hard("LEGEND_BROWSING_ALL_LAPSED_LISTS_ONLY_THE_LAPSED_ROW", kinds.effective == 0 && kinds.lapsed == shelterList.Count && LegendRingTexts().SequenceEqual(ExpectedRingTexts(0, 0, 0, kinds.lapsed)), $"rows [{string.Join("; ", LegendRingTexts())}] effective {kinds.effective} lapsed {kinds.lapsed}");
+            yield return Capture("pmv-managed-browsing-all-lapsed");
+            for (int i = 0; i < shelterList.Count; i++) shelterList[i].failedYear = originalFailed[i];
+            yield return Invoke(Tab(0)); yield return Settle(6);
+        }
+
         // rack planning on the full map is preserved
         Button plan = ui.RootElement.Q<Button>("map-plan-rack");
         if (plan == null || !Visible(plan)) Unverified("the Plan rack button was not offered after the managed story, so rack planning on the map was not exercised here (StandMapParity exercises it)");
