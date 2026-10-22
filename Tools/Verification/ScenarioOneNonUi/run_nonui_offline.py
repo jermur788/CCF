@@ -27,6 +27,7 @@ PURE_SOURCES = [
     os.path.join(GAME, "UI", "ScenarioOneRackBayText.cs"),
     os.path.join(GAME, "ScenarioOne", "ScenarioOneRackBay.cs"),
     os.path.join(GAME, "Racks", "RackGeometry.cs"),
+    os.path.join(GAME, "ScenarioOne", "ScenarioOneRackReview.cs"),
     os.path.join(GAME, "StandApproachRoute.cs"),
 ]
 CHECK_DIR = os.path.join(HERE, "OfflineLogic")
@@ -50,7 +51,7 @@ PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-nonui-offline"))
+    parser.add_argument("--out", default="/media/jer/Files/CCF/Verification/ScenarioOneNonUiOffline")
     args = parser.parse_args()
     dotnet = shutil.which("dotnet")
     if not dotnet:

@@ -64,7 +64,7 @@ public sealed class WorkPlanView
         advanceDetail = UiKit.Add(advanceWarning, "", "body");
         VisualElement choices = UiKit.Row(advanceWarning, "row-wrap");
         choices.Add(UiKit.Button(AdvanceGuard.ReturnLabel, CancelAdvanceConfirmationAndRefresh, true, "btn-primary"));
-        choices.Add(UiKit.Button(AdvanceGuard.ApproveLabel, () => { ui.Manager.ApprovePendingWork(); Refresh(true); }));
+        choices.Add(UiKit.Button(AdvanceGuard.ApproveLabel, () => { ui.ApproveWorkPlan(); Refresh(true); }));
         choices.Add(UiKit.Button(AdvanceGuard.AdvanceAnywayLabel, () => { confirmingAdvance = false; AdvanceNow(); }));
         modal.Add(advanceWarning);
 
@@ -115,7 +115,8 @@ public sealed class WorkPlanView
     {
         ScenarioOneManager m = ui.Manager;
         // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
-        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex;
+        string rackProblem = ui.RackPlanProblem;
+        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem;
         if (!force && signature == shownSignature)
             return;
         shownSignature = signature;
@@ -142,7 +143,8 @@ public sealed class WorkPlanView
         BuildReference(m);
         scroll.schedule.Execute(() => scroll.scrollOffset = new UnityEngine.Vector2(0, scrollY));
 
-        feedback.text = m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
+        feedback.text = !string.IsNullOrEmpty(rackProblem) ? rackProblem
+            : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
 
         // The question stays only while it still applies: approving, removing or cancelling the planned work answers it.
         AdvanceGuard.Decision guard = AdvanceDecision(m);
@@ -155,8 +157,8 @@ public sealed class WorkPlanView
         }
 
         footer.Clear();
-        footer.Add(UiKit.Button("Approve Work Plan", () => { m.ApprovePendingWork(); Refresh(true); }, m.CanEditWorkPlan));
-        footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview, "btn-primary"));
+        footer.Add(UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); }, m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem)));
+        footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary"));
         if (ui.NeedsAnnualReview)
             footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));
         footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));

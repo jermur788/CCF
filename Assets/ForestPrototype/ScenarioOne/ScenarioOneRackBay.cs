@@ -5,30 +5,27 @@ using System.Collections.Generic;
 // the rules for it, on plain data (no UnityEngine), so they can be checked on plain .NET (Tools/Verification/ScenarioOneNonUi) and give
 // the same answer everywhere. ScenarioOneRackBayReader feeds it the live trees and Work Plan.
 //
-// Nothing here is saved and nothing here changes the forest. The lesson state is DERIVED from the trees, their marks and the work
-// orders every time, exactly as the earlier teaching sequence was, so a save and load always lands on the same lesson.
+// This analysis is derived from current trees/orders. Post-intervention inspection decisions are separately held in a session-only
+// ScenarioOneRackReview; loading a forest requires fresh inspection, without adding save fields.
 //
 // What is a forestry fact and what is not (see Docs/Design/ScenarioOneRackBayLessonV1.md):
 //   * the Hegyi competition term, its 8 m reach and the competitor shares are the game's existing simulation signals, used unchanged;
 //   * a "future tree" is the player's own Crop Tree mark; positive selection of vigorous trees with room to grow is established
 //     practice, but the numbers below (how many, how far apart, how much release) are simplified TEACHING CALIBRATION [D], not
-//     silvicultural prescriptions. They only decide when the lesson moves on; they never gate the scenario or change any rule.
+//     silvicultural prescriptions. They govern this lesson and its interactive planning safeguard, not global scenario success or ecology.
 public static class ScenarioOneRackBay
 {
     // ---- Teaching calibration [D] ----------------------------------------------------------------------------------------------
     // Future trees the area needs: three show spacing and shared competitors while still fitting one area.
     public const int FutureTreesWanted = 3;
-    // Future trees further apart than the competition reach do not compete with each other, so each has growing space of its own.
+    // Model-linked tutorial spacing; 8 m neighbourhoods can still overlap. This is not a crown-space guarantee.
     public const float FutureTreeSpacingM = ForestEcologyController.HegyiCutoffMeters;
-    // A future tree is "worth retaining" when at least this share of its competitors is no bigger than itself (not overtopped).
-    public const float DominantShare = 0.5f;
-    // The first release takes at least this share of each future tree's competition; the further release at least this share in all.
+    // Initial planned release only: GAMEPLAY CALIBRATION, not a book prescription.
     public const float FirstReleaseShare = 0.30f;
-    public const float FurtherReleaseShare = 0.40f;
-    // Removed trees may take at most this share of the area's basal area: the area stays a forest (retained canopy), not a clearing.
+    // Provisional cumulative trunk-area safeguard, not a canopy measure or forestry prescription.
     public const float MaxRemovedBasalShare = 0.40f;
     // Once trees have actually been felled, the surviving neighbours keep growing while a stump keeps the diameter it was felled at, so
-    // the removed share slowly thins out after the work. A finished release is judged with this much give so growth never un-finishes it.
+    // the removed share slowly thins out after the work. This bounded tolerance allows modest growth, not an unlimited completion guarantee.
     public const float ExecutedTolerance = 0.9f;
     // The area runs this far either side of the stand centre along the rack, and half the distance to the neighbouring racks across it.
     public const float HalfLengthM = 12f;
@@ -84,11 +81,14 @@ public static class ScenarioOneRackBay
         // Crop Trees in the area, sorted into what counts and why the others do not.
         public readonly List<FutureTree> Future = new List<FutureTree>();
         public readonly List<string> TooClose = new List<string>();
-        public readonly List<string> Overtopped = new List<string>();
+        public int AreaCropCount;
+        public bool NearSelected, MiddleSelected, FarSelected, BothSides;
+        public Frame Geometry;
         public int CropElsewhere;
 
         public int FutureCount => Future.Count;
-        public bool HasEnoughFuture => Future.Count >= FutureTreesWanted;
+        public bool HasEnoughFuture => AreaCropCount == FutureTreesWanted && Future.Count == FutureTreesWanted
+            && NearSelected && MiddleSelected && FarSelected && BothSides;
 
         public float RemovedBasalShare;
         public bool CanopyKept => RemovedBasalShare <= MaxRemovedBasalShare + 1e-6f;
@@ -102,26 +102,53 @@ public static class ScenarioOneRackBay
         // The least released future tree, by what is in the Work Plan or done, only done, and with loose marks added.
         public float MinPlannedAndExecuted, MinExecuted, MinWithMarks;
 
-        public bool ReleasePlanned, ReleaseExecuted, FurtherPlanned, FurtherExecuted, MixedPlanned, MixedExecuted;
+        public bool ReleasePlanned, ReleaseExecuted, MixedPlanned, MixedExecuted;
+        public string ReleaseKey = "";
+        public bool Contains(float x, float z) => Geometry.Contains(x, z);
+        public int Portion(float x, float z) => Geometry.Portion(x, z);
     }
 
-    // The area for a stand with these rack centre lines (the z coordinate, rows run east-west): the middle rack, and the strip beside it.
+    // The frame comes from the actual layout rack endpoints. Along/across projections also work for rotated/translated racks.
+    public readonly struct Frame
+    {
+        public readonly float X, Z, AlongX, AlongZ, HalfWidth;
+        public Frame(RackPoint start, RackPoint end, float halfWidth)
+        {
+            X = (start.X + end.X) * .5f; Z = (start.Z + end.Z) * .5f;
+            float dx = end.X - start.X, dz = end.Z - start.Z;
+            float length = (float)Math.Sqrt(dx * dx + dz * dz);
+            AlongX = length > 0 ? dx / length : 1f; AlongZ = length > 0 ? dz / length : 0f;
+            HalfWidth = halfWidth;
+        }
+        public float Along(float x, float z) => (x - X) * AlongX + (z - Z) * AlongZ;
+        public float Across(float x, float z) => -(x - X) * AlongZ + (z - Z) * AlongX;
+        public bool Contains(float x, float z) => Math.Abs(Along(x, z)) <= HalfLengthM
+            && Math.Abs(Across(x, z)) <= HalfWidth && Math.Abs(Across(x, z)) > RackGeometry.DefaultWidthM * .5f;
+        public int Zone(float x, float z) => Along(x, z) < -HalfLengthM / 3f ? 0 : Along(x, z) < HalfLengthM / 3f ? 1 : 2;
+        public int Portion(float x, float z) => Contains(x, z) ? Zone(x, z) * 2 + (Across(x, z) > 0 ? 1 : 0) : -1;
+    }
+
+    // Compatibility entry for the authored axis-aligned layout and offline fixtures. Live callers supply the actual rack frame.
     public static Analysis Analyse(IReadOnlyList<float> rackLines, IReadOnlyList<Tree> trees, IReadOnlyList<Order> orders)
+        => Analyse(rackLines, trees, orders, null);
+
+    public static Analysis Analyse(IReadOnlyList<float> rackLines, IReadOnlyList<Tree> trees, IReadOnlyList<Order> orders, Frame? frame)
     {
         var result = new Analysis();
-        if (rackLines == null || rackLines.Count == 0 || trees == null)
-            return result;
-        var lines = new List<float>(rackLines);
-        lines.Sort();
+        if (rackLines == null || rackLines.Count == 0 || trees == null) return result;
+        var lines = new List<float>(rackLines); lines.Sort();
         result.Applies = true;
-        result.RackCount = lines.Count;
-        result.RackIndex = lines.Count / 2;
-        result.CentreZ = lines[result.RackIndex];
-        result.HalfWidthM = HalfWidth(lines, result.RackIndex);
-        float corridor = RackGeometry.DefaultWidthM * 0.5f;
-
-        bool InCorridor(float z) { foreach (float line in lines) if (Math.Abs(z - line) <= corridor) return true; return false; }
-        bool InArea(float x, float z) => Math.Abs(x) <= HalfLengthM && Math.Abs(z - result.CentreZ) <= result.HalfWidthM && !InCorridor(z);
+        result.RackCount = lines.Count; result.RackIndex = lines.Count / 2;
+        result.CentreZ = lines[result.RackIndex]; result.HalfWidthM = HalfWidth(lines, result.RackIndex);
+        result.Geometry = frame ?? new Frame(new RackPoint(-HalfLengthM, result.CentreZ),
+            new RackPoint(HalfLengthM, result.CentreZ), result.HalfWidthM);
+        bool InArea(float x, float z) => result.Contains(x, z);
+        bool InAccess(float x, float z)
+        {
+            float across = result.Geometry.Across(x, z) + result.CentreZ;
+            foreach (float line in lines) if (Math.Abs(across - line) <= RackGeometry.DefaultWidthM * .5f) return true;
+            return false;
+        }
 
         // Orders by target: what became of each tree.
         var completed = new Dictionary<string, Order>(StringComparer.Ordinal);
@@ -146,12 +173,11 @@ public static class ScenarioOneRackBay
                 if (open.ContainsKey(tree.Id)) plannedIds.Add(tree.Id);
                 else if (tree.Marked) markedIds.Add(tree.Id);
             }
-            else if (completed.ContainsKey(tree.Id) && !InCorridor(tree.Z))
+            else if (completed.ContainsKey(tree.Id) && !InAccess(tree.X, tree.Z))
                 removed.Add(tree);
         }
 
-        // Which Crop Trees count as future trees: in the area, not overtopped, and clear of each other. Biggest first, then by id, so
-        // the answer never depends on the order the trees were listed in.
+        // Promising trees are the player's choice: no DBH-ranking or unsupported dominance test. Stable ID order makes conflicts reproducible.
         var crops = new List<Tree>();
         foreach (Tree tree in living)
             if (tree.Crop)
@@ -159,11 +185,11 @@ public static class ScenarioOneRackBay
                 if (InArea(tree.X, tree.Z)) crops.Add(tree);
                 else result.CropElsewhere++;
             }
-        crops.Sort((a, b) => { int c = b.DbhCm.CompareTo(a.DbhCm); return c != 0 ? c : string.CompareOrdinal(a.Id, b.Id); });
+        result.AreaCropCount = crops.Count;
+        crops.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));
         var accepted = new List<Tree>();
         foreach (Tree crop in crops)
         {
-            if (!NotOvertopped(crop, living)) { result.Overtopped.Add(crop.Id); continue; }
             bool clear = true;
             foreach (Tree other in accepted)
                 if (Distance(crop, other) < FutureTreeSpacingM) { clear = false; break; }
@@ -171,7 +197,18 @@ public static class ScenarioOneRackBay
             else result.TooClose.Add(crop.Id);
         }
 
-        // Each future tree's competition and how much of it is gone or going.
+        bool left = false, right = false;
+        foreach (Tree crop in accepted)
+        {
+            int zone = result.Geometry.Zone(crop.X, crop.Z);
+            if (zone == 0) result.NearSelected = true;
+            if (zone == 1) result.MiddleSelected = true;
+            if (zone == 2) result.FarSelected = true;
+            if (result.Geometry.Across(crop.X, crop.Z) < 0) left = true; else right = true;
+        }
+        result.BothSides = left && right;
+
+        // All living neighbours remain in the competition denominator. Only INSIDE-footprint work earns lesson credit.
         result.MinPlannedAndExecuted = result.MinExecuted = result.MinWithMarks = accepted.Count == 0 ? 0f : float.MaxValue;
         foreach (Tree future in accepted)
         {
@@ -183,8 +220,8 @@ public static class ScenarioOneRackBay
                 if (d > ForestEcologyController.HegyiCutoffMeters) continue;
                 double term = ForestEcologyController.HegyiTerm(other.DbhCm, future.DbhCm, d);
                 total += term;
-                if (plannedIds.Contains(other.Id)) planned += term;
-                else if (markedIds.Contains(other.Id)) marked += term;
+                if (InArea(other.X, other.Z) && plannedIds.Contains(other.Id)) planned += term;
+                else if (InArea(other.X, other.Z) && markedIds.Contains(other.Id)) marked += term;
             }
             foreach (Tree gone in removed)
             {
@@ -192,7 +229,8 @@ public static class ScenarioOneRackBay
                 if (d > ForestEcologyController.HegyiCutoffMeters) continue;
                 double term = ForestEcologyController.HegyiTerm(gone.DbhCm, future.DbhCm, d);
                 total += term;
-                executed += term;
+                // Outside felling is reconstructed in the denominator only, so it cannot inflate inside-work credit by disappearing.
+                if (InArea(gone.X, gone.Z)) executed += term;
             }
             float p = total > 0 ? (float)(planned / total) : 0f, e = total > 0 ? (float)(executed / total) : 0f, m = total > 0 ? (float)(marked / total) : 0f;
             result.Future.Add(new FutureTree(future.Id, future.X, future.Z, future.DbhCm, p, e, m));
@@ -204,7 +242,7 @@ public static class ScenarioOneRackBay
         // Removals made for the future trees: what they were, what the player chose for the wood, and when they were carried out.
         foreach (Tree gone in removed)
         {
-            if (!ServesAFutureTree(gone, accepted)) continue;
+            if (!InArea(gone.X, gone.Z) || !ServesAFutureTree(gone, accepted)) continue;
             Order order = completed[gone.Id];
             result.ExecutedRemovals++;
             if (order.Disposition == Disposition.Sold) result.SoldExecuted++;
@@ -213,7 +251,7 @@ public static class ScenarioOneRackBay
         }
         foreach (Tree tree in living)
         {
-            if (!ServesAFutureTree(tree, accepted)) continue;
+            if (!InArea(tree.X, tree.Z) || !ServesAFutureTree(tree, accepted)) continue;
             if (markedIds.Contains(tree.Id)) { result.MarkedRemovals++; continue; }
             if (!plannedIds.Contains(tree.Id)) continue;
             Order order = open[tree.Id];
@@ -240,11 +278,13 @@ public static class ScenarioOneRackBay
             }
         result.RemovedBasalShare = areaBasal > 0 ? (float)(removedBasal / areaBasal) : 0f;
 
-        bool any = accepted.Count > 0;
-        result.ReleaseExecuted = any && result.MinExecuted >= FirstReleaseShare * ExecutedTolerance;
-        result.FurtherExecuted = any && result.MinExecuted >= FurtherReleaseShare * ExecutedTolerance;
-        result.ReleasePlanned = any && result.MinPlannedAndExecuted >= FirstReleaseShare && result.CanopyKept;
-        result.FurtherPlanned = any && result.MinPlannedAndExecuted >= FurtherReleaseShare && result.CanopyKept;
+        result.ReleaseExecuted = result.HasEnoughFuture && result.CanopyKept && result.MinExecuted >= FirstReleaseShare * ExecutedTolerance;
+        result.ReleasePlanned = result.HasEnoughFuture && result.CanopyKept && result.MinPlannedAndExecuted >= FirstReleaseShare;
+        // Any newly executed in-footprint felling invalidates the session's earlier inspection decisions, even away from a Crop Tree.
+        var releaseIds = new List<string>();
+        foreach (Tree gone in removed) if (InArea(gone.X, gone.Z)) releaseIds.Add(gone.Id + ":" + completed[gone.Id].ResolvedYear);
+        releaseIds.Sort(StringComparer.Ordinal);
+        result.ReleaseKey = string.Join("|", releaseIds);
         result.MixedExecuted = result.SoldExecuted >= 1 && result.DeadwoodExecuted >= 1;
         result.MixedPlanned = result.SoldExecuted + result.SoldPlanned >= 1 && result.DeadwoodExecuted + result.DeadwoodPlanned >= 1;
         return result;
@@ -257,19 +297,6 @@ public static class ScenarioOneRackBay
         if (index > 0) gap = Math.Min(gap, sortedLines[index] - sortedLines[index - 1]);
         if (index + 1 < sortedLines.Count) gap = Math.Min(gap, sortedLines[index + 1] - sortedLines[index]);
         return gap == float.MaxValue ? DefaultHalfWidthM : gap * 0.5f;
-    }
-
-    // A tree is not overtopped when at least DominantShare of its competitors within reach are no bigger than it is.
-    private static bool NotOvertopped(Tree tree, List<Tree> living)
-    {
-        int neighbours = 0, notBigger = 0;
-        foreach (Tree other in living)
-        {
-            if (other.Id == tree.Id || Distance(tree, other) > ForestEcologyController.HegyiCutoffMeters) continue;
-            neighbours++;
-            if (other.DbhCm <= tree.DbhCm) notBigger++;
-        }
-        return neighbours == 0 || notBigger >= DominantShare * neighbours;
     }
 
     // A removal serves the lesson when it lies inside some future tree's competition reach.

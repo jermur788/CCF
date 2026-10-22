@@ -6,8 +6,9 @@ public static class ScenarioOneTeachingSequence
     {
         public bool AccessOpen, AccessReviewed, ReleasePlanned, ReleaseExecuted, DeadwoodExecuted;
         public bool ReleaseReviewed, ReviewedTwoCycles, BeechEstablished, OakEstablished, EstablishmentReviewed;
-        // Objective 5: the future trees have been released as far as the further-release level and the result looked at again. True by
-        // default, so a stage injected by a harness, or a stand with no rack area, keeps its earlier meaning.
+        // Rack-layout worlds need real post-release review. Null-Bay legacy/injected facts retain their earlier progression.
+        public bool RackReviewComplete;
+        public int RevisitedTrees, ReviewDecisions, StandPortionsReviewed;
         public bool AreaReleased = true;
         public int Year, CropTrees, PlantingYear = -1;
         // What the rack-area analysis found (lessons 2-5); null when the facts were injected or the stand has no rack layout. Read only
@@ -31,25 +32,26 @@ public static class ScenarioOneTeachingSequence
             "Press B, click the tree or ground point where a rack should start, aim along the rows and click again to add it to the Work Plan. Finish the marked routes on the Stand Map [M], then approve the work in the Work Plan [Tab] and advance one year.",
             "Racks provide access while the rows between them remain standing.", "Press B, pick where a rack starts, aim forward and click to add it.",
             "Racks run straight and stay open for good, so plan the whole layout deliberately before you approve it. Take only the trees on each rack's line and leave the rows between racks standing: that standing forest is what you are keeping. Check the cost in the Work Plan before approving."),
-        new Lesson("future-trees", "2. Choose future trees in one rack area",
-            "Look at what the racks opened, then work ONE rack area: the standing trees beside the middle rack. A future tree is a positive choice to keep a tree for its later development. Choose three, far enough apart that each has growing space of its own; their neighbours will turn out to be shared.",
-            "Walk to the middle rack, where the track crosses it. Inspect trees beside it [E], compare each with its neighbours, and mark three future trees [C] at least 8 m apart.",
-            "Choose trees worth keeping, spaced so each has room.", "Beside the middle rack, inspect trees [E] and mark three future trees [C], 8 m apart.",
-            "A future tree is bigger than most of the trees around it, so its crown is not squeezed by larger neighbours. Two future trees side by side would compete with each other: spread your choices so each keeps its own growing space."),
-        new Lesson("release", "3. Release the future trees",
-            "A neighbour takes growing space in proportion to its size and how close it stands. Taking out a future tree's strongest competitors releases it, but one removal can free two future trees, and removing more is not automatically better: the area must stay a forest.",
-            "Inspect each future tree [E]. Select a listed competitor with [1–5] and mark it [X] (or aim at a neighbour and press [X]). Mark until your planned removals supply about a third of each future tree's competition, then add them to the Work Plan [Tab].",
-            "Remove each future tree's strongest competitors; keep the canopy.", "Select competitors [1–5], mark them [X] to release each future tree, then open the Work Plan [Tab].",
-            "Start with the closest, largest neighbours: they take the most space. Look for a competitor that serves two future trees. Keep removals a minority of the trees in the area, so it is still woodland afterwards."),
-        new Lesson("habitat", "4. Decide what happens to the felled trees",
-            "Every felled tree can be sold or left as fallen deadwood. Selling brings income; leaving a tree forgoes its sale but adds habitat. Decide tree by tree, then carry the work out.",
-            "In Work Plan [Tab], leave some of the release trees as deadwood and sell others. Compare the money, approve the work, then advance one year.",
-            "Some felled wood stays as habitat. Keeping it forgoes its sale.", "In the Work Plan [Tab], sell some release trees and leave others as deadwood, approve, advance a year.",
-            "Small stems earn little or nothing as timber here, so they are the natural choice for deadwood. Sell the trees whose timber is worth taking."),
-        new Lesson("response", "5. Review the response and release further",
-            "CCF is repeated management. After a year, read what changed, then look at each future tree again: has its growing space improved enough? Release it further where it has not. An opening is an opportunity, not a promise of regeneration.",
-            "Read the Annual Review and acknowledge it. Inspect each future tree again and mark further competitors until your removals together supply about two fifths of its competition. Approve, advance a year and review the result.",
-            "Compare the response with your intention; release further where needed.", "Read the review, re-inspect the future trees and release further where they are still crowded."),
+        new Lesson("future-trees", "2. Choose promising trees to retain along the rack",
+            "Inspect and compare promising trees to retain and grow on. Work along the whole teaching area beside the middle rack, rather than choosing a cluster in one place. Your choices are the retained trees whose relationships you will manage.",
+            "Inspect trees [E] and mark three Crop Trees [C]: one in the near, middle and far teaching zones. Keep them at least 8 m apart, with both rack sides represented between your three choices.",
+            "Distribute attention along the rack and compare individuals.", "Choose one Crop Tree in each zone, 8 m apart, using both rack sides.",
+            "Three trees and 8 m spacing are teaching choices tied to this game's competition neighbourhood, not a forestry prescription. Spacing alone does not distribute your attention or prove crown position."),
+        new Lesson("release", "3. Identify the competitors that matter",
+            "Compare neighbour relationships and competition Share around each retained tree. Selective removal can help more than one tree, but being small is not a reason to fell. Retain useful structure and exercise restraint.",
+            "Inspect each Crop Tree [E]. Compare Share and position; select a listed competitor [1–5] and mark it [X]. Plan in-footprint removals supplying about 30% of each tree's measured competition, then review the Work Plan [Tab].",
+            "Consider meaningful competitors and shared relationships; keep retained woodland.", "Compare Share, mark relevant competitors [X], then review the Work Plan [Tab].",
+            "The initial 30% target and 40% cumulative trunk-area safeguard are gameplay calibration. Neighbours outside the teaching footprint still compete, but their removal earns no lesson credit."),
+        new Lesson("habitat", "4. Plan and carry out the intervention",
+            "Work across the teaching area while retaining forest structure. Selling timber brings income; leaving some felled wood forgoes that sale and adds deadwood habitat. Compare these outcomes in their actual positions.",
+            "In Work Plan [Tab], assign both sold timber and fallen deadwood to the selected release trees. Check the retained stand and cumulative safeguard, approve the work, then advance one year.",
+            "Some felled wood is sold and some stays beside the retained forest.", "Compare sold and deadwood outcomes, approve the Work Plan [Tab], advance a year.",
+            "Consider habitat and forgone sale together. No single stem size is automatically the right deadwood choice. Unrelated felling elsewhere cannot satisfy this lesson."),
+        new Lesson("response", "5. Return and review",
+            "Did your intervention create enough growing space? Revisit all three retained trees and review the surrounding stand along both sides of the rack. Good CCF management includes deciding not to cut.",
+            "Read and acknowledge the Annual Review, then close and reopen each Crop Tree's inspection [E]. Inspect the surrounding retained stand in each zone on both sides. While inspecting, choose [J] Retain here, or mark justified additional competitors and choose [K] Release further. No additional felling is required.",
+            "Compare the response with your intention; retaining trees without another cut is success.", "Revisit all three trees and retained stand: [J] retain here, [K] justified further release.",
+            "Retain here is a successful decision. Additional work must stay within the teaching footprint and safeguard to count. Revisit after further executed work. After loading, repeat this inspection review; it is not stored in the forest save."),
         new Lesson("recruitment", "6. Secure the next generation",
             "Young trees need suitable light and protection from browsing and vegetation. Inspect existing regeneration first. This scenario also asks you to introduce beech and sessile oak; planting gives a player-controlled route, but survival is not guaranteed.",
             "Use map layers to choose sites, then inspect them on foot. Buy nursery stock and plan beech and sessile oak. Review browsing and the optional shelter choice, approve planting, then advance one year.",
@@ -67,10 +69,11 @@ public static class ScenarioOneTeachingSequence
     public static int Current(Facts f)
     {
         if (!f.AccessOpen) return 0;
-        if (!f.AccessReviewed || (f.CropTrees == 0 && !f.ReleaseExecuted)) return 1;
+        if (!f.AccessReviewed || (f.CropTrees == 0 && !f.ReleaseExecuted) || (f.Bay != null && !f.Bay.HasEnoughFuture)) return 1;
+        if (f.Bay != null && !f.Bay.CanopyKept) return 2;
         if (!f.ReleasePlanned && !f.ReleaseExecuted) return 2;
         if (!f.ReleaseExecuted || !f.DeadwoodExecuted) return 3;
-        if (!f.ReleaseReviewed || !f.ReviewedTwoCycles || !f.AreaReleased) return 4;
+        if (!f.ReleaseReviewed || (f.Bay != null ? !f.RackReviewComplete : !f.ReviewedTwoCycles || !f.AreaReleased)) return 4;
         if (!f.BeechEstablished || !f.OakEstablished) return 5;
         if (f.PlantingYear < 0 || f.Year <= f.PlantingYear || !f.EstablishmentReviewed) return 6;
         return 7;

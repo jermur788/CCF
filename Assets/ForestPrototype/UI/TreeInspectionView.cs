@@ -95,7 +95,8 @@ public sealed class TreeInspectionView
         ForestEcologyController eco = ui.Ecology;
         // Rebuild only when something visible can have changed.
         CompetitorAssessment competitors = ui.Competitors;
-        string key = tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
+        string rackPrompt = ui.Learning.RackInspectionPrompt(tree);
+        string key = rackPrompt + "|" + tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
             + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump
             + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail;
         if (key == shownKey)
@@ -134,6 +135,7 @@ public sealed class TreeInspectionView
         if (!tree.IsStump && eco != null)
             UiKit.Add(body, Diagnosis(tree, eco), "body");
 
+        if (!string.IsNullOrEmpty(rackPrompt)) UiKit.Add(body, rackPrompt, "body");
         BuildDetail(tree, eco, report);
         // During the opening rack stage the card does not advertise marking; it is introduced once the racks are open.
         string marking = ui.Manager != null && ui.Manager.RackFirstStageActive ? "" : "[X] Fell  [C] Crop Tree  ";

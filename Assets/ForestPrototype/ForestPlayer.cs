@@ -823,8 +823,11 @@ public sealed class ForestPlayer : MonoBehaviour
         messageTimer = 3.5f;
     }
 
+    public int InspectionSerial { get; private set; }
+
     private void InspectTree(ForestTree tree)
     {
+        InspectionSerial++;
         inspectedTree = tree;
         inspectedTreeName = tree.gameObject.name;
         inspectedTreeHeight = tree.Height;

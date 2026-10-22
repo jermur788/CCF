@@ -202,6 +202,12 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             Keyboard keys = Keyboard.current;
             if (keys != null && keys.vKey.wasPressedThisFrame && !help.IsOpen) inspection.ToggleDetail();
             indicator.Update(player.InspectedTree);
+            if (!help.IsOpen)
+            {
+                learning.ObserveRackInspection(player.InspectedTree);
+                if (keys != null && keys.jKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, false);
+                if (keys != null && keys.kKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, true);
+            }
         }
         else
         {
@@ -406,11 +412,21 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (screen != UiScreen.Review || manager.AnnualReports.Count == 0) return;
         manager.MarkAnnualReviewSeen();
         review.Refresh(true);
+        learning.Refresh(true);
     }
 
     // A UI learning gate only: simulation/reference harness APIs remain unchanged.
+    public string RackPlanProblem => learning.RackPlanProblem();
+
+    public bool ApproveWorkPlan()
+    {
+        if (!string.IsNullOrEmpty(RackPlanProblem)) return false;
+        return manager.ApprovePendingWork();
+    }
+
     public bool AdvanceFromWorkPlan()
     {
+        if (!string.IsNullOrEmpty(RackPlanProblem)) return false;
         if (NeedsAnnualReview) { ShowReview(); return false; }
         if (!manager.AdvanceYear()) return false;
         ShowReview();

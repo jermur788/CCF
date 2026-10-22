@@ -6,7 +6,7 @@ using UnityEngine;
 public static class ScenarioOneRackBayReader
 {
     public static ScenarioOneRackBay.Analysis Read(IEnumerable<ForestTree> forestTrees, IReadOnlyList<ScenarioOneWorkOrder> workOrders,
-        IReadOnlyList<float> rackLines)
+        IReadOnlyList<float> rackLines, ScenarioOneRackBay.Frame? frame = null)
     {
         var trees = new List<ScenarioOneRackBay.Tree>();
         foreach (ForestTree tree in forestTrees)
@@ -27,7 +27,7 @@ public static class ScenarioOneRackBayReader
                 if (!open && !done) continue;
                 orders.Add(new ScenarioOneRackBay.Order(order.targetTreeId, open, done, DispositionOf(order.fellingOutcome), order.resolvedYear));
             }
-        return ScenarioOneRackBay.Analyse(rackLines, trees, orders);
+        return ScenarioOneRackBay.Analyse(rackLines, trees, orders, frame);
     }
 
     private static ScenarioOneRackBay.Disposition DispositionOf(FellingMaterialOutcome outcome)

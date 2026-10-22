@@ -588,8 +588,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             SetWorkPlanOpen(false);
     }
 
+    // Session lifecycle only; deliberately excluded from CaptureSaveData and the save schema.
+    public int TeachingWorldVersion { get; private set; }
+
     public void InitializeNewScenario()
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         if (definition == null)
             throw new InvalidOperationException("Scenario One requires a definition asset.");
@@ -1391,6 +1395,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         ClearRackGroups();
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();

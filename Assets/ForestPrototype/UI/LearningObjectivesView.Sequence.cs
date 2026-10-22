@@ -3,11 +3,20 @@ using UnityEngine;
 
 public sealed partial class LearningObjectivesView
 {
-    // No tutorial forest, event, or save fields: rebuild from the existing world after each change/load.
+    // World facts are derived; genuine inspection/decision evidence stays in this view's session and repeats after load.
+    private readonly ScenarioOneRackReview rackReview = new ScenarioOneRackReview();
+    private int teachingWorldVersion = -1;
+    private int lastRackInspectionSerial = -1;
     private ScenarioOneTeachingSequence.Facts sequenceFacts;
     private float nextSequenceRefresh;
     private ScenarioOneTeachingSequence.Facts TeachingFacts()
     {
+        if (teachingWorldVersion != ui.Manager.TeachingWorldVersion)
+        {
+            teachingWorldVersion = ui.Manager.TeachingWorldVersion;
+            rackReview.Reset(ui.Player != null ? ui.Player.InspectionSerial : -1);
+            sequenceFacts = null;
+        }
         if (sequenceFacts != null && Time.unscaledTime < nextSequenceRefresh) return sequenceFacts;
         nextSequenceRefresh = Time.unscaledTime + .25f;
         var m = ui.Manager;
@@ -44,8 +53,14 @@ public sealed partial class LearningObjectivesView
                 .Select(r => r.eventId).DefaultIfEmpty(0).Max());
         bool Goal(string id) => m.Objectives.Any(o => o.objectiveId == id && o.achieved);
         // Objectives 2-5 are one lesson on one rack area (ScenarioOneRackBay). A stand with no rack layout (a 40 m legacy stand) keeps the simple rules above.
-        ScenarioOneRackBay.Analysis bay = routes != null && routes.Count > 0 ? ScenarioOneRackBayReader.Read(trees, orders, routes) : null;
+        var layout = ui.RackTool != null ? ui.RackTool.Planner.LayoutStatus() : null;
+        ScenarioOneRackBay.Frame? frame = layout != null && layout.Count > 0
+            ? new ScenarioOneRackBay.Frame(layout[layout.Count / 2].Start, layout[layout.Count / 2].End,
+                ScenarioOneRackBay.HalfWidth(routes, routes.Count / 2)) : (ScenarioOneRackBay.Frame?)null;
+        ScenarioOneRackBay.Analysis bay = routes != null && routes.Count > 0 ? ScenarioOneRackBayReader.Read(trees, orders, routes, frame) : null;
         bool area = bay != null && bay.Applies;
+        bool releaseReviewed = Reviewed(area ? bay.ReleaseYear : releaseYear);
+        rackReview.Synchronize(bay, releaseReviewed, ui.Player != null ? ui.Player.InspectionSerial : -1);
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
             AccessOpen = ui.RackLayout != null && ui.RackLayout.Total > 0
@@ -55,7 +70,9 @@ public sealed partial class LearningObjectivesView
             ReleasePlanned = area ? bay.ReleasePlanned : plannedRelease, ReleaseExecuted = area ? bay.ReleaseExecuted : release.Count > 0,
             DeadwoodExecuted = area ? bay.MixedExecuted : Goal("fallen-deadwood") || m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.WorkResolved
                 && e.outcome == ScenarioManagementOutcome.Succeeded && e.ecologicalTreatment == ScenarioEcologicalTreatment.TreeRetainedAsDeadwood),
-            ReleaseReviewed = Reviewed(area ? bay.ReleaseYear : releaseYear), AreaReleased = !area || bay.FurtherExecuted, Bay = area ? bay : null,
+            ReleaseReviewed = releaseReviewed, Bay = area ? bay : null,
+            RackReviewComplete = area && rackReview.Complete(bay), RevisitedTrees = rackReview.InspectedCount,
+            ReviewDecisions = rackReview.DecisionCount, StandPortionsReviewed = rackReview.StandPortionsReviewed,
             ReviewedTwoCycles = ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(m.ManagementEvents, orders),
             BeechEstablished = Goal("introduced-beech"), OakEstablished = Goal("introduced-sessile-oak"),
             PlantingYear = plantingYear, Year = m.CurrentEcologicalYear,
@@ -63,6 +80,56 @@ public sealed partial class LearningObjectivesView
                 && m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged
                     && e.year > plantingYear)
         };
+    }
+
+    // Called only while the real inspection panel is visible in the walked world, never from Annual Review or a map.
+    public void ObserveRackInspection(ForestTree tree)
+    {
+        if (ui.Player == null || ui.Player.InspectionSerial == lastRackInspectionSerial) return;
+        lastRackInspectionSerial = ui.Player.InspectionSerial;
+        var f = TeachingFacts();
+        if (tree == null || !tree.IsLiving || f.Bay == null || ScenarioOneTeachingSequence.Current(f) != 4) return;
+        rackReview.Observe(f.Bay, tree.TreeId, tree.transform.position.x, tree.transform.position.z, ui.Player.InspectionSerial);
+        sequenceFacts = null;
+    }
+
+    public bool DecideRackInspection(ForestTree tree, bool further)
+    {
+        sequenceFacts = null; // Include a competitor marked since the last quarter-second refresh.
+        var f = TeachingFacts();
+        if (tree == null || !tree.IsLiving || tree.IsMarkedForFell || ui.Manager.IsPlannedForFelling(tree.TreeId)
+            || f.Bay == null || ScenarioOneTeachingSequence.Current(f) != 4) return false;
+        bool changed = rackReview.Decide(f.Bay, tree.TreeId, tree.transform.position.x, tree.transform.position.z,
+            further ? ScenarioOneRackReview.Decision.ReleaseFurther : ScenarioOneRackReview.Decision.RetainHere);
+        sequenceFacts = null;
+        return changed;
+    }
+
+    public string RackInspectionPrompt(ForestTree tree)
+    {
+        var f = TeachingFacts();
+        int stage = ScenarioOneTeachingSequence.Current(f);
+        if (tree == null || !tree.IsLiving || f.Bay == null || stage < 1 || stage > 4) return "";
+        float x = tree.transform.position.x, z = tree.transform.position.z;
+        if (!f.Bay.Contains(x, z)) return "Outside the teaching footprint: removals here earn no lesson credit.";
+        int zone = f.Bay.Geometry.Zone(x, z);
+        string location = "Teaching rack: " + (zone == 0 ? "near" : zone == 1 ? "middle" : "far") + " zone, "
+            + (f.Bay.Geometry.Across(x, z) < 0 ? "right" : "left") + " side. ";
+        if (stage != 4 || !f.ReleaseReviewed) return location;
+        string status = $"Review: {f.ReviewDecisions}/3 tree decisions, {f.StandPortionsReviewed}/6 stand portions. ";
+        return location + status + (f.Bay.Future.Any(t => t.Id == tree.TreeId)
+            ? "Review this tree and surrounding retained stand. [J] Retain here  [K] Release further (mark relevant competitors first)."
+            : "Review the surrounding retained stand here. [J] Keep this part of the stand. No cutting is required.");
+    }
+
+    // Interactive planning safeguard only; protected scenario-completion/economy rules remain unchanged.
+    public string RackPlanProblem()
+    {
+        sequenceFacts = null;
+        var f = TeachingFacts();
+        return f.Bay != null && f.AccessOpen && !f.Bay.CanopyKept
+            ? "Teaching rack safeguard exceeded (40% cumulative trunk area). Cancel/unmark in-footprint removals before approval or advance. Already executed excess cannot complete this lesson."
+            : "";
     }
 
     // Expose the existing persisted acknowledgement at later teaching boundaries, even after N3 is satisfied.

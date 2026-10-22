@@ -84,6 +84,8 @@ public sealed partial class LearningObjectivesView
 
     public void ReloadProgress()
     {
+        rackReview.Reset(ui.Player != null ? ui.Player.InspectionSerial : -1);
+        sequenceFacts = null;
         done.Clear();
         foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);
         shownCount = -1;
