@@ -10,6 +10,10 @@ Review against accepted specification/context/evidence; do not build a competing
 
 Drive mirrors are read-only collaboration copies. Return suggested context changes to Overall Manager or edit Git only when explicitly assigned.
 
+### Spec-driven work
+
+For `SPEC REQUIRED` work, the approved spec under `specs/<feature>/` is task-level authority for that scope. Work from `spec.md`, `plan.md` and the assigned task; do not rediscover settled product design or invent missing behaviour. Return material product ambiguity to the Manager/spec, and report spec deviations and spec conformance in the handoff. Ordinary `PACKET ONLY` work stays on the normal packet and does not need these fields.
+
 ### Project chat / claude.ai without repository tools
 
 Analyse/research/plan/review supplied material. Do not claim local Git, Unity, Blender or filesystem access unless available tools provide it.

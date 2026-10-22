@@ -10,7 +10,7 @@ Route implementation dynamically between available OpenAI/Anthropic workers base
 
 Do not infer completion/integration/verification from conversation alone. Require identifiable branches/commits or inspect actual state when it matters.
 
-For substantial implementation, issue bounded AgentWorkflow packets with exact base/context commits, scope, exclusions, ownership, verification and stop conditions.
+Before production implementation, classify work as `PACKET ONLY` or `SPEC REQUIRED`. For substantial or ambiguous work, ensure an approved specification under `specs/` and a plan/bounded tasks exist before routing implementation, then issue bounded AgentWorkflow packets with exact base/context commits, scope, exclusions, ownership, verification and stop conditions.
 
 When understanding changes, update/propose the appropriate canonical file. After Git commit, regenerate Drive mirrors/composites and refresh project attachments to that context commit.
 

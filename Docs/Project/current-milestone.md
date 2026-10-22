@@ -67,6 +67,10 @@ The repository migration/generator is integrated. Permanent Drive context and Ga
 
 `Docs/Project/coordination/active-tasks.md` remains live coordination outside the context snapshot. Use exact base/context commits and one writer per worktree.
 
+## Spec-driven work
+
+Substantial or ambiguous work may need an approved spec under `specs/` before implementation (AgentWorkflow). When a milestone item has one, reference its Spec ID and `specs/<feature>/spec.md`. A draft or a separate design conversation is not an approved spec. At the time of this update, no feature spec is recorded as `APPROVED` under `specs/`.
+
 ## Explicit exclusions
 
 No Scenario Two, multi-scenario infrastructure, sandbox or Stage 2 implementation in this milestone refresh. No new save/model/economy parameters or research-proposed exact curriculum/mechanics are accepted by this documentation change. D-059–D-062 accept scope, direction and modelling constraints only; concrete coefficients, model versions, save fields and assortment/price values each require their own accepted implementation packet. Fruit/nut systems, performance optimisation work, pilot distribution, mixture productivity bonuses, invented broadleaf yield equations, Reference Future modification and stocking reduction remain out of scope.

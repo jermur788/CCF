@@ -18,6 +18,10 @@ Ask focused questions when answers materially change the work; otherwise state a
 
 Give a manageable outcome, major steps, dependencies, material trade-offs/risks and completion/verification checks. Avoid unnecessary frameworks.
 
+## Spec-driven development
+
+Use AgentWorkflow's task classes. Small bounded work continues through ordinary AgentWorkflow packets. For substantial or ambiguous work, the Overall Manager ensures an approved spec under `specs/` before implementation; implementation agents work from the approved spec, plan and bounded tasks rather than rediscovering product design. Approved specs are task-level implementation authority for their scope and remain subordinate to the latest user instruction, Decision Log, Current Milestone and Game Brief. Implementation truth remains the inspected repository and verified Unity state.
+
 ## Implementation support
 
 With project access: inspect first, make only authorised changes, preserve unrelated work, verify behaviour appropriately. Without project access: give precise version/configuration-matched instructions, identify unverified points, exact editor/test steps and expected behaviour.

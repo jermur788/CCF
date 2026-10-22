@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Single owner of source authority/conflicts, context-commit meaning, worktrees/branches, roles/locks, task packets/handoffs, review/integration states, cloud-to-local verification and Drive/project-context synchronization.
+Single owner of source authority/conflicts, spec-driven task classification/lifecycle, context-commit meaning, worktrees/branches, roles/locks, task packets/handoffs, review/integration states, cloud-to-local verification and Drive/project-context synchronization.
 
 Root AGENTS.md owns repository/Unity/C# technical safety. Do not duplicate it except for specifically multi-agent coordination rules.
 
@@ -22,6 +22,8 @@ For what the project intends or has accepted:
 3. `Docs/Project/current-milestone.md`;
 4. `Docs/Project/game-brief.md`.
 
+Approved feature specifications are task-level implementation authority for their scope only. They remain subordinate to the four sources above. If a spec conflicts with newer accepted product intent, amend the spec rather than implementing the stale requirement.
+
 ### Implementation authority
 
 For what currently exists:
@@ -36,9 +38,97 @@ Report conflicts and identify the authoritative file needing update.
 
 CCF-Ops role files, board state, lane/capacity configuration and operational scripts are coordination mechanisms only. They confer no product decision authority, implementation truth or acceptance authority. The project authority hierarchy above remains unchanged.
 
+## Spec-driven development
+
+CCF uses spec-driven development selectively. The Overall Manager classifies substantial work before production implementation. Classification is a workflow decision; it does not create product authority.
+
+### PACKET ONLY
+
+Use the ordinary AgentWorkflow packet and handoff for:
+
+- small bugs;
+- bounded fixes;
+- verification repairs;
+- simple wording/content changes;
+- straightforward implementation that fits one clear packet.
+
+Do not create a spec, plan or task list for this class. The packet remains the implementation instruction within accepted context.
+
+### SPEC REQUIRED
+
+Normally use SDD for:
+
+- new user/player workflows;
+- cross-system features;
+- persistence/data architecture;
+- save-policy changes;
+- security/write-back behaviour;
+- substantial UX;
+- major forestry/gameplay systems;
+- multi-step or multi-agent features;
+- work where ambiguity is likely to waste implementation tokens.
+
+The Overall Manager may upgrade a task to SPEC REQUIRED after inspection shows hidden ambiguity or cross-system impact. A worker that discovers a PACKET ONLY task has become substantially ambiguous stops and reports; it does not invent a spec or continue on an unapproved assumption.
+
+### SDD lifecycle
+
+1. classify `SPEC REQUIRED`;
+2. create the specification;
+3. resolve genuine product ambiguity with the user/authority;
+4. approve the specification;
+5. produce the implementation plan;
+6. divide the work into bounded tasks;
+7. implementation agents work from the approved artifacts;
+8. implementation ambiguities that materially affect product behaviour return to the Manager/spec;
+9. verify implementation correctness;
+10. verify spec conformance;
+11. integrate;
+12. preserve the completed spec as project history.
+
+Implementation agents must not rediscover settled product design. If a requirement is unclear, cite the spec section and ask; do not substitute a convenient assumption.
+
+### Spec authority
+
+Approved feature specs are task-level implementation authority for their scope. They remain subordinate to:
+
+1. latest user instruction;
+2. `decision-log.md`;
+3. `current-milestone.md`;
+4. `game-brief.md`.
+
+Implementation truth remains the inspected repository / verified Unity state. A spec describes intended behaviour; it never proves that behaviour exists or overrides verified implementation facts. If a spec conflicts with newer accepted product intent, amend the spec rather than implementing the stale requirement. If implementation reality makes the spec impractical, return to the Manager/spec; do not silently reinterpret it.
+
+Only specs in `APPROVED`, `IMPLEMENTING`, `VERIFYING` or `VERIFIED` status authorise implementation. `DRAFT` and `SUPERSEDED` specs do not.
+
+### Spec artifacts
+
+Canonical root: `specs/`. Standard structure:
+
+```text
+specs/<feature>/spec.md
+specs/<feature>/plan.md
+specs/<feature>/tasks.md
+specs/<feature>/checklists/requirements.md
+```
+
+Reusable templates are in `specs/_template/`. `specs/README.md` owns the artifact and status conventions. The plan and task list implement the approved spec; they do not create product requirements or override it. GitHub Spec Kit tooling is not required; its conventions may be used as a structure/process reference only.
+
+A feature may omit or combine sections where they are genuinely not applicable, but it must not silently drop acceptance criteria, stop conditions or the authority statement. Spec status is separate from implementation/integration states.
+
+Status vocabulary:
+
+- `DRAFT` — being written/clarified; not approved;
+- `APPROVED` — accepted product intent and acceptance criteria; may be planned and divided into tasks;
+- `IMPLEMENTING` — implementation in progress against approved tasks;
+- `VERIFYING` — implementation exists and is being checked for correctness and spec conformance;
+- `VERIFIED` — implementation and spec conformance accepted;
+- `SUPERSEDED` — retained for history, replaced by a newer spec/decision.
+
 ## Canonical context
 
-Shared sources: `Docs/Project/game-brief.md`, `decision-log.md`, `current-milestone.md`, `unity-project-overview.md`, `AgentWorkflow.md`; supporting `research-index.md`.
+Shared sources: `Docs/Project/game-brief.md`, `decision-log.md`, `current-milestone.md`, `unity-project-overview.md`, `AgentWorkflow.md`; supporting `research-index.md`. Artifact/context map: `Docs/Project/context-manifest.md`.
+
+Feature specifications are canonical project artifacts under `specs/`. Load the active approved spec, plan and assigned task only when relevant to the task; do not load every spec into every context. Completed and superseded specs remain historical evidence.
 
 Instruction sources: `Docs/Project/instructions/shared-project-instructions.md`, `chatgpt-role.md`, `claude-role.md`. Repository entry points: root AGENTS.md and CLAUDE.md. Generator: `Tools/ProjectContext/generate_project_instructions.py`.
 
@@ -188,9 +278,9 @@ Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS
 
 ## Roles
 
-- **Primary:** implements bounded authorised scope; reports readiness for review, not its own integration approval.
-- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task; authorisation does not change this.
-- **Integrator:** deliberately integrates approved work and runs post-integration gates; only one active integrator per integration worktree.
+- **Primary:** implements bounded authorised scope; for SPEC REQUIRED work, works from the approved spec, plan and assigned task and reports spec deviations; reports readiness for review, not its own integration approval.
+- **Reviewer:** bounded assignment against accepted specification/context/evidence and the review gates below; for SPEC REQUIRED work, checks spec conformance as well as implementation correctness; independent of the implementing thread for the reviewed change, cross-family when the packet requires it; no competing implementation unless requested. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task; authorisation does not change this.
+- **Integrator:** deliberately integrates approved work and runs post-integration gates; for SPEC REQUIRED work, confirms the spec is approved and conformance was reported; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
 
 - **Execution Manager (T3):** within an assigned packet and accepted roadmap, inspect repository/live state; preflight packets; maintain assigned operational state/ledger; inspect currently available provider capabilities; route bounded work through T3-owned orchestration; launch/delegate bounded workers; monitor delegated tasks; collect handoffs/results; compare child findings; inspect task/thread identities; resolve simple factual disagreements through direct read-only inspection; and automatically continue the next already-authorised operational step when no gate, conflict or user decision blocks it. It cannot make product/design decisions, alter accepted scope, waive G1–G5, grant itself ownership, bypass active-task ownership or the Unity lock, weaken verification, integrate unapproved work, treat worker completion as acceptance, or silently change quota/provider source.
@@ -254,6 +344,8 @@ Fill every substantive field, including full base/context SHAs. The illustrative
 
 The DELEGATION, CHILD ROUTING, ORCHESTRATION RECORD and CHILD CONTEXT REQUIREMENT blocks are for substantive delegated or parallel work. Omit them, or mark NONE/N/A, when no delegation occurs; do not turn them into ceremony for tiny reversible tasks. Every delegated child still receives explicit base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions.
 
+Every packet states `TASK CLASS`. For `SPEC REQUIRED` packets, complete the SPEC-DRIVEN block; for `PACKET ONLY` packets, omit it or mark it N/A. Do not impose the SDD block on ordinary bounded work.
+
 ```text
 TASK PACKET
 PROJECT: CCF
@@ -281,6 +373,15 @@ CHILD CONTEXT REQUIREMENT:
   Child stop conditions:
 BASE:
 CONTEXT COMMIT:
+TASK CLASS: PACKET ONLY / SPEC REQUIRED
+SPEC-DRIVEN BLOCK (SPEC REQUIRED only; omit for PACKET ONLY):
+  SPEC ID:
+  SPEC STATUS:
+  SPEC LOCATION:
+  ASSIGNED TASK(S):
+  ACCEPTANCE CRITERIA FOR THIS PACKET:
+  ALLOWED DEVIATIONS:
+  SPEC AMBIGUITY STOP CONDITION:
 LANE:
 BRANCH:
 ROLE: Primary / Reviewer / Integrator
@@ -290,6 +391,7 @@ GOAL: <one concise player/system outcome>
 AUTHORITATIVE SOURCES:
 - Game Brief, Decision Log, Current Milestone, Overview, AgentWorkflow
 - relevant research and task specification
+- approved spec, plan and assigned task for SPEC REQUIRED work
 IN SCOPE:
 -
 OUT OF SCOPE:
@@ -323,7 +425,8 @@ DO NOT ESCALATE TO A HIGHER TIER WITHOUT:
 STOP AND ASK IF:
 Required work materially changes design, ecology, unauthorised save
 architecture, frozen/reference behaviour, dependencies, destructive
-repository state or ownership boundaries.
+repository state or ownership boundaries. For SPEC REQUIRED work, also
+stop if the approved spec does not settle a material product ambiguity.
 HANDOFF FORMAT:
 Standard worker handoff below, with exact HEAD, evidence, remaining gates and preserved unrelated work.
 ```
@@ -331,6 +434,8 @@ Standard worker handoff below, with exact HEAD, evidence, remaining gates and pr
 If UNITY REQUIRED is Yes, add exact HEAD, Unity lane, Unity ownership, allowed phases and Player/native input required (Yes/No). Mechanical lint must verify the configured lane is Unity-capable. These fields supplement the packet; a lint PASS does not authorise execution.
 
 ## Standard worker handoff
+
+For `SPEC REQUIRED` work, also complete the SPEC-DRIVEN HANDOFF block. Omit it for `PACKET ONLY` work.
 
 ```text
 IMPLEMENTATION HANDOFF
@@ -361,6 +466,13 @@ VERIFICATION RUN:
 -
 VERIFICATION RESULTS:
 -
+SPEC-DRIVEN HANDOFF (SPEC REQUIRED only; omit for PACKET ONLY):
+  SPEC ID / STATUS:
+  TASKS COMPLETED:
+  SPEC DEVIATIONS:
+  UNRESOLVED REQUIREMENTS:
+  ACCEPTANCE CRITERIA TESTED:
+  SPEC CONFORMANCE: PASS / FAIL / NOT VERIFIED
 REMAINING VERIFICATION GATES:
 -
 KNOWN LIMITATIONS:
@@ -390,6 +502,7 @@ Gate: G1 / G2 / G3 / G4 / G5 (applicable gate and scope)
 Reviewed branch:
 Reviewed HEAD:
 Context commit:
+SPEC ID / STATUS (SPEC REQUIRED only):
 Reasons:
 -
 Required fixes / remaining gates:
@@ -398,6 +511,7 @@ Integration target:
 Integrated HEAD: <only after integration>
 Post-integration verification:
 -
+SPEC CONFORMANCE (SPEC REQUIRED only): PASS / FAIL / NOT VERIFIED
 ```
 
 ## Cloud-to-local handoff
@@ -424,9 +538,18 @@ Suggested commands/menu actions:
 -
 Expected observable behaviour:
 -
+SPEC-DRIVEN HANDOFF (SPEC REQUIRED only; omit for PACKET ONLY):
+  SPEC ID / STATUS:
+  TASKS COMPLETED:
+  SPEC DEVIATIONS:
+  UNRESOLVED REQUIREMENTS:
+  ACCEPTANCE CRITERIA TESTED:
+  SPEC CONFORMANCE: PASS / FAIL / NOT VERIFIED
 ```
 
 ## Integration states and procedure
+
+Spec status (see Spec-driven development) is separate from these implementation states. `PROPOSED` here means an implementation proposal, not an approved feature spec.
 
 - **PROPOSED:** specification only.
 - **IMPLEMENTED ON TASK BRANCH:** worker completed its branch.
@@ -454,10 +577,11 @@ Independent review is not automatically required after every handoff. Follow the
 ## Manager workflow
 
 1. Inspect accepted state and choose the next playable outcome.
-2. Split parallel-safe tasks, update locks, assign workers, and issue bounded packets with one context commit.
-3. Workers execute against locked context and return implementation handoffs.
-4. Immediately triage each handoff against specification, evidence and the review gates. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
-5. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
-6. Use one authorised integrator for approved work and run required integrated gates.
-7. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
-8. Confirm dashboard synchronization for every substantial task and project-status change: update the authoritative coordination record, run or allow ingestion, verify the automatic GitHub audit snapshot advances, and verify the published dashboard reflects the new state. Dashboard publication is required, not optional reporting. If the dashboard or publisher is unavailable, record the synchronization failure as an outstanding operational issue.
+2. Classify the work as `PACKET ONLY` or `SPEC REQUIRED` before production implementation. For `SPEC REQUIRED`, ensure an approved spec exists, then produce or maintain the plan and bounded tasks. For `PACKET ONLY`, continue with the ordinary packet.
+3. Split parallel-safe tasks, update locks, assign workers, and issue bounded packets with one context commit.
+4. Workers execute against locked context and return implementation handoffs.
+5. Immediately triage each handoff against the approved spec where applicable, evidence and the review gates. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
+6. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
+7. Use one authorised integrator for approved work and run required integrated gates, including spec-conformance verification for `SPEC REQUIRED` work.
+8. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
+9. Confirm dashboard synchronization for every substantial task and project-status change: update the authoritative coordination record, run or allow ingestion, verify the automatic GitHub audit snapshot advances, and verify the published dashboard reflects the new state. Dashboard publication is required, not optional reporting. If the dashboard or publisher is unavailable, record the synchronization failure as an outstanding operational issue.
