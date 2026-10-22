@@ -3,19 +3,19 @@
    always pair with text; meaning never depends on colour alone. */
 
 :root {
-    --panel-bg: rgba(14, 22, 16, 0.86);
-    --panel-border: rgba(160, 190, 150, 0.22);
-    --frame-bg: rgb(14, 22, 16);
-    --frame-border: rgba(176, 204, 160, 0.42);
-    --frame-rule: rgba(160, 190, 150, 0.20);
+    --panel-bg: rgba(24, 30, 29, 0.94);
+    --panel-border: rgba(168, 180, 176, 0.22);
+    --frame-bg: rgb(24, 28, 30);
+    --frame-border: rgba(168, 180, 176, 0.30);
+    --frame-rule: rgba(168, 180, 176, 0.18);
     --backdrop: rgba(3, 7, 4, 0.66);
-    --ink: rgb(236, 240, 228);
-    --ink-muted: rgb(176, 190, 168);
-    --ink-faint: rgb(132, 146, 126);
-    --accent: rgb(232, 206, 120);
-    --good: rgb(150, 214, 140);
-    --warn: rgb(240, 186, 110);
-    --bad: rgb(236, 128, 112);
+    --ink: rgb(228, 232, 226);
+    --ink-muted: rgb(164, 180, 172);
+    --ink-faint: rgb(146, 160, 152);
+    --accent: rgb(224, 180, 90);
+    --good: rgb(158, 190, 154);
+    --warn: rgb(218, 184, 118);
+    --bad: rgb(213, 139, 126);
     --fell: rgb(214, 70, 58);
     --crop: rgb(70, 130, 230);
     --rack: rgb(182, 118, 232);
@@ -23,10 +23,10 @@
     --select: rgb(222, 164, 58);
     --select-ink: rgb(36, 24, 8);
     --chip-bg: rgba(255, 255, 255, 0.08);
-    --btn-bg: rgba(60, 86, 58, 0.95);
-    --btn-bg-hover: rgba(86, 122, 82, 1);
-    --btn-bg-active: rgba(44, 66, 44, 1);
-    --btn-border: rgba(170, 200, 150, 0.40);
+    --btn-bg: rgb(48, 65, 57);
+    --btn-bg-hover: rgb(63, 84, 72);
+    --btn-bg-active: rgb(36, 50, 43);
+    --btn-border: rgba(168, 180, 176, 0.30);
     /* Type scale. The panel scales with screen height (PanelSettings: 1600 x 900 reference), so one UI unit is 0.8 px at 1280 x 720 and
        1.2 px at 1920 x 1080. At 720p the old 15 px body was 12 physical pixels, too small to read. Text sizes live here, not on
        individual labels: change a token and every screen follows. Reading = long popup text (intro, help, objective detail). */
@@ -36,7 +36,7 @@
     --fs-reading: 20px;
     --fs-heading: 20px;
     --fs-title: 26px;
-    --fs-button: 16px;
+    --fs-button: 17px;
     --fs-lead: 20px;
 }
 
@@ -47,7 +47,7 @@
     background-color: var(--panel-bg);
     border-color: var(--panel-border);
     border-width: 1px;
-    border-radius: 6px;
+    border-radius: 4px;
     padding: 10px 14px;
 }
 
@@ -90,7 +90,7 @@
     background-color: var(--btn-bg);
     border-color: var(--btn-border);
     border-width: 1px;
-    border-radius: 5px;
+    border-radius: 4px;
     color: var(--ink);
     padding: 5px 12px;
     margin: 2px 6px 2px 0;
@@ -102,11 +102,11 @@
 }
 .btn:hover { background-color: var(--btn-bg-hover); color: var(--ink); }
 .btn:active { background-color: var(--btn-bg-active); color: var(--ink); }
-.btn:focus { color: var(--ink); }
-.btn:disabled { opacity: 0.45; }
-.btn-primary { background-color: rgba(122, 104, 44, 0.97); border-color: rgba(232, 206, 120, 0.70); }
-.btn-primary:hover { background-color: rgba(150, 128, 54, 1); color: var(--ink); }
-.btn-primary:active { background-color: rgba(100, 84, 34, 1); color: var(--ink); }
+.btn:focus { color: var(--ink); border-color: var(--accent); }
+.btn:disabled { background-color: rgb(46, 51, 50); border-color: rgb(65, 73, 69); color: rgb(132, 143, 137); opacity: 1; }
+.btn-primary { background-color: rgb(108, 88, 43); border-color: rgba(224, 180, 90, 0.65); }
+.btn-primary:hover { background-color: rgb(136, 110, 52); color: var(--ink); }
+.btn-primary:active { background-color: rgb(88, 71, 34); color: var(--ink); }
 .btn-selected { background-color: rgba(96, 134, 90, 1); border-color: var(--accent); border-width: 2px; color: white; }
 .btn-selected:hover { background-color: rgba(108, 148, 102, 1); color: white; }
 .btn-selected:active { background-color: rgba(78, 112, 74, 1); color: white; }
@@ -114,7 +114,7 @@
 .btn-ghost:hover { background-color: rgba(255, 255, 255, 0.10); }
 
 .card {
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: rgb(31, 38, 37);
     border-color: var(--panel-border);
     border-width: 1px;
     border-radius: 4px;
@@ -140,10 +140,10 @@
 .unity-scroll-view__vertical-scroller .unity-scroller__slider { margin: 0; }
 .unity-scroll-view__vertical-scroller .unity-repeat-button { display: none; }
 .unity-scroll-view__vertical-scroller .unity-base-slider__tracker {
-    background-color: rgba(255, 255, 255, 0.06); border-width: 0; border-radius: 6px; width: 8px; margin-left: 2px;
+    background-color: rgba(255, 255, 255, 0.06); border-width: 0; border-radius: 4px; width: 8px; margin-left: 2px;
 }
 .unity-scroll-view__vertical-scroller .unity-base-slider__dragger {
-    background-color: rgba(170, 198, 156, 0.42); border-width: 0; border-radius: 6px; width: 8px; margin-left: 2px; min-height: 28px;
+    background-color: rgba(170, 198, 156, 0.42); border-width: 0; border-radius: 4px; width: 8px; margin-left: 2px; min-height: 28px;
 }
 .unity-scroll-view__vertical-scroller .unity-base-slider__dragger:hover { background-color: rgba(196, 220, 182, 0.70); }
 .unity-scroll-view__vertical-scroller .unity-base-slider__dragger:active { background-color: rgba(220, 238, 206, 0.85); }
@@ -203,7 +203,7 @@
     background-color: var(--frame-bg);
     border-color: var(--frame-border);
     border-width: 1px;
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 12px 18px 14px 18px;
     width: 92%; max-width: 1180px; height: 92%; max-height: 900px;
 }
@@ -321,7 +321,7 @@
 .menu-help-panel {
     background-color: var(--frame-bg);
     border-color: var(--frame-border);
-    border-width: 1px; border-radius: 8px;
+    border-width: 1px; border-radius: 4px;
     padding: 0;
     width: 92%; max-width: 900px; max-height: 92%;
 }
@@ -396,7 +396,7 @@
 .teaching-diagram { align-self: stretch; margin-top: 8px; margin-bottom: 8px; }
 .teaching-diagram-frame {
     width: 100%; flex-shrink: 0; align-self: center;
-    background-color: rgb(14, 22, 16); border-radius: 6px; border-width: 1px; border-color: var(--panel-border);
+    background-color: rgb(24, 28, 30); border-radius: 4px; border-width: 1px; border-color: var(--panel-border);
 }
 .diagram-label { position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
 .diagram-legend { position: absolute; white-space: nowrap; -unity-text-align: upper-left; color: var(--ink-muted); }
@@ -431,3 +431,97 @@
 .competitor-panel { overflow: hidden; }
 .competitor-body { flex-shrink: 0; }
 .competitor-body > * { flex-shrink: 0; }
+
+/* ---- shared professional forestry shell ----
+   Opaque section surfaces avoid alpha accumulating over the runtime theme's grey.
+   Map-specific selectors above retain the approved survey/cartography treatment. */
+:root {
+    --space-sm: 6px;
+    --space-md: 12px;
+    --space-lg: 18px;
+    --surface-section: rgb(31, 38, 37);
+}
+.panel { padding: var(--space-md) var(--space-lg); }
+.card { background-color: var(--surface-section); padding: 12px 14px; border-color: var(--frame-rule); }
+.heading { margin-top: 8px; margin-bottom: 6px; }
+.title { white-space: normal; }
+.modal-header { flex-wrap: wrap; }
+.modal-header > .title { flex-shrink: 1; }
+.screen-actions { flex-wrap: wrap; flex-shrink: 1; justify-content: flex-end; }
+.modal-header > .row { flex-wrap: wrap; }
+.modal-workplan .modal-header, .modal-review .modal-header { align-items: flex-start; }
+.modal-workplan .modal-header > .row { margin-top: 6px; }
+.modal-workplan .columns, .modal-review .columns { align-items: flex-start; }
+.table-row { padding-top: 3px; padding-bottom: 3px; border-bottom-width: 1px; border-bottom-color: rgba(168, 180, 176, 0.08); }
+.card-locked { opacity: 0.72; padding-top: 7px; padding-bottom: 7px; }
+.objective-current { border-left-width: 3px; border-left-color: var(--accent); }
+.objective-part-heading { margin-top: 14px; margin-bottom: 5px; }
+.objective-part-text { margin-bottom: 6px; }
+.objective-body > .teaching-diagram { flex-basis: 800px; }
+.objective-words { flex-basis: 480px; }
+.unity-foldout__text { color: var(--ink); white-space: normal; }
+.unity-toggle__text { color: var(--ink); }
+
+/* One continuous instrument stack: the objective and status share one shell. */
+.hud-right { background-color: var(--panel-bg); border-width: 1px; border-color: var(--panel-border); border-radius: 4px; }
+.hud-right .panel { background-color: transparent; border-width: 0; border-radius: 0; padding: 10px 12px; }
+.hud-right .objective-widget { margin-bottom: 0; border-left-width: 3px; border-left-color: var(--accent); border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.hud-status .heading { color: var(--ink); margin-top: 0; }
+.hud-status .btn { min-height: 30px; padding: 3px 8px; }
+.hud-status .body, .hud-status .muted { font-size: var(--fs-sm); }
+.objective-widget { border-left-width: 3px; }
+.hud-minimap { background-color: var(--panel-bg); border-color: var(--panel-border); }
+.inspect-selected { border-top-width: 1px; border-top-color: var(--panel-border); border-left-width: 3px; }
+.inspect .title { font-size: 26px; }
+.stat { padding-top: 4px; padding-bottom: 4px; }
+.stat-value { font-size: 20px; }
+.inspect-detail .stat-value { font-size: 18px; }
+.inspect .body, .inspect .muted { font-size: 17px; }
+.inspect-detail { margin-top: 6px; }
+.competitor-row { padding-top: 5px; padding-bottom: 5px; }
+.competitor-row Label { font-size: 15px; }
+.competitor-name { flex-grow: 2.5; }
+.competitor-share { flex-grow: 2.1; }
+.competitor-selected { background-color: rgba(224, 180, 90, 0.08); }
+
+/* Session cards use the same controls and surfaces; the forest remains visible. */
+.session-backdrop { justify-content: center; align-items: center; background-color: rgba(7, 13, 11, 0.70); }
+.session-scroll { width: 760px; max-width: 94%; max-height: 94%; }
+.session-scroll > .unity-scroll-view__content-viewport { flex-shrink: 1; }
+.session-card { padding: 24px 30px; background-color: var(--panel-bg); }
+.session-copy { margin-bottom: 12px; }
+.session-card .title { margin-bottom: 10px; }
+.session-action { min-height: 44px; font-size: 20px; margin-bottom: 8px; margin-right: 0; }
+.startup-card { padding-top: 28px; padding-bottom: 28px; }
+.startup-column { align-items: center; }
+.startup-copy { white-space: normal; -unity-text-align: middle-center; margin-bottom: 14px; }
+.session-brand { font-size: 62px; -unity-font-style: bold; color: var(--ink); margin-bottom: 2px; }
+.session-subtitle { font-size: 23px; color: var(--ink-muted); margin-bottom: 26px; }
+.startup-action { width: 420px; max-width: 100%; min-height: 46px; font-size: 21px; margin: 0 0 10px 0; }
+.startup-column > .faint { margin-top: 12px; }
+.session-controls { max-height: 440px; align-self: stretch; margin-bottom: 14px; }
+.session-control-row { flex-direction: row; padding-top: 5px; padding-bottom: 5px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.session-control-key { width: 160px; flex-shrink: 0; font-size: 20px; }
+.session-control-row .body { flex-shrink: 1; font-size: 20px; }
+.intro-top > .body { flex-basis: 220px; }
+.intro-block { margin-right: 18px; }
+.intro-start { color: var(--ink); -unity-font-style: normal; font-size: var(--fs-reading); }
+.intro-start-heading { margin-top: 12px; }
+
+/* 720p has its own reading/spacing balance, rather than shrinking 1080p text. */
+.compact { --fs-reading: 21px; --fs-button: 18px; --fs-sm: 17px; }
+.compact .modal { width: 96%; height: 94%; padding: 10px 14px; }
+.compact .modal-map { height: 96%; --fs-button: 16px; --fs-sm: 16px; }
+.compact .modal-header { margin-bottom: 6px; padding-bottom: 6px; }
+.compact .modal-review .screen-actions { justify-content: flex-start; }
+.compact .modal-review .modal-header > .title { width: 100%; }
+.compact .modal-workplan .modal-header > .row { width: 100%; justify-content: flex-start; }
+.compact .modal-workplan .modal-header > .row > .money { margin-right: 18px; }
+.compact .menu-help-intro { max-width: 1400px; }
+.compact .objective-words { flex-basis: 460px; margin-right: 18px; }
+.compact .objective-body > .teaching-diagram { flex-basis: 800px; }
+.compact .inspect .panel { padding: 8px 12px; }
+.compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
+.compact .competitor-row Label { font-size: 16px; }
+.compact .session-card { padding: 18px 24px; }
+.compact .session-copy.body { font-size: 20px; margin-bottom: 10px; }

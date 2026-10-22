@@ -29,7 +29,7 @@ public sealed class WorkPlanView
         this.ui = ui;
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
-        VisualElement modal = UiKit.Box("panel", "modal");
+        VisualElement modal = UiKit.Box("panel", "modal", "modal-workplan");
         Root.Add(modal);
 
         VisualElement header = UiKit.Box("modal-header");
@@ -37,7 +37,7 @@ public sealed class WorkPlanView
         title = UiKit.Add(left, "", "title");
         owner = UiKit.Add(left, "", "subtitle");
         header.Add(left);
-        VisualElement right = UiKit.Box("row");
+        VisualElement right = UiKit.Box("row", "screen-actions");
         cash = UiKit.Add(right, "", "money", "title");
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));

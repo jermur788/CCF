@@ -445,12 +445,12 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Debug.Log("STARTUP_BOUNDARY_VERIFY_PASS");
     }
 
-    // Editor Play Mode enters the stand directly unless CCF_STARTUP_SCREEN=1.
+    // This legacy API fixture requests CCF_TEST_DIRECT_ENTRY=1 explicitly; normal Editor Play shows startup.
     private static IEnumerator EditorDefaultPolicy()
     {
         var menus = FindObjectsByType<StandaloneSessionMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         Check(menus.Length == 0 && !StandaloneSessionMenu.IsOpen,
-            "Editor Play Mode enters the stand directly: Bootstrap makes no startup screen unless CCF_STARTUP_SCREEN=1");
+            "Explicit Editor harness bypass enters the stand directly; normal Editor Play is covered by VisualSystemFlowShots");
         yield break;
     }
 

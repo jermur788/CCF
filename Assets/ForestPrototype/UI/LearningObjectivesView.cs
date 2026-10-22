@@ -57,7 +57,6 @@ public sealed partial class LearningObjectivesView
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal", "modal-objectives");
-        modal.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
         UiKit.Add(header, "Scenario One · one objective at a time", "title");
@@ -121,10 +120,8 @@ public sealed partial class LearningObjectivesView
         float position = scroll.scrollOffset.y;
         progress.text = "Learn the management process one step at a time. [O] returns to this objective.";
         scroll.Clear();
-        VisualElement current = UiKit.Box("card");
+        VisualElement current = UiKit.Box("card", "objective-current");
         current.name = "current-objective";
-        current.style.borderLeftWidth = 4;
-        current.style.borderLeftColor = new Color(0.91f, 0.81f, 0.47f);
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
         var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];

@@ -138,7 +138,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(previewBanner);
         help = new MenuHelpView(this);
         root.Add(help.Root);
-        if (manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
+        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
             help.ShowScenarioIntroduction();
     }
 
@@ -176,6 +176,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         if (manager == null || document == null)
             return;
+        UiKit.SetCompact(document.rootVisualElement);
         bool preview = manager.ReferencePreviewActive;
         if (preview) CloseHelp();
         else HandleKeys();
@@ -400,6 +401,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         LearningObjectivesView.ResetProgress();
         if (learning != null) learning.ReloadProgress();
     }
+
+    public void ShowScenarioIntroduction() => help.ShowScenarioIntroduction();
 
     public void AcknowledgeAnnualReview()
     {

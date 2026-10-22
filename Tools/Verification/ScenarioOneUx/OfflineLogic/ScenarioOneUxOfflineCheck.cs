@@ -107,6 +107,10 @@ public static class ScenarioOneUxOfflineCheck
         Check(MenuHelpView.SummaryTitle(MenuHelpView.Menu.WalkingHud) != MenuHelpView.Title(MenuHelpView.Menu.WalkingHud), "the briefing has its own title");
         string full = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud);
         Check(Has(full, "Your role") && Has(full, "repeated process") && Has(full, "not one thinning"), "the full walking help keeps the role and the repeated-process teaching");
+        foreach (string meaning in new[] { "Sitka", "oak", "beech", "clear-felling", "years" })
+            Check(Has(brief, meaning), "introduction includes " + meaning);
+        Check(!Has(brief, "productivity") && !Has(brief, "more productive"), "primary introduction makes no mixture productivity claim");
+        Check(Has(full, "natural regeneration") && Has(full, "gameplay calibration"), "detail explains regeneration and calibration");
         Check(Words(full) > Words(brief), "the full help is longer than the briefing");
     }
 

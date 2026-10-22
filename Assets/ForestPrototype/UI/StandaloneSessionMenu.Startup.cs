@@ -17,8 +17,7 @@ using UnityEngine.UIElements;
 // It deliberately says nothing about ecology or what to do in the forest. Teaching starts in the stand.
 //
 // Player vs Editor: a standalone Player always opens on this screen (Bootstrap in StandaloneSessionMenu.cs).
-// Editor Play Mode enters the stand directly as before, so development and the verification gates do not have
-// to click through it; set CCF_STARTUP_SCREEN=1 to exercise the real screen in the Editor.
+// Normal Editor Play follows this same route. Disposable Editor harnesses opt into CCF_TEST_DIRECT_ENTRY=1.
 public sealed partial class StandaloneSessionMenu
 {
     // How long to wait for the scene's player, save controller and forest UI before giving up (about 10 s).
@@ -29,10 +28,6 @@ public sealed partial class StandaloneSessionMenu
     // Must read as the tail of the scenario definition's display name; StartupScreenVerification checks that.
     public const string StartupScenarioSubtitle = "Sitka Plantation to Continuous-Cover Forest";
 
-    private static readonly Color StartupInk = new Color(0.93f, 0.94f, 0.89f);
-    private static readonly Color StartupInkMuted = new Color(0.69f, 0.75f, 0.66f);
-    private static readonly Color StartupInkFaint = new Color(0.60f, 0.66f, 0.57f);
-    private static readonly Color StartupKey = new Color(0.91f, 0.81f, 0.47f);
 
     // Keys a first-time tester needs to enter and control the stand. Not a tutorial: the in-game Help (F1) and
     // Learning objectives (O) teach once the player is in the stand. The list is ControlsReference, shared with the Walking HUD help.
@@ -54,6 +49,7 @@ public sealed partial class StandaloneSessionMenu
     public void ShowStartupScreen()
     {
         if (IsOpen) return;
+        continueChecked = false;
         startupScreen = true;
         if (document != null) Open();
     }
@@ -82,6 +78,7 @@ public sealed partial class StandaloneSessionMenu
         if (!IsOpen || !startupScreen) return;
         ForestEcologyController ecology = FindFirstObjectByType<ForestEcologyController>();
         Close();
+        forestUi?.ShowScenarioIntroduction();
         Debug.Log("CCF_STARTUP_NEW_SCENARIO geometry=" + (ecology != null ? StandGeometryModel.Label(ecology.StandGeometryModelVersion) : "unknown")
             + " year=" + (ecology != null ? ecology.EcologicalYear : -1));
     }
@@ -101,6 +98,7 @@ public sealed partial class StandaloneSessionMenu
             StartupCard();
             return;
         }
+        forestUi?.CloseHelp();
         Close();
         saves.Load();
         Debug.Log("CCF_STARTUP_CONTINUE");
@@ -130,21 +128,22 @@ public sealed partial class StandaloneSessionMenu
     private void StartupCard()
     {
         card.Clear();
+        card.AddToClassList("startup-card");
         VisualElement column = StartupColumn();
-        StartupLabel(column, StartupTitle, 64, StartupInk, true, 2);
-        StartupLabel(column, StartupScenarioName, 34, StartupInk, true, 4);
-        StartupLabel(column, StartupScenarioSubtitle, 22, StartupInkMuted, false, 40);
+        StartupLabel(column, StartupTitle, 64, true, 2);
+        StartupLabel(column, StartupScenarioName, 34, true, 4);
+        StartupLabel(column, StartupScenarioSubtitle, 22, false, 40);
 
         Button start = StartupButton(column, "Start New Scenario", StartNewScenarioClicked, true);
         RefreshContinueState();
         Button continueButton = StartupButton(column, "Continue", ContinueSavedForest, false);
         continueButton.SetEnabled(continueAvailable);
         if (!continueAvailable)
-            StartupLabel(column, continueNote, 16, StartupInkMuted, false, 10);
+            StartupLabel(column, continueNote, 16, false, 10);
         StartupButton(column, "Controls / Help", ControlsHelpCard, false);
         StartupButton(column, "Quit", Quit, false);
 
-        Label build = StartupLabel(column, "Private test build · " + identity.buildId, 15, StartupInkFaint, false, 0);
+        Label build = StartupLabel(column, "Private test build · " + identity.buildId, 15, false, 0);
         build.style.marginTop = 28;
         FocusWhenReady(continueAvailable ? continueButton : start);
     }
@@ -158,10 +157,11 @@ public sealed partial class StandaloneSessionMenu
             return;
         }
         card.Clear();
+        card.AddToClassList("startup-card");
         VisualElement column = StartupColumn();
-        StartupLabel(column, "Start a new Scenario One?", 32, StartupInk, true, 14);
+        StartupLabel(column, "Start a new Scenario One?", 32, true, 14);
         StartupLabel(column, "You will begin a fresh forest. Your saved forest stays on this device until you save over it (F5, or Save in the F10 menu).",
-            20, StartupInkMuted, false, 30);
+            20, false, 30);
         Button confirm = StartupButton(column, "Start New Scenario", StartNewScenario, true);
         StartupButton(column, "Back", StartupCard, false);
         FocusWhenReady(confirm);
@@ -170,30 +170,17 @@ public sealed partial class StandaloneSessionMenu
     private void ControlsHelpCard()
     {
         card.Clear();
+        card.AddToClassList("startup-card");
         VisualElement column = StartupColumn();
-        StartupLabel(column, "Controls", 34, StartupInk, true, 18);
+        StartupLabel(column, "Controls", 34, true, 18);
         var list = new ScrollView(ScrollViewMode.Vertical);
-        list.style.maxHeight = 440;
-        list.style.alignSelf = Align.Stretch;
-        list.style.marginBottom = 18;
+        list.AddToClassList("session-controls");
         column.Add(list);
         foreach (string[] row in ControlRows)
         {
-            var line = new VisualElement();
-            line.style.flexDirection = FlexDirection.Row;
-            line.style.marginBottom = 6;
-            Label key = new Label(row[0]);
-            key.style.width = 140;
-            key.style.flexShrink = 0;
-            key.style.fontSize = 20;
-            key.style.unityFontStyleAndWeight = FontStyle.Bold;
-            key.style.color = StartupKey;
-            Label what = new Label(row[1]);
-            what.style.flexShrink = 1;
-            what.style.flexGrow = 1;
-            what.style.fontSize = 20;
-            what.style.whiteSpace = WhiteSpace.Normal;
-            what.style.color = StartupInk;
+            var line = UiKit.Box("session-control-row");
+            Label key = UiKit.Text(row[0], "key", "session-control-key");
+            Label what = UiKit.Text(row[1], "body", "grow");
             line.Add(key);
             line.Add(what);
             list.Add(line);
@@ -204,21 +191,15 @@ public sealed partial class StandaloneSessionMenu
 
     private VisualElement StartupColumn()
     {
-        var column = new VisualElement();
-        column.style.alignItems = Align.Center;
+        var column = UiKit.Box("startup-column");
         card.Add(column);
         return column;
     }
 
-    private static Label StartupLabel(VisualElement parent, string text, int size, Color color, bool bold, float marginBottom)
+    private static Label StartupLabel(VisualElement parent, string text, int size, bool bold, float marginBottom)
     {
-        var label = new Label(text);
-        label.style.fontSize = size;
-        label.style.color = color;
-        label.style.whiteSpace = WhiteSpace.Normal;
-        label.style.unityTextAlign = TextAnchor.MiddleCenter;
-        label.style.marginBottom = marginBottom;
-        if (bold) label.style.unityFontStyleAndWeight = FontStyle.Bold;
+        var label = UiKit.Text(text, "startup-copy", size >= 60 ? "session-brand" : size >= 30 ? "title" : size >= 22 ? "session-subtitle" : size <= 16 ? "faint" : "body");
+        if (bold) label.AddToClassList("value");
         parent.Add(label);
         return label;
     }
@@ -230,12 +211,7 @@ public sealed partial class StandaloneSessionMenu
         var button = new Button(action) { text = text };
         button.AddToClassList("btn");
         if (primary) button.AddToClassList("btn-primary");
-        button.style.width = 360;
-        button.style.height = 48;
-        button.style.fontSize = 22;
-        button.style.marginLeft = 0;
-        button.style.marginRight = 0;
-        button.style.marginBottom = 10;
+        button.AddToClassList("startup-action");
         parent.Add(button);
         return button;
     }

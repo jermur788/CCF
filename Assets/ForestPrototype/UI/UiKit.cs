@@ -8,6 +8,9 @@ public static class UiKit
 {
     public static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
+    // At 720p keep physical reading sizes useful and reflow dense screen layouts.
+    public static void SetCompact(VisualElement root) => root.EnableInClassList("compact", UnityEngine.Screen.height < 900);
+
     public static VisualElement Box(params string[] classes)
     {
         var element = new VisualElement();

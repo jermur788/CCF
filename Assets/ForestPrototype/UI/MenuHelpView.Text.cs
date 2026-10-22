@@ -49,28 +49,29 @@ public sealed partial class MenuHelpView
     public const int ScenarioIntroWordCap = 200;
 
     public const string IntroLead =
-        "You are managing an even-aged Sitka spruce plantation: every tree was planted at the same time. "
-        + "Your task is to guide it, over many years, toward continuous-cover forestry.";
+        "Over many years, guide this plantation toward a continuous-cover forest, without clear-felling it.";
 
     public static readonly string[][] IntroSections =
     {
-        new[] { "What this forest is",
-            "Even-aged means one age: the trees are similar in size and stand in rows under a closed canopy. It is productive but uniform, and that uniformity is what you will gradually change." },
-        new[] { "What you are trying to do",
-            "Keep tree cover while the woodland renews, stays productive and makes room for the next generation of trees. You do it by walking the forest, inspecting trees and places, and choosing only work that is justified." },
-        new[] { "Why it takes many decisions",
-            "Continuous cover is not one big job but a cycle: look, decide a careful piece of work, carry it out, let years pass, then look again at how the forest responded. What you leave standing matters as much as what you remove." },
+        new[] { "What you have inherited",
+            "An even-aged Sitka spruce plantation: almost all one species, planted at the same time, in regular rows. Productive, but uniform." },
+        new[] { "What you are trying to create",
+            "A forest that keeps its tree cover but is no longer uniform: the best Sitka stays, joined by trees of many sizes and ages, other suitable species such as oak and beech, and young trees that seed themselves, the next generation." },
+        new[] { "How transformation works",
+            "Not one thinning, but a cycle you repeat: observe, choose what stays and what goes, open access, leave deadwood, make space for young trees, add species where justified. Then years pass, you review the response and adapt." },
     };
 
+    public const string IntroStartHeading = "Your first management cycle";
+
     public const string IntroStart =
-        "Learn it one step at a time. The first step is to create access racks: close this window, then press B to choose where your first rack starts. "
+        "Learn it one step at a time. First, create access racks: close this window, press B, and choose where your first rack starts. "
         + "Your current objective stays on screen; O opens its details.";
 
     public static string IntroductionText()
     {
         string text = IntroLead;
         foreach (string[] section in IntroSections) text += "\n\n" + section[0] + "\n" + section[1];
-        return text + "\n\n" + IntroStart;
+        return text + "\n\n" + IntroStartHeading + "\n" + IntroStart;
     }
 
     // Shown inside the Annual Review, beside the button that acknowledges the first results, instead of a help screen opening
@@ -118,8 +119,11 @@ public sealed partial class MenuHelpView
                     + "One thinning does not finish continuous-cover forestry. Walk back, inspect the forest response and reassess before the next intervention. Openings can create an opportunity for regeneration; seed, light, browsing and vegetation affect the outcome. Use these results to decide what to inspect next. This screen records outcomes; it does not choose or execute forestry work.\n\n"
                     + "Close Help and read the three sections. After your first results, choose I've read the annual results to unlock further year advances. Use Esc or Walk the forest to return and inspect the changes; Open Work Plan returns to planning.";
             default:
-                return "Your role: you manage a small Sitka spruce plantation and begin converting it toward continuous-cover forestry. Decisions play out over years, and you revisit them as the forest changes.\n\n"
-                    + "Continuous-cover forestry is a repeated process of selective management while keeping tree cover, not one thinning. Start with trees worth keeping: the forest you leave behind matters. More felling is not automatically better.\n\n"
+                return "Your role: you manage an even-aged Sitka spruce plantation and guide its transformation toward a continuous-cover forest. Decisions play out over years, and you revisit them as the forest changes.\n\n"
+                    + "In general, continuous-cover forestry means keeping tree cover at all times, harvesting selectively instead of clear-felling, and letting young trees grow up among older ones. How many species the forest holds is a management choice that depends on the site, the light and your aims. Scenario One's goal is more specific.\n\n"
+                    + "You start with an even-aged plantation of almost one species. Over repeated management cycles you are aiming for a forest that:\n• keeps continuous tree cover;\n• keeps the best Sitka, still growing;\n• has trees of many sizes and ages;\n• has young trees coming from seed in the spaces you open (natural regeneration);\n• has other suitable species, such as oak and beech, where they fit;\n• is more varied in structure and habitat.\nSitka is not being removed. It becomes one part of a more varied forest.\n\n"
+                    + "Continuous-cover forestry is a repeated process of selective management, not one thinning. A typical cycle:\n1. Observe: walk the forest, inspect trees and read the light on the ground.\n2. Choose the trees to keep: mark the Crop Trees (C) you want to grow on.\n3. Choose what to remove: the neighbours that most crowd them, not simply the smallest trees.\n4. Create access: racks (B) are permanent routes that keep machines off the rest of the stand.\n5. Manage deadwood: choose which felled wood stays on the ground as habitat.\n6. Prepare for young trees: openings let in light, but seed, deer browsing and ground vegetation decide what survives.\n7. Add species where justified: plant oak or beech only where there is light and a reason, and protect them.\n8. Let time pass: approve the Work Plan, then advance a year.\n9. Review: read the Annual Review, then walk back and inspect how the forest responded.\n10. Adapt: the next cycle starts from what you found, not what you hoped for.\nWhat you leave standing matters as much as what you remove; more felling is not automatically better.\n\n"
+                    + "Real transformations often take decades; yours will change one year at a time. In this game, mixing species does not by itself make the forest more productive; what it adds is variety, habitat and more than one kind of timber to sell. There is no single correct prescription, and the amounts, costs and targets in this scenario are gameplay calibration, not forecasts.\n\n"
                     + "The HUD shows the current year, cash, objectives and information about the ground or tree you are looking at. Current objective progress appears in the status panel.\n\n"
                     + "The forest is where you make management decisions. Look at ground to check light, regeneration and browsing conditions (browsing is deer eating the shoots of young trees), or press E (or left-click) while looking at a tree to inspect it. Use these observations before marking work.\n\n"
                     + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"

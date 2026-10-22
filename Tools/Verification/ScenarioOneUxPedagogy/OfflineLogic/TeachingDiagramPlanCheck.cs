@@ -81,7 +81,14 @@ public static class TeachingDiagramPlanCheck
         Check(items.Where(i => i.Kind == TeachingDiagramPlan.Kind.Crown).All(c => racks.All(r => Math.Abs(c.X - r.X) > r.Width * 0.5f + c.Radius)),
             "no standing crown overlaps an access strip");
         var intro = Symbols(-1);
-        Check(intro.SetEquals(new[] { "crown-disc", "time-clock" }), "the introduction shows the plantation and a time cycle only", string.Join(",", intro));
+        Check(intro.Contains("crown-disc") && intro.Contains("time-clock") && intro.Contains("repeat-arrow"), "introduction shows retained trees and repeated time cycles");
+        var plan = TeachingDiagramPlan.For(-1);
+        Check(plan.Panels.Count == 2 && plan.Panels[0].Items.Count == 84, "introduction compares the inherited stand with its destination");
+        Check(plan.Panels[1].Items.Any(i => i.Kind == TeachingDiagramPlan.Kind.BroadleafCrown)
+            && plan.Panels[1].Items.Any(i => i.Kind == TeachingDiagramPlan.Kind.Young)
+            && plan.Panels[1].Items.Where(i => i.Kind == TeachingDiagramPlan.Kind.Crown).Select(i => i.Radius).Distinct().Count() >= 3,
+            "destination retains varied Sitka alongside broadleaves and young trees");
+        Check(plan.Labels.Any(t => t.Value == "Best Sitka kept") && plan.Labels.Any(t => t.Value == "Direction, not a forecast"), "destination is labelled as direction with retained Sitka");
     }
 
     private static void VocabularyOnlyGrows()
@@ -137,7 +144,7 @@ public static class TeachingDiagramPlanCheck
             foreach (var crown in Items(lesson).Where(i => i.Kind == TeachingDiagramPlan.Kind.Crown))
                 if (first.TryGetValue(crown.Id, out var original))
                     Check(original.X == crown.X && original.Y == crown.Y, "crown " + crown.Id + " does not move in lesson " + (lesson + 1));
-        Check(Items(-1).Count(i => i.Kind == TeachingDiagramPlan.Kind.Crown) == 84, "the introduction shows the whole 84-crown plantation");
+        Check(TeachingDiagramPlan.For(-1).Panels[0].Items.Count(i => i.Kind == TeachingDiagramPlan.Kind.Crown) == 84, "inherited plantation contains 84 equal crowns");
         Check(TeachingDiagramPlan.Columns * TeachingDiagramPlan.Rows == 84, "the grid is 14 x 6");
         // Only the two future trees' crowns change size, once, in lesson 5.
         for (int lesson = 0; lesson < 8; lesson++)
@@ -156,10 +163,10 @@ public static class TeachingDiagramPlanCheck
         for (int lesson = -1; lesson < 8; lesson++)
         {
             var stage = TeachingDiagramPlan.For(lesson);
-            Check(stage.Labels.Length <= 4 && stage.Legend.Length <= 4, "at most four labels and four legend entries: " + stage.Id);
+            Check(stage.Labels.Length <= (lesson == -1 ? 6 : 4) && stage.Legend.Length <= 4, "bounded approved labels and at most four legend entries: " + stage.Id);
             foreach (var text in stage.Labels.Concat(stage.Legend))
             {
-                Check(text.Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length <= 4, "label is four words or fewer: " + text.Value);
+                Check(text.Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length <= (lesson == -1 ? 6 : 4), "label stays within its approved word limit: " + text.Value);
                 Check(text.X >= 0 && text.X + text.Width <= stage.Width && text.Y >= 0 && text.Y + text.Height <= stage.Height, "label sits inside the picture: " + text.Value);
             }
             // The legend names symbols that are actually on the picture.

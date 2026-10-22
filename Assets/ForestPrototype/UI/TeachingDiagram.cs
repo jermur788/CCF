@@ -143,12 +143,17 @@ public sealed class TeachingDiagram : VisualElement
                 // A short cut end tells timber apart from a management band.
                 Line(p, Colour(Plan.Role.Accent, a), Plan.StrokeNormal, item.X1 - 3f, item.Y1 - 8f, item.X1 + 3f, item.Y1 + 8f);
                 break;
+            case Plan.Kind.BroadleafCrown:
             case Plan.Kind.Young:
                 DrawYoung(p, item);
                 break;
             case Plan.Kind.Shelter:
                 Line(p, Colour(item.Role, a), Plan.StrokeNormal, item.X - item.Width * 0.5f, item.Y - item.Height * 0.5f, item.X + item.Width * 0.5f, item.Y - item.Height * 0.5f,
                     item.X + item.Width * 0.5f, item.Y + item.Height * 0.5f, item.X - item.Width * 0.5f, item.Y + item.Height * 0.5f, item.X - item.Width * 0.5f, item.Y - item.Height * 0.5f);
+                break;
+            case Plan.Kind.Chevron:
+                Line(p, Colour(item.Role, a), Plan.StrokeNormal, item.X - item.Radius, item.Y - item.Radius,
+                    item.X, item.Y, item.X - item.Radius, item.Y + item.Radius);
                 break;
             case Plan.Kind.Clock:
             case Plan.Kind.Repeat:

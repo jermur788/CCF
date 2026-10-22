@@ -125,6 +125,7 @@ public sealed partial class MenuHelpView
                 sections.Add(block);
             }
             AddIntroPart(sections);
+            AddIntroPart(UiKit.Text(IntroStartHeading, "intro-heading", "intro-start-heading"));
             AddIntroPart(UiKit.Text(IntroStart, "intro-start"));
         }
         else body.text = summary ?? Explanation(menu);

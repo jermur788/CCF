@@ -27,11 +27,11 @@ public sealed class AnnualReviewView
         this.ui = ui;
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
-        VisualElement modal = UiKit.Box("panel", "modal");
+        VisualElement modal = UiKit.Box("panel", "modal", "modal-review");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
         title = UiKit.Add(header, "", "title");
-        VisualElement buttons = UiKit.Box("row");
+        VisualElement buttons = UiKit.Box("row", "screen-actions");
         earlierYear = UiKit.Button("◀ Earlier year", () => StepYear(-1));
         laterYear = UiKit.Button("Later year ▶", () => StepYear(1));
         buttons.Add(earlierYear);

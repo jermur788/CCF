@@ -15,13 +15,13 @@ using System.Linq;
 public static class TeachingDiagramPlan
 {
     public enum Role { Panel, Canopy, CanopyEdge, Muted, Accent, Inspect, Rack, Crop, Fell, Good, Warn, Wood, Opening, Beech, Oak }
-    public enum Kind { Crown, Rack, Opening, Log, Young, Shelter, Clock, Repeat }
+    public enum Kind { Crown, Rack, Opening, Log, Young, Shelter, Clock, Repeat, BroadleafCrown, Chevron }
     public enum YoungShape { Circle, Oval, Diamond }
     [System.Flags] public enum Marks { None = 0, Band = 1, Ring = 2, Slash = 4 }
 
     public const int Columns = 14, Rows = 6;
     public const float FirstX = 65f, ColumnStep = 64f, FirstY = 116f, RowStep = 52f, CrownRadius = 22f;
-    public const float LessonWidth = 1000f, LessonHeight = 520f, IntroWidth = 1200f, IntroHeight = 600f;
+    public const float LessonWidth = 1000f, LessonHeight = 520f, IntroWidth = 1200f, IntroHeight = 520f;
     // Quiet layers are drawn at this strength so the focus of the lesson stands out from its context.
     public const float QuietAlpha = 0.57f;
     // Stroke widths in design units; a stroke never gets thinner than Minimum however small a panel is scaled.
@@ -153,15 +153,54 @@ public static class TeachingDiagramPlan
         if (stage == IntroStage)
         {
             result.Width = IntroWidth; result.Height = IntroHeight;
-            // The whole unmarked plantation, smaller, beside a large time cycle: the stand you inherit, and that managing it takes years.
-            var plantation = new Panel { X = 22f, Y = 115f, Scale = 0.79f };
+            var plantation = new Panel { X = 8f, Y = 85f, Scale = 0.46f };
+            var destination = new Panel { X = 744f, Y = 85f, Scale = 0.46f };
             for (int row = 0; row < Rows; row++)
                 for (int column = 0; column < Columns; column++)
+                {
                     plantation.Items.Add(Crown(row, column, stage, CrownsShow));
+                    if (System.Array.IndexOf(RackColumns, column) >= 0) continue;
+                    Item crown = Crown(row, column, stage, CrownsShow);
+                    // Small grouped openings hold the next generation. Counts are diagram composition only.
+                    int position = row * Columns + column;
+                    bool gap = (row == 1 && column >= 5 && column <= 7)
+                        || (row == 2 && column >= 5 && column <= 7)
+                        || (row == 4 && column >= 10 && column <= 12)
+                        || (row == 5 && column >= 10 && column <= 12)
+                        || (row == 3 && column <= 1) || (row == 4 && column <= 1);
+                    bool broadleaf = (row <= 1 && column >= 11)
+                        || (row >= 4 && column >= 5 && column <= 7);
+                    if (gap)
+                    {
+                        crown.Kind = Kind.Young; crown.Role = Role.Good;
+                        crown.Radius = 9f;
+                        crown.Shape = position % 7 == 0 ? YoungShape.Oval : YoungShape.Circle;
+                        destination.Items.Add(crown);
+                        destination.Items.Add(new Item { Id = crown.Id + "-seedling", Kind = Kind.Young, Role = Role.Good,
+                            X = crown.X + 14f, Y = crown.Y + 12f, Radius = 5f, Z = 21 });
+                    }
+                    else
+                    {
+                        crown.Radius = position % 5 == 0 ? 29f : position % 3 == 0 ? 15f : 22f;
+                        if (broadleaf)
+                        {
+                            crown.Kind = Kind.BroadleafCrown;
+                            crown.Shape = row <= 1 ? YoungShape.Oval : YoungShape.Diamond;
+                            crown.Role = row <= 1 ? Role.Beech : Role.Oak;
+                        }
+                        destination.Items.Add(crown);
+                    }
+                }
+            foreach (int column in RackColumns)
+                destination.Items.Add(new Item { Id = "intro-rack-" + column, Kind = Kind.Rack, Role = Role.Muted,
+                    X = FirstX + column * ColumnStep, Y = 72f, Y1 = 420f, Width = 32f, Z = 5 });
             result.Panels.Add(plantation);
-            var cycle = new Panel();
-            cycle.Items.Add(new Item { Id = "intro-cycle", Kind = Kind.Clock, Role = Role.Accent, X = 1000f, Y = 290f, Radius = 94f, Z = 30 });
-            result.Panels.Add(cycle);
+            result.Panels.Add(destination);
+            result.Items.Add(new Item { Id = "intro-clock", Kind = Kind.Clock, Role = Role.Accent, X = 600f, Y = 230f, Radius = 48f, Z = 30 });
+            result.Items.Add(new Item { Id = "intro-repeat", Kind = Kind.Repeat, Role = Role.Accent, X = 600f, Y = 340f, Radius = 30f, Z = 30 });
+            for (int step = 0; step < 3; step++)
+                result.Items.Add(new Item { Id = "intro-step-" + step, Kind = Kind.Chevron, Role = Role.Accent,
+                    X = 550f + step * 50f, Y = 290f, Radius = 15f, Z = 30 });
             return result;
         }
 
@@ -224,10 +263,12 @@ public static class TeachingDiagramPlan
         {
             case 0: return new[]
             {
-                new Text("Even-aged Sitka plantation", 40f, 43f, 610f, 30f, 28f, Role.Accent),
-                new Text("Keep continuous tree cover", 40f, 485f, 650f, 30f, 28f, Role.Accent),
-                new Text("Decide, observe, adapt", 854f, 120f, 340f, 30f, 28f, Role.Accent),
-                new Text("Over many years", 886f, 449f, 280f, 30f, 28f, Role.Accent),
+                new Text("Inherited: one species, one age", 20f, 34f, 425f, 64f, 28f, Role.Accent),
+                new Text("Created: many sizes, ages, species", 750f, 34f, 440f, 64f, 28f, Role.Accent),
+                new Text("Repeated selective management", 468f, 110f, 270f, 80f, 28f, Role.Accent),
+                new Text("Over many years", 475f, 400f, 265f, 40f, 26f, Role.Accent),
+                new Text("Best Sitka kept", 768f, 340f, 390f, 34f, 27f, Role.Accent),
+                new Text("Direction, not a forecast", 20f, 450f, 650f, 32f, 25f, Role.Muted),
             };
             case 1: return new[]
             {
@@ -284,6 +325,13 @@ public static class TeachingDiagramPlan
     {
         switch (stage)
         {
+            case 0: return new[]
+            {
+                new Text("Disc: Sitka", 20f, 490f, 220f, 26f, 22f, Role.Muted),
+                new Text("Oval, diamond: beech, oak", 250f, 490f, 390f, 26f, 22f, Role.Muted),
+                new Text("Small shapes: young trees", 650f, 490f, 350f, 26f, 22f, Role.Muted),
+                new Text("Strip: access rack", 1010f, 490f, 190f, 26f, 22f, Role.Muted),
+            };
             case 1: return new[]
             {
                 new Text("Strip: access rack", 40f, 484f, 235f, 24f, 20f, Role.Muted),
