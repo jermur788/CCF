@@ -637,7 +637,10 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         // Continue loads the saved forest through the existing validated path.
         logLines.Clear();
         yield return Click(menu, "Continue");
-        CheckForestHandedBack("Continue", playerWasEnabled);
+        // Continue closes the hidden WalkingHud introduction and does not replay it, so unlike Start New it hands
+        // player control back to the stand even though explicit direct entry started with input deliberately held.
+        CheckForestHandedBack("Continue", true);
+        Check(!ui.Help.IsOpen, "Continue does not replay the introduction");
         Check(logLines.Any(l => l.Contains("CCF_STARTUP_CONTINUE")), "Continue is logged for Player.log evidence");
         Check(Hash() == savedHash && manager.CurrentEcologicalYear == 1, "Continue restored the saved year-1 forest");
         Check(ecology.StandGeometryModelVersion == fresh.standGeometryModel, "the loader applied the save's own stand geometry");
