@@ -578,7 +578,9 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
             VisualElement modalEl = ui.Map.Root.Q(className: "modal"), frameEl = ui.Map.Root.Q("map-frame"), overview = ui.Map.Root.Q("map-overview"), legend = ui.Map.Root.Q("map-legend"), card = ui.Map.Root.Q(className: "map-side");
             Rect root = ui.RootElement.worldBound, modal = modalEl.worldBound, frame = frameEl.worldBound;
             Hard($"LAYOUT_{tag}_THE_MAP_WINDOW_IS_ON_SCREEN", Inside(modal, root), $"{modal} in {root}");
-            Hard($"LAYOUT_{tag}_THE_MAP_FRAME_IS_SQUARE_AND_LARGE", Mathf.Abs(frame.width - frame.height) < 1f && frame.width >= 600f, $"{frame}");
+            // The panel scales with the screen, so one physical pixel is more than one UI unit at 1280x720 (1.25): allow one pixel of layout rounding, not more.
+            float onePixel = root.width / Screen.width;
+            Hard($"LAYOUT_{tag}_THE_MAP_FRAME_IS_SQUARE_AND_LARGE", Mathf.Abs(frame.width - frame.height) <= onePixel * 1.01f && frame.width >= 600f, $"{frame} (one physical pixel = {onePixel:0.00} units)");
             Hard($"LAYOUT_{tag}_FRAME_OVERVIEW_LEGEND_AND_CARD_ARE_INSIDE_THE_WINDOW", new[] { frame, overview.worldBound, legend.worldBound, card.worldBound }.All(r => Inside(r, modal)), $"frame={frame} overview={overview.worldBound} legend={legend.worldBound} card={card.worldBound} modal={modal}");
             var overlaps = new List<string>();
             if (frame.Overlaps(overview.worldBound)) overlaps.Add("map/overview"); if (frame.Overlaps(legend.worldBound)) overlaps.Add("map/legend"); if (frame.Overlaps(card.worldBound)) overlaps.Add("map/card");
