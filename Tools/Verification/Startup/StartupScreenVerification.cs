@@ -769,6 +769,13 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
 
     private static string Describe(VisualElement element) => (element as TextElement)?.text ?? element.name ?? element.GetType().Name;
 
+    private static bool InScrollView(VisualElement element)
+    {
+        for (VisualElement parent = element.parent; parent != null; parent = parent.parent)
+            if (parent is ScrollView) return true;
+        return false;
+    }
+
     private static void CheckLayout(StandaloneSessionMenu menu, string name)
     {
         VisualElement root = Root(menu);
@@ -786,14 +793,23 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         {
             Rect r = element.worldBound;
             Check(!float.IsNaN(r.x) && !float.IsNaN(r.y) && r.width > 0f && r.height > 0f, name + ": laid out: " + Describe(element));
-            Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
-                name + ": fully on screen (no clipping): " + Describe(element));
+            // The approved controls list scrolls at 1280x720; content below the viewport is reachable through its
+            // ScrollView, so only horizontal clipping is a defect there. Everything outside a ScrollView must fit.
+            if (InScrollView(element))
+                Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f,
+                    name + ": within the screen width: " + Describe(element));
+            else
+                Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
+                    name + ": fully on screen (no clipping): " + Describe(element));
         }
         for (int i = 0; i < shown.Count; i++)
             for (int j = i + 1; j < shown.Count; j++)
                 Check(!shown[i].worldBound.Overlaps(shown[j].worldBound), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
         foreach (Button button in root.Query<Button>().ToList())
             Check(button.worldBound.height >= 40f, name + ": button tall enough to click: " + button.text);
+        foreach (ScrollView scroll in root.Query<ScrollView>().ToList())
+            Debug.Log("STARTUP_SCROLL " + name + " viewport=" + scroll.layout.height + " content=" + scroll.contentContainer.layout.height
+                + " overflows=" + (scroll.contentContainer.layout.height > scroll.layout.height + 1f) + " bar=" + scroll.verticalScroller.visible);
 
         Label subtitle = root.Query<Label>().ToList().FirstOrDefault(l => l.text == StandaloneSessionMenu.StartupScenarioSubtitle);
         Label build = root.Query<Label>().ToList().FirstOrDefault(l => l.text.StartsWith("Private test build"));
