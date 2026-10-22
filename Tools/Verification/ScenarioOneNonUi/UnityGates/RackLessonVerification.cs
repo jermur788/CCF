@@ -110,6 +110,11 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         if (marks.AimedTree != tree) throw new InvalidOperationException("could not aim at " + tree.TreeId);
         yield return Press(Key.E);
         yield return Frames(8);
+        // A fresh profile opens the first-use Tree Inspection help here. It is modal and takes the keyboard, so close the tutorial
+        // window after it has opened; the gate then exercises the same gameplay state a returning player sees. User-facing first-use
+        // help is unchanged.
+        ui.CloseHelp();
+        yield return Frames(4);
         if (!player.IsInspecting || player.InspectedTree != tree) throw new InvalidOperationException("could not inspect " + tree.TreeId);
     }
 
@@ -151,7 +156,11 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         ui.AcknowledgeAnnualReview(); ui.CloseAll(); yield return Settled();
         Check(LiveFacts().AccessOpen && LiveFacts().AccessReviewed, "live access executed and Annual Review acknowledged");
         var bay = Bay();
-        Check(bay.RackIndex == 2 && bay.RackCount == 5 && Mathf.Abs(bay.HalfWidthM - 7.6f) < .01f, "middle rack footprint uses actual layout");
+        var layoutLines = planner.LayoutLines.OrderBy(v => v).ToArray();
+        Check(layoutLines.Length == 5, "the authored layout has five racks", "n=" + layoutLines.Length);
+        float expectedHalfWidth = Mathf.Min(layoutLines[2] - layoutLines[1], layoutLines[3] - layoutLines[2]) * .5f;
+        Check(bay.RackIndex == 2 && bay.RackCount == 5 && Mathf.Abs(bay.HalfWidthM - expectedHalfWidth) < .001f,
+            "middle rack footprint is half the gap to its neighbouring layout racks", "half width " + F(bay.HalfWidthM));
         foreach (string id in new[] { "P0616", "P1112", "P1415" }) marks.Mark(Trees().First(t => t.TreeId == id), TreeMarkType.CropTree, false);
         yield return Settled();
         Check(!Bay().HasEnoughFuture && ui.Learning.CurrentTopicIndex == 1, "clustered triple cannot complete Objective 2 live");

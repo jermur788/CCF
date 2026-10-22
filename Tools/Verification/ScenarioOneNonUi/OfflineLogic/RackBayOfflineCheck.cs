@@ -1,4 +1,5 @@
-// Plain .NET checks of the actual production lesson rules. CSV is a generator replica, not live Unity qualification.
+// Plain .NET checks of the actual production lesson rules. The CSV is a live-captured Legacy40 core at the scene's 2.0 m
+// spacing (core-stand-live-2m.csv), not the old 1.9 m generator replica. It is calibration data, not live Unity qualification.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,9 +9,12 @@ using System.Linq;
 public static class RackBayOfflineCheck
 {
     private static int checks, failures;
-    private static readonly float[] Lines = { -30.8f, -15.2f, 0f, 15.2f, 30.8f };
+    // The five live authored layout centres, captured from the Enlarged80 planted rows at the scene's serialized 2.0 m spacing
+    // (SCENARIO-ONE-APPROACH-ANCHOR-DIAGNOSIS-V1, 2026-10-22). Row jitter moves the centres a few centimetres off their nominal
+    // 16 m spacing; the scene-spacing check below ties this list back to the scene instead of trusting the old 1.9 m assumption.
+    private static readonly float[] Lines = { -31.4092f, -16.0152f, 0.0147f, 16.0224f, 31.3419f };
     private static readonly string[] Future = { "P0714", "P1109", "P0706" };
-    private static void Check(bool ok, string name) { checks++; Console.WriteLine((ok ? "PASS " : "FAIL ") + name); if (!ok) failures++; }
+    private static void Check(bool ok, string name, string detail = "") { checks++; Console.WriteLine((ok ? "PASS " : "FAIL ") + name + (detail.Length > 0 ? " [" + detail + "]" : "")); if (!ok) failures++; }
     private sealed class Stand
     {
         public List<ScenarioOneRackBay.Tree> Trees = new List<ScenarioOneRackBay.Tree>();
@@ -30,10 +34,17 @@ public static class RackBayOfflineCheck
         }
         public Stand Clone() => new Stand { Trees = new List<ScenarioOneRackBay.Tree>(Trees), Orders = new List<ScenarioOneRackBay.Order>(Orders) };
     }
+    private static float SceneSpacing(string root)
+    {
+        string scene = File.ReadAllText(Path.Combine(root, "Assets/Scenes/ForestTest.unity"));
+        var match = System.Text.RegularExpressions.Regex.Match(scene, @"latticeSpacingMeters:\s*([0-9.]+)");
+        if (!match.Success) throw new InvalidOperationException("ForestTest has no serialized latticeSpacingMeters");
+        return float.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+    }
     private static Stand Load(string root)
     {
         var s = new Stand();
-        foreach (string line in File.ReadAllLines(Path.Combine(root,"Tools/Verification/ScenarioOneNonUi/OfflineLogic/core-stand-replica.csv")).Skip(1))
+        foreach (string line in File.ReadAllLines(Path.Combine(root,"Tools/Verification/ScenarioOneNonUi/OfflineLogic/core-stand-live-2m.csv")).Skip(1))
         {
             var c=line.Split(','); float x=float.Parse(c[1],CultureInfo.InvariantCulture),z=float.Parse(c[2],CultureInfo.InvariantCulture),d=float.Parse(c[3],CultureInfo.InvariantCulture);
             bool rack=Lines.Any(l=>Math.Abs(z-l)<=1.2f);
@@ -79,16 +90,26 @@ public static class RackBayOfflineCheck
     public static int Run(string root)
     {
         string eco=File.ReadAllText(Path.Combine(root,"Assets/ForestPrototype/ForestEcologyController.cs"));
+        float spacing=SceneSpacing(root);
+        float layoutSpacing=Math.Min(Lines[2]-Lines[1],Lines[3]-Lines[2])/8f;
+        Check(Math.Abs(layoutSpacing-spacing)<.1f,"captured rack layout follows the scene's serialized planting spacing",
+            "scene "+spacing.ToString("0.###",CultureInfo.InvariantCulture)+" m, captured "+layoutSpacing.ToString("0.###",CultureInfo.InvariantCulture)+" m");
         Check(eco.Contains("public const float HegyiCutoffMeters = 8f;")&&eco.Contains("return (neighbourDbhCm / Mathf.Max(1f, targetDbhCm)) / Mathf.Max(0.5f, distanceMeters);"),"offline Hegyi stub matches production");
         Check(ScenarioOneRackBay.FutureTreeSpacingM==8f,"8 m model-linked spacing retained");
         var fresh=Load(root);var selected=fresh.Clone();foreach(string id in Future)selected.Crop(id);
         var a=selected.Analyse();
         Check(!ScenarioOneRackBay.Analyse(new float[0],fresh.Trees,fresh.Orders).Applies,"legacy no-rack fallback retained");
-        Check(a.RackCount==5&&a.RackIndex==2&&Math.Abs(a.HalfWidthM-7.6f)<.001,"fixed middle-rack footprint");
-        Check(fresh.Trees.Count(t=>t.Living&&a.Contains(t.X,t.Z))==76,"fixture teaching footprint still contains 76 trees");
+        float halfWidth=Math.Min(Lines[2]-Lines[1],Lines[3]-Lines[2])*.5f;
+        Check(a.RackCount==5&&a.RackIndex==2&&Math.Abs(a.HalfWidthM-halfWidth)<.001,"middle rack footprint is half the gap to its neighbouring racks",
+            "half width "+a.HalfWidthM.ToString("0.###",CultureInfo.InvariantCulture)+" m");
+        int footprint=fresh.Trees.Count(t=>t.Living&&a.Contains(t.X,t.Z));
+        double areaBasal=fresh.Trees.Where(t=>t.Living&&a.Contains(t.X,t.Z)).Sum(t=>Math.PI*Math.Pow(t.DbhCm/200.0,2.0));
+        Check(footprint==69,"live 2.0 m fixture teaching footprint contains 69 trees");
+        Check(Math.Abs(areaBasal-1.29490)<.00001,"live 2.0 m fixture footprint holds 1.29490 m2 of initial woodland BA",
+            areaBasal.ToString("R",CultureInfo.InvariantCulture));
         Check(a.HasEnoughFuture&&a.NearSelected&&a.MiddleSelected&&a.FarSelected&&a.BothSides,"one selection per zone and both sides");
         Check(!a.ReleaseExecuted&&!a.ReleasePlanned,"selection is not release");
-        Check(!a.Contains(0,0)&&!a.Contains(13,3)&&!a.Contains(0,8),"corridor and footprint boundaries excluded");
+        Check(!a.Contains(0,0)&&!a.Contains(13,3)&&!a.Contains(0,a.CentreZ+a.HalfWidthM+0.05f),"corridor and footprint boundaries excluded");
         var clustered=fresh.Clone();foreach(string id in new[]{"P0616","P1112","P1415"})clustered.Crop(id);
         Check(!clustered.Analyse().HasEnoughFuture&&ScenarioOneTeachingSequence.Current(Facts(clustered.Analyse()))==1,"review counterexample clustered triple cannot finish Objective 2");
         var synthetic=new List<ScenarioOneRackBay.Tree>{new ScenarioOneRackBay.Tree("a",-9,3,10,true,true),new ScenarioOneRackBay.Tree("b",0,3,10,true,true),new ScenarioOneRackBay.Tree("c",9,3,10,true,true)};
@@ -103,7 +124,7 @@ public static class RackBayOfflineCheck
         {
             var dir=RackGeometry.Direction(angle); Func<float,float,RackPoint> world=(x,z)=>new RackPoint(23+x*dir.X-z*dir.Z,-17+x*dir.Z+z*dir.X);
             var rotated=synthetic.Select(t=>{var p=world(t.X,t.Z);return new ScenarioOneRackBay.Tree(t.Id,p.X,p.Z,t.DbhCm,true,true);}).ToList();
-            var frame=new ScenarioOneRackBay.Frame(world(-40,0),world(40,0),7.6f);
+            var frame=new ScenarioOneRackBay.Frame(world(-40,0),world(40,0),a.HalfWidthM);
             var r=ScenarioOneRackBay.Analyse(Lines,rotated,null,frame);
             Check(r.HasEnoughFuture&&r.BothSides&&rotated.Select(t=>r.Portion(t.X,t.Z)).SequenceEqual(synthetic.Select(t=>a.Portion(t.X,t.Z))),"zones and sides follow actual rack-relative frame at "+angle+" degrees");
         }
@@ -126,7 +147,7 @@ public static class RackBayOfflineCheck
         var beforeReview=new ScenarioOneRackReview();beforeReview.Synchronize(a,true,0);var pre=a.Future[0];beforeReview.Observe(a,pre.Id,pre.X,pre.Z,1);
         Check(!beforeReview.Decide(a,pre.Id,pre.X,pre.Z,ScenarioOneRackReview.Decision.RetainHere),"inspection before executed initial intervention earns no later-review decision");
         var release=selected.Clone();PlanInitial(release);a=release.Analyse();
-        Console.WriteLine("CALIBRATION initial removals="+a.PlannedRemovals+" BA="+a.RemovedBasalShare.ToString("R",CultureInfo.InvariantCulture)+" min="+a.MinPlannedAndExecuted.ToString("R",CultureInfo.InvariantCulture));
+        Console.WriteLine("CALIBRATION footprint="+footprint+" trees, BA="+areaBasal.ToString("R",CultureInfo.InvariantCulture)+" m2, initial removals="+a.PlannedRemovals+" BA share="+a.RemovedBasalShare.ToString("R",CultureInfo.InvariantCulture)+" min="+a.MinPlannedAndExecuted.ToString("R",CultureInfo.InvariantCulture));
         Check(a.ReleasePlanned&&a.PlannedRemovals>=10&&a.CanopyKept,"30% initial calibrated release remains feasible and substantial inside footprint");
         Check(!a.MixedPlanned&&!a.ReleaseExecuted,"planned all-sold work is neither executed nor mixed");
         string wood=release.Orders.First(o=>o.Open).TargetId;release.Plan(wood,ScenarioOneRackBay.Disposition.Deadwood);a=release.Analyse();

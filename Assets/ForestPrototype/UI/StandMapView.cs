@@ -405,7 +405,7 @@ public sealed class StandMapView
     private void PlaceRack(ForestEcologyController eco, int index)
     {
         Vector2 centre = eco.Cells[index].Center;
-        // A square the planned layout crosses puts the rack on that layout row (rows are about 1.9 m apart and a square is 5 m, so the
+        // A square the planned layout crosses puts the rack on that layout row (rows are about 2 m apart and a square is 5 m, so the
         // centre of the square is usually nearer a different row); anywhere else the planner takes the row nearest the centre.
         float across = centre.y;
         float turn = RackGeometry.NormaliseAngle(rackAngle);

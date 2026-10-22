@@ -1,9 +1,9 @@
 // Offline check for the forest track's approach route (StandApproachRoute.cs): the track continues the authored track's south end smoothly,
 // runs to the south property edge and a little beyond, is cut into the planks the starting stand and the stand map read, and clears only
-// the one core tree the replica of the generator says it must. Pure maths on plain .NET; the Unity gate StandApproachVerification.cs
+// the one core tree the live 2.0 m core says it must. Pure maths on plain .NET; the Unity gate StandApproachVerification.cs
 // checks the planks, the ridge opening, the map and the stand in the live game.
 //
-// The core trees are the 336 Legacy40 trees reproduced from the generator (core-stand-replica.csv). The authored track end is plank
+// The core trees are the 336 Legacy40 trees captured live at the scene's 2.0 m spacing (core-stand-live-2m.csv). The authored track end is plank
 // "Dirt Path 00" in ForestTest.unity: position (-0.928509, -14.75), turned 2 * atan2(0.23488314, 0.9720236) about Y; plank 01 is at (-0.67, -14.25).
 //
 // Prints NONUI_APPROACH_PASS / NONUI_APPROACH_FAIL.
@@ -107,14 +107,14 @@ public static class StandApproachOfflineCheck
     // What the generator would do to the 336 Legacy40 core trees if it cleared 1.5 m round every inside plank.
     private static void CoreTrees(string root, List<StandApproachRoute.Point> route)
     {
-        string path = Path.Combine(root, "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "core-stand-replica.csv");
+        string path = Path.Combine(root, "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "core-stand-live-2m.csv");
         var trees = new List<(string id, float x, float z)>();
         foreach (string line in File.ReadAllLines(path).Skip(1))
         {
             string[] c = line.Split(',');
             trees.Add((c[0], float.Parse(c[1], CultureInfo.InvariantCulture), float.Parse(c[2], CultureInfo.InvariantCulture)));
         }
-        Check(trees.Count == 336, "the core replica has the 336 Legacy40 trees", "n=" + trees.Count);
+        Check(trees.Count == 336, "the live 2.0 m core has the 336 Legacy40 trees", "n=" + trees.Count);
 
         var planks = route.Where(p => StandApproachRoute.InsideProperty(p, EdgeZ)).ToList();
         var cleared = trees.Where(t => planks.Any(p => p.Z < JoinZ && Dist(t.x, t.z, p.X, p.Z) <= Corridor)).Select(t => t.id).OrderBy(i => i, StringComparer.Ordinal).ToList();
@@ -128,15 +128,15 @@ public static class StandApproachOfflineCheck
     // existed was planted across the line; one made with it has no original plantation tree on it.
     private static void Worlds(string root, List<StandApproachRoute.Point> route)
     {
-        string path = Path.Combine(root, "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "core-stand-replica.csv");
+        string path = Path.Combine(root, "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "core-stand-live-2m.csv");
         var oldCore = new List<(string id, float x, float z)>();
         foreach (string line in File.ReadAllLines(path).Skip(1))
         {
             string[] c = line.Split(',');
             oldCore.Add((c[0], float.Parse(c[1], CultureInfo.InvariantCulture), float.Parse(c[2], CultureInfo.InvariantCulture)));
         }
-        // The new core: P0009 is cleared and the mortality budget restores P0600 at its live position (live Unity, positions to 0.01 m). The
-        // replica CSV was made with the code's default 1.9 m lattice spacing, not the scene's 2.0 m, so its positions are about 5% short of live.
+        // The new core: P0009 is cleared and the mortality budget restores P0600 at its live position (live Unity, positions to 0.01 m).
+        // The fixture is the live 2.0 m Legacy40 core, so the old world is at the scene's actual geometry.
         var newCore = oldCore.Where(t => t.id != "P0009").Concat(new[] { ("P0600", -19.40f, -8.15f) }).ToList();
 
         Check(!StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, oldCore), "a world planted before the approach (the old core stands on its line) is recognised as old");

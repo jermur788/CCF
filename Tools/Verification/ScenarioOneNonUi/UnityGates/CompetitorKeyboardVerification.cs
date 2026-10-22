@@ -115,6 +115,10 @@ public sealed class CompetitorKeyboardVerificationRunner : MonoBehaviour
         Check(crop.IsCropTree, "the tree is a Crop Tree", crop.TreeId);
         yield return Press(Key.E);
         yield return Frames(8);
+        // A fresh profile opens the first-use Tree Inspection help here. It is modal and unlocks the cursor; close the tutorial
+        // window so the gate reaches the same gameplay state a returning player sees. User-facing first-use help is unchanged.
+        ui.CloseHelp();
+        yield return Frames(4);
         Check(player.IsInspecting && player.InspectedTree == crop, "the Crop Tree is being inspected", crop.TreeId);
         Check(ui.Competitors.ReportTree == crop && ui.Competitors.ListedCount == 5, "its competitor list shows five neighbours", "listed " + ui.Competitors.ListedCount);
     }
@@ -182,9 +186,9 @@ public sealed class CompetitorKeyboardVerificationRunner : MonoBehaviour
         yield return Press(Digit(protectedRow + 1));
         Check(ui.Competitors.SelectedTree != null && ui.Competitors.SelectedTree.TreeId == protectedId, "a competitor that is itself a Crop Tree can be chosen", protectedId);
         yield return Press(Key.X);
+        Check(marks.TransientMessage.Contains("Crop Tree") && marks.TransientMessage.Contains("C"), "and the player is told to remove the Crop Tree mark first", marks.TransientMessage);
         yield return Frames(6);
         Check(protectedTree.IsCropTree && !protectedTree.IsMarkedForFell, "X by keyboard refuses a Crop Tree: the Crop Tree mark is kept", protectedId);
-        Check(marks.TransientMessage.Contains("Crop Tree") && marks.TransientMessage.Contains("C"), "and the player is told to remove the Crop Tree mark first", marks.TransientMessage);
         yield return Press(Digit(ui.Competitors.SelectedIndex + 1));         // let go
         marks.Unmark(protectedTree, false);
         yield return Press(Key.E);                                            // leave inspection, then aim at the Crop Tree itself
@@ -192,9 +196,9 @@ public sealed class CompetitorKeyboardVerificationRunner : MonoBehaviour
         yield return Aim(t => t == cropA, t => { });
         Check(marks.AimedTree == cropA && cropA.IsCropTree, "the reticle is on a Crop Tree with nothing chosen on the keyboard");
         yield return Press(Key.X);
+        Check(marks.TransientMessage.Contains("Crop Tree"), "with the same feedback", marks.TransientMessage);
         yield return Frames(6);
         Check(cropA.IsCropTree && !cropA.IsMarkedForFell, "X by mouse aim refuses a Crop Tree too: same rule on both paths", cropA.TreeId);
-        Check(marks.TransientMessage.Contains("Crop Tree"), "with the same feedback", marks.TransientMessage);
         yield return Inspect(cropA);
 
         // ---- a chosen competitor does not outlive the list ----
