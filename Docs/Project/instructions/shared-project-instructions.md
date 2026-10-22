@@ -54,6 +54,10 @@ Provider-native subagents are investigation helpers by default. They gain no ind
 
 T3-owned delegated work requires explicit child base, context commit, scope, exclusions, ownership/locks, acceptance criteria and stop conditions. Prefer an isolated worktree for independent writable work. Child completion is not acceptance or integration, and delegation never bypasses active-task ownership, the Unity lock or independent review. Parallel Unity is never permitted unless separately authorised. A provider-native child does not count as an independent reviewer for its parent task. A separately assigned reviewer may satisfy formal independent review only when genuinely independent of the implementation being reviewed and explicitly assigned that review role/task; delegation or completion alone never satisfies a gate.
 
+## Dashboard sync
+
+Dashboard sync: After any substantial task, integration, review, user-test result or status change, update the authoritative project/coordination record and verify the dashboard refreshes and its GitHub audit snapshot reflects the new state. A task is not fully closed until this is verified, unless the dashboard/publisher is unavailable, in which case report that explicitly. Never manually edit generated dashboard-state files.
+
 ## Handover
 
 Report what changed/was decided, actual verification, unresolved points, authoritative file needing update and next step. Implementation uses AgentWorkflow's detailed handoff format.

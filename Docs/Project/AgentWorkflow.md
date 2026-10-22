@@ -72,6 +72,21 @@ The timestamp is the context commit's timestamp, not regeneration wall-clock tim
 
 If Git/Drive differ, Git wins; regenerate. Attached/project copies do not automatically follow Drive edits. After context changes: regenerate the entire mirror set and both composites at one SHA, then refresh/re-attach/replace platform knowledge. Do not call older attachments current.
 
+### Dashboard synchronization
+
+After any substantial task, integration, review, user-test result or project-status change:
+
+1. update the authoritative local project/coordination record;
+2. allow/run the dashboard ingestion/update mechanism;
+3. confirm the automatic GitHub dashboard audit snapshot advances;
+4. confirm the published dashboard state actually reflects the new project status.
+
+A substantial task is not fully closed until this synchronization is verified.
+
+If the dashboard or publisher is unavailable, the task may hand off, but the synchronization failure must be explicitly recorded as an outstanding operational issue.
+
+Never manually edit generated dashboard-state files.
+
 ## Capability
 
 Use only currently available tools. Chats without repo/Unity tools may plan/research/review, not claim local implementation. Claude Desktop MCP can perform authorised local work; Code/cloud can implement but claim Unity verification only after actual runs. OpenAI/OpenCode can use available code/Unity/Blender/asset/integration tools.
@@ -356,6 +371,10 @@ DECISIONS NEEDED:
 -
 WORKER ASSESSMENT:
 Ready for review: Yes / No / Conditional
+DASHBOARD SYNC: PASS / FAIL / NOT AVAILABLE
+PUBLISHED DASHBOARD REFLECTS THIS TASK: YES / NO
+DASHBOARD SYNC FOLLOW-UP:
+- (required if FAIL, NOT AVAILABLE or NO; give the reason and required follow-up)
 RECOMMENDED NEXT STEP:
 -
 ```
@@ -441,3 +460,4 @@ Independent review is not automatically required after every handoff. Follow the
 5. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
 6. Use one authorised integrator for approved work and run required integrated gates.
 7. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
+8. Confirm dashboard synchronization for every substantial task and project-status change: update the authoritative coordination record, run or allow ingestion, verify the automatic GitHub audit snapshot advances, and verify the published dashboard reflects the new state. Dashboard publication is required, not optional reporting. If the dashboard or publisher is unavailable, record the synchronization failure as an outstanding operational issue.
