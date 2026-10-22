@@ -155,7 +155,8 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
         Check(manager.Objectives.All(o => Text().Contains(ScenarioOneUiFacts.ObjectiveLine(o))), "all authoritative scenario goals discoverable");
         yield return Shoot("03-all-goals", false);
         ui.ShowMap(); yield return Pause(); if (ui.Help.IsOpen) ui.CloseHelp(); yield return Pause();
-        Check(Button("Access & position") != null && Text().Contains("YOU"), "default map shows access and player position");
+        // The professional map shows the player as a dot with a facing wedge (no "YOU" text): the player's dot must be in the map's drawn plan, on the Access layer.
+        Check(Button("Access & position") != null && ui.Map.Surface.Canvas.LastPlan.Any(i => i.Symbol == MapSymbol.PlayerDot), "default map shows access and player position");
         Check(ui.RootElement.Q<Foldout>("map-site-details").value == false, "technical site detail secondary");
         yield return Shoot("04-map-overview");
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == original, "intro/objective/map presentation leaves forest hash unchanged");

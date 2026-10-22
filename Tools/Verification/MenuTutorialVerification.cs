@@ -172,8 +172,12 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         // Square IDs belong to the secondary Light layer; the beginner overview shows access and position.
         yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Light"));
         int target = (ui.Ecology.GetCellIndex(position) + 1) % ui.Ecology.Cells.Length;
-        Button cellButton = ui.Map.Root.Query<Button>().ToList().First(b => b.ClassListContains("map-cell")
-            && b.Query<Label>().ToList().Any(l => l.text == UiKit.CellLabel(target, ui.Ecology.CellsPerAxis)));
+        // The professional map prints no text in its squares: the invisible square buttons are listed north row first, so square index z*n+x is
+        // the button at (n-1-z)*n+x (StandMapView.EnsureCells; ProfessionalMapVerification checks every button against the shared transform).
+        int perAxis = ui.Ecology.CellsPerAxis;
+        List<Button> squareButtons = ui.Map.Root.Query<Button>(className: "map-cell").ToList();
+        Check(squareButtons.Count == perAxis * perAxis, "the map offers one square button for every ecology square");
+        Button cellButton = squareButtons[(perAxis - 1 - target / perAxis) * perAxis + target % perAxis];
         yield return Click(cellButton);
         foreach (string label in new[] { "Light", "Regeneration", "Browsing / protection", "Fell & crop marks" })
             yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == label));

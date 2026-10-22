@@ -328,7 +328,8 @@ public sealed class StandMapParityRunner : MonoBehaviour
                 Vector2 a = new Vector2(item.Points[k].X / miniSide, item.Points[k].Y / miniSide), c = new Vector2(other.Points[k].X / fullSide, other.Points[k].Y / fullSide);
                 worst = Mathf.Max(worst, Distance(a, c)); points++;
             }
-            worst = Mathf.Max(worst, Distance(new Vector2(item.Anchor.X / miniSide, item.Anchor.Y / miniSide), new Vector2(other.Anchor.X / fullSide, other.Anchor.Y / fullSide)));
+            // The north arrow is page furniture at a fixed inset, not a place on the property: its anchor is not a world position.
+            if (item.Symbol != MapSymbol.NorthArrow) worst = Mathf.Max(worst, Distance(new Vector2(item.Anchor.X / miniSide, item.Anchor.Y / miniSide), new Vector2(other.Anchor.X / fullSide, other.Anchor.Y / fullSide)));
         }
         Hard("PLAN_EVERY_MINIMAP_ITEM_HAS_A_FULL_MAP_COUNTERPART", missing == 0 && matched == mini.Count && mini.Count >= 8, $"matched={matched} missing={missing} of {mini.Count}");
         Hard("PLAN_PATH_RACK_AND_BOUNDARY_POINTS_ARE_AT_THE_SAME_FRACTIONS", worst < 1e-4f && points == expectedPoints && points >= 60, $"points={points} of {expectedPoints} worst={worst:0.0e+0}");
