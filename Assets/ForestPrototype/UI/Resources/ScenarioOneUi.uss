@@ -288,12 +288,12 @@
 /* Survey labels: easting along the bottom, northing along the left, "N" and the scale length on the map. */
 .map-north-labels { width: 30px; flex-shrink: 0; position: relative; margin-right: 4px; }
 .map-east-labels { position: relative; height: 18px; flex-shrink: 0; }
-.map-axis-label { position: absolute; font-size: 13px; color: var(--map-ink-faint); width: 40px; }
+.map-axis-label { position: absolute; font-size: 13px; color: var(--map-ink-muted); width: 40px; }
 .map-axis-east { top: 2px; -unity-text-align: upper-center; }
 .map-axis-north { right: 2px; width: 28px; height: 18px; -unity-text-align: middle-right; }
 .map-north-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); width: 12px; -unity-text-align: upper-center; }
 .map-scale-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); }
-.map-caption { font-size: 13px; color: var(--map-ink-faint); white-space: nowrap; overflow: hidden; max-width: 688px; margin-top: 0; }
+.map-caption { font-size: 13px; color: var(--map-ink-muted); white-space: nowrap; overflow: hidden; max-width: 688px; margin-top: 0; }
 
 /* Two columns to the right of the map: the overview and legend, then the card for the square or the rack (the card has the window's full height). */
 .map-col-a { width: 336px; flex-shrink: 0; margin-left: 14px; }
@@ -307,7 +307,7 @@
 .map-legend-body { flex-direction: column; }
 .map-legend-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
 .map-legend-text { font-size: var(--fs-xs); color: var(--map-ink); margin-left: 8px; white-space: normal; flex-shrink: 1; }
-.map-legend-note { font-size: 13px; color: var(--map-ink-faint); margin-left: 8px; white-space: nowrap; }
+.map-legend-note { font-size: 13px; color: var(--map-ink-muted); margin-left: 8px; white-space: nowrap; }
 .map-side { flex-shrink: 0; margin-bottom: 0; }
 .map-side .heading { white-space: normal; margin-top: 2px; }
 .map-note { white-space: normal; color: var(--map-ink-muted); font-size: var(--fs-sm); margin-bottom: 6px; }

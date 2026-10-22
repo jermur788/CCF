@@ -87,12 +87,23 @@ public static class StandMapLegend
                 list.Add(new LegendEntry { Kind = LegendKind.Ramp, Ramp = MapOverlay.Regeneration, Text = "Young trees (tallest)", RampNote = "none · 3 m and over" });
                 break;
             case MapOverlay.Browsing:
-                Symbol(LegendKind.Ring, MapSymbol.Shelter, Meaning(MapSymbol.Shelter));
-                Symbol(LegendKind.Ring, MapSymbol.ShelterLapsed, Meaning(MapSymbol.ShelterLapsed));
+                // A ring row only for a kind of shelter that is actually ringed (the draw plan rings every shelter, effective or lapsed).
+                bool effective = false, lapsed = false;
+                foreach (MapShelter shelter in model.Shelters) { if (shelter.Effective) effective = true; else lapsed = true; }
+                if (effective) Symbol(LegendKind.Ring, MapSymbol.Shelter, Meaning(MapSymbol.Shelter));
+                if (lapsed) Symbol(LegendKind.Ring, MapSymbol.ShelterLapsed, Meaning(MapSymbol.ShelterLapsed));
                 break;
             case MapOverlay.Marks:
-                Symbol(LegendKind.Ring, MapSymbol.TreeMarkFell, Meaning(MapSymbol.TreeMarkFell));
-                Symbol(LegendKind.Ring, MapSymbol.TreeMarkCrop, Meaning(MapSymbol.TreeMarkCrop));
+                // Likewise a mark row only when a living tree carries that mark (the draw plan rings living marked trees only).
+                bool fell = false, crop = false;
+                foreach (MapTree tree in model.Trees)
+                {
+                    if (tree.State != MapTreeState.Living) continue;
+                    if (tree.Mark == MapTreeMark.Fell) fell = true;
+                    else if (tree.Mark == MapTreeMark.Crop) crop = true;
+                }
+                if (fell) Symbol(LegendKind.Ring, MapSymbol.TreeMarkFell, Meaning(MapSymbol.TreeMarkFell));
+                if (crop) Symbol(LegendKind.Ring, MapSymbol.TreeMarkCrop, Meaning(MapSymbol.TreeMarkCrop));
                 break;
         }
         return list;
