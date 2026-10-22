@@ -93,6 +93,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         standGeometryModelVersion = model;
         standSizeMeters = StandGeometryModel.StandSizeMeters(model);
         cellSizeMeters = StandGeometryModel.CellSizeMeters;
+        // The forest track's approach follows the geometry (Enlarged80 only). It is made here, before the event and before anything
+        // plants a stand, because the starting stand keeps trees clear of the track planks and the stand map draws them.
+        StandApproachPath.Apply(model);
         // Before Awake the grid does not exist; Awake then builds it at the size set above.
         if (cells != null && (changed || cells.Length != StandGeometryModel.CellCount(model)))
             RebuildGrid();

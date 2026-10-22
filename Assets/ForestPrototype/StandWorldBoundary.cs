@@ -86,6 +86,9 @@ public sealed class StandWorldBoundary : MonoBehaviour
         Place("South Ridge", legacy, new Vector3(0f, 0f, -half), new Vector3(size + 2f, 0f, 0f), true);
         Place("East Ridge", legacy, new Vector3(half, 0f, 0f), new Vector3(0f, 0f, size), false);
         Place("West Ridge", legacy, new Vector3(-half, 0f, 0f), new Vector3(0f, 0f, size), false);
+        // Where the forest track meets the south ridge the ridge is opened (Enlarged80 only; Legacy40 keeps its authored ridge whole).
+        if (!legacy && authored.TryGetValue("South Ridge", out Authored south) && south.Transform != null)
+            StandApproachPath.ShapeSouthRidge(south.Transform);
 
         // The whole property must be visible from any point in it (diagonal of the stand plus a margin).
         if (viewCamera != null && authoredFarClip > 0f)

@@ -1,0 +1,46 @@
+# SCENARIO-ONE-PLAYER-TEST-NON-UI-REMEDIATION-V1 verification
+
+Covers the four non-UI player-test items: the forest track's approach (`StandApproachRoute` / `StandApproachPath`), competitor keyboard targeting (`CompetitorKeyboardTarget`), the competitor `Share` explanation, and the rack-area lesson for Objectives 2-5 (`ScenarioOneRackBay`). Design note: `Docs/Design/ScenarioOneRackBayLessonV1.md`.
+
+Nothing here writes into the repository, the player's save or the scene. Three layers, from cheapest to most complete:
+
+## 1. Decision rules on plain .NET (no Unity)
+
+```
+python3 -I Tools/Verification/ScenarioOneNonUi/run_nonui_offline.py --out <dir outside the repo>
+```
+
+Compiles the production files that hold the rules (none uses `UnityEngine`) with `OfflineLogic/*.cs` and runs them. Expect `NONUI_KEYBOARD_PASS`, `NONUI_RACKBAY_PASS`, `NONUI_APPROACH_PASS` (36 + 128 + 22 checks at the time of writing). `OfflineLogic/core-stand-replica.csv` is the 336 Legacy40 core trees reproduced from the starting-stand generator (calibration data, not a verification of the generator itself); `StandApproachOfflineCheck` and `RackBayOfflineCheck` read it.
+
+## 2. Syntax / type compile of the game's runtime C# (no Unity)
+
+```
+python3 -I Tools/Verification/ScenarioOneNonUi/compile_runtime_sources.py --src <project root> --out <dir outside the repo> \
+  [--extra Tools/Verification/ScenarioOneNonUi/UnityGates/*.cs Tools/Verification/StandGeometry/Enlarged80Verification.cs]
+```
+
+Compiles `Assets/**` (Editor folders excluded) with `dotnet` against the runtime assemblies of an already-built Player (`--managed`, default `/home/jer/ccf-verify-player/CCFVerify_Data/Managed`). It is **not** Unity's compile: no Editor assembly, source generators or analyzers, and it proves nothing about behaviour. It does catch missing members and type errors (checked with a deliberate error). The base commit `6bdcdd5` compiles with 0 errors under it.
+
+## 3. Live Unity gates (graphical Editor, under the machine-wide Unity lock, one Editor at a time)
+
+Each is a disposable harness in `UnityGates/`, staged into `Assets/ForestPrototype`, run, then removed together with its `.meta` by `ScenarioOneProfessionalMap/run_unity_harness.py`:
+
+```
+python3 Tools/Verification/ScenarioOneProfessionalMap/run_unity_harness.py --name CompetitorKeyboardVerification \
+  --method CompetitorKeyboardVerification.Begin --files ScenarioOneNonUi/UnityGates/CompetitorKeyboardVerification.cs \
+  --out <evidence dir on /media/jer/Files/CCF/Verification> --private-display --keep-focus
+```
+
+| Gate | Token | What it checks live |
+|---|---|---|
+| `CompetitorKeyboardVerification` | `KEYBOARD_PASS` | Real `1`-`5` / `X` / `C` / `E` key events: each number chooses its row and the highlighted tree is the tree behind it; `X` marks and unmarks that tree with the reticle on the Crop Tree; the same tree stays chosen when the list is rebuilt; switching numbers; the same number again and closing the list let go; `X` then acts on the aimed tree again; a different Crop Tree starts with nothing chosen; planting mode and a save load leave no stale target. |
+| `RackLessonVerification` | `LESSON_PASS` | The area is the middle rack's strip; only trees that qualify count as future trees; Crop Trees elsewhere or too close do not; the lesson's planned share equals the competitor panel's; sold / deadwood are counted per tree; the lesson is identical on a second read and after save and load. The executed branch and the Annual Review are not exercised live. |
+| `StandApproachVerification` | `APPROACH_PASS` | The extension planks, the opening in the south ridge, the cutting and the invisible blocker; no tree within the corridor of any plank; 336 core + 1,008 outer trees with P0009 out and P1200 in; the Stand Map draws the extension to the property edge; Legacy40 is left as authored and the approach comes back identically. |
+
+A visual review is still required for the cutting beyond the south ridge (it is scenery the player cannot enter): render the view from inside the property looking south through the opening before calling the path done.
+
+## Protected gates to run on the same head afterwards
+
+The chain used for `SCENARIO-ONE-PROFESSIONAL-MAP-INTEGRATION-V1` (evidence `ScenarioOneProfessionalMapIntegration-20261022T114849Z/gates` on Files): `guided` first and alone, `pmv`, `parity`, `combined-hud`, `menu`, `uxshots`, `completion` (expect world hash `9C77EB4BEE427FB9`), `standgeometry`, `Enlarged80` (verification and review; its core-preservation check now pins the one intended difference, P0009 out / P1200 in), `teaching`, and the regressions ScenarioReference, ScenarioOneEconomyIntegration, ScenarioOneProgress, SaveHardening.
+
+Expected, intended changes of those gates because the Enlarged80 starting stand now differs (outer trees near the new track, and the P0009 / P1200 swap): the Enlarged80 start-world hash (`ENLARGED80_START_WORLD_CURRENT_HASH`) and anything derived from it. Legacy40 results (the Reference Future, `completion`, the economy and save-hardening gates) must NOT change.

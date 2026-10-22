@@ -43,14 +43,19 @@ public sealed partial class LearningObjectivesView
             && e.year >= year && e.eventId > m.ManagementEvents.Where(r => r.eventType == ScenarioManagementEventType.WorkResolved && r.year == year)
                 .Select(r => r.eventId).DefaultIfEmpty(0).Max());
         bool Goal(string id) => m.Objectives.Any(o => o.objectiveId == id && o.achieved);
+        // Objectives 2-5 are one lesson on one rack area (ScenarioOneRackBay). A stand with no rack layout (a 40 m legacy stand) keeps the simple rules above.
+        ScenarioOneRackBay.Analysis bay = routes != null && routes.Count > 0 ? ScenarioOneRackBayReader.Read(trees, orders, routes) : null;
+        bool area = bay != null && bay.Applies;
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
             AccessOpen = ui.RackLayout != null && ui.RackLayout.Total > 0
                 ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
-            AccessReviewed = Reviewed(firstFellingYear), CropTrees = cropTrees.Count,
-            ReleasePlanned = plannedRelease, ReleaseExecuted = release.Count > 0,
-            DeadwoodExecuted = Goal("fallen-deadwood") || m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.WorkResolved
-                && e.outcome == ScenarioManagementOutcome.Succeeded && e.ecologicalTreatment == ScenarioEcologicalTreatment.TreeRetainedAsDeadwood), ReleaseReviewed = Reviewed(releaseYear),
+            AccessReviewed = Reviewed(firstFellingYear),
+            CropTrees = area ? (bay.HasEnoughFuture ? bay.FutureCount : 0) : cropTrees.Count,
+            ReleasePlanned = area ? bay.ReleasePlanned : plannedRelease, ReleaseExecuted = area ? bay.ReleaseExecuted : release.Count > 0,
+            DeadwoodExecuted = area ? bay.MixedExecuted : Goal("fallen-deadwood") || m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.WorkResolved
+                && e.outcome == ScenarioManagementOutcome.Succeeded && e.ecologicalTreatment == ScenarioEcologicalTreatment.TreeRetainedAsDeadwood),
+            ReleaseReviewed = Reviewed(area ? bay.ReleaseYear : releaseYear), AreaReleased = !area || bay.FurtherExecuted, Bay = area ? bay : null,
             ReviewedTwoCycles = ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(m.ManagementEvents, orders),
             BeechEstablished = Goal("introduced-beech"), OakEstablished = Goal("introduced-sessile-oak"),
             PlantingYear = plantingYear, Year = m.CurrentEcologicalYear,
@@ -76,6 +81,8 @@ public sealed partial class LearningObjectivesView
     private string TeachingInstruction(ScenarioOneTeachingSequence.Facts f)
     {
         int index = ScenarioOneTeachingSequence.Current(f);
+        string areaText = ScenarioOneRackBayText.Instruction(index, f);
+        if (areaText != null) return areaText;
         if (index == 1 && !f.AccessReviewed)
             return "The racks are open. Read the Annual Review and choose I've read the annual results. Then walk back to inspect the changed stand before selecting future trees.";
         if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted)
@@ -113,6 +120,8 @@ public sealed partial class LearningObjectivesView
 
     private string HudInstruction(ScenarioOneTeachingSequence.Facts f, int index, ScenarioOneTeachingSequence.Lesson lesson)
     {
+        string areaText = ScenarioOneRackBayText.Hud(index, f);
+        if (areaText != null) return areaText;
         if (index == 0)
         {
             RackLayoutTracker layout = ui.RackLayout;
@@ -134,6 +143,8 @@ public sealed partial class LearningObjectivesView
 
     private string TeachingProgress(ScenarioOneTeachingSequence.Facts f)
     {
+        string areaText = ScenarioOneRackBayText.Progress(ScenarioOneTeachingSequence.Current(f), f);
+        if (areaText != null) return areaText;
         switch (ScenarioOneTeachingSequence.Current(f))
         {
             case 0: return ui.RackLayout != null ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned" : "Plan permanent access";

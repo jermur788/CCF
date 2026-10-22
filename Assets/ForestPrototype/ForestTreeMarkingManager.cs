@@ -117,6 +117,10 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (view == null || Cursor.lockState != CursorLockMode.Locked || RackTool.AnyActive)
             return;
 
+        // A competitor chosen with 1-5 on the Crop Tree competitor list takes X, wherever the reticle points.
+        if (TryMarkKeyboardTarget())
+            return;
+
         int hitCount = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hitBuffer, interactionDistance);
         bool found = false;
         RaycastHit nearest = default;
@@ -167,6 +171,22 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             ToggleMark(tree);
         if (keyboard != null && keyboard.cKey.wasPressedThisFrame)
             ToggleCropTree(tree);
+    }
+
+    // The tree the player chose by keyboard (the competitor list sets this; it is read only at the moment X is pressed, so a list that
+    // has closed or a tree that is gone can never be marked by mistake). Null when nothing is chosen: X then acts on the aimed tree.
+    public System.Func<ForestTree> KeyboardTarget { get; set; }
+
+    private bool TryMarkKeyboardTarget()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || !keyboard.xKey.wasPressedThisFrame || KeyboardTarget == null)
+            return false;
+        ForestTree target = KeyboardTarget();
+        if (target == null || !target.IsLiving)
+            return false;
+        ToggleMark(target);
+        return true;
     }
 
     private void OnTreeNoLongerLiving(ForestTree tree)
