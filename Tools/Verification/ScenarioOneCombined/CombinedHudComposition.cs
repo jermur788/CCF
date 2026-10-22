@@ -635,15 +635,15 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
             yield return Pause(10);
             if (round == 1) Check(Visible(ui.Minimap.Root), "PERF_AB_THE_MINIMAP_COMES_BACK");
         }
-        // The CPU cost of one draw-plan build for the minimap (the part of a repaint this code owns), measured directly.
+        // The CPU cost of one draw-plan build for the minimap (the part of a repaint this code owns), measured directly. (Build(..) no longer takes the old "quiet" flag; the call is otherwise the same.)
         StandMapModel model = ui.MapSource.Model;
         float side = ui.Minimap.Canvas.LastSidePx > 1f ? ui.Minimap.Canvas.LastSidePx : 196f;
         var watch = System.Diagnostics.Stopwatch.StartNew();
         const int builds = 2000;
-        for (int i = 0; i < builds; i++) StandMapDrawPlan.Build(model, side, MapDetail.Mini, false);
+        for (int i = 0; i < builds; i++) StandMapDrawPlan.Build(model, side, MapDetail.Mini);
         watch.Stop();
         Measure("perf", "minimap_draw_plan_build_ms_per_call", (float)watch.Elapsed.TotalMilliseconds / builds);
-        Measure("perf", "minimap_draw_plan_items", StandMapDrawPlan.Build(model, side, MapDetail.Mini, false).Count);
+        Measure("perf", "minimap_draw_plan_items", StandMapDrawPlan.Build(model, side, MapDetail.Mini).Count);
         yield return Sample("standing-still-minimap-ON", 240, f => { });
         ui.ShowMap();
         yield return Pause(20);
