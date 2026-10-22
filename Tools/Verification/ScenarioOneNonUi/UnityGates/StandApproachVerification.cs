@@ -109,7 +109,7 @@ public sealed class StandApproachVerificationRunner : MonoBehaviour
         var legacyId = new Regex(@"^P\d{4}$"); var outerId = new Regex(@"^PO\d{4}$");
         List<string> core = trees.Select(t => t.TreeId).Where(id => legacyId.IsMatch(id)).ToList();
         Check(core.Count == 336 && trees.Count(t => outerId.IsMatch(t.TreeId)) == 1008, "336 core + 1,008 outer trees");
-        Check(!core.Contains("P0009") && core.Contains("P1200"), "the core differs from Legacy40 only by the tree the track clears and the one the mortality budget restores", "P0009 out, P1200 in");
+        Check(!core.Contains("P0009") && core.Contains("P0600"), "the core differs from Legacy40 only by the tree the track clears and the one the mortality budget restores", "P0009 out, P0600 in");
 
         // ---- the opening in the south ridge and the cutting beyond it ----------------------------------------------------------------------------
         GameObject west = GameObject.Find("South Ridge"), east = GameObject.Find("South Ridge (east of gate)");

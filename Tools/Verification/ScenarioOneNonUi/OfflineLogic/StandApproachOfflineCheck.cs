@@ -118,7 +118,7 @@ public static class StandApproachOfflineCheck
 
         var planks = route.Where(p => StandApproachRoute.InsideProperty(p, EdgeZ)).ToList();
         var cleared = trees.Where(t => planks.Any(p => p.Z < JoinZ && Dist(t.x, t.z, p.X, p.Z) <= Corridor)).Select(t => t.id).OrderBy(i => i, StringComparer.Ordinal).ToList();
-        Check(cleared.Count == 1 && cleared[0] == "P0009", "the extension clears exactly one core tree, P0009 (the generator then restores one more, P1200, to keep 336)",
+        Check(cleared.Count == 1 && cleared[0] == "P0009", "the extension clears exactly one core tree, P0009 (the generator then restores one more, P0600, to keep 336)",
             "cleared " + string.Join(",", cleared));
         float nearest = trees.Where(t => !cleared.Contains(t.id)).Min(t => planks.Where(p => p.Z < JoinZ).Min(p => Dist(t.x, t.z, p.X, p.Z)));
         Check(nearest > Corridor + 0.1f, "every other core tree stands clear of the new track by more than the corridor", "nearest " + F(nearest) + " m");
@@ -135,8 +135,9 @@ public static class StandApproachOfflineCheck
             string[] c = line.Split(',');
             oldCore.Add((c[0], float.Parse(c[1], CultureInfo.InvariantCulture), float.Parse(c[2], CultureInfo.InvariantCulture)));
         }
-        // The new core: P0009 is cleared and the mortality budget restores P1200 (replica of the generator, positions to 0.01 m).
-        var newCore = oldCore.Where(t => t.id != "P0009").Concat(new[] { ("P1200", -18.90f, 3.99f) }).ToList();
+        // The new core: P0009 is cleared and the mortality budget restores P0600 at its live position (live Unity, positions to 0.01 m). The
+        // replica CSV was made with the code's default 1.9 m lattice spacing, not the scene's 2.0 m, so its positions are about 5% short of live.
+        var newCore = oldCore.Where(t => t.id != "P0009").Concat(new[] { ("P0600", -19.40f, -8.15f) }).ToList();
 
         Check(!StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, oldCore), "a world planted before the approach (the old core stands on its line) is recognised as old");
         Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, newCore), "a world planted with the approach (the corridor cleared) is recognised as new");
@@ -153,7 +154,7 @@ public static class StandApproachOfflineCheck
         Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)> { ("P0311", 1.71f, -13.14f), ("P0307", -5.85f, -13.69f) }),
             "trees north of the join never count: the authored track was always there");
 
-        foreach (string yes in new[] { "P0009", "P1200", "P0000", "PO0505", "PO3939" })
+        foreach (string yes in new[] { "P0009", "P0600", "P0000", "PO0505", "PO3939" })
             Check(StandApproachRoute.IsOriginalPlantationId(yes), "original plantation id " + yes);
         foreach (string no in new[] { "", null, "P009", "P00091", "PO009", "PO00091", "PX0001", "Q0001", "p0009", "PO", "P", "POABCD", "P00A9" })
             Check(!StandApproachRoute.IsOriginalPlantationId(no), "not an original plantation id [" + no + "]");

@@ -170,9 +170,10 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         var legacySnapshot = legacy.ToDictionary(t => t.TreeId, t => (pos: t.transform.position, dbh: t.Diameter, height: t.Height));
         // The one intended difference (SCENARIO-ONE-PLAYER-TEST-NON-UI-REMEDIATION-V1, StandApproachPath): the forest track now runs on to the
         // south property edge in Enlarged80, which clears legacy tree P0009 from the track, and the generator's mortality budget then brings
-        // back one more tree, P1200, so the core still holds 336. Legacy40 has no such track. Pinned exactly: any other difference fails.
+        // back one more tree, P0600 (the highest-hash mortality omission of the Legacy40 core), so the core still holds 336. Legacy40 has no
+        // such track. Pinned exactly from the live run (SCENARIO-ONE-APPROACH-ANCHOR-DIAGNOSIS-V1): any other difference fails.
         var approachCleared = new HashSet<string> { "P0009" };
-        var approachRestored = new HashSet<string> { "P1200" };
+        var approachRestored = new HashSet<string> { "P0600" };
         Check(legacy.All(t => approachCleared.Contains(t.TreeId) || enlargedSnapshot.ContainsKey(t.TreeId)), "every legacy tree ID exists in the enlarged stand (IDs unchanged), except the one the track approach clears");
         Check(legacy.Where(t => !approachCleared.Contains(t.TreeId)).All(t => SamePosition(t.transform.position, enlargedSnapshot[t.TreeId].pos)), "every other legacy tree stands at its exact legacy position in the enlarged stand");
         var expectedCore = legacy.Select(t => t.TreeId).Where(id => !approachCleared.Contains(id)).Concat(approachRestored).ToHashSet();
