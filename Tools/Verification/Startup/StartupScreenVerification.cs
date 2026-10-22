@@ -774,7 +774,11 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         VisualElement root = Root(menu);
         Rect bounds = root.worldBound;
         Check(bounds.width > 0f && bounds.height > 0f, name + ": the panel has a size");
-        Check(root.resolvedStyle.backgroundColor.a >= 0.95f, name + ": the backdrop hides the forest underneath");
+        // The approved visual system dims the forest and deliberately keeps it visible behind the menu; the
+        // readable text sits on the near-opaque card, not directly on the backdrop.
+        Check(root.resolvedStyle.backgroundColor.a >= 0.65f, name + ": the backdrop dims the forest");
+        VisualElement card = root.Query<VisualElement>(className: "session-card").First();
+        Check(card != null && card.resolvedStyle.backgroundColor.a >= 0.90f, name + ": the card surface is opaque enough for text");
         var shown = new List<VisualElement>();
         shown.AddRange(root.Query<Label>().ToList().Where(l => l.resolvedStyle.display != DisplayStyle.None && !string.IsNullOrEmpty(l.text)));
         shown.AddRange(root.Query<Button>().ToList().Where(b => b.resolvedStyle.display != DisplayStyle.None));
