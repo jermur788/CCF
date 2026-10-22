@@ -8,7 +8,7 @@ Disposable evidence tooling. Every harness follows the repository's copy / run /
 | `MapRedesignShots.cs` | Matched screenshots: the same deterministic management story at three stages, photographed on every layer at each size. Run it on the OLD map and the NEW one; each run records a world hash per stage, and the two must match (the map does not touch the simulation). | yes |
 | `MenuShots.cs` | The startup / title screen, its controls card and the F10 session card (needs `CCF_STARTUP_SCREEN=1`). | yes |
 | `run_unity_harness.py` | Stages a harness, runs the Editor (optionally in a private Xephyr display), and always removes the staged files. The caller holds the Unity lock. | yes |
-| `../StandMap/OfflineLogic/StandMapOfflineCheck.cs` | The shared map logic on plain .NET (121 checks). | no |
+| `../StandMap/OfflineLogic/StandMapOfflineCheck.cs` | The shared map logic on plain .NET (129 checks). | no |
 
 ## Run
 

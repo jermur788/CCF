@@ -188,6 +188,7 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
         yield return ForestPictures("start");
         yield return VectorTruth();
         yield return Overlays();
+        yield return LegendRows();
         yield return Redraws();
         yield return LayoutAndInput();
         yield return Management();
@@ -417,6 +418,69 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
     // =====================================================================================================================
     private Button Tab(int index) => ui.Map.Root.Q("map-tabs").Query<Button>().ToList().ElementAtOrDefault(index);
 
+    // The ring rows of the legend card as the player reads them (the Marks and Browsing layers), and what the scene says should be there.
+    private string[] LegendRingTexts() => ui.Map.Root.Q("map-legend").Query<Label>(className: "map-legend-text").ToList().Select(l => l.text)
+        .Where(t => t == "Marked to fell" || t == "Crop Tree" || t.StartsWith("Shelter, ", StringComparison.Ordinal)).ToArray();
+
+    private static string[] ExpectedRingTexts(int fell, int crop, int effective, int lapsed)
+    {
+        var rows = new List<string>();
+        if (fell > 0) rows.Add("Marked to fell");
+        if (crop > 0) rows.Add("Crop Tree");
+        if (effective > 0) rows.Add("Shelter, still effective");
+        if (lapsed > 0) rows.Add("Shelter, expired or failed");
+        return rows.ToArray();
+    }
+
+    private (int fell, int crop) LivingMarks()
+    {
+        ForestTree[] all = FindObjectsByType<ForestTree>(FindObjectsSortMode.None);
+        return (all.Count(t => t.IsLiving && t.IsMarkedForFell), all.Count(t => t.IsLiving && t.IsCropTree));
+    }
+
+    private (int effective, int lapsed) ShelterKinds()
+    {
+        int upcoming = eco.EcologicalYear + 1;
+        return (eco.Browsing.Shelters.Count(s => s != null && s.IsEffective(upcoming)), eco.Browsing.Shelters.Count(s => s != null && !s.IsEffective(upcoming)));
+    }
+
+    // LEGEND: a ring row appears only for a kind of ring that is on the map (acceptance review of 2026-10-22: the Marks and Browsing legends listed rows for nothing).
+    private IEnumerator LegendRows()
+    {
+        ui.CloseAll(); yield return Settle(6);
+        ui.ShowMap(); yield return Settle(10);
+        yield return Invoke(Tab(4)); yield return Settle(8);
+        (int fell, int crop) m0 = LivingMarks();
+        Hard("LEGEND_FRESH_START_THE_MARKS_LAYER_LISTS_NO_MARK_ROWS", m0.fell == 0 && m0.crop == 0 && LegendRingTexts().Length == 0, $"marked {m0.fell}/{m0.crop}, rows [{string.Join("; ", LegendRingTexts())}]");
+        yield return Invoke(Tab(3)); yield return Settle(8);
+        Hard("LEGEND_FRESH_START_THE_BROWSING_LAYER_LISTS_NO_SHELTER_ROWS", eco.Browsing.Shelters.Count == 0 && LegendRingTexts().Length == 0, $"shelters {eco.Browsing.Shelters.Count}, rows [{string.Join("; ", LegendRingTexts())}]");
+        yield return Invoke(Tab(0)); yield return Settle(4);
+        ui.CloseAll(); yield return Settle(6);
+
+        // fell only, fell and crop, crop only, none again: the row follows the marks (real marking backend, living trees)
+        ForestTree[] pick = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(t => t.IsLiving && t.CanChop).OrderBy(t => t.TreeId, StringComparer.Ordinal).Skip(300).Take(2).ToArray();
+        ForestTree toFell = pick[0], toCrop = pick[1];
+        var steps = new (string name, Action act, string[] expected)[]
+        {
+            ("FELL_ONLY", () => ui.Marking.Mark(toFell, TreeMarkType.Fell, false), new[] { "Marked to fell" }),
+            ("FELL_AND_CROP", () => ui.Marking.Mark(toCrop, TreeMarkType.CropTree, false), new[] { "Marked to fell", "Crop Tree" }),
+            ("CROP_ONLY", () => ui.Marking.Mark(toFell, TreeMarkType.None, false), new[] { "Crop Tree" }),
+            ("NONE_AGAIN", () => ui.Marking.Mark(toCrop, TreeMarkType.None, false), new string[0]),
+        };
+        foreach (var step in steps)
+        {
+            step.act(); yield return Settle(10);
+            ui.ShowMap(); yield return Settle(8); yield return Invoke(Tab(4)); yield return Settle(8);
+            string[] rows = LegendRingTexts();
+            (int fell, int crop) now = LivingMarks();
+            Hard($"LEGEND_MARKS_{step.name}_LISTS_EXACTLY_THE_MARKS_THAT_EXIST", rows.SequenceEqual(step.expected) && rows.SequenceEqual(ExpectedRingTexts(now.fell, now.crop, 0, 0)), $"rows [{string.Join("; ", rows)}] expected [{string.Join("; ", step.expected)}] marked {now.fell}/{now.crop}");
+            Rect card = ui.Map.Root.Q("map-legend").worldBound;
+            Hard($"LEGEND_MARKS_{step.name}_THE_ROWS_STAY_INSIDE_THE_LEGEND_CARD", ui.Map.Root.Q("map-legend").Query<TextElement>().ToList().Where(Visible).All(t => t.worldBound.yMax <= card.yMax + 0.75f), "");
+            yield return Invoke(Tab(0)); yield return Settle(4);
+            ui.CloseAll(); yield return Settle(6);
+        }
+    }
+
     private IEnumerator Overlays()
     {
         ui.ShowMap(); yield return Settle(10);
@@ -595,7 +659,7 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
             foreach (Label l in east) { float f = float.Parse(l.text, Inv) / Model.SizeM; worstLabel = Mathf.Max(worstLabel, Mathf.Abs(l.worldBound.center.x - (frame.x + f * frame.width))); }
             foreach (Label l in north) { float f = float.Parse(l.text, Inv) / Model.SizeM; worstLabel = Mathf.Max(worstLabel, Mathf.Abs(l.worldBound.center.y - (frame.yMax - f * frame.height))); }
             Hard($"LAYOUT_{tag}_THE_EASTING_AND_NORTHING_LABELS_SIT_ON_THEIR_GRID_LINES", east.Count == 5 && north.Count == 5 && worstLabel < 4.5f * root.width / 1600f, $"east={east.Count} north={north.Count} worst offset {worstLabel:0.0} px");
-            Hard($"LAYOUT_{tag}_THE_LEGEND_NAMES_ONLY_WHAT_IS_ON_THE_MAP", legend.Query<Label>(className: "map-legend-text").ToList().Select(l => l.text.ToLowerInvariant()).All(t => !new[] { "contour", "stream", "water", "pond", "wetland", "rock", "track", "building", "elevation" }.Any(t.Contains)) && ui.Map.Legend.RowCount >= 6, $"rows={ui.Map.Legend.RowCount}");
+            Hard($"LAYOUT_{tag}_THE_LEGEND_NAMES_NO_FEATURE_THE_SCENARIO_LACKS", legend.Query<Label>(className: "map-legend-text").ToList().Select(l => l.text.ToLowerInvariant()).All(t => !new[] { "contour", "stream", "water", "pond", "wetland", "rock", "track", "building", "elevation" }.Any(t.Contains)) && ui.Map.Legend.RowCount >= 6, $"rows={ui.Map.Legend.RowCount}");
             // text stays in its card
             var cut = new List<string>();
             foreach (VisualElement c in new[] { overview, legend, card })
@@ -661,6 +725,7 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
             if (trees.Any(t => (ExpectedFraction(t.transform.position.x, t.transform.position.z) - f).magnitude < 2e-4f && (ring.Symbol == MapSymbol.TreeMarkFell ? t.IsMarkedForFell : t.IsCropTree))) exact++;
         }
         Hard("MARKS_EACH_RING_IS_CENTRED_ON_ITS_OWN_TREE", rings > 0 && exact == rings, $"{exact}/{rings}");
+        Hard("LEGEND_MARKS_AFTER_THE_STORY_LISTS_EXACTLY_THE_MARKS_THAT_EXIST", LegendRingTexts().SequenceEqual(ExpectedRingTexts(fellMarked, cropMarked, 0, 0)) && fellMarked > 0 && cropMarked > 0, $"rows [{string.Join("; ", LegendRingTexts())}] marked {fellMarked}/{cropMarked}");
         yield return Capture("pmv-marks");
         ui.CloseAll(); yield return Settle(4);
 
@@ -707,6 +772,8 @@ public sealed class ProfessionalMapVerificationRunner : MonoBehaviour
         int eff = eco.Browsing.Shelters.Count(s => s != null && s.IsEffective(upcoming)), lapsed = eco.Browsing.Shelters.Count(s => s != null && !s.IsEffective(upcoming));
         Hard("SHELTERS_THE_BROWSING_LAYER_RINGS_EVERY_SHELTER_EFFECTIVE_AND_LAPSED_APART", eco.Browsing.Shelters.Count > 0 && Full.LastPlan.Count(i => i.Symbol == MapSymbol.Shelter) == eff && Full.LastPlan.Count(i => i.Symbol == MapSymbol.ShelterLapsed) == lapsed
             && eco.Browsing.Shelters.All(s => Full.LastPlan.Any(i => (i.Symbol == MapSymbol.Shelter || i.Symbol == MapSymbol.ShelterLapsed) && (Fraction(Full, i) - ExpectedFraction(s.position.x, s.position.y)).magnitude < 2e-4f)), $"effective {eff} lapsed {lapsed} of {eco.Browsing.Shelters.Count}");
+        (int effective, int lapsed) kinds = ShelterKinds();
+        Hard("LEGEND_BROWSING_AFTER_THE_STORY_LISTS_EXACTLY_THE_SHELTER_KINDS_THAT_EXIST", LegendRingTexts().SequenceEqual(ExpectedRingTexts(0, 0, kinds.effective, kinds.lapsed)) && kinds.effective + kinds.lapsed > 0, $"rows [{string.Join("; ", LegendRingTexts())}] effective {kinds.effective} lapsed {kinds.lapsed}");
         yield return Capture("pmv-managed-browsing");
         yield return Invoke(Tab(0)); yield return Settle(6);
 

@@ -348,7 +348,29 @@ public static class StandMapOfflineCheck
         legendModel.KindLabels[(int)MapTreeKind.Conifer] = "Sitka spruce"; legendModel.KindLabels[(int)MapTreeKind.Beech] = "European beech";
         List<LegendEntry> stocked = StandMapLegend.Entries(legendModel, MapOverlay.None);
         Check(stocked.Any(e => e.Text == "Sitka spruce") && stocked.Any(e => e.Text == "European beech") && !stocked.Any(e => e.Text.Contains("Oak") && e.Kind == LegendKind.Crown) && stocked.Any(e => e.Kind == LegendKind.Stump) && stocked.Any(e => e.Text == "Standing dead tree") && stocked.Any(e => e.Kind == LegendKind.Dot), "trees are named by their species, and only the kinds that stand are listed");
-        Check(StandMapLegend.Entries(legendModel, MapOverlay.Light).Any(e => e.Kind == LegendKind.Ramp) && StandMapLegend.Entries(legendModel, MapOverlay.Marks).Count(e => e.Kind == LegendKind.Ring) == 2 && StandMapLegend.Entries(legendModel, MapOverlay.None).All(e => e.Kind != LegendKind.Ramp && e.Kind != LegendKind.Ring), "a layer adds its own legend rows and the base legend has none of them");
+        // Light adds its ramp; the base legend has no ramp or ring rows. The Marks and Browsing ring rows are tested below, one category at a time.
+        Check(StandMapLegend.Entries(legendModel, MapOverlay.Light).Any(e => e.Kind == LegendKind.Ramp) && StandMapLegend.Entries(legendModel, MapOverlay.None).All(e => e.Kind != LegendKind.Ramp && e.Kind != LegendKind.Ring), "a layer adds its own legend rows and the base legend has none of them");
+        // The Marks and Browsing legends list a ring only for a category that is on the map (the draw plan rings exactly these things).
+        Func<StandMapModel, MapOverlay, string> ringRows = (m, o) => string.Join("|", StandMapLegend.Entries(m, o).Where(e => e.Kind == LegendKind.Ring).Select(e => e.Symbol.ToString()));
+        var plain = Scenario(false);
+        Check(ringRows(plain, MapOverlay.Marks) == "" && ringRows(plain, MapOverlay.Browsing) == "", "nothing marked and no shelters: the Marks and Browsing legends have no ring rows");
+        var felled = Scenario(false); felled.Trees.Add(Tree(1, 1, 2f, mark: MapTreeMark.Fell));
+        var cropped = Scenario(false); cropped.Trees.Add(Tree(1, 1, 2f, mark: MapTreeMark.Crop));
+        var mixedMarks = Scenario(false); mixedMarks.Trees.Add(Tree(1, 1, 2f, mark: MapTreeMark.Fell)); mixedMarks.Trees.Add(Tree(4, 4, 2f, mark: MapTreeMark.Crop));
+        Check(ringRows(felled, MapOverlay.Marks) == "TreeMarkFell" && ringRows(cropped, MapOverlay.Marks) == "TreeMarkCrop" && ringRows(mixedMarks, MapOverlay.Marks) == "TreeMarkFell|TreeMarkCrop", "the Marks legend lists fell, crop or both, exactly what is marked");
+        var markedButGone = Scenario(false); markedButGone.Trees.Add(Tree(1, 1, 2f, state: MapTreeState.StandingDead, mark: MapTreeMark.Fell)); markedButGone.Trees.Add(Tree(2, 2, 0f, state: MapTreeState.Stump, mark: MapTreeMark.Crop));
+        Check(ringRows(markedButGone, MapOverlay.Marks) == "" && !StandMapDrawPlan.Build(markedButGone, 608f, MapDetail.Full, MapOverlay.Marks).Any(i => i.Symbol == MapSymbol.TreeMarkFell || i.Symbol == MapSymbol.TreeMarkCrop), "a mark on a tree that is no longer living is neither drawn nor listed");
+        mixedMarks.Trees.RemoveAt(0);
+        Check(ringRows(mixedMarks, MapOverlay.Marks) == "TreeMarkCrop", "when the last fell mark goes, its legend row goes");
+        mixedMarks.Trees.Clear();
+        Check(ringRows(mixedMarks, MapOverlay.Marks) == "", "when the last mark goes, the Marks legend has no ring rows");
+        var effectiveOnly = Scenario(false); effectiveOnly.Shelters.Add(new MapShelter { X = 2, Z = 2, Effective = true });
+        var lapsedOnly = Scenario(false); lapsedOnly.Shelters.Add(new MapShelter { X = 2, Z = 2, Effective = false });
+        var bothShelters = Scenario(false); bothShelters.Shelters.Add(new MapShelter { X = 2, Z = 2, Effective = true }); bothShelters.Shelters.Add(new MapShelter { X = 6, Z = 6, Effective = false });
+        Check(ringRows(effectiveOnly, MapOverlay.Browsing) == "Shelter" && ringRows(lapsedOnly, MapOverlay.Browsing) == "ShelterLapsed" && ringRows(bothShelters, MapOverlay.Browsing) == "Shelter|ShelterLapsed", "the Browsing legend lists effective, lapsed or both, exactly what is ringed");
+        bothShelters.Shelters.RemoveAt(0);
+        Check(ringRows(bothShelters, MapOverlay.Browsing) == "ShelterLapsed", "when the last effective shelter goes, its legend row goes");
+        Check(ringRows(felled, MapOverlay.Browsing) == "" && ringRows(effectiveOnly, MapOverlay.Marks) == "" && ringRows(felled, MapOverlay.None) == "", "a ring row appears only on its own layer");
 
         // ---- degenerate inputs ----
         Check(StandMapDrawPlan.Build(new StandMapModel(), 200f, MapDetail.Mini).Count == 0, "no property: nothing drawn");
