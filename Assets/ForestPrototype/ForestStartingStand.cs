@@ -52,7 +52,11 @@ public sealed class ForestStartingStand : MonoBehaviour
         // verification replays). A loaded save brings its own geometry through ForestSaveController.LoadData.
         var ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology != null)
+        {
+            // A fresh stand always wants the track approach; a loaded save sets this from its own trees before applying geometry.
+            ecology.StandApproachExpected = true;
             ecology.ApplyStandGeometry(StandGeometryPolicy.NewGameModelForSession);
+        }
         Generate();
     }
 

@@ -194,10 +194,17 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         Unmark(tree, false);
     }
 
+    // X, by mouse aim or by a competitor chosen with 1-5, comes through here. A tree still marked as a Crop Tree is a positive choice to
+    // keep, so X refuses it rather than silently replacing that mark with a felling mark; C removes the Crop Tree mark first.
     public void ToggleMark(ForestTree tree)
     {
         if (tree == null || !tree.IsLiving)
             return;
+        if (tree.MarkType == TreeMarkType.CropTree)
+        {
+            SetMessage($"{tree.TreeId} is a Crop Tree. Press C to remove the Crop Tree mark before marking it for felling.");
+            return;
+        }
         if (tree.MarkType == TreeMarkType.Fell)
             Unmark(tree);
         else
@@ -634,7 +641,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (aimedTree == null)
             return "";
-        return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [X] Mark to Fell"
+        return aimedTree.IsCropTree ? "[C] Remove Crop Tree"
             : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Retain as Crop Tree"
             : "[X] Mark to Fell  |  [C] Retain as Crop Tree";
     }

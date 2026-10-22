@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // The forest track's approach from outside the 80 m property (Enlarged80 only), so it no longer begins out of nothing in the middle of
@@ -14,7 +15,11 @@ using UnityEngine;
 //   * an invisible blocker across the opening. The cutting is scenery: the player stays inside the ecology bounds as before.
 //
 // The planks are made inside ForestEcologyController.ApplyStandGeometry, before anything reads them, so a new game plants around them
-// and a load or Reference preview sees the right world whichever object wakes first. The route itself is StandApproachRoute.
+// and a Reference preview sees the right world whichever object wakes first. The route itself is StandApproachRoute.
+//
+// Old saves: an Enlarged80 world saved before the approach existed was planted straight across the line, so it keeps the world it was
+// made in. ForestSaveController.LoadData asks SaveHasApproach (from the saved trees, no new save field) and Reconcile builds or removes
+// the pieces to match, whatever world was showing before.
 public static class StandApproachPath
 {
     private const string RootName = "Stand Approach";
@@ -24,10 +29,14 @@ public static class StandApproachPath
     private const string EastRidgePieceName = "South Ridge (east of gate)";
     private const float MetresPerGroundTile = 2.5f;
 
-    public static void Apply(int geometryModel)
+    // Changes whenever the pieces are built or removed; the stand map compares it to know when to read the path again.
+    public static int Version { get; private set; }
+
+    // expected: whether this world is meant to have the approach. A new game is; a loaded save says what it was made with.
+    public static void Apply(int geometryModel, bool expected = true)
     {
         GameObject existing = GameObject.Find(RootName);
-        if (geometryModel != StandGeometryModel.Enlarged80)
+        if (geometryModel != StandGeometryModel.Enlarged80 || !expected)
         {
             Remove(existing);
             return;
@@ -40,8 +49,7 @@ public static class StandApproachPath
             return;
 
         float edgeZ = -StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f;
-        List<StandApproachRoute.Point> route = StandApproachRoute.Build(
-            template.transform.position.x, template.transform.position.z, template.transform.eulerAngles.y * Mathf.Deg2Rad);
+        List<StandApproachRoute.Point> route = RouteFrom(template);
         var root = new GameObject(RootName);
 
         // The track. The first point is the authored end itself, so the map's two lines meet; it sits a hair higher so the two
@@ -60,7 +68,11 @@ public static class StandApproachPath
         }
 
         BuildCutting(root.transform, StandApproachRoute.GateCentreX(route, edgeZ), edgeZ);
+        Version++;
     }
+
+    private static List<StandApproachRoute.Point> RouteFrom(GameObject template)
+        => StandApproachRoute.Build(template.transform.position.x, template.transform.position.z, template.transform.eulerAngles.y * Mathf.Deg2Rad);
 
     // The centre of the opening in the south ridge, or false when there is no track to meet it.
     public static bool TryGetGate(out float centreX)
@@ -70,29 +82,57 @@ public static class StandApproachPath
         if (template == null)
             return false;
         float edgeZ = -StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f;
-        centreX = StandApproachRoute.GateCentreX(StandApproachRoute.Build(
-            template.transform.position.x, template.transform.position.z, template.transform.eulerAngles.y * Mathf.Deg2Rad), edgeZ);
+        centreX = StandApproachRoute.GateCentreX(RouteFrom(template), edgeZ);
         return true;
     }
 
+    // The south ridge is as long as the property plus a 1 m overlap at each corner (StandWorldBoundary.Apply).
+    private static float RidgeHalfLength => StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f + 1f;
+
     // Called by StandWorldBoundary right after it has put the south ridge back at full length for Enlarged80: the authored ridge becomes
-    // the west piece and a copy the east piece, with the opening between them.
+    // the west piece and a copy the east piece, with the opening between them. Safe to repeat.
     public static void ShapeSouthRidge(Transform southRidge)
     {
         GameObject root = GameObject.Find(RootName);
         if (southRidge == null || root == null || !TryGetGate(out float gateX))
             return;
         float half = StandApproachRoute.GateWidthM * 0.5f;
-        float min = southRidge.position.x - southRidge.localScale.x * 0.5f;
-        float max = southRidge.position.x + southRidge.localScale.x * 0.5f;
         GameObject east = GameObject.Find(EastRidgePieceName);
         if (east == null)
         {
             east = Object.Instantiate(southRidge.gameObject, root.transform);
             east.name = EastRidgePieceName;
         }
-        SetSpan(southRidge, min, gateX - half);
-        SetSpan(east.transform, gateX + half, max);
+        SetSpan(southRidge, -RidgeHalfLength, gateX - half);
+        SetSpan(east.transform, gateX + half, RidgeHalfLength);
+    }
+
+    // Was this saved world planted with the approach? Read from its trees (see StandApproachRoute.WorldHasApproach); true for anything
+    // that is not an Enlarged80 world.
+    public static bool SaveHasApproach(int geometryModel, IEnumerable<TreeSaveData> savedTrees)
+    {
+        GameObject template = GameObject.Find(TemplatePlankName);
+        if (geometryModel != StandGeometryModel.Enlarged80 || savedTrees == null || template == null)
+            return true;
+        float edgeZ = -StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f;
+        return StandApproachRoute.WorldHasApproach(RouteFrom(template), edgeZ, template.transform.position.z,
+            savedTrees.Select(t => (t.treeId, t.position.x, t.position.z)));
+    }
+
+    // After a load: make the pieces match the world that was loaded, whichever world was showing before (the geometry model may not have
+    // changed, so ApplyStandGeometry raised nothing for the boundary to follow). Builds or removes the approach and closes or opens the ridge.
+    public static void Reconcile(int geometryModel, bool expected)
+    {
+        Apply(geometryModel, expected);
+        if (geometryModel != StandGeometryModel.Enlarged80)
+            return;
+        GameObject southRidge = GameObject.Find("South Ridge");
+        if (southRidge == null)
+            return;
+        if (expected && GameObject.Find(RootName) != null)
+            ShapeSouthRidge(southRidge.transform);
+        else
+            SetSpan(southRidge.transform, -RidgeHalfLength, RidgeHalfLength);     // the east piece went with the pieces under the root
     }
 
     // The walled cutting beyond the opening: ground, two side walls and an end wall in the boundary ridge's own material, and the
@@ -161,6 +201,7 @@ public static class StandApproachPath
     {
         if (root == null)
             return;
+        Version++;
         root.SetActive(false);
         root.name = RootName + " (removed)";
         if (Application.isPlaying)

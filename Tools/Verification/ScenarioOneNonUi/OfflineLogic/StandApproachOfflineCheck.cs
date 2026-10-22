@@ -38,6 +38,7 @@ public static class StandApproachOfflineCheck
         Shape(route);
         Seams(route);
         CoreTrees(root, route);
+        Worlds(root, route);
         Console.WriteLine(failures == 0 ? $"NONUI_APPROACH_PASS checks={checks}" : $"NONUI_APPROACH_FAIL failures={failures} checks={checks}");
         return failures == 0 ? 0 : 1;
     }
@@ -121,5 +122,40 @@ public static class StandApproachOfflineCheck
             "cleared " + string.Join(",", cleared));
         float nearest = trees.Where(t => !cleared.Contains(t.id)).Min(t => planks.Where(p => p.Z < JoinZ).Min(p => Dist(t.x, t.z, p.X, p.Z)));
         Check(nearest > Corridor + 0.1f, "every other core tree stands clear of the new track by more than the corridor", "nearest " + F(nearest) + " m");
+    }
+
+    // Which kind of world a save is, read from its trees (StandApproachRoute.WorldHasApproach): an Enlarged80 world saved before the approach
+    // existed was planted across the line; one made with it has no original plantation tree on it.
+    private static void Worlds(string root, List<StandApproachRoute.Point> route)
+    {
+        string path = Path.Combine(root, "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "core-stand-replica.csv");
+        var oldCore = new List<(string id, float x, float z)>();
+        foreach (string line in File.ReadAllLines(path).Skip(1))
+        {
+            string[] c = line.Split(',');
+            oldCore.Add((c[0], float.Parse(c[1], CultureInfo.InvariantCulture), float.Parse(c[2], CultureInfo.InvariantCulture)));
+        }
+        // The new core: P0009 is cleared and the mortality budget restores P1200 (replica of the generator, positions to 0.01 m).
+        var newCore = oldCore.Where(t => t.id != "P0009").Concat(new[] { ("P1200", -18.90f, 3.99f) }).ToList();
+
+        Check(!StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, oldCore), "a world planted before the approach (the old core stands on its line) is recognised as old");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, newCore), "a world planted with the approach (the corridor cleared) is recognised as new");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)>()), "a world with no trees yet (a new game before planting) has the approach");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, null), "no tree list at all keeps the approach");
+
+        float tx = route.First(p => p.Z <= -28f).X, tz = route.First(p => p.Z <= -28f).Z;
+        var onTrack = new List<(string, float, float)> { ("PO0505", tx + 0.4f, tz) };
+        Check(!StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, onTrack), "one original outer tree on the extension marks an old world, even a stump or dead one (the game keeps those records)");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)> { ("PO0505", tx + 1.6f, tz) }), "an original tree just outside the corridor does not");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)> { ("Q0001", tx, tz), ("N0007", tx, tz), ("juv-3", tx, tz) }),
+            "trees that are not original plantation (recruits, plantings, fixtures) never mark a world old");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)> { ("PO0001", tx, EdgeZ - 3f) }), "nothing beyond the property edge counts");
+        Check(StandApproachRoute.WorldHasApproach(route, EdgeZ, JoinZ, new List<(string, float, float)> { ("P0311", 1.71f, -13.14f), ("P0307", -5.85f, -13.69f) }),
+            "trees north of the join never count: the authored track was always there");
+
+        foreach (string yes in new[] { "P0009", "P1200", "P0000", "PO0505", "PO3939" })
+            Check(StandApproachRoute.IsOriginalPlantationId(yes), "original plantation id " + yes);
+        foreach (string no in new[] { "", null, "P009", "P00091", "PO009", "PO00091", "PX0001", "Q0001", "p0009", "PO", "P", "POABCD", "P00A9" })
+            Check(!StandApproachRoute.IsOriginalPlantationId(no), "not an original plantation id [" + no + "]");
     }
 }

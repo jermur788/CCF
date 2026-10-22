@@ -173,6 +173,30 @@ public sealed class CompetitorKeyboardVerificationRunner : MonoBehaviour
         yield return Press(Digit(ui.Competitors.SelectedIndex + 1));
         Check(marks.GetMarkedIds().All(snapshot.Contains), "everything is unmarked again");
 
+        // ---- a Crop Tree is never silently turned into a felling mark: X refuses it, by keyboard and by mouse ----
+        string protectedId = ui.Competitors.Report.Ranked[0].Id;
+        ForestTree protectedTree = ById(protectedId);
+        marks.Mark(protectedTree, TreeMarkType.CropTree, false);
+        yield return Frames(8);
+        int protectedRow = Enumerable.Range(0, ui.Competitors.ListedCount).First(i => ui.Competitors.Report.Ranked[i].Id == protectedId);
+        yield return Press(Digit(protectedRow + 1));
+        Check(ui.Competitors.SelectedTree != null && ui.Competitors.SelectedTree.TreeId == protectedId, "a competitor that is itself a Crop Tree can be chosen", protectedId);
+        yield return Press(Key.X);
+        yield return Frames(6);
+        Check(protectedTree.IsCropTree && !protectedTree.IsMarkedForFell, "X by keyboard refuses a Crop Tree: the Crop Tree mark is kept", protectedId);
+        Check(marks.TransientMessage.Contains("Crop Tree") && marks.TransientMessage.Contains("C"), "and the player is told to remove the Crop Tree mark first", marks.TransientMessage);
+        yield return Press(Digit(ui.Competitors.SelectedIndex + 1));         // let go
+        marks.Unmark(protectedTree, false);
+        yield return Press(Key.E);                                            // leave inspection, then aim at the Crop Tree itself
+        yield return Frames(6);
+        yield return Aim(t => t == cropA, t => { });
+        Check(marks.AimedTree == cropA && cropA.IsCropTree, "the reticle is on a Crop Tree with nothing chosen on the keyboard");
+        yield return Press(Key.X);
+        yield return Frames(6);
+        Check(cropA.IsCropTree && !cropA.IsMarkedForFell, "X by mouse aim refuses a Crop Tree too: same rule on both paths", cropA.TreeId);
+        Check(marks.TransientMessage.Contains("Crop Tree"), "with the same feedback", marks.TransientMessage);
+        yield return Inspect(cropA);
+
         // ---- a chosen competitor does not outlive the list ----
         yield return Press(Digit(3));
         string third = ui.Competitors.Report.Ranked[2].Id;

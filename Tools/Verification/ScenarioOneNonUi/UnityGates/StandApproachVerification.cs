@@ -160,5 +160,38 @@ public sealed class StandApproachVerificationRunner : MonoBehaviour
         var after = AllTransforms().Where(t => t.name.StartsWith("Dirt Path X", StringComparison.Ordinal) || t.name.StartsWith("Approach Track ", StringComparison.Ordinal)).ToDictionary(t => t.name, t => t.position);
         Check(after.Count == before.Count && before.All(kv => after.ContainsKey(kv.Key) && Vector3.Distance(after[kv.Key], kv.Value) < 0.001f), "going back to Enlarged80 rebuilds the very same track", "planks " + after.Count);
         Check(GameObject.Find("South Ridge (east of gate)") != null && ui.MapSource.Model.Paths.Count == 2, "the opening and the map's extension return too");
+
+        // ---- saves: an old Enlarged80 world keeps the stand it was planted with; a new one gets the approach -----------------------------------
+        ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
+        ForestSaveData newWorld = saves.CaptureData();
+        Check(newWorld.standGeometryModel == StandGeometryModel.Enlarged80 && StandApproachPath.SaveHasApproach(StandGeometryModel.Enlarged80, newWorld.trees),
+            "the world just made is recognised, from its trees, as made with the approach");
+        // An "old" world: the same save with one original outer tree standing on the track's line (as every pre-change world has).
+        ForestSaveData oldWorld = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(newWorld));
+        Vector3 onTheLine = before.Where(kv => kv.Key.StartsWith("Dirt Path X", StringComparison.Ordinal)).OrderBy(kv => kv.Key, StringComparer.Ordinal).ElementAt(30).Value;
+        TreeSaveData moved = oldWorld.trees.First(t => t.treeId.StartsWith("PO", StringComparison.Ordinal) && Vector3.Distance(t.position, onTheLine) > 6f);
+        moved.position = new Vector3(onTheLine.x + 0.3f, 0f, onTheLine.z);
+        Check(!StandApproachPath.SaveHasApproach(StandGeometryModel.Enlarged80, oldWorld.trees), "a world with an original tree on the line is recognised as old", moved.treeId);
+
+        Check(saves.LoadData(oldWorld, false), "the old world loads");
+        yield return null; yield return null;
+        Check(!ecology.StandApproachExpected && GameObject.Find("Stand Approach") == null, "an old world has no approach pieces");
+        Check(AllTransforms().Count(t => t.name.StartsWith("Dirt Path X", StringComparison.Ordinal) || t.name.StartsWith("Approach Track ", StringComparison.Ordinal)) == 0, "no extension planks stand in an old world");
+        GameObject oldRidge = GameObject.Find("South Ridge");
+        Check(GameObject.Find("South Ridge (east of gate)") == null && Mathf.Approximately(oldRidge.transform.localScale.x, 82f) && Mathf.Approximately(oldRidge.transform.position.x, 0f)
+            && Mathf.Approximately(oldRidge.transform.position.z, -40f), "an old world's south ridge is whole at 40 m");
+        Check(GameObject.Find("Approach Ground") == null && GameObject.Find("Approach Gate Blocker") == null, "and has no cutting or blocker");
+        Check(ui.MapSource.Model.Paths.Count == 1, "the map of an old world draws only the authored line", "paths " + ui.MapSource.Model.Paths.Count);
+        Check(saves.LoadData(oldWorld, false), "the old world loads a second time");
+        yield return null; yield return null;
+        Check(GameObject.Find("Stand Approach") == null && ui.MapSource.Model.Paths.Count == 1, "and stays old");
+
+        Check(saves.LoadData(newWorld, false), "the new world loads over it");
+        yield return null; yield return null;
+        var again = AllTransforms().Where(t => t.name.StartsWith("Dirt Path X", StringComparison.Ordinal) || t.name.StartsWith("Approach Track ", StringComparison.Ordinal)).ToDictionary(t => t.name, t => t.position);
+        Check(ecology.StandApproachExpected && again.Count == before.Count && before.All(kv => again.ContainsKey(kv.Key) && Vector3.Distance(again[kv.Key], kv.Value) < 0.001f),
+            "loading a new world brings the approach back, plank for plank", "planks " + again.Count);
+        Check(GameObject.Find("South Ridge (east of gate)") != null && Mathf.Abs(GameObject.Find("South Ridge").transform.localScale.x - 82f) > 1f && ui.MapSource.Model.Paths.Count == 2,
+            "with the opening and the map's extension");
     }
 }

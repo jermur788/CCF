@@ -58,6 +58,42 @@ public static class StandApproachRoute
     // or north of the edge; the rest lie in the opening beyond it.
     public static bool InsideProperty(Point p, float edgeZ) => p.Z >= edgeZ;
 
+    // The clearance the starting stand keeps round every "Dirt Path" plank (ForestStartingStand.pathCorridorRadiusMeters, 1.5 m in the scene).
+    public const float StandCorridorM = 1.5f;
+
+    // The starting stand's own trees, living or not: "P" + 4 digits (the Legacy40 core) or "PO" + 4 digits (the Enlarged80 outer plantation).
+    // Later recruitment, planting and fixtures use other ids.
+    public static bool IsOriginalPlantationId(string id)
+    {
+        if (string.IsNullOrEmpty(id) || id[0] != 'P') return false;
+        int start = id.Length == 6 && id[1] == 'O' ? 2 : 1;
+        if (id.Length - start != 4) return false;
+        for (int i = start; i < id.Length; i++) if (id[i] < '0' || id[i] > '9') return false;
+        return true;
+    }
+
+    // Was this world planted WITH the approach? The starting stand clears every plantation tree off the track, so a world made with it has
+    // no original plantation tree record (living, dead or stump: the game keeps them all) within the corridor of the extension. A world
+    // made before the approach existed was planted straight across that line, so it has some. The record is read, not stored: no save
+    // field is needed, and an old save keeps the world it was made in. Only the extension counts (planks north of the join were always
+    // there), and only inside the property.
+    public static bool WorldHasApproach(IReadOnlyList<Point> route, float edgeZ, float joinZ, IEnumerable<(string id, float x, float z)> trees)
+    {
+        if (trees == null) return true;
+        foreach (var tree in trees)
+        {
+            if (!IsOriginalPlantationId(tree.id)) continue;
+            for (int i = 0; i < route.Count; i++)
+            {
+                Point p = route[i];
+                if (p.Z >= joinZ || p.Z < edgeZ) continue;
+                float dx = tree.x - p.X, dz = tree.z - p.Z;
+                if (dx * dx + dz * dz <= StandCorridorM * StandCorridorM) return false;
+            }
+        }
+        return true;
+    }
+
     // x where the route crosses the south property edge: the centre of the opening.
     public static float GateCentreX(IReadOnlyList<Point> route, float edgeZ)
     {

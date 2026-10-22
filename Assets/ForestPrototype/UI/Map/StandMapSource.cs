@@ -32,7 +32,7 @@ public sealed class StandMapSource
     private int refreshedFrame = -1;
     private float nextRackRead, nextTreeScan;
     private bool racksDirty = true, sceneryRead, treesDirty = true;
-    private int sceneryGeometry = -1;
+    private long sceneryGeometry = -1;
     private int scannedYear = int.MinValue, scannedMarked = -1, scannedCrop = -1;
 
     // How many times the trees were read and how many of those changed the canopy. A verification reads these to show a walk reads nothing.
@@ -104,10 +104,11 @@ public sealed class StandMapSource
         model.CellsPerAxis = eco.CellsPerAxis;
         model.CellSizeM = eco.CellSizeMeters;
 
-        // The track reaches the property edge only in the Enlarged80 world (StandApproachPath), so the path is read again when the geometry changes.
-        if (!sceneryRead || sceneryGeometry != eco.StandGeometryModelVersion)
+        // The track reaches the property edge only in a world made with the approach (StandApproachPath), so the path is read again when that changes.
+        long sceneryKey = (long)eco.StandGeometryModelVersion * 1000000L + StandApproachPath.Version;
+        if (!sceneryRead || sceneryGeometry != sceneryKey)
         {
-            sceneryGeometry = eco.StandGeometryModelVersion;
+            sceneryGeometry = sceneryKey;
             ReadScenery();
         }
 
