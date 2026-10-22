@@ -211,8 +211,24 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
     private static IEnumerator Press(Key key)
     {
         Keyboard keyboard = Keyboard.current ?? InputSystem.AddDevice<Keyboard>();
-        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return null; yield return null;
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return null;
+        Debug.Log("STARTUP_KEY_DELIVERY key=" + key + " isPressed=" + keyboard[key].isPressed + " wasPressed=" + keyboard[key].wasPressedThisFrame); yield return null;
         InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null; yield return null;
+    }
+
+    // Everything a leaked startup key could change. The hidden WalkingHud introduction is open at the title by
+    // design (explicit direct entry shows the fresh introduction and opening the title does not close it), so the
+    // fixture records that state and requires every key to leave the whole snapshot unchanged.
+    private string IsolationState()
+    {
+        return "year=" + manager.CurrentEcologicalYear + " workPlan=" + manager.WorkPlanOpen
+            + " screen=" + ui.CurrentScreen + " help=" + ui.Help.IsOpen + " helpMenu=" + ui.Help.CurrentMenu
+            + " hash=" + Hash() + " orders=" + manager.WorkOrders.Count
+            + " marks=" + ui.Marking.MarkedCount + " crop=" + ui.Marking.LivingCropTreeCount
+            + " rack=" + ui.RackTool.Active + " rackPending=" + ui.RackTool.IntroPending
+            + " rackOrigin=" + ui.RackTool.HasOrigin + " rackConfirmed=" + ui.RackTool.ConfirmedCount
+            + " player=" + player.enabled + " saves=" + saves.enabled + " ui=" + ui.enabled
+            + " position=" + player.transform.position.ToString("F6") + " saveExists=" + File.Exists(savePath);
     }
 
     private void CheckForestHeldBack(string when)
@@ -265,6 +281,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             yield return BoundaryFlow(fresh, freshHash);
             yield break;
         }
+        Debug.Log("STARTUP_OBSERVE initial " + IsolationState());
         bool playerWasEnabled = player.enabled;
         yield return EditorDefaultPolicy();
         yield return NoSaveFlow(freshHash, playerWasEnabled);
@@ -508,11 +525,19 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             skipped.Add("virtual key presses on the title (need an interactive Editor)");
         else
         {
-            foreach (Key key in new[] { Key.F10, Key.W, Key.E, Key.Tab, Key.M, Key.O, Key.X, Key.C, Key.F1, Key.F5, Key.F9, Key.Escape, Key.Space, Key.Digit1 })
+            string beforeKeys = IsolationState();
+            bool helpWasOpen = ui.Help.IsOpen;
+            Debug.Log("STARTUP_OBSERVE before-keys " + beforeKeys);
+            foreach (Key key in new[] { Key.F10, Key.W, Key.A, Key.S, Key.D, Key.E, Key.Tab, Key.M, Key.O, Key.X, Key.C, Key.F1, Key.F5, Key.F9, Key.Escape, Key.Space, Key.Digit1, Key.Digit2, Key.F, Key.G, Key.U, Key.R, Key.V, Key.B, Key.Q, Key.LeftShift })
+            {
                 yield return Press(key);
+                string afterKey = IsolationState();
+                Check(afterKey == beforeKeys, "key " + key + " changed no protected startup state");
+                Debug.Log("STARTUP_OBSERVE after-" + key + " " + afterKey);
+            }
             Check(StandaloneSessionMenu.IsOpen && menu.StartupScreenActive, "F10 and gameplay keys do not leave the title");
             CheckForestHeldBack("after key presses");
-            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Help.IsOpen,
+            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Help.IsOpen == helpWasOpen,
                 "no key opened a forest panel or advanced time");
             Check(Hash() == freshHash && !File.Exists(savePath), "no key changed the world or wrote a save (F5)");
         }
