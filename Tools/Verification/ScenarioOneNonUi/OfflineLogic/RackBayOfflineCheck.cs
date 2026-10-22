@@ -67,6 +67,25 @@ public static class RackBayOfflineCheck
         }
         throw new Exception("Initial release unreachable");
     }
+    private static CompetitionShareSet LivingShares(Stand s, string id)
+    {
+        var target = s.Get(id);
+        var samples = new List<CompetitionSample>();
+        foreach (var other in s.Trees)
+        {
+            if (!other.Living || other.Id == id) continue;
+            bool planned = s.Orders.Any(o => o.Open && o.TargetId == other.Id);
+            samples.Add(CompetitionShare.SampleFrom(other.Id, other.X, other.Z, target.X, target.Z, other.DbhCm, true, planned, true));
+        }
+        return CompetitionShare.Measure(target.DbhCm, samples);
+    }
+    private static float PanelPlannedShare(Stand s, string id)
+    {
+        var set = LivingShares(s, id);
+        double planned = 0;
+        foreach (var c in set.Neighbours) if (c.PlannedFell) planned += c.Contribution;
+        return set.CurrentTotal > 0 ? (float)(planned / set.CurrentTotal) : 0f;
+    }
     private static ScenarioOneTeachingSequence.Facts Facts(ScenarioOneRackBay.Analysis a, bool reviewed=false, bool completed=false) => new ScenarioOneTeachingSequence.Facts
     {
         Bay=a,AccessOpen=true,AccessReviewed=true,CropTrees=a.HasEnoughFuture?3:0,ReleasePlanned=a.ReleasePlanned,
@@ -149,6 +168,60 @@ public static class RackBayOfflineCheck
         var release=selected.Clone();PlanInitial(release);a=release.Analyse();
         Console.WriteLine("CALIBRATION footprint="+footprint+" trees, BA="+areaBasal.ToString("R",CultureInfo.InvariantCulture)+" m2, initial removals="+a.PlannedRemovals+" BA share="+a.RemovedBasalShare.ToString("R",CultureInfo.InvariantCulture)+" min="+a.MinPlannedAndExecuted.ToString("R",CultureInfo.InvariantCulture));
         Check(a.ReleasePlanned&&a.PlannedRemovals>=10&&a.CanopyKept,"30% initial calibrated release remains feasible and substantial inside footprint");
+        foreach (var f in a.Future)
+            Check(Math.Abs(PanelPlannedShare(release, f.Id) - f.PlannedShare) < .000001f,
+                "panel and lesson planned share use the same current denominator and valid open orders for " + f.Id,
+                "panel " + PanelPlannedShare(release, f.Id).ToString("R",CultureInfo.InvariantCulture)
+                + " lesson " + f.PlannedShare.ToString("R",CultureInfo.InvariantCulture));
+        var p0706 = LivingShares(release, Future[2]);
+        double shareSum = 0; bool bounded = true;
+        foreach (var c in p0706.Neighbours)
+        {
+            shareSum += c.Share;
+            bounded &= !float.IsNaN(c.Share) && !float.IsInfinity(c.Share) && c.Share >= 0f && c.Share <= 1f
+                && !double.IsNaN(c.Contribution) && !double.IsInfinity(c.Contribution) && c.Contribution >= 0;
+        }
+        Check(p0706.Neighbours.Count == 39 && Math.Abs(p0706.CurrentTotal - 7.4188016057014465) < .000001
+            && Math.Abs(p0706.CurrentTotal - p0706.Neighbours.Sum(c => c.Contribution)) < .000001,
+            "P0706 fixture current Share set has the same 39-tree denominator and sum of terms",
+            "n=" + p0706.Neighbours.Count + " total=" + p0706.CurrentTotal.ToString("R",CultureInfo.InvariantCulture));
+        Check(bounded && Math.Abs(shareSum - 1.0) < .000001,"current neighbour Shares are finite, bounded 0..1 and sum to one",
+            "sum=" + shareSum.ToString("R",CultureInfo.InvariantCulture));
+        // A loose Fell mark is not a Work Plan order: current and planned shares stay unchanged.
+        var pending = release.Clone();
+        var pendingTarget = pending.Trees.First(t => t.Living && !t.Crop && a.Contains(t.X, t.Z) && !pending.Orders.Any(o => o.Open && o.TargetId == t.Id));
+        pending.Mark(pendingTarget.Id);
+        var pendingAnalysis = pending.Analyse();
+        var pendingFuture = pendingAnalysis.Future.First(f => f.Id == Future[2]);
+        var originalFuture = a.Future.First(f => f.Id == Future[2]);
+        var pendingShares = LivingShares(pending, Future[2]);
+        Check(Math.Abs(pendingFuture.PlannedShare - originalFuture.PlannedShare) < 1e-7f
+            && Math.Abs(PanelPlannedShare(pending, Future[2]) - PanelPlannedShare(release, Future[2])) < 1e-7f
+            && Math.Abs(pendingShares.CurrentTotal - p0706.CurrentTotal) < 1e-7
+            && Math.Abs(pendingShares.Neighbours.Sum(c => c.Share) - 1.0) < .000001,
+            "a pending Fell mark does not alter current or planned Share", "marked " + pendingTarget.Id);
+        // Cancelled work is not planned; completed work moves into the executed-release account only.
+        var cancelled = release.Clone();
+        var p0706Tree = cancelled.Get(Future[2]);
+        var open = cancelled.Orders.First(o => o.Open && Dist(cancelled.Get(o.TargetId), p0706Tree) <= 8);
+        cancelled.Orders.Remove(open);
+        Check(PanelPlannedShare(cancelled, Future[2]) < PanelPlannedShare(release, Future[2]) + 1e-6f
+            && cancelled.Analyse().Future.First(f => f.Id == Future[2]).PlannedShare <= a.Future.First(f => f.Id == Future[2]).PlannedShare + 1e-6f,
+            "cancelled felling order no longer counts as planned");
+        var executedClone = release.Clone(); executedClone.Execute(2); var executedAnalysis = executedClone.Analyse();
+        var executedSet = LivingShares(executedClone, Future[2]);
+        Check(executedSet.CurrentTotal < p0706.CurrentTotal
+            && executedAnalysis.Future.First(f => f.Id == Future[2]).PlannedShare == 0f
+            && PanelPlannedShare(executedClone, Future[2]) == 0f
+            && Math.Abs(executedSet.Neighbours.Sum(c => c.Share) - 1.0) < .000001,
+            "completed removals leave current/planned Share and enter executed release only");
+        string orderSource = File.ReadAllText(Path.Combine(root, "Assets/ForestPrototype/ScenarioOne/ScenarioOneWorkOrder.cs"));
+        string readerSource = File.ReadAllText(Path.Combine(root, "Assets/ForestPrototype/ScenarioOne/ScenarioOneRackBayReader.cs"));
+        string panelSource = File.ReadAllText(Path.Combine(root, "Assets/ForestPrototype/UI/CompetitorAssessment.cs"));
+        Check(orderSource.Contains("IsValidOpenFelling => type == ScenarioWorkType.FellTree && IsOpen && string.IsNullOrEmpty(validationMessage);")
+            && readerSource.Contains("bool open = order.IsValidOpenFelling;")
+            && panelSource.Contains("order.IsValidOpenFelling"),
+            "one order-validity predicate excludes cancelled, completed and invalid planned fellings");
         Check(!a.MixedPlanned&&!a.ReleaseExecuted,"planned all-sold work is neither executed nor mixed");
         string wood=release.Orders.First(o=>o.Open).TargetId;release.Plan(wood,ScenarioOneRackBay.Disposition.Deadwood);a=release.Analyse();
         Check(a.MixedPlanned&&a.DeadwoodPlanned==1,"inside-footprint sold and deadwood choices counted per removal");

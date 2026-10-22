@@ -55,6 +55,9 @@ public sealed class ScenarioOneWorkOrder
     public int harvestJobId = -1;
 
     public bool IsOpen => status == ScenarioWorkStatus.Pending || status == ScenarioWorkStatus.Approved;
+    // A felling order that counts as planned progress: still open, valid, and
+    // of the right type. Cancelled, completed and invalid orders do not count.
+    public bool IsValidOpenFelling => type == ScenarioWorkType.FellTree && IsOpen && string.IsNullOrEmpty(validationMessage);
 
     public string ShortLabel
     {

@@ -14,16 +14,26 @@ public readonly struct CompetitionTree
     public readonly string Id;
     public readonly Vector2 Position;
     public readonly float DbhCm;
+    // True when the tree has a valid open FellTree Work Plan order for the
+    // competition breakdown. PlannedFell remains the existing Fell-mark input
+    // used by the release summary, so that presentation keeps its old meaning.
+    public readonly bool InWorkPlan;
     public readonly bool PlannedFell;
     public readonly bool CropTree;
 
     public CompetitionTree(string id, Vector2 position, float dbhCm, bool plannedFell, bool cropTree)
+        : this(id, position, dbhCm, plannedFell, cropTree, plannedFell)
+    {
+    }
+
+    public CompetitionTree(string id, Vector2 position, float dbhCm, bool plannedFell, bool cropTree, bool inWorkPlan)
     {
         Id = id ?? "";
         Position = position;
         DbhCm = dbhCm;
         PlannedFell = plannedFell;
         CropTree = cropTree;
+        InWorkPlan = inWorkPlan;
     }
 }
 
@@ -86,8 +96,9 @@ public sealed class CropTreeReleaseSummary
 // Read-only breakdown of the existing Hegyi competition index into each
 // neighbour's contribution. It repeats the pair set used by
 // ForestEcologyController.UpdateCompetition (living trees, horizontal
-// distance, the same cutoff) and uses its HegyiTerm, so the parts add up to
-// the tree's competition. It adds no ecological rule and changes nothing.
+// distance, the same cutoff) and uses the shared CompetitionShare calculation,
+// so the parts add up to the tree's current competition. It adds no ecological
+// rule and changes nothing.
 public static class CropTreeCompetition
 {
     public const int ListedCount = 5;
@@ -109,40 +120,40 @@ public static class CropTreeCompetition
         CompetitionTree target = trees[targetIndex];
         report.TargetId = target.Id;
         report.TargetDbhCm = target.DbhCm;
-        float cutoff = ForestEcologyController.HegyiCutoffMeters;
-
+        var indices = new Dictionary<string, int>(StringComparer.Ordinal);
+        var samples = new List<CompetitionSample>(trees.Count - 1);
         for (int j = 0; j < trees.Count; j++)
         {
             if (j == targetIndex)
                 continue;
             CompetitionTree neighbour = trees[j];
-            float distance = Vector2.Distance(target.Position, neighbour.Position);
-            if (distance > cutoff)
-                continue;
-            float term = ForestEcologyController.HegyiTerm(neighbour.DbhCm, target.DbhCm, distance);
-            report.CompetitionNow += term;
-            if (neighbour.PlannedFell)
-                report.PlannedNeighbourCount++;
-            else
-                report.CompetitionAfterPlanned += term;
-            report.Ranked.Add(new CompetitorEntry
-            {
-                Id = neighbour.Id,
-                TreeIndex = j,
-                DbhCm = neighbour.DbhCm,
-                DistanceM = distance,
-                Contribution = term,
-                PlannedFell = neighbour.PlannedFell,
-                CropTree = neighbour.CropTree
-            });
+            indices[neighbour.Id] = j;
+            samples.Add(CompetitionShare.SampleFrom(neighbour.Id, neighbour.Position.x, neighbour.Position.y,
+                target.Position.x, target.Position.y, neighbour.DbhCm, true, neighbour.InWorkPlan, true));
         }
 
-        foreach (CompetitorEntry entry in report.Ranked)
+        CompetitionShareSet competition = CompetitionShare.Measure(target.DbhCm, samples);
+        report.CompetitionNow = (float)competition.CurrentTotal;
+        double planned = 0;
+        foreach (CompetitionContribution contribution in competition.Neighbours)
         {
-            entry.Share = report.CompetitionNow > 0f ? entry.Contribution / report.CompetitionNow : 0f;
-            entry.Strength = StrengthOf(entry.Share);
-            if (entry.PlannedFell) report.PlannedShare += entry.Share;
+            if (contribution.PlannedFell) planned += contribution.Contribution;
+            report.Ranked.Add(new CompetitorEntry
+            {
+                Id = contribution.Id,
+                TreeIndex = indices[contribution.Id],
+                DbhCm = contribution.DbhCm,
+                DistanceM = contribution.DistanceM,
+                Contribution = (float)contribution.Contribution,
+                Share = contribution.Share,
+                Strength = StrengthOf(contribution.Share),
+                PlannedFell = contribution.PlannedFell,
+                CropTree = trees[indices[contribution.Id]].CropTree
+            });
+            if (contribution.PlannedFell) report.PlannedNeighbourCount++;
         }
+        report.CompetitionAfterPlanned = report.CompetitionNow - (float)planned;
+        report.PlannedShare = report.CompetitionNow > 0f ? (float)(planned / competition.CurrentTotal) : 0f;
         report.Ranked.Sort((a, b) =>
         {
             int byContribution = b.Contribution.CompareTo(a.Contribution);

@@ -175,7 +175,7 @@ public sealed class CompetitorAssessment
     {
         ForestTreeMarkingManager marking = ui.Marking;
         ForestEcologyController eco = ui.Ecology;
-        string signature = Signature(marking, eco);
+        string signature = Signature(marking, eco, ui.Manager);
         bool sceneChanged = signature != sceneSignature;
         if (sceneChanged)
         {
@@ -212,11 +212,11 @@ public sealed class CompetitorAssessment
         Version++;
     }
 
-    // Marks, the ecological year and the identity of the living tree objects
-    // describe everything the breakdown depends on between annual steps. The
-    // object identities matter because loading a save replaces every tree
-    // object without necessarily changing the year or the marks.
-    private static string Signature(ForestTreeMarkingManager marking, ForestEcologyController eco)
+    // Marks, valid open fell orders, the ecological year and the identity of
+    // the living tree objects describe everything the breakdown depends on
+    // between annual steps. The object identities matter because loading a save
+    // replaces every tree object without necessarily changing the year or marks.
+    private static string Signature(ForestTreeMarkingManager marking, ForestEcologyController eco, ScenarioOneManager manager)
     {
         var sb = new StringBuilder();
         sb.Append(eco != null ? eco.EcologicalYear : -1).Append('|');
@@ -237,6 +237,16 @@ public sealed class CompetitorAssessment
             crop.Sort(System.StringComparer.Ordinal);
             sb.Append(string.Join(",", fell)).Append('|').Append(string.Join(",", crop));
         }
+        sb.Append('|');
+        if (manager != null)
+        {
+            var planned = new List<string>();
+            foreach (ScenarioOneWorkOrder order in manager.WorkOrders)
+                if (order != null && order.IsValidOpenFelling)
+                    planned.Add(order.targetTreeId + ":" + (int)order.status);
+            planned.Sort(System.StringComparer.Ordinal);
+            sb.Append(string.Join(",", planned));
+        }
         return sb.ToString();
     }
 
@@ -244,6 +254,11 @@ public sealed class CompetitorAssessment
     private void BuildTrees()
     {
         sceneTrees.Clear();
+        var planned = new HashSet<string>(System.StringComparer.Ordinal);
+        if (ui.Manager != null)
+            foreach (ScenarioOneWorkOrder order in ui.Manager.WorkOrders)
+                if (order != null && order.IsValidOpenFelling)
+                    planned.Add(order.targetTreeId);
         foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             if (tree != null && tree.IsLiving)
                 sceneTrees.Add(tree);
@@ -252,7 +267,8 @@ public sealed class CompetitorAssessment
         foreach (ForestTree tree in sceneTrees)
         {
             Vector3 p = tree.transform.position;
-            trees.Add(new CompetitionTree(tree.TreeId, new Vector2(p.x, p.z), tree.Diameter, tree.IsMarkedForFell, tree.IsCropTree));
+            trees.Add(new CompetitionTree(tree.TreeId, new Vector2(p.x, p.z), tree.Diameter,
+                tree.IsMarkedForFell, tree.IsCropTree, planned.Contains(tree.TreeId)));
         }
     }
 

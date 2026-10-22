@@ -22,7 +22,7 @@ public static class ScenarioOneRackBayReader
             foreach (ScenarioOneWorkOrder order in workOrders)
             {
                 if (order == null || order.type != ScenarioWorkType.FellTree) continue;
-                bool open = order.IsOpen && string.IsNullOrEmpty(order.validationMessage);
+                bool open = order.IsValidOpenFelling;
                 bool done = order.status == ScenarioWorkStatus.Completed;
                 if (!open && !done) continue;
                 orders.Add(new ScenarioOneRackBay.Order(order.targetTreeId, open, done, DispositionOf(order.fellingOutcome), order.resolvedYear));

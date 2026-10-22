@@ -26,6 +26,7 @@ PURE_SOURCES = [
     os.path.join(GAME, "UI", "ScenarioOneTeachingSequence.cs"),
     os.path.join(GAME, "UI", "ScenarioOneRackBayText.cs"),
     os.path.join(GAME, "ScenarioOne", "ScenarioOneRackBay.cs"),
+    os.path.join(GAME, "ScenarioOne", "CompetitionShare.cs"),
     os.path.join(GAME, "Racks", "RackGeometry.cs"),
     os.path.join(GAME, "ScenarioOne", "ScenarioOneRackReview.cs"),
     os.path.join(GAME, "StandApproachRoute.cs"),

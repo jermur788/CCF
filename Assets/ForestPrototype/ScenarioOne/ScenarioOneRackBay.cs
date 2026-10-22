@@ -60,8 +60,9 @@ public static class ScenarioOneRackBay
     {
         public readonly string Id;
         public readonly float X, Z, DbhCm;
-        // The share of this tree's competition (summed Hegyi terms of its neighbours within 8 m, including trees already removed
-        // for it) that is in the Work Plan, already removed, and only marked so far.
+        // PlannedShare and MarkedShare use the panel's current living-neighbour denominator. ExecutedShare uses the historical
+        // denominator (current neighbours plus recorded non-access removals), so release is measured against the competition the
+        // tree actually had before the work. Only in-footprint contributions enter any of the three numerators.
         public readonly float PlannedShare, ExecutedShare, MarkedShare;
         public float ReleaseShare => PlannedShare + ExecutedShare;
         public float ReleaseWithMarksShare => PlannedShare + ExecutedShare + MarkedShare;
@@ -208,31 +209,45 @@ public static class ScenarioOneRackBay
         }
         result.BothSides = left && right;
 
-        // All living neighbours remain in the competition denominator. Only INSIDE-footprint work earns lesson credit.
+        // Current Share uses the same living-neighbour denominator as the inspection panel. Only INSIDE-footprint work earns lesson
+        // credit. The historical denominator (living plus recorded non-access removals) is used only for the executed-release account,
+        // so outside felling cannot inflate inside credit merely by disappearing from current competition.
         result.MinPlannedAndExecuted = result.MinExecuted = result.MinWithMarks = accepted.Count == 0 ? 0f : float.MaxValue;
+        var samples = new List<CompetitionSample>(living.Count + removed.Count);
         foreach (Tree future in accepted)
         {
-            double total = 0, planned = 0, executed = 0, marked = 0;
+            samples.Clear();
             foreach (Tree other in living)
             {
                 if (other.Id == future.Id) continue;
-                float d = Distance(future, other);
-                if (d > ForestEcologyController.HegyiCutoffMeters) continue;
-                double term = ForestEcologyController.HegyiTerm(other.DbhCm, future.DbhCm, d);
-                total += term;
-                if (InArea(other.X, other.Z) && plannedIds.Contains(other.Id)) planned += term;
-                else if (InArea(other.X, other.Z) && markedIds.Contains(other.Id)) marked += term;
+                bool inside = InArea(other.X, other.Z);
+                samples.Add(CompetitionShare.SampleFrom(other.Id, other.X, other.Z, future.X, future.Z, other.DbhCm,
+                    true, inside && plannedIds.Contains(other.Id), inside));
             }
             foreach (Tree gone in removed)
             {
-                float d = Distance(future, gone);
-                if (d > ForestEcologyController.HegyiCutoffMeters) continue;
-                double term = ForestEcologyController.HegyiTerm(gone.DbhCm, future.DbhCm, d);
-                total += term;
-                // Outside felling is reconstructed in the denominator only, so it cannot inflate inside-work credit by disappearing.
-                if (InArea(gone.X, gone.Z)) executed += term;
+                bool inside = InArea(gone.X, gone.Z);
+                samples.Add(CompetitionShare.SampleFrom(gone.Id, gone.X, gone.Z, future.X, future.Z, gone.DbhCm,
+                    false, false, inside));
             }
-            float p = total > 0 ? (float)(planned / total) : 0f, e = total > 0 ? (float)(executed / total) : 0f, m = total > 0 ? (float)(marked / total) : 0f;
+            CompetitionShareSet competition = CompetitionShare.Measure(future.DbhCm, samples);
+            double planned = 0, executed = 0, marked = 0;
+            foreach (CompetitionContribution contribution in competition.Neighbours)
+            {
+                if (contribution.Living)
+                {
+                    if (!contribution.InFootprint) continue;
+                    if (contribution.PlannedFell) planned += contribution.Contribution;
+                    else if (markedIds.Contains(contribution.Id)) marked += contribution.Contribution;
+                }
+                else if (contribution.InFootprint)
+                {
+                    executed += contribution.Contribution;
+                }
+            }
+            float p = competition.CurrentTotal > 0 ? (float)(planned / competition.CurrentTotal) : 0f;
+            float e = competition.HistoricalTotal > 0 ? (float)(executed / competition.HistoricalTotal) : 0f;
+            float m = competition.CurrentTotal > 0 ? (float)(marked / competition.CurrentTotal) : 0f;
             result.Future.Add(new FutureTree(future.Id, future.X, future.Z, future.DbhCm, p, e, m));
             result.MinPlannedAndExecuted = Math.Min(result.MinPlannedAndExecuted, p + e);
             result.MinExecuted = Math.Min(result.MinExecuted, e);

@@ -190,7 +190,10 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         foreach(var f in bay.Future)
         {
             yield return Inspect(Trees().First(t=>t.TreeId==f.Id));
-            Check(Mathf.Abs(ui.Competitors.Report.PlannedShare-f.PlannedShare)<.005f,"panel and lesson initial share agree for "+f.Id);
+            float panelShare=ui.Competitors.Report.PlannedShare;
+            Check(Mathf.Abs(panelShare-f.PlannedShare)<.005f,"panel and lesson initial share agree for "+f.Id,
+                "panel "+F(panelShare)+" lesson "+F(f.PlannedShare)+" current competition "+F(ui.Competitors.Report.CompetitionNow)
+                +" neighbours "+ui.Competitors.Report.NeighbourCount);
         }
         if(player.IsInspecting)yield return Press(Key.E);
         var order=manager.WorkOrders.First(o=>o.IsOpen&&o.type==ScenarioWorkType.FellTree);
