@@ -769,11 +769,13 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
 
     private static string Describe(VisualElement element) => (element as TextElement)?.text ?? element.name ?? element.GetType().Name;
 
-    private static bool InScrollView(VisualElement element)
+    private static bool InScrollView(VisualElement element) => NearestScrollView(element) != null;
+
+    private static ScrollView NearestScrollView(VisualElement element)
     {
         for (VisualElement parent = element.parent; parent != null; parent = parent.parent)
-            if (parent is ScrollView) return true;
-        return false;
+            if (parent is ScrollView scroll) return scroll;
+        return null;
     }
 
     private static void CheckLayout(StandaloneSessionMenu menu, string name)
@@ -802,9 +804,15 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
                 Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
                     name + ": fully on screen (no clipping): " + Describe(element));
         }
-        for (int i = 0; i < shown.Count; i++)
-            for (int j = i + 1; j < shown.Count; j++)
-                Check(!shown[i].worldBound.Overlaps(shown[j].worldBound), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
+        // Compare overlap only inside the same clipping context. Content scrolled outside a ScrollView's viewport
+        // still reports a world position, so it must not be compared with fixed elements outside that ScrollView.
+        foreach (var group in shown.GroupBy(NearestScrollView))
+        {
+            var items = group.ToList();
+            for (int i = 0; i < items.Count; i++)
+                for (int j = i + 1; j < items.Count; j++)
+                    Check(!items[i].worldBound.Overlaps(items[j].worldBound), name + ": no overlap between '" + Describe(items[i]) + "' and '" + Describe(items[j]) + "'");
+        }
         foreach (Button button in root.Query<Button>().ToList())
             Check(button.worldBound.height >= 40f, name + ": button tall enough to click: " + button.text);
         foreach (ScrollView scroll in root.Query<ScrollView>().ToList())
