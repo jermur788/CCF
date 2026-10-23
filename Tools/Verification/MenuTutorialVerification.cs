@@ -426,10 +426,11 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(saves.LoadData(data, false), "Stage 7 menu fixture did not load: " + path);
         yield return null; yield return null;
         ui.CloseAll(); ui.CloseHelp();
-        // The rack review is deliberately session-only: a loaded save returns to the review. Repeat the real production
-        // inspection/[J] review before asserting the later teaching stage.
-        yield return ReviewStage7();
         ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
+        // The rack review is deliberately session-only: a loaded save returns to the review. Repeat the real production
+        // inspection/[J] review after the progress reload, then assert the later teaching stage without resetting it again.
+        yield return ReviewStage7();
+        ui.RackLayout.Update(true);
         for (int i = 0; i < 8; i++) ui.Learning.Refresh(true);
         Debug.Log("MENU_STAGE7_FIXTURE loaded=" + path + " year=" + manager.CurrentEcologicalYear
             + " stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'");
