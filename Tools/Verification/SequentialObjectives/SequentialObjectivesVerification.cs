@@ -193,6 +193,20 @@ public sealed partial class GuidedOnboardingRunner
         ui.RackLayout.Update(true); ui.Learning.ReloadProgress(); Stage(index, "save/load " + label);
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "save world hash retained: " + label);
     }
+
+    // The rack review is deliberately session-only: loading a forest must return the learner to the review, not silently keep
+    // the earlier inspections. Repeat the real review, then assert the expected later stage.
+    IEnumerator RoundTripReviewed(int index, string label)
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        var data = saves.CaptureData(); string hash = ScenarioReferenceArchive.WorldHash(data);
+        Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data)), false), "save/load " + label);
+        ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
+        Stage(4, "save/load " + label + " requires fresh rack review");
+        yield return ReviewStand();
+        Stage(index, "save/load " + label);
+        Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "save world hash retained: " + label);
+    }
     IEnumerator AcknowledgeResults(string label)
     {
         ui.ShowReview(); ui.CloseHelp(); yield return Pause(30);
@@ -275,16 +289,16 @@ public sealed partial class GuidedOnboardingRunner
             && manager.WorkOrders.Any(o => o.IsOpen && o.type == ScenarioWorkType.PlantJuvenile && !o.installShelter), "both existing protection decisions represented");
         Check(manager.ApprovePendingWork(), "approve planting"); Stage(5, "approved planting does not establish species");
         Check(manager.AdvanceYear(), "resolve planting"); Stage(6, "planting year needs later observation");
-        RoundTrip(6, "planting time gate");
+        yield return RoundTripReviewed(6, "planting time gate");
         yield return LessonShot("07-establishment-advance");
         yield return AcknowledgeResults("planting year"); Stage(6, "planting-year acknowledgement cannot skip extra year");
         ui.CloseAll(); Check(manager.AdvanceYear(), "later observation year"); Stage(6, "later year still needs review");
-        RoundTrip(6, "later observation before acknowledgement");
+        yield return RoundTripReviewed(6, "later observation before acknowledgement");
         yield return LessonShot("07-establishment-review");
         yield return AcknowledgeResults("later observation year"); Stage(7, "ongoing transformation, no false scenario completion");
         Check(manager.Outcome == ScenarioOneOutcome.Active, "teaching path does not replace scenario completion or minimum year");
         yield return LessonShot("08-continue-transformation");
-        RoundTrip(7, "ongoing transformation");
+        yield return RoundTripReviewed(7, "ongoing transformation");
         ui.CloseAll(); Check(manager.AdvanceYear() && manager.AdvanceYear(), "multiple advances after teaching path"); Stage(7, "extra advances preserve valid progression");
         Check(goalIds.SequenceEqual(manager.Objectives.Select(o => o.objectiveId)) && targets.SequenceEqual(manager.Objectives.Select(o => o.targetValue)), "all eight goal IDs and targets unchanged");
         Check(ForestSaveData.CurrentVersion == 20, "no save schema change");
