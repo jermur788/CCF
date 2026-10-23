@@ -524,6 +524,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         // marking and objectives navigation must never let an older review decide the pruning card.
         yield return ReviewStage7();
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
+        bool pruneResultBefore = ui.Learning.IsDone("prune.result");
+        bool deadwoodResultBefore = ui.Learning.IsDone("deadwood.result");
         ScenarioOneTeachingSequence.Facts pruneFacts = LiveFacts();
         Debug.Log("MENU_PRUNE_DIAGNOSTIC stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'"
             + " crops=" + manager.CropTreeCount + " eligible=" + manager.EligibleCropTreePruningCount
@@ -547,7 +549,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Learning.Observe();
         foreach (string id in new[] { "fell.plan", "deadwood.plan", "prune.plan", "plant.stock", "plant.plan", "plant.shelter", "clear.plan" })
             Check(ui.Learning.IsDone(id), "Learning action not recorded: " + id);
-        Check(!ui.Learning.IsDone("prune.result") && !ui.Learning.IsDone("deadwood.result"), "Planning falsely credited execution");
+        // The Stage 7 fixture already carries real deadwood history, so only a *new* execution credit is a failure.
+        Check(ui.Learning.IsDone("prune.result") == pruneResultBefore && ui.Learning.IsDone("deadwood.result") == deadwoodResultBefore,
+            "Planning falsely credited execution");
         Check(manager.ApprovePendingWork(), "Learning job approval failed"); ui.Learning.Observe();
         foreach (string id in new[] { "fell.approve", "prune.approve", "plant.approve", "clear.approve" })
             Check(ui.Learning.IsDone(id), "Approval learning not recorded: " + id);
