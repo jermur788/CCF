@@ -471,6 +471,8 @@
 .hud-status .body, .hud-status .muted { font-size: var(--fs-sm); }
 .objective-widget { border-left-width: 3px; }
 .hud-minimap { background-color: var(--panel-bg); border-color: var(--panel-border); }
+/* The generic .panel padding above is later in the file than the minimap's own 4-unit frame, which HudMinimapView's north mark and ReservedHeightPx assume. */
+.panel.hud-minimap { padding: 4px; }
 .inspect-selected { border-top-width: 1px; border-top-color: var(--panel-border); border-left-width: 3px; }
 .inspect .title { font-size: 26px; }
 .stat { padding-top: 4px; padding-bottom: 4px; }
