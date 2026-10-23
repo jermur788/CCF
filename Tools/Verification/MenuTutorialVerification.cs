@@ -413,6 +413,13 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         if (ui.Player.IsInspecting) yield return Press(Key.E);
         for (int i = 0; i < 20; i++) yield return null;
         ScenarioOneTeachingSequence.Facts facts = LiveFacts();
+        if (facts.Bay != null)
+            Debug.Log("MENU_REVIEW_DIAGNOSTIC complete=" + facts.RackReviewComplete
+                + " enough=" + facts.Bay.HasEnoughFuture + " canopy=" + facts.Bay.CanopyKept
+                + " exec=" + facts.Bay.ReleaseExecuted + " mixed=" + facts.Bay.MixedExecuted
+                + " reviewed=" + facts.ReleaseReviewed + " trees=" + facts.RevisitedTrees
+                + " portions=" + facts.StandPortionsReviewed + " decisions=" + facts.ReviewDecisions
+                + " future=" + string.Join(",", facts.Bay.Future.Select(t => t.Id + ":p" + t.PlannedShare + "/m" + t.MarkedShare)));
         Check(facts.RackReviewComplete && facts.RevisitedTrees == 3 && facts.StandPortionsReviewed == 6,
             "Stage 7 review did not record three trees and six stand portions: trees " + facts.RevisitedTrees + " portions " + facts.StandPortionsReviewed);
     }
