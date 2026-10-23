@@ -310,6 +310,113 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 
+    ScenarioOneRackBay.Analysis Bay()
+    {
+        var layout = ui.RackTool.Planner.LayoutStatus();
+        var line = layout[layout.Count / 2];
+        return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
+            ui.RackTool.Planner.LayoutLines, new ScenarioOneRackBay.Frame(line.Start, line.End,
+                ScenarioOneRackBay.HalfWidth(ui.RackTool.Planner.LayoutLines, layout.Count / 2)));
+    }
+
+    static ForestTree[] LivingSpruce() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        .Where(t => t.IsLiving && t.Species != null && t.Species.SpeciesId == "sitka-spruce")
+        .OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
+
+    ScenarioOneTeachingSequence.Facts LiveFacts()
+    {
+        MethodInfo method = typeof(LearningObjectivesView).GetMethod("TeachingFacts", BindingFlags.Instance | BindingFlags.NonPublic);
+        return (ScenarioOneTeachingSequence.Facts)method.Invoke(ui.Learning, null);
+    }
+
+    private static readonly Vector3[] ReviewDirections =
+    {
+        Vector3.back, Vector3.forward, Vector3.right, Vector3.left,
+        new Vector3(-1f, 0f, -1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+        new Vector3(-1f, 0f, 1f).normalized, new Vector3(1f, 0f, 1f).normalized
+    };
+    private static readonly float[] ReviewDistances = { 3f, 2.5f, 2f };
+    private readonly Collider[] reviewOverlaps = new Collider[16];
+
+    private bool OverlapsOtherTree(Vector3 standPoint, ForestTree target, out string blocking)
+    {
+        blocking = "";
+        int count = Physics.OverlapSphereNonAlloc(standPoint + Vector3.up * 0.9f, 0.35f, reviewOverlaps);
+        for (int i = 0; i < count; i++)
+        {
+            Collider collider = reviewOverlaps[i];
+            Transform hit = collider.transform;
+            if (hit == ui.Player.transform || hit.IsChildOf(ui.Player.transform)) continue;
+            ForestTree tree = collider.GetComponentInParent<ForestTree>();
+            if (tree == target) continue;
+            blocking = tree != null ? tree.TreeId : collider.name;
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator AimAt(ForestTree tree)
+    {
+        Vector3 aimPoint = tree.transform.position + Vector3.up * 1.4f;
+        var attempts = new List<string>();
+        for (int direction = 0; direction < ReviewDirections.Length; direction++)
+        {
+            for (int distance = 0; distance < ReviewDistances.Length; distance++)
+            {
+                Vector3 standPoint = tree.transform.position + ReviewDirections[direction] * ReviewDistances[distance];
+                if (OverlapsOtherTree(standPoint, tree, out string blocking))
+                {
+                    attempts.Add(direction + "@" + ReviewDistances[distance] + " blocked by " + blocking);
+                    continue;
+                }
+                ui.Player.transform.position = standPoint;
+                ui.Player.LookToward(aimPoint);
+                for (int i = 0; i < 8; i++) yield return null;
+                ForestTree aimed = ui.Marking.AimedTree;
+                if (aimed == tree) yield break;
+                attempts.Add(direction + "@" + ReviewDistances[distance] + " aimed " + (aimed != null ? aimed.TreeId : "nothing"));
+            }
+        }
+        throw new InvalidOperationException("could not aim at " + tree.TreeId + " [" + string.Join("; ", attempts) + "]");
+    }
+
+    private IEnumerator ReviewInspect(ForestTree tree)
+    {
+        if (ui.Player.IsInspecting) yield return Press(Key.E);
+        ui.CloseAll(); ui.CloseHelp();
+        yield return AimAt(tree);
+        yield return Press(Key.E);
+        for (int i = 0; i < 8; i++) yield return null;
+        ui.CloseHelp();
+        for (int i = 0; i < 4; i++) yield return null;
+        Check(ui.Player.IsInspecting && ui.Player.InspectedTree == tree, "Stage 7 review inspection failed: " + tree.TreeId);
+    }
+
+    IEnumerator ReviewStage7()
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        foreach (string id in Bay().Future.Select(t => t.Id).ToArray())
+        {
+            yield return ReviewInspect(LivingSpruce().First(t => t.TreeId == id));
+            yield return Press(Key.J);
+            for (int i = 0; i < 6; i++) yield return null;
+        }
+        for (int part = 0; part < 6; part++)
+        {
+            ScenarioOneRackBay.Analysis bay = Bay();
+            ForestTree tree = LivingSpruce().First(t => !t.IsMarkedForFell && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Portion(t.transform.position.x, t.transform.position.z) == part);
+            yield return ReviewInspect(tree);
+            yield return Press(Key.J);
+            for (int i = 0; i < 6; i++) yield return null;
+        }
+        if (ui.Player.IsInspecting) yield return Press(Key.E);
+        for (int i = 0; i < 20; i++) yield return null;
+        ScenarioOneTeachingSequence.Facts facts = LiveFacts();
+        Check(facts.RackReviewComplete && facts.RevisitedTrees == 3 && facts.StandPortionsReviewed == 6,
+            "Stage 7 review did not record three trees and six stand portions: trees " + facts.RevisitedTrees + " portions " + facts.StandPortionsReviewed);
+    }
+
     private IEnumerator LoadStage7Fixture()
     {
         string path = Environment.GetEnvironmentVariable("CCF_MENU_STAGE7_SAVE");
@@ -319,6 +426,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(saves.LoadData(data, false), "Stage 7 menu fixture did not load: " + path);
         yield return null; yield return null;
         ui.CloseAll(); ui.CloseHelp();
+        // The rack review is deliberately session-only: a loaded save returns to the review. Repeat the real production
+        // inspection/[J] review before asserting the later teaching stage.
+        yield return ReviewStage7();
         ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
         for (int i = 0; i < 8; i++) ui.Learning.Refresh(true);
         Debug.Log("MENU_STAGE7_FIXTURE loaded=" + path + " year=" + manager.CurrentEcologicalYear
