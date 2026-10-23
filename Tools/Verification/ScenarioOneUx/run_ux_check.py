@@ -28,6 +28,14 @@ PURE_SOURCES = [
     "AdvanceGuard.cs",
     "ScenarioOneTeachingSequence.cs",
     "ControlsReference.cs",
+    # ScenarioOneTeachingSequence now reads the rack-area rules (ScenarioOneRackBay and what it uses), so they join this check.
+    "ScenarioOneRackBayText.cs",
+    os.path.join("..", "ScenarioOne", "ScenarioOneRackBay.cs"),
+    os.path.join("..", "ScenarioOne", "CompetitionShare.cs"),
+    os.path.join("..", "ScenarioOne", "ScenarioOneRackReview.cs"),
+    os.path.join("..", "Racks", "RackGeometry.cs"),
+    os.path.join("..", "StandApproachRoute.cs"),
+    os.path.join("..", "..", "..", "Tools", "Verification", "ScenarioOneNonUi", "OfflineLogic", "OfflineStubs.cs"),
 ]
 
 PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
