@@ -260,6 +260,10 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         yield return CaptureMenu(MenuHelpView.Menu.WorkPlan);
         yield return Press(Key.Escape);
         Check(manager.WorkPlanOpen && !ui.Help.IsOpen, "Help Escape closed Work Plan");
+        Check(Text().Contains("Pruning") && Text().Contains(ScenarioOneWorkPlanFocus.LaterObjectiveNote),
+            "early Work Plan does not show pruning locked");
+        Check(!ui.RootElement.Query<Button>().ToList().Any(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")),
+            "early Work Plan offers pruning before its prerequisites");
         Check(!manager.AnnualReviewSeen, "Empty review falsely completed tutorial");
         ui.ShowReview(); yield return null;
         ui.AcknowledgeAnnualReview(); Check(!manager.AnnualReviewSeen, "Year-zero review acknowledged without results");
