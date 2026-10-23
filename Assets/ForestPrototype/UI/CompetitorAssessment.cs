@@ -19,7 +19,7 @@ public sealed class CompetitorAssessment
     private const float RefreshInterval = 0.25f;
     private const float RingHeightM = 1.3f; // breast height, where DBH is measured
 
-    private static readonly Color ListedColour = new Color(232f / 255f, 206f / 255f, 120f / 255f, 0.9f);
+    private static readonly Color ListedColour = new Color(UiKit.AccentColour.r, UiKit.AccentColour.g, UiKit.AccentColour.b, 0.9f);
     // The selected competitor uses the selected-tree ochre (never white); it is told from the thin gold listed rings by its thicker line.
     private static readonly Color SelectedColour = InspectedTreeIndicator.SelectColour;
 

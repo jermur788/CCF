@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 public static class UiKit
 {
     public static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+    // Mirrors ScenarioOneUi.uss --accent for the few HUD elements drawn outside USS (world markers, waypoint arrow).
+    public static readonly UnityEngine.Color AccentColour = new UnityEngine.Color(224f / 255f, 180f / 255f, 90f / 255f, 1f);
 
     // At 720p keep physical reading sizes useful and reflow dense screen layouts.
     public static void SetCompact(VisualElement root) => root.EnableInClassList("compact", UnityEngine.Screen.height < 900);

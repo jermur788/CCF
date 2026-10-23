@@ -67,7 +67,6 @@ public sealed class WalkingHudView
 
         waypointPanel = UiKit.Box("panel", "hud-waypoint", "row");
         waypointPanel.name = "hud-waypoint-panel";
-        waypointPanel.style.backgroundColor = new Color(14f / 255f, 22f / 255f, 16f / 255f, 1f);
         waypointArrow = new WaypointArrow { name = "hud-waypoint-arrow" };
         waypointPanel.Add(waypointArrow);
         VisualElement destination = new VisualElement();
@@ -358,7 +357,7 @@ public sealed class WalkingHudView
             generateVisualContent += context =>
             {
                 Painter2D painter = context.painter2D;
-                painter.fillColor = new Color(232f / 255f, 206f / 255f, 120f / 255f);
+                painter.fillColor = UiKit.AccentColour;
                 Quaternion rotation = Quaternion.Euler(0, 0, BearingDegrees);
                 Vector2 centre = new Vector2(18, 18);
                 painter.BeginPath();

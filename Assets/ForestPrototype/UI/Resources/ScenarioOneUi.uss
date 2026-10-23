@@ -358,7 +358,7 @@
     width: 28px; height: 28px;
     font-size: var(--fs-sm); -unity-font-style: bold; -unity-text-align: middle-center;
     color: rgb(20, 24, 18);
-    background-color: rgba(232, 206, 120, 0.92);
+    background-color: rgba(224, 180, 90, 0.92);
     border-radius: 14px;
 }
 .competitor-tag-selected { background-color: var(--select); border-width: 3px; border-color: var(--select-ink); }
@@ -376,7 +376,7 @@
 .hud-right .hud-status { position: relative; top: 0; right: 0; width: auto; }
 
 /* ---- active objective widget: what to do now, with an unmistakable NOW state ---- */
-.objective-widget { margin-bottom: 8px; border-left-width: 6px; border-left-color: var(--accent); border-color: rgba(232, 206, 120, 0.55); }
+.objective-widget { margin-bottom: 8px; border-left-width: 6px; border-left-color: var(--accent); border-color: rgba(224, 180, 90, 0.55); }
 .objective-header { flex-direction: row; align-items: center; }
 .objective-now {
     background-color: var(--accent); color: rgb(36, 28, 8); -unity-font-style: bold; font-size: var(--fs-xs);
