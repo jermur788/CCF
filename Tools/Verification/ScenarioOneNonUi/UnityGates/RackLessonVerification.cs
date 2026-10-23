@@ -101,13 +101,75 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
 
     private IEnumerator Settled() { yield return new WaitForSecondsRealtime(0.35f); }
 
+    // At the accepted 2.0 m spacing a tree can stand directly between the old fixed -Z viewpoint and its target (P0614 does this
+    // to P0714). That is correct production behaviour: the nearer trunk is what the player's reticle actually hits. The gate
+    // therefore establishes a legitimate stand point with clear line of sight and still uses the real marking raycast to select.
+    private static readonly Vector3[] InspectionDirections =
+    {
+        Vector3.back, Vector3.forward, Vector3.right, Vector3.left,
+        new Vector3(-1f, 0f, -1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+        new Vector3(-1f, 0f, 1f).normalized, new Vector3(1f, 0f, 1f).normalized
+    };
+    private static readonly string[] InspectionDirectionNames = { "-Z (legacy)", "+Z", "+X", "-X", "-X-Z", "+X-Z", "-X+Z", "+X+Z" };
+    private static readonly float[] InspectionDistances = { 3f, 2.5f, 2f };
+    private readonly Collider[] inspectionOverlaps = new Collider[16];
+
+    private static string PoseLabel(int direction, int distance) =>
+        InspectionDirectionNames[direction] + "@" + InspectionDistances[distance].ToString("0.#", CultureInfo.InvariantCulture) + "m";
+
+    private bool OverlapsOtherTree(Vector3 standPoint, ForestTree target, out string blocking)
+    {
+        blocking = "";
+        int count = Physics.OverlapSphereNonAlloc(standPoint + Vector3.up * 0.9f, 0.35f, inspectionOverlaps);
+        for (int i = 0; i < count; i++)
+        {
+            Collider collider = inspectionOverlaps[i];
+            Transform hit = collider.transform;
+            if (hit == player.transform || hit.IsChildOf(player.transform))
+                continue;
+            ForestTree tree = collider.GetComponentInParent<ForestTree>();
+            if (tree == target)
+                continue;
+            blocking = tree != null ? tree.TreeId : collider.name;
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator AimAt(ForestTree tree)
+    {
+        Vector3 aimPoint = tree.transform.position + Vector3.up * 1.4f;
+        var attempts = new List<string>();
+        for (int direction = 0; direction < InspectionDirections.Length; direction++)
+        {
+            for (int distance = 0; distance < InspectionDistances.Length; distance++)
+            {
+                Vector3 standPoint = tree.transform.position + InspectionDirections[direction] * InspectionDistances[distance];
+                if (OverlapsOtherTree(standPoint, tree, out string blocking))
+                {
+                    attempts.Add(PoseLabel(direction, distance) + " blocked by " + blocking);
+                    continue;
+                }
+                player.transform.position = standPoint;
+                player.LookToward(aimPoint);
+                yield return Frames(8);
+                ForestTree aimed = marks.AimedTree;
+                if (aimed == tree)
+                {
+                    Debug.Log("LESSON_AIM " + tree.TreeId + " selected from " + PoseLabel(direction, distance)
+                        + (attempts.Count > 0 ? "; rejected " + string.Join("; ", attempts) : ""));
+                    yield break;
+                }
+                attempts.Add(PoseLabel(direction, distance) + " aimed " + (aimed != null ? aimed.TreeId : "nothing"));
+            }
+        }
+        throw new InvalidOperationException("could not aim at " + tree.TreeId + " [" + string.Join("; ", attempts) + "]");
+    }
+
     private IEnumerator Inspect(ForestTree tree)
     {
         if (player.IsInspecting) yield return Press(Key.E);
-        player.transform.position = tree.transform.position - new Vector3(0, 0, 3);
-        player.LookToward(tree.transform.position + Vector3.up * 1.4f);
-        yield return Frames(8);
-        if (marks.AimedTree != tree) throw new InvalidOperationException("could not aim at " + tree.TreeId);
+        yield return AimAt(tree);
         yield return Press(Key.E);
         yield return Frames(8);
         // A fresh profile opens the first-use Tree Inspection help here. It is modal and takes the keyboard, so close the tutorial
@@ -156,6 +218,14 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         ui.AcknowledgeAnnualReview(); ui.CloseAll(); yield return Settled();
         Check(LiveFacts().AccessOpen && LiveFacts().AccessReviewed, "live access executed and Annual Review acknowledged");
         var bay = Bay();
+#if UNITY_EDITOR
+        // Accepted live geometry anchors carried from the V4 qualification run.
+        int footprintTrees = Trees().Count(t => bay.Contains(t.transform.position.x, t.transform.position.z));
+        Check(footprintTrees == 69, "accepted live teaching footprint has 69 living trees after access", "n=" + footprintTrees);
+        var standSpacing = new UnityEditor.SerializedObject(FindFirstObjectByType<ForestStartingStand>()).FindProperty("latticeSpacingMeters").floatValue;
+        Check(Mathf.Abs(standSpacing - 2f) < .00001f, "scene lattice spacing remains 2.0 m", "spacing=" + F(standSpacing));
+        Check(Mathf.Abs(bay.HalfWidthM - 8.00385f) < .001f, "accepted live middle-rack half-width remains 8.00385 m", "half width=" + F(bay.HalfWidthM));
+#endif
         var layoutLines = planner.LayoutLines.OrderBy(v => v).ToArray();
         Check(layoutLines.Length == 5, "the authored layout has five racks", "n=" + layoutLines.Length);
         float expectedHalfWidth = Mathf.Min(layoutLines[2] - layoutLines[1], layoutLines[3] - layoutLines[2]) * .5f;
