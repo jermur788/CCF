@@ -296,6 +296,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!ui.Help.IsOpen, "Annual introduction repeats after learning");
         Debug.Log("MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false");
 
+        yield return LoadStage7Fixture();
         yield return VerifyLearningObjectives();
 
         ui.CloseAll(); yield return null;
@@ -309,20 +310,20 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 
-    // The Work Plan shows Planting, Nursery and Pruning greyed out ("Available in a later objective.") until the teaching stage that uses them
-    // (SCENARIO-ONE-UX-PEDAGOGY-V1; the locked state itself is checked by UxPedagogyShots). This check drives the whole plan, pruning
-    // included, so it presents the final stage by injecting the facts the Objectives view reads. Nothing here touches the forest or its save.
-    private void PresentFinalTeachingStage()
+    private IEnumerator LoadStage7Fixture()
     {
-        BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-        var facts = new ScenarioOneTeachingSequence.Facts
-        {
-            AccessOpen = true, Year = 5, AccessReviewed = true, CropTrees = 1, ReleasePlanned = true, ReleaseExecuted = true, DeadwoodExecuted = true,
-            ReleaseReviewed = true, ReviewedTwoCycles = true, BeechEstablished = true, OakEstablished = true, PlantingYear = 3, EstablishmentReviewed = true
-        };
-        typeof(LearningObjectivesView).GetField("sequenceFacts", flags).SetValue(ui.Learning, facts);
-        typeof(LearningObjectivesView).GetField("nextSequenceRefresh", flags).SetValue(ui.Learning, float.MaxValue);
-        Check(ui.Learning.CurrentTopicIndex == ScenarioOneWorkPlanFocus.PruningFromLesson, "Work Plan check presents the final teaching stage");
+        string path = Environment.GetEnvironmentVariable("CCF_MENU_STAGE7_SAVE");
+        Check(!string.IsNullOrEmpty(path) && File.Exists(path), "Stage 7 menu fixture missing: " + (path ?? "<unset>"));
+        ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(path));
+        Check(data != null, "Stage 7 menu fixture is not a ForestSaveData: " + path);
+        Check(saves.LoadData(data, false), "Stage 7 menu fixture did not load: " + path);
+        yield return null; yield return null;
+        ui.CloseAll(); ui.CloseHelp();
+        ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
+        for (int i = 0; i < 8; i++) ui.Learning.Refresh(true);
+        Debug.Log("MENU_STAGE7_FIXTURE loaded=" + path + " year=" + manager.CurrentEcologicalYear
+            + " stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'");
+        Check(ui.Learning.CurrentTopicIndex == 7, "Stage 7 menu fixture does not present the final teaching stage");
     }
 
     private IEnumerator VerifyLearningObjectives()
@@ -353,20 +354,34 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         yield return Press(Key.O);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "O does not return to forest");
 
-        ForestTree[] eligible = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t.CanChop && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
-            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).Take(2).ToArray();
-        Check(eligible.Length == 2, "Learning fixture lacks pruning/felling candidates");
-        player.transform.position = eligible[0].transform.position - new Vector3(0, 0, 3);
-        player.LookToward(eligible[0].transform.position + Vector3.up * 1.3f);
+        ForestTree[] livingForLearning = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+            .Where(t => t.CanChop).ToArray();
+        ForestTree cropForPruning = livingForLearning
+            .Where(t => t.IsCropTree && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
+            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
+        ForestTree fellTarget = livingForLearning
+            .Where(t => !t.IsCropTree)
+            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
+        Check(cropForPruning != null, "Stage 7 fixture lacks an existing Crop Tree eligible for pruning");
+        Check(fellTarget != null, "Stage 7 fixture lacks a non-crop fell target");
+        Check(cropForPruning.TreeId != fellTarget.TreeId, "Stage 7 fixture selected the same tree for pruning and felling");
         UnityEngine.Cursor.lockState = CursorLockMode.Locked; UnityEngine.Cursor.visible = false;
-        for (int i = 0; i < 5; i++) yield return null;
+        ForestTree aimed = null;
+        Vector3[] aimDirections = { Vector3.back, Vector3.forward, Vector3.right, Vector3.left };
+        foreach (Vector3 direction in aimDirections)
+        {
+            player.transform.position = fellTarget.transform.position + direction * 3f;
+            player.LookToward(fellTarget.transform.position + Vector3.up * 1.3f);
+            for (int i = 0; i < 5; i++) yield return null;
+            aimed = ui.Marking.AimedTree;
+            if (aimed != null && !aimed.IsCropTree) { fellTarget = aimed; break; }
+        }
         Debug.Log("LEARNING_AIM_DIAGNOSTIC cursor=" + UnityEngine.Cursor.lockState + " player=" + player.enabled
-            + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + eligible[0].transform.position
+            + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + fellTarget.transform.position
+            + " aimed=" + (aimed != null ? aimed.TreeId : "none") + " crop=" + (aimed != null && aimed.IsCropTree)
             + " hits=" + string.Join(",", Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, 8)
                 .Select(h => h.collider.name)));
-        Check(ui.Marking.AimedTree != null, "Learning fixture does not aim at tree");
-        ForestTree aimed = ui.Marking.AimedTree;
+        Check(aimed != null && !aimed.IsCropTree, "Learning fixture does not aim at a non-crop tree");
         yield return Press(Key.M); ui.CloseHelp();
         Check(!aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "M also marked aimed tree");
         ui.CloseAll(); yield return null; yield return null;
@@ -374,10 +389,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "X does not mark Fell independently");
         yield return Press(Key.X);
         Check(!aimed.IsMarkedForFell, "X does not undo Fell mark");
-        ui.Marking.Mark(eligible[0], TreeMarkType.CropTree, false);
-        ui.Marking.Mark(eligible[1], TreeMarkType.Fell, false);
+        ui.Marking.Mark(fellTarget, TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
-        PresentFinalTeachingStage();
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
         // The Work Plan folds the Fell marks in when it opens, so there is no separate "Add marked trees" step to click.
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));

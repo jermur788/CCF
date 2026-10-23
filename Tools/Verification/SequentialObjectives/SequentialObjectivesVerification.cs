@@ -297,6 +297,13 @@ public sealed partial class GuidedOnboardingRunner
         yield return LessonShot("07-establishment-review");
         yield return AcknowledgeResults("later observation year"); Stage(7, "ongoing transformation, no false scenario completion");
         Check(manager.Outcome == ScenarioOneOutcome.Active, "teaching path does not replace scenario completion or minimum year");
+        // Optional fixture export for the menu gate's legitimate Stage 7 replay. The save is written only in the isolated
+        // verification config and only when the caller asks for it; normal guided qualification does not write a save.
+        if (Environment.GetEnvironmentVariable("CCF_WRITE_STAGE7_SAVE") == "1")
+        {
+            saves.Save();
+            Debug.Log("GUIDED_STAGE7_SAVE_WRITTEN " + Application.persistentDataPath);
+        }
         yield return LessonShot("08-continue-transformation");
         yield return RoundTripReviewed(7, "ongoing transformation");
         ui.CloseAll(); Check(manager.AdvanceYear() && manager.AdvanceYear(), "multiple advances after teaching path"); Stage(7, "extra advances preserve valid progression");
