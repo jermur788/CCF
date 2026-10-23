@@ -81,7 +81,7 @@ The two independence fields must stay separate. The 2003 nonresearch observation
 
 ### 2A.3 Mortality representation
 
-Stand-level stocking loss/mortality is embedded in the `N` state dynamics, but Broad & Lynch does not provide an independently parameterised individual-tree or cause-specific mortality hazard. The `N` equation tracks observed stems per hectare and does not identify which tree dies or why, nor does it separate competition, windthrow, disease or other causes. Broad & Lynch is therefore **not** evidence for CCF's suppression-biased individual-tree mortality allocation. [G2a, pp. 4–11; G2b, pp. 90–92]
+Stand-level stocking loss/mortality is embedded in the `N` state dynamics, but Broad & Lynch does not provide an independently parameterised individual-tree or cause-specific mortality hazard. The `N` equation tracks observed stems per hectare and does not identify which tree dies or why, nor does it separate competition, windthrow, disease or other causes. Broad & Lynch is therefore **not** evidence for CCF's suppression-biased individual-tree mortality allocation. [G2a, pp. 4–11; G2b, pp. 80–95]
 
 ### 2A.4 CCF applicability boundary
 
