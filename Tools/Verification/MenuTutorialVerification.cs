@@ -506,6 +506,14 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Marking.Mark(fellTarget, TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
+        ScenarioOneTeachingSequence.Facts pruneFacts = LiveFacts();
+        Debug.Log("MENU_PRUNE_DIAGNOSTIC stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'"
+            + " crops=" + manager.CropTreeCount + " eligible=" + manager.EligibleCropTreePruningCount
+            + " future=" + (pruneFacts.Bay != null) + " enough=" + (pruneFacts.Bay != null && pruneFacts.Bay.HasEnoughFuture)
+            + " canopy=" + (pruneFacts.Bay != null && pruneFacts.Bay.CanopyKept)
+            + " releaseExec=" + pruneFacts.ReleaseExecuted + " review=" + pruneFacts.RackReviewComplete
+            + " rackProblem='" + ui.RackPlanProblem + "'"
+            + " buttons=" + string.Join("|", ui.RootElement.Query<Button>().ToList().Select(b => b.text)));
         // The Work Plan folds the Fell marks in when it opens, so there is no separate "Add marked trees" step to click.
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")));
