@@ -488,21 +488,29 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(cropForPruning.TreeId != fellTarget.TreeId, "Stage 7 fixture selected the same tree for pruning and felling");
         UnityEngine.Cursor.lockState = CursorLockMode.Locked; UnityEngine.Cursor.visible = false;
         ForestTree aimed = null;
-        Vector3[] aimDirections = { Vector3.back, Vector3.forward, Vector3.right, Vector3.left };
+        Vector3 bayCentre = new Vector3(learningBay.Geometry.X, 0f, learningBay.Geometry.Z);
+        Vector3 outward = fellTarget.transform.position - bayCentre; outward.y = 0f;
+        if (outward.sqrMagnitude > 0.0001f) outward.Normalize(); else outward = Vector3.back;
+        Vector3[] aimDirections = { outward, -outward, Vector3.back, Vector3.forward, Vector3.right, Vector3.left };
         foreach (Vector3 direction in aimDirections)
         {
             player.transform.position = fellTarget.transform.position + direction * 3f;
             player.LookToward(fellTarget.transform.position + Vector3.up * 1.3f);
             for (int i = 0; i < 5; i++) yield return null;
             aimed = ui.Marking.AimedTree;
-            if (aimed != null && !aimed.IsCropTree) { fellTarget = aimed; break; }
+            if (aimed != null && !aimed.IsCropTree && !learningBay.Contains(aimed.transform.position.x, aimed.transform.position.z))
+            {
+                fellTarget = aimed;
+                break;
+            }
         }
         Debug.Log("LEARNING_AIM_DIAGNOSTIC cursor=" + UnityEngine.Cursor.lockState + " player=" + player.enabled
             + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + fellTarget.transform.position
             + " aimed=" + (aimed != null ? aimed.TreeId : "none") + " crop=" + (aimed != null && aimed.IsCropTree)
             + " hits=" + string.Join(",", Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, 8)
                 .Select(h => h.collider.name)));
-        Check(aimed != null && !aimed.IsCropTree, "Learning fixture does not aim at a non-crop tree");
+        Check(aimed != null && !aimed.IsCropTree && !learningBay.Contains(aimed.transform.position.x, aimed.transform.position.z),
+            "Learning fixture does not aim at a non-crop tree outside the teaching bay");
         yield return Press(Key.M); ui.CloseHelp();
         Check(!aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "M also marked aimed tree");
         ui.CloseAll(); yield return null; yield return null;
