@@ -505,6 +505,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!aimed.IsMarkedForFell, "X does not undo Fell mark");
         ui.Marking.Mark(fellTarget, TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
+        // Re-establish the session-only review immediately before the Work Plan reads the real stage; the intervening map,
+        // marking and objectives navigation must never let an older review decide the pruning card.
+        yield return ReviewStage7();
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
         ScenarioOneTeachingSequence.Facts pruneFacts = LiveFacts();
         Debug.Log("MENU_PRUNE_DIAGNOSTIC stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'"
