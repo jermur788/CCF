@@ -467,11 +467,14 @@ public sealed class MenuTutorialRunner : MonoBehaviour
 
         ForestTree[] livingForLearning = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
             .Where(t => t.CanChop).ToArray();
+        ScenarioOneRackBay.Analysis learningBay = Bay();
         ForestTree cropForPruning = livingForLearning
             .Where(t => t.IsCropTree && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
             .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
+        // The fell fixture must sit outside the teaching bay: a marked in-footprint removal counts toward the 40% safeguard and
+        // could drop the rederived lesson below stage 7 before the pruning card is built.
         ForestTree fellTarget = livingForLearning
-            .Where(t => !t.IsCropTree)
+            .Where(t => !t.IsCropTree && !learningBay.Contains(t.transform.position.x, t.transform.position.z))
             .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
         Check(cropForPruning != null, "Stage 7 fixture lacks an existing Crop Tree eligible for pruning");
         Check(fellTarget != null, "Stage 7 fixture lacks a non-crop fell target");
