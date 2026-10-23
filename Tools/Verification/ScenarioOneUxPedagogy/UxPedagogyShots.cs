@@ -10,6 +10,8 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 
@@ -72,6 +74,8 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
     private ScenarioOneUiRoot ui;
     private ForestPlayer player;
     private ScenarioOneManager manager;
+    private ForestSaveController saves;
+    private ForestSaveData original;
     private string outDir;
     private int passes, failures, shotCount;
     private Vector2Int size;
@@ -86,7 +90,9 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         ui = FindFirstObjectByType<ScenarioOneUiRoot>();
         player = FindFirstObjectByType<ForestPlayer>();
         manager = FindFirstObjectByType<ScenarioOneManager>();
-        if (ui == null || player == null || manager == null) { Debug.Log("UXP_UNVERIFIED missing ui/player/manager"); Finish(1); yield break; }
+        saves = FindFirstObjectByType<ForestSaveController>();
+        if (ui == null || player == null || manager == null || saves == null) { Debug.Log("UXP_UNVERIFIED missing ui/player/manager/saves"); Finish(1); yield break; }
+        original = saves.CaptureData();
         for (int i = 0; i < 90 && !(Application.isFocused); i++) yield return null;
         var sizes = (Environment.GetEnvironmentVariable("CCF_UI_SIZES") ?? "1280x720,1920x1080").Split(',')
             .Select(s => s.Split('x')).Select(p => new Vector2Int(int.Parse(p[0]), int.Parse(p[1]))).ToArray();
@@ -455,22 +461,167 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
     private IEnumerator WorkPlan()
     {
         Check(!manager.Inventory.Any(e => e.quantity > 0), "FRESH_GAME_OWNS_NO_NURSERY_STOCK (so Planting really starts locked)");
-        foreach (int stage in new[] { 0, 5, 7 })
+        yield return CheckWorkPlanStage(0);
+        yield return LoadStageFixture(5);
+        yield return CheckWorkPlanStage(5);
+        yield return LoadStageFixture(7);
+        yield return CheckWorkPlanStage(7);
+        // Restore the fresh world for the later selection section.
+        Check(saves.LoadData(original, false), "RESTORE_FRESH_WORLD_AFTER_WORKPLAN_FIXTURES");
+        ui.CloseAll(); ui.CloseHelp(); ForceStage(0);
+        for (int i = 0; i < 8; i++) yield return null;
+    }
+
+    private IEnumerator CheckWorkPlanStage(int stage)
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        if (stage == 0) ForceStage(0);
+        ui.ShowWorkPlan();
+        yield return Pause(18);
+        var locked = ui.RootElement.Query(className: "card-locked").ToList().Where(Visible).ToList();
+        int expected = stage == 0 ? 3 : stage == 5 ? 1 : 0;
+        Check(locked.Count == expected, $"WORKPLAN_LOCKED_SECTIONS_AT_STAGE_{stage}", $"locked={locked.Count} expected={expected} [{string.Join(" | ", locked.Select(l => l.Q<Label>(className: "heading")?.text))}]");
+        Check(locked.All(l => !l.enabledInHierarchy), $"WORKPLAN_LOCKED_SECTIONS_ARE_DISABLED_{stage}");
+        Check(locked.All(l => Texts(l).Contains(ScenarioOneWorkPlanFocus.LaterObjectiveNote)), $"WORKPLAN_LOCKED_SECTIONS_EXPLAIN_{stage}");
+        string all = Texts(ui.RootElement);
+        if (stage == 0) Check(all.Contains("Available in a later objective."), "WORKPLAN_EXPLAINS_WHY_PLANTING_IS_UNAVAILABLE");
+        AuditText($"workplan-stage-{stage}", ui.RootElement.Q("work-plan") ?? ui.RootElement);
+        yield return Shot($"06-workplan-stage-{stage}");
+    }
+
+    // Legitimate reached-stage fixtures. The guided gate exports real production saves; the rack review is session-only and is
+    // repeated through the real player inspection/[J] path after every load. No cached teaching facts are injected here.
+    private IEnumerator LoadStageFixture(int stage)
+    {
+        string key = stage == 5 ? "CCF_UXSHOTS_STAGE5_SAVE" : "CCF_UXSHOTS_STAGE7_SAVE";
+        string path = Environment.GetEnvironmentVariable(key);
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) { Fail("STAGE_FIXTURE_PRESENT_" + stage, key + "=" + path); yield break; }
+        ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(path));
+        if (data == null || !saves.LoadData(data, false)) { Fail("STAGE_FIXTURE_LOADS_" + stage, path); yield break; }
+        yield return Pause(4);
+        ui.CloseAll(); ui.CloseHelp();
+        ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
+        yield return ReviewStage(stage);
+        ui.RackLayout.Update(true);
+        for (int i = 0; i < 8; i++) ui.Learning.Refresh(true);
+        Debug.Log("UXP_STAGE_FIXTURE stage=" + stage + " path=" + path + " year=" + manager.CurrentEcologicalYear
+            + " actual=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'");
+        Check(ui.Learning.CurrentTopicIndex == stage, "STAGE_FIXTURE_PRESENTS_STAGE_" + stage,
+            "got " + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'");
+    }
+
+    private ScenarioOneRackBay.Analysis Bay()
+    {
+        var layout = ui.RackTool.Planner.LayoutStatus();
+        var line = layout[layout.Count / 2];
+        return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
+            ui.RackTool.Planner.LayoutLines, new ScenarioOneRackBay.Frame(line.Start, line.End,
+                ScenarioOneRackBay.HalfWidth(ui.RackTool.Planner.LayoutLines, layout.Count / 2)));
+    }
+
+    private static ForestTree[] LivingSpruce() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        .Where(t => t.IsLiving && t.Species != null && t.Species.SpeciesId == "sitka-spruce")
+        .OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
+
+    private ScenarioOneTeachingSequence.Facts LiveFacts()
+    {
+        MethodInfo method = typeof(LearningObjectivesView).GetMethod("TeachingFacts", BindingFlags.Instance | BindingFlags.NonPublic);
+        return (ScenarioOneTeachingSequence.Facts)method.Invoke(ui.Learning, null);
+    }
+
+    private static readonly Vector3[] ReviewDirections =
+    {
+        Vector3.back, Vector3.forward, Vector3.right, Vector3.left,
+        new Vector3(-1f, 0f, -1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+        new Vector3(-1f, 0f, 1f).normalized, new Vector3(1f, 0f, 1f).normalized
+    };
+    private static readonly float[] ReviewDistances = { 3f, 2.5f, 2f };
+    private readonly Collider[] reviewOverlaps = new Collider[16];
+
+    private bool OverlapsOtherTree(Vector3 standPoint, ForestTree target, out string blocking)
+    {
+        blocking = "";
+        int count = Physics.OverlapSphereNonAlloc(standPoint + Vector3.up * 0.9f, 0.35f, reviewOverlaps);
+        for (int i = 0; i < count; i++)
         {
-            ui.CloseAll(); ui.CloseHelp(); ForceStage(stage);
-            ui.ShowWorkPlan();
-            yield return Pause(18);
-            var locked = ui.RootElement.Query(className: "card-locked").ToList().Where(Visible).ToList();
-            int expected = stage == 0 ? 3 : stage == 5 ? 1 : 0;
-            Check(locked.Count == expected, $"WORKPLAN_LOCKED_SECTIONS_AT_STAGE_{stage}", $"locked={locked.Count} expected={expected} [{string.Join(" | ", locked.Select(l => l.Q<Label>(className: "heading")?.text))}]");
-            Check(locked.All(l => !l.enabledInHierarchy), $"WORKPLAN_LOCKED_SECTIONS_ARE_DISABLED_{stage}");
-            Check(locked.All(l => Texts(l).Contains(ScenarioOneWorkPlanFocus.LaterObjectiveNote)), $"WORKPLAN_LOCKED_SECTIONS_EXPLAIN_{stage}");
-            string all = Texts(ui.RootElement);
-            if (stage == 0) Check(all.Contains("Available in a later objective."), "WORKPLAN_EXPLAINS_WHY_PLANTING_IS_UNAVAILABLE");
-            AuditText($"workplan-stage-{stage}", ui.RootElement.Q("work-plan") ?? ui.RootElement);
-            yield return Shot($"06-workplan-stage-{stage}");
+            Collider collider = reviewOverlaps[i];
+            Transform hit = collider.transform;
+            if (hit == player.transform || hit.IsChildOf(player.transform)) continue;
+            ForestTree tree = collider.GetComponentInParent<ForestTree>();
+            if (tree == target) continue;
+            blocking = tree != null ? tree.TreeId : collider.name;
+            return true;
         }
-        ui.CloseAll(); ForceStage(0);
+        return false;
+    }
+
+    private IEnumerator AimAt(ForestTree tree)
+    {
+        Vector3 aimPoint = tree.transform.position + Vector3.up * 1.4f;
+        var attempts = new List<string>();
+        for (int direction = 0; direction < ReviewDirections.Length; direction++)
+        {
+            for (int distance = 0; distance < ReviewDistances.Length; distance++)
+            {
+                Vector3 standPoint = tree.transform.position + ReviewDirections[direction] * ReviewDistances[distance];
+                if (OverlapsOtherTree(standPoint, tree, out string blocking))
+                {
+                    attempts.Add(direction + "@" + ReviewDistances[distance] + " blocked by " + blocking);
+                    continue;
+                }
+                player.transform.position = standPoint;
+                player.LookToward(aimPoint);
+                for (int i = 0; i < 8; i++) yield return null;
+                ForestTree aimed = ui.Marking.AimedTree;
+                if (aimed == tree) yield break;
+                attempts.Add(direction + "@" + ReviewDistances[distance] + " aimed " + (aimed != null ? aimed.TreeId : "nothing"));
+            }
+        }
+        throw new InvalidOperationException("could not aim at " + tree.TreeId + " [" + string.Join("; ", attempts) + "]");
+    }
+
+    private IEnumerator Press(Key key)
+    {
+        Keyboard keyboard = Keyboard.current ?? InputSystem.AddDevice<Keyboard>();
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return Pause(2);
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return Pause(2);
+    }
+
+    private IEnumerator ReviewInspect(ForestTree tree)
+    {
+        if (player.IsInspecting) yield return Press(Key.E);
+        ui.CloseAll(); ui.CloseHelp();
+        yield return AimAt(tree);
+        yield return Press(Key.E);
+        yield return Pause(8);
+        ui.CloseHelp();
+        yield return Pause(4);
+        Check(player.IsInspecting && player.InspectedTree == tree, "STAGE_REVIEW_INSPECT_" + tree.TreeId);
+    }
+
+    private IEnumerator ReviewStage(int stage)
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        foreach (string id in Bay().Future.Select(t => t.Id).ToArray())
+        {
+            yield return ReviewInspect(LivingSpruce().First(t => t.TreeId == id));
+            yield return Press(Key.J);
+            yield return Pause(6);
+        }
+        for (int part = 0; part < 6; part++)
+        {
+            ScenarioOneRackBay.Analysis bay = Bay();
+            ForestTree tree = LivingSpruce().First(t => !t.IsMarkedForFell && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Portion(t.transform.position.x, t.transform.position.z) == part);
+            yield return ReviewInspect(tree);
+            yield return Press(Key.J);
+            yield return Pause(6);
+        }
+        if (player.IsInspecting) yield return Press(Key.E);
+        yield return Pause(20);
+        ScenarioOneTeachingSequence.Facts facts = LiveFacts();
+        Check(facts.RackReviewComplete && facts.RevisitedTrees >= 3 && facts.StandPortionsReviewed == 6,
+            "STAGE_REVIEW_COMPLETE_" + stage, "trees " + facts.RevisitedTrees + " portions " + facts.StandPortionsReviewed);
     }
 
     // ---- selected tree ----

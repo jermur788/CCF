@@ -268,6 +268,13 @@ public sealed partial class GuidedOnboardingRunner
         yield return AcknowledgeResults("release after N3");
         yield return ReviewStand();
         Stage(5, "review unlocks regeneration/protection");
+        if (Environment.GetEnvironmentVariable("CCF_WRITE_STAGE5_SAVE") == "1")
+        {
+            saves.Save();
+            string source = System.IO.Path.Combine(Application.persistentDataPath, "forest-save.json");
+            System.IO.File.Copy(source, System.IO.Path.Combine(Application.persistentDataPath, "stage5-save.json"), true);
+            Debug.Log("GUIDED_STAGE5_SAVE_WRITTEN " + Application.persistentDataPath);
+        }
         yield return LessonShot("06-regeneration-and-protection");
         ui.CloseAll();
         foreach (string item in new[] { "beech-sapling", "sessile-oak-sapling" })
@@ -302,6 +309,8 @@ public sealed partial class GuidedOnboardingRunner
         if (Environment.GetEnvironmentVariable("CCF_WRITE_STAGE7_SAVE") == "1")
         {
             saves.Save();
+            string source = System.IO.Path.Combine(Application.persistentDataPath, "forest-save.json");
+            System.IO.File.Copy(source, System.IO.Path.Combine(Application.persistentDataPath, "stage7-save.json"), true);
             Debug.Log("GUIDED_STAGE7_SAVE_WRITTEN " + Application.persistentDataPath);
         }
         yield return LessonShot("08-continue-transformation");
