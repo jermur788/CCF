@@ -478,10 +478,7 @@
 .inspect-detail .stat-value { font-size: 18px; }
 .inspect .body, .inspect .muted { font-size: 17px; }
 .inspect-detail { margin-top: 6px; }
-.competitor-row { padding-top: 5px; padding-bottom: 5px; }
-.competitor-row Label { font-size: 15px; }
-.competitor-name { flex-grow: 2.5; }
-.competitor-share { flex-grow: 2.1; }
+/* The competitor table keeps its original row size and column split (see the competitor section above); larger rows overflowed the column. */
 .competitor-selected { background-color: rgba(224, 180, 90, 0.08); }
 
 /* Session cards use the same controls and surfaces; the forest remains visible. */
@@ -522,6 +519,5 @@
 .compact .objective-body > .teaching-diagram { flex-basis: 800px; }
 .compact .inspect .panel { padding: 8px 12px; }
 .compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
-.compact .competitor-row Label { font-size: 16px; }
 .compact .session-card { padding: 18px 24px; }
 .compact .session-copy.body { font-size: 20px; margin-bottom: 10px; }

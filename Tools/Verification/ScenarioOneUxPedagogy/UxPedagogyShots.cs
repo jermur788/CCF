@@ -330,7 +330,7 @@ public sealed class UxPedagogyShotsRunner : MonoBehaviour
         Check(ui.Help.IsOpen && Texts(ui.Help.Root).Contains("Transforming a Sitka Plantation"), "INTRO_OPENS_WITH_ITS_TITLE");
         string text = Texts(ui.Help.Root);
         Check(!text.ToLowerInvariant().Contains("not a promised outcome") && !text.ToLowerInvariant().Contains("schematic"), "INTRO_HAS_NO_DISCLAIMER_LINE");
-        foreach (string want in new[] { "What this forest is", "What you are trying to do", "Why it takes many decisions", "access racks" })
+        foreach (string want in new[] { "What you have inherited", "What you are trying to create", "How transformation works", "access racks" })
             Check(text.Contains(want), "INTRO_EXPLAINS_" + want.Replace(' ', '_'));
         AuditDiagram("intro", ui.Help.Root.Q("teaching-diagram"), true);
         AuditHelp("intro");
