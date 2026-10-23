@@ -268,7 +268,7 @@ public static class TeachingDiagramPlan
                 new Text("Repeated selective management", 468f, 110f, 270f, 80f, 28f, Role.Accent),
                 new Text("Over many years", 475f, 400f, 265f, 40f, 26f, Role.Accent),
                 new Text("Best Sitka kept", 768f, 340f, 390f, 34f, 27f, Role.Accent),
-                new Text("Direction, not a forecast", 20f, 436f, 440f, 32f, 25f, Role.Muted),
+                new Text("Direction, not a forecast", 20f, 424f, 440f, 32f, 25f, Role.Muted),
             };
             case 1: return new[]
             {
