@@ -6,7 +6,7 @@ Supporting evidence index, not a decision authority. Research recommendations do
 
 ## Source location
 
-Research sources are held as Game Dev project sources and mirrored under the Drive `CCF — Shared Project Context` folder; `03 — Ecology Research` is now populated. On 2026-10-16/17 the overlapping permanent research attachments were rationalised into four project-facing composites, each carrying per-claim provenance (file, page/section, original reference, evidence class) back to the originals. Research binaries are not committed to Git; preserve exact filenames and do not imply originals were deleted from Drive. See `## Research composites (2026-10-16)` and `## Scenario Two species evidence` below.
+Research sources are held as Game Dev project sources and mirrored under the Drive `CCF — Shared Project Context` folder; `03 — Ecology Research` is now populated. The user's current CCF research/document distribution folder in Google Drive is `Documents/ccf game`; it stores the primary-source audits and the 2006 Irish Forestry issue. Drive copies are distribution/archive copies, not implementation authority: Git remains canonical where a canonical repository source exists. On 2026-10-16/17 the overlapping permanent research attachments were rationalised into four project-facing composites, each carrying per-claim provenance (file, page/section, original reference, evidence class) back to the originals. Research binaries are not committed to Git; preserve exact filenames and do not imply originals were deleted from Drive. See `## Research composites (2026-10-16)` and `## Scenario Two species evidence` below.
 
 ## D-023 — Browsing/protection
 
@@ -46,6 +46,42 @@ As of the 2026-10-16/17 rationalisation this synthesis was distributed across Co
 
 - **Lekwadi et al. (2012)**, Irish Sitka site classification and top-height growth, via the CCF Primary Literature Synthesis v1 [A]. Only the age-30 Class III top height (20.4 m) is used as a published anchor; the rounded Table 3 coefficients do not reproduce the published anchors and are not used directly.
 - **Comeau, White, Kerr & Hale (2010)**, *Maximum density–size relationships for Sitka spruce and coastal Douglas-fir in Britain and Canada*, Forestry 83(5): 461–468 [B]. GB Sitka slope −2.063, maximum SDI 1,868, Dq 25 cm reference. British transfer evidence: the paper reports regional differences and recommends species/region-specific relationships; it is not Irish validation.
+- **Broad & Lynch (2006a, 2006b)**, Irish stand-level Sitka growth model and empirical panel-data validation. These are **not** the production Growth Model 1 engine. D-048's lineage remains Lekwadi-informed Irish height, Comeau British density transfer, existing individual-tree DBH/Hegyi mechanics and calibrated CCF mortality behaviour. Use GROWFOR/Broad & Lynch as a **GROWFOR-informed / benchmarked** aggregate comparison/validation envelope, never as `GROWFOR-based` implementation lineage.
+
+### Distinct Broad & Lynch evidence records
+
+| Field | `BROAD_LYNCH_2006A_GROWTH` | `BROAD_LYNCH_2006B_VALIDATION` |
+|---|---|---|
+| Citation | Broad, L.R. & Lynch, T. (2006a), “Growth models for Sitka spruce in Ireland”, *Irish Forestry* 63(1&2): 53–79 | Broad, L.R. & Lynch, T. (2006b), “Panel data validation using cross-sectional methods”, *Irish Forestry* 63(1&2): 80–95 |
+| Source class | Peer-reviewed primary model-development / calibration study | Peer-reviewed primary empirical source-data / panel-data validation study |
+| Species | *Picea sitchensis* (Sitka spruce) | *Picea sitchensis* (Sitka spruce) |
+| Geography | Ireland, with British Forestry Commission low-site-index supplementation | Ireland (Coillte estate and research estate; 2003 production-stand survey) |
+| Stand structure | Even-aged experimental and production stands | Even-aged experimental and production stands |
+| Management scope | Thinned and unthinned model specification and calibration | Thinned and unthinned empirical source-data representativeness/bias assessment |
+| Model scale | Stand level | Stand/panel-data audit |
+| `validation_role` | Primary **model-development / calibration** source; not a post-fit predictive test | `empirical source-data / panel-data validation` |
+| `independent_predictive_validation` | no | no |
+| `ccf_direct_validation` | no | no |
+| What it establishes | Stand-level `B,N,H` systems; top-height/site-index relationship; thinning relationship; fitted parameter matrices | Estate-versus-research site-index comparison; research-panel representativeness diagnosis; experimental-dependence limitations; cross-sectional research/nonresearch volume-data diagnosis; evidence consistent with sample-tree selection bias |
+| What it does not establish | Individual-tree growth; individual mortality hazards; CCF/irregular-stand validation; independent final-model predictive validation | Independent final dynamic-model forecast validation; longitudinal forecast RMSE/MAE; prediction-interval calibration; CCF/irregular-stand validation |
+| Key reported results | State vector `(B,N,H)`; separate thinned/unthinned systems; fitted matrices; thinning equation | Estate population 44,217 subcompartments (27,887 thinned, 16,330 unthinned); thinned site-index χ²(7) = 625.5, p < 0.001; unthinned χ²(7) = 1648.2, p < 0.001; 2003 cross-sectional sample 113 stands (70 thinned, 43 unthinned); common-volume relationship F(4,105) = 0.8835, null not rejected |
+| Independence | Model development/calibration data; not independent of the final fitted model | `validation_independent_of_original_research_panel = true`; `validation_independent_of_final_volume_model_calibration = false` — the 113 stands were used in 2006a calibration/weight adjustment |
+| Evidence verdict | Well-specified calibrated even-aged stand model; predictive validation not demonstrated | Empirical data-quality validation; not validation of final dynamic forecasts |
+
+**Accepted V1B verdict:** `EMPIRICAL SOURCE-DATA VALIDATION CONFIRMED; FINAL GROWTH-MODEL PREDICTIVE VALIDATION NOT DEMONSTRATED`.
+
+**Mortality wording:** stand-level stocking loss/mortality is embedded in the `N` state dynamics, but Broad & Lynch does not provide an independently parameterised individual-tree or cause-specific mortality hazard. Do not use Broad & Lynch as evidence for CCF's suppression-biased individual-tree mortality allocation.
+
+**CCF applicability boundary.** Strongest support: pure Sitka, stand level, principally even-aged, conventional thinned/unthinned conditions, aggregate `B`/`N`/`H` comparison. Not validated by these sources: individual-tree growth response, local Hegyi release, regeneration, multiple cohorts, mixed species, strongly irregular CCF, continuous-cover predictive behaviour.
+
+**Scenario One interpretation.** Broad & Lynch is useful as an aggregate plausibility benchmark while the stand remains plantation-like. Its evidential authority decreases as Scenario One becomes structurally irregular, multicohort and mixed-species. This does not declare Scenario One invalid.
+
+### Primary-source audits (V1A/V1B)
+
+- `Primary-Source Audit of the CCF Sitka Spruce Growth Evidence Base` (V1A): earlier audit of the Broad & Lynch 2006a growth evidence, existing GROWFOR extraction, later GROWFOR evaluations/manual and current CCF documentation. At V1A, the 2006b companion paper was not retrievable, so its findings were secondary-only. Preserved as a dated research artifact, not overwritten by V1B.
+- `CCF-SITKA-GROWTH-EVIDENCE-AUDIT-V1B` (V1B): later audit that directly examined the uploaded `Irish Forestry, Vol. 63 No. 1&2, 2006`, including Broad & Lynch 2006a (pp. 53–79) and 2006b (pp. 80–95). It establishes the distinct 2006a/2006b roles and the accepted verdict above. Use V1B for current classification; retain V1A as historical evidence.
+
+Both audit reports and the 2006 journal are held under `Documents/ccf game` in Google Drive and as local copies under `~/Documents/CCF Game/`. They are supporting research, not decision authority. The canonical repository records are this index and `Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md`.
 
 ## Current multi-species and forestry evidence
 
@@ -53,7 +89,7 @@ The following supporting reports are held as Game Dev project sources and/or arc
 
 - `CCF Species Evidence Pack v1 — Multi-Species Continuous-Cover Forestry Research Report.pdf` (**retained individual**): current species-specific evidence for assessing multi-species forestry and the limits of transferring Sitka relationships. Quantitative replacement design remains separate accepted work.
 - `CCF Academic Paper Consolidation — Comprehensive Evidence Edition.pdf` (**retained individual**): broader academic consolidation supporting source review and evidence gaps. The ordinary `CCF Academic Paper Consolidation.pdf` was verified fully superseded by the comprehensive edition and detached from project sources on 2026-10-16 (Drive copy retained).
-- `GROWFOR_Technical_Evidence_Extraction_v1.md` (**retained individual**): named `BroadLynch2006_Sitka` equations/coefficients, validity limits, assortment coefficients and G3/G4 validation anchors; the deep technical provenance for the GROWFOR/Broad–Lynch evidence.
+- `GROWFOR_Technical_Evidence_Extraction_v1.md` (**retained individual**; canonical repository copy `Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md`): named `BroadLynch2006_Sitka` equations/coefficients, validity limits, assortment coefficients, G3/G4 statistics and the V1B 2006a/2006b evidence-role fields. Deep technical provenance for the GROWFOR/Broad–Lynch evidence; not an implementation specification.
 - Held via the four composites (originals in Drive archive): `Irish Continuous-Cover Forestry Transformation Evidence_ ContinuFOR, TranSSFor, LISS and Related Iri.pdf`, `European_Pro_Silva_CCF_Practice_Synthesis.md`, `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf`, and the ecology/browsing/understorey/Primary-Literature-Synthesis reports.
 
 The earlier note that `Irish Forestry Economics, Labour and Contractor Operations for CCF Stage 1.pdf` had no verified local/Drive location is superseded: the report is archived in Drive `03 — Ecology Research` and its content is preserved in Composite 4. Distinguish it from the later specialist-chat handoff “Forestry Economics & Irish Timber Markets — Research Synthesis”; that synthesis is not the source report. No prices, profitability targets or economic mechanics are adopted here.
@@ -68,7 +104,7 @@ Four project-facing composites replace the overlapping permanent research attach
 
 - `CCF_Ecology_and_Regeneration_Evidence_Composite.md` — light/canopy, regeneration/establishment, understorey competition, deadwood/veterans, epiphytes, invasives, hydrology/site, biodiversity/monitoring, succession.
 - `CCF_Browsing_Protection_and_Management_Evidence_Composite.md` — browser set, pressure vs damage, life-stage vulnerability, species palatability/recovery, browse algorithm, fencing/shelters, deer law/policy, parameter table.
-- `CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md` — density architecture and evidence, Pretzsch DEC/DMC, Irish Sitka site/height, individual-tree growth, crown geometry, oak/beech envelopes, GROWFOR summary anchors.
+- `CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md` (canonical repository copy `Docs/Research/CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md`) — density architecture and evidence, Pretzsch DEC/DMC, Irish Sitka site/height, individual-tree growth, crown geometry, oak/beech envelopes, GROWFOR summary anchors and the V1B validation scoring (`source_data_empirical_validation_score` 2; `independent_predictive_validation_score` 0; `ccf_transfer_validation_score` 0).
 - `CCF_CCF_Practice_Economics_and_Transformation_Evidence_Composite.md` — Irish transformation trials, positive selection, wind/stability, Pro Silva practice, timber economics, labour/protection/pruning, salvage and timber quality.
 
 The rationalisation evidence package (inventories, overlap matrix, removal-safety, provenance audit and handoff) is held outside the repository at `/media/jer/ZX20/CCF-Verification/ProjectSourceRationalisation-20261016T232710Z/`.

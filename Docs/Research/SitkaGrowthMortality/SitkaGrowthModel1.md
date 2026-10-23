@@ -23,6 +23,10 @@ Not merged.
 
 ## Growth model 1
 
+**Source lineage and evidence boundary.** Growth Model 1 is **GROWFOR-informed / benchmarked**, not `GROWFOR-based` and not an implementation of the Broad–Lynch stand-growth equations. Production lineage remains: Lekwadi-informed Irish height; Comeau British density transfer; existing individual-tree DBH/Hegyi mechanics; calibrated CCF mortality behaviour (D-048). Broad & Lynch 2006a is the primary model-development/calibration source for the Irish stand-level `B,N,H` envelope. Broad & Lynch 2006b is the primary empirical source-data/panel-data validation study for site-index representativeness, experimental dependence and cross-sectional volume behaviour; it does **not** independently validate final dynamic forecasts.
+
+The Broad & Lynch envelope supports aggregate comparison for pure Sitka at stand level, principally even-aged and conventional thinned/unthinned conditions. It does not validate individual-tree growth response, local Hegyi release, regeneration, multiple cohorts, mixed species, strongly irregular CCF or continuous-cover predictive behaviour. Its evidential authority decreases as the stand becomes structurally irregular, multicohort and mixed-species. See `GROWFOR_Technical_Evidence_Extraction_v1.md` §2A.
+
 **Height (Sitka only)** — `SitkaGrowthModel.SiteTopHeightM`, `NextHeight`:
 - **Envelope:** Lekwadi et al. (2012) Class III form `H = b0(1 − e^(−0.042 t))^1.563`, with b0 = **34.362** derived from the published age-30 anchor 20.4 m. The rounded paper b0 (34.228) is not used.
 - **Evidence status:** 20.4 m at age 30 is the **direct published Irish Class III anchor [A]**. H20 14.21, H40 24.89, H60 30.14, H80 32.51 and H100 33.56 m are **modelled Class III curve values**, not independent measured Irish anchors.
@@ -35,11 +39,13 @@ Not merged.
 
 **Separation:** Hegyi measures local individual competition (the DBH response); SDI/RD measures stand occupancy (self-thinning pressure). The two are not merged.
 
-**Mortality** (`ForestEcologyController.ApplyAdultDensityMortality`, annual step 4b, after crowns, before canopy):
+**Mortality (CCF calibration; not a Broad & Lynch hazard)** (`ForestEcologyController.ApplyAdultDensityMortality`, annual step 4b, after crowns, before canopy):
 1. Compute the stand RD and density pressure `P = max(0, (RD − 0.6)/0.4)` [C].
 2. Each adult tree dies with probability `min(0.5, 0.08·P²·S⁴/mean(S⁴))` [C], where S is current Hegyi suppression. The roll is `SimulationRandom.Roll(rngModel, "ADULT-MORT-"+id, year, seed)`.
 3. Boundary: if survivors would exceed RD 1, the most suppressed die until RD ≤ 1 (ties by tree ID; running sums keep this linear).
 4. Victims are collected first, then killed inside one change batch through `ForestTree.ApplyMortality("self-thinning", year)`. The canopy and seed rain rebuild once.
+
+Broad & Lynch's `N` state embeds stand-level stocking loss/mortality, but it does not provide an independently parameterised individual-tree or cause-specific hazard. The suppression weighting above is a CCF calibration choice [C], not a Broad & Lynch result.
 
 **Deadwood:** `ScenarioOneManager.OnTreeBiologicalDeath` (subscribed to `ForestTree.MortalityApplied`, growth model 1 only) creates one `ScenarioDeadwoodRecord` per death. It uses the existing fallen-log visual, decay, annual snapshot and save path, with fallen year = death year and volume = stem volume at death. Restored deaths do not raise the event, and `ApplyMortality` refuses a second death, so there is one record per tree. No new deadwood subsystem; no standing snags.
 
