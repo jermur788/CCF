@@ -95,7 +95,8 @@ public sealed class TreeInspectionView
         ForestEcologyController eco = ui.Ecology;
         // Rebuild only when something visible can have changed.
         CompetitorAssessment competitors = ui.Competitors;
-        string key = tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
+        string rackPrompt = ui.Learning.RackInspectionPrompt(tree);
+        string key = rackPrompt + "|" + tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
             + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump
             + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail;
         if (key == shownKey)
@@ -134,6 +135,7 @@ public sealed class TreeInspectionView
         if (!tree.IsStump && eco != null)
             UiKit.Add(body, Diagnosis(tree, eco), "body");
 
+        if (!string.IsNullOrEmpty(rackPrompt)) UiKit.Add(body, rackPrompt, "body");
         BuildDetail(tree, eco, report);
         // During the opening rack stage the card does not advertise marking; it is introduced once the racks are open.
         string marking = ui.Manager != null && ui.Manager.RackFirstStageActive ? "" : "[X] Fell  [C] Crop Tree  ";
@@ -235,16 +237,16 @@ public sealed class TreeInspectionView
 
         if (report.HasPlannedRemovals)
         {
-            UiKit.Line(competitorBody, "Competition now → after your Fell marks",
+            UiKit.Line(competitorBody, "Competition now → after planned fells",
                 $"{UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")} ({SignedPercent(report.ChangeFraction)})");
-            UiKit.Add(competitorBody, $"{report.PlannedNeighbourCount} Fell-marked neighbour{(report.PlannedNeighbourCount == 1 ? " supplies" : "s supply")} {Percent(report.PlannedShare)} of it. "
+            UiKit.Add(competitorBody, $"{report.PlannedNeighbourCount} planned-fell neighbour{(report.PlannedNeighbourCount == 1 ? " supplies" : "s supply")} {Percent(report.PlannedShare)} of it. "
                 + $"Growth held back: about {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionNow, competitors.TargetCi50))} now, "
                 + $"{Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionAfterPlanned, competitors.TargetCi50))} after. Estimate if nothing else changes.", "muted");
         }
         else
         {
             UiKit.Line(competitorBody, "Competition now", UiKit.F(report.CompetitionNow, "0.00"));
-            UiKit.Add(competitorBody, "No neighbour is marked to fell. Marks you add with [X] show their effect here.", "muted");
+            UiKit.Add(competitorBody, "No neighbour is planned to fell. Mark trees with [X] and add them to the Work Plan [Tab] to see their effect here.", "muted");
         }
         UiKit.Add(competitorBody, "Shares come from the size and distance of trees within 8 m. Strength describes share only; it is not advice.", "faint");
     }

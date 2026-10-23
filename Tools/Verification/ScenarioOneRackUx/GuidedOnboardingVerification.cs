@@ -49,11 +49,12 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
     float initialAngle, nextTelemetry;
     readonly List<string> failures = new List<string>();
 
-    void Check(bool ok, string name)
+    void Check(bool ok, string name, string detail = "")
     {
         checks++;
-        Debug.Log("GUIDED_" + (ok ? "PASS " : "FAIL ") + name);
-        if (!ok) failures.Add(name);
+        string message = name + (detail.Length > 0 ? " [" + detail + "]" : "");
+        Debug.Log("GUIDED_" + (ok ? "PASS " : "FAIL ") + message);
+        if (!ok) failures.Add(message);
     }
     static bool Visible(VisualElement element)
     {

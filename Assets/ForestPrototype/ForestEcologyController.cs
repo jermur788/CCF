@@ -85,6 +85,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     // world boundary objects can follow. Not raised when the model is unchanged.
     public event System.Action<int> StandGeometryApplied;
 
+    // Whether this world is meant to have the forest track's approach (StandApproachPath). A new world is; ForestSaveController.LoadData
+    // sets it from the save, so an Enlarged80 world saved before the approach existed keeps the stand it was planted with.
+    public bool StandApproachExpected { get; set; } = true;
+
     public void ApplyStandGeometry(int model)
     {
         if (!StandGeometryModel.IsKnown(model))
@@ -93,6 +97,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         standGeometryModelVersion = model;
         standSizeMeters = StandGeometryModel.StandSizeMeters(model);
         cellSizeMeters = StandGeometryModel.CellSizeMeters;
+        // The forest track's approach follows the geometry (Enlarged80 only). It is made here, before the event and before anything
+        // plants a stand, because the starting stand keeps trees clear of the track planks and the stand map draws them.
+        StandApproachPath.Apply(model, StandApproachExpected);
         // Before Awake the grid does not exist; Awake then builds it at the size set above.
         if (cells != null && (changed || cells.Length != StandGeometryModel.CellCount(model)))
             RebuildGrid();

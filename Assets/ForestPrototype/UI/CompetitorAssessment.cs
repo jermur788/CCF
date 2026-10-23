@@ -35,13 +35,21 @@ public sealed class CompetitorAssessment
     private string sceneSignature = "";
     private string reportTreeId = "";
     private float nextRefresh;
+    private int teachingWorldVersion = -1;
 
     public CropTreeCompetitionReport Report { get; private set; }
     public ForestTree ReportTree { get; private set; }
     public CropTreeReleaseSummary Summary { get; private set; }
     public float TargetCi50 { get; private set; }
-    // 0-based index into the listed entries, or -1.
-    public int SelectedIndex { get; private set; } = -1;
+    // 0-based index into the listed entries, or -1. The tree behind it is remembered by id as well, so a list rebuilt after a mark or a
+    // load keeps the same tree chosen (or lets go) and never silently points at a different one.
+    private int selectedIndex = -1;
+    private string selectedTreeId = "";
+    public int SelectedIndex
+    {
+        get => selectedIndex;
+        private set { selectedIndex = value; selectedTreeId = value >= 0 && value < ListedCount ? Report.Ranked[value].Id : ""; }
+    }
     // Changes whenever anything shown on the card changes.
     public int Version { get; private set; }
 
@@ -52,15 +60,51 @@ public sealed class CompetitorAssessment
         labelLayer.name = "competitor-tags";
         labelLayer.pickingMode = PickingMode.Ignore;
         root.Add(labelLayer);
+        // X marks the competitor chosen here, wherever the reticle points (see ForestTreeMarkingManager.KeyboardTarget).
+        if (ui.Marking != null) ui.Marking.KeyboardTarget = () => SelectedTree;
     }
 
     public int ListedCount => Report == null ? 0 : Mathf.Min(CropTreeCompetition.ListedCount, Report.NeighbourCount);
     public CompetitorEntry Selected => Report != null && SelectedIndex >= 0 && SelectedIndex < ListedCount ? Report.Ranked[SelectedIndex] : null;
 
+    // The living tree behind the chosen row: the one the thick ring is drawn on and the one X marks. Null unless the list is showing for
+    // the Crop Tree being inspected right now, so a list that has closed (or a tree that has been replaced by a load) can never be a target.
+    public ForestTree SelectedTree
+    {
+        get
+        {
+            ForestTree inspected = ui.Player != null ? ui.Player.InspectedTree : null;
+            bool showing = inspected != null && inspected.IsCropTree && Report != null && ReportTree == inspected
+                && !ui.Player.IsPlantingMode;
+            int row = CompetitorKeyboardTarget.TargetIndex(showing, selectedIndex, ListedCount);
+            if (row < 0) return null;
+            int index = Report.Ranked[row].TreeIndex;
+            ForestTree tree = index >= 0 && index < sceneTrees.Count ? sceneTrees[index] : null;
+            return tree != null && tree.IsLiving && tree.TreeId == selectedTreeId ? tree : null;
+        }
+    }
+
+    private List<string> ListedIds()
+    {
+        var ids = new List<string>();
+        for (int i = 0; i < ListedCount; i++) ids.Add(Report.Ranked[i].Id);
+        return ids;
+    }
+
     // Called every frame by the UI root. inspected is null unless the walking
     // inspection card is visible.
     public void Update(ForestTree inspected)
     {
+        // A load or a new scenario replaces the world under the list even when the scene reuses the same tree objects. The choice
+        // belongs to the previous world, so the remembered id, row and highlight are let go here, at the owner, and the cached
+        // report is rebuilt from the restored trees, marks and year.
+        if (ui.Manager != null && CompetitorKeyboardTarget.WorldChanged(teachingWorldVersion, ui.Manager.TeachingWorldVersion))
+        {
+            teachingWorldVersion = ui.Manager.TeachingWorldVersion;
+            sceneSignature = "";
+            nextRefresh = 0f;
+            Clear();
+        }
         if (Time.unscaledTime >= nextRefresh)
         {
             nextRefresh = Time.unscaledTime + RefreshInterval;
@@ -70,7 +114,8 @@ public sealed class CompetitorAssessment
             RefreshIfChanged(inspected);
 
         bool assessing = inspected != null && inspected.IsCropTree && Report != null && ReportTree == inspected;
-        if (assessing) HandleSelectionKeys();
+        // In planting mode the number keys choose a species, so a competitor choice is let go rather than left to act on X unseen.
+        if (assessing && !(ui.Player != null && ui.Player.IsPlantingMode)) HandleSelectionKeys();
         else SelectedIndex = -1;
         UpdateRings(assessing);
     }
@@ -118,6 +163,7 @@ public sealed class CompetitorAssessment
 
     public void Destroy()
     {
+        if (ui.Marking != null) ui.Marking.KeyboardTarget = null;
         if (markerRoot != null) Object.Destroy(markerRoot);
         if (listedMaterial != null) Object.Destroy(listedMaterial);
         if (selectedMaterial != null) Object.Destroy(selectedMaterial);
@@ -129,7 +175,7 @@ public sealed class CompetitorAssessment
     {
         ForestTreeMarkingManager marking = ui.Marking;
         ForestEcologyController eco = ui.Ecology;
-        string signature = Signature(marking, eco);
+        string signature = Signature(marking, eco, ui.Manager);
         bool sceneChanged = signature != sceneSignature;
         if (sceneChanged)
         {
@@ -148,6 +194,7 @@ public sealed class CompetitorAssessment
         if (treeChanged) SelectedIndex = -1;
         reportTreeId = inspectedId;
         int index = inspected != null ? sceneTrees.IndexOf(inspected) : -1;
+        string chosen = selectedTreeId;
         if (index < 0)
         {
             Report = null;
@@ -160,14 +207,16 @@ public sealed class CompetitorAssessment
             ReportTree = inspected;
             TargetCi50 = inspected.Species != null ? inspected.Species.Ci50 : 0f;
         }
+        // The same tree stays chosen wherever it now ranks, or nothing is.
+        SelectedIndex = CompetitorKeyboardTarget.Rebind(chosen, ListedIds());
         Version++;
     }
 
-    // Marks, the ecological year and the identity of the living tree objects
-    // describe everything the breakdown depends on between annual steps. The
-    // object identities matter because loading a save replaces every tree
-    // object without necessarily changing the year or the marks.
-    private static string Signature(ForestTreeMarkingManager marking, ForestEcologyController eco)
+    // Marks, valid open fell orders, the ecological year and the identity of
+    // the living tree objects describe everything the breakdown depends on
+    // between annual steps. The object identities matter because loading a save
+    // replaces every tree object without necessarily changing the year or marks.
+    private static string Signature(ForestTreeMarkingManager marking, ForestEcologyController eco, ScenarioOneManager manager)
     {
         var sb = new StringBuilder();
         sb.Append(eco != null ? eco.EcologicalYear : -1).Append('|');
@@ -188,6 +237,16 @@ public sealed class CompetitorAssessment
             crop.Sort(System.StringComparer.Ordinal);
             sb.Append(string.Join(",", fell)).Append('|').Append(string.Join(",", crop));
         }
+        sb.Append('|');
+        if (manager != null)
+        {
+            var planned = new List<string>();
+            foreach (ScenarioOneWorkOrder order in manager.WorkOrders)
+                if (order != null && order.IsValidOpenFelling)
+                    planned.Add(order.targetTreeId + ":" + (int)order.status);
+            planned.Sort(System.StringComparer.Ordinal);
+            sb.Append(string.Join(",", planned));
+        }
         return sb.ToString();
     }
 
@@ -195,6 +254,11 @@ public sealed class CompetitorAssessment
     private void BuildTrees()
     {
         sceneTrees.Clear();
+        var planned = new HashSet<string>(System.StringComparer.Ordinal);
+        if (ui.Manager != null)
+            foreach (ScenarioOneWorkOrder order in ui.Manager.WorkOrders)
+                if (order != null && order.IsValidOpenFelling)
+                    planned.Add(order.targetTreeId);
         foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             if (tree != null && tree.IsLiving)
                 sceneTrees.Add(tree);
@@ -203,7 +267,8 @@ public sealed class CompetitorAssessment
         foreach (ForestTree tree in sceneTrees)
         {
             Vector3 p = tree.transform.position;
-            trees.Add(new CompetitionTree(tree.TreeId, new Vector2(p.x, p.z), tree.Diameter, tree.IsMarkedForFell, tree.IsCropTree));
+            trees.Add(new CompetitionTree(tree.TreeId, new Vector2(p.x, p.z), tree.Diameter,
+                tree.IsMarkedForFell, tree.IsCropTree, planned.Contains(tree.TreeId)));
         }
     }
 
@@ -213,10 +278,12 @@ public sealed class CompetitorAssessment
         if (keyboard == null || (ui.Player != null && ui.Player.IsPlantingMode))
             return;
         KeyControl[] keys = { keyboard.digit1Key, keyboard.digit2Key, keyboard.digit3Key, keyboard.digit4Key, keyboard.digit5Key };
-        for (int i = 0; i < keys.Length && i < ListedCount; i++)
+        for (int i = 0; i < keys.Length; i++)
         {
             if (!keys[i].wasPressedThisFrame) continue;
-            SelectedIndex = SelectedIndex == i ? -1 : i;
+            int next = CompetitorKeyboardTarget.Toggle(SelectedIndex, i, ListedCount);
+            if (next == SelectedIndex) return;
+            SelectedIndex = next;
             Version++;
             return;
         }

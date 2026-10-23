@@ -28,8 +28,8 @@ public sealed class RackProposal
 // the same thing wherever it was planned. It reads trees and the Work Plan and writes nothing.
 public sealed class RackPlanner
 {
-    // A pointed position is moved onto the nearest planted row only when it is this close to one (rows are 1.9 m apart in Scenario
-    // One), so a rack aimed at open ground between rows is not dragged to a distant row.
+    // A pointed position is moved onto the nearest planted row only when it is this close to one (rows are 2.0 m apart in the
+    // current Scenario One scene), so a rack aimed at open ground between rows is not dragged to a distant row.
     private const float SnapReachM = 1.7f;
 
     private readonly ScenarioOneManager manager;

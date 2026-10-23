@@ -48,8 +48,8 @@ public sealed class RackSelection
 
 public static class RackGeometry
 {
-    // [D] Scenario setting, not a forestry constant: one planted row (rows are 1.9 m apart in Scenario One, so a half width of
-    // 1.2 m takes a row and none of its neighbours).
+    // [D] Scenario setting, not a forestry constant: one planted row (rows are 2.0 m apart in the current Scenario One scene, so
+    // a half width of 1.2 m takes a row and none of its neighbours).
     public const float DefaultWidthM = 2.4f;
     public const float MinWidthM = 1f;
     public const float MaxWidthM = 8f;
@@ -222,7 +222,7 @@ public sealed class RackRow
 public static class RackRows
 {
     // Rows are separated by more than this between the nearest trees of neighbouring rows' centre bands (planting jitter in
-    // Scenario One is under a metre against a 1.9 m row spacing).
+    // Scenario One is under a metre against a 2.0 m row spacing).
     public const float DefaultGapM = 0.5f;
 
     // The angle (degrees, [0, 180)) along which the points line up best, found in 5 degree steps. A square planting has two

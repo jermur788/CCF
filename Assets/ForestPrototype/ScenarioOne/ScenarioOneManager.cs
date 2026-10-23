@@ -473,6 +473,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 ecology.StormModelVersion = StormModel.None;
                 // Geometry is part of a new game's setup too (D-056): Enlarged80 by policy (Legacy40 only for the
                 // Editor-only verification override). A load replaces it with the geometry recorded in the save.
+                // A new world always wants the track approach, even if an old save was loaded earlier in this session.
+                ecology.StandApproachExpected = true;
                 ecology.ApplyStandGeometry(StandGeometryPolicy.NewGameModelForSession);
             }
             InitializeNewScenario();
@@ -586,8 +588,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             SetWorkPlanOpen(false);
     }
 
+    // Session lifecycle only; deliberately excluded from CaptureSaveData and the save schema.
+    public int TeachingWorldVersion { get; private set; }
+
     public void InitializeNewScenario()
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         if (definition == null)
             throw new InvalidOperationException("Scenario One requires a definition asset.");
@@ -1389,6 +1395,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         ClearRackGroups();
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
