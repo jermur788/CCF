@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UIElements;
+using Cursor = UnityEngine.Cursor;
 
 // Disposable rendered review for SCENARIO-ONE-UI-VISUAL-SYSTEM-V2.
 //
@@ -24,7 +25,7 @@ using UnityEngine.UIElements;
 //
 // Normal startup -> Start New -> existing introduction closed -> HUD and screens. No teaching
 // preferences are injected, no rules/save/simulation are edited, and no disk Save is written.
-// Competitor evidence is best-effort: it temporarily marks a Crop Tree and one neighbour with
+// Required competitor evidence temporarily marks a Crop Tree and one neighbour with
 // the normal marking API, then unmarks them and asserts the world hash is restored.
 //
 // Run (graphical Editor, private display/isolated config handled by the parent launcher):
@@ -340,13 +341,19 @@ public sealed class VisualSystemV2ShotsRunner : MonoBehaviour
         hashAfterAdvance = null;
         hashAfterReview = null;
         string beforeAdvance = WorldHash();
+        int yearBeforeAdvance = ui.Manager.CurrentEcologicalYear;
+        int reportsBeforeAdvance = ui.Manager.AnnualReports.Count;
         Check(ui.AdvanceFromWorkPlan(), "ANNUAL_ADVANCE_API_SUCCEEDED");
         yield return Settle(30);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review, "ANNUAL_REVIEW_OPENS_AFTER_ADVANCE");
         Check(ui.NeedsAnnualReview, "ANNUAL_REVIEW_IS_PENDING");
         CheckPanelInputLock("ANNUAL_REVIEW_INPUT_LOCKED");
         hashAfterAdvance = WorldHash();
-        Check(hashAfterAdvance != beforeAdvance, "ANNUAL_ADVANCE_CHANGED_WORLD_EXACTLY_ONCE",
+        Check(ui.Manager.CurrentEcologicalYear == yearBeforeAdvance + 1, "ANNUAL_ADVANCE_EXACTLY_ONE_YEAR",
+            $"before={yearBeforeAdvance} after={ui.Manager.CurrentEcologicalYear}");
+        Check(ui.Manager.AnnualReports.Count == reportsBeforeAdvance + 1, "ANNUAL_ADVANCE_EXACTLY_ONE_REPORT",
+            $"before={reportsBeforeAdvance} after={ui.Manager.AnnualReports.Count}");
+        Check(hashAfterAdvance != beforeAdvance, "ANNUAL_ADVANCE_CHANGED_WORLD",
             "before=" + beforeAdvance + " after=" + hashAfterAdvance);
         notes.Add("Deliberate annual-advance world change: " + beforeAdvance + " -> " + hashAfterAdvance);
 
@@ -376,9 +383,9 @@ public sealed class VisualSystemV2ShotsRunner : MonoBehaviour
         ForestTree tree = DenseTree();
         if (tree == null)
         {
-            notes.Add("Competitor evidence skipped: no suitable living tree.");
+            Fail("COMPETITOR_FIXTURE_TREE_PRESENT", "no suitable living tree for required evidence");
             hashAfterCompetitorRestore = hashAfterNavigation;
-            return;
+            yield break;
         }
         ForestTree neighbour = UnityEngine.Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
             .Where(t => t != tree && t.IsLiving && t.CanChop)
@@ -386,9 +393,9 @@ public sealed class VisualSystemV2ShotsRunner : MonoBehaviour
             .FirstOrDefault();
         if (neighbour == null)
         {
-            notes.Add("Competitor evidence skipped: no living neighbour.");
+            Fail("COMPETITOR_FIXTURE_NEIGHBOUR_PRESENT", "no living neighbour for required evidence");
             hashAfterCompetitorRestore = hashAfterNavigation;
-            return;
+            yield break;
         }
 
         TreeMarkType treeMark = tree.MarkType, neighbourMark = neighbour.MarkType;
@@ -416,7 +423,7 @@ public sealed class VisualSystemV2ShotsRunner : MonoBehaviour
                 }
                 else
                 {
-                    notes.Add($"Competitor panel unavailable at {target.x}x{target.y}; inspection/estimate evidence retained.");
+                    Fail("COMPETITOR_ASSESSMENT_VISIBLE", $"required competitor panel unavailable at {target.x}x{target.y}");
                     yield return Shot("hud-tree-competitors-unavailable", ui.Inspection.Root);
                 }
                 ClearInspection();

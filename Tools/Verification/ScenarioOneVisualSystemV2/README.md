@@ -18,7 +18,7 @@ Real `ScreenCapture.CaptureScreenshotAsTexture` renders at **1280x720** and **19
 - HUD minimap (cropped from the same real render);
 - waypoint HUD;
 - selected-tree inspection (estimate panel);
-- Crop Tree competitor assessment — best effort;
+- Crop Tree competitor assessment, selected numbered tag and resolved contrast (required);
 - Objectives;
 - Work Plan with the current-stage locked section;
 - in-game Help (walking HUD);
@@ -55,7 +55,7 @@ text/background colours plus font asset names to JSON and CSV.
 - The selected competitor tag is rendered in the world layer. The harness captures the full HUD
   with the selected tag plus a padded crop of it, asserts the selected state/number, and computes
   WCAG contrast from the tag's own resolved text/background colours (no palette hard-coding).
-- `ui.AdvanceFromWorkPlan()` deliberately changes the world once; review/UI capture afterwards
+- `ui.AdvanceFromWorkPlan()` must increment ecological year and report count by exactly one; review/UI capture afterwards
   must not change it again.
 - No disk Save is called.
 
