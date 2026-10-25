@@ -354,7 +354,7 @@
 .competitor-name { flex-grow: 2; flex-basis: 0; }
 .competitor-num { flex-grow: 1.1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 4px; }
 .competitor-share { flex-grow: 2.3; flex-basis: 0; }
-.competitor-selected Label { color: var(--accent); -unity-font-style: bold; }
+.competitor-selected Label { color: var(--ink); -unity-font-style: bold; }
 /* The categorical share stays at its normal reading weight; the arrow, row fill
    and bold identity/numbers already identify selection without squeezing this label. */
 .competitor-selected .competitor-share { -unity-font-style: normal; }
@@ -480,7 +480,7 @@
 .session-scroll > .unity-scroll-view__content-viewport { flex-shrink: 1; }
 .session-card { padding: 24px 30px; background-color: var(--panel-bg); }
 .session-copy { margin-bottom: 12px; }
-.session-card .title { margin-bottom: 10px; }
+.session-card .title { margin-bottom: 10px; -unity-font-style: normal; }
 .session-action { min-height: 44px; font-size: 20px; margin-bottom: 8px; margin-right: 0; }
 .startup-card { padding-top: 28px; padding-bottom: 28px; }
 .startup-column { align-items: center; }

@@ -54,6 +54,7 @@ def main():
     copied = False
     code = None
     issue = None
+    cleanup_failures = []
     started = time.monotonic()
 
     def interrupt(signum, frame):
@@ -93,7 +94,14 @@ def main():
         if copied:
             staged.unlink(missing_ok=True)
             meta.unlink(missing_ok=True)
-        shutil.rmtree(licence_copy, ignore_errors=True)
+        try:
+            shutil.rmtree(licence_copy)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            cleanup_failures.append('copied licence removal failed: ' + str(error))
+        if licence_copy.exists() and not cleanup_failures:
+            cleanup_failures.append('copied licence directory remains after cleanup')
         for stream in streams:
             stream.close()
         signal.signal(signal.SIGTERM, old_handler)
@@ -102,8 +110,8 @@ def main():
         failures = [line for line in log.splitlines() if 'VISUAL_V2_CHECK_FAIL' in line or 'error CS' in line]
         result = {'unity_exit':code, 'driver_issue':issue, 'seconds':round(time.monotonic()-started,2),
                   'pass_marker':pass_marker, 'failures':failures, 'harness_removed':not staged.exists() and not meta.exists(),
-                  'licence_copy_removed':not licence_copy.exists()}
-        result['pass'] = code == 0 and issue is None and pass_marker and not failures and result['harness_removed']
+                  'licence_copy_removed':not licence_copy.exists(), 'cleanup_failures':cleanup_failures}
+        result['pass'] = code == 0 and issue is None and pass_marker and not failures and result['harness_removed'] and result['licence_copy_removed'] and not cleanup_failures
         (out/'process-result.json').write_text(json.dumps(result, indent=2)+'\n')
         print(json.dumps(result, indent=2), flush=True)
     return 0 if result['pass'] else 1
