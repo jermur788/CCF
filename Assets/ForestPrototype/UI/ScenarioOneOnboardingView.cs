@@ -75,17 +75,19 @@ public sealed class ScenarioOneOnboardingView
         float right = PageIndex == 2 ? 1574 : 1607;
         float bottom = PageIndex == 2 ? 905 : 891;
         Box("onboarding-panel", 64, 64, right - 64, bottom - 64);
-        Art(new Rect(108, 90, 58, 74));
+        Icon("brand", 108, 90, 58, 74);
         Text(PageIndex == 2 ? "SCENARIO ONE" : "INTRODUCTION", 190, 92, 600, 25, 16, "onboarding-eyebrow");
         Text(ScenarioOneOnboardingCopy.Titles[PageIndex], 190, 117, right - 222, 62, 50, "title");
-        Text(ScenarioOneOnboardingCopy.Leads[PageIndex], 112, 179, right - 145, 72, 24);
+        string lead = ScenarioOneOnboardingCopy.Leads[PageIndex];
+        if (PageIndex == 0) lead = lead.Replace("managed. Instead", "managed.\nInstead");
+        Text(lead, 112, 179, right - 145, 72, 24);
         Rule(85, PageIndex == 2 ? 253 : 258, right - 106);
         if (PageIndex == 0) Definition();
         else if (PageIndex == 1) Process();
         else Scenario();
         float footerY = PageIndex == 2 ? 830 : 818;
         Rule(79, footerY, right - 94);
-        Art(new Rect(96, PageIndex == 2 ? 843 : 830, 56, 45));
+        Icon("book", 96, PageIndex == 2 ? 843 : 830, 56, 45);
         VerticalRule(170, footerY + 13, 45);
         Text(ScenarioOneOnboardingCopy.Footers[PageIndex], 191, footerY + 13,
             PageIndex == 0 ? 1055 : 865, 48, PageIndex == 0 ? 22 : 19);
@@ -115,7 +117,7 @@ public sealed class ScenarioOneOnboardingView
         int[] widths = { 218, 237, 260, 216 };
         for (int i = 0; i < 4; i++)
         {
-            Art(new Rect(icons[i], 684, 80, 80));
+            Icon(new[] { "leaf", "cycle", "trees", "sprout" }[i], icons[i], 684, 80, 80);
             Text(ScenarioOneOnboardingCopy.Principles[i], labels[i], 700, widths[i], 84, 25);
         }
         VerticalRule(435, 687, 110); VerticalRule(815, 687, 110); VerticalRule(1216, 687, 110);
@@ -133,18 +135,28 @@ public sealed class ScenarioOneOnboardingView
             number.style.unityTextAlign = TextAnchor.MiddleCenter;
             Text(ScenarioOneOnboardingCopy.ProcessHeadings[i], x + 89, 300, w - 100, 62, 23);
             Art(new Rect(x + 1, 365, w - 2, 312));
-            Art(new Rect(x + 15, 706, 64, 63));
-            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + 104, 694, w - 115, 96, i == 3 ? 16 : 18);
+            Icon(new[] { "observe", "retain", "logs", "sprout", "chart" }[i], x + 15, 706, 64, 63, false);
+            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + (i == 3 ? 90 : 104), 691, w - (i == 3 ? 99 : 115), 102, i == 3 ? 16 : 18);
             if (i < 4) Text("›", x + w - 4, 480, 28, 55, 51, "onboarding-accent", true);
         }
     }
 
     private void Scenario()
     {
-        Art(new Rect(83, 264, 580, 326));
-        Art(new Rect(961, 264, 592, 326));
+        Art(new Rect(83, 264, 580, 326), new[] {
+            new Vector2(0, 225), new Vector2(24, 130), new Vector2(65, 70), new Vector2(120, 30),
+            new Vector2(180, 0), new Vector2(340, 0), new Vector2(425, 40), new Vector2(500, 90),
+            new Vector2(550, 145), new Vector2(580, 225), new Vector2(580, 255), new Vector2(290, 326), new Vector2(0, 255)
+        });
+        Art(new Rect(961, 264, 592, 326), new[] {
+            new Vector2(0, 225), new Vector2(24, 150), new Vector2(70, 70), new Vector2(135, 25),
+            new Vector2(215, 0), new Vector2(460, 0), new Vector2(520, 70), new Vector2(565, 130),
+            new Vector2(592, 225), new Vector2(592, 255), new Vector2(296, 326), new Vector2(0, 255)
+        });
         // Only the cycle artwork is sampled; its explanatory words remain live labels.
-        Art(new Rect(680, 347, 278, 110));
+        Icon("cycle", 765, 349, 108, 108, false);
+        Text("→", 680, 391, 50, 60, 51, "onboarding-accent", true);
+        Text("→", 910, 391, 50, 60, 51, "onboarding-accent", true);
         Text("REPEATED\nSELECTIVE\nMANAGEMENT", 726, 466, 190, 76, 20, "onboarding-eyebrow", true);
         Text("Over many years", 715, 551, 211, 28, 21, null, true);
         Text("INITIAL STATE", 90, 589, 574, 26, 17, "onboarding-eyebrow", true);
@@ -152,9 +164,9 @@ public sealed class ScenarioOneOnboardingView
         Text("LONG-TERM GOAL", 965, 589, 586, 26, 17, "onboarding-eyebrow", true);
         Text("Sitka, Oak and Beech under continuous cover", 965, 614, 586, 28, 21, null, true);
         Rule(87, 643, 1465);
-        Art(new Rect(97, 660, 84, 85));
-        Art(new Rect(585, 659, 84, 85));
-        Art(new Rect(1083, 660, 86, 85));
+        Icon("trees", 97, 660, 84, 85);
+        Icon("sprout", 585, 659, 84, 85);
+        Icon("cycle", 1083, 660, 86, 85);
         Text("Initial state", 200, 661, 340, 35, 26, "title");
         Text("Target state", 703, 661, 338, 35, 26, "title");
         Text("Key idea", 1202, 661, 336, 35, 26, "title");
@@ -200,9 +212,16 @@ public sealed class ScenarioOneOnboardingView
         element.style.width = width; element.style.height = height;
     }
 
-    private void Art(Rect source)
+    private void Icon(string kind, float x, float y, float width, float height, bool circle = true)
     {
-        var picture = new ArtworkRegion(artwork, source);
+        var icon = new OnboardingIcon(kind, circle);
+        icon.AddToClassList("onboarding-accent");
+        Place(icon, x, y, width, height); canvas.Add(icon);
+    }
+
+    private void Art(Rect source, Vector2[] contour = null)
+    {
+        var picture = new ArtworkRegion(artwork, source, contour);
         Place(picture, source.x, source.y, source.width, source.height);
         canvas.Add(picture);
     }
@@ -213,16 +232,43 @@ public sealed class ScenarioOneOnboardingView
     {
         private readonly Texture2D texture;
         private readonly Rect source;
-        public ArtworkRegion(Texture2D texture, Rect source)
+        private readonly Vector2[] contour;
+        public ArtworkRegion(Texture2D texture, Rect source, Vector2[] contour)
         {
-            this.texture = texture; this.source = source;
+            this.texture = texture; this.source = source; this.contour = contour;
             pickingMode = PickingMode.Ignore;
             generateVisualContent += Draw;
+        }
+
+        private void WriteVertex(MeshWriteData mesh, Vector2 point, Rect uv)
+        {
+            mesh.SetNextVertex(new Vertex {
+                position = new Vector3(point.x / source.width * contentRect.width, point.y / source.height * contentRect.height, Vertex.nearZ),
+                tint = Color.white,
+                uv = new Vector2(uv.x + (source.x + point.x) / DesignWidth * uv.width,
+                    uv.y + (1 - (source.y + point.y) / DesignHeight) * uv.height)
+            });
         }
 
         private void Draw(MeshGenerationContext context)
         {
             if (texture == null) return;
+            if (contour != null)
+            {
+                // A silhouette-shaped texture frame removes rectangular background seams
+                // while keeping the exact frozen illustration pixels and species unchanged.
+                MeshWriteData clipped = context.Allocate(contour.Length + 1, contour.Length * 3, texture);
+                Rect atlas = clipped.uvRegion;
+                Vector2 center = new Vector2(source.width / 2, source.height / 2);
+                WriteVertex(clipped, center, atlas);
+                foreach (Vector2 point in contour) WriteVertex(clipped, point, atlas);
+                for (int i = 0; i < contour.Length; i++)
+                {
+                    clipped.SetNextIndex(0); clipped.SetNextIndex((ushort)(i + 1));
+                    clipped.SetNextIndex((ushort)((i + 1) % contour.Length + 1));
+                }
+                return;
+            }
             MeshWriteData mesh = context.Allocate(4, 6, texture);
             Rect uv = mesh.uvRegion;
             float left = uv.x + source.x / DesignWidth * uv.width;

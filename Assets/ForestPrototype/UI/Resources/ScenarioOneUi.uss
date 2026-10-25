@@ -550,3 +550,9 @@
 .onboarding-action { margin: 0; padding: 0; font-size: 22px; -unity-font-style: normal; border-radius: 5px; }
 .onboarding-dot { border-width: 1px; border-color: var(--accent); border-radius: 7px; }
 .onboarding-dot-current { background-color: var(--accent); }
+
+.onboarding .onboarding-action:focus {
+    border-left-color: var(--accent); border-right-color: var(--accent);
+    border-top-color: var(--accent); border-bottom-color: var(--accent);
+}
+.onboarding .onboarding-action.btn-ghost { background-color: var(--btn-bg); }
