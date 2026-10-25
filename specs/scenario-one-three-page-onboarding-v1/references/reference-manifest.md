@@ -6,7 +6,7 @@ Source checkpoint: 0805ffb9b6b1153442b3530d7404be5847ce9c41
 Source thread: 0c55a504-715b-46b5-a3a2-e8ef3639bbff
 Recorded: 2026-10-25
 
-These byte-exact copies preserve the user's normative visual sources. They are not substitute art or regenerated images. All are 1672×941 PNG. Final corrected mockups are not yet produced or approved. Hashing source files alone does not satisfy ONBOARD-01.
+These byte-exact copies preserve the user's normative visual sources. They are not substitute art or regenerated images. All are 1672×941 PNG. Final corrected mockups have been produced and inspected under the user-approved reconciliation; their separate implementation-reference lock appears below. Hashing source files alone would not satisfy ONBOARD-01.
 
 | Supplied source | Bytes | SHA-256 | LOCKED page/composition mapping |
 |---|---:|---|---|
@@ -28,7 +28,7 @@ The supplied images govern visual composition, layout and design language. Where
 
 This decision locks mapping only; it does not assert final-reference, palette, forestry-image or runtime qualification.
 
-## Unresolved conformance
+## Historical findings on the supplied originals — resolved by the final lock below
 
 2. Spec §9 requires existing V2 palette/fonts/buttons. Source art uses blue-black panels, blue borders/text/buttons, with sans titles on two pages and serif on the scenario page. Qualified V2 uses charcoal/slate, neutral text, teal/green controls, regular Liberation Serif major titles. Exact source styling and unmodified V2 tokens cannot both be matched. Manager decision is required before freezing changed references.
 3. Spec §6/8 require establishing the actual additional species, Oak and Beech (verified in existing project implementation). The planting card visibly includes conifer stock. It cannot pass as the required two broadleaf species.

@@ -4,7 +4,7 @@ Implementation gate: ONBOARDING REFERENCES LOCKED — user-approved mapping/trea
 Source checkpoint inspected: 0805ffb9b6b1153442b3530d7404be5847ce9c41.
 Source: T3 thread 0c55a504-715b-46b5-a3a2-e8ef3639bbff, user request 2026-10-25.
 The user's approval of the specification is preserved; this gate describes unresolved reference conformance, not revocation of approval.
-Status: IMPLEMENTING against the user-approved specification and final reference lock.
+Status: VERIFYING — implemented and Unity-tested; Manager acceptance remains separate.
 
 # SPEC REQUIRED
 
@@ -693,7 +693,7 @@ Return:
 
 # Approved clarification — page mapping (2026-10-25)
 
-The user explicitly locked the mapping: Page 1 uses the CCF definition/progression composition; Page 2 uses the five-card/process composition for generic CCF teaching; Page 3 uses the Scenario One before/transformation/long-term-goal composition. The written spec governs page purpose, order and educational content. Correct navigation and copy, removing Scenario One controls, key prompts, rack instructions and mechanics from Page 2. Do not otherwise redesign the supplied compositions. See references/reference-manifest.md for the binding mapping and unchanged original hashes. Palette/forestry conformance remains unresolved; the final-reference lock is not yet satisfied.
+The user explicitly locked the mapping: Page 1 uses the CCF definition/progression composition; Page 2 uses the five-card/process composition for generic CCF teaching; Page 3 uses the Scenario One before/transformation/long-term-goal composition. The written spec governs page purpose, order and educational content. Correct navigation and copy, removing Scenario One controls, key prompts, rack instructions and mechanics from Page 2. Do not otherwise redesign the supplied compositions. See references/reference-manifest.md for the binding mapping and unchanged original hashes. This mapping approval was followed by the styling/forestry approval below; the final-reference lock is now satisfied.
 
 
 # Approved clarification — styling and forestry (2026-10-25)

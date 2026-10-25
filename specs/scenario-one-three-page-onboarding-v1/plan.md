@@ -2,7 +2,7 @@
 
 Feature: SCENARIO-ONE-THREE-PAGE-ONBOARDING-V1
 Specification: APPROVED FOR DESIGN LOCK + IMPLEMENTATION
-Execution state: IMPLEMENTING — ONBOARDING REFERENCES LOCKED; COPY LOCKED
+Execution state: VERIFYING — ONBOARDING REFERENCES LOCKED; COPY LOCKED
 Base: 0805ffb9b6b1153442b3530d7404be5847ce9c41
 Work inspected: /media/jer/ZX20/CCF-U1, feature/scenario-one-ui-visual-system-v2
 Coordination anchor: /media/jer/ZX20/CCF-Primary, ops/workflow-foundation-v1
@@ -63,3 +63,5 @@ Record source/final SHAs, copy, changed files, reference hashes, all six compari
 
 
 Implementation note: MenuHelpView owns the focused onboarding view and keeps the existing modal contract. Only ScenarioOneUiRoot navigation keys and the explicit Continue dismiss path change. The full approved PNGs serve as artwork atlases; all visible interface text/buttons are live elements. Shader/camera blur is avoided by reusing the reference’s static blurred backdrop, which is illustrative rather than the live player forest. No scene/prefab or package change.
+
+Actual implementation adds OnboardingIcon.cs for small native line icons. Final runtime source89130b7 passed run-04 (235 checks/0 failures, six real captures, Unity0); all four original user files restored byte-exact. Manager acceptance and integration remain separate gates.
