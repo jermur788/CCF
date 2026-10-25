@@ -362,7 +362,7 @@
     background-color: var(--active-bg);
     border-radius: 14px;
 }
-.competitor-tag-selected { background-color: var(--select); border-width: 3px; border-color: var(--select-ink); }
+.competitor-tag-selected { background-color: var(--select); color: var(--select-ink); border-width: 3px; border-color: var(--select-ink); }
 .hud-forecast { max-width: 900px; }
 
 /* ---- extraction racks ---- */
