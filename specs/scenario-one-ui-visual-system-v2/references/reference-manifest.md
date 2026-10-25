@@ -32,12 +32,12 @@ These files are frozen visual references. Do not replace, regenerate, re-encode 
 |---|---|
 | Repository file (intended) | `specs/scenario-one-ui-visual-system-v2/references/current-scenario-one-ui.png` |
 | Original supplied name | `scenario1 menu.png` |
-| Status | **MISSING — NOT SUPPLIED in this session** |
-| SHA-256 | **Not recorded — file absent** |
+| Status | **LOCKED — located exact named screenshot in user Pictures folder,2026-10-25** |
+| SHA-256 | `61ca9e23b9111a77a680663b1462fd591b22d0d094c94981d2e21f10856fbcc3` |
 | Role | Evidence of the visual state being replaced; **not** a design authority |
-| Treatment | Not substituted, not fabricated, not regenerated. No placeholder image was created. Parent is investigating the missing attachment. |
+| Treatment | Byte-exact immutable copy of `/home/jer/Pictures/scenario1 menu.png`; 1920×1080 RGB PNG, 1046135 bytes. Inspected: Scenario One current menu in U1, with olive title bar/gold headings. Evidence only; no design authority. |
 
-The specification requires both reference hashes to be recorded before implementation begins. Because the current-state PNG is absent, that pre-implementation hash requirement is **unresolved** and remains open. The primary reference hash above is recorded.
+Both original PNGs are now present and SHA-256 locked before visual production edits. **UI-V2-01: REFERENCES LOCKED.** The earlier missing-file preflight was resolved by locating the exact filename, without substituting a capture.
 
 ## 3. Verification
 
