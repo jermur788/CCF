@@ -265,7 +265,7 @@ public sealed class AnnualReviewView
             var bar = new VisualElement();
             bar.style.width = 16;
             bar.style.height = Mathf.Max(2f, 46f * Mathf.Max(0f, value) / max);
-            bar.style.backgroundColor = new Color(0.55f, 0.75f, 0.5f, 0.9f);
+            bar.style.backgroundColor = UiKit.ForestryColour;
             col.Add(bar);
             col.Add(UiKit.Text(label, "faint"));
             strip.Add(col);

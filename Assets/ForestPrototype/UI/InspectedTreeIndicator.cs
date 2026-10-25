@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 // The "selected tree" feedback for the tree whose card is open: a ring on the ground and an outline of the trunk, both in one muted
 // ochre (the same colour as the card's accent edge, ScenarioOneUi.uss --select). It never uses white and borrows no management
-// colour: a Fell mark is an orange diamond, a Crop Tree a blue trunk band, a planned rack violet, a listed competitor a gold numbered
+// colour: a Fell mark is an orange diamond, a Crop Tree a blue trunk band, a planned rack violet, a listed competitor a teal numbered
 // ring. Selection is a ring plus an outline; a management mark is a painted band or symbol. The style differs, not only the hue.
 //
 // Each line is drawn twice so it reads on dark bark, bright ground and dense stands alike: a dark casing under the ochre core (the
@@ -15,9 +15,9 @@ using UnityEngine.Rendering;
 // after the camera has turned, so it always faces the camera.
 public sealed class InspectedTreeIndicator
 {
-    public static readonly Color SelectColour = new Color(222f / 255f, 164f / 255f, 58f / 255f, 1f);
+    public static readonly Color SelectColour = UiKit.SelectionColour;
     // Selection fill on the ground, and the colour of the outline where another tree hides it.
-    public static readonly Color SelectSoft = new Color(222f / 255f, 164f / 255f, 58f / 255f, 0.42f);
+    public static readonly Color SelectSoft = new Color(SelectColour.r, SelectColour.g, SelectColour.b, 0.42f);
     private static readonly Color CasingColour = new Color(0.12f, 0.08f, 0.03f, 0.88f);
 
     private const int RingPoints = 48;

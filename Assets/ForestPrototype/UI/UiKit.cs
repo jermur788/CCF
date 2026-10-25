@@ -7,8 +7,14 @@ using UnityEngine.UIElements;
 public static class UiKit
 {
     public static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-    // Mirrors ScenarioOneUi.uss --accent for the few HUD elements drawn outside USS (world markers, waypoint arrow).
-    public static readonly UnityEngine.Color AccentColour = new UnityEngine.Color(224f / 255f, 180f / 255f, 90f / 255f, 1f);
+    // Mirrors the canonical USS tokens for Painter2D/world feedback outside USS.
+    public static readonly UnityEngine.Color AccentColour = new UnityEngine.Color(110f / 255f, 163f / 255f, 157f / 255f, 1f);
+    public static readonly UnityEngine.Color WaypointColour = new UnityEngine.Color(239f / 255f, 180f / 255f, 78f / 255f, 1f);
+    public static readonly UnityEngine.Color SelectionColour = new UnityEngine.Color(222f / 255f, 164f / 255f, 58f / 255f, 1f);
+    public static readonly UnityEngine.Color WarningColour = new UnityEngine.Color(229f / 255f, 182f / 255f, 106f / 255f, 1f);
+    public static readonly UnityEngine.Color ForestryColour = new UnityEngine.Color(151f / 255f, 188f / 255f, 165f / 255f, 1f);
+    public static readonly UnityEngine.Color RackColour = new UnityEngine.Color(182f / 255f, 118f / 255f, 232f / 255f, 1f);
+    private static UnityEngine.Font displayFont;
 
     // At 720p keep physical reading sizes useful and reflow dense screen layouts.
     public static void SetCompact(VisualElement root) => root.EnableInClassList("compact", UnityEngine.Screen.height < 900);
@@ -34,6 +40,15 @@ public static class UiKit
     {
         var label = new Label(text);
         foreach (string c in classes) label.AddToClassList(c);
+        // The reference's editorial serif belongs to major titles, never dense values/body.
+        // FontDefinition.FromFont lets UI Toolkit generate its normal dynamic font internally.
+        if (Array.IndexOf(classes, "title") >= 0 && Array.IndexOf(classes, "money") < 0)
+        {
+            if (displayFont == null)
+                displayFont = UnityEngine.Resources.Load<UnityEngine.Font>("Fonts/LiberationSerif-Regular");
+            if (displayFont != null)
+                label.style.unityFontDefinition = FontDefinition.FromFont(displayFont);
+        }
         return label;
     }
 

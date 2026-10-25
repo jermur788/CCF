@@ -11,10 +11,10 @@
 
 ## Reference authority
 
-- [ ] Approved map image stored in spec references.
-- [ ] Current-state screenshot stored separately.
-- [ ] SHA-256 hashes recorded.
-- [ ] Implementer confirms reference is normative, not inspirational.
+- [x] Approved map image stored in spec references.
+- [x] Current-state screenshot stored separately.
+- [x] SHA-256 hashes recorded.
+- [x] Implementer confirms reference is normative, not inspirational.
 
 ## Palette
 
@@ -31,7 +31,7 @@
 - [ ] Major titles have stronger professional/display treatment.
 - [ ] Section/body/caption hierarchy is clear.
 - [ ] Dense text remains readable.
-- [ ] Font licensing/availability verified.
+- [x] Font licensing/availability verified.
 - [ ] No arbitrary mixed typography.
 
 ## Panels
@@ -124,7 +124,7 @@
 
 - [ ] No material silent deviations.
 - [ ] Deviations documented.
-- [ ] Reference manifest included.
+- [x] Reference manifest included.
 - [ ] Final candidate clean.
 - [ ] Evidence archived.
 

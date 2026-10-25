@@ -57,9 +57,9 @@ public sealed class WorkPlanView
         advanceWarning = UiKit.Box("card");
         advanceWarning.name = "advance-warning";
         advanceWarning.style.display = DisplayStyle.None;
-        // Inline, like the cash warning, so this does not edit the shared stylesheet.
-        advanceWarning.style.borderLeftWidth = 4;
-        advanceWarning.style.borderLeftColor = new UnityEngine.Color(240f / 255f, 186f / 255f, 110f / 255f);
+        // Semantic warning colour mirrors the shared visual-system token.
+        advanceWarning.style.borderLeftWidth = 2;
+        advanceWarning.style.borderLeftColor = UiKit.WarningColour;
         advanceHeadline = UiKit.Add(advanceWarning, "", "heading");
         advanceDetail = UiKit.Add(advanceWarning, "", "body");
         VisualElement choices = UiKit.Row(advanceWarning, "row-wrap");
@@ -310,8 +310,8 @@ public sealed class WorkPlanView
         bool approved = orders.All(o => o.status == ScenarioWorkStatus.Approved);
         VisualElement box = UiKit.Box("card");
         box.name = "rack-group-" + rack.Id;
-        box.style.borderLeftWidth = 4;
-        box.style.borderLeftColor = new UnityEngine.Color(0.74f, 0.46f, 0.95f);
+        box.style.borderLeftWidth = 2;
+        box.style.borderLeftColor = UiKit.RackColour;
         VisualElement head = UiKit.Row(box, "row-wrap");
         UiKit.Chip(head, "RACK", "chip-rack");
         UiKit.Add(head, $"Extraction rack {rack.Id} · {orders.Count} tree{(orders.Count == 1 ? "" : "s")}"

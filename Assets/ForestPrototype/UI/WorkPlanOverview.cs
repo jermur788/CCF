@@ -93,9 +93,9 @@ public static class WorkPlanOverview
         if (string.IsNullOrEmpty(text)) return;
         VisualElement card = UiKit.Box("card", "workplan-warning");
         card.name = "workplan-cash-warning";
-        // Inline, so this packet does not edit the shared stylesheet.
-        card.style.borderLeftWidth = 4;
-        card.style.borderLeftColor = new Color(240f / 255f, 186f / 255f, 110f / 255f);
+        // Warning semantics use the same token as the Work Plan advance guard.
+        card.style.borderLeftWidth = 2;
+        card.style.borderLeftColor = UiKit.WarningColour;
         UiKit.Add(card, "⚠ CASH AFTER THIS PLAN", "heading");
         UiKit.Add(card, text, "body");
         parent.Add(card);

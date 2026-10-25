@@ -3,13 +3,13 @@
 > **Document metadata (recorded 2026-10-25, documentation-only; no implementation or verification claimed)**
 >
 > - Feature ID: `SCENARIO-ONE-UI-VISUAL-SYSTEM-V2`
-> - Status: `APPROVED FOR IMPLEMENTATION`
+> - Status: `IMPLEMENTING` — user approval: `APPROVED FOR IMPLEMENTATION` (2026-10-25)
 > - Repository target: `specs/scenario-one-ui-visual-system-v2/`
 > - Source: exact user-provided specification in parent T3 thread `8f9dbb1b-5bb5-4697-8fc4-e93900e805a5` (user message, 2026-10-25)
 > - Base: `13988874cc36413d911243f4d3a6524436237bab`
 > - Context: `d5f11f865dc9123ac3ff0bab571e0402ad03d276`
 > - Primary reference: `references/griffins-peak-ui-reference.png` (immutable; see `references/reference-manifest.md`)
-> - Implementation state: not implemented. This document records approved requirements only.
+> - Implementation state: source styling implemented; Unity import, rendered visual qualification, functional smoke and independent conformance review outstanding. Product requirements below remain unchanged.
 
 ---
 

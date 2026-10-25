@@ -1,32 +1,45 @@
-/* Scenario One UI tokens and layout primitives. Visual reference: the accepted
-   CCF UI mockups (dark translucent panels, compact semantic colour). Colours
-   always pair with text; meaning never depends on colour alone. */
+/* Scenario One Visual System V2. Normative reference: specs/scenario-one-ui-visual-system-v2/
+   references/griffins-peak-ui-reference.png. Shared charcoal/slate surfaces, fine rules,
+   off-white hierarchy and restrained semantic accents. See the locked manifest. */
 
 :root {
-    --panel-bg: rgba(24, 30, 29, 0.94);
-    --panel-border: rgba(168, 180, 176, 0.22);
-    --frame-bg: rgb(24, 28, 30);
-    --frame-border: rgba(168, 180, 176, 0.30);
-    --frame-rule: rgba(168, 180, 176, 0.18);
-    --backdrop: rgba(3, 7, 4, 0.66);
-    --ink: rgb(228, 232, 226);
-    --ink-muted: rgb(164, 180, 172);
-    --ink-faint: rgb(146, 160, 152);
-    --accent: rgb(224, 180, 90);
-    --good: rgb(158, 190, 154);
-    --warn: rgb(218, 184, 118);
-    --bad: rgb(213, 139, 126);
+    /* Sampled from the immutable Griffin's Peak reference (see spec manifest).
+       Gold is a location/selection semantic, never the default heading colour. */
+    --panel-bg: rgba(21, 28, 30, 0.94);
+    --panel-border: rgba(109, 125, 132, 0.46);
+    --frame-bg: rgb(21, 28, 30);
+    --surface-section: rgb(27, 35, 38);
+    --frame-border: rgba(109, 125, 132, 0.46);
+    --frame-rule: rgba(109, 125, 132, 0.30);
+    --backdrop: rgba(7, 12, 16, 0.64);
+    --ink: rgb(235, 237, 233);
+    --ink-muted: rgb(174, 185, 189);
+    --ink-faint: rgb(151, 165, 171);
+    --accent: rgb(110, 163, 157);
+    --active-bg: rgb(56, 89, 75);
+    --active-hover: rgb(65, 102, 88);
+    --active-pressed: rgb(44, 72, 64);
+    --good: rgb(151, 188, 165);
+    --warn: rgb(229, 182, 106);
+    --bad: rgb(221, 145, 135);
     --fell: rgb(214, 70, 58);
     --crop: rgb(70, 130, 230);
     --rack: rgb(182, 118, 232);
-    /* Selected tree: a muted ochre, never white. The same colour as the world ring/outline (InspectedTreeIndicator.SelectColour). */
+    --waypoint: rgb(239, 180, 78);
+    /* Selected tree retains its world-ring meaning, distinct from management marks. */
     --select: rgb(222, 164, 58);
-    --select-ink: rgb(36, 24, 8);
-    --chip-bg: rgba(255, 255, 255, 0.08);
-    --btn-bg: rgb(48, 65, 57);
-    --btn-bg-hover: rgb(63, 84, 72);
-    --btn-bg-active: rgb(36, 50, 43);
-    --btn-border: rgba(168, 180, 176, 0.30);
+    --select-ink: rgb(29, 32, 31);
+    --chip-bg: rgba(174, 185, 189, 0.09);
+    --btn-bg: rgb(30, 39, 42);
+    --btn-bg-hover: rgb(41, 53, 57);
+    --btn-bg-active: rgb(25, 34, 37);
+    --btn-border: rgba(109, 125, 132, 0.40);
+    --disabled-bg: rgb(27, 34, 37);
+    --disabled-border: rgb(66, 79, 85);
+    --disabled-ink: rgb(146, 160, 166);
+    --space-sm: 6px;
+    --space-md: 12px;
+    --space-lg: 18px;
     /* Type scale. The panel scales with screen height (PanelSettings: 1600 x 900 reference), so one UI unit is 0.8 px at 1280 x 720 and
        1.2 px at 1920 x 1080. At 720p the old 15 px body was 12 physical pixels, too small to read. Text sizes live here, not on
        individual labels: change a token and every screen follows. Reading = long popup text (intro, help, objective detail). */
@@ -47,13 +60,13 @@
     background-color: var(--panel-bg);
     border-color: var(--panel-border);
     border-width: 1px;
-    border-radius: 4px;
-    padding: 10px 14px;
+    border-radius: 2px;
+    padding: var(--space-md) var(--space-lg);
 }
 
-.title { font-size: var(--fs-title); -unity-font-style: bold; color: var(--ink); }
+.title { font-size: var(--fs-title); -unity-font-style: normal; color: var(--ink); letter-spacing: 0.2px; white-space: normal; }
 .subtitle { font-size: var(--fs-sm); color: var(--ink-muted); }
-.heading { font-size: var(--fs-heading); -unity-font-style: bold; color: var(--accent); margin-top: 6px; margin-bottom: 4px; }
+.heading { font-size: var(--fs-heading); -unity-font-style: bold; color: var(--ink); margin-top: 8px; margin-bottom: 6px; }
 .body { white-space: normal; color: var(--ink); }
 .muted { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); }
 .faint { white-space: normal; color: var(--ink-faint); font-size: var(--fs-sm); }
@@ -69,19 +82,19 @@
 
 .chip {
     background-color: var(--chip-bg);
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 1px 6px;
     margin-right: 6px;
     font-size: var(--fs-xs);
 }
-.chip-fell { background-color: rgba(214, 70, 58, 0.85); color: white; -unity-font-style: bold; }
-.chip-crop { background-color: rgba(70, 130, 230, 0.85); color: white; -unity-font-style: bold; }
-.chip-rack { background-color: rgba(150, 90, 206, 0.9); color: white; -unity-font-style: bold; }
-.chip-ok { background-color: rgba(90, 160, 90, 0.75); color: white; }
-.chip-warn { background-color: rgba(200, 140, 50, 0.8); color: white; }
-.chip-bad { background-color: rgba(190, 70, 60, 0.85); color: white; }
+.chip-fell { border-width: 1px; border-color: var(--fell); color: var(--ink); -unity-font-style: bold; }
+.chip-crop { border-width: 1px; border-color: var(--crop); color: var(--ink); -unity-font-style: bold; }
+.chip-rack { border-width: 1px; border-color: var(--rack); color: var(--ink); -unity-font-style: bold; }
+.chip-ok { border-width: 1px; border-color: var(--good); color: var(--ink); }
+.chip-warn { border-width: 1px; border-color: var(--warn); color: var(--ink); }
+.chip-bad { border-width: 1px; border-color: var(--bad); color: var(--ink); }
 
-.key { color: var(--accent); -unity-font-style: bold; }
+.key { color: var(--ink); -unity-font-style: bold; }
 
 /* ---- buttons ---- */
 /* Every state is spelled out: the default runtime theme has its own hover/active/focus colours, and without these a hovered or
@@ -90,12 +103,12 @@
     background-color: var(--btn-bg);
     border-color: var(--btn-border);
     border-width: 1px;
-    border-radius: 4px;
+    border-radius: 2px;
     color: var(--ink);
     padding: 5px 12px;
     margin: 2px 6px 2px 0;
     min-height: 32px;
-    -unity-font-style: bold;
+    -unity-font-style: normal;
     -unity-text-align: middle-center;
     font-size: var(--fs-button);
     flex-shrink: 0;
@@ -103,22 +116,22 @@
 .btn:hover { background-color: var(--btn-bg-hover); color: var(--ink); }
 .btn:active { background-color: var(--btn-bg-active); color: var(--ink); }
 .btn:focus { color: var(--ink); border-color: var(--accent); }
-.btn:disabled { background-color: rgb(46, 51, 50); border-color: rgb(65, 73, 69); color: rgb(132, 143, 137); opacity: 1; }
-.btn-primary { background-color: rgb(108, 88, 43); border-color: rgba(224, 180, 90, 0.65); }
-.btn-primary:hover { background-color: rgb(136, 110, 52); color: var(--ink); }
-.btn-primary:active { background-color: rgb(88, 71, 34); color: var(--ink); }
-.btn-selected { background-color: rgba(96, 134, 90, 1); border-color: var(--accent); border-width: 2px; color: white; }
-.btn-selected:hover { background-color: rgba(108, 148, 102, 1); color: white; }
-.btn-selected:active { background-color: rgba(78, 112, 74, 1); color: white; }
+.btn:disabled { background-color: var(--disabled-bg); border-color: var(--disabled-border); color: var(--disabled-ink); opacity: 1; }
+.btn-primary { background-color: var(--active-bg); border-color: var(--accent); -unity-font-style: bold; }
+.btn-primary:hover { background-color: var(--active-hover); color: var(--ink); }
+.btn-primary:active { background-color: var(--active-pressed); color: var(--ink); }
+.btn-selected { background-color: var(--active-bg); border-color: var(--accent); border-bottom-width: 2px; color: var(--ink); -unity-font-style: bold; }
+.btn-selected:hover { background-color: var(--active-hover); color: var(--ink); }
+.btn-selected:active { background-color: var(--active-pressed); color: var(--ink); }
 .btn-ghost { background-color: rgba(255, 255, 255, 0.04); border-color: var(--frame-rule); }
 .btn-ghost:hover { background-color: rgba(255, 255, 255, 0.10); }
 
 .card {
-    background-color: rgb(31, 38, 37);
-    border-color: var(--panel-border);
+    background-color: var(--surface-section);
+    border-color: var(--frame-rule);
     border-width: 1px;
-    border-radius: 4px;
-    padding: 8px 10px;
+    border-radius: 2px;
+    padding: 12px 14px;
     margin-bottom: 8px;
 }
 
@@ -140,13 +153,13 @@
 .unity-scroll-view__vertical-scroller .unity-scroller__slider { margin: 0; }
 .unity-scroll-view__vertical-scroller .unity-repeat-button { display: none; }
 .unity-scroll-view__vertical-scroller .unity-base-slider__tracker {
-    background-color: rgba(255, 255, 255, 0.06); border-width: 0; border-radius: 4px; width: 8px; margin-left: 2px;
+    background-color: rgba(255, 255, 255, 0.06); border-width: 0; border-radius: 2px; width: 8px; margin-left: 2px;
 }
 .unity-scroll-view__vertical-scroller .unity-base-slider__dragger {
-    background-color: rgba(170, 198, 156, 0.42); border-width: 0; border-radius: 4px; width: 8px; margin-left: 2px; min-height: 28px;
+    background-color: rgba(151, 165, 171, 0.42); border-width: 0; border-radius: 2px; width: 8px; margin-left: 2px; min-height: 28px;
 }
-.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:hover { background-color: rgba(196, 220, 182, 0.70); }
-.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:active { background-color: rgba(220, 238, 206, 0.85); }
+.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:hover { background-color: rgba(174, 185, 189, 0.70); }
+.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:active { background-color: rgba(209, 220, 224, 0.85); }
 .unity-scroll-view__horizontal-scroller { display: none; }
 
 /* ---- walking HUD ---- */
@@ -166,13 +179,13 @@
 .hud-message Label { font-size: var(--fs-lead); color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
 .reticle { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin-left: -2px; margin-top: -2px; background-color: rgba(255, 255, 255, 0.8); }
 .hud-hotbar { margin-top: 8px; align-items: center; align-self: flex-end; margin-right: 14px; max-width: 900px; }
-.hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--accent); }
-.waypoint-line { color: var(--accent); font-size: var(--fs-lead); -unity-font-style: bold; }
+.hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--panel-border); }
+.waypoint-line { color: var(--waypoint); font-size: var(--fs-lead); -unity-font-style: bold; }
 
 /* ---- HUD minimap: the Stand Map's map, reduced. Its size is set in HudMinimapView; it takes no pointer input. ---- */
-/* The map surfaces (this frame and the full map window) use the charcoal / slate survey palette; the rest of the HUD keeps its own. */
-.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; background-color: rgba(24, 28, 30, 0.94); border-color: rgba(168, 180, 176, 0.36); border-radius: 4px; }
-.hud-minimap-north { position: absolute; font-size: 13px; -unity-font-style: bold; color: rgb(232, 234, 224); width: 12px; -unity-text-align: upper-center; }
+/* Map frame and walking HUD share the same survey shell; cartography is unchanged. */
+.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; background-color: var(--panel-bg); border-color: var(--panel-border); border-radius: 2px; }
+.hud-minimap-north { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--ink); width: 12px; -unity-text-align: upper-center; }
 
 /* ---- inspection ---- */
 /* Left column, top-left, clear of the status panel (top-right) and the ground report (bottom-left). The scenario UI root sets the
@@ -189,10 +202,10 @@
 .stat-value { -unity-font-style: bold; font-size: var(--fs-body); white-space: normal; }
 .inspect-hint { color: var(--ink-muted); font-size: var(--fs-sm); white-space: normal; margin-top: 4px; }
 /* The open card carries the selected-tree accent on its top and left edges, so the card and the ring on the tree read as one thing. */
-.inspect-selected { border-top-width: 3px; border-top-color: var(--select); border-left-width: 5px; border-left-color: var(--select); }
+.inspect-selected { border-top-width: 1px; border-top-color: var(--panel-border); border-left-width: 3px; border-left-color: var(--select); }
 .inspect-tag {
     -unity-font-style: bold; font-size: var(--fs-xs); color: var(--select-ink); background-color: var(--select);
-    border-radius: 9px; padding: 0 7px; -unity-text-align: middle-center;
+    border-radius: 2px; padding: 0 7px; -unity-text-align: middle-center;
 }
 
 /* ---- modal screens ---- */
@@ -203,7 +216,7 @@
     background-color: var(--frame-bg);
     border-color: var(--frame-border);
     border-width: 1px;
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 12px 18px 14px 18px;
     width: 92%; max-width: 1180px; height: 92%; max-height: 900px;
 }
@@ -222,20 +235,18 @@
 .column { flex-grow: 1; flex-basis: 300px; margin-right: 10px; }
 
 /* ---- stand map ---- */
-/* The Stand Map window is a property plan, so it uses a charcoal / slate survey palette (the reference sheet's), scoped to .modal-map so no
-   other window changes: panels and cards in charcoal, off-white labels, a quiet ochre accent for the selected state and the primary action.
-   The map itself is drawn by StandMapSurface (the forest picture, an optional translucent layer, then fine linework); the 5 m squares are
-   invisible buttons over it that only show an outline when pointed at or selected. */
+/* The map keeps its cartography, symbols and semantic waypoint selection.
+   Only the surrounding shell consumes the common visual tokens. */
 .modal-map {
-    --map-panel: rgb(24, 28, 30);
-    --map-card: rgb(32, 37, 39);
-    --map-rule: rgba(168, 180, 176, 0.18);
-    --map-ink: rgb(228, 232, 226);
-    --map-ink-muted: rgb(164, 174, 170);
-    --map-ink-faint: rgb(128, 138, 134);
-    --map-accent: rgb(224, 172, 72);
+    --map-panel: var(--frame-bg);
+    --map-card: var(--surface-section);
+    --map-rule: var(--frame-rule);
+    --map-ink: var(--ink);
+    --map-ink-muted: var(--ink-muted);
+    --map-ink-faint: var(--ink-faint);
+    --map-accent: var(--waypoint);
     background-color: var(--map-panel);
-    border-color: rgba(168, 180, 176, 0.30);
+    border-color: var(--frame-border);
     height: 96%;
     max-width: 1500px;
 }
@@ -245,17 +256,7 @@
 .modal-map .muted { color: var(--map-ink-muted); font-size: var(--fs-sm); }
 .modal-map .faint { color: var(--map-ink-faint); }
 .modal-map .card { background-color: var(--map-card); border-color: var(--map-rule); }
-.modal-map .btn { background-color: rgb(46, 53, 55); border-color: rgba(168, 180, 176, 0.26); }
-.modal-map .btn:hover { background-color: rgb(60, 69, 71); }
-.modal-map .btn:active { background-color: rgb(38, 44, 46); }
-.modal-map .btn-primary { background-color: rgb(102, 86, 42); border-color: rgba(224, 172, 72, 0.60); }
-.modal-map .btn-primary:hover { background-color: rgb(126, 106, 50); }
-.modal-map .btn-primary:active { background-color: rgb(86, 72, 34); }
-.modal-map .btn-selected { background-color: rgb(58, 84, 72); border-color: var(--map-accent); border-width: 2px; }
-.modal-map .btn-selected:hover { background-color: rgb(68, 98, 84); }
-.modal-map .btn-ghost { background-color: rgba(255, 255, 255, 0.04); border-color: var(--map-rule); }
-.modal-map .btn-ghost:hover { background-color: rgba(255, 255, 255, 0.10); }
-.modal-map .rack-panel { border-color: rgba(224, 172, 72, 0.55); }
+.modal-map .rack-panel { border-color: var(--map-rule); }
 .modal-map .rack-heading { color: var(--map-ink); }
 
 .map-tabs { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
@@ -321,7 +322,7 @@
 .menu-help-panel {
     background-color: var(--frame-bg);
     border-color: var(--frame-border);
-    border-width: 1px; border-radius: 4px;
+    border-width: 1px; border-radius: 2px;
     padding: 0;
     width: 92%; max-width: 900px; max-height: 92%;
 }
@@ -331,7 +332,7 @@
 .menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
 .menu-help-title {
     padding: 12px 20px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule);
-    background-color: rgba(120, 160, 110, 0.10); border-top-left-radius: 8px; border-top-right-radius: 8px;
+    background-color: var(--surface-section); border-top-left-radius: 2px; border-top-right-radius: 2px;
 }
 .menu-help-body { padding: 14px 20px 6px 20px; flex-shrink: 1; }
 .menu-help-body .body { font-size: var(--fs-reading); margin-bottom: 10px; }
@@ -344,7 +345,7 @@
 
 /* Learning topics reveal one explanation at a time; the body scrolls. */
 .learning-topic { margin-top: 8px; margin-bottom: 8px; }
-.learning-topic > Toggle { font-size: var(--fs-heading); color: var(--accent); -unity-font-style: bold; }
+.learning-topic > Toggle { font-size: var(--fs-heading); color: var(--ink); -unity-font-style: bold; }
 .learning-topic .body { margin-bottom: 8px; }
 
 /* ---- Crop Tree competitors (inspection card, world tags) ---- */
@@ -357,16 +358,16 @@
 .competitor-tag {
     width: 28px; height: 28px;
     font-size: var(--fs-sm); -unity-font-style: bold; -unity-text-align: middle-center;
-    color: rgb(20, 24, 18);
-    background-color: rgba(224, 180, 90, 0.92);
+    color: var(--ink);
+    background-color: var(--active-bg);
     border-radius: 14px;
 }
 .competitor-tag-selected { background-color: var(--select); border-width: 3px; border-color: var(--select-ink); }
 .hud-forecast { max-width: 900px; }
 
 /* ---- extraction racks ---- */
-.rack-panel { border-color: rgba(190, 126, 240, 0.7); }
-.rack-heading { white-space: normal; font-size: var(--fs-body); -unity-font-style: bold; color: rgb(206, 156, 246); margin-bottom: 4px; }
+.rack-panel { border-color: var(--panel-border); }
+.rack-heading { white-space: normal; font-size: var(--fs-body); -unity-font-style: bold; color: var(--ink); margin-bottom: 4px; }
 .rack-line { white-space: normal; color: var(--ink); }
 .rack-keys { white-space: normal; color: var(--ink-muted); font-size: var(--fs-sm); margin-top: 4px; }
 
@@ -376,11 +377,11 @@
 .hud-right .hud-status { position: relative; top: 0; right: 0; width: auto; }
 
 /* ---- active objective widget: what to do now, with an unmistakable NOW state ---- */
-.objective-widget { margin-bottom: 8px; border-left-width: 6px; border-left-color: var(--accent); border-color: rgba(224, 180, 90, 0.55); }
+.objective-widget { margin-bottom: 8px; border-left-width: 3px; border-left-color: var(--accent); border-color: var(--panel-border); }
 .objective-header { flex-direction: row; align-items: center; }
 .objective-now {
-    background-color: var(--accent); color: rgb(36, 28, 8); -unity-font-style: bold; font-size: var(--fs-xs);
-    border-radius: 4px; padding: 1px 9px; margin-right: 10px;
+    background-color: var(--active-bg); color: var(--ink); -unity-font-style: bold; font-size: var(--fs-xs);
+    border-radius: 2px; padding: 1px 9px; margin-right: 10px;
 }
 .objective-step { color: var(--ink-muted); font-size: var(--fs-sm); }
 .objective-title { color: var(--ink); font-size: var(--fs-heading); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
@@ -389,14 +390,13 @@
 .objective-details { margin: 0 0 0 auto; padding: 1px 10px; font-size: var(--fs-sm); }
 
 /* ---- Work Plan sections the current objective does not use yet ---- */
-.card-locked { opacity: 0.55; }
 .card-locked .heading { color: var(--ink-faint); }
 
 /* ---- the teaching pictures (introduction and lessons): the frame keeps its proportions, labels sit over its empty bands ---- */
 .teaching-diagram { align-self: stretch; margin-top: 8px; margin-bottom: 8px; }
 .teaching-diagram-frame {
     width: 100%; flex-shrink: 0; align-self: center;
-    background-color: rgb(24, 28, 30); border-radius: 4px; border-width: 1px; border-color: var(--panel-border);
+    background-color: var(--frame-bg); border-radius: 2px; border-width: 1px; border-color: var(--panel-border);
 }
 .diagram-label { position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
 .diagram-legend { position: absolute; white-space: nowrap; -unity-text-align: upper-left; color: var(--ink-muted); }
@@ -405,7 +405,7 @@
 /* ---- scenario introduction layout ---- */
 .intro-sections { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
 .intro-block { flex-basis: 300px; flex-grow: 1; margin-right: 22px; margin-bottom: 8px; }
-.intro-heading { color: var(--accent); -unity-font-style: bold; font-size: var(--fs-heading); margin-bottom: 3px; white-space: normal; }
+.intro-heading { color: var(--ink); -unity-font-style: bold; font-size: var(--fs-heading); margin-bottom: 3px; white-space: normal; }
 .intro-text { color: var(--ink); font-size: var(--fs-reading); white-space: normal; }
 /* The lead and the picture side by side: the picture takes whatever width the lead leaves. */
 .intro-top { flex-direction: row; align-items: center; }
@@ -414,7 +414,7 @@
 .intro-start { color: var(--accent); font-size: var(--fs-reading); -unity-font-style: bold; white-space: normal; margin-top: 6px; margin-bottom: 8px; }
 
 /* ---- the current objective card: what to do / why / good practice ---- */
-.objective-part-heading { color: var(--accent); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
+.objective-part-heading { color: var(--ink); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
 /* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
 .objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }
 /* The Objectives window is wider than the other screens so the card's words and its picture sit side by side and the whole objective is on
@@ -432,19 +432,8 @@
 .competitor-body { flex-shrink: 0; }
 .competitor-body > * { flex-shrink: 0; }
 
-/* ---- shared professional forestry shell ----
-   Opaque section surfaces avoid alpha accumulating over the runtime theme's grey.
-   Map-specific selectors above retain the approved survey/cartography treatment. */
-:root {
-    --space-sm: 6px;
-    --space-md: 12px;
-    --space-lg: 18px;
-    --surface-section: rgb(31, 38, 37);
-}
-.panel { padding: var(--space-md) var(--space-lg); }
-.card { background-color: var(--surface-section); padding: 12px 14px; border-color: var(--frame-rule); }
-.heading { margin-top: 8px; margin-bottom: 6px; }
-.title { white-space: normal; }
+/* ---- shared spacing and composition ----
+   Existing functional dimensions and responsive layout are preserved. */
 .modal-header { flex-wrap: wrap; }
 .modal-header > .title { flex-shrink: 1; }
 .screen-actions { flex-wrap: wrap; flex-shrink: 1; justify-content: flex-end; }
@@ -452,8 +441,9 @@
 .modal-workplan .modal-header, .modal-review .modal-header { align-items: flex-start; }
 .modal-workplan .modal-header > .row { margin-top: 6px; }
 .modal-workplan .columns, .modal-review .columns { align-items: flex-start; }
-.table-row { padding-top: 3px; padding-bottom: 3px; border-bottom-width: 1px; border-bottom-color: rgba(168, 180, 176, 0.08); }
-.card-locked { opacity: 0.72; padding-top: 7px; padding-bottom: 7px; }
+.table-row { padding-top: 3px; padding-bottom: 3px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.card-locked { opacity: 1; background-color: var(--disabled-bg); padding-top: 7px; padding-bottom: 7px; }
+.card-locked .body { color: var(--ink-muted); }
 .objective-current { border-left-width: 3px; border-left-color: var(--accent); }
 .objective-part-heading { margin-top: 14px; margin-bottom: 5px; }
 .objective-part-text { margin-bottom: 6px; }
@@ -463,17 +453,14 @@
 .unity-toggle__text { color: var(--ink); }
 
 /* One continuous instrument stack: the objective and status share one shell. */
-.hud-right { background-color: var(--panel-bg); border-width: 1px; border-color: var(--panel-border); border-radius: 4px; }
+.hud-right { background-color: var(--panel-bg); border-width: 1px; border-color: var(--panel-border); border-radius: 2px; }
 .hud-right .panel { background-color: transparent; border-width: 0; border-radius: 0; padding: 10px 12px; }
 .hud-right .objective-widget { margin-bottom: 0; border-left-width: 3px; border-left-color: var(--accent); border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
 .hud-status .heading { color: var(--ink); margin-top: 0; }
 .hud-status .btn { min-height: 30px; padding: 3px 8px; }
 .hud-status .body, .hud-status .muted { font-size: var(--fs-sm); }
-.objective-widget { border-left-width: 3px; }
-.hud-minimap { background-color: var(--panel-bg); border-color: var(--panel-border); }
 /* The generic .panel padding above is later in the file than the minimap's own 4-unit frame, which HudMinimapView's north mark and ReservedHeightPx assume. */
 .panel.hud-minimap { padding: 4px; }
-.inspect-selected { border-top-width: 1px; border-top-color: var(--panel-border); border-left-width: 3px; }
 .inspect .title { font-size: 26px; }
 .stat { padding-top: 4px; padding-bottom: 4px; }
 .stat-value { font-size: 20px; }
@@ -481,10 +468,10 @@
 .inspect .body, .inspect .muted { font-size: 17px; }
 .inspect-detail { margin-top: 6px; }
 /* The competitor table keeps its original row size and column split (see the competitor section above); larger rows overflowed the column. */
-.competitor-selected { background-color: rgba(224, 180, 90, 0.08); }
+.competitor-selected { background-color: var(--chip-bg); }
 
 /* Session cards use the same controls and surfaces; the forest remains visible. */
-.session-backdrop { justify-content: center; align-items: center; background-color: rgba(7, 13, 11, 0.70); }
+.session-backdrop { justify-content: center; align-items: center; background-color: var(--backdrop); }
 .session-scroll { width: 760px; max-width: 94%; max-height: 94%; }
 .session-scroll > .unity-scroll-view__content-viewport { flex-shrink: 1; }
 .session-card { padding: 24px 30px; background-color: var(--panel-bg); }

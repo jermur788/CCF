@@ -357,7 +357,7 @@ public sealed class WalkingHudView
             generateVisualContent += context =>
             {
                 Painter2D painter = context.painter2D;
-                painter.fillColor = UiKit.AccentColour;
+                painter.fillColor = UiKit.WaypointColour;
                 Quaternion rotation = Quaternion.Euler(0, 0, BearingDegrees);
                 Vector2 centre = new Vector2(18, 18);
                 painter.BeginPath();
