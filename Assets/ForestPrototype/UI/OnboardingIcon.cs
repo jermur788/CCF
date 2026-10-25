@@ -37,10 +37,12 @@ public sealed class OnboardingIcon : VisualElement
                 Leaf(50, 48, 0.75f); Path(true, 50, 63, 51, 46, 66, 37, 78, 37, 74, 52, 63, 62, 50, 63);
                 Path(false, 50, 64, 50, 83); break;
             case "cycle":
+            case "forest-cycle":
                 float radius = circle ? 31 : 45;
                 Arc(50, 50, radius, 185, 340); Arc(50, 50, radius, 5, 160);
                 if (circle) { Path(false, 64, 30, 80, 38, 80, 21); Path(false, 36, 70, 20, 62, 20, 79); }
                 else { Path(false, 80, 24, 93, 42, 94, 20); Path(false, 20, 76, 7, 58, 6, 80); }
+                if (kind == "forest-cycle") { Tree(36, 44, 18); Tree(50, 37, 25); Tree(64, 45, 18); }
                 break;
             case "book":
                 Path(true, 8, 17, 27, 13, 49, 20, 49, 83, 27, 77, 8, 81);

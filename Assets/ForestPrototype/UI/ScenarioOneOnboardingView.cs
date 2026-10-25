@@ -157,7 +157,7 @@ public sealed class ScenarioOneOnboardingView
         Icon("cycle", 765, 349, 108, 108, false);
         Text("→", 680, 391, 50, 60, 51, "onboarding-accent", true);
         Text("→", 910, 391, 50, 60, 51, "onboarding-accent", true);
-        Text("REPEATED\nSELECTIVE\nMANAGEMENT", 726, 466, 190, 76, 20, "onboarding-eyebrow", true);
+        Text("REPEATED\nSELECTIVE\nMANAGEMENT", 706, 466, 230, 76, 20, "onboarding-eyebrow", true);
         Text("Over many years", 715, 551, 211, 28, 21, null, true);
         Text("INITIAL STATE", 90, 589, 574, 26, 17, "onboarding-eyebrow", true);
         Text("Even-aged Sitka plantation", 90, 614, 574, 28, 21, null, true);
@@ -166,7 +166,7 @@ public sealed class ScenarioOneOnboardingView
         Rule(87, 643, 1465);
         Icon("trees", 97, 660, 84, 85);
         Icon("sprout", 585, 659, 84, 85);
-        Icon("cycle", 1083, 660, 86, 85);
+        Icon("forest-cycle", 1083, 660, 86, 85);
         Text("Initial state", 200, 661, 340, 35, 26, "title");
         Text("Target state", 703, 661, 338, 35, 26, "title");
         Text("Key idea", 1202, 661, 336, 35, 26, "title");
