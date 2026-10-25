@@ -75,7 +75,7 @@ public sealed class ScenarioOneOnboardingView
         float right = PageIndex == 2 ? 1574 : 1607;
         float bottom = PageIndex == 2 ? 905 : 891;
         Box("onboarding-panel", 64, 64, right - 64, bottom - 64);
-        Icon("brand", 108, 90, 58, 74);
+        Icon("brand", 108, 90, 58, 74, false);
         Text(PageIndex == 2 ? "SCENARIO ONE" : "INTRODUCTION", 190, 92, 600, 25, 16, "onboarding-eyebrow");
         Text(ScenarioOneOnboardingCopy.Titles[PageIndex], 190, 117, right - 222, 62, 50, "title");
         string lead = ScenarioOneOnboardingCopy.Leads[PageIndex];
@@ -136,7 +136,7 @@ public sealed class ScenarioOneOnboardingView
             Text(ScenarioOneOnboardingCopy.ProcessHeadings[i], x + 89, 300, w - 100, 62, 23);
             Art(new Rect(x + 1, 365, w - 2, 312));
             Icon(new[] { "observe", "retain", "logs", "sprout", "chart" }[i], x + 15, 706, 64, 63, false);
-            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + (i == 3 ? 90 : 104), 691, w - (i == 3 ? 99 : 115), 102, i == 3 ? 16 : 18);
+            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + (i == 3 ? 90 : 104), 683, w - (i == 3 ? 99 : 115), 110, i == 3 ? 16 : 18);
             if (i < 4) Text("›", x + w - 4, 480, 28, 55, 51, "onboarding-accent", true);
         }
     }
@@ -190,6 +190,10 @@ public sealed class ScenarioOneOnboardingView
     {
         Label label = kind == null ? UiKit.Text(text, "onboarding-copy") : UiKit.Text(text, "onboarding-copy", kind);
         label.style.fontSize = size;
+        // The existing runtime body font does not honour tracking consistently.
+        // Thin spaces preserve the reference's widely spaced small-cap labels.
+        if (kind == "onboarding-eyebrow")
+            label.text = string.Join("\n", Array.ConvertAll(text.Split('\n'), line => string.Join("\u2009", line.ToCharArray())));
         if (centered) label.style.unityTextAlign = TextAnchor.UpperCenter;
         Place(label, x, y, width, height); canvas.Add(label); return label;
     }
@@ -240,11 +244,11 @@ public sealed class ScenarioOneOnboardingView
             generateVisualContent += Draw;
         }
 
-        private void WriteVertex(MeshWriteData mesh, Vector2 point, Rect uv)
+        private void WriteVertex(MeshWriteData mesh, Vector2 point, Rect uv, byte alpha = 255)
         {
             mesh.SetNextVertex(new Vertex {
                 position = new Vector3(point.x / source.width * contentRect.width, point.y / source.height * contentRect.height, Vertex.nearZ),
-                tint = Color.white,
+                tint = new Color32(255, 255, 255, alpha),
                 uv = new Vector2(uv.x + (source.x + point.x) / DesignWidth * uv.width,
                     uv.y + (1 - (source.y + point.y) / DesignHeight) * uv.height)
             });
@@ -257,15 +261,26 @@ public sealed class ScenarioOneOnboardingView
             {
                 // A silhouette-shaped texture frame removes rectangular background seams
                 // while keeping the exact frozen illustration pixels and species unchanged.
-                MeshWriteData clipped = context.Allocate(contour.Length + 1, contour.Length * 3, texture);
+                MeshWriteData clipped = context.Allocate(contour.Length * 2 + 1, contour.Length * 9, texture);
                 Rect atlas = clipped.uvRegion;
                 Vector2 center = new Vector2(source.width / 2, source.height / 2);
                 WriteVertex(clipped, center, atlas);
                 foreach (Vector2 point in contour) WriteVertex(clipped, point, atlas);
+                foreach (Vector2 point in contour)
+                {
+                    Vector2 outside = center + (point - center) * 1.13f;
+                    outside.x = Mathf.Clamp(outside.x, 0, source.width);
+                    outside.y = Mathf.Clamp(outside.y, 0, source.height);
+                    WriteVertex(clipped, outside, atlas, 0);
+                }
                 for (int i = 0; i < contour.Length; i++)
                 {
                     clipped.SetNextIndex(0); clipped.SetNextIndex((ushort)(i + 1));
                     clipped.SetNextIndex((ushort)((i + 1) % contour.Length + 1));
+                    ushort a = (ushort)(i + 1), b = (ushort)((i + 1) % contour.Length + 1);
+                    ushort c = (ushort)(a + contour.Length), d = (ushort)(b + contour.Length);
+                    clipped.SetNextIndex(a); clipped.SetNextIndex(c); clipped.SetNextIndex(d);
+                    clipped.SetNextIndex(d); clipped.SetNextIndex(b); clipped.SetNextIndex(a);
                 }
                 return;
             }

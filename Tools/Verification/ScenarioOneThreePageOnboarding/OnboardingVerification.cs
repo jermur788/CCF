@@ -9,6 +9,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 // Disposable, explicit executeMethod only. The launcher uses isolated XDG config.
 // Tests button callbacks and UI hit targets, not OS-native pointer/key delivery.
@@ -109,6 +111,13 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
             Page(0);
             Check(ui.Help.Root.Q("menu-help-window").resolvedStyle.display == DisplayStyle.None, "OLD_INTRO_AND_MORE_DETAIL_HIDDEN");
             ui.Help.Onboarding.Back(); yield return Frames(2); Page(0);
+            yield return Press(Key.F1); Page(0);
+            yield return Press(Key.Escape); Page(0);
+            yield return Press(Key.RightArrow); Page(1);
+            yield return Press(Key.LeftArrow); Page(0);
+            menu.Open(); yield return Frames(3);
+            Check(StandaloneSessionMenu.IsOpen && !ui.enabled, "SESSION_OVER_ONBOARDING");
+            menu.Close(); yield return Frames(4); Page(0);
             yield return Capture(1, size);
             Click("onboarding-next"); yield return Frames(6); Page(1);
             Click("onboarding-back"); yield return Frames(6); Page(0);
@@ -186,6 +195,15 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
             if (!fits) overflows.Add(size + " page=" + page + " text=" + label.text + " measured=" + measured + " box=" + label.contentRect);
             Check(fits, "TEXT_FITS page=" + page + " " + label.text.Replace("\n", " / "));
         }
+    }
+
+    private static IEnumerator Press(Key key)
+    {
+        Keyboard keyboard = Keyboard.current ?? InputSystem.AddDevice<Keyboard>();
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key));
+        yield return null; yield return null;
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+        yield return null; yield return null;
     }
 
     private static IEnumerator Frames(int count) { for (int i = 0; i < count; i++) yield return null; }
