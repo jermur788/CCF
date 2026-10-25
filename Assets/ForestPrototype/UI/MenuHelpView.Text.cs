@@ -26,7 +26,7 @@ public sealed partial class MenuHelpView
         switch (menu)
         {
             case Menu.WalkingHud:
-                return IntroductionText();
+                return null;
             case Menu.Rack:
                 return "Racks are permanent routes used to remove timber from the stand. Establishing them now gives machinery access for this and future thinnings. Click a tree or ground point where the rack should start. The start stays fixed while you aim. The preview extends forward only. Click again to add it to the Work Plan; right-click reselects the start, and Esc cancels. Nothing is cut until you approve the plan.";
             case Menu.TreeInspection:
@@ -41,38 +41,8 @@ public sealed partial class MenuHelpView
         }
     }
 
-    // ---- the scenario introduction ----
-    // Shown once, when a fresh scenario starts. It is the one place that explains what this forest is, what the player is trying to do and why
-    // forestry here is a sequence of decisions over time, so it has more room than the other first-use screens, but it stays short and does not
-    // list the objectives: those arrive one at a time. MenuHelpView draws the parts separately (lead, picture, three blocks, how to begin);
-    // IntroductionText joins them as plain text for the checks that read the words.
+    // Historical verification API; onboarding now has a separate per-page copy source.
     public const int ScenarioIntroWordCap = 200;
-
-    public const string IntroLead =
-        "Over many years, guide this plantation toward a continuous-cover forest, without clear-felling it.";
-
-    public static readonly string[][] IntroSections =
-    {
-        new[] { "What you have inherited",
-            "An even-aged Sitka spruce plantation: almost all one species, planted at the same time, in regular rows. Productive, but uniform." },
-        new[] { "What you are trying to create",
-            "A forest that keeps its tree cover but is no longer uniform: the best Sitka stays, joined by trees of many sizes and ages, other suitable species such as oak and beech, and young trees that seed themselves, the next generation." },
-        new[] { "How transformation works",
-            "Not one thinning, but a cycle you repeat: observe, choose what stays and what goes, open access, leave deadwood, make space for young trees, add species where justified. Then years pass, you review the response and adapt." },
-    };
-
-    public const string IntroStartHeading = "Your first management cycle";
-
-    public const string IntroStart =
-        "Learn it one step at a time. First, create access racks: close this window, press B, and choose where your first rack starts. "
-        + "Your current objective stays on screen; O opens its details.";
-
-    public static string IntroductionText()
-    {
-        string text = IntroLead;
-        foreach (string[] section in IntroSections) text += "\n\n" + section[0] + "\n" + section[1];
-        return text + "\n\n" + IntroStartHeading + "\n" + IntroStart;
-    }
 
     // Shown inside the Annual Review, beside the button that acknowledges the first results, instead of a help screen opening
     // on top of the review. The detailed explanation stays on Help [F1].
@@ -82,7 +52,6 @@ public sealed partial class MenuHelpView
     {
         switch (menu)
         {
-            case Menu.WalkingHud: return "Scenario One — Transforming a Sitka Plantation";
             default: return Title(menu);
         }
     }
@@ -129,7 +98,7 @@ public sealed partial class MenuHelpView
                     + "A waypoint's direction and distance appear here when one is active. M opens the Stand Map; Tab opens the Work Plan to review and approve jobs. The HUD itself does not approve work.\n\n"
                     + "O opens Learning objectives: the current forest success objectives, then short lessons in a suggested order. The first lessons follow a first cycle: create extraction racks, approve the work, advance a year and read the Annual Review. Inspecting trees, Crop Trees and selective felling follow once the racks are open. Map practice, pruning, deadwood, planting and clearance wait until you want them. Progress is remembered on this device, with no first-year deadline.\n\n"
                     + ControlsReference.KeysLine + "\n\n"
-                    + "Close this introduction to walk. Esc releases the mouse; click to resume looking around. Press F1 any time to revisit this screen's help.";
+                    + "Close Help to walk. Esc releases the mouse; click to resume looking around. Press F1 any time to revisit this screen's help.";
         }
     }
 }

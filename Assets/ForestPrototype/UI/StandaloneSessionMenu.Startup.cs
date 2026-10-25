@@ -98,6 +98,7 @@ public sealed partial class StandaloneSessionMenu
             StartupCard();
             return;
         }
+        forestUi?.Help.DismissScenarioIntroduction();
         forestUi?.CloseHelp();
         Close();
         saves.Load();

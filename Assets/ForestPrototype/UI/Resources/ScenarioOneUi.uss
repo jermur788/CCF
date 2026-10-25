@@ -514,3 +514,39 @@
 .compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
 .compact .session-card { padding: 18px 24px; }
 .compact .session-copy.body { font-size: 20px; margin-bottom: 10px; }
+
+
+/* Reference-locked three-page onboarding: geometry follows the 1672x941 source.
+   Styling always resolves through the qualified V2 variables above. */
+.onboarding { background-color: var(--backdrop); overflow: hidden; }
+.onboarding-canvas { position: absolute; }
+.onboarding-panel {
+    background-color: var(--frame-bg);
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 7px;
+}
+.onboarding-copy {
+    margin: 0; padding: 0;
+    white-space: normal;
+    -unity-font-style: normal;
+    color: var(--ink);
+}
+.onboarding-eyebrow { color: var(--accent); letter-spacing: 3px; }
+.onboarding-accent { color: var(--accent); }
+.onboarding-rule { background-color: var(--frame-rule); }
+.onboarding-card {
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 7px;
+    background-color: var(--panel-bg);
+}
+.onboarding-number {
+    color: var(--accent);
+    border-color: var(--accent);
+    border-width: 2px;
+    border-radius: 28px;
+}
+.onboarding-action { margin: 0; padding: 0; font-size: 22px; -unity-font-style: normal; border-radius: 5px; }
+.onboarding-dot { border-width: 1px; border-color: var(--accent); border-radius: 7px; }
+.onboarding-dot-current { background-color: var(--accent); }

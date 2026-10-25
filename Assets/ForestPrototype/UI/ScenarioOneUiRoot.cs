@@ -308,6 +308,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
+        if (help.Onboarding.IsOpen)
+        {
+            // Startup navigation only. Esc goes back; F1 cannot replace/skip onboarding.
+            if (keyboard.escapeKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame) help.Onboarding.Back();
+            else if (keyboard.rightArrowKey.wasPressedThisFrame) help.Onboarding.Next();
+            return;
+        }
         if (help.IsOpen && keyboard.escapeKey.wasPressedThisFrame)
         {
             CloseHelp();

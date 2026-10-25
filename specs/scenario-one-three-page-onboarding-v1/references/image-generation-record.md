@@ -1,0 +1,15 @@
+# Revised reference production
+
+Tool: built-in `image_gen.imagegen`, editing the supplied images. No CLI/API fallback, new package or external stock imagery. Date: 2026-10-25. Generated source paths and final hashes are in final-hashes.json. The exact edit requests/results are also retained in the task's T3 conversation.
+
+Prompt set: preserve each original 1672×941 composition, panel/header proportions, illustration placement, information columns, footer and blurred Irish backdrop. Apply V2 RGB panel 21/28/30, section 27/35/38, ink 235/237/233, muted 174/185/189, accent 110/163/157, grey rules 109/125/132 and green action 56/89/75; use regular Liberation Serif title and sans body. Never redesign, introduce a separate palette or derive copy with OCR. Set all text to the exact corresponding page in production-copy.md. Correct dots to pages 1/2/3 and buttons to Next, Back/Next, Back/Begin respectively.
+
+Page 1 prompt: preserve uniform plantation → selective openings → developed CCF diorama progression. Keep mature productive Sitka and broadleaf regeneration, with oak-like lobed leaves and beech-like oval leaves; no clear-fell. Replace lower explanatory paragraphs with exactly four short approved principles. Keep the generic footer and first dot selected.
+
+Page 2 prompt: preserve five numbered narrow cards, same image/statement positions and arrows. Generic teaching only: observe; retain/select; space/light; regenerate/establish; review/repeat. Remove dashed rack/game overlays, X marks and crop-tree markers; no scenario controls/key prompts. Keep selective harvesting imagery. Replace conifer planting stock with one lobed-leaf Oak and one unlobed oval-leaf Beech. Maintain conifers/broadleaves at varied ages in the final landscape. Use generic copy and middle dot.
+
+Page 3 prompt: preserve left even-aged Sitka diorama, central clean cycle/arrow indicator, right mixed diorama and three lower columns. Explicit Sitka/Oak/Beech copy. Right plot must retain tall dark conical Sitka; spreading broadleaf oak and beech crowns; recognisable front Oak/Beech saplings; intermediate trees, varied sizes, regeneration and continuous cover. No clear-fell/native-replacement implication. Use final dot and Back/Begin. The first result still made both front saplings oak-like, so it was not locked.
+
+Final corrective prompt (Page 3): change only the second foreground broadleaf in the right goal plot, approximately x1340/y505, to a BEECH with simple unlobed oval/elliptical pointed leaves, gently wavy edges, straight side veins and smooth grey-brown stem. Keep the lobed Oak around x1200, mature Sitka, all text, colours and layout. The corrected file is page-3-locked.png; the earlier Page 3 result is not an implementation reference.
+
+Review limits: these are educational illustrations, not botanical photographs or empirical outcome predictions. Raster colour/font rendering is approximate; actual V2 tokens and live production text govern the runtime interface. The reference files themselves are frozen after this recorded reconciliation.
