@@ -1,11 +1,13 @@
 # Requirements Checklist
 
-> **Document metadata (recorded 2026-10-25, documentation-only; no verification claimed)**
+> **Document metadata (verified 2026-10-25)**
 >
 > - Feature ID: `SCENARIO-ONE-UI-VISUAL-SYSTEM-V2`
-> - Status: `APPROVED FOR IMPLEMENTATION` (specification)
+> - Status: `VERIFIED` (specification)
 > - Source: exact user-provided checklist in parent T3 thread `8f9dbb1b-5bb5-4697-8fc4-e93900e805a5` (user message, 2026-10-25)
-> - Only evidence-backed preparation boxes are checked; rendered/functional acceptance remains pending because no implementation, render or verification evidence exists in this documentation-only task.
+> - Evidence: final source `36eafce8656cc52c370c383f496ac6433cc5a028`; independent G2/G3 APPROVED; 355 main UI checks plus 888 later-stage checks, zero failures; 94 native comparison sheets.
+> - Clean candidate refers to committed task source, verified clean before restoration. The user explicitly requires four pre-existing local settings/material edits to be put back; those remain outside the task diff.
+> - Verification is Unity Editor/API/callback smoke at 1280×720 and 1920×1080. Human/native-OS input, 4K and Player performance are not claimed.
 
 ---
 
@@ -18,115 +20,115 @@
 
 ## Palette
 
-- [ ] Old olive-heavy appearance no longer dominates.
-- [ ] Gold/yellow is not the default heading colour.
-- [ ] Cool charcoal/slate/blue-green base established.
-- [ ] Primary text uses professional off-white treatment.
-- [ ] Secondary text is restrained and readable.
-- [ ] Accent colour is used semantically.
-- [ ] Shared palette tokens exist.
+- [x] Old olive-heavy appearance no longer dominates.
+- [x] Gold/yellow is not the default heading colour.
+- [x] Cool charcoal/slate/blue-green base established.
+- [x] Primary text uses professional off-white treatment.
+- [x] Secondary text is restrained and readable.
+- [x] Accent colour is used semantically.
+- [x] Shared palette tokens exist.
 
 ## Typography
 
-- [ ] Major titles have stronger professional/display treatment.
-- [ ] Section/body/caption hierarchy is clear.
-- [ ] Dense text remains readable.
+- [x] Major titles have stronger professional/display treatment.
+- [x] Section/body/caption hierarchy is clear.
+- [x] Dense text remains readable.
 - [x] Font licensing/availability verified.
-- [ ] No arbitrary mixed typography.
+- [x] No arbitrary mixed typography.
 
 ## Panels
 
-- [ ] Panel borders are thin and restrained.
-- [ ] Heavy/chunky legacy framing removed where in scope.
-- [ ] Panel backgrounds are visually quieter.
-- [ ] Corner treatment matches reference direction.
-- [ ] Nested cards are minimized.
+- [x] Panel borders are thin and restrained.
+- [x] Heavy/chunky legacy framing removed where in scope.
+- [x] Panel backgrounds are visually quieter.
+- [x] Corner treatment matches reference direction.
+- [x] Nested cards are minimized.
 
 ## Navigation
 
-- [ ] Tabs/buttons visually align with map reference.
-- [ ] Active state is clear.
-- [ ] Disabled state is clear.
-- [ ] Primary action remains obvious without excessive accent colour.
+- [x] Tabs/buttons visually align with map reference.
+- [x] Active state is clear.
+- [x] Disabled state is clear.
+- [x] Primary action remains obvious without excessive accent colour.
 
 ## HUD
 
-- [ ] Normal HUD aligned.
-- [ ] Selected-tree HUD aligned.
-- [ ] Waypoint styling aligned.
-- [ ] Objective widget aligned.
-- [ ] No layout regression.
+- [x] Normal HUD aligned.
+- [x] Selected-tree HUD aligned.
+- [x] Waypoint styling aligned.
+- [x] Objective widget aligned.
+- [x] No layout regression.
 
 ## Objectives
 
-- [ ] Aligned to visual system.
-- [ ] Active/complete/locked states remain clear.
+- [x] Aligned to visual system.
+- [x] Active/complete/locked states remain clear.
 
 ## Work Plan
 
-- [ ] Aligned to visual system.
-- [ ] Locked/unlocked state remains clear.
-- [ ] No gameplay-state change.
+- [x] Aligned to visual system.
+- [x] Locked/unlocked state remains clear.
+- [x] No gameplay-state change.
 
 ## Tree Inspection
 
-- [ ] Aligned to visual system.
-- [ ] Competitor/selection states remain understandable.
+- [x] Aligned to visual system.
+- [x] Competitor/selection states remain understandable.
 
 ## Help / Controls
 
-- [ ] Aligned to visual system.
-- [ ] Key/action information remains legible.
-- [ ] No accidental control changes.
+- [x] Aligned to visual system.
+- [x] Key/action information remains legible.
+- [x] No accidental control changes.
 
 ## Annual Review
 
-- [ ] Aligned to visual system.
+- [x] Aligned to visual system.
 
 ## Map / Minimap
 
-- [ ] Existing professional treatment preserved.
-- [ ] No visual regression.
-- [ ] Rest of UI now clearly belongs beside it.
+- [x] Existing professional treatment preserved.
+- [x] No visual regression.
+- [x] Rest of UI now clearly belongs beside it.
 
 ## Visual comparison
 
-- [ ] HUD comparison captured.
-- [ ] selected-tree comparison captured.
-- [ ] Objectives comparison captured.
-- [ ] Work Plan comparison captured.
-- [ ] Tree Inspection comparison captured.
-- [ ] Help comparison captured.
-- [ ] menu comparison captured.
-- [ ] Annual Review comparison captured.
-- [ ] Map comparison captured.
-- [ ] Minimap comparison captured.
+- [x] HUD comparison captured.
+- [x] selected-tree comparison captured.
+- [x] Objectives comparison captured.
+- [x] Work Plan comparison captured.
+- [x] Tree Inspection comparison captured.
+- [x] Help comparison captured.
+- [x] menu comparison captured.
+- [x] Annual Review comparison captured.
+- [x] Map comparison captured.
+- [x] Minimap comparison captured.
 
 ## Resolution
 
-- [ ] 1280×720 reviewed.
-- [ ] 1920×1080 reviewed.
-- [ ] No clipping.
-- [ ] No overlapping.
-- [ ] No unreadable text.
-- [ ] No broken controls.
+- [x] 1280×720 reviewed.
+- [x] 1920×1080 reviewed.
+- [x] No clipping.
+- [x] No overlapping.
+- [x] No unreadable text.
+- [x] No broken controls.
 
 ## Behaviour
 
-- [ ] Unity compile PASS.
-- [ ] UI smoke PASS.
-- [ ] No new exceptions.
-- [ ] No gameplay mechanics changed.
-- [ ] No save/schema changes.
-- [ ] No simulation changes.
+- [x] Unity compile PASS.
+- [x] UI smoke PASS.
+- [x] No new exceptions.
+- [x] No gameplay mechanics changed.
+- [x] No save/schema changes.
+- [x] No simulation changes.
 
 ## Spec conformance
 
-- [ ] No material silent deviations.
-- [ ] Deviations documented.
+- [x] No material silent deviations.
+- [x] Deviations documented.
 - [x] Reference manifest included.
-- [ ] Final candidate clean.
-- [ ] Evidence archived.
+- [x] Final candidate clean.
+- [x] Evidence archived.
 
 # Final gate
 

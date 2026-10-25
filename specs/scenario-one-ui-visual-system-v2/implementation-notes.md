@@ -3,7 +3,9 @@
 Source baseline: `13988874cc36413d911243f4d3a6524436237bab`.
 Initial source checkpoint: `cf25d1b8d6ec5fa52356d70781cbf446da1f4075`.
 Context: `d5f11f865dc9123ac3ff0bab571e0402ad03d276`.
-Status: IMPLEMENTING; source review APPROVED, actual Unity qualification pending.
+Status: VERIFIED — independent G2/G3 APPROVED at `36eafce8656cc52c370c383f496ac6433cc5a028`.
+Final verdict: **UI VISUAL SYSTEM V2 QUALIFIED — READY FOR THREE-PAGE ONBOARDING**.
+This is feature-candidate qualification; no G4 integration, human playtest or Windows build is claimed.
 Evidence root: `/media/jer/Files/CCF/Verification/ScenarioOneUiVisualSystemV2-20261025/`.
 
 ## Canonical palette
@@ -34,7 +36,7 @@ Values live in `Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss`; Painter2
 | crop / fell / rack |70,130,230 /214,70,58 /182,118,232|Existing management marks|Existing gameplay-feedback semantics preserved; crop related to reference blue player marker. Fell/rack are not sampled from reference and are used only as semantic marks|
 | chip-bg |174,185,189,.09|Restrained badge background|Same grey family as labels/rules; semantic border identifies each badge|
 
-Opaque token contrast checks: ink14.65:1; muted8.61:1; faint6.81:1; disabled6.41:1 against frame; ink on active6.60:1; selected dark number on ochre7.41:1. These are static calculations; actual translucent/runtime rendering requires review.
+Opaque token contrast checks: ink14.65:1; muted8.61:1; faint6.81:1; disabled6.41:1 against frame; ink on active6.60:1; selected dark number on ochre7.41:1. These are static calculations. Actual selected competitor-row text on rendered RGB(60,66,67) is8.68:1 at both resolutions; the selected world-number tag is7.41:1. Both were independently checked.
 
 ## Typography and assets
 
@@ -45,13 +47,13 @@ Reference raster does not identify its exact font family. Liberation Serif is a 
 Font source: `/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf`.
 Font size:393,692 bytes; single face, no large asset family or package.
 Font SHA-256: `705903ae1382f0150f115d6f10a30f5b2f3d6ade649c474afe6366c39174fb65`.
-Licence confirmation: `/usr/share/doc/fonts-liberation/copyright`, Files:* SIL OFL1.1 explicitly permits embedding/redistribution with notice. Licence/copyright copied beside the unmodified font. No external download or new package. Unity will generate and retain the new import metadata during first import; no existing GUID is replaced.
+Licence confirmation: `/usr/share/doc/fonts-liberation/copyright`, Files:* SIL OFL1.1 explicitly permits embedding/redistribution with notice. Licence/copyright copied beside the unmodified font. No external download or new package. Unity6000.6.0f1 generated and imported the new metadata. Font GUID `9a6199e57e95fb29ca7c37b52627e93e` is retained, includeFontData1; no existing GUID was replaced.
 
 ## Scope and deviations
 
-No material product/layout/palette deviation intentionally taken. Font rasterisation/unknown exact source font is recorded above. Strong visual fidelity is still an open acceptance gate.
+No material product/layout/palette deviation intentionally taken. Font rasterisation/unknown exact source font is recorded above. Strong visual fidelity passed independent G2 review of all32 final captures at both sizes plus16 representative later-stage captures; all94 comparison-sheet hashes/native actual pixels were independently checked.
 
-The existing onboarding illustration content/palette, copy and page sequence are excluded by the approved spec and remain unchanged. Its gold labels/forestry greens are illustration content, not defaults for UI headings. Map cartography/data/transforms/symbols/terrain imagery remain untouched; shell-only styles use shared tokens. World selection and mark semantics remain distinct.
+The existing onboarding illustration content/palette, copy and page sequence are excluded by the approved spec and remain unchanged. Its gold labels/forestry greens are illustration content, not defaults for UI headings. Neutral overlaid labels in the separate Objective diagrams now consume shared off-white/muted USS tokens; their mesh geometry and semantic forestry colours are unchanged. Map cartography/data/transforms/symbols/terrain imagery remain untouched; shell-only styles use shared tokens. World selection and mark semantics remain distinct.
 
 Only presentation files, the supplied spec/references, one licensed font and disposable verification tools change. No gameplay, save/schema, forestry model, progression, annual simulation, economy, package or scene change is authorised or made.
 
@@ -63,4 +65,20 @@ Independent source review round1 (GPT6.1 medium) found selected competitor tag t
 
 User authorised exact preservation/temporary restore of four pre-existing U1 settings/material files for clean Unity verification, then restoration of the originals. Copies/hashes remain in evidence `preserved-user-files/` and `preserved-user-files.json`.
 
-Actual Unity import, final metadata, compiler/USS parser, mandatory rendered comparisons at1280×720/1920×1080, UI smoke, console scan, independent rendered conformance review and closure remain pending until recorded with actual results. No final qualification phrase is claimed by these source notes.
+Actual qualification completed:
+
+| Gate | Result | Evidence directory |
+|---|---|---|
+| Unity import/compile |PASS, exit0,92s; font imported/metas retained|01-import-compile|
+| Main final Editor render/nav/console |PASS,32captures,355checks,0fail,exit0,183.16s|05-final-render|
+| Existing later-stage UI fixture |PASS,62captures,888checks,0fail,exit0,370.04s; all8Objectives, WorkPlan0/5/7|04-later-stages|
+| Driver cleanup regression |2/2 synthetic cases; denied cleanup cannot PASS; no realUnity/licence used|runner-cleanup-fault-check|
+| Independent G2/G3 final review |APPROVED, exact36eafce; all32final and16later images read;94sheets verified|ui-v2-rendered-review-02-result.md|
+
+Pure UI navigation and competitor restoration retain world hash30B1C4735B673ED2; deliberate advance adds exactly one ecological year and annual report, then review preserves hashA4518DA0E7C48664. These are local same-configuration mutation checks, not replacement protected simulation anchors.
+
+Earlier failed clips/contrast and generic-driver exit143 are preserved, with fixes and rerenders. No assertion or acceptance threshold was weakened. The final runner isolates owned processes and requires both harness and copied-licence cleanup. Normal machine-wide locks were released; disposable script/meta removed. Four original user files are restored from exact hashed copies after verification. Attributed Editor material/settings side effects are archived and excluded from commits.
+
+No material spec deviation remains. The exact raster font identity was unavailable; the licensed regular serif choice and contrast calibrations are documented above. Existing onboarding copy/sequence/illustration, semantic forestry art, map content and all nonvisual code remain unchanged. A higher-resolution/native-OS/Player-performance pass and human playtest are outside this qualification and are not claimed. Unity can update host Editor window layout/preferences during these graphical tests; game save/preferences used isolated config.
+
+The durable `HANDOFF.md` records source/result checkpoints, exact replay commands/manual steps, restoration checks, backup and final dashboard publication/readback. The permanent source notes do not stand in for that operational receipt.

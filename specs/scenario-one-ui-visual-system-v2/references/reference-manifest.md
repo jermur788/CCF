@@ -3,7 +3,7 @@
 Feature ID: `SCENARIO-ONE-UI-VISUAL-SYSTEM-V2`
 
 Status of specification: `APPROVED FOR IMPLEMENTATION`
-Manifest recorded: 2026-10-25 (documentation-only; no implementation or verification claimed)
+Manifest recorded and rechecked: 2026-10-25. Qualification uses these exact immutable files; implementation evidence is recorded separately.
 Base: `13988874cc36413d911243f4d3a6524436237bab`
 Context: `d5f11f865dc9123ac3ff0bab571e0402ad03d276`
 
