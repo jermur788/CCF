@@ -37,6 +37,8 @@ These files are frozen visual references. Do not replace, regenerate, re-encode 
 | Role | Evidence of the visual state being replaced; **not** a design authority |
 | Treatment | Byte-exact immutable copy of `/home/jer/Pictures/scenario1 menu.png`; 1920×1080 RGB PNG, 1046135 bytes. Inspected: Scenario One current menu in U1, with olive title bar/gold headings. Evidence only; no design authority. |
 
+User subsequently attached `/home/jer/.t3/userdata/attachments/8f9dbb1b-5bb5-4697-8fc4-e93900e805a5-298de184-dfb5-4078-8b1b-91b51bf84ede.png`; its SHA-256 is identical to the frozen current-state file. No replacement or re-encoding was needed.
+
 Both original PNGs are now present and SHA-256 locked before visual production edits. **UI-V2-01: REFERENCES LOCKED.** The earlier missing-file preflight was resolved by locating the exact filename, without substituting a capture.
 
 ## 3. Verification

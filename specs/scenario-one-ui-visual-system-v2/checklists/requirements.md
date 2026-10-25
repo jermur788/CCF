@@ -5,7 +5,7 @@
 > - Feature ID: `SCENARIO-ONE-UI-VISUAL-SYSTEM-V2`
 > - Status: `APPROVED FOR IMPLEMENTATION` (specification)
 > - Source: exact user-provided checklist in parent T3 thread `8f9dbb1b-5bb5-4697-8fc4-e93900e805a5` (user message, 2026-10-25)
-> - All boxes remain unchecked because no implementation, render or verification evidence exists in this documentation-only task.
+> - Only evidence-backed preparation boxes are checked; rendered/functional acceptance remains pending because no implementation, render or verification evidence exists in this documentation-only task.
 
 ---
 
