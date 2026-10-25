@@ -18,6 +18,7 @@ public sealed class TeachingDiagram : VisualElement
     private const float MinLabelSize = 17f, MinLegendSize = 15f;
 
     private readonly Plan.Stage stage;
+    private readonly bool preserveIntroIllustration;
     private readonly VisualElement frame, art;
     private readonly List<KeyValuePair<Label, Plan.Text>> texts = new List<KeyValuePair<Label, Plan.Text>>();
     private readonly List<bool> isLegend = new List<bool>();
@@ -29,6 +30,7 @@ public sealed class TeachingDiagram : VisualElement
     public TeachingDiagram(int lesson, string caption)
     {
         stage = Plan.For(lesson);
+        preserveIntroIllustration = lesson < 0;
         name = "teaching-diagram";
         AddToClassList("teaching-diagram");
         pickingMode = PickingMode.Ignore;
@@ -55,7 +57,12 @@ public sealed class TeachingDiagram : VisualElement
     {
         Label label = UiKit.Text(text.Value, legend ? "diagram-legend" : "diagram-label");
         label.pickingMode = PickingMode.Ignore;
-        label.style.color = Colour(text.Role, 1f);
+        // Intro artwork is explicitly excluded from V2. In lesson diagrams only
+        // neutral annotation labels use shared USS ink; semantic forestry colours stay intact.
+        if (preserveIntroIllustration || (text.Role != Plan.Role.Accent && text.Role != Plan.Role.Muted))
+            label.style.color = Colour(text.Role, 1f);
+        else if (text.Role == Plan.Role.Muted)
+            label.AddToClassList("diagram-muted");
         frame.Add(label);
         texts.Add(new KeyValuePair<Label, Plan.Text>(label, text));
         isLegend.Add(legend);

@@ -14,6 +14,7 @@ build/player component, and exists only for a deliberate `-executeMethod` run.
 Real `ScreenCapture.CaptureScreenshotAsTexture` renders at **1280x720** and **1920x1080**:
 
 - startup session title and its Controls / Help card;
+- existing introduction artwork (regression capture; no redesign);
 - normal walking HUD;
 - HUD minimap (cropped from the same real render);
 - waypoint HUD;
@@ -61,29 +62,27 @@ text/background colours plus font asset names to JSON and CSV.
 
 ## Run — safe launcher (normal startup + isolated XDG)
 
-Use the existing qualified launcher from the project root. `--normal-startup` is mandatory: it
-keeps `CCF_TEST_DIRECT_ENTRY` unset so the real Bootstrap startup screen opens. The launcher also
-creates `XDG_CONFIG_HOME=<out>/config`, copies the Unity licence there (never uses the user's
-licence/config), runs under a private Xephyr display, and removes the staged harness file and its
-`.meta` in its `finally` cleanup.
+Hold the normal machine-wide Unity lock on the exact clean candidate first. The V2 driver
+uses the existing project's isolated-config/copy-run-remove workflow and places each owned
+child process in its own session. This protects cleanup and the process receipt from child
+shutdown signals; an earlier generic-launcher run exited143 after the harness completed.
+It explicitly unsets `CCF_TEST_DIRECT_ENTRY` so normal startup is exercised.
 
 ```bash
 OUT=/media/jer/Files/CCF/Verification/ScenarioOneUiVisualSystemV2-$(date -u +%Y%m%dT%H%M%SZ)
-python3 Tools/Verification/ScenarioOneVisualSystem/run_gate.py \
-  --name ui-visual-system-v2 \
-  --method VisualSystemV2Shots.Begin \
-  --files ScenarioOneVisualSystemV2/VisualSystemV2Shots.cs \
-  --out "$OUT" \
-  --env CCF_UI_SIZES=1280x720,1920x1080 \
-  --normal-startup --private-display --screen 2560x1440 --timeout 1800
+python3 Tools/Verification/ScenarioOneVisualSystemV2/run_gate.py \
+  --out "$OUT" --sizes 1280x720,1920x1080 --screen 2560x1440 --timeout 1200
 ```
 
-The launcher sets `CCF_DIAG_DIR="$OUT/evidence"` and `CCF_ACCEPTANCE_OUTPUT="$OUT/evidence"`.
-The runtime installer only activates when the command line contains exactly
-`VisualSystemV2Shots.Begin`. The harness exits Play Mode and returns `0` on pass, `1` on failure.
+The driver creates `XDG_CONFIG_HOME="$OUT/config"`, copies the existing local Unity licence,
+sets both evidence variables to `$OUT/evidence`, launches a private Xephyr display, and removes
+the staged harness/meta and copied licence in cleanup. It stops only its own child processes.
+`unity.log`, `command.json`, `process.json` and `process-result.json` record actual execution.
+The latter must show Unity exit0, a PASS marker, no failed checks, and completed harness cleanup.
 
-If invoking Unity directly instead, do not use the user's config; set an isolated
-`XDG_CONFIG_HOME` and `CCF_DIAG_DIR` yourself. The launcher path above is preferred.
+The runtime installer acts only for the exact `VisualSystemV2Shots.Begin` command. The harness
+exits Play Mode and requests Editor exit0 on pass or1 on failure. This is visual iteration until
+the independent integrity and rendered conformance review gates accept its evidence.
 
 ### Mandatory cleanup
 

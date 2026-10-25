@@ -204,6 +204,12 @@ public sealed class VisualSystemV2ShotsRunner : MonoBehaviour
         if (ui == null || ui.Help == null) throw new InvalidOperationException("Scenario One UI missing after Start New");
         if (!ui.Help.IsOpen || ui.Help.CurrentMenu != MenuHelpView.Menu.WalkingHud)
             throw new InvalidOperationException("Start New did not open the existing scenario introduction");
+        // Confirm shared shell changes preserve the existing excluded introduction artwork.
+        foreach (Vector2Int target in Sizes())
+        {
+            yield return UseSize(target);
+            yield return Shot("existing-onboarding", ui.RootElement.Q("menu-help-window"));
+        }
         ui.CloseHelp();
         yield return Settle(20);
         Check(!ui.Help.IsOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "INTRODUCTION_CLOSES_TO_WALKING_HUD");

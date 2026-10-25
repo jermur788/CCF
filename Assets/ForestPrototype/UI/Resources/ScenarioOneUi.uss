@@ -355,6 +355,9 @@
 .competitor-num { flex-grow: 1.1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 4px; }
 .competitor-share { flex-grow: 2.3; flex-basis: 0; }
 .competitor-selected Label { color: var(--accent); -unity-font-style: bold; }
+/* The categorical share stays at its normal reading weight; the arrow, row fill
+   and bold identity/numbers already identify selection without squeezing this label. */
+.competitor-selected .competitor-share { -unity-font-style: normal; }
 .competitor-tag {
     width: 28px; height: 28px;
     font-size: var(--fs-sm); -unity-font-style: bold; -unity-text-align: middle-center;
@@ -398,8 +401,9 @@
     width: 100%; flex-shrink: 0; align-self: center;
     background-color: var(--frame-bg); border-radius: 2px; border-width: 1px; border-color: var(--panel-border);
 }
-.diagram-label { position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
+.diagram-label { color: var(--ink); position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
 .diagram-legend { position: absolute; white-space: nowrap; -unity-text-align: upper-left; color: var(--ink-muted); }
+.diagram-muted { color: var(--ink-muted); }
 .diagram-caption { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); margin-top: 6px; }
 
 /* ---- scenario introduction layout ---- */
