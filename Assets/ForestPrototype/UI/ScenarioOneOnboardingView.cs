@@ -164,16 +164,25 @@ public sealed class ScenarioOneOnboardingView
         Text("LONG-TERM GOAL", 965, 589, 586, 26, 17, "onboarding-eyebrow", true);
         Text("Sitka, Oak and Beech under continuous cover", 965, 614, 586, 28, 21, null, true);
         Rule(87, 643, 1465);
-        Icon("trees", 97, 660, 84, 85);
-        Icon("sprout", 585, 659, 84, 85);
-        Icon("forest-cycle", 1083, 660, 86, 85);
-        Text("Initial state", 200, 661, 340, 35, 26, "title");
-        Text("Target state", 703, 661, 338, 35, 26, "title");
-        Text("Key idea", 1202, 661, 336, 35, 26, "title");
-        Text("• " + ScenarioOneOnboardingCopy.InitialState.Replace("\n", "\n• "), 200, 700, 345, 104, 21);
-        Text("• " + ScenarioOneOnboardingCopy.TargetState.Replace("\n", "\n• "), 703, 697, 347, 122, 20);
-        Text(ScenarioOneOnboardingCopy.KeyIdea, 1202, 697, 337, 119, 21);
-        VerticalRule(552, 659, 155); VerticalRule(1054, 659, 155);
+        var row = Box("onboarding-info-row", 97, 659, 1442, 160);
+        ScenarioColumn(row, "trees", "Initial state", "• " + ScenarioOneOnboardingCopy.InitialState.Replace("\n", "\n• "));
+        ScenarioColumn(row, "sprout", "Target state", "• " + ScenarioOneOnboardingCopy.TargetState.Replace("\n", "\n• "));
+        ScenarioColumn(row, "forest-cycle", "Key idea", ScenarioOneOnboardingCopy.KeyIdea);
+    }
+
+    private static void ScenarioColumn(VisualElement row, string iconKind, string heading, string body)
+    {
+        var column = UiKit.Box("onboarding-info-column");
+        if (row.childCount > 0) column.AddToClassList("onboarding-info-column-divider");
+        var header = UiKit.Box("onboarding-info-header");
+        var icon = new OnboardingIcon(iconKind, true);
+        icon.AddToClassList("onboarding-accent");
+        icon.AddToClassList("onboarding-info-icon");
+        header.Add(icon);
+        header.Add(UiKit.Text(heading, "onboarding-copy", "title", "onboarding-info-title"));
+        column.Add(header);
+        column.Add(UiKit.Text(body, "onboarding-copy", "onboarding-info-body"));
+        row.Add(column);
     }
 
     private VisualElement Box(string classes, float x, float y, float width, float height)
@@ -190,10 +199,6 @@ public sealed class ScenarioOneOnboardingView
     {
         Label label = kind == null ? UiKit.Text(text, "onboarding-copy") : UiKit.Text(text, "onboarding-copy", kind);
         label.style.fontSize = size;
-        // The existing runtime body font does not honour tracking consistently.
-        // Thin spaces preserve the reference's widely spaced small-cap labels.
-        if (kind == "onboarding-eyebrow")
-            label.text = string.Join("\n", Array.ConvertAll(text.Split('\n'), line => string.Join("\u2009", line.ToCharArray())));
         if (centered) label.style.unityTextAlign = TextAnchor.UpperCenter;
         Place(label, x, y, width, height); canvas.Add(label); return label;
     }

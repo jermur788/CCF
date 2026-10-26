@@ -99,7 +99,7 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
             throw new InvalidOperationException("Refusing Save outside isolated config: " + Application.persistentDataPath);
         Check(!ui.Help.Onboarding.IsOpen, "NO_ONBOARDING_BEHIND_STARTUP");
         string before = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
-        foreach (Vector2Int size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
+        foreach (Vector2Int size in RequestedSizes())
         {
             SetGameSize(size.x, size.y);
             yield return Frames(30);
@@ -162,6 +162,39 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
         File.WriteAllText(Path.Combine(output, "persistent-path.txt"), Application.persistentDataPath);
     }
 
+    private static IEnumerable<Vector2Int> RequestedSizes()
+    {
+        string requested = Environment.GetEnvironmentVariable("CCF_UI_SIZES") ?? "1280x720,1920x1080";
+        foreach (string value in requested.Split(','))
+        {
+            string[] axes = value.Split('x');
+            yield return new Vector2Int(int.Parse(axes[0]), int.Parse(axes[1]));
+        }
+    }
+
+    private void CheckScenarioRow()
+    {
+        VisualElement root = ui.Help.Onboarding.Root;
+        foreach (string text in new[] { "INITIAL STATE", "LONG-TERM GOAL", "SCENARIO ONE" })
+            Check(root.Query<Label>().ToList().Any(l => l.text == text), "UNMODIFIED_WORD_SPACING " + text);
+        var columns = root.Query<VisualElement>(className: "onboarding-info-column").ToList();
+        Check(columns.Count == 3, "THREE_SHARED_COLUMNS");
+        float headingY = columns[0].Q<Label>(className: "onboarding-info-title").worldBound.y;
+        float bodyY = columns[0].Q<Label>(className: "onboarding-info-body").worldBound.y;
+        float iconY = columns[0].Q<VisualElement>(className: "onboarding-info-icon").worldBound.y;
+        foreach (VisualElement column in columns)
+        {
+            Label title = column.Q<Label>(className: "onboarding-info-title");
+            Label body = column.Q<Label>(className: "onboarding-info-body");
+            VisualElement icon = column.Q<VisualElement>(className: "onboarding-info-icon");
+            Check(Mathf.Abs(title.worldBound.y - headingY) < 1, "SHARED_HEADING_BASELINE " + title.text);
+            Check(Mathf.Abs(body.worldBound.y - bodyY) < 1, "SHARED_BODY_BASELINE " + title.text);
+            Check(Mathf.Abs(icon.worldBound.y - iconY) < 1, "SHARED_ICON_BASELINE " + title.text);
+            Check(body.worldBound.yMax <= column.worldBound.yMax + 1, "BODY_WITHIN_ROW " + title.text);
+            Check(Mathf.Abs(column.worldBound.width - columns[0].worldBound.width) < 1, "EQUAL_COLUMN_WIDTH " + title.text);
+        }
+    }
+
     private void Page(int index)
     {
         Check(ui.Help.IsOpen && ui.Help.Onboarding.IsOpen && ui.Help.Onboarding.PageIndex == index, "PAGE_" + (index + 1));
@@ -183,6 +216,7 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
 
     private IEnumerator Capture(int page, Vector2Int size)
     {
+        if (page == 3) CheckScenarioRow();
         yield return new WaitForEndOfFrame();
         Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
         Check(image != null && image.width == size.x && image.height == size.y, "ACTUAL_CAPTURE_SIZE_" + page + "_" + size);

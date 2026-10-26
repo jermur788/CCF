@@ -556,3 +556,12 @@
     border-top-color: var(--accent); border-bottom-color: var(--accent);
 }
 .onboarding .onboarding-action.btn-ghost { background-color: var(--btn-bg); }
+
+/* Page 3 uses one shared row so headings and copy keep the same baselines. */
+.onboarding-info-row { flex-direction: row; }
+.onboarding-info-column { flex-grow: 1; flex-basis: 0; padding-left: 18px; padding-right: 18px; }
+.onboarding-info-column-divider { border-left-width: 1px; border-left-color: var(--frame-rule); }
+.onboarding-info-header { flex-direction: row; align-items: center; height: 40px; flex-shrink: 0; margin-bottom: 5px; }
+.onboarding-info-icon { width: 40px; height: 40px; flex-shrink: 0; margin-right: 18px; }
+.onboarding-info-title { font-size: 26px; }
+.onboarding-info-body { font-size: 20px; flex-shrink: 0; }
