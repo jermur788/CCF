@@ -164,7 +164,7 @@ public sealed class ScenarioOneOnboardingView
         Text("LONG-TERM GOAL", 965, 589, 586, 26, 17, "onboarding-eyebrow", true);
         Text("Sitka, Oak and Beech under continuous cover", 965, 614, 586, 28, 21, null, true);
         Rule(87, 643, 1465);
-        var row = Box("onboarding-info-row", 97, 659, 1442, 160);
+        var row = Box("onboarding-info-row", 97, 659, 1440, 160);
         ScenarioColumn(row, "trees", "Initial state", "• " + ScenarioOneOnboardingCopy.InitialState.Replace("\n", "\n• "));
         ScenarioColumn(row, "sprout", "Target state", "• " + ScenarioOneOnboardingCopy.TargetState.Replace("\n", "\n• "));
         ScenarioColumn(row, "forest-cycle", "Key idea", ScenarioOneOnboardingCopy.KeyIdea);

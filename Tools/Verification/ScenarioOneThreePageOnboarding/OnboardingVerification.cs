@@ -191,7 +191,7 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
             Check(Mathf.Abs(body.worldBound.y - bodyY) < 1, "SHARED_BODY_BASELINE " + title.text);
             Check(Mathf.Abs(icon.worldBound.y - iconY) < 1, "SHARED_ICON_BASELINE " + title.text);
             Check(body.worldBound.yMax <= column.worldBound.yMax + 1, "BODY_WITHIN_ROW " + title.text);
-            Check(Mathf.Abs(column.worldBound.width - columns[0].worldBound.width) < 1, "EQUAL_COLUMN_WIDTH " + title.text);
+            Check(Mathf.Abs(column.worldBound.width - columns[0].worldBound.width) < 1, "EQUAL_COLUMN_WIDTH " + title.text + " actual=" + column.worldBound.width.ToString("F4") + " first=" + columns[0].worldBound.width.ToString("F4") + " local=" + column.layout.width.ToString("F4"));
         }
     }
 
