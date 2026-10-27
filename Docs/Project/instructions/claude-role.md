@@ -10,6 +10,10 @@ Review against accepted specification/context/evidence; do not build a competing
 
 Drive mirrors are read-only collaboration copies. Return suggested context changes to Overall Manager or edit Git only when explicitly assigned.
 
+When live GitHub access is available, refresh the authoritative `Docs/Project/coordination/active-tasks.md` from GitHub before reporting that a task or file lock is missing. Do not treat a stale or dirty local coordination file as newer authority than the live GitHub record. Overall Manager may maintain live locks and bounded canonical documentation directly through connected GitHub tools; do not rewrite those locks unless explicitly assigned that coordination role.
+
+Substantive implementation, qualification, review, integration and research handoffs must have a GitHub-tracked Markdown copy. Large raw evidence may remain in external verification storage, but a local-only handoff is incomplete administrative closure.
+
 ### Project chat / claude.ai without repository tools
 
 Analyse/research/plan/review supplied material. Do not claim local Git, Unity, Blender or filesystem access unless available tools provide it.
