@@ -72,15 +72,21 @@ If Git/Drive differ, Git wins; regenerate. Attached/project copies do not automa
 
 ## Capability
 
-Use only currently available tools. Chats without repo/Unity tools may plan/research/review, not claim local implementation. Claude Desktop MCP can perform authorised local work; Code/cloud can implement but claim Unity verification only after actual runs. OpenAI/OpenCode can use available code/Unity/Blender/asset/integration tools.
+Use only currently available tools and distinguish their scope precisely.
+
+When the Overall Manager has connected GitHub write access, GitHub-native management is **FREE HERE** and should normally be done directly rather than delegated. This includes repository inspection, commit/branch/PR review, live-lock maintenance, canonical documentation/specification/research/decision updates, durable handoff publication, and small reviewable text/source edits that do not require local Editor/build verification.
+
+GitHub access is not local-worktree or Unity access. A GitHub change proves repository state only; it does not prove import, compilation, runtime behaviour, rendering, local filesystem state or worktree cleanliness. Production Unity/C# implementation, serialized assets, builds, local integration, difficult debugging and runtime verification normally remain with a worker that has those tools.
+
+Chats without repository tools may plan/research/review only. Claude Desktop MCP can perform authorised local work; Code/cloud can implement but claim Unity verification only after actual runs. OpenAI/OpenCode can use available code/Unity/Blender/asset/integration tools.
 
 ## Cost-aware task routing
 
 Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
 
-- **FREE HERE:** bounded planning, clarification, interpretation and coordination that the current chat can complete without a paid worker handoff.
+- **FREE HERE:** planning, clarification, interpretation, coordination, GitHub-native repository inspection, live-lock management, canonical documentation/spec maintenance, handoff publication, and small reviewable text/source edits the current chat can safely complete without local Unity/build verification.
 - **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
-- **SOL/CODEX:** repository/documentation work, implementation or local verification suited to available Codex tools.
+- **SOL/CODEX:** repository/Unity implementation, local worktree changes, tooling, integration, debugging or verification requiring compiler/Editor/runtime access.
 - **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
 - **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
 
@@ -100,7 +106,9 @@ Target paths are `/home/jer/CCF-main`, `/home/jer/CCF-openai`, `/home/jer/CCF-cl
 
 ## Pre-write checks
 
-Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS technical checks; confirm unsaved serialized Unity edits if relevant, ownership/locks and context commit. Stop if those cannot be established safely.
+For local work, identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS technical checks; confirm unsaved serialized Unity edits if relevant, ownership/locks and context commit. Stop if those cannot be established safely.
+
+For GitHub-native Manager writes, inspect the authoritative branch/path and current blob/commit state, preserve concurrent work, keep the change bounded, and do not claim local-worktree or Unity verification. GitHub-native coordination writes do not require a clean local Primary checkout because they do not mutate it.
 
 ## Roles
 
@@ -111,7 +119,9 @@ Identify exact worktree, branch/HEAD, status and unrelated changes; apply AGENTS
 
 ## Live task locks
 
-`Docs/Project/coordination/active-tasks.md` is single-writer live state maintained by Overall Manager/assigned integrator on integration/main coordination branch before parallel work. Workers read it live; packets carry locks where live access is absent. Lock changes do not refresh context. Sequence conflicting tasks or establish an interface. Do not rely on chat memory for ownership.
+`Docs/Project/coordination/active-tasks.md` is single-writer live state maintained by Overall Manager/assigned integrator before parallel work. When connected GitHub write access is available, the Overall Manager may maintain this file directly on the authoritative coordination/main branch without routing the edit through a local worker.
+
+Workers with live GitHub access must fetch the current authoritative GitHub copy at substantial task start and again before declaring a registration/lock missing. A stale or dirty local coordination copy does not override a newer live GitHub registration. Packets carry locks where live access is absent. Lock changes do not refresh context. Sequence conflicting tasks or establish an interface. Do not rely on chat memory alone for ownership.
 
 ## Standard task packet
 
@@ -144,6 +154,8 @@ INTENTIONALLY CHANGED HASHES / ANCHORS:
 None unless explicitly authorised.
 VERIFICATION:
 -
+GITHUB HANDOFF:
+- tracked Markdown path required for substantive result
 STOP AND ASK IF:
 Required work materially changes design, ecology, unauthorised save
 architecture, frozen/reference behaviour, dependencies, destructive
@@ -161,6 +173,9 @@ Branch:
 Base:
 Context commit:
 HEAD:
+GITHUB HANDOFF PATH:
+GITHUB HANDOFF COMMIT:
+EXTERNAL EVIDENCE ARCHIVE:
 WHAT CHANGED:
 -
 FILES CHANGED:
@@ -195,6 +210,12 @@ RECOMMENDED NEXT STEP:
 -
 ```
 
+## Durable handoff publication
+
+Every substantive implementation, qualification, review, integration or research result must have a GitHub-tracked Markdown handoff. Large screenshots, logs, binaries and raw measurement artifacts may remain in `/media/...` or other external evidence storage, but the GitHub handoff must contain enough summary, verification, failures, unresolved decisions, evidence locations and verdict for remote Manager review.
+
+A technically valid local result may be accepted for its narrow gate, but a local-only handoff is administratively incomplete and the task is not fully closed until the GitHub copy exists. The Overall Manager may publish or repair documentation-only handoffs directly through GitHub when the substantive worker result is already established.
+
 ## Reviewer/integrator decision
 
 Only reviewer/integrator records:
@@ -225,6 +246,8 @@ Base:
 Context commit:
 HEAD:
 Branch:
+GitHub handoff path:
+GitHub handoff commit:
 Files changed:
 Serialized Unity files touched:
 Package/ProjectSettings changes:
@@ -262,6 +285,8 @@ After receiving a worker handoff, the Overall Manager must immediately triage it
 
 If the handoff is sufficiently clear, no user decision is required, no blocking conflict or mandatory review gate exists, and the next step is already implied by the accepted roadmap or task sequence, issue the next required bounded task packet or handoff in the same response. Do not wait for the user to ask for a handoff.
 
+Use direct GitHub access first for Manager-owned follow-up that is purely repository administration, live-lock maintenance, canonical text/spec changes or handoff publication. Do not spend an implementation worker merely to perform those tasks when the Manager can safely complete them.
+
 Return to the user for a decision only when the next step requires a genuine product/design choice, material scope change, unresolved conflict, unsafe integration choice, or materially ambiguous direction.
 
 Independent review is not automatically required after every handoff. Follow the current review policy and batch reviews where appropriate; if review is deferred, record the implementation state accurately and continue with the next safe task.
@@ -269,9 +294,9 @@ Independent review is not automatically required after every handoff. Follow the
 ## Manager workflow
 
 1. Inspect accepted state and choose the next playable outcome.
-2. Split parallel-safe tasks, update locks, assign workers, and issue bounded packets with one context commit.
-3. Workers execute against locked context and return implementation handoffs.
+2. Use direct GitHub capability for live locks, canonical documentation/spec updates, handoff publication and other safe GitHub-native management; split remaining parallel-safe local/Unity work, assign workers, and issue bounded packets with one context commit.
+3. Workers execute against locked context and return GitHub-published implementation handoffs plus external evidence where needed.
 4. Immediately triage each handoff against specification, evidence and the current review policy. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
-5. When no decision, blocking conflict or mandatory review gate prevents continuation, issue the next implied bounded task packet or handoff in the same response. Otherwise resolve the gate or return the genuine decision to the user.
-6. Use one authorised integrator for approved work and run required integrated gates.
-7. Update canonical context when needed, commit, regenerate mirrors/composites, refresh attachments, and continue to the next accepted outcome.
+5. When no decision, blocking conflict or mandatory review gate prevents continuation, perform Manager-owned GitHub follow-up directly and issue the next implied bounded worker task. Otherwise resolve the gate or return the genuine decision to the user.
+6. Use one authorised integrator for approved work requiring local integration and run required integrated gates.
+7. Update canonical Git context when needed. After the context-source commit, regenerate mirrors/composites and refresh attachments; if the Manager cannot run that local publication tooling, assign a bounded context-publication worker and do not present stale mirrors as current.
