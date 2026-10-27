@@ -211,8 +211,24 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
     private static IEnumerator Press(Key key)
     {
         Keyboard keyboard = Keyboard.current ?? InputSystem.AddDevice<Keyboard>();
-        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return null; yield return null;
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return null;
+        Debug.Log("STARTUP_KEY_DELIVERY key=" + key + " isPressed=" + keyboard[key].isPressed + " wasPressed=" + keyboard[key].wasPressedThisFrame); yield return null;
         InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null; yield return null;
+    }
+
+    // Everything a leaked startup key could change. The hidden WalkingHud introduction is open at the title by
+    // design (explicit direct entry shows the fresh introduction and opening the title does not close it), so the
+    // fixture records that state and requires every key to leave the whole snapshot unchanged.
+    private string IsolationState()
+    {
+        return "year=" + manager.CurrentEcologicalYear + " workPlan=" + manager.WorkPlanOpen
+            + " screen=" + ui.CurrentScreen + " help=" + ui.Help.IsOpen + " helpMenu=" + ui.Help.CurrentMenu
+            + " hash=" + Hash() + " orders=" + manager.WorkOrders.Count
+            + " marks=" + ui.Marking.MarkedCount + " crop=" + ui.Marking.LivingCropTreeCount
+            + " rack=" + ui.RackTool.Active + " rackPending=" + ui.RackTool.IntroPending
+            + " rackOrigin=" + ui.RackTool.HasOrigin + " rackConfirmed=" + ui.RackTool.ConfirmedCount
+            + " player=" + player.enabled + " saves=" + saves.enabled + " ui=" + ui.enabled
+            + " position=" + player.transform.position.ToString("F6") + " saveExists=" + File.Exists(savePath);
     }
 
     private void CheckForestHeldBack(string when)
@@ -224,6 +240,9 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
 
     private void CheckForestHandedBack(string when, bool playerWasEnabled)
     {
+        Debug.Log("STARTUP_HANDED_BACK when=" + when + " menuOpen=" + StandaloneSessionMenu.IsOpen + " timeScale=" + Time.timeScale
+            + " player=" + player.enabled + " expectedPlayer=" + playerWasEnabled + " saves=" + saves.enabled + " ui=" + ui.enabled
+            + " help=" + ui.Help.IsOpen);
         Check(!StandaloneSessionMenu.IsOpen && Time.timeScale == 1f, when + ": menu closed and time running");
         Check(player.enabled == playerWasEnabled && saves.enabled && ui.enabled, when + ": player, save shortcuts and forest UI handed back");
     }
@@ -265,6 +284,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             yield return BoundaryFlow(fresh, freshHash);
             yield break;
         }
+        Debug.Log("STARTUP_OBSERVE initial " + IsolationState());
         bool playerWasEnabled = player.enabled;
         yield return EditorDefaultPolicy();
         yield return NoSaveFlow(freshHash, playerWasEnabled);
@@ -445,12 +465,12 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Debug.Log("STARTUP_BOUNDARY_VERIFY_PASS");
     }
 
-    // Editor Play Mode enters the stand directly unless CCF_STARTUP_SCREEN=1.
+    // This legacy API fixture requests CCF_TEST_DIRECT_ENTRY=1 explicitly; normal Editor Play shows startup.
     private static IEnumerator EditorDefaultPolicy()
     {
         var menus = FindObjectsByType<StandaloneSessionMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         Check(menus.Length == 0 && !StandaloneSessionMenu.IsOpen,
-            "Editor Play Mode enters the stand directly: Bootstrap makes no startup screen unless CCF_STARTUP_SCREEN=1");
+            "Explicit Editor harness bypass enters the stand directly; normal Editor Play is covered by VisualSystemFlowShots");
         yield break;
     }
 
@@ -508,11 +528,19 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
             skipped.Add("virtual key presses on the title (need an interactive Editor)");
         else
         {
-            foreach (Key key in new[] { Key.F10, Key.W, Key.E, Key.Tab, Key.M, Key.O, Key.X, Key.C, Key.F1, Key.F5, Key.F9, Key.Escape, Key.Space, Key.Digit1 })
+            string beforeKeys = IsolationState();
+            bool helpWasOpen = ui.Help.IsOpen;
+            Debug.Log("STARTUP_OBSERVE before-keys " + beforeKeys);
+            foreach (Key key in new[] { Key.F10, Key.W, Key.A, Key.S, Key.D, Key.E, Key.Tab, Key.M, Key.O, Key.X, Key.C, Key.F1, Key.F5, Key.F9, Key.Escape, Key.Space, Key.Digit1, Key.Digit2, Key.F, Key.G, Key.U, Key.R, Key.V, Key.B, Key.Q, Key.LeftShift })
+            {
                 yield return Press(key);
+                string afterKey = IsolationState();
+                Check(afterKey == beforeKeys, "key " + key + " changed no protected startup state");
+                Debug.Log("STARTUP_OBSERVE after-" + key + " " + afterKey);
+            }
             Check(StandaloneSessionMenu.IsOpen && menu.StartupScreenActive, "F10 and gameplay keys do not leave the title");
             CheckForestHeldBack("after key presses");
-            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Help.IsOpen,
+            Check(manager.CurrentEcologicalYear == 0 && !manager.WorkPlanOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Help.IsOpen == helpWasOpen,
                 "no key opened a forest panel or advanced time");
             Check(Hash() == freshHash && !File.Exists(savePath), "no key changed the world or wrote a save (F5)");
         }
@@ -587,6 +615,7 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         Check(saves.LoadData(fresh, false) && Hash() == freshHash, "fresh world restored behind the title");
         yield return Frames(2);
 
+        Debug.Log("STARTUP_PRE_SAVE_TITLE player=" + player.enabled + " saves=" + saves.enabled + " ui=" + ui.enabled + " help=" + ui.Help.IsOpen);
         StandaloneSessionMenu menu = NewStartupMenu();
         yield return WaitOpen(menu);
         CheckForestHeldBack("title with a save");
@@ -608,7 +637,10 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         // Continue loads the saved forest through the existing validated path.
         logLines.Clear();
         yield return Click(menu, "Continue");
-        CheckForestHandedBack("Continue", playerWasEnabled);
+        // Continue closes the hidden WalkingHud introduction and does not replay it, so unlike Start New it hands
+        // player control back to the stand even though explicit direct entry started with input deliberately held.
+        CheckForestHandedBack("Continue", true);
+        Check(!ui.Help.IsOpen, "Continue does not replay the introduction");
         Check(logLines.Any(l => l.Contains("CCF_STARTUP_CONTINUE")), "Continue is logged for Player.log evidence");
         Check(Hash() == savedHash && manager.CurrentEcologicalYear == 1, "Continue restored the saved year-1 forest");
         Check(ecology.StandGeometryModelVersion == fresh.standGeometryModel, "the loader applied the save's own stand geometry");
@@ -737,12 +769,25 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
 
     private static string Describe(VisualElement element) => (element as TextElement)?.text ?? element.name ?? element.GetType().Name;
 
+    private static bool InScrollView(VisualElement element) => NearestScrollView(element) != null;
+
+    private static ScrollView NearestScrollView(VisualElement element)
+    {
+        for (VisualElement parent = element.parent; parent != null; parent = parent.parent)
+            if (parent is ScrollView scroll) return scroll;
+        return null;
+    }
+
     private static void CheckLayout(StandaloneSessionMenu menu, string name)
     {
         VisualElement root = Root(menu);
         Rect bounds = root.worldBound;
         Check(bounds.width > 0f && bounds.height > 0f, name + ": the panel has a size");
-        Check(root.resolvedStyle.backgroundColor.a >= 0.95f, name + ": the backdrop hides the forest underneath");
+        // The approved visual system dims the forest and deliberately keeps it visible behind the menu; the
+        // readable text sits on the near-opaque card, not directly on the backdrop.
+        Check(root.resolvedStyle.backgroundColor.a >= 0.65f, name + ": the backdrop dims the forest");
+        VisualElement card = root.Query<VisualElement>(className: "session-card").First();
+        Check(card != null && card.resolvedStyle.backgroundColor.a >= 0.90f, name + ": the card surface is opaque enough for text");
         var shown = new List<VisualElement>();
         shown.AddRange(root.Query<Label>().ToList().Where(l => l.resolvedStyle.display != DisplayStyle.None && !string.IsNullOrEmpty(l.text)));
         shown.AddRange(root.Query<Button>().ToList().Where(b => b.resolvedStyle.display != DisplayStyle.None));
@@ -750,14 +795,29 @@ public sealed class StartupScreenVerificationRunner : MonoBehaviour
         {
             Rect r = element.worldBound;
             Check(!float.IsNaN(r.x) && !float.IsNaN(r.y) && r.width > 0f && r.height > 0f, name + ": laid out: " + Describe(element));
-            Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
-                name + ": fully on screen (no clipping): " + Describe(element));
+            // The approved controls list scrolls at 1280x720; content below the viewport is reachable through its
+            // ScrollView, so only horizontal clipping is a defect there. Everything outside a ScrollView must fit.
+            if (InScrollView(element))
+                Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f,
+                    name + ": within the screen width: " + Describe(element));
+            else
+                Check(r.xMin >= bounds.xMin + 8f && r.xMax <= bounds.xMax - 8f && r.yMin >= bounds.yMin + 8f && r.yMax <= bounds.yMax - 8f,
+                    name + ": fully on screen (no clipping): " + Describe(element));
         }
-        for (int i = 0; i < shown.Count; i++)
-            for (int j = i + 1; j < shown.Count; j++)
-                Check(!shown[i].worldBound.Overlaps(shown[j].worldBound), name + ": no overlap between '" + Describe(shown[i]) + "' and '" + Describe(shown[j]) + "'");
+        // Compare overlap only inside the same clipping context. Content scrolled outside a ScrollView's viewport
+        // still reports a world position, so it must not be compared with fixed elements outside that ScrollView.
+        foreach (var group in shown.GroupBy(NearestScrollView))
+        {
+            var items = group.ToList();
+            for (int i = 0; i < items.Count; i++)
+                for (int j = i + 1; j < items.Count; j++)
+                    Check(!items[i].worldBound.Overlaps(items[j].worldBound), name + ": no overlap between '" + Describe(items[i]) + "' and '" + Describe(items[j]) + "'");
+        }
         foreach (Button button in root.Query<Button>().ToList())
             Check(button.worldBound.height >= 40f, name + ": button tall enough to click: " + button.text);
+        foreach (ScrollView scroll in root.Query<ScrollView>().ToList())
+            Debug.Log("STARTUP_SCROLL " + name + " viewport=" + scroll.layout.height + " content=" + scroll.contentContainer.layout.height
+                + " overflows=" + (scroll.contentContainer.layout.height > scroll.layout.height + 1f) + " bar=" + scroll.verticalScroller.visible);
 
         Label subtitle = root.Query<Label>().ToList().FirstOrDefault(l => l.text == StandaloneSessionMenu.StartupScenarioSubtitle);
         Label build = root.Query<Label>().ToList().FirstOrDefault(l => l.text.StartsWith("Private test build"));

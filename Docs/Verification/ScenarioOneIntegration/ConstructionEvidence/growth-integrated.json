@@ -1,0 +1,70 @@
+{
+  "checkpoint_count": 360,
+  "chosen": {
+    "Beech": {
+      "Ci50": 6.5,
+      "Dmax": 120,
+      "Hmax": 42.5,
+      "Pd": 0.9,
+      "Ph": 0.75
+    },
+    "Oak": {
+      "Ci50": 5,
+      "Dmax": 120,
+      "Hmax": 42.5,
+      "Pd": 0.8,
+      "Ph": 0.65
+    }
+  },
+  "protected_files_exact": 7,
+  "results": {
+    "Beech": {
+      "height_design_distance": 0.18834391577718854,
+      "oak_D60_proxy_ages": {},
+      "parameters": {
+        "Ci50": 6.5,
+        "Dmax": 120.0,
+        "Hmax": 42.5,
+        "Pd": 0.9,
+        "Ph": 0.75
+      },
+      "reasons": [],
+      "species": "Beech",
+      "stock_D25": {
+        "dense": 11.116648606497968,
+        "moderate": 13.980686639396176,
+        "strong": 16.147161263334837
+      },
+      "strong_dense_D100_ratio": 1.5900359575008673,
+      "survives": true
+    },
+    "Oak": {
+      "height_design_distance": 0.0,
+      "oak_D60_proxy_ages": {
+        "release50/dense": 148,
+        "release50/moderate": 137,
+        "release50/strong": 127,
+        "stock/dense": null,
+        "stock/moderate": 165,
+        "stock/strong": 127
+      },
+      "parameters": {
+        "Ci50": 5.0,
+        "Dmax": 120.0,
+        "Hmax": 42.5,
+        "Pd": 0.8,
+        "Ph": 0.65
+      },
+      "reasons": [],
+      "species": "Oak",
+      "stock_D25": {
+        "dense": 9.801618773731917,
+        "moderate": 12.427765729429138,
+        "strong": 14.656392045770591
+      },
+      "strong_dense_D100_ratio": 1.7398182430720817,
+      "survives": true
+    }
+  },
+  "scope": "NON-UNITY mathematical controls; no empirical/loader/runtime claim"
+}

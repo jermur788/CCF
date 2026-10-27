@@ -15,11 +15,17 @@ MonoBehaviour:
   speciesId: beech
   displayName: European beech
   latinName: Fagus sylvatica
-  potentialDbhGrowthCmPerYear: 0.4
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  potentialDbhGrowthCmPerYear: 0.9
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
   maxDbhCm: 120
-  potentialHeightGrowthMPerYear: 0.4
-  maxHeightM: 40
-  ci50: 3
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  potentialHeightGrowthMPerYear: 0.75
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  maxHeightM: 42.5
+  # [C] Ordinal production calibration v1; search-grid centre, not empirical truth.
+  ci50: 6.5
+  growingSpaceDemand: 1
   crownRadiusIntercept: 0.9415
   crownRadiusPerCmDbh: 0.07635
   usePowerLawCrown: 1

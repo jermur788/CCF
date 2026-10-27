@@ -73,10 +73,36 @@ public static class ScenarioOneUiFacts
         }
     }
 
-    // Display only: keep objective IDs, recorded labels and achievement values intact.
+    // Display only: keep objective IDs, recorded labels and achievement values intact. The recorded label of the two regeneration
+    // objectives uses the implementation word "cell"; the player reads plain forestry wording chosen by the objective's id.
+    // The objective counts the 5 m × 5 m map squares that hold any young trees at all (seedlings and planted saplings included);
+    // it does not measure that the young trees are established or successful, so the wording says only that they are present.
+    public const string RegenerationObjectiveName = "Areas with young trees";
+    public const string RegenerationAreasName = "Areas with young regeneration";
+
     public static string ObjectiveName(ScenarioObjectiveResult objective)
-        => objective.displayName.Replace("sitka-spruce", SpeciesName("sitka-spruce"))
+    {
+        if (objective.objectiveId == "regeneration") return RegenerationObjectiveName;
+        if (objective.objectiveId == "reference-regeneration") return RegenerationAreasName;
+        return objective.displayName.Replace("sitka-spruce", SpeciesName("sitka-spruce"))
             .Replace("sessile-oak", SpeciesName("sessile-oak"));
+    }
+
+    // Player-facing wording for text that is recorded with the word "cell" (validation and failure reasons are stored in the
+    // save, so they are translated when shown instead of being rewritten). One map square is a 5 m × 5 m cell of the ecology grid.
+    public static string PlainText(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\bcells\b", "map squares");
+        return System.Text.RegularExpressions.Regex.Replace(text, @"\bcell\b", "map square");
+    }
+
+    // The map label of a cell index (A1 … P16), or "#N" when no ecology is available to give the grid width.
+    public static string SquareLabel(int cellIndex)
+    {
+        ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
+        return ecology != null && ecology.CellsPerAxis > 0 ? UiKit.CellLabel(cellIndex, ecology.CellsPerAxis) : "#" + cellIndex;
+    }
 
     public static string CenturyComparisonDescription(ScenarioCenturyReview review)
     {
@@ -89,7 +115,14 @@ public static class ScenarioOneUiFacts
         review.referenceId == "aspirational-design-targets" ? "target" : "reference";
 
     public static string ObjectiveLine(ScenarioObjectiveResult objective)
-        => $"{(objective.achieved ? "✓ done" : "○ open")} · {ObjectiveName(objective)}: {objective.currentValue.ToString("0.##", UiKit.Inv)} / {objective.targetValue.ToString("0.##", UiKit.Inv)}";
+    {
+        string status = objective.achieved ? "✓ done" : "○ open";
+        string current = objective.currentValue.ToString("0.##", UiKit.Inv), target = objective.targetValue.ToString("0.##", UiKit.Inv);
+        // The exact figure is the number of 5 m × 5 m map squares holding young trees; the line says what it counts.
+        if (objective.objectiveId == "regeneration")
+            return $"{status} · Young trees present in {current} {(current == "1" ? "area" : "areas")} (at least {target} needed)";
+        return $"{status} · {ObjectiveName(objective)}: {current} / {target}";
+    }
 
     private static string Capitalise(string text) => string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
 }

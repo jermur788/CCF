@@ -1,0 +1,34 @@
+{
+  "authority_lab": "c79f710c1ed96192d43ddbc07e816899de6a2b29",
+  "base": "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+  "chosen": {
+    "Oak": {
+      "Pd": 0.8,
+      "Ph": 0.65,
+      "Dmax": 120,
+      "Hmax": 42.5,
+      "Ci50": 5
+    },
+    "Beech": {
+      "Pd": 0.9,
+      "Ph": 0.75,
+      "Dmax": 120,
+      "Hmax": 42.5,
+      "Ci50": 6.5
+    }
+  },
+  "candidate_ids": {
+    "Oak": "Oak-122",
+    "Beech": "Beech-122"
+  },
+  "evidence": "[C] calibration; central surviving grid candidate, not fitted empirical parameters",
+  "preserved_files_sha256": {
+    "Assets/ForestPrototype/ForestEcologyController.cs": "ef705f61e69ded1240b0da9f026e5740e11f047bf8b05f9fd85e6a891ddf64ec",
+    "Assets/ForestPrototype/TreeSpeciesDefinition.cs": "6583c1ffc8e1c32b542e74c03547fcd793803f80b5db344b1c14a81f4e256ac3",
+    "Assets/ForestPrototype/SitkaGrowthModel.cs": "c887fc29a4591f0be3002b756411256149a01139a10276d161622038c7389d2f",
+    "Assets/ForestPrototype/MixedDensityModel.cs": "684936193534ed04573094374ed70416834b91e335236c30d1cbb51a8eabe211",
+    "Assets/ForestPrototype/Species/SitkaSpruce.asset": "a6634c76644e5fec31d728f1edbdd6cd2b23e85281d4dced288980eda6251563",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs": "f9e3eb919590bd7de7f75a3ddf3083a8c60c3f7d5144398cec35cdd74d4da5d7",
+    "Assets/ForestPrototype/ForestSaveData.cs": "a4c8a16884b6944f6de244810763da3a669c7ddc3026f124951482f4893a4a68"
+  }
+}

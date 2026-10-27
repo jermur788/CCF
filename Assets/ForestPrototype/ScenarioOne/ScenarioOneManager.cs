@@ -82,7 +82,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public string OutcomeReason => outcomeReason;
     public ScenarioCenturyReview CenturyReview => centuryReview;
     public float RetainedTimberM3 => retainedTimberM3;
-    public string Feedback => feedback;
+    // The guidance shown when a scenario starts is chosen when it is read, so it follows the teaching stage: racks first while the
+    // opening rack stage is on, the usual marking route otherwise. Any later message replaces it and is returned as written.
+    private const string StartGuidanceToken = "\u0001start-guidance";
+    public string Feedback => feedback == StartGuidanceToken ? StartGuidance : feedback;
+    private string StartGuidance => RackFirstStageActive
+        ? "Scenario started. Start with extraction racks: press B in the forest and point at a planted row, then approve them in the Work Plan."
+        : "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
     public IReadOnlyList<PlantedJuvenile> PlantedJuveniles => plantedJuveniles;
     public IReadOnlyList<PlantingClearancePatch> ClearancePatches => clearancePatches;
     public int OwnerMinutesUsedThisYear => ownerMinutesUsedThisYear;
@@ -290,6 +296,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         return eligible;
     }
     public bool AnnualReviewSeen => annualReviewSeen;
+    // A fresh acknowledgement stays available for legacy Active saves without inventing chronology.
+    public bool NeedsCompletionReviewAcknowledgement => outcome == ScenarioOneOutcome.Active
+        && ScenarioOneCompletionRules.NeedsReviewAcknowledgement(managementEvents, workOrders);
     public IReadOnlyList<ScenarioObjectiveResult> Objectives => ScenarioOneObjectives.Evaluate(definition,
         ecologicalSnapshots.Count > 0 ? ecologicalSnapshots[ecologicalSnapshots.Count - 1] : null,
         managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
@@ -379,7 +388,14 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // Explicit acknowledgement of actual annual results completes the saved review step.
     public void MarkAnnualReviewSeen()
     {
-        if (annualReports.Count > 0) annualReviewSeen = true;
+        if (annualReports.Count == 0) return;
+        annualReviewSeen = true;
+        if (ScenarioOneCompletionRules.ShouldRecordAcknowledgement(managementEvents, CurrentYear))
+            RecordEvent(new ScenarioManagementEvent
+            {
+                year = CurrentYear,
+                eventType = ScenarioManagementEventType.AnnualReviewAcknowledged
+            });
     }
 
     // Work Plan plus the other full-screen panels (map, annual review). While any
@@ -389,6 +405,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     private bool auxiliaryPanelOpen;
 
     public void OpenWorkPlan(bool open) => SetWorkPlanOpen(open);
+
+    // The help and first-use window is modal: while it is open it owns the keyboard, so Tab does not open the Work Plan behind it
+    // (the UI root applies the same rule to M and O). Set only by MenuHelpView when the window opens and closes.
+    public bool ModalOpen { get; private set; }
+    public void SetModalOpen(bool open) => ModalOpen = open;
 
     public void SetAuxiliaryPanelOpen(bool open)
     {
@@ -452,9 +473,15 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 ecology.StormModelVersion = StormModel.None;
                 // Geometry is part of a new game's setup too (D-056): Enlarged80 by policy (Legacy40 only for the
                 // Editor-only verification override). A load replaces it with the geometry recorded in the save.
+                // A new world always wants the track approach, even if an old save was loaded earlier in this session.
+                ecology.StandApproachExpected = true;
                 ecology.ApplyStandGeometry(StandGeometryPolicy.NewGameModelForSession);
             }
             InitializeNewScenario();
+            // New-game rack identity (D-064): only a fresh Enlarged80 game starts as a
+            // Rack Planning & Field Marking V2 world. This runs after InitializeNewScenario,
+            // which clears the plan (and with it any model) because legacy loads call it too.
+            InitializeRackPlanForNewWorld();
         }
         if (ecology != null)
             ecology.SetManagementAnnualControl(true);
@@ -467,9 +494,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // restore the saved model; saves before v16 and Reference v1 are model 0.
     public const int NewGameRegenerationModel = RegenerationModel.Competition;
 
-    // Adult growth for newly created games: Irish site Class III height and
-    // adult density mortality. Saves before v17 and Reference v1 are model 0.
-    public const int NewGameGrowthModel = GrowthModel.SiteClassDensity;
+    // Adult growth for newly created games: growth model 2 (species-aware adult density and the Oak/Beech timber market).
+    // A stand of only Sitka still runs exactly as model 1, so a fresh game behaves as before until an Oak or Beech tree
+    // stands in it. Loads keep the model stored in the save (0, 1 or 2) with no migration; saves before v17 and
+    // Reference v1 are model 0.
+    public const int NewGameGrowthModel = GrowthModel.SpeciesAware;
+
+    // The Oak and Beech timber market (D-062) belongs to the three-species package, growth model 2 (D-059): a game on
+    // model 0 or 1 keeps its original economy, where Oak and Beech earn no sale revenue. No new saved state is needed;
+    // the saved growth model already decides it.
+    public bool BroadleafMarketActive => ecology != null && ecology.GrowthModelVersion >= GrowthModel.SpeciesAware;
 
     private void OnEnable()
     {
@@ -551,14 +585,19 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 EndReferencePreview();
             return;
         }
+        if (ModalOpen) return;
         if (keyboard.tabKey.wasPressedThisFrame)
             SetWorkPlanOpen(!workPlanOpen);
         else if (workPlanOpen && !auxiliaryPanelOpen && keyboard.escapeKey.wasPressedThisFrame)
             SetWorkPlanOpen(false);
     }
 
+    // Session lifecycle only; deliberately excluded from CaptureSaveData and the save schema.
+    public int TeachingWorldVersion { get; private set; }
+
     public void InitializeNewScenario()
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         if (definition == null)
             throw new InvalidOperationException("Scenario One requires a definition asset.");
@@ -570,6 +609,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         cashCents = definition.StartingCashCents;
         nextWorkOrderId = 1;
         workOrders.Clear();
+        ClearRackGroups();
+        // The V2 rack plan is fresh-world state as well: no racks, unconfirmed, model 0. The
+        // new-game setup raises it to model 1 for Enlarged80 afterwards; legacy loads never do.
+        ClearRackPlan();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -602,7 +645,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         planningFellingOutcome = definition.DefaultFellingOutcome;
         planningPlantingMethod = WorkExecutionMethod.Contractor;
         planningInstallShelter = false;
-        feedback = "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
+        feedback = StartGuidanceToken;
     }
 
     public bool TryBeginReferencePreview(int year)
@@ -789,14 +832,15 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             && (!approvedOnly || order.status == ScenarioWorkStatus.Approved) && string.IsNullOrEmpty(order.validationMessage)).OrderBy(order => order.workOrderId).ToList();
         int interventions = managementEvents.Where(entry => entry.eventType == ScenarioManagementEventType.WorkResolved
             && entry.outcome == ScenarioManagementOutcome.Succeeded && entry.taskType == ScenarioWorkType.FellTree).Select(entry => entry.year).Distinct().Count();
-        string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":"
+        string key = CurrentYear + ":" + cashCents + ":" + definition.MinimumHarvestJobCents + ":" + interventions + ":" + BroadleafMarketActive + ":"
             + string.Join("|", orders.Select(order => order.workOrderId + "/" + order.executionMethod + "/" + order.fellingOutcome + "/" + order.targetTreeId + "/"
                 + (trees.TryGetValue(order.targetTreeId ?? "", out var tree) ? tree.Species.SpeciesId + "/" + tree.Height.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
                     + "/" + tree.Diameter.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
+                    + "/p" + tree.PruningLifts + "/" + tree.CrownBaseHeightM.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
                     + "/" + (fallen.TryGetValue(tree.TreeId, out var record) ? record.remainingVolumeM3.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "/" + record.fallenYear : "living") : "missing")));
         var cached = approvedOnly ? cachedApprovedHarvest : cachedOpenHarvest;
         if (cached != null && key == (approvedOnly ? cachedApprovedHarvestKey : cachedOpenHarvestKey)) return cached;
-        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents, fallen);
+        var job = ScenarioOneEconomyAdapter.QuoteHarvest(orders, trees, definition, CurrentYear + 1, interventions, cashCents, fallen, 10000, BroadleafMarketActive);
         foreach (var order in job.Orders)
         {
             order.harvestJobId = job.JobId; order.estimatedCostCents = 0;
@@ -891,17 +935,17 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             || offer == null || string.IsNullOrEmpty(offer.itemId) || species == null || !species.SupportsRegeneration
             || offer.plantingMinutes < 0)
         {
-            feedback = "Choose an available sapling and a valid stand cell.";
+            feedback = "Choose an available sapling and a valid spot in the stand.";
             return false;
         }
         if (HasOpenPlantingOrder(species.SpeciesId, cellIndex))
         {
-            feedback = "This species already has a planting order in that cell.";
+            feedback = "This species already has a planting order in that map square.";
             return false;
         }
         if (ecology.Cells[cellIndex].SpeciesDensity(species.SpeciesId) > 0f)
         {
-            feedback = $"{species.DisplayName} is already regenerating in that cell.";
+            feedback = $"{species.DisplayName} is already regenerating in that map square.";
             return false;
         }
 
@@ -922,7 +966,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = $"Designated {species.DisplayName} planting in cell {cellIndex}. "
+        feedback = $"Designated {species.DisplayName} planting in map square {ScenarioOneUiFacts.SquareLabel(cellIndex)}. "
             + "Stock and contractor cash are required for approval.";
         return true;
     }
@@ -939,19 +983,19 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (ecology == null || ecology.Cells == null || definition == null
             || cellIndex < 0 || cellIndex >= ecology.CellCount || species == null)
         {
-            feedback = "Choose a registered species and a valid stand cell.";
+            feedback = "Choose a registered species and a valid map square.";
             return false;
         }
         if (HasOpenRegenerationRemovalOrder(speciesId, cellIndex))
         {
-            feedback = "This species already has a regeneration-removal order in that cell.";
+            feedback = "This species already has a regeneration-removal order in that map square.";
             return false;
         }
         // All bands of the species in the cell are the removal scope.
         float speciesDensity = ecology.Cells[cellIndex].SpeciesDensity(speciesId);
         if (speciesDensity <= 0f)
         {
-            feedback = $"No {species.DisplayName} regeneration is present in that cell.";
+            feedback = $"No {species.DisplayName} regeneration is present in that map square.";
             return false;
         }
 
@@ -972,7 +1016,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = $"Designated removal of {species.DisplayName} regeneration in cell {cellIndex}.";
+        feedback = $"Designated removal of {species.DisplayName} regeneration in map square {ScenarioOneUiFacts.SquareLabel(cellIndex)}.";
         return true;
     }
 
@@ -981,14 +1025,14 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (!CanManage()) return false;
         if (ecology == null || ecology.Cells == null || definition == null
             || cellIndex < 0 || cellIndex >= ecology.CellCount)
-        { feedback = "Choose a valid stand cell."; return false; }
+        { feedback = "Choose a valid map square."; return false; }
         if (workOrders.Any(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration && o.cellIndex == cellIndex))
-        { feedback = "Vegetation clearance is already planned in this cell."; return false; }
+        { feedback = "Vegetation clearance is already planned in this map square."; return false; }
         if (workOrders.Any(o => o.type == ScenarioWorkType.RemoveRegeneration && string.IsNullOrEmpty(o.speciesId)
             && o.status == ScenarioWorkStatus.Completed && o.resolvedYear == ecology.EcologicalYear && o.cellIndex == cellIndex))
         { feedback = "This area was already cleared this year."; return false; }
         ClearanceTargets targets = QueryClearance(ClearanceFootprint.Cell(ecology, cellIndex));
-        if (!targets.HasTargets) { feedback = "No competing vegetation is present in this cell."; return false; }
+        if (!targets.HasTargets) { feedback = "No competing vegetation is present in this map square."; return false; }
         int minutes = Mathf.Max(1, Mathf.CeilToInt(definition.RemovalBaseMinutes
             + targets.Density * definition.RemovalMinutesPerCohortDensity));
         var order = new ScenarioOneWorkOrder
@@ -1001,7 +1045,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         };
         workOrders.Add(order);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCreated, ScenarioManagementOutcome.None, CurrentYear);
-        feedback = "Planned competing vegetation clearance in cell " + cellIndex + ". Review and approve in Work Plan.";
+        feedback = "Planned competing vegetation clearance in map square " + ScenarioOneUiFacts.SquareLabel(cellIndex) + ". Review and approve in Work Plan.";
         return true;
     }
 
@@ -1344,6 +1388,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             protectedAreas = CloneRecords(ecology != null ? ecology.Browsing.ProtectedAreas : protectedAreas),
             ownerMinutesUsedThisYear = ownerMinutesUsedThisYear,
             stormEvents = CloneStormEvents(stormEvents),
+            rackPlanningModel = rackPlanningModel,
+            rackPlanConfirmed = rackPlanConfirmed,
+            nextRackId = nextRackId,
+            racks = CloneRacks(racks),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1358,10 +1406,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        TeachingWorldVersion++;
         InvalidateEconomyQuotes();
+        ClearRackGroups();
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizeRackV2(data, saveVersion);
         shelters = CloneRecords(data?.shelters);
         protectedAreas = CloneRecords(data?.protectedAreas);
         ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
@@ -1384,6 +1435,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         cashCents = Math.Max(0L, data.cashCents);
         nextWorkOrderId = Mathf.Max(1, data.nextWorkOrderId);
         workOrders = CloneOrders(data.workOrders);
+        // V2 rack-plan state (save v21). A pre-v21 save was normalized to the legacy defaults above,
+        // so a v20 or older load can never activate V2 or synthesize rack records: only a v21 save
+        // that states them brings them back.
+        rackPlanningModel = saveVersion >= 21 ? data.rackPlanningModel : RackPlanningModel.Legacy;
+        rackPlanConfirmed = saveVersion >= 21 && data.rackPlanConfirmed;
+        nextRackId = saveVersion >= 21 ? Mathf.Max(1, data.nextRackId) : 1;
+        racks = saveVersion >= 21 && data.racks != null ? CloneRacks(data.racks) : new List<RackSaveData>();
         planningPlantingMethod = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile)?.executionMethod ?? WorkExecutionMethod.Contractor;
         planningInstallShelter = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && order.exactPosition)?.installShelter ?? false;
         inventory = CloneInventory(data.inventory);
@@ -2246,6 +2304,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
     }
 
+    // The one-line "what next" shown in the Work Plan and under the objectives of the Annual Review. Before the first review
+    // is acknowledged it is the next lesson; afterwards it is the repeatable next step derived from the recorded history.
+    // (An older chain of year-one hints used to follow when the UI root was missing. The UI root is always added at play
+    // time, so it never ran and its wording had gone stale.)
     public string TutorialHint
     {
         get
@@ -2253,29 +2315,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             if (annualReports.Count > 0 && !annualReviewSeen)
                 return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
             ScenarioOneUiRoot teaching = GetComponent<ScenarioOneUiRoot>();
-            if (teaching != null && teaching.Learning != null)
-                return teaching.Learning.Summary + " · Learn at your own pace across years.";
-            if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderCreated
-                && entry.taskType == ScenarioWorkType.FellTree)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.FellTree))
-                return "1. Inspect a living tree, mark it with X, then import the mark into the Work Plan.";
-            if (definition != null && definition.ShopEntries != null && definition.ShopEntries.Any(offer =>
-                offer != null && !managementEvents.Any(entry =>
-                    entry.eventType == ScenarioManagementEventType.StockPurchased && entry.stockItemId == offer.itemId)
-                && !inventory.Any(item => item.itemId == offer.itemId && item.quantity > 0)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile
-                    && order.stockItemId == offer.itemId)))
-                return "2. Buy Beech and Sessile Oak saplings from the nursery.";
-            if (!managementEvents.Any(entry => entry.eventType == ScenarioManagementEventType.OrderApproved
-                && entry.taskType == ScenarioWorkType.PlantJuvenile)
-                && !workOrders.Any(order => order.type == ScenarioWorkType.PlantJuvenile
-                    && (order.status == ScenarioWorkStatus.Approved
-                        || order.status == ScenarioWorkStatus.Completed)))
-                 return "3. Press G in the stand, place saplings on the ground and approve the planting markers.";
-            if (annualReports.Count == 0)
-                return "4. Advance one ecological year to execute approved work.";
-            return annualReviewSeen ? "Tutorial complete. Continue management toward the Century Review."
-                : "5. Open the annual review to inspect ecological outcomes and management history.";
+            string lesson = teaching != null && teaching.Learning != null ? teaching.Learning.Summary : null;
+            if (annualReviewSeen)
+                return lesson != null ? NextStepHint + " · " + lesson : NextStepHint;
+            return lesson != null ? lesson + " · Learn at your own pace across years." : NextStepHint;
         }
     }
 
@@ -2285,7 +2328,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return true;
         feedback = outcome == ScenarioOneOutcome.Failed
             ? "The scenario has failed. Review the outcome in the Work Plan."
-            : $"Year {ReviewYear} reached. Open the Century Review in the Work Plan.";
+            : $"Year {ReviewYear} reached. The Century Review is in the Annual Review.";
         return false;
     }
 
@@ -2298,7 +2341,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             List<ScenarioObjectiveResult> objectives = ScenarioOneObjectives.Evaluate(definition,
                 snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
-            if (objectives.Count > 0 && objectives.All(result => result.achieved))
+            if (objectives.Count > 0 && objectives.All(result => result.achieved)
+                && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,
                     $"Scenario complete in year {snapshot.year}. Continue to the Century Review.");
             else if (cashCents == 0L && definition.ContractorHourlyRateCents > 0
@@ -2606,6 +2650,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         if (source == null) return new List<ScenarioOneWorkOrder>();
         return source.Select(item => JsonUtility.FromJson<ScenarioOneWorkOrder>(JsonUtility.ToJson(item))).ToList();
+    }
+
+    private static List<RackSaveData> CloneRacks(List<RackSaveData> source)
+    {
+        if (source == null) return new List<RackSaveData>();
+        return source.Select(item => JsonUtility.FromJson<RackSaveData>(JsonUtility.ToJson(item))).ToList();
     }
 
     private static List<ScenarioInventoryEntry> CloneInventory(List<ScenarioInventoryEntry> source)

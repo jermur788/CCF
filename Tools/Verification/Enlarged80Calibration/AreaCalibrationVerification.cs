@@ -82,7 +82,7 @@ public sealed class AreaCalibrationRunner : MonoBehaviour
         bool rejected=false; try{d.EffectiveMinimumRetainedOriginalTrees(77);}catch(ArgumentOutOfRangeException){rejected=true;} Check(rejected,"unknown model rejected");
         var frozen=new ScenarioCenturyReview {referenceId=ScenarioReferenceArchive.Load().referenceId};
         Check(ScenarioOneUiFacts.CenturyComparisonDescription(frozen).Contains("frozen Reference Future") && ScenarioOneUiFacts.CenturyComparisonValueLabel(frozen)=="reference","frozen copy");
-        Check(ForestSaveData.CurrentVersion==20 && d.DefinitionVersion=="scenario-one-v13","unchanged identities");
+        Check(ForestSaveData.CurrentVersion==21 && d.DefinitionVersion=="scenario-one-v13","unchanged identities");
     }
 }
 #endif

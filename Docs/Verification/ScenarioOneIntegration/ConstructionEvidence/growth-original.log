@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF-final-scenario-one-candidate-v1/Tools/Calibration/OakBeechGrowth/check_production_v1.py", line 26, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/media/jer/Files/CCF-final-scenario-one-candidate-v1/Tools/Calibration/OakBeechGrowth/check_production_v1.py", line 11, in main
+    for f,digest in inputs['preserved_files_sha256'].items():assert hashlib.sha256((ROOT/f).read_bytes()).hexdigest()==digest,f
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Assets/ForestPrototype/ForestEcologyController.cs

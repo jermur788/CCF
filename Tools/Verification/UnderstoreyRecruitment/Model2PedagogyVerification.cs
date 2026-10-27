@@ -47,7 +47,10 @@ public sealed class Model2PedagogyRunner:MonoBehaviour
   if(error!=null)Debug.LogError("MODEL2_PEDAGOGY_FAIL "+error);else Debug.Log("MODEL2_PEDAGOGY_PASS checks="+checks+" legacyTruth=true model2Copy=true readOnly=true renderedResolutions=3");
   EditorApplication.ExitPlaymode();EditorApplication.Exit(error==null?0:1);
  }
- Foldout Clearance(){return ui.Learning.Root.Query<Foldout>().ToList().Single(f=>f.text.StartsWith("7. Vegetation clearance"));}
+ // Resolve the clearance topic by its unnumbered title taken from the curriculum itself, so a topic
+ // renumbering (for example 7 -> 8) cannot suppress the remaining copy/layout/capture/state checks.
+ string ClearanceTitle(){return LearningObjectivesView.Topics.Single(t=>t.Title.EndsWith("Vegetation clearance",StringComparison.Ordinal)).Title;}
+ Foldout Clearance(){string title=ClearanceTitle();return ui.Learning.Root.Query<Foldout>().ToList().Single(f=>f.text.StartsWith(title,StringComparison.Ordinal));}
  string Displayed(){return string.Join("\n",Clearance().Query<Label>().ToList().Select(l=>l.text));}
  IEnumerator Run()
  {

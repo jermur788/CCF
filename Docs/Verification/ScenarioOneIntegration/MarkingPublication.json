@@ -1,0 +1,15 @@
+{
+  "branch": "perf/scenario1-marking-optimization-v1",
+  "remote_head": "678283642aaeb60221eda0fe8cb3f97e27958048",
+  "production_commit": "678283642aaeb60221eda0fe8cb3f97e27958048",
+  "parent": "130bc36bad3cf09c42092bc176e61ddf645a1ad6",
+  "containing_original_local_branch": "perf/scenario1-dense-stand-player-v1",
+  "original_local_branch_head": "e788b09f97958fd0d416cf4f67d63e7ef599df77",
+  "changed_files": [
+    "Assets/ForestPrototype/ForestTreeMarkingManager.cs"
+  ],
+  "original_worktree_clean": true,
+  "remote_head_verified": true,
+  "remote_contains_exact_original_commit": true,
+  "amended": false
+}

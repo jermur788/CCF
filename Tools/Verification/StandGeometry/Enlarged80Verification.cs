@@ -168,13 +168,20 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         List<ForestTree> legacy = Living();
         Check(legacy.Count == 336 && legacy.All(t => legacyId.IsMatch(t.TreeId)), "the Legacy40 generator still produces exactly 336 Pxxxx trees");
         var legacySnapshot = legacy.ToDictionary(t => t.TreeId, t => (pos: t.transform.position, dbh: t.Diameter, height: t.Height));
-        Check(legacy.All(t => enlargedSnapshot.ContainsKey(t.TreeId)), "every legacy tree ID exists in the enlarged stand (IDs unchanged)");
-        Check(legacy.All(t => SamePosition(t.transform.position, enlargedSnapshot[t.TreeId].pos)), "every legacy tree stands at its exact legacy position in the enlarged stand");
-        Check(core.Select(t => t.TreeId).ToHashSet().SetEquals(legacy.Select(t => t.TreeId)), "the enlarged core's omission pattern is exactly the legacy pattern (same 336 IDs)");
+        // The one intended difference (SCENARIO-ONE-PLAYER-TEST-NON-UI-REMEDIATION-V1, StandApproachPath): the forest track now runs on to the
+        // south property edge in Enlarged80, which clears legacy tree P0009 from the track, and the generator's mortality budget then brings
+        // back one more tree, P0600 (the highest-hash mortality omission of the Legacy40 core), so the core still holds 336. Legacy40 has no
+        // such track. Pinned exactly from the live run (SCENARIO-ONE-APPROACH-ANCHOR-DIAGNOSIS-V1): any other difference fails.
+        var approachCleared = new HashSet<string> { "P0009" };
+        var approachRestored = new HashSet<string> { "P0600" };
+        Check(legacy.All(t => approachCleared.Contains(t.TreeId) || enlargedSnapshot.ContainsKey(t.TreeId)), "every legacy tree ID exists in the enlarged stand (IDs unchanged), except the one the track approach clears");
+        Check(legacy.Where(t => !approachCleared.Contains(t.TreeId)).All(t => SamePosition(t.transform.position, enlargedSnapshot[t.TreeId].pos)), "every other legacy tree stands at its exact legacy position in the enlarged stand");
+        var expectedCore = legacy.Select(t => t.TreeId).Where(id => !approachCleared.Contains(id)).Concat(approachRestored).ToHashSet();
+        Check(core.Select(t => t.TreeId).ToHashSet().SetEquals(expectedCore), "the enlarged core's omission pattern is the legacy pattern, less the tree the track approach clears and plus the one the mortality budget restores (still 336)");
         // Starting state: interior core trees (lattice 3..17) have identical neighbourhoods, so identical DBH; the artificial edge ring differs.
         int identicalDbh = 0, changed = 0; double dbhShift = 0;
         var ringChanged = new List<float>();
-        foreach (string id in legacySnapshot.Keys)
+        foreach (string id in legacySnapshot.Keys.Where(k => !approachCleared.Contains(k)))
         {
             int r = int.Parse(id.Substring(1, 2)), c = int.Parse(id.Substring(3, 2));
             bool deep = r >= 3 && r <= 17 && c >= 3 && c <= 17;
@@ -183,7 +190,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
             else if (!Mathf.Approximately(delta, 0f)) { changed++; dbhShift += delta; ringChanged.Add(delta); }
         }
         Check(ringChanged.Count == 0 || ringChanged.All(d => d <= 0f), "former edge-ring trees only lose the artificial 'released' bonus (never gain)");
-        Pass("core preserved: 336/336 IDs and exact positions; " + identicalDbh + " interior trees keep their DBH; " + changed + " former edge-ring trees change DBH by mean " + F(changed == 0 ? 0 : dbhShift / changed) + " cm (obsolete edge biology removed)");
+        Pass("core preserved: " + (legacy.Count - approachCleared.Count) + "/336 IDs and exact positions (the track approach clears " + string.Join(",", approachCleared) + " and the mortality budget restores " + string.Join(",", approachRestored) + "); " + identicalDbh + " interior trees keep their DBH; " + changed + " former edge-ring trees change DBH by mean " + F(changed == 0 ? 0 : dbhShift / changed) + " cm (obsolete edge biology removed)");
         // Deterministic and session-stable regeneration of the enlarged stand.
         ResetWorld(StandGeometryModel.Enlarged80);
         string enlargedHash2 = CurrentHash();
@@ -258,7 +265,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         // ---- F. Save / load ---------------------------------------------------------------------------------------------
         ResetWorld(StandGeometryModel.Enlarged80);
         ForestSaveData saved = saves.CaptureData();
-        Check(saved.version == 20 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is v20 + geometry 1");
+        Check(saved.version == 21 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is v21 + geometry 1");
         string savedJson = JsonUtility.ToJson(saved);
         ForestSaveData parsed = JsonUtility.FromJson<ForestSaveData>(savedJson);
         Check(ForestSaveValidation.ValidateGeometryJson(savedJson, parsed) == null && ForestSaveValidation.Validate(parsed, 1344, 256) == null, "the Enlarged80 save validates against 256 cells");

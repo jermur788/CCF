@@ -268,7 +268,8 @@ public sealed class ForestSaveController : MonoBehaviour
             data = JsonUtility.FromJson<ForestSaveData>(json);
             string competitionProblem = ForestSaveValidation.ValidateGeometryJson(json, data)
                 ?? ForestSaveValidation.ValidateStormJson(json, data)
-                ?? ForestSaveValidation.ValidateCompetitionJson(json, data);
+                ?? ForestSaveValidation.ValidateCompetitionJson(json, data)
+                ?? ForestSaveValidation.ValidateRackV2Json(json, data);
             if (competitionProblem != null)
             {
                 refusal = "Save refused: " + competitionProblem;
@@ -343,7 +344,13 @@ public sealed class ForestSaveController : MonoBehaviour
         // First change to the world, after every check: put the ecology grid into the save's geometry so
         // every cell-indexed record below is restored onto the grid it was made in.
         if (ecology != null)
+        {
+            // An Enlarged80 world saved before the forest track's approach existed was planted across its line and keeps that stand: the
+            // saved trees say which kind of world this is (no save field). Reconcile also covers a load that leaves the geometry unchanged.
+            ecology.StandApproachExpected = StandApproachPath.SaveHasApproach(geometry, data.trees);
             ecology.ApplyStandGeometry(geometry);
+            StandApproachPath.Reconcile(geometry, ecology.StandApproachExpected);
+        }
 
         if (player != null)
             player.RestoreCarriedWood(data.wood);

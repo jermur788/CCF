@@ -1,0 +1,15 @@
+{
+  "check": "n3-guidance",
+  "exit": 0,
+  "seconds": 10.86,
+  "tail": [
+    "PASS guidance moves on after the real handler records the acknowledgement; completion is unchanged",
+    "PASS guidance text exists for exactly the three states and they differ",
+    "PASS state 2 text names the Annual Review and its button",
+    "PASS state 1 text: objectives met, review, another decision",
+    "PASS state 3 text: return to the forest, another intervention",
+    "PASS guidance never prescribes the second intervention",
+    "PASS guidance does not promise automatic acknowledgement",
+    "N3_OFFLINE_PASS checks=88 NOT_UNITY_VERIFIED"
+  ]
+}

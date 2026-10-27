@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -54,6 +55,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
     private ForestSaveController saves;
     private ForestTreeMarkingManager marking;
     private ForestSaveData original;
+    private HistoricalV18Model1Reconstruction historical;   // non-null only for the explicit historical model-1 run
     private float scenarioPressure;
     private readonly List<string> passed = new List<string>(), todo = new List<string>();
     private readonly StringBuilder evidence = new StringBuilder();
@@ -124,10 +126,18 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         // CCF_GROWTH_MODEL=0 replays legacy adult growth (no adult mortality);
         // with it, regeneration-model-1 games reproduce 6F84AF319D301F87 (v16 layout).
         string forcedGrowth = Environment.GetEnvironmentVariable("CCF_GROWTH_MODEL");
+        // Historical layout runs explicitly request CCF_GROWTH_MODEL=1 before the fixture capture.
         if (!string.IsNullOrEmpty(forcedGrowth))
-            ecology.GrowthModelVersion = int.Parse(forcedGrowth, CultureInfo.InvariantCulture);
+            ecology.GrowthModelVersion = forcedGrowth == "1" ? GrowthModel.SiteClassDensity
+                : int.Parse(forcedGrowth, CultureInfo.InvariantCulture);
+        else
+            Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "fresh Scenario One uses growth model 2");
         Debug.Log($"SCENARIO_ONE_COMPLETION_GROWTH_MODEL {ecology.GrowthModelVersion} forced={(string.IsNullOrEmpty(forcedGrowth) ? "no" : "yes")}");
         Debug.Log($"SCENARIO_ONE_COMPLETION_REGEN_MODEL {ecology.RegenerationModelVersion} forced={(string.IsNullOrEmpty(forcedRegeneration) ? "no" : "yes")}");
+        // HISTORICAL COMPATIBILITY ONLY. An explicit CCF_GROWTH_MODEL=1 run is not the current-player path: it reconstructs the state
+        // that produced the frozen v18 anchor (see HistoricalV18Model1Reconstruction below). Production rows and rules are untouched.
+        if (ecology.GrowthModelVersion == GrowthModel.SiteClassDensity)
+            historical = HistoricalV18Model1Reconstruction.InstallPreCalibrationOakBeechRows();
         original = saves.CaptureData();
         scenarioPressure = ecology.Browsing.BackgroundPressure;
         ScenarioOneDefinition definition = manager.Definition;
@@ -140,7 +150,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 20 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+        Check(ForestSaveData.CurrentVersion == 21 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
             "production conventions (v18, EUR 2,500 minimum, 2,400 owner min/yr)");
         Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
@@ -223,6 +233,20 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(review1.Count >= 3 && review1.Any(l => l.StartsWith("Browsing pressure low")), "annual ecology review lines missing");
         Pass("P3", $"year=1 felledOnce={fellCounts.Count} cashDelta={manager.CashCents - cashBefore} ledger={ledger} retainedM3={F(manager.RetainedTimberM3)} "
             + $"deadwoodRecords={manager.DeadwoodRecords.Count} products={year1.timberSales.Count} reviewLines={review1.Count}");
+
+        // The fresh model-2 fixture follows the accepted two-cycle chronology through the real review handler.
+        if (ecology.GrowthModelVersion == GrowthModel.SpeciesAware)
+        {
+            manager.MarkAnnualReviewSeen();
+            Check(manager.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged && e.year == 1),
+                "model-2 fixture records the first Annual Review acknowledgement before its next work plan");
+        }
+        else if (historical != null)
+        {
+            // Historical model-1 reconstruction: production N3 is NOT bypassed. The play acknowledges through the same real handler,
+            // so the scenario completes through the production rule; only the v18 hash is taken on the pre-event-9 projection.
+            historical.AcknowledgeFirstAnnualReviewThroughProductionHandler(manager);
+        }
 
         // ---- P5 PLANT / PROTECT (designated in Year 1, resolved as Year 2) ----
         int pairsPerSpecies = 4;
@@ -404,9 +428,31 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Debug.Log("SCENARIO_ONE_COMPLETION_V17_COMPAT_HASH " + (ScenarioReferenceArchive.LegacyV17WorldHash(saves.CaptureData()) ?? "n/a"));
         string v18LayoutHash = ScenarioReferenceArchive.LegacyV18WorldHash(saves.CaptureData()) ?? "n/a";
         Debug.Log("SCENARIO_ONE_COMPLETION_V18_COMPAT_HASH " + v18LayoutHash);
-        if (ecology.RngModelVersion == 1 && ecology.RegenerationModelVersion == 2
-            && ecology.GrowthModelVersion == 1 && ecology.StormModelVersion == 0)
-            Check(v18LayoutHash == "702766DECE591E21", "accepted model2 completion retains its exact v18 world layout");
+        if (ecology.RngModelVersion == 1 && ecology.RegenerationModelVersion == 2 && ecology.StormModelVersion == 0)
+        {
+            if (ecology.GrowthModelVersion == GrowthModel.SiteClassDensity)
+            {
+                // The frozen historical anchor. It is never rebaselined: the reconstruction below is what must reproduce it.
+                string v18Projected = historical.ProjectedV18Hash(saves.CaptureData());
+                Check(v18Projected == "702766DECE591E21", "historical growth-model-1 completion retains its exact v18 world layout");
+            }
+            else
+            {
+                Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "current completion fixture uses growth model 2");
+                ForestSaveData completed = saves.CaptureData();
+                Check(completed.version == 21 && completed.growthModel == GrowthModel.SpeciesAware
+                    && completed.standGeometryModel == StandGeometryModel.Legacy40
+                    && completed.ecologicalYear == 30 && completed.scenarioOne.outcome == ScenarioOneOutcome.Completed
+                    && completed.scenarioOne.outcomeYear == minimumYear,
+                    "growth-model-2 completion has the expected v21/model/geometry/year/outcome layout");
+                Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed)), false),
+                    "growth-model-2 completed layout loads");
+                yield return null; yield return null;
+                Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == finalHash,
+                    "growth-model-2 completion preserves its exact current layout through save/load");
+                Debug.Log("SCENARIO_ONE_COMPLETION_GROWTH2_LAYOUT_PASS " + finalHash);
+            }
+        }
         Debug.Log($"SCENARIO_ONE_COMPLETION_HASH {finalHash} rngModel={ecology.RngModelVersion} regenerationModel={ecology.RegenerationModelVersion} growthModel={ecology.GrowthModelVersion} legacyV15LayoutHash={legacyLayoutHash} v16LayoutHash={v16LayoutHash}");
         Check(minCash >= 0, "cash went below zero");
         Check(outcomeAtMinimum == ScenarioOneOutcome.Completed && completedYear == minimumYear,
@@ -457,6 +503,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
 
     private IEnumerator Cleanup()
     {
+        historical?.RestoreCurrentRows();   // in-memory only; runs even when Verify() threw
         if (saves == null || original == null) yield break;
         ecology.Browsing.ClearProtection();
         ecology.Browsing.BackgroundPressure = scenarioPressure;
@@ -543,5 +590,134 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
 
     private string ObjectiveLine() => string.Join(" ", manager.Objectives.Select(o =>
         $"{o.objectiveId}={o.currentValue.ToString("0.###", CultureInfo.InvariantCulture)}/{o.targetValue.ToString("0.###", CultureInfo.InvariantCulture)}:{(o.achieved ? "ok" : "no")}"));
+}
+
+// =====================================================================================================================
+// HISTORICAL COMPATIBILITY FIXTURE ONLY - this is NOT the current-player completion path and must never be read as one.
+//
+// Purpose: reproduce the frozen v18 completion anchor 702766DECE591E21 from an explicit CCF_GROWTH_MODEL=1 play. That anchor was
+// last produced on pre-U4, pre-calibration production (157ea7d: Completed at Year 25, objectives 209 / 0.885 / 54 / 4.405, cash
+// minimum 613986, world hash 84CD51EB6A951D9E). It is a hash of the WHOLE serialized world, and two accepted, intentional production
+// changes have since moved it by different mechanisms (Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md, branch
+// tools/verification-fixture-fixes-v1):
+//   1. b3d33ab  Oak/Beech ordinal growth rows (species asset DATA): the planted Oak/Beech grow differently, so the world differs.
+//   2. 7840872  N3 reviewed two-cycle completion (event type 9 AnnualReviewAcknowledged): a play must acknowledge the Annual Review
+//               to Complete, and the acknowledgement is itself a serialized management event (and consumes an event id).
+// This class reconstructs exactly those two historical inputs, in memory and in the fixture only:
+//   (a) the pre-calibration Oak/Beech rows are written into the loaded TreeSpeciesDefinition instances and restored afterwards
+//       (nothing is saved, no asset is marked dirty, no production file is edited);
+//   (b) the play acknowledges the Annual Review through the REAL production handler, so Completed is reached through the unchanged
+//       N3 rule; the v18 hash is then taken on a projection of the captured save that removes the event-type-9 records (which cannot
+//       exist in a v18 layout), closes the event-id sequence they occupied, and restores annualReviewSeen to the historical
+//       never-acknowledged value (false). The live manager is never modified by the projection.
+// The expected anchor is NOT changed here, and nothing in this class relaxes any current-world or N3 assertion.
+// =====================================================================================================================
+internal sealed class HistoricalV18Model1Reconstruction
+{
+    private struct Row
+    {
+        public string SpeciesId;
+        public float PotentialDbhGrowthCmPerYear, MaxDbhCm, PotentialHeightGrowthMPerYear, MaxHeightM, Ci50;
+    }
+
+    // Oak/Beech growth rows exactly as committed before b3d33ab (git show b3d33ab^:Assets/ForestPrototype/Species/{BeechSpecies,SessileOak}.asset).
+    private static readonly Row[] PreCalibrationRows =
+    {
+        new Row { SpeciesId = "beech", PotentialDbhGrowthCmPerYear = 0.4f, MaxDbhCm = 120f, PotentialHeightGrowthMPerYear = 0.4f, MaxHeightM = 40f, Ci50 = 3f },
+        new Row { SpeciesId = "sessile-oak", PotentialDbhGrowthCmPerYear = 0.4f, MaxDbhCm = 120f, PotentialHeightGrowthMPerYear = 0.4f, MaxHeightM = 40f, Ci50 = 3f },
+    };
+
+    private static readonly string[] FieldNames = { "potentialDbhGrowthCmPerYear", "maxDbhCm", "potentialHeightGrowthMPerYear", "maxHeightM", "ci50" };
+
+    private readonly List<(TreeSpeciesDefinition species, FieldInfo field, float original)> saved = new List<(TreeSpeciesDefinition, FieldInfo, float)>();
+
+    private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
+    private static string Inv(float v) => v.ToString("0.###", CultureInfo.InvariantCulture);
+
+    public static HistoricalV18Model1Reconstruction InstallPreCalibrationOakBeechRows()
+    {
+        var result = new HistoricalV18Model1Reconstruction();
+        TreeSpeciesDefinition[] loaded = Resources.FindObjectsOfTypeAll<TreeSpeciesDefinition>();
+        foreach (Row row in PreCalibrationRows)
+        {
+            float[] values = { row.PotentialDbhGrowthCmPerYear, row.MaxDbhCm, row.PotentialHeightGrowthMPerYear, row.MaxHeightM, row.Ci50 };
+            TreeSpeciesDefinition[] matches = loaded.Where(s => s != null && s.SpeciesId == row.SpeciesId).ToArray();
+            Check(matches.Length > 0, "historical reconstruction: species definition not loaded: " + row.SpeciesId);
+            foreach (TreeSpeciesDefinition species in matches)
+            {
+                string before = $"{Inv(species.PotentialDbhGrowthCmPerYear)},{Inv(species.MaxDbhCm)},{Inv(species.PotentialHeightGrowthMPerYear)},{Inv(species.MaxHeightM)},{Inv(species.Ci50)}";
+                for (int i = 0; i < FieldNames.Length; i++)
+                {
+                    FieldInfo field = typeof(TreeSpeciesDefinition).GetField(FieldNames[i], BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(field != null && field.FieldType == typeof(float), "historical reconstruction: growth field missing: " + FieldNames[i]);
+                    result.saved.Add((species, field, (float)field.GetValue(species)));
+                    field.SetValue(species, values[i]);
+                }
+                Check(species.PotentialDbhGrowthCmPerYear == row.PotentialDbhGrowthCmPerYear && species.MaxDbhCm == row.MaxDbhCm
+                    && species.PotentialHeightGrowthMPerYear == row.PotentialHeightGrowthMPerYear && species.MaxHeightM == row.MaxHeightM && species.Ci50 == row.Ci50,
+                    "historical reconstruction: pre-calibration rows were not applied to " + row.SpeciesId);
+                Debug.Log($"SCENARIO_ONE_COMPLETION_HISTORICAL_ROWS species={row.SpeciesId} current(Pd,Dmax,Ph,Hmax,Ci50)={before} installed(in memory only)={string.Join(",", values.Select(Inv))}");
+            }
+        }
+        return result;
+    }
+
+    public void RestoreCurrentRows()
+    {
+        for (int i = saved.Count - 1; i >= 0; i--)
+            saved[i].field.SetValue(saved[i].species, saved[i].original);
+        if (saved.Count > 0)
+            Debug.Log($"SCENARIO_ONE_COMPLETION_HISTORICAL_ROWS_RESTORED fields={saved.Count}");
+        saved.Clear();
+    }
+
+    // The accepted N3 chronology, driven through the same public handler the Annual Review button calls. Asserts that N3 is live
+    // (the acknowledgement is demanded before, satisfied after) so this fixture cannot silently stop exercising the production rule.
+    public void AcknowledgeFirstAnnualReviewThroughProductionHandler(ScenarioOneManager manager)
+    {
+        Check(ScenarioOneCompletionRules.NeedsReviewAcknowledgement(manager.ManagementEvents, manager.WorkOrders),
+            "N3 guard: after a resolved Work Plan the production rule must still demand an Annual Review acknowledgement");
+        manager.MarkAnnualReviewSeen();
+        Check(manager.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged && e.year == 1),
+            "historical fixture records the first Annual Review acknowledgement through the production handler");
+        Check(!ScenarioOneCompletionRules.NeedsReviewAcknowledgement(manager.ManagementEvents, manager.WorkOrders),
+            "N3 guard: the production acknowledgement must satisfy the production rule");
+    }
+
+    // v18 hash of the captured save after removing the post-v18 event-type-9 records and closing the event-id sequence.
+    // Mutates only the freshly captured copy (CaptureData clones the manager's events); the live manager is untouched.
+    public string ProjectedV18Hash(ForestSaveData captured)
+    {
+        string unprojected = ScenarioReferenceArchive.LegacyV18WorldHash(captured) ?? "n/a";
+        Debug.Log("SCENARIO_ONE_COMPLETION_HISTORICAL_V18_UNPROJECTED_HASH " + unprojected);
+        Check(captured.scenarioOne != null && captured.scenarioOne.managementEvents != null, "historical projection: no scenario state");
+        ForestSaveData projected = ScenarioOneProjection(captured, out int removed, out int renumbered, out bool seenBefore);
+        Check(removed >= 1, "historical projection: the N3-compliant play recorded no event-type-9 acknowledgement to project out");
+        string hash = ScenarioReferenceArchive.LegacyV18WorldHash(projected) ?? "n/a";
+        Debug.Log($"SCENARIO_ONE_COMPLETION_HISTORICAL_V18_PROJECTED_HASH {hash} removedEventType9={removed} renumberedLaterEvents={renumbered} nextEventId={projected.scenarioOne.nextManagementEventId} annualReviewSeen(before->projected)={seenBefore}->{projected.scenarioOne.annualReviewSeen}");
+        return hash;
+    }
+
+    private static ForestSaveData ScenarioOneProjection(ForestSaveData captured, out int removed, out int renumbered, out bool annualReviewSeenBefore)
+    {
+        ScenarioOneSaveData scenario = captured.scenarioOne;
+        List<int> removedIds = scenario.managementEvents
+            .Where(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged).Select(e => e.eventId).OrderBy(id => id).ToList();
+        scenario.managementEvents.RemoveAll(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged);
+        renumbered = 0;
+        foreach (ScenarioManagementEvent e in scenario.managementEvents)
+        {
+            int shift = removedIds.Count(id => id < e.eventId);
+            if (shift > 0) { e.eventId -= shift; renumbered++; }
+        }
+        removed = removedIds.Count;
+        scenario.nextManagementEventId -= removed;
+        // ScenarioOneSaveData.annualReviewSeen is part of the hashed bytes. MarkAnnualReviewSeen() (the acknowledgement above) sets it and only a
+        // scenario reset clears it. The historical play never acknowledged (before 7840872 only the Annual Review button called the handler,
+        // and no gate version ever did), so the frozen v18 layout has it false. Restored on the captured copy only; the live manager is untouched.
+        annualReviewSeenBefore = scenario.annualReviewSeen;
+        scenario.annualReviewSeen = false;
+        return captured;
+    }
 }
 #endif

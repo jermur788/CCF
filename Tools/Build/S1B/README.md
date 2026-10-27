@@ -2,11 +2,18 @@
 
 Use Unity 6000.6.0f1 plus its Windows Build Support (Mono) module. Start from the exact committed source SHA recorded by the candidate, in a clean dedicated worktree with its own Library. Import the existing licensed Ultimate Nature – Starter package as documented in Assets/ForestPrototype/Docs/UltimateNatureSetup.md; keep that dependency gitignored and preserve original GUIDs. No new Unity packages are required.
 
-On the current Linux build host:
+On the current Linux build host (clean committed worktree on the pinned SHA, no other Editor open on it):
 
 ```
-python3 Tools/Build/S1B/with_demo_hdr_quarantined.py python3 Tools/Build/S1B/build_windows.py --date 20261009 --sequence B06
+# Unity's licensing client needs a socket-capable TMPDIR (NOT the exFAT ZX20 drive) and a currently valid licence.
+export TMPDIR=/run/user/$(id -u)/ccf-build; mkdir -p "$TMPDIR"
+python3 Tools/Build/S1B/build_windows.py \
+  --license-dir <Hub-managed Unity licences folder> \
+  --art-pack <folder of the local Ultimate Nature - Starter pack> \
+  --date <yyyymmdd> --sequence B<nn>
 ```
+
+The same three guards as `build_linux.py` run before anything is staged, and each stops the build with its reason: `--license-dir` (the default `~/.config/unity3d/Unity/licenses` can be stale and Unity then exits 198 "No valid Unity Editor license found"), a `TMPDIR` that cannot hold Unix sockets, and the art-pack preflight (`art_pack.py` verifies the locally acquired pack against the committed `art-pack-manifest.json`, installs only its six required files into the gitignored `Assets/InnerverseInteractive`, and records the verified pack in `build-identity.json` and `package-manifest.json`; `--art-pack` may be omitted when the pack is already installed, or set `CCF_ART_PACK_DIR`). Because only those six files are installed the pack's demo HDR is never imported, so the old `with_demo_hdr_quarantined.py` wrapper is not part of this command. `python3 Tools/Build/S1B/test_build_windows.py` checks the control flow against a mock project; it never launches Unity.
 
 Set `--unity` when the Editor executable is elsewhere. The script requires clean committed source, embeds the full commit and dated build ID in the standalone menu and diagnostic log, builds the enabled ForestTest scene for Windows x86-64/Mono, then removes only its disposable Editor helper and resource stamp. Candidate folder/archive, detailed log, included-assets.txt and SHA-256 package manifest live under ignored Build/S1B. It refuses an existing output folder. Use a new B sequence for another artifact; this does not promise cross-build saves. Build binaries are not committed.
 
@@ -16,7 +23,7 @@ Run the accepted S1-A runner for teaching/menu/clearance/removal, focused P2/P3 
 
 Inspect final included assets, supplied package/runtime notices and archive contents. RightsAudit.md is a working evidence record, not an automatic distribution green flag. Stage A remains conditional until Manager inspection/integration, combined independent review and native Windows technical smoke. Wine can provide supplementary evidence only and must be labelled WINE COMPATIBILITY SMOKE — NOT NATIVE WINDOWS VERIFICATION.
 
-The Manager-approved HDR wrapper applies only to this S1-B task-local checkout. It records paths/GUID/SHA-256, holds the exact demo HDR/meta outside Assets, then restores both after Unity exits. Do not reopen Unity after restoration solely for Git status. Preserve the licensed source package and other checkouts.
+The Manager-approved HDR wrapper (`with_demo_hdr_quarantined.py`) is a legacy helper for a checkout that has the FULL pack, demo HDR included, installed. It records paths/GUID/SHA-256, holds the exact demo HDR/meta outside Assets, then restores both after Unity exits, and refuses to restore while an Editor is still running on this checkout. It stops with "missing source" when the HDR is absent, which is the normal case after the art-pack preflight. Do not reopen Unity after restoration solely for Git status. Preserve the licensed source package and other checkouts.
 
 The build runner preserves original bytes of the reviewed Unity/URP build-normalised settings and SectionFive material files, records their generated diff, then restores them after the Editor exits. Unexpected source drift stops packaging. Unity's DontShip backups are moved beside the candidate. The installed performance package creates two temporary test-resource JSONs on every build; the disposable pre-build callback removes those generated resources after verifying neither existed beforehand. Four empty-job CoreCLR test assemblies from the installed Collections package have unconstrained test asmdefs; the disposable [Unity assembly filter](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Build.IFilterBuildAssemblies.OnFilterAssemblies.html) omits those exact test-only names. The build checks every remaining managed assembly for references to them. No package, asmdef, scene or gameplay source is changed by these inclusion filters.
 

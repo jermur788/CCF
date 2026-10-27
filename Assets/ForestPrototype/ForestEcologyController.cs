@@ -85,6 +85,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     // world boundary objects can follow. Not raised when the model is unchanged.
     public event System.Action<int> StandGeometryApplied;
 
+    // Whether this world is meant to have the forest track's approach (StandApproachPath). A new world is; ForestSaveController.LoadData
+    // sets it from the save, so an Enlarged80 world saved before the approach existed keeps the stand it was planted with.
+    public bool StandApproachExpected { get; set; } = true;
+
     public void ApplyStandGeometry(int model)
     {
         if (!StandGeometryModel.IsKnown(model))
@@ -93,6 +97,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         standGeometryModelVersion = model;
         standSizeMeters = StandGeometryModel.StandSizeMeters(model);
         cellSizeMeters = StandGeometryModel.CellSizeMeters;
+        // The forest track's approach follows the geometry (Enlarged80 only). It is made here, before the event and before anything
+        // plants a stand, because the starting stand keeps trees clear of the track planks and the stand map draws them.
+        StandApproachPath.Apply(model, StandApproachExpected);
         // Before Awake the grid does not exist; Awake then builds it at the size set above.
         if (cells != null && (changed || cells.Length != StandGeometryModel.CellCount(model)))
             RebuildGrid();
@@ -139,6 +146,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     }
 
     private bool UsesSiteClassGrowth => growthModelVersion >= GrowthModel.SiteClassDensity;
+
+    // Growth model 2: stands that are not pure Sitka use the species-aware occupancy route (MixedDensityModel).
+    private bool UsesSpeciesAwareGrowth => growthModelVersion >= GrowthModel.SpeciesAware;
 
     // Growth model 1 adult density mortality of the most recent annual step (diagnostic only).
     public AdultMortalityAccount LastAdultMortality { get; private set; } = new AdultMortalityAccount();
@@ -1009,6 +1019,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
             float dbhGrowth = dbhPotential * (1f / (1f + ci / treeSpecies.Ci50));
             float heightGrowth = treeSpecies.PotentialHeightGrowthMPerYear * site *
                                  Mathf.Clamp01(1f - tree.Height / treeSpecies.MaxHeightM);
+            // Keep the no-phase arithmetic and its locals in their original layout: the
+            // legacy Mono lifecycle anchors depend on the exact floating-point evaluation.
+            if (treeSpecies.HasGrowthAgePhases)
+                ApplyGrowthAgeFactors(treeSpecies, tree.AgeYears, ref dbhGrowth, ref heightGrowth);
             // Growth model 1: Sitka follows the Class III site envelope, keeping
             // its relative height. Other species keep the legacy height law.
             if (UsesSiteClassGrowth && SameSpeciesId(treeSpecies, SitkaGrowthModel.SpeciesId))
@@ -1021,6 +1035,14 @@ public sealed partial class ForestEcologyController : MonoBehaviour
             tree.SetAgeYears(tree.AgeYears + yearsApplied);
             annualDbhGrowth[tree] = dbhGrowth;
         }
+    }
+
+    private static void ApplyGrowthAgeFactors(TreeSpeciesDefinition species, int ageYears,
+        ref float dbhGrowth, ref float heightGrowth)
+    {
+        species.GrowthAgeFactors(ageYears, out float dbhFactor, out float heightFactor);
+        dbhGrowth *= dbhFactor;
+        heightGrowth *= heightFactor;
     }
 
     private static bool SameSpeciesId(TreeSpeciesDefinition species, string speciesId)
@@ -1047,6 +1069,16 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 living.Add(tree);
         account.LivingBefore = living.Count;
         if (living.Count == 0 || StandAreaHectares <= 0f) return;
+        // Growth model 2: any non-Reference species (Oak, Beech) switches the stand to the occupancy route in
+        // MixedDensityModel. Every other stand - all of models 0 and 1, and a pure-Sitka stand under model 2 - carries
+        // on below, untouched, so pure Sitka is exactly growth model 1.
+        bool anyNonReference = UsesSpeciesAwareGrowth && HasNonReferenceDemand(living);
+        if (MixedDensityModel.SelectRoute(UsesSpeciesAwareGrowth, anyNonReference) == DensityRoute.SpeciesAwareOccupancy)
+        {
+            ApplySpeciesAwareDensityMortality(living, account);
+            return;
+        }
+        account.Route = DensityRoute.LegacySitkaExact;
         account.RelativeDensity = StandRelativeDensity(living, out account.StemsPerHectare, out account.QuadraticMeanDbhCm);
         account.DensityPressure = SitkaGrowthModel.DensityPressure(account.RelativeDensity);
         if (account.DensityPressure <= 0.0) return;
@@ -1099,6 +1131,12 @@ public sealed partial class ForestEcologyController : MonoBehaviour
                 account.BoundaryDeaths++;
             }
         }
+        KillDensityVictims(victims, account);
+    }
+
+    // Both density routes end here: the victims die together inside one change batch.
+    private void KillDensityVictims(List<ForestTree> victims, AdultMortalityAccount account)
+    {
         if (victims.Count == 0) return;
         BeginChangeBatch();
         try
@@ -1117,6 +1155,60 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         {
             EndChangeBatch();
         }
+    }
+
+    private bool HasNonReferenceDemand(List<ForestTree> trees)
+    {
+        foreach (ForestTree tree in trees)
+        {
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            if (treeSpecies != null && treeSpecies.GrowingSpaceDemand != GrowingSpaceDemandClass.Reference)
+                return true;
+        }
+        return false;
+    }
+
+    // Growth model 2 mortality for stands with at least one Oak or Beech tree, resolved COMPONENT BY COMPONENT.
+    // The Sitka component runs the original Sitka density process on the Sitka trees alone and its victims are Sitka
+    // trees. The generic component turns total occupancy into a loss fraction of the remaining trees and chooses them
+    // by competitive position only. This method describes the living trees to the two (each carries its raw Hegyi
+    // index, never a species-specific suppression) and applies the union; the two sets cannot overlap. Each component
+    // rolls in its own keyed domain, so no random stream is consumed.
+    private void ApplySpeciesAwareDensityMortality(List<ForestTree> living, AdultMortalityAccount account)
+    {
+        var stems = new DensityStem[living.Count];
+        for (int i = 0; i < living.Count; i++)
+        {
+            ForestTree tree = living[i];
+            TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
+            float ci = competitionIndex.TryGetValue(tree, out float value) ? value : 0f;
+            stems[i] = new DensityStem(tree.TreeId,
+                treeSpecies != null ? treeSpecies.GrowingSpaceDemand : GrowingSpaceDemandClass.Reference,
+                tree.Diameter, ci);
+        }
+        System.Func<string, double> sitkaRoll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-" + id, ecologicalYear, simulationSeed);
+        System.Func<string, double> genericRoll = id => SimulationRandom.Roll(rngModelVersion,
+            "ADULT-MORT-GENERIC-" + id, ecologicalYear, simulationSeed);
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, StandAreaHectares, sitkaRoll);
+        DensityComponentPlan plan = MixedDensityModel.PlanComponents(stems, StandAreaHectares,
+            sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll);
+        account.Route = DensityRoute.SpeciesAwareOccupancy;
+        account.StemsPerHectare = plan.StemsPerHectare;
+        account.QuadraticMeanDbhCm = plan.QuadraticMeanDbhCm;
+        account.Occupancy = plan.Occupancy;
+        account.DensityPressure = plan.OvercrowdingPressure;
+        account.HazardDeaths = plan.HazardDeaths;
+        account.BoundaryDeaths = plan.SitkaBoundaryDeaths;
+        account.SitkaSubsetRelativeDensity = sitka.RelativeDensity;
+        account.SitkaComponentDeaths = plan.SitkaHazardDeaths + plan.SitkaBoundaryDeaths;
+        account.GenericDeaths = plan.GenericDeaths;
+        account.GenericLossFraction = plan.GenericLossFraction;
+        account.NonReferenceShare = plan.NonReferenceShare;
+        var victims = new List<ForestTree>(plan.VictimIndices.Count);
+        foreach (int index in plan.VictimIndices)
+            victims.Add(living[index]);
+        KillDensityVictims(victims, account);
     }
 
     private double StandRelativeDensity(List<ForestTree> trees, out double stemsPerHectare, out double quadraticMeanDbhCm)
@@ -1248,6 +1340,10 @@ public sealed partial class ForestEcologyController : MonoBehaviour
     private void ComputeSpeciesSeedRain(TreeSpeciesDefinition targetSpecies, ForestTree[] trees)
     {
         regenerationSpeciesById[targetSpecies.SpeciesId] = targetSpecies;
+        // Planting-only and undeclared species put no seed on the ground. Established species with no declaration are
+        // unaffected (DispersesSeedNaturally is then just supportsRegeneration, which is already true here).
+        if (!targetSpecies.DispersesSeedNaturally)
+            return;
         float mastMultiplier = GetMastMultiplier(targetSpecies);
         foreach (ForestTree tree in trees)
         {

@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Run task Unity operations with only the Manager-approved demo HDR held outside Assets."""
+"""Run task Unity operations with only the Manager-approved demo HDR held outside Assets.
+
+Legacy S1-B helper for a project that has the FULL Ultimate Nature pack installed (its 8k demo HDR OOM-killed Editor imports).
+Not needed for builds made with build_windows.py / build_linux.py: art_pack.py installs only the six required files, so there is
+no HDR to quarantine (and this script stops with "missing source" when it is absent)."""
 import hashlib,json,re,shutil,signal,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
 GUID='83d5c6c30d68b7e4498cfef8c6e2a35a'
 HDR=Path('Assets/InnerverseInteractive/Ultimate Nature – Starter/Environment/Sky/Skyboxes/UNS_HDRI.hdr')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def editor_pattern(root):
+ # pgrep -f (extended regex) for any Unity Editor whose -projectPath is this checkout; no machine-specific path.
+ return r'(^|/)Unity .*-projectPath '+re.sub(r'([.^$*+?()\[\]{}|\\])',r'\\\1',str(root))+'( |$)'
 def stop(signum,frame):raise SystemExit(128+signum)
 def main():
  if len(sys.argv)<2:raise SystemExit('Usage: with_demo_hdr_quarantined.py COMMAND [ARGS]')
@@ -30,8 +37,8 @@ def main():
   code=subprocess.run(sys.argv[1:],cwd=ROOT).returncode
  finally:
   # Do not restore a source while an interrupted Editor could reimport it.
-  running=subprocess.run(['pgrep','-af','^/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity .*projectPath /home/jer/CCF-s1b'],capture_output=True,text=True).stdout
-  if running.strip():raise RuntimeError('STOP: S1-B Editor still running; preserved quarantine pending safe restoration: '+running)
+  running=subprocess.run(['pgrep','-af',editor_pattern(ROOT)],capture_output=True,text=True).stdout
+  if running.strip():raise RuntimeError('STOP: an Editor is still running on this project; preserved quarantine pending safe restoration: '+running)
   for rec in reversed(moved):
    dest=ROOT/rec['original'];assert not dest.exists(),dest
    shutil.move(rec['quarantine'],dest);assert sha(dest)==rec['sha256']

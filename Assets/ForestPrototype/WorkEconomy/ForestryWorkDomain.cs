@@ -6,7 +6,9 @@ namespace CCF.Forestry.WorkEconomy
     public enum WorkExecutionMethod { Contractor, LandownerSimulated }
     public enum WorkQuantityUnit { Items, SquareMetres, Millimetres }
     public enum TimberQuantityUnit { GreenGrams, CubicCentimetres }
-    public enum TimberAssortment { Pulp, Stake, Pallet, Sawlog }
+    // Values are persisted as integers (annual-report sale records). Append only; never reorder.
+    // VeneerPlanking..Firewood are the Oak/Beech products (D-062); Sitka uses the first four.
+    public enum TimberAssortment { Pulp, Stake, Pallet, Sawlog, VeneerPlanking, Beam, Fencing, SecondPlanking, Firewood }
     // Explicit adapter mapping to the existing FellingMaterialOutcome, not an enum cast.
     public enum TimberDisposition { SellAndExtract, RetainAsFallenDeadwood, KeepForUse }
     public enum MaterialSupply { ExistingStock, PurchaseForJob }

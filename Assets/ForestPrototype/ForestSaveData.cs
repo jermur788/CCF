@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 20;
+    public const int CurrentVersion = 21;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -43,6 +43,7 @@ public sealed class ForestSaveData
     // plantings, treatment patches and retained construction timber.
     // Version 14: explicit biological tree mortality, separate from harvesting.
     // Version 15: scenario execution choices, protection and bounded economy reports.
+    // Version 21: Rack Planning & Field Marking V2 state inside scenarioOne (D-064).
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -77,6 +78,42 @@ public sealed class ScenarioOneSaveData
     public List<BrowseProtectedArea> protectedAreas = new List<BrowseProtectedArea>();
     public int ownerMinutesUsedThisYear;
     public List<StormEventRecord> stormEvents = new List<StormEventRecord>();
+    // Version 21: Rack Planning & Field Marking V2 (D-064). These four fields are declared last and
+    // adjacent on purpose: the world-hash compatibility path reproduces the pre-v21 serialized
+    // layout by removing exactly this run (and each work order's rackId) while the plan is still
+    // the empty default. See ScenarioReferenceArchive.WithoutRackV2Fields.
+    // The world/workflow identity, NOT a save-file version: 0 = legacy rack workflow,
+    // 1 = Rack Planning & Field Marking V2. A missing field and every save before v21 are model 0.
+    public int rackPlanningModel;
+    public bool rackPlanConfirmed;
+    // The next rack id to hand out; 1 until a rack has been planned.
+    public int nextRackId = 1;
+    // The authoritative persisted V2 rack-plan records. Empty until the map editor lands.
+    public List<RackSaveData> racks = new List<RackSaveData>();
+}
+
+// One persisted Rack Planning & Field Marking V2 rack. The entrance and far endpoints are the
+// authoritative centreline: angle, length, width, spacing and counters stay derived (packet
+// RACK-V2-03B). Fields are declared in this order so the empty-plan compatibility strip and the
+// JSON-presence validation stay exact.
+[Serializable]
+public sealed class RackSaveData
+{
+    // Stable positive identity; ids are never reused (nextRackId moves past the highest used).
+    public int rackId;
+    // The rack entrance end of the centreline (world x/z metres).
+    public float entranceX;
+    public float entranceZ;
+    // The far end of the centreline (world x/z metres).
+    public float farX;
+    public float farZ;
+    // The frozen removal set: the rack's trees, frozen when the plan is confirmed. A draft rack
+    // may have none yet. Kept even after the trees are felled, so the rack survives its harvest.
+    public List<string> removalTreeIds = new List<string>();
+    // The entrance tree (first rack-removal tree nearest the access), part of removalTreeIds.
+    public string entranceTreeId = "";
+    // True once the entrance tree physically carries the orange rack mark.
+    public bool entranceMarked;
 }
 
 [Serializable]

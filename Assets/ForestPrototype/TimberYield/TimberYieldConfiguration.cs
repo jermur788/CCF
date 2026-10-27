@@ -14,6 +14,9 @@ namespace CCF.Forestry.TimberYield
         public int MinimumSmallEndDiameterMm;
         public int MaximumSmallEndDiameterMm; // 0 = no maximum, otherwise inclusive.
         public int MaximumLargeEndDiameterMm;
+        // 0 = not used. Otherwise the log's mid-length diameter must reach this (inclusive); for Oak products the
+        // trade quotes a mid-log diameter. Sitka specifications leave it 0, so their allocation is unchanged.
+        public int MinimumMidDiameterMm;
         public int MinimumLengthMm;
         public int MaximumLengthMm;
         public int[] NominalLengthsMm = Array.Empty<int>();
@@ -66,6 +69,73 @@ namespace CCF.Forestry.TimberYield
                         "Teagasc Plan your Timber Sale: >=7 cm small end; Fact Sheet 3 p.2: nominal 3 m; accepts poor-form/defective larger wood. Retention does not certify sound construction timber.")
                 }
             };
+        }
+
+        // Scenario One yield configuration: the Sitka specifications exactly as CreateSitka, plus the Oak and Beech
+        // ladders (D-062). Specifications are species-explicit, so a Sitka stem sees only Sitka rules and its
+        // allocation is identical to CreateSitka; only the configuration id differs.
+        public static TimberYieldConfiguration CreateScenarioOne()
+        {
+            TimberYieldConfiguration config = CreateSitka();
+            config.Id = "scenario-one-sitka-oak-beech-v1";
+            config.ModelSource += " Oak and Beech ladders: Manager-approved D-062 product ladders; eligibility from size and the stem's pruned section, not from species alone.";
+            var all = new System.Collections.Generic.List<AssortmentSpecification>(config.Specifications);
+            all.AddRange(BroadleafSpecifications());
+            config.Specifications = all.ToArray();
+            return config;
+        }
+
+        public const string OakSpeciesId = "sessile-oak";
+        public const string BeechSpeciesId = "beech";
+
+        // Oak (strongly quality/form dependent) and Beech (a deliberately shorter, lower ladder). [C] marks values
+        // chosen here for gameplay; they are not Irish market specifications. Nothing here is a flat broadleaf rate.
+        public static AssortmentSpecification[] BroadleafSpecifications()
+        {
+            // Defects that stop a section being clean or straight. Pruned is a quality of a section, not a defect.
+            var anyDefect = StemQualityFlags.PoorForm | StemQualityFlags.StemDefect | StemQualityFlags.WindDamage | StemQualityFlags.BrowseFormDamage | StemQualityFlags.Unusable;
+            var structural = StemQualityFlags.PoorForm | StemQualityFlags.StemDefect | StemQualityFlags.WindDamage | StemQualityFlags.Unusable;
+            var sound = StemQualityFlags.StemDefect | StemQualityFlags.WindDamage | StemQualityFlags.Unusable;
+            var roundwood = StemQualityFlags.WindDamage | StemQualityFlags.Unusable;
+            return new[]
+            {
+                // ---- Oak, highest to lowest priority ----
+                Broadleaf("oak-veneer-planking", OakSpeciesId, TimberAssortment.VeneerPlanking, PotentialMaterialUse.SawlogForProcessing, 10,
+                    400, 0, 450, new[] { 2800 }, StemQualityFlags.Pruned, anyDefect, EvidenceLabel.Inference,
+                    "Manager-approved Oak ladder: usable length above 2.7 m (2.8 m used), mid-log diameter 45 cm or more, clean knot-free form. 'Clean' is modelled as a pruned stem section [C]; shake is out of P0. The small-end minimum is a non-binding engine guard."),
+                Broadleaf("oak-beam", OakSpeciesId, TimberAssortment.Beam, PotentialMaterialUse.SawlogForProcessing, 20,
+                    250, 0, 300, new[] { 2600 }, StemQualityFlags.None, structural, EvidenceLabel.Inference,
+                    "Manager-approved Oak ladder: length above 2.5 m (2.6 m used), mid-log diameter 30 cm or more, some defects permissible. Which defects are permissible is [C]: forks, defects and damage are not."),
+                Broadleaf("oak-fencing", OakSpeciesId, TimberAssortment.Fencing, PotentialMaterialUse.PolesAndStakes, 30,
+                    120, 250, 0, new[] { 2400, 1800 }, StemQualityFlags.None, roundwood, EvidenceLabel.GameplayCalibration,
+                    "[C] Fencing material: small roundwood, small end 12 to 25 cm, 1.8 or 2.4 m. Dimensions are not an Irish specification; the upper bound keeps larger sound logs for planking."),
+                Broadleaf("oak-second-planking", OakSpeciesId, TimberAssortment.SecondPlanking, PotentialMaterialUse.SawlogForProcessing, 40,
+                    250, 0, 0, new[] { 2400 }, StemQualityFlags.None, sound, EvidenceLabel.GameplayCalibration,
+                    "[C] Second-quality planking: sound logs with a small end of 25 cm or more, 2.4 m. Dimensions are not an Irish specification."),
+                Broadleaf("oak-firewood", OakSpeciesId, TimberAssortment.Firewood, PotentialMaterialUse.SmallRoundwood, 50,
+                    70, 0, 0, new[] { 2000 }, StemQualityFlags.None, StemQualityFlags.None, EvidenceLabel.GameplayCalibration,
+                    "[C] Fallback outlet for anything else with a small end of 7 cm or more, accepting any quality. Not a supported Irish stumpage product."),
+                // ---- Beech: a shorter, lower ladder; no veneer, beam or fencing class ----
+                Broadleaf("beech-second-planking", BeechSpeciesId, TimberAssortment.SecondPlanking, PotentialMaterialUse.SawlogForProcessing, 10,
+                    250, 0, 0, new[] { 2400 }, StemQualityFlags.None, sound, EvidenceLabel.GameplayCalibration,
+                    "[C] Second-quality planking: sound logs with a small end of 25 cm or more, 2.4 m. Beech is not given Oak's upper classes."),
+                Broadleaf("beech-firewood", BeechSpeciesId, TimberAssortment.Firewood, PotentialMaterialUse.SmallRoundwood, 20,
+                    70, 0, 0, new[] { 2000 }, StemQualityFlags.None, StemQualityFlags.None, EvidenceLabel.GameplayCalibration,
+                    "[C] Fallback outlet for anything else with a small end of 7 cm or more, accepting any quality.")
+            };
+        }
+
+        private static AssortmentSpecification Broadleaf(string id, string speciesId, TimberAssortment assortment, PotentialMaterialUse use,
+            int priority, int minimumSmallEnd, int maximumSmallEnd, int minimumMid, int[] lengths,
+            StemQualityFlags required, StemQualityFlags excluded, EvidenceLabel dimensionEvidence, string source)
+        {
+            int low = int.MaxValue, high = 0;
+            foreach (int length in lengths) { low = Math.Min(low, length); high = Math.Max(high, length); }
+            return new AssortmentSpecification { Id = id, SpeciesId = speciesId, Assortment = assortment, PotentialUse = use,
+                Priority = priority, MinimumSmallEndDiameterMm = minimumSmallEnd, MaximumSmallEndDiameterMm = maximumSmallEnd,
+                MinimumMidDiameterMm = minimumMid, MinimumLengthMm = low, MaximumLengthMm = high, NominalLengthsMm = lengths,
+                RequiredQuality = required, ExcludedQuality = excluded, DimensionEvidence = dimensionEvidence,
+                SelectionEvidence = EvidenceLabel.GameplayCalibration, Source = source };
         }
 
         private static AssortmentSpecification Spec(string id, TimberAssortment assortment, PotentialMaterialUse use, int priority,

@@ -15,14 +15,21 @@ public sealed class WorkPlanView
     private readonly Label title, cash, owner, summary, feedback;
     private readonly ScrollView scroll;
     private readonly VisualElement footer;
+    // Asked before a year passes with planned work that was never approved (see AdvanceGuard). Inline, not another modal.
+    private readonly VisualElement advanceWarning;
+    private readonly Label advanceHeadline, advanceDetail;
+    private bool confirmingAdvance;
     private int purchaseQuantity = 5;
+    // Extraction racks whose trees are listed one by one (a rack is one line until opened).
+    private readonly HashSet<int> expandedRacks = new HashSet<int>();
     private string shownSignature = "";
 
     public WorkPlanView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
         Root = UiKit.Box("layer", "modal-backdrop");
-        VisualElement modal = UiKit.Box("panel", "modal");
+        UiKit.MakeModal(Root);
+        VisualElement modal = UiKit.Box("panel", "modal", "modal-workplan");
         Root.Add(modal);
 
         VisualElement header = UiKit.Box("modal-header");
@@ -30,7 +37,7 @@ public sealed class WorkPlanView
         title = UiKit.Add(left, "", "title");
         owner = UiKit.Add(left, "", "subtitle");
         header.Add(left);
-        VisualElement right = UiKit.Box("row");
+        VisualElement right = UiKit.Box("row", "screen-actions");
         cash = UiKit.Add(right, "", "money", "title");
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
@@ -40,22 +47,76 @@ public sealed class WorkPlanView
         header.Add(right);
         modal.Add(header);
 
-        UiKit.Add(modal, "Decide which trees to retain and what structure to leave in the forest. This plan reviews execution and cost. Tasks come from your marks and planting spots; remove a task here or add new ones in the forest.", "muted");
+        UiKit.Add(modal, "Your marks and planting spots join this plan when you open it. Review each job and its cost, then approve the plan; Advance one year carries out what you approved. Remove a job here, or add more in the forest.", "muted");
         summary = UiKit.Add(modal, "", "body");
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
 
+        advanceWarning = UiKit.Box("card");
+        advanceWarning.name = "advance-warning";
+        advanceWarning.style.display = DisplayStyle.None;
+        // Semantic warning colour mirrors the shared visual-system token.
+        advanceWarning.style.borderLeftWidth = 2;
+        advanceWarning.style.borderLeftColor = UiKit.WarningColour;
+        advanceHeadline = UiKit.Add(advanceWarning, "", "heading");
+        advanceDetail = UiKit.Add(advanceWarning, "", "body");
+        VisualElement choices = UiKit.Row(advanceWarning, "row-wrap");
+        choices.Add(UiKit.Button(AdvanceGuard.ReturnLabel, CancelAdvanceConfirmationAndRefresh, true, "btn-primary"));
+        choices.Add(UiKit.Button(AdvanceGuard.ApproveLabel, () => { ui.ApproveWorkPlan(); Refresh(true); }));
+        choices.Add(UiKit.Button(AdvanceGuard.AdvanceAnywayLabel, () => { confirmingAdvance = false; AdvanceNow(); }));
+        modal.Add(advanceWarning);
+
         feedback = UiKit.Add(modal, "", "muted");
         footer = UiKit.Box("modal-footer");
         modal.Add(footer);
     }
 
+    // The orders as "Approve Work Plan" would see them. Counted when asked (a click or a refresh), never per frame.
+    private static AdvanceGuard.Decision AdvanceDecision(ScenarioOneManager m)
+    {
+        int pending = 0, approved = 0;
+        foreach (ScenarioOneWorkOrder order in m.WorkOrders)
+        {
+            if (order.status == ScenarioWorkStatus.Approved) approved++;
+            else if (order.status == ScenarioWorkStatus.Pending && string.IsNullOrEmpty(order.validationMessage)) pending++;
+        }
+        return AdvanceGuard.Evaluate(pending, approved);
+    }
+
+    // Dropped whenever the plan is (re)opened, so an old question never greets the player on a later visit.
+    public void CancelAdvanceConfirmation() => confirmingAdvance = false;
+
+    private void CancelAdvanceConfirmationAndRefresh()
+    {
+        confirmingAdvance = false;
+        Refresh(true);
+    }
+
+    private void AdvanceNow()
+    {
+        if (ui.AdvanceFromWorkPlan()) return;
+        Refresh(true);
+    }
+
+    private void OnAdvanceClicked()
+    {
+        if (AdvanceDecision(ui.Manager).Warn)
+        {
+            confirmingAdvance = true;
+            Refresh(true);
+            return;
+        }
+        AdvanceNow();
+    }
+
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
-        string signature = Signature(m);
+        // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
+        string rackProblem = ui.RackPlanProblem;
+        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem;
         if (!force && signature == shownSignature)
             return;
         shownSignature = signature;
@@ -71,7 +132,9 @@ public sealed class WorkPlanView
             + $"cash after approved work {UiKit.Money(m.CashCents - m.ReservedContractorCashCents)}";
 
         scroll.Clear();
+        BuildRacks(m);
         WorkPlanOverview.Build(scroll, ui);
+        BuildAttention(m);
         BuildHarvest(m);
         BuildPlanting(m);
         BuildPruning(m);
@@ -80,15 +143,22 @@ public sealed class WorkPlanView
         BuildReference(m);
         scroll.schedule.Execute(() => scroll.scrollOffset = new UnityEngine.Vector2(0, scrollY));
 
-        feedback.text = m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
-        footer.Clear();
-        footer.Add(UiKit.Button("Add marked trees", () => { m.AddMarkedTreesToWorkPlan(); Refresh(true); }, m.CanEditWorkPlan));
-        footer.Add(UiKit.Button("Approve pending work", () => { m.ApprovePendingWork(); Refresh(true); }, m.CanEditWorkPlan));
-        footer.Add(UiKit.Button("Advance one year", () =>
+        feedback.text = !string.IsNullOrEmpty(rackProblem) ? rackProblem
+            : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
+
+        // The question stays only while it still applies: approving, removing or cancelling the planned work answers it.
+        AdvanceGuard.Decision guard = AdvanceDecision(m);
+        if (!guard.Warn) confirmingAdvance = false;
+        advanceWarning.style.display = confirmingAdvance ? DisplayStyle.Flex : DisplayStyle.None;
+        if (confirmingAdvance)
         {
-            if (ui.AdvanceFromWorkPlan()) return;
-            Refresh(true);
-        }, m.CanAdvanceYearNow && !ui.NeedsAnnualReview, "btn-primary"));
+            advanceHeadline.text = guard.Headline;
+            advanceDetail.text = guard.Detail;
+        }
+
+        footer.Clear();
+        footer.Add(UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); }, m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem)));
+        footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary"));
         if (ui.NeedsAnnualReview)
             footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));
         footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));
@@ -101,6 +171,7 @@ public sealed class WorkPlanView
           .Append(m.AnnualReviewSeen).Append('|').Append(m.PlanningPlantingMethod).Append(m.PlanningInstallShelter).Append('|').Append(m.Outcome);
         foreach (ScenarioOneWorkOrder o in m.WorkOrders)
             if (o.IsOpen) sb.Append(o.workOrderId).Append(o.status).Append(o.fellingOutcome).Append(o.executionMethod).Append(o.installShelter).Append(o.validationMessage).Append(';');
+        foreach (RackGroup rack in m.RackGroups) sb.Append('R').Append(rack.Id).Append(':').Append(rack.TreeCount).Append(';');
         foreach (ScenarioInventoryEntry e in m.Inventory) sb.Append(e.itemId).Append(e.quantity);
         return sb.ToString();
     }
@@ -112,6 +183,40 @@ public sealed class WorkPlanView
         if (!string.IsNullOrEmpty(sub)) UiKit.Add(card, sub, "muted");
         scroll.Add(card);
         return card;
+    }
+
+    // Open orders that carry a problem, or were planned a couple of years ago. They are never expired or deleted: this
+    // only says which ones to look at again, and why.
+    private void BuildAttention(ScenarioOneManager m)
+    {
+        System.Collections.Generic.IReadOnlyList<StaleOrderNote> notes = m.StaleOrders;
+        if (notes.Count == 0)
+            return;
+        VisualElement card = Card($"Orders needing attention · {notes.Count}", "Nothing is removed automatically. Change, cancel or approve each one, then check the quote.");
+        card.name = "orders-attention";
+        foreach (StaleOrderNote note in notes)
+        {
+            VisualElement row = UiKit.Row(card, "row-wrap");
+            UiKit.Chip(row, note.Order.status == ScenarioWorkStatus.Approved ? "APPROVED" : "DRAFT", "chip-fell");
+            UiKit.Add(row, note.Order.ShortLabel, "body", "gap");
+            UiKit.Add(card, note.Reason, "muted");
+        }
+    }
+
+    // The extraction racks, first in the plan: one card per rack (see BuildRack), under one heading that says what a rack is here.
+    private void BuildRacks(ScenarioOneManager m)
+    {
+        List<RackGroup> racks = m.RackGroups.ToList();
+        if (racks.Count == 0)
+            return;
+        List<ScenarioOneWorkOrder> fell = m.WorkOrders.Where(o => o.IsOpen && ScenarioOneManager.IsHarvestOrder(o)).OrderBy(o => o.workOrderId).ToList();
+        ScenarioHarvestJob job = m.GetHarvestQuote(false);
+        int trees = racks.Sum(r => r.TreeCount);
+        VisualElement card = Card($"Extraction racks · {racks.Count} rack{(racks.Count == 1 ? "" : "s")}, {trees} trees",
+            "Each rack is a corridor of trees felled so machinery can drive along it now and in later thinnings. Racks are draft work until you approve the plan.");
+        card.name = "workplan-racks";
+        foreach (RackGroup rack in racks)
+            BuildRack(card, m, rack, fell, job);
     }
 
     private void BuildHarvest(ScenarioOneManager m)
@@ -131,16 +236,17 @@ public sealed class WorkPlanView
             head.Add(UiKit.Text("Volume", "cell-num", "faint"));
             head.Add(UiKit.Text("Roadside value", "cell-num", "faint"));
             card.Add(head);
-            foreach (AssortmentYieldSummaryLine line in job.Yield.Assortments.Select(a => new AssortmentYieldSummaryLine(a.Assortment.ToString(), a.Disposition, a.VolumeCm3))
-                         .GroupBy(l => l.Name + "|" + l.Disposition).Select(g => new AssortmentYieldSummaryLine(g.First().Name, g.First().Disposition, g.Sum(x => x.Volume))))
+            foreach (AssortmentYieldSummaryLine line in job.Yield.Assortments.Select(a => new AssortmentYieldSummaryLine(a.Assortment, a.Disposition, a.VolumeCm3))
+                         .GroupBy(l => l.Assortment + "|" + l.Disposition).Select(g => new AssortmentYieldSummaryLine(g.First().Assortment, g.First().Disposition, g.Sum(x => x.Volume))))
             {
                 VisualElement row = UiKit.Box("table-row");
-                string name = line.Disposition == TimberDisposition.SellAndExtract ? line.Name
-                    : line.Disposition == TimberDisposition.KeepForUse ? line.Name + " (kept for use)" : line.Name + " (retained as deadwood)";
+                string label = TimberAssortmentLabels.Label(line.Assortment);
+                string name = line.Disposition == TimberDisposition.SellAndExtract ? label
+                    : line.Disposition == TimberDisposition.KeepForUse ? label + " (kept for use)" : label + " (retained as deadwood)";
                 row.Add(UiKit.Text(name, "cell-name", "body"));
                 row.Add(UiKit.Text(UiKit.M3(line.Volume), "cell-num", "body"));
                 long value = line.Disposition == TimberDisposition.SellAndExtract
-                    && System.Enum.TryParse(line.Name, out TimberAssortment asm) && revenueByProduct.TryGetValue(asm, out long v) ? v : 0;
+                    && revenueByProduct.TryGetValue(line.Assortment, out long v) ? v : 0;
                 row.Add(UiKit.Text(line.Disposition == TimberDisposition.SellAndExtract ? UiKit.Money(value) : "—", "cell-num", "body"));
                 card.Add(row);
             }
@@ -162,9 +268,11 @@ public sealed class WorkPlanView
             UiKit.Add(card, "Windthrow salvage is optional. Remove or cancel a salvage order to leave that stem as deadwood. Basal damage and time since the fall can reduce timber grade; the contractor minimum still applies once to the combined visit.", "muted");
         UiKit.Add(card, job.Eligible ? "Re-quoted and settled when the year is resolved." : "Cannot proceed: " + job.Problem, job.Eligible ? "faint" : "body");
         if (job.HasUnmarketedSpecies)
-            UiKit.Add(card, "No broadleaf timber market is configured: those stems are charged for felling but earn no sale revenue.", "muted");
+            UiKit.Add(card, "No timber market is configured for some of these stems' species: they are charged for felling but earn no sale revenue.", "muted");
 
-        foreach (ScenarioOneWorkOrder order in fell)
+        // Extraction racks are shown as groups at the top of the plan; every other felling job stays on its own line here.
+        var inRacks = new HashSet<int>(m.RackGroups.SelectMany(g => g.OrderIds));
+        foreach (ScenarioOneWorkOrder order in fell.Where(o => !inRacks.Contains(o.workOrderId)))
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
             UiKit.Chip(row, order.type == ScenarioWorkType.SalvageDeadwood ? "■ SALVAGE" : "■ FELL", "chip-fell");
@@ -188,8 +296,70 @@ public sealed class WorkPlanView
         }
     }
 
+    // One extraction rack: its trees, timber and income as a group, with one button to take the whole rack out of the plan again.
+    private void BuildRack(VisualElement card, ScenarioOneManager m, RackGroup rack, List<ScenarioOneWorkOrder> fell, ScenarioHarvestJob job)
+    {
+        List<ScenarioOneWorkOrder> orders = fell.Where(o => rack.OrderIds.Contains(o.workOrderId)).OrderBy(o => o.workOrderId).ToList();
+        if (orders.Count == 0)
+            return;
+        float volume = orders.Sum(o => o.expectedVolumeM3);
+        long income = orders.Sum(o => o.expectedRevenueCents);
+        float jobVolume = fell.Sum(o => o.expectedVolumeM3);
+        // The contractor's cost is one figure for the whole visit; a rack's share is by stem volume, an estimate.
+        long costShare = jobVolume > 0f ? (long)(job.CostCents * (double)volume / jobVolume) : 0L;
+        bool approved = orders.All(o => o.status == ScenarioWorkStatus.Approved);
+        VisualElement box = UiKit.Box("card");
+        box.name = "rack-group-" + rack.Id;
+        box.style.borderLeftWidth = 2;
+        box.style.borderLeftColor = UiKit.RackColour;
+        VisualElement head = UiKit.Row(box, "row-wrap");
+        UiKit.Chip(head, "RACK", "chip-rack");
+        UiKit.Add(head, $"Extraction rack {rack.Id} · {orders.Count} tree{(orders.Count == 1 ? "" : "s")}"
+            + (rack.LayoutIndex >= 0 ? " · planned layout" : "") + " · " + (approved ? "APPROVED" : "DRAFT · not approved yet"), "heading", "gap");
+        UiKit.Add(box, $"Timber {UiKit.F(volume, "0.0")} m³ · estimated income {UiKit.Money(income)} · share of harvesting cost about {UiKit.Money(costShare)}", "body");
+        VisualElement buttons = UiKit.Row(box, "row-wrap");
+        RackGroup captured = rack;
+        buttons.Add(UiKit.Button(approved ? "Cancel approval" : "Remove rack", () => { m.RemoveRackGroup(captured.Id); Refresh(true); }));
+        bool open = expandedRacks.Contains(rack.Id);
+        // This expands the rack's real job list; it does not select trees in the forest. Use the normal enabled style.
+        if (orders.Count > 0)
+        {
+            Button showTrees = UiKit.Button(open ? "Hide trees" : $"Show trees ({orders.Count})", () =>
+            {
+                if (!expandedRacks.Remove(captured.Id)) expandedRacks.Add(captured.Id);
+                Refresh(true);
+            });
+            showTrees.name = "rack-show-trees-" + rack.Id;
+            buttons.Add(showTrees);
+        }
+        if (open)
+            foreach (ScenarioOneWorkOrder order in orders)
+                UiKit.Add(box, $"{order.targetTreeId} · {UiKit.F(order.expectedVolumeM3, "0.00")} m³ · {Status(order)}", "muted");
+        card.Add(box);
+    }
+
+    // A section the current objective does not use: greyed and disabled with one short explanation, never hidden.
+    private void LockedCard(string heading)
+    {
+        VisualElement card = Card(heading, ScenarioOneWorkPlanFocus.LaterObjectiveNote);
+        card.AddToClassList("card-locked");
+        card.SetEnabled(false);
+    }
+
+    // Is planting offered as a normal action at the current teaching stage? The Work Plan and the HUD's key hint ask the same question here, so they
+    // never disagree. It only decides what is presented: the planting mechanic, its orders and its costs are unchanged.
+    public static bool PlantingOffered(ScenarioOneUiRoot ui)
+    {
+        ScenarioOneManager m = ui.Manager;
+        return ScenarioOneWorkPlanFocus.PlantingOpen(ui.Learning.CurrentTopicIndex,
+            m.WorkOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile) || m.Inventory.Any(e => e.quantity > 0));
+    }
+
+    private bool PlantingOpen(ScenarioOneManager m) => PlantingOffered(ui);
+
     private void BuildPlanting(ScenarioOneManager m)
     {
+        if (!PlantingOpen(m)) { LockedCard("Planting"); return; }
         List<ScenarioOneWorkOrder> plant = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.PlantJuvenile)
             .OrderBy(o => o.workOrderId).ToList();
         string species = plant.Count == 0 ? "no planting spots marked"
@@ -243,6 +413,8 @@ public sealed class WorkPlanView
 
     private void BuildPruning(ScenarioOneManager m)
     {
+        if (!ScenarioOneWorkPlanFocus.PruningOpen(ui.Learning.CurrentTopicIndex, m.WorkOrders.Any(o => o.type == ScenarioWorkType.PruneTree)))
+        { LockedCard("Pruning"); return; }
         List<ScenarioOneWorkOrder> prune = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.PruneTree)
             .OrderBy(o => o.workOrderId).ToList();
         int eligible = m.EligibleCropTreePruningCount;
@@ -270,11 +442,11 @@ public sealed class WorkPlanView
         List<ScenarioOneWorkOrder> removal = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.RemoveRegeneration)
             .OrderBy(o => o.workOrderId).ToList();
         if (removal.Count == 0) return;
-        VisualElement card = Card($"Vegetation clearance · {removal.Count} cell(s)", "Contractor clears competing vegetation in each marked area; standing trees remain.");
+        VisualElement card = Card($"Vegetation clearance · {removal.Count} map square{(removal.Count == 1 ? "" : "s")}", "Contractor clears competing vegetation in each marked area; standing trees remain.");
         foreach (ScenarioOneWorkOrder order in removal)
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
-            UiKit.Add(row, $"{(string.IsNullOrEmpty(order.speciesId) ? "All competing vegetation" : ScenarioOneUiFacts.SpeciesName(order.speciesId))} · cell {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
+            UiKit.Add(row, $"{(string.IsNullOrEmpty(order.speciesId) ? "All competing vegetation" : ScenarioOneUiFacts.SpeciesName(order.speciesId))} · square {UiKit.CellLabel(order.cellIndex, ui.Ecology.CellsPerAxis)} · "
                 + $"{ScenarioOneManager.FormatMinutes(order.estimatedMinutes)} · {UiKit.Money(order.estimatedCostCents)} · {Status(order)}", "body", "gap");
             AddRemove(m, row, order);
             Problem(card, order);
@@ -283,6 +455,7 @@ public sealed class WorkPlanView
 
     private void BuildNursery(ScenarioOneManager m)
     {
+        if (!PlantingOpen(m)) { LockedCard("Nursery — planting stock"); return; }
         VisualElement card = Card("Nursery — planting stock", "Buying stock does not plant it. Contractor planting and shelter materials cost extra; unsheltered planting with your own time has no external labour charge. Review execution costs before spending your cash.");
         VisualElement qty = UiKit.Row(card, "row-wrap");
         UiKit.Add(qty, "Quantity:", "body", "gap");
@@ -343,11 +516,11 @@ public sealed class WorkPlanView
     private static void Problem(VisualElement card, ScenarioOneWorkOrder order)
     {
         if (!string.IsNullOrEmpty(order.validationMessage))
-            UiKit.Add(card, "Problem: " + order.validationMessage, "muted");
+            UiKit.Add(card, "Problem: " + ScenarioOneUiFacts.PlainText(order.validationMessage), "muted");
     }
 
     private static string Status(ScenarioOneWorkOrder order)
-        => order.status == ScenarioWorkStatus.Pending ? "PENDING approval"
+        => order.status == ScenarioWorkStatus.Pending ? "DRAFT · not approved yet"
             : order.status == ScenarioWorkStatus.Approved ? "APPROVED" : order.status.ToString().ToUpperInvariant();
 
     private static string OutcomeLabel(FellingMaterialOutcome outcome)
@@ -356,7 +529,7 @@ public sealed class WorkPlanView
 
     private readonly struct AssortmentYieldSummaryLine
     {
-        public readonly string Name; public readonly TimberDisposition Disposition; public readonly long Volume;
-        public AssortmentYieldSummaryLine(string name, TimberDisposition disposition, long volume) { Name = name; Disposition = disposition; Volume = volume; }
+        public readonly TimberAssortment Assortment; public readonly TimberDisposition Disposition; public readonly long Volume;
+        public AssortmentYieldSummaryLine(TimberAssortment assortment, TimberDisposition disposition, long volume) { Assortment = assortment; Disposition = disposition; Volume = volume; }
     }
 }

@@ -113,7 +113,12 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
         aimedTree = null;
         aimingAtGround = false;
-        if (view == null || Cursor.lockState != CursorLockMode.Locked)
+        // While an extraction rack is being aimed, X and C do not mark the tree under the reticle.
+        if (view == null || Cursor.lockState != CursorLockMode.Locked || RackTool.AnyActive)
+            return;
+
+        // A competitor chosen with 1-5 on the Crop Tree competitor list takes X, wherever the reticle points.
+        if (TryMarkKeyboardTarget())
             return;
 
         int hitCount = Physics.RaycastNonAlloc(view.transform.position, view.transform.forward, hitBuffer, interactionDistance);
@@ -168,15 +173,38 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             ToggleCropTree(tree);
     }
 
+    // The tree the player chose by keyboard (the competitor list sets this; it is read only at the moment X is pressed, so a list that
+    // has closed or a tree that is gone can never be marked by mistake). Null when nothing is chosen: X then acts on the aimed tree.
+    public System.Func<ForestTree> KeyboardTarget { get; set; }
+
+    private bool TryMarkKeyboardTarget()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || !keyboard.xKey.wasPressedThisFrame || KeyboardTarget == null)
+            return false;
+        ForestTree target = KeyboardTarget();
+        if (target == null || !target.IsLiving)
+            return false;
+        ToggleMark(target);
+        return true;
+    }
+
     private void OnTreeNoLongerLiving(ForestTree tree)
     {
         Unmark(tree, false);
     }
 
+    // X, by mouse aim or by a competitor chosen with 1-5, comes through here. A tree still marked as a Crop Tree is a positive choice to
+    // keep, so X refuses it rather than silently replacing that mark with a felling mark; C removes the Crop Tree mark first.
     public void ToggleMark(ForestTree tree)
     {
         if (tree == null || !tree.IsLiving)
             return;
+        if (tree.MarkType == TreeMarkType.CropTree)
+        {
+            SetMessage($"{tree.TreeId} is a Crop Tree. Its Crop Tree mark must be removed first: inspect it and press C.");
+            return;
+        }
         if (tree.MarkType == TreeMarkType.Fell)
             Unmark(tree);
         else
@@ -367,32 +395,59 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         float lightAfter = lightAfterSum / affected.Count;
 
         // Competition and growth of the retained trees, current versus forecast.
+        // The competition-after sum is a loop over every pair of living trees. Calling transform.position and Diameter inside the pair loop cost about
+        // 0.7 s per call at 1344 trees (Development Player), so each tree's position, diameter and marked state are read once into arrays. Pairs clearly
+        // beyond the cutoff are skipped with a squared-distance test that is slightly wider than the cutoff, then the same exact distance test and the same
+        // additions in the same order follow, so the result is bit for bit what the plain loop gives.
         const float competitionCutoffM = ForestEcologyController.HegyiCutoffMeters;
+        const float prefilterCutoffM = competitionCutoffM + 0.01f;
+        int livingCount = living.Count;
+        var positionX = new float[livingCount];
+        var positionZ = new float[livingCount];
+        var diameter = new float[livingCount];
+        var isMarked = new bool[livingCount];
+        for (int i = 0; i < livingCount; i++)
+        {
+            Vector3 point = living[i].transform.position;
+            positionX[i] = point.x;
+            positionZ[i] = point.z;
+            diameter[i] = living[i].Diameter;
+            isMarked[i] = marked.Contains(living[i]);
+        }
         float growthNowSum = 0f, growthAfterSum = 0f;
         int remainingCount = 0;
-        foreach (ForestTree tree in living)
+        for (int i = 0; i < livingCount; i++)
         {
-            if (marked.Contains(tree))
+            if (isMarked[i])
                 continue;
+            ForestTree tree = living[i];
             TreeSpeciesDefinition treeSpecies = tree.Species != null ? tree.Species : species;
-            Vector2 position = new Vector2(tree.transform.position.x, tree.transform.position.z);
+            Vector2 position = new Vector2(positionX[i], positionZ[i]);
             float site = eco.GetSiteProductivity(tree.transform.position);
-            float sizeFactor = Mathf.Clamp01(1f - tree.Diameter / treeSpecies.MaxDbhCm);
+            float sizeFactor = Mathf.Clamp01(1f - diameter[i] / treeSpecies.MaxDbhCm);
             float potential = treeSpecies.PotentialDbhGrowthCmPerYear * site * sizeFactor;
+            if (treeSpecies.HasGrowthAgePhases)
+            {
+                treeSpecies.GrowthAgeFactors(tree.AgeYears, out float dbhPhaseFactor, out float heightPhaseFactor);
+                potential *= dbhPhaseFactor;
+            }
 
             float ciNow = eco.GetCompetitionIndex(tree);
             growthNowSum += potential * (1f / (1f + ciNow / treeSpecies.Ci50));
 
             float ciAfter = 0f;
-            foreach (ForestTree neighbour in living)
+            for (int j = 0; j < livingCount; j++)
             {
-                if (neighbour == tree || marked.Contains(neighbour))
+                if (j == i || isMarked[j])
                     continue;
-                Vector2 neighbourPosition = new Vector2(neighbour.transform.position.x, neighbour.transform.position.z);
-                float distance = Vector2.Distance(position, neighbourPosition);
+                float dx = positionX[j] - positionX[i];
+                float dz = positionZ[j] - positionZ[i];
+                if (dx * dx + dz * dz > prefilterCutoffM * prefilterCutoffM)
+                    continue;
+                float distance = Vector2.Distance(position, new Vector2(positionX[j], positionZ[j]));
                 if (distance > competitionCutoffM)
                     continue;
-                ciAfter += ForestEcologyController.HegyiTerm(neighbour.Diameter, tree.Diameter, distance);
+                ciAfter += ForestEcologyController.HegyiTerm(diameter[j], diameter[i], distance);
             }
             growthAfterSum += potential * (1f / (1f + ciAfter / treeSpecies.Ci50));
             remainingCount++;
@@ -586,7 +641,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (aimedTree == null)
             return "";
-        return aimedTree.IsCropTree ? "[C] Remove Crop Tree  |  [X] Mark to Fell"
+        return aimedTree.IsCropTree ? "[C] Remove Crop Tree"
             : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Retain as Crop Tree"
             : "[X] Mark to Fell  |  [C] Retain as Crop Tree";
     }

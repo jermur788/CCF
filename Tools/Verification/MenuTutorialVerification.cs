@@ -80,6 +80,13 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     private Dictionary<string, byte[]> oldSaves = new Dictionary<string, byte[]>();
     private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private static void Field(object target, string name, object value) => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+    private bool SameGroundPosition(Vector3 before, Vector3 after)
+    {
+        // Closing a panel lets the controller settle vertically within its existing skin; a waypoint must not move it across the stand.
+        float skin = player.GetComponent<CharacterController>().skinWidth;
+        return Vector2.Distance(new Vector2(before.x, before.z), new Vector2(after.x, after.z)) < 0.001f
+            && Mathf.Abs(before.y - after.y) <= skin + 0.001f;
+    }
     private IEnumerator Start()
     {
         yield return null; yield return null;
@@ -162,9 +169,15 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Map.WaypointDescription(position);
         Check(!ui.Learning.IsDone("map.arrive"), "Waypoint on current cell credited a journey");
         yield return Press(Key.M);
+        // Square IDs belong to the secondary Light layer; the beginner overview shows access and position.
+        yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Light"));
         int target = (ui.Ecology.GetCellIndex(position) + 1) % ui.Ecology.Cells.Length;
-        Button cellButton = ui.Map.Root.Query<Button>().ToList().First(b => b.ClassListContains("map-cell")
-            && b.Query<Label>().ToList().Any(l => l.text == UiKit.CellLabel(target, ui.Ecology.CellsPerAxis)));
+        // The professional map prints no text in its squares: the invisible square buttons are listed north row first, so square index z*n+x is
+        // the button at (n-1-z)*n+x (StandMapView.EnsureCells; ProfessionalMapVerification checks every button against the shared transform).
+        int perAxis = ui.Ecology.CellsPerAxis;
+        List<Button> squareButtons = ui.Map.Root.Query<Button>(className: "map-cell").ToList();
+        Check(squareButtons.Count == perAxis * perAxis, "the map offers one square button for every ecology square");
+        Button cellButton = squareButtons[(perAxis - 1 - target / perAxis) * perAxis + target % perAxis];
         yield return Click(cellButton);
         foreach (string label in new[] { "Light", "Regeneration", "Browsing / protection", "Fell & crop marks" })
             yield return Click(ui.Map.Root.Query<Button>().ToList().First(b => b.text == label));
@@ -173,7 +186,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Button waypoint = ui.Map.Root.Query<Button>().ToList().First(b => b.text == "Set waypoint");
         yield return Click(waypoint);
         Debug.Log("MENU_WAYPOINT_DIAGNOSTIC before=" + position + " after=" + player.transform.position + " description=" + ui.Map.WaypointDescription(position));
-        Check(player.transform.position == position && !string.IsNullOrEmpty(ui.Map.WaypointDescription(position)), "Waypoint moved player or lacks HUD direction");
+        Check(SameGroundPosition(position, player.transform.position) && !string.IsNullOrEmpty(ui.Map.WaypointDescription(position)), "Waypoint moved player or lacks HUD direction");
         yield return CaptureScreen("map-waypoint");
         yield return Press(Key.M);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Learning.IsDone("map.return"), "M did not return with waypoint");
@@ -193,7 +206,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
             string expected = turn == 0 ? "Ahead" : turn == 90 ? "Turn right" : turn == -90 ? "Turn left" : "Behind you";
             Check(hudDirection.text.StartsWith(expected), "HUD turn instruction incorrect");
             if (destinationText == null) destinationText = hudWaypoint.text;
-            Check(hudWaypoint.text == destinationText && player.transform.position == position, "Turning changed destination or moved player");
+            Check(hudWaypoint.text == destinationText && SameGroundPosition(position, player.transform.position), "Turning changed destination or moved player");
         }
         foreach (Vector2Int size in new[] { new Vector2Int(1280,720), new Vector2Int(1600,900), new Vector2Int(1920,1080) })
         {
@@ -247,13 +260,26 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         yield return CaptureMenu(MenuHelpView.Menu.WorkPlan);
         yield return Press(Key.Escape);
         Check(manager.WorkPlanOpen && !ui.Help.IsOpen, "Help Escape closed Work Plan");
+        Check(ui.RootElement.Query<Label>().ToList().Any(l => l.text.Contains("Pruning")),
+            "early Work Plan does not show pruning locked");
+        Check(ui.RootElement.Query<Label>().ToList().Any(l => l.text.Contains(ScenarioOneWorkPlanFocus.LaterObjectiveNote)),
+            "early Work Plan does not explain the later objective lock");
+        Check(!ui.RootElement.Query<Button>().ToList().Any(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")),
+            "early Work Plan offers pruning before its prerequisites");
         Check(!manager.AnnualReviewSeen, "Empty review falsely completed tutorial");
         ui.ShowReview(); yield return null;
         ui.AcknowledgeAnnualReview(); Check(!manager.AnnualReviewSeen, "Year-zero review acknowledged without results");
         Check(!ui.Help.IsOpen, "Annual introduction shown before results exist");
         ui.ShowWorkPlan(); yield return null;
         Check(ui.AdvanceFromWorkPlan(), "First annual advance blocked"); yield return null; yield return null;
-        Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.AnnualReview && !manager.AnnualReviewSeen, "First results not introduced or prematurely acknowledged");
+        // The first results open WITHOUT a help screen stacked over the acknowledgement; the guidance is in the review itself.
+        Check(!ui.Help.IsOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !manager.AnnualReviewSeen,
+            "First results must open without a help screen over them, and without being acknowledged");
+        Button acknowledgeButton = ui.RootElement.Q<Button>("annual-review-acknowledge");
+        Check(acknowledgeButton != null && acknowledgeButton.parent.Query<Label>().ToList().Any(l => l.text == MenuHelpView.AnnualReviewReadPrompt),
+            "Annual Review lacks its in-screen reading guidance");
+        ui.ShowHelp(MenuHelpView.Menu.AnnualReview); yield return null;
+        Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.AnnualReview, "Help does not reopen the Annual Review explanation on request");
         yield return CaptureMenu(MenuHelpView.Menu.AnnualReview);
         yield return Press(Key.Escape);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !manager.AnnualReviewSeen, "Help Escape closed or acknowledged Annual Review");
@@ -276,6 +302,7 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(!ui.Help.IsOpen, "Annual introduction repeats after learning");
         Debug.Log("MENU_ANNUAL_GATE_PASS emptyReview=false beforeAck=locked afterAck=unlocked saveLoad=preserved repeat=false");
 
+        yield return LoadStage7Fixture();
         yield return VerifyLearningObjectives();
 
         ui.CloseAll(); yield return null;
@@ -284,8 +311,143 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.ShowHelp(MenuHelpView.Menu.WalkingHud); Check(!ui.Help.IsOpen, "Help leaked into Reference preview");
         manager.EndReferencePreview(); yield return null;
         Check(ui.Learning.CompletedSteps == learningBeforePreview, "Reference preview changed learning progress");
-        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu))) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
+        // The rack screen is introduced by the rack tool itself on the first B press (verified by RackUxRack), not by walking to a screen.
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
+    }
+
+    ScenarioOneRackBay.Analysis Bay()
+    {
+        var layout = ui.RackTool.Planner.LayoutStatus();
+        var line = layout[layout.Count / 2];
+        return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
+            ui.RackTool.Planner.LayoutLines, new ScenarioOneRackBay.Frame(line.Start, line.End,
+                ScenarioOneRackBay.HalfWidth(ui.RackTool.Planner.LayoutLines, layout.Count / 2)));
+    }
+
+    static ForestTree[] LivingSpruce() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        .Where(t => t.IsLiving && t.Species != null && t.Species.SpeciesId == "sitka-spruce")
+        .OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
+
+    ScenarioOneTeachingSequence.Facts LiveFacts()
+    {
+        MethodInfo method = typeof(LearningObjectivesView).GetMethod("TeachingFacts", BindingFlags.Instance | BindingFlags.NonPublic);
+        return (ScenarioOneTeachingSequence.Facts)method.Invoke(ui.Learning, null);
+    }
+
+    private static readonly Vector3[] ReviewDirections =
+    {
+        Vector3.back, Vector3.forward, Vector3.right, Vector3.left,
+        new Vector3(-1f, 0f, -1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+        new Vector3(-1f, 0f, 1f).normalized, new Vector3(1f, 0f, 1f).normalized
+    };
+    private static readonly float[] ReviewDistances = { 3f, 2.5f, 2f };
+    private readonly Collider[] reviewOverlaps = new Collider[16];
+
+    private bool OverlapsOtherTree(Vector3 standPoint, ForestTree target, out string blocking)
+    {
+        blocking = "";
+        int count = Physics.OverlapSphereNonAlloc(standPoint + Vector3.up * 0.9f, 0.35f, reviewOverlaps);
+        for (int i = 0; i < count; i++)
+        {
+            Collider collider = reviewOverlaps[i];
+            Transform hit = collider.transform;
+            if (hit == ui.Player.transform || hit.IsChildOf(ui.Player.transform)) continue;
+            ForestTree tree = collider.GetComponentInParent<ForestTree>();
+            if (tree == target) continue;
+            blocking = tree != null ? tree.TreeId : collider.name;
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator AimAt(ForestTree tree)
+    {
+        Vector3 aimPoint = tree.transform.position + Vector3.up * 1.4f;
+        var attempts = new List<string>();
+        for (int direction = 0; direction < ReviewDirections.Length; direction++)
+        {
+            for (int distance = 0; distance < ReviewDistances.Length; distance++)
+            {
+                Vector3 standPoint = tree.transform.position + ReviewDirections[direction] * ReviewDistances[distance];
+                if (OverlapsOtherTree(standPoint, tree, out string blocking))
+                {
+                    attempts.Add(direction + "@" + ReviewDistances[distance] + " blocked by " + blocking);
+                    continue;
+                }
+                ui.Player.transform.position = standPoint;
+                ui.Player.LookToward(aimPoint);
+                for (int i = 0; i < 8; i++) yield return null;
+                ForestTree aimed = ui.Marking.AimedTree;
+                if (aimed == tree) yield break;
+                attempts.Add(direction + "@" + ReviewDistances[distance] + " aimed " + (aimed != null ? aimed.TreeId : "nothing"));
+            }
+        }
+        throw new InvalidOperationException("could not aim at " + tree.TreeId + " [" + string.Join("; ", attempts) + "]");
+    }
+
+    private IEnumerator ReviewInspect(ForestTree tree)
+    {
+        if (ui.Player.IsInspecting) yield return Press(Key.E);
+        ui.CloseAll(); ui.CloseHelp();
+        yield return AimAt(tree);
+        yield return Press(Key.E);
+        for (int i = 0; i < 8; i++) yield return null;
+        ui.CloseHelp();
+        for (int i = 0; i < 4; i++) yield return null;
+        Check(ui.Player.IsInspecting && ui.Player.InspectedTree == tree, "Stage 7 review inspection failed: " + tree.TreeId);
+    }
+
+    IEnumerator ReviewStage7()
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        foreach (string id in Bay().Future.Select(t => t.Id).ToArray())
+        {
+            yield return ReviewInspect(LivingSpruce().First(t => t.TreeId == id));
+            yield return Press(Key.J);
+            for (int i = 0; i < 6; i++) yield return null;
+        }
+        for (int part = 0; part < 6; part++)
+        {
+            ScenarioOneRackBay.Analysis bay = Bay();
+            ForestTree tree = LivingSpruce().First(t => !t.IsMarkedForFell && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Portion(t.transform.position.x, t.transform.position.z) == part);
+            yield return ReviewInspect(tree);
+            yield return Press(Key.J);
+            for (int i = 0; i < 6; i++) yield return null;
+        }
+        if (ui.Player.IsInspecting) yield return Press(Key.E);
+        for (int i = 0; i < 20; i++) yield return null;
+        ScenarioOneTeachingSequence.Facts facts = LiveFacts();
+        if (facts.Bay != null)
+            Debug.Log("MENU_REVIEW_DIAGNOSTIC complete=" + facts.RackReviewComplete
+                + " enough=" + facts.Bay.HasEnoughFuture + " canopy=" + facts.Bay.CanopyKept
+                + " exec=" + facts.Bay.ReleaseExecuted + " mixed=" + facts.Bay.MixedExecuted
+                + " reviewed=" + facts.ReleaseReviewed + " trees=" + facts.RevisitedTrees
+                + " portions=" + facts.StandPortionsReviewed + " decisions=" + facts.ReviewDecisions
+                + " future=" + string.Join(",", facts.Bay.Future.Select(t => t.Id + ":p" + t.PlannedShare + "/m" + t.MarkedShare)));
+        Check(facts.RackReviewComplete && facts.RevisitedTrees == 3 && facts.StandPortionsReviewed == 6,
+            "Stage 7 review did not record three trees and six stand portions: trees " + facts.RevisitedTrees + " portions " + facts.StandPortionsReviewed);
+    }
+
+    private IEnumerator LoadStage7Fixture()
+    {
+        string path = Environment.GetEnvironmentVariable("CCF_MENU_STAGE7_SAVE");
+        Check(!string.IsNullOrEmpty(path) && File.Exists(path), "Stage 7 menu fixture missing: " + (path ?? "<unset>"));
+        ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(path));
+        Check(data != null, "Stage 7 menu fixture is not a ForestSaveData: " + path);
+        Check(saves.LoadData(data, false), "Stage 7 menu fixture did not load: " + path);
+        yield return null; yield return null;
+        ui.CloseAll(); ui.CloseHelp();
+        ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
+        // The rack review is deliberately session-only: a loaded save returns to the review. Repeat the real production
+        // inspection/[J] review after the progress reload, then assert the later teaching stage without resetting it again.
+        yield return ReviewStage7();
+        ui.RackLayout.Update(true);
+        for (int i = 0; i < 8; i++) ui.Learning.Refresh(true);
+        Debug.Log("MENU_STAGE7_FIXTURE loaded=" + path + " year=" + manager.CurrentEcologicalYear
+            + " stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'");
+        Check(ui.Learning.CurrentTopicIndex == 7, "Stage 7 menu fixture does not present the final teaching stage");
     }
 
     private IEnumerator VerifyLearningObjectives()
@@ -316,20 +478,45 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         yield return Press(Key.O);
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "O does not return to forest");
 
-        ForestTree[] eligible = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t.CanChop && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
-            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).Take(2).ToArray();
-        Check(eligible.Length == 2, "Learning fixture lacks pruning/felling candidates");
-        player.transform.position = eligible[0].transform.position - new Vector3(0, 0, 3);
-        player.LookToward(eligible[0].transform.position + Vector3.up * 1.3f);
+        ForestTree[] livingForLearning = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+            .Where(t => t.CanChop).ToArray();
+        ScenarioOneRackBay.Analysis learningBay = Bay();
+        ForestTree cropForPruning = livingForLearning
+            .Where(t => t.IsCropTree && t.CanPrune(2.5f, manager.CurrentEcologicalYear + 1) == null)
+            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
+        // The fell fixture must sit outside the teaching bay: a marked in-footprint removal counts toward the 40% safeguard and
+        // could drop the rederived lesson below stage 7 before the pruning card is built.
+        ForestTree fellTarget = livingForLearning
+            .Where(t => !t.IsCropTree && !learningBay.Contains(t.transform.position.x, t.transform.position.z))
+            .OrderBy(t => new Vector2(t.transform.position.x, t.transform.position.z).sqrMagnitude).FirstOrDefault();
+        Check(cropForPruning != null, "Stage 7 fixture lacks an existing Crop Tree eligible for pruning");
+        Check(fellTarget != null, "Stage 7 fixture lacks a non-crop fell target");
+        Check(cropForPruning.TreeId != fellTarget.TreeId, "Stage 7 fixture selected the same tree for pruning and felling");
         UnityEngine.Cursor.lockState = CursorLockMode.Locked; UnityEngine.Cursor.visible = false;
-        for (int i = 0; i < 5; i++) yield return null;
+        ForestTree aimed = null;
+        Vector3 bayCentre = new Vector3(learningBay.Geometry.X, 0f, learningBay.Geometry.Z);
+        Vector3 outward = fellTarget.transform.position - bayCentre; outward.y = 0f;
+        if (outward.sqrMagnitude > 0.0001f) outward.Normalize(); else outward = Vector3.back;
+        Vector3[] aimDirections = { outward, -outward, Vector3.back, Vector3.forward, Vector3.right, Vector3.left };
+        foreach (Vector3 direction in aimDirections)
+        {
+            player.transform.position = fellTarget.transform.position + direction * 3f;
+            player.LookToward(fellTarget.transform.position + Vector3.up * 1.3f);
+            for (int i = 0; i < 5; i++) yield return null;
+            aimed = ui.Marking.AimedTree;
+            if (aimed != null && !aimed.IsCropTree && !learningBay.Contains(aimed.transform.position.x, aimed.transform.position.z))
+            {
+                fellTarget = aimed;
+                break;
+            }
+        }
         Debug.Log("LEARNING_AIM_DIAGNOSTIC cursor=" + UnityEngine.Cursor.lockState + " player=" + player.enabled
-            + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + eligible[0].transform.position
+            + " panels=" + manager.AnyPanelOpen + " camera=" + Camera.main.transform.position + " target=" + fellTarget.transform.position
+            + " aimed=" + (aimed != null ? aimed.TreeId : "none") + " crop=" + (aimed != null && aimed.IsCropTree)
             + " hits=" + string.Join(",", Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, 8)
                 .Select(h => h.collider.name)));
-        Check(ui.Marking.AimedTree != null, "Learning fixture does not aim at tree");
-        ForestTree aimed = ui.Marking.AimedTree;
+        Check(aimed != null && !aimed.IsCropTree && !learningBay.Contains(aimed.transform.position.x, aimed.transform.position.z),
+            "Learning fixture does not aim at a non-crop tree outside the teaching bay");
         yield return Press(Key.M); ui.CloseHelp();
         Check(!aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "M also marked aimed tree");
         ui.CloseAll(); yield return null; yield return null;
@@ -337,11 +524,23 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(aimed.IsMarkedForFell && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, "X does not mark Fell independently");
         yield return Press(Key.X);
         Check(!aimed.IsMarkedForFell, "X does not undo Fell mark");
-        ui.Marking.Mark(eligible[0], TreeMarkType.CropTree, false);
-        ui.Marking.Mark(eligible[1], TreeMarkType.Fell, false);
+        ui.Marking.Mark(fellTarget, TreeMarkType.Fell, false);
         for (int i = 0; i < 30; i++) yield return null;
+        // Re-establish the session-only review immediately before the Work Plan reads the real stage; the intervening map,
+        // marking and objectives navigation must never let an older review decide the pruning card.
+        yield return ReviewStage7();
         ui.ShowWorkPlan(); ui.CloseHelp(); yield return null;
-        yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Add marked trees"));
+        bool pruneResultBefore = ui.Learning.IsDone("prune.result");
+        bool deadwoodResultBefore = ui.Learning.IsDone("deadwood.result");
+        ScenarioOneTeachingSequence.Facts pruneFacts = LiveFacts();
+        Debug.Log("MENU_PRUNE_DIAGNOSTIC stage=" + ui.Learning.CurrentTopicIndex + " title='" + ui.Learning.CurrentTitle + "'"
+            + " crops=" + manager.CropTreeCount + " eligible=" + manager.EligibleCropTreePruningCount
+            + " future=" + (pruneFacts.Bay != null) + " enough=" + (pruneFacts.Bay != null && pruneFacts.Bay.HasEnoughFuture)
+            + " canopy=" + (pruneFacts.Bay != null && pruneFacts.Bay.CanopyKept)
+            + " releaseExec=" + pruneFacts.ReleaseExecuted + " review=" + pruneFacts.RackReviewComplete
+            + " rackProblem='" + ui.RackPlanProblem + "'"
+            + " buttons=" + string.Join("|", ui.RootElement.Query<Button>().ToList().Select(b => b.text)));
+        // The Work Plan folds the Fell marks in when it opens, so there is no separate "Add marked trees" step to click.
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text == "Leave as deadwood"));
         yield return Click(ui.RootElement.Query<Button>().ToList().First(b => b.text.StartsWith("Add ") && b.text.Contains("eligible crop tree pruning")));
         Check(manager.TryPurchaseStock("beech-sapling", 1), "Learning nursery purchase failed");
@@ -356,7 +555,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         ui.Learning.Observe();
         foreach (string id in new[] { "fell.plan", "deadwood.plan", "prune.plan", "plant.stock", "plant.plan", "plant.shelter", "clear.plan" })
             Check(ui.Learning.IsDone(id), "Learning action not recorded: " + id);
-        Check(!ui.Learning.IsDone("prune.result") && !ui.Learning.IsDone("deadwood.result"), "Planning falsely credited execution");
+        // The Stage 7 fixture already carries real deadwood history, so only a *new* execution credit is a failure.
+        Check(ui.Learning.IsDone("prune.result") == pruneResultBefore && ui.Learning.IsDone("deadwood.result") == deadwoodResultBefore,
+            "Planning falsely credited execution");
         Check(manager.ApprovePendingWork(), "Learning job approval failed"); ui.Learning.Observe();
         foreach (string id in new[] { "fell.approve", "prune.approve", "plant.approve", "clear.approve" })
             Check(ui.Learning.IsDone(id), "Approval learning not recorded: " + id);

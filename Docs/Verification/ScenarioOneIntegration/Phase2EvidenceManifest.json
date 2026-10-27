@@ -1,0 +1,227 @@
+{
+  "branch": "fix/candidate-v2-review-tooling",
+  "starting_head": "2ba7408de312cd777249c5fc0d5e654e1573007f",
+  "context": "cddad55213d3491b9f320a7a9a7a1bcd913b6ec8",
+  "original_production_base": "c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2",
+  "evidence_root": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016",
+  "original_evidence_root": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z",
+  "original_inputs": [
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/summary/SUMMARY.md",
+      "bytes": 14330,
+      "sha256": "e469d48f5d097758cc5c39376d5d11fc20cdce1c7ea409a0969c3a247af80454"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/summary/results-index.json",
+      "bytes": 6482,
+      "sha256": "7234f56e22efe8b61fb67c584f772829297327fff379557d9f8669b064b34c53"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-L40-mixed-gate/E-L40-mixed-gate.log",
+      "bytes": 3363329,
+      "sha256": "891d1d5c6c6059f61e044b82bf93988ee1cae662115e9db02468dde2212de00b"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-L40-mixed-gate/results-E-L40-mixed-gate.json",
+      "bytes": 586,
+      "sha256": "afff9875d0430be037d8869880aedc7b7f09ba93c6dc7d15970905a3a65092d9"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-L40-mixed-gate-rerun/E-L40-mixed-gate-rerun.log",
+      "bytes": 3279352,
+      "sha256": "8538d42e0251fe95eb913a2441510f97dd1ba34302fddc4e2b056086510dd53b"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-L40-mixed-gate-rerun/results-E-L40-mixed-gate-rerun.json",
+      "bytes": 549,
+      "sha256": "526ccb72147228f8f0628d86e85f5308dc80babf0511b90364e929f8ef136acc"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/D-E80-dense-beech/D-E80-dense-beech.log",
+      "bytes": 200320,
+      "sha256": "cbb003cdd9f6a323150c101d6e3e0ecb4681d36b7c805f3ee0a525986ce5fc03"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/D-E80-dense-beech/results-D-E80-dense-beech.json",
+      "bytes": 755,
+      "sha256": "59a28390865ae2c24545f3264c4d7caeca62db72644c76d16d71c0a21b64aca3"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/D-E80-dense-beech-corrected/D-E80-dense-beech-corrected.log",
+      "bytes": 2785495,
+      "sha256": "1bcc0ac1cf1c97be4d3b98c42ba2ef4acace21b66f4808e3f046d3719021febc"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/D-E80-dense-beech-corrected/results-D-E80-dense-beech-corrected.json",
+      "bytes": 742,
+      "sha256": "c59ee41d606daea676605d96e46ea067c53adf54079f5424ad44ec42daf86bbf"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-E80-mixed-longrun/E-E80-mixed-longrun.log",
+      "bytes": 200037,
+      "sha256": "65732b1fc974ffbfde49b6df0bf8374acde40692b62403d40fe915b6787b938e"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-E80-mixed-longrun/results-E-E80-mixed-longrun.json",
+      "bytes": 757,
+      "sha256": "434c2e6981787cfb72a8973ac184a5af125d3b36cc47b188d1271d14a2d2fee5"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-E80-mixed-longrun-corrected/E-E80-mixed-longrun-corrected.log",
+      "bytes": 912010,
+      "sha256": "c92be381baee776a1e909004e1b46d3f2ac4c3c2873cb8e86308618c89ec929c"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-E80-mixed-longrun-corrected/results-E-E80-mixed-longrun-corrected.json",
+      "bytes": 744,
+      "sha256": "b19ca6b33a47e37c68a3bdd8ece608396f59e6c227861167bbfc6ec44ad192ae"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/F-history/F-history.log",
+      "bytes": 221232,
+      "sha256": "512bc258fb049f17b080dbd3958d90c66280abb5eafb384d229100abe07d7436"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/F-history/results-F-history.json",
+      "bytes": 546,
+      "sha256": "c47593e15f78696da6ad175fc99427ed75884b50704099376310531a77a907dd"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/H-u4-guidance-1280/H-u4-guidance-1280.log",
+      "bytes": 641292,
+      "sha256": "3f5c698dd853e6feb7f9b86ccccf0a0c002b4333c1cbf6101edebf3e7e7c8712"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/H-u4-guidance-1280/results-H-u4-guidance-1280.json",
+      "bytes": 1488,
+      "sha256": "3c126e26baa675ce59ba3881ee78a14804d769d823e4f1658289b22def6d285f"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-L40-mixed-gate/crash-artifacts/mono_crash.mem.897289.1.blob",
+      "bytes": 10000001,
+      "sha256": "95b175328d92209227c87659e23563638c736727a8c70df470f20a7438c8114a"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/D-E80-dense-beech-corrected/evidence/longrun-E80.csv",
+      "bytes": 108408,
+      "sha256": "bdc7c0161369e9881b5216253265a019bbc77afd376bfbd37ccdaae0d2b3747f"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/ScenarioOneCandidateV2-DeltaSmoke-20261015T235102Z/runs/E-E80-mixed-longrun-corrected/evidence/longrun-E80.csv",
+      "bytes": 37468,
+      "sha256": "b4a6625aac36f352f45134845705a53f458050c7bc34a43a4a4385be636f3f58"
+    }
+  ],
+  "fresh_outputs_and_preserved_crash": [
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/qualification.log",
+      "bytes": 5623,
+      "sha256": "6111e6bdb96c43b61f043b187cd570c7bf91c803dfa29c2f95fb2c40e2c670c0"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/f10.log",
+      "bytes": 764,
+      "sha256": "b6423b96b164efda07e3446bd843d70c9ea666febf34fe3e7080750bc62176ba"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/history.log",
+      "bytes": 5646,
+      "sha256": "85104e95de27100bcf6559f008d4f608e4d71923a8231d2635a1507ce82fcaaf"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/n3.log",
+      "bytes": 4132,
+      "sha256": "e56db1429f3e26db77a5c41748e488af30914affa7e64997e93815f6c81a732b"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/ux.log",
+      "bytes": 9414,
+      "sha256": "76a6e25d5aeca0936946f011f3c8765b20116728880023d23ecdf6262a84f6f6"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/typecheck.log",
+      "bytes": 7281,
+      "sha256": "13bcf2e2a9aa48d882f9ba96316a6080feafb013b6a9f3fc73bc2dacdd5d9974"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/audit_original_receipts.py",
+      "bytes": 3354,
+      "sha256": "26bfe996f6a13571902fef84dc51232ca0f60612d23072024a662080492518d1"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/original-receipt-reinterpretation.json",
+      "bytes": 7707,
+      "sha256": "dde59939f627939d1e3cf76a455c79de47ccf2828836adb7704898ef69009136"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/original-receipt-audit.log",
+      "bytes": 771,
+      "sha256": "1e98bba4b45e92c7546325eb991a548fd1bb012b96dff115e2faa8aa2e82453d"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/original-evidence-snapshot.json",
+      "bytes": 73809,
+      "sha256": "ec24212b84f4950d3302e71d484cec4dd923007a8ecd9eec43b8e2a27186e9dd"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/source-and-evidence-audit.json",
+      "bytes": 580,
+      "sha256": "80e75036884d28bb3d9c4ed26fd57259e9e39bcae16a3c8b39d42d9a1ada3020"
+    },
+    {
+      "path": "/media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/preserved-shutdown-crash/mono_crash.mem.897289.1.blob",
+      "bytes": 10000001,
+      "sha256": "95b175328d92209227c87659e23563638c736727a8c70df470f20a7438c8114a"
+    }
+  ],
+  "tested_tool_sha256": {
+    "Tools/Verification/Qualification/run_qualification.py": "3850284e1fbf5c5e6787247cdf6934db08c0cf8ea0356de410de87e3a76b8cbc",
+    "Tools/Verification/Qualification/test_run_qualification.py": "11bf3fa30496813d7da82733acccfce78d88bedef95056f07583ee150ab218f2",
+    "Tools/Verification/ScenarioOneUx/Qualification/UxQualification.cs": "a48931b85cfa18cd14a6f23a8fc4e8b729901eb04aaf62bbece9c5058d4c0055",
+    "Tools/Verification/ScenarioOneUx/Qualification/run_qualification.py": "b2875f2fb559af9459f589f77164e80c600a53509d3a7a14cff69c35ea31f4f4",
+    "Tools/Verification/ThreeSpecies/Qualification/DensityQualification.cs": "56b0232168bc39feee68b5d0dcee48b688aeb691430c8b5fc2d343e3124066a2",
+    "Tools/Verification/ThreeSpecies/Qualification/run_qualification.py": "667f903ff55c73e1451588e050a73752d05635b0f0bc06ac4128413cf886a0b8",
+    "Tools/Verification/ThreeSpecies/ScenarioHistoryVerification.cs": "622b9c603e6eadd3fe4b4ec792d237e3b85907922072ed90c6bb02ea82108600",
+    "Tools/Verification/U4Guidance/U4GuidanceSmoke.cs": "a30bee36210d144709924ef1b8d017b920c2f64693167511914a69d60258f772",
+    "Tools/Verification/Qualification/qualification_results.py": "0c3d4ec98f6697a02e7e6c71b9e180e126ea4f4059e676d88161275aab5d7d3c",
+    "Tools/Verification/Qualification/test_density_qualification.py": "6823f79395e8379f6bdd30f668f42ab503492eab5b9f30a9a6dce3ea30638974",
+    "Tools/Verification/Qualification/test_ux_runner.py": "b19b12c9d679245084f7465d023f29ba5e60a6f0bb48872300d00abe756a3f72"
+  },
+  "phase1_manifest_preserved": {
+    "path": "/media/jer/ZX20/CCF-Integration/Docs/Verification/ScenarioOneIntegration/CandidateV2EvidenceManifest.json",
+    "bytes": 53392,
+    "sha256": "8abdb50b2ea6090847c64e6acbb2fc316b188048f2d1ebd555acc65ef8de6578"
+  },
+  "test_commands": [
+    "TMPDIR=/media/jer/ZX20/CCF-Temp/candidate-v2-phase2 python3 -B -m unittest discover -s Tools/Verification/Qualification -p 'test_*.py' -v",
+    "python3 Tools/Verification/ScenarioOneUx/Qualification/run_f10_self_test.py --out /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/f10",
+    "python3 Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py --suite history --out /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/history",
+    "python3 Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py --out /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/n3",
+    "python3 Tools/Verification/ScenarioOneUx/run_ux_check.py --out /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/ux",
+    "python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode tools --out /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/tests/typecheck",
+    "python3 -B /media/jer/ZX20/CCF-Verification/CandidateV2ToolingPhase2-20261016/audit_original_receipts.py",
+    "git diff --check",
+    "git diff c20c6dc242e4463b3de72e6c2d06b4ea9fa1fbc2..HEAD -- Assets Packages ProjectSettings"
+  ],
+  "results": {
+    "automated_tests": "22/22 PASS including 28 actual C# density/UX policy cases; fake-process licence/command test; invalid CLI preflight tests",
+    "F10": "13/13 PASS and both flow wiring checks",
+    "history_offline": "74/74 PASS",
+    "N3_offline": "88/88 PASS",
+    "UX_offline": "176/176 PASS",
+    "tools_typecheck": "CLEAN zero new errors; 13 existing against baseline 43; approximate non-Unity compiler",
+    "phase1_manifest_and_originals": "Manifest byte-identical to 2ba7408; all 99 preserved-file SHA-256 hashes match",
+    "original_Tier2_evidence": "276 original files unmodified (complete hash snapshot linked above); original crash copy byte-identical",
+    "original_receipt_reinterpretation": "Old vacuous filter receipts FAIL; corrected LONGRUN/replay=0 with zero hard checks and complete rows remains accepted for downstream analysis; original crash remains FAIL exit255 with VERDICT_PASS_POST_SHUTDOWN_CRASH; rerun PASS_CLEAN_SHUTDOWN",
+    "U4_hash": "OBSERVED ONLY; no replacement expected hash; Tier-3 adjudication pending",
+    "Unity": "NOT RUN",
+    "scope": "Assets/Packages/ProjectSettings/DocsProject diff EMPTY from c20c6dc; final committed audit required"
+  },
+  "notes": [
+    "No original evidence was changed or fabricated. New evaluator output is a reinterpretation, not a rerun.",
+    "Zero-check measurement collection is not a downstream measurement-analysis PASS.",
+    "Shared receipt classification never turns a non-zero exit into PASS; special crash annotation requires valid prior verdict, shutdown evidence, only expected mono_crash artifacts and raw exit255/139/-11. Reproducible shutdown crashes require investigation.",
+    "U4 true sizing and History later checks await focused Unity rerun on final HEAD. Do not request Claude review yet.",
+    "Actual route: T3 Code / Codex / GPT-6.1-Sol / this session allowance; requested DeepSeek route unavailable and disclosed."
+  ]
+}

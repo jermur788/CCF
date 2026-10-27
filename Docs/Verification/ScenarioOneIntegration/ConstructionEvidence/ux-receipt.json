@@ -1,0 +1,15 @@
+{
+  "check": "ux",
+  "exit": 0,
+  "seconds": 9.79,
+  "tail": [
+    "PASS obsolete guidance is gone: \"Open the Century Review in the Work Plan\" ",
+    "PASS obsolete guidance is gone: \"private first-cycle test\" ",
+    "PASS obsolete guidance is gone: \"Manage one cycle\" ",
+    "PASS obsolete guidance is gone: \"no broadleaf timber market is configured in this scenario\" ",
+    "PASS obsolete guidance is gone: \"2. Buy Beech and Sessile Oak saplings from the nursery\" ",
+    "PASS obsolete guidance is gone: \"4. Advance one ecological year to execute approved work\" ",
+    "PASS obsolete guidance is gone: \"start with simple map steps\" ",
+    "SCENARIO_ONE_UX_PASS checks=176"
+  ]
+}

@@ -35,6 +35,13 @@ GATES=[
 FINAL_MARKERS={'SitkaGrowthModelVerification': 'SITKA_GROWTH_MODEL_VERIFY_PASS', 'RegenerationModelVerification': 'REGENERATION_MODEL_VERIFY_PASS', 'ScenarioReferenceVerification': 'REFERENCE_FUTURE_V1_PASS', 'ScenarioOneCompletionVerification': 'SCENARIO_ONE_COMPLETION_VERIFY_PASS', 'ScenarioOneEconomyIntegrationVerification': 'SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_PASS', 'BrowsingProtectionVerification': 'BROWSING_PROTECTION_VERIFY_PASS', 'ScenarioOnePlantingVerification': 'SCENARIO_ONE_PLANTING_VERIFY_PASS', 'ScenarioOnePruningVerification': 'SCENARIO_ONE_PRUNING_VERIFY_PASS', 'ScenarioOneDeadwoodVerification': 'SCENARIO_ONE_DEADWOOD_VERIFY_PASS', 'ScenarioOneProgressVerification': 'SCENARIO_ONE_PROGRESS_VERIFY_PASS', 'SaveHardeningVerification': 'SAVE_HARDENING_VERIFY_PASS', 'RngModelVerification': 'RNG_MODEL_VERIFY_PASS', 'RngModelPolicyVerification': 'RNG_MODEL_POLICY_VERIFY_PASS', 'ScenarioOneInteractionVerification': 'SCENARIO_ONE_INTERACTION_VERIFY_PASS', 'EcologyCalibrationAdoptionVerification': 'ECOLOGY_CALIBRATION_ADOPTION_VERIFY_PASS', 'CCFIntegrationVerificationTemp': 'INTEGRATION_VERIFY_PASS', 'ScenarioOneRemovalVerification': 'SCENARIO_ONE_REMOVAL_VERIFY_PASS', 'ClearanceVerification': 'CLEARANCE_ACCEPTANCE_PASS', 'MenuTutorialVerification': 'MENU_TUTORIAL_PLAYTHROUGH_PASS'}
 FINAL_MARKERS.update(TimberAssortmentYieldVerification='TIMBER_YIELD_VERIFY_PASS',Stage1WorkEconomyFoundationVerification='STAGE1_ECONOMY_VERIFY_PASS',JuvenileMortalityFoundationVerification='JUVENILE_CANONICAL_VERIFY_PASS',JuvenileDisplayHeightVerification='JUVENILE_DISPLAY_HEIGHT_VERIFY_PASS')
 FINAL_MARKERS['Model2PedagogyVerification']='MODEL2_PEDAGOGY_PASS'
+# Frozen Reference Future v1 archive/preview Year-100 anchor (model 0; never rebaselined).
+REFERENCE_ARCHIVE_YEAR100_HASH='7AD177B3CC2F73C7'
+# Documented current Reference continuation fingerprint (v15 layout). The continuation world is
+# forward-simulated from the frozen archive under live rules, so its fingerprint moves with accepted
+# calibration: the accepted Oak/Beech ordinal [C] growth rows moved it (before/after in the provenance doc).
+# Provenance and policy: Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md
+REFERENCE_CONTINUATION_V15_LAYOUT_HASH='BFFF66015A6619DA'
 parser=argparse.ArgumentParser();parser.add_argument('--gate',choices=[g[0] for g in GATES]);args=parser.parse_args()
 result_path=out/('results-'+args.gate+'.json' if args.gate else 'results.json')
 if args.gate:GATES=[g for g in GATES if g[0]==args.gate]
@@ -64,8 +71,11 @@ for gate,path,interactive,ref in GATES:
   content=log.read_text(errors='replace') if log.exists() else ''
   markers=[s for s in content.splitlines() if any(x in s for x in ['_PASS','_FAIL','_HASH','error CS'])]
   passed=code==0 and FINAL_MARKERS[gate] in content and not any('_FAIL' in s or 'error CS' in s for s in markers)
-  # Explicit immutable Reference anchors; stop immediately if the archive/replay differs.
-  if gate=='ScenarioReferenceVerification':passed=passed and '7AD177B3CC2F73C7' in content and '9CDF21A541C5968D' in content
+  # Reference Future v1 protection: the frozen contract, deterministic continuation and the documented
+  # continuation fingerprint. The fingerprint is a named, provenance-linked constant, not a bare literal.
+  if gate=='ScenarioReferenceVerification':
+   passed=(passed and 'REFERENCE_FUTURE_V1_CONTRACT_PASS' in content and 'deterministic=True' in content
+           and REFERENCE_ARCHIVE_YEAR100_HASH in content and REFERENCE_CONTINUATION_V15_LAYOUT_HASH in content)
   result=dict(gate=gate,status='PASS' if passed else 'FAIL',exit_code=code,seconds=round(time.monotonic()-start,2),mode='interactive' if interactive else 'batch',source_ref=ref or 'integration-working-tree',run_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip(),run_branch=subprocess.check_output(['git','branch','--show-current'],cwd=ROOT).decode().strip(),original_source_sha256=original_source_sha256,fixture_adjustment=fixture_adjustment,source_sha256=hashlib.sha256(data).hexdigest(),markers=markers)
   results.append(result);result_path.write_text(json.dumps(results,indent=2)+'\n');print(json.dumps({k:result[k] for k in ['gate','status','seconds','exit_code']}),flush=True)
   if gate=='ScenarioReferenceVerification' and not passed:raise RuntimeError('STOP: unexpected Reference failure. See '+str(log))

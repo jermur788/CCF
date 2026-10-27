@@ -101,7 +101,7 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
 
     private IEnumerator Verify()
     {
-        Check(ForestSaveData.CurrentVersion == 20 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
+        Check(ForestSaveData.CurrentVersion == 21 && originalDefinition.MinimumHarvestJobCents == 250000 && originalDefinition.OwnerMinutesPerYear == 2400, "production conventions");
         yield return Reset();
         var trees = Trees();
         Mark(trees[0], FellingMaterialOutcome.SellAndExtract); Mark(trees[1], FellingMaterialOutcome.KeepForUse); Mark(trees[2], FellingMaterialOutcome.RetainAsFallenDeadwood);
@@ -123,14 +123,33 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         float afterKept = manager.RetainedTimberM3; Check(manager.AdvanceYear(), "following year"); Near(afterKept, manager.RetainedTimberM3, "no repeat deposit");
 
         yield return Reset();
+        // Contract preserved: non-merchantable stems (below the merchantable height, and a stem too small to
+        // grade) never earn timber revenue, on any growth model. Only the Oak/Beech market is model-dependent.
         var small = spawner.Spawn("ECO-TINY", spawner.DefaultSpecies, new Vector3(0f, 0f, 0f), 5, 4f, 3.5f, 0.4f);
         var shortStem = spawner.Spawn("ECO-SHORT", spawner.DefaultSpecies, new Vector3(-2f, 0f, 0f), 3, 4f, 1.1f, 0.3f);
-        var broadleaf = spawner.Spawn("ECO-BEECH", spawner.ResolveSpecies("beech"), new Vector3(2f, 0f, 0f), 20, 20f, 12f, 2f);
-        Mark(small, FellingMaterialOutcome.SellAndExtract); Mark(broadleaf, FellingMaterialOutcome.SellAndExtract);
-        Mark(shortStem, FellingMaterialOutcome.SellAndExtract);
-        var noMarket = manager.GetHarvestQuote(); Check(noMarket.HasUnmarketedSpecies && noMarket.RevenueCents == 0 && noMarket.CostCents > 0 && noMarket.Task.Timber.Length == 0, "unmarketed/all-residual work without fake sale/pulp");
+        Mark(small, FellingMaterialOutcome.SellAndExtract); Mark(shortStem, FellingMaterialOutcome.SellAndExtract);
+        var noMarket = manager.GetHarvestQuote();
+        Check(noMarket.RevenueCents == 0 && noMarket.CostCents > 0 && noMarket.Task.Timber.Length == 0,
+            "non-merchantable/all-residual work without fake sale/pulp");
         Check(manager.ApprovePendingWork(), "approve unpriced work"); cash = manager.CashCents;
-        Check(manager.AdvanceYear() && small.IsStump && broadleaf.IsStump && shortStem.IsStump, "unpriced world effects including below-breast-height stem"); Equal(-noMarket.CostCents, manager.CashCents - cash, "unpriced charge");
+        Check(manager.AdvanceYear() && small.IsStump && shortStem.IsStump, "unpriced world effects including below-breast-height stem"); Equal(-noMarket.CostCents, manager.CashCents - cash, "unpriced charge");
+
+        // The Oak/Beech timber market follows the saved growth model (D-062): marketed on model 2, unmarketed on legacy.
+        foreach (bool broadleafMarket in new[] { true, false })
+        {
+            yield return Reset();
+            ecology.GrowthModelVersion = broadleafMarket ? GrowthModel.SpeciesAware : GrowthModel.Legacy;
+            var broadleaf = spawner.Spawn("ECO-BEECH-MKT", spawner.ResolveSpecies("beech"), new Vector3(2f, 0f, 0f), 20, 20f, 12f, 2f);
+            Mark(broadleaf, FellingMaterialOutcome.SellAndExtract);
+            var marketQuote = manager.GetHarvestQuote();
+            Check(marketQuote.BroadleafMarket == broadleafMarket, "quoted price book follows the saved growth model");
+            if (broadleafMarket)
+                Check(marketQuote.RevenueCents > 0 && !marketQuote.HasUnmarketedSpecies,
+                    "model 2: a merchantable broadleaf earns timber revenue");
+            else
+                Check(marketQuote.RevenueCents == 0 && marketQuote.HasUnmarketedSpecies,
+                    "legacy: a merchantable broadleaf stays unmarketed");
+        }
 
         yield return Reset(); trees = Trees();
         var dropped = Mark(trees[0], FellingMaterialOutcome.SellAndExtract); Mark(trees[1], FellingMaterialOutcome.SellAndExtract);
