@@ -47,7 +47,9 @@ public sealed class RackTool : MonoBehaviour
     public float AngleDegrees => angle;
     public bool HasOrigin => hasOrigin;
     public RackPoint Origin => origin;
-    public int ConfirmedCount { get; private set; }
+    // Derived from the authoritative rack state, never an independent tool counter. In a legacy world
+    // this is the session rack-group count; in a V2 world it is the persisted plan's rack count.
+    public int ConfirmedCount => manager != null ? manager.RackObjectCount : 0;
     public string Notice => Time.unscaledTime < noticeUntil ? notice : "";
     public RackPlanner Planner => planner;
 
@@ -225,7 +227,6 @@ public sealed class RackTool : MonoBehaviour
         Say(added > 0 ? $"Rack added to the Work Plan: {added} tree{(added == 1 ? "" : "s")}." : manager.Feedback);
         if (added > 0)
         {
-            ConfirmedCount++;
             hasOrigin = false;
             turnOffset = 0f;
         }

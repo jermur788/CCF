@@ -102,6 +102,14 @@ public sealed partial class ScenarioOneManager
     // still be felled and is not already planned. Returns the number of trees added; 0 changes nothing.
     public int ConfirmRack(RackProposal proposal, string source = "forest")
     {
+        // V2 worlds have one authoritative rack plan. The old per-proposal authoring route must never
+        // add a second, session-only rack source while that plan is active; the map editor uses the
+        // V2 AddRack/ConfirmRackPlan runtime instead.
+        if (RackPlanningV2Active)
+        {
+            feedback = "Rack Planning V2 plans racks on the Stand Map. Use the rack plan to confirm the layout.";
+            return 0;
+        }
         if (proposal == null || proposal.Selection == null || proposal.Selection.Trees.Count == 0)
         {
             feedback = "There is no rack to add.";
