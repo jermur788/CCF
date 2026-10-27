@@ -113,6 +113,11 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         stand = FindFirstObjectByType<ForestStartingStand>();
         marking = FindFirstObjectByType<ForestTreeMarkingManager>();
         Check(e != null && m != null && saves != null && stand != null && marking != null, "not the Scenario One ForestTest scene");
+        // This unchanged historical test compares initial and regenerated worlds. The new-game default is now V2;
+        // explicitly generate model 0 before taking the original historical snapshot and its pinned hashes.
+        m.InitializeNewScenario();
+        ResetWorld(StandGeometryModel.Enlarged80);
+        Check(!m.RackPlanningV2Active, "historical Enlarged80 fixture explicitly uses rack model 0");
 
         // ---- A. New-game policy and authoritative geometry ---------------------------------------------------
         Check(StandGeometryPolicy.NewGameModel == StandGeometryModel.Enlarged80 && StandGeometryPolicy.NewGameModelForSession == StandGeometryModel.Enlarged80,
