@@ -142,7 +142,8 @@ public static class ScenarioInterventionHistory
     // Deadwood records stamped with a fall year in [fromYear, toYear] that were not trees the plan of that year felled
     // (felling that leaves a stem as deadwood stamps the resolution year too). Includes self-thinning, windthrow and any
     // other biological death; the persisted records do not say which.
-    private static int OtherDeaths(IReadOnlyList<ScenarioDeadwoodRecord> deadwood, Dictionary<int, HashSet<string>> felledByYear, int fromYear, int toYear)
+    // Internal so the S1-C per-year query layer (ScenarioManagementHistory) shares this parsing instead of duplicating it.
+    internal static int OtherDeaths(IReadOnlyList<ScenarioDeadwoodRecord> deadwood, Dictionary<int, HashSet<string>> felledByYear, int fromYear, int toYear)
     {
         int count = 0;
         foreach (ScenarioDeadwoodRecord record in deadwood)
@@ -154,7 +155,8 @@ public static class ScenarioInterventionHistory
         return count;
     }
 
-    private static Dictionary<int, HashSet<string>> FelledTargetsByYear(IReadOnlyList<ScenarioManagementEvent> events)
+    // Internal so the S1-C per-year query layer (ScenarioManagementHistory) shares this parsing instead of duplicating it.
+    internal static Dictionary<int, HashSet<string>> FelledTargetsByYear(IReadOnlyList<ScenarioManagementEvent> events)
     {
         var map = new Dictionary<int, HashSet<string>>();
         foreach (ScenarioManagementEvent e in events)
