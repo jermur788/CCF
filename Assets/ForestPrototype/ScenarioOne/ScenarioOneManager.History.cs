@@ -1,14 +1,22 @@
 using System.Collections.Generic;
 using System.Linq;
 
-// S1-C / S1-D read access to the derived management history (ScenarioInterventionHistory). Everything here is computed
-// on demand from persisted records; nothing is stored, so there is no new save field and no schema change.
+// S1-C / S1-D read access to the derived management history (ScenarioInterventionHistory and ScenarioManagementHistory).
+// Everything here is computed on demand from persisted records; nothing is stored, so there is no new save field and no
+// schema change.
 public sealed partial class ScenarioOneManager
 {
     // One entry per resolved work plan (a year in which at least one commissioned task succeeded), oldest first.
     // The ordinal is a presentation count; it is separate from the thinning tiers the economy uses.
     public IReadOnlyList<InterventionSummary> Interventions =>
         ScenarioInterventionHistory.Build(managementEvents, annualReports, ecologicalSnapshots, deadwoodRecords, workOrders);
+
+    // One view per completed year (annual report and/or YearAdvanced event), oldest first: the recorded events, orders,
+    // snapshots, storm and deadwood records of that year plus labelled derived context (delta, money, grouped harvest
+    // settlement). Read-only; for the later Annual Review year browser.
+    public IReadOnlyList<YearHistoryView> HistoryYears =>
+        ScenarioManagementHistory.BuildYearViews(managementEvents, annualReports, ecologicalSnapshots, deadwoodRecords,
+            workOrders, stormEvents);
 
     // Open orders that deserve a fresh look: they carry a validation problem, or were planned a couple of years ago.
     // They are surfaced, never expired or deleted.
