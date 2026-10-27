@@ -22,16 +22,16 @@ public static class ScenarioEcologyReviewLines
         // 1. Canopy and stand light.
         lines.Add(previous != null
             ? $"Canopy {F2(previous.meanCanopy)} → {F2(current.meanCanopy)} ({Signed(current.meanCanopy - previous.meanCanopy)}); "
-              + $"mean light {F2(previous.meanLight)} → {F2(current.meanLight)}."
-            : $"Canopy {F2(current.meanCanopy)}; mean light {F2(current.meanLight)}.");
+              + $"average forest-floor light {F2(previous.meanLight)} → {F2(current.meanLight)}."
+            : $"Canopy {F2(current.meanCanopy)}; average forest-floor light {F2(current.meanLight)}.");
 
-        // 2. Managed openings: cells still carrying a recent opening.
+        // 2. Managed openings: map squares still carrying a recent opening.
         if (ecology != null && ecology.Cells != null)
         {
             ForestEcologyCell[] opened = ecology.Cells.Where(cell => cell.RecentOpening > 0.05f).ToArray();
             if (opened.Length > 0)
-                lines.Add($"Opened cells: {opened.Length} with mean light {F2(opened.Average(cell => cell.Light))} "
-                    + $"(stand {F2(current.meanLight)}).");
+                lines.Add($"Opened areas: {opened.Length} map square{(opened.Length == 1 ? "" : "s")} with average forest-floor light {F2(opened.Average(cell => cell.Light))} "
+                    + $"(whole stand {F2(current.meanLight)}).");
         }
 
         // 3. Regeneration by species, natural versus planted.
@@ -43,8 +43,8 @@ public static class ScenarioEcologyReviewLines
             .ToList();
         string change = previous != null ? $" (was {previous.occupiedRegenerationCells})" : "";
         lines.Add(bySpecies.Count > 0
-            ? $"Regenerating cells: {current.occupiedRegenerationCells}{change} — {string.Join(", ", bySpecies)}."
-            : $"Regenerating cells: {current.occupiedRegenerationCells}{change}.");
+            ? $"Areas with young regeneration: {current.occupiedRegenerationCells}{change} — {string.Join(", ", bySpecies)}."
+            : $"Areas with young regeneration: {current.occupiedRegenerationCells}{change}.");
 
         // 4. Planted individuals.
         List<PlantedJuvenile> individuals = planted?.Where(j => j != null && !j.legacyCohortManaged).ToList()

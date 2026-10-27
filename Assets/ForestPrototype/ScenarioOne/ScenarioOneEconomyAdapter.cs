@@ -15,6 +15,8 @@ public sealed class ScenarioHarvestJob
     public WorkResolution Resolution;
     public long TotalStemVolumeCm3, SoldVolumeCm3, RetainedVolumeCm3, DeadwoodVolumeCm3, ResidualVolumeCm3;
     public bool HasUnmarketedSpecies;
+    // True when quoted under the Oak/Beech market (growth model 2, D-062); settlement must use the same price book.
+    public bool BroadleafMarket;
     public string Problem = "";
     public long CostCents => Resolution != null ? Resolution.Quote.Costs.TotalExternalCostCents : 0;
     public long RevenueCents => Resolution != null ? Resolution.Quote.TimberSaleRevenueCents : 0;
@@ -36,9 +38,16 @@ public static class ScenarioOneEconomyAdapter
 {
     public const string ShelterMaterialId = "scenario-tree-shelter";
 
-    public static ForestryPriceBook PriceBook(ScenarioOneDefinition definition)
+    // broadleafMarket adds the Oak and Beech product prices and work-proxy densities (D-062). Off, the book is exactly
+    // the Sitka-only book, so games that predate the market are priced as before.
+    public static ForestryPriceBook PriceBook(ScenarioOneDefinition definition, bool broadleafMarket = false)
     {
         var book = Stage1EconomyDefaults.Create();
+        if (broadleafMarket)
+        {
+            book.TimberPrices = book.TimberPrices.Concat(Stage1EconomyDefaults.BroadleafTimberPrices()).ToArray();
+            book.Densities = book.Densities.Concat(Stage1EconomyDefaults.BroadleafDensities()).ToArray();
+        }
         book.MinimumHarvestJobCents.Selected = definition.MinimumHarvestJobCents;
         book.ContractorLabourCentsPerHour.Selected = definition.ContractorHourlyRateCents;
         book.OwnerTimeValueCentsPerHour.Selected = 0; book.OwnerEquipmentCentsPerHour.Selected = 0;
@@ -59,12 +68,14 @@ public static class ScenarioOneEconomyAdapter
 
     public static ScenarioHarvestJob QuoteHarvest(IEnumerable<ScenarioOneWorkOrder> orders, Dictionary<string, ForestTree> trees,
         ScenarioOneDefinition definition, int resolutionYear, int previousInterventions, long availableCash,
-        IReadOnlyDictionary<string, ScenarioDeadwoodRecord> fallenStems = null, int salvageCostBasisPoints = 10000)
+        IReadOnlyDictionary<string, ScenarioDeadwoodRecord> fallenStems = null, int salvageCostBasisPoints = 10000, bool broadleafMarket = false)
     {
-        var job = new ScenarioHarvestJob { JobId = resolutionYear };
+        var job = new ScenarioHarvestJob { JobId = resolutionYear, BroadleafMarket = broadleafMarket };
         var requests = new List<StemYieldRequest>(); var ids = new HashSet<string>(StringComparer.Ordinal);
         var shortResidualStems = new List<StemYieldResult>();
-        var book = PriceBook(definition); long fullWorkGrams = 0, salvageWorkGrams = 0;
+        var book = PriceBook(definition, broadleafMarket); long fullWorkGrams = 0, salvageWorkGrams = 0;
+        var config = broadleafMarket ? TimberYieldDefaults.CreateScenarioOne() : TimberYieldDefaults.CreateSitka();
+        var marketed = new HashSet<string>(book.TimberPrices.Select(price => price.SpeciesId), StringComparer.Ordinal);
         if (salvageCostBasisPoints < 10000 || salvageCostBasisPoints > 15000) throw new ArgumentOutOfRangeException(nameof(salvageCostBasisPoints));
         foreach (var order in orders.OrderBy(x => x.workOrderId))
         {
@@ -87,6 +98,10 @@ public static class ScenarioOneEconomyAdapter
                 : MerchantableStemModel.FromMetres(tree.TreeId, tree.Species.SpeciesId, tree.Diameter, tree.Height,
                 stemVolume, "[S] Scenario One over-bark biological stem volume/diameter basis");
             stem.StemVolumeCm3 = volume;
+            // Species whose ladder has a quality-dependent rung (Oak) get the stem's pruned section from its recorded pruning
+            // history. Sitka has none, so Sitka stems and their grading are unchanged. Salvage keeps its own damage sections.
+            if (!salvage && config.Specifications.Any(spec => spec.SpeciesId == stem.SpeciesId && spec.RequiredQuality != StemQualityFlags.None))
+                stem.QualitySections = PrunedSections(tree, stem.TotalHeightMm);
             var disposition = order.fellingOutcome == FellingMaterialOutcome.SellAndExtract ? TimberDisposition.SellAndExtract
                 : order.fellingOutcome == FellingMaterialOutcome.KeepForUse ? TimberDisposition.KeepForUse : TimberDisposition.RetainAsFallenDeadwood;
             // The current whole-stem retained/deadwood world effect is preserved. Yield remains a grading diagnostic.
@@ -101,14 +116,14 @@ public static class ScenarioOneEconomyAdapter
             job.Orders.Add(order); job.TotalStemVolumeCm3 = checked(job.TotalStemVolumeCm3 + volume);
             if (disposition == TimberDisposition.KeepForUse) job.RetainedVolumeCm3 = checked(job.RetainedVolumeCm3 + volume);
             else if (disposition == TimberDisposition.RetainAsFallenDeadwood) job.DeadwoodVolumeCm3 = checked(job.DeadwoodVolumeCm3 + volume);
-            if (tree.Species.SpeciesId != "sitka-spruce") job.HasUnmarketedSpecies = true;
+            if (!marketed.Contains(tree.Species.SpeciesId)) job.HasUnmarketedSpecies = true;
             // [S] Whole modeled volume is the work basis; unmarketed species use the configured fresh-volume
             // work-equivalent proxy, not a claimed broadleaf green density or a broadleaf sale deck.
             long stemGrams = Grams(volume, book.FindDensity("sitka-fresh-roadside").KilogramsPerCubicMetre.Selected);
             fullWorkGrams = checked(fullWorkGrams + stemGrams);
             if (salvage) salvageWorkGrams = checked(salvageWorkGrams + stemGrams);
         }
-        job.Yield = TimberYieldCalculator.ResolveStandOperation("harvest-" + resolutionYear, requests.ToArray(), TimberYieldDefaults.CreateSitka());
+        job.Yield = TimberYieldCalculator.ResolveStandOperation("harvest-" + resolutionYear, requests.ToArray(), config);
         if (shortResidualStems.Count > 0)
         {
             job.Yield.Stems = job.Yield.Stems.Concat(shortResidualStems).OrderBy(stem => stem.TreeId, StringComparer.Ordinal).ToArray();
@@ -120,18 +135,21 @@ public static class ScenarioOneEconomyAdapter
         var soldStems = new List<StemYieldResult>();
         foreach (var stem in job.Yield.Stems)
         {
-            // Only marketable sold Sitka logs become priced batches. Kept/deadwood/ungraded material
-            // is accounted as work quantity without fake product revenue or fake pulp.
+            // Only sold logs of a species with a market become priced batches (Sitka; Oak and Beech when the broadleaf
+            // market is on). Kept/deadwood/ungraded material is accounted as work quantity without fake product revenue or fake pulp.
             var sold = JsonUtility.FromJson<StemYieldResult>(JsonUtility.ToJson(stem));
-            sold.Logs = sold.Logs.Where(x => x.Disposition == TimberDisposition.SellAndExtract && x.SpeciesId == "sitka-spruce").ToArray();
+            sold.Logs = sold.Logs.Where(x => x.Disposition == TimberDisposition.SellAndExtract && marketed.Contains(x.SpeciesId)).ToArray();
             sold.SaleAssortmentVolumeCm3 = sold.Logs.Sum(x => x.VolumeCm3); sold.RetainedForUseVolumeCm3 = 0; sold.DeadwoodAssortmentVolumeCm3 = 0;
             sold.ResidualVolumeCm3 = sold.StemVolumeCm3 - sold.SaleAssortmentVolumeCm3;
             soldStems.Add(sold); saleYield.StemVolumeCm3 += sold.StemVolumeCm3;
             saleYield.SaleAssortmentVolumeCm3 += sold.SaleAssortmentVolumeCm3; saleYield.ResidualVolumeCm3 += sold.ResidualVolumeCm3;
         }
         saleYield.Stems = soldStems.ToArray();
-        var bindings = Enum.GetValues(typeof(TimberAssortment)).Cast<TimberAssortment>().Select(product => new TimberMarketBinding
-            { SpeciesId = "sitka-spruce", Assortment = product, DensityId = "sitka-fresh-roadside", RoadsidePriceId = "sitka-" + product.ToString().ToLowerInvariant() }).ToArray();
+        // One binding per priced species/product, taken from the price book. For Sitka these are exactly the four bindings
+        // built before (price ids sitka-pulp .. sitka-sawlog, density sitka-fresh-roadside).
+        var bindings = book.TimberPrices.Select(price => new TimberMarketBinding
+            { SpeciesId = price.SpeciesId, Assortment = price.Assortment, RoadsidePriceId = price.Id,
+              DensityId = book.Densities.First(density => density.SpeciesId == price.SpeciesId).Id }).ToArray();
         var batches = TimberYieldEconomyAdapter.ToTimberBatches(saleYield, bindings);
         long pricedWork = batches.Sum(batch => Grams(batch.Quantity, book.FindDensity(batch.DensityId).KilogramsPerCubicMetre.Selected));
         job.SoldVolumeCm3 = batches.Sum(x => x.Quantity);
@@ -150,7 +168,7 @@ public static class ScenarioOneEconomyAdapter
     }
 
     public static WorkResolution ReResolveHarvest(ScenarioHarvestJob job, ScenarioOneDefinition definition, long availableCash)
-        => ForestryWorkCalculator.Resolve(job.Task, WorkExecutionMethod.Contractor, Contractor(availableCash), PriceBook(definition));
+        => ForestryWorkCalculator.Resolve(job.Task, WorkExecutionMethod.Contractor, Contractor(availableCash), PriceBook(definition, job.BroadleafMarket));
 
     public static ScenarioPlantingQuote QuotePlanting(ScenarioOneWorkOrder order, ScenarioOneDefinition definition, int stockQuantity, long cash, int ownerMinutes)
     {
@@ -175,6 +193,16 @@ public static class ScenarioOneEconomyAdapter
         if (result.CostCents > cash) result.Problem = "Insufficient cash for planting and shelter materials together.";
         if (result.OwnerMinutes > ownerMinutes) result.Problem = "Planting and shelter work exceed the remaining annual owner time.";
         return result;
+    }
+
+    // The recorded pruning history as a quality section: the stem from the ground to the crown base left by the last lift.
+    // Pruning is the only persisted per-tree form state, so it is the only form signal available (a persistent fork or
+    // shaping state does not exist). It marks a section eligible for clear grades; it sets no price.
+    public static StemQualitySection[] PrunedSections(ForestTree tree, int totalHeightMm)
+    {
+        if (tree == null || tree.PruningLifts <= 0 || tree.CrownBaseHeightM <= 0f) return Array.Empty<StemQualitySection>();
+        int end = Math.Min(totalHeightMm - 1, (int)Math.Round(tree.CrownBaseHeightM * 1000f, MidpointRounding.AwayFromZero));
+        return end > 0 ? new[] { new StemQualitySection { StartHeightMm = 0, EndHeightMm = end, Flags = StemQualityFlags.Pruned } } : Array.Empty<StemQualitySection>();
     }
 
     public static long Grams(long volumeCm3, long kilogramsPerM3) => checked((long)decimal.Round((decimal)volumeCm3 * kilogramsPerM3 / 1000, 0, MidpointRounding.AwayFromZero));

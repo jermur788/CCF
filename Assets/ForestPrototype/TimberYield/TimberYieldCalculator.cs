@@ -50,6 +50,8 @@ namespace CCF.Forestry.TimberYield
                         if (smallSquared < (decimal)spec.MinimumSmallEndDiameterMm * spec.MinimumSmallEndDiameterMm ||
                             (spec.MaximumSmallEndDiameterMm > 0 && smallSquared > (decimal)spec.MaximumSmallEndDiameterMm * spec.MaximumSmallEndDiameterMm) ||
                             (spec.MaximumLargeEndDiameterMm > 0 && largeSquared > (decimal)spec.MaximumLargeEndDiameterMm * spec.MaximumLargeEndDiameterMm)) continue;
+                        // Mid-log diameter (Oak products). Skipped for every specification that leaves it 0.
+                        if (spec.MinimumMidDiameterMm > 0 && model.DiameterSquaredAt(position + length / 2) < (decimal)spec.MinimumMidDiameterMm * spec.MinimumMidDiameterMm) continue;
                         var anyQuality = QualityUnion(stem, position, candidateEnd);
                         if ((anyQuality & spec.ExcludedQuality) != 0) continue;
                         if (spec.RequiredQuality != StemQualityFlags.None && (QualityThroughout(stem, position, candidateEnd) & spec.RequiredQuality) != spec.RequiredQuality) continue;

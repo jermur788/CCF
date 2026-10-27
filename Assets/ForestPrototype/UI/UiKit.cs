@@ -7,6 +7,17 @@ using UnityEngine.UIElements;
 public static class UiKit
 {
     public static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+    // Mirrors the canonical USS tokens for Painter2D/world feedback outside USS.
+    public static readonly UnityEngine.Color AccentColour = new UnityEngine.Color(110f / 255f, 163f / 255f, 157f / 255f, 1f);
+    public static readonly UnityEngine.Color WaypointColour = new UnityEngine.Color(239f / 255f, 180f / 255f, 78f / 255f, 1f);
+    public static readonly UnityEngine.Color SelectionColour = new UnityEngine.Color(222f / 255f, 164f / 255f, 58f / 255f, 1f);
+    public static readonly UnityEngine.Color WarningColour = new UnityEngine.Color(229f / 255f, 182f / 255f, 106f / 255f, 1f);
+    public static readonly UnityEngine.Color ForestryColour = new UnityEngine.Color(151f / 255f, 188f / 255f, 165f / 255f, 1f);
+    public static readonly UnityEngine.Color RackColour = new UnityEngine.Color(182f / 255f, 118f / 255f, 232f / 255f, 1f);
+    private static UnityEngine.Font displayFont;
+
+    // At 720p keep physical reading sizes useful and reflow dense screen layouts.
+    public static void SetCompact(VisualElement root) => root.EnableInClassList("compact", UnityEngine.Screen.height < 900);
 
     public static VisualElement Box(params string[] classes)
     {
@@ -15,10 +26,29 @@ public static class UiKit
         return element;
     }
 
+    // A modal screen: the dimmed backdrop is the topmost element, takes every pointer event itself and lets none through to the
+    // forest, the HUD or another screen drawn behind it. (Keyboard gameplay is already off while a panel is open.)
+    public static void MakeModal(VisualElement backdrop)
+    {
+        backdrop.pickingMode = PickingMode.Position;
+        backdrop.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
+        backdrop.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+        backdrop.RegisterCallback<WheelEvent>(e => e.StopPropagation());
+    }
+
     public static Label Text(string text, params string[] classes)
     {
         var label = new Label(text);
         foreach (string c in classes) label.AddToClassList(c);
+        // The reference's editorial serif belongs to major titles, never dense values/body.
+        // FontDefinition.FromFont lets UI Toolkit generate its normal dynamic font internally.
+        if (Array.IndexOf(classes, "title") >= 0 && Array.IndexOf(classes, "money") < 0)
+        {
+            if (displayFont == null)
+                displayFont = UnityEngine.Resources.Load<UnityEngine.Font>("Fonts/LiberationSerif-Regular");
+            if (displayFont != null)
+                label.style.unityFontDefinition = FontDefinition.FromFont(displayFont);
+        }
         return label;
     }
 
@@ -47,10 +77,11 @@ public static class UiKit
         return row;
     }
 
-    // Label/value pair on one line (value right-aligned).
-    public static void Line(VisualElement parent, string name, string value, string valueClass = "value")
+    // Label/value pair on one line (value right-aligned). Pass valueBelow for a value that is a sentence, so it
+    // goes under the name instead of squeezing it.
+    public static void Line(VisualElement parent, string name, string value, string valueClass = "value", bool valueBelow = false)
     {
-        VisualElement row = Box("table-row");
+        VisualElement row = Box(valueBelow ? new[] { "table-row", "table-row-stacked" } : new[] { "table-row" });
         row.Add(Text(name, "cell-name", "body"));
         row.Add(Text(value, "line-value", valueClass));
         parent.Add(row);

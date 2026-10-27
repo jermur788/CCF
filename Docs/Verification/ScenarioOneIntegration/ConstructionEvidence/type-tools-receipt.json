@@ -1,0 +1,15 @@
+{
+  "check": "type-tools",
+  "exit": 0,
+  "seconds": 10.52,
+  "tail": [
+    "GONE Tools/Verification/StandGeometry/Enlarged80Review.cs: error CS1061: 'EditorWindow' does not contain a definition for 'Show' and no accessible extension method 'Show' accepting a first argument of type 'EditorWindow' could be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/Model2PedagogyVerification.cs: error CS0246: The type or namespace name 'Editor' could not be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/Model2PedagogyVerification.cs: error CS0246: The type or namespace name 'ScriptableSingleton<>' could not be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/Model2PedagogyVerification.cs: error CS1061: 'EditorWindow' does not contain a definition for 'Show' and no accessible extension method 'Show' accepting a first argument of type 'EditorWindow' could be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/UnderstoreyVisualAudit.cs: error CS0246: The type or namespace name 'Editor' could not be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/UnderstoreyVisualAudit.cs: error CS0246: The type or namespace name 'ScriptableSingleton<>' could not be found (are you missing a using directive or an assembly reference?)",
+    "GONE Tools/Verification/UnderstoreyRecruitment/UnderstoreyVisualAudit.cs: error CS1061: 'EditorWindow' does not contain a definition for 'Show' and no accessible extension method 'Show' accepting a first argument of type 'EditorWindow' could be found (are you missing a using directive or an assembly reference?)",
+    "TYPECHECK_CLEAN mode=tools"
+  ]
+}

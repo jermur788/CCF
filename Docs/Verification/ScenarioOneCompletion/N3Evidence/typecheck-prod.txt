@@ -1,0 +1,2 @@
+[prod] distinct errors: 7 (baseline 7)
+TYPECHECK_CLEAN mode=prod

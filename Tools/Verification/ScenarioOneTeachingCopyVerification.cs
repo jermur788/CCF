@@ -84,11 +84,11 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
     {
         ui.CloseAll(); ui.CloseHelp();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
-        Check(ForestSaveData.CurrentVersion == 20 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
-            && eco.GrowthModelVersion == 1 && eco.StormModelVersion == 0, "accepted model stack");
+        Check(ForestSaveData.CurrentVersion == 21 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
+            && eco.GrowthModelVersion == GrowthModel.SpeciesAware && eco.StormModelVersion == 0, "accepted model stack");
         string help = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
         Check(Has(help, "repeated process") && Has(help, "keeping tree cover") && Has(help, "not one thinning")
-            && Has(help, "More felling is not automatically better") && Has(help, "leave behind"), "repeated CCF and residual stand");
+            && Has(help, "More felling is not automatically better") && Has(help, "leave standing"), "repeated CCF and residual stand");
         Check(Has(tree, "Start with a tree worth keeping") && Has(tree, "competitors") && Has(tree, "suppressed does not by itself"), "positive selection without suppression prescription");
         string lessons = string.Join(" ", LearningObjectivesView.Topics.Select(t => t.Text + " " + string.Join(" ", t.Steps.Select(s => s.Text))));
         Check(Has(lessons, "opportunity for natural regeneration") && Has(lessons, "needs seed") && Has(lessons, "not guaranteed")
@@ -162,9 +162,11 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
             foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.name == "scenario-success-objectives";
             ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero; yield return Settle();
             Fits(ui.Learning.Root.Children().First(), "learning");
-            var objectives = ui.Learning.Root.Q("scenario-success-objectives"); Fits(objectives, "objectives");
+            // The current objective's card now fills the first screen, so the expanded goals list sits below it: scroll it into view, then require it to fit.
+            var objectives = ui.Learning.Root.Q("scenario-success-objectives");
+            ui.Learning.Root.Q<ScrollView>().ScrollTo(objectives); yield return Settle(); Fits(objectives, "objectives");
             Check(Has(Text(objectives), "sessile oak"), "rendered human species"); yield return Capture("s1a-objectives-" + size.x);
-            foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.text.StartsWith("2. Tree");
+            foreach (Foldout f in ui.Learning.Root.Query<Foldout>().ToList()) f.value = f.text.StartsWith("1. Tree");
             ui.Learning.Root.Q<ScrollView>().scrollOffset = Vector2.zero; yield return Settle(); yield return Capture("s1a-learning-" + size.x);
             ui.CloseAll(); ui.Marking.Mark(crop, TreeMarkType.CropTree, false);
             player.transform.position = crop.transform.position - new Vector3(0, 0, 2.2f); player.LookToward(crop.transform.position + Vector3.up * 1.3f);

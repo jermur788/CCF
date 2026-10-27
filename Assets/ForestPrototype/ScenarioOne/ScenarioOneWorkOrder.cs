@@ -53,8 +53,15 @@ public sealed class ScenarioOneWorkOrder
     public CCF.Forestry.WorkEconomy.WorkExecutionMethod executionMethod;
     public bool installShelter;
     public int harvestJobId = -1;
+    // Version 21: the persisted Rack Planning & Field Marking V2 rack that owns this order.
+    // 0 = not owned by a V2 rack (legacy orders and every save before v21). Declared last on
+    // purpose so the world-hash compatibility path can remove exactly this default text.
+    public int rackId;
 
     public bool IsOpen => status == ScenarioWorkStatus.Pending || status == ScenarioWorkStatus.Approved;
+    // A felling order that counts as planned progress: still open, valid, and
+    // of the right type. Cancelled, completed and invalid orders do not count.
+    public bool IsValidOpenFelling => type == ScenarioWorkType.FellTree && IsOpen && string.IsNullOrEmpty(validationMessage);
 
     public string ShortLabel
     {
@@ -67,8 +74,8 @@ public sealed class ScenarioOneWorkOrder
                 case ScenarioWorkType.PlantJuvenile: return "Plant " + speciesId + " at ("
                     + worldPosition.x.ToString("0.0") + ", " + worldPosition.z.ToString("0.0") + ")";
                 case ScenarioWorkType.RemoveRegeneration: return string.IsNullOrEmpty(speciesId)
-                    ? "Clear competing vegetation in cell " + cellIndex
-                    : "Remove " + speciesId + " regeneration in cell " + cellIndex;
+                    ? "Clear competing vegetation in map square " + ScenarioOneUiFacts.SquareLabel(cellIndex)
+                    : "Remove " + speciesId + " regeneration in map square " + ScenarioOneUiFacts.SquareLabel(cellIndex);
                 case ScenarioWorkType.PruneTree: return "Prune " + targetTreeId + " to "
                     + (targetCrownBaseHeightM > 0f ? targetCrownBaseHeightM : expectedRegenerationDensity).ToString("0.0") + " m";
                 default: return type.ToString();

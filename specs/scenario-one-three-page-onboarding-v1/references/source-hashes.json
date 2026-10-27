@@ -1,0 +1,35 @@
+[
+  {
+    "file": "supplied-ccf-definition.png",
+    "sha256": "95310e4322c4e6eb7ab6410ee9848bec5cc9595976417640f74641e9007ff1fc",
+    "bytes": 2318699,
+    "dimensions": [
+      1672,
+      941
+    ],
+    "source": "/home/jer/.t3/userdata/attachments/0c55a504-715b-46b5-a3a2-e8ef3639bbff-9649e631-2be8-4149-8857-c7f7b26ae80e.png",
+    "status": "immutable supplied source; final design lock pending"
+  },
+  {
+    "file": "supplied-five-card-management.png",
+    "sha256": "47011222d700724e6501ab31780a781058c05caeb1de29e5d86e58d27cc05d59",
+    "bytes": 2326633,
+    "dimensions": [
+      1672,
+      941
+    ],
+    "source": "/home/jer/.t3/userdata/attachments/0c55a504-715b-46b5-a3a2-e8ef3639bbff-2661dcd5-6637-408b-a2cc-86d73bec7c04.png",
+    "status": "immutable supplied source; final design lock pending"
+  },
+  {
+    "file": "supplied-scenario-transformation.png",
+    "sha256": "100b9838ee80e3b8f057298eda31ed42d66454e91e1c852cd24e6c1bf802fe39",
+    "bytes": 2189800,
+    "dimensions": [
+      1672,
+      941
+    ],
+    "source": "/home/jer/.t3/userdata/attachments/0c55a504-715b-46b5-a3a2-e8ef3639bbff-05cb2781-dad4-4361-9b01-c74121c66e0c.png",
+    "status": "immutable supplied source; final design lock pending"
+  }
+]

@@ -93,24 +93,31 @@ public sealed class SitkaGrowthModelVerificationRunner : MonoBehaviour
 
     private IEnumerator Policy()
     {
-        Pass("POLICY_NEW_GAME_GROWTH1", ScenarioOneManager.NewGameGrowthModel == GrowthModel.SiteClassDensity && original.growthModel == 1
-            && original.version == 20 && original.regenerationModel == 2 && original.rngModelVersion == 1,
+        Pass("POLICY_NEW_GAME_GROWTH2", ScenarioOneManager.NewGameGrowthModel == GrowthModel.SpeciesAware && original.growthModel == GrowthModel.SpeciesAware
+            && original.version == 21 && original.regenerationModel == 2 && original.rngModelVersion == 1,
             $"growth={original.growthModel} regen={original.regenerationModel} rng={original.rngModelVersion} version={original.version}");
-        string stripped = JsonUtility.ToJson(Clone(original)).Replace("\"growthModel\":1,", "");
+        // The default-policy capture stays model 2; historical save checks use an explicit model-1 fixture.
+        e.GrowthModelVersion = GrowthModel.SiteClassDensity;
+        ForestSaveData compatibility = saves.CaptureData();
+        string stripped = JsonUtility.ToJson(compatibility).Replace("\"growthModel\":1,", "");
         Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(stripped), false), "stripped load"); yield return null;
         bool missing = e.GrowthModelVersion == 0;
-        ForestSaveData v16 = Clone(original); v16.version = 16; v16.growthModel = 1; v16.regenerationModel = RegenerationModel.AgeBands;
+        ForestSaveData v16 = Clone(compatibility); v16.version = 16; v16.growthModel = 1; v16.regenerationModel = RegenerationModel.AgeBands;
         Check(saves.LoadData(v16, false), "v16 load"); yield return null;
         bool v16Zero = e.GrowthModelVersion == 0 && e.RegenerationModelVersion == 1;
-        ForestSaveData zero = Clone(original); zero.growthModel = 0;
+        ForestSaveData zero = Clone(compatibility); zero.growthModel = 0;
         Check(saves.LoadData(zero, false), "explicit 0 load"); yield return null;
         bool explicitZero = e.GrowthModelVersion == 0;
-        Check(saves.LoadData(Clone(original), false), "explicit 1 load"); yield return null;
+        Check(saves.LoadData(Clone(compatibility), false), "explicit 1 load"); yield return null;
         bool explicitOne = e.GrowthModelVersion == 1;
-        ForestSaveData bad = Clone(original); bad.growthModel = 7;
+        ForestSaveData bad = Clone(compatibility); bad.growthModel = 7;
         string badProblem = ForestSaveValidation.Validate(bad, 0, e.CellCount);
         Pass("POLICY_SAVE_SEMANTICS", missing && v16Zero && explicitZero && explicitOne && badProblem != null && !stripped.Contains("growthModel"),
             $"missing0={missing} v16->0={v16Zero} explicit0={explicitZero} explicit1={explicitOne} invalidRejected=[{badProblem}]");
+        Check(saves.LoadData(Clone(original), false), "explicit 2 load"); yield return null;
+        Pass("POLICY_STORED_GROWTH2", e.GrowthModelVersion == GrowthModel.SpeciesAware,
+            $"storedGrowth={original.growthModel} loadedGrowth={e.GrowthModelVersion}");
+        Check(saves.LoadData(Clone(compatibility), false), "model-1 reference fixture load"); yield return null;
         bool previewZero = true, restored = true;
         foreach (int year in new[] { 0, 20, 50, 100 })
         {

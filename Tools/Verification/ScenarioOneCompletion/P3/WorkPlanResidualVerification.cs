@@ -128,7 +128,8 @@ public sealed class WorkPlanResidualVerificationRunner : MonoBehaviour
         // Opening and refreshing the Work Plan writes no forest state (empty plan).
         string hash = WorldHash();
         yield return OpenPlan();
-        Check(ui.RootElement.Q("workplan-doing") != null && ui.RootElement.Q("workplan-money") != null && ui.RootElement.Q("workplan-leaving") != null, "overview sections missing");
+        // The "What are you doing?" card was removed by the playtest UX revision (the Work Plan now opens straight onto its contents).
+        Check(ui.RootElement.Q("workplan-doing") == null && ui.RootElement.Q("workplan-money") != null && ui.RootElement.Q("workplan-leaving") != null, "overview sections missing");
         Check(AllText("workplan-leaving").Contains("336 (no felling planned)"), "A: empty plan text: " + AllText("workplan-leaving"));
         Check(ui.RootElement.Q("workplan-cash-warning") == null, "warning shown for an empty plan");
         ui.CloseAll();
@@ -205,7 +206,8 @@ public sealed class WorkPlanResidualVerificationRunner : MonoBehaviour
             ScenarioUnderstoreyCell state = manager.UnderstoreyCells.First(u => u.cellIndex == cell);
             Check(c.CohortGroups == t.Cohorts.Count && c.PlantedSaplings == t.Juveniles.Count
                 && c.Bramble == state.brambleCover && c.Bracken == state.brackenCover, "consequence differs from authoritative state at " + cell);
-            string label = "Clearance " + UiKit.CellLabel(cell, ecology.CellsPerAxis);
+            // Player wording: the 5 m cell is a "map square" (playtest UX revision).
+            string label = "Clearance, square " + UiKit.CellLabel(cell, ecology.CellsPerAxis);
             Check(leaving.Contains(label), "missing clearance row " + label);
             Check(young ? leaving.Contains("cohort portion") : leaving.Contains("no regeneration cohorts or planted saplings inside"), (young ? "F" : "E") + " text: " + leaving);
             Debug.Log($"P3_CLEARANCE_{(young ? "F" : "E")}_PASS {label} cohorts {c.CohortGroups} density {c.CohortDensityBefore:F3}->{c.CohortDensityAfter:F3} saplings {c.PlantedSaplings} bramble {c.Bramble:F3} bracken {c.Bracken:F3} taller {c.TallerThanEscape}");

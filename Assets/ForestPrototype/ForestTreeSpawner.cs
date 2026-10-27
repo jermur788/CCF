@@ -46,14 +46,14 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         get
         {
             var known = new List<TreeSpeciesDefinition>();
-            if (defaultSpecies != null && !string.IsNullOrEmpty(defaultSpecies.SpeciesId))
+            if (defaultSpecies != null && !string.IsNullOrEmpty(defaultSpecies.SpeciesId) && defaultSpecies.IsSimulationReady)
                 known.Add(defaultSpecies);
             if (speciesVisualSets != null)
             {
                 foreach (ForestSpeciesVisualSet set in speciesVisualSets)
                 {
                     TreeSpeciesDefinition candidate = set != null ? set.species : null;
-                    if (candidate == null || string.IsNullOrEmpty(candidate.SpeciesId))
+                    if (candidate == null || string.IsNullOrEmpty(candidate.SpeciesId) || !candidate.IsSimulationReady)
                         continue;
                     if (!known.Exists(s => string.Equals(s.SpeciesId, candidate.SpeciesId, StringComparison.Ordinal)))
                         known.Add(candidate);
@@ -64,17 +64,45 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         }
     }
 
+    // A species that is not simulation-ready (configuration error, or an area on HOLD) is never registered or
+    // resolved, so a half-filled definition cannot run as a disguised Sitka. Say so once, loudly.
+    private void Awake()
+    {
+        ReportUnusableSpecies(defaultSpecies);
+        if (speciesVisualSets == null)
+            return;
+        foreach (ForestSpeciesVisualSet set in speciesVisualSets)
+            if (set != null)
+                ReportUnusableSpecies(set.species);
+    }
+
+    private void ReportUnusableSpecies(TreeSpeciesDefinition candidate)
+    {
+        if (candidate == null || candidate.IsSimulationReady)
+            return;
+        SpeciesConfigurationReport report = candidate.ConfigurationReport;
+        string problems = string.Join("; ", report.Errors);
+        string holds = string.Join(", ", report.HoldAreas);
+        string message = "Species '" + candidate.SpeciesId + "' is not simulation-ready and is not registered."
+            + (report.HasErrors ? " Errors: " + problems + "." : "")
+            + (report.HoldAreas.Count > 0 ? " On HOLD: " + holds + "." : "");
+        if (report.HasErrors)
+            Debug.LogError(message, this);
+        else
+            Debug.LogWarning(message, this);
+    }
+
     public TreeSpeciesDefinition ResolveSpecies(string speciesId)
     {
         if (string.IsNullOrEmpty(speciesId))
-            return defaultSpecies;
+            return defaultSpecies != null && defaultSpecies.IsSimulationReady ? defaultSpecies : null;
         if (defaultSpecies != null && defaultSpecies.SpeciesId == speciesId)
-            return defaultSpecies;
+            return defaultSpecies.IsSimulationReady ? defaultSpecies : null;
         if (speciesVisualSets != null)
         {
             foreach (ForestSpeciesVisualSet set in speciesVisualSets)
                 if (set != null && set.species != null && set.species.SpeciesId == speciesId)
-                    return set.species;
+                    return set.species.IsSimulationReady ? set.species : null;
         }
         return null;
     }

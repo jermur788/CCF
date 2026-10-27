@@ -1,0 +1,30 @@
+{
+  "Assets/ForestPrototype/ForestEcologyController.cs": {
+    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+    "normalized_sha256": "fdcfec2a478f6a046d3956a051dee16429080df18d201a28a268b78a28c627c4"
+  },
+  "Assets/ForestPrototype/TreeSpeciesDefinition.cs": {
+    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+    "normalized_sha256": "63c9078e7be818d4594978e1377485b1b1648ecb48dedd445766e58e6a011bfd"
+  },
+  "Assets/ForestPrototype/SitkaGrowthModel.cs": {
+    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+    "normalized_sha256": "0fc0253d596533368938c5b88c2273fe7c7cc204db48e7be086bfac2f920aae7"
+  },
+  "Assets/ForestPrototype/MixedDensityModel.cs": {
+    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+    "normalized_sha256": "ef44be944a1fbec41a5734f9a6a3f455c81317d74601737a6f1d2b3bd431e65b"
+  },
+  "Assets/ForestPrototype/Species/SitkaSpruce.asset": {
+    "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
+    "normalized_sha256": "eca3d7efecbde27476cac7f104c9673761f43f2f1d90372534a4ee0ecdfed323"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs": {
+    "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
+    "normalized_sha256": "9e1c8564f50166093384ad9dd1b65899ed8482e52a5fe2f4bda4b6bab6cf6b13"
+  },
+  "Assets/ForestPrototype/ForestSaveData.cs": {
+    "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
+    "normalized_sha256": "224173ce7b7fd0eae426c4a18fe037f37a5cbef39a38df163ad47efd059f24c7"
+  }
+}

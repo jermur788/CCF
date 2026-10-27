@@ -1,39 +1,75 @@
-/* Scenario One UI tokens and layout primitives. Visual reference: the accepted
-   CCF UI mockups (dark translucent panels, compact semantic colour). Colours
-   always pair with text; meaning never depends on colour alone. */
+/* Scenario One Visual System V2. Normative reference: specs/scenario-one-ui-visual-system-v2/
+   references/griffins-peak-ui-reference.png. Shared charcoal/slate surfaces, fine rules,
+   off-white hierarchy and restrained semantic accents. See the locked manifest. */
 
 :root {
-    --panel-bg: rgba(14, 22, 16, 0.86);
-    --panel-border: rgba(160, 190, 150, 0.22);
-    --ink: rgb(236, 240, 228);
-    --ink-muted: rgb(176, 190, 168);
-    --ink-faint: rgb(132, 146, 126);
-    --accent: rgb(232, 206, 120);
-    --good: rgb(150, 214, 140);
-    --warn: rgb(240, 186, 110);
-    --bad: rgb(236, 128, 112);
+    /* Sampled from the immutable Griffin's Peak reference (see spec manifest).
+       Gold is a location/selection semantic, never the default heading colour. */
+    --panel-bg: rgba(21, 28, 30, 0.94);
+    --panel-border: rgba(109, 125, 132, 0.46);
+    --frame-bg: rgb(21, 28, 30);
+    --surface-section: rgb(27, 35, 38);
+    --frame-border: rgba(109, 125, 132, 0.46);
+    --frame-rule: rgba(109, 125, 132, 0.30);
+    --backdrop: rgba(7, 12, 16, 0.64);
+    --ink: rgb(235, 237, 233);
+    --ink-muted: rgb(174, 185, 189);
+    --ink-faint: rgb(151, 165, 171);
+    --accent: rgb(110, 163, 157);
+    --active-bg: rgb(56, 89, 75);
+    --active-hover: rgb(65, 102, 88);
+    --active-pressed: rgb(44, 72, 64);
+    --good: rgb(151, 188, 165);
+    --warn: rgb(229, 182, 106);
+    --bad: rgb(221, 145, 135);
     --fell: rgb(214, 70, 58);
     --crop: rgb(70, 130, 230);
-    --chip-bg: rgba(255, 255, 255, 0.08);
+    --rack: rgb(182, 118, 232);
+    --waypoint: rgb(239, 180, 78);
+    /* Selected tree retains its world-ring meaning, distinct from management marks. */
+    --select: rgb(222, 164, 58);
+    --select-ink: rgb(29, 32, 31);
+    --chip-bg: rgba(174, 185, 189, 0.09);
+    --btn-bg: rgb(30, 39, 42);
+    --btn-bg-hover: rgb(41, 53, 57);
+    --btn-bg-active: rgb(25, 34, 37);
+    --btn-border: rgba(109, 125, 132, 0.40);
+    --disabled-bg: rgb(27, 34, 37);
+    --disabled-border: rgb(66, 79, 85);
+    --disabled-ink: rgb(146, 160, 166);
+    --space-sm: 6px;
+    --space-md: 12px;
+    --space-lg: 18px;
+    /* Type scale. The panel scales with screen height (PanelSettings: 1600 x 900 reference), so one UI unit is 0.8 px at 1280 x 720 and
+       1.2 px at 1920 x 1080. At 720p the old 15 px body was 12 physical pixels, too small to read. Text sizes live here, not on
+       individual labels: change a token and every screen follows. Reading = long popup text (intro, help, objective detail). */
+    --fs-xs: 15px;
+    --fs-sm: 16px;
+    --fs-body: 18px;
+    --fs-reading: 20px;
+    --fs-heading: 20px;
+    --fs-title: 26px;
+    --fs-button: 17px;
+    --fs-lead: 20px;
 }
 
-.root { flex-grow: 1; color: var(--ink); font-size: 15px; }
+.root { flex-grow: 1; color: var(--ink); font-size: var(--fs-body); }
 .layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 
 .panel {
     background-color: var(--panel-bg);
     border-color: var(--panel-border);
     border-width: 1px;
-    border-radius: 6px;
-    padding: 10px 14px;
+    border-radius: 2px;
+    padding: var(--space-md) var(--space-lg);
 }
 
-.title { font-size: 22px; -unity-font-style: bold; color: var(--ink); }
-.subtitle { font-size: 15px; color: var(--ink-muted); }
-.heading { font-size: 16px; -unity-font-style: bold; color: var(--accent); margin-top: 6px; margin-bottom: 4px; }
+.title { font-size: var(--fs-title); -unity-font-style: normal; color: var(--ink); letter-spacing: 0.2px; white-space: normal; }
+.subtitle { font-size: var(--fs-sm); color: var(--ink-muted); }
+.heading { font-size: var(--fs-heading); -unity-font-style: bold; color: var(--ink); margin-top: 8px; margin-bottom: 6px; }
 .body { white-space: normal; color: var(--ink); }
-.muted { white-space: normal; color: var(--ink-muted); font-size: 16px; }
-.faint { white-space: normal; color: var(--ink-faint); font-size: 15px; }
+.muted { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); }
+.faint { white-space: normal; color: var(--ink-faint); font-size: var(--fs-sm); }
 .money { -unity-font-style: bold; color: var(--good); }
 .money-negative { -unity-font-style: bold; color: var(--bad); }
 .value { -unity-font-style: bold; color: var(--ink); }
@@ -46,42 +82,56 @@
 
 .chip {
     background-color: var(--chip-bg);
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 1px 6px;
     margin-right: 6px;
-    font-size: 13px;
+    font-size: var(--fs-xs);
 }
-.chip-fell { background-color: rgba(214, 70, 58, 0.85); color: white; -unity-font-style: bold; }
-.chip-crop { background-color: rgba(70, 130, 230, 0.85); color: white; -unity-font-style: bold; }
-.chip-ok { background-color: rgba(90, 160, 90, 0.75); color: white; }
-.chip-warn { background-color: rgba(200, 140, 50, 0.8); color: white; }
-.chip-bad { background-color: rgba(190, 70, 60, 0.85); color: white; }
+.chip-fell { border-width: 1px; border-color: var(--fell); color: var(--ink); -unity-font-style: bold; }
+.chip-crop { border-width: 1px; border-color: var(--crop); color: var(--ink); -unity-font-style: bold; }
+.chip-rack { border-width: 1px; border-color: var(--rack); color: var(--ink); -unity-font-style: bold; }
+.chip-ok { border-width: 1px; border-color: var(--good); color: var(--ink); }
+.chip-warn { border-width: 1px; border-color: var(--warn); color: var(--ink); }
+.chip-bad { border-width: 1px; border-color: var(--bad); color: var(--ink); }
 
-.key { color: var(--accent); -unity-font-style: bold; }
+.key { color: var(--ink); -unity-font-style: bold; }
 
+/* ---- buttons ---- */
+/* Every state is spelled out: the default runtime theme has its own hover/active/focus colours, and without these a hovered or
+   pressed button could show the theme's pale grey instead of this palette (the selected map tab read as white on white). */
 .btn {
-    background-color: rgba(60, 86, 58, 0.95);
-    border-color: rgba(170, 200, 150, 0.35);
+    background-color: var(--btn-bg);
+    border-color: var(--btn-border);
     border-width: 1px;
-    border-radius: 4px;
+    border-radius: 2px;
     color: var(--ink);
-    padding: 4px 10px;
-    margin: 2px 4px 2px 0;
-    -unity-font-style: bold;
-    font-size: 14px;
+    padding: 5px 12px;
+    margin: 2px 6px 2px 0;
+    min-height: 32px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+    font-size: var(--fs-button);
+    flex-shrink: 0;
 }
-.btn { flex-shrink: 0; }
-.btn:hover { background-color: rgba(84, 118, 80, 1); }
-.btn:disabled { opacity: 0.45; }
-.btn-primary { background-color: rgba(120, 104, 48, 0.95); border-color: rgba(232, 206, 120, 0.6); }
-.btn-selected { background-color: rgba(84, 118, 80, 1); border-color: var(--accent); }
+.btn:hover { background-color: var(--btn-bg-hover); color: var(--ink); }
+.btn:active { background-color: var(--btn-bg-active); color: var(--ink); }
+.btn:focus { color: var(--ink); border-color: var(--accent); }
+.btn:disabled { background-color: var(--disabled-bg); border-color: var(--disabled-border); color: var(--disabled-ink); opacity: 1; }
+.btn-primary { background-color: var(--active-bg); border-color: var(--accent); -unity-font-style: bold; }
+.btn-primary:hover { background-color: var(--active-hover); color: var(--ink); }
+.btn-primary:active { background-color: var(--active-pressed); color: var(--ink); }
+.btn-selected { background-color: var(--active-bg); border-color: var(--accent); border-bottom-width: 2px; color: var(--ink); -unity-font-style: bold; }
+.btn-selected:hover { background-color: var(--active-hover); color: var(--ink); }
+.btn-selected:active { background-color: var(--active-pressed); color: var(--ink); }
+.btn-ghost { background-color: rgba(255, 255, 255, 0.04); border-color: var(--frame-rule); }
+.btn-ghost:hover { background-color: rgba(255, 255, 255, 0.10); }
 
 .card {
-    background-color: rgba(255, 255, 255, 0.04);
-    border-color: var(--panel-border);
+    background-color: var(--surface-section);
+    border-color: var(--frame-rule);
     border-width: 1px;
-    border-radius: 4px;
-    padding: 8px 10px;
+    border-radius: 2px;
+    padding: 12px 14px;
     margin-bottom: 8px;
 }
 
@@ -91,86 +141,427 @@
 .cell-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; }
 /* Line() values never wrap (a wrapped sign would split from its amount). */
 .line-value { flex-shrink: 0; white-space: nowrap; margin-left: 10px; -unity-text-align: middle-right; }
+/* A Line() whose value is a sentence rather than a figure: the value sits under the name instead of squeezing it
+   into a column a syllable wide. */
+.table-row-stacked { flex-direction: column; }
+.table-row-stacked .cell-name { flex-grow: 0; flex-basis: auto; }
+.table-row-stacked .line-value { margin-left: 0; -unity-text-align: upper-left; }
+
+/* ---- scroll bars (Work Plan, Annual Review, Help, Learning objectives) ---- */
+/* A slim track with a soft rounded thumb in the panel palette; the arrow buttons are dropped (the wheel and the thumb scroll). */
+.unity-scroll-view__vertical-scroller { width: 12px; margin-left: 6px; background-color: rgba(0, 0, 0, 0); border-width: 0; }
+.unity-scroll-view__vertical-scroller .unity-scroller__slider { margin: 0; }
+.unity-scroll-view__vertical-scroller .unity-repeat-button { display: none; }
+.unity-scroll-view__vertical-scroller .unity-base-slider__tracker {
+    background-color: rgba(255, 255, 255, 0.06); border-width: 0; border-radius: 2px; width: 8px; margin-left: 2px;
+}
+.unity-scroll-view__vertical-scroller .unity-base-slider__dragger {
+    background-color: rgba(151, 165, 171, 0.42); border-width: 0; border-radius: 2px; width: 8px; margin-left: 2px; min-height: 28px;
+}
+.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:hover { background-color: rgba(174, 185, 189, 0.70); }
+.unity-scroll-view__vertical-scroller .unity-base-slider__dragger:active { background-color: rgba(209, 220, 224, 0.85); }
+.unity-scroll-view__horizontal-scroller { display: none; }
 
 /* ---- walking HUD ---- */
-.hud-status { position: absolute; top: 14px; right: 14px; width: 330px; }
-.hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 14px; }
+/* Both side columns share one width so the status panel, the felling estimate and the competitor list line up. */
+.hud-status { position: absolute; top: 14px; right: 14px; width: 400px; }
+/* The title carries the year, phase and intervention count; it wraps rather than cutting the count off. */
+.hud-status .heading { white-space: normal; }
+/* The right edge leaves the bottom-right corner to the minimap. */
+.hud-bottom { position: absolute; left: 14px; bottom: 12px; right: 232px; }
 .hud-ground { max-width: 560px; margin-bottom: 8px; }
 .hud-prompt {
     position: absolute; left: 0; right: 0; top: 56%;
     align-items: center;
 }
-.hud-prompt-box { -unity-text-align: middle-center; font-size: 18px; -unity-font-style: bold; white-space: normal; max-width: 900px; }
+.hud-prompt-box { -unity-text-align: middle-center; font-size: var(--fs-lead); -unity-font-style: bold; white-space: normal; max-width: 900px; }
 .hud-message { position: absolute; top: 14px; left: 0; right: 0; align-items: center; }
-.hud-message Label { font-size: 18px; color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
+.hud-message Label { font-size: var(--fs-lead); color: var(--accent); -unity-font-style: bold; white-space: normal; max-width: 900px; -unity-text-align: middle-center; }
 .reticle { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin-left: -2px; margin-top: -2px; background-color: rgba(255, 255, 255, 0.8); }
 .hud-hotbar { margin-top: 8px; align-items: center; align-self: flex-end; margin-right: 14px; max-width: 900px; }
-.hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--accent); }
-.waypoint-line { color: var(--accent); font-size: 18px; -unity-font-style: bold; }
+.hud-waypoint { position: absolute; top: 14px; left: 50%; width: 400px; margin-left: -200px; border-color: var(--panel-border); }
+.waypoint-line { color: var(--waypoint); font-size: var(--fs-lead); -unity-font-style: bold; }
+
+/* ---- HUD minimap: the Stand Map's map, reduced. Its size is set in HudMinimapView; it takes no pointer input. ---- */
+/* Map frame and walking HUD share the same survey shell; cartography is unchanged. */
+.hud-minimap { position: absolute; right: 14px; bottom: 12px; padding: 4px; background-color: var(--panel-bg); border-color: var(--panel-border); border-radius: 2px; }
+.hud-minimap-north { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--ink); width: 12px; -unity-text-align: upper-center; }
 
 /* ---- inspection ---- */
-/* Top-left, clear of the status panel (top-right) and the ground report (bottom-left). */
-.inspect { position: absolute; left: 14px; top: 14px; width: 380px; max-height: 72%; }
+/* Left column, top-left, clear of the status panel (top-right) and the ground report (bottom-left). The scenario UI root sets the
+   maximum height each frame so the card and its detail can never reach the forecast and marking panels at the bottom-left. The
+   felling estimate and the competitor list live in the right column, the same width as the status panel. */
+.inspect { position: absolute; left: 14px; top: 14px; width: 400px; max-height: 80%; overflow: hidden; }
 .inspect * { flex-shrink: 0; }
+.inspect-detail { margin-top: 8px; }
+.estimate-panel * { flex-shrink: 0; }
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
-.stat { width: 50%; margin-bottom: 4px; }
-.stat-label { color: var(--ink-faint); font-size: 15px; }
-.stat-value { -unity-font-style: bold; font-size: 15px; white-space: normal; }
+/* Two to a row at any width: a basis a little under half, grown to fill, so rounding can never push the second one down. */
+.stat { flex-basis: 46%; flex-grow: 1; margin-bottom: 4px; }
+.stat-label { color: var(--ink-faint); font-size: var(--fs-sm); }
+.stat-value { -unity-font-style: bold; font-size: var(--fs-body); white-space: normal; }
+.inspect-hint { color: var(--ink-muted); font-size: var(--fs-sm); white-space: normal; margin-top: 4px; }
+/* The open card carries the selected-tree accent on its top and left edges, so the card and the ring on the tree read as one thing. */
+.inspect-selected { border-top-width: 1px; border-top-color: var(--panel-border); border-left-width: 3px; border-left-color: var(--select); }
+.inspect-tag {
+    -unity-font-style: bold; font-size: var(--fs-xs); color: var(--select-ink); background-color: var(--select);
+    border-radius: 2px; padding: 0 7px; -unity-text-align: middle-center;
+}
 
 /* ---- modal screens ---- */
-.modal-backdrop { background-color: rgba(0, 0, 0, 0.35); align-items: center; justify-content: center; }
-.modal { background-color: rgb(14, 22, 16); width: 92%; max-width: 1180px; height: 92%; max-height: 900px; }
-.modal-header { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+/* A modal covers the whole screen: it dims everything behind it and takes every pointer event itself, so nothing underneath
+   (the forest, the HUD buttons) can be clicked while it is open. */
+.modal-backdrop { background-color: var(--backdrop); align-items: center; justify-content: center; }
+.modal {
+    background-color: var(--frame-bg);
+    border-color: var(--frame-border);
+    border-width: 1px;
+    border-radius: 2px;
+    padding: 12px 18px 14px 18px;
+    width: 92%; max-width: 1180px; height: 92%; max-height: 900px;
+}
+.modal-header {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; padding-bottom: 8px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule);
+}
 /* Fixed parts of a modal keep their height; only the scroll view shrinks. */
 .modal > * { flex-shrink: 0; }
 .modal > .unity-scroll-view { flex-shrink: 1; }
-.modal-footer { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.modal-footer {
+    flex-direction: row; flex-wrap: wrap; align-items: center;
+    margin-top: 8px; padding-top: 8px; border-top-width: 1px; border-top-color: var(--frame-rule);
+}
 .columns { flex-direction: row; flex-wrap: wrap; }
 .column { flex-grow: 1; flex-basis: 300px; margin-right: 10px; }
 
 /* ---- stand map ---- */
+/* The map keeps its cartography, symbols and semantic waypoint selection.
+   Only the surrounding shell consumes the common visual tokens. */
+.modal-map {
+    --map-panel: var(--frame-bg);
+    --map-card: var(--surface-section);
+    --map-rule: var(--frame-rule);
+    --map-ink: var(--ink);
+    --map-ink-muted: var(--ink-muted);
+    --map-ink-faint: var(--ink-faint);
+    --map-accent: var(--waypoint);
+    background-color: var(--map-panel);
+    border-color: var(--frame-border);
+    height: 96%;
+    max-width: 1500px;
+}
+.modal-map .modal-header { border-bottom-color: var(--map-rule); }
+.modal-map .title, .modal-map .heading { color: var(--map-ink); }
+.modal-map .body { color: var(--map-ink); }
+.modal-map .muted { color: var(--map-ink-muted); font-size: var(--fs-sm); }
+.modal-map .faint { color: var(--map-ink-faint); }
+.modal-map .card { background-color: var(--map-card); border-color: var(--map-rule); }
+.modal-map .rack-panel { border-color: var(--map-rule); }
+.modal-map .rack-heading { color: var(--map-ink); }
+
+.map-tabs { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
 .map-body { flex-direction: row; flex-grow: 1; }
-.map-left { flex-grow: 1; align-items: center; }
-.map-grid { flex-direction: column; }
-.map-row { flex-direction: row; }
+/* The map column is as wide as the map and its labels and never shrinks: the cards beside it take what is left, so nothing can slide over the map. */
+.map-left { flex-grow: 0; flex-shrink: 0; width: 726px; align-items: flex-start; }
+.map-wrap { flex-direction: row; }
+.map-column { flex-shrink: 0; }
+/* The frame is exactly the map square (size set in StandMapView). The surface draws the plan in it and the square buttons are placed over it
+   from the shared map transform. */
+/* No border: the surface, the lines and the square buttons all fill exactly this square, and a border would shrink them. The dashed property boundary is its edge. */
+.map-frame { background-color: rgb(70, 66, 50); }
+.map-grid { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.map-canvas { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+/* A square shows nothing until it is pointed at or selected. */
 .map-cell {
-    width: 64px; height: 56px; margin: 1px;
-    border-width: 2px; border-color: transparent;
-    justify-content: space-between; padding: 2px 3px;
+    margin: 0; padding: 0;
+    border-width: 1.5px; border-color: transparent; border-radius: 1px;
+    background-color: rgba(0, 0, 0, 0);
+    min-height: 0;
 }
-.map-cell Label {
-    font-size: 13px; color: white; -unity-font-style: bold; align-self: flex-start;
-    background-color: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; margin-bottom: 1px;
-}
-.map-cell-selected { border-color: var(--accent); }
-.map-cell-player { border-color: white; }
-.map-side { width: 330px; margin-left: 12px; }
+.map-cell:hover { border-color: rgba(255, 255, 255, 0.38); background-color: rgba(255, 255, 255, 0.05); }
+.map-cell:active { background-color: rgba(255, 255, 255, 0.10); }
+.map-cell:focus { border-color: transparent; }
+.map-cell-selected, .map-cell-selected:hover { border-color: var(--map-accent); }
+/* You stand in this square: the plan draws you, so the square itself says nothing. */
+.map-cell-player { }
+.map-cell-rack { background-color: rgba(255, 255, 255, 0.06); }
+
+/* Survey labels: easting along the bottom, northing along the left, "N" and the scale length on the map. */
+.map-north-labels { width: 30px; flex-shrink: 0; position: relative; margin-right: 4px; }
+.map-east-labels { position: relative; height: 18px; flex-shrink: 0; }
+.map-axis-label { position: absolute; font-size: 13px; color: var(--map-ink-muted); width: 40px; }
+.map-axis-east { top: 2px; -unity-text-align: upper-center; }
+.map-axis-north { right: 2px; width: 28px; height: 18px; -unity-text-align: middle-right; }
+.map-north-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); width: 12px; -unity-text-align: upper-center; }
+.map-scale-label { position: absolute; font-size: 13px; -unity-font-style: bold; color: var(--map-ink); }
+.map-caption { font-size: 13px; color: var(--map-ink-muted); white-space: nowrap; overflow: hidden; max-width: 688px; margin-top: 0; }
+
+/* Two columns to the right of the map: the overview and legend, then the card for the square or the rack (the card has the window's full height). */
+.map-col-a { width: 336px; flex-shrink: 0; margin-left: 14px; }
+.map-col-b { flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 300px; margin-left: 12px; }
+.map-card { margin-bottom: 8px; padding: 7px 10px 8px 10px; }
+.map-card-title { font-size: 14px; -unity-font-style: bold; color: var(--map-ink-muted); margin-bottom: 4px; }
+.map-overview-row { flex-direction: row; }
+.map-mini-frame { flex-shrink: 0; margin-right: 12px; border-width: 1px; border-color: var(--map-rule); background-color: rgb(70, 66, 50); position: relative; }
+.map-facts { flex-grow: 1; flex-shrink: 1; justify-content: center; }
+.map-fact { font-size: 14px; color: var(--map-ink); white-space: normal; margin-bottom: 2px; }
+.map-legend-body { flex-direction: column; }
+.map-legend-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
+.map-legend-text { font-size: var(--fs-xs); color: var(--map-ink); margin-left: 8px; white-space: normal; flex-shrink: 1; }
+.map-legend-note { font-size: 13px; color: var(--map-ink-muted); margin-left: 8px; white-space: nowrap; }
+.map-side { flex-shrink: 0; margin-bottom: 0; }
+.map-side .heading { white-space: normal; margin-top: 2px; }
+.map-note { white-space: normal; color: var(--map-ink-muted); font-size: var(--fs-sm); margin-bottom: 6px; }
+/* The foldout title wraps within its row (the lines inside the foldout keep their one-line values, so only the title label is named). */
+.map-side .unity-foldout__text { white-space: normal; flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 0; }
 .legend { flex-direction: row; align-items: center; margin-top: 6px; }
 .legend-swatch { width: 120px; height: 10px; margin: 0 6px; }
 
-/* Contextual menu teaching: one screen at a time, bounded on small displays. */
-.menu-help-panel { width: 88%; max-width: 660px; max-height: 82%; }
-.menu-help-panel > * { flex-shrink: 0; margin-bottom: 10px; }
+/* ---- help window ---- */
+/* Contextual menu teaching: one screen at a time, bounded on small displays. A real window: title bar, scrolling body, button bar. */
+.menu-help-panel {
+    background-color: var(--frame-bg);
+    border-color: var(--frame-border);
+    border-width: 1px; border-radius: 2px;
+    padding: 0;
+    width: 92%; max-width: 900px; max-height: 92%;
+}
+/* The scenario introduction has a picture and three explanations, so it is wider and taller than the other help windows. */
+.menu-help-intro { max-width: 1160px; max-height: 95%; }
+.menu-help-panel > * { flex-shrink: 0; }
 .menu-help-panel > .unity-scroll-view { flex-shrink: 1; }
-.menu-help-panel .body { font-size: 16px; }
+.menu-help-title {
+    padding: 12px 20px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule);
+    background-color: var(--surface-section); border-top-left-radius: 2px; border-top-right-radius: 2px;
+}
+.menu-help-body { padding: 14px 20px 6px 20px; flex-shrink: 1; }
+.menu-help-body .body { font-size: var(--fs-reading); margin-bottom: 10px; }
+.menu-help-bar {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    padding: 10px 20px 12px 20px; border-top-width: 1px; border-top-color: var(--frame-rule);
+}
+.menu-help-bar .btn { margin: 0; min-width: 120px; }
+.menu-help-bar .btn-primary { min-width: 200px; }
 
 /* Learning topics reveal one explanation at a time; the body scrolls. */
 .learning-topic { margin-top: 8px; margin-bottom: 8px; }
-.learning-topic > Toggle { font-size: 18px; color: var(--accent); -unity-font-style: bold; }
+.learning-topic > Toggle { font-size: var(--fs-heading); color: var(--ink); -unity-font-style: bold; }
 .learning-topic .body { margin-bottom: 8px; }
 
 /* ---- Crop Tree competitors (inspection card, world tags) ---- */
+/* Five one-line columns must fit the 400-unit side column, so this dense table keeps the size it always had (14); 15 measured 3 to 12 units too wide. */
 .competitor-row Label { font-size: 14px; white-space: nowrap; }
-.competitor-name { flex-grow: 2.2; flex-basis: 0; }
-.competitor-num { flex-grow: 1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 6px; }
-.competitor-share { flex-grow: 2; flex-basis: 0; }
-.competitor-selected Label { color: var(--accent); -unity-font-style: bold; }
+.competitor-name { flex-grow: 2; flex-basis: 0; }
+.competitor-num { flex-grow: 1.1; flex-basis: 0; -unity-text-align: middle-right; margin-right: 4px; }
+.competitor-share { flex-grow: 2.3; flex-basis: 0; }
+.competitor-selected Label { color: var(--ink); -unity-font-style: bold; }
+/* The categorical share stays at its normal reading weight; the arrow, row fill
+   and bold identity/numbers already identify selection without squeezing this label. */
+.competitor-selected .competitor-share { -unity-font-style: normal; }
 .competitor-tag {
-    width: 24px; height: 24px;
-    font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center;
-    color: rgb(20, 24, 18);
-    background-color: rgba(232, 206, 120, 0.92);
-    border-radius: 12px;
+    width: 28px; height: 28px;
+    font-size: var(--fs-sm); -unity-font-style: bold; -unity-text-align: middle-center;
+    color: var(--ink);
+    background-color: var(--active-bg);
+    border-radius: 14px;
 }
-.competitor-tag-selected { background-color: white; border-width: 2px; border-color: var(--accent); }
+.competitor-tag-selected { background-color: var(--select); color: var(--select-ink); border-width: 3px; border-color: var(--select-ink); }
 .hud-forecast { max-width: 900px; }
+
+/* ---- extraction racks ---- */
+.rack-panel { border-color: var(--panel-border); }
+.rack-heading { white-space: normal; font-size: var(--fs-body); -unity-font-style: bold; color: var(--ink); margin-bottom: 4px; }
+.rack-line { white-space: normal; color: var(--ink); }
+.rack-keys { white-space: normal; color: var(--ink-muted); font-size: var(--fs-sm); margin-top: 4px; }
+
+/* ---- top-right HUD column: the active-objective widget above the status panel ---- */
+.hud-right { position: absolute; top: 14px; right: 14px; width: 400px; }
+/* The status panel is positioned by the column here, not by the screen edge. */
+.hud-right .hud-status { position: relative; top: 0; right: 0; width: auto; }
+
+/* ---- active objective widget: what to do now, with an unmistakable NOW state ---- */
+.objective-widget { margin-bottom: 8px; border-left-width: 3px; border-left-color: var(--accent); border-color: var(--panel-border); }
+.objective-header { flex-direction: row; align-items: center; }
+.objective-now {
+    background-color: var(--active-bg); color: var(--ink); -unity-font-style: bold; font-size: var(--fs-xs);
+    border-radius: 2px; padding: 1px 9px; margin-right: 10px;
+}
+.objective-step { color: var(--ink-muted); font-size: var(--fs-sm); }
+.objective-title { color: var(--ink); font-size: var(--fs-heading); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.objective-instruction { color: var(--ink); white-space: normal; margin-top: 2px; }
+.objective-progress { color: var(--accent); font-size: var(--fs-sm); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.objective-details { margin: 0 0 0 auto; padding: 1px 10px; font-size: var(--fs-sm); }
+
+/* ---- Work Plan sections the current objective does not use yet ---- */
+.card-locked .heading { color: var(--ink-faint); }
+
+/* ---- the teaching pictures (introduction and lessons): the frame keeps its proportions, labels sit over its empty bands ---- */
+.teaching-diagram { align-self: stretch; margin-top: 8px; margin-bottom: 8px; }
+.teaching-diagram-frame {
+    width: 100%; flex-shrink: 0; align-self: center;
+    background-color: var(--frame-bg); border-radius: 2px; border-width: 1px; border-color: var(--panel-border);
+}
+.diagram-label { color: var(--ink); position: absolute; white-space: normal; -unity-font-style: bold; -unity-text-align: upper-left; }
+.diagram-legend { position: absolute; white-space: nowrap; -unity-text-align: upper-left; color: var(--ink-muted); }
+.diagram-muted { color: var(--ink-muted); }
+.diagram-caption { white-space: normal; color: var(--ink-muted); font-size: var(--fs-body); margin-top: 6px; }
+
+/* ---- scenario introduction layout ---- */
+.intro-sections { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
+.intro-block { flex-basis: 300px; flex-grow: 1; margin-right: 22px; margin-bottom: 8px; }
+.intro-heading { color: var(--ink); -unity-font-style: bold; font-size: var(--fs-heading); margin-bottom: 3px; white-space: normal; }
+.intro-text { color: var(--ink); font-size: var(--fs-reading); white-space: normal; }
+/* The lead and the picture side by side: the picture takes whatever width the lead leaves. */
+.intro-top { flex-direction: row; align-items: center; }
+.intro-top > .body { flex-basis: 330px; flex-shrink: 0; margin-right: 24px; margin-bottom: 0; }
+.intro-top > .teaching-diagram { flex-grow: 1; flex-basis: 0; margin-top: 0; margin-bottom: 0; }
+.intro-start { color: var(--accent); font-size: var(--fs-reading); -unity-font-style: bold; white-space: normal; margin-top: 6px; margin-bottom: 8px; }
+
+/* ---- the current objective card: what to do / why / good practice ---- */
+.objective-part-heading { color: var(--ink); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
+/* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
+.objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }
+/* The Objectives window is wider than the other screens so the card's words and its picture sit side by side and the whole objective is on
+   screen at once (1472 of the 1600 UI units at any 16:9 size). */
+.modal-objectives { max-width: 1500px; }
+.objective-body { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+.objective-words { flex-basis: 500px; flex-grow: 1; margin-right: 22px; }
+/* The progress line wraps like the text around it: in this narrower column a long one would otherwise run on under the picture. */
+.objective-words > .heading { white-space: normal; }
+.objective-body > .teaching-diagram { flex-basis: 780px; flex-grow: 1; margin-top: 8px; }
+
+/* The competitor list is capped in height by the column above it. Its rows keep their height and anything beyond the cap is clipped, never squeezed
+   until the lines print over each other. */
+.competitor-panel { overflow: hidden; }
+.competitor-body { flex-shrink: 0; }
+.competitor-body > * { flex-shrink: 0; }
+
+/* ---- shared spacing and composition ----
+   Existing functional dimensions and responsive layout are preserved. */
+.modal-header { flex-wrap: wrap; }
+.modal-header > .title { flex-shrink: 1; }
+.screen-actions { flex-wrap: wrap; flex-shrink: 1; justify-content: flex-end; }
+.modal-header > .row { flex-wrap: wrap; }
+.modal-workplan .modal-header, .modal-review .modal-header { align-items: flex-start; }
+.modal-workplan .modal-header > .row { margin-top: 6px; }
+.modal-workplan .columns, .modal-review .columns { align-items: flex-start; }
+.table-row { padding-top: 3px; padding-bottom: 3px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.card-locked { opacity: 1; background-color: var(--disabled-bg); padding-top: 7px; padding-bottom: 7px; }
+.card-locked .body { color: var(--ink-muted); }
+.objective-current { border-left-width: 3px; border-left-color: var(--accent); }
+.objective-part-heading { margin-top: 14px; margin-bottom: 5px; }
+.objective-part-text { margin-bottom: 6px; }
+.objective-body > .teaching-diagram { flex-basis: 800px; }
+.objective-words { flex-basis: 480px; }
+.unity-foldout__text { color: var(--ink); white-space: normal; }
+.unity-toggle__text { color: var(--ink); }
+
+/* One continuous instrument stack: the objective and status share one shell. */
+.hud-right { background-color: var(--panel-bg); border-width: 1px; border-color: var(--panel-border); border-radius: 2px; }
+.hud-right .panel { background-color: transparent; border-width: 0; border-radius: 0; padding: 10px 12px; }
+.hud-right .objective-widget { margin-bottom: 0; border-left-width: 3px; border-left-color: var(--accent); border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.hud-status .heading { color: var(--ink); margin-top: 0; }
+.hud-status .btn { min-height: 30px; padding: 3px 8px; }
+.hud-status .body, .hud-status .muted { font-size: var(--fs-sm); }
+/* The generic .panel padding above is later in the file than the minimap's own 4-unit frame, which HudMinimapView's north mark and ReservedHeightPx assume. */
+.panel.hud-minimap { padding: 4px; }
+.inspect .title { font-size: 26px; }
+.stat { padding-top: 4px; padding-bottom: 4px; }
+.stat-value { font-size: 20px; }
+.inspect-detail .stat-value { font-size: 18px; }
+.inspect .body, .inspect .muted { font-size: 17px; }
+.inspect-detail { margin-top: 6px; }
+/* The competitor table keeps its original row size and column split (see the competitor section above); larger rows overflowed the column. */
+.competitor-selected { background-color: var(--chip-bg); }
+
+/* Session cards use the same controls and surfaces; the forest remains visible. */
+.session-backdrop { justify-content: center; align-items: center; background-color: var(--backdrop); }
+.session-scroll { width: 760px; max-width: 94%; max-height: 94%; }
+.session-scroll > .unity-scroll-view__content-viewport { flex-shrink: 1; }
+.session-card { padding: 24px 30px; background-color: var(--panel-bg); }
+.session-copy { margin-bottom: 12px; }
+.session-card .title { margin-bottom: 10px; -unity-font-style: normal; }
+.session-action { min-height: 44px; font-size: 20px; margin-bottom: 8px; margin-right: 0; }
+.startup-card { padding-top: 28px; padding-bottom: 28px; }
+.startup-column { align-items: center; }
+.startup-copy { white-space: normal; -unity-text-align: middle-center; margin-bottom: 14px; }
+.session-brand { font-size: 62px; -unity-font-style: bold; color: var(--ink); margin-bottom: 2px; }
+.session-subtitle { font-size: 23px; color: var(--ink-muted); margin-bottom: 26px; }
+.startup-action { width: 420px; max-width: 100%; min-height: 46px; font-size: 21px; margin: 0 0 10px 0; }
+.startup-column > .faint { margin-top: 12px; }
+.session-controls { max-height: 440px; align-self: stretch; margin-bottom: 14px; }
+.session-control-row { flex-direction: row; padding-top: 5px; padding-bottom: 5px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.session-control-key { width: 160px; flex-shrink: 0; font-size: 20px; }
+.session-control-row .body { flex-shrink: 1; font-size: 20px; }
+.intro-top > .body { flex-basis: 220px; }
+.intro-block { margin-right: 18px; }
+.intro-start { color: var(--ink); -unity-font-style: normal; font-size: var(--fs-reading); }
+.intro-start-heading { margin-top: 12px; }
+
+/* 720p has its own reading/spacing balance, rather than shrinking 1080p text. */
+.compact { --fs-reading: 21px; --fs-button: 18px; --fs-sm: 17px; }
+.compact .modal { width: 96%; height: 94%; padding: 10px 14px; }
+.compact .modal-map { height: 96%; --fs-button: 16px; --fs-sm: 16px; }
+.compact .modal-header { margin-bottom: 6px; padding-bottom: 6px; }
+.compact .modal-review .screen-actions { justify-content: flex-start; }
+.compact .modal-review .modal-header > .title { width: 100%; }
+.compact .modal-workplan .modal-header > .row { width: 100%; justify-content: flex-start; }
+.compact .modal-workplan .modal-header > .row > .money { margin-right: 18px; }
+.compact .menu-help-intro { max-width: 1400px; }
+.compact .objective-words { flex-basis: 460px; margin-right: 18px; }
+.compact .objective-body > .teaching-diagram { flex-basis: 800px; }
+.compact .inspect .panel { padding: 8px 12px; }
+.compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
+.compact .session-card { padding: 18px 24px; }
+.compact .session-copy.body { font-size: 20px; margin-bottom: 10px; }
+
+
+/* Reference-locked three-page onboarding: geometry follows the 1672x941 source.
+   Styling always resolves through the qualified V2 variables above. */
+.onboarding { background-color: var(--backdrop); overflow: hidden; }
+.onboarding-canvas { position: absolute; }
+.onboarding-panel {
+    background-color: var(--frame-bg);
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 7px;
+}
+.onboarding-copy {
+    margin: 0; padding: 0;
+    white-space: normal;
+    -unity-font-style: normal;
+    color: var(--ink);
+}
+.onboarding-eyebrow { color: var(--accent); letter-spacing: 3px; }
+.onboarding-accent { color: var(--accent); }
+.onboarding-rule { background-color: var(--frame-rule); }
+.onboarding-card {
+    border-color: var(--panel-border);
+    border-width: 1px;
+    border-radius: 7px;
+    background-color: var(--panel-bg);
+}
+.onboarding-number {
+    color: var(--accent);
+    border-color: var(--accent);
+    border-width: 2px;
+    border-radius: 28px;
+}
+.onboarding-action { margin: 0; padding: 0; font-size: 22px; -unity-font-style: normal; border-radius: 5px; }
+.onboarding-dot { border-width: 1px; border-color: var(--accent); border-radius: 7px; }
+.onboarding-dot-current { background-color: var(--accent); }
+
+.onboarding .onboarding-action:focus {
+    border-left-color: var(--accent); border-right-color: var(--accent);
+    border-top-color: var(--accent); border-bottom-color: var(--accent);
+}
+.onboarding .onboarding-action.btn-ghost { background-color: var(--btn-bg); }
+
+/* Page 3 uses one shared row so headings and copy keep the same baselines. */
+.onboarding-info-row { flex-direction: row; }
+.onboarding-info-column { width: 480px; min-width: 0; flex-shrink: 0; padding-left: 18px; padding-right: 18px; border-left-width: 1px; border-left-color: transparent; }
+.onboarding-info-column-divider { border-left-width: 1px; border-left-color: var(--frame-rule); }
+.onboarding-info-header { flex-direction: row; align-items: center; height: 40px; flex-shrink: 0; margin-bottom: 5px; }
+.onboarding-info-icon { width: 40px; height: 40px; flex-shrink: 0; margin-right: 18px; }
+.onboarding-info-title { font-size: 26px; flex-grow: 1; flex-shrink: 0; min-width: 0; }
+.onboarding-info-body { font-size: 20px; flex-shrink: 0; }

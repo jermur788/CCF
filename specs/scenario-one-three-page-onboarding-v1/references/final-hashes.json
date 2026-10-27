@@ -1,0 +1,20 @@
+[
+  {
+    "file": "page-1-locked.png",
+    "sha256": "238b273c3df788775103c17e46b6ae89dd997926e08760087feb744a929e9050",
+    "bytes": 2168593,
+    "source": "/home/jer/.codex/generated_images/01a173c9-0ce2-7d41-8dea-c6472dda50d1/exec-d3823daa-58a8-4300-8962-a4aeb05d9fea.png"
+  },
+  {
+    "file": "page-2-locked.png",
+    "sha256": "b4b7174aa2666d944babd49bdf22cd6d722f9a3807378d3759fa929cdfb0733e",
+    "bytes": 2282543,
+    "source": "/home/jer/.codex/generated_images/01a173c9-0ce2-7d41-8dea-c6472dda50d1/exec-30d75542-531f-4fe8-9395-939e8f37c9fe.png"
+  },
+  {
+    "file": "page-3-locked.png",
+    "sha256": "2562fea2c7ab733b8b2199b9b6b128c97819ccbf4ff570d6deefea371e4009db",
+    "bytes": 2122050,
+    "source": "/home/jer/.codex/generated_images/01a173c9-0ce2-7d41-8dea-c6472dda50d1/exec-804c6113-dbc7-45da-bf19-d2a9c8234e43.png"
+  }
+]

@@ -20,4 +20,21 @@ public static class ScenarioOneSaveMigration
             foreach (var entry in data.managementEvents)
                 if (entry != null) { entry.executionMethod = WorkExecutionMethod.Contractor; entry.ownerMinutes = 0; }
     }
+
+    // v21 normalization for every save that predates the Rack Planning & Field Marking V2 fields.
+    // JsonUtility turns missing fields into zero/null (so a v20 save would look like nextRackId 0),
+    // and the accepted policy for pre-V2 worlds is explicit: model 0, no plan, and every existing
+    // order effectively rackId 0. Nothing is synthesized: only a v21 save that states rack data
+    // brings it back (ScenarioOneManager.RestoreSaveData reads it only when the save is v21).
+    public static void NormalizeRackV2(ScenarioOneSaveData data, int version)
+    {
+        if (data == null || version >= 21) return;
+        data.rackPlanningModel = RackPlanningModel.Legacy;
+        data.rackPlanConfirmed = false;
+        data.nextRackId = 1;
+        data.racks = new List<RackSaveData>();
+        if (data.workOrders != null)
+            foreach (var order in data.workOrders)
+                if (order != null) order.rackId = 0;
+    }
 }

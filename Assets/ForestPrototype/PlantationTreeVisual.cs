@@ -148,7 +148,7 @@ public sealed class PlantationTreeVisual : MonoBehaviour
                 Mesh mesh = assembly.meshes[lod][m];
                 child.GetComponent<MeshFilter>().sharedMesh = mesh;
                 var renderer = child.GetComponent<MeshRenderer>();
-                renderer.sharedMaterial = catalog.materials[m];
+                renderer.sharedMaterial = SitkaFoliage.Darken(catalog.materials[m]);
                 child.gameObject.SetActive(mesh != null);
                 if (mesh != null) renderers.Add(renderer);
             }

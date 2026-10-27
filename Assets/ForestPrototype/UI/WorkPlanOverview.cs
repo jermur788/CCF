@@ -44,11 +44,6 @@ public static class WorkPlanOverview
         ScenarioHarvestJob approved = m.GetHarvestQuote(true);
         CashOutlook outlook = CashOutlook.Evaluate(OutlookInput(m, all, approved));
 
-        VisualElement doing = UiKit.Box("card", "workplan-overview");
-        doing.name = "workplan-doing";
-        UiKit.Add(doing, "WHAT ARE YOU DOING?", "heading");
-        UiKit.Add(doing, "The job cards below show each marked task, its cost or timber value, who carries it out, and whether it is pending or approved. These summaries are estimates until the year is resolved.", "muted");
-        parent.Add(doing);
         BuildWarning(parent, m, outlook);
         VisualElement columns = UiKit.Box("columns");
         parent.Add(columns);
@@ -98,9 +93,9 @@ public static class WorkPlanOverview
         if (string.IsNullOrEmpty(text)) return;
         VisualElement card = UiKit.Box("card", "workplan-warning");
         card.name = "workplan-cash-warning";
-        // Inline, so this packet does not edit the shared stylesheet.
-        card.style.borderLeftWidth = 4;
-        card.style.borderLeftColor = new Color(240f / 255f, 186f / 255f, 110f / 255f);
+        // Warning semantics use the same token as the Work Plan advance guard.
+        card.style.borderLeftWidth = 2;
+        card.style.borderLeftColor = UiKit.WarningColour;
         UiKit.Add(card, "⚠ CASH AFTER THIS PLAN", "heading");
         UiKit.Add(card, text, "body");
         parent.Add(card);
@@ -146,7 +141,8 @@ public static class WorkPlanOverview
         card.style.flexGrow = 1; card.style.flexBasis = 0; card.style.minWidth = 360;
         card.name = "workplan-leaving";
         UiKit.Add(card, "WHAT YOU ARE LEAVING", "heading");
-        UiKit.Add(card, "If all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened.", "muted");
+        UiKit.Add(card, "The residual stand: the trees left standing if all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened. "
+            + "Basal area is the cross-section area of the trunks per hectare, a standard measure of how much stand there is.", "muted");
 
         ResidualStandResult stand = ResidualStand.Compute(SceneTrees(eco, fell), eco.StandAreaHectares, eco.CellsPerAxis, eco.CellSizeMeters);
         if (stand.PlannedFells == 0)
@@ -157,7 +153,7 @@ public static class WorkPlanOverview
             UiKit.Line(card, "Basal area", $"{UiKit.F(stand.BasalAreaBefore, "0.0")} → {UiKit.F(stand.BasalAreaAfter, "0.0")} m²/ha");
             UiKit.Line(card, "Standing stem volume", $"{UiKit.F(stand.VolumeBefore, "0.0")} → {UiKit.F(stand.VolumeAfter, "0.0")} m³");
             UiKit.Line(card, "Removal across the stand",
-                $"{stand.CellsTouched} cell{(stand.CellsTouched == 1 ? "" : "s")} · largest opening {stand.LargestOpeningCells} cell{(stand.LargestOpeningCells == 1 ? "" : "s")} ({UiKit.F(stand.LargestOpeningM2, "0")} m²)");
+                $"{stand.CellsTouched} map square{(stand.CellsTouched == 1 ? "" : "s")} · largest opening {UiKit.F(stand.LargestOpeningM2, "0")} m²");
             string pattern = ResidualStand.PatternSentence(stand);
             if (!string.IsNullOrEmpty(pattern)) UiKit.Add(card, pattern, "muted");
         }
@@ -171,7 +167,8 @@ public static class WorkPlanOverview
         float plannedSalvage = m.DeadwoodRecords.Where(d => salvageIds.Contains(d.treeId)).Sum(d => d.remainingVolumeM3);
         float deadwoodAfter = Mathf.Max(0f, onSite - plannedSalvage) + plannedFellingDeadwood;
         if (plannedFellingDeadwood > 0f || plannedSalvage > 0f || onSite > 0f)
-            UiKit.Line(card, "Deadwood volume", $"{UiKit.F(onSite, "0.00")} m³ now → about {UiKit.F(deadwoodAfter, "0.00")} m³ after selected salvage and planned felling");
+            UiKit.Line(card, "Deadwood volume", $"{UiKit.F(onSite, "0.00")} m³ now → about {UiKit.F(deadwoodAfter, "0.00")} m³ after selected salvage and planned felling",
+                valueBelow: true);
         BuildCropTreeRelease(card, fell);
         foreach (IWorkPlanResidualRows provider in ExtraRows)
             foreach (ResidualRow row in provider.Rows(m, stand))
@@ -193,7 +190,7 @@ public static class WorkPlanOverview
         {
             ClearanceConsequence c = Consequence(m, eco, order.cellIndex, escape);
             string cell = UiKit.CellLabel(order.cellIndex, eco.CellsPerAxis);
-            UiKit.Line(card, $"Clearance {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no regeneration cohorts or planted saplings inside"
+            UiKit.Line(card, $"Clearance, square {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no regeneration cohorts or planted saplings inside"
                 : $"affects {c.CohortGroups} cohort portion{(c.CohortGroups == 1 ? "" : "s")} and {c.PlantedSaplings} planted sapling{(c.PlantedSaplings == 1 ? "" : "s")}");
             if (c.CohortGroups > 0)
                 UiKit.Add(card, $"Relative regeneration density in those cohort portions: {UiKit.F(c.CohortDensityBefore, "0.0")} → {UiKit.F(c.CohortDensityAfter, "0.0")} seedlings/ha equivalent. Cohorts are modelled groups, not individual seedling counts; a portion can remain after clearing.", "muted");

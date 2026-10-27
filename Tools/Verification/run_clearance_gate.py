@@ -4,11 +4,19 @@ import argparse,fcntl,json,os,shutil,subprocess,time
 from pathlib import Path
 os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in the explicit Editor-only Legacy40 override (D-056); export CCF_STAND_GEOMETRY=1 to run them in Enlarged80 deliberately
 ROOT=Path(__file__).resolve().parents[2]
+# Frozen Reference Future v1 archive/preview Year-100 anchor (model 0; never rebaselined).
+REFERENCE_ARCHIVE_YEAR100_HASH='7AD177B3CC2F73C7'
+# Documented current Reference continuation fingerprint (v15 layout). The continuation world is
+# forward-simulated from the frozen archive under live rules, so its fingerprint moves with accepted
+# calibration: the accepted Oak/Beech ordinal [C] growth rows moved it (before/after in the provenance doc).
+# The gates print it as legacyV15LayoutHash=... Provenance and policy:
+# Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md
+REFERENCE_CONTINUATION_V15_LAYOUT_HASH='BFFF66015A6619DA'
 def check_anchors(gate, rng, log):
     expected = {
         'ScenarioOneCompletionVerification': ['SCENARIO_ONE_COMPLETION_HASH ' + ('568922E1A6D73CDD' if rng == '0' else '00479F18970F9926')],
-        'ScenarioOneInteractionVerification': ['hash=BFC55473C1506067', 'continuedHash=9CDF21A541C5968D'],
-        'ScenarioReferenceVerification': ['continuedHash=9CDF21A541C5968D', 'worldHash=7AD177B3CC2F73C7'],
+        'ScenarioOneInteractionVerification': ['hash=BFC55473C1506067', 'legacyV15LayoutHash=' + REFERENCE_CONTINUATION_V15_LAYOUT_HASH],
+        'ScenarioReferenceVerification': ['legacyV15LayoutHash=' + REFERENCE_CONTINUATION_V15_LAYOUT_HASH, 'worldHash=' + REFERENCE_ARCHIVE_YEAR100_HASH],
         'BrowsingProtectionVerification': ['neutral=BFC55473C1506067', 'A=3485B6630C9EA448 B=3485B6630C9EA448'],
         'RngModelPolicyVerification': ['neutral=BFC55473C1506067 normal=3485B6630C9EA448',
             'neutral=2A0B8C32AC0DE113 normal=506E8AF6D8514C6C', 'hash=CDC4DE8F8EF471E5', 'hash=872094413305A082'],

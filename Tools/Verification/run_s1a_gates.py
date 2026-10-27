@@ -9,6 +9,12 @@ os.environ.setdefault('CCF_STAND_GEOMETRY', '0')  # historical anchors run in th
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT/'Build/S1A'
 UNITY = '/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity'
+# Frozen Reference Future v1 archive/preview Year-100 anchor (model 0; never rebaselined).
+REFERENCE_ARCHIVE_YEAR100_HASH = '7AD177B3CC2F73C7'
+# Documented current Reference continuation fingerprint (v15 layout); the accepted Oak/Beech ordinal [C]
+# growth rows moved it (before/after in the provenance doc). The gate prints it as legacyV15LayoutHash=...
+# Provenance: Docs/Verification/AnchorPolicy/ObservedIntentionalAnchorDeltas.md
+REFERENCE_CONTINUATION_V15_LAYOUT_HASH = 'BFFF66015A6619DA'
 
 def run_gate(gate, name, interactive=False):
     source = ROOT/'Tools/Verification'/(gate+'.cs')
@@ -56,7 +62,10 @@ def main():
         results.append(run_gate('ClearanceVerification','clearance',True))
         results.append(run_gate('ScenarioOneRemovalVerification','removal',False))
     if args.phase in ['focused','all']:
-        for phase,anchor in [('P2','F58FB0B1A421D28B'),('P3','F7C2FC966816BBAD')]:
+        # P3's hash covers the RENDERED Work Plan text ("WHAT YOU ARE LEAVING" + "MONEY"), so it moves when that wording is edited. It was F7C2FC966816BBAD
+        # until the Scenario One UX patch (84e881a) reworded the card subtitle; the world/simulation hash is unchanged (EBE7A228F630AE41).
+        # Intentional UX verification-anchor update; not simulation rebaseline.
+        for phase,anchor in [('P2','F58FB0B1A421D28B'),('P3','AF7405918195F0DE')]:
             subprocess.run(['python3',str(ROOT/f'Tools/Verification/ScenarioOneCompletion/{phase}/run_{phase.lower()}_gates.py')],cwd=ROOT,check=True)
             result=json.loads((ROOT/f'Build/{phase}/results.json').read_text())
             if result['status']!='PASS' or any(r['hash']!=anchor for r in result['results']): raise RuntimeError(phase+' anchor/gate failure')
@@ -65,7 +74,7 @@ def main():
         subprocess.run(['python3',str(ROOT/'Tools/Verification/WindthrowV1/run_regression.py')],cwd=ROOT,check=True)
         regression=json.loads((ROOT/'Build/WindthrowV1/Regression/results.json').read_text())
         if len(regression)!=24 or any(r['status']!='PASS' for r in regression): raise RuntimeError('Regression is not 24/24 PASS')
-        for gate,anchor in [('ScenarioOneCompletionVerification','702766DECE591E21'),('ScenarioReferenceVerification','7AD177B3CC2F73C7'),('ScenarioReferenceVerification','9CDF21A541C5968D')]:
+        for gate,anchor in [('ScenarioOneCompletionVerification','702766DECE591E21'),('ScenarioReferenceVerification',REFERENCE_ARCHIVE_YEAR100_HASH),('ScenarioReferenceVerification',REFERENCE_CONTINUATION_V15_LAYOUT_HASH)]:
             match=next(r for r in regression if r['gate']==gate)
             if anchor not in '\n'.join(match['markers']): raise RuntimeError('Anchor moved: '+gate+' '+anchor)
         baseline = json.loads((ROOT/'Docs/Verification/StormsWindthrowIntegration/regression-results.json').read_text())

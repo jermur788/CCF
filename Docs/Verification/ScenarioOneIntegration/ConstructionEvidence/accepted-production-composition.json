@@ -1,0 +1,469 @@
+{
+  "Assets/ForestPrototype/AdultMortalityAccount.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "acdcbe49cf5df16158f58066b84901a5dd78828cdd30af342b8a80ca408b34a3"
+  },
+  "Assets/ForestPrototype/ForestEcologyController.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "29a69efe8c666f4452f3135784b41a8cda1360bbbecd8f16f00565bc4a3acd43"
+  },
+  "Assets/ForestPrototype/ForestSiteProfile.cs": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "497bef8582424f34267f3a0d9c568b3ddf6640448bf8daed064032b450d5c0ec"
+  },
+  "Assets/ForestPrototype/ForestSiteProfile.cs.meta": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "d4de4e48a89031cec667fb2dcc56d24fb35387044b5f3af3ce1cde701a74d639"
+  },
+  "Assets/ForestPrototype/ForestTreeMarkingManager.cs": {
+    "exact_accepted_sources": [
+      "678283642aaeb60221eda0fe8cb3f97e27958048"
+    ],
+    "sha256": "7385c0f1d128975830c847f8f6fcf0f7d84f799aef21d7caa13aa1d65c1e9387"
+  },
+  "Assets/ForestPrototype/MixedDensityModel.Composite.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "5d8ed63ce7bb6cb1464844c386c8a72781556a55289bf7bec5dbff0576ed7121"
+  },
+  "Assets/ForestPrototype/MixedDensityModel.Composite.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "9f2097bcf537e80a5dc42af3b4df72c9e13262d8738ce95bec7bd0bb4122ea99"
+  },
+  "Assets/ForestPrototype/MixedDensityModel.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "88a85dbd42aa556a698b07ea36d6a5468793c5e18a868271d2ed66ccd722dbf3"
+  },
+  "Assets/ForestPrototype/MixedDensityModel.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "e11fa6840c857734637b8dc3336d324670efc7fcbebe10f112afc52685b6b2f7"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "1e85e90806e7bb27422ca18779c606c503d438f1a229a2e17943af441d33befb"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "79d6d4e58d9b3d380f1eb709bbf090d1ef717cd7ba185cf583c702463bbd39fe"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs": {
+    "exact_accepted_sources": [
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "e7f4865319908b8b738432ff9d7341034be39f654630d92410cab28e6eda52df"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "5da3d8ab7c7197a51989e7c4f89a6c4aa19113912659e7cb77ee9e238f10b065"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioManagementEvent.cs": {
+    "exact_accepted_sources": [
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "ad474a28ca6838e95703e4fd58ef5901aecd1d0581a2b546094e742d0ce8324f"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs": {
+    "exact_accepted_sources": [
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "f6057e8a20d30815501a1215fafea924ef8e26197ede701a529c876466a0f0b1"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs.meta": {
+    "exact_accepted_sources": [
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "db73a0b234d85021f81872fa79513ddc48151ecf079c2018a59e80c98a834d26"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs": {
+    "exact_accepted_sources": [
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "862eda3ffd4f0ca3a857474773bc54b04abb8d01d5f894bdf482e0c2851dbe3f"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs.meta": {
+    "exact_accepted_sources": [
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "316051117e2effb31fe9272f8285b42967f1c957e8ef145606f6d264e4270fed"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneEconomyAdapter.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "c5f3c9ffe535b23704e78b84e960e2af4f6ebccd7b453d840af46feb2df21f10"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs": {
+    "exact_accepted_sources": [
+      "a93a7220fd8b4d8246b3613d913360dad06988e8"
+    ],
+    "sha256": "aa106f46753798aaea0e270e759e6fc3a9e427c9b962f2003c8ff4a61ba5b363"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.History.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "44b05318123b02585167a6f88e23cf5758836f9104c20d077f4ab1e0a108b909"
+  },
+  "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": {
+    "owners": [
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "composition": "independent clean three-way merge",
+    "sha256": "4d0de5bb91aac91bd327a48b517b12752b18fa0354650b1f6bf44ec09eea4dda"
+  },
+  "Assets/ForestPrototype/ScenarioSiteProfiles.cs": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "9ab0b2b8b55102e8e8b329d8cfa3fa046d4fa479b5c3daebc3db316668b43d16"
+  },
+  "Assets/ForestPrototype/ScenarioSiteProfiles.cs.meta": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "aa0e9d3e7e8918853ac9e666dc442ecf68b77a514eaabc28bd01065ab7bef785"
+  },
+  "Assets/ForestPrototype/SitkaGrowthModel.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "c887fc29a4591f0be3002b756411256149a01139a10276d161622038c7389d2f"
+  },
+  "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "d71f1e04ab011feffe77715df02a83131ff0e3a50b7ae8a4d3f4d972fe9f32f2"
+  },
+  "Assets/ForestPrototype/SitkaSubsetDensitySignal.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1"
+    ],
+    "sha256": "e2bbc303e69ab5d8b527cfa08d7cabc1629538cdf89eecf7080342e0bdd7d9e6"
+  },
+  "Assets/ForestPrototype/Species/BeechSpecies.asset": {
+    "exact_accepted_sources": [
+      "796da99029190ef71e68d5fa722f25240e696318"
+    ],
+    "sha256": "0bfb332f5592315b481ebaceaba40ac15d7ecf94026947324f90dbbc7bf27d17"
+  },
+  "Assets/ForestPrototype/Species/SessileOak.asset": {
+    "exact_accepted_sources": [
+      "796da99029190ef71e68d5fa722f25240e696318"
+    ],
+    "sha256": "c9731d3a0c9074f0d588cbbc8344648ccbbe6e559ea5f0732a216fa705183219"
+  },
+  "Assets/ForestPrototype/SpeciesSiteResponse.cs": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "072f36f5429931015b6680103a2660174645113abb611e11eb0291038f257cab"
+  },
+  "Assets/ForestPrototype/SpeciesSiteResponse.cs.meta": {
+    "exact_accepted_sources": [
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "ddb6fe6b1e8b7124c4606308f08f70e5379cfc0dbceb4547d62bafa94807f455"
+  },
+  "Assets/ForestPrototype/TimberYield/TimberYieldCalculator.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "e58df12bb886be07bc62db4898432d8fca041be1bd6534a65ccf94952eac62dc"
+  },
+  "Assets/ForestPrototype/TimberYield/TimberYieldConfiguration.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "5a55f18c893222d90b3ea5ad7ba37c52384abf03cd69e95f735b2b2baef58313"
+  },
+  "Assets/ForestPrototype/TimberYield/TimberYieldValidation.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "48d8a8cc4c5e0c8b1099642e8d26e91a960eb9ae86d98c275ce7b1818fa17f48"
+  },
+  "Assets/ForestPrototype/TreeSpeciesDefinition.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8"
+    ],
+    "sha256": "762a33fe1c89a0840cba0703631d93a6988d4787ab45126df84efbcbb3ff4a55"
+  },
+  "Assets/ForestPrototype/UI/AdvanceGuard.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "a161b6bc1402762433e2f6c08e2af0947b9fdc93c552448a2cf90e6540ddf5ab"
+  },
+  "Assets/ForestPrototype/UI/AdvanceGuard.cs.meta": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "cec8267bf4ea59b8469e3ffbdfd5e39a917d51b6f888fe493521c364f78b4848"
+  },
+  "Assets/ForestPrototype/UI/AnnualReviewView.cs": {
+    "owners": [
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "b4894ccf7966cfa5fa4d9c0df653d99b1846fa5a",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "composition": "independent clean three-way merge",
+    "sha256": "fde985da852321be1d1006c32b94c753433748ee4cbb88fae328d2c42553b125"
+  },
+  "Assets/ForestPrototype/UI/ControlsReference.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "5d66b949115fafd940dcc1138d9e778363066034f61a15620485f6331f1f0f34"
+  },
+  "Assets/ForestPrototype/UI/ControlsReference.cs.meta": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "74c74408127521f5475716f3c9e83880e9d16ba11f85d0c3ebf7325bf26f479a"
+  },
+  "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "f15486612774c0ae9746743cda771c62df5d197d0d95070e78935852ec138dc7"
+  },
+  "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs.meta": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "82ca805a88c7c7e14890ca73fc9479563f07dfc5d343aae0084abd109acb7850"
+  },
+  "Assets/ForestPrototype/UI/LearningObjectivesView.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "5fa3e9c5243d45d92ff4dbaec5d226a4ea919b58fc6072d3305aecee7bcd3fa8"
+  },
+  "Assets/ForestPrototype/UI/MenuHelpView.Text.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "014b4dd9cc3ecfcec1031297b707f179876b5d3cd5e8fdd83526d99c5ba1d469"
+  },
+  "Assets/ForestPrototype/UI/MenuHelpView.Text.cs.meta": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "f9db18c9a717c68e82a3c26082ad320919fa47e2e16169176eabb3a55bffb073"
+  },
+  "Assets/ForestPrototype/UI/MenuHelpView.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "d4e2a3dc9dd17588e1ad5cba770ec21d98d74a0b54676947a1d66d42a0f83bfe"
+  },
+  "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "b85ec1db613736bf820ecc610967bb1cfa4a199944878bc344e9e0d71d28b745"
+  },
+  "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "47acf7a2b788598ad347503dd7d4a800e287d7353f7b8c7eaaf01de14d1c60e7"
+  },
+  "Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "0146edd142d79aca38e73f3e7b187c90756116d8dd02b48a0b3f39e749a14946"
+  },
+  "Assets/ForestPrototype/UI/StandaloneSessionMenu.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "58513dfbab504f586263eb2e5249626dfb058bc6889c218f5a2f2858b17516e9"
+  },
+  "Assets/ForestPrototype/UI/TreeInspectionView.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "49929d8e31faa4522d202fa1d00a53f9ac5615acdfb9eb0d06e2b0d6b83bca60"
+  },
+  "Assets/ForestPrototype/UI/UiKit.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "89c0f016b2f482df7528bbdf1c342928cf594873bbcd9ef23d715a2789de210d"
+  },
+  "Assets/ForestPrototype/UI/WalkingHudView.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "2e429e9cd2c661c12f7e3255c1ad23c5c2867658c857ba855dd1952dbcef1345"
+  },
+  "Assets/ForestPrototype/UI/WorkPlanOverview.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "279c04daf63d61aff3237d66e20eb416e50ba6e420101ada2590caa69ad979bb"
+  },
+  "Assets/ForestPrototype/UI/WorkPlanView.cs": {
+    "exact_accepted_sources": [
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73"
+    ],
+    "sha256": "3ca91b678d315e563d24a6603a25599ca203a7097f91fc5d7fd4b00ff761d8f5"
+  },
+  "Assets/ForestPrototype/WorkEconomy/ForestryWorkDomain.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "ce06ecfc6454cedc90612ef8f56c006eef2203f5bdb8bb2066dd33a7ca13f8f6"
+  },
+  "Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "06795486e980bf407f0cd6ace1785592ca58dbc6bb7884d41b32e220219d5017"
+  },
+  "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "1663160e6c3b8301c849051a1c9bc25322333dafe5225f95b77e810aa59fd59b"
+  },
+  "Assets/ForestPrototype/WorkEconomy/TimberAssortmentLabels.cs.meta": {
+    "exact_accepted_sources": [
+      "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
+      "47539847d7e2531824c30f3dfe635d55404699a8",
+      "796da99029190ef71e68d5fa722f25240e696318",
+      "eb7fd3d8c0baac1d71d43ebfce035591b9e4a8ac",
+      "a93a7220fd8b4d8246b3613d913360dad06988e8",
+      "549eae3318f1bb4d01a2853384b58f282f7f4e73",
+      "8d21e27046fdeae4b2cda710938daf19757fbc3d",
+      "855827f96225003c6387b0da43107c509603391a",
+      "feb754cbe263c41a8d2f6fe33cd9fc39888c7e60"
+    ],
+    "sha256": "71878e2750b62e921d1124990f62bde041091cbf00ad99118199e3afbbc07192"
+  }
+}

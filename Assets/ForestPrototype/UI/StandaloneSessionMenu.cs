@@ -22,16 +22,16 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     private bool playerWasEnabled, savesWereEnabled, uiWasEnabled;
     private float previousTimeScale;
     private Identity identity;
+    private string sessionNote;
     public Identity BuildIdentity => identity;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
 #if UNITY_EDITOR
-        // Editor Play Mode enters the stand directly, as it always has, so development and every verification
-        // gate behave unchanged. Set CCF_STARTUP_SCREEN=1 to exercise the real startup screen in the Editor.
-        // This check is compiled out of Players: a Player always shows the startup screen.
-        if (Environment.GetEnvironmentVariable("CCF_STARTUP_SCREEN") != "1") return;
+        // Normal Editor Play follows the Player startup flow. Disposable verification must explicitly
+        // request direct scene entry; this bypass is compiled out of Players.
+        if (Environment.GetEnvironmentVariable("CCF_TEST_DIRECT_ENTRY") == "1") return;
 #endif
         var host = new GameObject("Standalone session menu");
         DontDestroyOnLoad(host);
@@ -52,13 +52,14 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         document = gameObject.AddComponent<UIDocument>();
         document.panelSettings = settings;
         var root = document.rootVisualElement;
-        root.style.flexGrow = 1;
-        root.style.justifyContent = Justify.Center;
-        root.style.alignItems = Align.Center;
-        root.style.backgroundColor = new Color(0.03f, 0.05f, 0.035f, 0.97f);
-        card = new VisualElement(); card.style.width = 650; card.style.maxWidth = Length.Percent(95);
-        card.style.paddingLeft = card.style.paddingRight = 24;
-        root.Add(card);
+        root.styleSheets.Add(Resources.Load<StyleSheet>("ScenarioOneUi"));
+        root.AddToClassList("root");
+        root.AddToClassList("session-backdrop");
+        var scroll = new ScrollView(ScrollViewMode.Vertical);
+        scroll.AddToClassList("session-scroll");
+        card = UiKit.Box("session-card", "panel");
+        scroll.Add(card);
+        root.Add(scroll);
         yield return null; yield return null;
         if (startupScreen) yield return StartCoroutine(OpenStartupWhenReady());
         else Open();
@@ -70,6 +71,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         {
             if (IsOpen) Close(); else Open();
         }
+        if (document != null) UiKit.SetCompact(document.rootVisualElement);
         if (IsOpen) { UnityEngine.Cursor.lockState = CursorLockMode.None; UnityEngine.Cursor.visible = true; }
     }
     private static string SavePath => Path.Combine(Application.persistentDataPath, "forest-save.json");
@@ -92,41 +94,53 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     public void Close()
     {
         if (!IsOpen) return;
-        IsOpen = false; startupScreen = false; Time.timeScale = previousTimeScale;
-        document.rootVisualElement.style.display = DisplayStyle.None;
+        IsOpen = false; startupScreen = false; sessionNote = null; Time.timeScale = previousTimeScale;
+        if (document != null && document.rootVisualElement != null) document.rootVisualElement.style.display = DisplayStyle.None;
         if (saves != null) saves.enabled = savesWereEnabled;
         if (forestUi != null) { forestUi.RootElement.style.display = DisplayStyle.Flex; forestUi.enabled = uiWasEnabled; }
         if (player != null) player.enabled = playerWasEnabled;
     }
     private void Text(string text, int size = 20)
     {
-        var label = new Label(text); label.style.whiteSpace = WhiteSpace.Normal;
-        label.style.fontSize = size; label.style.color = Color.white; label.style.marginBottom = 12; card.Add(label);
+        UiKit.Add(card, text, size >= 30 ? "title" : "body", "session-copy");
     }
-    private Button ActionButton(string text, System.Action action)
+    private Button ActionButton(string text, System.Action action, string kind = null)
     {
-        var button = new Button(action) { text = text }; button.style.fontSize = 22;
-        button.style.height = 46; button.style.marginBottom = 8; card.Add(button);
+        var button = UiKit.Button(text, action, true, "session-action");
+        // Session actions are keyboard navigable while all forest input is paused.
+        button.focusable = true;
+        if (kind != null) button.AddToClassList(kind);
+        card.Add(button);
         return button;
     }
     private void MainCard()
     {
-        card.Clear(); Text("CCF · private first-cycle test", 30); Text(identity.buildId);
-        Text("Manage one cycle, read the Annual Review, then walk and observe the changed forest. Choose your own forestry decisions.");
+        card.Clear(); card.RemoveFromClassList("startup-card"); Text("CCF · Scenario One", 30); Text(identity.buildId);
+        if (!string.IsNullOrEmpty(sessionNote)) Text(sessionNote);
+        Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
-        ActionButton("Continue current forest [F10]", Close);
+        ActionButton("Continue current forest [F10]", Close, "btn-primary");
         if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { Close(); saves?.Load(); });
         ActionButton("Save current forest and return…", () => {
             if (File.Exists(SavePath)) Confirm("Replace your existing forest save with the current forest? Use saves only with this build.", SaveAndClose);
             else SaveAndClose();
         });
+        ActionButton("Reset tutorial/help progress…", () => Confirm(
+            "Reset tutorial and help progress on this device? First-use screens and lesson steps start again for the next player. Your forest and your saved game are not changed.", ResetTeachingProgress));
         Text("F1 Help · O Learning · M Map · Tab Work Plan · F5 Save · F9 Load · F10 this menu. Learning introductions remain remembered on this device.");
         ActionButton("Quit CCF…", () => Confirm("Quit without saving automatically? Use Save first if you want to keep current progress.", Quit));
+    }
+    // For a facilitator handing the build to the next participant. Only the local help and lesson preferences are cleared.
+    public void ResetTeachingProgress()
+    {
+        if (forestUi != null) forestUi.ResetTeachingProgress();
+        sessionNote = "Tutorial and help progress reset on this device. Your forest and your saved game were not changed.";
+        MainCard();
     }
     private void Confirm(string prompt, System.Action action)
     {
         card.Clear(); Text(identity.buildId); Text(prompt);
-        ActionButton("Confirm", action); ActionButton("Cancel", MainCard);
+        ActionButton("Confirm", action, "btn-primary"); ActionButton("Cancel", MainCard);
     }
     public void SaveAndClose() { Close(); saves?.Save(); }
     public void Restart()
