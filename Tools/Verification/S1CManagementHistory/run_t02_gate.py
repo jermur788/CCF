@@ -31,6 +31,9 @@ HARNESS = 'AnnualReviewYearBrowsingVerification.cs'
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--lock-id', required=True, help='Already-held S1-C-IMPL-02 Unity lock ID')
+    parser.add_argument('--expected-head', required=True, help='Exact clean Unity-lane commit to qualify')
+    parser.add_argument('--preflight-only', action='store_true', help='Validate ownership without staging or launching')
     parser.add_argument('--project', type=Path, default=ROOT, help='Unity project (lane) to run in')
     parser.add_argument('--mode', choices=['candidate', 'baseline'], default='candidate')
     parser.add_argument('--sizes', default='1280x720,1920x1080')
@@ -40,6 +43,20 @@ def main():
     args = parser.parse_args()
     root = args.project.resolve()
     out = args.out.resolve()
+    # A released lock is not a lane reservation. Refuse another task's lock, checkout or staged harness before writes.
+    lock = json.loads(subprocess.check_output(
+        ['python3', '-B', '/media/jer/ZX20/CCF-Ops/scripts/unity-lock', 'status', '--json'], text=True))
+    metadata = lock.get('metadata') or {}
+    actual_head = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+    dirty = subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain'], text=True).strip()
+    if (lock.get('status') != 'held' or metadata.get('lock_id') != args.lock_id
+            or metadata.get('task_id') != 'S1-C-IMPL-02' or metadata.get('lane') != str(root)
+            or metadata.get('head') != args.expected_head or actual_head != args.expected_head
+            or lock.get('unity_editor_pids') or dirty):
+        raise SystemExit('OWNERSHIP CONFLICT: require this task\'s exact lock, a clean matching lane and no running Editor')
+    if args.preflight_only:
+        print('T-02 preflight PASS: ' + actual_head)
+        return 0
     if root in out.parents or out == root:
         raise SystemExit('Evidence folder must be outside the repository')
     out.mkdir(parents=True, exist_ok=True)
