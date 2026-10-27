@@ -281,6 +281,8 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         Check(manager.RackPlanningV2Active && manager.RackPlanningModelVersion == RackPlanningModel.RackPlanningFieldMarkingV2,
             "the fresh Enlarged80 world is a Rack Planning V2 world");
         Check(manager.PlannedRackCount == 0 && !manager.RackPlanConfirmed && manager.NextRackId == 1, "a fresh V2 world starts with an empty, unconfirmed plan");
+        Check(manager.RackFirstStageActive, "the rack-first teaching stage is active in a fresh V2 world (RackUxRack STAGE1_RACK_FIRST_IS_ACTIVE, V2 form)");
+        Note("STAGE1_CUE", "cue=" + ui.Learning.Summary.Replace("\n", " / ") + " | topic1=" + LearningObjectivesView.Topics[0].Title);
 
         // 02B-R x 03C: the headland world is really present underneath the rack runtime.
         ForestTree[] living = Living();
@@ -382,6 +384,10 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
 
         yield return Shoot("c01-after-continue");
         yield return TopDown("c02-topdown-confirmed-pending");
+        // F-8 consumers read RackGroups / the authored layout. Measure (do not assert) what they show for a confirmed V2 plan.
+        int pendingRackOrders = manager.WorkOrders.Count(o => o.rackId > 0 && o.IsOpen);
+        Note("F8_PLANNED_MARKERS", "markers=" + ui.PlannedMarkers.MarkerCount + " rackMarkers=" + ui.PlannedMarkers.RackMarkerCount + " pendingRackOrders=" + pendingRackOrders
+            + " legacyRackGroups=" + manager.RackGroups.Count);
 
         // ---- approve through the real Work Plan UI --------------------------------------------------------------
         ui.RackLayout.Update(true);
@@ -389,6 +395,10 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         ui.ShowWorkPlan(); yield return Frames(2);
         yield return CloseHelp();
         yield return Wait(0.4f);
+        string workPlanText = Texts(ui.RootElement);
+        Note("F8_WORKPLAN", "hasExtractionRackGroup=" + workPlanText.Contains("Extraction rack") + " hasDraft=" + workPlanText.Contains("DRAFT")
+            + " hasTimberIncome=" + (workPlanText.Contains("Timber") && workPlanText.Contains("estimated income")) + " hasWholeJobReview=" + workPlanText.Contains("Harvest and salvage job")
+            + " statusLine5of5=" + workPlanText.Contains("Extraction racks: 5 of 5 in the Work Plan"));
         List<int> rackIds = state.rackIds.ToList();
         List<string> removalUnion = manager.ConfirmedRacks.SelectMany(r => r.RemovalTreeIds).ToList();
         yield return Shoot("c03-workplan-pending");
