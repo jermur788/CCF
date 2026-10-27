@@ -12,6 +12,7 @@ AnnualReviewView.cs at both revisions and requires them to be identical.
 """
 import argparse
 import difflib
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -46,10 +47,29 @@ def main():
     parser.add_argument('--head-rev')
     args = parser.parse_args()
     problems = []
+    for name, folder in [('baseline', args.baseline), ('candidate', args.candidate)]:
+        receipt = folder / 'process-result.json'
+        if not receipt.exists() or not json.loads(receipt.read_text()).get('pass'):
+            problems.append(name + ' has no passing process receipt')
+    hashes = []
+    for folder in (args.baseline, args.candidate):
+        report = folder / 'evidence/t02-result.txt'
+        match = re.search(r'world hash after fixture: (\w+)', report.read_text()) if report.exists() else None
+        hashes.append(match.group(1) if match else None)
+    print('fixture world hashes:', hashes)
+    if not hashes[0] or hashes[0] != hashes[1]:
+        problems.append('fixture world hashes missing or different')
 
     base_texts, base_gates = read_states(args.baseline)
     cand_texts, cand_gates = read_states(args.candidate)
     shared = sorted(set(base_texts) & set(cand_texts))
+    required = {'latest-default', 'year1', 'year2', 'year3', 'latest-after-roundtrip',
+                'completion-only-latest', 'completion-only-older', 'latest-after-ack', 'new-year-after-ack'}
+    required.update('teaching-only-' + str(stage) + suffix for stage in (1, 4, 6) for suffix in ('-latest', '-older'))
+    if not required.issubset(shared):
+        problems.append('missing comparison states: ' + ', '.join(sorted(required - set(shared))))
+    if not required.issubset(set(base_gates) & set(cand_gates)):
+        problems.append('missing required gate states')
     print(f'states in both runs: {len(shared)}; baseline only: {sorted(set(base_texts) - set(cand_texts))}; '
           f'candidate only: {sorted(set(cand_texts) - set(base_texts))}')
     for label in shared:

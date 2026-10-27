@@ -61,6 +61,10 @@ def main():
     shutil.copytree(max(sources, key=lambda p: (p / 'UnityEntitlementLicense.xml').stat().st_mtime), licence_copy, dirs_exist_ok=True)
     env = dict(os.environ, XDG_CONFIG_HOME=str(out / 'config'), DISPLAY=args.display,
                CCF_DIAG_DIR=str(evidence), CCF_UI_SIZES=args.sizes, CCF_T02_MODE=args.mode)
+    # The Unity licensing client needs a socket in TMPDIR; exFAT (ZX20) cannot hold one, so an inherited
+    # TMPDIR=/media/jer/ZX20/... stalls the Editor at startup with "waiting for channel: LicenseClient".
+    # Keep the trailing slash: the Editor's compiler prewarmer concatenates the directory and filename.
+    env['TMPDIR'] = '/tmp/'
     env.pop('CCF_TEST_DIRECT_ENTRY', None)
     env.pop('CCF_STAND_GEOMETRY', None)   # production default geometry; never an inherited override
     command = [str(UNITY), '-projectPath', str(root), '-logFile', str(out / 'unity.log'),

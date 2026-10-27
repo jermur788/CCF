@@ -263,7 +263,7 @@ public sealed class AnnualReviewYearBrowsingRunner : MonoBehaviour
         ui.CloseAll(); yield return Settle(4); ui.ShowReview(); yield return Settle(8);
         Button latestAck = ui.RootElement.Q<Button>("annual-review-acknowledge");
         Check(FooterVisible() && latestAck != null, "ACK_AVAILABLE_ON_LATEST_BEFORE_CLICK");
-        yield return ClickButton(latestAck);
+        yield return ClickButton(latestAck, true);
         Check(manager.AnnualReviewSeen && !ui.NeedsAnnualReview, "LATEST_ACK_MARKS_REVIEW_SEEN");
         Check(manager.ManagementEvents.Count == events0 + 1
             && manager.ManagementEvents[manager.ManagementEvents.Count - 1].eventType == ScenarioManagementEventType.AnnualReviewAcknowledged,
@@ -289,12 +289,64 @@ public sealed class AnnualReviewYearBrowsingRunner : MonoBehaviour
 
         // ---- 8. defensive record cases stay deterministic (new behaviour, so candidate only) ----
         if (candidate) yield return DefensiveCases();
+        yield return TeachingAcknowledgementCases();
 
         notes.Add(Limitation);
     }
 
     private const string Limitation =
         "Callback/API driving of the real UI state and renderer: no OS-native pointer or key delivery was exercised.";
+
+    private IEnumerator TeachingAcknowledgementCases()
+    {
+        // Isolate the teaching term of the existing footer predicate after first/completion acknowledgement is clear.
+        // These cached-fact fixtures test UI routing only, not teaching progression or Work Plan unlocks. In particular,
+        // never call RackPlanProblem/WorkPlan.Refresh here: those correctly discard cached facts and read the real stand.
+        ui.CloseAll(); yield return Settle(4); ui.ShowReview(); yield return Settle(8);
+        Check(!ui.NeedsAnnualReview && !manager.NeedsCompletionReviewAcknowledgement, "TEACHING_FIXTURE_OTHER_ACK_FLAGS_CLEAR");
+        string hash = WorldHash();
+        int eventCount = manager.ManagementEvents.Count;
+        object review = typeof(ScenarioOneUiRoot).GetField("review", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+        var refresh = review.GetType().GetMethod("Refresh");
+        Type learning = typeof(LearningObjectivesView);
+        FieldInfo cached = learning.GetField("sequenceFacts", BindingFlags.Instance | BindingFlags.NonPublic);
+        FieldInfo expiry = learning.GetField("nextSequenceRefresh", BindingFlags.Instance | BindingFlags.NonPublic);
+        FieldInfo version = learning.GetField("teachingWorldVersion", BindingFlags.Instance | BindingFlags.NonPublic);
+        foreach (int stage in new[] { 1, 4, 6 })
+        {
+            var facts = new ScenarioOneTeachingSequence.Facts
+            {
+                AccessOpen = true, AccessReviewed = stage > 1, CropTrees = 3,
+                ReleaseExecuted = stage >= 4, DeadwoodExecuted = stage >= 4, ReleaseReviewed = stage > 4,
+                ReviewedTwoCycles = true, BeechEstablished = true, OakEstablished = true,
+                PlantingYear = manager.CurrentEcologicalYear - 1, Year = manager.CurrentEcologicalYear
+            };
+            version.SetValue(ui.Learning, manager.TeachingWorldVersion);
+            cached.SetValue(ui.Learning, facts);
+            expiry.SetValue(ui.Learning, float.MaxValue);
+            refresh.Invoke(review, new object[] { true }); yield return Settle(4);
+            Check(ui.Learning.CurrentTopicIndex == stage && ui.Learning.NeedsReviewAcknowledgement,
+                "TEACHING_BOUNDARY_" + stage + "_PENDING");
+            Check(FooterVisible(), "TEACHING_ONLY_FOOTER_ON_LATEST_" + stage);
+            yield return RecordState("teaching-only-" + stage + "-latest");
+            yield return ClickButton(EarlierText);
+            Check(!FooterVisible(), "TEACHING_ONLY_FOOTER_HIDDEN_ON_OLDER_" + stage);
+            if (candidate)
+            {
+                yield return ClickButton(ui.RootElement.Q<Button>("annual-review-acknowledge"), false);
+                Check(manager.ManagementEvents.Count == eventCount, "TEACHING_OLDER_CALLBACK_DOES_NOT_ACK_" + stage);
+            }
+            yield return RecordState("teaching-only-" + stage + "-older");
+            yield return ClickButton(LaterText);
+        }
+        Check(WorldHash() == hash && manager.ManagementEvents.Count == eventCount, "TEACHING_BROWSING_LEAVES_SAVE_UNCHANGED");
+        yield return ClickButton(ui.RootElement.Q<Button>("annual-review-acknowledge"), true);
+        Check(manager.ManagementEvents.Count == eventCount + 1
+            && manager.ManagementEvents.Last().eventType == ScenarioManagementEventType.AnnualReviewAcknowledged,
+            "TEACHING_LATEST_CALLBACK_RECORDS_ONE_ACK");
+        Check(!ui.Learning.NeedsReviewAcknowledgement && !FooterVisible(), "TEACHING_ACK_RETURNS_TO_REAL_STAND_FACTS");
+        notes.Add("Teaching stages 1/4/6 use isolated cached-fact UI fixtures; no curriculum progression or Work Plan unlock qualification is claimed.");
+    }
 
     private IEnumerator DefensiveCases()
     {
