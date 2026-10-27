@@ -14,6 +14,7 @@
 - External evidence:
   - `/media/jer/Files/CCF/Verification/RackV2-03C-Runtime-Final-20261027T1204Z/` — final runtime gate at `84f8018`
   - `/media/jer/Files/CCF/Verification/RackV2-03C-Runtime-20261027T111151Z/` — first runtime gate at `2178d39` plus the protected chain
+- GitHub publication: `origin/feature/scenario-one-rack-v2-runtime-v1`, handoff path `Docs/Handoffs/RACK-V2-03C/HANDOFF.md` (first published at `4eff2284a4a772d0db79b2a5fd4efb9f48903297`; later docs-only publication notes may advance the branch)
 
 ## What this task establishes
 
@@ -114,7 +115,7 @@ Protected fingerprints, no rebaseline: `5546B9B3B50673B2`, `94589C749852F359`, `
 3. **Old rack UX gate.** `Tools/Verification/ScenarioOneRackUx/RackUxRack.cs` encodes the superseded first-person/map per-rack authoring flow and will not pass in a V2 world: it reaches the intentional `ConfirmRack` V2 guard. This is the F-10 disposition item for RACK-V2-07/08/12 (update or retire under G3), not a 03C production regression. It was not run as a 03C pass gate.
 4. **Out of scope, not started or claimed:** map editor UI and Plan Racks mode (04/05/07), minimap (07), first-person authoring removal (08), orange spray visual and targeting (09), Help/objective copy (10), MFM consumption, whole-objective 12/13, rendered review, integration (14), Windows build, dashboard publication.
 5. **02B-R headland.** The headland lane is not an ancestor of this base and was not merged or edited. The runtime consumes the persisted rack entrance endpoint, so the later headland integration does not require a runtime API change; deliberate joint integration/gates remain Manager work.
-6. **Push/PR.** Nothing pushed; no PR; no merge; no build; no dashboard update.
+6. **Push/PR/dashboard.** The branch and this handoff are published on `origin`; no PR, merge, build or dashboard update. Dashboard ingestion/read-back is not claimed.
 7. **U1 cleanliness.** Known Editor re-import side effects (`.vscode/settings.json` and the SectionFive material family) occurred; both were captured byte-exact (`u1-editor-side-effects.patch`, final sha256 `d88bdf9d7d8c748ce3eb42697aad8126aec0458dbca2d9574732dbbec324839b`) and restored. U1 ended clean at `7f708e4` including untracked files; no harness or generated `.meta` remained.
 
 ## Exit
