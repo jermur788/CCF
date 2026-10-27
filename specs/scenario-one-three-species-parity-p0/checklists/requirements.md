@@ -15,7 +15,7 @@ A checked item requires evidence.
 - [ ] Protected pure-Sitka lifecycle/density fingerprints remain exact.
 - [ ] Mixed density uses Reference 1.0 / Beech Intermediate 1.5 / Oak High 2.0.
 - [ ] Oak > Beech is labelled weak/provisional ordinal, not empirical.
-- [ ] Density victim selection is species-neutral and does not use species `Ci50`.
+- [ ] Under growth model 2's mixed/species-aware density route, victim selection is species-neutral and does not use species `Ci50`; models 0/1 retain their protected legacy behaviour unchanged.
 - [ ] Near-pure route continuity is measured.
 - [ ] No DEC, DMC, mixture-productivity bonus or broadleaf SDI/max-density equation exists.
 
@@ -119,4 +119,4 @@ A checked item requires evidence.
 
 - **Spec conformance:** NOT YET VERIFIED
 - **Implementation correctness:** NOT YET VERIFIED
-- **Current state:** APPROVED spec; PARITY-03 is the first production requalification task.
+- **Current state:** APPROVED spec; PARITY-03 static conformance passed, with focused Unity qualification pending; PARITY-04 docs/verification patch is implementation-ready under Manager review.
