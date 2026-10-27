@@ -26,7 +26,9 @@ using UnityEngine.InputSystem.LowLevel;
 //             real Lessons 2-5 chain runs (Crop Trees at 8 m, 30% release, 40% safeguard, deadwood/sold, Work Plan, Annual Review,
 //             J/K return review, reload).
 //   model0    the historical model-0 Enlarged80 world (a fresh game is now V2, so it is regenerated with the rack plan cleared). The same
-//             Lessons 2-5 chain on the authored middle line: the footprint must still be the accepted 69 trees / 8.00385 m half-width.
+//             Lessons 2-5 chain on the authored middle line: the footprint must still be the accepted 69 trees / 1.29490 m2 with the
+//             ~8.0 m authored half-width. The regenerated rows put the nearest authored gap 0.009 m inside the older 8.00385 m scene
+//             fixture (69-tree membership and BA are identical); the exact live gap formula is asserted separately.
 //   legacy40  a fresh Legacy40 game (CCF_STAND_GEOMETRY=0): no authored layout, so there is no teaching area, as before.
 //
 // Copy into Assets/ForestPrototype, run MfmRackSampleGeometryVerification.Begin, then remove the copy and its .meta. Queued InputSystem events
@@ -544,7 +546,11 @@ public sealed class MfmRackSampleGeometryVerificationRunner : MonoBehaviour
         double footprintBa = Trees().Where(t => bay.Contains(t.transform.position.x, t.transform.position.z)).Sum(BasalArea);
         Note("model0.after-access", "footprintTrees=" + footprintTrees + " footprintBA=" + R(footprintBa) + " halfWidth=" + R(bay.HalfWidthM) + " rackId=" + bay.TeachingRackId);
         Check(footprintTrees == 69, "accepted live teaching footprint has 69 living trees after access", "n=" + footprintTrees);
-        Check(Mathf.Abs(bay.HalfWidthM - 8.00385f) < .001f, "accepted live middle-rack half-width remains 8.00385 m", "half width=" + F(bay.HalfWidthM));
+        // This mode regenerates the stand, so the authored gap is 15.98935 m rather than the 16.00770 m of the older scene fixture
+        // (8.00385 m half-width). Footprint membership and BA are identical; keep the accepted ~8 m calibration band and assert the
+        // exact live gap formula below, rather than pretending the regenerated world is byte-identical to the historical scene.
+        Check(Mathf.Abs(bay.HalfWidthM - 8.00385f) < .05f, "model 0 middle-rack half-width remains on the accepted ~8.0 m calibration", "half width=" + F(bay.HalfWidthM));
+        Note("model0.half-width-provenance", "live=" + R(bay.HalfWidthM) + " historicalSceneFixture=8.00385 regeneratedWorldGap=15.98935 (membership/BA identical)");
         var lines = planner.LayoutLines.OrderBy(v => v).ToArray();
         float expectedHalfWidth = Mathf.Min(lines[2] - lines[1], lines[3] - lines[2]) * .5f;
         Check(bay.TeachingRackId == 0 && bay.RackIndex == 2 && bay.RackCount == 5 && Mathf.Abs(bay.HalfWidthM - expectedHalfWidth) < .001f,
