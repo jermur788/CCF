@@ -24,7 +24,13 @@ public sealed partial class LearningObjectivesView
         int firstFellingYear = orders.Where(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Completed)
             .Select(o => o.resolvedYear).DefaultIfEmpty(int.MaxValue).Min();
         var routes = ui.RackTool != null && ui.RackTool.Planner != null ? ui.RackTool.Planner.LayoutLines : null;
-        if (routes != null && routes.Count > 0)
+        // A Rack Planning V2 world opens its access through the racks' own work, not through planted trees that happen to lie on the
+        // authored lines: the year is when that rack-owned felling was carried out, and access is open once every rack's work is resolved.
+        bool rackV2 = m.RackPlanningV2Active && ui.RackLayout != null;
+        if (rackV2)
+            firstFellingYear = orders.Where(o => o.rackId > 0 && o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Completed)
+                .Select(o => o.resolvedYear).DefaultIfEmpty(int.MaxValue).Max();
+        else if (routes != null && routes.Count > 0)
             firstFellingYear = orders.Where(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Completed
                 && o.targetTreeId.StartsWith("P", System.StringComparison.Ordinal)
                 && routes.Any(z => Mathf.Abs(o.worldPosition.z - z) <= RackGeometry.DefaultWidthM * .5f))
@@ -63,8 +69,9 @@ public sealed partial class LearningObjectivesView
         rackReview.Synchronize(bay, releaseReviewed, ui.Player != null ? ui.Player.InspectionSerial : -1);
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
-            AccessOpen = ui.RackLayout != null && ui.RackLayout.Total > 0
-                ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
+            AccessOpen = rackV2 ? ui.RackLayout.Harvested && m.CurrentEcologicalYear > 0
+                : ui.RackLayout != null && ui.RackLayout.Total > 0
+                    ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
             AccessReviewed = Reviewed(firstFellingYear),
             CropTrees = area ? (bay.HasEnoughFuture ? bay.FutureCount : 0) : cropTrees.Count,
             ReleasePlanned = area ? bay.ReleasePlanned : plannedRelease, ReleaseExecuted = area ? bay.ReleaseExecuted : release.Count > 0,
@@ -193,10 +200,12 @@ public sealed partial class LearningObjectivesView
         {
             RackLayoutTracker layout = ui.RackLayout;
             if (layout != null && layout.Complete)
-                return ui.Manager.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending)
+                return layout.WorkPending
                     ? "Open the Work Plan [Tab], approve the rack work, then advance one year."
                     : "Open the Work Plan [Tab] and advance one year.";
-            if (layout != null && layout.HasProgress) return "Plan the remaining racks: [B] in the forest, or [M] on the Stand Map.";
+            // The V2 wording is the Objectives screen's, so the two cannot disagree and neither names a tool V2 does not have yet.
+            if (layout != null && layout.HasProgress)
+                return ui.Manager.RackPlanningV2Active ? layout.ProgressInstruction : "Plan the remaining racks: [B] in the forest, or [M] on the Stand Map.";
         }
         if (index == 1 && !f.AccessReviewed) return "Read the Annual Review, then walk back and look at the opened stand.";
         if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted) return "Review the release in the Work Plan [Tab], approve it and advance a year.";

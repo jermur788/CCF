@@ -34,7 +34,7 @@ public sealed partial class LearningObjectivesView
             RackLayoutTracker layout = ui.RackLayout;
             if (layout != null && layout.Complete)
             {
-                bool pending = ui.Manager.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending);
+                bool pending = layout.WorkPending;
                 return pending ? "The rack layout is planned. Open Work Plan [Tab], review the cost and approve the rack work. Then advance one year."
                     : "Your rack work is ready. Open Work Plan [Tab] and choose Advance one year. Objective 2 follows that year advance.";
             }
@@ -196,6 +196,7 @@ public sealed partial class LearningObjectivesView
 
     // The rack lessons follow the forest and the Work Plan, so they stay true after a save and load: a rack counts as planned when no
     // tree on its line is left to plan, as approved when nothing felling is still pending, and as seen once its trees are gone.
+    // In a Rack Planning V2 world the racks are the persisted rack objects and only the work they own counts (see RackLayoutTracker).
     private void ObserveRacks(ScenarioOneManager m)
     {
         if (m.RackPlanningV2Active ? m.PlannedRackCount > 0 : m.RackGroups.Count > 0) Record("rack.create");
@@ -203,10 +204,7 @@ public sealed partial class LearningObjectivesView
         if (layout == null || !layout.Complete) return;
         Record("rack.create");
         Record("rack.layout");
-        bool pending = m.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending);
-        bool approved = m.WorkOrders.Any(o => o.type == ScenarioWorkType.FellTree
-            && (o.status == ScenarioWorkStatus.Approved || o.status == ScenarioWorkStatus.Completed));
-        if (!pending && approved) Record("rack.approve");
+        if (!layout.WorkPending && layout.WorkApproved) Record("rack.approve");
         if (layout.Harvested && m.AnnualReports.Count > 0 && m.Interventions.Count > 0) Record("rack.result");
     }
 
