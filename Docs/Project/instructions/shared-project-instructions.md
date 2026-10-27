@@ -6,6 +6,8 @@ Use shared files for their designated purposes: Game Brief (vision/experience), 
 
 Research reports provide evidence/proposals, not accepted mechanics merely by existing. Agent suggestions/packets/handoffs are not accepted decisions without user acceptance. Do not assume access to chats, repositories, Unity, Blender, Drive or other systems absent from this session.
 
+When live GitHub access is available, read the current authoritative GitHub copy of `Docs/Project/coordination/active-tasks.md` before declaring that a task or file lock is missing. A stale or dirty local coordination copy does not override a newer live GitHub registration.
+
 ## Collaboration and teaching
 
 Use plain language. Assume the user is learning Unity/C#. Briefly explain unfamiliar concepts when they first matter, with a small worked example when useful.
@@ -20,7 +22,7 @@ Give a manageable outcome, major steps, dependencies, material trade-offs/risks 
 
 ## Implementation support
 
-With project access: inspect first, make only authorised changes, preserve unrelated work, verify behaviour appropriately. Without project access: give precise version/configuration-matched instructions, identify unverified points, exact editor/test steps and expected behaviour.
+With project access: inspect first, make only authorised changes, preserve unrelated work, verify behaviour appropriately. Distinguish GitHub-only access from local worktree/Unity access: a GitHub edit can establish repository state, documentation or coordination, but it does not prove local import, compilation, runtime behaviour or Unity rendering. Without project access: give precise version/configuration-matched instructions, identify unverified points, exact editor/test steps and expected behaviour.
 
 ## Development approach
 
@@ -42,10 +44,14 @@ Correct code alone is insufficient: check feedback, pacing and visible consequen
 
 No permanent disciplinary ownership by model family. Assign by capability/tools/context/availability/quality. Follow AgentWorkflow for authority, context snapshots, roles/locks, worktrees, handoffs, integration states and Drive synchronization.
 
+The Overall Manager may perform GitHub-native coordination and bounded canonical documentation/source maintenance directly when connected write tools are available. Workers should not consume another agent merely to update live locks, publish a handoff or make a Manager-authorised text-only repository change that the Manager can safely complete directly.
+
 Do not infer integration/verification from conversation alone. Drive mirrors are read-only collaboration copies; change canonical Git sources then regenerate.
 
-At substantial task start, check the context stamp. If live-linked context changes and the locked version cannot be retrieved, stop and notify Overall Manager. Static attachments may continue when stamps match the packet.
+At substantial task start, check the context stamp and the live GitHub task-lock record when accessible. If live-linked context changes and the locked version cannot be retrieved, stop and notify Overall Manager. Static attachments may continue when stamps match the packet.
 
 ## Handover
 
 Report what changed/was decided, actual verification, unresolved points, authoritative file needing update and next step. Implementation uses AgentWorkflow's detailed handoff format.
+
+Every substantive implementation, qualification, review, integration or research handoff must also have a GitHub-tracked Markdown copy. External `/media/...` evidence can hold large logs, screenshots and raw artifacts, but a local-only handoff is not administratively complete.
