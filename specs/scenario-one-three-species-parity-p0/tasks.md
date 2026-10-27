@@ -22,7 +22,7 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 
 ## PARITY-03 — Mixed-density candidate requalification and gap closure
 
-- **Status:** AUTHORISED
+- **Status:** VERIFIED — Unity G2/G3 accepted; independent static review #9 remains open
 - **Goal:** Requalify the inherited model-2 mixed-density implementation against FR-1/FR-2; patch only demonstrated conformance defects.
 - **Scope:** mixed-density source + focused verification; no species YAML/scene edits in the first slice.
 - **Required checks:** exact pure-Sitka models 0/1 and model-2 route; living-tree route definition; Reference/Intermediate/High classes; species-neutral victim selection under the model-2 mixed/species-aware route; no new `Ci50` mortality coupling in that route; near-pure route continuity; no DEC/DMC/mixture bonus/broadleaf density equation. Models 0/1 retain legacy behaviour unchanged.
@@ -33,7 +33,7 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 
 ## PARITY-04 — Adult/species-data requalification
 
-- **Status:** IMPLEMENTATION READY / FINAL QUALIFICATION WAITS ON PARITY-03 UNITY
+- **Status:** VERIFIED — adult Unity G2/G3 accepted
 - **Goal:** Requalify accepted Oak/Beech adult values/classes and neutral site/canopy policy; correct labels and verification contracts only unless a newly measured defect is found.
 - **Scope:** documentation and focused verification tooling for Oak/Beech adult growth/site/canopy/competition. The 2026-10-27 preflight found the live values/arithmetic structurally conformant; therefore this slice makes **zero serialized species-YAML/scene change and zero production C# change** unless a later measured gate demonstrates a defect and returns to the Manager.
 - **Required policy:** Oak 0.8/0.65/120/42.5/5; Beech 0.9/0.75/120/42.5/6.5 as gameplay calibration; Oak High / Beech Intermediate as weak provisional ordinal; site multiplier 1.0; canopy shared; 8 m Hegyi shared; Beech height miss accepted/labelled.
@@ -92,8 +92,8 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 |---|---|---|
 | PARITY-01 | COMPLETE | — |
 | PARITY-02 | COMPLETE / ACCEPTED | 01 |
-| PARITY-03 | STATIC PASS / UNITY QUALIFICATION PENDING | Unity queue |
-| PARITY-04 | IMPLEMENTATION READY / FINAL QUALIFICATION PENDING | 03 Unity for final qualification only |
+| PARITY-03 | VERIFIED / independent review #9 open | — |
+| PARITY-04 | VERIFIED | 03 Unity accepted |
 | PARITY-05 | AUTHORISED after 03 | 03 + ownership for YAML |
 | PARITY-06 | BLOCKED-READY | 04 + ownership |
 | PARITY-07 | BLOCKED | 04–06 sufficiently stable |
