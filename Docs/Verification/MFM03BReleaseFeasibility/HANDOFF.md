@@ -205,3 +205,11 @@ Limits and required follow-through:
 **DASHBOARD SYNC: NOT PERFORMED — expressly outside task scope. PUBLISHED DASHBOARD REFLECTS THIS TASK: NOT VERIFIED.** Manager may handle separate authorised publication/coordination work. No dashboard/coordination acceptance is claimed.
 
 **Final worker verdict: `MFM CALIBRATION CLOSURE — NO PRODUCT CHANGE REQUIRED`.** This is the bounded quantitative conclusion, not self-acceptance of G2/G3 or a runtime PASS.
+
+## GitHub publication metadata
+
+- Substantive evidence commit: `007ec77edb396fd5542f498c13cede9e2621a06d`.
+- Branch: `docs/mfm-03b-release-feasibility-20261027`.
+- GitHub path: `Docs/Verification/MFM03BReleaseFeasibility/HANDOFF.md`.
+- Immutable substantive handoff: [view content commit](https://github.com/jermur788/CCF/blob/007ec77edb396fd5542f498c13cede9e2621a06d/Docs/Verification/MFM03BReleaseFeasibility/HANDOFF.md).
+- This metadata-only follow-up records the content commit; it changes no measurements or product files. The final branch-tip commit and remote read-back are in the external publication receipt and task response.
