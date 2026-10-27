@@ -7,6 +7,10 @@ using UnityEngine.UIElements;
 // Screen 5 — annual review: WORK DONE, MONEY, FOREST, then compact trends and
 // objectives. Built from the recorded annual report, management events and
 // ecological snapshots; it adds no causal claim the simulation does not make.
+//
+// S1-C year browsing: the completed years, and everything shown for the selected year (report, resolved work, money,
+// snapshots, storms), come from ScenarioOneManager.HistoryYears. This view does not re-join the raw record lists for a
+// year. Browsing an earlier year is read-only presentation: it never acknowledges anything.
 public sealed class AnnualReviewView
 {
     private readonly ScenarioOneUiRoot ui;
@@ -21,6 +25,8 @@ public sealed class AnnualReviewView
     // The year being read. -1 follows the latest year; a past year is a drill-down into that year's recorded review.
     private int viewYear = -1;
     private int lastLatestYear = -1;
+    // True while an earlier year is on screen. The acknowledgement belongs to the newest review only.
+    private bool showingEarlierYear;
 
     public AnnualReviewView(ScenarioOneUiRoot ui)
     {
@@ -47,7 +53,8 @@ public sealed class AnnualReviewView
         modal.Add(scroll);
         acknowledgement = UiKit.Box("modal-footer");
         UiKit.Add(acknowledgement, MenuHelpView.AnnualReviewReadPrompt, "body");
-        var acknowledge = UiKit.Button("I've read the annual results", () => ui.AcknowledgeAnnualReview(), true, "btn-primary");
+        // The footer is hidden for earlier years; this guard makes the same rule hold for the callback itself.
+        var acknowledge = UiKit.Button("I've read the annual results", () => { if (!showingEarlierYear) ui.AcknowledgeAnnualReview(); }, true, "btn-primary");
         acknowledge.name = "annual-review-acknowledge";
         acknowledgement.Add(acknowledge);
         modal.Add(acknowledgement);
@@ -59,21 +66,25 @@ public sealed class AnnualReviewView
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
-        ScenarioAnnualReport latest = m.AnnualReports.Count > 0 ? m.AnnualReports[m.AnnualReports.Count - 1] : null;
+        bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
+        // The root calls this every frame while the review is open. HistoryYears rebuilds every completed year, so it is
+        // only read once the cheap change key says something changed.
+        if (!force && ChangeKey(m, teachingReview) == shownKey)
+            return;
+
+        IReadOnlyList<YearHistoryView> years = m.HistoryYears;
+        YearHistoryView latest = years.Count > 0 ? years[years.Count - 1] : null;
         // A new year always opens on the newest review; a past year is chosen with the year buttons.
-        if (latest != null && latest.year != lastLatestYear) { lastLatestYear = latest.year; viewYear = -1; }
-        ScenarioAnnualReport report = latest;
+        if (latest != null && latest.Year != lastLatestYear) { lastLatestYear = latest.Year; viewYear = -1; }
+        YearHistoryView year = latest;
         if (viewYear >= 0)
         {
-            report = m.AnnualReports.FirstOrDefault(r => r.year == viewYear);
-            if (report == null) { report = latest; viewYear = -1; }
+            year = FindYear(years, viewYear);
+            if (year == null) { year = latest; viewYear = -1; }
         }
-        bool historical = report != null && latest != null && report.year != latest.year;
-        bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
-        string key = m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents + "|" + m.AnnualReviewSeen + "|" + viewYear + "|" + m.ManagementEvents.Count + "|" + teachingReview;
-        if (!force && key == shownKey)
-            return;
-        shownKey = key;
+        bool historical = year != null && latest != null && year != latest;
+        showingEarlierYear = historical;
+        shownKey = ChangeKey(m, teachingReview);
         scroll.Clear();
         acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement || teachingReview) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
         // Completion guidance only: after the first review the footer says why this acknowledgement matters. The first review keeps its wording.
@@ -84,12 +95,12 @@ public sealed class AnnualReviewView
             acknowledgementPrompt.text = !ui.NeedsAnnualReview && m.CompletionGuidance == CompletionGuidanceState.AcknowledgeReview
                 ? ScenarioOneCompletionGuidance.GuidanceText(CompletionGuidanceState.AcknowledgeReview) : defaultAcknowledgementPrompt;
         }
-        earlierYear.SetEnabled(report != null && m.AnnualReports.Any(r => r.year < report.year));
+        earlierYear.SetEnabled(year != null && years.Count > 0 && year != years[0]);
         laterYear.SetEnabled(historical);
-        title.text = report == null ? "Annual review"
-            : historical ? $"Annual review · Year {report.year} (earlier year; latest is Year {latest.year})"
-            : $"Annual review · Year {report.year} complete";
-        if (report == null)
+        title.text = year == null ? "Annual review"
+            : historical ? $"Annual review · Year {year.Year} (earlier year; latest is Year {latest.Year})"
+            : $"Annual review · Year {year.Year} complete";
+        if (year == null)
         {
             UiKit.Add(scroll, "Advance a year from the Work Plan to see the first annual results.", "body");
             BuildObjectives(m);
@@ -99,28 +110,40 @@ public sealed class AnnualReviewView
         IReadOnlyList<InterventionSummary> interventions = m.Interventions;
         // The completion summary opens the review of the year the objectives were met (not year 100).
         CompletionSummary completion = m.CompletionReview;
-        if (completion != null && report.year == m.OutcomeYear)
+        if (completion != null && year.Year == m.OutcomeYear)
             BuildCompletion(m, completion);
         // After the first intervention, say what to look for. A prompt, not a gate: Advance is never blocked by it.
-        if (interventions.Count == 1 && report.year == interventions[0].Year)
+        if (interventions.Count == 1 && year.Year == interventions[0].Year)
             BuildFirstInterventionPrompt(interventions[0]);
 
         VisualElement columns = UiKit.Box("columns");
         scroll.Add(columns);
-        BuildWork(m, report, Column(columns, "Work done"));
-        BuildMoney(m, report, Column(columns, "Money"));
-        BuildForest(m, report, Column(columns, "Forest"), historical);
-        BuildStorm(m, report);
-        BuildHistory(m, interventions, completion, report);
+        BuildWork(m, year, Column(columns, "Work done"));
+        BuildMoney(m, year, Column(columns, "Money"));
+        BuildForest(m, year, Column(columns, "Forest"), historical);
+        BuildStorm(m, year);
+        BuildHistory(m, interventions, completion, year);
         BuildTrends(m);
         BuildObjectives(m, historical);
         if (m.CenturyReview != null)
             BuildCentury(m);
     }
 
-    private void BuildStorm(ScenarioOneManager manager, ScenarioAnnualReport report)
+    // Cheap change detector for the early-out in Refresh. It is not a source of review content or navigation.
+    private string ChangeKey(ScenarioOneManager m, bool teachingReview) =>
+        m.CurrentEcologicalYear + "|" + m.AnnualReports.Count + "|" + m.CashCents + "|" + m.AnnualReviewSeen + "|" + viewYear + "|" + m.ManagementEvents.Count + "|" + teachingReview;
+
+    private static YearHistoryView FindYear(IReadOnlyList<YearHistoryView> years, int year)
     {
-        StormDamageSummary summary = manager.StormDamageInYear(report.year);
+        foreach (YearHistoryView candidate in years)
+            if (candidate.Year == year) return candidate;
+        return null;
+    }
+
+    private void BuildStorm(ScenarioOneManager manager, YearHistoryView year)
+    {
+        if (year.Storms.Count == 0) return;
+        StormDamageSummary summary = manager.StormDamageInYear(year.Year);
         if (summary == null) return;
         var card = UiKit.Box("card"); card.name = "annual-storm-review"; scroll.Add(card);
         UiKit.Add(card, "STORM AND WINDTHROW", "heading");
@@ -142,65 +165,75 @@ public sealed class AnnualReviewView
         return column;
     }
 
-    private static void BuildWork(ScenarioOneManager m, ScenarioAnnualReport report, VisualElement c)
+    private static void BuildWork(ScenarioOneManager m, YearHistoryView year, VisualElement c)
     {
-        List<ScenarioManagementEvent> resolved = m.ManagementEvents
-            .Where(e => e.year == report.year && e.eventType == ScenarioManagementEventType.WorkResolved).ToList();
-        List<ScenarioManagementEvent> done = resolved.Where(e => e.outcome == ScenarioManagementOutcome.Succeeded).ToList();
-        Dictionary<int, ScenarioOneWorkOrder> orders = m.WorkOrders.ToDictionary(o => o.workOrderId);
-        int felled = done.Count(e => e.taskType == ScenarioWorkType.FellTree);
-        int salvaged = done.Count(e => e.taskType == ScenarioWorkType.SalvageDeadwood);
+        // The year's resolved work already pairs each WorkResolved event with its order record (where the order still exists).
+        List<ResolvedWorkRecord> resolved = year.ResolvedWork;
+        List<ResolvedWorkRecord> done = resolved.Where(r => r.Event.outcome == ScenarioManagementOutcome.Succeeded).ToList();
+        int regenerationRemovals = year.Report != null ? year.Report.regenerationRemovalTasks : 0;
+        int felled = done.Count(r => r.Event.taskType == ScenarioWorkType.FellTree);
+        int salvaged = done.Count(r => r.Event.taskType == ScenarioWorkType.SalvageDeadwood);
         if (salvaged > 0) UiKit.Add(c, $"{salvaged} windthrow stem(s) salvaged (contractor)", "body");
         if (felled > 0) UiKit.Add(c, $"{felled} tree(s) thinned (contractor)", "body");
-        var planted = done.Where(e => e.taskType == ScenarioWorkType.PlantJuvenile).ToList();
+        var planted = done.Where(r => r.Event.taskType == ScenarioWorkType.PlantJuvenile).ToList();
         if (planted.Count > 0)
         {
-            int sheltered = planted.Count(e => orders.TryGetValue(e.workOrderId, out var o) && o.installShelter);
-            int byOwner = planted.Count(e => e.executionMethod == WorkExecutionMethod.LandownerSimulated);
-            UiKit.Add(c, $"{planted.Count} planted ({string.Join(", ", planted.GroupBy(e => e.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"))}), "
+            int sheltered = planted.Count(r => r.Order != null && r.Order.installShelter);
+            int byOwner = planted.Count(r => r.Event.executionMethod == WorkExecutionMethod.LandownerSimulated);
+            UiKit.Add(c, $"{planted.Count} planted ({string.Join(", ", planted.GroupBy(r => r.Event.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"))}), "
                 + $"{sheltered} with shelters · {byOwner} by you, {planted.Count - byOwner} by contractor", "body");
         }
-        int pruned = done.Count(e => e.taskType == ScenarioWorkType.PruneTree);
+        int pruned = done.Count(r => r.Event.taskType == ScenarioWorkType.PruneTree);
         if (pruned > 0) UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
-        if (report.regenerationRemovalTasks > 0) UiKit.Add(c, $"{report.regenerationRemovalTasks} regeneration cohort(s) removed", "body");
-        if (felled + salvaged + planted.Count + pruned + report.regenerationRemovalTasks == 0) UiKit.Add(c, "No work was resolved this year.", "body");
-        var failed = resolved.Where(e => e.outcome != ScenarioManagementOutcome.Succeeded).ToList();
+        if (regenerationRemovals > 0) UiKit.Add(c, $"{regenerationRemovals} regeneration cohort(s) removed", "body");
+        if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) UiKit.Add(c, "No work was resolved this year.", "body");
+        var failed = resolved.Where(r => r.Event.outcome != ScenarioManagementOutcome.Succeeded).ToList();
         UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
-        foreach (ScenarioManagementEvent e in failed.Take(5))
-            UiKit.Add(c, $"· {e.taskType}: {ScenarioOneUiFacts.PlainText(e.failureReason)}", "muted");
+        foreach (ResolvedWorkRecord r in failed.Take(5))
+            UiKit.Add(c, $"· {r.Event.taskType}: {ScenarioOneUiFacts.PlainText(r.Event.failureReason)}", "muted");
     }
 
-    private static void BuildMoney(ScenarioOneManager m, ScenarioAnnualReport report, VisualElement c)
+    private static void BuildMoney(ScenarioOneManager m, YearHistoryView year, VisualElement c)
     {
-        var events = m.ManagementEvents.Where(e => e.year == report.year && e.eventType == ScenarioManagementEventType.WorkResolved
-            && e.outcome == ScenarioManagementOutcome.Succeeded).ToList();
+        // The annual report is the per-year money authority (YearMoneySummary.Authority). A commissioned harvest settles
+        // once as a group, so the harvest line below is that group's total and is never split per order.
+        YearMoneySummary money = year.Money;
+        if (money.Authority == null)
+        {
+            UiKit.Add(c, "No annual report was recorded for this year, so its money is not shown.", "muted");
+            return;
+        }
+        var events = year.ResolvedWork.Where(r => r.Event.outcome == ScenarioManagementOutcome.Succeeded).Select(r => r.Event).ToList();
         long harvestCost = events.Where(e => e.taskType == ScenarioWorkType.FellTree || e.taskType == ScenarioWorkType.SalvageDeadwood).Sum(e => e.contractorCostCents);
         long materials = events.Sum(e => e.stockCostCents);
-        foreach (ScenarioTimberSale sale in report.timberSales ?? new List<ScenarioTimberSale>())
+        foreach (ScenarioTimberSale sale in money.Sales)
             UiKit.Line(c, $"Timber sold · {sale.assortment} ({UiKit.M3(sale.soldVolumeCm3)})", UiKit.SignedMoney(sale.revenueCents), "money");
         if (harvestCost > 0)
-            UiKit.Line(c, "Harvesting work", UiKit.SignedMoney(-(harvestCost - report.harvestMinimumAdjustmentCents)), "money-negative");
-        if (report.harvestMinimumAdjustmentCents > 0)
-            UiKit.Line(c, "Small-job minimum", UiKit.SignedMoney(-report.harvestMinimumAdjustmentCents), "money-negative");
-        long otherWork = report.contractorCostCents - harvestCost;
+            UiKit.Line(c, "Harvesting work", UiKit.SignedMoney(-(harvestCost - money.HarvestMinimumAdjustmentCents)), "money-negative");
+        if (money.HarvestMinimumAdjustmentCents > 0)
+            UiKit.Line(c, "Small-job minimum", UiKit.SignedMoney(-money.HarvestMinimumAdjustmentCents), "money-negative");
+        long otherWork = money.ContractorCostCents - harvestCost;
         if (otherWork > 0)
             UiKit.Line(c, "Planting, pruning and other contractor work", UiKit.SignedMoney(-otherWork), "money-negative");
         if (materials > 0)
             UiKit.Line(c, "Tree shelters (material)", UiKit.SignedMoney(-materials), "money-negative");
-        UiKit.Line(c, "Closing cash", UiKit.Money(report.closingCashCents), "money");
-        UiKit.Add(c, $"Your time used: {ScenarioOneManager.FormatMinutes(report.ownerMinutes)} of {ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}", "muted");
+        UiKit.Line(c, "Closing cash", UiKit.Money(money.ClosingCashCents), "money");
+        UiKit.Add(c, $"Your time used: {ScenarioOneManager.FormatMinutes(money.OwnerMinutes)} of {ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}", "muted");
         UiKit.Add(c, "Saplings are paid for when bought from the nursery.", "faint");
     }
 
-    private static void BuildForest(ScenarioOneManager m, ScenarioAnnualReport report, VisualElement c, bool historical)
+    private static void BuildForest(ScenarioOneManager m, YearHistoryView year, VisualElement c, bool historical)
     {
         // A past year is described by the snapshots recorded then. The live-state lines (opened cells now, browsing now,
         // shelters now) would describe today's forest under an old date, so they are left out.
         ForestEcologyController eco = historical ? null : Object.FindFirstObjectByType<ForestEcologyController>();
-        var snaps = m.EcologicalSnapshots;
-        ScenarioEcologicalSnapshot current = snaps.FirstOrDefault(snap => snap.year == report.year) ?? (snaps.Count > 0 ? snaps[snaps.Count - 1] : null);
-        ScenarioEcologicalSnapshot previous = current == null ? null : snaps.LastOrDefault(snap => snap.year < current.year);
-        if (current != null)
+        // The year's own snapshot and the one before it. If the year has none, say so rather than borrowing the latest.
+        ScenarioEcologicalSnapshot current = year.Snapshot;
+        ScenarioEcologicalSnapshot previous = year.PreviousSnapshot;
+        ScenarioAnnualReport report = year.Report;
+        if (current == null)
+            UiKit.Add(c, "No ecological snapshot was recorded for this year.", "muted");
+        else
             foreach (string line in ScenarioEcologyReviewLines.Lines(previous, current, eco, historical ? null : m.PlantedJuveniles))
             {
                 // Browsing and protection are rebuilt below without per-leader
@@ -222,10 +255,12 @@ public sealed class AnnualReviewView
 
         UiKit.Add(c, "An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.", "muted");
         UiKit.Add(c, "Retained material", "heading");
-        UiKit.Line(c, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
+        if (report != null)
+            UiKit.Line(c, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
         if (!historical)
             UiKit.Line(c, "Retained usable timber (stock)", UiKit.F(m.RetainedTimberM3, "0.00") + " m³");
-        UiKit.Line(c, "Retained deadwood (new this year)", UiKit.F(report.deadwoodCreatedM3, "0.00") + " m³");
+        if (report != null)
+            UiKit.Line(c, "Retained deadwood (new this year)", UiKit.F(report.deadwoodCreatedM3, "0.00") + " m³");
         if (current != null)
             UiKit.Line(c, "Fallen deadwood on site", $"{current.deadwoodCount} log(s) · {UiKit.F(current.deadwoodVolumeM3, "0.00")} m³");
     }
@@ -289,13 +324,15 @@ public sealed class AnnualReviewView
 
     private void StepYear(int direction)
     {
-        ScenarioOneManager m = ui.Manager;
-        var years = m.AnnualReports.Select(r => r.year).OrderBy(y => y).ToList();
+        // HistoryYears is oldest first, so stepping is plain index movement; the newest year is always "follow latest".
+        IReadOnlyList<YearHistoryView> years = ui.Manager.HistoryYears;
         if (years.Count == 0) return;
-        int current = viewYear >= 0 ? years.IndexOf(viewYear) : years.Count - 1;
-        if (current < 0) current = years.Count - 1;
+        int current = years.Count - 1;
+        if (viewYear >= 0)
+            for (int i = 0; i < years.Count; i++)
+                if (years[i].Year == viewYear) { current = i; break; }
         int next = Mathf.Clamp(current + direction, 0, years.Count - 1);
-        viewYear = next == years.Count - 1 ? -1 : years[next];
+        viewYear = next == years.Count - 1 ? -1 : years[next].Year;
         Refresh(true);
     }
 
@@ -314,7 +351,7 @@ public sealed class AnnualReviewView
     }
 
     // One block per resolved work plan, built from the persisted records on demand (nothing here is saved).
-    private void BuildHistory(ScenarioOneManager m, IReadOnlyList<InterventionSummary> interventions, CompletionSummary completion, ScenarioAnnualReport shown)
+    private void BuildHistory(ScenarioOneManager m, IReadOnlyList<InterventionSummary> interventions, CompletionSummary completion, YearHistoryView shown)
     {
         HistoryTextContext text = TextContext();
         VisualElement card = UiKit.Box("card");
@@ -329,7 +366,7 @@ public sealed class AnnualReviewView
             VisualElement head = UiKit.Box("row");
             UiKit.Add(head, ManagementHistoryText.Title(i), "heading");
             InterventionSummary captured = i;
-            head.Add(UiKit.Button(i.Year == shown.year ? "Shown above" : $"Read year {i.Year}", () => { viewYear = captured.Year; Refresh(true); }, i.Year != shown.year));
+            head.Add(UiKit.Button(i.Year == shown.Year ? "Shown above" : $"Read year {i.Year}", () => { viewYear = captured.Year; Refresh(true); }, i.Year != shown.Year));
             block.Add(head);
             UiKit.Add(block, ManagementHistoryText.Work(i, text), "body");
             UiKit.Add(block, ManagementHistoryText.Money(i, text), "body");
