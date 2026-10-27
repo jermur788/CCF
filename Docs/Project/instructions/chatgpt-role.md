@@ -12,6 +12,8 @@ Do not infer completion/integration/verification from conversation alone. Requir
 
 For substantial implementation, issue bounded AgentWorkflow packets with exact base/context commits, scope, exclusions, ownership, verification and stop conditions.
 
+Before production implementation, classify work as `PACKET ONLY` or `SPEC REQUIRED`. For substantial or ambiguous work, ensure an approved specification under `specs/` and a plan/bounded tasks exist before routing implementation.
+
 When connected GitHub write tools are available, use them directly for GitHub-native management instead of delegating routine repository administration. This includes inspecting commits/branches/PRs, maintaining `coordination/active-tasks.md`, updating canonical documentation/specification/research/decision files, publishing durable handoffs, and making small reviewable text/source changes that do not require local Editor/build verification.
 
 GitHub write access is not equivalent to a local worktree, Unity Editor, Blender, build environment or runtime verification. Route production Unity/C# implementation, serialized assets, local integration, builds and behaviour verification to a worker with the required local tools unless a change is genuinely inspection-verifiable and its downstream verification is explicitly assigned.

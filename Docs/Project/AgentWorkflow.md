@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Single owner of source authority/conflicts, context-commit meaning, worktrees/branches, roles/locks, task packets/handoffs, review/integration states, cloud-to-local verification and Drive/project-context synchronization.
+Single owner of source authority/conflicts, spec-driven task classification/lifecycle, context-commit meaning, worktrees/branches, roles/locks, task packets/handoffs, review/integration states, cloud-to-local verification and Drive/project-context synchronization.
 
 Root AGENTS.md owns repository/Unity/C# technical safety. Do not duplicate it except for specifically multi-agent coordination rules.
 
@@ -22,6 +22,8 @@ For what the project intends or has accepted:
 3. `Docs/Project/current-milestone.md`;
 4. `Docs/Project/game-brief.md`.
 
+Approved feature specifications are task-level implementation authority for their scope only. They remain subordinate to the four sources above. If a spec conflicts with newer accepted product intent, amend the spec rather than implementing the stale requirement.
+
 ### Implementation authority
 
 For what currently exists:
@@ -34,9 +36,97 @@ Planning text does not override verified implementation facts. Research and agen
 
 Report conflicts and identify the authoritative file needing update.
 
+## Spec-driven development
+
+CCF uses spec-driven development selectively. The Overall Manager classifies substantial work before production implementation. Classification is a workflow decision; it does not create product authority.
+
+### PACKET ONLY
+
+Use the ordinary AgentWorkflow packet and handoff for:
+
+- small bugs;
+- bounded fixes;
+- verification repairs;
+- simple wording/content changes;
+- straightforward implementation that fits one clear packet.
+
+Do not create a spec, plan or task list for this class. The packet remains the implementation instruction within accepted context.
+
+### SPEC REQUIRED
+
+Normally use SDD for:
+
+- new user/player workflows;
+- cross-system features;
+- persistence/data architecture;
+- save-policy changes;
+- security/write-back behaviour;
+- substantial UX;
+- major forestry/gameplay systems;
+- multi-step or multi-agent features;
+- work where ambiguity is likely to waste implementation tokens.
+
+The Overall Manager may upgrade a task to SPEC REQUIRED after inspection shows hidden ambiguity or cross-system impact. A worker that discovers a PACKET ONLY task has become substantially ambiguous stops and reports; it does not invent a spec or continue on an unapproved assumption.
+
+### SDD lifecycle
+
+1. classify `SPEC REQUIRED`;
+2. create the specification;
+3. resolve genuine product ambiguity with the user/authority;
+4. approve the specification;
+5. produce the implementation plan;
+6. divide the work into bounded tasks;
+7. implementation agents work from the approved artifacts;
+8. implementation ambiguities that materially affect product behaviour return to the Manager/spec;
+9. verify implementation correctness;
+10. verify spec conformance;
+11. integrate;
+12. preserve the completed spec as project history.
+
+Implementation agents must not rediscover settled product design. If a requirement is unclear, cite the spec section and ask; do not substitute a convenient assumption.
+
+### Spec authority
+
+Approved feature specs are task-level implementation authority for their scope. They remain subordinate to:
+
+1. latest user instruction;
+2. `decision-log.md`;
+3. `current-milestone.md`;
+4. `game-brief.md`.
+
+Implementation truth remains the inspected repository / verified Unity state. A spec describes intended behaviour; it never proves that behaviour exists or overrides verified implementation facts. If a spec conflicts with newer accepted product intent, amend the spec rather than implementing the stale requirement. If implementation reality makes the spec impractical, return to the Manager/spec; do not silently reinterpret it.
+
+Only specs in `APPROVED`, `IMPLEMENTING`, `VERIFYING` or `VERIFIED` status authorise implementation. `DRAFT` and `SUPERSEDED` specs do not.
+
+### Spec artifacts
+
+Canonical root: `specs/`. Standard structure:
+
+```text
+specs/<feature>/spec.md
+specs/<feature>/plan.md
+specs/<feature>/tasks.md
+specs/<feature>/checklists/requirements.md
+```
+
+Reusable templates are in `specs/_template/`. `specs/README.md` owns the artifact and status conventions. The plan and task list implement the approved spec; they do not create product requirements or override it. GitHub Spec Kit tooling is not required; its conventions may be used as a structure/process reference only.
+
+A feature may omit or combine sections where they are genuinely not applicable, but it must not silently drop acceptance criteria, stop conditions or the authority statement. Spec status is separate from implementation/integration states.
+
+Status vocabulary:
+
+- `DRAFT` — being written/clarified; not approved;
+- `APPROVED` — accepted product intent and acceptance criteria; may be planned and divided into tasks;
+- `IMPLEMENTING` — implementation in progress against approved tasks;
+- `VERIFYING` — implementation exists and is being checked for correctness and spec conformance;
+- `VERIFIED` — implementation and spec conformance accepted;
+- `SUPERSEDED` — retained for history, replaced by a newer spec/decision.
+
 ## Canonical context
 
 Shared sources: `Docs/Project/game-brief.md`, `decision-log.md`, `current-milestone.md`, `unity-project-overview.md`, `AgentWorkflow.md`; supporting `research-index.md`.
+
+Feature specifications are canonical project artifacts under `specs/`. Load the active approved spec, plan and assigned task only when relevant to the task; do not load every spec into every context. Completed and superseded specs remain historical evidence.
 
 Instruction sources: `Docs/Project/instructions/shared-project-instructions.md`, `chatgpt-role.md`, `claude-role.md`. Repository entry points: root AGENTS.md and CLAUDE.md. Generator: `Tools/ProjectContext/generate_project_instructions.py`.
 
@@ -70,6 +160,56 @@ The timestamp is the context commit's timestamp, not regeneration wall-clock tim
 
 If Git/Drive differ, Git wins; regenerate. Attached/project copies do not automatically follow Drive edits. After context changes: regenerate the entire mirror set and both composites at one SHA, then refresh/re-attach/replace platform knowledge. Do not call older attachments current.
 
+### Dashboard synchronization
+
+After any substantial task, integration, review, user-test result or project-status change:
+
+1. update the authoritative local project/coordination record;
+2. allow/run the dashboard ingestion/update mechanism where that mechanism is in use;
+3. confirm any automatic GitHub dashboard audit snapshot advances;
+4. confirm the published dashboard state actually reflects the new project status.
+
+A substantial task is not fully closed until this synchronization is verified.
+
+If the dashboard or publisher is unavailable, the task may hand off, but the synchronization failure must be explicitly recorded as an outstanding operational issue.
+
+Never manually edit generated dashboard-state files.
+
+## Verification cost policy
+
+Use the cheapest verification tier that can answer the current risk. Do not repeatedly run full Unity qualification on intermediate implementation or calibration branches.
+
+### Tier 1 — FAST
+
+Target: **5–15 minutes**.
+
+Use during active implementation and calibration. Prefer compile/import where needed, feature-specific smoke, relevant offline/static tests and one representative deterministic runtime fixture. Stop when the immediate implementation question is answered.
+
+### Tier 2 — FEATURE QUALIFICATION
+
+Target: **20–60 minutes**.
+
+Use when a bounded feature is ready to hand off. Run the specific Unity behaviour the feature changes, important negative cases, save/load only when persistence is relevant, and a narrow regression set covering plausible collateral damage.
+
+### Tier 3 — FULL INTEGRATED QUALIFICATION
+
+Several hours can be acceptable, but reserve this tier for integrated milestone or release candidates. This is where exhaustive regression, all required reference anchors, multiple long-run simulations, broad save/load coverage, rendered UX matrices, Player profiling, multiple resolutions and platform qualification belong.
+
+Do not rerun Tier 3 merely because documentation, verification tooling, calibration evidence or an unrelated subsystem changed.
+
+Repeated long simulations, multiple seeds and multiple stand geometries require a stated uncertainty they are intended to resolve. Stop once that question has sufficient evidence; do not expand testing into open-ended certification.
+
+During feature iteration, prefer offline/reduced-model testing for parameter search and use Unity to confirm representative runtime equivalence. Do not use Unity as the parameter-search loop.
+
+After a feature passes its bounded qualification, defer broad regression to the next integrated candidate unless the feature directly threatens a frozen reference, save compatibility, deterministic behaviour or another high-risk shared system.
+
+Escalation to a higher tier requires at least one of:
+
+- a failed gate;
+- a concrete newly discovered risk;
+- a direct threat to a protected reference/save/determinism contract; or
+- explicit Manager approval.
+
 ## Capability
 
 Use only currently available tools and distinguish their scope precisely.
@@ -94,15 +234,23 @@ Reserve Opus for unusually large, difficult or high-stakes tasks where additiona
 
 ## Multi-agent safety
 
-1. One writable local worktree per active local agent.
-2. No concurrent writes to the same Unity worktree.
+1. One writable lane/worktree per active owner; one active owner per writable lane/worktree.
+2. No concurrent conflicting writes, and no two writable lanes/worktrees on the same branch, including across separate Git stores.
 3. Substantial tasks declare exact base, context commit and branch.
 4. One primary writer owns a subsystem/file set.
 5. Enforce high-conflict/asset safety from AGENTS through locks.
 6. Do not stash/discard/overwrite/clean/silently absorb unrelated user work.
 7. Major design, ecology, save architecture, dependencies, frozen-reference or destructive decisions return to Manager/user.
 
-Target paths are `/home/jer/CCF-main`, `/home/jer/CCF-openai`, `/home/jer/CCF-claude`; preserve existing paths if renaming risks work and record verified results in Overview.
+Use the registered worktree/lane paths recorded in `Docs/Project/coordination/active-tasks.md`; preserve existing paths rather than renaming or recreating them automatically, and record verified results in Overview.
+
+## Unity resource policy
+
+Serialize heavy Unity execution machine-wide under one ownership lock across lanes and Git stores. A Unity packet states Unity required, exact candidate HEAD, Unity lane/owner, allowed phases and Player/native-input requirement. Verify the clean lane's actual branch/HEAD and ownership before acquiring the lock; never bypass another owner or kill its process through the lock.
+
+The integration lane constructs/integrates code and normally does not host the Editor. Post-integration Unity gates run in a designated Unity-capable lane, placed cleanly at the exact integrated HEAD under the Unity lock. Do not duplicate the active integration branch into another writable lane; detached candidate validation or a distinct owned lane branch preserves branch ownership.
+
+Follow the verification-cost policy above: offline/reduced search first, Unity confirms candidate behaviour, and stop when the stated uncertainty is answered. Availability of an Editor does not expand scope.
 
 ## Pre-write checks
 
@@ -112,10 +260,26 @@ For GitHub-native Manager writes, inspect the authoritative branch/path and curr
 
 ## Roles
 
-- **Primary:** implements bounded authorised scope; reports readiness for review, not its own integration approval.
-- **Reviewer:** checks against accepted specification/context/evidence/gates; no competing implementation unless requested. Prefer an independent reviewer for high-risk simulation/save/reference work.
-- **Integrator:** deliberately integrates approved work and runs post-integration gates; only one active integrator per integration worktree.
+- **Primary:** implements bounded authorised scope; for SPEC REQUIRED work, works from the approved spec, plan and assigned task and reports spec deviations; reports readiness for review, not its own integration approval.
+- **Reviewer:** checks against accepted specification/context/evidence and the review gates below; for SPEC REQUIRED work, checks spec conformance as well as implementation correctness; independent of the implementing thread for the reviewed change; no competing implementation unless requested. Prefer an independent reviewer for high-risk simulation/save/reference work. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task.
+- **Integrator:** deliberately integrates approved work and runs post-integration gates; for SPEC REQUIRED work, confirms the spec is approved and conformance was reported; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
+
+## Review gates
+
+Use explicit gates rather than standing reviewer ownership. Assign bounded reviewers independently of the implementing thread. Gate completion requires evidence and an explicit decision, not worker completion or capacity availability.
+
+| Gate | Trigger |
+|---|---|
+| G1 COST / LAUNCH | Tier-2/3 Unity; expensive multi-run queues; exceptional model/cost escalation. |
+| G2 ACCEPTANCE | Before evidence/handoff is treated as meeting its acceptance criterion. |
+| G3 MEASUREMENT INTEGRITY | Harness/fixture/threshold/expected-hash changes; calibration or measured evidence relied upon; any proposed weakening/waiver of a gate. |
+| G4 INTEGRATION / CANON | Integration into shared/main candidate state; canonical context/workflow/instruction changes; conflicting shared/serialized systems. |
+| G5 SCOPE / MILESTONE | Scope, milestone, product direction, dependency or save-format/history-policy change. |
+
+Protected density, ecology/calibration, save, RNG/determinism and frozen/reference behaviour require G2, G3 where measurement/calibration is involved, and G4 at integration. A proposed waiver triggers review; that review does not itself authorise bypassing a mandatory gate. Product/scope decisions still return to the existing authority hierarchy.
+
+Canonical integration decisions remain APPROVED / NEEDS CHANGES / REJECTED. Per-packet assessments are supplementary and must map explicitly to canonical decision status; they do not silently replace it. Deferred/batched review cannot mark an unmet mandatory gate satisfied.
 
 ## Live task locks
 
@@ -134,10 +298,17 @@ CONTEXT COMMIT: <full snapshot SHA>
 WORKTREE: <worker-specific path if local>
 BRANCH: <task branch>
 ROLE: Primary / Reviewer / Integrator
+TASK CLASS: PACKET ONLY / SPEC REQUIRED
+SPEC (SPEC REQUIRED only):
+- ID / status:
+- Location:
+- Assigned task(s):
+- Acceptance criteria for this packet:
 GOAL: <one concise player/system outcome>
 AUTHORITATIVE SOURCES:
 - Game Brief, Decision Log, Current Milestone, Overview, AgentWorkflow
 - relevant research and task specification
+- approved spec, plan and assigned task for SPEC REQUIRED work
 IN SCOPE:
 -
 OUT OF SCOPE:
@@ -152,6 +323,7 @@ MUST-NOT-CHANGE HASHES / ANCHORS:
 -
 INTENTIONALLY CHANGED HASHES / ANCHORS:
 None unless explicitly authorised.
+VERIFICATION TIER: 1 / 2 / 3
 VERIFICATION:
 -
 GITHUB HANDOFF:
@@ -159,7 +331,8 @@ GITHUB HANDOFF:
 STOP AND ASK IF:
 Required work materially changes design, ecology, unauthorised save
 architecture, frozen/reference behaviour, dependencies, destructive
-repository state or ownership boundaries.
+repository state or ownership boundaries. For SPEC REQUIRED work, also
+stop if the approved spec does not settle a material product ambiguity.
 ```
 
 ## Standard worker handoff
@@ -196,6 +369,7 @@ VERIFICATION RUN:
 -
 VERIFICATION RESULTS:
 -
+SPEC CONFORMANCE (SPEC REQUIRED only): PASS / FAIL / NOT VERIFIED
 REMAINING VERIFICATION GATES:
 -
 KNOWN LIMITATIONS:
@@ -223,9 +397,13 @@ Only reviewer/integrator records:
 ```text
 INTEGRATION DECISION
 Status: APPROVED / NEEDS CHANGES / REJECTED
+Gate: G1 / G2 / G3 / G4 / G5 (applicable gate and scope)
 Reviewed branch:
 Reviewed HEAD:
 Context commit:
+SPEC (SPEC REQUIRED only):
+- ID / status:
+- Conformance: PASS / FAIL / NOT VERIFIED
 Reasons:
 -
 Required fixes / remaining gates:
@@ -266,6 +444,8 @@ Expected observable behaviour:
 
 ## Integration states and procedure
 
+Spec status (see Spec-driven development) is separate from these implementation states. `PROPOSED` here means an implementation proposal, not an approved feature spec.
+
 - **PROPOSED:** specification only.
 - **IMPLEMENTED ON TASK BRANCH:** worker completed its branch.
 - **REVIEWED:** another worker/manager inspected it.
@@ -294,9 +474,11 @@ Independent review is not automatically required after every handoff. Follow the
 ## Manager workflow
 
 1. Inspect accepted state and choose the next playable outcome.
-2. Use direct GitHub capability for live locks, canonical documentation/spec updates, handoff publication and other safe GitHub-native management; split remaining parallel-safe local/Unity work, assign workers, and issue bounded packets with one context commit.
-3. Workers execute against locked context and return GitHub-published implementation handoffs plus external evidence where needed.
-4. Immediately triage each handoff against specification, evidence and the current review policy. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
-5. When no decision, blocking conflict or mandatory review gate prevents continuation, perform Manager-owned GitHub follow-up directly and issue the next implied bounded worker task. Otherwise resolve the gate or return the genuine decision to the user.
-6. Use one authorised integrator for approved work requiring local integration and run required integrated gates.
-7. Update canonical Git context when needed. After the context-source commit, regenerate mirrors/composites and refresh attachments; if the Manager cannot run that local publication tooling, assign a bounded context-publication worker and do not present stale mirrors as current.
+2. Classify the work as `PACKET ONLY` or `SPEC REQUIRED` before production implementation. For `SPEC REQUIRED`, ensure an approved spec exists, then maintain the plan and bounded tasks. For `PACKET ONLY`, continue with the ordinary packet.
+3. Use direct GitHub capability for live locks, canonical documentation/spec updates, handoff publication and other safe GitHub-native management; split remaining parallel-safe local/Unity work, assign workers, and issue bounded packets with one context commit.
+4. Workers execute against locked context and return GitHub-published implementation handoffs plus external evidence where needed.
+5. Immediately triage each handoff against the approved spec where applicable, evidence and the current review policy. Perform required reviews or explicitly record deferred/batched review and the accurate implementation state.
+6. When no decision, blocking conflict or mandatory review gate prevents continuation, perform Manager-owned GitHub follow-up directly and issue the next implied bounded worker task. Otherwise resolve the gate or return the genuine decision to the user.
+7. Use one authorised integrator for approved work requiring local integration and run required integrated gates, including spec-conformance verification for `SPEC REQUIRED` work.
+8. Update canonical Git context when needed. After the context-source commit, regenerate mirrors/composites and refresh attachments; if the Manager cannot run that local publication tooling, assign a bounded context-publication worker and do not present stale mirrors as current.
+9. Confirm dashboard synchronization for every substantial task and project-status change: update the authoritative coordination record, run or allow ingestion, verify any automatic GitHub audit snapshot advances, and verify the published dashboard reflects the new state. If the dashboard or publisher is unavailable, record the synchronization failure as an outstanding operational issue.

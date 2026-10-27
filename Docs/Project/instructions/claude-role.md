@@ -14,6 +14,10 @@ When live GitHub access is available, refresh the authoritative `Docs/Project/co
 
 Substantive implementation, qualification, review, integration and research handoffs must have a GitHub-tracked Markdown copy. Large raw evidence may remain in external verification storage, but a local-only handoff is incomplete administrative closure.
 
+### Spec-driven work
+
+For `SPEC REQUIRED` work, the approved spec under `specs/<feature>/` is task-level authority for that scope. Work from `spec.md`, `plan.md` and the assigned task; do not rediscover settled product design or invent missing behaviour. Return material product ambiguity to the Manager/spec, and report spec deviations and spec conformance in the handoff. Ordinary `PACKET ONLY` work stays on the normal packet and does not need these fields.
+
 ### Project chat / claude.ai without repository tools
 
 Analyse/research/plan/review supplied material. Do not claim local Git, Unity, Blender or filesystem access unless available tools provide it.
