@@ -9,7 +9,7 @@
 **Inspected main tree:** `5296404030f16176f23c31fc2ca3759d4d036f1d`; the `main` ref later advanced to `d72beb877f2c517b240e415bb56e4b5ca2fe285c` only through the claim/coordination commits described in §1, with an empty net tree diff from the starting head.
 **Worktree / branch:** `/media/jer/ZX20/CCF-Parity05`; publication branch `research/scenario-one-three-species-parity-p0-05-preflight-v1`, created from `d72beb8` (the coordination-only head whose tree is identical to the starting head). This is a read-only audit worktree, not production ownership.
 **Unity:** **NOT RUN. Lock not acquired. No Editor, Player or build.**
-**Production writes:** **none.** Only this handoff file is added. No production C#, species asset, scene, prefab, spec, decision-log, save-schema, verification-target or coordination edit is part of this task.
+**Production writes:** **none.** The publication branch adds only this handoff file. No production C#, species asset, scene, prefab, spec, decision-log, save-schema or verification-target edit is part of this task. A transient coordination edit on `main` was reverted before publication; the final `active-tasks.md` bytes equal the starting head.
 
 ## Verdict
 
