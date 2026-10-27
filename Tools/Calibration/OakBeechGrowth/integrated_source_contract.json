@@ -1,11 +1,11 @@
 {
   "Assets/ForestPrototype/ForestEcologyController.cs": {
-    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "normalized_sha256": "fdcfec2a478f6a046d3956a051dee16429080df18d201a28a268b78a28c627c4"
+    "source": "4fc05e11bec5e00cd4dc9b32e380ba1babcf44cf",
+    "normalized_sha256": "ea1a204324f3c39972af1d6b6b69d747768f6c81eafe2a7c9bed497af95a8639"
   },
   "Assets/ForestPrototype/TreeSpeciesDefinition.cs": {
-    "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
-    "normalized_sha256": "63c9078e7be818d4594978e1377485b1b1648ecb48dedd445766e58e6a011bfd"
+    "source": "ac4f34c415daa2dfc05539bac30b092e682eb10a",
+    "normalized_sha256": "346647ef4b3f4b5cb5a75f7392b2ab6c1a6c58f8e9cd9a1917403dd9b660531a"
   },
   "Assets/ForestPrototype/SitkaGrowthModel.cs": {
     "source": "90e3496873da4e3b23038993ca5bd2fec3c2e7f1",
@@ -24,7 +24,7 @@
     "normalized_sha256": "9e1c8564f50166093384ad9dd1b65899ed8482e52a5fe2f4bda4b6bab6cf6b13"
   },
   "Assets/ForestPrototype/ForestSaveData.cs": {
-    "source": "c1564b857972ee18917e8a461c457533a54cc3f1",
-    "normalized_sha256": "224173ce7b7fd0eae426c4a18fe037f37a5cbef39a38df163ad47efd059f24c7"
+    "source": "cf84d24c684b4317f5493f9e06d6a65df16e9fb2",
+    "normalized_sha256": "4734c9d733bf8f8453102b79f96ad3bb8aad5b037140ed0b7e6b65e502c20d73"
   }
 }
