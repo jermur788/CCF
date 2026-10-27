@@ -77,6 +77,8 @@ All 16 permanent files were replaced in place from the `eb218ea` generator outpu
 
 Readback: **16/16 byte-identical**; all headers/stamps use `eb218ea...`; both manifests record `preview = false`; no generated header or manifest carries `DIRTY PREVIEW — NOT A CONTEXT COMMIT`. The previously inconsistent `01` manifest was replaced at the same time.
 
+Independent re-verification after closure (2026-10-27): the generator was rerun from the clean committed context, the full output set was compared with the manifest, and all 16 permanent Drive files were downloaded again and matched the `eb218ea` generator outputs byte-for-byte (16/16). See `independent-verification/INDEPENDENT-VERIFICATION.json` and `independent-verification/drive-readback.json`.
+
 Historical `07`–`12` Context Snapshot folders were left untouched. They are historical and are not current merely because they exist.
 
 ## Project Context Guide
@@ -106,7 +108,7 @@ Required files (all stamped `eb218ea...`; hashes in `SHA256SUMS.txt`):
 - `CCF-context-manifest-eb218ea.json` and `CCF-context-manifest-eb218ea.md` (same manifest content)
 - `CCF-shared-project-instructions-eb218ea.md`, `CCF-chatgpt-role-eb218ea.md`, `CCF-claude-role-eb218ea.md`, `CCF-AGENTS-eb218ea.md`, `CCF-CLAUDE-eb218ea.md`
 
-The ChatGPT composite is **12,023 characters**. A previously recorded ChatGPT project-instruction limit was 8,000 characters, so the full generated composite cannot be assumed to fit the project instruction field. Do not hand-edit the generated composite; if the platform rejects it, attach it as a project source file or request a separately accepted platform-fitting instruction.
+The ChatGPT composite is **12,019 characters (12,023 bytes)**. A previously recorded ChatGPT project-instruction limit was 8,000 characters, so the full generated composite cannot be assumed to fit the project instruction field. Do not hand-edit the generated composite; if the platform rejects it, attach it as a project source file or request a separately accepted platform-fitting instruction.
 
 ## Verification
 
@@ -121,7 +123,10 @@ The ChatGPT composite is **12,023 characters**. A previously recorded ChatGPT pr
 | Drive ChatGPT copy readback | PASS | byte-identical |
 | Drive Claude copy readback | PASS | byte-identical |
 | Other permanent mirrors synchronized | PASS | 16/16 files read back |
+| Independent re-readback | PASS | 16/16 byte-identical to `eb218ea` outputs (`independent-verification/drive-readback.json`) |
 | Project Context Guide updated | PASS | in place; readback verified |
+| Project Context Guide stale stamps removed | PASS | `716042c`, `afb70d8`, `4a68d52`, `341ccbf` absent from readback |
+| Working tree clean after publication | PASS | `git status --porcelain` empty; no uncommitted output |
 | Platform/project attachments refreshed or explicitly blocked | BLOCKED | `PROJECT ATTACHMENT REFRESH REQUIRES USER ACTION` |
 | Gameplay/runtime files changed | MUST BE NO | NO (no `Assets/`, `Packages/`, `ProjectSettings/` or `Tools/Verification/` changes) |
 | Unity required | NO | not required, not run |
@@ -144,10 +149,10 @@ No dashboard publisher/listener was available in this environment (`127.0.0.1:80
 
 ## User action still required
 
-1. Replace/attach the ChatGPT Game Dev project instructions and static context files listed above. The full ChatGPT composite is 12,023 characters; confirm the platform limit before pasting.
+1. Replace/attach the ChatGPT Game Dev project instructions and static context files listed above. The full ChatGPT composite is 12,019 characters (12,023 bytes); confirm the platform limit before pasting.
 2. Replace/attach the Claude project instruction copy if that project still uses an older composite.
 3. Merge `ops/workflow-capability-sync-v2` into the desired integration/main line if branch publication alone is not sufficient. The final context SHA is `eb218ea...`; the handoff commit does not change it.
-4. Record the live coordination row for this task if the Manager wants it in `active-tasks.md`. That file is live coordination, outside the context commit, and was not advanced by this publication.
+4. None for live coordination: `WORKFLOW-CAPABILITY-SYNC-01` is registered and marked DONE in `Docs/Project/coordination/active-tasks.md` on `ops/workflow-capability-sync-v2`; that file remains outside the context commit.
 
 ## Evidence
 
@@ -162,6 +167,7 @@ External evidence root:
 - `drive-map.tsv` — permanent Drive file IDs and generated-source mapping.
 - `superseded-716042c/` — the earlier local merge outputs, retained for audit only.
 - `drive-after/ProjectContextGuide__export.txt` — Guide readback.
+- `independent-verification/` — independent generator rerun, 16/16 Drive readback, Guide readback and `INDEPENDENT-VERIFICATION.json`.
 
 GitHub handoff:
 
