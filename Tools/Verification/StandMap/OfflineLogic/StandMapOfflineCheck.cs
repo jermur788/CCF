@@ -44,6 +44,23 @@ public static class StandMapOfflineCheck
 
     public static int Main()
     {
+        // V2 lines are presentation only, and the minimap retains the existing legacy symbols.
+        var v2 = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
+        v2.Racks.Add(new MapRack { Start = new RackPoint(-35, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackSuggested });
+        v2.Racks.Add(new MapRack { Start = new RackPoint(-35, 10), End = new RackPoint(40, 10), Symbol = MapSymbol.RackPlayer });
+        v2.Racks.Add(new MapRack { Start = new RackPoint(-40, 20), End = new RackPoint(40, 20), Symbol = MapSymbol.RackToDo, MiniOnly = true });
+        var v2Full = StandMapDrawPlan.BuildStatic(v2, 688, MapDetail.Full);
+        var v2Mini = StandMapDrawPlan.BuildStatic(v2, 144, MapDetail.Mini);
+        var suggested = v2Full.Single(x => x.Symbol == MapSymbol.RackSuggested);
+        var player = v2Full.Single(x => x.Symbol == MapSymbol.RackPlayer);
+        Check(suggested.DashPx > 0 && suggested.GapPx > 0 && player.DashPx == 0 && player.GapPx == 0, "V2 suggested is dashed and player rack solid");
+        Check(!v2Full.Any(x => x.Symbol == MapSymbol.RackToDo) && v2Mini.Any(x => x.Symbol == MapSymbol.RackToDo), "legacy minimap-only rack is hidden from full map");
+        Check(!v2Mini.Any(x => x.Symbol == MapSymbol.RackSuggested || x.Symbol == MapSymbol.RackPlayer), "V2 presentation does not expand the minimap");
+        var v2Legend = StandMapLegend.Entries(v2, MapOverlay.None, true);
+        Check(v2Legend.Any(x => x.Text == "Dashed = suggested") && v2Legend.Any(x => x.Text == "Solid = your planned rack"), "V2 legend names both line meanings");
+        Check(!v2Legend.Any(x => x.Symbol == MapSymbol.RackToDo), "V2 full-map legend excludes minimap-only legacy rack");
+        Check(StandMapLegend.Entries(v2, MapOverlay.None).Any(x => x.Text == "Solid = your planned rack"), "player rack has a legend outside planning mode");
+
         // ---- transform ----
         var t = new StandMapTransform(-40f, -40f, 80f, 608f);
         MapPosition nw = t.WorldToPixels(new RackPoint(-40f, 40f)), se = t.WorldToPixels(new RackPoint(40f, -40f)), c = t.WorldToPixels(new RackPoint(0f, 0f));

@@ -31,7 +31,9 @@ public enum MapSymbol
     TreeMarkCrop,  // a Crop Tree (full map, Marks layer)
     Juvenile,      // a planted juvenile, at its exact position (full map)
     Shelter,       // a browsing shelter that is still effective (full map, Browsing layer)
-    ShelterLapsed  // a browsing shelter that has expired or failed (full map, Browsing layer)
+    ShelterLapsed, // a browsing shelter that has expired or failed (full map, Browsing layer)
+    RackSuggested, // detached V2 guidance (full map only)
+    RackPlayer     // authoritative V2 player rack
 }
 
 // How a tree is drawn: a presentation class chosen from the species, not a simulation value. A species the map does not know
@@ -74,7 +76,10 @@ public sealed class MapPath
 public sealed class MapRack
 {
     public RackPoint Start, End;
+    public float WidthM = RackGeometry.DefaultWidthM;
     public MapSymbol Symbol = MapSymbol.RackToDo;
+    // Legacy map content retained for the minimap while the full map shows V2 racks.
+    public bool MiniOnly;
     // 0-based layout rack, or -1 for a rack that is not on the planned layout.
     public int LayoutIndex = -1;
 }
@@ -188,8 +193,8 @@ public sealed class StandMapModel
             foreach (MapRack r in Racks)
             {
                 if (r.Symbol == MapSymbol.RackPreview) continue;
-                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex);
-                h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z);
+                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.MiniOnly ? 1 : 0);
+                h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z); h = Mix(h, r.WidthM);
             }
             foreach (MapJuvenile j in Juveniles) { h = Mix(h, j.X); h = Mix(h, j.Z); h = Mix(h, (int)j.Kind); }
             foreach (MapShelter s in Shelters) { h = Mix(h, s.X); h = Mix(h, s.Z); h = Mix(h, s.Effective ? 1 : 0); }
