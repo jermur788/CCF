@@ -138,6 +138,8 @@ public static partial class ForestSaveValidation
             string problem = ValidateScenarioV15(data.scenarioOne, data.ecologicalYear);
             if (problem != null) return problem;
         }
+        string rackProblem = ValidateRackV2(data);
+        if (rackProblem != null) return rackProblem;
         return null;
     }
 

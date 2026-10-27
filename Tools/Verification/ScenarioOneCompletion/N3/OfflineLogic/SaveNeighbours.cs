@@ -10,6 +10,7 @@ public enum ScenarioOneOutcome { Active, Completed, Failed }
 [Serializable] public sealed class PlantingClearancePatch { public Vector3 center; public float radiusMeters=.564f; public int createdYear; public float brambleCover,brackenCover; public int competitionUpdatedYear; }
 [Serializable] public sealed class StormEventRecord { public int year; public float severity,directionDegrees; public int cropTreesLost; }
 public enum ForestTreeStage { Mature, Stump, Sapling, Young }
+public enum TreeMarkType { None=0, Fell=1, CropTree=2 }   // mirrors ForestTree.cs
 public enum RegenerationOrigin { Natural=0, Planted=1 }
 public static class ForestEcologyCell { public const int MaxBandsPerSpeciesOrigin=4; }
 public static class StormModel { public const int None=0,Latest=1; }

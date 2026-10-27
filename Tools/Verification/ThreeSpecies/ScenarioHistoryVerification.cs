@@ -107,7 +107,7 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
 
     private IEnumerator Verify()
     {
-        Check(ForestSaveData.CurrentVersion == 20, "save version unchanged");
+        Check(ForestSaveData.CurrentVersion == 21, "save version unchanged");
         Check(saves.LoadData(Clone(original), false), "restore baseline");
         yield return null; yield return null;
         manager.InitializeNewScenario();
@@ -184,7 +184,7 @@ public sealed class ScenarioHistoryGate : MonoBehaviour
         // ---- the history comes from persisted records: identical after save and load ----
         string before = Fingerprint(manager.Interventions);
         ForestSaveData data = saves.CaptureData();
-        Check(data.version == 20, "the save is still version 20");
+        Check(data.version == 21, "the save is still version 21");
         Check(saves.LoadData(Clone(data), false), "reload");
         yield return null; yield return null;
         Check(Fingerprint(manager.Interventions) == before, "history is identical after a save and load");

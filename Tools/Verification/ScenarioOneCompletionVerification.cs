@@ -150,7 +150,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 20 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+        Check(ForestSaveData.CurrentVersion == 21 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
             "production conventions (v18, EUR 2,500 minimum, 2,400 owner min/yr)");
         Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
@@ -440,11 +440,11 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
             {
                 Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "current completion fixture uses growth model 2");
                 ForestSaveData completed = saves.CaptureData();
-                Check(completed.version == 20 && completed.growthModel == GrowthModel.SpeciesAware
+                Check(completed.version == 21 && completed.growthModel == GrowthModel.SpeciesAware
                     && completed.standGeometryModel == StandGeometryModel.Legacy40
                     && completed.ecologicalYear == 30 && completed.scenarioOne.outcome == ScenarioOneOutcome.Completed
                     && completed.scenarioOne.outcomeYear == minimumYear,
-                    "growth-model-2 completion has the expected v20/model/geometry/year/outcome layout");
+                    "growth-model-2 completion has the expected v21/model/geometry/year/outcome layout");
                 Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed)), false),
                     "growth-model-2 completed layout loads");
                 yield return null; yield return null;

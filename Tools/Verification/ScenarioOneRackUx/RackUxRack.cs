@@ -496,8 +496,15 @@ public sealed class RackUxRackRunner : MonoBehaviour
         List<string> idsAfter = manager.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.FellTree).Select(o => o.targetTreeId).OrderBy(i => i, StringComparer.Ordinal).ToList();
         Hard("LOAD_KEEPS_EVERY_PLANNED_RACK_TREE", idsBefore.Count > 40 && idsBefore.SequenceEqual(idsAfter) && manager.WorkOrders.All(o => o.status == ScenarioWorkStatus.Pending || !o.IsOpen), $"{idsBefore.Count}→{idsAfter.Count}");
         Hard("LOAD_LEAVES_NOTHING_HIDDEN_PLANNED_TREES_STILL_CARRY_MARKERS", ui.PlannedMarkers.MarkerCount == idsAfter.Count, $"markers={ui.PlannedMarkers.MarkerCount} orders={idsAfter.Count}");
-        Hard("LOAD_DOES_NOT_ADD_OR_ARCHIVE_ANY_SAVE_FIELD_FOR_RACKS", !typeof(ScenarioOneSaveData).GetFields().Any(f => f.Name.ToLowerInvariant().Contains("rack"))
-            && !typeof(ScenarioOneWorkOrder).GetFields().Any(f => f.Name.ToLowerInvariant().Contains("rack")) && ForestSaveData.CurrentVersion == 20, $"saveVersion={ForestSaveData.CurrentVersion}");
+        // Save v21 (RACK-V2-03B) deliberately gives orders a persisted rack link and the save a V2 plan
+        // slot, so the old "no save field for racks" invariant is superseded. The legacy session-RackGroup
+        // flow this gate exercises must still archive no V2 state of its own: no rack records, no
+        // confirmation, and no rack-owned orders - its trees stay ordinary draft felling jobs.
+        Hard("LEGACY_RACK_FLOW_ARCHIVES_NO_V2_RACK_STATE", data.scenarioOne != null
+            && (data.scenarioOne.racks == null || data.scenarioOne.racks.Count == 0)
+            && !data.scenarioOne.rackPlanConfirmed
+            && data.scenarioOne.workOrders.All(o => o.rackId == 0)
+            && ForestSaveData.CurrentVersion == 21, $"saveVersion={ForestSaveData.CurrentVersion} racks={data.scenarioOne?.racks?.Count ?? -1}");
         Hard("LOAD_PRESERVES_THE_TEACHING_STAGE", manager.RackFirstStageActive, "");
         Note("LOAD_RACK_GROUPING", $"groupsAfterLoad={manager.RackGroups.Count} (grouping is session state; rack trees are ordinary draft felling jobs after a load)");
         yield return Wait(0.3f);

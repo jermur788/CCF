@@ -473,7 +473,7 @@ public static class SiteInfrastructureOfflineCheck
     private static void CheckG_NoSaveImpact()
     {
         string saveData = ReadSource("Assets/ForestPrototype/ForestSaveData.cs");
-        Check("G_SAVE_VERSION_IS_STILL_20", Regex.IsMatch(saveData, "public\\s+const\\s+int\\s+CurrentVersion\\s*=\\s*20\\s*;"));
+        Check("G_SAVE_VERSION_IS_STILL_21", Regex.IsMatch(saveData, "public\\s+const\\s+int\\s+CurrentVersion\\s*=\\s*21\\s*;"));
 
         string[] saveSources = Directory.EnumerateFiles(Path.Combine(root, "Assets"), "ForestSave*.cs", SearchOption.AllDirectories).ToArray();
         var typeRegex = TypeNameRegex();

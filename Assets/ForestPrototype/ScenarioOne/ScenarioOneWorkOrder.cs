@@ -53,6 +53,10 @@ public sealed class ScenarioOneWorkOrder
     public CCF.Forestry.WorkEconomy.WorkExecutionMethod executionMethod;
     public bool installShelter;
     public int harvestJobId = -1;
+    // Version 21: the persisted Rack Planning & Field Marking V2 rack that owns this order.
+    // 0 = not owned by a V2 rack (legacy orders and every save before v21). Declared last on
+    // purpose so the world-hash compatibility path can remove exactly this default text.
+    public int rackId;
 
     public bool IsOpen => status == ScenarioWorkStatus.Pending || status == ScenarioWorkStatus.Approved;
     // A felling order that counts as planned progress: still open, valid, and

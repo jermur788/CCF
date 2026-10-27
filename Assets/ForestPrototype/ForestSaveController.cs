@@ -268,7 +268,8 @@ public sealed class ForestSaveController : MonoBehaviour
             data = JsonUtility.FromJson<ForestSaveData>(json);
             string competitionProblem = ForestSaveValidation.ValidateGeometryJson(json, data)
                 ?? ForestSaveValidation.ValidateStormJson(json, data)
-                ?? ForestSaveValidation.ValidateCompetitionJson(json, data);
+                ?? ForestSaveValidation.ValidateCompetitionJson(json, data)
+                ?? ForestSaveValidation.ValidateRackV2Json(json, data);
             if (competitionProblem != null)
             {
                 refusal = "Save refused: " + competitionProblem;

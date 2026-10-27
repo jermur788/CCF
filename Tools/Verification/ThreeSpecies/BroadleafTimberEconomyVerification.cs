@@ -104,7 +104,7 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
 
     private IEnumerator Verify()
     {
-        Check(ForestSaveData.CurrentVersion == 20, "save version unchanged");
+        Check(ForestSaveData.CurrentVersion == 21, "save version unchanged");
         Check(ScenarioOneManager.NewGameGrowthModel == GrowthModel.SpeciesAware, "broadleaf market is on for new games: growth model 2 is the new-game default");
 
         // ---- growth model 1: original economy ----
@@ -160,7 +160,7 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
         Check(manager.AnnualReports.Last().timberSales.Select(s => (int)s.assortment).SequenceEqual(sales.Select(s => (int)s.assortment)) && ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "product sales and model survive a load");
         ForestSaveData bad = Clone(data); bad.scenarioOne.annualReports.Last().timberSales[0].assortment = (TimberAssortment)99;
         Check(ForestSaveValidation.Validate(bad, 0, ecology.CellCount) != null, "an undefined product is still rejected");
-        Check(ForestSaveData.CurrentVersion == 20, "save version still 20");
+        Check(ForestSaveData.CurrentVersion == 21, "save version still 21");
     }
 }
 #endif

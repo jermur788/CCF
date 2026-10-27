@@ -478,6 +478,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 ecology.ApplyStandGeometry(StandGeometryPolicy.NewGameModelForSession);
             }
             InitializeNewScenario();
+            // New-game rack identity (D-064): only a fresh Enlarged80 game starts as a
+            // Rack Planning & Field Marking V2 world. This runs after InitializeNewScenario,
+            // which clears the plan (and with it any model) because legacy loads call it too.
+            InitializeRackPlanForNewWorld();
         }
         if (ecology != null)
             ecology.SetManagementAnnualControl(true);
@@ -606,6 +610,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         nextWorkOrderId = 1;
         workOrders.Clear();
         ClearRackGroups();
+        // The V2 rack plan is fresh-world state as well: no racks, unconfirmed, model 0. The
+        // new-game setup raises it to model 1 for Enlarged80 afterwards; legacy loads never do.
+        ClearRackPlan();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -1381,6 +1388,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             protectedAreas = CloneRecords(ecology != null ? ecology.Browsing.ProtectedAreas : protectedAreas),
             ownerMinutesUsedThisYear = ownerMinutesUsedThisYear,
             stormEvents = CloneStormEvents(stormEvents),
+            rackPlanningModel = rackPlanningModel,
+            rackPlanConfirmed = rackPlanConfirmed,
+            nextRackId = nextRackId,
+            racks = CloneRacks(racks),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1401,6 +1412,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (ecology == null) ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizeRackV2(data, saveVersion);
         shelters = CloneRecords(data?.shelters);
         protectedAreas = CloneRecords(data?.protectedAreas);
         ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
@@ -1423,6 +1435,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         cashCents = Math.Max(0L, data.cashCents);
         nextWorkOrderId = Mathf.Max(1, data.nextWorkOrderId);
         workOrders = CloneOrders(data.workOrders);
+        // V2 rack-plan state (save v21). A pre-v21 save was normalized to the legacy defaults above,
+        // so a v20 or older load can never activate V2 or synthesize rack records: only a v21 save
+        // that states them brings them back.
+        rackPlanningModel = saveVersion >= 21 ? data.rackPlanningModel : RackPlanningModel.Legacy;
+        rackPlanConfirmed = saveVersion >= 21 && data.rackPlanConfirmed;
+        nextRackId = saveVersion >= 21 ? Mathf.Max(1, data.nextRackId) : 1;
+        racks = saveVersion >= 21 && data.racks != null ? CloneRacks(data.racks) : new List<RackSaveData>();
         planningPlantingMethod = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile)?.executionMethod ?? WorkExecutionMethod.Contractor;
         planningInstallShelter = workOrders.FirstOrDefault(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && order.exactPosition)?.installShelter ?? false;
         inventory = CloneInventory(data.inventory);
@@ -2631,6 +2650,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         if (source == null) return new List<ScenarioOneWorkOrder>();
         return source.Select(item => JsonUtility.FromJson<ScenarioOneWorkOrder>(JsonUtility.ToJson(item))).ToList();
+    }
+
+    private static List<RackSaveData> CloneRacks(List<RackSaveData> source)
+    {
+        if (source == null) return new List<RackSaveData>();
+        return source.Select(item => JsonUtility.FromJson<RackSaveData>(JsonUtility.ToJson(item))).ToList();
     }
 
     private static List<ScenarioInventoryEntry> CloneInventory(List<ScenarioInventoryEntry> source)

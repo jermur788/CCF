@@ -949,7 +949,7 @@ public sealed class DensityQualificationRunner : MonoBehaviour
             json[growth] = JsonUtility.ToJson(saves.CaptureData());
             keys[growth] = JsonKeys(json[growth]);
         }
-        Hard("SAVE_V20_MODEL2_MIXED_ADDS_NO_PERSISTED_FIELD", ForestSaveData.CurrentVersion == 20 && keys[1].SetEquals(keys[2]) && json[2].Contains("\"version\":20") && json[2].Contains("\"growthModel\":2"),
+        Hard("SAVE_V21_MODEL2_MIXED_ADDS_NO_PERSISTED_FIELD", ForestSaveData.CurrentVersion == 21 && keys[1].SetEquals(keys[2]) && json[2].Contains("\"version\":21") && json[2].Contains("\"growthModel\":2"),
             $"version={ForestSaveData.CurrentVersion} keys(model1)={keys[1].Count} keys(model2)={keys[2].Count} onlyIn2=[{string.Join(",", keys[2].Except(keys[1]))}] onlyIn1=[{string.Join(",", keys[1].Except(keys[2]))}]");
 
         // Unsupported futures are refused and refusing changes nothing.
