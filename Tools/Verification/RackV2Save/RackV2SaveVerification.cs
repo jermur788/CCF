@@ -268,6 +268,18 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
             "a world that carries rack state gets a new V2 identity");
         Pass("hash compatibility: empty plans keep the pre-v21 identity; rack content gets a new one");
 
+        // The workflow flag alone never moves a world hash while the plan is empty: the protected
+        // fresh-game anchors were recorded before v21 and must survive the new identity flag. Rack
+        // CONTENT is what gives a V2 world its new identity (checked just above).
+        ForestSaveData flagWorld = saves.CaptureData();
+        ScenarioReferenceArchive.Canonicalize(flagWorld);
+        flagWorld.scenarioOne.rackPlanningModel = RackPlanningModel.Legacy;
+        string asLegacy = ScenarioReferenceArchive.CurrentWorldHash(flagWorld);
+        flagWorld.scenarioOne.rackPlanningModel = RackPlanningModel.RackPlanningFieldMarkingV2;
+        Check(ScenarioReferenceArchive.CurrentWorldHash(flagWorld) == asLegacy,
+            "the workflow flag alone does not change a world hash while the plan is empty");
+        Pass("rackPlanningModel alone never moves a world hash (empty plan)");
+
         // ---- G. Validation negatives --------------------------------------------------------------------
         ForestSaveData good = saves.CaptureData();
         good.scenarioOne.rackPlanningModel = RackPlanningModel.RackPlanningFieldMarkingV2;
