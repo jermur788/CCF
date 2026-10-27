@@ -155,3 +155,66 @@ Full detail with citations is in `plan.md` §1. The load-bearing facts for revie
 - Worktree: `/media/jer/ZX20/CCF-Spec-ReviewHistory`
 - Branch: `spec/scenario-one-review-history-v1` (from packet commit `8177cf6f9df454bc25274bc4ada4942c251ec35b`)
 - Delivered HEAD: the commit that contains this handoff and the four spec artifacts (branch tip at delivery).
+
+---
+
+# MANAGER-AMENDMENT ADDENDUM
+
+**Exit statement: `S1-C REVIEW/HISTORY SPEC APPROVED — READY FOR IMPLEMENTATION PACKETS`**
+
+- **Addendum date:** 2026-10-27
+- **Worker:** same S1-C specification lane (Primary specification author)
+- **Task class:** specification amendment only (packet `Docs/Handoffs/S1-C-ReviewHistory-Spec/AMENDMENT-PACKET.md`)
+- **Manager review commit:** `65d354a6654b7ffd25b73cb04c9691f4aea127ea` (verdict `NEEDS CHANGES — NARROW MANAGER AMENDMENT ONLY`; reviewed worker HEAD `9b96f57`)
+- **Amendment packet commit:** `b7193a5`
+- **Exact amended/approved spec HEAD:** `1b1bef7f23104eedcc6a1b009bca2a4e93f34492` (`specs: approve S1-C review/history spec (R-1–R-4; save-version sequencing)`)
+- **Published branch HEAD:** the commit containing this addendum, pushed as the branch tip of `spec/scenario-one-review-history-v1` (see publication record at the end of this addendum)
+
+## Decisions applied
+
+| Register | Manager decision | Applied as |
+|---|---|---|
+| R-1 (was OPEN-1) | Labelled derived achievement year **only** where exact first-achievement is recomputable solely from persisted year-tagged L1 records + accepted objective logic; otherwise "not recorded"; never approximate-as-fact | `spec.md` FR-4/FR-10/§11/AC-4/§15 R-1; `plan.md` §2.5, rejected-alternative note, §6, §8; `tasks.md` T-05; checklist FR-4/FR-10/AC-4 |
+| R-2 (was OPEN-2) | Session-only browse / DBH-growth facts are **not persisted** in S1-C; labelled session-only after load | `spec.md` FR-13/§15 R-2; `tasks.md` T-04 exclusions; checklist FR-13 |
+| R-3 (was OPEN-3) | Aggregate-first with drill-down to recorded targets | `spec.md` FR-8/§15 R-3; `tasks.md` T-03; checklist FR-8 |
+| R-4 (was OPEN-4) | Existing commitment/result trail is sufficient; mark/retain decision history is a future extension point (S1-D / Multi-Scale), not an S1-C requirement | `spec.md` §9 consumer rules, §15 R-4 |
+
+## Save-version correction applied
+
+All fixed `v21` claims removed from the S1-C package. Required rule now stated in `spec.md` §11, `plan.md` §3/§6/§8 and `tasks.md` T-05: inspect the actual integration base immediately before the objective-achievement persistence change; use the **next available save-schema version**; never reuse a version owned by an accepted/qualified concurrent feature. Rack Planning & Field Marking V2 currently reserves/implements **v21**, so if Rack V2 integrates first, S1-C is expected to use **v22**. Old-save defaulting and frozen Reference Future v1 are preserved exactly; no retrospective write into old saves. T-05 requires recording the integration-base version check in its implementation handoff.
+
+## Status change
+
+- `spec.md` → **APPROVED** (implementation authority for this scope).
+- `plan.md`, `tasks.md`, `checklists/requirements.md` → reference the approved spec state; decisions R-1…R-4 binding.
+- T-01…T-08 retained as implementation tasks, all still **TODO**; no implementation task marked complete.
+- `spec.md` §15 retained as a resolved decision register for traceability (per the amendment packet).
+
+## Files changed by this amendment
+
+- `specs/scenario-one-review-history-v1/spec.md` (status APPROVED; R-1…R-4; save-version sequencing)
+- `specs/scenario-one-review-history-v1/plan.md` (approved status; boundaries/§6/§8/§9 updated)
+- `specs/scenario-one-review-history-v1/tasks.md` (OPEN dependencies removed; T-05 version-check requirement)
+- `specs/scenario-one-review-history-v1/checklists/requirements.md` (approved status; R-1 conditional old-save rule; save-version check)
+- `Docs/Handoffs/S1-C-ReviewHistory-Spec/HANDOFF.md` (this addendum)
+
+## Production / Unity confirmation
+
+No production code, Unity asset, scene, prefab, package, ProjectSettings or save file changed. The amendment touched documentation only. Branch remains a clean descendant of the reviewed S1-C branch (`8177cf6` packet → `9b96f57` draft package → `65d354a` Manager review → `b7193a5` amendment packet → `1b1bef7` approved spec → this addendum).
+
+## Verification performed (documentation-only)
+
+- No remaining unresolved OPEN-1…OPEN-4 dependency in the task graph (T-01…T-08 dependencies and summary table checked; only the resolved register mentions the former IDs).
+- No remaining unconditional/fixed S1-C `v21` bump (remaining `v21` mentions are the Rack V2 collision warning and the "Rack V2 reserves v21" sequencing rule).
+- No contradiction found between `spec.md`, `plan.md`, `tasks.md` and the checklist (R-1…R-4 and the save-version rule applied consistently).
+- No production/source/Unity/save file changed (`git status`: only the four spec artifacts and this handoff).
+- Branch is a clean descendant of the reviewed S1-C branch (fast-forward lineage only).
+
+## Publication record
+
+- Amended/approved spec HEAD: `1b1bef7f23104eedcc6a1b009bca2a4e93f34492`
+- Published to `origin/spec/scenario-one-review-history-v1` (see push record of this session; resulting branch HEAD is the addendum commit).
+
+## Next step
+
+No further product review is required unless implementation exposes a new material ambiguity. The Manager may integrate the approved specification and dispatch T-01…T-08 through ordinary implementation packets.
