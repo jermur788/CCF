@@ -17,7 +17,7 @@ using UnityEngine.UIElements;
 //   02B-R (fresh model-1 world, headland/feeder/pad)  x  03C (authoritative rack runtime and D-064 work-order lifecycle)
 //
 // Run once per mode (set CCF_RV2C_MODE and CCF_RV2C_STATE), each in its own Editor process:
-//   write     fresh V2 world with the headland -> five racks on the suggested layout lines -> entrance trees match the
+//   write     fresh V2 world with the headland -> five racks from the qualified headland entrances -> entrance trees match the
 //             02B-R qualified entrances -> Confirm (Pending work only) -> mark two entrances -> a REAL save to disk.
 //   continue  a cold Editor on the real startup screen -> the real Continue path against the file `write` produced ->
 //             exact state comparison -> approve through the Work Plan UI -> execute -> rack.approve / rack.result ->
@@ -254,7 +254,27 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         yield return Frames(4);
     }
 
-    // Five racks on the suggested (authored) layout lines, exactly as the 03C gate builds them.
+    // The qualified headland fixture is distinct from the older authored layout. Its access endpoint
+    // is on the headland, not the property edge west of it. Keep the entrance assertions independent.
+    private List<int> AddQualifiedHeadlandRacks()
+    {
+        planner = new RackPlanner(manager, ecology);
+        planner.Refresh();
+        ForestTree[] living = Living();
+        var ids = new List<int>();
+        foreach (string entranceId in QualifiedEntrances)
+        {
+            ForestTree tree = living.Single(t => t.TreeId == entranceId);
+            float z = tree.transform.position.z;
+            RackPlanOperationResult add = manager.AddRack(
+                new RackPoint(ScenarioOneHeadlandGeometry.HeadlandX, z), new RackPoint(planner.HalfExtentM, z));
+            Require(add.Succeeded && add.RacksAdded == 1, "qualified headland rack adds: " + add.Message);
+            ids.Add(add.RackId);
+        }
+        return ids;
+    }
+
+    // Deliberately legacy authored lines, used only by the informational coupling probe.
     private List<int> AddSuggestedRacks(float zShift = 0f, float angle = 0f)
     {
         planner = new RackPlanner(manager, ecology);
@@ -292,7 +312,7 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         Check(surface != null && surface.GetComponent<MeshRenderer>() != null && surface.GetComponent<Collider>() == null,
             "headland surface exists with a renderer and no collider");
 
-        List<int> rackIds = AddSuggestedRacks();
+        List<int> rackIds = AddQualifiedHeadlandRacks();
         Check(manager.PlannedRackCount == 5 && manager.RackPlan.Count == 5 && !manager.RackPlanConfirmed, "five draft racks are authoritative and unconfirmed");
 
         // The cross-lane contract: 03C's derived entrance tree per rack == the entrance tree 02B-R qualified for that line.
@@ -382,6 +402,12 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         Check(GameObject.Find(state.headlandSurface) != null, "the headland presentation is shown after Continue");
         Check(manager.WorkOrders.Where(o => o.rackId > 0).All(o => o.status == ScenarioWorkStatus.Pending) && manager.RackPlan.All(r => !r.IsLocked), "rack work is still Pending and unlocked");
 
+        // The disk fixture intentionally stops after two marks. Complete field marking before
+        // approval, as D-064 requires, through the authoritative API (the spray UI is a later lane).
+        foreach (RackPlanRack rack in manager.ConfirmedRacks.Where(r => !r.EntranceMarked))
+            Check(manager.MarkRackEntrance(rack.Id).Succeeded, "remaining entrance marked for rack " + rack.Id);
+        Check(manager.MarkedRackEntranceCount == 5, "all five entrances marked before approval");
+
         yield return Shoot("c01-after-continue");
         yield return TopDown("c02-topdown-confirmed-pending");
         // F-8 consumers read RackGroups / the authored layout. Measure (do not assert) what they show for a confirmed V2 plan.
@@ -445,7 +471,7 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
         Check(manager.UpdateRack(lockedRack.Id, lockedRack.Entrance, new RackPoint(lockedRack.Far.X, lockedRack.Far.Z + 0.6f)).Status == RackPlanOperationStatus.Locked,
             "a completed-linked rack refuses a plausible edit because it is locked");
         Check(manager.DeleteRack(rackIds[1]).Status == RackPlanOperationStatus.Locked, "a completed-linked rack refuses deletion");
-        Check(manager.PlannedRackCount == 5 && manager.MarkedRackEntranceCount == 2, "counters are unchanged by execution (planned 5, marked 2)");
+        Check(manager.PlannedRackCount == 5 && manager.MarkedRackEntranceCount == 5, "counters are unchanged by execution (planned 5, marked 5)");
         yield return Wait(0.8f);
 
         yield return Shoot("c05-annual-review");
