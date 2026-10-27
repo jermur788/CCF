@@ -4,6 +4,24 @@
 **Issued by:** Overall Manager  
 **Target worker:** DeepSeek / owner of `feature/scenario-one-rack-v2-runtime-v1`
 
+## Dispatch instructions
+
+**SEND THIS HANDOFF TO:** the **same DeepSeek Game Dev implementation chat / agent that completed RACK-V2-03C** in `/media/jer/ZX20/CCF-RackV2-03C`.
+
+**Do not send this to:** the S1-C worker, the 02B-R/Terra worker, Claude review, or a new implementation agent unless the original DeepSeek lane is unavailable and the Manager explicitly reroutes publication recovery.
+
+**What to send:** send the contents of this file, or point that agent to:
+
+`Docs/Handoffs/RACK-V2-03C/PUBLICATION-REQUEST.md`
+
+**Purpose:** publication only. This is not a request to redo implementation or qualification.
+
+**Expected return token:**
+
+`RACK-V2-03C PUBLISHED — READY FOR MANAGER FINAL REVIEW`
+
+The return must identify the GitHub-visible branch tip and the worker handoff commit.
+
 ## Request
 
 Publish the already-qualified RACK-V2-03C lane to GitHub. **Do not rerun or change the qualified production implementation merely to satisfy publication.**
