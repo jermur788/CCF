@@ -1,110 +1,134 @@
-# S1-C Implementation 02 — incomplete qualification handoff
+# S1-C Implementation 02 — Annual Review year browsing: requalified handoff
 
-**Verdict: OWNERSHIP CONFLICT — IMPLEMENTED, T-02 REQUALIFICATION INCOMPLETE.**
+**Verdict: IMPLEMENTED / REQUALIFIED — READY FOR MANAGER REVIEW.**
 
-Do not issue the ready-for-Manager-review exit token yet. The behavioural harness passed, but its Editor shutdown crashed; the repaired shutdown has not been qualified, and the baseline comparison has not run. No integration, full S1-C qualification, spec verification or acceptance is claimed.
+The final tooling and production bytes passed a full Unity process gate (exit 0, harness PASS, cleanup PASS), and the same-harness baseline comparison at `cf7eb61` is identical for every shared state. This closes **T-02 only**. No integration, full S1-C qualification, spec conformance, T-03+ work or acceptance is claimed.
 
 ## Identity and scope
 
-- Task: `S1-C-IMPL-02`; primary worker continuation in T3 Code / Codex `gpt-6.1-sol`, following the interrupted Claude implementation.
-- Branch/worktree: `feature/s1-c-history-ui-v1`, `/media/jer/ZX20/CCF-S1C-Impl02`.
-- Dependency base: `808d8165d242da7632f37fea5c1d7355fa59279c`.
-- Actual starting packet HEAD: `cf7eb613594d742dab778008e7f41156c0152eda`.
-- Context: `eb218eab8b8e200a81cc99bfef7e8906bc21a88d`, the current canonical-context commit on inspected `origin/main`; the feature lineage itself retains older context files. Task authority is the approved S1-C spec, T-02 packet and reroute handoff on main. Live coordination was checked separately; it assigns this task and Rack V2 distinct file ownership.
+- Task: `S1-C-IMPL-02`; claim issue #6 (`[RUNNING]` before any Unity step, closed `[HANDED-OFF]` at publication).
+- Workers across the task: interrupted Claude implementation → T3 Code / Codex `gpt-6.1-sol` (implementation and first qualification attempts, stopped at an ownership collision) → **this requalification continuation: T3 Code / Claude Code, Claude Sonnet 5.5**, resumed from `REROUTE-HANDOFF.md`. The packet prefers DeepSeek and the reroute names the TTree Code local lane; the actual model is recorded here and on the claim.
+- Branch/worktree: `feature/s1-c-history-ui-v1`, `/media/jer/ZX20/CCF-S1C-Impl02` (clean at resume, equal to `origin`).
+- Dependency base: `808d8165d242da7632f37fea5c1d7355fa59279c`. Packet HEAD: `cf7eb613594d742dab778008e7f41156c0152eda`. Resume HEAD: `a23a34c7cc313edf82f41bb2ae0ee37d05345ec9`.
 - Production implementation: `46370f6e4159da12d69f226fb63377723e63c5e8`.
-- Behaviourally tested HEAD: `863d8317a385353cc6694a8f08f54d83dc4f567f`.
-- Final implementation/tooling HEAD: `0d3ac9208d4a36813ae0bef3d9064157a69511e6`. Production is byte-identical to the tested HEAD; later changes repair harness shutdown and enforce launcher ownership checks. **Those later changes have not had a successful Unity run.**
-- GitHub handoff path: `Docs/Handoffs/S1-C-Implementation-02/HANDOFF.md` on this branch. The documentation commit and remote readback SHA are recorded in the external publication receipt and worker response.
+- **Final tested HEAD: `0d3ac9208d4a36813ae0bef3d9064157a69511e6`.** `Assets/ForestPrototype/UI/AnnualReviewView.cs` is byte-identical (sha1 prefix `55c3fd91c14f`) at `46370f6`, `863d831`, `0d3ac92` and the resume HEAD. `863d831..0d3ac92` changed only the verification harness and driver.
+- Published branch tip: this documentation commit, above `a23a34c`. It changes only this file; `0d3ac92..a23a34c` was this file alone. The commit SHA and the remote readback are in the worker response and `publication-requal.json` in the evidence archive, because a commit cannot name itself.
+- Authority: `origin/main` `fe81994` at resume (live coordination row: *READY TO RESUME / QUALIFICATION INCOMPLETE*, no other writer on `AnnualReviewView.cs`), approved S1-C spec, T-02 packet, `REROUTE-HANDOFF.md`.
 - External evidence archive: `/media/jer/Files/CCF/Verification/S1C-T02-YearBrowsing-20261027/`.
 
-## Implementation
+## Implementation (unchanged by this continuation)
 
-The inherited Earlier/Later buttons, `viewYear == -1` follow-latest state, opening on latest, reset on a new completed year, card hierarchy, compact trends, completion/intervention presentation and historical live-state omissions were adopted.
+Inherited Earlier/Later buttons, `viewYear == -1` follow-latest state, opening on latest, reset on a new completed year, the card hierarchy, compact trends, completion/intervention presentation and the historical live-state omissions were **adopted**.
 
-`AnnualReviewView.Refresh`, `StepYear` and `FindYear` now select completed years through `ScenarioOneManager.HistoryYears`. The selected `YearHistoryView` supplies the report, resolved event/order pairs, annual-report-authoritative money, snapshots and previous snapshot. `BuildWork`, `BuildMoney`, `BuildForest`, `BuildStorm` and the selected-year part of `BuildHistory` consume that view. Missing reports/snapshots show explicit absence; an unknown remembered year falls back to latest. The cheap refresh key avoids rebuilding the history projection every frame.
+Changed: `AnnualReviewView.Refresh`, `StepYear` and `FindYear` select completed years through `ScenarioOneManager.HistoryYears`. The selected `YearHistoryView` supplies the report, resolved event/order pairs, annual-report-authoritative money, snapshot and previous snapshot. `BuildWork`, `BuildMoney`, `BuildForest`, `BuildStorm` and the selected-year part of `BuildHistory` consume that view. A missing report or snapshot shows explicit absence, and an unknown remembered year falls back to latest. A cheap change key avoids rebuilding the history projection every frame.
 
-The existing higher-level `Interventions`, completion and `StormDamageInYear` reconstruction remain. The storm card is selected using the year's `Storms`; its existing victim/deadwood/salvage reconstruction is preserved. Full provenance wording belongs to T-04. The three remaining raw-list references are change-key counts and the inherited all-year trend strip, not selected-year joins.
+Source audit repeated on the tested bytes: the only remaining references to `AnnualReports` / `ManagementEvents` / `EcologicalSnapshots` in the view are the change key (count comparison) and the inherited all-year trend strips. No selected-year join uses a raw list. `BuildStorm` still calls the existing `StormDamageInYear` after a `year.Storms` gate, and `BuildHistory` still lists `m.Interventions`; both are deliberate (T-03/T-04 own them).
 
-The acknowledgement footer predicate is unchanged:
+The acknowledgement footer predicate is unchanged and verified identical at base and head:
 
 ```csharp
 (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement || teachingReview) && !historical
 ```
 
-The button callback additionally refuses while `showingEarlierYear` is true. `ScenarioOneUiRoot`, manager acknowledgement logic, first-review advancement gate, completion/teaching semantics and persistence were not modified. Historical objectives remain explicitly labelled current state.
+The button callback additionally refuses while `showingEarlierYear` is true. `ScenarioOneUiRoot`, manager acknowledgement logic, the first-review advancement gate, completion/teaching semantics and persistence were not modified.
 
-### Changed files
+### Changed files on the task branch (since base `808d816`)
 
 | File | Change |
 | --- | --- |
-| `Assets/ForestPrototype/UI/AnnualReviewView.cs` | Only production file changed: query-layer selection/cards, deterministic missing-record handling and hidden-callback guard. |
-| `Tools/Verification/S1CManagementHistory/AnnualReviewYearBrowsingVerification.cs` | Disposable four-year UI fixture, navigation/save-state/gate checks, teaching-only footer fixtures, missing-record checks and captures; later deferred Editor shutdown repair. |
-| `Tools/Verification/S1CManagementHistory/run_t02_gate.py` | Private display/config driver, cleanup, socket-capable `/tmp/` with trailing slash, and fail-closed exact task-lock/HEAD/clean-lane checks. |
-| `Tools/Verification/S1CManagementHistory/compare_reviews.py` | Baseline text/gate comparison, identical fixture-hash requirement, required-state and successful-process-receipt checks. |
-| This handoff | Evidence, incidents and continuation boundary. |
+| `Assets/ForestPrototype/UI/AnnualReviewView.cs` | Only production file: query-layer selection and cards, deterministic missing-record handling, hidden-callback guard. |
+| `Tools/Verification/S1CManagementHistory/AnnualReviewYearBrowsingVerification.cs` | Disposable four-year UI fixture; navigation, save-state, gate, teaching-footer, defensive-record and capture checks; deferred Editor shutdown. |
+| `Tools/Verification/S1CManagementHistory/run_t02_gate.py` | Private display/config driver, cleanup, socket-capable `/tmp/`, fail-closed exact task-lock/HEAD/clean-lane checks. |
+| `Tools/Verification/S1CManagementHistory/compare_reviews.py` | Baseline text/gate comparison with fixture-hash, required-state and process-receipt checks. |
+| this handoff | Evidence and boundaries. |
 
-No scene/prefab/ScriptableObject, package, ProjectSettings, pre-existing metadata, ecology, economy, curriculum, objective persistence, Rack V2 production file or frozen Reference Future content changed on this task branch. Save schema remains the inherited v21. T-01 production sources are unchanged. No T-03–T-07 implementation, dependency or binary asset was added.
+Scope check on the final tree: nothing under ProjectSettings, Packages, scenes, prefabs, ScriptableObjects, `.meta`, `Racks/`, `ForestSaveData` or Rack planning changed; the only non-doc, non-tooling path changed since the base is `AnnualReviewView.cs`. Save schema remains the inherited v21. `ScenarioManagementHistory.cs`, `ScenarioOneManager.History.cs`, `ScenarioInterventionHistory.cs` and the T-01 offline check are unchanged since `808d816` (empty `git diff`), so the T-01 offline check was not rerun; the retained T-01 evidence (`S1C_HISTORY_QUERY_PASS` 55 checks, `THREE_SPECIES_HISTORY_PASS` 74 checks) stands. No T-03–T-07 work, packages or binary assets were added.
 
-## Verification obtained
+## Verification on exact `0d3ac92` (and baseline `cf7eb61`)
 
-On exact `863d831`, Unity 6000.6.0f1 emitted **246 checks passed, 0 failed, 12 captures**, with no C# compile errors. This is behavioural/render evidence, **not a successful full process gate**, because native shutdown subsequently crashed.
+| Run | Lane / lock | Result |
+| --- | --- | --- |
+| Candidate `0d3ac92` | U1 at `0d3ac92`; lock `f471c04ed595441ea540b3ef18fb8a49`, task `S1-C-IMPL-02` | Unity exit **0**, `S1C_T02_HARNESS_PASS mode=candidate checks=246`, 0 failures, 12 captures, 247 s, harness/.meta/licence copy removed, cleanup PASS, driver preflight PASS first |
+| Baseline `cf7eb61`, same harness bytes, `--mode baseline` | U1 at `cf7eb61`; lock `9e5c7739a4014cebbb993983f89090c1`, task `S1-C-IMPL-02` | Unity exit **0**, `checks=212`, 0 failures, 12 captures, 167 s, cleanup PASS (the 34 extra candidate checks need the new behaviour) |
+| `compare_reviews.py` | — | Fixture world hash `EBE48D41AAA615EB` in both; 16 shared review states identical (16/16); gate table identical; acknowledgement-footer rule line identical at base and head; **RESULT: IDENTICAL** |
 
-| Required proof | Observed evidence |
-| --- | --- |
-| At least three completed years | Real fixture completes years 1–4; all four reached in both directions. |
-| Latest default/reopen/new year | Latest on opening/reopening; a new completed year resets an older selection to latest. |
-| Browsing is read-only | World/save hash `EBE48D41AAA615EB`, 27 events, four reports, cash and year unchanged through browsing, reopen, gate probes and rendering. |
-| Selected-year source | Source audit confirms `HistoryYears` / `YearHistoryView`; T-01 sources unchanged. |
-| Older-year acknowledgement | Footer hidden; invoking its registered callback leaves acknowledgement/events unchanged. |
-| Latest gate | UI advancement blocked before acknowledgement from both older/latest views; latest callback records exactly one acknowledgement and advancement then succeeds. |
-| Completion/teaching review | Completion-only footer latest/older checks pass. Teaching-only fixtures at boundaries 1/4/6 show footer only on latest, reject older callbacks, preserve save state, and route the latest acknowledgement normally. |
-| Work/no-work | Years 1/3 thinning, year 2 no work and year 4 planting-only render coherently. |
-| Defensive records | Missing annual report/snapshot and unknown selected year pass without errors or borrowing live/latest history. |
-| Rendered legibility | All 12 captures inspected at 1280×720 and 1920×1080: readable cards, wrapping, navigation, footer and scroll access. A suspected stale heading was correct on reinspection; no production/render fix was made for it. |
+Both runs emitted no `error CS`. The only `AnnualReviewView.cs` warning is the inherited `FindFirstObjectByType` obsolescence (CS0618), present in baseline and candidate. The only error-level line in the candidate log is the isolated config's Unity licensing token notice (`Access token is unavailable`). The earlier `863d831` signal-11 on exit did **not** recur: the deferred Edit-Mode exit completed with exit code 0. The candidate's 18 captured review texts are also byte-identical to the earlier `863d831` run.
 
-Teaching cases deliberately inject cached teaching facts to isolate the UI footer predicate. They do not prove real curriculum progression or Work Plan unlocks, and never call the APIs that correctly invalidate such facts. Callback/API driving does not prove OS-native mouse/key delivery. No disk save/load qualification or Tier-3/frozen-anchor rerun is claimed for this bounded presentation task.
+### Packet proof table
 
-Retained offline evidence: `offline/s1c-history-query-offline.log` (**55 checks PASS**) and `offline/threespecies-history-offline.log` (**74 checks PASS**). The old broad offline typecheck logs have stub/tooling failures and are not clean compile receipts; the real Unity compilation supersedes their limited type-check evidence. No baseline was weakened or hashes rebaselined.
+| # | Required proof | Evidence (check IDs in `final-candidate/evidence/t02-result.txt`) |
+| --- | --- | --- |
+| 1 | At least three completed years exposed | `FIXTURE_HAS_AT_LEAST_THREE_COMPLETED_YEARS count=4`, `HISTORY_YEARS_OLDEST_FIRST_UNIQUE`, `ALL_COMPLETED_YEARS_VISITED 4,3,2,1` |
+| 2 | Opens on latest | `OPENS_ON_LATEST_YEAR`, `REOPEN_RETURNS_TO_LATEST`, `LATEST_HAS_EARLIER_BUT_NO_LATER_CONTROL` |
+| 3 | Earlier and back without changing simulation/save | `STEP_EARLIER_*`/`STEP_LATER_*`, `BACK_ON_LATEST_AFTER_STEPPING_BACK`, `LATEST_CONTENT_UNCHANGED_AFTER_ROUND_TRIP`, `SIM_AND_SAVE_STATE_UNCHANGED_AFTER_{BROWSING,CLOSE_REOPEN,OLDER_YEAR_GATE_PROBES,RENDER_PASS}` (hash `EBE48D41AAA615EB`, 27/27 events, 4/4 reports, year 4/4, `seen=False`) |
+| 4 | Content sourced through `HistoryYears` / `YearHistoryView` | Source audit above; `YEAR_n_SHOWS_ITS_OWN_CLOSING_CASH`, `DEFENSIVE_NO_SNAPSHOT_DOES_NOT_BORROW_LATEST` |
+| 5 | Older year has no acknowledgement action | `OLDER_YEAR_HAS_NO_ACK_FOOTER`, `ACK_FOOTER_HIDDEN_ON_YEAR_{1,2,3}`, `OLDER_YEAR_ACK_CALLBACK_DOES_NOTHING seen=False events=27/27` |
+| 6 | Latest acknowledgement still gates exactly as before | `ADVANCE_BLOCKED_WHILE_REVIEW_UNACKNOWLEDGED_{OLDER_VIEW,LATEST_VIEW}`, `LATEST_ACK_MARKS_REVIEW_SEEN`, `LATEST_ACK_RECORDS_EXACTLY_ONE_ACKNOWLEDGED_EVENT events=28`, `ACK_CLEARS_BOTH_PENDING_FLAGS`, `ADVANCE_ALLOWED_AFTER_ACK`, `NO_RECURRING_REVIEW_GATE_AFTER_FIRST_ACK`; baseline run shows the same states |
+| 7 | Completion-review / teaching-review not regressed | `COMPLETION_ACK_FOOTER_VISIBLE_ON_LATEST`, `COMPLETION_ACK_FOOTER_HIDDEN_ON_OLDER_YEAR`, `TEACHING_ONLY_FOOTER_ON_LATEST_{1,4,6}`, `TEACHING_ONLY_FOOTER_HIDDEN_ON_OLDER_{1,4,6}`, `TEACHING_OLDER_CALLBACK_DOES_NOT_ACK_{1,4,6}`, `TEACHING_LATEST_CALLBACK_RECORDS_ONE_ACK`; identical text/gate in baseline for all six teaching states and both completion states |
+| 8 | No-work and work years render coherently | `WORK_YEAR_{1,3,4}_LISTS_ITS_WORK`, `NO_WORK_YEAR_2_SAYS_SO`, `FIXTURE_COVERS_BOTH_WORK_AND_NO_WORK_YEARS`; defensive: `DEFENSIVE_NO_REPORT_SAYS_SO`, `DEFENSIVE_NO_SNAPSHOT_SAYS_SO`, `DEFENSIVE_UNKNOWN_YEAR_FALLS_BACK_TO_LATEST`, `DEFENSIVE_CASES_RAISE_NO_ERRORS`; new-year reset: `NEW_COMPLETED_YEAR_RETURNS_VIEW_TO_LATEST` |
+| 9 | Legible at 1280×720 and 1920×1080 | 12 captures; per-shot `CAPTURE_SIZE`, `SHOT_NOT_BLANK`, `TEXT_INSIDE_PANEL`, `TITLE_CLEAR_OF_HEADER_BUTTONS` all pass; **all 12 opened and inspected for this tested HEAD** (below) |
+| 10 | Compile/import clean, no baseline weakened | 0 `error CS` in both runs; no hash rebaselined; baseline run uses the same harness bytes and fixture hash |
 
-Rendered evidence: `candidate-7c/evidence/shots/` (the folder name is incidental; its exact tested revision is `863d831`). Files include `year4-latest-{top,lower}`, `year{1,2,3}-earlier-top` and `year1-earlier-lower`, each with `-1280x720.png` / `-1920x1080.png`. Texts, `gate-states.tsv` and `t02-result.txt` are beside the shots. Revision/hash metadata is in `qualification-revisions.json`.
+### Rendered review
+
+Opened `final-candidate/evidence/shots/year{4-latest,3-earlier,2-earlier,1-earlier}-top` and `year4-latest-lower`, `year1-earlier-lower`, each at `-1280x720.png` and `-1920x1080.png`. At both sizes the three columns, header controls, scroll area and wrapped text are readable with no clipped controls. Year 4 (latest) shows `Later year` disabled and the acknowledgement footer. Years 1–3 show `(earlier year; latest is Year N)`, no footer, `Later year` enabled, and the Objectives card labelled `(current state)`. Year 2 reads "No work was resolved this year." with closing cash only; years 1 and 3 show their own timber, harvesting, small-job-minimum and shelter lines; years 1–3 omit the stock-on-hand and browsing/protection lines. The lower Year 1 capture shows trends and objectives, with the first completed year's `Earlier year` disabled.
+
+One minor observation, **not changed**: the Objectives card on an older year still ends with the inherited hint "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue." while the footer is hidden. It is existing text, identical in the baseline run, and already marked `(current state)`; T-04/T-06 may want to reword it.
 
 ## Failures and operational incidents
 
-1. Inherited attempt 1 stalled at licensing because TMPDIR was on exFAT; preserved in `candidate-a15f067-ATTEMPT1-TMPDIR-STALL`. Attempt 2 licensed but timed out before the harness; preserved in `candidate-a15f067` (process receipt FAIL).
-2. Inspection of attempt 3's private display found **Corrupted Library Detected**. Unity's Rebuild Library action regenerated U1's cache. That run then exposed the harness's missing boolean argument at its acknowledgement call, fixed in `863d831`. Attempt 3 remains in `candidate-a15f067-attempt3`.
-3. On `863d831`, all 246 behavioural checks and 12 captures passed, but same-frame Play Mode exit / Editor exit was followed by native signal 11 (`MonoPathRemapper` / `__longjmp`). The driver received SIGTERM and its receipt is FAIL despite the harness PASS marker. `10906c9` changes shutdown to wait for Edit Mode across domain reload using SessionState; its effectiveness remains **UNVERIFIED**.
-4. **Worker-caused lane collision:** after releasing lock `3753ff87908a41acb726bcd9c1a65561`, Rack V2 legitimately acquired U1 at `8763623c7b8a65c357e136a94ded117ff42492e3` under lock `1195d0f3107c4f90bbd1524a3362c5a1` at 15:04:49 UTC. This worker failed to stop its dependent operations after the subsequent lock acquisition failed, briefly checked out `10906c9` and launched its own retry. The retry was terminated using only its own driver PID 419966; its own Editor 420042 and temporary harness/licence were removed by its driver. U1 was restored to the other owner's exact `8763623`. Their Editor 419679, Rack harness and lock were left untouched.
+Earlier attempts (kept for the record):
 
-**Rack V2's overlapping gate may have observed transient source/harness changes. Its owner must treat that run as contaminated and rerun it. Do not accept it based on its eventual marker or exit code.** Evidence: `lane-collision.json`, `transient-checkout-changed-paths.txt` and `candidate-10906c9/process-result.json`. This handoff and the user-facing warning report the collision; no independent message to another thread was sent.
+1. Attempt 1 stalled at licensing because TMPDIR was on exFAT (`candidate-a15f067-ATTEMPT1-TMPDIR-STALL`); attempt 2 timed out before the harness (`candidate-a15f067`).
+2. Attempt 3's private display showed *Corrupted Library Detected*; Rebuild Library regenerated U1's cache, which then exposed the harness's missing boolean argument (fixed in `863d831`). Preserved in `candidate-a15f067-attempt3`.
+3. On `863d831`: 246 checks and 12 captures passed, but native signal 11 followed the same-frame Play Mode / Editor exit (`MonoPathRemapper` / `__longjmp`). `10906c9` deferred the exit to Edit Mode via SessionState. **Qualified now:** the `0d3ac92` run exited 0.
+4. Prior worker-caused lane collision (Rack V2 acquired U1 at `8763623` under lock `1195d0f3…` while this task's retry was briefly checked out at `10906c9`; its overlapping gate may have observed transient source). Evidence: `lane-collision.json`, `transient-checkout-changed-paths.txt`. The Rack V2 lane has since been re-gated on U1 under its own lock (live coordination records Rack core integrated at `f23549b`); T-02 holds no open action for that owner.
 
-The final launcher now refuses another task's lock, wrong HEAD, dirty lane or running Editor before creating output/staging anything. Its read-only preflight was tested against the actual conflicting lock: rejected with `OWNERSHIP CONFLICT`, exit 1; no output folder created. Python syntax and `git diff --check` pass. No further Unity work was attempted after detecting the conflict.
+This continuation:
+
+5. First launch of the stage script stopped cleanly at lock acquisition: the lock tool verifies the lane's actual HEAD, so the exact head must be placed first and the lock taken immediately after (my script had the order reversed). The message was `lane branch/HEAD mismatch; worktree was not changed`; U1 was unchanged at `8763623`. The script was corrected (and now undoes only its own placement if acquisition fails) and the stage reran. Both receipts are in `requal-chain-status.txt`.
+6. Each run left the same four Editor-generated modifications in U1 (`.vscode/settings.json` and three `Woodland_Forbs_01` materials). They were archived byte-exact (`final-candidate/editor-side-effects.patch`, `baseline-cf7eb61/editor-side-effects.patch`) and restored, and U1 was clean afterwards. No routine shared-settings change is committed.
 
 ## Ownership, cleanup and preserved work
 
-- Earlier T-02 locks `e66d9b051d78434892c3dbbb03714a1a`, `d64c4a5f27d945068b1cbbdf29192fa5` and `3753ff87908a41acb726bcd9c1a65561` were released normally, with no Editor remaining at each release.
-- T-02 now owns **no Unity lock/lane**. U1 belongs to Rack V2 at exact `8763623`; only its own Rack harness remains. Its live lock was not released or altered.
-- The original planned restore to `7f708e4e30e61f3ce952a4ac75bde5fa2d8d38cd` is deferred to coordination with the current U1 owner; doing it now would overwrite that owner's active checkout.
-- U1's single Editor-generated `.vscode/settings.json` change from the `863d831` run was archived/restored byte-exact before releasing that lock (`side-effects-candidate-863d831/`). No routine shared-settings change is committed.
-- Primary's unrelated modified `AGENTS.md` / `active-tasks.md` and untracked Storage Architecture / Scenario Two audit files were not edited. The dashboard code checkout's pre-existing dirty files were also preserved.
+- Both locks above were taken normally and released with the matching owner/task/lock-id. No force-release was used, and the reaper loop never had to act (it logged nothing).
+- U1 was restored to the other owner's `8763623c7b8a65c357e136a94ded117ff42492e3`, clean, with no Editor and no staged harness/.meta. The machine lock is free.
+- The player's real `forest-save.json` last changed on 2026-10-17, so the isolated `XDG_CONFIG_HOME` kept it out of both runs.
+- Primary's unrelated modified `AGENTS.md` / `active-tasks.md` and untracked files, and the Rack V2 worktrees, were not touched. `active-tasks.md` is Manager-maintained and was not edited.
 
-## Required continuation
+## Not verified
 
-1. Manager/current U1 owner resolves the collision and reruns the potentially contaminated Rack V2 gate.
-2. After an explicit clean lane assignment and the other owner relinquishes it, qualify final T-02 tooling/production on exact `0d3ac9208d4a36813ae0bef3d9064157a69511e6` (or a deliberately documented successor) under a new matching lock. Do not change U1 while another task owns it.
-3. Require normal Editor exit 0, harness PASS, zero failed checks and cleanup PASS. Then run baseline `cf7eb61` with the **same final harness bytes**, in baseline mode under its own exact matching lock, and compare. Latest-content non-regression remains unproved until this passes.
+- Teaching cases inject cached teaching facts to isolate the footer predicate; they do not prove real curriculum progression or Work Plan unlocks.
+- Input was callback/API-driven in the Editor; OS-native pointer/key delivery was not exercised, and no player hand-test was done.
+- No disk save/load qualification, Tier-3 or frozen-anchor rerun, built Player, or Windows build was run; this is a bounded presentation task.
+- The T-01 offline check was not rerun (T-01 sources unchanged).
+- No full S1-C feature, spec, or integration claim.
 
-Commands from the implementation worktree, only after those ownership prerequisites:
+## Continuation and recommendation
+
+**Recommend the Manager approve T-02 for continuation.** T-03 can proceed from this branch after approval; it should keep the selected-`YearHistoryView` boundary and add aggregate-first intervention detail on top (the `Interventions` list and `Read year N` buttons are still the inherited reconstruction). T-04 can reuse the missing-report/missing-snapshot wording and decide on the older-year Objectives hint above. T-07 must retain this exact candidate/baseline evidence, reconcile the remaining legacy reconstruction (`StormDamageInYear`, `Interventions`, all-year trend lists) and cover integrated regressions; it must not treat T-02 as full S1-C conformance.
+
+### Reproduce
 
 ```bash
-python3 -B Tools/Verification/S1CManagementHistory/run_t02_gate.py --project /media/jer/ZX20/CCF-U1 --out /media/jer/Files/CCF/Verification/S1C-T02-YearBrowsing-20261027/final-candidate --mode candidate --lock-id ACTUAL_CANDIDATE_LOCK_ID --expected-head 0d3ac9208d4a36813ae0bef3d9064157a69511e6 --timeout 1500
-python3 -B Tools/Verification/S1CManagementHistory/run_t02_gate.py --project /media/jer/ZX20/CCF-U1 --out /media/jer/Files/CCF/Verification/S1C-T02-YearBrowsing-20261027/baseline-cf7eb61 --mode baseline --lock-id ACTUAL_BASELINE_LOCK_ID --expected-head cf7eb613594d742dab778008e7f41156c0152eda --timeout 1500
-python3 -B Tools/Verification/S1CManagementHistory/compare_reviews.py --baseline /media/jer/Files/CCF/Verification/S1C-T02-YearBrowsing-20261027/baseline-cf7eb61 --candidate /media/jer/Files/CCF/Verification/S1C-T02-YearBrowsing-20261027/final-candidate --repo /media/jer/ZX20/CCF-S1C-Impl02 --base-rev cf7eb61 --head-rev 0d3ac92
+# lane at the exact head, lock held with task S1-C-IMPL-02, lane U1, matching head
+python3 -B Tools/Verification/S1CManagementHistory/run_t02_gate.py --project /media/jer/ZX20/CCF-U1 --out <out> --mode candidate --lock-id <ID> --expected-head 0d3ac9208d4a36813ae0bef3d9064157a69511e6 --timeout 1500
+python3 -B Tools/Verification/S1CManagementHistory/run_t02_gate.py --project /media/jer/ZX20/CCF-U1 --out <out-baseline> --mode baseline --lock-id <ID2> --expected-head cf7eb613594d742dab778008e7f41156c0152eda --timeout 1500
+python3 -B Tools/Verification/S1CManagementHistory/compare_reviews.py --baseline <out-baseline> --candidate <out> --repo /media/jer/ZX20/CCF-S1C-Impl02 --base-rev cf7eb61 --head-rev 0d3ac92
 ```
 
-For a manual review after qualification: open Annual Review on the four-year fixture, verify Year 4 initially, step back through 3/2/1 and forward, check Year 2 says no work, check older views omit current browsing/stock lines and the acknowledgement footer, then reopen latest and acknowledge. Before acknowledgement advancement stays blocked; afterwards one acknowledgement event is recorded and advancement works. Check top/bottom scroll positions at both supported resolutions.
+The exact stage script used here is `requal-driver/stage.sh` in the evidence archive (place head, take lock, preflight, run, restore Editor side effects, release).
 
-T-03 should continue from this branch only after T-02 is requalified and Manager approves continuation. Preserve the selected `YearHistoryView` boundary when adding aggregate-first intervention detail. T-07 must retain the exact successful candidate/baseline evidence, cover integrated regressions and reconcile the protected legacy reconstruction/provenance boundaries; it must not treat this partial result as full S1-C conformance.
+Manual review: open Annual Review on the four-year fixture and confirm Year 4 first; step back through 3, 2 and 1 and forward again; Year 2 says no work; older years hide the stock/browsing lines and the footer; reopen on latest and acknowledge. Advancement is blocked before acknowledgement and works afterwards with one acknowledgement event.
 
-**SPEC CONFORMANCE: NOT VERIFIED** (bounded T-02 behaviour obtained; final process gate/baseline outstanding). **Ready for review: No — blocked qualification handoff.** No product decision is requested; lane coordination and verification remain.
+### Evidence index (under the archive root)
 
-**DASHBOARD SYNC: PASS. PUBLISHED DASHBOARD REFLECTS THIS TASK: YES (GitHub audit export).** Verifying-state audit `d9308db1be77d89e812e9c723fe14ce790c23786` (sequence 103) advanced to blocked-state audit `8f6385d74690d81bdc14a6727dccb4a970911c91` (sequence 104). Remote round trip and the published task's BLOCKED state / exact implementation SHA were verified; receipts are `dashboard-sync.json` and `dashboard-published-task.json` in the evidence archive. The local HTTP dashboard service is not running. Only supported state/publisher tools were used; generated dashboard files were never hand-edited. The authoritative Manager-maintained live coordination rows were not rewritten by this worker.
+`final-candidate/` (`process-result.json`, `unity.log`, `evidence/{t02-result.txt,gate-states.tsv,review-texts/,shots/}`, `editor-side-effects.patch`); `baseline-cf7eb61/` (same layout); `compare-reviews.txt`; `requal-chain-status.txt`; `requal-unity-lock-{acquire,release}.txt`; `requal-driver/`; earlier attempts `candidate-*`; `offline/`; `qualification-revisions.json`; `lane-collision.json`.
+
+**SPEC CONFORMANCE: NOT VERIFIED** (bounded T-02 behaviour verified; full S1-C spec not assessed). **Ready for review: Yes.**
+
+**DASHBOARD SYNC: NOT ATTEMPTED by this continuation. PUBLISHED DASHBOARD REFLECTS THIS TASK: NO.** The published state is still the prior worker's BLOCKED entry (GitHub audit export, sequence 104, task `review-history-years`), which is now stale; the Manager or an authorised publisher needs to refresh it. Only the claim issue and this handoff were updated.
+
+## Exit
+
+`S1-C YEAR BROWSING IMPLEMENTED / REQUALIFIED — READY FOR MANAGER REVIEW`
