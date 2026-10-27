@@ -14,6 +14,9 @@ using UnityEngine;
 // from local planting occupancy (dense neighbourhoods suppress), never from
 // age: all crop trees share the canonical age. Competition, crowns, canopy,
 // light and wind are then produced by the normal ecology systems.
+// The V2 world identity is initialized by ScenarioOneManager.Awake.
+// Wait for the default-order Awake methods before choosing starting clearance.
+[DefaultExecutionOrder(100)]
 public sealed class ForestStartingStand : MonoBehaviour
 {
     [Header("Scenario: first-thinning Sitka plantation")]
@@ -43,6 +46,8 @@ public sealed class ForestStartingStand : MonoBehaviour
 
     private void Awake()
     {
+        if (GetComponent<ScenarioOneHeadlandPresentation>() == null)
+            gameObject.AddComponent<ScenarioOneHeadlandPresentation>();
         // Fresh game only: a loaded save brings its own trees, and the old
         // serialized stand must have been removed from the scene by the
         // scenario switch.
@@ -233,9 +238,12 @@ public sealed class ForestStartingStand : MonoBehaviour
                 OuterAxis(r, jitter.y, offset, corePerAxis, spacing, coreOriginZ, coreLimit, outerLimit));
             outerSlots.Add((r, c, position, id));
         }
+        var scenario = UnityEngine.Object.FindFirstObjectByType<ScenarioOneManager>();
+        bool useV2Headland = scenario != null && scenario.RackPlanningV2Active;
         var outerOmitted = new HashSet<int>();
         for (int i = 0; i < outerSlots.Count; i++)
-            if (InClearanceZone(outerSlots[i].position, exclusionPoints))
+            if (InClearanceZone(outerSlots[i].position, exclusionPoints)
+                || (useV2Headland && ScenarioOneHeadlandGeometry.ContainsStemCentre(outerSlots[i].position)))
                 outerOmitted.Add(i);
         int outerClearanceOmitted = outerOmitted.Count;
         int outerToOmit = Mathf.Clamp(outerSlots.Count - Mathf.Max(0, target - coreLiving), 0, outerSlots.Count);
