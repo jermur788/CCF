@@ -24,3 +24,18 @@ Run it with `run_gate.py --private-display --keep-focus --env CCF_RV2C_MODE=writ
 
 This gate is new coverage. It replaces nothing and weakens nothing; the legacy `RackUxRack` gate is unchanged
 (see the combined handoff for its retained / replaced / retired mapping).
+
+## RACK-V2-COMBINED-REPAIR-01: model-0 / Legacy40 progression regression
+
+`RackV2LegacyProgressionRegression.cs` is a second disposable gate, added with the lesson/progression repair. The repair made the
+rack lesson predicates read the persisted V2 rack objects and the work they own; this gate shows model-0 worlds, which have no such
+objects, still use the original authored-layout predicates. Select the mode with `CCF_RV2L_MODE`:
+
+| Mode | World | What it proves | Pass token |
+|---|---|---|---|
+| `model0` | historical model-0 Enlarged80 (fresh game regenerated with the rack plan cleared) | five authored lines planned through the legacy `ConfirmRack`, approved in the real Work Plan, executed: `rack.create/layout/approve/result` follow the authored lines, orders carry no rack id, the next lesson opens, a disk round trip keeps model 0 and the lessons re-derive | `RV2L_MODEL0_PASS` |
+| `legacy40` | fresh Legacy40 game (`CCF_STAND_GEOMETRY=0`) | no authored layout, so only `rack.create` records and the next lesson opens from the first completed felling | `RV2L_LEGACY40_PASS` |
+
+Every step prints an `RV2L_TRACE` line with no timestamps or ids. The gate reads only members that exist on the pre-repair
+production bytes, so running it on the pre-repair HEAD and on the repaired HEAD and diffing the `RV2L_TRACE` lines shows whether the
+repair changed model-0 behaviour. Same copy -> run -> remove workflow, under the machine-wide Unity lock, with the isolated config guard.
