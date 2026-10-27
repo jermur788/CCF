@@ -1,12 +1,14 @@
-# S1-D — Scenario One Second and Subsequent Interventions — SPEC DRAFT HANDOFF
+# S1-D — Scenario One Second and Subsequent Interventions — SPEC HANDOFF
 
 - **Task:** S1-D Repeated-Interventions Specification (packet `Docs/Handoffs/S1-D-RepeatedInterventions-Spec/TASK-PACKET.md`)
 - **Class:** SPEC REQUIRED — specification only. No production code, Unity edit, coefficient or build.
 - **Branch:** `spec/scenario-one-repeated-interventions-v1`
 - **Packet commit:** `8eb7a996613ec4ec9b9ff7befe064796cc700100` (parent = base `3b499aa459b92212f7bb06897836bae5914b5230`)
 - **Context lock:** `eb218eab8b8e200a81cc99bfef7e8906bc21a88d`. Verified by `git diff`: the canonical context set (`Docs/Project/`, `AGENTS.md`, `CLAUDE.md`, `Tools/ProjectContext/`, `specs/`) is byte-identical between that commit and the packet tree I read; only the live-coordination file `active-tasks.md` differs, which is excluded from context by definition.
-- **Spec status:** `DRAFT`
+- **Spec status:** **`APPROVED`** — Manager review `457461b9b92da2e96101f5b0eb9940b4e92fec0a`; amendment packet `771620113487894bd8e09c69309318cc603ae063`; see §12 addendum.
 - **Deliverables:** `specs/scenario-one-repeated-interventions-v1/{spec.md, plan.md, tasks.md, checklists/requirements.md}` and this file.
+
+> **Reading this handoff.** §1–§11 are the original draft handoff, retained as the review record. Statements that a decision is `OPEN`, that approval is blocked, or that persistence is conditional are **superseded by §12** and by the resolved decision register in spec §12. For the avoidance of doubt, every `OPEN-n` reference in §1–§11 maps to the corresponding `RD-n` in §12, and **no item remains open**. §12 is authoritative for the amended, approved package.
 
 ## 1. Read these three things first
 
@@ -61,9 +63,9 @@ Not touched: the completion rule, objective predicates and targets, economy, eco
 - **MFM (D-065):** its "Extend your treatment" lesson sits after Lesson 5 and edits the same curriculum files and `Current()` as S1-D guide work. MFM contributes ordinary pending orders; it does not satisfy S1-D. Recommended order: Rack V2 → S1-C → S1-D guide/gating → MFM insertion (Manager to confirm; plan §5).
 - **Three-species parity:** later cycles may involve Oak/Beech; S1-D adds no species logic or coefficients.
 
-## 6. Open product decisions (spec §12)
+## 6. Open product decisions (original draft — all resolved in §12)
 
-All marked `OPEN — MANAGER/USER DECISION REQUIRED`; recommendations are non-binding.
+All marked `OPEN — MANAGER/USER DECISION REQUIRED`; recommendations are non-binding. **Superseded:** every item below is resolved as RD-1…RD-11 in spec §12 and §12 of this handoff.
 
 | ID | Narrow question | Blocking |
 |---|---|---|
@@ -81,8 +83,10 @@ All marked `OPEN — MANAGER/USER DECISION REQUIRED`; recommendations are non-bi
 
 ## 7. Save implications
 
+**Superseded by §12:** S1-D V1 adds **no persisted field** and changes no schema version. The conditional options below were not selected.
+
 - **Default: none.** History and cycle state are derived from records already saved (events, reports, snapshots, orders, deadwood, outcome). `CurrentVersion` is neither assumed nor changed.
-- **Conditional (Manager's choice only):** a per-save progress record (`OPEN-7`) or a Crop Tree designation year (`OPEN-6`). Each needs the next free schema version after Rack V2 (v21) and MFM, a documented default, no fabricated state in old saves, the world-hash compatibility path, and G5.
+- **Conditional (original draft — not selected):** a per-save progress record (`OPEN-7`) or a Crop Tree designation year (`OPEN-6`). Each would have needed the next free schema version on the actual integration base, a documented default, no fabricated state in old saves, the world-hash compatibility path, and G5.
 - **One robustness risk:** a save with duplicate or non-positive management-event IDs loads (no validator checks them) but the completion chronology silently becomes empty, so the scenario can never complete. Proposed `FR-E3`; touches shared load validation, so G5.
 - Legacy40, Reference Future v1 and pre-feature Enlarged80 saves: unaffected, no fabricated state.
 
@@ -102,9 +106,9 @@ Documentation/spec review only (as the packet specifies). Each proposed behaviou
 
 `decision-log.md`: record the `OPEN-1` outcome (status of the derived history, two-cycle rule and guide) and the "intervention = resolved work plan" presentation convention. `current-milestone.md`: correct the S1-C/S1-D "not implemented" wording to whatever `OPEN-1` decides. `unity-project-overview.md`: record verified candidate-lineage facts only after they are integrated and verified.
 
-## 11. Readiness for Manager review
+## 11. Readiness for Manager review (original draft — superseded by §12)
 
-**Ready for review; not ready for approval.** The draft answers each question the packet lists or marks it `OPEN`:
+**Ready for review; not ready for approval** *(at the draft stage)*. The draft answers each question the packet lists or marks it `OPEN`:
 
 | Packet question | Where |
 |---|---|
@@ -118,6 +122,41 @@ Documentation/spec review only (as the packet specifies). Each proposed behaviou
 | previous versus current proposed work for the player | FR-C |
 | Legacy40 and Reference Future v1 compatibility | FR-H1/H2, FR-F3, `OPEN-10` |
 
-Approval is blocked on `OPEN-1`, `OPEN-4` and `OPEN-7`; the rest can be decided alongside.
+*(Original draft stage: approval was blocked on `OPEN-1`, `OPEN-4` and `OPEN-7`. All are resolved in §12.)*
 
-S1-D REPEATED-INTERVENTION SPEC DRAFT READY FOR MANAGER REVIEW
+*(Original draft exit, superseded by §12.3.)* S1-D REPEATED-INTERVENTION SPEC DRAFT READY FOR MANAGER REVIEW
+
+## 12. Amendment addendum — APPROVED
+
+**Status:** **`APPROVED`** under the Overall Manager review `457461b9b92da2e96101f5b0eb9940b4e92fec0a` (`MANAGER-REVIEW.md`) and its amendment packet `771620113487894bd8e09c69309318cc603ae063` (`AMENDMENT-PACKET.md`). This addendum supersedes the draft-stage statements above. No production task was dispatched.
+
+- **Reviewed worker HEAD:** `666cb67cfc3e17fc22df5607ac4043c8fbd7ee7d`
+- **Amended package HEAD:** `AMENDED_HEAD_PLACEHOLDER` (contains the amended `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md` and this addendum)
+- **Returned HEAD:** the commit that records the amended HEAD SHA (child of the package HEAD; no other change)
+
+### 12.1 Amendments applied
+
+1. **Decisions resolved.** `OPEN-1`…`OPEN-11` are replaced by resolved decisions RD-1…RD-11, plus RD-12 for ambiguous management-event IDs, in spec §12. No blocking product decision remains.
+2. **S1-C contract reconciled.** Spec §9 / EI-1…EI-7 now consume the accepted S1-C boundaries: one read-only history capability over existing authoritative records; stable IDs and append-only/read-only surfaces; recorded fact / current observed state / derived comparison / teaching kept distinguishable; aggregate-first intervention detail with drill-down; absent provenance not invented; session-only browse/DBH facts left session-only; labelled-derived objective dates only when evidence-complete, otherwise `not recorded`; full mark/retain provenance not required. S1-D may add only a small read-only, `UnityEngine`-free cycle-state adapter, never a competing history store or duplicated history UI.
+3. **Tasks amended.** T-00 is **COMPLETE**; T-01 remains the **mandatory first execution task** on the actual integrated Rack V2 + approved S1-C contract base; T-02/T-03/T-04 are unblocked by product decisions but remain dependent on T-01 (and ownership/sequencing where stated); T-05 remains dependent on T-01/T-02 and S1-C implementation/UI ownership; T-06 is approved in principle with **reject-before-mutation** and no repair; T-07 is **CANCELLED for S1-D V1**; T-08/T-09 remain downstream. No task was dispatched from this lane.
+4. **Checklist amended.** `checklists/requirements.md` now tests every resolved decision, the functional requirements and AC-1…AC-15. Every implementation item remains **NOT STARTED**; no verification is claimed.
+5. **Save policy.** S1-D V1 adds **no new persisted field** and names no fixed future schema version. Any later schema work must use the next available version on the actual integration base. T-07 is cancelled.
+6. **Protected behaviour retained.** `ScenarioOneCompletionRules` normalised source and its N3-pinned hash, the eight objective predicates/targets, economy/ecology coefficients, Reference Future v1, no Windows build, no fixed intervention interval, no automatic treatment choice and no hidden automation replacing player judgement.
+
+### 12.2 Verification (documentation only)
+
+- `git diff 666cb67..AMENDED_HEAD_PLACEHOLDER` contains only the S1-D spec package and the handoff/review/amendment documents; **no production source, Unity asset, scene, prefab, save, package or ProjectSettings change**.
+- No unresolved blocking `OPEN-*` remains in the S1-D package.
+- No fixed future save-version number is named for S1-D.
+- T-07 is CANCELLED.
+- S1-C interface wording matches the Manager review.
+- Completion rule and hash are explicitly protected.
+- Status is `APPROVED` across spec, plan, tasks, checklist and this handoff.
+
+No Unity, compile or runtime gate applies to this documentation amendment, and none was run. Rack V2, S1-C, MFM and three-species parity work are untouched. **No production files changed.**
+
+### 12.3 Exit
+
+`S1-D REPEATED-INTERVENTION SPEC APPROVED — READY FOR T-01 BASELINE RE-VERIFICATION AFTER RACK V2 CORE INTEGRATION / S1-C CONTRACT APPROVAL`
+
+Return the amended HEAD to the Overall Manager. T-01 is not started from this lane.
