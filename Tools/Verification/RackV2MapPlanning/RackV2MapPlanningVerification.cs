@@ -35,6 +35,15 @@ public static class RackV2MapPlanningVerification
         EditorApplication.isPlaying = true;
     }
 
+    // First-use help is another harness's business; mark it seen so the map and legend are unobscured in the evidence.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Prepare()
+    {
+        if (!Environment.GetCommandLineArgs().Any(a => a == "RackV2MapPlanningVerification.Begin")) return;
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)))
+            PlayerPrefs.SetInt(MenuHelpView.PreferencePrefix + menu, 1);
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Install()
     {
@@ -289,7 +298,10 @@ public sealed class RackV2MapPlanningRunner : MonoBehaviour
             ui.CloseAll(); yield return Settle(20);
             Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None, size.x + "x" + size.y + " map closed before the stage");
             ui.ShowMap(); yield return Settle(20);
+            // A first-use map help window is expected on a fresh device; close it so the captured map and legend are the subject.
+            if (ui.Help != null && ui.Help.IsOpen) { ui.CloseHelp(); yield return Settle(12); }
             Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, size.x + "x" + size.y + " Stand Map opened");
+            Check(ui.Help == null || !ui.Help.IsOpen, size.x + "x" + size.y + " no help window obscures the map");
             Check(!ui.Map.RackMode, size.x + "x" + size.y + " planning mode is off on entry");
             Check(Screen.width == size.x && Screen.height == size.y, "game view is " + size.x + "x" + size.y);
 
@@ -320,6 +332,7 @@ public sealed class RackV2MapPlanningRunner : MonoBehaviour
             Check(legend.Contains("Dashed = suggested"), "legend states 'Dashed = suggested'");
             Check(legend.Contains("Solid = your planned rack"), "legend states 'Solid = your planned rack'");
             Check(ui.Map.Legend.RowCount >= 2, "legend rows rendered");
+            Check(Visible(ui.Map.Legend.Root), "legend card is visible in the captured map");
             yield return Capture(size.x + "x" + size.y, "planning-active");
 
             // Navigation tabs still navigate while the mode stays active.
