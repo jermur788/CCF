@@ -18,8 +18,10 @@ public static class ScenarioOneRackBay
     // ---- Teaching calibration [D] ----------------------------------------------------------------------------------------------
     // Future trees the area needs: three show spacing and shared competitors while still fitting one area.
     public const int FutureTreesWanted = 3;
-    // Model-linked tutorial spacing; 8 m neighbourhoods can still overlap. This is not a crown-space guarantee.
-    public const float FutureTreeSpacingM = ForestEcologyController.HegyiCutoffMeters;
+    // Teaching Crop Tree minimum spacing between stem centres. It currently equals the 8 m Hegyi competition neighbourhood
+    // (ForestEcologyController.HegyiCutoffMeters) but is its own parameter (D-065): either may be recalibrated without the other.
+    // 8 m neighbourhoods can still overlap. This is not a crown-space guarantee or a stand stocking prescription.
+    public const float FutureTreeSpacingM = 8f;
     // Initial planned release only: GAMEPLAY CALIBRATION, not a book prescription.
     public const float FirstReleaseShare = 0.30f;
     // Provisional cumulative trunk-area safeguard, not a canopy measure or forestry prescription.
@@ -27,9 +29,13 @@ public static class ScenarioOneRackBay
     // Once trees have actually been felled, the surviving neighbours keep growing while a stump keeps the diameter it was felled at, so
     // the removed share slowly thins out after the work. This bounded tolerance allows modest growth, not an unlimited completion guarantee.
     public const float ExecutedTolerance = 0.9f;
-    // The area runs this far either side of the stand centre along the rack, and half the distance to the neighbouring racks across it.
+    // The area runs this far either side of its anchor along the rack. A model-0 area is as wide as half the distance to the
+    // neighbouring authored racks (HalfWidth below); a Rack Planning V2 area is a fixed TeachingHalfWidthM wide on each side of the
+    // confirmed rack, whatever the neighbouring racks are doing (MFM-02, D-065).
     public const float HalfLengthM = 12f;
     public const float DefaultHalfWidthM = 7.6f;
+    // GAMEPLAY CALIBRATION: fixed teaching half-width of the V2 area. Qualified offline by MFM-01; MFM-02 confirms it live.
+    public const float TeachingHalfWidthM = 9f;
 
     public enum Disposition { Sold, Deadwood, Other }
 
@@ -75,6 +81,8 @@ public static class ScenarioOneRackBay
         // False when the stand has no rack layout (a 40 m legacy stand): the earlier simple rules apply there.
         public bool Applies;
         public int RackIndex, RackCount;
+        // The persisted Rack Planning V2 rack the area is built on; 0 for a model-0 area (authored layout line, no rack record).
+        public int TeachingRackId;
         public float CentreZ, HalfWidthM;
         public float MinX => -HalfLengthM;
         public float MaxX => HalfLengthM;
@@ -109,10 +117,31 @@ public static class ScenarioOneRackBay
         public int Portion(float x, float z) => Geometry.Portion(x, z);
     }
 
+    // One confirmed rack's corridor on the ground: the rectangle RackGeometry.Select takes its trees from.
+    public readonly struct Corridor
+    {
+        public readonly float StartX, StartZ, EndX, EndZ, HalfWidth;
+        public Corridor(RackPoint start, RackPoint end, float halfWidth)
+        { StartX = start.X; StartZ = start.Z; EndX = end.X; EndZ = end.Z; HalfWidth = halfWidth; }
+        public bool Contains(float x, float z)
+        {
+            const float epsilon = 1e-4f;
+            float dx = EndX - StartX, dz = EndZ - StartZ;
+            float length = (float)Math.Sqrt(dx * dx + dz * dz);
+            if (length < epsilon) return false;
+            float px = x - StartX, pz = z - StartZ;
+            float along = (px * dx + pz * dz) / length, across = (-px * dz + pz * dx) / length;
+            return along >= -epsilon && along <= length + epsilon && Math.Abs(across) <= HalfWidth + epsilon;
+        }
+    }
+
     // The frame comes from the actual layout rack endpoints. Along/across projections also work for rotated/translated racks.
     public readonly struct Frame
     {
         public readonly float X, Z, AlongX, AlongZ, HalfWidth;
+        // Rack Planning V2 frames carry every confirmed rack's corridor, so the footprint and the access test follow the real rack
+        // geometry. A model-0 frame has none and keeps the old rule: only the teaching line's own DefaultWidthM corridor is excluded.
+        public readonly IReadOnlyList<Corridor> Corridors;
         public Frame(RackPoint start, RackPoint end, float halfWidth)
         {
             X = (start.X + end.X) * .5f; Z = (start.Z + end.Z) * .5f;
@@ -120,11 +149,26 @@ public static class ScenarioOneRackBay
             float length = (float)Math.Sqrt(dx * dx + dz * dz);
             AlongX = length > 0 ? dx / length : 1f; AlongZ = length > 0 ? dz / length : 0f;
             HalfWidth = halfWidth;
+            Corridors = null;
         }
+        private Frame(float x, float z, float alongX, float alongZ, float halfWidth, IReadOnlyList<Corridor> corridors)
+        { X = x; Z = z; AlongX = alongX; AlongZ = alongZ; HalfWidth = halfWidth; Corridors = corridors; }
+        // The area centred on an explicit anchor on the teaching rack, running along the unit direction (alongX, alongZ).
+        public static Frame Anchored(RackPoint anchor, float alongX, float alongZ, float halfWidth, IReadOnlyList<Corridor> corridors)
+            => new Frame(anchor.X, anchor.Z, alongX, alongZ, halfWidth, corridors ?? new Corridor[0]);
         public float Along(float x, float z) => (x - X) * AlongX + (z - Z) * AlongZ;
         public float Across(float x, float z) => -(x - X) * AlongZ + (z - Z) * AlongX;
+        // True inside any confirmed rack corridor (V2 frames only); that was access, not the release the lesson teaches.
+        public bool InCorridor(float x, float z)
+        {
+            if (Corridors != null)
+                for (int i = 0; i < Corridors.Count; i++)
+                    if (Corridors[i].Contains(x, z)) return true;
+            return false;
+        }
         public bool Contains(float x, float z) => Math.Abs(Along(x, z)) <= HalfLengthM
-            && Math.Abs(Across(x, z)) <= HalfWidth && Math.Abs(Across(x, z)) > RackGeometry.DefaultWidthM * .5f;
+            && Math.Abs(Across(x, z)) <= HalfWidth
+            && (Corridors == null ? Math.Abs(Across(x, z)) > RackGeometry.DefaultWidthM * .5f : !InCorridor(x, z));
         public int Zone(float x, float z) => Along(x, z) < -HalfLengthM / 3f ? 0 : Along(x, z) < HalfLengthM / 3f ? 1 : 2;
         public int Portion(float x, float z) => Contains(x, z) ? Zone(x, z) * 2 + (Across(x, z) > 0 ? 1 : 0) : -1;
     }
@@ -143,13 +187,35 @@ public static class ScenarioOneRackBay
         result.CentreZ = lines[result.RackIndex]; result.HalfWidthM = HalfWidth(lines, result.RackIndex);
         result.Geometry = frame ?? new Frame(new RackPoint(-HalfLengthM, result.CentreZ),
             new RackPoint(HalfLengthM, result.CentreZ), result.HalfWidthM);
-        bool InArea(float x, float z) => result.Contains(x, z);
         bool InAccess(float x, float z)
         {
             float across = result.Geometry.Across(x, z) + result.CentreZ;
             foreach (float line in lines) if (Math.Abs(across - line) <= RackGeometry.DefaultWidthM * .5f) return true;
             return false;
         }
+        return Evaluate(result, trees, orders, InAccess);
+    }
+
+    // Rack Planning V2 entry: the area is the teaching rack's frame from ScenarioOneRackSampleGeometry, and what counts as rack access
+    // is the confirmed racks' own corridors (frame.Corridors), never an authored layout line.
+    public static Analysis AnalyseTeachingRack(IReadOnlyList<Tree> trees, IReadOnlyList<Order> orders, Frame frame,
+        int teachingRackId, int rackCount, int rackIndex)
+    {
+        var result = new Analysis();
+        if (trees == null) return result;
+        result.Applies = true;
+        result.TeachingRackId = teachingRackId;
+        result.RackCount = rackCount; result.RackIndex = rackIndex;
+        result.CentreZ = frame.Z; result.HalfWidthM = frame.HalfWidth;
+        result.Geometry = frame;
+        return Evaluate(result, trees, orders, frame.InCorridor);
+    }
+
+    // The rules themselves, shared by both entries: only how the area is placed and what counts as rack access differ.
+    private static Analysis Evaluate(Analysis result, IReadOnlyList<Tree> trees, IReadOnlyList<Order> orders, Func<float, float, bool> inAccess)
+    {
+        bool InArea(float x, float z) => result.Contains(x, z);
+        bool InAccess(float x, float z) => inAccess(x, z);
 
         // Orders by target: what became of each tree.
         var completed = new Dictionary<string, Order>(StringComparer.Ordinal);
