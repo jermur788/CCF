@@ -85,6 +85,12 @@ For disposable scripts under `Tools/Verification/`, follow the documented copy/r
 
 No model family permanently owns code, Unity, Blender, assets or testing. Follow the current task packet, context commit and temporary ownership from `Docs/Project/coordination/active-tasks.md` (or the lock state copied into the task packet).
 
+When live GitHub access is available, fetch the current authoritative GitHub copy of `Docs/Project/coordination/active-tasks.md` at substantial task start and before reporting that a task/lock is missing. Do not let a stale or dirty local coordination copy override newer live GitHub state.
+
+The Overall Manager may perform GitHub-native coordination, canonical documentation/specification updates and other bounded inspection-verifiable repository changes directly through connected GitHub tools. Such GitHub edits do not imply local worktree, Unity import, compilation, runtime or rendered verification.
+
+Every substantive implementation, qualification, review, integration or research handoff must have a GitHub-tracked Markdown copy. Large raw evidence may remain in external verification storage, but a local-only handoff is administratively incomplete.
+
 Do not call task-branch work integrated or verified until required integration gates have passed. Permanent Google Drive context mirrors are read-only collaboration copies. Make project-context changes in Git and regenerate mirrors; do not edit permanent mirrors as the source of truth.
 
 ## Legacy instruction migration audit
