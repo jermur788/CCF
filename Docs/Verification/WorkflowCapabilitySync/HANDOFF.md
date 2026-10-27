@@ -131,6 +131,7 @@ The ChatGPT composite is **12,019 characters (12,023 bytes)**. A previously reco
 | Gameplay/runtime files changed | MUST BE NO | NO (no `Assets/`, `Packages/`, `ProjectSettings/` or `Tools/Verification/` changes) |
 | Unity required | NO | not required, not run |
 | Windows build | NO | not run |
+| Dashboard synchronized | NOT AVAILABLE | no supported publisher; generated dashboard-state files not edited |
 
 Additional checks:
 
@@ -144,6 +145,8 @@ Additional checks:
 ## Dashboard
 
 `DASHBOARD SYNC: NOT AVAILABLE`
+
+`Published dashboard reflects this task: NO`
 
 No dashboard publisher/listener was available in this environment (`127.0.0.1:8090` not listening; no established publication process was running). Generated dashboard-state files were not manually edited.
 
