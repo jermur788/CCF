@@ -282,7 +282,10 @@ public sealed class RackV2LegacyProgressionRegressionRunner : MonoBehaviour
         Check(manager.Interventions.Count == 1, "the first intervention was recorded");
         Check(!ui.Learning.TeachingRacks && ui.Learning.CurrentTopicIndex >= 1, "teaching moves on from the first completed felling");
 
-        yield return RoundTripAndRederive("create=1 layout=0 approve=0 result=0");
+        // Measured on the pre-repair production bytes (9127c02) and unchanged by the repair: with no authored layout, rack.create comes from
+        // the session-only RackGroups (see ObserveRacks), which a load does not restore and a harvest has already pruned. So after a
+        // reload nothing re-derives in Legacy40. This records that existing behaviour; it is not new policy.
+        yield return RoundTripAndRederive("create=0 layout=0 approve=0 result=0");
     }
 }
 #endif

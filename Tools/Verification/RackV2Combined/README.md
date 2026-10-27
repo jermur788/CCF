@@ -34,7 +34,7 @@ objects, still use the original authored-layout predicates. Select the mode with
 | Mode | World | What it proves | Pass token |
 |---|---|---|---|
 | `model0` | historical model-0 Enlarged80 (fresh game regenerated with the rack plan cleared) | five authored lines planned through the legacy `ConfirmRack`, approved in the real Work Plan, executed: `rack.create/layout/approve/result` follow the authored lines, orders carry no rack id, the next lesson opens, a disk round trip keeps model 0 and the lessons re-derive | `RV2L_MODEL0_PASS` |
-| `legacy40` | fresh Legacy40 game (`CCF_STAND_GEOMETRY=0`) | no authored layout, so only `rack.create` records and the next lesson opens from the first completed felling | `RV2L_LEGACY40_PASS` |
+| `legacy40` | fresh Legacy40 game (`CCF_STAND_GEOMETRY=0`) | no authored layout, so only `rack.create` records and the next lesson opens from the first completed felling; after a reload nothing re-derives there (`rack.create` comes from session-only rack groups; measured identical on the pre-repair bytes) | `RV2L_LEGACY40_PASS` |
 
 Every step prints an `RV2L_TRACE` line with no timestamps or ids. The gate reads only members that exist on the pre-repair
 production bytes, so running it on the pre-repair HEAD and on the repaired HEAD and diffing the `RV2L_TRACE` lines shows whether the

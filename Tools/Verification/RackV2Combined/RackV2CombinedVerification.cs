@@ -495,7 +495,13 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
 
         // ---- Stage 2: subsequent Scenario One progression ------------------------------------------------------
         Check(!manager.RackFirstStageActive, "the rack-first stage ends after the first intervention");
-        Check(ui.Learning.Summary.Contains("Inspect a living tree"), "the cue now introduces inspection: " + ui.Learning.Summary.Replace("\n", " / "));
+        // G3 (RACK-V2-COMBINED-REPAIR-01): this used to assert Summary.Contains("Inspect a living tree"). That is the title of an optional
+        // practice step in the topic library, carried over from the old RackUxRack gate; the sequential lessons replaced the cue with
+        // "Current objective: <lesson title>". Same intent, current fact: the cue has moved from the rack lesson to lesson 2, which is the
+        // one that introduces inspecting trees [E] and marking Crop Trees [C]. The marking itself is still exercised just below.
+        Check(!ui.Learning.TeachingRacks && ui.Learning.CurrentTopicIndex == 1
+            && ui.Learning.Summary.Contains(ScenarioOneTeachingSequence.Lessons[1].Title),
+            "the cue now moves on to lesson 2, inspecting trees and marking Crop Trees: " + ui.Learning.Summary.Replace("\n", " / "));
         ForestTree aimed = null;
         foreach (ForestTree t in Living().Where(t => !t.TreeId.StartsWith("Q", StringComparison.Ordinal) && Mathf.Abs(t.transform.position.x) < 20f).Take(40))
         {
