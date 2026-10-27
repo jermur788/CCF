@@ -9,11 +9,13 @@
 
 ## STATUS
 
-**BLOCKED-READY — DO NOT START UNTIL RACK V2 CORE IS INTEGRATED.**
+**READY / DISPATCHED — Rack V2 core prerequisite is satisfied.**
 
-The S1-C Review / Management History contract is already APPROVED and integrated into `main`. The remaining dependency is the actual combined Rack Planning & Field Marking V2 core integration base. This task MUST inspect that real integrated candidate, not `c6342f7` and not either Rack lane in isolation.
+Manager-designated integrated candidate: `main` at or after Rack V2 canonical integration merge `f23549b18b17b3542ec8f633d7309b11020990d4`.
 
-When the Manager publishes the combined Rack V2 integration candidate SHA, this packet becomes executable without further product decisions.
+Rack V2 core is now canonically integrated. The qualified production state came from exact tested Rack repair HEAD `7b557fd43ca9468a1be22c161c24064eec9f955a`; post-merge comparison proved current-main additions were management/coordination documentation only, so production bytes were unchanged by canonical integration.
+
+The S1-C Review / Management History contract is present on the integrated Scenario One lineage. This task must inspect the real integrated `main` candidate, not `c6342f7` and not either historical Rack lane in isolation.
 
 ## Goal
 
@@ -28,7 +30,7 @@ The task answers one question:
 Before starting:
 
 1. Refresh the live GitHub `Docs/Project/coordination/active-tasks.md`.
-2. Obtain the exact Manager-designated combined Rack V2 integrated candidate SHA.
+2. Record the exact current `main` SHA; it must descend from `f23549b18b17b3542ec8f633d7309b11020990d4`.
 3. Confirm Rack V2 core is integrated on that candidate, not merely implemented on a feature branch.
 4. Confirm the approved S1-C contract exists in canonical Git.
 5. Work read-only. No production edits, save edits, scene/prefab edits or Unity asset writes.
@@ -69,6 +71,10 @@ Reconcile the approved S1-C contract with the inherited lineage, including at le
 - whether any duplicate history store, query layer or UI has appeared.
 
 If two competing history systems/stores exist: **STOP — DUPLICATED HISTORY AUTHORITY**.
+
+## Rack V2 teaching-area note
+
+Manager review of the Rack repair has established a follow-up compatibility requirement: player-authored V2 racks must eventually retarget Lessons 2–5 to a deterministic central confirmed rack, while model-0/Legacy40 retain the historical middle authored rack. That follow-up is required before full Rack V2 functional qualification, but it does **not** invalidate this read-only S1-D baseline inspection. Record any S1-D assumption affected by that future retargeting explicitly.
 
 ## Verification
 
