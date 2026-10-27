@@ -131,7 +131,7 @@ Documentation/spec review only (as the packet specifies). Each proposed behaviou
 **Status:** **`APPROVED`** under the Overall Manager review `457461b9b92da2e96101f5b0eb9940b4e92fec0a` (`MANAGER-REVIEW.md`) and its amendment packet `771620113487894bd8e09c69309318cc603ae063` (`AMENDMENT-PACKET.md`). This addendum supersedes the draft-stage statements above. No production task was dispatched.
 
 - **Reviewed worker HEAD:** `666cb67cfc3e17fc22df5607ac4043c8fbd7ee7d`
-- **Amended package HEAD:** `AMENDED_HEAD_PLACEHOLDER` (contains the amended `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md` and this addendum)
+- **Amended package HEAD:** `17ba220bf5219c74b7f2529a278ea24577a26204` (contains the amended `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md` and this addendum)
 - **Returned HEAD:** the commit that records the amended HEAD SHA (child of the package HEAD; no other change)
 
 ### 12.1 Amendments applied
@@ -145,7 +145,7 @@ Documentation/spec review only (as the packet specifies). Each proposed behaviou
 
 ### 12.2 Verification (documentation only)
 
-- `git diff 666cb67..AMENDED_HEAD_PLACEHOLDER` contains only the S1-D spec package and the handoff/review/amendment documents; **no production source, Unity asset, scene, prefab, save, package or ProjectSettings change**.
+- `git diff 666cb67..17ba220bf5219c74b7f2529a278ea24577a26204` contains only the S1-D spec package and the handoff/review/amendment documents; **no production source, Unity asset, scene, prefab, save, package or ProjectSettings change**.
 - No unresolved blocking `OPEN-*` remains in the S1-D package.
 - No fixed future save-version number is named for S1-D.
 - T-07 is CANCELLED.
