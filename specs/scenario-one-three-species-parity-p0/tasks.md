@@ -44,11 +44,13 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 
 ## PARITY-05 — Regeneration / juvenile / browsing requalification
 
-- **Status:** MAPPING PREFLIGHT DISPATCHED — production edits pending Manager mapping decision
+- **Status:** IMPLEMENTATION READY — bounded no-behaviour-change conformance patch DISPATCHED
 - **Goal:** Requalify early-life and browse behaviour against FR-4/FR-5.
-- **Required policy:** Oak distinct juvenile curves; Beech combined fallback; shared juvenile growth/promotion/density calibration; existing dispersal/maturity/mast/light rules; broadleaf stock abstraction label; browse ordering Oak > Beech > Sitka; no persisted browse-form state.
-- **Preflight:** `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05-Preflight/TASK-PACKET.md`, claim #31. It must reconcile the accepted PARITY-02 simple early-life/browse calibration representation with the current response-curve / 0–1 palatability production architecture before any serialized species edit.
-- **Exit:** `EARLY-LIFE SPECIES PARITY REQUALIFIED`.
+- **Required policy:** Oak distinct juvenile curves; Beech combined response labelled `FALLBACK-CONSERVATIVE`; shared juvenile growth/promotion/density calibration; existing dispersal/maturity/mast/light rules; broadleaf stock abstraction label; current browse palatability Sitka 0.15 / Beech 0.5 / Oak 1.0 with ordering Oak > Beech > Sitka; binary protection; no persisted browse-form state.
+- **Preflight result:** accepted. The packet-only simple early-life table and packet-only browse multipliers `1.0/1.8/2.2` are not implementation authority. Scenario One `0.2` is background browse pressure, not a protection multiplier. Manager review: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05-Preflight/MANAGER-REVIEW.md`.
+- **Implementation:** docs/evidence labels + focused verification only; zero species-YAML and zero production-behaviour C# change. Packet `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05/TASK-PACKET.md`; claim #32.
+- **Dependencies:** current ownership check; Unity qualification is a later separate task and must obey the machine-wide queue.
+- **Exit:** patch first returns `PARITY-05 CONFORMANCE PATCH IMPLEMENTED — READY FOR UNITY QUALIFICATION`; final task exit remains `EARLY-LIFE SPECIES PARITY REQUALIFIED` after focused qualification.
 
 ## PARITY-06 — Broadleaf timber/economy/pruning gap closure
 
@@ -95,7 +97,7 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 | PARITY-02 | COMPLETE / ACCEPTED | 01 |
 | PARITY-03 | VERIFIED / independent review #9 open | — |
 | PARITY-04 | VERIFIED | 03 Unity accepted |
-| PARITY-05 | MAPPING PREFLIGHT DISPATCHED | Manager mapping decision before production |
+| PARITY-05 | CONFORMANCE PATCH DISPATCHED | Manager mapping resolved; later Unity queue |
 | PARITY-06 | BLOCKED-READY | 04 + ownership |
 | PARITY-07 | BLOCKED | 04–06 sufficiently stable |
 | PARITY-08 | BLOCKED-READY | production slices stable |
