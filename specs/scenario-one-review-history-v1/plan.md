@@ -1,10 +1,10 @@
 # Scenario One Review / Management History — Implementation Plan
 
 - **Spec ID:** SPEC-scenario-one-review-history-v1-V1
-- **Spec status:** DRAFT (not approved; this plan is provisional until approval)
+- **Spec status:** APPROVED (Manager review `65d354a`; decisions R-1…R-4 and save-version sequencing applied per the amendment packet)
 - **Plan owner:** Overall Manager; drafted by the Lane C primary specification author
 - **Created:** 2026-10-27
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-27 (approved)
 
 ## 1. Architecture / current-state findings
 
@@ -69,7 +69,7 @@ Full schema map: `ForestSaveData.cs` (root + `ScenarioOneSaveData` + nested reco
 2. **Year navigation in the existing review surface.** `AnnualReviewView` gains year browsing (previous/next year, year list) while keeping the current latest-year-first flow and the acknowledgement gate semantics. Latest-year behaviour is preserved; earlier years show the same card structure built from that year's records.
 3. **Intervention detail (drill-down).** From a year's Work card, an intervention row expands to its recorded targets (tree IDs/cell/position), execution method, outcome/failure reason, and money shown per FR-9 (grouped settlement attributed to the job).
 4. **Bounded L4 guidance card.** A short "What this means for your next decision" view, generated from recorded treatment history + current observation templates. Waypoint reuse (existing mechanism used by the storm card) where a recorded location exists.
-5. **Objective achievement recording (additive schema per spec §11).** In `EvaluateProgress`, append `{objectiveId, achievedYear, targetValueAtAchievement}` on first achievement. Old saves: OPEN-1 behaviour.
+5. **Objective achievement recording (additive schema per spec §11).** In `EvaluateProgress`, append `{objectiveId, achievedYear, targetValueAtAchievement}` on first achievement. Old saves follow R-1: derive a labelled year only where exact first-achievement is recomputable from year-tagged L1 records plus accepted objective logic; otherwise "not recorded".
 6. **Labelling pass.** Reconstructed (storm), derived (deltas/trends/retrospective objectives), and session-only (browse/DBH growth) content gets explicit labels; missing provenance renders "not recorded".
 
 **Rejected alternatives (trade-offs noted):**
@@ -77,7 +77,7 @@ Full schema map: `ForestSaveData.cs` (root + `ScenarioOneSaveData` + nested reco
 - *A separate Management History system/panel with its own store* — duplicates the record layer and risks a second authority; rejected by the spec's "extend existing surfaces" constraint.
 - *Persisting a full per-year Work Plan snapshot list* — plan evolution is already reconstructible from OrderCreated/Approved/Cancelled events; a snapshot list would duplicate history and grow saves.
 - *Map history overlay / new cartography* — frozen professional map; spatial question answered by waypoints + walking (core loop); deferred as a possible later extension.
-- *Reconstructing objective dates silently for all saves* — fabricates provenance; rejected in favour of recorded-at-the-time + labelled derivation (OPEN-1).
+- *Reconstructing objective dates silently for all saves* — fabricates provenance; rejected in favour of recorded-at-the-time + R-1's exact-or-nothing labelled derivation.
 
 ## 3. Integration boundaries
 
@@ -86,7 +86,7 @@ Full schema map: `ForestSaveData.cs` (root + `ScenarioOneSaveData` + nested reco
 - `Assets/ForestPrototype/UI/AnnualReviewView.cs` (year browsing, drill-down, labels) and, if needed, `UI/ScenarioOneUiRoot.cs` (review navigation/acknowledgement wiring only).
 - New read-only query helper under `Assets/ForestPrototype/ScenarioOne/`.
 - `ScenarioOneManager.EvaluateProgress` call site for the additive objective-achievement append (one bounded write, spec §11).
-- `ForestSaveData.ScenarioOneSaveData` additive field + clone round-trip (`CaptureSaveData`/`RestoreSaveData`) + save-version bump to v21 + old-save defaulting, only if OPEN-1/FR-10 path is approved.
+- `ForestSaveData.ScenarioOneSaveData` additive field + clone round-trip (`CaptureSaveData`/`RestoreSaveData`) + a save-version bump to the **next available save-schema version on the integration base** (Rack V2 reserves v21; S1-C expected v22 if Rack V2 integrates first — never reuse an owned version) + old-save defaulting. This change is **approved** (FR-10) and gated by save/reference review (G2/G3/G4).
 
 **Must not touch:**
 
@@ -119,8 +119,8 @@ Full schema map: `ForestSaveData.cs` (root + `ScenarioOneSaveData` + nested reco
 ## 6. Migration / save implications
 
 - Core history: **no migration**; all content already persists at v20.
-- FR-10 additive record (if approved): new field on `ScenarioOneSaveData`; missing/empty = not recorded; no retro-writing; conventional version bump to v21; v20 and older loads unchanged; Reference Future v1 untouched (frozen `saveVersion` 12 archive; D-042). Deterministic anchors that key off save bytes/schema may need re-labeling only if the field is adopted — flag at implementation time (G3), do not silently re-baseline.
-- Old-save history display: honest empty/derived states (OPEN-1); never synthesized facts.
+- FR-10 additive record (approved): new field on `ScenarioOneSaveData`; missing/empty = not recorded; no retro-writing. **Save version: no fixed number.** Immediately before implementing the persistence change, inspect the actual integration base and use the next available save-schema version; never reuse a version already owned by an accepted/qualified concurrent feature. **Rack Planning & Field Marking V2 currently reserves/implements v21**, so if Rack V2 integrates first, S1-C is expected to use **v22**. v20 and older loads unchanged; Reference Future v1 untouched (frozen `saveVersion` 12 archive; D-042). Deterministic anchors that key off save bytes/schema may need re-labeling only when the field is adopted — flag at implementation time (G3), do not silently re-baseline.
+- Old-save history display (R-1): exact labelled derivation only where first-achievement is recomputable from year-tagged L1 records + accepted objective logic; otherwise "not recorded". Never synthesized or approximate-as-fact.
 
 ## 7. Verification strategy
 
@@ -135,7 +135,8 @@ This task is documentation-only. For the future implementation (planning now):
 
 - **UI ownership conflicts** on `AnnualReviewView` / `ScenarioOneUiRoot` with other active lanes.
 - **Grouped-harvest attribution** mis-displayed as per-order fact → player misled; mitigated by FR-9 and AC-7.
-- **Derived objective dates** mistaken for recorded facts → provenance erosion; mitigated by OPEN-1 labelling requirement and AC-4.
+- **Derived objective dates** mistaken for recorded facts → provenance erosion; mitigated by R-1's exact-or-nothing rule, mandatory labelling and AC-4.
+- **Save-version collision** with a concurrent schema owner (Rack V2 v21) → mitigated by the next-available-version rule and the pre-implementation integration-base check in T-05.
 - **Scope creep toward analytics** — trend strips are the explicit bound (FR-15, AC-11).
 - **Save-surface risk** from the additive record: mitigated by keeping it the only schema change, append-only, with old-save defaults and G2/G3/G4 gates.
 - **Causal over-claiming in L4 copy** → mitigated by FR-6 wording rules and review of the guidance card.
@@ -146,7 +147,7 @@ This task is documentation-only. For the future implementation (planning now):
 2. **T-02** Year browsing in Annual Review + preservation of latest-year flow and acknowledgement gate (FR-1, AC-2).
 3. **T-03** Intervention drill-down + money-attribution honesty (FR-2, FR-8, FR-9; AC-1, AC-7).
 4. **T-04** Labelling pass: reconstructed/derived/session-only/"not recorded" (FR-4, FR-11, FR-13; AC-3).
-5. **T-05** Objective-achievement recording + history display (FR-10, FR-12; additive schema per §6; AC-6) — gated on OPEN-1/FR-10 approval.
+5. **T-05** Objective-achievement recording + history display (FR-10, FR-12; additive schema per §6 with the next-available save version; AC-6).
 6. **T-06** Bounded L4 next-decision guidance + waypoint reuse (FR-7, FR-6; AC-5).
 7. **T-07** S1-D contract doc + identity/retention stability checks (FR-14; AC-10).
 8. **T-08** Feature qualification: harnesses, old-save load, save round-trip, two-resolution rendered review, protected gates (AC-1–AC-11), then spec-conformance checklist.

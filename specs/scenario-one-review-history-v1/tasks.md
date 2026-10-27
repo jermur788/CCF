@@ -1,11 +1,11 @@
 # Scenario One Review / Management History — Bounded Tasks
 
 - **Spec ID:** SPEC-scenario-one-review-history-v1-V1
-- **Spec status:** DRAFT (tasks may be drafted now; implementation must not be dispatched until the spec is `APPROVED`)
+- **Spec status:** APPROVED (Manager review `65d354a`; decisions R-1…R-4 and save-version sequencing are binding — see `spec.md` §15)
 - **Task list owner:** Overall Manager
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-27 (approved)
 
-Tasks are implementation units, not new product decisions. Each task stays inside the approved spec and plan. If a task exposes a material product ambiguity, stop and return it to the Manager/spec (`spec.md` §14). OPEN-1–OPEN-4 must be resolved (or explicitly deferred with an approved default) before T-03/T-05/T-06 detail choices are locked.
+Tasks are implementation units, not new product decisions. Each task stays inside the approved spec and plan. If a task exposes a material product ambiguity, stop and return it to the Manager/spec (`spec.md` §14). The former OPEN-1…OPEN-4 questions are resolved as R-1…R-4 and are dependencies no longer.
 
 ## T-01 — History query layer (read-only)
 
@@ -37,11 +37,11 @@ Tasks are implementation units, not new product decisions. Each task stays insid
 
 - **Task ID:** T-03
 - **Status:** TODO
-- **Goal:** From a year's Work card, the player can inspect a recorded intervention at the approved detail level (OPEN-3), with honest money attribution.
+- **Goal:** From a year's Work card, the player can inspect a recorded intervention at the approved detail level (R-3: aggregate-first with drill-down to recorded targets), with honest money attribution.
 - **Scope:** Expandable intervention rows: work type, year, aggregate (counts/cells/species) first, recorded targets on demand (tree IDs/cell/position), execution method, status/failure reason, result fields; grouped harvest shown as job settlement (FR-9); `harvestJobId` presented as a year label only.
 - **Exclusions:** Per-tree analytics dumps as default; ledger-category persistence.
 - **Owner / routing:** TBD
-- **Dependencies:** T-01, T-02, OPEN-3 decision
+- **Dependencies:** T-01, T-02
 - **Verification:** Offline harness on attribution rules; rendered review of one felling (grouped) year, one planting year, one cancelled and one failed order.
 - **Stop conditions:** Product wants authoritative per-order money for grouped jobs (contradicts records; return to spec).
 - **Completion state:** AC-1, AC-7 evidence collected.
@@ -52,7 +52,7 @@ Tasks are implementation units, not new product decisions. Each task stays insid
 - **Status:** TODO
 - **Goal:** Every history/review item is visibly classified: recorded / current / derived / reconstructed / session-only / not recorded.
 - **Scope:** Labels on storm reconstructed counts (FR-11), derived deltas and trends (L3), session-only browse and DBH-growth facts (FR-13), "not recorded" states for absent provenance (FR-4); wording review so no label implies causality the simulation lacks (FR-6).
-- **Exclusions:** Persisting session-only facts (OPEN-2 default out of scope).
+- **Exclusions:** Persisting session-only facts (R-2: not persisted in S1-C).
 - **Owner / routing:** TBD
 - **Dependencies:** T-02, T-03
 - **Verification:** Rendered review with one example per layer; old-save load shows "not recorded"/labelled derivation, never invented values.
@@ -64,11 +64,11 @@ Tasks are implementation units, not new product decisions. Each task stays insid
 - **Task ID:** T-05
 - **Status:** TODO
 - **Goal:** Each scenario objective shows when it was achieved; new games record achievement at the time it first occurs.
-- **Scope:** Additive `objectiveAchievements` record per spec §11 (append in `EvaluateProgress` on first achievement; clone round-trip; save version bump to v21; old-save default empty); history display of achieved years; OPEN-1 behaviour for pre-feature saves (labelled derivation from year-tagged records, or "not recorded", per decision); `outcomeYear` unchanged.
-- **Exclusions:** Changing objective definitions/targets/semantics; retrospective writes into old saves.
+- **Scope:** Additive `objectiveAchievements` record per spec §11 (append in `EvaluateProgress` on first achievement; clone round-trip; old-save default empty); history display of achieved years; R-1 behaviour for pre-feature saves (labelled exact derivation from year-tagged records where evidence-complete, otherwise "not recorded"); `outcomeYear` unchanged. **Save version:** immediately before implementation, inspect the actual integration base and use the **next available save-schema version**; never reuse a version owned by an accepted/qualified concurrent feature (Rack Planning & Field Marking V2 currently reserves/implements **v21**, so if Rack V2 integrates first, use **v22**).
+- **Exclusions:** Changing objective definitions/targets/semantics; retrospective writes into old saves; fixed save-version claims.
 - **Owner / routing:** TBD
-- **Dependencies:** T-02, OPEN-1 decision; G2/G3/G4 gates (save surface)
-- **Verification:** Runtime fixture completing ≥ 2 objectives in different years; save/load round-trip preserves recorded years; old-save behaviour matches OPEN-1; protected save/reference gates re-run; no anchor silently re-baselined.
+- **Dependencies:** T-02; G2/G3/G4 gates (save surface)
+- **Verification:** Runtime fixture completing ≥ 2 objectives in different years; save/load round-trip preserves recorded years; old-save behaviour matches R-1 (one exactly derivable objective and one "not recorded"); integration-base save-version check recorded in the handoff; protected save/reference gates re-run; no anchor silently re-baselined.
 - **Stop conditions:** Any requirement to alter completion semantics or objective targets; anchor movement without explicit decision.
 - **Completion state:** AC-6 evidence collected; save-compatibility evidence attached.
 
@@ -117,9 +117,9 @@ Tasks are implementation units, not new product decisions. Each task stays insid
 |---|---|---|---|
 | T-01 | TODO | TBD | — |
 | T-02 | TODO | TBD | T-01 |
-| T-03 | TODO | TBD | T-01, T-02, OPEN-3 |
+| T-03 | TODO | TBD | T-01, T-02 |
 | T-04 | TODO | TBD | T-02, T-03 |
-| T-05 | TODO | TBD | T-02, OPEN-1 (G2/G3/G4) |
+| T-05 | TODO | TBD | T-02 (G2/G3/G4) |
 | T-06 | TODO | TBD | T-02, T-03 |
 | T-07 | TODO | TBD | T-01 |
 | T-08 | TODO | TBD | T-01…T-07 |
