@@ -25,7 +25,7 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 - **Status:** AUTHORISED
 - **Goal:** Requalify the inherited model-2 mixed-density implementation against FR-1/FR-2; patch only demonstrated conformance defects.
 - **Scope:** mixed-density source + focused verification; no species YAML/scene edits in the first slice.
-- **Required checks:** exact pure-Sitka models 0/1 and model-2 route; living-tree route definition; Reference/Intermediate/High classes; species-neutral victim selection; no `Ci50` mortality coupling; near-pure route continuity; no DEC/DMC/mixture bonus/broadleaf density equation.
+- **Required checks:** exact pure-Sitka models 0/1 and model-2 route; living-tree route definition; Reference/Intermediate/High classes; species-neutral victim selection under the model-2 mixed/species-aware route; no new `Ci50` mortality coupling in that route; near-pure route continuity; no DEC/DMC/mixture bonus/broadleaf density equation. Models 0/1 retain legacy behaviour unchanged.
 - **Owner / routing:** DeepSeek implementation/qualification when available; Claude independent review. Static/read-only review may proceed earlier if useful.
 - **Dependencies:** PARITY-01, PARITY-02, approved spec; live ownership check.
 - **Stop:** any protected pure-Sitka change, unsupported retune, or live file overlap.
@@ -33,11 +33,13 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 
 ## PARITY-04 — Adult/species-data requalification
 
-- **Status:** BLOCKED-READY on Rack V2 release of shared species-YAML/scene ownership and PARITY-03
-- **Goal:** Requalify accepted Oak/Beech adult values/classes and neutral site/canopy policy; correct labels only unless a measured defect exists.
-- **Scope:** Oak/Beech species data, adult growth/site/canopy/competition diagnostics and focused verification.
+- **Status:** IMPLEMENTATION READY / FINAL QUALIFICATION WAITS ON PARITY-03 UNITY
+- **Goal:** Requalify accepted Oak/Beech adult values/classes and neutral site/canopy policy; correct labels and verification contracts only unless a newly measured defect is found.
+- **Scope:** documentation and focused verification tooling for Oak/Beech adult growth/site/canopy/competition. The 2026-10-27 preflight found the live values/arithmetic structurally conformant; therefore this slice makes **zero serialized species-YAML/scene change and zero production C# change** unless a later measured gate demonstrates a defect and returns to the Manager.
 - **Required policy:** Oak 0.8/0.65/120/42.5/5; Beech 0.9/0.75/120/42.5/6.5 as gameplay calibration; Oak High / Beech Intermediate as weak provisional ordinal; site multiplier 1.0; canopy shared; 8 m Hegyi shared; Beech height miss accepted/labelled.
-- **Exclusions:** no Sitka retune; no active site multiplier; no canopy transmissivity model.
+- **Verification authority:** Manager authorises an attributed refresh of `Tools/Calibration/OakBeechGrowth/integrated_source_contract.json` only for the three preflight-identified normalized-source drifts after confirming their changes do not alter the accepted adult arithmetic. `BroadleafAdultGrowthVerification` may be strengthened to assert the accepted live constants/site/canopy/Hegyi facts and record the accepted Beech height miss. No protected anchor may be rebaselined.
+- **Exclusions:** no species asset edits; no scene/prefab edits; no value retune; no arithmetic change; no Sitka retune; no active site multiplier; no canopy transmissivity model.
+- **Dependencies:** PARITY-03 static conformance is sufficient for the bounded docs/tooling patch; final `ADULT SPECIES PARITY REQUALIFIED` qualification waits for PARITY-03 Unity qualification and the normal machine-wide Unity queue.
 - **Exit:** `ADULT SPECIES PARITY REQUALIFIED`.
 
 ## PARITY-05 — Regeneration / juvenile / browsing requalification
@@ -90,8 +92,8 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 |---|---|---|
 | PARITY-01 | COMPLETE | — |
 | PARITY-02 | COMPLETE / ACCEPTED | 01 |
-| PARITY-03 | AUTHORISED | approved spec + ownership |
-| PARITY-04 | BLOCKED-READY | 03 + Rack YAML release |
+| PARITY-03 | STATIC PASS / UNITY QUALIFICATION PENDING | Unity queue |
+| PARITY-04 | IMPLEMENTATION READY / FINAL QUALIFICATION PENDING | 03 Unity for final qualification only |
 | PARITY-05 | AUTHORISED after 03 | 03 + ownership for YAML |
 | PARITY-06 | BLOCKED-READY | 04 + ownership |
 | PARITY-07 | BLOCKED | 04–06 sufficiently stable |
