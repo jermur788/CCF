@@ -198,7 +198,7 @@ public sealed partial class LearningObjectivesView
     // tree on its line is left to plan, as approved when nothing felling is still pending, and as seen once its trees are gone.
     private void ObserveRacks(ScenarioOneManager m)
     {
-        if (m.RackGroups.Count > 0) Record("rack.create");
+        if (m.RackPlanningV2Active ? m.PlannedRackCount > 0 : m.RackGroups.Count > 0) Record("rack.create");
         RackLayoutTracker layout = ui.RackLayout;
         if (layout == null || !layout.Complete) return;
         Record("rack.create");

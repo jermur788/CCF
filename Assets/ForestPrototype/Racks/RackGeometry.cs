@@ -96,6 +96,26 @@ public static class RackGeometry
         return p.X * d.X + p.Z * d.Z;
     }
 
+    // The line angle of a centreline, in [0, 180): the direction the corridor runs, independent of which end is the entrance.
+    public static float AngleDegrees(RackPoint start, RackPoint end)
+    {
+        float dx = end.X - start.X, dz = end.Z - start.Z;
+        if (Math.Abs(dx) < Epsilon && Math.Abs(dz) < Epsilon)
+            return 0f;
+        return NormaliseAngle((float)(Math.Atan2(dz, dx) * 180.0 / Math.PI));
+    }
+
+    public static float LengthM(RackPoint start, RackPoint end)
+    {
+        float dx = end.X - start.X, dz = end.Z - start.Z;
+        return (float)Math.Sqrt(dx * dx + dz * dz);
+    }
+
+    // True when the two centrelines are the same segment to within a millimetre. Rack edits use this to
+    // decide whether anything actually changed before touching orders or a field mark.
+    public static bool SameLine(RackPoint startA, RackPoint endA, RackPoint startB, RackPoint endB)
+        => LengthM(startA, startB) <= 1e-3f && LengthM(endA, endB) <= 1e-3f;
+
     // The line through a point at an angle, cut where it enters and leaves the square stand (|x| and |z| at most half the
     // stand size). A rack by default runs from boundary to boundary of the stand; false when the line misses the stand.
     public static bool ClipLineToSquare(RackPoint through, float angleDegrees, float halfExtentM, out RackPoint start, out RackPoint end)
@@ -301,4 +321,119 @@ public static class RackLayout
         for (int i = 0; i < count; i++) rows.Add(first + i * step);
         return rows;
     }
+}
+
+public enum RackPlanStatus
+{
+    Draft,
+    Confirmed
+}
+
+public enum RackPlanOperationStatus
+{
+    Applied,
+    NoChange,
+    RequiresApprovalWarning,
+    Locked,
+    Invalid
+}
+
+// How the work orders linked to one rack stand. Pending and Approved are open work; Completed means the
+// rack has actually been worked, which locks its geometry and membership from further change.
+public readonly struct RackOrderLifecycle
+{
+    public readonly int Pending, Approved, Completed, Failed;
+
+    public RackOrderLifecycle(int pending, int approved, int completed, int failed)
+    {
+        Pending = pending; Approved = approved; Completed = completed; Failed = failed;
+    }
+
+    public int Open => Pending + Approved;
+    public bool HasOpenWork => Open > 0;
+    public bool HasApprovedWork => Approved > 0;
+    public bool HasCompletedWork => Completed > 0;
+    public bool IsLocked => Completed > 0;
+    public override string ToString() => "pending=" + Pending + " approved=" + Approved + " completed=" + Completed + " failed=" + Failed;
+}
+
+// A read-only snapshot of one authoritative rack record plus its linked order lifecycle. Later lanes
+// (map, minimap, field marking, MFM) read this instead of rebuilding rack geometry or counting orders.
+public sealed class RackPlanRack
+{
+    public readonly int Id;
+    public readonly RackPoint Entrance, Far;
+    public readonly float AngleDegrees, LengthM, WidthM;
+    public readonly RackPlanStatus Status;
+    public readonly IReadOnlyList<string> RemovalTreeIds;
+    public readonly string EntranceTreeId;
+    public readonly bool EntranceMarked;
+    public readonly RackOrderLifecycle Orders;
+
+    public RackPlanRack(int id, RackPoint entrance, RackPoint far, float widthM, RackPlanStatus status,
+        IEnumerable<string> removalTreeIds, string entranceTreeId, bool entranceMarked, RackOrderLifecycle orders)
+    {
+        Id = id;
+        Entrance = entrance;
+        Far = far;
+        AngleDegrees = RackGeometry.AngleDegrees(entrance, far);
+        LengthM = RackGeometry.LengthM(entrance, far);
+        WidthM = widthM;
+        Status = status;
+        var copy = new List<string>();
+        if (removalTreeIds != null) copy.AddRange(removalTreeIds);
+        RemovalTreeIds = copy.AsReadOnly();
+        EntranceTreeId = entranceTreeId ?? "";
+        EntranceMarked = entranceMarked;
+        Orders = orders;
+    }
+
+    public bool IsLocked => Orders.IsLocked;
+}
+
+public readonly struct RackPlanOperationResult
+{
+    public readonly RackPlanOperationStatus Status;
+    public readonly string Message;
+    public readonly int RackId;
+    public readonly int OrdersCreated, OrdersRemoved, OrdersCancelled;
+    public readonly int RacksAdded, RacksRemoved, RacksUpdated;
+    public readonly int MarksCleared;
+
+    public RackPlanOperationResult(RackPlanOperationStatus status, string message = "", int rackId = 0,
+        int ordersCreated = 0, int ordersRemoved = 0, int ordersCancelled = 0,
+        int racksAdded = 0, int racksRemoved = 0, int racksUpdated = 0, int marksCleared = 0)
+    {
+        Status = status;
+        Message = message ?? "";
+        RackId = rackId;
+        OrdersCreated = ordersCreated;
+        OrdersRemoved = ordersRemoved;
+        OrdersCancelled = ordersCancelled;
+        RacksAdded = racksAdded;
+        RacksRemoved = racksRemoved;
+        RacksUpdated = racksUpdated;
+        MarksCleared = marksCleared;
+    }
+
+    public bool Succeeded => Status == RackPlanOperationStatus.Applied || Status == RackPlanOperationStatus.NoChange;
+    public bool RequiresApprovalWarning => Status == RackPlanOperationStatus.RequiresApprovalWarning;
+
+    public static RackPlanOperationResult Applied(string message = "", int rackId = 0, int ordersCreated = 0,
+        int ordersRemoved = 0, int ordersCancelled = 0, int racksAdded = 0, int racksRemoved = 0,
+        int racksUpdated = 0, int marksCleared = 0)
+        => new RackPlanOperationResult(RackPlanOperationStatus.Applied, message, rackId, ordersCreated, ordersRemoved,
+            ordersCancelled, racksAdded, racksRemoved, racksUpdated, marksCleared);
+
+    public static RackPlanOperationResult NoChange(string message = "", int rackId = 0)
+        => new RackPlanOperationResult(RackPlanOperationStatus.NoChange, message, rackId);
+
+    public static RackPlanOperationResult Warning(string message, int rackId = 0)
+        => new RackPlanOperationResult(RackPlanOperationStatus.RequiresApprovalWarning, message, rackId);
+
+    public static RackPlanOperationResult Locked(string message, int rackId = 0)
+        => new RackPlanOperationResult(RackPlanOperationStatus.Locked, message, rackId);
+
+    public static RackPlanOperationResult Invalid(string message, int rackId = 0)
+        => new RackPlanOperationResult(RackPlanOperationStatus.Invalid, message, rackId);
 }

@@ -1155,6 +1155,20 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             candidate.workOrderId == workOrderId && candidate.status == ScenarioWorkStatus.Pending);
         if (order == null)
             return false;
+        // A V2 rack owns its removal orders. They change only through the rack plan, so the frozen
+        // membership and the Work Plan cannot drift apart.
+        if (order.rackId > 0)
+        {
+            feedback = "This order belongs to a confirmed rack. Edit or delete the rack in the rack plan instead.";
+            return false;
+        }
+        return RemovePendingOrderCore(order);
+    }
+
+    private bool RemovePendingOrderCore(ScenarioOneWorkOrder order)
+    {
+        if (order == null || order.status != ScenarioWorkStatus.Pending)
+            return false;
         workOrders.Remove(order);
         RemovePlantingMarker(order.workOrderId);
         RecordOrderEvent(order, ScenarioManagementEventType.OrderCancelled, ScenarioManagementOutcome.Cancelled, CurrentYear);
@@ -1167,6 +1181,18 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ScenarioOneWorkOrder order = workOrders.FirstOrDefault(candidate =>
             candidate.workOrderId == workOrderId && candidate.status == ScenarioWorkStatus.Approved);
         if (order == null)
+            return false;
+        if (order.rackId > 0)
+        {
+            feedback = "This order belongs to a confirmed rack. Edit or delete the rack in the rack plan instead.";
+            return false;
+        }
+        return CancelApprovedOrderCore(order);
+    }
+
+    private bool CancelApprovedOrderCore(ScenarioOneWorkOrder order)
+    {
+        if (order == null || order.status != ScenarioWorkStatus.Approved)
             return false;
         workOrders.Remove(order);
         RemovePlantingMarker(order.workOrderId);
