@@ -44,12 +44,15 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
     private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private void Pass(string message) { log.Add(message); Debug.Log("RACKV2SAVE_CHECK " + message); }
 
-    // The literal bytes save v21 adds while a world's V2 rack plan is the empty default, rebuilt here
+    // The literal bytes save v21 adds while a world's V2 rack plan is the empty default - the four
+    // rack-plan fields, each work order's rack link, and the version-header bump - rebuilt here
     // independently of production code so a wrong production strip cannot pass by agreeing with itself.
+    // The result is the exact byte stream save v20 wrote, which is what the accepted anchors hash.
     private static string StripV21(string json)
         => json.Replace(",\"rackPlanningModel\":0,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
-               .Replace(",\"rackId\":0", "");
+               .Replace(",\"rackId\":0", "")
+               .Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,");
 
     private static RackSaveData Rack(int id, float ex, float ez, float fx, float fz, string[] removal, string entrance, bool marked)
         => new RackSaveData

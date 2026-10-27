@@ -80,11 +80,13 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
     }
 
     // The literal bytes save v21 adds while a world's V2 rack plan is still the empty default: the four
-    // rack-plan fields (declared last and adjacent in ScenarioOneSaveData) and each work order's rack link.
+    // rack-plan fields (declared last and adjacent in ScenarioOneSaveData), each work order's rack link,
+    // and the version-header bump the pre-v21 byte stream never had.
     private static string WithoutDefaultRackV2(string json)
         => json.Replace(",\"rackPlanningModel\":0,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
-               .Replace(",\"rackId\":0", "");
+               .Replace(",\"rackId\":0", "")
+               .Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,");
 
     private (string hash, int cells, int trees, int model) Snapshot() => (WorldHash(), e.CellCount, LivingTrees(), e.StandGeometryModelVersion);
 

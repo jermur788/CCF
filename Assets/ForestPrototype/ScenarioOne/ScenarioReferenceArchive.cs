@@ -221,9 +221,13 @@ public sealed class ScenarioReferenceArchive
     }
 
     // The hashed layout: the pre-v21 one while the V2 rack plan is still the empty default, the full
-    // current JSON as soon as the world carries rack state.
+    // current JSON as soon as the world carries rack state. The pre-v21 layout is exactly what save v20
+    // wrote: no rack bytes AND the v20 version header, because the accepted anchors hash that byte
+    // stream and the header is part of it. (Only ForestSaveData carries a "version" key.)
     private static string HashLayout(string json, ForestSaveData data)
-        => RackV2StateIsDefault(data) ? WithoutRackV2Fields(json) : json;
+        => RackV2StateIsDefault(data)
+            ? WithoutRackV2Fields(json).Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,")
+            : json;
 
     // True when the world holds no persisted V2 rack state: no confirmation, the id allocator untouched,
     // no rack records and no rack-owned orders. This is exactly the state every pre-v21 save has, and also
