@@ -2,8 +2,9 @@ using System;
 
 // Static site configuration per scenario (Oak/Beech site infrastructure v1).
 //
-// DORMANT and NOT PERSISTED: the site is derived from the scenario id, so nothing is added to the save (version stays
-// 20) and no saved profile can drift from the scenario. Treat each entry as immutable: a changed site is a NEW version,
+// DORMANT and NOT PERSISTED: the site is derived from the scenario id, so nothing is added to the save (this file does not
+// change the save version, 21 on the current base) and no saved profile can drift from the scenario. Treat each entry as
+// immutable: a changed site is a NEW version,
 // never an in-place edit that would silently reinterpret old saves.
 public static class ScenarioSiteProfiles
 {
