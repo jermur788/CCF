@@ -44,9 +44,10 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 
 ## PARITY-05 — Regeneration / juvenile / browsing requalification
 
-- **Status:** AUTHORISED after PARITY-03; serialized species edits wait for Rack release
+- **Status:** MAPPING PREFLIGHT DISPATCHED — production edits pending Manager mapping decision
 - **Goal:** Requalify early-life and browse behaviour against FR-4/FR-5.
 - **Required policy:** Oak distinct juvenile curves; Beech combined fallback; shared juvenile growth/promotion/density calibration; existing dispersal/maturity/mast/light rules; broadleaf stock abstraction label; browse ordering Oak > Beech > Sitka; no persisted browse-form state.
+- **Preflight:** `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05-Preflight/TASK-PACKET.md`, claim #31. It must reconcile the accepted PARITY-02 simple early-life/browse calibration representation with the current response-curve / 0–1 palatability production architecture before any serialized species edit.
 - **Exit:** `EARLY-LIFE SPECIES PARITY REQUALIFIED`.
 
 ## PARITY-06 — Broadleaf timber/economy/pruning gap closure
@@ -94,7 +95,7 @@ Implementation tasks must stay inside their stated scope. Existing inherited cod
 | PARITY-02 | COMPLETE / ACCEPTED | 01 |
 | PARITY-03 | VERIFIED / independent review #9 open | — |
 | PARITY-04 | VERIFIED | 03 Unity accepted |
-| PARITY-05 | AUTHORISED after 03 | 03 + ownership for YAML |
+| PARITY-05 | MAPPING PREFLIGHT DISPATCHED | Manager mapping decision before production |
 | PARITY-06 | BLOCKED-READY | 04 + ownership |
 | PARITY-07 | BLOCKED | 04–06 sufficiently stable |
 | PARITY-08 | BLOCKED-READY | production slices stable |
