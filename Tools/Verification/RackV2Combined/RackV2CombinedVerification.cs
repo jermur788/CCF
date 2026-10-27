@@ -447,7 +447,7 @@ public sealed class RackV2CombinedVerificationRunner : MonoBehaviour
 
         // Approved-but-unexecuted edits must warn and change nothing (03C semantics, now on a cold-loaded world).
         string approvedSignature = Signature();
-        RackPlanRack edited = manager.ConfirmedRacks.First(r => !r.EntranceMarked);
+        RackPlanRack edited = manager.ConfirmedRacks.First();
         RackPlanOperationResult warn = manager.UpdateRack(edited.Id, edited.Entrance, new RackPoint(edited.Far.X, edited.Far.Z + 0.6f));
         Check(warn.Status == RackPlanOperationStatus.RequiresApprovalWarning, "an approved-but-unexecuted edit requires the warning: " + warn.Message);
         Check(Signature() == approvedSignature, "the refused approved-order edit changed nothing");
