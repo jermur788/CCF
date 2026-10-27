@@ -1,55 +1,47 @@
 # TASK PACKET — PARITY-03-R Independent Mixed-Density Conformance Review
 
 **Spec:** `specs/scenario-one-three-species-parity-p0/` — APPROVED  
-**Task:** PARITY-03-R  
+**Task:** `PARITY-03-R`  
+**Status:** READY / DISPATCHED  
 **Routing:** Claude independent reviewer  
-**Review target:** inherited density implementation at `c6342f79a3e89c040fadd232017a937132779385` and the dedicated PARITY-03 branch if it advances while review is in progress  
-**Nature:** read-only repository review; no production edit; no Unity lock required unless reviewer separately runs Unity (not required for this packet)
+**Review target:** PARITY-03 static handoff at `b22c75f439e34d5cf5bcd91a1b4303c40ceec2f8`; tested production HEAD `e1515e165eb40b40b5200992398984d69e0e8e8e`  
+**Nature:** read-only repository review; no Unity lock required
 
 ## Goal
 
-Independently assess whether the inherited model-2 mixed-density implementation structurally conforms to the approved parity specification before the primary qualification worker spends time patching or running wider Unity gates.
+Independently assess whether the zero-production-diff PARITY-03 static conclusion is justified by the approved parity specification and evidence policy.
 
-This review does **not** replace PARITY-03 Tier-2 qualification and cannot mark density requalified by itself.
+This review does **not** replace the focused Tier-2 Unity qualification and cannot mark density requalified by itself.
+
+Primary evidence:
+
+- `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-03/HANDOFF.md`
+- `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-03/MANAGER-REVIEW.md`
+- `Docs/Handoffs/S1-ThreeSpeciesParity-P0-EvidenceClosure/HANDOFF.md`
+- approved `specs/scenario-one-three-species-parity-p0/`
 
 ## Review questions
 
 1. Does model 0/1 remain on legacy density behaviour?
 2. Does model-2 pure Sitka use the exact protected Sitka route?
-3. Is “pure Sitka” operationally based only on living individual trees, including promoted juveniles but excluding dead/stumps/sub-promotion regeneration?
+3. Is “pure Sitka” based only on living individuals, including promoted juveniles but excluding dead/stumps/sub-promotion cohorts?
 4. Does any living non-Reference individual select the component route?
-5. Are Reference/Intermediate/High weights exactly 1.0/1.5/2.0 and used only as calibrated ordinal occupancy, not as broadleaf SDI/max-density equations?
-6. Is Oak > Beech represented only as a class choice, without empirical wording?
-7. Is density victim selection species-neutral?
-8. Is species `Ci50` absent from density mortality/victim ranking?
-9. Does the implementation contain any DEC, DMC, mixture-productivity bonus or hidden species-specific density-capacity coefficient?
-10. Are the existing near-pure continuity tests measuring the correct route seam, and are their assertions strong enough to detect a composition cliff?
-11. Do old verification records make any claims that are no longer valid under the approved evidence labels?
-12. Are any density source files currently overlapped by Rack V2 ownership or another live writer?
+5. Are Reference/Intermediate/High weights exactly 1.0/1.5/2.0 and used only as calibrated ordinal occupancy, not broadleaf SDI/max-density equations?
+6. Is Oak > Beech represented only as the accepted weak/provisional ordinal choice?
+7. Is density victim selection species-neutral and is species `Ci50` absent from victim ranking?
+8. Is there any DEC, DMC, mixture-productivity bonus or hidden species-specific density-capacity coefficient?
+9. Does the measured 99.9% Sitka continuity result support the absence of a material route cliff?
+10. Do the three reported Beech R2 misses match the already-accepted provisional Beech height-band limitation, rather than exposing a new density-conformance defect?
+11. Does zero production diff genuinely preserve protected pure-Sitka arithmetic and model-0/1 behavior?
+12. Is the worker correct to stop short of `MIXED DENSITY PARITY REQUALIFIED` until Unity Tier-2 runs?
 
-## Required evidence
-
-Read the relevant source at the exact review SHA, the PARITY-01/PARITY-02 handoffs, the approved spec, and the existing `Tools/Verification/ThreeSpecies` density checks/ThreeSpeciesProgramme density records.
-
-For every review question, report:
-
-- PASS;
-- NEEDS CHANGE;
-- NOT PROVEN / QUALIFICATION REQUIRED.
-
-Cite exact file/symbol locations and distinguish static proof from claims that still require Unity/runtime measurement.
+For every question report PASS / NEEDS CHANGE / NOT PROVEN — UNITY REQUIRED, with exact file/symbol/evidence references.
 
 ## Restrictions
 
-No production/source/asset edit.  
-No spec change.  
-No parameter retune.  
-No rebaselining.  
-No Rack V2 edit.  
-No species YAML/scene edit.  
-No Windows build.
+No production/source/asset edit. No spec change. No parameter retune. No rebaselining. No Rack V2 edit. No species YAML/scene edit. No Unity. No Windows build.
 
-If a material product ambiguity appears, stop and return it to the Overall Manager rather than proposing a silent interpretation.
+If a material contradiction appears, return it to the Overall Manager rather than silently interpreting it.
 
 ## Handoff
 
@@ -57,7 +49,7 @@ Publish:
 
 `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-03-Review/HANDOFF.md`
 
-Include exact reviewed SHA, source/verification files inspected, the 12-question verdict table, any likely patch surface, remaining Unity/runtime gates, and final verdict:
+Return:
 
-- `STATIC CONFORMANCE PASS — UNITY REQUALIFICATION STILL REQUIRED`, or
-- `NEEDS CHANGES BEFORE UNITY REQUALIFICATION`.
+- `PARITY-03 STATIC REVIEW APPROVED — UNITY QUALIFICATION STILL REQUIRED`, or
+- `PARITY-03 STATIC REVIEW NEEDS CHANGES — <precise reason>`.
