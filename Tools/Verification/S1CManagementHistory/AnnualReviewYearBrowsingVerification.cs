@@ -41,11 +41,41 @@ using CCF.Forestry.WorkEconomy;
 // pixels; it does not prove OS-level click targeting.
 public static class AnnualReviewYearBrowsingVerification
 {
+    private const string ExitKey = "CCF.S1C.T02.PendingExit";
+
     public static void Begin()
     {
+        SessionState.EraseInt(ExitKey);
         EditorSceneManager.OpenScene("Assets/Scenes/ForestTest.unity");
         AnnualReviewYearBrowsingRunner.SetGameSize(1280, 720);
         EditorApplication.isPlaying = true;
+    }
+
+    public static void Finish(bool pass)
+    {
+        // Closing the Editor in the same coroutine that requests a Play Mode exit can race native domain teardown.
+        // SessionState survives that reload so the Editor closes only once it is safely back in Edit Mode.
+        SessionState.SetInt(ExitKey, pass ? 0 : 1);
+        ResumePendingExit();
+        EditorApplication.ExitPlaymode();
+    }
+
+    [InitializeOnLoadMethod]
+    private static void ResumePendingExit()
+    {
+        if (SessionState.GetInt(ExitKey, -1) < 0) return;
+        EditorApplication.update -= ExitWhenStopped;
+        EditorApplication.update += ExitWhenStopped;
+    }
+
+    private static void ExitWhenStopped()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+        int code = SessionState.GetInt(ExitKey, -1);
+        if (code < 0) return;
+        SessionState.EraseInt(ExitKey);
+        EditorApplication.update -= ExitWhenStopped;
+        EditorApplication.delayCall += () => EditorApplication.Exit(code);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -134,8 +164,7 @@ public sealed class AnnualReviewYearBrowsingRunner : MonoBehaviour
         Debug.Log(pass
             ? $"S1C_T02_HARNESS_PASS mode={mode} checks={passes} shots={shots}"
             : $"S1C_T02_HARNESS_FAIL mode={mode} checks={passes} failures={failures} exception={failure}");
-        EditorApplication.ExitPlaymode();
-        EditorApplication.Exit(pass ? 0 : 1);
+        AnnualReviewYearBrowsingVerification.Finish(pass);
     }
 
     // ---------------------------------------------------------------- the scenario
