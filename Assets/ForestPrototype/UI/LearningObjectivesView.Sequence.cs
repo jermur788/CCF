@@ -59,11 +59,24 @@ public sealed partial class LearningObjectivesView
                 .Select(r => r.eventId).DefaultIfEmpty(0).Max());
         bool Goal(string id) => m.Objectives.Any(o => o.objectiveId == id && o.achieved);
         // Objectives 2-5 are one lesson on one rack area (ScenarioOneRackBay). A stand with no rack layout (a 40 m legacy stand) keeps the simple rules above.
-        var layout = ui.RackTool != null ? ui.RackTool.Planner.LayoutStatus() : null;
-        ScenarioOneRackBay.Frame? frame = layout != null && layout.Count > 0
-            ? new ScenarioOneRackBay.Frame(layout[layout.Count / 2].Start, layout[layout.Count / 2].End,
-                ScenarioOneRackBay.HalfWidth(routes, routes.Count / 2)) : (ScenarioOneRackBay.Frame?)null;
-        ScenarioOneRackBay.Analysis bay = routes != null && routes.Count > 0 ? ScenarioOneRackBayReader.Read(trees, orders, routes, frame) : null;
+        ScenarioOneRackBay.Analysis bay;
+        if (m.RackPlanningV2Active)
+        {
+            // Rack Planning V2 (MFM-02): the area is the third CONFIRMED rack across the racks' common normal, never an authored line.
+            // While the plan is unconfirmed (or invalid) there is no area: it suspends instead of rebinding to a line or another rack.
+            // An active V2 world is always Enlarged80, so that is the stand the racks lie in.
+            var sample = m.RackPlanConfirmed
+                ? ScenarioOneRackSampleGeometry.Derive(m.ConfirmedRacks, StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f) : null;
+            bay = sample != null ? ScenarioOneRackBayReader.Read(trees, orders, sample) : null;
+        }
+        else
+        {
+            var layout = ui.RackTool != null ? ui.RackTool.Planner.LayoutStatus() : null;
+            ScenarioOneRackBay.Frame? frame = layout != null && layout.Count > 0
+                ? new ScenarioOneRackBay.Frame(layout[layout.Count / 2].Start, layout[layout.Count / 2].End,
+                    ScenarioOneRackBay.HalfWidth(routes, routes.Count / 2)) : (ScenarioOneRackBay.Frame?)null;
+            bay = routes != null && routes.Count > 0 ? ScenarioOneRackBayReader.Read(trees, orders, routes, frame) : null;
+        }
         bool area = bay != null && bay.Applies;
         bool releaseReviewed = Reviewed(area ? bay.ReleaseYear : releaseYear);
         rackReview.Synchronize(bay, releaseReviewed, ui.Player != null ? ui.Player.InspectionSerial : -1);

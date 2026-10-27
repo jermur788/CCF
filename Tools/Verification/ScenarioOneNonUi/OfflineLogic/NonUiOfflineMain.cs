@@ -7,6 +7,7 @@ public static class NonUiOfflineMain
         int result = 0;
         result |= CompetitorKeyboardOfflineCheck.Run();
         result |= RackBayOfflineCheck.Run(root);
+        result |= RackSampleGeometryOfflineCheck.Run(root);
         result |= StandApproachOfflineCheck.Run(root);
         return result;
     }
