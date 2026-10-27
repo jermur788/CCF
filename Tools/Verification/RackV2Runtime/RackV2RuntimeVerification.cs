@@ -248,6 +248,10 @@ public sealed class RackV2RuntimeVerificationRunner : MonoBehaviour
         RackPlanOperationResult lockedDelete = manager.DeleteRack(editedRack);
         Check(lockedDelete.Status == RackPlanOperationStatus.Locked, "a locked rack cannot be deleted");
         Check(manager.WorkOrders.Count == lockedOrders, "locked operations change no work order");
+        Check(manager.ReopenRackPlan().Succeeded && !manager.RackPlanConfirmed, "the plan can reopen around a locked rack");
+        Check(manager.UpdateRack(editedRack, editedEntrance, shortenedFar).Status == RackPlanOperationStatus.Locked,
+            "the locked rack stays locked after the plan reopens");
+        Check(manager.ConfirmRackPlan().Succeeded && manager.RackPlanConfirmed, "the plan reconfirms with a locked rack");
         Pass("completed-linked rack locking is enforced");
 
         // ---- H. save/load of the confirmed plan ----------------------------------------------------
