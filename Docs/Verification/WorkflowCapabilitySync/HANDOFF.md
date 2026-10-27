@@ -19,7 +19,7 @@ An earlier local merge, `716042c330abf81154e1755555bd70557d5dfce5`, was generate
 
 `ops/workflow-capability-sync-v2`, based on `origin/main` `6eed963` (final context `eb218ea`) plus the Manager's task-registration commit `7d9a664` (live coordination only). The branch adds only this GitHub handoff after the context commit.
 
-**Handoff commit:** the tip of `ops/workflow-capability-sync-v2` containing this file; the exact SHA is reported in the task completion record (`git log -1 ops/workflow-capability-sync-v2`).
+**Handoff content commit:** `a7409039454c27571a18307a5e4c288bb25d5d9e` (the commit that added this file). The live-coordination closure is the later tip of `ops/workflow-capability-sync-v2`; the exact branch tip is reported in the task completion record (`git log -1 ops/workflow-capability-sync-v2`).
 
 ## What changed
 
