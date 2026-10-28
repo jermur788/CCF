@@ -32,8 +32,8 @@ public enum MapSymbol
     Juvenile,      // a planted juvenile, at its exact position (full map)
     Shelter,       // a browsing shelter that is still effective (full map, Browsing layer)
     ShelterLapsed, // a browsing shelter that has expired or failed (full map, Browsing layer)
-    RackSuggested, // detached V2 guidance (full map only)
-    RackPlayer,    // authoritative V2 player rack
+    RackSuggested, // detached V2 guidance: dashed, never the plan (shown until the plan is confirmed)
+    RackPlayer,    // authoritative V2 player rack (the minimap shows it only once the plan is confirmed)
     // RACK-V2-05 direct editing (full map only). The ghost, selection and handles are presentation: they never enter the rack plan.
     RackDraft,     // the rack being drawn, moved or rotated, when the rules accept it
     RackRefused,   // the same proposal when the rules refuse it
@@ -87,6 +87,9 @@ public sealed class MapRack
     public MapSymbol Symbol = MapSymbol.RackToDo;
     // Legacy map content retained for the minimap while the full map shows V2 racks.
     public bool MiniOnly;
+    // The reverse (RACK-V2-07): drawn on the full map but not on the minimap. A rack still being planned is the Stand Map's business;
+    // the minimap shows only guidance (dashed) before confirmation and the confirmed plan (solid) after it.
+    public bool FullOnly;
     // 0-based layout rack, or -1 for a rack that is not on the planned layout.
     public int LayoutIndex = -1;
     // The authoritative plan rack this shape shows (V2 player racks only), or 0.
@@ -121,6 +124,10 @@ public sealed class StandMapModel
 
     public readonly List<MapPath> Paths = new List<MapPath>();
     public readonly List<MapRack> Racks = new List<MapRack>();
+    // The foundation's suggested routes while the Stand Map is NOT planning (RACK-V2-07): guidance the minimap draws dashed but the Stand
+    // Map does not, so Racks still holds no suggestion outside planning mode. While planning, the same routes are in Racks and this is empty.
+    // Read from the one suggestion source; never the plan.
+    public readonly List<MapRack> MiniGuidance = new List<MapRack>();
     public readonly List<MapLandmark> Landmarks = new List<MapLandmark>();
 
     // The forest. Sorted by height, shortest first, so a taller crown is drawn over a shorter one as it would be seen from above.
@@ -205,9 +212,11 @@ public sealed class StandMapModel
             foreach (MapRack r in Racks)
             {
                 if (IsDynamicRack(r.Symbol)) continue;
-                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.MiniOnly ? 1 : 0);
+                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.MiniOnly ? 1 : 0); h = Mix(h, r.FullOnly ? 1 : 0);
                 h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z); h = Mix(h, r.WidthM);
             }
+            foreach (MapRack g in MiniGuidance)
+            { h = Mix(h, (int)g.Symbol); h = Mix(h, g.Start.X); h = Mix(h, g.Start.Z); h = Mix(h, g.End.X); h = Mix(h, g.End.Z); h = Mix(h, g.WidthM); }
             foreach (MapJuvenile j in Juveniles) { h = Mix(h, j.X); h = Mix(h, j.Z); h = Mix(h, (int)j.Kind); }
             foreach (MapShelter s in Shelters) { h = Mix(h, s.X); h = Mix(h, s.Z); h = Mix(h, s.Effective ? 1 : 0); }
             h = Mix(h, CanopyVersion); h = Mix(h, MarkVersion);

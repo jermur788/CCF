@@ -6,6 +6,10 @@ using UnityEngine.UIElements;
 // to MapDetail.Mini, so a rack confirmed on the Stand Map (or in the forest), a tree felled or a step you take appears here from the same
 // data. The surface redraws only the part that changed: walking repaints you and the destination, a felling redraws the forest picture.
 //
+// In a Rack Planning V2 world it draws the same two authoritative sources the Stand Map reads: the foundation's suggested routes as
+// dashed guidance until the plan is confirmed, then the confirmed rack objects as solid lines (executed racks pale). A short note
+// says what the two line styles mean the first time they appear. All of it is read-only; the minimap writes nothing.
+//
 // It shows the whole property, north up, so a place has the same relative position here as on the Stand Map: the forest mass, the path,
 // the racks, you and which way you face. It carries no grid, no figures and no controls (the rack being planned is not drawn on it),
 // and takes no pointer input.
@@ -24,8 +28,20 @@ public sealed class HudMinimapView
     public bool Visible => Root.style.display != DisplayStyle.None;
     private bool suppressed;
 
+    // The dashed/solid teaching note (RACK-V2-07). Session memory only: the schema is not touched by this task, so a new session shows
+    // it again. It appears while the suggestions are the thing on the map, for NoteSeconds, and never after the plan is confirmed.
+    public const string TeachingNote = "Dashed lines show suggested rack positions. Solid lines show your confirmed plan.";
+    public const float NoteSeconds = 30f;
+    private const float NoteAllowancePx = 56f;
+    private readonly Label note;
+    // Seconds the note has actually been on screen, so time spent in a menu or with the map closed does not use it up.
+    private float noteSeconds, noteLastTick = -1f;
+    private bool noteDone;
+    public bool TeachingNoteVisible => note.style.display != DisplayStyle.None;
+    public string TeachingNoteText => note.text;
+
     // Space the minimap takes at the bottom right, for panels that stack above it (and a gap).
-    public float ReservedHeightPx => Visible ? SidePx + FrameAllowancePx + 12f : 0f;
+    public float ReservedHeightPx => Visible ? SidePx + FrameAllowancePx + 12f + (TeachingNoteVisible ? NoteAllowancePx : 0f) : 0f;
 
     public HudMinimapView(ScenarioOneUiRoot ui)
     {
@@ -44,6 +60,15 @@ public sealed class HudMinimapView
         north.style.left = 4f + f.ArrowX - 6f;
         north.style.top = 4f + f.ArrowY + f.ArrowSize * 0.7f;
         Root.Add(north);
+        // Under the map, inside the panel so it travels with it. It takes no pointer and holds no text until it is shown.
+        note = UiKit.Text("", "hud-minimap-note");
+        note.pickingMode = PickingMode.Ignore;
+        note.style.display = DisplayStyle.None;
+        note.style.width = SidePx;
+        note.style.whiteSpace = WhiteSpace.Normal;
+        note.style.fontSize = 13;
+        note.style.marginTop = 4;
+        Root.Add(note);
         Root.style.display = DisplayStyle.None;
     }
 
@@ -60,5 +85,25 @@ public sealed class HudMinimapView
         bool show = model != null && model.HasProperty && !suppressed;
         Root.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (show) surface.Sync(model);
+        UpdateTeachingNote(show);
+    }
+
+    // Shown only while a V2 plan is still open, so the dashed lines it explains are on the map; it ends after NoteSeconds or the moment
+    // the plan is confirmed, whichever is first, and then stays away for the session.
+    private void UpdateTeachingNote(bool minimapShown)
+    {
+        ScenarioOneManager manager = ui.Manager;
+        bool wanted = minimapShown && !noteDone && manager != null && manager.RackPlanningV2Active;
+        if (wanted && manager.RackPlanConfirmed) { noteDone = true; wanted = false; }
+        if (wanted)
+        {
+            // A gap longer than half a second is the game being away from this HUD (a menu, a pause), not time the note was seen.
+            if (noteLastTick >= 0f) noteSeconds += Mathf.Min(0.5f, Time.unscaledTime - noteLastTick);
+            noteLastTick = Time.unscaledTime;
+            if (noteSeconds > NoteSeconds) { noteDone = true; wanted = false; }
+        }
+        else noteLastTick = -1f;
+        note.text = wanted ? TeachingNote : "";
+        note.style.display = wanted ? DisplayStyle.Flex : DisplayStyle.None;
     }
 }

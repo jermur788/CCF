@@ -260,15 +260,21 @@ public sealed class StandMapSource
     private void ReadRacks()
     {
         model.Racks.Clear();
-        if (ui.Manager != null && ui.Manager.RackPlanningV2Active)
+        model.MiniGuidance.Clear();
+        bool v2 = ui.Manager != null && ui.Manager.RackPlanningV2Active;
+        if (v2)
         {
-            if (ShowRackSuggestions)
+            // Both presentations read the same two authoritative sources and keep no rack list of their own: the foundation's
+            // suggested routes (guidance) and the plan's rack objects (ScenarioOneManager.RackPlan). Nothing here writes to either.
+            bool confirmed = ui.Manager.RackPlanConfirmed;
+            if (!confirmed)
             {
                 // The one plantation-tree snapshot and the foundation call live on the manager, so the map and the editing rules
-                // read the same guidance.
+                // read the same guidance. Dashed guidance shows on the minimap until the plan is confirmed; on the Stand Map it is
+                // part of planning, so outside planning mode it goes to MiniGuidance and Racks holds no suggestion.
                 if (suggestions == null) suggestions = ui.Manager.GetSuggestedRackLayout();
                 foreach (SuggestedRackSegment segment in suggestions)
-                    model.Racks.Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
+                    (ShowRackSuggestions ? model.Racks : model.MiniGuidance).Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
             }
             foreach (RackPlanRack rack in ui.Manager.RackPlan)
                 model.Racks.Add(new MapRack
@@ -280,25 +286,28 @@ public sealed class StandMapSource
                     Symbol = rack.IsLocked ? MapSymbol.RackHarvested : MapSymbol.RackPlayer,
                     RackId = rack.Id,
                     Locked = rack.IsLocked,
+                    // The minimap's solid lines are the confirmed plan, and executed work is always real; a draft rack is planning only.
+                    FullOnly = !confirmed && !rack.IsLocked,
                     Selected = ShowRackSuggestions && rack.Id == SelectedRackId
                 });
         }
+        // The authored layout lines and the session rack groups belong to the model-0 rack tool. A V2 world's racks are the plan's own
+        // objects, so those legacy shapes never enter it.
         RackLayoutTracker layout = ui.RackLayout;
-        if (layout != null)
+        if (layout != null && !v2)
             foreach (RackLayoutLine line in layout.Lines)
                 model.Racks.Add(new MapRack
                 {
                     Start = line.Start,
                     End = line.End,
                     LayoutIndex = line.Index,
-                    MiniOnly = ui.Manager != null && ui.Manager.RackPlanningV2Active,
                     // Done = nothing left to plan; no tree left standing in the corridor = it has been harvested.
                     Symbol = !line.Done ? MapSymbol.RackToDo : line.TreesLeft > 0 ? MapSymbol.RackPlanned : MapSymbol.RackOpen
                 });
-        if (ui.Manager != null)
+        if (ui.Manager != null && !v2)
             foreach (RackGroup group in ui.Manager.RackGroups)
                 if (group.LayoutIndex < 0 && (group.Start.X != group.End.X || group.Start.Z != group.End.Z))
-                    model.Racks.Add(new MapRack { Start = group.Start, End = group.End, Symbol = MapSymbol.RackOther, MiniOnly = ui.Manager.RackPlanningV2Active });
+                    model.Racks.Add(new MapRack { Start = group.Start, End = group.End, Symbol = MapSymbol.RackOther });
         RackProposal preview = Preview;
         if (preview != null && preview.Selection != null && preview.CanConfirm)
             model.Racks.Add(new MapRack { Start = preview.Selection.Start, End = preview.Selection.End, Symbol = MapSymbol.RackPreview, LayoutIndex = preview.LayoutIndex });

@@ -212,6 +212,8 @@ public sealed partial class LearningObjectivesView
         if (index == 0)
         {
             RackLayoutTracker layout = ui.RackLayout;
+            // The V2 wording is the Objectives screen's, so the two cannot disagree.
+            if (layout != null && layout.RackPlanV2) return layout.V2ObjectiveInstruction;
             if (layout != null && layout.Complete)
                 return layout.WorkPending
                     ? "Open the Work Plan [Tab], approve the rack work, then advance one year."
@@ -236,7 +238,8 @@ public sealed partial class LearningObjectivesView
         if (areaText != null) return areaText;
         switch (ScenarioOneTeachingSequence.Current(f))
         {
-            case 0: return ui.RackLayout != null ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned" : "Plan permanent access";
+            case 0: return ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText
+                : ui.RackLayout != null ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned" : "Plan permanent access";
             case 1: return !f.AccessReviewed ? "Rack work done · read the annual results" : $"Future trees selected: {f.CropTrees} · choose at least one";
             case 2: return "Future tree selected · plan a nearby competitor for removal";
             case 3: return (f.ReleaseExecuted ? "Release done" : "Release planned") + (f.DeadwoodExecuted ? " · fallen wood present" : " · fallen wood still needed");
