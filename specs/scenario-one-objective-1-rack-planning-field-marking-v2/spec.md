@@ -5,14 +5,14 @@
 - **Status:** APPROVED — the user's own label is `APPROVED FOR IMPLEMENTATION` (user instruction, 2026-10-26)
 - **Owner:** Overall Manager (specification supplied by the user)
 - **Created:** 2026-10-26
-- **Last updated:** 2026-10-26
+- **Last updated:** 2026-10-28
 - **Primary routing:** `SOL / CODEX`. Suitable bounded sub-work: `GPT-6.1 TERRA` — visual/UI implementation and rendered review. Routing is a recommendation; the Overall Manager assigns work through task packets.
 - **Decision log references:** D-063 (spec-driven development); D-056 / D-057 (Enlarged80 stand geometry); D-042 (Reference Future v1 frozen); D-064 (this feature's accepted game design, 2026-10-26).
 - **Milestone:** Scenario One — see `Docs/Project/current-milestone.md`
 - **Related evidence:** `Docs/Research/CCFBook/CCF_Book_Definitive_Reference.md` (pp. 39–42, 58, 84–87); `Docs/Research/RacksAndTreeMarking/CCF_Rack_Planning_and_Tree_Marking_Source_Extraction_v1.md`; `Docs/Project/research-index.md` (rack and tree-marking extraction); `specs/scenario-one-ui-visual-system-v2/` (on `feature/scenario-one-ui-visual-system-v2`, not on every checkout)
 - **Supersedes / superseded by:** Supersedes *behaviour*, not a prior spec ID: Scenario One's first-person freehand rack creation and its separate counters (see §4). Superseded by: none.
 
-> **Provenance of this file.** Sections 1–38 are the specification as supplied by the user on 2026-10-26, with only the headings re-levelled to Markdown conventions. Section 39 is added at authoring time to satisfy `specs/README.md` (non-goals, stop conditions, save/security statements, open decisions). Section 39 restates or indexes the spec above. The only genuinely new content was three decisions raised in §39.7; the Manager resolved OPEN-1 and OPEN-2 on 2026-10-26 (recorded as D-064) and OPEN-3 remains open.
+> **Provenance of this file.** Sections 1–38 are the specification as supplied by the user on 2026-10-26, with only the headings re-levelled to Markdown conventions. Section 39 is added at authoring time to satisfy `specs/README.md` (non-goals, stop conditions, save/security statements, open decisions). Section 39 restates or indexes the spec above. The only genuinely new content was three decisions raised in §39.7; the Manager resolved OPEN-1 and OPEN-2 on 2026-10-26 (recorded as D-064), and OPEN-3 was accepted by direct user authority on 2026-10-28 (see §39.7).
 
 ---
 
@@ -943,7 +943,7 @@ Final implementation verdict:
 
 ## 39. Sections required by `specs/README.md` (added at authoring)
 
-These sections index and restate the spec above. They add no product requirement of their own. The decisions in §39.7 are Manager decisions (OPEN-1 and OPEN-2 accepted 2026-10-26, D-064); OPEN-3 is raised for a decision and is not assumed.
+These sections index and restate the spec above. They add no product requirement of their own. The decisions in §39.7 are Manager decisions (OPEN-1 and OPEN-2 accepted 2026-10-26, D-064); OPEN-3 was accepted by direct user authority on 2026-10-28 (D-064).
 
 ### 39.1 Non-goals
 
@@ -1002,11 +1002,10 @@ Work returns to the Manager/spec; an implementation assumption does not resolve 
 4. Satisfying §36 would require a second rack-removal system or duplicated forestry outcomes.
 5. The orange mark cannot be made consistent with the existing exclusive Fell/Crop Tree marks without weakening either meaning (§25, §26).
 6. A confirmed rack has no suitable entrance tree in the **suggested** layout on the verified scene. For a player-edited rack this is the in-game state `RACK INVALID — ADJUST PLAN` (§23), not a stop; for the suggested layout it is a defect in the calibration.
-7. OPEN-3 (§39.7) is reached before it is resolved.
 
 ### 39.7 Product decisions
 
-Raised at authoring from read-only inspection of candidate `integration/scenario-one-hud-colour-pass-v1` @ `13988874cc36413d911243f4d3a6524436237bab`. OPEN-1 and OPEN-2 were resolved by the Manager on 2026-10-26 and are recorded in the Decision Log as D-064. OPEN-3 remains open.
+Raised at authoring from read-only inspection of candidate `integration/scenario-one-hud-colour-pass-v1` @ `13988874cc36413d911243f4d3a6524436237bab`. OPEN-1 and OPEN-2 were resolved by the Manager on 2026-10-26 and are recorded in the Decision Log as D-064. OPEN-3 was accepted by direct user authority on 2026-10-28 (D-064).
 
 **OPEN-1 — Legacy40 saves: `ACCEPTED — V2 APPLIES TO ENLARGED80 ONLY`.**
 - Fact (authoring time): D-056 defines Legacy40 as a 40 × 40 m stand, and saves at v19 or earlier, or without `standGeometryModel`, load as Legacy40. Five racks at ≥16 m spacing span ≥64 m, which cannot fit in 40 m. On the candidate, `ScenarioOneRackLayout.AppliesTo` is already Enlarged80-only.
@@ -1020,8 +1019,7 @@ Raised at authoring from read-only inspection of candidate `integration/scenario
 - Rules: Confirm creates pending work only; it does not approve work and does not execute felling. Field marking occurs before approval. `rack.approve` remains the explicit work-approval teaching step and `rack.result` remains the post-execution/result step. No parallel rack-execution mechanism is created. If the player edits a confirmed plan before approval, the pending rack-removal orders are reconciled with the revised geometry and not duplicated.
 - Effect on this spec: the orange entrance mark is a field-communication state of the rack and is not a second removal system (§36); Objective 1 completes at five entrances marked and hands over to `rack.approve` (§30 step 7).
 
-**OPEN-3 — Reopening a confirmed plan after its work has progressed: `OPEN`.**
-- Fact: §18 specifies reopening only in terms of entrance-mark state. Today pending orders can be removed and approved orders cancelled, but executed removals cannot be undone. OPEN-2 settles the before-approval case (reconcile, do not duplicate). What remains open is what may be reopened after approval, after partial execution and after complete execution.
-- Recommendation (unchanged, to be tested against the real state machine): allow reopening while a rack has no executed removals. Cancel and recreate its orders through the existing paths, with a warning. Lock a rack with executed removals and show it as harvested.
-- Next step: RACK-V2-01 inspects the existing approval/execution state machine and reports the safest boundary. Do not implement OPEN-3 yet.
-- Needed before: RACK-V2-05 begins.
+**OPEN-3 — Reopening a confirmed plan after its work has progressed: `ACCEPTED — ZERO EXECUTED REMOVALS MAY REOPEN; EXECUTED RACKS LOCKED` (direct user authority, 2026-10-28; D-064).**
+- Fact: §18 specifies reopening only in terms of entrance-mark state. Pending orders can be removed and approved orders cancelled, but executed removals cannot be undone. OPEN-2 settles the before-approval case (reconcile, do not duplicate).
+- Decision: a rack with zero executed removals may be reopened/edited through the authoritative rack reconciliation/cancellation path. Reopening itself cancels nothing. Where editing would cancel approved-but-unexecuted work, the player receives a warning and explicit consent is required before cancellation/reconciliation. Any rack with one or more executed removals is geometry-locked and represented as harvested. Executed removals are never reversed. Only racks whose geometry changes lose geometry-bound entrance-mark state; unrelated racks retain theirs.
+- Effect on this spec: this resolves OPEN-3 and bounds RACK-V2-05 and RACK-V2-07; it authorises no additional reopen policy. Implementation and qualification evidence: `Docs/Handoffs/RACK-V2-05/OPEN-3-MANAGER-DECISION.md`, `Docs/Handoffs/RACK-V2-05/MANAGER-REVIEW.md`, `Docs/Handoffs/RACK-V2-07/MANAGER-REVIEW.md`.

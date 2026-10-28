@@ -1,0 +1,1 @@
+Integration note: Manager review approved the documentation-only OPEN-3 canonical authority sync. This note records no additional product decision and exists only to make the branch's integration intent explicit. Merge the branch without Unity rerun; production code is unchanged.
