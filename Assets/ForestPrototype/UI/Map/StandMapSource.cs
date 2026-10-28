@@ -260,6 +260,7 @@ public sealed class StandMapSource
     private void ReadRacks()
     {
         model.Racks.Clear();
+        model.MiniGuidance.Clear();
         bool v2 = ui.Manager != null && ui.Manager.RackPlanningV2Active;
         if (v2)
         {
@@ -270,10 +271,10 @@ public sealed class StandMapSource
             {
                 // The one plantation-tree snapshot and the foundation call live on the manager, so the map and the editing rules
                 // read the same guidance. Dashed guidance shows on the minimap until the plan is confirmed; on the Stand Map it is
-                // part of planning, so outside planning mode it is minimap-only.
+                // part of planning, so outside planning mode it goes to MiniGuidance and Racks holds no suggestion.
                 if (suggestions == null) suggestions = ui.Manager.GetSuggestedRackLayout();
                 foreach (SuggestedRackSegment segment in suggestions)
-                    model.Racks.Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested, MiniOnly = !ShowRackSuggestions });
+                    (ShowRackSuggestions ? model.Racks : model.MiniGuidance).Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
             }
             foreach (RackPlanRack rack in ui.Manager.RackPlan)
                 model.Racks.Add(new MapRack

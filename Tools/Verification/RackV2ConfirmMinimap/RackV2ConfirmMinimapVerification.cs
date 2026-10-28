@@ -477,8 +477,9 @@ public sealed class RackV2ConfirmMinimapRunner : MonoBehaviour
     private IEnumerator MapSourcesBeforeConfirm(IReadOnlyList<SuggestedRackSegment> suggestion, int[] ids)
     {
         StandMapModel m = Remodel();
-        var suggested = m.Racks.Where(r => r.Symbol == MapSymbol.RackSuggested).ToList();
-        Check(suggested.Count == 5 && suggested.All(r => r.MiniOnly), "an open plan shows five suggestions in the shared model, minimap-only outside rack planning");
+        var suggested = m.MiniGuidance.ToList();
+        Check(suggested.Count == 5 && suggested.All(r => r.Symbol == MapSymbol.RackSuggested) && !m.Racks.Any(r => r.Symbol == MapSymbol.RackSuggested),
+            "an open plan carries five suggestions as minimap guidance in the shared model, and Racks holds none outside rack planning");
         Check(suggested.Select(r => F(r.Start.X) + "," + F(r.Start.Z) + ">" + F(r.End.X) + "," + F(r.End.Z)).SequenceEqual(
             suggestion.Select(x => F(x.Entrance.X) + "," + F(x.Entrance.Z) + ">" + F(x.Far.X) + "," + F(x.Far.Z))), "the model's suggestions are the foundation's routes, not a copy");
         Check(!m.Racks.Any(r => r.LayoutIndex >= 0 || r.Symbol == MapSymbol.RackOther), "a V2 model carries no legacy layout line or session rack group");
@@ -496,7 +497,7 @@ public sealed class RackV2ConfirmMinimapRunner : MonoBehaviour
     private IEnumerator MapSourcesAfterConfirm()
     {
         StandMapModel m = Remodel();
-        Check(!m.Racks.Any(r => r.Symbol == MapSymbol.RackSuggested), "a confirmed plan removes the dashed guidance from the model");
+        Check(!m.Racks.Any(r => r.Symbol == MapSymbol.RackSuggested) && m.MiniGuidance.Count == 0, "a confirmed plan removes the dashed guidance from the model");
         var player = m.Racks.Where(r => r.Symbol == MapSymbol.RackPlayer || r.Symbol == MapSymbol.RackHarvested).ToList();
         Check(player.Count == 5 && player.All(r => !r.FullOnly), "the confirmed plan's five racks are drawn on both maps");
         foreach (RackPlanRack rack in manager.RackPlan)

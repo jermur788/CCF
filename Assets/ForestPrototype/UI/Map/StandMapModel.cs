@@ -124,6 +124,10 @@ public sealed class StandMapModel
 
     public readonly List<MapPath> Paths = new List<MapPath>();
     public readonly List<MapRack> Racks = new List<MapRack>();
+    // The foundation's suggested routes while the Stand Map is NOT planning (RACK-V2-07): guidance the minimap draws dashed but the Stand
+    // Map does not, so Racks still holds no suggestion outside planning mode. While planning, the same routes are in Racks and this is empty.
+    // Read from the one suggestion source; never the plan.
+    public readonly List<MapRack> MiniGuidance = new List<MapRack>();
     public readonly List<MapLandmark> Landmarks = new List<MapLandmark>();
 
     // The forest. Sorted by height, shortest first, so a taller crown is drawn over a shorter one as it would be seen from above.
@@ -211,6 +215,8 @@ public sealed class StandMapModel
                 h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.MiniOnly ? 1 : 0); h = Mix(h, r.FullOnly ? 1 : 0);
                 h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z); h = Mix(h, r.WidthM);
             }
+            foreach (MapRack g in MiniGuidance)
+            { h = Mix(h, (int)g.Symbol); h = Mix(h, g.Start.X); h = Mix(h, g.Start.Z); h = Mix(h, g.End.X); h = Mix(h, g.End.Z); h = Mix(h, g.WidthM); }
             foreach (MapJuvenile j in Juveniles) { h = Mix(h, j.X); h = Mix(h, j.Z); h = Mix(h, (int)j.Kind); }
             foreach (MapShelter s in Shelters) { h = Mix(h, s.X); h = Mix(h, s.Z); h = Mix(h, s.Effective ? 1 : 0); }
             h = Mix(h, CanopyVersion); h = Mix(h, MarkVersion);

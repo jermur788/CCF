@@ -206,7 +206,7 @@ public static class StandMapOfflineCheck
 
         // ---- RACK-V2-07 minimap propagation: FullOnly drafts, MiniOnly guidance, one authoritative source ----
         var staged = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
-        staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackSuggested, MiniOnly = true });
+        staged.MiniGuidance.Add(new MapRack { Start = new RackPoint(-35, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackSuggested });
         staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 10), End = new RackPoint(40, 10), Symbol = MapSymbol.RackPlayer, RackId = 1, FullOnly = true });
         staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 20), End = new RackPoint(40, 20), Symbol = MapSymbol.RackPlayer, RackId = 2 });
         staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 30), End = new RackPoint(40, 30), Symbol = MapSymbol.RackHarvested, RackId = 3, Locked = true, FullOnly = false });
@@ -218,8 +218,9 @@ public static class StandMapOfflineCheck
             && stagedMini.Any(x => x.Symbol == MapSymbol.RackHarvested && staged.Racks[x.SourceIndex].RackId == 3),
             "RACK-V2-07: the confirmed rack and the harvested rack are drawn on the minimap");
         Check(stagedFull.Any(x => x.Symbol == MapSymbol.RackPlayer && staged.Racks[x.SourceIndex].RackId == 1) && !stagedFull.Any(x => x.Symbol == MapSymbol.RackSuggested),
-            "RACK-V2-07: the full map still draws the draft rack and hides minimap-only guidance outside planning");
-        Check(stagedMini.Any(x => x.Symbol == MapSymbol.RackSuggested), "RACK-V2-07: minimap-only guidance is drawn on the minimap");
+            "RACK-V2-07: the full map still draws the draft rack and draws no minimap guidance outside planning");
+        Check(stagedMini.Any(x => x.Symbol == MapSymbol.RackSuggested && x.DashPx > 0) && !staged.Racks.Any(r => r.Symbol == MapSymbol.RackSuggested),
+            "RACK-V2-07: guidance outside planning is drawn dashed on the minimap while Racks holds no suggestion");
         var stagedBefore = staged.StaticVersion;
         staged.Racks[1].FullOnly = false;
         staged.Restamp();

@@ -107,6 +107,11 @@ public static class StandMapDrawPlan
             plan.Add(RackBand(model, t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
+        // The minimap's dashed guidance (not in Racks, so the Stand Map outside planning draws none): corridor bands first, like every rack.
+        if (!full && StandMapSymbols.IsDrawn(MapSymbol.RackSuggested, detail))
+            for (int i = 0; i < model.MiniGuidance.Count; i++)
+                plan.Add(RackBand(model, t, model.MiniGuidance[i], -1, StandMapSymbols.Get(MapSymbol.RackSuggested), MapDrawLayer.Static));
+
         // The forest path: a dark edge, then the tan band at its real width.
         if (StandMapSymbols.IsDrawn(MapSymbol.Path, detail))
             for (int i = 0; i < model.Paths.Count; i++)
@@ -131,6 +136,10 @@ public static class StandMapDrawPlan
             if ((rack.MiniOnly && full) || (rack.FullOnly && !full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackLine(t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
+
+        if (!full && StandMapSymbols.IsDrawn(MapSymbol.RackSuggested, detail))
+            for (int i = 0; i < model.MiniGuidance.Count; i++)
+                plan.Add(RackLine(t, model.MiniGuidance[i], -1, StandMapSymbols.Get(MapSymbol.RackSuggested), MapDrawLayer.Static));
 
         // Planted juveniles at their exact places (full map).
         if (StandMapSymbols.IsDrawn(MapSymbol.Juvenile, detail))
