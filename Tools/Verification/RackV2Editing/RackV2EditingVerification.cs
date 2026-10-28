@@ -79,13 +79,20 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     // failure be read as "the Editor delivered these events at these times" instead of guessed at.
     private readonly List<string> pointerTrace = new List<string>();
     private bool traceRegistered;
+    private int pointerDownCount;
+    private RackPoint lastPointerDownWorld;
 
     private void RegisterPointerTrace()
     {
         if (traceRegistered) return;
         traceRegistered = true;
         VisualElement layer = ui.Map.EditLayer;
-        layer.RegisterCallback<PointerDownEvent>(e => Trace("down", e.localPosition, e.button), TrickleDown.TrickleDown);
+        layer.RegisterCallback<PointerDownEvent>(e =>
+        {
+            pointerDownCount++;
+            lastPointerDownWorld = RackEd.FramePxToWorld(e.localPosition);
+            Trace("down", e.localPosition, e.button);
+        }, TrickleDown.TrickleDown);
         layer.RegisterCallback<PointerMoveEvent>(e => Trace("move", e.localPosition, e.pressedButtons), TrickleDown.TrickleDown);
         layer.RegisterCallback<PointerUpEvent>(e => Trace("up", e.localPosition, e.button), TrickleDown.TrickleDown);
     }
@@ -645,10 +652,11 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     {
         if (syncAt < 0) syncAt = steps * 2 / 3;
         var ops = new List<PointerOp>();
+        int downBefore = pointerDownCount;
         Vector2 a = ScreenOfWorld(from), b = ScreenOfWorld(to);
         ops.Add(Move(a)); ops.Add(Sleep(300)); ops.Add(Move(a + Vector2.one)); ops.Add(Sleep(300)); ops.Add(Move(a)); ops.Add(Sleep(500));
         if (shift) ops.Add(KeyDown("shift"));
-        ops.Add(Down()); ops.Add(Sleep(120));
+        ops.Add(Down()); ops.Add(Sync("pressed"));
         for (int i = 1; i <= steps; i++)
         {
             ops.Add(Move(Vector2.Lerp(a, b, (float)i / steps), 0));
@@ -669,10 +677,18 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         if (shift) ops.Add(KeyUp("shift"));
         ops.Add(Sleep(200));
         var syncs = new Dictionary<string, Func<IEnumerator>>();
+        syncs["pressed"] = () => WaitForPointerDown(downBefore, from);
         if (syncName != null && onSync != null) syncs[syncName] = onSync;
         yield return Do(ops.ToArray(), syncs);
         yield return Wait(0.5f);
         yield return Settle(6);
+    }
+
+    private IEnumerator WaitForPointerDown(int before, RackPoint intended)
+    {
+        yield return WaitFor(() => pointerDownCount > before);
+        Check(pointerDownCount > before, "the map received the real pointer down before the drag moved");
+        Check(RackGeometry.LengthM(lastPointerDownWorld, intended) < 1f, "the real pointer down landed at the intended drag start");
     }
 
     private IEnumerator ClickWorld(RackPoint at)
