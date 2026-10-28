@@ -605,8 +605,11 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     private string StatusText() { Label l = ui.Map.Root.Q<Label>("map-edit-status"); return l != null ? l.text : ""; }
 
     // A drag in world coordinates, in steps, optionally holding Shift and pausing mid-way for a capture.
-    private IEnumerator DragWorld(RackPoint from, RackPoint to, string syncName = null, Func<IEnumerator> onSync = null, bool shift = false, int steps = 14)
+    // syncAt = the step after which the button is held for the harness to inspect (default: two thirds of the way; steps = at the end,
+    // for a state that only exists at the destination, such as a too-short proposal).
+    private IEnumerator DragWorld(RackPoint from, RackPoint to, string syncName = null, Func<IEnumerator> onSync = null, bool shift = false, int steps = 14, int syncAt = -1)
     {
+        if (syncAt < 0) syncAt = steps * 2 / 3;
         var ops = new List<PointerOp>();
         Vector2 a = ScreenOfWorld(from), b = ScreenOfWorld(to);
         ops.Add(Move(a)); ops.Add(Sleep(150)); ops.Add(Move(a + Vector2.one)); ops.Add(Sleep(60)); ops.Add(Move(a)); ops.Add(Sleep(120));
@@ -616,7 +619,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         {
             ops.Add(Move(Vector2.Lerp(a, b, (float)i / steps), 0));
             ops.Add(Sleep(35));
-            if (syncName != null && i == steps * 2 / 3) { ops.Add(Sleep(500)); ops.Add(Sync(syncName)); }
+            if (syncName != null && i == syncAt) { ops.Add(Sleep(500)); ops.Add(Sync(syncName)); }
         }
         ops.Add(Sleep(160));
         ops.Add(Up());
@@ -749,7 +752,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             Check(RackEd.SelectedRackId == 2, tag + ": rack 2 selected so its handle can be grabbed");
             RackPlanRack ref2 = Rack(2);
             string refusedPlan = PlanSig(), refusedSave = SaveJson();
-            yield return DragWorld(ref2.Far, P(ref2.Entrance.X + 2.5f, ref2.Entrance.Z + 0.5f), "refusing", () => RefusedGhost(tag));
+            yield return DragWorld(ref2.Far, P(ref2.Entrance.X + 2.5f, ref2.Entrance.Z + 0.5f), "refusing", () => RefusedGhost(tag), false, 14, 14);
             Check(PlanSig() == refusedPlan && SaveJson() == refusedSave, tag + ": a release that makes the rack too short changed nothing (whole save identical)");
             Check(StatusText().Contains("shorter than"), tag + ": the card says why: " + StatusText());
             yield return Capture(tag, "05-after-refusal");
