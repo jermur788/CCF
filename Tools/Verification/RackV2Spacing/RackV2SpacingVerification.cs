@@ -757,7 +757,7 @@ public sealed class RackV2SpacingRunner : MonoBehaviour
             yield return Capture(tag, "spacing-no-neighbour");
 
             // ---- a deliberate deviation: outside the snap window the angle is the player's -------------------------------------
-            RackPoint press2 = P(ScenarioOneHeadlandGeometry.HeadlandX + 1.2f, -4f), release2 = P(30f, 6f);
+            RackPoint press2 = P(ScenarioOneHeadlandGeometry.HeadlandX + 1.2f, -6f), release2 = P(30f, 4f);
             yield return DragWorld(press2, release2);
             Check(manager.PlannedRackCount == 2, tag + ": a second rack was drawn");
             RackPlanRack r2 = Rack(2);
@@ -789,6 +789,14 @@ public sealed class RackV2SpacingRunner : MonoBehaviour
             Check(Same(Rack(2).Entrance, before2.Entrance) && Same(Rack(2).Far, before2.Far), tag + ": 'Undo last rack edit' (real click) restored rack 2 exactly");
             Check(!manager.CanUndoRackEdit && !Control("map-edit-undo").enabledSelf, tag + ": only one level of undo");
 
+            // Place the second rack deliberately closer, then undo so the original rotation tests retain their geometry.
+            RackPoint closeGrab = OnRack(Rack(2), 0.5f);
+            yield return DragWorld(closeGrab, P(closeGrab.X, closeGrab.Z - 7f));
+            Check(ui.Map.Root.Q<Label>("map-edit-spacing").text.Contains("closer than recommended"), tag + ": deliberately close rack remains placed");
+            yield return Capture(tag, "spacing-below");
+            yield return Click(Control("map-edit-undo"));
+            Check(Same(Rack(2).Entrance, before2.Entrance) && Same(Rack(2).Far, before2.Far), tag + ": undo restores the close placement");
+
             // ---- rotate by the handle: soft snap, then free, then Shift ------------------------------------------------------------
             yield return ClickWorld(OnRack(Rack(1), 0.4f));
             RackPlanRack rot1 = Rack(1);
@@ -802,8 +810,6 @@ public sealed class RackV2SpacingRunner : MonoBehaviour
             float a1 = RackEditing.DirectedAngleDegrees(Rack(1).Entrance, Rack(1).Far);
             Check(Same(Rack(1).Entrance, rot1.Entrance) && a1 > 6f && a1 < 14f, tag + ": rotating well off level is free (" + F(a1) + " deg), and the entrance did not move");
             Check(Rack(1).Id == 1, tag + ": the rotated rack keeps id 1");
-            Check(ui.Map.Root.Q<Label>("map-edit-spacing").text.Contains("closer than recommended"), tag + ": deliberately close rotated rack remains placed");
-            yield return Capture(tag, "spacing-below");
             // Shift turns snapping off: a release 1.2 deg from level stays 1.2 deg.
             yield return Click(Control("map-edit-undo"));                    // back to level for the Shift test
             RackPlanRack lvl = Rack(1);
