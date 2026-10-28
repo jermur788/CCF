@@ -133,6 +133,14 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         while (Time.realtimeSinceStartupAsDouble < until) yield return null;
     }
 
+    // The Editor draws a few frames a second under software rendering and applies queued pointer events in batches, so a state read the
+    // instant a gesture reaches a waypoint can be a frame or two behind the pointer. Wait (bounded) for the state, then assert it.
+    private static IEnumerator WaitFor(Func<bool> condition, float seconds = 5f)
+    {
+        double until = Time.realtimeSinceStartupAsDouble + seconds;
+        while (!condition() && Time.realtimeSinceStartupAsDouble < until) yield return null;
+    }
+
     private static bool Visible(VisualElement e)
     {
         for (VisualElement p = e; p != null; p = p.parent)
@@ -589,6 +597,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         if (element == null || !Visible(element)) throw new InvalidOperationException("control not visible for a real click");
         Vector2 at = ScreenOfElement(element);
         yield return Do(new[] { Move(at), Sleep(180), Move(at + new Vector2(1, 0)), Sleep(60), Move(at), Sleep(120), Down(), Sleep(90), Up(), Sleep(200) });
+        yield return Wait(0.5f);
         yield return Settle(6);
     }
 
@@ -607,7 +616,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         {
             ops.Add(Move(Vector2.Lerp(a, b, (float)i / steps), 0));
             ops.Add(Sleep(35));
-            if (syncName != null && i == steps * 2 / 3) { ops.Add(Sleep(120)); ops.Add(Sync(syncName)); }
+            if (syncName != null && i == steps * 2 / 3) { ops.Add(Sleep(500)); ops.Add(Sync(syncName)); }
         }
         ops.Add(Sleep(160));
         ops.Add(Up());
@@ -616,6 +625,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         var syncs = new Dictionary<string, Func<IEnumerator>>();
         if (syncName != null && onSync != null) syncs[syncName] = onSync;
         yield return Do(ops.ToArray(), syncs);
+        yield return Wait(0.5f);
         yield return Settle(6);
     }
 
@@ -623,12 +633,14 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     {
         Vector2 s = ScreenOfWorld(at);
         yield return Do(new[] { Move(s), Sleep(150), Move(s + Vector2.right), Sleep(60), Move(s), Sleep(120), Down(), Sleep(90), Up(), Sleep(200) });
+        yield return Wait(0.5f);
         yield return Settle(6);
     }
 
     private IEnumerator PressKey(string key)
     {
         yield return Do(new[] { Sleep(100), KeyTap(key), Sleep(250) });
+        yield return Wait(0.5f);
         yield return Settle(6);
     }
 
@@ -814,6 +826,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     // Ghost assertions run while the real button is still held down.
     private IEnumerator DrawingGhost(string tag)
     {
+        yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue);
         Check(RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Valid, tag + ": while drawing, a valid ghost is shown");
         Check(manager.PlannedRackCount == 0, tag + ": the plan is untouched while the button is still down");
         Check(ui.MapSource.Model.Racks.Any(r => r.Symbol == MapSymbol.RackDraft), tag + ": the ghost is in the map model as a draft rack");
@@ -823,20 +836,23 @@ public sealed class RackV2EditingRunner : MonoBehaviour
 
     private IEnumerator MovingGhost(string tag, int id, RackPlanRack before)
     {
+        yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Start.Z > before.Entrance.Z + 2f);
         Check(RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Valid, tag + ": while moving, a valid ghost is shown");
         Check(Same(Rack(id).Entrance, before.Entrance) && Same(Rack(id).Far, before.Far), tag + ": the authoritative rack has not moved while the button is down");
-        Check(Near(RackEd.Ghost.Value.Start.X, ScenarioOneHeadlandGeometry.HeadlandX, 0.0001f) && RackEd.Ghost.Value.Start.Z > before.Entrance.Z + 2f, tag + ": the ghost has slid north along the headland");
+        Check(Near(RackEd.Ghost.Value.Start.X, ScenarioOneHeadlandGeometry.HeadlandX, 0.0001f) && RackEd.Ghost.Value.Start.Z > before.Entrance.Z + 2f, tag + ": the ghost has slid north along the headland (ghost z " + F(RackEd.Ghost.Value.Start.Z) + " vs " + F(before.Entrance.Z) + ")");
         yield return Capture(tag, "04-moving-ghost");
     }
 
     private IEnumerator RotatingGhost(string tag)
     {
+        yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue);
         Check(RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Valid, tag + ": while rotating, a valid ghost is shown");
         yield return null;
     }
 
     private IEnumerator RefusedGhost(string tag)
     {
+        yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue && !RackEd.Ghost.Value.Valid);
         Check(RackEd.Dragging && RackEd.Ghost.HasValue && !RackEd.Ghost.Value.Valid, tag + ": a too-short proposal is shown as a refused (red) ghost");
         Check(ui.MapSource.Model.Racks.Any(r => r.Symbol == MapSymbol.RackRefused), tag + ": the refused ghost is in the map model");
         yield return Capture(tag, "04b-refused-ghost");
