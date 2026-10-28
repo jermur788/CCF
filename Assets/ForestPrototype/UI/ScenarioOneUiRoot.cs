@@ -287,10 +287,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (!show) return;
         // Under the top-right column (the objective widget and the status panel), whatever height they have.
         VisualElement column = hud.RightColumn;
-        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 10f : 250f;
-        // The minimap sits at the bottom right of this same column, so the panel stops above it. (The competitor list is the one
-        // panel too tall for that: it steps the minimap aside instead, so ReservedHeightPx is 0 while it is open.)
-        float available = document.rootVisualElement.layout.height - top - 14f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
+        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 8f : 250f;
+        // The minimap sits at the bottom right of this same column, so the panel stops above it. ReservedHeightPx already
+        // includes the minimap's own bottom margin and the gap above it; only the 4-unit on-screen margin remains here.
+        // The older 14-unit allowance double-counted that space and squeezed the estimate/competitor rows by up to 11 units
+        // once the Rack V2 teaching note made the minimap taller. (The competitor list is the one panel too tall for that:
+        // it steps the minimap aside instead, so ReservedHeightPx is 0 while it is open.)
+        float available = document.rootVisualElement.layout.height - top - 4f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
     }
