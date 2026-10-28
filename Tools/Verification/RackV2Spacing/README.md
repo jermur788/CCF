@@ -1,0 +1,7 @@
+# Rack V2 spacing verification
+
+`python3 Tools/Verification/RackV2Spacing/run_offline.py --out <evidence>/offline` compiles the actual Unity-free rack geometry and spacing rules, checks inclusive boundaries, nearest-rack tie order, no neighbour, converging lines and unchanged inputs. The UI obtains its comparison set from `RackEditOthers`, which reads the player plan and excludes the edited ID; suggestions are a separate read-only source. No row-equivalent output is present.
+
+`run_gate.py --gate editing --out <evidence>/unity-spacing --sizes 1280x720,1920x1080` is adapted from the RACK-V2-05 real-pointer gate. It checks and captures the spacing label while drawing, moving and rotating, one rack, and selected racks below, within and above the band. It retains the existing editing checks. Run only in a clean registered Unity lane at the exact candidate under the machine-wide lock. It stages the harness and removes the script and generated meta. Inspect the runner before use: it creates an isolated Unity config and graphical display and may reap only after the documented shutdown marker. The unchanged RACK-V2-04 gate can be run via `--gate map`.
+
+The closest centre-line separation is shown, including where racks converge; it is not an average or a measurement between corridor edges. The 16–20 m recommendation is Scenario One gameplay calibration informed by source guidance. The row count is omitted because accepted evidence authorising player-facing equivalence was not established.

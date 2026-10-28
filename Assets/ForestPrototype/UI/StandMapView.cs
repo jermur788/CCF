@@ -61,7 +61,7 @@ public sealed class StandMapView
     // Direct rack editing in a V2 world (RACK-V2-05): the pointer layer over the squares and the controller behind it.
     private readonly VisualElement editLayer;
     private readonly StandMapRackEditor editor;
-    private Label editStatus;
+    private Label editStatus, editSpacing;
     public StandMapRackEditor RackEditor => editor;
     public VisualElement EditLayer => editLayer;
     // V2 planning is available immediately; the legacy tool retains its original teaching gate.
@@ -557,6 +557,7 @@ public sealed class StandMapView
         Label counter = UiKit.Add(card, $"Racks planned: {manager.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}", "body");
         counter.name = "map-edit-counter";
         editStatus = null;
+        editSpacing = null;
         if (!manager.RackEditingOpen)
         {
             UiKit.Add(card, "The rack plan is confirmed, so its racks are fixed until it is reopened.", "muted");
@@ -576,6 +577,10 @@ public sealed class StandMapView
         else
             UiKit.Add(card, "Drag from the headland into the stand to draw a rack. Click a rack to select it.", "body");
         UiKit.Add(card, "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off.", "faint");
+
+        UiKit.Add(card, "Recommended spacing for this stand: 16–20 m (advisory).", "body");
+        editSpacing = UiKit.Add(card, editor.SpacingText(), "body");
+        editSpacing.name = "map-edit-spacing";
 
         editStatus = UiKit.Add(card, editor.Status, "body");
         editStatus.name = "map-edit-status";
@@ -614,6 +619,7 @@ public sealed class StandMapView
     {
         if (editStatus == null) return;
         editStatus.text = editor.Status;
+        if (editSpacing != null) editSpacing.text = editor.SpacingText();
         editStatus.style.color = editor.StatusIsProblem ? new StyleColor(UiKit.WarningColour) : new StyleColor(StyleKeyword.Null);
     }
 

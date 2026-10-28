@@ -184,6 +184,32 @@ public static class RackEditing
         => (RackGeometry.LengthM(entranceA, entranceB) <= DuplicateToleranceM && RackGeometry.LengthM(farA, farB) <= DuplicateToleranceM)
             || (RackGeometry.LengthM(entranceA, farB) <= DuplicateToleranceM && RackGeometry.LengthM(farA, entranceB) <= DuplicateToleranceM);
 
+    // Centre-line distance to the nearest player rack. The caller supplies only authoritative plan racks,
+    // excluding the rack being edited. Ties use the stable rack ID, independent of enumeration order.
+    public static bool NearestRack(RackPoint entrance, RackPoint far, IReadOnlyList<RackEditOther> others,
+        out int rackId, out float distanceM)
+    {
+        rackId = 0;
+        distanceM = float.PositiveInfinity;
+        if (others == null) return false;
+        foreach (RackEditOther other in others)
+        {
+            float distance = SegmentDistance(entrance, far, other.Entrance, other.Far);
+            if (distance < distanceM || (distance == distanceM && (rackId == 0 || other.Id < rackId)))
+            {
+                rackId = other.Id;
+                distanceM = distance;
+            }
+        }
+        return rackId != 0;
+    }
+
+    // Scenario One gameplay calibration, not a general forestry rule. Boundaries are inclusive.
+    public static string SpacingStatus(float distanceM)
+        => distanceM < 16f ? "closer than recommended for this stand"
+            : distanceM > 20f ? "wider than recommended for this stand"
+            : "within the recommended range for this stand";
+
     // The shortest distance between two segments (0 when they cross or touch).
     public static float SegmentDistance(RackPoint a0, RackPoint a1, RackPoint b0, RackPoint b1)
     {

@@ -338,6 +338,32 @@ public sealed class StandMapRackEditor
         return text;
     }
 
+    // Read the live ghost during a gesture, otherwise the selected authoritative rack. Suggestions are never included.
+    public string SpacingText()
+    {
+        if (Manager == null) return "";
+        RackPoint entrance, far;
+        int ownId;
+        if (Dragging && ghost.HasValue)
+        {
+            entrance = ghost.Value.Start;
+            far = ghost.Value.End;
+            ownId = gesture == Gesture.Create ? 0 : gestureRackId;
+        }
+        else if (SelectedRackId > 0 && Manager.TryGetRack(SelectedRackId, out RackPlanRack selected))
+        {
+            entrance = selected.Entrance;
+            far = selected.Far;
+            ownId = selected.Id;
+        }
+        else return "Select or draw a rack to see its nearest neighbour.";
+
+        if (!RackEditing.NearestRack(entrance, far, Manager.RackEditOthers(ownId), out int neighbour, out float distance))
+            return "No neighbouring player rack yet.";
+        return "Nearest rack " + neighbour + ": " + UiKit.F(distance, "0.0") + " m — " + RackEditing.SpacingStatus(distance)
+            + " (closest centre-line distance).";
+    }
+
     // The compass bearing of a rack, in degrees from north (90 = east), as the map labels it.
     public static float Bearing(RackPoint entrance, RackPoint far)
     {
