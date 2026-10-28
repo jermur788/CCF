@@ -97,6 +97,60 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
             $"Scenario One low-browsing lifecycle drift: pressure={scenarioPressure} hash={scenarioHash}");
     }
 
+    // PARITY-05 conformance. Asserts the accepted CURRENT early-life behaviour; every
+    // value is read from the loaded assets and none is new or retuned. Reads only; it
+    // does not change world state, so the canonical lifecycle hashes are unaffected.
+    private static void VerifyEarlyLifeConformance(ForestEcologyController ecology, ForestTreeSpawner spawner)
+    {
+        TreeSpeciesDefinition sitka = spawner.ResolveSpecies("sitka-spruce");
+        TreeSpeciesDefinition oak = spawner.ResolveSpecies("sessile-oak");
+        TreeSpeciesDefinition beech = spawner.ResolveSpecies("beech");
+        Check(sitka != null && oak != null && beech != null, "Early-life conformance: species missing");
+
+        // Selection: Oak has distinct establishment/survival curves; Beech (FALLBACK-CONSERVATIVE)
+        // and Sitka use the combined legacy response.
+        Check(oak.UsesDistinctJuvenileLightResponses && !beech.UsesDistinctJuvenileLightResponses
+            && !sitka.UsesDistinctJuvenileLightResponses, "Juvenile response selection is not Oak-distinct / Beech+Sitka-combined");
+
+        // Shared juvenile growth/promotion/density calibration (GAMEPLAY CALIBRATION), identical for all three.
+        foreach (TreeSpeciesDefinition s in new[] { sitka, oak, beech })
+        {
+            Check(s.SupportsRegeneration && s.RegenHeightGrowthMPerYear == 0.35f && s.PromotionHeightM == 3.5f
+                && s.RegenDensityPerEstablishment == 0.5f && s.RegenDensityMax == 1.5f
+                && s.RegenMortalityUnderPoorLight == 0.2f && s.RegenPoorLightThreshold == 0.15f,
+                "Shared juvenile calibration changed for " + s.SpeciesId);
+        }
+        Check(sitka.RegenInitialHeightM == 0.15f && beech.RegenInitialHeightM == 0.15f && oak.RegenInitialHeightM == 0.18f
+            && sitka.PromotionMinimumLight == 0f && beech.PromotionMinimumLight == 0f && oak.PromotionMinimumLight == 0.2f,
+            "Species initial height / promotion-light floor changed");
+
+        // Beech and Sitka: the combined fallback rule, exactly (survival 1.0 at or above the threshold,
+        // 1 - mortality below it) and establishment equal to the growth light response.
+        foreach (TreeSpeciesDefinition s in new[] { beech, sitka })
+        foreach (float light in new[] { 0f, 0.02f, 0.05f, 0.1f, 0.15f, 0.2f, 0.35f, 0.55f, 1f })
+        {
+            double expected = s.JuvenileLightResponse(light) < s.RegenPoorLightThreshold ? 1d - s.RegenMortalityUnderPoorLight : 1d;
+            Check(JuvenileEcologyRules.SurvivalResponse(s, light) == expected,
+                $"{s.SpeciesId} survival is not the combined fallback rule at light {light}");
+            Check(s.JuvenileEstablishmentResponse(light) == s.JuvenileLightResponse(light),
+                $"{s.SpeciesId} establishment is not the growth light response at light {light}");
+        }
+        // Oak: the distinct curves really differ from the combined fallback (not a relabelled copy).
+        bool survivalDiffers = false, establishmentDiffers = false;
+        foreach (float light in new[] { 0f, 0.02f, 0.05f, 0.1f, 0.15f, 0.2f, 0.35f, 0.55f, 1f })
+        {
+            double combined = oak.JuvenileLightResponse(light) < oak.RegenPoorLightThreshold ? 1d - oak.RegenMortalityUnderPoorLight : 1d;
+            survivalDiffers |= JuvenileEcologyRules.SurvivalResponse(oak, light) != combined;
+            establishmentDiffers |= oak.JuvenileEstablishmentResponse(light) != oak.JuvenileLightResponse(light);
+        }
+        Check(survivalDiffers && establishmentDiffers, "Oak distinct juvenile curves are indistinguishable from the combined fallback");
+
+        // Broadleaf stock abstraction v1: one species-neutral set of planting-stock values.
+        Check(ecology.PlantedJuvenileAgeYears == 3 && ecology.PlantedJuvenileHeightM == 0.6f && ecology.PlantedJuvenileDensity == 1f,
+            "Shared planting-stock values changed");
+        Debug.Log("EARLY_LIFE_CONFORMANCE_VERIFY_PASS selection=Oak-distinct,Beech-FALLBACK-CONSERVATIVE,Sitka-combined sharedCalibration=exact stock=broadleaf-abstraction");
+    }
+
     private IEnumerator Verify()
     {
         var ecology = FindFirstObjectByType<ForestEcologyController>();
@@ -105,6 +159,7 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         var spawner = FindFirstObjectByType<ForestTreeSpawner>();
         var marks = FindFirstObjectByType<ForestTreeMarkingManager>();
         Check(ecology != null && manager != null && saves != null && spawner != null && marks != null, "Scene controllers missing");
+        VerifyEarlyLifeConformance(ecology, spawner);
         ForestSaveData original = saves.CaptureData();
         string originalHash = ScenarioReferenceArchive.WorldHash(original);
         // These checks assert exact light-only identities between storage forms.

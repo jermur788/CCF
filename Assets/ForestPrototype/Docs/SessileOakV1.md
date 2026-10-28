@@ -5,8 +5,11 @@ acorns can establish below canopy, but whose regeneration cannot recruit into th
 individual-tree layer below 20% relative light.
 
 The generic juvenile-light facility separates three responses for species that opt
-in: establishment, annual density survival, and height growth. Sitka spruce and
-European beech remain on the legacy combined response path.
+in: establishment, annual density survival, and height growth. Oak opts in
+(`useDistinctJuvenileLightResponses: 1`) and keeps its distinct establishment and
+survival curves. Sitka spruce and European beech remain on the legacy combined
+response path; for Beech that combined response is labelled `FALLBACK-CONSERVATIVE`
+(`Docs/BeechSpeciesParameters.md`), not a measured Beech curve.
 
 Oak calibration (the juvenile, reproduction and crown values below are the initial
 Oak v1 values and are still current; the adult growth values were superseded and
@@ -56,6 +59,22 @@ ordinal production calibration v1:
   output). The provisional calibration bands exist for ages 50 and 100 only; Oak sits
   inside both (20–25 m and 30–35 m), and the bands are gameplay-calibration targets,
   not measurements.
+
+## Early-life and browse labels (current)
+
+Scenario One three-species parity P0 (PARITY-05) is a labelling closure with no
+behaviour change.
+
+- Oak's distinct establishment/survival curves, 0.18 m initial height and 20%
+  promotion-light floor are unchanged.
+- Juvenile height growth (0.35 m/year at full light), 3.5 m promotion height and the
+  0.5 / 1.5 relative-density values are shared with Sitka and Beech and are
+  `GAMEPLAY CALIBRATION`, not Oak evidence. Planting stock (age 3, 0.6 m, density 1)
+  is a shared **broadleaf stock abstraction v1**, not an Oak or Beech stock model.
+- Oak `browsePalatability` is 1.0, the highest of the three species (Beech 0.5,
+  Sitka 0.15): ordering Oak > Beech > Sitka is `TRANSFER`, the numbers are
+  gameplay-calibrated. Protection is binary (`Docs/BrowsingProtectionV1.md`), and
+  the Scenario One 0.2 is background browse pressure, not a protection factor.
 
 The supplied 2 m sapling, 8 m young-tree and 20 m mature Oak models are imported
 as three-level Unity LOD prefabs. Regeneration uses the sapling visual, promoted
