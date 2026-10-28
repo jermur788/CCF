@@ -34,7 +34,8 @@ public sealed class HudMinimapView
     public const float NoteSeconds = 30f;
     private const float NoteAllowancePx = 56f;
     private readonly Label note;
-    private float noteShownAt = -1f;
+    // Seconds the note has actually been on screen, so time spent in a menu or with the map closed does not use it up.
+    private float noteSeconds, noteLastTick = -1f;
     private bool noteDone;
     public bool TeachingNoteVisible => note.style.display != DisplayStyle.None;
     public string TeachingNoteText => note.text;
@@ -96,9 +97,12 @@ public sealed class HudMinimapView
         if (wanted && manager.RackPlanConfirmed) { noteDone = true; wanted = false; }
         if (wanted)
         {
-            if (noteShownAt < 0f) noteShownAt = Time.unscaledTime;
-            if (Time.unscaledTime - noteShownAt > NoteSeconds) { noteDone = true; wanted = false; }
+            // A gap longer than half a second is the game being away from this HUD (a menu, a pause), not time the note was seen.
+            if (noteLastTick >= 0f) noteSeconds += Mathf.Min(0.5f, Time.unscaledTime - noteLastTick);
+            noteLastTick = Time.unscaledTime;
+            if (noteSeconds > NoteSeconds) { noteDone = true; wanted = false; }
         }
+        else noteLastTick = -1f;
         note.text = wanted ? TeachingNote : "";
         note.style.display = wanted ? DisplayStyle.Flex : DisplayStyle.None;
     }
