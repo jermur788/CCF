@@ -1,12 +1,12 @@
 # T3 Adaptive Model Routing V1 Implementation Plan
 
 - **Spec ID:** SPEC-T3-ADAPTIVE-MODEL-ROUTING-V1
-- **Spec status:** DRAFT
+- **Spec status:** APPROVED
 - **Plan owner:** Overall Manager
 - **Created:** 2026-10-28
 - **Last updated:** 2026-10-28
 
-No production implementation is authorized while the governing spec remains `DRAFT`.
+Production implementation is authorized only through the bounded ARM task sequence and dependencies defined by the approved governing spec.
 
 ## Architecture / current-state findings
 
