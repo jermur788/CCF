@@ -157,6 +157,21 @@ public sealed class RackV2EditingRunner : MonoBehaviour
 
     private static string F(float value) => value.ToString("R", Inv);
 
+    // Compares the save outside the rack plan with a baseline; on a mismatch both are written to the evidence folder and the first
+    // differing field is reported, so a failure explains itself.
+    private void CheckOutsideRackPlan(string baseline, string message)
+    {
+        string now = SaveOutsideRackPlan();
+        if (now == baseline) { checks++; Debug.Log("RACKV2EDIT_CHECK " + message); return; }
+        int i = 0, n = Math.Min(baseline.Length, now.Length);
+        while (i < n && baseline[i] == now[i]) i++;
+        File.WriteAllText(Path.Combine(output, "outside-baseline.json"), baseline);
+        File.WriteAllText(Path.Combine(output, "outside-now.json"), now);
+        int from = Math.Max(0, i - 120);
+        throw new InvalidOperationException(message + " | first difference at char " + i + " of " + baseline.Length + "/" + now.Length
+            + " | baseline: ..." + baseline.Substring(from, Math.Min(260, baseline.Length - from)) + " | now: ..." + now.Substring(from, Math.Min(260, now.Length - from)));
+    }
+
     private string RackSig(RackPlanRack r) => r.Id + ":" + F(r.Entrance.X) + "," + F(r.Entrance.Z) + ">" + F(r.Far.X) + "," + F(r.Far.Z);
     private string PlanSig() => string.Join(";", manager.RackPlan.Select(RackSig)) + "|next=" + manager.NextRackId + "|confirmed=" + manager.RackPlanConfirmed;
     private static string SuggestionSig(IReadOnlyList<SuggestedRackSegment> s)
@@ -305,7 +320,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         RackPlanOperationResult sixth = manager.CreateRackFromMap(E(-34f), P(38f, -34f));
         Check(sixth.Status == RackPlanOperationStatus.Invalid && sixth.Message.Contains("5 racks") && manager.PlannedRackCount == 5, "a sixth rack is refused");
         Check(manager.WorkOrders.Count == baseOrders && manager.MarkedRackEntranceCount == 0 && OrderSig() == "", "five draft racks create no work order and mark nothing");
-        Check(SaveOutsideRackPlan() == baseOutside, "everything outside the rack plan in the save is untouched by creation");
+        CheckOutsideRackPlan(baseOutside, "everything outside the rack plan in the save is untouched by creation");
 
         // ---- reshape: move and rotate keep identity; one-level undo ----------------------------------------------------
         string planBeforeMove = PlanSig();
@@ -392,7 +407,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         // The undo returned the id allocator, so the second reset hands out the same ids as the first: identity is the allocator's, not luck.
         Check(manager.ResetRacksToSuggestion(suggestion).Succeeded && manager.RackPlan.Count == 5 && manager.RackLayoutMatchesSuggestion(suggestion) && PlanSig() == planAfterReset,
             "reset again works, and after the undo returned the allocator it reproduces the same ids");
-        Check(SaveOutsideRackPlan() == baseOutside, "everything outside the rack plan in the save is untouched after create, move, rotate, delete, undo and reset");
+        CheckOutsideRackPlan(baseOutside, "everything outside the rack plan in the save is untouched after create, move, rotate, delete, undo and reset");
         Check(manager.WorkOrders.Count == baseOrders, "no counter or work order was created by drafting");
 
         // ---- a confirmed plan is fixed; reopening makes it editable; pending work reconciles without duplicates -------------
@@ -772,7 +787,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             Check(PlanSig() == planBeforeReset, tag + ": undo of the reset returned the player's racks with their ids");
 
             // ---- nothing outside the rack plan moved ----------------------------------------------------------------------------------------
-            Check(SaveOutsideRackPlan() == outsideBaseline, tag + ": the save and world outside the authoritative rack plan are unchanged after all pointer editing");
+            CheckOutsideRackPlan(outsideBaseline, tag + ": the save and world outside the authoritative rack plan are unchanged after all pointer editing");
             Check(manager.WorkOrders.Count == 0 && manager.MarkedRackEntranceCount == 0, tag + ": no work order and no mark exist");
             yield return Click(Control("map-edit-reset"));
             if (RackEd.ResetPending) yield return Click(Control("map-edit-reset-confirm"));
