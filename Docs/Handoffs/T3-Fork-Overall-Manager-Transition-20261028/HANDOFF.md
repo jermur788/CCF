@@ -34,7 +34,7 @@ Authority remains:
 
 Repository: `jermur788/t3code`
 
-Current integrated `main` on handoff:
+Integrated `main` observed immediately before this handoff:
 
 `02a3d7a3a3129bdc80b283e991fd8bf9347e0f91`
 
@@ -46,13 +46,13 @@ Do not assume feature branches are merged merely because implementation exists. 
 
 Repository: `jermur788/CCF`
 
-Current `main` on handoff:
+Last substantive manager-state checkpoint before creating this handoff:
 
 `a3ba18c96d78fc721d62d8df8dddc6a576d843d8`
 
 Commit message: `manager: record ARM-010 dispatch`
 
-CCF now contains the approved Adaptive Model Routing V1 governing package and cross-repo manager/task state.
+Creating/updating this transition handoff itself advances CCF `main`, so the new manager MUST inspect current `main` rather than treating the checkpoint above as the final head. CCF contains the approved Adaptive Model Routing V1 governing package and cross-repo manager/task state.
 
 ## Verified T3 foundation
 
@@ -91,7 +91,7 @@ Implementation PR:
 
 `jermur788/t3code` PR #7 — `feat(web): add Workspace and Development interface modes`
 
-Current PR state on handoff:
+Current PR state observed before handoff:
 
 - open;
 - draft;
