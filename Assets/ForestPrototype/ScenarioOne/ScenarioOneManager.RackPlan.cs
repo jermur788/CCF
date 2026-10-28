@@ -451,8 +451,11 @@ public sealed partial class ScenarioOneManager
     // by another rack (even a harvested one) or by an independent open order are left out, as are Crop
     // Trees; the caller never has to deduplicate. The first tree nearest the entrance end becomes the
     // entrance tree.
+    //
+    // ignoredRackIds (RACK-V2-05) lets a dry run ask "what would this rack take if those racks were gone?" without
+    // touching them; every existing caller passes none and behaves exactly as before.
     private bool TrySelectRemovalSet(RackPoint entrance, RackPoint far, int ownRackId,
-        out List<string> removalIds, out string entranceTreeId, out string problem)
+        out List<string> removalIds, out string entranceTreeId, out string problem, ICollection<int> ignoredRackIds = null)
     {
         removalIds = new List<string>();
         entranceTreeId = "";
@@ -465,12 +468,14 @@ public sealed partial class ScenarioOneManager
 
         var claimed = new HashSet<string>(StringComparer.Ordinal);
         foreach (RackSaveData other in racks)
-            if (other != null && other.rackId != ownRackId && other.removalTreeIds != null)
+            if (other != null && other.rackId != ownRackId && other.removalTreeIds != null
+                && (ignoredRackIds == null || !ignoredRackIds.Contains(other.rackId)))
                 foreach (string treeId in other.removalTreeIds)
                     if (!string.IsNullOrEmpty(treeId)) claimed.Add(treeId);
         foreach (ScenarioOneWorkOrder order in workOrders)
             if (order != null && order.IsOpen && order.type == ScenarioWorkType.FellTree
-                && order.rackId != ownRackId && !string.IsNullOrEmpty(order.targetTreeId))
+                && order.rackId != ownRackId && !string.IsNullOrEmpty(order.targetTreeId)
+                && (ignoredRackIds == null || order.rackId <= 0 || !ignoredRackIds.Contains(order.rackId)))
                 claimed.Add(order.targetTreeId);
 
         var trees = new List<RackTree>();

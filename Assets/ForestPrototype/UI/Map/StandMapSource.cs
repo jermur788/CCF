@@ -17,6 +17,23 @@ using UnityEngine;
 //   ground              level unless the scene has a Terrain (it has none, so no relief is drawn)
 //   you                 the player's position and facing
 //   destination         the waypoint set on the Stand Map
+// The rack proposal under the pointer while a rack is being drawn, moved or rotated: where it would be, and whether the editing
+// rules accept it. Display only.
+public readonly struct RackEditGhost
+{
+    public readonly RackPoint Start, End;
+    public readonly float WidthM;
+    public readonly bool Valid;
+
+    public RackEditGhost(RackPoint start, RackPoint end, float widthM, bool valid)
+    {
+        Start = start;
+        End = end;
+        WidthM = widthM;
+        Valid = valid;
+    }
+}
+
 public sealed class StandMapSource
 {
     // The racks, planted juveniles and shelters are re-read this often (and at once when a rack is confirmed): reading the racks walks
@@ -43,6 +60,10 @@ public sealed class StandMapSource
     public RackProposal Preview { get; set; }
     // Display mode only; suggestions are rebuilt from the foundation and never enter the rack plan.
     public bool ShowRackSuggestions { get; set; }
+    // Direct editing (RACK-V2-05): which plan rack is selected, and the proposal being dragged. Both are presentation only; the
+    // plan changes only when an edit is applied to ScenarioOneManager, never from here.
+    public int SelectedRackId { get; set; }
+    public RackEditGhost? EditGhost { get; set; }
 
     public StandMapSource(ScenarioOneUiRoot ui)
     {
@@ -81,6 +102,9 @@ public sealed class StandMapSource
 
     // A rack was confirmed, or the stand geometry changed: read the racks again at the next refresh.
     public void MarkRacksDirty() { racksDirty = true; treesDirty = true; refreshedFrame = -1; }
+
+    // Only the racks changed (a selection, a drag ghost): re-read them without scanning the forest again.
+    public void MarkRackEditDirty() { racksDirty = true; refreshedFrame = -1; }
 
     private void Refresh()
     {
@@ -227,19 +251,23 @@ public sealed class StandMapSource
         {
             if (ShowRackSuggestions)
             {
-                var trees = new List<RackTree>();
-                foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-                {
-                    if (tree == null || string.IsNullOrEmpty(tree.TreeId) || !tree.TreeId.StartsWith("P", System.StringComparison.Ordinal)) continue;
-                    Vector3 position = tree.transform.position;
-                    trees.Add(new RackTree(tree.TreeId, position.x, position.z));
-                }
-                foreach (SuggestedRackSegment segment in ScenarioOneSuggestedRackLayout.Get(
-                    ui.Manager.RackPlanningModelVersion, ui.Ecology.StandGeometryModelVersion, trees))
+                // The one plantation-tree snapshot and the foundation call live on the manager, so the map and the editing rules
+                // read the same guidance.
+                foreach (SuggestedRackSegment segment in ui.Manager.GetSuggestedRackLayout())
                     model.Racks.Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
             }
             foreach (RackPlanRack rack in ui.Manager.RackPlan)
-                model.Racks.Add(new MapRack { Start = rack.Entrance, End = rack.Far, WidthM = rack.WidthM, Symbol = MapSymbol.RackPlayer });
+                model.Racks.Add(new MapRack
+                {
+                    Start = rack.Entrance,
+                    End = rack.Far,
+                    WidthM = rack.WidthM,
+                    // A rack with executed removals is locked and shown as harvested; every other player rack is the solid amber one.
+                    Symbol = rack.IsLocked ? MapSymbol.RackHarvested : MapSymbol.RackPlayer,
+                    RackId = rack.Id,
+                    Locked = rack.IsLocked,
+                    Selected = ShowRackSuggestions && rack.Id == SelectedRackId
+                });
         }
         RackLayoutTracker layout = ui.RackLayout;
         if (layout != null)
@@ -260,6 +288,11 @@ public sealed class StandMapSource
         RackProposal preview = Preview;
         if (preview != null && preview.Selection != null && preview.CanConfirm)
             model.Racks.Add(new MapRack { Start = preview.Selection.Start, End = preview.Selection.End, Symbol = MapSymbol.RackPreview, LayoutIndex = preview.LayoutIndex });
+        if (EditGhost.HasValue && ShowRackSuggestions)
+        {
+            RackEditGhost ghost = EditGhost.Value;
+            model.Racks.Add(new MapRack { Start = ghost.Start, End = ghost.End, WidthM = ghost.WidthM, Symbol = ghost.Valid ? MapSymbol.RackDraft : MapSymbol.RackRefused });
+        }
     }
 
     // Planted juveniles (individuals, at their exact places) and browsing shelters. Both lists are short.

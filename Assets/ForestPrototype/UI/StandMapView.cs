@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 // Screen 6 — stand map. A forestry plan of the property: the real trees, the racks, the path, the clearing, you and your destination, on
@@ -57,6 +58,12 @@ public sealed class StandMapView
     private readonly HashSet<int> rackCells = new HashSet<int>();
     public bool RackMode => rackMode;
     public RackProposal RackPreview => rackProposal;
+    // Direct rack editing in a V2 world (RACK-V2-05): the pointer layer over the squares and the controller behind it.
+    private readonly VisualElement editLayer;
+    private readonly StandMapRackEditor editor;
+    private Label editStatus;
+    public StandMapRackEditor RackEditor => editor;
+    public VisualElement EditLayer => editLayer;
     // V2 planning is available immediately; the legacy tool retains its original teaching gate.
     public bool RackPlanningAvailable => ui.Manager != null && ui.RackTool != null && ui.Ecology != null && ui.Manager.CanEditWorkPlan
         && (ui.Manager.RackPlanningV2Active || !ui.Manager.RackFirstStageActive || ui.Learning.IsDone("rack.create"));
@@ -115,6 +122,17 @@ public sealed class StandMapView
         frame.Add(scaleMark);
         grid = UiKit.Box("map-grid");
         frame.Add(grid);
+        // Over the squares, hidden unless the V2 plan can be edited: while shown it takes the pointer, so the squares underneath
+        // (which only select and place legacy racks) are not clicked by a drag meant for a rack.
+        editLayer = UiKit.Box("map-edit-layer");
+        editLayer.name = "map-edit-layer";
+        editLayer.style.position = Position.Absolute;
+        editLayer.style.left = editLayer.style.top = editLayer.style.right = editLayer.style.bottom = 0;
+        editLayer.pickingMode = PickingMode.Position;
+        editLayer.style.display = DisplayStyle.None;
+        frame.Add(editLayer);
+        editor = new StandMapRackEditor(ui, editLayer, () => Refresh(true));
+        editor.LiveStatusChanged += ShowLiveEditStatus;
         frame.RegisterCallback<PointerMoveEvent>(OnPointerMove);
         frame.RegisterCallback<PointerLeaveEvent>(_ => caption.text = DefaultCaption);
         column.Add(frame);
@@ -164,6 +182,13 @@ public sealed class StandMapView
         ForestEcologyController eco = ui.Ecology;
         if (eco == null || eco.Cells == null)
             return;
+        // Direct rack editing is live only while planning racks in a V2 world whose plan is not confirmed. The Delete / Backspace keys
+        // are polled here because this runs every frame the map is open.
+        bool planningV2 = rackMode && ui.Manager.RackPlanningV2Active;
+        editor.SetActive(planningV2 && ui.Manager.RackEditingOpen);
+        if (!planningV2) editor.ClearSelection();
+        editor.Validate();
+        if (!force) editor.HandleKeys(Keyboard.current);
         int playerCell = ui.Player != null ? eco.GetCellIndex(ui.Player.transform.position) : -1;
         if (selectedCell < 0) selectedCell = playerCell;
         // The rack being planned here is drawn on this map only (the minimap filters it out). Then the surface is given the shared
@@ -180,7 +205,8 @@ public sealed class StandMapView
         surface.Sync(model, Overlay);
         overviewSurface.Sync(model, MapOverlay.None);
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|{model.StaticVersion}|{model.CanopyVersion}"
-            + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}";
+            + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}"
+            + (planningV2 ? "|" + editor.StateKey : "");
         if (!force && key == shownKey)
             return;
         shownKey = key;
@@ -397,6 +423,7 @@ public sealed class StandMapView
     private void ToggleRackMode()
     {
         rackMode = !rackMode;
+        editor.ClearSelection();
         rackHasPoint = false;
         rackProposal = null;
         rackCells.Clear();
@@ -516,6 +543,76 @@ public sealed class StandMapView
         side.Add(card);
     }
 
+    // The direct-editing controls for a V2 plan (RACK-V2-05): the derived rack count, the selected rack, how to edit, the last result,
+    // and the commands. Every command goes to the editor, which goes to the authoritative plan; nothing is decided here.
+    private void BuildEditCard()
+    {
+        ScenarioOneManager manager = ui.Manager;
+        VisualElement card = UiKit.Box("card", "rack-panel");
+        card.name = "map-edit-card";
+        Label counter = UiKit.Add(card, $"Racks planned: {manager.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}", "body");
+        counter.name = "map-edit-counter";
+        editStatus = null;
+        if (!manager.RackEditingOpen)
+        {
+            UiKit.Add(card, "The rack plan is confirmed, so its racks are fixed until it is reopened.", "muted");
+            side.Add(card);
+            return;
+        }
+
+        RackPlanRack selected = null;
+        bool hasSelected = editor.SelectedRackId > 0 && manager.TryGetRack(editor.SelectedRackId, out selected);
+        if (hasSelected)
+        {
+            Label heading = UiKit.Add(card, "Rack " + selected.Id, "rack-heading");
+            heading.name = "map-edit-selected";
+            UiKit.Add(card, $"{UiKit.F(selected.LengthM, "0.0")} m long, pointing {UiKit.F(StandMapRackEditor.Bearing(selected.Entrance, selected.Far), "0")}° from north", "body");
+            if (selected.IsLocked) UiKit.Add(card, "Harvested: its geometry is locked and cannot be changed.", "muted");
+        }
+        else
+            UiKit.Add(card, "Drag from the headland into the stand to draw a rack. Click a rack to select it.", "body");
+        UiKit.Add(card, "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off.", "faint");
+
+        editStatus = UiKit.Add(card, editor.Status, "body");
+        editStatus.name = "map-edit-status";
+        ShowLiveEditStatus();
+
+        VisualElement row = UiKit.Row(card, "row-wrap");
+        Button delete = UiKit.Button("Delete rack", editor.DeleteSelected, hasSelected && !selected.IsLocked, "btn-ghost");
+        delete.name = "map-edit-delete";
+        row.Add(delete);
+        Button undo = UiKit.Button("Undo last rack edit", editor.UndoLast, manager.CanUndoRackEdit, "btn-ghost");
+        undo.name = "map-edit-undo";
+        row.Add(undo);
+        Button reset = UiKit.Button("Reset to suggested layout", editor.RequestReset, !editor.ResetPending, "btn-ghost");
+        reset.name = "map-edit-reset";
+        card.Add(reset);
+
+        if (editor.ResetPending)
+        {
+            VisualElement confirm = UiKit.Box("card", "rack-panel");
+            confirm.name = "map-edit-reset-panel";
+            UiKit.Add(confirm, $"Discard your {manager.PlannedRackCount} planned rack{(manager.PlannedRackCount == 1 ? "" : "s")} and restore the suggested layout?", "body");
+            VisualElement choices = UiKit.Row(confirm, "row-wrap");
+            Button yes = UiKit.Button("Reset layout", editor.ConfirmReset, true, "btn-primary");
+            yes.name = "map-edit-reset-confirm";
+            choices.Add(yes);
+            Button no = UiKit.Button("Keep my racks", editor.CancelReset, true, "btn-ghost");
+            no.name = "map-edit-reset-cancel";
+            choices.Add(no);
+            card.Add(confirm);
+        }
+        side.Add(card);
+    }
+
+    // The status line follows a drag live without rebuilding the card; a refusal is amber, anything else is plain.
+    private void ShowLiveEditStatus()
+    {
+        if (editStatus == null) return;
+        editStatus.text = editor.Status;
+        editStatus.style.color = editor.StatusIsProblem ? new StyleColor(UiKit.WarningColour) : new StyleColor(StyleKeyword.Null);
+    }
+
     // What the selected layer shows, in one or two sentences, with the colour named in words.
     private string LayerNote(ForestEcologyController eco, StandMapModel model)
     {
@@ -548,6 +645,7 @@ public sealed class StandMapView
             {
                 UiKit.Add(side, "Planning Racks — Active", "heading");
                 UiKit.Add(side, "Dashed lines are suggested routes. Solid lines are your planned racks.", "body");
+                BuildEditCard();
             }
             else BuildRackCard(eco);
             return;
@@ -666,6 +764,7 @@ public sealed class StandMapView
         }
         selectedCell = -1;
         waypointCell = -1;
+        editor.ClearSelection();
         DestroyWaypoint();
         shownKey = "";
         // The squares and the survey labels belong to the old geometry.

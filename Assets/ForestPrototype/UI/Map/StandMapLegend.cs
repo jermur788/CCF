@@ -42,7 +42,7 @@ public static class StandMapLegend
         if (model.HasPlayer) Symbol(LegendKind.Wedge, MapSymbol.Player, "You: position and facing");
         if (model.HasWaypoint) Symbol(LegendKind.Diamond, MapSymbol.Waypoint, "Destination");
 
-        bool todo = false, planned = false, open = false, other = false, preview = false, player = false;
+        bool todo = false, planned = false, open = false, other = false, preview = false, player = false, harvested = false;
         foreach (MapRack rack in model.Racks)
         {
             if (rack.MiniOnly) continue;
@@ -54,6 +54,7 @@ public static class StandMapLegend
                 case MapSymbol.RackOther: other = true; break;
                 case MapSymbol.RackPreview: preview = true; break;
                 case MapSymbol.RackPlayer: player = true; break;
+                case MapSymbol.RackHarvested: harvested = true; break;
             }
         }
         if (rackPlanningV2)
@@ -62,6 +63,7 @@ public static class StandMapLegend
             Symbol(LegendKind.Band, MapSymbol.RackPlayer, "Solid = your planned rack");
         }
         if (player && !rackPlanningV2) Symbol(LegendKind.Band, MapSymbol.RackPlayer, "Solid = your planned rack");
+        if (harvested) Symbol(LegendKind.Band, MapSymbol.RackHarvested, "Harvested rack, locked");
         if (preview) Symbol(LegendKind.Band, MapSymbol.RackPreview, "Rack you are planning");
         if (todo) Symbol(LegendKind.Band, MapSymbol.RackToDo, "Rack still to plan");
         if (planned) Symbol(LegendKind.Band, MapSymbol.RackPlanned, "Rack in the Work Plan");
