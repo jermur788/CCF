@@ -463,7 +463,9 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         Check(lockedMove.Status == RackPlanOperationStatus.Locked, "moving or rotating an executed rack is refused: " + lockedMove.Message);
         Check(manager.DeleteRackFromMap(lockedId).Status == RackPlanOperationStatus.Locked, "deleting an executed rack is refused");
         Check(manager.ResetRacksToSuggestion(suggestion).Status == RackPlanOperationStatus.Locked, "a plan holding an executed rack cannot be reset over it");
-        Check(PlanSig() == lockedPlan && OrderSig() == lockedOrders && !manager.CanUndoRackEdit, "the refusals changed nothing and the executed removal is untouched");
+        Check(PlanSig() == lockedPlan, "the refusals left the rack geometry, ids and allocator unchanged");
+        Check(OrderSig() == lockedOrders, "the refusals left every work order (ids, status, trees) unchanged, so the executed removal is untouched");
+        Check(!manager.CanUndoRackEdit, "an edit from before the confirmation, approval and execution can no longer be undone over the new work");
         int free = manager.RackPlan.First(r => !r.IsLocked && r.Id != target).Id;
         RackPlanRack freeRack = Rack(free);
         Check(manager.ReshapeRackFromMap(free, freeRack.Entrance, P(freeRack.Far.X - 4f, freeRack.Far.Z), true).Succeeded, "the other racks stay editable");

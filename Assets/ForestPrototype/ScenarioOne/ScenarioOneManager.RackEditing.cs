@@ -37,23 +37,29 @@ public sealed partial class ScenarioOneManager
                 && Far.X == other.Far.X && Far.Z == other.Far.Z;
     }
 
-    // The geometry of the whole plan plus the id allocator: all an undo needs, and all it compares.
+    // The geometry of the whole plan plus the id allocator, and what the rack-owned work looks like. An undo restores geometry, and
+    // it is only offered while the plan is still exactly as the edit left it: if the plan was confirmed, work approved or executed
+    // since, the order content differs and the undo is no longer available (undoing an old edit over new work would be wrong).
     private sealed class RackPlanSnapshot
     {
         public readonly List<RackGeometryRecord> Racks = new List<RackGeometryRecord>();
         public int NextRackId;
+        public string Orders = "";
 
         public static RackPlanSnapshot Capture(ScenarioOneManager manager)
         {
             var snapshot = new RackPlanSnapshot { NextRackId = manager.nextRackId };
             foreach (RackSaveData rack in manager.racks.Where(rack => rack != null).OrderBy(rack => rack.rackId))
                 snapshot.Racks.Add(new RackGeometryRecord(rack.rackId, new RackPoint(rack.entranceX, rack.entranceZ), new RackPoint(rack.farX, rack.farZ)));
+            // Order content without ids: an order recreated for the same tree after an edit is the same work.
+            snapshot.Orders = string.Join(";", manager.workOrders.Where(order => order != null && order.rackId > 0)
+                .Select(order => order.rackId + ":" + order.status + ":" + order.targetTreeId).OrderBy(text => text, StringComparer.Ordinal));
             return snapshot;
         }
 
         public bool Same(RackPlanSnapshot other)
         {
-            if (other == null || NextRackId != other.NextRackId || Racks.Count != other.Racks.Count)
+            if (other == null || NextRackId != other.NextRackId || Racks.Count != other.Racks.Count || Orders != other.Orders)
                 return false;
             for (int i = 0; i < Racks.Count; i++)
                 if (!Racks[i].Same(other.Racks[i]))
