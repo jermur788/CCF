@@ -323,11 +323,12 @@ public sealed class RackV2EditingRunner : MonoBehaviour
 
         // Rotation about the entrance.
         two = Rack(2);
-        float length = two.LengthM, angle = RackEditing.DirectedAngleDegrees(two.Entrance, two.Far) + 7f;
+        // Rotate downward: an upward turn would swing the far end into rack 3's corridor, which the overlap rule rightly refuses.
+        float length = two.LengthM, angle = RackEditing.DirectedAngleDegrees(two.Entrance, two.Far) - 7f;
         RackPoint rotatedFar = P(two.Entrance.X + length * Mathf.Cos(angle * Mathf.Deg2Rad), two.Entrance.Z + length * Mathf.Sin(angle * Mathf.Deg2Rad));
         string planBeforeRotate = PlanSig();
         Check(manager.ReshapeRackFromMap(2, two.Entrance, rotatedFar).Status == RackPlanOperationStatus.Applied, "rotating rack 2 about its entrance is applied");
-        Check(Same(Rack(2).Entrance, two.Entrance) && Near(Rack(2).LengthM, length, 0.01f) && Near(Rack(2).AngleDegrees, two.AngleDegrees + 7f, 0.05f), "rotation keeps the entrance and the length and changes the angle");
+        Check(Same(Rack(2).Entrance, two.Entrance) && Near(Rack(2).LengthM, length, 0.01f) && Near(Rack(2).AngleDegrees, two.AngleDegrees - 7f, 0.05f), "rotation keeps the entrance and the length and changes the angle");
         Check(manager.UndoLastRackEdit().Succeeded && PlanSig() == planBeforeRotate, "undo restores the rotation exactly");
         Check(manager.ReshapeRackFromMap(2, two.Entrance, two.Far).Status == RackPlanOperationStatus.NoChange && !manager.CanUndoRackEdit, "an unchanged reshape is a no-op and records no undo");
 
@@ -388,7 +389,9 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         string planAfterReset = PlanSig();
         RackPlanOperationResult undoReset = manager.UndoLastRackEdit();
         Check(undoReset.Status == RackPlanOperationStatus.Applied && PlanSig() == planBeforeReset, "undo of the reset restores the previous racks with their old ids");
-        Check(manager.ResetRacksToSuggestion(suggestion).Succeeded && manager.RackPlan.Count == 5 && PlanSig() != planAfterReset, "reset again works (new ids)");
+        // The undo returned the id allocator, so the second reset hands out the same ids as the first: identity is the allocator's, not luck.
+        Check(manager.ResetRacksToSuggestion(suggestion).Succeeded && manager.RackPlan.Count == 5 && manager.RackLayoutMatchesSuggestion(suggestion) && PlanSig() == planAfterReset,
+            "reset again works, and after the undo returned the allocator it reproduces the same ids");
         Check(SaveOutsideRackPlan() == baseOutside, "everything outside the rack plan in the save is untouched after create, move, rotate, delete, undo and reset");
         Check(manager.WorkOrders.Count == baseOrders, "no counter or work order was created by drafting");
 
