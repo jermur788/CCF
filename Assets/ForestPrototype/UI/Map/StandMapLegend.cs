@@ -32,7 +32,7 @@ public sealed class LegendEntry
 
 public static class StandMapLegend
 {
-    public static List<LegendEntry> Entries(StandMapModel model, MapOverlay overlay)
+    public static List<LegendEntry> Entries(StandMapModel model, MapOverlay overlay, bool rackPlanningV2 = false)
     {
         var list = new List<LegendEntry>();
         if (model == null || !model.HasProperty) return list;
@@ -42,8 +42,10 @@ public static class StandMapLegend
         if (model.HasPlayer) Symbol(LegendKind.Wedge, MapSymbol.Player, "You: position and facing");
         if (model.HasWaypoint) Symbol(LegendKind.Diamond, MapSymbol.Waypoint, "Destination");
 
-        bool todo = false, planned = false, open = false, other = false, preview = false;
+        bool todo = false, planned = false, open = false, other = false, preview = false, player = false;
         foreach (MapRack rack in model.Racks)
+        {
+            if (rack.MiniOnly) continue;
             switch (rack.Symbol)
             {
                 case MapSymbol.RackToDo: todo = true; break;
@@ -51,7 +53,15 @@ public static class StandMapLegend
                 case MapSymbol.RackOpen: open = true; break;
                 case MapSymbol.RackOther: other = true; break;
                 case MapSymbol.RackPreview: preview = true; break;
+                case MapSymbol.RackPlayer: player = true; break;
             }
+        }
+        if (rackPlanningV2)
+        {
+            Symbol(LegendKind.Band, MapSymbol.RackSuggested, "Dashed = suggested");
+            Symbol(LegendKind.Band, MapSymbol.RackPlayer, "Solid = your planned rack");
+        }
+        if (player && !rackPlanningV2) Symbol(LegendKind.Band, MapSymbol.RackPlayer, "Solid = your planned rack");
         if (preview) Symbol(LegendKind.Band, MapSymbol.RackPreview, "Rack you are planning");
         if (todo) Symbol(LegendKind.Band, MapSymbol.RackToDo, "Rack still to plan");
         if (planned) Symbol(LegendKind.Band, MapSymbol.RackPlanned, "Rack in the Work Plan");

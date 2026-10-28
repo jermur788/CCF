@@ -99,7 +99,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if (rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackBand(model, t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
@@ -124,7 +124,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if (rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackLine(t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
@@ -279,7 +279,7 @@ public static class StandMapDrawPlan
     private static MapDrawItem RackBand(StandMapModel model, StandMapTransform t, MapRack rack, int index, MapSymbolStyle rackStyle, MapDrawLayer layer)
     {
         float dx = rack.End.X - rack.Start.X, dz = rack.End.Z - rack.Start.Z, length = (float)Math.Sqrt(dx * dx + dz * dz);
-        float half = RackGeometry.DefaultWidthM * 0.5f;
+        float half = rack.WidthM * 0.5f;
         // Never thinner than the band's own minimum on a small map: a rack must still be seen on the minimap.
         float minHalf = StandMapSymbols.Get(MapSymbol.RackBand).MinPx * 0.5f / Math.Max(0.0001f, t.PixelsPerMetre);
         if (half < minHalf) half = minHalf;

@@ -41,6 +41,8 @@ public sealed class StandMapSource
 
     // The rack the Stand Map is planning, if any. Set by the Stand Map; the minimap filters it out.
     public RackProposal Preview { get; set; }
+    // Display mode only; suggestions are rebuilt from the foundation and never enter the rack plan.
+    public bool ShowRackSuggestions { get; set; }
 
     public StandMapSource(ScenarioOneUiRoot ui)
     {
@@ -221,6 +223,24 @@ public sealed class StandMapSource
     private void ReadRacks()
     {
         model.Racks.Clear();
+        if (ui.Manager != null && ui.Manager.RackPlanningV2Active)
+        {
+            if (ShowRackSuggestions)
+            {
+                var trees = new List<RackTree>();
+                foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                {
+                    if (tree == null || string.IsNullOrEmpty(tree.TreeId) || !tree.TreeId.StartsWith("P", System.StringComparison.Ordinal)) continue;
+                    Vector3 position = tree.transform.position;
+                    trees.Add(new RackTree(tree.TreeId, position.x, position.z));
+                }
+                foreach (SuggestedRackSegment segment in ScenarioOneSuggestedRackLayout.Get(
+                    ui.Manager.RackPlanningModelVersion, ui.Ecology.StandGeometryModelVersion, trees))
+                    model.Racks.Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
+            }
+            foreach (RackPlanRack rack in ui.Manager.RackPlan)
+                model.Racks.Add(new MapRack { Start = rack.Entrance, End = rack.Far, WidthM = rack.WidthM, Symbol = MapSymbol.RackPlayer });
+        }
         RackLayoutTracker layout = ui.RackLayout;
         if (layout != null)
             foreach (RackLayoutLine line in layout.Lines)
@@ -229,13 +249,14 @@ public sealed class StandMapSource
                     Start = line.Start,
                     End = line.End,
                     LayoutIndex = line.Index,
+                    MiniOnly = ui.Manager != null && ui.Manager.RackPlanningV2Active,
                     // Done = nothing left to plan; no tree left standing in the corridor = it has been harvested.
                     Symbol = !line.Done ? MapSymbol.RackToDo : line.TreesLeft > 0 ? MapSymbol.RackPlanned : MapSymbol.RackOpen
                 });
         if (ui.Manager != null)
             foreach (RackGroup group in ui.Manager.RackGroups)
                 if (group.LayoutIndex < 0 && (group.Start.X != group.End.X || group.Start.Z != group.End.Z))
-                    model.Racks.Add(new MapRack { Start = group.Start, End = group.End, Symbol = MapSymbol.RackOther });
+                    model.Racks.Add(new MapRack { Start = group.Start, End = group.End, Symbol = MapSymbol.RackOther, MiniOnly = ui.Manager.RackPlanningV2Active });
         RackProposal preview = Preview;
         if (preview != null && preview.Selection != null && preview.CanConfirm)
             model.Racks.Add(new MapRack { Start = preview.Selection.Start, End = preview.Selection.End, Symbol = MapSymbol.RackPreview, LayoutIndex = preview.LayoutIndex });

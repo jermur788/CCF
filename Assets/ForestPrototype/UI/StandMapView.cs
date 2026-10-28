@@ -24,7 +24,7 @@ public sealed class StandMapView
 
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
-    private readonly VisualElement grid, side, layerButtons, frame, eastLabels, northLabels, overviewFacts;
+    private readonly VisualElement grid, side, layerButtons, toolButtons, frame, eastLabels, northLabels, overviewFacts;
     private readonly StandMapSurface surface, overviewSurface;
     private readonly StandMapLegendView legendView;
     private readonly Label caption, northMark, scaleMark;
@@ -57,9 +57,9 @@ public sealed class StandMapView
     private readonly HashSet<int> rackCells = new HashSet<int>();
     public bool RackMode => rackMode;
     public RackProposal RackPreview => rackProposal;
-    // Offered once the first rack has been made in the forest, or at once when the opening rack stage is not in play.
+    // V2 planning is available immediately; the legacy tool retains its original teaching gate.
     public bool RackPlanningAvailable => ui.Manager != null && ui.RackTool != null && ui.Ecology != null && ui.Manager.CanEditWorkPlan
-        && (!ui.Manager.RackFirstStageActive || ui.Learning.IsDone("rack.create"));
+        && (ui.Manager.RackPlanningV2Active || !ui.Manager.RackFirstStageActive || ui.Learning.IsDone("rack.create"));
 
     public StandMapView(ScenarioOneUiRoot ui)
     {
@@ -83,6 +83,10 @@ public sealed class StandMapView
         layerButtons = UiKit.Box("map-tabs");
         layerButtons.name = "map-tabs";
         modal.Add(layerButtons);
+        toolButtons = UiKit.Box("row");
+        toolButtons.name = "map-tools";
+        toolButtons.style.marginBottom = 6;
+        modal.Add(toolButtons);
 
         VisualElement body = UiKit.Box("map-body");
         VisualElement left = UiKit.Box("map-left");
@@ -164,7 +168,8 @@ public sealed class StandMapView
         if (selectedCell < 0) selectedCell = playerCell;
         // The rack being planned here is drawn on this map only (the minimap filters it out). Then the surface is given the shared
         // model, which is re-read now so it is as current as the squares below.
-        ui.MapSource.Preview = rackMode ? rackProposal : null;
+        ui.MapSource.Preview = rackMode && !ui.Manager.RackPlanningV2Active ? rackProposal : null;
+        ui.MapSource.ShowRackSuggestions = rackMode && ui.Manager.RackPlanningV2Active;
         StandMapModel model = force ? ui.MapSource.Rebuild() : ui.MapSource.Model;
         // Opening the map must show the forest as it is now: finish any redraw that is part-way.
         if (force)
@@ -186,7 +191,7 @@ public sealed class StandMapView
         UpdateField(eco);
         UpdateSurveyLabels(model);
         UpdateOverview(model, eco);
-        legendView.Show(model, Overlay, key);
+        legendView.Show(model, Overlay, key, rackMode && ui.Manager.RackPlanningV2Active);
         BuildSide(eco, model);
     }
 
@@ -198,13 +203,16 @@ public sealed class StandMapView
         AddLayerButton("Regeneration", Layer.Regeneration);
         AddLayerButton("Browsing / protection", Layer.Browse);
         AddLayerButton("Fell & crop marks", Layer.Marks);
+        toolButtons.Clear();
         if (RackPlanningAvailable)
         {
-            Button plan = UiKit.Button(rackMode ? "Plan rack: ON" : "Plan rack", ToggleRackMode, true,
+            string label = ui.Manager.RackPlanningV2Active
+                ? (rackMode ? "Planning Racks — Active" : "Plan Racks")
+                : (rackMode ? "Plan rack: ON" : "Plan rack");
+            Button plan = UiKit.Button(label, ToggleRackMode, true,
                 rackMode ? new[] { "btn-selected" } : new[] { "btn-primary" });
             plan.name = "map-plan-rack";
-            plan.style.marginLeft = 12;
-            layerButtons.Add(plan);
+            toolButtons.Add(plan);
         }
     }
 
@@ -233,7 +241,7 @@ public sealed class StandMapView
             for (int x = 0; x < n; x++)
             {
                 int index = z * n + x;
-                var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); if (rackMode) PlaceRack(ui.Ecology, index); Refresh(true); }) { text = "", focusable = false };
+                var cell = new Button(() => { selectedCell = index; ui.Learning.Record("map.select"); if (rackMode && !ui.Manager.RackPlanningV2Active) PlaceRack(ui.Ecology, index); Refresh(true); }) { text = "", focusable = false };
                 cell.AddToClassList("map-cell");
                 MapPosition corner = transform.CellTopLeft(index, n);
                 cell.style.position = Position.Absolute;
@@ -392,7 +400,7 @@ public sealed class StandMapView
         rackHasPoint = false;
         rackProposal = null;
         rackCells.Clear();
-        if (rackMode)
+        if (rackMode && !ui.Manager.RackPlanningV2Active)
         {
             ui.RackTool.Planner.Refresh();
             rackAngle = ui.RackTool.Planner.DefaultAngle(0f, true);
@@ -536,7 +544,12 @@ public sealed class StandMapView
         // Planning a rack: the rack card is the whole side panel (the square diagnosis is back when the mode is off).
         if (rackMode)
         {
-            BuildRackCard(eco);
+            if (ui.Manager.RackPlanningV2Active)
+            {
+                UiKit.Add(side, "Planning Racks — Active", "heading");
+                UiKit.Add(side, "Dashed lines are suggested routes. Solid lines are your planned racks.", "body");
+            }
+            else BuildRackCard(eco);
             return;
         }
         if (selectedCell < 0 || selectedCell >= eco.Cells.Length)

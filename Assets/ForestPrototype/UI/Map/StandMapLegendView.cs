@@ -145,12 +145,12 @@ public sealed class StandMapLegendView
     }
 
     // key identifies the content; the rows are rebuilt only when it changes.
-    public void Show(StandMapModel model, MapOverlay overlay, string key)
+    public void Show(StandMapModel model, MapOverlay overlay, string key, bool rackPlanningV2 = false)
     {
         if (key == shownKey) return;
         shownKey = key;
         body.Clear();
-        List<LegendEntry> entries = StandMapLegend.Entries(model, overlay);
+        List<LegendEntry> entries = StandMapLegend.Entries(model, overlay, rackPlanningV2);
         RowCount = entries.Count;
         foreach (LegendEntry entry in entries)
         {
