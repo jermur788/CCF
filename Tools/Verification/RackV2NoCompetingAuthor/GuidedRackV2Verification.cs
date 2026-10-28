@@ -122,10 +122,24 @@ public sealed partial class GuidedOnboardingRunner
         Check(ui.Learning.CurrentTopicIndex == 0 && !RackTool.AnyActive, "planning does not fabricate the post-execution lesson");
         yield return Shoot("v2-map-confirmed");
         ui.ShowWorkPlan(); yield return Pause(20); if (ui.Help.IsOpen) ui.CloseHelp(); yield return Pause();
-        Button show = Button("Show trees");
-        Check(show != null && show.enabledInHierarchy && !show.ClassListContains("btn-ghost"), "V2 Show trees is a clear enabled action with actual jobs");
-        yield return Click(show);
-        Check(Button("Hide trees") != null, "V2 Show trees expands the actual rack job list");
+        // The "Show trees" control belongs to the session RackGroups that legacy confirmation creates (model-0 branch, retained in
+        // GuidedOnboardingVerification). A confirmed V2 plan makes no such group: its rack-owned jobs are ordinary open fell orders,
+        // which the Work Plan lists one per line with the same Sell / Keep / Remove controls. Assert that actual presentation.
+        List<ScenarioOneWorkOrder> ownedJobs = manager.WorkOrders.Where(o => o.rackId > 0 && o.IsOpen && ScenarioOneManager.IsHarvestOrder(o)).ToList();
+        int openFell = manager.WorkOrders.Count(o => o.IsOpen && ScenarioOneManager.IsHarvestOrder(o));
+        Check(manager.RackGroups.Count == 0 && Button("Show trees") == null, "V2 confirmation creates no legacy session rack group or Show trees control");
+        List<TextElement> planText = ui.RootElement.Query<TextElement>().ToList().Where(Visible).ToList();
+        Check(ownedJobs.Count == openFell && openFell > 0
+            && planText.Any(t => t.text.StartsWith("Harvest and salvage job", StringComparison.Ordinal) && t.text.Contains(openFell + " stem(s)")),
+            "V2 Work Plan harvest card counts every confirmed rack-owned job", $"jobs={ownedJobs.Count} openFell={openFell}");
+        ScenarioOneWorkOrder first = ownedJobs.OrderBy(o => o.workOrderId).First();
+        TextElement line = planText.FirstOrDefault(t => t.text.StartsWith(first.targetTreeId + " · ", StringComparison.Ordinal));
+        List<Button> rowButtons = line != null ? line.parent.Query<Button>().ToList().Where(Visible).ToList() : new List<Button>();
+        Check(line != null && ownedJobs.All(o => planText.Any(t => t.text.StartsWith(o.targetTreeId + " · ", StringComparison.Ordinal))),
+            "V2 Work Plan lists every rack-owned job as its own line");
+        Check(rowButtons.Any(b => b.text == "Sell" && b.enabledInHierarchy) && rowButtons.Any(b => b.text == "Remove" && b.enabledInHierarchy),
+            "V2 rack-owned job line offers the real enabled Sell and Remove controls");
+        if (line != null) { line.GetFirstAncestorOfType<ScrollView>()?.ScrollTo(line); yield return Pause(); }
         yield return Shoot("v2-work-plan-rack-jobs"); ui.CloseAll(); yield return Pause();
     }
 }
