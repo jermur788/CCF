@@ -606,7 +606,17 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             throw new InvalidOperationException("capture " + image.width + "x" + image.height + " does not match game view " + Screen.width + "x" + Screen.height);
         string file = state + "-" + shot + "-" + Screen.width + "x" + Screen.height + ".png";
         File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
+        // A successful screenshot API call can still return a black texture on this Editor/display combination. Never count that as
+        // rendered evidence. Sample across the image; the map and its panels must contribute visible pixels.
+        bool visible = false;
+        for (int y = 0; y < image.height && !visible; y += Math.Max(1, image.height / 32))
+            for (int x = 0; x < image.width && !visible; x += Math.Max(1, image.width / 32))
+            {
+                Color c = image.GetPixel(x, y);
+                visible = c.r > 0.01f || c.g > 0.01f || c.b > 0.01f;
+            }
         Destroy(image);
+        if (!visible) throw new InvalidOperationException("capture is black: " + file);
         shots++;
         VisualElement frame = ui.Map.Root.Q("map-frame");
         float s = PixelsPerUnit; Rect r = frame.worldBound;
