@@ -4,7 +4,7 @@
 **Mode:** bounded implementation + focused qualification  
 **Spec:** `specs/scenario-one-objective-1-rack-planning-field-marking-v2/` (APPROVED)  
 **Prerequisite:** RACK-V2-05 APPROVED / INTEGRATED through PR #44 / merge `0ec6bc4d473975e9938040026737e70a33432c48`; Manager review `Docs/Handoffs/RACK-V2-05/MANAGER-REVIEW.md`  
-**Minimum base:** current `main` must descend from `5757c5625299b849bc732431f2e27dc5e79fa06c`.
+**Minimum base:** current `main` must descend from the integrated RACK-V2-05 Manager-review lineage; refresh `origin/main` immediately before starting and record the actual starting HEAD in claim #45.
 
 ## Goal
 
