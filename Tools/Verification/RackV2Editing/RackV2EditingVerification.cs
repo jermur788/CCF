@@ -75,6 +75,29 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     private readonly List<string> manifest = new List<string>(), notes = new List<string>(), stateLines = new List<string>();
     private float ax, bx, ay, by;
     private bool calibrated;
+    // Every pointer event the edit layer sees (trickle-down, before the editor's own handlers), with the frame it arrived in: lets a
+    // failure be read as "the Editor delivered these events at these times" instead of guessed at.
+    private readonly List<string> pointerTrace = new List<string>();
+    private bool traceRegistered;
+
+    private void RegisterPointerTrace()
+    {
+        if (traceRegistered) return;
+        traceRegistered = true;
+        VisualElement layer = ui.Map.EditLayer;
+        layer.RegisterCallback<PointerDownEvent>(e => Trace("down", e.localPosition, e.button), TrickleDown.TrickleDown);
+        layer.RegisterCallback<PointerMoveEvent>(e => Trace("move", e.localPosition, e.pressedButtons), TrickleDown.TrickleDown);
+        layer.RegisterCallback<PointerUpEvent>(e => Trace("up", e.localPosition, e.button), TrickleDown.TrickleDown);
+    }
+
+    private void Trace(string kind, Vector2 local, int info)
+    {
+        RackPoint w = RackEd.FramePxToWorld(local);
+        pointerTrace.Add(string.Format(Inv, "t={0:F3} frame={1} {2} info={3} local=({4:F1},{5:F1}) world=({6:F2},{7:F2}) mouse={8} ghostZ={9}",
+            Time.realtimeSinceStartup, Time.frameCount, kind, info, local.x, local.y, w.X, w.Z,
+            Mouse.current != null ? Mouse.current.position.ReadValue().ToString() : "none",
+            RackEd.Ghost.HasValue ? RackEd.Ghost.Value.Start.Z.ToString("F2", Inv) : "-"));
+    }
     private StandMapRackEditor RackEd => ui.Map.RackEditor;
     private ScenarioOneManager M => manager;
 
@@ -228,6 +251,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             "{\n \"sizes\": \"" + string.Join(",", Sizes().Select(s => s.x + "x" + s.y)) + "\",\n \"shots\": [\n"
             + string.Join(",\n", manifest) + "\n ],\n \"states\": [\n" + string.Join(",\n", stateLines) + "\n ]\n}\n");
         File.WriteAllLines(Path.Combine(output, "notes.txt"), notes);
+        File.WriteAllLines(Path.Combine(output, "pointer-trace.txt"), pointerTrace);
         if (!string.IsNullOrEmpty(driverDir)) File.WriteAllText(Path.Combine(driverDir, "finished"), failure == null ? "pass" : "fail");
         Debug.Log(failure == null ? "RACK_V2_EDITING_UNITY_PASS checks=" + checks + " shots=" + shots
             : "RACK_V2_EDITING_UNITY_FAIL checks=" + checks + " shots=" + shots + " exception=" + failure);
@@ -668,6 +692,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             if (ui.Help != null && ui.Help.IsOpen) { ui.CloseHelp(); yield return Settle(12); }
             Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map && Screen.width == size.x && Screen.height == size.y, tag + ": Stand Map open at the requested size");
             yield return Wait(0.6f);
+            RegisterPointerTrace();
             yield return Calibrate();
 
             string outsideBaseline = SaveOutsideRackPlan();
