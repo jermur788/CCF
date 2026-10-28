@@ -1,11 +1,11 @@
 # T3 Adaptive Model Routing V1 Specification
 
 - **Spec ID:** SPEC-T3-ADAPTIVE-MODEL-ROUTING-V1
-- **Status:** DRAFT
+- **Status:** APPROVED
 - **Owner:** Overall Manager
 - **Created:** 2026-10-28
 - **Last updated:** 2026-10-28
-- **Decision log references:** none — draft for Overall Manager review
+- **Decision log references:** `Docs/Handoffs/T3-Fork-Adaptive-Model-Routing-20261028/MANAGER-REVIEW.md`
 - **Milestone:** T3 Fork adaptive model routing design
 - **Related evidence:** `Docs/Handoffs/T3-Fork-Adaptive-Model-Routing-20261028/HANDOFF.md`; `Docs/Research/ModelCapabilityCost/Model_Capability_Cost_Routing_Research_2026-10-28.md`; `Docs/Research/ModelCapabilityCost/Claude_Independent_Model_Capability_Cost_Routing_Research_2026-10-28.md`; `Docs/Research/ModelCapabilityCost/Claude_vs_OpenAI_Model_Research_Divergence_2026-10-28.md`; `Docs/Research/ModelCapabilityCost/RESEARCH-CORRECTIONS-2026-10-28.md`; `Docs/Handoffs/ModelCapabilityCostResearch-ClaudeReplication-20261028/MANAGER-REVIEW.md`
 - **Inspected implementation base:** `jermur788/t3code main @ 02a3d7a3a3129bdc80b283e991fd8bf9347e0f91`
@@ -47,7 +47,7 @@ Without those records, routing remains largely static and project knowledge abou
 
 ## Non-goals
 
-- No production implementation is authorized by this draft.
+- No production implementation outside the approved bounded ARM task sequence; implementation must follow this spec/plan/tasks and return to the spec for material design changes.
 - No API-key routing, API billing, token-price optimization or marginal per-token cost calculation.
 - No automatic purchase, credit enablement, overage enablement or paid usage-credit path. In particular, Fable usage credits/overage-like billed paths MUST remain disabled unless a separate explicit product decision authorizes them.
 - No replacement of existing T3 provider registries, provider instance configuration, Runtime routing, orchestration, worktree or session internals.
@@ -446,6 +446,7 @@ Experiment outcomes are judged by authoritative accepted-work and resource/capac
 - Logs and error messages MUST redact sensitive account identifiers and provider payloads.
 - Tool/connector telemetry follows the capability/fingerprint rules above.
 - Export/sharing of adaptive telemetry is opt-in and outside automatic V1 behavior.
+- V1 does not automatically expire or lossy-roll-up raw adaptive telemetry; it remains local until explicitly deleted or a later accepted retention policy supersedes this default.
 - Retention/cleanup MUST preserve the ability to audit recommendations while allowing the user to delete adaptive telemetry without deleting core Runtime task truth.
 - Deleting adaptive data MUST NOT rewrite task, handoff, execution or CCF verification records.
 
@@ -543,11 +544,9 @@ Return to the Overall Manager/spec instead of assuming a solution if implementat
 - a material cross-project learning/privacy policy beyond the project-local default;
 - a material new data-export/cloud-telemetry policy.
 
-## Open product decisions for Overall Manager review
+## Accepted V1 product decisions
 
-These are deliberately left visible rather than silently fixed by implementation:
-
-1. **Cross-project learning scope.** Draft recommendation: raw execution observations remain project-scoped; capacity is environment/pool-scoped; adaptive aggregates default to project-scoped evidence, with broader environment-wide learning requiring explicit opt-in or a later decision.
-2. **Automatic recommendation application.** Draft V1 is advisory-only. A later V2 could allow an explicitly enabled automatic selector after sufficient evidence and independent qualification.
-3. **Retention defaults.** Exact raw-observation retention period/roll-up policy should be set during implementation planning after estimating record volume; security/privacy invariants above are fixed regardless.
-4. **Human-readable account labels.** Draft default is opaque local aliases, with optional user-defined display labels that do not expose provider credentials or billing identifiers.
+1. **Cross-project learning scope.** Raw task/execution observations remain project-scoped; capacity remains environment/provider-pool scoped; learned outcome aggregates default to project-local evidence. Broader cross-project outcome learning is deferred unless explicitly opted into or approved by a later governing decision.
+2. **Automatic recommendation application.** V1 is advisory-only. Automatic application is deferred beyond V1 and requires a separate product/spec decision after sufficient evidence and independent qualification.
+3. **Retention defaults.** V1 has no automatic expiry or lossy roll-up. Local raw adaptive telemetry remains until explicitly deleted. A later accepted retention policy may add expiry/roll-up after real storage/privacy evidence exists, without silently rewriting historical recommendation provenance.
+4. **Human-readable account labels.** Opaque local capacity-pool IDs remain canonical/default. Optional user-defined local display aliases are allowed; provider-derived personal/billing identity is not required or stored by default.
