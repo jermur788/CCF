@@ -25,7 +25,7 @@ public sealed class StandMapView
 
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
-    private readonly VisualElement grid, side, layerButtons, toolButtons, frame, eastLabels, northLabels, overviewFacts;
+    private readonly VisualElement grid, side, layerButtons, frame, eastLabels, northLabels, overviewFacts;
     private readonly StandMapSurface surface, overviewSurface;
     private readonly StandMapLegendView legendView;
     private readonly Label caption, northMark, scaleMark;
@@ -92,10 +92,6 @@ public sealed class StandMapView
         layerButtons = UiKit.Box("map-tabs");
         layerButtons.name = "map-tabs";
         modal.Add(layerButtons);
-        toolButtons = UiKit.Box("row");
-        toolButtons.name = "map-tools";
-        toolButtons.style.marginBottom = 6;
-        modal.Add(toolButtons);
 
         VisualElement body = UiKit.Box("map-body");
         VisualElement left = UiKit.Box("map-left");
@@ -238,7 +234,6 @@ public sealed class StandMapView
         AddLayerButton("Regeneration", Layer.Regeneration);
         AddLayerButton("Browsing / protection", Layer.Browse);
         AddLayerButton("Fell & crop marks", Layer.Marks);
-        toolButtons.Clear();
         if (RackPlanningAvailable)
         {
             string label = ui.Manager.RackPlanningV2Active
@@ -247,7 +242,10 @@ public sealed class StandMapView
             Button plan = UiKit.Button(label, ToggleRackMode, true,
                 rackMode ? new[] { "btn-selected" } : new[] { "btn-primary" });
             plan.name = "map-plan-rack";
-            toolButtons.Add(plan);
+            // The rack control stays on the tab row: a second toolbar row cost more window height than the
+            // fixed-size map and its survey caption could spare at 720p and 1080p.
+            plan.style.marginLeft = 12;
+            layerButtons.Add(plan);
         }
     }
 
