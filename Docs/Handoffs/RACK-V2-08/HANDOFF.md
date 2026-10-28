@@ -1,155 +1,74 @@
-# RACK-V2-08 — resumed inspection / additional G3 blocker
+# RACK-V2-08 — implementation handoff (Combined HUD blocked by pre-existing main defects)
 
-**BLOCKED — additional protected intro-fixture disposition required.** The previous first-person-authoring G3 blocker was cleared and claim #49 resumed RUNNING, but the unchanged guided gate contains another, unrelated stale contract. No production or protected-test edits have been made. The requested success exit is not achieved.
-
-- Continuing worker: T3 Code / OpenAI Codex `gpt-6.1-sol`, high; single writer in the same branch/worktree. Previous DeepSeek watcher was stopped at the prior blocker handoff and has not been relaunched; no second writer or quota-source change.
-- Branch: `feature/scenario-one-rack-v2-no-competing-author-v1`; worktree `/media/jer/ZX20/CCF-RackV2-08`.
-- Refreshed main: `8f8e6f03c65894b0d933aad23a4ad69227fb33e8`; context commit `ea9c4590d9f9d959bd5c56d7738e04c611bfcdcd`. Main contains the required task base and docs-only OPEN-3 sync PR #51 / merge `c15df9f916f4dab5fca66ad8348a620370841911`.
-- Resume merge HEAD: `b0eee6249b0a152a8b60e67f7df00bf8440f50c6`; coordination resume commit `4d3a341` updates only RACK-V2-08. RACK-V2-07 already records Manager-approved/integrated PR #48. All unrelated coordination-row bytes compared unchanged; CCF-Primary unrelated work untouched.
-- Exact runtime-tested candidate: NONE. Implementation commits: NONE. Final tip: the documentation-only commit containing this resumed handoff; full identity recorded in claim #49.
-- Durable evidence: `/media/jer/Files/CCF/Verification/RackV2-08-Resume-20261028T130353Z/`; source conflict report and proposed reviewable patch `PROPOSED-intro-fixture-G3.patch`. Patch is outside the repo and has NOT been applied.
-
-## Additional protected conflict
-
-`Tools/Verification/ScenarioOneRackUx/GuidedOnboardingVerification.cs:144–147` requires the Scenario One title on the initial introduction screen, the literal phrases `next generation` and `one step at a time`, and a single CloseHelp before Objectives. Current main's accepted `ScenarioOneOnboardingView.Show` starts page 0, and `Render` clears/rebuilds one page at a time. The Scenario One title occurs on page 3; neither line-145 phrase occurs in the current introduction copy; CloseHelp advances one page rather than closing the three-page sequence. The fixture would therefore encounter an unrelated obsolete intro contract before reaching the authoring split. This is source-confirmed, **not an observed Unity failure**.
-
-`G3-DISPOSITION.md`, Decision item 4, states: “No assertion unrelated to the superseded authoring route is authorised for weakening or expected-value movement. Any further protected conflict returns to Manager G3 review.” The worker stopped rather than move the expected strings, suppress the introduction, fabricate old copy, skip assertions or retire a gate.
-
-Proposed bounded amendment, awaiting explicit Manager/user approval: verify all three current onboarding pages and rendered premise/management-cycle content; invoke their real Next/Begin UI controls; assert Begin closes before rack teaching; preserve every subsequent world-hash, rack, input, progression and layout assertion. The exact proposed diff is in the external evidence archive. The original first-person-authoring G3 disposition remains valid and unchanged.
-
-A second fixture constraint is recorded for review: `ScenarioOneRackLayout.AppliesTo` accepts only Enlarged80, so the complete existing guided/sequential rack-first teaching contract cannot execute as-is in true Legacy40. Proposed coverage is an explicit rack-model-0 Enlarged80 saved-world compatibility fixture for the retained full sequence, plus a separate true Legacy40 first-person/progression runtime check. This approach is proposed, not implemented or passed; no unrelated stage or geometry expectation was changed.
-
-## Unity and verification
-
-- Read `G3-DISPOSITION.md` before any production edit; fetched/merged current main; verified base/OPEN-3 ancestry; refreshed claim and both main and physical Primary coordination. Primary has no conflicting Rack task row and its unrelated dirty work was preserved.
-- Claim #49 was marked RUNNING, with actual executor, same branch/worktree and resume identity, before the new blocker was found. Claim remains OPEN for continuation; no success closure.
-- `/media/jer/ZX20/CCF-Ops/scripts/unity-lock status --json` returned FREE, no metadata, no Editor PIDs. **No lock acquired, no lane placement, no Editor started, no save touched.**
-- ZX20 backing UUID `18D6-896E` / exFAT verified; Files UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4` / ext4 verified. ZX20 ~12 GiB free is below CCF-Ops' configured15 GiB launch floor. Scoped approval requested to delete only inactive `/media/jer/ZX20/CCF-U3/Library` (~6.6 GiB); approval pending, nothing deleted. No lock or floor bypass.
-- Assets and Tools diff versus refreshed main is empty. No compiler/offline behavioural suite/Unity gate/rendered review ran. No temporary source/meta staged. The original six checks and both split protected gates remain required.
-- No serialized asset, package, project setting, save/schema, ecology/economy, MFM or Windows/Player build change. No PR/integration or feature acceptance.
-
-## Resume requirements
-
-1. Obtain the bounded additional G3 disposition (or an alternative retaining protected assertions) for the current three-page intro fixture; settle the explicit legacy fixture boundary.
-2. Restore the configured storage floor through separately approved cleanup or user action.
-3. Refresh main/claim/live coordination, mark #49 RUNNING, retain one writer in this branch/worktree; implement the already-authorised V2 guard/copy and model-split verification.
-4. Run compiler/offline checks and the exact-candidate locked Unity checks on both model paths, including RACK-V2-07 preservation; inspect rendered evidence. Do not weaken/skip/retire protected gates.
-5. Only after qualification publish the successful handoff, mark HANDED-OFF and close #49.
-
-**Ready for Manager review of this blocker: Yes. Ready as a completed feature: No.**
-
-DASHBOARD SYNC: NOT AVAILABLE / NOT VERIFIED. PUBLISHED DASHBOARD REFLECTS THIS TASK: NO verified readback. Manager/operational publisher must ingest the claim/coordination update and verify the GitHub audit/published dashboard; no generated state was hand-edited.
-
----
-
-## Previous blocker handoff (history, superseded by the authoring-split disposition)
-
-# RACK-V2-08 — G3 blocker handoff
-
-**BLOCKED — Manager G3 disposition required for the unmapped guided first-person rack assertions.** No production or protected-test changes were made. This is an inspection/coordination handoff, not a qualified implementation or an integration request.
+**Status: NOT READY — `NO COMPETING RACK AUTHOR — READY FOR MANAGER REVIEW` is NOT claimed.**
+The production change and every gate that this task owns pass on the exact candidate. The protected **Combined HUD** gate still reports failures in **both** model branches. All of them reproduce on unmodified `main` (`8f8e6f0`), in Stand Map / minimap layout code this branch does not touch. Per the direct user decision (2026-10-28, "Hand off, flag as pre-existing"), nothing was weakened, skipped or fixed here; Manager disposition is required before this branch can be called ready.
 
 ```text
 IMPLEMENTATION HANDOFF
 Task: RACK-V2-08 — remove competing first-person rack authoring; claim #49
-Worker: T3 Code / OpenAI Codex gpt-6.1-sol, xhigh; primary and single writer
-Watcher: OpenCode / opencode-go/deepseek-v4.1-flash high, read-only/plan mode
-Role: Primary
-Branch: feature/scenario-one-rack-v2-no-competing-author-v1
-Base / starting main: 3b103626d5499aaa968c10ee3c6a78c0139c29d6
-Context: task packet and canonical context at starting main; live coordination refreshed separately
-Coordination commit / inspected HEAD: 59ef118e2e6713b7cb7db128f6794550ad977ed8
-Implementation commits: NONE
-Exact tested candidate: NONE — stopped before production edits and runtime gates
-Final tip: the documentation-only commit publishing this handoff and the RACK-V2-08 blocked row;
-           its full SHA is recorded in claim #49 and the worker's final report
-GITHUB HANDOFF PATH: Docs/Handoffs/RACK-V2-08/HANDOFF.md
-GITHUB HANDOFF COMMIT: publication commit containing this file
-EXTERNAL EVIDENCE ARCHIVE: /media/jer/Files/CCF/Verification/RackV2-08-20261028T120834Z/
-Ready for review: No — G3 disposition first
+Executor: T3 Code / Claude Sonnet 5.5 (continuing primary, SINGLE WRITER) after the T3 Code / OpenAI Codex
+          executor hit its provider usage limit (controlled model transition, recorded on #49). No watcher, no second writer.
+Branch / worktree: feature/scenario-one-rack-v2-no-competing-author-v1 · /media/jer/ZX20/CCF-RackV2-08
+Base: main 8f8e6f03c65894b0d933aad23a4ad69227fb33e8 (includes docs-only OPEN-3 PR #51); context ea9c4590d9f9d959bd5c56d7738e04c611bfcdcd
+Production implementation commit: 6f3c77dc5675c5388c4bc482bd1d65be38a1f4f5
+Exact tested candidate (Unity): 7dd54ee679729da07013c3e129d8485c6067495f   (Assets/ byte-identical to 6f3c77d)
+Final tip: the documentation-only commit containing this file (full SHA recorded in claim #49)
+Evidence: /media/jer/Files/CCF/Verification/RackV2-08-Resume-20261028T130353Z/
+Ready for review: NO — Combined HUD disposition first
 ```
 
-## Blocking evidence and required decision
+## What changed (production, `Assets/` only — 8 files, +65 / −8)
 
-The task packet's G3 rule says: **“If an existing assertion explicitly encodes the superseded first-person-authoring requirement, stop and flag it for Manager G3 review before changing that protected assertion.”** The direct dispatch repeats the stop requirement.
-
-`Tools/Verification/SequentialObjectives/README.md:7–15` prescribes the `GuidedOnboardingVerification.Begin` gate plus the sequential companion, with `CCF_STAND_GEOMETRY=1`. It explicitly instructs native B → choose start → aim → reselect → cancel → B → confirm. In a fresh world that geometry selects Rack V2 (`ScenarioOneManager.RackPlan.cs:83–94`). There is no model-0 initialization in the guided fixture.
-
-`Tools/Verification/ScenarioOneRackUx/GuidedOnboardingVerification.cs:182–186` then waits for `RackTool.ConfirmedCount > 0` and asserts all of:
-
-- “rack confirmed through real OS input”;
-- at least three origin selections, one reselection and one cancellation;
-- a swivelled first-person preview;
-- ordinary rack work created by that confirmation.
-
-These assertions cannot qualify the required V2 absence contract. `VerifyRackFeedback` and later phases also exercise the old tool. They were inspected, not executed or modified. This conflict already exists at the starting production bytes: `ConfirmRack` refuses V2 (see below); the task did not introduce it.
-
-The prior Manager accepted the `RackUxRack` F-10 retained/replaced/retired record in `Docs/Handoffs/RACK-V2-Combined-Integration/MANAGER-REVIEW.md`. `F10-MAPPING.md` covers the named `RackUxRack` assertions, including `B_OPENS_THE_RACK_TOOL`; it does not disposition the separate `GuidedOnboardingVerification` assertions. That accepted record is therefore not a new blocker by itself, and it is not treated as authority to retire the guided gate silently.
-
-Related unmapped legacy premise: `Tools/Verification/ScenarioOneCombined/CombinedHudComposition.cs:508–530` requires the map to wait for a first forest rack and then calls legacy `ConfirmRack` to record it. This also needs explicit V2/model-0 disposition before using that gate for current V2 qualification. Its source is unchanged.
-
-**Requested Manager action:** issue a G3 disposition for the guided and combined-HUD first-person premises: specify their protected model-0/Legacy40 coverage and the V2 replacement absence/map coverage. No waiver of marking, progression, map, save or confirmation/minimap invariants is requested. Then resume RACK-V2-08 in this same branch/worktree with one writer. Do not merge this branch as a completed feature.
-
-## Coordination completed
-
-- Assigned worktree was clean on the named branch at the exact starting main. CCF-Primary was never written, stashed, checked out, cleaned or reset.
-- Fetched origin; main remained `3b103626d5499aaa968c10ee3c6a78c0139c29d6`; both dispatch and minimum-base ancestry checks passed.
-- Read live `origin/main:Docs/Project/coordination/active-tasks.md` and claim #49 through REST before the edit.
-- Changed only the RACK-V2-07 status cell to record PR #48, merge `c5a0532ac0d6a3729baeca0a1bf6d1d85df46fb9` and its Manager review, and added the RACK-V2-08 row. Every byte outside those two rows was compared and unchanged.
-- Set #49 RUNNING through REST, recording executor, watcher, branch, worktree and starting HEAD. Committed coordination separately with the Codex attribution trailer and explicitly pushed the same-named feature branch.
-- On finding the G3 conflict, stopped production work. Claim remains open for the Manager; no HANDED-OFF success status or closure is claimed. The task-branch RACK-V2-08 row records the blocker. Main coordination remains the Manager's integration decision.
-- Publication refresh: main advanced to `c15df9f916f4dab5fca66ad8348a620370841911` (PR #51, OPEN-3 authority documentation). It descends from starting main and changes only documentation/spec authority; production and protected verification inputs are unchanged. The two target coordination rows have no incompatible concurrent edit. No Decision Log/spec edit or task-branch rebase was performed.
-
-## Former route inventory — inspected, not remediated
-
-`RackPlanningV2Active` is the existing identity guard: explicit rack model 1 **and** Enlarged80. Geometry alone is insufficient; historical model-0 Enlarged80 must also retain its path. `RackFirstStageActive` is an Enlarged80 teaching-stage predicate across models; it must not be removed or repurposed as a V2 identity.
-
-| Surface | Inspected entry/copy | V2 / legacy classification and current result |
-|---|---|---|
-| B input, cancellation | `Racks/RackTool.cs:64–145`: `Update`, B at 92/98, mouse left/right, Enter/numpad Enter, wheel | Shared, currently live in V2 and model 0. Tool previews/claims availability, although backend refuses V2 confirmation. |
-| First-use flow | `RackTool.cs:147–159`: `Request`, `introPending`, help close → `Enter` | Shared; deferred intro can enter tool without a new B press. Needs the same V2 guard as direct entry. |
-| Direct tool API | `RackTool.cs:160–177`, `SelectOrigin`, `ReselectOrigin`, `Turn`, `Confirm` at 218–238 | Shared API route. `Confirm` calls only `manager.ConfirmRack(proposal, "forest")`; no authoritative V2 AddRack call. V2 entry/confirmation must be inert while legacy stays usable. |
-| Tool lifetime / input suppression | `UI/ScenarioOneUiRoot.cs:103–111`, `RackTool.AnyActive` | Runtime AddComponent in both models. Keep planner available for legacy/map consumers; V2 must never hold AnyActive and suppress tree input. No serialized asset edit identified as necessary. |
-| Preview panel / figures | `UI/WalkingHudView.cs`: `hud-rack-panel`, `racking` at 244, panel display at 265, `FillRackPanel` at 298 | Shared, driven by tool.Active. V2 panel should remain hidden under tool guard. |
-| Tree interaction prompt | `ForestPlayer.cs:920–929` | Shared rack-stage branch advertises `[B] Create rack` in V2; replace V2 copy with Stand Map direction without disabling E/inspection. |
-| Refined HUD prompt | `UI/WalkingHudView.cs:241–250` | Shared teaching branch advertises B in V2. Keep ordinary marks/interaction intact. |
-| Lower HUD summary | `UI/WalkingHudView.cs:281–293` | Shared summary advertises B/Create rack; V2 needs derived plan/mark status plus `[M]` direction. |
-| Startup controls / help keys | `UI/ControlsReference.cs:14,31`; consumed by `StandaloneSessionMenu.Startup.cs:34` and Walking HUD help | Pure shared copy advertises B globally. Needs narrowly selected V2/default map instructions while preserving model-0 controls in context. |
-| Rack first-use/help | `UI/MenuHelpView.Text.cs:30–31,63–67`; `MenuHelpView.cs:104–135` renders Summary/Explanation | Shared origin/preview/B instructions. V2 render substitution/availability guard needed; static legacy API can stay for compatibility. |
-| Full Walking HUD help | `MenuHelpView.Text.cs:94,100` | Shared `racks (B)` and ControlsReference.KeysLine advertise the old route; V2 rendered help must point to `[M] → Plan Racks`. |
-| Fresh scenario feedback | `ScenarioOne/ScenarioOneManager.cs:87–91` | StartGuidance uses RackFirstStageActive, so advertises B in fresh V2. Needs the existing V2 identity guard. |
-| Objective 1 current instruction / summary | `UI/LearningObjectivesView.cs:34–53` | Already uses V2ObjectiveInstruction/V2CounterText before legacy B fallback. Retain these guards. |
-| Objective 1 HUD action | `UI/LearningObjectivesView.Sequence.cs:214–223`; `UI/RackLayoutTracker.cs` V2 properties | Already V2-scoped to authoritative plan/entrance counters; legacy B text only in fallback. |
-| Optional curriculum | `UI/LearningObjectivesView.Curriculum.cs:25–28` (`rack.create`, `rack.layout`), `rack.map`; rendered by `LearningObjectivesView.cs:173–191` | Shared static B / common-tool copy remains discoverable in V2 optional topics. Prefer a narrow V2 render substitution; retain stable ids/titles and legacy text. |
-| Shared lesson data | `UI/ScenarioOneTeachingSequence.cs:32–33` Action/HudAction | Static B copy. Current Objective 1 action consumers already select V2 instructions; preserve shared ids/titles and avoid a global legacy rewrite. |
-| Legacy confirmation handler | `ScenarioOneManager.Racks.cs:103–113` | Already returns 0 for V2 before any work/group mutation. Preserve. Legacy creates pending ordinary orders/session RackGroups and fires RackConfirmed. |
-| Lesson event / derived progress | `UI/ScenarioOneUiRoot.cs:146–152`; `LearningObjectivesView.cs:200–211` | Event follows successful legacy confirmation; V2 ObserveRacks reads authoritative PlannedRackCount. No independent rack-plan counter found. |
-| Legacy Stand Map proposal route | `UI/StandMapView.cs:507–513` | Calls legacy ConfirmRack with source map (V2 backend rejects); current V2 map uses separate editor. Preserve model-0 route. |
-| Authoritative V2 map authoring | `UI/Map/StandMapRackEditor.cs:394`; `ScenarioOneManager.RackEditing.cs:239–247,330`; `StandMapView.cs:70–71` | Create/reshape/delete/reset/undo/confirm flow to existing RackPlan runtime. V2 map planning available immediately. No replacement rack state proposed. |
-| Fell/Red, Crop Tree/Blue and inspection | `ForestTreeMarkingManager.cs:107–174,199–245`; `ForestPlayer.cs` inspection | X/C gated by view/cursor/RackTool.AnyActive, with independent marking calls; no V2 identity block. Must preserve, along with E and later entrance-tree interaction. Not runtime-verified here. |
-
-**Smallest proposed production change after G3 clearance:** guard the existing first-person RackTool by `RackPlanningV2Active`, including deferred/direct entry and confirmation; select V2-specific map-only copy at existing presentation points. Expected files: `Racks/RackTool.cs`, `ForestPlayer.cs`, `UI/WalkingHudView.cs`, `UI/ControlsReference.cs`, `UI/MenuHelpView.cs` and/or `.Text.cs`, `UI/LearningObjectivesView.cs` and/or `.Curriculum.cs`, and `ScenarioOne/ScenarioOneManager.cs`; new focused verification under `Tools/Verification/RackV2NoCompetingAuthor/`. No production edit was started. Reuse RackPlan; preserve static legacy lesson ids/titles, ordinary marking and all serialized assets.
-
-## Verification actually performed
-
-Read-only source inspection, Git identity/cleanliness, live coordination/claim, ancestry checks, two-row byte-preservation check, and empty production/test/package/settings diff against starting main passed. SHA-256 digests of nine relevant source/authority inputs and exact blocker excerpts are in `inspection-manifest.json` and `g3-source-excerpts.txt`. These establish the blocker and unchanged bytes; they do not prove the requested absence contract.
-
-| Required runtime check | Result |
+| File | Change |
 |---|---|
-| 1. Fresh V2: attempt every former route; unchanged rack count | NOT RUN — G3 stop before production |
-| 2. Stand Map create/edit preserved | NOT RUN |
-| 3. V2 obsolete hint/control copy absent, rendered evidence | NOT RUN; static inspection confirms obsolete copy is still present |
-| 4. Ordinary Fell/Crop marking | NOT RUN; source path inspected and unchanged |
-| 5. RACK-V2-07 confirmation/minimap preservation | NOT RUN; production and protected gate bytes unchanged |
-| 6. Legacy40 viable progression | NOT RUN; legacy code/gates unchanged |
+| `Racks/RackTool.cs` | `Update`, `Request`, `Enter` and `Confirm` are inert while `RackPlanningV2Active`; an already-active tool/first-use screen is released on load. Model-0 behaviour untouched. |
+| `ForestPlayer.cs`, `UI/WalkingHudView.cs` | V2 tree prompt and lower summary say `[M] Stand Map · Plan Racks`; legacy `[B] Create rack` text kept for model 0. |
+| `ScenarioOne/ScenarioOneManager.cs` | V2 start guidance points to the Stand Map. |
+| `UI/ControlsReference.cs`, `StandaloneSessionMenu.Startup.cs` | V2 control list drops the `B` row and describes `M` as Stand Map / Plan Racks (`RowsFor`, `KeysLineFor`). Legacy `Rows`/`KeysLine` kept. |
+| `UI/MenuHelpView.cs`, `UI/LearningObjectivesView.cs` | V2 render-time substitution of Rack help, walking help and the three optional rack practice texts. Stable lesson ids/titles and legacy lesson data unchanged. |
 
-Runtime source compile, focused absence tests, offline suites, Unity import/runtime, rendered UI, save/load and Player builds were not run. No pass from earlier tasks is attributed to this branch. No assertions were weakened/deleted/rebaselined. No temporary harness or `.meta` was staged under Assets.
+Not touched: Stand Map code, `StandMapView`/`UI/Map`, `HudMinimapView`, stylesheets, scenes/prefabs/materials, saves/schema, ecology/economy, MFM, Reference Future, packages, Windows build. No temporary script or `.meta` remains under `Assets/ForestPrototype/` (runner removes them; verified).
 
-## Unity ownership, limitations and continuation
+## Verification on the exact candidate `7dd54ee` (Unity 6000.6.0f1, one Editor at a time, machine-wide lock, private Xephyr, native input)
 
-`unity-lock status --json` returned `free`, no metadata and no Editor PIDs; receipt retained in `unity-lock-status.json`. This task never acquired a lock, placed CCF-U1, launched Unity or touched a save. No lock is held by this worker.
+| # | Gate (G3 item) | Result | Evidence |
+|---|---|---|---|
+| 6 | Genuine Legacy40 native first-person B/origin/pointer/reselect/cancel/confirm + ordinary work + approval/year advance | **PASS** `checks=15` | `unity-legacy40-run2/` |
+| 6,7 | Guided + Sequential, **model-0** Enlarged80 fixture; original native sequence incl. original `!Harvested` regrowth assertion and legacy `Show trees` | **PASS** 600 pass / 0 fail, 56 captures | `unity-guided-legacy-run2/` |
+| 1-4,7 | Guided + Sequential, **Rack V2**: real OS `B`/click/right-click/Enter/numpad-Enter, deferred first-use, direct API and legacy backend all inert (no `RackTool.AnyActive`, no plan/counter/allocator/work change); map-only help/HUD/objective copy; ordinary Fell/Crop/inspect via real keys; `M` → `Plan Racks` with no forest rack; real map reset + `Confirm Rack Plan`; full sequential progression; user-approved V2 regrowth split | **PASS** 553 pass / 0 fail | `unity-guided-v2-run2/` |
+| 5 | **Unchanged** RACK-V2-07 confirm / reopen / minimap preservation gate | **PASS** `checks=213 shots=21` | `unity-confirm-preserve-run2/` |
+| 7 | Combined HUD, model-0 fixture (run on `a475616`; Assets and the Combined harness are byte-identical to `7dd54ee`) | **FAIL** 430 pass / 20 fail | `unity-combined-legacy-run1/` |
+| 7 | Combined HUD, Rack V2 | **FAIL** 433 pass / 22 fail | `unity-combined-v2-run1/` |
+| — | **Baseline: unmodified `main` 8f8e6f0**, fresh V2 world, Combined HUD sections `estimate,competitors,map-window` | **same failures** 126 pass / 22 fail | `unity-main-baseline-v2sections/` |
 
-Changed files are only `Docs/Project/coordination/active-tasks.md` and this handoff. Serialized Unity files, assets, packages, simulation, save/schema, ecology, economy, frozen Reference Future and all Tools verification sources are unchanged. No model/provider transition occurred. The nested read-only watcher was stopped after the user supplied the completed watcher advisory and the primary independently confirmed the blocker; its unfinished audit is not relied on as evidence.
+Offline (run on `6f3c77d`; `Assets/` unchanged since): runtime compile 172/0; Editor/harness type-compile 179/0 (re-compiled clean on `7dd54ee`); non-UI keyboard 46 / rack 87 / rack-sample 75 / approach 49, RackV2 editing 61, spacing 11, suggested layout 147, StandMap and confirmation static 10 — all pass. `check_integrity.py`: **PROTECTED_INTEGRITY_PASS** (all original non-intro `Check` calls retained in Guided 54→62, Sequential 34→36, Combined 70→81). An extra offline UX suite has 208 pass / 1 fail (obsolete Walking HUD first-use summary); compiling its inputs from `main` reproduces the same single failure; gate untouched.
 
-The task is incomplete. Dashboard publication/readback is unavailable/unverified and no synchronization is claimed. Claim #49 stays open with the G3 blocker and exact publication tip so the Manager can continue in the same worktree/branch. Remaining work is implementation, all static/compiler gates, six locked Unity checks, successful handoff, and only then HANDED-OFF/closure. No PR or integration was created.
+Rendered review (captures in the evidence folders) confirms: V2 walking HUD and tree prompt read `[M] Stand Map · Plan Racks` with no `B` (main shows `[B] Create rack` in the same scene); V2 rack help/objective copy; ordinary Crop mark + inspection; confirmed map; Work Plan listing rack-owned jobs with real Sell / Keep / Leave / Remove controls.
 
-BLOCKED — Manager G3 disposition required for unmapped guided first-person rack assertions
+## Why Combined HUD is not green — all reproduced on unmodified main
+
+1. **`MAPWIN_*_TEXT_ENDS_INSIDE_THE_WINDOW` ×20 (10 per size, both models).** The Stand Map caption ("Local grid · metres east and north …") sits ~19 UI units below the window frame at 1280×720 and 1920×1080. Cause (observed in the capture, source-confirmed): main's `76772f4` (RACK-V2-04, 2026-10-27) puts `Plan rack(s)` on its own `map-tools` row (`StandMapView.cs:95-98, 241-251`), pushing the fixed 688 px map down. The last passing Combined HUD run of record is 2026-10-23 (`ScenarioOneUiNonUiIntegration-20261023T193031Z`), where the button sat inline with the tabs. No Combined HUD run exists in the verification archive between that and this task.
+2. **`ESTIMATE_PANEL_IS_NOT_CLIPPED` / `COMPETITOR_LIST_IS_NOT_CLIPPED` (V2 world only; 2 here, 2 on the baseline).** In a V2 world the minimap shows RACK-V2-07's two-line teaching note ("Dashed lines show suggested rack positions…"), which makes the minimap taller and squeezes the panel above it (last label 2-11 units past the panel bottom). The note is time-limited (`HudMinimapView.UpdateTeachingNote`), so which panel/size is caught varies run to run (branch: estimate@1280, competitor@1920; main: estimate@1280 **identical 619/613** and estimate@1920). The model-0 branch has no note and no such failure.
+
+None of this is in this branch's diff. The assertions were not changed, skipped or relaxed.
+
+## Decisions needed from the Manager
+
+- **Combined HUD disposition.** Recommended: a separate small Stand Map / minimap layout repair task (e.g. restore `Plan Racks` to the tab row or shrink the map, and make the minimap note not shrink panels), then re-run Combined HUD for **both** models on that base; this branch's Combined harness split already executes every other section (430 / 433 checks pass in the two model runs). Alternatively authorise the layout fix inside RACK-V2-08 as a bounded amendment (production scope beyond the G3 boundary; re-qualify every gate afterwards).
+- **Disclosure — one new V2 assertion corrected.** The first V2 Unity run (`5bdfaae`, `unity-guided-v2-run1/`) passed 549 and failed only 3 outputs of one **new, unprotected** check inherited from the earlier executor: it required the legacy Work Plan `Show trees` control after V2 confirmation. That control exists only for session `RackGroups` made by legacy `ConfirmRack` (`ScenarioOneManager.Racks.cs:143`); V2 lists rack-owned fell orders one per line (main behaviour, unchanged). `7dd54ee` replaces it with equally strong assertions of the real presentation (no legacy group; harvest card counts all 149 rack-owned jobs; every job has its own line; real enabled Sell and Remove). The protected legacy `Show trees` assertion remains, unchanged, in the model-0 branch and passes. Reviewer should confirm this correction is acceptable.
+
+## Unity ownership and housekeeping
+
+- Lock: acquired normally each time and released with owner and lock id; the interrupted Codex Combined run was adopted under its own lock record (not bypassed) and released after verification. Final state: lock free, no Editor, U1 clean and left detached at `7dd54ee`.
+- Editor side effects (`.vscode/settings.json` + five Section Five materials rewritten by the Editor) were byte-compared with the first inspected rewrite, captured as patches in each run folder, and restored every time; U1 `git status` clean.
+- Storage floor: the user directly approved deleting only `/media/jer/ZX20/CCF-U1/Library/PlayerDataCache` (1,127,707,491 bytes, regenerable Player-build cache) to restore the 15 GiB floor; receipt `authorised-cache-cleanup-2.json`. An earlier user-approved `U3/Library` deletion is recorded in `authorised-cache-cleanup.json`. Nothing else was deleted.
+- Two Editors were stopped by the runner's documented post-verdict hang policy (`reaper.txt`: both Combined runs, only after verdict + `Cleanup mono`). The next start showed a "Scene Backup Detected" dialog in the private display `:84`; **Delete** was clicked (it only removes Unity's own `Temp/__Backupscenes`); noted in `scene-backup-dialog-handling.txt`. That first confirm attempt (`unity-confirm-preserve-run1/`) therefore timed out at startup and is retained as **invalid, not a gate result**; run2 is the result.
+- No save/schema, ecology/economy, scene/prefab/material, package/settings, MFM, Windows/Player-build change. No PR, no integration, no feature acceptance. CCF-Primary's unrelated dirty work was never touched.
+
+DASHBOARD SYNC: NOT AVAILABLE / NOT VERIFIED. Manager/operational publisher must ingest the claim/coordination update; no generated state was hand-edited.
+
+## History (superseded, in Git)
+
+Earlier blocker handoffs for this task (first-person-authoring G3, three-page intro fixture) were cleared by `G3-DISPOSITION.md` and `INTRO-G3-AMENDMENT.md`; the bounded V2 regrowth split is recorded in the latter.
+
+**Ready for Manager review of the Combined HUD disposition: Yes. Ready as a completed feature: No.**
