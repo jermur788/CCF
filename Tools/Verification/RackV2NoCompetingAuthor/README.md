@@ -17,6 +17,6 @@ python3 Tools/Verification/RackV2NoCompetingAuthor/run_gate.py --gate legacy40 -
 
 The full model-0 rack-first curriculum uses historical Enlarged80 because the production Legacy40 world intentionally has no authored rack-first layout. The separate genuine Legacy40 gate proves its available first-person workflow and annual progression rather than inventing an Enlarged80 curriculum in a 40 m stand.
 
-The sequential gate's later regrowth assertion remains protected; any extra model-specific disposition must be explicitly recorded before changing it. No full objective qualification, asset production, save/schema change or Windows/Player build is authorised here.
+The sequential gate's later regrowth assertion follows the separately recorded direct-user G3 amendment: retain the original live-corridor assertion in model 0; V2 checks completed rack-owned work, full rack/order state and counters remain unchanged. Stage 7 continuity and world-hash restoration execute in both branches. No full objective qualification, asset production, save/schema change or Windows/Player build is authorised here.
 
 Preservation: run unchanged `RackV2ConfirmMinimap/run_gate.py --gate confirm` for confirmation/reopen/minimap and its existing real-pointer checks. Offline: NonUi, RackV2Editing, RackV2Spacing, SuggestedLayout, StandMap and RACK-V2-07 static checks. Compile runtime sources against installed Unity refs and compile staged harness sources with `UNITY_EDITOR` before Unity.
