@@ -3,7 +3,7 @@
 - **Spec ID:** SPEC-scenario-one-objective-1-rack-planning-field-marking-v2-V1
 - **Spec status:** APPROVED
 - **Task list owner:** Overall Manager
-- **Last updated:** 2026-10-26
+- **Last updated:** 2026-10-28
 
 Tasks are implementation units, not new product decisions. They stay inside the approved spec and plan. If a task exposes a material product ambiguity, stop and return it to the Manager/spec, citing the spec section.
 
@@ -11,7 +11,7 @@ Tasks are implementation units, not new product decisions. They stay inside the 
 
 **Routing (all tasks).** Primary `SOL / CODEX`. Tasks marked *TERRA-suitable* contain bounded visual/UI work or rendered review that `GPT-6.1 TERRA` may take. The Overall Manager assigns owner, lane, Unity ownership and quota source through the task packet. Every task needs a packet that names its exact base, context commit and branch; the implementation base must be the current Scenario One candidate containing qualified UI Visual System V2 (see the plan's *Ownership / concurrency considerations*). Heavy Unity work needs the Unity ownership lock and, for Tier-2, G1 launch approval.
 
-**Decisions** (spec §39.7, Decision Log D-064): OPEN-1 (V2 applies to Enlarged80 only) and OPEN-2 (keep `rack.approve` and `rack.result`; Confirm creates pending work only) are accepted. OPEN-3 (reopening after approval or execution) remains open and gates RACK-V2-05. RACK-V2-01 reports the safest boundary for OPEN-3 but does not implement it. A task that reaches OPEN-3 unresolved stops and reports.
+**Decisions** (spec §39.7, Decision Log D-064): OPEN-1 (V2 applies to Enlarged80 only) and OPEN-2 (keep `rack.approve` and `rack.result`; Confirm creates pending work only) are accepted. OPEN-3 (reopening after approval or execution) was accepted by direct user authority on 2026-10-28 (Decision Log D-064): a rack with zero executed removals may be reopened/edited through the authoritative reconciliation/cancellation path; reopening itself cancels nothing; cancelling approved-but-unexecuted work requires a warning and explicit consent; any rack with one or more executed removals is geometry-locked and represented as harvested; executed removals are never reversed; only racks whose geometry changes lose geometry-bound entrance-mark state.
 
 ## RACK-V2-01 — Inspect current architecture
 
@@ -101,7 +101,7 @@ Tasks are implementation units, not new product decisions. They stay inside the 
 - **Owner / routing:** SOL / Codex; minimap visuals *TERRA-suitable*
 - **Dependencies:** RACK-V2-06
 - **Verification:** Confirm, reopen-unmarked and reopen-after-partial-marking paths; only geometry-changed racks lose their mark; minimap and map agree.
-- **Stop conditions:** Reopen requires touching executed work (OPEN-3 unresolved).
+- **Stop conditions:** Reopen would require reversing an executed removal or creating a second removal mechanism, rather than locking that rack as harvested (OPEN-3 accepted 2026-10-28).
 - **Completion state:** Exit: `CONFIRMED PLAN PROPAGATES`.
 
 ## RACK-V2-08 — Remove competing 3D authoring
@@ -203,7 +203,7 @@ Tasks are implementation units, not new product decisions. They stay inside the 
 | RACK-V2-02 | TODO | SOL / Codex | RACK-V2-01 |
 | RACK-V2-03 | TODO | SOL / Codex | RACK-V2-01, 02 |
 | RACK-V2-04 | TODO | SOL / Codex; TERRA-suitable | RACK-V2-03 |
-| RACK-V2-05 | TODO | SOL / Codex; UI TERRA-suitable | RACK-V2-04; OPEN-3 |
+| RACK-V2-05 | TODO | SOL / Codex; UI TERRA-suitable | RACK-V2-04 (OPEN-3 resolved 2026-10-28) |
 | RACK-V2-06 | TODO | SOL / Codex; TERRA-suitable | RACK-V2-05 |
 | RACK-V2-07 | TODO | SOL / Codex; minimap TERRA-suitable | RACK-V2-06 |
 | RACK-V2-08 | TODO | SOL / Codex | RACK-V2-07 |

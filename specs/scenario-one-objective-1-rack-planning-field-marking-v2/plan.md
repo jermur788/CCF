@@ -247,7 +247,7 @@ Candidates from a grep of candidate `13988874`, **not** a verified inventory (RA
 - **RK-3 — The geometry may not fit the full band for five racks (Geometry feasibility).** The stop condition may fire for real, in which case the spec must be amended, not worked around.
 - **RK-4 — Mark-model blast radius (R-3).** Putting the orange mark in the per-tree enum touches the map, legend, save and pruning. Putting it on the rack object requires careful conflict checks.
 - **RK-5 — Existing gates silently loosened (F-10).** Old rack gates assert the superseded workflow; "fixing" them to pass is a G3 matter.
-- **RK-6 — Plan, mark and execute blur (spec §36).** Confirming creates real Work Plan orders (F-2). Reconciling pending orders on an edit before approval is decided (OPEN-2); reopening a plan after orders are approved or executed is still undefined (OPEN-3).
+- **RK-6 — Plan, mark and execute blur (spec §36).** Confirming creates real Work Plan orders (F-2). Reconciling pending orders on an edit before approval is decided (OPEN-2); reopening a plan after orders are approved or executed is bounded by accepted OPEN-3 (2026-10-28): zero-executed racks may reopen through the authoritative reconciliation/cancellation path; any rack with an executed removal is geometry-locked and never reversed.
 - **RK-7 — Visual-lane collision.** Several live UI rows touch the same files; merge conflicts in UI Toolkit assets are likely if the base is wrong.
 - **RK-8 — Spray visual versus URP and performance.** A four-sided stripe mark across several marked trees must stay URP-compatible and cheap; verify in the rendered review.
 
