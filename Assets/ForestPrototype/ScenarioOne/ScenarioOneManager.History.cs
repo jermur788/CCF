@@ -22,6 +22,11 @@ public sealed partial class ScenarioOneManager
     // They are surfaced, never expired or deleted.
     public IReadOnlyList<StaleOrderNote> StaleOrders => ScenarioInterventionHistory.StaleOrders(workOrders, CurrentYear);
 
+    // S1-D advisory cycle context (approved/pending/carried-over work, stale orders, latest intervention review state, years since
+    // it), derived on demand from the same records. Read-only and advisory: nothing in the game gates Approve or Advance on it.
+    public ScenarioCycleState CycleState =>
+        ScenarioCycleState.Derive(Interventions, managementEvents, workOrders, CurrentYear, outcome, outcomeYear, ReviewYear);
+
     // What the finished scenario looked like at the year its objectives were met (not year 100). Null until then.
     public CompletionSummary CompletionReview =>
         outcome == ScenarioOneOutcome.Completed && definition != null
