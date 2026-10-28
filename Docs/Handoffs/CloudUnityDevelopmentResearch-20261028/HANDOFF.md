@@ -1,45 +1,59 @@
 # HANDOFF — Cloud Unity Development Infrastructure Research — 2026-10-28
 
-**Status:** RESEARCH COMPLETE — MANAGER REVIEWED IN CHAT; NO INFRASTRUCTURE PROVISIONED  
-**Research document:** `Docs/Research/CloudUnityDevelopmentOptions-20261028.md`  
-**Research publication commit:** `af02d53b00919b74fb34b9b40b7cc83def73c2d8`  
+**Status:** RESEARCH COMPLETE — MANAGER REVIEWED; NO INFRASTRUCTURE PROVISIONED  
+**Primary research:** `Docs/Research/CloudUnityDevelopmentOptions-20261028.md`  
+**TensorDock comparison:** `Docs/Research/TensorDockPaperspaceComparison-20261028.md`  
 **Authority:** Supporting infrastructure research only. It does not alter Unity execution locks, current milestone scope, product behaviour, licensing policy, or implementation authority.
 
-## User-selected test direction
+## User clarification
 
-The intended proof is to start at **16 GB system RAM**, measure **one CCF Unity worker**, then test **two concurrent independent CCF Unity workers** on the same machine before deciding whether 32 GB is needed. Licensing is deliberately outside this research scope per the user's instruction.
+The earlier **16 GB first** sequence was not an independent requirement; it was a consequence of the first provider options. The current objective is to obtain the **best useful Unity capacity for the money**, then test one and two concurrent independent CCF Unity workers before deciding whether a larger machine is needed. Licensing remains deliberately outside scope.
 
-## Research verdict
+## Updated research verdict
 
-The deeper provider comparison changes the initial shortlist:
+### TensorDock — first live-inventory challenger
 
-1. **Akamai Cloud RTX 4000 Ada x1 Small** — strongest fixed-spec exact-16-GB candidate: 4 CPU, 16 GB RAM, RTX 4000 Ada, 500 GB storage, Europe pricing $0.52/hour; GPU availability in the desired nearby European region must be confirmed at provisioning time.
-2. **AWS EC2 g4dn.xlarge, eu-west-1 Ireland** — control/baseline candidate: 4 vCPU, 16 GiB, T4 16 GB; current Ireland on-demand price $0.587/hour; strongest mature Linux remote-workstation route via AWS DCV/EBS.
-3. **TensorDock custom 16-GB GPU VM** — potentially substantially cheaper full-VM option; exact CPU/RAM/storage are configurable and A4000-class GPUs are inexpensive, but it is a host marketplace and TensorDock explicitly provides no local-storage redundancy. A high-quality nearby EU host must be selected and Git/offsite publication treated as mandatory.
+TensorDock now deserves the first live-availability check. It provides full KVM/Libvirt VMs with dedicated GPU passthrough rather than containers, configurable CPU/RAM/NVMe, Ubuntu with Nvidia drivers, per-second billing, and stopped storage-only billing.
 
-**Paperspace** remains a good ~30-GB fallback, but does not provide the requested exact 16-GB GPU test and requires a third-party Linux graphical streaming layer. **machine0** is excellent for agent-native CLI/MCP orchestration but starts at 32 GB/$0.836/hour for GPU. **Runpod/Vast** are cheap experimental GPU options, but their container architecture is outside Unity's published supported Editor form factor and is therefore not the preferred reference lane. **boat.dev** remains useful as a cheap CPU-only implementation/review/agent pool feeding candidate commits to the Unity machine.
+An illustrative 8-vCPU / 30-GB RAM / 250-GB NVMe / RTX A4000 16-GB VM is approximately **$0.1965/hour** using TensorDock's published typical A4000/component rates. Even with a more expensive currently surfaced A4000 component price of $0.22/hour, that illustrative shape is about **$0.3165/hour**. These are calculations from published component rates, **not guaranteed quotes**; actual price, CPU model, quality and availability vary by host and location.
 
-## Suggested Linux display standard
+TensorDock's main disadvantage is marketplace variability and the explicit absence of replication for ordinary local storage. Prefer **Core Compute** if a suitable nearby European location/GPU exists; otherwise prefer a **Top Host + high Location Tier** and keep Git/offsite publication authoritative.
 
-Where the provider lacks a strong native Linux graphics protocol, test GNOME/X11 + Sunshine on the VM and Moonlight on the user's laptop. Sunshine supports Ubuntu 22.04+ and Nvidia hardware encoding. AWS DCV remains the control implementation for AWS.
+### Paperspace — predictable fallback/control
 
-## Next executable step
+Paperspace RTX4000 AMS1 remains a strong fixed option at **$0.56/hour**: 8 vCPU, 30 GB RAM, Turing RTX4000 8 GB VRAM, known Xeon Silver 4215R CPU class and official Amsterdam availability. It is less variable than TensorDock but materially more expensive if a good EU TensorDock host is available.
 
-No purchase or provisioning is authorised by this handoff. When the user chooses to proceed, create a bounded **Cloud Unity Worker V1 proof packet** for one 16-GB provider. The packet should specify:
+### Other retained options
 
-- exact provider/region/machine SKU;
-- exact CCF candidate HEAD and Unity 6000.6.0f1;
-- persistent disk/cache layout;
-- Git branch/worktree ownership;
-- agent/MCP setup;
-- remote graphical-access method;
-- one-worker and two-worker benchmark phases;
-- RAM/swap/CPU/GPU/VRAM/disk/wall-time measurements;
-- stop conditions for instability or unacceptable contention;
-- teardown/stop policy so idle GPU compute does not continue billing.
+- **AWS g4dn.xlarge Ireland:** mature operational/control baseline; 4 vCPU/16 GiB/T4; strongest turnkey Linux remote-workstation path, but poor raw value versus the current alternatives.
+- **Akamai RTX 4000 Ada:** strong fixed GPU option, but the 16-GB Small configuration no longer has a special reason to lead after the user removed the 16-GB-first constraint.
+- **boat.dev:** complementary CPU-only implementation/review/agent pool, not a Unity GPU replacement.
+- **Runpod/Vast:** experimental container GPU lanes, not the reference Unity workstation.
 
-Do not change the existing machine-wide Unity-lock policy until the benchmark evidence has been reviewed and a separate management decision explicitly changes it.
+## TensorDock live-host acceptance criteria
+
+Before provisioning, inspect the signed-in live TensorDock inventory for:
+
+1. nearby Europe (Germany/Netherlands/UK/France or comparable latency);
+2. Core Compute if available, otherwise Top Host + high Location Tier;
+3. RTX A4000-class or better GPU;
+4. at least 8 vCPU with a modern/high-clock host CPU;
+5. about 30–32 GB RAM;
+6. at least 250 GB NVMe;
+7. complete running quote ideally **≤ $0.35/hour** and materially below Paperspace's $0.56/hour;
+8. acceptable stopped-storage cost and networking/port options.
+
+If those conditions are met, TensorDock is the preferred first real CCF trial. If they are not, use Paperspace RTX4000 in AMS1 as the predictable fallback.
+
+## Trial once a provider is selected
+
+- exact Unity 6000.6.0f1 and selected CCF candidate HEAD;
+- one isolated worktree/Editor/agent baseline;
+- then two isolated worktrees/Editors/agents concurrently;
+- measure RAM/swap, CPU saturation, GPU/VRAM, disk I/O, import/compile/test/runtime wall time and graphical-streaming usability;
+- stop on crashes/hangs, persistent swapping, severe interaction latency or disproportionate wall-time regression;
+- retain the existing machine-wide Unity-lock policy until Manager review of the benchmark evidence explicitly changes it.
 
 ## User action required
 
-None for the research result. The next user decision is which 16-GB provider to trial first; based on current evidence, compare **Akamai** against the **AWS Ireland control**, with **TensorDock** as the low-cost marketplace challenger.
+No purchase has been made. The only remaining information that cannot be established reliably from public pages is the **actual current nearby-European TensorDock host inventory and quote**, which is exposed through the signed-in deployment inventory/API.
