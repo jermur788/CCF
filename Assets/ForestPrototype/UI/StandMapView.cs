@@ -63,6 +63,8 @@ public sealed class StandMapView
     private readonly StandMapRackEditor editor;
     private Label editStatus, editSpacing;
     public StandMapRackEditor RackEditor => editor;
+    // Reopen Rack Plan asks first when approved work is linked to the plan (RACK-V2-07). Presentation state only.
+    private bool reopenPending;
     public VisualElement EditLayer => editLayer;
     // V2 planning is available immediately; the legacy tool retains its original teaching gate.
     public bool RackPlanningAvailable => ui.Manager != null && ui.RackTool != null && ui.Ecology != null && ui.Manager.CanEditWorkPlan
@@ -198,7 +200,9 @@ public sealed class StandMapView
         // The rack being planned here is drawn on this map only (the minimap filters it out). Then the surface is given the shared
         // model, which is re-read now so it is as current as the squares below.
         ui.MapSource.Preview = rackMode && !ui.Manager.RackPlanningV2Active ? rackProposal : null;
-        ui.MapSource.ShowRackSuggestions = rackMode && ui.Manager.RackPlanningV2Active;
+        // Dashed guidance belongs to an open plan: once the plan is confirmed the solid racks are the whole story.
+        ui.MapSource.ShowRackSuggestions = rackMode && ui.Manager.RackPlanningV2Active && !ui.Manager.RackPlanConfirmed;
+        if (!planningV2 || !ui.Manager.RackPlanConfirmed) reopenPending = false;
         StandMapModel model = force ? ui.MapSource.Rebuild() : ui.MapSource.Model;
         // Opening the map must show the forest as it is now: finish any redraw that is part-way.
         if (force)
@@ -210,7 +214,7 @@ public sealed class StandMapView
         overviewSurface.Sync(model, MapOverlay.None);
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|{model.StaticVersion}|{model.CanopyVersion}"
             + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}"
-            + (planningV2 ? "|" + editor.StateKey : "");
+            + (planningV2 ? "|" + editor.StateKey + "|" + reopenPending + "|" + ui.Manager.RackPlanConfirmed + "|" + ui.Manager.MarkedRackEntranceCount : "");
         if (!force && key == shownKey)
             return;
         shownKey = key;
@@ -554,13 +558,15 @@ public sealed class StandMapView
         ScenarioOneManager manager = ui.Manager;
         VisualElement card = UiKit.Box("card", "rack-panel");
         card.name = "map-edit-card";
-        Label counter = UiKit.Add(card, $"Racks planned: {manager.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}", "body");
+        // The counter is the tracker's derived line: Racks planned while the plan is open, Rack entrances marked once it is confirmed.
+        Label counter = UiKit.Add(card, ui.RackLayout != null ? ui.RackLayout.V2CounterText
+            : $"Racks planned: {manager.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}", "body");
         counter.name = "map-edit-counter";
         editStatus = null;
         editSpacing = null;
         if (!manager.RackEditingOpen)
         {
-            UiKit.Add(card, "The rack plan is confirmed, so its racks are fixed until it is reopened.", "muted");
+            BuildConfirmedCard(card);
             side.Add(card);
             return;
         }
@@ -586,6 +592,7 @@ public sealed class StandMapView
         editStatus.name = "map-edit-status";
         ShowLiveEditStatus();
 
+        BuildConsentPanel(card);
         VisualElement row = UiKit.Row(card, "row-wrap");
         Button delete = UiKit.Button("Delete rack", editor.DeleteSelected, hasSelected && !selected.IsLocked, "btn-ghost");
         delete.name = "map-edit-delete";
@@ -611,7 +618,117 @@ public sealed class StandMapView
             choices.Add(no);
             card.Add(confirm);
         }
+        BuildConfirmControl(card);
         side.Add(card);
+    }
+
+    // Confirm Rack Plan: enabled only for a valid plan of exactly five racks, otherwise the honest reason is printed beside it. The
+    // button calls the authoritative confirmation, which creates or refreshes Pending removal work and approves or executes nothing.
+    private void BuildConfirmControl(VisualElement card)
+    {
+        bool can = ui.Manager.CanConfirmRackPlan(out string reason);
+        Button confirm = UiKit.Button("Confirm Rack Plan", ConfirmRackPlanFromCard, can && !editor.ConsentPending, "btn-primary");
+        confirm.name = "map-rack-plan-confirm";
+        card.Add(confirm);
+        if (!can)
+        {
+            Label why = UiKit.Add(card, reason, "muted");
+            why.name = "map-rack-plan-confirm-reason";
+        }
+        else UiKit.Add(card, "Confirming puts the removal work in the Work Plan as pending. Nothing is approved or cut.", "faint");
+    }
+
+    private void ConfirmRackPlanFromCard()
+    {
+        RackPlanOperationResult result = ui.Manager.ConfirmRackPlanFromMap();
+        if (result.RequiresApprovalWarning)
+        {
+            editor.AskConsent(result, "Confirmed the rack plan.", () => ui.Manager.ConfirmRackPlanFromMap(true));
+            return;
+        }
+        FinishPlanChange(result);
+    }
+
+    private void FinishPlanChange(RackPlanOperationResult result)
+    {
+        editor.ClearSelection();
+        editor.NoteStatus(result.Message, !result.Succeeded);
+        ui.MapSource.MarkRacksDirty();
+        ui.RackLayout?.Update(true);
+        Refresh(true);
+    }
+
+    // The approved-work warning for an edit or a confirmation: what would be cancelled, and the two answers.
+    private void BuildConsentPanel(VisualElement card)
+    {
+        if (!editor.ConsentPending) return;
+        VisualElement panel = UiKit.Box("card", "rack-panel");
+        panel.name = "map-consent-panel";
+        UiKit.Add(panel, editor.ConsentMessage, "body");
+        VisualElement choices = UiKit.Row(panel, "row-wrap");
+        Button yes = UiKit.Button("Cancel the approved work and continue", editor.AcceptConsent, true, "btn-primary");
+        yes.name = "map-consent-accept";
+        choices.Add(yes);
+        Button no = UiKit.Button("Keep the approved work", editor.DeclineConsent, true, "btn-ghost");
+        no.name = "map-consent-decline";
+        choices.Add(no);
+        card.Add(panel);
+    }
+
+    // The card for a confirmed plan: its racks are fixed, so show what is fixed and offer Reopen Rack Plan. A harvested rack stays
+    // locked whatever is reopened; a plan whose racks are all harvested has nothing left to reopen.
+    private void BuildConfirmedCard(VisualElement card)
+    {
+        ScenarioOneManager manager = ui.Manager;
+        ScenarioOneManager.RackReopenSummary summary = manager.DescribeRackReopen();
+        UiKit.Add(card, "The rack plan is confirmed, so its racks are fixed until it is reopened.", "muted");
+        if (summary.LockedRacks > 0)
+            UiKit.Add(card, $"{summary.LockedRacks} rack{(summary.LockedRacks == 1 ? " has" : "s have")} been harvested and stay locked.", "muted");
+        if (!string.IsNullOrEmpty(editor.Status))
+        {
+            Label status = UiKit.Add(card, editor.Status, "body");
+            status.name = "map-edit-status";
+        }
+
+        if (reopenPending)
+        {
+            VisualElement panel = UiKit.Box("card", "rack-panel");
+            panel.name = "map-reopen-panel";
+            UiKit.Add(panel, $"{summary.RacksWithApprovedWork} rack{(summary.RacksWithApprovedWork == 1 ? " has" : "s have")} approved removal work that has not been carried out. "
+                + "Reopening cancels nothing. If you then change one of those racks, you will be asked again before its approved work is cancelled and set up again as pending.", "body");
+            VisualElement choices = UiKit.Row(panel, "row-wrap");
+            Button yes = UiKit.Button("Reopen the plan", ReopenRackPlanFromCard, true, "btn-primary");
+            yes.name = "map-reopen-accept";
+            choices.Add(yes);
+            Button no = UiKit.Button("Keep the plan confirmed", () => { reopenPending = false; Refresh(true); }, true, "btn-ghost");
+            no.name = "map-reopen-decline";
+            choices.Add(no);
+            card.Add(panel);
+            return;
+        }
+
+        Button reopen = UiKit.Button("Reopen Rack Plan", RequestReopenRackPlan, !summary.NothingEditable, "btn-primary");
+        reopen.name = "map-rack-plan-reopen";
+        card.Add(reopen);
+        if (summary.NothingEditable)
+            UiKit.Add(card, "Every rack has been harvested, so there is nothing left to reopen.", "faint");
+    }
+
+    private void RequestReopenRackPlan()
+    {
+        if (ui.Manager.DescribeRackReopen().RacksWithApprovedWork > 0)
+        {
+            reopenPending = true;
+            Refresh(true);
+            return;
+        }
+        ReopenRackPlanFromCard();
+    }
+
+    private void ReopenRackPlanFromCard()
+    {
+        reopenPending = false;
+        FinishPlanChange(ui.Manager.ReopenRackPlan());
     }
 
     // The status line follows a drag live without rebuilding the card; a refusal is amber, anything else is plain.

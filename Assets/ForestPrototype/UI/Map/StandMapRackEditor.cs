@@ -50,6 +50,13 @@ public sealed class StandMapRackEditor
     public int StatusVersion { get; private set; }
     // True while the reset confirmation is showing.
     public bool ResetPending { get; private set; }
+    // A change that would cancel approved but unexecuted removal work waits here for an explicit yes (RACK-V2-07). The authoritative
+    // plan has already refused it with a warning and changed nothing; "yes" repeats the same call with the consent flag, "no" drops it.
+    // Presentation state only, never saved.
+    private Func<RackPlanOperationResult> consentRetry;
+    private string consentSuccess = "";
+    public bool ConsentPending => consentRetry != null;
+    public string ConsentMessage { get; private set; } = "";
     public bool Active => active;
     public bool Dragging => gesture != Gesture.None && dragged;
     public RackEditGhost? Ghost => ghost;
@@ -76,7 +83,7 @@ public sealed class StandMapRackEditor
     // A string that changes whenever the side card has to be rebuilt.
     public string StateKey
         => SelectedRackId + "|" + (Manager != null ? Manager.PlannedRackCount + "|" + Manager.CanUndoRackEdit + "|" + Manager.RackEditingOpen : "")
-            + "|" + ResetPending + "|" + StatusVersion + "|" + active;
+            + "|" + ResetPending + "|" + ConsentPending + "|" + StatusVersion + "|" + active;
 
     // Shows or hides the pointer layer. Off whenever the map is not in V2 rack planning, or the plan cannot be edited.
     public void SetActive(bool on)
@@ -88,6 +95,8 @@ public sealed class StandMapRackEditor
         {
             Cancel(false);
             ResetPending = false;
+            consentRetry = null;
+            ConsentMessage = "";
         }
     }
 
@@ -173,6 +182,8 @@ public sealed class StandMapRackEditor
         dragged = false;
         ghost = null;
         ResetPending = false;
+        consentRetry = null;
+        ConsentMessage = "";
         ScenarioOneManager manager = Manager;
 
         Gesture next = Gesture.None;
@@ -390,14 +401,26 @@ public sealed class StandMapRackEditor
                 break;
             default:
                 result = manager.ReshapeRackFromMap(rackId, entrance, far);
-                Report(result, finished == Gesture.Move ? "Moved rack " + rackId + "." : "Rotated rack " + rackId + ".");
+                Report(result, finished == Gesture.Move ? "Moved rack " + rackId + "." : "Rotated rack " + rackId + ".",
+                    () => manager.ReshapeRackFromMap(rackId, entrance, far, true));
                 break;
         }
         ui.MapSource.MarkRacksDirty();
     }
 
-    private void Report(RackPlanOperationResult result, string success)
+    private void Report(RackPlanOperationResult result, string success, Func<RackPlanOperationResult> retryWithConsent = null)
     {
+        consentRetry = null;
+        ConsentMessage = "";
+        if (result.RequiresApprovalWarning && retryWithConsent != null)
+        {
+            // Nothing has changed yet. Ask, and keep the exact call to repeat if the player agrees.
+            consentRetry = retryWithConsent;
+            consentSuccess = success;
+            ConsentMessage = result.Message;
+            SetStatus("Waiting for your decision: " + result.Message, false);
+            return;
+        }
         string text = result.Status == RackPlanOperationStatus.Applied && !string.IsNullOrEmpty(success) ? success : result.Message;
         if (result.Status == RackPlanOperationStatus.NoChange && string.IsNullOrEmpty(text)) text = "Nothing changed.";
         SetStatus(text, !result.Succeeded);
@@ -438,7 +461,7 @@ public sealed class StandMapRackEditor
         }
         int id = SelectedRackId;
         RackPlanOperationResult result = Manager.DeleteRackFromMap(id);
-        Report(result, "Deleted rack " + id + ".");
+        Report(result, "Deleted rack " + id + ".", () => Manager.DeleteRackFromMap(id, true));
         if (result.Status == RackPlanOperationStatus.Applied) ClearSelection();
         ui.MapSource.MarkRacksDirty();
         changed();
@@ -449,7 +472,7 @@ public sealed class StandMapRackEditor
         ResetPending = false;
         if (Manager == null) return;
         RackPlanOperationResult result = Manager.UndoLastRackEdit();
-        Report(result, result.Message);
+        Report(result, result.Message, () => Manager.UndoLastRackEdit(true));
         if (result.Status == RackPlanOperationStatus.Applied)
         {
             // Show the rack the undo touched, if it still exists.
@@ -501,11 +524,51 @@ public sealed class StandMapRackEditor
         changed();
     }
 
+    // The warning the plan gave for a change that needs the player's consent, shown by a command that is not an edit gesture (Confirm
+    // Rack Plan). Same rules as an edit: nothing changed yet; yes repeats the call with consent, no leaves everything as it was.
+    public void AskConsent(RackPlanOperationResult warning, string successText, Func<RackPlanOperationResult> retryWithConsent)
+    {
+        ResetPending = false;
+        Report(warning, successText, retryWithConsent);
+        changed();
+    }
+
+    // Lets the Stand Map report the result of a plan-level command (confirm, reopen) in the same status line.
+    public void NoteStatus(string text, bool problem)
+    {
+        ResetPending = false;
+        SetStatus(text, problem);
+    }
+
+    public void AcceptConsent()
+    {
+        if (consentRetry == null) return;
+        Func<RackPlanOperationResult> retry = consentRetry;
+        string success = consentSuccess;
+        consentRetry = null;
+        ConsentMessage = "";
+        RackPlanOperationResult result = retry();
+        Report(result, success);
+        if (result.Status == RackPlanOperationStatus.Applied) ClearSelection();
+        ui.MapSource.MarkRacksDirty();
+        ui.RackLayout?.Update(true);
+        changed();
+    }
+
+    public void DeclineConsent()
+    {
+        if (consentRetry == null) return;
+        consentRetry = null;
+        ConsentMessage = "";
+        SetStatus("Nothing was changed. The approved work stays as it is.", false);
+        changed();
+    }
+
     private void ApplyReset(IReadOnlyList<SuggestedRackSegment> suggestion)
     {
         ResetPending = false;
         RackPlanOperationResult result = Manager.ResetRacksToSuggestion(suggestion);
-        Report(result, "Reset the plan to the suggested layout.");
+        Report(result, "Reset the plan to the suggested layout.", () => Manager.ResetRacksToSuggestion(suggestion, true));
         if (result.Status == RackPlanOperationStatus.Applied) ClearSelection();
         ui.MapSource.MarkRacksDirty();
     }

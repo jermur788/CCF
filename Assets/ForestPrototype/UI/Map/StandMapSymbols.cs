@@ -83,8 +83,8 @@ public static class StandMapSymbols
         Fill(Add(MapSymbol.RackOpen, new MapColour(236, 228, 200, 235), 0f, 1.3f, true, "pale open strip", "rack harvested, corridor open"), new MapColour(236, 228, 200, 78));
         Fill(Add(MapSymbol.RackOther, new MapColour(242, 216, 156, 240), 0f, 2.1f, true, "dotted ochre line", "your rack, off the planned layout", 2f, 5f), new MapColour(242, 216, 156, 44));
         Fill(Add(MapSymbol.RackPreview, new MapColour(252, 252, 244, 255), 0f, 2.8f, false, "white dashed line", "rack you are planning", 8f, 5f), new MapColour(255, 255, 255, 72));
-        Fill(Add(MapSymbol.RackSuggested, new MapColour(228, 218, 170, 170), 0f, 1.8f, false, "faint dashed line", "suggested rack", 9f, 6f), new MapColour(228, 218, 170, 22));
-        Fill(Add(MapSymbol.RackPlayer, new MapColour(238, 172, 78, 255), 0f, 2.8f, false, "solid amber line", "your planned rack"), new MapColour(238, 172, 78, 84));
+        Fill(Add(MapSymbol.RackSuggested, new MapColour(228, 218, 170, 170), 0f, 1.8f, true, "faint dashed line", "suggested rack", 9f, 6f), new MapColour(228, 218, 170, 22));
+        Fill(Add(MapSymbol.RackPlayer, new MapColour(238, 172, 78, 255), 0f, 2.8f, true, "solid amber line", "your planned rack"), new MapColour(238, 172, 78, 84));
         // RACK-V2-05 direct editing, full map only. The ghost is dashed like every proposal; refusal is red and also dashed, so colour is
         // never the only cue. The selection outline, handle and entrance marker belong to the one selected rack.
         Fill(Add(MapSymbol.RackDraft, new MapColour(252, 252, 244, 255), 0f, 2.8f, false, "white dashed line", "rack you are drawing", 8f, 5f), new MapColour(255, 255, 255, 64));
@@ -92,7 +92,7 @@ public static class StandMapSymbols
         Add(MapSymbol.RackSelection, new MapColour(255, 238, 150, 245), 0f, 3.4f, false, "bright outline", "selected rack");
         Add(MapSymbol.RackHandle, new MapColour(255, 255, 255, 255), 0f, 1.6f, false, "white round handle", "drag to rotate the rack");
         Add(MapSymbol.RackEntrance, new MapColour(150, 214, 255, 255), 0f, 1.6f, false, "blue square", "rack entrance on the headland");
-        Fill(Add(MapSymbol.RackHarvested, new MapColour(236, 228, 200, 235), 0f, 2.2f, false, "pale solid strip", "harvested rack, geometry locked"), new MapColour(236, 228, 200, 96));
+        Fill(Add(MapSymbol.RackHarvested, new MapColour(236, 228, 200, 235), 0f, 2.2f, true, "pale solid strip", "harvested rack, geometry locked"), new MapColour(236, 228, 200, 96));
         // The band is the rack's real corridor width (RackGeometry.DefaultWidthM); its colour comes from the rack it belongs to.
         Add(MapSymbol.RackBand, new MapColour(0, 0, 0, 0), RackGeometry.DefaultWidthM, 4f, true, "pale strip", "rack corridor");
 

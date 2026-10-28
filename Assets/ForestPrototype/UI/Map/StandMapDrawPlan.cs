@@ -103,7 +103,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if ((rack.MiniOnly && full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || (rack.FullOnly && !full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackBand(model, t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
@@ -128,7 +128,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if ((rack.MiniOnly && full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || (rack.FullOnly && !full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackLine(t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 

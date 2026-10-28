@@ -93,8 +93,74 @@ public sealed partial class ScenarioOneManager
         ecology != null ? StandGeometryModel.StandSizeMeters(ecology.StandGeometryModelVersion) * 0.5f : 40f);
 
     // True when racks may be changed directly on the map: a V2 world whose plan is not confirmed. A confirmed plan is fixed until
-    // it is reopened (ReopenRackPlan); the reopen flow itself belongs to RACK-V2-07.
+    // it is reopened (ReopenRackPlan, offered on the Stand Map by RACK-V2-07).
     public bool RackEditingOpen => RackPlanningV2Active && !rackPlanConfirmed;
+
+    // ---- confirm and reopen (RACK-V2-07) -----------------------------------------------------------
+    //
+    // Read-only questions the Stand Map asks before it offers Confirm Rack Plan or Reopen Rack Plan. Neither stores anything: the
+    // answers come from the rack objects and their orders, and the actual changes still go through ConfirmRackPlan / ReopenRackPlan.
+
+    // Whether Confirm Rack Plan is available right now, and if not, the honest reason. A plan is confirmable when it holds exactly
+    // RackPlanTargetCount racks and every rack that can still change passes the same editing rules the map applies to a drag. The
+    // frozen removal set and entrance tree are checked by ConfirmRackPlan itself, which refuses before changing anything.
+    public bool CanConfirmRackPlan(out string reason)
+    {
+        reason = "";
+        if (!RackPlanningV2Active)
+            reason = "Rack Planning V2 is not active in this world.";
+        else if (rackPlanConfirmed)
+            reason = "The rack plan is already confirmed.";
+        else if (racks.Count != RackPlanTargetCount)
+            reason = $"A confirmed plan needs exactly {RackPlanTargetCount} racks. The plan has {racks.Count}.";
+        else
+        {
+            foreach (RackSaveData rack in racks.OrderBy(rack => rack.rackId))
+            {
+                // A harvested rack is fixed whatever its geometry says; only racks that can still change are re-checked.
+                if (rack == null || RackIsLocked(rack.rackId)) continue;
+                RackEditValidation check = ValidateRackEdit(rack.rackId, new RackPoint(rack.entranceX, rack.entranceZ), new RackPoint(rack.farX, rack.farZ));
+                if (!check.IsValid)
+                {
+                    reason = $"Rack {rack.rackId} is not valid: {check.Message}";
+                    break;
+                }
+            }
+        }
+        return reason.Length == 0;
+    }
+
+    // What reopening a confirmed plan would mean for the work already linked to the racks. Reopening itself never changes orders or
+    // marks (ReopenRackPlan); this only lets the map warn first. Racks with executed removals stay geometry-locked; racks with
+    // approved but unexecuted work would need an explicit cancel-and-recreate consent before one of them is changed.
+    public readonly struct RackReopenSummary
+    {
+        public readonly int RackCount, LockedRacks, EditableRacks, RacksWithApprovedWork;
+
+        public RackReopenSummary(int rackCount, int lockedRacks, int racksWithApprovedWork)
+        {
+            RackCount = rackCount;
+            LockedRacks = lockedRacks;
+            EditableRacks = rackCount - lockedRacks;
+            RacksWithApprovedWork = racksWithApprovedWork;
+        }
+
+        public bool NothingEditable => EditableRacks <= 0;
+    }
+
+    public RackReopenSummary DescribeRackReopen()
+    {
+        int locked = 0, approved = 0, count = 0;
+        foreach (RackSaveData rack in racks)
+        {
+            if (rack == null) continue;
+            count++;
+            RackOrderLifecycle lifecycle = RackOrderState(rack.rackId);
+            if (lifecycle.IsLocked) locked++;
+            else if (lifecycle.HasApprovedWork) approved++;
+        }
+        return new RackReopenSummary(count, locked, approved);
+    }
 
     public bool CanUndoRackEdit
         => lastRackEdit != null && RackEditingOpen && RackPlanSnapshot.Capture(this).Same(lastRackEdit.After);
@@ -195,6 +261,17 @@ public sealed partial class ScenarioOneManager
         RackPlanOperationResult result = UpdateRack(rackId, entrance, far, allowCancelApproved);
         if (result.Status == RackPlanOperationStatus.Applied)
             lastRackEdit = new RackEditUndo(RackEditKind.Reshape, before, RackPlanSnapshot.Capture(this), rackId);
+        return result;
+    }
+
+    // Confirms the plan from the map. This is the authoritative ConfirmRackPlan (it creates or refreshes Pending removal work only and
+    // never approves or executes anything); the map's undo memory is dropped so a later reopen cannot undo a pre-confirmation edit.
+    public RackPlanOperationResult ConfirmRackPlanFromMap(bool allowCancelApproved = false)
+    {
+        if (!CanConfirmRackPlan(out string reason))
+            return RackPlanOperationResult.Invalid(reason);
+        RackPlanOperationResult result = ConfirmRackPlan(allowCancelApproved);
+        if (result.Succeeded) lastRackEdit = null;
         return result;
     }
 

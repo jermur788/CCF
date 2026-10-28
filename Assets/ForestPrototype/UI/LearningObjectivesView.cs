@@ -32,6 +32,8 @@ public sealed partial class LearningObjectivesView
                 return TeachingInstruction(TeachingFacts());
             }
             RackLayoutTracker layout = ui.RackLayout;
+            // A V2 world states the derived counter (planned, then entrances marked) rather than the legacy layout wording.
+            if (layout != null && layout.RackPlanV2) return layout.V2ObjectiveInstruction;
             if (layout != null && layout.Complete)
             {
                 bool pending = layout.WorkPending;
@@ -44,7 +46,8 @@ public sealed partial class LearningObjectivesView
         }
     }
     public string Summary => TeachingRacks
-        ? (ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
+        ? (ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText + " · [O] Details"
+            : ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
             : ui.RackLayout != null && ui.RackLayout.HasProgress
                 ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} fully planned · [M] Plan rack to finish · [O] Details"
                 : "Current objective: create access racks · [B] Choose a start · [O] Details")

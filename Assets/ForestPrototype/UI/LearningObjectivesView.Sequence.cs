@@ -212,6 +212,8 @@ public sealed partial class LearningObjectivesView
         if (index == 0)
         {
             RackLayoutTracker layout = ui.RackLayout;
+            // The V2 wording is the Objectives screen's, so the two cannot disagree.
+            if (layout != null && layout.RackPlanV2) return layout.V2ObjectiveInstruction;
             if (layout != null && layout.Complete)
                 return layout.WorkPending
                     ? "Open the Work Plan [Tab], approve the rack work, then advance one year."

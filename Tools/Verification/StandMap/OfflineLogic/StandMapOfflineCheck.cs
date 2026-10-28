@@ -55,7 +55,14 @@ public static class StandMapOfflineCheck
         var player = v2Full.Single(x => x.Symbol == MapSymbol.RackPlayer);
         Check(suggested.DashPx > 0 && suggested.GapPx > 0 && player.DashPx == 0 && player.GapPx == 0, "V2 suggested is dashed and player rack solid");
         Check(!v2Full.Any(x => x.Symbol == MapSymbol.RackToDo) && v2Mini.Any(x => x.Symbol == MapSymbol.RackToDo), "legacy minimap-only rack is hidden from full map");
-        Check(!v2Mini.Any(x => x.Symbol == MapSymbol.RackSuggested || x.Symbol == MapSymbol.RackPlayer), "V2 presentation does not expand the minimap");
+        // RACK-V2-07 (approved packet, requirement 8) INTENTIONALLY SUPERSEDES the RACK-V2-04 assertion "V2 presentation does not expand the
+        // minimap": the minimap now draws the same dashed guidance and solid plan symbols as the Stand Map, from the same shared model.
+        var v2MiniSuggested = v2Mini.Single(x => x.Symbol == MapSymbol.RackSuggested);
+        var v2MiniPlayer = v2Mini.Single(x => x.Symbol == MapSymbol.RackPlayer);
+        Check(v2MiniSuggested.DashPx > 0 && v2MiniSuggested.GapPx > 0 && v2MiniPlayer.DashPx == 0 && v2MiniPlayer.GapPx == 0,
+            "RACK-V2-07: the minimap draws V2 suggestions dashed and the V2 plan solid, with the Stand Map's own symbols");
+        Check(v2Mini.Single(x => x.Symbol == MapSymbol.RackSuggested).Colour.Equals(suggested.Colour) && v2MiniPlayer.Colour.Equals(player.Colour),
+            "RACK-V2-07: the minimap and the Stand Map colour each V2 rack symbol identically");
         var v2Legend = StandMapLegend.Entries(v2, MapOverlay.None, true);
         Check(v2Legend.Any(x => x.Text == "Dashed = suggested") && v2Legend.Any(x => x.Text == "Solid = your planned rack"), "V2 legend names both line meanings");
         Check(!v2Legend.Any(x => x.Symbol == MapSymbol.RackToDo), "V2 full-map legend excludes minimap-only legacy rack");
@@ -121,7 +128,8 @@ public static class StandMapOfflineCheck
         var harvested = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
         harvested.Racks.Add(new MapRack { Start = new RackPoint(-35.4f, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackHarvested, RackId = 3, Locked = true });
         Check(StandMapDrawPlan.BuildStatic(harvested, 688, MapDetail.Full).Any(x => x.Symbol == MapSymbol.RackHarvested), "a harvested rack is drawn on the full map");
-        Check(!StandMapDrawPlan.BuildStatic(harvested, 144, MapDetail.Mini).Any(x => x.Symbol == MapSymbol.RackHarvested), "a harvested V2 rack does not expand the minimap");
+        // RACK-V2-07 INTENTIONALLY SUPERSEDES "a harvested V2 rack does not expand the minimap": executed work is real, so it stays visible.
+        Check(StandMapDrawPlan.BuildStatic(harvested, 144, MapDetail.Mini).Any(x => x.Symbol == MapSymbol.RackHarvested), "RACK-V2-07: a harvested V2 rack is drawn on the minimap as well");
         Check(StandMapLegend.Entries(harvested, MapOverlay.None, true).Any(x => x.Text == "Harvested rack, locked"), "a harvested rack is named in the legend");
         Check(!StandMapLegend.Entries(edit, MapOverlay.None, true).Any(x => x.Text == "Harvested rack, locked"), "no harvested rack, no harvested legend row");
         Check(StandMapModel.IsDynamicRack(MapSymbol.RackPreview) && StandMapModel.IsDynamicRack(MapSymbol.RackDraft) && StandMapModel.IsDynamicRack(MapSymbol.RackRefused)
@@ -195,6 +203,27 @@ public static class StandMapOfflineCheck
         var fullOnly = new[] { MapSymbol.GridLine, MapSymbol.ScaleBar, MapSymbol.TreeMarkFell, MapSymbol.TreeMarkCrop, MapSymbol.Juvenile, MapSymbol.Shelter, MapSymbol.ShelterLapsed, MapSymbol.RackPreview };
         Check(fullOnly.All(s => !StandMapSymbols.IsDrawn(s, MapDetail.Mini)), "the minimap hides the grid, the scale, marks, juveniles, shelters and the rack being planned");
         Check(StandMapSymbols.Legend(MapDetail.Full).Contains("rack you are planning") && !StandMapSymbols.Legend(MapDetail.Mini).Contains("rack you are planning"), "legend follows the same filter");
+
+        // ---- RACK-V2-07 minimap propagation: FullOnly drafts, MiniOnly guidance, one authoritative source ----
+        var staged = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
+        staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackSuggested, MiniOnly = true });
+        staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 10), End = new RackPoint(40, 10), Symbol = MapSymbol.RackPlayer, RackId = 1, FullOnly = true });
+        staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 20), End = new RackPoint(40, 20), Symbol = MapSymbol.RackPlayer, RackId = 2 });
+        staged.Racks.Add(new MapRack { Start = new RackPoint(-35, 30), End = new RackPoint(40, 30), Symbol = MapSymbol.RackHarvested, RackId = 3, Locked = true, FullOnly = false });
+        var stagedFull = StandMapDrawPlan.BuildStatic(staged, 688, MapDetail.Full);
+        var stagedMini = StandMapDrawPlan.BuildStatic(staged, 144, MapDetail.Mini);
+        Check(stagedMini.Count(x => x.Symbol == MapSymbol.RackPlayer && staged.Racks[x.SourceIndex].RackId == 1) == 0,
+            "RACK-V2-07: a draft (full-map-only) rack is not drawn on the minimap");
+        Check(stagedMini.Any(x => x.Symbol == MapSymbol.RackPlayer && staged.Racks[x.SourceIndex].RackId == 2)
+            && stagedMini.Any(x => x.Symbol == MapSymbol.RackHarvested && staged.Racks[x.SourceIndex].RackId == 3),
+            "RACK-V2-07: the confirmed rack and the harvested rack are drawn on the minimap");
+        Check(stagedFull.Any(x => x.Symbol == MapSymbol.RackPlayer && staged.Racks[x.SourceIndex].RackId == 1) && !stagedFull.Any(x => x.Symbol == MapSymbol.RackSuggested),
+            "RACK-V2-07: the full map still draws the draft rack and hides minimap-only guidance outside planning");
+        Check(stagedMini.Any(x => x.Symbol == MapSymbol.RackSuggested), "RACK-V2-07: minimap-only guidance is drawn on the minimap");
+        var stagedBefore = staged.StaticVersion;
+        staged.Racks[1].FullOnly = false;
+        staged.Restamp();
+        Check(staged.StaticVersion != stagedBefore, "RACK-V2-07: confirming (FullOnly cleared) changes the static map version so the minimap repaints");
 
         // ---- one model, two presentations ----
         StandMapModel model = Scenario(true);

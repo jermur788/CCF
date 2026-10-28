@@ -21,7 +21,8 @@ public sealed class RackLayoutTracker
 
     public RackLayoutTracker(ScenarioOneUiRoot ui) { this.ui = ui; }
 
-    private bool RackPlanV2 => ui.Manager != null && ui.Manager.RackPlanningV2Active;
+    // True only in a Rack Planning V2 world (model 1 on Enlarged80). Legacy40 and every model-0 world answer false.
+    public bool RackPlanV2 => ui.Manager != null && ui.Manager.RackPlanningV2Active;
 
     // Where the V2 rack objects stand: racks that exist, racks whose work is in the Work Plan or done, racks whose work has all been
     // resolved (nothing open and something carried out), and the rack-owned orders still open.
@@ -51,6 +52,34 @@ public sealed class RackLayoutTracker
     // True when every rack of the layout has been harvested: no fellable tree is left in any corridor (V2: every rack's work is resolved).
     public bool Harvested => RackPlanV2 ? Complete && MeasureRackPlan().Resolved == Total : Total > 0 && Lines.All(line => line.TreesLeft == 0);
     public int Version => stamp;
+
+    // The one Objective 1 counter line in a V2 world. It reads the rack objects through the manager every time, so it is never a
+    // second counter: "Racks planned" while the plan is open, "Rack entrances marked" once it is confirmed. A reopened plan goes back
+    // to "Racks planned"; its marks are kept in the rack objects and come back into the count when the plan is confirmed again.
+    public string V2CounterText
+    {
+        get
+        {
+            ScenarioOneManager m = ui.Manager;
+            return m.RackPlanConfirmed
+                ? $"Rack entrances marked: {m.MarkedRackEntranceCount} / {ScenarioOneManager.RackPlanTargetCount}"
+                : $"Racks planned: {m.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}";
+        }
+    }
+
+    // The V2 objective sentence: the counter, then the next thing to do. Confirming only puts removal work in the Work Plan; the
+    // player still reviews and approves it there.
+    public string V2ObjectiveInstruction
+    {
+        get
+        {
+            ScenarioOneManager m = ui.Manager;
+            if (!m.RackPlanConfirmed)
+                return V2CounterText + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
+            return V2CounterText + (WorkPending ? ". The removal work is in the Work Plan [Tab] for review and approval."
+                : ". Open the Work Plan [Tab] and advance one year.");
+        }
+    }
     public int PlannedTrees => RackPlanV2 ? MeasureRackPlan().OpenOrders : Lines.Sum(line => line.Planned);
     private bool HasFellingWork => ui.Manager.WorkOrders.Any(order => order.IsOpen && order.type == ScenarioWorkType.FellTree);
     public bool HasProgress => RackPlanV2 ? Done > 0 || ui.Manager.Interventions.Count > 0
@@ -105,8 +134,7 @@ public sealed class RackLayoutTracker
     {
         get
         {
-            // The V2 wording names no tool or screen: the player-facing V2 authoring and marking lanes are separate tasks.
-            if (RackPlanV2) return $"{Done} of {Total} racks have their work in the Work Plan; {Total - Done} still need work.";
+            if (RackPlanV2) return V2ObjectiveInstruction;
             string next = $"{Done} of {Total} required access routes fully planned; {Total - Done} still need work. Use Plan rack on Stand Map [M] to finish the marked routes.";
             if (PlannedTrees > 0) return $"{PlannedTrees} trees on the required routes are in your Work Plan. " + next;
             if (HasFellingWork && Done == 0)
@@ -130,7 +158,7 @@ public sealed class RackLayoutTracker
         string previous = string.Join(";", Lines.Select(l => l.Index + ":" + l.Remaining + ":" + l.Planned + ":" + l.TreesLeft));
         Lines = next;
         // A V2 world's progress is not in Lines, so it has to move the version on its own.
-        string plan = RackPlanV2 ? Total + ":" + Done + ":" + PlannedTrees + ":" + Harvested : "";
+        string plan = RackPlanV2 ? Total + ":" + Done + ":" + PlannedTrees + ":" + Harvested + ":" + ui.Manager.PlannedRackCount + ":" + ui.Manager.RackPlanConfirmed + ":" + ui.Manager.MarkedRackEntranceCount : "";
         if (signature != previous || plan != planToken || stamp < 0)
             stamp++;
         planToken = plan;
