@@ -596,7 +596,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     {
         if (element == null || !Visible(element)) throw new InvalidOperationException("control not visible for a real click");
         Vector2 at = ScreenOfElement(element);
-        yield return Do(new[] { Move(at), Sleep(180), Move(at + new Vector2(1, 0)), Sleep(60), Move(at), Sleep(120), Down(), Sleep(90), Up(), Sleep(200) });
+        yield return Do(new[] { Move(at), Sleep(300), Move(at + new Vector2(1, 0)), Sleep(300), Move(at), Sleep(500), Down(), Sleep(250), Up(), Sleep(300) });
         yield return Wait(0.5f);
         yield return Settle(6);
     }
@@ -612,7 +612,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         if (syncAt < 0) syncAt = steps * 2 / 3;
         var ops = new List<PointerOp>();
         Vector2 a = ScreenOfWorld(from), b = ScreenOfWorld(to);
-        ops.Add(Move(a)); ops.Add(Sleep(150)); ops.Add(Move(a + Vector2.one)); ops.Add(Sleep(60)); ops.Add(Move(a)); ops.Add(Sleep(120));
+        ops.Add(Move(a)); ops.Add(Sleep(300)); ops.Add(Move(a + Vector2.one)); ops.Add(Sleep(300)); ops.Add(Move(a)); ops.Add(Sleep(500));
         if (shift) ops.Add(KeyDown("shift"));
         ops.Add(Down()); ops.Add(Sleep(120));
         for (int i = 1; i <= steps; i++)
@@ -621,7 +621,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             ops.Add(Sleep(35));
             if (syncName != null && i == syncAt) { ops.Add(Sleep(500)); ops.Add(Sync(syncName)); }
         }
-        ops.Add(Sleep(160));
+        ops.Add(Sleep(900));
         ops.Add(Up());
         if (shift) ops.Add(KeyUp("shift"));
         ops.Add(Sleep(200));
@@ -635,7 +635,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     private IEnumerator ClickWorld(RackPoint at)
     {
         Vector2 s = ScreenOfWorld(at);
-        yield return Do(new[] { Move(s), Sleep(150), Move(s + Vector2.right), Sleep(60), Move(s), Sleep(120), Down(), Sleep(90), Up(), Sleep(200) });
+        yield return Do(new[] { Move(s), Sleep(300), Move(s + Vector2.right), Sleep(300), Move(s), Sleep(500), Down(), Sleep(250), Up(), Sleep(300) });
         yield return Wait(0.5f);
         yield return Settle(6);
     }

@@ -261,14 +261,18 @@ public sealed class StandMapRackEditor
         Gesture finished = gesture;
         int rackId = gestureRackId;
         bool wasDragged = dragged;
-        Vector2 px = e.localPosition;
-        bool snapOn = !ShiftHeld(e.modifiers);
-        // Compute the proposal again at the release point, so a release without a final move still lands where the pointer is.
+        // Releasing applies the proposal the player was last shown (the ghost), not a position read from the release event: when the
+        // last pointer moves and the release land in one frame, the release can still carry the position from before them.
+        // What you see when you let go is what you get.
         RackPoint entrance = default, far = default;
-        if (wasDragged)
-            Propose(px, snapOn, out entrance, out far, out _, out _);
+        bool haveProposal = ghost.HasValue;
+        if (haveProposal)
+        {
+            entrance = ghost.Value.Start;
+            far = ghost.Value.End;
+        }
         EndGesture();
-        if (wasDragged)
+        if (wasDragged && haveProposal)
             Apply(finished, rackId, entrance, far);
         e.StopPropagation();
         changed();
