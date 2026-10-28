@@ -951,7 +951,9 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         RackPlanRack lr = Rack(lockedId);
         yield return DragWorld(OnRack(lr, 0.5f), P(OnRack(lr, 0.5f).X, OnRack(lr, 0.5f).Z + 8f));
         Check(PlanSig() == lockedPlan && OrderSig() == lockedOrders, tag + ": a real drag on an executed rack moved nothing");
-        yield return DragWorld(lr.Far, P(lr.Far.X - 20f, lr.Far.Z + 5f));
+        // The suggested far endpoint sits exactly on the map boundary; aim just inside it so the real press reaches the layer.
+        RackPoint nearLockedFar = OnRack(lr, 0.98f);
+        yield return DragWorld(nearLockedFar, P(nearLockedFar.X - 20f, nearLockedFar.Z + 5f));
         Check(PlanSig() == lockedPlan && OrderSig() == lockedOrders, tag + ": there is no handle to rotate an executed rack");
         yield return PressKey("Delete");
         Check(Rack(lockedId) != null && PlanSig() == lockedPlan && OrderSig() == lockedOrders, tag + ": the Delete key cannot delete an executed rack");
