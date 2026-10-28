@@ -643,14 +643,17 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         {
             ops.Add(Move(Vector2.Lerp(a, b, (float)i / steps), 0));
             ops.Add(Sleep(35));
+            // Repeat the final waypoint before any end-of-drag inspection; the low-frame-rate Editor can coalesce the last move.
+            if (i == steps)
+            {
+                ops.Add(Sleep(300));
+                ops.Add(Move(b + Vector2.one));
+                ops.Add(Sleep(300));
+                ops.Add(Move(b));
+                ops.Add(Sleep(300));
+            }
             if (syncName != null && i == syncAt) { ops.Add(Sleep(500)); ops.Add(Sync(syncName)); }
         }
-        // The Editor can coalesce the final xdotool move at its low frame rate. Revisit the destination with a small, visible
-        // pointer movement and dwell on it so the last delivered map event represents the requested endpoint before release.
-        ops.Add(Sleep(300));
-        ops.Add(Move(b + Vector2.one));
-        ops.Add(Sleep(300));
-        ops.Add(Move(b));
         ops.Add(Sleep(900));
         ops.Add(Up());
         if (shift) ops.Add(KeyUp("shift"));
