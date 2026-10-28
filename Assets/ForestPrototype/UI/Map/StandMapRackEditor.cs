@@ -30,7 +30,7 @@ public sealed class StandMapRackEditor
 
     private readonly ScenarioOneUiRoot ui;
     private readonly VisualElement layer;
-    private readonly Action changed;
+    private readonly Action changed, repaint;
     private Gesture gesture = Gesture.None;
     private int gestureRackId;
     private int pointerId = -1;
@@ -56,11 +56,14 @@ public sealed class StandMapRackEditor
     // Raised for a status change that should only update the status label (a drag in progress), not rebuild the card.
     public event Action LiveStatusChanged;
 
-    public StandMapRackEditor(ScenarioOneUiRoot ui, VisualElement layer, Action changed)
+    // `changed` rebuilds the map and its side card after a discrete action; `repaint` redraws just the map surface, for the many pointer
+    // moves of a drag.
+    public StandMapRackEditor(ScenarioOneUiRoot ui, VisualElement layer, Action changed, Action repaint)
     {
         this.ui = ui;
         this.layer = layer;
         this.changed = changed ?? (() => { });
+        this.repaint = repaint ?? (() => { });
         layer.RegisterCallback<PointerDownEvent>(OnPointerDown);
         layer.RegisterCallback<PointerMoveEvent>(OnPointerMove);
         layer.RegisterCallback<PointerUpEvent>(OnPointerUp);
@@ -247,6 +250,7 @@ public sealed class StandMapRackEditor
         ghost = new RackEditGhost(entrance, far, RackGeometry.DefaultWidthM, check.IsValid);
         ui.MapSource.EditGhost = ghost;
         ui.MapSource.MarkRackEditDirty();
+        repaint();
         SetLiveStatus(Describe(entrance, far, snap, check), !check.IsValid);
         e.StopPropagation();
     }

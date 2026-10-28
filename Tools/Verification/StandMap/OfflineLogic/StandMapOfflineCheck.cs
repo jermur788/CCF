@@ -61,6 +61,72 @@ public static class StandMapOfflineCheck
         Check(!v2Legend.Any(x => x.Symbol == MapSymbol.RackToDo), "V2 full-map legend excludes minimap-only legacy rack");
         Check(StandMapLegend.Entries(v2, MapOverlay.None).Any(x => x.Text == "Solid = your planned rack"), "player rack has a legend outside planning mode");
 
+        // ---- RACK-V2-05 direct editing presentation: ghost, selection and handle live in the dynamic layer only ----
+        var edit = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
+        edit.Racks.Add(new MapRack { Start = new RackPoint(-35.4f, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackPlayer, RackId = 1 });
+        edit.Racks.Add(new MapRack { Start = new RackPoint(-35.4f, 12), End = new RackPoint(40, 12), Symbol = MapSymbol.RackPlayer, RackId = 2 });
+        edit.Restamp();
+        int staticBefore = edit.StaticVersion, dynamicBefore = edit.DynamicVersion;
+        List<MapDrawItem> staticPlain = StandMapDrawPlan.BuildStatic(edit, 688, MapDetail.Full);
+        Check(StandMapDrawPlan.BuildDynamic(edit, 688, MapDetail.Full).Count == 0, "no selection or ghost: the dynamic layer holds nothing for racks");
+
+        // Selecting a rack changes only the dynamic layer.
+        edit.Racks[0].Selected = true;
+        edit.Restamp();
+        Check(edit.StaticVersion == staticBefore, "selecting a rack leaves the static version alone");
+        Check(edit.DynamicVersion > dynamicBefore, "selecting a rack moves the dynamic version");
+        List<MapDrawItem> selectedPlan = StandMapDrawPlan.BuildDynamic(edit, 688, MapDetail.Full);
+        Check(selectedPlan.Count(x => x.Symbol == MapSymbol.RackSelection) == 1 && selectedPlan.Count(x => x.Symbol == MapSymbol.RackEntrance) == 1
+            && selectedPlan.Count(x => x.Symbol == MapSymbol.RackHandle) == 1, "a selected rack gets one outline, one entrance square and one handle");
+        Check(selectedPlan.Single(x => x.Symbol == MapSymbol.RackSelection).Layer == MapDrawLayer.Dynamic && selectedPlan.All(x => x.Layer == MapDrawLayer.Dynamic),
+            "every editing item is in the dynamic layer");
+        StandMapTransform et = edit.TransformFor(688);
+        MapPosition handleAt = selectedPlan.Single(x => x.Symbol == MapSymbol.RackHandle).Anchor, farAt = et.WorldToPixels(new RackPoint(40, 0));
+        Check(Near(handleAt.X, farAt.X) && Near(handleAt.Y, farAt.Y), "the handle is centred on the rack's far end");
+        MapPosition squareAt = selectedPlan.Single(x => x.Symbol == MapSymbol.RackEntrance).Anchor, entranceAt = et.WorldToPixels(new RackPoint(-35.4f, 0));
+        Check(Near(squareAt.X, entranceAt.X) && Near(squareAt.Y, entranceAt.Y), "the entrance square is centred on the rack's entrance");
+        Check(!StandMapDrawPlan.BuildDynamic(edit, 144, MapDetail.Mini).Any(x => x.Symbol == MapSymbol.RackSelection || x.Symbol == MapSymbol.RackHandle),
+            "selection and handles are not drawn on the minimap");
+        StandMapSymbols.Get(MapSymbol.RackHandle);
+        Check(StandMapDrawPlan.HandleRadiusPx(688) >= 6f && StandMapDrawPlan.HandleRadiusPx(688) < 20f, "the handle is large enough to grab and small enough to read");
+
+        // A locked (executed) rack is outlined with its entrance but offers no handle to drag.
+        edit.Racks[0].Locked = true;
+        edit.Restamp();
+        List<MapDrawItem> lockedPlan = StandMapDrawPlan.BuildDynamic(edit, 688, MapDetail.Full);
+        Check(lockedPlan.Any(x => x.Symbol == MapSymbol.RackSelection) && !lockedPlan.Any(x => x.Symbol == MapSymbol.RackHandle), "a locked rack shows no rotate handle");
+        edit.Racks[0].Locked = false;
+        edit.Restamp();
+
+        // A ghost proposal is dynamic too; the static plan is byte-for-byte unchanged by it.
+        int staticAfterSelect = edit.StaticVersion;
+        edit.Racks.Add(new MapRack { Start = new RackPoint(-35.4f, 20), End = new RackPoint(30, 22), Symbol = MapSymbol.RackDraft });
+        edit.Restamp();
+        Check(edit.StaticVersion == staticAfterSelect, "a ghost proposal does not touch the static version");
+        List<MapDrawItem> ghostPlan = StandMapDrawPlan.BuildDynamic(edit, 688, MapDetail.Full);
+        Check(ghostPlan.Count(x => x.Symbol == MapSymbol.RackDraft) == 1 && ghostPlan.Count(x => x.Symbol == MapSymbol.RackBand) == 1, "a valid ghost is a dashed rack with a band");
+        Check(ghostPlan.Single(x => x.Symbol == MapSymbol.RackDraft).DashPx > 0, "a ghost is dashed, not solid");
+        List<MapDrawItem> staticWithGhost = StandMapDrawPlan.BuildStatic(edit, 688, MapDetail.Full);
+        Check(staticWithGhost.Count == staticPlain.Count && !staticWithGhost.Any(x => x.Symbol == MapSymbol.RackDraft), "the ghost is absent from the static plan");
+        edit.Racks[edit.Racks.Count - 1].Symbol = MapSymbol.RackRefused;
+        edit.Restamp();
+        List<MapDrawItem> refusedPlan = StandMapDrawPlan.BuildDynamic(edit, 688, MapDetail.Full);
+        MapDrawItem refused = refusedPlan.Single(x => x.Symbol == MapSymbol.RackRefused);
+        Check(refused.DashPx > 0 && refused.Colour.R > refused.Colour.G + 100 && refused.Colour.R > refused.Colour.B + 100, "a refused ghost is dashed and red (colour is never the only cue)");
+        Check(!StandMapLegend.Entries(edit, MapOverlay.None, true).Any(x => x.Symbol == MapSymbol.RackDraft || x.Symbol == MapSymbol.RackRefused || x.Symbol == MapSymbol.RackSelection),
+            "the ghost and selection add no legend row");
+        Check(StandMapDrawPlan.BuildDynamic(edit, 144, MapDetail.Mini).Count(x => x.Symbol == MapSymbol.RackRefused || x.Symbol == MapSymbol.RackDraft) == 0, "ghosts are not drawn on the minimap");
+
+        // A harvested rack is a static pale strip with its own legend row; it is not on the minimap.
+        var harvested = new StandMapModel { HasProperty = true, MinX = -40, MinZ = -40, SizeM = 80 };
+        harvested.Racks.Add(new MapRack { Start = new RackPoint(-35.4f, 0), End = new RackPoint(40, 0), Symbol = MapSymbol.RackHarvested, RackId = 3, Locked = true });
+        Check(StandMapDrawPlan.BuildStatic(harvested, 688, MapDetail.Full).Any(x => x.Symbol == MapSymbol.RackHarvested), "a harvested rack is drawn on the full map");
+        Check(!StandMapDrawPlan.BuildStatic(harvested, 144, MapDetail.Mini).Any(x => x.Symbol == MapSymbol.RackHarvested), "a harvested V2 rack does not expand the minimap");
+        Check(StandMapLegend.Entries(harvested, MapOverlay.None, true).Any(x => x.Text == "Harvested rack, locked"), "a harvested rack is named in the legend");
+        Check(!StandMapLegend.Entries(edit, MapOverlay.None, true).Any(x => x.Text == "Harvested rack, locked"), "no harvested rack, no harvested legend row");
+        Check(StandMapModel.IsDynamicRack(MapSymbol.RackPreview) && StandMapModel.IsDynamicRack(MapSymbol.RackDraft) && StandMapModel.IsDynamicRack(MapSymbol.RackRefused)
+            && !StandMapModel.IsDynamicRack(MapSymbol.RackPlayer) && !StandMapModel.IsDynamicRack(MapSymbol.RackHarvested), "only proposals are dynamic racks");
+
         // ---- transform ----
         var t = new StandMapTransform(-40f, -40f, 80f, 608f);
         MapPosition nw = t.WorldToPixels(new RackPoint(-40f, 40f)), se = t.WorldToPixels(new RackPoint(40f, -40f)), c = t.WorldToPixels(new RackPoint(0f, 0f));

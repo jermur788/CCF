@@ -131,7 +131,7 @@ public sealed class StandMapView
         editLayer.pickingMode = PickingMode.Position;
         editLayer.style.display = DisplayStyle.None;
         frame.Add(editLayer);
-        editor = new StandMapRackEditor(ui, editLayer, () => Refresh(true));
+        editor = new StandMapRackEditor(ui, editLayer, () => Refresh(true), () => surface.Sync(ui.MapSource.Model, Overlay));
         editor.LiveStatusChanged += ShowLiveEditStatus;
         frame.RegisterCallback<PointerMoveEvent>(OnPointerMove);
         frame.RegisterCallback<PointerLeaveEvent>(_ => caption.text = DefaultCaption);
@@ -174,6 +174,12 @@ public sealed class StandMapView
         modal.Add(body);
     }
 
+    // Called every frame by the UI root while the map is open (Refresh runs only a few times a second, which would miss a key press).
+    public void HandleKeys(Keyboard keyboard)
+    {
+        if (rackMode) editor.HandleKeys(keyboard);
+    }
+
     private MapOverlay Overlay => layer == Layer.Access ? MapOverlay.None : layer == Layer.Light ? MapOverlay.Light : layer == Layer.Regeneration ? MapOverlay.Regeneration
         : layer == Layer.Browse ? MapOverlay.Browsing : MapOverlay.Marks;
 
@@ -182,13 +188,11 @@ public sealed class StandMapView
         ForestEcologyController eco = ui.Ecology;
         if (eco == null || eco.Cells == null)
             return;
-        // Direct rack editing is live only while planning racks in a V2 world whose plan is not confirmed. The Delete / Backspace keys
-        // are polled here because this runs every frame the map is open.
+        // Direct rack editing is live only while planning racks in a V2 world whose plan is not confirmed.
         bool planningV2 = rackMode && ui.Manager.RackPlanningV2Active;
         editor.SetActive(planningV2 && ui.Manager.RackEditingOpen);
         if (!planningV2) editor.ClearSelection();
         editor.Validate();
-        if (!force) editor.HandleKeys(Keyboard.current);
         int playerCell = ui.Player != null ? eco.GetCellIndex(ui.Player.transform.position) : -1;
         if (selectedCell < 0) selectedCell = playerCell;
         // The rack being planned here is drawn on this map only (the minimap filters it out). Then the surface is given the shared

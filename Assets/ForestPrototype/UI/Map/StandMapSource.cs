@@ -59,7 +59,19 @@ public sealed class StandMapSource
     // The rack the Stand Map is planning, if any. Set by the Stand Map; the minimap filters it out.
     public RackProposal Preview { get; set; }
     // Display mode only; suggestions are rebuilt from the foundation and never enter the rack plan.
-    public bool ShowRackSuggestions { get; set; }
+    private bool showRackSuggestions;
+    // The foundation's answer is taken once per planning session and per full rebuild, not at every pointer move of a drag: it
+    // needs a scan of the plantation and depends only on the fixed plantation positions.
+    private IReadOnlyList<SuggestedRackSegment> suggestions;
+    public bool ShowRackSuggestions
+    {
+        get => showRackSuggestions;
+        set
+        {
+            if (value && !showRackSuggestions) suggestions = null;
+            showRackSuggestions = value;
+        }
+    }
     // Direct editing (RACK-V2-05): which plan rack is selected, and the proposal being dragged. Both are presentation only; the
     // plan changes only when an edit is applied to ScenarioOneManager, never from here.
     public int SelectedRackId { get; set; }
@@ -96,12 +108,13 @@ public sealed class StandMapSource
     {
         racksDirty = true;
         treesDirty = true;
+        suggestions = null;
         Refresh();
         return model;
     }
 
     // A rack was confirmed, or the stand geometry changed: read the racks again at the next refresh.
-    public void MarkRacksDirty() { racksDirty = true; treesDirty = true; refreshedFrame = -1; }
+    public void MarkRacksDirty() { racksDirty = true; treesDirty = true; suggestions = null; refreshedFrame = -1; }
 
     // Only the racks changed (a selection, a drag ghost): re-read them without scanning the forest again.
     public void MarkRackEditDirty() { racksDirty = true; refreshedFrame = -1; }
@@ -253,7 +266,8 @@ public sealed class StandMapSource
             {
                 // The one plantation-tree snapshot and the foundation call live on the manager, so the map and the editing rules
                 // read the same guidance.
-                foreach (SuggestedRackSegment segment in ui.Manager.GetSuggestedRackLayout())
+                if (suggestions == null) suggestions = ui.Manager.GetSuggestedRackLayout();
+                foreach (SuggestedRackSegment segment in suggestions)
                     model.Racks.Add(new MapRack { Start = segment.Entrance, End = segment.Far, WidthM = segment.WidthM, Symbol = MapSymbol.RackSuggested });
             }
             foreach (RackPlanRack rack in ui.Manager.RackPlan)

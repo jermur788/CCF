@@ -329,6 +329,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         // replaces it. ScenarioOneManager applies the same rule to Tab.
         if (help.IsOpen)
             return;
+        // Delete / Backspace remove the selected rack while the map is planning racks (RACK-V2-05).
+        if (screen == UiScreen.Map)
+            map.HandleKeys(keyboard);
         if (keyboard.oKey.wasPressedThisFrame)
         {
             if (manager.WorkPlanOpen) manager.OpenWorkPlan(false);
