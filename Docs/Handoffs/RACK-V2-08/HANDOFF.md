@@ -1,3 +1,49 @@
+# RACK-V2-08 — resumed inspection / additional G3 blocker
+
+**BLOCKED — additional protected intro-fixture disposition required.** The previous first-person-authoring G3 blocker was cleared and claim #49 resumed RUNNING, but the unchanged guided gate contains another, unrelated stale contract. No production or protected-test edits have been made. The requested success exit is not achieved.
+
+- Continuing worker: T3 Code / OpenAI Codex `gpt-6.1-sol`, high; single writer in the same branch/worktree. Previous DeepSeek watcher was stopped at the prior blocker handoff and has not been relaunched; no second writer or quota-source change.
+- Branch: `feature/scenario-one-rack-v2-no-competing-author-v1`; worktree `/media/jer/ZX20/CCF-RackV2-08`.
+- Refreshed main: `8f8e6f03c65894b0d933aad23a4ad69227fb33e8`; context commit `ea9c4590d9f9d959bd5c56d7738e04c611bfcdcd`. Main contains the required task base and docs-only OPEN-3 sync PR #51 / merge `c15df9f916f4dab5fca66ad8348a620370841911`.
+- Resume merge HEAD: `b0eee6249b0a152a8b60e67f7df00bf8440f50c6`; coordination resume commit `4d3a341` updates only RACK-V2-08. RACK-V2-07 already records Manager-approved/integrated PR #48. All unrelated coordination-row bytes compared unchanged; CCF-Primary unrelated work untouched.
+- Exact runtime-tested candidate: NONE. Implementation commits: NONE. Final tip: the documentation-only commit containing this resumed handoff; full identity recorded in claim #49.
+- Durable evidence: `/media/jer/Files/CCF/Verification/RackV2-08-Resume-20261028T130353Z/`; source conflict report and proposed reviewable patch `PROPOSED-intro-fixture-G3.patch`. Patch is outside the repo and has NOT been applied.
+
+## Additional protected conflict
+
+`Tools/Verification/ScenarioOneRackUx/GuidedOnboardingVerification.cs:144–147` requires the Scenario One title on the initial introduction screen, the literal phrases `next generation` and `one step at a time`, and a single CloseHelp before Objectives. Current main's accepted `ScenarioOneOnboardingView.Show` starts page 0, and `Render` clears/rebuilds one page at a time. The Scenario One title occurs on page 3; neither line-145 phrase occurs in the current introduction copy; CloseHelp advances one page rather than closing the three-page sequence. The fixture would therefore encounter an unrelated obsolete intro contract before reaching the authoring split. This is source-confirmed, **not an observed Unity failure**.
+
+`G3-DISPOSITION.md`, Decision item 4, states: “No assertion unrelated to the superseded authoring route is authorised for weakening or expected-value movement. Any further protected conflict returns to Manager G3 review.” The worker stopped rather than move the expected strings, suppress the introduction, fabricate old copy, skip assertions or retire a gate.
+
+Proposed bounded amendment, awaiting explicit Manager/user approval: verify all three current onboarding pages and rendered premise/management-cycle content; invoke their real Next/Begin UI controls; assert Begin closes before rack teaching; preserve every subsequent world-hash, rack, input, progression and layout assertion. The exact proposed diff is in the external evidence archive. The original first-person-authoring G3 disposition remains valid and unchanged.
+
+A second fixture constraint is recorded for review: `ScenarioOneRackLayout.AppliesTo` accepts only Enlarged80, so the complete existing guided/sequential rack-first teaching contract cannot execute as-is in true Legacy40. Proposed coverage is an explicit rack-model-0 Enlarged80 saved-world compatibility fixture for the retained full sequence, plus a separate true Legacy40 first-person/progression runtime check. This approach is proposed, not implemented or passed; no unrelated stage or geometry expectation was changed.
+
+## Unity and verification
+
+- Read `G3-DISPOSITION.md` before any production edit; fetched/merged current main; verified base/OPEN-3 ancestry; refreshed claim and both main and physical Primary coordination. Primary has no conflicting Rack task row and its unrelated dirty work was preserved.
+- Claim #49 was marked RUNNING, with actual executor, same branch/worktree and resume identity, before the new blocker was found. Claim remains OPEN for continuation; no success closure.
+- `/media/jer/ZX20/CCF-Ops/scripts/unity-lock status --json` returned FREE, no metadata, no Editor PIDs. **No lock acquired, no lane placement, no Editor started, no save touched.**
+- ZX20 backing UUID `18D6-896E` / exFAT verified; Files UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4` / ext4 verified. ZX20 ~12 GiB free is below CCF-Ops' configured15 GiB launch floor. Scoped approval requested to delete only inactive `/media/jer/ZX20/CCF-U3/Library` (~6.6 GiB); approval pending, nothing deleted. No lock or floor bypass.
+- Assets and Tools diff versus refreshed main is empty. No compiler/offline behavioural suite/Unity gate/rendered review ran. No temporary source/meta staged. The original six checks and both split protected gates remain required.
+- No serialized asset, package, project setting, save/schema, ecology/economy, MFM or Windows/Player build change. No PR/integration or feature acceptance.
+
+## Resume requirements
+
+1. Obtain the bounded additional G3 disposition (or an alternative retaining protected assertions) for the current three-page intro fixture; settle the explicit legacy fixture boundary.
+2. Restore the configured storage floor through separately approved cleanup or user action.
+3. Refresh main/claim/live coordination, mark #49 RUNNING, retain one writer in this branch/worktree; implement the already-authorised V2 guard/copy and model-split verification.
+4. Run compiler/offline checks and the exact-candidate locked Unity checks on both model paths, including RACK-V2-07 preservation; inspect rendered evidence. Do not weaken/skip/retire protected gates.
+5. Only after qualification publish the successful handoff, mark HANDED-OFF and close #49.
+
+**Ready for Manager review of this blocker: Yes. Ready as a completed feature: No.**
+
+DASHBOARD SYNC: NOT AVAILABLE / NOT VERIFIED. PUBLISHED DASHBOARD REFLECTS THIS TASK: NO verified readback. Manager/operational publisher must ingest the claim/coordination update and verify the GitHub audit/published dashboard; no generated state was hand-edited.
+
+---
+
+## Previous blocker handoff (history, superseded by the authoring-split disposition)
+
 # RACK-V2-08 — G3 blocker handoff
 
 **BLOCKED — Manager G3 disposition required for the unmapped guided first-person rack assertions.** No production or protected-test changes were made. This is an inspection/coordination handoff, not a qualified implementation or an integration request.
