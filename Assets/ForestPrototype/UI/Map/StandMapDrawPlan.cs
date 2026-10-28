@@ -49,6 +49,10 @@ public static class StandMapDrawPlan
     public static float WaypointRadiusPx(float sidePx) => Math.Max(5f, sidePx * 0.0115f);
     // How far the facing wedge reaches ahead of you.
     public static float WedgeLengthPx(float sidePx) => MarkerRadiusPx(sidePx) * 4.2f;
+    // The rack-editing handle and entrance marker. The pointer test uses the same radius (plus a little slack), so what is drawn is
+    // what can be grabbed.
+    public static float HandleRadiusPx(float sidePx) => Math.Max(6f, sidePx * 0.0112f);
+    public static float EntranceHalfPx(float sidePx) => Math.Max(4.5f, sidePx * 0.0075f);
 
     // The whole plan, static layer first, then the dynamic layer on top.
     public static List<MapDrawItem> Build(StandMapModel model, float sidePx, MapDetail detail, MapOverlay overlay = MapOverlay.None)
@@ -99,7 +103,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if ((rack.MiniOnly && full) || rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackBand(model, t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
@@ -124,7 +128,7 @@ public static class StandMapDrawPlan
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if ((rack.MiniOnly && full) || rack.Symbol == MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if ((rack.MiniOnly && full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             plan.Add(RackLine(t, rack, i, StandMapSymbols.Get(rack.Symbol), MapDrawLayer.Static));
         }
 
@@ -211,14 +215,29 @@ public static class StandMapDrawPlan
         if (model == null || !model.HasProperty || sidePx <= 0f) return plan;
         StandMapTransform t = model.TransformFor(sidePx);
 
-        // The rack being planned, last among the racks so it lies on top (full map only).
+        // The rack being planned and the edit ghost, last among the racks so they lie on top (full map only).
         for (int i = 0; i < model.Racks.Count; i++)
         {
             MapRack rack = model.Racks[i];
-            if (rack.Symbol != MapSymbol.RackPreview || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+            if (!StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
             MapSymbolStyle style = StandMapSymbols.Get(rack.Symbol);
             plan.Add(RackBand(model, t, rack, i, style, MapDrawLayer.Dynamic));
             plan.Add(RackLine(t, rack, i, style, MapDrawLayer.Dynamic));
+        }
+
+        // The selected player rack (full map only): a bright outline round its corridor, a square where it meets the headland, and
+        // - unless its removals have been executed and its geometry is locked - a round handle at the far end to drag and rotate.
+        for (int i = 0; i < model.Racks.Count; i++)
+        {
+            MapRack rack = model.Racks[i];
+            if (!rack.Selected || !StandMapSymbols.IsDrawn(MapSymbol.RackSelection, detail)) continue;
+            plan.Add(RackOutline(t, rack, i, StandMapSymbols.Get(MapSymbol.RackSelection)));
+            MapSymbolStyle entrance = StandMapSymbols.Get(MapSymbol.RackEntrance);
+            plan.Add(Square(t, rack.Start, EntranceHalfPx(sidePx), entrance.Colour, new MapColour(14, 24, 32, 245), 1.6f, i));
+            if (rack.Locked) continue;
+            MapSymbolStyle handle = StandMapSymbols.Get(MapSymbol.RackHandle);
+            var disc = Disc(MapSymbol.RackHandle, MapDrawLayer.Dynamic, t, rack.End, HandleRadiusPx(sidePx), handle.Colour, new MapColour(18, 22, 20, 245), 2f, i);
+            plan.Add(disc);
         }
 
         // The destination: a small amber diamond with a dark edge.
@@ -290,6 +309,33 @@ public static class StandMapDrawPlan
         item.Points.Add(t.WorldToPixels(new RackPoint(rack.End.X - px, rack.End.Z - pz)));
         item.Points.Add(t.WorldToPixels(new RackPoint(rack.Start.X - px, rack.Start.Z - pz)));
         item.Anchor = t.WorldToPixels(item.World);
+        return item;
+    }
+
+    // The outline of a rack's corridor (no fill), for the selected rack.
+    private static MapDrawItem RackOutline(StandMapTransform t, MapRack rack, int index, MapSymbolStyle style)
+    {
+        float dx = rack.End.X - rack.Start.X, dz = rack.End.Z - rack.Start.Z, length = (float)Math.Sqrt(dx * dx + dz * dz);
+        float half = Math.Max(rack.WidthM * 0.5f, style.MinPx * 0.5f / Math.Max(0.0001f, t.PixelsPerMetre));
+        float px = length > 1e-4f ? -dz / length * half : 0f, pz = length > 1e-4f ? dx / length * half : 0f;
+        var item = new MapDrawItem { Symbol = MapSymbol.RackSelection, Layer = MapDrawLayer.Dynamic, Closed = true, WidthPx = style.MinPx, Colour = style.Colour, SourceIndex = index, World = rack.Start };
+        item.Points.Add(t.WorldToPixels(new RackPoint(rack.Start.X + px, rack.Start.Z + pz)));
+        item.Points.Add(t.WorldToPixels(new RackPoint(rack.End.X + px, rack.End.Z + pz)));
+        item.Points.Add(t.WorldToPixels(new RackPoint(rack.End.X - px, rack.End.Z - pz)));
+        item.Points.Add(t.WorldToPixels(new RackPoint(rack.Start.X - px, rack.Start.Z - pz)));
+        item.Anchor = t.WorldToPixels(item.World);
+        return item;
+    }
+
+    private static MapDrawItem Square(StandMapTransform t, RackPoint at, float halfPx, MapColour fill, MapColour stroke, float strokePx, int index)
+    {
+        var item = new MapDrawItem { Symbol = MapSymbol.RackEntrance, Layer = MapDrawLayer.Dynamic, Closed = true, Filled = true, Colour = fill, Stroke = stroke, StrokePx = strokePx, SourceIndex = index, World = at };
+        MapPosition c = t.WorldToPixels(at);
+        item.Points.Add(new MapPosition(c.X - halfPx, c.Y - halfPx));
+        item.Points.Add(new MapPosition(c.X + halfPx, c.Y - halfPx));
+        item.Points.Add(new MapPosition(c.X + halfPx, c.Y + halfPx));
+        item.Points.Add(new MapPosition(c.X - halfPx, c.Y + halfPx));
+        item.Anchor = c;
         return item;
     }
 
