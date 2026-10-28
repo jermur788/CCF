@@ -28,6 +28,14 @@ public sealed partial class GuidedOnboardingRunner
     // the same production analysis as the lesson and the rack gate; it must not invent a sequence index or bypass the real marks.
     ScenarioOneRackBay.Analysis Bay()
     {
+        // G3 split: V2 progression follows the confirmed player plan through the production sample adapter.
+        // Model 0 keeps the exact authored-line fixture below.
+        if (manager.RackPlanningV2Active)
+        {
+            var sample = ScenarioOneRackSampleGeometry.Derive(manager.ConfirmedRacks,
+                StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f);
+            return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders, sample);
+        }
         var layout = ui.RackTool.Planner.LayoutStatus();
         var line = layout[layout.Count / 2];
         return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
@@ -226,12 +234,23 @@ public sealed partial class GuidedOnboardingRunner
         yield return LessonShot("02-future-trees");
         ForestTree[] trees = LivingSpruce();
         // The accepted lesson needs three distributed Crop Trees. Prove the old single-tree shortcut cannot advance the lesson.
-        foreach (string id in new[] { "P0714", "P1109" })
+        string[] cropIds = { "P0714", "P1109", "P0706" };
+        if (manager.RackPlanningV2Active)
+        {
+            // Same rack-relative fixture selection as the integrated MFM-02 gate: follow the actual confirmed teaching frame.
+            var bay = Bay(); var selected = new System.Collections.Generic.List<string>();
+            foreach (Vector2 point in new[] { new Vector2(-8f,4.5f), new Vector2(0f,-4.5f), new Vector2(8f,4.5f) })
+                selected.Add(trees.Where(t => !selected.Contains(t.TreeId) && bay.Contains(t.transform.position.x,t.transform.position.z))
+                    .OrderBy(t => Mathf.Pow(bay.Geometry.Along(t.transform.position.x,t.transform.position.z)-point.x,2f)
+                        + Mathf.Pow(bay.Geometry.Across(t.transform.position.x,t.transform.position.z)-point.y,2f)).First().TreeId);
+            cropIds = selected.ToArray();
+        }
+        foreach (string id in cropIds.Take(2))
         {
             ui.Marking.Mark(trees.First(t => t.TreeId == id), TreeMarkType.CropTree, false);
-            Stage(1, id == "P0714" ? "one crop tree is not enough" : "two crop trees are not enough");
+            Stage(1, id == cropIds[0] ? "one crop tree is not enough" : "two crop trees are not enough");
         }
-        ui.Marking.Mark(trees.First(t => t.TreeId == "P0706"), TreeMarkType.CropTree, false);
+        ui.Marking.Mark(trees.First(t => t.TreeId == cropIds[2]), TreeMarkType.CropTree, false);
         ScenarioOneRackBay.Analysis futureBay = Bay();
         Check(futureBay.HasEnoughFuture && futureBay.NearSelected && futureBay.MiddleSelected && futureBay.FarSelected && futureBay.BothSides,
             "three distributed crop trees satisfy the future-tree requirement",

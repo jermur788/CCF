@@ -5,6 +5,21 @@
 // labels W A S D, Mouse, E, M, Tab, O, F1, Esc, F5 / F9 and F10 are asserted by the startup-screen verification.
 public static class ControlsReference
 {
+    // Keep the legacy controls for model-0 saves. Select the current world's authoring route when rendering.
+    public static System.Collections.Generic.IEnumerable<string[]> RowsFor(bool rackPlanningV2)
+    {
+        foreach (string[] row in Rows)
+        {
+            if (rackPlanningV2 && row[0] == "B") continue;
+            yield return rackPlanningV2 && row[0] == "M"
+                ? new[] { "M", "Stand Map: Plan Racks, or find a place to inspect" } : row;
+        }
+    }
+
+    public static string KeysLineFor(bool rackPlanningV2) => rackPlanningV2
+        ? KeysLine.Replace("B extraction rack · ", "").Replace("M Stand Map", "M Stand Map / Plan Racks")
+        : KeysLine;
+
     public static readonly string[][] Rows =
     {
         new[] { "W A S D", "Walk. Hold Shift to run, Space to jump" },

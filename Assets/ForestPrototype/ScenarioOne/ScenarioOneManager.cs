@@ -87,7 +87,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     private const string StartGuidanceToken = "\u0001start-guidance";
     public string Feedback => feedback == StartGuidanceToken ? StartGuidance : feedback;
     private string StartGuidance => RackFirstStageActive
-        ? "Scenario started. Start with extraction racks: press B in the forest and point at a planted row, then approve them in the Work Plan."
+        ? RackPlanningV2Active
+            ? "Scenario started. Open the Stand Map [M], choose Plan Racks and confirm your rack plan. Review and approve the removal work in the Work Plan."
+            : "Scenario started. Start with extraction racks: press B in the forest and point at a planted row, then approve them in the Work Plan."
         : "Scenario started. Walk the stand, mark trees, then build the annual Work Plan.";
     public IReadOnlyList<PlantedJuvenile> PlantedJuveniles => plantedJuveniles;
     public IReadOnlyList<PlantingClearancePatch> ClearancePatches => clearancePatches;

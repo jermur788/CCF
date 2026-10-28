@@ -97,6 +97,23 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         player = FindFirstObjectByType<ForestPlayer>();
         manager = FindFirstObjectByType<ScenarioOneManager>();
         if (ui == null || player == null || manager == null) { Debug.Log("CHC_UNVERIFIED missing ui/player/manager"); Finish(1); yield break; }
+        string rackModel = Environment.GetEnvironmentVariable("CCF_RACK_VERIFY_MODEL");
+        Check(rackModel == "legacy" || rackModel == "v2", "EXPLICIT_RACK_MODEL_SELECTED");
+        if (rackModel == "legacy")
+        {
+            ForestSaveController saves = FindFirstObjectByType<ForestSaveController>();
+            ForestSaveData legacy = saves.CaptureData();
+            legacy.version = 20;
+            legacy.scenarioOne.rackPlanningModel = RackPlanningModel.Legacy;
+            legacy.scenarioOne.rackPlanConfirmed = false;
+            legacy.scenarioOne.nextRackId = 1;
+            legacy.scenarioOne.racks = new List<RackSaveData>();
+            Check(saves.LoadData(legacy, false), "EXPLICIT_MODEL_0_COMPATIBILITY_FIXTURE_LOADS");
+        }
+        Check(rackModel == "legacy" ? !manager.RackPlanningV2Active && manager.RackPlanningModelVersion == RackPlanningModel.Legacy
+            : manager.RackPlanningV2Active, "SELECTED_RACK_MODEL_IS_ACTIVE");
+        // Traverse the current introduction controls before composition measurements.
+        while (ui.Help.Onboarding.IsOpen) yield return Invoke(ui.RootElement.Q<Button>("onboarding-next"));
         for (int i = 0; i < 90 && !Application.isFocused; i++) yield return null;
         var sizes = (Environment.GetEnvironmentVariable("CCF_UI_SIZES") ?? "1280x720,1920x1080").Split(',')
             .Select(s => s.Split('x')).Select(p => new Vector2Int(int.Parse(p[0]), int.Parse(p[1]))).ToArray();
@@ -464,7 +481,7 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     private bool Walking() => UnityEngine.Cursor.lockState == CursorLockMode.Locked && !UnityEngine.Cursor.visible && player.enabled && !manager.AnyPanelOpen && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !ui.Help.IsOpen;
     private bool PanelState() => UnityEngine.Cursor.lockState == CursorLockMode.None && UnityEngine.Cursor.visible && !player.enabled && manager.AnyPanelOpen;
 
-    private Button FindPlanRack() => ui.RootElement.Query<Button>().ToList().FirstOrDefault(b => b.text != null && b.text.StartsWith("Plan rack", StringComparison.Ordinal) && Visible(b));
+    private Button FindPlanRack() => ui.RootElement.Query<Button>().ToList().FirstOrDefault(b => b.name == "map-plan-rack" && Visible(b));
 
     private IEnumerator Settled(int frames = 14)
     {
@@ -503,31 +520,43 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
         yield return Settled();
         Check(PanelState() && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "FOCUS_05_STAND_MAP_FREES_THE_MOUSE", FocusState());
         Check(!Visible(ui.Minimap.Root), "FOCUS_05_MINIMAP_IS_NOT_DRAWN_OVER_THE_FULL_MAP", FocusState());
-        // Existing rack-first teaching design (identical on the base, Lane A and Lane B): the map offers "Plan rack" only once the first rack has been
-        // made in the forest. A new game has not made one yet; the second screen size runs in the same game, where it has.
-        bool gated = manager.RackFirstStageActive && !ui.Learning.IsDone("rack.create");
-        if (!firstRackMade)
+        if (manager.RackPlanningV2Active)
         {
-            Check(gated, "FOCUS_05_A_NEW_GAME_IS_IN_THE_RACK_FIRST_STAGE", $"rackFirst={manager.RackFirstStageActive} rackCreateDone={ui.Learning.IsDone("rack.create")}");
-            Check(FindPlanRack() == null, "FOCUS_05_PLAN_RACK_WAITS_FOR_THE_FIRST_FOREST_RACK (existing design, unchanged)");
+            Check(ui.Map.RackPlanningAvailable && FindPlanRack() != null, "FOCUS_05_V2_PLAN_RACKS_IS_IMMEDIATELY_AVAILABLE");
+            Check(manager.RackGroups.Count == 0 && !RackTool.AnyActive && !ui.RackTool.Active, "FOCUS_05_V2_NEEDS_NO_FIRST_PERSON_RACK");
+            if (!firstRackMade) Check(manager.PlannedRackCount == 0 && manager.WorkOrders.Count == 0,
+                "FOCUS_05_V2_REPLACEMENT_IS_AVAILABLE_BEFORE_ANY_RACK_OR_WORK");
+            ui.CloseAll(); yield return Settled();
+            Check(Walking(), "FOCUS_05_V2_CLOSING_FRESH_MAP_RESTORES_FOREST", FocusState());
         }
-        ui.CloseAll();
-        yield return Settled();
-        if (!firstRackMade)
+        else
         {
-            // The first rack, made through the real backend (the real B-key click flow with OS input is the guided gate's job).
-            RackPlanner planner = ui.RackTool.Planner;
-            planner.Refresh();
-            RackLayoutLine first = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
-            Check(first != null, "FOCUS_06_THE_PLANNED_LAYOUT_HAS_A_RACK_TO_MAKE");
-            if (first != null)
+            // Existing rack-first teaching design (identical on the base, Lane A and Lane B): the map offers "Plan rack" only once the first rack has been
+            // made in the forest. A new game has not made one yet; the second screen size runs in the same game, where it has.
+            bool gated = manager.RackFirstStageActive && !ui.Learning.IsDone("rack.create");
+            if (!firstRackMade)
             {
-                RackProposal proposal = planner.Propose(new RackPoint(0f, first.AcrossM), planner.DefaultAngle(0f, true));
-                Check(proposal != null && proposal.CanConfirm && proposal.LayoutIndex == first.Index, "FOCUS_06_THE_FIRST_RACK_CAN_BE_CONFIRMED", proposal == null ? "none" : $"layout={proposal.LayoutIndex} can={proposal.CanConfirm}");
-                if (proposal != null && proposal.CanConfirm) { manager.ConfirmRack(proposal, "forest"); firstRackMade = true; }
+                Check(gated, "FOCUS_05_A_NEW_GAME_IS_IN_THE_RACK_FIRST_STAGE", $"rackFirst={manager.RackFirstStageActive} rackCreateDone={ui.Learning.IsDone("rack.create")}");
+                Check(FindPlanRack() == null, "FOCUS_05_PLAN_RACK_WAITS_FOR_THE_FIRST_FOREST_RACK (existing design, unchanged)");
             }
-            yield return Wait(0.5f);
-            Check(ui.Learning.IsDone("rack.create"), "FOCUS_06_THE_FIRST_RACK_IS_RECORDED_BY_THE_TEACHING");
+            ui.CloseAll();
+            yield return Settled();
+            if (!firstRackMade)
+            {
+                // The first rack, made through the real backend (the real B-key click flow with OS input is the guided gate's job).
+                RackPlanner planner = ui.RackTool.Planner;
+                planner.Refresh();
+                RackLayoutLine first = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
+                Check(first != null, "FOCUS_06_THE_PLANNED_LAYOUT_HAS_A_RACK_TO_MAKE");
+                if (first != null)
+                {
+                    RackProposal proposal = planner.Propose(new RackPoint(0f, first.AcrossM), planner.DefaultAngle(0f, true));
+                    Check(proposal != null && proposal.CanConfirm && proposal.LayoutIndex == first.Index, "FOCUS_06_THE_FIRST_RACK_CAN_BE_CONFIRMED", proposal == null ? "none" : $"layout={proposal.LayoutIndex} can={proposal.CanConfirm}");
+                    if (proposal != null && proposal.CanConfirm) { manager.ConfirmRack(proposal, "forest"); firstRackMade = true; }
+                }
+                yield return Wait(0.5f);
+                Check(ui.Learning.IsDone("rack.create"), "FOCUS_06_THE_FIRST_RACK_IS_RECORDED_BY_THE_TEACHING");
+            }
         }
         Check(Visible(ui.Minimap.Root), "FOCUS_06_MINIMAP_SHOWS_THE_NEW_RACK_AFTER_CONFIRMATION", FocusState());
         yield return Shot("c04b-hud-minimap-after-first-rack");
@@ -542,13 +571,34 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
             Check(!ui.Map.RackMode, "FOCUS_06_RACK_MODE_STARTS_OFF");
             yield return Invoke(plan);
             Check(ui.Map.RackMode && PanelState(), "FOCUS_06_RACK_PLANNING_ON_THE_MAP_KEEPS_THE_POINTER_FREE", FocusState());
-            int n = ui.Ecology.CellsPerAxis;
-            var cells = ui.RootElement.Query<Button>(className: "map-cell").ToList();
-            RackLayoutLine open = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
-            int cell = ui.Ecology.GetCellIndex(new Vector3(0f, 0f, open != null ? open.AcrossM : ui.Ecology.StandBounds.center.y));
-            yield return Invoke(cells[(n - 1 - cell / n) * n + cell % n]);
-            yield return Wait(0.3f);
-            Check(ui.Map.RackPreview != null, "FOCUS_06_A_CLICKED_SQUARE_PREVIEWS_A_RACK", FocusState());
+            if (manager.RackPlanningV2Active)
+            {
+                if (!firstRackMade)
+                {
+                    yield return Invoke(ui.RootElement.Q<Button>("map-edit-reset"));
+                    Check(manager.PlannedRackCount == 5, "FOCUS_06_V2_AUTHORITATIVE_MAP_LAYOUT_CREATED");
+                    yield return Invoke(ui.RootElement.Q<Button>("map-rack-plan-confirm"));
+                    Check(manager.RackPlanConfirmed, "FOCUS_06_V2_AUTHORITATIVE_PLAN_CONFIRMED");
+                    firstRackMade = manager.RackPlanConfirmed;
+                }
+                ui.Map.Refresh(true); ui.MapSource.MarkRacksDirty();
+                StandMapModel model = ui.MapSource.Rebuild();
+                Check(manager.RackPlanConfirmed && manager.PlannedRackCount == 5 && manager.WorkOrders.Any(o => o.rackId > 0),
+                    "FOCUS_06_V2_CONFIRMED_RACKS_OWN_REAL_WORK");
+                Check(model.Racks.Count(r => r.Symbol == MapSymbol.RackPlayer) == manager.PlannedRackCount
+                    && model.MiniGuidance.Count == 0 && !ui.Minimap.TeachingNoteVisible,
+                    "FOCUS_06_V2_CONFIRMED_SOLID_MAP_MINIMAP_CONTRACT");
+            }
+            else
+            {
+                int n = ui.Ecology.CellsPerAxis;
+                var cells = ui.RootElement.Query<Button>(className: "map-cell").ToList();
+                RackLayoutLine open = ui.RackLayout.Lines.FirstOrDefault(l => !l.Done);
+                int cell = ui.Ecology.GetCellIndex(new Vector3(0f, 0f, open != null ? open.AcrossM : ui.Ecology.StandBounds.center.y));
+                yield return Invoke(cells[(n - 1 - cell / n) * n + cell % n]);
+                yield return Wait(0.3f);
+                Check(ui.Map.RackPreview != null, "FOCUS_06_A_CLICKED_SQUARE_PREVIEWS_A_RACK", FocusState());
+            }
             yield return Shot("c05-stand-map-rack-planning");
         }
         ui.CloseAll();
