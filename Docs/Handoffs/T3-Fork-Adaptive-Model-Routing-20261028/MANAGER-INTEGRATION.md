@@ -36,4 +36,6 @@ Hard constraints remain unchanged: subscription-only operation, no API keys/bill
 
 **ARM-010 — Adaptive contracts and persistence skeleton.**
 
+Durable task record: `jermur788/CCF` issue **#63**, status **READY**. GitHub Issues are disabled in `jermur788/t3code`, so CCF owns the cross-repo manager/task record while implementation occurs in `jermur788/t3code`.
+
 ARM-010 may define adaptive contracts/IDs/versioning, persistence/service skeleton, and append-only environment-DB migration. It must not implement recommendation scoring, provider quota adapters, UI, or automatic routing. It requires contract/migration verification and independent migration/CAS review before ARM-020.
