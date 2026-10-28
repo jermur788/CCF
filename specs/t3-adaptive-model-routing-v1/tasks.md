@@ -1,11 +1,11 @@
 # T3 Adaptive Model Routing V1 Bounded Tasks
 
 - **Spec ID:** SPEC-T3-ADAPTIVE-MODEL-ROUTING-V1
-- **Spec status:** DRAFT
+- **Spec status:** APPROVED
 - **Task list owner:** Overall Manager
 - **Last updated:** 2026-10-28
 
-These are implementation units, not new product decisions. Do not dispatch production implementation until the Overall Manager approves the governing spec. Every substantial task requires a durable handoff. If implementation requires a material change to routing authority, billing/privacy constraints, CCF governance or experiment safety, stop and return to the spec.
+These are implementation units, not new product decisions. Dispatch only within the approved governing spec and milestone dependencies below. Every substantial task requires a durable handoff. If implementation requires a material change to routing authority, billing/privacy constraints, CCF governance or experiment safety, stop and return to the spec.
 
 ## ARM-010 — Adaptive contracts and persistence skeleton
 
