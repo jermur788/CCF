@@ -18,6 +18,7 @@
 - Unchanged RACK-V2-03C runtime gate passed 14 checks.
 - Gate sources were byte-identical to BASE; no expected values or protected gates were rebaselined.
 - Machine-wide Unity lock was acquired/released normally; U1 ended clean.
+- The worker handoff evidence index does not separately list the qualifying-run lock receipt. Its provenance is preserved in the Ops machine-wide lock history and task claim #43; this documentation-index omission is accepted and does not weaken the qualification result.
 
 ## Accepted implementation boundary
 
