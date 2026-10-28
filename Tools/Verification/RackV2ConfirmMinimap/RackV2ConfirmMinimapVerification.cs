@@ -755,6 +755,10 @@ public sealed class RackV2ConfirmMinimapRunner : MonoBehaviour
             SetGameSize(size.x, size.y);
             yield return Wait(1.5f);
             ui.CloseAll(); yield return Settle(20);
+            // The first-run intro covers the HUD; page through it so the minimap and its note are what is captured.
+            for (int page = 0; page < 4 && ui.Help != null && ui.Help.Onboarding.IsOpen; page++) { ui.Help.Onboarding.Next(); yield return Settle(10); }
+            Check(ui.Help == null || !ui.Help.Onboarding.IsOpen, tag + ": the first-run intro is closed");
+            ui.CloseAll(); yield return Settle(10);
             ResetTeachingNote(ui.Minimap);
             yield return ShowHud(tag);
             Check(Screen.width == size.x && Screen.height == size.y, tag + ": game view at the requested size");

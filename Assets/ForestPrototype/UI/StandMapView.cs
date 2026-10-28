@@ -225,7 +225,8 @@ public sealed class StandMapView
         UpdateField(eco);
         UpdateSurveyLabels(model);
         UpdateOverview(model, eco);
-        legendView.Show(model, Overlay, key, rackMode && ui.Manager.RackPlanningV2Active);
+        // The dashed guidance is gone once the plan is confirmed, so its legend row goes too.
+        legendView.Show(model, Overlay, key, rackMode && ui.Manager.RackPlanningV2Active && !ui.Manager.RackPlanConfirmed);
         BuildSide(eco, model);
     }
 
@@ -666,10 +667,10 @@ public sealed class StandMapView
         panel.name = "map-consent-panel";
         UiKit.Add(panel, editor.ConsentMessage, "body");
         VisualElement choices = UiKit.Row(panel, "row-wrap");
-        Button yes = UiKit.Button("Cancel the approved work and continue", editor.AcceptConsent, true, "btn-primary");
+        Button yes = UiKit.Button("Cancel approved work", editor.AcceptConsent, true, "btn-primary");
         yes.name = "map-consent-accept";
         choices.Add(yes);
-        Button no = UiKit.Button("Keep the approved work", editor.DeclineConsent, true, "btn-ghost");
+        Button no = UiKit.Button("Keep approved work", editor.DeclineConsent, true, "btn-ghost");
         no.name = "map-consent-decline";
         choices.Add(no);
         card.Add(panel);
@@ -771,7 +772,8 @@ public sealed class StandMapView
             if (ui.Manager.RackPlanningV2Active)
             {
                 UiKit.Add(side, "Planning Racks — Active", "heading");
-                UiKit.Add(side, "Dashed lines are suggested routes. Solid lines are your planned racks.", "body");
+                UiKit.Add(side, ui.Manager.RackPlanConfirmed ? "Solid lines are your confirmed plan."
+                    : "Dashed lines are suggested routes. Solid lines are your planned racks.", "body");
                 BuildEditCard();
             }
             else BuildRackCard(eco);

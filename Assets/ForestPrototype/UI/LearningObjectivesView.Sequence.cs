@@ -238,7 +238,8 @@ public sealed partial class LearningObjectivesView
         if (areaText != null) return areaText;
         switch (ScenarioOneTeachingSequence.Current(f))
         {
-            case 0: return ui.RackLayout != null ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned" : "Plan permanent access";
+            case 0: return ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText
+                : ui.RackLayout != null ? $"Access routes: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned" : "Plan permanent access";
             case 1: return !f.AccessReviewed ? "Rack work done · read the annual results" : $"Future trees selected: {f.CropTrees} · choose at least one";
             case 2: return "Future tree selected · plan a nearby competitor for removal";
             case 3: return (f.ReleaseExecuted ? "Release done" : "Release planned") + (f.DeadwoodExecuted ? " · fallen wood present" : " · fallen wood still needed");

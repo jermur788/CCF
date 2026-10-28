@@ -418,7 +418,7 @@ public sealed class StandMapRackEditor
             consentRetry = retryWithConsent;
             consentSuccess = success;
             ConsentMessage = result.Message;
-            SetStatus("Waiting for your decision: " + result.Message, false);
+            SetStatus("Waiting for your decision.", false);
             return;
         }
         string text = result.Status == RackPlanOperationStatus.Applied && !string.IsNullOrEmpty(success) ? success : result.Message;
