@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CCF.Forestry.WorkEconomy;
 
 // S1-C per-year management history (T-01): a read-only query layer over the same persisted records the derived
 // intervention history already uses (management events, annual reports, ecological snapshots, deadwood records, work
@@ -117,6 +118,96 @@ public sealed class GroupedHarvestSettlement
     // where available; for older saves without harvestJobId every resolved harvest order of the year belongs to the
     // single year group.
     public readonly List<int> GroupedOrderIds = new List<int>();
+}
+
+// S1-C T-03 drill-down. How one task of a completed year ended. Cancelled means the order was cancelled before it could be
+// resolved: the order object is gone, so such an item is built from its OrderCancelled event alone.
+public enum WorkItemStatus
+{
+    Succeeded = 1,
+    Failed = 2,
+    Cancelled = 3
+}
+
+// One recorded task (a resolved task or a cancellation) with exactly the target facts its event persisted. Nothing here is
+// reconstructed from current state: an empty tree id, a negative cell index or PositionRecorded == false means "not
+// recorded", and the reader must say so rather than fill the gap (S1-C FR-4).
+public sealed class WorkItemDetail
+{
+    public HistoryLayer Layer => HistoryLayer.Recorded;
+
+    public int EventId;
+    public int WorkOrderId;
+    public ScenarioWorkType TaskType;
+    public WorkItemStatus Status;
+    // The year stamped on the event: the resolution year for resolved work, the year it was cancelled in for a cancellation.
+    public int Year;
+
+    public string TargetTreeId = "";
+    public string SpeciesId = "";
+    public int CellIndex = -1;
+    // The event keeps a world position as an unnamed default of (0, 0, 0) when none was written. That default is treated as
+    // "not recorded"; a position genuinely recorded at the exact origin would read as not recorded, which errs honest.
+    public bool PositionRecorded;
+    public float PositionX, PositionY, PositionZ;
+
+    // Resolution events carry the order's execution method. Cancellation events never do, so for a cancellation the method
+    // is not recorded and ExecutionMethod must not be read.
+    public bool ExecutionMethodRecorded;
+    public WorkExecutionMethod ExecutionMethod;
+
+    public string FailureReason = "";
+    public ScenarioEcologicalTreatment Treatment;
+    public float BiologicalVolumeM3;
+    public bool OrderStillExists;
+
+    // Whether a planting had a shelter installed. Only the order record holds this, so it is known only while that order
+    // still exists; otherwise ShelterRecorded is false and ShelterInstalled must not be read.
+    public bool ShelterRecorded;
+    public bool ShelterInstalled;
+
+    // True for a successful harvest task of a year that settled one grouped harvest job. Such an item has NO money of its
+    // own: the whole job is on YearWorkDetail.HarvestSettlement (S1-C FR-9).
+    public bool IsGroupedHarvest;
+
+    // Per-task money exists only for successful non-harvest work (planting, pruning, regeneration removal), where the
+    // resolution event records that task's own cost. It is never set for grouped harvest, failed or cancelled items.
+    public bool OwnMoneyRecorded;
+    public long ContractorCostCents;
+    public long StockCostCents;
+    public int OwnerMinutes;
+}
+
+// The items of one kind of work in a year: aggregate figures first, the items themselves for drill-down.
+public sealed class WorkGroupDetail
+{
+    // Meaningful for succeeded groups. The failed and cancelled groups mix task types.
+    public ScenarioWorkType TaskType;
+    public WorkItemStatus Status;
+    public bool IsGroupedHarvest;
+    public readonly List<WorkItemDetail> Items = new List<WorkItemDetail>();
+
+    // Distinct recorded map squares across the items; items with no recorded cell are not counted.
+    public int DistinctRecordedCells;
+    // Recorded species only, ordered by species id (ordinal) so the grouping is deterministic. Items without a species
+    // are not counted here.
+    public readonly List<KeyValuePair<string, int>> SpeciesCounts = new List<KeyValuePair<string, int>>();
+
+    public string Key => Status == WorkItemStatus.Succeeded ? "done-" + TaskType : Status == WorkItemStatus.Failed ? "failed" : "cancelled";
+}
+
+// Everything a year's Work card can drill into. Built from one YearHistoryView only.
+public sealed class YearWorkDetail
+{
+    public int Year;
+    // Successful work, one group per task type, in task-type order.
+    public readonly List<WorkGroupDetail> Done = new List<WorkGroupDetail>();
+    public WorkGroupDetail Failed = new WorkGroupDetail { Status = WorkItemStatus.Failed };
+    public WorkGroupDetail Cancelled = new WorkGroupDetail { Status = WorkItemStatus.Cancelled };
+    // The single grouped harvest settlement of the year, shared with YearHistoryView. Null when no harvest task succeeded.
+    public GroupedHarvestSettlement HarvestSettlement;
+
+    public WorkGroupDetail DoneFor(ScenarioWorkType type) => Done.FirstOrDefault(g => g.TaskType == type);
 }
 
 // One completed year of management history. Recorded members are passed through unchanged; derived members are
@@ -269,6 +360,114 @@ public static class ScenarioManagementHistory
         view.OtherDeathsInYear = ScenarioInterventionHistory.OtherDeaths(
             deadwood, ScenarioInterventionHistory.FelledTargetsByYear(events), year, year);
         return view;
+    }
+
+    // Drill-down detail for the selected year's Work card (S1-C T-03). Pure and read-only: it reads only the YearHistoryView,
+    // which already holds the year's events and orders, so no caller re-joins raw record lists. Ordering is deterministic:
+    // items by event id, succeeded groups by task type.
+    //
+    // Money honesty (FR-9): successful harvest tasks are marked IsGroupedHarvest and carry no money; the year's one grouped
+    // settlement is HarvestSettlement. harvestJobId and per-order money inside the group are never read here.
+    public static YearWorkDetail DescribeWork(YearHistoryView year)
+    {
+        if (year == null) return null;
+        var detail = new YearWorkDetail { Year = year.Year, HarvestSettlement = year.HarvestSettlement };
+
+        foreach (ResolvedWorkRecord record in year.ResolvedWork.OrderBy(r => r.Event.eventId))
+        {
+            WorkItemDetail item = FromResolution(record, year.HarvestSettlement != null);
+            if (item.Status == WorkItemStatus.Succeeded)
+            {
+                WorkGroupDetail group = detail.DoneFor(item.TaskType);
+                if (group == null)
+                {
+                    group = new WorkGroupDetail
+                    {
+                        TaskType = item.TaskType,
+                        Status = WorkItemStatus.Succeeded,
+                        IsGroupedHarvest = item.IsGroupedHarvest
+                    };
+                    detail.Done.Add(group);
+                }
+                group.Items.Add(item);
+            }
+            else detail.Failed.Items.Add(item);
+        }
+        detail.Done.Sort((a, b) => a.TaskType.CompareTo(b.TaskType));
+
+        foreach (HistoryCancellation cancellation in year.Cancellations.OrderBy(c => c.Event.eventId))
+            detail.Cancelled.Items.Add(FromCancellation(cancellation));
+
+        foreach (WorkGroupDetail group in detail.Done) Summarise(group);
+        Summarise(detail.Failed);
+        Summarise(detail.Cancelled);
+        return detail;
+    }
+
+    private static WorkItemDetail FromResolution(ResolvedWorkRecord record, bool yearHasHarvestSettlement)
+    {
+        ScenarioManagementEvent e = record.Event;
+        bool succeeded = e.outcome == ScenarioManagementOutcome.Succeeded;
+        bool harvest = IsHarvestTask(e.taskType);
+        WorkItemDetail item = NewItem(e, succeeded ? WorkItemStatus.Succeeded : WorkItemStatus.Failed);
+        item.ExecutionMethodRecorded = true;
+        item.ExecutionMethod = e.executionMethod;
+        item.FailureReason = succeeded ? "" : e.failureReason ?? "";
+        item.Treatment = e.ecologicalTreatment;
+        item.BiologicalVolumeM3 = succeeded ? e.biologicalVolumeM3 : 0f;
+        item.OrderStillExists = record.OrderStillExists;
+        if (record.OrderStillExists && e.taskType == ScenarioWorkType.PlantJuvenile)
+        {
+            item.ShelterRecorded = true;
+            item.ShelterInstalled = record.Order.installShelter;
+        }
+        item.IsGroupedHarvest = succeeded && harvest && yearHasHarvestSettlement;
+        if (succeeded && !harvest)
+        {
+            item.OwnMoneyRecorded = true;
+            item.ContractorCostCents = e.contractorCostCents;
+            item.StockCostCents = e.stockCostCents;
+            item.OwnerMinutes = e.ownerMinutes;
+        }
+        return item;
+    }
+
+    // The order object was deleted on cancellation, so the event is the whole record. Its outcome fields are blank by
+    // construction (nothing was resolved), and it never carried an execution method.
+    private static WorkItemDetail FromCancellation(HistoryCancellation cancellation)
+    {
+        WorkItemDetail item = NewItem(cancellation.Event, WorkItemStatus.Cancelled);
+        item.OrderStillExists = cancellation.OrderStillExists;
+        return item;
+    }
+
+    private static WorkItemDetail NewItem(ScenarioManagementEvent e, WorkItemStatus status)
+    {
+        var item = new WorkItemDetail
+        {
+            EventId = e.eventId,
+            WorkOrderId = e.workOrderId,
+            TaskType = e.taskType,
+            Status = status,
+            Year = e.year,
+            TargetTreeId = e.targetTreeId ?? "",
+            SpeciesId = e.speciesId ?? "",
+            CellIndex = e.cellIndex >= 0 ? e.cellIndex : -1
+        };
+        item.PositionX = e.worldPosition.x;
+        item.PositionY = e.worldPosition.y;
+        item.PositionZ = e.worldPosition.z;
+        item.PositionRecorded = item.PositionX != 0f || item.PositionY != 0f || item.PositionZ != 0f;
+        return item;
+    }
+
+    private static void Summarise(WorkGroupDetail group)
+    {
+        group.DistinctRecordedCells = group.Items.Where(i => i.CellIndex >= 0).Select(i => i.CellIndex).Distinct().Count();
+        group.SpeciesCounts.Clear();
+        foreach (var species in group.Items.Where(i => i.SpeciesId.Length > 0)
+                     .GroupBy(i => i.SpeciesId).OrderBy(g => g.Key, StringComparer.Ordinal))
+            group.SpeciesCounts.Add(new KeyValuePair<string, int>(species.Key, species.Count()));
     }
 
     // Years that have been completed: an annual report and/or a YearAdvanced event. Sorted, unique.

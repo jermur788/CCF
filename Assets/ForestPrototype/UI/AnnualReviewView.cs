@@ -11,6 +11,11 @@ using UnityEngine.UIElements;
 // S1-C year browsing: the completed years, and everything shown for the selected year (report, resolved work, money,
 // snapshots, storms), come from ScenarioOneManager.HistoryYears. This view does not re-join the raw record lists for a
 // year. Browsing an earlier year is read-only presentation: it never acknowledges anything.
+//
+// S1-C intervention drill-down: the Work column stays aggregate-first. Each aggregate line can be opened (and closed) to the
+// recorded tasks behind it, from ScenarioManagementHistory.DescribeWork. Opening is presentation state only; nothing is written.
+// A fact the records do not hold is shown as "not recorded", never rebuilt from today's forest. A commissioned harvest settles
+// once as a group, so its money is shown as one job settlement and never split per order.
 public sealed class AnnualReviewView
 {
     private readonly ScenarioOneUiRoot ui;
@@ -27,6 +32,8 @@ public sealed class AnnualReviewView
     private int lastLatestYear = -1;
     // True while an earlier year is on screen. The acknowledgement belongs to the newest review only.
     private bool showingEarlierYear;
+    // Work rows the player has opened, keyed by year and group, so each year keeps its own open rows when years are switched.
+    private readonly HashSet<string> openDetails = new HashSet<string>();
 
     public AnnualReviewView(ScenarioOneUiRoot ui)
     {
@@ -61,7 +68,7 @@ public sealed class AnnualReviewView
     }
 
     // Opening the review starts on the newest year; a past year is only ever a deliberate drill-down.
-    public void ShowLatest() => viewYear = -1;
+    public void ShowLatest() { viewYear = -1; openDetails.Clear(); }
 
     public void Refresh(bool force)
     {
@@ -75,7 +82,7 @@ public sealed class AnnualReviewView
         IReadOnlyList<YearHistoryView> years = m.HistoryYears;
         YearHistoryView latest = years.Count > 0 ? years[years.Count - 1] : null;
         // A new year always opens on the newest review; a past year is chosen with the year buttons.
-        if (latest != null && latest.Year != lastLatestYear) { lastLatestYear = latest.Year; viewYear = -1; }
+        if (latest != null && latest.Year != lastLatestYear) { lastLatestYear = latest.Year; viewYear = -1; openDetails.Clear(); }
         YearHistoryView year = latest;
         if (viewYear >= 0)
         {
@@ -165,16 +172,27 @@ public sealed class AnnualReviewView
         return column;
     }
 
-    private static void BuildWork(ScenarioOneManager m, YearHistoryView year, VisualElement c)
+    private void BuildWork(ScenarioOneManager m, YearHistoryView year, VisualElement c)
     {
         // The year's resolved work already pairs each WorkResolved event with its order record (where the order still exists).
+        // DescribeWork groups the same events for drill-down; the aggregate lines below are unchanged.
+        YearWorkDetail detail = ScenarioManagementHistory.DescribeWork(year);
         List<ResolvedWorkRecord> resolved = year.ResolvedWork;
         List<ResolvedWorkRecord> done = resolved.Where(r => r.Event.outcome == ScenarioManagementOutcome.Succeeded).ToList();
         int regenerationRemovals = year.Report != null ? year.Report.regenerationRemovalTasks : 0;
         int felled = done.Count(r => r.Event.taskType == ScenarioWorkType.FellTree);
         int salvaged = done.Count(r => r.Event.taskType == ScenarioWorkType.SalvageDeadwood);
-        if (salvaged > 0) UiKit.Add(c, $"{salvaged} windthrow stem(s) salvaged (contractor)", "body");
-        if (felled > 0) UiKit.Add(c, $"{felled} tree(s) thinned (contractor)", "body");
+        if (salvaged > 0)
+        {
+            UiKit.Add(c, $"{salvaged} windthrow stem(s) salvaged (contractor)", "body");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.SalvageDeadwood));
+        }
+        if (felled > 0)
+        {
+            UiKit.Add(c, $"{felled} tree(s) thinned (contractor)", "body");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.FellTree));
+        }
+        if (detail.HarvestSettlement != null) AddHarvestSettlement(c, detail);
         var planted = done.Where(r => r.Event.taskType == ScenarioWorkType.PlantJuvenile).ToList();
         if (planted.Count > 0)
         {
@@ -182,15 +200,184 @@ public sealed class AnnualReviewView
             int byOwner = planted.Count(r => r.Event.executionMethod == WorkExecutionMethod.LandownerSimulated);
             UiKit.Add(c, $"{planted.Count} planted ({string.Join(", ", planted.GroupBy(r => r.Event.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"))}), "
                 + $"{sheltered} with shelters · {byOwner} by you, {planted.Count - byOwner} by contractor", "body");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.PlantJuvenile));
         }
         int pruned = done.Count(r => r.Event.taskType == ScenarioWorkType.PruneTree);
-        if (pruned > 0) UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
-        if (regenerationRemovals > 0) UiKit.Add(c, $"{regenerationRemovals} regeneration cohort(s) removed", "body");
+        if (pruned > 0)
+        {
+            UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.PruneTree));
+        }
+        if (regenerationRemovals > 0)
+        {
+            UiKit.Add(c, $"{regenerationRemovals} regeneration cohort(s) removed", "body");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.RemoveRegeneration));
+        }
         if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) UiKit.Add(c, "No work was resolved this year.", "body");
         var failed = resolved.Where(r => r.Event.outcome != ScenarioManagementOutcome.Succeeded).ToList();
         UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
         foreach (ResolvedWorkRecord r in failed.Take(5))
             UiKit.Add(c, $"· {r.Event.taskType}: {ScenarioOneUiFacts.PlainText(r.Event.failureReason)}", "muted");
+        AddDetail(c, year.Year, detail.Failed);
+        // A cancelled order was deleted when it was cancelled, so these entries come from the cancellation records alone.
+        int cancelled = detail.Cancelled.Items.Count;
+        if (cancelled > 0)
+        {
+            UiKit.Add(c, $"{cancelled} order(s) cancelled before they were carried out.", "body");
+            AddDetail(c, year.Year, detail.Cancelled);
+        }
+    }
+
+    // The year's one grouped harvest settlement. The records hold a single settlement for the whole commissioned job, so this
+    // is the only place harvest money is shown beside the work; individual orders and trees carry no money of their own.
+    private static void AddHarvestSettlement(VisualElement c, YearWorkDetail detail)
+    {
+        GroupedHarvestSettlement settlement = detail.HarvestSettlement;
+        int orders = detail.Done.Where(g => g.IsGroupedHarvest).Sum(g => g.Items.Count);
+        VisualElement box = UiKit.Box();
+        box.name = "annual-harvest-settlement";
+        UiKit.Add(box, $"Harvest job · year {settlement.ResolutionYearLabel}: {orders} harvest order(s) settled together as one job. "
+            + $"Timber income {UiKit.Money(settlement.SettlementRevenueCents)} · harvesting cost {UiKit.Money(settlement.SettlementContractorCostCents)}.", "body");
+        UiKit.Add(box, "The records hold one settlement for the whole job, so no money is shown per order or per tree. The year number labels the job; it is not a unique job ID.", "faint");
+        c.Add(box);
+    }
+
+    // A "Show recorded details" row under an aggregate line. Everything it reveals comes from the recorded task events;
+    // the content is built the first time the row is opened. The open state is presentation only.
+    private void AddDetail(VisualElement parent, int year, WorkGroupDetail group)
+    {
+        if (group == null || group.Items.Count == 0) return;
+        string key = year + "|" + group.Key;
+        VisualElement body = UiKit.Box("work-detail");
+        body.name = "work-detail-" + group.Key;
+        body.style.marginLeft = 10;
+        body.style.marginBottom = 6;
+        bool built = false;
+        Button toggle = null;
+        void Apply(bool open)
+        {
+            if (open && !built) { BuildDetailBody(body, group); built = true; }
+            body.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            toggle.text = open ? "Hide recorded details" : DetailToggleText(group);
+        }
+        toggle = UiKit.Button("", () =>
+        {
+            bool open = !openDetails.Contains(key);
+            if (open) openDetails.Add(key); else openDetails.Remove(key);
+            Apply(open);
+        }, true, "btn-ghost");
+        toggle.name = "work-detail-toggle-" + group.Key;
+        toggle.style.alignSelf = Align.FlexStart;
+        parent.Add(toggle);
+        parent.Add(body);
+        Apply(openDetails.Contains(key));
+    }
+
+    private static string DetailToggleText(WorkGroupDetail group)
+    {
+        string text = $"Show recorded details · {group.Items.Count} task{(group.Items.Count == 1 ? "" : "s")}";
+        if (group.DistinctRecordedCells > 0)
+            text += $" · {group.DistinctRecordedCells} map square{(group.DistinctRecordedCells == 1 ? "" : "s")}";
+        return text;
+    }
+
+    private static void BuildDetailBody(VisualElement body, WorkGroupDetail group)
+    {
+        if (group.IsGroupedHarvest)
+            UiKit.Add(body, "These orders were settled together as one harvest job. No money is recorded for a single order or tree.", "faint");
+        // The map-square label needs the grid width; fetch it once for the whole list.
+        ForestEcologyController eco = Object.FindFirstObjectByType<ForestEcologyController>();
+        int cellsPerAxis = eco != null ? eco.CellsPerAxis : 0;
+        foreach (WorkItemDetail item in group.Items)
+            BuildDetailItem(body, item, cellsPerAxis);
+        if (group.Status == WorkItemStatus.Cancelled)
+            UiKit.Add(body, "A cancelled order no longer exists. Each entry above is read from its cancellation record only.", "faint");
+    }
+
+    private static void BuildDetailItem(VisualElement body, WorkItemDetail item, int cellsPerAxis)
+    {
+        VisualElement entry = UiKit.Box();
+        entry.style.marginTop = 3;
+        VisualElement head = UiKit.Box("row", "row-wrap");
+        if (item.Status == WorkItemStatus.Failed) UiKit.Chip(head, "FAILED", "chip-bad");
+        else if (item.Status == WorkItemStatus.Cancelled) UiKit.Chip(head, "CANCELLED", "chip-warn");
+        string target = TargetText(item);
+        UiKit.Add(head, WorkLabel(item.TaskType) + (target.Length > 0 ? " · " + target : "") + $" · order {item.WorkOrderId}", "body");
+        entry.Add(head);
+
+        var facts = new List<string>();
+        if (item.SpeciesId.Length > 0) facts.Add(ScenarioOneUiFacts.SpeciesName(item.SpeciesId));
+        facts.Add(LocationText(item, cellsPerAxis));
+        facts.Add(item.ExecutionMethodRecorded
+            ? (item.ExecutionMethod == WorkExecutionMethod.LandownerSimulated ? "done by you" : "done by contractor")
+            : "execution method not recorded");
+        if (item.Status == WorkItemStatus.Cancelled)
+            facts.Add($"cancelled in year {item.Year}");
+        else
+            facts.Add($"resolved in year {item.Year}");
+        if (item.ShelterRecorded) facts.Add(item.ShelterInstalled ? "shelter fitted" : "no shelter");
+        if (item.Status == WorkItemStatus.Succeeded)
+        {
+            string treatment = TreatmentText(item.Treatment);
+            if (treatment.Length > 0) facts.Add("result: " + treatment);
+            if (item.BiologicalVolumeM3 > 0f) facts.Add($"recorded stem volume {UiKit.F(item.BiologicalVolumeM3, "0.00")} m³");
+            if (item.OwnMoneyRecorded)
+            {
+                if (item.ContractorCostCents > 0) facts.Add($"contractor cost {UiKit.Money(item.ContractorCostCents)}");
+                if (item.StockCostCents > 0) facts.Add($"materials {UiKit.Money(item.StockCostCents)}");
+                if (item.OwnerMinutes > 0) facts.Add($"your time {ScenarioOneManager.FormatMinutes(item.OwnerMinutes)}");
+            }
+        }
+        UiKit.Add(entry, string.Join(" · ", facts), "muted");
+        if (item.Status == WorkItemStatus.Failed)
+            UiKit.Add(entry, "Reason: " + (item.FailureReason.Length > 0 ? ScenarioOneUiFacts.PlainText(item.FailureReason) : "not recorded"), "muted");
+        body.Add(entry);
+    }
+
+    private static string WorkLabel(ScenarioWorkType type)
+    {
+        switch (type)
+        {
+            case ScenarioWorkType.FellTree: return "Felling";
+            case ScenarioWorkType.SalvageDeadwood: return "Windthrow salvage";
+            case ScenarioWorkType.PlantJuvenile: return "Planting";
+            case ScenarioWorkType.PruneTree: return "Pruning";
+            case ScenarioWorkType.RemoveRegeneration: return "Regeneration clearing";
+            default: return type.ToString();
+        }
+    }
+
+    // Only work on a standing or fallen tree has a target tree. Planting and regeneration clearing are about a place.
+    private static string TargetText(WorkItemDetail item)
+    {
+        bool treeTask = item.TaskType == ScenarioWorkType.FellTree || item.TaskType == ScenarioWorkType.PruneTree
+            || item.TaskType == ScenarioWorkType.SalvageDeadwood;
+        if (!treeTask) return "";
+        return item.TargetTreeId.Length > 0 ? "tree " + item.TargetTreeId : "tree not recorded";
+    }
+
+    private static string LocationText(WorkItemDetail item, int cellsPerAxis)
+    {
+        var parts = new List<string>();
+        if (item.CellIndex >= 0)
+            parts.Add("map square " + (cellsPerAxis > 0 ? UiKit.CellLabel(item.CellIndex, cellsPerAxis) : "#" + item.CellIndex));
+        if (item.PositionRecorded)
+            parts.Add($"position ({UiKit.F(item.PositionX, "0.0")}, {UiKit.F(item.PositionZ, "0.0")})");
+        return parts.Count > 0 ? string.Join(" · ", parts) : "location not recorded";
+    }
+
+    private static string TreatmentText(ScenarioEcologicalTreatment treatment)
+    {
+        switch (treatment)
+        {
+            case ScenarioEcologicalTreatment.TreeFelledAndExtracted: return "felled and extracted";
+            case ScenarioEcologicalTreatment.JuvenilePlanted: return "young tree planted";
+            case ScenarioEcologicalTreatment.RegenerationRemoved: return "regeneration removed";
+            case ScenarioEcologicalTreatment.TreePruned: return "pruned";
+            case ScenarioEcologicalTreatment.TreeRetainedAsDeadwood: return "felled and left as fallen deadwood";
+            case ScenarioEcologicalTreatment.WindthrowSalvaged: return "windthrow stem salvaged";
+            default: return "";
+        }
     }
 
     private static void BuildMoney(ScenarioOneManager m, YearHistoryView year, VisualElement c)
@@ -217,6 +404,8 @@ public sealed class AnnualReviewView
             UiKit.Line(c, "Planting, pruning and other contractor work", UiKit.SignedMoney(-otherWork), "money-negative");
         if (materials > 0)
             UiKit.Line(c, "Tree shelters (material)", UiKit.SignedMoney(-materials), "money-negative");
+        if (year.HarvestSettlement != null)
+            UiKit.Add(c, "Timber sold and harvesting work above belong to one grouped harvest job for the year, not to single trees or orders.", "faint");
         UiKit.Line(c, "Closing cash", UiKit.Money(money.ClosingCashCents), "money");
         UiKit.Add(c, $"Your time used: {ScenarioOneManager.FormatMinutes(money.OwnerMinutes)} of {ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}", "muted");
         UiKit.Add(c, "Saplings are paid for when bought from the nursery.", "faint");
