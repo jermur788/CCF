@@ -159,7 +159,7 @@ Decision status:
 
 - [x] OPEN-1 (Legacy40 saves): `ACCEPTED — V2 APPLIES TO ENLARGED80 ONLY` — evidence: Manager decision 2026-10-26, Decision Log D-064
 - [x] OPEN-2 (Work Plan boundary): `ACCEPTED — KEEP rack.approve AND rack.result` — evidence: Manager decision 2026-10-26, Decision Log D-064
-- [ ] OPEN-3 (reopening after work has progressed) resolved and recorded before RACK-V2-05 begins — decision and date (RACK-V2-01 reports the safest boundary; not to be implemented before it is decided):
+- [x] OPEN-3 (reopening after work has progressed): `ACCEPTED — ZERO EXECUTED REMOVALS MAY REOPEN; EXECUTED RACKS LOCKED` — evidence: direct user authority 2026-10-28, Decision Log D-064; implemented/qualified through RACK-V2-05 and RACK-V2-07.
 
 ## Spec conformance
 
