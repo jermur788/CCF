@@ -1,11 +1,11 @@
 # T3 Adaptive Model Routing V1 Requirements Checklist
 
 - **Spec ID:** SPEC-T3-ADAPTIVE-MODEL-ROUTING-V1
-- **Status:** DRAFT traceability checklist
+- **Status:** APPROVED traceability checklist
 - **Owner:** Overall Manager
 - **Last updated:** 2026-10-28
 
-All boxes remain unchecked until implementation evidence exists. Spec drafting alone does not satisfy implementation requirements.
+All boxes remain unchecked until implementation evidence exists. Spec approval alone does not satisfy implementation requirements.
 
 ## Constraints / governance
 
