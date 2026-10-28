@@ -45,6 +45,10 @@ args = ap.parse_args()
 
 gate = GATES[args.gate]
 out = Path(args.out).resolve()
+for name in ("evidence", "driver", "config"):
+    previous = out / name
+    if previous.exists() and any(previous.iterdir()):
+        sys.exit("refuse reused fixture/input state; choose a new output directory: " + str(previous))
 (out / "evidence").mkdir(parents=True, exist_ok=True)
 driver_dir = out / "driver"
 driver_dir.mkdir(exist_ok=True)
@@ -70,8 +74,11 @@ if gate["driver"]:
     env["CCF_DRIVER_DIR"] = str(driver_dir)
 env.update(CCF_RACK_VERIFY_MODEL=gate["model"], CCF_STAND_GEOMETRY=gate["geometry"], CCF_GROWTH_MODEL="2", CCF_SEQUENCE_VERIFY="1")
 if gate["driver"] == "guided" and args.display != ":84": sys.exit("existing guided driver requires private display :84")
+env.pop("CCF_COMBINED_SECTIONS", None)  # qualification always retains every HUD section
 for item in args.env:
     k, v = item.split("=", 1)
+    if k in {"CCF_RACK_VERIFY_MODEL", "CCF_STAND_GEOMETRY", "CCF_GROWTH_MODEL", "CCF_SEQUENCE_VERIFY", "CCF_COMBINED_SECTIONS", "CCF_TEST_DIRECT_ENTRY"}:
+        sys.exit("qualification fixture/section overrides are forbidden: " + k)
     env[k] = v
 
 procs = []
