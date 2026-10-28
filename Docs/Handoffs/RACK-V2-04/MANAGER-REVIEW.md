@@ -1,51 +1,43 @@
 # RACK-V2-04 — MANAGER REVIEW
 
-**Verdict: NEEDS CHANGES — CROSS-LANE FOUNDATION API REQUIRED.**
+**Task:** `RACK-V2-04 — Map planning mode`  
+**Original stopped claim:** #15  
+**Qualified execution claim:** #30  
+**Publication follow-up:** #40  
+**Worker handoff:** `Docs/Handoffs/RACK-V2-04/HANDOFF.md`  
+**Production checkpoint:** `bcb4f345544e50cbb32b8fecd9f82a33a284b0e2`  
+**Exact Unity/rendered-tested candidate:** `68bcf6d0b1f0f6907d1dc0ba5a220583e4ade058`  
+**Published branch tip:** `61a5924a9b4fa31d84e3b739e0c3405b630d9f37`  
+**Manager verdict:** **APPROVED — NOT YET INTEGRATED**
 
-Returned handoff: `Docs/Handoffs/RACK-V2-04/HANDOFF.md` on `feature/scenario-one-rack-v2-map-planning-mode-v1`, publication commit `a17c080cede33b2e11b493d7bd3415deee4c32f6`.  
-Task claim #15: `[HANDED-OFF]`, closed after the packet-mandated stop.  
-Production edits: none. Unity runs: none.
+## Accepted evidence
 
-## Manager finding
-
-The stop is valid. RACK-V2-04 requires the Stand Map to display the approved five-rack V2 suggested layout without creating authoritative player racks and without duplicating geometry policy in UI code. Current production exposes:
-
-- persisted/player rack snapshots through the Rack V2 runtime;
-- the older authored `ScenarioOneRackLayout.Centres()` layout;
-- V2 headland infrastructure geometry;
-- but no read-only production API for the **qualified five V2 suggestion segments**.
-
-The qualified combined/headland verification currently constructs those routes from the five qualified headland entrances, but that logic lives in verification helpers and calls `AddRack`, so it is not a valid UI data source.
-
-The UI worker was therefore correct to stop instead of hard-coding fixture IDs/coordinates, reusing the legacy authored lines, or mutating authoritative rack state merely to draw suggestions.
-
-## Required prerequisite
-
-Create `RACK-V2-04A` as a bounded Rack foundation/API task. The API must expose the qualified suggested rack geometry as detached read-only data for applicable V2 worlds.
-
-Required contract:
-
-1. Return exactly the five qualified suggestion segments for the current Scenario One V2 layout, each with entrance, far endpoint and corridor width (or an equivalent immutable/read-only geometry object sufficient for map drawing).
-2. Geometry selection belongs to the Rack/headland foundation, not `StandMapView` / `UI/Map/*`.
-3. Return no V2 suggestions for Legacy40, Reference Future v1, or pre-V2/model-0 continuations.
-4. Reading suggestions must not allocate rack IDs, add/modify player rack records, confirm a plan, mark entrances, create/reconcile work orders, change counters, mutate save data, or alter world state.
-5. Repeated reads are deterministic and side-effect free.
-6. Focused verification must prove the returned fresh-V2 geometry matches the already-qualified five headland routes and that model-0/Legacy40/reference behaviour remains unchanged.
-7. Do not change the accepted five-rack target, ~18 m teaching intent, headland geometry, Rack V2 persistence semantics, OPEN-3, or any protected fingerprint.
-
-A new small production foundation type/file is acceptable if that is cleaner than overloading the legacy `ScenarioOneRackLayout` class. Do not make the UI own fixture IDs or geometry constants.
+- Unity 6000.6.0f1 exited 0 with no compile/import errors.
+- `RACK_V2_MAP_PLANNING_UNITY_PASS checks=142 shots=8` passed.
+- Four rendered captures were produced at each of 1280×720 and 1920×1080 after the first-use-help obstruction was corrected in harness-only code.
+- `Plan Racks` is a tool/mode distinct from navigation tabs and reports `Planning Racks — Active`.
+- Five dashed suggested routes are sourced from `ScenarioOneSuggestedRackLayout.Get(...)`; the map legend distinguishes `Dashed = suggested` and `Solid = your planned rack`.
+- Live display/navigation/toggle work preserved the complete save hash, world hash, counters and authoritative rack records/orders.
+- Offline map checks, suggested-layout checks and runtime type compilation passed.
+- The machine-wide Unity lock was released normally and U1 was clean.
+- The exact tested candidate and production checkpoint are byte-identical under `Assets/`, `Packages/` and `ProjectSettings/`; the tested-candidate delta is verification/harness-only.
+- Claim #40 verified the published handoff blob against the already-qualified local result without rerunning Unity.
 
 ## Scope interpretation
 
-This is an API gap exposed by RACK-V2-04, not a new product decision. D-064/spec already requires a five-rack suggested layer sourced from authoritative geometry and explicitly prohibits duplicated rack state. The prerequisite can therefore proceed as a bounded repair/API packet.
+This approves **RACK-V2-04 only**. It does not approve editing, spacing teaching, confirmation/reopen behaviour, field marking, minimap expansion or whole Objective 1 playability.
 
-RACK-V2-04 remains **BLOCKED** until RACK-V2-04A is integrated. After integration, create a new execution claim for the map-planning task; do not reuse closed claim #15.
+## Integration status
 
-## Verification sequencing
+PR #41 was opened from the qualified v2 branch but is not mergeable against current `main`. A comparison from the branch merge base to current `main` shows no intervening change to the qualified RACK-V2-04 production/map files. The branch does, however, carry one worker-side edit to Manager-owned `Docs/Project/coordination/active-tasks.md`; that edit is noncanonical and must not be imported.
 
-RACK-V2-04A may implement/static-test in a dedicated worktree while another task uses Unity. Any Unity verification must obey the machine-wide lock and current queue. The subsequent RACK-V2-04 rendered gate remains required and must consume the new API rather than duplicating it.
+A bounded integration-preparation task must rebase/rebuild the qualified branch on current `main`, preserve the qualified production/verification/handoff content, and drop the worker coordination edit. No Unity rerun is required if the resulting production bytes remain identical to `bcb4f34` and no current-main production overlap is introduced. Any production-byte drift or newly discovered overlap returns to the Manager before integration.
 
-No Windows build.
+## Next Rack V2 dependency
+
+`RACK-V2-05 — Editing` remains blocked by approved-spec **OPEN-3**: reopening after confirmation/approval/execution is still unresolved. No RACK-V2-05 production work is authorised until OPEN-3 is resolved in Decision Log/spec authority.
+
+**Verdict:** `APPROVED — NOT YET INTEGRATED`
 
 **DASHBOARD SYNC: NOT AVAILABLE**  
 **Published dashboard reflects this task: NO**
