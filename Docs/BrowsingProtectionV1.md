@@ -109,6 +109,15 @@ survival  = lightSurvival × (1 − browsedFraction × 0.04)
 
 Species default palatability is 0, so any species without configured values is never browsed.
 
+### Species susceptibility, protection and Scenario One 0.2 (PARITY-05 clarification)
+
+Added by Scenario One three-species parity P0 (PARITY-05) as an evidence-label closure. No value, formula or anchor above was changed.
+
+- **Current authoritative palatability:** Sitka **0.15**, Beech **0.5**, Oak **1.0**, so the accepted ordering is **Oak > Beech > Sitka**. The ordering is `TRANSFER` evidence; the numbers are gameplay-calibrated [S]. They are `[0, 1]` absolute inputs to the formula above. They are not relative multipliers, and no `1.0 / 1.8 / 2.2` scaling, normalisation or product exists or is adopted.
+- **Protection is binary access.** An intact fence containing the point or an effective shelter gives `protectionAccess = 0`; a breached fence, an expired or failed shelter, or a point outside gives `1`. Cohorts get the geometric unfenced fraction of their cell (0 only when the whole cell is intact-fenced). There is no partial-protection or "residual exposure" multiplier. Fully protected outcomes equal the browse-free baseline exactly (asserted by `BrowsingProtectionVerification`).
+- **Scenario One 0.2 is background browse pressure, not a protection factor.** `ScenarioOneDefinition.backgroundBrowsePressure = 0.2` is the stand-level `backgroundPressure` term, applied equally to unprotected juveniles and zeroed (with the rest of the product) by protection access `0`. It is not multiplied onto protected juveniles.
+- **Juvenile response selection** (unchanged, for reference): Oak uses its distinct establishment/survival curves; Beech and Sitka use the combined response, which for Beech is `FALLBACK-CONSERVATIVE` (`Docs/BeechSpeciesParameters.md`).
+
 ## Protection
 
 `Assets/ForestPrototype/BrowsingConditions.cs`:

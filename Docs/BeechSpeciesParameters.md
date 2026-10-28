@@ -33,13 +33,48 @@ and were not re-reviewed when the adult rows were corrected.
 | Reproductive onset | 40 years | A/B (older tag) | Open-grown onset; dense stands can be delayed. |
 | Full reproductive age | 60 years | B/C (older tag) | Initial model ramp; suppression can delay effective reproduction. |
 | Seed dispersal scale/cutoff | 6 m / 50 m | B/C (older tag) | Short local Beech seed shadow; short scale means most seed lands near the parent, but the long cutoff allows occasional longer dispersal. |
-| Juvenile light response | 0, 0, 0.15, 0.35, 0.65, 1, 1 at 0, 2, 5, 10, 20, 35, 100% light | A/B/C (older tag) | Shade-tolerant persistence, but severe deep-shade stagnation; strong response from ~20% light upwards. |
+| Juvenile light response | 0, 0, 0.15, 0.35, 0.65, 1, 1 at 0, 2, 5, 10, 20, 35, 100% light | A/B/C (older tag); the **combined** establishment/survival use of it is `FALLBACK-CONSERVATIVE` | Shade-tolerant persistence, but severe deep-shade stagnation; strong response from ~20% light upwards. See *Early-life response and planting stock (current)* below. |
 | Regeneration support | enabled (v1) | Scope | Beech seed production, regeneration and promotion are active and tested. |
 
 The asset's regeneration fields are used by the live ecology.
 Mixed-species verification tests natural regeneration, shared-space capacity,
 light-driven juvenile growth, promotion and persistence as well as
 individual-tree competition, canopy, felling and save/load.
+
+## Early-life response and planting stock (current)
+
+Scenario One three-species parity P0 (PARITY-05) is a **no-behaviour-change**
+labelling closure. Nothing below was retuned and no Beech-specific curve was
+invented.
+
+- **Beech juvenile response: `FALLBACK-CONSERVATIVE`.** `BeechSpecies.asset` does
+  not set `useDistinctJuvenileLightResponses` (it is off), so Beech uses the
+  *combined* response that Sitka also uses. Establishment follows the juvenile
+  light curve above. Annual survival is exactly 1.0 when that light response is at
+  or above `regenPoorLightThreshold` (0.15) and `1 - regenMortalityUnderPoorLight`
+  (0.8) below it. No species-specific Beech establishment or survival curve exists
+  and none is added merely for symmetry with Oak, which keeps its own distinct
+  establishment and survival curves (`SessileOakV1.md`).
+- **Shared juvenile calibration, `GAMEPLAY CALIBRATION` (not Beech evidence).**
+  Height growth 0.35 m/year at full light, promotion at 3.5 m, 0.5 relative density
+  per establishment and a 1.5 cap are the same for Sitka, Oak and Beech. Beech's
+  initial seedling height is 0.15 m (Oak 0.18 m) and Beech has no promotion light
+  floor (Oak 0.2).
+- **Seed rules stay species-specific.** Beech dispersal and maturity values are in the
+  table above; mast and seed-saturation values are in `BeechSpecies.asset`. This patch
+  did not change any of them.
+- **Broadleaf stock abstraction v1.** Purchased planting stock is one shared set of
+  values used for every planted species, not a Beech measurement: biological age 3
+  years, 0.6 m height and relative density 1 (`plantedJuvenileAgeYears`,
+  `plantedJuvenileHeightM`, `plantedJuvenileDensity` on `ForestEcologyController`).
+  The Inspector header above those fields still reads "Planting (Beech v1)" and its
+  tooltips say Beech. That is stale wording in a production file, which this patch
+  deliberately does not edit; it is recorded as a follow-up for a later
+  production-comment packet.
+- **Browsing.** Beech `browsePalatability` is 0.5 (Oak 1.0, Sitka 0.15), so the
+  accepted ordering is Oak > Beech > Sitka. The ordering is `TRANSFER`; the
+  numbers are gameplay-calibrated. Protection is binary (`BrowsingProtectionV1.md`),
+  and the Scenario One 0.2 is background browse pressure, not a protection factor.
 
 ## Adult growth law
 

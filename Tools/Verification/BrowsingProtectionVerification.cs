@@ -157,6 +157,7 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
                 $"{s.SpeciesId}=pal{s.BrowsePalatability}/full{s.BrowseFullVulnerabilityHeightM}/escape{s.BrowseEscapeHeightM}")));
         Check(oak.BrowsePalatability == 1f && beech.BrowsePalatability == 0.5f && sitka.BrowsePalatability == 0.15f,
             "species palatability differs from the documented v1 values");
+        VerifyEarlyLifeBrowseConformance(sitka, oak, beech);
 
         VerifyNeutralRule(new[] { sitka, oak, beech });
         VerifyRuleUnits(oak, sitka);
@@ -264,6 +265,55 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         Check(c.ProtectionAt(new Vector2(20.1f, 20f), 11, out float expired) == BrowseProtectionState.ExpiredShelter && expired == 1f, "shelter expiry");
         Check(c.ProtectionAt(new Vector2(30f, 30f), 6, out float failed) == BrowseProtectionState.FailedShelter && failed == 1f, "shelter failure");
         Check(c.ProtectionAt(new Vector2(20.5f, 20f), 5, out _) == BrowseProtectionState.None, "shelter radius");
+    }
+
+    // PARITY-05 conformance. States the accepted CURRENT behaviour; no value here is
+    // new or retuned. Uses Debug.Log, not Emit, so BROWSE_MEASUREMENT_HASH is untouched.
+    private void VerifyEarlyLifeBrowseConformance(TreeSpeciesDefinition sitka, TreeSpeciesDefinition oak, TreeSpeciesDefinition beech)
+    {
+        // Ordering Oak > Beech > Sitka, with the current absolute [0,1] palatabilities. The
+        // packet-only 1.0 / 1.8 / 2.2 multipliers are not part of the model.
+        Check(oak.BrowsePalatability > beech.BrowsePalatability && beech.BrowsePalatability > sitka.BrowsePalatability,
+            "browse palatability ordering Oak > Beech > Sitka broken");
+        float pressure = manager.Definition.BackgroundBrowsePressure;
+        Check(pressure == 0.2f, "Scenario One background browse pressure is not 0.2");
+        const float belowFullVulnerability = 0.3f; // under every species' full-vulnerability height
+        float previous = float.MaxValue;
+        foreach (TreeSpeciesDefinition species in new[] { oak, beech, sitka })
+        {
+            BrowseAssessment open = JuvenileEcologyRules.AssessBrowse(species, belowFullVulnerability, pressure, 1f, BrowseProtectionState.None);
+            // Unprotected: probability is exactly pressure x palatability (all other terms are 1).
+            Check(open.Probability == pressure * species.BrowsePalatability && open.Reason == BrowseExposureReason.Exposed,
+                $"{species.SpeciesId} unprotected browse probability is not pressure x palatability");
+            Check(open.Probability < previous, $"{species.SpeciesId} unprotected browse probability breaks Oak > Beech > Sitka");
+            previous = open.Probability;
+            // Protected: access 0 gives probability exactly 0 at the Scenario One pressure and at the cap.
+            // 0.2 is background pressure, not a residual protected multiplier.
+            foreach (float p in new[] { pressure, 1f })
+            {
+                BrowseAssessment shielded = JuvenileEcologyRules.AssessBrowse(species, belowFullVulnerability, p, 0f, BrowseProtectionState.InsideIntactFence);
+                Check(shielded.Probability == 0f && shielded.Reason == BrowseExposureReason.Protected,
+                    $"{species.SpeciesId} protected browse probability is not exactly 0 at pressure {p}");
+            }
+        }
+        // Binary access over a grid of positions and years for fences and shelters:
+        // never a fractional value for an individual stem.
+        var c = new BrowsingConditions();
+        c.ProtectedAreas.Add(new BrowseProtectedArea { areaId = "F-P05", installedYear = 10, breachedYear = 15,
+            polygon = new List<Vector2> { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) } });
+        c.Shelters.Add(new BrowseShelter { shelterId = "S-P05", position = new Vector2(20, 20), installedYear = 3, effectiveYears = 8, failedYear = 9 });
+        int effective = 0, open2 = 0;
+        for (int year = 0; year <= 20; year++)
+        foreach (Vector2 point in new[] { new Vector2(5, 5), new Vector2(10.5f, 5), new Vector2(20.1f, 20f), new Vector2(40, 40) })
+        {
+            BrowseProtectionState state = c.ProtectionAt(point, year, out float access);
+            Check(access == 0f || access == 1f, "individual protection access is not binary");
+            bool shielded = state == BrowseProtectionState.InsideIntactFence || state == BrowseProtectionState.EffectiveShelter;
+            Check(shielded == (access == 0f), "protection access 0 does not match intact/effective protection");
+            if (shielded) effective++; else open2++;
+        }
+        Check(effective > 0 && open2 > 0, "binary protection scan did not reach both outcomes");
+        Debug.Log("BROWSE_EARLY_LIFE_CONFORMANCE_PASS ordering=Oak>Beech>Sitka protection=binary background0.2=not-a-protection-factor");
     }
 
     // ---------- 2. Matrix ----------
