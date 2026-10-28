@@ -181,7 +181,12 @@ public sealed partial class ScenarioOneManager
         // A changed line invalidates the field mark; the marking lane clears the obsolete paint.
         rack.entranceMarked = false;
 
-        RackOrderChange change = ApplyRackOrderChange(rack, removalIds, lifecycle.HasApprovedWork);
+        // A draft rack that has never held work has no orders to reconcile, and creating them here would put Work Plan orders in
+        // front of Confirm (the file header: "No work order is created until ConfirmRackPlan"). Racks that already hold work, and
+        // every rack of a confirmed plan, are reconciled exactly as before. (RACK-V2-05: a map drag edits draft racks all the time.)
+        RackOrderChange change = rackPlanConfirmed || RackHasAnyOrder(rackId)
+            ? ApplyRackOrderChange(rack, removalIds, lifecycle.HasApprovedWork)
+            : default;
         feedback = $"Updated rack {rackId}: {change.Created} order{(change.Created == 1 ? "" : "s")} added, "
             + $"{change.Removed} pending removed, {change.Cancelled} approved cancelled.";
         return RackPlanOperationResult.Applied(feedback, rackId, change.Created, change.Removed, change.Cancelled,

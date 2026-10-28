@@ -331,6 +331,7 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         RackPlanRack two2 = Rack(2);
         Check(two2.Id == 2 && Same(two2.Entrance, movedEntrance) && Near(two2.Entrance.X, ScenarioOneHeadlandGeometry.HeadlandX, 0.0001f), "rack 2 keeps its id and its entrance stays on the headland");
         Check(Near(two2.LengthM, two.LengthM, 0.001f) && Near(two2.AngleDegrees, two.AngleDegrees, 0.01f), "a move keeps length and angle");
+        Check(manager.WorkOrders.Count == baseOrders && manager.RackOrderState(2).Open == 0, "moving a DRAFT rack creates no work order (orders appear only at Confirm)");
         Check(manager.CanUndoRackEdit && manager.RackEditUndoDescription.Contains("rack 2"), "the move can be undone");
         RackPlanOperationResult undoMove = manager.UndoLastRackEdit();
         Check(undoMove.Status == RackPlanOperationStatus.Applied && PlanSig() == planBeforeMove, "undo restores the exact geometry, ids and id allocator");
