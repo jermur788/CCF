@@ -260,13 +260,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 scheduled++;
                 continue;
             }
-            float target = definition.NextPruningTargetHeightM(tree.PruningLifts);
+            float target = definition.NextPruningTargetHeightM(tree, BroadleafMarketActive);
             if (target <= 0f)
             {
                 alreadyTreated++;
                 continue;
             }
-            if (target >= tree.Height * 0.6f || tree.CanPrune(target, CurrentYear + 1) != null)
+            if (target >= tree.Height * 0.6f || tree.CanPrune(target, CurrentYear + 1, BroadleafMarketActive) != null)
             {
                 ineligible++;
                 continue;
@@ -364,8 +364,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return LivingTreesById().Values.Count(tree => tree.IsCropTree
                 && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.FellTree)
                 && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree)
-                && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
-                && tree.CanPrune(definition.NextPruningTargetHeightM(tree.PruningLifts), CurrentYear + 1) == null);
+                && definition.NextPruningTargetHeightM(tree, BroadleafMarketActive) > 0f
+                && tree.CanPrune(definition.NextPruningTargetHeightM(tree, BroadleafMarketActive), CurrentYear + 1, BroadleafMarketActive) == null);
         }
     }
 
@@ -1070,7 +1070,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = "This tree already has an open pruning order.";
             return false;
         }
-        float targetHeight = definition.NextPruningTargetHeightM(tree.PruningLifts);
+        float targetHeight = definition.NextPruningTargetHeightM(tree, BroadleafMarketActive);
         if (targetHeight <= 0f)
         {
             feedback = $"{tree.TreeId} has already received the maximum configured pruning lifts.";
@@ -1081,7 +1081,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = $"{tree.TreeId} is too short for the next lift ({targetHeight:0.0} m target).";
             return false;
         }
-        string pruningProblem = tree.CanPrune(targetHeight, CurrentYear + 1);
+        string pruningProblem = tree.CanPrune(targetHeight, CurrentYear + 1, BroadleafMarketActive);
         if (pruningProblem != null)
         {
             feedback = pruningProblem;
@@ -2096,7 +2096,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
 
         float targetHeight = PruningTarget(order);
-        string rejection = tree.TryPrune(targetHeight, report.year);
+        string rejection = tree.TryPrune(targetHeight, report.year, BroadleafMarketActive);
         if (rejection != null)
         {
             Fail(order, report, rejection);
@@ -2226,10 +2226,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Tree is scheduled for felling.";
                 else if (order.requiresCropTree && !tree.IsCropTree)
                     order.validationMessage = "Tree is no longer designated a Crop Tree.";
-                else if (definition != null && definition.NextPruningTargetHeightM(tree.PruningLifts) < 0f)
+                else if (definition != null && definition.NextPruningTargetHeightM(tree, BroadleafMarketActive) < 0f)
                     order.validationMessage = "Tree has already received the maximum pruning lifts.";
                 else
-                    order.validationMessage = tree.CanPrune(PruningTarget(order), CurrentYear + 1);
+                    order.validationMessage = tree.CanPrune(PruningTarget(order), CurrentYear + 1, BroadleafMarketActive);
             }
             else
                 order.validationMessage = "This task type is not yet available.";

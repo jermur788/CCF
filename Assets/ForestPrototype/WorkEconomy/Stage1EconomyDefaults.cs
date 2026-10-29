@@ -75,31 +75,31 @@ namespace CCF.Forestry.WorkEconomy
         //
         // The Manager-approved evidence is quoted in euro per cubic metre; this price model is per tonne. Each value
         // is converted at the fresh-volume work-equivalent proxy (the same 890 kg/m3 the harvest work quantity
-        // already uses for every species) so that revenue per cubic metre equals the evidence figure. It is a unit
+        // already uses for every species) so that revenue per cubic metre approximates the selected reference. It is a unit
         // convention, NOT a claimed Oak or Beech green density. Results are rounded to whole euro per tonne so the
         // table does not imply more precision than a broad evidence range supports.
         //
-        // The basis (roadside versus standing) of the quoted ranges is not stated in the approved summary; they are
-        // treated as roadside values [C] pending the research file.
+        // Teagasc's typical quotations are DIRECT / ManagementGuidance, not a current tariff. The source does not
+        // specify their sale basis. Selected references and the roadside interpretation are GAMEPLAY CALIBRATION.
         public const long FreshVolumeProxyKgPerCubicMetre = 890;
-        private const string BroadleafSummary = "Manager-approved Oak/Beech timber evidence summary (D-062 supplement)";
+        private const string BroadleafSummary = "Teagasc, Felling, presentation and grading of hardwood timber; Docs/Research/ScenarioOneThreeSpeciesParityP0EvidenceClosure.md Q-10/Q-11";
 
         public static TimberPrice[] BroadleafTimberPrices()
         {
             return new[]
             {
-                Broadleaf("oak-veneer-planking", "sessile-oak", TimberAssortment.VeneerPlanking, 18000, 23000, 28000, EvidenceLabel.Inference,
-                    "Irish evidence range about 180-280 euro/m3; the reference is the range midpoint, a selection [C]"),
-                Broadleaf("oak-beam", "sessile-oak", TimberAssortment.Beam, 14500, 14500, 14500, EvidenceLabel.Inference,
-                    "single evidence reference about 145 euro/m3; no range was given"),
-                Broadleaf("oak-fencing", "sessile-oak", TimberAssortment.Fencing, 10000, 10000, 10000, EvidenceLabel.Inference,
-                    "single evidence reference about 100 euro/m3; no range was given"),
-                Broadleaf("oak-second-planking", "sessile-oak", TimberAssortment.SecondPlanking, 6000, 6000, 6000, EvidenceLabel.Inference,
-                    "single evidence reference about 60 euro/m3; no range was given"),
+                Broadleaf("oak-veneer-planking", "sessile-oak", TimberAssortment.VeneerPlanking, 18000, 23000, 28000, EvidenceLabel.ManagementGuidance,
+                    "typical quotation about 180-280 euro/m3; the 230 reference midpoint is GAMEPLAY CALIBRATION"),
+                Broadleaf("oak-beam", "sessile-oak", TimberAssortment.Beam, 14500, 14500, 14500, EvidenceLabel.ManagementGuidance,
+                    "typical quotation about 145 euro/m3; no range was given"),
+                Broadleaf("oak-fencing", "sessile-oak", TimberAssortment.Fencing, 10000, 10000, 10000, EvidenceLabel.ManagementGuidance,
+                    "typical quotation about 100 euro/m3; no range was given"),
+                Broadleaf("oak-second-planking", "sessile-oak", TimberAssortment.SecondPlanking, 6000, 6000, 6000, EvidenceLabel.ManagementGuidance,
+                    "typical quotation about 60 euro/m3; no range was given"),
                 Broadleaf("oak-firewood", "sessile-oak", TimberAssortment.Firewood, 2000, 3000, 4000, EvidenceLabel.GameplayCalibration,
                     "[C] fallback price; NOT supported Irish stumpage evidence"),
-                Broadleaf("beech-second-planking", "beech", TimberAssortment.SecondPlanking, 6000, 6000, 6000, EvidenceLabel.Inference,
-                    "single Irish evidence reference about 60 euro/m3 for second-quality planking; no range was given"),
+                Broadleaf("beech-second-planking", "beech", TimberAssortment.SecondPlanking, 6000, 6000, 6000, EvidenceLabel.ManagementGuidance,
+                    "typical quotation about 60 euro/m3 for second-quality planking; no range was given"),
                 Broadleaf("beech-firewood", "beech", TimberAssortment.Firewood, 2000, 3000, 4000, EvidenceLabel.GameplayCalibration,
                     "[C] fallback price; NOT supported Irish stumpage evidence")
             };
@@ -141,7 +141,7 @@ namespace CCF.Forestry.WorkEconomy
                     Low = CentsPerTonneAtProxy(lowPerM3), Reference = CentsPerTonneAtProxy(referencePerM3), High = CentsPerTonneAtProxy(highPerM3),
                     Selected = CentsPerTonneAtProxy(referencePerM3), Unit = ParameterUnit.CentsPerTonne,
                     RangeEvidence = rangeEvidence, SelectedEvidence = EvidenceLabel.GameplayCalibration, SourceYear = 0,
-                    Source = BroadleafSummary + ": " + basis + ". Converted from euro/m3 at the " + FreshVolumeProxyKgPerCubicMetre +
+                    Source = BroadleafSummary + ": " + basis + ". Selected reference and roadside basis: GAMEPLAY CALIBRATION. Converted from euro/m3 at the " + FreshVolumeProxyKgPerCubicMetre +
                         " kg/m3 fresh-volume work-equivalent proxy (a unit convention, not a green density); rounded to whole euro/tonne."
                 } };
         }

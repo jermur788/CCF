@@ -114,7 +114,11 @@ public static class BroadleafTimberOfflineCheck
             && p.RoadsideCentsPerTonne.Source.Length > 40), "PRICE_PARAMETERS_USE_LOW_REFERENCE_HIGH_SELECTED_WITH_SOURCES");
         Check(prices.Where(p => p.Assortment == TimberAssortment.Firewood).All(p => p.RoadsideCentsPerTonne.RangeEvidence == EvidenceLabel.GameplayCalibration
             && p.RoadsideCentsPerTonne.Source.Contains("NOT supported Irish stumpage evidence")), "FIREWOOD_PRICE_IS_LABELLED_CALIBRATION");
-        Check(prices.Where(p => p.Assortment != TimberAssortment.Firewood).All(p => p.RoadsideCentsPerTonne.RangeEvidence == EvidenceLabel.Inference), "NON_FIREWOOD_PRICES_ARE_LABELLED_EVIDENCE_INFERENCE");
+        Check(prices.Where(p => p.Assortment != TimberAssortment.Firewood).All(p => p.RoadsideCentsPerTonne.RangeEvidence == EvidenceLabel.ManagementGuidance), "TEAGASC_TYPICAL_QUOTES_ARE_MANAGEMENT_GUIDANCE");
+        Check(prices.All(p => p.RoadsideCentsPerTonne.SelectedEvidence == EvidenceLabel.GameplayCalibration
+            && p.RoadsideCentsPerTonne.Source.Contains("Selected reference and roadside basis: GAMEPLAY CALIBRATION")), "SELECTED_REFERENCES_AND_ROADSIDE_BASIS_ARE_CALIBRATION");
+        Check(veneer.DimensionEvidence == EvidenceLabel.ManagementGuidance && beam.DimensionEvidence == EvidenceLabel.ManagementGuidance
+            && oak.Concat(beech).All(s => s.SelectionEvidence == EvidenceLabel.GameplayCalibration), "DIMENSION_GUIDANCE_IS_DISTINCT_FROM_SELECTED_GRADING_PROXY");
         // Conversion convention: per cubic metre at the work-equivalent proxy, rounded to whole euro per tonne.
         Check(Stage1EconomyDefaults.FreshVolumeProxyKgPerCubicMetre == Stage1EconomyDefaults.Create().Densities.Single().KilogramsPerCubicMetre.Reference, "PROXY_DENSITY_EQUALS_THE_EXISTING_WORK_EQUIVALENT_DENSITY");
         GreenTimberDensity[] densities = Stage1EconomyDefaults.BroadleafDensities();
@@ -197,7 +201,8 @@ public static class BroadleafTimberOfflineCheck
         StemYieldResult unpruned = Resolve(Stem("bigU", Oak, 60, 24), config);
         Check(Count(unpruned, TimberAssortment.VeneerPlanking) == 0 && Count(unpruned, TimberAssortment.Beam) >= 1, "UNPRUNED_LARGE_OAK_HAS_NO_VENEER_BUT_KEEPS_BEAM", Mix(unpruned));
 
-        // Forked / malformed oak is capped below the premium classes; the straight section below the fork still counts.
+        // Synthetic allocator robustness ONLY: Scenario One does not supply living-tree fork/defect state.
+        // These flags test the generic allocator's exclusions, not a represented forestry/form mechanic.
         StemYieldResult forkedWhole = Resolve(Stem("forkW", Oak, 60, 24, StemQualityFlags.PoorForm, Pruned(6.5, 24)), config);
         Check(!AnyOf(forkedWhole, TimberAssortment.VeneerPlanking, TimberAssortment.Beam) && forkedWhole.Logs.Length > 0, "FORKED_WHOLE_STEM_OAK_CAPPED_BELOW_VENEER_AND_BEAM", Mix(forkedWhole));
         var fork = new StemQualitySection { StartHeightMm = 9000, EndHeightMm = 14000, Flags = StemQualityFlags.PoorForm };
@@ -258,11 +263,11 @@ public static class BroadleafTimberOfflineCheck
         Check(ValueOf(pruned) > ValueOf(unpruned), "PRUNING_RAISES_VALUE_ONLY_THROUGH_ELIGIBILITY", $"pruned={ValueOf(pruned) / 100.0:0.00} unpruned={ValueOf(unpruned) / 100.0:0.00}");
         long perCubic(StemYieldResult r, TimberAssortment a) => r.Logs.Where(l => l.Assortment == a).Sum(l => l.VolumeCm3);
         Check(perCubic(pruned, TimberAssortment.VeneerPlanking) > 0 && perCubic(unpruned, TimberAssortment.VeneerPlanking) == 0, "PRUNING_UNLOCKS_THE_VENEER_CLASS_BUT_SETS_NO_PRICE");
-        // A partial lift (2.5 m) does not unlock a 2.8 m log; the section must cover the whole log.
-        StemYieldResult firstLift = Resolve(Stem("lift1", Oak, 60, 24, StemQualityFlags.None, Pruned(2.5, 24)), config);
-        StemYieldResult secondLift = Resolve(Stem("lift2", Oak, 60, 24, StemQualityFlags.None, Pruned(5.0, 24)), config);
-        Check(Count(firstLift, TimberAssortment.VeneerPlanking) == 0 && Count(secondLift, TimberAssortment.VeneerPlanking) >= 1 && Count(pruned, TimberAssortment.VeneerPlanking) > Count(secondLift, TimberAssortment.VeneerPlanking),
-            "MORE_PRUNING_LIFTS_UNLOCK_MORE_CLEAR_LOGS", $"2.5m={Count(firstLift, TimberAssortment.VeneerPlanking)} 5.0m={Count(secondLift, TimberAssortment.VeneerPlanking)} 6.5m={Count(pruned, TimberAssortment.VeneerPlanking)}");
+        // Approved broadleaf targets: the whole log must be inside the recorded pruned section.
+        StemYieldResult firstLift = Resolve(Stem("lift1", Oak, 60, 24, StemQualityFlags.None, Pruned(3.5, 24)), config);
+        StemYieldResult secondLift = Resolve(Stem("lift2", Oak, 60, 24, StemQualityFlags.None, Pruned(6.0, 24)), config);
+        Check(Count(firstLift, TimberAssortment.VeneerPlanking) == 1 && Count(secondLift, TimberAssortment.VeneerPlanking) == 2,
+            "BROADLEAF_HIGH_PRUNING_UNLOCKS_ONLY_COVERED_LOGS", $"3.5m={Count(firstLift, TimberAssortment.VeneerPlanking)} 6.0m={Count(secondLift, TimberAssortment.VeneerPlanking)}");
         // Determinism.
         Check(Mix(Resolve(Stem("qp", Oak, 60, 24, StemQualityFlags.None, Pruned(6.5, 24)), config)) == Mix(pruned), "GRADING_IS_DETERMINISTIC");
     }
