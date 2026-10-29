@@ -246,7 +246,15 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         }, ScenarioOnePrescriptionCalibration.V1);
         var all = track.Concat(clearing).Concat(site).Concat(headland).ToList();
         string productionView = MaskView(production);
-        Check(MaskView(Reference(all)) == productionView, "production masks equal an independent construction from the live scene (areas, stems, net areas)");
+        string referenceView = MaskView(Reference(all));
+        if (referenceView != productionView)
+        {
+            string[] p = productionView.Split(';'), r = referenceView.Split(';');
+            for (int i = 0; i < Math.Max(p.Length, r.Length); i++)
+                if ((i < p.Length ? p[i] : "") != (i < r.Length ? r[i] : ""))
+                    Debug.Log("MFM08A_NOTE first mask-view difference at " + i + ": production=" + (i < p.Length ? p[i] : "-") + " reference=" + (i < r.Length ? r[i] : "-"));
+        }
+        Check(referenceView == productionView, "production masks equal an independent construction from the live scene (areas, stems, net areas)");
         Check(MaskView(Reference(new Cov.Mask[0])) != productionView, "production is not passing empty masks");
         Check(MaskView(Reference(all.Except(track))) != productionView, "mask kind Track is in the production result");
         Check(MaskView(Reference(all.Except(clearing))) != productionView, "mask kind Clearing is in the production result");
