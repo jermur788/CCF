@@ -272,6 +272,8 @@ public sealed class WorkPlanView
         if (fell.Any(order => order.type == ScenarioWorkType.SalvageDeadwood))
             UiKit.Add(card, "Windthrow salvage is optional. Remove or cancel a salvage order to leave that stem as deadwood. Basal damage and time since the fall can reduce timber grade; the contractor minimum still applies once to the combined visit.", "muted");
         UiKit.Add(card, job.Eligible ? "Re-quoted and settled when the year is resolved." : "Cannot proceed: " + job.Problem, job.Eligible ? "faint" : "body");
+        if (m.BroadleafMarketActive)
+            UiKit.Add(card, "If this visit includes Oak or Beech: " + ScenarioOneUiFacts.BroadleafQualityLimit + " " + ScenarioOneUiFacts.PremiumOakNote, "muted");
         if (job.HasUnmarketedSpecies)
             UiKit.Add(card, "No timber market is configured for some of these stems' species: they are charged for felling but earn no sale revenue.", "muted");
 
@@ -424,7 +426,7 @@ public sealed class WorkPlanView
             .OrderBy(o => o.workOrderId).ToList();
         int eligible = m.EligibleCropTreePruningCount;
         VisualElement card = Card($"Pruning · {prune.Count} crop tree(s)", $"{m.CropTreeCount} crop trees designated (blue) · {eligible} eligible for a lift now · Contractor");
-        UiKit.Add(card, "Pruning is a retained-tree timber-quality treatment. The treatment is recorded, but Scenario One applies no timber-price premium for pruning.", "muted");
+        UiKit.Add(card, "Pruning is a retained-tree timber-quality treatment and sets no price by itself. Where Oak timber is marketed, the recorded pruned section can make a large log eligible for a higher grade; Beech has no such class. Fork and defect shape is not modelled.", "muted");
         card.Add(UiKit.Button($"Add {eligible} eligible crop tree pruning task(s)", () => { m.BatchPruneCropTrees(); Refresh(true); }, eligible > 0 && m.CanEditWorkPlan));
         if (prune.Count > 0)
         {

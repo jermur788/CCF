@@ -236,7 +236,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         else
             competitors.Clear();
         hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
-        hud.ShowMinimap(!(inspecting && inspection.ShowsCompetitors));
+        // The felling estimate needs the space the minimap would cover, so the minimap steps aside while it is open (as for the competitor list).
+        hud.ShowMinimap(!(inspecting && (inspection.ShowsCompetitors || inspection.ShowsEstimate)));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
         PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
         if (!preview)
@@ -275,7 +276,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
                 if (child.resolvedStyle.display != DisplayStyle.None && child.layout.height > 0f)
                     limit = Mathf.Min(limit, child.worldBound.yMin - 10f);
         inspection.Root.style.maxHeight = Mathf.Max(160f, limit - 14f);
-        float between = document.rootVisualElement.layout.width - 2f * (TreeInspectionView.ColumnWidth + 28f);
+        // The optional detail column is wider; keep the central aiming prompt clear of its actual bounds too.
+        float columnWidth = Mathf.Max(TreeInspectionView.ColumnWidth, inspection.Root.layout.width);
+        float rightWidth = inspection.ShowsEstimate ? TreeInspectionView.EstimateWidth : TreeInspectionView.ColumnWidth;
+        // The prompt is centred, so it must clear whichever side column is wider.
+        float between = document.rootVisualElement.layout.width - 2f * (Mathf.Max(columnWidth, rightWidth) + 28f);
         hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
     }
 
