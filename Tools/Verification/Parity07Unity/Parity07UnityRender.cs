@@ -351,6 +351,8 @@ public sealed class Parity07UnityRunner : MonoBehaviour
             VisualElement prompt = ActiveRoot().Q(className: "hud-prompt")?.Q(className: "hud-prompt-box");
             Check(!Visible(prompt) || !prompt.worldBound.Overlaps(ui.Inspection.Root.worldBound), "INSPECTION_CLEARS_CENTRAL_PROMPT_" + name,
                 $"prompt={prompt?.worldBound} column={ui.Inspection.Root.worldBound}");
+            Check(!Visible(prompt) || !Visible(ui.Inspection.EstimatePanel) || !prompt.worldBound.Overlaps(ui.Inspection.EstimatePanel.worldBound), "ESTIMATE_CLEARS_CENTRAL_PROMPT_" + name,
+                $"prompt={prompt?.worldBound} estimate={ui.Inspection.EstimatePanel.worldBound}");
             ClearInspection();
             yield return Settle(6);
         }

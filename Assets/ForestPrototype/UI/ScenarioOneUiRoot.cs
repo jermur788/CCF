@@ -279,7 +279,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         // The optional detail column is wider; keep the central aiming prompt clear of its actual bounds too.
         float columnWidth = Mathf.Max(TreeInspectionView.ColumnWidth, inspection.Root.layout.width);
         float rightWidth = inspection.ShowsEstimate ? TreeInspectionView.EstimateWidth : TreeInspectionView.ColumnWidth;
-        float between = document.rootVisualElement.layout.width - (columnWidth + rightWidth + 56f);
+        // The prompt is centred, so it must clear whichever side column is wider.
+        float between = document.rootVisualElement.layout.width - 2f * (Mathf.Max(columnWidth, rightWidth) + 28f);
         hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
     }
 
