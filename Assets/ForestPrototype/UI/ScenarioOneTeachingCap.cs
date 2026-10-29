@@ -19,13 +19,9 @@ public static class ScenarioOneTeachingCap
         Advisory
     }
 
-    // One definition of "this teaching sample is done", read from facts that already persist: the executed in-footprint release served
-    // the three retained trees with both sold and deadwood outcomes, and the Annual Review after that work has been acknowledged.
-    // The cap itself is deliberately not an input, so exceeding it cannot reopen the activity. The session-only [J]/[K] decisions are
-    // not persisted and are not used here. T-04's guide latch can replace this one function.
+    // The single definition lives in ScenarioOneTeachingHistory and is shared with the guide's historical floor (S1-D T-04).
     public static bool SampleHistoricallyComplete(ScenarioOneRackBay.Analysis bay, bool releaseReviewed)
-        => bay != null && bay.Applies && releaseReviewed && bay.ReleaseYear >= 0 && bay.MixedExecuted
-           && bay.MinExecuted >= ScenarioOneRackBay.FirstReleaseShare * ScenarioOneRackBay.ExecutedTolerance;
+        => ScenarioOneTeachingHistory.SampleHistoricallyComplete(bay, releaseReviewed);
 
     public static Phase Classify(ScenarioOneRackBay.Analysis bay, bool accessOpen, bool releaseReviewed)
     {

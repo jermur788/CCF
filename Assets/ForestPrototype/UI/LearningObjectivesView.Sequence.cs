@@ -96,7 +96,7 @@ public sealed partial class LearningObjectivesView
             ReviewedTwoCycles = ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(m.ManagementEvents, orders),
             BeechEstablished = Goal("introduced-beech"), OakEstablished = Goal("introduced-sessile-oak"),
             PlantingYear = plantingYear, Year = m.CurrentEcologicalYear,
-            HistoricalFloor = HistoricalFloor(m, area ? bay : null),
+            HistoricalFloor = HistoricalFloor(m),
             EstablishmentReviewed = plantingYear >= 0 && m.CurrentEcologicalYear > plantingYear
                 && m.ManagementEvents.Any(e => e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged
                     && e.year > plantingYear)
@@ -104,24 +104,18 @@ public sealed partial class LearningObjectivesView
     }
 
     // S1-D T-04: the monotonic floor, derived each refresh from the persisted event log and recorded objective years. Nothing is stored.
-    // A felling counts as in the teaching footprint when the rack-area geometry contains it; with no rack area (a legacy stand) the
-    // existing legacy rules already count felling anywhere, so every felling does.
-    private static int HistoricalFloor(ScenarioOneManager m, ScenarioOneRackBay.Analysis bay)
+    private static int HistoricalFloor(ScenarioOneManager m)
     {
         var entries = new System.Collections.Generic.List<ScenarioOneTeachingHistory.Entry>();
         foreach (var e in m.ManagementEvents)
         {
             var kind = ScenarioOneTeachingHistory.Kind.Other;
-            bool ok = e.eventType == ScenarioManagementEventType.WorkResolved && e.outcome == ScenarioManagementOutcome.Succeeded;
             if (e.eventType == ScenarioManagementEventType.AnnualReviewAcknowledged) kind = ScenarioOneTeachingHistory.Kind.Acknowledged;
-            else if (ok && e.ecologicalTreatment == ScenarioEcologicalTreatment.TreeFelledAndExtracted) kind = ScenarioOneTeachingHistory.Kind.SoldFelling;
-            else if (ok && e.ecologicalTreatment == ScenarioEcologicalTreatment.TreeRetainedAsDeadwood) kind = ScenarioOneTeachingHistory.Kind.DeadwoodFelling;
-            else if (ok && e.ecologicalTreatment == ScenarioEcologicalTreatment.JuvenilePlanted)
+            else if (e.eventType == ScenarioManagementEventType.WorkResolved && e.outcome == ScenarioManagementOutcome.Succeeded
+                && e.ecologicalTreatment == ScenarioEcologicalTreatment.JuvenilePlanted)
                 kind = e.speciesId == "beech" ? ScenarioOneTeachingHistory.Kind.BeechPlanted
                     : e.speciesId == "sessile-oak" ? ScenarioOneTeachingHistory.Kind.OakPlanted : ScenarioOneTeachingHistory.Kind.OtherPlanted;
-            if (kind == ScenarioOneTeachingHistory.Kind.Other) continue;
-            bool inside = bay == null || bay.Contains(e.worldPosition.x, e.worldPosition.z);
-            entries.Add(new ScenarioOneTeachingHistory.Entry(e.eventId, e.year, kind, inside));
+            if (kind != ScenarioOneTeachingHistory.Kind.Other) entries.Add(new ScenarioOneTeachingHistory.Entry(e.eventId, e.year, kind));
         }
         return ScenarioOneTeachingHistory.Floor(entries, m.ObjectiveAchievedYear("introduced-beech") >= 0,
             m.ObjectiveAchievedYear("introduced-sessile-oak") >= 0);

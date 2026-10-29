@@ -14,8 +14,8 @@ public static class ScenarioOneTeachingSequence
         // What the rack-area analysis found (lessons 2-5); null when the facts were injected or the stand has no rack layout. Read only
         // for wording: the lesson order below uses the plain facts above.
         public ScenarioOneRackBay.Analysis Bay;
-        // S1-D T-04: earliest lesson index the guide may show, proven from persisted history only (ScenarioOneTeachingHistory.Floor).
-        // 0 = no historical proof, so the rules in Raw decide alone. Injected facts leave it 0 and keep their earlier progression.
+        // S1-D T-04: earliest lesson index the guide may show, proven from persisted history only (ScenarioOneTeachingHistory.Floor); applied only
+        // once Raw has reached lesson 6. 0 = no historical proof, so the rules in Raw decide alone. Injected facts leave it 0 and keep their earlier progression.
         public int HistoricalFloor;
     }
     public sealed class Lesson
@@ -70,7 +70,13 @@ public static class ScenarioOneTeachingSequence
     };
 
     // The guide never moves behind a boundary that persisted history proves was completed. Before that, Raw decides exactly as before.
-    public static int Current(Facts f) => System.Math.Max(Raw(f), System.Math.Min(f.HistoricalFloor, Lessons.Length - 1));
+    public static int Current(Facts f)
+    {
+        int raw = Raw(f);
+        // Lessons 1-5 have no faithful persisted proof, so they are never latched: the floor applies only once the current facts have
+        // reached lesson 6 (every earlier lesson currently holds), and then protects lessons 7 and 8 from later drift.
+        return raw >= ScenarioOneTeachingHistory.Recruitment ? System.Math.Max(raw, System.Math.Min(f.HistoricalFloor, Lessons.Length - 1)) : raw;
+    }
 
     // The guide computed from the mutable current facts alone (the behaviour before T-04).
     public static int Raw(Facts f)

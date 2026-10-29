@@ -8,15 +8,14 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 GAME = os.path.join(ROOT, "Assets", "ForestPrototype")
 NONUI = os.path.join(HERE, "..", "ScenarioOneNonUi", "OfflineLogic")
 HIST = os.path.join(GAME, "UI", "ScenarioOneTeachingHistory.cs")
-SOURCES = ["{hist}", os.path.join(GAME, "UI", "ScenarioOneTeachingSequence.cs"), os.path.join(GAME, "ScenarioOne", "ScenarioOneRackBay.cs"),
+SOURCES = ["{hist}", os.path.join(GAME, "UI", "ScenarioOneTeachingCap.cs"), os.path.join(GAME, "UI", "ScenarioOneRackBayText.cs"), os.path.join(GAME, "UI", "ScenarioOneTeachingSequence.cs"), os.path.join(GAME, "ScenarioOne", "ScenarioOneRackBay.cs"),
     os.path.join(GAME, "ScenarioOne", "CompetitionShare.cs"), os.path.join(GAME, "Racks", "RackGeometry.cs"),
     os.path.join(NONUI, "OfflineStubs.cs"), os.path.join(HERE, "TeachingHistoryOfflineCheck.cs")]
 MUTATIONS = [
-    ("no review needed", "e.Kind == Kind.Acknowledged && e.Id > both", "e.Kind == Kind.Acknowledged"),
-    ("footprint ignored", "if (!e.InFootprint) continue;", ""),
-    ("planting before review counts", "if (e.Id <= review) continue;", ""),
-    ("goals unrecorded still establish", "!beechRecorded || !oakRecorded", "false"),
+    ("goals unrecorded still establish", "if (events == null || !beechRecorded || !oakRecorded) return 0;", "if (events == null) return 0;"),
     ("same-year review establishes", "if (ack.Year > plantingYear)", "if (ack.Year >= plantingYear)"),
+    ("review before plantings counts", "ack.Id <= needed", "false"),
+    ("later planting undoes the review", "e.Id < ack.Id &&", ""),
     ("floor drops with later work", "return Transformation;", "return Establishment;"),
 ]
 

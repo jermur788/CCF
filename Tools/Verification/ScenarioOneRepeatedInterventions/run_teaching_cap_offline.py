@@ -20,11 +20,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 GAME = os.path.join(ROOT, "Assets", "ForestPrototype")
 CAP_SOURCE = os.path.join(GAME, "UI", "ScenarioOneTeachingCap.cs")
+HIST_SOURCE = os.path.join(GAME, "UI", "ScenarioOneTeachingHistory.cs")
 NONUI = os.path.join(HERE, "..", "ScenarioOneNonUi", "OfflineLogic")
 DEFAULT_BASE = "23fe4b8"
 
 SOURCES = [
     "{cap}",
+    "{hist}",
     os.path.join(GAME, "UI", "ScenarioOneTeachingSequence.cs"),
     os.path.join(GAME, "UI", "ScenarioOneRackBayText.cs"),
     os.path.join(GAME, "ScenarioOne", "ScenarioOneRackBay.cs"),
@@ -45,7 +47,6 @@ PROTECTED = [
     "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioCycleState.cs",
     "Assets/ForestPrototype/UI/AnnualReviewView.cs",
-    "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
     "Assets/ForestPrototype/UI/ScenarioOneRackBayText.cs",
     "Assets/ForestPrototype/Racks",
     "Assets/ForestPrototype/WorkEconomy",
@@ -62,9 +63,9 @@ MUTATIONS = [
     ("advisory before completion",
      "return !SampleHistoricallyComplete(bay, releaseReviewed) && bay.ActionableRemovals > 0 ? Phase.Hard : Phase.Advisory;", "return Phase.Advisory;"),
     ("completion depends on the cap",
-     "bay.Applies && releaseReviewed && bay.ReleaseYear >= 0", "bay.Applies && bay.CanopyKept && releaseReviewed && bay.ReleaseYear >= 0"),
+     "bay.Applies && releaseReviewed && bay.ReleaseYear >= 0", "bay.Applies && bay.CanopyKept && releaseReviewed && bay.ReleaseYear >= 0", "hist"),
     ("results need not be read",
-     "bay.Applies && releaseReviewed && bay.ReleaseYear >= 0", "bay.Applies && bay.ReleaseYear >= 0"),
+     "bay.Applies && releaseReviewed && bay.ReleaseYear >= 0", "bay.Applies && bay.ReleaseYear >= 0", "hist"),
     ("hard message loses the quantity",
      'Percent(bay.RemovedBasalShare) + " of its trunk area removed or planned for removal', '"some of its trunk area removed or planned for removal'),
     ("advisory turns into an instruction",
@@ -88,9 +89,9 @@ PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
 """
 
 
-def build_and_run(dotnet, work, cap_source):
+def build_and_run(dotnet, work, cap_source, hist_source=None):
     os.makedirs(work, exist_ok=True)
-    sources = [cap_source if s == "{cap}" else s for s in SOURCES]
+    sources = [cap_source if s == "{cap}" else (hist_source or HIST_SOURCE) if s == "{hist}" else s for s in SOURCES]
     for source in sources:
         if not os.path.isfile(source):
             sys.exit("missing source " + source)
@@ -143,18 +144,23 @@ def main():
     if not args.mutations:
         return 0
 
-    with open(CAP_SOURCE) as handle:
-        original = handle.read()
+    originals = {"cap": open(CAP_SOURCE).read(), "hist": open(HIST_SOURCE).read()}
     survived = []
-    for index, (name, find, replace) in enumerate(MUTATIONS):
+    for index, mutation in enumerate(MUTATIONS):
+        name, find, replace = mutation[:3]
+        target = mutation[3] if len(mutation) > 3 else "cap"
+        original = originals[target]
         if original.count(find) != 1:
             sys.exit("mutation '%s': expected exactly one match, found %d" % (name, original.count(find)))
         mutant_dir = os.path.join(args.out, "mutant%d" % index)
         os.makedirs(mutant_dir, exist_ok=True)
-        mutant_source = os.path.join(mutant_dir, "ScenarioOneTeachingCap.cs")
+        mutant_source = os.path.join(mutant_dir, "mutant.cs")
         with open(mutant_source, "w") as handle:
             handle.write(original.replace(find, replace))
-        mutant_status, mutant_output = build_and_run(dotnet, mutant_dir, mutant_source)
+        if target == "cap":
+            mutant_status, mutant_output = build_and_run(dotnet, mutant_dir, mutant_source)
+        else:
+            mutant_status, mutant_output = build_and_run(dotnet, mutant_dir, CAP_SOURCE, mutant_source)
         failing = [line for line in mutant_output.splitlines() if line.startswith("FAIL")]
         if mutant_status == "CHECK_FAILED":
             print("MUTATION CAUGHT   %-36s %d failing check(s), e.g. %s" % (name, len(failing), failing[0][:100] if failing else "?"))

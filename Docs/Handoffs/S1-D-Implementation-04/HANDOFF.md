@@ -1,54 +1,44 @@
-# S1-D T-04 guide monotonicity — HANDOFF (claim #124)
+# S1-D T-04 guide monotonicity — HANDOFF (claim #124), revision 2
 
-**Status: IMPLEMENTED + OFFLINE-VERIFIED. NOT QUALIFIED.** Unity qualification and independent review have not been run, so the
-success token is withheld.
+**Status: REVISED per MANAGER-REVIEW.md; OFFLINE-VERIFIED; Unity NOT yet run; independent review NOT yet run.** Success token withheld.
 
 - Model/provider: Claude Sonnet 5.5 (claude-sonnet-5-5) / Anthropic
-- Branch/worktree: `feature/s1-d-t04-guide-monotonicity-v1` @ `/media/jer/Videos/CCF-S1D-T04` (local, not pushed)
-- Starting SHA: `b971f4da0540e606bfee9702b0c99f81a0a89355`; ending SHA: see `git log` on the branch (single commit).
-- Coordination: #124 was NOT edited on origin/main (that file lives on the coordination branch); the manager should mark it.
+- Branch/worktree: `feature/s1-d-t04-guide-monotonicity-v1` @ `/media/jer/Videos/CCF-S1D-T04`
+- Base: `b971f4da0540e606bfee9702b0c99f81a0a89355`. Superseded (do not review): `18e33d4`. Exact corrected candidate: the branch head
+  (`git rev-parse` on the pushed branch); this file is committed in it.
+- Unity lock: not used. Coordination file not edited (manager to mark #124).
+
+## Manager findings → resolution
+1. **Planting as proof of Lesson 5 / [J]/[K]: removed.** No planting-based proof of any boundary before Lesson 6's own completion remains.
+2. **Arbitrary in-footprint felling as release proof: removed.** The helper no longer has felling kinds or a footprint input.
+3. **T-03/T-04 one interpretation: done.** `ScenarioOneTeachingHistory.SampleHistoricallyComplete` is the single definition; `ScenarioOneTeachingCap.SampleHistoricallyComplete`
+   now delegates to it (formula unchanged, so T-03 behaviour is identical). The guide's rules at Lesson 6+ need exactly those release facts, and the
+   guide never latches anything before Lesson 6, so the two cannot disagree. No protected API crossed; no blocker.
+
+## Final design
+- `ScenarioOneTeachingHistory.Floor` (pure, no UnityEngine, nothing stored) latches only:
+  - **Lesson 7 (`establishment`)**: beech and sessile-oak plantings succeeded AND both `introduced-*` objective records exist (v22 recorded years).
+  - **Lesson 8 (`transformation`)**: additionally an Annual Review acknowledged after both plantings, in a year later than every planting resolved before that review (replay by event id, so a later planting cannot undo it).
+- `ScenarioOneTeachingSequence.Current = Raw` (the unchanged earlier rule) unless `Raw >= 5` (Lesson 6 currently reached, i.e. every earlier lesson currently holds), then `max(Raw, floor)`.
+- Wiring: `LearningObjectivesView.Sequence.cs` builds entries from `ManagementEvents` (acknowledgements and succeeded plantings only) + `ObjectiveAchievedYear`.
+
+## Uncovered / fallback states
+- **Lessons 1–5: not latched (existing current-state behaviour).** Crop Tree add/loss, Crop-Tree-serving release, share drift, later in-footprint felling and the session-only [J]/[K] review have no faithful persisted proof. These can still move the guide within 1–5, and a reload still returns to Lesson 5 until the inspection is repeated (documented design).
+- Consequence: **the floor does not protect a guide that has already fallen below Lesson 6** (e.g. Crop Tree loss while at Lesson 7 drops Raw below 5, so the guide follows the existing rules). It protects Lessons 7/8 only against drift *within* 6–8 (extra planting year, lost seedling, goal flicker). This is narrower than AC-3's full wording; Manager should confirm it is acceptable or supply a persisted Crop-Tree-release record (would need a save field — out of scope).
+- Pre-v22 saves with no recorded objective years: no latch.
+- The "Lesson 6–8 save at reload" Unity witness will therefore show: reload at Lesson 7/8 returns to Lesson 5 until the inspection review is repeated (Raw < 5), then the floor holds 7/8. Expect this; do not read it as a regression.
 
 ## Changed files
-- `Assets/ForestPrototype/UI/ScenarioOneTeachingHistory.cs` (+`.meta`) — new pure helper, no UnityEngine.
-- `Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs` — `Facts.HistoricalFloor`; `Current = max(Raw, floor)`; `Raw` is the unchanged earlier rule.
-- `Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs` — builds the floor each refresh from `ManagementEvents` + `ObjectiveAchievedYear`.
-- `Tools/Verification/ScenarioOneRepeatedInterventions/TeachingHistoryOfflineCheck.cs`, `run_teaching_history_offline.py`.
+`UI/ScenarioOneTeachingHistory.cs` (+.meta, new), `UI/ScenarioOneTeachingSequence.cs`, `UI/LearningObjectivesView.Sequence.cs`, `UI/ScenarioOneTeachingCap.cs` (delegation only),
+`Tools/Verification/ScenarioOneRepeatedInterventions/{TeachingHistoryOfflineCheck.cs, run_teaching_history_offline.py, run_teaching_cap_offline.py}` (cap runner: compiles the shared helper, routes the two completion mutations to it, and drops the teaching sequence from its protected list because T-04 owns it).
+No save/schema/validator, completion rules, objectives, Rack, ecology/economy, MFM, scene, package or ProjectSettings change (git diff vs base empty for those).
 
-No save field, schema/validator, completion rule, objective target, Rack, ecology/economy or MFM file touched. Nothing is stored; the
-floor is recomputed from persisted events on every refresh. PlayerPrefs and session [J]/[K] state are not read.
-
-## Lesson → persisted-proof latch mapping (floor = earliest lesson index the guide may show)
-| Floor | Lesson | Proof (event log in event-id order) |
-|---|---|---|
-| 5 | 6 `recruitment` | in-footprint succeeded sold AND deadwood felling → later Annual Review ack → later succeeded planting |
-| 6 | 7 `establishment` | above + beech and sessile-oak plantings after that review + both `introduced-*` objective records exist (v22 recorded years) |
-| 7 | 8 `transformation` | above + an ack, after both needed plantings, in a year later than every planting resolved before that ack |
-
-Lessons 1–5 (`access` … `response`) are **uncovered: floor 0, existing behaviour**.
-
-## Uncovered / fallback states and judgement calls (manager attention)
-1. **Lessons 1–5 have no faithful persisted proof.** Crop Tree choice, 30% share and the footprint "serves a Crop Tree" relation are not
-   persisted; lesson 5 completion is session-only [J]/[K] by design. Crop Tree add/loss and share drift can still move the guide among
-   lessons 1–5, unchanged from before.
-2. **Lesson 5→6 judgement:** a successful planting after the release review is used as the persisted witness that lesson 5 was passed.
-   Consequence: a player who plants without doing [J]/[K] is moved to lesson 6 (before: held at 5). This is also what makes a save at
-   lessons 6–8 survive reload. If the manager rejects this, the 6–8 reload requirement cannot be met — this is the packet's
-   "no persisted fact" stop condition for that boundary.
-3. The release proof counts **any** in-footprint sold+deadwood felling, not only felling serving a Crop Tree (not recoverable). A player
-   who never marked Crop Trees but felled in-footprint, read a review and planted would be promoted. Legacy (no rack area) worlds treat all felling as in-footprint, matching their existing rules.
-4. Objective records written before v22 saves are "not recorded": floor stays 5 there (no over-claim).
-5. **T-03 not unified:** `ScenarioOneTeachingCap.SampleHistoricallyComplete` still reads the current bay. Not changed (T-03 gates stay green);
-   it can adopt `ScenarioOneTeachingHistory.ReleaseReviewEventId >= 0` in a follow-up. The packet's "one interpretation" requirement is therefore only partly met.
-
-## Evidence
-Offline (plain .NET): `run_teaching_history_offline.py --mutations` → `TEACHING_HISTORY_OFFLINE_PASS checks=27`, 6/6 mutations caught.
-Covers boundaries, Crop-Tree/share/felling drift, prefix monotonicity, fourth-cycle symmetry, unfaithful evidence fallbacks,
-stable IDs (all eight, in order), 256-row grid proving floor 0 ⇒ `Current == Raw`.
-Regression: `run_teaching_cap_offline.py --base b971f4d` → `TEACHING_CAP_OFFLINE_PASS checks=48`; its protected-diff gate reports the
-teaching sequence diff, which is expected (that file is this task's owned surface). `run_offline_check.py` (T-02) → `CYCLE_STATE_OFFLINE_PASS checks=93`.
-
-**Not run:** Unity compile/import, save-at-lessons-6–8 reload witnesses, world-drift trigger, TeachingCopy/MenuTutorial Unity checks,
-N3 rule-hash check, S1-C history/query checks, independent review. N3: `ScenarioOneCompletionRules.cs` and objective files are untouched (git diff vs base empty).
+## Offline evidence (plain .NET, revised candidate)
+- `run_teaching_history_offline.py --mutations`: `TEACHING_HISTORY_OFFLINE_PASS checks=29`; 5/5 mutations caught. Covers boundaries, prefix monotonicity, fourth-cycle symmetry, later planting, unrecorded/oak-missing/same-year/before-plantings fallbacks, planting alone never latches, eight stable IDs in order, exhaustive grid (floor never alters Raw<5, never lowers Raw>=5), cap/helper equivalence, source wiring (no PlayerPrefs/Unity/[J]/[K]).
+- `run_teaching_cap_offline.py --base b971f4d --mutations`: `TEACHING_CAP_OFFLINE_PASS checks=48`, protected-diff PASS, 8/8 mutations caught.
+- `run_offline_check.py` (T-02): `CYCLE_STATE_OFFLINE_PASS checks=93`. EventIdIntegrity: `EVENT_ID_OFFLINE_PASS checks=75`.
+- `RackV2HelpTeaching/run_offline.py`: wording checks pass; S10/S11 scope guards fail **identically on the untouched base** (they compare against old SHA 6d3228c) — pre-existing, unrelated.
+- N3: `ScenarioOneCompletionRules.cs` and objective files untouched (empty diff vs base). TeachingCopy/MenuTutorial/S1-C Unity checks: not yet run.
 
 ## Next
-Unity gate under the machine lock, independent OpenAI review, manager decision on item 2/3, then MFM-09 may proceed.
+Manager code approval of this candidate → Unity (lock refresh, compile, drift trigger, save/reload at 6–8 with the expectation above, TeachingCopy/MenuTutorial, N3 hash, S1-C) → independent OpenAI review → then MFM-09.
