@@ -272,6 +272,12 @@ public static class ApprovalBoundaryOfflineCheck
         Check(!overCeiling.Ok && overCeiling.Refusal == App.Refusal.SafeguardExceeded && overCeiling.Orders.Count == 0,
             "C10 proposal plus the player's own planned felling above a unit's ceiling is refused whole", overCeiling.Message);
 
+        // An accepted unit that is no longer covered is held back whole and surfaced, not dropped silently.
+        string lostUnit = fx.Coverage.Areas.First(a => !a.IsSource && a.State != Cov.State.Covered).Id;
+        App.ProposalSet lost = App.Propose(Context(fx, accepted: fx.CoveredUnits.Concat(new[] { lostUnit })));
+        Check(lost.Valid && lost.Conflicts.Any(c => c.CoverageUnitId == lostUnit && c.Kind == App.ConflictKind.UnitNoLongerCovered && c.TreeId.Length == 0)
+              && lost.Links.All(l => l.CoverageUnitId != lostUnit), "C12 an accepted unit that is no longer covered is surfaced as a conflict and receives no proposal");
+
         // Quantitative rules stay Sitka-only: a broadleaf stem is never proposed.
         var mixed = fx.Stems.Select(s => s.Id == t1 || s.Id == t2 ? With(s, species: "beech") : s).ToList();
         Check(App.Propose(Context(fx, stems: mixed)).Links.All(l => l.TargetTreeId != t1 && l.TargetTreeId != t2), "C11 a broadleaf tree is never proposed (no quantitative extrapolation)");

@@ -269,10 +269,13 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
         string manualId = preview.Links[0].TargetTreeId;
         marks.Mark(Tree(manualId), TreeMarkType.Fell, false);
         Approval.ProposalSet withManual = manager.PreviewPrescription(1);
+        string manualUnit = preview.Links[0].CoverageUnitId;
         Check(withManual.Valid && withManual.Links.All(l => l.TargetTreeId != manualId)
-              && withManual.Conflicts.Any(c => c.TreeId == manualId && c.Kind == Approval.ConflictKind.ManualFellMark), "a manually marked tree is held back and surfaced as a conflict",
+              && (withManual.Conflicts.Any(c => c.TreeId == manualId && c.Kind == Approval.ConflictKind.ManualFellMark)
+                  || withManual.Conflicts.Any(c => c.CoverageUnitId == manualUnit && c.Kind == Approval.ConflictKind.UnitNoLongerCovered)),
+            "a manually marked tree is held back and the hold is surfaced as a conflict (the tree, or its unit when coverage excludes the unit for player management)",
             "valid=" + withManual.Valid + " marked=" + Tree(manualId).IsMarkedForFell + " inLinks=" + withManual.Links.Any(l => l.TargetTreeId == manualId)
-            + " conflicts=" + string.Join(",", withManual.Conflicts.Select(c => c.TreeId + ":" + c.Kind)) + " " + withManual.Message);
+            + " unit=" + manualUnit + " state=" + Coverage().Find(manualUnit)?.State + " conflicts=" + string.Join(",", withManual.Conflicts.Select(c => c.TreeId + "@" + c.CoverageUnitId + ":" + c.Kind)) + " " + withManual.Message);
         manager.OpenWorkPlan(true);            // ordinary behaviour: the player's own mark is imported as ordinary work
         yield return Settle();
         manager.OpenWorkPlan(false);
@@ -281,8 +284,9 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
             "the player's own mark became exactly one ordinary pending order and nothing else was imported");
         int manualOrderId = manualOrder.workOrderId;
         Approval.ProposalSet withOrder = manager.PreviewPrescription(1);
-        Check(withOrder.Links.All(l => l.TargetTreeId != manualId) && withOrder.Conflicts.Any(c => c.TreeId == manualId && c.Kind == Approval.ConflictKind.OpenWorkOrder),
-            "a tree with an open order is held back and surfaced as a conflict");
+        Check(withOrder.Links.All(l => l.TargetTreeId != manualId) && withOrder.Conflicts.Any(c => (c.TreeId == manualId && c.Kind == Approval.ConflictKind.OpenWorkOrder)
+                || (c.CoverageUnitId == manualUnit && c.Kind == Approval.ConflictKind.UnitNoLongerCovered)),
+            "a tree with an open order is held back and the hold is surfaced as a conflict");
 
         // ---- 7. the mandatory link check fails closed, and a refusal changes nothing ----
         Approval.OrderLink good = withOrder.Links[0];

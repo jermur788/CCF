@@ -95,7 +95,9 @@ public static class ScenarioOnePrescriptionApproval
         public static readonly LinkCheck Pass = new LinkCheck(Refusal.None, "");
     }
 
-    public enum ConflictKind { ManualFellMark, OpenWorkOrder }
+    // UnitNoLongerCovered: a unit the player accepted is no longer a covered area (for example the player's own management there excluded it),
+    // so it receives no proposal at all. TreeId is empty for that kind.
+    public enum ConflictKind { ManualFellMark, OpenWorkOrder, UnitNoLongerCovered }
 
     public sealed class Conflict
     {
@@ -201,6 +203,18 @@ public static class ScenarioOnePrescriptionApproval
         if (!plan.Valid) return Refuse(set, new LinkCheck(Refusal.CoverageInvalid, "Proposals cannot be computed: " + Clip(plan.Problem)));
         set.Plan = plan;
 
+        // An accepted unit that coverage no longer calls covered is held back whole: surface it rather than let it vanish.
+        var acceptedIds = new List<string>();
+        if (ctx.CoverageChoices != null)
+            foreach (KeyValuePair<string, int> choice in ctx.CoverageChoices)
+                if (choice.Value == PrescriptionCoverageChoice.AcceptedCovered) acceptedIds.Add(choice.Key);
+        acceptedIds.Sort(StringComparer.Ordinal);
+        foreach (string unitId in acceptedIds)
+        {
+            ScenarioOneCoverage.Area area = ctx.Coverage.Find(unitId);
+            if (area == null || area.IsSource || area.State != ScenarioOneCoverage.State.Covered)
+                set.Conflicts.Add(new Conflict { CoverageUnitId = unitId, Kind = ConflictKind.UnitNoLongerCovered });
+        }
         foreach (ScenarioOnePrescription.Proposal p in ideal.Proposals)
         {
             bool isMarked = marked.Contains(p.TreeId), isOpen = openOrders.Contains(p.TreeId);
