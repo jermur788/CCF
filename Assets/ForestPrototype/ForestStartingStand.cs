@@ -44,6 +44,11 @@ public sealed class ForestStartingStand : MonoBehaviour
     [Tooltip("[D] No-tree radius around the work-area clearing, the player start and every built structure.")]
     [SerializeField, Min(1f)] private float clearingRadiusMeters = 2.2f;
 
+    // Read-only views of the two clearance settings above, so the MFM coverage-world adapter reads the same authoritative values the
+    // starting stand planted around (no copied literals, no reflection).
+    public float PathCorridorRadiusMeters => pathCorridorRadiusMeters;
+    public float ClearingRadiusMeters => clearingRadiusMeters;
+
     private void Awake()
     {
         if (GetComponent<ScenarioOneHeadlandPresentation>() == null)

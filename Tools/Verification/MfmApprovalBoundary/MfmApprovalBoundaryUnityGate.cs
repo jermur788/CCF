@@ -128,14 +128,12 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
 
     private ScenarioOneRackBay.Analysis Bay() => ScenarioOneRackBayReader.Read(LiveTrees(), manager.WorkOrders, Geometry());
 
+    // MFM-08A: the coverage the prescription rules actually use (masks and management features included), not a second empty-input copy.
     private ScenarioOneCoverage.Result Coverage()
     {
-        var geometry = Geometry();
-        return ScenarioOneCoverage.Classify(new ScenarioOneCoverage.Input
-        {
-            Geometry = geometry, Stems = LiveStems(), Orders = LiveOrders(), Masks = new ScenarioOneCoverage.Mask[0],
-            Features = new ScenarioOneCoverage.Feature[0], PlayerManualAreas = new string[0]
-        }, ScenarioOnePrescriptionCalibration.V1);
+        ScenarioOneCoverage.Result result = manager.ReadCoverage(out string problem);
+        if (result == null) throw new InvalidOperationException("production coverage unreadable: " + problem);
+        return result;
     }
 
     private IEnumerator Settle() { for (int i = 0; i < 12; i++) yield return null; }
