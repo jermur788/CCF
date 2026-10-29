@@ -195,14 +195,17 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             Check(storm != null, "STORM_CARD_PRESENT_" + tag);
             if (storm != null)
             {
-                Check(KindIn(storm, HistoryProvenance.Reconstructed) >= 2 && KindIn(storm, HistoryProvenance.Recorded) == 1 && KindIn(storm, HistoryProvenance.Current) == 1,
-                    "STORM_CARD_CLASSES_" + tag, $"reconstructed={KindIn(storm, HistoryProvenance.Reconstructed)} recorded={KindIn(storm, HistoryProvenance.Recorded)} current={KindIn(storm, HistoryProvenance.Current)}");
+                Check(KindIn(storm, HistoryProvenance.Reconstructed) >= 2 && KindIn(storm, HistoryProvenance.Recorded) == 1 && KindIn(storm, HistoryProvenance.Current) == 1
+                    && KindIn(storm, HistoryProvenance.Derived) == 1,
+                    "STORM_CARD_CLASSES_LATEST_" + tag, $"reconstructed={KindIn(storm, HistoryProvenance.Reconstructed)} recorded={KindIn(storm, HistoryProvenance.Recorded)} current={KindIn(storm, HistoryProvenance.Current)} derived={KindIn(storm, HistoryProvenance.Derived)}");
+                Check(KindOf("m³ salvaged since this event") == HistoryProvenance.Derived && !Text(storm).Contains("remains as deadwood now ·"), "STORM_SALVAGE_AND_REMAINING_ARE_SEPARATE_LINES_" + tag);
                 Check(KindOf("trees lost ·") == HistoryProvenance.Reconstructed && KindOf("Crop Trees lost") == HistoryProvenance.Recorded
-                    && KindOf("map squares. This footprint") == HistoryProvenance.Reconstructed && KindOf("remains as deadwood now") == HistoryProvenance.Current,
+                    && KindOf("map squares. This footprint") == HistoryProvenance.Reconstructed && KindOf("m³ remains as deadwood now") == HistoryProvenance.Current,
                     "STORM_LINES_ARE_CLASSIFIED_AS_SPECIFIED_" + tag);
                 Check(Text(storm).Contains("rebuilt from tree-mortality and deadwood records"), "STORM_RECONSTRUCTION_NOTE_" + tag);
                 yield return FocusShot("latest-storm", storm);
             }
+            Check(KindOf("No work was resolved this year.") == HistoryProvenance.Derived && KindOf("No tasks failed.") == HistoryProvenance.Derived, "LATEST_WORK_STATEMENTS_ARE_DERIVED_" + tag);
             Check(KindOf("Retained usable timber (stock)") == HistoryProvenance.Current, "STOCK_IS_CURRENT_" + tag);
             Check(KindOf("Closing cash") == HistoryProvenance.Recorded, "CLOSING_CASH_RECORDED_" + tag);
             Check(KindCount(HistoryProvenance.SessionOnly) > 0, "SESSION_ONLY_BROWSING_PRESENT_" + tag);
@@ -215,7 +218,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             Check(objectives != null && KindIn(objectives, HistoryProvenance.Current) == manager.Objectives.Count, "OBJECTIVE_STATE_LINES_ARE_CURRENT_" + tag);
             if (objectives != null) yield return FocusShot("latest-objectives", objectives);
             VisualElement history = Modal().Q(name: "management-history");
-            Check(history != null && KindIn(history, HistoryProvenance.Recorded) >= 1 && KindIn(history, HistoryProvenance.Derived) >= 1, "HISTORY_CARD_RECORDED_AND_DERIVED_" + tag);
+            Check(history != null && KindIn(history, HistoryProvenance.Recorded) == 0 && KindIn(history, HistoryProvenance.Derived) >= 3, "HISTORY_CARD_AGGREGATES_ARE_DERIVED_" + tag);
             if (history != null) yield return FocusShot("latest-history", history);
 
             // ---- year 4: genuinely absent failure reason is labelled, not invented ----
@@ -223,18 +226,33 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             yield return RecordState("year4-" + tag);
             AssertLabelling("year4-" + tag);
             Check(KindCount(HistoryProvenance.NotRecorded) > 0 && KindOf("reason not recorded") == HistoryProvenance.NotRecorded, "YEAR4_ABSENT_REASON_IS_NOT_RECORDED_" + tag);
-            Check(KindOf("Cancelled: target missing") == HistoryProvenance.Recorded, "YEAR4_PRESENT_REASON_IS_RECORDED_" + tag);
+            Check(KindOf("Cancelled: target missing") == HistoryProvenance.Recorded && KindOf("task(s) failed") == HistoryProvenance.Derived, "YEAR4_REASON_RECORDED_COUNT_DERIVED_" + tag);
             yield return Shot("year4-not-recorded", false);
             yield return Toggle("failed");
             Check(Detail("failed").Query(className: "prov-notrecorded").ToList().Count == 1, "YEAR4_DETAIL_ENTRY_LABELLED_NOT_RECORDED_ONCE_" + tag);
+            EntryRows("failed", tag, 2, new[] { "Reason: not recorded" });
             yield return RecordState("year4-open-" + tag);
             AssertLabelling("year4-open-" + tag);
             yield return FocusShot("year4-detail", Detail("failed"));
             yield return Toggle("failed");
 
             // ---- year 3: cancelled order has no execution method on record ----
-            yield return GoYear(3); yield return Toggle("cancelled");
+            yield return GoYear(3);
+            // ---- earlier storm year: the storm record stays, the live remaining-deadwood line does not appear ----
+            VisualElement earlier = Modal().Q(name: "annual-storm-review");
+            Check(earlier != null, "EARLIER_STORM_CARD_PRESENT_" + tag);
+            if (earlier != null)
+            {
+                Check(KindIn(earlier, HistoryProvenance.Current) == 0 && KindIn(earlier, HistoryProvenance.Recorded) == 1 && KindIn(earlier, HistoryProvenance.Reconstructed) >= 2
+                    && KindIn(earlier, HistoryProvenance.Derived) == 1, "EARLIER_STORM_CARD_HAS_NO_LIVE_LINE_" + tag,
+                    $"current={KindIn(earlier, HistoryProvenance.Current)} recorded={KindIn(earlier, HistoryProvenance.Recorded)} reconstructed={KindIn(earlier, HistoryProvenance.Reconstructed)} derived={KindIn(earlier, HistoryProvenance.Derived)}");
+                Check(!Text(earlier).Contains("remains as deadwood now"), "EARLIER_STORM_OMITS_DEADWOOD_NOW_" + tag);
+                Check(KindOf("m³ salvaged since this event") == HistoryProvenance.Derived && KindOf("Year 3 ·") == HistoryProvenance.Recorded, "EARLIER_STORM_SALVAGE_DERIVED_YEAR_RECORDED_" + tag);
+                yield return FocusShot("year3-earlier-storm", earlier);
+            }
+            yield return Toggle("cancelled");
             Check(Detail("cancelled").Query(className: "prov-notrecorded").ToList().Count == 1, "YEAR3_CANCELLED_ENTRY_NOT_RECORDED_" + tag);
+            EntryRows("cancelled", tag, 1, new[] { "execution method not recorded" });
             AssertLabelling("year3-open-" + tag);
             yield return FocusShot("year3-cancelled", Detail("cancelled"));
             yield return Toggle("cancelled");
@@ -247,6 +265,13 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             Check(forest != null && KindIn(forest, HistoryProvenance.Current) == 0 && KindIn(forest, HistoryProvenance.SessionOnly) == 0, "HISTORICAL_FOREST_COLUMN_HAS_NO_LIVE_OR_SESSION_LINES_" + tag);
             Check(KindOf("Retained usable timber (stock)") == null && KindOf("Browsing pressure") == null, "HISTORICAL_OMITS_LIVE_LINES_" + tag);
             Check(KindOf("Canopy ") != null, "HISTORICAL_CANOPY_LINE_LABELLED_" + tag);
+            Check(KindOf("tree(s) thinned") == HistoryProvenance.Derived, "YEAR1_THINNED_COUNT_IS_DERIVED_" + tag);
+            VisualElement settlement = Modal().Q(name: "annual-harvest-settlement");
+            Check(settlement != null && KindIn(settlement, HistoryProvenance.Derived) == 1 && KindIn(settlement, HistoryProvenance.Recorded) == 1
+                && KindOf("Timber income") == HistoryProvenance.Recorded && KindOf("harvest order(s) settled together") == HistoryProvenance.Derived, "SETTLEMENT_COUNT_DERIVED_MONEY_RECORDED_" + tag);
+            yield return Toggle("done-FellTree");
+            EntryRows("done-FellTree", tag, 12, new string[0]);
+            yield return Toggle("done-FellTree");
             VisualElement oldObjectives = Modal().Query(className: "card").ToList().FirstOrDefault(c => c.Q<Label>(className: "heading") != null && c.Q<Label>(className: "heading").text.Contains("(current state)"));
             Check(oldObjectives != null && KindIn(oldObjectives, HistoryProvenance.Current) == manager.Objectives.Count, "HISTORICAL_OBJECTIVES_REMAIN_LABELLED_CURRENT_" + tag);
             yield return Shot("year1-historical", false);
@@ -394,7 +419,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             if (!Visible(text) || string.IsNullOrEmpty(text.text) || text.ClassListContains("prov") || text is Button) continue;
             if (!(text.ClassListContains("body") || text.ClassListContains("muted"))) continue;
             if (text.GetFirstAncestorOfType<Button>() != null) continue;
-            if (AncestorWithClass(text, "work-detail") != null || AncestorWithClass(text, "modal-footer") != null || AncestorWithClass(text, "modal-header") != null) continue;
+            if (AncestorWithClass(text, "modal-footer") != null || AncestorWithClass(text, "modal-header") != null) continue;
             if (ChipKindBefore(text).HasValue) continue;
             if (UnlabelledAllowed.Any(a => text.text.StartsWith(a)) || text.text == tutorialHint) continue;
             unlabelled.Add(text.text);
@@ -402,6 +427,29 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         Check(unlabelled.Count == 0, "NO_UNLABELLED_HISTORY_LINES_" + label, string.Join(" || ", unlabelled.Take(3)));
         File.WriteAllText(Path.Combine(output, "review-texts", "matrix-" + label + ".tsv"), lines.ToString());
         matrix.Add(label + "\t" + AllKinds.Select(k => HistoryProvenanceText.Label(k) + "=" + KindCount(k)).Aggregate((a, b) => a + " " + b));
+    }
+
+    // Every drill-down entry: a RECORDED title row and a RECORDED facts row, plus exactly the NOT RECORDED row that names the missing
+    // values (never a chip implying the whole mixed entry has one provenance).
+    private void EntryRows(string key, string tag, int expectedEntries, string[] missingTexts)
+    {
+        var entries = Detail(key).Children().Where(c => !(c is Label)).ToList();
+        Check(entries.Count == expectedEntries, "DETAIL_ENTRY_COUNT_" + key + "_" + tag, entries.Count.ToString());
+        int withMissing = 0;
+        foreach (VisualElement entry in entries)
+        {
+            Check(KindIn(entry, HistoryProvenance.Recorded) >= 2, "ENTRY_HAS_RECORDED_TITLE_AND_FACTS_ROWS_" + key + "_" + tag);
+            var notRecorded = entry.Query(className: "prov-notrecorded").ToList();
+            if (notRecorded.Count > 0)
+            {
+                withMissing++;
+                string rowText = string.Join(" | ", notRecorded.Select(c => string.Join(" ", c.parent.Query<Label>().ToList().Where(l => !l.ClassListContains("prov")).Select(l => l.text))));
+                Check(notRecorded.Count == 1 && missingTexts.All(m => rowText.Contains(m)), "ENTRY_NOT_RECORDED_ROW_NAMES_THE_MISSING_VALUE_" + key + "_" + tag, rowText);
+                Check(!entry.Query<Label>().ToList().Where(l => !l.ClassListContains("prov") && ChipKindBefore(l) == HistoryProvenance.Recorded).Any(l => l.text.Contains("not recorded")),
+                    "RECORDED_ROWS_CARRY_NO_MISSING_TEXT_" + key + "_" + tag);
+            }
+        }
+        Check(withMissing == (missingTexts.Length > 0 ? 1 : 0), "ENTRIES_WITH_MISSING_VALUES_" + key + "_" + tag, withMissing.ToString());
     }
 
     private static VisualElement AncestorWithClass(VisualElement element, string className)
@@ -417,7 +465,13 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         yield return PlanPlanting(true, WorkExecutionMethod.LandownerSimulated);
         yield return PlanPlanting(false, WorkExecutionMethod.Contractor);
         AdvanceWithWork("planting year 2");
-        Check(manager.AdvanceYear(), "FIXTURE_IDLE_YEAR3");
+        // Year 3: a forced storm too, so an EARLIER storm year can be browsed while a later year is the latest review.
+        ecology.StormModelVersion = 1;
+        ecology.UseStormCalibrationForVerification(new StormCalibration(0, new[] { .02f, .06f, .18f }, new[] { 1f, 1f, 1f }));
+        ecology.ForceStormNextYear(.7f, 135);
+        Check(manager.AdvanceYear(), "FIXTURE_STORM_YEAR3");
+        StormDamageSummary earlierStorm = manager.StormDamageInYear(3);
+        Check(earlierStorm != null && earlierStorm.TreesLost > 0, "FIXTURE_REAL_EARLIER_STORM_SUMMARY", earlierStorm == null ? "none" : "lost=" + earlierStorm.TreesLost);
         yield return PlanFelling(1);
         var cancel = manager.WorkOrders.Last(o => o.status == ScenarioWorkStatus.Pending);
         cancelledId = cancel.workOrderId;
@@ -432,8 +486,6 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         Check(failed.Count == 2 && failed.All(e => e.outcome == ScenarioManagementOutcome.Failed && e.failureReason.Length > 0), "REAL_FAILURE_RESOLUTION_RECORDED");
         failed.Last().failureReason = "";
         // Year 5: a forced storm (the verified route of the Windthrow UI gate) so the review holds a real reconstructed storm summary.
-        ecology.StormModelVersion = 1;
-        ecology.UseStormCalibrationForVerification(new StormCalibration(0, new[] { .02f, .06f, .18f }, new[] { 1f, 1f, 1f }));
         ecology.ForceStormNextYear(.7f, 135);
         Check(manager.AdvanceYear(), "FIXTURE_STORM_YEAR5");
         StormDamageSummary storm = manager.StormDamageInYear(5);

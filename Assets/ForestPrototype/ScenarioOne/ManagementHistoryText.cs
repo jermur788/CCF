@@ -49,14 +49,14 @@ public static class HistoryProvenanceText
         {
             case HistoryProvenance.Recorded: return "saved when it happened";
             case HistoryProvenance.Current: return "the forest as it is now, not as it was in the year shown";
-            case HistoryProvenance.Derived: return "calculated from recorded facts when you open this screen; not saved";
+            case HistoryProvenance.Derived: return "counted or calculated from recorded facts when you open this screen; not saved";
             case HistoryProvenance.Reconstructed: return "pieced together from other records; the total itself was never saved";
             case HistoryProvenance.SessionOnly: return "only known during this play session; gone after you save and load";
             default: return "the save holds no such fact, so none is shown";
         }
     }
 
-    public const string Legend = "Labels: RECORDED saved when it happened · CURRENT live forest now · DERIVED calculated from records when shown · "
+    public const string Legend = "Labels: RECORDED saved when it happened · CURRENT live forest now · DERIVED counted or calculated from records when shown · "
         + "RECONSTRUCTED pieced together from other records · SESSION-ONLY not saved · NOT RECORDED the save holds no such fact.";
 
     public const string SessionOnlyBrowsingMissing = "Last year's browsing result is not recorded this session. Browse results are not saved, so they are gone after a load.";
@@ -78,10 +78,12 @@ public static class HistoryProvenanceText
     // Classifies a line from ManagementHistoryText.Completion the same way. Null (the closing explanation) carries no label.
     public static HistoryProvenance? CompletionLine(string line)
     {
-        if (line.StartsWith("The Scenario One objectives were met") || line.StartsWith("You carried out") || line.StartsWith("  ")
-            || line.StartsWith("No commissioned work") || line.StartsWith("Living trees at completion"))
+        // outcomeYear and the per-species snapshot counts are persisted values. Counts of interventions and their work are
+        // grouped from events at display time, so they are derived like the other totals.
+        if (line.StartsWith("The Scenario One objectives were met") || line.StartsWith("Living trees at completion"))
             return HistoryProvenance.Recorded;
-        if (line.StartsWith("Stand, start") || line.StartsWith("Money:") || line.Contains("not caused by felling"))
+        if (line.StartsWith("You carried out") || line.StartsWith("  ") || line.StartsWith("No commissioned work")
+            || line.StartsWith("Stand, start") || line.StartsWith("Money:") || line.Contains("not caused by felling"))
             return HistoryProvenance.Derived;
         return null;
     }
@@ -152,9 +154,9 @@ public static class ManagementHistoryText
         return text.ToString();
     }
 
-    // Work counts are the recorded task events; money is summed from several records; the stand lines compare two recorded
-    // snapshots. The comparison is derived, and a missing snapshot is shown as not recorded rather than filled in.
-    public static HistoryProvenance WorkProvenance => HistoryProvenance.Recorded;
+    // Work counts are grouped from recorded task events at display time, money is summed from several records, and the stand
+    // lines compare two recorded snapshots: all derived. A missing snapshot is shown as not recorded rather than filled in.
+    public static HistoryProvenance WorkProvenance => HistoryProvenance.Derived;
     public static HistoryProvenance MoneyProvenance => HistoryProvenance.Derived;
     public static HistoryProvenance DuringPlanProvenance(InterventionSummary s)
         => s.Before == null || s.After == null ? HistoryProvenance.NotRecorded : HistoryProvenance.Derived;
