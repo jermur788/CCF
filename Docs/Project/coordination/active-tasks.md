@@ -17,7 +17,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 ## Repository / integration publication state
 
-GitHub `main` was refreshed at **`16f1b4fba7b435f398850d4ac0d60883b1335619`** when browser lane #118 started.
+GitHub `main` was refreshed at **`16f1b4fba7b435f398850d4ac0d60883b1335619`** when browser lane #118 started. Browser-lane coordination/handoff commits after that point advance `main` but do not by themselves advance the Scenario One integration candidate.
 
 GitHub currently publishes `integration/scenario-one-player-test-ready-v1` at **`aca74acacc565f72ab802177cf69ca6ebb54d637`**.
 
@@ -34,7 +34,7 @@ Current dependency order:
 1. **#111 MFM-06 — save/provenance foundation** is the active local production task. It started from reported local `ac876a6`; its worker confirmed locally that `ForestSaveData.CurrentVersion == 22`, so this task owns v23 on that exact local lineage. Browser cannot independently inspect that unpushed starting SHA.
 2. **#112 MFM-06 independent review** waits for #111's published exact candidate/handoff. Because #111 is actually being implemented by Claude Sonnet 5.5 / Anthropic, the required independent save/reference reviewer is now **OpenAI 6.1 Sol** to preserve cross-provider independence. If Sol remains unavailable, #112 waits; do not silently substitute another Claude reviewer.
 3. **#113 MFM-06 integration gate** remains blocked until #111 is qualified/published and #112 returns APPROVED. Integration must refresh the actual umbrella head and push a GitHub-resolvable integration ref before canonical INTEGRATED status is claimed.
-4. Only after accepted MFM-06 integration may MFM-07 begin.
+4. Only after accepted MFM-06 integration may the downstream packet DAG begin. Use `Docs/Handoffs/PlayerTestReadiness-Overnight-01/CROSS-FEATURE-OWNERSHIP-AND-SEQUENCING.md` for the single-writer order.
 
 Do not infer a later item owns Unity until its child claim is RUNNING and the lock is acquired normally.
 
@@ -52,7 +52,7 @@ Do not infer a later item owns Unity until its child claim is RUNNING and the lo
 
 ## Released execution claims with publication caveat
 
-The following execution lanes are no longer live writers. Parent #91 reports them locally integrated/verified on the unpushed `ac876a6` umbrella lineage. They therefore release subsystem ownership, but their local SHAs must not be described as GitHub-published integration until the umbrella ref is pushed:
+The following execution claims are closed `[HANDED-OFF]` and no longer own files. Parent #91 reports their results locally integrated/verified on the unpushed `ac876a6` umbrella lineage, so those local SHAs must not be described as GitHub-published integration until the umbrella ref is pushed:
 
 - #103 — S1-D T-03 teaching-footprint cap decoupling + RackLesson reconciliation.
 - #104 — S1-C T-05 objective/progression history v22.
@@ -60,26 +60,44 @@ The following execution lanes are no longer live writers. Parent #91 reports the
 - #100 — MFM-05 spacing-only Crop Tree candidate system.
 - #102 — PARITY-07 player-facing species truth/rendered qualification.
 
-Browser lane #118 is responsible for claim hygiene and for preserving the publication distinction in any later verdict.
-
 ## Prepared but not dispatched — no production ownership
 
-S1-D:
+Packet preparation grants no ownership. Create substantive child claims only when the packet's start gate is true and the exact current base can be recorded.
 
-- T-04 packet: `Docs/Handoffs/S1-D-Implementation-04/TASK-PACKET.md` — sequence with MFM-09; start only after the required published lineage/ownership release.
-- T-05 packet: `Docs/Handoffs/S1-D-Implementation-05/TASK-PACKET.md` — start only with S1-C Work Plan/Annual Review/history ownership free and exact API known.
-- T-08 packet: `Docs/Handoffs/S1-D-Implementation-08/TASK-PACKET.md` — blocked until T-02..T-06 are accepted on the active lineage.
-- T-09 packet: `Docs/Handoffs/S1-D-Implementation-09/TASK-PACKET.md` — blocked until T-08 PASS; independent review only.
+### S1-D
 
-MFM:
+- T-04: `Docs/Handoffs/S1-D-Implementation-04/TASK-PACKET.md` + `SEQUENCING-AMENDMENT-20261029.md`; must land before MFM-09; current default Claude Sonnet 5.5 Medium + OpenAI 6.1 Sol independent review.
+- T-05: `Docs/Handoffs/S1-D-Implementation-05/TASK-PACKET.md` + `SEQUENCING-AMENDMENT-20261029.md`; start after MFM-07 API and land before MFM-09.
+- T-08: `Docs/Handoffs/S1-D-Implementation-08/TASK-PACKET.md` + `ROUTING-AMENDMENT-20261029.md`; blocked until T-02..T-06 accepted; Claude Sonnet 5.5 Medium default executor.
+- T-09: `Docs/Handoffs/S1-D-Implementation-09/TASK-PACKET.md` + `ROUTING-AMENDMENT-20261029.md`; blocked until T-08 PASS; OpenAI 6.1 Sol independent review.
 
-- MFM-07 packet: `Docs/Handoffs/MFM-Implementation-07/TASK-PACKET.md` — after accepted MFM-06 integration; proposals never Fell; Work Plan remains commitment gate.
-- MFM-08 packet: `Docs/Handoffs/MFM-Implementation-08/TASK-PACKET.md` — after MFM-07; individual 3D-grounded review and rendered qualification.
-- MFM-09..12 remain to be prepared/reconciled just-in-time by browser lane #118 as dependencies mature; packet preparation grants no ownership.
+### S1-C
 
-Parity / S1-C:
+- T-04: `Docs/Handoffs/S1-C-Implementation-04/TASK-PACKET.md` — provenance labels / old-save honesty.
+- T-06: `Docs/Handoffs/S1-C-Implementation-06/TASK-PACKET.md` — bounded prior-treatment guidance.
+- T-07: `Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md` — stable identity/history contract.
+- T-08: `Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md` — feature qualification after T-04/T-06/T-07.
 
-- PARITY-08/09 and S1-C T-04/T-06/T-07/T-08 remain to be packeted/reconciled just-in-time by browser lane #118. Do not create production ownership before dependencies are satisfied.
+### Multi-Scale Forestry Management V1
+
+- MFM-06 current packet: `Docs/Handoffs/MFM-06/TASK-PACKET.md`; review routing amended by `Docs/Handoffs/MFM-06/REVIEW-ROUTING-AMENDMENT-20261029.md`.
+- MFM-07: `Docs/Handoffs/MFM-Implementation-07/TASK-PACKET.md` — after accepted MFM-06 integration; proposals never Fell; Work Plan remains commitment gate.
+- MFM-08: `Docs/Handoffs/MFM-Implementation-08/TASK-PACKET.md` — after MFM-07; individual 3D-grounded review and rendered qualification.
+- MFM-09: `Docs/Handoffs/MFM-Implementation-09/TASK-PACKET.md` — after MFM-07/08 and S1-D T-04/T-05; stable teaching IDs + Work Plan integration.
+- MFM-10: `Docs/Handoffs/MFM-Implementation-10/TASK-PACKET.md` — after MFM-09 + PARITY-08; Sitka-only species guard.
+- MFM-11: `Docs/Handoffs/MFM-Implementation-11/TASK-PACKET.md` — calibration-impact comparison after parity/repeated-intervention flow is stable; independent OpenAI review.
+- MFM-12: `Docs/Handoffs/MFM-Implementation-12/TASK-PACKET.md` — integrated end-to-end verification and independent review.
+
+### Three-species parity
+
+- PARITY-08: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/TASK-PACKET.md` — after MFM-06; high-risk save/determinism, Claude Opus 5.5 Low + OpenAI 6.1 Sol independent review.
+- PARITY-09: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/TASK-PACKET.md` — after PARITY-08 + MFM-10; integrated parity qualification.
+
+### Programme endgame
+
+- Final Tier-3: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md` — one exact final candidate; mandatory S1-C T-05 save/history rerun.
+- Final independent review: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-INDEPENDENT-REVIEW-TASK-PACKET.md` — OpenAI 6.1 Sol after Tier-3 PASS.
+- User-playtest structure: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-HANDOFF-TEMPLATE.md` — template only; not a readiness verdict.
 
 ## Recently released / completed coordination relevant to current work
 
