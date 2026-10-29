@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol after #124 interim Manager verdict.
+**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol after pushed #124 review.
 
 ## Coordination rules
 
@@ -32,7 +32,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | child worktrees | Local implementation/qualification through child claims | Exact candidate/handoff; Unity serialized | **RUNNING** |
 | **MFM-07 integration** (#125) | T3 Code / `deepseek-v4.1-flash` (DeepSeek, Opencode Go) — integration complete, no active writer | `integration/scenario-one-player-test-ready-v1`; `/media/jer/Videos/CCF-PlayerTestIntegration` | MFM-07 merge/qualification only | No MFM-08/09; no schema/save-validator edit | **INTEGRATED / VERIFIED** — `c8cfae8c4025cec6e960a050edf4bfde2a981de5` (handoff `08a060d1`, superseding `6b84f0d9`); all post-merge gates PASS; locks released normally with no Editor; U1 released to the pool and subsequently acquired by #123 S1-C T-04 at 20:33Z — MFM-07 retains no lane |
 | **S1-C T-04 provenance labelling** (#123) | **Claude Code / Anthropic Claude Sonnet 5.5 Medium** — sole history/review writer | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum helper | No save/schema/validator, MFM proposal/work-order or simulation edits | **RUNNING / WAITING FOR UNITY LOCK** — started from clean `b971f4da0540e606bfee9702b0c99f81a0a89355`; offline candidate `3386a5bab6b3a78ab526abe6a7c9cc2c94b6f349`; reported offline gates PASS; Unity serialized behind #125 |
-| **S1-D T-04 guide monotonicity** (#124) | **Local T3/Code worker — provider not yet recorded in claim** | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | `ScenarioOneTeachingSequence.cs`, `LearningObjectivesView.Sequence.cs`, minimum pure helper/offline verification | No schema/validator/MFM; must land before MFM-09; no Unity on current local candidate until Manager-required revision | **RUNNING / NEEDS CHANGES BEFORE UNITY** — rooted at clean `b971f4da0540e606bfee9702b0c99f81a0a89355`; reported local unpushed candidate `18e33d4`; Manager rejected planting as [J]/[K] surrogate and arbitrary in-footprint felling as release-completion proof; T-03/T-04 historical-completion interpretation must be reconciled |
+| **S1-D T-04 guide monotonicity** (#124) | **Claude Sonnet 5.5 / Anthropic** — sole curriculum writer | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | `ScenarioOneTeachingSequence.cs`, `LearningObjectivesView.Sequence.cs`, minimum pure helper/offline verification | No further coding/Unity until product/spec decision; must land before MFM-09 | **BLOCKED — PRODUCT / SPEC DECISION** — rooted at `b971f4da0540e606bfee9702b0c99f81a0a89355`; corrected pushed candidate `b9d204c` inspected; surrogate proofs removed and offline gates reported green, but candidate deliberately fails full FR-B1/AC-3 because reload/world drift can push lessons 7/8 back below lesson 6. Packet stop condition reached: no faithful persisted fact proves the missing historical review boundary without new persistence or a spec reduction. Manager review updated on `main` at `04406ef0` |
 | **PARITY-08 save/deterministic compatibility** (#126) | Claude Opus 5.5 Low preferred primary writer when started | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | sole save/validator/hash/reference writer after start | No rebaseline/schema bump; independent review required | **PREPARED FOR DISPATCH — no ownership yet** |
 | **PARITY-08 independent review** (#128) | independent OpenAI review lane | exact #126 handed-off candidate | **No production ownership; review-only** | Blocked until #126 handoff; repairs return to writer/new repair claim | **BLOCKED** |
 | **MFM-08A coverage-world adapter** (#129) | OpenAI Sol/Codex or equivalent local Code lane when dispatched | suggested `feature/mfm-v1-coverage-world-adapter-v1`; `/media/jer/Videos/CCF-MFM-08A` | smallest production adapter surface after exact base pin | Pin post-MFM-07 umbrella `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; no UI/teaching/Work Plan/save/calibration; do not invent infrastructure geometry | **PREPARED FOR DISPATCH — no ownership yet** |
@@ -52,7 +52,7 @@ History/review provenance labels only. No save/load/validation, `ScenarioOneMana
 
 ### #124 S1-D T-04
 
-Teaching/current-state monotonicity only. No save/load/validation, completion rules, Rack lifecycle or MFM logic. Historical progression may advance only from persisted facts that faithfully establish the lesson boundary; absent faithful proof, preserve current behaviour. T-03 and T-04 must not ship competing historical-completion definitions.
+Teaching/current-state monotonicity only. No save/load/validation, completion rules, Rack lifecycle or MFM logic without a new Manager/spec decision. Historical progression may advance only from persisted facts that faithfully establish the lesson boundary; absent faithful proof, preserve current behaviour. Full FR-B1/AC-3 is currently blocked by the lack of a durable record for the session-only release-review completion. T-03 and T-04 must not ship competing historical-completion definitions.
 
 ### #126 / #128 PARITY-08
 
@@ -73,13 +73,13 @@ Bridge authoritative live state into the existing coverage masks/features contra
 
 ### S1-D
 
-- T-04 = #124; must precede MFM-09.
+- T-04 = #124; currently blocked on product/spec decision; must precede MFM-09.
 - T-05 waits for #125's exact post-MFM-07 integrated umbrella/pending-work-provenance API. It owns only previous-vs-proposed Work Plan presentation, reuses S1-C history, and must not absorb MFM-09 teaching.
 - T-08 waits for T-02..T-06 acceptance; T-09 is independent spec review after T-08 PASS.
 
 ### MFM
 
-- MFM-08A = #129, blocked on #125 exact integrated SHA. Its full Code packet must include that exact base before dispatch.
+- MFM-08A = #129, now has exact post-MFM-07 base `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; dispatch remains subject to Manager release and live ownership.
 - MFM-08 map/3D review UX follows #129 + integrated MFM-07 + free UI ownership.
 - MFM-09 follows MFM-08 + accepted S1-D T-04/T-05; teaching ownership stays in MFM-09.
 - MFM-10 follows MFM-09 + PARITY-08 and preserves Sitka-only quantitative scope.
