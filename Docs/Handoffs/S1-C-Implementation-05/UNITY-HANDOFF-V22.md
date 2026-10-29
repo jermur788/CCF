@@ -1,3 +1,83 @@
+# S1-C T-05 v22 Unity closure handoff — QUALIFIED
+
+**S1-C T-05 UNITY QUALIFIED.** The three authorised verification fixture/expected-message corrections are committed and all four previously failed gates now pass. No production defect appeared. Production code, schema, validation, UI, version pins, protected anchors and existing assertion strength are unchanged. This is bounded Unity qualification; independent acceptance/integration and publication remain with the parent.
+
+## Authorised correction and exact tested head — 2026-10-29
+
+- Executor: OpenAI GPT-6.1 Sol, verification-fix sub-agent. This continues the user-recorded escalation after Claude Sonnet was rate-limited.
+- Starting head: **`7e21ed0b65fa3380ef7372d843b6f2be00b3393d`**, clean on `qual/s1-c-t05-v22-closure-v1` in `/media/jer/Videos/CCF-S1C-T05Qual`.
+- **Exact verification execution head: `d2cd1f3c789482dccd5fb399fdb8bcf913acdaa9`.** This handoff update is a documentation-only descendant of that tested commit; no executable changes follow it. The final handoff commit SHA is returned to the parent and archived in `rerun-c/final-state.json` after committing.
+- Production candidate remains **`4fb5ba99de52384932456d68da112432c899480a`** (T-05 production `2424f31`; pin relabel `d5dbe97`). Production/packages/settings bytes are identical to the handoff base; no version pin changed.
+- Canonical context remains `63e95ba2175f7e239a278c616681b286719821f8`. Refreshed the authoritative GitHub `main` coordination record at task start; its T-05 qualification ownership and the latest direct user packet permit this execution. No live coordination file was edited.
+
+Only these corrections were made:
+
+1. `Tools/Verification/ScenarioOneCompletionVerification.cs`, P10: clear `legacy.scenarioOne.objectiveAchievements` after selecting v14 and the existing Legacy models. This makes the synthetic historical fixture pre-v22. Every P10/P11 assertion is unchanged.
+2. `Tools/Verification/S1CObjectiveHistoryUnity/S1CObjectiveHistoryUnityVerification.cs`: the v20-with-records fixture now selects `RackPlanningModel.Legacy`, clears confirmation/rack records, resets `nextRackId` to its initial value 1 (no allocated V2 identity state), and clears each work order's `rackId` to 0. Objective records remain populated. The expected history refusal and all refusal/no-mutation checks are unchanged.
+3. The duplicate-`objectiveAchievements`-key case now expects exactly `invalid stand geometry JSON`, the actual earlier strict-parser refusal. It still requires refusal, matching shared route reasons, and unchanged live world plus exact save/backup/temp bytes. The refusal helper and its assertions are unchanged.
+
+The only other changed path is this handoff. `rerun-c/scope-audit.json` records source hashes and confirms the completion file differs only by the one fixture line, the objective file only by the authorised fixture/reason edits, and production/packages/settings/frozen resources are unchanged.
+
+## Corrected-head rerun receipts
+
+Evidence root remains **`/media/jer/Files/CCF/Verification/S1C-T05-Unity-20261029/`**. Original run directories and receipts were preserved. Successful new runs are under **`rerun-c/`**; each has its original `command.json`, `unity.log`, `process-result.json`, extracted `markers.txt`, host-save digests and cleanup/import-side-effect evidence. Exact driver commands: `rerun-c/commands.txt`; aggregate: `rerun-c/all-gate-receipts.json`.
+
+| Corrected-head run | Unity / driver exit | Seconds | Raw pass marker | Failures |
+|---|---|---:|---|---|
+| `01-compile` (prerequisite) | 0 / 0 | 55.71 | `S1C_T05_COMPILE_PASS Unity=6000.6.0f1` | 0 |
+| `02c-objective` (rerun of 02) | 0 / 0 | 323.77 | `S1C_T05_UNITY_PASS checks=544 cases=34 shots=12` | 0 |
+| `07c-completion` (rerun of 07) | 0 / 0 | 97.44 | `SCENARIO_ONE_COMPLETION_VERIFY_PASS` | 0 |
+| `08c-completion-model1` (rerun of 08) | 0 / 0 | 84.05 | `SCENARIO_ONE_COMPLETION_VERIFY_PASS` | 0 |
+| `13c-completion-replay` (rerun of 13) | 0 / 0 | 83.99 | `SCENARIO_ONE_COMPLETION_VERIFY_PASS` | 0 |
+
+The unchanged runner requires an exact-head/exact-lock `01-compile` PASS before other gates. It was rerun for that prerequisite and the modified C# fixtures. No other already-passing gate was rerun: reference, supplemental render, hardening, progress, N3, density-save, interaction and baseline-hash use unchanged production and unaffected harnesses. Their original successful receipts are retained and hashed in `rerun-c/retained-passing-receipts.json`; these are retained results, not claims of fresh execution.
+
+Raw corrected-case results from `02c-objective/unity.log`:
+
+```text
+S1C_T05_REFUSAL v20 save carrying records reason=[Save not loaded: a save older than version 22 cannot carry objective achievement history.] worldHash=EF24863B112902AB diskBytesUnchanged=true
+S1C_T05_REFUSAL duplicate objectiveAchievements keys reason=[Save refused: invalid stand geometry JSON] worldHash=EF24863B112902AB diskBytesUnchanged=true
+S1C_T05_UNITY_PASS checks=544 cases=34 shots=12
+```
+
+All three completion processes now pass the previously unreached P10 remainder and P11, including v14 no-shelter/Contractor defaults, three annual advances and the do-nothing negative control. Each logs:
+
+```text
+SCENARIO_ONE_COMPLETION_PHASE P10 PASS v14 restore year=9 shelters=0 executors=Contractor continued=3
+SCENARIO_ONE_COMPLETION_VERIFY_PASS
+```
+
+P11 remains Active at year 25, with managed-opening and both introduced-species objectives unmet. Model-1 cleanup logs `SCENARIO_ONE_COMPLETION_HISTORICAL_ROWS_RESTORED fields=10`; every completion process restores its captured scene world.
+
+## Rendered and protected-anchor status
+
+- The earlier `04-render` PASS and its six accepted supplemental PNGs at 1280×720/1920×1080 remain applicable. All six were directly re-inspected during this correction task: recorded years 1/2/3, derived year 1, and not-recorded history lines are readable, fully visible and unobscured. See `rerun-c/retained-render-inspection.json` for capture hashes. No new supplemental render run was needed because production/UI bytes did not change.
+- The objective rerun produced 12 raw captures; these do not replace the supplemental history-text evidence. The original capture-framing limitation below remains explicit.
+- Model-2 completed-world hash **`9C77EB4BEE427FB9`** is exact in both fully passing processes, unchanged from the original measurements. See `rerun-c/completion-two-process.json`.
+- Historical model-1 projection remains **`702766DECE591E21`**; full current model-1 hash remains **`83096F04350D84F8`**, matching the original model-1 log. No expected hash or anchor changed.
+- Original passing frozen/reference, canonical lifecycle, mixed/dying continuation and 30-case pre-v22 baseline-hash results below remain retained evidence. The frozen schedule/archive and their metas were freshly SHA-256-compared in U1 after reruns and are byte-identical. No broader unrun suite is claimed qualified.
+
+## Lock lifecycle, superseded attempt and clean final lane
+
+Unity 6000.6.0f1 ran only in U1, on private Xephyr display `:84`, using the existing runner's isolated config/save/license workflow. Fresh storage preflight showed about 21 GiB free on ZX20, above the 15 GiB floor; no other Editor was running.
+
+- Successful-head lock **`d9aa02f019554397a57dfd53e861253a`**: owner `T3-S1C-T05`, task `S1-C-T05`, lane `/media/jer/ZX20/CCF-U1`, branch `HEAD`, exact head `d2cd1f3c789482dccd5fb399fdb8bcf913acdaa9`; acquired 13:04:24Z with future ETA 15:04:24Z. **Released normally** with the same owner/task/lock ID after all receipts and cleanup passed. See `rerun-c/lock-acquired.json` / `lock-release.json`.
+- A superseded initial edit used lock **`c78f6aacea534468957c7179acf12ddc`** at `5ebac464b4aacc5cbb0fc488f5b8f861950a04c4`. Its compile prerequisite passed (0 / 110.42 s), but staging the objective harness exposed executor-introduced **CS0136**: the new foreach variable `order` collided with an existing local later in that method. The objective run never entered runtime tests. It was stopped through its own driver's SIGTERM cleanup: driver exit 1, `unity_exit=null`, 213.37 s, no pass marker, three repeated compiler-error log lines for that single error, `driver received signal 15`. Raw failed receipt/log/screenshot are preserved in `rerun-b/02b-objective/`. Cleanup passed, U1 was clean with no Editor, and that lock was **released normally**. The variable was renamed to `rackOrder` within the same authorised fixture correction, and the unpushed fix commit was amended before the successful exact-head chain. The superseded attempt is not counted as qualified evidence.
+- All five successful receipts report harness/metas removed, copied licence removed, host saves unchanged, no isolated save residue, no cleanup failures and no remaining U1 changes. Final explicit checks confirm those absences, exact frozen bytes, clean/detached U1 at the tested head and no running Editor (`rerun-c/final-lane-before-release.json`).
+- The qualification worktree is clean after the handoff commit. U1 is left clean/detached at the exact tested verification head. Primary and other worktrees were not modified. No production integration, push, Windows build or Player build occurred.
+
+## Residual and disposition
+
+**No requested gate remains failed at the corrected head; no production defect appeared. S1-C T-05 UNITY QUALIFIED.** The original blocked verdict, invalid-fixture description and unreached-P10/P11 statements below are historical and superseded by this correction section only. Other original not-run/claim boundaries remain in force.
+
+Parent #91 / T3 #106 still owns independent G2/G3 acceptance, G4 integration, GitHub publication, live coordination and dashboard synchronization. No push was authorised, so remote handoff publication/dashboard synchronization remain outstanding operational work. No full milestone Tier-3 sweep, native-input/personal playtest, Player/platform qualification or Windows build is claimed.
+
+---
+
+# Original qualification run — historical blocked result (preserved)
+
+The following is the unchanged original-run record from the handoff base. Its failed receipts are preserved; the correction/results above supersede its three verification blockers.
+
 # S1-C T-05 v22 Unity closure handoff — BLOCKED
 
 **S1-C T-05 UNITY QUALIFICATION BLOCKED.** The runtime behaviour, migration, evidence-gap checks, rendered history and measured protected identities passed, but the unchanged objective harness has two refusal-message assertion failures and the unchanged completion harness has an invalid synthetic v14 fixture. No failed assertion is waived. No production defect was established; no production fix was made.
