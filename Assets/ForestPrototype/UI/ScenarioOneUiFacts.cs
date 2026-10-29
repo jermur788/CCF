@@ -7,6 +7,11 @@ using UnityEngine;
 // per-leader probability is displayed (not an accepted player-facing number).
 public static class ScenarioOneUiFacts
 {
+    // PARITY-07 / FR-9 wording shared by inspection, Work Plan and teaching, so the model limits are stated once.
+    public const string BroadleafQualityLimit = "Oak and Beech grade here depends on size and pruning history in this version; fork and defect shape is not modelled.";
+    public const string PremiumOakNote = "Premium Oak is only a possible late outcome: it needs a large, pruned, favourably grown tree with little competition, and it is not promised or required.";
+    public const string SharedSpeciesRulesNote = "Site suitability, canopy shading and wind exposure use the same simplified rules for all three species; they are not calibrated per species.";
+
     public static string BrowseState(RegenerationDiagnosis d, float backgroundPressure)
     {
         switch (d.Browse.Protection)
