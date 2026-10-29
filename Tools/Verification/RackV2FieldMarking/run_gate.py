@@ -42,7 +42,9 @@ import json
 head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 status = json.loads(subprocess.check_output(["python3", "-B", "/media/jer/ZX20/CCF-Ops/scripts/unity-lock", "status", "--json"], text=True))
 metadata = status.get("metadata") or {}
-if status.get("status") != "held" or metadata.get("owner") != "Codex-RACK-V2-09":
+# ClaudeB took over the lane after the original Codex worker's provider limit (claim #90/#91).
+OWNERS = ("Codex-RACK-V2-09", "ClaudeB-RACK-V2-09")
+if status.get("status") != "held" or metadata.get("owner") not in OWNERS or metadata.get("task_id") != "RACK-V2-09":
     sys.exit("RACK-V2-09 machine-wide Unity lock required")
 if metadata.get("head") != head or Path(metadata.get("lane", "")).resolve() != ROOT:
     sys.exit("lock must name this exact candidate and lane")

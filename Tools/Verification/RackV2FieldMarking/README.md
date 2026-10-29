@@ -1,7 +1,8 @@
 # RACK-V2-09 field-marking Tier-2 gate
 
 Run only in the assigned registered RackV2-09 lane at a clean committed candidate, under
-`Codex-RACK-V2-09`'s machine-wide Unity lock naming that exact HEAD. Durable output belongs
+a RACK-V2-09 machine-wide Unity lock (owner `Codex-RACK-V2-09`, or takeover owner
+`ClaudeB-RACK-V2-09`) naming that exact HEAD. Durable output belongs
 under `/media/jer/Files/CCF/Verification/`, never ZX20. Inspect `run_gate.py` before running.
 
 ```
