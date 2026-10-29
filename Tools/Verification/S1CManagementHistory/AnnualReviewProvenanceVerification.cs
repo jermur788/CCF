@@ -399,7 +399,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         {
             VisualElement row = chip.parent;
             if (row.Children().Count(c => c.ClassListContains("prov")) != 1) rowsWithMany++;
-            foreach (Label text in row.Query<Label>().ToList().Where(t => !t.ClassListContains("prov") && Visible(t)))
+            foreach (Label text in row.Query<Label>().ToList().Where(t => !t.ClassListContains("prov") && !t.ClassListContains("chip") && Visible(t)))
             {
                 if (text.worldBound.xMin < chip.worldBound.xMax - 1.5f && text.worldBound.yMin < chip.worldBound.yMax - 1.5f && text.worldBound.yMax > chip.worldBound.yMin + 1.5f) overlaps++;
                 // Money values are single-line (white-space: nowrap); the panel-containment audit covers them, not wrap measurement.

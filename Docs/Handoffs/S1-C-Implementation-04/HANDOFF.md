@@ -60,3 +60,40 @@ Rendered captures were opened and inspected at both sizes (latest-top, storm, hi
 ## Ownership / cleanup
 
 Lock held only for the gates (owner `Claude-S1C-T04`, task `S1-C-T04`), released; U1 restored to its prior detached `c8cfae8`, clean. Disposable harness, `.meta` and copied licence removed each run; no disk saves created; Editor import side effects restored by the runner (patches retained). ZX20 free ≈ 21 GiB.
+
+---
+
+# Second round — Manager review `NEEDS CHANGES` corrections (2026-10-29)
+
+Manager review: `MANAGER-REVIEW.md` at main `38d638ba93172e2c072c79acc112329e73f9171a` (reviewed production `d524de6`).
+Same branch/worktree/ownership. **Corrected production candidate: `ba2922e57467326beb4571e71d5373d73eaaa049`** (production source: `ManagementHistoryText.cs`, `AnnualReviewView.cs`). Later commits are verification/docs only. No integration, no Windows build. The success token above is returned for a second Manager review; it supersedes nothing the first section states except where listed here.
+
+## Finding 1 — presentation aggregates are DERIVED
+Rule applied: a displayed value is RECORDED only if that exact value is a persisted field or record; a count/sum/grouping made at display time is DERIVED. Changes:
+- `ManagementHistoryText.WorkProvenance` → Derived (intervention Work lines).
+- Work column: salvaged/thinned/planted/pruned counts, "No work was resolved this year", "N task(s) failed" / "No tasks failed", cancelled-order count → DERIVED. Regeneration-removal count (annual-report scalar) and each failed event's own reason text stay RECORDED.
+- Harvest settlement split: "N harvest order(s) settled together as one job (year label)" DERIVED; "Timber income · harvesting cost" (the one persisted settlement) RECORDED.
+- Completion: "You carried out N interventions", per-intervention work lines and "No commissioned work…" → DERIVED; `outcomeYear` and per-species snapshot counts stay RECORDED. First-intervention prompt → DERIVED. Management-history card now has no RECORDED line (work, money and snapshot comparisons are all derived).
+- Legend/meaning: "DERIVED counted or calculated from records when shown".
+Underlying drill-down events/orders remain RECORDED.
+
+## Finding 2 — storm card
+- The mixed line is split: **DERIVED** "X m³ salvaged since this event, to date" (summed from completed salvage orders) and **CURRENT** "X m³ remains as deadwood now".
+- The CURRENT line is emitted only on the latest review (`BuildStorm(..., historical)`); earlier storm years show RECORDED year/severity/Crop Trees lost, RECONSTRUCTED counts/volume/squares (with the note) and the DERIVED salvage line, with no live-forest line.
+- The rendered fixture now forces a storm in year 3 (earlier) and year 5 (latest) and browses the earlier one: card classes asserted exactly (earlier: current 0, recorded 1, reconstructed ≥2, derived 1; latest: plus current 1), text asserted to omit "remains as deadwood now" for year 3, capture `year3-earlier-storm`.
+
+## Finding 3 — drill-down entries
+`BuildDetailItem` no longer uses one entry chip. Each entry is: a RECORDED title row (status chip FAILED/CANCELLED stays), a RECORDED facts row (species, location, execution method, year, shelter, result, volume, own money — only values the record holds), a RECORDED "Reason: …" row when a reason is held, and — only if something is absent — one NOT RECORDED row naming exactly the absent values ("execution method not recorded", "location not recorded", "tree not recorded", "Reason: not recorded"). Missing text never appears on a RECORDED row. The intro line is an untagged explanatory note. Fixture asserts per entry (12 harvest entries all fully recorded, no NOT RECORDED; failed year: two entries, one NOT RECORDED row exactly "Reason: not recorded"; cancelled: "execution method not recorded"), and the audit now covers detail-entry rows (previously excluded).
+
+## Rerun results (exact candidate; evidence `/media/jer/Files/CCF/Verification/S1C-T04-Provenance-20261029/r2-*` and `r2b-*`)
+
+| Gate | Result |
+|---|---|
+| T-04 offline provenance (`run_t04_offline_check.py`) | 55 PASS |
+| S1-C history offline (`run_offline_check.py`) / T-03 offline / ThreeSpecies history | 55 / 72 / 74 PASS |
+| T-04 rendered fixture (`r2b-t04`), 1280×720 and 1920×1080 incl. earlier storm year and old saves | **527 PASS**, 0 failed, Editor exit 0 |
+| T-03 drill-down rendered regression (`r2b-t03`, row structure changed) | 279 PASS, exit 0 |
+
+Notes: `r2-t04` (first rerun) failed only because the new overlap check compared the label to the neighbouring FAILED/CANCELLED chip; fixed in the harness only (chips excluded) and re-run. T-02 year-browsing was not re-run (no navigation/gate change; it passed 246 on the first-round candidate and Manager did not require it). Captures inspected at both sizes: `year3-earlier-storm`, `latest-storm`, `year4-detail`, `year3-cancelled`, `latest-top`, `year1-historical`. Lock was held only for these runs (released); U1 restored clean to `c8cfae8`; no disk saves; harness/meta/licence copies removed; no save/schema/validator/manager/MFM/simulation diff.
+
+Accepted residuals unchanged: DBH-growth labelling in `TreeInspectionView` is outside this task; stale T-05 `CurrentVersion is 22` assertion; T-05 Unity render gate not rerun.
