@@ -424,7 +424,7 @@ public sealed class WorkPlanView
             .OrderBy(o => o.workOrderId).ToList();
         int eligible = m.EligibleCropTreePruningCount;
         VisualElement card = Card($"Pruning · {prune.Count} crop tree(s)", $"{m.CropTreeCount} crop trees designated (blue) · {eligible} eligible for a lift now · Contractor");
-        UiKit.Add(card, "Pruning is a retained-tree timber-quality treatment and sets no price by itself. For Oak the recorded pruned section can make a large log eligible for a higher grade; Beech has no such class. Fork and defect shape is not modelled.", "muted");
+        UiKit.Add(card, "Pruning is a retained-tree timber-quality treatment and sets no price by itself. Where Oak timber is marketed, the recorded pruned section can make a large log eligible for a higher grade; Beech has no such class. Fork and defect shape is not modelled.", "muted");
         card.Add(UiKit.Button($"Add {eligible} eligible crop tree pruning task(s)", () => { m.BatchPruneCropTrees(); Refresh(true); }, eligible > 0 && m.CanEditWorkPlan));
         if (prune.Count > 0)
         {

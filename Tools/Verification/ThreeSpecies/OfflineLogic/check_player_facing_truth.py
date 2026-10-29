@@ -77,7 +77,16 @@ check("teaching pruning says fork/defect not modelled", "fork or defect shape is
 tree = (root / "Assets/ForestPrototype/ForestTree.cs").read_text(encoding="utf-8")
 check("production broadleaf 2 lifts / 3 years / 3.5 / 6", all(t in tree for t in ["broadleaf ? 2 :", "broadleaf ? 3 :", "pruningLifts == 0 ? 3.5f : 6f"]))
 check("teaching states 3.5 m then 6.0 m, 3 years, two lifts",
-      "two lifts, to 3.5 m then 6.0 m, at least three years apart" in cur)
+      "use two lifts, to 3.5 m then 6.0 m, at least three years apart" in cur)
+check("teaching qualifies broadleaf two-lift schedule by active markets",
+      "When Oak and Beech timber markets are active, Oak and Beech use two lifts, to 3.5 m then 6.0 m, at least three years apart; otherwise they keep the three-lift schedule above" in cur)
+mgr = (root / "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs").read_text(encoding="utf-8")
+check("production gates two-lift schedule on BroadleafMarketActive",
+      "speciesAware && species != null" in tree and "tree.CanPrune(target, CurrentYear + 1, BroadleafMarketActive)" in mgr)
+check("shared-rules note preserves crown differences", "canopy shading still reflects species-specific crown size and crown adjustment" in s)
+check("shared-rules note denies only site/wind calibration", "Site and wind responses are not calibrated per species" in s and "canopy shading and wind exposure use the same simplified rules" in s)
+check("Oak grade benefit qualified by marketed Oak (teaching)", "where Oak timber is marketed, the recorded pruned section" in cur)
+check("Oak grade benefit qualified by marketed Oak (Work Plan)", "Where Oak timber is marketed, the recorded pruned section" in work)
 check("teaching Sitka schedule unchanged 2.5/5/6.5, 3 lifts, 5 years",
       "2.5 m, 5 m and 6.5 m (at most three lifts, at least five years apart)" in cur)
 
