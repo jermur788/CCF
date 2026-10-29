@@ -610,7 +610,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     }
     private IEnumerator CaptureScreen(string name)
     {
-        for (int i=0;i<4;i++) yield return null;
+        // The Game view resize is applied asynchronously on a slow display: wait real time as well as frames before layout assertions. Assertions unchanged.
+        if (!Application.isBatchMode) yield return new WaitForSecondsRealtime(0.5f);
+        for (int i=0;i<12;i++) yield return null;
         if (Application.isBatchMode) yield break;
         yield return new WaitForEndOfFrame(); Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
         Check(image != null && image.width > 600, "Missing rendered capture");
