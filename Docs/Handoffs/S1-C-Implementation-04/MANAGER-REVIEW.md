@@ -2,58 +2,94 @@
 
 **Task:** S1-C T-04 — provenance labelling  
 **Claim:** #123  
-**Production candidate reviewed:** `d524de6ccc3de2366f39bdc939ce7c00657ba93c`  
-**Branch tip / evidence successor:** `cea8a41bd537dcb9d705981eee33f9ff3d698b07`  
-**Verdict:** **NEEDS CHANGES**
+**First production candidate reviewed:** `d524de6ccc3de2366f39bdc939ce7c00657ba93c`  
+**First evidence successor:** `cea8a41bd537dcb9d705981eee33f9ff3d698b07`  
+**Corrected production candidate reviewed:** `ba2922e57467326beb4571e71d5373d73eaaa049`  
+**Corrected branch tip / evidence successor:** `cff79f0f35d79bb2db723d0b923658c437ebdc7f`  
+**Final verdict:** **APPROVED** — round-2 corrections satisfy T-04; the earlier NEEDS CHANGES verdict is superseded for the corrected candidate.
 
-## Evidence accepted
+## Round-2 Manager verdict
 
-The pushed candidate is rooted at the authorised `b971f4da0540e606bfee9702b0c99f81a0a89355` base. Production changes are confined to `ManagementHistoryText.cs` and `AnnualReviewView.cs`; later changes are verification/docs only. The published handoff records the required two-resolution rendered gate, genuine old-save cases, read-only browsing, T-02/T-03 regressions, and no save/schema/validator/simulation change. The worker correctly withheld Manager acceptance.
+The corrected candidate is **APPROVED** for S1-C T-04. This is candidate acceptance, not integrated-milestone acceptance. No Windows build is authorised.
 
-The reported rendered and regression evidence is sufficient to avoid rerunning the entire feature from scratch after the corrections below. The next candidate must rerun the focused provenance/offline gate and the rendered T-04 fixture at both resolutions; rerun any affected T-03 assertion if its rendered structure changes.
+The candidate remains rooted at authorised base `b971f4da0540e606bfee9702b0c99f81a0a89355`. From that base, production changes remain confined to:
 
-## Finding 1 — presentation aggregations are misclassified as RECORDED
+- `Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs`
+- `Assets/ForestPrototype/UI/AnnualReviewView.cs`
 
-The T-04 packet explicitly defines presentation aggregations as **DERIVED**. The candidate instead treats several query/render-time aggregates as **RECORDED**.
+with focused verification tooling and the handoff. Comparison from corrected production SHA `ba2922e...` to branch tip `cff79f0...` shows no further production change; the successor changes only the provenance verification harness and `HANDOFF.md`.
 
-Examples:
+### Finding 1 — resolved: presentation aggregates are DERIVED
 
-- `ManagementHistoryText.WorkProvenance` returns `Recorded` although `Work(...)` builds a presentation aggregate from `InterventionSummary` counts.
-- Annual Review work lines such as `N windthrow stems salvaged`, `N trees thinned`, planting/pruning counts, `No work was resolved this year`, and `No tasks failed` are produced by counting/querying recorded events at render time. They are not themselves stored in the displayed form.
-- Completion/history statements such as the number of interventions are likewise presentation aggregates unless the exact displayed value is itself a persisted field.
+The corrected implementation now distinguishes the displayed aggregate from its recorded inputs:
 
-**Required correction:** classify the displayed aggregate as `DERIVED`, or split a line where necessary so a genuinely persisted scalar can remain `RECORDED` while the calculated aggregate is `DERIVED`. Do not relabel the underlying events/orders themselves; drill-down records remain recorded facts.
+- `ManagementHistoryText.WorkProvenance` is `DERIVED`;
+- work-card counts/groupings such as felled, salvaged, planted, pruned, cancellation count, no-work and failure-count statements are `DERIVED`;
+- persisted scalars such as the annual-report regeneration-removal count and individual recorded failure reasons remain `RECORDED`;
+- grouped harvest presentation is split so the display-time order count/year grouping is `DERIVED`, while the persisted settlement money is `RECORDED`;
+- completion/intervention counts assembled for presentation are `DERIVED`, while genuinely persisted completion/snapshot facts remain `RECORDED`.
 
-## Finding 2 — the storm line mixes provenance layers and leaks live state into an earlier-year card
+This satisfies the packet rule that presentation aggregations are derived rather than silently promoted to recorded facts.
 
-`BuildStorm` emits one `CURRENT` line containing both the live `DeadwoodRemainingM3` value and `SalvagedVolumeM3 ... since this event`. Those facts are not the same layer: the remaining deadwood is current observed state, while salvage-since-event is a historical/query-derived quantity. One line therefore carries mixed provenance.
+### Finding 2 — resolved: storm historical/current provenance is separated
 
-The same live-current line is emitted whenever an earlier storm year is browsed. The task packet requires historical-year presentation not to place live forest facts under the old-year record unless separated as an explicitly current-state surface.
+The mixed storm line is split:
 
-**Required correction:** split the mixed storm line. Keep historical/query-derived salvage information under the appropriate historical/derived label. Show the live `deadwood remaining now` value only on the latest review, or move it into a clearly separate current-state section that is not presented as part of the old-year storm record.
+- salvage since the event is labelled `DERIVED`;
+- deadwood remaining now is labelled `CURRENT`;
+- the CURRENT line is emitted only on the latest review, not while browsing an earlier storm year.
 
-## Finding 3 — drill-down rows need a single honest classification per displayed fact
+The rendered fixture directly exercises an earlier storm year (year 3 while year 5 is latest), so this is not accepted solely on source inspection.
 
-`BuildDetailItem` currently applies a `NOT RECORDED` chip to the entry header if *any* field is missing, while the following untagged facts line can mix recorded values with missing-value text. Fully populated detail entries can also present the facts line without an entry-level provenance label.
+### Finding 3 — resolved: drill-down facts are classified per displayed row
 
-T-04's requirement is not merely that an entry contains some provenance chip; every history/review value must be visibly distinguishable by layer.
+The corrected drill-down no longer applies one `NOT RECORDED` chip to a mixed entry. Each entry separates:
 
-**Required correction:** either tag each logical detail line/value group explicitly, or split missing fields into `NOT RECORDED` rows while keeping recorded event/order facts visibly `RECORDED`. Avoid a single chip that implies the whole mixed entry has one provenance when it does not.
+- recorded title/status row;
+- recorded facts row;
+- recorded reason row where a reason exists;
+- a separate `NOT RECORDED` row naming only the specific missing fields.
+
+This satisfies T-04's requirement that populated recorded facts and missing provenance remain visibly distinguishable.
+
+## Accepted verification
+
+Worker-reported and published round-2 evidence on exact corrected production SHA `ba2922e57467326beb4571e71d5373d73eaaa049`:
+
+- T-04 offline provenance: **55 PASS**;
+- S1-C history offline: **55 PASS**;
+- T-03 offline: **72 PASS**;
+- ThreeSpecies history offline: **74 PASS**;
+- T-04 rendered fixture: **527 PASS**, 0 failed, at **1280×720** and **1920×1080**, including the earlier-storm-year case and genuine old-save fixtures;
+- T-03 drill-down rendered regression: **279 PASS**;
+- captures for earlier/latest storm and drill-down states were inspected by the worker;
+- Unity lock was released and U1 restored clean to `c8cfae8c4025cec6e960a050edf4bfde2a981de5`.
+
+The first rerun's overlap-check failure was harness-only and was corrected without a production diff. T-02 did not need to be rerun because the Manager return requirements did not request it after navigation/gate logic remained unchanged; its first-round functional gate had already passed.
 
 ## Accepted residuals
 
-- DBH-growth labelling in `TreeInspectionView` remains outside this task's owned Annual Review/history surface. No change required in #123.
-- The stale T-05 `CurrentVersion is 22` assertion is unrelated to this task and remains a harness-maintenance residual.
-- The T-05 Unity render gate does not need to be rerun solely for these T-04 corrections; the focused T-04 old-save fixture is the relevant gate.
-- No Windows build is authorised.
+These remain non-blocking for T-04:
 
-## Required return
+- DBH-growth labelling in `TreeInspectionView` is outside this task's owned Annual Review/history surface.
+- The stale T-05 `CurrentVersion is 22` assertion is unrelated to this task and must be repaired/rebased under the relevant save-lineage work rather than inside T-04.
+- The T-05 Unity render gate was not required solely for this bounded provenance repair.
+- No Windows build was run or authorised.
 
-Keep the same branch/worktree and bounded ownership. Correct the three findings above, rerun:
+## Integration / continuation meaning
 
-1. T-04 offline provenance checks;
-2. T-04 rendered fixture at 1280×720 and 1920×1080, including an **earlier storm year** case so the historical/current separation is directly exercised;
-3. affected T-03 drill-down regression if row structure changes;
-4. the existing S1-C history offline regression.
+`ba2922e57467326beb4571e71d5373d73eaaa049` is the **Manager-approved S1-C T-04 production candidate**. `cff79f0f35d79bb2db723d0b923658c437ebdc7f` is an acceptable evidence/docs successor, not a separately reviewed production candidate.
 
-Push an exact corrected production SHA, update `HANDOFF.md`, and return the same success token for a second Manager review. Do not integrate yet.
+Claim #123 may close and its history/review production ownership may be released. S1-C T-06 (prior-treatment guidance) is the next dependency-ready S1-C implementation task; it must preserve the approved provenance separation and use only recorded history/current observation for bounded L4 guidance. T-07 remains subject to current identity/save-lineage ownership.
+
+---
+
+## Historical first-round review — NEEDS CHANGES (superseded by the round-2 approval above)
+
+The first candidate had three bounded defects:
+
+1. presentation/query aggregations were labelled RECORDED rather than DERIVED;
+2. the storm card mixed current deadwood with derived salvage and exposed live state under earlier-year storm review;
+3. drill-down rows used a mixed NOT RECORDED chip and left populated fact rows insufficiently classified.
+
+Those findings were the basis of the earlier return packet and are retained here for audit history. They are resolved by corrected candidate `ba2922e...` as described above.
