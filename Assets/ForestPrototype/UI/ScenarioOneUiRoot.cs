@@ -437,6 +437,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     // A UI learning gate only: simulation/reference harness APIs remain unchanged.
     public string RackPlanProblem => learning.RackPlanProblem();
+    // S1-D T-03: the same footprint rule once the teaching sample is complete. A note only; ApproveWorkPlan/AdvanceFromWorkPlan ignore it.
+    public string RackPlanAdvisory => learning.RackPlanAdvisory();
     // D-064: V2 rack work is approved only after its entrances are marked. Approval only; advancing a year is not gated by it.
     public string RackApprovalProblem => learning.RackMarkingProblem();
 
