@@ -238,10 +238,12 @@ public sealed class ScenarioReferenceArchive
     private static string HashLayout(string json, ForestSaveData data)
     {
         json = WithoutObjectiveAchievements(json);
-        string header = "\"version\":" + ForestSaveData.CurrentVersion + ",";
-        return RackV2StateIsDefault(data)
-            ? WithoutRackV2Fields(json).Replace(header, "\"version\":20,")
-            : json.Replace(header, "\"version\":21,");
+        // Keyed on the version this input actually carries (a persisted v21 stays v21), not on CurrentVersion.
+        // Versions below the relabel target (an older input) were never rewritten and still are not.
+        string header = "\"version\":" + data.version + ",";
+        if (RackV2StateIsDefault(data))
+            return WithoutRackV2Fields(json).Replace(header, data.version >= 21 ? "\"version\":20," : header);
+        return json.Replace(header, data.version >= 22 ? "\"version\":21," : header);
     }
 
     // Removes the v22 history field whatever it holds. The pattern reads the array as quoted strings or non-bracket

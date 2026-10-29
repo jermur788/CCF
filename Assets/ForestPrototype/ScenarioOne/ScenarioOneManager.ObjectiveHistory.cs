@@ -20,6 +20,11 @@ public sealed partial class ScenarioOneManager
     // year-tagged snapshots, events and resolved orders. Never written to the save.
     private readonly Dictionary<string, int> derivedAchievementYears = new Dictionary<string, int>();
 
+    // True when an evaluated year's snapshot or YearAdvanced event is missing. A first achievement could then have fallen
+    // in the missing year, so no further first-achievement record is ever written: "not recorded" is the honest answer.
+    // Session state only; the same saved records rebuild it on every load.
+    private bool objectiveFirstnessUnknown;
+
     public IReadOnlyList<ScenarioObjectiveAchievement> ObjectiveAchievements => objectiveAchievements;
 
     // The year this objective was first observed achieved, or -1 when no record exists ("not recorded").
@@ -41,6 +46,8 @@ public sealed partial class ScenarioOneManager
 
     private void RecordObjectiveAchievements(IReadOnlyList<ScenarioObjectiveResult> objectives, int year)
     {
+        if (objectiveFirstnessUnknown)
+            return;
         foreach (ScenarioObjectiveResult result in objectives)
         {
             if (result == null || !result.achieved || achievedBeforeRecording.Contains(result.objectiveId)
@@ -60,6 +67,7 @@ public sealed partial class ScenarioOneManager
         objectiveAchievements.Clear();
         achievedBeforeRecording.Clear();
         derivedAchievementYears.Clear();
+        objectiveFirstnessUnknown = false;
     }
 
     // Called at the end of a restore, once snapshots, events and orders are back. Replays the evaluations that already
@@ -70,18 +78,29 @@ public sealed partial class ScenarioOneManager
     {
         achievedBeforeRecording.Clear();
         derivedAchievementYears.Clear();
+        objectiveFirstnessUnknown = false;
         objectiveAchievements = saveVersion >= 22 ? CloneObjectiveAchievements(data.objectiveAchievements)
             : new List<ScenarioObjectiveAchievement>();
         if (definition == null)
             return;
         // Evaluation stops once the outcome is final, so later snapshots were never evaluated either.
         int lastEvaluatedYear = outcome == ScenarioOneOutcome.Active ? int.MaxValue : outcomeYear;
+        // Every evaluated year must have both its YearAdvanced event and its snapshot (year 0 is the never-evaluated
+        // baseline). A year with only one of the two is an evidence gap, so the walk covers the union of both.
+        HashSet<int> eventYears = new HashSet<int>(managementEvents.Where(e => e != null
+            && e.eventType == ScenarioManagementEventType.YearAdvanced && e.year <= lastEvaluatedYear).Select(e => e.year));
+        HashSet<int> snapshotYears = new HashSet<int>(ecologicalSnapshots.Where(item => item != null
+            && item.year > 0 && item.year <= lastEvaluatedYear).Select(item => item.year));
         bool evidenceGap = false;
-        foreach (int year in managementEvents.Where(e => e != null && e.eventType == ScenarioManagementEventType.YearAdvanced
-            && e.year <= lastEvaluatedYear).Select(e => e.year).Distinct().OrderBy(y => y))
+        foreach (int year in eventYears.Union(snapshotYears).OrderBy(y => y))
         {
-            ScenarioEcologicalSnapshot snapshot = ecologicalSnapshots.FirstOrDefault(item => item.year == year);
-            if (snapshot == null) { evidenceGap = true; continue; }
+            ScenarioEcologicalSnapshot snapshot = ecologicalSnapshots.FirstOrDefault(item => item != null && item.year == year);
+            if (snapshot == null || !eventYears.Contains(year) || !snapshotYears.Contains(year))
+            {
+                evidenceGap = true;
+                objectiveFirstnessUnknown = true;
+            }
+            if (snapshot == null) continue;
             // The records as they stood at that year's evaluation.
             List<ScenarioManagementEvent> events = managementEvents.Where(e => e != null && e.year <= year).ToList();
             List<ScenarioOneWorkOrder> orders = workOrders.Where(o => o != null

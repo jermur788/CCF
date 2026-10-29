@@ -41,6 +41,8 @@ public sealed partial class ScenarioOneManager
         RecordObjectiveAchievements(objectives, ecologicalSnapshots.Last().year);
     }
     // Test hook: drop one year's snapshot, as a damaged save would.
+    // Test hook: drop one year's YearAdvanced event, as a damaged save would.
+    public void DropYearEvent(int year) { managementEvents.RemoveAll(item => item.year == year && item.eventType == ScenarioManagementEventType.YearAdvanced); }
     public void DropSnapshot(int year) { ecologicalSnapshots.RemoveAll(item => item.year == year); }
 
     // Mirrors CaptureSaveData / RestoreSaveData for the history field plus the real migration call. The yearly records

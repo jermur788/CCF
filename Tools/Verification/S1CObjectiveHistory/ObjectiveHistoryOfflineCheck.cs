@@ -253,6 +253,54 @@ public static class ObjectiveHistoryOfflineCheck
         lastLoad.Restore(new ScenarioOneSaveData(), 21);
         Check(lastLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sl3) == 12 && sl3 == ObjectiveYearSource.Derived && lastLoad.ObjectiveAchievements.Count == 0, "pre-v22 achieved at the last snapshot: derived 12, nothing recorded");
 
+        // F-1 (review of 7ae0bbc): met only in year 8, lost, met again in 14, with the year-8 evidence damaged. The first
+        // achievement can no longer be established, so it must stay "not recorded" -- never a later year, not even after a
+        // v22 re-save/reload.
+        Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => y == 8 || y >= 14 });
+        var gapAchieved = new ScenarioOneManager();
+        gapAchieved.AddBaseline();
+        for (int y = 1; y <= 12; y++) gapAchieved.EvaluateActive(y);
+        gapAchieved.DropSnapshot(8);   // snapshot gone, YearAdvanced(8) retained
+        var gapAchievedLoad = new ScenarioOneManager();
+        gapAchievedLoad.CopyYearlyRecordsFrom(gapAchieved);
+        gapAchievedLoad.Restore(new ScenarioOneSaveData(), 21);
+        gapAchievedLoad.EvaluateActive(13); gapAchievedLoad.EvaluateActive(14); gapAchievedLoad.EvaluateActive(15);
+        Check(gapAchievedLoad.ObjectiveAchievements.Count == 0 && gapAchievedLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sf1) == -1 && sf1 == ObjectiveYearSource.NotRecorded,
+            "F-1a: missing snapshot + achieved in the gap + lost + re-met in 14 -> no false record, not recorded");
+        ScenarioOneManager gapAchievedAgain = SaveAndLoad(gapAchievedLoad);
+        gapAchievedAgain.EvaluateActive(16);
+        Check(gapAchievedAgain.ObjectiveAchievements.Count == 0 && gapAchievedAgain.ObjectiveYear("regeneration", out ObjectiveYearSource sf2) == -1 && sf2 == ObjectiveYearSource.NotRecorded,
+            "F-1a: still not recorded after a v22 re-save and reload");
+        // F-1b: the YearAdvanced event is the missing piece (snapshot retained)
+        var gapEvent = new ScenarioOneManager();
+        gapEvent.AddBaseline();
+        for (int y = 1; y <= 12; y++) gapEvent.EvaluateActive(y);
+        gapEvent.DropYearEvent(8);
+        var gapEventLoad = new ScenarioOneManager();
+        gapEventLoad.CopyYearlyRecordsFrom(gapEvent);
+        gapEventLoad.Restore(new ScenarioOneSaveData(), 21);
+        gapEventLoad.EvaluateActive(13); gapEventLoad.EvaluateActive(14);
+        Check(gapEventLoad.ObjectiveAchievements.Count == 0 && gapEventLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sf3) == -1 && sf3 == ObjectiveYearSource.NotRecorded,
+            "F-1b: a snapshot year without its YearAdvanced event is an evidence gap -> not recorded, no false later record");
+        ScenarioOneManager gapEventAgain = SaveAndLoad(gapEventLoad);
+        gapEventAgain.EvaluateActive(15);
+        Check(gapEventAgain.ObjectiveAchievements.Count == 0, "F-1b: still nothing recorded after a v22 re-save and reload");
+        // F-1c: an evidence-complete first achievement before the earliest gap still derives; complete new games still record
+        Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => y >= 3 });
+        var gapLate = new ScenarioOneManager();
+        gapLate.AddBaseline();
+        for (int y = 1; y <= 8; y++) gapLate.EvaluateActive(y);
+        gapLate.DropSnapshot(6);
+        var gapLateLoad = new ScenarioOneManager();
+        gapLateLoad.CopyYearlyRecordsFrom(gapLate);
+        gapLateLoad.Restore(new ScenarioOneSaveData(), 21);
+        Check(gapLateLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sf4) == 3 && sf4 == ObjectiveYearSource.Derived,
+            "F-1c: a first achievement proven before the earliest gap still derives");
+        var completeNew = new ScenarioOneManager();
+        completeNew.AddBaseline();
+        for (int y = 1; y <= 5; y++) completeNew.EvaluateActive(y);
+        Check(Ledger(SaveAndLoad(completeNew)) == "regeneration@3", "F-1c: complete evidence -> a new game still records and reloads normally");
+
         // a final outcome stops derivation at the outcome year
         Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => y >= 3, ["fallen-deadwood"] = y => y >= 9 });
         var done = new ScenarioOneManager();
@@ -309,6 +357,20 @@ public static class ObjectiveHistoryOfflineCheck
             Check(ScenarioReferenceArchive.WorldHash(withHistory) == plain && ScenarioReferenceArchive.CurrentWorldHash(withHistory) == ScenarioReferenceArchive.CurrentWorldHash(fixture.Value)
                 && ScenarioReferenceArchive.LegacyV18WorldHash(withHistory) == ScenarioReferenceArchive.LegacyV18WorldHash(fixture.Value),
                 "hash: recorded achievements do not move the world identity for " + fixture.Key);
+        }
+
+        // The same parsed v21 input through the pre-v22 (aca74ac) and the candidate hash paths: the baseline dump carries
+        // the parsed-v21-* lines (default-rack and rack-state worlds), already compared line for line above. Here the
+        // header rule itself is pinned for each input version.
+        foreach (var fixture in HashFixtures.Build().Where(f => f.Key.StartsWith("parsed-v21-")))
+        {
+            Check(fixture.Value.version == 21, "hash: " + fixture.Key + " is fed to the candidate as a version-21 input");
+            string stream = JsonUtility.ToJson(fixture.Value);
+            bool rackState = fixture.Key.Contains("rack-state") || fixture.Key.Contains("rack-order-only");
+            string current = ScenarioReferenceArchive.CurrentWorldHash(fixture.Value);
+            ForestSaveData asV22 = JsonUtility.FromJson<ForestSaveData>(stream.Replace("\"version\":21,", "\"version\":22,"));
+            Check(current == ScenarioReferenceArchive.CurrentWorldHash(asV22),
+                "hash: the same world hashes identically as a v21 input and as a v22 input (" + fixture.Key + (rackState ? ", rack state keeps the v21 header" : ", default rack relabels to v20") + ")");
         }
 
         // ---- 8. protected state and wiring audits (source text) --------------------------------------------------

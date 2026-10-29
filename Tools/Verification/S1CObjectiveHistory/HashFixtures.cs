@@ -32,6 +32,14 @@ public static class HashFixtures
         return data;
     }
 
+    // A persisted v21 save as the loader hands it over: parsed from JSON with its own version still 21, so the hash path is
+    // fed an input whose version differs from the build's CurrentVersion (the candidate is v22, the baseline v21).
+    private static ForestSaveData ParsedV21(ForestSaveData world)
+    {
+        world.version = 21;
+        return UnityEngine.JsonUtility.FromJson<ForestSaveData>(UnityEngine.JsonUtility.ToJson(world));
+    }
+
     public static List<KeyValuePair<string, ForestSaveData>> Build() => new List<KeyValuePair<string, ForestSaveData>>
     {
         new KeyValuePair<string, ForestSaveData>("legacy40-default", World(0, 0, 0, 0, 0, false, false)),
@@ -42,6 +50,10 @@ public static class HashFixtures
         new KeyValuePair<string, ForestSaveData>("enlarged80-model1-empty-plan", World(1, 2, 1, 0, 1, false, false)),
         new KeyValuePair<string, ForestSaveData>("enlarged80-model1-rack-state", World(1, 2, 1, 0, 1, true, true)),
         new KeyValuePair<string, ForestSaveData>("legacy40-rack-order-only", World(0, 2, 1, 0, 0, false, true)),
+        new KeyValuePair<string, ForestSaveData>("parsed-v21-legacy40-default", ParsedV21(World(0, 2, 1, 0, 0, false, false))),
+        new KeyValuePair<string, ForestSaveData>("parsed-v21-enlarged80-model1-empty-plan", ParsedV21(World(1, 2, 1, 0, 1, false, false))),
+        new KeyValuePair<string, ForestSaveData>("parsed-v21-enlarged80-rack-state", ParsedV21(World(1, 2, 1, 0, 1, true, true))),
+        new KeyValuePair<string, ForestSaveData>("parsed-v21-legacy40-rack-order-only", ParsedV21(World(0, 2, 1, 0, 0, false, true))),
     };
 
     public static string Dump()
