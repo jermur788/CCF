@@ -2,76 +2,101 @@
 
 **Task:** S1-D T-04 — Guide monotonicity  
 **Claim:** #124  
-**Current verdict:** **BLOCKED ON AUTHORISED D-066 PERSISTENCE PREREQUISITE #143**  
-**Prior verdict:** BLOCKED — PRODUCT / SPEC DECISION REQUIRED BEFORE UNITY  
-**Review basis:** approved S1-D specification/package; pushed candidate `b9d204cbae687da71d32a9da42575ca3f298a511`; the user-selected Option A now recorded as Decision Log **D-066**; browser amendment #136.
+**Current verdict:** **BLOCKED PENDING REPAIRED D-066 MANAGER REVIEW #158**  
+**Prior verdict:** browser review #144 = NEEDS CHANGES to amendment #136  
+**Review basis:** approved S1-D product intent including D-066; pushed candidate `b9d204cbae687da71d32a9da42575ca3f298a511` as unqualified evidence only; exact inspected teaching/hash lineage `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; browser repair #145.
 
 ## Prior candidate finding retained
 
-`b9d204c` corrected the earlier rejected surrogate proofs and correctly withheld Unity qualification, but it still cannot satisfy full FR-B1 / AC-3 by derivation alone. Reload can reset session-only rack review so the raw guide falls behind the intended historical boundary; Crop Tree loss/current-state drift can likewise expose earlier lessons. The packet's stop condition was therefore reached honestly.
+`b9d204c` corrected rejected surrogate proofs but cannot satisfy full FR-B1 / AC-3 by derivation alone. Reload resets session-only rack review and later world drift can expose an earlier lesson. It remains useful evidence only: not accepted, not Unity-qualified and not an integration base.
 
-The candidate remains **useful implementation evidence only**. It is not accepted, qualified or an integration base and must not be stacked blindly after the persistence prerequisite.
+## D-066 repair — binding proposed implementation contract
 
-## Product decision — resolved
+The user-selected Option A remains unchanged: preserve full FR-B1 / AC-3 with the **smallest durable teaching-completion fact**. Browser repair #145 narrows the implementation contract to exactly one monotone historical latch for the existing first guided rack sample/review.
 
-The user selected **Option A**. D-066 now authorises the smallest durable aggregate historical record needed to remember that the authoritative teaching sample/review has actually completed.
+The latch means only:
 
-Binding boundaries:
+> **The Scenario One first guided teaching sample/review has historically completed at least once.**
 
-- preserve full FR-B1 / AC-3; do not weaken save/load or world-drift monotonicity;
-- individual `[J] Retain here` / `[K] Release further` decisions remain session-only and are not serialized;
-- inspected-tree lists, stand-portion detail and replayable session-review transcript remain non-persistent;
-- the aggregate is authority only for historical teaching progression and the shared T-03 sample-complete meaning;
-- the aggregate becomes complete only from the **existing authoritative pre-amendment in-session teaching sample/review completion path**, not from planting, arbitrary felling, a later Annual Review, current Crop Tree count, current geometry or another surrogate;
-- once complete, it is monotone historical state;
-- older saves with the field absent default conservatively to not historically complete;
-- current readiness/recommendation state remains recomputable; broad T-07 persistence stays cancelled;
-- Scenario One completion rules/objectives, economy/ecology, Rack V2, MFM and Reference Future v1 are unchanged.
+It does **not** identify a management cycle, store counters, remember individual `[J]/[K]` choices, replay inspected trees/stand portions, cache a guide index, cache readiness, or create a second intervention/history store.
 
-## Required prerequisite
+Old/pre-amendment saves with the field absent read exactly like `false`: historical teaching completion is not recorded. It is never reconstructed retrospectively from planting, felling, Annual Review records, Crop Tree count, current rack geometry, `PlayerPrefs`, save age or another heuristic.
 
-The amended task structure introduces **T-04P / claim #143** as the bounded save/load prerequisite.
+## Exact authoritative write transition
 
-#143 owns the minimum aggregate teaching-history persistence, schema/version plumbing, save capture/restore, pre-mutation validation and focused compatibility qualification. It must be the sole save/schema writer while RUNNING and requires independent review because it changes the shared save/load contract.
+The latch may change `false → true` exactly once, and only when the **pre-amendment rack-world guide would genuinely advance from lesson `response` to lesson `recruitment` in the current session**.
 
-At browser amendment inspection, the exact post-MFM-07 qualified production umbrella is `c8cfae8c4025cec6e960a050edf4bfde2a981de5`, whose `ForestSaveData.CurrentVersion` is **23**. The expected next schema is v24 **only if** the #143 worker refreshes live ownership/source at start and still finds v23 free. If the lineage/version/ownership changed, the worker stops and returns to Manager rather than reusing a consumed version.
+Static inspection of the qualified lineage establishes the required semantics:
+
+1. all earlier `ScenarioOneTeachingSequence.Current(Facts)` guards have already passed: access is open/reviewed, the teaching rack has enough distributed future trees, canopy is kept, the release has been planned/executed and mixed deadwood/sold outcomes satisfy the existing lesson path;
+2. the release Annual Review is acknowledged (`ReleaseReviewed == true`);
+3. the current rack-world session review itself is complete (`RackReviewComplete == true`), as computed from the live `ScenarioOneRackReview` session state;
+4. evaluating the **unlatched/pre-amendment** sequence would therefore return `recruitment` rather than `response`.
+
+`ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` alone is **not** a write condition because it deliberately omits session `[J]/[K]` review completion. A later lesson, planting event, later review, or other surrogate is also insufficient.
+
+Implementation may extract a pure helper for this transition, but verification must prove that helper matches the pre-amendment `response → recruitment` boundary before the historical latch is applied.
+
+## One shared T-03 / T-04 read meaning
+
+There are two phases and one historical fact:
+
+- **Before latch:** the historical completion API returns false. T-03 retains its accepted current-world/session teaching-cap classification and deadlock safeguard; T-04 retains pre-completion guide behaviour. No durable state fabricates session review completion.
+- **At transition:** the authoritative current-session `response → recruitment` condition above records the latch once.
+- **After latch:** both T-03 and T-04 consume the same read-only historical-completion API/property. It remains true through save/load, Crop Tree loss/count drift, later in-footprint felling and executed-share drift. T-03 therefore treats the first teaching sample as historically closed; T-04 may use that same fact as its monotone floor.
+
+There must not be a second T-03 historical helper with a different durable meaning. Existing current-world calculations remain available for pre-latch teaching safeguards; the shared latch is the sole persisted historical truth.
+
+## Save/schema and hash identity contract
+
+#143 remains the only prospective save/schema/hash writer for this slice. At the inspected production umbrella, `ForestSaveData.CurrentVersion = 23`; v24 is only the **expected** next slot if a fresh task-start refresh still finds v23 current/free and no competing writer. #145/#158 do not reserve it.
+
+The persisted representation is one boolean-like Scenario One save field/latch. Exact C# field/helper names are implementation details, but the representation may not broaden into per-cycle keys, counters, lists or replay records without a new Manager decision.
+
+The teaching latch is **save state but not world identity**. It must round-trip in saves while being excluded from every `ScenarioReferenceArchive` identity/hash projection, including:
+
+- `WorldHash` / geometry-selected full identity;
+- `CurrentWorldHash`;
+- `LegacyCompatibleWorldHash`;
+- `HashLayout` on both default-later-field and non-default v23 prescription-state branches;
+- `MinimalWorldHash` or any equivalent minimal/protected projection used by verification;
+- protected hash extraction/comparison and Reference Future/anchor checks that consume those projections.
+
+The implementation must use the smallest compatibility edit that removes only this teaching-only field from identity inputs. **No accepted anchor, protected fingerprint or reference hash may be rebaselined.** Full save serialization must still preserve the latch.
+
+A single boolean latch introduces no per-record key/counter validation problem. Existing schema/version and pre-mutation validation guarantees remain binding; tests must prove old/missing-field false behavior, true round-trip, one-way write semantics and no world mutation on rejected malformed saves generally. Do not invent a complex validation model solely to justify persistence.
 
 ## #124 continuation contract
 
-After #143 is integrated and qualified:
+#124 remains blocked until #158 returns APPROVED and #143 is then implemented, independently reviewed, qualified, Manager-approved and integrated on one exact lineage. When re-released, #124 must:
 
-1. refresh live ownership and the exact #143 handoff/integration SHA;
-2. rebase/replay useful T-04 logic from `b9d204c` against that exact lineage;
-3. consume the #143 durable teaching-completion API rather than creating another store;
-4. preserve pre-completion teaching behaviour and all existing lesson IDs;
-5. prove full AC-3 across Crop Tree count/loss, later in-footprint felling, executed-share drift and save/load;
-6. prove repeated reads/calls do not consume another sample;
-7. rerun TeachingCopy/MenuTutorial/T-03/T-02/S1-C/N3 checks with no protected-hash rebaseline;
-8. run Unity qualification under the machine-wide lock;
-9. obtain independent review on the exact persistence + curriculum candidate.
+1. rebase/replay useful logic from `b9d204c` against the exact integrated #143 lineage rather than stacking it blindly;
+2. consume the single shared historical-completion read API;
+3. preserve pre-latch lesson behaviour and all stable lesson IDs;
+4. prove full AC-3 across save/load and later world drift;
+5. own no save/schema/hash files;
+6. rerun T-03 shared-semantics checks plus TeachingCopy/MenuTutorial/T-02/S1-C/N3 with no rebaseline;
+7. complete Unity qualification and independent review on the exact candidate.
 
-## Save/schema sequencing with PARITY-08
+## Sequencing / gate state
 
-Safe single-writer order:
+1. #145 browser repair publishes the repaired documents/result and hands off.
+2. **#158 independently reviews the repaired contract: APPROVED / NEEDS CHANGES / REJECTED.**
+3. Only an APPROVED #158 may cause Manager to repin/release #143 after a fresh live schema/ownership check.
+4. #143 implements/qualifies/integrates the one-way latch and all-hash exclusion as the sole save/schema/hash writer.
+5. #124 curriculum replay follows on the exact #143 integration and owns no persistence/hash surface.
+6. #126 PARITY-08 remains blocked until that exact combined S1-D lineage is known and repinned.
+7. #128 remains review-only behind #126.
 
-1. #143 S1-D minimal persistence owns save/schema first.
-2. #124 curriculum replay follows after #143 integration/qualification; #124 does **not** own schema/save files.
-3. PARITY-08 #126 remains blocked until the exact post-#143/#124 lineage is known, then is repinned so its compatibility/hash/reference checks cover the new field rather than obsolete v23-only state.
-4. #128 remains the mandatory independent PARITY-08 review after #126 hands off.
+Current states:
 
-No concurrent save/schema writers are authorised.
-
-## Gate state
-
-- Candidate `b9d204c`: **not accepted / not Unity-qualified**.
-- #143: next local persistence prerequisite once released by browser amendment/Manager review.
-- #124: **BLOCKED on #143 integration/qualification**.
-- Unity lock: do not acquire for #124 before #143 is accepted and #124 is explicitly re-released.
-- Independent review: required after the corrected exact candidate exists.
-- MFM-09 remains blocked on accepted S1-D T-04/T-05.
-- PARITY-08 #126/#128 remain blocked pending exact amended lineage.
+- `b9d204c`: unqualified evidence only.
+- #143: **BLOCKED PENDING #158 APPROVAL; no ownership**.
+- #124: **BLOCKED PENDING #158 then #143 integration; no active production release**.
+- #126: **BLOCKED** on repaired/approved S1-D lineage.
+- #128: **BLOCKED** behind future #126 handoff.
 - No Windows build is authorised.
 
 ## Next Manager decision
 
-The browser amendment itself must receive an independent browser Manager review before production release. That review will issue **APPROVED / NEEDS CHANGES / REJECTED** against the exact #136 result and, if approved, release the next executable local packet and repin #126/#128 safely.
+Run browser Manager review #158 against the repaired #145 package. This file records the proposed corrected contract; it does not itself release production implementation.
