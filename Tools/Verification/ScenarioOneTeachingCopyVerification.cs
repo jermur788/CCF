@@ -132,8 +132,16 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         if (Application.isBatchMode) yield break;
         yield return Render();
     }
+    // Frame counts alone left a just-shown panel unlaid-out on a slow Xephyr display; also wait real time. Assertions are unchanged.
     IEnumerator Settle()
-    { for (int i = 0; i < 12; i++) yield return null; }
+    { yield return new WaitForSecondsRealtime(.4f); for (int i = 0; i < 12; i++) yield return null; }
+    // The Game view resize is applied asynchronously: wait until the requested size is live before any layout assertion.
+    IEnumerator Resize(Vector2Int size)
+    {
+        ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y);
+        for (int i = 0; i < 180 && (Screen.width != size.x || Screen.height != size.y); i++) yield return null;
+        Check(Screen.width == size.x && Screen.height == size.y, "game view resized to " + size.x + "x" + size.y + " (got " + Screen.width + "x" + Screen.height + ")");
+    }
     void Fits(VisualElement element, string name)
     {
         Rect view = ui.RootElement.worldBound, b = element.worldBound;
@@ -155,7 +163,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         yield return new WaitForSecondsRealtime(5f); // Let first interactive shader compilation settle before captures.
         foreach (var size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {
-            ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y);
+            yield return Resize(size);
             ui.CloseAll(); ui.CloseHelp(); ui.ShowHelp(MenuHelpView.Menu.WalkingHud); yield return Settle();
             Fits(ui.Help.Root.Children().First(), "help"); yield return Capture("s1a-help-" + size.x);
             ui.CloseHelp(); ui.ShowObjectives(); ui.Learning.Refresh(true);
@@ -192,7 +200,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         ui.ShowReview(); ui.CloseHelp(); yield return Settle();
         foreach (var size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {
-            ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y); yield return Settle();
+            yield return Resize(size); yield return Settle();
             VisualElement review = ui.RootElement.Query<VisualElement>(className: "modal").ToList().Single(v => v.parent.resolvedStyle.display != DisplayStyle.None && Text(v).Contains("Annual review"));
             Fits(review, "annual review"); yield return Capture("s1a-review-" + size.x);
         }

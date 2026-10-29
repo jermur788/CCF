@@ -117,7 +117,8 @@ public sealed class WorkPlanView
         // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
         string rackProblem = ui.RackPlanProblem;
         string approvalProblem = ui.RackApprovalProblem;
-        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem + "|A" + approvalProblem;
+        string rackAdvisory = ui.RackPlanAdvisory;
+        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem + "|A" + approvalProblem + "|N" + rackAdvisory;
         if (!force && signature == shownSignature)
             return;
         shownSignature = signature;
@@ -146,7 +147,8 @@ public sealed class WorkPlanView
 
         feedback.text = !string.IsNullOrEmpty(rackProblem) ? rackProblem
             : !string.IsNullOrEmpty(approvalProblem) ? approvalProblem
-            : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
+            : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason
+            : (string.IsNullOrEmpty(rackAdvisory) ? "" : rackAdvisory + "   ·   ") + m.Feedback + "   ·   " + m.TutorialHint;
 
         // The question stays only while it still applies: approving, removing or cancelling the planned work answers it.
         AdvanceGuard.Decision guard = AdvanceDecision(m);
