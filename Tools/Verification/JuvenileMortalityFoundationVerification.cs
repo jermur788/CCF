@@ -9,6 +9,8 @@ using UnityEngine;
 
 // Copy this file into Assets/ForestPrototype for an explicit batch run; remove
 // the copy and generated meta afterwards. This gate never writes the save slot.
+// Run both entry points with CCF_STAND_GEOMETRY=0: the v13 save fixture and
+// protected lifecycle anchors describe Legacy40, not the new-game Enlarged80.
 public static class JuvenileMortalityFoundationVerification
 {
     private const string Requested = "JuvenileMortalityFoundationVerification.Requested";
@@ -67,6 +69,9 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
     private IEnumerator VerifyCanonical()
     {
         var ecology = FindFirstObjectByType<ForestEcologyController>();
+        Check(ecology != null && ecology.StandGeometryModelVersion == StandGeometryModel.Legacy40
+            && ecology.Cells.Length == StandGeometryModel.CellCount(StandGeometryModel.Legacy40),
+            "Canonical fixture requires Legacy40 (CCF_STAND_GEOMETRY=0); Enlarged80 has a different ecology grid");
         MethodInfo hashMethod = typeof(ScenarioOneInteractionGate).GetMethod("LifecycleHash", BindingFlags.Static | BindingFlags.NonPublic);
         // Scenario One applies its [C] browse pressure (0.2). The neutral anchor
         // runs with browsing explicitly off; normal play runs with the scenario value.
@@ -161,6 +166,13 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
         Check(ecology != null && manager != null && saves != null && spawner != null && marks != null, "Scene controllers missing");
         VerifyEarlyLifeConformance(ecology, spawner);
         ForestSaveData original = saves.CaptureData();
+        Check(original.standGeometryModel == StandGeometryModel.Legacy40
+            && original.scenarioOne.rackPlanningModel == RackPlanningModel.Legacy
+            && !original.scenarioOne.rackPlanConfirmed && original.scenarioOne.nextRackId == 1
+            && original.scenarioOne.racks.Count == 0
+            && original.scenarioOne.workOrders.All(order => order.rackId == 0)
+            && ForestSaveValidation.ValidateRackV2(original) == null,
+            "Foundation v13 fixture requires a Legacy40/model-0 world (CCF_STAND_GEOMETRY=0), with no V2 rack state");
         string originalHash = ScenarioReferenceArchive.WorldHash(original);
         // These checks assert exact light-only identities between storage forms.
         // Browsing (Scenario One pressure 0.2) is realised per individual and as
@@ -336,6 +348,10 @@ public sealed class JuvenileMortalityFoundationGate : MonoBehaviour
             Check(!saves.LoadData(bad, false) && ecology.LivingTreeCount == 1, "Invalid mortality record changed the world");
             ForestSaveData legacySave = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(livingSave));
             legacySave.version = 13;
+            Check(legacySave.standGeometryModel == StandGeometryModel.Legacy40
+                && legacySave.scenarioOne.rackPlanningModel == RackPlanningModel.Legacy
+                && ForestSaveValidation.ValidateRackV2(legacySave) == null,
+                "Legacy mortality fixture retained post-v13 geometry or Rack V2 state");
             Check(saves.LoadData(legacySave, false), "Legacy current save rejected after mortality");
             yield return null;
             focal = FindTree("MORTALITY-FOCAL");

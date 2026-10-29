@@ -16,6 +16,7 @@ using Debug = UnityEngine.Debug;
 // (Docs/BrowsingProtectionV1.md). Copy into Assets/ForestPrototype for an
 // explicit batch run, then remove the copy and its generated .meta:
 //   -executeMethod BrowsingProtectionVerification.Begin
+// Use CCF_STAND_GEOMETRY=0 for the protected historical measurement hashes.
 // It never writes the save slot: the scene world is captured in memory first
 // and restored at the end.
 public static class BrowsingProtectionVerification
@@ -129,6 +130,9 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         saves = FindFirstObjectByType<ForestSaveController>();
         spawner = FindFirstObjectByType<ForestTreeSpawner>();
         Check(ecology != null && manager != null && saves != null && spawner != null, "scene controllers missing");
+        Check(ecology.StandGeometryModelVersion == StandGeometryModel.Legacy40
+            && ecology.Cells.Length == StandGeometryModel.CellCount(StandGeometryModel.Legacy40),
+            "Historical browsing measurements require Legacy40 (CCF_STAND_GEOMETRY=0)");
         original = saves.CaptureData();
         originalStandSize = (float)Field(typeof(ForestEcologyController), "standSizeMeters").GetValue(ecology);
         ForestStartingStand sceneGenerator = FindFirstObjectByType<ForestStartingStand>();
@@ -282,8 +286,19 @@ public sealed class BrowsingProtectionGate : MonoBehaviour
         foreach (TreeSpeciesDefinition species in new[] { oak, beech, sitka })
         {
             BrowseAssessment open = JuvenileEcologyRules.AssessBrowse(species, belowFullVulnerability, pressure, 1f, BrowseProtectionState.None);
-            // Unprotected: probability is exactly pressure x palatability (all other terms are 1).
-            Check(open.Probability == pressure * species.BrowsePalatability && open.Reason == BrowseExposureReason.Exposed,
+            // Mono can retain extra precision in a float product expression while the
+            // returned assessment has already rounded to float. Bound only that rounding;
+            // every input term, ordering and protected-zero assertion stays exact.
+            float expectedProbability = pressure * species.BrowsePalatability;
+            float probabilityTolerance = expectedProbability * 1.2e-7f; // one float relative rounding unit
+            Debug.Log($"BROWSE_PROBABILITY_CHECK {species.SpeciesId} actual={open.Probability:R} expected={expectedProbability:R} "
+                + $"delta={(open.Probability - expectedProbability):R} tolerance={probabilityTolerance:R} "
+                + $"strictExpressionEqual={open.Probability == pressure * species.BrowsePalatability} "
+                + $"doubleProduct={((double)pressure * species.BrowsePalatability):R}");
+            Check(open.BackgroundPressure == pressure && open.Palatability == species.BrowsePalatability
+                && open.HeightVulnerability == 1f && open.VegetationExposure == 1f && open.ProtectionAccess == 1f,
+                $"{species.SpeciesId} unprotected browse probability input terms changed");
+            Check(Mathf.Abs(open.Probability - expectedProbability) <= probabilityTolerance && open.Reason == BrowseExposureReason.Exposed,
                 $"{species.SpeciesId} unprotected browse probability is not pressure x palatability");
             Check(open.Probability < previous, $"{species.SpeciesId} unprotected browse probability breaks Oak > Beech > Sitka");
             previous = open.Probability;
