@@ -52,6 +52,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
 
     private void Check(bool ok, string what, string detail = "")
     {
+        detail = detail ?? "";
         if (!ok) { Debug.Log("MFM06_UNITY_CHECK_FAIL " + what + " " + detail); throw new InvalidOperationException(what + " " + detail); }
         checks++;
         Debug.Log("MFM06_UNITY_CHECK " + what + (detail.Length == 0 ? "" : " [" + detail + "]"));
