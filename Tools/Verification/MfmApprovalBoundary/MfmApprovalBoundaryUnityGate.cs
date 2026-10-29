@@ -165,7 +165,7 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
         original = saves.CaptureData();
         saves.enabled = false; // no F5/F9 keyboard handler during this run
         Check(manager.RackPlanningV2Active && ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "production Enlarged80 Rack V2 world");
-        Check(ForestSaveData.CurrentVersion == 23 && manager.Prescriptions.Count == 0 && manager.NextPrescriptionId == 1, "v23 world starts with no prescription state");
+        Check(ForestSaveData.CurrentVersion == 24 && manager.Prescriptions.Count == 0 && manager.NextPrescriptionId == 1, "v24 world starts with no prescription state");
         ui.CloseAll(); ui.CloseHelp();
         yield return Settle();
 

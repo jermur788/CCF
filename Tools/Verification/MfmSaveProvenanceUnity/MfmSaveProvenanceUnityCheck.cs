@@ -157,7 +157,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
         saveControllerWasEnabled = saves.enabled;
         saves.enabled = false; // no F5/F9 keyboard handler during this run
         original = saves.CaptureData();
-        Check(ForestSaveData.CurrentVersion == 23 && original.version == 23, "candidate writes save version 23");
+        Check(ForestSaveData.CurrentVersion == 24 && original.version == 24, "candidate writes save version 24 (D-066 latch)");
 
         // ---- a brand-new world has no prescription state ---------------------------------------------------------
         Check(manager.RackPlanningV2Active && ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "production Enlarged80 Rack V2 world");
@@ -191,7 +191,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
         saves.Save();
         Check(File.Exists(SavePath), "Save() wrote the isolated save slot");
         string v23Ordinary = File.ReadAllText(SavePath);
-        Check(JObject.Parse(v23Ordinary)["version"].Value<int>() == 23 && v23Ordinary.Contains("nextPrescriptionId"), "Save() writes the v23 prescription fields explicitly");
+        Check(JObject.Parse(v23Ordinary)["version"].Value<int>() == 24 && v23Ordinary.Contains("nextPrescriptionId"), "Save() writes v24 with explicit prescription fields");
         string v22Text = AsV22(v23Ordinary);
         File.WriteAllText(SavePath, v22Text);
         Check(!v22Text.Contains("rescription"), "v22 fixture contains no prescription text");
@@ -313,7 +313,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
             ("allocator missing", Pretty(Mut(s => s.Remove("nextPrescriptionId"))), "explicit prescription fields"),
             ("prescription id typed as a string", Pretty(Mut(s => Rx(s)[0]["prescriptionId"] = "1")), "required fields"),
             ("order provenance missing", Pretty(Mut(s => Order(s).Remove("prescriptionCoverageUnitId"))), "prescription link"),
-            ("prescription state inside a v22 header", Pretty(Mut(s => { })).Replace("\"version\": 23", "\"version\": 22"), "older than version 23"),
+            ("prescription state inside a v22 header", Pretty(Mut(s => { })).Replace("\"version\": 24", "\"version\": 22"), "older than version 23"),
             ("truncated document", firstDisk.Substring(0, firstDisk.Length / 2), null),
             ("duplicate key", firstDisk.Replace("\"nextPrescriptionId\": 3,", "\"nextPrescriptionId\": 3,\n    \"nextPrescriptionId\": 3,").Replace("\"wood\": " + wood, "\"wood\": " + (wood + 7)), null),
         };

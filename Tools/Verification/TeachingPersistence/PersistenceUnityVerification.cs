@@ -1,0 +1,347 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
+
+// Disposable live gate for the V2 lesson: actual Work Plan/Annual Review, keyboard inspection and decision hooks, and in-memory reload.
+// InputSystem queued events are synthetic; the rendered/manual qualification still needs real OS input and both render sizes.
+// Does not write save files. Stage/run/remove with its generated meta under the machine-wide Unity lock in a registered lane only.
+public static class PersistenceUnityVerification
+{
+#if UNITY_EDITOR
+    public static void Begin()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/ForestTest.unity");
+        EditorApplication.isPlaying = true;
+    }
+#endif
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Install()
+    {
+        if (Environment.GetCommandLineArgs().Any(a => a == "PersistenceUnityVerification.Begin"))
+            new GameObject("Disposable rack lesson verification").AddComponent<PersistenceUnityVerificationRunner>();
+    }
+}
+
+public sealed class PersistenceUnityVerificationRunner : MonoBehaviour
+{
+    private ScenarioOneUiRoot ui;
+    private ScenarioOneManager manager;
+    private ForestPlayer player;
+    private ForestTreeMarkingManager marks;
+    private ForestSaveController saves;
+    private int checks;
+
+    private void Check(bool ok, string what, string detail = "")
+    {
+        if (!ok) throw new InvalidOperationException(what + (detail.Length > 0 ? " [" + detail + "]" : ""));
+        checks++;
+        Debug.Log("LATCH_CHECK " + what + (detail.Length > 0 ? " [" + detail + "]" : ""));
+    }
+
+    private IEnumerator Start()
+    {
+        for (int i = 0; i < 8; i++) yield return null;
+        Exception failure = null;
+        var stack = new Stack<IEnumerator>();
+        stack.Push(Run());
+        while (stack.Count > 0)
+        {
+            bool more; object current = null;
+            try { more = stack.Peek().MoveNext(); if (more) current = stack.Peek().Current; }
+            catch (Exception error) { failure = error; break; }
+            if (!more) { stack.Pop(); continue; }
+            if (current is IEnumerator nested) stack.Push(nested); else yield return current;
+        }
+        Debug.Log(failure == null ? "TEACHING_LATCH_UNITY_PASS checks=" + checks : "TEACHING_LATCH_UNITY_FAIL " + failure);
+#if UNITY_EDITOR
+        EditorApplication.ExitPlaymode();
+        EditorApplication.Exit(failure == null ? 0 : 1);
+#endif
+    }
+
+    private IEnumerator Press(Key key)
+    {
+        Keyboard keyboard = Keyboard.current ?? InputSystem.AddDevice<Keyboard>();
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(key)); yield return null; yield return null;
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null; yield return null;
+    }
+
+    private IEnumerator Frames(int n) { for (int i = 0; i < n; i++) yield return null; }
+
+    private static ForestTree[] Trees() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        .Where(t => t.IsLiving && t.Species != null && t.Species.SpeciesId == "sitka-spruce")
+        .OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
+
+    private ScenarioOneRackBay.Analysis Bay()
+    {
+        var layout = ui.RackTool.Planner.LayoutStatus();
+        var line = layout[layout.Count / 2];
+        return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
+            ui.RackTool.Planner.LayoutLines, new ScenarioOneRackBay.Frame(line.Start, line.End,
+                ScenarioOneRackBay.HalfWidth(ui.RackTool.Planner.LayoutLines, layout.Count / 2)));
+    }
+
+    // The facts the Learning panel itself uses (private; refreshed at most every quarter of a second).
+    private ScenarioOneTeachingSequence.Facts LiveFacts()
+    {
+        MethodInfo method = typeof(LearningObjectivesView).GetMethod("TeachingFacts", BindingFlags.Instance | BindingFlags.NonPublic);
+        return (ScenarioOneTeachingSequence.Facts)method.Invoke(ui.Learning, null);
+    }
+
+    private IEnumerator Settled() { yield return new WaitForSecondsRealtime(0.35f); }
+
+    // At the accepted 2.0 m spacing a tree can stand directly between the old fixed -Z viewpoint and its target (P0614 does this
+    // to P0714). That is correct production behaviour: the nearer trunk is what the player's reticle actually hits. The gate
+    // therefore establishes a legitimate stand point with clear line of sight and still uses the real marking raycast to select.
+    private static readonly Vector3[] InspectionDirections =
+    {
+        Vector3.back, Vector3.forward, Vector3.right, Vector3.left,
+        new Vector3(-1f, 0f, -1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+        new Vector3(-1f, 0f, 1f).normalized, new Vector3(1f, 0f, 1f).normalized
+    };
+    private static readonly string[] InspectionDirectionNames = { "-Z (legacy)", "+Z", "+X", "-X", "-X-Z", "+X-Z", "-X+Z", "+X+Z" };
+    private static readonly float[] InspectionDistances = { 3f, 2.5f, 2f };
+    private readonly Collider[] inspectionOverlaps = new Collider[16];
+
+    private static string PoseLabel(int direction, int distance) =>
+        InspectionDirectionNames[direction] + "@" + InspectionDistances[distance].ToString("0.#", CultureInfo.InvariantCulture) + "m";
+
+    private bool OverlapsOtherTree(Vector3 standPoint, ForestTree target, out string blocking)
+    {
+        blocking = "";
+        int count = Physics.OverlapSphereNonAlloc(standPoint + Vector3.up * 0.9f, 0.35f, inspectionOverlaps);
+        for (int i = 0; i < count; i++)
+        {
+            Collider collider = inspectionOverlaps[i];
+            Transform hit = collider.transform;
+            if (hit == player.transform || hit.IsChildOf(player.transform))
+                continue;
+            ForestTree tree = collider.GetComponentInParent<ForestTree>();
+            if (tree == target)
+                continue;
+            blocking = tree != null ? tree.TreeId : collider.name;
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator AimAt(ForestTree tree)
+    {
+        Vector3 aimPoint = tree.transform.position + Vector3.up * 1.4f;
+        var attempts = new List<string>();
+        for (int direction = 0; direction < InspectionDirections.Length; direction++)
+        {
+            for (int distance = 0; distance < InspectionDistances.Length; distance++)
+            {
+                Vector3 standPoint = tree.transform.position + InspectionDirections[direction] * InspectionDistances[distance];
+                if (OverlapsOtherTree(standPoint, tree, out string blocking))
+                {
+                    attempts.Add(PoseLabel(direction, distance) + " blocked by " + blocking);
+                    continue;
+                }
+                player.transform.position = standPoint;
+                player.LookToward(aimPoint);
+                yield return Frames(8);
+                ForestTree aimed = marks.AimedTree;
+                if (aimed == tree)
+                {
+                    Debug.Log("LESSON_AIM " + tree.TreeId + " selected from " + PoseLabel(direction, distance)
+                        + (attempts.Count > 0 ? "; rejected " + string.Join("; ", attempts) : ""));
+                    yield break;
+                }
+                attempts.Add(PoseLabel(direction, distance) + " aimed " + (aimed != null ? aimed.TreeId : "nothing"));
+            }
+        }
+        throw new InvalidOperationException("could not aim at " + tree.TreeId + " [" + string.Join("; ", attempts) + "]");
+    }
+
+    private IEnumerator Inspect(ForestTree tree)
+    {
+        if (player.IsInspecting) yield return Press(Key.E);
+        yield return AimAt(tree);
+        yield return Press(Key.E);
+        yield return Frames(8);
+        // A fresh profile opens the first-use Tree Inspection help here. It is modal and takes the keyboard, so close the tutorial
+        // window after it has opened; the gate then exercises the same gameplay state a returning player sees. User-facing first-use
+        // help is unchanged.
+        ui.CloseHelp();
+        yield return Frames(4);
+        if (!player.IsInspecting || player.InspectedTree != tree) throw new InvalidOperationException("could not inspect " + tree.TreeId);
+    }
+
+    private static string F(double v) => v.ToString("0.###", CultureInfo.InvariantCulture);
+
+    private IEnumerator ReviewStand()
+    {
+        ui.CloseAll(); ui.CloseHelp();
+        foreach (string id in Bay().Future.Select(t => t.Id).ToArray())
+        {
+            yield return Inspect(Trees().First(t => t.TreeId == id));
+            yield return Press(Key.J);
+        }
+        for (int part = 0; part < 6; part++)
+        {
+            var bay = Bay();
+            ForestTree tree = Trees().First(t => !t.IsMarkedForFell && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Portion(t.transform.position.x, t.transform.position.z) == part);
+            yield return Inspect(tree); yield return Press(Key.J);
+        }
+        if (player.IsInspecting) yield return Press(Key.E);
+        yield return Settled();
+    }
+
+    private IEnumerator Run()
+    {
+        ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager; player = ui.Player; marks = ui.Marking; saves = FindFirstObjectByType<ForestSaveController>();
+        Check(manager != null && player != null && marks != null && saves != null, "scene has live lesson dependencies");
+        ui.CloseAll(); ui.CloseHelp(); yield return Frames(6);
+        var planner = ui.RackTool.Planner;
+        foreach (float across in planner.LayoutLines.ToArray())
+        {
+            planner.Refresh(); var proposal = planner.Propose(new RackPoint(0, across), 0f);
+            if (proposal.CanConfirm) manager.ConfirmRack(proposal, "map");
+        }
+        Check(ui.ApproveWorkPlan(), "approve actual rack access work");
+        Check(ui.AdvanceFromWorkPlan(), "execute actual rack access through UI action");
+        yield return Frames(30); ui.RackLayout.Update(true); ui.CloseHelp();
+        ui.AcknowledgeAnnualReview(); ui.CloseAll(); yield return Settled();
+        Check(LiveFacts().AccessOpen && LiveFacts().AccessReviewed, "live access executed and Annual Review acknowledged");
+        var bay = Bay();
+#if UNITY_EDITOR
+        // Accepted live geometry anchors carried from the V4 qualification run.
+        int footprintTrees = Trees().Count(t => bay.Contains(t.transform.position.x, t.transform.position.z));
+        Check(footprintTrees == 69, "accepted live teaching footprint has 69 living trees after access", "n=" + footprintTrees);
+        var standSpacing = new UnityEditor.SerializedObject(FindFirstObjectByType<ForestStartingStand>()).FindProperty("latticeSpacingMeters").floatValue;
+        Check(Mathf.Abs(standSpacing - 2f) < .00001f, "scene lattice spacing remains 2.0 m", "spacing=" + F(standSpacing));
+        // MFM-02 (Manager-approved/integrated, merge 07eee3d) accepted the regenerated model-0 Enlarged80 fixture:
+        // its authored rows leave a 15.989349 m gap (half-width 7.9946747 m), 9.2 mm inside the historical 8.00385 m
+        // scene fixture, with identical tree membership and BA. 8.00385 m was a historical scene-fixture value, not a
+        // protected anchor; the authoritative production value is ScenarioOneRackBay.HalfWidth (half the live gap).
+        Check(Mathf.Abs(bay.HalfWidthM - 7.9946747f) < .001f, "accepted live middle-rack half-width remains 7.9946747 m", "half width=" + F(bay.HalfWidthM));
+#endif
+        var layoutLines = planner.LayoutLines.OrderBy(v => v).ToArray();
+        Check(layoutLines.Length == 5, "the authored layout has five racks", "n=" + layoutLines.Length);
+        float expectedHalfWidth = Mathf.Min(layoutLines[2] - layoutLines[1], layoutLines[3] - layoutLines[2]) * .5f;
+        Check(bay.RackIndex == 2 && bay.RackCount == 5 && Mathf.Abs(bay.HalfWidthM - expectedHalfWidth) < .001f,
+            "middle rack footprint is half the gap to its neighbouring layout racks", "half width " + F(bay.HalfWidthM));
+        foreach (string id in new[] { "P0616", "P1112", "P1415" }) marks.Mark(Trees().First(t => t.TreeId == id), TreeMarkType.CropTree, false);
+        yield return Settled();
+        Check(!Bay().HasEnoughFuture && ui.Learning.CurrentTopicIndex == 1, "clustered triple cannot complete Objective 2 live");
+        foreach (var t in Trees().Where(t => t.IsCropTree)) marks.Unmark(t, false);
+        foreach (string id in new[] { "P0714", "P1109", "P0706" }) marks.Mark(Trees().First(t => t.TreeId == id), TreeMarkType.CropTree, false);
+        yield return Settled(); bay = Bay();
+        Check(bay.HasEnoughFuture && bay.NearSelected && bay.MiddleSelected && bay.FarSelected && bay.BothSides, "three distributed retained trees qualify");
+        Check(ui.Learning.CurrentTopicIndex == 2, "Objective 3 follows distributed selections");
+        ForestTree outside = Trees().First(t => !t.IsCropTree && !bay.Contains(t.transform.position.x,t.transform.position.z)
+            && bay.Future.Any(f => Vector2.Distance(new Vector2(f.X,f.Z),new Vector2(t.transform.position.x,t.transform.position.z)) <= 8));
+        marks.Mark(outside, TreeMarkType.Fell, false);
+        Check(Bay().MarkedRemovals == 0 && Bay().MinWithMarks == 0, "nearby outside-footprint marks give no lesson credit");
+        marks.Unmark(outside, false);
+        for (int guard = 0; guard < 150; guard++)
+        {
+            bay = Bay(); if (bay.MinPlannedAndExecuted >= ScenarioOneRackBay.FirstReleaseShare) break;
+            var f = bay.Future.OrderBy(t => t.ReleaseShare).First();
+            ForestTree next = Trees().Where(t => !t.IsCropTree && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Contains(t.transform.position.x,t.transform.position.z)
+                && Vector2.Distance(new Vector2(f.X,f.Z),new Vector2(t.transform.position.x,t.transform.position.z)) <= 8)
+                .OrderByDescending(t => ForestEcologyController.HegyiTerm(t.Diameter, f.DbhCm,
+                    Vector2.Distance(new Vector2(f.X,f.Z),new Vector2(t.transform.position.x,t.transform.position.z)))).First();
+            marks.Mark(next,TreeMarkType.Fell,false); manager.AddMarkedTreesToWorkPlan();
+        }
+        bay=Bay();
+        Check(bay.ReleasePlanned && bay.CanopyKept, "initial in-footprint 30% plan is feasible live");
+        foreach(var f in bay.Future)
+        {
+            yield return Inspect(Trees().First(t=>t.TreeId==f.Id));
+            float panelShare=ui.Competitors.Report.PlannedShare;
+            Check(Mathf.Abs(panelShare-f.PlannedShare)<.005f,"panel and lesson initial share agree for "+f.Id,
+                "panel "+F(panelShare)+" lesson "+F(f.PlannedShare)+" current competition "+F(ui.Competitors.Report.CompetitionNow)
+                +" neighbours "+ui.Competitors.Report.NeighbourCount);
+        }
+        if(player.IsInspecting)yield return Press(Key.E);
+        var order=manager.WorkOrders.First(o=>o.IsOpen&&o.type==ScenarioWorkType.FellTree);
+        Check(manager.SetPendingFellingOutcome(order.workOrderId,FellingMaterialOutcome.RetainAsFallenDeadwood),"set actual deadwood outcome");
+        Check(Bay().MixedPlanned,"both actual outcomes counted inside footprint");
+        // In-memory rollback of a deliberately excessive draft; approval must be denied by the actual interactive entry point.
+        ForestSaveData safePlan=saves.CaptureData();
+        foreach(var t in Trees().Where(t=>!t.IsCropTree&&bay.Contains(t.transform.position.x,t.transform.position.z)))marks.Mark(t,TreeMarkType.Fell,false);
+        Check(!Bay().CanopyKept && !ui.ApproveWorkPlan() && !ui.AdvanceFromWorkPlan(),"over-cap interactive approval and execution refused");
+        Check(saves.LoadData(safePlan,false),"restore valid in-memory plan"); yield return Frames(12);yield return Settled();
+        Check(ui.ApproveWorkPlan(),"approve bounded intervention");
+        Check(ui.AdvanceFromWorkPlan(),"execute bounded intervention through Work Plan UI action");
+        yield return Frames(30);ui.CloseHelp();yield return Settled();
+        Check(Bay().ReleaseExecuted&&Bay().MixedExecuted,"live executed release has sold and deadwood outcomes");
+        Check(ui.Learning.CurrentTopicIndex==4&&!LiveFacts().RackReviewComplete&&!manager.FirstGuidedRackReviewComplete,"response with incomplete review leaves latch false");
+        ForestSaveData preAmendment = saves.CaptureData();
+        ui.AcknowledgeAnnualReview();yield return Settled();
+        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0,"generic acknowledgement gives no tree inspection credit");
+        Check(LiveFacts().ReleaseReviewed && !manager.FirstGuidedRackReviewComplete, "Annual Review alone leaves latch false");
+        string beforeReads = JsonUtility.ToJson(manager.CaptureSaveData());
+        for (int i=0;i<10;i++) { ui.Learning.Refresh(true); ui.Learning.RackPlanProblem(); ui.Learning.RackPlanAdvisory(); }
+        Check(JsonUtility.ToJson(manager.CaptureSaveData()) == beforeReads, "repeated reads never earn completion");
+        preAmendment = saves.CaptureData();
+        int removed=Bay().ExecutedRemovals;
+        yield return ReviewStand();
+        Check(LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==3&&LiveFacts().StandPortionsReviewed==6,"all three actual inspections and retained stand decisions complete return review");
+        Check(Bay().ExecutedRemovals==removed&&ui.Learning.CurrentTopicIndex==5,"retain-here completes with zero further felling");
+        Check(manager.FirstGuidedRackReviewComplete && LiveFacts().FirstGuidedRackReviewComplete, "real final decision writes shared latch");
+        ForestSaveData completed=saves.CaptureData();
+        Check(completed.scenarioOne.firstGuidedRackReviewComplete, "capture contains true");
+        string savedScenario = JsonUtility.ToJson(completed.scenarioOne);
+        Check(!savedScenario.Contains("\"RackReviewComplete\":") && !savedScenario.Contains("StandPortionsReviewed") && !savedScenario.Contains("ReviewDecisions") && !savedScenario.Contains("RevisitedTrees"), "no individual decisions/inspection/session detail serialized");
+        for (int i=0;i<3;i++)
+        {
+            saves.Save();
+            Check(System.IO.File.Exists(System.IO.Path.Combine(Application.persistentDataPath,"forest-save.json")), "disk save true " + i);
+            Check(saves.CanLoad(out string problem), "disk load allowed " + i, problem); saves.Load(); yield return Frames(12);yield return Settled();
+            Check(manager.FirstGuidedRackReviewComplete && !LiveFacts().RackReviewComplete && ui.Learning.CurrentTopicIndex==5, "true survives reload without session reconstruction " + i);
+            for (int r=0;r<5;r++) { ui.Learning.Refresh(true); ui.Learning.RackPlanProblem(); }
+            Check(JsonUtility.ToJson(manager.CaptureSaveData()) == savedScenario, "reload/refresh has no duplicate write or side effect " + i);
+        }
+        string identity = PersistenceHashFixtures.Hashes(saves.CaptureData());
+        var falseWorld=JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed)); falseWorld.scenarioOne.firstGuidedRackReviewComplete=false;
+        Check(PersistenceHashFixtures.Hashes(falseWorld) == identity, "false/true full world all identity paths equal");
+        foreach (var t in Trees().Where(t=>t.IsCropTree)) marks.Unmark(t,false);
+        yield return Settled(); Check(manager.FirstGuidedRackReviewComplete && ui.Learning.CurrentTopicIndex>=5, "Crop Tree count/loss drift cannot reopen first lessons");
+        var drift=saves.CaptureData();
+        foreach(var o in drift.scenarioOne.workOrders.Where(o=>o.type==ScenarioWorkType.FellTree && o.rackId==0)) o.fellingOutcome = FellingMaterialOutcome.SellAndExtract;
+        // Model-0 world: alter the historical release accounting on a captured fixture, not protected production rules.
+        Check(saves.LoadData(drift,false), "load later executed-share drift fixture"); yield return Frames(12);yield return Settled();
+        Check(manager.FirstGuidedRackReviewComplete && ui.Learning.CurrentTopicIndex>=5, "executed-share drift cannot clear latch");
+        Check(saves.LoadData(completed,false), "restore completed world for later in-footprint felling"); yield return Frames(12);yield return Settled();
+        var laterBay=Bay();
+        ForestTree laterTree=Trees().First(t=>!t.IsCropTree && laterBay.Contains(t.transform.position.x,t.transform.position.z));
+        marks.Mark(laterTree,TreeMarkType.Fell,false); manager.AddMarkedTreesToWorkPlan();
+        Check(manager.ApprovePendingWork() && manager.AdvanceYear(), "later in-footprint felling executes through real manager"); yield return Frames(30);yield return Settled();
+        Check(manager.FirstGuidedRackReviewComplete && ui.Learning.CurrentTopicIndex>=5, "later felling retains historical completion");
+        // Representative genuine pre-amendment shape, with release and acknowledgement but no saved session evidence.
+        preAmendment.version=23;
+        string oldJson=JsonUtility.ToJson(preAmendment).Replace("\"firstGuidedRackReviewComplete\":false,", "");
+        var old=JsonUtility.FromJson<ForestSaveData>(oldJson);
+        Check(saves.LoadData(old,false), "load pre-v24 save without teaching field"); yield return Frames(12);yield return Settled();
+        Check(!manager.FirstGuidedRackReviewComplete && !LiveFacts().RackReviewComplete && ui.Learning.CurrentTopicIndex==4, "old save defaults false without backfill");
+        saves.Save(); Check(saves.CanLoad(out string falseProblem), "false disk save is loadable", falseProblem); saves.Load(); yield return Frames(12);yield return Settled();
+        Check(!manager.FirstGuidedRackReviewComplete, "false disk round trip stays false");
+        // Real Unity JsonUtility matrix: both geometries, actual rack/prescription state, every hash API and both latch values.
+        PersistenceHashFixtures.Main();
+        foreach(bool rx in new[]{false,true}) foreach(int geometry in new[]{0,1})
+        {
+            var d=JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed)); d.standGeometryModel=geometry;
+            if(rx) { d.scenarioOne.nextPrescriptionId=2; d.scenarioOne.prescriptions.Add(new PrescriptionSaveData{prescriptionId=1,ruleVersion="MFM-V1-RULE-1",calibrationVersion="MFM-V1-CAL-1",sourceYear=2}); }
+            d.scenarioOne.firstGuidedRackReviewComplete=false; string h=PersistenceHashFixtures.Hashes(d);
+            d.scenarioOne.firstGuidedRackReviewComplete=true;
+            Check(PersistenceHashFixtures.Hashes(d)==h, "Unity all hashes ignore latch geometry="+geometry+" prescription="+rx);
+        }
+    }
+}

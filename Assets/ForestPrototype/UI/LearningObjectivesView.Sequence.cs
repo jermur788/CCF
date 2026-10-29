@@ -82,6 +82,7 @@ public sealed partial class LearningObjectivesView
         rackReview.Synchronize(bay, releaseReviewed, ui.Player != null ? ui.Player.InspectionSerial : -1);
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
+            FirstGuidedRackReviewComplete = m.FirstGuidedRackReviewComplete,
             AccessOpen = rackV2 ? ui.RackLayout.Harvested && m.CurrentEcologicalYear > 0
                 : ui.RackLayout != null && ui.RackLayout.Total > 0
                     ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
@@ -122,6 +123,12 @@ public sealed partial class LearningObjectivesView
         bool changed = rackReview.Decide(f.Bay, tree.TreeId, tree.transform.position.x, tree.transform.position.z,
             further ? ScenarioOneRackReview.Decision.ReleaseFurther : ScenarioOneRackReview.Decision.RetainHere);
         sequenceFacts = null;
+        // Only a real session decision can earn the durable fact. TeachingFacts itself remains read-only.
+        if (changed)
+        {
+            var after = TeachingFacts();
+            if (ui.Manager.TryRecordFirstGuidedRackReview(f, after)) sequenceFacts = null;
+        }
         return changed;
     }
 
@@ -148,7 +155,7 @@ public sealed partial class LearningObjectivesView
     {
         sequenceFacts = null;
         var f = TeachingFacts();
-        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed) == ScenarioOneTeachingCap.Phase.Hard
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed, ui.Manager.FirstGuidedRackReviewComplete) == ScenarioOneTeachingCap.Phase.Hard
             ? ScenarioOneTeachingCap.HardMessage(f.Bay) : "";
     }
 
@@ -157,7 +164,7 @@ public sealed partial class LearningObjectivesView
     {
         // No cache reset: the Work Plan reads RackPlanProblem first, which has just refreshed the facts.
         var f = TeachingFacts();
-        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed) == ScenarioOneTeachingCap.Phase.Advisory
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed, ui.Manager.FirstGuidedRackReviewComplete) == ScenarioOneTeachingCap.Phase.Advisory
             ? ScenarioOneTeachingCap.AdvisoryMessage(f.Bay) : "";
     }
 

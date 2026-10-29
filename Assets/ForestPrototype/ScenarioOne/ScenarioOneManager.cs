@@ -597,8 +597,21 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // Session lifecycle only; deliberately excluded from CaptureSaveData and the save schema.
     public int TeachingWorldVersion { get; private set; }
 
+    private bool firstGuidedRackReviewComplete;
+    public bool FirstGuidedRackReviewComplete => firstGuidedRackReviewComplete;
+
+    // Called only by the live rack-review decision path, never by facts/display refresh or save restoration.
+    internal bool TryRecordFirstGuidedRackReview(ScenarioOneTeachingSequence.Facts before, ScenarioOneTeachingSequence.Facts after)
+    {
+        if (firstGuidedRackReviewComplete || referencePreviewActive
+            || !ScenarioOneTeachingSequence.CrossesFirstRackReview(before, after)) return false;
+        firstGuidedRackReviewComplete = true;
+        return true;
+    }
+
     public void InitializeNewScenario()
     {
+        firstGuidedRackReviewComplete = false; // A new forest has its own history.
         TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         if (definition == null)
@@ -1386,6 +1399,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             EnsureUnderstoreyGrid();
         return new ScenarioOneSaveData
         {
+            firstGuidedRackReviewComplete = firstGuidedRackReviewComplete,
             scenarioId = definition != null ? definition.ScenarioId : "scenario-one",
             initialized = initialized,
             cashCents = cashCents,
@@ -1467,6 +1481,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (definition != null && !string.IsNullOrEmpty(data.scenarioId) && data.scenarioId != definition.ScenarioId)
             Debug.LogWarning($"Save scenario '{data.scenarioId}' is being loaded into '{definition.ScenarioId}'.", this);
         initialized = data.initialized;
+        firstGuidedRackReviewComplete = saveVersion >= 24 && data.firstGuidedRackReviewComplete;
         cashCents = Math.Max(0L, data.cashCents);
         nextWorkOrderId = Mathf.Max(1, data.nextWorkOrderId);
         workOrders = CloneOrders(data.workOrders);

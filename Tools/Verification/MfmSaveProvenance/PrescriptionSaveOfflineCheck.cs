@@ -78,7 +78,7 @@ public static class PrescriptionSaveOfflineCheck
     // Rewrites a current-version JSON as a v22 writer produced it: no prescription fields anywhere, v22 header.
     private static string AsV22(string json)
     {
-        json = json.Replace("\"version\":23,", "\"version\":22,");
+        json = json.Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":22,");
         json = Regex.Replace(json, @",""nextPrescriptionId"":\d+,""prescriptions"":\[.*\](?=\}\}$)", "", RegexOptions.Singleline);
         json = json.Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "");
         json = Regex.Replace(json, @",""prescriptionId"":\d+,""prescriptionCoverageUnitId"":""[^""]*"",""prescriptionCropTreeId"":""[^""]*"",""prescriptionReason"":\d+", "");
@@ -92,9 +92,9 @@ public static class PrescriptionSaveOfflineCheck
         string baseline = args.Length > 0 ? args[0] : null;
 
         // ---- 1. schema --------------------------------------------------------------------------------------------
-        Check(ForestSaveData.CurrentVersion == 23, "schema: CurrentVersion is 23 (next after S1-C T-05 v22)");
+        Check(ForestSaveData.CurrentVersion == 24, "schema: CurrentVersion is 24 (D-066 single teaching latch after MFM v23)");
         var fresh = new ForestSaveData();
-        Check(fresh.version == 23 && fresh.scenarioOne == null, "schema: a new ForestSaveData stamps v23");
+        Check(fresh.version == 24 && fresh.scenarioOne == null, "schema: a new ForestSaveData stamps v24");
         var blank = new ScenarioOneSaveData();
         Check(blank.nextPrescriptionId == 1 && blank.prescriptions != null && blank.prescriptions.Count == 0, "schema: defaults are the empty 'no prescription' state");
         Check(new ScenarioOneWorkOrder().prescriptionId == 0 && new ScenarioOneWorkOrder().prescriptionCoverageUnitId == "" && new ScenarioManagementEvent().prescriptionId == 0,
@@ -112,7 +112,7 @@ public static class PrescriptionSaveOfflineCheck
         string json = Json(world);
         ForestSaveData back = Parse(json);
         ScenarioOneSaveData s = back.scenarioOne;
-        Check(back.version == 23 && s.nextPrescriptionId == 3 && s.prescriptions.Count == 2, "round trip: version, allocator and both prescriptions");
+        Check(back.version == 24 && s.nextPrescriptionId == 3 && s.prescriptions.Count == 2, "round trip: version, allocator and both prescriptions");
         PrescriptionSaveData r1 = s.prescriptions[0];
         Check(r1.prescriptionId == 1 && r1.ruleVersion == "MFM-V1-RULE-1" && r1.calibrationVersion == "MFM-V1-CAL-1", "round trip: id, rule version and calibration version");
         Check(r1.sourceRackId == 1 && r1.sourceYear == 10 && r1.sourceAnchorX == 12.5f && r1.sourceAnchorZ == -3.25f, "round trip: source rack, year and anchor");
@@ -290,7 +290,7 @@ public static class PrescriptionSaveOfflineCheck
         RefusesJson("event without its prescription link", good.Replace("\"ownerMinutes\":0,\"prescriptionId\":0}", "\"ownerMinutes\":0}"));
         RefusesJson("duplicate key", good.Replace("\"nextPrescriptionId\":3,", "\"nextPrescriptionId\":3,\"nextPrescriptionId\":3,"));
         RefusesJson("truncated document", good.Substring(0, good.Length - 40));
-        Check(ForestSaveValidation.ValidatePrescriptionsJson(good.Replace("\"version\":23,", "\"version\":22,"), Parse(good.Replace("\"version\":23,", "\"version\":22,"))) == null,
+        Check(ForestSaveValidation.ValidatePrescriptionsJson(good.Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":22,"), Parse(good.Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":22,"))) == null,
             "json: the presence rule applies only from v23 (a v22 header is not asked for the fields)");
 
         // ---- 6. hash compatibility and determinism ------------------------------------------------------------------

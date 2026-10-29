@@ -245,10 +245,12 @@ public sealed class ScenarioReferenceArchive
     // A world that carries rack state keeps the v21 header it always hashed with.
     private static string HashLayout(string json, ForestSaveData data)
     {
+        json = WithoutTeachingCompletion(json);
         // A world that carries prescription state (save v23) has no historical layout: it hashes as its full current JSON.
-        // The v22 history field is still never part of an identity (accepted rule), so it is dropped here too.
+        // Teaching v24 adds no world state: keep this branch's v23 header as well as stripping teaching/history fields.
         if (!PrescriptionStateIsDefault(data))
-            return WithoutObjectiveAchievements(json);
+            return WithoutObjectiveAchievements(json).Replace("\"version\":" + data.version + ",",
+                data.version >= 24 ? "\"version\":23," : "\"version\":" + data.version + ",");
         json = WithoutLaterFields(json);
         // Keyed on the version this input actually carries (a persisted v21 stays v21), not on CurrentVersion.
         // Versions below the relabel target (an older input) were never rewritten and still are not.
@@ -268,10 +270,14 @@ public sealed class ScenarioReferenceArchive
     // carries no prescription state, see PrescriptionStateIsDefault) the exact default text of the v23 fields. The order
     // run is removed before the single event field so the shorter text cannot clip it.
     private static string WithoutLaterFields(string json)
-        => WithoutObjectiveAchievements(json
+        => WithoutObjectiveAchievements(WithoutTeachingCompletion(json)
             .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
             .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
             .Replace(",\"prescriptionId\":0", ""));
+
+    // Teaching progression is saved, but never participates in a world/reference identity, even when true.
+    private static string WithoutTeachingCompletion(string json)
+        => System.Text.RegularExpressions.Regex.Replace(json, @"""firstGuidedRackReviewComplete"":(?:true|false),", "");
 
     // True when the world holds no prescription state (save v23): allocator untouched, no prescription records, and no
     // work order or event linked to one. This is exactly what every pre-v23 save and every world that never made a

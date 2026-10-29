@@ -460,7 +460,7 @@ public static class ApprovalBoundaryOfflineCheck
         }
         // Old saves and the schema: no new schema member and no version bump in this task.
         string saveData = File.ReadAllText(Path.Combine(root, "Assets", "ForestPrototype", "ForestSaveData.cs"));
-        Check(saveData.Contains("public const int CurrentVersion = 23;") || saveData.Contains("CurrentVersion = 23"), "F7 the save schema is still v23 (no bump in MFM-07)");
+        Check(saveData.Contains("public const int CurrentVersion = 24;"), "F7 the save schema is v24 (only D-066 advances the MFM-07 v23 schema)");
     }
 
     // The text of a method from its signature to its matching closing brace; null if absent.

@@ -21,6 +21,7 @@ import time
 ROOT = Path(__file__).resolve().parents[3]   # default project: the checkout this script lives in
 UNITY = Path('/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity')
 GATES = {
+    'teaching-latch': ('TeachingPersistence/PersistenceUnityVerification.cs', 'TEACHING_LATCH_UNITY_PASS', 'TEACHING_LATCH_UNITY_FAIL'),
     'reference': ('ScenarioReferenceVerification.cs', 'REFERENCE_FUTURE_V1_PASS', 'REFERENCE_FUTURE_V1_FAIL'),
     'hardening': ('SaveHardeningVerification.cs', 'SAVE_HARDENING_VERIFY_PASS', 'SAVE_HARDENING_VERIFY_FAIL'),
     'progress': ('ScenarioOneProgressVerification.cs', 'SCENARIO_ONE_PROGRESS_VERIFY_PASS', 'SCENARIO_ONE_PROGRESS_VERIFY_FAIL'),
@@ -38,7 +39,7 @@ GATES = {
 # Gates that deliberately load rack-model-0 fixtures and must not use production geometry defaults.
 LEGACY_GATES = ('reference', 'progress', 'completion', 'completion-model1', 'interaction', 'density-save')
 # Gates whose harness runs the shared TeachingCapGateSetup companion from the historical gate suite.
-HISTORICAL_COMPANION_GATES = ('reference', 'hardening', 'progress', 'completion', 'completion-model1', 'n3', 'density-save', 'interaction')
+HISTORICAL_COMPANION_GATES = ('teaching-latch', 'reference', 'hardening', 'progress', 'completion', 'completion-model1', 'n3', 'density-save', 'interaction')
 
 
 def main():
@@ -112,6 +113,8 @@ def main():
     companions = []
     if args.gate in HISTORICAL_COMPANION_GATES:
         companions.append(ROOT / 'Tools/Verification/ScenarioOneRepeatedInterventions/TeachingCapGateSetup.cs')
+    if args.gate == 'teaching-latch':
+        companions.append(ROOT / 'Tools/Verification/TeachingPersistence/PersistenceHashFixtures.cs')
     if args.gate == 'hash-dump':
         companions.append(ROOT / 'Tools/Verification/MfmSaveProvenance/HashFixtures.cs')
     pairs = [(source, staged)] + [(p, root / 'Assets/ForestPrototype' / p.name) for p in companions]
@@ -128,7 +131,7 @@ def main():
     licence_copy = out / 'config/unity3d/Unity/licenses'
     shutil.copytree(max(sources, key=lambda p: (p / 'UnityEntitlementLicense.xml').stat().st_mtime), licence_copy, dirs_exist_ok=True)
     env = dict(os.environ, XDG_CONFIG_HOME=str(out / 'config'), DISPLAY=args.display,
-               CCF_DIAG_DIR=str(evidence), CCF_UI_SIZES=args.sizes, CCF_ACCEPTANCE_OUTPUT=str(evidence), CCF_T02_MODE=args.mode, CCF_T03_LEGACY='0')
+               CCF_DIAG_DIR=str(evidence), CCF_UI_SIZES=args.sizes, CCF_ACCEPTANCE_OUTPUT=str(evidence), CCF_T02_MODE=args.mode, CCF_T03_LEGACY='1' if args.gate == 'teaching-latch' else '0')
     # The Unity licensing client needs a socket in TMPDIR; exFAT (ZX20) cannot hold one, so an inherited
     # TMPDIR=/media/jer/ZX20/... stalls the Editor at startup with "waiting for channel: LicenseClient".
     # Keep the trailing slash: the Editor's compiler prewarmer concatenates the directory and filename.
@@ -258,7 +261,7 @@ def main():
         result['disk_saves_created'] = [str(p.relative_to(out)) for p in isolated_saves]
         # The save gate exercises the real controller disk path, so isolated saves are expected there and deleted above.
         # Every other gate must leave the isolated config untouched.
-        saves_allowed = args.gate in ('save', 'approval')
+        saves_allowed = args.gate in ('save', 'approval', 'teaching-latch')
         result['pass'] = (result['host_saves_unchanged'] and not remaining and (saves_allowed or not result['disk_saves_created'])
                           and code == 0 and issue is None and has_pass and not failures
                           and result['harness_removed'] and result['licence_copy_removed'] and not cleanup_failures)
