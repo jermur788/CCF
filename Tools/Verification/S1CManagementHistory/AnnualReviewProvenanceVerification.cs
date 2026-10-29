@@ -377,8 +377,9 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             foreach (Label text in row.Query<Label>().ToList().Where(t => !t.ClassListContains("prov") && Visible(t)))
             {
                 if (text.worldBound.xMin < chip.worldBound.xMax - 1.5f && text.worldBound.yMin < chip.worldBound.yMax - 1.5f && text.worldBound.yMax > chip.worldBound.yMin + 1.5f) overlaps++;
+                // Money values are single-line (white-space: nowrap); the panel-containment audit covers them, not wrap measurement.
                 Vector2 measured = text.MeasureTextSize(text.text, text.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
-                if (measured.y > text.contentRect.height + 1.5f) { clipped++; clippedText.Add($"{Short(text.text)} measured={measured.y:0.0} content={text.contentRect.height:0.0} w={text.contentRect.width:0.0}"); }
+                if (!text.ClassListContains("line-value") && measured.y > text.contentRect.height + 1.5f) { clipped++; clippedText.Add($"{Short(text.text)} measured={measured.y:0.0} content={text.contentRect.height:0.0} w={text.contentRect.width:0.0}"); }
                 lines.AppendLine(HistoryProvenanceText.Label(KindOfChip(chip).Value) + "\t" + text.text.Replace('\n', ' '));
             }
         }
