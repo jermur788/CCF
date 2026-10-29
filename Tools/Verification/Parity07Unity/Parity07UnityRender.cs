@@ -129,7 +129,9 @@ public sealed class Parity07UnityRunner : MonoBehaviour
         viewType.GetProperty("selectedSizeIndex", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(view, index);
         PropertyInfo gizmos = viewType.GetProperty("showGizmos", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         if (gizmos != null && gizmos.CanWrite) gizmos.SetValue(view, false);
-        view.Show(); view.Focus(); view.Repaint();
+        view.Show();
+        view.maximized = true;
+        view.Focus(); view.Repaint();
     }
 
     private IEnumerator Start()
@@ -139,6 +141,7 @@ public sealed class Parity07UnityRunner : MonoBehaviour
         Directory.CreateDirectory(output);
         Directory.CreateDirectory(Path.Combine(output, "texts"));
         Application.logMessageReceived += OnLogMessage;
+        CheckBlankClassifier();
         Exception failure = null;
         var stack = new Stack<IEnumerator>();
         stack.Push(Play());
@@ -343,8 +346,8 @@ public sealed class Parity07UnityRunner : MonoBehaviour
             yield return Shot(name, c.all, card, detail ? detailPanel : null, ui.Inspection.ShowsEstimate ? ui.Inspection.EstimatePanel : null);
             // The two stacked left-column cards must also fit the screen (the cursor is locked, so they cannot scroll).
             VisualElement bottom = detail ? detailPanel : card;
-            Check(bottom.worldBound.yMax <= ActiveRoot().worldBound.yMax + 2f, "LEFT_COLUMN_FITS_SCREEN_" + name,
-                $"bottom={bottom.worldBound.yMax.ToString("0", Inv)} root={ActiveRoot().worldBound.yMax.ToString("0", Inv)}");
+            Check(bottom.worldBound.yMax <= ui.Inspection.Root.worldBound.yMax + 2f, "LEFT_COLUMN_FITS_SCREEN_" + name,
+                $"bottom={bottom.worldBound.yMax.ToString("0", Inv)} column={ui.Inspection.Root.worldBound} root={ActiveRoot().worldBound}");
             ClearInspection();
             yield return Settle(6);
         }
@@ -524,11 +527,16 @@ public sealed class Parity07UnityRunner : MonoBehaviour
 
     private IEnumerator Shot(string name, string text, params VisualElement[] panels)
     {
+        // A selected Game tab is not enough: the native Editor window must be visible/focused too (runner --keep-focus).
+        EditorWindow game = EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView"));
+        game.Focus(); game.Repaint();
+        yield return new WaitForSecondsRealtime(0.3f);
         yield return new WaitForEndOfFrame();
+        Check(Application.isFocused && EditorWindow.focusedWindow == game, "GAME_VIEW_FOCUSED_" + name);
         Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
         if (image == null) { Fail("SHOT_" + name, "no rendered capture"); yield break; }
         Check(image.width == size.x && image.height == size.y, "CAPTURE_SIZE_" + name, $"capture={image.width}x{image.height} target={size.x}x{size.y}");
-        Check(!LooksBlank(image), "SHOT_NOT_BLANK_" + name, "a uniform capture means the Game view had no real surface");
+        Check(!LooksBlank(image), "SHOT_NOT_BLANK_" + name, "capture must be opaque with visible colour variance; transparent RGB garbage is not a rendered surface");
         string file = $"{name}-{size.x}x{size.y}.png", textFile = $"texts/{name}-{size.x}x{size.y}.txt";
         File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
         File.WriteAllText(Path.Combine(output, textFile), text ?? "");
@@ -722,14 +730,42 @@ public sealed class Parity07UnityRunner : MonoBehaviour
         for (int i = 0; i < frames; i++) yield return null;
     }
 
+    private void CheckBlankClassifier()
+    {
+        var texture = new Texture2D(128, 128, TextureFormat.RGBA32, false);
+        var pixels = new Color32[128 * 128];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = new Color32((byte)(i % 256), (byte)(i / 128), 90, 0);
+        texture.SetPixels32(pixels); texture.Apply();
+        Check(LooksBlank(texture), "BLANK_CHECK_REJECTS_TRANSPARENT_COLOUR_NOISE");
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = new Color32(90, 90, 90, 255);
+        texture.SetPixels32(pixels); texture.Apply();
+        Check(LooksBlank(texture), "BLANK_CHECK_REJECTS_OPAQUE_UNIFORM_IMAGE");
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = new Color32((byte)(i % 256), (byte)(i / 128), 90, 255);
+        texture.SetPixels32(pixels); texture.Apply();
+        Check(!LooksBlank(texture), "BLANK_CHECK_ACCEPTS_OPAQUE_VARIED_IMAGE");
+        Destroy(texture);
+    }
+
     private static bool LooksBlank(Texture2D image)
     {
         Color32[] pixels = image.GetPixels32();
-        int step = Mathf.Max(1, pixels.Length / 4000), different = 0;
+        if (pixels.Length == 0) return true;
+        int opaque = 0;
+        foreach (Color32 pixel in pixels) if (pixel.a >= 250) opaque++;
+        // Real gameplay fills this framebuffer. Hidden RGB in transparent pixels must never qualify it.
+        if (opaque < pixels.Length * 0.99f) return true;
+        int step = Mathf.Max(1, pixels.Length / 4000), different = 0, samples = 0;
+        double sum = 0, sumSquares = 0;
         Color32 first = pixels[0];
         for (int i = 0; i < pixels.Length; i += step)
-            if (Mathf.Abs(pixels[i].r - first.r) + Mathf.Abs(pixels[i].g - first.g) + Mathf.Abs(pixels[i].b - first.b) > 24) different++;
-        return different < 40;
+        {
+            Color32 pixel = pixels[i];
+            if (Mathf.Abs(pixel.r - first.r) + Mathf.Abs(pixel.g - first.g) + Mathf.Abs(pixel.b - first.b) > 24) different++;
+            double light = (pixel.r + pixel.g + pixel.b) / 3.0;
+            sum += light; sumSquares += light * light; samples++;
+        }
+        double variance = sumSquares / samples - Math.Pow(sum / samples, 2);
+        return different < 40 || variance < 4.0;
     }
 
     private string WorldHash()

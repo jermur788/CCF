@@ -13,6 +13,7 @@ copied licence. Known Editor import rewrites are restored by exact path; anythin
 NOT a Unity result until it has actually run: see README.md in this folder.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -121,6 +122,7 @@ def main():
     parser.add_argument('--out', type=Path, required=True, help='Fresh folder under ' + str(EVIDENCE_ROOT))
     parser.add_argument('--task-id', default=None, help='Optional: also require this task id in the lock metadata')
     parser.add_argument('--preflight-only', action='store_true', help='Validate ownership without staging or launching')
+    parser.add_argument('--keep-focus', action=argparse.BooleanOptionalAction, default=True, help='Keep this Editor visible and focused on the private display')
     parser.add_argument('--sizes', default='1280x720,1920x1080')
     parser.add_argument('--display', default=':84')
     parser.add_argument('--screen', default='2560x1440')
@@ -154,7 +156,8 @@ def main():
         env.pop(name, None)
     command = [str(UNITY), '-projectPath', str(root), '-logFile', str(out / 'unity.log'), '-executeMethod', METHOD]
     (out / 'command.json').write_text(json.dumps({'command': command, 'root': str(root), 'head': args.expected_head,
-                                                  'lock_id': args.lock_id, 'sizes': args.sizes}, indent=2) + '\n')
+                                                  'lock_id': args.lock_id, 'sizes': args.sizes, 'keep_focus': args.keep_focus,
+                                                  'harness_sha256': hashlib.sha256((HERE / HARNESS).read_bytes()).hexdigest()}, indent=2) + '\n')
     (out / 'head.txt').write_text(git(root, 'rev-parse', 'HEAD'))
 
     processes, streams = [], []
@@ -184,12 +187,24 @@ def main():
         unity = launch(command, 'unity-stdout.log', env)
         (out / 'process.json').write_text(json.dumps({'driver_pid': os.getpid(), 'unity_pid': unity.pid}, indent=2) + '\n')
         finished_at = None
+        sized_windows = set()
         while True:
             code = unity.poll()
             if code is not None:
                 break
             if time.monotonic() - started > args.timeout:
                 raise subprocess.TimeoutExpired(command, args.timeout)
+            if args.keep_focus:
+                # Restrict all X11 actions to our own Editor on our private display.
+                found = subprocess.run(['xdotool', 'search', '--onlyvisible', '--pid', str(unity.pid), '--class', 'Unity'],
+                                       env=env, capture_output=True, text=True, timeout=5)
+                for window in found.stdout.split():
+                    if window not in sized_windows:
+                        width, height = args.screen.split('x')
+                        subprocess.run(['xdotool', 'windowmove', window, '0', '0', 'windowsize', window, width, height],
+                                       env=env, capture_output=True, timeout=5)
+                        sized_windows.add(window)
+                    subprocess.run(['xdotool', 'windowactivate', window], env=env, capture_output=True, timeout=5)
             text = (out / 'unity.log').read_text(errors='replace') if (out / 'unity.log').exists() else ''
             if finished_at is None and (PASS_MARKER in text or FAIL_MARKER in text):
                 finished_at = time.monotonic()
