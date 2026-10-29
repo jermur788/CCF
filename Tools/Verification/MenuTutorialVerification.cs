@@ -312,7 +312,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         manager.EndReferencePreview(); yield return null;
         Check(ui.Learning.CompletedSteps == learningBeforePreview, "Reference preview changed learning progress");
         // The rack screen is introduced by the rack tool itself on the first B press (verified by RackUxRack), not by walking to a screen.
-        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
+        // Tree Marks exists only once a Rack Planning V2 plan is confirmed (RACK-V2-10, Tools/Verification/RackV2HelpTeaching), never in this flow.
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack && m != MenuHelpView.Menu.TreeMarks)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 

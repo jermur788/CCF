@@ -67,17 +67,15 @@ public sealed class RackLayoutTracker
         }
     }
 
-    // The V2 objective sentence: the counter, then the next thing to do. Confirming only puts removal work in the Work Plan; the
-    // player still reviews and approves it there.
+    // The V2 objective sentence: the counter, then the next thing to do (LearningObjectivesView.RackV2Instruction). Confirming only
+    // puts removal work in the Work Plan; the player marks the entrances in the forest, then reviews and approves that work.
     public string V2ObjectiveInstruction
     {
         get
         {
             ScenarioOneManager m = ui.Manager;
-            if (!m.RackPlanConfirmed)
-                return V2CounterText + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
-            return V2CounterText + (WorkPending ? ". The removal work is in the Work Plan [Tab] for review and approval."
-                : ". Open the Work Plan [Tab] and advance one year.");
+            return LearningObjectivesView.RackV2Instruction(V2CounterText, m.RackPlanConfirmed, m.MarkedRackEntranceCount,
+                ScenarioOneManager.RackPlanTargetCount, WorkPending);
         }
     }
     public int PlannedTrees => RackPlanV2 ? MeasureRackPlan().OpenOrders : Lines.Sum(line => line.Planned);
