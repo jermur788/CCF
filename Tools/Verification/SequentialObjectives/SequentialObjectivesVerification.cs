@@ -28,6 +28,14 @@ public sealed partial class GuidedOnboardingRunner
     // the same production analysis as the lesson and the rack gate; it must not invent a sequence index or bypass the real marks.
     ScenarioOneRackBay.Analysis Bay()
     {
+        // G3 split: V2 progression follows the confirmed player plan through the production sample adapter.
+        // Model 0 keeps the exact authored-line fixture below.
+        if (manager.RackPlanningV2Active)
+        {
+            var sample = ScenarioOneRackSampleGeometry.Derive(manager.ConfirmedRacks,
+                StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80) * 0.5f);
+            return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders, sample);
+        }
         var layout = ui.RackTool.Planner.LayoutStatus();
         var line = layout[layout.Count / 2];
         return ScenarioOneRackBayReader.Read(FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None), manager.WorkOrders,
@@ -226,12 +234,23 @@ public sealed partial class GuidedOnboardingRunner
         yield return LessonShot("02-future-trees");
         ForestTree[] trees = LivingSpruce();
         // The accepted lesson needs three distributed Crop Trees. Prove the old single-tree shortcut cannot advance the lesson.
-        foreach (string id in new[] { "P0714", "P1109" })
+        string[] cropIds = { "P0714", "P1109", "P0706" };
+        if (manager.RackPlanningV2Active)
+        {
+            // Same rack-relative fixture selection as the integrated MFM-02 gate: follow the actual confirmed teaching frame.
+            var bay = Bay(); var selected = new System.Collections.Generic.List<string>();
+            foreach (Vector2 point in new[] { new Vector2(-8f,4.5f), new Vector2(0f,-4.5f), new Vector2(8f,4.5f) })
+                selected.Add(trees.Where(t => !selected.Contains(t.TreeId) && bay.Contains(t.transform.position.x,t.transform.position.z))
+                    .OrderBy(t => Mathf.Pow(bay.Geometry.Along(t.transform.position.x,t.transform.position.z)-point.x,2f)
+                        + Mathf.Pow(bay.Geometry.Across(t.transform.position.x,t.transform.position.z)-point.y,2f)).First().TreeId);
+            cropIds = selected.ToArray();
+        }
+        foreach (string id in cropIds.Take(2))
         {
             ui.Marking.Mark(trees.First(t => t.TreeId == id), TreeMarkType.CropTree, false);
-            Stage(1, id == "P0714" ? "one crop tree is not enough" : "two crop trees are not enough");
+            Stage(1, id == cropIds[0] ? "one crop tree is not enough" : "two crop trees are not enough");
         }
-        ui.Marking.Mark(trees.First(t => t.TreeId == "P0706"), TreeMarkType.CropTree, false);
+        ui.Marking.Mark(trees.First(t => t.TreeId == cropIds[2]), TreeMarkType.CropTree, false);
         ScenarioOneRackBay.Analysis futureBay = Bay();
         Check(futureBay.HasEnoughFuture && futureBay.NearSelected && futureBay.MiddleSelected && futureBay.FarSelected && futureBay.BothSides,
             "three distributed crop trees satisfy the future-tree requirement",
@@ -321,6 +340,10 @@ public sealed partial class GuidedOnboardingRunner
         // A later generation can refill an original access corridor. The real rack tool should report maintenance;
         // a completed teaching lesson must not restart. This is a disposable stand-in for a promoted young tree.
         string beforeRegrowth = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        string beforeV2RackState = manager.RackPlanningV2Active ? JsonUtility.ToJson(saves.CaptureData().scenarioOne) : null;
+        string beforeV2Counter = manager.RackPlanningV2Active ? ui.RackLayout.V2CounterText : null;
+        int[] completedRackWork = manager.WorkOrders.Where(o => o.rackId > 0 && o.status == ScenarioWorkStatus.Completed)
+            .Select(o => o.workOrderId).OrderBy(id => id).ToArray();
         var originalTree = FindObjectsByType<ForestTree>(FindObjectsSortMode.None).First(t => t.CanChop);
         var regrowth = Instantiate(originalTree.gameObject).GetComponent<ForestTree>();
         typeof(ForestTree).GetField("treeId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
@@ -328,7 +351,19 @@ public sealed partial class GuidedOnboardingRunner
         regrowth.SetMark(TreeMarkType.None);
         regrowth.transform.position = new Vector3(0, originalTree.transform.position.y, ui.RackTool.Planner.LayoutLines[0]);
         ui.RackLayout.Update(true);
-        Check(!ui.RackLayout.Harvested, "live rack tracker still reports actual later regrowth");
+        // Direct-user bounded G3 amendment: model 0 measures live authored corridors; V2 measures
+        // resolved rack-owned work. A new stem cannot rewrite the V2 removal set or fabricate new work.
+        if (manager.RackPlanningV2Active)
+        {
+            Check(ui.RackLayout.Harvested && completedRackWork.Length > 0
+                && completedRackWork.SequenceEqual(manager.WorkOrders.Where(o => o.rackId > 0 && o.status == ScenarioWorkStatus.Completed)
+                    .Select(o => o.workOrderId).OrderBy(id => id)), "V2 transient regrowth preserves completed rack-owned work");
+            Check(beforeV2RackState == JsonUtility.ToJson(saves.CaptureData().scenarioOne)
+                && beforeV2Counter == ui.RackLayout.V2CounterText,
+                "V2 transient regrowth preserves authoritative rack geometry, order state and counters");
+        }
+        else
+            Check(!ui.RackLayout.Harvested, "live rack tracker still reports actual later regrowth");
         Stage(7, "later access maintenance does not restart initial lesson");
         Destroy(regrowth.gameObject); yield return Pause(2); ui.RackLayout.Update(true);
         Check(beforeRegrowth == ScenarioReferenceArchive.WorldHash(saves.CaptureData()), "regrowth fixture removed without changing saved world");

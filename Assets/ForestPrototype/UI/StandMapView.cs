@@ -91,11 +91,16 @@ public sealed class StandMapView
 
         layerButtons = UiKit.Box("map-tabs");
         layerButtons.name = "map-tabs";
-        modal.Add(layerButtons);
+        // The tool row shares the tab line instead of taking a second row: the fixed-size map and its survey caption
+        // need that height at 720p and 1080p. It remains a separate row container, not one of the navigation tabs.
+        VisualElement tabsRow = UiKit.Box("row");
+        tabsRow.name = "map-tabs-row";
+        tabsRow.Add(layerButtons);
         toolButtons = UiKit.Box("row");
         toolButtons.name = "map-tools";
-        toolButtons.style.marginBottom = 6;
-        modal.Add(toolButtons);
+        toolButtons.style.marginLeft = 12;
+        tabsRow.Add(toolButtons);
+        modal.Add(tabsRow);
 
         VisualElement body = UiKit.Box("map-body");
         VisualElement left = UiKit.Box("map-left");

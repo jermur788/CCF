@@ -66,6 +66,13 @@ public sealed class RackTool : MonoBehaviour
     {
         if (manager == null)
             return;
+        // A load can change the rack model while an old preview or first-use screen is pending.
+        // V2 geometry belongs to the Stand Map; release the forest input immediately in that case.
+        if (manager.RackPlanningV2Active)
+        {
+            Exit();
+            return;
+        }
         Keyboard keyboard = Keyboard.current;
         Mouse mouse = Mouse.current;
         bool locked = Cursor.lockState == CursorLockMode.Locked;
@@ -148,6 +155,8 @@ public sealed class RackTool : MonoBehaviour
     // B: open the tool. The first time on a device the short explanation is shown first and the tool opens when it is closed.
     private void Request()
     {
+        if (manager == null || manager.RackPlanningV2Active)
+            return;
         if (!MenuHelpView.Introduced(MenuHelpView.Menu.Rack))
         {
             introPending = true;
@@ -160,7 +169,7 @@ public sealed class RackTool : MonoBehaviour
 
     public void Enter()
     {
-        if (manager == null || active)
+        if (manager == null || manager.RackPlanningV2Active || active)
             return;
         planner.Refresh();
         nextRefresh = Time.unscaledTime + RefreshSeconds;
@@ -218,6 +227,11 @@ public sealed class RackTool : MonoBehaviour
     // Left click or Enter: the previewed rack joins the draft Work Plan. The tool stays open for the next rack.
     public bool Confirm()
     {
+        if (manager == null || manager.RackPlanningV2Active)
+        {
+            Exit();
+            return false;
+        }
         if (!hasOrigin || proposal == null || !proposal.CanConfirm)
         {
             Say(proposal != null && !string.IsNullOrEmpty(proposal.Problem) ? proposal.Problem : "Aim at a planted row first.");

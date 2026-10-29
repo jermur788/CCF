@@ -39,6 +39,7 @@ public static class GuidedOnboardingVerification
 public sealed partial class GuidedOnboardingRunner : MonoBehaviour
 {
     partial void AddSequenceChecks(List<IEnumerator> extras);
+    partial void AddV2Checks(List<IEnumerator> extras);
     ScenarioOneUiRoot ui;
     ScenarioOneManager manager;
     ForestSaveController saves;
@@ -138,13 +139,46 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
     {
         ui = FindFirstObjectByType<ScenarioOneUiRoot>(); manager = ui.Manager;
         saves = FindFirstObjectByType<ForestSaveController>();
+        string model = Environment.GetEnvironmentVariable("CCF_RACK_VERIFY_MODEL");
+        Check(model == "legacy" || model == "v2", "explicit rack verification model selected");
+        if (model == "legacy")
+        {
+            // Pre-v21 Enlarged80 saves are explicitly model 0. Keep their complete rack-first
+            // curriculum fixture; true Legacy40 is additionally exercised by the focused gate.
+            ForestSaveData legacy = saves.CaptureData();
+            legacy.version = 20;
+            legacy.scenarioOne.rackPlanningModel = RackPlanningModel.Legacy;
+            legacy.scenarioOne.rackPlanConfirmed = false;
+            legacy.scenarioOne.nextRackId = 1;
+            legacy.scenarioOne.racks = new List<RackSaveData>();
+            Check(saves.LoadData(legacy, false), "explicit pre-v21 model-0 compatibility fixture loads");
+            ui.Help.ShowScenarioIntroduction();
+            yield return Pause(20);
+        }
+        Check(model == "legacy" ? !manager.RackPlanningV2Active && manager.RackPlanningModelVersion == RackPlanningModel.Legacy
+            : manager.RackPlanningV2Active, "fixture actually uses the selected rack model");
         VerifyDenseAim();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         Check(manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0, "genuinely fresh year-zero forest");
-        Check(ui.Help.IsOpen && Text().Contains("Transforming a Sitka Plantation"), "fresh scenario introduction appears");
-        Check(Text().Contains("next generation") && Text().Contains("one step at a time"), "premise and sequential learning are explained");
-        yield return Shoot("01-introduction");
-        ui.CloseHelp(); ui.ShowObjectives(); yield return Pause(25);
+        // Proposed bounded G3 amendment: the accepted introduction now has three real pages.
+        Check(ui.Help.IsOpen && ui.Help.Onboarding.IsOpen && ui.Help.Onboarding.PageIndex == 0
+            && Text().Contains("What is Continuous-Cover Forestry?"), "fresh scenario introduction appears");
+        Check(Text().Contains("keeps a forest continuously wooded") && Text().Contains("new generations"),
+            "continuous-cover premise is explained on page 1");
+        yield return Shoot("01a-introduction-definition");
+        yield return Click(ui.RootElement.Q<Button>("onboarding-next"));
+        Check(ui.Help.IsOpen && ui.Help.Onboarding.PageIndex == 1 && Text().Contains("How CCF works over time")
+            && new[] { "Observe the stand", "Retain and select", "Create space and light", "Regenerate and establish", "Review and repeat" }.All(Text().Contains),
+            "sequential management cycle is explained on page 2");
+        yield return Shoot("01b-introduction-process");
+        yield return Click(ui.RootElement.Q<Button>("onboarding-next"));
+        Check(ui.Help.IsOpen && ui.Help.Onboarding.PageIndex == 2 && Text().Contains("Transforming a Sitka Plantation")
+            && Text().Contains("both Oak and Beech") && Text().Contains("Transformation is gradual"),
+            "premise and sequential learning are explained");
+        yield return Shoot("01c-introduction-scenario");
+        yield return Click(ui.RootElement.Q<Button>("onboarding-next"));
+        Check(!ui.Help.IsOpen && !ui.Help.Onboarding.IsOpen, "Begin completes the introduction before rack teaching");
+        ui.ShowObjectives(); yield return Pause(25);
         Check(ui.Learning.CurrentTopicIndex == 0, "rack objective is primary initially");
         Check(ui.RootElement.Q<Foldout>("scenario-success-objectives").value == false, "all goals collapsed by default");
         Check(Visible(ui.RootElement.Q("rack-lesson-diagram")), "original rack diagram visible");
@@ -162,60 +196,73 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
         yield return Shoot("04-map-overview");
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == original, "intro/objective/map presentation leaves forest hash unchanged");
         ui.CloseAll(); if (ui.Help.IsOpen) ui.CloseHelp();
-        yield return VerifyRackFeedback();
-        // Establish a clear view of the first stem on an authored access row; input chooses it.
-        ui.RackTool.Planner.Refresh();
-        float row = ui.RackTool.Planner.LayoutLines[0];
-        ForestTree target = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
-            .Where(t => t.IsLiving && Math.Abs(t.transform.position.z-row) < 0.8f
-                && t.transform.position.x > -ui.RackTool.Planner.HalfExtentM + 3f).OrderBy(t => t.transform.position.x).First();
-        Vector3 position = target.transform.position;
-        ui.Player.transform.position = new Vector3(position.x-3f, ui.Player.transform.position.y, position.z);
-        ui.Player.LookToward(position + Vector3.up * 1.2f);
-        Check(ui.Player.transform.position.x > -ui.RackTool.Planner.HalfExtentM, "real-input fixture vantage stays on stand ground");
-        RackUxShots.SetGameSize(1280,720);
-        yield return Pause(30);
-        phase = "WAIT_REAL_INPUT";
-        File.WriteAllText(Path.Combine(output,"real-input-target.txt"), target.TreeId + " " + position);
-        Debug.Log("GUIDED_WAIT_REAL_INPUT");
-        double deadline = Time.realtimeSinceStartupAsDouble + 600;
-        while (ui.RackTool.ConfirmedCount == 0 && Time.realtimeSinceStartupAsDouble < deadline) yield return null;
-        Check(ui.RackTool.ConfirmedCount > 0, "rack confirmed through real OS input");
-        Check(originSelections >= 3 && reselections >= 1 && cancellations >= 1, "real-input choose/reselect/cancel sequence exercised");
-        Check(swivelled, "real pointer movement swivelled preview around fixed start");
-        Check(manager.WorkOrders.Count(o => o.IsOpen && o.type == ScenarioWorkType.FellTree) > 0, "real confirmation creates ordinary rack work");
-        phase = "AUTOMATED_PROGRESSION";
-        yield return Shoot("08-confirmed-rack", false);
-        ui.ShowWorkPlan(); yield return Pause(); if (ui.Help.IsOpen) ui.CloseHelp(); yield return Pause();
-        Button show = Button("Show trees");
-        Check(show != null && show.enabledInHierarchy && !show.ClassListContains("btn-ghost"), "Show trees is a clear enabled action with actual jobs");
-        yield return Shoot("09-work-plan-rack");
-        yield return Click(show);
-        Check(Button("Hide trees") != null, "Show trees expands the actual rack job list");
-        yield return Shoot("10-rack-tree-list", false);
-        ui.CloseAll(); yield return Pause();
-        // Complete the remaining layout through the same backend used by the existing map tool, never by fabricating credits.
-        RackPlanner planner = ui.RackTool.Planner;
-        foreach (float across in planner.LayoutLines.ToArray())
+        if (manager.RackPlanningV2Active)
         {
-            planner.Refresh();
-            RackProposal proposal = planner.Propose(new RackPoint(0f,across),0f);
-            if (proposal.CanConfirm) manager.ConfirmRack(proposal,"map");
+            var v2 = new List<IEnumerator>(); AddV2Checks(v2);
+            Check(v2.Count > 0, "required V2 absence/replacement companion installed");
+            if (v2.Count == 0) throw new InvalidOperationException("V2 verification companion missing");
+            foreach (var check in v2) yield return check;
         }
-        ui.RackLayout.Update(true);
-        Check(ui.RackLayout.Complete, "authoritative rack requirement complete");
-        Check(ui.Learning.CurrentTopicIndex == 0, "objective 2 stays secondary after planning racks");
-        ui.RackTool.Enter();
-        ui.RackTool.SelectOrigin(new RackPoint(position.x, position.z));
-        ui.Player.LookToward(position + Vector3.right * 10f + Vector3.up * 1.2f);
-        yield return Pause(30);
-        Check(ui.RackTool.Proposal != null && !ui.RackTool.Proposal.CanConfirm, "already planned rack is invalid with a reason");
-        Check(Text().Contains("already in the Work Plan"), "invalid rack reason is visible in HUD");
-        yield return Shoot("10b-invalid-already-planned-rack", false);
-        ui.RackTool.Exit();
+        else
+        {
+            yield return VerifyRackFeedback();
+            // Establish a clear view of the first stem on an authored access row; input chooses it.
+            ui.RackTool.Planner.Refresh();
+            float row = ui.RackTool.Planner.LayoutLines[0];
+            ForestTree target = FindObjectsByType<ForestTree>(FindObjectsSortMode.None)
+                .Where(t => t.IsLiving && Math.Abs(t.transform.position.z-row) < 0.8f
+                    && t.transform.position.x > -ui.RackTool.Planner.HalfExtentM + 3f).OrderBy(t => t.transform.position.x).First();
+            Vector3 position = target.transform.position;
+            ui.Player.transform.position = new Vector3(position.x-3f, ui.Player.transform.position.y, position.z);
+            ui.Player.LookToward(position + Vector3.up * 1.2f);
+            Check(ui.Player.transform.position.x > -ui.RackTool.Planner.HalfExtentM, "real-input fixture vantage stays on stand ground");
+            RackUxShots.SetGameSize(1280,720);
+            yield return Pause(30);
+            phase = "WAIT_REAL_INPUT";
+            File.WriteAllText(Path.Combine(output,"real-input-target.txt"), target.TreeId + " " + position);
+            Debug.Log("GUIDED_WAIT_REAL_INPUT");
+            double deadline = Time.realtimeSinceStartupAsDouble + 600;
+            while (ui.RackTool.ConfirmedCount == 0 && Time.realtimeSinceStartupAsDouble < deadline) yield return null;
+            Check(ui.RackTool.ConfirmedCount > 0, "rack confirmed through real OS input");
+            Check(originSelections >= 3 && reselections >= 1 && cancellations >= 1, "real-input choose/reselect/cancel sequence exercised");
+            Check(swivelled, "real pointer movement swivelled preview around fixed start");
+            Check(manager.WorkOrders.Count(o => o.IsOpen && o.type == ScenarioWorkType.FellTree) > 0, "real confirmation creates ordinary rack work");
+            phase = "AUTOMATED_PROGRESSION";
+            yield return Shoot("08-confirmed-rack", false);
+            ui.ShowWorkPlan(); yield return Pause(); if (ui.Help.IsOpen) ui.CloseHelp(); yield return Pause();
+            Button show = Button("Show trees");
+            Check(show != null && show.enabledInHierarchy && !show.ClassListContains("btn-ghost"), "Show trees is a clear enabled action with actual jobs");
+            yield return Shoot("09-work-plan-rack");
+            yield return Click(show);
+            Check(Button("Hide trees") != null, "Show trees expands the actual rack job list");
+            yield return Shoot("10-rack-tree-list", false);
+            ui.CloseAll(); yield return Pause();
+            // Complete the remaining layout through the same backend used by the existing map tool, never by fabricating credits.
+            RackPlanner planner = ui.RackTool.Planner;
+            foreach (float across in planner.LayoutLines.ToArray())
+            {
+                planner.Refresh();
+                RackProposal proposal = planner.Propose(new RackPoint(0f,across),0f);
+                if (proposal.CanConfirm) manager.ConfirmRack(proposal,"map");
+            }
+            ui.RackLayout.Update(true);
+            Check(ui.RackLayout.Complete, "authoritative rack requirement complete");
+            Check(ui.Learning.CurrentTopicIndex == 0, "objective 2 stays secondary after planning racks");
+            ui.RackTool.Enter();
+            ui.RackTool.SelectOrigin(new RackPoint(position.x, position.z));
+            ui.Player.LookToward(position + Vector3.right * 10f + Vector3.up * 1.2f);
+            yield return Pause(30);
+            Check(ui.RackTool.Proposal != null && !ui.RackTool.Proposal.CanConfirm, "already planned rack is invalid with a reason");
+            Check(Text().Contains("already in the Work Plan"), "invalid rack reason is visible in HUD");
+            yield return Shoot("10b-invalid-already-planned-rack", false);
+            ui.RackTool.Exit();
+        }
         manager.ApprovePendingWork();
         ui.ShowObjectives(); yield return Pause(25);
-        Check(ui.Learning.CurrentTopicIndex == 0 && ui.Learning.CurrentInstruction.Contains("Advance one year"), "completed rack lesson clearly requests annual advance");
+        if (manager.RackPlanningV2Active)
+            Check(ui.Learning.CurrentTopicIndex == 0 && ui.Learning.CurrentInstruction.Contains("advance one year"), "V2 confirmed rack lesson clearly requests annual advance");
+        else
+            Check(ui.Learning.CurrentTopicIndex == 0 && ui.Learning.CurrentInstruction.Contains("Advance one year"), "completed rack lesson clearly requests annual advance");
         yield return Shoot("11-racks-ready-advance-year");
         ui.CloseAll(); yield return Pause();
         int previousYear = manager.CurrentEcologicalYear;
