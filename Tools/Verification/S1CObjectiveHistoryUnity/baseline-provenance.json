@@ -1,0 +1,8 @@
+{
+  "commit": "aca74acacc565f72ab802177cf69ca6ebb54d637",
+  "sources": {
+    "Assets/ForestPrototype/ForestSaveData.cs": "239ba343e704c6e805983a57fccf7ada000fff7a5b0dbea6bec6238b193547f0",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioReferenceArchive.cs": "bb042145d4a583c8c46b71b1bdea56c28c0a099aff2face088de54bf12b8640a"
+  },
+  "transformation": "Prefix DTO type names with PreV22; extract unchanged archive methods from Canonicalize through end into PreV22Archive. No algorithms or constants changed."
+}
