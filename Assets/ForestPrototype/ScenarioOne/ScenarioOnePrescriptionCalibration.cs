@@ -44,7 +44,8 @@ public sealed class ScenarioOnePrescriptionCalibration
     // 8 m teaching spacing or the 8 m Hegyi reach. 16 m is fixture-specific (MFM-03 section 10); a real sample sets a different basal-area
     // ceiling, so release feasibility is re-checked by ScenarioOnePrescription.ProposeRelease every time rather than assumed from 16 m.
     public readonly double CandidateSpacingM;
-    // Grid step used to measure net areas (corridors, infrastructure masks and the sample removed).
+    // Strip width used to measure net areas (corridors, infrastructure masks and the sample removed): midpoint strips along the rack axis,
+    // exact intervals across each strip, as MFM-03 measured them (ScenarioOneCoverage Frame.MeasureAreas).
     public readonly double AreaStepM;
     public readonly SecondSamplePolicy SecondSample;
     public readonly double SecondSampleCoveredFractionLimit;

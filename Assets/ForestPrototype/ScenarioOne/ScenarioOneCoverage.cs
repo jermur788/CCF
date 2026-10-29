@@ -457,37 +457,147 @@ public static class ScenarioOneCoverage
             return Spot.Area;
         }
 
-        // Midpoint grid over the stand square. Each cell counts once, for the first thing that holds its centre, so corridors, masks and
-        // the sample are removed from every area exactly once.
+        // MFM-03's method (analyse_coverage.py net_area): midpoint strips of width AreaStepM along the rack axis, and an EXACT interval
+        // calculation across each strip. Along one strip line every shape (stand square, rack corridor, mask capsule, sample rectangle,
+        // unit and remainder bands) is convex, so it covers one interval of the line. Cutting the line at every interval end leaves pieces
+        // on which Locate cannot change, so each piece is classified once at its middle and counted at its exact length. Locate is the
+        // same precedence the stems use, so corridors, masks and the sample are removed from every area exactly once. The along range is
+        // split at the segment boundaries first, so no strip straddles two segments.
         public void MeasureAreas(int areaCount, out double sourceArea, out double[] areaNet, out double[] remainderArea)
         {
             double h = geometry.StandHalfExtentM;
-            int n = Math.Max(1, (int)Math.Ceiling(2.0 * h / calibration.AreaStepM - 1e-9));
-            double step = 2.0 * h / n, cell = step * step;
-            long source = 0;
-            var areas = new long[areaCount];
-            var remainders = new long[2];
-            var rowMasks = new List<Mask>();
-            for (int j = 0; j < n; j++)
+            double ax = geometry.AxisX, az = geometry.AxisZ, nx = geometry.NormalX, nz = geometry.NormalZ;
+            double reach = h * (Math.Abs(ax) + Math.Abs(az));
+            double s = calibration.SegmentHalfLengthM;
+            var cuts = new List<double> { -reach, reach };
+            foreach (double c in new[] { anchorAlong - s, anchorAlong + s }) if (c > -reach && c < reach) cuts.Add(c);
+            cuts.Sort();
+
+            sourceArea = 0.0;
+            areaNet = new double[areaCount];
+            remainderArea = new double[2];
+            var ends = new List<double>();
+            var stripMasks = new List<Mask>();
+            for (int k = 0; k + 1 < cuts.Count; k++)
             {
-                double z = -h + (j + 0.5) * step;
-                rowMasks.Clear();
-                foreach (Mask mask in masks) if (z >= mask.MinZ && z <= mask.MaxZ) rowMasks.Add(mask);
+                double u0 = cuts[k], u1 = cuts[k + 1];
+                int n = Math.Max(1, (int)Math.Ceiling((u1 - u0) / calibration.AreaStepM - 1e-9));
+                double du = (u1 - u0) / n;
                 for (int i = 0; i < n; i++)
                 {
-                    double x = -h + (i + 0.5) * step;
-                    switch (Locate(x, z, rowMasks, out int a, out int r))
+                    double u = u0 + (i + 0.5) * du;
+                    // The strip line: (x, z) = (ox, oz) + v (nx, nz).
+                    double ox = u * ax, oz = u * az;
+                    double lo = double.NegativeInfinity, hi = double.PositiveInfinity;
+                    ClipSlab(ox, oz, nx, nz, 1, 0, -h, h, ref lo, ref hi);
+                    ClipSlab(ox, oz, nx, nz, 0, 1, -h, h, ref lo, ref hi);
+                    if (!(hi > lo)) continue;
+                    ends.Clear();
+                    ends.Add(lo); ends.Add(hi);
+                    foreach (ScenarioOneRackSampleGeometry.OrderedRack rack in geometry.Racks)
+                        AddCorridor(ends, ox, oz, nx, nz, rack.Entrance.X, rack.Entrance.Z, rack.Far.X, rack.Far.Z, rack.WidthM * 0.5);
+                    ScenarioOneRackBay.Frame t = geometry.Teaching;
+                    if (t.Corridors != null)
+                        foreach (ScenarioOneRackBay.Corridor c in t.Corridors)
+                            AddCorridor(ends, ox, oz, nx, nz, c.StartX, c.StartZ, c.EndX, c.EndZ, c.HalfWidth);
+                    AddRectangle(ends, ox, oz, nx, nz, t.X, t.Z, t.AlongX, t.AlongZ, ScenarioOneRackBay.HalfLengthM, t.HalfWidth);
+                    if (t.Corridors == null)
+                        AddRectangle(ends, ox, oz, nx, nz, t.X, t.Z, t.AlongX, t.AlongZ, ScenarioOneRackBay.HalfLengthM, RackGeometry.DefaultWidthM * 0.5);
+                    foreach (ScenarioOneRackSampleGeometry.CoverageUnit unit in geometry.Units)
                     {
-                        case Spot.Sample: source++; break;
-                        case Spot.Area: areas[a]++; break;
-                        case Spot.Remainder: remainders[r]++; break;
+                        AddCrossing(ends, ox, oz, nx, nz, nx, nz, unit.LowerOffsetM);
+                        AddCrossing(ends, ox, oz, nx, nz, nx, nz, unit.UpperOffsetM);
+                    }
+                    stripMasks.Clear();
+                    foreach (Mask mask in masks)
+                        if (AddCapsule(ends, ox, oz, nx, nz, mask)) stripMasks.Add(mask);
+
+                    ends.Sort();
+                    for (int e = 0; e + 1 < ends.Count; e++)
+                    {
+                        double v0 = Math.Max(lo, ends[e]), v1 = Math.Min(hi, ends[e + 1]);
+                        if (!(v1 > v0)) continue;
+                        double v = 0.5 * (v0 + v1), piece = (v1 - v0) * du;
+                        switch (Locate(ox + v * nx, oz + v * nz, stripMasks, out int a, out int r))
+                        {
+                            case Spot.Sample: sourceArea += piece; break;
+                            case Spot.Area: areaNet[a] += piece; break;
+                            case Spot.Remainder: remainderArea[r] += piece; break;
+                        }
                     }
                 }
             }
-            sourceArea = source * cell;
-            areaNet = new double[areaCount];
-            for (int a = 0; a < areaCount; a++) areaNet[a] = areas[a] * cell;
-            remainderArea = new[] { remainders[0] * cell, remainders[1] * cell };
+        }
+
+        // Narrows [lo, hi] to where min <= (fx, fz) . (o + v d) <= max on the line o + v d.
+        private static void ClipSlab(double ox, double oz, double dx, double dz, double fx, double fz, double min, double max, ref double lo, ref double hi)
+        {
+            double f0 = fx * ox + fz * oz, fd = fx * dx + fz * dz;
+            if (Math.Abs(fd) < 1e-12)
+            {
+                if (f0 < min || f0 > max) { lo = 0; hi = 0; }
+                return;
+            }
+            double a = (min - f0) / fd, b = (max - f0) / fd;
+            lo = Math.Max(lo, Math.Min(a, b));
+            hi = Math.Min(hi, Math.Max(a, b));
+        }
+
+        // Where the line crosses (fx, fz) . p = value.
+        private static void AddCrossing(List<double> ends, double ox, double oz, double dx, double dz, double fx, double fz, double value)
+        {
+            double fd = fx * dx + fz * dz;
+            if (Math.Abs(fd) >= 1e-12) ends.Add((value - (fx * ox + fz * oz)) / fd);
+        }
+
+        // An oriented rectangle centred on (cx, cz) with unit along direction (alx, alz).
+        private static void AddRectangle(List<double> ends, double ox, double oz, double dx, double dz, double cx, double cz, double alx, double alz,
+            double halfLength, double halfWidth)
+        {
+            double lo = double.NegativeInfinity, hi = double.PositiveInfinity;
+            ClipSlab(ox - cx, oz - cz, dx, dz, alx, alz, -halfLength, halfLength, ref lo, ref hi);
+            ClipSlab(ox - cx, oz - cz, dx, dz, -alz, alx, -halfWidth, halfWidth, ref lo, ref hi);
+            if (hi > lo) { ends.Add(lo); ends.Add(hi); }
+        }
+
+        // A rack corridor: the rectangle from start to end, halfWidth either side.
+        private static void AddCorridor(List<double> ends, double ox, double oz, double dx, double dz, double sx, double sz, double ex, double ez,
+            double halfWidth)
+        {
+            double lx = ex - sx, lz = ez - sz, length = Math.Sqrt(lx * lx + lz * lz);
+            if (length <= 0) return;
+            AddRectangle(ends, ox, oz, dx, dz, (sx + ex) * 0.5, (sz + ez) * 0.5, lx / length, lz / length, length * 0.5, halfWidth);
+        }
+
+        // A mask capsule is convex, so its interval on the line is the hull of its two end discs and its middle rectangle. True when the
+        // line meets it.
+        private static bool AddCapsule(List<double> ends, double ox, double oz, double dx, double dz, Mask mask)
+        {
+            double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
+            Disc(ox, oz, dx, dz, mask.AX, mask.AZ, mask.RadiusM, ref lo, ref hi);
+            Disc(ox, oz, dx, dz, mask.BX, mask.BZ, mask.RadiusM, ref lo, ref hi);
+            double lx = mask.BX - mask.AX, lz = mask.BZ - mask.AZ, length = Math.Sqrt(lx * lx + lz * lz);
+            if (length > 0)
+            {
+                double rlo = double.NegativeInfinity, rhi = double.PositiveInfinity;
+                double cx = (mask.AX + mask.BX) * 0.5, cz = (mask.AZ + mask.BZ) * 0.5;
+                ClipSlab(ox - cx, oz - cz, dx, dz, lx / length, lz / length, -length * 0.5, length * 0.5, ref rlo, ref rhi);
+                ClipSlab(ox - cx, oz - cz, dx, dz, -lz / length, lx / length, -mask.RadiusM, mask.RadiusM, ref rlo, ref rhi);
+                if (rhi > rlo) { lo = Math.Min(lo, rlo); hi = Math.Max(hi, rhi); }
+            }
+            if (!(hi > lo)) return false;
+            ends.Add(lo); ends.Add(hi);
+            return true;
+        }
+
+        private static void Disc(double ox, double oz, double dx, double dz, double cx, double cz, double r, ref double lo, ref double hi)
+        {
+            // |o + v d - c|^2 = r^2 with |d| = 1.
+            double px = ox - cx, pz = oz - cz, b = px * dx + pz * dz, q = b * b - (px * px + pz * pz - r * r);
+            if (q <= 0) return;
+            double root = Math.Sqrt(q);
+            lo = Math.Min(lo, -b - root);
+            hi = Math.Max(hi, -b + root);
         }
     }
 

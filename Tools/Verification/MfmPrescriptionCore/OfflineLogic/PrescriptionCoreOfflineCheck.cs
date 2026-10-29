@@ -224,7 +224,6 @@ public static class PrescriptionCoreOfflineCheck
             worstArea = Math.Max(worstArea, Math.Abs(a.Metrics.NetAreaM2 - e.Net));
             worstDens = Math.Max(worstDens, Math.Abs(100 * a.Comparison.DeltaDensity - e.DDens));
             worstMean = Math.Max(worstMean, Math.Max(Math.Abs(100 * a.Comparison.DeltaMeanDbh - e.DDbh), Math.Abs(100 * a.Comparison.DeltaMeanCompetition - e.DCi)));
-            Console.WriteLine("DBG " + e.Id + " net=" + F(a.Metrics.NetAreaM2) + " exp=" + F(e.Net) + " dd=" + F(100 * a.Comparison.DeltaDensity - e.DDens));
             Check(a.Metrics.Stems == e.Stems, "coverage: " + e.Id + " holds MFM-03's " + e.Stems + " target stems", a.Metrics.Stems.ToString());
         }
         Check(worstArea <= 0.5, "coverage: every net area within 0.5 m2 of MFM-03's exact-interval integration", F(worstArea));
