@@ -40,7 +40,6 @@ PROTECTED = [
     "Assets/ForestPrototype/ForestSaveValidation.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionRules.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs",
-    "Assets/ForestPrototype/ScenarioOne/ScenarioOneRackBay.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioOneRackReview.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.RackPlan.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioInterventionHistory.cs",
@@ -57,9 +56,11 @@ PROTECTED = [
 
 MUTATIONS = [
     ("cap never relaxes (always Hard)",
-     "return SampleHistoricallyComplete(bay, releaseReviewed) ? Phase.Advisory : Phase.Hard;", "return Phase.Hard;"),
+     "? Phase.Hard : Phase.Advisory;", "? Phase.Hard : Phase.Hard;"),
+    ("hard without actionable work (deadlock)", " && bay.ActionableRemovals > 0", ""),
+    ("hard only when nothing is actionable", " && bay.ActionableRemovals > 0", " && bay.ActionableRemovals == 0"),
     ("advisory before completion",
-     "return SampleHistoricallyComplete(bay, releaseReviewed) ? Phase.Advisory : Phase.Hard;", "return Phase.Advisory;"),
+     "return !SampleHistoricallyComplete(bay, releaseReviewed) && bay.ActionableRemovals > 0 ? Phase.Hard : Phase.Advisory;", "return Phase.Advisory;"),
     ("completion depends on the cap",
      "bay.Applies && releaseReviewed && bay.ReleaseYear >= 0", "bay.Applies && bay.CanopyKept && releaseReviewed && bay.ReleaseYear >= 0"),
     ("results need not be read",
@@ -110,6 +111,13 @@ def protected_diff(base):
     return out.stdout.strip()
 
 
+# ScenarioOneRackBay.cs may only gain the additive ActionableRemovals counter: zero deleted lines, and the thresholds are untouched.
+def rack_bay_additive_only(base):
+    path = "Assets/ForestPrototype/ScenarioOne/ScenarioOneRackBay.cs"
+    out = subprocess.run(["git", "-C", ROOT, "diff", "--numstat", base, "--", path], capture_output=True, text=True).stdout.split()
+    return (not out) or (out[1] == "0" and int(out[0]) <= 6)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-s1d-teaching-cap-offline"))
@@ -127,6 +135,9 @@ def main():
     diff = protected_diff(args.base)
     if diff:
         print("TEACHING_CAP_PROTECTED_DIFF_FAIL\n" + diff)
+        return 1
+    if not rack_bay_additive_only(args.base):
+        print("TEACHING_CAP_RACKBAY_NOT_ADDITIVE_FAIL")
         return 1
     print("TEACHING_CAP_PROTECTED_DIFF_PASS base=%s paths=%d (no save/completion/rack-analysis/economy/scene/package diff)" % (args.base, len(PROTECTED)))
     if not args.mutations:

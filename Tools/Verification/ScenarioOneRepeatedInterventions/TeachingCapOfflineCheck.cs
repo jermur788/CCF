@@ -16,9 +16,9 @@ public static class TeachingCapOfflineCheck
     }
 
     // An analysis with only the facts the cap decision reads. Everything the cap must NOT depend on is left unrelated on purpose.
-    private static ScenarioOneRackBay.Analysis Bay(float removedShare, bool executedMixedRelease, int releaseYear = 1, bool applies = true)
+    private static ScenarioOneRackBay.Analysis Bay(float removedShare, bool executedMixedRelease, int releaseYear = 1, bool applies = true, int actionable = 2)
     {
-        var a = new ScenarioOneRackBay.Analysis { Applies = applies, RackIndex = 2, RackCount = 5, RemovedBasalShare = removedShare };
+        var a = new ScenarioOneRackBay.Analysis { Applies = applies, RackIndex = 2, RackCount = 5, RemovedBasalShare = removedShare, ActionableRemovals = actionable };
         if (executedMixedRelease)
         {
             a.ReleaseYear = releaseYear; a.MixedExecuted = true; a.SoldExecuted = 2; a.DeadwoodExecuted = 1; a.MinExecuted = 0.31f;
@@ -37,6 +37,7 @@ public static class TeachingCapOfflineCheck
         CompletionIndependentOfTheCap();
         StuckStateRow();
         Messages();
+        ActionableCountFromRealAnalysis();
         CallSites(root);
         Console.WriteLine(failures == 0 ? "TEACHING_CAP_OFFLINE_PASS checks=" + checks + " NOT_UNITY_VERIFIED"
             : "TEACHING_CAP_OFFLINE_FAIL failures=" + failures + " checks=" + checks);
@@ -70,14 +71,15 @@ public static class TeachingCapOfflineCheck
             foreach (bool executed in new[] { false, true })
                 foreach (bool reviewed in new[] { false, true })
                     foreach (bool access in new[] { false, true })
+                    foreach (int actionable in new[] { 1, 3 })
                     {
-                        var bay = Bay(share, executed);
+                        var bay = Bay(share, executed, 1, true, actionable);
                         if (ScenarioOneTeachingCap.SampleHistoricallyComplete(bay, reviewed)) continue;
                         rows++;
                         bool hard = ScenarioOneTeachingCap.Classify(bay, access, reviewed) == ScenarioOneTeachingCap.Phase.Hard;
                         if (hard != OldHardBlock(bay, access)) mismatches++;
                     }
-        Check(rows > 0 && mismatches == 0, "pre-completion: Hard exactly matches the old predicate", rows + " rows, " + mismatches + " mismatches");
+        Check(rows > 0 && mismatches == 0, "pre-completion with actionable work: Hard exactly matches the old predicate", rows + " rows, " + mismatches + " mismatches");
         Check(!ScenarioOneTeachingCap.SampleHistoricallyComplete(Bay(0.5f, true), false), "executed but results unread -> not complete");
         Check(!ScenarioOneTeachingCap.SampleHistoricallyComplete(Bay(0.5f, false), true), "results read but no executed release -> not complete");
         var soldOnly = Bay(0.5f, true); soldOnly.MixedExecuted = false;
@@ -100,14 +102,48 @@ public static class TeachingCapOfflineCheck
         Check(ScenarioOneTeachingCap.SampleHistoricallyComplete(Bay(0.7f, true, 9), true), "year-9 release, results read -> complete");
     }
 
-    // N-1 / spec section 17: executed excess reached before the sample is complete (e.g. through mortality shrinking the living
-    // denominator after a sold-only release). T-03 leaves pre-completion behaviour unchanged, so this state STAYS hard.
+    // N-1 / spec section 17, user decision: executed excess with nothing left to cancel must not deadlock Approve/Advance.
     private static void StuckStateRow()
     {
-        var soldOnlyDrift = Bay(0.47f, true); soldOnlyDrift.MixedExecuted = false; soldOnlyDrift.DeadwoodExecuted = 0;
-        var phase = ScenarioOneTeachingCap.Classify(soldOnlyDrift, true, true);
-        Check(phase == ScenarioOneTeachingCap.Phase.Hard,
-            "STUCK-STATE ROW (spec 17): executed sold-only release drifted over the cap stays Hard; no player action can reduce executed excess");
+        // Sold-only (or short) release executed, then mortality/storm drift pushes the share over the cap; no planned or marked work left.
+        var soldOnlyDrift = Bay(0.47f, true, 1, true, 0); soldOnlyDrift.MixedExecuted = false; soldOnlyDrift.DeadwoodExecuted = 0;
+        Check(ScenarioOneTeachingCap.Classify(soldOnlyDrift, true, true) == ScenarioOneTeachingCap.Phase.Advisory,
+            "REGRESSION: sold-only release + drift over the cap, nothing actionable -> Advisory, not deadlocked");
+        Check(ScenarioOneTeachingCap.Classify(soldOnlyDrift, true, false) == ScenarioOneTeachingCap.Phase.Advisory,
+            "REGRESSION: same, results not yet read -> Advisory");
+        var shortRelease = Bay(0.47f, true, 1, true, 0); shortRelease.MinExecuted = 0.12f;
+        Check(ScenarioOneTeachingCap.Classify(shortRelease, true, true) == ScenarioOneTeachingCap.Phase.Advisory,
+            "REGRESSION: short release + drift over the cap, nothing actionable -> Advisory");
+        Check(ScenarioOneTeachingCap.Classify(Bay(0.47f, false, 1, true, 0), true, false) == ScenarioOneTeachingCap.Phase.Advisory,
+            "excess with no release executed and nothing actionable -> Advisory");
+        // As soon as the player plans or marks one more in-footprint tree, the hard safeguard returns for the open sample.
+        var withPlan = Bay(0.47f, true, 1, true, 1); withPlan.MixedExecuted = false;
+        Check(ScenarioOneTeachingCap.Classify(withPlan, true, true) == ScenarioOneTeachingCap.Phase.Hard,
+            "same drift state plus one planned/marked tree -> Hard again (cancel/unmark remedy exists)");
+        Check(ScenarioOneTeachingCap.Classify(Bay(0.47f, true, 1, true, 3), true, true) == ScenarioOneTeachingCap.Phase.Advisory,
+            "complete sample with actionable work over the cap -> Advisory (AC-2 unchanged)");
+        Check(ScenarioOneTeachingCap.Classify(Bay(0.30f, false, 1, true, 0), true, false) == ScenarioOneTeachingCap.Phase.WithinCap,
+            "within cap is WithinCap regardless of actionable work");
+    }
+
+    // The real analysis feeds the policy: ActionableRemovals counts exactly the planned or marked living in-footprint trees.
+    private static void ActionableCountFromRealAnalysis()
+    {
+        var lines = new[] { -31.4092f, -16.0152f, 0.0147f, 16.0224f, 31.3419f };
+        var trees = new System.Collections.Generic.List<ScenarioOneRackBay.Tree>
+        {
+            new ScenarioOneRackBay.Tree("A", 0f, 3f, 30f, true, false), new ScenarioOneRackBay.Tree("B", 5f, -3f, 30f, true, false),
+            new ScenarioOneRackBay.Tree("C", -4f, 4f, 30f, false, false), new ScenarioOneRackBay.Tree("D", 40f, 40f, 30f, true, false),
+            new ScenarioOneRackBay.Tree("M", 2f, 5f, 30f, true, false, true),
+        };
+        var done = new ScenarioOneRackBay.Order("C", false, true, ScenarioOneRackBay.Disposition.Sold, 1);
+        var executedOnly = ScenarioOneRackBay.Analyse(lines, trees.Take(4).ToList(), new[] { done });
+        Check(executedOnly.Applies && executedOnly.RemovedBasalShare > 0f && executedOnly.ActionableRemovals == 0,
+            "real analysis: executed-only removal contributes share but is not actionable", executedOnly.ActionableRemovals.ToString());
+        var plan = new[] { done, new ScenarioOneRackBay.Order("A", true, false, ScenarioOneRackBay.Disposition.Sold, -1),
+            new ScenarioOneRackBay.Order("D", true, false, ScenarioOneRackBay.Disposition.Sold, -1) };
+        var planned = ScenarioOneRackBay.Analyse(lines, trees, plan);
+        Check(planned.ActionableRemovals == 2, "real analysis: one planned + one marked in-footprint tree counted; planned tree outside the footprint is not", planned.ActionableRemovals.ToString());
     }
 
     private static void Messages()

@@ -11,9 +11,11 @@ public static class ScenarioOneTeachingCap
         // No rack layout, no teaching footprint, or the racks are not open yet: the rule does not apply.
         NotApplicable,
         WithinCap,
-        // The sample activity is still open and the footprint is over the cap: Approve and Advance are disabled.
+        // The sample activity is still open, the footprint is over the cap and the player still has planned or marked work in it to
+        // cancel: Approve and Advance are disabled.
         Hard,
-        // The sample is historically complete and the footprint is over the cap: a note only.
+        // Over the cap but nothing to cancel (the sample is complete, or the excess is already executed, e.g. after mortality drift):
+        // a note only, so the player is never deadlocked.
         Advisory
     }
 
@@ -29,7 +31,8 @@ public static class ScenarioOneTeachingCap
     {
         if (bay == null || !bay.Applies || !accessOpen) return Phase.NotApplicable;
         if (bay.CanopyKept) return Phase.WithinCap;
-        return SampleHistoricallyComplete(bay, releaseReviewed) ? Phase.Advisory : Phase.Hard;
+        // Before completion the cap stays a hard safeguard only while there is actionable work to cancel or unmark (spec 17, user decision).
+        return !SampleHistoricallyComplete(bay, releaseReviewed) && bay.ActionableRemovals > 0 ? Phase.Hard : Phase.Advisory;
     }
 
     private static string Percent(float share)
