@@ -1,7 +1,7 @@
 # MFM-08A — authoritative coverage-world adapter
 
 **Claim:** #129  
-**Status:** **RELEASED FOR CODE EXECUTION**  
+**Status:** **HANDED-OFF — MANAGER REVIEW / INTEGRATION PENDING**  
 **Parent:** #91 / #106  
 **Exact base:** `c8cfae8c4025cec6e960a050edf4bfde2a981de5` (post-MFM-07 integrated/qualified umbrella; save schema v23)  
 **Difficulty:** **4/5** — bounded adapter work, but incorrect spatial mapping would silently change coverage/exclusion and prescription eligibility.  
@@ -28,13 +28,30 @@ Map a mask or feature **only** when its position/shape and identity come from an
 
 Known authoritative manager/world state to inspect and map where present includes planted juveniles, shelters/protection, clearance patches, deadwood records and ordinary active management work. Natural regeneration may be supplied only from the authoritative ecology/regeneration state already used by Scenario One.
 
-For infrastructure masks (`Headland`, `Track`, `Clearing`, `Site`), inspect the actual Rack V2 / stand / scene-authoritative geometry APIs before writing anything. **If any accepted mask kind has no authoritative source/API that can be read without inventing coordinates, widths/radii, or site semantics, STOP and return the exact missing source/API.** Do not guess from visuals, constants, screenshots or calibration values.
+### Manager source-authority amendment — 2026-10-29
+
+The original STOP rule below was triggered correctly. The Overall Manager then issued the binding disposition directly on #129 (comments `6509104711` and `6509324739`). This amendment records those decisions without creating new product/spec authority:
+
+- `Headland`: use the existing public `ScenarioOneHeadlandGeometry` authority; do not invent alternate geometry/calibration.
+- `Track`: use authoritative Dirt Path geometry plus the existing `ForestStartingStand.pathCorridorRadiusMeters`. Minimal read-only accessor exposure is permitted; no reflection or copied literals.
+- `Clearing`: use the authoritative `Forest Clearing` position plus the existing `ForestStartingStand.clearingRadiusMeters`. Visual scale is not management authority.
+- `Site`: use durable buildable/structure positions plus the same existing `clearingRadiusMeters` authority.
+- Player start / live player position is **excluded** from runtime MFM `Site` coverage. Do not add a spawn/save field for this task.
+- `ProtectedArea`: do not introduce polygon sampling. Current Scenario One emits zero such features; if an authoritative stored polygon appears, fail closed / report an invalid coverage-world problem until separately authorised mapping exists.
+- Shelter/protection features represent authoritative physical objects that still exist in the current world; ecological-effect expiry alone does not remove them from coverage evidence.
+- `ScenarioOneManager.ReadCoverage` is permitted only as a thin, side-effect-free read-only façade over the same authoritative world-read + `ScenarioOneCoverage.Classify` path used by production approval. No cache, persistence, fallback or alternate semantics.
+- No coverage calibration/tolerance, save/schema, Work Plan commitment, Reference Future, UI or teaching change is authorised by this amendment.
+
+The durable browser closure is `Docs/Handoffs/MFM-08A-Source-Authority-Review-20261029/BROWSER-RESULT.md`.
+
+For infrastructure masks (`Headland`, `Track`, `Clearing`, `Site`), inspect the actual Rack V2 / stand / scene-authoritative geometry APIs before writing anything. **If any accepted mask kind still has no authoritative source/API that can be read without inventing coordinates, widths/radii, or site semantics, STOP and return the exact missing source/API.** Do not guess from visuals, constants, screenshots or calibration values.
 
 ## Owned surface
 
 Primary expected production ownership:
 - `Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs`
 - optionally one new narrowly scoped, read-only adapter/helper beside the MFM coverage code if that keeps source mapping testable.
+- minimal read-only `ForestStartingStand` accessor exposure for the two already-existing authoritative radius settings, as allowed by the Manager amendment above.
 
 Focused verification under `Tools/Verification/Mfm*` may be added/updated.
 
@@ -52,7 +69,9 @@ Offline/static first:
 - a mapped exclusion changes coverage state/reason exactly through the existing `ScenarioOneCoverage` rules;
 - removing/moving the authoritative source changes the adapter result, proving production is not still passing empty arrays;
 - no mutation from reading coverage;
-- no changes to pure coverage tolerances/calibration.
+- no changes to pure coverage tolerances/calibration;
+- authoritative radii are reached through the permitted read-only accessor path;
+- moving the player does not change runtime MFM `Site` coverage.
 
 Unity / integration witness under the normal machine-wide lock:
 - import/compile on exact candidate;
@@ -66,19 +85,23 @@ Unity / integration witness under the normal machine-wide lock:
 
 Stop and return to Manager if:
 - another live writer owns the intended adapter file;
-- authoritative geometry/state for an accepted required mask/feature does not exist or cannot be accessed read-only;
+- authoritative geometry/state for an accepted required mask/feature does not exist or cannot be accessed read-only under the Manager amendment;
 - mapping would require a new persisted field/schema or a calibration/product decision;
 - `ScenarioOneCoverage` contract must change;
 - proposed implementation would mutate marks/orders/world while merely previewing/classifying coverage.
 
 ## Handoff
 
-Publish `Docs/Handoffs/MFM-08A-Coverage-World-Adapter/HANDOFF.md` with exact base/candidate SHAs, branch/worktree, every mapped source → mask/feature mapping, any intentionally unsupported source with STOP disposition, offline and Unity results, protected regression results, cleanliness/lock state, and residuals.
+Worker handoff is published on `feature/mfm-v1-coverage-world-adapter-v1` at `Docs/Handoffs/MFM-08A-Coverage-World-Adapter/HANDOFF.md`.
 
-Success token:
+Reported gated production candidate: `716486a21588e76a482d3eaea4fed12069f75ffd`; docs-only handoff successor: `0b33c3288ebc78ab7361d0cdb3fcee537324dadb`.
+
+The worker reports the required offline and Unity gates and returned:
 
 `MFM COVERAGE-WORLD ADAPTER COMPLETE — MFM-08 UX MAY RELY ON PRODUCTION COVERAGE`
 
+This is a worker handoff only. Manager implementation review, approval, integration and #156 repin remain separate gates.
+
 ## Copy/paste dispatch line
 
-`Run claim #129 from Docs/Handoffs/MFM-08A-Coverage-World-Adapter/TASK-PACKET.md. Root a clean /media/jer/Videos/CCF-MFM-08A worktree on exact integrated base c8cfae8c4025cec6e960a050edf4bfde2a981de5 using branch feature/mfm-v1-coverage-world-adapter-v1. Complete only the production coverage-world adapter by mapping authoritative existing masks/features into ScenarioOneCoverage.Input. Inspect real source APIs first; if any accepted required infrastructure mask lacks an authoritative source, STOP and report it—do not invent geometry. Do not touch UI/teaching/Work Plan/save/calibration. Run the packet gates, publish HANDOFF.md and return the success token. No Windows build.`
+Historical execution dispatch is complete. Do not rerun production implementation from this packet unless the Manager explicitly reopens #129. The next step is Manager review of the exact pushed handoff/candidate, followed by integration/repin if approved.
