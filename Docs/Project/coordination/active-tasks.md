@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol after browser lane #127 handoff.
+**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol after #123 start/status reconciliation.
 
 ## Coordination rules
 
@@ -31,7 +31,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **PLAYER-TEST-OVERNIGHT-01** (#91) | DeepSeek orchestration/integration lead | `orchestration/scenario-one-player-test-ready-v1`; production on child lanes | Orchestration/claims/integration decisions/final assembly | Preserve child ownership; no product invention; no Windows build | **RUNNING** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | child worktrees | Local implementation/qualification through child claims | Exact candidate/handoff; Unity serialized | **RUNNING** |
 | **MFM-07 integration** (#125) | **T3 Code / `deepseek-v4.1-flash`** (DeepSeek, Opencode Go) — sole integration writer | `integration/scenario-one-player-test-ready-v1`; `/media/jer/Videos/CCF-PlayerTestIntegration` | MFM-07 merge/qualification only | Exact input `d4188b33e58b0fe67504a87167692d01b226c84e`; no MFM-08/09; no schema/save-validator edit | **RUNNING** — 2026-10-29T20:14Z; starting umbrella HEAD `7608f02cb8da1fabd8b78fd5aaf45b0c32086f67`; integration worktree `/media/jer/Videos/CCF-PlayerTestIntegration` |
-| **S1-C T-04 provenance labelling** (#123) | Claude Sonnet 5.5 Medium/equivalent when started | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum helper after start | No save/schema/validator, MFM proposal/work-order or simulation edits | **PREPARED FOR DISPATCH — no ownership yet** |
+| **S1-C T-04 provenance labelling** (#123) | **Claude Code / Anthropic Claude Sonnet 5.5 Medium** — sole history/review writer | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum helper | No save/schema/validator, MFM proposal/work-order or simulation edits | **RUNNING / WAITING FOR UNITY LOCK** — started from clean `b971f4da0540e606bfee9702b0c99f81a0a89355`; offline candidate `3386a5bab6b3a78ab526abe6a7c9cc2c94b6f349`; reported offline gates PASS; Unity serialized behind #125 |
 | **S1-D T-04 guide monotonicity** (#124) | Claude Sonnet 5.5 Ultra Code preferred when started | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | teaching-sequence files/minimum pure helper after start | No schema/validator/MFM; must land before MFM-09 | **PREPARED FOR DISPATCH — no ownership yet** |
 | **PARITY-08 save/deterministic compatibility** (#126) | Claude Opus 5.5 Low preferred primary writer when started | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | sole save/validator/hash/reference writer after start | No rebaseline/schema bump; independent review required | **PREPARED FOR DISPATCH — no ownership yet** |
 | **PARITY-08 independent review** (#128) | independent OpenAI review lane | exact #126 handed-off candidate | **No production ownership; review-only** | Blocked until #126 handoff; repairs return to writer/new repair claim | **BLOCKED** |
