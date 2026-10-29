@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md` rather than remaining as a live lock.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol / OpenAI browser lane #118.
+**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol / OpenAI browser lane #118 closeout.
 
 ## Coordination rules
 
@@ -44,7 +44,6 @@ Do not infer a later item owns Unity until its child claim is RUNNING and the lo
 |---|---|---|---|---|---|
 | **PLAYER-TEST-OVERNIGHT-01 — orchestrate Scenario One to personal-playtest-ready candidate** (#91) | **DeepSeek orchestration/integration lead** | `orchestration/scenario-one-player-test-ready-v1`; production stays on child lanes | Claims, locks, dependency DAG, handoff triage, integration decisions, final Tier-3 assembly only at parent level | Preserve child ownership; no product invention; high-risk save/reference work requires independent cross-provider review; no Windows build | **RUNNING** |
 | **PLAYER-TEST-T3-CODE-LANE-01 — local C#/Unity execution** (#106) | DeepSeek-dispatched local lane using user routing and provider independence | Child task worktrees; no blanket subsystem branch | C#/verification edits, save/version work, Unity/runtime/rendered gates and integration through matching child claims | Publish exact candidates/handoffs and pushed integration refs before claiming canonical integration | **RUNNING** |
-| **PLAYER-TEST-BROWSER-LANE-03 — browser-safe readiness continuation** (#118) | Overall Manager / OpenAI GPT-5.6 Sol browser lane | GitHub-only; no production worktree | GitHub inspection, live coordination, source/static/spec review, claim hygiene, packets/handoffs, Manager verdicts | No C#/Unity/save/rendered/local integration/Tier-3 execution; no production ownership | **RUNNING** |
 | **MFM-06 — save/provenance foundation** (#111) | #106 local lane; actual worker Claude Sonnet 5.5 / Anthropic | `feature/mfm-v1-save-provenance-v23`; `/media/jer/Videos/CCF-MFM-06`; reported start `ac876a6` | MFM-06 v23 save/provenance schema/domain/verification only | No MFM-07 behaviour; preserve v22 history, Legacy40, Reference Future, pre-mutation rejection; publish exact candidate before review | **RUNNING** |
 | **MFM-06 independent review** (#112) | OpenAI 6.1 Sol, cross-provider from Claude implementation | Review only | Exact #111 diff/handoff/evidence; no production ownership | Wait for GitHub-resolvable candidate and complete handoff; if Sol unavailable remain WAITING | **WAITING** |
 | **MFM-06 integration gate** (#113) | #106 integrator only after review | Current umbrella integration lineage, refreshed at start | Bounded MFM-06 integration only | Requires #111 qualified/published + #112 APPROVED + clean ownership + post-merge checks | **WAITING / BLOCKED** |
@@ -59,6 +58,8 @@ The following execution claims are closed `[HANDED-OFF]` and no longer own files
 - #93 — MFM-04 deterministic prescription core.
 - #100 — MFM-05 spacing-only Crop Tree candidate system.
 - #102 — PARITY-07 player-facing species truth/rendered qualification.
+
+Browser Lane 03 (#118) is also released/closed. Closeout: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-03-RESULT.md`.
 
 ## Prepared but not dispatched — no production ownership
 
@@ -101,6 +102,7 @@ Packet preparation grants no ownership. Create substantive child claims only whe
 
 ## Recently released / completed coordination relevant to current work
 
+- **PLAYER-TEST-BROWSER-LANE-03 (#118):** completed live-state reconciliation, claim hygiene, cross-feature sequencing, all remaining T3 packet preparation and programme endgame preparation. Closeout: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-03-RESULT.md`.
 - **PLAYER-TEST-BROWSER-LANE-02 (#110):** completed live-state reconciliation, returned-work review, S1-D DAG audit and initial next-packet preparation. Closeout: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-02-RESULT.md`.
 - **PLAYER-TEST-BROWSER-LANE-01 (#105):** completed earlier T-05/T-03/PARITY-07/MFM-04/05 browser triage. Closeout: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-RESULT.md`.
 - **RACK-V2 programme through RACK-V2-14:** execution claims/handoffs report field marking, teaching, persistence, functional/rendered qualification and Rack conformance completion; no live Rack ownership retained here.
