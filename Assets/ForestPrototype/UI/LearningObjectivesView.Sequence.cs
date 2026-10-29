@@ -143,13 +143,22 @@ public sealed partial class LearningObjectivesView
     }
 
     // Interactive planning safeguard only; protected scenario-completion/economy rules remain unchanged.
+    // S1-D T-03: hard only while the teaching sample is still open; afterwards RackPlanAdvisory carries the same fact as a note.
     public string RackPlanProblem()
     {
         sequenceFacts = null;
         var f = TeachingFacts();
-        return f.Bay != null && f.AccessOpen && !f.Bay.CanopyKept
-            ? "Teaching rack safeguard exceeded (40% cumulative trunk area). Cancel/unmark in-footprint removals before approval or advance. Already executed excess cannot complete this lesson."
-            : "";
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed) == ScenarioOneTeachingCap.Phase.Hard
+            ? ScenarioOneTeachingCap.HardMessage(f.Bay) : "";
+    }
+
+    // Never disables anything. Empty unless the sample is complete and the footprint is over the historical threshold.
+    public string RackPlanAdvisory()
+    {
+        // No cache reset: the Work Plan reads RackPlanProblem first, which has just refreshed the facts.
+        var f = TeachingFacts();
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed) == ScenarioOneTeachingCap.Phase.Advisory
+            ? ScenarioOneTeachingCap.AdvisoryMessage(f.Bay) : "";
     }
 
     // D-064 / OPEN-2: in a Rack Planning V2 world field marking happens before approval. While a rack that owns Pending removal work
