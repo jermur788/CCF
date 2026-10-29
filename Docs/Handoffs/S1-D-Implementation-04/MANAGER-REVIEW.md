@@ -1,57 +1,63 @@
-# S1-D T-04 — Interim Manager Review
+# S1-D T-04 — Manager Review
 
 **Task:** S1-D T-04 — Guide monotonicity  
 **Claim:** #124  
-**Verdict:** **NEEDS CHANGES BEFORE UNITY QUALIFICATION**  
-**Review basis:** approved S1-D specification/plan/task packet plus the worker's reported local implementation state. The reported candidate `18e33d4` is local/unpushed and was **not inspected from GitHub**, so this document is a spec-conformance/design verdict, not an implementation-code approval.
+**Verdict:** **BLOCKED — PRODUCT / SPEC DECISION REQUIRED BEFORE UNITY**  
+**Review basis:** approved S1-D specification, plan, requirements checklist and task packet; pushed candidate `b9d204c` on `feature/s1-d-t04-guide-monotonicity-v1`; branch handoff revision 2. The superseded local candidate `18e33d4` is not accepted.
 
-## Reported candidate state
+## Inspected candidate
 
-- Branch: `feature/s1-d-t04-guide-monotonicity-v1`
-- Worktree: `/media/jer/Videos/CCF-S1D-T04`
-- Exact base: `b971f4da0540e606bfee9702b0c99f81a0a89355`
-- Reported local candidate: `18e33d4`
-- Reported offline checks: new T-04 check 27/27 PASS; T-03 teaching-cap 48/48 PASS apart from its expected protected-diff guard against the owned teaching file; T-02 cycle-state 93/93 PASS.
-- Unity qualification: not run.
-- Independent review: not run.
-- Success token: correctly withheld.
+- Exact base: `b971f4da0540e606bfee9702b0c99f81a0a89355`.
+- Exact pushed candidate: `b9d204c` (two commits ahead of the base).
+- Production changes are limited to the teaching/current-state surface plus the shared teaching-cap helper; no save/schema/validator, completion-rule, objective, Rack, MFM, ecology/economy, scene, package or ProjectSettings file is changed in the GitHub comparison.
+- The worker reports the revised offline gates green and correctly withholds Unity qualification and independent-review success tokens.
 
-## Manager decisions
+## Findings
 
-### 1. Lesson 5 → 6 witness through later planting
+### 1. Prior Manager findings are corrected
 
-**NOT ACCEPTED.**
+**PASS for static design review.** The candidate removes planting as a surrogate for `[J]/[K]` completion and removes arbitrary in-footprint felling from the history-floor proof. `ScenarioOneTeachingHistory.Floor` uses successful beech/oak planting events plus recorded objective-achievement presence and later Annual Review acknowledgement only for the later lesson boundaries. No `PlayerPrefs` or session `[J]/[K]` state is persisted.
 
-A successful `PlantJuvenile` event does not faithfully prove that the session-only `[J]/[K]` release-review lesson was completed. The approved T-04 contract permits persisted facts such as successful planting only where they faithfully prove the relevant historical boundary. Ordinary management actions are not lesson-gated, so later planting cannot be used as a surrogate persistence record for `[J]/[K]` completion.
+### 2. Full FR-B1 / AC-3 is not met
 
-Where no persisted fact faithfully proves that boundary, preserve the existing current-state behaviour and report the uncovered state. Do not infer or manufacture a latch.
+**BLOCKER.** The approved checklist requires the guide to remain stable under Crop Tree count change/loss, later in-footprint felling, executed-share drift **and save/load at lessons 6–8**. The released packet likewise requires a save at lessons 6–8 to reload with the same guide index.
 
-### 2. Release proof through any in-footprint sold/deadwood felling
+The candidate deliberately applies its historical floor only when `Raw(...) >= recruitment` (lesson 6). Consequently a reload that resets the session-only rack review can make `Raw` return lesson 5, bypassing the floor; the branch handoff explicitly expects a lesson-7/8 save to return to lesson 5 until `[J]/[K]` is repeated. Crop Tree loss can similarly push `Raw` below lesson 6 and bypass the floor.
 
-**NOT ACCEPTED as historical lesson-completion proof.**
+That behaviour is cautious and avoids inventing history, but it is narrower than the accepted requirement. It cannot be approved as T-04 completion without an explicit spec/product change.
 
-The inspected S1-D baseline distinguishes release removals serving a Crop Tree from arbitrary in-footprint felling. If that relationship cannot be reconstructed faithfully from persisted history, the task's fallback/stop rule applies. Broadening the proof to every in-footprint sale/deadwood removal can over-claim historical completion and is therefore not an authorised latch.
+### 3. The implementation has reached the packet's stop condition
 
-### 3. T-03 / T-04 shared historical-completion interpretation
+The task packet says that when no persisted fact faithfully establishes a required historical-completion state, the worker must preserve existing behaviour and report the gap rather than invent a latch. That is exactly what the revised candidate has now demonstrated for the release/review boundary.
 
-**REQUIRES CORRECTION BEFORE REVIEW.**
+Therefore this is no longer an ordinary coding defect. Continuing to iterate locally without changing authority would force either fabricated inference or an unauthorised persistence change.
 
-The task packet requires the guide change and the T-03 teaching-cap decision to share one faithful historical-completion interpretation rather than ship competing definitions. The worker reports that T-03 still reads the current rack-bay state and only partly shares the new helper. Reconcile this within T-04's permitted teaching/current-state surface if possible. If doing so would require crossing a protected ownership/API boundary, stop and return a precise blocker rather than duplicating semantics.
+### 4. T-03/T-04 do not literally consume one completion predicate
 
-## Required revision
+**REQUIRES RESOLUTION WITH THE PRODUCT DECISION.** `ScenarioOneTeachingCap` delegates to `ScenarioOneTeachingHistory.SampleHistoricallyComplete`, but `ScenarioOneTeachingSequence.Current` does not call that predicate; it gates a separate planting/review `Floor` behind `Raw >= recruitment`. The semantics are related, but this is not literally the single persisted-history completion condition described by plan §2.1 / the independent-review requirement.
 
-1. Remove planting as a surrogate proof of `[J]/[K]` completion.
-2. Remove arbitrary in-footprint felling as proof of release-lesson completion unless a persisted relationship faithfully proves the required release semantics.
-3. Keep existing behaviour for any lesson boundary that lacks faithful persisted proof.
-4. Reconcile T-03 and T-04 to one faithful historical-completion interpretation, or return a precise cross-lane blocker.
-5. Rerun the focused offline matrix/regressions on the revised candidate.
-6. Push/publish an inspectable exact candidate and `Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md` before requesting Manager code approval.
+Do not spend the independent-review lane resolving this while the larger AC-3 product decision is open.
 
-Do **not** spend the serialized Unity lane on the current `18e33d4` design. After the corrected exact candidate is inspectable and the offline gates are green, run the packet's Unity save/reload/world-drift/teaching regressions and then obtain the required independent review.
+## Product decision required
 
-## Integration / downstream effect
+Choose one direction before further implementation or Unity qualification:
 
-- #124 remains the sole curriculum writer while revising.
+### Option A — preserve the approved AC-3 behaviour
+
+Keep the requirement that a historically completed teaching sample does not regress after reload or later Crop Tree/world drift. Authorise a minimal **durable aggregate completion record** that faithfully records that the teaching sample/review was completed, without persisting the individual `[J]/[K]` decisions themselves. The exact representation must be specified before coding (for example, a purpose-built record in existing persisted history versus a new save field). This reopens persistence/save-compatibility scope and must be coordinated with save/validator ownership and PARITY-08; no implementation is authorised by this review alone.
+
+### Option B — accept the narrower no-new-persistence behaviour
+
+Amend the approved S1-D spec/checklist/packet so FR-B1/AC-3 no longer promises stability when the current guide falls below lesson 6. Explicitly accept that loading a lesson-7/8 save may return the player to lesson 5 until the session inspection is repeated, and that Crop Tree loss can similarly expose earlier current-state lessons. This is a product-scope reduction, not an implementation verification result.
+
+## Recommendation
+
+**Recommend Option A.** T-04 exists specifically to prevent repeated-intervention teaching from regressing after historical completion, including across load. Requiring a player who has already reached lessons 7/8 to repeat lesson 5 after every load undermines that purpose. A single durable aggregate completion fact is preferable to inferring completion from unrelated planting/felling and preferable to weakening AC-3, provided the save-compatibility work is explicitly specified and serialized against PARITY-08 ownership.
+
+## Gate state
+
+- Candidate `b9d204c`: **not approved for Unity qualification yet**.
+- Unity lock: do not acquire for #124 until the product/spec decision is resolved and the resulting candidate is statically accepted.
+- Independent review: wait until after that corrected candidate exists.
 - MFM-09 remains blocked on accepted S1-D T-04/T-05.
-- This review does not alter `ScenarioOneCompletionRules`, save schema, Rack V2, MFM logic, or any product decision.
 - No Windows build is authorised.
