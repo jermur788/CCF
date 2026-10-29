@@ -446,6 +446,8 @@ public sealed class AnnualReviewView
         }
 
         UiKit.Add(c, "An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.", "muted");
+        foreach (ScenarioObjectiveAchievement achieved in year.ObjectivesAchieved)
+            UiKit.Add(c, $"Objective first reached: {ObjectiveName(m, achieved.objectiveId)}", "body");
         UiKit.Add(c, "Retained material", "heading");
         if (report != null)
             UiKit.Line(c, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
@@ -502,13 +504,24 @@ public sealed class AnnualReviewView
         return box;
     }
 
+    private static string ObjectiveName(ScenarioOneManager m, string objectiveId)
+    {
+        ScenarioObjectiveResult match = m.Objectives.FirstOrDefault(o => o.objectiveId == objectiveId);
+        return match != null ? match.displayName : objectiveId;
+    }
+
     private void BuildObjectives(ScenarioOneManager m, bool historical = false)
     {
         var objectives = m.Objectives;
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"OBJECTIVES {objectives.Count(o => o.achieved)} OF {objectives.Count}" + (historical ? " (current state)" : ""), "heading");
         foreach (ScenarioObjectiveResult o in objectives)
+        {
             UiKit.Add(card, ScenarioOneUiFacts.ObjectiveLine(o), "body");
+            if (!o.achieved) continue;
+            int achievedYear = m.ObjectiveAchievedYear(o.objectiveId);
+            UiKit.Add(card, achievedYear >= 0 ? $"First reached in year {achievedYear}" : "Year reached: not recorded", "faint");
+        }
         UiKit.Add(card, m.Outcome == ScenarioOneOutcome.Completed ? $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear})."
             : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.TutorialHint, "muted");
         scroll.Add(card);

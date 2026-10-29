@@ -615,6 +615,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // The V2 rack plan is fresh-world state as well: no racks, unconfirmed, model 0. The
         // new-game setup raises it to model 1 for Enlarged80 afterwards; legacy loads never do.
         ClearRackPlan();
+        ClearObjectiveHistory();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -1420,6 +1421,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             rackPlanConfirmed = rackPlanConfirmed,
             nextRackId = nextRackId,
             racks = CloneRacks(racks),
+            objectiveAchievements = CloneObjectiveAchievements(objectiveAchievements),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1441,6 +1443,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
         ScenarioOneSaveMigration.NormalizeRackV2(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizeObjectiveHistory(data, saveVersion);
         shelters = CloneRecords(data?.shelters);
         protectedAreas = CloneRecords(data?.protectedAreas);
         ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
@@ -1519,6 +1522,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         centuryReview = data.centuryReview == null || data.centuryReview.year < ReviewYear
             ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
         ScenarioOneObjectives.RefreshAspirationalTargets(centuryReview, definition, ecology.StandGeometryModelVersion);
+        RestoreObjectiveHistory(data, saveVersion);
         RestoreStormVisualState();
         RestoreDeadwoodVisuals();
         RefreshFellingResidueVisuals();
@@ -2369,6 +2373,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             List<ScenarioObjectiveResult> objectives = ScenarioOneObjectives.Evaluate(definition,
                 snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
+            RecordObjectiveAchievements(objectives, snapshot.year);
             if (objectives.Count > 0 && objectives.All(result => result.achieved)
                 && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,

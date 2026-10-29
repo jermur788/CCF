@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 21;
+    public const int CurrentVersion = 22;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -44,6 +44,7 @@ public sealed class ForestSaveData
     // Version 14: explicit biological tree mortality, separate from harvesting.
     // Version 15: scenario execution choices, protection and bounded economy reports.
     // Version 21: Rack Planning & Field Marking V2 state inside scenarioOne (D-064).
+    // Version 22: objective achievement history inside scenarioOne (S1-C T-05).
     public ScenarioOneSaveData scenarioOne;
 }
 
@@ -90,6 +91,24 @@ public sealed class ScenarioOneSaveData
     public int nextRackId = 1;
     // The authoritative persisted V2 rack-plan records. Empty until the map editor lands.
     public List<RackSaveData> racks = new List<RackSaveData>();
+    // Version 22: S1-C objective/progression history. Declared after the v21 run so that the hash
+    // compatibility path can drop this one field without touching the rack-plan strip. Append-only:
+    // one record per objective, written when evaluation first sees it achieved. A missing or empty list
+    // means "not recorded"; nothing is ever back-filled into a save that predates the field. It is not
+    // part of the world identity hash (see ScenarioReferenceArchive.WithoutObjectiveAchievements).
+    public List<ScenarioObjectiveAchievement> objectiveAchievements = new List<ScenarioObjectiveAchievement>();
+}
+
+// The ecological year in which Scenario One evaluation first observed one objective as achieved.
+// First achievement only: an objective later lost keeps its record, and is never recorded twice.
+[Serializable]
+public sealed class ScenarioObjectiveAchievement
+{
+    // The ScenarioObjectiveResult.objectiveId this record belongs to.
+    public string objectiveId = "";
+    public int achievedYear;
+    // The objective's target at the moment it was achieved, so the record stays readable if targets change.
+    public float targetValueAtAchievement;
 }
 
 // One persisted Rack Planning & Field Marking V2 rack. The entrance and far endpoints are the

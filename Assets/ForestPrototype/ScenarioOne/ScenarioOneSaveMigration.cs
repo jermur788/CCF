@@ -37,4 +37,13 @@ public static class ScenarioOneSaveMigration
             foreach (var order in data.workOrders)
                 if (order != null) order.rackId = 0;
     }
+
+    // v22 normalization: a save older than the objective history field has no record of when anything
+    // was achieved. It gets the empty list, which reads as "not recorded"; nothing is derived or
+    // back-filled here (ScenarioOneManager.RestoreSaveData reads the list only from a v22 save).
+    public static void NormalizeObjectiveHistory(ScenarioOneSaveData data, int version)
+    {
+        if (data == null || version >= 22) return;
+        data.objectiveAchievements = new List<ScenarioObjectiveAchievement>();
+    }
 }
