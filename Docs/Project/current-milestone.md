@@ -22,9 +22,11 @@ Rack V2 is the authoritative Enlarged80 access-planning workflow. Rack geometry 
 
 The Rack V2 core, map planning/editing/spacing/confirmation/minimap work and the Combined HUD layout repair are integrated. The layout repair was Manager-approved and integrated through PR #80 / merge `b118d8e63f60d54c9f9a3bed6de40af83b35efc1` after exact-candidate Unity qualification.
 
-The binding next Rack task is **RACK-V2-08 — remove competing first-person rack planning and make Stand Map authoritative** (claim #49). It has been re-dispatched on its existing branch/worktree and must bring the repaired current `main` into that lane and rerun the full model-0/Rack-V2 Guided/Sequential/Combined-HUD qualification. The seven real-OS-input assertions that did not complete during the layout repair are not waived.
+**RACK-V2-08 — remove competing first-person rack planning and make Stand Map authoritative** is now Manager-approved, feature-qualified and integrated through PR #89 / merge `d925e9591f2fffb9419881a0e77031cefccf9aeb`. Its exact Unity-qualified candidate `0904f0f` passed the required model-0 and Rack V2 Guided/Sequential/Combined-HUD gates, including all seven previously-unwaived real-input assertions; Legacy40 and RACK-V2-07 preservation also passed. No Windows build was made.
 
-Later Rack V2 work, including physically marking confirmed rack entrances in the 3D forest and any remaining persistence/help/qualification tasks in the approved spec, is still pending. Rack V2 is therefore **not yet complete**.
+The binding next Rack task is **RACK-V2-09 — physically mark confirmed rack entrance trees in orange** (claim #90). Its RACK-V2-07/RACK-V2-08 functional prerequisites are satisfied and the task packet is published, but execution is currently **storage-blocked**: the latest Unity handoff reported `/media/jer/ZX20` at approximately 11.5 GiB free, below the 15 GiB machine Unity-lock floor. No Unity task may launch until a fresh preflight proves that floor is restored.
+
+Later Rack V2 help/teaching, persistence and full functional/rendered qualification tasks remain pending. Rack V2 is therefore **not yet complete**. MFM production remains gated by the Rack persistence/integration boundary in D-065.
 
 ### Sitka/Oak/Beech parity P0 — underway
 
@@ -55,11 +57,12 @@ S1-D is pre-demo scope under D-060 and is no longer unimplemented.
 - T-00 product decisions: complete.
 - T-01 repeated-intervention baseline/assumption re-verification: Manager-accepted and integrated.
 - T-02 advisory cycle/readiness state: Manager-accepted bounded slice and integrated; its new script/meta still needs real Unity import/compile observation during a later applicable S1-C/S1-D Unity gate.
-- T-03 teaching-footprint-cap decoupling, T-04 guide monotonicity, T-05 previous-vs-proposed management, and T-06 management-event ID integrity remain.
+- T-03 teaching-footprint-cap decoupling, T-04 guide monotonicity and T-05 previous-vs-proposed management remain.
+- **T-06 management-event ID integrity:** static implementation is complete. Independent source review by GPT-5.6 Sol / OpenAI passed, and OpenAI gpt-6.1-sol independently reproduced the executable evidence on exact reviewed candidate `29bb6cb`: T-06 75 PASS + 7/7 mutants, N3 88 PASS, T-02 93 PASS + 7/7 mutants, with focused method-body negative-control evidence. The independent review gate is complete. T-06 is **not yet Unity-verified, integrated or accepted as a complete slice**; claim #88 owns its queued runtime save-load/no-mutation qualification.
 - T-07 persisted cycle-state expansion is cancelled for V1.
 - T-08 multi-cycle witness remains blocked until the required implementation tasks are complete; T-09 independent spec review follows T-08.
 
-T-06 is authorised after T-01 but requires an independent review because it touches the shared save-load validation path.
+The machine storage-floor blocker currently prevents T-06's Unity qualification as well as other queued Unity work.
 
 ### Multi-Scale Forestry Management V1 / D-065 — planning approved, production gated
 
