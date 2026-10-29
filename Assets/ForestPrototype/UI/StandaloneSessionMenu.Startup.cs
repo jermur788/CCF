@@ -31,7 +31,8 @@ public sealed partial class StandaloneSessionMenu
 
     // Keys a first-time tester needs to enter and control the stand. Not a tutorial: the in-game Help (F1) and
     // Learning objectives (O) teach once the player is in the stand. The list is ControlsReference, shared with the Walking HUD help.
-    private static readonly string[][] ControlRows = ControlsReference.Rows;
+    private System.Collections.Generic.IEnumerable<string[]> ControlRows =>
+        ControlsReference.RowsFor(forestUi != null && forestUi.Manager.RackPlanningV2Active);
 
     // True from bootstrap until the player leaves the title screen. While true, F10 does nothing.
     private bool startupScreen;

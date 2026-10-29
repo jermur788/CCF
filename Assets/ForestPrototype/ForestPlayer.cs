@@ -924,7 +924,9 @@ public sealed class ForestPlayer : MonoBehaviour
             ScenarioOneManager promptScenario = Object.FindFirstObjectByType<ScenarioOneManager>();
             return promptScenario != null
                 ? promptScenario.RackFirstStageActive
-                    ? "[E] Inspect  |  [B] Create rack  |  [Tab] Plan"
+                    ? promptScenario.RackPlanningV2Active
+                        ? "[E] Inspect  |  [M] Stand Map · Plan Racks  |  [Tab] Plan"
+                        : "[E] Inspect  |  [B] Create rack  |  [Tab] Plan"
                     : "[E] Inspect  |  [X] Fell  |  [C] Crop Tree  |  [Tab] Plan"
                 : chops > 0
                     ? $"[E] Inspect  |  [F] Chop ({chops}/{aimedTree.ChopsRequired})"

@@ -178,7 +178,15 @@ public sealed partial class LearningObjectivesView
             bool complete = IsDone(step.Id);
             VisualElement card = UiKit.Box("card");
             UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
-            UiKit.Add(card, StepText(step, market), "body");
+            string text = StepText(step, market);
+            // Stable practice ids and legacy lesson data remain intact; V2 has one geometry author.
+            if (ui.Manager.RackPlanningV2Active)
+            {
+                if (step.Id == "rack.create") text = "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
+                else if (step.Id == "rack.layout") text = "Plan five racks on the Stand Map [M], then choose Confirm Rack Plan. Review and approve the pending removal work in the Work Plan [Tab].";
+                else if (step.Id == "rack.map") text = "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.";
+            }
+            UiKit.Add(card, text, "body");
             if (step.Reading && !complete)
             {
                 bool ready = step.Requires == null || IsDone(step.Requires);

@@ -245,7 +245,9 @@ public sealed class WalkingHudView
         if (racking)
             action = "";
         else if (marks != null && marks.AimedTree != null && player != null && player.AimedTree != null && player.AimedTree.CanChop)
-            action = rackStage ? "[E] Inspect   ·   [B] Create rack   ·   [Tab] Plan"
+            action = rackStage ? ui.Manager.RackPlanningV2Active
+                ? "[E] Inspect   ·   [M] Stand Map · Plan Racks   ·   [Tab] Plan"
+                : "[E] Inspect   ·   [B] Create rack   ·   [Tab] Plan"
                 : "[E] Inspect   ·   " + marks.MarkPromptText() + "   ·   [Tab] Plan";
         prompt.text = action;
         prompt.style.display = string.IsNullOrEmpty(action) ? DisplayStyle.None : DisplayStyle.Flex;
@@ -281,7 +283,9 @@ public sealed class WalkingHudView
     private string RackStageSummary(ForestTreeMarkingManager marks)
     {
         RackLayoutTracker layout = ui.RackLayout;
-        string text = layout != null && layout.Total > 0
+        string text = ui.Manager.RackPlanningV2Active
+            ? layout.V2CounterText + "  ·  [M] Stand Map · Plan Racks  ·  [Tab] Work Plan"
+            : layout != null && layout.Total > 0
             ? $"Extraction racks: {layout.Done} of {layout.Total} in the Work Plan  ·  [B] Create rack  ·  [M] Plan on the Stand Map  ·  [Tab] Work Plan"
             : "[B] Create an extraction rack  ·  [Tab] Work Plan";
         if (marks.LivingMarkedCount > 0 || marks.LivingCropTreeCount > 0)
