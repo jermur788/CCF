@@ -140,6 +140,27 @@ public static partial class ForestSaveValidation
         }
         string rackProblem = ValidateRackV2(data);
         if (rackProblem != null) return rackProblem;
+        // Last, so every older rejection keeps its existing reason and order.
+        return ValidateManagementEventIds(data.scenarioOne);
+    }
+
+    // Repeated-intervention history orders events by eventId, so an ID that is not positive or is
+    // shared by two events makes that order ambiguous. Reject the save instead of renumbering or
+    // repairing it. Applies to every save version; a missing list has nothing to check.
+    private static string ValidateManagementEventIds(ScenarioOneSaveData scenario)
+    {
+        if (scenario == null || scenario.managementEvents == null) return null;
+        var firstRecordForId = new Dictionary<int, int>();
+        for (int i = 0; i < scenario.managementEvents.Count; i++)
+        {
+            ScenarioManagementEvent entry = scenario.managementEvents[i];
+            if (entry == null) continue; // already rejected by ValidateScenarioCellIndices
+            if (entry.eventId <= 0)
+                return $"management event record {i} has a non-positive ID ({entry.eventId})";
+            if (firstRecordForId.TryGetValue(entry.eventId, out int first))
+                return $"management event ID {entry.eventId} appears twice (records {first} and {i})";
+            firstRecordForId.Add(entry.eventId, i);
+        }
         return null;
     }
 
