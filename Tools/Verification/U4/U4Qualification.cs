@@ -332,7 +332,7 @@ public sealed class U4Gate : MonoBehaviour
     private IEnumerator Core()
     {
         // ---- identity ----
-        Expect(ForestSaveData.CurrentVersion == 21, "ForestSaveData.CurrentVersion == 21");
+        Expect(ForestSaveData.CurrentVersion == 22, "ForestSaveData.CurrentVersion == 22");
         var enumValues = Enum.GetValues(typeof(ScenarioManagementEventType)).Cast<ScenarioManagementEventType>().ToDictionary(v => v.ToString(), v => (int)v);
         string[] earlier = { "StockPurchased", "OrderCreated", "OrderApproved", "OrderCancelled", "WorkResolved", "YearAdvanced", "ScenarioCompleted", "ScenarioFailed", "CenturyReviewed" };
         for (int i = 0; i < earlier.Length; i++) Expect(enumValues.TryGetValue(earlier[i], out int v) && v == i, $"enum {earlier[i]} == {i}");

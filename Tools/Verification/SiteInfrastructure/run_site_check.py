@@ -12,7 +12,7 @@ successful build therefore proves the data files need no UnityEngine, Sitka, spe
 No Unity Editor, no Library, nothing written inside the repo.
 
 This proves pure data rules and (by reading source text) that nothing in production or the other verification
-tools calls the new types and that the save version is still 21 (the check asserts 21; it was 20 when this runner was
+tools calls the new types and that the save version is still 22 (the check asserts 22; it was 20 when this runner was
 written). It does not prove Unity import/compile, any
 anchor hash, or that any descriptor is ecologically correct.
 

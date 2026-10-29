@@ -504,7 +504,7 @@ public sealed class RackUxRackRunner : MonoBehaviour
             && (data.scenarioOne.racks == null || data.scenarioOne.racks.Count == 0)
             && !data.scenarioOne.rackPlanConfirmed
             && data.scenarioOne.workOrders.All(o => o.rackId == 0)
-            && ForestSaveData.CurrentVersion == 21, $"saveVersion={ForestSaveData.CurrentVersion} racks={data.scenarioOne?.racks?.Count ?? -1}");
+            && ForestSaveData.CurrentVersion == 22, $"saveVersion={ForestSaveData.CurrentVersion} racks={data.scenarioOne?.racks?.Count ?? -1}");
         Hard("LOAD_PRESERVES_THE_TEACHING_STAGE", manager.RackFirstStageActive, "");
         Note("LOAD_RACK_GROUPING", $"groupsAfterLoad={manager.RackGroups.Count} (grouping is session state; rack trees are ordinary draft felling jobs after a load)");
         yield return Wait(0.3f);
