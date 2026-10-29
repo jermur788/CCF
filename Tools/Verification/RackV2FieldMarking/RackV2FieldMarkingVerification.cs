@@ -91,6 +91,13 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
             catch (Exception error) { failure = error; break; }
             if (!more) stack.Pop(); else if (current is IEnumerator next) stack.Push(next); else yield return current;
         }
+        if (failure != null && marks != null)
+        {
+            File.WriteAllText(Path.Combine(output, "failure-state.txt"), "count=" + manager.MarkedRackEntranceCount
+                + " message=" + marks.TransientMessage + " prompt=" + marks.RackSprayPrompt()
+                + " camera=" + Camera.main.transform.position + " player=" + player.transform.position + "\n" + failure);
+            yield return Capture("FAIL-state");
+        }
         File.WriteAllLines(Path.Combine(output, "captures.txt"), captures);
         File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("CCF_DRIVER_DIR"), "finished"), failure == null ? "pass" : "fail");
         Debug.Log(failure == null ? "RACK_V2_FIELD_MARKING_PASS checks=" + checks + " shots=" + shots
@@ -155,6 +162,7 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
             Check(Mathf.Abs(offset.x * -unit.y + offset.y * unit.x) <= rack.WidthM * 0.5f + 0.0001f, "target near existing centreline " + rack.Id);
         }
         yield return Settle();
+        Check(FindFirstObjectByType<PlannedFellMarkers>().MarkerCount == 0, "V2 pending rack orders create no automatic ground discs/diamonds");
         Check(marks.CueRackId == ids[0], "cue uses first real unmarked rack");
         var target0 = Tree(manager.RackPlan[0].EntranceTreeId);
         yield return Aim(target0);
@@ -170,7 +178,12 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
         yield return input.Send(RackAuthoringNativeInput.Op.Click());
         Check(manager.MarkedRackEntranceCount == 0 && marks.TransientMessage.Contains("not a rack entrance"), "native spray unrelated tree rejected");
         yield return Aim(target0, 6f);
+        Debug.Log("RACKFIELD_RANGE before camera=" + Camera.main.transform.position + " target=" + target0.transform.position
+            + " centre-distance=" + Vector3.Distance(Camera.main.transform.position, target0.transform.position + Vector3.up * 1.4f)
+            + " prompt=" + marks.RackSprayPrompt());
         yield return input.Send(RackAuthoringNativeInput.Op.Click());
+        Debug.Log("RACKFIELD_RANGE after count=" + manager.MarkedRackEntranceCount + " message=" + marks.TransientMessage
+            + " camera=" + Camera.main.transform.position + " prompt=" + marks.RackSprayPrompt());
         Check(manager.MarkedRackEntranceCount == 0 && marks.TransientMessage.Contains("3.5"), "native spray beyond range rejected");
         yield return Aim(target0);
         player.LookToward(player.transform.position + Vector3.up * 10f + player.transform.forward);

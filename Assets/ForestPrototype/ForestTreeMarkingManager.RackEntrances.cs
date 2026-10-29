@@ -74,7 +74,7 @@ public sealed partial class ForestTreeMarkingManager
             return false;
         }
         RackSprayEquipped = equip;
-        SetMessage(equip ? "Spray marker equipped · aim at an entrance tree within 3.5 m and left-click. [P] Stow."
+        SetMessage(equip ? "Spray marker equipped · [Left-click] Spray · [P] Stow."
             : "Spray marker stowed.");
         return true;
     }

@@ -202,7 +202,7 @@ public sealed class WalkingHudView
             rackDestination = hasWaypoint = true;
             target = new Vector2(entranceTree.transform.position.x, entranceTree.transform.position.z);
             float distance = Vector2.Distance(target, new Vector2(player.transform.position.x, player.transform.position.z));
-            waypoint.text = $"Rack {fieldRack.Id} entrance · {distance:0} m · {marks.RackFieldStatus}";
+            waypoint.text = $"Rack {fieldRack.Id} entrance · {distance:0} m";
         }
         else if (marks != null && !string.IsNullOrEmpty(marks.RackFieldStatus))
             access.text += "\n" + marks.RackFieldStatus;
@@ -217,7 +217,7 @@ public sealed class WalkingHudView
             bool arrived = eco != null && delta.magnitude < eco.CellSizeMeters * 0.5f;
             waypointArrow.style.display = arrived ? DisplayStyle.None : DisplayStyle.Flex;
             waypointArrow.SetBearing(bearing);
-            waypointDirection.text = rackDestination ? "[P] Spray marker · aim at the cued trunk within 3.5 m · left-click"
+            waypointDirection.text = rackDestination ? "[P] Spray marker · aim at the cued trunk within 3.5 m"
                 : arrived ? "At destination · inspect the site"
                 : (Mathf.Abs(bearing) <= 22.5f ? "Ahead" : Mathf.Abs(bearing) >= 157.5f ? "Behind you"
                     : bearing < 0f ? "Turn left" : "Turn right") + " · [M] Change destination";
