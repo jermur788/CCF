@@ -1,151 +1,161 @@
 # Scenario One Second and Subsequent Interventions (S1-D) Requirements / Acceptance Checklist
 
 - **Spec ID:** SPEC-scenario-one-repeated-interventions-V1
-- **Spec status:** **APPROVED** (Manager review `457461b`; amendment packet `7716201`; decisions RD-1…RD-12; D-066 persistence amendment)
-- **Checklist owner:** Overall Manager; independent reviewer to be assigned (T-09)
-- **Implementation under test:** mixed programme state; this checklist does not infer completion from prior task handoffs. D-066/T-04P and replayed T-04 remain unverified until their exact gates pass.
-- **Date:** 2026-10-29
+- **Status:** repaired D-066 contract pending independent Manager review #158; implementation not released.
+- **Checklist owner:** Overall Manager / later independent T-09 reviewer
+- **Last updated:** 2026-10-29 — browser repair #145
 
-Use this checklist against the finished implementation. A checked item needs evidence, not assertion. Unchecked items with a stated reason are honest; unexplained gaps are not. Browser amendment #136 ran no Unity and proves no production behaviour.
+A checked implementation item requires exact evidence. Browser #145 provides specification/static-code evidence only; it does not prove C#/Unity implementation.
 
-## Pre-conditions
+## Preconditions / authority
 
-- [x] Decisions `OPEN-1`…`OPEN-11` resolved and recorded as RD-1…RD-11 — evidence: `MANAGER-REVIEW.md` @ `457461b`, spec §12.
-- [x] Management-event-ID policy resolved (RD-12: reject before mutation, no repair) — evidence: `MANAGER-REVIEW.md` "Additional Manager decision"; spec FR-E3.
-- [x] D-066 resolved the T-04 persistence ambiguity: minimum durable aggregate teaching-sample/review-complete history is required; individual `[J]/[K]` choices remain non-persistent; broad T-07 state remains cancelled — evidence: Decision Log D-066; browser result #136.
-- [x] Spec status `APPROVED` by the Manager — evidence: spec header; `AMENDMENT-PACKET.md` @ `7716201`; D-066 amendment.
-- [x] S1-D §9 reconciled to the accepted S1-C contract boundaries (EI-1..EI-7) — evidence: spec §9.1–§9.4; amendment packet §2.
-- [x] Post-MFM-07 qualified production umbrella inspected for the D-066 amendment: `c8cfae8c4025cec6e960a050edf4bfde2a981de5`, `ForestSaveData.CurrentVersion = 23` — evidence: browser claim #136 inspection. This is not a guarantee that v24 remains free at later task start.
-- [ ] T-04P/#143 worker refreshed live ownership and confirmed the exact schema slot immediately before production edits — evidence:
-- [ ] Exactly one derived-history implementation confirmed on the implementation lineage used for the final gate — evidence:
+- [x] RD-1…RD-12 and accepted D-066 Option A exist as product authority.
+- [x] Exact static evidence base inspected: `c8cfae8c4025cec6e960a050edf4bfde2a981de5`, save v23.
+- [x] Pre-amendment sequence evidence confirms rack-world `response → recruitment` requires earlier lesson guards + `ReleaseReviewed` + actual session `RackReviewComplete`.
+- [x] T-03 `ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` is confirmed insufficient by itself to prove session rack review.
+- [x] `ScenarioReferenceArchive.HashLayout` non-default prescription-state branch requires explicit exclusion of any new teaching-only field.
+- [ ] Manager review #158 = APPROVED — evidence:
+- [ ] #143 released after fresh live schema/ownership refresh — evidence:
+- [ ] #143 exact implementation integrated/accepted before #124 release — evidence:
 
-## Resolved decisions (RD-1…RD-12 + D-066)
+## D-066 repaired contract
 
-- [ ] RD-1: the historical derived history, two-cycle rule, completion guidance and sequential guide are treated as a partial implementation baseline, not feature completion — evidence:
-- [ ] RD-2: later cycles are bounded hybrid — ordinary player-directed management with advisory guidance; no per-cycle prescriptive objective — evidence:
-- [ ] RD-3: a later Annual Review acknowledgement is advisory and never blocks Approve/Advance — evidence:
-- [ ] RD-4: readiness is an advisory component/reason state; no gate, no timetable, no minimum interval — evidence:
-- [ ] RD-5: the 40 % teaching-footprint cap is hard only during its owning activity and advisory/non-blocking afterwards — evidence:
-- [ ] RD-6: previous/new provenance derives from existing orders/events/history; no Crop Tree designation-year field and no dated past-work map layer — evidence:
-- [ ] RD-7 as narrowed by D-066: current/advisory guide facts remain derived where faithful; individual `[J]/[K]` and `PlayerPrefs` are not progression authority; the no-new-save-field portion is superseded only for the D-066 aggregate history slice — evidence:
-- [ ] RD-8: the two-reviewed-cycle completion minimum is unchanged; management may continue after `Completed` — evidence (N3 hash + witness):
-- [ ] RD-9: rack reopening/additional-rack authoring is deferred to Rack V2; Objective 1 rack teaching does not automatically repeat — evidence:
-- [ ] RD-10: geometry-independent features may work for Legacy40 where records exist; no Enlarged80-only migration; Reference Future v1 frozen — evidence:
-- [ ] RD-11: no second MFM prescription in S1-D V1; MFM orders are ordinary orders — evidence:
-- [ ] RD-12: duplicate/non-positive management-event IDs are rejected before mutation, without repair — evidence:
-- [ ] D-066: only the minimum aggregate teaching-history record is added; no broad cycle-state blob and no individual `[J]/[K]` persistence — evidence:
+- [ ] Exactly **one boolean-like monotone historical latch** is added; no per-cycle key/list/counter/history structure — evidence:
+- [ ] Latch meaning is exactly “first guided rack teaching sample/review historically completed at least once” — evidence:
+- [ ] False→true write occurs exactly once only when the **unlatched/pre-amendment** rack-world sequence genuinely crosses `response → recruitment` — evidence:
+- [ ] All earlier lesson guards are satisfied at the write, including `ReleaseReviewed` and actual session `RackReviewComplete` — evidence:
+- [ ] `ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` alone cannot write the latch — evidence:
+- [ ] Planting, arbitrary/in-footprint felling, later review, Crop Tree count/loss, geometry, executed-share drift, `PlayerPrefs`, save version/age and heuristic reconstruction cannot write it — evidence:
+- [ ] Load/read/display/rebuild paths do not infer/write the latch — evidence:
+- [ ] Once true, latch never returns false — evidence:
+- [ ] Individual `[J]/[K]`, inspected-tree/stand-portion detail and session transcript are not persisted — evidence:
+- [ ] No guide-index/readiness/advisory cache or broad `ScenarioOneManagementCycleState` is added — evidence:
+
+## T-03 / T-04 shared semantics
+
+- [ ] Before latch, T-03 retains accepted current-world/session cap classification and deadlock safeguard — evidence:
+- [ ] Before latch, T-04 preserves existing pre-completion teaching behavior — evidence:
+- [ ] After latch, T-03 and T-04 consume exactly one shared historical completion read meaning — evidence:
+- [ ] Later Crop Tree count/loss, in-footprint felling, executed-share drift and save/load cannot unset historical completion — evidence:
+- [ ] No second durable T-03/T-04 completion interpretation exists — evidence:
 
 ## Functional requirements
 
-### A. Re-entry and action availability
-- [ ] FR-A1: further cycles in the same save with nothing lost or reset — evidence:
-- [ ] FR-A2: every first-cycle management action works in later years with no lesson/`PlayerPrefs`/session state — evidence:
-- [ ] FR-A3: the 40 % rule is hard only during its owning activity; afterwards it warns but does not disable Approve/Advance, using the same durable teaching-completion semantics as FR-B1 — evidence:
+### A. Re-entry / actions
+- [ ] FR-A1: later cycles work in same save without reset/lost records — evidence:
+- [ ] FR-A2: first-cycle management actions remain available later without lesson/PlayerPrefs/session dependence — evidence:
+- [ ] FR-A3: teaching footprint hard only while first guided activity open; after latch true it is advisory/non-blocking; MFM ceilings unchanged — evidence:
 
-### B. Progression state
-- [ ] FR-B1: guide does not regress on Crop Tree count change, later in-footprint felling, executed-share drift or load; the release/review teaching boundary uses the durable D-066 aggregate record rather than an invented heuristic — evidence:
-- [ ] FR-B1 persistence minimum: per stable management/teaching-cycle key, persisted data contains sample/review completion and only the aggregate counters/outcomes required to distinguish incomplete from completed teaching progression — evidence (schema/data diff):
-- [ ] FR-B1 monotonicity: once the aggregate record establishes completion it never regresses; repeated reads/calls do not consume another sample — evidence:
-- [ ] FR-B2: no saved ID renamed or reused; new IDs only — evidence (ID diff):
-- [ ] FR-B3: no `PlayerPrefs` authority for cycle/progression; no individual `[J]/[K]` persistence — evidence:
+### B. Progression
+- [ ] FR-B1/AC-3: exact authoritative latch transition and post-latch monotonic guide behavior pass — evidence:
+- [ ] FR-B2: stable teaching IDs unchanged: `access`, `future-trees`, `release`, `habitat`, `response`, `recruitment`, `establishment`, `transformation` — evidence:
+- [ ] FR-B3: no individual J/K or PlayerPrefs durable authority — evidence:
 
-### C. Previous work versus current proposals
-- [ ] FR-C1: Executed / Approved / Pending / Pending carried over / unplanned Fell mark are distinguishable — evidence:
-- [ ] FR-C2: carried-over orders revalidated and surfaced; never auto-cancelled or auto-approved — evidence:
-- [ ] FR-C3: executed work never shown as a current proposal; failures keep their reason — evidence:
-- [ ] FR-C4: no designation time stated or implied where none is persisted — evidence:
-- [ ] FR-C5: no Crop Tree designation-year field and no dated past-work map layer; spatial review only via existing S1-C records where locations exist — evidence:
+### C. Previous/proposed work
+- [ ] FR-C1: Executed / Approved / Pending / Pending carried over / Fell mark distinct — evidence:
+- [ ] FR-C2: stale carried-over work revalidated/surfaced, never auto-cancelled/approved — evidence:
+- [ ] FR-C3: executed work not shown as current proposal; failures retain reason — evidence:
+- [ ] FR-C4/C5: no invented designation time/year and no dated past-work map layer — evidence:
 
-### D. Cycle state and readiness
-- [ ] FR-D1: derived, explainable, advisory cycle state from authoritative records, naming components and reasons; no advisory-state cache is introduced by D-066 — evidence:
-- [ ] FR-D2: no instruction to intervene, no universal interval, waiting remains legitimate — evidence:
-- [ ] FR-D3: an outstanding later acknowledgement is surfaced but never blocks Approve/Advance; the first-advance gate is unchanged — evidence:
-- [ ] FR-D4: later interventions are ordinary player-directed management; no per-cycle objective or implied single correct treatment — evidence:
+### D. Advisory state
+- [ ] FR-D1: derived components/reasons from authoritative records — evidence:
+- [ ] FR-D2: no readiness gate/timetable/fixed interval — evidence:
+- [ ] FR-D3: later review acknowledgement advisory, not Approve/Advance gate — evidence:
+- [ ] FR-D4: later management player-directed; no per-cycle prescriptive objective — evidence:
 
-### E. Completion
-- [ ] FR-E1: completion remains reachable after any number of cycles; no transient teaching-only state is required after a durable completion record exists — evidence:
-- [ ] FR-E2: objective predicates, D-057 targets, horizons and the N3 normalised-source hash unchanged — evidence (N3 offline output):
-- [ ] FR-E3: duplicate or non-positive event IDs are rejected before any world/disk mutation, with a clear message, and never repaired or renumbered; ambiguous shipped fixture triggers STOP — evidence:
-- [ ] FR-E4: two reviewed successful intervention cycles in distinct years remain the minimum; no increase; continued management after `Completed` — evidence:
+### E. Completion / integrity
+- [ ] FR-E1: completion remains reachable; no transient rack-review session state required after latch — evidence:
+- [ ] FR-E2: completion/objectives/economy/ecology protected behavior unchanged — evidence:
+- [ ] FR-E3: duplicate/non-positive management-event IDs reject pre-mutation without repair — evidence:
+- [ ] FR-E4: two reviewed successful cycles minimum unchanged; continued management after Completed — evidence:
 
-### F. Save and history re-entry
-- [ ] FR-F1: history/current advisory state and next-step text are reproduced after save/load; reading writes nothing; durable teaching history changes only on the authoritative teaching completion event, not on display reads — evidence:
-- [ ] FR-F2: S1-D V1 adds exactly the bounded D-066 aggregate teaching-history slice and no broad cycle-state blob — evidence:
-- [ ] FR-F2 schema: the worker used the next free version after live inspection (expected v24 only if v23 was still current/free); no version collision — evidence:
-- [ ] FR-F2 old-save policy: pre-amendment saves lacking the field load as `not recorded / incomplete` for the durable latch; no completion is fabricated — evidence:
-- [ ] FR-F2 malformed-data policy: malformed/ambiguous new-version aggregate history is rejected before mutation and never silently repaired — evidence:
-- [ ] FR-F3: Reference Future v1, Legacy40 and pre-v20 compatibility anchors unchanged — evidence:
-- [ ] MFM-06/07 prescription/provenance save state still round-trips unchanged — evidence:
+### F. Save / backward compatibility
+- [ ] FR-F1: save/load preserves latch and other derived/history state; reads are non-mutating — evidence:
+- [ ] FR-F2: save diff contains only one latch + minimum version/capture/restore/hash compatibility plumbing — evidence:
+- [ ] Live start used next free schema version; v24 only if v23 remained current/free — evidence:
+- [ ] Old/missing field loads as false/not-recorded with no backfill — evidence:
+- [ ] False and true latch states round-trip deterministically — evidence:
+- [ ] MFM-06/07 prescription/provenance, objective-achievement history, Rack V2 and supported old-save defaults remain intact — evidence:
 
-### G. Neighbouring work
-- [ ] FR-G1: MFM-generated orders treated as ordinary orders; no MFM dependency; no second prescription — evidence:
-- [ ] FR-G2: Objective 1 rack workflow does not repeat; rack reopening deferred to Rack V2 — evidence:
-- [ ] FR-G3: no Sitka-only assumption or species coefficient added — evidence:
-- [ ] FR-G4: S1-C history contract consumed; no competing store, identity scheme or duplicated UI — evidence:
+### World identity / hashes
+- [ ] Latch round-trips in full saves but is excluded from `WorldHash` — evidence:
+- [ ] excluded from `CurrentWorldHash` — evidence:
+- [ ] excluded from `LegacyCompatibleWorldHash` — evidence:
+- [ ] excluded from **every `HashLayout` branch**, including non-default v23 prescription state — evidence:
+- [ ] excluded from any `MinimalWorldHash`/equivalent protected-minimal identity projection — evidence:
+- [ ] protected reference/hash extraction/comparison sees no false-vs-true latch difference — evidence:
+- [ ] otherwise-identical latch=false/latch=true worlds produce identical accepted identity hashes, including a real prescription-state case — evidence:
+- [ ] no reference archive, accepted anchor or protected fingerprint rebaselined — evidence:
 
-### H. Compatibility
-- [ ] FR-H1: Legacy40 works for geometry-independent features where records exist; no Enlarged80-only migration; Reference frozen — evidence:
-- [ ] FR-H2: pre-amendment Enlarged80 saves load with no fabricated teaching completion or other state — evidence:
+### G/H neighbouring compatibility
+- [ ] MFM orders remain ordinary; no second prescription — evidence:
+- [ ] Objective 1 rack workflow does not automatically repeat; no rack reopening added — evidence:
+- [ ] no new species coefficient/Sitka-only assumption — evidence:
+- [ ] S1-C remains sole intervention/history authority — evidence:
+- [ ] Legacy40/pre-v20/Reference Future compatibility preserved — evidence:
+- [ ] pre-amendment Enlarged80 saves load without fabricated teaching completion — evidence:
 
-## Player / user workflow
+## T-04P verification matrix
 
-- [ ] The repeat cycle (spec §8.1) is reachable and understandable for cycles 2, 3 and later.
-- [ ] Required feedback, affordances and failure/empty/edge states behave as specified: idle year, all tasks failed, stale order, unapproved plan at advance, cash exactly zero.
-- [ ] The implementation does not add unapproved player-facing behaviour (no scoring, no prescribed second treatment, no interval).
+- [ ] response reached, `ReleaseReviewed=false` → latch false.
+- [ ] `ReleaseReviewed=true`, `RackReviewComplete=false` → latch false.
+- [ ] actual session rack review completes and unlatched sequence reaches recruitment → exactly one false→true write.
+- [ ] repeated update/view/read in same state → no second write.
+- [ ] save/load true → remains true.
+- [ ] later Crop Tree count/loss/felling/share drift → remains true.
+- [ ] representative old saves → false/default, no heuristic backfill.
+- [ ] T-03 pre-latch decision matrix unchanged.
+- [ ] T-03 and T-04 post-latch shared read returns same true value.
+- [ ] N3 normalized completion source/hash unchanged.
+- [ ] MFM save/provenance regression green.
+- [ ] all identity/hash invariance tests green with no rebaseline.
+- [ ] Unity compile/runtime witness green on exact candidate.
+- [ ] independent #143 implementation review APPROVED.
 
-## Authority and evidence
+## T-04 verification matrix
 
-- [ ] Implementation follows the approved spec and D-066 amendment.
-- [ ] Evidence classifications in spec §13 remain accurate (no new ecological claim).
-- [ ] No unlabelled pseudo-empirical coefficients or invented ecological facts were introduced.
-- [ ] Every history or guide sentence avoids claiming causation (`ManagementHistoryText.NotCausalNote` respected).
-- [ ] All protected behaviour in spec §10.1 is unchanged.
+- [ ] pre-latch response behavior unchanged.
+- [ ] review acknowledgement without RackReviewComplete does not skip response.
+- [ ] after latch, guide cannot regress behind completed response boundary after Crop Tree count/loss.
+- [ ] after latch, later in-footprint felling/executed-share drift does not regress it.
+- [ ] after latch, save/load at later lessons preserves guide floor.
+- [ ] all eight stable lesson IDs unchanged.
+- [ ] TeachingCopy/MenuTutorial/T-03/T-02/S1-C/N3 regressions green.
+- [ ] Unity qualification green on exact replayed candidate.
+- [ ] independent T-04 review APPROVED.
 
-## Save / backward compatibility
+## Integrated acceptance criteria
 
-- [ ] Save impact matches amended spec §14: one narrow aggregate teaching-history persistence slice only; no general cycle/advisory cache.
-- [ ] Exact production base and schema at implementation start are recorded in the handoff.
-- [ ] Pre-amendment saves, missing fields and Reference Future behaviour are correct; no fabricated completion/history/provenance.
-- [ ] New-version malformed/ambiguous teaching history rejects before world or disk mutation; CanLoad/LoadData agree.
-- [ ] Individual `[J]/[K]` choices remain non-persistent.
-- [ ] MFM-06/07 save/provenance compatibility is preserved.
-- [ ] World/reference hash compatibility path is preserved; no protected archive rebaseline.
+- [ ] AC-1: ≥3 real cycles with idle years and ordinary management actions.
+- [ ] AC-2: teaching cap scoped correctly before/after latch.
+- [ ] AC-3: authoritative one-way latch + guide monotonicity under world drift/save-load.
+- [ ] AC-4: same valid save loaded twice yields identical history/advisory/latch/text; reads mutate nothing.
+- [ ] AC-5: five work classes visibly distinct; no invented provenance/date.
+- [ ] AC-6: ≥3-cycle completion/solvency witness, objectives/targets/N3 unchanged.
+- [ ] AC-7: event-ID integrity rejection before mutation.
+- [ ] AC-8: protected anchors/reference/hash behavior unchanged; no rebaseline; MFM save/provenance green.
+- [ ] AC-9: readiness advisory only.
+- [ ] AC-10: independent review finds no hidden automation/causal overclaim.
+- [ ] AC-11: one intervention/history authority; latch is not history store.
+- [ ] AC-12: rack teaching not automatically repeated.
+- [ ] AC-13: Legacy/pre-amendment compatibility preserved.
+- [ ] AC-14: management continues after Completed under existing rules.
+- [ ] AC-15: MFM ordinary-order behavior unchanged.
+- [ ] AC-16: old saves default latch false with no fabrication.
+- [ ] AC-17: one shared T-03/T-04 post-latch historical meaning and unchanged T-03 pre-latch semantics.
 
-If not applicable, state why:
+## Sequencing / ownership
 
-## Security / write-back
-
-- [ ] Load validation rejects without world or disk mutation (CanLoad/LoadData parity) for event-ID and new teaching-history malformed-data cases.
-
-If not applicable, state why:
-
-## Acceptance criteria
-
-- [ ] AC-1: three real cycles, idle years between, all FR-A2 actions work in cycle 3 — evidence (Unity gate):
-- [ ] AC-2: after the owning activity, exceeded footprint shows an advisory and Approve/Advance remain enabled; during the activity the hard constraint and its complete message remain — evidence:
-- [ ] AC-3: after durable teaching-sample completion, guide stable under Crop Tree count change, Crop Tree loss, a second in-footprint felling year, executed-share drift and save/load at later lessons; before completion existing in-lesson behaviour unchanged; repeated calls do not consume another sample — evidence:
-- [ ] AC-4: same save loaded twice gives identical history, cycle state, durable teaching-history aggregate and text; reads write nothing — evidence:
-- [ ] AC-5: five work classes visibly distinct; no unpersisted provenance stated; no dated map layer — evidence (captures at 1280×720 and 1920×1080):
-- [ ] AC-6: ≥3-cycle path completes and stays solvent; predicates, targets and N3 hash unchanged; D-057 witness re-run — evidence:
-- [ ] AC-7: duplicate or non-positive event IDs rejected before mutation, not repaired; CanLoad/LoadData agree; STOP rule exercised — evidence:
-- [ ] AC-8: protected anchors and Reference contract unchanged; save diff contains only the authorised D-066 aggregate teaching-history slice plus required validation/versioning — evidence:
-- [ ] AC-9: readiness reports components/reasons, never blocks play or instructs on a timetable; unreviewed state does not disable Approve/Advance — evidence:
-- [ ] AC-10: independent review finds no hidden automation and no causal overclaim — evidence:
-- [ ] AC-11: exactly one intervention/history authority; the D-066 teaching aggregate is not a second general history store; no duplicated history UI — evidence:
-- [ ] AC-12: Objective 1 rack teaching does not re-trigger; no rack-reopening behaviour added — evidence:
-- [ ] AC-13: Legacy40 derived presentation works where records exist; no Enlarged80-only feature appears; Reference unaffected — evidence:
-- [ ] AC-14: after `Completed`, management continues to the existing horizon/terminal condition; Work Plan not locked — evidence:
-- [ ] AC-15: MFM-generated orders behave as ordinary orders; no second-prescription logic — evidence:
-
-## Spec conformance
-
-- [ ] Implementation matches the approved spec and D-066 amendment.
-- [ ] Approved deviations are recorded in `spec.md` and the hand-off.
-- [ ] Unresolved requirements are listed, not hidden.
-- [ ] The S1-D completion claim is made only against these acceptance criteria; MFM or S1-C completion is not accepted as a substitute (D-065, D-060).
+- [x] #143 remains blocked pending #158.
+- [x] #124 remains blocked pending #158 then accepted/integrated #143.
+- [x] #126 remains blocked until exact post-#143/#124 lineage.
+- [x] #128 remains review-only behind #126.
+- [ ] #158 APPROVED and Manager explicitly released #143 — evidence:
+- [ ] one save/schema/hash writer only during #143 — evidence:
+- [ ] #124 owned no save/schema/hash code — evidence:
 
 ## Verdict
 
 - **Spec conformance:** NOT VERIFIED
 - **Implementation correctness:** NOT VERIFIED
-- **Notes:** D-066 changes persistence authority only. Browser claim #136 modifies documentation/coordination and dispatches a local prerequisite; it does not prove C#/Unity implementation, integration, qualification or acceptance.
+- **Browser repair state:** ready for independent Manager review #158; no production release.
