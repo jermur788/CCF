@@ -270,7 +270,9 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
         marks.Mark(Tree(manualId), TreeMarkType.Fell, false);
         Approval.ProposalSet withManual = manager.PreviewPrescription(1);
         Check(withManual.Valid && withManual.Links.All(l => l.TargetTreeId != manualId)
-              && withManual.Conflicts.Any(c => c.TreeId == manualId && c.Kind == Approval.ConflictKind.ManualFellMark), "a manually marked tree is held back and surfaced as a conflict");
+              && withManual.Conflicts.Any(c => c.TreeId == manualId && c.Kind == Approval.ConflictKind.ManualFellMark), "a manually marked tree is held back and surfaced as a conflict",
+            "valid=" + withManual.Valid + " marked=" + Tree(manualId).IsMarkedForFell + " inLinks=" + withManual.Links.Any(l => l.TargetTreeId == manualId)
+            + " conflicts=" + string.Join(",", withManual.Conflicts.Select(c => c.TreeId + ":" + c.Kind)) + " " + withManual.Message);
         manager.OpenWorkPlan(true);            // ordinary behaviour: the player's own mark is imported as ordinary work
         yield return Settle();
         manager.OpenWorkPlan(false);
