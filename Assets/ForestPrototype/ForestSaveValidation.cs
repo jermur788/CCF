@@ -140,6 +140,8 @@ public static partial class ForestSaveValidation
         }
         string rackProblem = ValidateRackV2(data);
         if (rackProblem != null) return rackProblem;
+        string historyProblem = ValidateObjectiveHistory(data);
+        if (historyProblem != null) return historyProblem;
         // Last, so every older rejection keeps its existing reason and order.
         return ValidateManagementEventIds(data.scenarioOne);
     }
@@ -331,5 +333,85 @@ public static partial class ForestSaveValidation
     private static bool IsFinite(float value)
     {
         return !float.IsNaN(value) && !float.IsInfinity(value);
+    }
+
+    // ---- S1-C T-05 objective history (save v22) ------------------------------------------------------------------
+    // Same shape as the Rack V2 validator: a semantic check on the parsed state plus a JSON-presence pass for what
+    // JsonUtility would silently default. Both run before the save can touch the live world; a malformed history is
+    // refused, never repaired or partially applied.
+
+    // Fixed objective ids from ScenarioOneObjectives.Evaluate; "introduced-<speciesId>" is built per shop species.
+    private static readonly HashSet<string> FixedObjectiveIds = new HashSet<string>
+    {
+        "minimum-year", "retained-canopy", "continuous-canopy", "regeneration", "fallen-deadwood", "managed-opening"
+    };
+    private const string IntroducedObjectivePrefix = "introduced-";
+
+    // Returns null when the history is safe to load, otherwise a short player-readable reason.
+    public static string ValidateObjectiveHistory(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data?.scenarioOne;
+        if (scenario == null)
+            return null;
+        List<ScenarioObjectiveAchievement> records = scenario.objectiveAchievements;
+        if (records == null || records.Count == 0)
+            return null; // missing or empty is the valid "not recorded" state at every version
+
+        if (data.version < 22)
+            return "a save older than version 22 cannot carry objective achievement history";
+
+        var seen = new HashSet<string>();
+        int previousYear = int.MinValue;
+        foreach (ScenarioObjectiveAchievement record in records)
+        {
+            if (record == null)
+                return "an objective achievement record is missing";
+            if (!IsKnownObjectiveId(record.objectiveId))
+                return $"unknown objective '{record.objectiveId}' in the achievement history";
+            if (!seen.Add(record.objectiveId))
+                return $"objective '{record.objectiveId}' appears twice in the achievement history";
+            if (record.achievedYear < 0 || record.achievedYear > data.ecologicalYear)
+                return $"objective '{record.objectiveId}' has an impossible achieved year {record.achievedYear}";
+            // Records are appended as evaluation observes them, so years never go backwards.
+            if (record.achievedYear < previousYear)
+                return "the objective achievement history is out of order";
+            previousYear = record.achievedYear;
+            if (!IsFinite(record.targetValueAtAchievement) || record.targetValueAtAchievement < 0f)
+                return $"objective '{record.objectiveId}' has an invalid recorded target";
+        }
+        return null;
+    }
+
+    private static bool IsKnownObjectiveId(string id)
+        => !string.IsNullOrEmpty(id)
+            && (FixedObjectiveIds.Contains(id)
+                || (id.StartsWith(IntroducedObjectivePrefix, System.StringComparison.Ordinal)
+                    && id.Length > IntroducedObjectivePrefix.Length && id.Trim() == id));
+
+    // A v22 save must state the field explicitly, as an array of fully typed records, with no duplicate keys.
+    public static string ValidateObjectiveHistoryJson(string json, ForestSaveData data)
+    {
+        if (data == null || data.version < 22)
+            return null;
+        try
+        {
+            var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if (!(root["scenarioOne"] is JObject scenario))
+                return null; // no Scenario One state, so no history field is required
+            if (!(scenario["objectiveAchievements"] is JArray records))
+                return "version 22 requires an explicit objective achievement history";
+            foreach (JToken record in records)
+                if (!(record is JObject item)
+                    || item["objectiveId"]?.Type != JTokenType.String
+                    || item["achievedYear"]?.Type != JTokenType.Integer
+                    || !(item["targetValueAtAchievement"]?.Type == JTokenType.Float
+                        || item["targetValueAtAchievement"]?.Type == JTokenType.Integer))
+                    return "a version 22 objective achievement record is missing required fields";
+        }
+        catch (System.Exception)
+        {
+            return "invalid version 22 objective history JSON";
+        }
+        return null;
     }
 }

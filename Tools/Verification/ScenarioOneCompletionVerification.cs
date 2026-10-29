@@ -150,7 +150,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         Check(manager.CashCents == definition.StartingCashCents && manager.CashCents == 1200000, "starting cash differs from the definition");
         Check(scenarioPressure == definition.BackgroundBrowsePressure && scenarioPressure == 0.2f, "browse pressure is not the 0.2 Scenario One calibration");
         Check(!ecology.Browsing.HasProtection && manager.Shelters.Count == 0, "protection present at start");
-        Check(ForestSaveData.CurrentVersion == 21 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
+        Check(ForestSaveData.CurrentVersion == 22 && definition.MinimumHarvestJobCents == 250000 && manager.OwnerMinutesPerYear == 2400,
             "production conventions (v18, EUR 2,500 minimum, 2,400 owner min/yr)");
         Pass("P0", $"trees=336 year=0 cash={manager.CashCents} pressure={F(scenarioPressure)} shelters=0 save=v{ForestSaveData.CurrentVersion} minimum={definition.MinimumHarvestJobCents} ownerMin={manager.OwnerMinutesPerYear}");
 
@@ -440,7 +440,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
             {
                 Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "current completion fixture uses growth model 2");
                 ForestSaveData completed = saves.CaptureData();
-                Check(completed.version == 21 && completed.growthModel == GrowthModel.SpeciesAware
+                Check(completed.version == 22 && completed.growthModel == GrowthModel.SpeciesAware
                     && completed.standGeometryModel == StandGeometryModel.Legacy40
                     && completed.ecologicalYear == 30 && completed.scenarioOne.outcome == ScenarioOneOutcome.Completed
                     && completed.scenarioOne.outcomeYear == minimumYear,
@@ -466,6 +466,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         legacy.version = 14;
         legacy.regenerationModel = RegenerationModel.Legacy;
         legacy.growthModel = GrowthModel.Legacy;
+        legacy.scenarioOne.objectiveAchievements.Clear(); // A pre-v22 save cannot carry recorded objective history.
         Check(saves.LoadData(legacy, false), "v14-shaped save rejected");
         yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 0 && ecology.Browsing.ProtectedAreas.Count == 0 && manager.Shelters.Count == 0, "v14 restore kept protection");

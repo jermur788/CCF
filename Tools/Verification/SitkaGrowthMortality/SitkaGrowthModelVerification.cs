@@ -94,7 +94,7 @@ public sealed class SitkaGrowthModelVerificationRunner : MonoBehaviour
     private IEnumerator Policy()
     {
         Pass("POLICY_NEW_GAME_GROWTH2", ScenarioOneManager.NewGameGrowthModel == GrowthModel.SpeciesAware && original.growthModel == GrowthModel.SpeciesAware
-            && original.version == 21 && original.regenerationModel == 2 && original.rngModelVersion == 1,
+            && original.version == 22 && original.regenerationModel == 2 && original.rngModelVersion == 1,
             $"growth={original.growthModel} regen={original.regenerationModel} rng={original.rngModelVersion} version={original.version}");
         // The default-policy capture stays model 2; historical save checks use an explicit model-1 fixture.
         e.GrowthModelVersion = GrowthModel.SiteClassDensity;

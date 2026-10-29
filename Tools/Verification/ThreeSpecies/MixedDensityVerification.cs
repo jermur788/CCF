@@ -189,7 +189,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         Pass("POLICY_NEW_GAME_GROWTH_IS_SPECIES_AWARE", newGame == GrowthModel.SpeciesAware,
             $"newGameGrowth={newGame} (growth model 2 is the new-game default; saves keep their stored model)");
         Pass("POLICY_VERSION_CONSTANTS", GrowthModel.SpeciesAware == 2 && GrowthModel.Latest == 2 && GrowthModel.Normalize(7) == 2, $"latest={GrowthModel.Latest}");
-        Pass("POLICY_SAVE_VERSION_UNCHANGED", ForestSaveData.CurrentVersion == 21, $"saveVersion={ForestSaveData.CurrentVersion}");
+        Pass("POLICY_SAVE_VERSION_UNCHANGED", ForestSaveData.CurrentVersion == 22, $"saveVersion={ForestSaveData.CurrentVersion}");
 
         ForestSaveData two = Clone(original); two.growthModel = GrowthModel.SpeciesAware;
         Check(saves.LoadData(two, false), "growth 2 load"); yield return null;

@@ -161,6 +161,11 @@ public sealed class ScenarioReferenceArchive
             int byX = a.center.x.CompareTo(b.center.x);
             return byX != 0 ? byX : a.center.z.CompareTo(b.center.z);
         });
+        scenario.objectiveAchievements?.Sort((a, b) =>
+        {
+            int byYear = a.achievedYear.CompareTo(b.achievedYear);
+            return byYear != 0 ? byYear : string.CompareOrdinal(a.objectiveId, b.objectiveId);
+        });
         scenario.racks?.Sort((a, b) => a.rackId.CompareTo(b.rackId));
         if (scenario.racks != null)
             foreach (RackSaveData rack in scenario.racks)
@@ -200,6 +205,11 @@ public sealed class ScenarioReferenceArchive
     // JSON instead: pre-v21 code could not have produced such a world, so its identity is genuinely new
     // ("new V2 worlds may receive new V2-specific anchors"). The rule is deliberate and versioned here
     // rather than rebaselining accepted evidence.
+    //
+    // Save v22 (S1-C T-05) added objectiveAchievements. It is a write-once observation record derived from the same
+    // simulation, so it is NEVER part of a world identity: every hash below drops it, whether or not it is empty. That is
+    // what keeps a pre-v22 anchor exact even when a v22 run has since recorded achievements. The one other effect of the
+    // bump, the version header, is relabelled to the version the pre-v22 layout carried (20 or 21, see HashLayout).
     public static string WorldHash(ForestSaveData data)
         => GeometryIsLegacy(data) ? LegacyCompatibleWorldHash(data) : CurrentWorldHash(data);
 
@@ -224,10 +234,23 @@ public sealed class ScenarioReferenceArchive
     // current JSON as soon as the world carries rack state. The pre-v21 layout is exactly what save v20
     // wrote: no rack bytes AND the v20 version header, because the accepted anchors hash that byte
     // stream and the header is part of it. (Only ForestSaveData carries a "version" key.)
+    // A world that carries rack state keeps the v21 header it always hashed with.
     private static string HashLayout(string json, ForestSaveData data)
-        => RackV2StateIsDefault(data)
-            ? WithoutRackV2Fields(json).Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,")
-            : json;
+    {
+        json = WithoutObjectiveAchievements(json);
+        // Keyed on the version this input actually carries (a persisted v21 stays v21), not on CurrentVersion.
+        // Versions below the relabel target (an older input) were never rewritten and still are not.
+        string header = "\"version\":" + data.version + ",";
+        if (RackV2StateIsDefault(data))
+            return WithoutRackV2Fields(json).Replace(header, data.version >= 21 ? "\"version\":20," : header);
+        return json.Replace(header, data.version >= 22 ? "\"version\":21," : header);
+    }
+
+    // Removes the v22 history field whatever it holds. The pattern reads the array as quoted strings or non-bracket
+    // characters, so an objective id can never end it early.
+    private static string WithoutObjectiveAchievements(string json)
+        => System.Text.RegularExpressions.Regex.Replace(json,
+            @",""objectiveAchievements"":\[(?:[^\]""]|""(?:[^""\\]|\\.)*"")*\]", "");
 
     // True when the world holds no persisted V2 rack state: no confirmation, the id allocator untouched,
     // no rack records and no rack-owned orders. This is exactly the state every pre-v21 save has, and also
@@ -277,7 +300,7 @@ public sealed class ScenarioReferenceArchive
         Canonicalize(copy);
         copy.version = 15;
         string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(json))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutObjectiveAchievements(json)))));
     }
 
     // As above for growth-model-0 worlds in the exact v16 layout (version 16,
@@ -292,7 +315,7 @@ public sealed class ScenarioReferenceArchive
         Canonicalize(copy);
         copy.version = 16;
         string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"growthModel\":0,", "");
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(json))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutObjectiveAchievements(json)))));
     }
     private static string WithoutCompetitionFields(string json)
         => System.Text.RegularExpressions.Regex.Replace(json,
@@ -305,7 +328,7 @@ public sealed class ScenarioReferenceArchive
         var copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 17;
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutGeometryField(JsonUtility.ToJson(copy))))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutObjectiveAchievements(WithoutGeometryField(JsonUtility.ToJson(copy)))))));
     }
 
     private static bool StormsInert(ForestSaveData data)
@@ -321,7 +344,7 @@ public sealed class ScenarioReferenceArchive
     {
         if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data)) return null;
         Canonicalize(data);
-        string json = WithoutRackV2Fields(WithoutGeometryField(JsonUtility.ToJson(data)));
+        string json = WithoutRackV2Fields(WithoutObjectiveAchievements(WithoutGeometryField(JsonUtility.ToJson(data))));
         // Do not JSON-round-trip floating values merely to change a header.
         // This comparator must use exactly the former WorldHash byte stream.
         int firstComma = json.IndexOf(',');

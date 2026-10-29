@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 // S1-C / S1-D read access to the derived management history (ScenarioInterventionHistory and ScenarioManagementHistory).
-// Everything here is computed on demand from persisted records; nothing is stored, so there is no new save field and no
-// schema change.
+// Everything here is computed on demand from persisted records; nothing is stored here. (The one history record that is
+// written at the time, objectiveAchievements, lives in ScenarioOneManager.ObjectiveHistory.cs.)
 public sealed partial class ScenarioOneManager
 {
     // One entry per resolved work plan (a year in which at least one commissioned task succeeded), oldest first.
@@ -16,7 +16,7 @@ public sealed partial class ScenarioOneManager
     // settlement). Read-only; for the later Annual Review year browser.
     public IReadOnlyList<YearHistoryView> HistoryYears =>
         ScenarioManagementHistory.BuildYearViews(managementEvents, annualReports, ecologicalSnapshots, deadwoodRecords,
-            workOrders, stormEvents);
+            workOrders, stormEvents, objectiveAchievements);
 
     // Open orders that deserve a fresh look: they carry a validation problem, or were planned a couple of years ago.
     // They are surfaced, never expired or deleted.

@@ -237,6 +237,10 @@ public sealed class YearHistoryView
 
     public readonly List<StormEventRecord> Storms = new List<StormEventRecord>();
 
+    // Objectives first observed achieved in this year (save v22 objectiveAchievements). Empty means none were recorded for
+    // this year, which is also all a save from before v22 can say: it never means "none were achieved".
+    public readonly List<ScenarioObjectiveAchievement> ObjectivesAchieved = new List<ScenarioObjectiveAchievement>();
+
     // Deadwood records stamped with this year's fall year: felling-retained stems and biological deaths alike.
     public readonly List<ScenarioDeadwoodRecord> DeadwoodFallen = new List<ScenarioDeadwoodRecord>();
 
@@ -276,11 +280,12 @@ public static class ScenarioManagementHistory
         IReadOnlyList<ScenarioEcologicalSnapshot> snapshots,
         IReadOnlyList<ScenarioDeadwoodRecord> deadwood,
         IReadOnlyList<ScenarioOneWorkOrder> orders,
-        IReadOnlyList<StormEventRecord> storms)
+        IReadOnlyList<StormEventRecord> storms,
+        IReadOnlyList<ScenarioObjectiveAchievement> achievements = null)
     {
         var views = new List<YearHistoryView>();
         foreach (int year in CompletedYears(events, reports))
-            views.Add(BuildYearView(events, reports, snapshots, deadwood, orders, storms, year));
+            views.Add(BuildYearView(events, reports, snapshots, deadwood, orders, storms, year, achievements));
         return views;
     }
 
@@ -292,7 +297,8 @@ public static class ScenarioManagementHistory
         IReadOnlyList<ScenarioDeadwoodRecord> deadwood,
         IReadOnlyList<ScenarioOneWorkOrder> orders,
         IReadOnlyList<StormEventRecord> storms,
-        int year)
+        int year,
+        IReadOnlyList<ScenarioObjectiveAchievement> achievements = null)
     {
         if (!CompletedYears(events, reports).Contains(year)) return null;
         events = events ?? Array.Empty<ScenarioManagementEvent>();
@@ -303,6 +309,9 @@ public static class ScenarioManagementHistory
         storms = storms ?? Array.Empty<StormEventRecord>();
 
         var view = new YearHistoryView { Year = year };
+        if (achievements != null)
+            foreach (ScenarioObjectiveAchievement achievement in achievements)
+                if (achievement != null && achievement.achievedYear == year) view.ObjectivesAchieved.Add(achievement);
         view.Report = reports.FirstOrDefault(r => r != null && r.year == year);
         foreach (ScenarioManagementEvent entry in events.Where(e => e != null && e.year == year).OrderBy(e => e.eventId))
         {

@@ -31,7 +31,7 @@ public sealed class Model2VerificationRunner:MonoBehaviour
  ForestSaveData Clone(ForestSaveData d)=>JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(d));
  void Verify()
  {
-  var original=saves.CaptureData();Check(original.version==21&&original.regenerationModel==2,"new default21/2");
+  var original=saves.CaptureData();Check(original.version==22&&original.regenerationModel==2,"new default22/2");
   Check(ForestSaveValidation.Validate(original,336,e.CellCount)==null,"valid new state: "+ForestSaveValidation.Validate(original,336,e.CellCount));
   m.InitializeNewScenario();var immediatelySaved=saves.CaptureData();
   Check(immediatelySaved.scenarioOne.understoreyCells.Count==e.CellCount,"reset saved before first step has complete competitor grid");

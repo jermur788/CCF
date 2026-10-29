@@ -226,7 +226,7 @@ public sealed partial class GuidedOnboardingRunner
     {
         string[] goalIds = manager.Objectives.Select(o => o.objectiveId).ToArray();
         float[] targets = manager.Objectives.Select(o => o.targetValue).ToArray();
-        Check(goalIds.Length == 8 && ForestSaveData.CurrentVersion == 21, "eight original goals and the v21 schema");
+        Check(goalIds.Length == 8 && ForestSaveData.CurrentVersion == 22, "eight original goals and the v22 schema");
         Stage(1, "post rack, before annual acknowledgement");
         Check(ui.Learning.CurrentInstruction.Contains("Read the Annual Review"), "observation cue precedes crop action");
         RoundTrip(1, "access year boundary");
@@ -336,7 +336,7 @@ public sealed partial class GuidedOnboardingRunner
         yield return RoundTripReviewed(7, "ongoing transformation");
         ui.CloseAll(); Check(manager.AdvanceYear() && manager.AdvanceYear(), "multiple advances after teaching path"); Stage(7, "extra advances preserve valid progression");
         Check(goalIds.SequenceEqual(manager.Objectives.Select(o => o.objectiveId)) && targets.SequenceEqual(manager.Objectives.Select(o => o.targetValue)), "all eight goal IDs and targets unchanged");
-        Check(ForestSaveData.CurrentVersion == 21, "the save schema version is unchanged");
+        Check(ForestSaveData.CurrentVersion == 22, "the save schema version is unchanged");
         // A later generation can refill an original access corridor. The real rack tool should report maintenance;
         // a completed teaching lesson must not restart. This is a disposable stand-in for a promoted young tree.
         string beforeRegrowth = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
