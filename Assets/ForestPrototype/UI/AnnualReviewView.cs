@@ -208,14 +208,19 @@ public sealed class AnnualReviewView
         return label;
     }
 
-    // Name/value line (as UiKit.Line) with a provenance label in front of the name.
+    // Name/value line (as UiKit.Line) with a provenance label in front. A long value goes under its name, so the name keeps room
+    // to read beside the label in a narrow column.
     private static void TaggedLine(VisualElement parent, HistoryProvenance kind, string name, string value, string valueClass = "value")
     {
-        VisualElement row = UiKit.Box("table-row");
+        VisualElement row = UiKit.Box("row");
         row.style.alignItems = Align.FlexStart;
         Tag(row, kind);
-        row.Add(UiKit.Text(name, "cell-name", "body"));
-        row.Add(UiKit.Text(value, "line-value", valueClass));
+        VisualElement line = UiKit.Box();
+        line.style.flexGrow = 1;
+        line.style.flexShrink = 1;
+        line.style.flexBasis = 0;
+        UiKit.Line(line, name, value, valueClass, value.Length > 12);
+        row.Add(line);
         parent.Add(row);
     }
 

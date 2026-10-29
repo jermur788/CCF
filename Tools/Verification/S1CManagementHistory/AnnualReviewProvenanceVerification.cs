@@ -368,6 +368,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         VisualElement modal = Modal();
         var lines = new StringBuilder();
         int rowsWithMany = 0, overlaps = 0, clipped = 0;
+        var clippedText = new List<string>();
         foreach (Label chip in VisibleChips(modal))
         {
             VisualElement row = chip.parent;
@@ -376,13 +377,13 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             {
                 if (text.worldBound.xMin < chip.worldBound.xMax - 1.5f && text.worldBound.yMin < chip.worldBound.yMax - 1.5f && text.worldBound.yMax > chip.worldBound.yMin + 1.5f) overlaps++;
                 Vector2 measured = text.MeasureTextSize(text.text, text.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
-                if (measured.y > text.contentRect.height + 1.5f) clipped++;
+                if (measured.y > text.contentRect.height + 1.5f) { clipped++; clippedText.Add($"{Short(text.text)} measured={measured.y:0.0} content={text.contentRect.height:0.0} w={text.contentRect.width:0.0}"); }
                 lines.AppendLine(HistoryProvenanceText.Label(KindOfChip(chip).Value) + "\t" + text.text.Replace('\n', ' '));
             }
         }
         Check(rowsWithMany == 0, "ONE_LABEL_PER_ROW_" + label);
         Check(overlaps == 0, "LABEL_DOES_NOT_OVERLAP_TEXT_" + label);
-        Check(clipped == 0, "LABELLED_TEXT_NOT_CLIPPED_" + label);
+        Check(clipped == 0, "LABELLED_TEXT_NOT_CLIPPED_" + label, string.Join(" | ", clippedText.Take(4)));
 
         string tutorialHint = manager.TutorialHint ?? "";
         var unlabelled = new List<string>();
