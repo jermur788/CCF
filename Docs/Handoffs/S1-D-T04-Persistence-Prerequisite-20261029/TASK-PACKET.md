@@ -3,19 +3,18 @@
 ## Task identity
 
 - **Spec:** `specs/scenario-one-repeated-interventions-v1/`
-- **Task:** T-04P — D-066 minimum durable teaching-history persistence prerequisite
+- **Task:** T-04P — D-066 minimum durable teaching-completion persistence prerequisite
 - **Parent:** #91 `PLAYER-TEST-OVERNIGHT-01`
 - **Claim:** #143
-- **Status:** **PREPARED — DO NOT START UNTIL BROWSER MANAGER REVIEW APPROVES AND RELEASES THIS PACKET**
-- **Exact production base:** `c8cfae8c4025cec6e960a050edf4bfde2a981de5` — post-MFM-07 qualified production umbrella
-- **Inspected save schema on that base:** `ForestSaveData.CurrentVersion = 23`
-- **Expected next schema:** **v24 only if live start refresh still confirms v23 is current/free and no competing save/schema writer exists.** Otherwise STOP and return to Manager.
-- **Purpose:** implement the smallest durable aggregate historical record required by D-066 so an actually completed Scenario One teaching sample/review remains historically complete across save/load and later world drift, without serializing individual `[J]/[K]` choices.
-- **Difficulty:** **High** — small data surface, but shared save/load/validation, backward compatibility, deterministic/reference protection and exact curriculum semantics make incorrect implementation costly.
-- **Best-suited model/provider:** OpenAI Sol/Codex local code lane or equivalent strong repository/Unity implementation model with save/validation discipline.
-- **Independent review:** mandatory before Manager acceptance because the task changes the shared save/load contract.
+- **Status:** **BLOCKED — DO NOT START UNTIL REPAIRED D-066 MANAGER REVIEW #158 RETURNS APPROVED AND MANAGER REPINS/RELEASES THIS PACKET**
+- **Exact inspected production base:** `c8cfae8c4025cec6e960a050edf4bfde2a981de5` — post-MFM-07 qualified production umbrella
+- **Inspected save schema:** `ForestSaveData.CurrentVersion = 23`
+- **Expected next schema:** v24 only if a fresh released-task start still confirms v23 current/free and no competing save/schema writer. Otherwise STOP.
+- **Difficulty:** High — tiny state surface, high-consequence shared save/hash contract.
+- **Best-suited model/provider:** local SOL/Codex high-reasoning save/validation lane or equivalent strong repository/Unity implementation model.
+- **Independent review:** mandatory before Manager acceptance.
 
-Suggested lane:
+Suggested lane after release:
 
 - branch `feature/s1-d-t04-teaching-persistence-v1`
 - worktree `/media/jer/Videos/CCF-S1D-T04-Persistence`
@@ -24,202 +23,211 @@ Planned handoff:
 
 - `Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/HANDOFF.md`
 
-## Start protocol
+## Purpose
 
-Before any edit:
+Implement exactly one durable, monotone historical fact for Scenario One:
 
-1. refresh `Docs/Project/coordination/active-tasks.md` from GitHub;
-2. refresh claims #91, #106, #124, #126, #128 and #143;
-3. verify the intended branch/worktree is clean and starts from exact `c8cfae8c4025cec6e960a050edf4bfde2a981de5` unless a later Manager packet explicitly repins it;
-4. inspect live `ForestSaveData.CurrentVersion` and current save/validator ownership;
-5. confirm no other live writer owns `ForestSaveData`, save controller, save validation, reference/hash compatibility or the same Scenario One save fields;
-6. only then mark #143 `[RUNNING]` with model/provider, branch, worktree and starting HEAD and register ownership in live coordination.
+> **The existing first guided rack teaching sample/review has historically completed at least once.**
 
-If `CurrentVersion != 23`, v24 has been consumed/reserved, or another save/schema writer is active, **STOP before editing** and return to Manager. Do not improvise a version or overlap ownership.
+The persisted representation is one boolean-like Scenario One save latch. Exact C# field/helper names are implementation choices. **Do not** replace it with a per-cycle key, list, counter set, aggregate history record, guide-index cache or broad management-cycle object.
 
-## Product authority — D-066
+This task exists only because the current `[J]/[K]` rack-review evidence is session-only and cannot be reconstructed faithfully after save/load. Individual decisions remain session-only.
 
-The user selected Option A: preserve full S1-D FR-B1 / AC-3.
+## Hard release gate
 
-The task may persist **only** the minimum aggregate historical teaching-completion evidence required to distinguish incomplete from completed teaching progression. The durable record is authority only for historical teaching progression and the T-03/T-04 shared `sample historically complete` interpretation.
+Before any production edit, all must be true:
 
-It is not:
+1. browser Manager review #158 returned **APPROVED** for the repaired D-066 contract;
+2. Manager explicitly repinned/released #143;
+3. live `Docs/Project/coordination/active-tasks.md` gives #143 sole save/schema/hash ownership for this slice;
+4. exact start lineage and `ForestSaveData.CurrentVersion` are refreshed;
+5. no #126/PARITY or other save/schema/validator writer is active;
+6. branch/worktree are clean at the Manager-pinned start SHA.
 
-- a forestry prescription;
-- a Scenario One completion predicate;
-- an MFM prescription/coverage/work-order record;
-- a Rack V2 lifecycle record;
-- a current readiness/recommendation cache;
-- a replay of the session review;
-- a store of individual player `[J]/[K]` decisions.
+Then mark #143 `[RUNNING]` with model/provider, branch, worktree and starting HEAD. A claim alone does not grant ownership.
 
-## Authoritative completion transition
+If v23 is no longer current/free, v24 is occupied, or the exact production lineage changed without a Manager repin, **STOP before editing**.
 
-The record may become complete **only when the existing pre-amendment in-session teaching sample/review has actually completed under its authoritative lesson rules**.
+## Authoritative write transition — product architecture is fixed
 
-It MUST NOT infer completion from:
+The latch starts false and may change **false → true exactly once**. It is never reset.
 
-- successful planting;
-- arbitrary or merely in-footprint felling;
-- a later Annual Review acknowledgement by itself;
+Write it only when the **unlatched/pre-amendment rack-world teaching sequence would genuinely advance from `response` to `recruitment` in the current session**.
+
+At the inspected qualified lineage, this means the existing `ScenarioOneTeachingSequence.Current(Facts)` conditions for lessons 1–5 have all passed and, specifically for leaving `response`:
+
+- the release has actually reached the existing executed/mixed-outcome lesson state under the current rack-bay rules;
+- the release Annual Review has been acknowledged (`ReleaseReviewed`);
+- the real session rack review is complete (`RackReviewComplete`), derived from `ScenarioOneRackReview` after the player has performed the current-session review;
+- applying the **pre-latch** sequence rules would therefore return `recruitment` (lesson index 5) rather than `response` (lesson index 4).
+
+The implementation may extract/refactor a pure helper, but it must preserve this exact pre-amendment transition. Verification must compare the helper against the old sequence boundary before the latch is applied.
+
+### Explicitly insufficient write evidence
+
+Do **not** set the latch from any of these alone or in combination unless they are part of the exact transition above:
+
+- `ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` by itself — it deliberately omits the session `[J]/[K]` review;
+- planting or later lesson progress;
+- arbitrary/in-footprint felling;
+- a later Annual Review acknowledgement;
 - current Crop Tree count or loss;
-- current executed-share values after drift;
-- current rack geometry alone;
+- current rack geometry;
+- current executed-share drift;
 - `PlayerPrefs`;
-- save age/version;
-- a heuristic reconstruction from incomplete historical records.
+- save version/age;
+- heuristic reconstruction from older persisted records.
 
-The implementation must identify the exact authoritative old in-session transition from the inspected code and hook persistence to that transition with the smallest safe surface.
+Do not write during load/restore, display/read refresh, or from a post-load inference.
 
-Once established, historical completion is monotone and cannot be unset by later world changes.
+## One shared T-03 / T-04 historical read contract
 
-## Required persisted shape
+Expose the smallest read-only API/property whose meaning is exactly:
 
-Concrete C# names are implementation choices, but the record must be no broader than necessary. It may include:
+> `true` iff the first guided rack teaching sample/review historical completion latch has been durably recorded in this save lineage.
 
-- a deterministic stable teaching/management-cycle key;
-- sample-complete state;
-- review-complete state;
-- only the aggregate counters/outcomes strictly needed to distinguish an incomplete teaching sample/review from a completed one and to validate the record.
+Two-phase semantics are mandatory:
+
+- **Before latch:** read = false. T-03 keeps its accepted current-world/session cap classification and deadlock safeguard; T-04 keeps existing pre-completion guide behaviour. The durable field must not pretend session review occurred.
+- **At transition:** record true once.
+- **After latch:** read = true forever. T-03 and T-04 both consume this same historical fact. Later world drift/save-load cannot unset it.
+
+Do not create a second durable T-03 definition. `ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` may remain as a current-world helper if needed before the latch, but it is not the persisted historical authority after D-066.
+
+## Persisted shape / schema contract
+
+The save impact is limited to:
+
+- one boolean-like field in Scenario One save state;
+- the smallest capture/restore plumbing needed to round-trip it;
+- expected one-version schema increment only if the live slot is free;
+- the smallest validation/hash compatibility changes necessary to preserve existing contracts.
 
 Do not persist:
 
+- cycle IDs/keys or per-cycle records;
+- counters/outcomes solely for teaching history;
 - individual `[J]/[K]` choices;
-- inspected tree IDs;
-- stand-portion choices/details;
-- review transcript/order;
-- current guide index if derivable from the aggregate + current facts;
-- current readiness/advisory state;
+- inspected tree IDs or stand-portion details;
+- session review transcript/order;
+- current guide index;
+- readiness/advisory state;
 - Crop Tree designation year;
 - a broad `ScenarioOneManagementCycleState` or equivalent.
 
-Prefer append-only/monotone historical records if multiple teaching cycles must be distinguished; do not overwrite historical completion with current-session state.
+### Old-save behavior
 
-## Expected owned production surface while RUNNING
+For every supported pre-amendment save, field absent/default false means **historical completion not recorded**. Do not backfill. Existing game state still loads under existing compatibility policy; the teaching review may need to be completed again in-session before the new latch can be earned.
 
-Inspect actual files first. Expected bounded ownership:
+A boolean latch does not justify a new key/counter/list validation model. Preserve existing CanLoad/LoadData pre-mutation guarantees and add only validation genuinely required by the chosen one-field schema/version plumbing.
 
-- `Assets/ForestPrototype/ForestSaveData.cs` — version + minimum Scenario One teaching-history field/record only;
-- smallest Scenario One save capture/restore adapter required to round-trip the new record;
-- `ForestSaveValidation*.cs` / existing pre-mutation validation path only as required for the new record;
-- smallest authoritative teaching-completion write hook/helper needed to record the aggregate;
-- focused verification files under `Tools/Verification/`.
+## World identity / hash contract — mandatory no-rebaseline rule
 
-Do **not** absorb #124 curriculum/guide replay. Do not edit MFM proposal/prescription logic, Rack V2 geometry/lifecycle, completion rules, scenario objective predicates/targets, ecology/economy/growth/regeneration, S1-C presentation, scenes/prefabs/packages/ProjectSettings or Reference Future archive content.
+The teaching latch is saved progression state but **never part of biological/world identity**.
 
-If the authoritative completion hook sits in a file reserved by #124, coordinate one API boundary through Manager; do not make #143 and #124 concurrent writers.
+Full save serialization must round-trip it, while every world/hash projection must strip/ignore it. Inspect and cover at least:
 
-## Schema and migration contract
+- `ScenarioReferenceArchive.WorldHash`;
+- `CurrentWorldHash`;
+- `LegacyCompatibleWorldHash`;
+- `HashLayout` for both its historical/default-later-field paths **and the non-default v23 prescription-state branch**;
+- any `MinimalWorldHash` or equivalent minimal/protected identity projection used by verification;
+- protected hash extraction/comparison and Reference Future/anchor checks that consume those projections.
 
-On the inspected base `c8cfae8c...`, save v23 is owned by MFM-06 prescription/provenance state and qualified through MFM-07 integration. If live start inspection still confirms this exact state, T-04P owns the single next schema increment, expected **v24**.
+At v23, a world with real prescription state currently reaches a `HashLayout` branch that keeps full current JSON except explicitly stripped history. The new field must be explicitly excluded there too. Do not rely on it being default/false.
 
-Requirements:
+Use the smallest compatibility edit that removes only this teaching-only field from identity inputs. **Do not rewrite Reference Future v1, move accepted anchors, change hash semantics for authoritative world state, or rebaseline any protected fingerprint.**
 
-- v23 and all supported earlier saves remain loadable under existing policy;
-- a missing D-066 field/list means **not historically complete / not recorded** for the durable teaching latch;
-- do not backfill completion from session state, `PlayerPrefs`, current world facts or historical heuristics;
-- preserve MFM-06/07 prescription/provenance fields exactly;
-- preserve objective-achievement history, Rack V2 state and existing older-version defaults;
-- Reference Future v1 remains frozen; do not rewrite its archive or reserialize it to establish integrity;
-- Legacy40 and pre-v20 paths retain their accepted compatibility semantics; no Enlarged80-only teaching record is fabricated into Legacy40.
+## Expected production ownership after release
 
-## Validation contract
+Inspect actual files first. Expected bounded surface:
 
-For the new owning schema version, malformed or ambiguous D-066 data must be rejected before world or disk mutation through the same safe load contract used by `CanLoad` and `LoadData`.
+- `Assets/ForestPrototype/ForestSaveData.cs` — one field + version only if the live next slot is free;
+- smallest Scenario One manager/save capture/restore surface;
+- smallest teaching write/read helper surface needed to set/read the latch;
+- `ScenarioReferenceArchive` hash-layout compatibility code only as required to strip the field everywhere;
+- existing save validation only where genuinely required by the one-field version contract;
+- focused verification under `Tools/Verification/`.
 
-Define and test at least:
+Do **not** absorb #124 curriculum replay. Do not change completion rules/objectives, economy/ecology, Rack V2 lifecycle/geometry, MFM prescription semantics, S1-C history presentation, scenes/prefabs/packages/ProjectSettings or Reference Future archive content.
 
-- duplicate stable teaching-cycle keys;
-- invalid/empty key where key is required;
-- impossible completion combinations (for example review complete while the required sample completion is false, if the chosen representation permits such a state);
-- negative/invalid aggregate counts;
-- duplicate/conflicting records for the same cycle;
-- unknown enum/state values if any are introduced.
-
-Do not silently repair, renumber, merge or reinterpret malformed new-version history.
+If the authoritative write hook overlaps an active owner, STOP and obtain a Manager API/ownership disposition rather than racing it.
 
 ## Required verification
 
-### Offline / static
+### Offline/static
 
-- exact schema/version assertion;
-- serialize → deserialize → serialize round-trip of incomplete and completed records;
-- monotonic write semantics: completion cannot revert;
-- repeated calls/reads in one state do not append/consume another sample;
-- authoritative completion transition records exactly once;
-- negative validation matrix for every malformed-data case;
-- pre-v24 / missing-field default is false/not-recorded;
-- grep/serialization proof that individual `[J]/[K]` choices and inspected-tree/session-review detail are absent from the save model;
-- N3 normalised `ScenarioOneCompletionRules` source/hash unchanged — **no rebaseline**;
-- protected save/reference/hash compatibility checks relevant to the touched path;
-- MFM-06/07 save/provenance round-trip remains green.
+Prove all of the following on the exact candidate:
+
+- exact live schema/version selection and no collision;
+- false/default old-save behavior;
+- false → true one-way semantics; no true → false path;
+- the write helper matches the **pre-amendment `response → recruitment`** boundary including `ReleaseReviewed` and actual session `RackReviewComplete`;
+- `ScenarioOneTeachingCap.SampleHistoricallyComplete` alone cannot set the latch;
+- repeated reads/refreshes/same-state calls do not perform a second write;
+- save → load → save round-trip preserves false and true states;
+- individual `[J]/[K]`, inspected-tree and stand-portion/session-review detail are absent from save data;
+- T-03 pre-latch tests retain existing current-world/session behavior;
+- the shared historical read returns true after latch for both T-03/T-04 consumption;
+- N3 normalised `ScenarioOneCompletionRules` source/hash is unchanged;
+- **every world/hash identity projection is byte-for-byte unchanged for otherwise identical false-vs-true latch worlds**;
+- include a non-default v23 prescription-state world in that hash comparison;
+- protected reference/hash baselines remain unchanged — no rebaseline;
+- MFM-06/07 prescription/provenance save round-trip remains green.
 
 ### Unity qualification
 
 Under the machine-wide Unity lock only after offline gates pass:
 
 1. import/compile exact candidate;
-2. create an incomplete teaching-sample state, save/load, prove it remains incomplete and current in-session behaviour is unchanged;
-3. complete the authoritative in-session sample/review, prove one durable aggregate is recorded;
-4. save/load and prove historical completion remains true;
-5. repeat view refresh / read path / same-state calls and prove no second sample/record is consumed;
-6. mutate later world state (Crop Tree count/loss, later in-footprint felling or executed-share drift where possible without #124 guide changes) and prove the stored historical aggregate remains unchanged;
-7. load representative v23 and earlier supported saves with no field and prove conservative false/not-recorded default;
-8. exercise malformed v24 fixtures through both `CanLoad` and `LoadData` and prove pre-mutation rejection parity;
-9. rerun narrow SaveHardening/reference/compatibility gates required by the existing project harness.
+2. reach `response` with incomplete session rack review; prove latch remains false;
+3. satisfy Annual Review but leave `RackReviewComplete` false; prove latch remains false;
+4. complete the actual rack review so the pre-latch sequence crosses `response → recruitment`; prove exactly one latch write;
+5. save/load and prove latch remains true;
+6. reload/refresh repeatedly and prove no extra write/side effect;
+7. mutate later Crop Tree count/loss, in-footprint felling and executed-share state where possible; prove latch remains true;
+8. representative pre-amendment saves load with false/default state and no heuristic backfill;
+9. rerun SaveHardening/reference/hash/MFM compatibility gates required by the existing harness.
 
-The curriculum guide itself is not claimed qualified by this task; #124 consumes the aggregate later.
+This task does **not** claim #124 guide behavior qualified; it supplies the durable fact that #124 later consumes.
 
-### Mandatory independent review
+### Independent review
 
-Independent reviewer on the exact candidate must inspect:
+An independent reviewer must inspect the exact candidate and return APPROVED before Manager integration. Review must confirm:
 
-- diff is bounded to D-066 persistence/validation/write hook;
-- completion write hook is the authoritative old in-session teaching transition, not a surrogate;
-- persisted shape is minimal and contains no individual `[J]/[K]`/session transcript;
-- old saves default conservatively and remain loadable;
-- MFM-06/07 and protected reference/hash contracts are preserved;
-- validation rejects malformed new records before mutation;
-- tests were not weakened and no hash/reference was rebaselined.
-
-Verdict must be APPROVED before Manager integration/release to #124.
+- exactly one boolean-like latch; no per-cycle history/counters;
+- exact authoritative current-session write boundary;
+- no individual `[J]/[K]`/session detail persisted;
+- conservative old-save false default;
+- one shared post-latch T-03/T-04 read meaning;
+- all world/hash projections exclude the latch, including non-default prescription worlds;
+- save round-trip still preserves the latch;
+- no tests/hashes/references were weakened or rebaselined.
 
 ## Stop conditions
 
 STOP and return to Manager if:
 
-- live schema is no longer v23 or v24 is reserved/consumed;
-- another save/schema/validator writer is active;
-- exact production base cannot be established safely;
-- faithful completion would require persisting individual `[J]/[K]`, inspected-tree detail or substantially more session transcript;
-- implementation would alter `ScenarioOneCompletionRules`, objective predicates/targets, economy/ecology, Rack V2 lifecycle, MFM prescription semantics or Reference Future v1;
-- a legitimate accepted old save cannot default/load conservatively without a new compatibility decision;
-- a protected test/hash would have to be weakened/rebaselined merely to pass.
+- #158 is not APPROVED or #143 has not been explicitly released;
+- live schema/version/ownership differs from the repinned packet;
+- one boolean latch is insufficient and a materially broader persisted model appears necessary;
+- faithful completion would require persisting individual `[J]/[K]`, inspected-tree/stand-portion detail or a replay transcript;
+- the exact `RackReviewComplete` session boundary cannot be used without changing product meaning;
+- the latch cannot be excluded from identity without changing accepted world/hash semantics rather than preserving them;
+- another save/schema/hash writer is active;
+- implementation would alter completion/objectives, economy/ecology, Rack V2, MFM, frozen Reference Future content or accepted anchors;
+- a protected hash/test would require weakening/rebaseline merely to pass.
 
 ## Handoff requirements
 
-Publish `Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/HANDOFF.md` with:
+Publish `Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/HANDOFF.md` with model/provider, branch/worktree, exact start/end SHAs, actual schema version, changed files, exact latch field/read API/write hook, old-save behavior, all offline/Unity evidence, independent-review verdict, proof no `[J]/[K]` detail is serialized, and all-hash/no-rebaseline results including a non-default prescription-state case.
 
-- actual model/provider;
-- exact starting production SHA and ending production SHA;
-- actual schema version used and proof it was free at start;
-- branch/worktree;
-- changed files;
-- exact persisted record shape and authoritative completion write hook;
-- old-save/default policy;
-- malformed-data validation rules;
-- offline + Unity evidence and tokens;
-- independent-review verdict/evidence;
-- proof `[J]/[K]` and session detail are not serialized;
-- N3/reference/hash/MFM save compatibility results with no rebaseline;
-- exact candidate/integration recommendation for #124.
-
-At handoff, rename #143 `[HANDED-OFF]`, link the handoff, close the claim and return:
+On successful handoff mark #143 `[HANDED-OFF]`, link it, close the execution claim and return:
 
 `S1-D T-04P PERSISTENCE QUALIFIED — READY FOR MANAGER REVIEW`
 
 or the precise blocker.
 
-## Copy/paste dispatch line
+## Copy/paste dispatch line — only after #158 APPROVED + Manager release
 
-`Run claim #143 from Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/TASK-PACKET.md after Manager release. Start from exact qualified production umbrella c8cfae8c4025cec6e960a050edf4bfde2a981de5 only if live refresh still confirms save v23 and no competing save/schema writer; then v24 is the expected single next schema. Implement only D-066's minimum aggregate historical teaching-sample/review completion, triggered by the authoritative pre-amendment in-session completion transition. Do not serialize individual J/K or session-review detail, do not implement #124 curriculum, preserve v23/older/Legacy40/Reference/MFM compatibility, enforce CanLoad/LoadData pre-mutation validation, run offline + Unity + independent review, and do not build Windows.`
+`Run claim #143 from Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/TASK-PACKET.md only after Manager release. Implement one monotone first-guided-sample/review completion latch, written exactly once when the unlatched pre-amendment rack-world teaching sequence genuinely crosses response→recruitment with ReleaseReviewed and actual session RackReviewComplete after all earlier lesson guards. Old/missing = false; no retrospective reconstruction; no per-cycle keys/counters or J/K/session detail. Expose one shared historical read for T-03/T-04 after the latch while preserving T-03 pre-latch current-world/session safeguards. Round-trip the latch in saves but strip it from every world/hash identity path including non-default prescription worlds, with no rebaseline. Run offline + Unity + independent review; no Windows build.`
