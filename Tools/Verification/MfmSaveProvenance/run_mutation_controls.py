@@ -39,6 +39,8 @@ MUTANTS = [
     ("M19 canonical ordering lost", A, "a.prescriptionId.CompareTo(b.prescriptionId)", "0"),
     ("M20 prescription validation not run by Validate", V, "return ValidatePrescriptions(data);", "return null;"),
     ("M21 disk read skips the prescription JSON check", FP + "/ForestSaveController.cs", "?? ForestSaveValidation.ValidatePrescriptionsJson(json, data)", ""),
+    ("M24 prescription-world hash includes objective history", A, "return WithoutObjectiveAchievements(json);\n", "return json;\n"),
+    ("M25 reason None accepted on generated orders", FP + "/ForestSaveData.cs", "public static bool IsKnown(int code) => code == CompetitorHighShareAroundConfirmedCropTree;", "public static bool IsKnown(int code) => code >= 0;"),
     ("M22 restore would create a prescription", FP + "/ScenarioOne/ScenarioOneManager.Prescriptions.cs", "prescriptions = ClonePrescriptions(data.prescriptions);",
      "prescriptions = ClonePrescriptions(data.prescriptions); prescriptions.Add(new PrescriptionSaveData());"),
     ("M23 allocator allowed to move backwards", FP + "/ScenarioOne/ScenarioOneManager.Prescriptions.cs", "nextPrescriptionId = Mathf.Max(nextPrescriptionId, prescriptions.Max(item => item.prescriptionId) + 1);", "nextPrescriptionId = 1;"),

@@ -246,8 +246,9 @@ public sealed class ScenarioReferenceArchive
     private static string HashLayout(string json, ForestSaveData data)
     {
         // A world that carries prescription state (save v23) has no historical layout: it hashes as its full current JSON.
+        // The v22 history field is still never part of an identity (accepted rule), so it is dropped here too.
         if (!PrescriptionStateIsDefault(data))
-            return json;
+            return WithoutObjectiveAchievements(json);
         json = WithoutLaterFields(json);
         // Keyed on the version this input actually carries (a persisted v21 stays v21), not on CurrentVersion.
         // Versions below the relabel target (an older input) were never rewritten and still are not.

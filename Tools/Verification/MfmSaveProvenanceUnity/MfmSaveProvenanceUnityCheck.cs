@@ -243,7 +243,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
         target.prescriptionId = 1;
         target.prescriptionCoverageUnitId = "R1C";
         target.prescriptionCropTreeId = "PO0100";
-        target.prescriptionReason = (int)ScenarioOnePrescription.ProposalReason.CompetitorHighShareAroundConfirmedCropTree;
+        target.prescriptionReason = PrescriptionReasonCode.CompetitorHighShareAroundConfirmedCropTree;
         if (targetEvent != null) targetEvent.prescriptionId = 1;
         Check(targetEvent != null && crafted.scenarioOne.managementEvents.Count >= 2, "existing management events are available to carry the history link", "order " + target.workOrderId + " event " + (targetEvent != null ? targetEvent.eventId.ToString() : "none") + " of " + crafted.scenarioOne.managementEvents.Count);
         string craftedJson = JsonUtility.ToJson(crafted);
@@ -306,6 +306,7 @@ public sealed class MfmSaveProvenanceUnityCheckRunner : MonoBehaviour
             ("order names an unknown prescription", Pretty(Mut(s => Order(s)["prescriptionId"] = 9)), "unknown prescription"),
             ("order from an unapproved prescription", Pretty(Mut(s => Order(s)["prescriptionId"] = 2)), "not approved"),
             ("order with an unknown reason", Pretty(Mut(s => Order(s)["prescriptionReason"] = 77)), "reason"),
+            ("generated order with reason None", Pretty(Mut(s => Order(s)["prescriptionReason"] = 0)), "reason"),
             ("ordinary order carrying provenance", Pretty(Mut(s => Plain(s)["prescriptionCoverageUnitId"] = "R1C")), "no prescription"),
             ("event names an unknown prescription", Pretty(Mut(s => ((JArray)s["managementEvents"]).OfType<JObject>().First(e => e["prescriptionId"].Value<int>() == 0)["prescriptionId"] = 7)), "unknown prescription"),
             ("prescriptions array missing", Pretty(Mut(s => s.Remove("prescriptions"))), "explicit prescription fields"),

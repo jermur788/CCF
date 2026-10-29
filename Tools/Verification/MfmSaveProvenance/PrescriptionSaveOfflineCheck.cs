@@ -102,8 +102,9 @@ public static class PrescriptionSaveOfflineCheck
         Check(PrescriptionApprovalState.Accepted == 1 && PrescriptionApprovalState.Approved == 2 && PrescriptionCoverageChoice.AcceptedCovered == 1 && PrescriptionCoverageChoice.LeftManual == 2,
             "schema: stored enum numbers are the pinned values");
 
-        var proposalReasons = Enum.GetValues(typeof(ScenarioOnePrescription.ProposalReason)).Cast<int>().ToList();
-        Check(proposalReasons.All(PrescriptionReasonCode.IsKnown) && Enumerable.Range(-2, 200).Count(PrescriptionReasonCode.IsKnown) == proposalReasons.Count,
+        var proposalReasons = Enum.GetValues(typeof(ScenarioOnePrescription.ProposalReason)).Cast<int>().Select(v => v + 1).ToList();
+        Check(proposalReasons.All(PrescriptionReasonCode.IsKnown) && Enumerable.Range(-2, 200).Count(PrescriptionReasonCode.IsKnown) == proposalReasons.Count
+            && !PrescriptionReasonCode.IsKnown(PrescriptionReasonCode.None),
             "schema: the stored reason codes are exactly the ProposalReason vocabulary (kept in step with the core)");
 
         // ---- 2. v23 round trip of every new persisted field ---------------------------------------------------------
@@ -244,6 +245,7 @@ public static class PrescriptionSaveOfflineCheck
         Refuses("order created before approval", d => d.scenarioOne.workOrders[1].createdYear = 11, "predates");
         Refuses("order blank coverage unit", d => d.scenarioOne.workOrders[1].prescriptionCoverageUnitId = "", "coverage unit");
         Refuses("order bad crop tree id", d => d.scenarioOne.workOrders[1].prescriptionCropTreeId = " x", "Crop Tree");
+        Refuses("generated order with reason None", d => d.scenarioOne.workOrders[1].prescriptionReason = PrescriptionReasonCode.None, "reason");
         Refuses("order unknown reason", d => d.scenarioOne.workOrders[1].prescriptionReason = 99, "reason");
         Refuses("manual order carrying a coverage unit", d => d.scenarioOne.workOrders[0].prescriptionCoverageUnitId = "R1C", "no prescription");
         Refuses("manual order carrying a reason", d => d.scenarioOne.workOrders[0].prescriptionReason = 1, "no prescription");
@@ -308,6 +310,9 @@ public static class PrescriptionSaveOfflineCheck
         Check(ScenarioReferenceArchive.CurrentWorldHash(asV22) == ScenarioReferenceArchive.CurrentWorldHash(defaultWorld), "hash: and under the current-identity hash");
         string withState = ScenarioReferenceArchive.WorldHash(World());
         Check(withState != ScenarioReferenceArchive.WorldHash(defaultWorld), "hash: prescription state is part of a world's identity once it exists");
+        ForestSaveData historyOnly = World(); historyOnly.scenarioOne.objectiveAchievements.Clear();
+        Check(ScenarioReferenceArchive.WorldHash(historyOnly) == withState && ScenarioReferenceArchive.CurrentWorldHash(historyOnly) == ScenarioReferenceArchive.CurrentWorldHash(World()),
+            "hash: v22 objective history is never part of a world identity, prescription state or not");
         ForestSaveData shuffled = World();
         shuffled.scenarioOne.prescriptions.Reverse(); shuffled.scenarioOne.prescriptions[0].coverageDecisions.Reverse();
         shuffled.scenarioOne.prescriptions[1].sampleCropTreeIds.Reverse();
