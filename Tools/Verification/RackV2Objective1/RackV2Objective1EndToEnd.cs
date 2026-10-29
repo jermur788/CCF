@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Cursor = UnityEngine.Cursor;
 
 // Disposable Tier-2 gate for RACK-V2-12: the whole Scenario One Objective 1 flow in ONE fresh game, in one Editor process.
 //
