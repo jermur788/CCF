@@ -1,0 +1,598 @@
+{
+ "note": "HISTORICAL DIAGNOSTIC ONLY. Natural-regeneration cohorts from a legitimate pre-Rack-V2 Enlarged80 Lesson-5 save (schema 20, ecological year 2, old authored rack geometry). Not the MFM-02 V2 fixture state. relativeDensity is summed cohort occupancy, not stems/ha. Cells are 5 m, 16 per axis, index = row*16 + col from (-40,-40).",
+ "source": "/media/jer/Files/CCF/Verification/MFM-03-CoverageCandidateCalibration-20261027/inputs/historical-stage5-save.json",
+ "ecologicalYear": 2,
+ "schemaVersion": 20,
+ "standGeometryModel": 1,
+ "plantedJuveniles": 0,
+ "clearancePatches": 0,
+ "shelters": 0,
+ "deadwoodRecords": 1,
+ "cells": [
+  {
+   "index": 7,
+   "cohorts": 2,
+   "relativeDensity": 0.1138678677380085,
+   "maxHeightM": 0.2345028668642044,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 18,
+   "cohorts": 1,
+   "relativeDensity": 0.010335562750697136,
+   "maxHeightM": 0.1541256457567215,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 19,
+   "cohorts": 2,
+   "relativeDensity": 0.034636365249753,
+   "maxHeightM": 0.1795596033334732,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 20,
+   "cohorts": 1,
+   "relativeDensity": 0.010354764759540558,
+   "maxHeightM": 0.15378175675868988,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 21,
+   "cohorts": 2,
+   "relativeDensity": 0.02320529893040657,
+   "maxHeightM": 0.1696978658437729,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 22,
+   "cohorts": 1,
+   "relativeDensity": 0.013421280309557915,
+   "maxHeightM": 0.15475115180015564,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 23,
+   "cohorts": 2,
+   "relativeDensity": 0.11105981096625328,
+   "maxHeightM": 0.23119500279426575,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 25,
+   "cohorts": 1,
+   "relativeDensity": 0.005412743426859379,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 27,
+   "cohorts": 2,
+   "relativeDensity": 0.018932797946035862,
+   "maxHeightM": 0.16556277871131897,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 33,
+   "cohorts": 2,
+   "relativeDensity": 0.03553463891148567,
+   "maxHeightM": 0.1810750663280487,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 39,
+   "cohorts": 2,
+   "relativeDensity": 0.057529136538505554,
+   "maxHeightM": 0.19323979318141937,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 50,
+   "cohorts": 1,
+   "relativeDensity": 0.01595512591302395,
+   "maxHeightM": 0.15563255548477173,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 51,
+   "cohorts": 2,
+   "relativeDensity": 0.02842503134161234,
+   "maxHeightM": 0.17097514867782593,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 55,
+   "cohorts": 2,
+   "relativeDensity": 0.19045883417129517,
+   "maxHeightM": 0.2790223956108093,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 67,
+   "cohorts": 2,
+   "relativeDensity": 0.046325892210006714,
+   "maxHeightM": 0.1841943860054016,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 68,
+   "cohorts": 2,
+   "relativeDensity": 0.05314826779067516,
+   "maxHeightM": 0.18675076961517334,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 69,
+   "cohorts": 2,
+   "relativeDensity": 0.0665019229054451,
+   "maxHeightM": 0.19722281396389008,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 70,
+   "cohorts": 2,
+   "relativeDensity": 0.08457741513848305,
+   "maxHeightM": 0.20680980384349823,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 71,
+   "cohorts": 2,
+   "relativeDensity": 0.5146794021129608,
+   "maxHeightM": 0.4483240842819214,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 72,
+   "cohorts": 2,
+   "relativeDensity": 0.5364431440830231,
+   "maxHeightM": 0.44929420948028564,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 73,
+   "cohorts": 2,
+   "relativeDensity": 0.5342452228069305,
+   "maxHeightM": 0.4484733045101166,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 74,
+   "cohorts": 2,
+   "relativeDensity": 0.482858806848526,
+   "maxHeightM": 0.43519675731658936,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 75,
+   "cohorts": 2,
+   "relativeDensity": 0.09862633049488068,
+   "maxHeightM": 0.21703092753887177,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 76,
+   "cohorts": 1,
+   "relativeDensity": 0.016422443091869354,
+   "maxHeightM": 0.15514519810676575,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 79,
+   "cohorts": 1,
+   "relativeDensity": 0.014254231937229633,
+   "maxHeightM": 0.15551312267780304,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 85,
+   "cohorts": 2,
+   "relativeDensity": 0.066422613337636,
+   "maxHeightM": 0.19527217745780945,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 88,
+   "cohorts": 1,
+   "relativeDensity": 0.01436520554125309,
+   "maxHeightM": 0.1539781391620636,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 90,
+   "cohorts": 1,
+   "relativeDensity": 0.013800985179841518,
+   "maxHeightM": 0.1538325399160385,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 91,
+   "cohorts": 2,
+   "relativeDensity": 0.02440506499260664,
+   "maxHeightM": 0.16618181765079498,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 98,
+   "cohorts": 2,
+   "relativeDensity": 0.023779382929205894,
+   "maxHeightM": 0.16767090559005737,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 102,
+   "cohorts": 1,
+   "relativeDensity": 0.013632901012897491,
+   "maxHeightM": 0.1536177694797516,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 104,
+   "cohorts": 2,
+   "relativeDensity": 0.06580894254148006,
+   "maxHeightM": 0.19523917138576508,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 105,
+   "cohorts": 1,
+   "relativeDensity": 0.010524298995733261,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 114,
+   "cohorts": 2,
+   "relativeDensity": 0.03448100481182337,
+   "maxHeightM": 0.17606906592845917,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 119,
+   "cohorts": 2,
+   "relativeDensity": 0.10037845373153687,
+   "maxHeightM": 0.21193227171897888,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 120,
+   "cohorts": 2,
+   "relativeDensity": 0.5130844712257385,
+   "maxHeightM": 0.42880186438560486,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 121,
+   "cohorts": 1,
+   "relativeDensity": 0.005195056553930044,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 128,
+   "cohorts": 1,
+   "relativeDensity": 0.0051212976686656475,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 132,
+   "cohorts": 1,
+   "relativeDensity": 0.013786053285002708,
+   "maxHeightM": 0.1539769023656845,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 135,
+   "cohorts": 2,
+   "relativeDensity": 0.03358365409076214,
+   "maxHeightM": 0.18072132766246796,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 136,
+   "cohorts": 2,
+   "relativeDensity": 0.35373999178409576,
+   "maxHeightM": 0.3450584411621094,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 137,
+   "cohorts": 2,
+   "relativeDensity": 0.03307498246431351,
+   "maxHeightM": 0.1712019145488739,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 151,
+   "cohorts": 2,
+   "relativeDensity": 0.5155094563961029,
+   "maxHeightM": 0.43085917830467224,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 156,
+   "cohorts": 1,
+   "relativeDensity": 0.005149892531335354,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 167,
+   "cohorts": 2,
+   "relativeDensity": 0.05730585567653179,
+   "maxHeightM": 0.18491429090499878,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 168,
+   "cohorts": 2,
+   "relativeDensity": 0.06606903485953808,
+   "maxHeightM": 0.19457684457302094,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 171,
+   "cohorts": 2,
+   "relativeDensity": 0.02497602067887783,
+   "maxHeightM": 0.16747291386127472,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 178,
+   "cohorts": 1,
+   "relativeDensity": 0.012254860252141953,
+   "maxHeightM": 0.153875932097435,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 188,
+   "cohorts": 2,
+   "relativeDensity": 0.31590986251831055,
+   "maxHeightM": 0.3481597900390625,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 189,
+   "cohorts": 2,
+   "relativeDensity": 0.319552019238472,
+   "maxHeightM": 0.35690823197364807,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 195,
+   "cohorts": 1,
+   "relativeDensity": 0.013899292796850204,
+   "maxHeightM": 0.15399791300296783,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 205,
+   "cohorts": 2,
+   "relativeDensity": 0.03465650603175163,
+   "maxHeightM": 0.17565461993217468,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 206,
+   "cohorts": 1,
+   "relativeDensity": 0.009698376059532166,
+   "maxHeightM": 0.15361155569553375,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 223,
+   "cohorts": 2,
+   "relativeDensity": 0.021983652375638485,
+   "maxHeightM": 0.17015312612056732,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 224,
+   "cohorts": 1,
+   "relativeDensity": 0.00983060896396637,
+   "maxHeightM": 0.15439100563526154,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 225,
+   "cohorts": 2,
+   "relativeDensity": 0.0234524542465806,
+   "maxHeightM": 0.1720769852399826,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 228,
+   "cohorts": 1,
+   "relativeDensity": 0.013104509562253952,
+   "maxHeightM": 0.15444494783878326,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 229,
+   "cohorts": 1,
+   "relativeDensity": 0.0052911508828401566,
+   "maxHeightM": 0.15000000596046448,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 230,
+   "cohorts": 2,
+   "relativeDensity": 0.0368994977325201,
+   "maxHeightM": 0.17772704362869263,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 231,
+   "cohorts": 2,
+   "relativeDensity": 0.040831224992871284,
+   "maxHeightM": 0.18117715418338776,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 233,
+   "cohorts": 1,
+   "relativeDensity": 0.011083168908953667,
+   "maxHeightM": 0.1536978781223297,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 234,
+   "cohorts": 1,
+   "relativeDensity": 0.017143964767456055,
+   "maxHeightM": 0.155830517411232,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 235,
+   "cohorts": 2,
+   "relativeDensity": 0.031021959148347378,
+   "maxHeightM": 0.17514465749263763,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 239,
+   "cohorts": 1,
+   "relativeDensity": 0.010405299253761768,
+   "maxHeightM": 0.15484239161014557,
+   "species": [
+    "sitka-spruce"
+   ]
+  },
+  {
+   "index": 249,
+   "cohorts": 1,
+   "relativeDensity": 0.012168852612376213,
+   "maxHeightM": 0.1541481614112854,
+   "species": [
+    "sitka-spruce"
+   ]
+  }
+ ]
+}
