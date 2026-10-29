@@ -309,13 +309,18 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         Check(manager.AdvanceYear(), "planting executed", manager.Feedback);
         yield return Settle();
         manager.MarkAnnualReviewSeen();
-        PlantedJuvenile juvenile = manager.PlantedJuveniles.LastOrDefault(j => j != null && j.alive);
-        Check(juvenile != null, "a planted juvenile exists after execution", manager.PlantedJuveniles.Count.ToString());
+        PlantedJuvenile juvenile = manager.PlantedJuveniles.LastOrDefault();
+        Check(juvenile != null, "planting execution recorded a planted juvenile", manager.PlantedJuveniles.Count.ToString());
         Cov.Result afterPlanting = manager.ReadCoverage(out string afterProblem);
         Check(afterPlanting != null, "coverage readable after planting", afterProblem);
         Cov.Area juvArea = afterPlanting.Areas.FirstOrDefault(a => a.Evidence.Contains(juvenile.juvenileId));
-        Check(juvArea != null && juvArea.State == Cov.State.Excluded && juvArea.Reasons.Contains(Cov.Reason.PlantedJuvenile),
-            "the planted juvenile excludes its area as PlantedJuvenile with its own id as evidence", juvArea == null ? "no area carries " + juvenile.juvenileId : juvArea.Id + " " + juvArea.State);
+        bool standing = juvenile.alive && string.IsNullOrEmpty(juvenile.promotedTreeId);
+        Debug.Log("MFM08A_NOTE juvenile " + juvenile.juvenileId + " alive=" + juvenile.alive + " promoted=" + juvenile.promotedTreeId);
+        if (standing)
+            Check(juvArea != null && juvArea.State == Cov.State.Excluded && juvArea.Reasons.Contains(Cov.Reason.PlantedJuvenile),
+                "the standing juvenile excludes its area as PlantedJuvenile with its own id as evidence", juvArea == null ? "no area carries " + juvenile.juvenileId : juvArea.Id + " " + juvArea.State);
+        else
+            Check(juvArea == null, "a juvenile that no longer stands is not mapped as a feature (no stale record)");
         Check(!afterPlanting.Areas.Any(a => a.Evidence.Contains("order-" + plantOrder.workOrderId)), "the completed order is no longer active management work");
         if (manager.Shelters.Count > 0)
         {
@@ -323,14 +328,14 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
             Cov.Area shelterArea = afterPlanting.Areas.FirstOrDefault(a => a.Evidence.Contains(shelter.shelterId));
             Check(shelterArea != null && shelterArea.Reasons.Contains(Cov.Reason.Shelter), "the shelter excludes its area as Shelter with its own id as evidence");
         }
-        else Debug.Log("MFM08A_NOTE no shelter was installed by this planting");
+        else Check(false, "planting with a shelter requested installed a shelter record");
         if (manager.ClearancePatches.Count > 0)
         {
             PlantingClearancePatch patch = manager.ClearancePatches.Last();
             Cov.Area patchArea = afterPlanting.Areas.FirstOrDefault(a => a.Reasons.Contains(Cov.Reason.ClearancePatch));
             Check(patchArea != null, "the planting clearance patch excludes its area as ClearancePatch", patch.center.ToString());
         }
-        else Debug.Log("MFM08A_NOTE no clearance patch was recorded by this planting");
+        else Check(false, "planting recorded a clearance patch");
         Check(MaskView(afterPlanting) != "" && afterPlanting.Valid, "coverage stays valid after management work");
     }
 }
