@@ -37,6 +37,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--lock-id', required=True, help='Already-held S1-C-T04 Unity lock ID')
+    parser.add_argument('--gate', choices=['t04', 't03', 't02'], default='t04')
     parser.add_argument('--owner', default='Claude-S1C-T04', help='Owner recorded in the held lock')
     parser.add_argument('--t05-fixtures', type=Path, required=True, help='Folder holding the genuine v20-y5.json pre-feature save')
     parser.add_argument('--t05-prior-evidence', type=Path, required=True, help='Folder holding recorded-v22-year3-save.json and render-gap-v20-y5-no-year1-snapshot.json')
@@ -49,7 +50,10 @@ def main():
     parser.add_argument('--screen', default='2560x1440')
     parser.add_argument('--timeout', type=int, default=1500)
     args = parser.parse_args()
-    harness, entry, marker = HARNESS, ENTRY, MARKER
+    # --gate t03/t02 runs the unchanged earlier harnesses (drill-down / year-browsing) on this candidate as regressions.
+    harness, entry, marker = {'t04': (HARNESS, ENTRY, MARKER),
+        't03': ('AnnualReviewDrillDownVerification.cs', 'AnnualReviewDrillDownVerification.Begin', 'S1C_T03_'),
+        't02': ('AnnualReviewYearBrowsingVerification.cs', 'AnnualReviewYearBrowsingVerification.Begin', 'S1C_T02_')}[args.gate]
     for needed in (args.t05_fixtures / 'v20-y5.json', args.t05_prior_evidence / 'recorded-v22-year3-save.json', args.t05_prior_evidence / 'render-gap-v20-y5-no-year1-snapshot.json'):
         if not needed.is_file():
             raise SystemExit('missing old-save fixture: ' + str(needed))
@@ -100,7 +104,7 @@ def main():
     command = [str(UNITY), '-projectPath', str(root), '-logFile', str(out / 'unity.log'),
                '-executeMethod', entry]
     (out / 'command.json').write_text(json.dumps({'command': command, 'mode': args.mode, 'root': str(root), 'expected_head': args.expected_head,
-        'gate': 't04', 'lock_id': args.lock_id, 'harness': harness,
+        'gate': args.gate, 'lock_id': args.lock_id, 'harness': harness,
         'fixture_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (args.t05_fixtures / 'v20-y5.json', args.t05_prior_evidence / 'recorded-v22-year3-save.json', args.t05_prior_evidence / 'render-gap-v20-y5-no-year1-snapshot.json')},
         'harness_sha256': hashlib.sha256(Path(__file__).with_name(harness).read_bytes()).hexdigest()}, indent=2) + '\n')
     processes, streams = [], []
@@ -177,7 +181,7 @@ def main():
         log = (out / 'unity.log').read_text(errors='replace') if (out / 'unity.log').exists() else ''
         pass_marker = marker + 'HARNESS_PASS' in log
         failures = [line for line in log.splitlines() if marker + 'CHECK_FAIL' in line or ' error CS' in line]
-        result = {'gate': 't04', 'mode': args.mode, 'unity_exit': code, 'driver_issue': issue,
+        result = {'gate': args.gate, 'mode': args.mode, 'unity_exit': code, 'driver_issue': issue,
                   'seconds': round(time.monotonic() - started, 2), 'pass_marker': pass_marker, 'failures': failures,
                   'harness_removed': not staged.exists() and not meta.exists(),
                   'licence_copy_removed': not licence_copy.exists(), 'cleanup_failures': cleanup_failures}
