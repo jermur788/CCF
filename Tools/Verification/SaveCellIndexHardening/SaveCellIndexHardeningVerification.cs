@@ -60,6 +60,19 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
     }
     private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private static ForestSaveData Clone(ForestSaveData data) => JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+    // Since Rack Planning V2 (save v21, D-064) the live Enlarged80 world uses rack planning model 1, which the save validator
+    // correctly refuses on any other stand. A Legacy40 copy must therefore also drop to model 0 with no V2 plan.
+    // Returns how many rack-owned work orders were removed (a fresh world is expected to have none).
+    private static int MakeRackModelZero(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data.scenarioOne;
+        scenario.rackPlanningModel = RackPlanningModel.Legacy;
+        scenario.racks = new List<RackSaveData>();
+        scenario.rackPlanConfirmed = false;
+        scenario.nextRackId = 1;
+        if (scenario.workOrders == null) scenario.workOrders = new List<ScenarioOneWorkOrder>();
+        return scenario.workOrders.RemoveAll(o => o != null && o.rackId > 0);
+    }
     private string World()
     {
         ForestSaveData data = saves.CaptureData();
@@ -135,7 +148,21 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         var recorded = enlarged.cells.ToDictionary(c => c.index);
         enlarged.cells = Enumerable.Range(0,256).Select(i => recorded.TryGetValue(i,out var cell)
             ? cell : new ForestCellSaveData { index=i,establishmentSuitability=1f }).ToList();
+        // Keep a pristine valid Enlarged80 baseline. The later fixture loop loads other saves into the live
+        // world; reusing the working capture for the startup-Continue case can carry a fixture-mutated grid.
+        ForestSaveData enlargedBaseline = Clone(enlarged);
+        Debug.Log("SAVE_CELL_VALID_BASELINE validation=" + (ForestSaveValidation.Validate(enlargedBaseline, enlargedBaseline.trees.Count, 256) ?? "null")
+            + " cells=" + enlargedBaseline.cells.Count + " badCellIndices=" + string.Join(",", enlargedBaseline.cells.Where(c => c.index < 0 || c.index >= 256).Select(c => c.index))
+            + " patches=" + enlargedBaseline.scenarioOne.clearancePatches.Count);
         ForestSaveData legacy=Clone(enlarged); legacy.standGeometryModel=0;legacy.cells=legacy.cells.Take(64).ToList();legacy.scenarioOne.understoreyCells=legacy.scenarioOne.understoreyCells.Take(64).ToList();
+        int rackOrdersRemoved=MakeRackModelZero(legacy);
+        // Precondition: the Legacy40 basis is a valid model-0 world, so every geometry=0 verdict below is about cell indices.
+        Check(legacy.standGeometryModel==0 && legacy.cells.Count==64 && legacy.scenarioOne.understoreyCells.Count==64,"Legacy40 basis must be the 64-cell model-0 stand");
+        Check(legacy.scenarioOne.rackPlanningModel==RackPlanningModel.Legacy && legacy.scenarioOne.racks.Count==0 && !legacy.scenarioOne.rackPlanConfirmed && legacy.scenarioOne.nextRackId==1
+            && !legacy.scenarioOne.workOrders.Any(o => o!=null && o.rackId>0),"Legacy40 basis must carry no Rack V2 state");
+        Check(ForestSaveValidation.ValidateRackV2(legacy)==null,"Legacy40 basis refused by the Rack V2 validator: "+ForestSaveValidation.ValidateRackV2(legacy));
+        Debug.Log("SAVE_CELL_LEGACY40_BASIS geometry=0 cells=64 rackPlanningModel=0 racks=0 confirmed=false nextRackId=1 rackOwnedOrdersRemoved="+rackOrdersRemoved
+            +" enlargedRackPlanningModel="+enlarged.scenarioOne.rackPlanningModel+" enlargedRacks="+enlarged.scenarioOne.racks.Count);
         string[] fields={"ecology","understorey","juvenile","deadwood","event","FellTree","PlantJuvenile","RemoveRegeneration","PruneTree","SalvageDeadwood"};
         foreach (ForestSaveData basis in new[] { legacy,enlarged })
         {
@@ -180,10 +207,13 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         Assign(historical,"juvenile",-1);Assign(historical,"deadwood",-1);Assign(historical,"event",-1);Assign(historical,"FellTree",-1);
         yield return Fixture("historical v12 partial grids and sentinels",historical,true);
         ForestSaveData previous=Clone(legacy);previous.version=19;yield return Fixture("historical v19",previous,true);
-        yield return Fixture("restore enlarged baseline",Clone(enlarged),true);
+        yield return Fixture("restore enlarged baseline",Clone(enlargedBaseline),true);
         // Real title integration: valid enables Continue; malformed nested index disables it.
-        File.WriteAllText(path,JsonUtility.ToJson(enlarged));
+        File.WriteAllText(path,JsonUtility.ToJson(enlargedBaseline));
         var menu=FindFirstObjectByType<StandaloneSessionMenu>();if(menu==null)menu=new GameObject("Disposable startup menu").AddComponent<StandaloneSessionMenu>();
+        // Normal Editor Play may already have the startup screen open; ShowStartupScreen() returns early then and
+        // ContinueAvailable would be the stale pre-fixture value. Close first so the screen re-reads the valid baseline.
+        if(StandaloneSessionMenu.IsOpen)menu.Close();
         menu.ShowStartupScreen();for(int i=0;i<120&&!StandaloneSessionMenu.IsOpen;i++)yield return null;
         Check(StandaloneSessionMenu.IsOpen && menu.ContinueAvailable,"valid save must enable Continue");
         ForestSaveData bad=Clone(legacy);Assign(bad,"juvenile",64);File.WriteAllText(path,JsonUtility.ToJson(bad));
