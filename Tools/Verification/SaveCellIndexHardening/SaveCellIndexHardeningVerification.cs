@@ -60,6 +60,19 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
     }
     private static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private static ForestSaveData Clone(ForestSaveData data) => JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
+    // Since Rack Planning V2 (save v21, D-064) the live Enlarged80 world uses rack planning model 1, which the save validator
+    // correctly refuses on any other stand. A Legacy40 copy must therefore also drop to model 0 with no V2 plan.
+    // Returns how many rack-owned work orders were removed (a fresh world is expected to have none).
+    private static int MakeRackModelZero(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data.scenarioOne;
+        scenario.rackPlanningModel = RackPlanningModel.Legacy;
+        scenario.racks = new List<RackSaveData>();
+        scenario.rackPlanConfirmed = false;
+        scenario.nextRackId = 1;
+        if (scenario.workOrders == null) scenario.workOrders = new List<ScenarioOneWorkOrder>();
+        return scenario.workOrders.RemoveAll(o => o != null && o.rackId > 0);
+    }
     private string World()
     {
         ForestSaveData data = saves.CaptureData();
@@ -136,6 +149,14 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         enlarged.cells = Enumerable.Range(0,256).Select(i => recorded.TryGetValue(i,out var cell)
             ? cell : new ForestCellSaveData { index=i,establishmentSuitability=1f }).ToList();
         ForestSaveData legacy=Clone(enlarged); legacy.standGeometryModel=0;legacy.cells=legacy.cells.Take(64).ToList();legacy.scenarioOne.understoreyCells=legacy.scenarioOne.understoreyCells.Take(64).ToList();
+        int rackOrdersRemoved=MakeRackModelZero(legacy);
+        // Precondition: the Legacy40 basis is a valid model-0 world, so every geometry=0 verdict below is about cell indices.
+        Check(legacy.standGeometryModel==0 && legacy.cells.Count==64 && legacy.scenarioOne.understoreyCells.Count==64,"Legacy40 basis must be the 64-cell model-0 stand");
+        Check(legacy.scenarioOne.rackPlanningModel==RackPlanningModel.Legacy && legacy.scenarioOne.racks.Count==0 && !legacy.scenarioOne.rackPlanConfirmed && legacy.scenarioOne.nextRackId==1
+            && !legacy.scenarioOne.workOrders.Any(o => o!=null && o.rackId>0),"Legacy40 basis must carry no Rack V2 state");
+        Check(ForestSaveValidation.ValidateRackV2(legacy)==null,"Legacy40 basis refused by the Rack V2 validator: "+ForestSaveValidation.ValidateRackV2(legacy));
+        Debug.Log("SAVE_CELL_LEGACY40_BASIS geometry=0 cells=64 rackPlanningModel=0 racks=0 confirmed=false nextRackId=1 rackOwnedOrdersRemoved="+rackOrdersRemoved
+            +" enlargedRackPlanningModel="+enlarged.scenarioOne.rackPlanningModel+" enlargedRacks="+enlarged.scenarioOne.racks.Count);
         string[] fields={"ecology","understorey","juvenile","deadwood","event","FellTree","PlantJuvenile","RemoveRegeneration","PruneTree","SalvageDeadwood"};
         foreach (ForestSaveData basis in new[] { legacy,enlarged })
         {
