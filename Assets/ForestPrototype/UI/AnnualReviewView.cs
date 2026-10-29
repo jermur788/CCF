@@ -133,6 +133,7 @@ public sealed class AnnualReviewView
         BuildWork(m, year, Column(columns, "Work done"));
         BuildMoney(m, year, Column(columns, "Money"));
         BuildForest(m, year, Column(columns, "Forest"), historical);
+        BuildPriorTreatmentGuidance(year);
         BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);
         BuildTrends(m);
@@ -150,6 +151,47 @@ public sealed class AnnualReviewView
         foreach (YearHistoryView candidate in years)
             if (candidate.Year == year) return candidate;
         return null;
+    }
+
+    private void BuildPriorTreatmentGuidance(YearHistoryView year)
+    {
+        YearWorkDetail work = ScenarioManagementHistory.DescribeWork(year);
+        // One recorded example per biological treatment keeps this a short teaching view. Full targets remain in Work done.
+        var examples = work.Done.SelectMany(g => g.Items)
+            .Where(i => ManagementHistoryText.PriorTreatmentGuidance(i).Length > 0)
+            .GroupBy(i => i.Treatment).Select(g => g.First()).ToList();
+        if (examples.Count == 0) return;
+        var card = UiKit.Box("card"); card.name = "prior-treatment-guidance";
+        scroll.Add(card);
+        UiKit.Add(card, "PRIOR TREATMENT · L4 MANAGEMENT GUIDANCE", "heading");
+        var body = UiKit.Box(); body.name = "prior-treatment-guidance-body";
+        body.style.display = DisplayStyle.None;
+        var toggle = UiKit.Button("What to inspect before deciding again", () =>
+            body.style.display = body.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None);
+        toggle.name = "prior-treatment-guidance-toggle";
+        card.Add(toggle); card.Add(body);
+        UiKit.Add(body, "One recorded example per treatment in this year. These are inspection prompts, not a recommendation to carry out work. Observe the forest now separately from the earlier record.", "faint");
+        foreach (WorkItemDetail item in examples)
+        {
+            var entry = UiKit.Box(); entry.name = "prior-treatment-event-" + item.EventId;
+            entry.style.marginTop = 6; body.Add(entry);
+            AddTagged(entry, HistoryProvenance.Recorded,
+                $"Year {item.Year} · event {item.EventId} · order {item.WorkOrderId}: {TreatmentText(item.Treatment)}.");
+            ForestEcologyController eco = ui.Ecology;
+            if (item.CellIndex >= 0)
+                AddTagged(entry, HistoryProvenance.Recorded, "Map square " + (eco != null ? UiKit.CellLabel(item.CellIndex, eco.CellsPerAxis) : "#" + item.CellIndex));
+            else
+                AddTagged(entry, HistoryProvenance.NotRecorded, "Map square not recorded; no inspection waypoint offered.", "muted");
+            UiKit.Add(entry, "L4 GUIDANCE · " + ManagementHistoryText.PriorTreatmentGuidance(item), "body");
+            int cell = ManagementHistoryText.PriorTreatmentWaypointCell(item, eco != null ? eco.CellCount : 0);
+            if (cell >= 0)
+            {
+                // Reuse the existing cell-waypoint route. This marks an area, not an exact historical stem position.
+                var look = UiKit.Button("Look at recorded map square", () => ui.ShowStormWaypoint(cell));
+                look.name = "prior-treatment-waypoint-" + item.EventId;
+                entry.Add(look);
+            }
+        }
     }
 
     private void BuildStorm(ScenarioOneManager manager, YearHistoryView year, bool historical)

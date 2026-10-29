@@ -163,6 +163,36 @@ public static class ManagementHistoryText
     public static HistoryProvenance SinceProvenance(InterventionSummary s)
         => s.After == null || s.Latest == null ? HistoryProvenance.NotRecorded : HistoryProvenance.Derived;
 
+    // L4 management guidance, selected only by a successful recorded biological treatment.
+    // These are inspection questions, not observations, causal explanations or instructions to commission more work.
+    public static string PriorTreatmentGuidance(WorkItemDetail item)
+    {
+        if (item == null || item.Status != WorkItemStatus.Succeeded) return "";
+        switch (item.Treatment)
+        {
+            case ScenarioEcologicalTreatment.TreeFelledAndExtracted:
+                return "Look at canopy, young regeneration and the trees still standing before judging whether any further work is appropriate.";
+            case ScenarioEcologicalTreatment.TreeRetainedAsDeadwood:
+                return "Look at fallen deadwood and surrounding regeneration before considering any further work; this record does not establish their condition now.";
+            case ScenarioEcologicalTreatment.JuvenilePlanted:
+                return "Look for the planted tree and inspect its condition and surrounding vegetation. A planting record does not establish survival now."
+                    + (item.ShelterRecorded && item.ShelterInstalled ? " Check the recorded shelter's condition too; its present effectiveness is a separate observation." : "");
+            case ScenarioEcologicalTreatment.TreePruned:
+                return "Inspect the recorded tree's condition and crown before considering further work; a pruning record does not establish its condition now.";
+            case ScenarioEcologicalTreatment.RegenerationRemoved:
+                return "Inspect young regeneration and vegetation now before considering further work; the earlier clearing record does not describe today's cover.";
+            case ScenarioEcologicalTreatment.WindthrowSalvaged:
+                return "Inspect the recorded area for remaining deadwood and regeneration before considering further work; salvage does not describe everything present now.";
+            default: return "";
+        }
+    }
+
+    // A map-square waypoint uses only the persisted event cell, never today's position of a tree with the same ID.
+    // Position-only records remain readable in recorded details but do not acquire a guessed map-square waypoint here.
+    public static int PriorTreatmentWaypointCell(WorkItemDetail item, int cellCount)
+        => item != null && PriorTreatmentGuidance(item).Length > 0 && item.CellIndex >= 0 && item.CellIndex < cellCount
+            ? item.CellIndex : -1;
+
     public const string NotCausalNote = "These are changes recorded after the work, not proof that the work caused them: growth, seed, light and weather act in the same years.";
 
     // The plan is the first one: tell the player what to look for, without telling them what to do.
