@@ -10,7 +10,7 @@
 | Actual model/provider | Claude Code (T3 Code harness) / Anthropic `claude-sonnet-5-5` (Sonnet 5.5), local session |
 | Branch / worktree | `feature/s1-d-t03-teaching-cap-decouple-v1` / `/media/jer/Videos/CCF-S1D-T03` |
 | Base | `23fe4b8` (umbrella integration) |
-| Code + verification commits | `9d29d06` (first cut), then the decision commit recorded in claim #103 (all gates below ran on the latter) |
+| Code + verification commits | `9d29d06` (first cut), then `af00d87cec679c9f0b532b88d7d78ca96efc8aa8` (the decision; all gates below ran on this tree) |
 | Branch tip | the docs-only commit that adds this file on top of `9d29d06` |
 | Durable evidence | `/media/jer/Files/CCF/Verification/S1D-T03-TeachingCap-20261029/` |
 
