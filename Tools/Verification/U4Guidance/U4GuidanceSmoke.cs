@@ -210,7 +210,7 @@ public sealed class U4GuidanceGate : MonoBehaviour
         Note("GAME_VIEW", $"actual={Screen.width}x{Screen.height} requested={U4GuidanceSmoke.GameWidth}x{U4GuidanceSmoke.GameHeight}");
         Need(Screen.width == U4GuidanceSmoke.GameWidth && Screen.height == U4GuidanceSmoke.GameHeight,
             "actual Game view must be 1280x720 before guidance/layout checks");
-        Expect(ForestSaveData.CurrentVersion == 22, "save version is still 22");
+        Expect(ForestSaveData.CurrentVersion == 23, "save version is still 23");
         var texts = new List<string>();
         string tAck = Text(CompletionGuidanceState.AcknowledgeReview), tOne = Text(CompletionGuidanceState.ObjectivesMetOneCycle), tAnother = Text(CompletionGuidanceState.AnotherIntervention);
         Note("TEXT_state2_AcknowledgeReview", tAck);

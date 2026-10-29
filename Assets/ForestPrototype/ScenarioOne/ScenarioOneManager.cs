@@ -616,6 +616,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // new-game setup raises it to model 1 for Enlarged80 afterwards; legacy loads never do.
         ClearRackPlan();
         ClearObjectiveHistory();
+        ClearPrescriptions();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -1422,6 +1423,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             nextRackId = nextRackId,
             racks = CloneRacks(racks),
             objectiveAchievements = CloneObjectiveAchievements(objectiveAchievements),
+            nextPrescriptionId = nextPrescriptionId,
+            prescriptions = ClonePrescriptions(prescriptions),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1444,6 +1447,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
         ScenarioOneSaveMigration.NormalizeRackV2(data, saveVersion);
         ScenarioOneSaveMigration.NormalizeObjectiveHistory(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizePrescriptions(data, saveVersion);
         shelters = CloneRecords(data?.shelters);
         protectedAreas = CloneRecords(data?.protectedAreas);
         ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
@@ -1523,6 +1527,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
         ScenarioOneObjectives.RefreshAspirationalTargets(centuryReview, definition, ecology.StandGeometryModelVersion);
         RestoreObjectiveHistory(data, saveVersion);
+        RestorePrescriptions(data, saveVersion);
         RestoreStormVisualState();
         RestoreDeadwoodVisuals();
         RefreshFellingResidueVisuals();

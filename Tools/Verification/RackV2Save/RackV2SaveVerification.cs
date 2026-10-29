@@ -46,7 +46,7 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
 
     // The literal bytes save v21 adds while a world's V2 rack plan is the empty default - the four
     // rack-plan fields, each work order's rack link, and the version-header bump - plus the empty v22
-    // objectiveAchievements list (declared last in ScenarioOneSaveData), rebuilt here
+    // objectiveAchievements list and the default v23 prescription fields (declared last in ScenarioOneSaveData), rebuilt here
     // independently of production code so a wrong production strip cannot pass by agreeing with itself.
     // The result is the exact byte stream save v20 wrote, which is what the accepted anchors hash.
     private static string StripV21(string json)
@@ -54,6 +54,9 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
                .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackId\":0", "")
                .Replace(",\"objectiveAchievements\":[]", "")
+               .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
+               .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
+               .Replace(",\"prescriptionId\":0", "")
                .Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,");
 
     private static RackSaveData Rack(int id, float ex, float ez, float fx, float fz, string[] removal, string entrance, bool marked)
@@ -118,7 +121,7 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
         Pass("fresh Enlarged80 game identifies as V2 (model 1, empty draft plan, V2 active)");
 
         ForestSaveData fresh = saves.CaptureData();
-        Check(fresh.version == ForestSaveData.CurrentVersion && fresh.version == 22, "capture writes save v22");
+        Check(fresh.version == ForestSaveData.CurrentVersion && fresh.version == 23, "capture writes save v23");
         Check(fresh.scenarioOne != null && fresh.scenarioOne.rackPlanningModel == RackPlanningModel.RackPlanningFieldMarkingV2
             && !fresh.scenarioOne.rackPlanConfirmed && fresh.scenarioOne.nextRackId == 1
             && fresh.scenarioOne.racks != null && fresh.scenarioOne.racks.Count == 0, "the v21 save states the empty V2 plan explicitly");
@@ -231,7 +234,7 @@ public sealed class RackV2SaveVerificationRunner : MonoBehaviour
         Check(manager.NextRackId == 1, "pre-v21 loads normalize the id allocator to 1");
         Check(!manager.RackPlanningV2Active, "a pre-V2 Enlarged80 continuation is not a V2 world");
         ForestSaveData resaved = saves.CaptureData();
-        Check(resaved.version == 22 && resaved.scenarioOne.rackPlanningModel == RackPlanningModel.Legacy, "old save re-saved as v22 remains model 0");
+        Check(resaved.version == 23 && resaved.scenarioOne.rackPlanningModel == RackPlanningModel.Legacy, "old save re-saved as v23 remains model 0");
         Check(ScenarioReferenceArchive.WorldHash(resaved) == ScenarioReferenceArchive.WorldHash(preV2Base),
             "old save re-saved as v21 keeps its world hash");
         Pass("v20 Enlarged80 loads model 0; re-save as v21 stays model 0 and hash-stable");

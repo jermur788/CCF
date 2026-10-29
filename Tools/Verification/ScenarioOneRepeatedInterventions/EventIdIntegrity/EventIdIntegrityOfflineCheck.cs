@@ -212,7 +212,7 @@ public static class EventIdIntegrityOfflineCheck
         Check(findProblem.Contains("ForestSaveValidation.Validate("), "FindLoadProblem delegates to ForestSaveValidation.Validate");
         Check(!controller.Contains("eventId") && !controller.Contains("managementEvents"), "ForestSaveController holds no second event-ID rule");
         string saveData = File.ReadAllText(Path.Combine(root, "Assets/ForestPrototype/ForestSaveData.cs"));
-        Check(saveData.Contains("public const int CurrentVersion = 22;"), "no save schema/version bump (CurrentVersion still 22)");
-        Check(ForestSaveData.CurrentVersion == 22, "compiled CurrentVersion is 22");
+        Check(saveData.Contains("public const int CurrentVersion = 23;"), "no save schema/version bump (CurrentVersion still 23)");
+        Check(ForestSaveData.CurrentVersion == 23, "compiled CurrentVersion is 23");
     }
 }
