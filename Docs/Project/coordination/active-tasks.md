@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md` rather than remaining as a live lock.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol after MFM-06 #113 integration and browser #120 readiness approval.
+**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol after starting browser lane #122; MFM-07 #121 remains published as DISPATCHED/RELEASED until its local executor records actual start.
 
 ## Coordination rules
 
@@ -33,7 +33,8 @@ Browser #120 reviewed #113 and returned **APPROVED — MFM-07 READY FOR CODE EXE
 1. **#121 MFM-07 — proposal state and approval boundary** is **DISPATCHED / RELEASED**, not yet assumed RUNNING. Production work must root from exact qualified candidate `b971f4da0540e606bfee9702b0c99f81a0a89355` unless a later Manager-approved docs-only descendant is explicitly selected.
 2. Before edits, #121 refreshes this file, #91/#106/#113/#120/#121, worktrees, dirty state and Unity lock; then marks itself `[RUNNING]` with actual model/provider, branch, worktree and starting HEAD.
 3. **Claude Code is authorised. Preferred route: Claude Sonnet 5.5 Ultra Code** for this 5/5 task, retaining one primary production writer. Escalate to Opus 5.5 Low only if architecture/conflict reasoning requires it.
-4. No downstream task gains production ownership merely because a packet exists.
+4. Browser lane #122 is RUNNING for readiness/review/packet work only and owns no production C#/Unity/save/integration surface.
+5. No downstream task gains production ownership merely because a packet exists.
 
 There is no standing assertion here that the Unity lock is free. The active worker must refresh lock/process/free-space state immediately before Unity.
 
@@ -43,6 +44,7 @@ There is no standing assertion here that the Unity lock is free. The active work
 |---|---|---|---|---|---|
 | **PLAYER-TEST-OVERNIGHT-01** (#91) | DeepSeek orchestration/integration lead | `orchestration/scenario-one-player-test-ready-v1`; production stays on child lanes | Claims, dependency DAG, handoff triage, integration decisions, final Tier-3 assembly | Preserve child ownership; no product invention; no Windows build | **RUNNING** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | Child worktrees only | Local implementation/qualification through child claims | Exact candidate/handoff required; Unity serialized | **RUNNING** |
+| **PLAYER-TEST-BROWSER-LANE-05** (#122) | Overall Manager / OpenAI GPT-5.6 Sol browser lane | GitHub/browser only; no production worktree | Readiness analysis, packet/claim publication, MFM-07 return review, coordination updates | No production C#/Unity/save execution/integration/rendered qualification; release downstream writers only when ownership is clear | **RUNNING** |
 | **MFM-07 proposal/approval boundary** (#121) | Claude Code; Sonnet 5.5 Ultra Code preferred | `feature/mfm-v1-proposal-approval-boundary-v1`; suggested `/media/jer/Videos/CCF-MFM-07` | Smallest proposal → validated pending-work surface required by MFM-07 | Root from `b971f4d`; no schema bump/save-validator edit; no MFM-08/09; no broadleaf quantitative extrapolation | **DISPATCHED / RELEASED — mark RUNNING at actual start** |
 | **PARITY-03 Q10 evidence strengthening** (#74) | Waiting verifier when released | existing verification lane | Verification only | Non-blocking evidence strengthening | **WAITING** |
 
