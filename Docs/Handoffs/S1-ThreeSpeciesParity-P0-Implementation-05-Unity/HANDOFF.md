@@ -1,6 +1,8 @@
 # PARITY-05 Unity harness reconciliation — claim #101
 
-**PARITY-05 UNITY QUALIFICATION BLOCKED — MANAGER REVIEW REQUIRED**
+**EARLY-LIFE SPECIES PARITY UNITY QUALIFIED — READY FOR MANAGER REVIEW**
+
+> Superseding disposition: the user authorised the corrected browse anchors on 2026-10-29 after exact-base attribution. G3 is PASS under the authorised values; see `ANCHOR-UPDATE-AUTHORISED.md` and `BASELINE-ATTRIBUTION.md`. The G3 FAIL text below is the historical pre-disposition record.
 
 G1/G2 pass. G3 completes with all behavioural checks passing, but **both protected browse hashes fail**. This is a stopped, unqualified diagnostic candidate, not permission to integrate or rebaseline. #101 remains open; #70 cannot close.
 
@@ -88,3 +90,15 @@ Baseline lock `ddb0813bbaae460f9365b2b3ceba7481` acquired 07:20:09 UTC and relea
 - ACCEPTED: **No**; independent/Manager G2 acceptance, G3 measurement-integrity review and G4 integration remain with Manager/integrator.
 - #101 remains open with a linked handoff comment. **#70 cannot close**: the protected browse hashes still fail, and the diagnostic tolerance cannot be accepted under the current conditional authorisation. Manager must assign bounded anchor attribution and review before any further repair/integration.
 - Operational follow-up: no dashboard ingestion/publisher capability was identified in this task’s tools/checkout. GitHub claim/handoff are updated, but the published dashboard and audit-snapshot advance are **not independently verified**. Umbrella Manager must confirm synchronization; no generated dashboard state was edited.
+
+
+---
+
+## Superseding disposition — 2026-10-29
+
+The direct user decision in #91 accepted the corrected PARITY-05 browse anchors with attribution:
+
+- `BROWSE_MATRIX_HASH` = `92A0DA50D6F5D3D9`
+- `BROWSE_MEASUREMENT_HASH` = `A3541E0EDF86DE66`
+
+The values reproduce on the exact PARITY-05 base `1d7445e` and on the later umbrella integration; all behavioural checks and canonical hashes pass. This is an explicit, evidenced verification-anchor update, not a silent rebaseline and not a production change. G3 is therefore **PASS** under the authorised anchors; #101 and #70 may close. Future PARITY-05 runs must use these values. No further anchor change is authorised.
