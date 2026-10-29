@@ -206,8 +206,20 @@ public sealed class AnnualReviewGuidanceRunner : MonoBehaviour
                 "WAYPOINT_IS_EXACT_RECORDED_CELL_CENTRE_" + tag);
             Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "ACTION_OPENS_EXISTING_MAP_" + tag);
             ui.CloseAll(); yield return Settle(8);
-            Check(ui.Map.WaypointDescription(new Vector3(waypoint.x, 0, waypoint.y)).Contains("you are here"), "RECORDED_DESTINATION_ARRIVAL_" + tag);
             yield return Shot("recorded-area-waypoint-hud", false, false);
+            // Scripted relocation checks the real player/HUD at the recorded destination; it does not claim native walking input.
+            Vector3 playerBefore = ui.Player.transform.position;
+            CharacterController controller = ui.Player.GetComponent<CharacterController>();
+            controller.enabled = false;
+            ui.Player.transform.position = new Vector3(waypoint.x, .2f, waypoint.y);
+            controller.enabled = true;
+            yield return Settle(8);
+            Check(ecology.GetCellIndex(ui.Player.transform.position) == item.CellIndex
+                && ui.Map.WaypointDescription(ui.Player.transform.position).Contains("you are here"), "REAL_PLAYER_AT_RECORDED_DESTINATION_" + tag);
+            Check(ui.RootElement.Query<Label>().ToList().Any(l => Visible(l) && l.text.Contains("you are here")), "HUD_REPORTS_RECORDED_DESTINATION_ARRIVAL_" + tag);
+            yield return Shot("recorded-area-arrival-hud", false, false);
+            controller.enabled = false; ui.Player.transform.position = playerBefore; controller.enabled = true;
+            yield return Settle(4);
             AssertReadOnly("AFTER_WAYPOINT_" + tag);
             ui.ShowReview(); yield return Settle(6);
             yield return GoYear(4);
@@ -216,7 +228,7 @@ public sealed class AnnualReviewGuidanceRunner : MonoBehaviour
         }
         notes.Add("Fixture removes location from one persisted planting event in memory only; live planting remains present. No disk save written.");
         notes.Add("Waypoint uses existing map route (including its existing map.waypoint tutorial preference); scenario history and review acknowledgement remain unchanged.");
-        notes.Add("Callbacks exercise UI Toolkit actions; destination/arrival mathematics verified, OS-native walking input not qualified by this fixture.");
+        notes.Add("Callbacks exercise UI Toolkit actions; recorded destination and real player/HUD arrival verified using scripted relocation, OS-native walking input not qualified by this fixture.");
     }
 
     private void CheckGuidanceLayout(VisualElement body, string tag)
@@ -758,7 +770,7 @@ public sealed class AnnualReviewGuidanceRunner : MonoBehaviour
         foreach (string line in matrix) sb.AppendLine(line);
         sb.AppendLine(); sb.AppendLine("CHECK LIST");
         foreach (string line in results) sb.AppendLine(line);
-        File.WriteAllText(Path.Combine(output, "t04-result.txt"), sb.ToString());
+        File.WriteAllText(Path.Combine(output, "t06-result.txt"), sb.ToString());
     }
 }
 #endif

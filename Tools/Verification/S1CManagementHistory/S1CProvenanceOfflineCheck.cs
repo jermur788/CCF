@@ -110,9 +110,8 @@ public static class S1CProvenanceOfflineCheck
     // Every UiKit.Add with a body/muted class is either structural or guidance, never a history fact: this list is reviewed by hand.
     private static readonly string[] Allowed =
     {
-        "AnnualReviewReadPrompt",
+        "AnnualReviewReadPrompt",          // acknowledgement footer
         "UiKit.Add(entry, \"L4 GUIDANCE", // explicit L4 management guidance; no historical fact
-          // acknowledgement footer
         "Advance a year from the Work Plan", // empty-state guidance
         "Fallen trees stop contributing",   // storm model explanation
         "Salvage is optional",              // storm action guidance
