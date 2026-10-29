@@ -1,129 +1,152 @@
-# S1-D T-04 — Guide monotonicity — Task Packet
+# S1-D T-04 — Guide Monotonicity — Task Packet
 
 ## Task identity
 
 - **Spec:** `specs/scenario-one-repeated-interventions-v1/`
 - **Task:** T-04 — Guide monotonicity
-- **Parent:** #91 PLAYER-TEST-OVERNIGHT-01
+- **Parent:** #91 `PLAYER-TEST-OVERNIGHT-01`
+- **Claim:** #124
+- **Status:** **RELEASED FOR CODE EXECUTION**
+- **Exact base:** `b971f4da0540e606bfee9702b0c99f81a0a89355`
 - **Purpose:** make the Scenario One teaching guide monotone from faithful persisted-history facts so later felling, Crop Tree-count changes, executed-share drift or save/load cannot regress a historically completed teaching stage.
-- **Difficulty:** **Medium** — bounded derived/UI logic, but it touches hot teaching files and must prove a faithful history latch without inventing persistence.
-- **Default implementation model/provider:** **Claude Sonnet 5.5 Medium / Anthropic**.
-- **Mandatory independent review:** **OpenAI 6.1 Sol** after implementation because the approved S1-D plan requires independent review for the guide change.
-- **Suggested branch:** `feature/s1-d-guide-monotonicity-v1`
-- **Suggested worktree:** `/media/jer/Videos/CCF-S1D-T04`
-- **Claim:** **do not create/start the substantive claim yet**. At release, create `[RUNNING] S1-D T-04 — guide monotonicity` and record actual model/provider, branch/worktree and starting HEAD. Packet preparation grants no production ownership.
-- **User action required:** none.
+- **Difficulty:** **4/5** — bounded production surface, but subtle derived-history/monotonicity logic must remain faithful across reload and later interventions.
+- **Preferred implementation model/provider:** **Claude Sonnet 5.5 Ultra Code / Anthropic**.
+- **Independent review:** required by the approved S1-D plan for the guide change; use an independent OpenAI reviewer suitable for the repository lane (project routing currently identifies OpenAI Sol/Codex as appropriate).
 
-## Start gate — all required
+Suggested lane:
 
-Do not start production edits until all are true:
+- branch `feature/s1-d-t04-guide-monotonicity-v1`
+- worktree `/media/jer/Videos/CCF-S1D-T04`
 
-1. T-03's exact integrated descendant is **published and GitHub-refreshable**; do not base this task on the local-only `22ba458...` claim.
-2. T-03's faithful teaching-sample completion definition is inspected and reused; T-04 must not create a competing definition.
-3. PARITY-07 #102 has released any overlapping teaching/curriculum ownership and its exact accepted candidate is published.
-4. Live `Docs/Project/coordination/active-tasks.md` is refreshed and grants this task the single-writer teaching/current-state file set.
-5. Starting integration HEAD is recorded exactly.
+Before edits, refresh #91/#106/#121/#122/#124 and live `Docs/Project/coordination/active-tasks.md`; verify exact base/clean lane and mark #124 `[RUNNING]` with actual model/provider, branch, worktree and starting HEAD. The claim itself does not grant ownership.
 
-If any gate is false, mark the eventual task claim `[BLOCKED]` with the exact dependency; do not edit.
+## Released start gate
+
+The earlier preparation gates are now satisfied on the published production lineage:
+
+- T-01/T-02/T-03 are present in the qualified base;
+- the current T-03 implementation already scopes the teaching-footprint hard cap to the active sample and uses advisory behaviour afterwards;
+- PARITY-07 no longer owns the curriculum surface;
+- intended MFM-07 #121 explicitly excludes MFM-09 teaching-sequence insertion;
+- MFM-09 has not yet started and must wait for T-04/T-05.
+
+If live coordination shows a new writer on the curriculum files at actual start, stop before editing and return to Manager.
 
 ## Authority / required behaviour
 
-Implement approved FR-B1 / FR-B2 / AC-3 and plan §2.2 only.
+Implement approved FR-B1 / FR-B2 / AC-3 and `plan.md` §2.2 only.
 
-- Compute the existing current guide state as before, then apply a **history-only monotonic floor/latch** for lessons whose prerequisite facts cannot un-happen.
-- Use persisted facts such as completed/resolved orders, durable Annual Review/history acknowledgement and successful juvenile planting only where they faithfully prove historical completion.
-- Before historical completion, preserve existing in-lesson behaviour, including session-only practice/review behaviour.
-- After historical completion, later world drift or load must not move the guide backwards.
-- Where no persisted fact faithfully proves completion, preserve existing behaviour and report the uncovered state; **do not invent a latch**.
-- Keep existing stable step/lesson IDs unchanged. New IDs only if strictly necessary and authorised by the approved spec.
+The current base still computes guide state from mutable current facts such as `Bay.HasEnoughFuture`, current executed/review state and session-only rack review. T-04 adds a **history-only monotonic floor/latch** only where persisted facts faithfully prove historical completion.
 
-## Expected owned production surface
+Required rules:
 
-Reconfirm exact files after refreshing the integrated base. Expected bounded surface:
+- compute/retain the existing current guide behaviour before historical completion;
+- after a lesson boundary is faithfully established as historically complete, later Crop Tree count changes, later in-footprint felling, executed-share drift or load must not move the guide behind that boundary;
+- use persisted facts such as completed/resolved orders, durable Annual Review acknowledgements and successful planting only where they faithfully prove completion;
+- do **not** use `PlayerPrefs` or session-only `[J]/[K]` rack-review state as durable progression authority;
+- do not persist `[J]/[K]` decisions;
+- where no persisted fact faithfully proves a state, preserve existing behaviour there and report the uncovered state rather than inventing a latch;
+- preserve every existing stable lesson ID: `access`, `future-trees`, `release`, `habitat`, `response`, `recruitment`, `establishment`, `transformation`;
+- new IDs only if strictly required and authorised; no rename or reuse.
+
+## Expected owned production surface while RUNNING
+
+Primary:
 
 - `Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs`
 - `Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs`
-- only the minimum adjacent helper/read accessor needed to consume the already-authoritative history fact.
 
-Do not expand into `LearningObjectivesView.Curriculum.cs` unless an unavoidable ID-only addition is required and #102/MFM ownership is clear. Stop for Manager API/ownership review if broader curriculum work is needed.
+Allowed only if strictly necessary:
 
-## Hard exclusions
+- smallest adjacent pure helper/read accessor required to consume authoritative history facts;
+- focused verification files.
 
-- no new persisted field or schema/version change;
-- no `PlayerPrefs` or session-only `[J]/[K]` state as progression authority;
-- no persistence of `[J]/[K]` decisions;
-- no `ScenarioOneCompletionRules.cs` or objective predicate/target change;
-- no economy/ecology/growth/regeneration changes;
-- no Rack lifecycle/geometry changes;
-- no MFM implementation;
-- no duplicate history store/UI;
-- no Reference Future v1 change;
-- no Windows build.
+Do not expand into broad curriculum/UI files unless unavoidable and live ownership is explicitly reconciled. Do not edit save/schema/validator, completion rules, objective predicates/targets, Rack V2 lifecycle/geometry, ecology/economy/growth/regeneration, MFM implementation, scenes/prefabs/packages/ProjectSettings or Reference Future v1.
+
+## MFM sequencing boundary
+
+This task does **not** implement Multi-Scale Forestry Management. MFM-07 #121 owns proposal → validated pending-work only and excludes teaching insertion. MFM-09 later inserts `Extend your treatment` after existing Lesson 5 and edits this same teaching/current-state seam.
+
+Therefore:
+
+1. T-04 may execute in parallel with intended MFM-07 because their production file sets are non-overlapping.
+2. T-04 must be integrated/accepted **before MFM-09**.
+3. If MFM-07 unexpectedly changes these curriculum files, stop and return to Manager rather than merging assumptions.
 
 ## Required verification
 
-### Offline / static
+### Offline/static matrix
 
-Create a focused matrix covering at least:
+Cover at least:
 
-- current guide before each historically completed stage;
-- Crop Tree count increases/decreases after completion;
-- later in-footprint felling after completion;
-- executed-share drift after completion;
-- save/load reconstruction;
-- fourth-cycle/repeated-management symmetry where applicable;
-- ambiguous/unfaithful persisted fact falls back to existing behaviour rather than over-claiming completion;
-- stable step IDs unchanged.
+- normal current guide state before each historical boundary;
+- Crop Tree count increase/decrease after historical completion;
+- later in-footprint felling after historical completion;
+- executed-share drift after historical completion;
+- load/rebuild from persisted history;
+- repeated/fourth-cycle symmetry where applicable;
+- ambiguous/unfaithful persisted evidence falls back to current behaviour rather than over-claiming completion;
+- all stable lesson IDs unchanged.
 
-Preserve/regress:
+Regression requirements:
 
-- TeachingCopy / MenuTutorial relevant offline checks;
-- T-03 cap decision checks;
+- TeachingCopy / relevant MenuTutorial checks;
+- T-03 teaching-cap decision checks;
 - T-02 cycle-state checks;
-- N3 normalised completion-rule hash unchanged;
-- S1-C history/query regressions.
+- N3 normalised completion-rule hash remains unchanged;
+- S1-C history/query checks remain green.
 
 ### Unity qualification
 
-Under the machine-wide lock, after static review:
+Under the machine-wide Unity lock:
 
-- save at Lessons 6–8 (or exact current equivalent), reload, and prove guide index does not regress;
-- exercise at least one world-drift trigger after historical completion;
-- prove pre-completion teaching behaviour remains unchanged;
-- import/compile cleanly on the exact candidate.
+- import/compile exact candidate;
+- save at Lessons 6–8 (or their exact unchanged IDs), reload, and prove guide index does not regress;
+- exercise at least one post-completion world-drift trigger;
+- prove pre-completion teaching behaviour remains unchanged.
 
 ### Independent review
 
-OpenAI 6.1 Sol reviews the exact candidate after implementation and before Manager integration. Reviewer must confirm:
+An independent reviewer must confirm on the exact candidate:
 
-- latch is history-derived and non-mutating;
-- no over-claim of completion;
-- no second completion definition diverging from T-03;
-- no hidden persistence or ID reuse;
-- tests do not weaken existing gates.
+- latch is derived only from persisted history and is non-mutating;
+- no over-claim of lesson completion;
+- T-03 and T-04 share one faithful historical-completion interpretation rather than competing definitions;
+- no hidden persistence, ID rename/reuse or completion-rule change;
+- tests were not weakened.
 
 ## Stop conditions
 
 Stop and return to Manager if:
 
 - no persisted fact faithfully establishes completion for a required state;
-- T-03's published implementation exposes a materially different completion contract than this packet assumes;
-- PARITY-07 or MFM owns the same file set at start;
+- T-03's current integrated behaviour materially conflicts with the planned latch;
+- a new live writer owns the same teaching/current-state files;
 - a schema field appears necessary;
-- completion rules/objective predicates would need to change.
+- `ScenarioOneCompletionRules` or objective predicates would need to change;
+- MFM has already rewritten `Current()` before this task lands.
 
 ## Handoff
 
-Publish:
+Publish `Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md` with:
 
-`Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md`
+- actual model/provider;
+- exact starting/ending SHA;
+- branch/worktree;
+- changed files;
+- lesson → persisted-proof latch mapping;
+- uncovered/fallback states;
+- offline + Unity evidence;
+- independent-review verdict;
+- stable-ID and N3-hash preservation;
+- residuals / next dependency.
 
-Include exact SHA, files changed, latch mapping (lesson → persisted proof), uncovered/fallback states, offline and Unity evidence, independent-review verdict, preserved IDs/hashes and remaining dependencies.
+On handoff, rename #124 `[HANDED-OFF]`, link the handoff, close the claim and return:
 
-Success token:
+`S1-D GUIDE MONOTONICITY QUALIFIED — READY FOR MANAGER REVIEW`
 
-`S1-D T-04 GUIDE MONOTONICITY QUALIFIED — READY FOR MANAGER INTEGRATION REVIEW`
+or a precise blocker.
 
 ## Copy/paste dispatch line
 
-`Run S1-D T-04 from Docs/Handoffs/S1-D-Implementation-04/TASK-PACKET.md. Refresh published integration, #91, #102, #103 and live active-tasks first. Start only when T-03 is published-integrated and PARITY-07 has released overlapping teaching ownership. Use Claude Sonnet 5.5 Medium by default; require OpenAI 6.1 Sol independent review of the exact candidate. No schema, no completion-rule change, no Windows build.`
+`Run claim #124 from Docs/Handoffs/S1-D-Implementation-04/TASK-PACKET.md. Root from exact qualified base b971f4da0540e606bfee9702b0c99f81a0a89355. Implement only S1-D T-04 guide monotonicity using faithful persisted-history facts; preserve all existing lesson IDs, do not persist J/K, add no schema field, and do not implement MFM. Refresh live ownership before edits, mark #124 RUNNING with the actual lane, serialize Unity normally, obtain the required independent review, and publish the exact handoff. This must land before MFM-09. No Windows build.`
