@@ -268,6 +268,9 @@ public sealed class AnnualReviewView
         }, true, "btn-ghost");
         toggle.name = "work-detail-toggle-" + group.Key;
         toggle.style.alignSelf = Align.FlexStart;
+        // Long aggregate labels must wrap inside the Work card at smaller review sizes.
+        toggle.style.maxWidth = Length.Percent(100);
+        toggle.style.whiteSpace = WhiteSpace.Normal;
         parent.Add(toggle);
         parent.Add(body);
         Apply(openDetails.Contains(key));
