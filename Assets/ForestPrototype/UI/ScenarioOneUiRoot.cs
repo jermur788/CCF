@@ -389,6 +389,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (screen == UiScreen.Map) return MenuHelpView.Menu.StandMap;
         if (screen == UiScreen.Review) return MenuHelpView.Menu.AnnualReview;
         if (player != null && player.InspectedTree != null) return MenuHelpView.Menu.TreeInspection;
+        // Tree Marks unlocks once field marking is relevant (a confirmed V2 rack plan); the first walking frame after that shows it.
+        bool treeMarksUnlocked = MenuHelpView.TreeMarksUnlocked(manager.RackPlanningV2Active, manager.RackPlanConfirmed);
+        if (MenuHelpView.TreeMarksContext(treeMarksUnlocked, MenuHelpView.Introduced(MenuHelpView.Menu.TreeMarks), marking != null && marking.RackSprayEquipped))
+            return MenuHelpView.Menu.TreeMarks;
         return MenuHelpView.Menu.WalkingHud;
     }
 

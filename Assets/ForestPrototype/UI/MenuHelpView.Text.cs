@@ -3,7 +3,36 @@
 // screen itself is in MenuHelpView.cs.
 public sealed partial class MenuHelpView
 {
-    public enum Menu { WalkingHud, TreeInspection, StandMap, WorkPlan, AnnualReview, Rack }
+    // New screens go at the end: the names are the keys of the local first-use preferences.
+    public enum Menu { WalkingHud, TreeInspection, StandMap, WorkPlan, AnnualReview, Rack, TreeMarks }
+
+    // Tree Marks (RACK-V2-10, spec §28) is unlocked when field marking first becomes relevant: a Rack Planning V2 world whose
+    // rack plan is confirmed. Both facts are already saved forest state; whether this device has seen the screen is the usual
+    // local preference, so no forest/save field is added. Before that, and in every Legacy40/model-0 world, it is never shown.
+    public static bool TreeMarksUnlocked(bool rackPlanningV2Active, bool rackPlanConfirmed) => rackPlanningV2Active && rackPlanConfirmed;
+
+    // While unlocked, walking in the forest is the Tree Marks context until its first-use screen has been seen (that is the
+    // unlock moment), and again whenever the spray marker is equipped, so F1 explains the marks while marking.
+    public static bool TreeMarksContext(bool unlocked, bool introduced, bool sprayEquipped) => unlocked && (!introduced || sprayEquipped);
+
+    // The marks this forest uses so far, and nothing more (spec §25, §28, §29): later conventions join when a lesson needs them.
+    public static readonly string[][] TreeMarkEntries =
+    {
+        new[] { "Orange vertical stripes", "Rack / machine-path removal" },
+        new[] { "Red", "Fell" },
+        new[] { "Blue", "Crop Tree / future timber" }
+    };
+
+    // Spec §28 wording. The first sentence pair is the source convention (book pp. 84-85, orange or pink; Scenario One's choice of
+    // orange is calibration); the second discloses that marking only the entrance tree is this game's teaching simplification.
+    public const string TreeMarksOrangeText = "Removal trees associated with a machine route can be marked with vertical stripes. The CCF source material describes removal/treatment colours such as orange or pink; Scenario One uses orange.";
+    public const string TreeMarksSimplificationText = "The game asks you to mark the rack entrance tree as a teaching action. Real marking practice may mark additional trees along a route.";
+
+    // The Rack screen in a Rack Planning V2 world (spec §30): plan on the map, confirm, mark the entrances, then approve.
+    public const string RackV2Explanation = "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. "
+        + "Back in the forest, mark each rack entrance tree in orange with the spray marker [P]. "
+        + "Confirmation adds pending removal work; review and approve it in the Work Plan [Tab], then advance one year. "
+        + "Racks are permanent machine-access routes for this and future thinnings. Individual Fell and Crop Tree marks remain forest decisions.";
 
     public static string Title(Menu menu)
     {
@@ -14,6 +43,7 @@ public sealed partial class MenuHelpView
             case Menu.WorkPlan: return "Work Plan · review and approve jobs";
             case Menu.AnnualReview: return "Annual Review · learn from the year";
             case Menu.Rack: return "Extraction racks · open machine routes";
+            case Menu.TreeMarks: return "Tree Marks · what the paint on a tree means";
             default: return "Walking HUD · your forest at a glance";
         }
     }
@@ -60,6 +90,14 @@ public sealed partial class MenuHelpView
     {
         switch (menu)
         {
+            case Menu.TreeMarks:
+                return "In this forest a paint mark records a management decision on the tree itself. Scenario One uses three marks so far:\n"
+                    + string.Join("\n", System.Array.ConvertAll(TreeMarkEntries, entry => "• " + entry[0] + " — " + entry[1])) + "\n\n"
+                    + TreeMarksOrangeText + " The source describes the stripes on four sides of the tree; here one spray paints all four.\n\n"
+                    + TreeMarksSimplificationText + "\n\n"
+                    + "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. "
+                    + "A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. "
+                    + "Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].";
             case Menu.Rack:
                 return "An extraction rack is a straight corridor of felled trees across the plantation. The harvesting machine drives along it, so the rest of the stand can be thinned later without driving through standing trees. Racks are permanent extraction routes: they stay open for this and future thinnings.\n\n"
                     + "Press B in the forest to create a rack. Click the intended starting tree or ground point: its ring and post mark the fixed origin. Aim to pivot the violet corridor forward from that point; the arrow shows the direction and violet rings mark the trees it would take. The mouse wheel adjusts the direction. Click or press Enter again to add it to the Work Plan; right-click reselects the start; Esc or B cancels. No work is added by choosing a start.\n\n"

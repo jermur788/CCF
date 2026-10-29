@@ -124,9 +124,7 @@ public sealed partial class MenuHelpView
         if (ui.Manager != null && ui.Manager.RackPlanningV2Active)
         {
             if (menu == Menu.Rack)
-                text = "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. "
-                    + "Confirmation adds pending removal work; review and approve it in the Work Plan [Tab], then advance one year. "
-                    + "Racks are permanent machine-access routes for this and future thinnings. Individual Fell and Crop Tree marks remain forest decisions.";
+                text = RackV2Explanation;
             else if (menu == Menu.WalkingHud)
                 text = text.Replace("racks (B)", "racks (Stand Map [M] → Plan Racks)")
                     .Replace(ControlsReference.KeysLine, ControlsReference.KeysLineFor(true));

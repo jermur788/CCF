@@ -81,6 +81,46 @@ public sealed partial class LearningObjectivesView
             new Step("clear.result", "Read clearance results", "Read the successful work result. Then revisit the footprint on foot to compare removed competing growth with the planned area. Standing trees are not part of this operation, and the site can develop new vegetation later."))
     };
 
+    // Objective 1 in a Rack Planning V2 world (D-064). Spec §31 gives the meaning of the first three sentences and §7 the five-rack
+    // sentence. 16-20 m is the book's early-transformation example and this stand's calibrated band; five racks is calibration for this
+    // stand. Neither is taught as a general rule.
+    public const string RackV2Concept = "Extraction racks allow machinery to reach trees without creating access everywhere across the stand. "
+        + "In early CCF transformation, rack spacing may commonly be around 16–20 m, but appropriate spacing depends on the stand, machinery and site. "
+        + "Scenario One uses that range as a guide for this plantation. "
+        + "This stand needs five extraction racks to create a workable first access layout. "
+        + "Plan the racks on the map, then mark each rack entrance in the forest.";
+    public const string RackV2Practice = "Racks stay open for this and later thinnings, so plan the whole layout on the map before you confirm it. "
+        + "The Stand Map shows each rack's spacing against this stand's recommended range. Leave the rows between racks standing: that standing forest is what you are keeping. "
+        + "Confirming adds pending removal work only; nothing is cut until you approve the Work Plan and advance a year.";
+
+    // The Objective 1 sentence in a V2 world: the derived counter, then the next step of the spec §30 flow. Plan and confirm on the
+    // map, mark the five entrances in the forest, then the existing rack.approve step (D-064 OPEN-2: marking comes before approval).
+    public static string RackV2Instruction(string counter, bool confirmed, int marked, int target, bool workPending)
+    {
+        if (!confirmed) return counter + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
+        if (marked < target)
+            return counter + ". Return to the forest and mark the first rack tree nearest the path at each rack entrance: [P] spray marker, aim within 3.5 m, left-click.";
+        return counter + (workPending ? ". Next, review and approve the rack removal work in the Work Plan [Tab], then advance one year."
+            : ". Open the Work Plan [Tab] and advance one year.");
+    }
+
+    // The rack lessons' wording in a V2 world, where the map is the only rack author and the entrances are marked before approval.
+    // Null keeps the step's own text. The step ids and their saved progress are unchanged.
+    public static string RackV2StepText(string stepId)
+    {
+        switch (stepId)
+        {
+            case "rack.read": return "A rack is a straight corridor of removed trees that machinery drives along, so the rest of the stand can be reached without driving through it. It stays open for this and later thinnings. "
+                + "Spacing is conditional: around 16–20 m between racks may be common in early transformation, around 30 m or more may be viable in developed CCF, and there is no universal rule. "
+                + "Scenario One recommends 16–20 m and five racks for this plantation only.";
+            case "rack.create": return "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
+            case "rack.layout": return "Plan five racks on the Stand Map [M] and choose Confirm Rack Plan. Then return to the forest and mark each rack entrance tree in orange: [P] spray marker, aim within 3.5 m, left-click. Tree Marks help explains the paint.";
+            case "rack.approve": return "Once the rack entrances are marked, open the Work Plan [Tab]. Check the rack removal work and its cost, then choose Approve Work Plan. Approval does not cut anything yet.";
+            case "rack.map": return "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.";
+            default: return null;
+        }
+    }
+
     // Presentation only. A planned layout is still objective 1 until its work is actually carried out in an annual cycle.
     // This reads the existing stand/year state, so device-wide practice credits cannot skip the opening rack lesson.
     public static int GuidedTopicIndex(bool hasLayout, bool racksHarvested, int ecologicalYear, System.Func<string, bool> isDone)

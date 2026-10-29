@@ -135,9 +135,12 @@ public sealed partial class LearningObjectivesView
         VisualElement body = UiKit.Box("objective-body");
         VisualElement words = UiKit.Box("objective-words");
         // Why it matters, what to do and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
-        AddObjectivePart(words, "Why it matters", lesson.Concept, "current-objective-concept");
+        // A V2 world's Objective 1 explains the map-planned, field-marked racks (spec §30, §31) instead of the legacy authored layout.
+        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;
+        AddObjectivePart(words, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
         AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
-        if (!string.IsNullOrEmpty(lesson.Practice)) AddObjectivePart(words, "What good practice looks like", lesson.Practice, "current-objective-practice");
+        string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
+        if (!string.IsNullOrEmpty(practice)) AddObjectivePart(words, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
@@ -180,12 +183,7 @@ public sealed partial class LearningObjectivesView
             UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
             string text = StepText(step, market);
             // Stable practice ids and legacy lesson data remain intact; V2 has one geometry author.
-            if (ui.Manager.RackPlanningV2Active)
-            {
-                if (step.Id == "rack.create") text = "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
-                else if (step.Id == "rack.layout") text = "Plan five racks on the Stand Map [M], then choose Confirm Rack Plan. Review and approve the pending removal work in the Work Plan [Tab].";
-                else if (step.Id == "rack.map") text = "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.";
-            }
+            if (ui.Manager.RackPlanningV2Active) text = RackV2StepText(step.Id) ?? text;
             UiKit.Add(card, text, "body");
             if (step.Reading && !complete)
             {
