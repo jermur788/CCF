@@ -348,6 +348,9 @@ public sealed class Parity07UnityRunner : MonoBehaviour
             VisualElement bottom = detail ? detailPanel : card;
             Check(bottom.worldBound.yMax <= ui.Inspection.Root.worldBound.yMax + 2f, "LEFT_COLUMN_FITS_SCREEN_" + name,
                 $"bottom={bottom.worldBound.yMax.ToString("0", Inv)} column={ui.Inspection.Root.worldBound} root={ActiveRoot().worldBound}");
+            VisualElement prompt = ActiveRoot().Q(className: "hud-prompt")?.Q(className: "hud-prompt-box");
+            Check(!Visible(prompt) || !prompt.worldBound.Overlaps(ui.Inspection.Root.worldBound), "INSPECTION_CLEARS_CENTRAL_PROMPT_" + name,
+                $"prompt={prompt?.worldBound} column={ui.Inspection.Root.worldBound}");
             ClearInspection();
             yield return Settle(6);
         }
