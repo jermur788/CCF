@@ -2,197 +2,136 @@
 
 ## Purpose
 
-Define current scope. Verified implementation belongs in Overview; accepted decisions in Decision Log; temporary ownership in live coordination.
+Define the current Scenario One milestone, its live completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
+
+**Last reconciled:** 2026-10-28.
 
 ## Milestone
 
 **Scenario One — Complete-Loop Three-Species Demo Readiness**
 
-Deliver a first external demo of the **complete** Scenario One in which Sitka spruce, Oak and Beech are represented to comparable modelling depth, and in which the player can run the full management cycle from first assessment to scenario completion (D-059, D-060). P3 Work Plan residual/cash overview is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`. S1-A Teaching Readiness is integrated and post-integration verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`. S1-B Standalone-Build Readiness is integrated as the approved source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` plus the separate presentation correction `fac782072f23e28518e8840c621112fe4074db45` (D-055, unavailable construction frames hidden), and is post-integration verified with one open gate (P2 interactive rendered layout; see the Overview). The 80 × 80 m Scenario One stand expansion (D-056) is integrated and verified on main at `a309f99e0f2c6a770044604bbf88ee2e2471a5b5` (see the Overview). Enlarged80 area-sensitive calibration (D-057) is integrated and post-integration verified on main at `23f84f9ac0d4a02d385869d3985e11a24cc5a23f`. Minimal startup/title screen (D-058) is **DONE**, integrated and Editor-verified on main at `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348`. Malformed cell-index save hardening is **DONE**, integrated and verified on main at `12cc8ef0659f54055088047c2c6727d874bdffd8`.
+The first external demo is the **complete Scenario One** (D-060), not a first-intervention pilot. Before that demo, Sitka spruce, Oak and Beech must be represented to comparable modelling depth (D-059), and the player must be able to assess the stand, plan and execute management, review consequences, make second and later interventions, repeat the management cycle and reach understandable scenario completion.
 
-The species-parity audit at base `c1564b857972ee18917e8a461c457533a54cc3f1` is complete and its findings are recorded in the Unity Project Overview. Its accepted outcomes are D-059, D-061 and D-062. **Species parity P0 work has not started.** S1-C and S1-D are not implemented. No external-demo candidate exists: no pilot Windows candidate exists, Player and native-Windows performance have not been measured, and native Windows technical smoke has not been performed.
+No external-demo candidate exists yet. No Windows build is authorised before the user personally playtests the Scenario One candidate and explicitly authorises a Windows build.
 
-## In scope
+## Current programme state
 
-- **Sitka/Oak/Beech parity P0 (D-059, D-061, D-062)** — species-aware density / self-thinning with pure-Sitka preservation proven exact; Oak and Beech adult parameter parity with labelled transfer/ordinal evidence; species-specific regeneration, juvenile and browse traits; species-specific canopy, light and site traits; an Oak/Beech timber assortment and economic layer; player-facing inspection and teaching parity; and integrated multi-species verification.
-- **S1-C:** review/history work needed to understand repeated intervention. **PRE-DEMO (D-060).**
-- **S1-D:** second and subsequent intervention support needed for the full Scenario One loop. **PRE-DEMO (D-060).**
-- **Multi-scale forestry management V1 — representative-management slice (D-065):** after the existing Lesson 5 review, the player's executed sample treatment yields a reviewable prescription that can be applied to comparable rack-served areas through pending ordinary work (new lesson "Extend your treatment"). **REQUIRED BEFORE BEGINNER/EXTERNAL SCENARIO ONE TESTING.** Spec `specs/multiscale-forestry-management-v1/` is approved for implementation planning; production coding is gated by Rack V2 (D-064) persistence being integrated and verified, and **has not started**. It may contribute to S1-D but does not satisfy it until S1-D's own acceptance requirements are verified. Rack V2 and other authorised prerequisite work continue in the meantime.
-- Scenario completion reachable and understandable by the player.
-- The multi-scale "Extend your treatment" step (D-065) is integrated, its calibration impact on canopy, economy and completion is qualified, and the user has personally playtested it before any beginner/external Scenario One test. Its spec verdict does not itself authorise a Windows build.
-- Integrated full Scenario One qualification, followed by a fresh post-parity/full-loop Windows candidate, independent review and native Windows smoke.
-- S1-A: teaching readiness for the management cycle — integrated and verified.
-- S1-B: standalone-build readiness — integrated and verified (one open gate).
-- Scenario One stand expansion to 80 × 80 m (D-056): integrated and verified. New games use Enlarged80; Legacy40 saves and Reference Future v1 are unchanged.
-- Enlarged80 area-sensitive calibration (D-057): **DONE**, integrated and verified at `23f84f9ac0d4a02d385869d3985e11a24cc5a23f`. Extensive objective/century targets are 4×; cash, contractor minimum, owner capacity, unit values, canopy means and years remain unchanged. This is gameplay continuity calibration, not empirical forestry thresholds.
-- Minimal startup/title screen (D-058): **DONE**, integrated and Editor-verified at `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348`; built-Player/native-Windows startup remains UNVERIFIED.
-- Malformed cell-index save hardening: **DONE**, integrated and verified at `12cc8ef0659f54055088047c2c6727d874bdffd8`; 131 bounded integration cases PASS, with valid sentinel/shared-cell semantics preserved and save v20 unchanged.
-- Bounded task specifications, verification evidence and external-test feedback for each slice. Detailed mechanics remain subject to their own accepted packets.
+### Rack V2 / D-064 — implementation in progress
+
+Rack V2 is the authoritative Enlarged80 access-planning workflow. Rack geometry is planned on the Stand Map; confirmed entrances are to be physically marked in the 3D forest; Legacy40 and frozen Reference Future v1 compatibility remain mandatory.
+
+The Rack V2 core, map planning/editing/spacing/confirmation/minimap work and the Combined HUD layout repair are integrated. The layout repair was Manager-approved and integrated through PR #80 / merge `b118d8e63f60d54c9f9a3bed6de40af83b35efc1` after exact-candidate Unity qualification.
+
+The binding next Rack task is **RACK-V2-08 — remove competing first-person rack planning and make Stand Map authoritative** (claim #49). It has been re-dispatched on its existing branch/worktree and must bring the repaired current `main` into that lane and rerun the full model-0/Rack-V2 Guided/Sequential/Combined-HUD qualification. The seven real-OS-input assertions that did not complete during the layout repair are not waived.
+
+Later Rack V2 work, including physically marking confirmed rack entrances in the 3D forest and any remaining persistence/help/qualification tasks in the approved spec, is still pending. Rack V2 is therefore **not yet complete**.
+
+### Sitka/Oak/Beech parity P0 — underway
+
+Three-species parity work has started and several bounded slices are already integrated and/or Unity-qualified. The old statement that parity P0 had not started is superseded.
+
+Current accepted state includes:
+- **PARITY-03 — mixed-density parity:** Manager-approved and Unity-qualified; independent static review accepted. Q11 documentation/evidence-record repair is complete. Q10 remains a non-blocking evidence-strengthening follow-up and does not invalidate the accepted qualification.
+- **PARITY-04 — adult Oak/Beech parity:** bounded documentation/verification alignment is integrated and focused adult Unity qualification is Manager-approved.
+- **PARITY-05 — early-life growth and browsing parity:** implementation/docs/verification patch is Manager-reviewed and integrated through PR #69; focused Unity qualification remains pending under claim #70.
+
+Other approved parity tasks remain before the whole three-species P0 can be marked complete. Comparable modelling depth does not imply equal empirical precision. Accepted evidence classes and limitations in `specs/scenario-one-three-species-parity-p0/` remain binding; unsupported precision must not be invented.
+
+### S1-C — review/history for repeated intervention — underway
+
+S1-C is pre-demo scope under D-060 and is no longer unimplemented.
+
+- T-01 per-year query/history foundation: integrated.
+- T-02 Annual Review year browsing/query wiring: integrated and qualified.
+- **T-03 intervention drill-down and money honesty:** static implementation and offline qualification are Manager-accepted, but the change is **not integrated, not Unity-verified and not accepted as a complete slice**. Rendered Tier-2 qualification remains under claim #19 and waits behind the Rack critical path unless the Manager explicitly reroutes the Unity lane.
+- Later S1-C tasks remain subject to the approved spec and dependencies.
+
+Grouped harvest money remains authoritative at the annual settlement level; successful non-harvest work may show its own recorded contractor/material/owner-time values. Historical browsing must remain read-only with respect to current game state.
+
+### S1-D — repeated interventions — underway
+
+S1-D is pre-demo scope under D-060 and is no longer unimplemented.
+
+- T-00 product decisions: complete.
+- T-01 repeated-intervention baseline/assumption re-verification: Manager-accepted and integrated.
+- T-02 advisory cycle/readiness state: Manager-accepted bounded slice and integrated; its new script/meta still needs real Unity import/compile observation during a later applicable S1-C/S1-D Unity gate.
+- T-03 teaching-footprint-cap decoupling, T-04 guide monotonicity, T-05 previous-vs-proposed management, and T-06 management-event ID integrity remain.
+- T-07 persisted cycle-state expansion is cancelled for V1.
+- T-08 multi-cycle witness remains blocked until the required implementation tasks are complete; T-09 independent spec review follows T-08.
+
+T-06 is authorised after T-01 but requires an independent review because it touches the shared save-load validation path.
+
+### Multi-Scale Forestry Management V1 / D-065 — planning approved, production gated
+
+Multi-Scale Forestry Management V1 is required before beginner/external Scenario One testing. Its approved product rule remains: demonstrated sample treatment may be applied to comparable rack-served areas; proposals are not Fell marks; player judgement remains required; Work Plan approval is the commitment gate.
+
+MFM-02 rack-served sample/coverage geometry is integrated. **MFM-03 — measure and calibrate representative-management coverage** remains authorised measurement work, but claim #39 is waiting behind the current Rack critical path for any Unity execution. Production coding for the management workflow remains gated by Rack V2 persistence/integration as specified by D-065.
 
 ## Pre-demo sequence
 
-The first external demo is the **complete** Scenario One (D-060). The intended sequence is:
+The sequence is dependency-driven rather than a licence to bypass live ownership. Current intent is:
 
-1. **Internal technical qualification** — builds, performance, platform smoke, current-slice reviews.
-2. **Sitka/Oak/Beech parity P0** (D-059, D-061, D-062).
-3. **S1-C** review/history.
-4. **S1-D** second and subsequent intervention support.
-5. **Scenario completion** reachable and understood.
-6. **Integrated full Scenario One qualification.**
-7. **Fresh post-parity/full-loop Windows candidate.**
-8. **Independent review + native Windows smoke.**
-9. **Beginner external testing of the complete Scenario One.**
+1. Finish the Rack V2 critical path required by D-064 and the MFM dependency.
+2. Complete and qualify the remaining Sitka/Oak/Beech parity P0 slices.
+3. Complete S1-C review/history work.
+4. Complete S1-D second-and-later-intervention support.
+5. Complete and qualify Multi-Scale Forestry Management V1 before beginner/external testing.
+6. Prove Scenario One completion is reachable and understandable across the complete loop.
+7. Run Tier-3 full integrated Scenario One qualification.
+8. User personally playtests the qualified Scenario One candidate.
+9. Only after explicit user authorisation, create the fresh post-parity/full-loop Windows candidate.
+10. Independent review plus native Windows technical smoke, then beginner external testing of the complete Scenario One.
 
-**Build candidate policy.** B06 is historical evidence only and must not be sent to testers. **B07 is an internal technical baseline and is not the eventual external-demo candidate** (D-060); it is not started and not built. Any pre-parity or pre-full-loop build is an internal engineering build only: useful for engineering tests, never an external-demo candidate. The external-demo candidate is the fresh post-parity/full-loop Windows candidate built at step 7.
-
-**Carried forward from the accepted 2026-10-10 pre-pilot work:** the Enlarged80 retained former-edge-band residual remains; no stocking reduction is authorised. Reference Future v1 is not resized, regenerated, migrated or reinterpreted. Built-Player performance and native Windows text/input/performance remain unqualified until the corresponding gates pass; synthetic InputSystem graphical delivery remains unverified.
-
-**Superseded:** the previous "Stage A — first-cycle pilot" external boundary, and the statement that "S1-C and S1-D are not prerequisites for the Stage-A first-cycle pilot", are superseded by D-060. There is no longer a first-intervention external pilot as the intended Scenario One demo boundary.
+The live Unity execution order is controlled by `Docs/Project/coordination/active-tasks.md` and Manager release, not by this numbered list alone.
 
 ## Completion checks
 
-- Before the first external demo, the player can start from the initial forest, assess it, make an intervention, advance time, observe consequences, understand and review previous management, make second and later interventions, repeat the management cycle, and reach Scenario One completion (D-060).
-- By scenario completion the player has an opportunity to learn the basic CCF management loop through repeated intervention and adaptation.
-- Sitka spruce, Oak and Beech are represented to comparable modelling depth before that demo (D-059). Comparable depth does not mean equal empirical precision; evidence quality may differ between species where labelled honestly.
-- Oak and Beech do not silently inherit materially inappropriate Sitka-specific assumptions (D-059). No wording or model treats Oak or Beech as Sitka under another name.
-- Mixed-stand density uses ordinal species-aware growing-space-demand classes (D-061). 100 % Sitka composition routes through the existing exact calibrated Sitka density implementation and existing Sitka arithmetic is unchanged. No DEC, no DMC, no mixture-productivity bonus. Sitka anchors are not silently re-baselined.
-- Oak and Beech have an appropriate timber assortment and economic layer (D-062) that does not simply reuse Sitka assortment boundaries or prices, and that labels empirical evidence, transfer and calibration distinctly.
-- Every species-sensitive mechanism uses species-specific behaviour where evidence shows material differences; where quantitative evidence is insufficient, the representation is ordinal/transfer/calibrated and **labelled accurately**. No pseudo-empirical coefficients.
-- Integrated full Scenario One qualification is green, followed by a fresh post-parity/full-loop Windows candidate, independent review and a native Windows technical smoke, before beginner external testing.
-- Each result identifies the committed implementation and the tested slice; research proposals and future infrastructure are not presented as shipped features.
+Before the first external Scenario One demo:
 
-## Context and setup follow-ups
+- the player can start from the initial forest, assess it, make an intervention, advance time, review consequences, make second and later interventions, adapt, repeat and reach scenario completion;
+- Sitka spruce, Oak and Beech have comparable modelling depth with evidence quality labelled honestly;
+- pure-Sitka protected arithmetic and anchors remain exact where required by D-061 and the parity spec;
+- Oak and Beech do not silently inherit materially inappropriate Sitka-specific assumptions;
+- mixed density uses the accepted ordinal species-aware growing-space architecture with no DEC, DMC or mixture-productivity bonus;
+- Oak/Beech timber/economy follows the accepted parity evidence and does not fabricate form/site precision;
+- Rack V2 uses Stand Map planning for Enlarged80, preserves compatibility and provides the approved physical entrance-marking behaviour;
+- Multi-Scale Forestry Management V1 preserves player judgement and Work Plan commitment semantics;
+- S1-C/S1-D history, advisory state and repeated-intervention behaviour are coherent across multiple cycles;
+- malformed/ambiguous save data required by approved hardening tasks is rejected before mutation rather than silently repaired;
+- frozen Reference Future v1 remains unchanged;
+- full integrated qualification is green before a release candidate is considered;
+- no Windows build occurs before the user's personal playtest and explicit authorisation.
 
-The repository migration/generator is integrated. Permanent Drive context and Game Dev project instructions/attachments were refreshed after Storm integration and the subsequent canonical consistency cleanup. The post-80 m refresh regenerates the current canonical set from its context commit; its Drive publication and read-back status are reported in the integration handoff delivered to the Manager, and Drive/attachments are not claimed current by this document. Independent Unity smoke checks in worker worktrees remain open and are not completed by documentation publication.
+## Compatibility and evidence constraints
 
-## Live coordination
+- Preserve Legacy40 compatibility where the governing task/spec requires it.
+- Preserve frozen Reference Future v1 bytes/semantics; do not resize, regenerate, migrate or reinterpret it.
+- Preserve unrelated dirty work; one writer per owned subsystem/file set.
+- Do not weaken verification merely to obtain a green result.
+- Distinguish IMPLEMENTED, REVIEWED, INTEGRATED, VERIFIED and ACCEPTED.
+- Use the authoritative evidence classes defined by the approved parity/evidence work. Game abstractions and gameplay calibrations must not be presented as measured Irish/UK forestry practice.
+- Research guidance becomes a mechanic only when accepted by Decision Log/spec.
 
-`Docs/Project/coordination/active-tasks.md` remains live coordination outside the context snapshot. Use exact base/context commits and one writer per worktree.
+## Build candidate policy
 
-## Spec-driven work
+Historical B06 evidence is not an external candidate. Earlier pre-parity or pre-full-loop builds are engineering evidence only. The eventual external-demo Windows candidate must be created fresh from the qualified complete-loop lineage after the user playtest/authorisation gate.
 
-Substantial or ambiguous work may need an approved spec under `specs/` before implementation (AgentWorkflow). When a milestone item has one, reference its Spec ID and `specs/<feature>/spec.md`. A draft or a separate design conversation is not an approved spec. Current approved specs: `specs/scenario-one-objective-1-rack-planning-field-marking-v2/` (D-064, APPROVED) and `specs/multiscale-forestry-management-v1/` (D-065, approved for implementation planning; production coding remains gated by Rack V2 persistence being integrated and verified).
+Player/native-Windows text, input and performance remain unqualified until their explicit gates run. Synthetic Editor input evidence does not substitute for native Windows smoke.
+
+## Approved specs currently governing milestone work
+
+- `specs/scenario-one-objective-1-rack-planning-field-marking-v2/` — Rack V2 / D-064.
+- `specs/scenario-one-three-species-parity-p0/` — three-species parity / D-059, D-061, D-062.
+- `specs/scenario-one-review-history-v1/` — S1-C review/history.
+- `specs/scenario-one-repeated-interventions-v1/` — S1-D repeated interventions.
+- `specs/multiscale-forestry-management-v1/` — MFM V1 / D-065; production coding remains gated as specified.
+
+Only APPROVED / IMPLEMENTING / VERIFYING / VERIFIED specs authorise implementation. DRAFT/SUPERSEDED specs do not.
 
 ## Explicit exclusions
 
-No Scenario Two, multi-scenario infrastructure, sandbox or Stage 2 implementation in this milestone refresh. No new save/model/economy parameters or research-proposed exact curriculum/mechanics are accepted by this documentation change. D-059–D-062 accept scope, direction and modelling constraints only; concrete coefficients, model versions, save fields and assortment/price values each require their own accepted implementation packet. Fruit/nut systems, performance optimisation work, pilot distribution, mixture productivity bonuses, invented broadleaf yield equations, Reference Future modification and stocking reduction remain out of scope.
+No Scenario Two implementation, sandbox, multi-scenario product expansion, unapproved yield equations, mixture-productivity bonus, stocking reduction, Reference Future modification, API/pay-as-you-go enablement, or unauthorised Windows build is part of this milestone. Deferred systems do not become scope merely because underlying infrastructure exists.
 
-## Historical Scenario 1 functional baseline (2026-10-04)
+## Live coordination
 
-**FUNCTIONALLY COMPLETE; final presentation acceptance PASS (2026-10-04).** The functional and presentation baseline is integrated. Simulation follow-ups remain open (see below); this is not a permanent closure of Scenario 1 simulation work.
-
-Integrated on `main` and verified (see the Unity Project Overview, **Integrated Scenario 1**):
-- functional implementation, save schema v15 (v16 from D-047; v17 from D-048);
-- browsing default 0.2;
-- shelters;
-- contractor/landowner execution;
-- timber yield and economy;
-- completion verification;
-- Plantation02 Sitka presentation, corrected forest-floor presentation and compact brash presentation.
-
-Acceptance record:
-- the automated completion gate passes;
-- the integration regression passed 27/27;
-- post-merge gates on `main` pass;
-- the user's interactive Scenario 1 smoke passed, with the starting-stand and compact-brash corrections accepted in play;
-- no performance problem was reported during that smoke.
-
-Final presentation acceptance (`Docs/Scenario1FinalPresentationAcceptance.md`, merged at `ec938b0`):
-- the ten-state rendered review passed: start, marking, pruning, thinning, dispositions, planting, protection, regeneration, later management, save/Reference;
-- track and work-clearing now use the existing soil texture;
-- inspection/HUD overlap and marking-summary/prompt clipping are fixed;
-- Astra ForestFloorV1 was reviewed (manifest verified) and **not adopted**: no demonstrated ground gap;
-- dry brash was accepted as subtle but understandable. Evidence limitation: the final review camera was occluded, so acceptance relies on an earlier close-range render;
-- performance was acceptable on the observed hardware (editor, GTX 980M: about 20–30 ms median frame). This is not a formal performance certification.
-
-Outstanding simulation decision: the post-Scenario-1 readiness study (`task/post-scenario1-systems-readiness` @ `7f58618`, **not merged**) found that, under the default RNG model 0, planted-juvenile survival and browse rolls are autocorrelated. Shaded planted stock survives far longer than the shared probability intends. Resolved by D-046 (2026-10-05): new Scenario One games use RNG model 1; saves keep their recorded model; saves without the field and Reference Future v1 stay on model 0. Integrated on main at `4eab590`; post-merge gates PASS. Under model 1 the scenario completes in Year 25, stays solvent (minimum cash €5,897.70) and no required objective is newly blocked. **Active follow-on task:** Scenario 1 UI Toolkit redesign (`task/scenario-one-ui-redesign`, not to be merged without Manager/user review).
-
-Deferred, outside the Scenario 1 minimum unless accepted elsewhere:
-- deer fencing as a production feature;
-- richer production understorey beyond the accepted Scenario One Model 2 bramble/bracken juvenile-survival competition;
-- vegetation-control simulation expansion;
-- enabling storms for new Scenario One games (dormant core accepted in D-050);
-- adult suppression mortality;
-- browse-history/form-damage persistence;
-- fence deterioration;
-- pruning-quality premium;
-- broadleaf market;
-- manual forestry;
-- co-op.
-
-*This deferral list is the 2026-10-04 record. **"Broadleaf market" is reopened by D-062** and is now pre-demo scope. The remaining entries are unchanged unless separately accepted.*
-
-Previously recorded presentation constraint: ring-barked, windthrow-root and defect assets stay unspawned until matching simulation state exists (D-020).
-
-Remaining presentation polish (not blockers):
-- moss cushions on the track edge;
-- deadwood volume is shown in objectives and history rather than as its own annual-review line.
-
-## Regeneration Model 1 (2026-10-06)
-
-Integrated on main at `4670e73` (D-047), fast-forward from `402a2b4`. Save schema v16. New Scenario One games use regeneration model 1 (age bands with a sub-threshold accumulator; no seed-independent infill; corrected capacity, origin and promotion representation). Legacy saves and Reference Future v1 stay model 0, which is byte-identical to before.
-
-Scenario 1 under model 1 remains achievable and viable: completed in Year 25 with all 8 objectives (regeneration 51 cells against 3), lowest cash €5,897.73; planting, clearance, shelters and economy gates pass. No objective or economy recalibration.
-
-Open/deferred from this work:
-- physical juvenile stems/ha interpretation (undefined);
-- model1 retains non-causal habitat cover; new-game Model2 adds separate bramble/bracken survival competition (D-049, below);
-- the 0.01 establishment-response cut-off remains an existing calibration rule;
-- promotion remains an abstract band → individual handoff;
-- harness red gates (Clearance, MenuTutorial, Removal) reproduced identically on `402a2b4`; reclassified in D-048 / pedagogy Workstream F as harness issues, not production failures (see Growth Model 1 below).
-
-## Growth Model 1 (2026-10-07)
-
-Integrated on main at `2cfbabc` (D-048), fast-forward from `3e4ee40`. Save schema v17.
-
-**New Scenario One model stack:** RNG model 1, regeneration model 1, growth model 1, save v17. Legacy saves keep their stored/versioned behaviours; Reference Future v1 stays frozen legacy behaviour (growth 0).
-
-**Growth model 1:**
-- **Site:** Irish site Class III; Sitka height follows the Class III site-potential curve. 20.4 m at age 30 is the published Irish anchor [A]; other ages are modelled curve values.
-- **Competition:** DBH and local Hegyi competition are unchanged. A separate British-Sitka SDI occupancy signal [B] drives self-thinning toward suppressed trees ([C] parameters).
-- **Deadwood:** self-thinning deaths become existing fallen deadwood.
-
-**Simulation validation outputs** (not empirical targets), unthinned: 1,706 / 900 / 538 / 344 / 256 stems/ha at ages 40 / 60 / 80 / 100 / 120; basal area 75.9 → 83.8 m²/ha; RD 0.83 → 0.97–0.99 (legacy growth: 416 m²/ha at 120).
-
-**Scenario 1 under the new stack:** completed in Year 25 with all 8 objectives; lowest cash €6,139.75. No economy or objective changes.
-
-**Harness gate status:**
-- **Removal:** stale harness contract (U now plans the accepted species-less area clearance). The corrected harness on `task/scenario-one-pedagogy-overnight` @ `60674f1` passes in batch on the integrated code.
-- **Clearance:** stale first-use-help assumption plus an interactive-input requirement. The corrected harness passes in an interactive Editor.
-- **MenuTutorial:** interactive-input requirement; passes in an interactive Editor.
-- The harness fixes are to be ported in the pedagogy P0 task. None is a production failure.
-
-**Open calibration items:**
-- realised top height 6–9 % below the Class III curve at older ages;
-- mortality onset/strength/exponent ([C]);
-- 0.5 stem form factor unvalidated;
-- Forest Yield cross-validation;
-- Irish maximum-density data;
-- recruit mortality pulses under a full canopy.
-
-## Regeneration Bottlenecks v1
-
-Browsing & Protection v1 (shared browsing response, accepted shelter protection, deterministic restore) shipped as part of Scenario 1. Scenario One Regeneration Model 2 now supplies the accepted bramble/bracken juvenile-survival competition (D-049); the other candidate elements remain queued direction, not active, and each needs its own accepted packet:
-- richer understorey beyond the accepted Scenario One Model 2 bramble/bracken juvenile-survival competition;
-- competition/concealment;
-- spot control/regrowth.
-
-## Regeneration Model 2 (2026-10-08)
-
-The accepted Scenario One Model 2 v1 definition (D-049) is part of current main `89a5f34d8ab54d51daaebf84ed55a5397ac07406`. Current Save 19 adds the dormant D-050 storm fields; new games use RNG 1/regeneration 2/growth 1/storm 0. Independent bramble/bracken competitor state applies shared linear juvenile-survival pressure, with separately accounted vegetation/light/browse loss. The accepted values and evidence grades are D-049; they are gameplay abstractions, not measured Irish constants.
-
-Clearance has useful, wasted and harmful outcomes, costs real cash and can remove existing juveniles. Do not make it compulsory or teach a repeat interval. The learning-panel copy follows the active saved model, preserving legacy truth. Biological heights are unchanged; the Beech renderer fix is retained.
-
-Open calibration/playtest items: botanical type differences, bramble concealment, competitive graminoids, source/neighbor spread, stronger site/moisture calibration, target generalization beyond Scenario One, visual recognition and human clearance decisions. These do not block this accepted v1 integration. See `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md` for its original verification. After Storm integration, D-050, Drive mirrors and Game Dev project instructions/attachments were republished at context `58d6b0b483198abcf0208713d9a759f89d90e318`; worker-worktree smoke gates remain open.
-
-## Storms & Windthrow Model 1 — dormant integration (2026-10-08)
-
-Manager approved source `857150b2f20afa52d7b36be88a835f07a4ee5a51` on current main `1fbefd8a40c69dd90abb83f2149e24b546a184cf`; the complete two-commit branch was fast-forwarded into the clean ZX20 integration checkout and verified. Save 19; new-game RNG 1/regeneration 2/growth 1/storm 0. Existing/missing-field saves and frozen Reference stay storm 0. D-050 fixes the accepted Model1 profile and schema; no activation/default change is implied.
-
-Model1 supports one fallen/uprooted outcome, deterministic mortality/deadwood/opening, optional partial salvage through the existing work/economy path and shared Model2 causality. Existing causal inspection, salvage/work plan and disturbance-review UI is retained; no new tutorial objectives are introduced.
-
-The profile (.02 occurrence; .02/.06/.18 uniform severity; ReducedProposal; BoundedRational; neutral site/external edge) is frozen gameplay calibration [C]. Future material changes need StormModel 2 or an approved persisted-profile/version architecture.
-
-Open follow-ups: crown/root visual quality, combined developed/century deadwood and windthrow rendering, standalone Player profiling, final storm activation policy, full lesson/progression, directional outside-landscape exposure and snapped stems/snags. Current Editor measurements permit dormant integration only. Before default activation require standalone/developed/century/combined profiling and acceptable crown/root behaviour; no retrospective FPS target is introduced.
-
-Claude P2/P3 work touching TreeInspectionView, WorkPlanView, AnnualReviewView, ScenarioOneUiRoot or StandMapView must rebase/port onto the newly published main before final verification; conflicts are outside this integration. Exact source, regression, compatibility, context/publication and follow-up identities are in `Docs/Verification/StormsWindthrowIntegration/IntegrationHandoff.md`. Dirty `/home/jer/CCF-main` remains preserved.
+`Docs/Project/coordination/active-tasks.md` is the live ownership/lock authority outside the context snapshot. Workers must refresh it and their task claim before substantial edits and before acquiring the machine-wide Unity lock. GitHub state alone does not prove local cleanliness or Unity/runtime state.
