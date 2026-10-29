@@ -114,3 +114,12 @@ No T-04 provenance pass, T-05 achievement persistence/save schema, T-06 guidance
 ## Recommended next step
 
 Manager dispositions the rendered turn: either queue T-03 for the U1 lock after #59/#70/#74, or authorise a different Unity-capable lane. Static review of the two production files can proceed now in parallel. On the rendered pass, if the T-02 comparison shows only the expected deltas and the captures are legible, T-03 is ready for Manager review; otherwise return the captures with the failure.
+
+## 2026-10-29 static reconciliation to current main (#91 orchestrator)
+
+- `origin/main` advanced to `72dbee8` while this branch's accepted static candidate was `859f74e` (published tip `cf92b9c`).
+- A normal merge of `origin/main` into `feature/s1-c-history-drilldown-v1` produced merge commit `6aa00a5`. `git merge-tree` reported no conflict; no T-03 production byte was rewritten by hand.
+- Diff against current `origin/main` remains exactly the accepted surface: `Assets/ForestPrototype/UI/AnnualReviewView.cs`, additive `Assets/ForestPrototype/ScenarioOne/ScenarioManagementHistory.cs`, and the T-03 offline verification (`S1CDrillDownOfflineCheck.cs`, `run_t03_offline_check.py`, this handoff). No save schema, ecology/economy, Rack V2, S1-D, MFM, scene/prefab/species, package or ProjectSettings change.
+- Offline gate rerun on the merged tree: `S1C_T03_DRILLDOWN_PASS checks=72`, exit 0, output `/media/jer/Files/CCF/Verification/S1C-T03-Reconcile-20261029/`.
+- Still **not qualified**: no Unity import/compile, no T-03 rendered fixtures, no T-02 rendered regression, no 1280x720/1920x1080 captures. Rendered qualification remains pending behind the serialized Rack/S1-D Unity queue and will run from `6aa00a5` or a later descendant.
+- No integration to `main`, no Windows build, no lane/lock acquired. This reconciliation is static preparation only.
