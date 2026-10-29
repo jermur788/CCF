@@ -224,7 +224,11 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         Check(footprintTrees == 69, "accepted live teaching footprint has 69 living trees after access", "n=" + footprintTrees);
         var standSpacing = new UnityEditor.SerializedObject(FindFirstObjectByType<ForestStartingStand>()).FindProperty("latticeSpacingMeters").floatValue;
         Check(Mathf.Abs(standSpacing - 2f) < .00001f, "scene lattice spacing remains 2.0 m", "spacing=" + F(standSpacing));
-        Check(Mathf.Abs(bay.HalfWidthM - 8.00385f) < .001f, "accepted live middle-rack half-width remains 8.00385 m", "half width=" + F(bay.HalfWidthM));
+        // MFM-02 (Manager-approved/integrated, merge 07eee3d) accepted the regenerated model-0 Enlarged80 fixture:
+        // its authored rows leave a 15.989349 m gap (half-width 7.9946747 m), 9.2 mm inside the historical 8.00385 m
+        // scene fixture, with identical tree membership and BA. 8.00385 m was a historical scene-fixture value, not a
+        // protected anchor; the authoritative production value is ScenarioOneRackBay.HalfWidth (half the live gap).
+        Check(Mathf.Abs(bay.HalfWidthM - 7.9946747f) < .001f, "accepted live middle-rack half-width remains 7.9946747 m", "half width=" + F(bay.HalfWidthM));
 #endif
         var layoutLines = planner.LayoutLines.OrderBy(v => v).ToArray();
         Check(layoutLines.Length == 5, "the authored layout has five racks", "n=" + layoutLines.Length);
