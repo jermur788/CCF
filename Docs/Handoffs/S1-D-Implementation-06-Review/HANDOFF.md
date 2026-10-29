@@ -172,3 +172,83 @@ After that executable independent-review continuation passes, the Manager may ac
 - ACCEPTED AS COMPLETE T-06 SLICE: **NO**
 
 **No Windows build was made or authorised.**
+
+---
+
+# EXECUTABLE REVIEW ADDENDUM (claim #86)
+
+**Date:** 2026-10-29  
+**Executor:** Claude Sonnet 5.5 / Anthropic (Claude Code, local), at the user's direct instruction.  
+**Independence statement:** the packet and continuation require an executor from a different provider/model than the Claude Sonnet 5.5 / Anthropic implementer. **This executor is the same provider/model as the implementer, so this addendum does NOT satisfy that requirement.** It is mechanical execution evidence plus the prescribed verification-only repair. Source-level independence for the production change still rests on the GPT-5.6 Sol / OpenAI browser review above. The Manager decides whether to accept this execution or have a non-Anthropic executor re-run it; every command below is reproducible.  
+**Worktree:** `/media/jer/ZX20/CCF-S1D-T06Review` (dedicated, clean at start)  
+**Branch:** `review/s1-d-management-event-id-integrity-v1`  
+**Starting HEAD:** `5702fc67e69a97ed0f19ac83e4dda6447327fa9e`  
+**Evidence directory (durable):** `/media/jer/Files/CCF/Verification/S1D-T06-ExecReview-20261029/`  
+**Unity:** not run. **Windows build:** not made. **Integration PR:** not opened.
+
+## A. Production unchanged
+
+`Assets/ForestPrototype/ForestSaveValidation.cs` blob is `28b786d49fc728e50a1009bc0c42fd0f7c4f33bb` at starting HEAD, at `8e05b5a` and after the repair. The only changed file in this addendum's code change is `Tools/Verification/U4/U4Qualification.cs` (`git diff --name-only` outside that file: none). No production file, schema, completion rule or objective logic was touched.
+
+## B. U4 verification-only repair
+
+Diff: `u4-repair.diff` in the evidence directory (+20 / −3).
+
+- Added `SyntheticRejectedFromS24(s24, label, edit)`, exactly the shape specified in section 3 above: restore the Y24 save, snapshot, edit a captured save, then assert `!saves.LoadData(full, false)`, same year, and an identical `Snapshot()` afterwards.
+- Routed only `SYN duplicate event IDs` (S3) through it and dropped its `expectComplete: false` argument. S1, S2 and S4 still use `SyntheticFromS24`, unchanged.
+- Updated the S3 comment to say why.
+
+**Why this is not a weakening:** the fixture is still present and still invalid. Instead of an assertion that holds only because a loaded duplicate-ID history fails to complete, it now asserts the stronger approved boundary (RD-12): refusal before any mutation, with a before/after snapshot comparison. The validator is not bypassed, N3/rules-level duplicate chronology coverage is untouched, and S4 still proves the negative fixtures are not vacuous.
+
+**Not proven here:** the helper asserts refusal and non-mutation, not the specific rejection reason. The fixture contains two records sharing one positive ID, so the T-06 rule should be the one that fires, but that is only confirmed when the U4 gate runs in Unity (offline T-06 proves the rule and reason text, not this fixture).
+
+## C. Executed offline suites (all from this worktree, exit 0)
+
+| # | Command (run from worktree root) | Result | Log |
+|---|---|---|---|
+| 1 | `python3 -I Tools/Verification/ScenarioOneRepeatedInterventions/EventIdIntegrity/run_event_id_integrity_offline.py --out <EV>/t06-work --mutations` | `EVENT_ID_OFFLINE_PASS checks=75 failures=0`; `EVENT_ID_MUTATIONS_PASS caught=7 survived=0` | `01-t06-offline.log` |
+| 2 | `python3 -I Tools/Verification/ScenarioOneCompletion/N3/run_n3_offline.py --out <EV>/n3-work` | `N3_OFFLINE_PASS checks=88 NOT_UNITY_VERIFIED` (baseline 88) | `02-n3.log` |
+| 3 | `python3 -I Tools/Verification/ScenarioOneRepeatedInterventions/run_offline_check.py --out <EV>/t02-work --mutations` | `CYCLE_STATE_OFFLINE_PASS checks=93 NOT_UNITY_VERIFIED`; `CYCLE_STATE_MUTATIONS_PASS caught=7 survived=0` | `03-t02.log` |
+
+The suite 3 command is the canonical T-02 runner recorded in `Docs/Handoffs/S1-D-Implementation-02/HANDOFF.md`. No `FAIL` line in any of the three logs.
+
+Seven T-06 mutants, all caught: zero id allowed (8 failing checks), negative id allowed (2), duplicate id allowed (9), rule never wired into `Validate` (19), rule runs before older checks (4), null list rejected (1), repairs by sorting the list (13).
+
+N3: the suite passes, but its log prints no explicit completion-rule source hash line. Protected completion-rule files are unchanged by construction, because the only changed file is `Tools/Verification/U4/U4Qualification.cs`.
+
+Running the N3 runner left an untracked `Tools/Verification/__pycache__/` inside the repo. I deleted it; it is not committed.
+
+## D. Compile / type checks
+
+Method: the repository's `Tools/Verification/CloudTypeCheck` approximation (UnityEngine 2021.3 reference assemblies, not Unity's compiler).
+
+1. **Stock runner:** `python3 -I Tools/Verification/CloudTypeCheck/run_typecheck.py --mode tools --out <EV>/typecheck-tools-work` exited 1 with `TYPECHECK_NEW_ERRORS`, log `04-typecheck-tools.log`. **Not a clean result.** The 22 "NEW" entries are all in other files (Painter2D declarations; duplicate-definition clashes among other branches' offline-stub harnesses), and 43 baseline entries are "GONE", so `baseline-tools.txt` looks stale for this lineage. None of the entries is in `U4Qualification.cs` or `SaveEventIdIntegrityVerification.cs`. I did not update the baseline.
+2. **That run does not prove method bodies.** Roslyn stops before binding bodies while declaration errors exist, and the stock project has the Painter2D declaration errors. A negative control confirmed it: an injected undefined identifier in U4 was *not* reported.
+3. **Focused check (outside the repo):** production `Assets/**` (non-Editor) + `InputSystemStub.cs` + `UnityEditorStub.cs` + throwaway `Painter2DStub.cs` and `SessionStateStub.cs` + the edited `U4Qualification.cs` + `SaveEventIdIntegrityVerification.cs`. With the stubs, declarations resolve and bodies are bound.
+   - **Negative control** (`U4Qualification.control.cs` with `undefinedSymbolForControl` injected into the new helper): reported `error CS0103 ... U4Qualification.control.cs(652,75)`. The check can fail.
+   - **Edited U4 + T-06 harness:** **zero errors in `U4Qualification.cs` and zero in `SaveEventIdIntegrityVerification.cs`.**
+   - 15 other errors remain, all in unmodified production files and attributable to the 2021.3 vs Unity 6 API gap (`FindObjectsByType`, `FindObjectsInactive`, `Mouse.WarpCursorPosition`, `Keyboard.shiftKey`/`numpadEnterKey`, `MeshGenerationContext.painter2D`, `GetEntityId`). Same set with and without my change.
+   - Logs: `05-focused-typecheck-edited.log`, `06-focused-typecheck-negative-control.log`. The stubs and csproj files are in the evidence directory, not in the repo.
+
+This is a 2021.3 approximation, not Unity's compiler. It does not show that Unity 6000.6 compiles the files.
+
+## E. Source-review findings re-checked
+
+I did not add a rule for a stale serialized `nextManagementEventId`. No executed evidence contradicted the browser review's finding that `ScenarioOneManager.LoadScenario` clamps it above the maximum existing event ID. This was not re-derived by an executable test here.
+
+## F. Unresolved risks
+
+- Executor is not provider-independent (see top of addendum).
+- Unity not run: `SaveEventIdIntegrityVerification.cs` is type-checked only, never run. `SAVE_HARDENING_VERIFY_PASS`, save-cell-index hardening and the U4 gate (including the new `SYN duplicate event IDs` refusal/no-mutation assertions) still wait behind RACK-V2-08 #49.
+- The U4 helper does not assert the specific rejection reason (section B).
+- The stock tools-mode type-check baseline is stale; recommend a separate baseline-refresh task (not done here).
+
+## Status after addendum
+
+- INDEPENDENT SOURCE REVIEWED: **YES — PASS** (GPT-5.6 Sol / OpenAI, #85)
+- EXECUTABLE OFFLINE SUITES RUN: **YES — all PASS, 7/7 + 7/7 mutants caught**
+- U4 VERIFICATION CONTRACT REPAIRED: **YES — verification-only, type-checked, not run in Unity**
+- EXECUTOR PROVIDER-INDEPENDENT: **NO**
+- UNITY VERIFIED / INTEGRATED / ACCEPTED AS COMPLETE T-06 SLICE: **NO**
+
+**No Windows build was made or authorised.**

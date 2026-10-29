@@ -525,15 +525,16 @@ public sealed class U4Gate : MonoBehaviour
             data.managementEvents.Add(new ScenarioManagementEvent { eventId = next++, year = 3, workOrderId = 901, eventType = ScenarioManagementEventType.WorkResolved, outcome = ScenarioManagementOutcome.Failed, taskType = ScenarioWorkType.PruneTree });
             data.nextManagementEventId = next;
         }, expectComplete: false);
-        // S3: ambiguous (duplicate) event IDs cannot prove chronology.
-        yield return SyntheticFromS24(s24, "SYN duplicate event IDs", data =>
+        // S3: ambiguous (duplicate) event IDs cannot prove chronology. Since S1-D T-06 (RD-12) the save boundary refuses
+        // them before any state changes, so this negative fixture asserts refusal and no mutation instead of completion.
+        yield return SyntheticRejectedFromS24(s24, "SYN duplicate event IDs", data =>
         {
             var ack = new ScenarioManagementEvent { eventId = data.managementEvents.Max(e => e.eventId), year = 1, eventType = ScenarioManagementEventType.AnnualReviewAcknowledged };
             data.managementEvents.Add(ack);
             var order = new ScenarioOneWorkOrder { workOrderId = 902, resolvedYear = 3, status = ScenarioWorkStatus.Completed, type = ScenarioWorkType.PruneTree, cellIndex = 0 };
             data.workOrders.Add(order);
             data.managementEvents.Add(new ScenarioManagementEvent { eventId = data.managementEvents.Max(e => e.eventId), year = 3, workOrderId = 902, eventType = ScenarioManagementEventType.WorkResolved, outcome = ScenarioManagementOutcome.Succeeded, taskType = ScenarioWorkType.PruneTree });
-        }, expectComplete: false);
+        });
         // S4 (control): the same synthetic construction with a valid ordering DOES complete, so the negatives above are not vacuous.
         yield return SyntheticFromS24(s24, "SYN control: valid ack then later plan", data =>
         {
@@ -634,6 +635,22 @@ public sealed class U4Gate : MonoBehaviour
         Report("SYNTHETIC " + label);
         Expect(AllObjectives(), label + ": eight objectives satisfied (isolates ordering)");
         Expect((manager.Outcome == ScenarioOneOutcome.Completed) == expectComplete, $"SYNTHETIC {label}: expected {(expectComplete ? "COMPLETE" : "NOT complete")}, got {manager.Outcome}");
+    }
+
+    // For deliberately invalid edited saves: the loader must refuse them and leave the live world untouched.
+    private IEnumerator SyntheticRejectedFromS24(string s24, string label, Action<ScenarioOneSaveData> edit)
+    {
+        yield return RestoreJson(s24, label);
+        string before = Snapshot();
+        int yearBefore = Year;
+        ForestSaveData full = saves.CaptureData();
+        edit(full.scenarioOne);
+
+        Expect(!saves.LoadData(full, false), label + ": invalid edited save refused");
+        yield return null; yield return null;
+
+        Expect(Year == yearBefore, label + ": rejection preserves year");
+        Expect(Snapshot() == before, label + ": rejection preserves Scenario One/world snapshot");
     }
 
     // ============================================================ SAVE / RELAUNCH SEQUENCES ============================================================
