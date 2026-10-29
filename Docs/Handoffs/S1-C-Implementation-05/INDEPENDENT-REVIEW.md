@@ -1,6 +1,8 @@
 # S1-C T-05 — Independent review (objective/progression history, save v22)
 
-**Verdict: S1-C T-05 REVIEW NEEDS CHANGES**
+**Final verdict (round 2, candidate `7ae0bbc`): S1-C T-05 REVIEW PASS — APPROVED FOR V22 INTEGRATION LINEAGE**
+
+Round 1 (`cd7b518`) verdict was NEEDS CHANGES; it is kept below unchanged for the record, followed by the round-2 re-review.
 
 Read-only static/offline review. No Unity Editor, no Unity lock, no Windows build. No production, test, spec or coordination file was edited. Claim #104 stays open.
 
@@ -112,6 +114,61 @@ Recommendation stands as in the handoff: one narrowly scoped, reviewed "v22 pin 
 3. v22 pin-relabel change (full list in §7, including the eight missed sites and the `DensityQualification` key-set judgement).
 4. Unity gates (single lock owner): import/compile; real `ScenarioOneManager` capture/restore/`EvaluateProgress`; real `ForestSaveController` disk load and refusals; `JsonUtility` hash reproduction of all v21/v20 and legacy anchors and Reference Future v1 identity; all deterministic/lifecycle anchors and hash-bearing gates; genuine v20 and v21 save load (AC-4 evidence); runtime fixture achieving ≥ 2 objectives in different years with save/load round trip; rendered Annual Review for the new lines.
 
-## Verdict
+## Round 1 verdict (superseded by round 2)
 
-**S1-C T-05 REVIEW NEEDS CHANGES**
+S1-C T-05 REVIEW NEEDS CHANGES (at `cd7b518`)
+
+---
+
+# Round 2 — re-review of the fix range `cd7b518..7ae0bbc`
+
+- Reviewer: CLAUDE A, **Claude Opus 5.5** (Anthropic, `claude-opus-5-5`). Static/offline only; no Unity, no lock, no Windows build.
+- **Reviewed candidate: `7ae0bbcc5b70385b51a608f62037bf9782a34020`.** Scope: the fix range only, against B-1/B-2/B-3 and N-1…N-4.
+
+## Commands and evidence
+
+```
+git diff --stat cd7b518 7ae0bbc
+    production: ScenarioOne/ScenarioOneManager.ObjectiveHistory.cs (+57/-), UI/AnnualReviewView.cs (+6/-)
+    verification: S1CObjectiveHistory/ManagerStub.cs, ObjectiveHistoryOfflineCheck.cs; docs: HANDOFF.md
+git diff --stat cd7b518 7ae0bbc -- ForestSaveData.cs ForestSaveValidation.cs ForestSaveController.cs \
+    ScenarioReferenceArchive.cs ScenarioOneSaveMigration.cs Resources/          # empty: schema/validation/hash/Reference untouched
+python3 -I -B Tools/Verification/S1CObjectiveHistory/run_offline_check.py      # at 7ae0bbc, clean tree before/after
+    -> exit 0, S1C_T05_OFFLINE_PASS checks=115 (115 PASS lines, no FAIL)
+    -> BASELINE_DUMP_WRITTEN version=21, REFERENCE_FUTURE_V1_RESOURCES_UNCHANGED_VS_aca74ac
+Source reads: AdvanceYear (report.year = EcologicalYear + 1; YearAdvanced event then snapshot then EvaluateProgress),
+    ResolveFelling (resolvedYear = EcologicalYear + 1), other Resolve* (resolvedYear = report.year),
+    git log -S: ecologicalSnapshots, managementEvents and the YearAdvanced event were introduced in the same commit (5866673);
+    no pruning of managementEvents/ecologicalSnapshots anywhere.
+```
+
+I did not re-run the 5 new mutants; I relied on the implementer's report for those.
+
+## Findings disposition
+
+- **B-1 (year-0 reload) — FIXED.** The guard now replays only years that have a `YearAdvanced` event. The baseline snapshot is year 0 and no `YearAdvanced` event exists at year 0, so a new game saved and reloaded at year 0 guards nothing, and objectives met at the start are recorded at the year-1 review. A genuine v22 game cannot be guarded wrongly afterwards: every evaluated year that achieved an objective wrote a record, so the replay finds no unrecorded achievement. Offline: "new game: reload at year 0 …" (2 checks).
+- **B-2 (R-1 derivation) — FIXED.** Display-only `derivedAchievementYears` (never saved), filled from the first evaluated year at which the objective is achieved, using the year's snapshot, events with `year <= Y` and Completed orders with `resolvedYear <= Y`. This matches the live evaluation inputs: `WorkResolved` events and `resolvedYear` both carry `report.year`, which equals that year's snapshot year. A missing snapshot for an evaluated year (`evidenceGap`) stops all later derivations, so the result is "not recorded" rather than a guess. Evaluation after a final outcome is excluded (`lastEvaluatedYear = outcomeYear`). The card labels each year "(recorded)" or "(derived from saved records)", or shows "Year reached: not recorded". There is no write into old saves: `NormalizeObjectiveHistory`/the v22-only read are unchanged, and nothing adds to `objectiveAchievements` except `RecordObjectiveAchievements`. Offline: derivable (3, 2, 5), evidence gap → not recorded, gap earlier → not exact, post-outcome snapshots → not derived, pre-v22 → v22 re-save keeps derived/not recorded.
+- **B-3 (lost-and-regained) — FIXED.** The guard is built from **every** evaluated year, not the last snapshot, and is rebuilt the same way on every load. Met 8 / lost 12 / met 14 → never recorded, shown "derived 8"; still derived 8 after saving as v22 and reloading; a v22 control game records 8. Old saves are covered back to the first save that has history: snapshots and `YearAdvanced` events entered the save together, so no save with snapshots lacks the events the guard needs.
+- **N-2 (wording)** — partly addressed by the "(recorded)/(derived)" labels. The remaining "first reached" vs "first observed at the year-end review" wording is the Manager's call. Not blocking.
+- **N-1 (hard-coded id allow-list), N-3 (`Canonicalize` sorts a stripped field)** — unchanged, still non-blocking.
+- **N-4 (pin list)** — FIXED in the handoff. All nine sites I added (`ScenarioOneCompletionVerification.cs:443`, `ModelDefaultVerification.cs:327`, `StormCoreVerification.cs:37`, `Enlarged80Verification.cs:273`, `StandGeometryVerification.cs:157`, `RackV2SaveVerification.cs:119,232`, `SitkaGrowthModelVerification.cs:97`, `ScenarioHistoryVerification.cs:187`) and `DensityQualification.cs:952` are now listed. The pins themselves are correctly untouched in this branch.
+
+## New non-blocking notes (round 2)
+
+- **N-5** The offline check replaces `ScenarioOneObjectives.Evaluate` with a hook. It proves the replay, guard, gap and labelling logic, but not that the real evaluator gives the same answer under the year-filtered events and orders. My source reading says it does (above). The Unity gate must confirm this with a real derivable objective (for example `managed-opening` or a snapshot-threshold objective) on a genuine v20/v21 save.
+- **N-6** The replay filter keeps every non-Completed order regardless of when it was created. That is harmless today because `Evaluate` reads only Completed orders. If an objective ever starts to depend on open orders, this filter (and the derivation's exactness) must be revisited, as `plan.md` §1.6 already warns.
+- **N-7** Derivation replays with the current build's targets and logic ("accepted objective logic", R-1). If a later build changes targets, a derived year reflects the new logic. It is labelled derived, so this is acceptable, but note it if targets change.
+- **N-8** The per-year Forest column ("Objective first reached: …") shows recorded entries only, not derived years. That is honest, and the OBJECTIVES card carries the derived year. Product may later want derived entries there too, with the same label.
+
+## Round 2 merge decision
+
+- The v22 schema, validation, hash-strip/relabel rule and Reference Future v1 protection are byte-identical to what round 1 approved. The fix is confined to the history partial, one UI block and the offline check. **`7ae0bbc` is safe to integrate into the v22 integration lineage for T-05.** This is not acceptance and not Unity verification, and claim #104 stays open.
+
+## Remaining after integration
+
+1. **v22 version-pin relabel**, as one narrowly scoped, reviewed change, using the full list in `HANDOFF.md` / §7 above (the handoff list plus the nine added sites, with `RackV2SaveVerification.cs:221` left alone as fixture input). `DensityQualification.cs:952` needs judgement: relabel `21` → `22`, then confirm under Unity that the model-1/model-2 key-set equality cannot diverge only because one run has achievement records. If it can, exclude the record keys rather than weaken the check. No assertion may be weakened.
+2. **Unity gates (single lock owner):** import/compile; the real `ScenarioOneManager` capture/restore/`EvaluateProgress` path, including the year-0 save → reload → year-1 record case; real `ForestSaveController` disk load and refusals; `JsonUtility` reproduction of every v20/v21/legacy hash anchor and the Reference Future v1 identity; all deterministic/lifecycle and hash-bearing gates (explain any raw-save-JSON comparison that moves because of a new record; do not just relabel it); genuine v20 and v21 save loads with AC-4 evidence of one derived and one "not recorded" objective using the real evaluator (N-5); a runtime fixture achieving at least two objectives in different years with a save/load round trip; rendered Annual Review lines for "(recorded)", "(derived from saved records)" and "not recorded".
+
+## Final verdict
+
+**S1-C T-05 REVIEW PASS — APPROVED FOR V22 INTEGRATION LINEAGE**
