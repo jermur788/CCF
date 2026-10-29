@@ -402,6 +402,509 @@ public static class CompositeDensityOfflineCheck
         Check(smallStepFailures == 0, "NO_ROUTE_CLIFF_NO_TOTAL_LOSS_STEP_OVER_0_02_FOR_A_COMPOSITION_STEP_OF_0_001_OR_LESS");
     }
 
+    // ====================================================================================================================
+    // PARITY-03 Q10: heterogeneous, geometry- and class-complete evidence at the pure-Sitka -> one-non-Reference seam.
+    //
+    // WHY: the replacement sweep above is a valid cliff screen but its fixtures are homogeneous (every stem has the same DBH and
+    // the same competition index, so the competition index never decides anything: the dbh/ci table rows are identical) and
+    // partly degenerate (dbh15 loses nothing anywhere). It also uses one area, one replacement class, and absolute tolerances
+    // (0.005, i.e. 5 stems of 1000) that are 70 % of the annual loss of a stand that loses 0.7 % a year. That sweep is KEPT
+    // UNCHANGED above; this section adds evidence, it weakens nothing.
+    //
+    // WHAT IT IS NOT: no mixed-stand mortality law, no forestry evidence. It detects a route/composition cliff.
+    //
+    // DESIGN
+    //  * Geometry: Legacy40 and Enlarged80 areas are read from the production sources (GeometryGuard), not assumed.
+    //  * Class:    the one replaced stem becomes Intermediate (Beech-class demand) or High (Oak-class demand). DBH and
+    //              competition index are NOT changed: the state is otherwise identical to the pure one.
+    //  * Structure: deterministic heterogeneous Sitka stands (spread of DBH, competition index anti-correlated with size so
+    //              suppressed small stems carry the risk), at three relative densities giving a low, a moderate and a
+    //              higher annual loss. Stem counts follow the area at the same density, so both geometries carry the same
+    //              per-hectare structure. Closed-form low-discrepancy sequences: no seed, no RNG, identical on every runtime.
+    //  * Seam:     the pure state is evaluated on the EXACT LEGACY ROUTE (the literal port of the original controller block, which is
+    //              what the controller runs for a Reference-only stand). The seam state is evaluated on the species-aware route
+    //              (Sitka component + generic component) with exactly one stem replaced, at five positions (highest competition,
+    //              median, lowest, largest DBH, smallest DBH). Replacement counts of 0.1 / 1 / 5 / 10 % follow, stems chosen at a
+    //              stride across the competition ranking.
+    //  * Measure:  expected deaths per year over 400 keyed yearly rolls. The rolls belong to (tree id, year), so a pure state and
+    //              the seam state see the SAME draw for every shared stem: differences are structural, not sampling noise. The
+    //              only stochastic term is the generic component's one quota draw (standard error <= 0.025 stems).
+    //  * Decomposition (exact, from I1): movement = [legacy block on N-k Sitka stems - legacy block on N Sitka stems]
+    //              (the PROTECTED legacy model's own response to losing k Sitka stems, inherited and not new)
+    //              + expected generic deaths (the only new mechanism). Both are reported.
+    // ====================================================================================================================
+
+    // The two authoritative stand areas. GeometryGuard proves these equal what the production sources compute.
+    const float Legacy40AreaHa = 0.16f, Enlarged80AreaHa = 0.64f;
+    static readonly (string name, float area)[] Geometries = { ("Legacy40", Legacy40AreaHa), ("Enlarged80", Enlarged80AreaHa) };
+    static readonly (string name, GrowingSpaceDemandClass demand)[] ReplacementClasses =
+        { ("Intermediate(Beech)", GrowingSpaceDemandClass.Intermediate), ("High(Oak)", GrowingSpaceDemandClass.High) };
+
+    static double Frac(double x) => x - Math.Floor(x);
+
+    // Generalised golden-ratio ("R3") low-discrepancy sequence: u_j(i) = frac(0.5 + i * alpha_j). Closed form, no state.
+    static readonly double[] R3 = { 0.8191725133961645, 0.6710436067037893, 0.5497004779019703 };
+
+    // One heterogeneous even-aged Sitka-like stand of n stems. d in [0,1] is a triangular size quantile: DBH 25 +- 13 cm.
+    // Competition index falls with size: ~0.4 for the largest stems, 7 to 21 for the smallest, scattered by u3 so equal-sized
+    // stems do not share one value. IDs follow the generating index, which is unrelated to size.
+    static List<DensityStem> HeteroSitka(int n)
+    {
+        var list = new List<DensityStem>(n);
+        for (int i = 0; i < n; i++)
+        {
+            double u1 = Frac(0.5 + (i + 1) * R3[0]), u2 = Frac(0.5 + (i + 1) * R3[1]), u3 = Frac(0.5 + (i + 1) * R3[2]);
+            double d = (u1 + u2) / 2.0;
+            float dbh = (float)(25.0 + 13.0 * (2.0 * d - 1.0));
+            double ci = 0.4 + 14.0 * (1.0 - d) * (1.0 - d) * (0.5 + u3);
+            list.Add(new DensityStem("S" + i.ToString("D5"), GrowingSpaceDemandClass.Reference, dbh, ci));
+        }
+        return list;
+    }
+
+    static double SitkaRd(IReadOnlyList<DensityStem> stems, float area)
+    {
+        double squares = 0.0;
+        foreach (DensityStem s in stems) squares += (double)s.DbhCm * s.DbhCm;
+        return SitkaGrowthModel.RelativeDensity(stems.Count / area, Math.Sqrt(squares / stems.Count));
+    }
+
+    // The stem count whose Sitka relative density is closest to the target on this area (same per-hectare structure on both areas).
+    static readonly Dictionary<(double, float), List<DensityStem>> HeteroCache = new Dictionary<(double, float), List<DensityStem>>();
+
+    // Cached because the search builds thousands of stands; nothing mutates a returned list. The replay check passes fresh: true so that it
+    // regenerates the fixture from scratch rather than re-reading a cached copy.
+    static List<DensityStem> HeteroSitkaAtRd(double targetRd, float area, bool fresh = false)
+    {
+        if (!fresh && HeteroCache.TryGetValue((targetRd, area), out var cached)) return cached;
+        var built = BuildHeteroSitkaAtRd(targetRd, area);
+        if (!fresh) HeteroCache[(targetRd, area)] = built;
+        return built;
+    }
+
+    static List<DensityStem> BuildHeteroSitkaAtRd(double targetRd, float area)
+    {
+        int best = 20; double bestGap = double.MaxValue;
+        for (int n = 20; n <= 4000; n++)
+        {
+            double gap = Math.Abs(SitkaRd(HeteroSitka(n), area) - targetRd);
+            if (gap < bestGap) { bestGap = gap; best = n; }
+        }
+        return HeteroSitka(best);
+    }
+
+    static List<DensityStem> WithReplaced(List<DensityStem> source, IEnumerable<int> indices, GrowingSpaceDemandClass demand)
+    {
+        var copy = new List<DensityStem>(source);
+        foreach (int i in indices) copy[i] = new DensityStem(copy[i].TreeId, demand, copy[i].DbhCm, copy[i].CompetitionIndex);
+        return copy;
+    }
+
+    static int ArgBest(List<DensityStem> stems, Func<DensityStem, double> key, bool largest)
+    {
+        int best = 0;
+        for (int i = 1; i < stems.Count; i++)
+            if (largest ? key(stems[i]) > key(stems[best]) : key(stems[i]) < key(stems[best])) best = i;
+        return best;
+    }
+
+    // Index of the stem at the given rank (0 = smallest key) of the stems ordered by key; ties broken by tree id.
+    static int AtRank(List<DensityStem> stems, Func<DensityStem, double> key, int rank)
+    {
+        var order = Enumerable.Range(0, stems.Count).OrderBy(i => key(stems[i])).ThenBy(i => stems[i].TreeId, StringComparer.Ordinal).ToList();
+        return order[rank];
+    }
+
+    // Expected deaths per year of the EXACT LEGACY ROUTE on a Reference-only stand (what the controller runs for it).
+    static double LegacyDeathsPerYear(List<DensityStem> sitkaOnly, float area, int seeds)
+    {
+        double deaths = 0.0;
+        for (int year = 0; year < seeds; year++) deaths += LegacyBlockVictims(sitkaOnly, area, SitkaRoll(year)).Count;
+        return deaths / seeds;
+    }
+
+    sealed class SeamRow
+    {
+        public string Geometry, Class, Fixture, Position;
+        public int N, K;
+        public double Rd, Occupancy;
+        public double PureDeaths, SeamDeaths, SitkaDeathsSeam, GenericDeaths, LegacyRemoveDeaths;
+        public double ExpectedGeneric, ExpectedGenericStdErr;   // from the public response and occupancy functions, not from the planner's own fields
+        public int ExactDraws, ExactMatches;
+        public double Tpure => PureDeaths / N;
+        public double Tseam => SeamDeaths / N;
+        public double Abs => Tseam - Tpure;
+        public double Rel => Abs / Math.Max(1e-12, Tpure);
+        public double Unit => 1.0 / N;                       // one stem's worth of total-loss fraction
+        public double LegacySensitivity => LegacyRemoveDeaths - PureDeaths;   // inherited from the protected Sitka block
+        public double SitkaPerStemPure => PureDeaths / N;
+        public double SitkaPerStemSeam => SitkaDeathsSeam / Math.Max(1, N - K);
+    }
+
+    const int Q10Seeds = 400;
+
+    static SeamRow MeasureSeam(string geometry, float area, string className, GrowingSpaceDemandClass demand, string fixture, List<DensityStem> pure,
+        string position, IEnumerable<int> replaced, double pureDeaths)
+    {
+        var idx = replaced.ToList();
+        var seam = WithReplaced(pure, idx, demand);
+        var sitkaOnly = seam.Where(x => x.Demand == GrowingSpaceDemandClass.Reference).ToList();
+        var row = new SeamRow
+        {
+            Geometry = geometry, Class = className, Fixture = fixture, Position = position, N = pure.Count, K = idx.Count,
+            Rd = SitkaRd(pure, area), Occupancy = MixedDensityModel.Occupancy(seam, area), PureDeaths = pureDeaths
+        };
+        // Independent oracle for the generic term: response(occupancy) x non-Reference share x stems the Sitka component left standing.
+        // Whole-stem rounding is one keyed Bernoulli draw per year, so the variance of the sum is the sum of r(1-r).
+        double occupancy = MixedDensityModel.Occupancy(seam, area);
+        double space = seam.Sum(MixedDensityModel.StemOccupiedSpace);
+        double nonReferenceShare = seam.Where(x => x.Demand != GrowingSpaceDemandClass.Reference).Sum(MixedDensityModel.StemOccupiedSpace) / space;
+        double fraction = MixedDensityModel.GenericLoss(occupancy) * nonReferenceShare;
+        double total = 0.0, sitka = 0.0, generic = 0.0, expectedGeneric = 0.0, variance = 0.0;
+        for (int year = 0; year < Q10Seeds; year++)
+        {
+            var p = Plan(seam, area, year);
+            total += p.Ids.Count; sitka += p.Plan.SitkaVictimIndices.Count; generic += p.Generic.Count;
+            double expectedThisYear = fraction * (seam.Count - p.Plan.SitkaVictimIndices.Count);
+            expectedGeneric += expectedThisYear;
+            double remainder = expectedThisYear - Math.Floor(expectedThisYear + 1e-10);
+            variance += remainder * (1.0 - remainder);
+            // I1 at this seam state: Sitka victims equal the literal port on the Sitka stems alone (every draw).
+            var legacy = LegacyBlockVictims(sitkaOnly, area, SitkaRoll(year));
+            row.ExactDraws++;
+            if (new HashSet<string>(p.Plan.SitkaVictimIndices.Select(i => seam[i].TreeId)).SetEquals(legacy)) row.ExactMatches++;
+        }
+        row.SeamDeaths = total / Q10Seeds; row.SitkaDeathsSeam = sitka / Q10Seeds; row.GenericDeaths = generic / Q10Seeds;
+        row.ExpectedGeneric = expectedGeneric / Q10Seeds; row.ExpectedGenericStdErr = Math.Sqrt(variance) / Q10Seeds;
+        row.LegacyRemoveDeaths = LegacyDeathsPerYear(sitkaOnly, area, Q10Seeds);
+        return row;
+    }
+
+    static readonly (string name, double rd)[] Q10Fixtures = { ("LowLoss_RD0.72", 0.72), ("Moderate_RD0.80", 0.80), ("Higher_RD0.88", 0.88) };
+
+    static List<SeamRow> Q10Rows;
+
+    static List<SeamRow> BuildQ10Rows()
+    {
+        var rows = new List<SeamRow>();
+        foreach (var (gname, area) in Geometries)
+            foreach (var (fname, rd) in Q10Fixtures)
+            {
+                var pure = HeteroSitkaAtRd(rd, area);
+                double pureDeaths = LegacyDeathsPerYear(pure, area, Q10Seeds);
+                var seamPositions = new (string name, int index)[]
+                {
+                    ("highest-CI", ArgBest(pure, s => s.CompetitionIndex, true)),
+                    ("median-CI", AtRank(pure, s => s.CompetitionIndex, pure.Count / 2)),
+                    ("lowest-CI", ArgBest(pure, s => s.CompetitionIndex, false)),
+                    ("largest-DBH", ArgBest(pure, s => s.DbhCm, true)),
+                    ("smallest-DBH", ArgBest(pure, s => s.DbhCm, false))
+                };
+                // two named positions can be the same stem (the largest stem is also the least suppressed): measure each stem once
+                var distinct = seamPositions.GroupBy(x => x.index).Select(g => (name: string.Join("=", g.Select(x => x.name)), index: g.Key)).ToList();
+                foreach (var (cname, demand) in ReplacementClasses)
+                {
+                    foreach (var (pname, index) in distinct)
+                        rows.Add(MeasureSeam(gname, area, cname, demand, fname, pure, pname, new[] { index }, pureDeaths));
+                    // 1 / 10 / 50 / 100 per 1000 stems: replacement counts of 1 % / 5 % / 10 % at a stride across the competition ranking
+                    foreach (double fraction in new[] { 0.01, 0.05, 0.10 })
+                    {
+                        int k = Math.Max(2, (int)Math.Round(fraction * pure.Count));
+                        var order = Enumerable.Range(0, pure.Count).OrderBy(i => pure[i].CompetitionIndex).ThenBy(i => pure[i].TreeId, StringComparer.Ordinal).ToList();
+                        var picked = Enumerable.Range(0, k).Select(j => order[(int)((j + 0.5) * pure.Count / k)]);
+                        rows.Add(MeasureSeam(gname, area, cname, demand, fname, pure, $"stride-{fraction * 100:0}%", picked, pureDeaths));
+                    }
+                }
+            }
+        return rows;
+    }
+
+    // ---------- Q10 tolerances: VERIFICATION TOLERANCES / GAMEPLAY CALIBRATION. Numerical-continuity bounds, NOT forestry evidence. ----------
+    // They answer one question: "does a one-stem change of class move the expected annual deaths by more than a bounded, small amount?"
+    // They say nothing about how many broadleaves a real stand loses. Measured on the accepted code (reported in the Q10_SEAM_SUMMARY line)
+    // the worst seam movement is 0.12 expected deaths a year and 3.5 % of the annual loss; these bounds sit a factor 2.5 to 4 above it.
+    // Every state is deterministic (fixed keyed rolls), so a bound is never "widened to absorb noise": the only random term in the
+    // comparison is the generic component's single quota draw (standard error <= 0.025 stems at 400 years), far below SeamAbsoluteStems.
+    const double SeamAbsoluteStems = 0.5;       // one stem changing class may move the expected deaths by at most half a stem a year
+    const double SeamRelative = 0.10;           // ... and by at most 10 % of the pure stand's own annual deaths, so a low-loss stand cannot hide a jump
+    const double SweepSlopeStemsPerStem = 0.25; // replacing k stems may move expected deaths by at most 0.25 stems per replaced stem (+ the seam allowance)
+    const double OldAbsoluteTolerance = 0.005;  // the tolerance of C1/C2 above, kept for comparison only
+
+    static bool SeamAbsoluteOk(SeamRow r, double extraDeaths = 0.0) => Math.Abs(r.SeamDeaths - r.PureDeaths + extraDeaths) <= SeamAbsoluteStems + 1e-12;
+    static bool SeamRelativeOk(SeamRow r, double extraDeaths = 0.0) => Math.Abs(r.SeamDeaths - r.PureDeaths + extraDeaths) / Math.Max(1e-12, r.PureDeaths) <= SeamRelative + 1e-12;
+    static bool SweepOk(SeamRow r) => Math.Abs(r.SeamDeaths - r.PureDeaths) <= SweepSlopeStemsPerStem * r.K + SeamAbsoluteStems + 1e-12;
+
+    static double Pearson(IEnumerable<double> a, IEnumerable<double> b)
+    {
+        var x = a.ToArray(); var y = b.ToArray();
+        double mx = x.Average(), my = y.Average(), sxy = 0, sxx = 0, syy = 0;
+        for (int i = 0; i < x.Length; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) * (x[i] - mx); syy += (y[i] - my) * (y[i] - my); }
+        return sxy / Math.Sqrt(sxx * syy);
+    }
+
+    static double CoefficientOfVariation(IEnumerable<double> values)
+    {
+        var v = values.ToArray(); double m = v.Average();
+        return Math.Sqrt(v.Sum(x => (x - m) * (x - m)) / v.Length) / m;
+    }
+
+    // The areas used above must be what production computes. Parsed from the sources, never assumed.
+    static void GeometryGuardQ10()
+    {
+        string root = Environment.GetEnvironmentVariable("CCF_REPO_ROOT");
+        if (string.IsNullOrEmpty(root)) { Check(false, "Q10_GEOMETRY_GUARD_NEEDS_CCF_REPO_ROOT"); return; }
+        string fp = System.IO.Path.Combine(root, "Assets", "ForestPrototype");
+        string geometry = System.IO.File.ReadAllText(System.IO.Path.Combine(fp, "StandGeometryModel.cs"));
+        string controller = System.IO.File.ReadAllText(System.IO.Path.Combine(fp, "ForestEcologyController.cs"));
+        var size = System.Text.RegularExpressions.Regex.Match(geometry, @"StandSizeMeters\(int model\)\s*=>\s*model == Enlarged80 \? ([0-9.]+)f : ([0-9.]+)f;");
+        var stock = System.Text.RegularExpressions.Regex.Match(geometry, @"StartingStemsPerHectare\s*=\s*([0-9.]+)f;");
+        bool formula = controller.Contains("public float StandAreaHectares => standSizeMeters * standSizeMeters / 10000f;");
+        bool followsModel = controller.Contains("standSizeMeters = StandGeometryModel.StandSizeMeters(model);");
+        bool ids = geometry.Contains("public const int Legacy40 = 0;") && geometry.Contains("public const int Enlarged80 = 1;");
+        if (!size.Success || !stock.Success) { Check(false, "Q10_GEOMETRY_AREAS_EQUAL_THE_PRODUCTION_SOURCES", "StandGeometryModel.cs no longer has the expected StandSizeMeters / StartingStemsPerHectare form: update the guard"); return; }
+        float e80Size = float.Parse(size.Groups[1].Value, CultureInfo.InvariantCulture), l40Size = float.Parse(size.Groups[2].Value, CultureInfo.InvariantCulture);
+        float e80 = e80Size * e80Size / 10000f, l40 = l40Size * l40Size / 10000f;
+        float perHa = float.Parse(stock.Groups[1].Value, CultureInfo.InvariantCulture);
+        Check(e80 == Enlarged80AreaHa && l40 == Legacy40AreaHa && formula && followsModel && ids,
+            "Q10_GEOMETRY_AREAS_EQUAL_THE_PRODUCTION_SOURCES",
+            $"Legacy40={l40Size}m->{F(l40, "0.00")}ha Enlarged80={e80Size}m->{F(e80, "0.00")}ha areaFormula={formula} controllerFollowsModel={followsModel} startingStock={perHa}/ha ({Math.Round(perHa * l40)} and {Math.Round(perHa * e80)} trees, context only)");
+    }
+
+    static void SeamContinuityQ10()
+    {
+        GeometryGuardQ10();
+        Q10Rows = BuildQ10Rows();
+        foreach (SeamRow r in Q10Rows)
+            Console.WriteLine($"Q10_SEAM {r.Geometry} {r.Class} {r.Fixture} N={r.N} k={r.K} {r.Position} RD={F(r.Rd, "0.000")} occ={F(r.Occupancy, "0.00")} " +
+                $"T_pure={F(r.Tpure, "0.00000")} T_seam={F(r.Tseam, "0.00000")} abs={F(r.Abs, "0.00000")} rel={F(r.Rel * 100, "0.00")}% unit(1/N)={F(r.Unit, "0.00000")} " +
+                $"dDeaths={F(r.SeamDeaths - r.PureDeaths, "0.000")} legacySens={F(r.LegacySensitivity, "0.000")} generic={F(r.GenericDeaths, "0.000")} " +
+                $"expectedGeneric={F(r.ExpectedGeneric, "0.000")}+-{F(r.ExpectedGenericStdErr, "0.000")} exact={r.ExactMatches}/{r.ExactDraws}");
+
+        var seams = Q10Rows.Where(r => r.K == 1).ToList();
+        var sweeps = Q10Rows.Where(r => r.K > 1).ToList();
+
+        // ---- fixtures: heterogeneous, and the competition index really decides who dies ----
+        var fixtures = Q10Rows.GroupBy(r => (r.Geometry, r.Fixture)).Select(g => g.First()).ToList();
+        bool heterogeneous = true; var hetDetail = new List<string>();
+        bool competitionDecides = true; var ciDetail = new List<string>();
+        bool lowLossIsLow = true, routesOk = true, pureEndpointOk = true; int pureDraws = 0, pureMatches = 0;
+        var pureLoss = new Dictionary<(string, string), double>();
+        foreach (var (geometry, area) in Geometries)
+            foreach (var (fixture, rd) in Q10Fixtures)
+            {
+                var pure = HeteroSitkaAtRd(rd, area);
+                double cvDbh = CoefficientOfVariation(pure.Select(s => (double)s.DbhCm)), cvCi = CoefficientOfVariation(pure.Select(s => s.CompetitionIndex));
+                double correlation = Pearson(pure.Select(s => (double)s.DbhCm), pure.Select(s => s.CompetitionIndex));
+                int distinctCi = pure.Select(s => Math.Round(s.CompetitionIndex, 6)).Distinct().Count();
+                bool het = pure.Count >= 150 && cvDbh >= 0.15 && cvCi >= 0.6 && correlation <= -0.5 && distinctCi >= 0.9 * pure.Count
+                    && pure.Select(s => s.TreeId).Distinct().Count() == pure.Count && pure.All(s => s.Demand == GrowingSpaceDemandClass.Reference);
+                heterogeneous &= het;
+                hetDetail.Add($"{geometry}/{fixture}:N={pure.Count} cvDbh={F(cvDbh, "0.00")} cvCi={F(cvCi, "0.00")} corr={F(correlation, "0.00")} distinctCi={distinctCi}");
+
+                // Who dies on the exact legacy route: mean competition index of the victims against the stand mean, and the same stand with the index flattened.
+                double standMeanCi = pure.Average(s => s.CompetitionIndex);
+                var flat = pure.Select(s => new DensityStem(s.TreeId, s.Demand, s.DbhCm, standMeanCi)).ToList();
+                double victimCi = 0, flatVictimCi = 0; int victims = 0, flatVictims = 0;
+                var ciById = pure.ToDictionary(s => s.TreeId, s => s.CompetitionIndex);
+                for (int year = 0; year < Q10Seeds; year++)
+                {
+                    foreach (string id in LegacyBlockVictims(pure, area, SitkaRoll(year))) { victimCi += ciById[id]; victims++; }
+                    foreach (string id in LegacyBlockVictims(flat, area, SitkaRoll(year))) { flatVictimCi += standMeanCi; flatVictims++; }
+                }
+                double ratio = victims == 0 ? 0 : victimCi / victims / standMeanCi;
+                competitionDecides &= victims >= 100 && ratio >= 1.5;   // 1.00 is 'competition decides nothing'; the first bound tried (2.0) was a guess and the measured 1.85 showed it unfounded
+                ciDetail.Add($"{geometry}/{fixture}:victims={victims} meanVictimCi/meanStandCi={F(ratio, "0.00")}");
+
+                // Route and endpoint coherence. The controller runs the legacy block for a Reference-only stand; the component planner on the same
+                // stand must reproduce it exactly, and the first non-Reference stem must flip the route.
+                routesOk &= MixedDensityModel.SelectRoute(true, MixedDensityModel.AnyNonReference(pure)) == DensityRoute.LegacySitkaExact;
+                for (int year = 0; year < Q10Seeds; year++)
+                {
+                    var viaPlanner = new HashSet<string>(Plan(pure, area, year).Ids);
+                    pureDraws++;
+                    if (viaPlanner.SetEquals(LegacyBlockVictims(pure, area, SitkaRoll(year)))) pureMatches++;
+                }
+                pureLoss[(geometry, fixture)] = LegacyDeathsPerYear(pure, area, Q10Seeds) / pure.Count;
+            }
+        foreach (SeamRow r in Q10Rows)
+        {
+            var one = new[] { new DensityStem("x", r.Class.StartsWith("High") ? GrowingSpaceDemandClass.High : GrowingSpaceDemandClass.Intermediate, 30f, 1.0) };
+            routesOk &= MixedDensityModel.SelectRoute(true, MixedDensityModel.AnyNonReference(one)) == DensityRoute.SpeciesAwareOccupancy;
+        }
+        foreach (var g in Geometries)
+            lowLossIsLow &= pureLoss[(g.name, "LowLoss_RD0.72")] > 0.003 && pureLoss[(g.name, "LowLoss_RD0.72")] < 0.01
+                && pureLoss[(g.name, "LowLoss_RD0.72")] < pureLoss[(g.name, "Moderate_RD0.80")] && pureLoss[(g.name, "Moderate_RD0.80")] < pureLoss[(g.name, "Higher_RD0.88")];
+        Check(heterogeneous, "Q10_FIXTURES_ARE_HETEROGENEOUS_IN_DBH_AND_COMPETITION_INDEX", string.Join("  ", hetDetail));
+        Check(competitionDecides, "Q10_THE_COMPETITION_INDEX_DECIDES_WHO_DIES_IN_EVERY_FIXTURE", string.Join("  ", ciDetail) + "  (the old homogeneous fixtures give 1.00 by construction; bound 1.5)");
+        Check(lowLossIsLow, "Q10_THE_LOW_LOSS_FIXTURE_LOSES_UNDER_1_PERCENT_A_YEAR_AND_LOSS_RISES_WITH_DENSITY",
+            string.Join(" ", pureLoss.Select(kv => $"{kv.Key.Item1}/{kv.Key.Item2}={F(kv.Value, "0.0000")}")) + $"  (the old tolerance {OldAbsoluteTolerance} is {F(OldAbsoluteTolerance / pureLoss[("Legacy40", "LowLoss_RD0.72")] * 100, "0")} % of the Legacy40 low-loss annual loss)");
+        Check(routesOk, "Q10_ROUTE_IS_LEGACY_FOR_EVERY_PURE_FIXTURE_AND_OCCUPANCY_FOR_THE_FIRST_NON_REFERENCE_STEM_OF_EITHER_CLASS");
+        Check(pureDraws > 0 && pureMatches == pureDraws, "Q10_PURE_ENDPOINT_COMPONENT_PLANNER_EQUALS_THE_EXACT_LEGACY_BLOCK", $"fixtures={Geometries.Length * Q10Fixtures.Length} draws={pureDraws}");
+
+        // ---- coverage: nothing silently dropped ----
+        var perFixture = Q10Rows.GroupBy(r => (r.Geometry, r.Class, r.Fixture)).ToList();
+        bool covered = Q10Rows.Select(r => r.Geometry).Distinct().Count() == 2 && Q10Rows.Select(r => r.Class).Distinct().Count() == 2
+            && perFixture.Count == 2 * 2 * Q10Fixtures.Length
+            && perFixture.All(g => g.Count(r => r.K == 1) >= 4 && g.Any(r => r.K >= g.First().N * 0.095) && g.Any(r => r.K > 1 && r.K <= g.First().N * 0.015));
+        Check(covered, "Q10_COVERAGE_BOTH_GEOMETRIES_BOTH_CLASSES_THREE_STRUCTURES_FOUR_SEAM_POSITIONS_AND_THE_REPLACEMENT_LADDER",
+            $"stateRows={Q10Rows.Count} seamRows={seams.Count} sweepRows={sweeps.Count} cells={perFixture.Count} (Enlarged80 Higher fixture: N=1001, k=1/10/50/100 exactly as the original sweep)");
+
+        // ---- Sitka component preservation: exact at every state ----
+        int draws = Q10Rows.Sum(r => r.ExactDraws), matched = Q10Rows.Sum(r => r.ExactMatches);
+        Check(draws > 0 && draws == matched, "Q10_SITKA_COMPONENT_EQUALS_THE_LITERAL_ORIGINAL_BLOCK_ON_THE_SITKA_STEMS_AT_EVERY_SEAM_AND_REPLACEMENT_STATE", $"states={Q10Rows.Count} draws={draws}");
+        double worstDecomposition = Q10Rows.Max(r => Math.Abs(r.SitkaDeathsSeam - r.LegacyRemoveDeaths));
+        Check(worstDecomposition < 1e-9, "Q10_MOVEMENT_DECOMPOSES_EXACTLY_INTO_THE_PROTECTED_LEGACY_ONE_STEM_RESPONSE_PLUS_THE_GENERIC_TERM",
+            $"worst|SitkaComponentDeaths - legacyBlockOnSitkaStems|={worstDecomposition:0.0e+0} (the only new mechanism at the seam is the generic term, worst {F(Q10Rows.Where(r => r.K == 1).Max(r => r.GenericDeaths), "0.000")} stems a year)");
+
+        // ---- the independent expectation of the generic term ----
+        bool genericMatches = true, genericNeverAbove = true; double worstGenericGap = 0, worstGenericSigma = 0;
+        foreach (SeamRow r in Q10Rows)
+        {
+            double gap = r.GenericDeaths - r.ExpectedGeneric, allowance = 4.0 * r.ExpectedGenericStdErr + 0.01;
+            worstGenericGap = Math.Max(worstGenericGap, Math.Abs(gap));
+            if (r.K == 1 && Math.Abs(gap) > allowance) genericMatches = false;       // one stem never reaches the basal-area budget: expectation must hold both ways
+            if (gap > allowance) genericNeverAbove = false;                           // the budget can only take deaths away, never add them
+            if (r.ExpectedGenericStdErr > 0) worstGenericSigma = Math.Max(worstGenericSigma, Math.Abs(gap) / r.ExpectedGenericStdErr);
+        }
+        Check(genericMatches && genericNeverAbove, "Q10_GENERIC_DEATHS_AT_THE_SEAM_EQUAL_THE_INDEPENDENT_EXPECTATION_RESPONSE_x_SHARE_x_STEMS_LEFT",
+            $"worst|measured-expected|={F(worstGenericGap, "0.0000")} stems/yr, worst {F(worstGenericSigma, "0.0")} standard errors; allowance 4 standard errors + 0.01");
+
+        // ---- the continuity criteria ----
+        double worstSeamAbs = seams.Max(r => Math.Abs(r.SeamDeaths - r.PureDeaths)), worstSeamRel = seams.Max(r => Math.Abs(r.Rel)), worstSeamAbsT = seams.Max(r => Math.Abs(r.Abs));
+        double worstSweep = sweeps.Max(r => Math.Abs(r.SeamDeaths - r.PureDeaths) / (SweepSlopeStemsPerStem * r.K + SeamAbsoluteStems));
+        Console.WriteLine($"Q10_SEAM_SUMMARY seamStates={seams.Count} worstAbsDeaths={F(worstSeamAbs, "0.000")} worstAbsLoss={F(worstSeamAbsT, "0.00000")} worstRelative={F(worstSeamRel * 100, "0.00")}% " +
+            $"worstSweepFractionOfAllowance={F(worstSweep, "0.00")} perStemSweepMax={F(sweeps.Max(r => Math.Abs(r.SeamDeaths - r.PureDeaths) / r.K), "0.000")}");
+        Check(seams.All(r => SeamAbsoluteOk(r)), "Q10_SEAM_ABSOLUTE_ONE_STEM_CHANGES_EXPECTED_ANNUAL_DEATHS_BY_AT_MOST_HALF_A_STEM",
+            $"states={seams.Count} worst={F(worstSeamAbs, "0.000")} stems/yr allowance={SeamAbsoluteStems} marginFactor={F(SeamAbsoluteStems / worstSeamAbs, "0.0")} (VERIFICATION TOLERANCE)");
+        Check(seams.All(r => SeamRelativeOk(r)), "Q10_SEAM_RELATIVE_ONE_STEM_CHANGES_THE_ANNUAL_LOSS_BY_AT_MOST_10_PERCENT",
+            $"states={seams.Count} worst={F(worstSeamRel * 100, "0.00")}% allowance={SeamRelative * 100}% marginFactor={F(SeamRelative / worstSeamRel, "0.0")} (VERIFICATION TOLERANCE)");
+        Check(sweeps.All(SweepOk), "Q10_LADDER_REPLACING_k_STEMS_MOVES_EXPECTED_ANNUAL_DEATHS_BY_AT_MOST_0_25_STEMS_PER_STEM_PLUS_THE_SEAM_ALLOWANCE",
+            $"states={sweeps.Count} worstFractionOfAllowance={F(worstSweep, "0.00")} marginFactor={F(1.0 / worstSweep, "0.00")} (regression guard on the steepness of the combined response, VERIFICATION TOLERANCE)");
+
+        // ---- the criteria can see what the old tolerance could not ----
+        // A synthetic step of +0.004 in annual loss (several tenths of a percent) is below the old 0.005 and so was invisible to C1; every seam state must now reject it.
+        int accepted = 0, rejected = 0;
+        foreach (SeamRow r in seams)
+        {
+            double extra = 0.004 * r.N;
+            if (Math.Abs(r.Abs + 0.004) <= OldAbsoluteTolerance) accepted++;
+            if (!SeamAbsoluteOk(r, extra) || !SeamRelativeOk(r, extra)) rejected++;   // the combined criterion fails when EITHER bound fails
+        }
+        var lowSeams = seams.Where(r => r.Fixture.StartsWith("LowLoss")).ToList();
+        int relativeOnlyCatches = lowSeams.Count(r => SeamAbsoluteOk(r, 0.15 * r.PureDeaths) && !SeamRelativeOk(r, 0.15 * r.PureDeaths));
+        Check(accepted == seams.Count && rejected == seams.Count, "Q10_THE_CRITERIA_REJECT_A_SYNTHETIC_0_004_LOSS_JUMP_THAT_THE_OLD_0_005_TOLERANCE_ACCEPTED",
+            $"seamStates={seams.Count} oldToleranceWouldAccept={accepted} newCriteriaReject={rejected}; a +15 % jump at a low-loss Legacy40 state is below the half-stem bound but caught by the relative bound in {relativeOnlyCatches} of {lowSeams.Count} low-loss states");
+
+        // ---- replay is exact; the measurement has a stable fingerprint ----
+        bool replay = true;
+        foreach (var (geometry, area) in Geometries)
+            foreach (var (fixture, rd) in Q10Fixtures)
+            {
+                var pure = HeteroSitkaAtRd(rd, area, fresh: true);
+                double pureDeaths = LegacyDeathsPerYear(pure, area, Q10Seeds);
+                SeamRow first = Q10Rows.First(r => r.Geometry == geometry && r.Fixture == fixture && r.Class.StartsWith("High") && r.K == 1 && r.Position.StartsWith("highest-CI"));
+                SeamRow again = MeasureSeam(geometry, area, first.Class, GrowingSpaceDemandClass.High, fixture, pure, first.Position, new[] { ArgBest(pure, s => s.CompetitionIndex, true) }, pureDeaths);
+                replay &= again.SeamDeaths == first.SeamDeaths && again.PureDeaths == first.PureDeaths && again.GenericDeaths == first.GenericDeaths && again.LegacyRemoveDeaths == first.LegacyRemoveDeaths;
+            }
+        Check(replay, "Q10_REPLAY_IS_BIT_EXACT", "six fixtures re-measured; closed-form fixtures and keyed rolls, no RNG state");
+        var sb = new System.Text.StringBuilder();
+        foreach (SeamRow r in Q10Rows)
+            sb.Append(r.Geometry).Append('|').Append(r.Class).Append('|').Append(r.Fixture).Append('|').Append(r.Position).Append('|').Append(r.N).Append('|').Append(r.K).Append('|')
+              .Append(r.PureDeaths.ToString("R", CultureInfo.InvariantCulture)).Append('|').Append(r.SeamDeaths.ToString("R", CultureInfo.InvariantCulture)).Append('|')
+              .Append(r.GenericDeaths.ToString("R", CultureInfo.InvariantCulture)).Append('|').Append(r.LegacyRemoveDeaths.ToString("R", CultureInfo.InvariantCulture)).Append('\n');
+        using (var sha = System.Security.Cryptography.SHA256.Create())
+            Console.WriteLine("Q10_MEASUREMENT_DIGEST sha256=" + BitConverter.ToString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(sb.ToString()))).Replace("-", "").ToLowerInvariant() + $" rows={Q10Rows.Count}");
+    }
+
+
+    // ====================================================================================================================
+    // PARITY-03 Q10, controller-level fixture: the STATIC PREDICTION for MixedDensityVerification.SeamTransition.
+    //
+    // The Unity harness builds a regular-grid stand (the same grid, ids and DBH pattern as DensityTrajectorySim.BuildStand), once pure
+    // Sitka and once with one Oak or one Beech at the same place and size, and puts each through the real ApplyAdultDensityMortality.
+    // This reproduces that stand offline, with the production Hegyi competition, and evaluates the SAME expected-signal criteria. So the
+    // criteria the Unity phase will apply were already shown to hold on the production arithmetic, and the Unity run has numbers to
+    // reproduce. It does NOT verify the controller: that needs the Unity run, which is queued behind RACK-V2-08 (claim #49).
+    // ExpectedSignal below and MixedDensityVerification.ExpectedSignal are the same arithmetic; change both or neither.
+    // ====================================================================================================================
+    sealed class SignalQ10 { public double Sitka, Generic, Boundary; public double Total => Sitka + Boundary + Generic; }
+
+    static SignalQ10 ExpectedSignal(IReadOnlyList<DensityStem> stems, float area)
+    {
+        var signal = new SignalQ10();
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, area, id => 1.0);   // roll 1.0 never kills: pressure and RD do not depend on the roll
+        signal.Boundary = sitka.BoundaryVictimIndices.Count;
+        var reference = stems.Where(x => x.Demand == GrowingSpaceDemandClass.Reference).ToList();
+        if (reference.Count > 0 && sitka.Pressure > 0.0)
+        {
+            var suppression = reference.Select(x => 1.0 - 1.0 / (1.0 + (float)x.CompetitionIndex / (float)SitkaSubsetDensitySignal.SitkaCi50)).ToList();
+            double meanVulnerability = suppression.Average(x => SitkaGrowthModel.Vulnerability(x));
+            signal.Sitka = suppression.Sum(x => SitkaGrowthModel.AnnualDeathProbability(sitka.Pressure, x, meanVulnerability));
+        }
+        if (MixedDensityModel.AnyNonReference(stems))
+        {
+            DensityComponentPlan plan = MixedDensityModel.PlanComponents(stems, area, new List<int>(), new List<int>(), id => 1.0);
+            signal.Generic = plan.GenericLossFraction * (stems.Count - signal.Sitka - signal.Boundary);
+        }
+        return signal;
+    }
+
+    static int GridCountForRd(float area, double targetRd)
+    {
+        int best = 20; double bestGap = double.MaxValue;
+        for (int count = 20; count <= 6000; count++)
+        {
+            double squares = 0.0;
+            for (int k = 0; k < count; k++) { double d = 24f + ((k * 7919) % 100) / 100f * 10f; squares += d * d; }
+            double gap = Math.Abs(SitkaGrowthModel.RelativeDensity(count / area, Math.Sqrt(squares / count)) - targetRd);
+            if (gap < bestGap) { bestGap = gap; best = count; }
+        }
+        return best;
+    }
+
+    static List<DensityStem> GridStems(float sideMeters, int count, int probe, SimSpecies probeSpecies)
+    {
+        var config = new SimConfig { SideMeters = sideMeters, DbhMinCm = 24f, DbhSpreadCm = 10f, StemsPerHectare = count / (sideMeters * sideMeters / 10000f),
+            SpeciesOf = k => k == probe ? probeSpecies : SimSpecies.Sitka };
+        var trees = DensityTrajectorySim.BuildStand(config);
+        if (trees.Count != count) throw new InvalidOperationException("grid stand has " + trees.Count + " stems, expected " + count);
+        float[] ci = DensityTrajectorySim.CompetitionIndices(trees);
+        return trees.Select((t, i) => new DensityStem(t.Id, t.Species.Demand, t.Dbh, ci[i])).ToList();
+    }
+
+    static void ControllerFixturePredictionQ10()
+    {
+        bool boundaryInactive = true, absOk = true, relOk = true, routeOk = true; int fixtures = 0;
+        double worstAbs = 0, worstRel = 0;
+        foreach (var (geometry, side, area) in new[] { ("Legacy40", 40f, Legacy40AreaHa), ("Enlarged80", 80f, Enlarged80AreaHa) })
+        {
+            int count = GridCountForRd(area, 0.78);
+            var pureStems = GridStems(side, count, -1, SimSpecies.Sitka);
+            SignalQ10 pure = ExpectedSignal(pureStems, area);
+            boundaryInactive &= pure.Boundary == 0;
+            routeOk &= MixedDensityModel.SelectRoute(true, MixedDensityModel.AnyNonReference(pureStems)) == DensityRoute.LegacySitkaExact;
+            foreach (var species in new[] { SimSpecies.Oak, SimSpecies.Beech })
+                foreach (int probe in new[] { 0, count / 2, count - 1 })
+                {
+                    var seamStems = GridStems(side, count, probe, species);
+                    SignalQ10 seam = ExpectedSignal(seamStems, area);
+                    boundaryInactive &= seam.Boundary == 0;
+                    routeOk &= MixedDensityModel.SelectRoute(true, MixedDensityModel.AnyNonReference(seamStems)) == DensityRoute.SpeciesAwareOccupancy;
+                    double delta = seam.Total - pure.Total, rel = delta / Math.Max(1e-12, pure.Total);
+                    fixtures++;
+                    worstAbs = Math.Max(worstAbs, Math.Abs(delta)); worstRel = Math.Max(worstRel, Math.Abs(rel));
+                    absOk &= Math.Abs(delta) <= SeamAbsoluteStems + 1e-12;
+                    relOk &= Math.Abs(rel) <= SeamRelative + 1e-12;
+                    Console.WriteLine($"Q10_CONTROLLER_PREDICTION {geometry} stems={count} probe={probe} {species.Prefix} RD={F(SitkaRd(pureStems, area), "0.000")} " +
+                        $"expectedDeaths pure={F(pure.Total, "0.000")} seam={F(seam.Total, "0.000")} (sitka {F(seam.Sitka, "0.000")} + generic {F(seam.Generic, "0.000")}) " +
+                        $"delta={F(delta, "0.000")} relative={F(rel * 100, "0.00")}% occupancy={F(MixedDensityModel.Occupancy(seamStems, area), "0.000")}");
+                }
+        }
+        Check(boundaryInactive && routeOk, "Q10_CONTROLLER_FIXTURE_PREDICTION_ROUTES_ARE_LEGACY_THEN_OCCUPANCY_AND_THE_SITKA_BOUNDARY_STAGE_IS_INACTIVE", $"fixtures={fixtures + 2}");
+        Check(fixtures == 12 && absOk && relOk, "Q10_CONTROLLER_FIXTURE_PREDICTION_EXPECTED_SIGNAL_IS_CONTINUOUS_ACROSS_THE_0_TO_1_TRANSITION_FOR_OAK_AND_BEECH_ON_BOTH_GEOMETRIES",
+            $"fixtures={fixtures} worstAbs={F(worstAbs, "0.000")} stems/yr (allowance {SeamAbsoluteStems}) worstRelative={F(worstRel * 100, "0.00")}% (allowance {SeamRelative * 100}%); this is the prediction the Unity run must reproduce, not controller evidence");
+    }
+
     // ---------- C3, C4, C5: addition design, shielding, the last broadleaf ----------
     static List<DensityStem> OldSitka(Random r, int n, double dbhMin, double dbhSpread, double ciMin, double ciSpread)
     {
@@ -727,6 +1230,8 @@ public static class CompositeDensityOfflineCheck
         Identities();
         ResponseShape();
         ContinuityReplacement();
+        SeamContinuityQ10();
+        ControllerFixturePredictionQ10();
         Shielding();
         GenericComponent();
         CanopyBudget();

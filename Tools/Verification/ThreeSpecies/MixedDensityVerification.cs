@@ -30,6 +30,12 @@ using UnityEditor.SceneManagement;
 //     their occupancy falls; the species-aware step never computes a Sitka relative density.
 //   - Mixed stands: dimensionless occupancy follows the demand classes and equals the pure model's prediction
 //     from the real trees; replay is exact; below the onset nothing dies.
+//   - SEAM (PARITY-03 Q10, SeamTransition): the 0 -> 1 non-Reference transition on the real controller call path. The same grid stand
+//     is built pure Sitka and with exactly one Oak or one Beech at the same place and size; the pure stand must take the legacy
+//     route, the other the species-aware route, the realised deaths must equal the production arithmetic applied to the controller's
+//     own stems, and the EXPECTED annual deaths must not jump across the transition. Q10 status: written and type-checked offline,
+//     NOT YET RUN IN UNITY (queued behind RACK-V2-08, claim #49). The offline prediction it must reproduce is printed by
+//     OfflineLogic/CompositeDensityOfflineCheck.cs as Q10_CONTROLLER_PREDICTION lines.
 public static class MixedDensityVerification
 {
 #if UNITY_EDITOR
@@ -445,6 +451,142 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         }
     }
 
+    // ---------- PARITY-03 Q10: the 0 -> 1 non-Reference transition on the real controller ----------
+
+    // VERIFICATION TOLERANCES (GAMEPLAY CALIBRATION, numerical continuity, not forestry evidence). Same numbers as
+    // OfflineLogic/CompositeDensityOfflineCheck.cs (SeamAbsoluteStems, SeamRelative); the offline suite shows they hold for this exact fixture.
+    private const double SeamAbsoluteStems = 0.5;
+    private const double SeamRelative = 0.10;
+    private const int SeamDrawSeeds = 6;
+    private const int SeamBaseSeed = 20261029;
+
+    // The expected annual deaths the production arithmetic asks of a stand BEFORE any draw: the Sitka component's per-stem hazard probabilities
+    // (plus its boundary stage) and the generic component's loss fraction times the stems left standing. Identical to ExpectedSignal in the
+    // offline check. Needs no roll (a roll of 1.0 never kills), so it is exact and noise-free.
+    private struct Signal { public double Sitka, Boundary, Generic; public double Total => Sitka + Boundary + Generic; }
+
+    private static Signal ExpectedSignal(IReadOnlyList<DensityStem> stems, float area)
+    {
+        var signal = new Signal();
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, area, id => 1.0);
+        signal.Boundary = sitka.BoundaryVictimIndices.Count;
+        List<DensityStem> reference = stems.Where(x => x.Demand == GrowingSpaceDemandClass.Reference).ToList();
+        if (reference.Count > 0 && sitka.Pressure > 0.0)
+        {
+            List<double> suppression = reference.Select(x => 1.0 - 1.0 / (1.0 + (float)x.CompetitionIndex / (float)SitkaSubsetDensitySignal.SitkaCi50)).ToList();
+            double meanVulnerability = suppression.Average(x => SitkaGrowthModel.Vulnerability(x));
+            signal.Sitka = suppression.Sum(x => SitkaGrowthModel.AnnualDeathProbability(sitka.Pressure, x, meanVulnerability));
+        }
+        if (MixedDensityModel.AnyNonReference(stems))
+        {
+            DensityComponentPlan plan = MixedDensityModel.PlanComponents(stems, area, new List<int>(), new List<int>(), id => 1.0);
+            signal.Generic = plan.GenericLossFraction * (stems.Count - signal.Sitka - signal.Boundary);
+        }
+        return signal;
+    }
+
+    // What the production arithmetic says one annual step must do to these exact stems with the controller's own rolls: the victims the
+    // original Sitka process takes from the Sitka stems and, if any stem is not Reference, the generic component's victims.
+    private void PredictedVictims(List<DensityStem> stems, out int total, out int sitkaDeaths, out int genericDeaths)
+    {
+        Func<string, double> sitkaRoll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-" + id, e.EcologicalYear, e.SimulationSeed);
+        Func<string, double> genericRoll = id => SimulationRandom.Roll(e.RngModelVersion, "ADULT-MORT-GENERIC-" + id, e.EcologicalYear, e.SimulationSeed);
+        SitkaComponentResult sitka = SitkaSubsetDensitySignal.Resolve(stems, e.StandAreaHectares, sitkaRoll);
+        sitkaDeaths = sitka.Deaths;
+        genericDeaths = 0;
+        if (MixedDensityModel.AnyNonReference(stems))
+            genericDeaths = MixedDensityModel.PlanComponents(stems, e.StandAreaHectares, sitka.HazardVictimIndices, sitka.BoundaryVictimIndices, genericRoll).GenericDeaths;
+        total = sitkaDeaths + genericDeaths;
+    }
+
+    // A grid stand whose Sitka relative density is closest to the target on THIS geometry (the live area), found with the pure model.
+    private int SeamStemCount(double targetRd)
+    {
+        int best = 20; double bestGap = double.MaxValue;
+        for (int count = 20; count <= 6000; count++)
+        {
+            double squares = 0.0;
+            for (int k = 0; k < count; k++) { double d = DbhOf(k, 24f, 10f); squares += d * d; }
+            double gap = Math.Abs(SitkaGrowthModel.RelativeDensity(count / e.StandAreaHectares, Math.Sqrt(squares / count)) - targetRd);
+            if (gap < bestGap) { bestGap = gap; best = count; }
+        }
+        return best;
+    }
+
+    private IEnumerator SeamTransition()
+    {
+        string geometry = StandGeometryModel.Label(e.StandGeometryModelVersion);
+        float area = e.StandAreaHectares;
+        int count = SeamStemCount(0.78);
+        Func<int, TreeSpeciesDefinition> pureSitka = _ => sitka;
+
+        // ---- pure Sitka end of the transition ----
+        Stand(2, pureSitka, count, 24f, 10f);
+        yield return null;
+        List<DensityStem> pureStems = StemsOfLiving();
+        Signal pureSignal = ExpectedSignal(pureStems, area);
+        bool pureRoute = true, pureExact = true;
+        double pureRealised = 0.0;
+        for (int s = 0; s < SeamDrawSeeds; s++)
+        {
+            Stand(2, pureSitka, count, 24f, 10f);
+            e.SimulationSeed = SeamBaseSeed + s;
+            List<DensityStem> stems = StemsOfLiving();
+            PredictedVictims(stems, out int predictedTotal, out int predictedSitka, out _);
+            AdultMortalityAccount a = DensityStep();
+            pureRoute &= a.Route == DensityRoute.LegacySitkaExact && a.Occupancy == 0.0 && a.LivingBefore == count;
+            pureExact &= a.Deaths == predictedTotal && a.HazardDeaths + a.BoundaryDeaths == predictedSitka;
+            pureRealised += a.Deaths / (double)SeamDrawSeeds;
+            yield return null;
+        }
+        Pass("Q10_CONTROLLER_PURE_SITKA_TAKES_THE_LEGACY_ROUTE_AND_ITS_DEATHS_EQUAL_THE_SITKA_COMPONENT_ARITHMETIC", pureRoute && pureExact && pureSignal.Boundary == 0 && pureSignal.Total > 0.0,
+            $"geometry={geometry} stems={count} sitkaRd={F(SitkaGrowthModel.RelativeDensity(count / area, Math.Sqrt(pureStems.Sum(x => (double)x.DbhCm * x.DbhCm) / count)))} " +
+            $"expectedDeaths={F(pureSignal.Total, "0.000")} realisedMean{SeamDrawSeeds}={F(pureRealised, "0.00")} route={pureRoute} deathsEqualPrediction={pureExact}");
+
+        // ---- one Oak, one Beech: three positions each ----
+        foreach ((string label, TreeSpeciesDefinition species) in new[] { ("OAK", oak), ("BEECH", beech) })
+        {
+            bool routeOk = true, exact = true, continuous = true, sitkaIsLegacyOnSitkaStems = true;
+            double worstAbs = 0.0, worstRel = 0.0;
+            var lines = new List<string>();
+            foreach (int probe in new[] { 0, count / 2, count - 1 })
+            {
+                Func<int, TreeSpeciesDefinition> oneStem = k => k == probe ? species : sitka;
+                Stand(2, oneStem, count, 24f, 10f);
+                yield return null;
+                List<DensityStem> seamStems = StemsOfLiving();
+                Signal seamSignal = ExpectedSignal(seamStems, area);
+                double delta = seamSignal.Total - pureSignal.Total, relative = delta / pureSignal.Total;
+                worstAbs = Math.Max(worstAbs, Math.Abs(delta)); worstRel = Math.Max(worstRel, Math.Abs(relative));
+                continuous &= Math.Abs(delta) <= SeamAbsoluteStems + 1e-12 && Math.Abs(relative) <= SeamRelative + 1e-12 && seamSignal.Boundary == 0;
+                // the Sitka component must be the original process on the Sitka stems alone: removing the probe stem from the pure list gives the same Sitka expectation
+                List<DensityStem> sitkaOnly = seamStems.Where(x => x.Demand == GrowingSpaceDemandClass.Reference).ToList();
+                sitkaIsLegacyOnSitkaStems &= Math.Abs(ExpectedSignal(sitkaOnly, area).Sitka - seamSignal.Sitka) <= 1e-9;
+                double realised = 0.0;
+                for (int s = 0; s < SeamDrawSeeds; s++)
+                {
+                    Stand(2, oneStem, count, 24f, 10f);
+                    e.SimulationSeed = SeamBaseSeed + s;
+                    List<DensityStem> stems = StemsOfLiving();
+                    PredictedVictims(stems, out int predictedTotal, out int predictedSitka, out int predictedGeneric);
+                    AdultMortalityAccount a = DensityStep();
+                    routeOk &= a.Route == DensityRoute.SpeciesAwareOccupancy && a.RelativeDensity == 0.0 && a.LivingBefore == count;
+                    exact &= a.Deaths == predictedTotal && a.SitkaComponentDeaths == predictedSitka && a.GenericDeaths == predictedGeneric;
+                    realised += a.Deaths / (double)SeamDrawSeeds;
+                    yield return null;
+                }
+                Debug.Log($"MIXED_DENSITY_SEAM_MEASUREMENT {geometry} stems={count} probe={probe} {label} expectedDeaths pure={F(pureSignal.Total, "0.000")} seam={F(seamSignal.Total, "0.000")} " +
+                    $"(sitka {F(seamSignal.Sitka, "0.000")} + generic {F(seamSignal.Generic, "0.000")}) delta={F(delta, "0.000")} relative={F(relative * 100, "0.00")}% " +
+                    $"realisedMean{SeamDrawSeeds} pure={F(pureRealised, "0.00")} seam={F(realised, "0.00")} (report only: {SeamDrawSeeds} paired draws are too few to gate)");
+            }
+            Pass($"Q10_CONTROLLER_ONE_{label}_SWITCHES_TO_THE_OCCUPANCY_ROUTE_AND_ITS_DEATHS_EQUAL_THE_COMPONENT_ARITHMETIC_ON_THE_REAL_STEMS", routeOk && exact,
+                $"geometry={geometry} routeOccupancy={routeOk} sitkaAndGenericDeathsEqualPrediction={exact} draws={3 * SeamDrawSeeds}");
+            Pass($"Q10_CONTROLLER_ONE_{label}_LEAVES_THE_SITKA_COMPONENT_AS_THE_ORIGINAL_PROCESS_ON_THE_SITKA_STEMS", sitkaIsLegacyOnSitkaStems, $"geometry={geometry}");
+            Pass($"Q10_CONTROLLER_EXPECTED_DENSITY_MORTALITY_IS_CONTINUOUS_ACROSS_THE_0_TO_1_{label}_TRANSITION", continuous,
+                $"geometry={geometry} positions=3 worstAbs={F(worstAbs, "0.000")} stems/yr (allowance {SeamAbsoluteStems}) worstRelative={F(worstRel * 100, "0.00")}% (allowance {SeamRelative * 100}%) VERIFICATION TOLERANCE");
+        }
+    }
+
     // ---------- TESTS F and G: below and above the generic limits on the real controller ----------
 
     private IEnumerator Thresholds()
@@ -568,6 +710,7 @@ public sealed class MixedDensityVerificationRunner : MonoBehaviour
         yield return PureSitkaExact();
         yield return PureBroadleaf();
         yield return Mixtures();
+        yield return SeamTransition();
         yield return Thresholds();
         yield return SaveLoad();
         yield return Anchors();

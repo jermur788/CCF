@@ -7,7 +7,10 @@ unmutated control does not show, or crash. The control itself need not be fully 
 it still carries known reduced-model R2 failures (single-year all-stem loss 0.407-0.423 against 0.40); those names are read from
 the control run and are not counted as kills. A survivor is a hole in the suite and stops the run. Nothing is written inside the repository.
 
-Usage: run_composite_mutations.py [--out DIR]
+Usage: run_composite_mutations.py [--out DIR] [--only NAME ...] [--check-file PATH]
+
+--check-file runs the mutants against an alternative copy of CompositeDensityOfflineCheck.cs (for example the version from before PARITY-03 Q10) so the
+same mutants can be shown to survive the old suite and die in the strengthened one. The Q10 mutants are the last block of MUTANTS.
 """
 import argparse
 import json
@@ -19,6 +22,7 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+CHECK_FILE = HERE / "CompositeDensityOfflineCheck.cs"
 ROOT = HERE.parents[3]
 FP = ROOT / "Assets/ForestPrototype"
 SOURCES = ["SitkaGrowthModel.cs", "MixedDensityModel.cs", "MixedDensityModel.Composite.cs", "SitkaSubsetDensitySignal.cs"]
@@ -85,6 +89,46 @@ MUTANTS = {
     "response-capped-at-an-occupancy": ("MixedDensityModel.Composite.cs",
         "double excess = Math.Max(0.0, occupancy - OnsetOccupancy);", "double excess = Math.Min(2.0, Math.Max(0.0, occupancy - OnsetOccupancy));",
         "a hidden maximum occupancy beyond which nothing changes"),
+
+    # ---- PARITY-03 Q10: the seam between a pure-Sitka stand and a stand with exactly one non-Reference stem ----
+    # Production mutants that move the seam by an amount the old absolute tolerance (0.005) cannot see.
+    "q10-seam-offset-0.4-percent": ("MixedDensityModel.Composite.cs",
+        "plan.GenericLossFraction = plan.GenericResponse * plan.NonReferenceShare;",
+        "plan.GenericLossFraction = plan.NonReferenceShare > 0.0 ? plan.GenericResponse * plan.NonReferenceShare + 0.004 : 0.0;",
+        "any non-Reference stem adds a flat 0.4 % of the stems to the annual loss (a route cliff of 0.004, below the old 0.005)"),
+    "q10-lone-non-reference-stem-shielded": ("MixedDensityModel.Composite.cs",
+        "        quota = Math.Min(plan.EligibleForGeneric, quota);\n",
+        "        quota = Math.Min(plan.EligibleForGeneric, quota);\n        { int nonReferenceStems = 0; foreach (DensityStem s in stems) if (s.Demand != GrowingSpaceDemandClass.Reference) nonReferenceStems++; if (nonReferenceStems == 1) quota = 0; }\n",
+        "the first non-Reference stem is never touched by the generic component (the seam loses the generic term)"),
+    "q10-lone-non-reference-stem-double-expectation": ("MixedDensityModel.Composite.cs",
+        "        double expectedCount = plan.GenericLossFraction * plan.EligibleForGeneric;\n",
+        "        double expectedCount = plan.GenericLossFraction * plan.EligibleForGeneric;\n        { int nonReferenceStems = 0; foreach (DensityStem s in stems) if (s.Demand != GrowingSpaceDemandClass.Reference) nonReferenceStems++; if (nonReferenceStems == 1) expectedCount *= 2.0; }\n",
+        "the first non-Reference stem draws twice its expected generic loss (a small, class-independent seam step)"),
+    "q10-sitka-subset-keeps-the-broadleaf-in-the-denominator": ("SitkaSubsetDensitySignal.cs",
+        "result.RelativeDensity = SitkaGrowthModel.RelativeDensity(subset.Count / areaHectares, Math.Sqrt(squares / subset.Count));",
+        "result.RelativeDensity = SitkaGrowthModel.RelativeDensity(subset.Count / areaHectares, Math.Sqrt(squares / (subset.Count + (stems.Count > subset.Count ? 1 : 0))));",
+        "once any non-Reference stem is present the Sitka quadratic mean divides by one extra stem (a few-percent step at the seam)"),
+    # Fixture and criteria defects: they mutate THE CHECK, not production, and the strengthened suite must notice that its own evidence got weaker.
+    "q10-fixture-competition-index-homogenised": ("CompositeDensityOfflineCheck.cs",
+        "double ci = 0.4 + 14.0 * (1.0 - d) * (1.0 - d) * (0.5 + u3);", "double ci = 3.0;",
+        "every stem has the same competition index again (the degenerate fixture of the old sweep)"),
+    "q10-fixture-dbh-homogenised": ("CompositeDensityOfflineCheck.cs",
+        "float dbh = (float)(25.0 + 13.0 * (2.0 * d - 1.0));", "float dbh = 25f;",
+        "every stem has the same DBH again"),
+    "q10-single-geometry": ("CompositeDensityOfflineCheck.cs",
+        'static readonly (string name, float area)[] Geometries = { ("Legacy40", Legacy40AreaHa), ("Enlarged80", Enlarged80AreaHa) };',
+        'static readonly (string name, float area)[] Geometries = { ("Legacy40", Legacy40AreaHa) };',
+        "the Enlarged80 area silently dropped from the sweep"),
+    "q10-single-replacement-class": ("CompositeDensityOfflineCheck.cs",
+        '{ ("Intermediate(Beech)", GrowingSpaceDemandClass.Intermediate), ("High(Oak)", GrowingSpaceDemandClass.High) };',
+        '{ ("High(Oak)", GrowingSpaceDemandClass.High) };',
+        "the Intermediate (Beech-class) replacement silently dropped from the sweep"),
+    "q10-stale-enlarged80-area": ("CompositeDensityOfflineCheck.cs",
+        "const float Legacy40AreaHa = 0.16f, Enlarged80AreaHa = 0.64f;", "const float Legacy40AreaHa = 0.16f, Enlarged80AreaHa = 0.40f;",
+        "a stale hard-coded Enlarged80 area that no longer matches the production geometry"),
+    "q10-seam-tolerance-reverted-to-the-old-one": ("CompositeDensityOfflineCheck.cs",
+        "const double SeamAbsoluteStems = 0.5; ", "const double SeamAbsoluteStems = 1000.0; ",
+        "the stem-scaled seam bound relaxed to nothing (a weakened criterion must be noticed)"),
 }
 
 
@@ -92,11 +136,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "ccf-density-v3-mutations"))
     parser.add_argument("--only", action="append", default=[], help="run only the named mutant(s) (after the control)")
+    parser.add_argument("--check-file", default=None, help="use this file instead of CompositeDensityOfflineCheck.cs (e.g. the pre-Q10 version)")
     args = parser.parse_args()
     dotnet = shutil.which("dotnet") or sys.exit("dotnet SDK not found")
     root = Path(args.out)
     root.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1", CCF_RECRUITMENT_SERIES=str(HERE / "recruitment-series-v2.csv"), CCF_REPO_ROOT=str(ROOT))
+    global CHECK_FILE
+    CHECK_FILE = Path(args.check_file).resolve() if args.check_file else HERE / "CompositeDensityOfflineCheck.cs"
     results = []
     survivors = []
     # the unmutated control must pass first, or "killed" means nothing
@@ -131,7 +178,12 @@ def run_one(name, mutation, work, dotnet, env, expect_pass, known=frozenset()):
         (work / f).write_text(text)
         files.append(work / f)
     for f in TOOLS:
-        shutil.copyfile(HERE / f, work / f)
+        source = CHECK_FILE if f == "CompositeDensityOfflineCheck.cs" else HERE / f
+        text = source.read_text()
+        if mutation and mutation[0] == f:
+            assert mutation[1] in text, ("mutation target not found in the check", name)
+            text = text.replace(mutation[1], mutation[2], 1)
+        (work / f).write_text(text)
         files.append(work / f)
     items = "".join('<Compile Include="%s" />' % f for f in files)
     (work / "mutant.csproj").write_text(
