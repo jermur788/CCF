@@ -466,6 +466,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
         legacy.version = 14;
         legacy.regenerationModel = RegenerationModel.Legacy;
         legacy.growthModel = GrowthModel.Legacy;
+        legacy.scenarioOne.objectiveAchievements.Clear(); // A pre-v22 save cannot carry recorded objective history.
         Check(saves.LoadData(legacy, false), "v14-shaped save rejected");
         yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 0 && ecology.Browsing.ProtectedAreas.Count == 0 && manager.Shelters.Count == 0, "v14 restore kept protection");

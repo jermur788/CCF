@@ -389,6 +389,13 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
         ForestSaveData preV22 = Clone(goodData); preV22.version = 21;
         yield return Refuse("pre-v22 save carrying records", JsonUtility.ToJson(preV22), preV22, "older than version 22");
         ForestSaveData v20Records = Clone(goodData); v20Records.version = 20;
+        // Remove post-v20 rack state so this fixture reaches the objective-history refusal.
+        v20Records.scenarioOne.rackPlanningModel = RackPlanningModel.Legacy;
+        v20Records.scenarioOne.rackPlanConfirmed = false;
+        v20Records.scenarioOne.nextRackId = 1;
+        v20Records.scenarioOne.racks.Clear();
+        foreach (ScenarioOneWorkOrder rackOrder in v20Records.scenarioOne.workOrders)
+            rackOrder.rackId = 0;
         yield return Refuse("v20 save carrying records", JsonUtility.ToJson(v20Records), v20Records, "older than version 22");
         ForestSaveData dup = Clone(goodData); dup.scenarioOne.objectiveAchievements.Add(Clone(dup.scenarioOne.objectiveAchievements[0]));
         yield return Refuse("duplicate ids", JsonUtility.ToJson(dup), dup, "appears twice");
@@ -428,7 +435,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
         yield return Refuse("record missing target", goodCompact.Replace(array.Value, noTarget), null, "missing required fields");
         string noId = Regex.Replace(array.Value, "\"objectiveId\":\"[^\"]*\",", "");
         yield return Refuse("record missing objectiveId", goodCompact.Replace(array.Value, noId), null, "missing required fields");
-        yield return Refuse("duplicate objectiveAchievements keys", goodCompact.Replace(array.Value, array.Value + ",\"objectiveAchievements\":[]"), null, "invalid version 22 objective history JSON");
+        yield return Refuse("duplicate objectiveAchievements keys", goodCompact.Replace(array.Value, array.Value + ",\"objectiveAchievements\":[]"), null, "invalid stand geometry JSON");
         yield return Refuse("duplicate keys inside a record", goodCompact.Replace("\"objectiveId\":", "\"objectiveId\":\"x\",\"objectiveId\":"), null, "");
         yield return Refuse("parse error: truncated", goodCompact.Substring(0, goodCompact.Length / 2), null, "unreadable");
         yield return Refuse("parse error: not JSON", "{ this is not json", null, "unreadable");
