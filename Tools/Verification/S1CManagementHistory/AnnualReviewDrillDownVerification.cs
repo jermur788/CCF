@@ -207,7 +207,8 @@ public sealed class AnnualReviewDrillDownRunner : MonoBehaviour
             string ht = Text(harvest);
             Check(ht.Contains("No money is recorded for a single order or tree.") && !ht.Contains("€")
                 && !ht.Contains("contractor cost") && !ht.Contains("materials") && !ht.Contains("your time"), "NO_PER_ORDER_HARVEST_MONEY_" + target);
-            Check(harvest.childCount == 13 && !ht.Contains("not recorded"), "ALL_TWELVE_RECORDED_TARGETS_PRESENT_" + target);
+            // 12 task entries + the grouped-harvest note + the T-04 provenance row (RECORDED) at the top.
+            Check(harvest.childCount == 14 && !ht.Contains("not recorded"), "ALL_TWELVE_RECORDED_TARGETS_PRESENT_" + target);
             yield return RecordState("harvest-expanded-" + target);
             yield return Shot("harvest-expanded", false);
             yield return FocusShot("harvest-expanded-scroll", harvest.Children().Last());
