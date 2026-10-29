@@ -351,10 +351,11 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
 
     private static HistoryProvenance? ChipKindBefore(Label text)
     {
+        // The label shares a row with its text, or (name/value lines) sits one level up beside the wrapper holding the text.
         VisualElement row = text.parent;
-        if (row == null) return null;
-        foreach (VisualElement child in row.Children())
-            if (child.ClassListContains("prov")) return KindOfChip(child);
+        for (int depth = 0; depth < 3 && row != null && !row.ClassListContains("card") && !row.ClassListContains("column"); depth++, row = row.parent)
+            foreach (VisualElement child in row.Children())
+                if (child.ClassListContains("prov")) return KindOfChip(child);
         return null;
     }
 
@@ -373,7 +374,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         {
             VisualElement row = chip.parent;
             if (row.Children().Count(c => c.ClassListContains("prov")) != 1) rowsWithMany++;
-            foreach (Label text in row.Children().OfType<Label>().Where(t => !t.ClassListContains("prov") && Visible(t)))
+            foreach (Label text in row.Query<Label>().ToList().Where(t => !t.ClassListContains("prov") && Visible(t)))
             {
                 if (text.worldBound.xMin < chip.worldBound.xMax - 1.5f && text.worldBound.yMin < chip.worldBound.yMax - 1.5f && text.worldBound.yMax > chip.worldBound.yMin + 1.5f) overlaps++;
                 Vector2 measured = text.MeasureTextSize(text.text, text.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
@@ -393,7 +394,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             if (!(text.ClassListContains("body") || text.ClassListContains("muted"))) continue;
             if (text.GetFirstAncestorOfType<Button>() != null) continue;
             if (AncestorWithClass(text, "work-detail") != null || AncestorWithClass(text, "modal-footer") != null || AncestorWithClass(text, "modal-header") != null) continue;
-            if (text.parent.Children().Any(c => c.ClassListContains("prov"))) continue;
+            if (ChipKindBefore(text).HasValue) continue;
             if (UnlabelledAllowed.Any(a => text.text.StartsWith(a)) || text.text == tutorialHint) continue;
             unlabelled.Add(text.text);
         }
