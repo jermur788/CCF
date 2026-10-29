@@ -2,8 +2,8 @@
 
 Parent: #91 PLAYER-TEST-OVERNIGHT-01
 Claim: #121
-Lane: ChatGPT Code / local T3 execution
-Status: PREPARED — BLOCKED ON #113 + browser #120 readiness verdict
+Lane: T3 / Claude Code local execution
+Status: RELEASED FOR EXECUTION
 
 ## Purpose
 
@@ -11,24 +11,26 @@ Implement the separate prescription proposal state and prescription approval bou
 
 ## Difficulty
 
-High. This task crosses proposal generation, provenance, work-order creation and the approval boundary, and must preserve manual player authority.
+5/5. High-complexity cross-surface implementation/verification task spanning proposal generation, provenance, work-order creation, approval boundaries, conflict precedence and Unity/runtime verification.
 
 ## Preferred model/provider
 
-ChatGPT Code / OpenAI 6.1 Sol.
+**Claude Sonnet 5.5 Ultra Code** is authorised and preferred for this task, with one primary production writer. Escalate to Claude Opus 5.5 Low only if architecture/conflict reasoning requires it. OpenAI 6.1 Sol remains suitable but is not a gating requirement.
 
-## Dependencies
+## Released dependencies
 
-Do not start until:
+The former gates are now satisfied:
 
-1. #113 returns `MFM-06 V23 INTEGRATED — READY FOR MFM-07` on an exact umbrella SHA.
-2. Browser #120 returns `MFM-07 READY FOR CODE EXECUTION — DEPENDENCIES AND OWNERSHIP RECONCILED` or an equivalent explicit Manager approval.
-3. Live `active-tasks.md` confirms no conflicting writer on the files/interfaces MFM-07 needs.
+1. #113 returned `MFM-06 V23 INTEGRATED — READY FOR MFM-07`.
+2. Browser #120 returned `MFM-07 READY FOR CODE EXECUTION — DEPENDENCIES AND OWNERSHIP RECONCILED`.
+3. Exact merged and Unity-qualified production base is **`b971f4da0540e606bfee9702b0c99f81a0a89355`**.
 
-Root the worktree from the exact post-#113 umbrella candidate, not from historical `ac876a6`.
+The integration branch is published at docs-only successor `7608f02cb8da1fabd8b78fd5aaf45b0c32086f67`, but production work must root from the exact qualified candidate `b971f4d` unless a later Manager-approved docs-only descendant is explicitly used.
 
 Suggested branch: `feature/mfm-v1-proposal-approval-boundary-v1`
 Suggested worktree: `/media/jer/Videos/CCF-MFM-07`
+
+Before edits, refresh live `Docs/Project/coordination/active-tasks.md`, #91/#106/#113/#120/#121, verify clean exact base and ownership, then mark #121 `[RUNNING]` with actual model/provider, branch/worktree and starting HEAD.
 
 ## Binding authority
 
@@ -71,7 +73,7 @@ Implement only the proposal-state and prescription-approval boundary plus the mi
 - no MFM-09 teaching-sequence insertion;
 - no hidden automatic approval or execution;
 - no automatic Crop Tree confirmation;
-- no schema bump unless v23 is demonstrably insufficient and the task returns to the Manager first;
+- no schema bump or save-validator edit unless v23 is demonstrably insufficient and the task stops and returns to the Manager first;
 - no Oak/Beech Sitka-rule transfer;
 - no Windows build.
 
@@ -117,4 +119,4 @@ Success token:
 
 ## Copy/paste dispatch
 
-Run claim #121 from `Docs/Handoffs/MFM-07/TASK-PACKET.md` only after #113 and browser #120 release it. Use ChatGPT Code / OpenAI 6.1 Sol. Root from the exact post-MFM-06 integration SHA. Implement only separate proposal state and prescription approval, preserving Work Plan as the commitment gate. Before writing any prescription-generated order, validate its coverage unit and Crop Tree against its prescription and fail closed on mismatch. Publish `Docs/Handoffs/MFM-07/HANDOFF.md`. No Windows build.
+Run claim #121 from `Docs/Handoffs/MFM-07/TASK-PACKET.md` in Claude Code using Claude Sonnet 5.5 Ultra Code unless a stronger model is justified. Root production work from exact qualified post-MFM-06 candidate `b971f4da0540e606bfee9702b0c99f81a0a89355`. Implement only separate proposal state and prescription approval, preserving Work Plan as the commitment gate. Before writing any prescription-generated order, validate its prescription, coverage unit and Crop Tree and fail closed on mismatch with no partial mutation. Publish `Docs/Handoffs/MFM-07/HANDOFF.md`. No Windows build.
