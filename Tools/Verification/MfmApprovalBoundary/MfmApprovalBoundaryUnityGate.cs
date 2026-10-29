@@ -302,7 +302,9 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
         Refused("an order with no Crop Tree is refused", manager.CheckPrescriptionLink(1, good.TargetTreeId, good.CoverageUnitId, "", good.ReasonCode), Approval.Refusal.CropTreeMissing);
         Refused("a sample Crop Tree is not a valid Crop Tree for an order", manager.CheckPrescriptionLink(1, good.TargetTreeId, good.CoverageUnitId, SampleCrops[0], good.ReasonCode), Approval.Refusal.CropTreeNotConfirmed);
         Refused("an unconfirmed tree is not a valid Crop Tree", manager.CheckPrescriptionLink(1, good.TargetTreeId, good.CoverageUnitId, good.TargetTreeId, good.ReasonCode), Approval.Refusal.CropTreeNotConfirmed);
-        Refused("a tree the player already ordered is refused", manager.CheckPrescriptionLink(1, manualId, preview.Links[0].CoverageUnitId, preview.Links[0].CropTreeId, good.ReasonCode), Approval.Refusal.TargetHasManualState);
+        Approval.LinkCheck ordered = manager.CheckPrescriptionLink(1, manualId, preview.Links[0].CoverageUnitId, preview.Links[0].CropTreeId, good.ReasonCode);
+        Check(!ordered.Ok && (ordered.Refusal == Approval.Refusal.TargetHasManualState || ordered.Refusal == Approval.Refusal.UnitNotCovered) && ordered.Message.Length <= 220,
+            "a tree the player already ordered is refused (its unit now excluded for player management, or the tree held)", ordered.Refusal + " " + ordered.Message);
         Refused("an unknown reason code is refused", manager.CheckPrescriptionLink(1, good.TargetTreeId, good.CoverageUnitId, good.CropTreeId, 0), Approval.Refusal.ReasonUnknown);
         Refused("an unknown tree is refused", manager.CheckPrescriptionLink(1, "P-none", good.CoverageUnitId, good.CropTreeId, good.ReasonCode), Approval.Refusal.TargetMissing);
         Check(Identity() == probeIdentity, "link checks are read-only");
