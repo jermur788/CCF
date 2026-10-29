@@ -99,6 +99,17 @@ public sealed partial class ScenarioOneManager
         return Approval.Propose(ctx);
     }
 
+    // The mandatory pre-write link check, exposed for one order: does this prescription, coverage unit and Crop Tree still hold for the tree
+    // in the world as it stands now? ApprovePrescription runs the same check on every order it would write. Read-only.
+    public Approval.LinkCheck CheckPrescriptionLink(int prescriptionId, string targetTreeId, string coverageUnitId, string cropTreeId, int reasonCode)
+    {
+        PrescriptionSaveData record = FindPrescription(prescriptionId);
+        if (record == null) return new Approval.LinkCheck(Approval.Refusal.NoPrescription, "The prescription does not exist.");
+        Approval.Context ctx = BuildApprovalContext(record, out string problem);
+        if (ctx == null) return new Approval.LinkCheck(Approval.Refusal.SampleNotDerived, problem);
+        return Approval.ValidateLink(ctx, new Approval.OrderLink(prescriptionId, targetTreeId, coverageUnitId, cropTreeId, reasonCode));
+    }
+
     // ----------------------------------------------------------------------------------------------------------------------- approve
 
     // Prescription approval: turns the prescription's validated proposals into ordinary PENDING felling orders carrying provenance.
