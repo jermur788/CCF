@@ -470,6 +470,9 @@
 .stat-value { font-size: 20px; }
 .inspect-detail .stat-value { font-size: 18px; }
 .inspect .body, .inspect .muted { font-size: 17px; }
+/* Keep all detail copy visible at the 1600 x 900 reference size without shrinking its type or adding inaccessible scrolling. */
+.inspect.inspect-expanded { width: 600px; }
+.inspect .stat-label { white-space: normal; }
 .inspect-detail { margin-top: 6px; }
 /* The competitor table keeps its original row size and column split (see the competitor section above); larger rows overflowed the column. */
 .competitor-selected { background-color: var(--chip-bg); }

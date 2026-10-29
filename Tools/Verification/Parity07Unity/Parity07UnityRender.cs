@@ -569,6 +569,10 @@ public sealed class Parity07UnityRunner : MonoBehaviour
             Rect box = label.worldBound;
             if (box.xMin < panel.worldBound.xMin - 2f || box.xMax > panel.worldBound.xMax + 2f)
                 bad.Add($"outside panel \"{Short(label.text)}\" x={box.xMin.ToString("0", Inv)}..{box.xMax.ToString("0", Inv)}");
+            if (label.GetFirstAncestorOfType<ScrollView>() == null &&
+                (box.yMin < panel.worldBound.yMin - 2f || box.yMax > panel.worldBound.yMax + 2f ||
+                 box.yMin < root.worldBound.yMin - 2f || box.yMax > root.worldBound.yMax + 2f))
+                bad.Add($"outside fixed panel vertically \"{Short(label.text)}\" y={box.yMin.ToString("0", Inv)}..{box.yMax.ToString("0", Inv)} panel={panel.worldBound}");
             bool noWrap = label.resolvedStyle.whiteSpace == WhiteSpace.NoWrap;
             Vector2 natural = noWrap
                 ? label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined)
@@ -584,7 +588,7 @@ public sealed class Parity07UnityRunner : MonoBehaviour
     {
         ScrollView scroll = label.GetFirstAncestorOfType<ScrollView>();
         Rect box = label.worldBound;
-        if (scroll == null) return box.Overlaps(panel.worldBound) && box.Overlaps(root.worldBound);
+        if (scroll == null) return true; // Fixed-panel text outside the viewport is a failure, not text to skip.
         Rect view = scroll.contentViewport.worldBound;
         return box.yMin >= view.yMin - 2f && box.yMax <= view.yMax + 2f;
     }

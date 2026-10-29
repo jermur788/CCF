@@ -164,6 +164,8 @@ public sealed class TreeInspectionView
     // Everything that is not needed to decide: the second card, shown only on [V].
     private void BuildDetail(ForestTree tree, ForestEcologyController eco, CropTreeCompetitionReport report)
     {
+        // Widen only the expanded left column: the fixed detail card cannot scroll while the cursor is locked.
+        Root.EnableInClassList("inspect-expanded", ShowsDetail);
         detailPanel.style.display = ShowsDetail ? DisplayStyle.Flex : DisplayStyle.None;
         if (!ShowsDetail) return;
         UiKit.Add(detailBody, "More detail", "heading");
