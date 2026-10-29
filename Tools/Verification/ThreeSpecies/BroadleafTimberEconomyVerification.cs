@@ -10,7 +10,7 @@ using CCF.Forestry.WorkEconomy;
 
 // Disposable in-Editor gate: the Oak/Beech timber market inside Scenario One (D-062 and its supplement).
 //
-// STATUS: written and type-checked in a code-only cloud session. NOT YET RUN IN UNITY.
+// STATUS: PARITY-06 strengthened gate; NOT YET RUN IN UNITY on the PARITY-06 candidate.
 // The pure grading, price and valuation rules are verified offline (OfflineLogic/BroadleafTimberOfflineCheck); this gate
 // covers what only Unity can: that the Scenario One adapter and manager use them, that a game on growth model 0/1 keeps
 // its original economy, that Sitka quotes are identical under both, and that sales of the new products save and load.
@@ -106,6 +106,7 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
     {
         Check(ForestSaveData.CurrentVersion == 21, "save version unchanged");
         Check(ScenarioOneManager.NewGameGrowthModel == GrowthModel.SpeciesAware, "broadleaf market is on for new games: growth model 2 is the new-game default");
+        yield return VerifyPruning();
 
         // ---- growth model 1: original economy ----
         yield return Reset(GrowthModel.SiteClassDensity);
@@ -131,7 +132,7 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
         var priceBefore = mkt.Resolution.Quote.Timber.GroupBy(v => v.Batch.SpeciesId + "/" + v.Batch.Assortment).ToDictionary(g => g.Key, g => g.First().SelectedRoadsideCentsPerTonne);
 
         // ---- pruning changes eligibility, not price ----
-        t.oak.RestorePruningHistory(3, 6.5f, 0);
+        Check(t.oak.TryPrune(3.5f, 0, true) == null && t.oak.TryPrune(6f, 3, true) == null, "two real broadleaf high-pruning lifts succeed");
         ScenarioHarvestJob pruned = manager.GetHarvestQuote();
         Check(!ReferenceEquals(pruned, mkt), "a pruning lift invalidates the cached quote");
         Check(Products(pruned, t.oak.TreeId).Contains(TimberAssortment.VeneerPlanking), "pruned large Oak: veneer/planking becomes eligible");
@@ -161,6 +162,53 @@ public sealed class BroadleafTimberEconomyGate : MonoBehaviour
         ForestSaveData bad = Clone(data); bad.scenarioOne.annualReports.Last().timberSales[0].assortment = (TimberAssortment)99;
         Check(ForestSaveValidation.Validate(bad, 0, ecology.CellCount) != null, "an undefined product is still rejected");
         Check(ForestSaveData.CurrentVersion == 21, "save version still 21");
+    }
+
+    private IEnumerator VerifyPruning()
+    {
+        // Both old growth models retain their configured three-lift schedule and five-year recovery.
+        foreach (int model in new[] { GrowthModel.Legacy, GrowthModel.SiteClassDensity })
+        {
+            yield return Reset(model);
+            var old = Spawn();
+            foreach (ForestTree tree in new[] { old.oak, old.beech, old.sitka })
+            {
+                Check(manager.TryDesignatePruning(tree.TreeId), "legacy model pruning designation");
+                Check(manager.WorkOrders.Single(o => o.targetTreeId == tree.TreeId && o.IsOpen).targetCrownBaseHeightM == 2.5f,
+                    "legacy model first target remains 2.5 m");
+                Check(tree.TryPrune(2.5f, 0) == null && tree.CanPrune(5f, 3) != null && tree.CanPrune(5f, 5) == null,
+                    "legacy direct API retains five-year interval");
+            }
+        }
+
+        yield return Reset(GrowthModel.SpeciesAware);
+        var t = Spawn();
+        t.oak.SetMark(TreeMarkType.CropTree); t.beech.SetMark(TreeMarkType.CropTree);
+        Check(manager.EligibleCropTreePruningCount == 2, "model2 Oak/Beech eligible Crop Trees");
+        Check(manager.BatchPruneCropTrees() == 2 && manager.WorkOrders.Where(o => o.IsOpen).All(o => o.targetCrownBaseHeightM == 3.5f),
+            "batch chooses two 3.5 m first lifts");
+        Check(manager.ApprovePendingWork() && manager.AdvanceYear(), "first batch resolves through ordinary work");
+        Check(t.oak.PruningLifts == 1 && t.beech.PruningLifts == 1 && t.oak.CrownBaseHeightM == 3.5f && t.beech.CrownBaseHeightM == 3.5f,
+            "first batch changes authoritative pruning history");
+        Check(manager.EligibleCropTreePruningCount == 0 && !manager.TryDesignatePruning(t.oak.TreeId), "no immediate repeat lift");
+        Check(manager.AdvanceYear(), "wait first year");
+        Check(!manager.TryDesignatePruning(t.oak.TreeId), "second lift cannot resolve only two years after first");
+        Check(manager.AdvanceYear(), "wait second year");
+        Check(manager.EligibleCropTreePruningCount == 2 && manager.BatchPruneCropTrees() == 2,
+            "second lifts may resolve exactly three years after first");
+        Check(manager.WorkOrders.Where(o => o.IsOpen).All(o => o.targetCrownBaseHeightM == 6f), "second target exactly 6 m");
+        Check(manager.ApprovePendingWork() && manager.AdvanceYear(), "second batch resolves");
+        Check(t.oak.PruningLifts == 2 && t.beech.PruningLifts == 2 && t.oak.CrownBaseHeightM == 6f && t.beech.CrownBaseHeightM == 6f,
+            "second batch retains authoritative high-pruning history");
+        Check(manager.EligibleCropTreePruningCount == 0 && !manager.TryDesignatePruning(t.oak.TreeId) && !manager.TryDesignatePruning(t.beech.TreeId),
+            "no third Oak/Beech lift through manager");
+        ForestSaveData pruned = saves.CaptureData();
+        Check(saves.LoadData(Clone(pruned), false), "pruned broadleaf save loads without schema change");
+        yield return null; yield return null;
+        var loaded = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .Where(tree => tree.TreeId == "ECO-OAK" || tree.TreeId == "ECO-BEECH").ToArray();
+        Check(loaded.Length == 2 && loaded.All(tree => tree.PruningLifts == 2 && tree.CrownBaseHeightM == 6f && tree.LastPruningYear == 4),
+            "two-lift state and recovery year survive save/load");
     }
 }
 #endif
