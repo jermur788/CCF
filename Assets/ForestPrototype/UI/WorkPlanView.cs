@@ -116,7 +116,8 @@ public sealed class WorkPlanView
         ScenarioOneManager m = ui.Manager;
         // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
         string rackProblem = ui.RackPlanProblem;
-        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem;
+        string approvalProblem = ui.RackApprovalProblem;
+        string signature = Signature(m) + "|L" + ui.Learning.CurrentTopicIndex + rackProblem + "|A" + approvalProblem;
         if (!force && signature == shownSignature)
             return;
         shownSignature = signature;
@@ -144,6 +145,7 @@ public sealed class WorkPlanView
         scroll.schedule.Execute(() => scroll.scrollOffset = new UnityEngine.Vector2(0, scrollY));
 
         feedback.text = !string.IsNullOrEmpty(rackProblem) ? rackProblem
+            : !string.IsNullOrEmpty(approvalProblem) ? approvalProblem
             : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.Feedback + "   ·   " + m.TutorialHint;
 
         // The question stays only while it still applies: approving, removing or cancelling the planned work answers it.
@@ -157,7 +159,8 @@ public sealed class WorkPlanView
         }
 
         footer.Clear();
-        footer.Add(UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); }, m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem)));
+        footer.Add(UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); },
+            m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem) && string.IsNullOrEmpty(approvalProblem)));
         footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary"));
         if (ui.NeedsAnnualReview)
             footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));

@@ -152,6 +152,21 @@ public sealed partial class LearningObjectivesView
             : "";
     }
 
+    // D-064 / OPEN-2: in a Rack Planning V2 world field marking happens before approval. While a rack that owns Pending removal work
+    // is unconfirmed or its entrance tree carries no orange mark, the Work Plan does not approve. Read-only, like RackPlanProblem: the
+    // manager's own approval API (simulation, reference and harness paths) is unchanged, and model-0 / Legacy40 worlds never see it.
+    public string RackMarkingProblem()
+    {
+        ScenarioOneManager m = ui.Manager;
+        if (m == null || !m.RackPlanningV2Active) return "";
+        bool waiting = m.RackPlan.Any(r => r.Orders.Pending > 0
+            && (r.Status != RackPlanStatus.Confirmed || !r.EntranceMarked || string.IsNullOrEmpty(r.EntranceTreeId)));
+        if (!waiting) return "";
+        return m.RackPlanConfirmed
+            ? $"Mark the rack entrances in the forest before approving the rack work: {m.MarkedRackEntranceCount} / {ScenarioOneManager.RackPlanTargetCount} marked. [P] spray marker, aim within 3.5 m, left-click."
+            : "Confirm the rack plan on the Stand Map [M], then mark the rack entrances in the forest before approving the rack work.";
+    }
+
     // Expose the existing persisted acknowledgement at later teaching boundaries, even after N3 is satisfied.
     public bool NeedsReviewAcknowledgement
     {
