@@ -1,1 +1,0 @@
-Prepared for dispatch after S1-C T-04 Manager approval. Exact claim and packet metadata are recorded in `TASK-PACKET.md` and the corresponding GitHub issue. This file exists only as a stable release marker; it owns no production state.
