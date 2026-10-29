@@ -78,7 +78,7 @@ Run `approval`, `save`, `hash-dump`, `interaction` at sibling output directories
 
 ## Cleanliness, coordination and publication
 
-- U1 remains clean and detached at the exact qualified merged candidate `c8cfae8c`; all locks released normally, final machine lock FREE, no Editor process.
+- At MFM-07 completion U1 was clean and detached at the exact qualified merged candidate `c8cfae8c`; both locks were released normally with no Editor process. The lane was then free and was subsequently acquired by #123 S1-C T-04 (`Claude-S1C-T04`) at 2026-10-29T20:33Z for its own gated work; MFM-07 retains no lane ownership and did not touch that work.
 - Integration worktree clean before this handoff commit; no unrelated work touched. Primary's existing modified `AGENTS.md` / `active-tasks.md` and untracked documents were untouched.
 - Live coordination `origin/main` was marked `#125 [RUNNING]` (DeepSeek / `deepseek-v4.1-flash`, integration worktree, starting HEAD `7608f02c`, input `d4188b33`) at main commit **`b7e67f7c539fe70acaed1b4641bc24860bf03a2a`** before integration. The umbrella merge also carries the reviewed input's #121-era `active-tasks.md`; the Manager should reconcile the live ledger to this integrated result.
 - Merge and this handoff are published to `origin` on `integration/scenario-one-player-test-ready-v1`.
