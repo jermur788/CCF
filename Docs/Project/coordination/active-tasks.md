@@ -66,3 +66,7 @@ Do not infer a later queue item owns Unity until its child claim is actively RUN
 ## Non-dispatched backlog
 
 Issue #28, **Verification harness hygiene — standalone body binding and site-seam allow-list**, remains backlog only. It grants no ownership and blocks no current feature.
+
+## Claim hygiene note
+
+The Manager reconciles claim titles to `[RUNNING]` when a handed-off/static claim is actively resumed by #106. That status reflects execution presence only and does not broaden subsystem ownership beyond the row above.
