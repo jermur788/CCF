@@ -6,85 +6,83 @@
 - **Task:** T-04 — Guide monotonicity
 - **Parent:** #91 `PLAYER-TEST-OVERNIGHT-01`
 - **Claim:** #124
-- **Status:** **BLOCKED ON D-066 PERSISTENCE PREREQUISITE #143**
+- **Status:** **BLOCKED PENDING #158 APPROVAL AND THEN #143 MANAGER-APPROVED / INTEGRATED PERSISTENCE PREREQUISITE**
 - **Historical base:** `b971f4da0540e606bfee9702b0c99f81a0a89355`
-- **Historical pushed candidate:** `b9d204cbae687da71d32a9da42575ca3f298a511` — useful evidence only; **not accepted, not Unity-qualified, not an integration base**.
-- **Purpose:** finish Scenario One guide monotonicity after the minimum durable aggregate teaching-sample/review-completion record authorised by D-066 exists on the exact implementation lineage.
-- **Difficulty:** **4/5** — bounded curriculum surface, but it consumes save-backed historical teaching completion and must preserve the pre-completion lesson behaviour exactly.
-- **Preferred implementation model/provider:** existing #124 owner, Claude Sonnet 5.5 / Anthropic, when re-released; equivalent strong local code model is acceptable if ownership is reassigned.
-- **Independent review:** required on the final exact candidate after persistence + curriculum are both present.
+- **Historical pushed candidate:** `b9d204cbae687da71d32a9da42575ca3f298a511` — useful evidence only; not accepted, not Unity-qualified, not an integration base.
+- **Purpose:** finish guide monotonicity after the repaired D-066 one-way teaching-completion latch exists on an exact integrated lineage.
+- **Difficulty:** 4/5 — bounded curriculum surface with subtle historical/current-state separation.
+- **Preferred executor:** existing #124 curriculum owner when explicitly re-released; one primary writer only.
+- **Independent review:** required on the exact final candidate.
 
-Suggested continuation lane remains:
+Suggested continuation lane:
 
 - branch `feature/s1-d-t04-guide-monotonicity-v1`
 - worktree `/media/jer/Videos/CCF-S1D-T04`
 
-Do **not** resume #124 yet. Refresh live coordination, claim #143 and the exact integrated prerequisite handoff first. The claim itself never grants ownership.
+Do **not** resume #124 until Manager explicitly releases it on the exact integrated #143 lineage.
 
-## Authority amendment — D-066
+## Repaired D-066 authority consumed by T-04
 
-The user selected Option A from the prior Manager review. Full FR-B1 / AC-3 remains binding.
+#143 is to persist exactly one boolean-like historical fact:
 
-The authorised durable proof is now the **minimum aggregate historical teaching-sample/review-completion record** implemented by prerequisite #143. Individual `[J]/[K]` choices, inspected-tree lists, stand-portion detail and session-review transcript remain non-persistent.
+> **The existing first guided rack teaching sample/review has historically completed at least once.**
 
-The aggregate may become historically complete **only when the existing authoritative in-session teaching sample/review has actually completed under the pre-amendment lesson rules**. Planting, arbitrary felling, a later Annual Review, current Crop Tree count, current rack geometry or any other surrogate must not fabricate completion. Once established, completion is monotone historical state.
+That latch is set only when the unlatched/pre-amendment rack-world guide genuinely crosses `response → recruitment` in-session after all earlier lesson guards, `ReleaseReviewed`, and actual session `RackReviewComplete` are satisfied.
 
-Pre-amendment saves that lack the record default conservatively to **not historically complete** for this latch.
+T-04 does not decide, reconstruct, write or validate that fact. It consumes the #143 read-only API after #143 has been qualified, Manager-approved and integrated.
+
+Old/pre-amendment saves with no latch read false until the player actually completes the authoritative session review and the new latch is recorded. No planting/felling/review surrogate or retrospective reconstruction is permitted.
+
+## One shared T-03 / T-04 read meaning
+
+T-04 and T-03 must share exactly one durable historical meaning after completion:
+
+- **Before latch:** shared historical read = false. T-03 retains its accepted current-world/session cap logic and deadlock safeguard; T-04 preserves current pre-completion guide behavior. No durable fact fabricates session review completion.
+- **At the authoritative current-session boundary:** #143 records the latch once.
+- **After latch:** shared historical read = true forever. T-03 treats the first teaching sample as historically closed and T-04 uses the same fact as the monotone historical floor.
+
+Do not build a T-04-only historical interpretation, and do not treat `ScenarioOneTeachingCap.SampleHistoricallyComplete(...)` as equivalent to the durable latch: that current-world helper deliberately omits session `RackReviewComplete`.
 
 ## Required execution order
 
-1. Browser amendment #136 publishes D-066 and the amended spec/package.
-2. **#143 / T-04P** implements, independently reviews and qualifies the minimum persistence/save-load slice from the exact production lineage.
-3. #143 is integrated to the exact lineage named in its handoff.
-4. #124 is re-released and **rebased/replayed**, not blindly stacked, against that exact integrated prerequisite.
-5. #124 completes offline + Unity qualification and independent review.
-6. Manager reviews the exact #124 candidate before any later teaching insertion.
-7. PARITY-08 #126 remains blocked until the resulting save/schema lineage is exact; #128 remains blocked behind #126.
+1. #145 publishes repaired documents/result.
+2. #158 independently reviews the repaired contract.
+3. Only if #158 is **APPROVED**, Manager may repin/release #143 after live schema/ownership refresh.
+4. #143 implements, independently reviews, qualifies, Manager-approves and integrates the one-way latch + all-world-hash exclusion.
+5. Manager repins #124 to that exact integration and releases curriculum ownership.
+6. #124 rebases/replays useful logic from `b9d204c`; do not stack blindly.
+7. #124 completes offline + Unity qualification + independent review.
+8. PARITY-08 #126 remains blocked until the exact post-#143/#124 lineage is known; #128 remains behind #126.
 
-## Released start gate for the continuation
+## Required behavior
 
-#124 may resume only when all are true:
+Implement FR-B1 / FR-B2 / FR-B3 / AC-3 using the integrated #143 API:
 
-- #143 is `[HANDED-OFF]`, Manager-approved and integrated/qualified on one exact lineage;
-- live coordination gives #124 sole curriculum ownership;
-- no MFM teaching writer owns `ScenarioOneTeachingSequence` / `LearningObjectivesView.Sequence`;
-- the #143 handoff identifies the durable teaching-completion read API and exact schema/version;
-- the worker rebases/replays from the exact integrated prerequisite, preserving useful logic from `b9d204c` only where it still conforms.
+- preserve every pre-latch/current-session lesson behavior;
+- when durable historical completion is true, never regress behind the completed `response` boundary because of later Crop Tree count increase/decrease, Crop Tree loss, later in-footprint felling, executed-share drift, or save/load;
+- use the durable fact as historical teaching proof only, not as forestry prescription, current-world observation, Scenario One completion input, MFM state or Rack V2 state;
+- do not read `PlayerPrefs` or session-only `[J]/[K]` state as durable authority;
+- do not serialize `[J]/[K]` or any session transcript;
+- preserve all stable lesson IDs exactly: `access`, `future-trees`, `release`, `habitat`, `response`, `recruitment`, `establishment`, `transformation`;
+- do not rename/reuse persisted/teaching identities.
 
-If any gate is false, stop before editing.
+The simplest acceptable shape is a monotone guide floor that cannot return behind `recruitment` once the shared historical latch is true, while later derived/current facts continue to drive `recruitment`, `establishment` and `transformation` normally. Do not persist the current guide index.
 
-## Required behaviour
-
-Implement approved FR-B1 / FR-B2 / FR-B3 / AC-3 with D-066:
-
-- preserve existing current guide behaviour before historical sample/review completion;
-- once the durable #143 record establishes the relevant teaching boundary, later Crop Tree count increase/decrease, Crop Tree loss, later in-footprint felling, executed-share drift and save/load must not move the guide behind that boundary;
-- consume the #143 aggregate as historical teaching proof only; do not make it a forestry prescription, Scenario One completion input, MFM state or current-world inspection substitute;
-- do **not** read `PlayerPrefs` or session-only `[J]/[K]` state as durable progression authority;
-- do not serialize `[J]/[K]` or any session-review transcript;
-- T-03 and T-04 must consume one shared meaning/API for `sample historically complete`; do not implement competing definitions;
-- preserve every stable lesson ID: `access`, `future-trees`, `release`, `habitat`, `response`, `recruitment`, `establishment`, `transformation`;
-- no rename/reuse of saved IDs.
-
-## Expected owned production surface while #124 RUNNING
+## Expected owned production surface when released
 
 Primary:
 
 - `Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs`
 - `Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs`
+- focused verification files.
 
 Allowed only if strictly necessary:
 
-- smallest read-only adapter needed to consume the #143 aggregate API;
-- focused verification files.
+- the smallest read-only adapter needed to consume #143's already-integrated historical completion API.
 
-**Not owned by #124:** `ForestSaveData.cs`, save controller/validation/schema, #143 persistence implementation, completion rules, objective predicates/targets, Rack V2 lifecycle/geometry, ecology/economy, MFM implementation, scenes/prefabs/packages/ProjectSettings, Reference Future v1.
+**Not owned by #124:** `ForestSaveData.cs`, save capture/restore, validators, schema version, `ScenarioReferenceArchive` hash code, #143 persistence implementation, completion rules/objectives, economy/ecology, Rack V2, MFM implementation, S1-C history storage, scenes/prefabs/packages/ProjectSettings.
 
-If the #143 API is insufficient, return to Manager/#143; do not expand #124 into a second save writer.
-
-## MFM sequencing boundary
-
-#124 does not implement Multi-Scale Forestry Management. MFM-09 teaching insertion remains later and must wait for accepted S1-D T-04/T-05. If MFM has rewritten the same curriculum seam before #124 resumes, stop and repin/rebase through Manager ownership rather than merging assumptions.
+If the #143 API is insufficient, STOP and return to Manager. Do not expand #124 into a second persistence/hash writer.
 
 ## Required verification
 
@@ -92,82 +90,74 @@ If the #143 API is insufficient, return to Manager/#143; do not expand #124 into
 
 Cover at least:
 
-- current guide state before durable completion;
-- authoritative transition that records sample/review completion;
-- Crop Tree count increase/decrease after completion;
-- Crop Tree loss after completion;
-- later in-footprint felling after completion;
-- executed-share drift after completion;
-- save/load/rebuild from the persisted aggregate at lessons 6–8 / the exact unchanged IDs;
-- repeated reads/calls in one state do not consume another sample or create another record;
-- pre-amendment save with aggregate absent does not fabricate completion;
-- all stable lesson IDs unchanged.
+- response lesson with durable latch false and incomplete session review;
+- response lesson with `ReleaseReviewed` true but `RackReviewComplete` false — guide stays at `response`, durable read remains false;
+- authoritative transition case where the unlatched sequence reaches `recruitment` and #143 historical read is true;
+- after latch: Crop Tree count increase/decrease;
+- after latch: Crop Tree loss;
+- after latch: later in-footprint felling;
+- after latch: executed-share drift;
+- after latch: save/load/rebuild at lessons 6–8 without regression;
+- pre-amendment/missing-latch save remains conservative false until authoritative completion is newly earned;
+- repeated reads/calls never write/consume another sample;
+- all eight lesson IDs unchanged.
 
 Regression requirements:
 
-- TeachingCopy / relevant MenuTutorial checks;
-- T-03 teaching-cap decision checks using the same historical-completion interpretation;
+- TeachingCopy / relevant MenuTutorial;
+- T-03 teaching-cap decision tests proving the same post-latch historical read and unchanged pre-latch current-world/session behavior;
 - T-02 cycle-state checks;
-- N3 normalised completion-rule hash unchanged — **no rebaseline**;
+- #143 save/load/hash regression suite;
 - S1-C history/query checks;
-- #143 save/load/validation regression remains green.
+- N3 normalised completion-rule source/hash unchanged — no rebaseline.
 
 ### Unity qualification
 
-Under the machine-wide Unity lock:
+Under the machine-wide Unity lock on the exact candidate:
 
-- import/compile exact candidate;
-- save at lessons 6–8 / exact corresponding IDs, reload, prove guide index does not regress after historical completion;
-- exercise Crop Tree loss/count change, later felling and executed-share drift after historical completion;
-- prove pre-completion teaching behaviour remains unchanged;
-- prove repeated view refreshes/calls do not consume another teaching sample.
+- compile/import;
+- prove pre-latch `response` behavior is unchanged;
+- prove `ReleaseReviewed` without complete rack review does not skip `response`;
+- complete the actual session rack review and prove progression reaches `recruitment`;
+- save/load at later lessons and prove no regression behind the historical boundary;
+- exercise Crop Tree loss/count drift, later felling and executed-share drift after historical completion;
+- prove view refreshes/repeated calls do not mutate persistence.
 
 ### Independent review
 
-Independent reviewer on the exact persistence + curriculum candidate must confirm:
+Reviewer must confirm:
 
-- durable aggregate is the only new S1-D persistence and is read as historical teaching proof only;
-- individual `[J]/[K]` decisions are not serialized;
-- the completion transition is the authoritative old in-session teaching completion, not a surrogate;
-- T-03/T-04 share one completion meaning/API;
-- no completion-rule/objective/economy/ecology/MFM/Rack/Reference change;
-- no stable-ID rename/reuse and no weakened tests/hash rebaseline.
+- T-04 consumes exactly the #143 shared historical latch and owns no persistence/hash code;
+- T-03/T-04 post-latch historical meaning is identical;
+- pre-latch current-world/session behavior is preserved;
+- no surrogate proof or retrospective inference exists;
+- no lesson ID rename/reuse;
+- no completion/objective/economy/ecology/Rack/MFM/Reference change;
+- no weakened test or hash/reference rebaseline.
 
 ## Stop conditions
 
 Stop and return to Manager if:
 
-- #143 is not integrated/qualified on the exact base;
-- #143 aggregate cannot express the required historical completion without persisting individual `[J]/[K]` or substantially more session detail;
-- a new live writer owns the same curriculum files;
-- another schema/save field is requested by #124;
-- `ScenarioOneCompletionRules` or objective predicates would need to change;
-- MFM has already rewritten `Current()` on the target lineage;
-- any protected hash/reference would need rebaseline.
+- #158 is not APPROVED;
+- #143 is not Manager-approved/integrated on the exact starting lineage;
+- live coordination has another curriculum writer on the same files;
+- the #143 shared read cannot satisfy AC-3 without another persisted field;
+- any save/schema/hash edit is requested from #124;
+- completion rules/objectives or other protected systems would need to change;
+- MFM has already rewritten the same curriculum seam and requires a fresh ownership/integration decision;
+- a protected hash/reference would require rebaseline.
 
 ## Handoff
 
-Publish `Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md` with:
+Publish `Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md` with actual model/provider, exact #143 integration start SHA and ending production SHA, branch/worktree, changed files, exact shared historical read API consumed, lesson-floor mapping, pre-latch behavior, offline + Unity evidence, independent-review verdict, stable-ID proof, T-03 shared-semantics regression and N3/hash preservation.
 
-- actual model/provider;
-- exact prerequisite/integration starting SHA and ending production SHA;
-- branch/worktree;
-- changed files;
-- exact #143 durable-proof API consumed;
-- lesson → historical-proof mapping;
-- pre-completion fallback behaviour;
-- offline + Unity evidence;
-- independent-review verdict;
-- proof `[J]/[K]` are not serialized;
-- stable-ID and N3-hash preservation;
-- residuals / next dependency.
-
-On successful handoff, rename #124 `[HANDED-OFF]`, link the handoff, close the claim and return:
+On successful handoff mark #124 `[HANDED-OFF]`, link the handoff, close the execution claim and return:
 
 `S1-D GUIDE MONOTONICITY QUALIFIED — READY FOR MANAGER REVIEW`
 
 or a precise blocker.
 
-## Copy/paste dispatch line
+## Copy/paste dispatch line — only after exact #143 integration + Manager release
 
-`Resume claim #124 only after prerequisite #143 is integrated and qualified. Rebase/replay S1-D T-04 guide monotonicity on the exact #143 integration SHA; consume its D-066 aggregate teaching-completion API so full FR-B1/AC-3 survives Crop Tree drift/loss, later felling, executed-share drift and save/load. Preserve pre-completion lesson behaviour and all stable lesson IDs. Do not persist J/K, do not edit save/schema/validator, do not change completion/objectives/ecology/economy/Rack/MFM/Reference, rerun offline + Unity + independent review, and do not build Windows.`
+`Resume claim #124 only after #143 is Manager-approved/integrated and this packet is repinned. Rebase/replay T-04 on that exact lineage and consume #143's single durable first-guided-sample/review completion read. Preserve pre-latch response/RackReviewComplete behavior; after latch never regress behind recruitment because of Crop Tree drift/loss, later felling, executed-share drift or save/load. T-03/T-04 must share the same post-latch historical meaning. Own no save/schema/hash code, persist no J/K/session detail, preserve all lesson IDs, rerun offline + Unity + independent review, and do not build Windows.`
