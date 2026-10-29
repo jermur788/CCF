@@ -15,7 +15,7 @@ High. This is a shared save-schema and integration boundary with post-merge Unit
 
 ## Preferred model/provider
 
-Default: Claude Sonnet 5.5 Medium for bounded integration/qualification if capacity is available. Escalate to Claude Opus 5.5 Low if merge/save conflicts require deeper reasoning. OpenAI 6.1 Sol is suitable for difficult debugging or independent review, but is not a mandatory gate.
+ChatGPT Code / OpenAI 6.1 Sol. If unavailable, do not silently change the task's execution lane; record the capacity issue and return to the Manager for rerouting.
 
 ## Exact reviewed input
 
@@ -81,4 +81,4 @@ No Windows build.
 
 ## Copy/paste dispatch
 
-Run claim #113 from `Docs/Handoffs/MFM-06/INTEGRATION-TASK-PACKET.md`. Integrate exact reviewed MFM-06 candidate `13fd85452b8d3a55946fcb459af8b00e0326a579` onto the freshly inspected Scenario One umbrella head, then run the bounded post-merge Unity/save/hash/Reference/Legacy qualification on that exact merged candidate. Preserve the two reviewed repairs and do not start MFM-07 in this task. Publish `Docs/Handoffs/MFM-06/INTEGRATION-HANDOFF.md`. No Windows build.
+Run claim #113 from `Docs/Handoffs/MFM-06/INTEGRATION-TASK-PACKET.md` in ChatGPT Code using OpenAI 6.1 Sol. Integrate exact reviewed MFM-06 candidate `13fd85452b8d3a55946fcb459af8b00e0326a579` onto the freshly inspected Scenario One umbrella head, then run the bounded post-merge Unity/save/hash/Reference/Legacy qualification on that exact merged candidate. Preserve the two reviewed repairs and do not start MFM-07 in this task. Publish `Docs/Handoffs/MFM-06/INTEGRATION-HANDOFF.md`. No Windows build.
