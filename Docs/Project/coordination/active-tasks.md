@@ -27,6 +27,19 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - Receipt: `/media/jer/Files/CCF/Verification/PlayerTestOvernightStorage-20261029.log`.
 - The 15 GiB floor and single-Unity-owner rule remain mandatory. Heavy Unity remains machine-wide serialized; the next Unity owner must still acquire the lock normally and re-check storage at acquire time.
 
+### G2 — schema order and single-writer order (recorded 2026-10-29 from #91 / Claude A audit)
+
+These are execution controls, not new product decisions. They are binding for this umbrella task until the Overall Manager changes them.
+
+- **Save schema order:** Rack V2 `v21` is final (`RackSaveData.entranceMarked` / `entranceTreeId` already exist; RACK-V2-09/RACK-V2-11 must not add a schema field). Next: **S1-C T-05 = v22** (`objectiveAchievements`). Then **MFM-06 = the next available version after v22** (expected v23; do not hardcode the number). PARITY-08 and S1-D take **no schema bump**. A new Rack field or any other version implies a G5-style stop.
+- **`ForestSaveValidation.cs` single writer, in order:** S1-D T-06 → S1-C T-05 → MFM-06; re-run PARITY-08 unknown-species/no-mutation verification after each merge.
+- **Hash-compatibility path:** every additive save field must extend the deliberate v21 hash-strip path (`ScenarioReferenceArchive.cs`, `ScenarioOneWorkOrder.cs`); protected Reference/Legacy/determinism hashes must not move. Cross-provider independent review is mandatory for T-06 integration, S1-C T-05, MFM-06, PARITY-08, and any hash-strip change.
+- **`ScenarioOneManager.cs`:** RACK-V2-09 → S1-D T-03 → S1-C T-05 → MFM-07, one writer at a time.
+- **History/UI surfaces:** S1-C T-03/T-04/T-05/T-06 → S1-D T-05 → MFM-07/MFM-09; S1-D T-05 must reuse S1-C surfaces, never a second history UI.
+- **Guide/curriculum files:** RACK-V2-10 → S1-D T-04 → MFM-09.
+- **Stand Map / map model:** RACK-V2-09/RACK-V2-10/RACK-V2-13 → RACK-V2-14 → MFM-08.
+- Old-base candidates (#88 `29bb6cb`, #19 `cf92b9c`) must be integrated and then import/compile plus required save gates rerun at the merged HEAD; a pass on the old base does not qualify the merge.
+
 When the storage floor is restored, the default Unity order is:
 
 1. #90 **RACK-V2-09 — field marking** (Rack critical path);
