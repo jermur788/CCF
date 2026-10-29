@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md` rather than remaining as a live lock.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol under browser lane #122. MFM-07 #121 remains published as DISPATCHED/RELEASED until its local executor records actual start. S1-C T-04 #123 and S1-D T-04 #124 are also DISPATCHED/RELEASED; neither owns production files until its executor marks RUNNING and live ownership is refreshed.
+**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol under browser lane #127.
 
 ## Coordination rules
 
@@ -19,21 +19,19 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 MFM-06 #113 is **HANDED-OFF / CLOSED — INTEGRATED / VERIFIED for its bounded gate**.
 
-- Pre-integration umbrella: `ac876a64969752a3864034521f42559671264b30`.
-- Exact reviewed MFM-06 input: `13fd85452b8d3a55946fcb459af8b00e0326a579`.
-- Exact merged and Unity-qualified production umbrella: **`b971f4da0540e606bfee9702b0c99f81a0a89355`**.
-- Published `integration/scenario-one-player-test-ready-v1` head: **`7608f02cb8da1fabd8b78fd5aaf45b0c32086f67`**, a documentation-only successor of the tested production merge.
-- Integration handoff: `Docs/Handoffs/MFM-06/INTEGRATION-HANDOFF.md`.
-- Save schema is v23. Frozen Reference and protected hash compatibility passed without rebaseline.
-
-Browser #120 reviewed #113 and returned **APPROVED — MFM-07 READY FOR CODE EXECUTION**. #120 is closed/released.
+- Exact Unity-qualified MFM-06 production umbrella: **`b971f4da0540e606bfee9702b0c99f81a0a89355`**.
+- Published `integration/scenario-one-player-test-ready-v1` head at the #127 refresh: **`7608f02cb8da1fabd8b78fd5aaf45b0c32086f67`**, a documentation-only successor of the tested MFM-06 production merge.
+- MFM-07 #121 is **HANDED-OFF / CLOSED — MANAGER APPROVED as an implementation candidate**, exact production candidate **`d4188b33e58b0fe67504a87167692d01b226c84e`**; docs-only successor `01755c47d537202e9cf479545be527d43121298f`.
+- MFM-07 is **not yet integrated** into the umbrella. #125 owns that future integration/qualification when it actually starts.
+- Therefore there is **no post-MFM-07 integrated umbrella SHA to pin yet**. Downstream tasks that require that SHA remain blocked/prepared only.
+- Accepted MFM-07 residual: its production prescription-world adapter passes empty infrastructure-mask and management-feature arrays into the already-capable coverage core. Browser #127 determined that this requires a bounded prerequisite before shipped MFM-08 coverage UX; see #129.
 
 ## Immediate execution order
 
-1. **#121 MFM-07 — proposal state and approval boundary** is **DISPATCHED / RELEASED**, not yet assumed RUNNING. Root from exact qualified `b971f4d...` unless Manager explicitly approves another production base.
-2. **#123 S1-C T-04 — provenance labelling** is **DISPATCHED / RELEASED** on the same exact base. It is file-separable from intended MFM-07 and may start when its worker records live ownership.
-3. **#124 S1-D T-04 — guide monotonicity** is **DISPATCHED / RELEASED** on the same exact base. It is file-separable from intended MFM-07 and must land before MFM-09.
-4. Each worker refreshes this file and its claim immediately before edits, verifies exact branch/worktree/HEAD and conflicts, then marks its claim `[RUNNING]` with actual model/provider/lane. The live coordination row is updated at that moment.
+1. **#125 MFM-07 integration** — PREPARED FOR DISPATCH. Integrate exact approved `d4188b3...` onto the refreshed umbrella and publish exact merged/qualified SHA. No production ownership exists until the executor marks #125 `[RUNNING]` and refreshes this file.
+2. **#123 S1-C T-04 provenance labelling** — PREPARED FOR DISPATCH, file-separable from #125. Root from its packet base unless Manager updates it after integration. No ownership until `[RUNNING]` is registered here.
+3. **#124 S1-D T-04 guide monotonicity** — PREPARED FOR DISPATCH, file-separable from #125 and must land before MFM-09. No ownership until `[RUNNING]` is registered here.
+4. **#126 PARITY-08 save/deterministic compatibility** — PREPARED FOR DISPATCH on exact approved MFM-07 candidate `d4188b3...`; it is the sole future save/validator/hash/reference writer when running. Mandatory independent review is pre-coordinated as blocked review claim #128.
 5. Unity qualification remains serialized even when code-file ownership is disjoint.
 
 There is no standing assertion here that the Unity lock is free. The active worker must refresh lock/process/free-space state immediately before Unity.
@@ -44,88 +42,84 @@ There is no standing assertion here that the Unity lock is free. The active work
 |---|---|---|---|---|---|
 | **PLAYER-TEST-OVERNIGHT-01** (#91) | DeepSeek orchestration/integration lead | `orchestration/scenario-one-player-test-ready-v1`; production stays on child lanes | Claims, dependency DAG, handoff triage, integration decisions, final Tier-3 assembly | Preserve child ownership; no product invention; no Windows build | **RUNNING** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | Child worktrees only | Local implementation/qualification through child claims | Exact candidate/handoff required; Unity serialized | **RUNNING** |
-| **PLAYER-TEST-BROWSER-LANE-05** (#122) | Overall Manager / OpenAI GPT-5.6 Sol browser lane | GitHub/browser only; no production worktree | Readiness analysis, packet/claim publication, MFM-07 return review, coordination updates | No production C#/Unity/save execution/integration/rendered qualification | **RUNNING** |
-| **MFM-07 proposal/approval boundary** (#121) | Claude Code; Sonnet 5.5 Ultra Code preferred | `feature/mfm-v1-proposal-approval-boundary-v1`; suggested `/media/jer/Videos/CCF-MFM-07` | Smallest proposal → validated pending-work surface required by MFM-07, only after actual start is registered | Root `b971f4d`; no schema/save-validator edit; no MFM-08/09; no broadleaf extrapolation | **DISPATCHED / RELEASED — no production ownership until RUNNING** |
-| **S1-C T-04 provenance labelling** (#123) | Claude Sonnet 5.5 Medium or stronger Code lane | `feature/s1-c-t04-provenance-labels-v1`; suggested `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum history-label helper only after actual start is registered | Root `b971f4d`; no save/schema/validator, MFM proposal/work-order or simulation edits | **DISPATCHED / RELEASED — no production ownership until RUNNING** |
-| **S1-D T-04 guide monotonicity** (#124) | Claude Sonnet 5.5 Ultra Code preferred | `feature/s1-d-t04-guide-monotonicity-v1`; suggested `/media/jer/Videos/CCF-S1D-T04` | `ScenarioOneTeachingSequence.cs`, `LearningObjectivesView.Sequence.cs`, minimum pure helper only after actual start is registered | Root `b971f4d`; no schema/validator/MFM; must land before MFM-09 | **DISPATCHED / RELEASED — no production ownership until RUNNING** |
+| **PLAYER-TEST-BROWSER-LANE-06** (#127) | Overall Manager / OpenAI GPT-5.6 Sol | GitHub/browser only; no production worktree | Handoff review, readiness/API inspection, claim/packet/coordination publication | No production C#/Unity/save execution/integration/rendered/Tier-3 execution | **RUNNING** |
+| **MFM-07 integration** (#125) | Claude Sonnet 5.5 Medium or OpenAI local Code lane when started | integration worktree `/media/jer/Videos/CCF-PLAYER-TEST-READY` | MFM-07 merge/qualification only when actually started | Exact approved input `d4188b3...`; no MFM-08/09; no schema/save-validator edit | **PREPARED FOR DISPATCH — no ownership yet** |
+| **S1-C T-04 provenance labelling** (#123) | Claude Sonnet 5.5 Medium or equivalent when started | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimal history-label helper only after start | No save/schema/validator, MFM proposal/work-order or simulation edits | **PREPARED FOR DISPATCH — no ownership yet** |
+| **S1-D T-04 guide monotonicity** (#124) | Claude Sonnet 5.5 Ultra Code preferred when started | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | teaching-sequence files/minimal pure helper only after start | No schema/validator/MFM; must land before MFM-09 | **PREPARED FOR DISPATCH — no ownership yet** |
+| **PARITY-08 save/deterministic compatibility** (#126) | Claude Opus 5.5 Low preferred primary writer when started | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | Save validation/determinism/hash/reference compatibility only after start | Sole writer; exact candidate in claim; no rebaseline/schema bump; independent review required | **PREPARED FOR DISPATCH — no ownership yet** |
+| **PARITY-08 independent review** (#128) | independent OpenAI review lane after #126 handoff | exact handed-off candidate; review-only | No production ownership | Blocked until #126 publishes exact candidate/handoff | **BLOCKED — REVIEW ONLY** |
+| **MFM-08A production coverage-world adapter** (#129) | OpenAI Sol/Codex or equivalent local Code lane after unblocked | suggested `feature/mfm-v1-coverage-world-adapter-v1`; `/media/jer/Videos/CCF-MFM-08A` | smallest coverage-world adapter surface only after exact base is pinned | Blocked on #125; do not invent missing infrastructure geometry; no UI/teaching/Work Plan/save/calibration | **BLOCKED — NO OWNERSHIP** |
 | **PARITY-03 Q10 evidence strengthening** (#74) | Waiting verifier when released | existing verification lane | Verification only | Non-blocking evidence strengthening | **WAITING** |
 
-## MFM-07 single-writer boundary
+## Ownership boundaries
 
-Claim #121 and `Docs/Handoffs/MFM-07/TASK-PACKET.md` are the current execution authority.
+### #125 MFM-07 integration
 
-When #121 starts, its writer owns only the smallest proposal→pending-work integration surface required by the published MFM-06 API:
-
-- proposals remain separate from `TreeMarkType.Fell` and ordinary manual marks;
-- prescription approval creates pending ordinary work only;
-- Work Plan approval remains a separate commitment gate;
-- manual player state wins conflicts and conflicts are surfaced rather than overwritten;
-- **before each prescription-generated order is written, its referenced prescription, coverage unit and Crop Tree must validate; mismatch/staleness fails closed with no partial order/world mutation**;
-- MFM-06 v23 IDs/provenance are consumed, not duplicated;
-- no schema/version bump or save-validator edit is authorised; if required, STOP and return to Manager;
-- no broadleaf quantitative extrapolation.
-
-Likely hot/shared surfaces include `ScenarioOneManager`, ordinary work-order creation APIs and Work Plan integration hooks. Exact files must be recorded before edits. Any overlap with another active writer means stop before editing.
-
-## Parallel-safe boundaries for #123 / #124
+- Integration only: exact approved MFM-07 candidate plus its published docs/handoff lineage.
+- Preserve proposal != mark/order, prescription approval creates Pending work only, Work Plan remains commitment gate, and fresh pre-write prescription/unit/Crop-Tree validation with rollback.
+- No MFM-08 UX, MFM-09 teaching, save/schema/validator/hash/reference edit or product decision.
 
 ### #123 S1-C T-04
 
-- History/review presentation labels only.
+- History/review provenance labels only.
 - Must not edit save/load/validation, `ScenarioOneManager` work-order creation, MFM proposal/approval logic or prescription persistence.
-- If a required provenance label needs one of those surfaces, STOP and return to Manager.
 
 ### #124 S1-D T-04
 
 - Teaching/current-state monotonicity only.
 - Must not edit save/load/validation, completion rules, Rack lifecycle or MFM logic.
-- If MFM-07 unexpectedly touches the teaching files, STOP and return to Manager rather than reconciling independently.
 
-## Post-MFM-07 sequencing — prepared only, no ownership yet
+### #126 / #128 PARITY-08
 
-### Save / validation
+- #126 is the only prospective writer for save validation/determinism/hash/reference compatibility.
+- #128 is strictly independent read-only review; repairs return to #126 or a newly assigned repair claim.
+- Never allow #128 to become a second save writer.
 
-- **PARITY-08** packet is prepared at `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/TASK-PACKET.md` but remains **WAITING** for the actual MFM-07 return review.
-- If #121's diff confirms no unauthorised save/validator/hash/reference changes, create/release the PARITY-08 child claim immediately on the Manager-approved post-MFM-07 base.
-- While PARITY-08 runs it is the sole save-validation/determinism writer.
-- Final Tier-3 reruns the combined save/history chain on one exact final candidate.
+### #129 MFM-08A prerequisite
+
+- Existing pure coverage rules already accept masks/features; this task must only bridge authoritative live state into that contract.
+- Known authoritative manager state includes planted juveniles, clearance patches, shelters, deadwood and work orders. Inspect authoritative infrastructure geometry before mapping mask kinds.
+- If a required headland/track/clearing/site mask lacks an authoritative source/API, stop and return the missing source to Manager. Do not invent coordinates/radii or silently omit accepted exclusions.
+- No MFM-08 map/3D UX may rely on production coverage until this prerequisite is completed/verified or Manager explicitly disposes it another way.
+
+## Dependency-ready sequencing
 
 ### S1-C review/history
 
-- **T-04 #123** is released now.
-- **T-06** follows accepted T-04 on the same S1-C history/Annual Review seam; serialize overlapping files.
-- **T-07** stable identity/history contract verification must not create a second identity/history store.
-- **T-08** feature qualification follows T-04/T-06/T-07.
+- T-04 = #123, prepared.
+- T-06 follows accepted T-04 with no overlapping history writer.
+- T-07 stable identity/history contract waits for save/identity ownership to be free and one exact current integration lineage.
+- T-08 feature qualification waits for T-01..T-07 accepted on one exact candidate.
 
-### S1-D / teaching / Work Plan
+### S1-D / Work Plan / teaching
 
-- **T-04 #124** is released now and must land before MFM-09.
-- **T-05** packet is prepared but waits for the accepted MFM-07 pending-work/provenance API; it then owns the bounded Work Plan previous-vs-proposed grouping.
-- **T-08** waits for T-02..T-06 acceptance.
-- **T-09** waits for T-08 PASS and is independent review only.
+- T-04 = #124, prepared; must precede MFM-09.
+- T-05 remains blocked until #125 publishes the exact post-MFM-07 integrated umbrella and pending-work/provenance API. It owns only previous-vs-proposed Work Plan presentation; it must reuse S1-C history and must not absorb MFM-09 teaching.
+- T-08 waits for T-02..T-06 acceptance; T-09 is independent spec review after T-08 PASS.
 
-### MFM continuation
+### MFM
 
-- **MFM-08** follows accepted/integrated MFM-07 and owns bounded map/3D candidate/proposal review UX.
-- **MFM-09** follows MFM-07/08 plus accepted S1-D T-04/T-05 and consumes their existing teaching/Work Plan seams.
-- **MFM-10** follows MFM-09 + PARITY-08 and retains the Sitka-only species guard.
-- **MFM-11** follows stable parity/repeated-intervention/player-facing flow.
-- **MFM-12** follows MFM-11 plus parity/S1-C/S1-D qualification.
+- MFM-08A prerequisite = #129, blocked on #125 exact integrated SHA.
+- MFM-08 map/3D review UX follows #129 + integrated MFM-07 and available UI ownership.
+- MFM-09 follows MFM-08 plus accepted S1-D T-04/T-05; teaching ownership stays in MFM-09 only.
+- MFM-10 follows MFM-09 + PARITY-08 and retains Sitka-only quantitative scope.
+- MFM-11 follows stable parity/repeated-intervention/player-facing flow.
+- MFM-12 follows MFM-11 plus parity/S1-C/S1-D qualification.
 
 ### Three-species parity
 
-- **PARITY-08**: waiting only for MFM-07 return/ownership reconciliation.
-- **PARITY-09**: after PARITY-08 + MFM-10.
+- PARITY-08 = #126, with mandatory independent review #128.
+- PARITY-09 waits for PARITY-08 PASS + independent review APPROVED + MFM-10.
 
 ### Programme endgame
 
-- Final Tier-3: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md` — one exact final candidate; mandatory fresh S1-C T-05 save/history rerun.
-- Final independent review: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-INDEPENDENT-REVIEW-TASK-PACKET.md`.
-- User-playtest template: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-HANDOFF-TEMPLATE.md` — template only until final qualification passes.
+- Final Tier-3 uses one exact final candidate only after Rack/parity/S1-C/S1-D/MFM dependencies are green.
+- User personally playtests the qualified candidate next.
+- Windows build remains prohibited until explicit post-playtest user authorisation.
 
 ## Released/completed claims relevant to current state
 
-These own no files: #103 S1-D T-03; #104 S1-C T-05; #93 MFM-04; #100 MFM-05; #102 PARITY-07; #111 MFM-06 implementation; #112 superseded review; #113 MFM-06 integration; #118 browser lane 03; #120 browser lane 04.
+These own no files: #103 S1-D T-03; #104 S1-C T-05; #93 MFM-04; #100 MFM-05; #102 PARITY-07; #111 MFM-06 implementation; #113 MFM-06 integration; #118 browser lane 03; #120 browser lane 04; #121 MFM-07 implementation; #122 browser lane 05.
 
 ## Non-dispatched backlog
 
