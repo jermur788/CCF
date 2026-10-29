@@ -211,6 +211,9 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         // Real title integration: valid enables Continue; malformed nested index disables it.
         File.WriteAllText(path,JsonUtility.ToJson(enlargedBaseline));
         var menu=FindFirstObjectByType<StandaloneSessionMenu>();if(menu==null)menu=new GameObject("Disposable startup menu").AddComponent<StandaloneSessionMenu>();
+        // Normal Editor Play may already have the startup screen open; ShowStartupScreen() returns early then and
+        // ContinueAvailable would be the stale pre-fixture value. Close first so the screen re-reads the valid baseline.
+        if(StandaloneSessionMenu.IsOpen)menu.Close();
         menu.ShowStartupScreen();for(int i=0;i<120&&!StandaloneSessionMenu.IsOpen;i++)yield return null;
         Check(StandaloneSessionMenu.IsOpen && menu.ContinueAvailable,"valid save must enable Continue");
         ForestSaveData bad=Clone(legacy);Assign(bad,"juvenile",64);File.WriteAllText(path,JsonUtility.ToJson(bad));
