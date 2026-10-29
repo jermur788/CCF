@@ -230,7 +230,8 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         if (clearingObject != null) clearing.Add(Cov.Mask.Circle(Cov.MaskKind.Clearing, clearingObject.transform.position.x, clearingObject.transform.position.z, stand.ClearingRadiusMeters));
         foreach (ForestBuildable b in FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             site.Add(Cov.Mask.Circle(Cov.MaskKind.Site, b.transform.position.x, b.transform.position.z, stand.ClearingRadiusMeters));
-        double strip = ScenarioOneHeadlandGeometry.Width * 0.5 + ScenarioOneHeadlandGeometry.StemGuard, pad = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard;
+        // ContainsStemCentre's own radii (float arithmetic, guard included).
+        float strip = ScenarioOneHeadlandGeometry.Width * 0.5f + ScenarioOneHeadlandGeometry.StemGuard, pad = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard;
         headland.Add(new Cov.Mask(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.SouthZ, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.NorthZ, strip));
         headland.Add(new Cov.Mask(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.FeederZ, ScenarioOneHeadlandGeometry.PathX, ScenarioOneHeadlandGeometry.FeederZ, strip));
         headland.Add(Cov.Mask.Circle(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.FeederZ, pad));

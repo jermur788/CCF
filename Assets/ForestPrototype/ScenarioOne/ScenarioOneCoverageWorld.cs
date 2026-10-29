@@ -21,7 +21,8 @@ public static class ScenarioOneCoverageWorld
 
     public sealed class Headland
     {
-        public double HeadlandX, SouthZ, NorthZ, FeederZ, PathX, Width, PadRadius, StemGuard;
+        // StripRadius and GuardedPadRadius are the radii ScenarioOneHeadlandGeometry.ContainsStemCentre tests against (float arithmetic, guard included).
+        public double HeadlandX, SouthZ, NorthZ, FeederZ, PathX, StripRadius, GuardedPadRadius;
     }
 
     public sealed class Source
@@ -93,7 +94,7 @@ public static class ScenarioOneCoverageWorld
 
     private static void AddHeadland(Mapped mapped, Headland h)
     {
-        double strip = h.Width * 0.5 + h.StemGuard, pad = h.PadRadius + h.StemGuard;
+        double strip = h.StripRadius, pad = h.GuardedPadRadius;
         mapped.Masks.Add(new ScenarioOneCoverage.Mask(ScenarioOneCoverage.MaskKind.Headland, h.HeadlandX, h.SouthZ, h.HeadlandX, h.NorthZ, strip));
         mapped.Masks.Add(new ScenarioOneCoverage.Mask(ScenarioOneCoverage.MaskKind.Headland, h.HeadlandX, h.FeederZ, h.PathX, h.FeederZ, strip));
         mapped.Masks.Add(ScenarioOneCoverage.Mask.Circle(ScenarioOneCoverage.MaskKind.Headland, h.HeadlandX, h.FeederZ, pad));

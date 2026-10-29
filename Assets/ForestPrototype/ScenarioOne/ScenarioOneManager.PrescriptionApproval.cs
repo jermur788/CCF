@@ -293,8 +293,9 @@ public sealed partial class ScenarioOneManager
             {
                 HeadlandX = ScenarioOneHeadlandGeometry.HeadlandX, SouthZ = ScenarioOneHeadlandGeometry.SouthZ,
                 NorthZ = ScenarioOneHeadlandGeometry.NorthZ, FeederZ = ScenarioOneHeadlandGeometry.FeederZ,
-                PathX = ScenarioOneHeadlandGeometry.PathX, Width = ScenarioOneHeadlandGeometry.Width,
-                PadRadius = ScenarioOneHeadlandGeometry.PadRadius, StemGuard = ScenarioOneHeadlandGeometry.StemGuard
+                PathX = ScenarioOneHeadlandGeometry.PathX,
+                StripRadius = ScenarioOneHeadlandGeometry.Width * 0.5f + ScenarioOneHeadlandGeometry.StemGuard,
+                GuardedPadRadius = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard
             }
         };
         // The same objects the starting stand kept trees clear of (ForestStartingStand.CollectClearancePoints). No moving actor is a source.

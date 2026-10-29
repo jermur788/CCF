@@ -104,7 +104,8 @@ public static class CoverageWorldOfflineCheck
             Headland = new World.Headland
             {
                 HeadlandX = C("HeadlandX"), SouthZ = C("SouthZ"), NorthZ = C("NorthZ"), FeederZ = C("FeederZ"), PathX = C("PathX"),
-                Width = C("Width"), PadRadius = C("PadRadius"), StemGuard = C("StemGuard")
+                // The same float arithmetic as ScenarioOneHeadlandGeometry.ContainsStemCentre.
+                StripRadius = (float)C("Width") * 0.5f + (float)C("StemGuard"), GuardedPadRadius = (float)C("PadRadius") + (float)C("StemGuard")
             }
         };
         foreach (var p in infra.GetProperty("scenePlanks").EnumerateArray())
@@ -130,7 +131,7 @@ public static class CoverageWorldOfflineCheck
         foreach (World.Point p in src.PathPlanks) refs.Add(Cov.Mask.Circle(Cov.MaskKind.Track, p.X, p.Z, rPath));
         refs.Add(Cov.Mask.Circle(Cov.MaskKind.Clearing, src.Clearing.X, src.Clearing.Z, rClear));
         foreach (World.Point p in src.Sites) refs.Add(Cov.Mask.Circle(Cov.MaskKind.Site, p.X, p.Z, rClear));
-        double strip = src.Headland.Width * 0.5 + src.Headland.StemGuard, pad = src.Headland.PadRadius + src.Headland.StemGuard;
+        double strip = src.Headland.StripRadius, pad = src.Headland.GuardedPadRadius;
         refs.Add(new Cov.Mask(Cov.MaskKind.Headland, src.Headland.HeadlandX, src.Headland.SouthZ, src.Headland.HeadlandX, src.Headland.NorthZ, strip));
         refs.Add(new Cov.Mask(Cov.MaskKind.Headland, src.Headland.HeadlandX, src.Headland.FeederZ, src.Headland.PathX, src.Headland.FeederZ, strip));
         refs.Add(Cov.Mask.Circle(Cov.MaskKind.Headland, src.Headland.HeadlandX, src.Headland.FeederZ, pad));
