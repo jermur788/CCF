@@ -159,7 +159,7 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
         Check(Path.GetFullPath(Application.persistentDataPath).StartsWith(Path.GetFullPath(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME")) + Path.DirectorySeparatorChar), "isolated save/config path");
         while (ui.Help.Onboarding.IsOpen) { ui.Help.Onboarding.Next(); yield return Settle(2); }
         ui.CloseAll(); Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false;
-        Check(manager.RackPlanningV2Active && ForestSaveData.CurrentVersion == 22, "fresh V2 with unchanged save v22");
+        Check(manager.RackPlanningV2Active && ForestSaveData.CurrentVersion == 23, "fresh V2 with unchanged save v23");
         Check(!marks.EquipRackSpray(true), "cannot equip before confirmation");
         string fresh = SaveJson();
         Check(manager.ResetRacksToSuggestion(manager.GetSuggestedRackLayout()).Succeeded, "use existing qualified suggested geometry");

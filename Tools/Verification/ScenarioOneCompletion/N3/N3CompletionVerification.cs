@@ -101,7 +101,7 @@ public sealed class N3CompletionGate : MonoBehaviour
             var legacy=Fixture(false,false);legacy.outcome=terminal;legacy.outcomeYear=25;legacy.outcomeReason="legacy terminal";
             RestoreAndRoundTrip(legacy,"old "+terminal);Evaluate();Check(manager.Outcome==terminal&&manager.CaptureSaveData().outcomeReason=="legacy terminal","legacy terminal preserved "+terminal);
         }
-        Check(ForestSaveData.CurrentVersion==22&&(int)ScenarioManagementEventType.AnnualReviewAcknowledged==9,"v22 schema keeps the enum extension");
+        Check(ForestSaveData.CurrentVersion==23&&(int)ScenarioManagementEventType.AnnualReviewAcknowledged==9,"v23 schema keeps the enum extension");
     }
 }
 #endif

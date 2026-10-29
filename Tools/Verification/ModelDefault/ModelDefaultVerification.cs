@@ -250,7 +250,7 @@ public sealed class ModelDefaultGate : MonoBehaviour
             && rng == SimulationRandom.MixedModel && regen == RegenerationModel.Competition && geo == StandGeometryPolicy.NewGameModelForSession,
             $"rng={rng} regen={regen} storm={storm} geometry={StandGeometryModel.Label(geo)} (new-game constants rng={ScenarioOneManager.NewGameRngModel} regen={ScenarioOneManager.NewGameRegenerationModel})");
         Check("FRESH_SESSION_BROADLEAF_MARKET_FLAG_ON", manager.BroadleafMarketActive, $"BroadleafMarketActive={manager.BroadleafMarketActive}");
-        Check("SAVE_SCHEMA_VERSION_STILL_22", ForestSaveData.CurrentVersion == 22 && baseline.version == 22, $"current={ForestSaveData.CurrentVersion} captured={baseline.version}");
+        Check("SAVE_SCHEMA_VERSION_STILL_23", ForestSaveData.CurrentVersion == 23 && baseline.version == 23, $"current={ForestSaveData.CurrentVersion} captured={baseline.version}");
         yield return null;
     }
 
@@ -324,7 +324,7 @@ public sealed class ModelDefaultGate : MonoBehaviour
         ForestSaveData captured = saves.CaptureData();
         string json = JsonUtility.ToJson(captured);
         Receipt(r, $"capture after one year: version={captured.version} growthModel={captured.growthModel} json has \"growthModel\":2 = {json.Contains("\"growthModel\":2")}");
-        Check("CAPTURE_STORES_MODEL_2", captured.growthModel == 2 && captured.version == 22 && json.Contains("\"growthModel\":2"), $"growthModel={captured.growthModel} version={captured.version}");
+        Check("CAPTURE_STORES_MODEL_2", captured.growthModel == 2 && captured.version == 23 && json.Contains("\"growthModel\":2"), $"growthModel={captured.growthModel} version={captured.version}");
 
         saves.Save();
         yield return Frames(2);

@@ -270,7 +270,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         // ---- F. Save / load ---------------------------------------------------------------------------------------------
         ResetWorld(StandGeometryModel.Enlarged80);
         ForestSaveData saved = saves.CaptureData();
-        Check(saved.version == 22 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is v22 + geometry 1");
+        Check(saved.version == 23 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is v23 + geometry 1");
         string savedJson = JsonUtility.ToJson(saved);
         ForestSaveData parsed = JsonUtility.FromJson<ForestSaveData>(savedJson);
         Check(ForestSaveValidation.ValidateGeometryJson(savedJson, parsed) == null && ForestSaveValidation.Validate(parsed, 1344, 256) == null, "the Enlarged80 save validates against 256 cells");
