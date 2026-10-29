@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using Stem = ScenarioOneCoverage.Stem;
@@ -201,9 +202,17 @@ public sealed partial class ScenarioOneManager
         public ScenarioOneCoverage.Result Coverage;
     }
 
-    // Reads the live confirmed rack sample, trees and Work Plan into the pure rules. Read-only. Infrastructure masks, management features
-    // and the unit-by-unit manual choices other than the stored ones are NOT read here (a partial adapter, as in the MFM-04/05 gate): an
-    // area that would need a mask to be excluded is therefore judged without it. Recorded as a residual in the MFM-07 handoff.
+    // A thin, side-effect-free view of the coverage ApprovePrescription itself uses: the same TryReadPrescriptionWorld read and
+    // ScenarioOneCoverage.Classify, with no cache, no stored state and no extra semantics. Null (with the reason) when the world cannot be read.
+    public ScenarioOneCoverage.Result ReadCoverage(out string problem, IReadOnlyCollection<string> manualUnitIds = null)
+    {
+        if (!TryReadPrescriptionWorld(manualUnitIds ?? new string[0], out PrescriptionWorld world, out problem)) return null;
+        return world.Coverage;
+    }
+
+    // Reads the live confirmed rack sample, trees, Work Plan, infrastructure and management features into the pure rules. Read-only: it
+    // writes no mark, order, record or id. Infrastructure masks and non-tree management features come from ReadCoverageWorld (MFM-08A);
+    // the unit-by-unit manual choices other than the stored ones are not read here.
     private bool TryReadPrescriptionWorld(IReadOnlyCollection<string> manualUnitIds, out PrescriptionWorld world, out string problem)
     {
         world = null;
@@ -239,11 +248,13 @@ public sealed partial class ScenarioOneManager
                 : ScenarioOneRackBay.Disposition.Other;
             bayOrders.Add(new ScenarioOneRackBay.Order(order.targetTreeId, open, done, disposition, order.resolvedYear));
         }
+        ScenarioOneCoverageWorld.Mapped mapped = ReadCoverageWorld(half, out problem);
+        if (mapped == null) return false;
         ScenarioOnePrescriptionCalibration calibration = ScenarioOnePrescriptionCalibration.V1;
         var coverage = ScenarioOneCoverage.Classify(new ScenarioOneCoverage.Input
         {
-            Geometry = geometry, Stems = stems, Orders = bayOrders, Masks = new ScenarioOneCoverage.Mask[0],
-            Features = new ScenarioOneCoverage.Feature[0], PlayerManualAreas = manualUnitIds ?? new string[0]
+            Geometry = geometry, Stems = stems, Orders = bayOrders, Masks = mapped.Masks,
+            Features = mapped.Features, PlayerManualAreas = manualUnitIds ?? new string[0]
         }, calibration);
         if (!coverage.Valid)
         {
@@ -259,6 +270,93 @@ public sealed partial class ScenarioOneManager
         world = new PrescriptionWorld { Geometry = geometry, Stems = stems, Derivation = derivation, Coverage = coverage };
         problem = "";
         return true;
+    }
+
+    // ----------------------------------------------------------------------------------------------- the coverage world (MFM-08A)
+
+    // Gathers the existing authoritative sources and maps them with ScenarioOneCoverageWorld. Read-only. Fails (null + reason) rather than
+    // run coverage without an exclusion when the starting-stand clearance settings cannot be read.
+    private ScenarioOneCoverageWorld.Mapped ReadCoverageWorld(float standHalfExtent, out string problem)
+    {
+        var stand = UnityEngine.Object.FindFirstObjectByType<ForestStartingStand>(FindObjectsInactive.Include);
+        if (stand == null)
+        {
+            problem = "Coverage cannot be read: the starting-stand clearance settings are not in the scene.";
+            return null;
+        }
+        var source = new ScenarioOneCoverageWorld.Source
+        {
+            PathCorridorRadiusM = stand.PathCorridorRadiusMeters,
+            ClearanceRadiusM = stand.ClearingRadiusMeters,
+            StandHalfExtentM = standHalfExtent,
+            Headland = new ScenarioOneCoverageWorld.Headland
+            {
+                HeadlandX = ScenarioOneHeadlandGeometry.HeadlandX, SouthZ = ScenarioOneHeadlandGeometry.SouthZ,
+                NorthZ = ScenarioOneHeadlandGeometry.NorthZ, FeederZ = ScenarioOneHeadlandGeometry.FeederZ,
+                PathX = ScenarioOneHeadlandGeometry.PathX,
+                StripRadius = ScenarioOneHeadlandGeometry.Width * 0.5f + ScenarioOneHeadlandGeometry.StemGuard,
+                GuardedPadRadius = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard
+            }
+        };
+        // The same objects the starting stand kept trees clear of (ForestStartingStand.CollectClearancePoints). No moving actor is a source.
+        foreach (Transform t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (t.name.StartsWith("Dirt Path", StringComparison.Ordinal))
+                source.PathPlanks.Add(new ScenarioOneCoverageWorld.Point(t.name, t.position.x, t.position.z));
+        source.PathPlanks.Sort((a, b) => CompareAt(a, b));
+        GameObject clearing = GameObject.Find("Forest Clearing");
+        if (clearing != null)
+        {
+            source.HasClearing = true;
+            source.Clearing = new ScenarioOneCoverageWorld.Point("Forest Clearing", clearing.transform.position.x, clearing.transform.position.z);
+        }
+        foreach (ForestBuildable buildable in UnityEngine.Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (buildable != null)
+                source.Sites.Add(new ScenarioOneCoverageWorld.Point(buildable.name, buildable.transform.position.x, buildable.transform.position.z));
+        source.Sites.Sort((a, b) => CompareAt(a, b));
+
+        foreach (PlantedJuvenile j in plantedJuveniles)
+            if (j != null && j.alive && string.IsNullOrEmpty(j.promotedTreeId))
+                source.PlantedJuveniles.Add(new ScenarioOneCoverageWorld.Point(j.juvenileId, j.position.x, j.position.z));
+        // A shelter is a physical tube for as long as its record exists, installed or expired or failed alike (ScenarioProtectionVisuals draws
+        // it from install year + 1 on and nothing removes it). Effectiveness is ecology; existence is what coverage cares about.
+        int upcomingYear = ecology.EcologicalYear + 1;
+        foreach (BrowseShelter shelter in ecology.Browsing != null ? ecology.Browsing.Shelters : shelters)
+            if (shelter != null && shelter.installedYear <= upcomingYear)
+                source.Shelters.Add(new ScenarioOneCoverageWorld.Point(shelter.shelterId, shelter.position.x, shelter.position.y));
+        foreach (PlantingClearancePatch patch in clearancePatches)
+            if (patch != null)
+                source.ClearancePatches.Add(new ScenarioOneCoverageWorld.Point(
+                    "clearance-" + patch.createdYear.ToString(CultureInfo.InvariantCulture) + "-" + patch.center.x.ToString("0.00", CultureInfo.InvariantCulture)
+                    + "-" + patch.center.z.ToString("0.00", CultureInfo.InvariantCulture), patch.center.x, patch.center.z));
+        // No Scenario One producer creates protected areas; if one is ever stored the read fails closed (ScenarioOneCoverageWorld.Map).
+        foreach (BrowseProtectedArea area in ecology.Browsing != null ? ecology.Browsing.ProtectedAreas : protectedAreas)
+            if (area != null) source.ProtectedAreaIds.Add(area.areaId ?? "");
+        foreach (ScenarioDeadwoodRecord record in deadwoodRecords)
+            if (record != null)
+                source.DeadwoodRecords.Add(new ScenarioOneCoverageWorld.Point(record.deadwoodId, record.worldPosition.x, record.worldPosition.z));
+        // Felling orders already reach coverage as PlayerOpenWork through their stems; every other open order is management work.
+        foreach (ScenarioOneWorkOrder order in workOrders)
+            if (order != null && order.IsOpen && order.type != ScenarioWorkType.FellTree)
+                source.ActiveManagementWork.Add(new ScenarioOneCoverageWorld.Point(
+                    "order-" + order.workOrderId.ToString(CultureInfo.InvariantCulture), order.worldPosition.x, order.worldPosition.z));
+        // A cell with a natural cohort is regenerating; planted-origin cohorts are the player's planting, already a PlantedJuvenile.
+        for (int i = 0; i < ecology.CellCount; i++)
+        {
+            ForestEcologyCell cell = ecology.Cells[i];
+            if (cell != null && cell.Regeneration.Any(c => c != null && c.Density > 0f && c.Origin == RegenerationOrigin.Natural))
+                source.NaturalRegeneration.Add(new ScenarioOneCoverageWorld.Point("regen-cell-" + i.ToString(CultureInfo.InvariantCulture), cell.Center.x, cell.Center.y));
+        }
+
+        ScenarioOneCoverageWorld.Mapped mapped = ScenarioOneCoverageWorld.Map(source, out problem);
+        return mapped;
+    }
+
+    private static int CompareAt(ScenarioOneCoverageWorld.Point a, ScenarioOneCoverageWorld.Point b)
+    {
+        int c = a.X.CompareTo(b.X);
+        if (c != 0) return c;
+        c = a.Z.CompareTo(b.Z);
+        return c != 0 ? c : string.CompareOrdinal(a.Id, b.Id);
     }
 
     // The pure-rule context for one stored prescription, read fresh from the live world. Null (with a reason) when the world cannot be read.

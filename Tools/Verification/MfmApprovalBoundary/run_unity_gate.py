@@ -33,6 +33,7 @@ GATES = {
     'hash-dump': ('MfmSaveProvenanceUnity/MfmHashDumpGate.cs', 'MFM06_HASHDUMP_PASS', 'MFM06_HASHDUMP_FAIL'),
     'save': ('MfmSaveProvenanceUnity/MfmSaveProvenanceUnityCheck.cs', 'MFM06_UNITY_PASS', 'MFM06_UNITY_CHECK_FAIL'),
     'approval': ('MfmApprovalBoundary/MfmApprovalBoundaryUnityGate.cs', 'MFM07_UNITY_PASS', 'MFM07_UNITY_FAIL'),
+    'coverage-world': ('MfmCoverageWorld/MfmCoverageWorldUnityGate.cs', 'MFM08A_UNITY_PASS', 'MFM08A_UNITY_FAIL'),
 }
 
 # Gates that deliberately load rack-model-0 fixtures and must not use production geometry defaults.
@@ -258,7 +259,7 @@ def main():
         result['disk_saves_created'] = [str(p.relative_to(out)) for p in isolated_saves]
         # The save gate exercises the real controller disk path, so isolated saves are expected there and deleted above.
         # Every other gate must leave the isolated config untouched.
-        saves_allowed = args.gate in ('save', 'approval')
+        saves_allowed = args.gate in ('save', 'approval', 'coverage-world')
         result['pass'] = (result['host_saves_unchanged'] and not remaining and (saves_allowed or not result['disk_saves_created'])
                           and code == 0 and issue is None and has_pass and not failures
                           and result['harness_removed'] and result['licence_copy_removed'] and not cleanup_failures)
