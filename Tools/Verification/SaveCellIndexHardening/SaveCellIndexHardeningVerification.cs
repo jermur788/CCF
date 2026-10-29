@@ -148,6 +148,9 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         var recorded = enlarged.cells.ToDictionary(c => c.index);
         enlarged.cells = Enumerable.Range(0,256).Select(i => recorded.TryGetValue(i,out var cell)
             ? cell : new ForestCellSaveData { index=i,establishmentSuitability=1f }).ToList();
+        // Keep a pristine valid Enlarged80 baseline. The later fixture loop loads other saves into the live
+        // world; reusing the working capture for the startup-Continue case can carry a fixture-mutated grid.
+        ForestSaveData enlargedBaseline = Clone(enlarged);
         ForestSaveData legacy=Clone(enlarged); legacy.standGeometryModel=0;legacy.cells=legacy.cells.Take(64).ToList();legacy.scenarioOne.understoreyCells=legacy.scenarioOne.understoreyCells.Take(64).ToList();
         int rackOrdersRemoved=MakeRackModelZero(legacy);
         // Precondition: the Legacy40 basis is a valid model-0 world, so every geometry=0 verdict below is about cell indices.
@@ -201,9 +204,9 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         Assign(historical,"juvenile",-1);Assign(historical,"deadwood",-1);Assign(historical,"event",-1);Assign(historical,"FellTree",-1);
         yield return Fixture("historical v12 partial grids and sentinels",historical,true);
         ForestSaveData previous=Clone(legacy);previous.version=19;yield return Fixture("historical v19",previous,true);
-        yield return Fixture("restore enlarged baseline",Clone(enlarged),true);
+        yield return Fixture("restore enlarged baseline",Clone(enlargedBaseline),true);
         // Real title integration: valid enables Continue; malformed nested index disables it.
-        File.WriteAllText(path,JsonUtility.ToJson(enlarged));
+        File.WriteAllText(path,JsonUtility.ToJson(enlargedBaseline));
         var menu=FindFirstObjectByType<StandaloneSessionMenu>();if(menu==null)menu=new GameObject("Disposable startup menu").AddComponent<StandaloneSessionMenu>();
         menu.ShowStartupScreen();for(int i=0;i<120&&!StandaloneSessionMenu.IsOpen;i++)yield return null;
         Check(StandaloneSessionMenu.IsOpen && menu.ContinueAvailable,"valid save must enable Continue");
