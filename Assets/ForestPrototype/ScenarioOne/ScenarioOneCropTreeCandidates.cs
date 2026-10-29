@@ -19,6 +19,58 @@ using Stem = ScenarioOneCoverage.Stem;
 public static class ScenarioOneCropTreeCandidates
 {
     public enum Decision { Open, Confirmed, Rejected }
+    public enum Navigation { Previous, Next }
+
+    // A navigation/selection target, never a designation or evidence of player inspection.
+    public readonly struct InspectionTarget
+    {
+        public readonly string TreeId, AreaId;
+        public readonly float X, Z;
+        public readonly int Order;
+        public CandidateReason Reason => CandidateReason.SpacingOnlyInspectToJudge;
+        internal InspectionTarget(Candidate candidate)
+        {
+            TreeId = candidate.TreeId; AreaId = candidate.AreaId;
+            X = candidate.X; Z = candidate.Z; Order = candidate.Order;
+        }
+    }
+
+    // Only undecided candidates are actionable. Confirmed/rejected entries stay in the batch for spacing/history.
+    // Callers must regenerate from current authoritative state before acting; selecting a target does not confirm it.
+    public static bool TryGetInspectionTarget(Result result, string treeId, out InspectionTarget target)
+    {
+        target = default;
+        if (result == null || !result.Valid || string.IsNullOrEmpty(treeId)) return false;
+        foreach (Candidate candidate in result.Candidates)
+            if (candidate.TreeId == treeId && candidate.Decision == Decision.Open)
+            {
+                target = new InspectionTarget(candidate);
+                return true;
+            }
+        return false;
+    }
+
+    // No wrap at either end. An empty current id starts at the first/last open entry; an unknown id fails safely.
+    // A decided entry can still anchor navigation, so deciding one tree can advance to the next open tree.
+    public static bool TryMoveInspectionTarget(Result result, string currentTreeId, Navigation direction, out InspectionTarget target)
+    {
+        target = default;
+        if (result == null || !result.Valid || (direction != Navigation.Next && direction != Navigation.Previous)) return false;
+        int step = direction == Navigation.Next ? 1 : -1;
+        int index = step > 0 ? -1 : result.Candidates.Count;
+        if (!string.IsNullOrEmpty(currentTreeId))
+        {
+            index = result.Candidates.FindIndex(c => c.TreeId == currentTreeId);
+            if (index < 0) return false;
+        }
+        for (index += step; index >= 0 && index < result.Candidates.Count; index += step)
+            if (result.Candidates[index].Decision == Decision.Open)
+            {
+                target = new InspectionTarget(result.Candidates[index]);
+                return true;
+            }
+        return false;
+    }
     // The single closed reason for every V1 candidate.
     public enum CandidateReason { SpacingOnlyInspectToJudge }
 
@@ -60,7 +112,7 @@ public static class ScenarioOneCropTreeCandidates
         IReadOnlyCollection<string> confirmedIds, IReadOnlyCollection<string> rejectedIds, ScenarioOnePrescriptionCalibration calibration)
     {
         var result = new Result();
-        if (calibration == null || !(calibration.CandidateSpacingM > 0)) return Fail(result, "No positive candidate spacing was supplied.");
+        if (calibration == null || (!(calibration.CandidateSpacingM > 0) || double.IsInfinity(calibration.CandidateSpacingM))) return Fail(result, "No positive candidate spacing was supplied.");
         result.CalibrationVersion = calibration.Version;
         result.SpacingM = calibration.CandidateSpacingM;
         if (coverage == null || !coverage.Valid) return Fail(result, "There is no valid coverage result.");
@@ -73,17 +125,28 @@ public static class ScenarioOneCropTreeCandidates
         foreach (string id in confirmed)
             if (rejected.Contains(id)) return Fail(result, "Candidate " + id + " is recorded as both confirmed and rejected.");
 
+        var sampleCrops = new HashSet<string>(sampleCropTreeIds ?? new string[0], StringComparer.Ordinal);
+
         // The sequence: eligible stems of covered areas. A confirmed candidate is now a Crop Tree but keeps its place, so the set is stable.
         var sequence = new List<KeyValuePair<string, Stem>>();
         var inSequence = new HashSet<string>(StringComparer.Ordinal);
         var coveredAreas = new List<string>();
-        foreach (ScenarioOneCoverage.Area area in coverage.Areas)
+        var areas = new List<ScenarioOneCoverage.Area>(coverage.Areas);
+        areas.Sort((a, b) =>
         {
-            if (area.State != ScenarioOneCoverage.State.Covered) continue;
+            int c = a.RackId.CompareTo(b.RackId);
+            if (c == 0) c = a.Segment.CompareTo(b.Segment);
+            return c != 0 ? c : string.CompareOrdinal(a.Id, b.Id);
+        });
+        foreach (ScenarioOneCoverage.Area area in areas)
+        {
+            if (area.IsSource || area.State != ScenarioOneCoverage.State.Covered) continue;
             coveredAreas.Add(area.Id);
             var eligible = new List<Stem>();
-            foreach (string id in area.StemIds)
-                if (living.TryGetValue(id, out Stem s) && s.IsSitka && !s.FellMark && (!s.Crop || confirmed.Contains(id))) eligible.Add(s);
+            var areaIds = new SortedSet<string>(area.StemIds, StringComparer.Ordinal);
+            foreach (string id in areaIds)
+                if (living.TryGetValue(id, out Stem s) && s.IsSitka && !s.FellMark && !sampleCrops.Contains(id)
+                    && (!s.Crop || confirmed.Contains(id))) eligible.Add(s);
             if (eligible.Count == 0) continue;
             double cx = 0, cz = 0;
             foreach (Stem s in eligible) { cx += s.X; cz += s.Z; }
@@ -101,7 +164,6 @@ public static class ScenarioOneCropTreeCandidates
 
         // Blockers: the sample's Crop Trees and every other living Crop Tree that is not itself in the sequence.
         var placed = new List<Stem>();
-        var sampleCrops = new HashSet<string>(sampleCropTreeIds ?? new string[0], StringComparer.Ordinal);
         foreach (Stem s in living.Values)
             if ((s.Crop || sampleCrops.Contains(s.Id)) && !inSequence.Contains(s.Id)) placed.Add(s);
         placed.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));
