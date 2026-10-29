@@ -202,8 +202,8 @@ public sealed partial class ScenarioOneManager
         public ScenarioOneCoverage.Result Coverage;
     }
 
-    // The coverage the prescription rules see right now, read-only: null (with the reason) when the world cannot be read. Exposed so the
-    // MFM review UX and the verification gates read the same production coverage as ApprovePrescription, never a second copy of it.
+    // A thin, side-effect-free view of the coverage ApprovePrescription itself uses: the same TryReadPrescriptionWorld read and
+    // ScenarioOneCoverage.Classify, with no cache, no stored state and no extra semantics. Null (with the reason) when the world cannot be read.
     public ScenarioOneCoverage.Result ReadCoverage(out string problem, IReadOnlyCollection<string> manualUnitIds = null)
     {
         if (!TryReadPrescriptionWorld(manualUnitIds ?? new string[0], out PrescriptionWorld world, out problem)) return null;
@@ -316,21 +316,20 @@ public sealed partial class ScenarioOneManager
         foreach (PlantedJuvenile j in plantedJuveniles)
             if (j != null && j.alive && string.IsNullOrEmpty(j.promotedTreeId))
                 source.PlantedJuveniles.Add(new ScenarioOneCoverageWorld.Point(j.juvenileId, j.position.x, j.position.z));
+        // A shelter is a physical tube for as long as its record exists, installed or expired or failed alike (ScenarioProtectionVisuals draws
+        // it from install year + 1 on and nothing removes it). Effectiveness is ecology; existence is what coverage cares about.
+        int upcomingYear = ecology.EcologicalYear + 1;
         foreach (BrowseShelter shelter in ecology.Browsing != null ? ecology.Browsing.Shelters : shelters)
-            if (shelter != null)
+            if (shelter != null && shelter.installedYear <= upcomingYear)
                 source.Shelters.Add(new ScenarioOneCoverageWorld.Point(shelter.shelterId, shelter.position.x, shelter.position.y));
         foreach (PlantingClearancePatch patch in clearancePatches)
             if (patch != null)
                 source.ClearancePatches.Add(new ScenarioOneCoverageWorld.Point(
                     "clearance-" + patch.createdYear.ToString(CultureInfo.InvariantCulture) + "-" + patch.center.x.ToString("0.00", CultureInfo.InvariantCulture)
                     + "-" + patch.center.z.ToString("0.00", CultureInfo.InvariantCulture), patch.center.x, patch.center.z));
+        // No Scenario One producer creates protected areas; if one is ever stored the read fails closed (ScenarioOneCoverageWorld.Map).
         foreach (BrowseProtectedArea area in ecology.Browsing != null ? ecology.Browsing.ProtectedAreas : protectedAreas)
-        {
-            if (area == null || area.polygon == null) continue;
-            var polygon = new ScenarioOneCoverageWorld.Polygon { Id = area.areaId };
-            foreach (Vector2 v in area.polygon) polygon.Vertices.Add(new ScenarioOneCoverageWorld.Point(area.areaId, v.x, v.y));
-            source.ProtectedAreas.Add(polygon);
-        }
+            if (area != null) source.ProtectedAreaIds.Add(area.areaId ?? "");
         foreach (ScenarioDeadwoodRecord record in deadwoodRecords)
             if (record != null)
                 source.DeadwoodRecords.Add(new ScenarioOneCoverageWorld.Point(record.deadwoodId, record.worldPosition.x, record.worldPosition.z));

@@ -48,7 +48,7 @@ public static class CoverageWorldOfflineCheck
         InfrastructureMasks(fx);
         ExclusionsChangeCoverage(fx);
         FeatureKinds(fx);
-        ProtectedAreaPolygon(fx);
+        ProtectedAreaFailsClosed(fx);
         DeterminismAndNoMutation(fx);
         FailClosed(fx);
         StaticGuards();
@@ -258,42 +258,15 @@ public static class CoverageWorldOfflineCheck
             "NaturalRegeneration: stays Covered, flagged, evidence id kept", na.State + "/" + string.Join(",", na.Flags));
     }
 
-    private static void ProtectedAreaPolygon(Fixture fx)
+    private static void ProtectedAreaFailsClosed(Fixture fx)
     {
-        World.Mapped baseMap = Map(fx.Source);
-        Cov.Result baseline = Classify(fx, baseMap.Masks);
-        var a = PickArea(baseline, fx, 0);
-        var b = PickArea(baseline, fx, 1);
-        World.Polygon Square(string id, double cx, double cz, double r)
-        {
-            var p = new World.Polygon { Id = id };
-            p.Vertices.Add(new World.Point(id, (float)(cx - r), (float)(cz - r)));
-            p.Vertices.Add(new World.Point(id, (float)(cx + r), (float)(cz - r)));
-            p.Vertices.Add(new World.Point(id, (float)(cx + r), (float)(cz + r)));
-            p.Vertices.Add(new World.Point(id, (float)(cx - r), (float)(cz + r)));
-            return p;
-        }
+        World.Mapped none = Map(fx.Source);
+        Check(!none.Features.Any(f => f.Kind == Cov.FeatureKind.ProtectedArea), "no protected area in the world gives zero ProtectedArea features");
         World.Source s = Clone(fx.Source);
-        s.ProtectedAreas.Add(Square("fence-1", a.Stem.X, a.Stem.Z, 3.0));
-        World.Mapped m = Map(s);
-        Check(m.Features.Count > 4 && m.Features.All(f => f.Kind == Cov.FeatureKind.ProtectedArea && f.Id == "fence-1"), "protected area: sampled points all carry the area id", m.Features.Count.ToString());
-        Cov.Result r = Classify(fx, m.Masks, m.Features);
-        Cov.Area got = r.Find(a.Area.Id);
-        Check(got.State == Cov.State.Excluded && got.Reasons.Contains(Cov.Reason.ProtectedArea) && got.Evidence.Contains("fence-1"), "protected area excludes the area it covers", got.State.ToString());
-        Check(r.Find(b.Area.Id).State == baseline.Find(b.Area.Id).State, "protected area leaves a distant area alone");
-        // Sampling is clipped to the stand.
-        World.Source far = Clone(fx.Source);
-        far.ProtectedAreas.Add(Square("fence-out", 200, 200, 5));
-        Check(Map(far).Features.Count == 0, "a protected area wholly outside the stand adds no feature");
-        // A sliver thinner than the lattice step is still caught through its edges.
-        World.Polygon sliver = new World.Polygon { Id = "sliver" };
-        sliver.Vertices.Add(new World.Point("sliver", (float)a.Stem.X, (float)a.Stem.Z));
-        sliver.Vertices.Add(new World.Point("sliver", (float)a.Stem.X + 5f, (float)a.Stem.Z));
-        sliver.Vertices.Add(new World.Point("sliver", (float)a.Stem.X + 5f, (float)a.Stem.Z + 0.1f));
-        World.Source sl = Clone(fx.Source);
-        sl.ProtectedAreas.Add(sliver);
-        World.Mapped sm = Map(sl);
-        Check(Classify(fx, sm.Masks, sm.Features).Find(a.Area.Id).State == Cov.State.Excluded, "a thin protected polygon still excludes through its edge points");
+        s.ProtectedAreaIds.Add("fence-1");
+        World.Mapped refused = World.Map(s, out string problem);
+        Check(refused == null && problem.Contains("fence-1"), "an authoritative protected area refuses the whole read with an explicit problem", problem);
+        Check(refused == null, "it is neither sampled nor silently omitted: no masks or features are returned");
     }
 
     // ----------------------------------------------------------------------------------------------- determinism, mutation, refusal
@@ -351,6 +324,9 @@ public static class CoverageWorldOfflineCheck
         Check(!approval.Contains("BindingFlags") && !approval.Contains("GetField("), "no reflection in the adapter");
         string[] writes = { ".Add(new ScenarioOneWorkOrder", "workOrders.Add", "MarkForFell", "managementEvents.Add", "plantedJuveniles.Add", "deadwoodRecords.Add", "clearancePatches.Add", "shelters.Add" };
         Check(writes.All(w => !reader.Contains(w)), "the reader writes no order, mark, event or record");
+        Check(reader.Contains("shelter.installedYear <= upcomingYear") && !reader.Contains("IsEffective"), "shelters are physical objects from their install year, whatever their effectiveness");
+        Check(reader.Contains("ProtectedAreaIds.Add") && !reader.Contains(".polygon"), "protected areas are only counted so the read fails closed, never sampled");
+        Check(!world.Contains("SamplePolygon") && !world.Contains("ProtectedAreaSampleStep"), "no protected-area polygon sampling remains in the mapper");
         Check(!world.Contains("using UnityEngine"), "the pure mapper has no UnityEngine dependency");
         string stand = File.ReadAllText(Path.Combine(repoRoot, "Assets", "ForestPrototype", "ForestStartingStand.cs"));
         Check(stand.Contains("public float PathCorridorRadiusMeters => pathCorridorRadiusMeters;") && stand.Contains("public float ClearingRadiusMeters => clearingRadiusMeters;"),
@@ -369,7 +345,7 @@ public static class CoverageWorldOfflineCheck
             Headland = s.Headland, HasClearing = s.HasClearing, Clearing = s.Clearing
         };
         c.PathPlanks.AddRange(s.PathPlanks); c.Sites.AddRange(s.Sites); c.PlantedJuveniles.AddRange(s.PlantedJuveniles);
-        c.Shelters.AddRange(s.Shelters); c.ClearancePatches.AddRange(s.ClearancePatches); c.ProtectedAreas.AddRange(s.ProtectedAreas);
+        c.Shelters.AddRange(s.Shelters); c.ClearancePatches.AddRange(s.ClearancePatches); c.ProtectedAreaIds.AddRange(s.ProtectedAreaIds);
         c.DeadwoodRecords.AddRange(s.DeadwoodRecords); c.ActiveManagementWork.AddRange(s.ActiveManagementWork); c.NaturalRegeneration.AddRange(s.NaturalRegeneration);
         return c;
     }
