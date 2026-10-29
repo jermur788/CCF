@@ -127,65 +127,148 @@ public static class ObjectiveHistoryOfflineCheck
         Check(Refusal(V22World(A("introduced-oak", 10), A("introduced-beech", 12), A("retained-canopy", 12))) == null, "accepted: per-species introduced-* ids and equal years");
 
         // ---- 4. recording rules (the real ScenarioOneManager.ObjectiveHistory.cs) ---------------------------------
-        ScenarioObjectiveResult R(string id, bool achieved, float target = 1f) => new ScenarioObjectiveResult { objectiveId = id, achieved = achieved, targetValue = target };
+        // A scenario is a table: objective id -> predicate over the evaluated year (what the real Evaluate would report).
+        void Scenario(Dictionary<string, Func<int, bool>> table, Dictionary<string, float> targets = null)
+            => ScenarioOneObjectives.Hook = snapshot => table.Select(pair => new ScenarioObjectiveResult
+            { objectiveId = pair.Key, achieved = pair.Value(snapshot.year), targetValue = targets != null && targets.ContainsKey(pair.Key) ? targets[pair.Key] : 1f }).ToList();
+        string Ledger(ScenarioOneManager m) => string.Join(",", m.ObjectiveAchievements.Select(item => item.objectiveId + "@" + item.achievedYear));
+        // Saves the manager, round-trips the scenario data through JSON and reloads it into a fresh manager.
+        ScenarioOneManager SaveAndLoad(ScenarioOneManager from, int version = 22)
+        {
+            var to = new ScenarioOneManager();
+            to.CopyYearlyRecordsFrom(from);
+            to.Restore(JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(from.Capture())), version);
+            return to;
+        }
+
         var manager = new ScenarioOneManager();
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", false, 25f), R("managed-opening", false) };
+        Scenario(new Dictionary<string, Func<int, bool>> { ["minimum-year"] = y => y >= 25, ["managed-opening"] = y => y >= 6 }, new Dictionary<string, float> { ["minimum-year"] = 25f });
         manager.EvaluateActive(5);
         Check(manager.ObjectiveAchievements.Count == 0, "record: nothing achieved, nothing recorded");
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", false, 25f), R("managed-opening", true, 1f) };
         manager.EvaluateActive(6);
         Check(manager.ObjectiveAchievements.Count == 1 && manager.ObjectiveAchievedYear("managed-opening") == 6, "record: managed-opening recorded in the year first seen achieved");
         Check(manager.ObjectiveAchievements[0].targetValueAtAchievement == 1f, "record: target at achievement stored");
-        Check(manager.ObjectiveAchievedYear("minimum-year") == -1, "record: unachieved objective reports -1 (not recorded)");
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", true, 1f) };
-        manager.EvaluateActive(25);
-        manager.EvaluateActive(26);
-        Check(manager.ObjectiveAchievements.Count == 2 && manager.ObjectiveAchievedYear("managed-opening") == 6 && manager.ObjectiveAchievedYear("minimum-year") == 25,
-            "record: first achievement only; later evaluations never duplicate or move a year");
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", false) };
+        Check(manager.ObjectiveYear("minimum-year", out ObjectiveYearSource none0) == -1 && none0 == ObjectiveYearSource.NotRecorded, "record: unachieved objective reports -1 (not recorded)");
+        manager.EvaluateActive(25); manager.EvaluateActive(26);
+        Check(Ledger(manager) == "managed-opening@6,minimum-year@25", "record: first achievement only; later evaluations never duplicate or move a year");
+        Scenario(new Dictionary<string, Func<int, bool>> { ["minimum-year"] = y => true, ["managed-opening"] = y => false });
         manager.EvaluateActive(27);
         Check(manager.ObjectiveAchievedYear("managed-opening") == 6 && manager.ObjectiveAchievements.Count == 2, "record: a lost objective keeps its first-achievement record");
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", true), R("retained-canopy", true, 20f) };
+        Scenario(new Dictionary<string, Func<int, bool>> { ["minimum-year"] = y => true, ["retained-canopy"] = y => true });
         manager.SetOutcome(ScenarioOneOutcome.Completed);
         manager.EvaluateActive(28);
         Check(manager.ObjectiveAchievedYear("retained-canopy") == -1, "record: nothing is recorded once the scenario outcome is final (as before)");
         manager.SetOutcome(ScenarioOneOutcome.Active);
 
-        // save -> load round trip through the real manager code
         ScenarioOneSaveData captured = manager.Capture();
         captured.objectiveAchievements[0].achievedYear = 999;
         Check(manager.ObjectiveAchievedYear("managed-opening") == 6, "capture: save data is a copy, not the live list");
-        captured = manager.Capture();
-        var reloaded = new ScenarioOneManager();
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", true) };
-        reloaded.Restore(JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(captured)), 22, 27);
-        Check(reloaded.ObjectiveAchievements.Select(item => item.objectiveId + "@" + item.achievedYear).SequenceEqual(new[] { "managed-opening@6", "minimum-year@25" }),
-            "load: v22 history restored exactly, in saved order");
-        reloaded.EvaluateActive(28);
-        Check(reloaded.ObjectiveAchievements.Count == 2, "load: a fully recorded v22 save records nothing new for already-recorded objectives");
+        ScenarioOneManager reloaded = SaveAndLoad(manager);
+        Check(Ledger(reloaded) == "managed-opening@6,minimum-year@25", "load: v22 history restored exactly, in saved order");
 
-        // pre-v22 save: no invented past
-        var legacy = new ScenarioOneManager();
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", true), R("retained-canopy", false, 20f) };
-        var oldData = new ScenarioOneSaveData { objectiveAchievements = new List<ScenarioObjectiveAchievement> { A("minimum-year", 1) } };
-        legacy.Restore(oldData, 21, 27);
-        Check(legacy.ObjectiveAchievements.Count == 0, "pre-v22 load: history starts empty even if the object carried records");
-        legacy.EvaluateActive(28);
-        Check(legacy.ObjectiveAchievements.Count == 0 && legacy.ObjectiveAchievedYear("managed-opening") == -1,
-            "pre-v22 load: objectives already achieved are never stamped with a later year");
-        ScenarioOneObjectives.Hook = () => new List<ScenarioObjectiveResult> { R("minimum-year", true, 25f), R("managed-opening", true), R("retained-canopy", true, 20f) };
-        legacy.EvaluateActive(29);
-        Check(legacy.ObjectiveAchievements.Count == 1 && legacy.ObjectiveAchievedYear("retained-canopy") == 29, "pre-v22 load: an objective achieved after the load is recorded normally");
-        ScenarioOneSaveData savedAgain = legacy.Capture();
-        var reload2 = new ScenarioOneManager();
-        reload2.Restore(JsonUtility.FromJson<ScenarioOneSaveData>(JsonUtility.ToJson(savedAgain)), 22, 29);
-        reload2.EvaluateActive(30);
-        Check(reload2.ObjectiveAchievements.Count == 1 && reload2.ObjectiveAchievedYear("managed-opening") == -1,
-            "pre-v22 -> v22 re-save and reload: still not recorded (the guard is rebuilt on every load)");
-        legacy.Reset();
-        Check(legacy.ObjectiveAchievements.Count == 0, "reset: a new game starts with no history");
-        legacy.Restore(null, 21, 0);
-        Check(legacy.ObjectiveAchievements.Count == 0, "restore(null scenario): empty history");
+        // B-1: a NEW v22 game. The year-0 baseline is never evaluated, so objectives already met at the start must still
+        // be recorded at the first review, across save/reload at year 0 and later.
+        Scenario(new Dictionary<string, Func<int, bool>> { ["retained-canopy"] = y => true, ["continuous-canopy"] = y => true, ["regeneration"] = y => y >= 4 });
+        var fresh0 = new ScenarioOneManager();
+        fresh0.AddBaseline();
+        fresh0.AddEvent(0, ScenarioManagementEventType.StockPurchased);   // year-0 activity must not make year 0 an evaluated year
+        ScenarioOneManager atYear0 = SaveAndLoad(fresh0);
+        Check(atYear0.ObjectiveAchievements.Count == 0, "new game: reload at year 0 starts with no history and nothing guarded");
+        atYear0.EvaluateActive(1);
+        Check(Ledger(atYear0) == "retained-canopy@1,continuous-canopy@1", "new game: objectives met at the start are recorded at the first review after a year-0 reload");
+        ScenarioOneManager atYear1 = SaveAndLoad(atYear0);
+        atYear1.EvaluateActive(2); atYear1.EvaluateActive(3); atYear1.EvaluateActive(4);
+        Check(Ledger(atYear1) == "retained-canopy@1,continuous-canopy@1,regeneration@4", "new game: reload at year 1, later achievement recorded, earlier years not moved");
+        ScenarioOneManager atYear4 = SaveAndLoad(atYear1);
+        atYear4.EvaluateActive(5);
+        Check(Ledger(atYear4) == Ledger(atYear1) && atYear4.ObjectiveYear("regeneration", out ObjectiveYearSource src4) == 4 && src4 == ObjectiveYearSource.Recorded,
+            "new game: later save/reload keeps every record and labels it recorded");
+        var untouched = new ScenarioOneManager();
+        untouched.AddBaseline();
+        untouched.EvaluateActive(1); untouched.EvaluateActive(2);
+        Check(Ledger(SaveAndLoad(untouched)) == "retained-canopy@1,continuous-canopy@1", "new game: no-reload play and reload agree");
+
+        // B-2 / AC-4: a pre-v22 save. Two years evaluated before recording existed: managed-opening met at year 3 (exactly
+        // derivable); minimum-year met at year 5; canopy never met. One objective with an evidence gap is not derivable.
+        Scenario(new Dictionary<string, Func<int, bool>> { ["managed-opening"] = y => y >= 3, ["minimum-year"] = y => y >= 5, ["regeneration"] = y => y >= 2 });
+        var legacyYear = new ScenarioOneManager();   // played before v22: the yearly records exist, the ledger is not carried over
+        legacyYear.AddBaseline();
+        for (int y = 1; y <= 6; y++) legacyYear.EvaluateActive(y);
+        ScenarioOneSaveData oldSave = new ScenarioOneSaveData { objectiveAchievements = new List<ScenarioObjectiveAchievement> { A("minimum-year", 1) } };
+        var v21Load = new ScenarioOneManager();
+        v21Load.CopyYearlyRecordsFrom(legacyYear);
+        v21Load.Restore(oldSave, 21);
+        Check(v21Load.ObjectiveAchievements.Count == 0, "pre-v22 load: history starts empty even if the object carried records");
+        int d1 = v21Load.ObjectiveYear("managed-opening", out ObjectiveYearSource s1), d2 = v21Load.ObjectiveYear("regeneration", out ObjectiveYearSource s2), d3 = v21Load.ObjectiveYear("minimum-year", out ObjectiveYearSource s3);
+        Check(d1 == 3 && s1 == ObjectiveYearSource.Derived && d2 == 2 && s2 == ObjectiveYearSource.Derived && d3 == 5 && s3 == ObjectiveYearSource.Derived,
+            "R-1: exactly derivable objectives show the derived year (3, 2, 5), labelled derived");
+        Check(v21Load.ObjectiveYear("retained-canopy", out ObjectiveYearSource s4) == -1 && s4 == ObjectiveYearSource.NotRecorded, "R-1: an objective never achieved stays not recorded");
+        // Not derivable: the year-4 snapshot is missing from the save, so first-achievement could have been in that gap.
+        Scenario(new Dictionary<string, Func<int, bool>> { ["managed-opening"] = y => y >= 3, ["minimum-year"] = y => y >= 5 });
+        var gapSource = new ScenarioOneManager();
+        gapSource.AddBaseline();
+        for (int y = 1; y <= 6; y++) gapSource.EvaluateActive(y);
+        gapSource.DropSnapshot(3);
+        var gapLoad = new ScenarioOneManager();
+        gapLoad.CopyYearlyRecordsFrom(gapSource);
+        gapLoad.Restore(new ScenarioOneSaveData(), 21);
+        Check(gapLoad.ObjectiveYear("managed-opening", out ObjectiveYearSource sg1) == -1 && sg1 == ObjectiveYearSource.NotRecorded,
+            "R-1: evidence gap before the first achieved snapshot -> not recorded, never a guessed year");
+        Check(gapLoad.ObjectiveYear("minimum-year", out ObjectiveYearSource sg2) == -1 && sg2 == ObjectiveYearSource.NotRecorded, "R-1: a gap anywhere earlier also makes later first years not exact");
+        // pre-v22 load never stamps a later year, and an objective met only after the load is recorded normally
+        Scenario(new Dictionary<string, Func<int, bool>> { ["managed-opening"] = y => y >= 3, ["minimum-year"] = y => y >= 5, ["regeneration"] = y => y >= 2, ["retained-canopy"] = y => y >= 8 });
+        v21Load.EvaluateActive(7);
+        Check(v21Load.ObjectiveAchievements.Count == 0, "pre-v22 load: objectives achieved before the load are never stamped with a later year");
+        v21Load.EvaluateActive(8);
+        Check(Ledger(v21Load) == "retained-canopy@8", "pre-v22 load: an objective first met after the load is recorded normally");
+        ScenarioOneManager v22Again = SaveAndLoad(v21Load);
+        v22Again.EvaluateActive(9);
+        Check(Ledger(v22Again) == "retained-canopy@8" && v22Again.ObjectiveYear("managed-opening", out ObjectiveYearSource sa) == 3 && sa == ObjectiveYearSource.Derived,
+            "pre-v22 -> v22 re-save and reload: still derived/not recorded for old years, new record kept");
+
+        // B-3: met in year 8, lost by 12, met again in 14 (pre-v22 lineage). The first year is knowable (8) and the
+        // re-achievement must never become a record.
+        Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => (y >= 8 && y <= 11) || y >= 14 });
+        var lost = new ScenarioOneManager();
+        lost.AddBaseline();
+        for (int y = 1; y <= 12; y++) lost.EvaluateActive(y);
+        Check(lost.ObjectiveAchievedYear("regeneration") == 8, "lost/regained: (control) a v22 game records year 8");
+        var lostLoad = new ScenarioOneManager();
+        lostLoad.CopyYearlyRecordsFrom(lost);
+        lostLoad.Restore(new ScenarioOneSaveData(), 21);
+        lostLoad.EvaluateActive(13); lostLoad.EvaluateActive(14); lostLoad.EvaluateActive(15);
+        Check(lostLoad.ObjectiveAchievements.Count == 0, "lost/regained: pre-v22 re-achievement in year 14 is never recorded");
+        Check(lostLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sl) == 8 && sl == ObjectiveYearSource.Derived, "lost/regained: shows derived year 8, not 14");
+        ScenarioOneManager lostAgain = SaveAndLoad(lostLoad);
+        lostAgain.EvaluateActive(16);
+        Check(lostAgain.ObjectiveAchievements.Count == 0 && lostAgain.ObjectiveYear("regeneration", out ObjectiveYearSource sl2) == 8 && sl2 == ObjectiveYearSource.Derived,
+            "lost/regained: still derived 8 after save as v22 and reload (guard rebuilt from every evaluated year)");
+        // achieved at the last snapshot only (the previous guard's case) keeps working
+        Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => y == 12 });
+        var lastOnly = new ScenarioOneManager();
+        lastOnly.AddBaseline();
+        for (int y = 1; y <= 12; y++) lastOnly.EvaluateActive(y);
+        var lastLoad = new ScenarioOneManager();
+        lastLoad.CopyYearlyRecordsFrom(lastOnly);
+        lastLoad.Restore(new ScenarioOneSaveData(), 21);
+        Check(lastLoad.ObjectiveYear("regeneration", out ObjectiveYearSource sl3) == 12 && sl3 == ObjectiveYearSource.Derived && lastLoad.ObjectiveAchievements.Count == 0, "pre-v22 achieved at the last snapshot: derived 12, nothing recorded");
+
+        // a final outcome stops derivation at the outcome year
+        Scenario(new Dictionary<string, Func<int, bool>> { ["regeneration"] = y => y >= 3, ["fallen-deadwood"] = y => y >= 9 });
+        var done = new ScenarioOneManager();
+        done.AddBaseline();
+        for (int y = 1; y <= 5; y++) done.EvaluateActive(y);
+        done.SetOutcome(ScenarioOneOutcome.Completed);
+        done.EvaluateActive(6); done.EvaluateActive(9);   // never evaluated: outcome final (stub mirrors production)
+        var doneLoad = new ScenarioOneManager();
+        doneLoad.CopyYearlyRecordsFrom(done);
+        doneLoad.Restore(new ScenarioOneSaveData(), 21);
+        Check(doneLoad.ObjectiveYear("fallen-deadwood", out ObjectiveYearSource sd) == -1 && sd == ObjectiveYearSource.NotRecorded, "R-1: snapshots after the outcome was fixed were never evaluated -> no derived year");
+
+        legacyYear.Reset();
+        Check(legacyYear.ObjectiveAchievements.Count == 0 && legacyYear.ObjectiveYear("managed-opening", out ObjectiveYearSource sr) == -1, "reset: a new game starts with no history");
+        legacyYear.Restore(null, 21);
+        Check(legacyYear.ObjectiveAchievements.Count == 0, "restore(null scenario): empty history");
 
         // ---- 5. deterministic ordering ----------------------------------------------------------------------------
         ForestSaveData shuffled = V22World(A("managed-opening", 12), A("fallen-deadwood", 12), A("minimum-year", 5));

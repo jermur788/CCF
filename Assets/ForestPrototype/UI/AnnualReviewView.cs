@@ -519,8 +519,10 @@ public sealed class AnnualReviewView
         {
             UiKit.Add(card, ScenarioOneUiFacts.ObjectiveLine(o), "body");
             if (!o.achieved) continue;
-            int achievedYear = m.ObjectiveAchievedYear(o.objectiveId);
-            UiKit.Add(card, achievedYear >= 0 ? $"First reached in year {achievedYear}" : "Year reached: not recorded", "faint");
+            int achievedYear = m.ObjectiveYear(o.objectiveId, out ObjectiveYearSource source);
+            UiKit.Add(card, achievedYear < 0 ? "Year reached: not recorded"
+                : source == ObjectiveYearSource.Derived ? $"First reached in year {achievedYear} (derived from saved records)"
+                : $"First reached in year {achievedYear} (recorded)", "faint");
         }
         UiKit.Add(card, m.Outcome == ScenarioOneOutcome.Completed ? $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear})."
             : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.TutorialHint, "muted");
