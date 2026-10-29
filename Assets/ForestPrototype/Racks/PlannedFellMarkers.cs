@@ -66,6 +66,9 @@ public sealed class PlannedFellMarkers : MonoBehaviour
         {
             if (!order.IsOpen || order.type != ScenarioWorkType.FellTree || string.IsNullOrEmpty(order.targetTreeId))
                 continue;
+            // V2 communicates confirmed routes on the map and painted entrances in the forest.
+            // Automatic pending-order discs would look like orange marks before the player sprays.
+            if (manager.RackPlanningV2Active && order.rackId > 0) continue;
             bool rack = manager.RackGroupOfOrder(order.workOrderId) != null;
             wanted[order.targetTreeId] = rack;
             sb.Append(order.targetTreeId).Append(rack ? 'R' : 'F').Append(';');

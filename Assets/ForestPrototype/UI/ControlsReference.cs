@@ -8,6 +8,7 @@ public static class ControlsReference
     // Keep the legacy controls for model-0 saves. Select the current world's authoring route when rendering.
     public static System.Collections.Generic.IEnumerable<string[]> RowsFor(bool rackPlanningV2)
     {
+        if (rackPlanningV2) yield return new[] { "P", "Equip / stow the rack spray marker after confirming the plan; aim within 3.5 m and left-click" };
         foreach (string[] row in Rows)
         {
             if (rackPlanningV2 && row[0] == "B") continue;
@@ -17,7 +18,7 @@ public static class ControlsReference
     }
 
     public static string KeysLineFor(bool rackPlanningV2) => rackPlanningV2
-        ? KeysLine.Replace("B extraction rack · ", "").Replace("M Stand Map", "M Stand Map / Plan Racks")
+        ? KeysLine.Replace("B extraction rack · ", "").Replace("M Stand Map", "M Stand Map / Plan Racks · P rack spray marker")
         : KeysLine;
 
     public static readonly string[][] Rows =
