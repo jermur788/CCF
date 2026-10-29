@@ -114,11 +114,9 @@ def main():
     # Preflight required a clean lane; retain the exact bytes and restore only this known side effect.
     settings = root / '.vscode/settings.json'
     settings_before = settings.read_bytes() if settings.exists() else None
-    import_materials = [root / 'Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials' / (name + '.mat')
-                        for name in ('Forb_Flower_Centre', 'Forb_Leaves', 'Forb_Stems')]
-    # The rendered teaching scene also makes Unity rewrite two Bilberry materials (texture reference, alpha-to-mask); same known import side effect.
-    import_materials += [root / 'Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials' / (name + '.mat')
-                         for name in ('Bilberry_Leaves', 'Bilberry_Stems')]
+    # Rendered scenes make Unity rewrite shared SectionFive material imports (texture refs, alpha-to-mask); a known import side effect.
+    # Snapshot every SectionFive material so the diff is retained as evidence and the original bytes are restored.
+    import_materials = sorted((root / 'Assets/ForestPrototype/Art/SectionFive').glob('*/Materials/*.mat'))
     material_bytes = {p: p.read_bytes() for p in import_materials}
     companions = [ROOT / 'Tools/Verification/ScenarioOneRepeatedInterventions/TeachingCapGateSetup.cs']
     if args.gate == 'cap':
