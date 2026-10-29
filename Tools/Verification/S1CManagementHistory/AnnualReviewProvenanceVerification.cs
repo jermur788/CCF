@@ -219,6 +219,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
             if (objectives != null) yield return FocusShot("latest-objectives", objectives);
             VisualElement history = Modal().Q(name: "management-history");
             Check(history != null && KindIn(history, HistoryProvenance.Recorded) == 0 && KindIn(history, HistoryProvenance.Derived) >= 3, "HISTORY_CARD_AGGREGATES_ARE_DERIVED_" + tag);
+            Check(KindOf("MANAGEMENT HISTORY ·") == HistoryProvenance.Derived, "HISTORY_HEADING_COUNT_IS_DERIVED_" + tag);
             if (history != null) yield return FocusShot("latest-history", history);
 
             // ---- year 4: genuinely absent failure reason is labelled, not invented ----
