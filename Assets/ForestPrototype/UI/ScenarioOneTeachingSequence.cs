@@ -14,6 +14,9 @@ public static class ScenarioOneTeachingSequence
         // What the rack-area analysis found (lessons 2-5); null when the facts were injected or the stand has no rack layout. Read only
         // for wording: the lesson order below uses the plain facts above.
         public ScenarioOneRackBay.Analysis Bay;
+        // S1-D T-04: earliest lesson index the guide may show, proven from persisted history only (ScenarioOneTeachingHistory.Floor).
+        // 0 = no historical proof, so the rules in Raw decide alone. Injected facts leave it 0 and keep their earlier progression.
+        public int HistoricalFloor;
     }
     public sealed class Lesson
     {
@@ -66,7 +69,11 @@ public static class ScenarioOneTeachingSequence
             "Retained forest, young trees and observed failure remain together. Reassess before any further work; the woodland is never finished.", "Keep observing and adapting; all scenario goals are listed under [O].")
     };
 
-    public static int Current(Facts f)
+    // The guide never moves behind a boundary that persisted history proves was completed. Before that, Raw decides exactly as before.
+    public static int Current(Facts f) => System.Math.Max(Raw(f), System.Math.Min(f.HistoricalFloor, Lessons.Length - 1));
+
+    // The guide computed from the mutable current facts alone (the behaviour before T-04).
+    public static int Raw(Facts f)
     {
         if (!f.AccessOpen) return 0;
         if (!f.AccessReviewed || (f.CropTrees == 0 && !f.ReleaseExecuted) || (f.Bay != null && !f.Bay.HasEnoughFuture)) return 1;
