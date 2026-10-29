@@ -72,3 +72,31 @@ Narrow regression per the task: RackLesson, MenuTutorial, TeachingCopy. Plus: (a
 ## Exit token
 
 `S1-D T-03 COMPLETE — READY FOR UNITY QUALIFICATION`
+
+## Unity qualification (Sonnet 5.5 / Claude provider; candidate code f629be3, verification-only fixes through fe166d0)
+
+Evidence root `/media/jer/Files/CCF/Verification/S1D-T03-Unity-20261029/`. U1 held at `f629be3` (= integration `aca74ac` + T-03 code, byte-identical production), no Windows build, lock released, U1 clean, harness/metas/licence copies removed.
+
+| Gate | Result | Evidence |
+|---|---|---|
+| cap (production Rack V2) | PASS, `TEACHING_CAP_UNITY_PASS checks=223 shots=12`, 312 s (cap-v3; harness bytes unchanged, carried) | `cap-v3/` incl. cycle-2 over-cap approve+advance, lesson-time hard safeguard, sold-only/short-mixed drift advisory with both buttons enabled, one-more-mark hard, 12 captures at 1280x720 and 1920x1080 |
+| TeachingCopy (`teaching`) | PASS `S1A_TEACHING_VERIFY_PASS checks=61`, 14 captures, lane clean | `teaching/` (v1 FAIL kept in `teaching-v1-fail/`) |
+| MenuTutorial (`menu`) | PASS (pass marker, exit 0, lane clean) | `menu/` |
+| Rack runtime lifecycle (`rack`) | PASS | `rack/` |
+| S1-D T-06 `event-id` | PASS | `event-id/` |
+| S1-C T-03 `history`, S1-D T-02 `history-browse` | PASS, PASS | `history/`, `history-browse/` |
+| RackLesson (`lesson`) | **FAIL, pre-existing, identical on base `aca74ac` (no T-03 code)**: `accepted live middle-rack half-width remains 8.00385 m [half width=7.995]` | `lesson/`, `lesson-base-aca74ac/` |
+
+### Classification of the teaching failure
+Harness/setup only, not a production regression. `help outside viewport (0,0,0,0)` was a layout race: the Game-view resize is applied asynchronously on the Xephyr display and the harness asserted after a fixed 12 frames. Fix (assertions unchanged): wait for the requested `Screen` size, plus a 0.4 s real-time settle. Same pattern fixed in MenuTutorial's `CaptureScreen`.
+
+### Other verification-only fixes (no production change)
+- MenuTutorial predates the three-page scenario introduction (merged after the last Menu qualification at 1398887): the first capture showed the introduction, not the HUD help window. The harness now pages through the introduction with the player's Next action, asserts it completed, then asserts and captures the HUD help window.
+- Runner restores every SectionFive material import rewrite (Forb, Bilberry, Berry, Fungi; patches retained as evidence) instead of a fixed three-file list.
+
+### Open exception: RackLesson (manager decision needed)
+`RackLessonVerification` hard-codes the accepted live half-width 8.00385 m; the integrated base measures 7.995 m (footprint 69 trees and 2.0 m lattice checks pass just before). Identical result without T-03, so not attributable to T-03, and no protected expected value was changed. The gate aborts at that check, so its later checks did not run on this base. Decide: re-accept 7.995 m on this base (separate task) or accept the exception.
+
+## Exit token
+
+`S1-D T-03 UNITY QUALIFIED — READY FOR MANAGER INTEGRATION REVIEW` (T-03 cap and all other gates pass; exception above is pre-existing on the base)
