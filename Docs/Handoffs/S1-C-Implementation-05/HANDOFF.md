@@ -44,16 +44,17 @@ Static/offline only. No Unity Editor, no Unity lock, no Windows build. Nothing h
 
 It builds two projects: the **baseline** from `git show aca74ac:` `ForestSaveData.cs` and the hash path of `ScenarioReferenceArchive.cs` (save v21), and the **candidate** from the working tree (real schema, validators, migration, hash path, history query and `ScenarioOneManager.ObjectiveHistory.cs` behind a minimal manager stub).
 
-| Area | Checks |
+| Area (counted from the run output) | Checks |
 |---|---|
-| Schema / round trip, v21 → v22 | 10 |
-| Old saves (v21, v20, 19, 15, 12, 10, 8) + migration | 12 |
-| Refusal / no mutation (duplicate, unknown, empty, negative/future year, out of order, bad/NaN target, null record, pre-v22 carrying history, missing/non-array/null field, wrong types, missing keys, duplicate JSON key, bad parse) | 40 |
-| Recording rules, save → load, pre-v22 no-invented-past, reset | 17 |
+| Schema, layout, v21 → v22 round trip, v21 load/re-save (`schema`, `round`, `layout`, `v21`) | 11 |
+| Older saves v8–v20 and migration (`v8`…`v20`, `v22`, `migration`) | 9 |
+| Refusals (21) and the matching no-mutation checks (10), plus 2 accepted well-formed cases | 33 |
+| Recording rules, capture/load, pre-v22 no-invented-past, reset/restore(null) (`record`, `capture`, `load`, `pre-v22`, `reset`, `restore`) | 17 |
 | Deterministic ordering | 2 |
 | History year views | 3 |
-| Hash compatibility: 8 fixture worlds × 7 hash functions reproduced **exactly** vs the v21 baseline (+ achievements do not move any hash) | 8 + 1 + 8 + 1 |
-| Source audits (wiring order, outcomeYear untouched, pre-mutation chain, T-06 position, Reference identity, v15/v21 normalisation) | 7 |
+| Hash compatibility vs the v21 baseline: 8 fixture worlds × 7 hash functions reproduced exactly, fixture-count and coverage checks, achievements do not move any hash | 18 |
+| Source audits (wiring order, outcomeYear untouched, pre-mutation chain, T-06 position, Reference identity, v15/v21 normalisation) | 8 |
+| **Total** | **101** |
 
 Mutation check (each break made the run fail, then was reverted): remove the strip, remove the v21 header relabel, remove the load guard, remove the duplicate check, remove the old-version refusal, remove the migration → 6/6 killed.
 
