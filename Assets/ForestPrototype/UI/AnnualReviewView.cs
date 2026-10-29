@@ -706,7 +706,11 @@ public sealed class AnnualReviewView
         HistoryTextContext text = TextContext();
         VisualElement card = UiKit.Box("card");
         card.name = "management-history";
-        UiKit.Add(card, $"MANAGEMENT HISTORY · {interventions.Count} intervention{(interventions.Count == 1 ? "" : "s")}", "heading");
+        // The count is grouped from the intervention records when the screen is built; it is a derived summary, not a stored total.
+        VisualElement historyHead = UiKit.Box("row");
+        Tag(historyHead, HistoryProvenance.Derived);
+        UiKit.Add(historyHead, $"MANAGEMENT HISTORY · {interventions.Count} intervention{(interventions.Count == 1 ? "" : "s")}", "heading");
+        card.Add(historyHead);
         UiKit.Add(card, "An intervention is a work plan that was carried out in one year: felling, pruning, planting, protection or other commissioned work.", "muted");
         if (interventions.Count == 0)
             UiKit.Add(card, "None yet. Inspect trees, mark them, plan the work in the Work Plan [Tab], approve it and advance a year.", "body");

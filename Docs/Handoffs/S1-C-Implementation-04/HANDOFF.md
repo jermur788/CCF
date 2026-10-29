@@ -97,3 +97,47 @@ Underlying drill-down events/orders remain RECORDED.
 Notes: `r2-t04` (first rerun) failed only because the new overlap check compared the label to the neighbouring FAILED/CANCELLED chip; fixed in the harness only (chips excluded) and re-run. T-02 year-browsing was not re-run (no navigation/gate change; it passed 246 on the first-round candidate and Manager did not require it). Captures inspected at both sizes: `year3-earlier-storm`, `latest-storm`, `year4-detail`, `year3-cancelled`, `latest-top`, `year1-historical`. Lock was held only for these runs (released); U1 restored clean to `c8cfae8`; no disk saves; harness/meta/licence copies removed; no save/schema/validator/manager/MFM/simulation diff.
 
 Accepted residuals unchanged: DBH-growth labelling in `TreeInspectionView` is outside this task; stale T-05 `CurrentVersion is 22` assertion; T-05 Unity render gate not rerun.
+
+---
+
+# Third round — remaining presentation aggregate labelled (2026-10-29)
+
+Same claim #123, branch `feature/s1-c-t04-provenance-labels-v1`, worktree `/media/jer/Videos/CCF-S1C-T04`. This round supersedes the round-2 production candidate `ba2922e5`; the only production change is one more render-time aggregate corrected under Finding 1.
+
+## Exact corrected production candidate
+
+- **Production candidate: `633775fd8650db3cf3482e550d106a0febd7b9cb`**
+- Production files: `Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs` (unchanged from `ba2922e5`) and `Assets/ForestPrototype/UI/AnnualReviewView.cs` (this commit).
+- This handoff commit is docs-only; no further production change follows it.
+- No save/schema/validator/manager/MFM/ecology/economy/scene/prefab change. No new persisted fact.
+
+## What changed in this round
+
+The `MANAGEMENT HISTORY · N intervention(s)` heading still displayed a count grouped at render time without a provenance label. It is now a row with an explicit **DERIVED** chip; the heading text and count are unchanged. The offline source audit and the rendered fixture both assert it (`HISTORY_HEADING_COUNT_IS_DERIVED` at 1280×720 and 1920×1080). This closes the remaining unlabelled presentation aggregate in the history card.
+
+The three Manager findings from `MANAGER-REVIEW.md` are otherwise as corrected in round 2:
+
+1. **Finding 1** — intervention work lines, work-column counts, failure/cancellation counts, completion intervention lines, harvest order count and the management-history count are DERIVED. Persisted scalars/events stay RECORDED: regeneration-removal count from the annual report, failed-event reasons, settlement money, timber sales, small-job minimum, closing cash, owner time, retained values, objective records and storm aggregate.
+2. **Finding 2** — storm card now has separate **DERIVED** salvage-to-date and **CURRENT** remaining-deadwood lines; the CURRENT line is emitted only on the latest review. The forced earlier storm year (year 3) is browsed while year 5 is latest; the year-3 card asserts `current=0`, `recorded=1`, `reconstructed=2`, `derived=1` and no "remains as deadwood now" text.
+3. **Finding 3** — each drill-down entry has RECORDED title and facts rows, a RECORDED reason row only where a reason exists, and exactly one NOT RECORDED row naming the absent values. No NOT RECORDED chip covers recorded facts. The rendered fixture checks 12 fully recorded harvest entries, the year-4 failed entries and the year-3 cancelled entry.
+
+## Rerun results (exact candidate `633775fd`)
+
+Evidence root: `/media/jer/Files/CCF/Verification/S1C-T04-Provenance-20261029/`.
+
+| Gate | Result |
+|---|---|
+| T-04 offline provenance (`r3-t04-offline`) | **56 PASS** |
+| S1-C history offline (`r3-run_offline_check`) | **55 PASS** |
+| T-03 drill-down offline (`r3-run_t03_offline_check`) | **72 PASS** |
+| ThreeSpecies history offline (`r3-three-history`) | **74 PASS** |
+| T-04 rendered fixture (`r3-t04`), 1280×720 + 1920×1080, earlier storm year, old saves | **529 PASS**, 0 failed, Editor exit 0 |
+| T-03 drill-down rendered regression (`r3-t03`, row structure changed) | **279 PASS**, 0 failed, Editor exit 0 |
+
+The T-04 fixture includes the year-3 earlier storm browse and the new management-history heading assertion at both resolutions. Old-save RECORDED/DERIVED/NOT RECORDED cases and read-only browsing invariance remained green. Captures `latest-history` (both sizes), `year3-earlier-storm`, `latest-storm`, `year4-detail`, `year3-cancelled` were inspected; the heading row passed the existing label-overlap/clipping audits.
+
+Unity lane `/media/jer/ZX20/CCF-U1` was detached at `633775fd` only for the two rendered gates and restored clean to its prior detached `c8cfae8`; the machine-wide lock was held for those runs and released. U1 is clean, the harness/meta/licence copies were removed, and no disk saves were created.
+
+T-02 year-browsing was not re-run: navigation and its structure are unchanged, it passed 246 on the first-round candidate, and the Manager review did not require it. No Windows build, no integration.
+
+Accepted residuals unchanged: DBH-growth labelling in `TreeInspectionView` is outside this task; stale T-05 `CurrentVersion is 22` assertion; T-05 Unity render gate not rerun.

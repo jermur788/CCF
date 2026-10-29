@@ -153,6 +153,8 @@ public static class S1CProvenanceOfflineCheck
         work = work.Substring(0, work.IndexOf("private static void AddHarvestSettlement(", StringComparison.Ordinal));
         Check(Regex.Matches(work, "HistoryProvenance\\.Derived").Count >= 7 && Regex.Matches(work, "HistoryProvenance\\.Recorded").Count == 2,
             "view audit: work-column counts are derived; only the regeneration-removal report scalar and failed event reasons stay recorded (2 recorded lines)", Regex.Matches(work, "HistoryProvenance\\.Recorded").Count.ToString());
+        Check(ui.Contains("Tag(historyHead, HistoryProvenance.Derived)") && ui.Contains("MANAGEMENT HISTORY · {interventions.Count}"),
+            "view audit: the management-history count heading is labelled as a derived summary");
         // Storm: the live remaining-deadwood line is gated to the latest review and is separate from the derived salvage line.
         Check(storm.Contains("if (!historical)") && storm.Contains("HistoryProvenance.Current, $\"{UiKit.F(summary.DeadwoodRemainingM3") && storm.Contains("HistoryProvenance.Derived, $\"{UiKit.F(summary.SalvagedVolumeM3")
             && !storm.Contains("m³ remains as deadwood now · "), "view audit: storm salvage (derived) and remaining deadwood now (current, latest review only) are separate lines");
