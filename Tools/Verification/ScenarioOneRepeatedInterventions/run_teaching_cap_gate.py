@@ -116,6 +116,9 @@ def main():
     settings_before = settings.read_bytes() if settings.exists() else None
     import_materials = [root / 'Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials' / (name + '.mat')
                         for name in ('Forb_Flower_Centre', 'Forb_Leaves', 'Forb_Stems')]
+    # The rendered teaching scene also makes Unity rewrite two Bilberry materials (texture reference, alpha-to-mask); same known import side effect.
+    import_materials += [root / 'Assets/ForestPrototype/Art/SectionFive/Bilberry_Type_Cover_01/Materials' / (name + '.mat')
+                         for name in ('Bilberry_Leaves', 'Bilberry_Stems')]
     material_bytes = {p: p.read_bytes() for p in import_materials}
     companions = [ROOT / 'Tools/Verification/ScenarioOneRepeatedInterventions/TeachingCapGateSetup.cs']
     if args.gate == 'cap':
