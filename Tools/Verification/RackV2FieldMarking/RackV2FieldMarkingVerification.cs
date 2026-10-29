@@ -121,6 +121,22 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
         yield return Settle(3);
     }
 
+    // Establish an independent long ray before testing the production short ray. The original
+    // westward 6 m pose looked through a nearer unrelated plantation tree (field-03 evidence).
+    ForestTree FirstTreeOnLongRay()
+    {
+        foreach (RaycastHit hit in Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, 9f,
+                     Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+        {
+            if (hit.collider.transform.IsChildOf(player.transform)) continue;
+            if (hit.collider.GetComponentInParent<ScenarioHabitatVisuals>() != null) continue;
+            if (hit.collider.GetComponentInParent<ForestEcologyController>() != null
+                && hit.collider.GetComponentInParent<ForestTree>() == null) continue;
+            return hit.collider.GetComponentInParent<ForestTree>();
+        }
+        return null;
+    }
+
     IEnumerator Capture(string name)
     {
         yield return new WaitForEndOfFrame();
@@ -177,7 +193,16 @@ public sealed class RackV2FieldMarkingRunner : MonoBehaviour
         yield return Aim(unrelated);
         yield return input.Send(RackAuthoringNativeInput.Op.Click());
         Check(manager.MarkedRackEntranceCount == 0 && marks.TransientMessage.Contains("not a rack entrance"), "native spray unrelated tree rejected");
-        yield return Aim(target0, 6f);
+        bool distantView = false;
+        for (int pose = 0; pose < 32 && !distantView; pose++)
+        {
+            float angle = pose * Mathf.PI / 16f;
+            yield return Aim(target0, 5f, new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)));
+            distantView = FirstTreeOnLongRay() == target0
+                && Vector3.Distance(Camera.main.transform.position, target0.transform.position + Vector3.up * 1.4f) > 4.5f;
+        }
+        Check(distantView, "unobstructed real entrance beyond reach is independently established by a 9 m ray");
+        Check(marks.RackSprayPrompt().Contains("3.5"), "unobstructed out-of-range entrance offers distance feedback");
         Debug.Log("RACKFIELD_RANGE before camera=" + Camera.main.transform.position + " target=" + target0.transform.position
             + " centre-distance=" + Vector3.Distance(Camera.main.transform.position, target0.transform.position + Vector3.up * 1.4f)
             + " prompt=" + marks.RackSprayPrompt());
