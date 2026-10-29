@@ -48,6 +48,7 @@ public sealed class MfmApprovalBoundaryUnityGateRunner : MonoBehaviour
 
     private void Check(bool ok, string what, string detail = "")
     {
+        detail = detail ?? "";
         if (!ok) throw new InvalidOperationException(what + (detail.Length == 0 ? "" : " [" + detail + "]"));
         checks++;
         Debug.Log("MFM07_CHECK " + what + (detail.Length == 0 ? "" : " [" + detail + "]"));
