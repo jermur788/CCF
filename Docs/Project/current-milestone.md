@@ -4,7 +4,7 @@
 
 Define the current Scenario One milestone, its live completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
 
-**Last reconciled:** 2026-10-28.
+**Last reconciled:** 2026-10-29.
 
 ## Milestone
 
