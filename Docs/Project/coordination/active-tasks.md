@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol at browser amendment #136 start.
+**Last reconciled:** 2026-10-29 by Overall Manager / OpenAI GPT-5.6 Sol at browser amendment #136 handoff.
 
 ## Coordination rules
 
@@ -23,7 +23,8 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - MFM-07 #125: **INTEGRATED / VERIFIED for its bounded gate**. Pre-integration umbrella `7608f02cb8da1fabd8b78fd5aaf45b0c32086f67` + exact input `d4188b33` merged `--no-ff` with no conflicts into **`c8cfae8c4025cec6e960a050edf4bfde2a981de5`**; handoff published at **`6b84f0d9d044ef76fd935b20b8d4546e8162b0ab`**. Post-merge compile, MFM-07 approval 106, MFM-06 save/load 159, 18-line protected hash dump (no rebaseline), and interaction gates all PASS.
 - **Post-MFM-07 integrated umbrella SHA: `c8cfae8c4025cec6e960a050edf4bfde2a981de5`** (`integration/scenario-one-player-test-ready-v1`; save schema v23).
 - Browser #127 disposed the accepted MFM-07 coverage residual: the coverage core already accepts masks/features, but the production prescription-world adapter passes empty arrays. A bounded prerequisite is required before shipped MFM-08 coverage UX; see #129.
-- On 2026-10-29 the user selected **Option A** for S1-D T-04: preserve full FR-B1/AC-3 with the smallest durable aggregate teaching-sample/review-complete record; individual `[J]/[K]` choices remain non-persistent. Browser amendment claim #136 owns canonical specification/coordination preparation for this decision while running.
+- **D-066 is now canonical:** preserve full S1-D FR-B1/AC-3 with the smallest durable aggregate historical teaching-sample/review-complete record; individual `[J]/[K]` choices remain non-persistent; broad T-07 cycle-state persistence remains cancelled.
+- Browser amendment #136 has published its amended spec/packet/result and **owns no production or canonical file surface after handoff**. Its prepared local prerequisite is #143, pending independent browser Manager review before release.
 
 ## Live / prepared tasks
 
@@ -31,12 +32,12 @@ This file is the **live single-writer ownership and execution-lock authority** o
 |---|---|---|---|---|---|
 | **PLAYER-TEST-OVERNIGHT-01** (#91) | DeepSeek orchestration/integration lead | `orchestration/scenario-one-player-test-ready-v1`; production on child lanes | Orchestration/claims/integration decisions/final assembly | Preserve child ownership; no product invention; no Windows build | **RUNNING** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | child worktrees | Local implementation/qualification through child claims | Exact candidate/handoff; Unity serialized | **RUNNING** |
-| **MFM-07 integration** (#125) | T3 Code / `deepseek-v4.1-flash` (DeepSeek, Opencode Go) — integration complete, no active writer | `integration/scenario-one-player-test-ready-v1`; `/media/jer/Videos/CCF-PlayerTestIntegration` | MFM-07 merge/qualification only | No MFM-08/09; no schema/save-validator edit | **INTEGRATED / VERIFIED** — `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; all post-merge gates PASS; no active writer |
-| **S1-C T-04 provenance labelling** (#123) | **Claude Code / Anthropic Claude Sonnet 5.5 Medium** — sole history/review writer | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum helper | No save/schema/validator, MFM proposal/work-order or simulation edits | **RUNNING / WAITING FOR UNITY LOCK** — started from clean `b971f4da0540e606bfee9702b0c99f81a0a89355`; offline candidate `3386a5bab6b3a78ab526abe6a7c9cc2c94b6f349`; reported offline gates PASS |
-| **S1-D T-04 guide monotonicity** (#124) | **Claude Sonnet 5.5 / Anthropic** — sole curriculum writer when resumed | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | curriculum files only when unblocked; persistence/save ownership must be separately assigned by amendment | No further code/Unity until #136 publishes amended authority and exact prerequisite order; must land before MFM-09 | **BLOCKED ON BROWSER AMENDMENT #136** — pushed candidate `b9d204c` remains unqualified evidence; user chose minimal aggregate persistence rather than weakening FR-B1/AC-3 |
-| **S1-D T-04 persistence amendment** (#136) | **OpenAI GPT-5.6 Sol / OpenAI browser lane** | canonical `main`; no local worktree | Decision Log + S1-D spec/plan/tasks/checklist + #124 packet/review + browser handoff/result + coordination only | Browser/docs only; no C#/Unity; reconcile save/schema order with #126/#128 before releasing implementation | **RUNNING** — canonical `main` start `9f6c966f73055a74c5a274c74c17268c2fb1a40c`; browser claim owns only canonical amendment/docs/coordination surfaces |
-| **PARITY-08 save/deterministic compatibility** (#126) | Claude Opus 5.5 Low preferred primary writer when re-released | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | prospective save/validator/hash/reference writer only after amended order is fixed | Do not start against old v23-only release basis; #136 must repin/resequence after minimal S1-D persistence is specified | **BLOCKED — S1-D PERSISTENCE AMENDMENT #136**; no ownership |
-| **PARITY-08 independent review** (#128) | independent OpenAI review lane | exact future #126 handed-off candidate | **No production ownership; review-only** | Blocked until amended #126 handoff; repairs return to writer/new repair claim | **BLOCKED** |
+| **MFM-07 integration** (#125) | T3 Code / `deepseek-v4.1-flash` (DeepSeek, Opencode Go) — integration complete, no active writer | `integration/scenario-one-player-test-ready-v1`; `/media/jer/Videos/CCF-PlayerTestIntegration` | MFM-07 merge/qualification only | No MFM-08/09; no schema/save-validator edit | **INTEGRATED / VERIFIED** — `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; no active writer |
+| **S1-C T-04 provenance labelling** (#123) | **Claude Code / Anthropic Claude Sonnet 5.5 Medium** — sole history/review writer | `feature/s1-c-t04-provenance-labels-v1`; `/media/jer/Videos/CCF-S1C-T04` | `AnnualReviewView.cs`, `ManagementHistoryText.cs`, minimum helper | No save/schema/validator, MFM proposal/work-order or simulation edits | **RUNNING / MANAGER REVIEW NEEDS CHANGES** — production ownership remains with #123 until corrected handoff or explicit release |
+| **S1-D T-04P minimal teaching persistence** (#143) | OpenAI Sol/Codex local preferred after release | `feature/s1-d-t04-teaching-persistence-v1`; `/media/jer/Videos/CCF-S1D-T04-Persistence` | prospective sole writer for D-066 minimum save/schema/validation slice only | Prepared against exact production umbrella `c8cfae8c...` / v23; v24 expected only after live start refresh; mandatory independent review; no curriculum edits | **PREPARED — MANAGER REVIEW REQUIRED; no ownership yet** |
+| **S1-D T-04 guide monotonicity** (#124) | **Claude Sonnet 5.5 / Anthropic** — sole curriculum writer when re-released | `feature/s1-d-t04-guide-monotonicity-v1`; `/media/jer/Videos/CCF-S1D-T04` | curriculum/current-state files only after #143 integration; no save/schema ownership | Rebase/replay `b9d204c` only after exact #143 integrated/qualified lineage; must land before MFM-09 | **BLOCKED ON #143** — `b9d204c` remains unqualified evidence |
+| **PARITY-08 save/deterministic compatibility** (#126) | Claude Opus 5.5 Low preferred primary writer when re-released | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | prospective save/validator/hash/reference writer only after S1-D lineage is exact | Must be repinned after #143 persistence + #124 curriculum lineage; do not start on obsolete v23-only basis | **BLOCKED ON S1-D #143/#124 LINEAGE; no ownership** |
+| **PARITY-08 independent review** (#128) | independent OpenAI review lane | exact future #126 handed-off candidate | **No production ownership; review-only** | Starts only after repinned #126 hands off exact candidate; never a second save writer | **BLOCKED ON #126 AFTER S1-D LINEAGE** |
 | **MFM-08A coverage-world adapter** (#129) | OpenAI Sol/Codex or equivalent local Code lane when dispatched | suggested `feature/mfm-v1-coverage-world-adapter-v1`; `/media/jer/Videos/CCF-MFM-08A` | smallest production adapter surface after exact base pin | Pin post-MFM-07 umbrella `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; no UI/teaching/Work Plan/save/calibration; do not invent infrastructure geometry | **PREPARED FOR DISPATCH — no ownership yet** |
 | **PARITY-03 Q10 evidence strengthening** (#74) | waiting verifier | existing verification lane | verification only | non-blocking; Unity gate later | **WAITING** |
 
@@ -48,13 +49,16 @@ No current row above asserts that the Unity lock is free. Each actual worker mus
 
 History/review provenance labels only. No save/load/validation, `ScenarioOneManager` work-order creation, MFM proposal/approval logic or prescription persistence.
 
-### #124 / #136 S1-D T-04
+### #143 / #124 S1-D T-04
 
-#136 is browser-only and may amend canonical product/spec/packet/coordination text when RUNNING. It owns no production C#/Unity files. #124 must not resume production work until #136 publishes the authorised persistence prerequisite and exact save/schema order. The accepted product direction preserves full FR-B1/AC-3 with one minimum aggregate historical teaching-sample/review-complete record; individual `[J]/[K]` choices remain non-persistent.
+- #143 is the only prepared D-066 save/schema/validation writer. While PREPARED it owns nothing. If released, it owns only the minimum aggregate teaching-completion persistence, its capture/restore/validation and exact authoritative completion write hook.
+- #124 owns no save/schema files. It resumes only after #143 is integrated/qualified and then consumes the shared historical-completion API on a rebase/replay of the curriculum candidate.
+- Individual `[J]/[K]` choices, inspected-tree/session transcript and broad current readiness state remain non-persistent.
+- T-03 and T-04 must share one historical sample-complete meaning; no second general history/state machine.
 
 ### #126 / #128 PARITY-08
 
-#126 is blocked from becoming the save writer until #136 fixes the new persistence sequence and exact lineage. #128 remains read-only independent review; never allow it to become a second save writer.
+#126 cannot become the save/validator/hash/reference writer until the exact post-#143/#124 lineage is known and a Manager packet repins it. #128 remains read-only independent review and starts only after #126 hands off.
 
 ### #129 MFM-08A
 
@@ -64,17 +68,19 @@ Bridge authoritative live state into the existing coverage masks/features contra
 
 ### S1-C
 
-- T-04 = #123.
+- T-04 = #123; current Manager review requires corrections.
 - T-06 after T-04 is handed off/reviewed/accepted and history ownership is free.
 - T-07 after save/identity ownership is free and one exact current integration lineage is pinned.
 - T-08 after T-01..T-07 are accepted on one exact candidate.
 
 ### S1-D
 
-- Browser persistence amendment = #136; next step for Option A.
-- T-04 = #124; blocked until #136 defines and releases the minimal persistence prerequisite/order; must precede MFM-09.
-- T-05 waits for exact post-MFM-07 integrated umbrella/pending-work-provenance API and appropriate UI ownership. It owns only previous-vs-proposed Work Plan presentation, reuses S1-C history, and must not absorb MFM-09 teaching.
-- T-08 waits for the amended required implementation tasks to be accepted on one lineage; T-09 remains independent spec review after T-08 PASS.
+1. Browser amendment #136 = **HANDED OFF; no ownership**.
+2. Independent browser Manager review of #136 decides APPROVED / NEEDS CHANGES / REJECTED.
+3. If APPROVED, release **T-04P #143** as the sole save/schema lane from the exact qualified post-MFM-07 base, subject to live v23/free-writer refresh.
+4. Integrate/qualify #143, then re-release **T-04 #124** on that exact lineage; rebase/replay the old candidate rather than stacking blindly.
+5. T-05 remains separate and reuses S1-C history.
+6. T-08 waits for amended required implementation tasks on one lineage; T-09 remains independent spec review after T-08 PASS.
 
 ### MFM
 
@@ -87,16 +93,17 @@ Bridge authoritative live state into the existing coverage masks/features contra
 
 ### Parity / endgame
 
-- PARITY-08 = #126 plus mandatory independent review #128, now blocked on #136's persistence sequencing.
+- PARITY-08 #126 + review #128 remain blocked until the exact S1-D #143/#124 save/curriculum lineage is established and repinned.
 - PARITY-09 waits for PARITY-08 PASS + #128 APPROVED + MFM-10.
 - Final Tier-3 waits for all required Rack/parity/S1-C/S1-D/MFM integrated qualification on one exact candidate.
 - User personal playtest follows qualified candidate; Windows build only after explicit post-playtest authorisation.
 
 ## Recently released/completed claims
 
-These own no files: #103 S1-D T-03; #104 S1-C T-05; #93 MFM-04; #100 MFM-05; #102 PARITY-07; #111 MFM-06 implementation; #113 MFM-06 integration; #118 browser lane 03; #120 browser lane 04; #121 MFM-07 implementation; #122 browser lane 05; #127 browser lane 06; #125 MFM-07 integration.
+These own no files: #103 S1-D T-03; #104 S1-C T-05; #93 MFM-04; #100 MFM-05; #102 PARITY-07; #111 MFM-06 implementation; #113 MFM-06 integration; #118 browser lane 03; #120 browser lane 04; #121 MFM-07 implementation; #122 browser lane 05; #127 browser lane 06; #125 MFM-07 integration; **#136 S1-D persistence amendment**.
 
 Browser #127 result: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-06-RESULT.md`.
+Browser #136 result: `Docs/Handoffs/S1-D-T04-Persistence-Amendment-20261029/BROWSER-RESULT.md`.
 
 ## Non-dispatched backlog
 
