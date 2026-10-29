@@ -151,6 +151,9 @@ public sealed class SaveCellIndexHardeningRunner : MonoBehaviour
         // Keep a pristine valid Enlarged80 baseline. The later fixture loop loads other saves into the live
         // world; reusing the working capture for the startup-Continue case can carry a fixture-mutated grid.
         ForestSaveData enlargedBaseline = Clone(enlarged);
+        Debug.Log("SAVE_CELL_VALID_BASELINE validation=" + (ForestSaveValidation.Validate(enlargedBaseline, enlargedBaseline.trees.Count, 256) ?? "null")
+            + " cells=" + enlargedBaseline.cells.Count + " badCellIndices=" + string.Join(",", enlargedBaseline.cells.Where(c => c.index < 0 || c.index >= 256).Select(c => c.index))
+            + " patches=" + enlargedBaseline.scenarioOne.clearancePatches.Count);
         ForestSaveData legacy=Clone(enlarged); legacy.standGeometryModel=0;legacy.cells=legacy.cells.Take(64).ToList();legacy.scenarioOne.understoreyCells=legacy.scenarioOne.understoreyCells.Take(64).ToList();
         int rackOrdersRemoved=MakeRackModelZero(legacy);
         // Precondition: the Legacy40 basis is a valid model-0 world, so every geometry=0 verdict below is about cell indices.
