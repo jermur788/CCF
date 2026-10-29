@@ -212,7 +212,9 @@ public sealed partial class LearningObjectivesView
         RackLayoutTracker layout = ui.RackLayout;
         if (layout == null || !layout.Complete) return;
         Record("rack.create");
-        Record("rack.layout");
+        // V2 (spec §30 step 7, D-064): the layout step is a confirmed plan with every entrance marked, then it hands over to rack.approve.
+        if (!m.RackPlanningV2Active || (m.RackPlanConfirmed && m.MarkedRackEntranceCount >= ScenarioOneManager.RackPlanTargetCount))
+            Record("rack.layout");
         if (!layout.WorkPending && layout.WorkApproved) Record("rack.approve");
         if (layout.Harvested && m.AnnualReports.Count > 0 && m.Interventions.Count > 0) Record("rack.result");
     }
