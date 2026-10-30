@@ -1,62 +1,114 @@
 # S1-C T-07 — S1-D Data Contract and Stability Checks
 
-**Parent:** #91  
-**Spec:** `specs/scenario-one-review-history-v1/` T-07  
-**Status:** PREPARED / NOT DISPATCHED  
-**Purpose:** turn the approved S1-C identity/history compatibility contract into code-facing notes and verification checks so S1-D/MFM consume one stable record model.
+**Parent:** #91 / local umbrella #106 / browser prep #186  
+**Spec:** `specs/scenario-one-review-history-v1/` T-07 / AC-10  
+**Status:** RELEASED FOR OFFLINE VERIFICATION  
+**Exact released base:** `8fa83bff22ea1b4943689bee1074eed8eae65d2f`
+
+## Purpose
+
+Close the remaining S1-C prerequisite by documenting and testing the identity/data contract that later repeated-intervention work relies on. This is a bounded verification task, not new history architecture.
+
+The integrated history helper already documents important contract semantics, including read-only history, stable ID pass-through and `harvestJobId` as a resolution-year label rather than unique job identity. The missing evidence is the explicit T-07 offline stability suite on current and genuine old-save fixtures.
 
 ## Difficulty and routing
 
-- **Difficulty:** Medium — bounded source/verification work, but identity drift can corrupt later history/repeated-intervention reasoning.
-- **Preferred worker:** Claude Sonnet 5.5 Medium / Anthropic.
-- **Independent review:** OpenAI 6.1 Sol if changes touch save validation rather than verification/docs only.
+- **Difficulty:** Low/Medium — focused offline contract verification with old-save fixture coverage; identity drift would be high consequence, but no new architecture is expected.
+- **Preferred worker:** SOL/CODEX high-reasoning verification lane or Claude Sonnet-class Code lane.
+- **Unity:** not required by default.
 
-## Start gate / base
+## Start gate / lane
 
-Start after MFM-06 is accepted/integrated and the exact current integration SHA is published. Refresh #91/#106/active-tasks and confirm there is no save/identity writer. T-01 history query implementation must remain the single derived-history path.
+Suggested branch/worktree: `verify/s1-c-t07-data-contract-v1` / `/media/jer/Videos/CCF-S1C-T07`.
 
-Suggested branch/worktree: `verify/s1-c-t07-history-contract-v1` / `/media/jer/Videos/CCF-S1C-T07`.
+Before edits:
 
-Create a claim only at dispatch.
+1. refresh #91/#106/#151, live `Docs/Project/coordination/active-tasks.md` and this packet;
+2. prove clean exact start `8fa83bff22ea1b4943689bee1074eed8eae65d2f` or a docs-only descendant with identical production;
+3. confirm no writer owns the focused verification paths;
+4. mark the substantive claim `[RUNNING — OFFLINE]` with actual model/provider/branch/worktree/start SHA.
+
+Do not touch #151-owned `WorkPlanView.cs`, `AnnualReviewView.cs` or `ScenarioOneUiRoot.cs`.
+
+## Writable surface
+
+Prefer verification/docs only:
+
+- a focused gate under `Tools/Verification/S1CManagementHistory/` or a narrow sibling directory;
+- `Docs/Handoffs/S1-C-Implementation-07/HANDOFF.md`.
+
+`ScenarioManagementHistory.cs` should remain runtime-read-only unless a genuinely missing **comment-only** contract note is necessary and live ownership is free. No runtime behaviour change is expected.
 
 ## Required contract checks
 
-Document and assert, using genuine current and old fixtures where available:
+### Management-event identity
 
-- tree identity formats and load-by-ID behaviour remain stable;
-- work-order IDs use the persisted monotonic counter and resolved/failed orders remain retained;
-- management-event IDs are positive/unique under the already accepted S1-D T-06 hardening and the append-only event log remains stable;
-- planted-juvenile, promoted-tree, deadwood and shelter identity/linkage remain stable;
-- cell identity remains geometry-relative and must not be presented as universally stable across stand-geometry changes;
-- `harvestJobId` remains a resolution-year grouping label, not a unique job identifier;
-- S1-C introduces no competing tree/order/event/history identity scheme;
-- MFM prescription/work-order provenance consumes existing IDs rather than replacing them.
+- positive/unique management-event IDs on valid current and old fixtures;
+- S1-C history preserves authoritative event IDs and never renumbers them;
+- accepted S1-D T-06 validation remains the integrity authority rather than a duplicate validator.
+
+### Work-order identity and retention
+
+- persisted work-order IDs remain stable across history query/reload fixtures;
+- resolved/event linkage uses existing IDs;
+- historical records required by later-year browsing remain available;
+- cancellation is represented by the surviving cancellation event when the order object no longer exists.
+
+### Read purity / counters
+
+- repeated history queries do not alter events, orders, next-ID counters or fixture state;
+- no reader-side identity generator/cache/store appears.
+
+### Grouped-harvest limitation
+
+- `harvestJobId` is the accepted resolution-year grouping label, **not** a globally unique job ID;
+- grouped-harvest settlement remains job/year-level; no authoritative per-order money is invented.
+
+### Broader existing identity links where exposed by the history fixture
+
+Do not invent a new requirement, but verify any identities the existing S1-C query actually consumes remain pass-through rather than re-keyed: recorded tree IDs, cell indices/positions, objective-achievement IDs/keys and relevant provenance references. Cell identity/position must not be promoted into a stronger geometry-independent claim than the records support.
+
+### Genuine old save
+
+Use at least one genuine supported pre-S1-C fixture:
+
+- existing identities remain unchanged;
+- missing newer provenance/identity data stays absent / `not recorded`, never synthesized;
+- query remains deterministic and non-mutating.
+
+## Required negative / mutation controls
+
+Catch at least:
+
+1. duplicate event ID;
+2. reader-side event/work-order renumbering;
+3. treating `harvestJobId` as unique identity or per-order settlement authority;
+4. query mutation of input collections/counters.
+
+Use accepted validation semantics. Never weaken validators/tests to make the check green.
 
 ## Exclusions / invariants
 
 - no new S1-D feature behaviour;
-- no identity renumbering/repair;
-- no new schema field unless a demonstrated accepted-contract defect forces STOP/Manager review;
+- no ID renumbering/repair;
+- no save/schema/version/validator/hash/reference change;
 - no fabricated old-save data;
-- preserve MFM v23, S1-C v22 history, Legacy40 and Reference Future;
+- no second history implementation or identity namespace;
+- no Annual Review/Work Plan UI change;
+- no MFM provenance architecture change;
+- preserve current save compatibility, Legacy40 and frozen Reference Future;
 - no Windows build.
 
-## Verification
-
-- offline contract suite passes on a current fixture and at least one genuine old save;
-- mutation/negative controls for ID ambiguity use existing accepted validation semantics rather than weakening them;
-- field-for-field history query rebuild remains non-mutating;
-- source/docs make `harvestJobId` limitation explicit wherever exposed;
-- no second history implementation is introduced.
+If faithful verification unexpectedly requires Unity, stop and return the exact reason instead of taking the serialized machine lane automatically.
 
 ## Handoff
 
-Publish `Docs/Handoffs/S1-C-Implementation-07/HANDOFF.md` with exact base/end SHA, identity table, fixtures, commands/results and any compatibility caveat.
+Publish `Docs/Handoffs/S1-C-Implementation-07/HANDOFF.md` with exact start/head, model/provider, branch/worktree, changed files, identity-contract table, current/old fixtures, commands/results, negative-control counts, limitations and clean return state.
 
-Success token: `S1-C T-07 HISTORY DATA CONTRACT QUALIFIED`
+Success token:
+
+`S1-C DATA CONTRACT STABILITY QUALIFIED — READY FOR MANAGER REVIEW`
 
 ## Copy/paste dispatch line
 
-`Run S1-C T-07 from Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md on the exact published post-MFM-06 integration lineage. Use Claude Sonnet 5.5 Medium by default. Verify and document the stable S1-C/S1-D identity/history contract with current and genuine old-save fixtures; do not add a competing identity scheme or repair historical IDs. Publish the exact candidate/handoff and stop on any legitimate compatibility conflict. No Windows build.`
-
-**User action required now:** none; dependency-gated, not dispatched.
+`Run S1-C T-07 from Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md starting from exact 8fa83bff22ea1b4943689bee1074eed8eae65d2f (or a proven docs-only descendant after fresh preflight). Verification/docs only by default: prove stable event/work-order identities, append-only history meaning, harvestJobId's resolution-year limitation, genuine old-save behaviour and read purity with negative controls. Do not change save/schema/UI or take Unity automatically. Publish HANDOFF.md and return S1-C DATA CONTRACT STABILITY QUALIFIED — READY FOR MANAGER REVIEW or the exact blocker. No Windows build.`
