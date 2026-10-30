@@ -31,8 +31,10 @@ ALLOWED = (
     "Assets/ForestPrototype/UI/StandMapTreatmentReview.cs",
     "Assets/ForestPrototype/UI/Map/StandMapReviewPlan.cs",
     "Assets/ForestPrototype/UI/Map/StandMapReviewLayer.cs",
+    "Assets/ForestPrototype/UI/Map/StandMapAreaFootprints.cs",  # Geometry Repair 01: the one shared area-footprint derivation
     "Tools/Verification/MfmTreatmentReview/",
     "Docs/Handoffs/MFM-08-Map-3D-Review-UX/",
+    "Docs/Handoffs/MFM-08-Geometry-Repair-01/",
 )
 
 
@@ -62,8 +64,8 @@ def main():
     game = Path(core.GAME)
     approval.OUT_DIR = str(out)
     consts = approval.slice_save_constants(str(game / "ForestSaveData.cs"))
-    pure = list(approval.PURE_SOURCES) + [consts, str(game / "UI/ScenarioOneTreatmentReview.cs"), str(game / "UI/Map/StandMapReviewPlan.cs")]
-    sources = pure + [str(HERE / "OfflineLogic/TreatmentReviewOfflineCheck.cs")]
+    pure = list(approval.PURE_SOURCES) + [consts, str(game / "UI/ScenarioOneTreatmentReview.cs"), str(game / "UI/Map/StandMapReviewPlan.cs"), str(game / "UI/Map/StandMapAreaFootprints.cs")]
+    sources = pure + [str(HERE / "OfflineLogic/TreatmentReviewOfflineCheck.cs"), str(HERE / "OfflineLogic/AreaFootprintChecks.cs")]
     for s in sources:
         if not os.path.isfile(s):
             sys.exit("missing source " + s)

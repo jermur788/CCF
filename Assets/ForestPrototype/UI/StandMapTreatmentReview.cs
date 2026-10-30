@@ -26,6 +26,8 @@ public sealed class StandMapTreatmentReview
     private List<Cov.Stem> stems = new List<Cov.Stem>();
     private string lastNotedTreeId = "";
     private int version;
+    // The one derivation of where every area is on the ground: drawn on the map, printed as tags and used by Inspect in forest.
+    private StandMapAreaFootprints footprints = new StandMapAreaFootprints();
 
     public Review.Session Session => session;
     // Changes whenever the review state changes, so the map knows to rebuild the card.
@@ -50,6 +52,7 @@ public sealed class StandMapTreatmentReview
         coverage = manager != null ? manager.ReadCoverage(out coverageProblem) : null;
         if (manager == null) coverageProblem = "The Scenario One manager is not available.";
         stems = ReadStems();
+        footprints = DeriveFootprints();
         session.PruneTo(coverage);
         if (coverage != null && coverage.Valid) session.Suggest(coverage, stems);
         else session.LastCandidates = null;
@@ -133,34 +136,25 @@ public sealed class StandMapTreatmentReview
         return false;
     }
 
-    // Footprints are drawn from the SAME pure rack geometry production coverage is built on; their state, reasons and tags come only from
-    // the coverage result. A footprint that does not match its coverage area (rack id) is not drawn rather than guessed.
+    // One read of the authoritative geometry coverage was built on. Per-area polygons come from the coverage areas' own Segment and the
+    // accepted along-axis boundaries (StandMapAreaFootprints), not from the whole rack-served unit.
+    private StandMapAreaFootprints DeriveFootprints()
+    {
+        if (coverage == null || !coverage.Valid || ui.Ecology == null || ui.Manager == null) return new StandMapAreaFootprints();
+        float half = StandGeometryModel.StandSizeMeters(ui.Ecology.StandGeometryModelVersion) * 0.5f;
+        return StandMapAreaFootprints.Derive(coverage, ScenarioOneRackSampleGeometry.Derive(ui.Manager.ConfirmedRacks, half));
+    }
+
+    // Footprints are drawn from the footprint derivation above; their state, reasons and tags come only from the coverage result. An area
+    // with no footprint is not drawn rather than guessed.
     private List<ReviewFootprint> Footprints(StandMapModel model, Review.Presentation view)
     {
         var list = new List<ReviewFootprint>();
-        if (!view.Valid || model == null || !model.HasProperty || ui.Ecology == null || ui.Manager == null) return list;
-        float half = StandGeometryModel.StandSizeMeters(ui.Ecology.StandGeometryModelVersion) * 0.5f;
-        ScenarioOneRackSampleGeometry.Result geometry = ScenarioOneRackSampleGeometry.Derive(ui.Manager.ConfirmedRacks, half);
-        if (!geometry.Valid) return list;
+        if (!view.Valid || model == null || !model.HasProperty || !footprints.Valid) return list;
         StandMapTransform t = model.TransformFor(StandMapView.MapSidePx);
         foreach (Review.AreaRow row in view.All())
         {
-            IReadOnlyList<RackPoint> polygon = null;
-            if (row.IsRemainder)
-            {
-                foreach (Cov.Remainder r in coverage.Remainders)
-                {
-                    if (r.Id != row.Id) continue;
-                    ScenarioOneRackSampleGeometry.OuterRemainder shape = r.Side == ScenarioOneRackSampleGeometry.Side.Right ? geometry.RightRemainder : geometry.LeftRemainder;
-                    if (shape != null && !shape.IsEmpty) polygon = shape.Polygon;
-                }
-            }
-            else
-            {
-                Cov.Area area = coverage.Find(row.Id);
-                foreach (ScenarioOneRackSampleGeometry.CoverageUnit unit in geometry.Units)
-                    if (area != null && unit.Index == area.UnitIndex && unit.RackId == area.RackId) polygon = unit.Polygon;
-            }
+            IReadOnlyList<RackPoint> polygon = footprints.PolygonOf(row.Id);
             if (polygon == null || polygon.Count < 3) continue;
             var fp = new ReviewFootprint { AreaId = row.Id, State = row.State, IsSource = row.IsSource, Tag = row.MapTag, Selected = row.Id == session.SelectedAreaId };
             foreach (RackPoint p in polygon)
@@ -173,27 +167,8 @@ public sealed class StandMapTreatmentReview
         return list;
     }
 
-    // World centre of an area's footprint, for Inspect in forest.
-    private bool TryAreaCentre(string areaId, bool remainder, out float x, out float z)
-    {
-        x = z = 0f;
-        if (ui.Ecology == null || ui.Manager == null || coverage == null) return false;
-        float half = StandGeometryModel.StandSizeMeters(ui.Ecology.StandGeometryModelVersion) * 0.5f;
-        ScenarioOneRackSampleGeometry.Result geometry = ScenarioOneRackSampleGeometry.Derive(ui.Manager.ConfirmedRacks, half);
-        if (!geometry.Valid) return false;
-        IReadOnlyList<RackPoint> polygon = null;
-        if (!remainder)
-        {
-            Cov.Area area = coverage.Find(areaId);
-            foreach (ScenarioOneRackSampleGeometry.CoverageUnit unit in geometry.Units)
-                if (area != null && unit.Index == area.UnitIndex && unit.RackId == area.RackId) polygon = unit.Polygon;
-        }
-        if (polygon == null || polygon.Count == 0) return false;
-        foreach (RackPoint p in polygon) { x += p.X; z += p.Z; }
-        x /= polygon.Count;
-        z /= polygon.Count;
-        return true;
-    }
+    // World centre of an area's own footprint, for Inspect in forest (the same polygon the map draws).
+    private bool TryAreaCentre(string areaId, bool remainder, out float x, out float z) => footprints.TryCentre(areaId, out x, out z);
 
     // ------------------------------------------------------------------------------------------------------------- the card
 
