@@ -112,6 +112,22 @@ Unity import/compile and the required rendered qualification remain for the sepa
 
 The offline harness executes unchanged production method slices for grouping, status, exact-year selection and the root route, but it does not prove Unity layout, input, rendering, import or serialized anchors. No Unity, merge or integration claim is made.
 
+## Unity qualification (claim #151, 2026-10-30)
+
+Production under test: exact pushed head `4ddf4aa535d4ec5267be46d2635679411d595e0f` in U1, no production change. Verification-only harness `Tools/Verification/S1DPreviousProposedUnity/S1DPreviousProposedUnityGate.cs` plus one `s1d-t05` gate line in `run_unity_gate.py`, on branch `verify/s1d-t05-unity-v1` (tip `d9a13411`, local, not pushed). Evidence: `/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/` (`out/render-run4` is the qualifying receipt; shots and texts under `evidence/`).
+
+**Qualifying run (`render-run4`):** compile pass; rendered gate exit 0, `S1D_T05_UNITY_PASS`, 579 checks / 0 failures / 12 screenshots at 1280×720 and 1920×1080; harness, `.meta` and licence copy removed; U1 clean (0 changes); host saves unchanged; no disk saves created; Unity lock released normally; U1 restored to `b9bf11aa`; no Editor.
+
+Covered at both sizes: three-cycle fixture; Approved / Pending new / Pending carried over grouping (1 / 2 / 87); future-year order surfaced as inconsistent, in no group, not labelled new or carried; MFM prescription approval creates ordinary Pending orders, carried over, not Work Plan approval; exact creation-year Work Plan → Annual Review links for existing history years only; missing, future and negative years refused with the Work Plan left open (no latest-year fallback); historical review read-only (no acknowledge, state and hashes unchanged), titled as an earlier year; AC-5: executed work shown in Annual Review "Work done", an unplanned Fell mark has no order until the Work Plan adopts it as Pending new; collapsed/expanded/scrolled group readability, text inside panel, screenshots non-blank.
+
+**Earlier runs, kept as failed receipts (none was a production finding):**
+- `render-run1`: harness compile error (assumed a `UiScreen.WorkPlan` value; the Work Plan is open when `manager.WorkPlanOpen`). Nothing executed.
+- `render-run2`: all functional checks passed; six 1920×1080 `TEXT_NOT_CLIPPED` failures. Screenshots show no clipping.
+- `render-run3`: diagnostics added. Flagged single-line labels measured exactly 2× their content height (36.7 vs 18.3), i.e. a sub-pixel wrap when measuring at the exact element width. The run also produced all-white screenshots (environment) and Unity hung on exit until the runner's 1500 s timeout; cleanup was clean.
+- Harness fix before run 4: measure at content width + 2 px. Pass criteria otherwise unchanged. The 2 px tolerance still flags genuinely narrow boxes; the run-2 screenshots were reviewed visually.
+
+**Limits:** UI callbacks drive the real UI Toolkit controls; OS-native pointer targeting is not qualified. The Work Plan grouping card sits above the existing detailed sections and screenshots confirm both remain readable. The Manager may still confirm the future-year presentation choice (Approved-with-future-year stays under Approved and is flagged). No Manager acceptance, integration, dashboard closure or T-08 unblock is claimed. No Windows build.
+
 ## Residuals
 
 - Rendered/layout review was not possible offline; the grouping card is a current-order index above the existing detailed sections, not a replacement for their quotes or controls. Rendered review should confirm the foldouts, link labels and long order lists remain readable at both resolutions.
