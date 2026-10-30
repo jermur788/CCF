@@ -72,6 +72,19 @@ public sealed class AnnualReviewView
     // Opening the review starts on the newest year; a past year is only ever a deliberate drill-down.
     public void ShowLatest() { viewYear = -1; openDetails.Clear(); }
 
+    // Select only a recorded year. Synchronising the latest-year marker prevents the first/new-latest
+    // Refresh from replacing this deliberate selection. This changes presentation only, never acknowledgement.
+    public bool TryShowYear(int year)
+    {
+        IReadOnlyList<YearHistoryView> years = ui.Manager.HistoryYears;
+        if (FindYear(years, year) == null) return false;
+        viewYear = year;
+        lastLatestYear = years[years.Count - 1].Year;
+        openDetails.Clear();
+        Refresh(true);
+        return true;
+    }
+
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;

@@ -134,6 +134,7 @@ public sealed class WorkPlanView
             + $"cash after approved work {UiKit.Money(m.CashCents - m.ReservedContractorCashCents)}";
 
         scroll.Clear();
+        BuildOrderGroups(m);
         BuildRacks(m);
         WorkPlanOverview.Build(scroll, ui);
         BuildAttention(m);
@@ -173,9 +174,13 @@ public sealed class WorkPlanView
     {
         var sb = new StringBuilder();
         sb.Append(m.CurrentEcologicalYear).Append('|').Append(m.CashCents).Append('|').Append(m.Feedback).Append('|')
+          .Append(m.AnnualReports.Count).Append('|').Append(m.ManagementEvents.Count).Append('|')
           .Append(m.AnnualReviewSeen).Append('|').Append(m.PlanningPlantingMethod).Append(m.PlanningInstallShelter).Append('|').Append(m.Outcome);
         foreach (ScenarioOneWorkOrder o in m.WorkOrders)
-            if (o.IsOpen) sb.Append(o.workOrderId).Append(o.status).Append(o.fellingOutcome).Append(o.executionMethod).Append(o.installShelter).Append(o.validationMessage).Append(';');
+            if (o.IsOpen) sb.Append(o.workOrderId).Append(o.status).Append(o.fellingOutcome).Append(o.executionMethod).Append(o.installShelter).Append(o.validationMessage)
+                .Append('|').Append(o.createdYear).Append('|').Append(o.ShortLabel)
+                .Append('|').Append(o.prescriptionId).Append('|').Append(o.prescriptionCoverageUnitId)
+                .Append('|').Append(o.prescriptionCropTreeId).Append('|').Append(o.prescriptionReason).Append(';');
         foreach (RackGroup rack in m.RackGroups) sb.Append('R').Append(rack.Id).Append(':').Append(rack.TreeCount).Append(';');
         foreach (ScenarioInventoryEntry e in m.Inventory) sb.Append(e.itemId).Append(e.quantity);
         return sb.ToString();
@@ -190,6 +195,59 @@ public sealed class WorkPlanView
         return card;
     }
 
+    // A current-order index, not a second history surface. Quotes and editing controls remain below.
+    // Carry-over is the recorded creation year, independent of the separate stale-attention threshold.
+    private void BuildOrderGroups(ScenarioOneManager m)
+    {
+        List<ScenarioOneWorkOrder> open = m.WorkOrders.Where(o => o.IsOpen).OrderBy(o => o.workOrderId).ToList();
+        if (open.Count == 0) return;
+        IReadOnlyList<YearHistoryView> years = m.HistoryYears;
+        VisualElement card = Card("Current work · approval and origin",
+            "Pending work is uncommitted until you approve the Work Plan. Open a group to read its orders; quotes and controls are below. Previous results remain in Annual review.");
+        card.name = "workplan-order-groups";
+        foreach (string label in new[] { "Approved", "Pending new", "Pending carried over" })
+        {
+            List<ScenarioOneWorkOrder> orders = open.Where(o => OrderClass(o, m.CurrentEcologicalYear) == label).ToList();
+            var group = new Foldout { text = $"{label} · {orders.Count}", value = false };
+            group.name = "workplan-" + label.ToLowerInvariant().Replace(' ', '-');
+            card.Add(group);
+            foreach (ScenarioOneWorkOrder order in orders)
+                AddOrderOrigin(group, order, m.CurrentEcologicalYear, years);
+        }
+        // Do not disguise a future-created Pending order as new or carried over, or invent a fourth class.
+        foreach (ScenarioOneWorkOrder order in open.Where(o => o.createdYear > m.CurrentEcologicalYear))
+            UiKit.Add(card, $"Inconsistent record · order #{order.workOrderId}: creation year {order.createdYear} is after current year {m.CurrentEcologicalYear}. Check this record before approving work.", "body");
+    }
+
+    private static string OrderClass(ScenarioOneWorkOrder order, int currentYear)
+    {
+        if (!order.IsOpen) return "";
+        if (order.status == ScenarioWorkStatus.Approved) return "Approved";
+        if (order.status == ScenarioWorkStatus.Pending && order.createdYear == currentYear) return "Pending new";
+        if (order.status == ScenarioWorkStatus.Pending && order.createdYear < currentYear) return "Pending carried over";
+        return "";
+    }
+
+    private static bool HasOriginHistory(ScenarioOneWorkOrder order, int currentYear, IReadOnlyList<YearHistoryView> years)
+        => order.IsOpen && order.createdYear < currentYear && years.Any(y => y.Year == order.createdYear);
+
+    private void AddOrderOrigin(VisualElement group, ScenarioOneWorkOrder order, int currentYear, IReadOnlyList<YearHistoryView> years)
+    {
+        VisualElement row = UiKit.Row(group, "row-wrap");
+        UiKit.Add(row, $"#{order.workOrderId} · {order.ShortLabel} · created in year {order.createdYear}", "body", "gap");
+        if (HasOriginHistory(order, currentYear, years))
+        {
+            int year = order.createdYear;
+            var history = UiKit.Button($"Creation-year review · Year {year}", () => ui.TryShowReviewYear(year));
+            history.name = "workplan-origin-" + order.workOrderId;
+            row.Add(history);
+        }
+        else if (order.createdYear < currentYear)
+            UiKit.Add(group, "Creation-year review not recorded; no historical link available.", "muted");
+        if (order.prescriptionId > 0)
+            UiKit.Add(group, $"Recorded origin · prescription {order.prescriptionId} · coverage unit {order.prescriptionCoverageUnitId} · Crop Tree {order.prescriptionCropTreeId} · reason code {order.prescriptionReason}", "muted");
+    }
+
     // Open orders that carry a problem, or were planned a couple of years ago. They are never expired or deleted: this
     // only says which ones to look at again, and why.
     private void BuildAttention(ScenarioOneManager m)
@@ -202,7 +260,7 @@ public sealed class WorkPlanView
         foreach (StaleOrderNote note in notes)
         {
             VisualElement row = UiKit.Row(card, "row-wrap");
-            UiKit.Chip(row, note.Order.status == ScenarioWorkStatus.Approved ? "APPROVED" : "DRAFT", "chip-fell");
+            UiKit.Chip(row, Status(note.Order), "chip-fell");
             UiKit.Add(row, note.Order.ShortLabel, "body", "gap");
             UiKit.Add(card, note.Reason, "muted");
         }
@@ -526,9 +584,13 @@ public sealed class WorkPlanView
             UiKit.Add(card, "Problem: " + ScenarioOneUiFacts.PlainText(order.validationMessage), "muted");
     }
 
-    private static string Status(ScenarioOneWorkOrder order)
-        => order.status == ScenarioWorkStatus.Pending ? "DRAFT · not approved yet"
-            : order.status == ScenarioWorkStatus.Approved ? "APPROVED" : order.status.ToString().ToUpperInvariant();
+    private string Status(ScenarioOneWorkOrder order)
+    {
+        string label = OrderClass(order, ui.Manager.CurrentEcologicalYear);
+        if (order.createdYear > ui.Manager.CurrentEcologicalYear)
+            return (string.IsNullOrEmpty(label) ? order.status.ToString() : label) + " · inconsistent creation year";
+        return string.IsNullOrEmpty(label) ? order.status.ToString() : label;
+    }
 
     private static string OutcomeLabel(FellingMaterialOutcome outcome)
         => outcome == FellingMaterialOutcome.KeepForUse ? "Keep for use"
