@@ -5,31 +5,41 @@
 - **Spec:** `specs/scenario-one-repeated-interventions-v1/`
 - **Task:** T-08 — Multi-cycle integrated witness
 - **Parent:** #91 / local umbrella #106 / browser prep #186
-- **Status:** PREPARED / NOT RELEASED — waiting #151 T-05 Unity + Manager approval + integration
+- **Status:** **RELEASED FOR FRESH PREFLIGHT — UNITY EXECUTION SERIALIZED BEHIND #156 MFM-08**
+- **Exact released integration candidate:** `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`
+- **T-05 production integration merge contained by that candidate:** `46fc6d55315bbddcdfa7667f0da490378d584023`
 - **Purpose:** run the approved three-cycle Unity witness proving repeated intervention remains reachable, understandable, save/load compatible and solvent without changing coefficients or protected anchors.
 - **Difficulty:** **High** — integrated multi-cycle Unity/save/compatibility qualification across S1-D, S1-C history and ordinary Work Plan execution.
-- **Recommended executor after release:** **SOL/CODEX high-reasoning local verification lane**, preserving a separate provider/model for T-09 independent review.
+- **Recommended executor:** **SOL/CODEX high-reasoning local verification lane**, preserving a separate provider/model for T-09 independent review.
 - **Suggested branch:** `verify/s1-d-multicycle-witness-v1`
 - **Suggested worktree:** `/media/jer/Videos/CCF-S1D-T08`
-- **User action required:** none.
+- **Substantive execution claim:** do not create/mark RUNNING until the worker is actually starting after fresh ownership/Unity preflight. Claims record execution presence, not reservation.
+- **User action required:** none from the browser lane; local orchestration should start this only when the serialized Unity lane is available after #156.
+
+## Release basis
+
+S1-D T-05 #151 is now Manager **APPROVED / INTEGRATED / CLOSED**. Its exact qualified production/handoff head `4ddf4aa535d4ec5267be46d2635679411d595e0f` was integrated by PR #188 at `46fc6d55315bbddcdfa7667f0da490378d584023`, with integration handoff/docs successor `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`.
+
+The previously blocking semantic gate is therefore satisfied. MFM-08 #156 has first priority on the now-released serialized Unity lane. T-08 is released so no further browser repin is required before local preflight, but **must not race #156 for the machine-wide Unity lock**.
 
 ## Hard start gate
 
-Do not create/start the substantive T-08 claim until all are true on one GitHub-refreshable integration lineage:
+Before creating/starting the substantive T-08 execution claim, all of these must still be true on fresh evidence:
 
 1. T-02 accepted/integrated.
 2. T-03 accepted/integrated.
 3. T-04P durable teaching-completion persistence accepted/integrated.
 4. T-04 guide monotonicity accepted/integrated and independently reviewed.
-5. **T-05 #151 previous/proposed presentation completed its currently running Unity gate, received final Manager APPROVED verdict and was integrated.**
-6. T-06 management-event ID integrity accepted/integrated.
-7. Current S1-C history/save surfaces consumed by S1-D are integrated/stable; reuse any accepted S1-C T-07 result if available rather than duplicating it.
-8. The then-current exact integration candidate is repinned and ancestry checked.
-9. Live `active-tasks.md`, free space, lock and Editor processes are refreshed immediately before Unity.
+5. T-05 #151 remains Manager APPROVED and integrated on the released candidate.
+6. T-06 management-event ID integrity remains accepted/integrated.
+7. Current S1-C history/save surfaces consumed by S1-D remain integrated/stable; reuse any accepted S1-C T-07 result if available rather than duplicating it.
+8. The exact start is `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`, or a later Manager-published Scenario One integration descendant whose delta is inspected and accepted before start.
+9. #156 has released the serialized Unity lane, or live coordination explicitly gives T-08 priority without overlap.
+10. `Docs/Project/coordination/active-tasks.md`, free space, Unity lock and Editor processes are refreshed immediately before acquisition.
 
 T-07 broad persisted cycle state is intentionally CANCELLED by D-066 and is not a start gate.
 
-Current #151 feature head `4ddf4aa535d4ec5267be46d2635679411d595e0f` is **not** a T-08 start SHA while its Unity/final review/integration is pending.
+No browser release statement proves that the machine lock is free.
 
 ## Required witness
 
@@ -115,7 +125,8 @@ Return the Unity machine lock normally, restore protected save/world state, leav
 
 Stop with a precise blocker if:
 
-- #151 or another required S1-D slice is not accepted/integrated;
+- a required S1-D slice is no longer accepted/integrated on the actual start lineage;
+- #156 or another owner currently holds the Unity lock;
 - completion becomes unreachable/unrecoverable without coefficient/product-scope change;
 - a protected save/reference/determinism contract moves unexpectedly;
 - passing would require weakening a gate or bypassing ordinary Work Plan execution;
@@ -132,6 +143,6 @@ Success:
 Failure:
 `S1-D T-08 NEEDS CHANGES — BOUNDED BLOCKER PUBLISHED`
 
-## Copy/paste dispatch line — use only after Manager release
+## Copy/paste dispatch line
 
-`Run S1-D T-08 from Docs/Handoffs/S1-D-Implementation-08/TASK-PACKET.md only after #151 T-05 is Unity-qualified, Manager-approved and integrated and the exact combined candidate is repinned. Use a SOL/CODEX high-reasoning local verification lane. Run the >=3-cycle + idle-year + carried-order + save/load + exact-history-link + completion + post-completion + D-057 solvent witness and protected regressions, with material rendered states at 1280x720 and 1920x1080. Verification-only: no production fixes, no rebaseline, no Windows build.`
+`Run S1-D T-08 from Docs/Handoffs/S1-D-Implementation-08/TASK-PACKET.md on exact released integration ce6737146a7aa9ea953d7db0ca93b103f6c2c996 only after #156 has released the serialized Unity lane and a fresh active-tasks/free-space/lock/Editor preflight is clean. Use a SOL/CODEX high-reasoning local verification lane. Run the >=3-cycle + idle-year + carried-order + save/load + exact-history-link + completion + post-completion + D-057 solvent witness and protected regressions, with material rendered states at 1280x720 and 1920x1080. Verification-only: no production fixes, no rebaseline, no Windows build.`
