@@ -333,6 +333,47 @@ public static partial class ForestSaveValidation
         return null;
     }
 
+    // ---- PARITY-08 saved species identity ------------------------------------------------------------------------
+    // Every record whose species decides what the loader builds or what a pending contractor job will do must name
+    // a species the scene can simulate. Before this check the loader turned an unknown tree species into the default
+    // Sitka and dropped unknown regeneration bands while it was already changing the world. An empty ID keeps its
+    // historical meaning (the scene's default species), and only the versions in which the loader reads the field
+    // are checked, so legacy saves are unaffected. History-only text (resolved orders, management events, deadwood
+    // records, which are already tied to their victim tree) is not authoritative and is not checked.
+    //   isLoadableSpecies: true when the scene can resolve a simulation-ready species with this non-empty ID.
+    public static string ValidateSpecies(ForestSaveData data, System.Func<string, bool> isLoadableSpecies)
+    {
+        if (data == null || isLoadableSpecies == null)
+            return null;
+        bool Unknown(string id) => !string.IsNullOrEmpty(id) && !isLoadableSpecies(id);
+
+        if (data.version >= 7 && data.trees != null)
+            foreach (TreeSaveData tree in data.trees)
+                if (tree != null && Unknown(tree.speciesId))
+                    return $"tree {tree.treeId} has unknown species '{tree.speciesId}'";
+
+        if (data.version >= 8 && data.cells != null)
+            foreach (ForestCellSaveData cell in data.cells)
+                if (cell?.cohorts != null)
+                    foreach (ForestRegenerationCohortSaveData cohort in cell.cohorts)
+                        if (cohort != null && cohort.density > 0f && Unknown(cohort.speciesId))
+                            return $"ecology cell {cell.index} has regeneration of unknown species '{cohort.speciesId}'";
+
+        ScenarioOneSaveData scenario = data.version >= 10 ? data.scenarioOne : null;
+        if (scenario == null)
+            return null;
+        if (scenario.plantedJuveniles != null)
+            foreach (PlantedJuvenileSaveData juvenile in scenario.plantedJuveniles)
+                if (juvenile != null && Unknown(juvenile.speciesId))
+                    return $"planted juvenile {juvenile.juvenileId} has unknown species '{juvenile.speciesId}'";
+        if (scenario.workOrders != null)
+            foreach (ScenarioOneWorkOrder order in scenario.workOrders)
+                if (order != null && (order.status == ScenarioWorkStatus.Pending || order.status == ScenarioWorkStatus.Approved)
+                    && Unknown(order.speciesId))
+                    return $"work order {order.workOrderId} has unknown species '{order.speciesId}'";
+        return null;
+    }
+
     private static bool IsFinite(float value)
     {
         return !float.IsNaN(value) && !float.IsInfinity(value);

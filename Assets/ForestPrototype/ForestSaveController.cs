@@ -313,6 +313,9 @@ public sealed class ForestSaveController : MonoBehaviour
         }
         if (problem == null && data.trees.Count > 0 && spawner == null)
             problem = "the scene has no tree spawner to restore trees with";
+        // Unknown saved species are refused here, never loaded as Sitka or silently dropped during the restore.
+        if (problem == null && spawner != null)
+            problem = ForestSaveValidation.ValidateSpecies(data, id => spawner.ResolveSpecies(id) != null);
         return problem;
     }
 
