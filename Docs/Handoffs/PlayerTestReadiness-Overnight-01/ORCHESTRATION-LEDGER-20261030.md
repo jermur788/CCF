@@ -301,3 +301,22 @@ Append entries below in chronological order using this template.
 | OpenAI A (codex default) | LOGIN-UNAVAILABLE / UNVERIFIED | User reports no tokens; not tested | UNKNOWN | user | none |
 | Claude A (claudeAgent) | AVAILABLE / IDLE | Credentials listed; quota UNKNOWN | UNKNOWN | T3 | none |
 | Claude B — Pro | AVAILABLE / IDLE | #156 completed; no quota error reported; quota UNKNOWN | UNKNOWN | T3 / worker | none after #156 offline |
+
+### EVENT — #124 offline candidate returned
+
+- **Work unit:** S1-D T-04 guide monotonicity, offline phase.
+- **Evidence class:** OBSERVED FACT for commits/checks; ORCHESTRATOR CLAIM for readiness.
+- **Previous provider/model:** DeepSeek V4.1 Flash max (implementation).
+- **Selected provider/model:** same (completed).
+- **Alternatives considered:** Claude A Sonnet 5.5; OpenAI B (quota-exhausted).
+- **Reason / routing rule:** DeepSeek default; bounded curriculum verification over the already-integrated latch.
+- **Capacity evidence:** DeepSeek available; no provider error.
+- **Capacity source:** T3 / execution.
+- **Reported reset/window:** n/a.
+- **Previous failure/outcome influencing decision:** none.
+- **Branch/worktree or browser lane:** `feature/s1-d-t04-guide-monotonicity-v2`; `/media/jer/Videos/CCF-S1D-T04`; start `bccd2b90`, verification `c838aca`, docs `99b7d4b`; production unchanged.
+- **Result/evidence:** 62 monotonicity checks + 5/5 mutations; 16,384-row pre-latch oracle; T-03 48; T-02 93; #143 36 + 80 hash rows + MFM06 172; S1-C 55/72/56/53; N3 88; NonUI 46/87/75/49. Unity not run. Worker posted the success token; Manager corrected to offline-candidate status.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/S1-D-Implementation-04/HANDOFF.md`; #124 comment posted.
+- **Accepted / rejected / unresolved:** unresolved; UNITY + independent review pending.
+- **Failure classification if any:** worker over-claimed the token relative to the Unity gate; corrected by Manager.
+- **Next action:** serialized Unity qualification on `c838aca` under the free lock; independent Claude A review in parallel.
