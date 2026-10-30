@@ -216,3 +216,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved.
 - **Failure classification if any:** none yet.
 - **Next action:** monitor; preserve Unity for the first fully offline candidate; do not parallelise Unity.
+
+### EVENT — #151 returned NEEDS WORK at exact-year API gate; disposition granted
+
+- **Work unit:** S1-D T-05 offline implementation.
+- **Evidence class:** OBSERVED FACT (worker return + file/line evidence); ORCHESTRATOR CLAIM for disposition.
+- **Previous provider/model:** OpenAI B gpt-6.1-sol high.
+- **Selected provider/model:** same child/pool resumed (OpenAI B gpt-6.1-sol high) with explicit ownership disposition.
+- **Alternatives considered:** DeepSeek V4.1 Flash; Claude A Sonnet 5.5.
+- **Reason / routing rule:** the worker correctly stopped at the packet's API gate; ownership of `AnnualReviewView.cs`/review route is free (#147 closed; #156/#124 exclude it); the missing seam is a tiny read-only navigation hook, not a product decision. Resume the same context to preserve work and re-use capacity.
+- **Capacity evidence:** OpenAI B reported no quota/auth blocker; user-reported ~13% window at start, reset UNKNOWN. DeepSeek available; Claude A quota UNKNOWN.
+- **Capacity source:** worker / user / T3.
+- **Reported reset/window:** OpenAI B five-hour window, reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** production stopped before edits; baseline 257 checks passed; no production diff.
+- **Branch/worktree or browser lane:** `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05`; commits `c3a254c6`, `c7dba066`; start `cfdc93bf`.
+- **Result/evidence:** authorised only `AnnualReviewView.TryShowYear(int)` + smallest `ScenarioOneUiRoot.TryShowReviewYear(int)` read-only route, using `Manager.HistoryYears`, no invented year, no history mutation/acknowledgement, no duplicate store.
+- **Handoff/commit/claim reference:** #151 comment `6512065369`.
+- **Accepted / rejected / unresolved:** blocker resolved by ownership disposition; implementation resumes.
+- **Failure classification if any:** scope/API gate, correctly escalated; not a provider failure.
+- **Next action:** resume #151 implementation; commit/push; no Unity until candidate.
