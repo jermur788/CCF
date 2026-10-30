@@ -395,3 +395,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** #124 unresolved/NEEDS WORK; #164 running.
 - **Failure classification if any:** stale harness expectations (v23, pre-D-066 reload, PARITY-07 copy) + one runner hang/-9 + one environmental blank/timeout; no production regression found.
 - **Next action:** #164 offline harness repair then serialized Unity rerun; do not integrate #124 until it passes.
+
+### EVENT — #124 accepted/integrated; #164 integrated; #126 released
+
+- **Work unit:** close S1-D T-04 acceptance and release PARITY-08.
+- **Evidence class:** OBSERVED FACT (gates/merges) + ORCHESTRATOR CLAIM (acceptance).
+- **Previous provider/model:** #124 DeepSeek verification; #124 Unity Claude B; #164 Claude B.
+- **Selected provider/model:** #126 Claude Opus 5.5 low (5/5 save/determinism, justified escalation).
+- **Alternatives considered:** Claude Sonnet 5.5; DeepSeek (would leave no cross-provider reviewer).
+- **Reason / routing rule:** user permits Opus low/medium for genuinely high-consequence work; #126 is 5/5 save validation/determinism; independent reviewer is DeepSeek/OpenAI.
+- **Capacity evidence:** Claude A used for #124/#151 reviews without quota error; Claude B used for #124 Unity/#164 without quota error; remaining quota UNKNOWN. OpenAI B still exhausted (reset UNKNOWN).
+- **Capacity source:** T3 / worker / provider.
+- **Reported reset/window:** OpenAI B five-hour subscription, reset UNKNOWN; Claude pools UNKNOWN.
+- **Previous failure/outcome influencing decision:** #124 Unity initially failed on stale v23/pre-D-066 harnesses; #164 reconciled them with clean exits; no production regression.
+- **Branch/worktree or browser lane:** integration `185200f5`; #126 `verify/parity-08-save-compatibility-v1` / `/media/jer/Videos/CCF-Parity08`; amendment on main.
+- **Result/evidence:** #124 offline review APPROVED; #124 Unity guide 93; #164 gates all exit 0 (compile, TeachingCopy 61, RackLesson 36, teaching-latch 60 x3, S1-C history 279, T-04 529, T-06 170); #124+#164 integrated at `185200f5`; production unchanged; compile 184/0. #124 accepted. #126 released on v24 base.
+- **Handoff/commit/claim reference:** #124 comment `6513923874`; #164 comment `6513924208`; #126 comment `6513924604`; amendment `RELEASE-AMENDMENT-20261030-v24.md`.
+- **Accepted / rejected / unresolved:** #124 accepted; #164 integrated; #126 running; #151/#156 offline-approved/candidate, Unity pending; #128 blocked.
+- **Failure classification if any:** stale harnesses resolved; intermittent Unity exit hang remains a rerun requirement, not waived.
+- **Next action:** #126 offline PARITY-08; then serialized Unity; #128 review; #151/#156 Unity still queued.
