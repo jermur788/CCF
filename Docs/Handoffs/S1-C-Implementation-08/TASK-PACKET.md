@@ -1,66 +1,81 @@
 # S1-C T-08 — Review / Management History Feature Qualification
 
-**Parent:** #91  
+**Parent:** #91 / local umbrella #106 / browser prep #186  
 **Spec:** `specs/scenario-one-review-history-v1/` T-08  
-**Status:** PREPARED / BLOCKED on T-04, T-06 and T-07 completion  
-**Purpose:** perform the bounded Tier-2 Unity qualification of the complete S1-C history/review slice and return exact evidence for independent browser/spec-conformance review.
+**Status:** PREPARED / NOT RELEASED — BLOCKED ON ACCEPTED T-07 + UNITY AVAILABILITY  
+**Purpose:** bounded Tier-2 Unity qualification of the complete S1-C history/review slice followed by browser/Manager spec-conformance review.
 
 ## Difficulty and routing
 
-- **Difficulty:** High — cross-cutting save/history/UI/rendered qualification with old-save and grouped-money honesty requirements.
-- **Preferred executor:** Claude Sonnet 5.5 Medium / Anthropic T3 Code lane, unless local complexity justifies Claude Opus 5.5 Low.
-- **Independent conformance:** browser/Manager may inspect published evidence; use OpenAI 6.1 Sol for cross-provider review if a code/save finding requires independent model review.
+- **Difficulty:** High — cross-cutting save/history/UI/rendered qualification with genuine-old-save and grouped-money honesty requirements.
+- **Preferred executor after release:** SOL/CODEX high-reasoning Unity verification lane or Claude Sonnet-class Code lane.
+- **Independent conformance:** Overall Manager/browser after the pushed handoff; cross-provider code/save review if a material ambiguity appears.
 
-## Start gate / base
+## Start gate / candidate
 
-Do not start until S1-C T-01…T-07 are accepted on the active lineage, including the already reported T-05 v22 work and the new T-04/T-06/T-07 slices. Start from one exact current integration SHA after MFM-06/PARITY save-path work that is already accepted at that time. Refresh #91/#106/active-tasks and acquire Unity only through the normal machine-wide lock.
+Do **not** start until:
 
-Suggested branch/worktree: `qual/s1-c-review-history-v1` / `/media/jer/Videos/CCF-S1C-T08`.
+1. S1-C T-07 claim #187 returns `S1-C DATA CONTRACT STABILITY QUALIFIED — READY FOR MANAGER REVIEW` and is Manager-accepted;
+2. current integration is refreshed and one exact candidate is pinned containing accepted S1-C T-01…T-07;
+3. live `active-tasks.md` shows the machine-wide Unity lane available — #151 currently owns it;
+4. no history/Annual Review writer conflicts with the qualification;
+5. a new substantive T-08 claim is created and marked `[RUNNING]` with model/provider/branch/worktree/start.
 
-Create a child claim only when all dependencies are green.
+Suggested branch/worktree after release: `qual/s1-c-review-history-v1` / `/media/jer/Videos/CCF-S1C-T08`.
+
+The historical packet's MFM-v23 assumption is stale. At release, inspect and record the **actual current accepted save schema**. The current published integration is v24; later integration may differ. Never hard-code a stale version.
 
 ## Required qualification matrix
 
 On the exact candidate, exercise and evidence:
 
-1. a multi-year session with at least three completed years;
+1. multi-year session with at least three completed years;
 2. earlier-year navigation and return to latest year;
-3. two different intervention types with drill-down;
-4. a grouped-harvest year with job-level money honesty;
-5. a no-work year;
-6. recorded/current/derived/reconstructed/session-only/not-recorded provenance states;
-7. prior-treatment guidance plus any recorded-location waypoint;
+3. at least two distinct intervention types with aggregate-first drill-down;
+4. grouped-harvest year with job/year-level settlement and no invented per-order money;
+5. no-work year;
+6. recorded / current / derived / reconstructed / session-only / not-recorded provenance states used honestly;
+7. prior-treatment guidance on at least two distinct histories, with a faithful recorded-location waypoint where available and no invented waypoint when unavailable;
 8. objective-achievement history;
-9. save/load round-trip on the current schema;
-10. genuine pre-feature/old-save load with exact derivation vs `not recorded` behaviour;
-11. stable identity/data-contract checks;
+9. current-schema save/load round trip;
+10. genuine **v20** old-save load with exact derivation versus `not recorded` behavior;
+11. accepted T-07 identity/data-contract checks remain green;
 12. Annual Review acknowledgement semantics unchanged;
-13. no history mutation from browsing/querying.
+13. browsing/querying is read-only and does not mutate current world or historical records;
+14. complete S1-C requirements/checklist mapping.
 
-Rendered evidence at 1280×720 and 1920×1080 must include the material states above without overflow/clipping.
+Rendered evidence at **1280×720** and **1920×1080** must include the material year-browser, drill-down, provenance, guidance, old-save and no-work states without blocking overflow/clipping.
 
-## Protected gates
+## Protected / cross-feature gates
 
 - frozen Reference Future v1 unchanged;
-- Legacy40/pre-feature semantics preserved;
-- MFM v23 provenance not lost or mislabelled;
-- S1-D management-event identity hardening preserved;
+- Legacy40/pre-feature semantics preserved as governed by current save support;
+- current MFM prescription/work-order provenance remains present and honestly labelled where the history surface encounters it;
+- accepted S1-D management-event identity hardening remains authoritative;
 - no protected hash/anchor silently rebaselined;
-- no second history UI/store;
-- no Windows build.
+- no second history UI/store/query authority;
+- no S1-D generic Work Plan or MFM teaching implementation is added under T-08;
+- no production repair is made inside the qualification claim.
 
-If any production defect is found, STOP qualification and return an exact bounded repair packet; do not edit production under this qualification task.
+If any production defect appears, stop with exact evidence and request a separately owned repair.
 
-## Handoff / independent review
+## Unity discipline
 
-Publish `Docs/Handoffs/S1-C-Implementation-08/HANDOFF.md` with exact candidate SHA, commands/gates, rendered evidence paths, checklist mapping and deviations.
+Tier-2 uses the machine-wide Unity lock. Fresh-preflight exact candidate, live coordination, free space, Editor processes and lock immediately before acquisition. Restore protected save/world state and leave the lane clean. No Windows build.
 
-Browser #118 or its successor then completes `specs/scenario-one-review-history-v1/checklists/requirements.md` against published evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`.
+## Handoff / final review
 
-Success token: `S1-C REVIEW / MANAGEMENT HISTORY V1 — FEATURE QUALIFIED`
+Publish:
+`Docs/Handoffs/S1-C-Implementation-08/HANDOFF.md`
 
-## Copy/paste dispatch line
+Record exact candidate/ancestry, claim/model/provider, branch/worktree, changed files (expected verification/docs only), commands/counts, current/v20 save identities, rendered capture manifest, requirements matrix, protected compatibility, lock/cleanup receipt and deviations.
 
-`Run S1-C T-08 from Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md only after T-01..T-07 are accepted on one exact integration candidate. Use the T3 Unity lane with Claude Sonnet 5.5 Medium by default. Execute the complete multi-year/history/old-save/grouped-harvest/no-work/provenance/rendered matrix at 1280×720 and 1920×1080; do not fix production inside qualification. Publish the exact candidate handoff for independent spec-conformance review. No Windows build.`
+Local success token:
 
-**User action required now:** none; blocked on preceding S1-C implementation tasks.
+`S1-C REVIEW / MANAGEMENT HISTORY V1 — FEATURE QUALIFIED`
+
+Then browser/Overall Manager inspects the exact pushed evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`. Only APPROVED qualifies the S1-C feature scope for later Tier-3.
+
+## Copy/paste dispatch line — use only after Manager release
+
+`Run S1-C T-08 from Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md only after #187 T-07 is Manager-accepted and one exact integration candidate is repinned. Tier-2 qualification only: execute the complete multi-year/year-browser/drill-down/grouped-harvest/no-work/provenance/guidance/objective-history/current-save/genuine-v20-old-save/rendered matrix at 1280×720 and 1920×1080. Do not fix production under the qualification claim. Publish HANDOFF.md and return S1-C REVIEW / MANAGEMENT HISTORY V1 — FEATURE QUALIFIED or the exact blocker. No Windows build.`
