@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public sealed class ForestSaveData
 {
-    public const int CurrentVersion = 23;
+    public const int CurrentVersion = 24;
 
     public int version = CurrentVersion;
     // Carried wood; the field name stays "wood" so version-1 saves keep loading.
@@ -52,6 +52,8 @@ public sealed class ForestSaveData
 [Serializable]
 public sealed class ScenarioOneSaveData
 {
+    // Version 24: the first guided rack review genuinely completed in-session. Missing means false; never backfilled.
+    public bool firstGuidedRackReviewComplete;
     public string scenarioId = "scenario-one";
     public bool initialized;
     public long cashCents;

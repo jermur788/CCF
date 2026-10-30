@@ -19,20 +19,20 @@ public static class ScenarioOneTeachingCap
         Advisory
     }
 
-    // One definition of "this teaching sample is done", read from facts that already persist: the executed in-footprint release served
+    // Pre-latch current-world safeguard classification, retained for old saves: the executed in-footprint release served
     // the three retained trees with both sold and deadwood outcomes, and the Annual Review after that work has been acknowledged.
     // The cap itself is deliberately not an input, so exceeding it cannot reopen the activity. The session-only [J]/[K] decisions are
-    // not persisted and are not used here. T-04's guide latch can replace this one function.
+    // not persisted and are not used here. This helper never records the durable first-review latch.
     public static bool SampleHistoricallyComplete(ScenarioOneRackBay.Analysis bay, bool releaseReviewed)
         => bay != null && bay.Applies && releaseReviewed && bay.ReleaseYear >= 0 && bay.MixedExecuted
            && bay.MinExecuted >= ScenarioOneRackBay.FirstReleaseShare * ScenarioOneRackBay.ExecutedTolerance;
 
-    public static Phase Classify(ScenarioOneRackBay.Analysis bay, bool accessOpen, bool releaseReviewed)
+    public static Phase Classify(ScenarioOneRackBay.Analysis bay, bool accessOpen, bool releaseReviewed, bool firstGuidedRackReviewComplete = false)
     {
         if (bay == null || !bay.Applies || !accessOpen) return Phase.NotApplicable;
         if (bay.CanopyKept) return Phase.WithinCap;
         // Before completion the cap stays a hard safeguard only while there is actionable work to cancel or unmark (spec 17, user decision).
-        return !SampleHistoricallyComplete(bay, releaseReviewed) && bay.ActionableRemovals > 0 ? Phase.Hard : Phase.Advisory;
+        return !firstGuidedRackReviewComplete && !SampleHistoricallyComplete(bay, releaseReviewed) && bay.ActionableRemovals > 0 ? Phase.Hard : Phase.Advisory;
     }
 
     private static string Percent(float share)

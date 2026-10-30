@@ -8,6 +8,7 @@ public static class ScenarioOneTeachingSequence
         public bool ReleaseReviewed, ReviewedTwoCycles, BeechEstablished, OakEstablished, EstablishmentReviewed;
         // Rack-layout worlds need real post-release review. Null-Bay legacy/injected facts retain their earlier progression.
         public bool RackReviewComplete;
+        public bool FirstGuidedRackReviewComplete;
         public int RevisitedTrees, ReviewDecisions, StandPortionsReviewed;
         public bool AreaReleased = true;
         public int Year, CropTrees, PlantingYear = -1;
@@ -51,7 +52,7 @@ public static class ScenarioOneTeachingSequence
             "Did your intervention create enough growing space? Revisit all three retained trees and review the surrounding stand along both sides of the rack. Good CCF management includes deciding not to cut.",
             "Read and acknowledge the Annual Review, then close and reopen each Crop Tree's inspection [E]. Inspect the surrounding retained stand in each zone on both sides. While inspecting, choose [J] Retain here, or mark justified additional competitors and choose [K] Release further. No additional felling is required.",
             "Compare the response with your intention; retaining trees without another cut is success.", "Revisit all three trees and retained stand: [J] retain here, [K] justified further release.",
-            "Retain here is a successful decision. Additional work must stay within the teaching footprint and safeguard to count. Revisit after further executed work. After loading, repeat this inspection review; it is not stored in the forest save."),
+            "Retain here is a successful decision. Additional work must stay within the teaching footprint and safeguard to count. Revisit after further executed work. Individual inspection decisions are not stored. Once this first review is complete, the lesson remembers completion after loading."),
         new Lesson("recruitment", "6. Secure the next generation",
             "Young trees need suitable light and protection from browsing and vegetation. Inspect existing regeneration first. This scenario also asks you to introduce beech and sessile oak; planting gives a player-controlled route, but survival is not guaranteed.",
             "Use map layers to choose sites, then inspect them on foot. Buy nursery stock and plan beech and sessile oak. Review browsing and the optional shelter choice, approve planting, then advance one year.",
@@ -67,6 +68,10 @@ public static class ScenarioOneTeachingSequence
     };
 
     public static int Current(Facts f)
+        => f.FirstGuidedRackReviewComplete ? RecruitmentAndLater(f) : CurrentUnlatched(f);
+
+    // The pre-amendment sequence, also used to prove the write boundary without consulting its own latch.
+    public static int CurrentUnlatched(Facts f)
     {
         if (!f.AccessOpen) return 0;
         if (!f.AccessReviewed || (f.CropTrees == 0 && !f.ReleaseExecuted) || (f.Bay != null && !f.Bay.HasEnoughFuture)) return 1;
@@ -74,6 +79,16 @@ public static class ScenarioOneTeachingSequence
         if (!f.ReleasePlanned && !f.ReleaseExecuted) return 2;
         if (!f.ReleaseExecuted || !f.DeadwoodExecuted) return 3;
         if (!f.ReleaseReviewed || (f.Bay != null ? !f.RackReviewComplete : !f.ReviewedTwoCycles || !f.AreaReleased)) return 4;
+        return RecruitmentAndLater(f);
+    }
+
+    public static bool CrossesFirstRackReview(Facts before, Facts after)
+        => before != null && after != null && before.Bay != null && after.Bay != null
+            && !before.RackReviewComplete && after.ReleaseReviewed && after.RackReviewComplete
+            && CurrentUnlatched(before) == 4 && CurrentUnlatched(after) == 5;
+
+    private static int RecruitmentAndLater(Facts f)
+    {
         if (!f.BeechEstablished || !f.OakEstablished) return 5;
         if (f.PlantingYear < 0 || f.Year <= f.PlantingYear || !f.EstablishmentReviewed) return 6;
         return 7;

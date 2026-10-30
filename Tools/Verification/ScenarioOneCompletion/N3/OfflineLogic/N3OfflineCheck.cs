@@ -79,7 +79,7 @@ public static class N3OfflineCheck
         var active=new ManagerBoundaryBridge {outcome=ScenarioOneOutcome.Active,managementEvents=valid,workOrders=new List<ScenarioOneWorkOrder>{Order(1,10),Order(2,25)}};
         Check(active.CanComplete(true)&&!active.CanComplete(false),"actual completion predicate still requires all eight objectives");
         var invalid=Save(valid,orders);invalid.growthModel=99;Check(ForestSaveValidation.Validate(invalid,1,64)!=null,"growth-version refusal retained");
-        Check((int)ScenarioManagementEventType.AnnualReviewAcknowledged==9&&ForestSaveData.CurrentVersion==23,"enum9 schema23");
+        Check((int)ScenarioManagementEventType.AnnualReviewAcknowledged==9&&ForestSaveData.CurrentVersion==24,"enum9 schema24");
         // ---- completion guidance: presentation only. It reads the same chronology and decides, records and changes nothing. ----
         var two=new List<ScenarioOneWorkOrder>{Order(1,10),Order(2,25)};
         CompletionGuidanceState G(List<ScenarioManagementEvent> e,List<ScenarioOneWorkOrder> o,bool met)=>ScenarioOneCompletionGuidance.GuidanceState(e,o,met);
