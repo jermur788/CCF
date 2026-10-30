@@ -15,14 +15,14 @@
 |---|---|
 | Start SHA | `ce6737146a7aa9ea953d7db0ca93b103f6c2c996` |
 | Verification/implementation HEAD | `e64b337efd3b758fe6bc21636822ad178f0df0ca` |
-| Handoff commit | docs-only child of `e64b337e`; branch tip at publication |
+| Handoff commit | `8228a266` (docs-only child of `e64b337e`) |
 | Branch | `verify/s1-c-t07-data-contract-v1` |
 | Worktree | `/media/jer/Videos/CCF-S1C-T07` |
 | Provider/model | opencode-go / deepseek-v4.1-flash |
 | Unity | not used; no Unity lock taken |
 | Worktree return | clean at the verification run; handoff commit is the only later change |
 
-The start SHA is the exact released repin. The verification run recorded `lane_status_before = lane_status_after = ""` at harness commit `e64b337e`, so the gate wrote nothing inside the repository.
+The start SHA is the exact released repin. The handoff publication commit is `8228a266`. The verification run recorded `lane_status_before = lane_status_after = ""` at harness commit `e64b337e`, so the gate wrote nothing inside the repository.
 
 ## Outcome
 
