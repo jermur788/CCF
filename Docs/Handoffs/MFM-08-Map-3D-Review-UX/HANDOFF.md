@@ -1,106 +1,106 @@
 # MFM-08 — Stand Map / 3D Review UX — Tier-2 Unity Result (claim #156)
 
-**Result: **
-The success token  is **not** returned. Verification-only: no production file was changed.
+**Result: `BLOCKED — GEOMETRY CONFLICT: area footprints ignore the Low/Centre/High segmentation`**
+
+The success token `MULTI-SCALE REVIEW UX QUALIFIED — READY FOR MANAGER REVIEW` is **not** returned. This was verification-only: no production file was changed.
 
 - **Provider/model:** Claude Code, Sonnet 5.5 (Ultra-routed).
-- **Production candidate qualified:**  (docs tip  differs by  only). Executed in , detached, clean at that SHA (the  worktree is not a registered Unity lane and was not touched).
-- **Verification head:** branch  (this commit; adds only  and this file).
-- **Unity:** 6000.6.0f1, compile of the candidate clean (no error in any candidate file).
-- **Lock:** normal , owner , task , lock_id , acquired 2026-10-30T20:05:01Z, released normally (forced: False), final status                total        used        free      shared  buff/cache   available
-Mem:        16254256     4445748     6890652       47536     5311652    11808508
-Swap:        8388604     2529908     5858696, no Editor processes. Lock tooling had first to be repaired under #189 (stale  in ; ).
-- **Evidence root:**  (log, 24 captures, , , , , lock records). Earlier runs – are kept beside it.
+- **Production candidate qualified:** `d55ec86a3f0bf13820f2080197b6b0f43d832e06`. The docs tip `d70cec17` differs from it by `HANDOFF.md` only. It was executed in `/media/jer/ZX20/CCF-U1`, detached and clean at that SHA. The `/media/jer/Videos/CCF-MFM08` worktree is not a registered Unity lane and was not touched.
+- **Verification head:** branch `qual/mfm-08-unity-v1` (this commit). It adds only `Tools/Verification/MfmTreatmentReviewUnity/` and this file.
+- **Unity:** 6000.6.0f1. The candidate compiled with no error in any candidate file.
+- **Lock:** normal `unity-lock`, owner `Claude Code (Sonnet 5.5) MFM-08 Tier-2`, task `MFM-08-156-TIER2-UNITY`, lock_id `3694899195804cd088fd9b9246a07bcf`. Acquired 2026-10-30T20:05:01Z, released normally (forced: False), final status `free`, no Editor processes. The lock tool first had to be repaired under #189 (stale `storage.device` in `CCF-Ops/lanes.json`).
+- **Evidence root:** `/media/jer/Files/CCF/Verification/MFM08-Tier2-20261030T203629Z-run8-final/` holds the log, 24 captures, `footprints.txt`, `defects.txt`, `findings.txt`, `notes.txt` and lock records. Earlier runs `run1` to `run7` sit beside it, and the lock receipts are `MFM08-Tier2-unity-lock-*.txt` in the same parent directory.
 
 ## The blocker (verified, not repaired)
 
-Accepted semantics (, header comment and ): each rack-served unit is split along the rack axis at the sample anchor ±  into **three areas Low / Centre / High** (, , , …). The teaching unit's **Centre** area is the sample.
+Accepted semantics (`ScenarioOneCoverage` header comment and `Area.Segment`): each rack-served unit is split along the rack axis at the sample anchor ± `SegmentHalfLengthM` into **three areas, Low / Centre / High** (`R1L`, `R1C`, `R1H`, and so on). The teaching unit's **Centre** area is the sample.
 
- (and ) match an area to geometry by  only and ignore . Result, measured live (): **all 5 units draw all 3 of their areas with one identical polygon** (the whole 80 m strip), e.g. rack 1  is one rectangle; rack 3  is one rectangle.
+`StandMapTreatmentReview.Footprints()` and `TryAreaCentre` match an area to geometry by `UnitIndex + RackId` only and ignore `Segment`. Measured live (`footprints.txt`): **all 5 units draw all 3 of their areas with one identical polygon**, the whole 80 m strip. For example rack 1 (`R1L=NotCovered | R1C=Covered | R1H=Covered`) is one rectangle, and rack 3 (`R3L=Covered | R3C=Manual/SAMPLE | R3H=Covered`) is one rectangle.
 
-Consequences seen in the rendered captures and measured:
-1. **Source-sample footprint is wrong:** the sample is drawn as the whole 80.0 m strip of an 80.0 m unit (). This is the explicit Tier-2 item "authoritative source-sample footprint alignment".
-2. **Per-area state is not spatially readable:** the one  area (R1L) and the SAMPLE are painted under 2 other areas of the same strip. All 15 printed tags sit at only 5 positions (: 15 of 15 tags overlap at identical rectangles); the SAMPLE tag is hidden under , and  is hidden under  (see , bottom strip).
-3. **"Inspect in forest" for Low / Centre / High of a unit goes to the same unit centroid**, so it does not take the player to the area it names (it also affects where the 3D spot-check is naturally performed).
-4. Candidate-glyph containment passes only trivially because the polygons overlap, so the earlier containment check could not detect this; the independent transform fit (candidate glyph px vs tree world positions) found 0.00 m deviation from the **unit** polygon, which confirms the footprints equal the unit polygon exactly, i.e. the segment split was never applied.
+Consequences, visible in the captures and measured:
 
-Fixing it needs a production change (derive per-segment polygons from the anchor and , or expose them from the coverage layer, and use them in ,  and tags). That is outside verification authority under #156 and is returned to the Manager for separate ownership. No test was weakened or skipped; the gate fails on the two  checks and nothing else.
+1. **The source-sample footprint is wrong.** The sample is drawn as the whole 80.0 m strip of an 80.0 m unit. This is the explicit Tier-2 item "authoritative source-sample footprint alignment".
+2. **Per-area state is not spatially readable.** The one NOT COVERED area (R1L) and the SAMPLE are painted under two other areas of the same strip. All 15 printed tags sit at only 5 positions (`findings.txt`: 15 of 15 tags overlap at identical rectangles). The SAMPLE tag is hidden under COVERED, and NOT COVERED is hidden under COVERED (see `01-review-card-states-*.png`, bottom strip).
+3. **"Inspect in forest" for Low / Centre / High of one unit goes to the same unit centroid**, so it does not take the player to the area it names. That also affects where the 3D spot-check is naturally performed.
+4. **My first containment check was too weak.** Candidate-glyph containment passes only because the polygons overlap. An independent transform fit (candidate glyph pixels against tree world positions) found 0.00 m deviation from the *unit* polygon. That confirms the footprints equal the unit polygon exactly, so the segment split was never applied.
 
-## What passed on the exact candidate (final run: 351 checks pass; run7, before the segment checks were added: )
+Fixing it needs a production change: derive per-segment polygons from the anchor and `SegmentHalfLengthM` (or expose them from the coverage layer) and use them in `Footprints`, `TryAreaCentre` and the tags. That is outside verification authority under #156, so it is returned to the Manager for separate ownership. No test was weakened or skipped. The gate fails on the two `Defect` checks and nothing else.
 
-Everything below passed through the real Stand Map UI (button invocation) and real OS keyboard events via the private-display driver (Available commands:
-  getactivewindow
-  getwindowfocus
-  getwindowname
-  getwindowpid
-  getwindowgeometry
-  getdisplaygeometry
-  search
-  selectwindow
-  help
-  version
-  behave
-  behave_screen_edge
-  click
-  getmouselocation
-  key
-  keydown
-  keyup
-  mousedown
-  mousemove
-  mousemove_relative
-  mouseup
-  set_window
-  type
-  windowactivate
-  windowfocus
-  windowkill
-  windowclose
-  windowmap
-  windowminimize
-  windowmove
-  windowraise
-  windowreparent
-  windowsize
-  windowunmap
-  set_num_desktops
-  get_num_desktops
-  set_desktop
-  get_desktop
-  set_desktop_for_window
-  get_desktop_for_window
-  get_desktop_viewport
-  set_desktop_viewport
-  exec
-  sleep in Xephyr/openbox), on the Rack V2 Enlarged80 world built with production APIs:
+## What passed on the exact candidate
 
-- **Rendered at 1280×720 and 1920×1080** (game view size asserted, capture size asserted): review card scrolls inside the window ( bounded to the map frame), layer painted, 12 states captured at both sizes (23–24 PNGs, list in ). Visual review of the 1280×720 captures: card, legend and map are legible; the tag overlap above is the visible defect.
-- **Review card:** sample row labelled as the source not a target; 13 Covered, 1 Not covered, 2 remainders each listed with a reason; legend/map-key text states shape-not-colour; "Covered = comparable, not committed"; Include / Leave manual offered only on Covered areas and are a draft choice (writes no record, order or mark).
-- **Form not colour:** each area kind has its own outline/hatch pattern; candidate = square (4 points), proposal = triangle (3 points).
-- **Candidates:** real spacing candidates from living trees; Next walks each open candidate once and stops at the last; Previous disabled before selection and at the first (no wrap); map navigation changed no mark/order/record/hash; no confirm / confirm-all control exists; Inspect sets the existing waypoint only; candidate presented as an inspection prompt.
-- **3D (real keys):** [E] inspects; candidate chip "CANDIDATE — inspection prompt" shown; real **[C]** confirms through the ordinary Crop Tree mark (exactly +1 Crop Tree, state derives from the live mark); real **[N]** rejects (no mark/order/record/hash change), [N] again reopens, [N] on a non-candidate does nothing, [C] toggles back; Esc ends inspection.
-- **Prepare:** creates exactly one Accepted prescription and **no** order, event, or Fell mark; card says "prepared, not approved".
-- **Proposals:** each labelled "PROPOSAL — not a Fell mark and not yet work"; none is worded as a Fell mark; preview is read-only.
-- **Conflict:** a manual Fell mark on a proposed tree is held back and shown (; production reports ), the player's own mark is untouched, no work created, removing it restores the identical proposals. (Open-work conflict was not separately exercised; only manual-Fell/unit-no-longer-covered.)
-- **Spot-check:** a map waypoint alone leaves "3D spot-check not done" and Approve disabled; the approval handler re-checks the gate (invoked directly: nothing happens); real [E] inspection of a proposed tree in an accepted Covered unit (fresh ) completes it and Approve becomes available; the proposal chip appears in 3D and no Fell mark is created.
-- **Approval boundary:** Approve creates exactly the previewed orders, all **Pending**  with prescription / coverage-unit / Crop Tree / closed-reason provenance; no order Approved; no cash, year or tree change; no Fell mark; card states Pending-not-approved; **repeated approval is refused** (UI handler and manager) and adds nothing; opening the Work Plan approves nothing; ordinary Work Plan approval remains the commitment step and then approves them; approved is not executed.
-- **Save/world:** in-memory v23 validation + reload preserve the world hash; no save file written; original world restored; isolated /persistentDataPath.
-- **Declared fixture shortcut:** after the real [C]/[N] steps, the remaining spacing candidates were confirmed via  (production path) only so a prescription could exist; the UI itself never bulk-confirms.
+The final run had 351 checks pass. Run 7, before the segment checks were added, ended `MFM08_UNITY_PASS checks=351`.
 
-## Regression / protected compatibility
-- **Offline, all green on the candidate tree** (): MFM-04 core 240/0, MFM-05 candidates 95/0, MFM-06 save provenance 172 pass, MFM-07 approval boundary 125/0, MFM-08A coverage 102/0, MFM-08 treatment review 106/0, each with byte-identical repeat. (The MFM-08  printed there is only the offline check seeing this verification harness in the worktree; the candidate's own 12-file diff from  is entirely inside the owned surface.)
-- **Unity regressions NOT run** (Rack V2 map/runtime/field, MFM-06/07 Unity, Reference Future v1 protected hashes, UI gate): deliberately not spent on a candidate that is being returned for a production fix; they must be run on the repaired candidate. Nothing in this run changed save/schema/hash/reference/Work Plan files.
+Everything below went through the real Stand Map UI (button invocation) and real OS keyboard events from the private-display driver (`xdotool` in Xephyr/openbox). The world is the Rack V2 Enlarged80 world built with production APIs.
+
+- **Rendered at 1280x720 and 1920x1080.** The game view size and capture size were asserted. The review card scrolls inside the window (`maxHeight` bounded to the map frame) and the layer is painted. 12 states were captured at both sizes (`captures.txt`). On visual review of the 1280x720 captures, the card, legend and map are legible; the tag overlap above is the visible defect.
+- **Review card:**
+  - The sample row is labelled as the source, not a target.
+  - 13 Covered, 1 Not covered, and 2 remainders each listed with a reason.
+  - The legend states "shape and pattern, not colour alone".
+  - "Covered means comparable, not committed".
+  - Include / Leave manual are offered only on Covered areas, and are a draft choice that writes no record, order or mark.
+- **Form, not colour:** each area kind has its own outline/hatch pattern. A candidate is a square (4 points) and a proposal is a triangle (3 points).
+- **Candidates:**
+  - They come from real spacing candidates on living trees.
+  - Next walks each open candidate once and stops at the last. Previous is disabled before selection and at the first, so there is no wrap.
+  - Map navigation changed no mark, order, record or hash.
+  - No confirm or confirm-all control exists. Inspect sets the existing waypoint only.
+  - The candidate is presented as an inspection prompt.
+- **3D with real keys:**
+  - [E] inspects, and the chip "CANDIDATE — inspection prompt" is shown.
+  - Real **[C]** confirms through the ordinary Crop Tree mark (exactly +1 Crop Tree, and the state derives from the live mark).
+  - Real **[N]** rejects with no mark, order, record or hash change. [N] again reopens. [N] on a non-candidate does nothing.
+  - [C] toggles back, and Esc ends inspection.
+- **Prepare:** creates exactly one Accepted prescription and **no** order, event or Fell mark. The card says "prepared, not approved".
+- **Proposals:** each is labelled "PROPOSAL — not a Fell mark and not yet work", and none is worded as a Fell mark. The preview is read-only.
+- **Conflict:** a manual Fell mark on a proposed tree is held back and shown as `CONFLICT — held, not proposed` (production reports `UnitNoLongerCovered`). The player's own mark is untouched, no work is created, and removing the mark restores the identical proposals. The open-work conflict was not separately exercised.
+- **Spot-check:**
+  - A map waypoint alone leaves "3D spot-check not done" and Approve disabled.
+  - The approval handler re-checks the gate (invoked directly, nothing happens).
+  - A real [E] inspection of a proposed tree in an accepted Covered unit (fresh `ReadCoverage`) completes it, and Approve becomes available.
+  - The proposal chip appears in 3D, and no Fell mark is created.
+- **Approval boundary:**
+  - Approve creates exactly the previewed orders, all **Pending** `FellTree`, each with prescription, coverage-unit, Crop Tree and closed-reason provenance.
+  - No order is Approved, and there is no cash, year or tree change and no Fell mark.
+  - The card states Pending, not approved for execution.
+  - **Repeated approval is refused** (both the UI handler and the manager) and adds nothing.
+  - Opening the Work Plan approves nothing. Ordinary Work Plan approval remains the commitment step and then approves the orders. Approved is not executed.
+- **Save/world:** in-memory v23 validation and reload preserve the world hash. No save file was written and the original world was restored (isolated `XDG_CONFIG_HOME`).
+- **Declared fixture shortcut:** after the real [C]/[N] steps, the remaining spacing candidates were confirmed through `ForestTreeMarkingManager.Mark` (the production path), only so that a prescription could exist. The UI itself never bulk-confirms.
+
+## Regression and protected compatibility
+
+- **Offline, all green on the candidate tree** (`/media/jer/Files/CCF/Verification/MFM08-Tier2-offline-regression/`):
+  - MFM-04 core 240/0.
+  - MFM-05 candidates 95/0.
+  - MFM-06 save provenance 172 pass.
+  - MFM-07 approval boundary 125/0.
+  - MFM-08A coverage 102/0.
+  - MFM-08 treatment review 106/0.
+  - Each has a byte-identical repeat.
+
+  The MFM-08 `BOUNDARY_FAIL` printed there is only the offline check seeing this verification harness in the worktree. The candidate's own 12-file diff from `cfdc93bf` is entirely inside the owned surface.
+- **Unity regressions NOT run** (Rack V2 map/runtime/field, MFM-06/07 Unity, Reference Future v1 protected hashes, UI gate). I deliberately did not spend lock time on a candidate being returned for a production fix; they must be run on the repaired candidate. Nothing in this run touched save, schema, hash, reference or Work Plan files.
 
 ## Commands
 
-Run history: run1 harness compile error (own typo), run2 harness assumption ([E] while another tree inspected), run3/run4/run7 gate pass (347 / 347 / 351 checks), run8 final (adds the segment/footprint checks): 351 pass, 2 verified defects.
+- `python3 -B Tools/Verification/MfmTreatmentReviewUnity/run_gate.py --out <fresh evidence dir>` is the runner. It requires the held lock and the clean exact SHA, stages the gate, runs it, and removes the staged files.
+- `python3 -B Tools/Verification/<Mfm suite>/run_*_offline.py` runs the offline regressions.
+
+Run history:
+
+| Run | Outcome |
+|---|---|
+| run1 | harness compile error (my own typo) |
+| run2 | harness assumption: [E] while another tree was inspected |
+| run3, run4, run7 | gate pass (347 / 347 / 351 checks) |
+| run8 (final) | adds the segment/footprint checks: 351 pass, 2 verified defects |
 
 ## Changed-file boundary and clean return
-- Production: **none**. Added only  (and this file) on ; the harness is staged into the lane at run time and removed (verified: lane clean at , no leftover staged files, no , no Editor, no Xephyr).
-- Editor normalisation after each run (, 5 SectionFive materials, 9/9 line  noise) was saved as diffs in  and reverted.
-- Lock released normally; status                total        used        free      shared  buff/cache   available
-Mem:        16254256     4444968     6891300       47536     5311724    11809288
-Swap:        8388604     2529904     5858700. No Windows build.
+
+- **Production:** none. Added only `Tools/Verification/MfmTreatmentReviewUnity/{MfmTreatmentReviewUnityGate.cs,run_gate.py}` and this file on `qual/mfm-08-unity-v1`. The harness is staged into the lane at run time and removed. Verified: lane clean at `d55ec86a`, no leftover staged files, no `mono_crash`, no Editor, no Xephyr.
+- **Editor normalisation:** after each run, `.vscode/settings.json` and 5 SectionFive materials (`_Color` noise) were saved as diffs in `MFM08-Tier2-editor-normalisation/` and reverted.
+- **Lock** released normally, status `free`. No Windows build.
 
 ---
 
