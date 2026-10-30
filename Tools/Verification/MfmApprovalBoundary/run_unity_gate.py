@@ -261,8 +261,9 @@ def main():
             p.unlink()
         result['disk_saves_created'] = [str(p.relative_to(out)) for p in isolated_saves]
         # The save gate exercises the real controller disk path, so isolated saves are expected there and deleted above.
+        # 'progress' also calls ForestSaveController.Save() and leaves forest-save.json.bak in the isolated config.
         # Every other gate must leave the isolated config untouched.
-        saves_allowed = args.gate in ('save', 'approval', 'coverage-world', 'teaching-latch')
+        saves_allowed = args.gate in ('save', 'approval', 'coverage-world', 'teaching-latch', 'progress')
         result['pass'] = (result['host_saves_unchanged'] and not remaining and (saves_allowed or not result['disk_saves_created'])
                           and code == 0 and issue is None and has_pass and not failures
                           and result['harness_removed'] and result['licence_copy_removed'] and not cleanup_failures)
