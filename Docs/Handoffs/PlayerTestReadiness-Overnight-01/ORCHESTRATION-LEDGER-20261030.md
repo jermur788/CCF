@@ -451,3 +451,13 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** #126 NOT fully Unity-qualified; #165 running.
 - **Failure classification if any:** stale v24 harness/runner expectations + intermittent Editor exit hang; no production regression.
 - **Next action:** #165 repair + clean reruns on `3eb9c954`; then #128 independent review; do not integrate #126 until clean.
+
+### EVENT — #165 clean reruns PASS; session stopping point
+
+- **Work unit:** v24 legacy gate reconciliation wave 2.
+- **Evidence class:** OBSERVED FACT.
+- **Selected provider/model:** Claude B Sonnet 5.5 medium.
+- **Branch/worktree:** `verify/s1d-v24-legacy-gate-reconciliation-2` at `508c2d07`; base `185200f5`; Unity on `3eb9c954`.
+- **Result/evidence:** `progress`, `completion`, `completion-model1`, `density-save` all clean exit 0; compile pass. `completion` had a second stale pin at line 443, fixed to v24. `density-save` added to the isolated-save allowlist because it deliberately calls `saves.Save()`. `completion-model1` first launch hung at Editor exit (1233 s) after PASS; clean rerun passed. Other stale v23 pins remain in untouched harnesses (`ScenarioOneEconomyIntegrationVerification.cs:104`, `RackUxRack.cs:507`, `ModelDefaultVerification.cs:253`, `MfmCoverageWorldUnityGate.cs:166`, `RackV2FieldMarkingVerification.cs:162`).
+- **Accepted / rejected / unresolved:** #165 PASS; not integrated; #126 still awaiting #128 review and residual decision.
+- **Next action:** integrate #165 (verification-only) after review; resolve #126 model-0/timber residuals or obtain explicit Manager acceptance; run #128; then #151/#156 Unity.
