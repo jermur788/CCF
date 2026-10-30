@@ -84,7 +84,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
     {
         ui.CloseAll(); ui.CloseHelp();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
-        Check(ForestSaveData.CurrentVersion == 23 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
+        Check(ForestSaveData.CurrentVersion == 24 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
             && eco.GrowthModelVersion == GrowthModel.SpeciesAware && eco.StormModelVersion == 0, "accepted model stack");
         string help = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
         Check(Has(help, "repeated process") && Has(help, "keeping tree cover") && Has(help, "not one thinning")
@@ -93,7 +93,10 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         string lessons = string.Join(" ", LearningObjectivesView.Topics.Select(t => t.Text + " " + string.Join(" ", t.Steps.Select(s => s.Text))));
         Check(Has(lessons, "opportunity for natural regeneration") && Has(lessons, "needs seed") && Has(lessons, "not guaranteed")
             && Has(lessons, "not required for every useful management outcome"), "contingent regeneration");
-        Check(Has(lessons, "timber quality") && Has(lessons, "no timber-price premium"), "pruning without price promise");
+        // PARITY-07 (1e7b9413) replaced "applies no timber-price premium" (untrue for Oak) with copy that still makes no price promise:
+        // pruning sets no price by itself, only Oak may gain a grade, Sitka/Beech have no premium, fork/defect is not modelled.
+        Check(Has(lessons, "timber quality") && Has(lessons, "Pruning sets no price by itself") && Has(lessons, "Sitka and Beech have no such premium")
+            && Has(lessons, "fork or defect shape is not modelled"), "pruning without price promise");
         Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WorkPlan), "execution") && Has(MenuHelpView.Explanation(MenuHelpView.Menu.WorkPlan), "does not decide the forest structure"), "plan purpose");
         Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.AnnualReview), "reassess") && Has(MenuHelpView.Explanation(MenuHelpView.Menu.AnnualReview), "Walk back"), "return to inspect");
         Check(Has(LearningObjectivesView.ClearanceExplanation(2), "reduce the survival") && Has(LearningObjectivesView.ClearanceExplanation(2), "removes young trees")

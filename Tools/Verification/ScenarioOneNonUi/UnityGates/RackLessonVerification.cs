@@ -290,8 +290,16 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         Check(LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==3&&LiveFacts().StandPortionsReviewed==6,"all three actual inspections and retained stand decisions complete return review");
         Check(Bay().ExecutedRemovals==removed&&ui.Learning.CurrentTopicIndex==5,"retain-here completes with zero further felling");
         ForestSaveData completed=saves.CaptureData();
-        Check(saves.LoadData(completed,false),"reload after review with no schema additions");yield return Frames(12);yield return Settled();
-        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==4,"reload requires fresh actual return inspection");
+        // v24 / D-066 (#143): completing the first guided rack review sets a one-way saved latch. Pre-latch behaviour is unchanged.
+        Check(completed.scenarioOne.firstGuidedRackReviewComplete,"completed review captured the v24 teaching latch");
+        // Pre-latch case: the same world with the latch cleared (as a pre-v24 or unlatched save) must still need a fresh return inspection at index 4.
+        ForestSaveData unlatched=JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed));
+        unlatched.scenarioOne.firstGuidedRackReviewComplete=false;
+        Check(saves.LoadData(unlatched,false),"reload unlatched world");yield return Frames(12);yield return Settled();
+        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==4,"unlatched reload requires fresh actual return inspection");
+        // Latched case: session inspection facts are still not restored, but the completed response boundary stays at index 5 (no fallback to 4).
+        Check(saves.LoadData(completed,false),"reload latched world with no further schema additions");yield return Frames(12);yield return Settled();
+        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==5,"latched reload keeps recruitment boundary; session inspection facts are not restored");
         yield return ReviewStand();
         Check(LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed,"fresh retain decisions after load restore lesson completion without cutting");
     }
