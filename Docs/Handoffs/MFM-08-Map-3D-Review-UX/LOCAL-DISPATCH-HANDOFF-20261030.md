@@ -16,9 +16,9 @@ Complete the mandatory Unity Tier-2 qualification for the already static-approve
 
 Reason: implementation is already present and static-reviewed, so this is not a broad coding task; however, the qualification crosses Unity import/compile, live Stand Map geometry/layering, 3D input, candidate/proposal semantics, prescription approval, Work Plan commitment, rendered evidence at two resolutions, regressions, protected compatibility and machine-lock cleanup. A failure must be diagnosed without opportunistic production repair or test weakening.
 
-**Ultra Code suitability: YES, provided the Ultra Code worker has full local repository + Unity Editor/runtime access and can inspect/capture rendered states.** This is a strong fit for a high-reasoning code/verification agent with Unity tooling. It is not suitable for a browser-only or source-only worker because runtime/rendered claims are mandatory.
+**Ultra Code suitability: YES — preferred executor.** The user has confirmed Ultra Code has full local repository access and Unity Editor/runtime access. That removes the prior tooling qualification: Ultra Code is well suited to this task because it can inspect source, drive the real Unity qualification, capture rendered evidence, diagnose failures and preserve the verification-only boundary.
 
-Best-suited lane: strongest available local code/Unity verification worker (Ultra Code / SOL-Codex-class / equivalent high-reasoning Unity-capable agent). Independent final acceptance remains Overall Manager/browser review after the pushed handoff.
+Best-suited lane: **Ultra Code** as first choice; otherwise the strongest available local SOL/Codex-class or equivalent high-reasoning Unity-capable worker. Independent final acceptance remains Overall Manager/browser review after the pushed handoff.
 
 ## Exact candidate / lane
 
@@ -102,8 +102,8 @@ This token does not itself mean Manager APPROVED or integrated.
 
 ## Copy/paste dispatch line
 
-`Run MFM-08 Tier-2 from Docs/Handoffs/MFM-08-Map-3D-Review-UX/LOCAL-DISPATCH-HANDOFF-20261030.md under claim #156. This is verification-only by default. Fresh-preflight active-tasks, worktree cleanliness, free space, Editor processes and the machine-wide Unity lock; then post [RUNNING — UNITY] with provider/model/head/worktree/lock owner. Qualify exact production candidate d55ec86a3f0bf13820f2080197b6b0f43d832e06 in Unity 6000.6.0f1, including 1280x720 + 1920x1080 rendered states, live map/3D geometry and input, [C]/[N], real 3D spot-check, proposal/noncommitment semantics, prescription→ordinary Pending→Work Plan commitment boundary, conflicts/regressions/protected compatibility and clean cleanup. Do not repair production or weaken tests under this claim. Publish HANDOFF.md and return MULTI-SCALE REVIEW UX QUALIFIED — READY FOR MANAGER REVIEW or the exact blocker. No Windows build.`
+`Run MFM-08 Tier-2 from Docs/Handoffs/MFM-08-Map-3D-Review-UX/LOCAL-DISPATCH-HANDOFF-20261030.md under claim #156 using Ultra Code. This is verification-only by default. Fresh-preflight active-tasks, worktree cleanliness, free space, Editor processes and the machine-wide Unity lock; then post [RUNNING — UNITY] with provider/model/head/worktree/lock owner. Qualify exact production candidate d55ec86a3f0bf13820f2080197b6b0f43d832e06 in Unity 6000.6.0f1, including 1280x720 + 1920x1080 rendered states, live map/3D geometry and input, [C]/[N], real 3D spot-check, proposal/noncommitment semantics, prescription→ordinary Pending→Work Plan commitment boundary, conflicts/regressions/protected compatibility and clean cleanup. Do not repair production or weaken tests under this claim. Publish HANDOFF.md and return MULTI-SCALE REVIEW UX QUALIFIED — READY FOR MANAGER REVIEW or the exact blocker. No Windows build.`
 
 ## User action required
 
-Dispatch the copy/paste line to one Unity-capable local worker. This task can run in parallel with #187 because #187 is offline-only and owns no MFM-08 UI files.
+Dispatch the copy/paste line to Ultra Code. This task can run in parallel with #187 because #187 is offline-only and owns no MFM-08 UI files.
