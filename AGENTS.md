@@ -81,6 +81,15 @@ For disposable scripts under `Tools/Verification/`, follow the documented copy/r
 - Auto-start verification scripts must never remain in a playable build.
 - Deterministic/lifecycle hashes are comparable only under the same verified Editor/configuration conditions described by the harness documentation.
 
+## Storage policy
+
+- ZX20 (`/media/jer/ZX20`, exFAT) is active-work SSD only: authorised Unity working sets, their Library/cache, temporary performance-sensitive profiling, and the Hub-managed Unity Editor.
+- Files (`/media/jer/Files`, ext4) holds durable CCF storage: verification evidence, research, builds, archives, bundles, reference media and operational records, under `/media/jer/Files/CCF/`.
+- The shared bare Git store is `/media/jer/Files/CCF/Repository.git`; active worktrees remain on ZX20.
+- Delete inactive Unity `Library/`, `Temp/`, `obj/` and `Logs/` caches instead of archiving them.
+- Do not create a new CCF evidence/research/build/archive path on ZX20. Use the Files CCF tree; new verification tooling defaults durable output there.
+- ZX20 is exFAT, so compatibility symlinks cannot be created. Translate historical paths using `Docs/Operations/StorageArchitecture.md`.
+
 ## Multi-agent
 
 No model family permanently owns code, Unity, Blender, assets or testing. Follow the current task packet, context commit and temporary ownership from `Docs/Project/coordination/active-tasks.md` (or the lock state copied into the task packet).
