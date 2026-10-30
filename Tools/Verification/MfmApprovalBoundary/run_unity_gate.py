@@ -33,6 +33,7 @@ GATES = {
     'hash-dump': ('MfmSaveProvenanceUnity/MfmHashDumpGate.cs', 'MFM06_HASHDUMP_PASS', 'MFM06_HASHDUMP_FAIL'),
     'save': ('MfmSaveProvenanceUnity/MfmSaveProvenanceUnityCheck.cs', 'MFM06_UNITY_PASS', 'MFM06_UNITY_CHECK_FAIL'),
     'approval': ('MfmApprovalBoundary/MfmApprovalBoundaryUnityGate.cs', 'MFM07_UNITY_PASS', 'MFM07_UNITY_FAIL'),
+    's1d-t05': ('S1DPreviousProposedUnity/S1DPreviousProposedUnityGate.cs', 'S1D_T05_UNITY_PASS', 'S1D_T05_UNITY_FAIL'),
     'coverage-world': ('MfmCoverageWorld/MfmCoverageWorldUnityGate.cs', 'MFM08A_UNITY_PASS', 'MFM08A_UNITY_FAIL'),
 }
 
