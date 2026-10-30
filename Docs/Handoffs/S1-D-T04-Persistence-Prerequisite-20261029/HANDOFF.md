@@ -1,6 +1,6 @@
 # S1-D T-04P — one-way teaching completion
 
-**Status: IMPLEMENTED / OFFLINE VERIFIED; UNITY QUALIFICATION IN PROGRESS; INDEPENDENT REVIEW PENDING.**
+**Status: IMPLEMENTED / OFFLINE VERIFIED; UNITY QUALIFIED AT b9bf11aa; INDEPENDENT REVIEW PENDING.**
 
 Claim #143; parent #91 / #106. Executor: T3 Code / Codex harness / OpenAI gpt-6.1-sol, high reasoning. Branch `feature/s1-d-t04-teaching-persistence-v1`, worktree `/media/jer/Videos/CCF-S1D-T04-Persistence`. Exact clean start `c8cfae8c4025cec6e960a050edf4bfde2a981de5`; production implementation `129d0aced1f9935ce683cfcf68169285d1316c4f`; exact runtime candidate `b9bf11aaf8f6fd7ea43e33e39258560408b88b12` (one-line verification diagnostic repair; production identical). Schema **v24**. No integration, Manager acceptance or Windows build.
 
@@ -41,7 +41,25 @@ Two initial verification-fixture failures were corrected: old MFM AsV22 conversi
 
 ## Unity qualification
 
-Pending. Required exact-candidate sequence and commands are documented in `Tools/Verification/TeachingPersistence/README.md`. #147 released its lock normally at `2026-10-29T23:44:03Z`, restored U1 clean detached at c8cfae8, and reported its own successful handoff. Refreshed no-Editor/storage state before acquiring normal task lock `5a6a490584b54e92a30eb0bc601d1320` at `23:49:17Z`, owner `Codex-S1D-T04P`, exact detached candidate129d0ace. First compile PASS (62.99s, Editor0). Initial latch run proved the real false/true boundary, then hit a verification formatter null diagnostic (`CanLoad` succeeded with a null problem string). Repaired the formatter only at b9bf11aa; no assertion removed or production change. First lock released normally with no Editors. Second normal lock `99ad2c8ece674b40bd1507d50c8fbf8c` at 23:55:36Z pins b9bf11aa for the complete ordered gate chain, evidence under `unity-r2/`.
+Complete (see Result below). Required exact-candidate sequence and commands are documented in `Tools/Verification/TeachingPersistence/README.md`. #147 released its lock normally at `2026-10-29T23:44:03Z`, restored U1 clean detached at c8cfae8, and reported its own successful handoff. Refreshed no-Editor/storage state before acquiring normal task lock `5a6a490584b54e92a30eb0bc601d1320` at `23:49:17Z`, owner `Codex-S1D-T04P`, exact detached candidate129d0ace. First compile PASS (62.99s, Editor0). Initial latch run proved the real false/true boundary, then hit a verification formatter null diagnostic (`CanLoad` succeeded with a null problem string). Repaired the formatter only at b9bf11aa; no assertion removed or production change. First lock released normally with no Editors. Second normal lock `99ad2c8ece674b40bd1507d50c8fbf8c` at 23:55:36Z pins b9bf11aa for the complete ordered gate chain, evidence under `unity-r2/`.
+
+
+### Result (lock 99ad2c8e, pinned b9bf11aa, evidence `/media/jer/Files/CCF/Verification/S1D-T04P-Persistence-20261029/unity-r2/`)
+
+All eight ordered gates exited 0 (2026-10-30 chain, `ALL_REQUIRED_UNITY_GATES_PASS`):
+
+| Gate | Marker |
+|---|---|
+| compile | `MFM06_COMPILE_PASS` saveVersion=24 |
+| teaching-latch | `TEACHING_LATCH_UNITY_PASS checks=60` |
+| save | `MFM06_UNITY_PASS checks=159` |
+| hash-dump | `MFM06_HASHDUMP_PASS lines=18` saveVersion=24 |
+| hardening | `SAVE_HARDENING_VERIFY_PASS` |
+| reference | `REFERENCE_FUTURE_V1_PASS` (archive integrity, negative control, continuation deterministic, no rebaseline) |
+| approval | `MFM07_UNITY_PASS checks=106` |
+| n3 | `N3_U4_CHECK_PASS` series |
+
+Independent review is still PENDING; no Manager acceptance, integration or Windows build.
 
 ## Independent review / next gate
 
