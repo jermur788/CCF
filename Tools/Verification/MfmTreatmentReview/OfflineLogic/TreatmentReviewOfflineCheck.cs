@@ -15,7 +15,7 @@ using R = ScenarioOneTreatmentReview;
 public static class TreatmentReviewOfflineCheck
 {
     private static int checks, failed;
-    private static void Check(bool ok, string name)
+    internal static void Check(bool ok, string name)
     {
         checks++;
         Console.WriteLine((ok ? "PASS " : "FAIL ") + name);
@@ -248,6 +248,8 @@ public static class TreatmentReviewOfflineCheck
         Check(mine.All(t => t.IndexOf("operator selection", StringComparison.OrdinalIgnoreCase) < 0), "'operator selection' is never presented");
         Check(mine.All(t => t.IndexOf("ProtectedArea", StringComparison.Ordinal) < 0 || t == model), "ProtectedArea evidence is only mapped to wording, never fabricated");
         Check(card1.Contains("MapPosition at = t.WorldToPixels") && !card1.Contains("new Cov.Area") && !card1.Contains("new Cov.Result"), "the UI never builds coverage areas or results of its own");
+
+        AreaFootprintChecks.Run(root);
 
         Console.WriteLine((failed == 0 ? "MFM08_TREATMENT_REVIEW_PASS" : "MFM08_TREATMENT_REVIEW_FAIL") + " checks=" + checks + " failed=" + failed);
         return failed == 0 ? 0 : 1;
