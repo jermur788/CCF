@@ -374,7 +374,7 @@ public sealed class S1DPreviousProposedUnityGateRunner : MonoBehaviour
             Check(!ui.TryShowReviewYear(current + 4), "FUTURE_YEAR_REFUSED_" + tag);
             Check(!ui.TryShowReviewYear(-1), "NEGATIVE_YEAR_REFUSED_" + tag);
             yield return Settle(10);
-            Check(ui.CurrentScreen == screenBefore && screenBefore == ScenarioOneUiRoot.UiScreen.WorkPlan, "REFUSED_YEAR_LEAVES_WORK_PLAN_OPEN_NO_LATEST_FALLBACK_" + tag, ui.CurrentScreen.ToString());
+            Check(ui.CurrentScreen == screenBefore && screenBefore == ScenarioOneUiRoot.UiScreen.None && manager.WorkPlanOpen, "REFUSED_YEAR_LEAVES_WORK_PLAN_OPEN_NO_LATEST_FALLBACK_" + tag, ui.CurrentScreen.ToString());
             AssertReadOnly("AFTER_REFUSED_YEARS_" + tag, hashBefore, scenarioBefore, eventsBefore, reportsBefore, ordersBefore, seenBefore, cashBefore, yearBefore, orderFieldsBefore);
 
             // Ordinary latest-entry route still works and still shows the latest year with its footer rules untouched.
