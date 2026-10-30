@@ -316,13 +316,16 @@ public static class ScenarioOneTreatmentReview
         // Non-wrapping Previous/Next over the existing MFM-05 queue. Nothing here confirms a candidate.
         public bool Move(Cand.Navigation direction)
         {
+            // Next starts the queue; Previous only goes back from a candidate already being looked at.
+            if (direction == Cand.Navigation.Previous && string.IsNullOrEmpty(CurrentCandidateTreeId)) return false;
             if (!Cand.TryMoveInspectionTarget(LastCandidates, CurrentCandidateTreeId, direction, out Cand.InspectionTarget target)) return false;
             CurrentCandidateTreeId = target.TreeId;
             return true;
         }
 
         public bool CanMove(Cand.Navigation direction)
-            => Cand.TryMoveInspectionTarget(LastCandidates, CurrentCandidateTreeId, direction, out _);
+            => !(direction == Cand.Navigation.Previous && string.IsNullOrEmpty(CurrentCandidateTreeId))
+            && Cand.TryMoveInspectionTarget(LastCandidates, CurrentCandidateTreeId, direction, out _);
 
         // ----- prescription under review and the 3D spot-check
 

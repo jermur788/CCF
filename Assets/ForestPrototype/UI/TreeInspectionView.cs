@@ -136,6 +136,7 @@ public sealed class TreeInspectionView
             // Words and an outline, not a mark: a candidate or proposal is review information, never a Fell/Crop mark on the tree.
             Label chip = UiKit.Chip(UiKit.Row(body, "row"), reviewContext.Chip);
             chip.style.borderTopWidth = chip.style.borderBottomWidth = chip.style.borderLeftWidth = chip.style.borderRightWidth = 1;
+            chip.style.borderTopColor = chip.style.borderBottomColor = chip.style.borderLeftColor = chip.style.borderRightColor = new Color(0.86f, 0.84f, 0.95f, 1f);
             if (!string.IsNullOrEmpty(reviewContext.Line)) UiKit.Add(body, reviewContext.Line, "body");
         }
 
