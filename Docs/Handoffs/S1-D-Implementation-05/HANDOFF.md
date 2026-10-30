@@ -1,67 +1,121 @@
-# S1-D T-05 / #151 — NEEDS WORK: exact-year API blocker
+# S1-D T-05 / #151 — OFFLINE CANDIDATE: previous versus proposed presentation
 
-Provider/model: OpenAI / gpt-6.1-sol, high reasoning, T3 Code Codex harness (dispatch provider label OpenAI B).
+Provider/model: OpenCode harness in T3 Code, provider instance `opencode-go`, model `deepseek-v4.1-flash`, resuming the partial OpenAI B lane (`gpt-6.1-sol`, high reasoning) after its provider limit cut-off.
 
-Branch: `feature/s1-d-t05-previous-proposed-v1`  
-Worktree: `/media/jer/Videos/CCF-S1D-T05`  
-Exact start and unchanged production/verification end: `cfdc93bf3943125d21570bc5749a9338f52d1cce`. First blocker publication commit: `c3a254c66ce5dce2639f33055e3040b8e8824146`; final documentation successor SHA is reported on #151 (a document cannot contain its own Git commit hash). Context commit observed in this lane: `63e95ba2175f7e239a278c616681b286719821f8`.
+- Branch: `feature/s1-d-t05-previous-proposed-v1`
+- Worktree: `/media/jer/Videos/CCF-S1D-T05`
+- Exact start: `cfdc93bf3943125d21570bc5749a9338f52d1cce`
+- Blocker documents: `c3a254c66ce5dce2639f33055e3040b8e8824146`, `c7dba066847e4b52ba7512ab4bb26ee6aeed6ce8`
+- Partial production candidate resumed: `98ac98b5a33929d30b150dc6e4692d8bdf2b9bc1`
+- Verification commit: `38904535ceb45da1b9112a7695c7c7295462efec`
+- This documentation commit SHA is reported on #151 (a document cannot contain its own hash).
 
 ## Disposition
 
-**NEEDS WORK — stopped before production edits under the explicit #151 release/user stop condition.** The integrated S1-C surface does not expose exact-year navigation to Work Plan. No implementation qualification or success token is claimed. No Unity, merge, integration or Windows build was run.
+**Offline/static candidate complete; Unity gate not run and not claimed.** The Manager disposition on #151 authorised the tiny read-only exact-year API overlap. Production was resumed on the existing branch/worktree/start, inspected, and left semantically unchanged where already correct. No merge, integration, Unity Editor run or Windows build was performed. No serialized asset, save/schema/validator/hash/reference, economy, ecology, completion-rule or MFM teaching surface changed.
 
-Only this handoff is changed. No production, serialized assets, persistence, save/schema/validator/hash/reference, economy, ecology or teaching changes. Initial worktree was clean and on the exact required branch/start. Live GitHub coordination and #91/#106/#143/#151/#156 were refreshed; #151 has the dispatch RUNNING — OFFLINE record. #156 owns Stand Map/inspection; no MFM-09 Work Plan writer is released. The integration remote still points to the required start.
+## Changed files
 
-## Exact missing API / overlap
+Production, in `98ac98b5`:
 
-At the required start:
+- `Assets/ForestPrototype/UI/WorkPlanView.cs` — current-open-order grouping, provenance display, creation-year links, status vocabulary, redraw signature.
+- `Assets/ForestPrototype/UI/AnnualReviewView.cs` — `TryShowYear(int)` read-only exact-year selection.
+- `Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs` — `TryShowReviewYear(int)` route that opens Review without `ShowLatest()` overwriting the year.
 
-- `AnnualReviewView.cs:33`: selected `viewYear` is private.
-- `AnnualReviewView.cs:73`: the only public selection entry is `ShowLatest()`; `Refresh(bool)` does not accept a year.
-- `AnnualReviewView.cs:149`: `FindYear` is private; `StepYear` at line 675 is also private.
-- `AnnualReviewView.cs:723`: existing exact-year history-button callback directly assigns private `viewYear`. It is internal navigation, not an external API.
-- `AnnualReviewView.cs:87`: first/new-latest refresh resets `viewYear` to latest.
-- `ScenarioOneUiRoot.cs:367–384`: `SetScreen(Review)` calls `review.ShowLatest()` then `review.Refresh(true)`.
-- `ScenarioOneUiRoot.cs:473`: `ShowReview()` accepts no year and opens that latest route. Its `review` reference is private.
+Verification, in `38904535` (new, outside `Assets/`):
 
-**Requested Manager disposition:** explicitly release/assign the tiny `AnnualReviewView` read-only exact-year selection API, e.g. `bool TryShowYear(int year)`, plus the smallest root route, e.g. `bool TryShowReviewYear(int year)`. These names are proposals, not implemented API. The view API must use existing `Manager.HistoryYears`, return false without switching to an invented/latest year if absent, preserve selection across first/new-latest refresh, and never acknowledge/mutate history. Routing must avoid `ShowLatest()` overwriting the requested selection. The root route alone cannot access the current private view selection through a supported API.
+- `Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/HeadlessUi.cs`
+- `Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/PreviousProposedOfflineCheck.cs`
+- `Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/run_offline_check.py`
 
-No reflection, synthetic button clicks, duplicate history UI/query/store, or indirect stepping workaround was introduced. `AnnualReviewView.cs` and `ScenarioOneUiRoot.cs` remain untouched. Latest direct user instruction and release handoff override the older packet permission to add the view hook without stopping.
+This handoff is the only other change. `git diff cfdc93bf -- Assets Tools ProjectSettings Packages` contains only the three authorised UI files plus the new `Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/` directory; no `.meta`, save, schema, validator, hash, Reference Future v1, package or project-settings change.
 
-## Binding classification decision table (pending implementation)
+## Binding classification implemented
 
-| Open ordinary record | Class / handling |
+| Open ordinary record (authoritative fields only) | Class / handling |
 |---|---|
-| `status == Approved` | Approved; Work Plan commitment only |
-| `Pending && createdYear == CurrentEcologicalYear` | Pending new |
-| `Pending && createdYear < CurrentEcologicalYear` | Pending carried over, independent of stale-attention threshold |
-| `createdYear > CurrentEcologicalYear` | Surface inconsistent record; no invented class or history year |
-| Closed record | Not a current open-work proposal; existing S1-C retains executed/failed history |
+| `status == ScenarioWorkStatus.Approved` | **Approved**. Status is the Work Plan commitment; this is not MFM prescription approval. If `createdYear` is a completed `HistoryYears` year, a clearly labelled creation/origin review link is offered. |
+| `Pending && createdYear == CurrentEcologicalYear` | **Pending new**. Uncommitted ordinary work; no fabricated completed-year link. |
+| `Pending && createdYear < CurrentEcologicalYear` | **Pending carried over**, independent of `StaleAfterYears` / `StaleOrders`. Links only to an existing `HistoryYears` year equal to `createdYear`. |
+| `createdYear > CurrentEcologicalYear` | **Inconsistent record surfaced**, not silently labelled new or carried over. A Pending future-year record is excluded from all three groups; an Approved future-year record keeps its authoritative Approved status plus the inconsistency warning. No fourth class and no invented history year. |
+| `Completed` / `Failed` | Not a current proposal; retained by existing S1-C history. |
 
-MFM prescription approval still creates ordinary Pending work with existing provenance; it must follow the same classification until Work Plan approval. No T-05 implementation or new MFM provenance witness was produced because the required seam fails preflight.
+MFM-generated ordinary work follows the same table. Prescription approval creates `Pending` ordinary work with the four existing provenance values. The production writer contains no approval-status write, no cash spend and no resolution; `ApprovePendingWork` remains the separate commitment gate. T-05 did not alter prescription, approval, cancellation, completion or economy behaviour.
 
-For carried work, only an existing `HistoryYears` entry matching `createdYear` may be linked. Approved work may link its recorded creation/origin year, never assert an unrecorded approval year. Current/missing history years get no fabricated completed-year destination. These are retained requirements, not verified new behaviour.
+## History link / exact-year API evidence
 
-## Verification
+- `AnnualReviewView.TryShowYear(int)` validates the requested year against the existing `ui.Manager.HistoryYears`; an absent year returns `false` before touching `viewYear`, `openDetails`, rendering or acknowledgement. A present year sets `viewYear`, synchronises `lastLatestYear` so the first/new-latest `Refresh(true)` cannot replace the deliberate selection, and clears only the presentation detail set. It never acknowledges or writes history.
+- `ScenarioOneUiRoot.TryShowReviewYear(int)` validates first through the view API, then opens the existing Review surface (`screen = UiScreen.Review`, Work Plan closed, help closed, auxiliary panel open) without calling `ShowLatest()`. An invalid request leaves the whole route untouched.
+- Work Plan links use `m.HistoryYears` directly and only when `createdYear < CurrentEcologicalYear` and a matching year exists. Labels say **Creation-year review · Year N** and **created in year N**, never approval year. Pending new gets no link; a missing earlier year says so and invents nothing.
+- No duplicate history UI, query or store was added; no reflection, synthetic click, new persisted field or new date semantics.
 
-Existing offline baselines all passed on the unchanged production tree, exit code 0 each (257 checks total). Exact commands from the assigned worktree:
+Focused harness evidence (`S1D_T05_PREVIOUS_PROPOSED_PASS checks=219 failures=0`):
+
+- all five `ScenarioWorkType` values × nine status/year cases × manual/prescription provenance (180 matrix assertions), including classification leaving the order byte-identical;
+- one-year carry-over classified without waiting for the two-year stale threshold;
+- production prescription creation loop plus real `CreateFellingOrder` produce ordinary `Pending` work with all four provenance values; the harness then applies only the ordinary approval status transition to show regrouping, not a prescription-side shortcut;
+- exactly three explicit groups with faithful counts; completed/failed excluded; future-year records surfaced and never labelled new/carried;
+- only existing prior years get buttons; carried order opens Year 4 exactly; Approved link says creation year; missing year has no link; Pending new never gets a completed-year destination;
+- navigation preserves a requested year through first/new-latest refresh, rejects absent/negative/future years without fallback, hides but never acknowledges the historical footer, and leaves `WorkOrders`, `ManagementEvents`, `AnnualReports`, `HistoryYears` and `AnnualReviewSeen` unchanged;
+- static audits: no duplicate history construction/store or acknowledgement writeback, no stale threshold in classification, no invented date/causal wording, ordinary latest-entry route retained.
+
+Seven deliberate mutations were caught by the same harness: stale-threshold carry-over, prescription-as-approved, silent latest fallback, first-refresh year loss, route reset to latest, missing-year origin link, and future-Pending-as-new.
+
+## Exact commands and results
+
+All commands ran from the worktree. Outputs are under `/media/jer/Files/CCF/Verification/S1-D-T05-20261030/`. Focused harness (with mutation gate):
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/run_offline_check.py --mutations --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/previous-proposed
+```
+
+Required regressions:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t02
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_t03_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t03
 PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_t04_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t04
 PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_t06_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t06
 PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/ScenarioOneRepeatedInterventions/run_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1d-t02
 ```
 
-- S1-C T-02: `S1C_HISTORY_QUERY_PASS checks=55`.
-- S1-C T-04: `S1C_T04_PROVENANCE_PASS checks=56`.
-- S1-C T-06: `S1C_T06_GUIDANCE_PASS checks=53 failures=0`.
-- S1-D T-02: `CYCLE_STATE_OFFLINE_PASS checks=93 NOT_UNITY_VERIFIED`.
+| Check | Result |
+|---|---|
+| Focused T-05 matrix + mutations | `S1D_T05_PREVIOUS_PROPOSED_PASS checks=219 failures=0`; `S1D_T05_MUTATIONS_PASS caught=7 survived=0`; exit 0 |
+| S1-C T-02 history query | `S1C_HISTORY_QUERY_PASS checks=55`; exit 0 |
+| S1-C T-03 drill-down | `S1C_T03_DRILLDOWN_PASS checks=72`; exit 0 |
+| S1-C T-04 provenance | `S1C_T04_PROVENANCE_PASS checks=56`; exit 0 |
+| S1-C T-06 guidance | `S1C_T06_GUIDANCE_PASS checks=53 failures=0`; exit 0 |
+| S1-D T-02 cycle state | `CYCLE_STATE_OFFLINE_PASS checks=93 NOT_UNITY_VERIFIED`; exit 0 |
 
-Harnesses were inspected before running; outputs/build projects and full `.log` files are under the Files evidence directory above, never under Assets or another worktree. Initial log redirection attempts failed before Python execution because the evidence parent did not exist; creating it resolved the invocation and all four commands then passed. The first push returned `remote rejected ... (failed)` without a reason; remote absence was checked and a bounded retry succeeded. No auth/quota failure was reported.
+Additional relevant offline checks:
 
-`git diff cfdc93bf3943125d21570bc5749a9338f52d1cce -- Assets Tools ProjectSettings Packages` is empty; no protected implementation or reference was changed/rebaselined. Baseline checks do not establish new T-05 behaviour or qualify the frozen Unity anchors. T-05 classification/navigation/provenance tests and rendered three-cycle qualification are not implemented/run because production stopped at the missing API. No duplicate history store was created; production diff is empty.
+| Check | Result |
+|---|---|
+| MFM-07 approval boundary | `MFM07_APPROVAL_BOUNDARY_PASS checks=125 failed=0`; repeat byte-identical; exit 0 |
+| MFM-06 save provenance | `MFM06_SAVE_OFFLINE_PASS checks=172`; `REFERENCE_FUTURE_V1_RESOURCES_UNCHANGED_VS_ac876a6`; exit 0 |
+| S1-D event-id integrity | `EVENT_ID_OFFLINE_PASS checks=75 failures=0`; save still v23; exit 0 |
+| MFM-04 prescription core | `MFM04_PRESCRIPTION_CORE_PASS checks=240 failed=0`; repeat byte-identical; exit 0 |
+| Scenario One non-UI approach | `NONUI_APPROACH_PASS checks=49`; exit 0 |
+| Completion N3 | `N3_OFFLINE_PASS checks=88 NOT_UNITY_VERIFIED`; exit 0 |
 
-## T-08 dependency / next action
+The MFM-07 offline gate statically proves the prescription writer never references `ApprovePendingWork`, `ScenarioWorkStatus.Approved`, cash or resolution (A11/F5), and that `ApprovePendingWork` cannot reach prescription or proposal state (F1). Its end-to-end Work Plan approval witness lives in the unrun MFM-07 Unity gate. The focused T-05 harness supplies the grouping/provenance witness for the same Pending records.
 
-T-08 remains blocked on accepted T-02..T-06, including incomplete T-05. Manager must dispose the exact AnnualReview/root API overlap and authorise resumption before implementation. After release: implement Work Plan grouping and focused offline checks, publish an offline candidate, then #91 schedules serialized Unity import/runtime and 1280×720 / 1920×1080 rendered review. No claim of integration, acceptance or dashboard closure; #151 comment and this handoff are the operational return to Manager/browser #162.
+Not used as gates:
+
+- `Tools/Verification/S1CObjectiveHistory/run_offline_check.py` is a pre-T-05 stale harness: it hard-asserts save `CurrentVersion == 22` while the integrated MFM-06 lineage is v23, so it fails before exercising this change. It is unrelated to T-05 and was not treated as a T-05 regression.
+- Scenario One Completion P2/P3 offline scripts require a Unity-generated `Assembly-CSharp.csproj` whose `Library/ScriptAssemblies` references exist; all available lanes have those caches removed under the storage policy. They were attempted but could not build offline without generating Unity state. No Unity run was performed.
+
+## Unity readiness
+
+Unity import/compile and the required rendered qualification remain for the separately scheduled #91 Serialized Unity gate: three-cycle fixture with all classes visibly distinct, MFM-generated pending work with provenance proven Pending before Work Plan approval, Work Plan → historical Annual Review navigation, missing-year case with no fabricated destination, 1280×720 and 1920×1080 captures, and proof that S1-C remains the sole history surface and Work Plan approval the sole commitment gate.
+
+The offline harness executes unchanged production method slices for grouping, status, exact-year selection and the root route, but it does not prove Unity layout, input, rendering, import or serialized anchors. No Unity, merge or integration claim is made.
+
+## Residuals
+
+- Rendered/layout review was not possible offline; the grouping card is a current-order index above the existing detailed sections, not a replacement for their quotes or controls. Rendered review should confirm the foldouts, link labels and long order lists remain readable at both resolutions.
+- An Approved order with a future `createdYear` is still shown under Approved because status is authoritative, and is separately flagged as inconsistent; a Pending future-year order is excluded from all three classes. Manager may confirm this presentation choice at Unity review.
+- No Manager acceptance, integration, dashboard closure or T-08 unblock is claimed. T-08 remains dependent on accepted T-02..T-06.
+
+`S1-D T-05 PREVIOUS/PROPOSED PRESENTATION QUALIFIED — READY FOR MANAGER REVIEW`
