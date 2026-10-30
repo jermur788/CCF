@@ -235,3 +235,21 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** blocker resolved by ownership disposition; implementation resumes.
 - **Failure classification if any:** scope/API gate, correctly escalated; not a provider failure.
 - **Next action:** resume #151 implementation; commit/push; no Unity until candidate.
+
+### EVENT — stale #143 Unity lock released; machine observed free
+
+- **Work unit:** Unity lane preflight after #143 integration.
+- **Evidence class:** OBSERVED FACT.
+- **Previous provider/model:** n/a.
+- **Selected provider/model:** DeepSeek orchestrator (lock administration only).
+- **Reason / routing rule:** the persistent lock still named completed task S1-D-T04P (`99ad2c8e...`) with no Unity/Editor PIDs, ETA `2026-10-30T00:45:00Z` already passed, and U1 clean detached at `b9bf11aa`. Exact owner/task/lock metadata and a written reason were supplied; no process was killed and no live worker was displaced. This is cleanup of a completed task's stale lock, not a lock bypass.
+- **Capacity evidence:** n/a.
+- **Capacity source:** lock service + process list.
+- **Reported reset/window:** n/a.
+- **Previous failure/outcome influencing decision:** #143 handoff documented the second lock but no final release.
+- **Branch/worktree or browser lane:** `/media/jer/ZX20/CCF-U1` at `b9bf11aa`.
+- **Result/evidence:** lock service returned `status: released`, `forced: false`; subsequent status `free`; 0 Unity PIDs; ZX20 20 GiB free.
+- **Handoff/commit/claim reference:** #91 / #143 integration record.
+- **Accepted / rejected / unresolved:** resolved.
+- **Failure classification if any:** stale-lock hygiene, not a task failure.
+- **Next action:** first fully offline candidate acquires the free lock after a fresh space/process/identity preflight; Unity remains serialized.
