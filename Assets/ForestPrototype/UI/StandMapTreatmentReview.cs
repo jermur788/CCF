@@ -203,6 +203,8 @@ public sealed class StandMapTreatmentReview
         Review.Presentation view = Review.Build(coverage, coverageProblem, session);
         ScrollView scroll = new ScrollView(ScrollViewMode.Vertical) { name = "map-review-scroll" };
         scroll.style.flexGrow = 1;
+        // The card is as tall as the map frame at most, so a long review scrolls inside it instead of running off the window at 720p.
+        scroll.style.maxHeight = StandMapView.MapSidePx - 40f;
         side.Add(scroll);
         VisualElement body = scroll.contentContainer;
 
