@@ -358,3 +358,21 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved; independent review and Unity pending.
 - **Failure classification if any:** OpenAI B capacity failure; work salvaged.
 - **Next action:** Claude A independent review now; Unity queued behind #124's serialized gate.
+
+### EVENT — #124 Unity chain exposed two gate failures
+
+- **Work unit:** S1-D T-04 Unity qualification under lock `cf2e5588bc7147278f6bab399de4898f` on U1 at `c838aca`.
+- **Evidence class:** OBSERVED FACT.
+- **Previous provider/model:** Claude B Sonnet 5.5 medium.
+- **Selected provider/model:** same (continuing investigation).
+- **Reason / routing rule:** serialized Unity lane.
+- **Capacity evidence:** n/a.
+- **Capacity source:** Unity logs.
+- **Reported reset/window:** n/a.
+- **Previous failure/outcome influencing decision:** compile, teaching-latch (60), save (159), hash-dump (18), hardening, reference, approval and n3 passed; then two failures.
+- **Branch/worktree or browser lane:** U1 `c838aca`; evidence `/media/jer/Files/CCF/Verification/S1D-T04-Unity-20261030/`.
+- **Result/evidence:** `mfm/guide` failed exit 1: `S1D_T04_GUIDE_UNITY_FAIL System.InvalidOperationException: lesson6-recruitment: latch loaded; session review empty`. `t03/teaching` failed exit 1: `S1A_TEACHING_VERIFY_FAIL System.Exception: accepted model stack`. The latter harness asserts `ForestSaveData.CurrentVersion == 23`, which is stale on the integrated v24 lineage; that is a verification-tool assertion, not necessarily a production regression. The guide failure occurs after loading the latched v24 in-memory fixture; manager latch reads false, indicating either an in-memory `LoadData` path/version issue in the harness or a real restore-path gap. `t03/menu`, `t03/cap`, `t03/rack` passed; event-id was running at observation.
+- **Handoff/commit/claim reference:** #124 Unity chain logs; no verdict yet.
+- **Accepted / rejected / unresolved:** unresolved; #124 NOT Unity-qualified.
+- **Failure classification if any:** one stale v23 harness assertion; one latched-load/harness-restore failure requiring root cause.
+- **Next action:** worker must root-cause both, repair harness or production only with evidence, rerun exact gates, and report NEEDS WORK/qualified honestly; do not integrate #124 until resolved.
