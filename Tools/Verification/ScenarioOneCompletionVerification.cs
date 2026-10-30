@@ -440,7 +440,7 @@ public sealed class ScenarioOneCompletionGate : MonoBehaviour
             {
                 Check(ecology.GrowthModelVersion == GrowthModel.SpeciesAware, "current completion fixture uses growth model 2");
                 ForestSaveData completed = saves.CaptureData();
-                Check(completed.version == 23 && completed.growthModel == GrowthModel.SpeciesAware
+                Check(completed.version == 24 && completed.growthModel == GrowthModel.SpeciesAware
                     && completed.standGeometryModel == StandGeometryModel.Legacy40
                     && completed.ecologicalYear == 30 && completed.scenarioOne.outcome == ScenarioOneOutcome.Completed
                     && completed.scenarioOne.outcomeYear == minimumYear,
