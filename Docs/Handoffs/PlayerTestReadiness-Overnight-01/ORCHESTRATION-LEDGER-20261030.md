@@ -320,3 +320,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved; UNITY + independent review pending.
 - **Failure classification if any:** worker over-claimed the token relative to the Unity gate; corrected by Manager.
 - **Next action:** serialized Unity qualification on `c838aca` under the free lock; independent Claude A review in parallel.
+
+### EVENT — #124 independent review APPROVED (offline scope)
+
+- **Work unit:** independent review of #124.
+- **Evidence class:** OBSERVED FACT (review/rerun) + ORCHESTRATOR CLAIM (verdict acceptance).
+- **Previous provider/model:** DeepSeek V4.1 Flash (implementer).
+- **Selected provider/model:** Claude A Sonnet 5.5 medium (independent reviewer).
+- **Alternatives considered:** Claude Opus (not justified); OpenAI B (quota-exhausted).
+- **Reason / routing rule:** cross-provider independence; browser/static review plus independent offline rerun; no Code/Unity worker needed for the review.
+- **Capacity evidence:** Claude A credentials listed; no quota error; remaining quota UNKNOWN.
+- **Capacity source:** T3 / worker.
+- **Reported reset/window:** UNKNOWN.
+- **Previous failure/outcome influencing decision:** #124 production is unchanged; review focuses on whether the integrated #143 floor truly satisfies T-04 and whether the new matrix is meaningful.
+- **Branch/worktree or browser lane:** exact candidate `99b7d4b4` / production `bccd2b90`; reviewer detached clone; no branch mutation.
+- **Result/evidence:** APPROVED for offline/static scope. Diff is exactly 3 added files; production identical to start. Reviewer reran 62 checks + 5/5 mutations; all logs present; no FAIL. Non-blocking notes: legacy rackless worlds never latch; replant can move lesson 7 back to 6 (packet allows); source-wiring checks are text matches and mutations do not cover the LearningObjectivesView bridge.
+- **Handoff/commit/claim reference:** `/media/jer/Files/CCF/Verification/S1D-T04-Review-20261030/INDEPENDENT-REVIEW.md`; #124 comment `6512358394`.
+- **Accepted / rejected / unresolved:** offline review accepted; Unity gate still pending.
+- **Failure classification if any:** none.
+- **Next action:** await Unity qualification under lock `cf2e5588...`; then integrate if Unity passes.
