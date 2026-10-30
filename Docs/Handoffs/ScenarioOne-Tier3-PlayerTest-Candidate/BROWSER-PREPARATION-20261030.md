@@ -13,27 +13,33 @@ The first external demo is the **complete Scenario One**, not an earlier interve
 
 ## Absolute release gate
 
-Do **not** create/release the substantive Tier-3 local qualification claim until browser/Manager inspection can fill every item below with exact durable evidence:
+Do **not** create/release the substantive Tier-3 local qualification claim until browser/Manager inspection can fill every item below with exact durable evidence.
 
 ### Rack V2
 
-- required D-064 Enlarged80 Stand Map planning/integration complete;
+- D-064 Enlarged80 Stand Map planning/integration complete;
 - confirmed rack entrances physically marked in 3D as accepted;
 - Legacy40 and frozen Reference Future v1 compatibility green;
-- any remaining Rack V2 teaching/persistence/qualification required by the current accepted Rack spec is complete.
+- current Rack V2 feature-scope qualification remains accepted on the final candidate ancestry.
+
+Current browser truth: Rack V2 G4 is feature-verified with `OBJECTIVE 1 RACK PLANNING & FIELD MARKING V2 QUALIFIED — READY FOR USER TEST`; whole-Scenario-One Tier-3 and user acceptance remain separate.
 
 ### Three-species parity
 
 - PARITY-03 through PARITY-08 remain accepted/integrated;
 - MFM-10 has returned exact token `SPECIES GUARD QUALIFIED`;
-- PARITY-09 has then been freshly repinned, locally qualified, Manager-reviewed and integrated;
+- PARITY-09 has then been freshly repinned, locally qualified, independently/Manager-reviewed and integrated;
 - protected pure-Sitka arithmetic/fingerprints remain exact where required; no unsupported Oak/Beech precision is introduced.
+
+Current browser truth: PARITY-08 is already independently approved/integrated. PARITY-09 is blocked only on MFM-10 `SPECIES GUARD QUALIFIED`, after which it requires a fresh exact-lineage repin.
 
 ### S1-C / S1-D
 
 - all pre-demo S1-C review/history requirements are accepted/integrated;
-- all pre-demo S1-D repeated-intervention requirements, including the required multi-cycle witness and independent review where specified, are accepted/integrated;
-- #151 S1-D T-05 is not merely offline/static green: its Unity qualification, final Manager review and integration are complete.
+- all pre-demo S1-D repeated-intervention requirements, including required multi-cycle witness and independent review, are accepted/integrated;
+- S1-D T-05 #151 remains in the final ancestry as Manager APPROVED / INTEGRATED / CLOSED.
+
+Current browser truth: #151 is complete. S1-C T-07 #187 is offline-ready but not yet accepted; S1-C T-08 remains blocked on #187 plus Unity. S1-D T-08 is released but serialized behind the current higher-priority Unity work, and T-09 waits for T-08 PASS.
 
 ### Multi-Scale Forestry Management V1
 
@@ -42,6 +48,8 @@ Do **not** create/release the substantive Tier-3 local qualification claim until
 - MFM-10 `SPECIES GUARD QUALIFIED`;
 - MFM-11 `MULTI-SCALE CALIBRATION QUALIFIED` plus independent review;
 - MFM-12 exact verdict `MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST`.
+
+Current browser truth: #156 is static-approved and released for Tier-2 fresh preflight, not yet runtime-qualified; MFM-09 preparation is reconciled and waits only #156 acceptance/integration; MFM-10/11/12 remain correctly gated downstream.
 
 ### Exact candidate
 
@@ -114,6 +122,6 @@ Only after Tier-3 success, prepare concise instructions for the user to launch a
 
 No Windows build before the user has personally playtested the candidate and explicitly authorises a Windows build. Earlier engineering builds are not external-demo candidates.
 
-## Current status at preparation
+## Current status at preparation refresh
 
-Current published integration branch is `8fa83bff22ea1b4943689bee1074eed8eae65d2f`. It does **not** yet contain the in-flight #151/#156 and downstream MFM-09–12/PARITY-09 sequence, so Tier-3 is deliberately unreleased.
+Current Scenario One integration/docs successor is `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`. It now contains the accepted #151 S1-D T-05 lineage in addition to previously accepted Rack/parity/S1-C/S1-D/MFM foundations, but it still does **not** contain accepted/integrated #156 MFM-08 or downstream MFM-09–12/PARITY-09, nor final S1-C/S1-D qualification. Tier-3 therefore remains deliberately unreleased.
