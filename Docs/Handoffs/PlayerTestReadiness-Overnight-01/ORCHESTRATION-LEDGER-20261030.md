@@ -146,3 +146,73 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved.
 - **Failure classification if any:** none yet.
 - **Next action:** dispatch offline implementation; Unity only after offline candidate and fresh machine preflight.
+
+### EVENT — #161 independent review completed
+
+- **Work unit:** independent implementation review of #143.
+- **Evidence class:** OBSERVED FACT for the diff/logs/independent run; ORCHESTRATOR CLAIM for the verdict.
+- **Previous provider/model:** OpenAI gpt-6.1-sol high (implementer).
+- **Selected provider/model:** DeepSeek V4.1 Flash (independent reviewer, browser lane #162).
+- **Alternatives considered:** Claude Sonnet 5.5 Medium / Opus 5.5.
+- **Reason / routing rule:** cross-provider independence; browser/static evidence sufficient plus independent offline re-execution; do not consume a Code/Unity worker.
+- **Capacity evidence:** DeepSeek available; Claude quota UNKNOWN.
+- **Capacity source:** T3 / unknown.
+- **Reported reset/window:** none.
+- **Previous failure/outcome influencing decision:** none.
+- **Branch/worktree or browser lane:** #162 / #161; candidate `b9bf11aa`, docs `d8168926`.
+- **Result/evidence:** independently re-ran offline suite: latch 36, T-03 48, 16,384 oracle rows, 80 v23/v24 all-hash rows identical, protected sources unchanged. Verified all 8 Unity gates pinned to `b9bf11aa`; 18-line hash dump byte-identical to accepted MFM-07 base. Verdict **APPROVED**.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/INDEPENDENT-REVIEW.md`; orchestration commit `9e2fbdfb`.
+- **Accepted / rejected / unresolved:** accepted.
+- **Failure classification if any:** none.
+- **Next action:** integrate exact candidate.
+
+### EVENT — #143 integration
+
+- **Work unit:** S1-D T-04P integration.
+- **Evidence class:** OBSERVED FACT.
+- **Previous provider/model:** n/a (mechanical integration by DeepSeek orchestrator).
+- **Selected provider/model:** DeepSeek V4.1 Flash.
+- **Alternatives considered:** none needed.
+- **Reason / routing rule:** approved candidate + clean production merge; integration lane `integration/scenario-one-player-test-ready-v1`.
+- **Capacity evidence:** n/a.
+- **Capacity source:** repository.
+- **Reported reset/window:** n/a.
+- **Previous failure/outcome influencing decision:** none.
+- **Branch/worktree or browser lane:** `/media/jer/Videos/CCF-PlayerTestIntegration`.
+- **Result/evidence:** parents `cfdc93bf` + `d8168926`; merge **`2f476a52`**; docs successor **`bccd2b90`**. Six production files byte-identical to candidate. One verification-tool conflict in `run_unity_gate.py` resolved deliberately as the union `save`, `approval`, `coverage-world`, `teaching-latch`; `py_compile` passed. Post-merge runtime source compile: 184 sources, 116 refs, exit 0, 0 errors. Combined Tier-3 Unity gate still pending.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/INTEGRATION-HANDOFF.md`; integration commit `bccd2b90`.
+- **Accepted / rejected / unresolved:** integrated; combined Tier-3 pending.
+- **Failure classification if any:** none.
+- **Next action:** repin #124; continue #151/#156.
+
+### EVENT — routing decision: #124 offline implementation
+
+- **Work unit:** S1-D T-04 guide monotonicity.
+- **Evidence class:** ORCHESTRATOR CLAIM.
+- **Previous provider/model:** none on the new accepted lineage; old `b9d204c` evidence only.
+- **Selected provider/model:** DeepSeek V4.1 Flash, variant max.
+- **Alternatives considered:** Claude A Sonnet 5.5 Medium; OpenAI B (capacity reserved for #151).
+- **Reason / routing rule:** DeepSeek default; bounded curriculum consumption over the already-integrated latch, no save/hash ownership; critical-path work.
+- **Capacity evidence:** DeepSeek available; Claude A quota UNKNOWN.
+- **Capacity source:** T3 / unknown.
+- **Reported reset/window:** none.
+- **Previous failure/outcome influencing decision:** old #124 candidate unqualified; new lineage now exists.
+- **Branch/worktree or browser lane:** `feature/s1-d-t04-guide-monotonicity-v2`; `/media/jer/Videos/CCF-S1D-T04`; start `bccd2b90`.
+- **Result/evidence:** pending.
+- **Handoff/commit/claim reference:** #124.
+- **Accepted / rejected / unresolved:** unresolved.
+- **Failure classification if any:** none yet.
+- **Next action:** offline matrix + regressions; then serialized Unity.
+
+### EVENT — dispatches started
+
+- **Work unit:** #151, #156, #124 offline implementation.
+- **Evidence class:** OBSERVED FACT (T3 returned running tasks).
+- **Selected provider/model:** #151 OpenAI B gpt-6.1-sol high; #156 Claude B Sonnet 5.5 medium; #124 DeepSeek V4.1 Flash max.
+- **Capacity evidence at dispatch:** OpenAI B about 13% of current five-hour window, reset UNKNOWN; Claude B quota UNKNOWN; DeepSeek available.
+- **Capacity source:** user / unknown / T3.
+- **Result/evidence:** three child tasks accepted and `working`: `overnight-20261030-151-openai-b-1`, `overnight-20261030-156-claude-b-1`, `overnight-20261030-124-deepseek-1`.
+- **Handoff/commit/claim reference:** #151 comment `6511963133`, #156 comment `6511963557`, #124 comment `6512006262`.
+- **Accepted / rejected / unresolved:** unresolved.
+- **Failure classification if any:** none yet.
+- **Next action:** monitor; preserve Unity for the first fully offline candidate; do not parallelise Unity.
