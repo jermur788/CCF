@@ -4,7 +4,7 @@ Provider/model: OpenAI / gpt-6.1-sol, high reasoning, T3 Code Codex harness (dis
 
 Branch: `feature/s1-d-t05-previous-proposed-v1`  
 Worktree: `/media/jer/Videos/CCF-S1D-T05`  
-Exact start and unchanged production end: `cfdc93bf3943125d21570bc5749a9338f52d1cce`.
+Exact start and unchanged production/verification end: `cfdc93bf3943125d21570bc5749a9338f52d1cce`. First blocker publication commit: `c3a254c66ce5dce2639f33055e3040b8e8824146`; final documentation successor SHA is reported on #151 (a document cannot contain its own Git commit hash). Context commit observed in this lane: `63e95ba2175f7e239a278c616681b286719821f8`.
 
 ## Disposition
 
@@ -44,7 +44,23 @@ For carried work, only an existing `HistoryYears` entry matching `createdYear` m
 
 ## Verification
 
-Baseline regression results will be appended after execution. T-05 classification/navigation/provenance tests and rendered three-cycle qualification are not implemented/run because production stopped at the missing API. No duplicate history store was created; production diff is empty.
+Existing offline baselines all passed on the unchanged production tree, exit code 0 each (257 checks total). Exact commands from the assigned worktree:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t02
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_t04_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t04
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/S1CManagementHistory/run_t06_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1c-t06
+PYTHONDONTWRITEBYTECODE=1 python3 Tools/Verification/ScenarioOneRepeatedInterventions/run_offline_check.py --out /media/jer/Files/CCF/Verification/S1-D-T05-20261030/s1d-t02
+```
+
+- S1-C T-02: `S1C_HISTORY_QUERY_PASS checks=55`.
+- S1-C T-04: `S1C_T04_PROVENANCE_PASS checks=56`.
+- S1-C T-06: `S1C_T06_GUIDANCE_PASS checks=53 failures=0`.
+- S1-D T-02: `CYCLE_STATE_OFFLINE_PASS checks=93 NOT_UNITY_VERIFIED`.
+
+Harnesses were inspected before running; outputs/build projects and full `.log` files are under the Files evidence directory above, never under Assets or another worktree. Initial log redirection attempts failed before Python execution because the evidence parent did not exist; creating it resolved the invocation and all four commands then passed. The first push returned `remote rejected ... (failed)` without a reason; remote absence was checked and a bounded retry succeeded. No auth/quota failure was reported.
+
+`git diff cfdc93bf3943125d21570bc5749a9338f52d1cce -- Assets Tools ProjectSettings Packages` is empty; no protected implementation or reference was changed/rebaselined. Baseline checks do not establish new T-05 behaviour or qualify the frozen Unity anchors. T-05 classification/navigation/provenance tests and rendered three-cycle qualification are not implemented/run because production stopped at the missing API. No duplicate history store was created; production diff is empty.
 
 ## T-08 dependency / next action
 
