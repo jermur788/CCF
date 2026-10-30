@@ -414,3 +414,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** #124 accepted; #164 integrated; #126 running; #151/#156 offline-approved/candidate, Unity pending; #128 blocked.
 - **Failure classification if any:** stale harnesses resolved; intermittent Unity exit hang remains a rerun requirement, not waived.
 - **Next action:** #126 offline PARITY-08; then serialized Unity; #128 review; #151/#156 Unity still queued.
+
+### EVENT — #126 offline PARITY-08 candidate PASS
+
+- **Work unit:** PARITY-08 save/deterministic compatibility offline.
+- **Evidence class:** OBSERVED FACT (checks/logs) + ORCHESTRATOR CLAIM (readiness).
+- **Previous provider/model:** Claude Opus 5.5 low.
+- **Selected provider/model:** same (completed offline); Claude B Sonnet 5.5 medium for Unity.
+- **Alternatives considered:** DeepSeek for Unity (mechanical); Claude B has recent harness context.
+- **Reason / routing rule:** 5/5 save/determinism justified Opus low; serialized Unity is mechanical but high-consequence.
+- **Capacity evidence:** Claude A/B used without quota error; remaining UNKNOWN. OpenAI B exhausted, reset UNKNOWN.
+- **Capacity source:** worker / T3 / provider.
+- **Reported reset/window:** OpenAI B reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** #164 showed stale harnesses and an intermittent Editor exit hang; Unity receipts must be clean, not waived.
+- **Branch/worktree or browser lane:** #126 `verify/parity-08-save-compatibility-v1` / `/media/jer/Videos/CCF-Parity08`; start `185200f5`, candidate `3eb9c954`.
+- **Result/evidence:** found real defect: validation never checked species IDs; unknown tree species loaded as Sitka and unknown cohorts dropped; `CanLoad` said loadable. Added pre-mutation `ValidateSpecies` shared by `CanLoad`/`LoadData`; no schema change (v24), no hash/reference change. New PARITY-08 check 23/23 + mutants killed; MFM06 172; timber/isolated density pass; base-identical pre-existing failures outside scope. Unity pending.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/HANDOFF.md`; #126 comment `6514119460`.
+- **Accepted / rejected / unresolved:** offline candidate accepted for Unity; not Unity-qualified; #128 pending.
+- **Failure classification if any:** none; real production defect repaired.
+- **Next action:** serialized Unity gate on `3eb9c954`; then independent #128 review; do not integrate until both pass.
