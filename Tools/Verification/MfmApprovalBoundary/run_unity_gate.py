@@ -34,13 +34,20 @@ GATES = {
     'hash-dump': ('MfmSaveProvenanceUnity/MfmHashDumpGate.cs', 'MFM06_HASHDUMP_PASS', 'MFM06_HASHDUMP_FAIL'),
     'save': ('MfmSaveProvenanceUnity/MfmSaveProvenanceUnityCheck.cs', 'MFM06_UNITY_PASS', 'MFM06_UNITY_CHECK_FAIL'),
     'approval': ('MfmApprovalBoundary/MfmApprovalBoundaryUnityGate.cs', 'MFM07_UNITY_PASS', 'MFM07_UNITY_FAIL'),
+    # PARITY-08 residual (#166): existing harnesses driven unchanged. Model 0 = completion gate with CCF_GROWTH_MODEL=0 (historical
+    # RNG1/regen1/growth0 layout, anchor 6F84AF319D301F87); Sitka timber = the existing yield gate, whose digest is compared below.
+    'completion-model0': ('ScenarioOneCompletionVerification.cs', 'SCENARIO_ONE_COMPLETION_VERIFY_PASS', 'SCENARIO_ONE_COMPLETION_VERIFY_FAIL'),
+    'sitka-timber': ('TimberAssortmentYieldVerification.cs', 'TIMBER_YIELD_VERIFY_PASS', 'TIMBER_YIELD_VERIFY_FAIL'),
     'coverage-world': ('MfmCoverageWorld/MfmCoverageWorldUnityGate.cs', 'MFM08A_UNITY_PASS', 'MFM08A_UNITY_FAIL'),
 }
 
+TIMBER_ANCHOR = {'fixtures': '120', 'assertions': '3007',
+                 'evidenceSha256': '88FAF806EBE8FD5F2047740AE965823F0EE4286BE23EE5AD1B209CD2A228C4A8'}
+
 # Gates that deliberately load rack-model-0 fixtures and must not use production geometry defaults.
-LEGACY_GATES = ('reference', 'progress', 'completion', 'completion-model1', 'interaction', 'density-save')
+LEGACY_GATES = ('reference', 'progress', 'completion', 'completion-model1', 'completion-model0', 'sitka-timber', 'interaction', 'density-save')
 # Gates whose harness runs the shared TeachingCapGateSetup companion from the historical gate suite.
-HISTORICAL_COMPANION_GATES = ('teaching-latch', 'reference', 'hardening', 'progress', 'completion', 'completion-model1', 'n3', 'density-save', 'interaction')
+HISTORICAL_COMPANION_GATES = ('teaching-latch', 'reference', 'hardening', 'progress', 'completion', 'completion-model1', 'completion-model0', 'n3', 'density-save', 'interaction')
 
 
 def main():
@@ -141,7 +148,7 @@ def main():
             env.pop(key)
     env['TMPDIR'] = '/tmp/'
     env['CCF_TEST_DIRECT_ENTRY'] = '1'  # these gameplay harnesses require a live new world, not the startup title
-    for key in ('CCF_STARTUP_SCREEN', 'CCF_STARTUP_INPUT', 'CCF_STARTUP_BOUNDARY', 'CCF_RACK_VERIFY_MODEL', 'CCF_GROWTH_MODEL'):
+    for key in ('CCF_STARTUP_SCREEN', 'CCF_STARTUP_INPUT', 'CCF_STARTUP_BOUNDARY', 'CCF_RACK_VERIFY_MODEL', 'CCF_GROWTH_MODEL', 'CCF_REGEN_MODEL', 'CCF_RNG_MODEL'):
         env.pop(key, None)
     env.pop('CCF_STAND_GEOMETRY', None)   # production default geometry; never an inherited override
     if args.gate in LEGACY_GATES:
@@ -149,6 +156,9 @@ def main():
         env['CCF_T03_LEGACY'] = '1'
     if args.gate == 'completion-model1':
         env['CCF_GROWTH_MODEL'] = '1'
+    if args.gate == 'completion-model0':
+        env['CCF_GROWTH_MODEL'] = '0'
+        env['CCF_REGEN_MODEL'] = '1'
     if args.gate == 'density-save':
         env['CCF_QUAL_PHASES'] = 'ANCHORS,SAVELOAD'
     command = [str(UNITY), '-projectPath', str(root), '-logFile', str(out / 'unity.log'),
@@ -252,6 +262,17 @@ def main():
                   'licence_copy_removed': not licence_copy.exists(), 'cleanup_failures': cleanup_failures}
         if args.gate == 'hash-dump':
             result['hash_dump_lines'] = len(hash_dump_lines)
+        if args.gate == 'sitka-timber':
+            # Protected Sitka timber anchor, recorded by the unchanged gate in PARITY-06 (Parity06-Unity-20261029). Compared, never rebaselined.
+            expected = TIMBER_ANCHOR
+            line = next((l for l in log.splitlines() if l.startswith('TIMBER_YIELD_VERIFY_PASS ')), '')
+            observed = dict(re.findall(r'(\w+)=(\S+)', line))
+            result['anchor_expected'] = expected
+            result['anchor_observed'] = observed
+            result['anchor_match'] = observed == expected
+        if args.gate == 'completion-model0':
+            # Observed values are recorded, not asserted here: no accepted exact-hash expectation exists in the gate for growth model 0.
+            result['model0_markers'] = [l.strip() for l in log.splitlines() if re.match(r'\s*SCENARIO_ONE_COMPLETION_(GROWTH_MODEL|REGEN_MODEL|RNG_MODEL|HASH|V1[678]_COMPAT_HASH|GROWTH2_LAYOUT_PASS)', l)]
         remaining = subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain'], text=True).strip()
         result['remaining_lane_changes'] = remaining
         result['host_saves_unchanged'] = all(digest(Path(p)) == h for p, h in save_hashes.items())
@@ -265,7 +286,7 @@ def main():
         # 'density-save' writes forest-save.json for its SAVE_DISK_ROUND_TRIP assertion (DensityQualification.cs saves.Save()).
         # Every other gate must leave the isolated config untouched.
         saves_allowed = args.gate in ('save', 'approval', 'coverage-world', 'teaching-latch', 'progress', 'density-save')
-        result['pass'] = (result['host_saves_unchanged'] and not remaining and (saves_allowed or not result['disk_saves_created'])
+        result['pass'] = (result.get('anchor_match', True) and result['host_saves_unchanged'] and not remaining and (saves_allowed or not result['disk_saves_created'])
                           and code == 0 and issue is None and has_pass and not failures
                           and result['harness_removed'] and result['licence_copy_removed'] and not cleanup_failures)
         (out / 'process-result.json').write_text(json.dumps(result, indent=2) + '\n')
