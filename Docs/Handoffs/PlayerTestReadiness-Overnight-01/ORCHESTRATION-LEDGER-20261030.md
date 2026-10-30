@@ -64,3 +64,85 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:**
 - **Failure classification if any:**
 - **Next action:**
+
+---
+
+## Overnight run — live refresh at start
+
+**Timestamp:** 2026-10-30T00:36Z.
+
+### EVENT — live state refresh before any dispatch
+
+- **Work unit:** orchestration preflight; no production work.
+- **Evidence class:** OBSERVED FACT.
+- **Previous provider/model:** none (session start).
+- **Selected provider/model:** DeepSeek V4.1 Flash (orchestrator).
+- **Alternatives considered:** none for orchestration.
+- **Reason / routing rule:** parent #91 continuation; refresh Git, claims, providers, Unity state before acting.
+- **Capacity evidence:** orchestrator running. OpenAI B just reauthenticated by the user with about 13% of its current five-hour window remaining; exact reset time not supplied. OpenAI A believed token-empty by the user; not tested. Claude A and Claude B credentials listed by T3; remaining quota UNKNOWN. DeepSeek available.
+- **Capacity source:** user for OpenAI B/OpenAI A; T3 model listing for Claude A/B; orchestrator execution for DeepSeek.
+- **Reported reset/window:** OpenAI B five-hour window, about 13% remaining, reset time UNKNOWN. All other pools UNKNOWN.
+- **Previous failure/outcome influencing decision:** user reports OpenAI subscription authentication loss; OpenAI B reauthenticated.
+- **Branch/worktree or browser lane:** orchestration worktree `/media/jer/ZX20/CCF-Overnight-20261030`, branch `orchestration/player-test-overnight-20261030` from `origin/main` `b8576b7a`.
+- **Result/evidence:** `origin/main` `b8576b7a`; integration ref `cfdc93bf3943125d21570bc5749a9338f52d1cce`; #143 Unity chain reported complete at `b9bf11aaf8f6fd7ea43e33e39258560408b88b12` with docs `d8168926`; no Unity/Editor process observed; ZX20 20 GiB free, Videos 31 GiB free. Existing unrelated dirty files in `/media/jer/ZX20/CCF-Primary` preserved.
+- **Handoff/commit/claim reference:** #91, #106, #143, #151, #156, #161, #162.
+- **Accepted / rejected / unresolved:** unresolved until independent verification.
+- **Failure classification if any:** none.
+- **Next action:** independent review of #143 under #161.
+
+### EVENT — routing decision: #161 independent review
+
+- **Work unit:** #161 mandatory independent implementation review of #143.
+- **Evidence class:** OBSERVED FACT plus ORCHESTRATOR CLAIM.
+- **Previous provider/model:** implementation by OpenAI gpt-6.1-sol high.
+- **Selected provider/model:** DeepSeek V4.1 Flash, browser/read-only lane #162 with review claim #161.
+- **Alternatives considered:** Claude Sonnet 5.5 Medium; Claude Opus 5.5 low/medium.
+- **Reason / routing rule:** reviewer must be independent of the implementer; #143 was OpenAI-implemented, so DeepSeek is cross-provider independent. Review is browser/static-capable from pushed diff and published Unity evidence, so it must not consume a Code/Unity worker.
+- **Capacity evidence:** DeepSeek available; Claude quota UNKNOWN.
+- **Capacity source:** T3 / user / unknown.
+- **Reported reset/window:** none.
+- **Previous failure/outcome influencing decision:** none.
+- **Branch/worktree or browser lane:** #162 browser lane; exact candidate `b9bf11aa` + docs `d8168926` on `feature/s1-d-t04-teaching-persistence-v1`.
+- **Result/evidence:** pending.
+- **Handoff/commit/claim reference:** #161.
+- **Accepted / rejected / unresolved:** unresolved.
+- **Failure classification if any:** none.
+- **Next action:** inspect diff, rerun offline check independently, verify Unity evidence, issue verdict.
+
+### EVENT — routing decision: #151 offline implementation
+
+- **Work unit:** S1-D T-05 previous vs proposed Work Plan presentation, offline phase.
+- **Evidence class:** ORCHESTRATOR CLAIM.
+- **Previous provider/model:** none.
+- **Selected provider/model:** OpenAI B `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb`, model `gpt-6.1-sol`, reasoning `high`.
+- **Alternatives considered:** DeepSeek V4.1 Flash; Claude Sonnet 5.5 Medium.
+- **Reason / routing rule:** direct user instruction to use the newly reauthenticated OpenAI B first with gpt-6.1-sol; task difficulty 4/5 suits a strong code lane.
+- **Capacity evidence:** about 13% of current five-hour window remaining; reset time UNKNOWN.
+- **Capacity source:** user.
+- **Reported reset/window:** five-hour window, about 13% remaining, reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** OpenAI authentication loss reported by user; B reauthenticated.
+- **Branch/worktree or browser lane:** `feature/s1-d-t05-previous-proposed-v1` / `/media/jer/Videos/CCF-S1D-T05`, exact start `cfdc93bf`.
+- **Result/evidence:** pending.
+- **Handoff/commit/claim reference:** #151.
+- **Accepted / rejected / unresolved:** unresolved.
+- **Failure classification if any:** none yet.
+- **Next action:** dispatch; checkpoint early commits; monitor quota.
+
+### EVENT — routing decision: #156 offline implementation
+
+- **Work unit:** MFM-08 Stand Map / 3D review UX, offline phase.
+- **Evidence class:** ORCHESTRATOR CLAIM.
+- **Previous provider/model:** none.
+- **Selected provider/model:** Claude B — Pro, `claude-sonnet-5-5`, effort `medium`.
+- **Alternatives considered:** DeepSeek V4.1 Flash; Claude A Sonnet; OpenAI B (capacity reserved for #151).
+- **Reason / routing rule:** architecture-sensitive Unity UI at difficulty 4/5; user policy reserves Sonnet 5.5 Medium for tasks where DeepSeek is not the best capability fit. Independent from the OpenAI #143 implementer; no cross-review conflict because #156 is implementation.
+- **Capacity evidence:** Claude B credentials listed; remaining five-hour quota UNKNOWN.
+- **Capacity source:** T3 / unknown.
+- **Reported reset/window:** UNKNOWN.
+- **Previous failure/outcome influencing decision:** prior Claude login instability reported by user; Claude B credential now present.
+- **Branch/worktree or browser lane:** `feature/mfm-08-map-3d-review-ux-v1` / `/media/jer/Videos/CCF-MFM08`, exact start `cfdc93bf`; Manager repin comment `6511551513` supersedes old `182c2c48` start.
+- **Result/evidence:** pending.
+- **Handoff/commit/claim reference:** #156.
+- **Accepted / rejected / unresolved:** unresolved.
+- **Failure classification if any:** none yet.
+- **Next action:** dispatch offline implementation; Unity only after offline candidate and fresh machine preflight.
