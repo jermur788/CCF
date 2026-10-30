@@ -541,7 +541,7 @@ public sealed class S1DPreviousProposedUnityGateRunner : MonoBehaviour
             if (element.contentRect.width > 1f)
             {
                 Vector2 measured = element.MeasureTextSize(element.text, element.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
-                if (measured.y > element.contentRect.height + 1.5f) clipped.Add(Short(element.text));
+                if (measured.y > element.contentRect.height + 1.5f) clipped.Add(Short(element.text) + $" [measured {measured.y:0.0} vs content {element.contentRect.height:0.0} w {element.contentRect.width:0.0} {element.name}]");
             }
         }
         Check(count > 0, $"[{Tag()}]_AUDIT_HAS_TEXT_{name}");
