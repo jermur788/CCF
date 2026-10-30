@@ -455,19 +455,30 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
             {
                 ReviewShape outline = outlines.FirstOrDefault(o => o.Key == area.Id);
                 var unit = geometry.Units.FirstOrDefault(u => u.Index == area.UnitIndex && u.RackId == area.RackId);
-                string expectedText = unit == null ? "no-unit" : "world x[" + unit.Polygon.Min(q => q.X).ToString("0.0") + "," + unit.Polygon.Max(q => q.X).ToString("0.0") + "] z[" + unit.Polygon.Min(q => q.Z).ToString("0.0") + "," + unit.Polygon.Max(q => q.Z).ToString("0.0") + "]";
+                // Expected footprint under the accepted semantics: the teaching rectangle for the source, otherwise the unit strip cut at
+                // the sample anchor +/- SegmentHalfLengthM along the rack axis according to the area's own Segment.
+                IReadOnlyList<RackPoint> expectedPoly = null;
+                if (area.IsSource) expectedPoly = StandMapAreaFootprints.TeachingPolygon(geometry.Teaching);
+                else if (unit != null)
+                {
+                    double anchorAlong = geometry.Anchor.X * (double)geometry.AxisX + geometry.Anchor.Z * (double)geometry.AxisZ, sh = coverage.Calibration.SegmentHalfLengthM;
+                    double lo = area.Segment == ScenarioOneCoverage.Segment.Low ? double.NegativeInfinity : area.Segment == ScenarioOneCoverage.Segment.Centre ? anchorAlong - sh : anchorAlong + sh;
+                    double hi = area.Segment == ScenarioOneCoverage.Segment.Low ? anchorAlong - sh : area.Segment == ScenarioOneCoverage.Segment.Centre ? anchorAlong + sh : double.PositiveInfinity;
+                    expectedPoly = StandMapAreaFootprints.ClipAlong(unit.Polygon, geometry.AxisX, geometry.AxisZ, lo, hi);
+                }
+                string expectedText = expectedPoly == null ? "no-expected" : "world x[" + expectedPoly.Min(q => q.X).ToString("0.0") + "," + expectedPoly.Max(q => q.X).ToString("0.0") + "] z[" + expectedPoly.Min(q => q.Z).ToString("0.0") + "," + expectedPoly.Max(q => q.Z).ToString("0.0") + "]";
                 if (outline == null) { dump.Add(area.Id + " state=" + area.State + " src=" + area.IsSource + " rack=" + area.RackId + " unit=" + area.UnitIndex + " NO-OUTLINE expected " + expectedText); continue; }
                 drawnAreas++;
                 double minWx = (outline.Points.Min(q => q.X) - fx[1]) / fx[0], maxWx = (outline.Points.Max(q => q.X) - fx[1]) / fx[0];
                 double zA = (outline.Points.Min(q => q.Y) - fz[1]) / fz[0], zB = (outline.Points.Max(q => q.Y) - fz[1]) / fz[0];
                 double minWz = Math.Min(zA, zB), maxWz = Math.Max(zA, zB);
                 if (minWx > maxWx) { double t = minWx; minWx = maxWx; maxWx = t; }
-                dump.Add(area.Id + " state=" + area.State + " src=" + area.IsSource + " rack=" + area.RackId + " unit=" + area.UnitIndex + " drawn world x[" + minWx.ToString("0.0") + "," + maxWx.ToString("0.0") + "] z[" + minWz.ToString("0.0") + "," + maxWz.ToString("0.0") + "] expected " + expectedText);
-                if (unit != null)
+                dump.Add(area.Id + " state=" + area.State + " src=" + area.IsSource + " rack=" + area.RackId + " unit=" + area.UnitIndex + " seg=" + area.Segment + " drawn world x[" + minWx.ToString("0.0") + "," + maxWx.ToString("0.0") + "] z[" + minWz.ToString("0.0") + "," + maxWz.ToString("0.0") + "] expected " + expectedText);
+                if (expectedPoly != null && expectedPoly.Count >= 3)
                 {
                     compared++;
-                    float d = Mathf.Max(Mathf.Abs((float)minWx - unit.Polygon.Min(q => q.X)), Mathf.Abs((float)maxWx - unit.Polygon.Max(q => q.X)),
-                        Mathf.Abs((float)minWz - unit.Polygon.Min(q => q.Z)), Mathf.Abs((float)maxWz - unit.Polygon.Max(q => q.Z)));
+                    float d = Mathf.Max(Mathf.Abs((float)minWx - expectedPoly.Min(q => q.X)), Mathf.Abs((float)maxWx - expectedPoly.Max(q => q.X)),
+                        Mathf.Abs((float)minWz - expectedPoly.Min(q => q.Z)), Mathf.Abs((float)maxWz - expectedPoly.Max(q => q.Z)));
                     worst = Mathf.Max(worst, d);
                 }
             }
@@ -492,7 +503,7 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
             double unitWidthM = sourceUnit.Polygon.Max(q => q.X) - sourceUnit.Polygon.Min(q => q.X);
             Defect(sourceWidthM < unitWidthM - 1.0, "the source sample footprint is the sample, not its whole rack-unit strip",
                 "drawn sample width " + sourceWidthM.ToString("0.0") + " m of a " + unitWidthM.ToString("0.0") + " m unit");
-            Check(compared > 0 && worst <= 0.75f, "every drawn footprint equals the authoritative derived unit polygon (independent transform fit)", "compared=" + compared + " worst=" + worst.ToString("0.00") + " m");
+            Check(compared > 0 && worst <= 0.75f, "every drawn footprint equals its segment-cut unit strip, or the teaching rectangle for the source (independent transform fit)", "compared=" + compared + " worst=" + worst.ToString("0.00") + " m");
         }
         // Candidate glyphs lie inside the footprint of the area the coverage assigns them to.
         Cand.Result firstBatch = Review.Session.LastCandidates;

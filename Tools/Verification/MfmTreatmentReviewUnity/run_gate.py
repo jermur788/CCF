@@ -18,11 +18,14 @@ LICENCES = [Path.home() / ".config/unity3d/Unity/licenses", Path.home() / ".var/
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--out", required=True)
+ap.add_argument("--candidate", default=CANDIDATE)
+ap.add_argument("--lock-task", default=LOCK_TASK)
 ap.add_argument("--display", default=":84")
 ap.add_argument("--screen", default="1920x1080")
 ap.add_argument("--timeout", type=int, default=3000)
 ap.add_argument("--grace", type=int, default=90)
 args = ap.parse_args()
+CANDIDATE, LOCK_TASK = args.candidate, args.lock_task
 
 head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=LANE, text=True).strip()
 status = json.loads(subprocess.check_output(["python3", "-B", "/media/jer/ZX20/CCF-Ops/scripts/unity-lock", "--json", "status"], text=True))
