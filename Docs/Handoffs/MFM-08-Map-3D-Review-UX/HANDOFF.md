@@ -1,3 +1,109 @@
+# MFM-08 — Stand Map / 3D Review UX — Tier-2 Unity Result (claim #156)
+
+**Result: **
+The success token  is **not** returned. Verification-only: no production file was changed.
+
+- **Provider/model:** Claude Code, Sonnet 5.5 (Ultra-routed).
+- **Production candidate qualified:**  (docs tip  differs by  only). Executed in , detached, clean at that SHA (the  worktree is not a registered Unity lane and was not touched).
+- **Verification head:** branch  (this commit; adds only  and this file).
+- **Unity:** 6000.6.0f1, compile of the candidate clean (no error in any candidate file).
+- **Lock:** normal , owner , task , lock_id , acquired 2026-10-30T20:05:01Z, released normally (forced: False), final status                total        used        free      shared  buff/cache   available
+Mem:        16254256     4445748     6890652       47536     5311652    11808508
+Swap:        8388604     2529908     5858696, no Editor processes. Lock tooling had first to be repaired under #189 (stale  in ; ).
+- **Evidence root:**  (log, 24 captures, , , , , lock records). Earlier runs – are kept beside it.
+
+## The blocker (verified, not repaired)
+
+Accepted semantics (, header comment and ): each rack-served unit is split along the rack axis at the sample anchor ±  into **three areas Low / Centre / High** (, , , …). The teaching unit's **Centre** area is the sample.
+
+ (and ) match an area to geometry by  only and ignore . Result, measured live (): **all 5 units draw all 3 of their areas with one identical polygon** (the whole 80 m strip), e.g. rack 1  is one rectangle; rack 3  is one rectangle.
+
+Consequences seen in the rendered captures and measured:
+1. **Source-sample footprint is wrong:** the sample is drawn as the whole 80.0 m strip of an 80.0 m unit (). This is the explicit Tier-2 item "authoritative source-sample footprint alignment".
+2. **Per-area state is not spatially readable:** the one  area (R1L) and the SAMPLE are painted under 2 other areas of the same strip. All 15 printed tags sit at only 5 positions (: 15 of 15 tags overlap at identical rectangles); the SAMPLE tag is hidden under , and  is hidden under  (see , bottom strip).
+3. **"Inspect in forest" for Low / Centre / High of a unit goes to the same unit centroid**, so it does not take the player to the area it names (it also affects where the 3D spot-check is naturally performed).
+4. Candidate-glyph containment passes only trivially because the polygons overlap, so the earlier containment check could not detect this; the independent transform fit (candidate glyph px vs tree world positions) found 0.00 m deviation from the **unit** polygon, which confirms the footprints equal the unit polygon exactly, i.e. the segment split was never applied.
+
+Fixing it needs a production change (derive per-segment polygons from the anchor and , or expose them from the coverage layer, and use them in ,  and tags). That is outside verification authority under #156 and is returned to the Manager for separate ownership. No test was weakened or skipped; the gate fails on the two  checks and nothing else.
+
+## What passed on the exact candidate (final run: 351 checks pass; run7, before the segment checks were added: )
+
+Everything below passed through the real Stand Map UI (button invocation) and real OS keyboard events via the private-display driver (Available commands:
+  getactivewindow
+  getwindowfocus
+  getwindowname
+  getwindowpid
+  getwindowgeometry
+  getdisplaygeometry
+  search
+  selectwindow
+  help
+  version
+  behave
+  behave_screen_edge
+  click
+  getmouselocation
+  key
+  keydown
+  keyup
+  mousedown
+  mousemove
+  mousemove_relative
+  mouseup
+  set_window
+  type
+  windowactivate
+  windowfocus
+  windowkill
+  windowclose
+  windowmap
+  windowminimize
+  windowmove
+  windowraise
+  windowreparent
+  windowsize
+  windowunmap
+  set_num_desktops
+  get_num_desktops
+  set_desktop
+  get_desktop
+  set_desktop_for_window
+  get_desktop_for_window
+  get_desktop_viewport
+  set_desktop_viewport
+  exec
+  sleep in Xephyr/openbox), on the Rack V2 Enlarged80 world built with production APIs:
+
+- **Rendered at 1280×720 and 1920×1080** (game view size asserted, capture size asserted): review card scrolls inside the window ( bounded to the map frame), layer painted, 12 states captured at both sizes (23–24 PNGs, list in ). Visual review of the 1280×720 captures: card, legend and map are legible; the tag overlap above is the visible defect.
+- **Review card:** sample row labelled as the source not a target; 13 Covered, 1 Not covered, 2 remainders each listed with a reason; legend/map-key text states shape-not-colour; "Covered = comparable, not committed"; Include / Leave manual offered only on Covered areas and are a draft choice (writes no record, order or mark).
+- **Form not colour:** each area kind has its own outline/hatch pattern; candidate = square (4 points), proposal = triangle (3 points).
+- **Candidates:** real spacing candidates from living trees; Next walks each open candidate once and stops at the last; Previous disabled before selection and at the first (no wrap); map navigation changed no mark/order/record/hash; no confirm / confirm-all control exists; Inspect sets the existing waypoint only; candidate presented as an inspection prompt.
+- **3D (real keys):** [E] inspects; candidate chip "CANDIDATE — inspection prompt" shown; real **[C]** confirms through the ordinary Crop Tree mark (exactly +1 Crop Tree, state derives from the live mark); real **[N]** rejects (no mark/order/record/hash change), [N] again reopens, [N] on a non-candidate does nothing, [C] toggles back; Esc ends inspection.
+- **Prepare:** creates exactly one Accepted prescription and **no** order, event, or Fell mark; card says "prepared, not approved".
+- **Proposals:** each labelled "PROPOSAL — not a Fell mark and not yet work"; none is worded as a Fell mark; preview is read-only.
+- **Conflict:** a manual Fell mark on a proposed tree is held back and shown (; production reports ), the player's own mark is untouched, no work created, removing it restores the identical proposals. (Open-work conflict was not separately exercised; only manual-Fell/unit-no-longer-covered.)
+- **Spot-check:** a map waypoint alone leaves "3D spot-check not done" and Approve disabled; the approval handler re-checks the gate (invoked directly: nothing happens); real [E] inspection of a proposed tree in an accepted Covered unit (fresh ) completes it and Approve becomes available; the proposal chip appears in 3D and no Fell mark is created.
+- **Approval boundary:** Approve creates exactly the previewed orders, all **Pending**  with prescription / coverage-unit / Crop Tree / closed-reason provenance; no order Approved; no cash, year or tree change; no Fell mark; card states Pending-not-approved; **repeated approval is refused** (UI handler and manager) and adds nothing; opening the Work Plan approves nothing; ordinary Work Plan approval remains the commitment step and then approves them; approved is not executed.
+- **Save/world:** in-memory v23 validation + reload preserve the world hash; no save file written; original world restored; isolated /persistentDataPath.
+- **Declared fixture shortcut:** after the real [C]/[N] steps, the remaining spacing candidates were confirmed via  (production path) only so a prescription could exist; the UI itself never bulk-confirms.
+
+## Regression / protected compatibility
+- **Offline, all green on the candidate tree** (): MFM-04 core 240/0, MFM-05 candidates 95/0, MFM-06 save provenance 172 pass, MFM-07 approval boundary 125/0, MFM-08A coverage 102/0, MFM-08 treatment review 106/0, each with byte-identical repeat. (The MFM-08  printed there is only the offline check seeing this verification harness in the worktree; the candidate's own 12-file diff from  is entirely inside the owned surface.)
+- **Unity regressions NOT run** (Rack V2 map/runtime/field, MFM-06/07 Unity, Reference Future v1 protected hashes, UI gate): deliberately not spent on a candidate that is being returned for a production fix; they must be run on the repaired candidate. Nothing in this run changed save/schema/hash/reference/Work Plan files.
+
+## Commands
+
+Run history: run1 harness compile error (own typo), run2 harness assumption ([E] while another tree inspected), run3/run4/run7 gate pass (347 / 347 / 351 checks), run8 final (adds the segment/footprint checks): 351 pass, 2 verified defects.
+
+## Changed-file boundary and clean return
+- Production: **none**. Added only  (and this file) on ; the harness is staged into the lane at run time and removed (verified: lane clean at , no leftover staged files, no , no Editor, no Xephyr).
+- Editor normalisation after each run (, 5 SectionFive materials, 9/9 line  noise) was saved as diffs in  and reverted.
+- Lock released normally; status                total        used        free      shared  buff/cache   available
+Mem:        16254256     4444968     6891300       47536     5311724    11809288
+Swap:        8388604     2529904     5858700. No Windows build.
+
+---
+
 # MFM-08 — Stand Map / 3D Review UX — Offline Candidate Handoff
 
 **Claim:** #156 · **Parent:** #91 / #106 · **Mode:** offline/static only (no Unity run in this phase)
