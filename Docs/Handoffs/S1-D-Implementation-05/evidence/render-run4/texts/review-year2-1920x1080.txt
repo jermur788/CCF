@@ -1,0 +1,137 @@
+Annual review · Year 2 (earlier year; latest is Year 3)
+◀ Earlier year
+Later year ▶
+Help [F1]
+Objectives [O]
+Open Work Plan
+Walk the forest [Esc]
+Labels: RECORDED saved when it happened · CURRENT live forest now · DERIVED counted or calculated from records when shown · RECONSTRUCTED pieced together from other records · SESSION-ONLY not saved · NOT RECORDED the save holds no such fact.
+WORK DONE
+DERIVED
+18 tree(s) thinned (contractor)
+Show recorded details · 18 tasks · 9 map squares
+DERIVED
+Harvest job · year 2: 18 harvest order(s) settled together as one job.
+RECORDED
+Timber income €55.03 · harvesting cost €2500.00.
+The records hold one settlement for the whole job, so no money is shown per order or per tree. The year number labels the job; it is not a unique job ID.
+DERIVED
+No tasks failed.
+MONEY
+RECORDED
+Timber sold · Pulp (0.088 m³)
++€2.97
+RECORDED
+Timber sold · Stake (0.884 m³)
++€36.93
+RECORDED
+Timber sold · Pallet (0.250 m³)
++€15.13
+DERIVED
+Harvesting work
+−€30.94
+RECORDED
+Small-job minimum
+−€2469.06
+Timber sold and harvesting work above belong to one grouped harvest job for the year, not to single trees or orders.
+RECORDED
+Closing cash
+€7780.57
+RECORDED
+Your time used: 0 min of 40.0 h
+Saplings are paid for when bought from the nursery.
+FOREST
+DERIVED
+Canopy 0.98 → 0.97 (-0.01); average forest-floor light 0.02 → 0.03.
+DERIVED
+Areas with young regeneration: 51 (was 46) — Sitka spruce 51.
+An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.
+Retained material
+RECORDED
+Retained usable timber (this year)
+0.00 m³
+RECORDED
+Retained deadwood (new this year)
+0.00 m³
+RECORDED
+Fallen deadwood on site
+0 log(s) · 0.00 m³
+PRIOR TREATMENT · L4 MANAGEMENT GUIDANCE
+What to inspect before deciding again
+One recorded example per treatment in this year. These are inspection prompts, not a recommendation to carry out work. Observe the forest now separately from the earlier record.
+RECORDED
+Year 2 · event 486 · order 150: felled and extracted.
+RECORDED
+Map square H8
+L4 GUIDANCE · Look at canopy, young regeneration and the trees still standing before judging whether any further work is appropriate.
+Look at recorded map square
+DERIVED
+MANAGEMENT HISTORY · 2 interventions
+An intervention is a work plan that was carried out in one year: felling, pruning, planting, protection or other commissioned work.
+Intervention 1 · year 1
+Read year 1
+DERIVED
+149 felled
+DERIVED
+Cost €2500.00 · timber income €725.54 · net −€1774.46 (the cost includes a €2178.79 small-job minimum)
+DERIVED
+That year: living trees 1344 → 1195 · canopy 0.98 → 0.98 · average forest-floor light 0.02 → 0.02 · areas with young regeneration 0 → 46.
+DERIVED
+By year 3: living trees 1195 → 1177 · canopy 0.98 → 0.97 · areas with young regeneration 46 → 79 · fallen deadwood 0.0 → 0.0 m³. Living trees by species: Sitka spruce 1195 → 1177.
+Intervention 2 · year 2
+Shown above
+DERIVED
+18 felled
+DERIVED
+Cost €2500.00 · timber income €55.03 · net −€2444.97 (the cost includes a €2469.06 small-job minimum)
+DERIVED
+That year: living trees 1195 → 1177 · canopy 0.98 → 0.97 · average forest-floor light 0.02 → 0.03 · areas with young regeneration 46 → 51.
+DERIVED
+By year 3: living trees 1177 → 1177 · canopy 0.97 → 0.97 · areas with young regeneration 51 → 79 · fallen deadwood 0.0 → 0.0 m³.
+These are changes recorded after the work, not proof that the work caused them: growth, seed, light and weather act in the same years.
+CURRENT
+2 open orders need attention. Open the Work Plan [Tab] to review them.
+TRENDS
+DERIVED
+Drawn from the saved annual reports and snapshots of up to the last 12 years; the strip itself is not saved.
+Cash at year end
+Y1
+Y2
+Y3
+Latest: €7780.57
+Canopy cover (objective ≥ 0.35)
+Y0
+Y1
+Y2
+Y3
+Latest: 0.97
+OBJECTIVES 4 OF 8 (current state)
+CURRENT
+○ open · Reach the management review year: 3 / 25
+CURRENT
+✓ done · Retain original canopy trees: 1177 / 240
+RECORDED
+First reached in year 1 (recorded)
+CURRENT
+✓ done · Keep continuous canopy: 0.97 / 0.35
+RECORDED
+First reached in year 1 (recorded)
+CURRENT
+✓ done · Young trees present in 79 areas (at least 12 needed)
+RECORDED
+First reached in year 1 (recorded)
+CURRENT
+○ open · Retain fallen deadwood: 0 / 0.08
+CURRENT
+✓ done · Carry out a commissioned thinning: 1 / 1
+RECORDED
+First reached in year 1 (recorded)
+CURRENT
+○ open · Establish planted beech: 0 / 1
+CURRENT
+○ open · Establish planted Sessile oak: 0 / 1
+2 planned orders from earlier need attention in the Work Plan. · Current objective: 4. Plan and carry out the intervention · [O] Details
+
+
+Read WORK DONE, MONEY and FOREST. One thinning does not finish continuous-cover forestry: when you have read them, walk back, inspect how the forest responded and reassess before the next intervention.
+I've read the annual results

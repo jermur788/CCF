@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity",
+    "-projectPath",
+    "/media/jer/ZX20/CCF-U1",
+    "-logFile",
+    "/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/unity.log",
+    "-executeMethod",
+    "S1DPreviousProposedUnityGate.Begin"
+  ],
+  "head": "4ddf4aa535d4ec5267be46d2635679411d595e0f",
+  "lock_id": "99b03d5c85ae4819b7d5f6047194e820",
+  "task_id": "S1D-T05-UNITY",
+  "owner": "Claude-S1D-T05",
+  "gate": "s1d-t05",
+  "mode": "candidate",
+  "unity_exit": 0,
+  "driver_issue": null,
+  "seconds": 133.08,
+  "pass_marker": true,
+  "failures": [],
+  "harness_removed": true,
+  "licence_copy_removed": true,
+  "cleanup_failures": [],
+  "remaining_lane_changes": "",
+  "host_saves_unchanged": true,
+  "isolated_saves_after_gate": {},
+  "disk_saves_created": [],
+  "pass": true
+}

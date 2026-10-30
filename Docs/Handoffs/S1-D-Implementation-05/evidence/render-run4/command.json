@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity",
+    "-projectPath",
+    "/media/jer/ZX20/CCF-U1",
+    "-logFile",
+    "/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/unity.log",
+    "-executeMethod",
+    "S1DPreviousProposedUnityGate.Begin"
+  ],
+  "mode": "candidate",
+  "root": "/media/jer/ZX20/CCF-U1",
+  "expected_head": "4ddf4aa535d4ec5267be46d2635679411d595e0f",
+  "gate": "s1d-t05",
+  "lock_id": "99b03d5c85ae4819b7d5f6047194e820",
+  "task_id": "S1D-T05-UNITY",
+  "owner": "Claude-S1D-T05",
+  "harness": "S1DPreviousProposedUnityGate.cs",
+  "compile_receipt_note": null,
+  "harness_sha256": "c4f1966c7c631fe3226a18956155f35af0ee9f902188828d1a97aacf9d36a9ce",
+  "runner_sha256": "835ae5e721bec3dc6924ded8126a9178789099a835d9d500e2bf39077bd9454d",
+  "verification_environment": {
+    "DISPLAY": ":84",
+    "XDG_CONFIG_HOME": "/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/config",
+    "CCF_DIAG_DIR": "/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/evidence",
+    "CCF_UI_SIZES": "1280x720,1920x1080",
+    "CCF_ACCEPTANCE_OUTPUT": "/media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/evidence",
+    "CCF_T02_MODE": "candidate",
+    "CCF_T03_LEGACY": "0",
+    "TMPDIR": "/tmp/",
+    "CCF_TEST_DIRECT_ENTRY": "1"
+  }
+}

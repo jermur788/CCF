@@ -1,0 +1,590 @@
+result: PASS
+checks passed: 579  failed: 0  shots: 12
+
+NOTES
+- History years present at year 3: 1,2,3
+- In-memory fixture edits only: order #254 Approved createdYear 1; #256 createdYear 7; #257 createdYear -5. Nothing saved.
+- Expected groups at year 3: Approved 1, Pending new 2, Pending carried over 87; future-year 1
+- AC-5: Executed work is shown only by Annual Review 'Work done' (S1-C history); Work Plan groups hold open work only. An unplanned Fell mark exists as a mark with no order and appears in no group until the Work Plan adopts it.
+- UI callbacks drive the actual UI Toolkit controls; OS-native pointer targeting is not qualified by this gate.
+
+CHECK LIST
+S1D_T05_UNITY_CHECK_PASS SCENE_COMPONENTS_READY
+S1D_T05_UNITY_CHECK_PASS ISOLATED_PERSISTENT_PATH /media/jer/Files/CCF/Verification/S1-D-T05-Unity-20261030/out/render-run4/config/unity3d/DefaultCompany/CCF
+S1D_T05_UNITY_CHECK_PASS ISOLATED_SAVE_SLOT_STARTS_EMPTY
+S1D_T05_UNITY_CHECK_PASS PRODUCTION_ENLARGED80_RACK_V2_WORLD
+S1D_T05_UNITY_CHECK_PASS QUALIFIED_ENTRANCE_PRESENT PO0203
+S1D_T05_UNITY_CHECK_PASS RACK_ADDED Added rack 1 to the plan (30 trees). Confirm the rack plan to put its removal work in the Work Plan.
+S1D_T05_UNITY_CHECK_PASS QUALIFIED_ENTRANCE_PRESENT PO1204
+S1D_T05_UNITY_CHECK_PASS RACK_ADDED Added rack 2 to the plan (18 trees). Confirm the rack plan to put its removal work in the Work Plan.
+S1D_T05_UNITY_CHECK_PASS QUALIFIED_ENTRANCE_PRESENT PO2003
+S1D_T05_UNITY_CHECK_PASS RACK_ADDED Added rack 3 to the plan (34 trees). Confirm the rack plan to put its removal work in the Work Plan.
+S1D_T05_UNITY_CHECK_PASS QUALIFIED_ENTRANCE_PRESENT PO2803
+S1D_T05_UNITY_CHECK_PASS RACK_ADDED Added rack 4 to the plan (36 trees). Confirm the rack plan to put its removal work in the Work Plan.
+S1D_T05_UNITY_CHECK_PASS QUALIFIED_ENTRANCE_PRESENT PO3803
+S1D_T05_UNITY_CHECK_PASS RACK_ADDED Added rack 5 to the plan (31 trees). Confirm the rack plan to put its removal work in the Work Plan.
+S1D_T05_UNITY_CHECK_PASS RACK_PLAN_CONFIRMED
+S1D_T05_UNITY_CHECK_PASS CYCLE1_APPROVE Approved 149 tasks for €2500.00.
+S1D_T05_UNITY_CHECK_PASS CYCLE1_ADVANCE Year 1 complete: 149 task(s), cost €2500.00, timber €725.54, closing cash €10225.54.
+S1D_T05_UNITY_CHECK_PASS SAMPLE_CROP_ALIVE P0810
+S1D_T05_UNITY_CHECK_PASS SAMPLE_CROP_ALIVE P1206
+S1D_T05_UNITY_CHECK_PASS SAMPLE_CROP_ALIVE P1214
+S1D_T05_UNITY_CHECK_PASS SAMPLE_QUALIFIES
+S1D_T05_UNITY_CHECK_PASS RELEASE_PLANNED
+S1D_T05_UNITY_CHECK_PASS CYCLE2_APPROVE Approved 18 tasks for €2500.00.
+S1D_T05_UNITY_CHECK_PASS CYCLE2_ADVANCE Year 2 complete: 18 task(s), cost €2500.00, timber €55.03, closing cash €7780.57.
+S1D_T05_UNITY_CHECK_PASS COVERAGE_VALID
+S1D_T05_UNITY_CHECK_PASS COVERED_UNITS_EXIST
+S1D_T05_UNITY_CHECK_PASS CANDIDATES_SUGGESTED
+S1D_T05_UNITY_CHECK_PASS PRESCRIPTION_ACCEPTED
+S1D_T05_UNITY_CHECK_PASS PRESCRIPTION_ACCEPTANCE_CREATES_NO_OPEN_WORK
+S1D_T05_UNITY_CHECK_PASS PRESCRIPTION_APPROVED Prescription 1 approved: 86 pending tasks added to the Work Plan. They are not approved yet.
+S1D_T05_UNITY_CHECK_PASS MFM_APPROVAL_CREATES_ORDINARY_PENDING_ORDERS 86 orders
+S1D_T05_UNITY_CHECK_PASS MFM_APPROVAL_IS_NOT_WORK_PLAN_APPROVAL
+S1D_T05_UNITY_CHECK_PASS TARGET_RENDER_SIZE_1280x720 actual=1280x720
+S1D_T05_UNITY_CHECK_PASS GROUP_CARD_PRESENT_MFM_PENDING_1280x720
+S1D_T05_UNITY_CHECK_PASS WORK_PLAN_APPROVAL_IS_THE_COMMITMENT_GATE_1280x720
+S1D_T05_UNITY_CHECK_PASS MFM_PROVENANCE_UNDER_PENDING_NEW_1280x720
+S1D_T05_UNITY_CHECK_PASS NOTHING_APPROVED_YET_1280x720 Approved · 0
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_mfm-pending-new-year2 capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_mfm-pending-new-year2
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS TARGET_RENDER_SIZE_1920x1080 actual=1920x1080
+S1D_T05_UNITY_CHECK_PASS GROUP_CARD_PRESENT_MFM_PENDING_1920x1080
+S1D_T05_UNITY_CHECK_PASS WORK_PLAN_APPROVAL_IS_THE_COMMITMENT_GATE_1920x1080
+S1D_T05_UNITY_CHECK_PASS MFM_PROVENANCE_UNDER_PENDING_NEW_1920x1080
+S1D_T05_UNITY_CHECK_PASS NOTHING_APPROVED_YET_1920x1080 Approved · 0
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_mfm-pending-new-year2 capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_mfm-pending-new-year2
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_mfm-pending-new
+S1D_T05_UNITY_CHECK_PASS CYCLE3_ADVANCE_IDLE Year 3 complete: 0 task(s), cost €0.00, timber €0.00, closing cash €7780.57.
+S1D_T05_UNITY_CHECK_PASS MFM_WORK_CARRIED_OVER_UNAPPROVED
+S1D_T05_UNITY_CHECK_PASS THREE_COMPLETED_CYCLES_IN_HISTORY 1,2,3
+S1D_T05_UNITY_CHECK_PASS NO_FELL_MARK_BEFORE_UNPLANNED_FIXTURE
+S1D_T05_UNITY_CHECK_PASS FREE_TREES_FOR_FIXTURE 1071
+S1D_T05_UNITY_CHECK_PASS UNPLANNED_FELL_MARK_HAS_NO_ORDER
+S1D_T05_UNITY_CHECK_PASS UNPLANNED_MARK_BECOMES_ORDINARY_PENDING_NEW_ONLY_WHEN_WORK_PLAN_OPENS
+S1D_T05_UNITY_CHECK_PASS FIXTURE_HAS_ALL_THREE_GROUPS_PLUS_FUTURE_AND_MISSING
+S1D_T05_UNITY_CHECK_PASS TARGET_RENDER_SIZE_1280x720 actual=1280x720
+S1D_T05_UNITY_CHECK_PASS GROUP_CARD_PRESENT_1280x720
+S1D_T05_UNITY_CHECK_PASS GROUPS_COLLAPSED_BY_DEFAULT_1280x720
+S1D_T05_UNITY_CHECK_PASS GROUP_LABELS_AND_COUNTS_1280x720 Approved · 1 | Pending new · 2 | Pending carried over · 87
+S1D_T05_UNITY_CHECK_PASS EXACTLY_THREE_GROUPS_1280x720
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-collapsed capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS APPROVED_ORDER_ONLY_IN_APPROVED_1280x720
+S1D_T05_UNITY_CHECK_PASS PENDING_NEW_ONLY_CREATED_THIS_YEAR_1280x720
+S1D_T05_UNITY_CHECK_PASS CARRIED_OVER_HAS_MFM_AND_MISSING_YEAR_ORDERS_1280x720
+S1D_T05_UNITY_CHECK_PASS MFM_PROVENANCE_STILL_ORDINARY_PENDING_CARRIED_1280x720
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_ORDER_IN_NO_GROUP_1280x720
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_SURFACED_AS_INCONSISTENT_1280x720
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_NOT_LABELLED_NEW_OR_CARRIED_1280x720
+S1D_T05_UNITY_CHECK_PASS ADOPTED_MARK_IS_IN_PENDING_NEW_ONLY_1280x720
+S1D_T05_UNITY_CHECK_PASS LINKS_ONLY_FOR_EXISTING_CREATION_YEARS_1280x720 workplan-origin-254,workplan-origin-168,workplan-origin-169,workplan-origin-170,workplan-origin-171,workplan-origin-172,workplan-origin-173,workplan-origin-174,workplan-origin-175,workplan-origin-176,workplan-origin-177,workplan-origin-178,workplan-origin-179,workplan-origin-180,workplan-origin-181,workplan-origin-182,workplan-origin-183,workplan-origin-184,workplan-origin-185,workplan-origin-186,workplan-origin-187,workplan-origin-188,workplan-origin-189,workplan-origin-190,workplan-origin-191,workplan-origin-192,workplan-origin-193,workplan-origin-194,workplan-origin-195,workplan-origin-196,workplan-origin-197,workplan-origin-198,workplan-origin-199,workplan-origin-200,workplan-origin-201,workplan-origin-202,workplan-origin-203,workplan-origin-204,workplan-origin-205,workplan-origin-206,workplan-origin-207,workplan-origin-208,workplan-origin-209,workplan-origin-210,workplan-origin-211,workplan-origin-212,workplan-origin-213,workplan-origin-214,workplan-origin-215,workplan-origin-216,workplan-origin-217,workplan-origin-218,workplan-origin-219,workplan-origin-220,workplan-origin-221,workplan-origin-222,workplan-origin-223,workplan-origin-224,workplan-origin-225,workplan-origin-226,workplan-origin-227,workplan-origin-228,workplan-origin-229,workplan-origin-230,workplan-origin-231,workplan-origin-232,workplan-origin-233,workplan-origin-234,workplan-origin-235,workplan-origin-236,workplan-origin-237,workplan-origin-238,workplan-origin-239,workplan-origin-240,workplan-origin-241,workplan-origin-242,workplan-origin-243,workplan-origin-244,workplan-origin-245,workplan-origin-246,workplan-origin-247,workplan-origin-248,workplan-origin-249,workplan-origin-250,workplan-origin-251,workplan-origin-252,workplan-origin-253 vs workplan-origin-168,workplan-origin-169,workplan-origin-170,workplan-origin-171,workplan-origin-172,workplan-origin-173,workplan-origin-174,workplan-origin-175,workplan-origin-176,workplan-origin-177,workplan-origin-178,workplan-origin-179,workplan-origin-180,workplan-origin-181,workplan-origin-182,workplan-origin-183,workplan-origin-184,workplan-origin-185,workplan-origin-186,workplan-origin-187,workplan-origin-188,workplan-origin-189,workplan-origin-190,workplan-origin-191,workplan-origin-192,workplan-origin-193,workplan-origin-194,workplan-origin-195,workplan-origin-196,workplan-origin-197,workplan-origin-198,workplan-origin-199,workplan-origin-200,workplan-origin-201,workplan-origin-202,workplan-origin-203,workplan-origin-204,workplan-origin-205,workplan-origin-206,workplan-origin-207,workplan-origin-208,workplan-origin-209,workplan-origin-210,workplan-origin-211,workplan-origin-212,workplan-origin-213,workplan-origin-214,workplan-origin-215,workplan-origin-216,workplan-origin-217,workplan-origin-218,workplan-origin-219,workplan-origin-220,workplan-origin-221,workplan-origin-222,workplan-origin-223,workplan-origin-224,workplan-origin-225,workplan-origin-226,workplan-origin-227,workplan-origin-228,workplan-origin-229,workplan-origin-230,workplan-origin-231,workplan-origin-232,workplan-origin-233,workplan-origin-234,workplan-origin-235,workplan-origin-236,workplan-origin-237,workplan-origin-238,workplan-origin-239,workplan-origin-240,workplan-origin-241,workplan-origin-242,workplan-origin-243,workplan-origin-244,workplan-origin-245,workplan-origin-246,workplan-origin-247,workplan-origin-248,workplan-origin-249,workplan-origin-250,workplan-origin-251,workplan-origin-252,workplan-origin-253,workplan-origin-254
+S1D_T05_UNITY_CHECK_PASS LINK_LABELS_SAY_CREATION_YEAR_NOT_APPROVAL_OR_CAUSE_1280x720 Creation-year review · Year 1|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2
+S1D_T05_UNITY_CHECK_PASS NO_LINK_FOR_NEW_MISSING_OR_FUTURE_1280x720
+S1D_T05_UNITY_CHECK_PASS MISSING_YEAR_SAYS_NOT_RECORDED_1280x720
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-expanded capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-254 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-168 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-169 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-170 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-171 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-172 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-173 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-174 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-175 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-176 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-177 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-178 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-179 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-180 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-181 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-182 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-183 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-184 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-185 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-186 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-187 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-188 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-189 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-190 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-191 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-192 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-193 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-194 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-195 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-196 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-197 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-198 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-199 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-200 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-201 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-202 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-203 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-204 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-205 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-206 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-207 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-208 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-209 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-210 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-211 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-212 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-213 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-214 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-215 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-216 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-217 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-218 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-219 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-220 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-221 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-222 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-223 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-224 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-225 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-226 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-227 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-228 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-229 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-230 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-231 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-232 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-233 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-234 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-235 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-236 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-237 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-238 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-239 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-240 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-241 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-242 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-243 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-244 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-245 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-246 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-247 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-248 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-249 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-250 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-251 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-252 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded_workplan-origin-253 253x33
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-expanded-scrolled capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-254 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-168 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-169 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-170 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-171 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-172 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-173 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-174 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-175 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-176 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-177 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-178 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-179 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-180 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-181 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-182 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-183 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-184 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-185 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-186 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-187 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-188 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-189 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-190 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-191 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-192 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-193 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-194 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-195 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-196 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-197 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-198 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-199 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-200 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-201 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-202 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-203 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-204 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-205 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-206 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-207 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-208 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-209 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-210 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-211 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-212 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-213 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-214 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-215 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-216 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-217 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-218 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-219 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-220 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-221 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-222 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-223 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-224 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-225 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-226 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-227 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-228 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-229 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-230 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-231 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-232 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-233 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-234 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-235 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-236 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-237 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-238 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-239 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-240 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-241 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-242 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-243 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-244 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-245 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-246 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-247 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-248 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-249 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-250 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-251 253x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-252 253x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-253 253x33
+S1D_T05_UNITY_CHECK_PASS NAV_PRECONDITION_1280x720
+S1D_T05_UNITY_CHECK_PASS BUTTON_ENABLED_workplan-origin-168
+S1D_T05_UNITY_CHECK_PASS LINK_OPENS_ANNUAL_REVIEW_year2_1280x720
+S1D_T05_UNITY_CHECK_PASS REVIEW_ARRIVES_ON_EXACT_CREATION_YEAR_2_1280x720 title=Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS YEAR_NOT_RESET_TO_LATEST_AFTER_REFRESH_2_1280x720 title=Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_TITLE_2_1280x720 Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_REVIEW_HAS_NO_ACKNOWLEDGE_2_1280x720
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_NAVIGATION_2_1280x720
+S1D_T05_UNITY_CHECK_PASS REVIEW_SHOWS_EXECUTED_WORK_SECTION_2_1280x720
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_creation-year-review-year2 capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 136x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 126x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 100x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 139x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 156x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 210x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_work-detail-toggle-done-FellTree 304x51
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_prior-treatment-guidance-toggle 1095x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 123x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year2_ 134x31
+S1D_T05_UNITY_CHECK_PASS BUTTON_ENABLED_workplan-origin-254
+S1D_T05_UNITY_CHECK_PASS LINK_OPENS_ANNUAL_REVIEW_year1_1280x720
+S1D_T05_UNITY_CHECK_PASS REVIEW_ARRIVES_ON_EXACT_CREATION_YEAR_1_1280x720 title=Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS YEAR_NOT_RESET_TO_LATEST_AFTER_REFRESH_1_1280x720 title=Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_TITLE_1_1280x720 Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_REVIEW_HAS_NO_ACKNOWLEDGE_1_1280x720
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_NAVIGATION_1_1280x720
+S1D_T05_UNITY_CHECK_PASS REVIEW_SHOWS_EXECUTED_WORK_SECTION_1_1280x720
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_creation-year-review-year1 capture=1280x720 target=1280x720
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1280x720]_AUDIT_HAS_TEXT_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_INSIDE_PANEL_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1280x720]_TEXT_NOT_CLIPPED_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 136x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 126x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 100x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 139x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 156x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 210x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_work-detail-toggle-done-FellTree 324x51
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_prior-treatment-guidance-toggle 1095x33
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 134x31
+S1D_T05_UNITY_CHECK_PASS [1280x720]_BUTTON_USABLE_creation-year-review-year1_ 123x31
+S1D_T05_UNITY_CHECK_PASS MISSING_YEAR_REFUSED_1280x720 year -5
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_REFUSED_1280x720
+S1D_T05_UNITY_CHECK_PASS NEGATIVE_YEAR_REFUSED_1280x720
+S1D_T05_UNITY_CHECK_PASS REFUSED_YEAR_LEAVES_WORK_PLAN_OPEN_NO_LATEST_FALLBACK_1280x720 None
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_REFUSED_YEARS_1280x720
+S1D_T05_UNITY_CHECK_PASS ORDINARY_REVIEW_ENTRY_STILL_OPENS_LATEST_1280x720 Annual review · Year 3 complete
+S1D_T05_UNITY_CHECK_PASS TARGET_RENDER_SIZE_1920x1080 actual=1920x1080
+S1D_T05_UNITY_CHECK_PASS GROUP_CARD_PRESENT_1920x1080
+S1D_T05_UNITY_CHECK_PASS GROUPS_COLLAPSED_BY_DEFAULT_1920x1080
+S1D_T05_UNITY_CHECK_PASS GROUP_LABELS_AND_COUNTS_1920x1080 Approved · 1 | Pending new · 2 | Pending carried over · 87
+S1D_T05_UNITY_CHECK_PASS EXACTLY_THREE_GROUPS_1920x1080
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-collapsed capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_groups-collapsed
+S1D_T05_UNITY_CHECK_PASS APPROVED_ORDER_ONLY_IN_APPROVED_1920x1080
+S1D_T05_UNITY_CHECK_PASS PENDING_NEW_ONLY_CREATED_THIS_YEAR_1920x1080
+S1D_T05_UNITY_CHECK_PASS CARRIED_OVER_HAS_MFM_AND_MISSING_YEAR_ORDERS_1920x1080
+S1D_T05_UNITY_CHECK_PASS MFM_PROVENANCE_STILL_ORDINARY_PENDING_CARRIED_1920x1080
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_ORDER_IN_NO_GROUP_1920x1080
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_SURFACED_AS_INCONSISTENT_1920x1080
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_NOT_LABELLED_NEW_OR_CARRIED_1920x1080
+S1D_T05_UNITY_CHECK_PASS ADOPTED_MARK_IS_IN_PENDING_NEW_ONLY_1920x1080
+S1D_T05_UNITY_CHECK_PASS LINKS_ONLY_FOR_EXISTING_CREATION_YEARS_1920x1080 workplan-origin-254,workplan-origin-168,workplan-origin-169,workplan-origin-170,workplan-origin-171,workplan-origin-172,workplan-origin-173,workplan-origin-174,workplan-origin-175,workplan-origin-176,workplan-origin-177,workplan-origin-178,workplan-origin-179,workplan-origin-180,workplan-origin-181,workplan-origin-182,workplan-origin-183,workplan-origin-184,workplan-origin-185,workplan-origin-186,workplan-origin-187,workplan-origin-188,workplan-origin-189,workplan-origin-190,workplan-origin-191,workplan-origin-192,workplan-origin-193,workplan-origin-194,workplan-origin-195,workplan-origin-196,workplan-origin-197,workplan-origin-198,workplan-origin-199,workplan-origin-200,workplan-origin-201,workplan-origin-202,workplan-origin-203,workplan-origin-204,workplan-origin-205,workplan-origin-206,workplan-origin-207,workplan-origin-208,workplan-origin-209,workplan-origin-210,workplan-origin-211,workplan-origin-212,workplan-origin-213,workplan-origin-214,workplan-origin-215,workplan-origin-216,workplan-origin-217,workplan-origin-218,workplan-origin-219,workplan-origin-220,workplan-origin-221,workplan-origin-222,workplan-origin-223,workplan-origin-224,workplan-origin-225,workplan-origin-226,workplan-origin-227,workplan-origin-228,workplan-origin-229,workplan-origin-230,workplan-origin-231,workplan-origin-232,workplan-origin-233,workplan-origin-234,workplan-origin-235,workplan-origin-236,workplan-origin-237,workplan-origin-238,workplan-origin-239,workplan-origin-240,workplan-origin-241,workplan-origin-242,workplan-origin-243,workplan-origin-244,workplan-origin-245,workplan-origin-246,workplan-origin-247,workplan-origin-248,workplan-origin-249,workplan-origin-250,workplan-origin-251,workplan-origin-252,workplan-origin-253 vs workplan-origin-168,workplan-origin-169,workplan-origin-170,workplan-origin-171,workplan-origin-172,workplan-origin-173,workplan-origin-174,workplan-origin-175,workplan-origin-176,workplan-origin-177,workplan-origin-178,workplan-origin-179,workplan-origin-180,workplan-origin-181,workplan-origin-182,workplan-origin-183,workplan-origin-184,workplan-origin-185,workplan-origin-186,workplan-origin-187,workplan-origin-188,workplan-origin-189,workplan-origin-190,workplan-origin-191,workplan-origin-192,workplan-origin-193,workplan-origin-194,workplan-origin-195,workplan-origin-196,workplan-origin-197,workplan-origin-198,workplan-origin-199,workplan-origin-200,workplan-origin-201,workplan-origin-202,workplan-origin-203,workplan-origin-204,workplan-origin-205,workplan-origin-206,workplan-origin-207,workplan-origin-208,workplan-origin-209,workplan-origin-210,workplan-origin-211,workplan-origin-212,workplan-origin-213,workplan-origin-214,workplan-origin-215,workplan-origin-216,workplan-origin-217,workplan-origin-218,workplan-origin-219,workplan-origin-220,workplan-origin-221,workplan-origin-222,workplan-origin-223,workplan-origin-224,workplan-origin-225,workplan-origin-226,workplan-origin-227,workplan-origin-228,workplan-origin-229,workplan-origin-230,workplan-origin-231,workplan-origin-232,workplan-origin-233,workplan-origin-234,workplan-origin-235,workplan-origin-236,workplan-origin-237,workplan-origin-238,workplan-origin-239,workplan-origin-240,workplan-origin-241,workplan-origin-242,workplan-origin-243,workplan-origin-244,workplan-origin-245,workplan-origin-246,workplan-origin-247,workplan-origin-248,workplan-origin-249,workplan-origin-250,workplan-origin-251,workplan-origin-252,workplan-origin-253,workplan-origin-254
+S1D_T05_UNITY_CHECK_PASS LINK_LABELS_SAY_CREATION_YEAR_NOT_APPROVAL_OR_CAUSE_1920x1080 Creation-year review · Year 1|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2|Creation-year review · Year 2
+S1D_T05_UNITY_CHECK_PASS NO_LINK_FOR_NEW_MISSING_OR_FUTURE_1920x1080
+S1D_T05_UNITY_CHECK_PASS MISSING_YEAR_SAYS_NOT_RECORDED_1920x1080
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-expanded capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_groups-expanded
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-254 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-168 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-169 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-170 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-171 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-172 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-173 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-174 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-175 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-176 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-177 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-178 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-179 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-180 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-181 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-182 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-183 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-184 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-185 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-186 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-187 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-188 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-189 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-190 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-191 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-192 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-193 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-194 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-195 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-196 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-197 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-198 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-199 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-200 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-201 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-202 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-203 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-204 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-205 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-206 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-207 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-208 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-209 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-210 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-211 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-212 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-213 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-214 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-215 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-216 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-217 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-218 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-219 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-220 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-221 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-222 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-223 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-224 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-225 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-226 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-227 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-228 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-229 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-230 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-231 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-232 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-233 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-234 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-235 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-236 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-237 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-238 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-239 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-240 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-241 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-242 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-243 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-244 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-245 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-246 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-247 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-248 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-249 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-250 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-251 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-252 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded_workplan-origin-253 237x32
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_groups-expanded-scrolled capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_groups-expanded-scrolled
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-254 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-168 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-169 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-170 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-171 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-172 238x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-173 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-174 238x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-175 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-176 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-177 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-178 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-179 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-180 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-181 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-182 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-183 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-184 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-185 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-186 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-187 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-188 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-189 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-190 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-191 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-192 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-193 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-194 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-195 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-196 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-197 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-198 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-199 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-200 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-201 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-202 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-203 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-204 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-205 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-206 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-207 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-208 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-209 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-210 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-211 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-212 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-213 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-214 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-215 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-216 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-217 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-218 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-219 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-220 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-221 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-222 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-223 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-224 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-225 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-226 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-227 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-228 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-229 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-230 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-231 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-232 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-233 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-234 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-235 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-236 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-237 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-238 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-239 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-240 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-241 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-242 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-243 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-244 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-245 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-246 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-247 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-248 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-249 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-250 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-251 237x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-252 237x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_groups-expanded-scrolled_workplan-origin-253 237x32
+S1D_T05_UNITY_CHECK_PASS NAV_PRECONDITION_1920x1080
+S1D_T05_UNITY_CHECK_PASS BUTTON_ENABLED_workplan-origin-168
+S1D_T05_UNITY_CHECK_PASS LINK_OPENS_ANNUAL_REVIEW_year2_1920x1080
+S1D_T05_UNITY_CHECK_PASS REVIEW_ARRIVES_ON_EXACT_CREATION_YEAR_2_1920x1080 title=Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS YEAR_NOT_RESET_TO_LATEST_AFTER_REFRESH_2_1920x1080 title=Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_TITLE_2_1920x1080 Annual review · Year 2 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_REVIEW_HAS_NO_ACKNOWLEDGE_2_1920x1080
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_NAVIGATION_2_1920x1080
+S1D_T05_UNITY_CHECK_PASS REVIEW_SHOWS_EXECUTED_WORK_SECTION_2_1920x1080
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_creation-year-review-year2 capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_creation-year-review-year2
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 128x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 118x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 93x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 130x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 147x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 198x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_work-detail-toggle-done-FellTree 323x48
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_prior-treatment-guidance-toggle 1088x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 115x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year2_ 125x33
+S1D_T05_UNITY_CHECK_PASS BUTTON_ENABLED_workplan-origin-254
+S1D_T05_UNITY_CHECK_PASS LINK_OPENS_ANNUAL_REVIEW_year1_1920x1080
+S1D_T05_UNITY_CHECK_PASS REVIEW_ARRIVES_ON_EXACT_CREATION_YEAR_1_1920x1080 title=Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS YEAR_NOT_RESET_TO_LATEST_AFTER_REFRESH_1_1920x1080 title=Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_TITLE_1_1920x1080 Annual review · Year 1 (earlier year; latest is Year 3)
+S1D_T05_UNITY_CHECK_PASS HISTORICAL_REVIEW_HAS_NO_ACKNOWLEDGE_1_1920x1080
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_NAVIGATION_1_1920x1080
+S1D_T05_UNITY_CHECK_PASS REVIEW_SHOWS_EXECUTED_WORK_SECTION_1_1920x1080
+S1D_T05_UNITY_CHECK_PASS CAPTURE_SIZE_creation-year-review-year1 capture=1920x1080 target=1920x1080
+S1D_T05_UNITY_CHECK_PASS SHOT_NOT_BLANK_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_AUDIT_HAS_TEXT_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_INSIDE_PANEL_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_TEXT_NOT_CLIPPED_creation-year-review-year1
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 128x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 118x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 93x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 130x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 147x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 198x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_work-detail-toggle-done-FellTree 305x48
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_prior-treatment-guidance-toggle 1088x32
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 125x33
+S1D_T05_UNITY_CHECK_PASS [1920x1080]_BUTTON_USABLE_creation-year-review-year1_ 115x33
+S1D_T05_UNITY_CHECK_PASS MISSING_YEAR_REFUSED_1920x1080 year -5
+S1D_T05_UNITY_CHECK_PASS FUTURE_YEAR_REFUSED_1920x1080
+S1D_T05_UNITY_CHECK_PASS NEGATIVE_YEAR_REFUSED_1920x1080
+S1D_T05_UNITY_CHECK_PASS REFUSED_YEAR_LEAVES_WORK_PLAN_OPEN_NO_LATEST_FALLBACK_1920x1080 None
+S1D_T05_UNITY_CHECK_PASS WORLD_SAVE_ORDERS_ACK_UNCHANGED_AFTER_REFUSED_YEARS_1920x1080
+S1D_T05_UNITY_CHECK_PASS ORDINARY_REVIEW_ENTRY_STILL_OPENS_LATEST_1920x1080 Annual review · Year 3 complete
+S1D_T05_UNITY_CHECK_PASS ORIGINAL_WORLD_RESTORED_IN_MEMORY
