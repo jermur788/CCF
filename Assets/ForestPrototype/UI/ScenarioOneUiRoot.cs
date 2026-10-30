@@ -476,6 +476,18 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         SetScreen(UiScreen.Review);
     }
 
+    // TryShowYear validates before any panel changes. Open the same review surface without the
+    // normal SetScreen(Review) route resetting its deliberate selection to ShowLatest().
+    public bool TryShowReviewYear(int year)
+    {
+        if (!review.TryShowYear(year)) return false;
+        manager.OpenWorkPlan(false);
+        screen = UiScreen.Review;
+        CloseHelp();
+        manager.SetAuxiliaryPanelOpen(true);
+        return true;
+    }
+
     public void ShowMap()
     {
         manager.OpenWorkPlan(false);
