@@ -376,3 +376,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved; #124 NOT Unity-qualified.
 - **Failure classification if any:** one stale v23 harness assertion; one latched-load/harness-restore failure requiring root cause.
 - **Next action:** worker must root-cause both, repair harness or production only with evidence, rerun exact gates, and report NEEDS WORK/qualified honestly; do not integrate #124 until resolved.
+
+### EVENT — #124 Unity NEEDS WORK; #164 harness reconciliation created
+
+- **Work unit:** #124 Unity qualification result and bounded follow-up.
+- **Evidence class:** OBSERVED FACT (gate logs/result) + ORCHESTRATOR CLAIM (disposition).
+- **Previous provider/model:** Claude B Sonnet 5.5 medium (Unity worker).
+- **Selected provider/model:** Claude B Sonnet 5.5 medium for new #164.
+- **Alternatives considered:** DeepSeek V4.1 Flash; Claude A (reviewed #124 offline).
+- **Reason / routing rule:** failures are stale verification expectations exposed by v24, not accepted production gates; a bounded verification-only repair claim is required before #124 acceptance. Claude B has the exact Unity context.
+- **Capacity evidence:** Claude B completed #124 Unity without quota error; remaining quota UNKNOWN.
+- **Capacity source:** worker / T3.
+- **Reported reset/window:** UNKNOWN.
+- **Previous failure/outcome influencing decision:** T-04 guide harness passes 93 checks; #143 core gates pass; TeachingCopy asserts v23 and stale PARITY-07 copy; RackLesson expects pre-v24 index 4 after reload; teaching-latch runner receipt exit -9 after PASS; first history run blank/timeout but rerun passed; S1-C T-04/T-06 not run.
+- **Branch/worktree or browser lane:** #124 candidate `c838aca` / production `bccd2b90`; U1 released, clean at `b9bf11aa`; new #164 branch from `c838aca`.
+- **Result/evidence:** #124 NOT Unity-qualified. New claim **#164** created for verification-only harness reconciliation and rerun.
+- **Handoff/commit/claim reference:** `/media/jer/Files/CCF/Verification/S1D-T04-Unity-20261030/RESULT.md`; #124 comment `6513087927`; #164.
+- **Accepted / rejected / unresolved:** #124 unresolved/NEEDS WORK; #164 running.
+- **Failure classification if any:** stale harness expectations (v23, pre-D-066 reload, PARITY-07 copy) + one runner hang/-9 + one environmental blank/timeout; no production regression found.
+- **Next action:** #164 offline harness repair then serialized Unity rerun; do not integrate #124 until it passes.
