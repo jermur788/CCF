@@ -539,8 +539,9 @@ public sealed class S1DPreviousProposedUnityGateRunner : MonoBehaviour
             Rect r = element.worldBound;
             if (r.xMin < panel.xMin - 1.5f || r.xMax > panel.xMax + 1.5f) overflow.Add(Short(element.text) + $" [{r.xMin:0}..{r.xMax:0} vs {panel.xMin:0}..{panel.xMax:0}]");
             if (element.contentRect.width > 1f)
+            // Auto-sized labels sit at exactly their text width; measuring at that exact width can wrap on sub-pixel rounding (run 3: 36.7 vs 18.3 on single-line labels). 2 px tolerance still flags genuinely narrow boxes.
             {
-                Vector2 measured = element.MeasureTextSize(element.text, element.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
+                Vector2 measured = element.MeasureTextSize(element.text, element.contentRect.width + 2f, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
                 if (measured.y > element.contentRect.height + 1.5f) clipped.Add(Short(element.text) + $" [measured {measured.y:0.0} vs content {element.contentRect.height:0.0} w {element.contentRect.width:0.0} {element.name}]");
             }
         }
