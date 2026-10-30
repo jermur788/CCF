@@ -433,3 +433,21 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** offline candidate accepted for Unity; not Unity-qualified; #128 pending.
 - **Failure classification if any:** none; real production defect repaired.
 - **Next action:** serialized Unity gate on `3eb9c954`; then independent #128 review; do not integrate until both pass.
+
+### EVENT — #126 Unity PARTIAL: more stale v24 gates; #165 opened
+
+- **Work unit:** PARITY-08 Unity qualification.
+- **Evidence class:** OBSERVED FACT.
+- **Previous provider/model:** Claude B Sonnet 5.5 medium.
+- **Selected provider/model:** Claude B Sonnet 5.5 medium for #165.
+- **Reason / routing rule:** all species/v24 save/reference/latch gates pass cleanly; four historical gates lack clean receipts due to stale v23 pins and a runner isolated-save rule. Bounded verification repair, same class as #164.
+- **Capacity evidence:** Claude B completed without quota error; remaining UNKNOWN. OpenAI B exhausted, reset UNKNOWN.
+- **Capacity source:** worker / T3 / provider.
+- **Reported reset/window:** OpenAI B reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** #164 fixed two stale v24 harnesses; #126 exposed three more v23 pins plus a progress `.bak` runner rule.
+- **Branch/worktree or browser lane:** #126 candidate `3eb9c954`; U1 released clean at `b9bf11aa`; #165 branch from `185200f5`.
+- **Result/evidence:** clean passes: compile v24, hardening incl. unknown-species no-mutation, save 159, hash dump byte-identical, Reference Future, teaching-latch 60, approval 106, N3, interaction. Not clean: progress run 1 hang after PASS; progress rerun exit 0 but `.bak` isolated-save runner failure; completion/completion-model1 stale v23 pin at ScenarioOneCompletionVerification.cs:153; density-save stale v23 pin at DensityQualification.cs:952. No production regression seen. #128 not performed; no merge.
+- **Handoff/commit/claim reference:** `RESULT.md`; #126 comment `6514614077`; #165.
+- **Accepted / rejected / unresolved:** #126 NOT fully Unity-qualified; #165 running.
+- **Failure classification if any:** stale v24 harness/runner expectations + intermittent Editor exit hang; no production regression.
+- **Next action:** #165 repair + clean reruns on `3eb9c954`; then #128 independent review; do not integrate #126 until clean.
