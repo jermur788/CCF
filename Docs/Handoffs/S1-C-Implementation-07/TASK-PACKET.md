@@ -2,8 +2,16 @@
 
 **Parent:** #91 / local umbrella #106 / browser prep #186  
 **Spec:** `specs/scenario-one-review-history-v1/` T-07 / AC-10  
-**Status:** RELEASED FOR OFFLINE VERIFICATION  
-**Exact released base:** `8fa83bff22ea1b4943689bee1074eed8eae65d2f`
+**Status:** **RELEASED FOR OFFLINE VERIFICATION**  
+**Exact released base:** `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`
+
+## Repin note — 2026-10-30
+
+The original release base `8fa83bff22ea1b4943689bee1074eed8eae65d2f` has been superseded by the current Scenario One integration lineage after S1-D T-05 #151 was Manager-approved and integrated.
+
+The delta `8fa83bff...` → `ce673714...` contains only the accepted S1-D T-05 UI/presentation changes (`AnnualReviewView.cs`, `ScenarioOneUiRoot.cs`, `WorkPlanView.cs`), its focused verification harness and handoff docs. It does **not** change the S1-C history query/identity helper or the save/schema/validator/hash contract that T-07 verifies. T-07 therefore repins cleanly to `ce673714...` without changing scope.
+
+The Annual Review/root changes are consumed as integrated context only. T-07 owns no UI production edits.
 
 ## Purpose
 
@@ -23,12 +31,12 @@ Suggested branch/worktree: `verify/s1-c-t07-data-contract-v1` / `/media/jer/Vide
 
 Before edits:
 
-1. refresh #91/#106/#151, live `Docs/Project/coordination/active-tasks.md` and this packet;
-2. prove clean exact start `8fa83bff22ea1b4943689bee1074eed8eae65d2f` or a docs-only descendant with identical production;
+1. refresh #91/#106/#187, live `Docs/Project/coordination/active-tasks.md`, the current integration ref and this packet;
+2. prove clean exact start `ce6737146a7aa9ea953d7db0ca93b103f6c2c996` or a later Manager-published Scenario One integration descendant whose delta has been inspected and is production-compatible with this verification scope;
 3. confirm no writer owns the focused verification paths;
-4. mark the substantive claim `[RUNNING — OFFLINE]` with actual model/provider/branch/worktree/start SHA.
+4. mark claim #187 `[RUNNING — OFFLINE]` with actual model/provider/branch/worktree/start SHA.
 
-Do not touch #151-owned `WorkPlanView.cs`, `AnnualReviewView.cs` or `ScenarioOneUiRoot.cs`.
+Do not edit `WorkPlanView.cs`, `AnnualReviewView.cs` or `ScenarioOneUiRoot.cs`; they are integrated context, not T-07 ownership.
 
 ## Writable surface
 
@@ -76,6 +84,8 @@ Use at least one genuine supported pre-S1-C fixture:
 - missing newer provenance/identity data stays absent / `not recorded`, never synthesized;
 - query remains deterministic and non-mutating.
 
+Do **not** treat the previously corrected synthetic fixture labelled `v20-records` as the required genuine old save merely because of its name. Record the actual supported old-save source/identity used.
+
 ## Required negative / mutation controls
 
 Catch at least:
@@ -111,4 +121,4 @@ Success token:
 
 ## Copy/paste dispatch line
 
-`Run S1-C T-07 from Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md starting from exact 8fa83bff22ea1b4943689bee1074eed8eae65d2f (or a proven docs-only descendant after fresh preflight). Verification/docs only by default: prove stable event/work-order identities, append-only history meaning, harvestJobId's resolution-year limitation, genuine old-save behaviour and read purity with negative controls. Do not change save/schema/UI or take Unity automatically. Publish HANDOFF.md and return S1-C DATA CONTRACT STABILITY QUALIFIED — READY FOR MANAGER REVIEW or the exact blocker. No Windows build.`
+`Run S1-C T-07 from Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md starting from exact ce6737146a7aa9ea953d7db0ca93b103f6c2c996 (or a later Manager-inspected compatible integration descendant after fresh preflight). Verification/docs only by default: prove stable event/work-order identities, append-only history meaning, harvestJobId's resolution-year limitation, genuine old-save behaviour and read purity with negative controls. Do not change save/schema/UI or take Unity automatically. Publish HANDOFF.md and return S1-C DATA CONTRACT STABILITY QUALIFIED — READY FOR MANAGER REVIEW or the exact blocker. No Windows build.`
