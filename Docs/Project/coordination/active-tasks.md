@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-30 by Overall Manager / OpenAI GPT-5.6 Sol after #166 partial qualification and Manager baseline disposition.
+**Last reconciled:** 2026-10-30 by Overall Manager / OpenAI GPT-5.6 Sol after PARITY-08 #126 independent approval and integration.
 
 ## Coordination rules
 
@@ -18,16 +18,15 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 ## Current integration truth
 
-- Scenario One integration includes S1-D T-04P #143 and T-04 #124 at `185200f57140c65ed4d540ff0c4d173451170d14`, save schema v24.
+- Scenario One integration contains the accepted S1-C T-06, S1-D T-04P / T-04, MFM-08A and save schema v24 lineages.
 - Verification reconciliation #165 is Manager-approved/integrated. Worker tip `508c2d07741f97c47d9ed008306e30eb70666f72`; integration handoff/docs successor `b6b96cb3a51e80bd6b61df7dc73b1c1237950a32`.
-- PARITY-08 #126 exact production candidate is **`3eb9c954c363659a1b012e06ce58a35ab87f4303`**, not integrated. Production diff is limited to pre-mutation unknown-species save validation plus focused verification; no schema/anchor/reference rebaseline.
-- #126 clean evidence already covers compile, unknown-species SaveHardening/no-mutation, save/provenance, byte-identical hash dump, frozen Reference Future v1, teaching latch, approval, N3, Legacy40 interaction, progress, model-1 completion, model-2 density/save and protected Sitka timber anchor.
-- #166 is **PARTIAL / CLOSED**. Sitka timber anchor PASS on real Editor: fixtures 120, assertions 3007, evidence SHA `88FAF806EBE8FD5F2047740AE965823F0EE4286BE23EE5AD1B209CD2A228C4A8`. `completion-model0` failed on candidate and was correctly stopped; no production/anchor/harness semantics were changed.
-- D-047 records completion anchor `6F84AF319D301F87` for regeneration-model-1 / growth-model-0; D-048 says legacy/growth-0 anchors are retained. No rebaseline or reconstruction change is authorised.
-- Positive old-model-0 save/load compatibility is separately evidenced by frozen Reference Future v1: archive save version 12, and production `LoadData` explicitly restores every pre-v17 save with `GrowthModel.Legacy` (0); the Reference contract load/continuation gate is green on #126.
-- #128 independent PARITY-08 source/static precheck is complete with no implementation defect found; final verdict waits only for #167 baseline attribution.
-- S1-D T-05 #151 remains offline/static approved (`98ac98b5` production / `4ddf4aa5` docs), Unity rendered qualification pending, not integrated.
-- MFM-08 #156 remains offline candidate (`d55ec86a` production / `d70cec17` docs), Tier-2 Unity qualification pending, not integrated.
+- PARITY-08 #126 is **INDEPENDENTLY APPROVED, INTEGRATED AND CLOSED**. Exact reviewed production candidate `3eb9c954c363659a1b012e06ce58a35ab87f4303`; independent review `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INDEPENDENT-REVIEW.md`; exact two-parent integration merge **`7d2049e862df5c9311748167423b981e713d1fa9`**; integration handoff/docs successor **`8fa83bff22ea1b4943689bee1074eed8eae65d2f`**.
+- The PARITY-08 merge adds exactly the six reviewed candidate paths to the prior integration lineage and preserves only already-approved #165 verification/documentation changes from the other parent. No parity-specific schema field, Reference Future change or protected-anchor rebaseline occurred.
+- #166 Sitka timber residual is accepted: fixtures 120, assertions 3007, evidence SHA `88FAF806EBE8FD5F2047740AE965823F0EE4286BE23EE5AD1B209CD2A228C4A8`.
+- #167 baseline discrimination is complete/closed: the added `completion-model0` diagnostic fails identically on accepted base `185200f5` and PARITY-08 candidate `3eb9c954`, including completion hash `046551EB29730CE1`, v16 layout hash `20B85B0152EA747A` and identical v17/v18 hashes. It is recorded as pre-existing D-047/D-048 verification debt, not a #126 regression. Historical anchor `6F84AF319D301F87` remains unchanged. Positive old-model-0 save/load compatibility remains evidenced by the green frozen save-v12 Reference Future load/continuation path.
+- S1-D T-05 #151 is **OFFLINE/STATIC APPROVED / UNITY PENDING**. Exact start `cfdc93bf3943125d21570bc5749a9338f52d1cce`; production `98ac98b5a33929d30b150dc6e4692d8bdf2b9bc1`; verification `38904535ceb45da1b9112a7695c7c7295462efec`; handoff/docs tip `4ddf4aa535d4ec5267be46d2635679411d595e0f`. Independent offline review approved 219/219 + 7/7 mutations. Not integrated.
+- MFM-08 #156 is **OFFLINE CANDIDATE / UNITY PENDING**. Production `d55ec86a3f0bf13820f2080197b6b0f43d832e06`; docs tip `d70cec1781c104794a6f225c8609847c55df1510`; MFM-08 offline 106/106 with MFM-04/05/07 unchanged. Not integrated.
+- #167 reported the Unity lock released normally, U1 restored clean, no Editor running and host saves unchanged. This is historical evidence only; the next Unity task must still fresh-preflight the machine.
 - No Windows build has occurred or is authorised.
 
 ## Live / prepared tasks
@@ -36,39 +35,45 @@ This file is the **live single-writer ownership and execution-lock authority** o
 |---|---|---|---|---|
 | **PLAYER-TEST-BROWSER-LANE-02** (#162) | browser/GitHub | no local worktree | review/coordination/packets only | **ACTIVE** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
-| **PARITY-08 compatibility** (#126) | save/determinism | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | candidate frozen; no production edits while attribution/review runs | **CANDIDATE `3eb9c954`; #167 + #128 pending; NOT INTEGRATED** |
-| **PARITY-08 model-0 baseline discrimination** (#167) | verification/Unity | `verify/parity-08-model0-baseline-v1`; `/media/jer/Videos/CCF-Parity08-Model0Baseline` | verification only; exact baseline target `185200f5` | **READY — NEXT CRITICAL UNITY TASK** |
-| **PARITY-08 independent review** (#128) | browser-first independent review | exact candidate `3eb9c954` + accepted runtime evidence | read-only | **SOURCE PRECHECK COMPLETE; FINAL VERDICT WAITS ON #167** |
-| **S1-D T-05 previous vs proposed** (#151) | local UI/Unity | `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05` | bounded Work Plan/S1-C nav surface | **OFFLINE APPROVED; UNITY PENDING** |
-| **MFM-08 Stand Map / 3D review UX** (#156) | local UI/Unity | `feature/mfm-08-map-3d-review-ux-v1`; `/media/jer/Videos/CCF-MFM08` | Stand Map / bounded inspection UI | **OFFLINE CANDIDATE; UNITY PENDING** |
+| **S1-D T-05 previous vs proposed** (#151) | local UI/Unity | `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05` | bounded Work Plan + authorised read-only Annual Review route | **OFFLINE APPROVED; NEXT UNITY QUALIFICATION** |
+| **MFM-08 Stand Map / 3D review UX** (#156) | local UI/Unity | `feature/mfm-08-map-3d-review-ux-v1`; `/media/jer/Videos/CCF-MFM08` | Stand Map / bounded inspection UI | **OFFLINE CANDIDATE; UNITY AFTER #151** |
+| **PARITY-09 integrated parity qualification** | browser prep then local qualification | TBD | no production ownership until packet/claim | **DEPENDENCY CHECK MAY BEGIN — #126 NOW INTEGRATED** |
+| **MFM-09** | browser prep then local | TBD | curriculum/integration after accepted #151 + #156 | **WAITING ON #151 + #156** |
 | **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING** |
 
 No row proves that the Unity lock is free. Every Unity worker must fresh-preflight.
 
-## #167 exact decision boundary
+## Single-writer boundaries
 
-Run the **identical** #166 `completion-model0` verifier semantics against exact accepted pre-PARITY-08 baseline `185200f57140c65ed4d540ff0c4d173451170d14`.
+### #151
 
-- Baseline PASS / candidate FAIL => candidate regression; #126 returns NEEDS CHANGES.
-- Baseline materially identical FAIL => pre-existing D-047/D-048 historical completion verification debt, not introduced by #126. Do not rebaseline; #128 may disposition the extra completion diagnostic while relying on the already-green Reference Future v1 old-model-0 load/continuation evidence for PARITY-08 compatibility.
-- Materially different baseline outcome => stop for Manager comparison.
+Offline/static implementation and independent review are accepted for the current candidate. Unity qualification owns no new production by default: test exact pushed lineage first. Required runtime/render review includes import/compile, three-cycle presentation at 1280×720 and 1920×1080, Approved / Pending new / Pending carried-over grouping, future-year inconsistency treatment, MFM prescription-created work remaining ordinary Pending before Work Plan approval, exact creation-year Annual Review navigation, read-only history behavior, Executed/unplanned-Fell-mark visibility required by AC-5, and layout/collapsed-foldout readability. Any genuine production defect stops for bounded repair ownership; no save/schema/history-store/MFM-09 work.
 
-No production, reconstruction, expected-value or anchor changes under #167.
+### #156
+
+Owns Stand Map plus the smallest MFM-specific/inspection presentation helpers. No Annual Review/history, S1-D generic Work Plan history, save/schema, MFM-09 curriculum, coverage-world/calibration, proposal→Fell-mark or bulk-confirmation changes. Tier-2 Unity qualification remains required at 1280×720 and 1920×1080. Open questions from the offline handoff (rack-sample geometry read, living-tree stem list, card height, Painter2D path, tab placement) must be resolved from actual runtime evidence, not assumed.
+
+### Browser lane #162
+
+Owns no production files. Use it for pushed-diff review, independent/static review, claim/coordination updates, packet preparation, dependency repinning and safe browser-side integration work. Mixed tasks must be split rather than consuming a local lane for browser-only phases.
 
 ## Dependency-ready sequence
 
-1. **#167** one-gate baseline discrimination on exact `185200f5`.
-2. **#128 BROWSER-CAPABLE final review** immediately after #167 returns.
-3. If #128 APPROVED, Manager integrate #126 and advance the parity chain toward PARITY-09.
-4. Once #167 releases Unity, run **#151 Unity** and **#156 Unity** sequentially by critical priority while browser review/integration runs in parallel.
-5. After accepted/integrated #151 + #156, prepare MFM-09 in browser before local implementation.
-6. Final Tier-3 on one exact combined candidate; then user personal playtest. Windows build only after explicit post-playtest authorisation.
+1. **#151 Unity qualification** on its exact pushed candidate; then BROWSER-CAPABLE final Manager rendered/runtime review and safe integration if approved.
+2. **#156 Unity Tier-2 qualification** after #151 releases Unity; browser/static review may proceed in parallel where useful, then Manager review/integration.
+3. **BROWSER-CAPABLE PARITY-09 dependency/readiness preparation** may begin now that PARITY-08 is integrated; local integrated parity qualification waits on its exact packet/claim and relevant combined lineage.
+4. After accepted/integrated #151 + #156, prepare/release **MFM-09** in browser before local implementation/qualification.
+5. Final Tier-3 waits for all required Rack/parity/S1-C/S1-D/MFM work integrated on one exact candidate; then user personal playtest.
+6. Windows build only after explicit post-playtest authorisation.
 
 ## Durable current records
 
-- #126 implementation handoff: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/HANDOFF.md`
-- #128 source precheck: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INDEPENDENT-REVIEW-PRECHECK-20261030.md`
-- #166 partial handoff: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RESIDUAL-UNITY-HANDOFF.md`
-- #167 packet: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/MODEL0-BASELINE-DISCRIMINATION-20261030.md`
+- #126 implementation: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/HANDOFF.md`
+- #126 independent review: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INDEPENDENT-REVIEW.md`
+- #126 integration: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INTEGRATION-HANDOFF.md`
+- #166 partial residual: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RESIDUAL-UNITY-HANDOFF.md`
+- #167 baseline result: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/MODEL0-BASELINE-HANDOFF.md`
 - #151 handoff: `Docs/Handoffs/S1-D-Implementation-05/HANDOFF.md`
 - #156 handoff: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/HANDOFF.md`
+
+Issue #28 verification-harness hygiene remains backlog-only and blocks no current feature.
