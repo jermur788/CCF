@@ -15,7 +15,7 @@ using UnityEngine.UIElements;
 // overlays; they are invisible buttons laid over the plan by the shared map transform, not a drawn grid.
 public sealed class StandMapView
 {
-    private enum Layer { Access, Light, Regeneration, Browse, Marks }
+    private enum Layer { Access, Light, Regeneration, Browse, Marks, Review }
 
     // Side of the map square in UI units. The square buttons, and everything the surface draws under them, are placed on this square by
     // the shared map transform (StandMapTransform); the minimap uses the same transform at its own, smaller side.
@@ -29,6 +29,11 @@ public sealed class StandMapView
     private readonly StandMapSurface surface, overviewSurface;
     private readonly StandMapLegendView legendView;
     private readonly Label caption, northMark, scaleMark;
+    // MFM-08 Treatment review: its own element over the surface (the shared map canvas and the HUD minimap are untouched) and its card.
+    private readonly StandMapReviewLayer reviewLayer;
+    private readonly StandMapTreatmentReview review;
+    public StandMapTreatmentReview Review => review;
+    public StandMapReviewLayer ReviewLayer => reviewLayer;
     public StandMapCanvas Canvas => surface.Canvas;
     public StandMapSurface Surface => surface;
     public StandMapCanopyLayer Canopy => surface.Canopy;
@@ -120,6 +125,9 @@ public sealed class StandMapView
         surface.style.position = Position.Absolute;
         surface.style.left = surface.style.top = surface.style.right = surface.style.bottom = 0;
         frame.Add(surface);
+        reviewLayer = new StandMapReviewLayer();
+        frame.Add(reviewLayer);
+        review = new StandMapTreatmentReview(ui, SetWaypointAtWorld, () => Refresh(true));
         // The two words printed on the map itself, beside the north arrow and the scale bar that the plan draws.
         northMark = UiKit.Text("N", "map-north-label");
         northMark.pickingMode = PickingMode.Ignore;
@@ -187,7 +195,7 @@ public sealed class StandMapView
         if (rackMode) editor.HandleKeys(keyboard);
     }
 
-    private MapOverlay Overlay => layer == Layer.Access ? MapOverlay.None : layer == Layer.Light ? MapOverlay.Light : layer == Layer.Regeneration ? MapOverlay.Regeneration
+    private MapOverlay Overlay => layer == Layer.Access || layer == Layer.Review ? MapOverlay.None : layer == Layer.Light ? MapOverlay.Light : layer == Layer.Regeneration ? MapOverlay.Regeneration
         : layer == Layer.Browse ? MapOverlay.Browsing : MapOverlay.Marks;
 
     public void Refresh(bool force)
@@ -219,6 +227,7 @@ public sealed class StandMapView
         overviewSurface.Sync(model, MapOverlay.None);
         string key = $"{eco.EcologicalYear}|{layer}|{selectedCell}|{playerCell}|{waypointCell}|{model.StaticVersion}|{model.CanopyVersion}"
             + $"|{rackMode}|{rackAngle}|{(rackProposal != null ? rackProposal.TreeCount : -1)}|{(ui.RackLayout != null ? ui.RackLayout.Version : -1)}"
+            + (layer == Layer.Review ? "|r" + review.Version : "")
             + (planningV2 ? "|" + editor.StateKey + "|" + reopenPending + "|" + ui.Manager.RackPlanConfirmed + "|" + ui.Manager.MarkedRackEntranceCount : "");
         if (!force && key == shownKey)
             return;
@@ -243,6 +252,7 @@ public sealed class StandMapView
         AddLayerButton("Regeneration", Layer.Regeneration);
         AddLayerButton("Browsing / protection", Layer.Browse);
         AddLayerButton("Fell & crop marks", Layer.Marks);
+        if (ui.Manager != null && ui.Manager.RackPlanningV2Active) AddLayerButton("Treatment review", Layer.Review);
         toolButtons.Clear();
         if (RackPlanningAvailable)
         {
@@ -261,7 +271,7 @@ public sealed class StandMapView
         layerButtons.Add(UiKit.Button(text, () =>
         {
             layer = value;
-            if (value != Layer.Access) ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
+            if (value != Layer.Access && value != Layer.Review) ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
                 : value == Layer.Browse ? "map.browse" : "map.marks");
             Refresh(true);
         }, true, layer == value ? new[] { "btn-selected" } : new string[0]));
@@ -771,6 +781,7 @@ public sealed class StandMapView
     private void BuildSide(ForestEcologyController eco, StandMapModel model)
     {
         side.Clear();
+        reviewLayer.Hide();
         // Planning a rack: the rack card is the whole side panel (the square diagnosis is back when the mode is off).
         if (rackMode)
         {
@@ -782,6 +793,12 @@ public sealed class StandMapView
                 BuildEditCard();
             }
             else BuildRackCard(eco);
+            return;
+        }
+        if (layer == Layer.Review)
+        {
+            ScenarioOneTreatmentReview.Presentation view = review.BuildCard(side);
+            review.ShowLayer(reviewLayer, model, view);
             return;
         }
         if (selectedCell < 0 || selectedCell >= eco.Cells.Length)
@@ -842,6 +859,10 @@ public sealed class StandMapView
         }, true, "btn-primary"));
         UiKit.Add(side, "A waypoint marks the square in the forest and in the status panel. Walk there yourself; the map does not move you.", "faint");
     }
+
+    // Review navigation: the square holding a world point becomes the destination, exactly as if it had been chosen on the map.
+    private bool SetWaypointAtWorld(float x, float z)
+        => ui.Ecology != null && SetWaypointCell(ui.Ecology, ui.Ecology.GetCellIndex(new Vector3(x, 0f, z)));
 
     public bool SetWaypointCell(ForestEcologyController eco, int index)
     {

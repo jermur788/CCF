@@ -98,9 +98,13 @@ public sealed class TreeInspectionView
         // Rebuild only when something visible can have changed.
         CompetitorAssessment competitors = ui.Competitors;
         string rackPrompt = ui.Learning.RackInspectionPrompt(tree);
+        // MFM-08: the Treatment review's 3D side. Inspecting is what counts as the spot-check; a candidate or proposal gets its own label.
+        StandMapTreatmentReview treatmentReview = ui.Map != null ? ui.Map.Review : null;
+        treatmentReview?.OnInspected(tree);
+        ScenarioOneTreatmentReview.TreeContext reviewContext = treatmentReview != null ? treatmentReview.ContextFor(tree) : null;
         string key = rackPrompt + "|" + tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
             + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump
-            + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail;
+            + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail + "|" + (reviewContext != null ? reviewContext.Key + reviewContext.Chip : "");
         if (key == shownKey)
             return;
         shownKey = key;
@@ -127,6 +131,14 @@ public sealed class TreeInspectionView
         string shelter = eco != null ? RegenerationDiagnostics.ShelterLabel(eco, tree.transform.position) : "";
         if (!string.IsNullOrEmpty(shelter)) UiKit.Chip(marks, shelter);
 
+        if (reviewContext != null)
+        {
+            // Words and an outline, not a mark: a candidate or proposal is review information, never a Fell/Crop mark on the tree.
+            Label chip = UiKit.Chip(UiKit.Row(body, "row"), reviewContext.Chip);
+            chip.style.borderTopWidth = chip.style.borderBottomWidth = chip.style.borderLeftWidth = chip.style.borderRightWidth = 1;
+            if (!string.IsNullOrEmpty(reviewContext.Line)) UiKit.Add(body, reviewContext.Line, "body");
+        }
+
         VisualElement grid = UiKit.Box("stat-grid");
         body.Add(grid);
         UiKit.Stat(grid, "Age", tree.AgeYears + " yr");
@@ -141,6 +153,8 @@ public sealed class TreeInspectionView
         BuildDetail(tree, eco, report);
         // During the opening rack stage the card does not advertise marking; it is introduced once the racks are open.
         string marking = ui.Manager != null && ui.Manager.RackFirstStageActive ? "" : "[X] Fell  [C] Crop Tree  ";
+        if (reviewContext != null && !string.IsNullOrEmpty(reviewContext.Hint))
+            marking = reviewContext.Hint.Contains("[C]") && marking.Contains("[C] Crop Tree  ") ? marking.Replace("[C] Crop Tree  ", reviewContext.Hint + "  ") : reviewContext.Hint + "  " + marking;
 
         if (assessing)
         {
