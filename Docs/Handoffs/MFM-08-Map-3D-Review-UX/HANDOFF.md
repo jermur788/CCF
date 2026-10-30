@@ -15,8 +15,8 @@ Production:
 - `Assets/ForestPrototype/UI/StandMapTreatmentReview.cs` (new): the Treatment review side card, map-layer feed, and the 3D companion (`OnInspected`, `ContextFor`).
 - `Assets/ForestPrototype/UI/Map/StandMapReviewPlan.cs` (new, pure): per-state outline/hatch patterns, candidate and proposal glyph shapes.
 - `Assets/ForestPrototype/UI/Map/StandMapReviewLayer.cs` (new): its own element over the map surface; paints the plan and prints an area tag. The shared canvas, draw plan, model and HUD minimap are untouched.
-- `Assets/ForestPrototype/UI/StandMapView.cs` (+23/−3): `Layer.Review` tab "Treatment review" (only when `RackPlanningV2Active`), layer element, side-card branch, `SetWaypointAtWorld`, state key.
-- `Assets/ForestPrototype/UI/TreeInspectionView.cs` (+16/−1): calls `OnInspected`, adds a candidate/proposal chip and line, and the contextual key hint.
+- `Assets/ForestPrototype/UI/StandMapView.cs`: `Layer.Review` tab "Treatment review" (only when `RackPlanningV2Active`), layer element, side-card branch, `SetWaypointAtWorld`, state key.
+- `Assets/ForestPrototype/UI/TreeInspectionView.cs`: calls `OnInspected`, adds a candidate/proposal chip and line, and the contextual key hint.
 - four `.meta` files for the new scripts.
 Verification: `Tools/Verification/MfmTreatmentReview/` (runner + `OfflineLogic/TreatmentReviewOfflineCheck.cs`).
 **Not touched:** `ScenarioOneUiRoot.cs`, `AnnualReviewView.cs`/history, `ScenarioOneManager*`, coverage/calibration/world adapter, save/schema/validator/hash/reference, Work Plan code, learning/curriculum, USS, scenes/prefabs, Windows build.
