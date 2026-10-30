@@ -297,10 +297,14 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         unlatched.scenarioOne.firstGuidedRackReviewComplete=false;
         Check(saves.LoadData(unlatched,false),"reload unlatched world");yield return Frames(12);yield return Settled();
         Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==4,"unlatched reload requires fresh actual return inspection");
+        yield return ReviewStand();
+        Check(LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed,"fresh retain decisions after unlatched load restore lesson completion without cutting");
+        Check(ui.Learning.CurrentTopicIndex==5&&saves.CaptureData().scenarioOne.firstGuidedRackReviewComplete,"fresh review in the unlatched world re-earns the latch and index 5");
         // Latched case: session inspection facts are still not restored, but the completed response boundary stays at index 5 (no fallback to 4).
+        // DecideRackInspection only acts at index 4 (LearningObjectivesView.Sequence.cs), so J decisions are inert and cannot cut or rewind.
         Check(saves.LoadData(completed,false),"reload latched world with no further schema additions");yield return Frames(12);yield return Settled();
         Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==5,"latched reload keeps recruitment boundary; session inspection facts are not restored");
         yield return ReviewStand();
-        Check(LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed,"fresh retain decisions after load restore lesson completion without cutting");
+        Check(!LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed&&ui.Learning.CurrentTopicIndex==5,"latched world: inspection decisions are inert, no cutting, boundary stays at index 5");
     }
 }
