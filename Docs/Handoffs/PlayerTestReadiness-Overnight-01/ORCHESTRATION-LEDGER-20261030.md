@@ -272,3 +272,32 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** unresolved; UNITY-PENDING.
 - **Failure classification if any:** worker over-claimed the token relative to the Unity gate; corrected by Manager, not a code failure.
 - **Next action:** serialized Unity Tier-2 qualification after #124 (critical path) or when the lane is free; independent/Manager review after Unity.
+
+### EVENT — OpenAI B subscription exhausted; #151 re-routed
+
+- **Work unit:** #151 S1-D T-05 offline implementation.
+- **Evidence class:** OBSERVED FACT (provider error text) + ORCHESTRATOR CLAIM (routing).
+- **Previous provider/model:** OpenAI B gpt-6.1-sol high.
+- **Selected provider/model:** DeepSeek V4.1 Flash, variant max.
+- **Alternatives considered:** Claude A Sonnet 5.5 medium; Claude B Sonnet 5.5 (already used for #156).
+- **Reason / routing rule:** direct provider error: `The ChatGPT user has reached their Subscription Sharing usage limit.` Reset time not reported. OpenAI B is COOLDOWN/QUOTA; do not retry until provider evidence shows reset. DeepSeek is the default capable worker and the API gate is now resolved.
+- **Capacity evidence:** OpenAI B exhausted at this turn; user had reported ~13% of the five-hour window at dispatch. Reset UNKNOWN. DeepSeek available. Claude A quota UNKNOWN.
+- **Capacity source:** provider (OpenAI B error), user (13% at start), T3.
+- **Reported reset/window:** five-hour subscription window; reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** the resumed OpenAI turn was cut off after it had already pushed production commit `98ac98b5` and created an uncommitted verification directory. Work must be preserved and finished, not restarted.
+- **Branch/worktree or browser lane:** `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05`; HEAD `98ac98b5` plus untracked `Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/`.
+- **Result/evidence:** new DeepSeek child `overnight-20261030-151-deepseek-resume-1` started; briefed to preserve the uncommitted verification and the pushed production commit.
+- **Handoff/commit/claim reference:** #151 comment `6512209262`.
+- **Accepted / rejected / unresolved:** unresolved; work preserved.
+- **Failure classification if any:** provider capacity exhaustion (not a code failure).
+- **Next action:** complete #151 offline on DeepSeek; no OpenAI B retry until reset evidence.
+
+## Live provider ledger (updated during run)
+
+| Provider/pool | State | Capacity evidence | Reset/window | Source | Current work |
+|---|---|---|---|---|---|
+| DeepSeek V4.1 Flash | AVAILABLE / BUSY | Orchestrator running; child #124 and resumed #151 running | n/a | T3 / execution | orchestration, #124, #151 |
+| OpenAI B (codex_c75d8114) | COOLDOWN/QUOTA | `Subscription Sharing usage limit` error at #151 resume | Five-hour subscription window; reset **UNKNOWN** | provider | none; no retry until reset evidence |
+| OpenAI A (codex default) | LOGIN-UNAVAILABLE / UNVERIFIED | User reports no tokens; not tested | UNKNOWN | user | none |
+| Claude A (claudeAgent) | AVAILABLE / IDLE | Credentials listed; quota UNKNOWN | UNKNOWN | T3 | none |
+| Claude B — Pro | AVAILABLE / IDLE | #156 completed; no quota error reported; quota UNKNOWN | UNKNOWN | T3 / worker | none after #156 offline |
