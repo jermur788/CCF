@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-30T00:50Z by DeepSeek V4.1 Flash overnight orchestrator after integrating #143, approving #161 and dispatching #124/#151/#156 offline. Live claims and handoffs outrank this table.
+**Last reconciled:** 2026-10-30T04:40Z by DeepSeek V4.1 Flash overnight orchestrator at the overnight stopping point. Live claims and handoffs outrank this table.
 
 ## Coordination rules
 
@@ -28,7 +28,8 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - MFM-08 #156 is **RUNNING — OFFLINE** from exact start `cfdc93bf3943125d21570bc5749a9338f52d1cce`, branch `feature/mfm-08-map-3d-review-ux-v1`, worktree `/media/jer/Videos/CCF-MFM08`, provider Claude B Sonnet 5.5 medium. Unity waits for its pushed candidate and a fresh serialized machine preflight.
 - S1-D T-05 #151 is **RUNNING — OFFLINE** from exact start `cfdc93bf3943125d21570bc5749a9338f52d1cce`, branch `feature/s1-d-t05-previous-proposed-v1`, worktree `/media/jer/Videos/CCF-S1D-T05`, provider OpenAI B gpt-6.1-sol high. Unity waits for its pushed candidate and the serialized lane.
 - #124 is ACCEPTED/INTEGRATED at `185200f5`: offline review APPROVED; Unity guide 93 checks; #164 reconciled stale harnesses with all gates exit 0 (TeachingCopy 61, RackLesson 36, teaching-latch 60 x3, S1-C history 279, T-04 529, T-06 170); production unchanged; compile 184/0.
-- #126 PARITY-08 is RUNNING — OFFLINE on Claude Opus 5.5 Low from `185200f5`; save schema v24; no parity schema bump/rebaseline. #128 remains blocked on #126.
+- #126 PARITY-08 offline PASS (`3eb9c954`) and its required Unity set is clean via #165 (`508c2d07`) on that exact candidate. Independent #128 review and residual disposition (model-0 completion replay, Sitka timber Unity anchors, #165 allowlist additions) remain; not integrated. Other stale v23 pins remain in untouched harnesses.
+- #165 is PASS but not yet integrated; its `progress`/`density-save` isolated-save allowlist additions need acceptance.
 - #151 is offline-approved and Unity-pending; #156 is offline-candidate and Unity-pending. Unity is free but reserved for #126 qualification priority. Intermittent Unity Editor exit hang remains a rerun risk (2/5 teaching-latch launches), never waived.
 - #151 was cut off by OpenAI B subscription exhaustion after pushing production `98ac98b5`; an uncommitted verification directory is preserved. DeepSeek resumed the same branch.
 - #156 offline candidate is production `d55ec86a` / docs `d70cec17`; Unity Tier-2 remains pending and was not run.
@@ -48,8 +49,9 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **S1-D T-05 previous vs proposed** (#151) | local UI | `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05` | `WorkPlanView.cs` + smallest S1-C nav hook | **OFFLINE APPROVED; UNITY PENDING** |
 | **S1-D T-04 guide monotonicity** (#124) | curriculum after #143 | `feature/s1-d-t04-guide-monotonicity-v2`; `/media/jer/Videos/CCF-S1D-T04` | none (accepted/integrated) | **ACCEPTED / INTEGRATED at `185200f5`** |
 | **S1-D v24 harness reconciliation** (#164) | verification/Unity | `verify/s1d-v24-harness-reconciliation-v1`; `/media/jer/Videos/CCF-S1D-HarnessRecon` | none (integrated) | **PASS / INTEGRATED at `185200f5`** |
-| **PARITY-08 compatibility** (#126) | save verification | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | save validation/determinism after start record | **RUNNING — OFFLINE (Claude Opus 5.5 Low)** |
-| **PARITY-08 independent review** (#128) | review only | future exact #126 candidate | none | **BLOCKED ON #126** |
+| **S1-D v24 legacy gate reconciliation 2** (#165) | verification/Unity | `verify/s1d-v24-legacy-gate-reconciliation-2`; `/media/jer/Videos/CCF-S1D-GateRecon2` | verification only | **PASS; NOT YET INTEGRATED** |
+| **PARITY-08 compatibility** (#126) | save verification | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | save validation/determinism | **OFFLINE PASS; UNITY REQUIRED SET CLEAN via #165; #128 + residuals pending; NOT INTEGRATED** |
+| **PARITY-08 independent review** (#128) | review only | exact #126 candidate `3eb9c954` + #165 receipts | none | **READY — NOT STARTED** |
 | **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING UNITY FOLLOW-UP** |
 
 No row proves that the Unity lock is free. Every Unity worker must fresh-preflight.
@@ -94,3 +96,14 @@ No row proves that the Unity lock is free. Every Unity worker must fresh-preflig
 - #153 MFM-08 readiness: `Docs/Handoffs/MFM-08-UX-Readiness-20261029/BROWSER-RESULT.md`
 
 Issue #28 verification-harness hygiene remains backlog-only and blocks no current feature.
+
+## Overnight stopping point (2026-10-30T04:40Z)
+
+- **#143** integrated (`2f476a52`, docs `bccd2b90`).
+- **#124** accepted/integrated (`185200f5`); offline review APPROVED; Unity guide 93; stale harnesses fixed by #164.
+- **#164** PASS/integrated (`185200f5`).
+- **#126** offline PASS (`3eb9c954`); required Unity set clean via #165; #128 review and residuals pending; **NOT integrated**.
+- **#165** PASS (`508c2d07`); **not integrated**.
+- **#151** offline APPROVED (`4ddf4aa5`); Unity rendered gate pending; not integrated.
+- **#156** offline candidate (`d70cec17`); Unity Tier-2 pending; not integrated.
+- No Tier-3 candidate. No Windows build. Next action: integrate #165, disposition #126 residuals, run #128, integrate #126, then #151/#156 Unity/review/integration, MFM-09, final Tier-3, user playtest.
