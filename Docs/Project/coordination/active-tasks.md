@@ -27,7 +27,10 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - **#124 S1-D T-04 guide monotonicity is RUNNING — OFFLINE** from `bccd2b90`, branch `feature/s1-d-t04-guide-monotonicity-v2`, worktree `/media/jer/Videos/CCF-S1D-T04`, provider DeepSeek V4.1 Flash. It consumes only the integrated historical-completion read; no save/schema/hash ownership. Old `b9d204c` is evidence only.
 - MFM-08 #156 is **RUNNING — OFFLINE** from exact start `cfdc93bf3943125d21570bc5749a9338f52d1cce`, branch `feature/mfm-08-map-3d-review-ux-v1`, worktree `/media/jer/Videos/CCF-MFM08`, provider Claude B Sonnet 5.5 medium. Unity waits for its pushed candidate and a fresh serialized machine preflight.
 - S1-D T-05 #151 is **RUNNING — OFFLINE** from exact start `cfdc93bf3943125d21570bc5749a9338f52d1cce`, branch `feature/s1-d-t05-previous-proposed-v1`, worktree `/media/jer/Videos/CCF-S1D-T05`, provider OpenAI B gpt-6.1-sol high. Unity waits for its pushed candidate and the serialized lane.
-- Unity is currently free (no Editor/process observed) but ZX20 free space was 20 GiB at reconciliation, at the practical floor; every acquisition must fresh-check >=15 GiB mandatory / >=20 GiB preferred and stop otherwise.
+- #124 offline verification is `c838aca` / docs `99b7d4b`; production is unchanged from `bccd2b90`. Unity qualification is scheduled under the free lock; Claude A independent review runs in parallel.
+- #151 was cut off by OpenAI B subscription exhaustion after pushing production `98ac98b5`; an uncommitted verification directory is preserved. DeepSeek resumed the same branch.
+- #156 offline candidate is production `d55ec86a` / docs `d70cec17`; Unity Tier-2 remains pending and was not run.
+- Unity is currently free (no Editor/process observed); ZX20 free space was 20 GiB at reconciliation, at the practical floor; every acquisition must fresh-check >=15 GiB mandatory / >=20 GiB preferred and stop otherwise.
 - Overnight continuation handoff: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/OVERNIGHT-CONTINUATION-20261030.md`, publication commit `4112718310cc842d9ba2d677bc55c4cb450e8bcb`.
 
 ## Live / prepared tasks
@@ -39,9 +42,9 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING** |
 | **S1-D T-04P teaching latch** (#143) | save/Unity | `feature/s1-d-t04-teaching-persistence-v1`; `/media/jer/Videos/CCF-S1D-T04-Persistence` | none (integrated, stopped) | **INTEGRATED at `2f476a52` / docs `bccd2b90`; combined Tier-3 pending** |
 | **#143 independent implementation review** (#161) | browser-first independent review | exact candidate `b9bf11aa` + docs `d8168926` | read-only | **APPROVED** |
-| **MFM-08 Stand Map / 3D review UX** (#156) | local UI/Unity | `feature/mfm-08-map-3d-review-ux-v1`; `/media/jer/Videos/CCF-MFM08` | Stand Map / bounded inspection UI | **RUNNING — OFFLINE (Claude B)** |
-| **S1-D T-05 previous vs proposed** (#151) | local UI | `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05` | `WorkPlanView.cs` + smallest S1-C nav hook | **RUNNING — OFFLINE (OpenAI B)** |
-| **S1-D T-04 guide monotonicity** (#124) | curriculum after #143 | `feature/s1-d-t04-guide-monotonicity-v2`; `/media/jer/Videos/CCF-S1D-T04` | teaching sequence / guide facts only | **RUNNING — OFFLINE (DeepSeek)** |
+| **MFM-08 Stand Map / 3D review UX** (#156) | local UI/Unity | `feature/mfm-08-map-3d-review-ux-v1`; `/media/jer/Videos/CCF-MFM08` | Stand Map / bounded inspection UI | **OFFLINE CANDIDATE `d55ec86a`; UNITY PENDING** |
+| **S1-D T-05 previous vs proposed** (#151) | local UI | `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05` | `WorkPlanView.cs` + smallest S1-C nav hook | **RUNNING — OFFLINE (DeepSeek; OpenAI B quota-exhausted)** |
+| **S1-D T-04 guide monotonicity** (#124) | curriculum after #143 | `feature/s1-d-t04-guide-monotonicity-v2`; `/media/jer/Videos/CCF-S1D-T04` | verification + guide facts only; production unchanged | **OFFLINE VERIFIED; UNITY + INDEPENDENT REVIEW RUNNING** |
 | **PARITY-08 compatibility** (#126) | save verification later | `verify/parity-08-save-compatibility-v1`; `/media/jer/Videos/CCF-Parity08` | none while blocked | **BLOCKED ON ACCEPTED #143 + #124** |
 | **PARITY-08 independent review** (#128) | review only | future exact #126 candidate | none | **BLOCKED ON #126** |
 | **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING UNITY FOLLOW-UP** |
