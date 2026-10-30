@@ -253,3 +253,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** resolved.
 - **Failure classification if any:** stale-lock hygiene, not a task failure.
 - **Next action:** first fully offline candidate acquires the free lock after a fresh space/process/identity preflight; Unity remains serialized.
+
+### EVENT — #156 offline candidate returned
+
+- **Work unit:** MFM-08 Stand Map / 3D review UX, offline phase.
+- **Evidence class:** OBSERVED FACT for commits/offline checks; ORCHESTRATOR CLAIM for readiness.
+- **Previous provider/model:** Claude B Sonnet 5.5 medium.
+- **Selected provider/model:** same (completed).
+- **Alternatives considered:** DeepSeek V4.1 Flash.
+- **Reason / routing rule:** architecture-sensitive UI; user policy.
+- **Capacity evidence:** Claude B completed without a reported quota/auth failure; remaining quota UNKNOWN.
+- **Capacity source:** worker / T3.
+- **Reported reset/window:** UNKNOWN.
+- **Previous failure/outcome influencing decision:** none.
+- **Branch/worktree or browser lane:** `feature/mfm-08-map-3d-review-ux-v1`; `/media/jer/Videos/CCF-MFM08`; production `d55ec86a`, docs tip `d70cec17`, start `cfdc93bf`.
+- **Result/evidence:** offline/static MFM-08 106/106, MFM-04 240/0, MFM-05 95/0, MFM-07 125/0; changed-file boundary PASS; no excluded production/save/AnnualReview/UiRoot/serialized files. Unity import/render/interaction NOT run. Worker posted the success token; Manager corrected it to provisional offline-candidate status.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/MFM-08-Map-3D-Review-UX/HANDOFF.md`; #156 comment `6512136410`, correction comment posted after.
+- **Accepted / rejected / unresolved:** unresolved; UNITY-PENDING.
+- **Failure classification if any:** worker over-claimed the token relative to the Unity gate; corrected by Manager, not a code failure.
+- **Next action:** serialized Unity Tier-2 qualification after #124 (critical path) or when the lane is free; independent/Manager review after Unity.
