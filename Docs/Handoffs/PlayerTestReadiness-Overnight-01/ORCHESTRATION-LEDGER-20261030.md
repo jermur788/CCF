@@ -339,3 +339,22 @@ Append entries below in chronological order using this template.
 - **Accepted / rejected / unresolved:** offline review accepted; Unity gate still pending.
 - **Failure classification if any:** none.
 - **Next action:** await Unity qualification under lock `cf2e5588...`; then integrate if Unity passes.
+
+### EVENT — #151 offline candidate returned after DeepSeek resume
+
+- **Work unit:** S1-D T-05 offline implementation/verification.
+- **Evidence class:** OBSERVED FACT for commits/checks; ORCHESTRATOR CLAIM for readiness.
+- **Previous provider/model:** OpenAI B gpt-6.1-sol high (cut off by subscription limit), then DeepSeek V4.1 Flash max.
+- **Selected provider/model:** DeepSeek V4.1 Flash max (completed).
+- **Alternatives considered:** Claude A Sonnet 5.5; Claude B Sonnet 5.5.
+- **Reason / routing rule:** OpenAI B quota-exhausted mid-turn; DeepSeek default capable worker; preserve pushed `98ac98b5` and uncommitted verification.
+- **Capacity evidence:** OpenAI B exhausted; DeepSeek available; Claude quota UNKNOWN.
+- **Capacity source:** provider / T3.
+- **Reported reset/window:** OpenAI B reset UNKNOWN.
+- **Previous failure/outcome influencing decision:** OpenAI B cut-off after pushing production and creating uncommitted verification; resumed worker preserved both.
+- **Branch/worktree or browser lane:** `feature/s1-d-t05-previous-proposed-v1`; `/media/jer/Videos/CCF-S1D-T05`; production `98ac98b5`, verification `38904535`, docs `4ddf4aa5`, start `cfdc93bf`.
+- **Result/evidence:** focused matrix `S1D_T05_PREVIOUS_PROPOSED_PASS checks=219 failures=0`; 7/7 mutations caught; S1-C 55/72/56/53; S1-D T-02 93; MFM-07 125; MFM-06 172; event-id 75; MFM-04 240; NonUI 49; N3 88. Unity not run. Authorised tiny API overlap implemented.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/S1-D-Implementation-05/HANDOFF.md`; #151 comment.
+- **Accepted / rejected / unresolved:** unresolved; independent review and Unity pending.
+- **Failure classification if any:** OpenAI B capacity failure; work salvaged.
+- **Next action:** Claude A independent review now; Unity queued behind #124's serialized gate.
