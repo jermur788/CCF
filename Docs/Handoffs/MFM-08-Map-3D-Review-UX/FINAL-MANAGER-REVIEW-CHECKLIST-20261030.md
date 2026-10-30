@@ -1,19 +1,22 @@
 # MFM-08 — Final Manager Review Checklist After Unity Tier-2
 
-**Prepared:** 2026-10-30 by browser lane #184  
+**Prepared:** 2026-10-30; refreshed by browser lane #162 after #151 integration  
 **Static-reviewed production candidate:** `d55ec86a3f0bf13820f2080197b6b0f43d832e06`  
 **Static-reviewed docs/handoff tip:** `d70cec1781c104794a6f225c8609847c55df1510`  
+**Current Scenario One integration preparation reference:** `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`  
 **Static browser verdict:** `APPROVED — STATIC/OFFLINE PHASE ONLY; UNITY TIER-2 STILL REQUIRED`  
+**Source-overlap preflight:** `Docs/Handoffs/MFM-08-Map-3D-Review-UX/BROWSER-INTEGRATION-PREFLIGHT-20261030.md` at `58bc9778d36658fef20799e5c9a038f431bd5589` — no production-file overlap from the exact shared base  
 **Status:** REVIEW CHECKLIST ONLY — NO UNITY VERDICT YET
 
-Use after #156 publishes the completed Tier-2 Unity handoff. Static review does not authorise integration.
+Use immediately after #156 publishes the completed Tier-2 Unity handoff. Static review and source-overlap preflight do not authorise integration.
 
 ## 1. Exact candidate / scope
 
-- Confirm Unity tests the exact accepted production candidate, with verification-only successors clearly separated.
+- Confirm Unity tests the exact accepted production candidate `d55ec86a3f0bf13820f2080197b6b0f43d832e06`, with verification-only successors clearly separated.
 - Inspect any post-static-review diff. Unexpected production repair requires its own review before approval.
 - Preserve the accepted bounded surface: Stand Map / MFM review / tree-inspection presentation plus focused verification.
 - Reject unassigned edits to `ScenarioOneUiRoot`, Annual Review/history, generic S1-D Work Plan presentation, save/schema/hash/reference, MFM-09 curriculum, coverage calibration/world adapter, proposal→Fell conversion or bulk Crop Tree confirmation.
+- Before integration, refresh the Scenario One integration head and repeat the overlap check if it has moved from `ce673714...`.
 
 ## 2. Unity import / compile
 
@@ -88,6 +91,6 @@ After inspecting the exact completed handoff/evidence, issue one of:
 - `NEEDS CHANGES` — bounded defect/gap with exact next action;
 - `REJECTED` — fundamental semantic/runtime regression.
 
-If APPROVED, safe integration remains a separate Manager action after fresh integration-head/ownership checks. Record the exact merge and docs successor.
+If APPROVED, safe integration remains a separate Manager action after fresh integration-head/ownership checks. Use the exact approved production head, not a disposable verification branch. Record exact merge and docs successor.
 
 No Windows build.
