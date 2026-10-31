@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after the user's explicit two-lane split. All browser/GitHub Manager work is now under #200; all non-browser/local/Unity execution orchestration is now under #201. #162 and #106 are superseded/closed. #196 remains the first MFM-specific Unity action. #198 and #199 remain prepared pre-Tier-3 debt and do not automatically block MFM-08 #156.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after starting Browser / GitHub Manager Lane 03 under #200. All browser/GitHub Manager work is under running #200; all non-browser/local/Unity execution orchestration remains under #201. #162 and #106 are superseded/closed. #196 remains the first MFM-specific Unity action. #198 and #199 remain prepared pre-Tier-3 debt and do not automatically block MFM-08 #156.
 
 ## Coordination rules
 
@@ -33,7 +33,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - **Rack V2 Current-Lineage Red-Gate Diagnosis 01 #197 is MANAGER APPROVED / CLOSED.** `guided-v2` is classified as stale v23/pre-D-066 verification contract; `combined-v2` / `combined-legacy` are classified as current generic Scenario One HUD/focus regressions against the protected Combined HUD gate, not MFM-specific Rack failures. Review: `Docs/Handoffs/RackV2-Current-Lineage-Red-Gate-Diagnosis-01/MANAGER-REVIEW-20261031.md`.
 - **Guided-v2 v24 / D-066 Contract Reconciliation 01 #198 is READY — VERIFICATION ONLY FIRST.** Exact start `ce673714...`; reconcile stale guided/SequentialObjectives expectations to accepted current v24/D-066 teaching-latch authority without production/schema/anchor changes or assertion weakening. Requires serialized Unity only after the verification patch is reviewable.
 - **Scenario One Combined HUD / Focus Regression Repair 01 #199 is READY — BOUNDED PRODUCTION UI REPAIR.** Exact start `ce673714...`; protected Combined HUD post-repair baseline was 450/0 model-0 and 455/0 V2. Current stable failures concern estimate/minimap, competitor presentation and focus 04/06/07. Preserve the protected assertions; no Rack/MFM/schema/ecology/economy changes. Independent review required.
-- **Scenario One Browser / GitHub Manager Lane 03 #200 is READY.** Canonical handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-HANDOFF.md` at `b55225d4d385554e5ee70ca33d16d26ec43ef6a7`. It owns browser/GitHub Manager work and this file's writes, not local C#/Unity execution.
+- **Scenario One Browser / GitHub Manager Lane 03 #200 is RUNNING.** Canonical handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-HANDOFF.md` at `b55225d4d385554e5ee70ca33d16d26ec43ef6a7`. It owns browser/GitHub Manager work and this file's writes, not local C#/Unity execution.
 - **Scenario One Long-Running Deep Orchestration 01 #201 is READY.** Canonical handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/DEEP-ORCHESTRATION-HANDOFF.md` at `b9e6b57133693cc9033e991c9c1724b7c0937b89`. It orchestrates non-browser execution and adaptive routing evidence; child claims remain mandatory.
 - **Old browser umbrella #162 and old local umbrella #106 are SUPERSEDED / CLOSED.** Historical evidence remains valid; no new work should be dispatched under them.
 - **Verification Harness Hygiene 01 #193 is MANAGER APPROVED / INTEGRATED / CLOSED.** Reviewed published handoff head `5f9450f4a65e6df8e989a241ffe48d8a3200f6f1`; implementation `b4b68a91d7ab8f1eb24b1956ed53b1e71b416e10`; integration merge `a678fdcfcf3d30541f4bf13066b6feaf2d31dd36`; parent backlog #28 resolved.
@@ -52,7 +52,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 | Task | Lane | Branch / worktree | Ownership | Status |
 |---|---|---|---|---|
-| **Scenario One Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, coordination, packets, claims, active-tasks writes | **READY — USER TO OPEN BROWSER CHAT** |
+| **Scenario One Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, coordination, packets, claims, active-tasks writes | **RUNNING — BROWSER/GITHUB MANAGER ACTIVE** |
 | **Scenario One Long-Running Deep Orchestration 01** (#201) | long-running non-browser orchestration | child worktrees only; no umbrella production ownership | dispatch/routing of local C#/Unity work; orchestration evidence | **READY — USER TO START LONG-RUNNING AGENT** |
 | **MFM-08 Stand Map / 3D review UX** (#156) | Manager review / integration hold | candidate `e5fb4246...`; returned harness `d88a32f6...` | no production edits pending #196 | **NEEDS CHANGES — WAITING #196** |
 | **MFM-08 MapPlanning Contract Reconciliation 01** (#196) | #201 child: bounded verification repair + Unity | `verify/mfm-08-mapplanning-contract-reconcile-v1`; intended registered lane `/media/jer/ZX20/CCF-U1` after fresh preflight | navigation-tab verification contract only; no production | **READY — FIRST MFM UNITY PRIORITY** |
