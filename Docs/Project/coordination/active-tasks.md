@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after Verification Harness Hygiene 01 #193 Manager approval/integration and release of Research Source Consolidation Audit 01 #194. MFM-08 #156 remains the Unity-critical task.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after Verification Harness Hygiene 01 #193 Manager approval/integration and release of Research Source Consolidation Audit 01 #194, which DeepSeek V4 Pro (max) then claimed RUNNING in `/media/jer/Videos/CCF-RESEARCH-CONSOLIDATION-AUDIT`. MFM-08 #156 remains the Unity-critical task.
 
 ## Coordination rules
 
@@ -46,7 +46,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **PLAYER-TEST-BROWSER-LANE-02** (#162) | browser/GitHub | no local worktree | review/coordination/packets only | **ACTIVE** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
 | **MFM-08 Stand Map / 3D review UX** (#156) | full Unity Tier-2 | exact repaired candidate `e5fb4246...`; use a clean registered Unity lane | qualification only; no production repair | **RELEASED — FRESH PREFLIGHT REQUIRED** |
-| **Research Source Consolidation Audit 01** (#194) | research analysis | `research/source-consolidation-audit-v1`; `/media/jer/Videos/CCF-RESEARCH-CONSOLIDATION-AUDIT` | inventory/plan only; no source mutation | **READY — ANALYSIS ONLY** |
+| **Research Source Consolidation Audit 01** (#194) | research analysis | `research/source-consolidation-audit-v1`; `/media/jer/Videos/CCF-RESEARCH-CONSOLIDATION-AUDIT` | inventory/plan only; no source mutation | **RUNNING — ANALYSIS ONLY** |
 | **S1-C T-08 final history qualification** | local Tier-2 after MFM-08 release | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
 | **S1-D T-08 multi-cycle witness** | local Tier-2 after preferred S1-C T-08 slot | `verify/s1-d-multicycle-witness-v1`; `/media/jer/Videos/CCF-S1D-T08` | qualification only; no production repair by default | **RELEASED; WAITING SERIALIZED UNITY** |
 | **S1-D T-09 independent conformance review** | browser/read-only independent review | no production lane | review only | **PREPARED; WAITING S1-D T-08 PASS** |
