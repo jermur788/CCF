@@ -50,6 +50,7 @@ GATES = {
     'approval': ('MfmApprovalBoundary/MfmApprovalBoundaryUnityGate.cs', 'MFM07_UNITY_PASS', 'MFM07_UNITY_FAIL'),
     # The T-08 witness itself
     'witness': ('S1DMultiCycleWitness/S1DMultiCycleWitnessGate.cs', 'S1D_T08_WITNESS_PASS', 'S1D_T08_CHECK_FAIL'),
+    'resume': ('S1DMultiCycleWitness/S1DResumeProbeGate.cs', 'S1D_T08_RESUME_PASS', 'S1D_T08_RESUME_CHECK_FAIL'),
 }
 # Gates that rely on the shared TeachingCapGateSetup companion (the historical S1-D suite).
 TEACHING_SETUP_GATES = ('cap', 'lesson', 'menu', 'teaching', 'rack', 'event-id', 'teaching-latch', 'guide', 'previous-proposed', 'approval',
