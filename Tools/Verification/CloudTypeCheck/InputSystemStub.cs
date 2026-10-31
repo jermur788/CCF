@@ -1,6 +1,7 @@
 // Minimal UnityEngine.InputSystem surface for type-checking only (never shipped, never run).
 // Covers exactly the members the runtime sources use; extend it only when a new use appears.
 
+using System;
 using UnityEngine;
 namespace UnityEngine.InputSystem.Controls
 {
@@ -16,10 +17,16 @@ namespace UnityEngine.InputSystem.Controls
 namespace UnityEngine.InputSystem
 {
     using UnityEngine.InputSystem.Controls;
-    public enum Key { None, C, Digit2, E, Escape, F1, F10, G, M, O, Tab, U, X }
+    public enum Key
+    {
+        None, A, B, C, D, E, F, G, J, M, O, Q, R, S, U, V, W, X,
+        Digit1, Digit2, Digit3, Digit4, Digit5, Escape, F1, F5, F9, F10,
+        LeftArrow, RightArrow, LeftShift, Space, Tab,
+    }
     public class Keyboard
     {
         public static Keyboard current => null;
+        public int deviceId => 0;
         public KeyControl aKey { get; } = new KeyControl();
         public KeyControl bKey { get; } = new KeyControl();
         public KeyControl cKey { get; } = new KeyControl();
@@ -74,6 +81,8 @@ namespace UnityEngine.InputSystem
         public KeyControl leftShiftKey { get; } = new KeyControl();
         public KeyControl rightShiftKey { get; } = new KeyControl();
         public KeyControl enterKey { get; } = new KeyControl();
+        public KeyControl numpadEnterKey { get; } = new KeyControl();
+        public KeyControl shiftKey { get; } = new KeyControl();
         public KeyControl backspaceKey { get; } = new KeyControl();
         public KeyControl leftCtrlKey { get; } = new KeyControl();
         public KeyControl rightCtrlKey { get; } = new KeyControl();
@@ -104,11 +113,14 @@ namespace UnityEngine.InputSystem
     {
         public static T AddDevice<T>() where T : new() => new T();
         public static void QueueStateEvent<T>(object device, T state) { }
+        public static event Action onAfterUpdate;
     }
 }
 namespace UnityEngine.InputSystem.LowLevel
 {
     public enum MouseButton { Left }
+    public enum InputUpdateType { Dynamic, Fixed, BeforeRender }
     public struct KeyboardState { public KeyboardState(params UnityEngine.InputSystem.Key[] keys) { } }
-    public struct MouseState { public MouseState WithButton(MouseButton button) => this; }
+    public struct MouseState { public Vector2 scroll; public MouseState WithButton(MouseButton button) => this; }
+    public static class InputState { public static InputUpdateType currentUpdateType => InputUpdateType.Dynamic; }
 }

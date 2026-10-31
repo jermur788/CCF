@@ -8,11 +8,12 @@
 // no composite moisture-and-drainage category exists; Unknown and Reference stay distinct in every descriptor; every numerical
 // response is exactly 1.0; Oak/Beech/Sitka carry different qualitative descriptors without conflating dry with free-draining
 // or wet with waterlogged; the Scenario One site is explicit; lookups are deterministic; and, by reading source text, that no
-// production or tool code calls the new types and the save version is unchanged.
+// production code and no unlisted verification tool calls the new types and the save version is unchanged.
 // DOES NOT PROVE: that any descriptor is ecologically right, that Unity imports or compiles the files, or any anchor hash.
 //
-// Guard H is about THIS packet. The future packet that deliberately wires the seam into growth must change guard H on
-// purpose, in review, rather than have it pass by accident.
+// Guard H is about THIS packet: production must not reference the seam at all, and verification tools may reference it
+// only from exact, reviewable paths in VerificationAllowList. There is no directory-wide or pattern-wide escape; the
+// controls in CheckH prove both the positive (allow-listed) and negative (unlisted) cases.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,6 +59,15 @@ public static class SiteInfrastructureOfflineCheck
 
     // The five descriptor fields of SiteConditionProfile, in declaration order.
     private static readonly string[] DescriptorFieldNames = { "Moisture", "DrainageAeration", "Fertility", "ExposureClimate", "RootingContext" };
+
+    // Exact repository-relative verification paths that may reference the dormant seam. No directories, globs or
+    // prefixes: IsVerificationAllowed uses ordinal exact matching, and the controls below prove it. The adult gate is
+    // the reviewed consumer named by Verification Harness Hygiene 01; it does not reference the seam today, so this is
+    // the pre-authorised path for that gate rather than an observed reference.
+    private static readonly string[] VerificationAllowList =
+    {
+        "Tools/Verification/ThreeSpecies/BroadleafAdultGrowthVerification.cs",
+    };
 
     private static List<SiteConditionProfile> AllProfiles()
     {
@@ -516,8 +526,13 @@ public static class SiteInfrastructureOfflineCheck
         string toolsRoot = Path.Combine(root, "Tools", "Verification");
         string ownTools = Path.Combine(toolsRoot, "SiteInfrastructure") + Path.DirectorySeparatorChar;
         string[] tools = Directory.EnumerateFiles(toolsRoot, "*.cs", SearchOption.AllDirectories).Where(f => !f.StartsWith(ownTools, StringComparison.Ordinal)).ToArray();
-        Check("H_NO_OTHER_VERIFICATION_TOOL_REFERENCES_THE_NEW_TYPES", tools.Length > 20 && tools.All(f => !typeRegex.IsMatch(File.ReadAllText(f))),
-            $"tool files scanned={tools.Length}");
+        string[] toolReferences = tools.Where(f => typeRegex.IsMatch(File.ReadAllText(f))).Select(RelativePath).ToArray();
+        string[] unlisted = toolReferences.Where(p => !IsVerificationAllowed(p)).ToArray();
+        Check("H_NO_UNLISTED_VERIFICATION_TOOL_REFERENCES_THE_NEW_TYPES",
+            tools.Length > 20 && unlisted.Length == 0,
+            $"tool files scanned={tools.Length} allowed={toolReferences.Length - unlisted.Length}"
+            + (unlisted.Length == 0 ? "" : " unlisted: " + string.Join(", ", unlisted)));
+        CheckH_VerificationAllowListControls(typeRegex);
 
         // The data files hold no numeric curve: the only numeric literal in code is the neutral 1f.
         var literals = new SortedSet<string>(StringComparer.Ordinal);
@@ -529,6 +544,36 @@ public static class SiteInfrastructureOfflineCheck
         string[] forbidden = { "SiteIndex", "SiteQuality", "SiteScore", "Weighted", "Ci50", "Productivity", "Mathf", "Random", "DateTime", "Stopwatch" };
         string[] offending = ownFiles.SelectMany(f => forbidden.Where(token => CodeOnly(File.ReadAllText(f)).Contains(token)).Select(token => Path.GetFileName(f) + ":" + token)).ToArray();
         Check("H_NO_UNIVERSAL_SITE_SCALAR_WEIGHTING_COMPETITION_OR_NONDETERMINISM_IN_THE_DATA_FILES", offending.Length == 0, string.Join(", ", offending));
+    }
+
+    // ---- H controls: the allow-list is narrow, and production is not affected by it ------------------------------
+
+    private static void CheckH_VerificationAllowListControls(Regex typeRegex)
+    {
+        const string withReference = "SpeciesSiteResponses.Beech";
+        const string withoutReference = "int value = 1;";
+        string allowed = VerificationAllowList[0];
+        string unlisted = "Tools/Verification/Synthetic/UnlistedConsumer.cs";
+
+        Check("H_ALLOW_LIST_ACCEPTS_AN_ALLOW_LISTED_REFERENCE",
+            UnlistedToolReferences(new[] { (allowed, withReference) }, VerificationAllowList, typeRegex).Length == 0,
+            "path=" + allowed);
+        Check("H_ALLOW_LIST_REJECTS_AN_UNLISTED_SYNTHETIC_REFERENCE",
+            UnlistedToolReferences(new[] { (unlisted, withReference) }, VerificationAllowList, typeRegex).Length == 1,
+            "path=" + unlisted);
+        Check("H_ALLOW_LIST_ACCEPTS_A_CLEAN_FILE_WITHOUT_A_REFERENCE",
+            UnlistedToolReferences(new[] { (unlisted, withoutReference) }, VerificationAllowList, typeRegex).Length == 0);
+        Check("H_ALLOW_LIST_REJECTS_DIRECTORY_AND_PATTERN_WIDE_CONSUMERS",
+            UnlistedToolReferences(new[] { (allowed, withReference) }, new[] { "Tools/Verification/ThreeSpecies" }, typeRegex).Length == 1
+            && UnlistedToolReferences(new[] { (allowed, withReference) }, new[] { "Tools/Verification/ThreeSpecies/*.cs" }, typeRegex).Length == 1);
+        Check("H_ALLOW_LIST_ENTRIES_ARE_EXPLICIT_EXISTING_CS_FILES",
+            VerificationAllowList.Length > 0 && VerificationAllowList.Length <= 5
+            && VerificationAllowList.Distinct(StringComparer.Ordinal).Count() == VerificationAllowList.Length
+            && VerificationAllowList.All(p => p.StartsWith("Tools/Verification/", StringComparison.Ordinal)
+                && p.EndsWith(".cs", StringComparison.Ordinal) && !p.Contains("*") && !p.Contains("?") && !p.EndsWith("/", StringComparison.Ordinal)
+                && File.Exists(Path.Combine(root, p.Replace('/', Path.DirectorySeparatorChar)))));
+        Check("H_PRODUCTION_REFERENCES_ARE_REJECTED_EVEN_IF_A_PATH_LOOKS_ALLOW_LISTED",
+            UnlistedToolReferences(new[] { ("Assets/ForestPrototype/SyntheticProductionConsumer.cs", withReference) }, VerificationAllowList, typeRegex).Length == 1);
     }
 
     // ---- I. Invalid input is rejected, not coerced --------------------------------------------------------------
@@ -574,6 +619,16 @@ public static class SiteInfrastructureOfflineCheck
     }
 
     private static Regex TypeNameRegex() => new Regex("\\b(" + string.Join("|", NewTypeNames) + ")\\b");
+
+    private static string RelativePath(string absolutePath) =>
+        Path.GetRelativePath(root, absolutePath).Replace('\\', '/');
+
+    private static bool IsVerificationAllowed(string relativePath) =>
+        VerificationAllowList.Any(p => string.Equals(p, relativePath.Replace('\\', '/'), StringComparison.Ordinal));
+
+    private static string[] UnlistedToolReferences((string Path, string Text)[] files, string[] allowList, Regex typeRegex) =>
+        files.Where(f => !allowList.Any(p => string.Equals(p, f.Path.Replace('\\', '/'), StringComparison.Ordinal)) && typeRegex.IsMatch(f.Text))
+            .Select(f => f.Path).ToArray();
 
     // Source with line comments and string literals removed, so prose in comments and notes is not mistaken for code.
     private static string CodeOnly(string source)
