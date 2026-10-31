@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after releasing Verification Harness Hygiene 01 #193 as a parallel offline task; MFM-08 #156 remains the Unity-critical task.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after Verification Harness Hygiene 01 #193 Manager approval/integration and release of Research Source Consolidation Audit 01 #194. MFM-08 #156 remains the Unity-critical task.
 
 ## Coordination rules
 
@@ -25,9 +25,10 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - S1-D T-05 #151 remains **APPROVED / INTEGRATED / CLOSED**.
 - S1-C T-07 #187 remains **MANAGER APPROVED / CLOSED**. Accepted genuine v20-y5 SHA-256: `af448bb297491d96bb18457ab2173694b2a0eafc2b8674d4438f25c9101eff00`.
 - OPS Unity-lock repair #189 remains **MANAGER APPROVED / CLOSED**. Any later Unity task must fresh-preflight and acquire normally.
-- **MFM-08 Geometry Repair 01 #192 is MANAGER APPROVED / CLOSED.** Exact repair production head `e5fb424635f16182748efcb0539e8a49539495a9`; worker handoff/docs successor `e8b9e55e0a76ae74f46b801362ccdfed8a680c3d`; Manager review `Docs/Handoffs/MFM-08-Geometry-Repair-01/MANAGER-REVIEW.md` at main `5cf9ab61657c1adac1ccdda83ebf830a1f55e6d2`.
-- **MFM-08 #156 is REPINNED / RELEASED FOR FULL SUCCESSOR TIER-2** on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`. Use updated verification branch `qual/mfm-08-unity-v1` head `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6`. Successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md` at main `5cd0227e25088f8a8c68b7d0749f7ef6aafbadfc`. MFM-08 is still **not runtime-qualified or integrated** until that complete run receives Manager approval.
-- **Verification Harness Hygiene 01 #193 is READY — OFFLINE / NO UNITY.** It is verification-tooling only and does not touch production. Packet: `Docs/Handoffs/Verification-Harness-Hygiene-01/TASK-PACKET.md`; dispatch: `Docs/Handoffs/Verification-Harness-Hygiene-01/LOCAL-DISPATCH-HANDOFF-20261031.md`.
+- MFM-08 Geometry Repair 01 #192 remains **MANAGER APPROVED / CLOSED**. Exact repair production head `e5fb424635f16182748efcb0539e8a49539495a9`.
+- **MFM-08 #156 is REPINNED / RELEASED FOR FULL SUCCESSOR TIER-2** on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`. Use updated verification branch `qual/mfm-08-unity-v1` head `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6`. MFM-08 is still **not runtime-qualified or integrated** until that complete run receives Manager approval.
+- **Verification Harness Hygiene 01 #193 is MANAGER APPROVED / INTEGRATED / CLOSED.** Reviewed published handoff head `5f9450f4a65e6df8e989a241ffe48d8a3200f6f1`; implementation `b4b68a91d7ab8f1eb24b1956ed53b1e71b416e10`; integration merge `a678fdcfcf3d30541f4bf13066b6feaf2d31dd36`; canonical review `Docs/Handoffs/Verification-Harness-Hygiene-01/MANAGER-REVIEW.md`. Parent backlog #28 is resolved. No production/gameplay/Unity change.
+- **Research Source Consolidation Audit 01 #194 is READY — ANALYSIS ONLY.** It may inventory/hash/compare research sources and propose reversible consolidation/archive options, but it may not delete, move, merge, watermark, recompress or mutate originals. Packet: `Docs/Handoffs/Research-Source-Consolidation-Audit-01/TASK-PACKET.md`.
 - S1-C T-08 is **DEPENDENCY-CLEARED ON T-07 BUT NOT RELEASED TO UNITY YET**. It remains the preferred next history qualification slot after MFM-08 releases Unity, unless Overall Manager explicitly reprioritises.
 - S1-D T-08 remains **RELEASED** but serialized behind the preferred S1-C T-08 history slot.
 - S1-D T-09 remains prepared and waits for S1-D T-08 PASS.
@@ -44,11 +45,8 @@ This file is the **live single-writer ownership and execution-lock authority** o
 |---|---|---|---|---|
 | **PLAYER-TEST-BROWSER-LANE-02** (#162) | browser/GitHub | no local worktree | review/coordination/packets only | **ACTIVE** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
-| **MFM-08 Geometry Repair 01** (#192) | bounded fix | `fix/mfm-08-segment-footprints-v1`; `/media/jer/Videos/CCF-MFM08-FIX` | completed repair evidence | **MANAGER APPROVED / CLOSED** |
 | **MFM-08 Stand Map / 3D review UX** (#156) | full Unity Tier-2 | exact repaired candidate `e5fb4246...`; use a clean registered Unity lane | qualification only; no production repair | **RELEASED — FRESH PREFLIGHT REQUIRED** |
-| **Verification Harness Hygiene 01** (#193) | offline tooling | `verify/harness-hygiene-v1`; `/media/jer/Videos/CCF-HARNESS-HYGIENE` | `Tools/Verification/CloudTypeCheck/` + bounded SiteInfrastructure verification tooling only | **READY — OFFLINE / NO UNITY** |
-| **OPS-UNITY-LOCK-01** (#189) | machine-local ops | `/media/jer/ZX20/CCF-Ops` | lock governance repair | **APPROVED / CLOSED** |
-| **S1-C T-07 data-contract stability** (#187) | offline verification | `verify/s1-c-t07-data-contract-v1`; `/media/jer/Videos/CCF-S1C-T07` | verification/docs only | **MANAGER APPROVED / CLOSED** |
+| **Research Source Consolidation Audit 01** (#194) | research analysis | `research/source-consolidation-audit-v1`; `/media/jer/Videos/CCF-RESEARCH-CONSOLIDATION-AUDIT` | inventory/plan only; no source mutation | **READY — ANALYSIS ONLY** |
 | **S1-C T-08 final history qualification** | local Tier-2 after MFM-08 release | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
 | **S1-D T-08 multi-cycle witness** | local Tier-2 after preferred S1-C T-08 slot | `verify/s1-d-multicycle-witness-v1`; `/media/jer/Videos/CCF-S1D-T08` | qualification only; no production repair by default | **RELEASED; WAITING SERIALIZED UNITY** |
 | **S1-D T-09 independent conformance review** | browser/read-only independent review | no production lane | review only | **PREPARED; WAITING S1-D T-08 PASS** |
@@ -70,11 +68,9 @@ Qualification only on exact repaired production head `e5fb424635f16182748efcb053
 
 Required remaining matrix includes: complete repaired MFM-08 gate at both render sizes; manual-Fell conflict plus explicit open-work conflict; Rack V2 map/runtime/field regressions; MFM-06 and MFM-07 Unity gates; relevant Scenario One UI regression; frozen Reference Future/protected compatibility; clean save/world/lane/lock return. A genuine defect stops and returns to Manager.
 
-### #193 Verification Harness Hygiene 01
+### #194 Research Source Consolidation Audit 01
 
-Offline verification-tool ownership only. Primary surface: `Tools/Verification/CloudTypeCheck/`, `Tools/Verification/SiteInfrastructure/run_site_check.py`, `Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs`, narrow helpers/tests in those two verification directories, and its handoff docs.
-
-Required behavior: restore useful CloudTypeCheck method-body binding around the known `Painter2D` compatibility gap and prove it catches a deliberate body-level mutation; replace the all-or-nothing SiteInfrastructure verification-reference guard with an explicit narrow path allow-list while keeping the production zero-reference guard strict. Baselines may change only with evidence-backed classification. No `Assets/ForestPrototype/`, gameplay values, accepted thresholds, Unity or Windows work.
+Analysis-only ownership of its handoff/inventory outputs. It may inspect the Game Dev project-source corpus, `Docs/Research`, accessible local CCF research archives and accessible distribution/archive copies; compute file sizes/hashes and duplication/provenance relationships; and propose consolidation/archive options. It may not delete, move, rename, merge, watermark, recompress, replace or detach any original research/source file. Any later destructive or mutating cleanup requires a separate reviewed execution packet and explicit user/Manager approval. Evidential originals must remain byte-identical in a designated archive under any future plan; visible watermarks/banners may apply only to derivatives.
 
 ### S1-C T-08
 
@@ -91,7 +87,7 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 ## Dependency-ready sequence
 
 1. **Now, Unity critical path:** #156 may perform fresh preflight, acquire Unity normally, and run the full successor Tier-2 on exact `e5fb4246...` using harness `630c6c3...`.
-2. **Now, parallel offline:** #193 may run independently in its dedicated tooling worktree. It must not acquire Unity or touch production.
+2. **Now, independent analysis:** #194 may run without Unity and without mutating source/archive files.
 3. On #156 handoff, Manager inspects exact runtime/rendered/regression/protected evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`.
 4. If #156 is APPROVED, safely integrate exact repaired MFM-08 production after fresh overlap review; then release MFM-09 from the exact combined integration lineage.
 5. After #156 releases the serialized Unity lane, fresh-repin/release S1-C T-08 on the exact current integration candidate; then proceed to S1-D T-08 and S1-D T-09. PARITY-03 Q10's remaining Unity measurement remains non-blocking and must compete only when the lane is explicitly scheduled.
@@ -108,6 +104,7 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 - MFM-08 repair packet/handoff/review: `Docs/Handoffs/MFM-08-Geometry-Repair-01/`
 - MFM-08 successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md`
 - Verification Harness Hygiene 01: `Docs/Handoffs/Verification-Harness-Hygiene-01/`
+- Research Source Consolidation Audit 01: `Docs/Handoffs/Research-Source-Consolidation-Audit-01/`
 - S1-C T-07: `Docs/Handoffs/S1-C-Implementation-07/`
 - S1-C T-08: `Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md`
 - OPS Unity lock: `Docs/Handoffs/OPS-UNITY-LOCK-01/`
@@ -115,5 +112,3 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 - S1-D T-09: `Docs/Handoffs/S1-D-Implementation-09/`
 - MFM-09/10/11/12: corresponding `Docs/Handoffs/MFM-*` folders.
 - Tier-3 skeleton: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-PREPARATION-20261030.md`
-
-Backlog #28 is now represented by released execution claim #193. #193 remains non-blocking for feature delivery.
