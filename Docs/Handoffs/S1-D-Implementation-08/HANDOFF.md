@@ -187,7 +187,82 @@ The ledger `ORCHESTRATION-LEDGER-20261031.md` is the orchestrator's and was left
 - Lock transitions: six receipts above; no conflict, no force release.
 - Evidence anchors: gate receipts `all-gate-receipts.json`; failed attempts `attempts/`; development runs `dev/`, `dev2/`; offline `offline/`.
 
-## 15. Result
+## 15. Orchestration Decision Appendix — V2 (orchestrator)
+
+This appendix is the orchestrator's record. Worker-side facts above remain the evidence; this section does not alter any gate result.
+
+### 15.1 Policy
+
+- **Orchestrator:** DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`), T3/OpenCode harness.
+- **Execution worker:** Claude Sonnet 5.5 (`claude-sonnet-5-5`, Claude A), effort `medium`, one session, no subagent.
+- **Objective:** qualify exact production candidate `34e360f8...` with the S1-D T-08 witness and protected regressions; publish the handoff; return the exact token or a bounded blocker.
+- **Hard constraints:** qualification only; no production fix; no threshold/test weakening; no rebaseline; no Windows build; preserve Reference Future v1, Legacy40, D-057, ordinary Work Plan authority and T-04P/T-04 teaching state; serialize Unity.
+- **Optimisation preference:** defensible evidence and exactness first; no user preference for minimum cost/tokens was stated.
+- **Routing ladder:** DeepSeek orchestrates; Sonnet 5.5 Medium is the preferred High-difficulty worker; Opus is reserved for a classified Sonnet capability/reasoning failure or separately justified high-consequence need.
+- **Concurrency/review:** one writable Unity lane, one Unity lock, one primary writer; T-09 independent review remains separate.
+- **Protected decisions:** the packet, repin and release; D-057 calibration; frozen Reference Future v1; no Windows build before personal playtest; MFM Pending/Work Plan boundary.
+
+### 15.2 Capacity and context
+
+| Pool | State | Model / effort | Capacity source + confidence | Current work | Capacity-to-completion |
+|---|---|---|---|---|---|
+| DeepSeek | AVAILABLE | deepseek-v4.1-flash | runtime model identity; observed | orchestration, evidence inspection, publication | sufficient |
+| Claude A | AVAILABLE at dispatch; no failure observed | Sonnet 5.5 / medium | T3 provider catalogue; runtime completion | #208 execution, completed | sufficient (observed after completion) |
+| Claude B | UNKNOWN | not queried | none | none | UNKNOWN |
+| OpenAI/Codex | UNKNOWN | not selected | none | none | UNKNOWN |
+
+- **Orchestrator context:** usage/limit not directly observable in this harness; no compaction event was reported or observed. **UNKNOWN** for numeric usage.
+- **Worker context:** one session completed without a reported context/provider failure. Numeric context usage **UNKNOWN**.
+- **Provider interruptions:** none observed for the execution worker. No quota, rate-limit, authentication or model-capability failure.
+- **Reported reset/window:** none; not inferred.
+- **Switching cost avoided:** changing provider/lane mid-run would have required a lock handover, lane re-preflight and re-establishing Unity state; avoided because the chosen worker completed.
+
+### 15.3 Routing and decomposition
+
+- **Work unit:** #208 S1-D T-08, parent #203/#201, Manager #200.
+- **Task characteristics/risk:** High; exact-candidate, cross-system save/history/economy/runtime qualification; no repair authority.
+- **Decomposition topology:** one execution work unit. The witness, 26 protected gates, one lane, one fixture family and one lock are tightly coupled; splitting across workers would add serialization and handover cost without adding independence (T-09 supplies independence later).
+- **Selected:** Claude A / Sonnet 5.5 / medium / execution.
+- **Alternatives considered:** DeepSeek direct execution (rejected: packet binds Sonnet for this High-difficulty cross-system qualification); Opus (rejected: no classified Sonnet capability failure and no separate high-consequence need); Codex (not preferred by the release routing and not needed for execution independence).
+- **Reason/rule:** explicit packet routing plus successful immediately preceding S1-C T-08 Sonnet qualification on the same lineage/lane pattern.
+- **Live capacity evidence:** lock free, lane clean at exact candidate, no Editor/Xephyr, 18 GiB free.
+- **Capacity fit:** sufficient; **unknown** before completion because the harness was not yet run.
+- **Exploit/explore:** exploit accepted T-05 Unity gate, S1-C runner and prior S1-D harnesses; explore a new multi-cycle witness and a cross-session resume probe.
+- **Routing-policy/knowledge version:** #203 routing ladder (2026-10-31).
+- **Prior outcome influencing decision:** S1-C T-08 Sonnet PASS at `34e360f8` with the same lock/runner pattern.
+
+### 15.4 Outcomes and resources
+
+- **Actual worker/config:** `claude-sonnet-5-5`, effort medium, Claude A, one session.
+- **Outcome:** observed PASS for the assigned qualification; 29 counted Unity gate receipts (27 main-chain + resume + closing compile; one additional support compile at `8671c413`), 0 `CHECK_FAIL`/`error CS`; witness 4,413 checks / 0 failures / 24 captures / 9 cycle rows; 15 disk checkpoints; 6 normal lock receipts; 0 force releases.
+- **Tests/runtime evidence:** evidence root `/media/jer/Files/CCF/Verification/S1D-T08-20261031/`; this handoff.
+- **Accepted/rejected/unresolved:** qualification evidence accepted for the PASS token; T-09 independent conformance review not performed; the thin post-completion cash margin is recorded as a product-review question, not a defect claim.
+- **Rework/retries/salvage:** witness attempt 1 failed on the environment (blank captures + post-shutdown Editor hang); verification-only retry/hang-watchdog added; rerun passed. Runner directory-name issue, own-gate compile/wording slips, stale offline version pins and stale mutant anchors were reconciled or reported without weakening assertions.
+- **Failure classes:** environment and harness/driver only; no capability failure.
+- **Resource observations:** ~2.5 h wall clock (first lock 19:46 UTC to last gate/log ~22:15 UTC); 6 lock transitions; no parallel workers; provider failures none. Token counts/model-call counts are **UNKNOWN** in this harness; no proxy is presented as measured.
+- **Changed protected anchors/baselines:** none; all accepted values matched.
+
+### 15.5 Learning assessment
+
+- Sonnet 5.5 Medium was sufficient for this High-difficulty qualification; no Opus escalation was justified.
+- Reusing the accepted T-05 gate and S1-C runner materially reduced risk; the new work was the witness, the cross-session probe and the chain orchestration.
+- The witness exposed a product-relevant thin post-completion cash margin (€1,336.04 after four small thinning jobs; another harvest is refused by the ordinary cash rule). This is accepted-economy behaviour under unchanged coefficients, not a production defect claim.
+- Verification debt remains: stale offline mutation source anchors and an old S1-C T-05 offline version pin. They did not change the green Unity results but should be reconciled before the next full sweep.
+- Telemetry gap: provider token/context usage and quota headroom were not observable; routing capacity values therefore remain **UNKNOWN** rather than inferred.
+- Hypothesis (confidence medium): pre-reconciling stale offline harness pins/anchors before a long Unity chain would reduce avoidable retries in future qualifications.
+- **Evidence rule:** gate receipts, Git state, lock records and logs are observed facts; capacity/routing rationale is an orchestrator claim; Sonnet-sufficiency and process-improvement statements are retrospective inference.
+
+### 15.6 Final summary
+
+- **Attempts:** one failed environment attempt; one complete qualifying run plus a cross-session resume probe.
+- **Completed:** witness, protected regressions, rendered evidence, offline checks, handoff.
+- **Failed/cancelled:** no required gate failed; no task cancelled.
+- **Capacity failures:** none observed.
+- **Retries/salvage:** environment capture retry/Editor-hang watchdog; stale offline pin reconciliation; harness path fix.
+- **Unresolved:** T-09 independent review; product decision on the thin post-completion cash margin; stale offline mutation anchors; synthetic input; partial visual inspection; Tier-3/playtest/Windows not run.
+- **Exact next action:** #200 releases T-09 independent conformance review on this handoff and evidence root, including the cash-margin question.
+
+## 16. Result
 
 **S1-D T-08 MULTI-CYCLE WITNESS PASS — READY FOR INDEPENDENT SPEC REVIEW**
 
