@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after S1-D T-08 #208 qualification and independent T-09 #209 APPROVED. Browser/GitHub Manager ownership remains under #200; non-browser/local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after S1-D T-08 #208 qualification and independent T-09 #209 APPROVED, with Overall Dev cross-project sync enabled. Browser/GitHub Manager ownership remains under #200; non-browser/local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -16,6 +16,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - Heavy Unity is serialized machine-wide. Refresh free space, Editor processes and the authoritative lock immediately before acquisition.
 - A historical `free` lock receipt never reserves or proves future availability.
 - No Windows build before the user's personal Scenario One playtest and explicit authorisation.
+- **Overall Dev sync:** after meaningful project-state changes, #200/Overall Manager refreshes `jermur788/Overall-Dev/updates/ccf/latest.md` per `Docs/Project/coordination/overall-dev-sync.md`. Keep it concise and coordination-only; CCF remains canonical.
 
 ## Current integration truth
 
@@ -35,7 +36,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - **Research Source Consolidation Audit #194 remains NO ACTION.** Do not review, approve/reject, merge, update, clean up, reorganise Drive/Project sources or otherwise act on it unless the user explicitly lifts the restriction.
 - MFM-10 waits on accepted/integrated MFM-09 and must return `SPECIES GUARD QUALIFIED`; PARITY-09 waits on that token; MFM-11 then MFM-12 follow.
 - Scenario One Tier-3/player-test candidate remains **NOT RELEASED**. Required accepted systems must converge on one exact candidate and #199 must be green before final Tier-3.
-- Dashboard publication beyond this GitHub coordination surface is **not verified in the current browser toolset**. Never manually edit generated dashboard state.
+- **Overall Dev coordination publication is now verified:** CCF maintains `jermur788/Overall-Dev/updates/ccf/latest.md`. Actual Dashboard ingestion/rendering of that coordination data is not yet independently verified from this browser lane.
 
 ## Live / prepared tasks
 
@@ -87,6 +88,7 @@ Start fresh from exact current integration when scheduled, not stale partial wor
 
 ## Durable current records
 
+- Overall Dev sync policy: `Docs/Project/coordination/overall-dev-sync.md`; shared CCF status: `jermur788/Overall-Dev/updates/ccf/latest.md`.
 - #205 integration review: `Docs/Handoffs/MFM-08-Integration-01/MANAGER-REVIEW-20261031.md`.
 - #206 S1-C T-08 Manager review: `Docs/Handoffs/S1-C-Implementation-08/MANAGER-REVIEW-20261031.md`.
 - #208 S1-D T-08 handoff: `Docs/Handoffs/S1-D-Implementation-08/HANDOFF.md` on final docs lineage `605ce465...`.
