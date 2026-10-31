@@ -283,3 +283,40 @@ No provider capacity/auth failure occurred. No quota/reset state is inferred fro
 - OBSERVED: `#205`, `#199` and `S1-D T-08` are all Manager-gated at this timestamp; no locally released production or qualification work remains that this lane may start without an ownership/repin decision.
 - ORCHESTRATOR CLAIM: the correct action is to pause and return the exact next action to the user, not to self-accept the integration or open a competing UI writer. No Manager-owned file was written; no verdict was self-issued.
 - **Note for the receiving chat:** the programme resumes with one browser-lane turn (review #205 → repin #199 → decide S1-D T-08 repin). Everything needed is durable on origin.
+
+---
+
+# CONTINUATION — Local Deep Orchestration Resume 02 (#203), post-#205 resume — from 2026-10-31T18:32Z
+
+Appended evidence for claim **#203** (parent #201/#91). Prior sections are preserved verbatim.
+
+## Resume start gate (OBSERVED FACT)
+
+- Fresh `git fetch origin` advanced `origin/main` to **`c76b2da8c48d0ff9289d95c0ba17552eb8459540`**.
+- Manager review accepted #205: `Docs/Handoffs/MFM-08-Integration-01/MANAGER-REVIEW-20261031.md`; #156/#205 are **APPROVED / INTEGRATED / CLOSED**.
+- Published Scenario One integration is now **`34e360f85835afd15f5323f287372e0f2ee83dd9`** (`origin/integration/scenario-one-player-test-ready-v1`), a fast-forward from `ce673714`.
+- #206 S1-C T-08 is **RELEASED / READY** on exact `34e360f8`; binding amendment `Docs/Handoffs/S1-C-Implementation-08/RELEASE-REPIN-20261031.md`.
+- #207 MFM-09 and #199 Option 1 are **REPINNED / READY / QUEUED** on `34e360f8` but must not displace #206's preferred Unity slot. S1-D T-08 is repinned to `34e360f8` but **waits for #206 Manager acceptance**.
+- Live `active-tasks.md` grants #206 the next serialized Unity action. #200 remains sole writer of that file; this lane did not edit it.
+- Fresh preflight: `/media/jer/ZX20/CCF-U1` clean; created `qual/s1-c-review-history-v1` at exact `34e360f8`; authoritative lock `free`; no Editor/Xephyr; ZX20 18 GiB free (above the 15 GiB floor).
+
+## 2026-10-31T18:32Z — ROUTING EVENT R-005: #206 S1-C T-08 to Claude Sonnet 5.5 Medium
+
+- **Work unit:** S1-C T-08 Review / Management History feature qualification, claim #206, parent #91 / #201 / #203.
+- **Task type:** integrated Tier-2 qualification — multi-year history, year browsing, drill-down, grouped-harvest honesty, no-work year, provenance, guidance, objective history, current-schema save/load, genuine v20-y5 old-save, read-only/nonmutation, protected Reference/Legacy, rendered at 1280×720 and 1920×1080.
+- **Difficulty:** **High (4/5)** — cross-cutting save/history/UI/rendered qualification with genuine-old-save and grouped-money honesty; packet names SOL/CODEX high-reasoning or Claude Sonnet-class as preferred. This is materially harder than the bounded verification/contract work DeepSeek completed in R-001/R-002.
+- **Risk class:** history/save/UI qualification; no production repair authority; stale verification pins are expected across the v22→v24 lineage.
+- **Decomposition topology:** single child; serialized Unity; no parallel worker.
+- **Selected provider/model/role:** `claudeAgent` / `claude-sonnet-5-5`, effort `medium`, role test/qualification. DeepSeek remains orchestrator and ledger owner, not the gate worker.
+- **Alternatives considered:** DeepSeek default worker — declined because the task requires sustained cross-file qualification judgment, stale-contract reconciliation and rendered/old-save synthesis beyond the bounded R-001/R-002 class; Opus 5.5 — held as final capability escalation only, with no classified Sonnet failure yet.
+- **Selection reason/rule:** user-directed ladder for high-difficulty integrated qualification; packet's preferred Sonnet-class lane.
+- **Capacity/context evidence:** provider advertised AVAILABLE in the T3 catalogue; capacity UNKNOWN; no live quota evidence.
+- **Capacity-to-completion:** unknown; Unity runtime and disk are the expected constraints, not provider capacity.
+- **Expected switching/interruption cost:** moderate — one child owns the full qualification; parent retains lock/lane/coordination supervision.
+- **EXPLOIT/EXPLORE:** EXPLOIT (named worker class for this task).
+- **Prior outcome influencing choice:** R-001/R-002 DeepSeek successes establish the cheaper default for bounded verification; R-003 Sonnet root-cause success supports Sonnet for harder integrated UI/save work.
+- **Branch/worktree/lane:** `qual/s1-c-review-history-v1` in `/media/jer/ZX20/CCF-U1`, exact start `34e360f8`.
+- **Unity:** machine-wide serialized lock; worker must acquire after fresh preflight and record the receipt.
+- **Active-tasks write:** none — #200 owns the file; worker may post `[RUNNING]` on claim #206 only after lock acquisition.
+- **Next action:** worker executes the full matrix, reconciles verification-only stale pins, publishes `Docs/Handoffs/S1-C-Implementation-08/HANDOFF.md`, pushes the qual branch and returns the exact token or blocker.
+- **Queue discipline:** #199 and #207 remain queued; S1-D T-08 does not start until #206 returns and receives Manager approval; no Windows build.
