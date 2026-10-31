@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-30 by Overall Manager / OpenAI GPT-5.6 Sol after MFM-08 Geometry Repair 01 #192 Manager approval and #156 successor Tier-2 repin.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after releasing Verification Harness Hygiene 01 #193 as a parallel offline task; MFM-08 #156 remains the Unity-critical task.
 
 ## Coordination rules
 
@@ -27,6 +27,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - OPS Unity-lock repair #189 remains **MANAGER APPROVED / CLOSED**. Any later Unity task must fresh-preflight and acquire normally.
 - **MFM-08 Geometry Repair 01 #192 is MANAGER APPROVED / CLOSED.** Exact repair production head `e5fb424635f16182748efcb0539e8a49539495a9`; worker handoff/docs successor `e8b9e55e0a76ae74f46b801362ccdfed8a680c3d`; Manager review `Docs/Handoffs/MFM-08-Geometry-Repair-01/MANAGER-REVIEW.md` at main `5cf9ab61657c1adac1ccdda83ebf830a1f55e6d2`.
 - **MFM-08 #156 is REPINNED / RELEASED FOR FULL SUCCESSOR TIER-2** on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`. Use updated verification branch `qual/mfm-08-unity-v1` head `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6`. Successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md` at main `5cd0227e25088f8a8c68b7d0749f7ef6aafbadfc`. MFM-08 is still **not runtime-qualified or integrated** until that complete run receives Manager approval.
+- **Verification Harness Hygiene 01 #193 is READY — OFFLINE / NO UNITY.** It is verification-tooling only and does not touch production. Packet: `Docs/Handoffs/Verification-Harness-Hygiene-01/TASK-PACKET.md`; dispatch: `Docs/Handoffs/Verification-Harness-Hygiene-01/LOCAL-DISPATCH-HANDOFF-20261031.md`.
 - S1-C T-08 is **DEPENDENCY-CLEARED ON T-07 BUT NOT RELEASED TO UNITY YET**. It remains the preferred next history qualification slot after MFM-08 releases Unity, unless Overall Manager explicitly reprioritises.
 - S1-D T-08 remains **RELEASED** but serialized behind the preferred S1-C T-08 history slot.
 - S1-D T-09 remains prepared and waits for S1-D T-08 PASS.
@@ -45,6 +46,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
 | **MFM-08 Geometry Repair 01** (#192) | bounded fix | `fix/mfm-08-segment-footprints-v1`; `/media/jer/Videos/CCF-MFM08-FIX` | completed repair evidence | **MANAGER APPROVED / CLOSED** |
 | **MFM-08 Stand Map / 3D review UX** (#156) | full Unity Tier-2 | exact repaired candidate `e5fb4246...`; use a clean registered Unity lane | qualification only; no production repair | **RELEASED — FRESH PREFLIGHT REQUIRED** |
+| **Verification Harness Hygiene 01** (#193) | offline tooling | `verify/harness-hygiene-v1`; `/media/jer/Videos/CCF-HARNESS-HYGIENE` | `Tools/Verification/CloudTypeCheck/` + bounded SiteInfrastructure verification tooling only | **READY — OFFLINE / NO UNITY** |
 | **OPS-UNITY-LOCK-01** (#189) | machine-local ops | `/media/jer/ZX20/CCF-Ops` | lock governance repair | **APPROVED / CLOSED** |
 | **S1-C T-07 data-contract stability** (#187) | offline verification | `verify/s1-c-t07-data-contract-v1`; `/media/jer/Videos/CCF-S1C-T07` | verification/docs only | **MANAGER APPROVED / CLOSED** |
 | **S1-C T-08 final history qualification** | local Tier-2 after MFM-08 release | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
@@ -56,7 +58,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 | **MFM-11 calibration impact** | local qualification + independent review | prepared only; repin at release | measurement/qualification | **WAITING MFM-10** |
 | **MFM-12 integrated MFM qualification** | local integrated qualification + independent review | prepared only; repin at release | verification/review | **WAITING MFM-11 + APPLICABLE INTEGRATED LINEAGE** |
 | **Scenario One Tier-3 / personal-player-test candidate** | browser repin then local Tier-3 | prepared skeleton only | final integrated qualification | **NOT RELEASED** |
-| **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING** |
+| **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING; REMAINING PHASE NEEDS UNITY** |
 
 No row proves that the Unity lock is free. Every Unity worker must fresh-preflight and acquire through the normal authoritative tool.
 
@@ -67,6 +69,12 @@ No row proves that the Unity lock is free. Every Unity worker must fresh-preflig
 Qualification only on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`; no production repair authority. Use the updated Tier-2 harness at `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6` and retain the repaired segment/sample assertions.
 
 Required remaining matrix includes: complete repaired MFM-08 gate at both render sizes; manual-Fell conflict plus explicit open-work conflict; Rack V2 map/runtime/field regressions; MFM-06 and MFM-07 Unity gates; relevant Scenario One UI regression; frozen Reference Future/protected compatibility; clean save/world/lane/lock return. A genuine defect stops and returns to Manager.
+
+### #193 Verification Harness Hygiene 01
+
+Offline verification-tool ownership only. Primary surface: `Tools/Verification/CloudTypeCheck/`, `Tools/Verification/SiteInfrastructure/run_site_check.py`, `Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs`, narrow helpers/tests in those two verification directories, and its handoff docs.
+
+Required behavior: restore useful CloudTypeCheck method-body binding around the known `Painter2D` compatibility gap and prove it catches a deliberate body-level mutation; replace the all-or-nothing SiteInfrastructure verification-reference guard with an explicit narrow path allow-list while keeping the production zero-reference guard strict. Baselines may change only with evidence-backed classification. No `Assets/ForestPrototype/`, gameplay values, accepted thresholds, Unity or Windows work.
 
 ### S1-C T-08
 
@@ -82,22 +90,24 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 
 ## Dependency-ready sequence
 
-1. **Now:** #156 may perform fresh preflight, acquire Unity normally, and run the full successor Tier-2 on exact `e5fb4246...` using harness `630c6c3...`.
-2. On #156 handoff, Manager inspects exact runtime/rendered/regression/protected evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`.
-3. If #156 is APPROVED, safely integrate exact repaired MFM-08 production after fresh overlap review; then release MFM-09 from the exact combined integration lineage.
-4. After #156 releases the serialized Unity lane, fresh-repin/release S1-C T-08 on the exact current integration candidate; then proceed to S1-D T-08 and S1-D T-09.
-5. MFM-09 accepted/integrated -> MFM-10 -> require `SPECIES GUARD QUALIFIED`.
-6. MFM-10 green -> PARITY-09 and MFM-11 become eligible subject to ownership/Unity serialization.
-7. MFM-11 accepted + applicable accepted Rack/parity/S1-C/S1-D lineage -> MFM-12 integrated qualification.
-8. Rack V2 G4 + PARITY-09 + S1-C + S1-D + MFM-12 accepted/integrated on one exact candidate -> Scenario One Tier-3.
-9. Tier-3 success -> user personally playtests the same exact candidate.
-10. Windows build only after explicit post-playtest authorisation.
+1. **Now, Unity critical path:** #156 may perform fresh preflight, acquire Unity normally, and run the full successor Tier-2 on exact `e5fb4246...` using harness `630c6c3...`.
+2. **Now, parallel offline:** #193 may run independently in its dedicated tooling worktree. It must not acquire Unity or touch production.
+3. On #156 handoff, Manager inspects exact runtime/rendered/regression/protected evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`.
+4. If #156 is APPROVED, safely integrate exact repaired MFM-08 production after fresh overlap review; then release MFM-09 from the exact combined integration lineage.
+5. After #156 releases the serialized Unity lane, fresh-repin/release S1-C T-08 on the exact current integration candidate; then proceed to S1-D T-08 and S1-D T-09. PARITY-03 Q10's remaining Unity measurement remains non-blocking and must compete only when the lane is explicitly scheduled.
+6. MFM-09 accepted/integrated -> MFM-10 -> require `SPECIES GUARD QUALIFIED`.
+7. MFM-10 green -> PARITY-09 and MFM-11 become eligible subject to ownership/Unity serialization.
+8. MFM-11 accepted + applicable accepted Rack/parity/S1-C/S1-D lineage -> MFM-12 integrated qualification.
+9. Rack V2 G4 + PARITY-09 + S1-C + S1-D + MFM-12 accepted/integrated on one exact candidate -> Scenario One Tier-3.
+10. Tier-3 success -> user personally playtests the same exact candidate.
+11. Windows build only after explicit post-playtest authorisation.
 
 ## Durable current records
 
 - MFM-08 returned Tier-2 Manager review: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/TIER2-MANAGER-REVIEW-20261030.md`
 - MFM-08 repair packet/handoff/review: `Docs/Handoffs/MFM-08-Geometry-Repair-01/`
 - MFM-08 successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md`
+- Verification Harness Hygiene 01: `Docs/Handoffs/Verification-Harness-Hygiene-01/`
 - S1-C T-07: `Docs/Handoffs/S1-C-Implementation-07/`
 - S1-C T-08: `Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md`
 - OPS Unity lock: `Docs/Handoffs/OPS-UNITY-LOCK-01/`
@@ -106,4 +116,4 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 - MFM-09/10/11/12: corresponding `Docs/Handoffs/MFM-*` folders.
 - Tier-3 skeleton: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-PREPARATION-20261030.md`
 
-Issue #28 verification-harness hygiene remains backlog-only and blocks no current feature.
+Backlog #28 is now represented by released execution claim #193. #193 remains non-blocking for feature delivery.
