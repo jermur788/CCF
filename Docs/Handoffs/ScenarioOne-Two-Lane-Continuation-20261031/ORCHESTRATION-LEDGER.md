@@ -121,3 +121,39 @@ No subscription state is inferred from absence of an error. Capacity-to-completi
 - **Prior outcome:** R-001 success on a comparable bounded verification task.
 - **Branch/lane:** `verify/guided-v2-v24-contract-reconcile-v1` in `/media/jer/ZX20/CCF-U1`; exact start `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`.
 - **Next action:** checkout exact integration, reconcile only the stale v23 / pre-latch reload expectations to D-066, then fresh-preflight/acquire Unity and run `guided-v2` + `guided-legacy`.
+
+### 2026-10-31T10:05Z — R-002 OUTCOME: #198 gates PASS after one real-input retry (OBSERVED FACT)
+
+- Verification commits `bac20456`, `1b8127a2`; handoff `59b278f7`; branch pushed. Production unchanged at `ce673714`.
+- `guided-v2`: 535 PASS / 0 FAIL / 0 `error CS`, 48 captures, `GUIDED_ONBOARDING_PASS` (327 s).
+- `guided-legacy`: 569 PASS / 0 FAIL / 0 `error CS`, 62 captures, `GUIDED_ONBOARDING_PASS` (321 s, second attempt).
+- First `guided-v2` attempt found one genuinely stale expectation (`V2 confirmed rack lesson clearly requests annual advance`); the harness had confirmed the plan but skipped the accepted RACK-V2-09 entrance-marking step. Fixed verification-only.
+- First `guided-legacy` attempt failed in the real-input driver before confirmation (`State wait failed`; swivel never observed: selections=1, reselections=0, cancellations=0, confirmed=0). Classified **ENVIRONMENT/RUNNER**, not capability. Retried alone and passed at the same tree.
+- Locks `4953262b6e1942538e34e6c0029dc78a` and `41efe1bde2ac4d0c852e33f756c7528b` released normally; lane restored clean; Editor side effects reverted; no Editor/Xephyr.
+- Handoff posted to #198. **Manager acceptance: UNRESOLVED at this timestamp.**
+
+### 2026-10-31T10:05Z — LEARNING CHECKPOINT 2 (RETROSPECTIVE INFERENCE)
+
+- **Observed:** DeepSeek completed a second verification-only reconciliation, including finding a third stale expectation that the packet's known list did not name. No model failure; no escalation.
+- **Observed:** one failure was a known-flaky real-input driver, not a contract or production defect; one clean retry passed. The classification rule (environment ≠ capability) prevented a needless Sonnet/Opus dispatch.
+- **Hypothesis (moderate confidence, n=2):** DeepSeek is sufficient for bounded verification-contract reconciliation when authority is explicit, even when the gate surfaces additional stale assertions. It is not evidence for cross-file production UI repair.
+- **Waste observation:** the failed 901 s legacy run plus 321 s retry cost ~15 min; retrying the real-input gate alone earlier would have avoided only the first 901 s, not the contract work. No cheaper route identified beyond the existing "run the guided real-input gate first/alone" workflow note.
+- **Policy proposal (NOT active):** for guided real-input gates, treat a pre-confirmation driver state-wait failure as ENVIRONMENT and retry once alone before any model/provider change.
+
+### 2026-10-31T10:05Z — ROUTING EVENT R-003: #199 to Claude Sonnet 5.5 Medium
+
+- **Work unit:** Scenario One Combined HUD / Focus Regression Repair 01, claim #199, parent #201/#91.
+- **Task type:** bounded production UI/focus repair across HUD composition, minimap/estimate, competitor presentation and focus ownership, in both Rack V2 and legacy modes; independent review required.
+- **Difficulty:** 4/5 — cross-screen UI/focus root cause with protected assertions; not architecture-wide but materially harder than #196/#198.
+- **Risk class:** UI-runtime production repair; no save/determinism/reference.
+- **Selected:** `claudeAgent` / `claude-sonnet-5-5`, effort `medium`.
+- **Alternatives considered:** DeepSeek (default) — rejected because this is difficulty 4 cross-screen production UI, where the user-directed ladder names Sonnet 5.5 Medium; Opus 5.5 Low — held in reserve until a classified Sonnet capability failure or high-consequence finding.
+- **Selection reason/rule:** difficulty-4 production UI/focus repair per the current ladder.
+- **Capacity/context evidence:** Claude A advertised AVAILABLE by T3 catalogue; capacity UNKNOWN; no live quota evidence.
+- **Capacity-to-completion:** unknown.
+- **Expected switching/interruption cost:** moderate — handoff boundary between implementer and Unity executor; mitigated by a dedicated worktree and a read-only-to-Unity instruction until implementation is committed.
+- **EXPLOIT/EXPLORE:** EXPLOIT (ladder-named worker).
+- **Prior outcome influencing choice:** #196/#198 DeepSeek successes establish the cheaper default for bounded verification, not for cross-screen UI repair.
+- **Branch/worktree:** `fix/scenario-one-combined-hud-focus-regression-v1` in `/media/jer/ZX20/CCF-CombinedHud`, exact start `ce673714`.
+- **Unity:** none during implementation; #201 retains the serialized Unity lane and will run the combined gates after the child commits.
+- **Next action:** dispatch Sonnet with the packet, exact worktree, no-Unity/one-writer constraints, and require a committed diff + HANDOFF draft + root-cause evidence.
