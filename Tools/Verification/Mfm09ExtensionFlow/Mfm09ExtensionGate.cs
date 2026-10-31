@@ -264,6 +264,14 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(w.xMin >= window.xMin - 1f && w.xMax <= window.xMax + 1f && w.yMin >= window.yMin - 1f, what + " starts inside the window at " + size.x + "x" + size.y, w + " in " + window);
     }
 
+    // True only when the element and every ancestor are displayed (a view that is closed is hidden by an ancestor, not by the element itself).
+    private static bool Shown(VisualElement element)
+    {
+        for (VisualElement e = element; e != null; e = e.parent)
+            if (e.resolvedStyle.display == DisplayStyle.None || e.resolvedStyle.visibility == Visibility.Hidden) return false;
+        return element != null;
+    }
+
     private string Identity()
     {
         ForestSaveData data = saves.CaptureData();
@@ -576,7 +584,8 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(newText.Contains("Recorded origin · prescription 1 ·") && newText.Contains("Added by a prescription. Still ordinary Pending work: approve it in this Work Plan to commit it."),
             "origin provenance and the uncommitted explanation are shown");
         Check(Root.Q<Label>("workplan-prescription-note") != null && Root.Q<Label>("workplan-prescription-note").text == WorkPlanView.PrescriptionGroupNote, "the group note states the Work Plan is the commitment gate");
-        Check(Root.Q<VisualElement>("map-review-layer") == null || Root.Q<VisualElement>("map-review-layer").resolvedStyle.display == DisplayStyle.None, "the MFM-08 review layer is not part of the Work Plan screen");
+        Check(!Shown(Root.Q<VisualElement>("map-review-layer")) && !Shown(Root.Q<VisualElement>("map-review-scroll")), "the MFM-08 review layer and card are not shown on the Work Plan screen");
+        Check(Shown(card), "the Work Plan group card is shown");
         Check(manager.WorkOrders.Where(o => o.prescriptionId == 1).All(o => o.status == ScenarioWorkStatus.Pending), "opening the Work Plan approves nothing");
         yield return Shot("05-workplan-pending-new", size =>
         {
