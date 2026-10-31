@@ -134,10 +134,21 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
     private StandMapTreatmentReview Review => ui.Map.Review;
     private string SavePath => Path.Combine(Application.persistentDataPath, "forest-save.json");
 
+    // The lesson view caches its facts for a quarter second; the gate forces a recompute so every read reflects the world as it is now.
+    // (Reading is the only effect: the facts themselves are derived and never written.)
+    private LearningObjectivesView Learn
+    {
+        get
+        {
+            typeof(LearningObjectivesView).GetField("sequenceFacts", Private).SetValue(ui.Learning, null);
+            return ui.Learning;
+        }
+    }
+
     private ScenarioOneTeachingSequence.Facts LiveFacts()
     {
         MethodInfo method = typeof(LearningObjectivesView).GetMethod("TeachingFacts", Private);
-        return (ScenarioOneTeachingSequence.Facts)method.Invoke(ui.Learning, null);
+        return (ScenarioOneTeachingSequence.Facts)method.Invoke(Learn, null);
     }
 
     private ScenarioOneRackBay.Analysis Bay()
@@ -376,11 +387,11 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
 
         // ---- 4. Lesson 5 (Review the response): the extension is NOT offered yet; the latch is not earned yet ----
         var f4 = LiveFacts();
-        Check(ScenarioOneTeachingSequence.Current(f4) == 4 && ui.Learning.CurrentTopicIndex == 4, "the accepted stage is Review the response (index 4)", ui.Learning.CurrentTopicIndex.ToString());
+        Check(ScenarioOneTeachingSequence.Current(f4) == 4 && Learn.CurrentTopicIndex == 4, "the accepted stage is Review the response (index 4)", Learn.CurrentTopicIndex.ToString());
         Check(ScenarioOneTeachingSequence.Presented(f4) == 4 && !ScenarioOneTeachingSequence.ExtensionOffered(f4), "Lesson 5 is shown, not the extension");
-        Check(ui.Learning.CurrentTitle == "5. Review the response", "Lesson 5 keeps its accepted title", ui.Learning.CurrentTitle);
-        Check(!ui.Learning.CurrentInstruction.Contains("Treatment review") && !manager.FirstGuidedRackReviewComplete, "no extension wording and no latch before the review");
-        ActiveObjectiveHudWidget.Model hud4 = ui.Learning.HudModel();
+        Check(Learn.CurrentTitle == "5. Review the response", "Lesson 5 keeps its accepted title", Learn.CurrentTitle);
+        Check(!Learn.CurrentInstruction.Contains("Treatment review") && !manager.FirstGuidedRackReviewComplete, "no extension wording and no latch before the review");
+        ActiveObjectiveHudWidget.Model hud4 = Learn.HudModel();
         Check(hud4.Number == 5 && hud4.Total == 9, "the HUD counts the nine-lesson sequence", hud4.Number + "/" + hud4.Total);
         string worldBeforeReview = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
 
@@ -410,11 +421,11 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
 
         // ---- 6. the extension is now offered: after Lesson 5, before Natural regeneration ----
         var f6 = LiveFacts();
-        Check(ScenarioOneTeachingSequence.Current(f6) == 5 && ui.Learning.CurrentTopicIndex == 5, "the accepted stage index is 5 (recruitment); stage numbering is unchanged", ui.Learning.CurrentTopicIndex.ToString());
+        Check(ScenarioOneTeachingSequence.Current(f6) == 5 && Learn.CurrentTopicIndex == 5, "the accepted stage index is 5 (recruitment); stage numbering is unchanged", Learn.CurrentTopicIndex.ToString());
         Check(ScenarioOneTeachingSequence.ExtensionOffered(f6) && ScenarioOneTeachingSequence.Presented(f6) == 5, "Extend your treatment is the lesson presented");
-        Check(ui.Learning.CurrentTitle == "6. Extend your treatment", "title and visible number", ui.Learning.CurrentTitle);
-        Check(ui.Learning.CurrentInstruction == ScenarioOneTeachingSequence.Extension.Action, "initial instruction is the authored action", ui.Learning.CurrentInstruction);
-        ActiveObjectiveHudWidget.Model hud6 = ui.Learning.HudModel();
+        Check(Learn.CurrentTitle == "6. Extend your treatment", "title and visible number", Learn.CurrentTitle);
+        Check(Learn.CurrentInstruction == ScenarioOneTeachingSequence.Extension.Action, "initial instruction is the authored action", Learn.CurrentInstruction);
+        ActiveObjectiveHudWidget.Model hud6 = Learn.HudModel();
         Check(hud6.Number == 6 && hud6.Total == 9 && hud6.Title.Contains("Extend your treatment"), "HUD shows lesson 6 of 9", hud6.Number + "/" + hud6.Total + " " + hud6.Title);
         Note("extension offered at teaching key " + TeachingKey(f6));
         ui.CloseAll(); ui.ShowObjectives(); yield return Settle(12);
@@ -442,9 +453,9 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(!diskReview.ToLowerInvariant().Contains("extend-treatment") && !diskReview.ToLowerInvariant().Contains("extensionapproved") && !diskReview.ToLowerInvariant().Contains("extensionapplies"),
             "no MFM-09 field or lesson id appears in the save");
         saves.Load(); yield return Settle(20);
-        Check(manager.FirstGuidedRackReviewComplete && ScenarioOneTeachingSequence.ExtensionOffered(LiveFacts()) && ui.Learning.CurrentTitle == "6. Extend your treatment",
+        Check(manager.FirstGuidedRackReviewComplete && ScenarioOneTeachingSequence.ExtensionOffered(LiveFacts()) && Learn.CurrentTitle == "6. Extend your treatment",
             "after reload the completed first review stays completed and the extension is still the lesson shown");
-        Check(ui.Learning.CurrentTopicIndex == 5, "reload does not reopen Lesson 5 (stage index stays 5)");
+        Check(Learn.CurrentTopicIndex == 5, "reload does not reopen Lesson 5 (stage index stays 5)");
 
         // ---- 8. the Treatment review (accepted MFM-08 UX, consumed not changed) ----
         yield return OpenReview();
@@ -455,7 +466,7 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(coveredCount > 0, "at least one Covered area", coveredCount + "/" + coverage.NonSourceCount);
         Check(HasText("Nothing here is marked, planned or approved yet"), "the review card keeps its own noncommitment note");
         Check(Buttons("Apply sample treatment here").Count == coveredCount, "Include is offered on Covered areas");
-        Check(ui.Learning.CurrentInstruction == ScenarioOneTeachingSequence.Extension.Action, "opening the review is not progress: the extension still asks for the same action");
+        Check(Learn.CurrentInstruction == ScenarioOneTeachingSequence.Extension.Action, "opening the review is not progress: the extension still asks for the same action");
         yield return Shot("02-treatment-review-card", size =>
         {
             ScrollView scroll = Root.Q<ScrollView>("map-review-scroll");
@@ -499,9 +510,9 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         yield return Settle(10);
         var f8 = LiveFacts();
         Check(ScenarioOneTeachingSequence.ExtensionOffered(f8) && !f8.ExtensionApproved, "an Accepted prescription is not extension completion");
-        Check(ui.Learning.CurrentInstruction.Contains("Prescription 1 is accepted but not yet approved") && ui.Learning.CurrentInstruction.Contains("approve them in the Work Plan [Tab] to commit the work"),
-            "the lesson now asks for review, spot-check and approval, and names the Work Plan as the commitment step", ui.Learning.CurrentInstruction);
-        Check(ui.Learning.HudModel().Progress.Contains("Prescription accepted") , "the HUD progress line follows the stored prescription", ui.Learning.HudModel().Progress);
+        Check(Learn.CurrentInstruction.Contains("Prescription 1 is accepted but not yet approved") && Learn.CurrentInstruction.Contains("approve them in the Work Plan [Tab] to commit the work"),
+            "the lesson now asks for review, spot-check and approval, and names the Work Plan as the commitment step", Learn.CurrentInstruction);
+        Check(Learn.HudModel().Progress.Contains("Prescription accepted") , "the HUD progress line follows the stored prescription", Learn.HudModel().Progress);
         Approval.ProposalSet preview = Review.Session.LastPreview;
         Check(preview != null && preview.Valid && preview.Proposals.Count > 0, "the rule proposes removals for the chosen areas", preview != null ? preview.Proposals.Count.ToString() : "null");
         Check(Named("map-review-approve") != null && !Named("map-review-approve").enabledSelf, "Approve is off before the 3D spot-check");
@@ -541,8 +552,8 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         yield return Settle(12);
         var f9 = LiveFacts();
         Check(f9.ExtensionApproved && !ScenarioOneTeachingSequence.ExtensionOffered(f9), "approval completes the extension, derived from the stored prescription");
-        Check(ScenarioOneTeachingSequence.Current(f9) == 5 && ui.Learning.CurrentTopicIndex == 5, "the accepted stage index is still 5: the latch/stage were not touched", ui.Learning.CurrentTopicIndex.ToString());
-        Check(ui.Learning.CurrentTitle == "7. Natural regeneration", "the lesson returns to Natural regeneration, now numbered 7", ui.Learning.CurrentTitle);
+        Check(ScenarioOneTeachingSequence.Current(f9) == 5 && Learn.CurrentTopicIndex == 5, "the accepted stage index is still 5: the latch/stage were not touched", Learn.CurrentTopicIndex.ToString());
+        Check(Learn.CurrentTitle == "7. Natural regeneration", "the lesson returns to Natural regeneration, now numbered 7", Learn.CurrentTitle);
         Check(manager.FirstGuidedRackReviewComplete, "the first-guided-review latch is untouched by the extension");
         Check(HasText(ScenarioOneTreatmentReview.ApprovedMessage) || Review.Session.ActiveApproved, "the MFM-08 review reports Pending tasks, not approved for execution");
         yield return Shot("04-review-approved-pending", size =>
@@ -585,7 +596,7 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         var reloaded = manager.WorkOrders.Where(o => o.prescriptionId == 1).ToList();
         Check(reloaded.Count == generated.Count && reloaded.All(o => o.status == ScenarioWorkStatus.Pending && !string.IsNullOrEmpty(o.prescriptionCoverageUnitId)), "reloaded orders keep Pending status and provenance");
         var fReload = LiveFacts();
-        Check(manager.FirstGuidedRackReviewComplete && fReload.ExtensionApproved && !ScenarioOneTeachingSequence.ExtensionOffered(fReload) && ui.Learning.CurrentTitle == "7. Natural regeneration",
+        Check(manager.FirstGuidedRackReviewComplete && fReload.ExtensionApproved && !ScenarioOneTeachingSequence.ExtensionOffered(fReload) && Learn.CurrentTitle == "7. Natural regeneration",
             "reload keeps the latch, the extension completion and the lesson shown");
         File.Delete(SavePath); if (File.Exists(SavePath + ".bak")) File.Delete(SavePath + ".bak");
 
@@ -603,7 +614,7 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(generated.All(o => FoldText(fCarried).Contains("#" + o.workOrderId + " ·")) && FoldText(fCarried).Contains("Recorded origin · prescription 1 ·"), "carried-over rows still show prescription origin");
         Check(Root.Q<Label>("workplan-prescription-note") != null, "the explanation note is still shown for carried-over prescription work");
         var fYear = LiveFacts();
-        Check(fYear.ExtensionApproved && ui.Learning.CurrentTitle == "7. Natural regeneration", "the extension stays complete across the year");
+        Check(fYear.ExtensionApproved && Learn.CurrentTitle == "7. Natural regeneration", "the extension stays complete across the year");
         yield return Shot("06-workplan-carried-over", size =>
         {
             InsideWindow(Root.Q<Label>("workplan-prescription-note"), "prescription group note", size);
@@ -631,7 +642,7 @@ public sealed class Mfm09ExtensionRunner : MonoBehaviour
         Check(Bay().ExecutedRemovals + "|" + string.Join(",", Bay().Future.Select(t => t.Id).OrderBy(x => x, StringComparer.Ordinal)) == sampleExecutedBefore,
             "executing comparable-area work left the sample's executed removals and future trees unchanged");
         var fAfter = LiveFacts();
-        Check(manager.FirstGuidedRackReviewComplete && ScenarioOneTeachingSequence.Current(fAfter) == 5 && ui.Learning.CurrentTitle == "7. Natural regeneration", "the lesson stays at Natural regeneration and the latch holds");
+        Check(manager.FirstGuidedRackReviewComplete && ScenarioOneTeachingSequence.Current(fAfter) == 5 && Learn.CurrentTitle == "7. Natural regeneration", "the lesson stays at Natural regeneration and the latch holds");
 
         // ---- 15. manual / non-prescription management remains possible ----
         ForestTree manual = LiveTrees().Where(t => t.IsLiving && !t.IsCropTree && !manager.IsPlannedForFelling(t.TreeId)).OrderBy(t => t.TreeId, StringComparer.Ordinal).First();
