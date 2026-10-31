@@ -157,3 +157,21 @@ No subscription state is inferred from absence of an error. Capacity-to-completi
 - **Branch/worktree:** `fix/scenario-one-combined-hud-focus-regression-v1` in `/media/jer/ZX20/CCF-CombinedHud`, exact start `ce673714`.
 - **Unity:** none during implementation; #201 retains the serialized Unity lane and will run the combined gates after the child commits.
 - **Next action:** dispatch Sonnet with the packet, exact worktree, no-Unity/one-writer constraints, and require a committed diff + HANDOFF draft + root-cause evidence.
+
+### 2026-10-31T10:08Z — R-003 OUTCOME: #199 implemented partially by Sonnet; gates not green (OBSERVED FACT)
+
+- Delegation: `claudeAgent` / `claude-sonnet-5-5`, effort `medium`, child thread created 10:06Z; completed 10:08Z (run wall time ~2.5 min; MCP `delegate_task` wait call itself returned a transport timeout after ~2 min, so the parent recovered via `t3_thread_list` / `t3_thread_read` and the child thread ID).
+- Child output: commit `07fdddf8` — verification fixture only (`CombinedHudComposition.cs` now excludes Rack V2-owned trees from the competitor fixture) + `HANDOFF.md`. No production `Assets/` change.
+- Child finding: estimate/minimap and `FOCUS_04/06/07` trace to PARITY-07's deliberate `ShowMinimap(!(inspecting && ...))` step-aside and a 600-wide estimate panel; the child classified this as a contract conflict requiring Manager disposition, not a code bug it could safely repair. It stopped rather than weaken the assertion. This is correct scope discipline, not a capability failure.
+- #201 Unity execution on the same commit: `combined-v2` 453/10/24; `combined-legacy` 440/8/24. The fixture fix removed the false 1920 competitor panel/tag failures and exposed a real 1920 `COMPETITOR_LIST_IS_NOT_CLIPPED` defect (915 vs 896). Estimate/minimap + FOCUS remain.
+- Environment: two legacy attempts hung before import/compile (no `CHC_` lines) after the v2 Editor was reaped; clearing only `Temp/*` and stale `Library/*DB-lock` files (no Editor) restored startup. Classified ENVIRONMENT/runner, not code, not capability.
+- Manager disposition requested on #199 with four options; Manager acceptance UNRESOLVED. #196/#198 also await Manager verdict. No further production work is authorised in this state.
+
+### 2026-10-31T11:38Z — LEARNING CHECKPOINT 3 (RETROSPECTIVE INFERENCE)
+
+- **Observed:** Sonnet 5.5 Medium produced a precise root-cause and a safe partial fix in ~2.5 min, and correctly refused to resolve a protected-contract conflict unilaterally. First-pass technical success on the part it could do; blocked on authority, not capability.
+- **Observed:** the delegated child's completion notification did not reach the parent because the MCP wait returned a transport timeout; polling the child thread recovered the result. Orchestration overhead ~2 min.
+- **Hypothesis (moderate confidence, n=1):** Sonnet 5.5 Medium is a good fit for difficulty-4 UI root-cause work where the deliverable is a diagnosis + safe bounded fix; it is not evidence about its ability to complete a contested product-layout repair.
+- **Waste/incorrect choices:** none material. The 40-minute first legacy timeout was avoidable by checking stale Unity `Temp` state immediately after a reaped Editor; record that as a workflow check.
+- **Escalation assessment:** no escalation to Opus is justified. The blocker is a product/authority decision (`PARITY-07` minimap trade-off vs protected Combined contract), which no stronger model can resolve.
+- **Policy proposal (NOT active):** after any reaped Unity Editor, clear `Temp/*` and stale `Library/*DB-lock` before the next gate; treat pre-import startup hangs as environment. For delegated children, treat MCP transport timeout as unknown, not failure, and poll the child thread.
