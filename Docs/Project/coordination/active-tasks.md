@@ -2,11 +2,12 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after approving and closing Rack V2 Current-Lineage Red-Gate Diagnosis 01 #197. #196 remains the first MFM-specific Unity action. #198 (guided-v2 v24/D-066 contract reconciliation) and #199 (Combined HUD/focus regression repair) are prepared follow-up debt and do not automatically block MFM-08 #156; both must be resolved before final integrated Tier-3 where their protected/current contracts apply.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after the user's explicit two-lane split. All browser/GitHub Manager work is now under #200; all non-browser/local/Unity execution orchestration is now under #201. #162 and #106 are superseded/closed. #196 remains the first MFM-specific Unity action. #198 and #199 remain prepared pre-Tier-3 debt and do not automatically block MFM-08 #156.
 
 ## Coordination rules
 
 - Overall Manager or assigned integrator maintains this file.
+- **During the current two-lane split, #200 is the sole primary writer for this file. #201 and child workers must refresh/read it but must not become competing writers.**
 - Workers refresh this file and their claim at task start and before asserting a lock is absent.
 - One writable lane/worktree per owner and one primary writer per subsystem/file set.
 - Never stash, reset, discard, clean, overwrite or absorb unrelated dirty work.
@@ -14,7 +15,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - Claims record execution presence only; they do not grant ownership.
 - Heavy Unity is serialized machine-wide. Refresh free space, lock and Editor-process state immediately before acquisition.
 - A prior `free` lock receipt is historical evidence only; it never reserves or proves future availability.
-- Browser-capable phases should be separated from local implementation/Unity wherever practical; #162 is the browser lane.
+- Browser-capable phases belong to #200. Local/worktree/Unity execution orchestration belongs to #201.
 - No Windows build before the user's personal Scenario One playtest and explicit authorisation.
 
 ## Current integration truth
@@ -32,8 +33,11 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - **Rack V2 Current-Lineage Red-Gate Diagnosis 01 #197 is MANAGER APPROVED / CLOSED.** `guided-v2` is classified as stale v23/pre-D-066 verification contract; `combined-v2` / `combined-legacy` are classified as current generic Scenario One HUD/focus regressions against the protected Combined HUD gate, not MFM-specific Rack failures. Review: `Docs/Handoffs/RackV2-Current-Lineage-Red-Gate-Diagnosis-01/MANAGER-REVIEW-20261031.md`.
 - **Guided-v2 v24 / D-066 Contract Reconciliation 01 #198 is READY — VERIFICATION ONLY FIRST.** Exact start `ce673714...`; reconcile stale guided/SequentialObjectives expectations to accepted current v24/D-066 teaching-latch authority without production/schema/anchor changes or assertion weakening. Requires serialized Unity only after the verification patch is reviewable.
 - **Scenario One Combined HUD / Focus Regression Repair 01 #199 is READY — BOUNDED PRODUCTION UI REPAIR.** Exact start `ce673714...`; protected Combined HUD post-repair baseline was 450/0 model-0 and 455/0 V2. Current stable failures concern estimate/minimap, competitor presentation and focus 04/06/07. Preserve the protected assertions; no Rack/MFM/schema/ecology/economy changes. Independent review required.
+- **Scenario One Browser / GitHub Manager Lane 03 #200 is READY.** Canonical handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-HANDOFF.md` at `b55225d4d385554e5ee70ca33d16d26ec43ef6a7`. It owns browser/GitHub Manager work and this file's writes, not local C#/Unity execution.
+- **Scenario One Long-Running Deep Orchestration 01 #201 is READY.** Canonical handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/DEEP-ORCHESTRATION-HANDOFF.md` at `b9e6b57133693cc9033e991c9c1724b7c0937b89`. It orchestrates non-browser execution and adaptive routing evidence; child claims remain mandatory.
+- **Old browser umbrella #162 and old local umbrella #106 are SUPERSEDED / CLOSED.** Historical evidence remains valid; no new work should be dispatched under them.
 - **Verification Harness Hygiene 01 #193 is MANAGER APPROVED / INTEGRATED / CLOSED.** Reviewed published handoff head `5f9450f4a65e6df8e989a241ffe48d8a3200f6f1`; implementation `b4b68a91d7ab8f1eb24b1956ed53b1e71b416e10`; integration merge `a678fdcfcf3d30541f4bf13066b6feaf2d31dd36`; parent backlog #28 resolved.
-- **Research Source Consolidation Audit 01 #194 is MANAGER APPROVED / CLOSED — PLAN ONLY.** Reviewed handoff head `60196617fd0afcbfd45642df8c8d74b3a4eac1bd`; canonical review `Docs/Handoffs/Research-Source-Consolidation-Audit-01/MANAGER-REVIEW-20261031.md`. Accepted planning conclusion: preserve byte-identical originals first; broad PDF bundling/master-PDF is not recommended; no cleanup, deletion, move, watermark, recompression, Drive cleanup or source replacement is authorised by this approval.
+- **Research Source Consolidation Audit 01 #194 is historical/informational only under the user's explicit no-action instruction.** Do not review, approve/reject, merge, update, execute cleanup, reorganise Drive/Project sources, or otherwise act on that handoff unless the user explicitly lifts the restriction. Any older issue/review wording does not override this latest direct instruction.
 - S1-C T-08 is **DEPENDENCY-CLEARED ON T-07 BUT NOT RELEASED TO UNITY YET**. It remains the preferred next history qualification slot after the MFM-08-specific Unity closure, unless Overall Manager explicitly reprioritises.
 - S1-D T-08 remains **RELEASED** but serialized behind the preferred S1-C T-08 history slot.
 - S1-D T-09 remains prepared and waits for S1-D T-08 PASS.
@@ -48,26 +52,34 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 | Task | Lane | Branch / worktree | Ownership | Status |
 |---|---|---|---|---|
-| **PLAYER-TEST-BROWSER-LANE-02** (#162) | browser/GitHub | no local worktree | review/coordination/packets only | **ACTIVE** |
-| **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
+| **Scenario One Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, coordination, packets, claims, active-tasks writes | **READY — USER TO OPEN BROWSER CHAT** |
+| **Scenario One Long-Running Deep Orchestration 01** (#201) | long-running non-browser orchestration | child worktrees only; no umbrella production ownership | dispatch/routing of local C#/Unity work; orchestration evidence | **READY — USER TO START LONG-RUNNING AGENT** |
 | **MFM-08 Stand Map / 3D review UX** (#156) | Manager review / integration hold | candidate `e5fb4246...`; returned harness `d88a32f6...` | no production edits pending #196 | **NEEDS CHANGES — WAITING #196** |
-| **MFM-08 MapPlanning Contract Reconciliation 01** (#196) | bounded verification repair + Unity | `verify/mfm-08-mapplanning-contract-reconcile-v1`; intended registered lane `/media/jer/ZX20/CCF-U1` after fresh preflight | navigation-tab verification contract only; no production | **READY — FIRST MFM UNITY PRIORITY** |
-| **Guided-v2 v24 / D-066 Contract Reconciliation 01** (#198) | verification repair then serialized Unity | `verify/guided-v2-v24-contract-reconcile-v1`; worktree/lane assigned only at start | guided/SequentialObjectives verification only | **READY — QUEUED, PRE-TIER3 DEBT** |
-| **Scenario One Combined HUD / Focus Regression Repair 01** (#199) | bounded local UI repair + Unity + independent review | `fix/scenario-one-combined-hud-focus-regression-v1`; dedicated worktree assigned only at start | Scenario One HUD/focus only; no Rack/MFM ownership | **READY — QUEUED, PRE-TIER3 DEBT** |
-| **S1-C T-08 final history qualification** | local Tier-2 after MFM-specific closure | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
-| **S1-D T-08 multi-cycle witness** | local Tier-2 after preferred S1-C T-08 slot | `verify/s1-d-multicycle-witness-v1`; `/media/jer/Videos/CCF-S1D-T08` | qualification only; no production repair by default | **RELEASED; WAITING SERIALIZED UNITY** |
-| **S1-D T-09 independent conformance review** | browser/read-only independent review | no production lane | review only | **PREPARED; WAITING S1-D T-08 PASS** |
-| **MFM-09 teaching / Work Plan integration** | browser prep then local | prepared only; repin at release | curriculum/integration after accepted #156 | **WAITING ACCEPTED/INTEGRATED #156** |
-| **MFM-10 species-parity guard** | local qualification after MFM-09 | prepared only; repin at release | verification/guard | **WAITING MFM-09** |
-| **PARITY-09 integrated parity qualification** | browser repin then local qualification | TBD | qualification | **BLOCKED ON MFM-10 `SPECIES GUARD QUALIFIED`** |
-| **MFM-11 calibration impact** | local qualification + independent review | prepared only; repin at release | measurement/qualification | **WAITING MFM-10** |
-| **MFM-12 integrated MFM qualification** | local integrated qualification + independent review | prepared only; repin at release | verification/review | **WAITING MFM-11 + APPLICABLE INTEGRATED LINEAGE** |
-| **Scenario One Tier-3 / personal-player-test candidate** | browser repin then local Tier-3 | prepared skeleton only | final integrated qualification | **NOT RELEASED** |
-| **PARITY-03 Q10** (#74) | verification | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING; REMAINING PHASE NEEDS UNITY** |
+| **MFM-08 MapPlanning Contract Reconciliation 01** (#196) | #201 child: bounded verification repair + Unity | `verify/mfm-08-mapplanning-contract-reconcile-v1`; intended registered lane `/media/jer/ZX20/CCF-U1` after fresh preflight | navigation-tab verification contract only; no production | **READY — FIRST MFM UNITY PRIORITY** |
+| **Guided-v2 v24 / D-066 Contract Reconciliation 01** (#198) | #201 child: verification repair then serialized Unity | `verify/guided-v2-v24-contract-reconcile-v1`; worktree/lane assigned only at start | guided/SequentialObjectives verification only | **READY — QUEUED, PRE-TIER3 DEBT** |
+| **Scenario One Combined HUD / Focus Regression Repair 01** (#199) | #201 child: bounded local UI repair + Unity + independent review | `fix/scenario-one-combined-hud-focus-regression-v1`; dedicated worktree assigned only at start | Scenario One HUD/focus only; no Rack/MFM ownership | **READY — QUEUED, PRE-TIER3 DEBT** |
+| **S1-C T-08 final history qualification** | #201 local Tier-2 after MFM-specific closure; #200 repins/releases | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
+| **S1-D T-08 multi-cycle witness** | #201 local Tier-2 after preferred S1-C T-08 slot | `verify/s1-d-multicycle-witness-v1`; `/media/jer/Videos/CCF-S1D-T08` | qualification only; no production repair by default | **RELEASED; WAITING SERIALIZED UNITY** |
+| **S1-D T-09 independent conformance review** | #200 browser/read-only independent review | no production lane | review only | **PREPARED; WAITING S1-D T-08 PASS** |
+| **MFM-09 teaching / Work Plan integration** | #200 browser prep/release then #201 local | prepared only; repin at release | curriculum/integration after accepted #156 | **WAITING ACCEPTED/INTEGRATED #156** |
+| **MFM-10 species-parity guard** | #201 local qualification after MFM-09 | prepared only; repin at release | verification/guard | **WAITING MFM-09** |
+| **PARITY-09 integrated parity qualification** | #200 repin then #201 local qualification | TBD | qualification | **BLOCKED ON MFM-10 `SPECIES GUARD QUALIFIED`** |
+| **MFM-11 calibration impact** | #201 local qualification + independent review | prepared only; repin at release | measurement/qualification | **WAITING MFM-10** |
+| **MFM-12 integrated MFM qualification** | #201 local integrated qualification + independent review | prepared only; repin at release | verification/review | **WAITING MFM-11 + APPLICABLE INTEGRATED LINEAGE** |
+| **Scenario One Tier-3 / personal-player-test candidate** | #200 repin/review + #201 local Tier-3 | prepared skeleton only | final integrated qualification | **NOT RELEASED** |
+| **PARITY-03 Q10** (#74) | #201 verification when explicitly scheduled | `verify/parity-03-density-continuity-q10-v1`; `/media/jer/ZX20/CCF-Q10` | verification only | **WAITING — NON-BLOCKING; REMAINING PHASE NEEDS UNITY** |
 
 No row proves that the Unity lock is free. Every Unity worker must fresh-preflight and acquire through the normal authoritative tool.
 
 ## Single-writer boundaries
+
+### #200 Browser / GitHub Manager Lane 03
+
+Browser/GitHub only. Sole primary writer for this live coordination file during the split. Owns Manager review/decisions, claims/packets/repins, browser/static diagnosis and browser-safe canonical status maintenance. It owns no local C#/Unity implementation and must not claim local cleanliness, Editor/runtime/rendered evidence or build state without returned local evidence.
+
+### #201 Long-Running Deep Orchestration 01
+
+Non-browser orchestration only at the umbrella level; substantive work still uses child claims. DeepSeek is the default orchestrator/lower-cost worker where capable; Claude Sonnet 5.5 Medium is the main harder-task escalation; Opus 5.5 Low then Medium only for classified capability/high-consequence escalation. Maintain the adaptive-routing evidence ledger required by `DEEP-ORCHESTRATION-HANDOFF.md`. Read this file before every dispatch but return coordination changes to #200 rather than editing it concurrently.
 
 ### #156 MFM-08 successor Tier-2
 
@@ -89,7 +101,7 @@ Bounded production UI/focus repair. Protected Combined HUD assertions remain aut
 
 ### Research source consolidation
 
-Audit #194 is complete and grants no live ownership. Any future backup, deletion, move, derivative marking, recompression or archive reorganisation requires a new reviewed execution packet and explicit user/Manager approval. Evidential originals must remain byte-identical in the designated archive under any approved future plan.
+**No-action restriction.** The user explicitly instructed the Manager not to act on #194 / `Docs/Handoffs/Research-Source-Consolidation-Audit-01/HANDOFF.md`. Do not resume cleanup, deletion, bundling, archive/Drive reorganisation, Project-source replacement, review or integration from that handoff unless the user explicitly lifts this restriction.
 
 ### S1-C T-08
 
@@ -99,17 +111,13 @@ Qualification-only when released. T-07 acceptance fixes the genuine old-save sou
 
 Released qualification-only task. No production fix authority. Exact released candidate remains `ce673714...` unless Manager explicitly republishes a later inspected descendant.
 
-### Browser lane #162
-
-Owns no production files. Use it for pushed-diff review, independent/static review, claim/coordination updates, packet preparation, dependency repinning and safe browser-side integration work.
-
 ## Dependency-ready sequence
 
-1. **First MFM-specific Unity action:** execute #196 after fresh preflight/acquisition. Reconcile only the stale tab contract and run the complete authoritative RackV2MapPlanning gate on exact `e5fb4246...`.
-2. On #196 handoff, Manager issues `APPROVED / NEEDS CHANGES / REJECTED`. If the complete MapPlanning gate passes under the non-weakened contract and no new MFM-specific failure appears, #156 may be upgraded; #197 has already found no direct Rack/D-064 reason to hold it.
-3. If #156 is upgraded to APPROVED, safely integrate the exact MFM-08 production delta onto the exact current Scenario One integration lineage after fresh overlap review; then release MFM-09 from that combined lineage.
-4. Preserve the established full-loop critical path: after the MFM-specific closure releases the serialized lane, fresh-repin/release S1-C T-08, then proceed to S1-D T-08 and S1-D T-09 unless a returned blocker forces reprioritisation.
-5. #198 and #199 are required pre-Tier3 cleanup/qualification debt. Schedule them into serialized Unity without silently displacing S1-C/S1-D; #199 may be pulled earlier if later rendered UI gates demonstrate direct overlap.
+1. **#201 first local action:** execute #196 after fresh preflight/acquisition. Reconcile only the stale tab contract and run the complete authoritative RackV2MapPlanning gate on exact `e5fb4246...`.
+2. **#200 first return trigger:** review #196 handoff and issue `APPROVED / NEEDS CHANGES / REJECTED`. If the complete MapPlanning gate passes under the non-weakened contract and no new MFM-specific failure appears, #156 may be upgraded; #197 found no direct Rack/D-064 reason to hold it.
+3. If #156 is upgraded to APPROVED, #200 performs overlap/integration review and releases the exact local integration step to #201; then #200 repins/releases MFM-09 on the accepted combined lineage.
+4. Preserve the established full-loop critical path: after the MFM-specific closure releases the serialized lane, #200 fresh-repins/releases S1-C T-08; #201 executes it, then S1-D T-08; #200 handles S1-D T-09 independent browser review.
+5. #198 and #199 are required pre-Tier3 cleanup/qualification debt. #200 decides exact scheduling; #201 executes. Do not silently displace S1-C/S1-D unless returned evidence justifies reprioritisation.
 6. MFM-09 accepted/integrated -> MFM-10 -> require `SPECIES GUARD QUALIFIED`.
 7. MFM-10 green -> PARITY-09 and MFM-11 become eligible subject to ownership/Unity serialization.
 8. MFM-11 accepted + applicable accepted Rack/parity/S1-C/S1-D lineage -> MFM-12 integrated qualification.
@@ -119,6 +127,8 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 
 ## Durable current records
 
+- Two-lane browser handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-HANDOFF.md` — claim #200.
+- Two-lane long-running orchestration handoff: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/DEEP-ORCHESTRATION-HANDOFF.md` — claim #201.
 - MFM-08 returned first Tier-2 Manager review: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/TIER2-MANAGER-REVIEW-20261030.md`
 - MFM-08 repair packet/handoff/review: `Docs/Handoffs/MFM-08-Geometry-Repair-01/`
 - MFM-08 successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md`
@@ -129,7 +139,7 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 - Guided-v2 v24/D-066 reconciliation: `Docs/Handoffs/GuidedV2-v24-Contract-Reconciliation-01/TASK-PACKET.md`
 - Scenario One Combined HUD/focus repair: `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/TASK-PACKET.md`
 - Verification Harness Hygiene 01: `Docs/Handoffs/Verification-Harness-Hygiene-01/`
-- Research Source Consolidation Audit 01 handoff/review: `Docs/Handoffs/Research-Source-Consolidation-Audit-01/`
+- Research Source Consolidation Audit 01: informational only under current user no-action restriction.
 - S1-C T-07: `Docs/Handoffs/S1-C-Implementation-07/`
 - S1-C T-08: `Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md`
 - OPS Unity lock: `Docs/Handoffs/OPS-UNITY-LOCK-01/`
