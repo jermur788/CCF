@@ -72,6 +72,26 @@ public sealed class RackV2MapPlanningRunner : MonoBehaviour
         Debug.Log("RACKV2MAP_CHECK " + message);
     }
 
+    // The original five navigation tabs are the historical contract. MFM-08's Treatment review is additive and
+    // only exists while the accepted Rack Planning V2 UI is active; it must never replace or rename one of them.
+    private static readonly string[] OriginalLayerTabs =
+    {
+        "Access & position", "Light", "Regeneration", "Browsing / protection", "Fell & crop marks"
+    };
+
+    private void CheckLayerTabsContract(IReadOnlyList<string> labels, bool rackPlanningV2Active, string stage)
+    {
+        int expected = rackPlanningV2Active ? OriginalLayerTabs.Length + 1 : OriginalLayerTabs.Length;
+        Check(labels.Count == expected, stage + " navigation tab count is " + expected
+            + " (Rack Planning V2 active: " + rackPlanningV2Active + ")");
+        for (int i = 0; i < OriginalLayerTabs.Length; i++)
+            Check(labels[i] == OriginalLayerTabs[i], stage + " navigation tab " + (i + 1) + " remains '" + OriginalLayerTabs[i] + "'");
+        if (rackPlanningV2Active)
+            Check(labels[OriginalLayerTabs.Length] == "Treatment review", stage + " Treatment review is the additive V2 layer");
+        else
+            Check(!labels.Contains("Treatment review"), stage + " historical/non-MFM state has no Treatment review tab");
+    }
+
     private void Note(string text) { notes.Add(text); Debug.Log("RACKV2MAP_NOTE " + text); }
 
     private static string Hash(string text)
@@ -315,7 +335,10 @@ public sealed class RackV2MapPlanningRunner : MonoBehaviour
             Check(!tabs.Query<Button>().ToList().Contains(plan), "Plan Racks is not one of the navigation tabs");
             Check(plan.text == "Plan Racks" && !plan.ClassListContains("btn-selected"), "inactive label is 'Plan Racks'");
             List<Button> tabsNow = tabs.Query<Button>().ToList();
-            Check(tabsNow.Count == 5, "five navigation tabs remain navigation");
+            CheckLayerTabsContract(tabsNow.Select(b => b.text).ToList(), manager.RackPlanningV2Active, size.x + "x" + size.y);
+            // The MFM-08 candidate always runs with Rack Planning V2 active, so also assert the historical/non-MFM
+            // contract through the same predicate: five tabs and no Treatment review when V2 is not active.
+            CheckLayerTabsContract(OriginalLayerTabs, false, "historical/non-MFM contract");
             int selectedBefore = tabsNow.FindIndex(b => b.ClassListContains("btn-selected"));
             yield return Capture(size.x + "x" + size.y, "map-before-planning");
             CheckSuggestedLayer(size.x + "x" + size.y + " before", false);
