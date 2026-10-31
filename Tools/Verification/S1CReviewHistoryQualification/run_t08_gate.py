@@ -135,7 +135,7 @@ def main():
     # TMPDIR=/media/jer/ZX20/... stalls the Editor at startup with "waiting for channel: LicenseClient".
     # Keep the trailing slash: the Editor's compiler prewarmer concatenates the directory and filename.
     for key in list(env):
-        if key.startswith('CCF_') and key not in ('CCF_DIAG_DIR', 'CCF_UI_SIZES', 'CCF_ACCEPTANCE_OUTPUT', 'CCF_T02_MODE', 'CCF_T03_LEGACY'):
+        if key.startswith('CCF_') and key not in ('CCF_T08_ACCEPTED_BASELINE', 'CCF_DIAG_DIR', 'CCF_UI_SIZES', 'CCF_ACCEPTANCE_OUTPUT', 'CCF_T02_MODE', 'CCF_T03_LEGACY'):
             env.pop(key)
     env['TMPDIR'] = '/tmp/'
     env['CCF_TEST_DIRECT_ENTRY'] = '1'  # these gameplay harnesses require a live new world, not the startup title
@@ -155,6 +155,8 @@ def main():
     if args.gate in ('reference', 'progress', 'completion', 'completion-model1', 'interaction', 'density-save'):
         env['CCF_STAND_GEOMETRY'] = '0'
         env['CCF_T03_LEGACY'] = '1'
+    if args.gate == 'baseline-hash' and args.fixtures and (args.fixtures / 't05-accepted-baseline-hashes.txt').is_file():
+        env['CCF_T08_ACCEPTED_BASELINE'] = str((args.fixtures / 't05-accepted-baseline-hashes.txt').resolve())
     if args.gate == 'completion-model1':
         env['CCF_GROWTH_MODEL'] = '1'
     if args.gate == 'density-save':
