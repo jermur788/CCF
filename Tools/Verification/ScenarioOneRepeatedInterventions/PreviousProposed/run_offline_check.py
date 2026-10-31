@@ -39,10 +39,17 @@ def method(source, signature):
     return source[start:end]
 
 
+def note_constant(plan):
+    # MFM-09: explanation-only text the Work Plan slice now references; extracted verbatim so it stays tied to production.
+    start = plan.index("public const string PrescriptionGroupNote")
+    return plan[start:plan.index(";", start) + 1]
+
+
 def generate(work, annual, root, plan):
     work_methods = ["private VisualElement Card(", "private void BuildOrderGroups(",
                     "private static string OrderClass(", "private static bool HasOriginHistory(",
-                    "private void AddOrderOrigin(", "private string Status("]
+                    "private void AddOrderOrigin(", "private string Status(",
+                    "public static string PrescriptionOriginNote("]
     # Exact Refresh prefix through visibility, including its real early-out and latest reset.
     refresh = method(annual, "public void Refresh(bool force)")
     prefix = refresh[:refresh.index("// Completion guidance only:")]
@@ -64,7 +71,7 @@ public WorkPlanView(ScenarioOneUiRoot ui) { this.ui = ui; }
 public void Build() { scroll.Clear(); BuildOrderGroups(ui.Manager); }
 public static string Class(ScenarioOneWorkOrder o, int y) => OrderClass(o,y);
 public string ReadStatus(ScenarioOneWorkOrder o) => Status(o);
-""" + "\n".join(method(plan, s) for s in work_methods) + "\n}\n"
+""" + note_constant(plan) + "\n" + "\n".join(method(plan, s) for s in work_methods) + "\n}\n"
     generated += """public sealed partial class AnnualReviewView {
 private readonly ScenarioOneUiRoot ui;
 private readonly HashSet<string> openDetails = new HashSet<string>();
