@@ -340,7 +340,7 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         saves.enabled = false;
         while (ui.Help.Onboarding.IsOpen) { ui.Help.Onboarding.Next(); yield return Settle(2); }
         Check(manager.RackPlanningV2Active && ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "production Enlarged80 Rack V2 world");
-        Check(ForestSaveData.CurrentVersion == 23, "unchanged save version 23");
+        Check(ForestSaveData.CurrentVersion == 24, "unchanged save version 24");
         ui.CloseAll(); ui.CloseHelp();
         yield return Settle();
 
@@ -800,7 +800,7 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         // ---- 9. save/world cleanliness: in-memory round trip only ----
         string hash = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         ForestSaveData captured = saves.CaptureData();
-        Check(ForestSaveValidation.ValidatePrescriptions(captured) == null && saves.LoadData(captured, false), "the resulting world validates and reloads as v23 in memory");
+        Check(ForestSaveValidation.ValidatePrescriptions(captured) == null && saves.LoadData(captured, false), "the resulting world validates and reloads as v24 in memory");
         yield return Settle(10);
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "in-memory reload preserves the world hash");
         Check(!File.Exists(Path.Combine(Application.persistentDataPath, "forest-save.json")), "no save file was written");
