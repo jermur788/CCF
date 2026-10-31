@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after Verification Harness Hygiene 01 #193 Manager approval/integration and release of Research Source Consolidation Audit 01 #194. MFM-08 #156 remains the Unity-critical task.
+**Last reconciled:** 2026-10-31 by Overall Manager / OpenAI GPT-5.6 Sol after reviewing the returned MFM-08 successor Tier-2. MFM-08 feature behavior is qualified on its exact repaired candidate, but #156 remains **NEEDS CHANGES — VERIFICATION CLOSURE** pending #195. Research Source Consolidation Audit 01 #194 remains independently available as analysis-only work.
 
 ## Coordination rules
 
@@ -26,9 +26,10 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - S1-C T-07 #187 remains **MANAGER APPROVED / CLOSED**. Accepted genuine v20-y5 SHA-256: `af448bb297491d96bb18457ab2173694b2a0eafc2b8674d4438f25c9101eff00`.
 - OPS Unity-lock repair #189 remains **MANAGER APPROVED / CLOSED**. Any later Unity task must fresh-preflight and acquire normally.
 - MFM-08 Geometry Repair 01 #192 remains **MANAGER APPROVED / CLOSED**. Exact repair production head `e5fb424635f16182748efcb0539e8a49539495a9`.
-- **MFM-08 #156 is REPINNED / RELEASED FOR FULL SUCCESSOR TIER-2** on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`. Use updated verification branch `qual/mfm-08-unity-v1` head `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6`. MFM-08 is still **not runtime-qualified or integrated** until that complete run receives Manager approval.
-- **Verification Harness Hygiene 01 #193 is MANAGER APPROVED / INTEGRATED / CLOSED.** Reviewed published handoff head `5f9450f4a65e6df8e989a241ffe48d8a3200f6f1`; implementation `b4b68a91d7ab8f1eb24b1956ed53b1e71b416e10`; integration merge `a678fdcfcf3d30541f4bf13066b6feaf2d31dd36`; canonical review `Docs/Handoffs/Verification-Harness-Hygiene-01/MANAGER-REVIEW.md`. Parent backlog #28 is resolved. No production/gameplay/Unity change.
-- **Research Source Consolidation Audit 01 #194 is READY — ANALYSIS ONLY.** It may inventory/hash/compare research sources and propose reversible consolidation/archive options, but it may not delete, move, merge, watermark, recompress or mutate originals. Packet: `Docs/Handoffs/Research-Source-Consolidation-Audit-01/TASK-PACKET.md`.
+- **MFM-08 #156 is NEEDS CHANGES — VERIFICATION CLOSURE ONLY.** Exact repaired candidate `e5fb424635f16182748efcb0539e8a49539495a9` passed the unmodified successor gate 353/353 and the strengthened open-work-conflict gate 373 PASS at both render sizes. Returned verification head: `qual/mfm-08-unity-v1` @ `d88a32f6b4ce8d79b71c7f0350ddc9344bdf2727`. Feature behavior is accepted as qualified, but integration is held because `RackV2MapPlanning` was not run and the disclosed Rack red gates were compared only to old feature start `cfdc93bf...`, which is 29 commits behind current integration `ce673714...`.
+- **MFM-08 Tier-2 Closure 01 #195 is READY — UNITY VERIFICATION ONLY.** It must run authoritative RackV2MapPlanning on exact `e5fb4246...` and diagnose `guided-v2`, `combined-v2`, and `combined-legacy` on exact current integration `ce673714...`. No production repair/test weakening authority.
+- **Verification Harness Hygiene 01 #193 is MANAGER APPROVED / INTEGRATED / CLOSED.** Reviewed published handoff head `5f9450f4a65e6df8e989a241ffe48d8a3200f6f1`; implementation `b4b68a91d7ab8f1eb24b1956ed53b1e71b416e10`; integration merge `a678fdcfcf3d30541f4bf13066b6feaf2d31dd36`; parent backlog #28 resolved.
+- **Research Source Consolidation Audit 01 #194 is READY — ANALYSIS ONLY.** It may inventory/hash/compare research sources and propose reversible consolidation/archive options, but it may not delete, move, merge, watermark, recompress or mutate originals.
 - S1-C T-08 is **DEPENDENCY-CLEARED ON T-07 BUT NOT RELEASED TO UNITY YET**. It remains the preferred next history qualification slot after MFM-08 releases Unity, unless Overall Manager explicitly reprioritises.
 - S1-D T-08 remains **RELEASED** but serialized behind the preferred S1-C T-08 history slot.
 - S1-D T-09 remains prepared and waits for S1-D T-08 PASS.
@@ -45,7 +46,8 @@ This file is the **live single-writer ownership and execution-lock authority** o
 |---|---|---|---|---|
 | **PLAYER-TEST-BROWSER-LANE-02** (#162) | browser/GitHub | no local worktree | review/coordination/packets only | **ACTIVE** |
 | **PLAYER-TEST-T3-CODE-LANE-01** (#106) | local C#/Unity umbrella | child worktrees | child claims only | **RUNNING umbrella** |
-| **MFM-08 Stand Map / 3D review UX** (#156) | full Unity Tier-2 | exact repaired candidate `e5fb4246...`; use a clean registered Unity lane | qualification only; no production repair | **RELEASED — FRESH PREFLIGHT REQUIRED** |
+| **MFM-08 Stand Map / 3D review UX** (#156) | Manager review / integration hold | candidate `e5fb4246...`; returned harness `d88a32f6...` | no production edits pending closure | **NEEDS CHANGES — WAITING #195** |
+| **MFM-08 Tier-2 Closure 01** (#195) | bounded Unity verification | `verify/mfm-08-tier2-closure-v1`; clean registered Unity lane | Rack map-planning + current-lineage diagnosis only | **READY — FRESH PREFLIGHT REQUIRED** |
 | **Research Source Consolidation Audit 01** (#194) | research analysis | `research/source-consolidation-audit-v1`; `/media/jer/Videos/CCF-RESEARCH-CONSOLIDATION-AUDIT` | inventory/plan only; no source mutation | **READY — ANALYSIS ONLY** |
 | **S1-C T-08 final history qualification** | local Tier-2 after MFM-08 release | prepared only; repin at release | qualification only; no production repair by default | **T-07 CLEARED; NOT RELEASED** |
 | **S1-D T-08 multi-cycle witness** | local Tier-2 after preferred S1-C T-08 slot | `verify/s1-d-multicycle-witness-v1`; `/media/jer/Videos/CCF-S1D-T08` | qualification only; no production repair by default | **RELEASED; WAITING SERIALIZED UNITY** |
@@ -64,9 +66,13 @@ No row proves that the Unity lock is free. Every Unity worker must fresh-preflig
 
 ### #156 MFM-08 successor Tier-2
 
-Qualification only on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`; no production repair authority. Use the updated Tier-2 harness at `630c6c3db3c67d7e75cf06bd8d0661deb1e2e5c6` and retain the repaired segment/sample assertions.
+Manager review accepts the feature behavior on exact repaired production head `e5fb424635f16182748efcb0539e8a49539495a9`: 353/353 unmodified gate and 373 PASS with the bounded open-work conflict addition, both render sizes, repaired segment/sample geometry and the accepted MFM/protected regression evidence. No production repair is currently requested.
 
-Required remaining matrix includes: complete repaired MFM-08 gate at both render sizes; manual-Fell conflict plus explicit open-work conflict; Rack V2 map/runtime/field regressions; MFM-06 and MFM-07 Unity gates; relevant Scenario One UI regression; frozen Reference Future/protected compatibility; clean save/world/lane/lock return. A genuine defect stops and returns to Manager.
+Integration is held only for #195 closure. Do not modify MFM-08 production under #156 or #195 without a new Manager repair claim.
+
+### #195 MFM-08 Tier-2 Closure 01
+
+Verification-only. Fresh-preflight and acquire Unity normally. On exact `e5fb4246...`, run authoritative `RackV2MapPlanning`. On exact current integration `ce673714...`, run current `guided-v2`, `combined-v2`, and `combined-legacy` diagnostically. Do not repair production or tests. Preserve accepted #156 MFM evidence; the full 373-check MFM gate does not need repetition unless a new material ambiguity appears. Return clean lane/Editor/lock state. No Windows.
 
 ### #194 Research Source Consolidation Audit 01
 
@@ -86,11 +92,11 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 
 ## Dependency-ready sequence
 
-1. **Now, Unity critical path:** #156 may perform fresh preflight, acquire Unity normally, and run the full successor Tier-2 on exact `e5fb4246...` using harness `630c6c3...`.
+1. **Now, Unity critical path:** execute #195 after fresh preflight/acquisition. Run RackV2MapPlanning on `e5fb4246...` and diagnose the three Rack red gates on current integration `ce673714...`.
 2. **Now, independent analysis:** #194 may run without Unity and without mutating source/archive files.
-3. On #156 handoff, Manager inspects exact runtime/rendered/regression/protected evidence and issues `APPROVED / NEEDS CHANGES / REJECTED`.
-4. If #156 is APPROVED, safely integrate exact repaired MFM-08 production after fresh overlap review; then release MFM-09 from the exact combined integration lineage.
-5. After #156 releases the serialized Unity lane, fresh-repin/release S1-C T-08 on the exact current integration candidate; then proceed to S1-D T-08 and S1-D T-09. PARITY-03 Q10's remaining Unity measurement remains non-blocking and must compete only when the lane is explicitly scheduled.
+3. On #195 handoff, Manager issues `APPROVED / NEEDS CHANGES / REJECTED` for the closure and then upgrades or retains #156 accordingly.
+4. If #195 closes the gap and #156 is upgraded to APPROVED, safely integrate the exact MFM-08 production delta onto the exact current Scenario One integration lineage after a fresh overlap review; then release MFM-09 from that combined lineage.
+5. After MFM-08 releases the serialized Unity lane, fresh-repin/release S1-C T-08 on the exact current integration candidate; then proceed to S1-D T-08 and S1-D T-09. PARITY-03 Q10's remaining Unity measurement remains non-blocking and must compete only when the lane is explicitly scheduled.
 6. MFM-09 accepted/integrated -> MFM-10 -> require `SPECIES GUARD QUALIFIED`.
 7. MFM-10 green -> PARITY-09 and MFM-11 become eligible subject to ownership/Unity serialization.
 8. MFM-11 accepted + applicable accepted Rack/parity/S1-C/S1-D lineage -> MFM-12 integrated qualification.
@@ -100,9 +106,11 @@ Owns no production files. Use it for pushed-diff review, independent/static revi
 
 ## Durable current records
 
-- MFM-08 returned Tier-2 Manager review: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/TIER2-MANAGER-REVIEW-20261030.md`
+- MFM-08 returned first Tier-2 Manager review: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/TIER2-MANAGER-REVIEW-20261030.md`
 - MFM-08 repair packet/handoff/review: `Docs/Handoffs/MFM-08-Geometry-Repair-01/`
 - MFM-08 successor repin: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-REPIN-20261030.md`
+- MFM-08 successor Tier-2 Manager review: `Docs/Handoffs/MFM-08-Map-3D-Review-UX/SUCCESSOR-TIER2-MANAGER-REVIEW-20261031.md`
+- MFM-08 Tier-2 Closure 01: `Docs/Handoffs/MFM-08-Tier2-Closure-01/TASK-PACKET.md`
 - Verification Harness Hygiene 01: `Docs/Handoffs/Verification-Harness-Hygiene-01/`
 - Research Source Consolidation Audit 01: `Docs/Handoffs/Research-Source-Consolidation-Audit-01/`
 - S1-C T-07: `Docs/Handoffs/S1-C-Implementation-07/`
