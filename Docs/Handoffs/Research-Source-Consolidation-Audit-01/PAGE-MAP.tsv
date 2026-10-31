@@ -1,0 +1,38 @@
+# Research Source Consolidation Audit 01 — page/provenance map
+# Generated 2026-10-31 by DeepSeek V4 Pro (max). Analysis only.
+# Purpose: record which sources have load-bearing pagination and how any future derivative maps back.
+# Conclusion: the recommended plan performs NO re-pagination. Topic bundles (Strategy B) concatenate originals
+# unchanged with a cover/separator page, so original page numbers are preserved verbatim and a per-bundle page map
+# (file start/end) is provided rather than a re-numbered page map. No strategy re-paginates or OCR-rewrites an original.
+
+# --- Load-bearing original pagination (must NOT be re-paginated) ---
+# 2006 journal (S01): Broad & Lynch 2006a = printed pp.53-79; 2006b = printed pp.80-95.
+#   PDF-internal page numbering does NOT equal printed page numbers (internal p.53 = a mid-2006a density page).
+#   V1B (S41) and GROWFOR extraction (S48) cite printed pp.53-79 / pp.80-95. Keep the journal byte-identical.
+# Book photos (S54): printed page -> filename map is authoritative in source-inventory.md (S53):
+#   37..51 -> IMG...5849..20115; 53..61 -> IMG...22619..22904; 66..69 -> IMG...23003..23025;
+#   74..79 -> IMG...23053..23137; 88(x2) -> IMG...23245+23247; 89(x2) -> IMG...23251+23315.
+# Marking pages 84-87 (S55): marking 1.jpg=84, 2=85, 3=87, 4=86 (per source-inventory.md).
+# Rack extraction (S52) cites printed pp.84-87.
+
+# --- Version/supersession relationships (no page re-mapping required) ---
+# S32 (Academic Consolidation, 2pp) FULLY SUPERSEDED by S33 (Comprehensive, 3pp): verified at text level;
+#   every substantive description in S32 re-expressed in S33 with DOIs/bibliographic metadata.
+# S40 (V1A, 22pp) historical; S41 (V1B, 21pp) current. Distinct artifacts retained intentionally.
+# S38 (Scenario Two Selection, 19pp) superseded Douglas-fir recommendation; S39 (Closure, 11pp) current.
+# S48 GROWFOR extraction: repo/Drive = 23-Oct V1B-sync (43976B); Downloads copy = 15-Oct pre-V1B (35250B), stale.
+# S46 Composite 3: repo copy (35555B) adds V1B evidence update; rationalisation snapshot (33058B) is 2026-10-16 original.
+
+# --- Composite absorption map (originals retain exact per-claim provenance in composites) ---
+# Composite 1 (S44) absorbs: S22, S23, S25, S27 + S29 ecology/understorey/crown sections.
+# Composite 2 (S45) absorbs: S26 + S29 browse sections.
+# Composite 3 (S46) absorbs: S24 growth/density, S35, S36, S37 + S29 density/height + S06/S07 anchors.
+# Composite 4 (S47) absorbs: S28, S30, S34, S24 practice/windthrow, S29 economics.
+# No original is deleted by the composites; Drive archive retains every original byte-identical.
+
+# --- Bundle page map (only if Strategy B is later approved; unchanged concatenation) ---
+# For any topic bundle, the page map is (member -> bundle internal page range = [offset+1 .. offset+pages]) with
+# a generated cover page at offset 0. Original printed page numbers inside each member are unchanged.
+# Bundle examples (illustrative; not yet authorised): growth/density [S01,S02,S03,S04,S05,S06,S07,S18,S35,S36,S37],
+# ecology/regeneration [S21,S22,S25,S27], browsing/protection [S09,S10,S11,S12,S26].
+# A real bundle page map must be generated at build time from pdfinfo page counts, not from this file.
