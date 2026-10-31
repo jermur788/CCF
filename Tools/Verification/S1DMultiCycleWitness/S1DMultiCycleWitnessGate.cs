@@ -1049,11 +1049,22 @@ public sealed class S1DMultiCycleWitnessRunner : MonoBehaviour
         Check(modal != null, "MODAL_VISIBLE_" + name + "_" + Tag(), modalClass);
         ScrollView scroll = modal == null ? null : modal.Q<ScrollView>();
         if (scroll != null) { scroll.verticalScroller.value = scroll.verticalScroller.lowValue; yield return Settle(6); }
-        yield return new WaitForEndOfFrame();
-        Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
+        // A capture can come back blank for the first frames after a Game-view resize. Retry a few times (the assertion below still has to
+        // hold for the stored image); if the screen stays blank the Editor's rendering is unavailable and the run stops rather than
+        // spending minutes producing captures that cannot be judged.
+        Texture2D image = null;
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            yield return new WaitForEndOfFrame();
+            image = ScreenCapture.CaptureScreenshotAsTexture();
+            if (image == null || !LooksBlank(image)) break;
+            if (attempt < 3) { Destroy(image); image = null; yield return new WaitForSecondsRealtime(1f); yield return Settle(10); }
+        }
         if (image == null) { Check(false, "SHOT_" + name, "no rendered capture"); yield break; }
         Check(image.width == size.x && image.height == size.y, "CAPTURE_SIZE_" + name + "_" + Tag(), $"capture={image.width}x{image.height} target={size.x}x{size.y}");
-        Check(!LooksBlank(image), "SHOT_NOT_BLANK_" + name + "_" + Tag());
+        bool blank = LooksBlank(image);
+        Check(!blank, "SHOT_NOT_BLANK_" + name + "_" + Tag());
+        if (blank) throw new InvalidOperationException("screen capture stayed blank after retries (rendering unavailable): " + name + " " + Tag());
         File.WriteAllBytes(Path.Combine(output, "shots", $"{name}-{size.x}x{size.y}.png"), image.EncodeToPNG());
         Destroy(image);
         shots++;

@@ -266,11 +266,11 @@ def main():
                 tail = (out / 'unity.log').read_text(errors='replace') if (out / 'unity.log').exists() else ''
             except OSError:
                 tail = ''
-            if verdict_seen is None and pass_marker in tail:
+            if verdict_seen is None and (pass_marker in tail or '"type":"MemoryLeaks"' in tail):   # final verdict or the Editor's last shutdown line
                 verdict_seen = time.monotonic()
             if verdict_seen is not None and time.monotonic() - verdict_seen > args.verdict_grace:
                 hung_after_verdict = True
-                raise TimeoutError('Editor still alive ' + str(args.verdict_grace) + ' s after the verdict marker (hung at exit); killed, not accepted')
+                raise TimeoutError('Editor still alive ' + str(args.verdict_grace) + ' s after the verdict/shutdown log line (hung at exit); killed, not accepted')
             time.sleep(2)
     except (subprocess.TimeoutExpired, InterruptedError, KeyboardInterrupt, OSError, TimeoutError) as error:
         issue = str(error)
