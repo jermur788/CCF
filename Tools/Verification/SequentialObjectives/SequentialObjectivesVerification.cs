@@ -202,17 +202,22 @@ public sealed partial class GuidedOnboardingRunner
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "save world hash retained: " + label);
     }
 
-    // The rack review is deliberately session-only: loading a forest must return the learner to the review, not silently keep
-    // the earlier inspections. Repeat the real review, then assert the expected later stage.
+    // D-066 makes the first guided rack sample/review completion one monotone durable latch. After that boundary a load must
+    // keep the completed teaching stage and must not demand another session rack review. The individual review detail is still
+    // session-only, so the reset session review must stay incomplete while the durable latch carries the progression.
     IEnumerator RoundTripReviewed(int index, string label)
     {
         ui.CloseAll(); ui.CloseHelp();
         var data = saves.CaptureData(); string hash = ScenarioReferenceArchive.WorldHash(data);
+        Check(data.scenarioOne != null && data.scenarioOne.firstGuidedRackReviewComplete,
+            "D-066 historical teaching latch captured: " + label);
         Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data)), false), "save/load " + label);
         ui.RackLayout.Update(true); ui.Learning.ReloadProgress();
-        Stage(4, "save/load " + label + " requires fresh rack review");
-        yield return ReviewStand();
-        Stage(index, "save/load " + label);
+        yield return Pause(4);
+        ScenarioOneTeachingSequence.Facts facts = LiveFacts();
+        Check(facts.FirstGuidedRackReviewComplete, "D-066 historical teaching latch survives save/load: " + label);
+        Check(!facts.RackReviewComplete, "session rack review detail remains non-persistent: " + label);
+        Stage(index, "save/load " + label + " keeps the completed teaching stage without a fresh review");
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == hash, "save world hash retained: " + label);
     }
     IEnumerator AcknowledgeResults(string label)
@@ -226,7 +231,7 @@ public sealed partial class GuidedOnboardingRunner
     {
         string[] goalIds = manager.Objectives.Select(o => o.objectiveId).ToArray();
         float[] targets = manager.Objectives.Select(o => o.targetValue).ToArray();
-        Check(goalIds.Length == 8 && ForestSaveData.CurrentVersion == 23, "eight original goals and the v23 schema");
+        Check(goalIds.Length == 8 && ForestSaveData.CurrentVersion == 24, "eight original goals and the v24 schema");
         Stage(1, "post rack, before annual acknowledgement");
         Check(ui.Learning.CurrentInstruction.Contains("Read the Annual Review"), "observation cue precedes crop action");
         RoundTrip(1, "access year boundary");
@@ -336,7 +341,7 @@ public sealed partial class GuidedOnboardingRunner
         yield return RoundTripReviewed(7, "ongoing transformation");
         ui.CloseAll(); Check(manager.AdvanceYear() && manager.AdvanceYear(), "multiple advances after teaching path"); Stage(7, "extra advances preserve valid progression");
         Check(goalIds.SequenceEqual(manager.Objectives.Select(o => o.objectiveId)) && targets.SequenceEqual(manager.Objectives.Select(o => o.targetValue)), "all eight goal IDs and targets unchanged");
-        Check(ForestSaveData.CurrentVersion == 23, "the save schema version is unchanged");
+        Check(ForestSaveData.CurrentVersion == 24, "the save schema version is unchanged");
         // A later generation can refill an original access corridor. The real rack tool should report maintenance;
         // a completed teaching lesson must not restart. This is a disposable stand-in for a promoted young tree.
         string beforeRegrowth = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
