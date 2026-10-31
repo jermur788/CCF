@@ -214,10 +214,21 @@ public sealed class WorkPlanView
             foreach (ScenarioOneWorkOrder order in orders)
                 AddOrderOrigin(group, order, m.CurrentEcologicalYear, years);
         }
+        // MFM-09: where the tasks came from is explanation only. A prescription adds ordinary Pending work; this plan stays the commitment gate.
+        if (open.Any(o => o.prescriptionId > 0))
+            UiKit.Add(card, PrescriptionGroupNote, "muted").name = "workplan-prescription-note";
         // Do not disguise a future-created Pending order as new or carried over, or invent a fourth class.
         foreach (ScenarioOneWorkOrder order in open.Where(o => o.createdYear > m.CurrentEcologicalYear))
             UiKit.Add(card, $"Inconsistent record · order #{order.workOrderId}: creation year {order.createdYear} is after current year {m.CurrentEcologicalYear}. Check this record before approving work.", "body");
     }
+
+    public const string PrescriptionGroupNote = "Tasks with a recorded prescription origin were added by Prescription approval. They sit in the groups above like any other task: Pending ones are not committed, funded or carried out until you approve them in this Work Plan.";
+
+    // Explanation only: it never feeds OrderClass, so where a task came from cannot change whether it is Approved, Pending new or carried over.
+    public static string PrescriptionOriginNote(ScenarioOneWorkOrder order)
+        => order.status == ScenarioWorkStatus.Approved
+            ? "Added by a prescription and since approved in this Work Plan."
+            : "Added by a prescription. Still ordinary Pending work: approve it in this Work Plan to commit it.";
 
     private static string OrderClass(ScenarioOneWorkOrder order, int currentYear)
     {
@@ -245,7 +256,10 @@ public sealed class WorkPlanView
         else if (order.createdYear < currentYear)
             UiKit.Add(group, "Creation-year review not recorded; no historical link available.", "muted");
         if (order.prescriptionId > 0)
+        {
             UiKit.Add(group, $"Recorded origin · prescription {order.prescriptionId} · coverage unit {order.prescriptionCoverageUnitId} · Crop Tree {order.prescriptionCropTreeId} · reason code {order.prescriptionReason}", "muted");
+            UiKit.Add(group, PrescriptionOriginNote(order), "faint");
+        }
     }
 
     // Open orders that carry a problem, or were planned a couple of years ago. They are never expired or deleted: this

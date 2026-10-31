@@ -22,7 +22,13 @@ public sealed partial class LearningObjectivesView
     private string shownGuidance = "";
     public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());
     public bool TeachingRacks => CurrentTopicIndex == 0;
-    public string CurrentTitle => ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex].Title;
+    // MFM-09: the lesson shown now. CurrentTopicIndex stays the accepted stage number (the Work Plan focus and the picture read it);
+    // while "Extend your treatment" is offered the stage is still recruitment, and only the words shown here change.
+    private ScenarioOneTeachingSequence.Lesson CurrentLesson
+    {
+        get { var f = TeachingFacts(); return ScenarioOneTeachingSequence.PresentedLessons[ScenarioOneTeachingSequence.Presented(f)]; }
+    }
+    public string CurrentTitle => ScenarioOneTeachingSequence.DisplayTitle(CurrentLesson, TeachingFacts());
     public string CurrentInstruction
     {
         get
@@ -129,7 +135,7 @@ public sealed partial class LearningObjectivesView
         current.name = "current-objective";
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
-        var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
+        var lesson = CurrentLesson;
         // The words on the left and the picture on the right, so the whole objective is on screen at once; a window too narrow for both
         // wraps the picture below the words.
         VisualElement body = UiKit.Box("objective-body");
@@ -144,11 +150,18 @@ public sealed partial class LearningObjectivesView
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
-        body.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        // The extension has no picture of its own: it keeps the review picture of the lesson before it.
+        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption));
         current.Add(body);
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
-        for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");
+        var teachingFacts = TeachingFacts();
+        for (int i = 0; i < ScenarioOneTeachingSequence.Presented(teachingFacts); i++)
+        {
+            var earlier = ScenarioOneTeachingSequence.PresentedLessons[i];
+            if (ScenarioOneTeachingSequence.InSequence(earlier, teachingFacts))
+                UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.DisplayTitle(earlier, teachingFacts), "body");
+        }
         if (CurrentTopicIndex == 0) UiKit.Add(completed, "Your first lesson is in progress.", "muted");
         scroll.Add(completed);
         var later = new Foldout { text = "Later in this scenario", value = false, name = "future-lessons" };

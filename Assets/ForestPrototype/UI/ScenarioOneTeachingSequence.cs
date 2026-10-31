@@ -9,6 +9,10 @@ public static class ScenarioOneTeachingSequence
         // Rack-layout worlds need real post-release review. Null-Bay legacy/injected facts retain their earlier progression.
         public bool RackReviewComplete;
         public bool FirstGuidedRackReviewComplete;
+        // MFM-09 "Extend your treatment". Both are derived from existing records on every read and never saved: the extension is
+        // offered only in a Rack Planning V2 world with a confirmed plan (where the Treatment review exists), and it is done once
+        // a stored prescription has been approved. Injected/legacy facts leave both false, so their sequence is the old one.
+        public bool ExtensionApplies, ExtensionApproved;
         public int RevisitedTrees, ReviewDecisions, StandPortionsReviewed;
         public bool AreaReleased = true;
         public int Year, CropTrees, PlantingYear = -1;
@@ -66,6 +70,42 @@ public static class ScenarioOneTeachingSequence
             "Review All scenario goals below and the management history. Revisit the forest and plan later work only where justified; advance time and reassess until the scenario goals are met.",
             "Retained forest, young trees and observed failure remain together. Reassess before any further work; the woodland is never finished.", "Keep observing and adapting; all scenario goals are listed under [O].")
     };
+
+    // MFM-09: the one lesson added after the eight above. It is deliberately NOT in Lessons: Lessons and Current/CurrentUnlatched keep
+    // the accepted stage numbers (the first-guided-review latch and every earlier predicate read them). The extension is placed
+    // between "response" and "recruitment" only in what the player sees (PresentedLessons / Presented).
+    public const string ExtensionId = "extend-treatment";
+    public static readonly Lesson Extension = new Lesson(ExtensionId, "6. Extend your treatment",
+        "Your sample showed one careful treatment. Comparable areas of the stand may call for the same kind of judgement, but the sample is teaching calibration, not a stocking prescription for the whole stand. The game derives a prescription from the decisions you actually carried out, checks it against your own sample, and shows which rack-served areas are covered, not covered, excluded or left manual.",
+        "Open the Stand Map [M] and choose Treatment review. Read your sample and the comparable areas, then choose the covered areas to apply it to or leave manual. Inspect each spacing-only Crop Tree candidate in the forest and confirm or reject it. Review the proposed release, spot-check at least one extrapolated tree in 3D, then revise, exclude or keep work manual where it does not look right. Approve the prescription. It adds ordinary Pending tasks with their origin recorded; open the Work Plan [Tab] and approve them there to commit the work.",
+        "A sample treatment is extended to comparable areas only after you have inspected and confirmed it.", "Stand Map [M] > Treatment review: check, confirm, spot-check, approve; then approve the Pending work in the Work Plan [Tab].",
+        "Spacing only suggests where to inspect; you judge stem form, branching and vigour in 3D. A proposal is not a Fell mark and not work. Approving the prescription is not approving the Work Plan: nothing is committed, funded or carried out until you approve it there. Manual work stays available.");
+
+    // The sequence as the player sees it, in order: the eight accepted lessons with the extension between response and recruitment.
+    public static readonly Lesson[] PresentedLessons =
+    {
+        Lessons[0], Lessons[1], Lessons[2], Lessons[3], Lessons[4], Extension, Lessons[5], Lessons[6], Lessons[7]
+    };
+
+    // True only while the player stands at the accepted recruitment stage (which Current reaches only after the genuine response review)
+    // and has not yet approved a prescription. It never changes Current, so it cannot reopen or move the first guided review.
+    public static bool ExtensionOffered(Facts f) => f.ExtensionApplies && !f.ExtensionApproved && Current(f) == 5;
+
+    // Index into PresentedLessons for what the player is shown now. Always a PresentedLessons index, so a world without the extension
+    // (Legacy40, injected facts) still reads the right lesson; it simply never shows the extension and Number/Total skip it.
+    public static int Presented(Facts f)
+    {
+        int stage = Current(f);
+        if (ExtensionOffered(f)) return 5;
+        return stage >= 5 ? stage + 1 : stage;
+    }
+
+    // Where a lesson sits in the sequence this player sees: 1-based, with the extension counted only in worlds that have it.
+    public static int Number(Lesson lesson, Facts f)
+        => System.Array.IndexOf(f.ExtensionApplies ? PresentedLessons : Lessons, lesson) + 1;
+    public static bool InSequence(Lesson lesson, Facts f) => f.ExtensionApplies || lesson != Extension;
+    public static int Total(Facts f) => f.ExtensionApplies ? PresentedLessons.Length : Lessons.Length;
+    public static string DisplayTitle(Lesson lesson, Facts f) => Number(lesson, f) + ". " + lesson.Heading;
 
     public static int Current(Facts f)
         => f.FirstGuidedRackReviewComplete ? RecruitmentAndLater(f) : CurrentUnlatched(f);

@@ -83,6 +83,10 @@ public sealed partial class LearningObjectivesView
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
             FirstGuidedRackReviewComplete = m.FirstGuidedRackReviewComplete,
+            // MFM-09, read-only: the extension exists where the Treatment review does (a confirmed Rack Planning V2 plan) and is done
+            // once a stored prescription was approved. Nothing is written; a pre-v23 save simply has no prescription.
+            ExtensionApplies = m.RackPlanningV2Active && m.RackPlanConfirmed,
+            ExtensionApproved = m.Prescriptions.Any(p => p != null && p.approvalState == PrescriptionApprovalState.Approved),
             AccessOpen = rackV2 ? ui.RackLayout.Harvested && m.CurrentEcologicalYear > 0
                 : ui.RackLayout != null && ui.RackLayout.Total > 0
                     ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
@@ -201,6 +205,7 @@ public sealed partial class LearningObjectivesView
         int index = ScenarioOneTeachingSequence.Current(f);
         string areaText = ScenarioOneRackBayText.Instruction(index, f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f)) return ExtensionInstruction();
         if (index == 1 && !f.AccessReviewed)
             return "The racks are open. Read the Annual Review and choose I've read the annual results. Then walk back to inspect the changed stand before selecting future trees.";
         if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted)
@@ -218,17 +223,25 @@ public sealed partial class LearningObjectivesView
         return ScenarioOneTeachingSequence.Lessons[index].Action;
     }
 
+    // What the extension asks next, from the stored prescription only. Reading this never creates, approves or changes anything.
+    private string ExtensionInstruction()
+    {
+        var accepted = ui.Manager.Prescriptions.LastOrDefault(p => p != null && p.approvalState == PrescriptionApprovalState.Accepted);
+        if (accepted == null) return ScenarioOneTeachingSequence.Extension.Action;
+        return $"Prescription {accepted.prescriptionId} is accepted but not yet approved. In Treatment review on the Stand Map [M], confirm or reject each candidate, check the proposed release, spot-check an extrapolated tree in 3D, then choose Approve prescription. It only adds Pending tasks; approve them in the Work Plan [Tab] to commit the work.";
+    }
+
     // The same lesson as CurrentInstruction but short enough for the always-visible HUD panel (ActiveObjectiveHudWidget). It follows the same
     // states, so what the HUD asks for never contradicts the Objectives screen.
     public ActiveObjectiveHudWidget.Model HudModel()
     {
         var f = TeachingFacts();
         int index = ScenarioOneTeachingSequence.Current(f);
-        var lesson = ScenarioOneTeachingSequence.Lessons[index];
+        var lesson = CurrentLesson;
         return new ActiveObjectiveHudWidget.Model
         {
-            Number = index + 1,
-            Total = ScenarioOneTeachingSequence.Lessons.Length,
+            Number = ScenarioOneTeachingSequence.Number(lesson, f),
+            Total = ScenarioOneTeachingSequence.Total(f),
             Title = lesson.Heading,
             Instruction = HudInstruction(f, index, lesson),
             Progress = TeachingProgress(f),
@@ -240,6 +253,7 @@ public sealed partial class LearningObjectivesView
     {
         string areaText = ScenarioOneRackBayText.Hud(index, f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f)) return lesson.HudAction;
         if (index == 0)
         {
             RackLayoutTracker layout = ui.RackLayout;
@@ -267,6 +281,10 @@ public sealed partial class LearningObjectivesView
     {
         string areaText = ScenarioOneRackBayText.Progress(ScenarioOneTeachingSequence.Current(f), f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f))
+            return ui.Manager.Prescriptions.Any(p => p != null && p.approvalState == PrescriptionApprovalState.Accepted)
+                ? "Prescription accepted · review, spot-check and approve it · then approve the Pending work in the Work Plan"
+                : "Treatment review on the Stand Map · nothing is committed until you approve the Work Plan";
         switch (ScenarioOneTeachingSequence.Current(f))
         {
             case 0: return ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText
