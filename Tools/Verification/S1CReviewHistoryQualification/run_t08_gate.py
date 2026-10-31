@@ -139,8 +139,8 @@ def main():
             env.pop(key)
     env['TMPDIR'] = '/tmp/'
     env['CCF_TEST_DIRECT_ENTRY'] = '1'  # these gameplay harnesses require a live new world, not the startup title
-    if args.gate in ('objective', 'render'):
-        env.pop('CCF_TEST_DIRECT_ENTRY', None)  # S1-C's fixture exercises Start New itself
+    if args.gate in ('objective', 'render', 't02', 't03', 't04', 't06'):
+        env.pop('CCF_TEST_DIRECT_ENTRY', None)  # S1-C's fixtures exercise Start New and the startup screen themselves
     for key in ('CCF_STARTUP_SCREEN', 'CCF_STARTUP_INPUT', 'CCF_STARTUP_BOUNDARY', 'CCF_RACK_VERIFY_MODEL', 'CCF_GROWTH_MODEL'):
         env.pop(key, None)
     env.pop('CCF_STAND_GEOMETRY', None)   # production default geometry; never an inherited override
