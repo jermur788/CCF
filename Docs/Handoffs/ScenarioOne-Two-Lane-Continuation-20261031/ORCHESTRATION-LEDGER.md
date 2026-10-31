@@ -320,3 +320,33 @@ Appended evidence for claim **#203** (parent #201/#91). Prior sections are prese
 - **Active-tasks write:** none — #200 owns the file; worker may post `[RUNNING]` on claim #206 only after lock acquisition.
 - **Next action:** worker executes the full matrix, reconciles verification-only stale pins, publishes `Docs/Handoffs/S1-C-Implementation-08/HANDOFF.md`, pushes the qual branch and returns the exact token or blocker.
 - **Queue discipline:** #199 and #207 remain queued; S1-D T-08 does not start until #206 returns and receives Manager approval; no Windows build.
+
+### 2026-10-31T19:30Z — R-005 OUTCOME: #206 local qualification returned (OBSERVED FACT)
+
+- Worker `claudeAgent` / `claude-sonnet-5-5` (medium) completed as the only local worker; DeepSeek remained orchestrator.
+- Exact production candidate **`34e360f85835afd15f5323f287372e0f2ee83dd9`**; production bytes unchanged. Verification/docs branch `qual/s1-c-review-history-v1`; final commit **`f84214764afacbc77ffb329cfb0f7ba7d6815b24`**, pushed to origin.
+- Local result token returned: **`S1-C REVIEW / MANAGEMENT HISTORY V1 — FEATURE QUALIFIED`**. This is a local Tier-2 result only; **Manager verdict remains pending**. No self-approval was issued.
+- Evidence root `/media/jer/Files/CCF/Verification/S1C-T08-20261031/`; handoff `Docs/Handoffs/S1-C-Implementation-08/HANDOFF.md`.
+- Gate results reported and receipts inspected: T-07 offline `304/304`, mutations `8/8`; compile; objective `544` checks/34 cases; render 6 captures; T-02 `246`; T-03 `279`; T-04 `529`; T-06 `170`; Reference Future, SaveHardening, Progress, baseline-hash `30/30`, interaction, density-save, completion all PASS. 1280×720 + 1920×1080 captures present; 10 directly inspected.
+- Schema/version reconciliation: five T-05 assertions moved from v22 to the exact current **v24** with the literal/version assertion preserved. No production or assertion weakening.
+- Deviation recorded by the worker: gate 11's original live pre-v22 derivation went stale because `PreV22SaveTypes` shares current work-order/event types carrying MFM-06 fields. The candidate hashes were byte-identical to the accepted T-05 values; the worker pinned the gate to the accepted 30-row pre-v22 table (SHA-256 `81c6f13ede7c746f592c9e1776ed2da11382e46e184c6d790caabc9659daf2cd`) and requires exact equality. This is a verification-only change, disclosed for Manager review; it must not be treated as a silent anchor rebaseline.
+- Head hygiene: gates 02–10 and 12–14 ran at `f3470edb`; compile and gate 11 re-ran at `e0f0437c`; the only files differing between those heads are `S1CHashBaselineGate.cs` and one runner env pass-through. The final handoff is at `f8421476`. The handoff discloses this rather than claiming a single-head full chain.
+- Locks `802d7312…`, `f098ea74…`, `8440d058…` were acquired/released normally under owner `Claude-S1C-T08`, task `S1-C-T08`, lane U1; U1 clean at final head; no Editor/Xephyr/openbox; live lock `free`; host save untouched; no Windows/Player build.
+- Worker posted `[RUNNING]` and `[RESULT]` on #206. #200 remains the sole active-tasks writer; this lane did not edit it.
+
+### 2026-10-31T19:30Z — LEARNING CHECKPOINT 5 (RETROSPECTIVE INFERENCE)
+
+- **Observed:** Sonnet 5.5 Medium carried a high-difficulty integrated qualification through 14 gates, two verification-pin classes, one runner bug and one stale protected-gate derivation, returning a complete matrix and honest deviations.
+- **Observed:** the runner bug (inherited `CCF_TEST_DIRECT_ENTRY`) and the version-pin drift were classified as verification/tooling, not model or production failures; the worker fixed and re-ran rather than weakening assertions.
+- **Observed:** the protected baseline-hash reconciliation is the material review risk. It is disclosed, exact-equality based and tied to the accepted T-05 table, but it changes a protected gate's reference source; Manager review should treat it as a verification-contract decision, not as proof that the anchor moved.
+- **Hypothesis (moderate confidence, n=1):** Sonnet 5.5 Medium is sufficient for a bounded high-difficulty integrated history/save/rendered qualification when the packet supplies accepted prior gates and a fail-closed runner contract.
+- **Cheaper-route question:** DeepSeek was not used for the gate work; the task was explicitly high-difficulty and the user/packet named Sonnet-class. No cheaper capable route was identified for the rendered/old-save synthesis.
+- **Missing telemetry:** token/model-call counts and live quota remain UNKNOWN.
+- **Policy proposal (NOT active):** for reused protected gates on a newer lineage, require the worker to distinguish (a) production hash change, (b) stale live derivation, and (c) accepted-table re-pin in the handoff; the Manager should explicitly accept (c) before the token is treated as qualified.
+
+### 2026-10-31T19:30Z — QUEUE STATE AFTER #206 RETURN (ORCHESTRATOR CLAIM)
+
+- **S1-D T-08 does not start.** It remains repinned to `34e360f8` and waits for #206 Manager acceptance.
+- **#199 Combined HUD / Focus Option 1** remains repinned/ready/queued on `34e360f8`; no production start was taken.
+- **#207 MFM-09** remains repinned/ready/queued on `34e360f8`; no displacement of the S1-C/S1-D critical path was made.
+- #194 remains NO ACTION. No Windows build was made or authorised.
