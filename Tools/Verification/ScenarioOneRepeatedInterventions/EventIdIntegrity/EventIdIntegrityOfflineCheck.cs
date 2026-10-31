@@ -212,7 +212,8 @@ public static class EventIdIntegrityOfflineCheck
         Check(findProblem.Contains("ForestSaveValidation.Validate("), "FindLoadProblem delegates to ForestSaveValidation.Validate");
         Check(!controller.Contains("eventId") && !controller.Contains("managementEvents"), "ForestSaveController holds no second event-ID rule");
         string saveData = File.ReadAllText(Path.Combine(root, "Assets/ForestPrototype/ForestSaveData.cs"));
-        Check(saveData.Contains("public const int CurrentVersion = 23;"), "no save schema/version bump (CurrentVersion still 23)");
-        Check(ForestSaveData.CurrentVersion == 23, "compiled CurrentVersion is 23");
+        // v24 (T-04P teaching latch, D-066) is the accepted current schema; T-06 itself added no bump, and none has been added since.
+        Check(saveData.Contains("public const int CurrentVersion = 24;"), "no save schema/version bump beyond the accepted v24 (CurrentVersion is 24)");
+        Check(ForestSaveData.CurrentVersion == 24, "compiled CurrentVersion is the accepted 24");
     }
 }
