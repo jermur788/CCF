@@ -32,17 +32,41 @@ public static class S1CHashBaselineGate
                     && d.scenarioOne.workOrders.TrueForAll(o => o.rackId == 0))
                 { d.version=20; old.version=20; d.scenarioOne.objectiveAchievements.Clear(); Compare(fixture.Key+"-v20",d,old); count++; }
             }
+            if (Accepted() != null && Accepted().Count != count) throw new InvalidOperationException("accepted baseline has " + Accepted().Count + " rows but " + count + " cases ran");
             Debug.Log("T05_BASELINE_HASH_PASS cases=" + count + " serializer=UnityJsonUtility baseline=aca74ac noAnchorsRelabelled=true");
             EditorApplication.Exit(0);
         }
         catch (Exception e) { Debug.LogError("T05_BASELINE_HASH_FAIL " + e); EditorApplication.Exit(1); }
     }
+    // T-08 reconciliation (verification-only). On a v23/v24 candidate the live pre-v22 derivation above is no longer a faithful
+    // pre-v22 identity: PreV22SaveTypes shares the current work-order/event types, which now serialise the MFM-06 prescription
+    // fields that the frozen pre-v22 hashing source cannot strip. When CCF_T08_ACCEPTED_BASELINE names the accepted T-05
+    // table (rows produced by the real pre-v22 aca74ac source, each with candidate == baseline), the candidate must
+    // reproduce that accepted identity EXACTLY for every case. Without it the original live comparison applies unchanged.
+    private static System.Collections.Generic.Dictionary<string, string> accepted;
+    private static System.Collections.Generic.Dictionary<string, string> Accepted()
+    {
+        if (accepted != null) return accepted;
+        string path = Environment.GetEnvironmentVariable("CCF_T08_ACCEPTED_BASELINE");
+        if (string.IsNullOrEmpty(path)) return null;
+        accepted = new System.Collections.Generic.Dictionary<string, string>();
+        foreach (string line in File.ReadAllLines(path))
+        {
+            string[] part = line.Split(' ');
+            if (part.Length != 3 || !part[1].StartsWith("candidate=") || !part[2].StartsWith("baseline=") || part[1].Substring(10) != part[2].Substring(9))
+                throw new InvalidOperationException("accepted baseline row malformed or candidate != baseline: " + line);
+            accepted.Add(part[0], part[2].Substring(9));
+        }
+        return accepted;
+    }
     private static void Compare(string label, ForestSaveData d, PreV22ForestSaveData old)
     {
         string a = Current(d), b = Old(old);
-        Debug.Log("T05_BASELINE_HASH_CASE " + label + " candidate=" + a + " baseline=" + b);
-        File.AppendAllText(Path.Combine(Environment.GetEnvironmentVariable("CCF_DIAG_DIR"), "baseline-hashes.txt"), label + " candidate=" + a + " baseline=" + b + "\n");
-        if (a != b) throw new InvalidOperationException(label + " world identity moved");
+        var table = Accepted();
+        string expected = table == null ? b : (table.TryGetValue(label, out var row) ? row : throw new InvalidOperationException(label + " has no accepted baseline row"));
+        Debug.Log("T05_BASELINE_HASH_CASE " + label + " candidate=" + a + " baseline=" + expected + (table != null ? " liveDerivation=" + b : ""));
+        File.AppendAllText(Path.Combine(Environment.GetEnvironmentVariable("CCF_DIAG_DIR"), "baseline-hashes.txt"), label + " candidate=" + a + " baseline=" + expected + (table != null ? " liveDerivation=" + b : "") + "\n");
+        if (a != expected) throw new InvalidOperationException(label + " world identity moved");
     }
 }
 #endif
