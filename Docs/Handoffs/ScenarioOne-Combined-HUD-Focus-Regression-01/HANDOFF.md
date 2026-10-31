@@ -4,7 +4,7 @@ Status: **PARTIAL — implementation of the competitor family complete, gate ver
 
 - Branch: `fix/scenario-one-combined-hud-focus-regression-v1`
 - Exact start: `ce6737146a7aa9ea953d7db0ca93b103f6c2c996`
-- Implementation commit: see `git log` on the branch (the commit touching `CombinedHudComposition.cs`); this handoff is committed after it.
+- Implementation + this handoff: commit `07fdddf8` (one commit).
 
 ## Changed files
 - `Tools/Verification/ScenarioOneCombined/CombinedHudComposition.cs` — verification fixture only (`RackOwnedTreeIds()`, `Choppable()` now skips trees owned by a Rack V2 plan). No assertion edited, removed, skipped or loosened.
@@ -47,3 +47,38 @@ with `CCF_UI_SIZES=1280x720,1920x1080` (default) and `CCF_COMBINED_SECTIONS` uns
 
 ## Unverified
 Everything: no Unity run. The 1920 competitor diagnosis is code inference; the 1280 overlap cause is unconfirmed; whether the Manager accepted the PARITY-07 minimap trade-off is not recorded in the repo.
+
+## Orchestrator gate evidence — 2026-10-31 (OBSERVED FACT)
+
+Unity execution by #201 on the same commit `07fdddf8` in `/media/jer/ZX20/CCF-U1`, machine-wide lock held and released normally. Evidence root `/media/jer/Files/CCF/Verification/ScenarioOneCombinedHudFix-20261031T101500Z/`.
+
+### combined-v2 — 453 pass / 10 fail / 24 shots (not green)
+
+Log `combined-v2/combined-v2.log`, SHA-256 `99ea9abe0663b25f64731a47c910551c7b7b81fed57bea38c3b035d145299dd5`.
+
+- The original 1920 V2 `COMPETITOR_PANEL_IS_SHOWN` and `COMPETITOR_TAGS_ARE_SHOWN` failures are **gone**: the fixture change worked.
+- A new 1920 V2 failure is exposed: `COMPETITOR_LIST_IS_NOT_CLIPPED lastLabelBottom=915 panelBottom=896` — the competitor list overflows its panel by 19 px once the panel actually appears. This is a real competitor-presentation defect, not covered by the original #195 list.
+- Remaining: `ESTIMATE_MINIMAP_STAYS_VISIBLE` both sizes; 1280 `ESTIMATE_PANEL_DOES_NOT_OVERLAP_THE_MINIMAP` (minimap width 0); `FOCUS_04/06/07` both sizes (`inspecting=True`, minimap hidden).
+- The Editor was reaped after verdict + `Cleanup mono` (runner's documented shutdown policy), not because of a check failure.
+
+### combined-legacy — 440 pass / 8 fail / 24 shots (not green)
+
+Log `combined-legacy-r3/combined-legacy.log`, SHA-256 `432e096f871c2cbf6f07d47e17c3ba2286406ced194af17184d4a2d65be5e400`.
+
+- Failures are exactly the estimate/minimap + focus family: `ESTIMATE_MINIMAP_STAYS_VISIBLE` both sizes and `FOCUS_04/06/07` both sizes. No competitor/panel failure in legacy.
+
+### Environment note
+
+Two earlier `combined-legacy` attempts hung before Unity imported/compiled and produced no `CHC_` lines. The cause was a stale Unity `Temp` state left by the reaped v2 Editor; clearing only `Temp/*` and stale `Library/*DB-lock` files (no Editor running) restored normal startup. No Library or project asset was deleted. This is an environment repair, not a code change.
+
+## Manager disposition requested
+
+The estimate/minimap and FOCUS_04/06/07 family is the blocker. Current evidence supports a real contract conflict: PARITY-07 deliberately hides the minimap for ordinary inspections to fit the taller estimate copy, while the protected Combined contract requires the minimap to step aside only for the competitor list. #197 classified the assertions as protected; no acceptance of the PARITY-07 trade-off was found in the repository. Per the #199 packet, this must not be resolved by editing the assertion or by an unverified layout gamble.
+
+Options for #200:
+1. Authorise a production layout repair that restores the minimap during ordinary estimate inspections and re-places the estimate without regressing PARITY-07 prompt/detail clearance; then re-run PARITY-07 + combined gates.
+2. Authorise shortening/condensing the estimate copy (touches accepted PARITY-07 wording; needs explicit scope).
+3. Formally supersede the Combined minimap assertions for ordinary inspections (Manager decision; changes the protected contract).
+4. Defer #199 and keep it open as pre-Tier-3 debt.
+
+The 1920 competitor clipping can be repaired in the same bounded UI pass once the direction is chosen.
