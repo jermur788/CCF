@@ -276,3 +276,10 @@ No provider capacity/auth failure occurred. No quota/reset state is inferred fro
 - S1-D T-08 was released on `ce673714`; live `active-tasks.md` now states #200 must determine whether it needs a fresh repin after the lineage changes. That is a Manager decision, so this lane did not start it.
 - S1-C T-08 remains dependency-cleared but **not released**. Not started.
 - No new production writer was opened while #205 owned the UI integration surface. One-writer/one-Unity discipline held throughout.
+
+### 2026-10-31T13:02Z — BOUNDARY CONFIRMED: #200 not auto-reviewing #205 (OBSERVED FACT)
+
+- OBSERVED: bounded polling 12:47Z–13:02Z; `origin/main` stayed at `dd408604`; #205 stayed OPEN with no Manager review comment; #202 was closed `[COMPLETE]` at 12:33Z and its post-close note states "browser umbrella #200 now waits to review the #205 handoff".
+- OBSERVED: `#205`, `#199` and `S1-D T-08` are all Manager-gated at this timestamp; no locally released production or qualification work remains that this lane may start without an ownership/repin decision.
+- ORCHESTRATOR CLAIM: the correct action is to pause and return the exact next action to the user, not to self-accept the integration or open a competing UI writer. No Manager-owned file was written; no verdict was self-issued.
+- **Note for the receiving chat:** the programme resumes with one browser-lane turn (review #205 → repin #199 → decide S1-D T-08 repin). Everything needed is durable on origin.
