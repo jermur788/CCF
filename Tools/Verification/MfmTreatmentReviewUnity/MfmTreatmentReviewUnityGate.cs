@@ -704,6 +704,32 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         yield return Settle(6);
         Check(Review.Session.LastPreview.Signature() == previewSignature, "removing the manual mark restores the same proposals");
 
+        // Conflict: an OPEN WORK ORDER on a proposed tree (the ordinary Work Plan path) is held, surfaced, and the order stays the player's.
+        string openTreeId = preview.Proposals[preview.Proposals.Count > 1 ? 1 : 0].TreeId;
+        marks.Mark(Tree(openTreeId), TreeMarkType.Fell, false);
+        int ordersBeforeOpen = manager.WorkOrders.Count;
+        int addedToPlan = manager.AddMarkedTreesToWorkPlan();
+        var openOrder = manager.WorkOrders.FirstOrDefault(o => o.IsOpen && o.targetTreeId == openTreeId);
+        yield return Settle(4);
+        ui.Map.Refresh(true);
+        yield return Settle(6);
+        Check(addedToPlan >= 1 && openOrder != null && manager.WorkOrders.Count == ordersBeforeOpen + addedToPlan, "the player's own open work order exists on the tree", "added=" + addedToPlan);
+        int openOrderId = openOrder != null ? openOrder.workOrderId : -1;
+        var openStatusBefore = openOrder.status;
+        Approval.ProposalSet withOpen = Review.Session.LastPreview;
+        bool openShown = Labels().Any(l => l.text != null && l.text.StartsWith("CONFLICT — held, not proposed"));
+        Check(withOpen != null && withOpen.Valid && withOpen.Proposals.All(p => p.TreeId != openTreeId), "a tree with open work is held back from the proposals");
+        Check(openShown || withOpen.Conflicts.Any(c => c.TreeId == openTreeId || c.Kind == Approval.ConflictKind.UnitNoLongerCovered),
+            "the open-work hold is shown as a conflict", "conflicts=" + string.Join(",", withOpen.Conflicts.Select(c => c.TreeId + "@" + c.CoverageUnitId + ":" + c.Kind)) + " shownLabel=" + openShown);
+        Check(openOrder.IsOpen && openOrder.status == openStatusBefore && manager.WorkOrders.Count == ordersBeforeOpen + addedToPlan, "the review did not overwrite or add to the player's work");
+        Note("conflict (open work order) surfaced: label=" + openShown + " kinds=" + string.Join(",", withOpen.Conflicts.Select(c => c.Kind)));
+        yield return Shot("08b-conflict-open-work", true);
+        Check(manager.RemovePendingOrder(openOrderId), "the player's open order is removed through the ordinary path");
+        yield return Settle(4);
+        ui.Map.Refresh(true);
+        yield return Settle(6);
+        Check(Review.Session.LastPreview.Signature() == previewSignature, "removing the open work restores the same proposals");
+
         // ---- 7. spot-check: waypoint alone does not satisfy; real 3D inspection does ----
         Check(Buttons("Inspect in forest").Count > 0, "spot-check lines offer Inspect in forest");
         Button spotInspect = Root.Q<VisualElement>("map-review-scroll").Query<Button>().ToList().First(b => b.text == "Inspect in forest" && b.name != "map-review-candidate-inspect"

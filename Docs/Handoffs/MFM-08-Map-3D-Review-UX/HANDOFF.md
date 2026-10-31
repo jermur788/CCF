@@ -1,3 +1,47 @@
+# MFM-08 — Successor Tier-2 (repaired candidate) — claim #156
+
+**Result: `MULTI-SCALE REVIEW UX QUALIFIED — READY FOR MANAGER REVIEW`** — with the red regression gates below disclosed. All of them reproduce identically (or worse) on the pre-MFM-08 parent `cfdc93bf`, so none is caused by the candidate.
+
+- **Provider/model:** Claude Code, Sonnet 5.5.
+- **Candidate qualified:** `e5fb424635f16182748efcb0539e8a49539495a9` (detached, clean, `/media/jer/ZX20/CCF-U1`, Unity 6000.6.0f1). No production file changed.
+- **Harness lineage:** `qual/mfm-08-unity-v1` `630c6c3d` plus one local addition (below). The two original defect assertions and every other check are untouched.
+- **Lock:** normal `unity-lock`, lock_id `c4ae8720d3a94a528f517f7b96b1ffb4`, task `MFM-08-156-TIER2-UNITY`, acquired 2026-10-30T21:55:50Z, released normally (forced: false), final status `free`, no Editor or Xephyr left. `--branch HEAD` was needed because the lane is detached.
+- **Evidence (all under `/media/jer/Files/CCF/Verification/`):** `MFM08-Tier2-successor-20261030T215603Z` (run 1), `...-run2-20261030T220340Z` (final MFM-08 gate), `...-regress-20261030T220935Z`, `...-rackv2-20261030T222544Z`, `...-rackv2-diag-20261031T005050Z`, `...-rackv2-base2-20261031T030358Z`, `...-rackv2-final-20261031T032748Z`, plus lock receipts.
+
+## MFM-08 live gate
+- Run 1, unmodified harness: `MFM08_UNITY_PASS checks=353 shots=23`. The segment/footprint checks and the two former Defect checks all pass: Low/Centre/High footprints are distinct, the sample is the fixed teaching footprint, tags no longer overlap, Inspect uses the area-specific centre.
+- Run 2: `MFM08_UNITY_PASS checks=373 shots=25`. The 20 extra checks are the **open-work conflict** I added, which the old harness lacked: a proposed tree is Fell-marked, moved into the Work Plan through `AddMarkedTreesToWorkPlan()`, and the review is re-read. The tree is held out of the proposals, the hold is shown as `CONFLICT — held, not proposed`, the player's open order is not overwritten or added to, and removing it through `RemovePendingOrder` restores the identical proposal signature. 1280x720 and 1920x1080 captures with `tags=15 overlaps=0`.
+- **Note for the Manager:** in both conflict cases production reports `UnitNoLongerCovered` for the unit rather than the per-tree `ManualFellMark` / `OpenWorkOrder` kind, because an open felling order or mark takes the unit out of Covered. The player's state is untouched either way. The per-tree kinds are not reached by this fixture.
+- Everything else from the earlier run holds (Previous/Next bounded, real [C]/[N], no bulk confirm, Prepare creates a prescription only, proposals noncommitted, waypoint alone not enough but a real 3D inspect is, approval creates Pending work with provenance, repeated approval refused, in-memory v23 round trip, no save written).
+
+## Unity regressions (candidate)
+| Gate | Result |
+|---|---|
+| MFM-06 compile / save | PASS |
+| MFM-07 approval boundary | PASS |
+| MFM-08A coverage world | PASS |
+| Reference Future v1 (protected hashes) | PASS |
+| Save hardening | PASS |
+| Scenario One completion | PASS |
+| Scenario One interaction | PASS |
+| Scenario One progress | gate token `SCENARIO_ONE_PROGRESS_VERIFY_PASS`, but the runner reports `pass: false` only because the gate wrote an isolated `forest-save.json.bak` (the runner allows disk saves only for save/approval/coverage-world); host saves unchanged. Judge accordingly. |
+| Rack V2 field-marking / runtime / save | PASS (99 / 14 / 35 checks) |
+| Rack V2 Legacy40 rack authoring | PASS (15) |
+| Rack V2 confirm / minimap | PASS (213) on rerun |
+| Rack V2 combined-v2 | **447 pass / 11 fail**, same on pre-MFM-08 parent `cfdc93bf` (447/11) |
+| Rack V2 guided-v2 | **1 fail** ("V2 confirmed rack lesson clearly requests annual advance"), same on `cfdc93bf` |
+| Rack V2 combined-legacy | 440 / 8 fail (440/8 on a rerun); `cfdc93bf` is worse (416/32) |
+
+Combined-v2's earlier green record (455/0 at RackV2LayoutRepair) was on an older head, so these three gates are red on the integration lineage independent of MFM-08; they should be raised separately.
+
+## Deviations and caveats
+- Three first-attempt runs (legacy40, combined-legacy, confirm-minimap) hung at Editor start with no verdict and timed out at 2400 s; they passed or completed on rerun. The two first baseline runs on `cfdc93bf` hung the same way and were rerun.
+- `RackV2FieldMarking/run_gate.py` hard-requires the RACK-V2-09 lock owner. I ran an unmodified-logic copy with only that owner check and the ROOT/HERE paths changed (scratchpad, not committed); gate sources are the lane's own.
+- Not run: standalone offline suites (previous green offline MFM-04/05/06/07/08A/08 evidence retained; harness change is Unity-only), `RackV2MapPlanning`, Legacy40 compatibility beyond the Legacy40 rack gate.
+- **Clean return:** lane back at `e5fb4246`, clean; Editor side effects (`.vscode/settings.json`, SectionFive materials, `Assets/_Recovery` scene recovery copies) were saved as diffs/copies next to each run and reverted; the player's host `forest-save.json*` is unchanged (runner checks); lock free. No Windows build.
+
+---
+
 # MFM-08 — Stand Map / 3D Review UX — Tier-2 Unity Result (claim #156)
 
 **Result: `BLOCKED — GEOMETRY CONFLICT: area footprints ignore the Low/Centre/High segmentation`**
