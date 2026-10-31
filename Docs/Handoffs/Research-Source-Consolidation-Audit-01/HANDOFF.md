@@ -16,7 +16,7 @@
 
 `RESEARCH SOURCE CONSOLIDATION PLAN COMPLETE — READY FOR USER / MANAGER DECISION`
 
-The corpus is small (~210 MiB deduplicated) and lives on `/` (root SSD) and `/media/jer/Files`, **not** on the constrained `/media/jer/Videos` disk. Consolidating research sources will not free meaningful space on the 96%-full Videos volume. The project's 2026-10-16 composite/archive pattern already implements the sound approach; the highest-value actions are **preservation backups of single-copy originals** and **removal of a small number of redundant/stale Downloads copies**, not PDF merging.
+The corpus is small (214.17 MiB of measured unique local bytes) and lives on `/` (root SSD) and `/media/jer/Files`, **not** on the constrained `/media/jer/Videos` disk. Consolidating research sources will not free meaningful space on the 96%-full Videos volume. The project's 2026-10-16 composite/archive pattern already implements the sound approach; the highest-value actions are **preservation backups of single-copy originals** and **removal of a small number of redundant/stale Downloads copies**, not PDF merging.
 
 ---
 
@@ -41,7 +41,9 @@ Actual measured active-space saving: **~42 MB recoverable across `/` (Downloads 
 | `~/Downloads/` (CCF corpus files only) | ~24 | ~40,832,410 | ~38.94 |
 | **Total inventoried (with cross-location duplicates)** | **~168** | **~225,151,857** | **~214.72** |
 
-Deduplicated research-source bytes ≈ **~210 MiB**. The dominant single component is the single-copy book photography (~124.6 MiB). The "active project-facing source set" (ChatGPT Game Dev attachments + canonical repo research Markdown) is **~1.3 MiB** — the consolidation problem the packet frames (many overlapping project PDFs) is already resolved.
+Measured unique local bytes (deduplicated by SHA-256 across the 168-row manifest): **224,575,814 bytes / 214.17 MiB**. The dominant single component is the single-copy book photography (~124.6 MiB).
+
+**Active project-source set:** the live ChatGPT attachment list/count was **not directly queryable** (see §14). The last known **post-rationalisation target** set (2026-10-16 plan: 7 canonical + 4 individually retained research + 4 composites) is **15 files / ~1.3 MiB**; the 26-source list is pre-rationalisation prior evidence, not the current live set; the current live platform count is unverified. The consolidation problem the packet frames (many overlapping project PDFs) was already resolved by that rationalisation.
 
 Full per-file paths, sizes and SHA-256 are in `SHA256-MANIFEST.tsv`; the classification table is `INVENTORY.tsv`.
 
@@ -91,13 +93,13 @@ Verified at text level this session (not just title similarity):
 - Concatenating already-compressed PDFs yields a file ≈ the sum of its parts plus separator bytes — **zero byte savings**.
 - A `gs` `pdfwrite` "merge" was measured to **increase** size (journal 6.79→8.35 MB at `/ebook`; yearbook 3.49→3.72 MB).
 - Every existing citation already resolves to an individual filename (see §10); bundling would force citation rewrites for no gain.
-- The corpus is ~210 MiB; file-count clutter is already resolved by the four composites.
+- The corpus is 214.17 MiB of unique local bytes; file-count clutter is already resolved by the four composites.
 
 If a topic bundle is nonetheless wanted later, `PAGE-MAP.tsv` documents the unchanged-concatenation scheme (cover page + per-member offset map, originals archived byte-identical). That is AMBER, not recommended.
 
 ## 7. Archive / backup design
 
-- **Drive `03 — Ecology Research`** (verified live, 45 items) already mirrors every primary paper and report PDF byte-identical (spot-verified for the 2006 journal and GROWFOR extraction). Keep it as the distribution archive; read-only this task.
+- **Drive `03 — Ecology Research`** (verified live this session: 45 entries in the folder) holds copies of most primary papers and report PDFs. Byte-identity was **hash-verified by temp download for only two pairs** (2006 journal, GROWFOR extraction); for every other local↔Drive pair, byte-identity is **inferred from exact size match and is not hash-verified**. Several items have **no Drive copy at all**: the 38 book page photos, the 4 full-resolution marking photos, `welch1991.pdf`, `2025Forestry_TimberYearbook.pdf`, `Delegated Marking and Operator Selection…pdf` and `2018_Light_growth_responses_of_sitka_spruce.pdf` (see §1.3 and §14). Keep Drive as the distribution archive; read-only this task.
 - **Local durable archive:** `/media/jer/Files/CCF/Research/` (ext4, durable). Currently holds the book reference/rack extraction/dashboard artefacts but **not** the single-copy photos/papers listed in §1.3.
 - **Recommended archive layout (future execution):**
   - `/media/jer/Files/CCF/Research/CCFBook/PagePhotos/` ← 38 IMG photos (copy)
@@ -176,7 +178,7 @@ Citation sweep results (exact filename + page-citation grep across `Docs/` and `
 
 ## Recommended target state (concise)
 
-- **Active project sources:** 15 files / **~1.3 MiB** (7 canonical + 4 individual research + 4 composites) + Scenario Two closure + GROWFOR extraction (repo).
+- **Active project sources (last-known post-rationalisation target set; live platform count unverified):** 15 files / **~1.3 MiB** (7 canonical + 4 individual research + 4 composites) + Scenario Two closure + GROWFOR extraction (repo).
 - **Archived byte-identical originals:** all research PDFs + primary papers retained in Drive (and, after step 1, the 6 single-copy families in `/media/jer/Files/CCF/Research/`).
 - **Project-facing composites/bundles:** 4 composites / ~0.13 MiB (unchanged).
 - **Estimated active-space reclaimed:** **~42 MB** (Downloads + `~/Documents` redundant/stale copies, approval-gated); **0 MB on `/media/jer/Videos`**.
