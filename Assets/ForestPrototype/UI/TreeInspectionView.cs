@@ -17,7 +17,7 @@ public sealed class TreeInspectionView
     // and the card lines up with them on the left.
     public const float ColumnWidth = 400f;
     // The felling estimate carries several paragraphs of grade copy; at the column width it needs more height than the right side has.
-    public const float EstimateWidth = 600f;
+    public const float EstimateWidth = 400f;
 
     private readonly ScenarioOneUiRoot ui;
     // The left column: the card, and under it the optional detail card. Transparent; its two children are the panels.
@@ -78,7 +78,7 @@ public sealed class TreeInspectionView
         EstimatePanel.pickingMode = PickingMode.Ignore;
         EstimatePanel.style.display = DisplayStyle.None;
         EstimatePanel.style.position = Position.Absolute;
-        EstimatePanel.style.right = 14;
+        EstimatePanel.style.right = 220;
         EstimatePanel.style.top = 250;
         EstimatePanel.style.width = EstimateWidth;
         estimateBody = new VisualElement();

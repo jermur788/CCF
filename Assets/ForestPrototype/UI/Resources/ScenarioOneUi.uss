@@ -195,6 +195,12 @@
 .inspect * { flex-shrink: 0; }
 .inspect-detail { margin-top: 8px; }
 .estimate-panel * { flex-shrink: 0; }
+/* The estimate clears the minimap horizontally (right 220, width 400), so its text is set at a tighter
+   scale to fit the available height without clipping. The copy is unchanged. */
+.estimate-panel .body { font-size: 15px; }
+.estimate-panel .muted { font-size: 14px; }
+.estimate-panel .faint { font-size: 13px; }
+.estimate-panel .heading { font-size: 18px; margin-top: 4px; margin-bottom: 3px; }
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
 /* Two to a row at any width: a basis a little under half, grown to fill, so rounding can never push the second one down. */
 .stat { flex-basis: 46%; flex-grow: 1; margin-bottom: 4px; }
@@ -430,6 +436,9 @@
 .objective-words > .heading { white-space: normal; }
 .objective-body > .teaching-diagram { flex-basis: 780px; flex-grow: 1; margin-top: 8px; }
 
+/* Tighter padding and row spacing: the competitor list is tall and every unit matters for the clip check. */
+.competitor-panel { padding: 4px 10px; }
+.competitor-panel .table-row { padding-top: 1px; padding-bottom: 1px; }
 /* The competitor list is capped in height by the column above it. Its rows keep their height and anything beyond the cap is clipped, never squeezed
    until the lines print over each other. */
 .competitor-panel { overflow: hidden; }

@@ -236,10 +236,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         else
             competitors.Clear();
         hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
-        // The felling estimate needs the space the minimap would cover, so the minimap steps aside while it is open (as for the competitor list).
-        hud.ShowMinimap(!(inspecting && (inspection.ShowsCompetitors || inspection.ShowsEstimate)));
+        // The minimap steps aside only for the competitor list; the estimate panel clears it horizontally instead.
+        hud.ShowMinimap(!(inspecting && inspection.ShowsCompetitors));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
-        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
+        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate, clearsMinimapHorizontally: true);
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -278,27 +278,30 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         inspection.Root.style.maxHeight = Mathf.Max(160f, limit - 14f);
         // The optional detail column is wider; keep the central aiming prompt clear of its actual bounds too.
         float columnWidth = Mathf.Max(TreeInspectionView.ColumnWidth, inspection.Root.layout.width);
-        float rightWidth = inspection.ShowsEstimate ? TreeInspectionView.EstimateWidth : TreeInspectionView.ColumnWidth;
-        // The prompt is centred, so it must clear whichever side column is wider.
-        float between = document.rootVisualElement.layout.width - 2f * (Mathf.Max(columnWidth, rightWidth) + 28f);
-        hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
+        // The prompt is centred. It must clear the inspection card on the left and whichever side panel is on the right.
+        // The estimate panel sits at right 220 (clearing the minimap horizontally); the competitor panel at right 14.
+        float screenWidth = document.rootVisualElement.layout.width;
+        float leftBoundary = 14f + columnWidth;
+        float rightBoundary = inspection.ShowsEstimate
+            ? screenWidth - 220f - TreeInspectionView.EstimateWidth
+            : screenWidth - 14f - TreeInspectionView.ColumnWidth;
+        float maxWidth = 2f * Mathf.Min(screenWidth * 0.5f - leftBoundary, rightBoundary - screenWidth * 0.5f) - 56f;
+        hud.SetPromptMaxWidth(Mathf.Clamp(maxWidth, 280f, 900f));
     }
 
     // The competitor and estimate panels sit on the right, just under the HUD status panel and objective widget,
     // and never extend past the bottom of the screen.
-    private void PlaceSidePanel(VisualElement panel, bool show)
+    private void PlaceSidePanel(VisualElement panel, bool show, bool clearsMinimapHorizontally = false)
     {
         panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (!show) return;
         // Under the top-right column (the objective widget and the status panel), whatever height they have.
         VisualElement column = hud.RightColumn;
-        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 8f : 250f;
-        // The minimap sits at the bottom right of this same column, so the panel stops above it. ReservedHeightPx already
-        // includes the minimap's own bottom margin and the gap above it; only the 4-unit on-screen margin remains here.
-        // The older 14-unit allowance double-counted that space and squeezed the estimate/competitor rows by up to 11 units
-        // once the Rack V2 teaching note made the minimap taller. (The competitor list is the one panel too tall for that:
-        // it steps the minimap aside instead, so ReservedHeightPx is 0 while it is open.)
-        float available = document.rootVisualElement.layout.height - top - 4f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
+        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 2f : 250f;
+        // The minimap sits at the bottom right of this same column. A panel that clears it horizontally (the estimate,
+        // at right 220) needs no vertical reservation; the competitor list steps the minimap aside instead.
+        float minimapReserved = (!clearsMinimapHorizontally && Minimap != null) ? Minimap.ReservedHeightPx : 0f;
+        float available = document.rootVisualElement.layout.height - top - 4f - minimapReserved;
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
     }
