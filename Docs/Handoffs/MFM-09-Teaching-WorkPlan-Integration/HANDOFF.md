@@ -129,6 +129,62 @@ Unity: held lock, then `/media/jer/Files/CCF/Verification/MFM09-20261031/rungate
 
 Markers: `MFM09_UNITY_PASS checks=261 shots=16`, `MFM09_OFFLINE_PASS checks=32`, `MFM09_MUTATIONS_PASS caught=17 survived=0`.
 
-## 11. Next action
+## 11. Orchestration Decision Appendix — V2 (orchestrator)
+
+This appendix records the orchestrator's routing and capacity evidence. It does not alter any gate result above.
+
+### 11.1 Policy
+
+- **Orchestrator:** DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`), #203/#201.
+- **Execution:** Claude Sonnet 5.5 Medium, with a capacity-driven pool switch: Claude A first, then Claude B after Claude A's API rate limit.
+- **Objective:** implement and Tier-2 qualify the approved `Extend your treatment` teaching / Work Plan integration on exact `34e360f8...`; publish the handoff.
+- **Hard constraints:** preserve all eight teaching IDs and the v24 D-066 latch; extension after `response`; prescription approval creates ordinary Pending work only; Work Plan approval remains the commitment gate; consume MFM-08 UX; no save/schema/hash/Reference/Rack/economy change; no Windows build; #194 NO ACTION.
+- **Routing ladder:** DeepSeek orchestrates/defaults for bounded work; Sonnet 5.5 Medium for genuinely hard cross-system work; Opus only after a classified Sonnet capability/reasoning failure or separately justified high-consequence need.
+- **Concurrency/review:** one writable lane, one primary writer, one Unity lock; no independent-provider review was run, so Manager review remains outstanding.
+
+### 11.2 Capacity and context
+
+| Pool | State | Model / effort | Capacity evidence | Work | Capacity-to-completion |
+|---|---|---|---|---|---|
+| DeepSeek | AVAILABLE | deepseek-v4.1-flash | runtime identity | orchestration, evidence inspection | sufficient |
+| Claude A | COOLDOWN after rate limit | Sonnet 5.5 / medium | provider error text `Claude API rate limit reached. Try again later.` | partial implementation `917390a5` | insufficient after limit |
+| Claude B — Pro | AVAILABLE; completed | Sonnet 5.5 / medium | provider catalogue; runtime completion | salvage/finish/Unity | sufficient (observed) |
+| OpenAI/Codex | UNKNOWN / not used | — | not queried | none | UNKNOWN |
+
+- **Orchestrator context:** numeric usage/limit not observable; no compaction reported. **UNKNOWN**.
+- **Worker context:** Claude A ended on the rate limit; Claude B completed without a reported context/provider failure. Numeric usage **UNKNOWN**.
+- **Reset/window:** not supplied; not inferred.
+- **Switching cost:** low — Claude A left a clean committed checkpoint `917390a5`; Claude B resumed on the same lane/HEAD with no duplicate writer.
+
+### 11.3 Routing and decomposition
+
+- **Work unit:** #207 MFM-09, parent #203/#201.
+- **Task characteristics/risk:** Medium/High cross-system teaching + Work Plan production change with Tier-2 Unity, save/latch and commitment-boundary checks.
+- **Decomposition:** one coupled implementation/qualification unit; a second parallel writer would have required lane/lock handover with no independence benefit.
+- **Initial selection:** Claude A / Sonnet 5.5 / medium (packet difficulty; user direction to use Sonnet, Claude A first).
+- **Capacity event:** Claude A API rate limit after committing `917390a5`; classified as provider capacity, **not** capability or reasoning failure.
+- **Fallback:** Claude B — Pro / Sonnet 5.5 / medium on the same checkpoint; same model family, second subscription pool; no Opus.
+- **Alternatives rejected:** Opus (no classified capability failure); DeepSeek direct implementation/Unity (harder cross-system work remains Sonnet-class under the routing policy); Codex (not needed while Claude B was available).
+- **Exploit/explore:** exploit the partial offline suite and four-file production checkpoint; explore only the missing Tier-2 gate/regression completion.
+
+### 11.4 Outcomes and resources
+
+- **Claude A:** partial production + offline suite; `MFM09_OFFLINE_PASS checks=32`, 17/17 mutants caught; then rate limit.
+- **Claude B:** completed the T-05 harness slice fix, Unity Tier-2 gate and runner, 29 Unity receipts (one render harness path failure re-run as `29-render`), offline/regression evidence, handoff.
+- **Tested production candidate:** `6784ab17...`; later commits are verification/offline-audit and handoff only.
+- **Production diff:** exactly four expected UI files, +92/−7; no save/schema/hash/Reference/MFM-08/Rack/UiRoot change.
+- **Evidence:** `/media/jer/Files/CCF/Verification/MFM09-20261031/`; lock final id `380f3eeece3444a19bfa84de8c13ba87`, normal release, lane clean, lock free.
+- **Failure classes:** provider capacity (Claude A); harness path/base debt (render sibling-directory, stale regression bases, pre-existing UX/RackV2 help failures). No MFM-09 production defect established.
+- **Resource observations:** Claude A work before limit; Claude B completed the remaining chain; wall-clock not precisely attributable across the handoff. Token/context counts **UNKNOWN**; no proxy is presented as measured.
+
+### 11.5 Learning assessment
+
+- The second Sonnet pool recovered the task without Opus; the committed checkpoint made the switch cheap.
+- The no-Covered-area/no-prescription extension residual is a genuine product/teaching decision, not a gate failure; it is flagged for Manager.
+- Verification debt is recurring: stale regression bases and harness assumptions (render sibling directory) cost retries. Pre-reconciling them before a long Unity chain would reduce waste.
+- Independent review was not run; the token is a worker qualification, not Manager acceptance.
+- **Evidence rule:** receipts/Git/lock/logs are observed facts; routing rationale is an orchestrator claim; sufficiency/learning statements are retrospective inference.
+
+## 12. Next action
 
 Manager review of this handoff and the evidence root; decide the no-Covered-area residual (§8); then integrate or request changes. Nothing is pushed.
