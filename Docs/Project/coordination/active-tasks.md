@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`, not as live locks here.
 
-**Last reconciled:** 2026-11-01 by Overall Manager / OpenAI GPT-5.6 Sol after the user-directed MFM-10 browser/local split. Browser/GitHub Manager ownership remains under #200; non-browser/local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-11-01 by Overall Manager / OpenAI GPT-5.6 Sol after completing the MFM-10 browser/static phase under #212 and releasing the narrowed local residual under #213. Browser/GitHub Manager ownership remains under #200; non-browser/local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -25,23 +25,23 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - MFM-09 non-blocking residual remains: a no-Covered / never-prescribes path can keep extension teaching presentation visible while manual management and underlying progression remain available. Any durable skip/decline/manual-completion state requires a later product/spec decision.
 - MFM-08 #156/#205 remain APPROVED / INTEGRATED / CLOSED ancestors. Rack V2 / D-064 remains feature-scope VERIFIED. PARITY-08 #126, S1-C T-08 #206, S1-D T-08 #208 and S1-D T-09 #209 remain accepted on the inherited lineage/evidence.
 - **The original unsplit MFM-10 claim #211 is SUPERSEDED / CLOSED.** User-directed split authority: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-SPLIT-HANDOFF-20261101.md` at `a1fc1fa12a1565d08d1c83d05022250ecbdcc919`.
-- **#212 is the browser/static MFM-10 guard-prep task and must run first.** It owns exact-lineage/static species-scope inspection, accepted-evidence inventory and derivation of the smallest residual local matrix. It must publish `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md`.
-- **#213 is the local-only MFM-10 residual qualification.** It waits on #212's published browser handoff and must not repeat browser-capable spec, ancestry, broad source search or test-matrix design work. Final required token remains `SPECIES GUARD QUALIFIED`.
+- **#212 browser/static MFM-10 guard prep is HANDED OFF / CLOSED.** Durable result: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md` (publication commit `a3372ce5f0c8c2e7fdbff61a74d395c7fff9f2fa`). Static verdict: no code/spec blocker; no MFM-10 Unity requirement; exact residual is two existing deterministic offline runners.
+- **#213 is READY for the local-only MFM-10 residual qualification.** It must consume #212's handoff rather than repeat browser-capable review. Required matrix is only the MFM prescription-core offline runner plus the ThreeSpecies density offline suite on exact `6784ab17...`; Unity is not required unless contradictory local evidence invalidates the audited static boundary. Final required token remains `SPECIES GUARD QUALIFIED`.
 - **#199 Combined HUD / Focus Option 1 remains REPINNED / READY / QUEUED** on exact `6784ab17...`; it is required pre-Tier-3.
 - #200 browser umbrella remains RUNNING. #201/#203 local orchestration remains RUNNING.
 - **Research Source Consolidation Audit #194 remains NO ACTION.** Do not review, approve/reject, merge, update, clean up, reorganise Drive/Project sources or otherwise act on it unless the user explicitly lifts the restriction.
 - PARITY-09 and MFM-11 remain blocked until MFM-10 returns `SPECIES GUARD QUALIFIED`; MFM-12 follows accepted MFM-11 on the applicable lineage.
 - Scenario One Tier-3/player-test candidate remains **NOT RELEASED**. Required accepted systems must converge on one exact candidate and #199 must be green before final Tier-3.
-- Overall Dev coordination publication is verified; actual Dashboard ingestion/rendering remains unverified from this browser lane.
+- Overall Dev coordination publication is verified up to the prior state; this #212 handoff transition still requires the normal Overall Dev refresh. Actual Dashboard ingestion/rendering remains unverified from this browser lane.
 
 ## Live / prepared tasks
 
 | Task | Lane | Exact branch / base | Ownership | Status |
 |---|---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, coordination, repins, claims, this file | **RUNNING — UMBRELLA** |
-| **Local Deep Orchestration Resume 02** (#203) | non-browser orchestration | child lanes only | local routing + evidence | **RUNNING — WAITING FOR #212 BROWSER HANDOFF BEFORE MFM-10 LOCAL** |
-| **MFM-10 browser/static guard prep** (#212) | browser/GitHub | exact candidate `6784ab17...`; no worktree | static/spec/repository audit + residual local matrix | **READY — NEXT MFM-10 ACTION** |
-| **MFM-10 local residual qualification** (#213) | #203 local; Unity only if browser handoff proves needed | exact candidate `6784ab17...`; `verify/mfm-10-species-guard-v1` suggested | residual executable qualification only | **WAITING ON #212 BROWSER HANDOFF** |
+| **Local Deep Orchestration Resume 02** (#203) | non-browser orchestration | child lanes only | local routing + evidence | **RUNNING — #213 RELEASED FOR RESIDUAL OFFLINE QUALIFICATION** |
+| **MFM-10 browser/static guard prep** (#212) | browser/GitHub | exact candidate `6784ab17...`; no worktree | static/spec/repository audit + residual local matrix | **HANDED OFF / CLOSED** |
+| **MFM-10 local residual qualification** (#213) | #203 local; no Unity expected from browser matrix | exact candidate `6784ab17...`; `verify/mfm-10-species-guard-v1` suggested | two residual executable offline suites only | **READY — CONSUME #212 HANDOFF** |
 | **MFM-10 original unsplit claim** (#211) | none | superseded | no execution authority | **SUPERSEDED / CLOSED** |
 | **Combined HUD / Focus Repair** (#199) | #203 local + independent review | exact start `6784ab17...`; fresh branch from current lineage | bounded Option-1 presentation/focus repair | **REPINNED / READY / QUEUED PRE-TIER3** |
 | **PARITY-09 integrated parity qualification** | #200 repin then #203 local | TBD after MFM-10 | qualification | **BLOCKED ON `SPECIES GUARD QUALIFIED`** |
@@ -54,15 +54,20 @@ No row proves the Unity lock is currently free. Every Unity worker must fresh-pr
 
 ## MFM-10 split boundaries
 
-### #212 browser/static phase
+### #212 browser/static phase — completed
 
-Browser/GitHub only. Inspect exact candidate `6784ab17...`, MFM-10 authority, Sitka-only candidate/prescription/release/proposal guards, accepted Oak/Beech parity boundaries and existing authoritative verification assets. Classify each requirement as already supported, needing local offline execution, needing Unity/runtime, or blocked by a code/spec mismatch. Derive the smallest exact residual local matrix and publish `BROWSER-HANDOFF-20261101.md`.
+Browser/GitHub audit completed on exact `6784ab17...`. The accepted MFM proposal path is fail-closed before Sitka-only calibration can process living Oak/Beech adults; the separate accepted parity density path remains species-aware. Existing committed tests already cover the required refusal and mixed-density assertions. No MFM-10 code/spec blocker was found and no MFM-10 Unity/runtime check remains after static narrowing.
 
-No local filesystem/worktree assertions, executable tests, Unity, production edits, integration or Windows build.
+Durable result: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md`.
 
-### #213 local residual phase
+### #213 local residual phase — ready
 
-Do not start until #212 publishes its handoff. Consume the browser/static findings rather than repeating them. Perform only residual executable offline/runtime/Unity checks that the browser phase cannot prove. Fresh live branch/worktree/free-space/Editor/lock preflight is still mandatory before local execution. A genuine defect stops for a separate repair claim; a desire for multi-species quantitative treatment stops for spec amendment.
+Consume #212's handoff rather than repeating it. After fresh local preflight on exact `6784ab17...`, execute only:
+
+1. `python3 -B Tools/Verification/MfmPrescriptionCore/run_prescription_core_offline.py --out /media/jer/Files/CCF/Verification/MFM10-SpeciesGuard-20261101/01-prescription-core`
+2. `python3 -B Tools/Verification/ThreeSpecies/OfflineLogic/run_offline_check.py --suite density --out /media/jer/Files/CCF/Verification/MFM10-SpeciesGuard-20261101/02-three-species-density`
+
+No Unity/Editor run is required if both pass. A genuine defect stops for a separate repair claim; a desire for multi-species quantitative treatment stops for spec amendment. Final durable output remains `Docs/Handoffs/MFM-10-Species-Parity-Guard/HANDOFF.md`; only accepted combined browser + local evidence may return `SPECIES GUARD QUALIFIED`.
 
 Routing after browser narrowing: DeepSeek remains orchestrator/default worker for bounded residual work if capable; Sonnet 5.5 Medium only for a classified capability/reasoning need; Opus is not justified by environment, lock, quota, genuine gate or authority failures.
 
@@ -76,9 +81,9 @@ Start fresh from exact `6784ab17...` when scheduled. Preserve ordinary-inspectio
 
 ## Dependency-ready sequence
 
-1. Execute **#212 browser/static MFM-10 guard prep** in a separate browser-capable Game Dev chat.
-2. #200 reviews #212's browser handoff and confirms the exact residual matrix / candidate pin.
-3. #203 executes **#213 local-only residual qualification**; do not repeat browser work.
+1. **DONE:** #212 browser/static MFM-10 guard prep completed and durable handoff published.
+2. **DONE:** #200 reviewed the browser result, retained exact candidate `6784ab17...`, and authorised the two-command residual matrix with no Unity requirement.
+3. **NEXT:** #203 executes **#213 local-only residual qualification**; do not repeat browser work.
 4. #200 reviews #213. Only accepted combined evidence and exact token `SPECIES GUARD QUALIFIED` releases downstream parity/calibration work.
 5. MFM-10 accepted -> fresh repin/release PARITY-09 and MFM-11 as ownership/Unity sequencing permits.
 6. MFM-11 accepted -> repin/release MFM-12 on the applicable integrated lineage.
@@ -90,6 +95,7 @@ Start fresh from exact `6784ab17...` when scheduled. Preserve ordinary-inspectio
 ## Durable current records
 
 - MFM-10 browser/local split: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-SPLIT-HANDOFF-20261101.md`.
+- MFM-10 browser/static result: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md`.
 - #207 MFM-09 Manager review: `Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/MANAGER-REVIEW-20261101.md`.
 - #199 Option 1 current repin: `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/OPTION1-REPIN-20261101.md`.
 - Overall Dev sync policy: `Docs/Project/coordination/overall-dev-sync.md`; shared CCF status: `jermur788/Overall-Dev/updates/ccf/latest.md`.
