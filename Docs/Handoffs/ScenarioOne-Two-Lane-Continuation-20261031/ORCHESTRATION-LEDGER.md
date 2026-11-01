@@ -588,3 +588,15 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Follow-up dispatched to the same Mimo worker** (run 4) with the exact six-item gate/docs-only fix list and one more Unity run; no escalation.
 - **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` remains not issued; `QUALIFICATION INCOMPLETE — GAP` is the current honest state.
 - **Next action:** Mimo run 4; then a fresh Claude re-review of the revised evidence.
+
+## 2026-11-01T17:35Z — R-009 FOLLOW-UP RUN 3: harness compile error + hung Editor (OBSERVED FACT)
+
+- Mimo committed `70db0633` ("address independent review NEEDS CHANGES") and acquired lock `7e2ea06e…` at that HEAD.
+- The Unity run failed to compile the staged gate:
+  - duplicate `private IEnumerator Run()` declaration;
+  - `CS0106: modifier 'private' is not valid for this item` at lines ~204, 644, 678, 713;
+  - `CS1513: } expected` at ~740.
+- The Editor then hung after the compile error; the orchestrator reaped the hung Unity/Xephyr/openbox processes. The runner cleaned the staged harness; the lock remained held at `70db0633`.
+- **Classification:** worker harness quality/compile failure, not a production defect and not a model-capability escalation trigger. The same Mimo worker was steered with the exact compile diagnosis and told to fix, commit, release/re-acquire and re-run.
+- **No production edits; no #194 action; no Windows build.**
+- **Next action:** Mimo fixes the gate and runs the revised matrix; then Claude re-review.
