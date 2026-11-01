@@ -132,25 +132,22 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
     public static void SetGameSize(int width, int height)
     {
-        var sizesType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSizes");
-        var singleton = typeof(ScriptableSingleton<>).MakeGenericType(sizesType).GetProperty("instance", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-        var group = sizesType.GetProperty("currentGroup", BindingFlags.Public | BindingFlags.Instance).GetValue(singleton);
-        var groupType = group.GetType();
-        var addCustom = groupType.GetMethod("AddCustomSize", BindingFlags.Public | BindingFlags.Instance);
-        var sizeType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSize");
-        var sizeTypeType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSizeType");
-        var custom = Enum.ToObject(sizeTypeType, 1);
-        var gvs = Activator.CreateInstance(sizeType, custom, width, height, "MFM11");
-        addCustom.Invoke(group, new[] { gvs });
-        int count = (int)groupType.GetMethod("GetTotalCount").Invoke(group, null);
-        var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
-        gameViewType.GetProperty("selectedSizeIndex", BindingFlags.Public | BindingFlags.Static).SetValue(null, count - 1);
-        var gameView = Resources.FindObjectsOfTypeAll(gameViewType).FirstOrDefault();
-        if (gameView != null)
-        {
-            gameViewType.GetProperty("showGizmos", BindingFlags.Public | BindingFlags.Instance).SetValue(gameView, false);
-            gameViewType.GetMethod("Maximize", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gameView, null);
-        }
+        Assembly assembly = typeof(Editor).Assembly;
+        Type sizesType = assembly.GetType("UnityEditor.GameViewSizes");
+        Type singleton = typeof(ScriptableSingleton<>).MakeGenericType(sizesType);
+        object sizes = singleton.GetProperty("instance", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+        MethodInfo getGroup = sizesType.GetMethod("GetGroup");
+        object group = getGroup.Invoke(sizes, new[] { Enum.ToObject(getGroup.GetParameters()[0].ParameterType, 0) });
+        Type sizeType = assembly.GetType("UnityEditor.GameViewSize"), kind = assembly.GetType("UnityEditor.GameViewSizeType");
+        object size = Activator.CreateInstance(sizeType, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
+            null, new object[] { Enum.ToObject(kind, 1), width, height, "MFM11 " + width + "x" + height }, null);
+        int index = (int)group.GetType().GetMethod("GetTotalCount").Invoke(group, null);
+        group.GetType().GetMethod("AddCustomSize").Invoke(group, new[] { size });
+        Type viewType = assembly.GetType("UnityEditor.GameView"); EditorWindow view = EditorWindow.GetWindow(viewType);
+        viewType.GetProperty("selectedSizeIndex", Private | BindingFlags.Public).SetValue(view, index);
+        var gizmos = viewType.GetProperty("showGizmos", Private | BindingFlags.Public);
+        if (gizmos != null && gizmos.CanWrite) gizmos.SetValue(view, false);
+        view.maximized = true; view.Show(); view.Focus(); view.Repaint();
     }
 
     private IEnumerator Capture(string name)
