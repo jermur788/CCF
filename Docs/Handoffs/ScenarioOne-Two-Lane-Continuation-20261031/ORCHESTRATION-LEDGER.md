@@ -458,3 +458,83 @@ Appended evidence for claim **#203** under `LOCAL-MASTER-HANDOFF-20261101.md` at
 - **Cheaper-route question:** DeepSeek could have implemented #199 itself, but the parallel topology (DeepSeek on #213 + Mimo on #199) completed both in one run; the orchestration overhead was one child context and one independent review.
 - **Missing telemetry:** token counts, model calls, live quota — UNKNOWN.
 - **Policy proposal (NOT active):** add a supported "update lock HEAD/branch" operation or require release/re-acquire after a commit; and require an independent baseline run before accepting a "pre-existing gate" residual on a production change.
+
+---
+
+# CONTINUATION — PARITY-09 #219 + MFM-11 #220, from 2026-11-01T14:00Z
+
+Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES GUARD QUALIFIED`; #199 APPROVED/INTEGRATED; `origin/integration/scenario-one-player-test-ready-v1` exactly **`3acdf9cb635cdca79606335801e97f9d7dcce8b0`**; #219/#220 released.
+
+## Start gate (OBSERVED FACT)
+
+- `origin/main` `47971a57` — "coordination: accept MFM-10 and #199; release PARITY-09 and MFM-11".
+- Exact integration ref `3acdf9cb`; #219/#220 release repins read; #203 last Manager comment read.
+- U1 clean at `48e96ebd` (docs-only over `3acdf9cb`); switched to `qual/parity-09-integrated-v1` at exact `3acdf9cb` (no Assets diff from the #199 tested candidate).
+- MFM-11 offline worktree created at exact `3acdf9cb` on `verify/mfm-11-calibration-impact-v1` under `/media/jer/Files/CCF/Operations/CCF-MFM11Calibration-20261101`.
+- Machine-wide Unity lock **free**; no Editor/Xephyr/openbox; ZX20 18 GiB free (above 15 GiB floor); Files 57 GiB free.
+- No `active-tasks.md` edit. No #194 action. No Windows build.
+
+## Provider/capacity ledger — refresh
+
+| Provider/pool | State | Model/config | Remaining capacity | Reset/window | Evidence source + confidence | Current work | Capacity-to-completion | Switching cost |
+|---|---|---|---|---|---|---|---|---|
+| DeepSeek | AVAILABLE / executing | `opencode-go/deepseek-v4.1-flash`, variant `max`, build | observe/UNKNOWN | observe/UNKNOWN | runtime | orchestration; #219 qualification | sufficient for evidence/gate work (prior run) | low |
+| Mimo | AVAILABLE (user report) | `opencode-go/mimo-v2.6-pro`, variant `xhigh`, build | qualitatively high per user; exact UNKNOWN | UNKNOWN | user; T3 catalogue confirms model | #220 offline measurement design/harness | assessed sufficient for one bounded child | moderate (new child context) |
+| Claude | UNKNOWN | Sonnet 5.5 Medium class | UNKNOWN | UNKNOWN | none this run | candidate independent reviewer for #220 | not yet dispatched | n/a |
+
+## 2026-11-01T14:05Z — ROUTING EVENT R-008: #219 PARITY-09 to DeepSeek
+
+- **Work unit:** #219 integrated three-species parity Tier-2 qualification; parent #91 / #200 / #203.
+- **Evidence class:** OBSERVED FACT (authority/lane) + ORCHESTRATOR CLAIM (route).
+- **Task type/difficulty/risk:** integrated conformance audit + targeted offline/Unity gates; High; qualification only.
+- **Decomposition topology:** two children in parallel offline (#219 DeepSeek in U1; #220 Mimo in Files); Unity serialized to one lane.
+- **Selected provider/model/role:** DeepSeek V4.1 Flash, orchestrator + primary qualification worker.
+- **Alternatives considered:** Mimo 2.6 Pro for #219 (declined: Mimo is the stronger fit for the open-ended #220 measurement; #219 is primarily evidence mapping and known-gate execution); Claude (quota UNKNOWN, reserved for independent review).
+- **Reason/rule:** DeepSeek completed the #213 offline qualification and the #199 independent review; #219 is largely conformance/evidence work with existing gates.
+- **Capacity evidence:** DeepSeek AVAILABLE by runtime; capacity-to-completion assessed SUFFICIENT for the offline/gate phase.
+- **Branch/worktree/start SHA:** `qual/parity-09-integrated-v1` in U1, exact `3acdf9cb`.
+- **Unity:** serialized; acquire only immediately before the Unity phase.
+- **EXPLOIT/EXPLORE:** EXPLOIT.
+- **Independent review:** Mimo 2.6 Pro (cross-provider, independent of DeepSeek).
+- **Result:** PENDING.
+- **Next action:** build the checklist evidence map, run offline/static gates, then the targeted Unity matrix under lock.
+
+## 2026-11-01T14:06Z — ROUTING EVENT R-009: #220 MFM-11 to Mimo 2.6 Pro
+
+- **Work unit:** #220 calibration-impact qualification; parent #91 / #200 / #203.
+- **Evidence class:** OBSERVED FACT (authority) + ORCHESTRATOR CLAIM (route).
+- **Task type/difficulty/risk:** difficulty 4/5 quantitative cross-system qualification; open-ended measurement/harness work; no production retune authority.
+- **Decomposition topology:** parallel offline with #219; Unity phase after #219 releases U1.
+- **Selected provider/model/role:** Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, `xhigh`, build), delegated primary qualification worker.
+- **Alternatives considered:** DeepSeek (declined: orchestrator is carrying #219; the #220 measurement is the harder open-ended child); Claude/Sonnet (quota UNKNOWN; preferred class for review rather than primary).
+- **Reason/rule:** observed Mimo success on the substantial #199 Unity UI child; user-authorised capacity; task fit for a long quantitative harness.
+- **Capacity evidence/source/confidence:** user reports substantial remaining tokens (qualitative; exact UNKNOWN); model existence confirmed by T3.
+- **Branch/worktree/start SHA:** `verify/mfm-11-calibration-impact-v1` in `/media/jer/Files/CCF/Operations/CCF-MFM11Calibration-20261101`, exact `3acdf9cb`.
+- **Unity:** offline first; Unity only after #219 releases the machine-wide lock.
+- **EXPLOIT/EXPLORE:** EXPLORE (open-ended measurement) with DeepSeek/Claude review fallback.
+- **Independent review:** separate reviewer/thread (DeepSeek if it remains independent; Claude if available), mandatory.
+- **Result:** PENDING.
+- **Next action:** design/execute the three-path deterministic comparison and publish the handoff; stop on a material accepted-outcome break.
+
+## 2026-11-01T14:08Z — ORCHESTRATION CLAIM: serialization and review topology
+
+- ORCHESTRATOR CLAIM: #219 and #220 can develop offline in parallel in separate worktrees without file overlap. U1 is the sole Unity lane; #219 holds it for the first Unity phase, then releases it to #220. No speculative lock acquisition.
+- ORCHESTRATOR CLAIM: independent review must be cross-provider for #219 (Mimo reviewing DeepSeek) and a separate reviewer/thread for #220 (DeepSeek or Claude reviewing Mimo). The reviewer must not be the qualification worker.
+
+## 2026-11-01T14:20Z — R-008 INTERMEDIATE: #219 offline + Unity evidence assembled (OBSERVED FACT)
+
+- Exact candidate `3acdf9cb`; branch `qual/parity-09-integrated-v1`; handoff `aa8eb6ff`; U1 clean; lock `513ebbfd…` acquired/released normally; no Editor.
+- Offline PASS: `EARLY_LIFE_CONFORMANCE_STATIC_PASS checks=30`; `PARITY07_COPY PASS 89/89`; `PARITY08_SPECIES_OFFLINE_PASS checks=23`; `MFM04_PRESCRIPTION_CORE_PASS checks=240 failed=0` + byte-identical repeat; `MFM06_SAVE_OFFLINE_PASS checks=172`; `THREE_SPECIES_TIMBER_PASS checks=73`; `MIXED_DENSITY_ISOLATED_PASS`; `SITKA_MODEL_ISOLATED_PASS`; `SOURCE_NORMALIZATION_PASS`; `FIXTURE_CONTROLS_PASS 9/7`.
+- Offline red, classified as pre-existing verification debt/accepted limitation: `check_integrated_v1` stale `ForestSaveData.cs` normalized hash; `SiteInfrastructure` `G_SAVE_VERSION_IS_STILL_23`; `run_pruning_check` `protected bytes moved: ForestSaveData.cs`; ThreeSpecies density `MaxRemovedBasalShare` false positive + three accepted Beech R2 misses; ThreeSpecies history `WorkItemDetail` build failure.
+- Unity PASS on exact candidate: adult Legacy40/Enlarged80 `checks=30` each; `DENSITY_QUAL_PASS geometry=L40 hardChecks=5` (pure-Sitka `7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE`, 24/24, 356 victims); completion model-2 Legacy40 `SCENARIO_ONE_COMPLETION_VERIFY_PASS` with `9C77EB4BEE427FB9`, min/year-30 cash 613,978, completion year 25; Reference `REFERENCE_FUTURE_V1_PASS` with exact archive/preview/continuation; `SAVE_HARDENING_VERIFY_PASS`; PARITY-07 rendered `1031/0/36` reused at the same candidate.
+- Unity red, classified as stale v23 pins: `MixedDensityVerification` passes every behaviour check and fails only `POLICY_SAVE_VERSION_UNCHANGED saveVersion=24`; `BroadleafTimberEconomyVerification` aborts at its first `CurrentVersion == 23` check.
+- **R-008 independent review dispatched to Claude Sonnet 5.5 Medium** (`claudeAgent`, effort medium), separate thread, cross-provider from DeepSeek. Review file target `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/INDEPENDENT-REVIEW.md`.
+- Capacity: Claude Sonnet 5.5 advertised AVAILABLE in the T3 catalogue; quota UNKNOWN; no failure yet.
+- **Result:** QUALIFICATION EVIDENCE ASSEMBLED — READY FOR INDEPENDENT REVIEW; final token not self-issued.
+
+## 2026-11-01T14:22Z — R-009 INTERMEDIATE: #220 offline harness in progress (OBSERVED FACT)
+
+- Mimo 2.6 Pro working in the Files worktree at exact `3acdf9cb`; no Unity, no lock; offline .NET harness design/implementation underway.
+- U1 released by #219 and available for the MFM-11 Unity phase once the offline harness is ready and the PARITY-09 review has finished reading U1.
+- No production edits; no `active-tasks.md` edit; no #194 action.
+- **Result:** PENDING.
