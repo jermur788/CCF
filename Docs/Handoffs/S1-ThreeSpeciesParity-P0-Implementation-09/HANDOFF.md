@@ -43,7 +43,7 @@ Accepted PARITY-03…08 evidence is integrated on this ancestry. Where a histori
 | `--suite density` | **FAIL** — `THREE_SPECIES_OFFLINE_FAIL failures=1 checks=91` (`MaxRemovedBasalShare` scanner false positive); `COMPOSITE_DENSITY_FAIL checks=107 failures=3` (three pure-Beech R2 misses `0.423/0.407/0.417` vs unchanged `0.40`) | **Accepted known C-level limitation + known scanner false positive**; explicitly preserved, not relabelled or relaxed. |
 | `--suite density-isolated` | **PASS** — `MIXED_DENSITY_ISOLATED_PASS compiledWithoutSitkaGrowthModel=true` | Arithmetic isolation. |
 | `--suite density-sitka-isolated` | **PASS** — `SITKA_MODEL_ISOLATED_PASS compiledWithoutMixedDensityModel=true` | Arithmetic isolation. |
-| `--suite history` | **FAIL (build)** — `ManagementHistoryText.cs: WorkItemDetail` not found | **Pre-existing verification-asset build failure**, identical on the accepted base. Not a parity defect. |
+| `--suite history` | **FAIL (build)** — `ManagementHistoryText.cs: WorkItemDetail` not found | **Pre-existing verification-asset build failure**: the harness csproj omits `ScenarioManagementHistory.cs`, where `WorkItemDetail` is defined. Not a parity defect. |
 
 ## 4. Unity results
 
@@ -54,7 +54,7 @@ All runs on exact `3acdf9cb`, Legacy40 unless stated, under the held lock.
 | `BroadleafAdultGrowthVerification` Legacy40 | **PASS** — `BROADLEAF_GROWTH_VERIFY_PASS checks=30` | Adult constants, site scalar 1.0, shared canopy/light, 8 m Hegyi, protected Sitka comparator. |
 | `BroadleafAdultGrowthVerification` Enlarged80 | **PASS** — `BROADLEAF_GROWTH_VERIFY_PASS checks=30` | Same assertions on Enlarged80. |
 | `DensityQualification` `ANCHORS,SITKA100,SITKACOMP` | **PASS** — `DENSITY_QUAL_PASS geometry=L40 hardChecks=5` | Pure-Sitka model-2 exactly equals model-1 (`7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE`); 24/24 controller victim sets, 356 victims; exact legacy route. |
-| `ScenarioOneCompletionVerification` model 2, Legacy40 | **PASS** — `SCENARIO_ONE_COMPLETION_VERIFY_PASS`, 12 phase PASS records | Completed year 25; `9C77EB4BEE427FB9`; min/year-30 cash 613,978 cents; y30 living 199, canopy 0.879, regen 60 cells, deadwood 19.436 m³. |
+| `ScenarioOneCompletionVerification` model 2, Legacy40 | **PASS** — `SCENARIO_ONE_COMPLETION_VERIFY_PASS`, 12 phase PASS records | Completed year 25; `9C77EB4BEE427FB9`; min/year-30 cash 613,978 cents; y30 living 199, canopy 0.879, regen 60 cells, deadwood 19.436 m³. An earlier Enlarged80 attempt failed the harness precondition `start is not 336 living Sitka` because it did not use the Legacy40 336-tree start; the Legacy40 rerun above is the qualification run. This is a harness precondition, not a defect. |
 | `ScenarioReferenceVerification` Legacy40 | **PASS** — `REFERENCE_FUTURE_V1_PASS` | Archive milestones 0/20/50/100 exact (`A564039D9B7CE31D` / `F7DF7DAB53B6FD32` / `D5E75D6D21D631AC` / `7AD177B3CC2F73C7`); schedule `56C8B99FA1E8DDD1`; continuation `EBD49ADEF18C3F36`, v15 layout `BFFF66015A6619DA`; negative control detects tamper. |
 | `SaveHardeningVerification` Legacy40 | **PASS** — `SAVE_HARDENING_VERIFY_PASS` | Save/load hardening; growth kept, trees=336, year=2. |
 | `MixedDensityVerification` Legacy40 | **FAIL only at `POLICY_SAVE_VERSION_UNCHANGED saveVersion=24`** | All live mixed-density behaviour checks before that assertion passed (thresholds, pressure, over-crowding, deterministic save/load, model-1/model-2 anchors). **Stale v23 pin**, not a density regression. |
