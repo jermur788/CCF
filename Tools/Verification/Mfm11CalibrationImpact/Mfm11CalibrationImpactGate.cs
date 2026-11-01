@@ -223,7 +223,7 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         original = saves.CaptureData();
         saveControllerWasEnabled = saves.enabled;
         saves.enabled = false;
-        while (ui.Help.Onboarding != null && ui.Help.Onboarding.gameObject.activeSelf) { ui.Help.Onboarding.Next(); yield return Settle(4); }
+        while (ui.Help.Onboarding.IsOpen) { ui.Help.Onboarding.Next(); yield return Settle(2); }
         Check(manager.RackPlanningV2Active && ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "Enlarged80 Rack V2 world");
         Check(ForestSaveData.CurrentVersion == 24, "save version 24");
         ui.CloseAll(); ui.CloseHelp();
