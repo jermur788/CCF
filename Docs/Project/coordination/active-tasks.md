@@ -33,7 +33,7 @@ This file is the **live single-writer ownership and execution-lock authority** o
 - **Research Source Consolidation Audit #194 remains NO ACTION.** Do not review, approve/reject, merge, update, clean up, reorganise Drive/Project sources or otherwise act on it unless the user explicitly lifts the restriction.
 - PARITY-09 and MFM-11 remain blocked until MFM-10 returns `SPECIES GUARD QUALIFIED` **and #200 accepts/releases the downstream work**; MFM-12 follows accepted MFM-11 on the applicable lineage.
 - Scenario One Tier-3/player-test candidate remains **NOT RELEASED**. Required accepted systems must converge on one exact candidate and #199 must be green before final Tier-3.
-- Overall Dev coordination publication is refreshed through `jermur788/Overall-Dev` commit `156561532654150aee7eb297630e69752bd8077e`; actual Dashboard ingestion/rendering remains unverified from this browser lane.
+- Overall Dev coordination publication is refreshed through `jermur788/Overall-Dev` commit `c2f56fd389fe95111a34d193a9674fa44664fc46`; actual Dashboard ingestion/rendering remains unverified from this browser lane.
 
 ## Live / prepared tasks
 
