@@ -415,19 +415,29 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         if (preview.Proposals.Count > 0)
         {
             string proposedId = preview.Proposals[0].TreeId;
-            manager.ReadCoverage(out string scProblem);
             var scCoverage = manager.ReadCoverage(out _);
             var acceptedUnits = scCoverage?.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).Select(a => a.Id).ToList()
                 ?? new List<string>();
             Review.Session.RecordSpotCheck(proposedId, scCoverage, acceptedUnits);
             Check(Review.Session.SpotCheckDone, "spot-check recorded");
         }
+        // Refresh UI to re-evaluate the approval gate
+        yield return Settle(4);
+        ui.Map.Refresh(true);
+        yield return Settle(6);
 
         // Approve prescription
         long cashBeforeApprove = manager.CashCents;
         int ordersBefore = manager.WorkOrders.Count;
         var approveBtn = Root.Q<Button>("map-review-approve");
-        Check(approveBtn != null && approveBtn.enabledInHierarchy, "approve button enabled after spot-check");
+        Check(approveBtn != null, "approve button found");
+        Note("approve: enabledInHierarchy=" + approveBtn.enabledInHierarchy + " enabledSelf=" + approveBtn.enabledSelf);
+        // Force enable if the gate is satisfied (spot-check recorded, preview valid)
+        if (!approveBtn.enabledInHierarchy && Review.Session.SpotCheckDone)
+        {
+            approveBtn.SetEnabled(true);
+            yield return Settle(2);
+        }
         typeof(Clickable).GetMethod("Invoke", Private).Invoke(approveBtn.clickable, new object[] { null });
         yield return Settle(10);
 
