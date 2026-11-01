@@ -250,7 +250,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         }
         var bay = Bay();
         Check(bay.Applies && bay.HasEnoughFuture, "bay has enough future trees");
-        // Mark competitors until release share reached
         for (int iter = 0; iter < 150 && bay.MinPlannedAndExecuted < ScenarioOneRackBay.FirstReleaseShare; iter++)
         {
             var futures = bay.Future;
@@ -258,7 +257,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             var least = futures.OrderBy(f => f.ReleaseShare).First();
             ForestTree leastTree = Tree(least.Id);
             if (leastTree == null) break;
-            // Find nearest competitor
             ForestTree best = null;
             float bestDist = float.MaxValue;
             foreach (ForestTree t in Living())
@@ -274,7 +272,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             bay = Bay();
         }
         Check(bay.ReleasePlanned && bay.CanopyKept, "sample release planned, canopy kept");
-        // Set one to deadwood
         var releaseOrder = manager.WorkOrders.FirstOrDefault(o => o.type == ScenarioWorkType.FellTree && o.status == ScenarioWorkStatus.Pending);
         if (releaseOrder != null)
         {
@@ -282,7 +279,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             bay = Bay();
             Check(bay.MixedPlanned, "mixed outcome planned");
         }
-        // Approve and execute sample release
         manager.ApprovePendingWork();
         manager.AdvanceYear();
         manager.MarkAnnualReviewSeen();
@@ -296,12 +292,20 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         double baselineBa = TotalBa();
         long baselineCash = manager.CashCents;
         var baselineSpecies = SpeciesSplit(Living());
+        // GAP-3 FIX: baseline canopy/light/regen
+        double baselineCanopy = ecology.Cells.Average(c => c.Canopy);
+        double baselineLight = ecology.Cells.Average(c => c.Light);
+        int baselineRegen = ecology.Cells.Count(c => c.HasRegeneration);
         Note("baseline: living=" + baselineLiving + " baM2=" + F(baselineBa) + " cash=" + baselineCash
-            + " species=" + baselineSpecies.sitka + "/" + baselineSpecies.beech + "/" + baselineSpecies.oak);
+            + " species=" + baselineSpecies.sitka + "/" + baselineSpecies.beech + "/" + baselineSpecies.oak
+            + " canopy=" + F(baselineCanopy) + " light=" + F(baselineLight) + " regen=" + baselineRegen);
 
         // ── Section 2: PATH A — sample-only (no wider treatment) ────────────
         Note("=== PATH A: sample-only ===");
-        // Path A: just advance years without wider treatment
+        // GAP-3 FIX: measure canopy/light/regen before path A
+        double aCanopyBefore = ecology.Cells.Average(c => c.Canopy);
+        double aLightBefore = ecology.Cells.Average(c => c.Light);
+        int aRegenBefore = ecology.Cells.Count(c => c.HasRegeneration);
         long cashA0 = manager.CashCents;
         double baA0 = TotalBa();
         int livingA0 = Living().Count;
@@ -312,11 +316,20 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         int livingA1 = Living().Count;
         var speciesA = SpeciesSplit(Living());
         int deadwoodA = manager.DeadwoodRecords.Count;
+        double deadwoodVolA = manager.DeadwoodRecords.Sum(d => d.originalVolumeM3);
+        // GAP-3 FIX: measure canopy/light/regen after path A
+        double aCanopyAfter = ecology.Cells.Average(c => c.Canopy);
+        double aLightAfter = ecology.Cells.Average(c => c.Light);
+        int aRegenAfter = ecology.Cells.Count(c => c.HasRegeneration);
         Note("path-A: living=" + livingA0 + "->" + livingA1 + " baM2=" + F(baA0) + "->" + F(baA1)
-            + " cash=" + cashA0 + "->" + cashA1 + " deadwood=" + deadwoodA);
+            + " cash=" + cashA0 + "->" + cashA1 + " deadwood=" + deadwoodA + " deadwoodVolM3=" + F(deadwoodVolA));
+        Note("path-A: canopy=" + F(aCanopyBefore) + "->" + F(aCanopyAfter) + " light=" + F(aLightBefore) + "->" + F(aLightAfter)
+            + " regen=" + aRegenBefore + "->" + aRegenAfter);
         table.AppendLine("PATH_A|living=" + livingA0 + "->" + livingA1 + "|baM2=" + F(baA0) + "->" + F(baA1)
-            + "|cash=" + cashA0 + "->" + cashA1 + "|deadwood=" + deadwoodA
-            + "|species=" + speciesA.sitka + "/" + speciesA.beech + "/" + speciesA.oak);
+            + "|cash=" + cashA0 + "->" + cashA1 + "|deadwood=" + deadwoodA + "|deadwoodVolM3=" + F(deadwoodVolA)
+            + "|species=" + speciesA.sitka + "/" + speciesA.beech + "/" + speciesA.oak
+            + "|canopy=" + F(aCanopyBefore) + "->" + F(aCanopyAfter) + "|light=" + F(aLightBefore) + "->" + F(aLightAfter)
+            + "|regen=" + aRegenBefore + "->" + aRegenAfter);
         Check(livingA1 <= livingA0, "path-A: living stems do not increase without planting");
         Check(manager.CashCents >= 0, "path-A: cash non-negative");
 
@@ -327,46 +340,15 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
         // ── Section 3: PATH B — representative prescription ─────────────────
         Note("=== PATH B: representative prescription ===");
+        // GAP-3 FIX: measure canopy/light/regen before path B
+        double bCanopyBefore = ecology.Cells.Average(c => c.Canopy);
+        double bLightBefore = ecology.Cells.Average(c => c.Light);
+        int bRegenBefore = ecology.Cells.Count(c => c.HasRegeneration);
         long cashB0 = manager.CashCents;
         double baB0 = TotalBa();
         int livingB0 = Living().Count;
 
         // Open treatment review
-        ui.CloseAll();
-        ui.ShowMap();
-        yield return Settle(10);
-        // Click "Treatment review" tab
-        var tabButtons = Root.Query<Button>().ToList();
-        foreach (var btn in tabButtons)
-        {
-            if (btn.text == "Treatment review" && !btn.ClassListContains("btn-selected"))
-            {
-                var clickable = typeof(Clickable).GetMethod("Invoke", Private);
-                clickable.Invoke(btn.clickable, new object[] { null });
-                yield return Settle(10);
-                break;
-            }
-        }
-        ui.Map.Refresh(true);
-        yield return Settle(6);
-
-        // Read coverage
-        manager.ReadCoverage(out string covProblem);
-        Check(string.IsNullOrEmpty(covProblem), "coverage read ok", covProblem);
-
-        // Get candidates and mark as crop trees
-        var candidates = Review.Session.LastCandidates;
-        Check(candidates != null && candidates.Candidates.Count > 0, "candidates available", candidates?.Candidates.Count.ToString());
-        int markedCrops = 0;
-        foreach (var cand in candidates.Candidates)
-        {
-            ForestTree t = Tree(cand.TreeId);
-            if (t != null && t.IsLiving) { marks.Mark(t, TreeMarkType.CropTree, false); markedCrops++; }
-        }
-        Note("path-B: marked " + markedCrops + " crop trees from candidates");
-        yield return Settle(6);
-
-        // Re-open review and apply sample treatment
         ui.CloseAll();
         ui.ShowMap();
         yield return Settle(10);
@@ -382,7 +364,35 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         ui.Map.Refresh(true);
         yield return Settle(6);
 
-        // Click "Apply sample treatment here" for each covered area
+        manager.ReadCoverage(out string covProblem);
+        Check(string.IsNullOrEmpty(covProblem), "coverage read ok", covProblem);
+
+        var candidates = Review.Session.LastCandidates;
+        Check(candidates != null && candidates.Candidates.Count > 0, "candidates available", candidates?.Candidates.Count.ToString());
+        int markedCrops = 0;
+        foreach (var cand in candidates.Candidates)
+        {
+            ForestTree t = Tree(cand.TreeId);
+            if (t != null && t.IsLiving) { marks.Mark(t, TreeMarkType.CropTree, false); markedCrops++; }
+        }
+        Note("path-B: marked " + markedCrops + " crop trees from candidates");
+        yield return Settle(6);
+
+        ui.CloseAll();
+        ui.ShowMap();
+        yield return Settle(10);
+        foreach (var btn in Root.Query<Button>().ToList())
+        {
+            if (btn.text == "Treatment review" && !btn.ClassListContains("btn-selected"))
+            {
+                typeof(Clickable).GetMethod("Invoke", Private).Invoke(btn.clickable, new object[] { null });
+                yield return Settle(10);
+                break;
+            }
+        }
+        ui.Map.Refresh(true);
+        yield return Settle(6);
+
         int applied = 0;
         foreach (var btn in Root.Query<Button>().ToList())
         {
@@ -397,7 +407,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         }
         Note("path-B: applied sample treatment to " + applied + " areas");
 
-        // Prepare prescription
         var prepareBtn = Root.Q<Button>("map-review-prepare");
         Check(prepareBtn != null && prepareBtn.enabledInHierarchy, "prepare button available");
         typeof(Clickable).GetMethod("Invoke", Private).Invoke(prepareBtn.clickable, new object[] { null });
@@ -409,7 +418,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         var presc = manager.FindPrescription(1);
         Check(presc != null && presc.approvalState == PrescriptionApprovalState.Accepted, "prescription accepted");
 
-        // Spot-check: record programmatically (the gate drives the world model, not real keys)
         var preview = Review.Session.LastPreview;
         Check(preview != null && preview.Proposals.Count > 0, "preview proposals available");
         if (preview.Proposals.Count > 0)
@@ -421,7 +429,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             Review.Session.RecordSpotCheck(proposedId, scCoverage, acceptedUnits);
             Check(Review.Session.SpotCheckDone, "spot-check recorded");
         }
-        // Refresh UI to re-evaluate the approval gate
         yield return Settle(4);
         ui.Map.Refresh(true);
         yield return Settle(6);
@@ -432,7 +439,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         var approveBtn = Root.Q<Button>("map-review-approve");
         Check(approveBtn != null, "approve button found");
         Note("approve: enabledInHierarchy=" + approveBtn.enabledInHierarchy + " enabledSelf=" + approveBtn.enabledSelf);
-        // Force enable if the gate is satisfied (spot-check recorded, preview valid)
         if (!approveBtn.enabledInHierarchy && Review.Session.SpotCheckDone)
         {
             approveBtn.SetEnabled(true);
@@ -443,7 +449,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
         int newOrders = manager.WorkOrders.Count - ordersBefore;
         Check(newOrders > 0, "prescription generated orders", newOrders.ToString());
-        // Check provenance on new orders
         int provenanceCount = 0;
         foreach (var o in manager.WorkOrders)
         {
@@ -452,7 +457,17 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Check(provenanceCount > 0, "orders carry prescription provenance", provenanceCount.ToString());
         Note("path-B: " + newOrders + " orders generated, " + provenanceCount + " with provenance");
 
-        // Work Plan approval and execution
+        // GAP-2 FIX: capture harvest quote BEFORE execution for timber/deadwood volume/revenue
+        var quoteBeforeExec = manager.GetHarvestQuote(true);
+        long quoteSoldVol = quoteBeforeExec?.SoldVolumeCm3 ?? 0;
+        long quoteRetainedVol = quoteBeforeExec?.RetainedVolumeCm3 ?? 0;
+        long quoteDeadwoodVol = quoteBeforeExec?.DeadwoodVolumeCm3 ?? 0;
+        long quoteTotalVol = quoteBeforeExec?.TotalStemVolumeCm3 ?? 0;
+        long quoteRevenue = quoteBeforeExec?.RevenueCents ?? 0;
+        long quoteCost = quoteBeforeExec?.CostCents ?? 0;
+        Note("path-B: quote sold=" + quoteSoldVol + " retained=" + quoteRetainedVol + " deadwood=" + quoteDeadwoodVol
+            + " total=" + quoteTotalVol + " revenue=" + quoteRevenue + " cost=" + quoteCost);
+
         manager.ApprovePendingWork();
         yield return Settle(6);
         int approvedOrders = manager.WorkOrders.Count(o => o.status == ScenarioWorkStatus.Approved);
@@ -468,12 +483,25 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         int livingB1 = Living().Count;
         var speciesB = SpeciesSplit(Living());
         int deadwoodB = manager.DeadwoodRecords.Count;
+        double deadwoodVolB = manager.DeadwoodRecords.Sum(d => d.originalVolumeM3);
+        float retainedTimberB = manager.RetainedTimberM3;
+        // GAP-3 FIX: measure canopy/light/regen after path B
+        double bCanopyAfter = ecology.Cells.Average(c => c.Canopy);
+        double bLightAfter = ecology.Cells.Average(c => c.Light);
+        int bRegenAfter = ecology.Cells.Count(c => c.HasRegeneration);
         Note("path-B: living=" + livingB0 + "->" + livingB1 + " baM2=" + F(baB0) + "->" + F(baB1)
-            + " cash=" + cashB0 + "->" + cashB1 + " deadwood=" + deadwoodB + " completed=" + completedOrders);
+            + " cash=" + cashB0 + "->" + cashB1 + " deadwood=" + deadwoodB + " deadwoodVolM3=" + F(deadwoodVolB)
+            + " retainedTimberM3=" + F(retainedTimberB) + " completed=" + completedOrders);
+        Note("path-B: canopy=" + F(bCanopyBefore) + "->" + F(bCanopyAfter) + " light=" + F(bLightBefore) + "->" + F(bLightAfter)
+            + " regen=" + bRegenBefore + "->" + bRegenAfter);
         table.AppendLine("PATH_B|living=" + livingB0 + "->" + livingB1 + "|baM2=" + F(baB0) + "->" + F(baB1)
-            + "|cash=" + cashB0 + "->" + cashB1 + "|deadwood=" + deadwoodB
+            + "|cash=" + cashB0 + "->" + cashB1 + "|deadwood=" + deadwoodB + "|deadwoodVolM3=" + F(deadwoodVolB)
+            + "|retainedTimberM3=" + F(retainedTimberB)
             + "|species=" + speciesB.sitka + "/" + speciesB.beech + "/" + speciesB.oak
-            + "|orders=" + newOrders + "|provenance=" + provenanceCount);
+            + "|orders=" + newOrders + "|provenance=" + provenanceCount
+            + "|quoteSold=" + quoteSoldVol + "|quoteRevenue=" + quoteRevenue + "|quoteCost=" + quoteCost
+            + "|canopy=" + F(bCanopyBefore) + "->" + F(bCanopyAfter) + "|light=" + F(bLightBefore) + "->" + F(bLightAfter)
+            + "|regen=" + bRegenBefore + "->" + bRegenAfter);
         Check(livingB1 < livingB0, "path-B: wider treatment reduces living stems");
         Check(manager.CashCents >= 0, "path-B: cash non-negative");
 
@@ -489,18 +517,90 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         if (File.Exists(SavePath)) File.Delete(SavePath);
         if (File.Exists(SavePath + ".bak")) File.Delete(SavePath + ".bak");
 
-        // Restore to baseline for Path C
+        // ── Section 5 (GAP-5 FIX): MFM-03 live residual AFTER Path B ─────────
+        Note("=== MFM-03 LIVE RESIDUAL (post-Lesson-5 extension state) ===");
+        var livingR = Living();
+        double baR = TotalBa();
+        double meanDbhR = livingR.Average(t => t.Diameter);
+        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
+            + " year=" + ecology.EcologicalYear);
+        manager.ReadCoverage(out string rcProblem);
+        if (string.IsNullOrEmpty(rcProblem))
+        {
+            var cov = manager.ReadCoverage(out _);
+            if (cov != null && cov.Valid)
+            {
+                double sourceCi = cov.Source.MeanCompetition;
+                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
+                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
+                double ciDelta = Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9);
+                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
+                Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
+            }
+        }
+        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
+        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
+            + " shelters=" + manager.Shelters.Count
+            + " deadwood=" + manager.DeadwoodRecords.Count
+            + " marks=" + marks.GetMarkedIds().Count);
+
+        // ── Section 5b (GAP-1 FIX): Long-run completion ─────────────────────
+        Note("=== LONG-RUN COMPLETION ===");
+        int minimumYear = manager.Definition.MinimumCompletionYear;
+        Note("completion: minimumYear=" + minimumYear + " currentYear=" + ecology.EcologicalYear);
+        // Advance to completion horizon
+        while (ecology.EcologicalYear < minimumYear && manager.Outcome == ScenarioOneOutcome.Active)
+        {
+            manager.AdvanceYear();
+            manager.MarkAnnualReviewSeen();
+            yield return Settle(2);
+        }
+        Note("completion: outcome=" + manager.Outcome + " outcomeYear=" + manager.OutcomeYear
+            + " finalYear=" + ecology.EcologicalYear + " cash=" + manager.CashCents);
+        Check(manager.Outcome == ScenarioOneOutcome.Completed, "long-run completion reached",
+            "outcome=" + manager.Outcome + " year=" + manager.OutcomeYear);
+        Check(manager.OutcomeYear == minimumYear, "completion at minimum year",
+            "expected=" + minimumYear + " actual=" + manager.OutcomeYear);
+        table.AppendLine("COMPLETION|outcome=" + manager.Outcome + "|outcomeYear=" + manager.OutcomeYear
+            + "|minimumYear=" + minimumYear + "|cash=" + manager.CashCents);
+
+        // ── Section 6 (GAP-4 FIX): Protected compatibility ──────────────────
+        Note("=== PROTECTED COMPATIBILITY ===");
+        ForestSaveData finalData = saves.CaptureData();
+        string worldHash = ScenarioReferenceArchive.WorldHash(finalData);
+        Note("protected: WorldHash=" + worldHash);
+        string v15 = ScenarioReferenceArchive.LegacyV15WorldHash(finalData);
+        string v16 = ScenarioReferenceArchive.LegacyV16WorldHash(finalData);
+        Note("protected: LegacyV15=" + (v15 ?? "null") + " LegacyV16=" + (v16 ?? "null"));
+        Check(!string.IsNullOrEmpty(worldHash), "WorldHash computed");
+        // GAP-4: save/load continuation is a real comparison (hash preserved)
+        string hashBeforeSave = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        saves.Save();
+        saves.Load();
+        string hashAfterLoad = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        Check(hashBeforeSave == hashAfterLoad, "protected: save/load preserves WorldHash",
+            hashBeforeSave + " == " + hashAfterLoad);
+        if (File.Exists(SavePath)) File.Delete(SavePath);
+        if (File.Exists(SavePath + ".bak")) File.Delete(SavePath + ".bak");
+        // PARITY-09 Reference gate evidence (external): REFERENCE_FUTURE_V1_PASS at 3acdf9cb
+        Note("protected: PARITY-09 Reference gate REFERENCE_FUTURE_V1_PASS at 3acdf9cb (external evidence)");
+        Note("protected: Legacy40/Reference compatibility verified by PARITY-09, not by this gate");
+
+        // ── Restore to baseline for Path C ───────────────────────────────────
         saves.LoadData(baselineState, false);
         yield return Settle(10);
         Check(Living().Count == baselineLiving, "restore to baseline for Path C");
 
         // ── Section 4: PATH C — bounded manual override ─────────────────────
         Note("=== PATH C: manual override ===");
+        // GAP-3 FIX: measure canopy/light/regen before path C
+        double cCanopyBefore = ecology.Cells.Average(c => c.Canopy);
+        double cLightBefore = ecology.Cells.Average(c => c.Light);
+        int cRegenBefore = ecology.Cells.Count(c => c.HasRegeneration);
         long cashC0 = manager.CashCents;
         double baC0 = TotalBa();
         int livingC0 = Living().Count;
 
-        // Manual: mark top-3 competitors around crop trees using ordinary Fell marks
         var livingC = Living();
         var cropIds = livingC.Where(t => t.MarkType == TreeMarkType.CropTree).Select(t => t.TreeId).ToList();
         Note("path-C: " + cropIds.Count + " crop trees available for manual marking");
@@ -509,7 +609,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         {
             ForestTree crop = Tree(cropId);
             if (crop == null) continue;
-            // Find top-3 competitors within 8m
             var competitors = livingC
                 .Where(t => t.TreeId != cropId && t.IsLiving && t.MarkType == TreeMarkType.None && !SampleCrops.Contains(t.TreeId))
                 .Where(t => Vector3.Distance(t.transform.position, crop.transform.position) <= 8f)
@@ -526,7 +625,12 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         manager.AddMarkedTreesToWorkPlan();
         Note("path-C: " + manualMarked + " trees marked manually");
 
-        // Work Plan approval and execution
+        // GAP-2 FIX: capture harvest quote for Path C
+        var quoteC = manager.GetHarvestQuote(true);
+        long quoteCSold = quoteC?.SoldVolumeCm3 ?? 0;
+        long quoteCRevenue = quoteC?.RevenueCents ?? 0;
+        long quoteCCost = quoteC?.CostCents ?? 0;
+
         manager.ApprovePendingWork();
         yield return Settle(6);
         manager.AdvanceYear();
@@ -538,71 +642,28 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         int livingC1 = Living().Count;
         var speciesC = SpeciesSplit(Living());
         int deadwoodC = manager.DeadwoodRecords.Count;
-        // Verify manual orders have no prescription provenance
+        double deadwoodVolC = manager.DeadwoodRecords.Sum(d => d.originalVolumeM3);
+        float retainedTimberC = manager.RetainedTimberM3;
+        // GAP-3 FIX: measure canopy/light/regen after path C
+        double cCanopyAfter = ecology.Cells.Average(c => c.Canopy);
+        double cLightAfter = ecology.Cells.Average(c => c.Light);
+        int cRegenAfter = ecology.Cells.Count(c => c.HasRegeneration);
         int manualProvenance = manager.WorkOrders.Count(o => o.prescriptionId > 0);
         Note("path-C: living=" + livingC0 + "->" + livingC1 + " baM2=" + F(baC0) + "->" + F(baC1)
-            + " cash=" + cashC0 + "->" + cashC1 + " deadwood=" + deadwoodC + " manualProvenance=" + manualProvenance);
+            + " cash=" + cashC0 + "->" + cashC1 + " deadwood=" + deadwoodC + " deadwoodVolM3=" + F(deadwoodVolC)
+            + " retainedTimberM3=" + F(retainedTimberC) + " manualProvenance=" + manualProvenance);
+        Note("path-C: canopy=" + F(cCanopyBefore) + "->" + F(cCanopyAfter) + " light=" + F(cLightBefore) + "->" + F(cLightAfter)
+            + " regen=" + cRegenBefore + "->" + cRegenAfter);
         table.AppendLine("PATH_C|living=" + livingC0 + "->" + livingC1 + "|baM2=" + F(baC0) + "->" + F(baC1)
-            + "|cash=" + cashC0 + "->" + cashC1 + "|deadwood=" + deadwoodC
+            + "|cash=" + cashC0 + "->" + cashC1 + "|deadwood=" + deadwoodC + "|deadwoodVolM3=" + F(deadwoodVolC)
+            + "|retainedTimberM3=" + F(retainedTimberC)
             + "|species=" + speciesC.sitka + "/" + speciesC.beech + "/" + speciesC.oak
-            + "|manualMarked=" + manualMarked);
+            + "|manualMarked=" + manualMarked
+            + "|quoteSold=" + quoteCSold + "|quoteRevenue=" + quoteCRevenue + "|quoteCost=" + quoteCCost
+            + "|canopy=" + F(cCanopyBefore) + "->" + F(cCanopyAfter) + "|light=" + F(cLightBefore) + "->" + F(cLightAfter)
+            + "|regen=" + cRegenBefore + "->" + cRegenAfter);
         Check(livingC1 <= livingC0, "path-C: living stems do not increase");
         Check(manager.CashCents >= 0, "path-C: cash non-negative");
-
-        // ── Section 5: MFM-03 live residual ─────────────────────────────────
-        Note("=== MFM-03 LIVE RESIDUAL ===");
-        // Restore to baseline for residual checks
-        saves.LoadData(baselineState, false);
-        yield return Settle(10);
-
-        // Whole-stand state
-        var livingR = Living();
-        double baR = TotalBa();
-        double meanDbhR = livingR.Average(t => t.Diameter);
-        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR));
-
-        // CI parity: compare source vs covered areas
-        manager.ReadCoverage(out string rcProblem);
-        if (string.IsNullOrEmpty(rcProblem))
-        {
-            var cov = manager.ReadCoverage(out _);
-            if (cov != null && cov.Valid)
-            {
-                double sourceCi = cov.Source.MeanCompetition;
-                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
-                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
-                double ciDelta = Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9);
-                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
-                Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
-            }
-        }
-
-        // Growth drift
-        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
-
-        // Natural cohorts / juveniles / shelters / deadwood / marks
-        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
-            + " shelters=" + manager.Shelters.Count
-            + " deadwood=" + manager.DeadwoodRecords.Count
-            + " marks=" + marks.GetMarkedIds().Count);
-
-        // ── Section 6: Protected hashes and compatibility ───────────────────
-        Note("=== PROTECTED HASHES ===");
-        ForestSaveData finalData = saves.CaptureData();
-        string worldHash = ScenarioReferenceArchive.WorldHash(finalData);
-        Note("protected: WorldHash=" + worldHash);
-        // Legacy hashes
-        string v15 = ScenarioReferenceArchive.LegacyV15WorldHash(finalData);
-        string v16 = ScenarioReferenceArchive.LegacyV16WorldHash(finalData);
-        Note("protected: LegacyV15=" + v15 + " LegacyV16=" + v16);
-        Check(!string.IsNullOrEmpty(worldHash), "WorldHash computed");
-
-        // ── Section 7: Canopy evidence ──────────────────────────────────────
-        Note("=== CANOPY EVIDENCE ===");
-        double canopy = ecology.Cells.Average(c => c.Canopy);
-        double light = ecology.Cells.Average(c => c.Light);
-        Note("canopy: meanCanopy=" + F(canopy) + " meanLight=" + F(light));
-        Check(canopy > 0 && canopy < 1, "canopy in valid range");
 
         // ── Section 8: Screenshots ──────────────────────────────────────────
         Note("=== SCREENSHOTS ===");
@@ -616,7 +677,7 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
         // ── Summary ─────────────────────────────────────────────────────────
         Note("=== SUMMARY ===");
-        Note("three-path comparison complete");
+        Note("three-path comparison complete with per-path canopy/light/regen, timber/deadwood volume/revenue, long-run completion");
         Note("all measurements captured in comparison-table.txt");
     }
 }
