@@ -574,3 +574,17 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Capacity:** Claude available; quota UNKNOWN; no failure yet.
 - **Cleanup:** U1 clean at `1249c782`; lock free; no Editor; no staged harness.
 - **Next action:** Claude review; Manager disposition on the completion/timber gaps.
+
+## 2026-11-01T17:05Z — R-010 OUTCOME: Claude NEEDS CHANGES; bounded follow-up dispatched (OBSERVED FACT + ORCHESTRATOR CLAIM)
+
+- **Review verdict:** `NEEDS CHANGES` (Claude Sonnet 5.5, review-only). Review committed at `2bb42a36`.
+- **Confirmed findings:**
+  1. **Not like-for-like:** Path A advances 3 years while B/C advance 1; the B-vs-A/C-vs-B impact figures mix treatment with growth. The handoff's B-vs-A canopy delta is wrong (about 0.0075, not 0.002). Cash B −182,544 vs C −245,801 is unexplained.
+  2. **Completion gap is a gate limitation, not a material break:** the gate never plants, but `ScenarioOneObjectives.Evaluate` adds `introduced-beech` / `introduced-sessile-oak` objectives, so `Outcome.Completed` is unreachable by construction. Reachability is unmeasured, not failed. `BLOCKED` is not warranted.
+  3. **Zero timber quote is a real gap:** the quote is read before `ApprovePendingWork`, so all paths show zero; no cumulative sold/retained/deadwood/revenue after execution; deadwood volume is baseline-only. "Timber/deadwood coherent" is unsupported.
+  4. **MFM-03 cross-year incomplete:** baseline year-2 state is defensible as the post-Lesson-5 state, but CI parity/growth drift were not re-measured after treatment or in later years.
+  5. **Protected compatibility:** WorldHash is self-consistency only, not a pin comparison; citing PARITY-09 for Reference/Legacy40 is acceptable but must be labelled as such.
+  6. Handoff corrections: equal horizons, timber/economy decomposition, completion objective logging/planting, MFM-03 post-extension re-measurement, canopy delta, gap list.
+- **Follow-up dispatched to the same Mimo worker** (run 4) with the exact six-item gate/docs-only fix list and one more Unity run; no escalation.
+- **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` remains not issued; `QUALIFICATION INCOMPLETE — GAP` is the current honest state.
+- **Next action:** Mimo run 4; then a fresh Claude re-review of the revised evidence.
