@@ -36,6 +36,8 @@ Reserve Opus for unusually large, difficult or high-stakes tasks where additiona
 
 Require every substantive implementation, qualification, review, integration or research handoff to have a GitHub-tracked Markdown copy. Large logs, screenshots and raw evidence may remain in external verification storage, but the GitHub handoff must contain enough result detail, verification, unresolved issues and evidence references for remote Manager review.
 
+Whenever the Manager dispatches work to another chat, agent or local orchestrator, the user-facing response must also contain a complete paste-ready dispatch message with the direct GitHub URL to the durable handoff. Do not assume the worker can see the Manager chat, infer repository state, or discover a handoff from a repository path alone. The paste-ready dispatch must identify the recipient/role, repository, branch, starting SHA, purpose, required scope, verification/stop conditions and exact handoff URL. Publishing a handoff to GitHub without surfacing that linked paste-ready dispatch is an incomplete dispatch.
+
 A local-only `/media/...` handoff is incomplete administrative closure even when the technical gate itself is valid.
 
 ## Automatic continuation after worker handoff
