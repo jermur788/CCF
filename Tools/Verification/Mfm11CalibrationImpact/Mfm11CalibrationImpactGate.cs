@@ -201,8 +201,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
     private IEnumerator Run()
     {
-    private IEnumerator Run()
-    {
         // ── Section 0: Scene setup ──────────────────────────────────────────
         float timeout = 30f;
         while (timeout > 0 && (ui == null || manager == null || ecology == null || saves == null || marks == null || player == null))
@@ -455,8 +453,11 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Note("completion: minimumYear=" + minimumYear + " currentYear=" + ecology.EcologicalYear);
         // Plant beech and sessile-oak through the ordinary shop path
         int plantedBeech = 0, plantedOak = 0;
-        for (int cell = 0; cell < ecology.CellCount && (plantedBeech < 3 || plantedOak < 3); cell++)
+        var brightCells = Enumerable.Range(0, ecology.CellCount)
+            .OrderByDescending(i => ecology.Cells[i].Light).ToList();
+        foreach (int cell in brightCells)
         {
+            if (plantedBeech >= 3 && plantedOak >= 3) break;
             if (ecology.Cells[cell].HasRegeneration) continue;
             if (plantedBeech < 3 && manager.TryPurchaseStock("beech-sapling", 1))
             {
