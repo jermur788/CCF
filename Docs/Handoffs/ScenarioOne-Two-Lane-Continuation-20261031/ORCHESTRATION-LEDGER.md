@@ -563,3 +563,14 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Classification:** qualification-completeness/overclaim issue, **not** a model-capability failure and **not** a production defect. The same Mimo worker was sent back with the exact gap list to extend the gate or return `QUALIFICATION INCOMPLETE — GAP`; no escalation.
 - **Token:** not accepted; `MULTI-SCALE CALIBRATION QUALIFIED` remains pending a complete evidence-backed matrix.
 - **Next action:** Mimo run 3 closes the gaps; then a separate independent reviewer (Claude preferred) reviews the MFM-11 evidence.
+
+## 2026-11-01T16:30Z — R-009 UNITY RUN 2 + WORKER GAP RETURN (OBSERVED FACT)
+
+- Mimo addressed the five gaps in commits `83edf5c8`, `8a3d5631`, `dca81179`, `822e474c`; final gate run at HEAD `822e474c` (lock `91639d8b…`) exited 0 with `MFM11_UNITY_PASS checks=54 shots=2`, 182.9s.
+- New per-path evidence: canopy/light/regeneration before/after; Path B canopy 0.970→0.950, light 0.030→0.050, regen 51→101; Path C 0.970→0.965, 0.030→0.035, 51→80; deadwood volume 0.127555 per path; save/load WorldHash `479B689F7E12910C` preserved; MFM-03 CI parity 4.17% and growth drift 0.96 cm measured after sample release / before wider treatment; PARITY-09 Reference gate cited for Legacy40/Reference compatibility.
+- **Remaining gaps (OBSERVED FACT):** long-run completion not reached (`outcome=Active outcomeYear=-1 finalYear=25` after a year-17 second intervention); harvest quote is zero for all paths (`quoteSold=0 quoteRevenue=0 quoteCost=0 retainedTimberM3=0`), so timber outcomes are not actually measured; the handoff's "timber/deadwood outcomes coherent" therefore rests on deadwood only.
+- **Worker verdict:** `QUALIFICATION INCOMPLETE — GAP` (handoff `1249c782`), not `MULTI-SCALE CALIBRATION QUALIFIED`. No `BLOCKED — CALIBRATION IMPACT` claimed.
+- **R-010 REVIEW DISPATCH:** Claude Sonnet 5.5 Medium (`claudeAgent`, effort medium) independent review of the MFM-11 evidence, asked to decide whether the completion gap is a material break or a gate limitation, whether the zero timber quote is a real gap, whether the MFM-03 state is correct, and whether the token is supportable. Review file target `Docs/Handoffs/MFM-11-Calibration-Impact/INDEPENDENT-REVIEW.md`.
+- **Capacity:** Claude available; quota UNKNOWN; no failure yet.
+- **Cleanup:** U1 clean at `1249c782`; lock free; no Editor; no staged harness.
+- **Next action:** Claude review; Manager disposition on the completion/timber gaps.
