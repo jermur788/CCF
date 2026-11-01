@@ -610,3 +610,23 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` remains not issued; the two gaps are (1) structurally unmeasurable post-treatment cross-year CI parity and (2) citation-level protected compatibility. Manager disposition required.
 - **Cleanup:** U1 clean at `45cad2cf`; lock free; no Editor; no staged harness.
 - **Next action:** Codex re-review; then Manager disposition on whether the structural CI-parity gap and cited protected evidence are acceptable for the token.
+
+## 2026-11-01T18:10Z — R-010 OUTCOME: Codex round-2 re-review APPROVED (OBSERVED FACT)
+
+- **Reviewer:** OpenAI Codex `gpt-6.1-sol` high (`codex_c75d8114…`), independent of Mimo; Claude's first review at `2bb42a36` retained as prior context.
+- **Verdict:** `APPROVED`; review committed at `fb13792b` (`INDEPENDENT-REVIEW-ROUND2.md`); branch `verify/mfm-11-calibration-impact-v1` pushed.
+- **Confirmed resolved:** equal horizons (A/B/C year 5, recomputed deltas match); timber/economy reconciliation (B −182,544 = 67,456−250,000; C −245,801 = 4,199−250,000); completion 8/8 at year 25 through the ordinary planting path; handoff corrections honest.
+- **Retained gaps / Manager evidence-boundary decisions:** (1) accept the measured y2 actual-extension CI parity 4.17% and retain post-treatment source-vs-Covered CI parity as **NOT DEMONSTRATED** (structurally unavailable through the accepted live read; not a numerical failure); (2) accept the scoped exact-candidate PARITY-09 Reference/anchor/completion evidence for protected compatibility, with MFM-11's save/load self-consistency only. The reviewer explicitly warns not to describe the whole PARITY-09 suite as green (its mixed-density/timber gates have stale v23 pins).
+- **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` is **supportable after Manager acceptance** of those two decisions; not self-issued. No additional mandatory measurement run or production retune requested.
+- **Cleanup:** U1 clean at `fb13792b`; lock free; no Editor; no staged harness; no production changes; no Windows build; #194 untouched.
+- **Next action:** #200 reviews #219 (APPROVED) and #220 (APPROVED, two evidence-boundary decisions). Accepted MFM-11 releases MFM-12.
+
+## 2026-11-01T18:12Z — LEARNING CHECKPOINT 7 (RETROSPECTIVE INFERENCE)
+
+- **Observed:** the Mimo worker's first MFM-11 token was premature; the orchestrator's gap review and two independent review rounds turned it into a much stronger, honest matrix (equal horizons, reconciled economy, completion 8/8, structural CI-parity limitation documented).
+- **Observed:** Claude's first review correctly identified the gate limitations; Claude's round-2 re-review was blocked by a quota rate limit. The Codex fallback produced an independent, evidence-based APPROVED with explicit Manager evidence-boundary decisions.
+- **Hypothesis (moderate confidence, n=1):** a bounded "measurement-completeness" review before accepting a qualification token is high-value; the first worker token would have overstated completion, timber and protected evidence.
+- **Hypothesis (moderate confidence, n=1):** cross-provider fallback on a quota failure is safe when the fallback reviewer inspects the raw markers and the first review is retained; no capability escalation is implied by the quota failure.
+- **Waste observation:** the worker's compile error and unequal-horizon iteration cost one extra Unity run and a reaped Editor; a pre-run C# compile/typecheck would have caught the duplicate method earlier.
+- **Missing telemetry:** token counts, model calls, live quota — UNKNOWN.
+- **Policy proposal (NOT active):** require a local compile/typecheck before the first Unity run of a new harness; and require the reviewer to recompute key deltas from the raw table rather than accepting the handoff.

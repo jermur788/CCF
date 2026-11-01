@@ -319,7 +319,9 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 - **Protected compatibility:** labelled PARITY-09 Reference/Legacy40 evidence cited + save/load self-consistency only; no frozen-pin comparison in this gate.
 - **Worker verdict:** `QUALIFICATION INCOMPLETE — GAP` (handoff `45cad2cf`); no material accepted-outcome break, no `BLOCKED — CALIBRATION IMPACT`; token not issued.
 - **Review capacity event:** Claude Sonnet 5.5 returned `API rate limit reached` on the round-2 re-review. Quota/capacity failure, not model capability. The re-review was reassigned to OpenAI Codex `gpt-6.1-sol` high (separate provider/model from Mimo); Claude's first `NEEDS CHANGES` review at `2bb42a36` is retained.
-- The token remains not issued; Manager disposition is required on the structural CI-parity gap and the cited protected evidence.
+- **Codex round-2 re-review: `APPROVED`** (review `fb13792b`, branch pushed). It independently verified the equal horizons, timber/economy reconciliation, completion 8/8 and handoff corrections from the raw run-5 markers. It recommends accepting the measured y2 actual-extension CI parity (4.17%) and retaining post-treatment source-vs-Covered CI parity as **NOT DEMONSTRATED** (structural, not a numerical failure), and accepting the scoped exact-candidate PARITY-09 Reference/anchor/completion evidence for protected compatibility.
+- **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` is **supportable after #200 accepts those two evidence-boundary decisions**; not self-issued. No additional mandatory measurement run or production retune requested.
+- **Cleanup:** U1 clean at `fb13792b`; lock free; no Editor; no staged harness; no production changes; no Windows build; #194 untouched.
 
 ## 4. Routing / capacity
 
