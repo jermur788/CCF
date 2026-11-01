@@ -549,3 +549,17 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Token:** `THREE-SPECIES PARITY P0 VERIFIED` supportable after #200 acceptance; not self-issued.
 - **Cleanup:** U1 clean at `87aee15f`; lock free; no Editor; no staged harness.
 - **Next action:** #200 reviews #219; #220 Unity phase follows when Mimo's offline harness is ready.
+
+## 2026-11-01T16:05Z — R-009 UNITY RUN 1 + ORCHESTRATOR GAP REVIEW (OBSERVED FACT + ORCHESTRATOR CLAIM)
+
+- Mimo's first Unity run: branch `verify/mfm-11-calibration-impact-v1` at harness HEAD `72972cc4`; lock `cc3d8b74…`; `MFM11_UNITY_PASS checks=54 shots=2` in 130.7s; evidence `/media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/unity/run1/`.
+- The gate genuinely executed Path A/B/C from the same baseline and measured stems/BA/cash/deadwood/provenance/save-load/CI/growth/canopy snapshot. Path B: 1177→1093 stems, 84 orders with provenance, cash 776854→594310. Path C: 1177→1168, 9 manual marks, cash 776854→531053.
+- **ORCHESTRATOR CLAIM — the worker's `MULTI-SCALE CALIBRATION QUALIFIED` was not accepted.** Review of the gate/handoff found material gaps against the task packet:
+  1. no long-run completion/repeated-intervention measurement (2 years only; "reduces stems" is not completion);
+  2. no timber volume/assortment/revenue or deadwood volume per path;
+  3. no per-path model canopy/light or regeneration outcome (one baseline snapshot only);
+  4. protected compatibility not verified: `LegacyV15/V16` empty and `WorldHash` computed but not compared; the PARITY-09 Reference gate at the same candidate is the usable evidence;
+  5. the MFM-03 live residual was measured on the restored baseline, not the post-Lesson-5 extension state.
+- **Classification:** qualification-completeness/overclaim issue, **not** a model-capability failure and **not** a production defect. The same Mimo worker was sent back with the exact gap list to extend the gate or return `QUALIFICATION INCOMPLETE — GAP`; no escalation.
+- **Token:** not accepted; `MULTI-SCALE CALIBRATION QUALIFIED` remains pending a complete evidence-backed matrix.
+- **Next action:** Mimo run 3 closes the gaps; then a separate independent reviewer (Claude preferred) reviews the MFM-11 evidence.

@@ -296,7 +296,7 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 | Child | Provider/model | State | Exact SHA / branch | Evidence |
 |---|---|---|---|---|
 | **#219** PARITY-09 | DeepSeek V4.1 Flash (qualification) + Claude Sonnet 5.5 Medium (independent review) | **QUALIFICATION COMPLETE — INDEPENDENT REVIEW APPROVED; Manager verdict pending** | `qual/parity-09-integrated-v1` pushed; handoff `aa8eb6ff`; review `87aee15f`; exact `3acdf9cb` | `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/HANDOFF.md` + `INDEPENDENT-REVIEW.md`; `/media/jer/Files/CCF/Verification/PARITY-09-20261101/` |
-| **#220** MFM-11 | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **OFFLINE COMPLETE — UNITY PHASE RUNNING** | `verify/mfm-11-calibration-impact-v1` at `66476643` in U1; offline 27/0 deterministic | `Docs/Handoffs/MFM-11-Calibration-Impact/MEASUREMENT-DESIGN.md` + `HANDOFF.md`; `/media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/` |
+| **#220** MFM-11 | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **OFFLINE COMPLETE; UNITY RUN 1 REJECTED FOR GAPS — GAP-CLOSING RUN IN PROGRESS** | `verify/mfm-11-calibration-impact-v1` in U1; offline `66476643` (27/0); Unity run 1 `72972cc4`/`ac326529` (54 checks, token not accepted) | `Docs/Handoffs/MFM-11-Calibration-Impact/MEASUREMENT-DESIGN.md` + `HANDOFF.md`; `/media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/` |
 | MFM-12 / Tier-3 | — | **NOT RELEASED** | — | blocked on accepted MFM-11 |
 | #194 | — | **NO ACTION** | — | untouched |
 
@@ -308,11 +308,13 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 - **Claude Sonnet 5.5 independent review: APPROVED.** No new production/spec defect. Residual: no Unity timber/pruning assertion on `3acdf9cb` because those gates abort on the v23 pin; the review judges accepted PARITY-06 + offline timber + byte-identical sources + UI-only #199 delta sufficient, and recommends a non-blocking verification-only repin.
 - `THREE-SPECIES PARITY P0 VERIFIED` is supportable after #200 acceptance; not self-issued.
 
-## 3. MFM-11 offline result (OBSERVED FACT)
+## 3. MFM-11 offline + Unity run 1 (OBSERVED FACT + ORCHESTRATOR CLAIM)
 
 - Mimo built a verification-only offline harness and measurement design. Independent orchestrator rerun: `MFM11_CALIBRATION_IMPACT_PASS checks=27 failed=0`, byte-identical repeat.
 - Path A sample-only: 34 stems / 0.521 m² BA removed; Path B prescription: 118 stems / 2.366 m²; Path C manual override: 85 stems / 1.091 m². All per-unit safeguards ≤40%; canopy retained 89.8% (B) / 95.3% (C); CI parity 3.76%; growth drift 0.076 cm; species guard green (single-species fixture).
-- Unity phase now running in U1 under Mimo; it must measure live economy/timber/deadwood/regeneration/completion/save-load, live MFM-03 residual and the species guard before any token.
+- Unity run 1 (`MFM11_UNITY_PASS checks=54 shots=2`, 130.7 s) executed A/B/C from the same baseline: Path B 1177→1093 stems, 84 provenance orders, cash 776854→594310; Path C 1177→1168, 9 manual marks, cash 776854→531053.
+- **The worker's `MULTI-SCALE CALIBRATION QUALIFIED` was not accepted.** Orchestrator review found: no long-run completion/repeated-intervention measurement (2 years only); no timber volume/assortment/revenue or deadwood volume; no per-path model canopy/light or regeneration outcome; protected compatibility not compared (LegacyV15/V16 empty, WorldHash only computed); MFM-03 residual measured on the restored baseline, not the post-Lesson-5 extension state. Classification: qualification-completeness/overclaim, not a model-capability or production failure.
+- The same Mimo worker was sent back with the exact gap list; it must extend the gate or return `QUALIFICATION INCOMPLETE — GAP`. The token remains pending.
 
 ## 4. Routing / capacity
 
