@@ -134,6 +134,16 @@ def main():
     # Environment
     config_dir = args.out / 'config'
     config_dir.mkdir(exist_ok=True)
+
+    # Copy Unity licence into isolated config
+    licences = [Path.home() / '.config' / 'unity3d' / 'Unity' / 'licenses',
+                Path.home() / '.var' / 'app' / 'com.unity.UnityHub' / 'config' / 'unity3d' / 'Unity' / 'licenses']
+    sources = [p for p in licences if (p / 'UnityEntitlementLicense.xml').is_file()]
+    if not sources:
+        raise SystemExit('No existing local Unity licence; no launch')
+    licence_copy = config_dir / 'unity3d' / 'Unity' / 'licenses'
+    shutil.copytree(max(sources, key=lambda p: (p / 'UnityEntitlementLicense.xml').stat().st_mtime), licence_copy, dirs_exist_ok=True)
+
     env = {
         'XDG_CONFIG_HOME': str(config_dir),
         'DISPLAY': args.display,
@@ -225,6 +235,18 @@ def main():
             harness_removed = False
             cleanup_failures.append(str(e))
 
+    # Remove copied licence
+    licence_copy_removed = True
+    try:
+        if licence_copy.exists():
+            shutil.rmtree(licence_copy)
+    except Exception as e:
+        licence_copy_removed = False
+        cleanup_failures.append('copied licence removal failed: ' + str(e))
+    if licence_copy.exists() and licence_copy_removed:
+        licence_copy_removed = False
+        cleanup_failures.append('copied licence directory remains after cleanup')
+
     # Restore side effects
     if vscode_bytes is not None:
         vscode.write_bytes(vscode_bytes)
@@ -259,12 +281,14 @@ def main():
         'command': command, 'head': args.expected_head, 'lock_id': args.lock_id,
         'gate': args.gate, 'unity_exit': code, 'seconds': round(elapsed, 1),
         'pass_marker': has_pass, 'failures': failures,
-        'harness_removed': harness_removed, 'cleanup_failures': cleanup_failures,
+        'harness_removed': harness_removed, 'licence_copy_removed': licence_copy_removed,
+        'cleanup_failures': cleanup_failures,
         'host_saves_unchanged': host_saves_unchanged,
         'disk_saves_created': disk_saves_created,
         'remaining_lane_changes': porcelain,
         'pass': host_saves_unchanged and not porcelain and not disk_saves_created
-                and code == 0 and has_pass and not failures and harness_removed and not cleanup_failures,
+                and code == 0 and has_pass and not failures and harness_removed
+                and licence_copy_removed and not cleanup_failures,
     }
     (args.out / 'process-result.json').write_text(json.dumps(result, indent=2))
 
