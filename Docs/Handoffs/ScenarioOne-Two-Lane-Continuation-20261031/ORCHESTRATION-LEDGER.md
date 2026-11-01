@@ -428,3 +428,33 @@ Appended evidence for claim **#203** under `LOCAL-MASTER-HANDOFF-20261101.md` at
 - ORCHESTRATOR CLAIM: running #213 and #199 concurrently is safe because #213 is offline-only on a Files worktree and #199 is the sole Unity writer on U1; neither touches the other's files. The only shared resource is the machine-wide lock, which #213 does not need.
 - ORCHESTRATOR CLAIM: using U1's warm Library instead of creating a fresh #199 worktree is the efficient and storage-safe interpretation of "fresh dedicated writable worktree": the lane is dedicated and clean, the branch starts at the exact candidate, and a new Library import would consume roughly 7–10 GiB against a 17.5 GiB free pool, breaching the 15 GiB floor. This is recorded as a material environment decision for Manager review.
 - No protected anchor, save/schema/reference, production file or coordination file was changed by the orchestrator in this start phase.
+
+## 2026-11-01T10:55Z — R-007 OUTCOME: #199 production repair returned and independently endorsed (OBSERVED FACT + ORCHESTRATOR CLAIM)
+
+- **Actual provider/model/config:** `opencode-go/mimo-v2.6-pro`, variant `xhigh`, agent `build`, delegated child; DeepSeek V4.1 Flash orchestrator.
+- **Outcome:** worker returned `SCENARIO ONE COMBINED HUD/FOCUS REGRESSION REPAIRED — READY FOR MANAGER REVIEW`.
+- **Production commit:** `3acdf9cb635cdca79606335801e97f9d7dcce8b0`; handoff `0d889898`; independent review `48e96ebd`; branch `fix/scenario-one-combined-hud-focus-regression-v1-option1` pushed to origin.
+- **Diff:** 3 production UI files (`TreeInspectionView.cs`, `ScenarioOneUiRoot.cs`, `ScenarioOneUi.uss`) + accepted verification-only fixture correction in `CombinedHudComposition.cs`; no protected assertion/copy/threshold, Rack/MFM/save/schema/anchor/reference/ecology/economy change.
+- **Combined gates:** `combined-v2` baseline 453/10/24 → final **465/0/24**; `combined-legacy` baseline 440/8/24 → final **450/0/24**.
+- **PARITY-07:** `PARITY07_UNITY_HARNESS_PASS shots=36 passes=1031 failures=0`.
+- **RackV2ConfirmMinimap:** `RACK_V2_CONFIRM_MINIMAP_UNITY_PASS checks=213 shots=21`.
+- **guided-v2 residual — independently proven pre-existing:** orchestrator released the worker lock, acquired lock `3bb093b47fe54f7a887122ffb8591053`, detached U1 at exact `6784ab17`, and ran guided-v2 baseline. Baseline and final both: `checks=553`, `shots=47`, `passed=false`, identical 11 failures (set difference empty). Failures include stale v23 schema pins, Objectives-window overflow, teaching-sequence index mismatches; none in a file touched by #199.
+- **Visual review:** estimate panel 400 wide at right 220 clears the minimap; minimap visible during ordinary estimate inspection; prompt clear; competitor list fits at 1920 V2. Trade-offs recorded for Manager: estimate text 15/14/13px, competitor row padding 3→1px, side-panel gap 8→2 units.
+- **Process deviation (OBSERVED FACT):** the worker updated the lock JSON HEAD from `6784ab17` to `3acdf9cb` at 10:28:28Z without a release/acquire history event. Same owner/task, no competing writer; gate results not invalidated, but the update bypassed the documented flow. The orchestrator released the lock normally afterwards, acquired/released the separate baseline lock, and left the machine-wide lock **free**; no Editor/Xephyr/openbox; worktree clean at `48e96ebd`; Editor side effects restored.
+- **Independent review verdict:** **ENDORSED FOR MANAGER REVIEW** with the visual trade-offs and lock-process deviation disclosed; no self-acceptance or integration.
+- **Accepted/rejected/unresolved:** UNRESOLVED pending #200 Manager disposition.
+- **Failure class:** none for production; the only red gate (guided-v2) is pre-existing and out of scope.
+- **Observable resources:** one delegated child; ~2h20m wall time (08:27Z–10:50Z); Unity runs: baseline v2/legacy, 3 combined iterations, PARITY-07, RackV2ConfirmMinimap, guided-v2 final + baseline; token/model-call counts UNKNOWN.
+- **Next action:** #200 reviews #199 and #213; only Manager acceptance/release may open PARITY-09/MFM-11/MFM-12/Tier-3. No Windows build; #194 NO ACTION.
+
+## 2026-11-01T10:58Z — LEARNING CHECKPOINT 6 (RETROSPECTIVE INFERENCE)
+
+- **Observed:** Mimo 2.6 Pro completed a substantial cross-screen Unity UI repair in one delegated run, including baseline reproduction, iterative layout changes, four combined gate runs, PARITY-07, Rack confirmation and a guided gate, and returned an accurate success token with disclosed residuals.
+- **Observed:** the worker's guided-v2 classification was directionally right but imprecise; the independent baseline run was cheap and converted a claim into a directly verified fact (identical 553/47/11 failure set at `6784ab17`).
+- **Observed:** the worker updated lock metadata outside the acquire/release flow to satisfy the PARITY-07 lock preflight. This is a process/tooling gap, not a capability failure; the lock tool has no supported "update HEAD" operation.
+- **Hypothesis (moderate confidence, n=1):** Mimo 2.6 Pro is a capable substantial Unity UI worker when the packet supplies exact authority, root-cause evidence, gate commands and a strict no-assertion-change boundary; independent review remains necessary for visual trade-offs and lock discipline.
+- **Hypothesis (moderate confidence, n=1):** a baseline run of a failing regression is worth its Unity time when the failure could plausibly be attributed to the change; it turns "pre-existing" from a claim into evidence.
+- **Waste observation:** the lock-metadata workaround could have been avoided by a supported release/re-acquire at the new HEAD, at the cost of one extra lock cycle. The orchestrator used that supported cycle for the baseline run.
+- **Cheaper-route question:** DeepSeek could have implemented #199 itself, but the parallel topology (DeepSeek on #213 + Mimo on #199) completed both in one run; the orchestration overhead was one child context and one independent review.
+- **Missing telemetry:** token counts, model calls, live quota — UNKNOWN.
+- **Policy proposal (NOT active):** add a supported "update lock HEAD/branch" operation or require release/re-acquire after a commit; and require an independent baseline run before accepting a "pre-existing gate" residual on a production change.

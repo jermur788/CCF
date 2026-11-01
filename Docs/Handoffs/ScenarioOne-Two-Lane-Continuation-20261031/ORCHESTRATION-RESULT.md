@@ -234,7 +234,7 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 
 # Unified Local Master Handoff 2026-11-01 — Run Summary (#203)
 
-**Status at this append: IN PROGRESS — #213 returned at a Manager boundary; #199 Option 1 running under Mimo 2.6 Pro.**  
+**Status at this append: PAUSED AT MANAGER BOUNDARY — #213 returned with token withheld; #199 Option 1 returned and independently endorsed for Manager review.**  
 **Authority:** `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/LOCAL-MASTER-HANDOFF-20261101.md` at `6c77907e`; live coordination `active-tasks.md` on `origin/main` `d033923c`.  
 **Published integration:** exact `6784ab17cac922a16815f4898a30737482101018`.
 
@@ -243,7 +243,7 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 | Child | Provider/model | State | Exact SHA / branch | Evidence |
 |---|---|---|---|---|
 | **#213** MFM-10 local residual | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) | **EXECUTED — TOKEN WITHHELD at Manager disposition boundary** | `verify/mfm-10-species-guard-v1` from `6784ab17`; docs commit `43e26370`; branch pushed | `Docs/Handoffs/MFM-10-Species-Parity-Guard/HANDOFF.md`; `/media/jer/Files/CCF/Verification/MFM10-SpeciesGuard-20261101/` |
-| **#199** Option 1 production repair | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **RUNNING** | `fix/scenario-one-combined-hud-focus-regression-v1-option1` in U1 from `6784ab17`; lock `9dc7b6ad…` | pending |
+| **#199** Option 1 production repair | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **COMPLETE — READY FOR MANAGER REVIEW (independently endorsed)** | branch `fix/scenario-one-combined-hud-focus-regression-v1-option1`; production `3acdf9cb`; handoff `0d889898`; independent review `48e96ebd`; pushed | `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/HANDOFF.md` + `INDEPENDENT-REVIEW-20261101.md`; `/media/jer/Files/CCF/Verification/ScenarioOneCombinedHudFocusOption1-20261101/` |
 | PARITY-09 / MFM-11 / MFM-12 / Tier-3 | — | **NOT RELEASED** | — | blocked on #200 acceptance/release |
 | #194 Research Source Consolidation | — | **NO ACTION** | — | untouched |
 
@@ -254,12 +254,16 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 - MFM-10 species-guard/parity assertions pass; no Unity required; no production/test/threshold change.
 - **`SPECIES GUARD QUALIFIED` was not issued** because the published gate requires both commands to exit 0. #200 must either accept the two documented pre-existing red families as out of MFM-10 scope or release a bounded verification-asset repair for the scanner false positive.
 
-## 3. #199 dispatch (ORCHESTRATOR CLAIM / OBSERVED FACTS)
+## 3. #199 outcome (OBSERVED FACT + ORCHESTRATOR CLAIM)
 
-- Mimo 2.6 Pro was selected as the substantial production worker: user-authorised capacity, independent of the offline critical path, and the U1 warm Library avoids a new Library import that would breach the 15 GiB storage floor.
-- U1 is the sole Unity writer; the machine-wide lock is held by the orchestrator for the child. No Editor was running at acquisition.
-- The child is instructed to reproduce the baseline before editing, preserve every protected assertion/copy, run both combined gates at 1280×720 and 1920×1080, run PARITY-07 and affected regressions, commit the production change + handoff, and return either the exact success token or the smallest contract blocker.
-- Local success is not Manager acceptance; no integration, push of production to the integration branch, or Windows build is authorised.
+- Mimo 2.6 Pro completed the substantial production repair in one delegated run: baseline reproduction, iterative layout changes, combined gates, PARITY-07, Rack confirmation, guided-v2 and handoff. DeepSeek remained orchestrator and independent reviewer.
+- **Production commit `3acdf9cb`** (3 UI files + accepted verification-only fixture correction), handoff `0d889898`, independent review `48e96ebd`; branch pushed to origin.
+- **Combined gates:** `combined-v2` 453/10/24 → **465/0/24**; `combined-legacy` 440/8/24 → **450/0/24**.
+- **PARITY-07:** `PARITY07_UNITY_HARNESS_PASS shots=36 passes=1031 failures=0`. **RackV2ConfirmMinimap:** `RACK_V2_CONFIRM_MINIMAP_UNITY_PASS checks=213 shots=21`.
+- **guided-v2 residual independently proven pre-existing:** the orchestrator released the worker lock, acquired lock `3bb093b4…`, detached U1 at exact `6784ab17`, and ran guided-v2 baseline. Baseline and final both `checks=553`, `shots=47`, `passed=false`, **identical 11 failures**. The failures include stale v23 schema pins, Objectives-window overflow and teaching-sequence index mismatches; none is in a file touched by #199.
+- **Visual review:** estimate panel 400 wide at right 220 clears the minimap; minimap visible during ordinary estimate inspection; prompt clear; competitor list fits at 1920 V2. Disclosed trade-offs: estimate text 15/14/13px, competitor row padding 3→1px, side-panel gap 8→2.
+- **Process deviation:** the worker updated the lock JSON HEAD to `3acdf9cb` outside the acquire/release history. Same owner/task, no competing writer; gates not invalidated. The orchestrator released/re-acquired normally for the baseline and left the lock free.
+- **Verdict:** `SCENARIO ONE COMBINED HUD/FOCUS REGRESSION REPAIRED — READY FOR MANAGER REVIEW`; independent review **ENDORSED FOR MANAGER REVIEW**. No self-acceptance, integration or Windows build.
 
 ## 4. Routing / capacity observations
 
@@ -271,12 +275,12 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 ## 5. Locks / worktrees / storage
 
 - #213: `/media/jer/Files/CCF/Operations/CCF-MFM10Residual-20261101` (offline NonUnity-class lane on Files); no Unity lock; clean.
-- #199: `/media/jer/ZX20/CCF-U1`, branch `fix/scenario-one-combined-hud-focus-regression-v1-option1`; lock `9dc7b6ad0eea4185b88c9786f36ed20c` held at append time.
+- #199: `/media/jer/ZX20/CCF-U1`, branch `fix/scenario-one-combined-hud-focus-regression-v1-option1` at `48e96ebd`; worker lock `9dc7b6ad…` released normally; independent baseline lock `3bb093b4…` acquired/released; machine-wide lock **free** at append time; no Editor/Xephyr/openbox; worktree clean; Editor side effects restored.
 - Storage: ZX20 17.54 GiB free (above 15.00 GiB floor); Files 57.1 GiB free.
 - No protected anchor/baseline changed by the orchestrator. No Windows build. #194 untouched.
 
 ## 6. Exact next action
 
-1. Wait for the Mimo #199 child result; independently review the production diff and gate evidence; release the U1 lock; publish the #199 handoff/result.
-2. #200 reviews #213 and #199; #213 needs an explicit disposition on the two documented red families before the MFM-10 token can be issued.
+1. **#200 reviews #199** (`HANDOFF.md` + `INDEPENDENT-REVIEW-20261101.md`, branch `fix/scenario-one-combined-hud-focus-regression-v1-option1`) and either accepts it for integration or returns the visual trade-offs for a follow-up. Do not integrate from this local result alone.
+2. **#200 reviews #213** and either explicitly accepts the two documented pre-existing red families as out of MFM-10 scope (issuing `SPECIES GUARD QUALIFIED`) or releases a bounded verification-asset repair for the `MaxRemovedBasalShare` scanner false positive.
 3. Only after #200 release: PARITY-09 / MFM-11 / MFM-12 / Tier-3. No self-release; no Windows build before user playtest + explicit authorisation.
