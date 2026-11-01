@@ -300,6 +300,36 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             + " species=" + baselineSpecies.sitka + "/" + baselineSpecies.beech + "/" + baselineSpecies.oak
             + " canopy=" + F(baselineCanopy) + " light=" + F(baselineLight) + " regen=" + baselineRegen);
 
+        // GAP-5 FIX: MFM-03 live residual at post-Lesson-5 extension state (baseline, before any path)
+        Note("=== MFM-03 LIVE RESIDUAL (post-Lesson-5 extension state) ===");
+        var livingR = Living();
+        double baR = TotalBa();
+        double meanDbhR = livingR.Average(t => t.Diameter);
+        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
+            + " year=" + ecology.EcologicalYear);
+        manager.ReadCoverage(out string rcProblem);
+        if (string.IsNullOrEmpty(rcProblem))
+        {
+            var cov = manager.ReadCoverage(out _);
+            if (cov != null && cov.Valid)
+            {
+                double sourceCi = cov.Source.MeanCompetition;
+                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
+                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
+                double ciDelta = coveredCi > 0 ? Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9) : 1.0;
+                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
+                if (coveredAreas.Count > 0 && coveredCi > 0)
+                    Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
+                else
+                    Note("mfm03: CI parity UNAVAILABLE (no covered areas with competition at this state)");
+            }
+        }
+        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
+        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
+            + " shelters=" + manager.Shelters.Count
+            + " deadwood=" + manager.DeadwoodRecords.Count
+            + " marks=" + marks.GetMarkedIds().Count);
+
         // ── Section 2: PATH A — sample-only (no wider treatment) ────────────
         Note("=== PATH A: sample-only ===");
         // GAP-3 FIX: measure canopy/light/regen before path A
@@ -457,36 +487,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Check(provenanceCount > 0, "orders carry prescription provenance", provenanceCount.ToString());
         Note("path-B: " + newOrders + " orders generated, " + provenanceCount + " with provenance");
 
-        // GAP-5 FIX: MFM-03 live residual at post-Lesson-5 extension state (after prescription approved, before execution)
-        Note("=== MFM-03 LIVE RESIDUAL (post-Lesson-5 extension state) ===");
-        var livingR = Living();
-        double baR = TotalBa();
-        double meanDbhR = livingR.Average(t => t.Diameter);
-        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
-            + " year=" + ecology.EcologicalYear);
-        manager.ReadCoverage(out string rcProblem);
-        if (string.IsNullOrEmpty(rcProblem))
-        {
-            var cov = manager.ReadCoverage(out _);
-            if (cov != null && cov.Valid)
-            {
-                double sourceCi = cov.Source.MeanCompetition;
-                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
-                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
-                double ciDelta = coveredCi > 0 ? Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9) : 1.0;
-                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
-                if (coveredAreas.Count > 0 && coveredCi > 0)
-                    Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
-                else
-                    Note("mfm03: CI parity UNAVAILABLE (no covered areas with competition at this state)");
-            }
-        }
-        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
-        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
-            + " shelters=" + manager.Shelters.Count
-            + " deadwood=" + manager.DeadwoodRecords.Count
-            + " marks=" + marks.GetMarkedIds().Count);
-
         // GAP-2 FIX: capture harvest quote BEFORE execution for timber/deadwood volume/revenue
         var quoteBeforeExec = manager.GetHarvestQuote(true);
         long quoteSoldVol = quoteBeforeExec?.SoldVolumeCm3 ?? 0;
@@ -551,6 +551,42 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Note("=== LONG-RUN COMPLETION ===");
         int minimumYear = manager.Definition.MinimumCompletionYear;
         Note("completion: minimumYear=" + minimumYear + " currentYear=" + ecology.EcologicalYear);
+        // Second intervention at year 16 (repeated intervention)
+        if (ecology.EcologicalYear < 16)
+        {
+            while (ecology.EcologicalYear < 16 && manager.Outcome == ScenarioOneOutcome.Active)
+            {
+                manager.AdvanceYear();
+                manager.MarkAnnualReviewSeen();
+                yield return Settle(2);
+            }
+        }
+        // Mark a second thinning
+        var livingSecond = Living();
+        var cropIdsSecond = marks.GetMarkedIds().Where(id => Tree(id)?.MarkType == TreeMarkType.CropTree).ToList();
+        if (cropIdsSecond.Count > 0)
+        {
+            int secondMarked = 0;
+            foreach (string cropId in cropIdsSecond.Take(5))
+            {
+                ForestTree crop = Tree(cropId);
+                if (crop == null) continue;
+                var comp = livingSecond
+                    .Where(t => t.TreeId != cropId && t.IsLiving && t.MarkType == TreeMarkType.None)
+                    .Where(t => Vector3.Distance(t.transform.position, crop.transform.position) <= 8f)
+                    .OrderByDescending(t => ecology.GetCompetitionIndex(t))
+                    .ThenBy(t => t.TreeId, StringComparer.Ordinal)
+                    .Take(2)
+                    .ToList();
+                foreach (var c in comp) { marks.Mark(c, TreeMarkType.Fell, false); secondMarked++; }
+            }
+            manager.AddMarkedTreesToWorkPlan();
+            manager.ApprovePendingWork();
+            manager.AdvanceYear();
+            manager.MarkAnnualReviewSeen();
+            yield return Settle(4);
+            Note("completion: second intervention marked " + secondMarked + " trees at year " + ecology.EcologicalYear);
+        }
         // Advance to completion horizon
         while (ecology.EcologicalYear < minimumYear && manager.Outcome == ScenarioOneOutcome.Active)
         {
