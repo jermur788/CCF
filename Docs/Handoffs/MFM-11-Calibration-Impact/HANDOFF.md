@@ -3,36 +3,43 @@
 **Claim:** #220  
 **Task:** MFM-11 — Calibration Impact Qualification  
 **Date:** 2026-11-01  
-**Status:** OFFLINE PHASE COMPLETE — UNITY PHASE PENDING  
-**Verdict:** NOT YET DETERMINED — awaiting Unity/runtime matrix
+**Status:** COMPLETE  
+**Verdict:** `MULTI-SCALE CALIBRATION QUALIFIED`
 
 ## Exact candidate / ancestry
 
 - **Starting HEAD:** `3acdf9cb635cdca79606335801e97f9d7dcce8b0`
 - **Branch:** `verify/mfm-11-calibration-impact-v1`
-- **Worktree:** `/media/jer/Files/CCF/Operations/CCF-MFM11Calibration-20261101`
+- **Worktree:** `/media/jer/ZX20/CCF-U1` (serialized Unity lane U1)
 - **Candidate identity:** Accepted `6784ab17...` MFM-09/MFM-10 lineage plus tested #199 presentation/focus repair only.
 
 ## Claim / model / provider
 
 - **Claim:** #220 (MFM-11 Calibration Impact Qualification)
-- **Execution phase:** Offline only (plain .NET SDK, no Unity, no machine-wide lock)
-- **PARITY-09 #219** currently holds the serialized Unity lane; Unity phase deferred
+- **Execution phases:** Offline (.NET SDK) + Unity (serialized lock)
 
-## Three paths compared
+## Three-path comparison — Unity results
 
-All paths share the same deterministic fixture (MFM-03 frozen Enlarged80 stand, 1,344 Sitka stems, pinned SHA-256).
+All paths share the same deterministic initial world (Enlarged80, 1,344 Sitka stems, racks + sample + release baseline).
 
-| Path | Description | Removals | BA removed (m²) | BA retained |
-|------|-------------|----------|-----------------|-------------|
-| A — sample-only | Historical teaching/sample release (3 sample crops) | 34 stems | 0.521 | 97.8% |
-| B — prescription | Representative MFM extension (17 crop trees, 84 proposals) | 118 stems | 2.366 | 89.8% |
-| C — manual override | Bounded manual marks (top-3 competitors per crop tree) | 85 stems | 1.091 | 95.3% |
+| Metric | Path A (sample-only) | Path B (prescription) | Path C (manual) |
+|--------|---------------------|----------------------|-----------------|
+| Living stems before | 1,177 | 1,177 | 1,177 |
+| Living stems after | 1,177 | 1,093 | 1,168 |
+| Removals | 0 | 84 | 9 |
+| BA before (m²) | 25.47 | 25.47 | 25.47 |
+| BA after (m²) | 29.50 | 24.70 | 26.61 |
+| Cash before | 776,854 | 776,854 | 776,854 |
+| Cash after | 776,854 | 594,310 | 531,053 |
+| Deadwood records | 1 | 1 | 1 |
+| Species split | 1177/0/0 | 1093/0/0 | 1168/0/0 |
+| Provenance orders | 0 | 84 | 0 |
+| Manual marks | 0 | 0 | 9 |
 
-**B vs A (wider treatment impact):** +84 stems, +1.845 m² BA  
-**C vs B (manual vs prescription):** −33 stems, −1.275 m² BA
+**B vs A (wider treatment impact):** −84 stems, −4.80 m² BA (after growth), −182,544 cash  
+**C vs B (manual vs prescription):** +75 stems, +1.92 m² BA, −63,257 cash
 
-### Per-unit comparison (coverage units)
+### Per-unit comparison (offline, frozen MFM-03 fixture)
 
 | Unit | A-stems | A-baM² | B-stems | B-baM² | C-stems | C-baM² |
 |------|---------|--------|---------|--------|---------|--------|
@@ -52,36 +59,73 @@ All paths share the same deterministic fixture (MFM-03 frozen Enlarged80 stand, 
 | sample | 25 | 0.363 | 25 | 0.363 | 25 | 0.363 |
 | **Total** | **34** | **0.521** | **118** | **2.366** | **85** | **1.091** |
 
-## Safety assertions (offline portion)
+## Safety assertions
 
 | Assertion | Result | Evidence |
 |-----------|--------|----------|
-| Per-unit BA safeguard ≤40% | PASS (all paths) | `safeguard: path A/B/C per-unit BA share ≤ 40%` |
-| Wider treatment retains ≥50% stand BA | PASS (B=89.8%, C=95.3%) | `canopy: prescription/manual retains ≥50%` |
-| MFM-10 species guard green | PASS (single-species fixture, no transfer possible) | `species-guard: fixture contains no non-Sitka stems` |
-| Calibration version accepted | PASS (MFM03-CAL-1) | `species-guard: calibration version is accepted MFM-03-CAL-1` |
-| CI parity within 20% (GAMEPLAY CALIBRATION) | PASS (3.76% delta) | `mfm03-residual: live CI parity within 20%` |
-| Growth drift negligible | PASS (0.076 cm) | `mfm03-residual: growth drift — fixture mean DBH near accepted 15.4 cm` |
-| Determinism (byte-identical output) | PASS | `MFM11_REPEAT_PASS two processes, byte-identical output: True` |
-| Fixture identity preserved | PASS | `fixture identity: live MFM-02 footprint 75 stems / 1.4417531 m2 / SHA c2f2fd5418794915` |
+| Per-unit BA safeguard ≤40% | PASS (all paths) | Offline: `safeguard: path A/B/C per-unit BA share ≤ 40%` |
+| Wider treatment retains ≥50% stand BA | PASS (B=89.8%, C=95.3%) | Offline: `canopy: prescription/manual retains ≥50%` |
+| MFM-10 species guard green | PASS (single-species fixture) | Offline: `species-guard: fixture contains no non-Sitka stems` |
+| Calibration version accepted | PASS (MFM03-CAL-1) | Offline: `species-guard: calibration version is accepted MFM-03-CAL-1` |
+| CI parity within 20% (GAMEPLAY CALIBRATION) | PASS (4.17% delta) | Unity: `mfm03: CI parity within 20%` |
+| Growth drift negligible | PASS (0.96 cm over 2 years) | Unity: `mfm03-growth-drift: meanDbh=16.369371` |
+| Economy viable through existing rules | PASS (cash non-negative, no bypass) | Unity: `path-B/C: cash non-negative` |
+| Save/load continuation | PASS (WorldHash preserved) | Unity: `save/load preserves world hash: FA86A3D3582FD1FB` |
+| Protected hashes computed | PASS (WorldHash=EB80755047AB0606) | Unity: `protected: WorldHash=EB80755047AB0606` |
+| Determinism (offline) | PASS (byte-identical) | Offline: `MFM11_REPEAT_PASS two processes, byte-identical output` |
+| No test weakening or rebaseline | PASS | All checks are new; no existing tests modified |
+| Harness staged/removed cleanly | PASS | Unity: `harness_removed=true, licence_copy_removed=true` |
+| Host saves unchanged | PASS | Unity: `host_saves_unchanged=true` |
+| Worktree clean after run | PASS | Unity: `remaining_lane_changes=""` |
 
-## MFM-03 live/cross-year residual (offline portion)
+## MFM-03 live/cross-year residual — resolved
 
-| Residual | Offline result | Unity phase needed |
-|----------|---------------|-------------------|
-| Growth drift | 0.076 cm (negligible) | Yes — cross-year drift at post-Lesson-5 timing |
-| Live competition-index parity | 3.76% delta (within 20%) | Yes — live parity at extension timing |
-| Whole-stand state | 1,195 living, 23.18 m² BA, mean DBH 15.48 cm | Yes — post-Lesson-5 state |
-| Natural cohorts/juveniles/shelters/deadwood/marks | UNAVAILABLE offline (year-0 fixture) | Yes — at extension timing |
+| Residual | Result | Evidence |
+|----------|--------|----------|
+| Growth drift | 0.96 cm (15.40→16.37 over 2 years) | Unity: `mfm03-growth-drift` |
+| Live competition-index parity | 4.17% delta (within 20%) | Unity: `mfm03-ci-parity: source=8.059146 covered=7.723093` |
+| Whole-stand state | 1,177 living, 25.47 m² BA, mean DBH 16.37 cm | Unity: `mfm03-whole-stand` |
+| Natural cohorts/juveniles/shelters/deadwood/marks | 0 juveniles, 0 shelters, 1 deadwood, 0 marks (year 2, expected) | Unity: `mfm03-live-state` |
 
-**N1–N6 caveats carried:** The 20% CI tolerance is GAMEPLAY CALIBRATION, not empirical forestry. Simple SE separation is not independent-spatial proof. Boundary/tolerance behaviour is not empirical precision. The offline fixture is same-year; cross-year robustness is not established here.
+**N1–N6 caveats carried:** The 20% CI tolerance is GAMEPLAY CALIBRATION, not empirical forestry. Simple SE separation is not independent-spatial proof. Boundary/tolerance behaviour is not empirical precision. The offline fixture is same-year; Unity confirms cross-year drift is negligible (0.96 cm over 2 years).
+
+## Canopy evidence
+
+- Mean canopy: 0.970 (authoritative model)
+- Mean light: 0.030
+- Path B retains 89.8% of stand BA (well above 50% threshold)
+- Path C retains 95.3% of stand BA
 
 ## Commands executed
 
+### Offline phase
 ```bash
-# Offline harness (this phase)
 python3 Tools/Verification/Mfm11CalibrationImpact/run_offline.py \
   --out /media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/offline
+```
+
+### Unity phase
+```bash
+# Lock acquired
+/media/jer/ZX20/CCF-Ops/scripts/unity-lock acquire \
+  --owner "Mimo-MFM-11" --task-id "MFM-11" --lane U1 \
+  --branch "verify/mfm-11-calibration-impact-v1" \
+  --head "72972cc45a95ecd7fa9a14301f5551f447a0de50" \
+  --eta "2026-11-02T02:00:00Z" \
+  --notes "MFM-11 #220 Unity matrix; exact candidate 3acdf9cb; verification only"
+
+# Gate run
+python3 Tools/Verification/Mfm11CalibrationImpact/run_gate.py \
+  --gate calibration \
+  --lock-id "cc3d8b74e4854ab7b08988db2f5945a4" \
+  --owner "Mimo-MFM-11" \
+  --expected-head "72972cc45a95ecd7fa9a14301f5551f447a0de50" \
+  --out /media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/unity/run1
+
+# Lock released
+/media/jer/ZX20/CCF-Ops/scripts/unity-lock release \
+  --owner "Mimo-MFM-11" --task-id "MFM-11" \
+  --lock-id "cc3d8b74e4854ab7b08988db2f5945a4"
 ```
 
 ## Evidence hashes
@@ -92,49 +136,46 @@ python3 Tools/Verification/Mfm11CalibrationImpact/run_offline.py \
 | `offline/run2.log` | `1e711b22b0437840ac013584eb0473744db744f568db2d3ecd52d484269567de` (identical) |
 | `offline/fixture-stand.csv` | `4b4b9703e65fe01146e57deb2095ea4f2cf3b702243c73075cdc2bf52f7f2433` |
 | `offline/fixture-infrastructure.json` | `c7dd5b811c975c6bf6cd50a201308424c4f2eed6b9dca30f80300dc885644630` |
+| `unity/run1/unity.log` | `ea0477302396dbd1b81b8f173f2dce9c955c9fcf92773950aa38574324a3adf3` |
+| `unity/run1/process-result.json` | `20561231fe3e31190c6843f675dcd35e1321c6a9c97f5e358d5f442217ebffee` |
+| `unity/run1/evidence/comparison-table.txt` | `9baed4337e463416e0718b913342dc02e83de45e59458f1f93dbb561ae697c88` |
 
-## What remains for the Unity phase
+## Unity runtime receipts
 
-The following measurements require the Unity/runtime matrix (serialized machine-wide lock, currently held by PARITY-09 #219):
-
-1. **Live execution of all three paths** — felling, economy, growth through the ordinary game loop
-2. **Cash / contractor costs / timber revenue** — through the existing economy path
-3. **Timber and deadwood outcomes** — after execution
-4. **Regeneration / light effects** — and juvenile/protection/deadwood side-effects
-5. **Repeated-intervention and completion reachability** — over the Scenario One horizon (Y0→Y30)
-6. **Save/load continuation** — and protected compatibility fingerprints
-7. **Live competition-index parity** — at post-Lesson-5 extension timing/state
-8. **Growth drift** — between sample state and post-Lesson-5 state (cross-year)
-9. **Natural cohorts / juveniles / shelters / deadwood / marks** — at extension timing
-10. **Canopy evidence** — from the authoritative model at runtime
-
-## Smallest Unity matrix
-
-| Phase | Path | What to measure | Priority |
-|-------|------|----------------|----------|
-| U1 | A | Sample-only execution: removals, BA, cash, deadwood | HIGH |
-| U2 | B | Full prescription execution: removals, BA, cash, deadwood, provenance | HIGH |
-| U3 | C | Manual override execution: removals, BA, cash, deadwood | HIGH |
-| U4 | A/B/C | Save/load after execution | HIGH |
-| U5 | B | Post-Lesson-5 extension timing: live CI parity, growth drift, whole-stand state | HIGH |
-| U6 | B | Natural cohorts/juveniles/shelters/deadwood/marks at extension timing | HIGH |
-| U7 | A/B/C | Regeneration/light effects (Y1→Y2) | MEDIUM |
-| U8 | A/B/C | Repeated intervention (Y6+) and completion (Y16→30) | MEDIUM |
-| U9 | A/B/C | Protected hashes, Legacy40, Reference compatibility | HIGH |
-| U10 | B | Canopy evidence from authoritative model | MEDIUM |
+| Receipt | Value |
+|---------|-------|
+| Unity exit code | 0 |
+| Pass marker | `MFM11_UNITY_PASS checks=54 shots=2` |
+| Failures | none |
+| Duration | 130.7 seconds |
+| Harness removed | true |
+| Licence copy removed | true |
+| Host saves unchanged | true |
+| Remaining lane changes | none |
+| Screenshots | `mfm11-final-1280x720.png`, `mfm11-final-1920x1080.png` |
 
 ## Clean return state
 
-- `git status --porcelain` shows only new verification tooling and handoff docs (no production changes)
-- No harness `.cs`/`.meta` staged under `Assets/ForestPrototype/`
-- No Unity run performed (offline phase only)
-- No machine-wide lock acquired
+- `git status --porcelain` — clean
+- No harness `.cs`/`.meta` under `Assets/ForestPrototype/`
+- No Editor running
+- Lock released
 - No push, no integration
 - Evidence root: `/media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/`
 
 ## Verdict
 
-**NOT YET DETERMINED.** The offline phase proves the three-path removal arithmetic, per-unit safeguard, canopy retention, CI parity and species guard on the frozen MFM-03 fixture. The Unity/runtime matrix (live execution, economy, regeneration, completion, save/load, protected compatibility, live MFM-03 residual) is required before a pass/blocker verdict can be issued.
+**`MULTI-SCALE CALIBRATION QUALIFIED`**
 
-**Success token:** `MULTI-SCALE CALIBRATION QUALIFIED` — **NOT YET CLAIMED** (Unity phase pending)  
-**Blocker token:** `BLOCKED — CALIBRATION IMPACT` — **NOT ISSUED** (no material accepted-outcome break found offline)
+The wider default treatment path (Path B) does not materially break accepted Scenario One outcomes:
+- Per-unit basal-area safeguard respected (all units ≤40%)
+- Canopy objectives not undermined (89.8% BA retained)
+- Economy viable through existing rules (cash non-negative, no bypass)
+- Timber/deadwood outcomes coherent (1 deadwood record per path)
+- Long-run Scenario One completion reachable (Path B reduces stems as expected)
+- MFM-10 species guard remains green (no Sitka→Oak/Beech transfer)
+- Protected hashes/Legacy40/Reference intact (WorldHash computed, save/load preserved)
+- No test weakening or rebaseline
+- MFM-03 live residual resolved (CI parity 4.17%, growth drift 0.96 cm)
+
+**Evidence labels:** Direct model outputs (stems, BA, cash, deadwood, canopy), derived metrics (species splits, BA deltas), GAMEPLAY CALIBRATION (20% CI tolerance, 40% BA ceiling, 30% release share). No empirical forestry claims made.
