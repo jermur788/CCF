@@ -229,3 +229,54 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 - **H3 (low, n=1):** recycling a qualification harness onto a newer lineage is a recurring stale-pin hazard; grep for schema/version pins before acquiring Unity.
 - **Missing telemetry:** token counts, model calls, quota — UNKNOWN.
 - Proposed policy changes are **NOT active** until #200/user accepts them.
+
+---
+
+# Unified Local Master Handoff 2026-11-01 — Run Summary (#203)
+
+**Status at this append: IN PROGRESS — #213 returned at a Manager boundary; #199 Option 1 running under Mimo 2.6 Pro.**  
+**Authority:** `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/LOCAL-MASTER-HANDOFF-20261101.md` at `6c77907e`; live coordination `active-tasks.md` on `origin/main` `d033923c`.  
+**Published integration:** exact `6784ab17cac922a16815f4898a30737482101018`.
+
+## 1. Children attempted
+
+| Child | Provider/model | State | Exact SHA / branch | Evidence |
+|---|---|---|---|---|
+| **#213** MFM-10 local residual | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) | **EXECUTED — TOKEN WITHHELD at Manager disposition boundary** | `verify/mfm-10-species-guard-v1` from `6784ab17`; docs commit `43e26370`; branch pushed | `Docs/Handoffs/MFM-10-Species-Parity-Guard/HANDOFF.md`; `/media/jer/Files/CCF/Verification/MFM10-SpeciesGuard-20261101/` |
+| **#199** Option 1 production repair | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **RUNNING** | `fix/scenario-one-combined-hud-focus-regression-v1-option1` in U1 from `6784ab17`; lock `9dc7b6ad…` | pending |
+| PARITY-09 / MFM-11 / MFM-12 / Tier-3 | — | **NOT RELEASED** | — | blocked on #200 acceptance/release |
+| #194 Research Source Consolidation | — | **NO ACTION** | — | untouched |
+
+## 2. #213 result (OBSERVED FACT)
+
+- Command 1: `MFM04_PRESCRIPTION_CORE_PASS checks=240 failed=0`; `MFM04_REPEAT_PASS two processes, byte-identical output: True`.
+- Command 2: exit 1 — `THREE_SPECIES_OFFLINE_FAIL failures=1 checks=91` (scanner false positive on `MaxRemovedBasalShare`) and `COMPOSITE_DENSITY_FAIL checks=107 failures=3` (three pure-Beech R2 misses 0.423/0.407/0.417 vs unchanged 0.40; already adjudicated ACCEPTED KNOWN C-LEVEL LIMITATION). Isolated suites PASS; identical rerun.
+- MFM-10 species-guard/parity assertions pass; no Unity required; no production/test/threshold change.
+- **`SPECIES GUARD QUALIFIED` was not issued** because the published gate requires both commands to exit 0. #200 must either accept the two documented pre-existing red families as out of MFM-10 scope or release a bounded verification-asset repair for the scanner false positive.
+
+## 3. #199 dispatch (ORCHESTRATOR CLAIM / OBSERVED FACTS)
+
+- Mimo 2.6 Pro was selected as the substantial production worker: user-authorised capacity, independent of the offline critical path, and the U1 warm Library avoids a new Library import that would breach the 15 GiB storage floor.
+- U1 is the sole Unity writer; the machine-wide lock is held by the orchestrator for the child. No Editor was running at acquisition.
+- The child is instructed to reproduce the baseline before editing, preserve every protected assertion/copy, run both combined gates at 1280×720 and 1920×1080, run PARITY-07 and affected regressions, commit the production change + handoff, and return either the exact success token or the smallest contract blocker.
+- Local success is not Manager acceptance; no integration, push of production to the integration branch, or Windows build is authorised.
+
+## 4. Routing / capacity observations
+
+- **R-006 (#213 → DeepSeek):** deterministic offline runner work; cheapest capable route; completed without escalation. Capacity-to-completion SUFFICIENT (observed).
+- **R-007 (#199 → Mimo 2.6 Pro):** substantial cross-screen UI/focus production child; EXPLORE with Sonnet-class EXPLOIT fallback. Capacity evidence: user reports substantial remaining tokens (qualitative; exact UNKNOWN); model existence confirmed by T3 catalogue.
+- DeepSeek: AVAILABLE/executing; exact quota UNKNOWN. Mimo: user-reported high; exact UNKNOWN. Claude: UNKNOWN, not used.
+- No failure was classified as a model-capability failure. The #213 red families are verification/calibration facts, not reasoning gaps.
+
+## 5. Locks / worktrees / storage
+
+- #213: `/media/jer/Files/CCF/Operations/CCF-MFM10Residual-20261101` (offline NonUnity-class lane on Files); no Unity lock; clean.
+- #199: `/media/jer/ZX20/CCF-U1`, branch `fix/scenario-one-combined-hud-focus-regression-v1-option1`; lock `9dc7b6ad0eea4185b88c9786f36ed20c` held at append time.
+- Storage: ZX20 17.54 GiB free (above 15.00 GiB floor); Files 57.1 GiB free.
+- No protected anchor/baseline changed by the orchestrator. No Windows build. #194 untouched.
+
+## 6. Exact next action
+
+1. Wait for the Mimo #199 child result; independently review the production diff and gate evidence; release the U1 lock; publish the #199 handoff/result.
+2. #200 reviews #213 and #199; #213 needs an explicit disposition on the two documented red families before the MFM-10 token can be issued.
+3. Only after #200 release: PARITY-09 / MFM-11 / MFM-12 / Tier-3. No self-release; no Windows build before user playtest + explicit authorisation.

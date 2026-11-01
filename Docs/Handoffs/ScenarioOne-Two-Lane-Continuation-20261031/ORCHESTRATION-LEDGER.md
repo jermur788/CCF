@@ -350,3 +350,81 @@ Appended evidence for claim **#203** (parent #201/#91). Prior sections are prese
 - **#199 Combined HUD / Focus Option 1** remains repinned/ready/queued on `34e360f8`; no production start was taken.
 - **#207 MFM-09** remains repinned/ready/queued on `34e360f8`; no displacement of the S1-C/S1-D critical path was made.
 - #194 remains NO ACTION. No Windows build was made or authorised.
+
+---
+
+# CONTINUATION — Unified Local Master Handoff 2026-11-01 (#203) — from 2026-11-01T08:20Z
+
+Appended evidence for claim **#203** under `LOCAL-MASTER-HANDOFF-20261101.md` at `6c77907e8cd4ceaec3ccf2d32a5dbaaff19eca0d`. Prior sections preserved verbatim.
+
+## Start gate and live refresh (OBSERVED FACT)
+
+- `git fetch origin` refreshed; `origin/main` at **`d033923c`**; published integration `origin/integration/scenario-one-player-test-ready-v1` exactly **`6784ab17cac922a16815f4898a30737482101018`**.
+- Live `active-tasks.md` read: #213 MFM-10 local residual **READY**; #199 Option 1 **REPINNED / READY / QUEUED**; #212 browser handoff closed; PARITY-09/MFM-11/MFM-12 blocked; Tier-3 not released; #194 NO ACTION.
+- Exact child authority read: `Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md` at `a3372ce5`; `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/OPTION1-REPIN-20261101.md`.
+- Ownership/lane preflight: U1 clean at `af0f29a2` (no Assets diff to `6784ab17`); no Unity Editor; machine-wide lock `free`; ZX20 **17.54 GiB** free (above 15.00 GiB floor); Files **57.1 GiB** free.
+- No `active-tasks.md` edit. No #194 action.
+
+## Provider/capacity ledger — initialised at run start
+
+| Provider/pool | State | Model/config | Remaining capacity | Reset/window | Evidence source + confidence | Current work | Capacity-to-completion | Switching cost |
+|---|---|---|---|---|---|---|---|---|
+| DeepSeek | AVAILABLE / executing | `opencode-go/deepseek-v4.1-flash`, variant `max`, build | observe/UNKNOWN | observe/UNKNOWN | runtime (OBSERVED FACT for availability) | orchestration; #213 execution | sufficient for bounded offline work (observed) | low |
+| Mimo | AVAILABLE (user report) | `opencode-go/mimo-v2.6-pro`, variant `xhigh`, build | **qualitatively high per user; exact UNKNOWN** | UNKNOWN | user initially; T3 catalogue confirms model (OBSERVED FACT for existence) | #199 Option 1 production repair | assess at dispatch; user reports substantial | moderate (new child context) |
+| Claude | UNKNOWN | Sonnet 5.5 Medium class | UNKNOWN | UNKNOWN | none this run | none | not needed yet | n/a |
+
+`UNKNOWN` is retained rather than inferred. No token count, reset time or quota was invented.
+
+## 2026-11-01T08:22Z — ROUTING EVENT R-006: #213 MFM-10 residual to DeepSeek
+
+- **Work unit:** #213 MFM-10 local species-parity residual qualification; parent #91 / #200 / #203.
+- **Evidence class:** OBSERVED FACT (task facts) + ORCHESTRATOR CLAIM (route).
+- **Task type/difficulty/risk:** deterministic offline qualification; Low/Medium (2/5); no production repair authority; critical-path gate.
+- **Decomposition topology:** single bounded child, no Unity; run in parallel with #199.
+- **Previous provider/model:** none (new child).
+- **Selected provider/model/role:** DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`), orchestrator/default worker.
+- **Alternatives considered:** Mimo 2.6 Pro (declined: deterministic runner execution is cheaper on the orchestrator and avoids a new child context); Sonnet 5.5 Medium (declined: no reasoning need; packet names DeepSeek default).
+- **Reason/rule:** existing deterministic runners; no production design; user/packet default-worker rule.
+- **Capacity evidence/source/confidence:** DeepSeek AVAILABLE by runtime; capacity-to-completion SUFFICIENT (observed by completion).
+- **Reset/window:** UNKNOWN.
+- **Previous outcome influencing choice:** DeepSeek completed comparable offline gates in #205/#201.
+- **Branch/worktree/start SHA:** `verify/mfm-10-species-guard-v1` in `/media/jer/Files/CCF/Operations/CCF-MFM10Residual-20261101`, exact `6784ab17...`.
+- **Unity requirement/lock:** none; no lock acquired.
+- **EXPLOIT/EXPLORE:** EXPLOIT.
+- **Result/evidence:** Command 1 PASS `MFM04_PRESCRIPTION_CORE_PASS checks=240 failed=0`, repeat byte-identical. Command 2 exit 1: `THREE_SPECIES_OFFLINE_FAIL failures=1 checks=91` (scanner false positive on `MaxRemovedBasalShare`) + `COMPOSITE_DENSITY_FAIL checks=107 failures=3` (three documented pure-Beech R2 misses 0.423/0.407/0.417 vs unchanged 0.40, Manager-adjudicated accepted known C-level limitation). Isolated suites PASS. Identical rerun.
+- **Handoff/commit/claim reference:** `Docs/Handoffs/MFM-10-Species-Parity-Guard/HANDOFF.md` at `43e26370`; branch pushed; #213 comment `6555537043`.
+- **Accepted/rejected/unresolved:** **UNRESOLVED** — `SPECIES GUARD QUALIFIED` withheld because the published gate is not exit-0. #200 disposition required (accept the two documented red families as out of MFM-10 scope, or release a bounded verification-asset repair).
+- **Failure class:** pre-existing verification-asset false positive + accepted known calibration limitation; **not** a model-capability failure, not a new MFM-10 production defect.
+- **Retries/rework/salvage:** one repeat run for determinism; no rework.
+- **Observable resources:** two dotnet builds; wall time approx. 6–8 min total; token/call counts UNKNOWN.
+- **Next action:** #200 reviews the handoff; no Unity; downstream PARITY-09/MFM-11 remain blocked.
+
+## 2026-11-01T08:26Z — ROUTING EVENT R-007: #199 Option 1 production repair to Mimo 2.6 Pro
+
+- **Work unit:** #199 Scenario One Combined HUD / Focus Regression Repair 01 (Option 1); parent #91 / #200 / #203.
+- **Evidence class:** OBSERVED FACT (authority/lane/lock) + ORCHESTRATOR CLAIM (route).
+- **Task type/difficulty/risk:** cross-screen Unity UI/focus production repair with protected assertions and two compatibility modes; Medium/High; production writer with independent-review requirement.
+- **Decomposition topology:** two parallel children: DeepSeek (#213 offline) + Mimo (#199 Unity). Non-overlapping files/lanes; Unity serialized to U1 only.
+- **Previous provider/model:** prior partial attempt on stale `42742a8a`; no current writer.
+- **Selected provider/model/role:** Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, variant `xhigh`, build), delegated implementation worker.
+- **Alternatives considered:** DeepSeek orchestrator as implementer (declined: would serialize the whole run and consume orchestration attention while a substantial independent child is available); Sonnet 5.5 Medium (packet-preferred class, but quota UNKNOWN and Mimo is explicitly user-authorised with substantial capacity); Opus (not justified).
+- **Reason/rule:** substantial, well-specified production child; independent of the offline critical path; user explicitly authorised Mimo and asked for efficient use; U1 warm Library avoids a fresh Library import that would breach the 15 GiB storage floor.
+- **Capacity evidence/source/confidence:** user reports substantial remaining Mimo tokens (qualitative, UNKNOWN exact); T3 catalogue confirms `mimo-v2.6-pro` available (OBSERVED FACT); capacity-to-completion assessed SUFFICIENT for one bounded child, subject to Unity runtime.
+- **Reset/window:** UNKNOWN.
+- **Previous outcome influencing choice:** prior stale-base attempt correctly stopped at a contract conflict; Manager then authorised Option 1; no model-capability failure is being escalated.
+- **Branch/worktree/start SHA:** `fix/scenario-one-combined-hud-focus-regression-v1-option1` in `/media/jer/ZX20/CCF-U1`, exact `6784ab17...`; U1 clean, no Assets diff from its prior head.
+- **Unity requirement/lock:** yes; lock `9dc7b6ad0eea4185b88c9786f36ed20c` acquired by the orchestrator for the child; no Editor at acquisition.
+- **EXPLOIT/EXPLORE:** EXPLORE (new worker on a substantial production task, authorised by the user) with EXPLOIT fallback to the known Sonnet class if Mimo fails on capability.
+- **Result/evidence:** **PENDING** — child running; baseline reproduction then minimal production repair, full combined-v2/legacy, PARITY-07, affected regressions, handoff.
+- **Handoff/commit/claim reference:** #199 comment `6555537597`; handoff target `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/HANDOFF.md`.
+- **Accepted/rejected/unresolved:** UNRESOLVED; local success token is not Manager acceptance.
+- **Failure class:** none yet.
+- **Retries/rework/salvage:** none yet.
+- **Observable resources:** one delegated child; Unity runtime pending; token/call counts UNKNOWN.
+- **Next action:** child returns; orchestrator independently reviews diff/evidence, releases lock, publishes result; #200 disposition before integration.
+
+## 2026-11-01T08:30Z — ORCHESTRATION CLAIM: parallelism and storage choice
+
+- ORCHESTRATOR CLAIM: running #213 and #199 concurrently is safe because #213 is offline-only on a Files worktree and #199 is the sole Unity writer on U1; neither touches the other's files. The only shared resource is the machine-wide lock, which #213 does not need.
+- ORCHESTRATOR CLAIM: using U1's warm Library instead of creating a fresh #199 worktree is the efficient and storage-safe interpretation of "fresh dedicated writable worktree": the lane is dedicated and clean, the branch starts at the exact candidate, and a new Library import would consume roughly 7–10 GiB against a 17.5 GiB free pool, breaching the 15 GiB floor. This is recorded as a material environment decision for Manager review.
+- No protected anchor, save/schema/reference, production file or coordination file was changed by the orchestrator in this start phase.
