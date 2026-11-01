@@ -59,3 +59,5 @@ At substantial task start, check the context stamp and the live GitHub task-lock
 Report what changed/was decided, actual verification, unresolved points, authoritative file needing update and next step. Implementation uses AgentWorkflow's detailed handoff format.
 
 Every substantive implementation, qualification, review, integration or research handoff must also have a GitHub-tracked Markdown copy. External `/media/...` evidence can hold large logs, screenshots and raw artifacts, but a local-only handoff is not administratively complete.
+
+For any cross-chat, cross-agent or local-orchestrator dispatch, the dispatching response must include a complete paste-ready message with a direct GitHub URL to that durable handoff. A repository-relative path by itself is not sufficient because the receiving worker may not share the sender's chat or repository context. The paste-ready dispatch should include the target role, repository, branch, starting SHA, purpose, required work, verification/stop conditions and the exact handoff URL.
