@@ -301,8 +301,9 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             + " canopy=" + F(baselineCanopy) + " light=" + F(baselineLight) + " regen=" + baselineRegen);
 
         // ── MFM-03 residual at baseline (year 2, post-Lesson-5 extension state) ──
+        double baselineMeanDbh = Living().Count > 0 ? Living().Average(t => t.Diameter) : 0;
         Note("=== MFM-03 LIVE RESIDUAL (baseline, year " + baselineYear + ") ===");
-        Mfm03Residual("baseline");
+        Mfm03Residual("baseline", baselineMeanDbh);
 
         // ── PATH A — sample-only, advance to year 5 ─────────────────────────
         Note("=== PATH A: sample-only, advance " + 3 + " years ===");
@@ -429,23 +430,36 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         manager.MarkAnnualReviewSeen();
         yield return Settle(6);
 
-        // REVIEW FIX-2: read cumulative volumes/revenue from management events after execution
-        var eventsB = manager.ManagementEvents;
+        // REVIEW FIX-1: equal horizon — advance Path B to the same year as Path A
+        while (ecology.EcologicalYear < baselineYear + 3)
+        {
+            manager.AdvanceYear();
+            manager.MarkAnnualReviewSeen();
+            yield return Settle(2);
+        }
+        Note("path-B: equal horizon reached at year " + ecology.EcologicalYear);
+
+        // REVIEW FIX-2: post-baseline volumes/revenue from management events (B-vs-C cash decomposition)
+        var eventsB = manager.ManagementEvents.Where(e => e.year > baselineYear).ToList();
         long cumSoldRevenue = eventsB.Where(e => e.eventType == ScenarioManagementEventType.WorkResolved
             && e.taskType == ScenarioWorkType.FellTree).Sum(e => e.timberRevenueCents);
         long cumContractorCost = eventsB.Where(e => e.eventType == ScenarioManagementEventType.WorkResolved
             && e.taskType == ScenarioWorkType.FellTree).Sum(e => e.contractorCostCents);
         long cumStockCost = eventsB.Sum(e => e.stockCostCents);
-        long cumCashDelta = eventsB.Sum(e => e.cashDeltaCents);
-        Note("path-B: cumulative revenue=" + cumSoldRevenue + " contractorCost=" + cumContractorCost
-            + " stockCost=" + cumStockCost + " cashDelta=" + cumCashDelta);
+        long observedDeltaB = manager.CashCents - cashBeforeExec;
+        long netDecompB = cumSoldRevenue - cumContractorCost - cumStockCost;
+        Note("path-B: post-baseline revenue=" + cumSoldRevenue + " contractorCost=" + cumContractorCost
+            + " stockCost=" + cumStockCost + " net=" + netDecompB + " observedCashDelta=" + observedDeltaB
+            + " reconciled=" + (netDecompB == observedDeltaB));
+        Note("path-B: cash anatomy: timber revenue " + cumSoldRevenue + " minus contractor (incl. minimum-job fee "
+            + manager.Definition.MinimumHarvestJobCents + ") " + cumContractorCost + " minus stock " + cumStockCost);
 
-        // Measure Path B at year 5
+        // Measure Path B at the equal horizon
         MeasurePathResult("B", baselineYear + 3, qSold, qRevenue, qCost, cumSoldRevenue, cumContractorCost);
 
-        // REVIEW FIX-4: MFM-03 at post-extension state (after B, year 5)
+        // REVIEW FIX-4: MFM-03 at post-extension state (after B, at the equal horizon)
         Note("=== MFM-03 POST-EXTENSION STATE (after B, year " + ecology.EcologicalYear + ") ===");
-        Mfm03Residual("post-B-year5");
+        Mfm03Residual("post-B-y" + ecology.EcologicalYear, baselineMeanDbh);
 
         // ── REVIEW FIX-3: Long-run completion with planting ──────────────────
         Note("=== LONG-RUN COMPLETION (with planting) ===");
@@ -550,7 +564,7 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
         // REVIEW FIX-4: MFM-03 at year 25
         Note("=== MFM-03 AT YEAR 25 ===");
-        Mfm03Residual("year25");
+        Mfm03Residual("year25", baselineMeanDbh);
 
         // ── REVIEW FIX-4: Protected compatibility ───────────────────────────
         Note("=== PROTECTED COMPATIBILITY ===");
@@ -611,15 +625,31 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         manager.MarkAnnualReviewSeen();
         yield return Settle(6);
 
-        // REVIEW FIX-2: cumulative after Path C
-        var eventsC = manager.ManagementEvents;
+        // REVIEW FIX-1: equal horizon — advance Path C to the same year as Path A
+        while (ecology.EcologicalYear < baselineYear + 3)
+        {
+            manager.AdvanceYear();
+            manager.MarkAnnualReviewSeen();
+            yield return Settle(2);
+        }
+        Note("path-C: equal horizon reached at year " + ecology.EcologicalYear);
+
+        // REVIEW FIX-2: post-baseline volumes/revenue from management events (B-vs-C cash decomposition)
+        var eventsC = manager.ManagementEvents.Where(e => e.year > baselineYear).ToList();
         long cumCRevenue = eventsC.Where(e => e.eventType == ScenarioManagementEventType.WorkResolved
             && e.taskType == ScenarioWorkType.FellTree).Sum(e => e.timberRevenueCents);
         long cumCContractor = eventsC.Where(e => e.eventType == ScenarioManagementEventType.WorkResolved
             && e.taskType == ScenarioWorkType.FellTree).Sum(e => e.contractorCostCents);
-        Note("path-C: cumulative revenue=" + cumCRevenue + " contractorCost=" + cumCContractor);
+        long cumCStock = eventsC.Sum(e => e.stockCostCents);
+        long observedDeltaC = manager.CashCents - cashCBeforeExec;
+        long netDecompC = cumCRevenue - cumCContractor - cumCStock;
+        Note("path-C: post-baseline revenue=" + cumCRevenue + " contractorCost=" + cumCContractor
+            + " stockCost=" + cumCStock + " net=" + netDecompC + " observedCashDelta=" + observedDeltaC
+            + " reconciled=" + (netDecompC == observedDeltaC));
+        Note("path-C: cash anatomy: timber revenue " + cumCRevenue + " minus contractor (incl. minimum-job fee "
+            + manager.Definition.MinimumHarvestJobCents + ") " + cumCContractor + " minus stock " + cumCStock);
 
-        // Measure Path C at year 5
+        // Measure Path C at the equal horizon
         MeasurePathResult("C", baselineYear + 3, qCSold, qCRevenue, qCCost, cumCRevenue, cumCContractor);
 
         // ── Screenshots ─────────────────────────────────────────────────────
@@ -634,39 +664,65 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
 
         // ── Summary ─────────────────────────────────────────────────────────
         Note("=== SUMMARY ===");
-        Note("three-path comparison at equal horizons (year " + (baselineYear + 3) + ")");
-        Note("timber/economy: quote after approval + cumulative event volumes/revenue");
+        Note("three-path comparison: A, B, C each measured at year " + (baselineYear + 3)
+            + " (3 years from baseline year " + baselineYear + ")");
+        Note("timber/economy: quote after approval + post-baseline event volumes/revenue with cash reconciliation");
         Note("completion: planting beech/oak + objectives logged at year " + minimumYear);
-        Note("MFM-03: measured at baseline, post-B year5, and year 25");
+        Note("MFM-03: measured at baseline y" + baselineYear + ", post-B y" + (baselineYear + 3) + ", and year 25");
+        Note("MFM-03 CI parity: established only where a covered set exists; post-treatment states report unavailability with reason");
     }
 
     // ── Measurement helpers ─────────────────────────────────────────────────
 
-    private void Mfm03Residual(string label)
+    private void Mfm03Residual(string label, double baselineMeanDbh)
     {
         var livingR = Living();
         double baR = TotalBa();
         double meanDbhR = livingR.Count > 0 ? livingR.Average(t => t.Diameter) : 0;
         Note("mfm03-" + label + ": living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
             + " year=" + ecology.EcologicalYear);
+        Note("mfm03-" + label + "-growth-drift: meanDbhCm=" + F(meanDbhR)
+            + " driftFromSampleY0=" + F(meanDbhR - 15.404493166605631)
+            + " driftFromBaseline=" + F(meanDbhR - baselineMeanDbh));
+
+        // Live competition-index parity: source sample vs covered units (the MFM-03 GAMEPLAY CALIBRATION check).
         manager.ReadCoverage(out string rcProblem);
-        if (string.IsNullOrEmpty(rcProblem))
+        if (!string.IsNullOrEmpty(rcProblem))
+        {
+            Note("mfm03-" + label + "-ci-parity: UNAVAILABLE — ReadCoverage problem: " + rcProblem);
+            Note("mfm03-" + label + "-ci-parity: cross-year CI parity NOT DEMONSTRATED at this state");
+        }
+        else
         {
             var cov = manager.ReadCoverage(out _);
-            if (cov != null && cov.Valid)
+            if (cov == null || !cov.Valid)
+            {
+                Note("mfm03-" + label + "-ci-parity: UNAVAILABLE — coverage invalid: " + (cov == null ? "null" : cov.Problem));
+                Note("mfm03-" + label + "-ci-parity: cross-year CI parity NOT DEMONSTRATED at this state");
+            }
+            else
             {
                 double sourceCi = cov.Source.MeanCompetition;
                 var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
                 double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
+                var stateCounts = cov.Areas.GroupBy(a => a.State).Select(g => g.Key + "=" + g.Count());
+                Note("mfm03-" + label + "-coverage-states: " + string.Join(",", stateCounts));
                 if (coveredAreas.Count > 0 && coveredCi > 0)
                 {
                     double ciDelta = Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9);
-                    Note("mfm03-" + label + "-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
+                    Note("mfm03-" + label + "-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi)
+                        + " delta=" + F(ciDelta * 100) + "% coveredAreas=" + coveredAreas.Count);
                     Check(ciDelta <= 0.20, "mfm03-" + label + ": CI parity within 20% (GAMEPLAY CALIBRATION)");
                 }
                 else
                 {
-                    Note("mfm03-" + label + "-ci-parity: source=" + F(sourceCi) + " covered=0 (no covered areas at this state)");
+                    var exclusionReasons = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Excluded)
+                        .SelectMany(a => a.Reasons).GroupBy(r => r).Select(g => g.Key + "=" + g.Count());
+                    Note("mfm03-" + label + "-ci-parity: UNAVAILABLE — " + coveredAreas.Count
+                        + " covered areas (source=" + F(sourceCi) + ")");
+                    Note("mfm03-" + label + "-ci-parity: exclusion reasons: " + string.Join(",", exclusionReasons));
+                    Note("mfm03-" + label + "-ci-parity: reason: units with open/completed work leave the Covered class, so after treatment the source-vs-covered comparison set is empty");
+                    Note("mfm03-" + label + "-ci-parity: cross-year CI parity NOT DEMONSTRATED at this state");
                 }
             }
         }
