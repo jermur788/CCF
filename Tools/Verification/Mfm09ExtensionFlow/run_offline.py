@@ -28,7 +28,10 @@ WP = "Assets/ForestPrototype/UI/WorkPlanView.cs"
 OBJ = "Assets/ForestPrototype/UI/LearningObjectivesView.cs"
 OBJSEQ = "Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs"
 OWNED_PRODUCTION = {SEQ, WP, OBJ, OBJSEQ}
-OWNED_OTHER_PREFIXES = ("Tools/Verification/Mfm09ExtensionFlow/", "Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/")
+# The one accepted harness MFM-09 had to extend: the T-05 Previous/Proposed runner compiles slices of WorkPlanView and needs the two new
+# explanation-only members (verification-only; no assertion changed). Any other file outside this list is still a failure.
+OWNED_OTHER_PREFIXES = ("Tools/Verification/Mfm09ExtensionFlow/", "Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/",
+                        "Tools/Verification/ScenarioOneRepeatedInterventions/PreviousProposed/run_offline_check.py")
 FORBIDDEN_ADDED = re.compile(
     r"ApprovePendingWork|ApprovePrescription|CreatePrescription|AddMarkedTreesToWorkPlan|AdvanceYear|ConfirmCropTree|ConfirmRack|"
     r"TryRecordFirstGuidedRackReview|firstGuidedRackReviewComplete\s*=|SetMark|MarkForFell|CancelApprovedOrder|RemovePendingOrder|"
