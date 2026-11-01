@@ -538,3 +538,14 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - U1 released by #219 and available for the MFM-11 Unity phase once the offline harness is ready and the PARITY-09 review has finished reading U1.
 - No production edits; no `active-tasks.md` edit; no #194 action.
 - **Result:** PENDING.
+
+## 2026-11-01T14:45Z — R-008 OUTCOME: PARITY-09 evidence + Claude APPROVED (OBSERVED FACT)
+
+- **Worker:** DeepSeek V4.1 Flash; **independent reviewer:** Claude Sonnet 5.5 Medium (`claudeAgent`, effort medium), review-only, no Unity.
+- **Branch:** `qual/parity-09-integrated-v1` pushed; handoff `aa8eb6ff`, review `87aee15f`; exact candidate `3acdf9cb`.
+- **Review verdict:** **APPROVED**; no new production/spec defect. The review confirmed the #199 delta is UI-presentation only, verified the new Unity markers, and classified every red item as verification debt or accepted limitation.
+- **Specific review findings:** the history build failure is caused by the harness csproj omitting `ScenarioManagementHistory.cs`; the five v23 pins are verification debt; `MaxRemovedBasalShare` is a removal-share cap false positive; the three Beech R2 misses remain the accepted limitation; the first completion attempt failed only because it was not Legacy40 (disclosure gap, now noted in the handoff).
+- **Residual/coverage gap:** no Unity timber/pruning assertion ran on `3acdf9cb` because those gates abort on the v23 pin. Review judged accepted PARITY-06 evidence + offline timber 73 checks + byte-identical sources + UI-only delta sufficient, and recommends a non-blocking verification-only repin (five v23 pins + history csproj + rerun timber/mixed/pruning once).
+- **Token:** `THREE-SPECIES PARITY P0 VERIFIED` supportable after #200 acceptance; not self-issued.
+- **Cleanup:** U1 clean at `87aee15f`; lock free; no Editor; no staged harness.
+- **Next action:** #200 reviews #219; #220 Unity phase follows when Mimo's offline harness is ready.

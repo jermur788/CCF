@@ -284,3 +284,51 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 1. **#200 reviews #199** (`HANDOFF.md` + `INDEPENDENT-REVIEW-20261101.md`, branch `fix/scenario-one-combined-hud-focus-regression-v1-option1`) and either accepts it for integration or returns the visual trade-offs for a follow-up. Do not integrate from this local result alone.
 2. **#200 reviews #213** and either explicitly accepts the two documented pre-existing red families as out of MFM-10 scope (issuing `SPECIES GUARD QUALIFIED`) or releases a bounded verification-asset repair for the `MaxRemovedBasalShare` scanner false positive.
 3. Only after #200 release: PARITY-09 / MFM-11 / MFM-12 / Tier-3. No self-release; no Windows build before user playtest + explicit authorisation.
+
+---
+
+# PARITY-09 #219 + MFM-11 #220 Continuation — Run Summary
+
+**Status at this append: PARITY-09 evidence + Claude APPROVED (Manager verdict pending); MFM-11 offline complete and Unity phase running under Mimo 2.6 Pro.**
+
+## 1. Children
+
+| Child | Provider/model | State | Exact SHA / branch | Evidence |
+|---|---|---|---|---|
+| **#219** PARITY-09 | DeepSeek V4.1 Flash (qualification) + Claude Sonnet 5.5 Medium (independent review) | **QUALIFICATION COMPLETE — INDEPENDENT REVIEW APPROVED; Manager verdict pending** | `qual/parity-09-integrated-v1` pushed; handoff `aa8eb6ff`; review `87aee15f`; exact `3acdf9cb` | `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/HANDOFF.md` + `INDEPENDENT-REVIEW.md`; `/media/jer/Files/CCF/Verification/PARITY-09-20261101/` |
+| **#220** MFM-11 | Mimo 2.6 Pro (`opencode-go/mimo-v2.6-pro`, xhigh) | **OFFLINE COMPLETE — UNITY PHASE RUNNING** | `verify/mfm-11-calibration-impact-v1` at `66476643` in U1; offline 27/0 deterministic | `Docs/Handoffs/MFM-11-Calibration-Impact/MEASUREMENT-DESIGN.md` + `HANDOFF.md`; `/media/jer/Files/CCF/Verification/MFM11-CalibrationImpact-20261101/` |
+| MFM-12 / Tier-3 | — | **NOT RELEASED** | — | blocked on accepted MFM-11 |
+| #194 | — | **NO ACTION** | — | untouched |
+
+## 2. PARITY-09 result (OBSERVED FACT)
+
+- New Unity PASS on exact `3acdf9cb`: adult 30/30 at Legacy40 and Enlarged80; DensityQualification 5 hard checks (anchors `7E57B9DAEF5BF4D0` / `35E2BF1C2F55C2DE`, 24/24, 356 victims); completion model-2 Legacy40 12 phases, `9C77EB4BEE427FB9`, cash 613,978, completion year 25; Reference archive/preview/continuation exact; SaveHardening PASS.
+- Offline PASS: early-life 30; player-facing 89/89; Parity08 23; MFM prescription core 240/0 byte-identical; MFM save provenance 172; timber 73; density-isolated and Sitka-isolated.
+- Red items are verification debt/accepted limitation, not new defects: five stale v23 save pins; `MaxRemovedBasalShare` scanner false positive; three accepted Beech R2 misses; history csproj missing `ScenarioManagementHistory.cs`; 11 pre-existing guided-v2 failures.
+- **Claude Sonnet 5.5 independent review: APPROVED.** No new production/spec defect. Residual: no Unity timber/pruning assertion on `3acdf9cb` because those gates abort on the v23 pin; the review judges accepted PARITY-06 + offline timber + byte-identical sources + UI-only #199 delta sufficient, and recommends a non-blocking verification-only repin.
+- `THREE-SPECIES PARITY P0 VERIFIED` is supportable after #200 acceptance; not self-issued.
+
+## 3. MFM-11 offline result (OBSERVED FACT)
+
+- Mimo built a verification-only offline harness and measurement design. Independent orchestrator rerun: `MFM11_CALIBRATION_IMPACT_PASS checks=27 failed=0`, byte-identical repeat.
+- Path A sample-only: 34 stems / 0.521 m² BA removed; Path B prescription: 118 stems / 2.366 m²; Path C manual override: 85 stems / 1.091 m². All per-unit safeguards ≤40%; canopy retained 89.8% (B) / 95.3% (C); CI parity 3.76%; growth drift 0.076 cm; species guard green (single-species fixture).
+- Unity phase now running in U1 under Mimo; it must measure live economy/timber/deadwood/regeneration/completion/save-load, live MFM-03 residual and the species guard before any token.
+
+## 4. Routing / capacity
+
+- **R-008 (#219 → DeepSeek, review → Claude Sonnet 5.5 Medium):** DeepSeek for evidence/gate execution; Claude cross-provider for the independent review. Claude AVAILABLE in the catalogue; quota UNKNOWN; review completed.
+- **R-009 (#220 → Mimo 2.6 Pro xhigh):** substantial open-ended quantitative qualification; user-authorised capacity; offline phase completed; Unity phase continuing.
+- DeepSeek orchestrator; exact token/call/quota telemetry UNKNOWN. No failure classified as a model-capability failure.
+
+## 5. State
+
+- U1 now on `verify/mfm-11-calibration-impact-v1` at `66476643`; MFM-11 Unity phase owns the lane.
+- PARITY-09 branch pushed; U1 clean at handoff/review before the switch.
+- Machine-wide lock free at this append; no Editor/Xephyr/openbox.
+- No production edits, no Windows build, #194 untouched.
+
+## 6. Exact next action
+
+1. MFM-11 Unity phase completes and publishes its handoff/evidence (or returns `BLOCKED — CALIBRATION IMPACT`).
+2. Independent review of MFM-11 by a separate reviewer/thread (Claude Sonnet 5.5 preferred; DeepSeek fallback if Claude is unavailable).
+3. #200 reviews #219 and #220; accepted MFM-11 releases MFM-12. No self-release; no Windows build.
