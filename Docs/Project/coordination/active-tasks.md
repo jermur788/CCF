@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-01 by Overall Manager / OpenAI GPT-5.6 Sol after Manager acceptance of PARITY-09 #219 and MFM-11 #220, verification-debt disposition, and downstream MFM-12 release preparation. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-11-01 by Overall Manager / OpenAI GPT-5.6 Sol after closing browser continuation #221. PARITY-09 #219 and MFM-11 #220 are Manager-approved/closed; #223/#224 are the next local repair tasks and #225 MFM-12 is released but blocked pending their Manager closure and exact-SHA repin. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -33,7 +33,7 @@ MFM-11's accepted evidence boundary is explicit: the actual post-Lesson-5 extens
 | Task | Lane | Exact base | Ownership | Status |
 |---|---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
-| **Browser Manager Continuation 04** (#221) | browser/GitHub | current integration + returned handoffs | #219/#220 reviews; debt disposition; downstream readiness | **COMPLETING — VERDICTS/PACKETS PUBLISHED** |
+| **Browser Manager Continuation 04** (#221) | browser/GitHub | current integration + returned handoffs | #219/#220 reviews; debt disposition; downstream readiness | **CLOSED — COMPLETED** |
 | **Local Deep Orchestration Resume 02** (#203) | local orchestration | child lanes only | DeepSeek routing + evidence; Mimo authorised | **RUNNING** |
 | **Verification-debt repair** (#223) | #203 local | start from current exact candidate; repin if #224 integrates first | verification-only pins/history/scanner/guided expectations | **READY** |
 | **Objectives-window overflow repair** (#224) | #203 local | `3acdf9cb635cdca79606335801e97f9d7dcce8b0` | bounded UI reproduction/repair + rendered regressions | **READY** |
