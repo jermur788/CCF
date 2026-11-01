@@ -457,6 +457,36 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Check(provenanceCount > 0, "orders carry prescription provenance", provenanceCount.ToString());
         Note("path-B: " + newOrders + " orders generated, " + provenanceCount + " with provenance");
 
+        // GAP-5 FIX: MFM-03 live residual at post-Lesson-5 extension state (after prescription approved, before execution)
+        Note("=== MFM-03 LIVE RESIDUAL (post-Lesson-5 extension state) ===");
+        var livingR = Living();
+        double baR = TotalBa();
+        double meanDbhR = livingR.Average(t => t.Diameter);
+        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
+            + " year=" + ecology.EcologicalYear);
+        manager.ReadCoverage(out string rcProblem);
+        if (string.IsNullOrEmpty(rcProblem))
+        {
+            var cov = manager.ReadCoverage(out _);
+            if (cov != null && cov.Valid)
+            {
+                double sourceCi = cov.Source.MeanCompetition;
+                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
+                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
+                double ciDelta = coveredCi > 0 ? Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9) : 1.0;
+                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
+                if (coveredAreas.Count > 0 && coveredCi > 0)
+                    Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
+                else
+                    Note("mfm03: CI parity UNAVAILABLE (no covered areas with competition at this state)");
+            }
+        }
+        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
+        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
+            + " shelters=" + manager.Shelters.Count
+            + " deadwood=" + manager.DeadwoodRecords.Count
+            + " marks=" + marks.GetMarkedIds().Count);
+
         // GAP-2 FIX: capture harvest quote BEFORE execution for timber/deadwood volume/revenue
         var quoteBeforeExec = manager.GetHarvestQuote(true);
         long quoteSoldVol = quoteBeforeExec?.SoldVolumeCm3 ?? 0;
@@ -516,33 +546,6 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Note("path-B: save/load hash preserved: " + hashB);
         if (File.Exists(SavePath)) File.Delete(SavePath);
         if (File.Exists(SavePath + ".bak")) File.Delete(SavePath + ".bak");
-
-        // ── Section 5 (GAP-5 FIX): MFM-03 live residual AFTER Path B ─────────
-        Note("=== MFM-03 LIVE RESIDUAL (post-Lesson-5 extension state) ===");
-        var livingR = Living();
-        double baR = TotalBa();
-        double meanDbhR = livingR.Average(t => t.Diameter);
-        Note("mfm03-whole-stand: living=" + livingR.Count + " baM2=" + F(baR) + " meanDbhCm=" + F(meanDbhR)
-            + " year=" + ecology.EcologicalYear);
-        manager.ReadCoverage(out string rcProblem);
-        if (string.IsNullOrEmpty(rcProblem))
-        {
-            var cov = manager.ReadCoverage(out _);
-            if (cov != null && cov.Valid)
-            {
-                double sourceCi = cov.Source.MeanCompetition;
-                var coveredAreas = cov.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).ToList();
-                double coveredCi = coveredAreas.Count > 0 ? coveredAreas.Average(a => a.Metrics.MeanCompetition) : 0;
-                double ciDelta = Math.Abs(sourceCi - coveredCi) / Math.Max(sourceCi, 1e-9);
-                Note("mfm03-ci-parity: source=" + F(sourceCi) + " covered=" + F(coveredCi) + " delta=" + F(ciDelta * 100) + "%");
-                Check(ciDelta <= 0.20, "mfm03: CI parity within 20% (GAMEPLAY CALIBRATION)");
-            }
-        }
-        Note("mfm03-growth-drift: meanDbh=" + F(meanDbhR) + " (year " + ecology.EcologicalYear + ")");
-        Note("mfm03-live-state: juveniles=" + manager.PlantedJuveniles.Count
-            + " shelters=" + manager.Shelters.Count
-            + " deadwood=" + manager.DeadwoodRecords.Count
-            + " marks=" + marks.GetMarkedIds().Count);
 
         // ── Section 5b (GAP-1 FIX): Long-run completion ─────────────────────
         Note("=== LONG-RUN COMPLETION ===");
