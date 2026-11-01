@@ -600,3 +600,13 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Classification:** worker harness quality/compile failure, not a production defect and not a model-capability escalation trigger. The same Mimo worker was steered with the exact compile diagnosis and told to fix, commit, release/re-acquire and re-run.
 - **No production edits; no #194 action; no Windows build.**
 - **Next action:** Mimo fixes the gate and runs the revised matrix; then Claude re-review.
+
+## 2026-11-01T17:55Z — R-009 RUN 5 + R-010 REVIEW CAPACITY FALLBACK (OBSERVED FACT)
+
+- Mimo fixed the compile error (`16552dc1`), equalised the horizons and corrected the post-treatment CI reporting (`f642550c`), and ran the operative **run 5**: `MFM11_UNITY_PASS checks=47 shots=2`, exit 0, 322.4 s; evidence `unity/run5/`.
+- **Run 5 results:** equal horizon year 5 for A/B/C; Path B 1093 living / 27.308 m² / canopy 0.939526 / light 0.060474 / regen 106 / cash 594310; Path C 1168 / 29.321 m² / 0.956893 / 0.043107 / 89 / 531053; Path A 1177 / 29.497 m² / 0.957621 / 0.042379 / 86 / 776854. Completion `Outcome.Completed` at year 25 with 8/8 objectives (beech ×3, oak ×3 planted through the ordinary path; second intervention at year 17). Economy reconciles exactly: B −182,544 = 67,456−250,000; C −245,801 = 4,199−250,000. MFM-03 y2 extension state CI parity 4.17% (13 covered areas, within 20%); post-B y5 CI parity `UNAVAILABLE` (0 covered areas, `PlayerCompletedWork=13`); y25 `ReadCoverage` refuses because the sample qualification degraded (2/3 crop trees, release 0.2619). Protected compatibility is labelled PARITY-09 cited + save/load self-consistency only.
+- **Worker verdict:** `QUALIFICATION INCOMPLETE — GAP` (handoff `45cad2cf`); no material accepted-outcome break, no `BLOCKED — CALIBRATION IMPACT`; token not issued.
+- **R-010 re-review capacity event:** Claude Sonnet 5.5 returned `API rate limit reached` on the round-2 re-review. This is a quota/capacity failure, **not** a model-capability failure. Per the live routing contract, the re-review was reassigned to **OpenAI Codex `gpt-6.1-sol` high** (`codex_c75d8114…`), a separate provider/model from the Mimo implementer; the first Claude review (`2bb42a36`) is retained as prior context.
+- **Token:** `MULTI-SCALE CALIBRATION QUALIFIED` remains not issued; the two gaps are (1) structurally unmeasurable post-treatment cross-year CI parity and (2) citation-level protected compatibility. Manager disposition required.
+- **Cleanup:** U1 clean at `45cad2cf`; lock free; no Editor; no staged harness.
+- **Next action:** Codex re-review; then Manager disposition on whether the structural CI-parity gap and cited protected evidence are acceptable for the token.
