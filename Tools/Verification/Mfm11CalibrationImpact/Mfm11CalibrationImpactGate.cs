@@ -409,23 +409,19 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         var presc = manager.FindPrescription(1);
         Check(presc != null && presc.approvalState == PrescriptionApprovalState.Accepted, "prescription accepted");
 
-        // Spot-check: inspect a proposed tree
+        // Spot-check: record programmatically (the gate drives the world model, not real keys)
         var preview = Review.Session.LastPreview;
         Check(preview != null && preview.Proposals.Count > 0, "preview proposals available");
         if (preview.Proposals.Count > 0)
         {
             string proposedId = preview.Proposals[0].TreeId;
-            ForestTree proposed = Tree(proposedId);
-            if (proposed != null)
-            {
-                // Simple inspection via player position
-                player.transform.position = proposed.transform.position + new Vector3(2f, 0, 2f);
-                player.LookToward(proposed.transform.position + Vector3.up * 1.4f);
-                Physics.SyncTransforms();
-                yield return Settle(10);
-            }
+            manager.ReadCoverage(out string scProblem);
+            var scCoverage = manager.ReadCoverage(out _);
+            var acceptedUnits = scCoverage?.Areas.Where(a => a.State == ScenarioOneCoverage.State.Covered).Select(a => a.Id).ToList()
+                ?? new List<string>();
+            Review.Session.RecordSpotCheck(proposedId, scCoverage, acceptedUnits);
+            Check(Review.Session.SpotCheckDone, "spot-check recorded");
         }
-        yield return Settle(6);
 
         // Approve prescription
         long cashBeforeApprove = manager.CashCents;
