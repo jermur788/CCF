@@ -39,9 +39,11 @@ ALLOWED = (
     "Tools/Verification/MfmTreatmentReviewUnity/",
     "Tools/Verification/MfmCoverageWorld/",
     "Tools/Verification/MfmSaveProvenance/",
+    "Tools/Verification/Mfm12IntegratedQualification/",
     "Docs/Handoffs/MFM-08-Map-3D-Review-UX/",
     "Docs/Handoffs/MFM-08-Geometry-Repair-01/",
     "Docs/Handoffs/MFM-12-Fit-Replay-Repair/",
+    "Docs/Handoffs/MFM-12-Integrated-Qualification/",
     "Docs/Project/coordination/active-tasks.md",
 )
 
