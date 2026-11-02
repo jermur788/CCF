@@ -4,26 +4,26 @@
 **Parent:** #91 / #200 / #221  
 **Authority:** `specs/multiscale-forestry-management-v1/` (`spec.md`, `tasks.md`, `checklists/requirements.md`)  
 **Task:** MFM-12  
-**Status:** **RELEASED — DO NOT START LOCALLY UNTIL #223/#224 ARE MANAGER-CLOSED AND THIS PACKET IS REPINNED TO THE EXACT POST-REPAIR PRODUCTION SHA**  
+**Status:** **READY / REPINNED — LOCAL START RELEASED**  
 **Difficulty:** High — end-to-end cross-system Unity qualification, persistence, rendered UX, complete-loop witness and independent spec-conformance review.  
 **Best-suited primary:** SOL/CODEX high-reasoning local qualification lane.  
 **Independent reviewer:** separate cross-provider reviewer, preferably Claude Sonnet 5.5 or another capable reviewer independent of the qualification/fix threads.  
+**Exact integration candidate:** `508b3e8124b5d9c477a4d2471cd56ebf6608f197`  
 **Suggested branch:** `qual/mfm-12-integrated-v1`  
 **Worktree:** dedicated clean lane assigned by #203.  
 **User action required:** none.
 
-## Repin block
+## Release / repin authority
 
-Current production integration at publication is:
+#223 verification-debt repair and #224 Objectives-window overflow repair are both Manager-approved and integrated.
 
-`3acdf9cb635cdca79606335801e97f9d7dcce8b0`
+The exact Scenario One integration lineage to qualify is:
 
-Before local start, #200 must replace this with the exact production candidate after accepted closure of:
+`integration/scenario-one-player-test-ready-v1 @ 508b3e8124b5d9c477a4d2471cd56ebf6608f197`
 
-- #223 — verification-debt repair; and
-- #224 — Objectives-window overflow repair if reproduced.
+This head includes the accepted #223 verification repair, the accepted #224 bounded USS layout repair, both returned handoffs and the Manager reviews. The #224 production repair is one USS file and its accepted rendered regressions are guided-v2 535/0, Combined HUD 465/0 and PARITY-07 1031/0.
 
-Record the exact branch/worktree/starting HEAD in #225 at `[RUNNING]` preflight. Heavy Unity is serialized machine-wide.
+Record the exact branch/worktree/starting HEAD in #225 at `[RUNNING]` preflight. Heavy Unity is serialized machine-wide. If the integration branch has moved before local start, stop and return to #200 for a fresh repin unless the movement is documentation-only and explicitly accepted by #200.
 
 ## Goal
 
@@ -90,7 +90,7 @@ Rendered evidence at **1280×720 and 1920×1080** must demonstrate:
 - required extrapolated-unit spot-check is meaningful;
 - objective/history/review/work-plan surfaces do not critically overlap or clip;
 - the #199 minimap/focus contracts remain green;
-- guided-v2 is green after accepted #223/#224 work.
+- guided-v2 remains green after accepted #223/#224 work.
 
 ### Calibration / complete loop
 
@@ -110,7 +110,7 @@ Carry MFM-11 as accepted evidence but run enough exact-candidate integration cov
 - history remains read-only with respect to current game state;
 - MFM extension coexists with accepted S1-C review/history and S1-D repeated-intervention behavior across at least two management cycles.
 
-## Required reruns from verification-debt closure
+## Required reruns from verification-debt/UI closure
 
 Do not accept inherited red/stale wiring. Confirm the final candidate has current results for at least:
 
@@ -167,6 +167,6 @@ Publish:
 
 Include exact commands/results, gate counts, screenshots manifest, save/reference fingerprints, full-loop witness, checklist matrix, cleanup/lock receipt and exact unresolved limitations.
 
-Copy/paste dispatch after Manager repin:
+Copy/paste dispatch:
 
-`Run MFM-12 claim #225 from Docs/Handoffs/MFM-12-Integrated-Qualification/TASK-PACKET.md only after #200 repins it to the exact post-#223/#224 production integration. Qualify the full Multi-Scale Forestry Management V1 checklist end-to-end: save/load and old saves, Rack-derived sample/coverage, candidate/proposal/player-judgement boundaries, Work Plan commitment, ordinary economy, provenance/history, rendered 720p/1080p UX, repeated-cycle coexistence and complete Scenario One completion. Carry MFM-11's post-treatment CI parity as NOT DEMONSTRATED unless separately proven. No production repairs in this claim. Obtain independent cross-provider review. No Windows build; #194 NO ACTION.`
+`Run MFM-12 claim #225 from Docs/Handoffs/MFM-12-Integrated-Qualification/TASK-PACKET.md on exact integration candidate 508b3e8124b5d9c477a4d2471cd56ebf6608f197. Qualify the full Multi-Scale Forestry Management V1 checklist end-to-end: save/load and old saves, Rack-derived sample/coverage, candidate/proposal/player-judgement boundaries, Work Plan commitment, ordinary economy, provenance/history, rendered 720p/1080p UX, repeated-cycle coexistence and complete Scenario One completion. Carry MFM-11's post-treatment CI parity as NOT DEMONSTRATED unless separately proven. No production repairs in this claim. Obtain independent cross-provider review. No Windows build; #194 NO ACTION.`
