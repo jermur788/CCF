@@ -38,7 +38,8 @@ from qualification_results import (EVIDENCE_FORMAT_CURRENT, EVIDENCE_FORMAT_PRE_
 ROOT = Path(__file__).resolve().parents[3]
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
 STAGE = ROOT / "Assets" / "ForestPrototype"
-LICENCES = Path.home() / ".config/unity3d/Unity/licenses"
+LICENCES = [Path.home() / ".config/unity3d/Unity/licenses",
+            Path.home() / ".var/app/com.unity.UnityHub/config/unity3d/Unity/licenses"]
 # Unity re-serialises these on every Editor run that loads them, independent of the code under test: the settings file gets
 # its solution name, and seven to eleven SectionFive materials are normalised by URP 17.6 material validation. Five of them
 # change only by _Color float round-trip noise (0.045 -> 0.044999972). The two leaf materials (Bilberry_Leaves, Forb_Leaves)
@@ -91,7 +92,11 @@ def main():
     (out / "evidence").mkdir(parents=True, exist_ok=True)
     config = out / "config"
     if not (config / "unity3d/Unity/licenses").exists():
-        shutil.copytree(LICENCES, config / "unity3d/Unity/licenses")
+        found = [p for p in LICENCES if (p / "UnityEntitlementLicense.xml").is_file()]
+        if not found:
+            raise SystemExit("No existing local Unity licence; no launch")
+        newest = max(found, key=lambda p: (p / "UnityEntitlementLicense.xml").stat().st_mtime)
+        shutil.copytree(newest, config / "unity3d/Unity/licenses")
 
     # Only an Editor on THIS project blocks the run. (The density-v3 session shares the machine and runs its own Editors on
     # another project; its processes are watched for memory, not excluded.)

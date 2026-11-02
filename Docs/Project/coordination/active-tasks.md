@@ -1,113 +1,181 @@
 # Active Task Coordination
 
-This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed historical work belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md` rather than remaining as a live lock.
+This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-10-29 by Overall Manager / GPT-5.6 Sol after MFM-06 #113 integration and browser #120 readiness approval.
+**Last reconciled:** 2026-11-02 by Overall Manager / OpenAI GPT-5.6 Sol after approving and integrating #224. PARITY-09 #219 and MFM-11 #220 remain Manager-approved/closed; #223 verification debt and #224 Objectives overflow repair are approved/integrated; #225 MFM-12 is now repinned and released for local start. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
-- Overall Manager or an explicitly assigned integrator maintains this file.
-- Every worker with GitHub access refreshes this file and its task claim at substantial task start and before claiming a lock is missing.
+- Overall Manager or assigned integrator maintains this file.
+- **#200 is the sole primary writer for this file during the current two-lane split.**
+- Workers refresh this file and their child claim before asserting ownership/lock availability.
 - One writable lane/worktree per owner and one primary writer per subsystem/file set.
 - Never stash, reset, discard, clean, overwrite or absorb unrelated dirty work.
-- If file/subsystem ownership overlaps, stop before editing and return to the Manager for ownership/API disposition.
-- A GitHub task claim records execution presence; it **does not grant ownership** and never overrides this file.
-- Heavy Unity execution is serialized machine-wide. Verify candidate HEAD, branch/worktree and ownership before acquiring the Unity lock. Never bypass another Unity owner or kill its process.
-- No Windows build before the user personally playtests the Scenario One candidate and explicitly authorises it.
+- Heavy Unity is serialized machine-wide; a historical `free` receipt proves nothing about current availability.
+- Claims track execution presence only; they do not grant ownership.
+- No Windows build before the user's personal Scenario One playtest and explicit post-playtest authorisation.
+- After meaningful state changes, #200 refreshes `jermur788/Overall-Dev/updates/ccf/latest.md`; CCF remains canonical.
 
 ## Current integration truth
 
-MFM-06 #113 is **HANDED-OFF / CLOSED — INTEGRATED / VERIFIED for its bounded gate**.
+Published Scenario One integration:
 
-- Pre-integration umbrella: `ac876a64969752a3864034521f42559671264b30`.
-- Exact reviewed MFM-06 input: `13fd85452b8d3a55946fcb459af8b00e0326a579`.
-- Exact merged and Unity-qualified production umbrella: **`b971f4da0540e606bfee9702b0c99f81a0a89355`**.
-- Published `integration/scenario-one-player-test-ready-v1` head: **`7608f02cb8da1fabd8b78fd5aaf45b0c32086f67`**, a documentation-only successor of the tested production merge.
-- Integration handoff: `Docs/Handoffs/MFM-06/INTEGRATION-HANDOFF.md`.
-- Save schema is v23. Frozen Reference and protected hash compatibility passed without rebaseline.
+`integration/scenario-one-player-test-ready-v1` = **`508b3e8124b5d9c477a4d2471cd56ebf6608f197`**.
 
-Browser #120 reviewed #113 and returned **APPROVED — MFM-07 READY FOR CODE EXECUTION**. #120 is closed/released.
+This integration head includes the approved #223 verification-debt repair and the approved #224 bounded Objectives-window production repair plus returned handoffs and Manager reviews. #224's production delta is limited to `Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss`.
 
-## Immediate execution order
+Accepted current-lineage state includes Rack V2 / D-064 feature scope VERIFIED; **Sitka/Oak/Beech parity P0 VERIFIED** through PARITY-09 #219; S1-C T-08 accepted/feature-qualified; S1-D T-08 accepted/feature-qualified plus T-09 accepted; MFM-08 and MFM-09 accepted/integrated; MFM-10 #213 `SPECIES GUARD QUALIFIED`; **MFM-11 #220 `MULTI-SCALE CALIBRATION QUALIFIED`**; #199 Combined HUD / Focus Option 1 APPROVED/INTEGRATED/CLOSED; #223 Scenario One verification debt APPROVED/INTEGRATED; and #224 Objectives-window overflow APPROVED/INTEGRATED.
 
-1. **#121 MFM-07 — proposal state and approval boundary** is **DISPATCHED / RELEASED**, not yet assumed RUNNING. Production work must root from exact qualified candidate `b971f4da0540e606bfee9702b0c99f81a0a89355` unless a later Manager-approved docs-only descendant is explicitly selected.
-2. Before edits, #121 refreshes this file, #91/#106/#113/#120/#121, worktrees, dirty state and Unity lock; then marks itself `[RUNNING]` with actual model/provider, branch, worktree and starting HEAD.
-3. **Claude Code is authorised. Preferred route: Claude Sonnet 5.5 Ultra Code** for this 5/5 task, retaining one primary production writer. Escalate to Opus 5.5 Low only if architecture/conflict reasoning requires it.
-4. No downstream task gains production ownership merely because a packet exists.
+MFM-11's accepted evidence boundary is explicit: the actual post-Lesson-5 extension-state CI comparison is within the accepted gameplay-calibration tolerance; post-treatment source-vs-current-Covered CI parity remains **NOT DEMONSTRATED**.
 
-There is no standing assertion here that the Unity lock is free. The active worker must refresh lock/process/free-space state immediately before Unity.
+#224 closed the final current-lineage guided-v2 product failure. Accepted exact-repair regressions are guided-v2 **535 PASS / 0 FAIL**, Combined HUD **465 PASS / 0 FAIL**, and PARITY-07 rendered **1031 PASS / 0 FAIL**. Do not infer MFM-12 qualification from those targeted repair gates; #225 must still execute its full integrated qualification.
 
-## Live tasks / reserved lanes
+## Live / released tasks
 
-| Task | Primary / lane | Branch / worktree | Owned files or subsystem while active | Restrictions / dependencies | Live status |
-|---|---|---|---|---|---|
-| **PLAYER-TEST-OVERNIGHT-01** (#91) | DeepSeek orchestration/integration lead | `orchestration/scenario-one-player-test-ready-v1`; production stays on child lanes | Claims, dependency DAG, handoff triage, integration decisions, final Tier-3 assembly | Preserve child ownership; no product invention; no Windows build | **RUNNING** |
-| **PLAYER-TEST-T3-CODE-LANE-01** (#106) | Local C#/Unity execution umbrella | Child worktrees only | Local implementation/qualification through child claims | Exact candidate/handoff required; Unity serialized | **RUNNING** |
-| **MFM-07 proposal/approval boundary** (#121) | Claude Code; Sonnet 5.5 Ultra Code preferred | `feature/mfm-v1-proposal-approval-boundary-v1`; suggested `/media/jer/Videos/CCF-MFM-07` | Smallest proposal → validated pending-work surface required by MFM-07 | Root from `b971f4d`; no schema bump/save-validator edit; no MFM-08/09; no broadleaf quantitative extrapolation | **[RUNNING]** 2026-10-29 — Claude Code / Anthropic Claude Sonnet 5.5 (`claude-sonnet-5-5`); branch `feature/mfm-v1-proposal-approval-boundary-v1`; worktree `/media/jer/Videos/CCF-MFM-07`; starting HEAD `b971f4da0540e606bfee9702b0c99f81a0a89355` |
-| **PARITY-03 Q10 evidence strengthening** (#74) | Waiting verifier when released | existing verification lane | Verification only | Non-blocking evidence strengthening | **WAITING** |
+| Task | Lane | Exact base | Ownership | Status |
+|---|---|---|---|---|
+| **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
+| **Browser Manager Continuation 04** (#221) | browser/GitHub | current integration + returned handoffs | #219/#220 reviews; debt disposition; downstream readiness | **CLOSED — COMPLETED** |
+| **Local Deep Orchestration Resume 02** (#203) | local orchestration | child lanes only | DeepSeek routing + evidence; Mimo authorised | **RUNNING** |
+| **Verification-debt repair** (#223) | #203 local | `3acdf9cb635cdca79606335801e97f9d7dcce8b0` | verification-only pins/history/scanner/guided expectations | **CLOSED — APPROVED / INTEGRATED** |
+| **Objectives-window overflow repair** (#224) | #203 local | `bbcefe06e0d6a0dce38f6eb01d622dca7677495c` | bounded UI reproduction/repair + rendered regressions | **CLOSED — APPROVED / INTEGRATED** |
+| **MFM-12 integrated MFM qualification** (#225) | #203 local | `508b3e8124b5d9c477a4d2471cd56ebf6608f197` | integrated verification + independent review | **RUNNING — local lane `qual/mfm-12-integrated-v1`, worktree `/media/jer/ZX20/CCF-U1`, starting HEAD `508b3e81` (provider/model: orchestrated by `opencode-go/deepseek-v4.1-flash`; Unity execution delegated to `gpt-6.1-sol`); Unity lock checked FREE before start; production-repair authority NONE** |
+| **Scenario One Tier-3 / personal-player-test candidate** | #200 prep/review then #203 local | not yet released | full integrated qualification | **NOT RELEASED — WAITS MFM-12** |
+| **PARITY-03 Q10** (#74) | #203 when explicitly scheduled | existing verification branch | non-blocking verification | **WAITING — NON-BLOCKING; UNITY REMAINS** |
 
-## MFM-07 single-writer boundary
+No row proves the Unity lock is currently free.
 
-Claim #121 and `Docs/Handoffs/MFM-07/TASK-PACKET.md` are the current execution authority.
+## Manager-accepted PARITY-09 state
 
-When #121 starts, its writer owns only the smallest proposal→pending-work integration surface required by the published MFM-06 API:
+#219 is CLOSED / APPROVED on exact `3acdf9cb...`.
 
-- proposals remain separate from `TreeMarkType.Fell` and ordinary manual marks;
-- prescription approval creates pending ordinary work only;
-- Work Plan approval remains a separate commitment gate;
-- manual player state wins conflicts and conflicts are surfaced rather than overwritten;
-- **before each prescription-generated order is written, its referenced prescription, coverage unit and Crop Tree must validate; mismatch/staleness fails closed with no partial order/world mutation**;
-- MFM-06 v23 IDs/provenance are consumed, not duplicated;
-- no schema/version bump or save-validator edit is authorised; if required, STOP and return to Manager;
-- no broadleaf quantitative extrapolation.
+Durable review:
 
-Likely hot/shared surfaces include `ScenarioOneManager`, ordinary work-order creation APIs and Work Plan integration hooks. Exact files must be recorded before edits. Any overlap with another active writer means stop before editing.
+`Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/MANAGER-REVIEW-20261101.md`
 
-## Downstream sequencing — prepared only, no ownership yet
+Token:
 
-### Save / validation
+`THREE-SPECIES PARITY P0 VERIFIED`
 
-- **PARITY-08** may start only under a separate live claim after MFM-06 integration. It owns save validation/determinism while active. Do not overlap it with any unexpected MFM-07 save-path edit.
-- Final Tier-3 reruns the combined save/history chain on one exact final candidate.
+The token does not waive raw verification debt. The required fresh timber/mixed/pruning/history repair coverage was completed and approved under #223. The three Beech reduced-simulator R2 misses remain an accepted C-level limitation with the unchanged 0.40 criterion.
 
-### S1-C review/history
+## Manager-accepted MFM-11 state
 
-- **S1-C T-04**: provenance labelling on Annual Review/history.
-- **S1-C T-06**: prior-treatment guidance/history navigation.
-- **S1-C T-07**: stable identity/history contract verification.
-- **S1-C T-08**: feature qualification after T-04/T-06/T-07.
-- These may run beside MFM-07 only with explicitly non-overlapping live files. Shared `ScenarioOneManager`, save-validation, work-order or history-helper edits force serialization/Manager review.
+#220 is CLOSED / APPROVED on exact `3acdf9cb...` production bytes.
 
-### S1-D / teaching / Work Plan
+Durable review:
 
-- **S1-D T-04** owns teaching-sequence/current-state files and must land before MFM-09.
-- **S1-D T-05** waits until the MFM-07 pending-work/provenance API is stable; it then owns the bounded previous-versus-proposed Work Plan presentation seam.
-- **S1-D T-08** waits for T-02..T-06 acceptance.
-- **S1-D T-09** waits for T-08 PASS and is independent review only.
+`Docs/Handoffs/MFM-11-Calibration-Impact/MANAGER-REVIEW-20261101.md`
 
-### MFM continuation
+Token:
 
-- **MFM-08** follows accepted/integrated MFM-07 and owns bounded map/3D candidate/proposal review UX after overlapping writers are released.
-- **MFM-09** follows MFM-07/08 plus S1-D T-04/T-05.
-- **MFM-10** follows MFM-09 + PARITY-08 and retains the Sitka-only species guard.
-- **MFM-11** follows stable parity/repeated-intervention/player-facing flow.
-- **MFM-12** follows MFM-11 plus parity/S1-C/S1-D qualification and provides integrated MFM verification/review.
+`MULTI-SCALE CALIBRATION QUALIFIED`
 
-### Three-species parity
+Accepted boundary:
 
-- **PARITY-08**: save/deterministic compatibility after MFM-06, subject to single-writer serialization above.
-- **PARITY-09**: integrated parity qualification after PARITY-08 + MFM-10.
+- actual extension-state CI delta 4.169829% across 13 current Covered areas, within the accepted 20% GAMEPLAY CALIBRATION;
+- post-treatment source-vs-current-Covered CI parity **NOT DEMONSTRATED** because treated areas leave the current Covered class and the later source sample can fail live qualification;
+- exact-candidate PARITY-09 Reference/Legacy40 evidence reuse is accepted for the protected compatibility condition, alongside MFM-11 save/load self-consistency;
+- no production retune or further mandatory MFM-11 measurement run is required.
 
-### Programme endgame
+## Verification-debt / UI repair disposition
 
-- Final Tier-3: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md` — one exact final candidate; mandatory fresh S1-C T-05 save/history rerun.
-- Final independent review: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-INDEPENDENT-REVIEW-TASK-PACKET.md`.
-- User-playtest template: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-HANDOFF-TEMPLATE.md` — template only until final qualification passes.
+Binding verification-debt record:
 
-## Released/completed claims relevant to current state
+`Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/BROWSER-DISPOSITION.md`
 
-These own no files: #103 S1-D T-03; #104 S1-C T-05; #93 MFM-04; #100 MFM-05; #102 PARITY-07; #111 MFM-06 implementation; #112 superseded review; #113 MFM-06 integration; #118 browser lane 03; #120 browser lane 04.
+### #223 — verification-only — APPROVED / INTEGRATED
 
-## Non-dispatched backlog
+Packet:
 
-Issue #28, **Verification harness hygiene — standalone body binding and site-seam allow-list**, remains backlog only and blocks no current feature.
+`Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/TASK-PACKET.md`
+
+Returned handoff:
+
+`Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/HANDOFF.md`
+
+Manager review:
+
+`Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/MANAGER-REVIEW-20261102.md`
+
+Accepted result: mechanically stale v23→v24 verification pins/hashes repaired; history harness compile inputs repaired; `MaxRemovedBasalShare` scanner false positive removed without weakening the biological density guard; guided sequence/rack stale expectations reconciled under accepted authority. Required offline/Unity families pass except the three previously accepted pure-Beech R2 misses against the unchanged 0.40 criterion. No production paths changed.
+
+### #224 — product/UI — APPROVED / INTEGRATED
+
+Packet:
+
+`Docs/Handoffs/ScenarioOne-Objectives-Overflow-Repair/TASK-PACKET.md`
+
+Returned handoff:
+
+`Docs/Handoffs/ScenarioOneObjectives-Overflow-Repair/HANDOFF.md`
+
+Manager review:
+
+`Docs/Handoffs/ScenarioOneObjectives-Overflow-Repair/MANAGER-REVIEW-20261102.md`
+
+Accepted result: exact-base guided-v2 reproduced 533 PASS / 2 FAIL, both `current objective fits` at 1280×720 and 1920×1080. The bounded one-file USS repair preserved objective content/semantics and the fit assertion. Returned targeted regressions are guided-v2 535/0, Combined HUD 465/0 and PARITY-07 1031/0. Independent Claude Sonnet 5.5 review APPROVED with no blocker. QuickSearch caveat is accepted as Editor-environment evidence, not product failure.
+
+Token:
+
+`SCENARIO ONE OBJECTIVES OVERFLOW REPAIR APPROVED — MFM-12 RELEASED NEXT`
+
+## MFM-12 release state
+
+MFM-12 claim #225 is now **READY / REPINNED / LOCAL START RELEASED**.
+
+Binding packet:
+
+`Docs/Handoffs/MFM-12-Integrated-Qualification/TASK-PACKET.md`
+
+Binding local execution handoff:
+
+`Docs/Handoffs/MFM-12-Integrated-Qualification/LOCAL-EXECUTION-HANDOFF-20261102.md`
+
+Exact candidate:
+
+`508b3e8124b5d9c477a4d2471cd56ebf6608f197`
+
+MFM-12 is qualification-only and has no production-repair authority. It must cover the full accepted requirements matrix, exact-candidate persistence/compatibility, rendered 720p/1080p UX, player-judgement/Work Plan boundaries, provenance/history, repeated-cycle coexistence, complete-loop Scenario One witness and independent cross-provider review.
+
+The accepted MFM-11 post-treatment source-vs-current-Covered CI parity remains **NOT DEMONSTRATED** unless separately and explicitly established. Do not upgrade the claim by inference.
+
+Final product token remains Browser Overall authority after the returned handoff is reviewed:
+
+`MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST`
+
+## Tier-3 readiness
+
+Updated browser readiness:
+
+`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-READINESS-20261101.md`
+
+Tier-3 remains **NOT RELEASED**. Required sequence is now:
+
+1. execute #225 MFM-12 exact-candidate integrated qualification and independent review;
+2. Browser Overall reviews the returned MFM-12 evidence and issues APPROVED / NEEDS CHANGES / REJECTED;
+3. only accepted MFM-12 releases Scenario One Tier-3 on one exact production lineage;
+4. Tier-3 success -> user personally playtests that exact candidate;
+5. Windows build only after explicit post-playtest user authorisation.
+
+## Hard boundaries
+
+- Research Source Consolidation Audit **#194 remains NO ACTION**. Do not inspect/review/approve/reject/merge/update/reorganise it unless the user explicitly lifts the restriction.
+- Frozen Reference Future v1 and Legacy40 compatibility remain protected.
+- Never weaken tests or silently rebaseline protected anchors.
+- Qualification claims have no production-repair authority.
+- Local workers do not edit this file.
+
+## Durable current records
+
+- Browser continuation #221: `Docs/Handoffs/ScenarioOne-Browser-Continuation-04/BROWSER-HANDOFF-20261101.md`.
+- PARITY-09 Manager review: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/MANAGER-REVIEW-20261101.md`.
+- MFM-11 Manager review: `Docs/Handoffs/MFM-11-Calibration-Impact/MANAGER-REVIEW-20261101.md`.
+- Verification-debt Manager review: `Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/MANAGER-REVIEW-20261102.md`.
+- Objectives overflow returned handoff: `Docs/Handoffs/ScenarioOneObjectives-Overflow-Repair/HANDOFF.md`.
+- Objectives overflow Manager review: `Docs/Handoffs/ScenarioOneObjectives-Overflow-Repair/MANAGER-REVIEW-20261102.md`.
+- MFM-12 packet/local handoff: `Docs/Handoffs/MFM-12-Integrated-Qualification/`.
+- Tier-3 readiness: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-READINESS-20261101.md`.
+- Unified local orchestration: `Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/LOCAL-MASTER-HANDOFF-20261101.md`.
+- MFM-10 Manager review: `Docs/Handoffs/MFM-10-Species-Parity-Guard/MANAGER-REVIEW-20261101.md`.
+- #199 Manager review: `Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/MANAGER-REVIEW-20261101.md`.
