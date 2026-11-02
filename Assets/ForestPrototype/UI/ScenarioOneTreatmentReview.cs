@@ -27,6 +27,10 @@ public static class ScenarioOneTreatmentReview
     public const string ConflictChip = "CONFLICT — held, not proposed";
     public const string ConfirmedChip = "CONFIRMED CROP TREE";
     public const string ApprovedMessage = "Prescription approved. Pending tasks were added to the Work Plan. They are not approved for execution yet.";
+    public const string FitHeading = "Fit against your sample";
+    public const string FitIntro = "This compares the rule derived from your sample treatment with the decisions you actually carried out. It is a comparison, not a score of forestry correctness.";
+    public const string FitUnavailableNote = "Fit replay is not available now";
+    public const string FitUnavailableGate = "The fit comparison with your sample cannot be read now. Fix the sample or prepare a new prescription before approving.";
     public const string ConfirmKeyHint = "[C] Confirm as Crop Tree";
     public const string RejectKeyHint = "[N] Reject candidate";
     public const string ReopenKeyHint = "[N] Reopen candidate";
@@ -428,29 +432,122 @@ public static class ScenarioOneTreatmentReview
         return rows;
     }
 
+    // ----------------------------------------------------------------------------------------------------------------- fit
+
+    // One sample decision in the source-sample comparison. The rule core has already decided the sets; this only maps them to wording.
+    public sealed class FitRow
+    {
+        public string TreeId = "", Kind = "", Detail = "";
+        public bool PlayerOnly, RuleOnly;
+    }
+
+    public sealed class FitCropRow
+    {
+        public string Id = "", Text = "";
+    }
+
+    // Plain presentation of the current CheckFit replay. It never recomputes the rule or the removal sets.
+    public sealed class FitView
+    {
+        public bool Valid;
+        public string Problem = "";
+        public int Agreements, PlayerOnly, RuleOnly;
+        public string Summary = "", Consequences = "";
+        public bool RuleLimitedByCeiling;
+        public readonly List<FitRow> Rows = new List<FitRow>();
+        public readonly List<FitCropRow> Crops = new List<FitCropRow>();
+
+        public string Signature()
+        {
+            if (!Valid) return "INVALID " + Problem;
+            var sb = new System.Text.StringBuilder();
+            sb.Append(Agreements).Append('/').Append(PlayerOnly).Append('/').Append(RuleOnly).Append(' ').Append(Consequences);
+            foreach (FitRow row in Rows) sb.Append(" row=").Append(row.TreeId).Append(':').Append(row.Kind);
+            foreach (FitCropRow crop in Crops) sb.Append(" crop=").Append(crop.Id).Append(':').Append(crop.Text);
+            return sb.ToString();
+        }
+    }
+
+    private static string FitPercent(double share) => Num(share * 100.0, "0.0") + " %";
+
+    private static string FitTreeDetail(ScenarioOnePrescription.FitTree tree, string kind)
+    {
+        string lead = kind == "player-only"
+            ? "Tree " + tree.Id + ". You removed it; the rule would keep it."
+            : kind == "rule-only"
+                ? "Tree " + tree.Id + ". The rule would remove it; you kept it."
+                : "Tree " + tree.Id + ". You and the rule both removed it.";
+        if (!string.IsNullOrEmpty(tree.ServesCropTreeId))
+            lead += " It competed with Crop Tree " + tree.ServesCropTreeId + " at " + FitPercent(tree.ShareOfCropTree) + " Share.";
+        lead += " Basal area " + Num(tree.BasalAreaM2, "0.000") + " m².";
+        return lead;
+    }
+
+    // Maps the authoritative FitResult to player wording. Pure; the only source of the counts, sets and shares is CheckFit.
+    public static FitView BuildFit(ScenarioOnePrescription.FitResult fit, string problem)
+    {
+        var view = new FitView();
+        if (fit == null || !fit.Valid)
+        {
+            view.Problem = !string.IsNullOrEmpty(problem) ? problem
+                : fit != null && !string.IsNullOrEmpty(fit.Problem) ? fit.Problem : "The fit replay could not be read.";
+            view.Summary = FitUnavailableNote + ": " + view.Problem;
+            return view;
+        }
+        view.Valid = true;
+        view.Agreements = fit.Agreements.Count;
+        view.PlayerOnly = fit.PlayerOnly.Count;
+        view.RuleOnly = fit.RuleOnly.Count;
+        view.RuleLimitedByCeiling = fit.RuleLimitedByCeiling;
+        int differing = view.PlayerOnly + view.RuleOnly;
+        view.Summary = differing == 0
+            ? "The rule reproduces your sample removals exactly on this read: " + view.Agreements + " agreement" + (view.Agreements == 1 ? "" : "s") + "."
+            : "Agreement on " + view.Agreements + " sample removal" + (view.Agreements == 1 ? "" : "s") + ". The rule would differ on " + differing
+              + ": you removed " + view.PlayerOnly + " that it would keep, and it would remove " + view.RuleOnly + " that you kept.";
+        view.Consequences = "Sample basal area " + Num(fit.SampleBasalAreaM2, "0.000") + " m². You removed "
+            + FitPercent(fit.PlayerBasalShare) + " of it; the rule would remove " + FitPercent(fit.RuleBasalShare) + ".";
+        if (fit.RuleLimitedByCeiling) view.Consequences += " The rule stopped at the accepted basal-area ceiling.";
+        foreach (ScenarioOnePrescription.FitTree tree in fit.PlayerOnly)
+            view.Rows.Add(new FitRow { TreeId = tree.Id, Kind = "player-only", PlayerOnly = true, Detail = FitTreeDetail(tree, "player-only") });
+        foreach (ScenarioOnePrescription.FitTree tree in fit.RuleOnly)
+            view.Rows.Add(new FitRow { TreeId = tree.Id, Kind = "rule-only", RuleOnly = true, Detail = FitTreeDetail(tree, "rule-only") });
+        foreach (ScenarioOnePrescription.FitTree tree in fit.Agreements)
+            view.Rows.Add(new FitRow { TreeId = tree.Id, Kind = "agreement", Detail = FitTreeDetail(tree, "agreement") });
+        foreach (ScenarioOnePrescription.FitCropTree crop in fit.CropTrees)
+            view.Crops.Add(new FitCropRow
+            {
+                Id = crop.Id,
+                Text = "Crop Tree " + crop.Id + ": you released " + FitPercent(crop.PlayerShare) + "; the rule would release "
+                    + FitPercent(crop.RuleShare) + (crop.RuleReachedTarget ? " (reaching the target)." : " (short of the target).")
+            });
+        return view;
+    }
+
     // -------------------------------------------------------------------------------------------------------------- the gate
 
     public readonly struct ApprovalGate
     {
-        public readonly bool CanApprove, HasPrescription, PreviewValid, HasProposals, SpotCheckDone, AlreadyApproved;
+        public readonly bool CanApprove, HasPrescription, PreviewValid, HasProposals, SpotCheckDone, AlreadyApproved, FitValid;
         public readonly string Reason;
-        public ApprovalGate(bool hasPrescription, bool alreadyApproved, bool previewValid, bool hasProposals, bool spotCheckDone)
+        public ApprovalGate(bool hasPrescription, bool alreadyApproved, bool previewValid, bool hasProposals, bool spotCheckDone, bool fitValid)
         {
-            HasPrescription = hasPrescription; AlreadyApproved = alreadyApproved; PreviewValid = previewValid; HasProposals = hasProposals; SpotCheckDone = spotCheckDone;
-            CanApprove = hasPrescription && !alreadyApproved && previewValid && hasProposals && spotCheckDone;
+            HasPrescription = hasPrescription; AlreadyApproved = alreadyApproved; PreviewValid = previewValid; HasProposals = hasProposals;
+            SpotCheckDone = spotCheckDone; FitValid = fitValid;
+            CanApprove = hasPrescription && !alreadyApproved && previewValid && hasProposals && fitValid && spotCheckDone;
             Reason = !hasPrescription ? "Prepare a prescription for review first."
                 : alreadyApproved ? "This prescription is already approved."
                 : !previewValid ? "The proposals cannot be read now."
                 : !hasProposals ? "There are no proposals to approve."
+                : !fitValid ? FitUnavailableGate
                 : !spotCheckDone ? "Spot-check at least one extrapolated area in 3D first: use Inspect in forest, walk there and inspect a tree in it."
                 : "";
         }
     }
 
-    // Prescription approval needs a valid active snapshot, a current read-only preview with proposals, and a real 3D spot-check.
-    public static ApprovalGate EvaluateGate(Session session, Appr.ProposalSet preview)
+    // Prescription approval needs a valid active snapshot, a current read-only preview with proposals, a current valid fit replay and a real 3D spot-check.
+    public static ApprovalGate EvaluateGate(Session session, Appr.ProposalSet preview, FitView fit)
         => new ApprovalGate(session.ActivePrescriptionId > 0, session.ActiveApproved, preview != null && preview.Valid,
-            preview != null && preview.Valid && preview.Links.Count > 0, session.SpotCheckDone);
+            preview != null && preview.Valid && preview.Links.Count > 0, session.SpotCheckDone, fit != null && fit.Valid);
 
     // -------------------------------------------------------------------------------------------------------- 3D companion
 

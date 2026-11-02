@@ -31,6 +31,7 @@ public static class ScenarioOnePrescriptionApproval
         NotAccepted,
         SampleNotDerived,
         SampleChanged,
+        FitUnavailable,
         CoverageInvalid,
         UnitUnknown,
         UnitIsSource,
@@ -62,10 +63,12 @@ public static class ScenarioOnePrescriptionApproval
         public IReadOnlyCollection<string> SampleCropTreeIds = new string[0], SampleRemovalIds = new string[0];
         // The player's coverage choices (PrescriptionCoverageChoice) by coverage unit id. Only deliberate choices are stored.
         public IReadOnlyDictionary<string, int> CoverageChoices = new Dictionary<string, int>();
-        // The rule re-derived from the live sample now, and the live coverage / stems it must still fit.
+        // The rule re-derived from the live sample now, and the live coverage / stems / geometry / masks it must still fit.
         public ScenarioOnePrescription.Derivation Derivation;
         public ScenarioOneCoverage.Result Coverage;
         public IReadOnlyList<Stem> Stems = new Stem[0];
+        public ScenarioOneRackSampleGeometry.Result Geometry;
+        public IReadOnlyList<ScenarioOneCoverage.Mask> Masks = new ScenarioOneCoverage.Mask[0];
         // Trees that already carry an open work order of any kind (manual or from any prescription): player/other state wins.
         public IReadOnlyCollection<string> OpenOrderTreeIds = new string[0];
         // The subset of those that are open FELLING orders: their basal area counts against each unit's ceiling together with the proposal.

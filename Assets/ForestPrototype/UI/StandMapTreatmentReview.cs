@@ -358,9 +358,14 @@ public sealed class StandMapTreatmentReview
 
         PrescriptionSaveData record = manager.FindPrescription(session.ActivePrescriptionId);
         UiKit.Add(body, "Reviewing prescription " + session.ActivePrescriptionId + (session.ActiveApproved ? " (approved)" : " (prepared, not approved)"), "rack-heading").name = "map-review-active";
+        Review.FitView fit = session.ActiveApproved ? null : CurrentFit();
+        if (session.ActiveApproved)
+            UiKit.Add(body, "The fit comparison with your sample was shown before approval.", "muted");
+        else
+            BuildFit(body, fit);
         BuildSpotCheck(body, view, record);
         BuildProposals(body);
-        BuildApproval(body);
+        BuildApproval(body, fit);
     }
 
     private void PreparePrescription()
@@ -371,6 +376,59 @@ public sealed class StandMapTreatmentReview
         lastNotedTreeId = "";
         Touch();
         refreshMap();
+    }
+
+    private Review.FitView CurrentFit()
+    {
+        ScenarioOnePrescription.FitResult fit = ui.Manager.ReadPrescriptionFit(session.ActivePrescriptionId, out string problem);
+        return Review.BuildFit(fit, problem);
+    }
+
+    private static void BuildFit(VisualElement body, Review.FitView fit)
+    {
+        UiKit.Add(body, Review.FitHeading, "heading");
+        UiKit.Add(body, Review.FitIntro, "body");
+        if (fit == null || !fit.Valid)
+        {
+            UiKit.Add(body, Review.FitUnavailableNote + ": " + (fit != null ? fit.Problem : "the fit replay could not be read."), "map-note").name = "map-review-fit-problem";
+            return;
+        }
+        UiKit.Add(body, fit.Summary, "body").name = "map-review-fit-summary";
+        UiKit.Add(body, fit.Consequences, "body").name = "map-review-fit-consequences";
+        if (fit.Rows.Count == 0)
+            UiKit.Add(body, "No sample removal differs on this read.", "muted");
+        if (fit.PlayerOnly > 0)
+        {
+            UiKit.Add(body, "You removed, the rule would keep", "rack-heading");
+            foreach (Review.FitRow row in fit.Rows) if (row.PlayerOnly) AddFitRow(body, row);
+        }
+        if (fit.RuleOnly > 0)
+        {
+            UiKit.Add(body, "The rule would remove, you kept", "rack-heading");
+            foreach (Review.FitRow row in fit.Rows) if (row.RuleOnly) AddFitRow(body, row);
+        }
+        if (fit.Agreements > 0)
+        {
+            UiKit.Add(body, "Agreed removals", "rack-heading");
+            foreach (Review.FitRow row in fit.Rows) if (!row.PlayerOnly && !row.RuleOnly) AddFitRow(body, row);
+        }
+        if (fit.Crops.Count > 0)
+        {
+            UiKit.Add(body, "Crop Tree release: you vs the rule", "rack-heading");
+            foreach (Review.FitCropRow crop in fit.Crops)
+                UiKit.Add(body, crop.Text, "body").name = "map-review-fit-crop-" + crop.Id;
+        }
+        if (fit.RuleLimitedByCeiling)
+            UiKit.Add(body, "The rule stopped at the accepted basal-area ceiling, so it may show fewer removals than your sample.", "faint");
+    }
+
+    private static void AddFitRow(VisualElement body, Review.FitRow row)
+    {
+        VisualElement box = UiKit.Box("card", "rack-panel");
+        box.name = "map-review-fit-" + row.Kind + "-" + row.TreeId;
+        UiKit.Add(box, row.Kind == "player-only" ? "PLAYER-ONLY SAMPLE REMOVAL" : row.Kind == "rule-only" ? "RULE-ONLY SAMPLE REMOVAL" : "AGREED SAMPLE REMOVAL", "rack-heading");
+        UiKit.Add(box, row.Detail, "body");
+        body.Add(box);
     }
 
     private void BuildSpotCheck(VisualElement body, Review.Presentation view, PrescriptionSaveData record)
@@ -415,9 +473,9 @@ public sealed class StandMapTreatmentReview
         }
     }
 
-    private void BuildApproval(VisualElement body)
+    private void BuildApproval(VisualElement body, Review.FitView fit)
     {
-        Review.ApprovalGate gate = Review.EvaluateGate(session, session.LastPreview);
+        Review.ApprovalGate gate = Review.EvaluateGate(session, session.LastPreview, fit);
         UiKit.Add(body, "Approve prescription", "heading");
         Button approve = UiKit.Button("Approve prescription", ApprovePrescription, gate.CanApprove, "btn-primary");
         approve.name = "map-review-approve";
@@ -428,8 +486,8 @@ public sealed class StandMapTreatmentReview
 
     private void ApprovePrescription()
     {
-        // The gate is checked again here: the button state alone is not the rule.
-        Review.ApprovalGate gate = Review.EvaluateGate(session, session.LastPreview);
+        // The gate is checked again here, against a fresh fit read: the button state alone is not the rule.
+        Review.ApprovalGate gate = Review.EvaluateGate(session, session.LastPreview, CurrentFit());
         if (!gate.CanApprove) { session.Message = gate.Reason; Touch(); refreshMap(); return; }
         PrescriptionOperationResult result = ui.Manager.ApprovePrescription(session.ActivePrescriptionId);
         if (result.Succeeded)

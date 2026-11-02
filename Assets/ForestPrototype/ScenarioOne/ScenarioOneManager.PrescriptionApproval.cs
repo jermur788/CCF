@@ -100,6 +100,32 @@ public sealed partial class ScenarioOneManager
         return Approval.Propose(ctx);
     }
 
+    // The current source-sample fit replay for one stored prescription. Read-only and recomputed from the same live read the approval path
+    // uses; it writes no mark, order, record or id. Invalid (with a player-readable reason) when the prescription, its sample or the fit
+    // core can no longer be read now. The UI shows this before wider approval; ApprovePrescription requires it too.
+    public ScenarioOnePrescription.FitResult ReadPrescriptionFit(int prescriptionId, out string problem)
+    {
+        problem = "";
+        PrescriptionSaveData record = FindPrescription(prescriptionId);
+        if (record == null)
+        {
+            problem = "The prescription does not exist.";
+            return new ScenarioOnePrescription.FitResult { Problem = problem };
+        }
+        Approval.Context ctx = BuildApprovalContext(record, out problem);
+        if (ctx == null) return new ScenarioOnePrescription.FitResult { Problem = problem };
+        Approval.LinkCheck header = Approval.ValidatePrescription(ctx, prescriptionId);
+        if (!header.Ok)
+        {
+            problem = header.Message;
+            return new ScenarioOnePrescription.FitResult { Problem = problem };
+        }
+        ScenarioOnePrescription.FitResult fit = ScenarioOnePrescription.CheckFit(ctx.Derivation.Rule, record.sampleCropTreeIds,
+            record.sampleRemovalIds, ctx.Geometry, ctx.Stems, ctx.Masks);
+        if (!fit.Valid) problem = fit.Problem;
+        return fit;
+    }
+
     // The mandatory pre-write link check, exposed for one order: does this prescription, coverage unit and Crop Tree still hold for the tree
     // in the world as it stands now? ApprovePrescription runs the same check on every order it would write. Read-only.
     public Approval.LinkCheck CheckPrescriptionLink(int prescriptionId, string targetTreeId, string coverageUnitId, string cropTreeId, int reasonCode)
@@ -120,6 +146,15 @@ public sealed partial class ScenarioOneManager
         if (!CanManage()) return Reject(Approval.Refusal.NotAccepted, feedback);
         PrescriptionSaveData record = FindPrescription(prescriptionId);
         if (record == null) return Reject(Approval.Refusal.NoPrescription, "The prescription does not exist.");
+        if (record.approvalState != PrescriptionApprovalState.Accepted)
+            return Reject(Approval.Refusal.NotAccepted, "The prescription is not waiting for approval.", prescriptionId);
+
+        // Wider approval requires a current, valid source-sample fit replay. The UI shows it first; this is the authoritative gate.
+        ScenarioOnePrescription.FitResult fit = ReadPrescriptionFit(prescriptionId, out string fitProblem);
+        if (!fit.Valid)
+            return Reject(Approval.Refusal.FitUnavailable,
+                "The fit comparison with your sample cannot be read now: " + fitProblem, prescriptionId);
+
         Approval.Context ctx = BuildApprovalContext(record, out string problem);
         if (ctx == null) return Reject(Approval.Refusal.SampleNotDerived, problem);
 
@@ -200,6 +235,7 @@ public sealed partial class ScenarioOneManager
         public List<Stem> Stems;
         public ScenarioOnePrescription.Derivation Derivation;
         public ScenarioOneCoverage.Result Coverage;
+        public IReadOnlyList<ScenarioOneCoverage.Mask> Masks;
     }
 
     // A thin, side-effect-free view of the coverage ApprovePrescription itself uses: the same TryReadPrescriptionWorld read and
@@ -267,7 +303,7 @@ public sealed partial class ScenarioOneManager
             problem = "The sample cannot be read now: " + derivation.Problem;
             return false;
         }
-        world = new PrescriptionWorld { Geometry = geometry, Stems = stems, Derivation = derivation, Coverage = coverage };
+        world = new PrescriptionWorld { Geometry = geometry, Stems = stems, Derivation = derivation, Coverage = coverage, Masks = mapped.Masks };
         problem = "";
         return true;
     }
@@ -393,6 +429,8 @@ public sealed partial class ScenarioOneManager
             Derivation = world.Derivation,
             Coverage = world.Coverage,
             Stems = world.Stems,
+            Geometry = world.Geometry,
+            Masks = world.Masks,
             OpenOrderTreeIds = openOrders,
             OpenFellingTreeIds = openFelling
         };
