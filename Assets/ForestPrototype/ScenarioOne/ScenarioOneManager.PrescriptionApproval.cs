@@ -149,12 +149,6 @@ public sealed partial class ScenarioOneManager
         if (record.approvalState != PrescriptionApprovalState.Accepted)
             return Reject(Approval.Refusal.NotAccepted, "The prescription is not waiting for approval.", prescriptionId);
 
-        // Wider approval requires a current, valid source-sample fit replay. The UI shows it first; this is the authoritative gate.
-        ScenarioOnePrescription.FitResult fit = ReadPrescriptionFit(prescriptionId, out string fitProblem);
-        if (!fit.Valid)
-            return Reject(Approval.Refusal.FitUnavailable,
-                "The fit comparison with your sample cannot be read now: " + fitProblem, prescriptionId);
-
         Approval.Context ctx = BuildApprovalContext(record, out string problem);
         if (ctx == null) return Reject(Approval.Refusal.SampleNotDerived, problem);
 
@@ -162,19 +156,25 @@ public sealed partial class ScenarioOneManager
         Approval.ApprovalPlan plan = Approval.Build(ctx);
         if (!plan.Ok) return Reject(plan.Refusal, plan.Message, prescriptionId);
 
-        // 2. Resolve every target to a live, fellable tree before any write.
+        // 2. Wider approval also requires a current, valid source-sample fit replay. The UI shows it first; this is the authoritative gate.
+        ScenarioOnePrescription.FitResult fit = ReadPrescriptionFit(prescriptionId, out string fitProblem);
+        if (!fit.Valid)
+            return Reject(Approval.Refusal.FitUnavailable,
+                "The fit comparison with your sample cannot be read now: " + fitProblem, prescriptionId);
+
+        // 3. Resolve every target to a live, fellable tree before any write.
         Dictionary<string, ForestTree> living = LivingTreesById();
         foreach (Approval.OrderLink link in plan.Orders)
             if (!living.TryGetValue(link.TargetTreeId, out ForestTree tree) || tree == null || !tree.CanChop)
                 return Reject(Approval.Refusal.TargetNotEligible, "Tree " + link.TargetTreeId + " cannot be felled now.", prescriptionId);
 
-        // 3. The mandatory pre-write check, against a fresh read taken immediately before the first order exists.
+        // 4. The mandatory pre-write check, against a fresh read taken immediately before the first order exists.
         Approval.Context fresh = BuildApprovalContext(record, out problem);
         if (fresh == null) return Reject(Approval.Refusal.SampleNotDerived, problem, prescriptionId);
         Approval.LinkCheck check = Approval.ValidateLinks(fresh, plan.Orders, null);
         if (!check.Ok) return Reject(check.Refusal, check.Message, prescriptionId);
 
-        // 4. Write, with a complete rollback so no partial work state can survive an unexpected failure.
+        // 5. Write, with a complete rollback so no partial work state can survive an unexpected failure.
         int savedNextOrderId = nextWorkOrderId, savedNextEventId = nextManagementEventId;
         int savedOrderCount = workOrders.Count, savedEventCount = managementEvents.Count;
         int savedApprovalState = record.approvalState, savedApprovalYear = record.approvalYear;
