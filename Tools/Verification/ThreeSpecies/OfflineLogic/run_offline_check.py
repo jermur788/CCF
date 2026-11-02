@@ -52,6 +52,7 @@ SUITES = {
     "history": dict(
         startup="ScenarioHistoryOfflineCheck",
         sources=[os.path.join(FP, "ScenarioOne", "ScenarioInterventionHistory.cs"), os.path.join(FP, "ScenarioOne", "ManagementHistoryText.cs"),
+                 os.path.join(FP, "ScenarioOne", "ScenarioManagementHistory.cs"),
                  os.path.join(FP, "ScenarioOne", "ScenarioManagementEvent.cs"), os.path.join(FP, "ScenarioOne", "ScenarioEcologicalSnapshot.cs"),
                  os.path.join(FP, "ScenarioOne", "ScenarioDeadwoodRecord.cs"), os.path.join(FP, "ScenarioOne", "ScenarioOneWorkOrder.cs"),
                  os.path.join(FP, "ForestSaveData.cs")]

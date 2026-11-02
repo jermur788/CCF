@@ -5,9 +5,10 @@
 public enum ScenarioOneOutcome { Active, Completed, Failed }
 public sealed class ScenarioCenturyReview { public int year; }
 public sealed class ScenarioUnderstoreyCell { public int cellIndex; }
-// More save-schema neighbours that ForestSaveData.cs lists but the history logic never reads (browse protection,
-// planting clearance and storm event records are separate persisted layers).
+// More save-schema neighbours that ForestSaveData.cs lists but the derived-history logic does not otherwise read (browse
+// protection, planting clearance and storm event records are separate persisted layers). The per-year history now reads
+// the storm year, so the stub mirrors that one production field.
 [System.Serializable] public sealed class BrowseProtectedArea { }
 [System.Serializable] public sealed class BrowseShelter { }
 [System.Serializable] public sealed class PlantingClearancePatch { }
-[System.Serializable] public sealed class StormEventRecord { }
+[System.Serializable] public sealed class StormEventRecord { public int year; }
