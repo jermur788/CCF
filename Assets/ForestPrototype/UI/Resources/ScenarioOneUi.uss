@@ -425,11 +425,12 @@
 
 /* ---- the current objective card: what to do / why / good practice ---- */
 .objective-part-heading { color: var(--ink); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
-/* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
-.objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }
+/* The objective card is a reading screen, but its longest lesson (Extend your treatment) must still fit the modal viewport without scrolling.
+   Body size and the wider words column below keep all six paragraphs on screen at both target resolutions. */
+.objective-part-text { font-size: var(--fs-body); margin-bottom: 4px; }
 /* The Objectives window is wider than the other screens so the card's words and its picture sit side by side and the whole objective is on
-   screen at once (1472 of the 1600 UI units at any 16:9 size). */
-.modal-objectives { max-width: 1500px; }
+   screen at once. It also takes more of the screen height than the other modals: the longest objective needs the extra viewport. */
+.modal-objectives { max-width: 1500px; height: 96%; }
 .objective-body { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
 .objective-words { flex-basis: 500px; flex-grow: 1; margin-right: 22px; }
 /* The progress line wraps like the text around it: in this narrower column a long one would otherwise run on under the picture. */
@@ -458,10 +459,10 @@
 .card-locked { opacity: 1; background-color: var(--disabled-bg); padding-top: 7px; padding-bottom: 7px; }
 .card-locked .body { color: var(--ink-muted); }
 .objective-current { border-left-width: 3px; border-left-color: var(--accent); }
-.objective-part-heading { margin-top: 14px; margin-bottom: 5px; }
-.objective-part-text { margin-bottom: 6px; }
-.objective-body > .teaching-diagram { flex-basis: 800px; }
-.objective-words { flex-basis: 480px; }
+.objective-part-heading { margin-top: 8px; margin-bottom: 2px; }
+.objective-part-text { margin-bottom: 3px; }
+.objective-body > .teaching-diagram { flex-basis: 780px; }
+.objective-words { flex-basis: 580px; }
 .unity-foldout__text { color: var(--ink); white-space: normal; }
 .unity-toggle__text { color: var(--ink); }
 
@@ -524,8 +525,10 @@
 .compact .modal-workplan .modal-header > .row { width: 100%; justify-content: flex-start; }
 .compact .modal-workplan .modal-header > .row > .money { margin-right: 18px; }
 .compact .menu-help-intro { max-width: 1400px; }
-.compact .objective-words { flex-basis: 460px; margin-right: 18px; }
-.compact .objective-body > .teaching-diagram { flex-basis: 800px; }
+.compact .objective-words { flex-basis: 580px; margin-right: 18px; }
+.compact .objective-body > .teaching-diagram { flex-basis: 780px; }
+/* The compact modal is shorter, so the objectives window takes almost the full height to keep the longest lesson on screen. */
+.compact .modal-objectives { height: 98%; }
 .compact .inspect .panel { padding: 8px 12px; }
 .compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
 .compact .session-card { padding: 18px 24px; }
