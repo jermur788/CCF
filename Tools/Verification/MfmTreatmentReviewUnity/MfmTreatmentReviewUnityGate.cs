@@ -296,7 +296,9 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
             VisualElement target = Root.Q(name: targetName);
             Check(scroll != null && target != null, "fit scroll target exists at " + size.x + "x" + size.y, targetName);
             if (scroll == null || target == null) continue;
-            scroll.ScrollTo(target);
+            // Place the target near the top of the content viewport, not merely adjacent to it; the fit summary and its
+            // consequences then sit together rather than the consequence line falling below the fold.
+            scroll.scrollOffset = new Vector2(scroll.scrollOffset.x, Mathf.Max(0f, target.layout.y - 8f));
             yield return Settle(8);
             Rect view = scroll.worldBound;
             Check(target.worldBound.yMin >= view.yMin - 1f && target.worldBound.yMax <= view.yMax + 1f
