@@ -56,6 +56,22 @@ public static class TreatmentReviewOfflineCheck
     private static string Read(string root, string rel) => File.ReadAllText(Path.Combine(root, rel));
     private static int Count(string text, string needle) => text.Split(new[] { needle }, StringSplitOptions.None).Length - 1;
 
+    // A deterministic fit view for gate tests. The real mapping is exercised separately below.
+    private static R.FitView Fit(bool valid = true, bool limited = false)
+    {
+        var fit = new ScenarioOnePrescription.FitResult
+        {
+            Valid = valid, Rule = ScenarioOnePrescription.ReleaseRule.Create(0.30, 0.40),
+            SampleBasalAreaM2 = 1.0, PlayerBasalShare = 0.20, RuleBasalShare = 0.30, RuleLimitedByCeiling = limited
+        };
+        if (!valid) { fit.Problem = "the live sample no longer matches"; return R.BuildFit(fit, fit.Problem); }
+        fit.Agreements.Add(new ScenarioOnePrescription.FitTree { Id = "a", PlayerRemoved = true, RuleRemoved = true, ServesCropTreeId = "s1", ShareOfCropTree = 0.31, BasalAreaM2 = 0.10 });
+        fit.PlayerOnly.Add(new ScenarioOnePrescription.FitTree { Id = "b", PlayerRemoved = true, ServesCropTreeId = "s1", ShareOfCropTree = 0.22, BasalAreaM2 = 0.08 });
+        fit.RuleOnly.Add(new ScenarioOnePrescription.FitTree { Id = "c", RuleRemoved = true, ServesCropTreeId = "s1", ShareOfCropTree = 0.35, BasalAreaM2 = 0.12 });
+        fit.CropTrees.Add(new ScenarioOnePrescription.FitCropTree { Id = "s1", PlayerShare = 0.20, RuleShare = 0.30, RuleReachedTarget = true });
+        return R.BuildFit(fit, "");
+    }
+
     public static int Main(string[] args)
     {
         string root = args.Length > 0 ? args[0] : ".";
@@ -149,12 +165,30 @@ public static class TreatmentReviewOfflineCheck
         Check(rows[1].IsConflict && rows[1].Reason.Contains("already marked") && rows[2].Reason.Contains("no longer covered"), "conflicts are surfaced with their production reason");
         Check(R.BuildProposalRows(new Appr.ProposalSet { Valid = false }).Count == 0, "an invalid preview shows no proposals");
 
-        // ---- G. 3D spot-check and approval gate
+        // ---- G. fit mapping: summary, individual disagreements and consequences
+        R.FitView fitView = Fit();
+        Check(fitView.Valid && fitView.Agreements == 1 && fitView.PlayerOnly == 1 && fitView.RuleOnly == 1, "fit view keeps the authoritative agreement / player-only / rule-only counts");
+        Check(fitView.Summary.Contains("Agreement on 1") && fitView.Summary.Contains("you removed 1") && fitView.Summary.Contains("it would remove 1"), "fit summary states agreements and both disagreement directions");
+        Check(fitView.Consequences.Contains("You removed 20.0 %") && fitView.Consequences.Contains("rule would remove 30.0 %"), "fit consequences state player-vs-rule basal-area shares");
+        Check(fitView.Rows.Count == 3 && fitView.Rows.Count(r => r.PlayerOnly) == 1 && fitView.Rows.Count(r => r.RuleOnly) == 1, "fit rows expose each sample decision individually");
+        R.FitRow playerRow = fitView.Rows.Single(r => r.PlayerOnly);
+        Check(playerRow.TreeId == "b" && playerRow.Detail.Contains("You removed it; the rule would keep it") && playerRow.Detail.Contains("Crop Tree s1") && playerRow.Detail.Contains("22.0 %"), "player-only row identifies the tree, the direction and its Crop Tree/Share context");
+        R.FitRow ruleRow = fitView.Rows.Single(r => r.RuleOnly);
+        Check(ruleRow.TreeId == "c" && ruleRow.Detail.Contains("The rule would remove it; you kept it") && ruleRow.Detail.Contains("35.0 %"), "rule-only row identifies the tree and its Share context");
+        Check(fitView.Crops.Count == 1 && fitView.Crops[0].Text.Contains("you released 20.0 %") && fitView.Crops[0].Text.Contains("rule would release 30.0 %"), "per-Crop-Tree player-vs-rule release is shown");
+        Check(R.FitIntro.Contains("comparison") && R.FitIntro.Contains("not a score"), "fit is presented as a comparison, not a forestry-correctness score");
+        string fitSignature = fitView.Signature();
+        Check(fitView.Signature() == fitSignature && Fit().Signature() == fitSignature, "fit presentation is deterministic and does not mutate the core result");
+        R.FitView unavailable = R.BuildFit(null, "the live sample no longer matches");
+        Check(!unavailable.Valid && unavailable.Summary.Contains("not available") && unavailable.Problem.Contains("no longer matches"), "an unavailable fit is shown honestly and offers no comparison");
+        Check(R.BuildFit(new ScenarioOnePrescription.FitResult { Problem = "stale" }, "").Problem == "stale", "an invalid core result carries its own problem");
+
+        // ---- H. 3D spot-check and approval gate
         var gs = new R.Session();
-        Check(!R.EvaluateGate(gs, preview).CanApprove && R.EvaluateGate(gs, preview).Reason.Contains("Prepare"), "no prescription: approval blocked");
+        Check(!R.EvaluateGate(gs, preview, Fit()).CanApprove && R.EvaluateGate(gs, preview, Fit()).Reason.Contains("Prepare"), "no prescription: approval blocked");
         gs.ReplaceActivePrescription(7);
-        R.ApprovalGate g0 = R.EvaluateGate(gs, preview);
-        Check(!g0.CanApprove && !g0.SpotCheckDone && g0.Reason.Contains("3D"), "valid snapshot + preview but no spot-check: approval blocked");
+        R.ApprovalGate g0 = R.EvaluateGate(gs, preview, Fit());
+        Check(!g0.CanApprove && !g0.SpotCheckDone && g0.Reason.Contains("3D"), "valid snapshot + preview + fit but no spot-check: approval blocked");
         Check(gs.SpotCheckedUnits.Count == 0 && !gs.SpotCheckDone, "selecting, waypointing and navigation never set the spot-check (no operation other than RecordSpotCheck can)");
         gs.SelectedAreaId = covered.Id;
         gs.CurrentCandidateTreeId = "b";
@@ -165,21 +199,23 @@ public static class TreatmentReviewOfflineCheck
         Check(!gs.RecordSpotCheck("a", coverage, new[] { covered.Id }), "a unit that is no longer Covered cannot be spot-checked");
         covered.State = Cov.State.Covered;
         Check(gs.RecordSpotCheck("a", coverage, new[] { covered.Id }) && gs.SpotCheckDone && gs.SpotCheckedUnits.SequenceEqual(new[] { covered.Id }), "inspecting a tree in an accepted Covered unit records the spot-check");
-        R.ApprovalGate g1 = R.EvaluateGate(gs, preview);
-        Check(g1.CanApprove && g1.Reason == "", "snapshot + preview with proposals + spot-check: approval allowed");
+        R.ApprovalGate g1 = R.EvaluateGate(gs, preview, Fit());
+        Check(g1.CanApprove && g1.FitValid && g1.Reason == "", "snapshot + preview with proposals + valid fit + spot-check: approval allowed");
+        R.ApprovalGate gFit = R.EvaluateGate(gs, preview, Fit(false));
+        Check(!gFit.CanApprove && !gFit.FitValid && gFit.Reason.Contains("fit comparison"), "a valid preview and spot-check cannot bypass an unavailable fit replay");
         var empty = new Appr.ProposalSet { Valid = true };
-        Check(!R.EvaluateGate(gs, empty).CanApprove && !R.EvaluateGate(gs, new Appr.ProposalSet { Valid = false }).CanApprove && !R.EvaluateGate(gs, null).CanApprove, "no proposals or an unreadable preview: approval blocked");
+        Check(!R.EvaluateGate(gs, empty, Fit()).CanApprove && !R.EvaluateGate(gs, new Appr.ProposalSet { Valid = false }, Fit()).CanApprove && !R.EvaluateGate(gs, null, Fit()).CanApprove, "no proposals or an unreadable preview: approval blocked");
         gs.ReplaceActivePrescription(8);
-        Check(!gs.SpotCheckDone && !R.EvaluateGate(gs, preview).CanApprove, "replacing the active snapshot resets the spot-check");
+        Check(!gs.SpotCheckDone && !R.EvaluateGate(gs, preview, Fit()).CanApprove, "replacing the active snapshot resets the spot-check");
         gs.ReplaceActivePrescription(8);
         gs.RecordSpotCheck("a", coverage, new[] { covered.Id });
         gs.ReplaceActivePrescription(8);
         Check(gs.SpotCheckDone, "re-selecting the same snapshot keeps its spot-check");
         gs.MarkApproved();
-        Check(!R.EvaluateGate(gs, preview).CanApprove && R.EvaluateGate(gs, preview).AlreadyApproved && !gs.RecordSpotCheck("a", coverage, new[] { covered.Id }), "an approved prescription cannot be approved again");
+        Check(!R.EvaluateGate(gs, preview, Fit()).CanApprove && R.EvaluateGate(gs, preview, Fit()).AlreadyApproved && !gs.RecordSpotCheck("a", coverage, new[] { covered.Id }), "an approved prescription cannot be approved again");
         Check(R.ApprovedMessage == "Prescription approved. Pending tasks were added to the Work Plan. They are not approved for execution yet.", "approval message states Pending, not approved for execution");
 
-        // ---- H. 3D context for the inspection card
+        // ---- I. 3D context for the inspection card
         var ts = new R.Session();
         ts.Suggest(coverage, stems);
         ts.ReplaceActivePrescription(1);
@@ -197,7 +233,7 @@ public static class TreatmentReviewOfflineCheck
         ts.MarkApproved();
         Check(!R.DescribeTree("t1", false, ts).Any, "3D: once approved the proposal label is gone (Pending work is authoritative)");
 
-        // ---- I. map form: shape + pattern + text, not colour alone
+        // ---- J. map form: shape + pattern + text, not colour alone
         var patterns = new[] {
             StandMapReviewPlan.PatternFor(true, Cov.State.Manual), StandMapReviewPlan.PatternFor(false, Cov.State.Covered), StandMapReviewPlan.PatternFor(false, Cov.State.NotCovered),
             StandMapReviewPlan.PatternFor(false, Cov.State.Excluded), StandMapReviewPlan.PatternFor(false, Cov.State.Manual) };
@@ -218,7 +254,7 @@ public static class TreatmentReviewOfflineCheck
         Check(candGlyph.Concat(propGlyph).All(s => s.Kind == ReviewShapeKind.CandidateGlyph || s.Kind == ReviewShapeKind.ProposalGlyph) && StandMapReviewPlan.Areas(new[] { fp }).All(s => s.Kind != ReviewShapeKind.CandidateGlyph), "glyph kinds never mix with area shapes");
         Check(StandMapReviewPlan.Areas(new[] { fp }).Count == StandMapReviewPlan.Areas(new[] { fp }).Count && string.Join(",", StandMapReviewPlan.Areas(new[] { fp }).Select(s => s.Points.Count)) == string.Join(",", StandMapReviewPlan.Areas(new[] { fp }).Select(s => s.Points.Count)), "map plan is deterministic");
 
-        // ---- J. static boundaries (source text)
+        // ---- K. static boundaries (source text)
         string card1 = Read(root, "Assets/ForestPrototype/UI/StandMapTreatmentReview.cs");
         string model = Read(root, "Assets/ForestPrototype/UI/ScenarioOneTreatmentReview.cs");
         string plan = Read(root, "Assets/ForestPrototype/UI/Map/StandMapReviewPlan.cs");
@@ -248,6 +284,11 @@ public static class TreatmentReviewOfflineCheck
         Check(mine.All(t => t.IndexOf("operator selection", StringComparison.OrdinalIgnoreCase) < 0), "'operator selection' is never presented");
         Check(mine.All(t => t.IndexOf("ProtectedArea", StringComparison.Ordinal) < 0 || t == model), "ProtectedArea evidence is only mapped to wording, never fabricated");
         Check(card1.Contains("MapPosition at = t.WorldToPixels") && !card1.Contains("new Cov.Area") && !card1.Contains("new Cov.Result"), "the UI never builds coverage areas or results of its own");
+        Check(card1.Contains("ReadPrescriptionFit(") && !card1.Contains("CheckFit(") && !model.Contains("CheckFit("), "the review UI reads the manager's current fit accessor and does not reimplement the fit core");
+        Check(card1.Contains("map-review-fit-summary") && card1.Contains("map-review-fit-consequences") && card1.Contains("map-review-fit-problem")
+              && card1.Contains("map-review-fit-\" + row.Kind") && card1.Contains("PLAYER-ONLY SAMPLE REMOVAL") && card1.Contains("RULE-ONLY SAMPLE REMOVAL"),
+            "the review UI names the fit summary, consequences, individual disagreement rows and invalid state");
+        Check(card1.Contains("EvaluateGate(session, session.LastPreview, CurrentFit())") && card1.Contains("EvaluateGate(session, session.LastPreview, fit)"), "both the card and the approval handler re-evaluate the gate with the current fit view");
 
         AreaFootprintChecks.Run(root);
 

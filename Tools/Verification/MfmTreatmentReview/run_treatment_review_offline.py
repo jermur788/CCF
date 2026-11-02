@@ -23,7 +23,7 @@ def load(rel, name):
 
 core = load("MfmPrescriptionCore/run_prescription_core_offline.py", "core")
 approval = load("MfmApprovalBoundary/run_approval_boundary_offline.py", "approval")
-START = "cfdc93bf3943125d21570bc5749a9338f52d1cce"
+START = "b4f79c6f4cf8e30a5fc74dd4ce7f8f5f1aa7f789"
 ALLOWED = (
     "Assets/ForestPrototype/UI/StandMapView.cs",
     "Assets/ForestPrototype/UI/TreeInspectionView.cs",
@@ -32,9 +32,19 @@ ALLOWED = (
     "Assets/ForestPrototype/UI/Map/StandMapReviewPlan.cs",
     "Assets/ForestPrototype/UI/Map/StandMapReviewLayer.cs",
     "Assets/ForestPrototype/UI/Map/StandMapAreaFootprints.cs",  # Geometry Repair 01: the one shared area-footprint derivation
+    # MFM-12 fit-replay repair (#230): existing fit core connected to the review/approval flow.
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOnePrescriptionApproval.cs",
+    "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",  # only if the player wording is corrected; no logic change
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss",   # only if the existing review card needs a bounded fit section class
     "Tools/Verification/MfmTreatmentReview/",
+    "Tools/Verification/MfmTreatmentReviewUnity/",
+    "Tools/Verification/MfmCoverageWorld/",
+    "Tools/Verification/MfmSaveProvenance/",
     "Docs/Handoffs/MFM-08-Map-3D-Review-UX/",
     "Docs/Handoffs/MFM-08-Geometry-Repair-01/",
+    "Docs/Handoffs/MFM-12-Fit-Replay-Repair/",
+    "Docs/Project/coordination/active-tasks.md",
 )
 
 
