@@ -731,7 +731,7 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         Check(Root.Q<Label>("map-review-fit-crop-" + fitReplay.CropTrees[0].Id) != null, "per-Crop-Tree player-vs-rule Share is shown");
         Check(!ScenarioOneTreatmentReview.EvaluateGate(Review.Session, Review.Session.LastPreview, ScenarioOneTreatmentReview.BuildFit(new ScenarioOnePrescription.FitResult { Problem = "stale" }, "stale")).CanApprove,
             "an unavailable fit view blocks the approval gate");
-        yield return ShotFit("07a-fit-comparison", "map-review-fit-summary", "map-review-fit-consequences");
+        yield return ShotFit("07a-fit-comparison", "map-review-fit-heading", "map-review-fit-summary", "map-review-fit-consequences");
         yield return ShotFit("07b-fit-disagreement", "map-review-fit-player-only-" + fitReplay.PlayerOnly[0].Id);
 
         // The live sample is deliberately changed: the stored prescription no longer matches, so the fit is invalid and approval is refused.

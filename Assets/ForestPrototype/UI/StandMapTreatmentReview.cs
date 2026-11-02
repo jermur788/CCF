@@ -386,7 +386,7 @@ public sealed class StandMapTreatmentReview
 
     private static void BuildFit(VisualElement body, Review.FitView fit)
     {
-        UiKit.Add(body, Review.FitHeading, "heading");
+        UiKit.Add(body, Review.FitHeading, "heading").name = "map-review-fit-heading";
         UiKit.Add(body, Review.FitIntro, "body");
         if (fit == null || !fit.Valid)
         {
