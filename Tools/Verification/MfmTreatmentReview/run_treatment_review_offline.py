@@ -35,8 +35,6 @@ ALLOWED = (
     # MFM-12 fit-replay repair (#230): existing fit core connected to the review/approval flow.
     "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs",
     "Assets/ForestPrototype/ScenarioOne/ScenarioOnePrescriptionApproval.cs",
-    "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",  # only if the player wording is corrected; no logic change
-    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss",   # only if the existing review card needs a bounded fit section class
     "Tools/Verification/MfmTreatmentReview/",
     "Tools/Verification/MfmTreatmentReviewUnity/",
     "Tools/Verification/MfmCoverageWorld/",
