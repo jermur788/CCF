@@ -1,1 +1,0 @@
-A dedicated GitHub repair claim is required for this packet before local production edits. The Browser Overall issue created for this task is the execution-presence claim; `Docs/Project/coordination/active-tasks.md` remains ownership authority.
