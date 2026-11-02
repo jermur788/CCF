@@ -281,6 +281,38 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         }
     }
 
+    // One fit section at both required sizes, scrolled into the review viewport so the summary/consequences or a named disagreement row
+    // are fully readable rather than below the fold. `targetName` is the element to bring to the top; `also` must be visible too.
+    private IEnumerator ShotFit(string name, string targetName, params string[] also)
+    {
+        foreach (Vector2Int size in Sizes)
+        {
+            SetGameSize(size.x, size.y);
+            yield return Settle(24);
+            Check(Screen.width == size.x && Screen.height == size.y, "game view is " + size.x + "x" + size.y, Screen.width + "x" + Screen.height);
+            ui.Map.Refresh(true);
+            yield return Settle(8);
+            ScrollView scroll = Root.Q<ScrollView>("map-review-scroll");
+            VisualElement target = Root.Q(name: targetName);
+            Check(scroll != null && target != null, "fit scroll target exists at " + size.x + "x" + size.y, targetName);
+            if (scroll == null || target == null) continue;
+            scroll.ScrollTo(target);
+            yield return Settle(8);
+            Rect view = scroll.worldBound;
+            Check(target.worldBound.yMin >= view.yMin - 1f && target.worldBound.yMax <= view.yMax + 1f
+                  && target.worldBound.xMin >= view.xMin - 1f && target.worldBound.xMax <= view.xMax + 1f,
+                "fit target fully readable at " + size.x + "x" + size.y, targetName + " " + target.worldBound + " in " + view);
+            foreach (string required in also)
+            {
+                VisualElement element = Root.Q(name: required);
+                Check(element != null && element.worldBound.yMin >= view.yMin - 1f && element.worldBound.yMax <= view.yMax + 1f
+                      && element.worldBound.xMin >= view.xMin - 1f && element.worldBound.xMax <= view.xMax + 1f,
+                    "fit companion fully readable at " + size.x + "x" + size.y, required + " " + (element != null ? element.worldBound : default(Rect)) + " in " + view);
+            }
+            yield return Capture(name);
+        }
+    }
+
     // Recorded measurement (not a pass/fail check): do the printed area tags overlap one another? Overlap makes a tag unreadable.
     private readonly List<string> findings = new List<string>();
     private void MeasureTags(string name, Vector2Int size)
@@ -697,7 +729,8 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
         Check(Root.Q<Label>("map-review-fit-crop-" + fitReplay.CropTrees[0].Id) != null, "per-Crop-Tree player-vs-rule Share is shown");
         Check(!ScenarioOneTreatmentReview.EvaluateGate(Review.Session, Review.Session.LastPreview, ScenarioOneTreatmentReview.BuildFit(new ScenarioOnePrescription.FitResult { Problem = "stale" }, "stale")).CanApprove,
             "an unavailable fit view blocks the approval gate");
-        yield return Shot("07a-fit-comparison", true);
+        yield return ShotFit("07a-fit-comparison", "map-review-fit-summary", "map-review-fit-consequences");
+        yield return ShotFit("07b-fit-disagreement", "map-review-fit-player-only-" + fitReplay.PlayerOnly[0].Id);
 
         // The live sample is deliberately changed: the stored prescription no longer matches, so the fit is invalid and approval is refused.
         ForestTree sampleCrop = Tree(SampleCrops[0]);
