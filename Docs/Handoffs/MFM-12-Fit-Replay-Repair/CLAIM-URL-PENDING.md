@@ -1,1 +1,0 @@
-The execution claim URL is recorded on GitHub issue state and in the Browser Overall dispatch. This file carries no ownership authority.
