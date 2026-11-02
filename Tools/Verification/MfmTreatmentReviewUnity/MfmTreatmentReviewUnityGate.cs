@@ -679,23 +679,23 @@ public sealed class MfmTreatmentReviewUnityRunner : MonoBehaviour
 
         // ---- 5b. fit replay: authoritative core, individual disagreements, consequences and invalid gating ----
         string identityBeforeFit = Identity();
-        ScenarioOnePrescription.FitResult fit = manager.ReadPrescriptionFit(1, out string fitProblem);
-        Check(fit != null && fit.Valid, "current source-sample fit replay is available", fitProblem);
+        ScenarioOnePrescription.FitResult fitReplay = manager.ReadPrescriptionFit(1, out string fitProblem);
+        Check(fitReplay != null && fitReplay.Valid, "current source-sample fit replay is available", fitProblem);
         Check(Identity() == identityBeforeFit, "reading the fit replay changes no mark, order, event, id, cash or hash");
-        Check(fit.Agreements.Count + fit.PlayerOnly.Count + fit.RuleOnly.Count > 0, "the fit replay contains sample removal decisions",
-            "agree=" + fit.Agreements.Count + " playerOnly=" + fit.PlayerOnly.Count + " ruleOnly=" + fit.RuleOnly.Count);
-        Check(fit.PlayerOnly.Count > 0, "the sample fixture produces a player-only disagreement to show", fit.PlayerOnly.Count.ToString());
-        Check(fit.CropTrees.Count > 0 && fit.SampleBasalAreaM2 > 0, "the fit replay carries Crop Tree and basal-area context");
+        Check(fitReplay.Agreements.Count + fitReplay.PlayerOnly.Count + fitReplay.RuleOnly.Count > 0, "the fit replay contains sample removal decisions",
+            "agree=" + fitReplay.Agreements.Count + " playerOnly=" + fitReplay.PlayerOnly.Count + " ruleOnly=" + fitReplay.RuleOnly.Count);
+        Check(fitReplay.PlayerOnly.Count > 0, "the sample fixture produces a player-only disagreement to show", fitReplay.PlayerOnly.Count.ToString());
+        Check(fitReplay.CropTrees.Count > 0 && fitReplay.SampleBasalAreaM2 > 0, "the fit replay carries Crop Tree and basal-area context");
         Check(Root.Q<Label>("map-review-fit-summary") != null && Root.Q<Label>("map-review-fit-consequences") != null,
             "the review card shows the fit summary and Share/removal consequences");
-        Check(HasText(Review.FitIntro) && HasText("not a score"), "fit is presented as a comparison, not a forestry-correctness score");
+        Check(HasText(ScenarioOneTreatmentReview.FitIntro) && HasText("not a score"), "fit is presented as a comparison, not a forestry-correctness score");
         Check(Labels().Any(l => l.text != null && l.text.StartsWith("PLAYER-ONLY SAMPLE REMOVAL")), "player-only decisions are individually shown");
-        foreach (ScenarioOnePrescription.FitTree tree in fit.PlayerOnly)
+        foreach (ScenarioOnePrescription.FitTree tree in fitReplay.PlayerOnly)
             Check(Root.Q<VisualElement>("map-review-fit-player-only-" + tree.Id) != null, "player-only row is individually inspectable", tree.Id);
-        foreach (ScenarioOnePrescription.FitTree tree in fit.RuleOnly)
+        foreach (ScenarioOnePrescription.FitTree tree in fitReplay.RuleOnly)
             Check(Root.Q<VisualElement>("map-review-fit-rule-only-" + tree.Id) != null, "rule-only row is individually inspectable", tree.Id);
-        Check(Root.Q<Label>("map-review-fit-crop-" + fit.CropTrees[0].Id) != null, "per-Crop-Tree player-vs-rule Share is shown");
-        Check(!Review.EvaluateGate(Review.Session, Review.Session.LastPreview, Review.BuildFit(new ScenarioOnePrescription.FitResult { Problem = "stale" }, "stale")).CanApprove,
+        Check(Root.Q<Label>("map-review-fit-crop-" + fitReplay.CropTrees[0].Id) != null, "per-Crop-Tree player-vs-rule Share is shown");
+        Check(!ScenarioOneTreatmentReview.EvaluateGate(Review.Session, Review.Session.LastPreview, ScenarioOneTreatmentReview.BuildFit(new ScenarioOnePrescription.FitResult { Problem = "stale" }, "stale")).CanApprove,
             "an unavailable fit view blocks the approval gate");
         yield return Shot("07a-fit-comparison", true);
 
