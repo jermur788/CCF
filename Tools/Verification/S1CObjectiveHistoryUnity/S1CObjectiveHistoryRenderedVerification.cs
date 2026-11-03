@@ -80,7 +80,7 @@ public sealed class S1CObjectiveHistoryRenderedRunner : MonoBehaviour
         string fixtures = Environment.GetEnvironmentVariable("CCF_T05_FIXTURES");
         string earlier = Environment.GetEnvironmentVariable("CCF_T05_PRIOR_EVIDENCE");
         var states = new[] {
-            (name: "recorded", file: Path.Combine(earlier, "recorded-v22-year3-save.json"), phrase: "(recorded)"),
+            (name: "recorded", file: Path.Combine(earlier, "recorded-v24-year3-save.json"), phrase: "(recorded)"),
             (name: "derived", file: Path.Combine(fixtures, "v20-y5.json"), phrase: "(derived from saved records)"),
             (name: "not-recorded", file: Path.Combine(earlier, "render-gap-v20-y5-no-year1-snapshot.json"), phrase: "Year reached: not recorded") };
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })

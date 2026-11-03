@@ -37,7 +37,8 @@ HERE = Path(__file__).resolve().parent
 UNITY = "/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity"
 LOCK = "/media/jer/ZX20/CCF-Ops/scripts/unity-lock"
 LANES = Path("/media/jer/ZX20/CCF-Ops/lanes.json")
-OWNER, TASK = "ClaudeA-RACK-V2-11", "RACK-V2-11"
+OWNER = os.environ.get("CCF_LOCK_OWNER", "ClaudeA-RACK-V2-11")
+TASK = os.environ.get("CCF_LOCK_TASK_ID", "RACK-V2-11")
 LICENCES = [Path.home() / ".config/unity3d/Unity/licenses", Path.home() / ".var/app/com.unity.UnityHub/config/unity3d/Unity/licenses"]
 PROTECTED = [
     Path.home() / ".config/unity3d/DefaultCompany/CCF/forest-save.json",

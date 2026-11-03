@@ -186,7 +186,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
         int yearBefore = ecology.EcologicalYear;
         saves.Save(); yield return Settle(2);
         JObject disk = JObject.Parse(File.ReadAllText(path));
-        Check((int)disk["version"] == 22 && disk["scenarioOne"]["objectiveAchievements"] is JArray, label + "_DISK_V22_EXPLICIT_ARRAY");
+        Check((int)disk["version"] == 24 && disk["scenarioOne"]["objectiveAchievements"] is JArray, label + "_DISK_V24_EXPLICIT_ARRAY");
         Check(saves.CanLoad(out string problem), label + "_CANLOAD", problem);
         saves.Load(); yield return Settle(3);
         Check(ecology.EcologicalYear == yearBefore, label + "_YEAR_RESTORED", $"{ecology.EcologicalYear} vs {yearBefore}");
@@ -204,13 +204,13 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
     {
         Section("A: new game, year-0 save/reload, year-1 recording (B-1), distinct-year records");
         ForestSaveData start = saves.CaptureData();
-        Check(ForestSaveData.CurrentVersion == 22 && start.version == 22, "A0_CURRENT_VERSION_22", "version=" + start.version);
+        Check(ForestSaveData.CurrentVersion == 24 && start.version == 24, "A0_CURRENT_VERSION_24", "version=" + start.version);
         Check(start.scenarioOne.objectiveAchievements != null && start.scenarioOne.objectiveAchievements.Count == 0, "A0_NEW_GAME_EMPTY_HISTORY");
         Check(manager.CurrentEcologicalYear == 0 && manager.ObjectiveAchievements.Count == 0, "A0_YEAR0_NO_RECORDS");
         string worldYear0 = WorldHash();
         saves.Save(); yield return Settle(2);
         JObject disk0 = JObject.Parse(File.ReadAllText(path));
-        Check((int)disk0["version"] == 22 && disk0["scenarioOne"]["objectiveAchievements"] is JArray a0 && a0.Count == 0, "A0_YEAR0_DISK_EXPLICIT_EMPTY_ARRAY");
+        Check((int)disk0["version"] == 24 && disk0["scenarioOne"]["objectiveAchievements"] is JArray a0 && a0.Count == 0, "A0_YEAR0_DISK_EXPLICIT_EMPTY_ARRAY");
         Check(saves.CanLoad(out string p0), "A0_YEAR0_CANLOAD", p0);
         saves.Load(); yield return Settle(3);
         Check(manager.CurrentEcologicalYear == 0 && manager.ObjectiveAchievements.Count == 0, "A0_YEAR0_RELOAD_STILL_EMPTY");
@@ -264,7 +264,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
         goodBytes = File.ReadAllBytes(path);
         goodData = saves.CaptureData();
         goodCompact = JsonUtility.ToJson(goodData);
-        File.WriteAllBytes(Path.Combine(output, "recorded-v22-year3-save.json"), goodBytes);
+        File.WriteAllBytes(Path.Combine(output, "recorded-v24-year3-save.json"), goodBytes);
         Check(goodData.scenarioOne.objectiveAchievements.Count >= 2, "A5_RECORDED_WORLD_FIXTURE_CAPTURED", RecordsText());
     }
 
@@ -377,7 +377,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
         string recordsAtStart = RecordsText();
 
         // Accepted controls first (they change the live world only to an equal one).
-        yield return Accept("v22 with records", goodCompact, goodData);
+        yield return Accept("current with records", goodCompact, goodData);
         ForestSaveData empty = Clone(goodData); empty.scenarioOne.objectiveAchievements = new List<ScenarioObjectiveAchievement>();
         yield return Accept("v22 explicit empty list", JsonUtility.ToJson(empty), empty);
         Check(RecordsText() == "", "B_ACCEPT_EMPTY_LIST_LEAVES_NO_RECORDS");
@@ -529,7 +529,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
             Check(Disk() == diskBefore, label + "_DISK_LOAD_LEAVES_BYTES");
 
             ForestSaveData loaded = saves.CaptureData();
-            Check(loaded.version == 22 && loaded.scenarioOne.objectiveAchievements != null && loaded.scenarioOne.objectiveAchievements.Count == 0, label + "_MIGRATED_TO_V22_EMPTY_HISTORY");
+            Check(loaded.version == 24 && loaded.scenarioOne.objectiveAchievements != null && loaded.scenarioOne.objectiveAchievements.Count == 0, label + "_MIGRATED_TO_V24_EMPTY_HISTORY");
             AssertSources(label);
             string sourcesBeforeSave = SourcesText();
             derived += manager.Objectives.Count(o => o.achieved && SourceText(o.objectiveId).StartsWith("Derived"));
@@ -540,7 +540,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
             string captureBeforeSave = CaptureFingerprint();
             saves.Save(); yield return Settle(2);
             JObject resaved = JObject.Parse(File.ReadAllText(path));
-            Check((int)resaved["version"] == 22 && resaved["scenarioOne"]["objectiveAchievements"] is JArray ra && ra.Count == 0, label + "_RESAVE_V22_EXPLICIT_EMPTY_LIST");
+            Check((int)resaved["version"] == 24 && resaved["scenarioOne"]["objectiveAchievements"] is JArray ra && ra.Count == 0, label + "_RESAVE_V24_EXPLICIT_EMPTY_LIST");
             Check(File.ReadAllBytes(path + ".bak").SequenceEqual(fx.bytes), label + "_RESAVE_KEPT_ORIGINAL_AS_BAK");
             Check(saves.CanLoad(out string p2), label + "_RESAVE_CANLOAD", p2);
             saves.Load(); yield return Settle(3);
@@ -631,7 +631,7 @@ public sealed class S1CObjectiveHistoryUnityRunner : MonoBehaviour
                     foreach (string id in achievedNow.Where(id => firstYears[id] >= gapYear))
                         Check(manager.ObjectiveAchievedYear(id) == -1 && SourceText(id) == "NotRecorded", label + $"_STILL_NOT_RECORDED_{step}_{id}", SourceText(id));
                 }
-                // And survives a v22 re-save and reload.
+                // And survives a v24 re-save and reload.
                 saves.Save(); yield return Settle(2);
                 saves.Load(); yield return Settle(3);
                 Check(manager.ObjectiveAchievements.Count == 0, label + "_RESAVE_RELOAD_STILL_NO_RECORD", RecordsText());

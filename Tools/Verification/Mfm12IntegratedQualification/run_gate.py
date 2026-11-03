@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-TASK_ID = 'MFM-12'
+TASK_ID = os.environ.get('CCF_LOCK_TASK_ID', 'MFM-12')
 UNITY = Path('/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity')
 LOCK_SCRIPT = Path('/media/jer/ZX20/CCF-Ops/scripts/unity-lock')
 

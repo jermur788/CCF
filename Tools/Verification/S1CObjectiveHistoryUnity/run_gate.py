@@ -16,6 +16,8 @@ import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[3]   # default project: the checkout this script lives in
+TASK_ID = os.environ.get('CCF_LOCK_TASK_ID', 'S1-C-T05')
+OWNER = os.environ.get('CCF_LOCK_OWNER', 'T3-S1C-T05')
 UNITY = Path('/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity')
 GATES = {
     'baseline-hash': ('S1CObjectiveHistoryUnity/S1CHashBaselineGate.cs', 'T05_BASELINE_HASH_PASS', 'T05_BASELINE_HASH_FAIL'),
@@ -71,7 +73,7 @@ def main():
     actual_head = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
     dirty = subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain'], text=True).strip()
     if (lock.get('status') != 'held' or metadata.get('lock_id') != args.lock_id
-            or metadata.get('task_id') != 'S1-C-T05' or metadata.get('owner') != 'T3-S1C-T05' or metadata.get('lane') != str(root)
+            or metadata.get('task_id') != TASK_ID or metadata.get('owner') != OWNER or metadata.get('lane') != str(root)
             or metadata.get('head') != args.expected_head or actual_head != args.expected_head
             or lock.get('unity_editor_pids') or dirty):
         raise SystemExit('OWNERSHIP CONFLICT: require this task\'s exact lock, a clean matching lane and no running Editor')

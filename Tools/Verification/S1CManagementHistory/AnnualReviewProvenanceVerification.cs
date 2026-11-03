@@ -295,7 +295,7 @@ public sealed class AnnualReviewProvenanceRunner : MonoBehaviour
         foreach (string p in new[] { path, path + ".bak", path + ".tmp" }) originals[p] = File.Exists(p) ? File.ReadAllBytes(p) : null;
         FindFirstObjectByType<ForestPlayer>().enabled = false;
         var states = new[] {
-            (name: "recorded", file: Path.Combine(earlier, "recorded-v22-year3-save.json"), kind: HistoryProvenance.Recorded, phrase: "(recorded)"),
+            (name: "recorded", file: Path.Combine(earlier, "recorded-v24-year3-save.json"), kind: HistoryProvenance.Recorded, phrase: "(recorded)"),
             (name: "derived", file: Path.Combine(fixtures, "v20-y5.json"), kind: HistoryProvenance.Derived, phrase: "(derived from saved records)"),
             (name: "notrecorded", file: Path.Combine(earlier, "render-gap-v20-y5-no-year1-snapshot.json"), kind: HistoryProvenance.NotRecorded, phrase: "Year reached: not recorded") };
         try

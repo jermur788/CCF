@@ -22,7 +22,7 @@ import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[3]
-TASK_ID = 'MFM-12'   # default project: the checkout this script lives in
+TASK_ID = os.environ.get('CCF_LOCK_TASK_ID', 'MFM-12')   # default project: the checkout this script lives in
 TOOLS = ROOT   # replaced by --tools-root: where historical harness sources are read from
 UNITY = Path('/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity')
 GATES = {
@@ -160,7 +160,10 @@ def main():
         raise SystemExit('Objective/render gates require --fixtures with manifest.json')
     prior = (args.prior_evidence or args.fixtures)
     if args.gate in ('t02', 't03', 't04', 't06'):
-        needed = [args.fixtures / 'v20-y5.json', prior / 'recorded-v22-year3-save.json', prior / 'render-gap-v20-y5-no-year1-snapshot.json'] if args.fixtures else []
+        recorded = prior / 'recorded-v24-year3-save.json'
+        if not recorded.is_file():
+            recorded = prior / 'recorded-v22-year3-save.json'
+        needed = [args.fixtures / 'v20-y5.json', recorded, prior / 'render-gap-v20-y5-no-year1-snapshot.json'] if args.fixtures else []
         if not needed or any(not p.is_file() for p in needed):
             raise SystemExit('t02-t06 gates require --fixtures with v20-y5.json and recorded/render-gap prior saves')
     if any(not origin.is_file() for origin, _ in pairs):
