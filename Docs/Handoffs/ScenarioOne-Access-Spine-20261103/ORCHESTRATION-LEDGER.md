@@ -113,3 +113,91 @@ For **every material route/dispatch/retry/switch/completion**, append timestampe
 - **Ledger timing:** append an entry for each actual dispatch, capacity/context observation, block, provider switch/cooldown, attempt/retry, checkpoint, review and handoff. Keep OBSERVED FACT, ORCHESTRATOR CLAIM and RETROSPECTIVE INFERENCE separate; unknown quota/reset/token/context metrics stay UNKNOWN. Include a V2 Orchestration Decision Appendix in final handoffs. Do not backfill invented data or alter the four completed #246 events.
 - **User/Unity/product limits:** #243 original lease released, #248 **READY for new preflight**, not RUNNING. No Unity launch until *fresh* exclusive #248 lock, processes/disk/candidate/lane validated. The access-spine specification is still DRAFT, no production authorised; no Windows build before completed personal playtest and later explicit approval.
 - **Routing alternatives, provider status and outcome:** no new model route, measurement or quota observation from this clarification. All remain UNKNOWN until DPC actually dispatches.
+
+### EVENT — 2026-11-03 21:06Z–21:16Z — #243 lease released by its exact owner; #248 live preflight, lane, lease and dispatch
+
+- **Work unit / claim:** [#243](https://github.com/jermur788/CCF/issues/243) lease cleanup (operational, no Unity) and [#248](https://github.com/jermur788/CCF/issues/248) Unity geometry + MFM mask measurement.
+- **Evidence class:** OBSERVED FACT (tool output, lock metadata, process table, `df`, refs); ORCHESTRATOR CLAIM (routing and lane judgement).
+- **Prior provider/model/effort:** `Astra-243` local T3 thread on `claudeAgent` / `claude-sonnet-5-5` (the #243 owner) for the release; DPC parent `opencode-go` / `deepseek-v4.1-flash` for preflight.
+- **Selected provider/model/effort:** measurement worker `claudeAgent` → `claude-sonnet-5-5` (Claude Sonnet 5.5), `effort: medium`, role `research`, task `node:delegated-task:…:delegate-task:36f690af…`, child thread `thread:delegated-task:…:36f690af…`.
+- **Alternatives, reason and exploit/explore:** the permitted alternative was `codex`/`codex_c75d8114-…` → `gpt-6.1-sol` at `reasoningEffort: medium`. **Chosen Sonnet 5.5 Medium** because the work is long-lived Unity batchmode scripting plus measurement bookkeeping inside a strict disposable-harness/disk-budget envelope, and because the Claude pool had just run the #243 lane successfully on this project, so its capacity was observed rather than assumed. `GPT-6.1` (`gpt-6.1-sol` / `gpt-6.1-terra`) is deliberately reserved as the **independent reviewer** of the measurements — cross-provider independence is a packet requirement and the recon round already established that pattern. **Exploit** of the observed Claude capacity; **explore** only in the sense that no Unity-measurement run has been done on this task class.
+- **Provider/pool state, quota/window and source:** OBSERVED at 21:13Z via `orchestrator_capabilities`: `claudeAgent` (Sonnet 5.5 / Opus 5.5 / Fable 5.1 / Haiku 5.5) and `codex` + `codex_c75d8114-…` (GPT-6.1 family) both enabled with `canRunChildTask: true`; `opencode` is the current driver. Quota, rate-limit window, reset time, remaining credit and context headroom are **UNKNOWN** — this harness exposes no such telemetry, and none is estimated.
+- **Context used/limit, compactions and source:** UNKNOWN for both the DPC parent and the child. Not estimated.
+- **Capacity-to-completion, switching cost:** `sufficient by task size / unknown by quota`. The brief is fully self-contained against an exact ref, so a provider failure costs only the partial evidence already written to the durable evidence root, not the programme state. Switching cost to GPT-6.1 would be low-to-moderate.
+- **Branch/worktree, ownership, Unity status:** see the three sub-records below. Manager-reserved lane created exactly as allocated; no other lane, save or user worktree touched.
+- **Checks/evidence, runtime, tokens where observable:** see sub-records. Token counts, model-call counts and wall times remain **UNKNOWN**.
+- **Outcome / reviewed / accepted / unresolved:** #243 lease **RELEASED**; #248 **[RUNNING]**. No measurement accepted, no implementation, no build.
+- **Failure classification and recovery/next action:** none at this point. Next: on worker return, DPC spot-checks load-bearing numbers against the raw JSON, publishes `UNITY-GEOMETRY-HANDOFF.md`, routes an independent GPT-6.1 Medium read-only review, then releases the lease and returns to Manager.
+
+#### 21:09:51Z — #243 exact-owner release (OBSERVED)
+
+- DPC did **not** impersonate or force the release. At 21:06Z the deployed tool read `status: held`, `lock_id 7256c06f75c447208806e2414e604761`, `owner Astra-243`, `task_id 243`, lane `/media/jer/ZX20/CCF-Intro-Astra-20261103`, branch `verify/scenario-one-intro-astra-20261103`, head `6bff87dd`, `pid null`, `eta_overdue: true`, `unity_editor_pids: []`.
+- DPC routed the release to the **original idle owner thread** (`<t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/7a91936f-57c1-4c00-bacd-42056ce47918>`) with the packet's exact-owner procedure. The owner verified identity and process state and ran the deployed tool's **normal** matching release (`forced: False`) at 21:09:51Z; `history.jsonl` records actor `Astra-243`, reason "#243 complete; exact-owner release per UNITY-LEASE-RELEASE-PACKET.md", same lock id. Post-check `{"status":"free","metadata":null,"unity_editor_pids":[]}`. Receipt posted by the owner on #243.
+- **Owner-reported process check:** no Unity, Xephyr or openbox process; private display `:84` gone; lane clean at `6bff87dd`; 0 dirty entries.
+
+#### 21:11Z–21:13Z — #248 live preflight (OBSERVED)
+
+Evidence root `/media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2110Z/`, `preflight/` subdirectory.
+
+| Gate | Observed value | Verdict |
+|---|---|---|
+| Lock | `free`, metadata `null`, `unity_editor_pids: []` at 21:11:23Z | PASS |
+| Unity Editor / private display processes | none (`preflight/unity-editor-pids.txt`, `private-display-procs.txt`) | PASS |
+| Candidate ref | `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd1c653fa2231f632a79030a83ff76f833`, matching the packet's inspected ref | PASS |
+| Reserved lane free | `/media/jer/ZX20/CCF-AccessSpine-Measure-20261103` absent; branch `verify/scenario-one-access-spine-measure-20261103` absent on origin | PASS |
+| Disk | 29,100,867,584 bytes (27.10 GiB) free vs 16,106,127,360-byte floor; 12,994,740,224 bytes above the floor | PASS (marginal — see caveat) |
+| Deployed lock tool | sha256 recorded in `preflight/deployed-lock-tool.sha256` | PASS |
+
+- **Caveat, disclosed:** the disk margin is **marginal**. After the lane checkout free space fell to 27,183,939,584 bytes (25.32 GiB) with no Library yet, and a cold import is expected to consume 7–9 GiB. The worker was therefore given a hard disk guard: record free bytes around every Unity invocation, delete `Temp/`/`obj/`/`Logs/` after each run, and STOP if free would fall below 18,000,000,000 bytes or ever below the 16,106,127,360-byte floor.
+- **Bare-store observation, not a divergence:** the shared bare store's local `integration/scenario-one-player-test-ready-v1` is `185200f5`, which is an **ancestor** of the published `72b4efbd` (`git merge-base` = `185200f5`). The lane was therefore created from the exact published commit, not from the lagging local branch.
+- **Playtest caveat retained:** the user's personal playtest build is still **not verified** to be `72b4efbd`. The measurement is against the published candidate ref only.
+
+#### 21:13Z — lane created and registered (OBSERVED)
+
+- `git worktree add -b verify/scenario-one-access-spine-measure-20261103 /media/jer/ZX20/CCF-AccessSpine-Measure-20261103 72b4efbd…`; verified branch, HEAD `72b4efbd…`, `git status --porcelain` empty, toplevel and common-dir correct (`/media/jer/Files/CCF/Repository.git`).
+- Lane `AccessSpineMeasure248` appended to the **deployed** `/media/jer/ZX20/CCF-Ops/lanes.json` (`unity: true`) because `unity-lock acquire` resolves lanes only from that config; without it the reserved lane cannot be acquired at all. This is a mechanical registration of the Manager-reserved path, not a new reservation.
+
+#### 21:13:11Z — exclusive #248 lease acquired (OBSERVED)
+
+- `unity-lock acquire --owner DPC-248 --task-id 248 --lane AccessSpineMeasure248 --branch verify/scenario-one-access-spine-measure-20261103 --head 72b4efbd… --eta 2026-11-04T02:00:00Z`.
+- Result: `lock_id 62da5753307c4bb886477efc14b4ed96`, `status: held`, `unity_editor_pids: []`. No force, no second holder, no other lane displaced.
+- **Ownership:** DPC holds the lease for the whole measurement; the delegated worker runs Unity **under** it and is instructed never to acquire, release or force-release, and never to run a second Editor.
+
+#### 21:16Z — measurement dispatched (OBSERVED)
+
+- `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`, role `research`, isolation `shared`, runtime `full-access`, status `running`.
+- Scope dispatched: the packet's A–E blocks — route/surface geometry from the live scene; herringbone feasibility arithmetic over the real jittered lattice at 20/30/35/40/45/50/60° with the 2.5 m boundary window; physical traversal with the production `CharacterController`; and the read-only MFM mask delta for the spine as `Track`, as `Headland`, and for one representative branch line. Visuals are explicitly **conditional** and lowest priority.
+- **Not authorised to the worker:** any production edit, plank placement, rack creation, save/MFM/schema change, Windows build, GitHub push, or commit to the measurement branch. Lane must end clean at `72b4efbd`.
+
+### EVENT — 2026-11-03 21:26Z — packet refreshed to `main` @ `98d17b9e`; preflight/lane/lease/dispatch reconciled against the new five-step procedure
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (refs, tool output, process table, disk, log); ORCHESTRATOR CLAIM (reconciliation judgement); RETROSPECTIVE INFERENCE (process lesson).
+- **Prior/selected provider:** unchanged — `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`, task `node:delegated-task:…:delegate-task:36f690af…`, child thread `thread:delegated-task:…:36f690af…`. DPC parent unchanged (`opencode-go` / `deepseek-v4.1-flash`). No switch, no retry, no salvage.
+- **Provider/pool state, quota/window and source:** both pools remained enabled and `canRunChildTask: true`. Quota, rate-limit window, reset time, remaining credit and context headroom remain **UNKNOWN** — no telemetry exposed by this harness. **No quota, cooldown, login or rate-limit event has been observed in this run.** Recorded as UNKNOWN, not estimated.
+- **Context used/limit, compactions:** UNKNOWN for DPC and child; not surfaced.
+- **Capacity-to-completion / switching cost:** `sufficient / unknown by quota`. No switching cost incurred; nothing needs salvage.
+
+#### What changed in the packet (OBSERVED)
+
+`main` advanced `ad91f80d → 98d17b9e` with four docs commits — `a4e7e421`, `5c89d18f`, `0f495d7a`, `98d17b9e`. Material delta only:
+
+1. Status `PREFLIGHT RELEASED / CONDITIONAL` → **`READY FOR FRESH LOCAL PREFLIGHT`**; entry gate 2 now records the #243 exact-owner release receipt (21:09:54Z) as **satisfied and #243 CLOSED by Manager**, while still requiring DPC's own fresh check and a separate new lease.
+2. DeepSeek is now named **parent orchestrator** with an explicit **five-step delegation and ledger procedure** (refresh/preflight → decompose/assign → mark actual execution → contemporaneous ledger events → review/publish/continue), plus an explicit instruction not to treat the packet as one undifferentiated worker instruction.
+3. New "Follow-up Manager gate update" (21:11Z): Manager verified the #243 receipt remotely and did **not** re-read live machine state; DPC must obtain its own fresh preflight and separate lease. No lock override authorised.
+
+No change to measurement scope, prohibitions, lane allocation, candidate ref or return requirements.
+
+#### Reconciliation of work already done against the five steps (OBSERVED)
+
+- **Step 1 (refresh/preflight):** completed 21:11Z–21:13Z, before the packet update, and re-verified at 21:26Z. Candidate `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd…` (unchanged). Live lock, process, disk and lane state re-read today. `Docs/Project/coordination/active-tasks.md` read for authority; **not written** (#200 owns it). #203 is OPEN `[RUNNING]` local deep orchestration resume 02, which is the correct parent claim; #248 carries the measurement.
+- **Step 2 (decompose/assign):** the four packet phases are (a) scene/map geometry and passability, (b) five-rack angle/spacing/entrance feasibility, (c) hypothetical MFM mask/coverage impact, (d) independent cross-provider review and synthesis. (a)–(c) were dispatched as one bounded Medium measurement worker; **(d) is deliberately reserved for `gpt-6.1-sol` Medium**, not yet dispatched.
+- **Step 3 (mark actual execution):** the lease was acquired **before** any measurement, at 21:13:11Z, and `[RUNNING]` + actual provider/model/effort/branch/worktree/HEAD/owner/lease was posted on #248 at 21:16Z. The later packet update does not invalidate that sequencing; the lease was never retro-fitted to a running Editor.
+- **Step 4 (ledger):** this event is the second contemporaneous append; the first recorded the release, preflight, lane, lease and dispatch.
+- **Step 5 (review/publish/continue):** pending measurement completion.
+
+#### Operational observation and risk (OBSERVED, then INFERENCE)
+
+- The measurement worker's **turn ended around 21:22Z while its Unity run continued**. The child thread reads `status: completed`, `activeRunId: null`, and its last message says it is waiting on the background watcher.
+- **Not stranded:** the run is supervised by a live driver process — `/usr/bin/python3 -I -B …/driver/run_measure.py run1 4500` (PID 2949959) — which polls free bytes every 20 s, enforces the 18,000,000,000-byte guard, kills the `systemd-run` scope on breach or timeout, always deletes the staged `.cs`/`.meta` and `Temp/obj/Logs`, and writes `measurements/run-run1.json`. Unity PID 2950023 runs inside scope `ccf-248-measure-…`; PID 2956228 is Unity's own `AssetImportWorkerHW0`, **not** a second Editor.
+- **INFERENCE:** a child turn that ends during a long background run leaves the result unread unless the orchestrator re-enters. DPC therefore attached its own completion waiter and will resume the same child (or dispatch a continuation brief) when the driver exits. This is a **harness/process lesson, not a model-reasoning failure and not a quota event.**
+- **Disk trajectory (OBSERVED):** free_before 27,183,808,512 bytes at 21:22:07Z; 21,119,631,360 bytes (19.67 GiB) at 21:26Z during cold import; guard 18,000,000,000; deployed floor 16,106,127,360. Margins are thin but above both thresholds at time of writing.
