@@ -3,7 +3,7 @@
 **Issue:** [#246](https://github.com/jermur788/CCF/issues/246) — READ-ONLY. **Date:** 2026-11-03.
 **Parent orchestrator:** DPC (local). **Overall Manager:** #200 (unchanged).
 **Status:** **[HANDED-OFF]** — evidence inventory and recommendation only.
-**Verdict:** **NO STOP CONDITION MET**, and **nothing is proven to fit either.** Layout A is the preferred direction but remains *unproven pending a Unity geometry measurement packet and an approved spec amendment*. The draft spine spec does collide with D-064 / Rack V2 in specific, listed places.
+**Verdict:** **no cited fact forces a STOP**, but **nothing proves the layout fits either**, and the §39.6.1 geometry stop condition cannot be cleared from source alone. Layout A is the preferred direction and remains *unproven pending a Unity geometry measurement packet and an approved spec amendment*. The draft spine spec does collide with D-064 / Rack V2 in specific, listed places.
 
 ## 0. What this document is, and is not
 
@@ -37,7 +37,7 @@ Evidence labels used throughout:
 
 - **OBSERVED** — `Assets/Scenes/ForestTest.unity` is the only scene in `ProjectSettings/EditorBuildSettings.asset` (lines 8–9).
 - **OBSERVED** — the scene contains 52 objects named `Dirt Path 00` … `Dirt Path 51` plus `Forest Clearing`. Each path object carries only `Transform`, `MeshFilter` and `MeshRenderer` — **no `Collider`**.
-- **OBSERVED** — plank scale is `(2.6, 0.012, ~0.66)`, so the rendered path is **2.6 m wide** and sits 12 mm above ground, at ~0.5 m steps.
+- **OBSERVED** — plank scale is `(2.6, 0.012, 0.662013)` and `(2.6, 0.012, 0.612904)` at the named endpoints (`ForestTest.unity` ~13315–13350, ~17905–17940), so the rendered path is **2.6 m wide** and sits 12 mm above ground. Planks are authored at 0.5 m Z increments; that is a spacing input, not a measured centre-to-centre distance on the curve.
 - **OBSERVED** — the authored line runs from about `(-0.93, -14.75)` at its south end to `(-2.71, 10.75)` at its north end, bowing to `x ≈ +3.0` near `z = -4.25`.
 - **OBSERVED** — `Forest Clearing` sits at `(-2.77, 11)` with scale `9 × 9`.
 - **OBSERVED** — `Assets/ForestPrototype/ScenarioOne/ScenarioOneHeadlandPresentation.cs` (lines 4–5) states the track is only a ground surface and that the existing ground supplies the collider.
@@ -72,7 +72,7 @@ There are three overlapping sources:
 
 - **OBSERVED** — `UI/Map/StandMapSource.cs` (lines 5–19) builds "the ONE StandMapModel … for both the full Stand Map and the HUD minimap".
 - **OBSERVED** — `UI/HudMinimapView.cs` (line 5) documents that it owns no rack or path data and hands the shared model to a surface.
-- **OBSERVED** — paths reach the map only through `StandMapSource.ReadScenery` (lines ~342–377): it collects active Transforms whose name starts with `Dirt Path`, orders them by name, begins a new line on a jump of more than 2 m, and takes width from the first plank's scale. The clearing becomes a Landmark. The map re-reads when `StandApproachPath.Version` changes (line ~147).
+- **OBSERVED** — paths reach the map only through `StandMapSource.ReadScenery` (lines ~342–377): it collects active Transforms whose name starts with `Dirt Path`, orders them by name, begins a new line on a jump of more than 2 m, and takes the width of **each resulting line from that line's first plank** (`Mathf.Max(0.5f, plank.lossyScale.x)`). The clearing becomes a Landmark. The map re-reads when `StandApproachPath.Version` changes (line ~147).
 - **OBSERVED** — the approach planks are included because they use the `Dirt Path X` prefix. **This is the existing mechanism by which a new path segment becomes visible on both the Stand Map and the minimap for free.**
 - **OBSERVED** — the headland strip and feeder are **not** read by any map code. `grep` finds "headland" in map files only in legend text and prompts (`StandMapSymbols.cs`, line 94; `StandMapView.cs`, lines 600–601).
 - **INFERENCE** — the headland and feeder therefore exist in 3D but not on the Stand Map or minimap. That is exactly the class of inconsistency the draft spec is written to remove. **UNMEASURED** — how visible the mismatch is.
@@ -90,10 +90,10 @@ Specification: `specs/scenario-one-objective-1-rack-planning-field-marking-v2/sp
 
 ### 3.1 The entrance rule is headland-only in code, "path/headland" in the spec
 
-- **OBSERVED** — `Assets/ForestPrototype/Racks/RackEditing.cs` lines 162–163 return `EntranceOffHeadland` when `EntranceOnHeadland` (lines 123–125) fails. **The code accepts the western headland line only.**
+- **OBSERVED** — `Assets/ForestPrototype/Racks/RackEditing.cs` lines 156–163 return `EntranceOffHeadland` when `EntranceOnHeadland` (lines 120–142) fails. The check is against the **supplied** `bounds.HeadlandX`; `RackEditing` does not hard-code the value — the Scenario One caller supplies `-35.4`. **In practice the code accepts the western headland line only.**
 - **OBSERVED** — spec §12 and §16 say "path/headland". So the code is *narrower* than the accepted spec.
 - **OBSERVED** — `ResolveCreation` (lines 130–135) silently re-anchors: whichever end is nearer is treated as the entrance and snapped onto the headland (`SnapEntrance`, lines 117–121), with the far end kept.
-- **OBSERVED** — `MoveAlongHeadland` (lines 139–145) slides only along the headland; `SnapFar` (lines 259–326) rotates about the entrance with a 4° angle window, a 2.5 m boundary window and a 30 m parallel search.
+- **OBSERVED** — `MoveAlongHeadland` (lines 139–145) slides only along the headland; `SnapFar` (lines 254–319) rotates about the entrance with a 4° angle window, a 2.5 m boundary window, and `ParallelSearchM = 30f` applied as a **Z-distance** filter, not a general radial search.
 
 **Consequence for the draft's "draft a poor internal start and see why it is bad":** today an interior or disconnected start is **not explained — it is silently moved** to the western headland. That is the opposite of the teaching behaviour the draft proposes, and it is a *silent snap*, which spec §16 explicitly forbids ("Do not silently snap an invalid plan into validity").
 
@@ -115,7 +115,7 @@ Specification: `specs/scenario-one-objective-1-rack-planning-field-marking-v2/sp
 | State | Where it lives | Citation |
 |---|---|---|
 | **Editable proposal** | draft rack set before confirm | `CanConfirmRackPlan`, `ScenarioOneManager.RackEditing.cs` 107–128 |
-| **Confirmed, valid entrance** | `rackPlanConfirmed` + frozen `removalTreeIds` + `entranceTreeId` | `ScenarioOneManager.RackPlan.cs` ~243–276, 548–560 |
+| **Confirmed, valid entrance** | `rackPlanConfirmed` + frozen `removalTreeIds` + `entranceTreeId`, alongside the rack's identity and endpoint fields | `ScenarioOneManager.RackPlan.cs` ~243–276, 548–560; `ForestSaveData.cs` 129–145 |
 | **Marked** | `entranceMarked` set by `TrySprayRackEntrance` | `ForestTreeMarkingManager.RackEntrances.cs` 113–134 |
 | **Approved work / executed** | Confirm creates **Pending** orders only; a rack with a Completed order is locked | `RackPlan.cs` 6–9, ~339; `RackGeometry.cs` 356 (`IsLocked => Completed > 0`) |
 
@@ -166,7 +166,7 @@ Exact spine endpoints after extension; the clearing's real extent; where entranc
 - **OBSERVED** — `CharacterController`: height 1.8, radius 0.3, slope limit 45°, step offset 0.25.
 - **OBSERVED** — **there is no path-, tree- or slope-based slowdown in `ForestPlayer`.** The ground is level, and there is no `Terrain` (see `StandMapSource.cs`, lines 17, 347).
 - **OBSERVED** — the tree trunk collision proxy is a separate invisible `Trunk` object sized from stem diameter (`ForestTree.cs`, lines 278, 671–678); polished visuals have their colliders stripped (lines 500–511). **UNMEASURED** — the proxy's actual collider type and radius, which depend on the prefab.
-- **CORRECTED IN REVIEW** — `PlantationBranchMovement.ContactSpeedFactor = 0.35` (`PlantationBranchMovement.cs`, line 9) exists and *is* referenced (line 126) and wired from `PlantationTreeVisual` (Register/Unregister, lines 164–197). It is **not** a player-speed mechanism: it is a branch-contact cost model for plantation tree visuals. The claim "present but unused" was wrong in detail and is withdrawn; the substantive point stands — **no player-facing route/tree slowdown exists in `ForestPlayer`.**
+- **CORRECTED IN REVIEW** — `PlantationBranchMovement.ContactSpeedFactor = 0.35` (`PlantationBranchMovement.cs`, line 9) **is used inside its own `Resolve`** (line 126, `step / ContactSpeedFactor`). It is **not** a player-speed mechanism: it is a branch-contact cost model for plantation tree visuals, and `Resolve` appears not to be called anywhere in the candidate. The original claim "present but unused" was wrong in detail and is withdrawn; the substantive point stands — **no player-facing route/tree slowdown exists in `ForestPlayer`.**
 
 **INFERENCE** — with 2.0 m rows and a 0.3 m controller radius, whether the player can squeeze between trunks depends on jitter and stem radius. **UNMEASURED.**
 
@@ -176,12 +176,12 @@ Exact spine endpoints after extension; the clearing's real extent; where entranc
 
 ## 6. Persistence, MFM and compatibility
 
-- **OBSERVED** — `ForestSaveData.CurrentVersion = 24` (`ForestSaveData.cs`, line 7). v20 added `standGeometryModel`; v21 added `rackPlanningModel`, `rackPlanConfirmed`, `nextRackId`, `racks` (lines 85–96) with `RackSaveData` = id, entrance/far x/z, `removalTreeIds`, `entranceTreeId`, `entranceMarked` (lines 129–146); v22 objective history; v23 MFM prescriptions; v24 `firstGuidedRackReviewComplete`.
+- **OBSERVED** — `ForestSaveData.CurrentVersion = 24` (`ForestSaveData.cs`, line 7). v20 added `standGeometryModel`; v21 added `rackPlanningModel`, `rackPlanConfirmed`, `nextRackId`, `racks` (lines 85–96) with `RackSaveData` = `rackId`, `entranceX`/`entranceZ`, `farX`/`farZ`, `removalTreeIds`, `entranceTreeId`, `entranceMarked` (lines 129–145); v22 objective history; v23 MFM prescriptions; v24 `firstGuidedRackReviewComplete`.
 - **OBSERVED — documentation drift.** `Docs/Project/unity-project-overview.md` line 82 states "Current integrated schema: `ForestSaveData.CurrentVersion = 20`". The candidate is at 24. **The overview is stale and should be corrected by its owner, not by this handoff.**
 - **OBSERVED** — **no path or route data is saved at all.** `StandApproachPath.cs` (lines 20–21) and `StandApproachRoute.cs` (lines 75–80) infer from the saved trees whether an Enlarged80 world was planted with the approach; `ForestSaveController.cs` (lines 355–357) applies that on load. This is a working precedent for "cosmetic/route extension that old saves simply do not get".
-- **OBSERVED** — `StandApproachPath.Apply` does nothing unless the model is Enlarged80 (lines 39–42); `ScenarioOneSuggestedRackLayout` returns nothing for non-Enlarged80 (lines 31–33). Legacy40 and frozen Reference Future v1 are therefore already isolated from this feature family.
+- **OBSERVED** — `StandApproachPath.Apply` builds only for an Enlarged80 world that expects the approach, and **removes** an existing approach otherwise (lines 35–42); `ScenarioOneSuggestedRackLayout` returns nothing for non-Enlarged80 (lines 31–33). Legacy40 and frozen Reference Future v1 are therefore already isolated from this feature family.
 - **INFERENCE** — a spine that is *purely visual* (planks only) needs **no** schema change and cannot break old saves. A spine that becomes *authoritative* (a new anchor line, stored connectivity, per-rack spine linkage) would need a new version (v25) and a hash-compatible tail-field convention (`ScenarioReferenceArchive.WithoutRackV2Fields` / `WithoutPrescriptionState`, `ForestSaveData.cs` 85–109, `ScenarioReferenceArchive.cs` 259, 329).
-- **OBSERVED — MFM coupling.** `ScenarioOne/ScenarioOneCoverageWorld.cs` (lines 8–10, 73–75) builds Track masks from the `Dirt Path*` planks **and** the headland constants, and a Clearing mask from the clearing position; `ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs` (~330–340) consumes them. **Adding spine planks changes MFM coverage masks even with no new save field.**
+- **OBSERVED — MFM coupling, corrected on independent review.** `ScenarioOne/ScenarioOneCoverageWorld.cs` (lines 73–101) maps `Dirt Path*` planks to `MaskKind.Track`, the headland strip/feeder/pads to `MaskKind.Headland`, and the clearing to `MaskKind.Clearing` — **three distinct kinds, not one Track mask.** `ScenarioOneCoverage.cs` (lines 46–49) defines all of them as "ground the prescription must never treat", and the coverage frame excludes target stems inside **any** mask (`Locate(..., applyMasks: true)`, lines 280, 435–438), so mask *membership* drives exclusion and the `Kind` tag is descriptive. `ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs` (~330–340) consumes the result. **Consequence, stated correctly: extending the spine with `Dirt Path` planks silently classifies that ground as `Track` and removes it from treatable area, changing coverage units and prescription output with no new save field.**
 
 **What would break old saves:** putting a path through trees that a saved Enlarged80 world already contains; changing `ScenarioOneHeadlandGeometry` constants; changing the five-rack validation; adding data outside the hash-compatible tail convention.
 
@@ -241,12 +241,14 @@ Pinned against `specs/scenario-one-objective-1-rack-planning-field-marking-v2/sp
 | # | Conflict | Controlling text | What an amendment must say |
 |---|---|---|---|
 | 1 | Extending the central path modifies a protected behaviour. | V2 §37 protects "path entering from outside the property"; §39.1 makes it a non-goal to change. | Whether "extend the path inward" is inside or outside the protected behaviour, explicitly. |
-| 2 | The draft wants diagnosable disconnected starts; V2 forbids silent snapping *and* requires valid connection. | V2 §16: "all connect validly with the path/headland"; "Do not silently snap an invalid plan into validity". | Distinguish *drafting* (allowed, must explain) from *confirming* (must be valid). The current silent re-anchor (`RackEditing.cs` 130–135) already violates §16's second clause. |
+| 2 | The draft wants diagnosable disconnected starts; V2 forbids silent snapping *and* requires valid connection. | V2 §16 (lines 400, 408): "all connect validly with the path/headland"; "Do not silently snap an invalid plan into validity". | Distinguish *drafting* (allowed, must explain) from *confirming* (must be valid). The current silent re-anchor (`RackEditing.cs` 130–135) already violates §16's second clause. |
 | 3 | Code is narrower than spec: entrances must be on the headland, not "path/headland". | V2 §12, §16 vs `RackEditing.cs` 162–163. | Whether the anchor line becomes the spine, the headland, or both — and where that rule is enforced (facade only, or save validation too). |
 | 4 | "The spine is not one of the five." | V2 §7, §11, §19, §35 define racks and derive the counter from the rack set. | If the spine were stored as a `RackSaveData` it would count as one of five. It needs a distinct type, or explicit non-membership wording, keeping counters derived. |
 | 5 | A spine that removes trees would be a second removal system. | V2 §36; §39.6.4 stop condition. | Whether spine clearance is ever its own removal order, or is always expressed through rack orders. |
 | 6 | New data must be additive. | V2 §34; §39.6.2 stop condition; D-042 Reference Future v1. | The exact v25 tail-field shape, or a decision that the spine stores nothing. |
 | 7 | Work Plan gate and executed-rack locking must survive. | D-064 OPEN-2, OPEN-3; V2 §36, §39.7. | Confirmation that a spine does not add an approval path or unlock executed racks. |
+
+**On the geometry stop condition (V2 §39.6.1, spec line 999):** its wording is *"The verified stand and path/headland geometry cannot support five sensible racks **broadly consistent with the 16–20 m band**"*. It is a condition on **verified** geometry, so this document cannot clear it — and it is also the reason this document cannot declare it met. The arithmetic in §4.3 shows only that a shallow herringbone does not fit; it says nothing about "sensible".
 
 D-067 states it does not override D-064. Items 1–7 are therefore **Manager decisions, not reconnaissance findings.**
 
@@ -313,7 +315,43 @@ No provider switch was required. The verification route was *planned* independen
 
 # Appendix B — Independent verification result
 
-*Filled from the GPT-6.1 Medium review of the same refs; see the ledger for the event record.*
+**Verifier:** `codex_c75d8114-…` ("ChatGPT - OpenAI B") → `gpt-6.1-terra`, `reasoningEffort: medium`, role `review`, read-only, no Unity. **Refs:** candidate `72b4efbd…`, docs `d9b1268b…` (re-resolved).
+
+**Method:** the verifier was given a fixed list of 22 named claims and asked for PASS / PASS-WITH-CORRECTION / FAIL per claim with exact path, line and value, plus three judgement questions. It was not shown this document's wording, so corrections below are its findings, not agreement with my phrasing.
+
+## B.1 Outcome
+
+**13 PASS, 8 PASS-WITH-CORRECTION, 1 FAIL.** The verifier's own one-line verdict: *"CITATIONS PARTLY WRONG: C2, C7, C9, C13, C17, C18, C19, C21, C22."*
+
+No finding **reverses** a recommendation. One finding **corrects a substantive technical claim** (C22, MFM mask taxonomy), and the rest tighten wording or line references. All nine have been applied above before publication.
+
+| Claim | Verdict | What changed in this document |
+|---|---|---|
+| C2 plank geometry | PASS-WITH-CORRECTION | Scales are `0.662013` / `0.612904`, not a uniform "~0.66"; 0.5 m is an authored Z increment, not a measured centre spacing. §1.1 corrected. |
+| C7 map width source | PASS-WITH-CORRECTION | Width comes from the first plank of **each resulting line**, not one plank for every line. §2 corrected. |
+| C9 anchor + parallel search | PASS-WITH-CORRECTION | `RackEditing` validates against a **supplied** `bounds.HeadlandX`; the Scenario One caller supplies `-35.4`. `ParallelSearchM = 30f` is a **Z-distance filter**, not a radial search. §3.1 corrected. |
+| C13 confirmed state | PASS-WITH-CORRECTION | A confirmed record also carries its identity and endpoint fields, not only the frozen removal set. §3.4 corrected. |
+| C17 `ContactSpeedFactor` | PASS-WITH-CORRECTION | The constant **is used inside its own `Resolve`**; `Resolve` itself appears unwired. §5 corrected (this is the error I had already caught pre-review). |
+| C18 save fields | PASS-WITH-CORRECTION | The field is **`rackId`**, not `id`; endpoints are `entranceX/Z`, `farX/Z`. §6 corrected. |
+| C19 approach `Apply` | PASS-WITH-CORRECTION | `Apply` does **not** "do nothing" for other models — it **removes** an existing approach. §6 corrected. |
+| C21 spec §39.6.1 | PASS-WITH-CORRECTION | The stop condition is narrower than I quoted: it includes *"broadly consistent with the 16–20 m band"*. §10 now quotes it exactly and notes that this makes the condition untestable from source. |
+| **C22 MFM masks** | **FAIL** | I had written that the headland feeds the **Track** mask. It does not: planks → `MaskKind.Track`, headland/feeder/pads → `MaskKind.Headland`, clearing → `MaskKind.Clearing` (`ScenarioOneCoverageWorld.cs:73–101`). **§6 rewritten.** |
+
+**On C22 — the corrected consequence is stronger, not weaker.** `ScenarioOneCoverage.cs:46–49` defines all mask kinds as "ground the prescription must never treat", and exclusion is driven by mask *membership*, not the kind tag (`Locate(..., applyMasks: true)`, lines 280, 435–438). So extending the spine with `Dirt Path` planks silently classifies that ground as `Track` and removes it from treatable area, changing coverage units and prescription output **with no new save field**. A future spine also inherits a *semantic* question the source cannot answer: should an extraction spine be `Track` (because that is what the prefix makes it) or `Headland`?
+
+## B.2 Judgement questions
+
+**J1 — arithmetic.** Sound under its stated model: `32 / sin α ≤ 51` gives `α ≥ asin(32/51) ≈ 38.9°`; at 20 m spacing it becomes ≈ 51.7°. The verifier's caveat, which I accept and which the document already states: it assumes three entrances on one side, the full 51 m being usable, and 16 m being the applicable minimum. **It does not establish rack lengths, boundaries, tree selection, clearance, or a sensible complete layout.** It is a plausibility check, not a layout — and it is **not** a fit proof.
+
+**J2 — does any cited fact force a STOP?** No single cited fact does. But the verifier is right that the arithmetic cannot *clear* §39.6 either: that section requires **verified** sensible geometry and also lists persistence, protected-system and suggested-entrance-tree conditions. This document therefore reports an **audit verdict**, not a clearance, and says so in the header and §10.
+
+**J3 — overstatements.** All accepted and corrected above. The recurring failure mode was **collapsing several near-identical code paths into one sentence** — the path width, the mask kinds, and the anchor source each had one more case than my summary allowed.
+
+## B.3 What the verification did and did not buy
+
+- **Bought:** one substantive technical error caught before publication (C22), one already-caught error independently confirmed (C17), and eight precision fixes that would otherwise have been inherited by whoever implements against this document.
+- **Did not buy:** any Unity evidence, any fit proof, any spec approval. It is a citation audit of a source audit.
+- **Cost:** one additional provider round with a fixed 22-claim brief. Cheap relative to a Manager acting on a wrong MFM claim.
 
 ---
 
