@@ -68,7 +68,7 @@ Because the integration is the exact already-qualified direct-child commit on it
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
-## Astra #243 ownership and Unity lease boundary — 2026-11-03
+## Astra #243 initial ownership and Unity lease boundary — earlier 2026-11-03 preflight (historical; superseded by latest return above)
 
 - Manager #200 has **assigned exclusive onboarding production-file ownership to Astra #243** for the file set listed in the live table above. Other lanes must not edit those files while the claim remains active; this is ownership assignment, not proof that a worktree exists.
 - The local branch/worktree names are authorised for isolated use **only if available**. Production must branch from the published player-test base, never write to `main` or the published integration checkout; preserve unrelated/untracked `Scenario1V1/` content reported in an existing checkout.
