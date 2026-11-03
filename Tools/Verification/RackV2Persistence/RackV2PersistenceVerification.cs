@@ -475,8 +475,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         CheckNeverV2("v20 Enlarged80 save");
         Check(Hash() == freshHash, "the pre-planning old save loads with its pre-v21 world identity (empty-plan hash)");
         string legacyResave = SaveToDisk("v20 re-saved as v21");
-        Check((int)JObject.Parse(legacyResave)["version"] == 23 && (int)Scenario(JObject.Parse(legacyResave))["rackPlanningModel"] == RackPlanningModel.Legacy,
-            "re-saving an old world writes v21 with model 0 stated explicitly");
+        Check((int)JObject.Parse(legacyResave)["version"] == 24 && (int)Scenario(JObject.Parse(legacyResave))["rackPlanningModel"] == RackPlanningModel.Legacy,
+            "re-saving an old world writes v24 with model 0 stated explicitly");
         yield return LoadInMemory(freshCompact, "clear to the V2 new game");
         ContinueFromDisk("re-saved old world");
         yield return Settle();
@@ -526,7 +526,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         // ---- 1. A v21 Legacy40 save loads unchanged --------------------------------------------------------
         string v21File = SaveToDisk("Legacy40 v21");
         JObject root = JObject.Parse(v21File);
-        Check((int)root["version"] == 23 && (int)root["standGeometryModel"] == StandGeometryModel.Legacy40
+        Check((int)root["version"] == 24 && (int)root["standGeometryModel"] == StandGeometryModel.Legacy40
             && (int)Scenario(root)["rackPlanningModel"] == RackPlanningModel.Legacy && RackArray(root).Count == 0,
             "the Legacy40 file states Legacy40 and model 0 with an empty V2 plan");
         ContinueFromDisk("Legacy40 v21");
