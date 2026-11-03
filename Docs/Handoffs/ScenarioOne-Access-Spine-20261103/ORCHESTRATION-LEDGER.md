@@ -309,3 +309,33 @@ DPC resumed the same child with the two-zone table, the explicit b8 cancellation
 #### Retrospective (INFERENCE)
 
 This is the **second** time in this programme that a single-provider output would have shipped a substantive technical error (the first was the MFM mask taxonomy in #246, corrected on review). Both times the failure mode was the same: a formula or taxonomy that is correct under an unstated simplifying assumption (straight spine / single mask kind) and silently wrong outside it. A future brief should require the **assumption under which a formula is valid** to be stated next to the formula itself.
+
+### EVENT — 2026-11-03 21:52Z–21:58Z — correction returned and reconciled; handoff published; #248 [HANDED-OFF]
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (corrected JSON, hash comparison, reconciliation), ORCHESTRATOR CLAIM (acceptance), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** correction by `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (same worker resumed). **Pure Python — no Unity, no lease, no push.** No provider switch or retry.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/reset/credit/context/tokens **UNKNOWN** — not estimated.
+- **Capacity-to-completion / switching cost:** correction returned inside one turn. No switching cost.
+
+#### Correction result (OBSERVED)
+
+- **Originals confirmed unmodified:** `b7_angle_sweep.json` sha256 prefix `6184d718…` and `b8_candidate_layouts.json` `6cf0408a…` — both unchanged from the README record. Corrected output published as **new** files (`b7_angle_sweep_corrected.json`, `b8_candidate_layouts_corrected.json`) with `analysis/b7_sweep_corrected.py` and `CORRECTIONS.md`.
+- **Two further defects found while rebuilding**, both real and both disclosed: the clearance test skipped the junction point itself (admitting z = −24.0/−24.05 inside the feeder-pad exclusion), and obstruction clearance was sampled at 0.25 m rather than exact segment-to-circle. Corrected run uses a 0.01 m junction grid and exact clearance including the junction; the southern bound −23.85 is now found independently by both implementations.
+- **Reconciliation with the independent reviewer:** agreement to **≤ 0.020 m at every angle** (largest +0.020 m at 45°). The worker did not tune to match and explicitly states that **where the two differ the reviewer's lower numbers should be trusted**. Both implementations independently verify the reviewer's 40° west-three candidate (z −23.85 / −5.35 / 26.30 → 16.009 / 16.013 m).
+- **Corrected FULL_SPINE maximum-minimum 3+2 spacing:** 20° 6.293 | 30° 11.040 | 35° 13.606 | 40° **16.016** | 45° 18.294 | 50° 20.407 | 60° 24.076 m. **NORTH_ONLY:** 3.147 / 4.690 / 5.449 / 6.190 / 6.916 / 7.614 / 8.911 m — infeasible at every sampled angle, unchanged in direction and unaffected by the formula defect.
+
+#### Assessment (ORCHESTRATOR CLAIM)
+
+- The correction **preserves every directional conclusion** and **supersedes several published numbers**. Extension-only infeasibility stands; full-spine feasibility stands but narrows from a comfortable result to a **16 mm margin at 40°**, becoming robust only from 45° (~2.3 m) and 50° (~4.4 m).
+- **DPC added an explicit Manager decision** to the handoff that does not exist in the packet: whether a 16 mm margin counts as feasible at 40°, or whether the band must be met robustly at 45°+. That is a tolerance judgement, not a geometry question, and it is now stated rather than hidden inside a table.
+- The superseded originals stay in place, are hash-verified unchanged, and are marked superseded in both `CORRECTIONS.md` and the handoff inventory. Nothing was rewritten to look like it was right the first time.
+
+#### Publication (OBSERVED)
+
+`UNITY-GEOMETRY-HANDOFF.md` published on `docs/access-spine-measure-20261103-v1` with the corrected table, the correction banner, Appendix A (V2 routing) and Appendix B (review verdict, the FAIL, the seven labelling corrections, and what the evidence still does not provide). `#248` moved to **`[HANDED-OFF]`**.
+
+**Milestones:** MEASURED — yes. REVIEWED — yes, and it changed the result. IMPLEMENTED / INTEGRATED / VERIFIED / ACCEPTED — none, none claimed. DRAFT spine spec untouched; D-064 remains controlling; no Windows build; no production change.
+
+#### Retrospective (INFERENCE)
+
+Fixed-claim-list cross-provider review has now caught a substantive error twice in this programme (#246 mask taxonomy, #248 spacing formula). Both were assumptions left unstated rather than careless arithmetic. The durable fix is procedural: require the **validity condition** to be printed beside any formula in a measurement harness, and require the corrected run to be published **beside** the superseded one so the failure stays auditable.
