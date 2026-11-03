@@ -4,6 +4,7 @@
 **Owner:** Overall Manager; **date:** 2026-11-03.  
 **Authority:** latest user's personal playtest choice; Decision Log D-067 (confirmed design direction), subject to D-064 / approved Rack V2 until explicitly reconciled.  
 **Milestone:** complete-loop three-species Scenario One demo readiness; **scope:** Enlarged80 only.  
+**Evidence status:** #246 source reconnaissance **APPROVED AS RESEARCH, NOT UNITY MEASUREMENT**; #248 real geometry and MFM mask measurement **BLOCKED / PREPARED**. No A1 or A2 implementation authorised. [Manager disposition](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-REVIEW-20261103.md).
 **Evidence:** user-supplied Objective 1 / 3D rack screenshots, [#246](https://github.com/jermur788/CCF/issues/246) read-only investigation when returned, [Pro Silva Ireland access guidance](https://silviculture.org.uk/wp-content/uploads/2024/01/Pro-Silva-Ireland-Webinar-08-09-2020-Final.pdf), [Teagasc thinning guidance](https://teagasc.ie/crops/forestry/advice/timber-harvesting/tending-and-thinning-of-broadleaf-forests/). External evidence supports planned permanent access and connected extraction; the specific spine/diagonal layout is **GAME DESIGN / SITE-SPECIFIC PROPOSAL**, not a universal Irish standard.
 
 ## 1. User-approved conceptual direction
@@ -12,6 +13,7 @@ During personal playtest the user preferred the **existing central path extended
 
 ## 2. Proposed solution
 
+- **Critical A1 caveat:** under the inspected candidate, `Dirt Path*` geometry also enters the MFM `MaskKind.Track` exclusion set. `MaskKind.Headland` covers feeder/headland/pads and both mask kinds exclude prescription treatment by membership; simply adding path planks can change excluded treatment units and prescription results without any new saved field. **Do not treat a plank extension as cosmetic or old-save safe by default.** A visually mapped-only route would require deliberately designed semantics independent from treatment-exclusion masks, with player-facing honesty about whether a physical corridor already exists.
 - Use the existing central route as the continuous **feeder/access spine**, extending it toward the required upper stand area only where site geometry and actual access permit. A walkable route, a machine-capable extraction spine and a planned-but-not-yet-cleared corridor must not be visually conflated.
 - Draw approximately parallel **diagonal branch extraction racks** toward/from the spine (a herringbone-like arrangement where geometry permits). Preserve the initial five-rack gameplay target and 16–20 m *site-specific* spacing guidance until actual geometry proves a change is needed. A feeder spine **does not automatically count as one of the five extraction racks**.
 - Treat only one map-authored, persistent, authoritative access/rack network as geometry truth. The 3D forest, Stand Map, minimap, rack entrance marker, waypoint, objective guidance and Work Plan consume the same connectivity/status distinctions.
@@ -27,6 +29,7 @@ Preserve Legacy40 and frozen Reference Future v1; old saves must not fabricate n
 
 ## 4. Reconciliation and open decisions
 
+0. What is the incremental excluded MFM coverage for candidate A1 route geometry, including existing-save treatment coverage effects? Does the representation use `Dirt Path*` (Track), headland geometry (Headland) or a separate non-masking visual path, and why?
 1. Where does the existing visible path actually start/end in verified world coordinates? Does it support machine access, foot access or only decoration? Which visible trails are misleading/unmapped?
 2. Can diagonal branches be placed in the actual Enlarged80 stand with five coherent racks and the 16–20 m recommendation? Are there turning/headland, width, tree-removal, slope or access constraints?
 3. Does the spine count as its own distinct work item, existing access, planned extension, or some combination? What does extending it remove/cost, when does it become physically traversable, and how does it affect MFM/persistence?
@@ -36,4 +39,4 @@ Preserve Legacy40 and frozen Reference Future v1; old saves must not fabricate n
 
 ## 5. Approval / stop conditions
 
-**DRAFT only.** The #246 read-only reconnaissance must inspect actual code/geometry and return a source-grounded recommendation. Overall Manager then revises `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`, records any explicit decision supersession and obtains approval before production dispatch. Stop if the suggested spine/diagonals cannot fit real geometry, introduce unplanned old-save/schema changes, conflict with an active writer/Unity lease, or threaten protected reference results.
+**DRAFT only.** The #246 read-only reconnaissance has returned and is Manager-approved **as a source audit**, not as fit or MFM impact proof. #248 real Unity geometry/mask measurement remains blocked until the user's playtest and Unity lease gates clear. Overall Manager then revises `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`, records any explicit decision supersession and obtains approval before production dispatch. Stop if the suggested spine/diagonals cannot fit real geometry, introduce unplanned old-save/schema changes, conflict with an active writer/Unity lease, or threaten protected reference results.
