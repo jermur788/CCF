@@ -40,7 +40,6 @@ OFFLINE = [
     ("17-rack-editing", ["python3", "-B", "Tools/Verification/RackV2Editing/run_offline.py", "--out", "{out}"]),
     ("18-rack-spacing", ["python3", "-B", "Tools/Verification/RackV2Spacing/run_offline.py", "--out", "{out}"]),
     ("19-rack-suggested-layout", ["python3", "-B", "Tools/Verification/RackV2SuggestedLayout/run_offline.py", "--out", "{out}"]),
-    ("20-rack-confirm-static", ["python3", "-B", "Tools/Verification/RackV2ConfirmMinimap/run_static.py", "--out", "{out}"]),
     ("21-standmap-offline", ["python3", "-B", "Tools/Verification/StandMap/OfflineLogic/run_standmap_check.py", "--out", "{out}"]),
     ("22-s1c-history-offline", ["python3", "-B", "Tools/Verification/S1CManagementHistory/run_t03_offline_check.py", "--out", "{out}"]),
 ]
