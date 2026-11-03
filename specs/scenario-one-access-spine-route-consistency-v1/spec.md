@@ -1,6 +1,6 @@
 # Scenario One Access Spine & Diagonal Rack Network V1
 
-**Status: DRAFT — NOT APPROVED FOR IMPLEMENTATION.**  
+**Status: DRAFT — MANAGER STOP FOR IMPLEMENTATION following #250; #251 topology/spec analysis READY. NOT APPROVED.**  
 **Owner:** Overall Manager; **date:** 2026-11-03.  
 **Authority:** latest user's personal playtest choice; Decision Log D-067 (confirmed design direction), subject to D-064 / approved Rack V2 until explicitly reconciled.  
 **Milestone:** complete-loop three-species Scenario One demo readiness; **scope:** Enlarged80 only.  
@@ -49,6 +49,16 @@ Preserve Legacy40 and frozen Reference Future v1; old saves must not fabricate n
 - **Meaning of "sensible":** the complete candidate must demonstrate actual usable rack lengths and widths, valid on-spine entrance targets, turning near the northern limit, conflict/overlap/boundary checks, explainable poor placement, realistic tree-removal cost, accessible in-forest marking, Stand Map/minimap/3D consistency, and preservation of old saves/Legacy40/frozen Reference Future v1. Current measurement **did not** render the maps and did not clear Rack V2 §39.6.1.
 
 **Further work:** a separate read-only five-rack *reference-candidate* task and independent review are needed before the spec can be made APPROVED. Current Rack V2/D-064 controls all production. The Manager has not approved A1/A2 implementation or any Windows build.
+
+## #250 evidence and explicit implementation STOP — latest controlling draft note
+
+**Manager verdict:** [#250 Manager review](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-FIVE-RACK-REVIEW-20261103.md) accepts corrected measurements **as research**, but **STOPS production**. The 45° full-spine 3W+2E reference candidate has same-side centreline spacings 16.623 / 17.510 / 17.855 m and an estimated **120 distinct standing trees** inside its proposed corridors (not Fell marks, not authorisation). It also has overlapping R1/R2 corridor widths, one endpoint in a trunk collider, insufficient proven turning clearance, a straight northern route running 0.035 m from the Forestry Workbench, five entrance points that are presently illegal under headland-only rack validation, and **no completed 3D/Stand Map/minimap rendered qualification**.
+
+**Primary cross-system STOP:** the actual candidate's five racks make `ScenarioOneRackSampleGeometry.Derive` return **`Valid=false`** because the shared-normal projection cannot give R4/R5 a defensible order. This specifically blocks candidate-related MFM sample/coverage. Do not weaken derivation validity or fabricate a usable coverage result. The #250 hypothetical Track/Headland mask numbers are sensitivity evidence, **not a qualified MFM prescription**.
+
+**Required next work #251:** [read-only MFM topology/sample/coverage design options](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MFM-TOPOLOGY-OPTIONS-PACKET.md) comparing (A) deterministic branch/side-local sample coverage, (B) graph/sector spatial model, (C) a narrower rack topology retaining the present parallel-rack derivation. Decide whether one representative player-demonstrated 3D sample can legitimately inform both sides, preserve manual/Excluded/NotCovered states and ensure every stem/area is treated **at most once**. Protect D-064/D-065, MFM masks and Work Plan, confirmed/approved/executed state, old saves and frozen Reference Future v1. **This task does not authorise model changes**.
+
+**Correction/provenance requirement:** raw JSON/reviewer figures must be re-extracted at publication, with keys and totals reconciled. #248 independent review verdict was corrected to **9 PASS / 10 corrections / 1 FAIL = 20**. #250 independent review is **7 PASS / 6 corrections / 2 FAIL = 15**. Earlier contradictory tallies and material errors remain disclosed in the handoffs and ledger.
 
 ## 6. Approval / stop conditions
 
