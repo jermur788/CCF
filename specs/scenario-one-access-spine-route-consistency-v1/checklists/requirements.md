@@ -15,4 +15,8 @@ Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
 - [ ] AS-R11: User personal playtest candidate remains unchanged until explicit Manager promotion; no Windows/Player build before personal playtest completion and explicit authorisation.
 - [ ] AS-R12: Independent read-only review plus proportionate affected Unity/rendered checks after implementation; never weaken a protected test to pass.
 
+- [ ] AS-R13: DPC records provider pool and real subscription/context capacity at dispatch; chooses Sonnet 5.5 Medium or GPT-6.1 Medium based on observed capacity and task fit, with cross-provider independent review when necessary.
+- [ ] AS-R14: All material routing, retries, interruptions, switches, outcomes and resource observations are appended contemporaneously to the GitHub V2 orchestration ledger, and the handoff includes a V2 decision appendix with explicit unknowns.
+- [ ] AS-R15: On quota/context/provider limits, DPC checkpoints and switches safely or continues with another approved non-overlapping task; never implements a DRAFT spec, bypasses an active Unity lock or product decision, weakens a gate or alters the current user playtest branch.
+
 **Current evidence boundary:** user's two 3 Nov screenshots are UI/visual observations; topology, traverse behaviour, rack validity, save semantics and scene coordinates are not established from those images alone. #246 recon comes first.
