@@ -92,6 +92,9 @@ def main():
     parser.add_argument('--owner', required=True)
     parser.add_argument('--expected-head', required=True)
     parser.add_argument('--display', default=':84')
+    parser.add_argument('--timeout', type=int, default=3600)
+    parser.add_argument('--reap-grace', type=int, default=120,
+                        help='Seconds after a verdict before reaping our own Editor')
     parser.add_argument('--preflight-only', action='store_true')
     args = parser.parse_args()
 
@@ -200,8 +203,29 @@ def main():
     unity = subprocess.Popen(command, env=dict(env), stdout=open(args.out / 'unity-stdout.log', 'w'), stderr=subprocess.STDOUT)
     (args.out / 'process.json').write_text(json.dumps({'unity_pid': unity.pid, 'driver_pid': driver_proc.pid if driver_proc else None}))
 
-    # Wait for Unity
-    code = unity.wait()
+    # Wait for Unity. Reap only our own Editor if it has printed its verdict but
+    # does not exit (the calibration witness can spin in shutdown after its verdict).
+    finish_timeout = time.time() + args.timeout
+    finished_at = None
+    reaped = False
+    while True:
+        code = unity.poll()
+        if code is not None:
+            break
+        if time.time() > finish_timeout:
+            unity.kill()
+            code = unity.wait()
+            break
+        log_now = (args.out / 'unity.log').read_text(errors='replace') if (args.out / 'unity.log').exists() else ''
+        if (pass_marker in log_now or fail_marker in log_now) and finished_at is None:
+            finished_at = time.time()
+        if finished_at is not None and time.time() - finished_at > args.reap_grace:
+            unity.kill()
+            code = unity.wait()
+            reaped = True
+            (args.out / 'reaper.txt').write_text('reaped own Editor pid %d after verdict\n' % unity.pid)
+            break
+        time.sleep(2)
     elapsed = time.time() - start
 
     # Stop driver
@@ -280,15 +304,15 @@ def main():
     result = {
         'command': command, 'head': args.expected_head, 'lock_id': args.lock_id,
         'gate': args.gate, 'unity_exit': code, 'seconds': round(elapsed, 1),
-        'pass_marker': has_pass, 'failures': failures,
+        'pass_marker': has_pass, 'failures': failures, 'reaped': reaped,
         'harness_removed': harness_removed, 'licence_copy_removed': licence_copy_removed,
         'cleanup_failures': cleanup_failures,
         'host_saves_unchanged': host_saves_unchanged,
         'disk_saves_created': disk_saves_created,
         'remaining_lane_changes': porcelain,
         'pass': host_saves_unchanged and not porcelain and not disk_saves_created
-                and code == 0 and has_pass and not failures and harness_removed
-                and licence_copy_removed and not cleanup_failures,
+                and (code == 0 or (reaped and has_pass)) and has_pass and not failures
+                and harness_removed and licence_copy_removed and not cleanup_failures,
     }
     (args.out / 'process-result.json').write_text(json.dumps(result, indent=2))
 
