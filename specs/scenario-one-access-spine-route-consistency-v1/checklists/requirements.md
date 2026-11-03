@@ -23,6 +23,12 @@ Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
 
 - [ ] AS-R18: The spine is specified as the whole existing central in-stand route **plus northern continuation**; 45° off north / 3+2 is a provisional design target, not an implemented geometry. The 40° 16 mm tolerance is not accepted as the default.
 - [ ] AS-R19: A complete five-rack candidate is independently checked for each entrance target, branch length, width, turning, access, stand boundary, corridor tree-removal effects, 16–20 m per-stand guidance, MFM and Work Plan consequences, and player-visible map/3D/minimap concordance. No automatic Fell marks.
-- [ ] AS-R20: The #248 cross-provider original formula failure and correction remain traceable. PR #249's 20-vs-21 claim-count discrepancy and 5-vs-6 ledger event count are reconciled against original review evidence before Manager merger/closure.
+- [x] AS-R20: #248 original formula failure preserved; PR #249's review tally reconciled against frozen output (9 PASS / 10 corrections / 1 FAIL = 20), six ledger events confirmed, and docs-only PR merged. This confirms documentation reconciliation, **not production verification**.
+
+- [ ] AS-R21: A proposed five-rack topology has a valid, deterministic and explainable representative MFM sample/coverage model without global parallel ordering assumptions or unqualified fallback; no tree/area receives duplicate prescription/work orders.
+- [ ] AS-R22: #250 45° reference candidate's yard/workbench conflict, headland-only entrance restriction, R1/R2 overlap, R1 far-end trunk collider and turning/accessibility risks have explicit tested corrections before implementation.
+- [ ] AS-R23: Proposed unbuilt route overlays leave treatment masks, coverage signatures, save and world untouched until the approved commitment/real-clearing policy is specified. Track/Headland numerical rows are re-extracted, not paraphrased from memory.
+- [ ] AS-R24: Actual Stand Map, minimap and 3D captures (not just an SVG) qualify the exact candidate and show all formal trails/entrances/statuses consistently; no inference from a failed render.
+- [ ] AS-R25: #251 read-only topology options handoff independently reviewed and Manager-approved before changes to D-064/D-065, source model, persistence or player workflow are dispatched.
 
 **Current evidence boundary:** user's two 3 Nov screenshots are UI/visual observations; topology, traverse behaviour, rack validity, save semantics and scene coordinates are not established from those images alone. #246 recon comes first.
