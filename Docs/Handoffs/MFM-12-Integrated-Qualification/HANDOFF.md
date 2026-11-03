@@ -19,7 +19,7 @@ This is a **fresh full qualification** from the beginning of the A–P matrix on
 | Worktree / Unity lane | `/media/jer/ZX20/CCF-U1` (dedicated, clean) |
 | Evidence-producing qualification HEAD | `85051922e394bf4a4723946dc97d9b2fddc136bc` |
 | Earlier qualification heads used for evidence | `8a24be72e43c399d72b9050ceadc3dba8d5b69c0` (offline), `f9c36f6ab13814401d0d89b16efbde65753adbbf` (Unity 01–11) |
-| Production diff candidate → final qualification HEAD | **empty** (`git diff e42bb9f4..85051922 -- Assets Packages ProjectSettings`) |
+| Production diff candidate → evidence HEAD | **empty** (`git diff e42bb9f4..85051922 -- Assets Packages ProjectSettings`); also empty at the published tip |
 | Orchestration | `opencode-go/deepseek-v4.1-flash` |
 | Independent reviewers | Round 1 full review: Claude Sonnet 5.5 (cross-provider). Round 2 delta confirmation: OpenAI GPT-6.1-Sol (cross-provider; substituted after Claude quota exhaustion). See `INDEPENDENT-REVIEW.md`. |
 | Unity | 6000.6.0f1; save schema v24 |
@@ -32,10 +32,10 @@ This return and `INDEPENDENT-REVIEW.md` are docs-only commits above the evidence
 The qualification branch adds only:
 
 - `Tools/Verification/Mfm12IntegratedQualification/` (matrix, runners, accepted MFM-11 witness);
-- two verification-tool allow-list/runner repairs described in §11;
+- the verification-tool allow-list and runner repairs described in §11;
 - this durable return and `INDEPENDENT-REVIEW.md`.
 
-The production tree under the final qualification HEAD is byte-identical to the exact candidate.
+The production tree under the evidence head and the published tip is byte-identical to the exact candidate.
 
 ## 2. Verdict summary
 
