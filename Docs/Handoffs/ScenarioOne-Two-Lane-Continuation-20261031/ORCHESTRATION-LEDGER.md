@@ -630,3 +630,122 @@ Appended evidence for claim **#203**. Manager boundary resolved: #213 `SPECIES G
 - **Waste observation:** the worker's compile error and unequal-horizon iteration cost one extra Unity run and a reaped Editor; a pre-run C# compile/typecheck would have caught the duplicate method earlier.
 - **Missing telemetry:** token counts, model calls, live quota — UNKNOWN.
 - **Policy proposal (NOT active):** require a local compile/typecheck before the first Unity run of a new harness; and require the reviewer to recompute key deltas from the raw table rather than accepting the handoff.
+
+---
+
+# 2026-11-03 — Final Scenario One Tier-3 #231 episode (backfilled under #241)
+
+Backfill authority: claim **#241**, parent **#203**, related qualification **#231** and evidence closure **#240**. This section is documentation-only and does not alter any qualification verdict.
+
+Primary sources inspected: `FINAL-TIER3-HANDOFF.md`, `FINAL-INDEPENDENT-REVIEW.md`, `TASK-1-CONTINUATION-HANDOFF-20261103.md` on `qual/scenario-one-final-tier3-v1`; `MANAGER-CHECKPOINT-REVIEW-20261103.md`, `TEST-REDUCTION-AMENDMENT-20261103.md`, `TASK-2-EVIDENCE-CLOSURE-HANDOFF-20261103.md` on `main`; issues #231, #238, #240, #241; this ledger and its result file.
+
+Evidence classes are used exactly as defined at the head of this ledger: **OBSERVED FACT**, **ORCHESTRATOR CLAIM**, **RETROSPECTIVE INFERENCE**. A statement that a source does not support is marked **UNKNOWN** or omitted.
+
+## Run identity
+
+| Field | Value | Class |
+|---|---|---|
+| Claim | #231, parent #91 / Browser Overall #200 / local orchestration #203 | OBSERVED FACT |
+| Exact starting candidate | `6849caa0ef05baf1a52b95465ec6bba4ff94202b` (`integration/scenario-one-player-test-ready-v1`) | OBSERVED FACT |
+| Qualification branch | `qual/scenario-one-final-tier3-v1` | OBSERVED FACT |
+| Dedicated Unity lane | `/media/jer/ZX20/CCF-U1` (registered, warm, clean; no other writer) | OBSERVED FACT |
+| Verification/evidence head | `a95c4c4e35decb7a518d543488678473430f69b6` at the Task 1 checkpoint | OBSERVED FACT |
+| Production drift candidate → evidence head | Empty (`git diff 6849caa0..a95c4c4e -- Assets Packages ProjectSettings`) | OBSERVED FACT |
+| Primary worker observed | OpenCode `opencode-go/deepseek-v4.1-flash` in T3 Code; described by the handoff as the release/repin fallback lane and the same lane as the accepted MFM-12 return | OBSERVED FACT for the reported provider/model; unobserved execution identity **UNKNOWN** |
+| Independent reviewer | OpenAI GPT-6.1-Sol, high reasoning, T3 Code read-only child session, cross-provider and independent of the qualification worker | OBSERVED FACT |
+| Unity | 6000.6.0f1, Linux graphical Editor, private Xephyr displays | OBSERVED FACT |
+| Evidence root | `/media/jer/Files/CCF/Verification/ScenarioOneFinalTier3-20261103/` (~727 MB reported at checkpoint) | OBSERVED FACT |
+| Overall run window | 2026-11-03T07:49:13Z to approximately 12:45Z; approximately 4 h 56 min | OBSERVED FACT (timestamps from continuation handoff; duration approximate) |
+| Checkpoint status | **BLOCKED / NEEDS MORE EVIDENCE**; independent verdict `NEEDS MORE EVIDENCE`; success token **NOT ISSUED** | OBSERVED FACT |
+| Windows build | None; #194 NO ACTION | OBSERVED FACT |
+
+## A. Dispatch / provider routing
+
+- **ORCHESTRATOR CLAIM:** Tier-3 was released as a high-consequence milestone qualification where a false green would be expensive. The prepared packet preferred a strong Anthropic local worker (Claude Opus 5.5 Low).
+- **OBSERVED FACT:** The actual reported qualification lane was OpenCode `opencode-go/deepseek-v4.1-flash` under the release/repin fallback that permits an equivalently capable local Unity/code worker. The durable handoff records this as the same lane that produced the accepted MFM-12 qualification.
+- **UNKNOWN:** Whether the preferred Anthropic lane was operationally unavailable, quota-limited or simply not selected is not established by the inspected records. The fallback rationale is documented; the precise dispatch comparison is not.
+- **OBSERVED FACT:** The independent final review was performed by OpenAI `gpt-6.1-sol` at high reasoning in a separate read-only child session, cross-provider to the qualification worker. The reviewer changed nothing, ran no Unity and issued no token.
+- **OBSERVED FACT:** #231 had qualification-only authority. It had no production-repair authority. Any genuine product/spec defect was required to stop and return to Browser Overall for a separate bounded repair; no production repair was made.
+
+## B. Test-plan adaptation
+
+- **OBSERVED FACT:** The original #231 intake decomposition contained 12 process steps. By the Task 1 checkpoint the run had traversed essentially the whole intake flow rather than leaving eleven substantive tasks untouched.
+- **OBSERVED FACT:** The Task 1 continuation handoff nevertheless used the phrase “Tasks 2–12 NOT STARTED” and simultaneously stated that the 12-task decomposition was not present in that thread and that Task 2 scope must not be invented. This was a process-label inconsistency, not evidence of eleven remaining qualification tasks.
+- **OBSERVED FACT:** Browser Overall later clarified in #240 that the “Task 2 of 12” phrase was not supported by the published original decomposition and must not be used to infer eleven remaining execution tasks. #240 is a new **evidence-closure continuation**, not item 2 of the original intake plan.
+- **OBSERVED FACT:** User amendment #238 (issue CLOSED/PUBLISHED) directed approximately **50% fewer remaining test/gate executions**, primarily by removing duplicate or overlapping reruns and inheriting valid immutable-ancestor evidence where safe. It explicitly forbade weakening assertions, lowering thresholds, rebaselining protected references, skipping known failures, or calling an untested requirement passed.
+- **OBSERVED FACT:** The Tier-3 handoff's reduced-plan table states that roughly **10–15 avoided executions** is an estimate, not a gate-by-gate reconciliation. The exact pre-amendment remaining count is **UNKNOWN**.
+- **OBSERVED FACT:** The reduction retained the mandatory S1-C T-05 v24 save/history rerun, save/corruption/reference/Legacy40 protections, the integrated MFM judgement/commitment path, the complete-loop witness, both-resolution rendered evidence and independent review.
+
+## C. Observable timings / serial bottlenecks
+
+| Phase / event | Observation | Class |
+|---|---|---|
+| Run start | 2026-11-03T07:49:13Z thread/session created | OBSERVED FACT |
+| Preflight | Approximately 07:52Z; lock free, no Editor, 22 GiB free | OBSERVED FACT |
+| Unity lock first acquisition | 07:58:06Z, lock `dcddd6fe…` | OBSERVED FACT |
+| Offline matrix | Approximately 08:00–08:06Z; 22 steps in about 6 minutes active | OBSERVED FACT |
+| Unity matrix / retries | Approximately 08:06–12:20Z; dominant serial span | OBSERVED FACT |
+| Independent review | 12:34–12:39Z; Codex child, about 6 minutes model time | OBSERVED FACT |
+| Task 1 stop | Approximately 12:45Z; about 4 h 56 min wall clock | OBSERVED FACT |
+| Invalid-method ScenarioHistory wait | `ScenarioHistoryVerification` invoked without `.Begin`; interactive Editor waited approximately **3,692 seconds** before timeout | OBSERVED FACT |
+| Correct ScenarioHistory rerun | Approximately **73 seconds** after the correct `.Begin` method | OBSERVED FACT |
+| Combined-v2 blank-capture attempt | First attempt approximately 304 seconds, blank captures | OBSERVED FACT |
+| Combined-v2 clean rerun | Approximately 853 seconds; clean captures and PASS | OBSERVED FACT |
+| S1-C T-06 blank-capture attempt | First attempt approximately 399 seconds, blank captures | OBSERVED FACT |
+| S1-C T-06 clean rerun | Approximately 99 seconds; PASS on a fresh display | OBSERVED FACT |
+| Compile reruns after head advances | Repeated compile runs of roughly 70–100 seconds each; the continuation records four, while the final handoff names multiple verification heads | OBSERVED FACT that repeated compile runs occurred; exact count is **UNKNOWN** (sources differ) |
+| Unity-lock churn | Repeated release/re-acquire cycles after verification-only commits advanced the lane head. The final handoff describes the base lock plus four re-acquisitions; the continuation describes seven release/re-acquire cycles | OBSERVED FACT that churn occurred; exact cycle count is **UNKNOWN** (sources differ) |
+| Economy / reference-preview diagnostics | Eight diagnostic runs (`49b`–`49i`), roughly 2 minutes each; one mutating diagnostic was invalidated and re-run; `49i` is the clean receipt | OBSERVED FACT |
+| Delegate/tool wait | Independent-review MCP wait calls timed out at the transport layer while the child continued; the completed result was read from the child thread | OBSERVED FACT; orchestration/tool wait, not evidence of slow reasoning |
+
+## D. Failure classification
+
+| Observation | Classification | Disposition |
+|---|---|---|
+| `ScenarioOneEconomyIntegrationVerification` preview exit: 1344 → 335 tree records when entry and exit occur without a frame between them | **Verification-harness / lifecycle timing**; production `LoadData` defers object destruction to frame end | Confirmed same-frame lifecycle failure; ordinary player-facing preview defect **NOT established**. Frame-separated Year-20 round trip required. No production repair. |
+| Rack map planning requires exactly five navigation tabs | **Stale verification assertion**; current V2 UI intentionally has six tabs including `Treatment review` | Not a product failure. Mechanical verification-only correction permitted. |
+| Rack 1920×1080 rotation records 0° | **Environment/runner input contamination**: pointer trace shows the pointer leaving the intended destination and releasing elsewhere | Product defect **unconfirmed**. Clean native-input rerun required. |
+| MFM-11 final captures are uniformly black and are taken after baseline restoration | **Rendered evidence gap**, not a product failure; data-level completion is present | Render the actual Year-25 Completed state at both resolutions before any completion-rendering claim. |
+| Combined-v2 and S1-C T-06 first-attempt blank captures | **Capture/focus environment** | Clean reruns on fresh displays passed; retained as superseded diagnostics. |
+| Invalid `ScenarioHistoryVerification` method invocation | **Verification invocation/runner error** | Correct `.Begin` rerun took about 73 seconds; no product implication. |
+| Economy diagnostics `49g`/`49h` manually restored the world before asserting | **Invalidated diagnostic / evidence**, not a gate receipt | `49i` is the clean receipt; the mutation was removed. |
+| OpenCode upgrade/re-authentication; new OpenCode provider sessions fail to open | **Provider/session operational failure** | Existing Task 1 session continued to the checkpoint. Not an implementation, reasoning or product failure. No model escalation implied. |
+| Independent reviewer returned `NEEDS MORE EVIDENCE` | **Evidence insufficiency**, not rejection and not success | Three narrowly scoped evidence actions released under #240. |
+| No confirmed production defect | **Product** | No production repair prescribed from these receipts alone. |
+
+## E. Resource / orchestration observations
+
+- **OBSERVED FACT:** One serialized Unity lane (`/media/jer/ZX20/CCF-U1`) and one Editor at a time. The machine-wide lock was used for every Unity run.
+- **OBSERVED FACT:** Final checkpoint state: lane clean including untracked; no Unity Editor, Xephyr, openbox or native-input driver; machine-wide lock **FREE**; host saves unchanged; no staged harness or `.meta` remaining.
+- **OBSERVED FACT:** Production bytes remained unchanged across the qualification lineage; the branch delta was verification tooling and durable documentation only.
+- **OBSERVED FACT:** No Windows build was made.
+- **OBSERVED FACT:** Actual provider/model names are known for the reported qualification worker and the independent reviewer. Token usage, model-call counts, quota and provider capacity were **not** exposed by the runtime and remain **UNKNOWN**. No values are reconstructed by inference.
+- **OBSERVED FACT:** The final full-file review found no false green in the retained compile, v24 S1-C history, save-safety, MFM boundary or complete-loop data. It did find unresolved evidence and corrected three handoff overstatements.
+
+## F. #240 evidence-closure continuation — current state only
+
+**OBSERVED FACT at backfill time:** #240 is OPEN and marked RUNNING, with actual provider/model Claude Code / Anthropic `claude-opus-5-5` in T3 Code, branch `qual/scenario-one-final-tier3-v1`, worktree `/media/jer/ZX20/CCF-U1`, starting HEAD `2a232885912857a1d1c2e43d4f147df1cc0888c6` (production diff to `6849caa0` empty). Its authorized scope is exactly three fresh evidence actions:
+
+1. frame-separated Year-20 protected-player Reference Preview round trip;
+2. uncontaminated Rack 1920×1080 native-input rotation receipt;
+3. genuine Year-25 Completed-state rendering at 1280×720 and 1920×1080.
+
+**No #240 outcome is recorded or speculated in this backfill.** Its success token and the final player-test token were not issued at the time of writing. A later append is required if Browser Overall wants #240's eventual provider, timing, evidence and outcome facts in this ledger. This backfill did not touch #240's worktree, evidence or running Unity session.
+
+## G. Learning checkpoint — 2026-11-03 final Tier-3 episode
+
+**RETROSPECTIVE INFERENCE — non-authoritative.** These are hypotheses from one milestone episode, not universal routing rules. Confidence and sample limits are stated; token/quota/call data is unavailable.
+
+1. **Validate Unity verification entry points before long execution.** The invalid-method `ScenarioHistoryVerification` wait consumed about 3,692 seconds; the correct `.Begin` rerun took about 73 seconds. A cheap method/entry-point validation would have avoided almost an hour of serial wall time. Confidence: **high** for this episode; n=1. Do not generalise to all gates.
+2. **Batch verification-only edits before expensive compile/import cycles where safe.** Verification-only head advances forced repeated compile runs and repeated lock release/re-acquire cycles. Grouping safe edits would reduce churn, but the exact avoidable count is **UNKNOWN** because the sources disagree on compile and lock-cycle counts. Confidence: **moderate**; n=1.
+3. **Prefer one discriminating diagnostic over repeated broad diagnostics.** The economy/reference-preview investigation produced eight diagnostic runs (`49b`–`49i`), including one mutating run that had to be invalidated. A single frame-separated normative test would have distinguished the lifecycle race sooner. Confidence: **moderate**; n=1.
+4. **Treat blank screenshots as capture/evidence failures first.** Combined-v2 and S1-C T-06 both produced blank first attempts and passed cleanly on fresh displays/smaller reruns. Re-running the smallest affected capture gate is cheaper and more honest than rerunning a broad suite. Confidence: **high** for capture failures in this episode; n=2.
+5. **Keep provider/auth/session failures separate from model capability.** The OpenCode upgrade/re-authentication prevented new sessions while the existing Task 1 session continued and completed its work. No implementation or reasoning failure was established, and no model escalation was justified by the session failure. Confidence: **high**; n=1 provider event, consistent with the earlier ledger's environment-before-escalation policy.
+6. **Reduce duplicate coverage rather than weaken assertions.** The user-directed #238 reduction targeted roughly 50% fewer remaining executions by removing overlapping reruns and inheriting valid evidence; the retained critical protections and exact-candidate S1-C T-05 rerun remained mandatory. The `10–15 avoided` figure is an estimate, not a reconciled count. Confidence: **moderate**; n=1 amendment.
+7. **Independent cross-provider delta review corrects evidence overstatement cheaply.** OpenAI GPT-6.1-Sol returned `NEEDS MORE EVIDENCE`, corrected the preview, five-tab and black-capture claims, and narrowed the next work to three actions without forcing a full matrix rerun. This is a high-value use of a read-only reviewer separate from the evidence producer. Confidence: **high**; n=1.
+
+**Non-authoritative policy candidates (NOT active):** validate long-running Unity methods first; batch verification-only edits; prefer one discriminating diagnostic; classify blank captures before product defects; never equate provider/session failure with model capability; use independent delta review for evidence correction. These remain proposals until Browser Overall/user accepts them.
+
+## H. Backfill provenance
+
+**OBSERVED FACT:** This section was appended on 2026-11-03 under claim #241. It used only the durable documents and issue records listed above. No Unity run, Unity-lock acquisition, test rerun, production edit, save/reference change, qualification-verdict change or `active-tasks.md` edit occurred. #240's worktree and evidence were read-only/untouched.

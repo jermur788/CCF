@@ -341,3 +341,107 @@ All capacity-to-completion estimates remain **UNKNOWN**; no live quota telemetry
 1. MFM-11 Unity phase completes and publishes its handoff/evidence (or returns `BLOCKED — CALIBRATION IMPACT`).
 2. Independent review of MFM-11 by a separate reviewer/thread (Claude Sonnet 5.5 preferred; DeepSeek fallback if Claude is unavailable).
 3. #200 reviews #219 and #220; accepted MFM-11 releases MFM-12. No self-release; no Windows build.
+
+---
+
+# Scenario One Final Tier-3 #231 — Result (backfilled 2026-11-03 under #241)
+
+**Status at checkpoint: BLOCKED / NEEDS MORE EVIDENCE. Not a Tier-3 pass. No player-test token.**
+
+This section appends the missing 2026-11-03 #231 episode; it does not rewrite any earlier conclusion and does not change the qualification verdict.
+
+## 1. Routing and exact identity
+
+| Field | Value |
+|---|---|
+| Claim | #231; parent #203; Browser Overall #200 |
+| Exact candidate | `6849caa0ef05baf1a52b95465ec6bba4ff94202b` |
+| Branch / lane | `qual/scenario-one-final-tier3-v1`; `/media/jer/ZX20/CCF-U1` |
+| Evidence head | `a95c4c4e35decb7a518d543488678473430f69b6`; production diff to candidate empty |
+| Qualification worker | OpenCode `opencode-go/deepseek-v4.1-flash` (reported; unobserved identity UNKNOWN) |
+| Independent reviewer | OpenAI GPT-6.1-Sol, high reasoning, read-only cross-provider |
+| Duration | Approximately 07:49–12:45 UTC, about 4 h 56 min |
+| Outcome | BLOCKED / NEEDS MORE EVIDENCE; independent verdict `NEEDS MORE EVIDENCE` |
+
+**ORCHESTRATOR CLAIM:** the prepared preference was Claude Opus 5.5 Low; the run used the release/repin fallback to an equivalently capable local Unity/code worker. **UNKNOWN:** whether the preferred Anthropic lane was operationally unavailable. No production-repair authority existed inside #231.
+
+## 2. Qualification outcome
+
+The reduced plan retained the highest-value current-candidate evidence and completed:
+
+- exact-candidate compile/import;
+- mandatory fresh S1-C T-05 v24 objective/progression save/history chain — 544 checks / 34 cases / 12 shots, plus rendered recorded/derived/not-recorded states at 1280×720 and 1920×1080;
+- current v24 / old v20–v21 / malformed-save rejection-before-mutation / provenance and hardening;
+- frozen Reference Future and Legacy40 protection;
+- MFM approval/coverage/extension/treatment-review and complete-loop data through Year-25 completion, 8/8 objectives and solvency;
+- S1-C T-02/T-03/T-04/T-06 and S1-D guide/previous-vs-proposed plus the three-cycle history witness;
+- Rack confirm/field/save/persistence and Objective-1 E2E;
+- guided-v2, Combined HUD, PARITY-07, interaction, species/economy/geometry.
+
+It did **not** produce a Tier-3 pass. Three unresolved evidence items remained at checkpoint:
+
+1. **Reference-preview lifecycle/timing:** the same-frame harness path lost trees (1344 → 335). This is a confirmed same-frame lifecycle failure; an ordinary player-facing defect was **not established**. A frame-separated Year-20 round trip was required.
+2. **Rack 1920×1080 rotation:** the receipt was input-contaminated (pointer left the intended endpoint), so a product defect was **not established**. A clean native-input rerun was required.
+3. **Rendered completion:** the MFM-11 final captures were black and were taken after baseline restoration. Completion data was valid, but no usable rendered Completed state existed.
+
+The Rack five-tab failure was classified as a **stale verification assertion** against the accepted six-tab V2 UI, not a product failure.
+
+## 3. Provider / operational / verification / product failures
+
+| Class | Event | Disposition |
+|---|---|---|
+| Provider/session | OpenCode upgrade/re-authentication; new OpenCode sessions failed to open | Operational restart requirement. Not a model-capability or implementation failure. Existing Task 1 session continued. |
+| Environment/runner | Invalid `ScenarioHistoryVerification` method; blank-capture first attempts; input-contaminated pointer receipt | Runner/capture/input issues. Correct reruns passed or were required; no product defect. |
+| Verification-harness | Same-frame preview entry/exit; five-tab assertion; MFM-11 capture timing | Harness/lifecycle/stale-assertion findings. No production repair prescribed; narrow evidence actions released. |
+| Evidence | Black completion captures; mutating economy diagnostics; transport wait for independent review | Evidence gaps/invalid diagnostics. Clean receipts and a fresh delta review required; no capability conclusion. |
+| Product | No confirmed product defect | No production repair under #231. |
+| Review | `NEEDS MORE EVIDENCE` | Evidence insufficiency, not rejection and not success. |
+
+**OBSERVED FACT:** no production edit was made; production bytes remained unchanged across the qualification lineage. **UNKNOWN:** token usage, model calls, quota and provider capacity.
+
+## 4. Serial-time inefficiencies
+
+- The invalid `ScenarioHistoryVerification` invocation waited about **3,692 seconds** before timeout; the correct `.Begin` rerun took about **73 seconds**.
+- Verification-only head advances forced repeated compile runs and repeated Unity-lock release/re-acquire cycles. The exact counts differ between the final handoff and the continuation record, so they remain **UNKNOWN**; the churn itself is observed.
+- Combined-v2 first attempt (blank captures, ~304 s) plus clean rerun (~853 s); S1-C T-06 first attempt (blank captures, ~399 s) plus clean rerun (~99 s).
+- Economy/reference-preview diagnostics produced eight runs (`49b`–`49i`), including one mutating diagnostic that was invalidated; `49i` is the clean receipt.
+- The independent-review MCP wait timed out at the transport layer while the child continued; the result was read from the child thread. This is an orchestration/tool wait, not slow reasoning.
+
+## 5. Independent review
+
+OpenAI GPT-6.1-Sol, high reasoning, read-only and cross-provider, returned **`NEEDS MORE EVIDENCE`**. It found no false green in the retained compile, v24 S1-C history, save-safety, MFM boundary or complete-loop data, and no confirmed production defect. It corrected three handoff overstatements:
+
+- the preview failure is a same-frame lifecycle failure, not proof of ordinary player-facing loss;
+- the Rack five-tab failure is a stale assertion, and the 1920 rotation receipt is input-contaminated;
+- rendered completion is not demonstrated because the MFM-11 captures are black and post-restoration.
+
+## 6. Test-volume reduction (#238)
+
+The user-directed amendment targeted approximately **50% fewer remaining executions** by removing duplicate/overlapping reruns and inheriting valid evidence where safe. It explicitly preserved the mandatory S1-C T-05 exact-candidate rerun, save/corruption/reference/Legacy40 protection, integrated MFM judgement/commitment path, complete-loop witness, both-resolution rendered evidence and independent review. No assertion was weakened, no threshold lowered and no anchor rebaselined. The handoff's `10–15 avoided executions` is an estimate, not a gate-by-gate reconciliation; the exact remaining count is **UNKNOWN**.
+
+#240 later clarified that it is a new **evidence-closure continuation**, not item 2 of the original 12-step intake decomposition; the “Task 2 of 12” wording must not be read as eleven remaining execution tasks.
+
+## 7. #240 current state (not its outcome)
+
+**OBSERVED FACT at backfill time:** #240 is OPEN/RUNNING under Claude Code / Anthropic `claude-opus-5-5`, branch `qual/scenario-one-final-tier3-v1`, worktree `/media/jer/ZX20/CCF-U1`, starting HEAD `2a232885912857a1d1c2e43d4f147df1cc0888c6`, with exactly three authorized evidence actions: frame-separated Year-20 preview round trip; clean Rack 1920×1080 rotation; genuine Year-25 Completed rendering at both resolutions. **No outcome is recorded or speculated here.** A later append is required when Browser Overall wants #240's eventual result in this ledger.
+
+## 8. Adaptive-routing learning assessment (non-authoritative)
+
+- **Observed metrics:** one qualification worker (OpenCode/DeepSeek), one independent reviewer (OpenAI Sol); repeated compile/lock cycles; one provider/session restart failure; one review verdict of `NEEDS MORE EVIDENCE`; no confirmed product defect; no token/quota/call telemetry.
+- **Provider choice:** the fallback lane completed a large qualification matrix and produced useful retained evidence. It also produced several verification/invocation/capture inefficiencies. This run does not establish a general model-capability ranking.
+- **RETROSPECTIVE INFERENCE (high confidence, n=1):** validate long-running Unity entry points before execution; the 3,692 s vs 73 s pair is the clearest avoidable serial cost.
+- **RETROSPECTIVE INFERENCE (moderate, n=1):** batch verification-only edits before compile/import where safe; the churn is observed, but the exact avoidable cycle count is UNKNOWN.
+- **RETROSPECTIVE INFERENCE (moderate, n=1):** prefer one discriminating diagnostic over repeated broad diagnostics; the eight-run economy sequence is the example.
+- **RETROSPECTIVE INFERENCE (high, n=2):** treat blank captures as capture/evidence failures and rerun the smallest affected gate; Combined-v2 and T-06 both passed clean reruns.
+- **RETROSPECTIVE INFERENCE (high, n=1):** provider/auth/session failures are not model-capability failures; the existing session continued while new sessions could not open.
+- **RETROSPECTIVE INFERENCE (moderate, n=1):** reducing duplicate coverage while preserving assertions is preferable to weakening tests; the #238 amendment is the evidence.
+- **RETROSPECTIVE INFERENCE (high, n=1):** independent cross-provider delta review corrected evidence overstatement cheaply and narrowed the work to three actions without a full rerun.
+
+These are hypotheses, not active policy. No token, quota, call-count or capacity values are inferred.
+
+## 9. Exact next state
+
+- #231 remains **BLOCKED / NEEDS MORE EVIDENCE** at its Task 1 checkpoint; no Tier-3 success token.
+- #240 owns the three evidence-closure actions and is RUNNING; its outcome is pending.
+- #241 is the documentation backfill only and does not alter any verdict.
+- No Windows build. #194 remains NO ACTION.
