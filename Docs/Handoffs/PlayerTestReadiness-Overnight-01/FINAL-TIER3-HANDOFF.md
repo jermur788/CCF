@@ -4,10 +4,11 @@
 **Parent:** #91 / Browser Overall #200 / local orchestration #203  
 **Amendment consumed:** `TEST-REDUCTION-AMENDMENT-20261103.md` (#238)  
 **Date:** 2026-11-03  
-**Status:** **STOPPED — BLOCKED — RETURNED TO BROWSER OVERALL**  
+**Status:** **STOPPED AT TASK 1 CHECKPOINT — BLOCKED / NEEDS MORE EVIDENCE — RETURNED TO BROWSER OVERALL**  
+**Independent review verdict:** `NEEDS MORE EVIDENCE`  
 **Success token:** **NOT ISSUED**
 
-No production repair was made under #231. The qualification stopped on a reproducible current-candidate reference-preview defect and returned to Browser Overall for a separate bounded repair claim.
+No production repair was made under #231. The qualification stopped at a Task 1 checkpoint on an unresolved current-candidate reference-preview lifecycle/timing finding and a rendered-completion evidence gap. The independent review did **not** confirm an ordinary player-facing preview defect and found that the completion-rendering claim is not substantiated. This is a blocked/needs-evidence return, not a confirmed production defect and not a Tier-3 pass.
 
 ## 1. Exact identity and routing
 
@@ -27,17 +28,20 @@ Fresh preflight before the run: lock FREE/metadata None/no Editor PIDs; no Unity
 
 ## 2. Result summary
 
-The reduced plan completed the highest-value current-candidate gates and found **one genuine retained-gate blocker**:
+The reduced plan completed the highest-value current-candidate gates and produced **one unresolved lifecycle/timing finding, one rendered-evidence gap, and two Rack classifications**:
 
-1. **BLOCKER — reference-preview exit does not restore the player's Enlarged80 world.**  
-   `ScenarioOneEconomyIntegrationVerification` fails at *“preview exit replaces exact saved protection/player state”*. The product’s own pre-preview return snapshot is correct (`trees=1344 version=24 geometry=1`), but after `TryBeginReferencePreview(20)` / `EndReferencePreview()` the live world contains **335** living/tree records instead of **1344**. A manual `LoadData` of the same snapshot restores 1344, so the data is recoverable but the product’s preview-exit path leaves the wrong world. This is a player-facing state/protection defect in the frozen Reference Future preview contract on the default Enlarged80 geometry.  
-   Clean receipt: `unity/49i-economy/` (`SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_FAIL … preview exit replaces exact saved protection/player state`; `ECONOMY_PREVIEW_CAPTURE trees=1344 version=24 geometry=1`; `ECONOMY_PREVIEW_TREES beforeCount=1344 afterCount=335`). Earlier clean failure receipts `49b`–`49f` are retained.
+1. **CONFIRMED SAME-FRAME LIFECYCLE FAILURE — ordinary player-facing preview defect NOT established.**  
+   `ScenarioOneEconomyIntegrationVerification` fails at *“preview exit replaces exact saved protection/player state”*. The product’s private pre-preview return snapshot is correct (`trees=1344 version=24 geometry=1`), but the harness calls `TryBeginReferencePreview(20)` and `EndReferencePreview()` **without yielding a frame between them**. The live world then has 335 tree records instead of 1344. Production `LoadData` deactivates and schedules unwanted tree objects for destruction at frame end and reuses matching objects on later loads, so an immediate same-frame exit races that deferred destruction.  
+   Retained frame-separated tests already report exact Enlarged80 restoration (`47b-standgeometry`, `48b-enlarged80`). A **frame-separated Year-20 round trip** with the protected-player fixture is required to decide whether a normal player visit loses trees.  
+   Clean receipt: `unity/49i-economy/` (`SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_FAIL … preview exit replaces exact saved protection/player state`; `ECONOMY_PREVIEW_CAPTURE trees=1344 version=24 geometry=1`; `ECONOMY_PREVIEW_TREES beforeCount=1344 afterCount=335`). The earlier 49g/49h diagnostics manually restored the world before the assertion and are **not valid gate receipts**; commit `a95c4c4e` removed that mutation, so 49i is the clean receipt. Do **not** prescribe production repair from these receipts alone.
 
-2. **Unresolved Rack gate findings (secondary, need Browser Overall triage):**
-   - `RACK_V2_MAP_PLANNING_UNITY_FAIL checks=17 shots=0 exception=System.InvalidOperationException: five navigation tabs remain navigation` (`unity/38-rack-map/`). The same run also hit an X `BadWindow` error, so an environment/driver contribution cannot be excluded; the assertion is a historical UI-structure assumption.
-   - `RACK_V2_EDITING_UNITY_FAIL checks=270 shots=12 exception=System.InvalidOperationException: 1920x1080: rotating well off level is free (0 deg), and the entrance did not move` (`unity/39-rack-editing/`). Real-pointer rotation at 1920×1080 did not move the entrance; 1280×720 passed. This may be a current rendered/interaction defect and is reported, not waived.
+2. **Rack findings — classifications corrected by independent review:**
+   - **Map planning: stale assertion, not a product failure.** The harness requires exactly five navigation tabs (`RackV2MapPlanningVerification.cs:318`), while current `StandMapView.cs:255` intentionally adds a sixth, “Treatment review”, tab in V2. The planning control remains separate from navigation. The same run’s X `BadWindow` is real but not needed to explain the failure (`unity/38-rack-map/`).
+   - **1920×1080 rotation: input-contaminated receipt; product defect unconfirmed.** `39-rack-editing` records 0°, while 720p passed. The pointer trace shows the pointer leaving the intended destination and releasing around world `(-49.88, -30.74)`, while the driver requested endpoint `(884, 729)`; this is not a clean intended rotation/release. The failure wording concerns the angle; the entrance is supposed to remain fixed. Re-run cleanly before classifying as a product defect.
 
-3. All other retained current-candidate gates below passed. Two transient blank-capture failures (`13-combined-v2` first attempt, `23-s1c-t06` first attempt) were re-run on fresh displays and passed cleanly; they are recorded as superseded diagnostics, not product findings.
+3. **Rendered-completion evidence gap.** Both `11-mfm-calibration/evidence/mfm11-final-*.png` files are uniformly black. The harness restores the baseline before taking them (`Mfm11CalibrationImpactGate.cs:587`, screenshots at `:655–662`), so even usable images there would not show Year-25 completion. The complete-loop data is present (Completed year 25, cash 348152 cents, 8/8 objectives), but **no usable rendered Completed state** substantiates the handoff’s completion-rendering claim. This is an evidence gap, not a product failure.
+
+4. All other retained current-candidate gates below passed. Two transient blank-capture failures (`13-combined-v2` first attempt, `23-s1c-t06` first attempt) were re-run on fresh displays and passed cleanly; they are recorded as superseded diagnostics, not product findings.
 
 ## 3. Retained current-candidate evidence (all on one lineage)
 
@@ -86,7 +90,7 @@ The reduced plan completed the highest-value current-candidate gates and found *
 
 ### Rendered / interaction
 - `GUIDED_ONBOARDING_PASS` 535/0 (`12-guided-v2`), `CHC_DONE pass=465 fail=0 shots=24` (`13-combined-v2`), `PARITY07_UNITY_HARNESS_PASS shots=36 passes=1031 failures=0` (`14-parity07`), `SCENARIO_ONE_INTERACTION_VERIFY_PASS` (`15-interaction`).
-- Representative 1280×720 / 1920×1080 captures exist for Rack map/field, MFM fit/coverage/candidate/proposal/approval, Annual Review/history, Work Plan previous/pending, completion, HUD. The mandatory T-05 rendered set was inspected; the economy blocker prevented a clean final rendered pass of the full loop.
+- Representative 1280×720 / 1920×1080 captures exist for Rack map/field, MFM fit/coverage/candidate/proposal/approval, Annual Review/history, Work Plan previous/pending and HUD. The mandatory T-05 rendered set was inspected. **No usable rendered Completed state was produced:** the two MFM-11 final captures are uniformly black, and the harness restores baseline before capturing them. Understandable completion is therefore **not visually verified**, and no clean full-loop rendered pass is claimed.
 
 ## 4. Reduced test plan (amendment #238)
 
@@ -100,16 +104,28 @@ Already-completed evidence was preserved; no successful test was restarted.
 | Legacy40 / frozen Reference Future | Retained via MFM reference, Rack persistence legacy40, StandGeometry/Enlarged80 |
 | MFM judgement/proposal/Work Plan boundary | Retained via integrated treatment-review + approval + extension + complete-loop witness |
 | Completion / solvency / objectives | Retained via MFM-11 witness, Completion model-2/model-1, N3, Progress |
-| Rack integrated path | Retained via ConfirmMiniMap + field marking + Objective-1 E2E + persistence; component map/editing gates attempted and failed |
+| Rack integrated path | Retained via ConfirmMiniMap + field marking + Objective-1 E2E + persistence (all PASS). The component map gate is a stale six-tab assertion; the 1920×1080 editing receipt is input-contaminated. |
 | S1-C/S1-D history/repeated cycles | Retained via T-02/T-03/T-04/T-06, guide, previous-vs-proposed, three-cycle history |
 | Representative both-resolution rendered evidence | Retained; duplicate near-identical captures not additionally generated |
 | Omitted / inherited | Repeated species component reruns with unchanged production bytes; duplicate guided/combined/parity rendered reruns after one clean integrated suite; repeated save rejection reruns already covered by MFM-06 + hardening + parity08; duplicate rack runtime/persistence variants subsumed by field+save+persistence+E2E; repeated history cycles beyond the mandatory T-05 rerun plus the three-cycle witness |
-| Approx. remaining executions avoided | ~10–15 planned Unity gate executions (about half of the remaining plan) plus duplicate screenshot runs, before the blocker made further qualification moot |
-| Residual confidence limitation | The two Rack map/editing failures are unresolved and the reference-preview exit defect blocks the player-test candidate; no full-loop green claim is made |
+| Approx. remaining executions avoided | **~10–15 is an estimate, not a gate-by-gate reconciliation.** The reduction kept the MUST KEEP gates and removed duplicate/overlapping reruns; after the Task 1 stop, no further remaining gates were executed. |
+| Residual confidence limitation | Normal-player reference-preview restoration is not proven either way (same-frame harness race); the Rack map failure is a stale six-tab assertion; the Rack 1920×1080 rotation receipt is input-contaminated; and rendered completion is unverified (black MFM-11 captures). No full-loop green claim is made. |
 
 The reduction did **not** alter assertions, thresholds, anchors, save schema or protected references.
 
-## 5. Accepted limitations retained (must not be promoted)
+## 5. Independent review
+
+Published separately as `FINAL-INDEPENDENT-REVIEW.md` in this folder. Reviewer: OpenAI GPT-6.1-Sol (high reasoning), read-only, cross-provider, independent of the qualification worker.
+
+**Verdict: `NEEDS MORE EVIDENCE`.** The stop/return is justified because qualification remains unresolved. The review corrected three handoff overstatements:
+
+- The reference-preview failure is a confirmed **same-frame lifecycle** failure, but the receipts do **not** establish that an ordinary player preview visit loses trees. A frame-separated Year-20 round trip is the discriminating test.
+- The Rack map-planning “five tabs” failure is a **stale assertion** (the current UI intentionally has a sixth “Treatment review” tab). The Rack 1920×1080 rotation receipt is **input-contaminated**; product defect unconfirmed.
+- The MFM-11 “final” screenshots are black, and the harness restores the baseline before taking them; **rendered completion is not demonstrated**. The complete-loop data itself is present.
+
+The review found no false green in the retained compile, v24 history, save-safety, MFM boundary or complete-loop data, and no production defect confirmed.
+
+## 6. Accepted limitations retained (must not be promoted)
 
 - Three pure-Beech reduced-simulator R2 misses remain accepted against the unchanged 0.40 criterion.
 - MFM-11 extension-state calibration remains GAMEPLAY CALIBRATION.
@@ -117,7 +133,7 @@ The reduction did **not** alter assertions, thresholds, anchors, save schema or 
 - F11 candidate workload remains a human/user-test obligation.
 - Fit results remain recomputable rather than separately persisted; rule-only/invalid-fit rendered coverage remains as previously disclosed.
 
-## 6. Cleanup and final state
+## 7. Cleanup and final state
 
 - Final lane `/media/jer/ZX20/CCF-U1`: **clean including untracked**, HEAD `a95c4c4e35decb7a518d543488678473430f69b6`, production diff to `6849caa0` empty.
 - No Unity Editor, Xephyr, openbox or native-input driver running.
@@ -126,13 +142,20 @@ The reduction did **not** alter assertions, thresholds, anchors, save schema or 
 - No staged harness or `.meta` remains under `Assets/ForestPrototype/`.
 - No Windows build; #194 NO ACTION.
 
-## 7. Return to Browser Overall
+## 8. Task 1 checkpoint / continuation
+
+This is the Task 1 checkpoint. Automatic continuation is **STOPPED**. Task 2 of 12 is **NOT STARTED** and not authorized in this run. The durable continuation handoff is:
+
+`Docs/Handoffs/PlayerTestReadiness-Overnight-01/TASK-1-CONTINUATION-HANDOFF-20261103.md`
+
+## 9. Return to Browser Overall
 
 This is **not** a Tier-3 pass. Recommended next action:
 
-1. Open a bounded production repair claim for the reference-preview exit on Enlarged80 → Legacy40 archive → Enlarged80 (restore must leave the exact 1344-tree player world).
-2. Triage the Rack map-planning tab-count assertion and the 1920×1080 rack-rotation interaction failure; distinguish stale historical assertions from current product defects.
-3. After repair, rerun the affected gates and the mandatory S1-C T-05 chain on the new exact candidate; the rest of the retained reduced plan above can be reused only where its production surface is byte-identical.
+1. **Do not open a production repair yet.** Run the frame-separated Year-20 reference-preview round trip (entry, at least one frame, exit) with the protected-player fixture. Only that result distinguishes a normal-player restoration defect from the confirmed same-frame harness race.
+2. Treat the Rack map-planning “five tabs” assertion as stale against the current six-tab UI; do not change production for it. Re-run the Rack 1920×1080 rotation with an uncontaminated pointer trace before classifying it.
+3. Produce a usable rendered Completed-state checkpoint at both resolutions before any player-test readiness claim.
+4. After those evidence items, rerun only the affected gates and the mandatory S1-C T-05 chain on the new exact candidate; the rest of the retained reduced plan above can be reused only where its production surface is byte-identical.
 
 Local success token **not issued**:
 
