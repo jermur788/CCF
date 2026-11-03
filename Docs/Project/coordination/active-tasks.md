@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / OpenAI GPT-5.6 Sol after reviewing Tier-3 Task 1 and releasing Task 2 evidence closure. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-11-03 by Overall Manager / OpenAI GPT-5.6 Sol after final Tier-3 acceptance and release of Stand Map species-canopy differentiation #232. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -24,21 +24,25 @@ Accepted current-lineage state includes Rack V2 / D-064 VERIFIED; Sitka/Oak/Beec
 
 MFM-11 boundary remains explicit: extension-state calibration is within accepted GAMEPLAY CALIBRATION tolerance; post-treatment source-vs-current-Covered CI parity remains **NOT DEMONSTRATED**. The three pure-Beech reduced-simulator R2 misses remain accepted C-level limitations against the unchanged 0.40 criterion.
 
-## Tier-3 Task 1 checkpoint
+## Final Tier-3 acceptance
 
-Parent claim #231 returned **BLOCKED / NEEDS MORE EVIDENCE**. Browser Overall reviewed the durable handoff and independent review and issued:
+#231 Scenario One final Tier-3 qualification and #240 evidence closure are **APPROVED / CLOSED** for the exact existing production candidate.
 
-`NEEDS MORE EVIDENCE — CONTINUE; NO PRODUCT DEFECT ESTABLISHED`
+Manager final review:
 
-Manager checkpoint review:
+`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/MANAGER-FINAL-REVIEW-20261103.md`
 
-`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/MANAGER-CHECKPOINT-REVIEW-20261103.md`
+Task 1 retained evidence remained valid and was not rerun. Task 2 closed only the three evidence gaps identified by the independent review:
 
-Task 1 retained evidence is accepted as a persisted checkpoint and must not be rerun unless later evidence invalidates it. The qualification branch contains verification tooling and docs only; production bytes remain unchanged from the released Tier-3 candidate.
+1. frame-separated Year-20 protected-player Reference Preview restoration — **PASS**;
+2. clean 1920×1080 Rack native-input rotation — **PASS**;
+3. genuine Year-25 Completed rendering at 1280×720 and 1920×1080 — **PASS**.
 
-Accepted retained evidence includes compile/import; mandatory S1-C T-05 v24 save/history and rendered recorded/derived/not-recorded states; current/old/malformed save protection; frozen Reference Future / Legacy40; MFM judgement/proposal/Work Plan boundaries; data-level complete-loop Year-25 completion with 8/8 objectives and solvency; S1-C/S1-D history/repeated cycles; Rack field/save/persistence/Objective-1 E2E; guided-v2 / Combined / PARITY-07 / interaction; and accepted species/economy/geometry evidence.
+Fresh cross-provider read-only delta review: **APPROVE**. No candidate production defect was demonstrated. The qualification/docs lineage has no `Assets/`, `Packages/` or `ProjectSettings/` drift from the released production candidate.
 
-Independent review found no false green in those retained areas and no confirmed production defect.
+Residuals are non-blocking: the synthetic v14 economy fixture is stale verification debt and later checks in that harness remain unexecuted; the exact six-tab Rack correction is accepted by compile/inspection and may be carried narrowly if an affected delta reruns that gate; the Completed screenshot curriculum card reflects the scripted witness bypassing guided lessons and is not a product finding.
+
+The final player-test-ready token is **withheld** because user-directed #232 is an already-authorised player-facing change. The new exact candidate produced by #232 must pass its affected rendered/Tier-3 delta first.
 
 ## Live / released tasks
 
@@ -46,46 +50,50 @@ Independent review found no false green in those retained areas and no confirmed
 |---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
 | **Local Deep Orchestration Resume 02** (#203) | local orchestration | local routing + evidence | **RUNNING** |
-| **Scenario One final Tier-3 qualification** (#231) | #203 local | parent milestone qualification | **BLOCKED — TASK 2 RELEASED** |
-| **Tier-3 Task 2 evidence closure** (#240) | #203 local | exactly three unresolved evidence actions | **READY — NEXT LOCAL GATE** |
-| **Stand Map species canopy differentiation** (#232) | post-Tier-3 product/UI | bounded visual improvement | **PREPARED — BLOCKED ON TIER-3** |
+| **Scenario One final Tier-3 qualification** (#231) | #203 local | parent milestone qualification | **APPROVED / CLOSED** |
+| **Tier-3 Task 2 evidence closure** (#240) | #203 local | three evidence actions + delta review | **APPROVED / CLOSED** |
+| **Stand Map species canopy differentiation** (#232) | #203 local / Unity | bounded player-facing map presentation | **RELEASED — NEXT LOCAL GATE** |
 | **PARITY-03 Q10** (#74) | #203 when explicitly scheduled | non-blocking verification | **WAITING — NON-BLOCKING** |
 
-No row proves the Unity lock is currently free. #240 must perform a fresh provider/worktree/process/lock/host-save preflight before starting.
+No row proves the Unity lock is currently free. #232 must perform a fresh provider/worktree/process/lock/host-save preflight before starting production edits.
 
-## #240 — Tier-3 Task 2 evidence closure
+## #232 — Stand Map species canopy differentiation
 
-Binding handoff:
+Binding release:
 
-`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/TASK-2-EVIDENCE-CLOSURE-HANDOFF-20261103.md`
+`Docs/Handoffs/StandMap-Species-Canopy-Differentiation/RELEASE-20261103.md`
 
-Task 2 inherits all valid Task 1 evidence and executes **only three fresh evidence actions**:
+Binding task packet:
 
-1. frame-separated Year-20 protected-player Reference Preview round trip;
-2. uncontaminated Rack 1920×1080 native-input rotation receipt;
-3. genuine Year-25 Completed-state rendering at 1280×720 and 1920×1080.
+`Docs/Handoffs/StandMap-Species-Canopy-Differentiation/TASK-PACKET.md`
 
-The Rack five-tab failure is classified as stale verification debt because the accepted V2 UI intentionally has six tabs including `Treatment review`. A mechanical verification-only correction is permitted; a full product rerun is not required solely for that stale assertion.
+Released production base: the exact Tier-3-approved production candidate on `integration/scenario-one-player-test-ready-v1`.
 
-User-directed #238 test-volume reduction remains binding. Do not rerun Task 1's completed successful matrix.
+Assigned implementation branch: `feature/standmap-species-canopy-differentiation-v1`.
 
-A fresh independent **delta** review is required after the three evidence items. Do not repeat the entire architecture/spec review.
+Assigned local Unity worktree/lane: `/media/jer/ZX20/CCF-U1` after fresh preflight. Before production edits, #232 must be marked `[RUNNING]` with actual provider/model, branch, worktree and starting HEAD.
 
-If a normal frame-separated preview loses state, a clean intended Rack rotation still fails, or a genuine Completed-state rendering cannot be produced without production change, STOP and return to Browser Overall for a separate product disposition.
+Minimum product target: Sitka must read immediately as coniferous from the full Stand Map, with silhouette/structure carrying the distinction rather than colour alone. Prefer bounded procedural crown-shape changes in the existing canopy raster path. Preserve authoritative tree position, crown radius, species/state identity, map/minimap transforms, overlays, redraw/cache semantics, and all forestry/Rack/MFM/save/ecology/economy behaviour.
 
-Success token for #240:
+Run only affected map/minimap/rendered/Tier-3 delta evidence. Do not rerun unrelated valid Tier-3 evidence. If `RackV2MapPlanningVerification` is rerun, the exact accepted six-tab verification-only correction is authorised; do not absorb unrelated qualification tooling.
 
-`TIER-3 TASK 2 EVIDENCE CLOSURE PASS — READY FOR BROWSER OVERALL FINAL ACCEPTANCE`
+Fresh cross-provider read-only review is required. Required return:
 
-Only Browser Overall may issue the final parent token:
+`Docs/Handoffs/StandMap-Species-Canopy-Differentiation/HANDOFF.md`
 
-`SCENARIO ONE PLAYER-TEST CANDIDATE READY — USER PLAYTEST REQUIRED`
+Success token:
+
+`STAND MAP SPECIES CANOPY DIFFERENTIATION COMPLETE — READY FOR MANAGER REVIEW`
 
 ## User / build gate
 
-The user has **not** yet been asked to playtest because final Tier-3 acceptance is still pending.
+The user has **not** yet been asked to playtest because #232 must first produce and qualify the final player-facing candidate.
 
-After accepted Tier-3 evidence, the user must personally playtest the exact candidate.
+After Browser Overall accepts #232 and its affected rendered/Tier-3 delta, issue:
+
+`SCENARIO ONE PLAYER-TEST CANDIDATE READY — USER PLAYTEST REQUIRED`
+
+The user must then personally playtest that exact candidate.
 
 No Windows build is authorised before that personal playtest and explicit post-playtest user authorisation.
 
@@ -94,5 +102,6 @@ No Windows build is authorised before that personal playtest and explicit post-p
 - Research Source Consolidation Audit #194 remains **NO ACTION**.
 - Frozen Reference Future v1 and Legacy40 compatibility remain protected.
 - Never weaken tests or silently rebaseline protected anchors.
+- User-directed #238 test-volume reduction remains binding; do not rerun valid Tier-3 evidence without a new reason.
 - Qualification claims have no production-repair authority.
 - Local workers do not edit this file.
