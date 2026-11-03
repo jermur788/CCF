@@ -3,8 +3,8 @@
 **Claim:** #225
 **Parent:** #91 / Browser Overall #200 / local orchestration #203
 **Date:** 2026-11-03
-**Status:** **QUALIFICATION COMPLETE — INDEPENDENT REVIEW ROUND 1: NEEDS CHANGES (EVIDENCE/RECEIPT ONLY); FIXES APPLIED FOR DELTA REVIEW**
-**Local verdict:** `MFM-12 QUALIFICATION PASS — PENDING DELTA REVIEW`
+**Status:** **QUALIFICATION COMPLETE — INDEPENDENT REVIEW APPROVED — READY FOR MANAGER ACCEPTANCE**
+**Local verdict:** `MFM-12 QUALIFICATION PASS / INDEPENDENT REVIEW APPROVED / READY FOR MANAGER ACCEPTANCE`
 
 The final product token `MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST` is **not** self-issued. Browser Overall decides it after reviewing this return.
 
@@ -21,7 +21,7 @@ This is a **fresh full qualification** from the beginning of the A–P matrix on
 | Earlier qualification heads used for evidence | `8a24be72e43c399d72b9050ceadc3dba8d5b69c0` (offline), `f9c36f6ab13814401d0d89b16efbde65753adbbf` (Unity 01–11) |
 | Production diff candidate → final qualification HEAD | **empty** (`git diff e42bb9f4..85051922 -- Assets Packages ProjectSettings`) |
 | Orchestration | `opencode-go/deepseek-v4.1-flash` |
-| Independent reviewer | Claude Sonnet 5.5 (cross-provider; see `INDEPENDENT-REVIEW.md`) |
+| Independent reviewers | Round 1 full review: Claude Sonnet 5.5 (cross-provider). Round 2 delta confirmation: OpenAI GPT-6.1-Sol (cross-provider; substituted after Claude quota exhaustion). See `INDEPENDENT-REVIEW.md`. |
 | Unity | 6000.6.0f1; save schema v24 |
 | Evidence roots | `/media/jer/Files/CCF/Verification/MFM12-IntegratedQualification-Rerun-20261102/` (offline); `...-attempt3/` (Unity 01–11); `...-attempt3-resume2/` (Unity 01, 12–17); `...-guided-recheck/` (contentful guided-v2 rendered recheck); `...-attempt2/` and `...-attempt3-resume/` are retained superseded diagnostic attempts |
 | Final lock state | released normally `2026-11-03T02:12:25Z` (lock `98c789a06cb54f2a92b961bd348cffa3`); status FREE; no Editor/Xephyr/openbox/driver (see §11) |
@@ -284,7 +284,7 @@ Cleanup receipt:
 | M Calibration / safety | PASS — MFM-11 accepted boundary carried; 40% safeguard, viable economy, timber/deadwood/regeneration/light coherent, completion reachable at year 25 |
 | N Teaching / scope | PASS — extension begins after Lesson 5; full manual management remains; no Windows build; external testing not claimed |
 | O Evidence / wording | PASS — gameplay-calibration labels retained; evidence-backed analogues separated; no hidden-quality or unrestricted-machine-judgement claim |
-| P Final gate | P1–P3 met on this return; P4 is the independent review (round 1 NEEDS CHANGES on evidence/receipt only; delta re-review pending); P5 is Browser Overall publication and is not self-issued; P6 (personal user playtest) remains external |
+| P Final gate | P1–P3 met on this return; P4 independent review: round 1 NEEDS CHANGES (evidence/receipt only), round 2 delta **APPROVED**; P5 Browser Overall publication is not self-issued; P6 (personal user playtest) remains external |
 
 ## 13. Unresolved / carried limitations
 
@@ -303,13 +303,9 @@ Cleanup receipt:
 
 ## 14. Independent review
 
-`INDEPENDENT-REVIEW.md` in this folder records the fresh cross-provider Claude Sonnet 5.5 review of the exact candidate and the evidence package. Round 1 returned **NEEDS CHANGES**, narrow and evidence/receipt only, with no production/spec defect and no stop condition; its conditions were the guided-v2 blank capture, the stale lock/cleanup receipt and the pre-asserted verdict. Those conditions were fixed, and a short delta review was requested. The published file includes both the round-1 findings and the delta outcome.
+`INDEPENDENT-REVIEW.md` in this folder records both review rounds. Round 1, by Claude Sonnet 5.5 (cross-provider), was a full architecture/spec-conformance review of the exact candidate and evidence package. It returned **NEEDS CHANGES**, narrow and evidence/receipt only, with no production/spec defect and no stop condition; its conditions were the guided-v2 blank capture, the stale lock/cleanup receipt and the pre-asserted verdict. Those conditions were fixed and independently confirmed in round 2 by OpenAI GPT-6.1-Sol (cross-provider), which substituted for Claude after the Claude API quota was exhausted. Round 2 returned **APPROVED — delta confirmation**, with no new blocking finding. The substantive round-1 review remains Claude's; the OpenAI round explicitly records the substitution and its independent-of-evidence-producer status.
 
 ## 15. Exact return
-
-`MFM-12 QUALIFICATION PASS — PENDING DELTA REVIEW`
-
-Target on approval (not yet issued):
 
 `MFM-12 QUALIFICATION PASS / INDEPENDENT REVIEW APPROVED / READY FOR MANAGER ACCEPTANCE`
 
