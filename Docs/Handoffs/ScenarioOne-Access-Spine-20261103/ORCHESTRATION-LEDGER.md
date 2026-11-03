@@ -462,3 +462,121 @@ The design did **not** repeat the #248 mistake: the brief required the validity 
 #### Retrospective (INFERENCE)
 
 Two consecutive claims in this programme produced a material error caught only by cross-provider review: **#248 by the worker** (formula valid only under an unstated assumption) and **#250 partly by DPC** (a figure carried from one context into another without re-derivation). The shape is identical — a number reused outside the context that produced it. Rule adopted: **any figure published from a harness or a reviewer must be re-extracted from the raw artefact at the point of publication and reconciled against its total**, the same discipline already applied to sha256 hashes. This is also the **third** DPC bookkeeping/transcription error this session (review counts, event count, MFM rows); the common cause is summarising from memory rather than re-reading the source, and it is now recorded rather than excused.
+
+### EVENT — 2026-11-03 23:05Z–23:17Z — #251 read-only MFM topology study opened; worker dispatched to Sonnet 5.5 Medium; review reserved for GPT-6.1
+
+- **Work unit / claim:** [#251](https://github.com/jermur788/CCF/issues/251) — comparison of branch/side-local, topology-aware and parallel-rack-fallback MFM coverage models. **Evidence class:** OBSERVED FACT (refs, lane state, dispatch ids, source reads), ORCHESTRATOR CLAIM (routing), RETROSPECTIVE INFERENCE (later).
+- **Authority read:** the [#251 packet](MFM-TOPOLOGY-OPTIONS-PACKET.md); `Docs/Project/coordination/active-tasks.md` (last reconciled 2026-11-03, #251 `READY / READ-ONLY SPEC ANALYSIS; NOT RUNNING`); D-064 (Rack V2 controlling), D-065 (MFM V1), D-067 (user direction), D-068 (Manager design direction, spec NOT approved). The access-spine four-file spec remains **DRAFT**.
+- **Selected provider/model/effort:** designer `claudeAgent` → `claude-sonnet-5-5`, `effort: medium`, role `design`, task `node:delegated-task:…:delegate-task:3e93a4a2…`. **Independent review reserved for `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`** — the other provider, per the packet.
+- **Alternatives and reason:** the alternative was `gpt-6.1-sol` (Medium) as designer with Claude reviewing. **Chosen Sonnet 5.5 Medium** because that lane has completed #246/#248/#250 on this exact project and source tree, so capacity and task fit are **observed, not assumed**; the work is long-form design reading of a C# contract, the same class it already handled; and keeping GPT-6 for review preserves the cross-provider independence that caught the #250 material error. **EXPLOIT**, not exploration.
+- **Provider/pool state, quota/context:** both `claudeAgent` and `codex` instances reported `canRunChildTask: true` and `canRunCrossProviderChildTask: true` at dispatch; `cursor`, `grok`, `antigravity`, `fx`, `muse`, `pi` were **disabled** and were not considered. Quota, rate-limit window, reset time, remaining credit, context use and token counts remain **UNKNOWN** — no telemetry exposed, none estimated. First dispatch attempt succeeded; no retry, no cooldown, no login event.
+- **Capacity-to-completion, switching cost:** `sufficient by task size / unknown by quota`. The brief is self-contained against an exact ref, so a provider failure would cost only partial writing. Switching to GPT-6 as designer would cost a new harness context; switching the reviewer is cheap.
+
+#### Preflight (OBSERVED, 23:05Z–23:12Z)
+
+| Gate | Observed | Verdict |
+|---|---|---|
+| Issue state | #251 OPEN, `[READY / READ-ONLY]`; #200 and #203 OPEN/`RUNNING` | PASS |
+| Candidate ref | `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd1c653fa2231f632a79030a83ff76f833` (fresh `git ls-remote`, unchanged since #250) | PASS |
+| Read-only source lane | existing clean `/media/jer/ZX20/CCF-Primary` on `main`; read via `git show 72b4efbd…:path`; no checkout, no Unity, no Library | PASS |
+| Docs lane | `/media/jer/Files/CCF/Operations/CCF-MFM-TopologyDocs-20261103` did **not** exist; branch `docs/mfm-topology-options-20261103-v1` absent from local and `origin` | PASS — created |
+| Docs base | `git worktree add -b docs/mfm-topology-options-20261103-v1 … origin/main` at `19245388` (`coord: close #248/#250 research and release #251`), clean | PASS |
+| Unity lease | **not requested and not used** — the packet waives it for a read-only lane | N/A by design |
+| Evidence roots | both `/media/jer/Files/CCF/Verification/ScenarioOne…-20261103T…Z/` present and readable | PASS |
+
+#### Dispatch scope (OBSERVED, 23:13Z)
+
+Dispatched: options A (branch/side-local frames, including the direct question whether one demonstrated 3D sample can validly inform both sides), B (topology/graph-aware coverage), C (constrained parallel fallback); a 12-criterion comparison; a minimum viable interface/contract in prose plus pseudocode; exact Rack V2 / MFM V1 clauses needing amendment; save/Reference-Future/Legacy40 compatibility analysis; an adversarial test matrix; no-go risks and proof gaps; and a **numerical claim table** requiring every figure to be re-extracted from raw evidence with path/key.
+
+- **Explicitly forbidden to the worker:** any `Assets/`, `ProjectSettings/`, `Packages/` edit; any Unity launch or build; any spec status change; any save/schema implementation; any commit, push or PR; any edit to `active-tasks.md`, `decision-log.md`, existing handoffs or this ledger; any write inside `/media/jer/ZX20/CCF-Primary`.
+- **Withheld:** implementation authority, spec approval, Manager decision, and any claim that renders or layout feasibility are measured.
+
+#### DPC raw-evidence re-extraction before publication (OBSERVED, 23:15Z–23:17Z)
+
+Re-read directly from `measurements/mfm_candidate.json` and `measurements/candidate_lines.csv` (not from #250 prose):
+
+- Scenarios: `C3_spine_plus_five_racks` **Track** — 490 masks, **156** newly masked living trees, treatable 994 → 883 (**−111**), area 4141.99 → 3682.17 m² (**−459.82**). **Headland** — 6 masks, **150** trees, 994 → 888 (**−106**), **−448.03 m²**. These reconcile with the #250 correction.
+- Baseline (five *suggested* E-W racks, geometry A): `Valid=true`, covered **12 / 14**, fraction **0.857142857**; source 75 stems, 314.005 m², 2388.50 stems/ha.
+- Candidate probe (geometry B): `Valid=false`, `"Racks 4 and 5 cross or overlap across the common normal, so they have no defensible order."`, `axisAngleDegrees=135.000015`.
+- **New observation that the worker's draft must not get wrong:** `candidate_lines.csv` shows the three west racks at bearing ~135° (NW) and the two east racks at ~45° (NE). The 3+2 candidate is therefore **two mutually perpendicular mirrored families**, not one parallel family; the length-weighted mean direction (135°) is a compromise between them, and the `maxAxisDeviationDegrees: 0` in the probe output is a **default left unset on the early-failure path**, not evidence that the racks are parallel. Any draft treating 0° deviation as measured must be corrected before publication.
+- `rack_spine_overlap.json` records R1–R5 corridor/spine overlap lengths 2.594–4.884 m; `design_bounds.json` records clearance-only best-case gaps W3 = 18.274, E3 = 18.233 m and entrance-reach-constrained W3 = 17.767 / E3 = 8.976 m.
+
+#### Classification
+
+- **No Unity, no production code, no felling, no Windows build** was used or authorised in this event.
+- Publication, review and any spec recommendation remain ahead; nothing here approves a model change.
+
+### EVENT — 2026-11-03 23:17Z–23:31Z — #251 worker returns; DPC re-derives the load-bearing numbers; review dispatched to GPT-6.1 Medium
+
+- **Work unit / claim:** [#251](https://github.com/jermur788/CCF/issues/251). **Evidence class:** OBSERVED FACT (draft, raw JSON/CSV, source lines, recomputations), ORCHESTRATOR CLAIM (routing, acceptance).
+- **Provider/model/effort:** designer `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (task `…:delegate-task:3e93a4a2…`), completed normally, no retry. **Reviewer dispatched:** `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`, role `review`, task `…:delegate-task:28b40f93…`.
+- **Pool/quota/context/tokens:** both enabled at both dispatches; **no cooldown, rate-limit, login or quota event**. Quota/context/token values **UNKNOWN** — not estimated.
+
+#### Worker deliverable (OBSERVED)
+
+`MFM-TOPOLOGY-OPTIONS-HANDOFF.md` — 66,974 bytes, 571 lines, written into the docs lane only. Reported recommendation: **Option A as an additive second derivation** (`Derive` untouched, new path only for plans `Derive` rejects), no save-schema change, Confirm-time validity gate, one demonstrated sample serving both groups. No commit, no source/spec/save edit; `/media/jer/ZX20/CCF-Primary` left clean.
+
+#### DPC raw-evidence re-derivation (OBSERVED, independent scratch runs in `/tmp/opencode`)
+
+Every figure below was recomputed by DPC from `design_candidate.json`, `candidate_lines.csv`, `mfm_candidate.json`, `map_model.json` and `trees.json` — not read from the draft:
+
+| Claim | DPC result | Status |
+|---|---|---|
+| Group lengths / resultant | west 115.946, east 103.642, total 219.588, difference 12.304 (5.60%) | **reproduced exactly** |
+| Axis | 135° for the 3+2 set; `maxAxisDeviationDegrees: 0` is an unset default on the early-failure path | **reproduced; draft states this correctly** |
+| Normal ranges | R4 [−50.214, −3.050], R5 −17.066, R1 [−37.997, 18.481], R3 0.444, R2 17.067 | **reproduced exactly** |
+| Overlaps | R4→R5 +14.016, R5→R1 +20.931, R1→R3 +18.037, R3→R2 −16.623 | **reproduced exactly** |
+| Forced 45° axis | order R1,R4,R2,R3,R5; −17.855 / +16.441 / +37.645 / +28.715 | **reproduced (≤1e-3)** |
+| Per-group same-side gaps | 17.510 / 16.623 (west), 17.855 (east) | **reproduced exactly** |
+| Teaching anchor (A) | along 4.647, clamped 12, anchor (−5.513, 4.885), 54.267 m rack, 6.701 m to Clearing centre, 68 stems outside corridors / 15 inside | **reproduced** |
+| Sample net area | 359.06 m² by DPC 0.25 m raster vs 358.25 drafted | **reproduced within raster tolerance** |
+| Corridor union / distinct trees | 103 distinct rack trees (24/20/29/22/8), 18 continuation, union 120 with PO3518 shared | **reproduced from raw** |
+| Masks / baseline / C3 | 116 masks (104+1+7+4); 12/14 covered; Track 156 / −111 / −459.82 m²; Headland 150 / −106 / −448.03 m² | **reproduced exactly** |
+| Reach (reference) | >9/12/20 m: 2240.3 / 1724.4 / 830.9 m²; stems **480 / 365 / 176**; max 41.36 m | **reproduced; stem counts exact** |
+| Reach (suggested) | >9 m: 188.3 m², max ≈10.6 m by DPC raster vs 169.5 m² / 10.43 m drafted | **METHOD CAVEAT — see below** |
+| Naive per-side double count | 1568.0 m² = 26.78% (DPC 0.5 m cell-centre) vs 1575.0 m² = 26.80% drafted | **conclusion reproduced; corridor-end convention differs ~1%** |
+| Owner-rule conservation | 5441.0 + 414.5 + 544.5 = 6400.0 m²; stems 1154 + 85 + 105 = 1344 | **closes; differs from draft only by the corridor test** |
+| Nearest-segment owners | R1 2230.5, R2 1403.4, R3 869.9, R4 853.1, R5 496.7 m²; stems 475/274/181/193/116 | **reproduced within ~1 cell** |
+| One-family floor | 64/sin45° = 90.51 m; 80/sin45° = 113.14 m; asin(64/77.489) = 55.68° | **arithmetic reproduced** |
+| Source citations | ConfirmRackPlan / RackEditing.Validate / ForestSaveValidation.RackV2 / `IsLocked => Completed > 0` / PrescriptionApproval Derive call / Derive line ranges | **all checked against `72b4efbd`, accurate** |
+
+**Two method caveats recorded before publication:** (1) N54's suggested-layout reach (169.5 m², max 10.43 m) is raster-quantised and does not reproduce exactly; DPC's 0.25 m run gives 188.3 m² and ≈10.6 m, with an exact geometric maximum ≈10.75 m at the west corners beyond the line ends. The conclusion ("the legacy layout never needed a reach rule") survives; the figure must be published as a range with its method. (2) The 0.5 m raster split (1575.0 / 2472.5 / 1413.75 / 414.5) and the corridor union 524.25 rest on different corridor conventions; DPC's independent 0.5 m cell-centre run gives 26.78% rather than 26.80% double-counted area. Neither changes a conclusion; both must be stated with the convention used.
+
+#### Classification
+
+- The draft's central characterisation is confirmed: the 3+2 candidate is **two mirrored families 90° apart**, and the single length-weighted common normal is decided by a 12.304 m length difference — not a rounding accident, and not proof that all herringbones fail.
+- Nothing was published yet; the review is the next gate.
+
+### EVENT — 2026-11-03 23:31Z–23:52Z — #251 review returns MATERIAL ERROR; four FAIL claims corrected from source; handoff published with review and orchestration appendices
+
+- **Work unit / claim:** [#251](https://github.com/jermur788/CCF/issues/251). **Evidence class:** OBSERVED FACT (reviewer table, source lines re-read, corrections in the file), ORCHESTRATOR CLAIM (acceptance), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** reviewer `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`, read-only, task `…:delegate-task:28b40f93…`, completed normally, no retry, no provider switch. No further model dispatch.
+- **Pool/quota/context/tokens:** both pools enabled throughout; **no cooldown, rate-limit or login event**. Quota/context/token values **UNKNOWN**.
+
+#### Verdict (OBSERVED, parsed from the reviewer's own table)
+
+**MATERIAL ERROR.** 40 claim rows = **28 PASS + 8 PASS-WITH-CORRECTION + 4 FAIL** (28 + 8 + 4 = 40). The STOP and the load-bearing arithmetic reproduced; the four failures were about enforcement scope and compatibility claims, not about the geometry.
+
+- **C24 FAIL** — a Confirm-only gate is incomplete: `UpdateRack` (`RackPlan.cs:145–193`) accepts an unlocked rack of a **confirmed** plan, rewrites geometry and reconciles orders **without clearing `rackPlanConfirmed`**. Confirmed directly in source.
+- **C28 FAIL** — "no serialized field ⇒ hashes cannot move" is wrong in general: `ScenarioReferenceArchive.cs:224–259` hashes serialized **values**, including retained prescription state and version text.
+- **C30 FAIL** — stable unit ids preserve references, not meaning; a changed partition can give `R1C` a different polygon.
+- **C36 FAIL** — "curved boundaries break exact area measurement" overstates: `Coverage.cs:460–530` integrates numerically along the axis with exact cross-line intervals; curvature adds crossing/convergence work, not impossibility.
+
+The reviewer independently reproduced: group totals 115.946116 + 103.642290 = 219.588406 m and 12.303826 m resultant; overlaps +14.016114 / +20.931066 / +18.037316 / −16.623103; forced-45° +16.440547 / +37.643738 / +28.713923; same-side gaps; anchor (−5.512830, 4.885281); 68/15 stem split; 103 corridor trees; naive 311/551/294/85 and owner 1156/85/103; reach 2246/1718.25/830 m² and 480/365/176 stems; nearest-segment stems 475/274/181/194/117.
+
+#### Corrections applied (OBSERVED, in the published file)
+
+- §1.5 rewritten around the confirmed-plan mutation path and a three-moment lifecycle rule (Confirm / any authoritative mutation / load of an already-invalid plan); the unproven "permanently disables MFM" wording removed and the specific reference's current entrance/overlap illegality stated.
+- §2.6 and §7 corrected on hashing: no-layout-change is not no-value-change; round-trip hashes, coverage decisions and provenance must be qualified; "unreachable" limited to the V2 geometry path.
+- §2.3, §A.1 and §B.2 corrected on area measurement and B2; B2 is now rejected on cost, not measurability.
+- §4/§10 softened: A is a **preferred hypothesis**, not the "only" or "safe" choice; B could also represent 45° branches; no option approved.
+- Eight PASS-WITH-CORRECTION items applied: N50 and N54 conventions stated (N54 non-corridor corrected to 5456.25 m²; reach labelled a **sampled** maximum, exact ≈10.75 m), N56 restated as exact raster values, N60 approximation retained beside the C conclusions, N29 `signature_changed` as JSON text, sequence `bay` citation corrected to `ScenarioOneRackBayReader.cs:21`, N47 full path, and Q05 added for the clustering-chaining case.
+- **Raster-convention dispute resolved by source, not by preference:** `ScenarioOneRackBay.Corridor.Contains` is a rectangle with inclusive longitudinal ends (`along <= length + 1e-4`, `|across| <= halfWidth + 1e-4`). DPC's earlier capsule-ended check (188.3 m² / 10.6 m) was therefore **not** the production rule; the reviewer's rectangular 169.5 m² / 10.43 m and 5456.25 m² are the ones adopted, with the alternative disclosed at N54.
+
+#### Publication (OBSERVED)
+
+`MFM-TOPOLOGY-OPTIONS-HANDOFF.md` is published with Appendices A–D: the sourced numerical claim table, the recomputation method, the **independent review record** (verdict, 40-row tally, four FAILs, eight corrections, J1–J4, reviewer limits) and the **V2 Orchestration Decision Appendix** (routing, numerical provenance, established vs not established, effect on D-064/D-065/D-067/D-068 and Reference Future v1, and the single Manager decision requested). Status: `[HANDED-OFF]` on #251.
+
+#### Retrospective (INFERENCE)
+
+This is the fourth transcription-class error in the programme, and the first where **DPC's own verification pass read the failing sentence and did not flag it**: the "no field ⇒ no hash movement" claim was checked against `ForestSaveData` version fields but not against `ScenarioReferenceArchive.HashLayout`, which hashes values. The review caught it because it was asked to check the compatibility argument, not just the numbers. Rule reinforced: a compatibility claim is a **source claim about the hash function**, and must be read at the hash function, not inferred from the schema shape. The unproven "permanent" wording is the same failure mode in prose: an inference stated as a fact until a reviewer demanded the evidence for it.
