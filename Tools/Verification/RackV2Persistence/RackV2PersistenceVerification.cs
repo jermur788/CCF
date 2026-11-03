@@ -171,7 +171,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         saves = FindFirstObjectByType<ForestSaveController>();
         marks = FindFirstObjectByType<ForestTreeMarkingManager>();
         Check(ecology != null && manager != null && saves != null && marks != null, "not the Scenario One ForestTest scene");
-        Check(ForestSaveData.CurrentVersion == 23, "this gate qualifies save v23 (no schema change expected)");
+        Check(ForestSaveData.CurrentVersion == 24, "this gate qualifies save v24 (no schema change expected)");
     }
 
     private static IEnumerator Settle()
@@ -262,10 +262,12 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
             .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
             .Replace(",\"rackId\":0", "")
             .Replace(",\"objectiveAchievements\":[]", "")
+            .Replace("\"firstGuidedRackReviewComplete\":false,", "")
+            .Replace("\"firstGuidedRackReviewComplete\":true,", "")
             .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
             .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
             .Replace(",\"prescriptionId\":0", "")
-            .Replace("\"version\":23,", "\"version\":20,");
+            .Replace("\"version\":24,", "\"version\":20,");
         Check(!v20.Contains("rackPlanningModel") && !v20.Contains("\"rackId\"") && v20.Contains("\"version\":20,"),
             "the v20 projection carries no v21/v22/v23 bytes");
         return v20;
@@ -326,7 +328,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         string freshHash = Hash(), freshSig = Signature();
         string freshFile = SaveToDisk("new game");
         JObject freshRoot = JObject.Parse(freshFile);
-        Check((int)freshRoot["version"] == 23 && (int)freshRoot["standGeometryModel"] == StandGeometryModel.Enlarged80
+        Check((int)freshRoot["version"] == 24 && (int)freshRoot["standGeometryModel"] == StandGeometryModel.Enlarged80
             && (int)Scenario(freshRoot)["rackPlanningModel"] == RackPlanningModel.RackPlanningFieldMarkingV2
             && (bool)Scenario(freshRoot)["rackPlanConfirmed"] == false && (int)Scenario(freshRoot)["nextRackId"] == 1
             && RackArray(freshRoot).Count == 0, "the new-game file states v21, Enlarged80 and the empty V2 plan explicitly");

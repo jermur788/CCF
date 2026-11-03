@@ -88,6 +88,8 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
                .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackId\":0", "")
                .Replace(",\"objectiveAchievements\":[]", "")
+               .Replace("\"firstGuidedRackReviewComplete\":false,", "")
+               .Replace("\"firstGuidedRackReviewComplete\":true,", "")
                .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
                .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
                .Replace(",\"prescriptionId\":0", "")
@@ -120,7 +122,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
 
         // ---- 2. Capture records the active geometry; v20 round trip ---------------------------------------
         ForestSaveData start = saves.CaptureData();
-        Check(start.version == 23 && ForestSaveData.CurrentVersion == 23 && start.standGeometryModel == 0, "capture writes v23 + geometry 0");
+        Check(start.version == 24 && ForestSaveData.CurrentVersion == 24 && start.standGeometryModel == 0, "capture writes v24 + geometry 0");
         string startHash = ScenarioReferenceArchive.WorldHash(start);
         Check(startHash == ScenarioReferenceArchive.Hash(V19Layout(start)), "a Legacy40 world hashes exactly as the pre-v20 layout (historical anchors stay valid)");
         string currentJson = JsonUtility.ToJson(start);   // current-schema JSON (captured at whatever the schema version is)
@@ -159,7 +161,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Check(saves.LoadData(v19, false), "v19 save loads");
         yield return null;
         ForestSaveData rewritten = saves.CaptureData();
-        Check(rewritten.version == 23 && rewritten.standGeometryModel == 0, "v19 -> saved again writes v23 + geometry 0");
+        Check(rewritten.version == 24 && rewritten.standGeometryModel == 0, "v19 -> saved again writes v24 + geometry 0");
         Check(ScenarioReferenceArchive.WorldHash(rewritten) == startHash, "v19 loaded then re-saved is the same world (hash unchanged)");
         Pass("v19 loads as Legacy40; re-save writes v21 + geometry 0 with an identical world hash");
 
