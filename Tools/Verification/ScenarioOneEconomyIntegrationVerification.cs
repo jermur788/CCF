@@ -177,10 +177,36 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         Check(juvenile.lastBrowseAssessment.Protection == BrowseProtectionState.EffectiveShelter && !juvenile.lastYearBrowsed && shelter.IsEffective(8) && !shelter.IsEffective(9), "sheltered first step and eight-step lifetime");
         var shelteredSave = saves.CaptureData(); Check(saves.LoadData(Clone(shelteredSave), false) && saves.LoadData(Clone(shelteredSave), false), "repeat shelter restore");
         yield return null; yield return null; Check(ecology.Browsing.Shelters.Count == 1, "restore does not duplicate protection");
+        ForestSaveData beforePreviewCanon = saves.CaptureData();
+        ScenarioReferenceArchive.Canonicalize(beforePreviewCanon);
+        string beforePreviewJson = JsonUtility.ToJson(beforePreviewCanon);
         string beforeProtectedPreview = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
         Check(manager.TryBeginReferencePreview(20), "protected player can preview frozen reference");
+        var previewReturnField = typeof(ScenarioOneManager).GetField("previewReturnData", BindingFlags.NonPublic | BindingFlags.Instance);
+        var capturedReturn = previewReturnField?.GetValue(manager) as ForestSaveData;
+        Debug.Log("ECONOMY_PREVIEW_CAPTURE trees=" + (capturedReturn?.trees?.Count ?? -1)
+            + " version=" + (capturedReturn?.version ?? -1) + " geometry=" + (capturedReturn?.standGeometryModel ?? -1));
         Check(ecology.Browsing.Shelters.Count == 0, "historical preview replaces player protection with none");
         manager.EndReferencePreview(); yield return null; yield return null;
+        ForestSaveData afterPreviewCanon = saves.CaptureData();
+        ScenarioReferenceArchive.Canonicalize(afterPreviewCanon);
+        string afterPreviewJson = JsonUtility.ToJson(afterPreviewCanon);
+        int diffAt = 0;
+        while (diffAt < beforePreviewJson.Length && diffAt < afterPreviewJson.Length && beforePreviewJson[diffAt] == afterPreviewJson[diffAt]) diffAt++;
+        Debug.Log("ECONOMY_PREVIEW_EXIT shelters=" + ecology.Browsing.Shelters.Count + " before=" + beforeProtectedPreview
+            + " after=" + ScenarioReferenceArchive.WorldHash(saves.CaptureData()) + " version=" + saves.CaptureData().version
+            + " latch=" + saves.CaptureData().scenarioOne.firstGuidedRackReviewComplete + " diffAt=" + diffAt
+            + " beforeCtx=" + beforePreviewJson.Substring(Math.Max(0, diffAt - 120), Math.Min(260, beforePreviewJson.Length - Math.Max(0, diffAt - 120)))
+            + " afterCtx=" + afterPreviewJson.Substring(Math.Max(0, diffAt - 120), Math.Min(260, afterPreviewJson.Length - Math.Max(0, diffAt - 120))));
+        var beforeTreeIds = beforePreviewCanon.trees.Where(t => t != null).Select(t => t.treeId).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var afterTreeIds = afterPreviewCanon.trees.Where(t => t != null).Select(t => t.treeId).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        Debug.Log("ECONOMY_PREVIEW_TREES beforeCount=" + beforeTreeIds.Count + " afterCount=" + afterTreeIds.Count
+            + " missing=[" + string.Join(",", beforeTreeIds.Except(afterTreeIds).Take(12)) + "]"
+            + " extra=[" + string.Join(",", afterTreeIds.Except(beforeTreeIds).Take(12)) + "]");
+        bool manualRestore = saves.LoadData(Clone(beforePreviewCanon), false);
+        yield return null; yield return null;
+        int manualCount = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Count(t => t != null && t.IsLiving);
+        Debug.Log("ECONOMY_PREVIEW_MANUAL_RESTORE ok=" + manualRestore + " living=" + manualCount);
         Check(ecology.Browsing.Shelters.Count == 1 && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeProtectedPreview, "preview exit replaces exact saved protection/player state");
         var legacy = Clone(shelteredSave); legacy.version = 14; legacy.regenerationModel = RegenerationModel.Legacy; legacy.growthModel = GrowthModel.Legacy; Check(saves.LoadData(legacy, false), "v14 safe migration");
         yield return null; yield return null;
