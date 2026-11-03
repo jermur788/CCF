@@ -1,0 +1,41 @@
+# #248 — Safe, minimal Unity geometry and MFM-mask measurement
+
+**Status: BLOCKED / PREPARED ONLY. NO UNITY ENTRY AUTHORISED NOW.**  
+**Date:** 2026-11-03. **Parent research:** [#246 reconnaissance](RECONNAISSANCE-HANDOFF.md). **Claim:** https://github.com/jermur788/CCF/issues/248  
+**Purpose:** determine whether the user's preferred extended central access-spine with diagonal rack branches is *physically and mechanically feasible* on the real Enlarged80 stand, and quantify whether hypothetical route changes affect MFM treatment coverage. **Difficulty: High** — real scene geometry plus Rack V2/coverage/save cross-system constraints.  
+**DPC orchestrator:** route to **Claude Sonnet 5.5 Medium** or **OpenAI GPT-6.1 Medium** by observed availability/capacity and required independent review; log actual provider/pool/effort and routing decisions under [V2 ledger](ORCHESTRATION-LEDGER.md).  
+**Exact candidate under inspection:** published `integration/scenario-one-player-test-ready-v1` as reported by #246; **verify its current ref and verify whether it matches the actual local player-test checkout** before claiming scene equivalence. The user's personal playtest is in progress; its exact build is **NOT VERIFIED** by #246.  
+**Exact lane / branch / worktree:** **UNASSIGNED — #200 Manager must allocate after user playtest/lease gates**. DPC must not reuse someone else's live editor or held #243 lease. Future task uses an isolated local read-only scene inspection lane/worktree from the verified candidate; no source or scene edits.  
+**Required GitHub return:** `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-HANDOFF.md`, linked to #248; independent read-only technical review before Manager's geometry verdict.
+
+## Why this packet is blocked
+
+The accepted #246 source audit establishes that the visible central route stops near the clearing, short of the north stand edge, and that the current Rack V2 editing facade forces rack entrances onto the western headland. It **does not** prove the user's suggested diagonal layout fits. #246 also established that `Dirt Path*` planks feed **MFM `MaskKind.Track`**, headland/feeder/pads feed **`MaskKind.Headland`**, clearing feeds **`MaskKind.Clearing`**, and *all mask membership excludes treatment*. Therefore, **A1 cannot be treated as visual-only merely because it needs no new save field**.
+
+**Entry gates (all mandatory, refreshed on the machine at actual start):**
+1. User's ongoing personal Scenario One playtest is not occupying the Unity slot; do not interrupt or silently switch its candidate.
+2. The exact original #243 Unity lease holder has posted safe release receipt and machine-wide lock is freshly verified FREE. Historical reports are not sufficient. Any other holder/conflict means STOP.
+3. Fresh actual free-disk capacity exceeds the deployed CCF-Ops admission floor; Editor/display processes and owner/worktree are clean. No forced unlock, arbitrary deletion, stashing or discarding.
+4. #200 has allocated this task an exclusive correct lane/branch/worktree and the worker has marked #248 [RUNNING] with provider, model/Medium effort and exact starting candidate. The current DRAFT spec grants **no** production file ownership.
+5. Read and follow the accepted Rack V2 spec, D-064, D-065 and Decision D-067; Legacy40 and frozen Reference Future v1 remain protected.
+
+## Measurement scope — no implementation
+
+- Derive/capture **actual** top-down and 3D path start/end, extent, clearings, feeder/headland, player access to the north rack entrance, and all visually road-like uncharted segments. Cross-check Stand Map/minimap/3D projections; save annotated 1280×720 and 1920×1080 screenshots where useful.
+- Test **geometry in analysis only**: candidate central-spine continuation; 5 distinct proposed diagonal branches, end clearance, entrance target trees, perpendicular spacing versus 16–20 m *recommended for this stand*, usable lengths, crossing/duplicate rack issues, headland junction/turning room. If none can satisfy accepted V2 `§39.6.1`, report `STOP — GEOMETRY/SPEC CONFLICT` with measurements; never warp meters or silently reduce rack count.
+- Inspect **in-tree traversal** physically (can player reach upper entrance, actual trunk/collider passage), measure baseline player path vs off-path traversal, without adding slowdown or assuming a performance factor.
+- Produce a **hypothetical MFM mask delta** at scene level for proposed added path planks versus headland/feeder/clearing masks: identify affected coordinates, exact excluded coverage/target cells, relevant current coverage and prescription changes. Do not modify active world state, save, MFM prescription, or calibration. If a pure read-only probe cannot be achieved safely, stop and specify the missing harness/read-only approach; don't patch source to force measurements.
+- Compare A1 (mapped presentation only using appropriate non-exclusion representation), A2 (authoritative rack anchoring with required Work Plan/save/MFM reconciliation) and a no-extension fallback. **A1 must not be implemented with `Dirt Path` planks unless exclusion semantics are deliberately approved and measured.**
+- Evaluate current save/legacy/reference implications only; no migration/rebaseline. Mark code facts, measured runtime facts, inferences and open decisions separately.
+
+## Return and continuation
+
+Archive evidence under a dedicated external verification directory, with receipts and hashes, and publish a durable GitHub Markdown handoff. Obtain independent cross-provider read-only review of measurements and MFM implications. DPC appends **observed** provider capacity, context (UNKNOWN when unexposed), time, routing alternatives, switches/retries and results to the live [V2 ledger](ORCHESTRATION-LEDGER.md). The Manager then revises/approves or rejects the four-file **DRAFT** spine spec and any necessary D-064 amendment. No production change from this claim.
+
+**Do not rerun full Tier-3** just to measure a proposed route; use proportionate focused evidence only if safe. **No Windows/Player build** until the personal playtest has been completed and the user explicitly authorises it afterward.
+
+## Copy/paste dispatch — ONLY AFTER #200 UNBLOCKS #248
+
+> DPC: execute CCF #248 after Manager unblocks all Unity/user-test/ownership gates from https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-MEASUREMENT-PACKET.md . Select Claude Sonnet 5.5 Medium or OpenAI GPT-6.1 Medium based on observed capacity. Measure the actual Enlarged80 access-spine/diagonal-rack feasibility and hypothetical MFM mask coverage delta without changing production or saves. Capture scene/map/minimap evidence, independently review, append contemporaneous V2 routing events, return UNITY-GEOMETRY-HANDOFF.md. No implementation, Windows build or protected test rebaseline.
+
+**Current user action:** none to start this task; it is blocked pending personal playtest/Unity lease and Manager release. Continue other separately approved, non-overlapping work if any.
