@@ -13,6 +13,8 @@ Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
 - [ ] AS-R9: In-tree traversal is achievable where physically plausible, slower than open-path travel, and is not blocked by arbitrary invisible walls or exploitable clipping.
 - [ ] AS-R10: MFM coverage, Work Plan/pending/approved/executed orders, old saves, Legacy40 and frozen Reference Future v1 unaffected or compatibly qualified.
 - [ ] AS-R11: User personal playtest candidate remains unchanged until explicit Manager promotion; no Windows/Player build before personal playtest completion and explicit authorisation.
+- [ ] AS-R16: A1 route art must NOT silently change MFM treatment coverage: quantify `Track` vs `Headland` membership, excluded target/cell and prescription deltas from any `Dirt Path*` plank addition or other path representation, including loaded current saves. No A1 implementation until semantics are explicitly approved.
+- [ ] AS-R17: The actual local playtest candidate identity and live serialized Unity lease are verified before any #248 measurement; a reported public branch or old lock receipt is insufficient.
 - [ ] AS-R12: Independent read-only review plus proportionate affected Unity/rendered checks after implementation; never weaken a protected test to pass.
 
 - [ ] AS-R13: DPC records provider pool and real subscription/context capacity at dispatch; chooses Sonnet 5.5 Medium or GPT-6.1 Medium based on observed capacity and task fit, with cross-provider independent review when necessary.
