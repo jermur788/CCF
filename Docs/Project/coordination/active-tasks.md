@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after user confirmation of D-067 access-spine direction and DPC V2 routing requirements for #246. #200 browser remains sole writer; #201/#203 parent local orchestration.
+**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after accepted #246 corrected source reconnaissance and prepared but BLOCKED #248 Unity geometry/MFM mask check. #243 original Unity lease still lacks release receipt; personal user playtest remains in progress.
 
 ## Coordination rules
 
@@ -66,7 +66,8 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Astra onboarding visual refresh** (#243) | feature `feature/scenario-one-intro-astra-visual-refresh-20261103`, isolated `/media/jer/ZX20/CCF-Intro-Astra-20261103` | Sole production-file ownership retained until lease cleanup / Manager release | **APPROVED / STAGED, NOT merged into active playtest branch.** Formal focused gate FAIL 288/289 twice; **exact UnityEditor.Search exception waiver approved for Manager acceptance only**. Original Unity lease reportedly HELD by #243 owner; exact-owner safe release receipt required. Independent reviewer observed ~28 GB free (not a fresh future admission proof). |
 | **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, read-only | Inspected both logs, all six raw screenshots, sources and visual fidelity; narrow waiver recommended | **APPROVED / CLOSED**; formal gate remains FAIL, review not a Unity rerun. |
 | **Isolated intro refresh staging** (#245) | browser/GitHub Manager, no local Unity | Exact Git ref of independently reviewed #243 candidate, separate from active playtest lineage | **STAGED / CLOSED** — `integration/scenario-one-intro-visual-refresh-v1` published at reviewed feature tip; existing `integration/scenario-one-player-test-ready-v1` unchanged. |
-| **Access spine / diagonal rack reconnaissance** (#246) | **DPC parent orchestration**, Claude Sonnet 5.5 Medium or OpenAI GPT-6.1 Medium **after actual capacity check**; read-only T3/Git, current published candidate | No production file ownership; D-067 design direction, D-064 unchanged, access-spine four-file spec **DRAFT** | **READY — READ-ONLY ONLY.** Capture capacity/context/routing/switches and outcomes live in `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md`; handoff `RECONNAISSANCE-PACKET.md`. No Unity or production. |
+| **Access spine / diagonal rack reconnaissance** (#246) | DPC, Claude Sonnet 5.5 Medium source audit + independent GPT-6.1 Terra Medium verification | Read-only inspected published player-test candidate; V2 ledger 4 events | **APPROVED / CLOSED — RESEARCH ONLY.** 13 PASS, 8 corrected, 1 FAIL original MFM kind taxonomy recorded/corrected before publication. No Unity/layout fit proof and no spec approval. |
+| **Access spine geometry/MFM measurement** (#248) | **DPC orchestrator; local Unity measurement lane UNASSIGNED**, Claude Sonnet 5.5 Medium or GPT-6.1 Medium chosen by live capacity | No production writer; read-only scene/geometry, hypothetical MFM Track vs Headland masks, actual candidate identity check | **PREPARED / BLOCKED** — active personal playtest, #243 lease receipt outstanding, no allocated Unity lane. Packet `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-MEASUREMENT-PACKET.md`. No Unity start or builds. |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
@@ -108,6 +109,14 @@ The user's continuing Scenario One playtest has accepted a **conceptual** access
 The **four-file DRAFT** spec is `specs/scenario-one-access-spine-route-consistency-v1/`. #246 is a read-only T3 code/scene reconnaissance only. Durable packet `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/RECONNAISSANCE-PACKET.md` and binding V2 ledger `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md` are published. DPC must record actual provider capacity/window/reset and context usage, alternatives, routing reasons, switches, tokens/runtime when observable, findings and outcomes **as they occur**, including a V2 Orchestration Decision Appendix in the return. Unknown remains UNKNOWN. The historical 30 Oct ledger and separate #241 backfill are outside this ledger's ownership.
 
 To keep development moving, DPC can hand off and switch among **available, permitted Medium workers** or route a separately authorised, non-overlapping READY task while one task is blocked. It cannot implement DRAFT specs, bypass exclusive writer/Unity lock, override user testing or publish integration without Manager review. #200 remains sole live coordination writer. No Windows build.
+
+## #246 Manager review and next blocked #248 — 2026-11-03
+
+#246 source reconnaissance returned on main through merged docs-only PR #247 and is **Manager APPROVED/CLOSED as research only**. The independent 22-claim verification found 13 PASS, 8 corrected claims and one original **FAIL (MFM Track/Headland taxonomy)**; its published correction is retained, not relabelled. The DPC V2 ledger has four observed events; provider quotas/context remain UNKNOWN and no switch was fabricated.
+
+**Critical derived risk:** creating more `Dirt Path*` planks automatically adds MFM `MaskKind.Track` treatment-exclusion membership; feeder/headland use `MaskKind.Headland`, also excluded. A1 path extension is **not cosmetic-only** and cannot be dispatched without quantified MFM impact. The central access-spine with diagonal racks remains preferred but **geometry unmeasured**; existing Rack V2/D-064 controls. The four-file new spec remains DRAFT.
+
+Manager review: `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-REVIEW-20261103.md`. New #248 real Unity geometry/mask measurement packet is prepared but **BLOCKED**, since exact running playtest candidate, safe Unity slot, original #243 lock release and Manager-assigned exclusive lane are not yet established. Do not grant #248 file ownership or claim runtime PASS. DPC may progress only independent authorised tasks without overlapping locks or writer scopes. The user's personal playtest remains ongoing; no Windows build authorisation.
 
 ## User / build gate
 
