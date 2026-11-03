@@ -17,7 +17,7 @@ This is a **fresh full qualification** from the beginning of the A–P matrix on
 | Exact production candidate | `e42bb9f437e4fcf20c5b753dacd1136470daf33e` (`integration/scenario-one-player-test-ready-v1`) |
 | Branch | `qual/mfm-12-integrated-v2` |
 | Worktree / Unity lane | `/media/jer/ZX20/CCF-U1` (dedicated, clean) |
-| Qualification HEAD (verification tooling/docs only) | `85051922e394bf4a4723946dc97d9b2fddc136bc` |
+| Evidence-producing qualification HEAD | `85051922e394bf4a4723946dc97d9b2fddc136bc` |
 | Earlier qualification heads used for evidence | `8a24be72e43c399d72b9050ceadc3dba8d5b69c0` (offline), `f9c36f6ab13814401d0d89b16efbde65753adbbf` (Unity 01–11) |
 | Production diff candidate → final qualification HEAD | **empty** (`git diff e42bb9f4..85051922 -- Assets Packages ProjectSettings`) |
 | Orchestration | `opencode-go/deepseek-v4.1-flash` |
@@ -26,6 +26,8 @@ This is a **fresh full qualification** from the beginning of the A–P matrix on
 | Evidence roots | `/media/jer/Files/CCF/Verification/MFM12-IntegratedQualification-Rerun-20261102/` (offline); `...-attempt3/` (Unity 01–11); `...-attempt3-resume2/` (Unity 01, 12–17); `...-guided-recheck/` (contentful guided-v2 rendered recheck); `...-attempt2/` and `...-attempt3-resume/` are retained superseded diagnostic attempts |
 | Final lock state | released normally `2026-11-03T02:12:25Z` (lock `98c789a06cb54f2a92b961bd348cffa3`); status FREE; no Editor/Xephyr/openbox/driver (see §11) |
 | Windows build | none; #194 NO ACTION |
+
+This return and `INDEPENDENT-REVIEW.md` are docs-only commits above the evidence head; `git diff e42bb9f4..HEAD -- Assets Packages ProjectSettings` remains empty at the published tip.
 
 The qualification branch adds only:
 
