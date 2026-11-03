@@ -132,7 +132,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         // LEGACY-COMPATIBLE hash is the historical layout for Legacy40 only. An Enlarged80 world must never hash
         // like an otherwise equivalent Legacy40 world just because compatibility hashing drops the new field.
         string currentHash = ScenarioReferenceArchive.CurrentWorldHash(start);
-        Check(currentJson.Contains("\"version\":23")
+        Check(currentJson.Contains("\"version\":24")
             && currentHash == ScenarioReferenceArchive.Hash(WithoutDefaultRackV2(currentJson)) && currentHash != startHash,
             "CurrentWorldHash hashes the current JSON minus default V2 rack state, geometry field included (it is not the legacy identity)");
         Check(ScenarioReferenceArchive.LegacyCompatibleWorldHash(start) == startHash, "LegacyCompatibleWorldHash is the historical layout for a Legacy40 world");
