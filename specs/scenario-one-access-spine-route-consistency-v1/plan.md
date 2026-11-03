@@ -1,6 +1,6 @@
 # Access Spine & Diagonal Rack Network — Draft Plan
 
-**Status: DRAFT / PLANNING ONLY.** References: D-067 (design direction), D-064 Rack V2 (current binding spec), [#246](https://github.com/jermur788/CCF/issues/246).
+**Status: DRAFT / PLANNING ONLY; #250 Manager STOP for production; #251 read-only topology design READY.** References: D-067 (design direction), D-064 Rack V2 (current binding spec), [#246](https://github.com/jermur788/CCF/issues/246).
 
 ## Workflow
 
@@ -30,4 +30,10 @@ Primary risks are accepted Rack V2 geometry/persistence regressions, MFM coverag
 
 **Mandatory GitHub ledger:** `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md`. DPC appends contemporaneous V2 events for dispatch, provider/context/quota preflight, switching/cooldowns, rework, handoffs, verification and acceptance outcomes. Each significant child handoff includes a V2 Orchestration Decision Appendix and links its ledger events. Source label each fact, claim and inference; unknown estimates remain UNKNOWN. Historical 30 October ledger and #241 backfill are separate.
 
-**Continuation:** DPC does not stop for a provider limit if a permitted alternative has adequate capacity or an unrelated already-authorised task can proceed. Preserve claims, branch/worktree ownership, context checkpoint and artifacts before switching. A DRAFT spec, unsafe Unity lease, protected gate, cross-provider review or unapproved product change is **not** bypassable. Do not turn this plan into production authority; AS-01/#246 is currently the only released access-spine step.
+**Continuation:** DPC does not stop for a provider limit if a permitted alternative has adequate capacity or an unrelated already-authorised task can proceed. Preserve claims, branch/worktree ownership, context checkpoint and artifacts before switching. A DRAFT spec, unsafe Unity lease, protected gate, cross-provider review or unapproved product change is **not** bypassable. Do not turn this plan into production authority; #246 and #248 are completed research; #250 is measured/reviewed but STOP for production. #251 is now the next released **read-only specification study**. No production step is released.
+
+## #250 STOP / #251 revised dependency
+
+The initial 45° full-spine five-rack candidate has measured 16–20 m spacing but production `ScenarioOneRackSampleGeometry.Derive` rejects its common-normal ordering. The route also conflicts with the Forestry Workbench, spine entrances fail current Rack V2 validation, candidate corridors overlap and rendered agreement remains unmeasured. See [Manager verdict](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-FIVE-RACK-REVIEW-20261103.md).
+
+**Next spec phase:** #251 read-only comparison of branch-local, graph-aware and parallel fallback sample/coverage architecture. It must define one authoritative deterministic region allocation, safe MFM non-overlap/exclusions, representative manual sample, saved-state compatibility and conservative error behaviour. Only after a source-backed, independently reviewed result may Manager ask for a product decision, revise D-064/D-065 and approve a cross-system implementation plan. Renders, yard bypass, turning, entrance targets and 120-tree proposed corridor effects then need their own planned qualification. No A1/A2 source coding or Windows build now.
