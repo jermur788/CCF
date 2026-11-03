@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after #244 independent review, narrow waiver acceptance, and #245 isolated intro staging. #243 lock-release receipt outstanding; current personal playtest unchanged. #200 browser sole writer; #201/#203 local orchestration.
+**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after user confirmation of D-067 access-spine direction and DPC V2 routing requirements for #246. #200 browser remains sole writer; #201/#203 parent local orchestration.
 
 ## Coordination rules
 
@@ -66,6 +66,7 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Astra onboarding visual refresh** (#243) | feature `feature/scenario-one-intro-astra-visual-refresh-20261103`, isolated `/media/jer/ZX20/CCF-Intro-Astra-20261103` | Sole production-file ownership retained until lease cleanup / Manager release | **APPROVED / STAGED, NOT merged into active playtest branch.** Formal focused gate FAIL 288/289 twice; **exact UnityEditor.Search exception waiver approved for Manager acceptance only**. Original Unity lease reportedly HELD by #243 owner; exact-owner safe release receipt required. Independent reviewer observed ~28 GB free (not a fresh future admission proof). |
 | **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, read-only | Inspected both logs, all six raw screenshots, sources and visual fidelity; narrow waiver recommended | **APPROVED / CLOSED**; formal gate remains FAIL, review not a Unity rerun. |
 | **Isolated intro refresh staging** (#245) | browser/GitHub Manager, no local Unity | Exact Git ref of independently reviewed #243 candidate, separate from active playtest lineage | **STAGED / CLOSED** — `integration/scenario-one-intro-visual-refresh-v1` published at reviewed feature tip; existing `integration/scenario-one-player-test-ready-v1` unchanged. |
+| **Access spine / diagonal rack reconnaissance** (#246) | **DPC parent orchestration**, Claude Sonnet 5.5 Medium or OpenAI GPT-6.1 Medium **after actual capacity check**; read-only T3/Git, current published candidate | No production file ownership; D-067 design direction, D-064 unchanged, access-spine four-file spec **DRAFT** | **READY — READ-ONLY ONLY.** Capture capacity/context/routing/switches and outcomes live in `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md`; handoff `RECONNAISSANCE-PACKET.md`. No Unity or production. |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
@@ -99,6 +100,14 @@ Mainline review: `Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/
 **Local safety outstanding:** #243's original owner is the only party authorised to check the machine-wide held Unity lease and release its own exact matching lock after confirming no Editor processes; request fresh FREE receipt on #243. No forced unlock. The independent reviewer observed about 28 GB free on ZX20, superseding the earlier ~14 GB report, but it is a point-in-time receipt, not a substitute for a new admission check. No Unity run is requested now.
 
 No Windows/Player build before personal playtest is complete and explicit post-playtest authorisation; no Reference Future v1/Legacy40, MFM or simulation changes from #243. #194 NO ACTION.
+
+## Access-spine direction and DPC orchestration — 2026-11-03
+
+The user's continuing Scenario One playtest has accepted a **conceptual** access spine: extend the existing central route where viable, connect diagonal racks, and keep 3D, Stand Map, minimap and marking consistent. Decision Log **D-067** records preferred direction but does **not** change D-064's approved Rack V2 plan. The user explicitly permits **Claude Sonnet 5.5 Medium** and **OpenAI GPT-6.1 Medium** as workers under **DPC** orchestration. No claim of current provider availability is made.
+
+The **four-file DRAFT** spec is `specs/scenario-one-access-spine-route-consistency-v1/`. #246 is a read-only T3 code/scene reconnaissance only. Durable packet `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/RECONNAISSANCE-PACKET.md` and binding V2 ledger `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md` are published. DPC must record actual provider capacity/window/reset and context usage, alternatives, routing reasons, switches, tokens/runtime when observable, findings and outcomes **as they occur**, including a V2 Orchestration Decision Appendix in the return. Unknown remains UNKNOWN. The historical 30 Oct ledger and separate #241 backfill are outside this ledger's ownership.
+
+To keep development moving, DPC can hand off and switch among **available, permitted Medium workers** or route a separately authorised, non-overlapping READY task while one task is blocked. It cannot implement DRAFT specs, bypass exclusive writer/Unity lock, override user testing or publish integration without Manager review. #200 remains sole live coordination writer. No Windows build.
 
 ## User / build gate
 
