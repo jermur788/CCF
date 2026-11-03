@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 after #243 owner reported a matching non-forced lease release and a FREE receipt; Manager closed #243. #248 is READY for a fresh independent Unity preflight, not yet RUNNING. User playtest remains unaccepted.
+**Last reconciled:** 2026-11-03 by Overall Manager after #248 measurement handoff on open PR #249, D-068 full-spine 45-degree planning direction, and #250 bounded reference-design packet publication. #248 research not yet finally merged/closed, no product implementation authorised.
 
 ## Coordination rules
 
@@ -67,7 +67,9 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, read-only | Inspected both logs, all six raw screenshots, sources and visual fidelity; narrow waiver recommended | **APPROVED / CLOSED**; formal gate remains FAIL, review not a Unity rerun. |
 | **Isolated intro refresh staging** (#245) | browser/GitHub Manager, no local Unity | Exact Git ref of independently reviewed #243 candidate, separate from active playtest lineage | **STAGED / CLOSED** — `integration/scenario-one-intro-visual-refresh-v1` published at reviewed feature tip; existing `integration/scenario-one-player-test-ready-v1` unchanged. |
 | **Access spine / diagonal rack reconnaissance** (#246) | DPC, Claude Sonnet 5.5 Medium source audit + independent GPT-6.1 Terra Medium verification | Read-only inspected published player-test candidate; V2 ledger 4 events | **APPROVED / CLOSED — RESEARCH ONLY.** 13 PASS, 8 corrected, 1 FAIL original MFM kind taxonomy recorded/corrected before publication. No Unity/layout fit proof and no spec approval. |
-| **Access spine geometry/MFM measurement** (#248) | DPC, conditionally reserved isolated verification branch/worktree in #248 packet; model chosen by actual availability | Read-only Unity geometry and hypothetical MFM coverage measurements | **READY FOR FRESH LOCAL PREFLIGHT.** User occupancy cleared and #243 lease closed. Require current lock/process/disk/owner/candidate checks and new exclusive #248 lease before marking RUNNING or launching Unity. |
+| **Access spine geometry/MFM measurement** (#248) | DPC / isolated Unity measurement lane, source candidate unchanged | Corrected measurement and cross-provider review; original formula error disclosed; previous Unity lease released normally | **[HANDED-OFF] / MANAGER APPROVED AS EVIDENCE; PR #249 OPEN, NEEDS REVIEW-METADATA CORRECTION BEFORE MERGE/CLOSURE.** Extension-only fails studied five-rack geometry; full-spine 45° reference promising, not operationally verified. No implementation. |
+
+| **Full-spine 45° five-rack reference proposal** (#250) | DeepSeek DPC; Claude Sonnet 5.5 Medium or GPT-6.1 Medium; **conditionally reused** existing clean #248 measurement worktree only if verified free | **PREPARED / DESIGN-ONLY**, develop single 3+2 five-rack proposal, route/entrance/clearance/MFM/tree/visual checks; new Unity lease if Editor needed | No production file ownership; D-068 current direction, D-064 controlling, four-file spine spec DRAFT. Durable packet `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/FIVE-RACK-REFERENCE-PACKET.md`. |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
