@@ -4,7 +4,7 @@
 **Handoff:** `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/TASK-2-EVIDENCE-CLOSURE-HANDOFF-20261103.md`  
 **Worker:** Claude Code / Anthropic `claude-opus-5-5` (Claude Opus 5.5), local Unity/code worker in T3 Code  
 **Local result:** all three evidence actions **PASS**; no candidate production defect demonstrated  
-**Independent delta review:** see `FINAL-INDEPENDENT-REVIEW.md` (Task 2 section)
+**Independent delta review:** OpenAI `gpt-6.1-sol` (high), read-only: `DELTA REVIEW: APPROVE — three Task 1 blockers resolved, no product defect demonstrated` (`FINAL-INDEPENDENT-REVIEW.md`, Task 2 section)
 
 ## 1. Identity
 
@@ -48,7 +48,7 @@ ECONOMY_PREVIEW_RESTORE_FRAME_SEPARATED exitFrame=21 assertFrame=23 savedTrees=1
 ECONOMY_PREVIEW_PLAYER_POSITION present=True delta=0.0000
 ```
 
-Every preview assertion passed, including the original *“preview exit replaces exact saved protection/player state”*. Exit after one normal frame restores the exact protected-player world. With the Task 1 same-frame receipt (`49i`: 1344 → 335) this confirms the failure is the **same-frame harness race only**; the normal player path does not lose state.
+Every preview assertion passed, including the original *“preview exit replaces exact saved protection/player state”*. Exit after one normal frame restores the exact protected-player world. With the Task 1 same-frame receipt (`49i`: 1344 → 335) this supports classifying the Task 1 failure as a **same-frame harness/lifecycle race**: the tested normal frame-separated player path restores the exact state. (Bounded evidence: one fixture, one-frame dwell.)
 
 **Out-of-scope observation (not one of the three actions; not fixed):** the gate's terminal marker is `SCENARIO_ONE_ECONOMY_INTEGRATION_VERIFY_FAIL … v14 safe migration`, a later check Task 1 never reached. Production refuses the harness's synthetic fixture with *“Save rejected before loading: a save older than version 20 cannot carry a stand geometry model. The current forest was not changed.”* The fixture relabels a current geometry-1 world as `version=14`, a combination the accepted v20+ geometry rule deliberately rejects before mutation (consistent with accepted MFM-06/hardening evidence). Classified as a **stale verification fixture**, not a product defect. The economy checks after that line (failed designation, invalid planting, invariance, ten-year mid-plan continuation) remain unexecuted on this candidate in both Task 1 and Task 2. A mechanical fixture correction (v14 relabel with Legacy40 geometry) is recommended for Browser Overall disposition; it was not made because it is outside the Task 2 edit authority. The world was restored and no save slot was written.
 
@@ -78,7 +78,7 @@ Task 1's failure is explained by input contamination: its trace shows the game p
 
 ## 5. C — Real Year-25 Completed rendering: **PASS**
 
-Run: `Mfm12IntegratedQualification/run_gate.py --gate calibration --display :87` (`C-completed-render/`). `MFM11_UNITY_PASS checks=95 shots=8`, exit 0, `pass=True`, host saves unchanged, harness removed, no lane changes, no disk saves.
+Run: `Mfm12IntegratedQualification/run_gate.py --gate calibration --display :87` (`C-completed-render/`). `MFM11_UNITY_PASS checks=95 shots=8`, exit 0, `pass=True`, host saves unchanged, harness removed, no lane changes; the gate's own isolated save slot was round-tripped and then deleted (no `disk_saves_created`).
 
 Data witness (identical to the accepted Task 1 witness): `outcome=Completed outcomeYear=25 finalYear=25 cash=348152`, `8 objectives, 0 unachieved`.
 
@@ -95,7 +95,7 @@ Captures taken at the Completed state before any save/load or baseline restore (
 
 Gate checks: Completed year = outcome year = 25; 8/8; HUD status line on-screen and unclipped; review heading `OBJECTIVES 8 OF 8`; every objective line present; heading and outcome line fully inside the scroll viewport and unclipped; captures contentful; **world hash unchanged** by the presentation. Screenshots were also inspected visually: readable at both sizes.
 
-Black-capture cause confirmed: with the window keeper added, the renamed post-restore Path C captures are also non-black (mean ≈ 52).
+Black-capture cause, most likely: with the window keeper added, the renamed post-restore Path C captures are also non-black (mean ≈ 52). This is consistent with the missing keeper but was not isolated as a single-variable experiment.
 
 Honest presentation note: the HUD's guided-curriculum card still reads “Objective 2 of 9” and “Rack entrances marked 0/5”, because this scripted witness uses direct entry and bypasses the guided curriculum and physical marking. It does not contradict the scenario Completed state. A player who followed the curriculum would have advanced it; that is not demonstrated here.
 

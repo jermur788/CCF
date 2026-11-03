@@ -1,4 +1,39 @@
-# Scenario One Final Tier-3 — Complete-Loop Qualification — BLOCKED RETURN
+# Scenario One Final Tier-3 — Complete-Loop Qualification — TASK 2 EVIDENCE CLOSED — READY FOR BROWSER OVERALL FINAL ACCEPTANCE
+
+**Current status (2026-11-03, after Task 2 / #240):** the three Task 1 evidence gaps are closed. The independent delta review approves. **No candidate product defect was demonstrated.** Browser Overall final acceptance is required. This handoff does **not** issue the player-test token.
+
+## Task 2 evidence closure (#240) — summary
+
+| Field | Value |
+|---|---|
+| Worker | Claude Code / Anthropic `claude-opus-5-5` (local Unity/code worker; OpenCode/DeepSeek not reused, provider choice operational) |
+| Start / evidence head | `2a232885` → `c648ab29` (one verification-only commit) → docs |
+| Production diff `6849caa0..HEAD -- Assets Packages ProjectSettings` | **empty** |
+| Evidence root | `/media/jer/Files/CCF/Verification/ScenarioOneFinalTier3-Task2-20261103/` |
+| Detailed receipts | `TASK-2-EVIDENCE-CLOSURE-RESULT-20261103.md` (this folder) |
+| Independent delta review | OpenAI `gpt-6.1-sol` (high), read-only, cross-provider: `DELTA REVIEW: APPROVE — three Task 1 blockers resolved, no product defect demonstrated` (`FINAL-INDEPENDENT-REVIEW.md`, Task 2 section) |
+
+| Task 1 blocker | Task 2 result |
+|---|---|
+| Reference-preview restoration timing | **PASS.** Frame-separated Year-20 round trip (entry frame 20, exit 21) with the protected-player fixture restores 1344/1344 saved and live trees with identical IDs, v24/geometry 1, year, shelter `S-JPJ0001`, canonical save and WorldHash, with no harness restore. The 1344→335 loss is the same-frame harness/lifecycle race; the tested normal path does not lose state. |
+| Rack 1920×1080 rotation | **PASS.** On a clean private display, the OS pointer was observed at the requested press/release points; release was 0.020 m from the target, rotation 0°→8.68°, entrance fixed. `RACK_V2_EDITING_UNITY_PASS checks=241 shots=9`. Task 1's receipt was input-contaminated (mid-hold pointer jump). |
+| Rendered Completed state | **PASS.** Genuine Year-25 Completed HUD + Annual Review (`OBJECTIVES 8 OF 8`, “Scenario objectives met in year 25”) at 1280×720 and 1920×1080, before any save/load or baseline restore. Contentful, readable, consistent with the accepted witness (cash 348152, 8/8). `MFM11_UNITY_PASS checks=95 shots=8`. |
+| Rack five-tab assertion | Mechanically corrected to the exact accepted six-tab V2 set (verification only). Compiled; not executed, by instruction. |
+
+**Residual items for Browser Overall disposition (not product defects):**
+1. `ScenarioOneEconomyIntegrationVerification` still ends `VERIFY_FAIL` at a later, stale `v14 safe migration` fixture (production correctly refuses a pre-v20 save carrying a stand geometry model, before mutation). Its remaining economy checks (failed designation, invalid planting, invariance, ten-year mid-plan continuation) have not executed on this candidate in Task 1 or Task 2. A mechanical fixture correction is recommended under separate authority.
+2. The six-tab correction is verified by compile and inspection only.
+3. In the Completed HUD capture, the guided-curriculum card reads “Objective 2 of 9” / “Rack entrances marked 0/5”, because the scripted witness bypasses the curriculum and physical marking. The curriculum-completed presentation is not demonstrated.
+4. Accepted limitations in §6 below are unchanged.
+
+Final state: lane clean; Unity lock FREE; no Editor/Xephyr/openbox/driver; host saves unchanged (`7effe9b7…` / `c0169790…`); no Windows build; #194 NO ACTION.
+
+Local Task 2 token: `TIER-3 TASK 2 EVIDENCE CLOSURE PASS — READY FOR BROWSER OVERALL FINAL ACCEPTANCE`.
+Browser Overall token **not issued** by this worker: `SCENARIO ONE PLAYER-TEST CANDIDATE READY — USER PLAYTEST REQUIRED`.
+
+---
+
+# Task 1 return (history, superseded by the Task 2 closure above) — BLOCKED RETURN
 
 **Claim:** #231  
 **Parent:** #91 / Browser Overall #200 / local orchestration #203  

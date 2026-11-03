@@ -76,3 +76,25 @@ Qualification remains **blocked / needs more evidence**. Keeping it blocked avoi
 3. A usable rendered Completed-state checkpoint at 1280×720 and 1920×1080.
 
 No success token is issued. Browser Overall retains acceptance authority.
+
+---
+
+# Task 2 — Independent Delta Review (#240) — 2026-11-03
+
+**Reviewer:** OpenAI `gpt-6.1-sol` (reasoning effort high), via the `codex_c75d8114…` provider instance; read-only, cross-provider. The Task 2 evidence was produced by Anthropic `claude-opus-5-5`.
+**Scope:** delta only: ancestry/production drift, the three new receipts, Completed screenshots, the narrow verification-only diffs, the six-tab correction and the result doc. The Task 1 architecture/spec review was not repeated.
+**Reviewed head:** `3607304f` (verification commit `c648ab29` + result doc).
+
+**Verdict:** `DELTA REVIEW: APPROVE — three Task 1 blockers resolved, no product defect demonstrated`
+
+| Item | Reviewer finding |
+|---|---|
+| Ancestry / production drift | **PASS.** `2a232885` is an ancestor of HEAD; `git diff 6849caa0..HEAD -- Assets Packages ProjectSettings` empty. Seven-file verification delta is narrow; existing behavioural assertions intact, stronger checks added; no pass-manufacturing change. |
+| A — frame-separated preview | **PASS for the requested discriminator.** Entry frame 20 → exit 21 → assert 23; preview genuinely replaced the forest (352 trees), then all 1,344 saved and active tree identities, shelter `S-JPJ0001`, year, version/geometry, canonical state and WorldHash restored, with no harness restore before the assertions. The later `v14 safe migration` failure is correctly classified as a **stale fixture**: v14 + geometry 1 violates `ForestSaveValidation.Geometry.cs:14` and is rejected before mutation. It does not invalidate the preview verdict. Subsequent economy checks remain unexecuted. |
+| B — 1920×1080 Rack rotation | **PASS.** OS-observed press (1245,1043) and release (1204,909) match the requests; release 0.020 m from the target, max path deviation 0.127 m, 0° → 8.682°, entrance unchanged, no window-keeper action overlapping the drag. `RACK_V2_EDITING_UNITY_PASS checks=241 shots=9`. |
+| C — Completed rendering | **PASS.** All six Completed PNGs viewed: readable forest/UI content at both sizes; HUD Year 25 / objectives met; review shows 8/8 and the completion outcome; matches the accepted witness (Completed Year 25, cash 348152); taken before save/load and baseline restore; WorldHash preserved. `MFM11_UNITY_PASS checks=95 shots=8`. |
+| Six-tab correction | **PASS by inspection; runtime execution unverified.** The exact ordered six-label assertion matches `StandMapView.cs:250`; separation, Plan-Racks exclusion and selection-preservation checks remain, so the count assertion is strengthened. |
+
+**Non-blocking findings (applied to the result doc):**
+- Low: “no disk saves” → the gate's isolated slot was round-tripped then deleted; host saves unchanged.
+- Low: “race only” / “cause confirmed” wording was stronger than the bounded reruns establish; softened to the supported claims.
