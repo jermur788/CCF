@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-02 by Overall Manager / OpenAI GPT-5.6 Sol after approving and integrating #230. The fit-replay defect is repaired; #225 is freshly released for a full rerun. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-11-03 by Overall Manager / OpenAI GPT-5.6 Sol after accepting MFM-12 #225 and releasing final Scenario One Tier-3 claim #231. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -20,51 +20,67 @@ This file is the **live single-writer ownership and execution-lock authority** o
 
 Published Scenario One integration:
 
-`integration/scenario-one-player-test-ready-v1` = **`e42bb9f437e4fcf20c5b753dacd1136470daf33e`**.
+`integration/scenario-one-player-test-ready-v1` = **`6849caa0ef05baf1a52b95465ec6bba4ff94202b`**.
 
-This lineage contains the approved #230 fit-replay repair, its focused verification/tooling repairs, the durable return, Browser Overall Manager approval, the MFM-12 rerun addendum and the fresh local rerun handoff.
+This lineage contains the accepted #230 fit-replay repair, the complete MFM-12 qualification tooling/records, and the Browser Overall MFM-12 Manager review. The production bytes remain the exact MFM-12-qualified product candidate; qualification and Manager successors are verification/docs only.
 
-The accepted #230 production delta is limited to four files:
+Accepted current-lineage state includes:
 
-- `Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs`;
-- `Assets/ForestPrototype/ScenarioOne/ScenarioOnePrescriptionApproval.cs`;
-- `Assets/ForestPrototype/UI/ScenarioOneTreatmentReview.cs`;
-- `Assets/ForestPrototype/UI/StandMapTreatmentReview.cs`.
-
-The authoritative `ScenarioOnePrescription.CheckFit` core itself is unchanged. No save-schema, calibration, Rack V2, species-scope, ecology, economy, Work Plan or protected-anchor semantics changed.
-
-Accepted current-lineage state also includes Rack V2 / D-064 VERIFIED; Sitka/Oak/Beech parity P0 VERIFIED; required S1-C/S1-D pre-demo slices; MFM-08/09 integrated; MFM-10 `SPECIES GUARD QUALIFIED`; MFM-11 `MULTI-SCALE CALIBRATION QUALIFIED`; #199 Combined HUD/Focus approved; #223 verification debt approved/integrated; and #224 Objectives overflow approved/integrated.
+- Rack V2 / D-064 VERIFIED;
+- Sitka/Oak/Beech parity P0 VERIFIED;
+- S1-C review/history feature qualification accepted;
+- S1-D repeated-intervention qualification plus independent review accepted;
+- MFM-08/09 integrated;
+- MFM-10 `SPECIES GUARD QUALIFIED`;
+- MFM-11 `MULTI-SCALE CALIBRATION QUALIFIED`;
+- MFM-12 `MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST`;
+- #199 Combined HUD/Focus approved;
+- #223 verification debt approved/integrated;
+- #224 Objectives overflow approved/integrated;
+- #230 fit-replay repair approved/integrated.
 
 MFM-11 boundary remains explicit: extension-state calibration is within accepted GAMEPLAY CALIBRATION tolerance; post-treatment source-vs-current-Covered CI parity remains **NOT DEMONSTRATED**.
 
-## #230 — fit-replay repair — APPROVED / INTEGRATED / CLOSED
+The three pure-Beech reduced-simulator R2 misses remain accepted C-level limitations against the unchanged 0.40 criterion. Do not relabel them globally green.
 
-Parent qualification #225 previously stopped correctly because spec §7.3 / checklist E4/E5/J7 were not connected to the player-visible flow.
+## MFM-12 #225 — APPROVED / INTEGRATED / CLOSED
 
-#230 now satisfies the bounded defect repair:
+The fresh full rerun completed the A–P matrix from the exact post-#230 candidate with no production drift.
 
-- live Treatment Review obtains the existing authoritative fit replay;
-- player sees agreement/disagreement summary;
-- player-only/rule-only sample differences are individually inspectable;
-- relevant Crop Tree / Share / basal-area and player-vs-rule consequences are shown;
-- invalid/unavailable fit state is explicit;
-- wider prescription approval is blocked when required fit is unavailable/invalid;
-- fit remains an honesty comparison, not a forestry-correctness score;
-- prescription approval still creates Pending work only and Work Plan remains the commitment gate.
+Accepted evidence includes:
 
-Accepted focused evidence includes Unity compile, MFM Treatment Review + fit 412 checks / 29 shots, MFM-07 approval 106, MFM-08A coverage 56, guided-v2 535/0, Combined HUD 465/0, PARITY-07 1031/0, treatment-review offline 312/0, prescription core 240/0, approval 125/0, coverage 102/0, and save mutation controls 25/25 killed. Independent Claude Sonnet 5.5 review: APPROVED, no blocker.
+- offline matrix 14/14 PASS or accepted recorded limitation;
+- 25/25 save mutation controls killed;
+- Unity matrix 17/17 PASS;
+- MFM-07 approval 106;
+- MFM-08A coverage 56;
+- MFM-06 save 159;
+- frozen Reference Future / save hardening PASS;
+- MFM-09 extension 261 / 16 shots;
+- Treatment Review + fit 412 / 29 shots;
+- MFM-11 witness 47 / 2 shots;
+- guided-v2 535/0 with a replacement 47-image contentful rendered recheck;
+- Combined HUD 465/0 / 24 shots;
+- PARITY-07 1031/0 / 36 shots;
+- interaction, MixedDensity Legacy40, BroadleafTimber L40/E80 and History L40 PASS;
+- complete-loop MFM witness reaches year 25 with 8/8 objectives and a later intervention at year 17.
+
+Independent review: Claude Sonnet 5.5 round 1 found only evidence/receipt blockers. Those were corrected without production changes. OpenAI GPT-6.1-Sol independently confirmed the corrected delta and returned APPROVED.
 
 Manager review:
 
-`Docs/Handoffs/MFM-12-Fit-Replay-Repair/MANAGER-REVIEW-20261102.md`
+`Docs/Handoffs/MFM-12-Integrated-Qualification/MANAGER-REVIEW-20261103.md`
 
-Returned handoff:
+Returned handoff/review:
 
-`Docs/Handoffs/MFM-12-Fit-Replay-Repair/HANDOFF.md`
+- `Docs/Handoffs/MFM-12-Integrated-Qualification/HANDOFF.md`
+- `Docs/Handoffs/MFM-12-Integrated-Qualification/INDEPENDENT-REVIEW.md`
 
 Manager token:
 
-`MFM FIT REPLAY REPAIR APPROVED — FULL MFM-12 RERUN RELEASED NEXT`
+`MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST`
+
+Retained non-blocking limits include F11 human workload, disclosed fit/history rendered coverage limits, accepted Beech losses, and the CI limitation above.
 
 ## Live / released tasks
 
@@ -72,52 +88,68 @@ Manager token:
 |---|---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | no local worktree | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
 | **Local Deep Orchestration Resume 02** (#203) | local orchestration | child lanes only | DeepSeek routing + evidence | **RUNNING** |
-| **MFM fit-replay repair** (#230) | #203 local | prior integration candidate | bounded fit manager/UI/approval repair | **CLOSED — APPROVED / INTEGRATED** |
-| **MFM-12 full integrated qualification rerun** (#225) | #203 local | exact integration head recorded on claim | full A–P qualification + independent review | **READY / REPINNED — NEXT LOCAL GATE** |
-| **Scenario One Tier-3 / personal-player-test candidate** | #200 then #203 | not released | full integrated qualification | **NOT RELEASED — WAITS ACCEPTED MFM-12** |
+| **MFM-12 full integrated qualification** (#225) | #203 local | accepted final MFM candidate | complete A–P MFM qualification | **CLOSED — APPROVED / INTEGRATED** |
+| **Scenario One final Tier-3 complete-loop qualification** (#231) | #203 local | exact current integration head above | milestone-level integrated qualification only | **READY / REPINNED — NEXT LOCAL GATE** |
 | **PARITY-03 Q10** (#74) | #203 when explicitly scheduled | existing verification branch | non-blocking verification | **WAITING — NON-BLOCKING** |
 
-No row proves the Unity lock is currently free. The #230 return reported it free; #225 must perform a fresh lock/process preflight immediately before Unity.
+No row proves the Unity lock is currently free. #231 must perform a fresh lock/process/worktree/free-space preflight immediately before local execution.
 
-## #225 — full MFM-12 rerun authority
+## #231 — final Scenario One Tier-3 release
 
-Original requirements packet:
+Binding prepared packet:
 
-`Docs/Handoffs/MFM-12-Integrated-Qualification/TASK-PACKET.md`
+`Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md`
 
-Rerun addendum:
+Release / repin:
 
-`Docs/Handoffs/MFM-12-Integrated-Qualification/RERUN-ADDENDUM-20261102.md`
+`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/RELEASE-REPIN-20261103.md`
 
-Fresh local handoff:
+Local execution handoff:
 
-`Docs/Handoffs/MFM-12-Integrated-Qualification/LOCAL-EXECUTION-HANDOFF-RERUN-20261102.md`
+`Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/LOCAL-EXECUTION-HANDOFF-20261103.md`
 
-The exact starting integration head is recorded on issue #225 after all Manager rerun documents are published. Workers must verify that exact head before starting.
+Exact candidate:
 
-This is a **fresh full qualification**. Do not continue the stopped run from Unity step 02. Start the MFM-12 matrix from the beginning on one clean exact candidate.
+`6849caa0ef05baf1a52b95465ec6bba4ff94202b`
 
-Fresh-required evidence includes Rack-derived live sample/coverage, fit replay in the live player path, player-judgement/candidate boundaries, proposal/Work Plan boundary, ordinary economy/provenance, save/load and malformed/old-save behavior, Legacy40/Reference Future protection, rendered 720p/1080p UX, current verification gates, repeated-cycle provenance/history, a complete Scenario One loop, and fresh independent cross-provider review.
+Suggested branch/worktree:
 
-#225 has no production-repair authority. Any new product/spec defect stops and returns to Browser Overall.
+- `qual/scenario-one-final-tier3-v1`
+- `/media/jer/Videos/CCF-ScenarioOne-FinalT3` or another fresh dedicated #203-assigned lane if unavailable.
 
-Successful local return:
+**Difficulty:** High — milestone-level cross-feature, save/reference/rendered/completion qualification with high false-green cost.
 
-`MFM-12 QUALIFICATION PASS / INDEPENDENT REVIEW APPROVED / READY FOR MANAGER ACCEPTANCE`
+**Best-suited primary:** Claude Opus 5.5 Low / Anthropic local T3 Code lane, consistent with the prepared packet. If unavailable, #203 may select an equivalently capable high-reasoning local Unity/code worker while preserving independent cross-provider final review.
 
-Only Browser Overall may issue:
+**Independent final reviewer:** OpenAI Sol-class high reasoning, read-only and cross-provider.
 
-`MULTI-SCALE FORESTRY MANAGEMENT V1 — INTEGRATED / READY FOR USER PLAYTEST`
+### Required final gate
 
-## Tier-3 readiness
+Qualify one exact candidate across the complete Scenario One loop:
 
-Tier-3 remains **NOT RELEASED**. Required sequence:
+`initial forest → assess → plan access/management → first intervention → advance → Annual Review/history → MFM sample/fit/coverage/extension → player judgement/3D confirmation → proposals → prescription approval → ordinary Work Plan approval → execution → later intervention(s) → adapt/repeat → understandable completion`
 
-1. execute the fresh #225 MFM-12 rerun on the exact repinned integration candidate;
-2. Browser Overall reviews the full return and issues APPROVED / NEEDS CHANGES / REJECTED;
-3. only accepted MFM-12 releases Scenario One Tier-3;
-4. Tier-3 success hands the exact candidate to the user for personal playtest;
-5. Windows build only after explicit post-playtest user authorisation.
+Required integrated evidence includes Rack V2, three-species parity, S1-C, S1-D, MFM, current/old saves, frozen Reference Future, Legacy40, economy/ecology/timber/deadwood/regeneration/completion coherence, rendered 1280×720 / 1920×1080 checkpoints and interaction evidence.
+
+**Mandatory:** rerun the S1-C T-05 objective/progression save/history chain on the final exact candidate, including current v24 save/load, old-save behavior and rendered recorded/derived/not-recorded states.
+
+#231 is qualification-only. Any production/spec defect stops and returns to #200 for a separate bounded repair. No production fix inside Tier-3.
+
+Local success token:
+
+`SCENARIO ONE TIER-3 COMPLETE-LOOP QUALIFIED — READY FOR INDEPENDENT FINAL REVIEW`
+
+Only Browser Overall may issue after qualification + independent final review:
+
+`SCENARIO ONE PLAYER-TEST CANDIDATE READY — USER PLAYTEST REQUIRED`
+
+## User / build gate
+
+Tier-3 is now **RELEASED**, but the user has **not** yet been asked to playtest because Tier-3 has not returned.
+
+After an accepted Tier-3 result, the user must personally playtest that same exact candidate.
+
+No Windows build is authorised before the personal playtest and explicit post-playtest user authorisation.
 
 ## Hard boundaries
 
@@ -129,12 +161,9 @@ Tier-3 remains **NOT RELEASED**. Required sequence:
 
 ## Durable current records
 
-- MFM-12 STOP review: `Docs/Handoffs/MFM-12-Integrated-Qualification/MANAGER-REVIEW-STOP-20261102.md`.
-- #230 packet/local handoff/return/review: `Docs/Handoffs/MFM-12-Fit-Replay-Repair/`.
-- MFM-12 original packet: `Docs/Handoffs/MFM-12-Integrated-Qualification/TASK-PACKET.md`.
-- MFM-12 rerun addendum: `Docs/Handoffs/MFM-12-Integrated-Qualification/RERUN-ADDENDUM-20261102.md`.
-- MFM-12 fresh rerun local handoff: `Docs/Handoffs/MFM-12-Integrated-Qualification/LOCAL-EXECUTION-HANDOFF-RERUN-20261102.md`.
-- MFM-11 Manager review: `Docs/Handoffs/MFM-11-Calibration-Impact/MANAGER-REVIEW-20261101.md`.
-- #223 Manager review: `Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/MANAGER-REVIEW-20261102.md`.
-- #224 Manager review: `Docs/Handoffs/ScenarioOneObjectives-Overflow-Repair/MANAGER-REVIEW-20261102.md`.
-- Tier-3 readiness: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-READINESS-20261101.md`.
+- MFM-12 Manager review: `Docs/Handoffs/MFM-12-Integrated-Qualification/MANAGER-REVIEW-20261103.md`.
+- MFM-12 handoff/review: `Docs/Handoffs/MFM-12-Integrated-Qualification/HANDOFF.md`, `INDEPENDENT-REVIEW.md`.
+- #230 Manager review: `Docs/Handoffs/MFM-12-Fit-Replay-Repair/MANAGER-REVIEW-20261102.md`.
+- final Tier-3 packet: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md`.
+- Tier-3 release/repin: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/RELEASE-REPIN-20261103.md`.
+- Tier-3 local handoff: `Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/LOCAL-EXECUTION-HANDOFF-20261103.md`.
