@@ -21,4 +21,8 @@ Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
 - [ ] AS-R14: All material routing, retries, interruptions, switches, outcomes and resource observations are appended contemporaneously to the GitHub V2 orchestration ledger, and the handoff includes a V2 decision appendix with explicit unknowns.
 - [ ] AS-R15: On quota/context/provider limits, DPC checkpoints and switches safely or continues with another approved non-overlapping task; never implements a DRAFT spec, bypasses an active Unity lock or product decision, weakens a gate or alters the current user playtest branch.
 
+- [ ] AS-R18: The spine is specified as the whole existing central in-stand route **plus northern continuation**; 45° off north / 3+2 is a provisional design target, not an implemented geometry. The 40° 16 mm tolerance is not accepted as the default.
+- [ ] AS-R19: A complete five-rack candidate is independently checked for each entrance target, branch length, width, turning, access, stand boundary, corridor tree-removal effects, 16–20 m per-stand guidance, MFM and Work Plan consequences, and player-visible map/3D/minimap concordance. No automatic Fell marks.
+- [ ] AS-R20: The #248 cross-provider original formula failure and correction remain traceable. PR #249's 20-vs-21 claim-count discrepancy and 5-vs-6 ledger event count are reconciled against original review evidence before Manager merger/closure.
+
 **Current evidence boundary:** user's two 3 Nov screenshots are UI/visual observations; topology, traverse behaviour, rack validity, save semantics and scene coordinates are not established from those images alone. #246 recon comes first.
