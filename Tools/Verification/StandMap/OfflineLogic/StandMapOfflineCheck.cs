@@ -440,6 +440,36 @@ public static class StandMapOfflineCheck
         byte[] crownSwatch = StandMapCanopyRaster.RenderCrownSwatch(MapTreeKind.Oak, MapTreeState.Living, 22);
         Check(crownSwatch.Length == 22 * 22 * 4 && crownSwatch[(11 * 22 + 11) * 4 + 3] == 255 && crownSwatch[3] == 0, "a legend crown swatch is a crown on a transparent square");
 
+        // ---- species silhouettes (durable shape facts, not individual pixels) ----
+        // The crown's outline distance from its centre at 90 angles, from the swatch (the very sprite the map stamps).
+        float[] Outline(MapTreeKind kind, MapTreeState state)
+        {
+            const int side = 64;
+            byte[] sw = StandMapCanopyRaster.RenderCrownSwatch(kind, state, side);
+            var reach = new float[90];
+            for (int a = 0; a < reach.Length; a++)
+            {
+                double ang = a * Math.PI * 2 / reach.Length; float far = 0f;
+                for (float d = 0f; d < side * 0.5f; d += 0.25f)
+                {
+                    int x = (int)(side * 0.5 + Math.Cos(ang) * d), y = (int)(side * 0.5 + Math.Sin(ang) * d);
+                    if (x >= 0 && x < side && y >= 0 && y < side && sw[(y * side + x) * 4 + 3] > 127) far = d;
+                }
+                reach[a] = far;
+            }
+            return reach;
+        }
+        // How sharply the outline turns, relative to the crown size: the mean second difference of the distance round the crown. An oval or a
+        // gentle lobe has little; a star's tips and notches have a lot. (Min/max would be confused by a crown that is merely oval.)
+        float Sharpness(float[] o) { float sum = 0f; for (int i = 0; i < o.Length; i++) sum += Math.Abs(o[(i + o.Length - 1) % o.Length] - 2f * o[i] + o[(i + 1) % o.Length]); return sum / o.Length / o.Max(); }
+        float[] sitka = Outline(MapTreeKind.Conifer, MapTreeState.Living), oakO = Outline(MapTreeKind.Oak, MapTreeState.Living), beechO = Outline(MapTreeKind.Beech, MapTreeState.Living);
+        float sitkaRadius = 64 * 0.44f;
+        Check(Sharpness(sitka) > 1.5f * Sharpness(beechO) && Sharpness(sitka) > 1.15f * Sharpness(oakO), "a living conifer's outline is pointed: sharper turns than Beech or Oak", $"sharpness sitka {Sharpness(sitka):0.000} oak {Sharpness(oakO):0.000} beech {Sharpness(beechO):0.000}");
+        Check(Sharpness(beechO) < Sharpness(oakO), "Beech stays a smoother rounded crown than Oak (no conifer-like spikes)", $"beech {Sharpness(beechO):0.000} oak {Sharpness(oakO):0.000}");
+        Check(sitka.Max() <= sitkaRadius * 1.12f && sitka.Max() >= sitkaRadius * 0.88f, "the conifer's tips reach the tree's own crown radius (the star does not change the radius)", $"{sitka.Max():0.0} px vs {sitkaRadius:0.0} px");
+        Check(Outline(MapTreeKind.Conifer, MapTreeState.Living).SequenceEqual(sitka), "the species silhouette is deterministic");
+        Check(Outline(MapTreeKind.Conifer, MapTreeState.StandingDead).Max() > 0f, "a standing dead conifer still draws");
+
         // ---- stand figures ----
         var figures = new StandMapModel { HasProperty = true, MinX = -40f, MinZ = -40f, SizeM = 80f };
         for (int i = 0; i < 64; i++) figures.Trees.Add(Tree(i, i, 2f));   // DBH 20 cm each

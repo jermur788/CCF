@@ -249,10 +249,25 @@ public static class StandMapCanopyRaster
         float ox = 40f * Rand01(Hash(seed, 9u, 10u)), oy = 40f * Rand01(Hash(seed, 11u, 12u));
         int lobes1, lobes2;
         float amp1, amp2, clump, speckle, spokes;
-        if (conifer) { lobes1 = 7 + (variant % 5); lobes2 = 13; amp1 = 0.075f; amp2 = 0.040f; clump = 0.17f; speckle = 0.08f; spokes = 0.035f; }
+        // A living conifer is drawn as a pointed whorl star (see below); a standing dead conifer keeps its earlier ragged outline.
+        bool pointed = conifer && !dead;
+        // Pointed crowns only: how many branch tips, how deep the notches between them go (as a fraction of the crown radius), and how strongly
+        // the branch rays show in the shading. A small crown has few pixels, so it gets fewer, deeper points and fainter rays.
+        int tips = 0;
+        float valley = 1f, rayStrength = 0f;
+        if (pointed)
+        {
+            bool small = mini || radius < 5.5f;
+            tips = small ? 6 + (variant % 3) : 9 + (variant % 4);
+            valley = small ? 0.62f : 0.70f;
+            rayStrength = mini || radius < 3.2f ? 0.07f : 0.20f;
+            lobes1 = 7; lobes2 = 13; amp1 = 0f; amp2 = 0f; clump = 0.10f; speckle = 0.08f; spokes = 0f;
+        }
+        else if (conifer) { lobes1 = 7 + (variant % 5); lobes2 = 13; amp1 = 0.075f; amp2 = 0.040f; clump = 0.17f; speckle = 0.08f; spokes = 0.035f; }
         else if (dead) { lobes1 = 5; lobes2 = 9; amp1 = 0.10f; amp2 = 0.06f; clump = 0.10f; speckle = 0.05f; spokes = 0f; }
         else if (kind == MapTreeKind.Oak) { lobes1 = 6 + (variant % 3); lobes2 = 11; amp1 = 0.15f; amp2 = 0.07f; clump = 0.20f; speckle = 0.07f; spokes = 0f; }
-        else { lobes1 = 5 + (variant % 3); lobes2 = 9; amp1 = 0.12f; amp2 = 0.06f; clump = 0.17f; speckle = 0.06f; spokes = 0f; }
+        // Beech: a smoother, rounder broadleaf outline than Oak's coarse lobes.
+        else { lobes1 = 5 + (variant % 3); lobes2 = 9; amp1 = 0.07f; amp2 = 0.03f; clump = 0.17f; speckle = 0.06f; spokes = 0f; }
         // On a very small crown (the minimap) the fine detail is under a pixel: keep the shading, soften the texture.
         if (mini || radius < 3.2f) { clump *= 0.5f; speckle = 0f; spokes = 0f; }
 
@@ -265,6 +280,16 @@ public static class StandMapCanopyRaster
                 float dist = (float)Math.Sqrt(qx * qx + qy * qy);
                 float theta = (float)Math.Atan2(qy, qx);
                 float effective = r * (1f + amp1 * (float)Math.Cos(lobes1 * theta + phase1) + amp2 * (float)Math.Cos(lobes2 * theta + phase2));
+                // 0 between two branches, 1 along a branch's axis; a triangle wave, so the outline has straight sides and sharp tips.
+                float ray = 0f;
+                if (pointed)
+                {
+                    float turns = theta * tips / 6.2832f + phase1 / 6.2832f;
+                    ray = 1f - Math.Abs(2f * (turns - (float)Math.Floor(turns)) - 1f);
+                    // Tips reach about the crown radius (never past it by more than a few percent); the notches sit well inside it.
+                    float reach = 0.94f + 0.06f * (float)Math.Cos(2f * theta + phase2) + 0.04f * (float)Math.Cos(3f * theta + phase1);
+                    effective = r * reach * (valley + (1f - valley) * (float)Math.Pow(ray, 1.3));
+                }
                 float coverage = Clamp01(effective - dist + 0.5f);
                 if (coverage <= 0f) continue;
 
@@ -291,8 +316,18 @@ public static class StandMapCanopyRaster
                     float fine = LumpNoise(qx / r * 11f + oy, qy / r * 11f + ox, seed ^ 0x5bd1e995u);
                     float star = (float)Math.Cos(theta * (lobes1 * 2) + phase2) * (0.30f + 0.70f * t);
                     texture = 1f + clump * (tuft - 0.5f) * 2f + speckle * (fine - 0.5f) * 2f + spokes * star;
-                    // A faint brightening at the crown's top (the leader / central tuft).
-                    shade += 0.10f * (1f - SmoothStep(0f, 0.45f, t)) * lambert;
+                    if (pointed)
+                    {
+                        // Needle mass: denser and darker than a broadleaf crown, with each branch lit along its axis and shaded between branches,
+                        // fading in away from the middle, and a bright leader at the very top.
+                        texture += rayStrength * (ray - 0.5f) * 2f * SmoothStep(0.10f, 0.45f, t);
+                        shade = shade * 0.90f + 0.30f * (1f - SmoothStep(0f, 0.20f, t));
+                    }
+                    else
+                    {
+                        // A faint brightening at the crown's top (the leader / central tuft).
+                        shade += 0.10f * (1f - SmoothStep(0f, 0.45f, t)) * lambert;
+                    }
                 }
 
                 float m = shade * texture * tint;
