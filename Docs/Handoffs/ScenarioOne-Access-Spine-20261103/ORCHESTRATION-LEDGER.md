@@ -201,3 +201,36 @@ No change to measurement scope, prohibitions, lane allocation, candidate ref or 
 - **Not stranded:** the run is supervised by a live driver process — `/usr/bin/python3 -I -B …/driver/run_measure.py run1 4500` (PID 2949959) — which polls free bytes every 20 s, enforces the 18,000,000,000-byte guard, kills the `systemd-run` scope on breach or timeout, always deletes the staged `.cs`/`.meta` and `Temp/obj/Logs`, and writes `measurements/run-run1.json`. Unity PID 2950023 runs inside scope `ccf-248-measure-…`; PID 2956228 is Unity's own `AssetImportWorkerHW0`, **not** a second Editor.
 - **INFERENCE:** a child turn that ends during a long background run leaves the result unread unless the orchestrator re-enters. DPC therefore attached its own completion waiter and will resume the same child (or dispatch a continuation brief) when the driver exits. This is a **harness/process lesson, not a model-reasoning failure and not a quota event.**
 - **Disk trajectory (OBSERVED):** free_before 27,183,808,512 bytes at 21:22:07Z; 21,119,631,360 bytes (19.67 GiB) at 21:26Z during cold import; guard 18,000,000,000; deployed floor 16,106,127,360. Margins are thin but above both thresholds at time of writing.
+
+### EVENT — 2026-11-03 21:33Z–21:38Z — measurement run 1 PASSED; DPC cross-check finds the spine-definition question is decisive; worker resumed for the angle sweep
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (run JSON, log markers, process/disk state, arithmetic on measured values); ORCHESTRATOR CLAIM (the cross-check and its significance); RETROSPECTIVE INFERENCE (process lesson).
+- **Provider/model/effort:** unchanged, `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`. No switch, no retry due to failure, no salvage.
+- **Provider/pool state, quota/window and source:** both pools still enabled. Quota, reset, remaining credit, context and tokens **UNKNOWN** — no telemetry exposed. **No cooldown, rate-limit or login event observed for the whole run.**
+- **Capacity-to-completion / switching cost:** run 1 completed in 677 s of Editor time well inside the 4500 s budget. No switching cost incurred.
+
+#### Run 1 (OBSERVED)
+
+`measurements/run-run1.json`: `status PASS`, `exit_code 0`, `seconds 677.3`, `free_before 27,183,808,512`, `free_after 20,144,848,896`. Markers: `ASM_WORLD_OK trees=1344 sitka=1344`, then writes of `meta.json`, `scenery.json`, `trees.json`, `suggested_racks.json`, `pair_passability.json`, `mfm.json`, `traversal.json`, ending `ASM_MEASURE_PASS`. Unity exited; no Editor remained.
+
+- **Side effect, captured and reverted:** the Editor rewrote `.vscode/settings.json` (the known Unity side effect — `*.unity` trailing-comma and `dotnet.defaultSolution` renamed to the lane's slnx). DPC saved `side-effects/settings-patch.diff` and restored the file; lane verified clean at `72b4efbd`.
+- **Guard behaviour:** free space bottomed at 18.76 GiB, above the worker's 18,000,000,000-byte guard and the 15 GiB floor. The guard never fired. Library 6.6 GiB.
+
+#### Independent DPC cross-check of the decisive number (DERIVED — orchestration, not worker claim)
+
+Arithmetic on **measured** values only (`routeNorthEndZ 10.75`, L4 target `z 38.5`, stand edges ±40):
+
+| Spine definition | Length | 3+2 split (two 16 m perpendicular gaps) | 2+2+1 split (one gap per side) |
+|---|---|---|---|
+| **Extension only** (`z 10.75 → 38.5`) | **27.75 m** | **IMPOSSIBLE AT ANY ANGLE** — two gaps need 32 m of spine whatever the angle, because `d = Δs·sin α ≤ Δs` | needs α ≥ **35.2°** |
+| **Whole in-stand route + extension** (`z −40 → 38.5`) | **78.50 m** | possible, α ≥ **24.1°** | α ≥ **11.8°** |
+
+- **Why this matters:** the worker's `s1LenM = 29.25` shows it adopted the **extension-only** spine. Under that definition a 3+2 herringbone cannot satisfy 16 m perpendicular spacing *at any branch angle at all* — that is an angle-independent impossibility, not a near miss. Under the **whole-route** definition the same question is comfortably feasible.
+- **Consequence for the Manager:** the access-spine specification never fixes which of those two things "the spine" is. That single unresolved definition, not trigonometry, decides whether five racks can fit. It must be settled explicitly before §39.6.1 can be judged, and DPC will present both in the hand-off rather than silently adopting either.
+- **Classification:** DERIVED arithmetic on measured inputs, **not** a Unity measurement and not a fit proof. It ignores the clearing at z≈11, the route's bow, rack widths, and turning room; it bounds feasibility only.
+
+#### Continuation (OBSERVED)
+
+- The worker's turn had ended ~21:22Z with a **stale** message ("cold import still running") while its Unity run continued; the driver finished and passed at 21:33:28Z with nothing consuming the result. **INFERENCE:** a delegate that ends its turn during a long background run leaves results unread, so DPC must re-enter on run completion. **Harness/process lesson — not a model-reasoning failure and not a quota event.**
+- DPC resumed the **same child** (ordinal 3) with the actual run JSON, an explicit "do not redo" list (side effect already captured/restored, cleanup already done, lease untouched), and the remaining scope: **B7 systematic angle sweep at 20/30/35/40/45/50/60°**, a fix to the uninformative `L1` zero-length leg label, `RESULTS.md`, `README.md` with harness/JSON hashes, and a final clean-state check.
+- **Not delegated:** implementation, plank placement, save/MFM/schema change, Windows build, GitHub push, lease handling.
