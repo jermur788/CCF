@@ -113,3 +113,352 @@ For **every material route/dispatch/retry/switch/completion**, append timestampe
 - **Ledger timing:** append an entry for each actual dispatch, capacity/context observation, block, provider switch/cooldown, attempt/retry, checkpoint, review and handoff. Keep OBSERVED FACT, ORCHESTRATOR CLAIM and RETROSPECTIVE INFERENCE separate; unknown quota/reset/token/context metrics stay UNKNOWN. Include a V2 Orchestration Decision Appendix in final handoffs. Do not backfill invented data or alter the four completed #246 events.
 - **User/Unity/product limits:** #243 original lease released, #248 **READY for new preflight**, not RUNNING. No Unity launch until *fresh* exclusive #248 lock, processes/disk/candidate/lane validated. The access-spine specification is still DRAFT, no production authorised; no Windows build before completed personal playtest and later explicit approval.
 - **Routing alternatives, provider status and outcome:** no new model route, measurement or quota observation from this clarification. All remain UNKNOWN until DPC actually dispatches.
+
+### EVENT — 2026-11-03 21:06Z–21:16Z — #243 lease released by its exact owner; #248 live preflight, lane, lease and dispatch
+
+- **Work unit / claim:** [#243](https://github.com/jermur788/CCF/issues/243) lease cleanup (operational, no Unity) and [#248](https://github.com/jermur788/CCF/issues/248) Unity geometry + MFM mask measurement.
+- **Evidence class:** OBSERVED FACT (tool output, lock metadata, process table, `df`, refs); ORCHESTRATOR CLAIM (routing and lane judgement).
+- **Prior provider/model/effort:** `Astra-243` local T3 thread on `claudeAgent` / `claude-sonnet-5-5` (the #243 owner) for the release; DPC parent `opencode-go` / `deepseek-v4.1-flash` for preflight.
+- **Selected provider/model/effort:** measurement worker `claudeAgent` → `claude-sonnet-5-5` (Claude Sonnet 5.5), `effort: medium`, role `research`, task `node:delegated-task:…:delegate-task:36f690af…`, child thread `thread:delegated-task:…:36f690af…`.
+- **Alternatives, reason and exploit/explore:** the permitted alternative was `codex`/`codex_c75d8114-…` → `gpt-6.1-sol` at `reasoningEffort: medium`. **Chosen Sonnet 5.5 Medium** because the work is long-lived Unity batchmode scripting plus measurement bookkeeping inside a strict disposable-harness/disk-budget envelope, and because the Claude pool had just run the #243 lane successfully on this project, so its capacity was observed rather than assumed. `GPT-6.1` (`gpt-6.1-sol` / `gpt-6.1-terra`) is deliberately reserved as the **independent reviewer** of the measurements — cross-provider independence is a packet requirement and the recon round already established that pattern. **Exploit** of the observed Claude capacity; **explore** only in the sense that no Unity-measurement run has been done on this task class.
+- **Provider/pool state, quota/window and source:** OBSERVED at 21:13Z via `orchestrator_capabilities`: `claudeAgent` (Sonnet 5.5 / Opus 5.5 / Fable 5.1 / Haiku 5.5) and `codex` + `codex_c75d8114-…` (GPT-6.1 family) both enabled with `canRunChildTask: true`; `opencode` is the current driver. Quota, rate-limit window, reset time, remaining credit and context headroom are **UNKNOWN** — this harness exposes no such telemetry, and none is estimated.
+- **Context used/limit, compactions and source:** UNKNOWN for both the DPC parent and the child. Not estimated.
+- **Capacity-to-completion, switching cost:** `sufficient by task size / unknown by quota`. The brief is fully self-contained against an exact ref, so a provider failure costs only the partial evidence already written to the durable evidence root, not the programme state. Switching cost to GPT-6.1 would be low-to-moderate.
+- **Branch/worktree, ownership, Unity status:** see the three sub-records below. Manager-reserved lane created exactly as allocated; no other lane, save or user worktree touched.
+- **Checks/evidence, runtime, tokens where observable:** see sub-records. Token counts, model-call counts and wall times remain **UNKNOWN**.
+- **Outcome / reviewed / accepted / unresolved:** #243 lease **RELEASED**; #248 **[RUNNING]**. No measurement accepted, no implementation, no build.
+- **Failure classification and recovery/next action:** none at this point. Next: on worker return, DPC spot-checks load-bearing numbers against the raw JSON, publishes `UNITY-GEOMETRY-HANDOFF.md`, routes an independent GPT-6.1 Medium read-only review, then releases the lease and returns to Manager.
+
+#### 21:09:51Z — #243 exact-owner release (OBSERVED)
+
+- DPC did **not** impersonate or force the release. At 21:06Z the deployed tool read `status: held`, `lock_id 7256c06f75c447208806e2414e604761`, `owner Astra-243`, `task_id 243`, lane `/media/jer/ZX20/CCF-Intro-Astra-20261103`, branch `verify/scenario-one-intro-astra-20261103`, head `6bff87dd`, `pid null`, `eta_overdue: true`, `unity_editor_pids: []`.
+- DPC routed the release to the **original idle owner thread** (`<t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/7a91936f-57c1-4c00-bacd-42056ce47918>`) with the packet's exact-owner procedure. The owner verified identity and process state and ran the deployed tool's **normal** matching release (`forced: False`) at 21:09:51Z; `history.jsonl` records actor `Astra-243`, reason "#243 complete; exact-owner release per UNITY-LEASE-RELEASE-PACKET.md", same lock id. Post-check `{"status":"free","metadata":null,"unity_editor_pids":[]}`. Receipt posted by the owner on #243.
+- **Owner-reported process check:** no Unity, Xephyr or openbox process; private display `:84` gone; lane clean at `6bff87dd`; 0 dirty entries.
+
+#### 21:11Z–21:13Z — #248 live preflight (OBSERVED)
+
+Evidence root `/media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2110Z/`, `preflight/` subdirectory.
+
+| Gate | Observed value | Verdict |
+|---|---|---|
+| Lock | `free`, metadata `null`, `unity_editor_pids: []` at 21:11:23Z | PASS |
+| Unity Editor / private display processes | none (`preflight/unity-editor-pids.txt`, `private-display-procs.txt`) | PASS |
+| Candidate ref | `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd1c653fa2231f632a79030a83ff76f833`, matching the packet's inspected ref | PASS |
+| Reserved lane free | `/media/jer/ZX20/CCF-AccessSpine-Measure-20261103` absent; branch `verify/scenario-one-access-spine-measure-20261103` absent on origin | PASS |
+| Disk | 29,100,867,584 bytes (27.10 GiB) free vs 16,106,127,360-byte floor; 12,994,740,224 bytes above the floor | PASS (marginal — see caveat) |
+| Deployed lock tool | sha256 recorded in `preflight/deployed-lock-tool.sha256` | PASS |
+
+- **Caveat, disclosed:** the disk margin is **marginal**. After the lane checkout free space fell to 27,183,939,584 bytes (25.32 GiB) with no Library yet, and a cold import is expected to consume 7–9 GiB. The worker was therefore given a hard disk guard: record free bytes around every Unity invocation, delete `Temp/`/`obj/`/`Logs/` after each run, and STOP if free would fall below 18,000,000,000 bytes or ever below the 16,106,127,360-byte floor.
+- **Bare-store observation, not a divergence:** the shared bare store's local `integration/scenario-one-player-test-ready-v1` is `185200f5`, which is an **ancestor** of the published `72b4efbd` (`git merge-base` = `185200f5`). The lane was therefore created from the exact published commit, not from the lagging local branch.
+- **Playtest caveat retained:** the user's personal playtest build is still **not verified** to be `72b4efbd`. The measurement is against the published candidate ref only.
+
+#### 21:13Z — lane created and registered (OBSERVED)
+
+- `git worktree add -b verify/scenario-one-access-spine-measure-20261103 /media/jer/ZX20/CCF-AccessSpine-Measure-20261103 72b4efbd…`; verified branch, HEAD `72b4efbd…`, `git status --porcelain` empty, toplevel and common-dir correct (`/media/jer/Files/CCF/Repository.git`).
+- Lane `AccessSpineMeasure248` appended to the **deployed** `/media/jer/ZX20/CCF-Ops/lanes.json` (`unity: true`) because `unity-lock acquire` resolves lanes only from that config; without it the reserved lane cannot be acquired at all. This is a mechanical registration of the Manager-reserved path, not a new reservation.
+
+#### 21:13:11Z — exclusive #248 lease acquired (OBSERVED)
+
+- `unity-lock acquire --owner DPC-248 --task-id 248 --lane AccessSpineMeasure248 --branch verify/scenario-one-access-spine-measure-20261103 --head 72b4efbd… --eta 2026-11-04T02:00:00Z`.
+- Result: `lock_id 62da5753307c4bb886477efc14b4ed96`, `status: held`, `unity_editor_pids: []`. No force, no second holder, no other lane displaced.
+- **Ownership:** DPC holds the lease for the whole measurement; the delegated worker runs Unity **under** it and is instructed never to acquire, release or force-release, and never to run a second Editor.
+
+#### 21:16Z — measurement dispatched (OBSERVED)
+
+- `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`, role `research`, isolation `shared`, runtime `full-access`, status `running`.
+- Scope dispatched: the packet's A–E blocks — route/surface geometry from the live scene; herringbone feasibility arithmetic over the real jittered lattice at 20/30/35/40/45/50/60° with the 2.5 m boundary window; physical traversal with the production `CharacterController`; and the read-only MFM mask delta for the spine as `Track`, as `Headland`, and for one representative branch line. Visuals are explicitly **conditional** and lowest priority.
+- **Not authorised to the worker:** any production edit, plank placement, rack creation, save/MFM/schema change, Windows build, GitHub push, or commit to the measurement branch. Lane must end clean at `72b4efbd`.
+
+### EVENT — 2026-11-03 21:26Z — packet refreshed to `main` @ `98d17b9e`; preflight/lane/lease/dispatch reconciled against the new five-step procedure
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (refs, tool output, process table, disk, log); ORCHESTRATOR CLAIM (reconciliation judgement); RETROSPECTIVE INFERENCE (process lesson).
+- **Prior/selected provider:** unchanged — `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`, task `node:delegated-task:…:delegate-task:36f690af…`, child thread `thread:delegated-task:…:36f690af…`. DPC parent unchanged (`opencode-go` / `deepseek-v4.1-flash`). No switch, no retry, no salvage.
+- **Provider/pool state, quota/window and source:** both pools remained enabled and `canRunChildTask: true`. Quota, rate-limit window, reset time, remaining credit and context headroom remain **UNKNOWN** — no telemetry exposed by this harness. **No quota, cooldown, login or rate-limit event has been observed in this run.** Recorded as UNKNOWN, not estimated.
+- **Context used/limit, compactions:** UNKNOWN for DPC and child; not surfaced.
+- **Capacity-to-completion / switching cost:** `sufficient / unknown by quota`. No switching cost incurred; nothing needs salvage.
+
+#### What changed in the packet (OBSERVED)
+
+`main` advanced `ad91f80d → 98d17b9e` with four docs commits — `a4e7e421`, `5c89d18f`, `0f495d7a`, `98d17b9e`. Material delta only:
+
+1. Status `PREFLIGHT RELEASED / CONDITIONAL` → **`READY FOR FRESH LOCAL PREFLIGHT`**; entry gate 2 now records the #243 exact-owner release receipt (21:09:54Z) as **satisfied and #243 CLOSED by Manager**, while still requiring DPC's own fresh check and a separate new lease.
+2. DeepSeek is now named **parent orchestrator** with an explicit **five-step delegation and ledger procedure** (refresh/preflight → decompose/assign → mark actual execution → contemporaneous ledger events → review/publish/continue), plus an explicit instruction not to treat the packet as one undifferentiated worker instruction.
+3. New "Follow-up Manager gate update" (21:11Z): Manager verified the #243 receipt remotely and did **not** re-read live machine state; DPC must obtain its own fresh preflight and separate lease. No lock override authorised.
+
+No change to measurement scope, prohibitions, lane allocation, candidate ref or return requirements.
+
+#### Reconciliation of work already done against the five steps (OBSERVED)
+
+- **Step 1 (refresh/preflight):** completed 21:11Z–21:13Z, before the packet update, and re-verified at 21:26Z. Candidate `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd…` (unchanged). Live lock, process, disk and lane state re-read today. `Docs/Project/coordination/active-tasks.md` read for authority; **not written** (#200 owns it). #203 is OPEN `[RUNNING]` local deep orchestration resume 02, which is the correct parent claim; #248 carries the measurement.
+- **Step 2 (decompose/assign):** the four packet phases are (a) scene/map geometry and passability, (b) five-rack angle/spacing/entrance feasibility, (c) hypothetical MFM mask/coverage impact, (d) independent cross-provider review and synthesis. (a)–(c) were dispatched as one bounded Medium measurement worker; **(d) is deliberately reserved for `gpt-6.1-sol` Medium**, not yet dispatched.
+- **Step 3 (mark actual execution):** the lease was acquired **before** any measurement, at 21:13:11Z, and `[RUNNING]` + actual provider/model/effort/branch/worktree/HEAD/owner/lease was posted on #248 at 21:16Z. The later packet update does not invalidate that sequencing; the lease was never retro-fitted to a running Editor.
+- **Step 4 (ledger):** this event is the second contemporaneous append; the first recorded the release, preflight, lane, lease and dispatch.
+- **Step 5 (review/publish/continue):** pending measurement completion.
+
+#### Operational observation and risk (OBSERVED, then INFERENCE)
+
+- The measurement worker's **turn ended around 21:22Z while its Unity run continued**. The child thread reads `status: completed`, `activeRunId: null`, and its last message says it is waiting on the background watcher.
+- **Not stranded:** the run is supervised by a live driver process — `/usr/bin/python3 -I -B …/driver/run_measure.py run1 4500` (PID 2949959) — which polls free bytes every 20 s, enforces the 18,000,000,000-byte guard, kills the `systemd-run` scope on breach or timeout, always deletes the staged `.cs`/`.meta` and `Temp/obj/Logs`, and writes `measurements/run-run1.json`. Unity PID 2950023 runs inside scope `ccf-248-measure-…`; PID 2956228 is Unity's own `AssetImportWorkerHW0`, **not** a second Editor.
+- **INFERENCE:** a child turn that ends during a long background run leaves the result unread unless the orchestrator re-enters. DPC therefore attached its own completion waiter and will resume the same child (or dispatch a continuation brief) when the driver exits. This is a **harness/process lesson, not a model-reasoning failure and not a quota event.**
+- **Disk trajectory (OBSERVED):** free_before 27,183,808,512 bytes at 21:22:07Z; 21,119,631,360 bytes (19.67 GiB) at 21:26Z during cold import; guard 18,000,000,000; deployed floor 16,106,127,360. Margins are thin but above both thresholds at time of writing.
+
+### EVENT — 2026-11-03 21:33Z–21:38Z — measurement run 1 PASSED; DPC cross-check finds the spine-definition question is decisive; worker resumed for the angle sweep
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (run JSON, log markers, process/disk state, arithmetic on measured values); ORCHESTRATOR CLAIM (the cross-check and its significance); RETROSPECTIVE INFERENCE (process lesson).
+- **Provider/model/effort:** unchanged, `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`. No switch, no retry due to failure, no salvage.
+- **Provider/pool state, quota/window and source:** both pools still enabled. Quota, reset, remaining credit, context and tokens **UNKNOWN** — no telemetry exposed. **No cooldown, rate-limit or login event observed for the whole run.**
+- **Capacity-to-completion / switching cost:** run 1 completed in 677 s of Editor time well inside the 4500 s budget. No switching cost incurred.
+
+#### Run 1 (OBSERVED)
+
+`measurements/run-run1.json`: `status PASS`, `exit_code 0`, `seconds 677.3`, `free_before 27,183,808,512`, `free_after 20,144,848,896`. Markers: `ASM_WORLD_OK trees=1344 sitka=1344`, then writes of `meta.json`, `scenery.json`, `trees.json`, `suggested_racks.json`, `pair_passability.json`, `mfm.json`, `traversal.json`, ending `ASM_MEASURE_PASS`. Unity exited; no Editor remained.
+
+- **Side effect, captured and reverted:** the Editor rewrote `.vscode/settings.json` (the known Unity side effect — `*.unity` trailing-comma and `dotnet.defaultSolution` renamed to the lane's slnx). DPC saved `side-effects/settings-patch.diff` and restored the file; lane verified clean at `72b4efbd`.
+- **Guard behaviour:** free space bottomed at 18.76 GiB, above the worker's 18,000,000,000-byte guard and the 15 GiB floor. The guard never fired. Library 6.6 GiB.
+
+#### Independent DPC cross-check of the decisive number (DERIVED — orchestration, not worker claim)
+
+Arithmetic on **measured** values only (`routeNorthEndZ 10.75`, L4 target `z 38.5`, stand edges ±40):
+
+| Spine definition | Length | 3+2 split (two 16 m perpendicular gaps) | 2+2+1 split (one gap per side) |
+|---|---|---|---|
+| **Extension only** (`z 10.75 → 38.5`) | **27.75 m** | **IMPOSSIBLE AT ANY ANGLE** — two gaps need 32 m of spine whatever the angle, because `d = Δs·sin α ≤ Δs` | needs α ≥ **35.2°** |
+| **Whole in-stand route + extension** (`z −40 → 38.5`) | **78.50 m** | possible, α ≥ **24.1°** | α ≥ **11.8°** |
+
+- **Why this matters:** the worker's `s1LenM = 29.25` shows it adopted the **extension-only** spine. Under that definition a 3+2 herringbone cannot satisfy 16 m perpendicular spacing *at any branch angle at all* — that is an angle-independent impossibility, not a near miss. Under the **whole-route** definition the same question is comfortably feasible.
+- **Consequence for the Manager:** the access-spine specification never fixes which of those two things "the spine" is. That single unresolved definition, not trigonometry, decides whether five racks can fit. It must be settled explicitly before §39.6.1 can be judged, and DPC will present both in the hand-off rather than silently adopting either.
+- **Classification:** DERIVED arithmetic on measured inputs, **not** a Unity measurement and not a fit proof. It ignores the clearing at z≈11, the route's bow, rack widths, and turning room; it bounds feasibility only.
+
+#### Continuation (OBSERVED)
+
+- The worker's turn had ended ~21:22Z with a **stale** message ("cold import still running") while its Unity run continued; the driver finished and passed at 21:33:28Z with nothing consuming the result. **INFERENCE:** a delegate that ends its turn during a long background run leaves results unread, so DPC must re-enter on run completion. **Harness/process lesson — not a model-reasoning failure and not a quota event.**
+- DPC resumed the **same child** (ordinal 3) with the actual run JSON, an explicit "do not redo" list (side effect already captured/restored, cleanup already done, lease untouched), and the remaining scope: **B7 systematic angle sweep at 20/30/35/40/45/50/60°**, a fix to the uninformative `L1` zero-length leg label, `RESULTS.md`, `README.md` with harness/JSON hashes, and a final clean-state check.
+- **Not delegated:** implementation, plank placement, save/MFM/schema change, Windows build, GitHub push, lease handling.
+
+### EVENT — 2026-11-03 21:36Z–21:41Z — b7 angle sweep returns the decisive two-zone result; b8 layout script cancelled as unbounded
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (worker JSON, process table, CPU/load, arithmetic); ORCHESTRATOR CLAIM (interpretation); RETROSPECTIVE INFERENCE (efficiency lesson).
+- **Provider/model/effort:** unchanged, `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`. No switch, no retry. **No quota/cooldown/login event at any point.**
+- **Provider/pool state, quota, context, tokens:** **UNKNOWN** throughout; no telemetry exposed. Not estimated.
+- **Capacity-to-completion / switching cost:** b7 completed; b8 did not and was cancelled by DPC. No switching cost.
+
+#### b7 result — the number that decides the Manager's verdict (OBSERVED, worker-measured)
+
+`measurements/b7_angle_sweep.json`, best achievable **3+2** minimum perpendicular spacing:
+
+| α | NORTH_ONLY zone (13.2→37.5) | FULL_SPINE zone (−25.05→37.5) |
+|---|---|---|
+| 20° | 3.18 m | 8.65 m |
+| 30° | 4.73 m | 13.65 m |
+| 35° | 5.51 m | **15.97 m** (0.03 m short) |
+| 40° | 6.24 m | **18.06 m** |
+| 45° | 6.97 m | **20.08 m** |
+| 50° | 7.66 m | **21.91 m** |
+| 60° | 8.92 m | **25.07 m** |
+
+- **NORTH_ONLY never reaches the 16 m band at any tested angle.** **FULL_SPINE reaches it from α ≥ 40°.**
+- This **agrees with DPC's independent arithmetic** (event 21:33Z–21:38Z): two 16 m perpendicular gaps need 32 m of spine regardless of angle, which the ~24 m north-only zone cannot supply, while the full in-stand route can.
+- **Consequence:** whether five diagonal racks can fit is decided by **which spine the specification means**, not by trigonometry. Branching from a new northern extension only is infeasible at every angle; branching along the existing in-stand route is feasible at 40° and above. **DPC will present both zones and will not collapse them into a single recommendation.**
+- Also OBSERVED: the existing *suggested* five-rack layout has perpendicular gaps 18.85 / 16.66 / **15.56** / 19.44 m — one gap is already below the 16 m band before any redesign.
+- OBSERVED (`turning_room.json`): spine end at (−2.715, 37.5) is 2.5 m from z=40 but only **0.507 m from the nearest trunk PO3919**, and the North Ridge collider's south face is z=39.5 — so the "turning room" at the north end is bounded by trees, not just the stand edge.
+
+#### b8 failure — classification and action (OBSERVED + ORCHESTRATOR CLAIM)
+
+- `analysis/b8_layouts.py` ran ~3.5 min at 88 % CPU and produced no output. Cause: `place()` calls an expensive `ok()` for ~486 z values inside a 30-iteration binary search, four times, for 7 angles × 2 zones × 2 targets, while `ok()` itself samples ~150 points against 10 obstruction circles — order **10⁹ Python operations**. It was **not** going to finish in any reasonable window.
+- **DPC cancelled it (PID 2963539) and instructed the worker not to restart it**, because `b7` already answers the feasibility question conclusively and b8 was only a candidate-layout convenience.
+- **Classification: worker efficiency/algorithmic defect (missing memoisation), not a quota, cooldown or reasoning failure.** Recorded, not silently dropped. The cancelled script and the reason will appear in the evidence `README.md`.
+- **Retrospective:** the brief asked for the angle sweep without bounding its combinatorial cost; a future brief should require an explicit complexity/cache note before a search script is launched, and should prefer a single memoised feasibility table over a nested binary search.
+
+#### Continuation (OBSERVED)
+
+DPC resumed the same child with the two-zone table, the explicit b8 cancellation, and the remaining scope: `RESULTS.md` in packet order, a "what this does NOT establish" section, the `L1` no-op label fix, `README.md` with hashes, and a final clean-state check. Still withheld: implementation, plank placement, save/MFM/schema change, Windows build, push, lease handling.
+
+### EVENT — 2026-11-03 21:45Z–21:52Z — lease released; independent review returns MATERIAL ERROR on the published spacing formula; correction dispatched
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (review verdict, recomputation), ORCHESTRATOR CLAIM (impact assessment), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** measurement worker `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (unchanged). Independent reviewer **`codex` / `gpt-6.1-sol` / `reasoningEffort: medium`**, task `node:delegated-task:…:delegate-task:b27ee535…`, role `review`, read-only, **no Unity, no writes, no lease interaction**.
+- **Provider/pool state, quota/context/tokens:** both pools enabled throughout; **no cooldown, rate-limit or login event**. Quota, reset, credit, context and tokens remain **UNKNOWN** — no telemetry exposed; not estimated.
+- **Capacity-to-completion / switching cost:** review returned inside one turn against a 20-claim fixed list. No switch, no retry, no salvage.
+
+#### Lease (OBSERVED)
+
+`62da5753307c4bb886477efc14b4ed96` released **normally** at 21:44:43Z (`forced: false`), reason "#248 read-only measurement complete; no Editor; lane clean at 72b4efbd". Post-release status `free`, `unity_editor_pids: []`. The lease was **not** held idle for the read-only review; any re-measurement would need a fresh lease.
+
+#### Review verdict: **MATERIAL ERROR** (OBSERVED)
+
+20 claims: **13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL** (C8). All README sha256 hashes independently matched. Reviewer wrote no files and touched no lease.
+
+- **C8 FAIL — the substantive defect.** `analysis/b7_sweep.py:maxmin_gap` computed same-side spacing as `Δz·sin α`. That is valid only for a vertical spine (`Δx = 0`). Branches leave a junction with direction `(s·sin α, cos α)`, so the true perpendicular distance between two same-side parallel branches is **`|Δx·cos α − s·Δz·sin α|`**. The FULL_SPINE junctions lie on the **bowed** route, where `Δx` is several metres, so the published FULL_SPINE column and its advertised 16 m candidates are **wrong**: the 40° east-three candidate's real gaps are **12.770 / 19.454 m**, not ≥16 m.
+- **NORTH_ONLY is unaffected** (straight spine above z = 10.75, `Δx = 0`), and the reviewer independently confirmed the **angle-independent bound** — two 16 m gaps require `L ≥ 32/sin α`, and the 24.3 m zone cannot supply 32 m at any angle. **Extension-only infeasibility therefore stands.**
+- **FULL_SPINE still works, with a much thinner margin.** The reviewer's own corrected search (real line-normal distances, continuous segment-to-circle clearance) gives maximum-minimum 3+2 spacing: 20° **6.293**, 30° **11.032**, 35° **13.587**, 40° **16.009**, 45° **18.274**, 50° **20.407**, 60° **24.057** m. At 40° a **west-three** arrangement at junction z −23.85 / −5.35 / 26.30 gives gaps **16.009 / 16.013 m**; the published east-three candidate does not. Southern bound corrected to **z ≥ ≈ −23.85** (feeder pad −27.4 + 2.35 + 1.2), not −25.05.
+- **Seven PASS-WITH-CORRECTION**, all labelling precision rather than arithmetic: headland is **presentation**-only (it still exists in production clearance and MFM geometry); turning-room distances are to the trunk **centre**, DERIVED, not an available-clearance test; lattice statistics are DERIVED (estimator must be stated; residual-based sd 0.243588 / 0.248777); the five suggested racks are **hypothetical** geometry so MFM is production inputs + hypothetical rack geometry, not an operational baseline; only the **coverage** signature changes, the prescription derivation signature was not recomputed per scenario; `productionReadCoverageNullInFreshWorld` is **hardcoded** in the harness rather than measured; "no mutation" must be stated as "no persistent gameplay write-back found" because the harness does create a GameObject, enter Play mode and move the player with `cc.Move`; "from 40° up" means at the sampled angles, not a proven continuous threshold.
+
+#### What survives, and what does not (ORCHESTRATOR CLAIM)
+
+- **Survives:** extension-only infeasibility at any angle; full-spine feasibility at sampled angles ≥ 40°; the finding that manifest, addressable **A1 is not visual-only** (MFM deltas and signature change); the traversal and passability measurements; the turning-room and existing-layout gap findings; the conclusion that **which spine the spec means is the decisive unresolved definition**.
+- **Does not survive:** the published FULL_SPINE spacing column and the specific 16 m candidate layouts. They are **superseded**, not silently edited — the original JSON is retained unmodified as the record of what was run, and corrected output will be published beside it.
+- **Neither direction is overturned** in kind; only the published numbers and the margin.
+
+#### Classification and action (OBSERVED)
+
+- **Worker quality error** — an incorrect perpendicular-distance formula applied to a curved spine. **Not** a quota, cooldown or reasoning failure. Caught by the independent cross-provider review, which is precisely the control the packet required.
+- DPC resumed the same measurement child to fix `maxmin_gap`, regenerate **corrected** JSON alongside the untouched originals, write `CORRECTIONS.md`, reconcile against the reviewer's numbers, and apply the labelling corrections. **No Unity, no lease, no push.**
+- DPC housekeeping: three stray untracked files (`candidate-ref.txt`, `lane-path-check.txt`, `remote-refs.txt`) created by DPC in `/media/jer/ZX20/CCF-Primary` during the 21:11Z preflight were confirmed duplicated in the evidence `preflight/` directory and removed; CCF-Primary is clean.
+- **`UNITY-GEOMETRY-HANDOFF.md` is NOT yet published** — it waits for the corrected table.
+
+#### Retrospective (INFERENCE)
+
+This is the **second** time in this programme that a single-provider output would have shipped a substantive technical error (the first was the MFM mask taxonomy in #246, corrected on review). Both times the failure mode was the same: a formula or taxonomy that is correct under an unstated simplifying assumption (straight spine / single mask kind) and silently wrong outside it. A future brief should require the **assumption under which a formula is valid** to be stated next to the formula itself.
+
+### EVENT — 2026-11-03 21:52Z–21:58Z — correction returned and reconciled; handoff published; #248 [HANDED-OFF]
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (corrected JSON, hash comparison, reconciliation), ORCHESTRATOR CLAIM (acceptance), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** correction by `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (same worker resumed). **Pure Python — no Unity, no lease, no push.** No provider switch or retry.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/reset/credit/context/tokens **UNKNOWN** — not estimated.
+- **Capacity-to-completion / switching cost:** correction returned inside one turn. No switching cost.
+
+#### Correction result (OBSERVED)
+
+- **Originals confirmed unmodified:** `b7_angle_sweep.json` sha256 prefix `6184d718…` and `b8_candidate_layouts.json` `6cf0408a…` — both unchanged from the README record. Corrected output published as **new** files (`b7_angle_sweep_corrected.json`, `b8_candidate_layouts_corrected.json`) with `analysis/b7_sweep_corrected.py` and `CORRECTIONS.md`.
+- **Two further defects found while rebuilding**, both real and both disclosed: the clearance test skipped the junction point itself (admitting z = −24.0/−24.05 inside the feeder-pad exclusion), and obstruction clearance was sampled at 0.25 m rather than exact segment-to-circle. Corrected run uses a 0.01 m junction grid and exact clearance including the junction; the southern bound −23.85 is now found independently by both implementations.
+- **Reconciliation with the independent reviewer:** agreement to **≤ 0.020 m at every angle** (largest +0.020 m at 45°). The worker did not tune to match and explicitly states that **where the two differ the reviewer's lower numbers should be trusted**. Both implementations independently verify the reviewer's 40° west-three candidate (z −23.85 / −5.35 / 26.30 → 16.009 / 16.013 m).
+- **Corrected FULL_SPINE maximum-minimum 3+2 spacing:** 20° 6.293 | 30° 11.040 | 35° 13.606 | 40° **16.016** | 45° 18.294 | 50° 20.407 | 60° 24.076 m. **NORTH_ONLY:** 3.147 / 4.690 / 5.449 / 6.190 / 6.916 / 7.614 / 8.911 m — infeasible at every sampled angle, unchanged in direction and unaffected by the formula defect.
+
+#### Assessment (ORCHESTRATOR CLAIM)
+
+- The correction **preserves every directional conclusion** and **supersedes several published numbers**. Extension-only infeasibility stands; full-spine feasibility stands but narrows from a comfortable result to a **16 mm margin at 40°**, becoming robust only from 45° (~2.3 m) and 50° (~4.4 m).
+- **DPC added an explicit Manager decision** to the handoff that does not exist in the packet: whether a 16 mm margin counts as feasible at 40°, or whether the band must be met robustly at 45°+. That is a tolerance judgement, not a geometry question, and it is now stated rather than hidden inside a table.
+- The superseded originals stay in place, are hash-verified unchanged, and are marked superseded in both `CORRECTIONS.md` and the handoff inventory. Nothing was rewritten to look like it was right the first time.
+
+#### Publication (OBSERVED)
+
+`UNITY-GEOMETRY-HANDOFF.md` published on `docs/access-spine-measure-20261103-v1` with the corrected table, the correction banner, Appendix A (V2 routing) and Appendix B (review verdict, the FAIL, the seven labelling corrections, and what the evidence still does not provide). `#248` moved to **`[HANDED-OFF]`**.
+
+**Milestones:** MEASURED — yes. REVIEWED — yes, and it changed the result. IMPLEMENTED / INTEGRATED / VERIFIED / ACCEPTED — none, none claimed. DRAFT spine spec untouched; D-064 remains controlling; no Windows build; no production change.
+
+#### Retrospective (INFERENCE)
+
+Fixed-claim-list cross-provider review has now caught a substantive error twice in this programme (#246 mask taxonomy, #248 spacing formula). Both were assumptions left unstated rather than careless arithmetic. The durable fix is procedural: require the **validity condition** to be printed beside any formula in a measurement harness, and require the corrected run to be published **beside** the superseded one so the failure stays auditable.
+
+### EVENT — 2026-11-03 22:05Z — PR #249 count reconciliation (Manager-flagged), re-derived from original reviewer output
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248) documentation metadata, raised by Overall Manager in the [#250 packet](FIVE-RACK-REFERENCE-PACKET.md). **Evidence class:** OBSERVED FACT (reviewer verdict table re-read from the original delegated-review output; ledger heading count), ORCHESTRATOR CLAIM (correction), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** no new model dispatch. `gpt-6.1-sol`'s original review output was re-read directly from its task `node:delegated-task:…:delegate-task:b27ee535…`; counts were **parsed from that text**, not restated from memory.
+- **Provider/pool state, quota/context:** unchanged; no dispatch, no quota event.
+
+#### The two discrepancies (OBSERVED)
+
+1. **Claim-verdict counts were wrong.** The handoff and the #248 comment stated "13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL". That is both the wrong distribution and arithmetically impossible against 20 reviewed claims (13 + 7 + 1 = 21). **Actual, from the reviewer's own table: 9 PASS (C1–C4, C6, C10, C11, C13, C16) + 10 PASS-WITH-CORRECTION (C5, C7, C9, C12, C14–C15, C17–C20) + 1 FAIL (C8) = 20.** J1–J4 are judgement questions, not claims, and are excluded.
+2. **Event count was wrong.** The PR body said "five appended events"; the ledger carries **six** timed #248 event headings (21:06–21:16Z, 21:26Z, 21:33–21:38Z, 21:36–21:41Z, 21:45–21:52Z, 21:52–21:58Z). The Appendix A prose listed only five.
+
+#### Correction applied (OBSERVED)
+
+- Reviewer verdicts frozen verbatim to evidence: `review/REVIEW-VERDICTS.md` in the #248 evidence root, including the correction-history note.
+- `UNITY-GEOMETRY-HANDOFF.md`: Appendix B.1 counts corrected to **9 / 10 / 1 = 20** with an explicit count-correction disclosure; Appendix A now enumerates all **six** events; the evidence inventory lists the frozen verdict file.
+- PR #249 body and the #248 `[HANDED-OFF]` comment amended to the same figures.
+- **The disclosed MATERIAL ERROR (C8) is unchanged and unerased.** No historical event text was rewritten; this event records the correction.
+
+#### Retrospective (INFERENCE)
+
+Both discrepancies were **DPC bookkeeping errors**, not reviewer errors: a hand-summarised distribution that was never re-derived from the source, and a count taken from a draft rather than from the ledger. The rule this earns: **any count published from a delegated review must be parsed from that review's own output and re-checked against its total**, exactly as received-code counts are. Adding it to the working practice for #250.
+
+### EVENT — 2026-11-03 22:06Z–22:12Z — #250 design claim: preflight PASS, lane safely reused, fresh lease acquired, designer dispatched
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250), design-and-measurement only. **Evidence class:** OBSERVED FACT (lock/process/disk/refs), ORCHESTRATOR CLAIM (routing), RETROSPECTIVE INFERENCE (reuse assessment).
+- **Authority read:** the #250 packet, the Manager's #248 measurement review, **D-068** (current direction) and D-067, with **D-064/Rack V2 unamended and controlling**.
+- **Prior provider/model/effort:** none for #250. #248's worker (`claude-sonnet-5-5` / medium) and reviewer (`gpt-6.1-sol` / medium) are the reference points.
+- **Selected provider/model/effort:** designer `claudeAgent` → `claude-sonnet-5-5`, `effort: medium`, role `design`, task `node:delegated-task:…:delegate-task:dce7bf64…`, child thread `thread:delegated-task:…:dce7bf64…`. **Independent review reserved for `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`** — the other provider, per the packet.
+- **Alternatives, reason, exploit/explore:** alternative was `gpt-6.1-sol` as designer with Claude reviewing. **Chosen Sonnet 5.5 Medium** because (a) the Claude pool has now completed two substantial phases on this exact project and lane, so capacity is **observed rather than assumed**; (b) the work is long-form geometry design plus disposable-harness Unity work inside a strict disk budget, which is the same task class it already handled; (c) keeping GPT-6 for review preserves the cross-provider independence that caught the #248 material error. **EXPLOIT** of observed capacity, not exploration.
+- **Provider/pool state, quota/window and source:** both pools enabled with `canRunChildTask: true` at dispatch. Quota, rate-limit window, reset time, remaining credit, context and tokens remain **UNKNOWN** — no telemetry exposed; none estimated.
+- **Context used/limit, compactions:** UNKNOWN for DPC and child; not surfaced.
+- **Capacity-to-completion, switching cost:** `sufficient by task size / unknown by quota`. The brief is fully self-contained against an exact ref so a failure costs only partial evidence already written durably. Switching cost to GPT-6 as designer would be moderate (new harness context); review switching cost is low.
+
+#### Preflight — all gates PASS (OBSERVED)
+
+Evidence: `/media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/preflight/`
+
+| Gate | Observed at 22:06:26Z | Verdict |
+|---|---|---|
+| Deployed lock | `free`, metadata `null`, no Editor PIDs | PASS |
+| Unity Editor / Xephyr / openbox | none | PASS |
+| Candidate ref | `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd…` (unchanged) | PASS |
+| Lane reuse | `verify/scenario-one-access-spine-measure-20261103` @ `72b4efbd`, **`git status --porcelain` empty**, unowned | PASS |
+| Duplicate Library cost | lane already warm — **Library 6.6 GB present**, so a cold import is not repeated | PASS (saves ~7–9 GiB and ~10 min) |
+| Disk | 20,145,373,184 B free (18.76 GiB); 3.76 GiB above the 15 GiB floor | PASS |
+
+- The lane was **reused only after** a fresh clean/unowned/correctly-based check, as the packet requires; it was not assumed free from the #248 history.
+- **Fresh lease acquired** at 22:06:50Z: `lock_id 095403a84234458b8221d4262f555bad`, owner `DPC-250`, task 250, lane `AccessSpineMeasure248`, head `72b4efbd…`, ETA `2026-11-04T03:00:00Z`. No force, no second holder. DPC holds it; the designer runs under it and may not acquire, release or force-release.
+
+#### Dispatch (OBSERVED, 22:12Z)
+
+Scope dispatched: one complete candidate — feeder spine (existing in-stand route + northern continuation), **five identified 45° racks in a 3+2 split**, per-rack junction/endpoint/width/length/spacing/boundary/overlap/headland/turning and **real entrance target tree**; corridor removal candidates with species/DBH; MFM deltas for the **complete** candidate in both `Track` and `Headland` semantics plus a **specified-only** coverage-neutral proposal-overlay semantics; map/minimap/3D coherence and **Unity renders this time** (a stated #248 gap), with an explicit UNMEASURED fallback; and a recommendation or STOP with exact D-064 conflicts.
+
+- **Explicitly forbidden to the designer:** the superseded `b7_angle_sweep.json` / `b8_candidate_layouts.json`, the extension-only spine, the 40° target, any A1 cosmetic plank extension, any production/mask/save/schema edit, rack creation, plank placement, deemed felling, Windows build, push, or commit to the measurement branch.
+- **Formula discipline enforced in the brief:** state the assumption under which each formula is valid — the #248 defect was a formula correct only for a straight spine applied to a bowed route.
+- **Withheld:** implementation, Manager approval, spec amendment, `active-tasks.md` (Manager-owned).
+
+### EVENT — 2026-11-03 22:22Z–22:36Z — #250 run A PASS, run B render OOM, candidate complete, review dispatched, lease released
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250). **Evidence class:** OBSERVED FACT (run JSON, logs, production `Derive` verdict, process/RAM/disk), ORCHESTRATOR CLAIM (render decision, routing), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** designer `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (task `…:delegate-task:dce7bf64…`). Reviewer dispatched `codex` / `gpt-6.1-sol` / `reasoningEffort: medium` (task `…:delegate-task:e8bf5326…`). No switch, no retry by provider failure.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/reset/credit/context/tokens **UNKNOWN** — not estimated.
+
+#### Runs (OBSERVED)
+
+| Run | Result | Detail |
+|---|---|---|
+| run A (measurement) | **PASS**, code 0, 71.5 s | `ASM_WORLD_OK lines=6 mode=mfm`; wrote `mfm_candidate.json`, `map_model.json`; `ASM_MEASURE_PASS`. Free 20,147,863,552 → 20,145,373,184 B |
+| run A retry | earlier attempt FAIL code 1, 33.9 s | an initial failed launch before the successful one; harness fixed and re-run, not hidden |
+| run B (renders) | **FAIL**, code −9, 163.8 s | cgroup OOM kill: `anon-rss 5.67 GB + shmem 1.68 GB` under `MemoryMax=8G`; reached the startup screen, produced **no image** |
+
+- **Renders are UNMEASURED.** DPC's decision: **not retried.** The machine has 15 GB total RAM and only ~6 GB available; the worker's own bounded next step requires ≥12 GB free or the user's real GPU display. Repeated OOM kills risk the machine for no evidentiary gain, and the #250 packet explicitly permits an UNMEASURED render labelled with a bounded verification step. Recorded as a gap, not papered over.
+- Side effects: `.vscode/settings.json` rewritten by the Editor in both runs; patches preserved (`side-effects/settings-patch-runA.diff`, `-runB.diff`); lane restored clean at `72b4efbd`.
+
+#### Candidate result (OBSERVED, worker; DPC spot-checked the load-bearing figures)
+
+- **Spine** = existing in-stand route 53.020 m + due-north continuation 26.750 m = **79.770 m**, continuation from (−2.7148, 10.75) to (−2.7148, 37.5).
+- **Five racks at 45°, 2.4 m wide: R1 E, R2 W, R3 W, R4 E, R5 W** (3 west + 2 east).
+- **Same-side perpendicular gaps (corrected formula): W-three 16.623 / 17.510 m; E pair 17.855 m** — inside the 16–20 m band, and materially *below* the 18.274 m clearance-only bound, as expected once real constraints apply.
+- **Corridor impacts:** 103 distinct rack-corridor trees + 18 spine-continuation trees = **120 union** (one shared, PO3518; 103 + 18 − 1 = 120 verified).
+- **MFM (Track):** 106 newly masked living trees; treatable stems 994 → 888 (**−106**); treatable area **−448.03 m²**. Per-rack Track/Headland: R1 34/32, R2 25/24, R3 33/32, R4 36/35, R5 10/10.
+- **Production rejection (the consequential finding):** `ScenarioOneRackSampleGeometry.Derive` on the candidate's own five racks returns **`Valid=false` — "Racks 4 and 5 cross or overlap across the common normal, so they have no defensible order."** The production rack-sample/coverage model assumes five parallel racks; **a 3+2 herringbone cannot be represented without a spec/model change.** Verified directly in `mfm_candidate.json` by DPC.
+- **Yard conflict:** the straight continuation passes **0.035 m** from Forestry Workbench and 0.215 m from Grinding Stone; buildable collider extents measure zero, so footprints are **UNMEASURED**. Needs a bypass or relocation decision.
+- **Entrances:** a real living entrance tree exists for all five, but R1/R3 sit 3.66/3.71 m from the junction centre (beyond a 3.5 m spray reach from centre; inside from the band edge), and **production accepts headland entrances only**, so **none is accepted by current code**.
+- **Turning:** spine end 0.5 m from a trunk centre; R1 far end 0.07 m (PO2839), R4 far end 0.34 m (PO3937); no machine footprint exists in the repo, so turning room is **UNMEASURED**.
+- **Recommendation: STOP for implementation**, with this candidate offered as the reference geometry for a spec amendment, conditional on yard bypass, headland termination, entrance-reach rule, herringbone MFM model and removal authorisation.
+
+#### Lease (OBSERVED)
+
+`095403a84234458b8221d4262f555bad` released **normally** at 22:36Z (`forced: false`); status `free`; no Editor PIDs; 18.68 GiB free. Not held idle for the read-only review.
+
+#### Classification
+
+- **Render OOM = environment limitation, not a model-reasoning failure and not a quota event.** The RAM ceiling is the constraint; the worker correctly refused to raise the cap without authorisation.
+- **run A first attempt FAIL = ordinary implementation iteration**, disclosed rather than hidden.
+
+#### Retrospective (INFERENCE)
+
+The design did **not** repeat the #248 mistake: the brief required the validity assumption beside every formula, and the spacing now uses the corrected bowed-route distance with the assumption stated. The new and more useful failure is in *production*, not in the maths — the coverage model rejects the very topology D-068 asks for. That is a spec-level finding, which is what a design claim is for.
+
+### EVENT — 2026-11-03 22:40Z–22:50Z — #250 review returns MATERIAL ERROR; DPC's own MFM misquote corrected from raw JSON; handoff published
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250). **Evidence class:** OBSERVED FACT (review verdicts, raw `mfm_candidate.json` rows, recomputation), ORCHESTRATOR CLAIM (acceptance), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** reviewer `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`, read-only, task `…:delegate-task:e8bf5326…`. No further dispatch; DPC corrected its own text.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/context/tokens **UNKNOWN** — not estimated.
+
+#### Verdict (OBSERVED)
+
+**MATERIAL ERROR.** 15 claims: **7 PASS, 6 PASS-WITH-CORRECTION, 2 FAIL** (7 + 6 + 2 = 15). All README hashes matched.
+
+- **C9 FAIL — DPC's error, not the worker's.** DPC's summary conflated the `Track` and `Headland` rows and reported a *stem delta* as a *newly-masked tree* count. Re-read row by row from `mfm_candidate.json`: **C3 spine+five racks — Track: 156 newly masked, 994 → 883 (−111 stems), 4141.99 → 3682.17 (−459.82 m²); Headland: 150, 994 → 888 (−106), −448.03 m².** The worker's `RESULTS.md` table was correct throughout.
+- **C7 FAIL — worker metric misapplication.** Grinding Stone (z = 9.4) lies south of the continuation start (z = 10.75); 0.215 m is distance to the **infinite axis**, finite-route distance **1.367 m**. The yard conflict survives for the **Forestry Workbench (0.035 m)** and not for the Grinding Stone.
+- **Six corrections accepted:** R1/R2 corridors overlap (1.414 m centreline separation vs 2.4 m combined half-width); full-width corners reach 38.349 m (outside the 37.5 window, inside the 40 stand); the R2/R3 snap flag is misleading (4.6 m from boundary, not snap-eligible); R1's endpoint sits **inside** PO2839's collider (−0.0076 m face); the `Derive` rejection is about **overlapping projections across a common normal**, not physical crossing, and does not prove all herringbones fail; the render SIGKILL does **not by itself prove OOM**, and "lease untouched" needs actor attribution (DPC released it).
+- **Reviewer's STOP position accepted:** proportionate for implementation and operational endorsement, **excessive if it also stopped specification investigation**.
+
+#### Publication (OBSERVED)
+
+`FIVE-RACK-REFERENCE-HANDOFF.md` published with: the STOP recommendation and its three drivers; the five-rack table with corrected per-rack data; corrected yard distances; the corrected MFM table **with an explicit correction notice naming DPC**; the proposal-overlay contract (specified, not implemented); renders labelled UNMEASURED with an unproven-cause caveat and a bounded next step; and ten D-064/D-068 conflicts. `#250` moved to **`[HANDED-OFF]`**.
+
+#### Retrospective (INFERENCE)
+
+Two consecutive claims in this programme produced a material error caught only by cross-provider review: **#248 by the worker** (formula valid only under an unstated assumption) and **#250 partly by DPC** (a figure carried from one context into another without re-derivation). The shape is identical — a number reused outside the context that produced it. Rule adopted: **any figure published from a harness or a reviewer must be re-extracted from the raw artefact at the point of publication and reconciled against its total**, the same discipline already applied to sha256 hashes. This is also the **third** DPC bookkeeping/transcription error this session (review counts, event count, MFM rows); the common cause is summarising from memory rather than re-reading the source, and it is now recorded rather than excused.
