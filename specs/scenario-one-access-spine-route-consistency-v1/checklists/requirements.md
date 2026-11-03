@@ -1,0 +1,18 @@
+# Access Spine & Diagonal Rack Network — Requirements / QA Checklist (DRAFT)
+
+Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
+
+- [ ] AS-R1: Exact real central path/spine topology and any unmapped formal-looking trails traced from inspected scene/code evidence, with measured stand coordinates when obtainable.
+- [ ] AS-R2: Proposed spine extension and diagonal branch placements preserve geometry feasibility; five-rack target and 16–20 m range must be honestly reconciled rather than invented or distorted.
+- [ ] AS-R3: The feeder spine is separate from extraction-rack counts unless explicitly accepted otherwise.
+- [ ] AS-R4: Map, minimap, 3D forest, entrance cues, lesson graphics and status use one authoritative access/rack network and agree before/after confirmation.
+- [ ] AS-R5: Proposed geometry is visually distinct from entrance marks, approved work and physically cleared routes.
+- [ ] AS-R6: Player can sketch and learn from suboptimal/non-edge rack proposals; confirmation/Work Plan policy for disconnected/physically impossible plans explicitly decided.
+- [ ] AS-R7: Rack-plan creation, rotation, move, delete, undo, save/load and counters preserve approved D-064 behaviour except explicitly superseded rule.
+- [ ] AS-R8: Physically valid entrance-tree marking is reachable and consistent with planned route, including uppermost route; no unrelated tree accepted.
+- [ ] AS-R9: In-tree traversal is achievable where physically plausible, slower than open-path travel, and is not blocked by arbitrary invisible walls or exploitable clipping.
+- [ ] AS-R10: MFM coverage, Work Plan/pending/approved/executed orders, old saves, Legacy40 and frozen Reference Future v1 unaffected or compatibly qualified.
+- [ ] AS-R11: User personal playtest candidate remains unchanged until explicit Manager promotion; no Windows/Player build before personal playtest completion and explicit authorisation.
+- [ ] AS-R12: Independent read-only review plus proportionate affected Unity/rendered checks after implementation; never weaken a protected test to pass.
+
+**Current evidence boundary:** user's two 3 Nov screenshots are UI/visual observations; topology, traverse behaviour, rack validity, save semantics and scene coordinates are not established from those images alone. #246 recon comes first.
