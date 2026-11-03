@@ -81,6 +81,11 @@ public sealed class RackV2EditingRunner : MonoBehaviour
     private bool traceRegistered;
     private int pointerDownCount;
     private RackPoint lastPointerDownWorld;
+    // Tier-3 Task 2 (#240): the observed release and world path, so a drag can prove it reached and released where requested.
+    private int pointerUpCount;
+    private RackPoint lastPointerUpWorld;
+    private Vector2 lastPointerUpMouse;
+    private readonly List<RackPoint> tracedWorld = new List<RackPoint>();
 
     private void RegisterPointerTrace()
     {
@@ -94,12 +99,19 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             Trace("down", e.localPosition, e.button);
         }, TrickleDown.TrickleDown);
         layer.RegisterCallback<PointerMoveEvent>(e => Trace("move", e.localPosition, e.pressedButtons), TrickleDown.TrickleDown);
-        layer.RegisterCallback<PointerUpEvent>(e => Trace("up", e.localPosition, e.button), TrickleDown.TrickleDown);
+        layer.RegisterCallback<PointerUpEvent>(e =>
+        {
+            pointerUpCount++;
+            lastPointerUpWorld = RackEd.FramePxToWorld(e.localPosition);
+            lastPointerUpMouse = Mouse.current != null ? Mouse.current.position.ReadValue() : new Vector2(float.NaN, float.NaN);
+            Trace("up", e.localPosition, e.button);
+        }, TrickleDown.TrickleDown);
     }
 
     private void Trace(string kind, Vector2 local, int info)
     {
         RackPoint w = RackEd.FramePxToWorld(local);
+        tracedWorld.Add(w);
         pointerTrace.Add(string.Format(Inv, "t={0:F3} frame={1} {2} info={3} local=({4:F1},{5:F1}) world=({6:F2},{7:F2}) mouse={8} ghostZ={9}",
             Time.realtimeSinceStartup, Time.frameCount, kind, info, local.x, local.y, w.X, w.Z,
             Mouse.current != null ? Mouse.current.position.ReadValue().ToString() : "none",
@@ -684,6 +696,14 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         yield return Settle(6);
     }
 
+    private static float DistanceToSegment(RackPoint p, RackPoint a, RackPoint b)
+    {
+        float dx = b.X - a.X, dz = b.Z - a.Z, length2 = dx * dx + dz * dz;
+        float t = length2 > 0f ? Mathf.Clamp01(((p.X - a.X) * dx + (p.Z - a.Z) * dz) / length2) : 0f;
+        float ex = p.X - (a.X + t * dx), ez = p.Z - (a.Z + t * dz);
+        return Mathf.Sqrt(ex * ex + ez * ez);
+    }
+
     private IEnumerator WaitForPointerDown(int before, RackPoint intended)
     {
         yield return WaitFor(() => pointerDownCount > before);
@@ -792,8 +812,28 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             Check(Same(Rack(1).Entrance, rot1.Entrance) && Near(Rack(1).Far.Z, Rack(1).Entrance.Z, 0.0001f), tag + ": rotating by the handle keeps the entrance, and a near-level release snaps back to level");
             RackPlanRack rot1b = Rack(1);
             RackPoint turned = P(rot1b.Far.X - 4f, rot1b.Far.Z + 13f);      // about 10 deg: outside the window
+            int rotateUpsBefore = pointerUpCount, rotateTraceStart = tracedWorld.Count;
+            float angleBeforeRotate = RackEditing.DirectedAngleDegrees(rot1b.Entrance, rot1b.Far);
+            Vector2 requestedFrom = ScreenOfWorld(rot1b.Far), requestedTo = ScreenOfWorld(turned);
             yield return DragWorld(rot1b.Far, turned, "rotating", () => RotatingGhost(tag));
             float a1 = RackEditing.DirectedAngleDegrees(Rack(1).Entrance, Rack(1).Far);
+            // Tier-3 Task 2 (#240): receipt for the contested rotation. The Task 1 1920x1080 receipt released ~86 m from the
+            // requested endpoint after the OS pointer jumped mid-hold; this proves the gesture reached and released where requested.
+            float releaseError = RackGeometry.LengthM(lastPointerUpWorld, turned);
+            float maxPathDeviation = 0f;
+            for (int i = rotateTraceStart; i < tracedWorld.Count; i++)
+                maxPathDeviation = Mathf.Max(maxPathDeviation, DistanceToSegment(tracedWorld[i], rot1b.Far, turned));
+            string rotationReceipt = "{\"size\":\"" + tag + "\",\"requestedScreenFrom\":[" + F(requestedFrom.x) + "," + F(requestedFrom.y) + "],\"requestedScreenTo\":[" + F(requestedTo.x) + "," + F(requestedTo.y) + "]"
+                + ",\"requestedWorldFrom\":[" + F(rot1b.Far.X) + "," + F(rot1b.Far.Z) + "],\"requestedWorldTo\":[" + F(turned.X) + "," + F(turned.Z) + "]"
+                + ",\"observedReleaseWorld\":[" + F(lastPointerUpWorld.X) + "," + F(lastPointerUpWorld.Z) + "],\"observedReleaseMouse\":[" + F(lastPointerUpMouse.x) + "," + F(lastPointerUpMouse.y) + "]"
+                + ",\"releaseErrorM\":" + F(releaseError) + ",\"maxPathDeviationM\":" + F(maxPathDeviation) + ",\"tracedEvents\":" + (tracedWorld.Count - rotateTraceStart)
+                + ",\"angleBeforeDeg\":" + F(angleBeforeRotate) + ",\"angleAfterDeg\":" + F(a1)
+                + ",\"entranceBefore\":[" + F(rot1.Entrance.X) + "," + F(rot1.Entrance.Z) + "],\"entranceAfter\":[" + F(Rack(1).Entrance.X) + "," + F(Rack(1).Entrance.Z) + "]}";
+            File.WriteAllText(Path.Combine(output, "rotation-receipt-" + tag + ".json"), rotationReceipt + "\n");
+            State("rotation receipt " + rotationReceipt);
+            Check(pointerUpCount > rotateUpsBefore, tag + ": the map received the real pointer release of the rotation drag");
+            Check(releaseError < 1f, tag + ": the real rotation release landed at the requested endpoint (" + F(releaseError) + " m away)");
+            Check(maxPathDeviation < 2f, tag + ": the observed rotation pointer path stayed on the requested path (max " + F(maxPathDeviation) + " m off)");
             Check(Same(Rack(1).Entrance, rot1.Entrance) && a1 > 6f && a1 < 14f, tag + ": rotating well off level is free (" + F(a1) + " deg), and the entrance did not move");
             Check(Rack(1).Id == 1, tag + ": the rotated rack keeps id 1");
             // Shift turns snapping off: a release 1.2 deg from level stays 1.2 deg.

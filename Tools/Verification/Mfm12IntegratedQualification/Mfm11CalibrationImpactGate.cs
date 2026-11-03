@@ -562,6 +562,9 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             Note("completion: no ecological snapshot available for objectives evaluation");
         }
 
+        // Tier-3 Task 2 (#240): render the genuine Year-25 Completed state here, BEFORE the save/load and the baseline restore below.
+        yield return CaptureCompletedState(minimumYear);
+
         // REVIEW FIX-4: MFM-03 at year 25
         Note("=== MFM-03 AT YEAR 25 ===");
         Mfm03Residual("year25", baselineMeanDbh);
@@ -659,7 +662,7 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
             SetGameSize(size.x, size.y);
             yield return Settle(24);
             Check(Screen.width == size.x && Screen.height == size.y, "screen size " + size.x + "x" + size.y);
-            yield return Capture("mfm11-final");
+            yield return Capture("mfm11-after-baseline-restore-pathC");
         }
 
         // ── Summary ─────────────────────────────────────────────────────────
@@ -670,6 +673,119 @@ public sealed class Mfm11CalibrationImpactRunner : MonoBehaviour
         Note("completion: planting beech/oak + objectives logged at year " + minimumYear);
         Note("MFM-03: measured at baseline y" + baselineYear + ", post-B y" + (baselineYear + 3) + ", and year 25");
         Note("MFM-03 CI parity: established only where a covered set exists; post-treatment states report unavailability with reason");
+    }
+
+    // ── Tier-3 Task 2 (#240): Completed-state presentation ──────────────────
+    // Captures the player-facing Completed presentation at the actual Completed year, at both sizes: the walking HUD status line and
+    // Annual Review's objectives card (heading and outcome line). Presentation only: the world hash must be unchanged afterwards.
+    private IEnumerator CaptureCompletedState(int minimumYear)
+    {
+        Note("=== COMPLETED-STATE SCREENSHOTS (actual year " + ecology.EcologicalYear + ", before save/load and baseline restore) ===");
+        IReadOnlyList<ScenarioObjectiveResult> objectives = manager.Objectives;
+        int achieved = objectives.Count(o => o.achieved);
+        Check(manager.Outcome == ScenarioOneOutcome.Completed && manager.OutcomeYear == minimumYear && ecology.EcologicalYear == minimumYear,
+            "completed-state capture is taken at the actual Completed year", "outcome=" + manager.Outcome + " outcomeYear=" + manager.OutcomeYear + " year=" + ecology.EcologicalYear);
+        Check(objectives.Count == 8 && achieved == 8, "completed-state capture has all objectives achieved", achieved + "/" + objectives.Count);
+        string worldBefore = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        string heading = "OBJECTIVES " + achieved + " OF " + objectives.Count;
+        string outcomeLine = "Scenario objectives met in year " + manager.OutcomeYear;
+        string hudPhrase = "Year " + manager.CurrentEcologicalYear + " · objectives met";
+        foreach (var size in Sizes)
+        {
+            string tag = size.x + "x" + size.y;
+            SetGameSize(size.x, size.y);
+            for (int f = 0; f < 120 && (Screen.width != size.x || Screen.height != size.y); f++) yield return null;
+            yield return Settle(24);
+            Check(Screen.width == size.x && Screen.height == size.y, "completed-state screen size " + tag);
+
+            // 1. Walking HUD: the status line names the year and the Completed phase.
+            ui.CloseAll(); ui.CloseHelp();
+            yield return Settle(20);
+            Label status = Root.Query<Label>().ToList().FirstOrDefault(l => l.text != null && l.text.Contains(hudPhrase));
+            Check(status != null && OnScreen(status) && Unclipped(status), tag + " HUD shows the Completed status line", status != null ? status.text : "missing");
+            Note("completed-state " + tag + " HUD: " + status.text);
+            yield return CaptureContentful("mfm11-completed-hud");
+
+            // 2. Annual Review objectives card: heading and every objective line, then the Completed outcome line.
+            ui.CloseAll(); yield return Settle(4);
+            ui.ShowReview(); yield return Settle(16);
+            VisualElement modal = Root.Q(className: "modal-review");
+            Check(modal != null, tag + " Annual Review opens at the Completed state");
+            ScrollView scroll = modal.Q<ScrollView>();
+            Check(scroll != null, tag + " Annual Review ScrollView");
+            List<Label> labels = modal.Query<Label>().ToList();
+            Label head = labels.FirstOrDefault(l => l.text != null && l.text.StartsWith(heading, StringComparison.Ordinal));
+            Label outcome = labels.FirstOrDefault(l => l.text != null && l.text.Contains(outcomeLine));
+            Check(head != null, tag + " Annual Review heading reads '" + heading + "'");
+            Check(outcome != null, tag + " Annual Review states '" + outcomeLine + "'");
+            foreach (ScenarioObjectiveResult o in objectives)
+            {
+                string line = ScenarioOneUiFacts.ObjectiveLine(o);
+                Check(labels.Any(l => l.text != null && l.text.Contains(line)), tag + " Annual Review lists objective " + o.objectiveId, line);
+            }
+            scroll.ScrollTo(head); yield return Settle(12);
+            Check(InViewport(head, scroll) && Unclipped(head), tag + " objectives heading fully visible", head.text);
+            Note("completed-state " + tag + " review heading: " + head.text + " visible objective lines: "
+                + labels.Count(l => l.text != null && objectives.Any(o => l.text.Contains(ScenarioOneUiFacts.ObjectiveLine(o))) && InViewport(l, scroll)) + "/" + objectives.Count);
+            yield return CaptureContentful("mfm11-completed-review-objectives");
+            scroll.ScrollTo(outcome); yield return Settle(12);
+            Check(InViewport(outcome, scroll) && Unclipped(outcome), tag + " Completed outcome line fully visible", outcome.text);
+            Note("completed-state " + tag + " review outcome: " + outcome.text);
+            yield return CaptureContentful("mfm11-completed-review-outcome");
+            ui.CloseAll(); yield return Settle(6);
+        }
+        SetGameSize(1280, 720);
+        for (int f = 0; f < 120 && (Screen.width != 1280 || Screen.height != 720); f++) yield return null;
+        yield return Settle(10);
+        Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == worldBefore, "completed-state presentation changed no world state");
+        Check(manager.Outcome == ScenarioOneOutcome.Completed && ecology.EcologicalYear == minimumYear, "still the Completed year after the captures");
+    }
+
+    private bool OnScreen(VisualElement e)
+    {
+        if (e == null || e.panel == null) return false;
+        for (VisualElement p = e; p != null; p = p.parent)
+            if (p.resolvedStyle.display == DisplayStyle.None || p.resolvedStyle.visibility == Visibility.Hidden || p.resolvedStyle.opacity < 0.05f) return false;
+        Rect r = e.worldBound, root = Root.worldBound;
+        return r.width > 0 && r.height > 0 && r.xMin >= root.xMin - 1.5f && r.xMax <= root.xMax + 1.5f && r.yMin >= root.yMin - 1.5f && r.yMax <= root.yMax + 1.5f;
+    }
+
+    private bool InViewport(VisualElement e, ScrollView scroll)
+    {
+        if (!OnScreen(e)) return false;
+        Rect r = e.worldBound, v = scroll.contentViewport.worldBound;
+        return r.xMin >= v.xMin - 1.5f && r.xMax <= v.xMax + 1.5f && r.yMin >= v.yMin - 1.5f && r.yMax <= v.yMax + 1.5f;
+    }
+
+    private static bool Unclipped(Label label)
+    {
+        Vector2 measured = label.MeasureTextSize(label.text, label.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined);
+        return measured.y <= label.contentRect.height + 1.5f;
+    }
+
+    // A capture that must contain real rendered content: an all-black or flat frame (the Task 1 failure mode) fails the gate.
+    private IEnumerator CaptureContentful(string name)
+    {
+        yield return new WaitForEndOfFrame();
+        Texture2D tex = ScreenCapture.CaptureScreenshotAsTexture();
+        Check(tex != null && tex.width == Screen.width && tex.height == Screen.height, "capture dimensions " + name, tex != null ? tex.width + "x" + tex.height : "null");
+        int samples = 0, lit = 0; double sum = 0, sumSq = 0;
+        for (int y = 0; y < tex.height; y += Math.Max(1, tex.height / 48))
+            for (int x = 0; x < tex.width; x += Math.Max(1, tex.width / 64))
+            {
+                Color c = tex.GetPixel(x, y);
+                double l = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+                samples++; sum += l; sumSq += l * l;
+                if (l > 0.04) lit++;
+            }
+        double mean = sum / samples, sd = Math.Sqrt(Math.Max(0, sumSq / samples - mean * mean));
+        string file = name + "-" + Screen.width + "x" + Screen.height + ".png";
+        File.WriteAllBytes(Path.Combine(output, file), tex.EncodeToPNG());
+        Destroy(tex);
+        captures.Add(file);
+        shots++;
+        Debug.Log("MFM11_COMPLETED_SHOT " + file + " litFraction=" + F((double)lit / samples) + " meanLuma=" + F(mean) + " lumaSd=" + F(sd));
+        Check((double)lit / samples >= 0.25 && sd >= 0.03, "capture is contentful, not black or flat: " + file, "lit=" + F((double)lit / samples) + " sd=" + F(sd));
     }
 
     // ── Measurement helpers ─────────────────────────────────────────────────

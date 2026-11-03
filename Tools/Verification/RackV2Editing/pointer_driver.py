@@ -33,13 +33,21 @@ def xdo(*args):
     subprocess.run(["xdotool", *[str(a) for a in args]], env=env, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, timeout=20)
 
 
+def observe(label):
+    # Tier-3 Task 2 (#240): record where the OS pointer actually is at press/release, next to the requested moves.
+    found = subprocess.run(["xdotool", "getmouselocation", "--shell"], env=env, capture_output=True, text=True, timeout=20)
+    say("observed %s %s" % (label, " ".join(found.stdout.split())))
+
+
 def perform(seq, op):
     kind = op.get("op")
     if kind == "move":
         xdo("mousemove", op["x"], op["y"])
     elif kind == "down":
+        observe("before-down request=%d" % seq)
         xdo("mousedown", 1)
     elif kind == "up":
+        observe("before-up request=%d" % seq)
         xdo("mouseup", 1)
     elif kind == "sleep":
         time.sleep(op.get("ms", 0) / 1000.0)

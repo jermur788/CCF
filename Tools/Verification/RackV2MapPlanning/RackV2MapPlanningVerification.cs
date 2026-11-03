@@ -315,7 +315,11 @@ public sealed class RackV2MapPlanningRunner : MonoBehaviour
             Check(!tabs.Query<Button>().ToList().Contains(plan), "Plan Racks is not one of the navigation tabs");
             Check(plan.text == "Plan Racks" && !plan.ClassListContains("btn-selected"), "inactive label is 'Plan Racks'");
             List<Button> tabsNow = tabs.Query<Button>().ToList();
-            Check(tabsNow.Count == 5, "five navigation tabs remain navigation");
+            // Tier-3 Task 2 (#240): the accepted V2 Stand Map has six navigation tabs; StandMapView adds "Treatment review" when Rack
+            // Planning V2 is active. The old five-tab count was stale. Pin the exact accepted set; Plan Racks stays outside it (above).
+            string[] acceptedTabs = { "Access & position", "Light", "Regeneration", "Browsing / protection", "Fell & crop marks", "Treatment review" };
+            Check(tabsNow.Select(b => b.text).SequenceEqual(acceptedTabs),
+                "the six accepted V2 navigation tabs remain navigation: " + string.Join(" | ", tabsNow.Select(b => b.text)));
             int selectedBefore = tabsNow.FindIndex(b => b.ClassListContains("btn-selected"));
             yield return Capture(size.x + "x" + size.y, "map-before-planning");
             CheckSuggestedLayer(size.x + "x" + size.y + " before", false);

@@ -80,6 +80,9 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         yield return null; yield return null;
         manager.InitializeNewScenario();
     }
+    // Active scene tree objects (living, stumps and fallen), ordered: what the player would actually see.
+    private static List<string> LiveTreeIds() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        .Select(tree => tree.TreeId).OrderBy(id => id, StringComparer.Ordinal).ToList();
     private ForestTree[] Trees() => FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
         .Where(tree => tree.IsLiving).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
     private ScenarioOneWorkOrder Mark(ForestTree tree, FellingMaterialOutcome outcome)
@@ -181,12 +184,30 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         ScenarioReferenceArchive.Canonicalize(beforePreviewCanon);
         string beforePreviewJson = JsonUtility.ToJson(beforePreviewCanon);
         string beforeProtectedPreview = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+        int beforePreviewYear = ecology.EcologicalYear, beforePreviewGeometry = ecology.StandGeometryModelVersion;
+        var beforeShelterIds = manager.Shelters.Select(s => s.shelterId).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var beforeLiveIds = LiveTreeIds();
+        var previewPlayer = FindFirstObjectByType<ForestPlayer>();
+        Vector3 beforePlayerPosition = previewPlayer != null ? previewPlayer.transform.position : Vector3.zero;
+        int entryFrame = Time.frameCount;
         Check(manager.TryBeginReferencePreview(20), "protected player can preview frozen reference");
         var previewReturnField = typeof(ScenarioOneManager).GetField("previewReturnData", BindingFlags.NonPublic | BindingFlags.Instance);
         var capturedReturn = previewReturnField?.GetValue(manager) as ForestSaveData;
         Debug.Log("ECONOMY_PREVIEW_CAPTURE trees=" + (capturedReturn?.trees?.Count ?? -1)
             + " version=" + (capturedReturn?.version ?? -1) + " geometry=" + (capturedReturn?.standGeometryModel ?? -1));
         Check(ecology.Browsing.Shelters.Count == 0, "historical preview replaces player protection with none");
+        // Tier-3 Task 2 (#240): a player opens the preview with a button click and can only leave it with Tab/Esc, which
+        // ScenarioOneManager.Update reads via wasPressedThisFrame, so the exit always lands on a later frame than the entry.
+        // Exiting in the entry frame was the confirmed harness race (49i: 1344 -> 335). Yield one normal frame first, then
+        // assert the restored world without any manual reload/restore by the harness.
+        yield return null;
+        var previewLiveIds = LiveTreeIds();
+        Check(Time.frameCount > entryFrame && manager.ReferencePreviewActive && manager.ReferencePreviewYear == 20 && ecology.EcologicalYear == 20,
+            "preview is still live at Year 20 on a later frame than its entry");
+        Check(!previewLiveIds.SequenceEqual(beforeLiveIds), "the Year-20 reference world really replaced the player's forest during the preview");
+        int exitFrame = Time.frameCount;
+        Debug.Log("ECONOMY_PREVIEW_FRAME_SEPARATED entryFrame=" + entryFrame + " exitFrame=" + exitFrame
+            + " previewYear=" + ecology.EcologicalYear + " previewLiveTrees=" + previewLiveIds.Count + " playerLiveTrees=" + beforeLiveIds.Count);
         manager.EndReferencePreview(); yield return null; yield return null;
         ForestSaveData afterPreviewCanon = saves.CaptureData();
         ScenarioReferenceArchive.Canonicalize(afterPreviewCanon);
@@ -203,7 +224,26 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         Debug.Log("ECONOMY_PREVIEW_TREES beforeCount=" + beforeTreeIds.Count + " afterCount=" + afterTreeIds.Count
             + " missing=[" + string.Join(",", beforeTreeIds.Except(afterTreeIds).Take(12)) + "]"
             + " extra=[" + string.Join(",", afterTreeIds.Except(beforeTreeIds).Take(12)) + "]");
-        Check(ecology.Browsing.Shelters.Count == 1 && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeProtectedPreview, "preview exit replaces exact saved protection/player state");
+        var afterLiveIds = LiveTreeIds();
+        var afterShelterIds = manager.Shelters.Select(s => s.shelterId).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        Debug.Log("ECONOMY_PREVIEW_RESTORE_FRAME_SEPARATED exitFrame=" + exitFrame + " assertFrame=" + Time.frameCount
+            + " savedTrees=" + beforeTreeIds.Count + "->" + afterTreeIds.Count + " liveTrees=" + beforeLiveIds.Count + "->" + afterLiveIds.Count
+            + " year=" + beforePreviewYear + "->" + ecology.EcologicalYear + " version=" + beforePreviewCanon.version + "->" + afterPreviewCanon.version
+            + " geometry=" + beforePreviewGeometry + "->" + ecology.StandGeometryModelVersion
+            + " shelters=[" + string.Join(",", beforeShelterIds) + "]->[" + string.Join(",", afterShelterIds) + "] browseShelters=" + ecology.Browsing.Shelters.Count
+            + " previewActive=" + manager.ReferencePreviewActive + " canonicalEqual=" + (beforePreviewJson == afterPreviewJson));
+        Check(!manager.ReferencePreviewActive, "frame-separated exit leaves the preview");
+        Equal(beforeTreeIds.Count, afterTreeIds.Count, "frame-separated exit restores the saved tree count");
+        Check(beforeTreeIds.SequenceEqual(afterTreeIds), "frame-separated exit restores every saved tree identity");
+        Check(beforeLiveIds.SequenceEqual(afterLiveIds), "frame-separated exit restores the live scene tree objects (count " + beforeLiveIds.Count + " -> " + afterLiveIds.Count + ")");
+        Check(afterPreviewCanon.version == beforePreviewCanon.version && afterPreviewCanon.standGeometryModel == beforePreviewCanon.standGeometryModel
+            && ecology.StandGeometryModelVersion == beforePreviewGeometry, "frame-separated exit restores save version and stand geometry");
+        Equal(beforePreviewYear, ecology.EcologicalYear, "frame-separated exit restores the player's ecological year");
+        Check(beforeShelterIds.SequenceEqual(afterShelterIds) && ecology.Browsing.Shelters.Count == 1, "frame-separated exit restores the protected-player shelter state");
+        Debug.Log("ECONOMY_PREVIEW_PLAYER_POSITION present=" + (previewPlayer != null)
+            + " delta=" + (previewPlayer != null ? Vector3.Distance(beforePlayerPosition, previewPlayer.transform.position).ToString("F4") : "n/a"));
+        Check(afterPreviewJson == beforePreviewJson, "frame-separated exit restores the exact canonical saved state");
+        Check(ecology.Browsing.Shelters.Count == 1 &&ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeProtectedPreview, "preview exit replaces exact saved protection/player state");
         var legacy = Clone(shelteredSave); legacy.version = 14; legacy.regenerationModel = RegenerationModel.Legacy; legacy.growthModel = GrowthModel.Legacy; Check(saves.LoadData(legacy, false), "v14 safe migration");
         yield return null; yield return null;
         Check(ecology.Browsing.Shelters.Count == 0 && ecology.Browsing.ProtectedAreas.Count == 0 && manager.OwnerMinutesUsedThisYear == 0

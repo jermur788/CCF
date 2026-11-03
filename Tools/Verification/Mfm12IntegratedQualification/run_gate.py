@@ -203,6 +203,19 @@ def main():
     unity = subprocess.Popen(command, env=dict(env), stdout=open(args.out / 'unity-stdout.log', 'w'), stderr=subprocess.STDOUT)
     (args.out / 'process.json').write_text(json.dumps({'unity_pid': unity.pid, 'driver_pid': driver_proc.pid if driver_proc else None}))
 
+    # Tier-3 Task 2 (#240): keep the Editor window placed, sized to the private screen and focused, as the extension runner does.
+    # Without it the Task 1 captures were uniformly black. Logged (focuser.log) and acting only on a geometry/focus change.
+    focus = ("settled=''; for i in $(seq 1 1800); do w=$(xdotool search --onlyvisible --name 'Unity -' | head -1); "
+             "[ -z \"$w\" ] && w=$(xdotool search --onlyvisible --class Unity | tail -1); "
+             "if [ -n \"$w\" ]; then X=; Y=; WIDTH=; HEIGHT=; eval \"$(xdotool getwindowgeometry --shell $w 2>/dev/null | grep -E '^(X|Y|WIDTH|HEIGHT)=[0-9-]+$')\"; "
+             "a=$(xdotool getactivewindow 2>/dev/null); cur=\"$X,$Y,$WIDTH,$HEIGHT\"; "
+             "if [ -z \"$settled\" ] || [ \"$cur\" != \"$settled\" ] || [ \"$a\" != \"$w\" ]; then "
+             "echo \"$(date +%s.%N) act window=$w geometry=$cur settled=$settled active=$a\"; "
+             "xdotool windowmove $w 0 0 2>/dev/null; xdotool windowsize $w 2560 1440 2>/dev/null; xdotool windowactivate --sync $w 2>/dev/null; sleep 0.5; "
+             "X=; Y=; WIDTH=; HEIGHT=; eval \"$(xdotool getwindowgeometry --shell $w 2>/dev/null | grep -E '^(X|Y|WIDTH|HEIGHT)=[0-9-]+$')\"; "
+             "settled=\"$X,$Y,$WIDTH,$HEIGHT\"; echo \"$(date +%s.%N) settled window=$w geometry=$settled\"; fi; fi; sleep 2; done")
+    focuser = subprocess.Popen(['bash', '-c', focus], env=dict(env), stdout=open(args.out / 'focuser.log', 'w'), stderr=subprocess.STDOUT)
+
     # Wait for Unity. Reap only our own Editor if it has printed its verdict but
     # does not exit (the calibration witness can spin in shutdown after its verdict).
     finish_timeout = time.time() + args.timeout
@@ -236,7 +249,9 @@ def main():
         except subprocess.TimeoutExpired:
             driver_proc.kill()
 
-    # Stop Xephyr
+    # Stop the window keeper and Xephyr
+    if focuser.poll() is None:
+        focuser.terminate()
     openbox.terminate()
     xephyr.terminate()
 

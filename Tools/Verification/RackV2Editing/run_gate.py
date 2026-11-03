@@ -96,10 +96,19 @@ try:
         driver = subprocess.Popen([sys.executable, "-I", "-B", str(HERE / "pointer_driver.py"), str(driver_dir), args.display],
                                   stdout=open(out / "driver.stdout", "w"), stderr=subprocess.STDOUT)
     w, h = args.screen.split("x")
-    script = ("for i in $(seq 1 1200); do w=$(xdotool search --onlyvisible --name 'Unity -' | head -1); "
+    # Tier-3 Task 2 (#240): the window keeper is logged (focuser.log) and only touches the Editor window when its geometry or
+    # focus actually changed, so it cannot silently move the window under a held drag. Every action is timestamped for the receipt.
+    script = ("settled=''; for i in $(seq 1 1200); do w=$(xdotool search --onlyvisible --name 'Unity -' | head -1); "
               "[ -z \"$w\" ] && w=$(xdotool search --onlyvisible --class Unity | tail -1); "
-              "[ -n \"$w\" ] && { xdotool windowmove $w 0 0 2>/dev/null; xdotool windowsize $w %s %s 2>/dev/null; xdotool windowactivate --sync $w 2>/dev/null; }; sleep 2; done") % (w, h)
-    focuser = subprocess.Popen(["bash", "-c", script], env=dict(os.environ, DISPLAY=args.display))
+              "if [ -n \"$w\" ]; then X=; Y=; WIDTH=; HEIGHT=; eval \"$(xdotool getwindowgeometry --shell $w 2>/dev/null | grep -E '^(X|Y|WIDTH|HEIGHT)=[0-9-]+$')\"; "
+              "a=$(xdotool getactivewindow 2>/dev/null); cur=\"$X,$Y,$WIDTH,$HEIGHT\"; "
+              "if [ -z \"$settled\" ] || [ \"$cur\" != \"$settled\" ] || [ \"$a\" != \"$w\" ]; then "
+              "echo \"$(date +%%s.%%N) act window=$w geometry=$cur settled=$settled active=$a\"; "
+              "xdotool windowmove $w 0 0 2>/dev/null; xdotool windowsize $w %s %s 2>/dev/null; xdotool windowactivate --sync $w 2>/dev/null; sleep 0.5; "
+              "X=; Y=; WIDTH=; HEIGHT=; eval \"$(xdotool getwindowgeometry --shell $w 2>/dev/null | grep -E '^(X|Y|WIDTH|HEIGHT)=[0-9-]+$')\"; "
+              "settled=\"$X,$Y,$WIDTH,$HEIGHT\"; echo \"$(date +%%s.%%N) settled window=$w geometry=$settled\"; fi; fi; sleep 2; done") % (w, h)
+    focuser = subprocess.Popen(["bash", "-c", script], env=dict(os.environ, DISPLAY=args.display),
+                               stdout=open(out / "focuser.log", "w"), stderr=subprocess.STDOUT)
 
     finished_at = None
     while True:
