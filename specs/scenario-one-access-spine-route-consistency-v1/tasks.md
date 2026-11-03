@@ -10,4 +10,6 @@
 6. **AS-06 — Objective guidance/teaching and rack interaction, TBD owner.** Align objective/map prompts; preserve field marking and Work Plan rules, distinguish proposed vs executed. Exit focused interaction checks.
 7. **AS-07 — Independent acceptance/integration, Manager.** Exact diff review, old-save/Legacy40/Reference Future checks, affected Tier-3 delta only, user continuation. No Windows build before playtest + authorisation.
 
+**DPC orchestrator** routes AS-01/#246 between Claude Sonnet 5.5 **Medium** and OpenAI GPT-6.1 **Medium** on observed capacity/task fit, logs every material dispatch/limit/switch/outcome in `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md` under V2, and includes a routing appendix in the returned handoff. It should prepare the next authorised non-overlapping work when a provider is limited, without crossing product/Unity/ownership gates.
+
 No #246 local Unity use, hard ownership handoff or new build is permitted. All subsequent tasks require fresh worktree/branch/claim, exact baseline and serialized Unity lease.
