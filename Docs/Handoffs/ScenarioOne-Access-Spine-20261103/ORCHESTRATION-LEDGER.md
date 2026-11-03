@@ -361,3 +361,38 @@ Fixed-claim-list cross-provider review has now caught a substantive error twice 
 #### Retrospective (INFERENCE)
 
 Both discrepancies were **DPC bookkeeping errors**, not reviewer errors: a hand-summarised distribution that was never re-derived from the source, and a count taken from a draft rather than from the ledger. The rule this earns: **any count published from a delegated review must be parsed from that review's own output and re-checked against its total**, exactly as received-code counts are. Adding it to the working practice for #250.
+
+### EVENT — 2026-11-03 22:06Z–22:12Z — #250 design claim: preflight PASS, lane safely reused, fresh lease acquired, designer dispatched
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250), design-and-measurement only. **Evidence class:** OBSERVED FACT (lock/process/disk/refs), ORCHESTRATOR CLAIM (routing), RETROSPECTIVE INFERENCE (reuse assessment).
+- **Authority read:** the #250 packet, the Manager's #248 measurement review, **D-068** (current direction) and D-067, with **D-064/Rack V2 unamended and controlling**.
+- **Prior provider/model/effort:** none for #250. #248's worker (`claude-sonnet-5-5` / medium) and reviewer (`gpt-6.1-sol` / medium) are the reference points.
+- **Selected provider/model/effort:** designer `claudeAgent` → `claude-sonnet-5-5`, `effort: medium`, role `design`, task `node:delegated-task:…:delegate-task:dce7bf64…`, child thread `thread:delegated-task:…:dce7bf64…`. **Independent review reserved for `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`** — the other provider, per the packet.
+- **Alternatives, reason, exploit/explore:** alternative was `gpt-6.1-sol` as designer with Claude reviewing. **Chosen Sonnet 5.5 Medium** because (a) the Claude pool has now completed two substantial phases on this exact project and lane, so capacity is **observed rather than assumed**; (b) the work is long-form geometry design plus disposable-harness Unity work inside a strict disk budget, which is the same task class it already handled; (c) keeping GPT-6 for review preserves the cross-provider independence that caught the #248 material error. **EXPLOIT** of observed capacity, not exploration.
+- **Provider/pool state, quota/window and source:** both pools enabled with `canRunChildTask: true` at dispatch. Quota, rate-limit window, reset time, remaining credit, context and tokens remain **UNKNOWN** — no telemetry exposed; none estimated.
+- **Context used/limit, compactions:** UNKNOWN for DPC and child; not surfaced.
+- **Capacity-to-completion, switching cost:** `sufficient by task size / unknown by quota`. The brief is fully self-contained against an exact ref so a failure costs only partial evidence already written durably. Switching cost to GPT-6 as designer would be moderate (new harness context); review switching cost is low.
+
+#### Preflight — all gates PASS (OBSERVED)
+
+Evidence: `/media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/preflight/`
+
+| Gate | Observed at 22:06:26Z | Verdict |
+|---|---|---|
+| Deployed lock | `free`, metadata `null`, no Editor PIDs | PASS |
+| Unity Editor / Xephyr / openbox | none | PASS |
+| Candidate ref | `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd…` (unchanged) | PASS |
+| Lane reuse | `verify/scenario-one-access-spine-measure-20261103` @ `72b4efbd`, **`git status --porcelain` empty**, unowned | PASS |
+| Duplicate Library cost | lane already warm — **Library 6.6 GB present**, so a cold import is not repeated | PASS (saves ~7–9 GiB and ~10 min) |
+| Disk | 20,145,373,184 B free (18.76 GiB); 3.76 GiB above the 15 GiB floor | PASS |
+
+- The lane was **reused only after** a fresh clean/unowned/correctly-based check, as the packet requires; it was not assumed free from the #248 history.
+- **Fresh lease acquired** at 22:06:50Z: `lock_id 095403a84234458b8221d4262f555bad`, owner `DPC-250`, task 250, lane `AccessSpineMeasure248`, head `72b4efbd…`, ETA `2026-11-04T03:00:00Z`. No force, no second holder. DPC holds it; the designer runs under it and may not acquire, release or force-release.
+
+#### Dispatch (OBSERVED, 22:12Z)
+
+Scope dispatched: one complete candidate — feeder spine (existing in-stand route + northern continuation), **five identified 45° racks in a 3+2 split**, per-rack junction/endpoint/width/length/spacing/boundary/overlap/headland/turning and **real entrance target tree**; corridor removal candidates with species/DBH; MFM deltas for the **complete** candidate in both `Track` and `Headland` semantics plus a **specified-only** coverage-neutral proposal-overlay semantics; map/minimap/3D coherence and **Unity renders this time** (a stated #248 gap), with an explicit UNMEASURED fallback; and a recommendation or STOP with exact D-064 conflicts.
+
+- **Explicitly forbidden to the designer:** the superseded `b7_angle_sweep.json` / `b8_candidate_layouts.json`, the extension-only spine, the 40° target, any A1 cosmetic plank extension, any production/mask/save/schema edit, rack creation, plank placement, deemed felling, Windows build, push, or commit to the measurement branch.
+- **Formula discipline enforced in the brief:** state the assumption under which each formula is valid — the #248 defect was a formula correct only for a straight spine applied to a bowed route.
+- **Withheld:** implementation, Manager approval, spec amendment, `active-tasks.md` (Manager-owned).
