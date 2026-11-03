@@ -22,3 +22,11 @@
 ## Risks and gates
 
 Primary risks are accepted Rack V2 geometry/persistence regressions, MFM coverage area changes, 3D visual-mesh mismatch, forest walkability and unintended world-hash changes. No Windows build; no full accepted Tier-3 rerun solely to explore options. Verify current user playtest is not interrupted.
+
+## DPC orchestration and evidence policy
+
+**Owner:** DPC parent orchestrator for local task routing, with #200 Overall Manager retaining product approval, coordination, integration and release decisions. **Permitted worker models:** Claude Sonnet 5.5 **Medium** and OpenAI GPT-6.1 **Medium**, chosen according to actual measured/observed capacity, task fit and required independence. Exact runtime model/effort and subscription pool must be recorded; no claim of guaranteed availability.
+
+**Mandatory GitHub ledger:** `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md`. DPC appends contemporaneous V2 events for dispatch, provider/context/quota preflight, switching/cooldowns, rework, handoffs, verification and acceptance outcomes. Each significant child handoff includes a V2 Orchestration Decision Appendix and links its ledger events. Source label each fact, claim and inference; unknown estimates remain UNKNOWN. Historical 30 October ledger and #241 backfill are separate.
+
+**Continuation:** DPC does not stop for a provider limit if a permitted alternative has adequate capacity or an unrelated already-authorised task can proceed. Preserve claims, branch/worktree ownership, context checkpoint and artifacts before switching. A DRAFT spec, unsafe Unity lease, protected gate, cross-provider review or unapproved product change is **not** bypassable. Do not turn this plan into production authority; AS-01/#246 is currently the only released access-spine step.
