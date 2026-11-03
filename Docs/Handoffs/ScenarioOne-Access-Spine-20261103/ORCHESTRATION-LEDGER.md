@@ -339,3 +339,25 @@ This is the **second** time in this programme that a single-provider output woul
 #### Retrospective (INFERENCE)
 
 Fixed-claim-list cross-provider review has now caught a substantive error twice in this programme (#246 mask taxonomy, #248 spacing formula). Both were assumptions left unstated rather than careless arithmetic. The durable fix is procedural: require the **validity condition** to be printed beside any formula in a measurement harness, and require the corrected run to be published **beside** the superseded one so the failure stays auditable.
+
+### EVENT — 2026-11-03 22:05Z — PR #249 count reconciliation (Manager-flagged), re-derived from original reviewer output
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248) documentation metadata, raised by Overall Manager in the [#250 packet](FIVE-RACK-REFERENCE-PACKET.md). **Evidence class:** OBSERVED FACT (reviewer verdict table re-read from the original delegated-review output; ledger heading count), ORCHESTRATOR CLAIM (correction), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** no new model dispatch. `gpt-6.1-sol`'s original review output was re-read directly from its task `node:delegated-task:…:delegate-task:b27ee535…`; counts were **parsed from that text**, not restated from memory.
+- **Provider/pool state, quota/context:** unchanged; no dispatch, no quota event.
+
+#### The two discrepancies (OBSERVED)
+
+1. **Claim-verdict counts were wrong.** The handoff and the #248 comment stated "13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL". That is both the wrong distribution and arithmetically impossible against 20 reviewed claims (13 + 7 + 1 = 21). **Actual, from the reviewer's own table: 9 PASS (C1–C4, C6, C10, C11, C13, C16) + 10 PASS-WITH-CORRECTION (C5, C7, C9, C12, C14–C15, C17–C20) + 1 FAIL (C8) = 20.** J1–J4 are judgement questions, not claims, and are excluded.
+2. **Event count was wrong.** The PR body said "five appended events"; the ledger carries **six** timed #248 event headings (21:06–21:16Z, 21:26Z, 21:33–21:38Z, 21:36–21:41Z, 21:45–21:52Z, 21:52–21:58Z). The Appendix A prose listed only five.
+
+#### Correction applied (OBSERVED)
+
+- Reviewer verdicts frozen verbatim to evidence: `review/REVIEW-VERDICTS.md` in the #248 evidence root, including the correction-history note.
+- `UNITY-GEOMETRY-HANDOFF.md`: Appendix B.1 counts corrected to **9 / 10 / 1 = 20** with an explicit count-correction disclosure; Appendix A now enumerates all **six** events; the evidence inventory lists the frozen verdict file.
+- PR #249 body and the #248 `[HANDED-OFF]` comment amended to the same figures.
+- **The disclosed MATERIAL ERROR (C8) is unchanged and unerased.** No historical event text was rewritten; this event records the correction.
+
+#### Retrospective (INFERENCE)
+
+Both discrepancies were **DPC bookkeeping errors**, not reviewer errors: a hand-summarised distribution that was never re-derived from the source, and a count taken from a draft rather than from the ledger. The rule this earns: **any count published from a delegated review must be parsed from that review's own output and re-checked against its total**, exactly as received-code counts are. Adding it to the working practice for #250.

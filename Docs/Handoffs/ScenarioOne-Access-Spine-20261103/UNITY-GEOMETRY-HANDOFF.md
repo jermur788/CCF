@@ -181,12 +181,13 @@ Root `/media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2
 | `plan_view_measured.svg` | measured plan view |
 | `harness/`, `analysis/`, `driver/`, `logs/` | harness source, search scripts (original + corrected), driver, raw Unity log |
 | `preflight/`, `side-effects/`, `logs/lock-*.json` | preflight receipts, Editor side-effect patch, lease release |
+| `review/REVIEW-VERDICTS.md` | **verbatim reviewer verdict table — the authority for the 9/10/1 counts, frozen for the PR #249 reconciliation** |
 
 ---
 
 # Appendix A — V2 Orchestration Decision Appendix
 
-Live append-only ledger: [`ORCHESTRATION-LEDGER.md`](ORCHESTRATION-LEDGER.md). Events for this run: packet refresh and five-step reconciliation; preflight/lane/lease/dispatch; run-1 result with the DPC spine-definition cross-check; the b7/b8 event; and the lease release with the MATERIAL ERROR review verdict and correction. Historical #246 events and the Manager's policy block are untouched.
+Live append-only ledger: [`ORCHESTRATION-LEDGER.md`](ORCHESTRATION-LEDGER.md). **Six** timed #248 events were appended: (1) #243 exact-owner release + preflight + lane + lease + dispatch, 21:06–21:16Z; (2) packet refresh and five-step reconciliation, 21:26Z; (3) run-1 PASS with the DPC spine-definition cross-check, 21:33–21:38Z; (4) the b7 two-zone result and b8 cancellation, 21:36–21:41Z; (5) lease release + MATERIAL ERROR review verdict + correction dispatch, 21:45–21:52Z; (6) correction returned and reconciled + handoff published, 21:52–21:58Z. Historical #246 events and the Manager's policy block are untouched.
 
 ## A.1 Routing
 
@@ -228,7 +229,9 @@ Live append-only ledger: [`ORCHESTRATION-LEDGER.md`](ORCHESTRATION-LEDGER.md). E
 
 ## B.1 Verdict
 
-**MATERIAL ERROR.** Over 20 fixed claims: **13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL.** All README sha256 hashes independently matched.
+**MATERIAL ERROR.** Over **20 fixed claims: 9 PASS, 10 PASS-WITH-CORRECTION, 1 FAIL** (9 + 10 + 1 = 20). All README sha256 hashes independently matched. The verdict table is frozen verbatim at `review/REVIEW-VERDICTS.md` in the evidence root.
+
+> **Count correction (disclosed).** This document and the #248 comment first stated "13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL" — wrong distribution, and 13 + 7 + 1 = 21 against 20 claims reviewed. The Manager flagged the mismatch; DPC re-derived the counts from the reviewer's own verdict table. **The review conclusion — MATERIAL ERROR, caused by the C8 spacing-formula failure — is unchanged.**
 
 ## B.2 The FAIL, and what it changed
 
