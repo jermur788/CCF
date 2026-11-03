@@ -203,10 +203,6 @@ public sealed class ScenarioOneEconomyIntegrationGate : MonoBehaviour
         Debug.Log("ECONOMY_PREVIEW_TREES beforeCount=" + beforeTreeIds.Count + " afterCount=" + afterTreeIds.Count
             + " missing=[" + string.Join(",", beforeTreeIds.Except(afterTreeIds).Take(12)) + "]"
             + " extra=[" + string.Join(",", afterTreeIds.Except(beforeTreeIds).Take(12)) + "]");
-        bool manualRestore = saves.LoadData(Clone(beforePreviewCanon), false);
-        yield return null; yield return null;
-        int manualCount = FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Count(t => t != null && t.IsLiving);
-        Debug.Log("ECONOMY_PREVIEW_MANUAL_RESTORE ok=" + manualRestore + " living=" + manualCount);
         Check(ecology.Browsing.Shelters.Count == 1 && ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeProtectedPreview, "preview exit replaces exact saved protection/player state");
         var legacy = Clone(shelteredSave); legacy.version = 14; legacy.regenerationModel = RegenerationModel.Legacy; legacy.growthModel = GrowthModel.Legacy; Check(saves.LoadData(legacy, false), "v14 safe migration");
         yield return null; yield return null;
