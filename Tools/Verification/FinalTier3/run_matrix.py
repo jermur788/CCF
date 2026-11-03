@@ -212,7 +212,7 @@ def main():
             elif kind == "mfm11":
                 cmd = ["python3", "-B", "Tools/Verification/Mfm12IntegratedQualification/run_gate.py",
                        "--out", str(out), "--lock-id", args.lock_id, "--owner", args.owner,
-                       "--expected-head", args.head, "--project", str(lane), "--sizes", sizes,
+                       "--expected-head", args.head, "--display", ":84",
                        "--timeout", str(args.timeout)] + extra
             elif kind == "rackux":
                 cmd = ["python3", "-B", "Tools/Verification/RackV2NoCompetingAuthor/run_gate.py",
