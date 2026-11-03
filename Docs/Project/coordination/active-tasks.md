@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after accepted #246 corrected source reconnaissance and prepared but BLOCKED #248 Unity geometry/MFM mask check. #243 original Unity lease still lacks release receipt; personal user playtest remains in progress.
+**Last reconciled:** 2026-11-03 after user confirmed no Unity process in use at 21:00 UTC; Manager released #248 LOCAL PREFLIGHT only, reserved a conditional isolated measurement lane. #243 Unity lease still has no verified FREE receipt; actual #248 Unity use conditional on fresh ownership/lock/disk/process checks. Personal playtest not accepted.
 
 ## Coordination rules
 
@@ -67,7 +67,7 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, read-only | Inspected both logs, all six raw screenshots, sources and visual fidelity; narrow waiver recommended | **APPROVED / CLOSED**; formal gate remains FAIL, review not a Unity rerun. |
 | **Isolated intro refresh staging** (#245) | browser/GitHub Manager, no local Unity | Exact Git ref of independently reviewed #243 candidate, separate from active playtest lineage | **STAGED / CLOSED** — `integration/scenario-one-intro-visual-refresh-v1` published at reviewed feature tip; existing `integration/scenario-one-player-test-ready-v1` unchanged. |
 | **Access spine / diagonal rack reconnaissance** (#246) | DPC, Claude Sonnet 5.5 Medium source audit + independent GPT-6.1 Terra Medium verification | Read-only inspected published player-test candidate; V2 ledger 4 events | **APPROVED / CLOSED — RESEARCH ONLY.** 13 PASS, 8 corrected, 1 FAIL original MFM kind taxonomy recorded/corrected before publication. No Unity/layout fit proof and no spec approval. |
-| **Access spine geometry/MFM measurement** (#248) | **DPC orchestrator; local Unity measurement lane UNASSIGNED**, Claude Sonnet 5.5 Medium or GPT-6.1 Medium chosen by live capacity | No production writer; read-only scene/geometry, hypothetical MFM Track vs Headland masks, actual candidate identity check | **PREPARED / BLOCKED** — active personal playtest, #243 lease receipt outstanding, no allocated Unity lane. Packet `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-MEASUREMENT-PACKET.md`. No Unity start or builds. |
+| **Access spine geometry/MFM measurement** (#248) | **DPC orchestrator**, model Claude Sonnet 5.5 Medium or GPT-6.1 Medium per observed pool capacity; **conditionally reserved** `verify/scenario-one-access-spine-measure-20261103` / `/media/jer/ZX20/CCF-AccessSpine-Measure-20261103` from the published playtest candidate, **only if path/ref/disk safe** | Exclusive read-only measurement ownership becomes effective **only after** unused-lane and new Unity lease preflight; never overlap #243 or the user | **PREFLIGHT RELEASED, UNITY EXECUTION CONDITIONAL** — user says nobody using Unity now; #243 exact-owner FREE receipt and fresh machine lock/process/disk/lane preflight remain outstanding. Then #248 may mark RUNNING and conduct measured scene/rack/MFM mask study only. No production. |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
@@ -117,6 +117,14 @@ To keep development moving, DPC can hand off and switch among **available, permi
 **Critical derived risk:** creating more `Dirt Path*` planks automatically adds MFM `MaskKind.Track` treatment-exclusion membership; feeder/headland use `MaskKind.Headland`, also excluded. A1 path extension is **not cosmetic-only** and cannot be dispatched without quantified MFM impact. The central access-spine with diagonal racks remains preferred but **geometry unmeasured**; existing Rack V2/D-064 controls. The four-file new spec remains DRAFT.
 
 Manager review: `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-REVIEW-20261103.md`. New #248 real Unity geometry/mask measurement packet is prepared but **BLOCKED**, since exact running playtest candidate, safe Unity slot, original #243 lock release and Manager-assigned exclusive lane are not yet established. Do not grant #248 file ownership or claim runtime PASS. DPC may progress only independent authorised tasks without overlapping locks or writer scopes. The user's personal playtest remains ongoing; no Windows build authorisation.
+
+## User frees Unity occupancy — #248 conditional local release, 2026-11-03 21:00 UTC
+
+**Direct user confirmation:** nobody is using Unity now; work may resume. This resolves the **live-user occupancy** restriction on #248. It **does not** establish that the earlier personal Scenario One test is completed or accepted, reveal the exact local candidate, or prove the machine-wide serialized Unity lease is FREE.
+
+Overall Manager now releases **#248 LOCAL PREFLIGHT** and conditionally reserves `verify/scenario-one-access-spine-measure-20261103` at `/media/jer/ZX20/CCF-AccessSpine-Measure-20261103` from the published player-test candidate, with strong preconditions: name/worktree must be unused, actual base/candidate confirmed, ZX20 capacity sufficient for added Unity Library with post-creation >15 GiB floor, no overlapping owner, no active Editor/display processes. DPC routes the **original #243 lock owner** to safely release only its exact matching lease using deployed CCF-Ops and records a current FREE receipt; DPC then acquires a new exclusive #248 lease. No force-release or workaround. If safe conditions fail, #248 returns BLOCKED; no Unity may launch. If all pass, the worker marks [RUNNING] with exact provider/model Medium effort, branch/worktree/base/lease and does bounded read-only geometry and hypothetical MFM mask measurement. DPC appends contemporaneous V2 ledger events and obtains independent review.
+
+**No draft-spec coding or A1/A2 production, Windows build, change to user-save or player-test branch.** The user's playtest is still unaccepted; completed personal testing plus a separate explicit authorisation are mandatory before a Windows build.
 
 ## User / build gate
 
