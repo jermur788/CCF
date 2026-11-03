@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after #243 returned a 288/289 formal FAIL and #244 independent waiver/visual review was released. Browser/GitHub Manager coordination sole writer #200; local orchestration #201/#203.
+**Last reconciled:** 2026-11-03 by Overall Manager / GPT-6 after #244 independent review, narrow waiver acceptance, and #245 isolated intro staging. #243 lock-release receipt outstanding; current personal playtest unchanged. #200 browser sole writer; #201/#203 local orchestration.
 
 ## Coordination rules
 
@@ -63,8 +63,9 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Stand Map species canopy differentiation** (#232) | #203 local / Unity | bounded player-facing map presentation | **APPROVED / INTEGRATED** |
 | **#232 final integration** (#242) | browser/GitHub | exact fast-forward publication | **INTEGRATED / CLOSE** |
 | **PARITY-03 Q10** (#74) | #203 when explicitly scheduled | non-blocking verification | **WAITING — NON-BLOCKING** |
-| **Astra onboarding visual refresh** (#243) | isolated `feature/scenario-one-intro-astra-visual-refresh-20261103` / `/media/jer/ZX20/CCF-Intro-Astra-20261103` | Sole production-file writer (existing allocation remains until final Manager disposition) | **[HANDED-OFF] — IMPLEMENTED; TWO UNITY RUNS FORMALLY FAIL 288/289 (UnityEditor.Search startup exception), INDEPENDENT REVIEW PENDING; NOT INTEGRATED.** Unity lock reportedly still HELD by #243 owner; exact-owner local release requested. ZX20 ~14 GB free, below 15 GiB floor. No Unity may start. |
-| **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, **read-only** inspection of existing verification lane and raw evidence | Verify both startup exception traces, all six screenshots, source diff, accepted image reference and safe waiver conditions | **READY / DISPATCHED; NOT YET REVIEWED** — no Unity, no code edits, no additional disk-heavy worktree. |
+| **Astra onboarding visual refresh** (#243) | feature `feature/scenario-one-intro-astra-visual-refresh-20261103`, isolated `/media/jer/ZX20/CCF-Intro-Astra-20261103` | Sole production-file ownership retained until lease cleanup / Manager release | **APPROVED / STAGED, NOT merged into active playtest branch.** Formal focused gate FAIL 288/289 twice; **exact UnityEditor.Search exception waiver approved for Manager acceptance only**. Original Unity lease reportedly HELD by #243 owner; exact-owner safe release receipt required. Independent reviewer observed ~28 GB free (not a fresh future admission proof). |
+| **Independent intro visuals / exception review** (#244) | Claude Sonnet 5.5 Medium, read-only | Inspected both logs, all six raw screenshots, sources and visual fidelity; narrow waiver recommended | **APPROVED / CLOSED**; formal gate remains FAIL, review not a Unity rerun. |
+| **Isolated intro refresh staging** (#245) | browser/GitHub Manager, no local Unity | Exact Git ref of independently reviewed #243 candidate, separate from active playtest lineage | **STAGED / CLOSED** — `integration/scenario-one-intro-visual-refresh-v1` published at reviewed feature tip; existing `integration/scenario-one-player-test-ready-v1` unchanged. |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
@@ -77,7 +78,7 @@ Housekeeping: browser tooling created temporary remote refs `tmp-noop-integratio
 - Latest user-approved three images **in Astra's own execution chat** are reported to differ from earlier handoff ZIP hashes. Per latest direct user direction they are the visual source; obtain hashes from actual local originals and preserve both provenance sets. Added Page 1 sentence stays byte-exact and teal/blue.
 - No Windows build, Player build, accepted-test rebaseline, or merge is permitted from this assignment; existing approved Tier-3, #232 and personal playtest remain intact.
 
-## #243 returned onboarding implementation — Manager checkpoint 2026-11-03
+## #243 returned onboarding implementation — earlier Manager checkpoint 2026-11-03 (HISTORICAL, superseded below)
 
 The user-approved 3-page intro artwork and copy have been implemented on the isolated feature branch; **not integrated** into the published player-test candidate. Handoff: `Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/IMPLEMENTATION-HANDOFF.md` (feature branch). Returned evidence: two focused Unity Editor runs, **288 checks passed and 1 failed** each, 6 screenshots each at 1280×720 and 1920×1080. The single `NO_EXCEPTIONS_OR_ERRORS` failure reports a UnityEditor.Search indexer `ArgumentOutOfRangeException` at Editor startup. The formal gate result remains **FAIL** (exit 1); no current product defect is demonstrated but environmental causation is not independently established. Screenshot visual quality is worker-reviewed only; Browser Manager has not directly inspected the externally stored raw captures.
 
@@ -86,6 +87,18 @@ The user-approved 3-page intro artwork and copy have been implemented on the iso
 **Operational block:** #243 worker reports lock remains held under its own owner ID and the lane is clean; Manager has not independently verified machine state. Only that **same owner**, after checking the deployed lock service/Editor processes and matching exact lease, may release the lock. No remote forced unlock, process kill, arbitrary cleanup, or fresh Unity while ZX20 is under its 15 GiB free-space floor (reported ~14 GB). Record local release proof on #243. Review #244 can run without Unity.
 
 The previously issued player-test-ready token applies solely to the already-published integration candidate, unchanged by this unintegrated feature. User personal playtest is **in progress**, not accepted. No Windows build until personal playtest completion and explicit user authorisation.
+
+## #243 final Manager disposition, #244 review and #245 staging — 2026-11-03
+
+**Manager APPROVED** the bounded three-page onboarding visuals and copy, with a narrowly documented acceptance **waiver** for the exact Unity Editor Search indexer startup exception. The original **two Unity gates remain formally FAIL** (288/289, `ONBOARDING_FAIL`, exit 1). No test assertion/filter changed; no additional Unity run. The independent reviewer opened all six real rendered images at 1280×720 / 1920×1080 and verified Page 1's teal sentence and gradual retained-tree visual, Page 2 icons/halo/text fit, and Page 3 several mature Sitka. Minor accepted visual notes: Page 1 art ~10% vertical compression, Page 2 card 4 ~10 px right margin. Exact provenance uses the newer user-approved originals recorded in the 3 Nov art manifest; older ZIP hashes remain history. The error occurred **after CCF Awake/Start diagnostics but before the first onboarding check**, correcting an inaccurate implementation handoff phrase.
+
+Mainline review: `Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/MANAGER-FINAL-REVIEW-20261103.md`. Independent review on `review/scenario-one-intro-astra-independent-20261103`: `INDEPENDENT-REVIEW-20261103.md`.
+
+#245 published a **separate, exact reviewed Git ref** `integration/scenario-one-intro-visual-refresh-v1`, without file reconstruction, local Unity, test rerun or any change to the user's current `integration/scenario-one-player-test-ready-v1` baseline. Mainline staging handoff: `Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/STAGING-INTEGRATION-HANDOFF.md`. **The user has not completed or accepted their personal playtest.** Do not silently switch their test branch; coordinate a transition before promotion.
+
+**Local safety outstanding:** #243's original owner is the only party authorised to check the machine-wide held Unity lease and release its own exact matching lock after confirming no Editor processes; request fresh FREE receipt on #243. No forced unlock. The independent reviewer observed about 28 GB free on ZX20, superseding the earlier ~14 GB report, but it is a point-in-time receipt, not a substitute for a new admission check. No Unity run is requested now.
+
+No Windows/Player build before personal playtest is complete and explicit post-playtest authorisation; no Reference Future v1/Legacy40, MFM or simulation changes from #243. #194 NO ACTION.
 
 ## User / build gate
 
