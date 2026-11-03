@@ -234,3 +234,41 @@ Arithmetic on **measured** values only (`routeNorthEndZ 10.75`, L4 target `z 38.
 - The worker's turn had ended ~21:22Z with a **stale** message ("cold import still running") while its Unity run continued; the driver finished and passed at 21:33:28Z with nothing consuming the result. **INFERENCE:** a delegate that ends its turn during a long background run leaves results unread, so DPC must re-enter on run completion. **Harness/process lesson — not a model-reasoning failure and not a quota event.**
 - DPC resumed the **same child** (ordinal 3) with the actual run JSON, an explicit "do not redo" list (side effect already captured/restored, cleanup already done, lease untouched), and the remaining scope: **B7 systematic angle sweep at 20/30/35/40/45/50/60°**, a fix to the uninformative `L1` zero-length leg label, `RESULTS.md`, `README.md` with harness/JSON hashes, and a final clean-state check.
 - **Not delegated:** implementation, plank placement, save/MFM/schema change, Windows build, GitHub push, lease handling.
+
+### EVENT — 2026-11-03 21:36Z–21:41Z — b7 angle sweep returns the decisive two-zone result; b8 layout script cancelled as unbounded
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (worker JSON, process table, CPU/load, arithmetic); ORCHESTRATOR CLAIM (interpretation); RETROSPECTIVE INFERENCE (efficiency lesson).
+- **Provider/model/effort:** unchanged, `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`. No switch, no retry. **No quota/cooldown/login event at any point.**
+- **Provider/pool state, quota, context, tokens:** **UNKNOWN** throughout; no telemetry exposed. Not estimated.
+- **Capacity-to-completion / switching cost:** b7 completed; b8 did not and was cancelled by DPC. No switching cost.
+
+#### b7 result — the number that decides the Manager's verdict (OBSERVED, worker-measured)
+
+`measurements/b7_angle_sweep.json`, best achievable **3+2** minimum perpendicular spacing:
+
+| α | NORTH_ONLY zone (13.2→37.5) | FULL_SPINE zone (−25.05→37.5) |
+|---|---|---|
+| 20° | 3.18 m | 8.65 m |
+| 30° | 4.73 m | 13.65 m |
+| 35° | 5.51 m | **15.97 m** (0.03 m short) |
+| 40° | 6.24 m | **18.06 m** |
+| 45° | 6.97 m | **20.08 m** |
+| 50° | 7.66 m | **21.91 m** |
+| 60° | 8.92 m | **25.07 m** |
+
+- **NORTH_ONLY never reaches the 16 m band at any tested angle.** **FULL_SPINE reaches it from α ≥ 40°.**
+- This **agrees with DPC's independent arithmetic** (event 21:33Z–21:38Z): two 16 m perpendicular gaps need 32 m of spine regardless of angle, which the ~24 m north-only zone cannot supply, while the full in-stand route can.
+- **Consequence:** whether five diagonal racks can fit is decided by **which spine the specification means**, not by trigonometry. Branching from a new northern extension only is infeasible at every angle; branching along the existing in-stand route is feasible at 40° and above. **DPC will present both zones and will not collapse them into a single recommendation.**
+- Also OBSERVED: the existing *suggested* five-rack layout has perpendicular gaps 18.85 / 16.66 / **15.56** / 19.44 m — one gap is already below the 16 m band before any redesign.
+- OBSERVED (`turning_room.json`): spine end at (−2.715, 37.5) is 2.5 m from z=40 but only **0.507 m from the nearest trunk PO3919**, and the North Ridge collider's south face is z=39.5 — so the "turning room" at the north end is bounded by trees, not just the stand edge.
+
+#### b8 failure — classification and action (OBSERVED + ORCHESTRATOR CLAIM)
+
+- `analysis/b8_layouts.py` ran ~3.5 min at 88 % CPU and produced no output. Cause: `place()` calls an expensive `ok()` for ~486 z values inside a 30-iteration binary search, four times, for 7 angles × 2 zones × 2 targets, while `ok()` itself samples ~150 points against 10 obstruction circles — order **10⁹ Python operations**. It was **not** going to finish in any reasonable window.
+- **DPC cancelled it (PID 2963539) and instructed the worker not to restart it**, because `b7` already answers the feasibility question conclusively and b8 was only a candidate-layout convenience.
+- **Classification: worker efficiency/algorithmic defect (missing memoisation), not a quota, cooldown or reasoning failure.** Recorded, not silently dropped. The cancelled script and the reason will appear in the evidence `README.md`.
+- **Retrospective:** the brief asked for the angle sweep without bounding its combinatorial cost; a future brief should require an explicit complexity/cache note before a search script is launched, and should prefer a single memoised feasibility table over a nested binary search.
+
+#### Continuation (OBSERVED)
+
+DPC resumed the same child with the two-zone table, the explicit b8 cancellation, and the remaining scope: `RESULTS.md` in packet order, a "what this does NOT establish" section, the `L1` no-op label fix, `README.md` with hashes, and a final clean-state check. Still withheld: implementation, plank placement, save/MFM/schema change, Windows build, push, lease handling.
