@@ -272,3 +272,40 @@ Arithmetic on **measured** values only (`routeNorthEndZ 10.75`, L4 target `z 38.
 #### Continuation (OBSERVED)
 
 DPC resumed the same child with the two-zone table, the explicit b8 cancellation, and the remaining scope: `RESULTS.md` in packet order, a "what this does NOT establish" section, the `L1` no-op label fix, `README.md` with hashes, and a final clean-state check. Still withheld: implementation, plank placement, save/MFM/schema change, Windows build, push, lease handling.
+
+### EVENT — 2026-11-03 21:45Z–21:52Z — lease released; independent review returns MATERIAL ERROR on the published spacing formula; correction dispatched
+
+- **Work unit / claim:** [#248](https://github.com/jermur788/CCF/issues/248). **Evidence class:** OBSERVED FACT (review verdict, recomputation), ORCHESTRATOR CLAIM (impact assessment), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** measurement worker `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (unchanged). Independent reviewer **`codex` / `gpt-6.1-sol` / `reasoningEffort: medium`**, task `node:delegated-task:…:delegate-task:b27ee535…`, role `review`, read-only, **no Unity, no writes, no lease interaction**.
+- **Provider/pool state, quota/context/tokens:** both pools enabled throughout; **no cooldown, rate-limit or login event**. Quota, reset, credit, context and tokens remain **UNKNOWN** — no telemetry exposed; not estimated.
+- **Capacity-to-completion / switching cost:** review returned inside one turn against a 20-claim fixed list. No switch, no retry, no salvage.
+
+#### Lease (OBSERVED)
+
+`62da5753307c4bb886477efc14b4ed96` released **normally** at 21:44:43Z (`forced: false`), reason "#248 read-only measurement complete; no Editor; lane clean at 72b4efbd". Post-release status `free`, `unity_editor_pids: []`. The lease was **not** held idle for the read-only review; any re-measurement would need a fresh lease.
+
+#### Review verdict: **MATERIAL ERROR** (OBSERVED)
+
+20 claims: **13 PASS, 7 PASS-WITH-CORRECTION, 1 FAIL** (C8). All README sha256 hashes independently matched. Reviewer wrote no files and touched no lease.
+
+- **C8 FAIL — the substantive defect.** `analysis/b7_sweep.py:maxmin_gap` computed same-side spacing as `Δz·sin α`. That is valid only for a vertical spine (`Δx = 0`). Branches leave a junction with direction `(s·sin α, cos α)`, so the true perpendicular distance between two same-side parallel branches is **`|Δx·cos α − s·Δz·sin α|`**. The FULL_SPINE junctions lie on the **bowed** route, where `Δx` is several metres, so the published FULL_SPINE column and its advertised 16 m candidates are **wrong**: the 40° east-three candidate's real gaps are **12.770 / 19.454 m**, not ≥16 m.
+- **NORTH_ONLY is unaffected** (straight spine above z = 10.75, `Δx = 0`), and the reviewer independently confirmed the **angle-independent bound** — two 16 m gaps require `L ≥ 32/sin α`, and the 24.3 m zone cannot supply 32 m at any angle. **Extension-only infeasibility therefore stands.**
+- **FULL_SPINE still works, with a much thinner margin.** The reviewer's own corrected search (real line-normal distances, continuous segment-to-circle clearance) gives maximum-minimum 3+2 spacing: 20° **6.293**, 30° **11.032**, 35° **13.587**, 40° **16.009**, 45° **18.274**, 50° **20.407**, 60° **24.057** m. At 40° a **west-three** arrangement at junction z −23.85 / −5.35 / 26.30 gives gaps **16.009 / 16.013 m**; the published east-three candidate does not. Southern bound corrected to **z ≥ ≈ −23.85** (feeder pad −27.4 + 2.35 + 1.2), not −25.05.
+- **Seven PASS-WITH-CORRECTION**, all labelling precision rather than arithmetic: headland is **presentation**-only (it still exists in production clearance and MFM geometry); turning-room distances are to the trunk **centre**, DERIVED, not an available-clearance test; lattice statistics are DERIVED (estimator must be stated; residual-based sd 0.243588 / 0.248777); the five suggested racks are **hypothetical** geometry so MFM is production inputs + hypothetical rack geometry, not an operational baseline; only the **coverage** signature changes, the prescription derivation signature was not recomputed per scenario; `productionReadCoverageNullInFreshWorld` is **hardcoded** in the harness rather than measured; "no mutation" must be stated as "no persistent gameplay write-back found" because the harness does create a GameObject, enter Play mode and move the player with `cc.Move`; "from 40° up" means at the sampled angles, not a proven continuous threshold.
+
+#### What survives, and what does not (ORCHESTRATOR CLAIM)
+
+- **Survives:** extension-only infeasibility at any angle; full-spine feasibility at sampled angles ≥ 40°; the finding that manifest, addressable **A1 is not visual-only** (MFM deltas and signature change); the traversal and passability measurements; the turning-room and existing-layout gap findings; the conclusion that **which spine the spec means is the decisive unresolved definition**.
+- **Does not survive:** the published FULL_SPINE spacing column and the specific 16 m candidate layouts. They are **superseded**, not silently edited — the original JSON is retained unmodified as the record of what was run, and corrected output will be published beside it.
+- **Neither direction is overturned** in kind; only the published numbers and the margin.
+
+#### Classification and action (OBSERVED)
+
+- **Worker quality error** — an incorrect perpendicular-distance formula applied to a curved spine. **Not** a quota, cooldown or reasoning failure. Caught by the independent cross-provider review, which is precisely the control the packet required.
+- DPC resumed the same measurement child to fix `maxmin_gap`, regenerate **corrected** JSON alongside the untouched originals, write `CORRECTIONS.md`, reconcile against the reviewer's numbers, and apply the labelling corrections. **No Unity, no lease, no push.**
+- DPC housekeeping: three stray untracked files (`candidate-ref.txt`, `lane-path-check.txt`, `remote-refs.txt`) created by DPC in `/media/jer/ZX20/CCF-Primary` during the 21:11Z preflight were confirmed duplicated in the evidence `preflight/` directory and removed; CCF-Primary is clean.
+- **`UNITY-GEOMETRY-HANDOFF.md` is NOT yet published** — it waits for the corrected table.
+
+#### Retrospective (INFERENCE)
+
+This is the **second** time in this programme that a single-provider output would have shipped a substantive technical error (the first was the MFM mask taxonomy in #246, corrected on review). Both times the failure mode was the same: a formula or taxonomy that is correct under an unstated simplifying assumption (straight spine / single mask kind) and silently wrong outside it. A future brief should require the **assumption under which a formula is valid** to be stated next to the formula itself.
