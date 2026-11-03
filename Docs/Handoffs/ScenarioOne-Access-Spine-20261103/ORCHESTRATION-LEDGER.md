@@ -396,3 +396,46 @@ Scope dispatched: one complete candidate — feeder spine (existing in-stand rou
 - **Explicitly forbidden to the designer:** the superseded `b7_angle_sweep.json` / `b8_candidate_layouts.json`, the extension-only spine, the 40° target, any A1 cosmetic plank extension, any production/mask/save/schema edit, rack creation, plank placement, deemed felling, Windows build, push, or commit to the measurement branch.
 - **Formula discipline enforced in the brief:** state the assumption under which each formula is valid — the #248 defect was a formula correct only for a straight spine applied to a bowed route.
 - **Withheld:** implementation, Manager approval, spec amendment, `active-tasks.md` (Manager-owned).
+
+### EVENT — 2026-11-03 22:22Z–22:36Z — #250 run A PASS, run B render OOM, candidate complete, review dispatched, lease released
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250). **Evidence class:** OBSERVED FACT (run JSON, logs, production `Derive` verdict, process/RAM/disk), ORCHESTRATOR CLAIM (render decision, routing), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** designer `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (task `…:delegate-task:dce7bf64…`). Reviewer dispatched `codex` / `gpt-6.1-sol` / `reasoningEffort: medium` (task `…:delegate-task:e8bf5326…`). No switch, no retry by provider failure.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/reset/credit/context/tokens **UNKNOWN** — not estimated.
+
+#### Runs (OBSERVED)
+
+| Run | Result | Detail |
+|---|---|---|
+| run A (measurement) | **PASS**, code 0, 71.5 s | `ASM_WORLD_OK lines=6 mode=mfm`; wrote `mfm_candidate.json`, `map_model.json`; `ASM_MEASURE_PASS`. Free 20,147,863,552 → 20,145,373,184 B |
+| run A retry | earlier attempt FAIL code 1, 33.9 s | an initial failed launch before the successful one; harness fixed and re-run, not hidden |
+| run B (renders) | **FAIL**, code −9, 163.8 s | cgroup OOM kill: `anon-rss 5.67 GB + shmem 1.68 GB` under `MemoryMax=8G`; reached the startup screen, produced **no image** |
+
+- **Renders are UNMEASURED.** DPC's decision: **not retried.** The machine has 15 GB total RAM and only ~6 GB available; the worker's own bounded next step requires ≥12 GB free or the user's real GPU display. Repeated OOM kills risk the machine for no evidentiary gain, and the #250 packet explicitly permits an UNMEASURED render labelled with a bounded verification step. Recorded as a gap, not papered over.
+- Side effects: `.vscode/settings.json` rewritten by the Editor in both runs; patches preserved (`side-effects/settings-patch-runA.diff`, `-runB.diff`); lane restored clean at `72b4efbd`.
+
+#### Candidate result (OBSERVED, worker; DPC spot-checked the load-bearing figures)
+
+- **Spine** = existing in-stand route 53.020 m + due-north continuation 26.750 m = **79.770 m**, continuation from (−2.7148, 10.75) to (−2.7148, 37.5).
+- **Five racks at 45°, 2.4 m wide: R1 E, R2 W, R3 W, R4 E, R5 W** (3 west + 2 east).
+- **Same-side perpendicular gaps (corrected formula): W-three 16.623 / 17.510 m; E pair 17.855 m** — inside the 16–20 m band, and materially *below* the 18.274 m clearance-only bound, as expected once real constraints apply.
+- **Corridor impacts:** 103 distinct rack-corridor trees + 18 spine-continuation trees = **120 union** (one shared, PO3518; 103 + 18 − 1 = 120 verified).
+- **MFM (Track):** 106 newly masked living trees; treatable stems 994 → 888 (**−106**); treatable area **−448.03 m²**. Per-rack Track/Headland: R1 34/32, R2 25/24, R3 33/32, R4 36/35, R5 10/10.
+- **Production rejection (the consequential finding):** `ScenarioOneRackSampleGeometry.Derive` on the candidate's own five racks returns **`Valid=false` — "Racks 4 and 5 cross or overlap across the common normal, so they have no defensible order."** The production rack-sample/coverage model assumes five parallel racks; **a 3+2 herringbone cannot be represented without a spec/model change.** Verified directly in `mfm_candidate.json` by DPC.
+- **Yard conflict:** the straight continuation passes **0.035 m** from Forestry Workbench and 0.215 m from Grinding Stone; buildable collider extents measure zero, so footprints are **UNMEASURED**. Needs a bypass or relocation decision.
+- **Entrances:** a real living entrance tree exists for all five, but R1/R3 sit 3.66/3.71 m from the junction centre (beyond a 3.5 m spray reach from centre; inside from the band edge), and **production accepts headland entrances only**, so **none is accepted by current code**.
+- **Turning:** spine end 0.5 m from a trunk centre; R1 far end 0.07 m (PO2839), R4 far end 0.34 m (PO3937); no machine footprint exists in the repo, so turning room is **UNMEASURED**.
+- **Recommendation: STOP for implementation**, with this candidate offered as the reference geometry for a spec amendment, conditional on yard bypass, headland termination, entrance-reach rule, herringbone MFM model and removal authorisation.
+
+#### Lease (OBSERVED)
+
+`095403a84234458b8221d4262f555bad` released **normally** at 22:36Z (`forced: false`); status `free`; no Editor PIDs; 18.68 GiB free. Not held idle for the read-only review.
+
+#### Classification
+
+- **Render OOM = environment limitation, not a model-reasoning failure and not a quota event.** The RAM ceiling is the constraint; the worker correctly refused to raise the cap without authorisation.
+- **run A first attempt FAIL = ordinary implementation iteration**, disclosed rather than hidden.
+
+#### Retrospective (INFERENCE)
+
+The design did **not** repeat the #248 mistake: the brief required the validity assumption beside every formula, and the spacing now uses the corrected bowed-route distance with the assumption stated. The new and more useful failure is in *production*, not in the maths — the coverage model rejects the very topology D-068 asks for. That is a spec-level finding, which is what a design claim is for.
