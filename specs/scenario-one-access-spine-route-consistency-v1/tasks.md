@@ -1,0 +1,13 @@
+# Access Spine & Diagonal Rack Network — Draft Task List
+
+**Status: DRAFT. Only the read-only reconnaissance #246 is released.** No production task here is authorized.
+
+1. **AS-01 / #246 — Existing geometry and contracts, read-only.** Inspect central path, visible extra trails, rack planning snap/edge rules, authoritative maps/minimap/world, entrance trees, persistence, MFM and traversal. Return `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/RECONNAISSANCE-HANDOFF.md` with source/line and geometry limitations. T3 Code; Medium; no Unity or production writes. Exit `ACCESS SPINE ARCHITECTURE MAPPED`.
+2. **AS-02 — Scene-grounded feasibility check, TBD.** Only after previous Unity lease safely freed and separate packet/claim: real stand-space bearings, turn points, distances, working-width and five-rack feasibility. No code edit. Exit `ACCESS SPINE GEOMETRY VERIFIED` or `STOP — CONFLICT`.
+3. **AS-03 — Product spec amendment/approval, Manager.** Choose explicit network/status/Work Plan boundaries, permit poor vs invalid draft choices with consequences, revise approved Rack V2 spec only where necessary, and obtain user approval on material changes. Exit `SPEC APPROVED`.
+4. **AS-04 — Authoritative topology/persistence implementation, TBD owner.** New claim after AS-03; smallest compatible model and connection validation, no duplicate rack system. Exit feature tests passed.
+5. **AS-05 — World/Stand Map/minimap representation and movement, TBD owner.** New single-writer lane/claim, rendered consistency and slower off-route traversal. Exit affected rendered evidence.
+6. **AS-06 — Objective guidance/teaching and rack interaction, TBD owner.** Align objective/map prompts; preserve field marking and Work Plan rules, distinguish proposed vs executed. Exit focused interaction checks.
+7. **AS-07 — Independent acceptance/integration, Manager.** Exact diff review, old-save/Legacy40/Reference Future checks, affected Tier-3 delta only, user continuation. No Windows build before playtest + authorisation.
+
+No #246 local Unity use, hard ownership handoff or new build is permitted. All subsequent tasks require fresh worktree/branch/claim, exact baseline and serialized Unity lease.
