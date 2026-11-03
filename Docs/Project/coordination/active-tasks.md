@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-03 by Overall Manager / OpenAI GPT-5.6 Sol after Manager acceptance and exact fast-forward integration of Stand Map species-canopy differentiation #232. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
+**Last reconciled:** 2026-11-03 by Overall Manager / OpenAI GPT-6 — user-approved Astra onboarding visual-refresh handoff #243 dispatched as READY, with no implementation lock yet. Prior #232 integrated status remains unchanged. Browser/GitHub Manager ownership remains under #200; local/Unity orchestration remains under #201/#203.
 
 ## Coordination rules
 
@@ -63,6 +63,7 @@ Because the integration is the exact already-qualified direct-child commit on it
 | **Stand Map species canopy differentiation** (#232) | #203 local / Unity | bounded player-facing map presentation | **APPROVED / INTEGRATED** |
 | **#232 final integration** (#242) | browser/GitHub | exact fast-forward publication | **INTEGRATED / CLOSE** |
 | **PARITY-03 Q10** (#74) | #203 when explicitly scheduled | non-blocking verification | **WAITING — NON-BLOCKING** |
+| **Astra onboarding visual refresh** (#243) | proposed isolated Astra local Unity worktree; not yet acquired | user-approved three screenshot targets, Page 1 exact blue/teal sentence and focused visual qualification; [handoff](../../Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/HANDOFF.md) | **READY FOR ASTRA — NOT RUNNING / NO FILE OR UNITY LOCK**; Astra must refresh live coordination and mark claim RUNNING before edits |
 
 Housekeeping: browser tooling created temporary remote refs `tmp-noop-integration-check` and `noop`, both pointing at the integrated candidate. They do not affect product or candidate state. Local orchestration should delete them when convenient; browser connector has no branch-delete action.
 
