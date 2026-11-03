@@ -439,3 +439,26 @@ Scope dispatched: one complete candidate — feeder spine (existing in-stand rou
 #### Retrospective (INFERENCE)
 
 The design did **not** repeat the #248 mistake: the brief required the validity assumption beside every formula, and the spacing now uses the corrected bowed-route distance with the assumption stated. The new and more useful failure is in *production*, not in the maths — the coverage model rejects the very topology D-068 asks for. That is a spec-level finding, which is what a design claim is for.
+
+### EVENT — 2026-11-03 22:40Z–22:50Z — #250 review returns MATERIAL ERROR; DPC's own MFM misquote corrected from raw JSON; handoff published
+
+- **Work unit / claim:** [#250](https://github.com/jermur788/CCF/issues/250). **Evidence class:** OBSERVED FACT (review verdicts, raw `mfm_candidate.json` rows, recomputation), ORCHESTRATOR CLAIM (acceptance), RETROSPECTIVE INFERENCE (lesson).
+- **Provider/model/effort:** reviewer `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`, read-only, task `…:delegate-task:e8bf5326…`. No further dispatch; DPC corrected its own text.
+- **Pool/quota/context/tokens:** both pools enabled; **no cooldown, rate-limit or login event**. Quota/context/tokens **UNKNOWN** — not estimated.
+
+#### Verdict (OBSERVED)
+
+**MATERIAL ERROR.** 15 claims: **7 PASS, 6 PASS-WITH-CORRECTION, 2 FAIL** (7 + 6 + 2 = 15). All README hashes matched.
+
+- **C9 FAIL — DPC's error, not the worker's.** DPC's summary conflated the `Track` and `Headland` rows and reported a *stem delta* as a *newly-masked tree* count. Re-read row by row from `mfm_candidate.json`: **C3 spine+five racks — Track: 156 newly masked, 994 → 883 (−111 stems), 4141.99 → 3682.17 (−459.82 m²); Headland: 150, 994 → 888 (−106), −448.03 m².** The worker's `RESULTS.md` table was correct throughout.
+- **C7 FAIL — worker metric misapplication.** Grinding Stone (z = 9.4) lies south of the continuation start (z = 10.75); 0.215 m is distance to the **infinite axis**, finite-route distance **1.367 m**. The yard conflict survives for the **Forestry Workbench (0.035 m)** and not for the Grinding Stone.
+- **Six corrections accepted:** R1/R2 corridors overlap (1.414 m centreline separation vs 2.4 m combined half-width); full-width corners reach 38.349 m (outside the 37.5 window, inside the 40 stand); the R2/R3 snap flag is misleading (4.6 m from boundary, not snap-eligible); R1's endpoint sits **inside** PO2839's collider (−0.0076 m face); the `Derive` rejection is about **overlapping projections across a common normal**, not physical crossing, and does not prove all herringbones fail; the render SIGKILL does **not by itself prove OOM**, and "lease untouched" needs actor attribution (DPC released it).
+- **Reviewer's STOP position accepted:** proportionate for implementation and operational endorsement, **excessive if it also stopped specification investigation**.
+
+#### Publication (OBSERVED)
+
+`FIVE-RACK-REFERENCE-HANDOFF.md` published with: the STOP recommendation and its three drivers; the five-rack table with corrected per-rack data; corrected yard distances; the corrected MFM table **with an explicit correction notice naming DPC**; the proposal-overlay contract (specified, not implemented); renders labelled UNMEASURED with an unproven-cause caveat and a bounded next step; and ten D-064/D-068 conflicts. `#250` moved to **`[HANDED-OFF]`**.
+
+#### Retrospective (INFERENCE)
+
+Two consecutive claims in this programme produced a material error caught only by cross-provider review: **#248 by the worker** (formula valid only under an unstated assumption) and **#250 partly by DPC** (a figure carried from one context into another without re-derivation). The shape is identical — a number reused outside the context that produced it. Rule adopted: **any figure published from a harness or a reviewer must be re-extracted from the raw artefact at the point of publication and reconciled against its total**, the same discipline already applied to sha256 hashes. This is also the **third** DPC bookkeeping/transcription error this session (review counts, event count, MFM rows); the common cause is summarising from memory rather than re-reading the source, and it is now recorded rather than excused.
