@@ -217,6 +217,29 @@ public sealed class OnboardingVerificationRunner : MonoBehaviour
     private IEnumerator Capture(int page, Vector2Int size)
     {
         if (page == 3) CheckScenarioRow();
+        VisualElement root = ui.Help.Onboarding.Root;
+        Button next = root.Q<Button>("onboarding-next");
+        Check(next.enabledInHierarchy && next.focusable, "LIVE_ENABLED_PRIMARY_ACTION page=" + page);
+        if (page == 1)
+        {
+            Label renewal = root.Q<Label>("onboarding-renewal");
+            const string required = "The forest is renewed gradually over time, creating a mixed-aged, more resilient and productive woodland.";
+            Check(renewal != null && renewal.text == required, "PAGE1_EXACT_RENEWAL_SENTENCE");
+            Label heading = root.Query<Label>(className: "onboarding-eyebrow").First();
+            Check(renewal != null && renewal.resolvedStyle.color == heading.resolvedStyle.color, "PAGE1_EXISTING_HEADING_ACCENT");
+            Label lead = root.Query<Label>().ToList().First(l => l.text.StartsWith("Continuous-cover forestry"));
+            Check(renewal != null && renewal.worldBound.y >= lead.worldBound.y +
+                lead.MeasureTextSize(lead.text, lead.contentRect.width, VisualElement.MeasureMode.Exactly, 0, VisualElement.MeasureMode.Undefined).y *
+                (lead.worldBound.height / lead.layout.height), "PAGE1_RENEWAL_BELOW_OPENING_COPY");
+        }
+        if (page == 2)
+        {
+            const string required = "Encourage natural regeneration and establish other species for a diverse forest.";
+            Label statement = root.Query<Label>().ToList().FirstOrDefault(l => l.text == required);
+            var cards = root.Query<VisualElement>(className: "onboarding-card").ToList();
+            Check(statement != null && cards.Count == 5 && cards[3].worldBound.Contains(statement.worldBound.min) &&
+                cards[3].worldBound.Contains(statement.worldBound.max), "PAGE2_CARD4_EXACT_COPY_INSIDE_CARD");
+        }
         yield return new WaitForEndOfFrame();
         Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
         Check(image != null && image.width == size.x && image.height == size.y, "ACTUAL_CAPTURE_SIZE_" + page + "_" + size);

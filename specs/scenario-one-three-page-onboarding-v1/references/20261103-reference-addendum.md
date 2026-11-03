@@ -1,0 +1,13 @@
+# Approved 3 November 2026 visual refresh — task #243
+
+Authority: user's latest three attachments and exact Page 1 sentence, with the Manager handoff at `Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/HANDOFF.md` on GitHub main. This supersedes the 25 October presentation only; old references/manifests remain unchanged history. The earlier ZIP hashes in the handoff do not describe these newer originals.
+
+`20261103-art-manifest.json` records the actual selected source hashes, crop coordinates and runtime atlas hashes. Original supplied PNGs are retained byte-for-byte as `20261103-page-{1,2,3}-approved.png`. Provenance: user-supplied approved Astra-generated illustrations; no third-party licensing claim is made.
+
+Asset brief: these are explanatory forest illustrations, not simulated outcomes or empirical predictions. Page 1 shows uniform Sitka → retained mature trees with regeneration → developed mixed structure. Page 2 shows the five management stages and Oak/Beech establishment. Page 3 contrasts a uniform plantation with productive retained mature Sitka, broadleaves and regeneration. Scale is screen-relative, not metres. Three existing UI atlases, no 3D variants/LOD, no new packages or materials. Target: unchanged three-texture UI architecture and responsive live controls at 1280×720 and 1920×1080. Acceptance requires six real Unity renders plus navigation/Continue and text-fit checks.
+
+Preparation is deterministic crop/resampling, not image regeneration: run `python3 Tools/Verification/ScenarioOneThreePageOnboarding/prepare_20261103_art.py`. It removes Editor/taskbar chrome, maps only the game area to the existing 1672×941 layout, and retains only outside blurred margins and forest regions in runtime atlases. The two high Sitka tips on Page 3 are retained while neighbouring raster lead text is excluded. Runtime titles, captions, process icons, numbers, labels and buttons remain live UI Toolkit/Painter2D. Existing `.meta` GUIDs and V2 palette/fonts remain unchanged.
+
+Page 1's exact new sentence uses the existing `onboarding-accent` class. A 33-design-pixel gap is reserved above the imagery, whose height is reduced by the same amount without removing any forest slice. Page 2 card 4 uses the approved shorter sentence at the same font size as other cards. The retain icon now has a check mark; log ends have concentric rings. Page 3's art frame includes the new taller retained Sitka crowns.
+
+Runtime atlas bytes/hashes and source dimensions are machine-readable in the accompanying manifest. Final actual Unity evidence, any rendering differences and acceptance status belong to the implementation handoff; this preparation record alone does not claim verification or Manager acceptance.

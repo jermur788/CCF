@@ -1,0 +1,110 @@
+[
+  {
+    "page": 1,
+    "source": "20261103-page-1-approved.png",
+    "source_sha256": "9454b0fea6d76098d3af788bfe489e5043dcc1ae71e59e422a5aa8e7da993ff4",
+    "game_crop": [
+      156,
+      122,
+      1517,
+      886
+    ],
+    "atlas_size": [
+      1672,
+      941
+    ],
+    "regions": [
+      [
+        85,
+        272,
+        1586,
+        594
+      ]
+    ],
+    "atlas": "Assets/ForestPrototype/UI/Resources/Onboarding/page-1.png",
+    "atlas_sha256": "b775eb9515dbb4a8e0916359e3f15f3ecb36701e70ddc33e832a2fece21b01ec",
+    "atlas_bytes": 1100061
+  },
+  {
+    "page": 2,
+    "source": "20261103-page-2-approved.png",
+    "source_sha256": "0a723a7d2039384b2ad670779e1db7369b02db703579452e9528dfaae756bd91",
+    "game_crop": [
+      156,
+      122,
+      1517,
+      886
+    ],
+    "atlas_size": [
+      1672,
+      941
+    ],
+    "regions": [
+      [
+        86,
+        365,
+        381,
+        677
+      ],
+      [
+        400,
+        365,
+        685,
+        677
+      ],
+      [
+        703,
+        365,
+        983,
+        677
+      ],
+      [
+        1003,
+        365,
+        1278,
+        677
+      ],
+      [
+        1297,
+        365,
+        1586,
+        677
+      ]
+    ],
+    "atlas": "Assets/ForestPrototype/UI/Resources/Onboarding/page-2.png",
+    "atlas_sha256": "95ccacdf87039b48a4e2cf8705e7da9d26c72a82ad0a1ee193b0cf286022c8ee",
+    "atlas_bytes": 1052980
+  },
+  {
+    "page": 3,
+    "source": "20261103-page-3-approved.png",
+    "source_sha256": "53ed0a9b4a102b9f305fdfb00535bdb882f724598df6ae1314fc9c18a2f50fad",
+    "game_crop": [
+      156,
+      122,
+      1517,
+      886
+    ],
+    "atlas_size": [
+      1672,
+      941
+    ],
+    "regions": [
+      [
+        83,
+        264,
+        663,
+        590
+      ],
+      [
+        961,
+        225,
+        1553,
+        590
+      ]
+    ],
+    "atlas": "Assets/ForestPrototype/UI/Resources/Onboarding/page-3.png",
+    "atlas_sha256": "83596a3d02b4a15f88e73d18587dea95cd5e39c86e4906c73502b8db7c488168",
+    "atlas_bytes": 869128
+  }
+]

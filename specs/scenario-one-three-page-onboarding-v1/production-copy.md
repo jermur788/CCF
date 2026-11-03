@@ -9,6 +9,10 @@ Title: What is Continuous-Cover Forestry?
 
 Continuous-cover forestry keeps a forest continuously wooded while it is managed. Instead of clear-felling the whole stand, trees are removed selectively and new generations establish beneath and between those that remain.
 
+Standalone emphasis in the existing blue/teal heading accent (3 November 2026 user amendment):
+
+The forest is renewed gradually over time, creating a mixed-aged, more resilient and productive woodland.
+
 Progression:
 - BEFORE — Even-aged Sitka plantation
 - SELECTIVE TRANSFORMATION — Mature trees retained; openings allow regeneration
@@ -38,7 +42,7 @@ Five-card copy (preserving five supplied cards, combining review/repeat):
 3. Create space and light
    Remove selected competitors to make suitable conditions for young trees.
 4. Regenerate and establish
-   Encourage natural regeneration and establish other species, combining productive conifers with broadleaf diversity.
+   Encourage natural regeneration and establish other species for a diverse forest.
 5. Review and repeat
    Observe the response, adapt decisions and repeat management over many years.
 

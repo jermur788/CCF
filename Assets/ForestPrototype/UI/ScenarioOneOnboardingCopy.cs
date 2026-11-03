@@ -12,6 +12,7 @@ public static class ScenarioOneOnboardingCopy
         "CCF is a cycle of decisions, observation and adaptation. Retain continuous forest cover as you create space for new generations and review how the stand develops.",
         "You begin with an even-aged Sitka plantation. Your task is to retain the best Sitka, create the conditions for change, and work out how to establish both Oak and Beech so that the future forest contains all three."
     };
+    public const string Renewal = "The forest is renewed gradually over time, creating a mixed-aged, more resilient and productive woodland.";
     public static readonly string[] Footers = {
         "CCF is a long-term process of repeated decisions, observation and adaptation.",
         "Retained trees, regeneration and varied ages and sizes build a continuously covered forest over time.",
@@ -31,7 +32,7 @@ public static class ScenarioOneOnboardingCopy
         "Read its structure, regeneration and growing conditions.",
         "Keep productive trees and select competing trees for removal.",
         "Remove selected competitors to make suitable conditions for young trees.",
-        "Encourage natural regeneration and establish other species, combining productive conifers with broadleaf diversity.",
+        "Encourage natural regeneration and establish other species for a diverse forest.",
         "Observe the response, adapt decisions and repeat management over many years."
     };
     public const string InitialState = "Largely one species\nSimilar ages and sizes\nRegular plantation spacing";
