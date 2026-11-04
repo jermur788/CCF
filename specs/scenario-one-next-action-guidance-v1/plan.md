@@ -23,15 +23,15 @@ This worker owns only the four spec files and named handoff. #200 owns active-ta
 ## Sequence and verification
 
 1. T-01 resolve Q1–Q4 and independent design review; Manager approves spec explicitly.
-2. T-02 implement modal-first scope resolution, authoritative RackV2Instruction reuse and FR-3 ordered fallback, then Objective 1 cue projection and cross-screen emphasis with focused state/negative tests.
+2. T-02 implement visibility/occlusion and input-owner scope resolution against the spec source audit (including Help/onboarding over retained inline prompts; no Boolean ranking), authoritative RackV2Instruction reuse and FR-3 ordered fallback, then Objective 1 cue projection and cross-screen emphasis with focused state/negative tests.
 3. T-03 produce approved reference map-like figure; geometry and visual conformance review.
-4. T-04 run spec AC-1–6 matrix; independent review and user clarity decision before integration.
+4. T-04 run spec AC-1–6 matrix including AC-1a/AC-1b Help-over-confirmation regressions; independent review and user clarity decision before integration.
 
 Tier 1 offline/source checks first, then bounded Tier 2 UI qualification on exact HEAD at both resolutions. Do not rerun broad Tier 3 without concrete risk. Implementation correctness checks action dispatch/validators/no mutations; conformance checks user complaint, diagram semantics and accessibility. Risks: stale focus after rebuild, two primaries in nested consent, obsolete copy, false cleared-route art, Tab conflict. No runtime pass is claimed by this plan.
 
 ## Review response
 
-- **P1 FIXED:** FR-2 now resolves `editor.ConsentPending`, `editor.ResetPending`, `reopenPending`, then other blocking modals before every background row; only the active scope has primary emphasis/activation. Safe decline/cancel wins, with no-primary fallback when no safe modal choice exists. AC-1 tests each prompt against competing planning/confirmed states and re-derivation after dismissal.
+- **P1 FIXED — re-check round (DRAFT; independent review pending):** Replaced unsafe fixed Boolean ranking with visibility/occlusion and input ownership. Added source-audited Help/onboarding, three inline rack prompts, Work Plan advance warning, session/startup and confirmation subviews, full-screen panels, reference preview and input/dismissal guards. AC-1a/AC-1b cover Help over retained rack/advance confirmations; hidden pending state cannot own the cue. The previous P1 fix claim was incomplete.
 - **P2 FIXED:** FR-3 makes candidate `RackV2Instruction()` authoritative for Objective 1 wording/stage after modal handling, projects its first unfinished step onto the screen, then applies validators. Corrections use a fixed first-eligible allowlist (map, planning, reason-matched undo, over-target selected unlocked delete); otherwise reveal the same instruction/reason. No arbitrary enabled-control selection or second instruction source. AC-6 tests helper branches, ties and ambiguous reasons.
 - **P3 FIXED:** F6 was re-derived with `git show` and numbered lines at main `8f0f230190830855112e3e7a1d7544db94a7f591`; every symbol citation now names `StandMapSymbols.Build()` and its `MapSymbol` entry. Racks :86–97, navigation/grid :99–104, tree marks :106–107; not candidate 72b4efbd.
 

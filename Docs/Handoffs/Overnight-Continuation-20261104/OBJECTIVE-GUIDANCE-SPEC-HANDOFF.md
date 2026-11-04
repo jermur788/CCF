@@ -31,7 +31,7 @@ Read both refs with git show without checkout; inspected existing spec conventio
 
 ## Review response
 
-- **P1 FIXED:** FR-2 now resolves `editor.ConsentPending`, `editor.ResetPending`, `reopenPending`, then other blocking modals before every background row; only the active scope has primary emphasis/activation. Safe decline/cancel wins, with no-primary fallback when no safe modal choice exists. AC-1 tests each prompt against competing planning/confirmed states and re-derivation after dismissal.
+- **P1 FIXED — re-check round (DRAFT; independent review pending):** Replaced unsafe fixed Boolean ranking with visibility/occlusion and input ownership. Added source-audited Help/onboarding, three inline rack prompts, Work Plan advance warning, session/startup and confirmation subviews, full-screen panels, reference preview and input/dismissal guards. AC-1a/AC-1b cover Help over retained rack/advance confirmations; hidden pending state cannot own the cue. The previous P1 fix claim was incomplete.
 - **P2 FIXED:** FR-3 makes candidate `RackV2Instruction()` authoritative for Objective 1 wording/stage after modal handling, projects its first unfinished step onto the screen, then applies validators. Corrections use a fixed first-eligible allowlist (map, planning, reason-matched undo, over-target selected unlocked delete); otherwise reveal the same instruction/reason. No arbitrary enabled-control selection or second instruction source. AC-6 tests helper branches, ties and ambiguous reasons.
 - **P3 FIXED:** F6 was re-derived with `git show` and numbered lines at main `8f0f230190830855112e3e7a1d7544db94a7f591`; every symbol citation now names `StandMapSymbols.Build()` and its `MapSymbol` entry. Racks :86–97, navigation/grid :99–104, tree marks :106–107; not candidate 72b4efbd.
 
@@ -40,3 +40,5 @@ DRAFT remains unchanged. Planned canopy/no-clearing semantics, shape/pattern/tex
 Revision starts from clean `f98d9ee8948d54494c5cc882fdb332e2ede832f9` on the same assigned branch/worktree; PR #265 remains the review destination. Independent re-review remains pending. Dashboard synchronization remains unverified and belongs to DPC/Manager.
 
 Revision verification: `git diff --check` passed; programmatic exact-commit checks matched all 17 named symbol entries and the Build definition; all four spec statuses remain DRAFT; only the five owned paths changed. FR-5/FR-6 and the save-compatibility section were compared with the prior HEAD and remain byte-identical. No runtime gates run.
+
+P1 re-check starts from clean `bb2ebc63d7db302a5846a4621342bed33dd4f035`. Complete file:line inventory is in the spec source audit. All five owned documents amended; P2/P3 responses and accepted requirements/citations preserved. DRAFT; no production or Unity changes. Independent review and dashboard synchronization remain pending for DPC/Manager.
