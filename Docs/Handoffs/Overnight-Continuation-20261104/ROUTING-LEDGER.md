@@ -272,6 +272,16 @@
 - **Outcome:** #259 DRAFT + UNDER REVIEW.
 - **Next:** verdict → revision if needed; then Manager decisions on colour policy.
 
+### EVENT 022 — 2026-11-04 02:10 UTC — #257 fixes returned; DPC corrects its own EVENT 017 statement on the save version
+
+- **Evidence class:** OBSERVED FACT (child return, my own reads at both commits).
+- **CORRECTION TO EVENT 017 (recorded, not rewritten):** EVENT 017 states "finding 2 is correct — `ForestSaveData.cs:7` is `CurrentVersion = 24`". That was true **only at the candidate**. Verified now at both bases: `CurrentVersion = 21` on `origin/main 8f0f2301`, `24` at candidate `72b4efbd`. So the reviewer's "24, not 21" was right about the candidate and wrong to treat 21 as simply an error, and the author was right to push back. The real defect — the one both the reviewer and I under-weighted — is that the spec **mixed unlabelled baselines**, which is the same failure mode as the earlier programme transcription errors. EVENT 017's wording is left intact above and corrected here rather than silently edited.
+- **#257 fixes (author claim, `e7b02c20` on the same branch/PR):** N shortcut confirmed at `UI/StandMapTreatmentReview.cs:519` (DPC verified the `nKey` read exists) with labels in `ScenarioOneTreatmentReview.cs:34-36`; `[M]`/`[C]` baseline labels introduced with derived line-shift values; REQ-P3a deterministic invalid-binding policy added (validity pass → valid override beats default → override-vs-override by table order → required actions protected → single write after `.bak`); authority hierarchy and stop-and-ask S-1..S-8 added; Esc corrected to four files / eight reads.
+- **Inventory dispute resolved with a method, not an assertion:** the author published the command and got **71 occurrences / 63 lines / 16 files** at the candidate and **68 / 60 / 14** at main, and stated it cannot reproduce the reviewer's 73 / 61. A reviewer who gives no method should not outrank a reproducible command; the re-check is explicitly instructed to run the author's command verbatim and to **withdraw** its own figures if it cannot reproduce them.
+- **Routing:** focused re-check to the *same* reviewer on the `codex` pool (2 children) so the original objection is tested against the same understanding.
+- **Outcome:** #257 DRAFT + fixes under re-check.
+- **Next:** verdict → if accepted, #257 goes to the Manager decision list with Q1–Q13.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
