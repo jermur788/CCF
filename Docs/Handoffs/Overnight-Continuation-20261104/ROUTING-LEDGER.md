@@ -202,6 +202,37 @@
 - **Outcome:** #256 REVIEWED (source-trace evidence, no automated coverage); #255 IMPLEMENTED + corrected, re-review dispatched.
 - **Next:** re-check verdict on `c21a690d`; then publication and Manager queue.
 
+### EVENT 016 — 2026-11-04 01:24 UTC — #260 returned; DPC reproduced the tally; review dispatched
+
+- **Evidence class:** OBSERVED FACT (child return; I re-ran the checker; PR link).
+- **#260 result:** branch `verify/overnight-playtest-feedback-20261104`, PR **#264**, head `62f1c164`. Worker reported **PASS=3 / FAIL=4 / NOT-TESTABLE=2**, exit 1.
+- **I re-derived the tally from the script rather than accepting it.** Running `python3 check_baseline.py` in the worker's worktree gave the same line: `SOURCE-STATIC TALLY PASS=3 FAIL=4 NOT-TESTABLE=2` with `exit=1`. The 4 FAILs are the *pre-fix baseline*, which is exactly what this lane was for — it was deliberately started before #255/#256 landed.
+- **Worth keeping from its output:** check 08 shows `LearningObjectivesView.cs:75` builds `"Back to forest [O / Esc]"` with the `btn-primary` class while `"Stand map [M]"` at `:73` does not — the user's complaint about the wrong primary button is confirmed in source, not inferred.
+- **Checker honesty:** exit 1, and it prints "observations do not count as PASS" — it does not inflate its own score.
+- **Review dispatch:** `claudeAgent_claude_b_pro` / `claude-sonnet-5-5` / medium. Brief explicitly requires: reproduce the tally, verify two FAILs by reading the cited file:line, judge whether any check is a tautology or fitted to its answer, and confirm nothing implies Unity/rendered verification.
+- **Outcome:** #260 IMPLEMENTED + UNDER REVIEW.
+- **Next:** verdict → then cross-check its checks against the #255/#256 diffs at publication.
+
+### EVENT 017 — 2026-11-04 01:28 UTC — #257 review returned NEEDS CHANGES; #258 returned; both routed onward
+
+- **Evidence class:** OBSERVED FACT (reviewer findings; my own source checks on two of them) / ORCHESTRATOR CLAIM (adjudication).
+- **#257 review: NEEDS CHANGES** (Codex `gpt-6.1-sol` medium). Five findings: (1) inventory omits the candidate's `N` shortcut; (2) the save version is **24**, not 21, and citations mix baselines; (3) the invalid-binding fallback can collide with valid overrides; (4) missing authority hierarchy and stop conditions; (5) Esc reads are in **four** files, not five.
+- **My adjudication, from source at `72b4efbd`:** finding 2 is correct — `ForestSaveData.cs:7` is `public const int CurrentVersion = 24`. Finding 5 is correct — the four consumer files are `ForestPlayer.cs`, `Racks/RackTool.cs`, `ScenarioOne/ScenarioOneManager.cs`, `UI/ScenarioOneUiRoot.cs`. Findings 1, 3 and 4 are passed to the author to verify or reject with reasons rather than silently accepted. **This is the second factual-error class caught by cross-provider review in this programme**, which is why the ledger records it rather than just the verdict.
+- **#257 fix routing:** returned to the **original author** (`claudeAgent_claude_b_pro`, same pool, same branch, no new PR) because findings 3 and 4 change design content, not just wording — this is not the "small finding" case that DPC fixes itself.
+- **#258 returned:** four-file DRAFT spec, PR **#265**, head `f98d9ee8`. No production change.
+- **#258 review routing:** `codex` / `gpt-6.1-sol` / medium (implementer was Codex's sibling pool, reviewer is the other Codex account — noted as *not ideal* independence: same vendor family. Flagged here rather than presented as fully independent; the DPC's own read is the second check).
+- **Pool state:** `claudeAgent` 2 (#253, #260 review), `claudeAgent_claude_b_pro` 2 (#257 fix, and #255 re-check just finished), `codex` 1 (#258 review), `codex_c75d8114` 1 (#259). **Quota/reset: UNKNOWN**; no rate-limit event yet.
+- **Outcome:** #257 DRAFT + NEEDS CHANGES; #258 DRAFT + UNDER REVIEW.
+
+### EVENT 018 — 2026-11-04 01:31 UTC — #255 correction ACCEPTED; handoff's last stale lines fixed
+
+- **Evidence class:** OBSERVED FACT (re-check verdict and its independent suite run).
+- **Verdict:** CORRECTION ACCEPTED. The reviewer confirmed no production file changed in `af1821b6..c21a690d`, judged the title assertion **stronger**, the orange-text assertion **equal as a regression guard but weaker on spec linkage** (accepted, because the user directed the copy change), `UnitStyle()` **equal** (single `Replace` applied to the spec quote only), and every literal **equal**. It ran the suite itself: `RACK_V2_HELP_TEACHING_PASS static_and_offline=15`, 97 checks.
+- **Two residual defects the reviewer found in the handoff prose** (not in the code): an old line still saying independent review was unverified, and a line expecting `16–20m` in all three labels while `StandMapView.cs:603` still shows the spaced form. **Both fixed by DPC** on commit `693e24c8`, and the second now states explicitly that the remaining spaced form is out of scope rather than a regression.
+- **Cleanup:** reviewer worktree `CCF-Overnight-Review-262c` removed; the other review worktrees stay until their reviews close.
+- **Outcome:** #255 **REVIEWED** (copy + tests), integration and acceptance still Manager-only. Rendered text, wrapping and the E2E Unity assertion remain unexecuted.
+- **Next:** Manager queue; no further code change planned on this branch.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
