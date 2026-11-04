@@ -296,6 +296,18 @@
 - **Outcome:** #259 DRAFT + MAJOR revision; #258 DRAFT + re-check.
 - **Next:** revisions → final re-checks → final report.
 
+### EVENT 024 — 2026-11-04 02:37 UTC — #257 re-check: FURTHER CHANGE REQUIRED; round 3 dispatched
+
+- **Evidence class:** OBSERVED FACT (reviewer return, posted review).
+- **Accepted from round 1 fixes:** the N shortcut fix (contextual reject/reopen behaviour and separate hints verified), the `[M]`/`[C]` baseline-labelling remedy, and the Esc correction (four files, eight reads at both commits).
+- **New material defect:** REQ-P3a explicitly permits a **required-vs-required collision to leave a required action unbound** — which contradicts the spec's own "required actions are protected" rule. That is the kind of internal contradiction that survives to implementation and then produces a control the player cannot use. Ordinary override arbitration was confirmed deterministic.
+- **Governance gap:** the project-level authority hierarchy is still missing, **S-6 conflicts with the summary/export requirement**, and import/default precedence needs one unambiguous rule.
+- **Inventory dispute resolved correctly — by definition, not by weight:** the re-check reproduced the author's **71 / 63 / 16** (candidate) and **68 / 60 / 14** (main) *and* reproduced its own earlier **73 / 61** under a different "control-access" counting method. **Both figures are correct; they measure different things.** The ledger records this as a definitional difference, not an error by either party, and the spec is required to state both methods and both numbers with definitions rather than deleting one.
+  - This supersedes EVENT 022's framing of the dispute: reproducibility did not settle it, because both were reproducible. The real fix was to define the unit.
+- **Routing:** round 3 to the original author on the same branch/PR (`claudeAgent_claude_b_pro`). The brief forbids deleting either inventory figure and requires a total rule where no path can leave a required action unbound.
+- **Outcome:** #257 DRAFT + round 3.
+- **Next:** final verdict; if accepted, #257 enters the Manager decision list with Q1–Q13 plus the new precedence rules.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
