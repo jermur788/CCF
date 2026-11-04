@@ -169,6 +169,15 @@
 - **Outcome:** #255 IMPLEMENTED + UNDER REVIEW; #258 RUNNING.
 - **Next:** reviewer verdict → apply any required fix myself (small findings) or return to the worker; then handoff publication and Manager queue.
 
+### EVENT 013 — 2026-11-04 00:44 UTC — DPC source fact-check: the Fell mark is not red
+
+- **Evidence class:** OBSERVED FACT (commands run by DPC at candidate `72b4efbd`).
+- **Finding:** `Assets/ForestPrototype/ForestTreeMarkingManager.cs:11` declares `markerColor = new Color(1f, 0.35f, 0.05f, 1f)` and `:663` builds the `HarvestMark` material from it; `Assets/ForestPrototype/Materials/HarvestMark.mat:68` stores `_BaseColor: {r: 1, g: 0.35, b: 0.05, a: 1}`. That is **orange-red**, not red. Only one marking material exists (`HarvestMark.mat`); there is no separate red Fell and blue Crop material pair.
+- **Why it matters:** the player-facing text says "Red — Fell" and "Blue — Crop Tree / future timber". The user's complaint that the marks do not match the words is therefore partly a *rendering* truth, not only a copy preference. This also means the #255 instruction to "keep red Fell" was correct **for the copy contract**, while the underlying 3D colour is already close to the orange the user asked for — a fact #259's spec must reconcile rather than assume.
+- **Effect on decisions:** no copy change is made on the back of this; it strengthens the reason #259 is a spec and not an overnight implementation. Recorded so the morning handoff does not have to re-derive it and so no later step silently "corrects" copy without a rendering change.
+- **Outcome:** INFORMATION / HANDED-OFF to #259 and the final report.
+- **Next:** #259 must state, with these line references, what is actually drawn vs what is written.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
