@@ -178,6 +178,19 @@
 - **Outcome:** INFORMATION / HANDED-OFF to #259 and the final report.
 - **Next:** #259 must state, with these line references, what is actually drawn vs what is written.
 
+### EVENT 014 — 2026-11-04 00:52 UTC — #256 and #257 returned; both sent to cross-family review
+
+- **Evidence class:** OBSERVED FACT (child returns, PR links, my own diff read) / ORCHESTRATOR CLAIM (quality assessment is provisional and subordinate to the reviews).
+- **#256 (production):** branch `feature/overnight-rack-handle-20261104`, commits `b9eaa54f`, `9304d318`, PR **#261** linked. Worker reports static harness 10/10, focused assertions and `git diff --check` passing.
+  - **My read before review:** two source lines. The mechanism is `Propose(px, gesture != Gesture.Reshape && !ShiftHeld(e.modifiers), …)`. I independently confirmed at the PR head that `Gesture.Reshape` is assigned **only** in the `OnHandle(px, selected)` branch of `OnPointerDown`, so the snap bypass cannot leak into draw or move. Instruction text updated in `StandMapView.cs`. Handoff is 3,889 lines for a 2-line change — disproportionate, same pattern as #255, recorded as a process note.
+  - **Deliberate open questions handed to review:** whether turning snapping off bypasses any *validity* rule rather than only pointer rounding; whether the keyboard rotation path still snaps (possible scope gap); and whether the phrase "Hold Shift while drawing" is now misleading given Shift also affects the move gesture.
+- **#257 (DRAFT spec):** PR **#263** linked, head `46404dc1`. Four-file DRAFT plus handoff; worker reports 28 unrun acceptance rows, Q1–Q12 decisions, and no code/save/telemetry change.
+  - **Substantive claims the reviewer must re-derive, not accept:** the "about 75 hard-coded key/mouse reads across 15 files" inventory, the "Esc handled in five independent places" claim, and the assertion that `InputSystem_Actions.inputactions` is referenced by no gameplay code. An inventory that cannot be reproduced is a material defect in a spec that plans a rebinding migration.
+- **Review routing (cross-family both ways):** #256 → `claudeAgent_claude_b_pro` / `claude-sonnet-5-5` / medium (implementer was Codex); #257 → `codex` / `gpt-6.1-sol` / medium (implementer was Claude). Both reviewers use read-only detached worktrees and `gh pr review --comment`, never `--approve`.
+- **Provider/pool state:** `claudeAgent` 2 (#253 + #255 review), `claudeAgent_claude_b_pro` 1 (#256 review), `codex` 2 (#258 + #257 review), `codex_c75d8114` 2 (#259 + #260). Four pools, eight children. **Quota/reset: UNKNOWN**; no rate-limit or auth failure observed yet, which still is not evidence of headroom.
+- **Outcome:** #256 IMPLEMENTED + UNDER REVIEW; #257 DRAFT + UNDER REVIEW.
+- **Next:** verdicts → small fixes done by DPC directly, larger ones returned to the implementing worker; then handoff publication.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
