@@ -37,4 +37,35 @@ public static class ScenarioOneSaveMigration
             foreach (var order in data.workOrders)
                 if (order != null) order.rackId = 0;
     }
+
+    // v22 normalization: a save older than the objective history field has no record of when anything
+    // was achieved. It gets the empty list, which reads as "not recorded"; nothing is derived or
+    // back-filled here (ScenarioOneManager.RestoreSaveData reads the list only from a v22 save).
+    public static void NormalizeObjectiveHistory(ScenarioOneSaveData data, int version)
+    {
+        if (data == null || version >= 22) return;
+        data.objectiveAchievements = new List<ScenarioObjectiveAchievement>();
+    }
+
+    // v23 normalization: a save older than the prescription fields has no prescription state. It gets the empty
+    // defaults; nothing is derived from its marks or work orders, so no prescription, source or provenance is
+    // ever invented (ScenarioOneManager.RestoreSaveData reads prescriptions only from a v23 save).
+    public static void NormalizePrescriptions(ScenarioOneSaveData data, int version)
+    {
+        if (data == null || version >= 23) return;
+        data.nextPrescriptionId = 1;
+        data.prescriptions = new List<PrescriptionSaveData>();
+        if (data.workOrders != null)
+            foreach (var order in data.workOrders)
+                if (order != null)
+                {
+                    order.prescriptionId = 0;
+                    order.prescriptionCoverageUnitId = "";
+                    order.prescriptionCropTreeId = "";
+                    order.prescriptionReason = 0;
+                }
+        if (data.managementEvents != null)
+            foreach (var entry in data.managementEvents)
+                if (entry != null) entry.prescriptionId = 0;
+    }
 }

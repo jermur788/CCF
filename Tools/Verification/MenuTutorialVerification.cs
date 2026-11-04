@@ -127,6 +127,12 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         Check(ui.Learning.CompletedSteps == 0, "Learning fixture inherited progress");
         Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud, "HUD introduction missing at start");
         Check(manager.AnyPanelOpen && !player.enabled, "Help must release mouse and stop forest actions");
+        // The integrated base opens the three-page scenario introduction first (it hides the HUD help window). Page through it with the
+        // player's own Next action, then require the HUD help window itself to be what is captured. Introduced after this gate was written.
+        for (int page = 0; page < 3 && ui.Help.Onboarding.IsOpen; page++) { ui.Help.Close(); yield return null; }
+        Check(!ui.Help.Onboarding.IsOpen, "scenario introduction completed before the HUD help capture");
+        if (!ui.Help.IsOpen) ui.ShowHelp(MenuHelpView.Menu.WalkingHud);
+        Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.WalkingHud, "HUD help window shown after the introduction");
         yield return CaptureMenu(MenuHelpView.Menu.WalkingHud);
         ui.CloseHelp();
         Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == initial, "Help changed forest state");
@@ -312,7 +318,8 @@ public sealed class MenuTutorialRunner : MonoBehaviour
         manager.EndReferencePreview(); yield return null;
         Check(ui.Learning.CompletedSteps == learningBeforePreview, "Reference preview changed learning progress");
         // The rack screen is introduced by the rack tool itself on the first B press (verified by RackUxRack), not by walking to a screen.
-        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
+        // Tree Marks exists only once a Rack Planning V2 plan is confirmed (RACK-V2-10, Tools/Verification/RackV2HelpTeaching), never in this flow.
+        foreach (MenuHelpView.Menu menu in Enum.GetValues(typeof(MenuHelpView.Menu)).Cast<MenuHelpView.Menu>().Where(m => m != MenuHelpView.Menu.Rack && m != MenuHelpView.Menu.TreeMarks)) Check(MenuHelpView.Introduced(menu), "Introduction preference missing: " + menu);
         Debug.Log("MENU_PREFERENCES_PASS allFive=true localOnly=true referenceClean=true");
     }
 
@@ -609,7 +616,9 @@ public sealed class MenuTutorialRunner : MonoBehaviour
     }
     private IEnumerator CaptureScreen(string name)
     {
-        for (int i=0;i<4;i++) yield return null;
+        // The Game view resize is applied asynchronously on a slow display: wait real time as well as frames before layout assertions. Assertions unchanged.
+        if (!Application.isBatchMode) yield return new WaitForSecondsRealtime(0.5f);
+        for (int i=0;i<12;i++) yield return null;
         if (Application.isBatchMode) yield break;
         yield return new WaitForEndOfFrame(); Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
         Check(image != null && image.width > 600, "Missing rendered capture");

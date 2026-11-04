@@ -161,7 +161,20 @@ public sealed class ScenarioReferenceArchive
             int byX = a.center.x.CompareTo(b.center.x);
             return byX != 0 ? byX : a.center.z.CompareTo(b.center.z);
         });
+        scenario.objectiveAchievements?.Sort((a, b) =>
+        {
+            int byYear = a.achievedYear.CompareTo(b.achievedYear);
+            return byYear != 0 ? byYear : string.CompareOrdinal(a.objectiveId, b.objectiveId);
+        });
         scenario.racks?.Sort((a, b) => a.rackId.CompareTo(b.rackId));
+        scenario.prescriptions?.Sort((a, b) => a.prescriptionId.CompareTo(b.prescriptionId));
+        if (scenario.prescriptions != null)
+            foreach (PrescriptionSaveData prescription in scenario.prescriptions)
+            {
+                prescription.sampleCropTreeIds?.Sort(StringComparer.Ordinal);
+                prescription.sampleRemovalIds?.Sort(StringComparer.Ordinal);
+                prescription.coverageDecisions?.Sort((a, b) => string.CompareOrdinal(a.unitId, b.unitId));
+            }
         if (scenario.racks != null)
             foreach (RackSaveData rack in scenario.racks)
                 rack.removalTreeIds?.Sort(StringComparer.Ordinal);
@@ -200,6 +213,11 @@ public sealed class ScenarioReferenceArchive
     // JSON instead: pre-v21 code could not have produced such a world, so its identity is genuinely new
     // ("new V2 worlds may receive new V2-specific anchors"). The rule is deliberate and versioned here
     // rather than rebaselining accepted evidence.
+    //
+    // Save v22 (S1-C T-05) added objectiveAchievements. It is a write-once observation record derived from the same
+    // simulation, so it is NEVER part of a world identity: every hash below drops it, whether or not it is empty. That is
+    // what keeps a pre-v22 anchor exact even when a v22 run has since recorded achievements. The one other effect of the
+    // bump, the version header, is relabelled to the version the pre-v22 layout carried (20 or 21, see HashLayout).
     public static string WorldHash(ForestSaveData data)
         => GeometryIsLegacy(data) ? LegacyCompatibleWorldHash(data) : CurrentWorldHash(data);
 
@@ -224,10 +242,64 @@ public sealed class ScenarioReferenceArchive
     // current JSON as soon as the world carries rack state. The pre-v21 layout is exactly what save v20
     // wrote: no rack bytes AND the v20 version header, because the accepted anchors hash that byte
     // stream and the header is part of it. (Only ForestSaveData carries a "version" key.)
+    // A world that carries rack state keeps the v21 header it always hashed with.
     private static string HashLayout(string json, ForestSaveData data)
-        => RackV2StateIsDefault(data)
-            ? WithoutRackV2Fields(json).Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,")
-            : json;
+    {
+        json = WithoutTeachingCompletion(json);
+        // A world that carries prescription state (save v23) has no historical layout: it hashes as its full current JSON.
+        // Teaching v24 adds no world state: keep this branch's v23 header as well as stripping teaching/history fields.
+        if (!PrescriptionStateIsDefault(data))
+            return WithoutObjectiveAchievements(json).Replace("\"version\":" + data.version + ",",
+                data.version >= 24 ? "\"version\":23," : "\"version\":" + data.version + ",");
+        json = WithoutLaterFields(json);
+        // Keyed on the version this input actually carries (a persisted v21 stays v21), not on CurrentVersion.
+        // Versions below the relabel target (an older input) were never rewritten and still are not.
+        string header = "\"version\":" + data.version + ",";
+        if (RackV2StateIsDefault(data))
+            return WithoutRackV2Fields(json).Replace(header, data.version >= 21 ? "\"version\":20," : header);
+        return json.Replace(header, data.version >= 22 ? "\"version\":21," : header);
+    }
+
+    // Removes the v22 history field whatever it holds. The pattern reads the array as quoted strings or non-bracket
+    // characters, so an objective id can never end it early.
+    private static string WithoutObjectiveAchievements(string json)
+        => System.Text.RegularExpressions.Regex.Replace(json,
+            @",""objectiveAchievements"":\[(?:[^\]""]|""(?:[^""\\]|\\.)*"")*\]", "");
+
+    // Removes everything save v22 and v23 add while they hold only defaults: the v22 history field, then (for a world that
+    // carries no prescription state, see PrescriptionStateIsDefault) the exact default text of the v23 fields. The order
+    // run is removed before the single event field so the shorter text cannot clip it.
+    private static string WithoutLaterFields(string json)
+        => WithoutObjectiveAchievements(WithoutTeachingCompletion(json)
+            .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
+            .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
+            .Replace(",\"prescriptionId\":0", ""));
+
+    // Teaching progression is saved, but never participates in a world/reference identity, even when true.
+    private static string WithoutTeachingCompletion(string json)
+        => System.Text.RegularExpressions.Regex.Replace(json, @"""firstGuidedRackReviewComplete"":(?:true|false),", "");
+
+    // True when the world holds no prescription state (save v23): allocator untouched, no prescription records, and no
+    // work order or event linked to one. This is exactly what every pre-v23 save and every world that never made a
+    // prescription looks like, so both keep their pre-v23 identity.
+    private static bool PrescriptionStateIsDefault(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data?.scenarioOne;
+        if (scenario == null)
+            return true;
+        if (scenario.nextPrescriptionId != 1 || (scenario.prescriptions != null && scenario.prescriptions.Count > 0))
+            return false;
+        if (scenario.workOrders != null)
+            foreach (ScenarioOneWorkOrder order in scenario.workOrders)
+                if (order != null && (order.prescriptionId != 0 || !string.IsNullOrEmpty(order.prescriptionCoverageUnitId)
+                    || !string.IsNullOrEmpty(order.prescriptionCropTreeId) || order.prescriptionReason != 0))
+                    return false;
+        if (scenario.managementEvents != null)
+            foreach (ScenarioManagementEvent entry in scenario.managementEvents)
+                if (entry != null && entry.prescriptionId != 0)
+                    return false;
+        return true;
+    }
 
     // True when the world holds no persisted V2 rack state: no confirmation, the id allocator untouched,
     // no rack records and no rack-owned orders. This is exactly the state every pre-v21 save has, and also
@@ -270,14 +342,14 @@ public sealed class ScenarioReferenceArchive
     // Returns null for model-1 worlds, which have no v15 equivalent.
     public static string LegacyV15WorldHash(ForestSaveData data)
     {
-        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data)
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data) || !PrescriptionStateIsDefault(data)
             || data.regenerationModel != RegenerationModel.Legacy || data.growthModel != GrowthModel.Legacy)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 15;
         string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"regenerationModel\":0,", "").Replace("\"growthModel\":0,", "");
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(json))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutLaterFields(json)))));
     }
 
     // As above for growth-model-0 worlds in the exact v16 layout (version 16,
@@ -285,14 +357,14 @@ public sealed class ScenarioReferenceArchive
     // comparable after the v17 bump. Returns null for growth-model-1 worlds.
     public static string LegacyV16WorldHash(ForestSaveData data)
     {
-        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data)
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data) || !PrescriptionStateIsDefault(data)
             || data.growthModel != GrowthModel.Legacy || data.regenerationModel >= RegenerationModel.Competition)
             return null;
         ForestSaveData copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 16;
         string json = WithoutGeometryField(JsonUtility.ToJson(copy)).Replace("\"growthModel\":0,", "");
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(json))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutLaterFields(json)))));
     }
     private static string WithoutCompetitionFields(string json)
         => System.Text.RegularExpressions.Regex.Replace(json,
@@ -301,11 +373,11 @@ public sealed class ScenarioReferenceArchive
     // Exact v17 compatibility only; never substitutes for model-2 world hashes.
     public static string LegacyV17WorldHash(ForestSaveData data)
     {
-        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data) || data.regenerationModel >= RegenerationModel.Competition) return null;
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data) || !PrescriptionStateIsDefault(data) || data.regenerationModel >= RegenerationModel.Competition) return null;
         var copy = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(data));
         Canonicalize(copy);
         copy.version = 17;
-        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutGeometryField(JsonUtility.ToJson(copy))))));
+        return Hash(WithoutStormFields(WithoutCompetitionFields(WithoutRackV2Fields(WithoutLaterFields(WithoutGeometryField(JsonUtility.ToJson(copy)))))));
     }
 
     private static bool StormsInert(ForestSaveData data)
@@ -319,9 +391,9 @@ public sealed class ScenarioReferenceArchive
     // v18 layout. Active storm worlds deliberately have no historical hash.
     public static string LegacyV18WorldHash(ForestSaveData data)
     {
-        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data)) return null;
+        if (!GeometryIsLegacy(data) || !StormsInert(data) || !RackV2StateIsDefault(data) || !PrescriptionStateIsDefault(data)) return null;
         Canonicalize(data);
-        string json = WithoutRackV2Fields(WithoutGeometryField(JsonUtility.ToJson(data)));
+        string json = WithoutRackV2Fields(WithoutLaterFields(WithoutGeometryField(JsonUtility.ToJson(data))));
         // Do not JSON-round-trip floating values merely to change a header.
         // This comparator must use exactly the former WorldHash byte stream.
         int firstComma = json.IndexOf(',');

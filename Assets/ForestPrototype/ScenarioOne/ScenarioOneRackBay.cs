@@ -100,6 +100,8 @@ public static class ScenarioOneRackBay
             && NearSelected && MiddleSelected && FarSelected && BothSides;
 
         public float RemovedBasalShare;
+        // Planned or marked living trees in the footprint (any of them, served or not): exactly the part of RemovedBasalShare the player can still cancel/unmark.
+        public int ActionableRemovals;
         public bool CanopyKept => RemovedBasalShare <= MaxRemovedBasalShare + 1e-6f;
 
         // Removals serving the future trees (felled for them) by what the player chose for the wood.
@@ -357,6 +359,8 @@ public static class ScenarioOneRackBay
                 areaBasal += ba;
                 removedBasal += ba;
             }
+        foreach (Tree tree in living)
+            if (InArea(tree.X, tree.Z) && (plannedIds.Contains(tree.Id) || markedIds.Contains(tree.Id))) result.ActionableRemovals++;
         result.RemovedBasalShare = areaBasal > 0 ? (float)(removedBasal / areaBasal) : 0f;
 
         result.ReleaseExecuted = result.HasEnoughFuture && result.CanopyKept && result.MinExecuted >= FirstReleaseShare * ExecutedTolerance;

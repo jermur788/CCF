@@ -355,8 +355,43 @@ public sealed partial class ScenarioOneManager
         return RackPlanOperationResult.Applied(feedback);
     }
 
-    // Field-marking state only. The orange visual and its tree conflict are the marking lane's job;
-    // this proves the entrance identity and records the authoritative mark state.
+    // Resolve the persisted entrance identity against its own frozen corridor/removal set. Never
+    // repair a missing/stale target by substituting another tree at spray time.
+    public bool TryGetRackEntranceTarget(int rackId, out ForestTree tree, out string problem)
+    {
+        tree = null;
+        problem = "";
+        RackSaveData rack = FindRack(rackId);
+        if (!RackPlanningV2Active || rack == null || rack.removalTreeIds == null
+            || string.IsNullOrEmpty(rack.entranceTreeId) || !rack.removalTreeIds.Contains(rack.entranceTreeId))
+        {
+            problem = "RACK INVALID — ADJUST PLAN: no entrance tree in this rack's removal set.";
+            return false;
+        }
+        Dictionary<string, ForestTree> living = LivingTreesById();
+        if (!living.TryGetValue(rack.entranceTreeId, out tree) || tree == null || !tree.CanChop)
+        {
+            problem = "RACK INVALID — ADJUST PLAN: the entrance tree is no longer standing.";
+            tree = null;
+            return false;
+        }
+        RackPoint entrance = new RackPoint(rack.entranceX, rack.entranceZ);
+        RackPoint far = new RackPoint(rack.farX, rack.farZ);
+        Vector3 position = tree.transform.position;
+        // Use the existing qualified 2.4 m corridor, not a new marking-specific geometry tolerance.
+        RackSelection corridor = RackGeometry.Select(new[] { new RackTree(tree.TreeId, position.x, position.z) },
+            entrance, far, RackGeometry.DefaultWidthM);
+        if (corridor.Trees.Count != 1 || FindEntranceTree(entrance, rack.removalTreeIds) != tree.TreeId)
+        {
+            problem = "RACK INVALID — ADJUST PLAN: the entrance identity is not the first removal tree near the centreline.";
+            tree = null;
+            return false;
+        }
+        return true;
+    }
+
+    // The rack record owns orange state. The existing marking manager projects its paint and
+    // enforces the reciprocal Fell/Crop conflicts; there is no loose Fell mark or second ledger.
     public RackPlanOperationResult MarkRackEntrance(int rackId)
     {
         if (!RackPlanningV2Active)
@@ -373,9 +408,8 @@ public sealed partial class ScenarioOneManager
         if (RackOrderState(rackId).IsLocked)
             return RackPlanOperationResult.Locked("This rack has already been worked; its entrance cannot be marked now.", rackId);
 
-        Dictionary<string, ForestTree> living = LivingTreesById();
-        if (!living.TryGetValue(rack.entranceTreeId, out ForestTree tree) || tree == null)
-            return RackPlanOperationResult.Invalid("RACK INVALID — ADJUST PLAN: the entrance tree is no longer standing.", rackId);
+        if (!TryGetRackEntranceTarget(rackId, out ForestTree tree, out string problem))
+            return RackPlanOperationResult.Invalid(problem, rackId);
         if (tree.IsCropTree)
             return RackPlanOperationResult.Invalid("The entrance tree is a Crop Tree and cannot also carry the rack mark.", rackId);
         if (tree.IsMarkedForFell)

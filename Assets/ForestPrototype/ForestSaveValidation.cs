@@ -140,6 +140,32 @@ public static partial class ForestSaveValidation
         }
         string rackProblem = ValidateRackV2(data);
         if (rackProblem != null) return rackProblem;
+        string historyProblem = ValidateObjectiveHistory(data);
+        if (historyProblem != null) return historyProblem;
+        // Last, so every older rejection keeps its existing reason and order.
+        string eventProblem = ValidateManagementEventIds(data.scenarioOne);
+        if (eventProblem != null) return eventProblem;
+        // New in v23, so after every older check: existing rejections keep their reason and order.
+        return ValidatePrescriptions(data);
+    }
+
+    // Repeated-intervention history orders events by eventId, so an ID that is not positive or is
+    // shared by two events makes that order ambiguous. Reject the save instead of renumbering or
+    // repairing it. Applies to every save version; a missing list has nothing to check.
+    private static string ValidateManagementEventIds(ScenarioOneSaveData scenario)
+    {
+        if (scenario == null || scenario.managementEvents == null) return null;
+        var firstRecordForId = new Dictionary<int, int>();
+        for (int i = 0; i < scenario.managementEvents.Count; i++)
+        {
+            ScenarioManagementEvent entry = scenario.managementEvents[i];
+            if (entry == null) continue; // already rejected by ValidateScenarioCellIndices
+            if (entry.eventId <= 0)
+                return $"management event record {i} has a non-positive ID ({entry.eventId})";
+            if (firstRecordForId.TryGetValue(entry.eventId, out int first))
+                return $"management event ID {entry.eventId} appears twice (records {first} and {i})";
+            firstRecordForId.Add(entry.eventId, i);
+        }
         return null;
     }
 
@@ -307,8 +333,357 @@ public static partial class ForestSaveValidation
         return null;
     }
 
+    // ---- PARITY-08 saved species identity ------------------------------------------------------------------------
+    // Every record whose species decides what the loader builds or what a pending contractor job will do must name
+    // a species the scene can simulate. Before this check the loader turned an unknown tree species into the default
+    // Sitka and dropped unknown regeneration bands while it was already changing the world. An empty ID keeps its
+    // historical meaning (the scene's default species), and only the versions in which the loader reads the field
+    // are checked, so legacy saves are unaffected. History-only text (resolved orders, management events, deadwood
+    // records, which are already tied to their victim tree) is not authoritative and is not checked.
+    //   isLoadableSpecies: true when the scene can resolve a simulation-ready species with this non-empty ID.
+    public static string ValidateSpecies(ForestSaveData data, System.Func<string, bool> isLoadableSpecies)
+    {
+        if (data == null || isLoadableSpecies == null)
+            return null;
+        bool Unknown(string id) => !string.IsNullOrEmpty(id) && !isLoadableSpecies(id);
+
+        if (data.version >= 7 && data.trees != null)
+            foreach (TreeSaveData tree in data.trees)
+                if (tree != null && Unknown(tree.speciesId))
+                    return $"tree {tree.treeId} has unknown species '{tree.speciesId}'";
+
+        if (data.version >= 8 && data.cells != null)
+            foreach (ForestCellSaveData cell in data.cells)
+                if (cell?.cohorts != null)
+                    foreach (ForestRegenerationCohortSaveData cohort in cell.cohorts)
+                        if (cohort != null && cohort.density > 0f && Unknown(cohort.speciesId))
+                            return $"ecology cell {cell.index} has regeneration of unknown species '{cohort.speciesId}'";
+
+        ScenarioOneSaveData scenario = data.version >= 10 ? data.scenarioOne : null;
+        if (scenario == null)
+            return null;
+        if (scenario.plantedJuveniles != null)
+            foreach (PlantedJuvenileSaveData juvenile in scenario.plantedJuveniles)
+                if (juvenile != null && Unknown(juvenile.speciesId))
+                    return $"planted juvenile {juvenile.juvenileId} has unknown species '{juvenile.speciesId}'";
+        if (scenario.workOrders != null)
+            foreach (ScenarioOneWorkOrder order in scenario.workOrders)
+                if (order != null && (order.status == ScenarioWorkStatus.Pending || order.status == ScenarioWorkStatus.Approved)
+                    && Unknown(order.speciesId))
+                    return $"work order {order.workOrderId} has unknown species '{order.speciesId}'";
+        return null;
+    }
+
     private static bool IsFinite(float value)
     {
         return !float.IsNaN(value) && !float.IsInfinity(value);
+    }
+
+    // ---- S1-C T-05 objective history (save v22) ------------------------------------------------------------------
+    // Same shape as the Rack V2 validator: a semantic check on the parsed state plus a JSON-presence pass for what
+    // JsonUtility would silently default. Both run before the save can touch the live world; a malformed history is
+    // refused, never repaired or partially applied.
+
+    // Fixed objective ids from ScenarioOneObjectives.Evaluate; "introduced-<speciesId>" is built per shop species.
+    private static readonly HashSet<string> FixedObjectiveIds = new HashSet<string>
+    {
+        "minimum-year", "retained-canopy", "continuous-canopy", "regeneration", "fallen-deadwood", "managed-opening"
+    };
+    private const string IntroducedObjectivePrefix = "introduced-";
+
+    // Returns null when the history is safe to load, otherwise a short player-readable reason.
+    public static string ValidateObjectiveHistory(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data?.scenarioOne;
+        if (scenario == null)
+            return null;
+        List<ScenarioObjectiveAchievement> records = scenario.objectiveAchievements;
+        if (records == null || records.Count == 0)
+            return null; // missing or empty is the valid "not recorded" state at every version
+
+        if (data.version < 22)
+            return "a save older than version 22 cannot carry objective achievement history";
+
+        var seen = new HashSet<string>();
+        int previousYear = int.MinValue;
+        foreach (ScenarioObjectiveAchievement record in records)
+        {
+            if (record == null)
+                return "an objective achievement record is missing";
+            if (!IsKnownObjectiveId(record.objectiveId))
+                return $"unknown objective '{record.objectiveId}' in the achievement history";
+            if (!seen.Add(record.objectiveId))
+                return $"objective '{record.objectiveId}' appears twice in the achievement history";
+            if (record.achievedYear < 0 || record.achievedYear > data.ecologicalYear)
+                return $"objective '{record.objectiveId}' has an impossible achieved year {record.achievedYear}";
+            // Records are appended as evaluation observes them, so years never go backwards.
+            if (record.achievedYear < previousYear)
+                return "the objective achievement history is out of order";
+            previousYear = record.achievedYear;
+            if (!IsFinite(record.targetValueAtAchievement) || record.targetValueAtAchievement < 0f)
+                return $"objective '{record.objectiveId}' has an invalid recorded target";
+        }
+        return null;
+    }
+
+    private static bool IsKnownObjectiveId(string id)
+        => !string.IsNullOrEmpty(id)
+            && (FixedObjectiveIds.Contains(id)
+                || (id.StartsWith(IntroducedObjectivePrefix, System.StringComparison.Ordinal)
+                    && id.Length > IntroducedObjectivePrefix.Length && id.Trim() == id));
+
+    // A v22 save must state the field explicitly, as an array of fully typed records, with no duplicate keys.
+    public static string ValidateObjectiveHistoryJson(string json, ForestSaveData data)
+    {
+        if (data == null || data.version < 22)
+            return null;
+        try
+        {
+            var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if (!(root["scenarioOne"] is JObject scenario))
+                return null; // no Scenario One state, so no history field is required
+            if (!(scenario["objectiveAchievements"] is JArray records))
+                return "version 22 requires an explicit objective achievement history";
+            foreach (JToken record in records)
+                if (!(record is JObject item)
+                    || item["objectiveId"]?.Type != JTokenType.String
+                    || item["achievedYear"]?.Type != JTokenType.Integer
+                    || !(item["targetValueAtAchievement"]?.Type == JTokenType.Float
+                        || item["targetValueAtAchievement"]?.Type == JTokenType.Integer))
+                    return "a version 22 objective achievement record is missing required fields";
+        }
+        catch (System.Exception)
+        {
+            return "invalid version 22 objective history JSON";
+        }
+        return null;
+    }
+
+    // ---- MFM-06 prescription state and provenance (save v23) ------------------------------------------------------------
+    // Same contract as the rack and objective-history validators: semantic checks on the parsed state plus a JSON-presence pass
+    // for fields JsonUtility would turn into silent defaults. Both run before the save may touch the live world; a malformed
+    // prescription is refused, never repaired, renumbered or partially applied.
+    private const int MaxPrescriptions = 1024;
+    private const int MaxIdLength = 64;
+    private const int MaxListEntries = 4096;
+
+    // Returns null when the prescription state is safe to load, otherwise a short player-readable reason.
+    public static string ValidatePrescriptions(ForestSaveData data)
+    {
+        ScenarioOneSaveData scenario = data?.scenarioOne;
+        if (scenario == null)
+            return null;
+
+        if (data.version < 23)
+        {
+            // An older save is the "no prescription" world. Reject one that claims prescription state.
+            bool claimsState = (scenario.prescriptions != null && scenario.prescriptions.Count > 0)
+                || (scenario.workOrders != null && scenario.workOrders.Exists(o => o != null && HasPrescriptionLink(o)))
+                || (scenario.managementEvents != null && scenario.managementEvents.Exists(e => e != null && e.prescriptionId != 0));
+            return claimsState ? "a save older than version 23 cannot carry prescription state" : null;
+        }
+
+        List<PrescriptionSaveData> records = scenario.prescriptions ?? new List<PrescriptionSaveData>();
+        if (scenario.nextPrescriptionId < 1)
+            return $"invalid prescription id allocator {scenario.nextPrescriptionId}";
+        if (records.Count > MaxPrescriptions)
+            return "too many prescriptions";
+
+        var byId = new Dictionary<int, PrescriptionSaveData>();
+        foreach (PrescriptionSaveData record in records)
+        {
+            string problem = ValidatePrescriptionRecord(record, data, scenario);
+            if (problem != null) return problem;
+            if (!byId.TryAdd(record.prescriptionId, record))
+                return $"prescription {record.prescriptionId} appears twice";
+            if (record.prescriptionId >= scenario.nextPrescriptionId)
+                return $"prescription {record.prescriptionId} is at or beyond the id allocator {scenario.nextPrescriptionId}";
+        }
+
+        if (scenario.workOrders != null)
+            foreach (ScenarioOneWorkOrder order in scenario.workOrders)
+            {
+                if (order == null) continue; // already rejected by the scenario validation
+                string problem = ValidateOrderProvenance(order, byId);
+                if (problem != null) return problem;
+            }
+        if (scenario.managementEvents != null)
+            foreach (ScenarioManagementEvent entry in scenario.managementEvents)
+            {
+                if (entry == null || entry.prescriptionId == 0) continue;
+                if (!byId.ContainsKey(entry.prescriptionId))
+                    return $"management event {entry.eventId} names unknown prescription {entry.prescriptionId}";
+            }
+        return null;
+    }
+
+    private static bool HasPrescriptionLink(ScenarioOneWorkOrder order)
+        => order.prescriptionId != 0 || !string.IsNullOrEmpty(order.prescriptionCoverageUnitId)
+            || !string.IsNullOrEmpty(order.prescriptionCropTreeId) || order.prescriptionReason != 0;
+
+    private static string ValidatePrescriptionRecord(PrescriptionSaveData record, ForestSaveData data, ScenarioOneSaveData scenario)
+    {
+        if (record == null)
+            return "a prescription record is missing";
+        if (record.prescriptionId < 1)
+            return $"invalid prescription id {record.prescriptionId}";
+        string label = $"prescription {record.prescriptionId}";
+        if (!IsVersionText(record.ruleVersion))
+            return $"{label} has an invalid rule version";
+        if (!IsVersionText(record.calibrationVersion))
+            return $"{label} has an invalid calibration version";
+        // The source sample is a persisted Rack V2 rack: an id the allocator has handed out.
+        if (scenario.rackPlanningModel != RackPlanningModel.RackPlanningFieldMarkingV2)
+            return $"{label} needs a Rack Planning V2 world";
+        if (record.sourceRackId < 1 || record.sourceRackId >= scenario.nextRackId)
+            return $"{label} names an impossible source rack {record.sourceRackId}";
+        if (record.sourceYear < 0 || record.sourceYear > data.ecologicalYear)
+            return $"{label} has an impossible source year {record.sourceYear}";
+        if (!IsFinite(record.sourceAnchorX) || !IsFinite(record.sourceAnchorZ))
+            return $"{label} has an invalid source anchor";
+        string listProblem = ValidateIdList(record.sampleCropTreeIds, label + " sample Crop Trees")
+            ?? ValidateIdList(record.sampleRemovalIds, label + " sample removals");
+        if (listProblem != null) return listProblem;
+
+        if (record.coverageDecisions == null)
+            return $"{label} is missing its coverage decisions";
+        if (record.coverageDecisions.Count > MaxListEntries)
+            return $"{label} has too many coverage decisions";
+        var units = new HashSet<string>();
+        foreach (PrescriptionCoverageDecisionSaveData decision in record.coverageDecisions)
+        {
+            if (decision == null || !IsIdText(decision.unitId))
+                return $"{label} has an invalid coverage unit";
+            if (!PrescriptionCoverageChoice.IsKnown(decision.choice))
+                return $"{label} has an unknown coverage choice {decision.choice}";
+            if (!units.Add(decision.unitId))
+                return $"{label} decides coverage unit '{decision.unitId}' twice";
+        }
+
+        if (!PrescriptionApprovalState.IsKnown(record.approvalState))
+            return $"{label} has an unknown approval state {record.approvalState}";
+        if (record.approvalState == PrescriptionApprovalState.Accepted && record.approvalYear != -1)
+            return $"{label} is not approved but has an approval year";
+        if (record.approvalState == PrescriptionApprovalState.Approved
+            && (record.approvalYear < record.sourceYear || record.approvalYear > data.ecologicalYear))
+            return $"{label} has an impossible approval year {record.approvalYear}";
+        return null;
+    }
+
+    private static string ValidateOrderProvenance(ScenarioOneWorkOrder order, Dictionary<int, PrescriptionSaveData> byId)
+    {
+        if (order.prescriptionId < 0)
+            return $"work order {order.workOrderId} has an invalid prescription link";
+        if (order.prescriptionId == 0)
+            // An ordinary order must carry no provenance at all: nothing is ever attributed after the fact.
+            return HasPrescriptionLink(order) ? $"work order {order.workOrderId} has prescription provenance but no prescription" : null;
+        if (!byId.TryGetValue(order.prescriptionId, out PrescriptionSaveData owner))
+            return $"work order {order.workOrderId} names unknown prescription {order.prescriptionId}";
+        if (owner.approvalState != PrescriptionApprovalState.Approved)
+            return $"work order {order.workOrderId} comes from prescription {order.prescriptionId}, which is not approved";
+        if (order.createdYear < owner.approvalYear)
+            return $"work order {order.workOrderId} predates the approval of prescription {order.prescriptionId}";
+        if (!IsIdText(order.prescriptionCoverageUnitId))
+            return $"work order {order.workOrderId} has an invalid prescription coverage unit";
+        if (!string.IsNullOrEmpty(order.prescriptionCropTreeId) && !IsIdText(order.prescriptionCropTreeId))
+            return $"work order {order.workOrderId} has an invalid prescription Crop Tree";
+        if (!PrescriptionReasonCode.IsKnown(order.prescriptionReason))
+            return $"work order {order.workOrderId} has an unknown prescription reason {order.prescriptionReason}";
+        return null;
+    }
+
+    private static string ValidateIdList(List<string> ids, string label)
+    {
+        if (ids == null)
+            return $"{label} are missing";
+        if (ids.Count > MaxListEntries)
+            return $"{label} are too many";
+        var seen = new HashSet<string>();
+        foreach (string id in ids)
+            if (!IsIdText(id) || !seen.Add(id))
+                return $"{label} hold an invalid or repeated id";
+        return null;
+    }
+
+    // Printable ASCII, trimmed, bounded: tree ids ("P0009"), coverage unit ids and similar.
+    private static bool IsIdText(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length > MaxIdLength || text.Trim() != text)
+            return false;
+        foreach (char c in text)
+            if (c < ' ' || c > '~')
+                return false;
+        return true;
+    }
+
+    // Rule and calibration versions: letters, digits, '.', '_' and '-' only ("MFM-V1-RULE-1").
+    private static bool IsVersionText(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length > MaxIdLength)
+            return false;
+        foreach (char c in text)
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-'))
+                return false;
+        return true;
+    }
+
+    // A v23 save must state the prescription fields explicitly with the right types and no duplicate keys.
+    public static string ValidatePrescriptionsJson(string json, ForestSaveData data)
+    {
+        if (data == null || data.version < 23)
+            return null;
+        try
+        {
+            var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if (!(root["scenarioOne"] is JObject scenario))
+                return null; // no Scenario One state, so no prescription fields are required
+            if (scenario["nextPrescriptionId"]?.Type != JTokenType.Integer || !(scenario["prescriptions"] is JArray records))
+                return "version 23 requires explicit prescription fields";
+            foreach (JToken token in records)
+            {
+                if (!(token is JObject item)
+                    || item["prescriptionId"]?.Type != JTokenType.Integer
+                    || item["ruleVersion"]?.Type != JTokenType.String
+                    || item["calibrationVersion"]?.Type != JTokenType.String
+                    || item["sourceRackId"]?.Type != JTokenType.Integer
+                    || item["sourceYear"]?.Type != JTokenType.Integer
+                    || !Coordinate(item["sourceAnchorX"]) || !Coordinate(item["sourceAnchorZ"])
+                    || !IsStringArray(item["sampleCropTreeIds"]) || !IsStringArray(item["sampleRemovalIds"])
+                    || !(item["coverageDecisions"] is JArray decisions)
+                    || item["approvalState"]?.Type != JTokenType.Integer
+                    || item["approvalYear"]?.Type != JTokenType.Integer)
+                    return "a version 23 prescription record is missing required fields";
+                foreach (JToken decisionToken in decisions)
+                    if (!(decisionToken is JObject decision)
+                        || decision["unitId"]?.Type != JTokenType.String
+                        || decision["choice"]?.Type != JTokenType.Integer)
+                        return "a version 23 coverage decision is missing required fields";
+            }
+            if (scenario["workOrders"] is JArray orders)
+                foreach (JToken token in orders)
+                    if (!(token is JObject order)
+                        || order["prescriptionId"]?.Type != JTokenType.Integer
+                        || order["prescriptionCoverageUnitId"]?.Type != JTokenType.String
+                        || order["prescriptionCropTreeId"]?.Type != JTokenType.String
+                        || order["prescriptionReason"]?.Type != JTokenType.Integer)
+                        return "a version 23 work order is missing its prescription link";
+            if (scenario["managementEvents"] is JArray events)
+                foreach (JToken token in events)
+                    if (!(token is JObject entry) || entry["prescriptionId"]?.Type != JTokenType.Integer)
+                        return "a version 23 management event is missing its prescription link";
+        }
+        catch (System.Exception)
+        {
+            return "invalid version 23 prescription JSON";
+        }
+        return null;
+    }
+
+    private static bool IsStringArray(JToken token)
+    {
+        if (!(token is JArray array)) return false;
+        foreach (JToken item in array)
+            if (item.Type != JTokenType.String) return false;
+        return true;
     }
 }

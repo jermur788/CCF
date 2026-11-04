@@ -32,7 +32,8 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     [SerializeField, Min(0)] private int fellingBaseMinutes = 12;
     [SerializeField, Min(0f)] private float fellingMinutesPerCubicMetre = 10f;
     [SerializeField, Min(0)] private int sitkaTimberValueCentsPerCubicMetre = 7200;
-    [SerializeField, Min(0)] private int broadleafTimberValueCentsPerCubicMetre = 6500;
+    // Historical ScenarioOne.asset may still contain the retired broadleaf flat-rate key.
+    // It is deliberately not read: Oak/Beech value comes only from explicit assortment prices.
     [Header("Scenario One commissioned work — configurable foundation values")]
     [Tooltip("[C] Once per commissioned annual harvest job, not per tree. Manager-approved production value €2,500.")]
     [SerializeField, Min(0)] private long minimumHarvestJobCents = 250000;
@@ -151,6 +152,17 @@ public sealed class ScenarioOneDefinition : ScriptableObject
         return pruningLiftTargetHeightsM[currentLifts];
     }
 
+    // Separate high-pruning schedule for model-2 Oak/Beech only. No new serialized state;
+    // models 0/1 and all other species retain the configured legacy/Sitka schedule above.
+    public float NextPruningTargetHeightM(ForestTree tree, bool speciesAware)
+    {
+        if (tree == null) return -1f;
+        string speciesId = tree.Species != null ? tree.Species.SpeciesId : "";
+        if (speciesAware && (speciesId == "sessile-oak" || speciesId == "beech"))
+            return tree.PruningLifts == 0 ? 3.5f : tree.PruningLifts == 1 ? 6f : -1f;
+        return NextPruningTargetHeightM(tree.PruningLifts);
+    }
+
     public ScenarioShopEntry FindShopEntry(string itemId)
     {
         return shopEntries != null ? shopEntries.Find(entry => entry != null && entry.itemId == itemId) : null;
@@ -158,8 +170,8 @@ public sealed class ScenarioOneDefinition : ScriptableObject
 
     public int TimberValueCentsPerCubicMetre(string speciesId)
     {
-        return speciesId == "sitka-spruce"
-            ? sitkaTimberValueCentsPerCubicMetre
-            : broadleafTimberValueCentsPerCubicMetre;
+        if (speciesId != "sitka-spruce")
+            throw new InvalidOperationException("Broadleaf timber requires species-specific assortment pricing; no flat value is available.");
+        return sitkaTimberValueCentsPerCubicMetre;
     }
 }

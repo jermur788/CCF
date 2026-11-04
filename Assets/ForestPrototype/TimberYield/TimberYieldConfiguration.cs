@@ -88,8 +88,9 @@ namespace CCF.Forestry.TimberYield
         public const string OakSpeciesId = "sessile-oak";
         public const string BeechSpeciesId = "beech";
 
-        // Oak (strongly quality/form dependent) and Beech (a deliberately shorter, lower ladder). [C] marks values
-        // chosen here for gameplay; they are not Irish market specifications. Nothing here is a flat broadleaf rate.
+        // Oak and Beech use explicit ladders. Live eligibility uses size + recorded pruning/crown history only;
+        // generic allocator defect flags below are not evidence of living-tree fork/form state in Scenario One.
+        // [C] / GAMEPLAY CALIBRATION marks selected dimensions and the pruning-only quality proxy.
         public static AssortmentSpecification[] BroadleafSpecifications()
         {
             // Defects that stop a section being clean or straight. Pruned is a quality of a section, not a defect.
@@ -101,11 +102,11 @@ namespace CCF.Forestry.TimberYield
             {
                 // ---- Oak, highest to lowest priority ----
                 Broadleaf("oak-veneer-planking", OakSpeciesId, TimberAssortment.VeneerPlanking, PotentialMaterialUse.SawlogForProcessing, 10,
-                    400, 0, 450, new[] { 2800 }, StemQualityFlags.Pruned, anyDefect, EvidenceLabel.Inference,
-                    "Manager-approved Oak ladder: usable length above 2.7 m (2.8 m used), mid-log diameter 45 cm or more, clean knot-free form. 'Clean' is modelled as a pruned stem section [C]; shake is out of P0. The small-end minimum is a non-binding engine guard."),
+                    400, 0, 450, new[] { 2800 }, StemQualityFlags.Pruned, anyDefect, EvidenceLabel.ManagementGuidance,
+                    "DIRECT / ManagementGuidance: Teagasc hardwood grading, length above 2.7 m and mid-log diameter >=45 cm. GAMEPLAY CALIBRATION: selected 2.8 m length, small-end engine guard and pruning-only proxy for the source's clean grade; fork/defect shape is not modelled."),
                 Broadleaf("oak-beam", OakSpeciesId, TimberAssortment.Beam, PotentialMaterialUse.SawlogForProcessing, 20,
-                    250, 0, 300, new[] { 2600 }, StemQualityFlags.None, structural, EvidenceLabel.Inference,
-                    "Manager-approved Oak ladder: length above 2.5 m (2.6 m used), mid-log diameter 30 cm or more, some defects permissible. Which defects are permissible is [C]: forks, defects and damage are not."),
+                    250, 0, 300, new[] { 2600 }, StemQualityFlags.None, structural, EvidenceLabel.ManagementGuidance,
+                    "DIRECT / ManagementGuidance: Teagasc hardwood grading, length above 2.5 m and mid-log diameter >=30 cm. GAMEPLAY CALIBRATION: selected 2.6 m length, small-end guard and generic allocator exclusions; live eligibility does not infer fork/defect shape."),
                 Broadleaf("oak-fencing", OakSpeciesId, TimberAssortment.Fencing, PotentialMaterialUse.PolesAndStakes, 30,
                     120, 250, 0, new[] { 2400, 1800 }, StemQualityFlags.None, roundwood, EvidenceLabel.GameplayCalibration,
                     "[C] Fencing material: small roundwood, small end 12 to 25 cm, 1.8 or 2.4 m. Dimensions are not an Irish specification; the upper bound keeps larger sound logs for planking."),

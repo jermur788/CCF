@@ -11,6 +11,13 @@ using UnityEngine.UIElements;
 // S1-C year browsing: the completed years, and everything shown for the selected year (report, resolved work, money,
 // snapshots, storms), come from ScenarioOneManager.HistoryYears. This view does not re-join the raw record lists for a
 // year. Browsing an earlier year is read-only presentation: it never acknowledges anything.
+//
+// S1-C intervention drill-down: the Work column stays aggregate-first. Each aggregate line can be opened (and closed) to the
+// recorded tasks behind it, from ScenarioManagementHistory.DescribeWork. Opening is presentation state only; nothing is written.
+// S1-C provenance (T-04): each line carries one label from HistoryProvenance (recorded, current, derived, reconstructed,
+// session-only, not recorded). Labels are presentation only; no label adds a fact or a causal claim.
+// A fact the records do not hold is shown as "not recorded", never rebuilt from today's forest. A commissioned harvest settles
+// once as a group, so its money is shown as one job settlement and never split per order.
 public sealed class AnnualReviewView
 {
     private readonly ScenarioOneUiRoot ui;
@@ -27,6 +34,8 @@ public sealed class AnnualReviewView
     private int lastLatestYear = -1;
     // True while an earlier year is on screen. The acknowledgement belongs to the newest review only.
     private bool showingEarlierYear;
+    // Work rows the player has opened, keyed by year and group, so each year keeps its own open rows when years are switched.
+    private readonly HashSet<string> openDetails = new HashSet<string>();
 
     public AnnualReviewView(ScenarioOneUiRoot ui)
     {
@@ -61,7 +70,20 @@ public sealed class AnnualReviewView
     }
 
     // Opening the review starts on the newest year; a past year is only ever a deliberate drill-down.
-    public void ShowLatest() => viewYear = -1;
+    public void ShowLatest() { viewYear = -1; openDetails.Clear(); }
+
+    // Select only a recorded year. Synchronising the latest-year marker prevents the first/new-latest
+    // Refresh from replacing this deliberate selection. This changes presentation only, never acknowledgement.
+    public bool TryShowYear(int year)
+    {
+        IReadOnlyList<YearHistoryView> years = ui.Manager.HistoryYears;
+        if (FindYear(years, year) == null) return false;
+        viewYear = year;
+        lastLatestYear = years[years.Count - 1].Year;
+        openDetails.Clear();
+        Refresh(true);
+        return true;
+    }
 
     public void Refresh(bool force)
     {
@@ -75,7 +97,7 @@ public sealed class AnnualReviewView
         IReadOnlyList<YearHistoryView> years = m.HistoryYears;
         YearHistoryView latest = years.Count > 0 ? years[years.Count - 1] : null;
         // A new year always opens on the newest review; a past year is chosen with the year buttons.
-        if (latest != null && latest.Year != lastLatestYear) { lastLatestYear = latest.Year; viewYear = -1; }
+        if (latest != null && latest.Year != lastLatestYear) { lastLatestYear = latest.Year; viewYear = -1; openDetails.Clear(); }
         YearHistoryView year = latest;
         if (viewYear >= 0)
         {
@@ -107,6 +129,9 @@ public sealed class AnnualReviewView
             return;
         }
 
+        VisualElement legend = UiKit.Add(scroll, HistoryProvenanceText.Legend, "faint");
+        legend.name = "provenance-legend";
+
         IReadOnlyList<InterventionSummary> interventions = m.Interventions;
         // The completion summary opens the review of the year the objectives were met (not year 100).
         CompletionSummary completion = m.CompletionReview;
@@ -121,7 +146,8 @@ public sealed class AnnualReviewView
         BuildWork(m, year, Column(columns, "Work done"));
         BuildMoney(m, year, Column(columns, "Money"));
         BuildForest(m, year, Column(columns, "Forest"), historical);
-        BuildStorm(m, year);
+        BuildPriorTreatmentGuidance(year);
+        BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);
         BuildTrends(m);
         BuildObjectives(m, historical);
@@ -140,7 +166,48 @@ public sealed class AnnualReviewView
         return null;
     }
 
-    private void BuildStorm(ScenarioOneManager manager, YearHistoryView year)
+    private void BuildPriorTreatmentGuidance(YearHistoryView year)
+    {
+        YearWorkDetail work = ScenarioManagementHistory.DescribeWork(year);
+        // One recorded example per biological treatment keeps this a short teaching view. Full targets remain in Work done.
+        var examples = work.Done.SelectMany(g => g.Items)
+            .Where(i => ManagementHistoryText.PriorTreatmentGuidance(i).Length > 0)
+            .GroupBy(i => i.Treatment).Select(g => g.First()).ToList();
+        if (examples.Count == 0) return;
+        var card = UiKit.Box("card"); card.name = "prior-treatment-guidance";
+        scroll.Add(card);
+        UiKit.Add(card, "PRIOR TREATMENT · L4 MANAGEMENT GUIDANCE", "heading");
+        var body = UiKit.Box(); body.name = "prior-treatment-guidance-body";
+        body.style.display = DisplayStyle.None;
+        var toggle = UiKit.Button("What to inspect before deciding again", () =>
+            body.style.display = body.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None);
+        toggle.name = "prior-treatment-guidance-toggle";
+        card.Add(toggle); card.Add(body);
+        UiKit.Add(body, "One recorded example per treatment in this year. These are inspection prompts, not a recommendation to carry out work. Observe the forest now separately from the earlier record.", "faint");
+        foreach (WorkItemDetail item in examples)
+        {
+            var entry = UiKit.Box(); entry.name = "prior-treatment-event-" + item.EventId;
+            entry.style.marginTop = 6; body.Add(entry);
+            AddTagged(entry, HistoryProvenance.Recorded,
+                $"Year {item.Year} · event {item.EventId} · order {item.WorkOrderId}: {TreatmentText(item.Treatment)}.");
+            ForestEcologyController eco = ui.Ecology;
+            if (item.CellIndex >= 0)
+                AddTagged(entry, HistoryProvenance.Recorded, "Map square " + (eco != null ? UiKit.CellLabel(item.CellIndex, eco.CellsPerAxis) : "#" + item.CellIndex));
+            else
+                AddTagged(entry, HistoryProvenance.NotRecorded, "Map square not recorded; no inspection waypoint offered.", "muted");
+            UiKit.Add(entry, "L4 GUIDANCE · " + ManagementHistoryText.PriorTreatmentGuidance(item), "body");
+            int cell = ManagementHistoryText.PriorTreatmentWaypointCell(item, eco != null ? eco.CellCount : 0);
+            if (cell >= 0)
+            {
+                // Reuse the existing cell-waypoint route. This marks an area, not an exact historical stem position.
+                var look = UiKit.Button("Look at recorded map square", () => ui.ShowStormWaypoint(cell));
+                look.name = "prior-treatment-waypoint-" + item.EventId;
+                entry.Add(look);
+            }
+        }
+    }
+
+    private void BuildStorm(ScenarioOneManager manager, YearHistoryView year, bool historical)
     {
         if (year.Storms.Count == 0) return;
         StormDamageSummary summary = manager.StormDamageInYear(year.Year);
@@ -148,13 +215,72 @@ public sealed class AnnualReviewView
         var card = UiKit.Box("card"); card.name = "annual-storm-review"; scroll.Add(card);
         UiKit.Add(card, "STORM AND WINDTHROW", "heading");
         string severity = summary.Event.severity < .04f ? "Light" : summary.Event.severity < .12f ? "Moderate" : "Severe";
-        UiKit.Add(card, $"Year {summary.Event.year} · {severity} modelled event. These are game severity bands, not measured wind speeds.", "body");
-        UiKit.Add(card, $"{summary.TreesLost} trees lost, including {summary.Event.cropTreesLost} Crop Trees · {UiKit.F(summary.OriginalVolumeM3, "0.00")} m³ of original fallen stem material.", "body");
-        UiKit.Add(card, $"Damage touches {summary.AffectedCells} map squares. This footprint is approximate; it does not mean every affected square is fully open.", "muted");
-        UiKit.Add(card, $"{UiKit.F(summary.DeadwoodRemainingM3, "0.00")} m³ remains as deadwood · {UiKit.F(summary.SalvagedVolumeM3, "0.00")} m³ salvaged since this event.", "body");
+        AddTagged(card, HistoryProvenance.Recorded, $"Year {summary.Event.year} · {severity} modelled event · {summary.Event.cropTreesLost} Crop Trees lost. These are game severity bands, not measured wind speeds.");
+        AddTagged(card, HistoryProvenance.Reconstructed, $"{summary.TreesLost} trees lost · {UiKit.F(summary.OriginalVolumeM3, "0.00")} m³ of original fallen stem material.");
+        AddTagged(card, HistoryProvenance.Reconstructed, $"Damage touches {summary.AffectedCells} map squares. This footprint is approximate; it does not mean every affected square is fully open.", "muted");
+        UiKit.Add(card, HistoryProvenanceText.StormReconstructionNote, "faint");
+        // Salvage since the event is added up from completed salvage orders: derived, and fine under the storm's own year.
+        AddTagged(card, HistoryProvenance.Derived, $"{UiKit.F(summary.SalvagedVolumeM3, "0.00")} m³ salvaged since this event, to date.");
+        // How much deadwood is left is today's forest. It is shown only on the latest review, never under an earlier year.
+        if (!historical)
+            AddTagged(card, HistoryProvenance.Current, $"{UiKit.F(summary.DeadwoodRemainingM3, "0.00")} m³ remains as deadwood now.");
         UiKit.Add(card, "Fallen trees stop contributing to canopy and seed rain. Openings increase light and recent exposure; bramble and bracken can respond, affecting small young trees through the existing competition model. Inspect the changed cells before choosing work.", "body");
         UiKit.Add(card, "Salvage is optional. Aim at an eligible fallen stem and press X to add it to the Work Plan; choose Sell or Keep there. Unselected stems remain deadwood, and a small salvage visit may cost more than its timber earns.", "body");
         if (summary.WaypointCell >= 0) card.Add(UiKit.Button("Mark storm damage on the map", () => ui.ShowStormWaypoint(summary.WaypointCell)));
+    }
+
+    private static string ChipStyle(HistoryProvenance kind)
+    {
+        switch (kind)
+        {
+            case HistoryProvenance.Recorded: return "chip-ok";
+            case HistoryProvenance.Current: return "chip-rack";
+            case HistoryProvenance.Derived: return "chip-crop";
+            case HistoryProvenance.Reconstructed:
+            case HistoryProvenance.SessionOnly: return "chip-warn";
+            default: return "chip-bad";
+        }
+    }
+
+    // The label is words, not colour alone. Its class name ("prov-recorded", ...) lets the checks find every label.
+    private static Label Tag(VisualElement parent, HistoryProvenance kind)
+    {
+        Label chip = UiKit.Chip(parent, HistoryProvenanceText.Label(kind), ChipStyle(kind));
+        chip.AddToClassList("prov");
+        chip.AddToClassList("prov-" + kind.ToString().ToLowerInvariant());
+        chip.style.flexShrink = 0;
+        chip.style.marginTop = 2;
+        return chip;
+    }
+
+    // A line of text with its provenance label in front. The text wraps beside the label instead of pushing past the card.
+    private static Label AddTagged(VisualElement parent, HistoryProvenance kind, string text, string textClass = "body")
+    {
+        VisualElement row = UiKit.Box("row");
+        row.style.alignItems = Align.FlexStart;
+        Tag(row, kind);
+        Label label = UiKit.Add(row, text, textClass);
+        label.style.flexShrink = 1;
+        label.style.flexGrow = 1;
+        label.style.flexBasis = 0;
+        parent.Add(row);
+        return label;
+    }
+
+    // Name/value line (as UiKit.Line) with a provenance label in front. A long value goes under its name, so the name keeps room
+    // to read beside the label in a narrow column.
+    private static void TaggedLine(VisualElement parent, HistoryProvenance kind, string name, string value, string valueClass = "value")
+    {
+        VisualElement row = UiKit.Box("row");
+        row.style.alignItems = Align.FlexStart;
+        Tag(row, kind);
+        VisualElement line = UiKit.Box();
+        line.style.flexGrow = 1;
+        line.style.flexShrink = 1;
+        line.style.flexBasis = 0;
+        UiKit.Line(line, name, value, valueClass, value.Length > 12);
+        row.Add(line);
+        parent.Add(row);
     }
 
     private static VisualElement Column(VisualElement parent, string heading)
@@ -165,32 +291,236 @@ public sealed class AnnualReviewView
         return column;
     }
 
-    private static void BuildWork(ScenarioOneManager m, YearHistoryView year, VisualElement c)
+    private void BuildWork(ScenarioOneManager m, YearHistoryView year, VisualElement c)
     {
         // The year's resolved work already pairs each WorkResolved event with its order record (where the order still exists).
+        // DescribeWork groups the same events for drill-down; the aggregate lines below are unchanged.
+        YearWorkDetail detail = ScenarioManagementHistory.DescribeWork(year);
         List<ResolvedWorkRecord> resolved = year.ResolvedWork;
         List<ResolvedWorkRecord> done = resolved.Where(r => r.Event.outcome == ScenarioManagementOutcome.Succeeded).ToList();
         int regenerationRemovals = year.Report != null ? year.Report.regenerationRemovalTasks : 0;
         int felled = done.Count(r => r.Event.taskType == ScenarioWorkType.FellTree);
         int salvaged = done.Count(r => r.Event.taskType == ScenarioWorkType.SalvageDeadwood);
-        if (salvaged > 0) UiKit.Add(c, $"{salvaged} windthrow stem(s) salvaged (contractor)", "body");
-        if (felled > 0) UiKit.Add(c, $"{felled} tree(s) thinned (contractor)", "body");
+        if (salvaged > 0)
+        {
+            AddTagged(c, HistoryProvenance.Derived, $"{salvaged} windthrow stem(s) salvaged (contractor)");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.SalvageDeadwood));
+        }
+        if (felled > 0)
+        {
+            AddTagged(c, HistoryProvenance.Derived, $"{felled} tree(s) thinned (contractor)");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.FellTree));
+        }
+        if (detail.HarvestSettlement != null) AddHarvestSettlement(c, detail);
         var planted = done.Where(r => r.Event.taskType == ScenarioWorkType.PlantJuvenile).ToList();
         if (planted.Count > 0)
         {
             int sheltered = planted.Count(r => r.Order != null && r.Order.installShelter);
             int byOwner = planted.Count(r => r.Event.executionMethod == WorkExecutionMethod.LandownerSimulated);
-            UiKit.Add(c, $"{planted.Count} planted ({string.Join(", ", planted.GroupBy(r => r.Event.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"))}), "
-                + $"{sheltered} with shelters · {byOwner} by you, {planted.Count - byOwner} by contractor", "body");
+            AddTagged(c, HistoryProvenance.Derived, $"{planted.Count} planted ({string.Join(", ", planted.GroupBy(r => r.Event.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"))}), "
+                + $"{sheltered} with shelters · {byOwner} by you, {planted.Count - byOwner} by contractor");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.PlantJuvenile));
         }
         int pruned = done.Count(r => r.Event.taskType == ScenarioWorkType.PruneTree);
-        if (pruned > 0) UiKit.Add(c, $"{pruned} crop tree(s) pruned (contractor)", "body");
-        if (regenerationRemovals > 0) UiKit.Add(c, $"{regenerationRemovals} regeneration cohort(s) removed", "body");
-        if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) UiKit.Add(c, "No work was resolved this year.", "body");
+        if (pruned > 0)
+        {
+            AddTagged(c, HistoryProvenance.Derived, $"{pruned} crop tree(s) pruned (contractor)");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.PruneTree));
+        }
+        if (regenerationRemovals > 0)
+        {
+            AddTagged(c, HistoryProvenance.Recorded, $"{regenerationRemovals} regeneration cohort(s) removed");
+            AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.RemoveRegeneration));
+        }
+        if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) AddTagged(c, HistoryProvenance.Derived, "No work was resolved this year.");
         var failed = resolved.Where(r => r.Event.outcome != ScenarioManagementOutcome.Succeeded).ToList();
-        UiKit.Add(c, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
+        AddTagged(c, HistoryProvenance.Derived, failed.Count == 0 ? "No tasks failed." : $"{failed.Count} task(s) failed:", failed.Count == 0 ? "muted" : "body");
         foreach (ResolvedWorkRecord r in failed.Take(5))
-            UiKit.Add(c, $"· {r.Event.taskType}: {ScenarioOneUiFacts.PlainText(r.Event.failureReason)}", "muted");
+        {
+            if (r.Event.failureReason != null && r.Event.failureReason.Length > 0)
+                AddTagged(c, HistoryProvenance.Recorded, $"· {r.Event.taskType}: {ScenarioOneUiFacts.PlainText(r.Event.failureReason)}", "muted");
+            else
+                AddTagged(c, HistoryProvenance.NotRecorded, $"· {r.Event.taskType}: reason not recorded", "muted");
+        }
+        AddDetail(c, year.Year, detail.Failed);
+        // A cancelled order was deleted when it was cancelled, so these entries come from the cancellation records alone.
+        int cancelled = detail.Cancelled.Items.Count;
+        if (cancelled > 0)
+        {
+            AddTagged(c, HistoryProvenance.Derived, $"{cancelled} order(s) cancelled before they were carried out.");
+            AddDetail(c, year.Year, detail.Cancelled);
+        }
+    }
+
+    // The year's one grouped harvest settlement. The records hold a single settlement for the whole commissioned job, so this
+    // is the only place harvest money is shown beside the work; individual orders and trees carry no money of their own.
+    private static void AddHarvestSettlement(VisualElement c, YearWorkDetail detail)
+    {
+        GroupedHarvestSettlement settlement = detail.HarvestSettlement;
+        int orders = detail.Done.Where(g => g.IsGroupedHarvest).Sum(g => g.Items.Count);
+        VisualElement box = UiKit.Box();
+        box.name = "annual-harvest-settlement";
+        // The order count and year label are grouped at display time; the two money figures are the one persisted settlement.
+        AddTagged(box, HistoryProvenance.Derived, $"Harvest job · year {settlement.ResolutionYearLabel}: {orders} harvest order(s) settled together as one job.");
+        AddTagged(box, HistoryProvenance.Recorded, $"Timber income {UiKit.Money(settlement.SettlementRevenueCents)} · harvesting cost {UiKit.Money(settlement.SettlementContractorCostCents)}.");
+        UiKit.Add(box, "The records hold one settlement for the whole job, so no money is shown per order or per tree. The year number labels the job; it is not a unique job ID.", "faint");
+        c.Add(box);
+    }
+
+    // A "Show recorded details" row under an aggregate line. Everything it reveals comes from the recorded task events;
+    // the content is built the first time the row is opened. The open state is presentation only.
+    private void AddDetail(VisualElement parent, int year, WorkGroupDetail group)
+    {
+        if (group == null || group.Items.Count == 0) return;
+        string key = year + "|" + group.Key;
+        VisualElement body = UiKit.Box("work-detail");
+        body.name = "work-detail-" + group.Key;
+        body.style.marginLeft = 10;
+        body.style.marginBottom = 6;
+        bool built = false;
+        Button toggle = null;
+        void Apply(bool open)
+        {
+            if (open && !built) { BuildDetailBody(body, group); built = true; }
+            body.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            toggle.text = open ? "Hide recorded details" : DetailToggleText(group);
+        }
+        toggle = UiKit.Button("", () =>
+        {
+            bool open = !openDetails.Contains(key);
+            if (open) openDetails.Add(key); else openDetails.Remove(key);
+            Apply(open);
+        }, true, "btn-ghost");
+        toggle.name = "work-detail-toggle-" + group.Key;
+        toggle.style.alignSelf = Align.FlexStart;
+        // Long aggregate labels must wrap inside the Work card at smaller review sizes.
+        toggle.style.maxWidth = Length.Percent(100);
+        toggle.style.whiteSpace = WhiteSpace.Normal;
+        parent.Add(toggle);
+        parent.Add(body);
+        Apply(openDetails.Contains(key));
+    }
+
+    private static string DetailToggleText(WorkGroupDetail group)
+    {
+        string text = $"Show recorded details · {group.Items.Count} task{(group.Items.Count == 1 ? "" : "s")}";
+        if (group.DistinctRecordedCells > 0)
+            text += $" · {group.DistinctRecordedCells} map square{(group.DistinctRecordedCells == 1 ? "" : "s")}";
+        return text;
+    }
+
+    private static void BuildDetailBody(VisualElement body, WorkGroupDetail group)
+    {
+        UiKit.Add(body, "Each entry is read from a recorded task event. A fact the record lacks is shown on its own NOT RECORDED line.", "faint");
+        if (group.IsGroupedHarvest)
+            UiKit.Add(body, "These orders were settled together as one harvest job. No money is recorded for a single order or tree.", "faint");
+        // The map-square label needs the grid width; fetch it once for the whole list.
+        ForestEcologyController eco = Object.FindFirstObjectByType<ForestEcologyController>();
+        int cellsPerAxis = eco != null ? eco.CellsPerAxis : 0;
+        foreach (WorkItemDetail item in group.Items)
+            BuildDetailItem(body, item, cellsPerAxis);
+        if (group.Status == WorkItemStatus.Cancelled)
+            UiKit.Add(body, "A cancelled order no longer exists. Each entry above is read from its cancellation record only.", "faint");
+    }
+
+    // One entry = one RECORDED title row, one RECORDED facts row, and (only when something is absent) one NOT RECORDED row that
+    // names exactly what the record lacks. No single label stands for a mixed entry.
+    private static void BuildDetailItem(VisualElement body, WorkItemDetail item, int cellsPerAxis)
+    {
+        VisualElement entry = UiKit.Box();
+        entry.style.marginTop = 3;
+        var missing = new List<string>();
+        VisualElement head = UiKit.Box("row", "row-wrap");
+        if (item.Status == WorkItemStatus.Failed) UiKit.Chip(head, "FAILED", "chip-bad");
+        else if (item.Status == WorkItemStatus.Cancelled) UiKit.Chip(head, "CANCELLED", "chip-warn");
+        string target = TargetText(item);
+        if (target == "tree not recorded") { missing.Add(target); target = ""; }
+        Tag(head, HistoryProvenance.Recorded);
+        UiKit.Add(head, WorkLabel(item.TaskType) + (target.Length > 0 ? " · " + target : "") + $" · order {item.WorkOrderId}", "body");
+        entry.Add(head);
+
+        var facts = new List<string>();
+        if (item.SpeciesId.Length > 0) facts.Add(ScenarioOneUiFacts.SpeciesName(item.SpeciesId));
+        string location = LocationText(item, cellsPerAxis);
+        if (location.Length > 0) facts.Add(location); else missing.Add("location not recorded");
+        if (item.ExecutionMethodRecorded)
+            facts.Add(item.ExecutionMethod == WorkExecutionMethod.LandownerSimulated ? "done by you" : "done by contractor");
+        else
+            missing.Add("execution method not recorded");
+        if (item.Status == WorkItemStatus.Cancelled)
+            facts.Add($"cancelled in year {item.Year}");
+        else
+            facts.Add($"resolved in year {item.Year}");
+        if (item.ShelterRecorded) facts.Add(item.ShelterInstalled ? "shelter fitted" : "no shelter");
+        if (item.Status == WorkItemStatus.Succeeded)
+        {
+            string treatment = TreatmentText(item.Treatment);
+            if (treatment.Length > 0) facts.Add("result: " + treatment);
+            if (item.BiologicalVolumeM3 > 0f) facts.Add($"recorded stem volume {UiKit.F(item.BiologicalVolumeM3, "0.00")} m³");
+            if (item.OwnMoneyRecorded)
+            {
+                if (item.ContractorCostCents > 0) facts.Add($"contractor cost {UiKit.Money(item.ContractorCostCents)}");
+                if (item.StockCostCents > 0) facts.Add($"materials {UiKit.Money(item.StockCostCents)}");
+                if (item.OwnerMinutes > 0) facts.Add($"your time {ScenarioOneManager.FormatMinutes(item.OwnerMinutes)}");
+            }
+        }
+        AddTagged(entry, HistoryProvenance.Recorded, string.Join(" · ", facts), "muted");
+        if (item.Status == WorkItemStatus.Failed)
+        {
+            if (item.FailureReason.Length > 0)
+                AddTagged(entry, HistoryProvenance.Recorded, "Reason: " + ScenarioOneUiFacts.PlainText(item.FailureReason), "muted");
+            else
+                missing.Add("Reason: not recorded");
+        }
+        if (missing.Count > 0)
+            AddTagged(entry, HistoryProvenance.NotRecorded, string.Join(" · ", missing), "muted");
+        body.Add(entry);
+    }
+
+    private static string WorkLabel(ScenarioWorkType type)
+    {
+        switch (type)
+        {
+            case ScenarioWorkType.FellTree: return "Felling";
+            case ScenarioWorkType.SalvageDeadwood: return "Windthrow salvage";
+            case ScenarioWorkType.PlantJuvenile: return "Planting";
+            case ScenarioWorkType.PruneTree: return "Pruning";
+            case ScenarioWorkType.RemoveRegeneration: return "Regeneration clearing";
+            default: return type.ToString();
+        }
+    }
+
+    // Only work on a standing or fallen tree has a target tree. Planting and regeneration clearing are about a place.
+    private static string TargetText(WorkItemDetail item)
+    {
+        bool treeTask = item.TaskType == ScenarioWorkType.FellTree || item.TaskType == ScenarioWorkType.PruneTree
+            || item.TaskType == ScenarioWorkType.SalvageDeadwood;
+        if (!treeTask) return "";
+        return item.TargetTreeId.Length > 0 ? "tree " + item.TargetTreeId : "tree not recorded";
+    }
+
+    private static string LocationText(WorkItemDetail item, int cellsPerAxis)
+    {
+        var parts = new List<string>();
+        if (item.CellIndex >= 0)
+            parts.Add("map square " + (cellsPerAxis > 0 ? UiKit.CellLabel(item.CellIndex, cellsPerAxis) : "#" + item.CellIndex));
+        if (item.PositionRecorded)
+            parts.Add($"position ({UiKit.F(item.PositionX, "0.0")}, {UiKit.F(item.PositionZ, "0.0")})");
+        return string.Join(" · ", parts);
+    }
+
+    private static string TreatmentText(ScenarioEcologicalTreatment treatment)
+    {
+        switch (treatment)
+        {
+            case ScenarioEcologicalTreatment.TreeFelledAndExtracted: return "felled and extracted";
+            case ScenarioEcologicalTreatment.JuvenilePlanted: return "young tree planted";
+            case ScenarioEcologicalTreatment.RegenerationRemoved: return "regeneration removed";
+            case ScenarioEcologicalTreatment.TreePruned: return "pruned";
+            case ScenarioEcologicalTreatment.TreeRetainedAsDeadwood: return "felled and left as fallen deadwood";
+            case ScenarioEcologicalTreatment.WindthrowSalvaged: return "windthrow stem salvaged";
+            default: return "";
+        }
     }
 
     private static void BuildMoney(ScenarioOneManager m, YearHistoryView year, VisualElement c)
@@ -200,25 +530,27 @@ public sealed class AnnualReviewView
         YearMoneySummary money = year.Money;
         if (money.Authority == null)
         {
-            UiKit.Add(c, "No annual report was recorded for this year, so its money is not shown.", "muted");
+            AddTagged(c, HistoryProvenance.NotRecorded, "No annual report was recorded for this year, so its money is not shown.", "muted");
             return;
         }
         var events = year.ResolvedWork.Where(r => r.Event.outcome == ScenarioManagementOutcome.Succeeded).Select(r => r.Event).ToList();
         long harvestCost = events.Where(e => e.taskType == ScenarioWorkType.FellTree || e.taskType == ScenarioWorkType.SalvageDeadwood).Sum(e => e.contractorCostCents);
         long materials = events.Sum(e => e.stockCostCents);
         foreach (ScenarioTimberSale sale in money.Sales)
-            UiKit.Line(c, $"Timber sold · {sale.assortment} ({UiKit.M3(sale.soldVolumeCm3)})", UiKit.SignedMoney(sale.revenueCents), "money");
+            TaggedLine(c, HistoryProvenance.Recorded, $"Timber sold · {sale.assortment} ({UiKit.M3(sale.soldVolumeCm3)})", UiKit.SignedMoney(sale.revenueCents), "money");
         if (harvestCost > 0)
-            UiKit.Line(c, "Harvesting work", UiKit.SignedMoney(-(harvestCost - money.HarvestMinimumAdjustmentCents)), "money-negative");
+            TaggedLine(c, HistoryProvenance.Derived, "Harvesting work", UiKit.SignedMoney(-(harvestCost - money.HarvestMinimumAdjustmentCents)), "money-negative");
         if (money.HarvestMinimumAdjustmentCents > 0)
-            UiKit.Line(c, "Small-job minimum", UiKit.SignedMoney(-money.HarvestMinimumAdjustmentCents), "money-negative");
+            TaggedLine(c, HistoryProvenance.Recorded, "Small-job minimum", UiKit.SignedMoney(-money.HarvestMinimumAdjustmentCents), "money-negative");
         long otherWork = money.ContractorCostCents - harvestCost;
         if (otherWork > 0)
-            UiKit.Line(c, "Planting, pruning and other contractor work", UiKit.SignedMoney(-otherWork), "money-negative");
+            TaggedLine(c, HistoryProvenance.Derived, "Planting, pruning and other contractor work", UiKit.SignedMoney(-otherWork), "money-negative");
         if (materials > 0)
-            UiKit.Line(c, "Tree shelters (material)", UiKit.SignedMoney(-materials), "money-negative");
-        UiKit.Line(c, "Closing cash", UiKit.Money(money.ClosingCashCents), "money");
-        UiKit.Add(c, $"Your time used: {ScenarioOneManager.FormatMinutes(money.OwnerMinutes)} of {ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}", "muted");
+            TaggedLine(c, HistoryProvenance.Derived, "Tree shelters (material)", UiKit.SignedMoney(-materials), "money-negative");
+        if (year.HarvestSettlement != null)
+            UiKit.Add(c, "Timber sold and harvesting work above belong to one grouped harvest job for the year, not to single trees or orders.", "faint");
+        TaggedLine(c, HistoryProvenance.Recorded, "Closing cash", UiKit.Money(money.ClosingCashCents), "money");
+        AddTagged(c, HistoryProvenance.Recorded, $"Your time used: {ScenarioOneManager.FormatMinutes(money.OwnerMinutes)} of {ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}", "muted");
         UiKit.Add(c, "Saplings are paid for when bought from the nursery.", "faint");
     }
 
@@ -232,43 +564,55 @@ public sealed class AnnualReviewView
         ScenarioEcologicalSnapshot previous = year.PreviousSnapshot;
         ScenarioAnnualReport report = year.Report;
         if (current == null)
-            UiKit.Add(c, "No ecological snapshot was recorded for this year.", "muted");
+            AddTagged(c, HistoryProvenance.NotRecorded, "No ecological snapshot was recorded for this year.", "muted");
         else
             foreach (string line in ScenarioEcologyReviewLines.Lines(previous, current, eco, historical ? null : m.PlantedJuveniles))
             {
                 // Browsing and protection are rebuilt below without per-leader
                 // probabilities or unimplemented fencing.
                 if (line.StartsWith("Browsing pressure") || line.StartsWith("Protected juveniles")) continue;
-                UiKit.Add(c, line, "body");
+                HistoryProvenance? kind = HistoryProvenanceText.EcologyLine(line, previous != null);
+                if (kind.HasValue) AddTagged(c, kind.Value, line);
+                else UiKit.Add(c, line, "body");
             }
         if (eco != null && eco.Browsing.BackgroundPressure > 0f)
         {
             var recorded = m.PlantedJuveniles.Where(j => j.lastBrowseAssessmentYear == eco.EcologicalYear && eco.EcologicalYear > 0).ToList();
-            UiKit.Add(c, $"Browsing pressure {BrowsingConditions.PressureBand(eco.Browsing.BackgroundPressure)}"
-                + (recorded.Count > 0 ? $": {recorded.Count(j => j.lastYearBrowsed)} of {recorded.Count} planted juveniles browsed last year." : "."), "body");
+            AddTagged(c, HistoryProvenance.Current, $"Browsing pressure {BrowsingConditions.PressureBand(eco.Browsing.BackgroundPressure)} now.");
+            // Last year's browsing result is held in memory only; after a load there is nothing to show, so say that.
+            if (recorded.Count > 0)
+            {
+                AddTagged(c, HistoryProvenance.SessionOnly, $"{recorded.Count(j => j.lastYearBrowsed)} of {recorded.Count} planted juveniles browsed last year.");
+                UiKit.Add(c, HistoryProvenanceText.SessionOnlyBrowsingNote, "faint");
+            }
+            else
+                AddTagged(c, HistoryProvenance.SessionOnly, HistoryProvenanceText.SessionOnlyBrowsingMissing, "muted");
             int upcoming = eco.EcologicalYear + 1, sheltered = 0;
             foreach (PlantedJuvenile j in m.PlantedJuveniles.Where(j => j.alive && string.IsNullOrEmpty(j.promotedTreeId)))
                 if (eco.Browsing.ProtectionAt(new Vector2(j.position.x, j.position.z), upcoming, out _) == BrowseProtectionState.EffectiveShelter)
                     sheltered++;
-            if (sheltered > 0) UiKit.Add(c, $"{sheltered} planted juvenile(s) protected by shelters.", "body");
+            if (sheltered > 0) AddTagged(c, HistoryProvenance.Current, $"{sheltered} planted juvenile(s) protected by shelters now.");
         }
 
         UiKit.Add(c, "An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.", "muted");
+        foreach (ScenarioObjectiveAchievement achieved in year.ObjectivesAchieved)
+            AddTagged(c, HistoryProvenance.Recorded, $"Objective first reached: {ObjectiveName(m, achieved.objectiveId)}");
         UiKit.Add(c, "Retained material", "heading");
         if (report != null)
-            UiKit.Line(c, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
+            TaggedLine(c, HistoryProvenance.Recorded, "Retained usable timber (this year)", UiKit.F(report.keptForUseVolumeM3, "0.00") + " m³");
         if (!historical)
-            UiKit.Line(c, "Retained usable timber (stock)", UiKit.F(m.RetainedTimberM3, "0.00") + " m³");
+            TaggedLine(c, HistoryProvenance.Current, "Retained usable timber (stock)", UiKit.F(m.RetainedTimberM3, "0.00") + " m³");
         if (report != null)
-            UiKit.Line(c, "Retained deadwood (new this year)", UiKit.F(report.deadwoodCreatedM3, "0.00") + " m³");
+            TaggedLine(c, HistoryProvenance.Recorded, "Retained deadwood (new this year)", UiKit.F(report.deadwoodCreatedM3, "0.00") + " m³");
         if (current != null)
-            UiKit.Line(c, "Fallen deadwood on site", $"{current.deadwoodCount} log(s) · {UiKit.F(current.deadwoodVolumeM3, "0.00")} m³");
+            TaggedLine(c, HistoryProvenance.Recorded, "Fallen deadwood on site", $"{current.deadwoodCount} log(s) · {UiKit.F(current.deadwoodVolumeM3, "0.00")} m³");
     }
 
     private void BuildTrends(ScenarioOneManager m)
     {
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, "TRENDS", "heading");
+        AddTagged(card, HistoryProvenance.Derived, "Drawn from the saved annual reports and snapshots of up to the last 12 years; the strip itself is not saved.", "muted");
         VisualElement row = UiKit.Box("columns");
         card.Add(row);
         var reports = m.AnnualReports.Skip(System.Math.Max(0, m.AnnualReports.Count - 12)).ToList();
@@ -310,15 +654,34 @@ public sealed class AnnualReviewView
         return box;
     }
 
+    private static string ObjectiveName(ScenarioOneManager m, string objectiveId)
+    {
+        ScenarioObjectiveResult match = m.Objectives.FirstOrDefault(o => o.objectiveId == objectiveId);
+        return match != null ? match.displayName : objectiveId;
+    }
+
     private void BuildObjectives(ScenarioOneManager m, bool historical = false)
     {
         var objectives = m.Objectives;
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"OBJECTIVES {objectives.Count(o => o.achieved)} OF {objectives.Count}" + (historical ? " (current state)" : ""), "heading");
         foreach (ScenarioObjectiveResult o in objectives)
-            UiKit.Add(card, ScenarioOneUiFacts.ObjectiveLine(o), "body");
-        UiKit.Add(card, m.Outcome == ScenarioOneOutcome.Completed ? $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear})."
-            : m.Outcome == ScenarioOneOutcome.Failed ? m.OutcomeReason : m.TutorialHint, "muted");
+        {
+            // Whether an objective is met is read from the live forest, so it is current even beside an old year.
+            AddTagged(card, HistoryProvenance.Current, ScenarioOneUiFacts.ObjectiveLine(o));
+            if (!o.achieved) continue;
+            int achievedYear = m.ObjectiveYear(o.objectiveId, out ObjectiveYearSource source);
+            if (achievedYear < 0) AddTagged(card, HistoryProvenance.NotRecorded, "Year reached: not recorded", "faint");
+            else if (source == ObjectiveYearSource.Derived) AddTagged(card, HistoryProvenance.Derived, $"First reached in year {achievedYear} (derived from saved records)", "faint");
+            else AddTagged(card, HistoryProvenance.Recorded, $"First reached in year {achievedYear} (recorded)", "faint");
+        }
+        // The outcome and its year are saved records; the tutorial hint is guidance for now, not a historical fact.
+        if (m.Outcome == ScenarioOneOutcome.Completed)
+            AddTagged(card, HistoryProvenance.Recorded, $"Scenario objectives met in year {m.OutcomeYear}. Continue to the Century Review (year {m.CenturyReviewYear}).", "muted");
+        else if (m.Outcome == ScenarioOneOutcome.Failed)
+            AddTagged(card, HistoryProvenance.Recorded, m.OutcomeReason, "muted");
+        else
+            UiKit.Add(card, m.TutorialHint, "muted");
         scroll.Add(card);
     }
 
@@ -346,7 +709,7 @@ public sealed class AnnualReviewView
         VisualElement card = UiKit.Box("card");
         card.name = "annual-first-intervention";
         UiKit.Add(card, "YOUR FIRST INTERVENTION", "heading");
-        UiKit.Add(card, ManagementHistoryText.FirstInterventionPrompt(first), "body");
+        AddTagged(card, HistoryProvenance.Derived, ManagementHistoryText.FirstInterventionPrompt(first));
         scroll.Add(card);
     }
 
@@ -356,7 +719,11 @@ public sealed class AnnualReviewView
         HistoryTextContext text = TextContext();
         VisualElement card = UiKit.Box("card");
         card.name = "management-history";
-        UiKit.Add(card, $"MANAGEMENT HISTORY · {interventions.Count} intervention{(interventions.Count == 1 ? "" : "s")}", "heading");
+        // The count is grouped from the intervention records when the screen is built; it is a derived summary, not a stored total.
+        VisualElement historyHead = UiKit.Box("row");
+        Tag(historyHead, HistoryProvenance.Derived);
+        UiKit.Add(historyHead, $"MANAGEMENT HISTORY · {interventions.Count} intervention{(interventions.Count == 1 ? "" : "s")}", "heading");
+        card.Add(historyHead);
         UiKit.Add(card, "An intervention is a work plan that was carried out in one year: felling, pruning, planting, protection or other commissioned work.", "muted");
         if (interventions.Count == 0)
             UiKit.Add(card, "None yet. Inspect trees, mark them, plan the work in the Work Plan [Tab], approve it and advance a year.", "body");
@@ -368,16 +735,16 @@ public sealed class AnnualReviewView
             InterventionSummary captured = i;
             head.Add(UiKit.Button(i.Year == shown.Year ? "Shown above" : $"Read year {i.Year}", () => { viewYear = captured.Year; Refresh(true); }, i.Year != shown.Year));
             block.Add(head);
-            UiKit.Add(block, ManagementHistoryText.Work(i, text), "body");
-            UiKit.Add(block, ManagementHistoryText.Money(i, text), "body");
-            UiKit.Add(block, ManagementHistoryText.DuringPlan(i), "muted");
-            UiKit.Add(block, ManagementHistoryText.Since(i, text), "muted");
+            AddTagged(block, ManagementHistoryText.WorkProvenance, ManagementHistoryText.Work(i, text));
+            AddTagged(block, ManagementHistoryText.MoneyProvenance, ManagementHistoryText.Money(i, text));
+            AddTagged(block, ManagementHistoryText.DuringPlanProvenance(i), ManagementHistoryText.DuringPlan(i), "muted");
+            AddTagged(block, ManagementHistoryText.SinceProvenance(i), ManagementHistoryText.Since(i, text), "muted");
             card.Add(block);
         }
         if (interventions.Count > 0) UiKit.Add(card, ManagementHistoryText.NotCausalNote, "faint");
         IReadOnlyList<StaleOrderNote> stale = m.StaleOrders;
         if (stale.Count > 0)
-            UiKit.Add(card, $"{stale.Count} open order{(stale.Count == 1 ? "" : "s")} need attention. Open the Work Plan [Tab] to review {(stale.Count == 1 ? "it" : "them")}.", "body");
+            AddTagged(card, HistoryProvenance.Current, $"{stale.Count} open order{(stale.Count == 1 ? "" : "s")} need attention. Open the Work Plan [Tab] to review {(stale.Count == 1 ? "it" : "them")}.");
         scroll.Add(card);
     }
 
@@ -388,10 +755,15 @@ public sealed class AnnualReviewView
         card.name = "completion-review";
         UiKit.Add(card, $"SCENARIO ONE COMPLETE · YEAR {completion.Year}", "heading");
         foreach (string line in ManagementHistoryText.Completion(completion, text))
-            UiKit.Add(card, line, line.StartsWith("  ") ? "muted" : "body");
-        UiKit.Add(card, "Objectives met", "heading");
+        {
+            HistoryProvenance? kind = HistoryProvenanceText.CompletionLine(line);
+            string style = line.StartsWith("  ") ? "muted" : "body";
+            if (kind.HasValue) AddTagged(card, kind.Value, line, style);
+            else UiKit.Add(card, line, style);
+        }
+        UiKit.Add(card, "Objectives met (current state)", "heading");
         foreach (ScenarioObjectiveResult o in m.Objectives)
-            UiKit.Add(card, ScenarioOneUiFacts.ObjectiveLine(o), "body");
+            AddTagged(card, HistoryProvenance.Current, ScenarioOneUiFacts.ObjectiveLine(o));
         scroll.Add(card);
     }
 
@@ -400,9 +772,9 @@ public sealed class AnnualReviewView
         ScenarioCenturyReview century = m.CenturyReview;
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"CENTURY REVIEW — YEAR {century.year}", "heading");
-        UiKit.Add(card, $"Outcome: {century.outcome}. {ScenarioOneUiFacts.CenturyComparisonDescription(century)}", "body");
+        AddTagged(card, HistoryProvenance.Recorded, $"Outcome: {century.outcome}. {ScenarioOneUiFacts.CenturyComparisonDescription(century)}");
         foreach (ScenarioObjectiveResult c in century.referenceComparisons)
-            UiKit.Add(card, $"{ScenarioOneUiFacts.ObjectiveName(c)}: yours {c.currentValue:0.##} · {ScenarioOneUiFacts.CenturyComparisonValueLabel(century)} {c.targetValue:0.##}", "body");
+            AddTagged(card, HistoryProvenance.Recorded, $"{ScenarioOneUiFacts.ObjectiveName(c)}: yours {c.currentValue:0.##} · {ScenarioOneUiFacts.CenturyComparisonValueLabel(century)} {c.targetValue:0.##}");
         scroll.Add(card);
     }
 }

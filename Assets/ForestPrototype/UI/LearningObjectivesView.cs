@@ -22,7 +22,13 @@ public sealed partial class LearningObjectivesView
     private string shownGuidance = "";
     public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());
     public bool TeachingRacks => CurrentTopicIndex == 0;
-    public string CurrentTitle => ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex].Title;
+    // MFM-09: the lesson shown now. CurrentTopicIndex stays the accepted stage number (the Work Plan focus and the picture read it);
+    // while "Extend your treatment" is offered the stage is still recruitment, and only the words shown here change.
+    private ScenarioOneTeachingSequence.Lesson CurrentLesson
+    {
+        get { var f = TeachingFacts(); return ScenarioOneTeachingSequence.PresentedLessons[ScenarioOneTeachingSequence.Presented(f)]; }
+    }
+    public string CurrentTitle => ScenarioOneTeachingSequence.DisplayTitle(CurrentLesson, TeachingFacts());
     public string CurrentInstruction
     {
         get
@@ -129,23 +135,33 @@ public sealed partial class LearningObjectivesView
         current.name = "current-objective";
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
         UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
-        var lesson = ScenarioOneTeachingSequence.Lessons[CurrentTopicIndex];
+        var lesson = CurrentLesson;
         // The words on the left and the picture on the right, so the whole objective is on screen at once; a window too narrow for both
         // wraps the picture below the words.
         VisualElement body = UiKit.Box("objective-body");
         VisualElement words = UiKit.Box("objective-words");
         // Why it matters, what to do and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
-        AddObjectivePart(words, "Why it matters", lesson.Concept, "current-objective-concept");
+        // A V2 world's Objective 1 explains the map-planned, field-marked racks (spec §30, §31) instead of the legacy authored layout.
+        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;
+        AddObjectivePart(words, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
         AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
-        if (!string.IsNullOrEmpty(lesson.Practice)) AddObjectivePart(words, "What good practice looks like", lesson.Practice, "current-objective-practice");
+        string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
+        if (!string.IsNullOrEmpty(practice)) AddObjectivePart(words, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
-        body.Add(new TeachingDiagram(CurrentTopicIndex, lesson.Caption));
+        // The extension has no picture of its own: it keeps the review picture of the lesson before it.
+        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption));
         current.Add(body);
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
-        for (int i = 0; i < CurrentTopicIndex; i++) UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.Lessons[i].Title, "body");
+        var teachingFacts = TeachingFacts();
+        for (int i = 0; i < ScenarioOneTeachingSequence.Presented(teachingFacts); i++)
+        {
+            var earlier = ScenarioOneTeachingSequence.PresentedLessons[i];
+            if (ScenarioOneTeachingSequence.InSequence(earlier, teachingFacts))
+                UiKit.Add(completed, "✓ " + ScenarioOneTeachingSequence.DisplayTitle(earlier, teachingFacts), "body");
+        }
         if (CurrentTopicIndex == 0) UiKit.Add(completed, "Your first lesson is in progress.", "muted");
         scroll.Add(completed);
         var later = new Foldout { text = "Later in this scenario", value = false, name = "future-lessons" };
@@ -180,12 +196,7 @@ public sealed partial class LearningObjectivesView
             UiKit.Add(card, (complete ? "Done · " : "To do · ") + step.Title, "heading");
             string text = StepText(step, market);
             // Stable practice ids and legacy lesson data remain intact; V2 has one geometry author.
-            if (ui.Manager.RackPlanningV2Active)
-            {
-                if (step.Id == "rack.create") text = "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
-                else if (step.Id == "rack.layout") text = "Plan five racks on the Stand Map [M], then choose Confirm Rack Plan. Review and approve the pending removal work in the Work Plan [Tab].";
-                else if (step.Id == "rack.map") text = "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.";
-            }
+            if (ui.Manager.RackPlanningV2Active) text = RackV2StepText(step.Id) ?? text;
             UiKit.Add(card, text, "body");
             if (step.Reading && !complete)
             {
@@ -214,7 +225,9 @@ public sealed partial class LearningObjectivesView
         RackLayoutTracker layout = ui.RackLayout;
         if (layout == null || !layout.Complete) return;
         Record("rack.create");
-        Record("rack.layout");
+        // V2 (spec §30 step 7, D-064): the layout step is a confirmed plan with every entrance marked, then it hands over to rack.approve.
+        if (!m.RackPlanningV2Active || (m.RackPlanConfirmed && m.MarkedRackEntranceCount >= ScenarioOneManager.RackPlanTargetCount))
+            Record("rack.layout");
         if (!layout.WorkPending && layout.WorkApproved) Record("rack.approve");
         if (layout.Harvested && m.AnnualReports.Count > 0 && m.Interventions.Count > 0) Record("rack.result");
     }

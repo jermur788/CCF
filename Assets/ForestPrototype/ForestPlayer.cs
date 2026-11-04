@@ -255,6 +255,9 @@ public sealed class ForestPlayer : MonoBehaviour
 
         bool interactPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame) ||
                                (mouse != null && mouse.leftButton.wasPressedThisFrame && !capturedThisFrame && !pressedOnButton);
+        // The spray marker owns its click; inspecting must not also run on a successful/invalid spray.
+        if (ForestTreeMarkingManager.Instance != null && ForestTreeMarkingManager.Instance.RackSprayEquipped)
+            interactPressed = false;
         bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
         bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
         bool plantingSlot1Pressed = keyboard != null && keyboard.digit1Key.wasPressedThisFrame;

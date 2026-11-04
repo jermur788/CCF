@@ -139,6 +139,44 @@ public sealed class SaveHardeningVerificationRunner : MonoBehaviour
         yield return null;
         AssertUnchanged(ecology, savedYear, savedTrees, "duplicate tree ID");
 
+        // 5. PARITY-08: an unknown saved species is refused by CanLoad and LoadData alike, before any change,
+        // on every authoritative species-bearing path; it is never loaded as Sitka.
+        ForestSaveData baseline = JsonUtility.FromJson<ForestSaveData>(firstSave);
+        Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(firstSave), false), "unmodified save no longer loads");
+        yield return null;
+        Check(ForestSaveValidation.ValidateSpecies(baseline, id => id == "sitka-spruce" || id == "beech" || id == "sessile-oak") == null,
+            "known species were refused");
+        Check(baseline.version >= 10 && baseline.scenarioOne != null, "fixture lacks Scenario One state");
+        var unknownCases = new System.Collections.Generic.List<(string label, System.Action<ForestSaveData> corrupt)>
+        {
+            ("tree", d => d.trees[0].speciesId = "unknown-species"),
+            ("regeneration cohort", d =>
+            {
+                d.cells ??= new System.Collections.Generic.List<ForestCellSaveData>();
+                if (d.cells.Count == 0) d.cells.Add(new ForestCellSaveData { index = 0 });
+                d.cells[0].cohorts.Add(new ForestRegenerationCohortSaveData { speciesId = "unknown-species", density = 1f, height = 0.1f, establishYear = 0 });
+            }),
+            ("planted juvenile", d => d.scenarioOne.plantedJuveniles.Add(new PlantedJuvenileSaveData { juvenileId = "p08-unknown", speciesId = "unknown-species" })),
+            ("pending work order", d => d.scenarioOne.workOrders.Add(new ScenarioOneWorkOrder { workOrderId = 990801, speciesId = "unknown-species", status = ScenarioWorkStatus.Pending })),
+        };
+        foreach (var (label, corrupt) in unknownCases)
+        {
+            ForestSaveData bad = JsonUtility.FromJson<ForestSaveData>(firstSave);
+            corrupt(bad);
+            Check(ForestSaveValidation.ValidateSpecies(bad, id => id == "sitka-spruce" || id == "beech" || id == "sessile-oak") != null,
+                $"unknown {label} species passed validation");
+            File.WriteAllText(savePath, JsonUtility.ToJson(bad));
+            Check(!saves.CanLoad(out _), $"CanLoad accepted an unknown {label} species");
+            Check(!saves.LoadData(bad, false), $"LoadData accepted an unknown {label} species");
+            yield return null;
+            AssertUnchanged(ecology, savedYear, savedTrees, $"unknown {label} species");
+        }
+        // A resolved order's species is history only and stays accepted.
+        ForestSaveData history = JsonUtility.FromJson<ForestSaveData>(firstSave);
+        history.scenarioOne.workOrders.Add(new ScenarioOneWorkOrder { workOrderId = 990802, speciesId = "unknown-species", status = ScenarioWorkStatus.Completed });
+        Check(ForestSaveValidation.ValidateSpecies(history, id => id == "sitka-spruce") == null, "resolved order species was treated as authoritative");
+        File.WriteAllText(savePath, firstSave);
+
         Debug.Log($"SAVE_HARDENING_DETAILS growthKept={growth:0.0000} trees={savedTrees} year={savedYear}");
     }
 

@@ -191,27 +191,36 @@ public sealed class ForestTree : MonoBehaviour
     // the current crown base and stay below 60% of tree height [D]. year is the
     // ecological year used for the recovery-interval check. Returns null on
     // success or a player-readable rejection reason.
-    public string CanPrune(float targetCrownBaseHeightM, int year)
+    public string CanPrune(float targetCrownBaseHeightM, int year, bool speciesAware = false)
     {
+        // FR-6/FR-10: only model-2 Oak/Beech use high pruning. Old models and Sitka keep the exact legacy rules.
+        // Teagasc high-pruning guidance: two lifts at 3.5/6 m. The three-year interval, 8% radius loss
+        // and existing 60% height cap are GAMEPLAY CALIBRATION, not formative shaping or fork removal.
+        bool broadleaf = speciesAware && species != null
+            && (species.SpeciesId == "sessile-oak" || species.SpeciesId == "beech");
+        int maxLifts = broadleaf ? 2 : MaxPruningLifts;
+        int minimumYears = broadleaf ? 3 : MinimumYearsBetweenLifts;
         if (!CanChop)
             return "Only living trees can be pruned.";
-        if (pruningLifts >= MaxPruningLifts)
-            return $"Already pruned {pruningLifts} times (maximum {MaxPruningLifts}).";
-        if (lastPruningYear >= 0 && year - lastPruningYear < MinimumYearsBetweenLifts)
-            return $"Wait {MinimumYearsBetweenLifts - (year - lastPruningYear)} more year(s) before the next lift.";
+        if (pruningLifts >= maxLifts)
+            return $"Already pruned {pruningLifts} times (maximum {maxLifts}).";
+        if (lastPruningYear >= 0 && year - lastPruningYear < minimumYears)
+            return $"Wait {minimumYears - (year - lastPruningYear)} more year(s) before the next lift.";
         float treeHeight = Height;
         if (targetCrownBaseHeightM <= crownBaseHeightM)
             return "Target crown base must exceed the current pruned height.";
         if (float.IsNaN(targetCrownBaseHeightM) || float.IsInfinity(targetCrownBaseHeightM)
             || targetCrownBaseHeightM <= 0f || targetCrownBaseHeightM >= treeHeight * 0.6f)
             return "Target crown base must be positive and below 60% of tree height.";
+        if (broadleaf && targetCrownBaseHeightM != (pruningLifts == 0 ? 3.5f : 6f))
+            return "Broadleaf high pruning requires the next 3.5 m or 6.0 m lift.";
 
         return null;
     }
 
-    public string TryPrune(float targetCrownBaseHeightM, int year)
+    public string TryPrune(float targetCrownBaseHeightM, int year, bool speciesAware = false)
     {
-        string rejection = CanPrune(targetCrownBaseHeightM, year);
+        string rejection = CanPrune(targetCrownBaseHeightM, year, speciesAware);
         if (rejection != null)
             return rejection;
         crownBaseHeightM = targetCrownBaseHeightM;

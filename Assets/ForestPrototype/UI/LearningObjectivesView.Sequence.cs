@@ -82,6 +82,11 @@ public sealed partial class LearningObjectivesView
         rackReview.Synchronize(bay, releaseReviewed, ui.Player != null ? ui.Player.InspectionSerial : -1);
         return sequenceFacts = new ScenarioOneTeachingSequence.Facts
         {
+            FirstGuidedRackReviewComplete = m.FirstGuidedRackReviewComplete,
+            // MFM-09, read-only: the extension exists where the Treatment review does (a confirmed Rack Planning V2 plan) and is done
+            // once a stored prescription was approved. Nothing is written; a pre-v23 save simply has no prescription.
+            ExtensionApplies = m.RackPlanningV2Active && m.RackPlanConfirmed,
+            ExtensionApproved = m.Prescriptions.Any(p => p != null && p.approvalState == PrescriptionApprovalState.Approved),
             AccessOpen = rackV2 ? ui.RackLayout.Harvested && m.CurrentEcologicalYear > 0
                 : ui.RackLayout != null && ui.RackLayout.Total > 0
                     ? originalAccessOpen && m.CurrentEcologicalYear > 0 : firstFellingYear < int.MaxValue,
@@ -122,6 +127,12 @@ public sealed partial class LearningObjectivesView
         bool changed = rackReview.Decide(f.Bay, tree.TreeId, tree.transform.position.x, tree.transform.position.z,
             further ? ScenarioOneRackReview.Decision.ReleaseFurther : ScenarioOneRackReview.Decision.RetainHere);
         sequenceFacts = null;
+        // Only a real session decision can earn the durable fact. TeachingFacts itself remains read-only.
+        if (changed)
+        {
+            var after = TeachingFacts();
+            if (ui.Manager.TryRecordFirstGuidedRackReview(f, after)) sequenceFacts = null;
+        }
         return changed;
     }
 
@@ -143,13 +154,37 @@ public sealed partial class LearningObjectivesView
     }
 
     // Interactive planning safeguard only; protected scenario-completion/economy rules remain unchanged.
+    // S1-D T-03: hard only while the teaching sample is still open; afterwards RackPlanAdvisory carries the same fact as a note.
     public string RackPlanProblem()
     {
         sequenceFacts = null;
         var f = TeachingFacts();
-        return f.Bay != null && f.AccessOpen && !f.Bay.CanopyKept
-            ? "Teaching rack safeguard exceeded (40% cumulative trunk area). Cancel/unmark in-footprint removals before approval or advance. Already executed excess cannot complete this lesson."
-            : "";
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed, ui.Manager.FirstGuidedRackReviewComplete) == ScenarioOneTeachingCap.Phase.Hard
+            ? ScenarioOneTeachingCap.HardMessage(f.Bay) : "";
+    }
+
+    // Never disables anything. Empty unless the sample is complete and the footprint is over the historical threshold.
+    public string RackPlanAdvisory()
+    {
+        // No cache reset: the Work Plan reads RackPlanProblem first, which has just refreshed the facts.
+        var f = TeachingFacts();
+        return ScenarioOneTeachingCap.Classify(f.Bay, f.AccessOpen, f.ReleaseReviewed, ui.Manager.FirstGuidedRackReviewComplete) == ScenarioOneTeachingCap.Phase.Advisory
+            ? ScenarioOneTeachingCap.AdvisoryMessage(f.Bay) : "";
+    }
+
+    // D-064 / OPEN-2: in a Rack Planning V2 world field marking happens before approval. While a rack that owns Pending removal work
+    // is unconfirmed or its entrance tree carries no orange mark, the Work Plan does not approve. Read-only, like RackPlanProblem: the
+    // manager's own approval API (simulation, reference and harness paths) is unchanged, and model-0 / Legacy40 worlds never see it.
+    public string RackMarkingProblem()
+    {
+        ScenarioOneManager m = ui.Manager;
+        if (m == null || !m.RackPlanningV2Active) return "";
+        bool waiting = m.RackPlan.Any(r => r.Orders.Pending > 0
+            && (r.Status != RackPlanStatus.Confirmed || !r.EntranceMarked || string.IsNullOrEmpty(r.EntranceTreeId)));
+        if (!waiting) return "";
+        return m.RackPlanConfirmed
+            ? $"Mark the rack entrances in the forest before approving the rack work: {m.MarkedRackEntranceCount} / {ScenarioOneManager.RackPlanTargetCount} marked. [P] spray marker, aim within 3.5 m, left-click."
+            : "Confirm the rack plan on the Stand Map [M], then mark the rack entrances in the forest before approving the rack work.";
     }
 
     // Expose the existing persisted acknowledgement at later teaching boundaries, even after N3 is satisfied.
@@ -170,6 +205,7 @@ public sealed partial class LearningObjectivesView
         int index = ScenarioOneTeachingSequence.Current(f);
         string areaText = ScenarioOneRackBayText.Instruction(index, f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f)) return ExtensionInstruction();
         if (index == 1 && !f.AccessReviewed)
             return "The racks are open. Read the Annual Review and choose I've read the annual results. Then walk back to inspect the changed stand before selecting future trees.";
         if (index == 3 && f.DeadwoodExecuted && !f.ReleaseExecuted)
@@ -187,17 +223,25 @@ public sealed partial class LearningObjectivesView
         return ScenarioOneTeachingSequence.Lessons[index].Action;
     }
 
+    // What the extension asks next, from the stored prescription only. Reading this never creates, approves or changes anything.
+    private string ExtensionInstruction()
+    {
+        var accepted = ui.Manager.Prescriptions.LastOrDefault(p => p != null && p.approvalState == PrescriptionApprovalState.Accepted);
+        if (accepted == null) return ScenarioOneTeachingSequence.Extension.Action;
+        return $"Prescription {accepted.prescriptionId} is accepted but not yet approved. In Treatment review on the Stand Map [M], confirm or reject each candidate, check the proposed release, spot-check an extrapolated tree in 3D, then choose Approve prescription. It only adds Pending tasks; approve them in the Work Plan [Tab] to commit the work.";
+    }
+
     // The same lesson as CurrentInstruction but short enough for the always-visible HUD panel (ActiveObjectiveHudWidget). It follows the same
     // states, so what the HUD asks for never contradicts the Objectives screen.
     public ActiveObjectiveHudWidget.Model HudModel()
     {
         var f = TeachingFacts();
         int index = ScenarioOneTeachingSequence.Current(f);
-        var lesson = ScenarioOneTeachingSequence.Lessons[index];
+        var lesson = CurrentLesson;
         return new ActiveObjectiveHudWidget.Model
         {
-            Number = index + 1,
-            Total = ScenarioOneTeachingSequence.Lessons.Length,
+            Number = ScenarioOneTeachingSequence.Number(lesson, f),
+            Total = ScenarioOneTeachingSequence.Total(f),
             Title = lesson.Heading,
             Instruction = HudInstruction(f, index, lesson),
             Progress = TeachingProgress(f),
@@ -209,6 +253,7 @@ public sealed partial class LearningObjectivesView
     {
         string areaText = ScenarioOneRackBayText.Hud(index, f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f)) return lesson.HudAction;
         if (index == 0)
         {
             RackLayoutTracker layout = ui.RackLayout;
@@ -236,6 +281,10 @@ public sealed partial class LearningObjectivesView
     {
         string areaText = ScenarioOneRackBayText.Progress(ScenarioOneTeachingSequence.Current(f), f);
         if (areaText != null) return areaText;
+        if (ScenarioOneTeachingSequence.ExtensionOffered(f))
+            return ui.Manager.Prescriptions.Any(p => p != null && p.approvalState == PrescriptionApprovalState.Accepted)
+                ? "Prescription accepted · review, spot-check and approve it · then approve the Pending work in the Work Plan"
+                : "Treatment review on the Stand Map · nothing is committed until you approve the Work Plan";
         switch (ScenarioOneTeachingSequence.Current(f))
         {
             case 0: return ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText

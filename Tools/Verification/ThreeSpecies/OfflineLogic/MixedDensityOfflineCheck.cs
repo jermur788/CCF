@@ -384,7 +384,10 @@ public static class MixedDensityOfflineCheck
                 bool species = words.Any(speciesWords.Contains), limit = words.Any(limitWords.Contains), density = words.Any(densityWords.Contains);
                 // A species-qualified maximum of density, basal area or SDI; or any maximum basal area / SDI outside the Sitka-only model.
                 if (species && limit && density) violations.Add($"{name}: identifier {id}");
-                if (words.Any(w => w == "max" || w == "maximum") && words.Any(w => w == "basal" || w == "sdi")) violations.Add($"{name}: identifier {id}");
+                // A maximum REMOVAL SHARE is a relative fraction of basal area removed, not an absolute species maximum
+                // density/basal-area cap (ScenarioOneRackBay.MaxRemovedBasalShare is the biological safeguard itself).
+                bool relativeShare = words.Any(w => w == "share" || w == "fraction" || w == "ratio" || w == "proportion" || w == "percent" || w == "percentage");
+                if (!relativeShare && words.Any(w => w == "max" || w == "maximum") && words.Any(w => w == "basal" || w == "sdi")) violations.Add($"{name}: identifier {id}");
                 if (densityFiles.Contains(name) && (words.Contains("capacity") || words.Contains("sdi") || words.Contains("basal") || Regex.IsMatch(id.ToLowerInvariant(), "maxdensity|maximumdensity|m2ha|m2perha")))
                     violations.Add($"{name}: identifier {id}");
             }

@@ -16,6 +16,79 @@ public sealed class HistoryTextContext
     public Func<string, string> SpeciesName = id => id;
 }
 
+// Where a fact shown in the review or history comes from. Every history line carries exactly one of these so the player can
+// tell what the save really holds from what was worked out afterwards. Nothing here is stored; it only labels presentation.
+public enum HistoryProvenance
+{
+    Recorded,      // persisted when it happened (annual reports, events, orders, snapshots, objective achievements)
+    Current,       // the live forest or live state now; never a statement about an earlier year
+    Derived,       // computed at display time from recorded facts (deltas, trends, sums); not stored itself
+    Reconstructed, // recovered from other records because the aggregate itself was never stored (storm victims)
+    SessionOnly,   // exists only in this play session and is gone after save/load
+    NotRecorded    // the save holds no such fact; it is never rebuilt from today's forest
+}
+
+public static class HistoryProvenanceText
+{
+    public static string Label(HistoryProvenance kind)
+    {
+        switch (kind)
+        {
+            case HistoryProvenance.Recorded: return "RECORDED";
+            case HistoryProvenance.Current: return "CURRENT";
+            case HistoryProvenance.Derived: return "DERIVED";
+            case HistoryProvenance.Reconstructed: return "RECONSTRUCTED";
+            case HistoryProvenance.SessionOnly: return "SESSION-ONLY";
+            default: return "NOT RECORDED";
+        }
+    }
+
+    public static string Meaning(HistoryProvenance kind)
+    {
+        switch (kind)
+        {
+            case HistoryProvenance.Recorded: return "saved when it happened";
+            case HistoryProvenance.Current: return "the forest as it is now, not as it was in the year shown";
+            case HistoryProvenance.Derived: return "counted or calculated from recorded facts when you open this screen; not saved";
+            case HistoryProvenance.Reconstructed: return "pieced together from other records; the total itself was never saved";
+            case HistoryProvenance.SessionOnly: return "only known during this play session; gone after you save and load";
+            default: return "the save holds no such fact, so none is shown";
+        }
+    }
+
+    public const string Legend = "Labels: RECORDED saved when it happened · CURRENT live forest now · DERIVED counted or calculated from records when shown · "
+        + "RECONSTRUCTED pieced together from other records · SESSION-ONLY not saved · NOT RECORDED the save holds no such fact.";
+
+    public const string SessionOnlyBrowsingMissing = "Last year's browsing result is not recorded this session. Browse results are not saved, so they are gone after a load.";
+    public const string SessionOnlyBrowsingNote = "Session only: this browsing result is not saved and will not be recorded after you load a save.";
+    public const string StormReconstructionNote = "Counts, volumes and map squares were rebuilt from tree-mortality and deadwood records; the storm itself saved only its year, severity, direction and Crop Tree losses.";
+
+    // Classifies a line from ScenarioEcologyReviewLines by what it reads. Null means the line is not one of the known
+    // review lines, so the caller must not guess a label for it. A snapshot value is recorded; a change against the previous
+    // snapshot is derived; lines that read live ecology or live planted juveniles are current.
+    public static HistoryProvenance? EcologyLine(string line, bool hasPreviousSnapshot)
+    {
+        if (line.StartsWith("Canopy ") || line.StartsWith("Areas with young regeneration"))
+            return hasPreviousSnapshot ? HistoryProvenance.Derived : HistoryProvenance.Recorded;
+        if (line.StartsWith("Opened areas") || line.StartsWith("Planted trees:"))
+            return HistoryProvenance.Current;
+        return null;
+    }
+
+    // Classifies a line from ManagementHistoryText.Completion the same way. Null (the closing explanation) carries no label.
+    public static HistoryProvenance? CompletionLine(string line)
+    {
+        // outcomeYear and the per-species snapshot counts are persisted values. Counts of interventions and their work are
+        // grouped from events at display time, so they are derived like the other totals.
+        if (line.StartsWith("The Scenario One objectives were met") || line.StartsWith("Living trees at completion"))
+            return HistoryProvenance.Recorded;
+        if (line.StartsWith("You carried out") || line.StartsWith("  ") || line.StartsWith("No commissioned work")
+            || line.StartsWith("Stand, start") || line.StartsWith("Money:") || line.Contains("not caused by felling"))
+            return HistoryProvenance.Derived;
+        return null;
+    }
+}
+
 public static class ManagementHistoryText
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
@@ -80,6 +153,45 @@ public static class ManagementHistoryText
             text.Append($" {s.OtherDeathsSince} tree death{Plural(s.OtherDeathsSince)} recorded since that were not felled (self-thinning, windthrow or other biological death).");
         return text.ToString();
     }
+
+    // Work counts are grouped from recorded task events at display time, money is summed from several records, and the stand
+    // lines compare two recorded snapshots: all derived. A missing snapshot is shown as not recorded rather than filled in.
+    public static HistoryProvenance WorkProvenance => HistoryProvenance.Derived;
+    public static HistoryProvenance MoneyProvenance => HistoryProvenance.Derived;
+    public static HistoryProvenance DuringPlanProvenance(InterventionSummary s)
+        => s.Before == null || s.After == null ? HistoryProvenance.NotRecorded : HistoryProvenance.Derived;
+    public static HistoryProvenance SinceProvenance(InterventionSummary s)
+        => s.After == null || s.Latest == null ? HistoryProvenance.NotRecorded : HistoryProvenance.Derived;
+
+    // L4 management guidance, selected only by a successful recorded biological treatment.
+    // These are inspection questions, not observations, causal explanations or instructions to commission more work.
+    public static string PriorTreatmentGuidance(WorkItemDetail item)
+    {
+        if (item == null || item.Status != WorkItemStatus.Succeeded) return "";
+        switch (item.Treatment)
+        {
+            case ScenarioEcologicalTreatment.TreeFelledAndExtracted:
+                return "Look at canopy, young regeneration and the trees still standing before judging whether any further work is appropriate.";
+            case ScenarioEcologicalTreatment.TreeRetainedAsDeadwood:
+                return "Look at fallen deadwood and surrounding regeneration before considering any further work; this record does not establish their condition now.";
+            case ScenarioEcologicalTreatment.JuvenilePlanted:
+                return "Look for the planted tree and inspect its condition and surrounding vegetation. A planting record does not establish survival now."
+                    + (item.ShelterRecorded && item.ShelterInstalled ? " Check the recorded shelter's condition too; its present effectiveness is a separate observation." : "");
+            case ScenarioEcologicalTreatment.TreePruned:
+                return "Inspect the recorded tree's condition and crown before considering further work; a pruning record does not establish its condition now.";
+            case ScenarioEcologicalTreatment.RegenerationRemoved:
+                return "Inspect young regeneration and vegetation now before considering further work; the earlier clearing record does not describe today's cover.";
+            case ScenarioEcologicalTreatment.WindthrowSalvaged:
+                return "Inspect the recorded area for remaining deadwood and regeneration before considering further work; salvage does not describe everything present now.";
+            default: return "";
+        }
+    }
+
+    // A map-square waypoint uses only the persisted event cell, never today's position of a tree with the same ID.
+    // Position-only records remain readable in recorded details but do not acquire a guessed map-square waypoint here.
+    public static int PriorTreatmentWaypointCell(WorkItemDetail item, int cellCount)
+        => item != null && PriorTreatmentGuidance(item).Length > 0 && item.CellIndex >= 0 && item.CellIndex < cellCount
+            ? item.CellIndex : -1;
 
     public const string NotCausalNote = "These are changes recorded after the work, not proof that the work caused them: growth, seed, light and weather act in the same years.";
 

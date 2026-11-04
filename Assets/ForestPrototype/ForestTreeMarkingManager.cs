@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 // Ecology-owned forestry planning: mark trees for harvest without felling them.
 // Marking is deliberately separate from harvesting so a proposed treatment can
 // be walked through and reconsidered before any cutting happens.
-public sealed class ForestTreeMarkingManager : MonoBehaviour
+public sealed partial class ForestTreeMarkingManager : MonoBehaviour
 {
     [SerializeField, Min(0.5f)] private float interactionDistance = 8f; // [D] planning reach, calibration
     [SerializeField] private Color markerColor = new Color(1f, 0.35f, 0.05f, 1f);
@@ -30,6 +30,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     private Vector3 aimedGroundPoint;
     private readonly List<ForestTree> markedTreeCache = new List<ForestTree>();
     private bool markedCacheDirty = true;
+    private bool restoringMarks;
     private float nextStaleSweepTime;
     private string message = "";
     private float messageTimer;
@@ -102,11 +103,13 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             Instance = null;
         if (cropMarkerMaterial != null)
             Destroy(cropMarkerMaterial);
+        DisposeRackMarkingVisuals();
     }
 
     private void Update()
     {
         UpdateMarkedSummary();
+        UpdateRackSpray();
 
         if (messageTimer > 0f)
             messageTimer -= Time.deltaTime;
@@ -225,6 +228,17 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (tree == null || !tree.IsLiving)
             return;
+        if (!restoringMarks && HasRackEntranceMark(tree))
+        {
+            if (feedback) SetMessage("Orange rack entrance: reopen and change that rack to clear its mark before applying Fell or Crop Tree.");
+            return;
+        }
+        // A Crop Tree cannot be silently added to a frozen rack-removal set (save v21 has the same rule).
+        if (!restoringMarks && type == TreeMarkType.CropTree && IsRackRemovalTree(tree))
+        {
+            if (feedback) SetMessage("This tree belongs to a rack-removal plan. Adjust that rack before retaining it as a Crop Tree.");
+            return;
+        }
         if (type == TreeMarkType.None)
         {
             Unmark(tree, feedback);
@@ -251,6 +265,11 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     {
         if (tree == null)
             return;
+        if (HasRackEntranceMark(tree))
+        {
+            if (feedback) SetMessage("The orange entrance mark belongs to its rack. Reopen and change that rack to clear it.");
+            return;
+        }
         tree.SetMark(TreeMarkType.None);
         MarkedIds.Remove(tree.TreeId);
         RemoveMarker(tree.TreeId);
@@ -273,10 +292,7 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
 
     private void ClearAllMarks()
     {
-        foreach (GameObject marker in MarkerObjects.Values)
-            if (marker != null)
-                Destroy(marker);
-        MarkerObjects.Clear();
+        foreach (string id in new List<string>(MarkerObjects.Keys)) RemoveMarker(id);
         MarkedIds.Clear();
         foreach (ForestTree tree in Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             if (tree != null)
@@ -483,8 +499,20 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
                 livingById[tree.TreeId] = tree;
         }
 
+        // Orange is a projection of the existing v21 rack record, not a third saved per-tree mark.
+        // It shares this registry and the same exclusive mutation API with ordinary Fell/Crop marks.
         foreach (ForestTree tree in livingById.Values)
         {
+            bool orange = tree.IsLiving && HasRackEntranceMark(tree);
+            if (MarkerObjects.TryGetValue(tree.TreeId, out GameObject paint) && paint != null
+                && (paint.name == RackEntranceMarkerName) != orange)
+                RemoveMarker(tree.TreeId);
+            if (orange)
+            {
+                CreateRackEntranceMarker(tree);
+                MarkedIds.Remove(tree.TreeId);
+                continue;
+            }
             if (tree.IsMarkedForFell)
                 MarkedIds.Add(tree.TreeId);
             else
@@ -495,7 +523,8 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         }
         var stale = new List<string>();
         foreach (string id in MarkerObjects.Keys)
-            if (!livingById.TryGetValue(id, out ForestTree tree) || tree.MarkType == TreeMarkType.None)
+            if (!livingById.TryGetValue(id, out ForestTree tree) || !tree.IsLiving
+                || (tree.MarkType == TreeMarkType.None && !HasRackEntranceMark(tree)))
                 stale.Add(id);
         foreach (string id in stale)
         {
@@ -531,14 +560,21 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
             if (tree != null && !string.IsNullOrEmpty(tree.TreeId))
                 treesById[tree.TreeId] = tree;
         }
-        if (fellIds != null)
-            foreach (string id in fellIds)
-                if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
-                    Mark(tree, TreeMarkType.Fell, false);
-        if (cropIds != null)
-            foreach (string id in cropIds)
-                if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
-                    Mark(tree, TreeMarkType.CropTree, false);
+        // Load validates the incoming combined save before mutation. At this point the scenario
+        // still holds the previous world's racks, so do not apply live planning guards to rehydration.
+        restoringMarks = true;
+        try
+        {
+            if (fellIds != null)
+                foreach (string id in fellIds)
+                    if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
+                        Mark(tree, TreeMarkType.Fell, false);
+            if (cropIds != null)
+                foreach (string id in cropIds)
+                    if (treesById.TryGetValue(id, out ForestTree tree) && !tree.IsStump)
+                        Mark(tree, TreeMarkType.CropTree, false);
+        }
+        finally { restoringMarks = false; }
     }
 
     private void CreateMarker(ForestTree tree, TreeMarkType type)
@@ -591,7 +627,11 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
         if (MarkerObjects.TryGetValue(treeId, out GameObject marker))
         {
             if (marker != null)
+            {
+                if (marker.name == RackEntranceMarkerName)
+                    foreach (MeshFilter patch in marker.GetComponentsInChildren<MeshFilter>()) Destroy(patch.sharedMesh);
                 Destroy(marker);
+            }
             MarkerObjects.Remove(treeId);
         }
     }
@@ -639,8 +679,10 @@ public sealed class ForestTreeMarkingManager : MonoBehaviour
     // The mark prompt for the aimed tree, or "" when no tree is aimed at.
     public string MarkPromptText()
     {
+        if (RackSprayEquipped) return RackSprayPrompt();
         if (aimedTree == null)
             return "";
+        if (HasRackEntranceMark(aimedTree)) return "Orange · rack entrance marked";
         return aimedTree.IsCropTree ? "[C] Remove Crop Tree"
             : IsMarked(aimedTree) ? "[X] Unmark Fell  |  [C] Retain as Crop Tree"
             : "[X] Mark to Fell  |  [C] Retain as Crop Tree";

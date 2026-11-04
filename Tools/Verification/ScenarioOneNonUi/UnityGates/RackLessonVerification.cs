@@ -224,7 +224,11 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         Check(footprintTrees == 69, "accepted live teaching footprint has 69 living trees after access", "n=" + footprintTrees);
         var standSpacing = new UnityEditor.SerializedObject(FindFirstObjectByType<ForestStartingStand>()).FindProperty("latticeSpacingMeters").floatValue;
         Check(Mathf.Abs(standSpacing - 2f) < .00001f, "scene lattice spacing remains 2.0 m", "spacing=" + F(standSpacing));
-        Check(Mathf.Abs(bay.HalfWidthM - 8.00385f) < .001f, "accepted live middle-rack half-width remains 8.00385 m", "half width=" + F(bay.HalfWidthM));
+        // MFM-02 (Manager-approved/integrated, merge 07eee3d) accepted the regenerated model-0 Enlarged80 fixture:
+        // its authored rows leave a 15.989349 m gap (half-width 7.9946747 m), 9.2 mm inside the historical 8.00385 m
+        // scene fixture, with identical tree membership and BA. 8.00385 m was a historical scene-fixture value, not a
+        // protected anchor; the authoritative production value is ScenarioOneRackBay.HalfWidth (half the live gap).
+        Check(Mathf.Abs(bay.HalfWidthM - 7.9946747f) < .001f, "accepted live middle-rack half-width remains 7.9946747 m", "half width=" + F(bay.HalfWidthM));
 #endif
         var layoutLines = planner.LayoutLines.OrderBy(v => v).ToArray();
         Check(layoutLines.Length == 5, "the authored layout has five racks", "n=" + layoutLines.Length);
@@ -286,9 +290,21 @@ public sealed class RackLessonVerificationRunner : MonoBehaviour
         Check(LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==3&&LiveFacts().StandPortionsReviewed==6,"all three actual inspections and retained stand decisions complete return review");
         Check(Bay().ExecutedRemovals==removed&&ui.Learning.CurrentTopicIndex==5,"retain-here completes with zero further felling");
         ForestSaveData completed=saves.CaptureData();
-        Check(saves.LoadData(completed,false),"reload after review with no schema additions");yield return Frames(12);yield return Settled();
-        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==4,"reload requires fresh actual return inspection");
+        // v24 / D-066 (#143): completing the first guided rack review sets a one-way saved latch. Pre-latch behaviour is unchanged.
+        Check(completed.scenarioOne.firstGuidedRackReviewComplete,"completed review captured the v24 teaching latch");
+        // Pre-latch case: the same world with the latch cleared (as a pre-v24 or unlatched save) must still need a fresh return inspection at index 4.
+        ForestSaveData unlatched=JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(completed));
+        unlatched.scenarioOne.firstGuidedRackReviewComplete=false;
+        Check(saves.LoadData(unlatched,false),"reload unlatched world");yield return Frames(12);yield return Settled();
+        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==4,"unlatched reload requires fresh actual return inspection");
         yield return ReviewStand();
-        Check(LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed,"fresh retain decisions after load restore lesson completion without cutting");
+        Check(LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed,"fresh retain decisions after unlatched load restore lesson completion without cutting");
+        Check(ui.Learning.CurrentTopicIndex==5&&saves.CaptureData().scenarioOne.firstGuidedRackReviewComplete,"fresh review in the unlatched world re-earns the latch and index 5");
+        // Latched case: session inspection facts are still not restored, but the completed response boundary stays at index 5 (no fallback to 4).
+        // DecideRackInspection only acts at index 4 (LearningObjectivesView.Sequence.cs), so J decisions are inert and cannot cut or rewind.
+        Check(saves.LoadData(completed,false),"reload latched world with no further schema additions");yield return Frames(12);yield return Settled();
+        Check(!LiveFacts().RackReviewComplete&&LiveFacts().RevisitedTrees==0&&ui.Learning.CurrentTopicIndex==5,"latched reload keeps recruitment boundary; session inspection facts are not restored");
+        yield return ReviewStand();
+        Check(!LiveFacts().RackReviewComplete&&Bay().ExecutedRemovals==removed&&ui.Learning.CurrentTopicIndex==5,"latched world: inspection decisions are inert, no cutting, boundary stays at index 5");
     }
 }

@@ -64,4 +64,7 @@ public sealed class ScenarioManagementEvent
     public string failureReason = "";
     public CCF.Forestry.WorkEconomy.WorkExecutionMethod executionMethod;
     public int ownerMinutes;
+    // Version 23 (MFM-06): the prescription that generated the work this event records; 0 = not prescription-generated.
+    // Declared last so the hash compatibility path can remove exactly this default text.
+    public int prescriptionId;
 }

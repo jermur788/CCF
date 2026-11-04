@@ -260,13 +260,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 scheduled++;
                 continue;
             }
-            float target = definition.NextPruningTargetHeightM(tree.PruningLifts);
+            float target = definition.NextPruningTargetHeightM(tree, BroadleafMarketActive);
             if (target <= 0f)
             {
                 alreadyTreated++;
                 continue;
             }
-            if (target >= tree.Height * 0.6f || tree.CanPrune(target, CurrentYear + 1) != null)
+            if (target >= tree.Height * 0.6f || tree.CanPrune(target, CurrentYear + 1, BroadleafMarketActive) != null)
             {
                 ineligible++;
                 continue;
@@ -364,8 +364,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return LivingTreesById().Values.Count(tree => tree.IsCropTree
                 && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.FellTree)
                 && !HasOpenTreeOrder(tree.TreeId, ScenarioWorkType.PruneTree)
-                && definition.NextPruningTargetHeightM(tree.PruningLifts) > 0f
-                && tree.CanPrune(definition.NextPruningTargetHeightM(tree.PruningLifts), CurrentYear + 1) == null);
+                && definition.NextPruningTargetHeightM(tree, BroadleafMarketActive) > 0f
+                && tree.CanPrune(definition.NextPruningTargetHeightM(tree, BroadleafMarketActive), CurrentYear + 1, BroadleafMarketActive) == null);
         }
     }
 
@@ -597,8 +597,21 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     // Session lifecycle only; deliberately excluded from CaptureSaveData and the save schema.
     public int TeachingWorldVersion { get; private set; }
 
+    private bool firstGuidedRackReviewComplete;
+    public bool FirstGuidedRackReviewComplete => firstGuidedRackReviewComplete;
+
+    // Called only by the live rack-review decision path, never by facts/display refresh or save restoration.
+    internal bool TryRecordFirstGuidedRackReview(ScenarioOneTeachingSequence.Facts before, ScenarioOneTeachingSequence.Facts after)
+    {
+        if (firstGuidedRackReviewComplete || referencePreviewActive
+            || !ScenarioOneTeachingSequence.CrossesFirstRackReview(before, after)) return false;
+        firstGuidedRackReviewComplete = true;
+        return true;
+    }
+
     public void InitializeNewScenario()
     {
+        firstGuidedRackReviewComplete = false; // A new forest has its own history.
         TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         if (definition == null)
@@ -615,6 +628,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         // The V2 rack plan is fresh-world state as well: no racks, unconfirmed, model 0. The
         // new-game setup raises it to model 1 for Enlarged80 afterwards; legacy loads never do.
         ClearRackPlan();
+        ClearObjectiveHistory();
+        ClearPrescriptions();
         inventory.Clear();
         annualReports.Clear();
         nextManagementEventId = 1;
@@ -1070,7 +1085,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = "This tree already has an open pruning order.";
             return false;
         }
-        float targetHeight = definition.NextPruningTargetHeightM(tree.PruningLifts);
+        float targetHeight = definition.NextPruningTargetHeightM(tree, BroadleafMarketActive);
         if (targetHeight <= 0f)
         {
             feedback = $"{tree.TreeId} has already received the maximum configured pruning lifts.";
@@ -1081,7 +1096,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = $"{tree.TreeId} is too short for the next lift ({targetHeight:0.0} m target).";
             return false;
         }
-        string pruningProblem = tree.CanPrune(targetHeight, CurrentYear + 1);
+        string pruningProblem = tree.CanPrune(targetHeight, CurrentYear + 1, BroadleafMarketActive);
         if (pruningProblem != null)
         {
             feedback = pruningProblem;
@@ -1384,6 +1399,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             EnsureUnderstoreyGrid();
         return new ScenarioOneSaveData
         {
+            firstGuidedRackReviewComplete = firstGuidedRackReviewComplete,
             scenarioId = definition != null ? definition.ScenarioId : "scenario-one",
             initialized = initialized,
             cashCents = cashCents,
@@ -1420,6 +1436,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             rackPlanConfirmed = rackPlanConfirmed,
             nextRackId = nextRackId,
             racks = CloneRacks(racks),
+            objectiveAchievements = CloneObjectiveAchievements(objectiveAchievements),
+            nextPrescriptionId = nextPrescriptionId,
+            prescriptions = ClonePrescriptions(prescriptions),
             outcome = outcome,
             outcomeYear = outcomeYear,
             outcomeReason = outcomeReason,
@@ -1441,6 +1460,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         ecology?.Browsing.ClearProtection();
         ScenarioOneSaveMigration.NormalizeLegacy(data, saveVersion);
         ScenarioOneSaveMigration.NormalizeRackV2(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizeObjectiveHistory(data, saveVersion);
+        ScenarioOneSaveMigration.NormalizePrescriptions(data, saveVersion);
         shelters = CloneRecords(data?.shelters);
         protectedAreas = CloneRecords(data?.protectedAreas);
         ownerMinutesUsedThisYear = data != null ? data.ownerMinutesUsedThisYear : 0;
@@ -1460,6 +1481,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (definition != null && !string.IsNullOrEmpty(data.scenarioId) && data.scenarioId != definition.ScenarioId)
             Debug.LogWarning($"Save scenario '{data.scenarioId}' is being loaded into '{definition.ScenarioId}'.", this);
         initialized = data.initialized;
+        firstGuidedRackReviewComplete = saveVersion >= 24 && data.firstGuidedRackReviewComplete;
         cashCents = Math.Max(0L, data.cashCents);
         nextWorkOrderId = Mathf.Max(1, data.nextWorkOrderId);
         workOrders = CloneOrders(data.workOrders);
@@ -1519,6 +1541,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         centuryReview = data.centuryReview == null || data.centuryReview.year < ReviewYear
             ? null : JsonUtility.FromJson<ScenarioCenturyReview>(JsonUtility.ToJson(data.centuryReview));
         ScenarioOneObjectives.RefreshAspirationalTargets(centuryReview, definition, ecology.StandGeometryModelVersion);
+        RestoreObjectiveHistory(data, saveVersion);
+        RestorePrescriptions(data, saveVersion);
         RestoreStormVisualState();
         RestoreDeadwoodVisuals();
         RefreshFellingResidueVisuals();
@@ -2096,7 +2120,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         }
 
         float targetHeight = PruningTarget(order);
-        string rejection = tree.TryPrune(targetHeight, report.year);
+        string rejection = tree.TryPrune(targetHeight, report.year, BroadleafMarketActive);
         if (rejection != null)
         {
             Fail(order, report, rejection);
@@ -2226,10 +2250,10 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                     order.validationMessage = "Tree is scheduled for felling.";
                 else if (order.requiresCropTree && !tree.IsCropTree)
                     order.validationMessage = "Tree is no longer designated a Crop Tree.";
-                else if (definition != null && definition.NextPruningTargetHeightM(tree.PruningLifts) < 0f)
+                else if (definition != null && definition.NextPruningTargetHeightM(tree, BroadleafMarketActive) < 0f)
                     order.validationMessage = "Tree has already received the maximum pruning lifts.";
                 else
-                    order.validationMessage = tree.CanPrune(PruningTarget(order), CurrentYear + 1);
+                    order.validationMessage = tree.CanPrune(PruningTarget(order), CurrentYear + 1, BroadleafMarketActive);
             }
             else
                 order.validationMessage = "This task type is not yet available.";
@@ -2369,6 +2393,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             List<ScenarioObjectiveResult> objectives = ScenarioOneObjectives.Evaluate(definition,
                 snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
+            RecordObjectiveAchievements(objectives, snapshot.year);
             if (objectives.Count > 0 && objectives.All(result => result.achieved)
                 && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,

@@ -1,0 +1,68 @@
+SOURCE-STATIC baseline-source-commit: 72b4efbd1c653fa2231f632a79030a83ff76f833
+SOURCE-STATIC tracked-production-vs-baseline: MATCH
+SOURCE-STATIC scope: current checkout; no runtime/render/input proof; no automatic baseline update
+SOURCE-STATIC selected-states: rotation=pre-fix instruction=pre-fix
+SOURCE-STATIC FAIL 01 requested-spacing-presentation-format: Requested presentation format, not a functional defect; expected to flip with #255. Spacing in metres, not a duration; require compact 16–20m/16-20m.
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:87: "Extraction racks allow machinery to reach trees without creating access everywhere across the stand. "
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:88: "In early CCF transformation, rack spacing may commonly be around 16–20 m, but appropriate spacing depends on the stand, machinery and site. "
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:89: "Scenario One uses that range as a guide for this plantation. "
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:90: "This stand needs five extraction racks to create a workable first access layout. "
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:91: "Plan the racks on the map, then mark each rack entrance in the forest."
+SOURCE-STATIC FAIL 02 tree-marking-heading: Require exact heading literal Introducing tree marking; literal presence alone cannot prove display.
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:46: case Menu.TreeMarks: return "Tree Marks · what the paint on a tree means";
+SOURCE-STATIC FAIL 03 source-material-copy: No CCF source material phrase in ForestPrototype C# string literals (comments excluded).
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:28: "Removal trees associated with a machine route can be marked with vertical stripes. The CCF source material describes removal/treatment colours such as orange or pink; Scenario One uses orange."
+SOURCE-STATIC PASS 04 orange-entry-is-not-fell: Bounded legend check: orange rack-removal entry is separate from Red/Fell; no claim about rendered paint.
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:21: new[] { "Orange vertical stripes", "Rack / machine-path removal" },
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:22: new[] { "Red", "Fell" },
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:99: + "A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. "
+SOURCE-STATIC PASS 05 no-formal-pro-silva-copy: Conservative lexical guard: no Pro Silva mention in ForestPrototype C# literals; any mention requires human review, not automatic classification as a standard.
+  SOURCE-STATIC Assets/ForestPrototype/UI/MenuHelpView.Text.cs:29: public const string TreeMarksSimplificationText = "The game asks you to mark the rack entrance tree as a teaching action. Real marking practice may mark additional trees along a route.";
+SOURCE-STATIC NOT-TESTABLE 06 round-handle-input: BASELINE OBSERVATION only: snap argument is !ShiftHeld(e.modifiers), then forwarded to SnapFar for Reshape. SOURCE-STATIC cannot test physical input.
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:190: if (SelectedRackId > 0 && manager.TryGetRack(SelectedRackId, out RackPlanRack selected) && OnHandle(px, selected))
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:192: next = Gesture.Reshape;
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:251: private static bool ShiftHeld(EventModifiers modifiers)
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:252: => (modifiers & EventModifiers.Shift) != 0 || (Keyboard.current != null && Keyboard.current.shiftKey.isPressed);
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:260: Propose(px, !ShiftHeld(e.modifiers), out RackPoint entrance, out RackPoint far, out RackSnapResult snap, out RackEditValidation check);
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:325: case Gesture.Reshape:
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:327: snapResult = RackEditing.SnapFar(bounds, entrance, pointer, suggestedAngles, manager.RackEditOthers(gestureRackId), snap);
+  SOURCE-STATIC Assets/ForestPrototype/UI/StandMapView.cs:601: UiKit.Add(card, "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off.", "faint");
+SOURCE-STATIC PASS 06a rotation-snap-policy: Expected state=pre-fix; observed Reshape/Create/Move (Shift up,down)=[True, False, True, False, True, False]. Pre-fix requires [True, False, True, False, True, False]; after #256 require [False, False, True, False, True, False] with --rotation-state post-fix. PASS confirms the selected source baseline, not physical input; Move receives the argument but does not call SnapFar.
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs:260: Propose(px, !ShiftHeld(e.modifiers), out RackPoint entrance, out RackPoint far, out RackSnapResult snap, out RackEditValidation check);
+SOURCE-STATIC PASS 06b snapfar-offline-cases: Six direct calls to production SnapFar on plain .NET; 0.001m tolerance; no Unity or gesture dispatch proof.
+  SOURCE-STATIC Assets/ForestPrototype/Racks/RackEditing.cs:259: public static RackSnapResult SnapFar(RackEditBounds bounds, RackPoint entrance, RackPoint desiredFar,
+SOURCE-STATIC PASS SnapFar near-angle enabled=True input=(20.000,0.700) far=(20.012,0.000) angle=0.000 angleSnapped=True boundarySnapped=False
+SOURCE-STATIC PASS SnapFar near-angle-disabled enabled=False input=(20.000,0.700) far=(20.000,0.700) angle=2.005 angleSnapped=False boundarySnapped=False
+SOURCE-STATIC PASS SnapFar outside-angle-window enabled=True input=(20.000,3.000) far=(20.000,3.000) angle=8.531 angleSnapped=False boundarySnapped=False
+SOURCE-STATIC PASS SnapFar near-boundary enabled=True input=(39.000,0.000) far=(40.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=True
+SOURCE-STATIC PASS SnapFar near-boundary-disabled enabled=False input=(39.000,0.000) far=(39.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=False
+SOURCE-STATIC PASS SnapFar outside-boundary-window enabled=True input=(37.000,0.000) far=(37.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=False
+SOURCE-STATIC PASS 06c rack-edit-instruction-copy: Expected state=pre-fix; observed state=pre-fix. Require exact sentence: Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off. Source copy only, not displayed text or input proof.
+  SOURCE-STATIC Assets/ForestPrototype/UI/StandMapView.cs:601: "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off."
+SOURCE-STATIC PASS 07 objective-next-instruction: Unconfirmed V2 instruction names Stand Map / Plan Racks path; later states are quoted separately.
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:100: if (!confirmed) return counter + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:102: return counter + ". Return to the forest and mark the first rack tree nearest the path at each rack entrance: [P] spray marker, aim within 3.5 m, left-click.";
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:103: return counter + (workPending ? ". Next, review and approve the rack removal work in the Work Plan [Tab], then advance one year."
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:104: : ". Open the Work Plan [Tab] and advance one year.");
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:116: case "rack.create": return "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
+SOURCE-STATIC FAIL 08 objective-primary-cta: Require exactly one primary source button invoking ui.ShowMap(); labels are evidence only. Baseline primary invokes ui.CloseAll(); visual prominence, focus and destination behaviour remain unmeasured.
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.cs:73: buttons.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.cs:74: buttons.Add(UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan()));
+  SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.cs:75: buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+SOURCE-STATIC NOT-TESTABLE 09 map-minimap-trail-consistency: NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly.
+  SOURCE-STATIC Assets/ForestPrototype/UI/HudMinimapView.cs:84: StandMapModel model = ui.MapSource != null ? ui.MapSource.Model : null;
+  SOURCE-STATIC Assets/ForestPrototype/UI/HudMinimapView.cs:87: if (show) surface.Sync(model);
+  SOURCE-STATIC Assets/ForestPrototype/UI/StandMapView.cs:219: StandMapModel model = force ? ui.MapSource.Rebuild() : ui.MapSource.Model;
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:279: foreach (RackPlanRack rack in ui.Manager.RackPlan)
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:282: Start = rack.Entrance,
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:283: End = rack.Far,
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:290: FullOnly = !confirmed && !rack.IsLocked,
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:184: model.HasWaypoint = ui.Map != null && ui.Map.TryGetWaypointTarget(out target);
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapSource.cs:186: model.Waypoint = new RackPoint(target.x, target.y);
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:106: if ((rack.MiniOnly && full) || (rack.FullOnly && !full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:136: if ((rack.MiniOnly && full) || (rack.FullOnly && !full) || StandMapModel.IsDynamicRack(rack.Symbol) || !StandMapSymbols.IsDrawn(rack.Symbol, detail)) continue;
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:126: foreach (RackPoint p in path.Points) item.Points.Add(t.WorldToPixels(p));
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:257: MapPosition c = t.WorldToPixels(model.Waypoint);
+  SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapTransform.cs:38: return new MapPosition((world.X - MinX) / SizeM, 1f - (world.Z - MinZ) / SizeM);
+SOURCE-STATIC TALLY PASS=6 FAIL=4 NOT-TESTABLE=2
+SOURCE-STATIC exit=1 means feedback assertions remain unmet; observations do not count as PASS.

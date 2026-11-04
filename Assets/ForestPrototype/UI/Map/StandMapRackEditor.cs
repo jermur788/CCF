@@ -16,7 +16,8 @@ using UnityEngine.UIElements;
 //   move    drag the body of a rack              it slides along the headland; its entrance re-snaps onto the headland
 //   rotate  drag the round handle                the far end follows the pointer; the entrance stays put
 // While dragging, the proposal is drawn as a dashed ghost (white if the rules accept it, red if they refuse it) and the plan is
-// untouched; releasing applies it, or reports why it was refused. Snapping is soft and advisory; holding Shift turns it off.
+// untouched; releasing applies it, or reports why it was refused. The round handle rotates freely. For drawing, snapping is soft
+// and advisory; holding Shift turns it off. Moving keeps the entrance on the headland.
 public sealed class StandMapRackEditor
 {
     private enum Gesture { None, Create, Move, Reshape }
@@ -257,7 +258,7 @@ public sealed class StandMapRackEditor
         Vector2 px = e.localPosition;
         if (!dragged && (px - pressPx).sqrMagnitude < DragStartPx * DragStartPx) return;
         dragged = true;
-        Propose(px, !ShiftHeld(e.modifiers), out RackPoint entrance, out RackPoint far, out RackSnapResult snap, out RackEditValidation check);
+        Propose(px, gesture != Gesture.Reshape && !ShiftHeld(e.modifiers), out RackPoint entrance, out RackPoint far, out RackSnapResult snap, out RackEditValidation check);
         ghost = new RackEditGhost(entrance, far, RackGeometry.DefaultWidthM, check.IsValid);
         ui.MapSource.EditGhost = ghost;
         ui.MapSource.MarkRackEditDirty();

@@ -257,6 +257,16 @@ public sealed partial class GuidedOnboardingRunner : MonoBehaviour
             yield return Shoot("10b-invalid-already-planned-rack", false);
             ui.RackTool.Exit();
         }
+        if (manager.RackPlanningV2Active)
+        {
+            // RACK-V2-09 accepted field-marking flow: every confirmed rack entrance is marked before approval. This is the
+            // current V2 opening lesson, so the next instruction is the real "advance one year" step, not a marking prompt.
+            foreach (RackSaveData rack in manager.Racks)
+                Check(manager.MarkRackEntrance(rack.rackId).Status == RackPlanOperationStatus.Applied,
+                    "V2 entrance marked before approval: rack " + rack.rackId);
+            Check(manager.MarkedRackEntranceCount == ScenarioOneManager.RackPlanTargetCount,
+                "all five V2 rack entrances marked before approval");
+        }
         manager.ApprovePendingWork();
         ui.ShowObjectives(); yield return Pause(25);
         if (manager.RackPlanningV2Active)

@@ -195,6 +195,12 @@
 .inspect * { flex-shrink: 0; }
 .inspect-detail { margin-top: 8px; }
 .estimate-panel * { flex-shrink: 0; }
+/* The estimate clears the minimap horizontally (right 220, width 400), so its text is set at a tighter
+   scale to fit the available height without clipping. The copy is unchanged. */
+.estimate-panel .body { font-size: 15px; }
+.estimate-panel .muted { font-size: 14px; }
+.estimate-panel .faint { font-size: 13px; }
+.estimate-panel .heading { font-size: 18px; margin-top: 4px; margin-bottom: 3px; }
 .stat-grid { flex-direction: row; flex-wrap: wrap; }
 /* Two to a row at any width: a basis a little under half, grown to fill, so rounding can never push the second one down. */
 .stat { flex-basis: 46%; flex-grow: 1; margin-bottom: 4px; }
@@ -419,17 +425,21 @@
 
 /* ---- the current objective card: what to do / why / good practice ---- */
 .objective-part-heading { color: var(--ink); font-size: var(--fs-body); -unity-font-style: bold; margin-top: 10px; margin-bottom: 1px; white-space: normal; }
-/* The objective card is a reading screen: its explanations use the reading size, like the help windows. */
-.objective-part-text { font-size: var(--fs-reading); margin-bottom: 4px; }
+/* The objective card is a reading screen, but its longest lesson (Extend your treatment) must still fit the modal viewport without scrolling.
+   Body size and the wider words column below keep all six paragraphs on screen at both target resolutions. */
+.objective-part-text { font-size: var(--fs-body); margin-bottom: 4px; }
 /* The Objectives window is wider than the other screens so the card's words and its picture sit side by side and the whole objective is on
-   screen at once (1472 of the 1600 UI units at any 16:9 size). */
-.modal-objectives { max-width: 1500px; }
+   screen at once. It also takes more of the screen height than the other modals: the longest objective needs the extra viewport. */
+.modal-objectives { max-width: 1500px; height: 96%; }
 .objective-body { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
 .objective-words { flex-basis: 500px; flex-grow: 1; margin-right: 22px; }
 /* The progress line wraps like the text around it: in this narrower column a long one would otherwise run on under the picture. */
 .objective-words > .heading { white-space: normal; }
 .objective-body > .teaching-diagram { flex-basis: 780px; flex-grow: 1; margin-top: 8px; }
 
+/* Tighter padding and row spacing: the competitor list is tall and every unit matters for the clip check. */
+.competitor-panel { padding: 4px 10px; }
+.competitor-panel .table-row { padding-top: 1px; padding-bottom: 1px; }
 /* The competitor list is capped in height by the column above it. Its rows keep their height and anything beyond the cap is clipped, never squeezed
    until the lines print over each other. */
 .competitor-panel { overflow: hidden; }
@@ -449,10 +459,10 @@
 .card-locked { opacity: 1; background-color: var(--disabled-bg); padding-top: 7px; padding-bottom: 7px; }
 .card-locked .body { color: var(--ink-muted); }
 .objective-current { border-left-width: 3px; border-left-color: var(--accent); }
-.objective-part-heading { margin-top: 14px; margin-bottom: 5px; }
-.objective-part-text { margin-bottom: 6px; }
-.objective-body > .teaching-diagram { flex-basis: 800px; }
-.objective-words { flex-basis: 480px; }
+.objective-part-heading { margin-top: 8px; margin-bottom: 2px; }
+.objective-part-text { margin-bottom: 3px; }
+.objective-body > .teaching-diagram { flex-basis: 780px; }
+.objective-words { flex-basis: 580px; }
 .unity-foldout__text { color: var(--ink); white-space: normal; }
 .unity-toggle__text { color: var(--ink); }
 
@@ -470,6 +480,13 @@
 .stat-value { font-size: 20px; }
 .inspect-detail .stat-value { font-size: 18px; }
 .inspect .body, .inspect .muted { font-size: 17px; }
+/* Keep all detail copy visible at the 1600 x 900 reference size without shrinking its type or adding inaccessible scrolling. */
+.inspect.inspect-expanded { width: 600px; }
+.inspect-expanded .stat { padding-top: 0; padding-bottom: 0; margin-bottom: 0; }
+/* The wider expanded column fits four short stats across the card and three across the detail, instead of two. */
+.inspect-expanded .inspect-selected .stat { flex-basis: 22%; }
+.inspect-expanded .inspect-detail .stat { flex-basis: 30%; }
+.inspect .stat-label { white-space: normal; }
 .inspect-detail { margin-top: 6px; }
 /* The competitor table keeps its original row size and column split (see the competitor section above); larger rows overflowed the column. */
 .competitor-selected { background-color: var(--chip-bg); }
@@ -508,8 +525,10 @@
 .compact .modal-workplan .modal-header > .row { width: 100%; justify-content: flex-start; }
 .compact .modal-workplan .modal-header > .row > .money { margin-right: 18px; }
 .compact .menu-help-intro { max-width: 1400px; }
-.compact .objective-words { flex-basis: 460px; margin-right: 18px; }
-.compact .objective-body > .teaching-diagram { flex-basis: 800px; }
+.compact .objective-words { flex-basis: 580px; margin-right: 18px; }
+.compact .objective-body > .teaching-diagram { flex-basis: 780px; }
+/* The compact modal is shorter, so the objectives window takes almost the full height to keep the longest lesson on screen. */
+.compact .modal-objectives { height: 98%; }
 .compact .inspect .panel { padding: 8px 12px; }
 .compact .inspect .stat { padding-top: 2px; padding-bottom: 2px; }
 .compact .session-card { padding: 18px 24px; }

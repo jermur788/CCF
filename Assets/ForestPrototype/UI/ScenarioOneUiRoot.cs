@@ -236,9 +236,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         else
             competitors.Clear();
         hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
+        // The minimap steps aside only for the competitor list; the estimate panel clears it horizontally instead.
         hud.ShowMinimap(!(inspecting && inspection.ShowsCompetitors));
         PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
-        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate);
+        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate, clearsMinimapHorizontally: true);
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -275,25 +276,32 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
                 if (child.resolvedStyle.display != DisplayStyle.None && child.layout.height > 0f)
                     limit = Mathf.Min(limit, child.worldBound.yMin - 10f);
         inspection.Root.style.maxHeight = Mathf.Max(160f, limit - 14f);
-        float between = document.rootVisualElement.layout.width - 2f * (TreeInspectionView.ColumnWidth + 28f);
-        hud.SetPromptMaxWidth(Mathf.Clamp(between, 280f, 900f));
+        // The optional detail column is wider; keep the central aiming prompt clear of its actual bounds too.
+        float columnWidth = Mathf.Max(TreeInspectionView.ColumnWidth, inspection.Root.layout.width);
+        // The prompt is centred. It must clear the inspection card on the left and whichever side panel is on the right.
+        // The estimate panel sits at right 220 (clearing the minimap horizontally); the competitor panel at right 14.
+        float screenWidth = document.rootVisualElement.layout.width;
+        float leftBoundary = 14f + columnWidth;
+        float rightBoundary = inspection.ShowsEstimate
+            ? screenWidth - 220f - TreeInspectionView.EstimateWidth
+            : screenWidth - 14f - TreeInspectionView.ColumnWidth;
+        float maxWidth = 2f * Mathf.Min(screenWidth * 0.5f - leftBoundary, rightBoundary - screenWidth * 0.5f) - 56f;
+        hud.SetPromptMaxWidth(Mathf.Clamp(maxWidth, 280f, 900f));
     }
 
     // The competitor and estimate panels sit on the right, just under the HUD status panel and objective widget,
     // and never extend past the bottom of the screen.
-    private void PlaceSidePanel(VisualElement panel, bool show)
+    private void PlaceSidePanel(VisualElement panel, bool show, bool clearsMinimapHorizontally = false)
     {
         panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (!show) return;
         // Under the top-right column (the objective widget and the status panel), whatever height they have.
         VisualElement column = hud.RightColumn;
-        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 8f : 250f;
-        // The minimap sits at the bottom right of this same column, so the panel stops above it. ReservedHeightPx already
-        // includes the minimap's own bottom margin and the gap above it; only the 4-unit on-screen margin remains here.
-        // The older 14-unit allowance double-counted that space and squeezed the estimate/competitor rows by up to 11 units
-        // once the Rack V2 teaching note made the minimap taller. (The competitor list is the one panel too tall for that:
-        // it steps the minimap aside instead, so ReservedHeightPx is 0 while it is open.)
-        float available = document.rootVisualElement.layout.height - top - 4f - (Minimap != null ? Minimap.ReservedHeightPx : 0f);
+        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 2f : 250f;
+        // The minimap sits at the bottom right of this same column. A panel that clears it horizontally (the estimate,
+        // at right 220) needs no vertical reservation; the competitor list steps the minimap aside instead.
+        float minimapReserved = (!clearsMinimapHorizontally && Minimap != null) ? Minimap.ReservedHeightPx : 0f;
+        float available = document.rootVisualElement.layout.height - top - 4f - minimapReserved;
         panel.style.top = top;
         if (available > 0f) panel.style.maxHeight = available;
     }
@@ -389,6 +397,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (screen == UiScreen.Map) return MenuHelpView.Menu.StandMap;
         if (screen == UiScreen.Review) return MenuHelpView.Menu.AnnualReview;
         if (player != null && player.InspectedTree != null) return MenuHelpView.Menu.TreeInspection;
+        // Tree Marks unlocks once field marking is relevant (a confirmed V2 rack plan); the first walking frame after that shows it.
+        bool treeMarksUnlocked = MenuHelpView.TreeMarksUnlocked(manager.RackPlanningV2Active, manager.RackPlanConfirmed);
+        if (MenuHelpView.TreeMarksContext(treeMarksUnlocked, MenuHelpView.Introduced(MenuHelpView.Menu.TreeMarks), marking != null && marking.RackSprayEquipped))
+            return MenuHelpView.Menu.TreeMarks;
         return MenuHelpView.Menu.WalkingHud;
     }
 
@@ -433,10 +445,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     // A UI learning gate only: simulation/reference harness APIs remain unchanged.
     public string RackPlanProblem => learning.RackPlanProblem();
+    // S1-D T-03: the same footprint rule once the teaching sample is complete. A note only; ApproveWorkPlan/AdvanceFromWorkPlan ignore it.
+    public string RackPlanAdvisory => learning.RackPlanAdvisory();
+    // D-064: V2 rack work is approved only after its entrances are marked. Approval only; advancing a year is not gated by it.
+    public string RackApprovalProblem => learning.RackMarkingProblem();
 
     public bool ApproveWorkPlan()
     {
-        if (!string.IsNullOrEmpty(RackPlanProblem)) return false;
+        if (!string.IsNullOrEmpty(RackPlanProblem) || !string.IsNullOrEmpty(RackApprovalProblem)) return false;
         return manager.ApprovePendingWork();
     }
 
@@ -461,6 +477,18 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         manager.OpenWorkPlan(false);
         SetScreen(UiScreen.Review);
+    }
+
+    // TryShowYear validates before any panel changes. Open the same review surface without the
+    // normal SetScreen(Review) route resetting its deliberate selection to ShowLatest().
+    public bool TryShowReviewYear(int year)
+    {
+        if (!review.TryShowYear(year)) return false;
+        manager.OpenWorkPlan(false);
+        screen = UiScreen.Review;
+        CloseHelp();
+        manager.SetAuxiliaryPanelOpen(true);
+        return true;
     }
 
     public void ShowMap()

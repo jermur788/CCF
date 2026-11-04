@@ -84,7 +84,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
     {
         ui.CloseAll(); ui.CloseHelp();
         string original = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
-        Check(ForestSaveData.CurrentVersion == 21 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
+        Check(ForestSaveData.CurrentVersion == 24 && eco.RngModelVersion == 1 && eco.RegenerationModelVersion == 2
             && eco.GrowthModelVersion == GrowthModel.SpeciesAware && eco.StormModelVersion == 0, "accepted model stack");
         string help = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
         Check(Has(help, "repeated process") && Has(help, "keeping tree cover") && Has(help, "not one thinning")
@@ -93,7 +93,10 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         string lessons = string.Join(" ", LearningObjectivesView.Topics.Select(t => t.Text + " " + string.Join(" ", t.Steps.Select(s => s.Text))));
         Check(Has(lessons, "opportunity for natural regeneration") && Has(lessons, "needs seed") && Has(lessons, "not guaranteed")
             && Has(lessons, "not required for every useful management outcome"), "contingent regeneration");
-        Check(Has(lessons, "timber quality") && Has(lessons, "no timber-price premium"), "pruning without price promise");
+        // PARITY-07 (1e7b9413) replaced "applies no timber-price premium" (untrue for Oak) with copy that still makes no price promise:
+        // pruning sets no price by itself, only Oak may gain a grade, Sitka/Beech have no premium, fork/defect is not modelled.
+        Check(Has(lessons, "timber quality") && Has(lessons, "Pruning sets no price by itself") && Has(lessons, "Sitka and Beech have no such premium")
+            && Has(lessons, "fork or defect shape is not modelled"), "pruning without price promise");
         Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.WorkPlan), "execution") && Has(MenuHelpView.Explanation(MenuHelpView.Menu.WorkPlan), "does not decide the forest structure"), "plan purpose");
         Check(Has(MenuHelpView.Explanation(MenuHelpView.Menu.AnnualReview), "reassess") && Has(MenuHelpView.Explanation(MenuHelpView.Menu.AnnualReview), "Walk back"), "return to inspect");
         Check(Has(LearningObjectivesView.ClearanceExplanation(2), "reduce the survival") && Has(LearningObjectivesView.ClearanceExplanation(2), "removes young trees")
@@ -132,8 +135,16 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         if (Application.isBatchMode) yield break;
         yield return Render();
     }
+    // Frame counts alone left a just-shown panel unlaid-out on a slow Xephyr display; also wait real time. Assertions are unchanged.
     IEnumerator Settle()
-    { for (int i = 0; i < 12; i++) yield return null; }
+    { yield return new WaitForSecondsRealtime(.4f); for (int i = 0; i < 12; i++) yield return null; }
+    // The Game view resize is applied asynchronously: wait until the requested size is live before any layout assertion.
+    IEnumerator Resize(Vector2Int size)
+    {
+        ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y);
+        for (int i = 0; i < 180 && (Screen.width != size.x || Screen.height != size.y); i++) yield return null;
+        Check(Screen.width == size.x && Screen.height == size.y, "game view resized to " + size.x + "x" + size.y + " (got " + Screen.width + "x" + Screen.height + ")");
+    }
     void Fits(VisualElement element, string name)
     {
         Rect view = ui.RootElement.worldBound, b = element.worldBound;
@@ -155,7 +166,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         yield return new WaitForSecondsRealtime(5f); // Let first interactive shader compilation settle before captures.
         foreach (var size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {
-            ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y);
+            yield return Resize(size);
             ui.CloseAll(); ui.CloseHelp(); ui.ShowHelp(MenuHelpView.Menu.WalkingHud); yield return Settle();
             Fits(ui.Help.Root.Children().First(), "help"); yield return Capture("s1a-help-" + size.x);
             ui.CloseHelp(); ui.ShowObjectives(); ui.Learning.Refresh(true);
@@ -192,7 +203,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         ui.ShowReview(); ui.CloseHelp(); yield return Settle();
         foreach (var size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
         {
-            ScenarioOneTeachingCopyVerification.SetGameSize(size.x, size.y); yield return Settle();
+            yield return Resize(size); yield return Settle();
             VisualElement review = ui.RootElement.Query<VisualElement>(className: "modal").ToList().Single(v => v.parent.resolvedStyle.display != DisplayStyle.None && Text(v).Contains("Annual review"));
             Fits(review, "annual review"); yield return Capture("s1a-review-" + size.x);
         }

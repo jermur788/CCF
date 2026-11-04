@@ -16,6 +16,8 @@ public sealed class TreeInspectionView
     // Both side columns are this wide, so the status panel, the felling estimate and the competitor list line up on the right
     // and the card lines up with them on the left.
     public const float ColumnWidth = 400f;
+    // The felling estimate carries several paragraphs of grade copy; at the column width it needs more height than the right side has.
+    public const float EstimateWidth = 400f;
 
     private readonly ScenarioOneUiRoot ui;
     // The left column: the card, and under it the optional detail card. Transparent; its two children are the panels.
@@ -76,9 +78,9 @@ public sealed class TreeInspectionView
         EstimatePanel.pickingMode = PickingMode.Ignore;
         EstimatePanel.style.display = DisplayStyle.None;
         EstimatePanel.style.position = Position.Absolute;
-        EstimatePanel.style.right = 14;
+        EstimatePanel.style.right = 220;
         EstimatePanel.style.top = 250;
-        EstimatePanel.style.width = ColumnWidth;
+        EstimatePanel.style.width = EstimateWidth;
         estimateBody = new VisualElement();
         EstimatePanel.Add(estimateBody);
     }
@@ -96,9 +98,13 @@ public sealed class TreeInspectionView
         // Rebuild only when something visible can have changed.
         CompetitorAssessment competitors = ui.Competitors;
         string rackPrompt = ui.Learning.RackInspectionPrompt(tree);
+        // MFM-08: the Treatment review's 3D side. Inspecting is what counts as the spot-check; a candidate or proposal gets its own label.
+        StandMapTreatmentReview treatmentReview = ui.Map != null ? ui.Map.Review : null;
+        treatmentReview?.OnInspected(tree);
+        ScenarioOneTreatmentReview.TreeContext reviewContext = treatmentReview != null ? treatmentReview.ContextFor(tree) : null;
         string key = rackPrompt + "|" + tree.TreeId + "|" + tree.MarkType + "|" + tree.IsCropTree + "|" + tree.PruningLifts + "|"
             + (eco != null ? eco.EcologicalYear : 0) + "|" + (eco != null ? eco.StormModelVersion : 0) + "|" + tree.IsStump
-            + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail;
+            + "|" + (competitors != null ? competitors.Version : 0) + "|" + ShowsDetail + "|" + (reviewContext != null ? reviewContext.Key + reviewContext.Chip : "");
         if (key == shownKey)
             return;
         shownKey = key;
@@ -125,6 +131,15 @@ public sealed class TreeInspectionView
         string shelter = eco != null ? RegenerationDiagnostics.ShelterLabel(eco, tree.transform.position) : "";
         if (!string.IsNullOrEmpty(shelter)) UiKit.Chip(marks, shelter);
 
+        if (reviewContext != null)
+        {
+            // Words and an outline, not a mark: a candidate or proposal is review information, never a Fell/Crop mark on the tree.
+            Label chip = UiKit.Chip(UiKit.Row(body, "row"), reviewContext.Chip);
+            chip.style.borderTopWidth = chip.style.borderBottomWidth = chip.style.borderLeftWidth = chip.style.borderRightWidth = 1;
+            chip.style.borderTopColor = chip.style.borderBottomColor = chip.style.borderLeftColor = chip.style.borderRightColor = new Color(0.86f, 0.84f, 0.95f, 1f);
+            if (!string.IsNullOrEmpty(reviewContext.Line)) UiKit.Add(body, reviewContext.Line, "body");
+        }
+
         VisualElement grid = UiKit.Box("stat-grid");
         body.Add(grid);
         UiKit.Stat(grid, "Age", tree.AgeYears + " yr");
@@ -139,6 +154,8 @@ public sealed class TreeInspectionView
         BuildDetail(tree, eco, report);
         // During the opening rack stage the card does not advertise marking; it is introduced once the racks are open.
         string marking = ui.Manager != null && ui.Manager.RackFirstStageActive ? "" : "[X] Fell  [C] Crop Tree  ";
+        if (reviewContext != null && !string.IsNullOrEmpty(reviewContext.Hint))
+            marking = reviewContext.Hint.Contains("[C]") && marking.Contains("[C] Crop Tree  ") ? marking.Replace("[C] Crop Tree  ", reviewContext.Hint + "  ") : reviewContext.Hint + "  " + marking;
 
         if (assessing)
         {
@@ -164,6 +181,8 @@ public sealed class TreeInspectionView
     // Everything that is not needed to decide: the second card, shown only on [V].
     private void BuildDetail(ForestTree tree, ForestEcologyController eco, CropTreeCompetitionReport report)
     {
+        // Widen only the expanded left column: the fixed detail card cannot scroll while the cursor is locked.
+        Root.EnableInClassList("inspect-expanded", ShowsDetail);
         detailPanel.style.display = ShowsDetail ? DisplayStyle.Flex : DisplayStyle.None;
         if (!ShowsDetail) return;
         UiKit.Add(detailBody, "More detail", "heading");
@@ -190,6 +209,8 @@ public sealed class TreeInspectionView
         }
         if (!tree.IsStump && eco != null)
             UiKit.Add(detailBody, eco.GetStormExposureExplanation(tree), "muted");
+        if (!tree.IsStump && tree.Species != null && tree.Species.SpeciesId != "sitka-spruce")
+            UiKit.Add(detailBody, ScenarioOneUiFacts.SharedSpeciesRulesNote + (eco != null && eco.StormModelVersion == StormModel.None ? " Storm events are off in this forest." : " Storm events are a simplified shared model, not a species wind-tolerance band."), "muted");
         if (!tree.IsStump && report != null && tree.IsLiving && !tree.IsCropTree)
             UiKit.Add(detailBody, $"Competition here comes from {report.NeighbourCount} tree{(report.NeighbourCount == 1 ? "" : "s")} within "
                 + $"{UiKit.F(ForestEcologyController.HegyiCutoffMeters, "0")} m. To see which neighbours compete with it, mark it as a Crop Tree [C].", "muted");
@@ -324,16 +345,16 @@ public sealed class TreeInspectionView
         if (sitka)
             yield break;
         // Oak and Beech: say why the grade is what it is, in terms of things the player can change or wait for.
-        yield return "Grade depends on size and form, not on species alone. Pruning changes which grades a log can reach; it does not set a price.";
+        yield return ScenarioOneUiFacts.BroadleafQualityLimit + " Pruning changes which grades a log can reach; it does not set a price.";
         bool premium = result.Stems.SelectMany(stem => stem.Logs).Any(log => log.Assortment == TimberAssortment.VeneerPlanking || log.Assortment == TimberAssortment.Beam);
         if (speciesId == TimberYieldDefaults.OakSpeciesId)
         {
             if (tree.PruningLifts <= 0)
                 yield return "Not pruned: the clear first-grade veneer/planking class is unavailable. Pruning a Crop Tree makes its pruned section eligible once it is large enough.";
             else
-                yield return $"Pruned to {UiKit.F(tree.CrownBaseHeightM, "0.0")} m: logs inside that section can reach first-grade veneer/planking if they are large and straight enough.";
+                yield return $"Pruned to {UiKit.F(tree.CrownBaseHeightM, "0.0")} m: logs inside that section can become eligible for first-grade veneer/planking once they are large enough.";
             if (!premium)
-                yield return "Premium Oak needs a large, straight log: about 45 cm mid-log diameter for veneer/planking, 30 cm for beams. Oak takes a long time to get there.";
+                yield return "Size thresholds are about 45 cm mid-log diameter for veneer/planking and 30 cm for beams. " + ScenarioOneUiFacts.PremiumOakNote;
         }
         else
             yield return "Beech here is graded to second-quality planking or firewood; it has no veneer, beam or fencing class.";

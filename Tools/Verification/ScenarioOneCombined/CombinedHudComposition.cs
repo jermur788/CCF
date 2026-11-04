@@ -327,7 +327,26 @@ public sealed class CombinedHudCompositionRunner : MonoBehaviour
     // ---- 2: an ordinary E-inspection shows the felling estimate in the right column; the minimap must stay clear of it ----
     private sealed class Spot { public ForestTree Tree; public Vector3 Camera; public Vector3 LookAt; public ForestTree Competitor1, Competitor2; }
 
-    private List<ForestTree> Choppable() => FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(t => t.IsLiving && t.CanChop).ToList();
+    // Trees owned by a confirmed Rack V2 plan (removal set or marked entrance) refuse ordinary Crop/Fell marks by accepted design
+    // (ForestTreeMarkingManager.RackEntrances). The focus section of an earlier size confirms that plan in this same session, so the
+    // later size's competitor fixture must pick trees the plan does not own. Empty in legacy mode and at the first size.
+    private HashSet<string> RackOwnedTreeIds()
+    {
+        var owned = new HashSet<string>();
+        foreach (RackSaveData rack in manager.Racks)
+        {
+            if (rack == null) continue;
+            if (rack.removalTreeIds != null) foreach (string id in rack.removalTreeIds) owned.Add(id);
+            if (!string.IsNullOrEmpty(rack.entranceTreeId)) owned.Add(rack.entranceTreeId);
+        }
+        return owned;
+    }
+
+    private List<ForestTree> Choppable()
+    {
+        HashSet<string> owned = RackOwnedTreeIds();
+        return FindObjectsByType<ForestTree>(FindObjectsSortMode.None).Where(t => t.IsLiving && t.CanChop && !owned.Contains(t.TreeId)).ToList();
+    }
 
     private Spot DenseSpot()
     {

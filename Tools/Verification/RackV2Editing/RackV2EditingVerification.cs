@@ -783,29 +783,61 @@ public sealed class RackV2EditingRunner : MonoBehaviour
             Check(Same(Rack(2).Entrance, before2.Entrance) && Same(Rack(2).Far, before2.Far), tag + ": 'Undo last rack edit' (real click) restored rack 2 exactly");
             Check(!manager.CanUndoRackEdit && !Control("map-edit-undo").enabledSelf, tag + ": only one level of undo");
 
-            // ---- rotate by the handle: soft snap, then free, then Shift ------------------------------------------------------------
+            // ---- rotate by the handle: free at every angle, with and without Shift ---------------------------------------------
+            // #256 makes a Reshape (round-handle) rotation free at every angle and ignores Shift. Shift only disables the Create soft
+            // snap. The committed gate previously asserted that a near-level handle release snapped back to level. Each experiment is
+            // ordered so that its undo restores the state that actually preceded it, rather than manufacturing a level reset.
             yield return ClickWorld(OnRack(Rack(1), 0.4f));
             RackPlanRack rot1 = Rack(1);
             Check(RackEd.SelectedRackId == 1 && RackEd.OnHandle(RackEd.WorldToFramePx(rot1.Far), rot1), tag + ": rack 1 is selected and its handle is where the far end is");
-            RackPoint nearEast = P(rot1.Far.X, rot1.Far.Z + 1.5f);          // about 1.2 deg off level: inside the window
-            yield return DragWorld(rot1.Far, nearEast);
-            Check(Same(Rack(1).Entrance, rot1.Entrance) && Near(Rack(1).Far.Z, Rack(1).Entrance.Z, 0.0001f), tag + ": rotating by the handle keeps the entrance, and a near-level release snaps back to level");
-            RackPlanRack rot1b = Rack(1);
-            RackPoint turned = P(rot1b.Far.X - 4f, rot1b.Far.Z + 13f);      // about 10 deg: outside the window
-            yield return DragWorld(rot1b.Far, turned, "rotating", () => RotatingGhost(tag));
+            Check(Near(rot1.Far.Z, rot1.Entrance.Z, 0.0001f), tag + ": rack 1 starts level before the handle experiments");
+
+            // Shift held: the real key must reach the Input System, and the near-level release must still be unsnapped.
+            RackPoint shiftGhostStart = default, shiftGhostEnd = default;
+            bool shiftGhostSeen = false;
+            yield return DragWorld(rot1.Far, P(rot1.Far.X, rot1.Far.Z + 1.5f), "rotating-shift", () =>
+                CapturedRotatingGhost(tag, true, (start, end) => { shiftGhostSeen = true; shiftGhostStart = start; shiftGhostEnd = end; }), true, 14, 14);
+            RackPlanRack shiftRack = Rack(1);
+            float shiftAngle = RackEditing.DirectedAngleDegrees(shiftRack.Entrance, shiftRack.Far);
+            Check(Same(shiftRack.Entrance, rot1.Entrance), tag + ": the Shift-held handle rotation keeps the entrance");
+            Check(shiftAngle > 0.4f && shiftAngle < 3f, tag + ": with real Shift held, the near-level handle release stays unsnapped (" + F(shiftAngle) + " deg)");
+            Check(!Near(shiftRack.Far.Z, shiftRack.Entrance.Z, 0.0001f), tag + ": the Shift-held near-level release did not snap back to level");
+            Check(shiftGhostSeen && Same(shiftRack.Entrance, shiftGhostStart) && Same(shiftRack.Far, shiftGhostEnd), tag + ": the Shift rotation committed the last handle ghost");
+            Check(StatusText().StartsWith("Rotated rack 1") && !StatusText().Contains("suggested") && !StatusText().Contains("parallel") && !StatusText().Contains("edge"),
+                tag + ": the Shift edit card reports a plain rotation without a snap claim (" + StatusText() + ")");
+
+            // The Shift rotation's real prior state was the level rack: undo must restore it exactly, one level only.
+            yield return Click(Control("map-edit-undo"));
+            Check(Same(Rack(1).Entrance, rot1.Entrance) && Same(Rack(1).Far, rot1.Far), tag + ": undo of the Shift rotation restored the level rack exactly");
+            Check(!manager.CanUndoRackEdit && !Control("map-edit-undo").enabledSelf, tag + ": the Shift rotation undo is exactly one level");
+
+            // No Shift: the same near-level rotation is free, not soft-snapped.
+            RackPlanRack level1 = Rack(1);
+            RackPoint noShiftGhostStart = default, noShiftGhostEnd = default;
+            bool noShiftGhostSeen = false;
+            yield return DragWorld(level1.Far, P(level1.Far.X, level1.Far.Z + 1.5f), "rotating-near", () =>
+                CapturedRotatingGhost(tag, false, (start, end) => { noShiftGhostSeen = true; noShiftGhostStart = start; noShiftGhostEnd = end; }), false, 14, 14);
+            RackPlanRack nearRack = Rack(1);
+            RackPoint nearEntrance = nearRack.Entrance, nearFar = nearRack.Far;
+            float nearAngle = RackEditing.DirectedAngleDegrees(nearEntrance, nearFar);
+            Check(Same(nearEntrance, level1.Entrance), tag + ": the near-level handle rotation keeps the entrance");
+            Check(nearAngle > 0.4f && nearAngle < 3f, tag + ": without Shift, a near-level handle release is free, not snapped (" + F(nearAngle) + " deg)");
+            Check(!Near(nearFar.Z, nearEntrance.Z, 0.0001f), tag + ": the near-level handle release did not return to level");
+            Check(noShiftGhostSeen && Same(nearEntrance, noShiftGhostStart) && Same(nearFar, noShiftGhostEnd), tag + ": the committed rack matches the last handle ghost");
+            Check(StatusText().StartsWith("Rotated rack 1") && !StatusText().Contains("suggested") && !StatusText().Contains("parallel") && !StatusText().Contains("edge"),
+                tag + ": the near-level edit card reports a plain rotation without a snap claim (" + StatusText() + ")");
+
+            // A large rotation stays free and keeps identity; undo returns to the actual prior state (the free near-level rotation).
+            RackPoint turned = P(nearFar.X - 4f, nearFar.Z + 13f);      // well outside the old 4 deg snap window
+            string planBeforeLargeRotation = PlanSig();
+            yield return DragWorld(nearFar, turned, "rotating", () => RotatingGhost(tag));
             float a1 = RackEditing.DirectedAngleDegrees(Rack(1).Entrance, Rack(1).Far);
             Check(Same(Rack(1).Entrance, rot1.Entrance) && a1 > 6f && a1 < 14f, tag + ": rotating well off level is free (" + F(a1) + " deg), and the entrance did not move");
             Check(Rack(1).Id == 1, tag + ": the rotated rack keeps id 1");
-            // Shift turns snapping off: a release 1.2 deg from level stays 1.2 deg.
-            yield return Click(Control("map-edit-undo"));                    // back to level for the Shift test
-            RackPlanRack lvl = Rack(1);
-            Check(Near(lvl.Far.Z, lvl.Entrance.Z, 0.0001f), tag + ": undo returned rack 1 to level");
-            bool shiftWorked = true;
-            yield return DragWorld(lvl.Far, P(lvl.Far.X, lvl.Far.Z + 1.5f), null, null, true);
-            float shiftAngle = RackEditing.DirectedAngleDegrees(Rack(1).Entrance, Rack(1).Far);
-            if (!(shiftAngle > 0.4f && shiftAngle < 3f)) shiftWorked = false;
-            if (shiftWorked) Check(true, tag + ": holding Shift (real key) turned snapping off: the 1.2 deg release stayed " + F(shiftAngle) + " deg");
-            else Note(tag + ": Shift-to-disable-snapping was not observed with the real key (angle " + F(shiftAngle) + " deg): UNVERIFIED");
+            yield return Click(Control("map-edit-undo"));
+            Check(Same(Rack(1).Entrance, nearEntrance) && Same(Rack(1).Far, nearFar) && PlanSig() == planBeforeLargeRotation,
+                tag + ": undo restored the actual prior free near-level rotation exactly");
+            Check(!manager.CanUndoRackEdit && !Control("map-edit-undo").enabledSelf, tag + ": the large rotation undo is exactly one level");
 
             // ---- refused proposals: the ghost is red, release changes nothing, the card says why ---------------------------------
             yield return ClickWorld(OnRack(Rack(2), 0.5f));
@@ -911,6 +943,15 @@ public sealed class RackV2EditingRunner : MonoBehaviour
         yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue);
         Check(RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Valid, tag + ": while rotating, a valid ghost is shown");
         yield return null;
+    }
+
+    // The handle ghost at the last waypoint, captured before release so the committed rack can be compared with it.
+    private IEnumerator CapturedRotatingGhost(string tag, bool requireShift, Action<RackPoint, RackPoint> capture)
+    {
+        yield return WaitFor(() => RackEd.Dragging && RackEd.Ghost.HasValue);
+        Check(RackEd.Dragging && RackEd.Ghost.HasValue && RackEd.Ghost.Value.Valid, tag + ": while rotating, a valid ghost is shown");
+        if (requireShift) Check(Keyboard.current != null && Keyboard.current.shiftKey.isPressed, tag + ": the real Shift key is held during the handle rotation");
+        if (RackEd.Ghost.HasValue) capture(RackEd.Ghost.Value.Start, RackEd.Ghost.Value.End);
     }
 
     private IEnumerator RefusedGhost(string tag)

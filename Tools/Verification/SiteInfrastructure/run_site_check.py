@@ -13,7 +13,7 @@ No Unity Editor, no Library, nothing written inside the repo.
 
 This proves pure data rules and (by reading source text) that nothing in production calls the new types, that no
 unlisted verification tool calls them (only exact paths in the check's VerificationAllowList may), and that the save
-version is still 21 (the check asserts 21; it was 20 when this runner was written). It does not prove Unity
+version is still 24 (the check asserts 24; it was 20 when this runner was written). It does not prove Unity
 import/compile, any anchor hash, or that any descriptor is ecologically correct.
 
 This is a separate runner from ThreeSpecies/OfflineLogic/run_offline_check.py on purpose: that file is edited by

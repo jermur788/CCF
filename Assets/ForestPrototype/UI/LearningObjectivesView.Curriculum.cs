@@ -56,8 +56,8 @@ public sealed partial class LearningObjectivesView
             new Step("map.marks", "Explore Fell & crop marks", "Choose Fell & crop marks. Squares count Fell proposals; diamonds count Crop Trees. Red means proposed removal, blue means retain/favour. This is a view of decisions made in the forest, not a remote marking tool."),
             new Step("rack.map", "Plan a rack on the Stand Map", "Open the Stand Map [M], choose Plan rack, pick a square on the row you want and add the rack. The map uses the same rack tool as the forest. This practice is optional."),
             new Step("map.compare", "Understand the limits of a map", "A square summarises an area. Switch layers to compare light, young growth, protection and your marks, then walk there. A colour or a low number alone does not tell you which tree to fell.", true, "map.inspectsite")),
-        new Topic("6. Pruning", "Pruning removes lower branches from retained Crop Trees for future timber quality and a clearer stem. Scenario One records the treatment but applies no timber-price premium for pruning. It costs contractor time and money. A tree may need to grow or recover before it is eligible.",
-            new Step("prune.read", "Understand eligibility", "The Work Plan reports how many Crop Trees are eligible. This game's configured lift heights are 2.5 m, 5 m and 6.5 m, with at most three lifts, at least five years between lifts and a crown-base limit below 60% of tree height. These are scenario rules, not a recommendation to prune every tree.", true, "tree.crop"),
+        new Topic("6. Pruning", "Pruning removes lower branches from retained Crop Trees for future timber quality and a clearer stem. Pruning sets no price by itself: where Oak timber is marketed, the recorded pruned section can make a large log eligible for a higher grade, while Sitka and Beech have no such premium here, and fork or defect shape is not modelled. It costs contractor time and money. A tree may need to grow or recover before it is eligible.",
+            new Step("prune.read", "Understand eligibility", "The Work Plan reports how many Crop Trees are eligible. Sitka uses lifts to 2.5 m, 5 m and 6.5 m (at most three lifts, at least five years apart). When Oak and Beech timber markets are active, Oak and Beech use two lifts, to 3.5 m then 6.0 m, at least three years apart; otherwise they keep the three-lift schedule above. All are limited to a crown base below 60% of tree height. These are scenario rules, not a recommendation to prune every tree.", true, "tree.crop"),
             new Step("prune.plan", "Plan an eligible pruning lift", "In Work Plan, find Pruning and Add eligible crop tree pruning tasks. This can add several eligible trees; review each target height and cost, and remove jobs you do not want. If none are eligible, return in a later year."),
             new Step("prune.approve", "Approve the selected pruning work", "Check contractor cost and available cash, then approve pending work. A designated Crop Tree stays standing; the lift is executed during the annual work cycle."),
             new Step("prune.result", "Read the pruning result", "After a successful lift, read Annual Review. Return to that tree and inspect its Pruning field for the lift count and clear-stem height. Do not expect another immediate lift.")),
@@ -80,6 +80,46 @@ public sealed partial class LearningObjectivesView
             new Step("clear.approve", "Approve clearance when ready", "Approve the chosen work after checking what will be removed. Pending jobs can be removed if you change your mind. The plan is resolved at the annual cycle, not at designation."),
             new Step("clear.result", "Read clearance results", "Read the successful work result. Then revisit the footprint on foot to compare removed competing growth with the planned area. Standing trees are not part of this operation, and the site can develop new vegetation later."))
     };
+
+    // Objective 1 in a Rack Planning V2 world (D-064). Spec §31 gives the meaning of the first three sentences and §7 the five-rack
+    // sentence. 16-20 m is the book's early-transformation example and this stand's calibrated band; five racks is calibration for this
+    // stand. Neither is taught as a general rule.
+    public const string RackV2Concept = "Extraction racks allow machinery to reach trees without creating access everywhere across the stand. "
+        + "In early CCF transformation, rack spacing may commonly be around 16–20m, but appropriate spacing depends on the stand, machinery and site. "
+        + "Scenario One uses that range as a guide for this plantation. "
+        + "This stand needs five extraction racks to create a workable first access layout. "
+        + "Plan the racks on the map, then mark each rack entrance in the forest.";
+    public const string RackV2Practice = "Racks stay open for this and later thinnings, so plan the whole layout on the map before you confirm it. "
+        + "The Stand Map shows each rack's spacing against this stand's recommended range. Leave the rows between racks standing: that standing forest is what you are keeping. "
+        + "Confirming adds pending removal work only; nothing is cut until you approve the Work Plan and advance a year.";
+
+    // The Objective 1 sentence in a V2 world: the derived counter, then the next step of the spec §30 flow. Plan and confirm on the
+    // map, mark the five entrances in the forest, then the existing rack.approve step (D-064 OPEN-2: marking comes before approval).
+    public static string RackV2Instruction(string counter, bool confirmed, int marked, int target, bool workPending)
+    {
+        if (!confirmed) return counter + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
+        if (marked < target)
+            return counter + ". Return to the forest and mark the first rack tree nearest the path at each rack entrance: [P] spray marker, aim within 3.5 m, left-click.";
+        return counter + (workPending ? ". Next, review and approve the rack removal work in the Work Plan [Tab], then advance one year."
+            : ". Open the Work Plan [Tab] and advance one year.");
+    }
+
+    // The rack lessons' wording in a V2 world, where the map is the only rack author and the entrances are marked before approval.
+    // Null keeps the step's own text. The step ids and their saved progress are unchanged.
+    public static string RackV2StepText(string stepId)
+    {
+        switch (stepId)
+        {
+            case "rack.read": return "A rack is a straight corridor of removed trees that machinery drives along, so the rest of the stand can be reached without driving through it. It stays open for this and later thinnings. "
+                + "Spacing is conditional: around 16–20m between racks may be common in early transformation, around 30 m or more may be viable in developed CCF, and there is no universal rule. "
+                + "Scenario One recommends 16–20m and five racks for this plantation only.";
+            case "rack.create": return "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
+            case "rack.layout": return "Plan five racks on the Stand Map [M] and choose Confirm Rack Plan. Then return to the forest and mark each rack entrance tree in orange: [P] spray marker, aim within 3.5 m, left-click. Tree Marks help explains the paint.";
+            case "rack.approve": return "Once the rack entrances are marked, open the Work Plan [Tab]. Check the rack removal work and its cost, then choose Approve Work Plan. Approval does not cut anything yet.";
+            case "rack.map": return "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.";
+            default: return null;
+        }
+    }
 
     // Presentation only. A planned layout is still objective 1 until its work is actually carried out in an annual cycle.
     // This reads the existing stand/year state, so device-wide practice credits cannot skip the opening rack lesson.
