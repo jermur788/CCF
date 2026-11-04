@@ -360,6 +360,23 @@
 - **Status:** not yet sent to the author. The #259 re-check is in flight with an explicit instruction to compute the same ratios; DPC will consolidate both computations into one instruction rather than issuing two competing corrections.
 - **Outcome:** INFORMATION; a probable unachievable requirement recorded before it reached the Manager.
 
+### EVENT 028 — 2026-11-04 03:29 UTC — #253 review confirms the corrections; #257 closes DRAFT-complete with one provenance item owed
+
+- **Evidence class:** OBSERVED FACT (reviewer return, my own read of the revised rule text, running heights).
+- **#253 review: PARTIALLY QUALIFIED confirmed; handoff needs corrections.** All **41 checks passed byte-identically** and the raw JSON endpoints matched the model constants — the reviewer did the raw-source recomputation the worker had not. Per-claim results (reviewer's own numbers, which supersede the worker's where they differ):
+  - reach **CONFIRMED** at a sampled maximum of **69.1695 m**; nearest-ownership leaves **14.13–38.22%** uncovered at 20–9 m caps, while **lateral** ownership leaves **36.25–49.03%** — the worker had quoted only one variant, which understated how much the owner rule matters;
+  - sample placement **CONFIRMED** (150.58 m² elsewhere; 142.97 m² in R4 Centre = **65.96%**);
+  - grouping **CONFIRMED**; Confirm gate **CONFIRMED** at **30 direct calls across 16 C# verification files** (the worker said "at least 13 files" — an approximation presented as a count);
+  - **R1/R2 correction CONFIRMED: #251's physical-overlap claim was wrong**, gap `0.214214 m`; the editor clearance rule still fails;
+  - raster bias **CONFIRMED**, but the "exact" replacement values are **still an approximation between sampled lines** — the word "exact" was overstated.
+  - **Model-fidelity limit the reviewer added:** the Python port matches the legacy formulas algebraically, but Python doubles, abbreviated signatures and absent C# outputs mean **executable equivalence to production C# cannot be claimed**.
+  - Corrections dispatched to the author on the same branch/PR.
+- **Programme-integrity action required and taken:** #251's overlap claim is now known to be wrong. The DPC records the correction in the access-spine programme ledger rather than editing #251's published handoff, so the history stays intact and the correction is dated and attributed.
+- **#257 round 3 (`ae7944aa`): DRAFT-COMPLETE pending Manager.** I read the revised REQ-P3a myself rather than accepting "FIXED": the rule is now **total** — case (c) requires that a required-vs-required collision whose second default is also taken rejects the **entire binding set** as a unit, falls back to the built-in defaults, keeps the file as `.bak`, and names the two colliding actions; the invariant that makes it total (a collision-free default set binding every required action, AT-17b) is explicitly stated. No path leaves a required action unbound. Governance hierarchy (§8) and the S-6 scope are likewise now explicit, and import precedence is defined as one atomic bulk edit of the per-device store.
+- **One provenance item stays open, deliberately:** the inventory dispute is resolved as *definitional*, but the reviewer never published the command for its "control-access" count, and the author could not reproduce 73/61 with any pattern tried. The spec now carries **both** figures with definitions and an open task (IPS-020a) asking the reviewer to append the command. Recorded as owed, not as agreement.
+- **Outcome:** #253 HANDED-OFF + corrections running; #257 DRAFT-COMPLETE (still DRAFT status; needs Q1–Q13 answers).
+- **Next:** #253 corrections → re-check; then final report.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.

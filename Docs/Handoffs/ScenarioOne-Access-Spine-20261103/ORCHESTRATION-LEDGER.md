@@ -593,3 +593,13 @@ This is the fourth transcription-class error in the programme, and the first whe
 - **Known limits declared by the worker:** its model is its own Python port (41 offline checks pass, no C# compiled or run); it did **not** read the raw endpoint JSON and reused #251's published table, so a raw-source recomputation is still owed; calibration on real stems/masks unmeasured; C not modelled, so no A-vs-C comparison.
 - **Review:** dispatched to `codex` / `gpt-6.1-sol` / medium for cross-provider independence, with explicit instructions to re-derive at least three headline numbers from **raw** source, to re-count the `ConfirmRackPlan` call sites, and to judge whether #251 was genuinely wrong about the overlap.
 - **Authority:** DRAFT research only. No option approved, no spec status changed, no implementation authorised. Status `[HANDED-OFF]` on #253 pending review.
+
+#### Correction to #251, 2026-11-04 03:29Z — R1/R2 corridors do not physically overlap
+
+*(Recorded by the DeepSeek DPC under #254 after independent review of #253. #251's published handoff is left unedited so the published record and its correction both remain visible. Full routing evidence: overnight ledger EVENT 028.)*
+
+- **What was published in #251:** that the R1/R2 corridor rectangles overlap.
+- **What is true (verified independently by the #253 reviewer and consistent with the #253 worker):** the R1/R2 corridor rectangles do **not** overlap; the gap between them is **0.214214 m**. The figure previously described as an "overlap" is produced by the editor's **2.4 m centreline-clearance rule**, which is a different rule operating on centre lines, not a physical intersection of the drawn corridor rectangles.
+- **Why it matters:** the overlap claim was load-bearing for part of #251's Option A geometry argument. Any downstream reasoning that depends on a physical overlap must be re-read against this correction.
+- **Still true:** the editor clearance rule does fail in the case examined; the correction removes the *geometric* claim, not the clearance finding.
+- **Status:** #253 is `[HANDED-OFF]` with verdict PARTIALLY QUALIFIED; the correction round is running. No option is approved, no spec status changed, no implementation authorised.
