@@ -404,6 +404,39 @@
 - **Outcome:** HANDED-OFF to the Overall Manager (#200).
 - **Next:** Manager approval/integration decisions; the user's playtest and explicit authorisation before any Windows build.
 
+## Post-overnight continuation — 2026-11-04 (DPC resume)
+
+### EVENT 031 — 2026-11-04 01:17 UTC — preflight for #269/#270/#271 and routing decision
+
+> Clock note (OBSERVED FACT): this session's synchronised system clock reads **01:17 UTC on 2026-11-04**, while EVENTS 001–030 carry 02:xx–04:xx stamps. Those stamps are preserved as published history and are **not** re-dated here; continuation times are the real observed clock readings from this session.
+
+- **Evidence class:** OBSERVED FACT (commands run in this session against the live local repository and GitHub).
+- **Authority:** [POST-OVERNIGHT-REVIEW-AND-ROUTING-PACKET.md](POST-OVERNIGHT-REVIEW-AND-ROUTING-PACKET.md) and [MANAGER-HANDBACK-REVIEW-20261104.md](MANAGER-HANDBACK-REVIEW-20261104.md); claims #269/#270/#271 each re-read and confirmed `OPEN` / released, with no competing claimant comment.
+- **Live state checked before any lane was created:**
+  - published candidate `origin/integration/scenario-one-player-test-ready-v1` = **`72b4efbd1c653fa2231f632a79030a83ff76f833`**, i.e. unchanged from the packet; the local stale ref `185200f5` was ignored and the remote ref used.
+  - `main` = **`db43dbe5`**.
+  - PR heads re-read: #261 `9304d318`, #262 `693e24c8`, #264 `6efba8fd`, still targeted at `main`. **Not merged, not rebased, not retargeted.**
+  - neither reserved lane existed: branch `integration/scenario-one-overnight-ui-qualification-v1` and branch `docs/mfm-a-vs-c-offline-20261104-v1` were absent locally and on the remote.
+  - both reserved paths were absent: `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104` and `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`.
+  - disk at admission: **`/media/jer/Files` 103 GiB free (77% used); `/media/jer/ZX20` 54 GiB free (89% used)**. This is a *receipt*, not a standing entitlement.
+  - no Unity Editor process was running; only Unity Hub/licensing helper processes. **No Unity or Player build is started by this continuation.**
+  - primary worktree `/media/jer/ZX20/CCF-Primary` (branch `ops/workflow-foundation-v1`) was clean and was **not** checked out, reset or modified; the user's playtest and staged intro branches were not touched.
+- **Lane creation (all from the exact required bases, no user branch moved):**
+  - #269: new worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104`, new branch `integration/scenario-one-overnight-ui-qualification-v1` created **from `72b4efbd` only**.
+  - #271: new worktree `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`, new branch `docs/mfm-a-vs-c-offline-20261104-v1` created **from `main` `db43dbe5`** (docs lane).
+  - #270: read-only, **no** worktree and **no** source branch; reviewers read the three DRAFT PR heads directly. DPC is the single writer of the consolidated handoff.
+  - ledger: this file is edited only on `docs/v2-routing-continuation-20261104` (this branch) so that every event is a real GitHub commit rather than a retrospective summary.
+- **Routing decision and justification (default Medium, no escalation yet):**
+  - **#269 worker → Claude Sonnet 5.5, effort `medium`** (`claudeAgent_claude_b_pro`). Reason: git-provenance/worktree discipline plus exact-diff review is the dominant risk, which is well matched to Medium; the same pool also authored no part of the 13-file whitelist, so it is independent of #255/#256/#260 authors.
+  - **#271 worker → Claude Sonnet 5.5, effort `medium`** (`claudeAgent`). Reason: fresh provider pool so the A-vs-C study is not authored by the same family that produced the #253 review; difficulty is High, so **escalation to `high`/Opus 5.5 is pre-authorised only with a recorded numeric or modelling shortfall**, not pre-emptively.
+  - **#270 reviewer for #257 → GPT-6.1 Medium** (`codex`, `gpt-6.1-sol`, `reasoningEffort=medium`). #257 was authored by Claude/Sonnet, so OpenAI is the independent family.
+  - **#270 reviewer for #259 → GPT-6.1 Medium** (`codex`, `gpt-6.1-sol`, `reasoningEffort=medium`). #259 was authored by Claude/Sonnet.
+  - **#270 reviewer for #258 → Claude Sonnet 5.5 Medium** (`claudeAgent`). #258 was authored by Codex, so Claude is the independent family.
+  - Cross-review after each worker returns: #269 and #271 will be reviewed by the **opposite provider** before any result is called reviewed.
+  - **Quota / context / reset telemetry: UNKNOWN.** No rate-limit event has been observed in this session; nothing is asserted about ticket balances or future resets.
+- **Explicit prohibitions restated for every child:** do not merge #261/#262/#264; do not target `main` with the staging branch; do not weaken or delete any check to obtain a green result; the Objective 1 CTA check must remain a reported FAIL; no DRAFT spec may become implementation authority; no Unity, no lock acquisition, no Player/Windows build; no edits to `active-tasks.md` (Manager #200 only); no edits to this ledger (DPC only).
+- **Outcome:** lanes created and routing recorded **before** dispatch, as required. Claims remain OPEN until a real child starts and returns its exact provider/model/effort.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
