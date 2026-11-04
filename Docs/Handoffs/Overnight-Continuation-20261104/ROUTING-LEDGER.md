@@ -122,6 +122,16 @@
 - **Outcome:** BLOCKED (Unity), work continues offline.
 - **Next:** if absolute verification is required, Manager/user decision on lane and disk, recorded here.
 
+### EVENT 009 — 2026-11-04 00:21 UTC — wave 1 dispatched and claimed on GitHub
+
+- **Evidence class:** OBSERVED FACT (delegation responses + `gh issue comment` exit status) / ORCHESTRATOR CLAIM (any capacity inference).
+- **Dispatches confirmed RUNNING (returned by the orchestrator, not inferred):** #255 `codex`/`gpt-6.1-sol` (taskId `…a5c747d6`); #253 `claudeAgent`/`claude-sonnet-5-5` (taskId `…aa374267`); #257 `claudeAgent_claude_b_pro`/`claude-sonnet-5-5` (taskId `…efe39d5f`); #259 `codex_c75d8114`/`gpt-6.1-sol` (taskId `…243f848e`). Four distinct subscription pools, no pool double-booked in wave 1.
+- **Claims published:** issue comments posted successfully on #255, #253, #257, #259 with provider, model, effort, branch, worktree, base HEAD, ownership and the Unity deferral.
+- **Not dispatched yet:** #256, #258, #260 — held so that no pool is double-booked while wave 1 runs; they start as wave 1 returns. This is a real constraint (four pools, six remaining lanes), not a scheduling preference.
+- **Quota/tokens/context:** UNKNOWN for all four pools; no usage endpoint is exposed. Absence of a failure so far is not evidence of headroom.
+- **Outcome:** RUNNING (4 children).
+- **Next:** on each return — cross-provider review by a *different* family, then wave 2 fill.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
