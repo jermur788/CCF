@@ -31,9 +31,9 @@ Raw command transcript below includes full source/context reads and all verifica
 
 ## UNVERIFIED / UNMEASURED
 
-Unity import/compilation; runtime behaviour; rendered English text, wrapping/readability and actual marker colours; help modal timing/unlock; input paths; save/load; performance; Player and Windows builds. Unity admission is deferred tonight on disk grounds by binding task instruction. Static source checks do not prove these behaviours. Independent review/integration/acceptance and dashboard publication are unverified; #200 owns coordination follow-through. No other lane read or modified; no active-tasks or routing-ledger edit.
+Unity import/compilation; runtime behaviour; rendered English text, wrapping/readability and actual marker colours; help modal timing/unlock; input paths; save/load; performance; Player and Windows builds. Unity admission is deferred tonight on disk grounds by binding task instruction. Static source checks do not prove these behaviours. Independent review has since been performed and the correction re-checked (see 'Review outcome and DPC correction' below); integration, Manager acceptance and dashboard publication remain unverified, and #200 owns coordination follow-through. No other lane read or modified; no active-tasks or routing-ledger edit.
 
-Future Unity steps after separate admission: open Objective 1 and rack reading; expect `16–20m` in all three labels. Confirm rack plan, open Tree Marks help via F1; expect exact heading/intro and three preserved rows. Inspect orange four-sided entrance stripes, Fell/Crop colour appearance and text fit. These are future checks, not results.
+Future Unity steps after separate admission: open Objective 1 and rack reading; expect `16–20m` in the Objective 1 concept and the rack-reading step. The Stand Map card (`StandMapView.cs:603`) still shows `16–20 m` with a space, because that file is outside this packet's two-file scope; do not treat that remaining spaced form as a regression of this change. Confirm rack plan, open Tree Marks help via F1; expect exact heading/intro and three preserved rows. Inspect orange four-sided entrance stripes, Fell/Crop colour appearance and text fit. These are future checks, not results.
 
 ## V2 Orchestration Decision Appendix
 
