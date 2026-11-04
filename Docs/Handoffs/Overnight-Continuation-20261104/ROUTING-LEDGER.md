@@ -132,6 +132,18 @@
 - **Outcome:** RUNNING (4 children).
 - **Next:** on each return — cross-provider review by a *different* family, then wave 2 fill.
 
+### EVENT 010 — 2026-11-04 00:27 UTC — dispatch #256 rack-handle fix → Codex `gpt-6.1-sol` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call, source reads) / ORCHESTRATOR CLAIM (fit, capacity).
+- **Task:** #256, PACKET-ONLY bounded interaction fix, P0.
+- **Provider/model/effort:** `codex` / `gpt-6.1-sol` / `reasoningEffort: medium` (second concurrent child on this pool — deliberate, both are small bounded edits, but this is the point where per-account concurrency becomes an assumption to watch).
+- **Why:** the change is a gesture-wiring correction in one file plus instruction text; the reviewer will be a Claude pool for cross-family independence.
+- **Source findings given to the worker as "verify, do not trust":** the rotation gesture is defined in `Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs` (gesture enum `Create/Move/Reshape`, `Propose(px, !ShiftHeld(e.modifiers), …)` in `OnPointerMove`), and the player-facing instruction is `Assets/ForestPrototype/UI/StandMapView.cs:601`. That helper file is the "strictly necessary rack editing UI helper" the packet allows; `RackEditing`/`RackPlan` policy is excluded.
+- **Pool status:** AVAILABLE (now 2 children). **Quota/reset:** UNKNOWN. **Capacity-to-completion:** sufficient for the edit, unknown for the account's concurrency headroom.
+- **Ownership:** `feature/overnight-rack-handle-20261104`, `/media/jer/Files/CCF/Operations/CCF-Overnight-RackHandle-20261104`, base `72b4efbd`.
+- **Outcome:** RUNNING.
+- **Next:** return → independent Claude review; human manual test script in handoff.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
