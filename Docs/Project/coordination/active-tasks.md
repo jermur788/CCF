@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-04 by Overall Manager after exact PR #278 and independent-evidence review. #277 is APPROVED/CLOSED as test-only repair; worker reports normal release and FREE Unity receipt (historical, not a live lease check). #273/#276/#278 remain open and unmerged, published personal-test candidate unchanged; no Windows build or user acceptance.
+**Last reconciled:** 2026-11-04 by Overall Manager for documentation-only draft orchestration template review #280 / PR #279, following approved/closed #277. New routing ladder is explicitly NOT ACTIVE until Manager approval and prospective instruction reconciliation. User-owned local work and published candidate unchanged; no Windows build.
 
 ## Coordination rules
 
@@ -57,6 +57,7 @@ Because the integration is the exact already-qualified direct-child commit on it
 | Task | Lane | Ownership | Status |
 |---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
+| **DeepSeek orchestrator-only template review** (#280) | browser/GitHub Overall Manager #200, docs-only, [draft PR #279](https://github.com/jermur788/CCF/pull/279) | User-proposed future policy: DeepSeek High coordinates/updates V2 ledger only; GPT-6.1 Sol Medium and Sonnet 5.5 Medium default workers; Opus 5.5 Medium justified escalation | **DRAFT / MANAGER REVIEW REQUESTED — NOT APPROVED.** Existing #91/#201/#203 execution policy not silently superseded, no local Unity/production writer, no candidate move, no Windows build. |
 | **Local Deep Orchestration Resume 02** (#203) | local orchestration | local routing + housekeeping | **RUNNING** |
 | **Scenario One final Tier-3 qualification** (#231) | #203 local | parent milestone qualification | **APPROVED / CLOSED** |
 | **Tier-3 Task 2 evidence closure** (#240) | #203 local | three evidence actions + delta review | **APPROVED / CLOSED** |
