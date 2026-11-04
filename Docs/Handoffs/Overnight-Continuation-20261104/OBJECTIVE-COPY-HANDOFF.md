@@ -4845,3 +4845,40 @@ Exit: 0
 ```
 
 Delivery commands after transcript closure: stage/commit this handoff, push branch again, create PR to main, link PR to thread. Their final SHA/PR and raw delivery results are returned in the session; this handoff cannot include its own eventual commit hash.
+
+---
+
+## Review outcome and DPC correction (added after independent review)
+
+**Review verdict:** APPROVE WITH REQUIRED CHANGES, posted on PR #262 by an independent Claude-family reviewer (`claude-sonnet-5-5`, medium effort, read-only detached checkout at `af1821b6`). The worker's own status in this file was IMPLEMENTED, never REVIEWED.
+
+**The reviewer's required change, and what was done about it.** The code change was correct, but the change left the repository's own verification suite asserting the superseded copy. The reviewer identified five stale assertions in `Tools/Verification/RackV2HelpTeaching/RackV2HelpTeachingOfflineCheck.cs` (title `Tree Marks`; orange text equal to spec §28; `16–20 m` at three places) and one in `Tools/Verification/RackV2Objective1/RackV2Objective1EndToEnd.cs`. The worker's handoff had reported only a single S10 failure and had not disclosed these; that under-reporting is recorded here rather than quietly fixed.
+
+DPC applied the correction directly (small, mechanical, within this packet's "focused own test output" allowance), on the same branch:
+
+| File | Change | Why it is not a weakening |
+|---|---|---|
+| `RackV2HelpTeachingOfflineCheck.cs` | title check now asserts the exact new heading | still an exact equality, not a substring or a removal |
+| `RackV2HelpTeachingOfflineCheck.cs` | orange text now asserts the exact new sentence | still exact equality; spec §28 is now stale and needs Manager reconciliation |
+| `RackV2HelpTeachingOfflineCheck.cs` | a `UnitStyle()` helper normalises only `16–20 m` → `16–20m` for spec-sentence comparisons | whole sentences are still compared in full; only the unit style the user asked for is normalised |
+| `RackV2HelpTeachingOfflineCheck.cs` | three `16–20 m` literals updated | the assertions still require the range to be present |
+| `RackV2Objective1EndToEnd.cs` | one `16–20 m` literal updated | same requirement, new approved spelling |
+| `run_offline.py` | S10 allow-list gained the two exact paths this change legitimately touches | the scope guard still rejects everything else; no prefix was widened |
+
+**Raw result after the correction** (`python3 Tools/Verification/RackV2HelpTeaching/run_offline.py --base 72b4efbd`, dotnet 10.0.114):
+
+```
+RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97
+PASS offline wording/unlock/flow check
+RACK_V2_HELP_TEACHING_PASS static_and_offline=15
+```
+
+Before the correction the same command reported `RACK_V2_HELP_TEACHING_OFFLINE_FAIL failures=5 checks=97` and `RACK_V2_HELP_TEACHING_FAIL failed=2 static_and_offline=15`. Both numbers are reproduced from the terminal, not from memory.
+
+**Still open and NOT fixed here (deliberately):**
+
+1. `Assets/ForestPrototype/UI/StandMapView.cs:603` still shows `16–20 m` with a space on the Stand Map card, so a player sees `16–20m` in Objective 1 and `16–20 m` there. That file belongs to the #256 lane and is outside this packet's two-file scope. Widening scope is a Manager decision, not an overnight convenience.
+2. Spec §28 in `specs/scenario-one-objective-1-rack-planning-field-marking-v2/spec.md` still contains the "CCF source material" sentence the user objected to. The production string is now the authority for the player-facing text; the spec needs a Manager reconciliation pass.
+3. The Fell-mark colour discrepancy (in-world Fell paint is orange-red `(1,0.35,0.05)`, rack entrance paint `(0.95,0.28,0.025)`, only the shape differs) is recorded for #259 and the morning report. No copy or marker was changed on the back of it.
+
+**Reviewer's unverified list, repeated so it is not lost:** rendered text, wrapping and fit in the help modal; actual on-screen difference between Fell and rack-stripe colour; and any test result by execution. DPC executed the offline suite; nothing was executed in Unity.
