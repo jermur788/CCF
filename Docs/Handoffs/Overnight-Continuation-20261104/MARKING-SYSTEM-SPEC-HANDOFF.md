@@ -69,7 +69,7 @@ Permissible wording: **“Game markings informed by Pro Silva Ireland practice.�
 
 ## Draft recommendation and decisions requiring approval
 
-The draft recommends exactly three introductory meanings: orange **vertical** rack-removal entrance stripes (hot-pink fallback under revised FR-4); orange **diagonal** individual Fell slashes; blue **ring** for retained/favoured Crop Trees. Shape plus label is mandatory; the review revision below adds measured luminance separation and a hot-pink rack fallback rather than relying on stripe direction. Keep field entrance painting distinct from route lines, selected editing entrances, retained route-side trees and actual cleared/executed routes.
+The draft recommends exactly three introductory meanings: orange **vertical** rack-removal entrance stripes (hot-pink fallback under revised FR-4); orange **diagonal** individual Fell slashes; blue **ring** for retained/favoured Crop Trees. Shape plus label is mandatory; the round-2 revision below separates perceptual colour difference from background contrast and specifies an exact conditional pink rack fallback, with shape recognition binding. Keep field entrance painting distinct from route lines, selected editing entrances, retained route-side trees and actual cleared/executed routes.
 
 Manager/user must resolve the spec's **O1–O4** before implementation:
 
@@ -86,7 +86,7 @@ The plan/tasks are drafted dependencies, all production tasks BLOCKED. No marker
 
 Future exact steps and expected observations are in spec **AC-1–AC-7**, every row at **1280×720 and 1920×1080**, after fresh authorised Unity 6000.6.0f1 admission. These cover four-sided paint, light/shade/crowding, grayscale and three colour-vision simulations plus human review, full map and minimap visibility policies, help fit, native Linux input, current/genuine-old-save and work-state transitions, Legacy40/frozen reference and same-fixture performance. Harnesses must be inspected before copy/run/remove; protect original saves and remove generated temporary `.meta` files. Durable outputs belong on Files.
 
-**All runtime/rendered/input claims remain UNVERIFIED; all performance/contrast/recognition measurements UNMEASURED.** Initial independent review accepted the DRAFT foundation and returned the findings addressed below; revised text awaits re-review. No author approval or qualification token is issued. The protected integration/player-test branch was untouched and no merge is authorised by this handoff.
+**All runtime/rendered/input claims remain UNVERIFIED; all performance/rendered-contrast/recognition measurements UNMEASURED; static palette arithmetic is computed in the round-2 response.** Initial independent review accepted the DRAFT foundation and returned the findings addressed below; revised text awaits re-review. No author approval or qualification token is issued. The protected integration/player-test branch was untouched and no merge is authorised by this handoff.
 
 ## Explicit unknowns and operational follow-up
 
@@ -119,20 +119,35 @@ Future exact steps and expected observations are in spec **AC-1–AC-7**, every 
 
 **Routing handback for DPC:** append EVENT 007 outcome using this source correction, primary-source evidence, exact published PR/head and honest UNKNOWN capacity metrics. Arrange independent re-review of the revision; #200 owns authority/coordination/dashboard updates. Do not release production marking work from this DRAFT.
 
-## Review response
+## Review response — round 2 (Option A)
 
-**DRAFT revision for PR #266; no production or Unity change, no approval of O1–O4.**
+**DRAFT; same PR #266. Finding 1 was not fixed by the previous revision:** its mark-versus-mark >=3:1 rule was infeasible for the intended hot hues. This round replaces that rule; no implementation, Unity run or O1–O4 approval is claimed.
 
-| Finding | Disposition / change |
-|---|---|
-| 1 — MAJOR: near-orange rack/Fell separation and missing fallback | FIXED in draft: FR-4 requires >=3:1 measured interior luminance separation at every required view, including thin textured trunks at 15 m, independently of stripe direction; complete-matrix pink fallback defined. Measurements remain UNMEASURED. |
-| 2 — map/legend colours unspecified | FIXED: explicitly orange Fell glyph/legend (replacing current red), orange rack glyph/legend or selected fallback pink, and blue Crop glyph/legend; each matches its qualified world colour. |
-| 3 — in-world designation prompts omitted | FIXED: migration inventory includes `ForestTreeMarkingManager.RackEntrances.cs:175–176` blue/red designation prompts → Crop Tree/Fell designation; also audit colour-sensitive entrance prompts. Rejection behaviour stays unchanged. |
-| 4 — recognisable depended on reviewer verdict | FIXED: FR-4 sets five-second, label-hidden, answer-key scoring by two independent people, each 100% correct per resolution/mode/distance; unsure/late/missing fails, raw answers/timings retained. AC-1/2/4 reference it; other AC rows retain observable state assertions and AC-7 requires an approved numeric budget. |
-| 5 — source quality ring conflated with Crop Tree | FIXED: source blue/white ring denotes high timber quality; “Crop Tree — retain/favour” remains an explicit game calibration label inspired by that practice, not its definition. |
+**Choice and trade-off:** Option A separates perceptual colour difference from background legibility. Normal-colour rack/Fell interiors require **CIE76 ΔE*ab >= 40**, plus mandatory shape redundancy. This is a deliberate game calibration floor, not an accessibility standard or guarantee. Grayscale/colour-vision modes rely on the scored shape-recognition gate, not this normal-colour floor. Contrast **>=3:1** applies to each mark against bark/map/legend/help backgrounds, with a measurable edge/backing allowed. No >=3:1 requirement remains between rack and Fell.
 
-**New fallback rule:** if orange rack versus orange Fell fails either >=3:1 luminance separation or scored recognition in any required view, switch rack paint/glyph/legend/help swatch/colour wording atomically to luminance-adjusted hot pink, keep Fell orange, and rerun the full matrix; stop for redesign if pink fails.
+### Arithmetic independently recomputed for this round
 
-Source claims remain attributed practice, with no adoption of the publisher’s “widely applied in private and state forests” claim. No enum/schema/save field, loaded meaning, gameplay or current marker colour changes; 3D/full-map/minimap/help/curriculum remain covered. This resolves draft wording defects only, pending independent re-review and O1–O4.
+Inputs are **encoded sRGB [0,1]**, not linear-light Unity shader values. The exact fallback is **(1.000000, 0.080000, 0.580000)**; do not quantise to an 8-bit approximation for this reference computation. Fell remains **(1.000000, 0.350000, 0.050000)**.
 
-Revision preflight: supplied worktree clean at `e5613579f9692cdac7eb134d31e81834385f9ed9`, same `docs/overnight-mark-language-spec-20261104` branch and existing DRAFT [PR #266](https://github.com/jermur788/CCF/pull/266). No unrelated changes were present. Only the four spec files and this handoff are amended. Design trade-off: luminance separation adds a second visual cue alongside shape; fallback pink stays within the source-reported hot family, but its exact shade is gameplay calibration and all surfaces must migrate together. No Unity, production, coordination or routing-ledger edits. Static validation: five-path scope, Markdown local links and `git diff --check`; contrast/recognition/runtime unmeasured. Dashboard synchronisation remains assigned to #200/DPC and is not verified by this docs-only worker.
+| Colour | Encoded sRGB | Relative luminance L | CIELAB D65 (L*, a*, b*) | Contrast versus Fell (diagnostic only) | ΔE76 versus Fell |
+|---|---|---:|---|---:|---:|
+| Fell reference | (1, 0.35, 0.05) | 0.284749 | (60.3214, 60.4653, 67.9663) | 1.0000:1 | 0.0000 |
+| Current rack orange | (0.95, 0.28, 0.025) | 0.234930 | (55.5828, 63.0698, 65.3562) | 1.1748:1 | 6.0042 — FAIL <40 |
+| Exact pink fallback | (1, 0.08, 0.58) | 0.239095 | (56.0036, 84.5737, -6.1705) | 1.1579:1 | 78.0777 — PASS >=40 |
+
+Reproduction: linearise each channel `c` as `c/12.92` if `c <= 0.04045`, otherwise `((c+0.055)/1.055)^2.4`. Contrast uses `L=0.2126r+0.7152g+0.0722b` and `(max(L1,L2)+0.05)/(min(L1,L2)+0.05)`. For Lab use linear-sRGB→XYZ rows `(0.4124564,0.3575761,0.1804375)`, `(0.2126729,0.7151522,0.0721750)`, `(0.0193339,0.1191920,0.9503041)`, D65 white `(0.95047,1,1.08883)`, `f(t)=cuberoot(t)` above `(6/29)^3`, otherwise `t/[3(6/29)^2]+4/29`; Lab is `(116f(Y)-16,500[f(X)-f(Y)],200[f(Y)-f(Z)])` using white-normalised XYZ. ΔE76 is Euclidean Lab distance. Compute at full precision, round only for display.
+
+For example, pink/Fell contrast is `(0.2847485507+0.05)/(0.2390949674+0.05)=1.1579`, while ΔE76 is `sqrt((-4.3178)^2+24.1085^2+(-74.1368)^2)=78.0777`. Against Fell, 3:1 would require `L >= 3(0.2847485507+0.05)-0.05 = 0.954246` or `L <= (0.2847485507+0.05)/3-0.05 = 0.061583`. This explains the discarded rule. Background contrast is feasible: against black (`L=0`), Fell gives **6.6950:1**, pink **5.7819:1**; these examples do not prove rendered bark/background performance.
+
+### Disposition and non-circular failure action
+
+- **Finding 1:** replaced the infeasible pair-contrast gate with normal-colour ΔE76 >=40, separate >=3:1 background contrast, mandatory distinct shapes and binding recognition. Current orange fails the numeric floor now, so the exact pink is the candidate for future qualification. Its numeric pass does not qualify renders.
+- **FR-1 / fallback:** pink is conditional on orange failing the perceptual floor or recognition. Switch rack paint, full-map glyph, legend, help swatch and colour wording together; retain orange Fell. Background-only failure first requires edge/backing/visibility correction, not an automatic hue switch.
+- **Recognition:** two non-author people independently score every required capture within 5 seconds; each must score 100% in every mode/resolution/required distance. Unsure, missing or late = fail. Orange failure triggers the specified pink candidate once. Pink recognition failure requires a documented shape/size/edge/occlusion redesign and complete fresh matrix with new random order; unchanged reruns cannot erase a failure. If passing needs weaker thresholds, changed meanings or scope expansion, stop and return to Manager/user. No return to orange merely because pink's diagnostic pair contrast is below 3:1.
+- **Accepted findings 2–5 preserved:** map/legend follow fallback; blue/red designation prompts are replaced with Crop Tree/Fell designation; two non-author scorers retain 5 s/100%/unsure-or-late-fails; Crop Tree remains a game label inspired by the source's high-quality timber ring.
+
+Source-reported practice stays attributed guidance; the publisher's “widely applied” claim is not adopted. No enum/schema/save field, code, Unity asset or saved meaning changes. Only the four spec files and handoff change. Static arithmetic is computed above; rendered contrast, recognition, input and performance remain UNVERIFIED/UNMEASURED. Independent re-review and O1–O4 approval remain outstanding.
+
+### Round-2 execution / verification receipt
+
+Supplied lane verified clean at `ca87c6524f0038b2507048acaaa96f867c13c9a9`, branch `docs/overnight-mark-language-spec-20261104`; remote PR head matched, PR remained DRAFT. No unrelated work present. Only the four spec artifacts and this handoff amended. Recomputed sRGB luminance/XYZ/Lab/ΔE76 with Python standard-library arithmetic, checked local Markdown links and five-file scope, and ran `git diff --check`. No code, Unity, assets, saves, coordination or routing-ledger writes. Independent re-review remains pending. Dashboard synchronisation is not verified here and remains an outstanding #200/DPC operational handoff; no generated dashboard file edited.
