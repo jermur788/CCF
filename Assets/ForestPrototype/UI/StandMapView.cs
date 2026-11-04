@@ -598,7 +598,7 @@ public sealed class StandMapView
         }
         else
             UiKit.Add(card, "Drag from the headland into the stand to draw a rack. Click a rack to select it.", "body");
-        UiKit.Add(card, "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off.", "faint");
+        UiKit.Add(card, "Drag a rack to slide it along the headland. Its round handle rotates freely. Hold Shift while drawing to turn snapping off.", "faint");
 
         UiKit.Add(card, "Recommended spacing for this stand: 16–20 m (advisory).", "body");
         editSpacing = UiKit.Add(card, editor.SpacingText(), "body");
