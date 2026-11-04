@@ -49,6 +49,79 @@
 - **Evidence class:** OBSERVED FACT (latest user interruption).
 - **Requirement:** every routing choice, model escalation, capacity change, fallback, wait/reset, result and review must be contemporaneously appended to this ledger (and programme ledger for #253), not summarised after the fact. No observed provider state or usage was supplied; **UNKNOWN**.
 
+## Execution events
+
+### EVENT 003 — 2026-11-04 00:15–00:20 UTC — DPC live preflight: Git, providers, disk, Unified lease
+
+- **Evidence class:** OBSERVED FACT (commands run in this session at these times).
+- **Git:** `git fetch origin --prune` advanced `origin/main` to `8f0f230190830855112e3e7a1d7544db94a7f591` ("docs: provide one GitHub-linked dispatch line and ownership contract per overnight child"). Published player-test candidate `origin/integration/scenario-one-player-test-ready-v1` = `72b4efbd1c653fa2231f632a79030a83ff76f833`. `gh auth status` = account `jermur788`, scopes `gist, read:org, repo, workflow`, working. Repo worktree count before this session: 90.
+- **Provider pools observed** (`orchestrator_capabilities`, this session): child-capable AND enabled — `claudeAgent` ("Claude A"), `claudeAgent_claude_b_pro` ("Claude B — Pro"), `codex` ("Codex"), `codex_c75d8114-…` ("ChatGPT - OpenAI B"), `opencode`. Disabled with no runnable models — `cursor`, `grok`, `antigravity`, `fx`, `muse`, `pi`. Exactly four independent frontier subscription pools are therefore available for cross-provider independence.
+- **Model identifiers observed:** `claude-sonnet-5-5` (effort `low…max, ultrathink`), `claude-opus-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`; `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6.1-terra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol/terra/luna` (`reasoningEffort` `low…ultra`). "GPT-6.1 Medium" is routed as `gpt-6.1-sol` + `reasoningEffort: medium`, not the model default (`low`).
+- **Remaining quota/window/reset per pool: UNKNOWN.** The capability response exposes no quota, token, or reset fields; no account console was consulted, so no numeric claim is made and none will be inferred from later success/failure alone.
+- **Disk (observed `df -h`):** `/media/jer/ZX20` 477G total, **19G available** (97% used) before lane creation; `/media/jer/Files` **47G available** then, **39G available** after four 1.2 GiB lane checkouts; `/` **1.4G available**. Unity admission is therefore the binding constraint, not docs capacity.
+- **Unity:** no Unity **Editor** process observed. UnityHub and the licensing client are running (user's own Hub), which is not an Editor lease. Machine-wide lock status read: see EVENT 008. No Editor was started by DPC.
+- **Coordination writer:** `Docs/Project/coordination/active-tasks.md` already carries #253 and #255–#260 as READY/NOT RUNNING with the conditional lanes (origin/main, reconciled 2026-11-04). Only #200 may write that file, so **DPC did not and will not edit it**; child claims are published here, on the issue, and in each PR instead. This is a stated boundary, not a missing gate.
+- **Lanes created (clean, from exact bases):** `CCF-Overnight-DPC-20261104` (`orchestration/overnight-20261104-dpc`, origin/main); `CCF-MFM-OptionA-Docs-20261104` (`docs/mfm-option-a-offline-20261104-v1`, origin/main); `CCF-Overnight-ObjectiveCopy-20261104` (`feature/overnight-objective-copy-20261104`, `72b4efbd`); `CCF-Overnight-RackHandle-20261104` (`feature/overnight-rack-handle-20261104`, `72b4efbd`); `CCF-Overnight-InputSpec-20261104` (`docs/overnight-input-settings-spec-20261104`, origin/main); `CCF-Overnight-ObjectiveSpec-20261104` (`docs/overnight-objective-guidance-spec-20261104`, origin/main); `CCF-Overnight-MarkSpec-20261104` (`docs/overnight-mark-language-spec-20261104`, origin/main); `CCF-Overnight-FeedbackVerify-20261104` (`verify/overnight-playtest-feedback-20261104`, `72b4efbd`). All under `/media/jer/Files/CCF/Operations/`; none existed beforehand.
+- **Outcome:** HANDED-OFF → dispatch wave 1.
+- **Next:** EVENT 004–007 dispatch four independent lanes across four distinct pools.
+
+### EVENT 004 — 2026-11-04 00:2x UTC — dispatch #255 Objective copy → Codex `gpt-6.1-sol` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call) / ORCHESTRATOR CLAIM (fit reasoning).
+- **Task:** #255, PACKET-ONLY bounded production copy fix, P0, independent of every other lane.
+- **Provider/model/effort:** pool `codex` ("Codex"), `gpt-6.1-sol`, `reasoningEffort: medium`, serviceTier default.
+- **Why:** lowest-risk but production-touching; needs a strong code-capable Medium worker whose output can be reviewed by a *different* family. Codex is a distinct pool from both Claude subscriptions, preserving independence for the later review.
+- **Pool status:** AVAILABLE (enabled, child-capable). **Quota/reset:** UNKNOWN. **Capacity-to-completion:** judged sufficient — two small C# text sources, no Unity required.
+- **Ownership:** branch `feature/overnight-objective-copy-20261104`, worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveCopy-20261104`, base `72b4efbd`, owns only `Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs` and `Assets/ForestPrototype/UI/MenuHelpView.Text.cs` + own handoff.
+- **Outcome:** RUNNING.
+- **Next:** return → INDEPENDENT REVIEW from a Claude pool.
+
+### EVENT 005 — 2026-11-04 00:2x UTC — dispatch #253 Option A MFM offline qualification → Claude A `claude-sonnet-5-5` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call) / ORCHESTRATOR CLAIM (fit reasoning).
+- **Task:** #253, offline research/qualification, P0, docs-only, no Unity, no production.
+- **Provider/model/effort:** pool `claudeAgent` ("Claude A"), `claude-sonnet-5-5`, `effort: medium`. The model's own default is `high`; it is being run at medium deliberately to hold the user's stated starting tier, with escalation reserved for evidenced reasoning failure.
+- **Why:** highest-consequence conceptual task in the wave (unique ownership, reach, sample transfer, save/hash compat). Sonnet 5.5 is the packet-named primary; the independent review will come from a GPT pool.
+- **Alternatives:** GPT-6.1 medium (kept free as its reviewer), Opus 5.5 (held in reserve; not justified before any demonstrated failure).
+- **Pool status:** AVAILABLE. **Quota/reset:** UNKNOWN. **Capacity-to-completion:** marginal-to-sufficient — long source reading; checkpointed handoff required.
+- **Ownership:** `docs/mfm-option-a-offline-20261104-v1`, `/media/jer/Files/CCF/Operations/CCF-MFM-OptionA-Docs-20261104`, base origin/main, read-only candidate `72b4efbd`; may append only to its own handoff and the access-spine programme ledger pointer section.
+- **Outcome:** RUNNING.
+- **Next:** return → independent GPT review; also append pointer event to `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md`.
+
+### EVENT 006 — 2026-11-04 00:2x UTC — dispatch #257 input settings DRAFT spec → Claude B `claude-sonnet-5-5` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call) / ORCHESTRATOR CLAIM (fit reasoning).
+- **Task:** #257, four-file DRAFT spec only, docs-only, no implementation, no telemetry.
+- **Provider/model/effort:** pool `claudeAgent_claude_b_pro` ("Claude B — Pro"), `claude-sonnet-5-5`, `effort: medium`.
+- **Why:** deliberately uses the *second* Claude subscription so Claude A's #253 run is not competing for the same account capacity; input/persistence/consent design suits Claude's long-form spec style. Review will come from a GPT pool for genuine cross-family independence.
+- **Pool status:** AVAILABLE. **Quota/reset:** UNKNOWN (separate account, unverified). **Capacity-to-completion:** sufficient.
+- **Ownership:** `docs/overnight-input-settings-spec-20261104`, `/media/jer/Files/CCF/Operations/CCF-Overnight-InputSpec-20261104`, base origin/main; owns `specs/player-input-settings-and-feedback-v1/` + own handoff only.
+- **Outcome:** RUNNING.
+- **Next:** return → independent GPT review.
+
+### EVENT 007 — 2026-11-04 00:2x UTC — dispatch #259 mark language / Pro Silva DRAFT → ChatGPT-OpenAI B `gpt-6.1-sol` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call) / ORCHESTRATOR CLAIM (fit reasoning).
+- **Task:** #259, primary-source forestry research + four-file DRAFT spec, docs-only, no colour/marker change.
+- **Provider/model/effort:** pool `codex_c75d8114-…` ("ChatGPT - OpenAI B"), `gpt-6.1-sol`, `reasoningEffort: medium`.
+- **Why:** uses the *second* Codex pool so #255's implementation and #259's research do not share one account's capacity; the task needs external-source discipline ("do not call a convention a standard") which suits a search-capable worker. Review from a Claude pool.
+- **Alternatives:** Claude B (busy with #257), Opus 5.5 (not justified yet).
+- **Pool status:** AVAILABLE. **Quota/reset:** UNKNOWN. **Capacity-to-completion:** marginal — external evidence plus a four-file spec; checkpoint required.
+- **Ownership:** `docs/overnight-mark-language-spec-20261104`, `/media/jer/Files/CCF/Operations/CCF-Overnight-MarkSpec-20261104`, base origin/main; owns `specs/scenario-one-tree-mark-language-v1/` + own handoff only.
+- **Outcome:** RUNNING.
+- **Next:** return → independent Claude review.
+
+### EVENT 008 — 2026-11-04 00:2x UTC — Unity admission decision: NOT ADMITTED for wave 1 (disk), all runtime claims marked unverified
+
+- **Evidence class:** OBSERVED FACT (lock tool + `df` output, this session).
+- **Observed lock state:** `unity-lock status` → `Unity lock: free`, `metadata: None`, `unity_editor_pids: []`. No Editor process machine-wide. UnityHub (user's own, flatpak) is running and is not a lease.
+- **Observed disk floor:** `lanes.json` `storage.minimum_free_bytes` = `16106127360` (15 GiB); live ZX20 free = 19 GiB. The floor is met *before* any cold import, not after: a cold Library for a new lane is documented at roughly 10–12 GiB on this volume, which also holds the shared bare Git store and U1's warm Library. The only warm Library belongs to `CCF-U1`, which the coordination record holds for the user's own playtest.
+- **Decision (ORCHESTRATOR CLAIM, not a user instruction):** DPC does **not** acquire a Unity lease for #255/#256/#260 in this wave. Consequences are stated explicitly, not hidden: every gameplay/rendered/input-path claim produced overnight is **UNVERIFIED at runtime** and must be labelled UNMEASURED by the worker. Offline static compile/contract checks are still required and are the actual gate evidence.
+- **Reason this is the conservative reading:** the packet permits Unity "only if a clean existing verification lane fits the disk budget after preflight" and orders offline work when disk is marginal. 19 GiB against a 15 GiB floor plus a 10–12 GiB import is marginal by any reading, and disturbing U1 would touch a lane held for the user.
+- **Escalation path if a runtime defect is later suspected:** a coordinated lease on a budget-checked lane with the user's knowledge, not an unattended import.
+- **Outcome:** BLOCKED (Unity), work continues offline.
+- **Next:** if absolute verification is required, Manager/user decision on lane and disk, recorded here.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
