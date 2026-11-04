@@ -15,7 +15,7 @@
 
 **Nothing here proves visual layout, input behaviour or rendered correctness.** All entries are SOURCE-STATIC. PASS means only the named bounded source-policy or isolated-math assertion passed. FAIL records feedback that this baseline has not satisfied; it is not a failed Unity run. NOT-TESTABLE means the claimed behaviour requires later observation, even where the source expression can be quoted exactly.
 
-Tally, extracted from the raw output below: **5 PASS / 4 FAIL / 2 NOT-TESTABLE** (11 rows; physical-input and trail observations excluded from PASS; six SnapFar case diagnostics form one aggregate row).
+Tally, extracted from the raw output below: **6 PASS / 4 FAIL / 2 NOT-TESTABLE** (12 rows; physical-input and trail observations excluded from PASS; six SnapFar case diagnostics form one aggregate row).
 
 | Check | Result | Bounded finding |
 |---|---|---|
@@ -27,6 +27,7 @@ Tally, extracted from the raw output below: **5 PASS / 4 FAIL / 2 NOT-TESTABLE**
 | SOURCE-STATIC 06 round-handle-input | NOT-TESTABLE | BASELINE OBSERVATION only: snap argument is !ShiftHeld(e.modifiers), then forwarded to SnapFar for Reshape. SOURCE-STATIC cannot test physical input. |
 | SOURCE-STATIC 06a rotation-snap-policy | PASS | Explicit pre-fix policy matches the real OnPointerMove snap argument for all six gesture/Shift combinations; not #256 fix qualification. |
 | SOURCE-STATIC 06b snapfar-offline-cases | PASS | Six direct production SnapFar calls pass on plain .NET; endpoints, flags and returned angles reported. |
+| SOURCE-STATIC 06c rack-edit-instruction-copy | PASS | Exact pre-fix rack-edit instruction sentence matches the explicitly selected state. |
 | SOURCE-STATIC 07 objective-next-instruction | PASS | Unconfirmed V2 instruction names Stand Map / Plan Racks path; later states are quoted separately. |
 | SOURCE-STATIC 08 objective-primary-cta | FAIL | Exactly one primary must invoke ui.ShowMap(), irrespective of label; the baseline primary invokes ui.CloseAll(). Live navigation/focus/prominence unmeasured. |
 | SOURCE-STATIC 09 map-minimap-trail-consistency | NOT-TESTABLE | NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly. |
@@ -47,9 +48,28 @@ For trails, the shared rack endpoints, waypoint and transform provide no demonst
 python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py
 ```
 
-Baseline exit status: **1**, expected because four source feedback assertions remain unmet. The review-response reruns returned 1, no stderr, and byte-identical stdout. The raw file is `Tools/Verification/OvernightPlaytestFeedback/baseline-output.txt`; the original raw evidence remains in Git at `62f1c1645b63f72125def83838e20847ece04e52`. Production comparison remains MATCH. Checks 02–07 and 09 were compared as complete source blocks against the starting HEAD and are byte-identical. No production fixes were pulled into this lane.
+Baseline exit status: **1**, expected because four source feedback assertions remain unmet. The review-response reruns returned 1, no stderr, and byte-identical stdout. The raw file is `Tools/Verification/OvernightPlaytestFeedback/baseline-output.txt`; the original raw evidence remains in Git at `62f1c1645b63f72125def83838e20847ece04e52`. Production comparison remains MATCH. The earlier review compared checks 02–07 and 09 as complete source blocks against its starting HEAD. This follow-up replaces only 06's copy evidence lookup and adds 06c; all prior check output is identical on the baseline. No production fixes were pulled into this lane.
 
 ## Review response
+
+### Union-defect follow-up from 8091d628
+
+DPC found a real cross-lane defect in combined tree `b9f4d047`: #255's copy let checks 01–05 progress, then 06 raised `SOURCE-STATIC ERROR: source anchor missing` because it required #256's old Shift sentence. Each branch passing alone had missed this coupling. This follow-up changes only the same four requested tools/docs files on the same branch/PR #264; no production, Unity, build, active-tasks or routing-ledger change.
+
+The checker is coupled to source in **two places now: rotation expression (06a) and instruction sentence (06c)**. Anyone merging #255/#256 must select matching flags:
+
+```bash
+python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py --rotation-state pre-fix --instruction-state pre-fix
+python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py --rotation-state post-fix --instruction-state post-fix
+```
+
+New `--instruction-state pre-fix|post-fix` defaults to pre-fix. 06c requires the exact selected full sentence (both recorded in README), with exactly one matching-prefix literal. Wrong known state, unknown sentence, missing prefix and ambiguous sentence FAIL clearly instead of aborting with ERROR. 06's old evidence anchor now uses that inventory; its physical-input classification/note is retained. No other check or rotation truth table changed. Every output line retains SOURCE-STATIC; one selected-states line records both flags.
+
+Validation: own-branch pre/pre **6 PASS / 4 FAIL / 2 NOT-TESTABLE**, exit 1, production MATCH. Two runs were byte-identical; previous stdout was compared line-for-line after removing only the new selected-states line, 06c/evidence and changed tally. All original check output is identical. Negative controls confirmed wrong-state failures in both directions, unknown copy and missing prefix FAIL without ERROR, and matching post-fix copy PASS.
+
+Actual local union tree `b9f4d047`, post/post: **9 PASS / 1 FAIL / 2 NOT-TESTABLE**, exit 1; only unchanged 08 primary CTA remains FAIL. This was not a new checkout/merge: an in-memory adapter read source via `git show b9f4d047:<path>` and made the baseline diff target that tree. The entire C# path set matched the checkout; RackEditing/RackGeometry used by unchanged 06b were byte-identical to that tree. Raw stdout: `/media/jer/Files/CCF/Verification/OvernightFeedbackUnion-b9f4d047-output.txt`. No branch, production source or Unity state was altered. This tests the union's source assertions only; input/render/runtime/save/platform behaviour remains unmeasurable here. Independent review, integration, Manager acceptance and dashboard synchronization remain with DPC/#200 and are not claimed.
+
+### Earlier review response (historical)
 
 This bounded follow-up starts from clean `62f1c1645b63f72125def83838e20847ece04e52` on the same branch/PR #264. Only the same four tooling/documentation files change. No Unity, Player build, production edit, coordination/ledger edit or merge. The only compilation is the explicitly requested plain-.NET SnapFar driver, staged in an automatically removed OS temporary directory outside the repository; no UnityEngine references, SDK/package installation or production runtime build.
 
@@ -149,7 +169,7 @@ These are **unexecuted manual steps**, not evidence. First obtain a fresh exclus
 - Same-state Stand Map/minimap/path/rack/waypoint rendered alignment, update timing and post-edit/confirm/execute/reload parity. No static inconsistency was demonstrated and no visual defect is disproved.
 - Dynamically constructed, localized, serialized or externally loaded player text outside the lexical inventory; exhaustive orange/Fell semantic contradictions; independent ecological/marking-convention or formal Pro Silva authority.
 - Simulation/ecology, harvesting only once, resource/cost awards, construction consumption, regeneration, persistence/save/load, Legacy40/frozen Reference Future and protected-hash runtime regressions. Production source was unchanged; these gates were not rerun.
-- Runtime performance, hardware/platform behaviour and any Player/Windows build. No #255/#256 implementation or later combined candidate was tested.
+- Runtime performance, hardware/platform behaviour and any Player/Windows build. The #255/#256 union tree was checked only through Git-blob source reads as described in the review response; no combined candidate runtime was tested.
 - Independent cross-provider review, Manager acceptance/integration and dashboard synchronization. This worker publishes the PR/handoff; DPC/#200 retain issue claim, routing ledger, live coordination and dashboard ownership. Their final updates were not verified here.
 
 ## V2 Orchestration Decision Appendix
@@ -161,7 +181,7 @@ These are **unexecuted manual steps**, not evidence. First obtain a fresh exclus
 | Context / authority | Exact candidate and context SHA above; live GitHub active-tasks and master packet inspected read-only. User's latest owned-path and machine rules control. |
 | Capacity / escalation | No child agents, other provider, effort escalation, quota/reset wait or Unity lease used. Provider quota/reset values: UNKNOWN. Parent routing/cost accounting remains with DPC. |
 | Alternative rejected | A static PASS for real rotation or trail rendering would overstate evidence. Keep rotation as observation and trail as NOT STATICALLY TESTABLE; hand off bounded manual steps. |
-| Numeric provenance | Review-response eleven rows parsed from raw stdout, reconciled to its TALLY: 5 PASS / 4 FAIL / 2 NOT-TESTABLE; sum = 11 (06b case diagnostics counted once). Exit status 1 is a feedback-baseline failure, not a runtime gate or script crash. Two reruns were byte-identical. |
+| Numeric provenance | Review-response twelve rows parsed from current raw stdout, reconciled to its TALLY: 6 PASS / 4 FAIL / 2 NOT-TESTABLE; sum = 12 (06b case diagnostics counted once). Exit status 1 is a feedback-baseline failure, not a runtime gate or script crash. Two reruns were byte-identical. |
 | Source provenance | Each quoted value has the exact candidate-relative path and line in stdout. Git tracked production comparison MATCH; no rebaseline or fixture weakening. |
 | Outcome / next | Tooling and honest baseline ready for independent review; DPC arranges cross-provider review and #200 decides acceptance/integration. Later authorised Unity worker performs manual matrix. No protected-branch merge or runtime acceptance. |
 

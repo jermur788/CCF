@@ -1,6 +1,7 @@
 SOURCE-STATIC baseline-source-commit: 72b4efbd1c653fa2231f632a79030a83ff76f833
 SOURCE-STATIC tracked-production-vs-baseline: MATCH
 SOURCE-STATIC scope: current checkout; no runtime/render/input proof; no automatic baseline update
+SOURCE-STATIC selected-states: rotation=pre-fix instruction=pre-fix
 SOURCE-STATIC FAIL 01 requested-spacing-presentation-format: Requested presentation format, not a functional defect; expected to flip with #255. Spacing in metres, not a duration; require compact 16–20m/16-20m.
   SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:87: "Extraction racks allow machinery to reach trees without creating access everywhere across the stand. "
   SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:88: "In early CCF transformation, rack spacing may commonly be around 16–20 m, but appropriate spacing depends on the stand, machinery and site. "
@@ -36,6 +37,8 @@ SOURCE-STATIC PASS SnapFar outside-angle-window enabled=True input=(20.000,3.000
 SOURCE-STATIC PASS SnapFar near-boundary enabled=True input=(39.000,0.000) far=(40.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=True
 SOURCE-STATIC PASS SnapFar near-boundary-disabled enabled=False input=(39.000,0.000) far=(39.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=False
 SOURCE-STATIC PASS SnapFar outside-boundary-window enabled=True input=(37.000,0.000) far=(37.000,0.000) angle=0.000 angleSnapped=False boundarySnapped=False
+SOURCE-STATIC PASS 06c rack-edit-instruction-copy: Expected state=pre-fix; observed state=pre-fix. Require exact sentence: Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off. Source copy only, not displayed text or input proof.
+  SOURCE-STATIC Assets/ForestPrototype/UI/StandMapView.cs:601: "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off."
 SOURCE-STATIC PASS 07 objective-next-instruction: Unconfirmed V2 instruction names Stand Map / Plan Racks path; later states are quoted separately.
   SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:100: if (!confirmed) return counter + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
   SOURCE-STATIC Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs:102: return counter + ". Return to the forest and mark the first rack tree nearest the path at each rack entrance: [P] spray marker, aim within 3.5 m, left-click.";
@@ -61,5 +64,5 @@ SOURCE-STATIC NOT-TESTABLE 09 map-minimap-trail-consistency: NOT STATICALLY TEST
   SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:126: foreach (RackPoint p in path.Points) item.Points.Add(t.WorldToPixels(p));
   SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs:257: MapPosition c = t.WorldToPixels(model.Waypoint);
   SOURCE-STATIC Assets/ForestPrototype/UI/Map/StandMapTransform.cs:38: return new MapPosition((world.X - MinX) / SizeM, 1f - (world.Z - MinZ) / SizeM);
-SOURCE-STATIC TALLY PASS=5 FAIL=4 NOT-TESTABLE=2
+SOURCE-STATIC TALLY PASS=6 FAIL=4 NOT-TESTABLE=2
 SOURCE-STATIC exit=1 means feedback assertions remain unmet; observations do not count as PASS.

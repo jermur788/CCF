@@ -150,7 +150,7 @@ class SnapCheck {
         return run.returncode == 0, lines
 
 
-def check(rotation_state="pre-fix"):
+def check(rotation_state="pre-fix", instruction_state="pre-fix"):
     print(f"SOURCE-STATIC baseline-source-commit: {BASE}")
     diff = subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet", BASE, "--",
                            "Assets/ForestPrototype"], check=False)
@@ -158,6 +158,7 @@ def check(rotation_state="pre-fix"):
         raise ValueError("cannot compare tracked production source against baseline")
     print("SOURCE-STATIC tracked-production-vs-baseline: " + ("MATCH" if diff.returncode == 0 else "DIFF"))
     print("SOURCE-STATIC scope: current checkout; no runtime/render/input proof; no automatic baseline update")
+    print(f"SOURCE-STATIC selected-states: rotation={rotation_state} instruction={instruction_state}")
     inventory = [row for p in sorted((ROOT / "Assets/ForestPrototype").rglob("*.cs"))
                  for row in literals(p.relative_to(ROOT).as_posix())]
 
@@ -194,6 +195,12 @@ def check(rotation_state="pre-fix"):
            "Conservative lexical guard: no Pro Silva mention in ForestPrototype C# literals; any mention requires human review, not automatic classification as a standard.",
            pro_silva or evidence(HELP, "TreeMarksSimplificationText ="))
 
+    instruction_sentences = {
+        "pre-fix": "Drag a rack to slide it along the headland. Drag its round handle to rotate it. Hold Shift to turn snapping off.",
+        "post-fix": "Drag a rack to slide it along the headland. Its round handle rotates freely. Hold Shift while drawing to turn snapping off.",
+    }
+    instruction_rows = [r for r in literals(UI + "StandMapView.cs")
+                        if r[2].startswith('"Drag a rack to slide it along the headland.')]
     rotation = (evidence(EDITOR, "&& OnHandle(px, selected)")
                 + evidence(EDITOR, "next = Gesture.Reshape;")
                 + evidence(EDITOR, "private static bool ShiftHeld")
@@ -201,7 +208,8 @@ def check(rotation_state="pre-fix"):
                 + evidence(EDITOR, "Propose(px,")
                 + evidence(EDITOR, "case Gesture.Reshape:")
                 + evidence(EDITOR, "SnapFar(bounds, entrance, pointer,")
-                + evidence(UI + "StandMapView.cs", "Hold Shift to turn snapping off."))
+                + [(path, line, read(path).splitlines()[line - 1].strip())
+                   for path, line, _ in instruction_rows])
     report("NOT-TESTABLE", "06 round-handle-input",
            "BASELINE OBSERVATION only: snap argument is !ShiftHeld(e.modifiers), then forwarded to SnapFar for Reshape. SOURCE-STATIC cannot test physical input.", rotation)
 
@@ -220,6 +228,15 @@ def check(rotation_state="pre-fix"):
            evidence("Assets/ForestPrototype/Racks/RackEditing.cs", "public static RackSnapResult SnapFar"))
     for case in cases:
         print(case)
+
+    expected_sentence = '"' + instruction_sentences[instruction_state] + '"'
+    matches_instruction = len(instruction_rows) == 1 and instruction_rows[0][2] == expected_sentence
+    observed_states = [state for state, sentence in instruction_sentences.items()
+                       if len(instruction_rows) == 1 and instruction_rows[0][2] == '"' + sentence + '"']
+    report("PASS" if matches_instruction else "FAIL", "06c rack-edit-instruction-copy",
+           f"Expected state={instruction_state}; observed state={observed_states[0] if observed_states else 'neither (missing, changed or ambiguous sentence)'}. "
+           f"Require exact sentence: {instruction_sentences[instruction_state]} Source copy only, not displayed text or input proof.",
+           instruction_rows)
 
     instruction = evidence(CURRICULUM, "if (!confirmed) return counter")
     has_path = all(t in instruction[0][2] for t in ("Plan Racks", "Stand Map [M]", "Confirm Rack Plan"))
@@ -257,8 +274,9 @@ if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--rotation-state", choices=("pre-fix", "post-fix"), default="pre-fix")
+        parser.add_argument("--instruction-state", choices=("pre-fix", "post-fix"), default="pre-fix")
         args = parser.parse_args()
-        raise SystemExit(check(args.rotation_state))
+        raise SystemExit(check(args.rotation_state, args.instruction_state))
     except (OSError, ValueError, IndexError, subprocess.TimeoutExpired) as error:
         for line in str(error).splitlines():
             print(f"SOURCE-STATIC ERROR: {line}")
