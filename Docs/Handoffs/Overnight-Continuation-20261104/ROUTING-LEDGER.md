@@ -340,6 +340,26 @@
 - **Pool state:** `codex` 2 (#253 review, #258 round 2), `codex_c75d8114` 1 (#260 anchor fix), `claudeAgent` 1 (#259 re-check), `claudeAgent_claude_b_pro` 1 (#257 round 3). **Quota/reset: UNKNOWN** throughout; still no rate-limit event.
 - **Outcome:** #258 DRAFT + round 2; #259 DRAFT + re-check.
 
+### EVENT 027 — 2026-11-04 03:14 UTC — DPC computed the #259 contrast claim and found the fallback may be unreachable
+
+- **Evidence class:** OBSERVED FACT (WCAG/CIE computation run in this session; no repository file changed).
+- **Why DPC computed it:** #259's revised FR-4 requires **≥3:1 luminance separation** between the rack mark and the Fell mark, with a "luminance-adjusted hot pink" rack fallback if orange fails. Nobody had checked whether any recognisably pink colour can satisfy that against an orange Fell. A spec that requires an unachievable number would terminate in its own stop condition.
+- **Method:** sRGB → linear (`c/12.92` below 0.03928, else `((c+0.055)/1.055)^2.4`), relative luminance `L = 0.2126R + 0.7152G + 0.0722B`, contrast `(L_hi+0.05)/(L_lo+0.05)`; colour difference as CIE76 ΔE on D65 Lab. Inputs are the colours already recorded in this ledger from source.
+- **Results:**
+
+| Pair | Luminance contrast | ΔE76 |
+|---|---|---|
+| rack `(0.95,0.28,0.025)` vs Fell `(1,0.35,0.05)` — current | **1.175:1** | **6.0** |
+| hot pink `#FF69B4` vs Fell | 1.19:1 | 78.9 |
+| light pink `#FFD1E8` vs Fell | **2.32:1** | 88.3 |
+| deep pink `#C71585` vs Fell | 1.73:1 | 85.1 |
+| magenta `#E0218A` vs Fell | 1.41:1 | 79.2 |
+
+- **Threshold arithmetic:** against Fell (`L = 0.2847`), achieving 3:1 requires the other mark to have `L ≥ 0.954` (near-white) or `L ≤ 0.062` (very dark). No recognisably pink colour reaches 3:1 — the lightest pink tested still fails at 2.32:1.
+- **Interpretation (ORCHESTRATOR CLAIM, offered to correct the spec, not to overrule the reviewer):** the criterion is aimed at the right problem with the wrong metric. Contrast ratio is a *text-on-background legibility* measure; it is the wrong tool for **two coloured marks that must be told apart**. ΔE shows the real defect plainly — the current pair is ΔE 6.0, i.e. barely perceptible, which is exactly why the user reports the marks are confusing — while every pink candidate is ΔE 79–88, i.e. decisive. A workable rule is therefore likely to be: shape redundancy (already required) + a perceptual-difference floor (ΔE) between rack and Fell + a *contrast* floor only for mark-versus-bark visibility. Requiring 3:1 **between the two marks** would force the rack mark to near-white or near-black and destroy the colour language entirely.
+- **Status:** not yet sent to the author. The #259 re-check is in flight with an explicit instruction to compute the same ratios; DPC will consolidate both computations into one instruction rather than issuing two competing corrections.
+- **Outcome:** INFORMATION; a probable unachievable requirement recorded before it reached the Manager.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
