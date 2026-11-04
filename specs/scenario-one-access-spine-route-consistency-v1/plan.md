@@ -1,6 +1,6 @@
 # Access Spine & Diagonal Rack Network — Draft Plan
 
-**Status: DRAFT / PLANNING ONLY; #250 Manager STOP for production; #251 read-only topology design READY.** References: D-067 (design direction), D-064 Rack V2 (current binding spec), [#246](https://github.com/jermur788/CCF/issues/246).
+**Status: DRAFT / PLANNING ONLY; #250 STOP for production; #251 research accepted; #253 offline Option A qualification READY.** References: D-067 (design direction), D-064 Rack V2 (current binding spec), [#246](https://github.com/jermur788/CCF/issues/246).
 
 ## Workflow
 
@@ -37,3 +37,9 @@ Primary risks are accepted Rack V2 geometry/persistence regressions, MFM coverag
 The initial 45° full-spine five-rack candidate has measured 16–20 m spacing but production `ScenarioOneRackSampleGeometry.Derive` rejects its common-normal ordering. The route also conflicts with the Forestry Workbench, spine entrances fail current Rack V2 validation, candidate corridors overlap and rendered agreement remains unmeasured. See [Manager verdict](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-FIVE-RACK-REVIEW-20261103.md).
 
 **Next spec phase:** #251 read-only comparison of branch-local, graph-aware and parallel fallback sample/coverage architecture. It must define one authoritative deterministic region allocation, safe MFM non-overlap/exclusions, representative manual sample, saved-state compatibility and conservative error behaviour. Only after a source-backed, independently reviewed result may Manager ask for a product decision, revise D-064/D-065 and approve a cross-system implementation plan. Renders, yard bypass, turning, entrance targets and 120-tree proposed corridor effects then need their own planned qualification. No A1/A2 source coding or Windows build now.
+
+## #251 decision and #253 qualification sequence (D-069)
+
+Manager selected Option **A** only as the preferred **draft-spec hypothesis**, conditional on reliable unique ownership, conservative reach, source-sample transfer and safe save/lifecycle behaviour. Option C stays a fallback; no B1 persisted graph approved. The reviewed #251 source analysis found an independent validity gap: Confirm, confirmed-plan UpdateRack and load/save validation do not enforce MFM derivation validity. Add **both Confirm and all authoritative mutation gates** to the proposed contract and define safe handling of old confirmed-invalid saves without losing executed work.
+
+**#253 offline only:** prove non-overlap/unit conservation, group/tie/chaining/edge properties, mask-adjusted reach and NotCovered/Manual fallback, single sample cross-side calibration, rule-version/WorldHash load semantics and at least one adversarial pre-existing invalid confirmed plan. Use disposable external analysis and read-only source; no Unity or production editing. After independent review, Manager will decide which exact thresholds/policies to put in an APPROVED spec and whether user product approval is necessary. Yard/entrances/corridors/rendering remain a separate Rack V2 qualification gate and must not be hidden behind a coverage-model success.
