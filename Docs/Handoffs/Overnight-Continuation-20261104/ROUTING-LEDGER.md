@@ -558,6 +558,22 @@
 - **States:** #259 review COMPLETE (both families have now reviewed it). Spec stays **DRAFT**; no colour or shape change authorised.
 - **Outcome:** all three #270 spec reviews are complete. Consolidated `FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md` is now being written by DPC.
 
+### EVENT 040 — 2026-11-04 — #271 study returns NO-COMPARISON; DPC re-derived the geometry from raw fixtures
+
+- **Evidence class:** OBSERVED FACT (child return, PR, rederivation run by DPC) + OBSERVED FACT (byte-identical output on re-run).
+- **Result:** branch `docs/mfm-a-vs-c-offline-20261104-v1`, head **`4d0abd1b`**, PR **#274** to `main`, **seven new files**, nothing existing modified; legacy/parallel baseline preserved. Worker reported medium effort was sufficient and **no escalation was needed**.
+- **Verdict produced: NO-COMPARISON.** The matched measurement of the legacy baseline and Option A is defensible; **fallback C has no single geometry the evidence supports at 45°**, and the three constructions the worker had to define itself disagree widely (C-S45 needs a Rack V2 behaviour change — two racks have no legal headland entrance; C-H45 is legal but is one direction family and drops the spine; C-J45 fails the 2.4 m editor clearance). Manufacturing a winner was explicitly refused.
+- **DPC independent re-derivation (ran `rederive_from_raw.sh`, which does not import the study script or #253's):**
+  - R1/R2 rectangle gap **0.214214 m** (positive ⇒ no overlap); centreline separation **1.414214 m** (< 2.4 m ⇒ editor refuses). The corrected record holds.
+  - spine z-extent **77.489182 m**; `64/sin45` = **90.50967 m**; `asin(64/extent)` = **55.68205°**; max equal gap for five racks at 45° = **13.69828 m**.
+  - corridor union **524.25 m²**; non-corridor **5,875.75 m²**; nearest-rack ground beyond 9/12/20 m = **2,246.00 / 1,718.25 / 830.00 m²**; **103** living stems inside the reference corridors (matches published #251).
+  - **Every one of these matches the worker's published figures exactly.**
+- **Reproducibility:** I ran the study twice and `results.json` was **byte-identical** both times; the committed copy is reproducible from the repository state.
+- **Honest limits carried, not glossed:** Python port ≠ production C#; "covered" is an **upper bound** (competition test not computed; legacy port 14/14 vs recorded C# 12/14); spine masks unavailable so spine-bearing counts are upper bounds; the C layouts, the 15 m cap and the south-window assumption are the worker's own; the sample-footprint overlap (150.6 m²), Confirm-gate counts and grouping sweep were **not** re-derived and are flagged as carried from #253.
+- **The finding with product consequence:** #251's "C cannot hold 45°" rests on a **16 m gap that is D-068 Manager guidance, not an enforced rule**; at that spine, 45° geometry fits four racks at ≥16 m or five at a maximum equal gap of 13.70 m. That reframes the 45° target as a *scope decision* rather than a geometric impossibility.
+- **States:** research COMPLETE, **NO-COMPARISON**; grants no production or spec approval and changes no Rack V2 behaviour.
+- **Review:** independent **OpenAI GPT-6.1 Medium** review of PR #274 dispatched immediately (EVENT 041 pending), including a re-run and a judgement on whether NO-COMPARISON is the correct verdict.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
