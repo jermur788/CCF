@@ -437,6 +437,31 @@
 - **Explicit prohibitions restated for every child:** do not merge #261/#262/#264; do not target `main` with the staging branch; do not weaken or delete any check to obtain a green result; the Objective 1 CTA check must remain a reported FAIL; no DRAFT spec may become implementation authority; no Unity, no lock acquisition, no Player/Windows build; no edits to `active-tasks.md` (Manager #200 only); no edits to this ledger (DPC only).
 - **Outcome:** lanes created and routing recorded **before** dispatch, as required. Claims remain OPEN until a real child starts and returns its exact provider/model/effort.
 
+### EVENT 032 — 2026-11-04 01:24 UTC — five children actually started; claims move to [RUNNING]
+
+- **Evidence class:** OBSERVED FACT (delegation calls returned `status: running` with live provider/model/thread ids).
+- **#269 [RUNNING]** — provider `claudeAgent_claude_b_pro` (Claude B — Pro), model **`claude-sonnet-5-5`**, effort **`medium`**. Lane `integration/scenario-one-overnight-ui-qualification-v1` at `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104`, starting ref **`72b4efbd`**. Deliverable: 13-file staged branch + PR **based on the candidate**, `ISOLATED-UI-STAGING-HANDOFF.md`, offline 97-check / six snap cases / combined 9-1-2 evidence.
+- **#271 [RUNNING]** — provider `claudeAgent` (Claude A), model **`claude-sonnet-5-5`**, effort **`medium`**. Lane `docs/mfm-a-vs-c-offline-20261104-v1` at `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`, starting ref **`main db43dbe5`**. Deliverable: matched-policy A/C/legacy comparison + `MFM-A-VS-C-COMPARISON-HANDOFF.md` + docs-only PR.
+- **#270 [RUNNING], three independent reviewers in parallel, each independent of that spec's author:**
+  - #257 (Claude-authored) → `codex` **`gpt-6.1-sol`** `reasoningEffort=medium`.
+  - #259 (Claude-authored) → `codex` **`gpt-6.1-sol`** `reasoningEffort=medium`.
+  - #258 (Codex-authored) → `claudeAgent` **`claude-sonnet-5-5`** `effort=medium`.
+  - read-only; no lane branch or worktree; DPC writes the consolidated `FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md`.
+- **Concurrency:** 5 children across 2 provider families (`claudeAgent` pool carries #271 and #258 review; `codex` carries both spec reviews; `claudeAgent_claude_b_pro` carries #269). **Pool capacity, ticket balance and reset windows: UNKNOWN** — no limit event observed at start.
+- **Prohibitions passed to every child** (verbatim in each brief): no merge/rebase/retarget of #261/#262/#264; no main-targeted staging branch; no test weakening — the CTA FAIL must stay FAIL; no DRAFT spec implementation; no Unity/Editor/Library/Player/Windows build; no `active-tasks.md` edits; no ledger edits.
+- **Outcome:** all three claims genuinely executing. Their GitHub issue threads were updated with the same provider/effort/ref facts by DPC.
+
+### EVENT 033 — 2026-11-04 — routing-limit event: both writer sandboxes failed to provision; relaunched without a second sandbox
+
+- **Evidence class:** OBSERVED FACT (two delegation results returned `failed` with `Workspace preparation failed during provision worktree: git worktree add failed`).
+- **What failed:** the #269 and #271 children were first launched with an extra app-managed sandbox worktree. That provisioning step failed **before any task work started** — no model output, no repository change. The reviewers (launched without a sandbox) were unaffected.
+- **What was NOT the cause:** the two packet-mandated lanes existed, were owned by this DPC, were clean, and were still at their exact bases (`72b4efbd` for #269, `db43dbe5` for #271). No partial commit, stash, branch lock or orphaned working tree was left behind; `git worktree list` and both lane `git status` were re-checked clean after the failure.
+- **Retry:** both tasks were relaunched with **no extra sandbox**, bound to the pre-created packet lane paths, with explicit instructions that `/media/jer/ZX20/CCF-Primary` is user state and must stay clean, and that every write happens via the lane worktree.
+  - #269 retry → `claudeAgent_claude_b_pro`, `claude-sonnet-5-5`, effort `medium`, lane unchanged.
+  - #271 retry → `claudeAgent`, `claude-sonnet-5-5`, effort `medium`, lane unchanged.
+- **Limits observed:** none — this was a harness provisioning failure, not a provider quota/context/reset event. Provider availability and remaining budget remain **UNKNOWN**.
+- **Outcome:** RUNNING (retry #1 for both). No escalation triggered; no model/effort change made.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
