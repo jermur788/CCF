@@ -1,0 +1,114 @@
+PASS S1 HelpContext unlocks Tree Marks from saved state only: V2 active and plan confirmed
+PASS S2 HelpContext shows Tree Marks until first seen, and while the spray marker is equipped
+PASS S3 Tree Marks is a walking-forest context only: after every screen and inspection, before the Walking HUD
+PASS S4 the existing context Introduce path (not a parallel help UI) opens Tree Marks on first use
+PASS S5 the V2 Rack help uses the checked RackV2Explanation, inside the V2 branch
+PASS S6 Objective 1 why-it-matters and good-practice use the V2 copy only for the V2 rack objective
+PASS S7 rack lesson texts use RackV2StepText only in a V2 world
+PASS S8 the V2 objective sentence (HUD widget and Objectives screen) is the checked RackV2Instruction
+PASS S9 MenuHelpView.Text.cs stays free of UnityEngine
+PASS S9 LearningObjectivesView.Curriculum.cs stays free of UnityEngine
+PASS S9 ControlsReference.cs stays free of UnityEngine
+FAIL S10 only the RACK-V2-10 copy/wiring files changed since 72b4efbd: Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs, Assets/ForestPrototype/UI/StandMapView.cs, Docs/Handoffs/Overnight-Continuation-20261104/BASELINE-VERIFICATION-HANDOFF.md, Docs/Handoffs/Overnight-Continuation-20261104/ISOLATED-UI-STAGING-HANDOFF.md, Docs/Handoffs/Overnight-Continuation-20261104/RACK-HANDLE-HANDOFF.md, Tools/Verification/OvernightPlaytestFeedback/README.md
+PASS S11 no marking, rack geometry, manager, save/schema, scene, prefab, material, settings, package or .meta change
+PASS S12 no untracked file (copied harness or generated .meta) under Assets/
+PASS help screens: existing names and order kept, TreeMarks appended
+PASS the screen is titled Introducing tree marking (#255)
+PASS first use shows the full Tree Marks table and disclosure, not a shorter text
+PASS Tree Marks has exactly three entries
+PASS entry 1: Orange vertical stripes — Rack / machine-path removal
+PASS entry 2: Red — Fell
+PASS entry 3: Blue — Crop Tree / future timber
+PASS the help lists Orange vertical stripes
+PASS the help lists Red
+PASS the help lists Blue
+PASS the help lists no fourth mark
+PASS no unused mark colour outside the source sentence: pink
+PASS no unused mark colour outside the source sentence: yellow
+PASS no unused mark colour outside the source sentence: white
+PASS no unused mark colour outside the source sentence: green
+PASS no unused mark colour outside the source sentence: purple
+PASS no unused mark colour outside the source sentence: violet
+PASS no unused mark colour outside the source sentence: black
+PASS no future marking category: deadwood
+PASS no future marking category: habitat
+PASS no future marking category: route-side
+PASS no future marking category: retained
+PASS no future marking category: boundary
+PASS no future marking category: future marks
+PASS spec §28 has its two quoted sentences
+PASS orange convention text is the #255 approved replacement
+PASS simplification disclosure equals spec §28
+PASS the Tree Marks help shows both §28 sentences
+PASS the help separates the source's four-sided stripes from the game's single spray (§24)
+PASS the help names the real spray controls (P, 3.5 m, left-click)
+PASS the controls reference states the same spray reach and click
+PASS the help states mark exclusivity and that marking cuts nothing
+PASS unlocked: V2 world with a confirmed plan
+PASS locked: V2 plan not yet confirmed (or reopened)
+PASS locked: Legacy40/model-0 world
+PASS locked: model-0 world without a plan
+PASS never the context while locked (seen=False, spray=False)
+PASS unlocked context (seen=False, spray=False) = True
+PASS never the context while locked (seen=False, spray=True)
+PASS unlocked context (seen=False, spray=True) = True
+PASS never the context while locked (seen=True, spray=False)
+PASS unlocked context (seen=True, spray=False) = False
+PASS never the context while locked (seen=True, spray=True)
+PASS unlocked context (seen=True, spray=True) = True
+PASS spec §31 has its three quoted sentences
+PASS Objective 1 explains (§31): Extraction racks allow machinery to reach trees without creating access everywhere across the stand.
+PASS Objective 1 explains (§31): In early CCF transformation, rack spacing may commonly be around 16–20 m, but appropriate spacing depends on the stand, machinery and site. Scenario One uses that range as a guide for this plantation.
+PASS Objective 1 explains (§31): Plan the racks on the map, then mark each rack entrance in the forest.
+PASS Objective 1 states the five-rack calibration as §7 asks, not the quota
+PASS Objective 1 why-it-matters order: purpose, spacing, conditional nature, five racks, plan then mark (§30 step 1)
+PASS rack reading gives §5.1's conditional examples and keeps the recommendation to this stand
+PASS steps 2-5: unconfirmed plan says open the map, Plan Racks, Confirm Rack Plan
+PASS step 6: confirmed, 0 of 5 marked (work pending=True) says mark entrances, not approve
+PASS step 6: confirmed, 0 of 5 marked (work pending=False) says mark entrances, not approve
+PASS step 6: confirmed, 1 of 5 marked (work pending=True) says mark entrances, not approve
+PASS step 6: confirmed, 1 of 5 marked (work pending=False) says mark entrances, not approve
+PASS step 6: confirmed, 2 of 5 marked (work pending=True) says mark entrances, not approve
+PASS step 6: confirmed, 2 of 5 marked (work pending=False) says mark entrances, not approve
+PASS step 6: confirmed, 3 of 5 marked (work pending=True) says mark entrances, not approve
+PASS step 6: confirmed, 3 of 5 marked (work pending=False) says mark entrances, not approve
+PASS step 6: confirmed, 4 of 5 marked (work pending=True) says mark entrances, not approve
+PASS step 6: confirmed, 4 of 5 marked (work pending=False) says mark entrances, not approve
+PASS step 7: five entrances marked hands over to rack.approve
+PASS after approval the objective says advance one year
+PASS rack.layout lesson: confirm, then mark
+PASS rack.approve lesson follows marking
+PASS rack.result and non-rack lessons keep their own text
+PASS V2 Rack help follows the §30 order: plan, confirm, mark, approve, advance
+PASS Objective 1 lesson ids and order unchanged (rack.approve then rack.result, OPEN-2)
+PASS no lesson step added, removed or duplicated (saved progress keys stable)
+PASS no forbidden claim in TreeMarks
+PASS "universal" appears only as "no universal rule" in TreeMarks
+PASS no forbidden claim in RackV2Explanation
+PASS "universal" appears only as "no universal rule" in RackV2Explanation
+PASS no forbidden claim in RackV2Concept
+PASS "universal" appears only as "no universal rule" in RackV2Concept
+PASS no forbidden claim in RackV2Practice
+PASS "universal" appears only as "no universal rule" in RackV2Practice
+PASS no forbidden claim in instruction.open
+PASS "universal" appears only as "no universal rule" in instruction.open
+PASS no forbidden claim in instruction.field
+PASS "universal" appears only as "no universal rule" in instruction.field
+PASS no forbidden claim in instruction.done
+PASS "universal" appears only as "no universal rule" in instruction.done
+PASS no forbidden claim in instruction.approved
+PASS "universal" appears only as "no universal rule" in instruction.approved
+PASS no forbidden claim in step.rack.read
+PASS "universal" appears only as "no universal rule" in step.rack.read
+PASS no forbidden claim in step.rack.create
+PASS "universal" appears only as "no universal rule" in step.rack.create
+PASS no forbidden claim in step.rack.layout
+PASS "universal" appears only as "no universal rule" in step.rack.layout
+PASS no forbidden claim in step.rack.approve
+PASS "universal" appears only as "no universal rule" in step.rack.approve
+PASS no forbidden claim in step.rack.map
+PASS "universal" appears only as "no universal rule" in step.rack.map
+PASS the 16–20m band is framed as this stand's guide, never a general rule
+RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97
+PASS offline wording/unlock/flow check
+RACK_V2_HELP_TEACHING_FAIL failed=1 static_and_offline=15
