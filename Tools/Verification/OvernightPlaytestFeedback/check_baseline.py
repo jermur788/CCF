@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-"""Read-only lexical checks for #260. No Unity, imports, saves or dependencies."""
+"""Source checks and isolated SnapFar calls for #260. No Unity, assets or saves; needs .NET 8 SDK."""
+import argparse
+import ast
+import os
 import re
+import shutil
+import tempfile
+from xml.sax.saxutils import escape
 import subprocess
 from collections import Counter
 from pathlib import Path
@@ -46,7 +52,105 @@ def report(status, name, note, rows):
         print(f"  SOURCE-STATIC {path}:{line}: {value}")
 
 
-def check():
+def rotation_policy(state):
+    # Restrict the inspection to the real pointer-move method, excluding comments/strings.
+    source = read(EDITOR)
+    code = TOKENS.sub(lambda m: "".join("\n" if c == "\n" else " " for c in m.group()), source)
+    method = re.search(r"private void OnPointerMove\(PointerMoveEvent e\)\s*\{", code)
+    if not method:
+        raise ValueError("OnPointerMove method missing")
+    depth, end = 1, method.end()
+    while depth and end < len(code):
+        depth += (code[end] == "{") - (code[end] == "}")
+        end += 1
+    calls = list(re.finditer(r"\bPropose\(px,\s*(.*?)\s*,\s*out RackPoint entrance", code[method.end():end], re.S))
+    if depth or len(calls) != 1:
+        raise ValueError("expected one Propose(px, snap, out RackPoint entrance...) in OnPointerMove")
+    call = calls[0]
+    expression = call.group(1)
+    line = source.count("\n", 0, method.end() + call.start()) + 1
+    rows = [(EDITOR, line, source.splitlines()[line - 1].strip())]
+    observed, expected = [], []
+    for gesture in ("Reshape", "Create", "Move"):
+        for shift in (False, True):
+            value = re.sub(r"gesture\s*(!=|==)\s*Gesture\.(Reshape|Create|Move)",
+                           lambda m: str((gesture == m[2]) == (m[1] == "==")), expression)
+            value = re.sub(r"ShiftHeld\(\s*e\.modifiers\s*\)", str(shift), value)
+            value = value.replace("&&", " and ").replace("||", " or ")
+            value = re.sub(r"!(?!=)", " not ", value)
+            value = re.sub(r"\btrue\b", "True", value)
+            value = re.sub(r"\bfalse\b", "False", value)
+            tree = ast.parse(value.strip(), mode="eval")
+            # No eval of source: accept only boolean literals and !/&&/|| equivalents.
+            def boolean(node):
+                if isinstance(node, ast.Constant) and type(node.value) is bool:
+                    return node.value
+                if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+                    return not boolean(node.operand)
+                if isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
+                    values = [boolean(v) for v in node.values]
+                    return all(values) if isinstance(node.op, ast.And) else any(values)
+                raise ValueError("unsupported rotation snap expression: " + expression)
+            observed.append(boolean(tree.body))
+            expected.append(not shift and (state == "pre-fix" or gesture != "Reshape"))
+    return observed == expected, observed, rows
+
+
+def snapfar_cases():
+    # Compile only these two Unity-free production files and a six-case driver, outside the repo.
+    dotnet = shutil.which("dotnet")
+    if not dotnet:
+        raise ValueError("dotnet SDK required for the reachable Unity-free SnapFar check")
+    driver = r"""
+using System;
+using System.Globalization;
+class SnapCheck {
+    static int failures;
+    static void Case(string name, float x, float z, bool enabled, float[] angles,
+                     float wantX, float wantZ, bool wantAngle, bool wantBoundary) {
+        var b = new RackEditBounds(-35.4f, -37.7f, 37.7f, 40f);
+        var r = RackEditing.SnapFar(b, new RackPoint(0, 0), new RackPoint(x, z), angles, null, enabled);
+        bool ok = Math.Abs(r.Far.X-wantX)<0.001f && Math.Abs(r.Far.Z-wantZ)<0.001f
+            && r.AngleSnapped==wantAngle && r.BoundarySnapped==wantBoundary && r.ParallelToRackId==0;
+        if (!ok) failures++;
+        Console.WriteLine("SOURCE-STATIC " + (ok ? "PASS" : "FAIL") + " SnapFar " + name
+            + " enabled=" + enabled + " input=(" + x.ToString("F3") + "," + z.ToString("F3")
+            + ") far=(" + r.Far.X.ToString("F3") + "," + r.Far.Z.ToString("F3")
+            + ") angle=" + RackEditing.DirectedAngleDegrees(new RackPoint(0,0), r.Far).ToString("F3")
+            + " angleSnapped=" + r.AngleSnapped + " boundarySnapped=" + r.BoundarySnapped);
+    }
+    static int Main() {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        float length = (float)Math.Sqrt(400 + 0.49);
+        Case("near-angle",20,0.7f,true,new float[]{0},length,0,true,false);
+        Case("near-angle-disabled",20,0.7f,false,new float[]{0},20,0.7f,false,false);
+        Case("outside-angle-window",20,3,true,new float[]{0},20,3,false,false);
+        Case("near-boundary",39,0,true,null,40,0,false,true);
+        Case("near-boundary-disabled",39,0,false,null,39,0,false,false);
+        Case("outside-boundary-window",37,0,true,null,37,0,false,false);
+        return failures == 0 ? 0 : 1;
+    }
+}
+"""
+    with tempfile.TemporaryDirectory(prefix="ccf-feedback-snapfar-") as directory:
+        folder = Path(directory)
+        (folder / "SnapCheck.cs").write_text(driver)
+        items = "".join('<Compile Include="' + escape(str(ROOT / "Assets/ForestPrototype/Racks" / name)) + '" />'
+                        for name in ("RackGeometry.cs", "RackEditing.cs"))
+        (folder / "check.csproj").write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
+            '<OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>'
+            '<EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup>'
+            + items + '<Compile Include="SnapCheck.cs" /></ItemGroup></Project>')
+        env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
+        run = subprocess.run([dotnet, "run", "--project", str(folder / "check.csproj"), "--verbosity", "quiet"],
+                             capture_output=True, text=True, env=env, timeout=60)
+        lines = run.stdout.splitlines()
+        if run.returncode not in (0, 1) or len(lines) != 6 or any(not l.startswith("SOURCE-STATIC ") for l in lines) or run.stderr:
+            raise ValueError("SnapFar offline execution failed: " + run.stdout + run.stderr)
+        return run.returncode == 0, lines
+
+
+def check(rotation_state="pre-fix"):
     print(f"SOURCE-STATIC baseline-source-commit: {BASE}")
     diff = subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet", BASE, "--",
                            "Assets/ForestPrototype"], check=False)
@@ -64,8 +168,8 @@ def check():
                if text.count("\n", 0, start) + 1 <= r[1] <= text.count("\n", 0, end) + 1]
     spaced = any(re.search(r"16[–-]20 m", r[2]) for r in concept)
     compact = any(re.search(r"16[–-]20m", r[2]) for r in concept)
-    report("PASS" if compact and not spaced else "FAIL", "01 objective-spacing-copy",
-           "BASELINE FAILURE expected to flip with #255; spacing in metres, not a duration. Require compact 16–20m/16-20m.", concept)
+    report("PASS" if compact and not spaced else "FAIL", "01 requested-spacing-presentation-format",
+           "Requested presentation format, not a functional defect; expected to flip with #255. Spacing in metres, not a duration; require compact 16–20m/16-20m.", concept)
 
     headings = [r for r in inventory if r[2] == '"Introducing tree marking"']
     report("PASS" if headings else "FAIL", "02 tree-marking-heading",
@@ -101,6 +205,22 @@ def check():
     report("NOT-TESTABLE", "06 round-handle-input",
            "BASELINE OBSERVATION only: snap argument is !ShiftHeld(e.modifiers), then forwarded to SnapFar for Reshape. SOURCE-STATIC cannot test physical input.", rotation)
 
+    try:
+        matches, observed, rows = rotation_policy(rotation_state)
+        report("PASS" if matches else "FAIL", "06a rotation-snap-policy",
+               f"Expected state={rotation_state}; observed Reshape/Create/Move (Shift up,down)={observed}. "
+               "Pre-fix requires [True, False, True, False, True, False]; after #256 require "
+               "[False, False, True, False, True, False] with --rotation-state post-fix. "
+               "PASS confirms the selected source baseline, not physical input; Move receives the argument but does not call SnapFar.", rows)
+    except (ValueError, SyntaxError) as error:
+        report("FAIL", "06a rotation-snap-policy", " ".join(str(error).splitlines()), [])
+    ok, cases = snapfar_cases()
+    report("PASS" if ok else "FAIL", "06b snapfar-offline-cases",
+           "Six direct calls to production SnapFar on plain .NET; 0.001m tolerance; no Unity or gesture dispatch proof.",
+           evidence("Assets/ForestPrototype/Racks/RackEditing.cs", "public static RackSnapResult SnapFar"))
+    for case in cases:
+        print(case)
+
     instruction = evidence(CURRICULUM, "if (!confirmed) return counter")
     has_path = all(t in instruction[0][2] for t in ("Plan Racks", "Stand Map [M]", "Confirm Rack Plan"))
     report("PASS" if has_path else "FAIL", "07 objective-next-instruction",
@@ -111,8 +231,10 @@ def check():
            + evidence(CURRICULUM, 'case "rack.create":'))
     buttons = evidence(VIEW, "buttons.Add(UiKit.Button(")
     primary = [r for r in buttons if '"btn-primary"' in r[2]]
-    report("PASS" if primary and all("Plan Racks" in r[2] and "CloseAll" not in r[2] for r in primary) else "FAIL",
-           "08 objective-primary-cta", "Primary source button is generic Back to forest; visual prominence, focus and destination behaviour remain unmeasured.", buttons)
+    primary_map = len(primary) == 1 and bool(re.search(r"\(\)\s*=>\s*ui\.ShowMap\(\)", primary[0][2]))
+    report("PASS" if primary_map else "FAIL", "08 objective-primary-cta",
+           "Require exactly one primary source button invoking ui.ShowMap(); labels are evidence only. "
+           "Baseline primary invokes ui.CloseAll(); visual prominence, focus and destination behaviour remain unmeasured.", buttons)
 
     report("NOT-TESTABLE", "09 map-minimap-trail-consistency",
            "NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly.",
@@ -133,7 +255,11 @@ def check():
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(check())
-    except (OSError, ValueError, IndexError) as error:
-        print(f"SOURCE-STATIC ERROR: {error}")
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--rotation-state", choices=("pre-fix", "post-fix"), default="pre-fix")
+        args = parser.parse_args()
+        raise SystemExit(check(args.rotation_state))
+    except (OSError, ValueError, IndexError, subprocess.TimeoutExpired) as error:
+        for line in str(error).splitlines():
+            print(f"SOURCE-STATIC ERROR: {line}")
         raise SystemExit(2)
