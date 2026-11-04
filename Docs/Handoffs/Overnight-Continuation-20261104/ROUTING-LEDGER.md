@@ -144,6 +144,19 @@
 - **Outcome:** RUNNING.
 - **Next:** return → independent Claude review; human manual test script in handoff.
 
+### EVENT 011 — 2026-11-04 00:30 UTC — dispatch #260 baseline verification → ChatGPT-OpenAI B `gpt-6.1-sol` medium
+
+- **Evidence class:** OBSERVED FACT (delegation call) / ORCHESTRATOR CLAIM (fit).
+- **Task:** #260, offline verification-only, P1, owns a new `Tools/Verification/OvernightPlaytestFeedback/` subtree.
+- **Provider/model/effort:** `codex_c75d8114` / `gpt-6.1-sol` / `reasoningEffort: medium`.
+- **Why:** deliberately started BEFORE the #255/#256 fixes land, so it records the true pre-fix baseline rather than a post-fix state that would make the user's reported issues look fixed. Independent of both fixes by construction (different worktree, different files, and instructed to report baseline as baseline).
+- **Pool status:** AVAILABLE (2 children on this account). **Quota/reset:** UNKNOWN.
+- **Capacity-to-completion:** sufficient — static checks plus a handoff.
+- **Concurrency note:** six children now run across four accounts (2/2/1/1). No pool has more than two. If an account starts failing, this event is the point where the oversubscription assumption began, and the ledger will say so plainly rather than reclassifying quota as reasoning failure.
+- **Ownership:** `verify/overnight-playtest-feedback-20261104`, `/media/jer/Files/CCF/Operations/CCF-Overnight-FeedbackVerify-20261104`, base `72b4efbd`.
+- **Outcome:** RUNNING.
+- **Next:** independent Claude review; its PASS/FAIL table must be cross-checked against the #255/#256 diffs at publication.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
