@@ -100,6 +100,10 @@ def static_checks(base):
         "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs", "Assets/ForestPrototype/UI/LearningObjectivesView.cs",
         "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs", "Assets/ForestPrototype/UI/RackLayoutTracker.cs",
         "Tools/Verification/MenuTutorialVerification.cs",
+        #255's own return handoff lives outside the RACK-V2-10 docs folder; it is an exact path, not a prefix.
+        "Docs/Handoffs/Overnight-Continuation-20261104/OBJECTIVE-COPY-HANDOFF.md",
+        # The Unity end-to-end Objective 1 test asserts the same player-facing copy, so the #255 wording change updates it too.
+        "Tools/Verification/RackV2Objective1/RackV2Objective1EndToEnd.cs",
     }
     outside = sorted({p for p in changed if p not in allowed and not p.startswith("Tools/Verification/RackV2HelpTeaching/")
                       and not p.startswith("Docs/Handoffs/RACK-V2-10/")})

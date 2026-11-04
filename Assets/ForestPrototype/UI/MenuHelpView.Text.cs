@@ -23,9 +23,8 @@ public sealed partial class MenuHelpView
         new[] { "Blue", "Crop Tree / future timber" }
     };
 
-    // Spec §28 wording. The first sentence pair is the source convention (book pp. 84-85, orange or pink; Scenario One's choice of
-    // orange is calibration); the second discloses that marking only the entrance tree is this game's teaching simplification.
-    public const string TreeMarksOrangeText = "Removal trees associated with a machine route can be marked with vertical stripes. The CCF source material describes removal/treatment colours such as orange or pink; Scenario One uses orange.";
+    // Scenario 1's current orange entrance marks; the separate disclosure keeps the teaching simplification explicit.
+    public const string TreeMarksOrangeText = "Orange vertical stripes identify rack entrance trees associated with machine-path removal in Scenario 1.";
     public const string TreeMarksSimplificationText = "The game asks you to mark the rack entrance tree as a teaching action. Real marking practice may mark additional trees along a route.";
 
     // The Rack screen in a Rack Planning V2 world (spec §30): plan on the map, confirm, mark the entrances, then approve.
@@ -43,7 +42,7 @@ public sealed partial class MenuHelpView
             case Menu.WorkPlan: return "Work Plan · review and approve jobs";
             case Menu.AnnualReview: return "Annual Review · learn from the year";
             case Menu.Rack: return "Extraction racks · open machine routes";
-            case Menu.TreeMarks: return "Tree Marks · what the paint on a tree means";
+            case Menu.TreeMarks: return "Introducing tree marking";
             default: return "Walking HUD · your forest at a glance";
         }
     }
@@ -91,9 +90,9 @@ public sealed partial class MenuHelpView
         switch (menu)
         {
             case Menu.TreeMarks:
-                return "In this forest a paint mark records a management decision on the tree itself. Scenario One uses three marks so far:\n"
+                return "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:\n"
                     + string.Join("\n", System.Array.ConvertAll(TreeMarkEntries, entry => "• " + entry[0] + " — " + entry[1])) + "\n\n"
-                    + TreeMarksOrangeText + " The source describes the stripes on four sides of the tree; here one spray paints all four.\n\n"
+                    + TreeMarksOrangeText + " One spray paints vertical stripes on four sides of the entrance tree.\n\n"
                     + TreeMarksSimplificationText + "\n\n"
                     + "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. "
                     + "A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. "

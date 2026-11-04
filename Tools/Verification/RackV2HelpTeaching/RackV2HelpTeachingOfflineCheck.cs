@@ -18,6 +18,11 @@ public static class RackV2HelpTeachingOfflineCheck
     }
 
     static bool Has(string text, string part) => text.IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0;
+
+    // The user asked for the rack-spacing range to be written without a space ("16–20m") in player-facing copy (issue #255).
+    // The approved spec still writes "16–20 m". The sentence checks below compare the whole sentence with only that unit style
+    // normalised, so the substantive wording is still compared in full; reconciling the spec text is a Manager decision.
+    static string UnitStyle(string text) => text.Replace("16–20 m", "16–20m");
     static bool InOrder(string text, params string[] parts)
     {
         int at = -1;
@@ -53,7 +58,7 @@ public static class RackV2HelpTeachingOfflineCheck
         string[] names = Enum.GetNames(typeof(MenuHelpView.Menu));
         Check(string.Join(",", names) == "WalkingHud,TreeInspection,StandMap,WorkPlan,AnnualReview,Rack,TreeMarks",
             "help screens: existing names and order kept, TreeMarks appended", string.Join(",", names));
-        Check(MenuHelpView.Title(MenuHelpView.Menu.TreeMarks).StartsWith("Tree Marks", StringComparison.Ordinal), "the screen is titled Tree Marks");
+        Check(MenuHelpView.Title(MenuHelpView.Menu.TreeMarks) == "Introducing tree marking", "the screen is titled Introducing tree marking (#255)");
         Check(MenuHelpView.Summary(MenuHelpView.Menu.TreeMarks) == null, "first use shows the full Tree Marks table and disclosure, not a shorter text");
 
         // 2. Entry set: orange, red and blue only (spec §25, §28, §29).
@@ -79,7 +84,11 @@ public static class RackV2HelpTeachingOfflineCheck
         Check(s28.Count == 2, "spec §28 has its two quoted sentences", s28.Count.ToString());
         if (s28.Count == 2)
         {
-            Check(MenuHelpView.TreeMarksOrangeText == s28[0], "orange convention text equals spec §28", MenuHelpView.TreeMarksOrangeText);
+            // #255 replaced spec §28's "CCF source material" sentence with player-facing wording that says what Scenario 1
+            // actually paints. Assert the exact approved replacement instead of dropping the check; the spec sentence is now
+            // stale and needs Manager reconciliation, which is not this check's job.
+            Check(MenuHelpView.TreeMarksOrangeText == "Orange vertical stripes identify rack entrance trees associated with machine-path removal in Scenario 1.",
+                "orange convention text is the #255 approved replacement", MenuHelpView.TreeMarksOrangeText);
             Check(MenuHelpView.TreeMarksSimplificationText == s28[1], "simplification disclosure equals spec §28", MenuHelpView.TreeMarksSimplificationText);
         }
         Check(marks.Contains(MenuHelpView.TreeMarksOrangeText) && marks.Contains(MenuHelpView.TreeMarksSimplificationText),
@@ -107,13 +116,13 @@ public static class RackV2HelpTeachingOfflineCheck
         string concept = LearningObjectivesView.RackV2Concept;
         List<string> s31 = Quotes(spec, "## 31.");
         Check(s31.Count == 3, "spec §31 has its three quoted sentences", s31.Count.ToString());
-        foreach (string quote in s31) Check(concept.Contains(quote), "Objective 1 explains (§31): " + quote);
+        foreach (string quote in s31) Check(concept.Contains(UnitStyle(quote)), "Objective 1 explains (§31): " + quote);
         List<string> s7 = Quotes(spec, "## 7.");
         Check(s7.Count == 2 && concept.Contains(s7[0]) && !concept.Contains(s7[1]), "Objective 1 states the five-rack calibration as §7 asks, not the quota", string.Join(" | ", s7));
-        Check(InOrder(concept, "machinery", "16–20 m", "depends on the stand", "five extraction racks", "Plan the racks on the map", "mark each rack entrance"),
+        Check(InOrder(concept, "machinery", "16–20m", "depends on the stand", "five extraction racks", "Plan the racks on the map", "mark each rack entrance"),
             "Objective 1 why-it-matters order: purpose, spacing, conditional nature, five racks, plan then mark (§30 step 1)");
         string read = LearningObjectivesView.RackV2StepText("rack.read");
-        Check(read != null && Has(read, "16–20 m") && Has(read, "30 m or more") && Has(read, "no universal rule") && Has(read, "this plantation only"),
+        Check(read != null && Has(read, "16–20m") && Has(read, "30 m or more") && Has(read, "no universal rule") && Has(read, "this plantation only"),
             "rack reading gives §5.1's conditional examples and keeps the recommendation to this stand", read ?? "null");
 
         // 6. Objective 1 flow (§30 steps 2-7, D-064 OPEN-2: field marking before approval).
@@ -179,7 +188,7 @@ public static class RackV2HelpTeachingOfflineCheck
             Check(universalOk, "\"universal\" appears only as \"no universal rule\" in " + surface.Key);
         }
         Check(Has(concept, "Scenario One uses that range as a guide for this plantation") && Has(read ?? "", "for this plantation only"),
-            "the 16–20 m band is framed as this stand's guide, never a general rule");
+            "the 16–20m band is framed as this stand's guide, never a general rule");
 
         Console.WriteLine((failures == 0 ? "RACK_V2_HELP_TEACHING_OFFLINE_PASS" : "RACK_V2_HELP_TEACHING_OFFLINE_FAIL failures=" + failures + "") + " checks=" + checks);
         return failures == 0 ? 0 : 1;
