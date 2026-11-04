@@ -496,6 +496,24 @@
 - **What the review confirms (independently useful):** the arithmetic, the ΔE-vs-contrast separation, the world/map/legend contract, and that the draft does **not** claim an official Pro Silva Ireland standard. Current source facts re-verified by the reviewer: rack = four vertical patches `(0.95,0.28,0.025)`; Fell = rotated cube + ground disc `(1,0.35,0.05)` with **no diagonal trunk slashes**; Crop = blue diamond + trunk band; map Fell `(220,76,62)`, Crop `(78,140,236)`.
 - **Outcome:** #259 NEEDS CHANGES (same-family technical review) + independent Claude review dispatched. Still DRAFT; no colour/shape change authorised.
 
+### EVENT 036 — 2026-11-04 — #269 staging returns; DPC independently re-ran all three gates and confirmed the numbers
+
+- **Evidence class:** OBSERVED FACT (child return, PR, and DPC's own re-execution in the lane).
+- **Result:** branch `integration/scenario-one-overnight-ui-qualification-v1`, head **`d3ba4fce3994d5c59b51786c6671dd654791e7d1`**, PR **#273** with **base `integration/scenario-one-player-test-ready-v1`** (the correct lineage; `main` untouched). GitHub reports MERGEABLE and 14 changed files.
+- **DPC re-extraction, not accepted on report:**
+  - `git diff --stat 72b4efbd..HEAD` = **13 whitelisted paths + the new `ISOLATED-UI-STAGING-HANDOFF.md`**, nothing else. Per-PR split verified as 3 (#261) + 6 (#262) + 4 (#264).
+  - `python3 Tools/Verification/RackV2HelpTeaching/run_offline.py` → `RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97`, then `RACK_V2_HELP_TEACHING_FAIL failed=2 static_and_offline=15`.
+  - `python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py --rotation-state post-fix --instruction-state post-fix` → `SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2`; the FAIL is check 08 (Objective 1 primary button still `ui.CloseAll()` / "Back to forest").
+  - Diff review by DPC: `StandMapRackEditor.cs` changes one expression only — `gesture != Gesture.Reshape && !ShiftHeld(e.modifiers)` — so **only the round-handle gesture stops snapping**; Create/Move untouched. `RackV2Objective1EndToEnd.cs` tightens copy to `16–20m` exactly. `UnitStyle` normalises one unit string; the §28 assertion is replaced by an **exact** literal comparison, not loosened. `run_offline.py` adds **two exact paths** (`OBJECTIVE-COPY-HANDOFF.md`, `RackV2Objective1EndToEnd.cs`) with per-path comments, no prefix/wildcard.
+- **The two `run_offline.py` failures are branch-scope guards, correctly labelled:** S10 names six candidate-history files (`ForestSaveController.cs`, `ForestSaveData.cs`, `ForestSaveValidation.cs`, `ForestStartingStand.cs`, `ForestTree.cs`, `ManagementHistoryText.cs`) that are **not in this delta**; S11 fails on the combined footprint. Neither was weakened, skipped or relabelled green. The packet predicted exactly this and DPC confirms the diagnosis is right.
+- **Evidence gaps the stager declared honestly (DPC agrees they are gaps, not failures):**
+  - the six rack-handle snap cases are an **ad-hoc /tmp script narrated inside `RACK-HANDLE-HANDOFF.md`**, not a committed harness; it was pinned to `72b4efbd` because a HEAD-relative version would pass vacuously. Source-static only; it proves nothing about physical drag.
+  - the baseline checker's per-check detail was only captured to `/tmp`; the handoff keeps the tally, not the full log.
+  - `OBJECTIVE-COPY-HANDOFF.md` (≈4,884 lines) and `RACK-HANDLE-HANDOFF.md` (≈3,889 lines) are staged byte-identically because they are whitelisted, and appear to embed large context dumps — a repository-hygiene item for the Manager, **not** something the stager may silently trim.
+- **States:** IMPLEMENTED + STAGED (source). **NOT** Unity-verified, NOT integrated, NOT accepted. Nothing was merged anywhere.
+- **Review:** independent **OpenAI GPT-6.1 Medium** review of the PR diff and a fresh run of all three gates dispatched immediately (EVENT 037 pending).
+- **Outcome:** #269 worker COMPLETE; review in flight.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
