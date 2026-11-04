@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 // A reference-sized illustration layout scaled uniformly into the UI panel.
-// Text and controls are live UI Toolkit elements. Only forestry pictures, icons
-// and the blurred backdrop are sampled from the frozen reference artwork atlas.
+// Text, icons and controls are live UI Toolkit elements. Only forestry pictures
+// and the blurred backdrop are sampled from the approved art-only atlas.
 public sealed class ScenarioOneOnboardingView
 {
     private const float DesignWidth = 1672f, DesignHeight = 941f;
@@ -81,7 +81,12 @@ public sealed class ScenarioOneOnboardingView
         string lead = ScenarioOneOnboardingCopy.Leads[PageIndex];
         if (PageIndex == 0) lead = lead.Replace("managed. Instead", "managed.\nInstead");
         Text(lead, 112, 179, right - 145, 72, 24);
-        Rule(85, PageIndex == 2 ? 253 : 258, right - 106);
+        if (PageIndex == 0)
+        {
+            var renewal = Text(ScenarioOneOnboardingCopy.Renewal, 112, 247, right - 145, 34, 23, "onboarding-accent");
+            renewal.name = "onboarding-renewal";
+        }
+        Rule(85, PageIndex == 0 ? 291 : PageIndex == 2 ? 253 : 258, right - 106);
         if (PageIndex == 0) Definition();
         else if (PageIndex == 1) Process();
         else Scenario();
@@ -105,7 +110,8 @@ public sealed class ScenarioOneOnboardingView
 
     private void Definition()
     {
-        Art(new Rect(85, 272, 1501, 322));
+        // Reserve a separate text line while retaining all three forest slices.
+        Art(new Rect(85, 272, 1501, 322), destination: new Rect(85, 305, 1501, 289));
         for (int i = 0; i < 3; i++)
         {
             Text(ScenarioOneOnboardingCopy.ProgressionHeadings[i], 90 + i * 505, 598, 490, 25, 16, "onboarding-eyebrow", true);
@@ -136,7 +142,7 @@ public sealed class ScenarioOneOnboardingView
             Text(ScenarioOneOnboardingCopy.ProcessHeadings[i], x + 89, 300, w - 100, 62, 23);
             Art(new Rect(x + 1, 365, w - 2, 312));
             Icon(new[] { "observe", "retain", "logs", "sprout", "chart" }[i], x + 15, 706, 64, 63, false);
-            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + (i == 3 ? 90 : 104), 683, w - (i == 3 ? 99 : 115), 110, i == 3 ? 16 : 18);
+            Text(ScenarioOneOnboardingCopy.ProcessStatements[i], x + (i == 3 ? 90 : 104), 683, w - (i == 3 ? 99 : 115), 110, 18);
             if (i < 4) Text("›", x + w - 4, 480, 28, 55, 51, "onboarding-accent", true);
         }
     }
@@ -148,10 +154,14 @@ public sealed class ScenarioOneOnboardingView
             new Vector2(180, 0), new Vector2(340, 0), new Vector2(425, 40), new Vector2(500, 90),
             new Vector2(550, 145), new Vector2(580, 225), new Vector2(580, 255), new Vector2(290, 326), new Vector2(0, 255)
         });
-        Art(new Rect(961, 264, 592, 326), new[] {
-            new Vector2(0, 225), new Vector2(24, 150), new Vector2(70, 70), new Vector2(135, 25),
-            new Vector2(215, 0), new Vector2(460, 0), new Vector2(520, 70), new Vector2(565, 130),
-            new Vector2(592, 225), new Vector2(592, 255), new Vector2(296, 326), new Vector2(0, 255)
+        // The new mature Sitka reach higher than the old illustration. Include their
+        // full crowns, keeping the surrounding lead text outside the art frame.
+        Art(new Rect(961, 225, 592, 365), new[] {
+            new Vector2(0, 260), new Vector2(24, 190), new Vector2(65, 65), new Vector2(110, 92),
+            new Vector2(160, 55), new Vector2(200, 80), new Vector2(238, 0), new Vector2(285, 55),
+            new Vector2(320, 75), new Vector2(385, 0), new Vector2(435, 75), new Vector2(510, 40),
+            new Vector2(555, 105), new Vector2(592, 260), new Vector2(592, 295),
+            new Vector2(296, 365), new Vector2(0, 295)
         });
         // Only the cycle artwork is sampled; its explanatory words remain live labels.
         Icon("cycle", 765, 349, 108, 108, false);
@@ -228,15 +238,16 @@ public sealed class ScenarioOneOnboardingView
         Place(icon, x, y, width, height); canvas.Add(icon);
     }
 
-    private void Art(Rect source, Vector2[] contour = null)
+    private void Art(Rect source, Vector2[] contour = null, Rect? destination = null)
     {
         var picture = new ArtworkRegion(artwork, source, contour);
-        Place(picture, source.x, source.y, source.width, source.height);
+        Rect target = destination ?? source;
+        Place(picture, target.x, target.y, target.width, target.height);
         canvas.Add(picture);
     }
 
-    // Texture UVs preserve the exact approved illustrations without re-encoding,
-    // duplicating crops or rasterising the interface's text/buttons into an image.
+    // Texture UVs select the approved forest crops; all interface text/buttons
+    // are separate live elements. Atlas preparation/provenance is recorded in the spec.
     private sealed class ArtworkRegion : VisualElement
     {
         private readonly Texture2D texture;

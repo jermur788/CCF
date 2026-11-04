@@ -10,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--renders', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--refresh-20261103', action='store_true', help='Compare to the new approved game-area screenshots')
     args = parser.parse_args()
     tools = Path(__file__).resolve().parent
     repository = tools.parents[2]
@@ -17,12 +18,12 @@ def main():
     compositor = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(compositor)
     references = repository / 'specs/scenario-one-three-page-onboarding-v1/references'
-    locks = json.loads((references / 'final-hashes.json').read_text())
+    locks = json.loads((references / ('20261103-art-manifest.json' if args.refresh_20261103 else 'final-hashes.json')).read_text())
     prepared = []
     for page in range(1, 4):
-        reference = references / ('page-%d-locked.png' % page)
+        reference = references / (locks[page - 1]['source'] if args.refresh_20261103 else 'page-%d-locked.png' % page)
         reference_hash = compositor.sha256(reference)
-        assert reference_hash == locks[page - 1]['sha256'], 'Final reference changed'
+        assert reference_hash == locks[page - 1]['source_sha256' if args.refresh_20261103 else 'sha256'], 'Final reference changed'
         for size in ['1280x720', '1920x1080']:
             actual = args.renders / ('page-%d-%s.png' % (page, size))
             assert actual.is_file(), 'Missing real Unity render: ' + str(actual)
@@ -33,7 +34,10 @@ def main():
     records = []
     for page, size, reference, reference_hash, actual, rendered in prepared:
         actual_hash = compositor.sha256(actual)
-        sheet = compositor.build_sheet(compositor.load_rgb(reference, 'locked reference'), rendered,
+        reference_image = compositor.load_rgb(reference, 'locked reference')
+        if args.refresh_20261103:
+            reference_image = reference_image.crop(tuple(locks[page - 1]['game_crop']))
+        sheet = compositor.build_sheet(reference_image, rendered,
                                        reference.name, reference_hash, actual.name, actual_hash)
         destination = args.out / ('page-%d-%s-comparison.png' % (page, size))
         sheet.save(destination)

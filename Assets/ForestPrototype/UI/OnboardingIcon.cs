@@ -29,7 +29,7 @@ public sealed class OnboardingIcon : VisualElement
         {
             case "brand": Tree(26, 10, 68, true); Tree(73, 10, 68, true); break;
             case "trees": Tree(30, 35, 40); Tree(51, 22, 49); Tree(72, 37, 39); break;
-            case "retain": Tree(30, 18, 68); Leaf(61, 51, 1.1f); break;
+            case "retain": Tree(30, 8, 68); Path(false, 53, 79, 64, 93, 91, 59); break;
             case "leaf":
                 Path(true, 30, 64, 32, 46, 45, 33, 72, 25, 67, 53, 54, 66, 30, 64);
                 Path(false, 24, 76, 64, 37); Path(false, 42, 59, 42, 44); Path(false, 49, 52, 63, 52); break;
@@ -54,6 +54,7 @@ public sealed class OnboardingIcon : VisualElement
                 Path(false, 57, 58, 64, 24, 81, 24, 91, 56); Path(false, 43, 46, 57, 46); break;
             case "logs":
                 Ring(28, 68, 17); Ring(58, 76, 17); Ring(27, 37, 14);
+                Ring(28, 68, 7); Ring(58, 76, 7); Ring(27, 37, 6);
                 Path(false, 17, 23, 63, 3, 79, 5, 84, 16, 83, 28, 43, 50);
                 Path(false, 36, 54, 78, 34, 91, 35, 97, 48, 91, 61, 72, 72); break;
             case "chart":
