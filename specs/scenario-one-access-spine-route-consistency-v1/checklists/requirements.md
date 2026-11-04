@@ -26,7 +26,7 @@ Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
 - [x] AS-R20: #248 original formula failure preserved; PR #249's review tally reconciled against frozen output (9 PASS / 10 corrections / 1 FAIL = 20), six ledger events confirmed, and docs-only PR merged. This confirms documentation reconciliation, **not production verification**.
 
 - [ ] AS-R21: A proposed five-rack topology has a valid, deterministic and explainable representative MFM sample/coverage model without global parallel ordering assumptions or unqualified fallback; no tree/area receives duplicate prescription/work orders.
-- [ ] AS-R22: #250 45° reference candidate's yard/workbench conflict, headland-only entrance restriction, R1/R2 overlap, R1 far-end trunk collider and turning/accessibility risks have explicit tested corrections before implementation.
+- [ ] AS-R22: #250 45° reference candidate's yard/workbench conflict, headland-only entrance restriction, R1/R2 centreline-clearance failure (with 0.214214 m physical rectangle gap), R1 far-end trunk collider and turning/accessibility risks have explicit tested corrections before implementation.
 - [ ] AS-R23: Proposed unbuilt route overlays leave treatment masks, coverage signatures, save and world untouched until the approved commitment/real-clearing policy is specified. Track/Headland numerical rows are re-extracted, not paraphrased from memory.
 - [ ] AS-R24: Actual Stand Map, minimap and 3D captures (not just an SVG) qualify the exact candidate and show all formal trails/entrances/statuses consistently; no inference from a failed render.
 - [ ] AS-R25: #251 read-only topology options handoff independently reviewed and Manager-approved before changes to D-064/D-065, source model, persistence or player workflow are dispatched.
