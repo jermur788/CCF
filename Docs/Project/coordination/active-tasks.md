@@ -205,7 +205,7 @@ DPC #254 delivered all seven original child work units with contemporaneous **EV
 - Docs-only hygiene is done: source PR #262/#261 original 4,884/3,889-line reports retained; qualification branch compacted them to 44/110 lines with provenance. Only two source-handoff files depart from initial 13-file byte identity; production/test bytes otherwise unchanged by #275.
 - [Manager durable review](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/Overnight-Continuation-20261104/MANAGER-FOCUSED-UI-QUALIFICATION-REVIEW-20261104.md). #275 HANDED-OFF/CLOSED, #277 READY. PR #273 and #276 remain open; **do not merge into published user-playtest branch** before a separate Manager integration verdict. Objective CTA FAIL 08, D-064/OPEN-2, map-card `16–20 m` presentation residual remain.
 - **User playtest candidate unchanged, personal playtest not completed, Windows build blocked.** The #275 registered Unity lease was released normally and recorded FREE at that time; current occupancy is always checked anew.
-- Dashboard CCF update for this event **pending publication/read-back**, separate automatic audit receipt still unverified.
+- Dashboard CCF update for this event **PUBLISHED AND READ BACK VERIFIED** at `jermur788/Overall-Dev/updates/ccf/latest.md` with #275 closure and #277 READY. Separate automatic dashboard ingestion/audit receipt **NOT VERIFIED**; do not claim full dashboard pipeline synchronization.
 
 ## User / build gate
 
