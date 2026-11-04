@@ -1,0 +1,94 @@
+== A. reproduce #251 numbers from published endpoints (validates this model, not the C#) ==
+[PASS] A1 legacy Derive refuses the reference with the R4/R5 string -- Racks 4 and 5 cross or overlap across the common normal, so they have no defensible order.
+[PASS] A2 grouping gives {R2,R3,R5} (3 racks) and {R1,R4} -- [(1, 4), (5, 3, 2)]
+   west axis=135.000000000 east axis=45.000000000
+   midpoint-offset gaps west=[17.51, 16.623] east=[17.855]  (#251 same-side gaps 17.510/16.623/17.855)
+[PASS] A3 per-group gaps match #251 N25 within 1e-3
+[PASS] A4 teaching rack is R3 (middle of the 3-rack group) -- teach=3 anchor=(-5.513, 4.885)
+[PASS] A5 naive per-side strips double-claim 1575.0 m^2 of 5875.75 (N52) -- both=1575.0 noncorridor=5875.75
+   owner-rule raster 0.5 m: {'units': 5461.25, 'remainder': 414.5, 'corridor': 524.25, 'outside': 0, 'total': 6400.0}
+   per-rack unit area (lateral owner): {1: 887.5, 2: 925.25, 3: 1353.75, 4: 1255.5, 5: 1039.25}
+[PASS] A6 owner rule closes to 6400.0: units 5461.25 + remainder 414.5 + corridors 524.25 (N53) -- {'units': 5461.25, 'remainder': 414.5, 'corridor': 524.25, 'outside': 0, 'total': 6400.0}
+== B. input-order, orientation and id-relabel invariance ==
+[PASS] B1 Derive-level signature identical over 120 orders x 32 entrance/far flips (3840 runs)
+[PASS] B2 6400-cell label map identical over all 120 input orders
+   relabel (1<->5, 2<->4) max per-rack unit area change @1 m raster: 0.000 m^2 (ids only break ties; group naming follows min id)
+[PASS] B3 id relabel changes ownership only on tie bands (<= 1% of any unit) -- diff=0.000
+== C. exact interval scan (production-style) vs independent raster; resolution convergence ==
+   scan@0.1 m: {'units': 5454.262, 'remainder': 418.68, 'corridor': 527.059, 'outside': 0, 'total': 6400.0}  (1.8s)  piece-constancy violations: 0
+[PASS] C1 piece-constancy: no random point inside a scan piece classifies differently (crossing set complete) -- violations=0
+[PASS] C2 scan total equals stand area to 1e-6
+[PASS] C3 scan is step-stable: 0.1 m vs 0.05 m differ by < 1.0 m^2 per unit (midpoint rule on oblique edges; ~0.1 percent of a unit) -- diff=0.505 m^2
+   MC units     5450.3 +- 3.6  vs scan 5454.262
+   MC remainder 419.5 +- 2.5  vs scan 418.680
+   MC corridor  530.2 +- 2.8  vs scan 527.059
+[PASS] C4 Monte Carlo (400k seeded points) agrees with the exact scan within 4 sigma in every category -- worst=1.12 sigma
+   lattice 1.000 m: units 5462.00 remainder 433.00 corridor 505.00   (exact scan: 5454.26 / 418.68 / 527.06)
+   lattice 0.500 m: units 5461.25 remainder 414.50 corridor 524.25   (exact scan: 5454.26 / 418.68 / 527.06)
+   lattice 0.250 m: units 5458.19 remainder 416.75 corridor 525.06   (exact scan: 5454.26 / 418.68 / 527.06)
+   lattice 0.125 m: units 5458.02 remainder 417.81 corridor 524.17   (exact scan: 5454.26 / 418.68 / 527.06)
+[PASS] C5 the 0.5 m lattice used by #251 (N51-N53) is within 0.2% of the 6400 m^2 stand of the exact value -- max category bias 6.99 m^2 (0.109% of stand)
+   smallest segment areas (unmasked m^2): [('R1C', 184.836), ('R2C', 206.799), ('R3C', 210.289), ('R4C', 216.752), ('R5C', 265.635), ('R2H', 302.191)]
+== D. seeded property tests on random synthetic two-family plans ==
+   plans qualified as branched-valid: 40 of 40 drawn (legacy-valid 0, group-of-one UNSPECIFIED 0)
+[PASS] D1 classify is a total deterministic function (108000 points incl. +-1e-9 edge points, 40 plans)
+[PASS] D2 scan conservation: unit+remainder+corridor+outside = 6400 within 1e-6 on every plan -- worst=5.55e-11
+[PASS] D3 scan piece-constancy: zero violations over all plans -- violations=0
+[PASS] D4 parallel plan: branched entry returns the legacy result object unchanged (kind=legacy, same sig)
+== E. grouping edge cases (fail-closed behaviour of the PROPOSED rule) ==
+[PASS] E1 wraparound: 179.9deg and 0.1deg group together (circular distance) -- None
+[PASS] E2 tolerance edge delta=3.9999999999 gives 1 group(s) (angles quantised to 1e-3 deg)
+[PASS] E2 tolerance edge delta=4.0000000000 gives 1 group(s) (angles quantised to 1e-3 deg)
+[PASS] E2 tolerance edge delta=4.0000000001 gives 1 group(s) (angles quantised to 1e-3 deg)
+[PASS] E2 tolerance edge delta=4.0020000000 gives 2 group(s) (angles quantised to 1e-3 deg)
+[PASS] E3 chaining: single-link alone ACCEPTS A-B-C as one group (the hazard)
+[PASS] E3b chaining: span guard REFUSES it (fail closed, ambiguous) -- Group 1 chains directions 7.800 deg apart (limit 4.000): ambiguous grouping.
+[PASS] E4 three direction families refused (cap 2) -- The racks fall in 3 direction groups; at most 2 are supported.
+[PASS] E5 grouping outcome identical over all 6 orders of the chaining case
+[PASS] E6 duplicate rack id: legacy error returned, branched never selected -- Rack id 1 appears more than once.
+[PASS] E7 near-zero-length rack: legacy 'has no length' error untouched -- Rack 5 has no length.
+[PASS] E8 four racks: legacy 'exactly 5' error untouched -- A rack-served sample needs exactly 5 confirmed racks (found 4).
+[PASS] E9 4+1 plan: new rule says UNSPECIFIED (no neighbour to halve) rather than inventing a strip -- Group 5: UNSPECIFIED: a direction group of one rack has no neighbour to halve the distance to.
+   E10 legacy on equal-total families: valid=False problem='The racks do not share a direction, so there is no common normal to order them across.'
+[PASS] E10 equal-length families make legacy fail with 'do not share a direction' (a different legacy error than the reference's) -- The racks do not share a direction, so there is no common normal to order them across.
+[PASS] E11 single-family plan that legacy refuses is NOT rescued by the branched rule (same error returned) -- Racks 1 and 2 cross or overlap across the common normal, so they have no defensible order.
+   E12 legacy on parallel racks 0.5 m apart: valid=True (editor OverlapClearanceM=2.4 is the only guard)
+[PASS] E12 OBSERVATION: legacy Derive accepts 0.5 m-spaced parallel racks (degenerate 0.5 m strip); any new validity gate must not equate Derive-valid with sensible
+== F. corridor intersections ==
+   reference R1/R2: closest centreline distance 1.414 m (< 2.4 m editor clearance); rectangle separating-axis gap 0.214 m
+[PASS] F1 CORRECTION: R1/R2 corridor RECTANGLES do not overlap (SAT gap > 0); #251's 'overlap' is the editor's 2.4 m centreline-clearance rule -- gap=0.214 m
+   synthetic crossing pair: branched valid=True 
+   perpendicular crossing overlap 5.723 m^2 (exact 5.76); union 400.333 (sum of rectangles 407.294)
+[PASS] F2 genuinely overlapping corridors: overlap ~5.76 m^2, counted once in the union -- overlap=5.723 union=400.333 expected~401.534
+[PASS] F3 overlap ground is owned by the lowest rack id (COR,1) and labelled once
+== G. reach: distance from owned ground to the OWNING rack's finite centreline ==
+   owner=lateral  owned 5461.25 m^2; >9 m 2466.25, >12 m 2216.25, >20 m 1715.25; max 69.17 m
+   owner=nearest  owned 5875.75 m^2; >9 m 2246.00, >12 m 1718.25, >20 m 830.00; max 41.18 m
+   ground whose owning rack differs between lateral-owner and nearest-segment-owner: 2311.75 m^2
+   owner=lateral  ground within cap of its owner (eligible for Covered): {'9.0': 2995.0, '10.0': 3080.0, '12.0': 3245.0, '16.0': 3541.2, '20.0': 3746.0} of 5875.75 non-corridor m^2 (0.5 m lattice)
+   owner=nearest  ground within cap of its owner (eligible for Covered): {'9.0': 3629.8, '10.0': 3842.8, '12.0': 4157.5, '16.0': 4658.0, '20.0': 5045.8} of 5875.75 non-corridor m^2 (0.5 m lattice)
+[PASS] G1 reproduces #251 N55 (2246.0 / 1718.25 / 830.0 m^2 beyond 9/12/20 m of the nearest rack) -- 2246.00 / 1718.25 / 830.00 of 5875.75
+[PASS] G2 reproduces #251 N54 (suggested layout: 169.5 m^2 beyond 9 m) -- 169.50 of 5456.25
+== I. where the demonstrated 24 x 18 m sample footprint falls (no trees: geometry only; forestry transfer UNMEASURED) ==
+   footprint 432.0 m^2 (24x18): corridor 70.80 m^2; by owning unit: {'R2C': 6.02, 'R3C': 210.62, 'R4C': 142.97, 'R5C': 1.59}
+   footprint ground that belongs to units of OTHER racks (the legacy rule also lets the sample override neighbouring strips): 150.58 m^2
+[PASS] I1 sample footprint measured against the proposed ownership (informational) -- foreign-unit ground 150.58 m^2, corridor 70.80 m^2
+== H. group tolerance sensitivity: hand-drawn directions perturbed about each rack midpoint ==
+   link/span tol  4.0 deg, +- 0 deg perturbation: {'branched_valid': 200, 'grouping_refused': 0, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +- 2 deg perturbation: {'branched_valid': 200, 'grouping_refused': 0, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +- 4 deg perturbation: {'branched_valid': 73, 'grouping_refused': 127, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +- 6 deg perturbation: {'branched_valid': 34, 'grouping_refused': 166, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +- 8 deg perturbation: {'branched_valid': 14, 'grouping_refused': 186, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +-10 deg perturbation: {'branched_valid': 3, 'grouping_refused': 197, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +-15 deg perturbation: {'branched_valid': 2, 'grouping_refused': 198, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol  4.0 deg, +-20 deg perturbation: {'branched_valid': 0, 'grouping_refused': 200, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +- 0 deg perturbation: {'branched_valid': 200, 'grouping_refused': 0, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +- 2 deg perturbation: {'branched_valid': 200, 'grouping_refused': 0, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +- 4 deg perturbation: {'branched_valid': 200, 'grouping_refused': 0, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +- 6 deg perturbation: {'branched_valid': 175, 'grouping_refused': 25, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +- 8 deg perturbation: {'branched_valid': 129, 'grouping_refused': 71, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +-10 deg perturbation: {'branched_valid': 73, 'grouping_refused': 127, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +-15 deg perturbation: {'branched_valid': 22, 'grouping_refused': 178, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+   link/span tol 10.0 deg, +-20 deg perturbation: {'branched_valid': 16, 'grouping_refused': 184, 'group_ordering_refused': 0, 'legacy_valid': 0, 'other': 0}
+[PASS] H1 sweep completed deterministically (seeded); see results.json tolerance_sweep
+== SUMMARY: 41 checks, 0 failed, 39.2s ==
