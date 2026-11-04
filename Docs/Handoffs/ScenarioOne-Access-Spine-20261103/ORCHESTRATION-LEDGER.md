@@ -580,3 +580,26 @@ The reviewer independently reproduced: group totals 115.946116 + 103.642290 = 21
 #### Retrospective (INFERENCE)
 
 This is the fourth transcription-class error in the programme, and the first where **DPC's own verification pass read the failing sentence and did not flag it**: the "no field ⇒ no hash movement" claim was checked against `ForestSaveData` version fields but not against `ScenarioReferenceArchive.HashLayout`, which hashes values. The review caught it because it was asked to check the compatibility argument, not just the numbers. Rule reinforced: a compatibility claim is a **source claim about the hash function**, and must be read at the hash function, not inferred from the schema shape. The unproven "permanent" wording is the same failure mode in prose: an inference stated as a fact until a reviewer demanded the evidence for it.
+
+### EVENT — 2026-11-04 00:21Z–02:45Z — #253 Option A offline qualification worker returns PARTIALLY QUALIFIED; review dispatched
+
+*(Pointer event written by the DeepSeek DPC under #254. It records #253's routing and outcome only; the full cross-programme routing evidence stays in the overnight ledger `Docs/Handoffs/Overnight-Continuation-20261104/ROUTING-LEDGER.md`, EVENTS 005 and 025. This programme ledger remains authoritative for #253's research history.)*
+
+- **Evidence class:** OBSERVED FACT (worker return, branch/commit/PR) / ORCHESTRATOR CLAIM (routing judgement).
+- **Claim/route:** #253 released as OFFLINE RESEARCH ONLY. Worker `claudeAgent` / `claude-sonnet-5-5` / `effort: medium` (model default is `high`; held at medium deliberately, no escalation needed). **Quota/context/tokens: UNKNOWN** — no endpoint exposes them. No cooldown, rate-limit, retry or provider switch occurred.
+- **Ownership:** branch `docs/mfm-option-a-offline-20261104-v1`, worktree `/media/jer/Files/CCF/Operations/CCF-MFM-OptionA-Docs-20261104`, base `origin/main 8f0f2301`, candidate `72b4efbd` read-only. No production MFM/Rack/save/teach change. No Unity. No `active-tasks.md` or ledger edit by the worker.
+- **Result:** commit `c7f2aafb`, PR **#267**, handoff `OPTION-A-OFFLINE-QUALIFICATION-HANDOFF.md` plus a disposable Python analysis under `OptionA-Offline-20261104/`. Verdict **PARTIALLY QUALIFIED**; Option A as drafted in #251 is **NEEDS CHANGES**, not NO-GO.
+- **Findings reported by the worker (NOT yet independently verified):** a reach cap is required because the #251 lateral-distance owner rule can assign rack ground up to 69 m away, leaving 14–38% Manual/NotCovered across 20–9 m caps; the inherited sample anchor lands on the spine junction with 143.0 m² of R4's Centre ground outside its own unit; single-link grouping chains transitively and needs a span guard; a Confirm gate would change accepted Rack V2 behaviour across at least 13 verification files; and a **correction to #251** — the R1/R2 corridor rectangles do not overlap (gap 0.214 m) and #251's "overlap" was the editor's 2.4 m centreline rule.
+- **Known limits declared by the worker:** its model is its own Python port (41 offline checks pass, no C# compiled or run); it did **not** read the raw endpoint JSON and reused #251's published table, so a raw-source recomputation is still owed; calibration on real stems/masks unmeasured; C not modelled, so no A-vs-C comparison.
+- **Review:** dispatched to `codex` / `gpt-6.1-sol` / medium for cross-provider independence, with explicit instructions to re-derive at least three headline numbers from **raw** source, to re-count the `ConfirmRackPlan` call sites, and to judge whether #251 was genuinely wrong about the overlap.
+- **Authority:** DRAFT research only. No option approved, no spec status changed, no implementation authorised. Status `[HANDED-OFF]` on #253 pending review.
+
+#### Correction to #251, 2026-11-04 03:29Z — R1/R2 corridors do not physically overlap
+
+*(Recorded by the DeepSeek DPC under #254 after independent review of #253. #251's published handoff is left unedited so the published record and its correction both remain visible. Full routing evidence: overnight ledger EVENT 028.)*
+
+- **What was published in #251:** that the R1/R2 corridor rectangles overlap.
+- **What is true (verified independently by the #253 reviewer and consistent with the #253 worker):** the R1/R2 corridor rectangles do **not** overlap; the gap between them is **0.214214 m**. The figure previously described as an "overlap" is produced by the editor's **2.4 m centreline-clearance rule**, which is a different rule operating on centre lines, not a physical intersection of the drawn corridor rectangles.
+- **Why it matters:** the overlap claim was load-bearing for part of #251's Option A geometry argument. Any downstream reasoning that depends on a physical overlap must be re-read against this correction.
+- **Still true:** the editor clearance rule does fail in the case examined; the correction removes the *geometric* claim, not the clearance finding.
+- **Status:** #253 is `[HANDED-OFF]` with verdict PARTIALLY QUALIFIED; the correction round is running. No option is approved, no spec status changed, no implementation authorised.
