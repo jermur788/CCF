@@ -53,6 +53,7 @@ All boxes are unchecked: spec drafting is not implementation evidence. Nothing h
 - [ ] **REQ-P1** Survives restart, save/load, new scenario, scene switch — AT-02..04
 - [ ] **REQ-P2** Device change safe — AT-16
 - [ ] **REQ-P3** Missing/invalid binding handled — AT-17, AT-18
+- [ ] **REQ-P3a** Deterministic load-time conflict resolution (override beats restored default; table-order tie-break; required-action floor) — AT-17a
 - [ ] **REQ-P4** Settings schema version and forward-compat — AT-19
 - [ ] **REQ-P5** Layout handling decided — AT-21
 - [ ] **REQ-P6** Atomic settings write — AT-17
@@ -77,4 +78,6 @@ All boxes are unchecked: spec drafting is not implementation evidence. Nothing h
 
 - [ ] **GOV-001** Spec approved and Decision Log updated before any task starts
 - [ ] **GOV-002** Independent different-provider review done (not self-approved)
-- [ ] **GOV-003** Open questions Q1–Q12 answered or explicitly deferred
+- [ ] **GOV-003** Open questions Q1–Q13 answered or explicitly deferred
+- [ ] **GOV-004** Authority hierarchy (`spec.md` §8) and stop-and-ask conditions S-1…S-8 (§9) accepted; any save-schema need escalated (S-1)
+- [ ] **GOV-005** Control-read inventory re-run against the implementation base with the `spec.md` O-7a command, output recorded; N and P handled if base is the candidate

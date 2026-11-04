@@ -2,13 +2,15 @@
 
 - **Spec ID:** `PLAYER-INPUT-SETTINGS-AND-FEEDBACK-V1`
 - **Status:** **DRAFT** — task list for a DRAFT spec. **Nothing here is authorised or started.** Tasks become claimable only after the spec is `APPROVED`, the relevant §5 questions are answered, and the Manager creates task packets.
+>
+> **Authority and stop rules.** Source precedence is `spec.md` §8 (fixed keys > valid user setting > validated import > built-in/scene default; a game save never supplies input settings). Every task is bound by the stop-and-ask conditions in `spec.md` §9: in particular, **if a task would require any change to `ForestSaveData`, `forest-save.json`, `CurrentVersion` or save/load code (S-1), stop and ask the Manager before editing.** So too for any package, API-assumption failure, fixed-key change, unlisted consumer, or network/identity code (S-2…S-6).
 - **Last updated:** 2026-11-04
 
 All tasks are `NOT STARTED`. Estimates are rough and unmeasured. Verification references use the AT rows in `spec.md` §6.
 
 ## M0 — Decisions (Manager/user)
 
-- [ ] **IPS-000** Answer open questions Q1–Q12; record accepted decisions in the Decision Log; set spec status. *Owner: Manager/user.*
+- [ ] **IPS-000** Answer open questions Q1–Q13; record accepted decisions in the Decision Log; set spec status. *Owner: Manager/user.*
 - [ ] **IPS-001** Independent review of this DRAFT by a different provider family (required by #257 comment). *Owner: Manager.*
 
 ## M1 — Persistent sensitivity (no save-schema change)
@@ -22,12 +24,12 @@ All tasks are `NOT STARTED`. Estimates are rough and unmeasured. Verification re
 
 ## M2 — Rebinding core
 
-- [ ] **IPS-020** Re-inventory every key consumer against the actual base commit (main vs `72b4efbd`; spec O-7, O-12). Docs table.
+- [ ] **IPS-020** Re-inventory every key consumer against the actual base commit (main vs `72b4efbd`; spec O-7, O-7a, O-12) by re-running the O-7a command and recording its output. Docs table. Include the candidate-only P and N consumers if the base is the candidate.
 - [ ] **IPS-021** Create CCF action asset + thin accessor; no behaviour change (defaults equal current keys).
 - [ ] **IPS-022** Migrate first subset: movement, run, jump, interact, X, C. AT-22.
 - [ ] **IPS-023** Context layer for the migrated actions; binding-capture modal. AT-12/13.
-- [ ] **IPS-024** Conflict detection, unbind rules, reset. AT-05/06/07/08.
-- [ ] **IPS-025** Live help labels from bindings; update `ControlsReference` consumers and offline UX assertions. AT-20/28.
+- [ ] **IPS-024** Conflict detection, unbind rules, reset, and the load-time deterministic conflict rule (REQ-P3a). AT-05/06/07/08/17a.
+- [ ] **IPS-025** Live help labels from bindings; update `ControlsReference` consumers, the separate `ScenarioOneTreatmentReview` `[C]`/`[N]` hint constants (candidate) and offline UX assertions. AT-20/28.
 - [ ] **IPS-026** Settings page: rebinding list, keyboard-only operation. AT-14.
 
 ## M3 — Multiple bindings, import/export
@@ -38,7 +40,7 @@ All tasks are `NOT STARTED`. Estimates are rough and unmeasured. Verification re
 
 ## M4 — Remaining consumers
 
-- [ ] **IPS-040** Migrate G, U, R, F, B/RackTool, P, V, J, K, Map Delete/Backspace/Shift, saw pit, storage, buildable, competitor, ecology. Regression AT-22/28.
+- [ ] **IPS-040** Migrate G, U, R, F, B/RackTool, P and N (candidate only; N is contextual to the inspect card, AT-22a), V, J, K, Map Delete/Backspace/Shift, saw pit, storage, buildable, competitor, ecology. Regression AT-22/28.
 - [ ] **IPS-041** Non-QWERTY test and decision implementation (Q6). AT-21.
 
 ## M5 — Optional: gamepad UI navigation (only if Q3 says so)
