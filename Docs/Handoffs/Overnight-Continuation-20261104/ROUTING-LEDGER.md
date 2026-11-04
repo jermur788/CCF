@@ -377,6 +377,20 @@
 - **Outcome:** #253 HANDED-OFF + corrections running; #257 DRAFT-COMPLETE (still DRAFT status; needs Q1–Q13 answers).
 - **Next:** #253 corrections → re-check; then final report.
 
+### EVENT 029 — 2026-11-04 03:52 UTC — union defect fixed and verified on the combined tree; #258 accepted
+
+- **Evidence class:** OBSERVED FACT (I re-ran the re-anchored checker on the combined tree myself; source spot-checks for #258).
+- **#260 anchor fix (`6efba8fd`):** adds `--instruction-state pre-fix|post-fix` mirroring `--rotation-state`; a mismatched copy now reports **FAIL** instead of aborting. Pre/pre keeps the original **6 PASS / 4 FAIL / 2 NOT-TESTABLE**.
+- **DPC re-ran it on the combined #255+#256 tree** (`b9f4d047`, detached worktree, recreated for the run, removed afterwards) with `--rotation-state post-fix --instruction-state post-fix`:
+  - `SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2`
+  - the single FAIL is **check 08 CTA**: `Require exactly one primary source button invoking ui.ShowMap(); labels are evidence only. Baseline primary invokes ui.CloseAll()`. That is the user's unfixed complaint, not a regression.
+  - **This is the first genuinely combined evidence of the night**: #255's four baseline failures flipped, #256's rotation policy validates in its post-fix state, and the remaining failure is exactly the one still awaiting implementation.
+  - **The union-only defect is closed** — the harness now survives the combination it previously aborted on.
+- **#258 round 2 (`a173192f`): accepted as DRAFT-complete, with the review limitation stated.** The author replaced the Boolean ranking with a **visibility/occlusion rule** (FR-2: "the primary cue may target only the foremost visible, enabled surface that owns input; anything obscured… is ineligible regardless of its pending Boolean… this rule also applies to future overlays without appending names to a precedence list"), produced a source-audited inventory with file:line for session/startup, help, onboarding, three rack prompts, Work Plan advance, panels, reference preview and input guards, and added AC-1a/AC-1b, which are exactly the two cases that broke it.
+  - **My verification (not a full re-review):** I read FR-2 at source, confirmed the visibility rule and the explicit "never break ties by Boolean order" clause, confirmed AC-1a/AC-1b exist and are unrun, and spot-checked two citations against the tree (`WorkPlanView.cs:21` = `confirmingAdvance`; `StandMapRackEditor.cs:58` = `ConsentPending`). **Cross-family**: implementer and prior reviewer were both Codex; this check is DeepSeek. It is **not** a substitute for the independent re-review the spec still calls for, and the spec says so itself.
+- **Outcome:** #260 REVIEWED with a verified combined pass; #258 DRAFT-complete (needs the Manager's product decisions and its own final re-review).
+- **Next:** #259 criterion replacement → final report refresh → hand back.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
