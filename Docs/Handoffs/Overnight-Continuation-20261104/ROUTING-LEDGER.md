@@ -157,6 +157,18 @@
 - **Outcome:** RUNNING.
 - **Next:** independent Claude review; its PASS/FAIL table must be cross-checked against the #255/#256 diffs at publication.
 
+### EVENT 012 — 2026-11-04 00:41 UTC — #255 returned; independent review dispatched; #258 lane opened
+
+- **Evidence class:** OBSERVED FACT (child return text, delegation calls, `gh` link) / ORCHESTRATOR CLAIM (diff assessment below is my own reading and is superseded by the review, not a substitute for it).
+- **#255 result (worker claim, OBSERVED at branch level):** branch `feature/overnight-objective-copy-20261104`, commits `16d20d5e`, `af1821b6`; PR **#262** opened and linked; worktree clean. Worker reported old strings absent, new strings present, focused assertions passing, and an existing static suite at 13/14 whose single failure it attributes to a handoff-path allow-list. That attribution is **not accepted** here — EVENT 012 deliberately requires the reviewer to verify it from test source.
+- **My own read of the diff before review** (ORCHESTRATOR CLAIM, explicitly not approval): 9 source lines changed across exactly the two owned files; `16–20 m` → `16–20m` in Objective 1 concept and the `rack.read` step text; `Title(Menu.TreeMarks)` → `Introducing tree marking`; `Explanation(Menu.TreeMarks)` opens with `Scenario 1 introduces 3 CCF markings.`; the `CCF source material` sentence is replaced rather than merely deleted; no other file touched. The handoff is a 4,847-line file for a 9-line change, which is disproportionate and is recorded as a review-quality note, not a defect.
+- **Open question handed to review:** `Title()` is the modal header and, through `SummaryTitle()`, its only other consumer — so the new heading does not appear in a menu list (verified by `git grep` at the PR head). The reviewer must confirm independently and check for stale assertions elsewhere in `Tools/`.
+- **Review dispatch:** pool `claudeAgent` / `claude-sonnet-5-5` / `effort: medium`, role review, read-only detached worktree, `gh pr review 262 --comment` only (never `--approve`). Cross-family by construction: implementer was Codex. Second child on that account (with #253).
+- **#258 dispatch (this event is its cited journal entry):** `codex` / `gpt-6.1-sol` / `reasoningEffort: medium`, branch `docs/overnight-objective-guidance-spec-20261104`, worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104`, base origin/main `8f0f2301`, docs-only four-file DRAFT. The `codex` account is back to two children after #255 finished.
+- **Quota/context/reset:** UNKNOWN for every pool. Nothing observed so far distinguishes healthy headroom from unmeasured headroom.
+- **Outcome:** #255 IMPLEMENTED + UNDER REVIEW; #258 RUNNING.
+- **Next:** reviewer verdict → apply any required fix myself (small findings) or return to the worker; then handoff publication and Manager queue.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
