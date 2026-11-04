@@ -282,6 +282,20 @@
 - **Outcome:** #257 DRAFT + fixes under re-check.
 - **Next:** verdict → if accepted, #257 goes to the Manager decision list with Q1–Q13.
 
+### EVENT 023 — 2026-11-04 02:24 UTC — #259 review (major defect), #258 revision + citations verified, result checkpoint published
+
+- **Evidence class:** OBSERVED FACT (reviewer return; my own citation check; commit `21b20f9e`).
+- **#259 review: acceptable as a DRAFT with one MAJOR and four minor fixes.** The reviewer independently confirmed **all five** current-rendering claims against source at `72b4efbd` (four orange vertical rack stripes; Fell diamond+disc with no slashes at `(1,0.35,0.05)`; Crop blue band+diamond/disc; map Fell red ring and Crop blue ring at `StandMapSymbols.cs:106-107`; minimap with no per-tree glyphs) and confirmed the forestry sourcing is real — the Pro Silva Ireland 2026 guide PDF exists with a matching SHA-256, and diagonal removal slashes, four-sided rack stripes, white/blue quality ring, two lines on retained route-side trees, and hot=orange/pink vs cool=white/blue are all present in its text. The publisher's "widely applied" claim was correctly **not adopted**.
+- **The MAJOR finding is an accessibility defect the spec creates for itself:** rack orange `(0.95,0.28,0.025)` vertical stripes vs Fell orange-red `(1,0.35,0.05)` diagonal slashes remain in the same orange family, separated only by stripe **direction**, with no pre-agreed fallback if that fails on a thin trunk at 15 m. This is precisely the kind of proposal that looks solved on paper and fails at render.
+- **Minors:** map/legend glyph colours never stated (risking a re-created three-surface inconsistency); in-world prompts `RackEntrances.cs:175-176` ("red designation") omitted from the migration inventory; render-check pass condition is only a reviewer verdict; and the FR-3 "Crop Tree" label risks implying the source defines that term.
+- **Routing:** returned to the author on the same branch/PR (`codex_c75d8114`, 2 children). The brief requires a stated separation criterion, a concrete fallback (pink is available from the source itself), explicit map/legend colour decisions, and a binary/numeric render criterion.
+- **#258 revision returned (`bb2ebc63`):** P1 precedence rewritten (ConsentPending → ResetPending → reopenPending → other blocking modals above background cues; only the active prompt gets primary emphasis), P2 makes `RackV2Instruction()` the governing instruction source with a fixed first-eligible correction order, P3 re-derives citations from **main** rather than the candidate.
+  - **DPC verified P3's sample:** on `8f0f2301`, `TreeMarkFell` is at `:106` and `TreeMarkCrop` at `:107` — the author's re-derived numbers are correct, and they differ from the candidate's line numbers, which is exactly why the base had to be stated.
+  - **Re-check dispatched** (`codex`, 2 children) with the question I care about most: *is the blocking-state list complete?* A list that omits one modal re-creates the original P1 defect, so the reviewer must enumerate the real blocking states from `StandMapRackEditor`/`ScenarioOneUiRoot`/`StandMapView` rather than accept the spec's list.
+- **Checkpoint published:** `OVERNIGHT-ORCHESTRATION-RESULT.md` committed at `21b20f9e` while lanes are still running, so a capacity or context interruption cannot erase the night's findings.
+- **Outcome:** #259 DRAFT + MAJOR revision; #258 DRAFT + re-check.
+- **Next:** revisions → final re-checks → final report.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
