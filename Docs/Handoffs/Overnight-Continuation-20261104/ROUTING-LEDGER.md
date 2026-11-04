@@ -328,6 +328,18 @@
 - **Outcome:** #253 HANDED-OFF + UNDER REVIEW; #255/#256 remain REVIEWED; a real cross-lane coupling is now documented.
 - **Next:** #253 verdict; re-anchor the #260 checker; final report.
 
+### EVENT 026 — 2026-11-04 03:06 UTC — #258 precedence still wrong (round 2); #259 revision re-checked
+
+- **Evidence class:** OBSERVED FACT (reviewer returns, PR heads).
+- **#258 re-check: FURTHER CHANGE REQUIRED** on P1 only; P2 (helper authority, first-eligible correction order) and P3 (citations) were **accepted**, with the reviewer confirming all six citation groups against main `8f0f2301`.
+  - **The defect is a direct contradiction, not a gap:** the blocking-state list omits `help.IsOpen`, `help.Onboarding.IsOpen` and Work Plan's `confirmingAdvance`, and **FR-2 ranks a retained rack confirmation above Help even though Help can overlay it**. A deterministic Boolean order that ranks an obscured control above the visible one is worse than a heuristic, because it looks rigorous.
+  - **Fix required by design, not by list:** rank by **visibility/occlusion** — the surface the player can see and interact with is the active prompt — so a future modal is handled correctly without being appended to an enumeration. Tests were required for Help-over-pending-rack-confirmation and Help-over-pending-Work-Plan-advance, the two cases that broke it.
+- **#259 revision returned (`ca87c652`):** all five findings claimed fixed — a stated ≥3:1 luminance separation with a luminance-adjusted **hot pink** fallback that switches the rack presentation across surfaces (and stops for redesign if pink also fails), explicit map/legend colours matching world colours, the designation prompts added to the migration inventory, a two-independent-scorer 100%-within-5-seconds render criterion, and FR-3 wording that keeps "Crop Tree" as a *game* label.
+  - **Re-check dispatched with one instruction that matters more than the rest:** **compute the contrast ratio itself** (WCAG relative luminance) for rack orange vs Fell orange-red and for the proposed pink vs Fell, rather than accepting the claimed ≥3:1. A spec that asserts a contrast figure without anyone computing it is the same failure mode as a handoff that asserts a test passed.
+  - Also required: judge whether 3:1 *luminance* is even the right criterion for two marks distinguished mainly by **shape**, or whether the spec is conflating luminance contrast with shape discriminability.
+- **Pool state:** `codex` 2 (#253 review, #258 round 2), `codex_c75d8114` 1 (#260 anchor fix), `claudeAgent` 1 (#259 re-check), `claudeAgent_claude_b_pro` 1 (#257 round 3). **Quota/reset: UNKNOWN** throughout; still no rate-limit event.
+- **Outcome:** #258 DRAFT + round 2; #259 DRAFT + re-check.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
