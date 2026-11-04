@@ -256,6 +256,22 @@
 - **Pool state:** `codex` 1 (#258 revision), `codex_c75d8114` 1 (#260 follow-up), `claudeAgent` 1 (#253, long), `claudeAgent_claude_b_pro` 1 (#257 fix). Five lanes open total, no lane double-booked beyond two.
 - **Outcome:** #258 DRAFT + NEEDS REVISION.
 
+### EVENT 021 — 2026-11-04 01:58 UTC — #259 returned; review dispatched; DPC verified the three-surface mark table
+
+- **Evidence class:** OBSERVED FACT (child return, PR link, my own source reads at `72b4efbd`).
+- **#259 result:** four-file DRAFT spec + handoff, PR **#266**, head `e5613579`. Docs only; worktree clean.
+- **What the worker reported about current rendering:** rack = four orange vertical stripes; Fell = orange-toned floating diamond + ground disc while help says red and the map draws a red ring, with no diagonal slashes anywhere; Crop = blue trunk band + diamond/disc with a blue map ring; minimap draws route geometry without individual paint glyphs.
+- **DPC verification of the load-bearing colour/shape claims** (`StandMapSymbols.cs:104-105` at `72b4efbd`):
+  - `TreeMarkFell` = `new MapColour(220, 76, 62)` described as **"red ring"** — the *map* Fell really is red.
+  - `TreeMarkCrop` = `new MapColour(78, 140, 236)` described as **"blue ring"** — the *map* Crop is already a blue ring.
+  - The in-world Fell material is `(1, 0.35, 0.05)` (EVENT 013), i.e. **orange-red**, and the rack entrance paint is `(0.95, 0.28, 0.025)`.
+  - Therefore the "marks do not match the words" complaint is really a **three-surface inconsistency**: 3D Fell orange-red, map Fell red, help text "Red — Fell". The user's requested "blue ring for Crop" already exists on the map but not in 3D. This table is published so the morning decision does not have to re-derive it.
+  - Incidental observation for the spec reviewer: `MapSymbol.Shelter` is *also* described as a "blue ring" (`128,182,222`), so a blue-ring Crop mark would sit next to a blue-ring shelter cue.
+- **Forestry claim as reported (NOT verified by DPC):** the worker states Pro Silva Ireland primary guidance supports diagonal removal slashes, vertical rack-removal stripes and white/blue quality-tree rings, and does **not** establish the game as an official implementation. DPC has not read those sources; the reviewer is required to check that each forestry statement has a named, checkable source and that nothing converts practice into a standard.
+- **Review routing:** `claudeAgent` / `claude-sonnet-5-5` / medium. Brief requires a per-claim CONFIRMED/WRONG table for the rendering claims, an accessibility judgement on whether the proposed marks remain distinguishable given the two nearly identical oranges, a saved-data migration check, and a four-surface consistency check (3D, map, minimap, help).
+- **Outcome:** #259 DRAFT + UNDER REVIEW.
+- **Next:** verdict → revision if needed; then Manager decisions on colour policy.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
