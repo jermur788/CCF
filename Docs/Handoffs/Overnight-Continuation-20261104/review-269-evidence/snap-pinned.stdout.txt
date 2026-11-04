@@ -1,0 +1,12 @@
+PASS snap argument: Create, Shift=False -> True
+PASS snap argument: Create, Shift=True -> False
+PASS snap argument: Move, Shift=False -> True
+PASS snap argument: Move, Shift=True -> False
+PASS snap argument: Reshape, Shift=False -> False
+PASS snap argument: Reshape, Shift=True -> False
+PASS unchanged method: Propose
+PASS unchanged method: OnPointerDown
+PASS unchanged method: OnPointerUp
+PASS unchanged method: Apply
+PASS unchanged method: ShiftHeld
+PASS paired instruction text

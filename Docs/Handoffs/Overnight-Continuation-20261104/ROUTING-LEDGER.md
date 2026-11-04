@@ -404,6 +404,202 @@
 - **Outcome:** HANDED-OFF to the Overall Manager (#200).
 - **Next:** Manager approval/integration decisions; the user's playtest and explicit authorisation before any Windows build.
 
+## Post-overnight continuation — 2026-11-04 (DPC resume)
+
+### EVENT 031 — 2026-11-04 01:17 UTC — preflight for #269/#270/#271 and routing decision
+
+> Clock note (OBSERVED FACT): this session's synchronised system clock reads **01:17 UTC on 2026-11-04**, while EVENTS 001–030 carry 02:xx–04:xx stamps. Those stamps are preserved as published history and are **not** re-dated here; continuation times are the real observed clock readings from this session.
+
+- **Evidence class:** OBSERVED FACT (commands run in this session against the live local repository and GitHub).
+- **Authority:** [POST-OVERNIGHT-REVIEW-AND-ROUTING-PACKET.md](POST-OVERNIGHT-REVIEW-AND-ROUTING-PACKET.md) and [MANAGER-HANDBACK-REVIEW-20261104.md](MANAGER-HANDBACK-REVIEW-20261104.md); claims #269/#270/#271 each re-read and confirmed `OPEN` / released, with no competing claimant comment.
+- **Live state checked before any lane was created:**
+  - published candidate `origin/integration/scenario-one-player-test-ready-v1` = **`72b4efbd1c653fa2231f632a79030a83ff76f833`**, i.e. unchanged from the packet; the local stale ref `185200f5` was ignored and the remote ref used.
+  - `main` = **`db43dbe5`**.
+  - PR heads re-read: #261 `9304d318`, #262 `693e24c8`, #264 `6efba8fd`, still targeted at `main`. **Not merged, not rebased, not retargeted.**
+  - neither reserved lane existed: branch `integration/scenario-one-overnight-ui-qualification-v1` and branch `docs/mfm-a-vs-c-offline-20261104-v1` were absent locally and on the remote.
+  - both reserved paths were absent: `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104` and `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`.
+  - disk at admission: **`/media/jer/Files` 103 GiB free (77% used); `/media/jer/ZX20` 54 GiB free (89% used)**. This is a *receipt*, not a standing entitlement.
+  - no Unity Editor process was running; only Unity Hub/licensing helper processes. **No Unity or Player build is started by this continuation.**
+  - primary worktree `/media/jer/ZX20/CCF-Primary` (branch `ops/workflow-foundation-v1`) was clean and was **not** checked out, reset or modified; the user's playtest and staged intro branches were not touched.
+- **Lane creation (all from the exact required bases, no user branch moved):**
+  - #269: new worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104`, new branch `integration/scenario-one-overnight-ui-qualification-v1` created **from `72b4efbd` only**.
+  - #271: new worktree `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`, new branch `docs/mfm-a-vs-c-offline-20261104-v1` created **from `main` `db43dbe5`** (docs lane).
+  - #270: read-only, **no** worktree and **no** source branch; reviewers read the three DRAFT PR heads directly. DPC is the single writer of the consolidated handoff.
+  - ledger: this file is edited only on `docs/v2-routing-continuation-20261104` (this branch) so that every event is a real GitHub commit rather than a retrospective summary.
+- **Routing decision and justification (default Medium, no escalation yet):**
+  - **#269 worker → Claude Sonnet 5.5, effort `medium`** (`claudeAgent_claude_b_pro`). Reason: git-provenance/worktree discipline plus exact-diff review is the dominant risk, which is well matched to Medium; the same pool also authored no part of the 13-file whitelist, so it is independent of #255/#256/#260 authors.
+  - **#271 worker → Claude Sonnet 5.5, effort `medium`** (`claudeAgent`). Reason: fresh provider pool so the A-vs-C study is not authored by the same family that produced the #253 review; difficulty is High, so **escalation to `high`/Opus 5.5 is pre-authorised only with a recorded numeric or modelling shortfall**, not pre-emptively.
+  - **#270 reviewer for #257 → GPT-6.1 Medium** (`codex`, `gpt-6.1-sol`, `reasoningEffort=medium`). #257 was authored by Claude/Sonnet, so OpenAI is the independent family.
+  - **#270 reviewer for #259 → GPT-6.1 Medium** (`codex`, `gpt-6.1-sol`, `reasoningEffort=medium`). #259 was authored by Claude/Sonnet.
+  - **#270 reviewer for #258 → Claude Sonnet 5.5 Medium** (`claudeAgent`). #258 was authored by Codex, so Claude is the independent family.
+  - Cross-review after each worker returns: #269 and #271 will be reviewed by the **opposite provider** before any result is called reviewed.
+  - **Quota / context / reset telemetry: UNKNOWN.** No rate-limit event has been observed in this session; nothing is asserted about ticket balances or future resets.
+- **Explicit prohibitions restated for every child:** do not merge #261/#262/#264; do not target `main` with the staging branch; do not weaken or delete any check to obtain a green result; the Objective 1 CTA check must remain a reported FAIL; no DRAFT spec may become implementation authority; no Unity, no lock acquisition, no Player/Windows build; no edits to `active-tasks.md` (Manager #200 only); no edits to this ledger (DPC only).
+- **Outcome:** lanes created and routing recorded **before** dispatch, as required. Claims remain OPEN until a real child starts and returns its exact provider/model/effort.
+
+### EVENT 032 — 2026-11-04 01:24 UTC — five children actually started; claims move to [RUNNING]
+
+- **Evidence class:** OBSERVED FACT (delegation calls returned `status: running` with live provider/model/thread ids).
+- **#269 [RUNNING]** — provider `claudeAgent_claude_b_pro` (Claude B — Pro), model **`claude-sonnet-5-5`**, effort **`medium`**. Lane `integration/scenario-one-overnight-ui-qualification-v1` at `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104`, starting ref **`72b4efbd`**. Deliverable: 13-file staged branch + PR **based on the candidate**, `ISOLATED-UI-STAGING-HANDOFF.md`, offline 97-check / six snap cases / combined 9-1-2 evidence.
+- **#271 [RUNNING]** — provider `claudeAgent` (Claude A), model **`claude-sonnet-5-5`**, effort **`medium`**. Lane `docs/mfm-a-vs-c-offline-20261104-v1` at `/media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104`, starting ref **`main db43dbe5`**. Deliverable: matched-policy A/C/legacy comparison + `MFM-A-VS-C-COMPARISON-HANDOFF.md` + docs-only PR.
+- **#270 [RUNNING], three independent reviewers in parallel, each independent of that spec's author:**
+  - #257 (Claude-authored) → `codex` **`gpt-6.1-sol`** `reasoningEffort=medium`.
+  - #259 (Claude-authored) → `codex` **`gpt-6.1-sol`** `reasoningEffort=medium`.
+  - #258 (Codex-authored) → `claudeAgent` **`claude-sonnet-5-5`** `effort=medium`.
+  - read-only; no lane branch or worktree; DPC writes the consolidated `FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md`.
+- **Concurrency:** 5 children across 2 provider families (`claudeAgent` pool carries #271 and #258 review; `codex` carries both spec reviews; `claudeAgent_claude_b_pro` carries #269). **Pool capacity, ticket balance and reset windows: UNKNOWN** — no limit event observed at start.
+- **Prohibitions passed to every child** (verbatim in each brief): no merge/rebase/retarget of #261/#262/#264; no main-targeted staging branch; no test weakening — the CTA FAIL must stay FAIL; no DRAFT spec implementation; no Unity/Editor/Library/Player/Windows build; no `active-tasks.md` edits; no ledger edits.
+- **Outcome:** all three claims genuinely executing. Their GitHub issue threads were updated with the same provider/effort/ref facts by DPC.
+
+### EVENT 033 — 2026-11-04 — routing-limit event: both writer sandboxes failed to provision; relaunched without a second sandbox
+
+- **Evidence class:** OBSERVED FACT (two delegation results returned `failed` with `Workspace preparation failed during provision worktree: git worktree add failed`).
+- **What failed:** the #269 and #271 children were first launched with an extra app-managed sandbox worktree. That provisioning step failed **before any task work started** — no model output, no repository change. The reviewers (launched without a sandbox) were unaffected.
+- **What was NOT the cause:** the two packet-mandated lanes existed, were owned by this DPC, were clean, and were still at their exact bases (`72b4efbd` for #269, `db43dbe5` for #271). No partial commit, stash, branch lock or orphaned working tree was left behind; `git worktree list` and both lane `git status` were re-checked clean after the failure.
+- **Retry:** both tasks were relaunched with **no extra sandbox**, bound to the pre-created packet lane paths, with explicit instructions that `/media/jer/ZX20/CCF-Primary` is user state and must stay clean, and that every write happens via the lane worktree.
+  - #269 retry → `claudeAgent_claude_b_pro`, `claude-sonnet-5-5`, effort `medium`, lane unchanged.
+  - #271 retry → `claudeAgent`, `claude-sonnet-5-5`, effort `medium`, lane unchanged.
+- **Limits observed:** none — this was a harness provisioning failure, not a provider quota/context/reset event. Provider availability and remaining budget remain **UNKNOWN**.
+- **Outcome:** RUNNING (retry #1 for both). No escalation triggered; no model/effort change made.
+
+### EVENT 034 — 2026-11-04 — #270 / #257 independent review returns APPROVE-WITH-CHANGES; DPC re-extracted the counts
+
+- **Evidence class:** OBSERVED FACT (reviewer return) + OBSERVED FACT (DPC re-ran the counting commands in this session).
+- **Reviewer:** `codex` **`gpt-6.1-sol`**, `reasoningEffort=medium`, independent of the Claude-authored spec. Read-only: it changed no file, opened no branch and left `/media/jer/ZX20/CCF-Primary` clean (verified `git status --porcelain` empty; HEAD still `46247486` on `ops/workflow-foundation-v1`).
+- **Verdict: APPROVE-WITH-CHANGES** — a draft-stage verdict only, not defaults or implementation approval. Spec head unchanged at **`ae7944aa`**, PR **#263**, `5 files changed, 561 insertions(+)`, no production change.
+- **DPC re-extraction of the published counts (this session, not copied):**
+  - `git grep -o -h -E 'wasPressedThisFrame|wasReleasedThisFrame|isPressed|\.ReadValue\(' <ref> -- 'Assets/ForestPrototype/*.cs' | wc -l`
+  - `72b4efbd` → occurrences **71**, matching lines **63**, files **16**.
+  - `8f0f2301` → occurrences **68**, matching lines **60**, files **14**.
+  - **All three reviewer figures per base match the reviewer's and the author's numbers exactly.** The counting unit is unambiguous for Method A.
+  - **Method B (73/61): still OPEN.** The reviewer's own trial expressions produced `73` occurrences but `63` lines, and the `73/61` pair could not be reproduced. Neither figure is withdrawn; the missing artefact is the original command + definition (ref, path scope, expression, exclusions, control expansion, occurrence-vs-line dedup). This is the **third** independent party to fail to reproduce it, which strengthens the demand for the command rather than the number.
+- **Findings accepted for the consolidated handoff:** R1 (major) §8 defines *settings-source* precedence, not the project authority hierarchy, while the handoff claims the project-level finding fixed; R2 (major) per-device storage does not give shared-account tester isolation, and the spec leaves profiles undecided; R3 (minor) Method B provenance; R4 (minor) `UI/StandaloneSessionMenu.cs` at `72b4efbd` does state "Session actions are keyboard navigable while all forest input is paused" and sets `button.focusable = true`, so the spec's blanket "focus handling not found" is overstated.
+- **DPC spot-check of R1 and R4:** §8 of the spec read directly — it is a settings-source ranking (reserved controls → user setting → scene value → built-in default → never legacy save) and correctly contains no project-authority block; the `focusable = true` line was read in source at `72b4efbd`. Both findings stand.
+- **What the review does NOT establish:** no Unity compile/runtime, no rendered UI, no focus-ring or keyboard-completion run, no real persistence/import atomicity, no network silence, no gamepad/non-QWERTY behaviour, no proof that any default table is valid. `active-tasks.md` untouched; no dashboard write attempted (Manager #200).
+- **Outcome:** #257 review COMPLETE (APPROVE-WITH-CHANGES). Spec remains **DRAFT**; author owes R1/R2 fixes and Method B provenance. Two reviewer lanes (#259, #258) still running.
+
+### EVENT 035 — 2026-11-04 — #259 review returns NEEDS CHANGES; DPC routing error found (same-family reviewer), corrected; numeric corrections appended
+
+- **Evidence class:** OBSERVED FACT (reviewer return, PR head, handoff header read directly) + OBSERVED FACT (DPC recomputation) + ORCHESTRATOR ERROR (admitted, below).
+- **Reviewer:** `codex` `gpt-6.1-sol` medium, read-only, no files changed, checkout clean (`46247486`). It reviewed head **`e13b1c5f`**, PR #266, 5 files.
+- **ROUTING ERROR — DPC's, not the worker's.** I asserted in EVENTS 031/032 that #259 was Claude-authored and therefore dispatched OpenAI as the independent family. The **handoff header (`MARKING-SYSTEM-SPEC-HANDOFF.md:6`) and ledger EVENT 007 both record the author as OpenAI Codex `gpt-6.1-sol` medium.** The reviewer detected this itself and refused to certify its own review as opposite-family. **The attribution in EVENT 032 is wrong and is corrected here**; the GPT review below is retained as a *same-family* technical review, not as the independence gate.
+  - **Root cause:** I briefed from a stale recollection of the ledger rather than re-reading EVENT 007's provider line before dispatch. That is the same class of error the programme keeps punishing in handoffs (asserted provenance not re-extracted). The correct check — read the handoff's own "Worker / role" line — was one command.
+  - **Correction:** a **fresh Claude Sonnet 5.5** review of #259 has been dispatched as the actual independent gate (EVENT 036).
+- **Verdict (same-family, still useful): NEEDS CHANGES before DRAFT completion**; no implementation approval.
+- **DPC recomputation of every published colour number (this session, independent formula implementation):** all six pairs match the reviewer to the last printed digit.
+  - current rack `(0.95,0.28,0.025)` vs Fell → **L 0.234930114, contrast 1.174844, ΔE76 6.004234** (FAILS ≥40, correctly).
+  - fallback `(1,0.08,0.58)` → **L 0.239094967, contrast 1.157919, ΔE76 78.077696**.
+  - `#FF69B4` 78.872468 / `#FFD1E8` 88.281453 / `#C71585` 85.230790 / `#E0218A` 79.150258.
+- **CORRECTION to EVENT 030 (numeric):** EVENT 030 published the fallback ΔE as "**78.10**" and the author-vs-DPC difference as "**0.025**". The exact value under the published constants is **78.077696**, and the difference from the author's **78.0777** is **0.022304**. No criterion outcome changes; the pass/fail of every candidate is unaffected. The correction is dated here rather than by editing EVENT 030.
+- **QUALIFICATION to EVENT 027 (scope, not arithmetic):** "no recognisably pink colour reaches 3:1" was a conclusion drawn from **four samples**, and "barely perceptible"/"decisive" were perceptual claims beyond what palette arithmetic supports. The arithmetic stands; the universal and perceptual wording does not. Candidate list and numbers are the citable evidence.
+- **Accepted findings for the consolidated handoff:** F2 background sampling can hide local bark patches and needs reproducible local sampling + aggregation; F3 the recognition gate is testable but does not establish accessibility, and passing it must not dismiss accessibility failures; F4 migration inventory still misses additional colour-dependent prompts (`ForestTreeMarkingManager.cs:233,270,685`; `RackEntrances.cs:169,178`; `WalkingHudView.cs:264`; `LearningObjectivesView.Curriculum.cs:117`; orange-specific help text in `MenuHelpView.Text.cs`); F5/F6 corrections as above.
+- **What the review confirms (independently useful):** the arithmetic, the ΔE-vs-contrast separation, the world/map/legend contract, and that the draft does **not** claim an official Pro Silva Ireland standard. Current source facts re-verified by the reviewer: rack = four vertical patches `(0.95,0.28,0.025)`; Fell = rotated cube + ground disc `(1,0.35,0.05)` with **no diagonal trunk slashes**; Crop = blue diamond + trunk band; map Fell `(220,76,62)`, Crop `(78,140,236)`.
+- **Outcome:** #259 NEEDS CHANGES (same-family technical review) + independent Claude review dispatched. Still DRAFT; no colour/shape change authorised.
+
+### EVENT 036 — 2026-11-04 — #269 staging returns; DPC independently re-ran all three gates and confirmed the numbers
+
+- **Evidence class:** OBSERVED FACT (child return, PR, and DPC's own re-execution in the lane).
+- **Result:** branch `integration/scenario-one-overnight-ui-qualification-v1`, head **`d3ba4fce3994d5c59b51786c6671dd654791e7d1`**, PR **#273** with **base `integration/scenario-one-player-test-ready-v1`** (the correct lineage; `main` untouched). GitHub reports MERGEABLE and 14 changed files.
+- **DPC re-extraction, not accepted on report:**
+  - `git diff --stat 72b4efbd..HEAD` = **13 whitelisted paths + the new `ISOLATED-UI-STAGING-HANDOFF.md`**, nothing else. Per-PR split verified as 3 (#261) + 6 (#262) + 4 (#264).
+  - `python3 Tools/Verification/RackV2HelpTeaching/run_offline.py` → `RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97`, then `RACK_V2_HELP_TEACHING_FAIL failed=2 static_and_offline=15`.
+  - `python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py --rotation-state post-fix --instruction-state post-fix` → `SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2`; the FAIL is check 08 (Objective 1 primary button still `ui.CloseAll()` / "Back to forest").
+  - Diff review by DPC: `StandMapRackEditor.cs` changes one expression only — `gesture != Gesture.Reshape && !ShiftHeld(e.modifiers)` — so **only the round-handle gesture stops snapping**; Create/Move untouched. `RackV2Objective1EndToEnd.cs` tightens copy to `16–20m` exactly. `UnitStyle` normalises one unit string; the §28 assertion is replaced by an **exact** literal comparison, not loosened. `run_offline.py` adds **two exact paths** (`OBJECTIVE-COPY-HANDOFF.md`, `RackV2Objective1EndToEnd.cs`) with per-path comments, no prefix/wildcard.
+- **The two `run_offline.py` failures are branch-scope guards, correctly labelled:** S10 names six candidate-history files (`ForestSaveController.cs`, `ForestSaveData.cs`, `ForestSaveValidation.cs`, `ForestStartingStand.cs`, `ForestTree.cs`, `ManagementHistoryText.cs`) that are **not in this delta**; S11 fails on the combined footprint. Neither was weakened, skipped or relabelled green. The packet predicted exactly this and DPC confirms the diagnosis is right.
+- **Evidence gaps the stager declared honestly (DPC agrees they are gaps, not failures):**
+  - the six rack-handle snap cases are an **ad-hoc /tmp script narrated inside `RACK-HANDLE-HANDOFF.md`**, not a committed harness; it was pinned to `72b4efbd` because a HEAD-relative version would pass vacuously. Source-static only; it proves nothing about physical drag.
+  - the baseline checker's per-check detail was only captured to `/tmp`; the handoff keeps the tally, not the full log.
+  - `OBJECTIVE-COPY-HANDOFF.md` (≈4,884 lines) and `RACK-HANDLE-HANDOFF.md` (≈3,889 lines) are staged byte-identically because they are whitelisted, and appear to embed large context dumps — a repository-hygiene item for the Manager, **not** something the stager may silently trim.
+- **States:** IMPLEMENTED + STAGED (source). **NOT** Unity-verified, NOT integrated, NOT accepted. Nothing was merged anywhere.
+- **Review:** independent **OpenAI GPT-6.1 Medium** review of the PR diff and a fresh run of all three gates dispatched immediately (EVENT 037 pending).
+- **Outcome:** #269 worker COMPLETE; review in flight.
+
+### EVENT 037 — 2026-11-04 — #270 / #258 independent review: NEEDS CHANGES (3 High); DPC verified the three Highs in source
+
+- **Evidence class:** OBSERVED FACT (reviewer return, PR head) + OBSERVED FACT (DPC read the cited source at `db43dbe5`).
+- **Reviewer:** `claudeAgent` **`claude-sonnet-5-5`** medium, independent of the Codex-authored spec. Read-only, no edits, no branch, primary checkout clean. Subject: PR **#265**, head **`a173192f`**, 5 docs files, no production change.
+- **Verdict: NEEDS CHANGES (minor-to-moderate)**; may stay DRAFT; **not ready for Manager approval**. It also confirms the FR-2 visibility/occlusion rewrite is the right fix for the earlier Boolean-ranking defect, and that AC-1a/AC-1b are genuinely unrun rather than faked.
+- **DPC verified the three High findings directly, not on report:**
+  - **R-01 — `UI/UiKit.cs` sets `button.focusable = false` for every `UiKit.Button`** ("Keyboard focus would let gameplay keys (Tab, M, N) act on the button"). The spec's FR-6 ("visible focus indicator", "Enter/Space activate", "keyboard reachable") is therefore **unachievable today**, and the spec never says so. Confirmed at source.
+  - **R-02 — the destructive choice is the primary one in every rack prompt:** `StandMapView.cs` "Cancel approved work" = `btn-primary`, "Keep approved work" = `btn-ghost`; same shape for "Reset layout" and "Reopen the plan". FR-2 requires restyling consent UX, which is a production visual change needing an owner. Confirmed at source.
+  - **R-03 — `ConsentPending` and `ResetPending` can be co-visible:** `RequestReset()` sets `ResetPending = true` without clearing `consentRetry`, and the Reset control stays enabled under the consent panel; both render in the same card. So FR-2 is **not total by occlusion alone** — its "ambiguous → no primary" backstop is what closes it, and the player gets no guidance in a reachable state. Confirmed at source.
+- **Notable medium findings:** R-04 "owns guidance" vs "owns input" conflated (inline cards are not barriers); R-05 any map pointer-down silently clears the prompts, so they are not "pending until answered"; R-06 first visit auto-opens Help, so AC-2's first cue is Help Continue; R-07 Help can be force-closed by navigation; R-08 `RackPlanProblem` and `RackPlanningAvailable` gate Approve/Advance and Plan Racks; R-09 `rackMode` is unsaved view state, so "derived from saved state" is overstated; R-10 the 16 physical-px target is below today's 1280×720 baseline; R-11 no screen-reader delivery mechanism exists anywhere in source; R-12 diagram acceptance is judgement-only.
+- **Citation quality:** F6 map-symbol table matches all 17 entries; six citation groups spot-checked; remaining drift is ≤3 lines per citation and changes no conclusion (R-15).
+- **States:** review COMPLETE; spec remains **DRAFT**; three High changes owed before the Manager decides anything.
+- **Outcome:** #258 review DONE (NEEDS CHANGES). #259's independent Claude review, #271 study and #269's GPT review still in flight.
+
+### EVENT 038 — 2026-11-04 — #269 independent review returns APPROVE-WITH-CHANGES; final-head receipts published durably
+
+- **Evidence class:** OBSERVED FACT (reviewer return + artifacts on disk, hashed and committed by DPC).
+- **Reviewer:** `codex` **`gpt-6.1-sol`** medium, independent of the Claude stager. It made no repository edits, ran no Unity, and confirmed **PR #273** head `d3ba4fce` on base `72b4efbd`.
+- **Verdict: APPROVE-WITH-CHANGES** — the staged bytes and the bounded production changes pass review; the required changes are about **evidence reporting**, not gameplay code and not test relaxation. It is **not** integration or runtime approval.
+- **Independently confirmed by the reviewer:** all 13 staged files are **byte-identical** to their source heads (`git diff <source-head> d3ba4fce -- <path>` empty per file); `UnitStyle` replaces only the literal `16–20 m`; the two allow-list entries are exact paths; check 08 remains a hard `ui.ShowMap()` FAIL; the only editor change is `gesture != Gesture.Reshape && !ShiftHeld(e.modifiers)` at `StandMapRackEditor.cs:261`; Create keeps advisory snapping, Move still uses `MoveAlongHeadland` (not `SnapFar`); copy keeps orange stripes / red Fell label / blue Crop label, claims no resolved world-map colour, no official standard, no implemented #258 CTA.
+- **Independent re-runs match the stager and my own runs exactly:** `checks=97` + `failed=2`; `SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2`; single FAIL = check 08; with `--base 72b4efbd` S11 passes and S10 still rejects the combined footprint; the pinned snap script reproduces 12/12 pass. **Three parties (stager, DPC, reviewer) now agree on every number in this lane.**
+- **Correction to my own EVENT 036 wording:** I repeated the stager's claim that the snap script lived only in `/tmp`. The reviewer found the script and its output **are committed inside `RACK-HANDLE-HANDOFF.md:3716`**; only the *re-run* artefacts were ephemeral. That is better than I recorded, and the ephemeral gap is now closed.
+- **R1 (medium) SATISFIED by DPC action, not by moving the reviewed head:** the reviewer produced final-head raw receipts and the exact pinned script; I copied them into this ledger branch at `Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/` (help stdout, baseline stdout, candidate-base diagnostic, `snap-pinned.py`, `snap-pinned.stdout.txt`) with SHA-256 hashes recorded in the commit. **PR #273's reviewed head was deliberately not modified** — re-cutting a reviewed head to add evidence would invalidate the review it is meant to support.
+- **R2 (low) recorded, not "fixed":** `check_baseline.py:218` check 06 still prints the historical `snap argument is !ShiftHeld(e.modifiers)` line, labelled `BASELINE OBSERVATION`; it is historical wording, and any cleanup must preserve the NOT-TESTABLE count and every assertion. No edit made.
+- **R3 (low) escalated to the Manager as a hygiene decision:** the two staged handoffs are 4,884 lines / 450,266 bytes and 3,889 lines / 322,835 bytes with large copied transcripts, and `git diff --check` reports trailing whitespace inside those dumps. Byte-identical staging was correct under the whitelist; whether they should remain permanent documentation is **not DPC's call**.
+- **States:** REVIEWED (source), STAGED. **NOT** integrated, NOT Unity-qualified, NOT accepted, NOT CTA-fixed. The reviewer explicitly refuses to call the candidate runtime-qualified.
+- **Outcome:** #269 = REVIEWED and ready to hand to the Manager as a source-staging result. Only #271 and #259's independent review remain in flight.
+
+### EVENT 039 — 2026-11-04 — #259 independent Claude review: APPROVE-WITH-CHANGES; my own numeric "correction" corrected again
+
+- **Evidence class:** OBSERVED FACT (reviewer return, recomputation by DPC) + CORRECTION of EVENT 035.
+- **Reviewer:** `claudeAgent_claude_b_pro` **`claude-sonnet-5-5`** medium, the actual independent family (author = OpenAI Codex, confirmed from the handoff header by this reviewer too). Read-only, clean checkout, no PR.
+- **Verdict: APPROVE-WITH-CHANGES as a DRAFT.** All the author's numbers reproduce; every checked source claim about `72b4efbd` is correct; the Pro Silva attributions match the primaries; the spec makes **no** official/statutory-standard claim and never says "WCAG".
+- **CORRECTION TO MY EVENT 035 CORRECTION.** I told the record that the author's `78.10` "should read 78.077696". That was too strong. DPC recomputation this session:
+  - full-precision IEC sRGB→XYZ matrix → **78.0777**;
+  - truncated IEC matrix (`0.4124, 0.3576, 0.1805 …`) → **78.1025**;
+  - so the published `78.10` is a **constant-set difference, not an arithmetic error**, and across common matrices the value spans **78.0744–78.1025**. Correct record: quote the constant set, allow a **±0.05** tolerance, and stop calling either figure wrong. The ≥40 floor is insensitive to it.
+  - Likewise EVENT 027's "no recognisably pink colour reaches 3:1": DPC verified a dark rose `(0.45,0.02,0.2)` reaches **3.7287:1** and `(0.4,0,0.15)` **4.2020:1**. The universal claim is false; the spec's own correct phrasing ("3:1 requires L ≥ 0.954 or ≤ 0.0616") stands. Only *hot/light* pinks fail.
+- **DPC verified the two numbers that matter for the review's force:** truncated-matrix ΔE = 78.1025 exactly, dark-rose contrast = 3.7287 exactly.
+- **Findings accepted (9):** R1 region-median background sampling can hide an erasing bark patch (concrete local-window rule + negative-control fixture proposed); R2 recognition protocol has a **memorisation confound** (same captures shown in every mode to the same scorers) and no real CVD participant; R3 human accessibility feedback has **no disposition** — a barrier reported alongside a passing score can still be dismissed; R4 migration inventory is far shorter than reality (≈20 colour-dependent player-facing strings, with the full line-cited list now recorded); R5 paint alone cannot reach 3:1 on mid-light bark and Beech is in the fixture list, so the edge is effectively mandatory and a single edge cannot serve pale and dark bark; R6 **map colour collisions are ungated** (Crop ring vs Shelter ring ΔE 36.33; orange vs amber planned-route ΔE 48.96/52.42 at contrast 1.59/1.87; orange Fell vs red-dashed refused-rack line ΔE 30.39); R7 "sourced established practice"/"documented Irish CCF practice" overstates one NGO's published system; R8 "orange-first, pink fallback" is **nominal** because orange-vs-orange fails by construction, so the real choice is "pink rack or change Fell", and pink buys nothing for grayscale or tritan; R9 normative arithmetic duplicated across four files (drift risk).
+- **Cross-check of the earlier OpenAI review:** R1/R2/R3/R4 of this review confirm its F2/F3/F4, and it states F4 was itself incomplete (missed `ForestPlayer.cs:1213`, `StandMapView.cs:775`, `WalkingHudView.cs:284`, `WorkPlanView.cs:500`, Curriculum 34/36/37/56). It confirms F5 only as a constant-set note (see correction above).
+- **States:** #259 review COMPLETE (both families have now reviewed it). Spec stays **DRAFT**; no colour or shape change authorised.
+- **Outcome:** all three #270 spec reviews are complete. Consolidated `FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md` is now being written by DPC.
+
+### EVENT 040 — 2026-11-04 — #271 study returns NO-COMPARISON; DPC re-derived the geometry from raw fixtures
+
+- **Evidence class:** OBSERVED FACT (child return, PR, rederivation run by DPC) + OBSERVED FACT (byte-identical output on re-run).
+- **Result:** branch `docs/mfm-a-vs-c-offline-20261104-v1`, head **`4d0abd1b`**, PR **#274** to `main`, **seven new files**, nothing existing modified; legacy/parallel baseline preserved. Worker reported medium effort was sufficient and **no escalation was needed**.
+- **Verdict produced: NO-COMPARISON.** The matched measurement of the legacy baseline and Option A is defensible; **fallback C has no single geometry the evidence supports at 45°**, and the three constructions the worker had to define itself disagree widely (C-S45 needs a Rack V2 behaviour change — two racks have no legal headland entrance; C-H45 is legal but is one direction family and drops the spine; C-J45 fails the 2.4 m editor clearance). Manufacturing a winner was explicitly refused.
+- **DPC independent re-derivation (ran `rederive_from_raw.sh`, which does not import the study script or #253's):**
+  - R1/R2 rectangle gap **0.214214 m** (positive ⇒ no overlap); centreline separation **1.414214 m** (< 2.4 m ⇒ editor refuses). The corrected record holds.
+  - spine z-extent **77.489182 m**; `64/sin45` = **90.50967 m**; `asin(64/extent)` = **55.68205°**; max equal gap for five racks at 45° = **13.69828 m**.
+  - corridor union **524.25 m²**; non-corridor **5,875.75 m²**; nearest-rack ground beyond 9/12/20 m = **2,246.00 / 1,718.25 / 830.00 m²**; **103** living stems inside the reference corridors (matches published #251).
+  - **Every one of these matches the worker's published figures exactly.**
+- **Reproducibility:** I ran the study twice and `results.json` was **byte-identical** both times; the committed copy is reproducible from the repository state.
+- **Honest limits carried, not glossed:** Python port ≠ production C#; "covered" is an **upper bound** (competition test not computed; legacy port 14/14 vs recorded C# 12/14); spine masks unavailable so spine-bearing counts are upper bounds; the C layouts, the 15 m cap and the south-window assumption are the worker's own; the sample-footprint overlap (150.6 m²), Confirm-gate counts and grouping sweep were **not** re-derived and are flagged as carried from #253.
+- **The finding with product consequence:** #251's "C cannot hold 45°" rests on a **16 m gap that is D-068 Manager guidance, not an enforced rule**; at that spine, 45° geometry fits four racks at ≥16 m or five at a maximum equal gap of 13.70 m. That reframes the 45° target as a *scope decision* rather than a geometric impossibility.
+- **States:** research COMPLETE, **NO-COMPARISON**; grants no production or spec approval and changes no Rack V2 behaviour.
+- **Review:** independent **OpenAI GPT-6.1 Medium** review of PR #274 dispatched immediately (EVENT 041 pending), including a re-run and a judgement on whether NO-COMPARISON is the correct verdict.
+
+### EVENT 041 — 2026-11-04 — #271 independent review APPROVE-WITH-CHANGES; DPC corrects its own EVENT 040 summary
+
+- **Evidence class:** OBSERVED FACT (reviewer return, PR, numbers checked by DPC in `results.json`).
+- **Reviewer:** `codex` **`gpt-6.1-sol`** medium, independent of the Claude author. Read-only, temporary outputs removed, lane clean and unchanged. Verdict **APPROVE-WITH-CHANGES — research only**; no production/spec/default approval. **NO-COMPARISON is judged appropriate for choosing an overall product winner**, while noting that numerical comparison *between the explicitly constructed layouts* is already valid within the model.
+- **Reviewer reproduces every published number** (all eight A/C rows and the legacy row identical; area totals identical; the three pinned fixture hashes match #251 Appendix A; `rederive_from_raw.sh` imports neither script) and confirms **policy symmetry**: the same layouts/evaluation/cap paths, ownership variants, sample selection and thresholds apply to every option, with **no option-specific exception** favouring A or C.
+- **CORRECTION TO MY EVENT 040 (medium, R1).** I repeated "C-H45 … not better than A on lateral ownership". That is **false for two of the four caps**: at 12 m C-H45 uncovers **41.29%** vs A **44.77%**, and at 9 m **42.21%** vs **49.03%**. The ordering is **cap-dependent** — A is better at 20/15 m, C-H45 at 12/9 m. The worker's own table supports this; I summarised its prose instead of reading the table. Corrected record: the comparison is a **crossing**, not a win for either.
+- **QUALIFICATION (R2).** `13.69828 m / 55.68205°` are correct **only for the straight-spine z-only approximation**. The C-S construction uses actual endpoint x coordinates and yields **13.747542877 m** at 45° — DPC confirmed both values present in `results.json` (`13.698281430…` and `13.747542877…`). Also the z extent is **77.48918 m** while raw polyline length is **79.77026 m**; the handoff must qualify which is used. Treating 13.70 m as an exact minimum yields only four racks, as the committed rederivation itself shows.
+- **QUALIFICATION (R3).** Missing masks make retained/treatable counts optimistic but do **not** establish a monotonic upper bound on **covered units** — exclusions change sample and unit density/DBH and can flip comparisons either way. The ceiling claim must be limited to omission of competition **within the fixed modelled population**; coverage after adding missing masks is **unknown**.
+- **R4:** the 3.06–56.31% span varies **both** construction and ownership rule; geometry-only discussion needs fixed-owner ranges. **R5:** five fixtures are read but only three hashes are enforced; `suggested_racks.json`, which controls legacy geometry, is neither pinned nor documented.
+- **Minimum evidence for a decision-grade comparison (reviewer):** a Manager-defined fallback target and fixed inspectable C geometry; explicit spacing/entrance assumptions; matched ownership/reach/sample policy; complete masks; competition-inclusive coverage; plus C#/Unity qualification for production acceptance.
+- **States:** #271 research REVIEWED. Still **NO-COMPARISON** for choosing a winner; no policy default, no Option A approval, no Rack V2 change.
+- **Outcome:** all three claims (#269, #270, #271) have returned and been independently reviewed. Consolidated return to the Overall Manager is the last step.
+
+### EVENT 042 — 2026-11-04 — continuation closed; consolidated return published to the Overall Manager
+
+- **Evidence class:** OBSERVED FACT (git state and PRs read back after publication).
+- **Published:** [POST-OVERNIGHT-CONTINUATION-RESULT.md](POST-OVERNIGHT-CONTINUATION-RESULT.md) — the return document covering all three claims, the routing record, the four self-corrections, the Manager decision list, the exact Git state and the non-proofs.
+- **Final claim states:**
+  - **#269** — STAGED / REVIEWED (source). PR #273 on the candidate lineage. Check 08 (Objective 1 CTA) remains a deliberate FAIL.
+  - **#270** — REVIEWED; all three specs remain DRAFT; consolidated handoff published with 19 Manager decisions.
+  - **#271** — RESEARCH; NO-COMPARISON; no policy default, no Option A approval.
+- **Routing totals for this continuation:** 5 worker/reviewer children + 3 post-return reviews (8 model runs) across 2 families; **0 escalations**; 1 sandbox-provisioning retry; quota/reset **UNKNOWN** throughout.
+- **Git hygiene:** `main` `db43dbe5` untouched by these claims; candidate `72b4efbd` unmoved; #261/#262/#264 open and untouched. Two lane worktrees retained for follow-up.
+- **No Unity, no Editor, no Library, no Player or Windows build at any point.**
+- **Outcome:** RETURNED TO MANAGER (#200). DPC work on this continuation is complete.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
