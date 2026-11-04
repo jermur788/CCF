@@ -1,6 +1,6 @@
 # INPUT-SETTINGS-SPEC-HANDOFF — Issue #257
 
-- **Status:** **DRAFT** (docs only). Not reviewed, not integrated, not accepted. Independent GPT-family review still required (#257 comment).
+- **Status:** **DRAFT** (docs only). Not integrated, not accepted, not approved. Independent GPT-family review has run twice on PR #263 (NEEDS CHANGES, then FURTHER CHANGE REQUIRED); this file's §8 answers the third (final) revision round. A further independent re-check is still required before any acceptance (#257 comment).
 - **Task:** CCF #257 — mouse sensitivity, rebindable controls, consent-based tester preferences.
 - **Branch / worktree:** `docs/overnight-input-settings-spec-20261104` in `/media/jer/Files/CCF/Operations/CCF-Overnight-InputSpec-20261104`, from `origin/main` `8f0f2301`.
 - **Deliverable:** `specs/player-input-settings-and-feedback-v1/{spec.md, plan.md, tasks.md, checklists/requirements.md}` plus this file.
@@ -14,7 +14,7 @@
 ## 2. Key findings (details with file:line in `spec.md` §2)
 
 1. Sensitivity is one serialized field (`ForestPlayer.cs:16`, used `:307`); nothing saves it. Verification tooling reads it by reflection (`CameraLookDiagnosis.cs:122`).
-2. There is **no rebinding layer**: **71 control reads in 16 files on candidate `72b4efbd` (68 in 14 files on main)**, by the reproducible command in `spec.md` O-7a; no `InputAction`/`PlayerInput` use in `Assets/ForestPrototype/*.cs`; the template `.inputactions` is not used by code (scene/prefab references not inspected).
+2. There is **no rebinding layer**: **71 control reads in 16 files on candidate `72b4efbd` (68 in 14 files on main)**, by Method A (token occurrences) in `spec.md` O-7a — the reviewer's Method B ("control-access") reports 73 / 61 / 16 on the candidate and is recorded there as reported, not reproduced; no `InputAction`/`PlayerInput` use in `Assets/ForestPrototype/*.cs`; the template `.inputactions` is not used by code (scene/prefab references not inspected).
 3. `ControlsReference` is help text only, with offline checks asserting its labels.
 4. Esc is handled independently in **four consumer files** (`ForestPlayer`, `RackTool`, `ScenarioOneManager`, `ScenarioOneUiRoot`) with `RackTool.EscapeFrame` as the only coordination.
 5. No settings/controls page exists in the F10 session menu; no keyboard/gamepad UI-focus handling was found; Tab is both Work Plan and the usual UI focus key.
@@ -52,7 +52,7 @@ Any summaries would come from a small, self-selected convenience sample, with un
 
 ## 6. Next steps
 
-Independent review (different provider); Manager answers §4; decision-log entry; only then does a Manager create M1 task packet(s). No implementation should start from this DRAFT.
+Independent re-check of the final revision round (different provider; never self-approval); Manager answers §4; decision-log entry; only then does a Manager create M1 task packet(s). No implementation should start from this DRAFT.
 
 ## 7. Review response (Codex NEEDS CHANGES on PR #263; original author's fixes)
 
@@ -66,11 +66,11 @@ Status remains **DRAFT**. Docs only. Re-verified from source with `git grep`/`gi
 | 4 | No authority hierarchy / ambiguity stop conditions | **ACCEPTED, FIXED** | New `spec.md` §8 (rank table: fixed keys > user setting > validated import > default > scene value treated as default > game save never) and §9 (S-1…S-8, S-1 = any save-schema need); `plan.md` and `tasks.md` header point to them. |
 | 5 | "Esc in five places" wrong | **ACCEPTED, FIXED** | O-13 now "four consumer files, eight `escapeKey` reads" with [M]/[C] lines; no fifth invented; handoff finding 4 corrected. |
 
-**Inventory re-derived (not adopted from the reviewer).** Command: `git grep -o -h -E 'wasPressedThisFrame|wasReleasedThisFrame|isPressed|\.ReadValue\(' <commit> -- 'Assets/ForestPrototype/*.cs' | wc -l` (`-n` for lines, `-l` for files). **[C] 72b4efbd: 71 occurrences / 63 lines / 16 files. [M] 8f0f2301: 68 / 60 / 14.** Reviewer: 73 / 61 / 16. File count agrees; occurrences and lines do not, and the reviewer's method is not stated, so the difference is unexplained rather than resolved; the spec keeps the stated, reproducible figures. My earlier "~75 across 15" was an estimate that missed two candidate files and mixed bases; ≈75 survives only as a count of *distinct controls* (the digit-key loop in `CompetitorAssessment` is one read site for five keys).
+**Inventory re-derived (not adopted from the reviewer).** Command: `git grep -o -h -E 'wasPressedThisFrame|wasReleasedThisFrame|isPressed|\.ReadValue\(' <commit> -- 'Assets/ForestPrototype/*.cs' | wc -l` (`-n` for lines, `-l` for files). **[C] 72b4efbd: 71 occurrences / 63 lines / 16 files. [M] 8f0f2301: 68 / 60 / 14.** Reviewer: 73 / 61 / 16. File count agrees; occurrences and lines do not, and the reviewer's method is not stated, so that difference was unexplained at this point (superseded by §8: both figures are now kept, each with its method). My earlier "~75 across 15" was an estimate that missed two candidate files and mixed bases; ≈75 survives only as a count of *distinct controls* (the digit-key loop in `CompetitorAssessment` is one read site for five keys).
 
 **Rejected:** none outright. Finding 2's premise "21 is wrong" was rejected in part (21 is right for main).
 
-**Still unverified:** the reviewer's 73/61; whether scenes/prefabs reference `InputSystem_Actions.inputactions`; all Unity, UI-focus, Input System API, device and layout claims; line numbers for files not re-checked on [C] (cited as [M]).
+**Still unverified (as of round 1; see §8 for the current state):** the reviewer's 73/61; whether scenes/prefabs reference `InputSystem_Actions.inputactions`; all Unity, UI-focus, Input System API, device and layout claims; line numbers for files not re-checked on [C] (cited as [M]).
 
 ---
 
@@ -83,10 +83,26 @@ Status remains **DRAFT**. Docs only. Re-verified from source with `git grep`/`gi
 | Journal entry | **EVENT 006** (ledger text itself not edited; ROUTING-LEDGER.md is the DPC orchestrator's sole-writer file) |
 | Pool / provider | `claudeAgent_claude_b_pro` (Claude B, Pro pool) |
 | Model / effort | `claude-sonnet-5-5`, `effort: medium`, role `design` (DRAFT-spec writer) |
-| Reviewer | not yet run; independent GPT-family review required before any acceptance; this worker cannot approve its own work |
+| Reviewer | independent GPT-family review run twice (NEEDS CHANGES; FURTHER CHANGE REQUIRED); final revision round answered in §8; a re-check is still required before any acceptance; this worker cannot approve its own work |
 | Base | `origin/main` `8f0f2301`; candidate read `72b4efbd`, via `git show` only |
 | Unity | not started, no lease requested, deferred tonight on disk grounds |
 | Quota / tokens / context | UNKNOWN; no telemetry exposed and none estimated |
 | Retries / failures | none; one tool-status interruption, no effect on content |
 | Self-assessed risk | Medium: a draft is only as good as the unrun matrix; unverified UI-focus and Input System API assumptions are flagged, not resolved |
 | Routing evidence returned for the DPC orchestrator | Task completed in the same worker session; no escalation needed; no scope breaches |
+
+
+## 8. Review response — final revision round (FURTHER CHANGE REQUIRED on four points; Status stays **DRAFT**)
+
+Docs only. Accepted and untouched this round: N shortcut, [M]/[C] labelling, the Esc correction (four files, eight reads at both commits), privacy / sample-caveat / API-unverified sections, DRAFT status. Head before this round: `e7b02c20`.
+
+| # | Finding | Outcome | What changed |
+|---|---|---|---|
+| 1 | REQ-P3a let a required-vs-required collision leave a required action unbound | **FIXED** | `spec.md` REQ-P3a steps 2-4 and new step 6; REQ-B4; Q13; new AT-17b; `tasks.md` IPS-024. The policy is now total: step 4 cases (a) default free, (b) default held by optional action (optional loses), (c) default held by another required action (earlier table row keeps it; the later takes its own free default, else the whole binding set is rejected, defaults applied). Invariant: built-in defaults are collision-free and bind every required action. One function for load, interactive edit and import. |
+| 2 | Project-level authority hierarchy missing | **FIXED** | `spec.md` §8 rewritten: fixed keys (rank 0) > valid user setting incl. an applied validated import (rank 1) > scene/prefab serialized value (rank 2) > built-in default (rank 3); legacy saved value never consulted; "a game save never supplies input settings". Consistent with fixed keys (Q4) and REQ-P1/P4/S5. `tasks.md` header updated. |
+| 3 | S-6 conflicted with summary/export | **FIXED** | `spec.md` S-6 now lists permitted writes (settings file + `.bak`; opt-in REQ-F2 summary; player-requested export to a location they pick), what still stops an implementer, and states S-6 is a build-time stop condition, never a runtime gate. Only cancel, opt-in off (summary only), a file-system error, or failed content validation may block a requested export. |
+| 4 | Import/default/per-device-storage precedence unclear | **FIXED** | `spec.md` REQ-B6: one rule — an import is a bulk edit of the per-device user setting: it equals a whole-set reset-to-defaults followed by the file's values, written once, atomically, to the per-device store; it creates no second store; a rejected import changes nothing. |
+| 5 | Inventory dispute (71/63/16 vs 73/61/16) | **PARTLY FIXED; one part REJECTED WITH REASON** | `spec.md` O-7a: Method A (verbatim command; [C] 71 / 63 / 16; [M] 68 / 60 / 14, re-run this round) and Method B (reviewer, "control-access"; 73 / 61 / 16 on [C]) are both kept and labelled, with where A's token counting differs from a per-access count. **Rejected with reason:** B's exact command was not available to this author and no pattern I tried yields 73 *and* 61; I will not invent a command. B is recorded as reported/attributed, and open item IPS-020a asks the reviewer to append the exact command. |
+| 6 | Citation error + stale handoff wording | **FIXED** | The review text naming the citation was not in my inputs, so I re-checked every file:line cited in `spec.md` §2 against both commits and found one real error: O-7a said `StandMapRackEditor.cs:252` is "not counted", but that line is counted once for `shiftKey.isPressed`. Corrected in O-7a and O-17. If the reviewer meant a different citation, please name it. Handoff header, finding 2, §6, the appendix "Reviewer: not yet run" line and the §7 "unexplained" wording were stale and are updated. |
+
+Not done: no code, no save-schema change, no collection, no Unity; `active-tasks.md` and `ROUTING-LEDGER.md` untouched; nothing merged or approved.

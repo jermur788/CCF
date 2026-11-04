@@ -46,7 +46,7 @@ Recommended order: **M0 → M1 → M2 → M3 → M4**, with M5/M6 only on explic
 | UI Toolkit focus capability unknown (O-16) | Spike inside M1 behind a Unity session; if not focusable, add explicit key handlers, not a framework |
 | Reflection access to `mouseSensitivity` (O-4) | Keep field name, or update diagnostic in same change |
 | Candidate vs main diverge (O-12: P and N keys, line shifts, save version 21 vs 24) | Re-run the O-7a command against the actual base before M2; stop condition S-5 if a consumer is unlisted |
-| Load-time binding collisions (REQ-P3a) | Deterministic rule + AT-17a; never silently reassign a valid user override |
+| Load-time binding collisions (REQ-P3a) | Deterministic rule + AT-17a/17b; never silently reassign a valid user override; no path leaves a required action unbound |
 | Misuse of preference data | Spec §3.7 wording; no "optimal" claims; N always shown |
 | Consent/privacy | Opt-in only, wording approved by user, no network code (REQ-F4) |
 | Scope creep to gamepad gameplay | Q3 decision; non-goal 5 |

@@ -53,7 +53,7 @@ All boxes are unchecked: spec drafting is not implementation evidence. Nothing h
 - [ ] **REQ-P1** Survives restart, save/load, new scenario, scene switch — AT-02..04
 - [ ] **REQ-P2** Device change safe — AT-16
 - [ ] **REQ-P3** Missing/invalid binding handled — AT-17, AT-18
-- [ ] **REQ-P3a** Deterministic load-time conflict resolution (override beats restored default; table-order tie-break; required-action floor) — AT-17a
+- [ ] **REQ-P3a** Deterministic load-time conflict resolution (optional override beats restored default; table-order tie-break; total required-action floor, no path leaves a required action unbound) — AT-17a, AT-17b
 - [ ] **REQ-P4** Settings schema version and forward-compat — AT-19
 - [ ] **REQ-P5** Layout handling decided — AT-21
 - [ ] **REQ-P6** Atomic settings write — AT-17
