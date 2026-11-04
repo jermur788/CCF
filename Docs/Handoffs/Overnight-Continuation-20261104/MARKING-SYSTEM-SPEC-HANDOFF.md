@@ -69,7 +69,7 @@ Permissible wording: **“Game markings informed by Pro Silva Ireland practice.�
 
 ## Draft recommendation and decisions requiring approval
 
-The draft recommends exactly three introductory meanings: orange **vertical** rack-removal entrance stripes; orange **diagonal** individual Fell slashes; blue **ring** for retained/favoured Crop Trees. Shape plus label is mandatory; two orange meanings cannot rely on colour differentiation. Keep field entrance painting distinct from route lines, selected editing entrances, retained route-side trees and actual cleared/executed routes.
+The draft recommends exactly three introductory meanings: orange **vertical** rack-removal entrance stripes (hot-pink fallback under revised FR-4); orange **diagonal** individual Fell slashes; blue **ring** for retained/favoured Crop Trees. Shape plus label is mandatory; the review revision below adds measured luminance separation and a hot-pink rack fallback rather than relying on stripe direction. Keep field entrance painting distinct from route lines, selected editing entrances, retained route-side trees and actual cleared/executed routes.
 
 Manager/user must resolve the spec's **O1–O4** before implementation:
 
@@ -86,7 +86,7 @@ The plan/tasks are drafted dependencies, all production tasks BLOCKED. No marker
 
 Future exact steps and expected observations are in spec **AC-1–AC-7**, every row at **1280×720 and 1920×1080**, after fresh authorised Unity 6000.6.0f1 admission. These cover four-sided paint, light/shade/crowding, grayscale and three colour-vision simulations plus human review, full map and minimap visibility policies, help fit, native Linux input, current/genuine-old-save and work-state transitions, Legacy40/frozen reference and same-fixture performance. Harnesses must be inspected before copy/run/remove; protect original saves and remove generated temporary `.meta` files. Durable outputs belong on Files.
 
-**All runtime/rendered/input claims remain UNVERIFIED; all performance/contrast/recognition measurements UNMEASURED.** Independent research/spec review has not occurred. No author approval or qualification token is issued. The protected integration/player-test branch was untouched and no merge is authorised by this handoff.
+**All runtime/rendered/input claims remain UNVERIFIED; all performance/contrast/recognition measurements UNMEASURED.** Initial independent review accepted the DRAFT foundation and returned the findings addressed below; revised text awaits re-review. No author approval or qualification token is issued. The protected integration/player-test branch was untouched and no merge is authorised by this handoff.
 
 ## Explicit unknowns and operational follow-up
 
@@ -96,7 +96,7 @@ Future exact steps and expected observations are in spec **AC-1–AC-7**, every 
 - Statutory/formal national adoption status, independent usage prevalence, contractor/site variation and any European-wide paint mandate; no inference from publisher self-description.
 - The photographed book's full bibliographic identity/edition/date and unresolved footnote; not repaired by finding a newer guide with matching practice. Source graphics' reuse rights not investigated.
 - Final shades, dimensions, recognition distances and performance budget; all require O4 disposition. Legacy40's unchanged-path approach requires actual regression proof.
-- Independent other-provider review and Manager/user approval; not self-assigned to this child. DPC should route the published exact PR head for source/forestry review.
+- Independent re-review of this revision and Manager/user approval; not self-assigned to this child. DPC should route the revised exact PR head for review.
 - Dashboard ingestion/publication state was not inspected or changed. #200/DPC must record this DRAFT/PR in authorised coordination and confirm dashboard synchronisation; this worker cannot claim operational closure from its own document publication.
 - Provider quota/reset/context usage, total tokens and duration beyond visible receipts remain UNKNOWN. No Unity admission, disk headroom or machine-wide lease state was checked or implied.
 
@@ -117,4 +117,22 @@ Future exact steps and expected observations are in spec **AC-1–AC-7**, every 
 | Ownership / candidate | Assigned lane verified clean at `8f0f2301`; common store verified; `72b4efbd` source-only reads. Five owned Markdown paths; no coordination/ledger/other-lane mutation. |
 | Unity / review / outcome | Unity deliberately forbidden/deferred. **DRAFT**, awaiting independent other-provider review, O1–O4 and Manager disposition; no merge/integration/acceptance claim. |
 
-**Routing handback for DPC:** append EVENT 007 outcome using this source correction, primary-source evidence, exact published PR/head and honest UNKNOWN capacity metrics. Arrange independent research review; #200 owns authority/coordination/dashboard updates. Do not release production marking work from this DRAFT.
+**Routing handback for DPC:** append EVENT 007 outcome using this source correction, primary-source evidence, exact published PR/head and honest UNKNOWN capacity metrics. Arrange independent re-review of the revision; #200 owns authority/coordination/dashboard updates. Do not release production marking work from this DRAFT.
+
+## Review response
+
+**DRAFT revision for PR #266; no production or Unity change, no approval of O1–O4.**
+
+| Finding | Disposition / change |
+|---|---|
+| 1 — MAJOR: near-orange rack/Fell separation and missing fallback | FIXED in draft: FR-4 requires >=3:1 measured interior luminance separation at every required view, including thin textured trunks at 15 m, independently of stripe direction; complete-matrix pink fallback defined. Measurements remain UNMEASURED. |
+| 2 — map/legend colours unspecified | FIXED: explicitly orange Fell glyph/legend (replacing current red), orange rack glyph/legend or selected fallback pink, and blue Crop glyph/legend; each matches its qualified world colour. |
+| 3 — in-world designation prompts omitted | FIXED: migration inventory includes `ForestTreeMarkingManager.RackEntrances.cs:175–176` blue/red designation prompts → Crop Tree/Fell designation; also audit colour-sensitive entrance prompts. Rejection behaviour stays unchanged. |
+| 4 — recognisable depended on reviewer verdict | FIXED: FR-4 sets five-second, label-hidden, answer-key scoring by two independent people, each 100% correct per resolution/mode/distance; unsure/late/missing fails, raw answers/timings retained. AC-1/2/4 reference it; other AC rows retain observable state assertions and AC-7 requires an approved numeric budget. |
+| 5 — source quality ring conflated with Crop Tree | FIXED: source blue/white ring denotes high timber quality; “Crop Tree — retain/favour” remains an explicit game calibration label inspired by that practice, not its definition. |
+
+**New fallback rule:** if orange rack versus orange Fell fails either >=3:1 luminance separation or scored recognition in any required view, switch rack paint/glyph/legend/help swatch/colour wording atomically to luminance-adjusted hot pink, keep Fell orange, and rerun the full matrix; stop for redesign if pink fails.
+
+Source claims remain attributed practice, with no adoption of the publisher’s “widely applied in private and state forests” claim. No enum/schema/save field, loaded meaning, gameplay or current marker colour changes; 3D/full-map/minimap/help/curriculum remain covered. This resolves draft wording defects only, pending independent re-review and O1–O4.
+
+Revision preflight: supplied worktree clean at `e5613579f9692cdac7eb134d31e81834385f9ed9`, same `docs/overnight-mark-language-spec-20261104` branch and existing DRAFT [PR #266](https://github.com/jermur788/CCF/pull/266). No unrelated changes were present. Only the four spec files and this handoff are amended. Design trade-off: luminance separation adds a second visual cue alongside shape; fallback pink stays within the source-reported hot family, but its exact shade is gameplay calibration and all surfaces must migrate together. No Unity, production, coordination or routing-ledger edits. Static validation: five-path scope, Markdown local links and `git diff --check`; contrast/recognition/runtime unmeasured. Dashboard synchronisation remains assigned to #200/DPC and is not verified by this docs-only worker.
