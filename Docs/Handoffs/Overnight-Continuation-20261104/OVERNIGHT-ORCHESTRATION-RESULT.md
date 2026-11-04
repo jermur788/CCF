@@ -71,13 +71,21 @@ Branch `feature/overnight-rack-handle-20261104`, head `9304d318`. Two source lin
 - **Evidence correction:** the worker's "static harness 10/10 PASS" was `RackV2ConfirmMinimap/run_static.py`, which does **not** exercise rotation or Shift. The reviewer reproduced 10/10 and said it is not evidence for this change. **No automated test covers the new behaviour.**
 - Non-blocking: near the stand edge the unsnapped handle can now reach a red "outside stand" ghost; rules still refuse it, by design.
 
-### 3.3 #260 — Baseline verification — REVIEWED (baseline)
+### 3.3 #260 — Baseline verification — REVIEWED (baseline + combined verification)
 
-Branch `verify/overnight-playtest-feedback-20261104`, head `8091d628` → anchor fix in progress.
+Branch `verify/overnight-playtest-feedback-20261104`, head `6efba8fd`.
 
 - Baseline tally **PASS=3 / FAIL=4 / NOT-TESTABLE=2**, exit 1 — deliberately pre-fix. DPC reproduced it; runs are byte-identical and deterministic; no network, no writes.
 - Confirmed in source: `LearningObjectivesView.cs:75` gives `Back to forest [O / Esc]` the `btn-primary` class while `Stand map [M]` at `:73` has none.
 - Follow-up added a rotation-snap policy check with **pre/post-fix states** and executed `RackEditing.SnapFar` directly on plain .NET across six cases — the first actual execution of the snapping function.
+- Final follow-up added `--instruction-state pre-fix|post-fix` after DPC found the union defect (§5), so a mismatched copy reports **FAIL** instead of aborting.
+- **Combined-tree result, run by DPC** on the #255+#256 merge tree (`b9f4d047`, post/post flags):
+
+```
+SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2
+```
+
+  The single FAIL is **check 08 CTA** — `baseline primary invokes ui.CloseAll()` — which is the user's still-unfixed complaint, not a regression. **This is the first genuinely combined evidence of the night.**
 - Weaknesses named by review and kept visible: check 01 asserts a **presentation format**; check 05 tests only absence of a word; check 08 originally required one specific fix label.
 
 ### 3.4 #253 — Option A offline qualification — HANDED-OFF, PARTIALLY QUALIFIED
@@ -113,13 +121,15 @@ Three review rounds. Final head `ae7944aa`. I read the revised `REQ-P3a` rather 
 
 **One item owed, not agreed:** the inventory dispute is *definitional*. Method A reproduces (71/63/16 candidate, 68/60/14 main); Method B's 73/61 was never reproduced and its command was never published. Both figures and definitions are in the spec, with an open task asking the reviewer to append the command.
 
-### 4.2 #258 — Objective guidance — DRAFT (revision in progress)
+### 4.2 #258 — Objective guidance — DRAFT-COMPLETE (needs product decisions)
 
-Two review rounds. P2 and P3 accepted; **P1 still failing**.
+Two review rounds. P2 and P3 accepted. P1 failed once, then was fixed properly.
 
-The defect is a direct contradiction, not a gap: the blocking-state list omits `help.IsOpen`, `help.Onboarding.IsOpen` and Work Plan's `confirmingAdvance`, and **FR-2 ranks a retained rack confirmation above Help even though Help can overlay it**. A deterministic Boolean order that ranks an obscured control above the visible one is worse than a heuristic, because it looks rigorous.
+The first attempt ranked blocking states with a hand-written Boolean order that **ranked a retained rack confirmation above Help even though Help can overlay it**. A deterministic order that ranks an obscured control above the visible one is worse than a heuristic, because it looks rigorous.
 
-Fix required by design: **rank by visibility/occlusion** — the surface the player can see and interact with is the active prompt — so a future modal is handled without being appended to an enumeration.
+The fix replaced the list with a **rule**: `FR-2` — the primary cue may target only the foremost visible, enabled surface that owns input; anything obscured or input-blocked is ineligible regardless of its pending Boolean; and the rule applies to future overlays without appending names to a precedence list. `AC-1a`/`AC-1b` cover the two cases that broke it (Help over a retained rack confirmation, Help over the Work Plan advance warning).
+
+DPC verification: read FR-2 at source, confirmed the "never break ties by Boolean order" clause, confirmed both tests are present and **unrun**, and spot-checked `WorkPlanView.cs:21` (`confirmingAdvance`) and `StandMapRackEditor.cs:58` (`ConsentPending`). That check is cross-family (DeepSeek vs Codex) but is **not** the independent re-review the spec still requires.
 
 ### 4.3 #259 — Tree mark language — DRAFT (criterion being replaced)
 
@@ -139,7 +149,7 @@ Forestry sourcing was independently verified: the Pro Silva Ireland 2026 guide e
 
 ---
 
-## 5. The union-only defect (the finding that only execution produced)
+## 5. The union-only defect — found by execution, now closed
 
 DPC built a **detached** worktree at the object-level merge tree of #255 and #256 (`b9f4d047`, from `git merge-tree`) and ran both harnesses on the combined state. No branch, commit, ref or push was created — verification, not integration.
 
@@ -151,7 +161,15 @@ SOURCE-STATIC ERROR: source anchor missing:
   Assets/ForestPrototype/UI/StandMapView.cs: Hold Shift to turn snapping off.
 ```
 
-Root cause at `check_baseline.py:204`: the checker hard-codes the **pre-#256** instruction sentence as an evidence anchor. Each branch is green alone; **together they break the harness**. This is the union-only failure class the programme has hit before, invisible to branch-local review, and it means the #260 checker must be re-anchored before all three can merge. Fix in progress.
+Root cause at `check_baseline.py:204`: the checker hard-coded the **pre-#256** instruction sentence as an evidence anchor. Each branch was green alone; **together they broke the harness**. This is the union-only failure class the programme has hit before, invisible to branch-local review.
+
+**Closed:** #260 added `--instruction-state pre-fix|post-fix`. Re-run by DPC on the same combined tree:
+
+```
+SOURCE-STATIC TALLY PASS=9 FAIL=1 NOT-TESTABLE=2     (only the CTA check fails — the unfixed complaint)
+```
+
+The baseline record is preserved: pre/pre still gives the original 6 PASS / 4 FAIL / 2 NOT-TESTABLE.
 
 ---
 
