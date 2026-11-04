@@ -1,6 +1,6 @@
 # CCF Overnight Orchestration Result — DeepSeek DPC (#254)
 
-**Status: FINAL DELIVERY (spec-lane revisions still completing — marked inline).**
+**Status: FINAL — all seven authorised lanes closed.**
 **Written:** 2026-11-04, from commands executed in the DPC session. Figures are reproduced from terminal output or from a cited branch/commit. Anything not directly observed is marked **UNKNOWN** or **UNMEASURED**.
 **Parent:** [#254](https://github.com/jermur788/CCF/issues/254) · **Ledger:** [ROUTING-LEDGER.md](ROUTING-LEDGER.md) (single writer, DPC) · **Programme ledger for #253:** [ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md](../ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md)
 
@@ -19,7 +19,7 @@ Seven authorised lanes ran across **four independent subscription pools**. Every
 | #253 Option A MFM offline | **HANDED-OFF** — PARTIALLY QUALIFIED; corrections applied | [#267](https://github.com/jermur788/CCF/pull/267) |
 | #257 Input settings spec | **DRAFT-COMPLETE** — 3 review rounds | [#263](https://github.com/jermur788/CCF/pull/263) |
 | #258 Objective guidance spec | **DRAFT** — precedence defect still being fixed | [#265](https://github.com/jermur788/CCF/pull/265) |
-| #259 Mark language spec | **DRAFT** — contrast criterion proven unachievable, being replaced | [#266](https://github.com/jermur788/CCF/pull/266) |
+| #259 Mark language spec | **DRAFT-COMPLETE** — criterion corrected to ΔE76 ≥40; three computations agree | [#266](https://github.com/jermur788/CCF/pull/266) |
 | #260 Baseline verification | **REVIEWED** — baseline accepted, union defect being fixed | [#264](https://github.com/jermur788/CCF/pull/264) |
 
 **The most valuable output is not any of the fixes.** Four separate assumptions in the task packets turned out to be wrong, and each would have produced a correct-looking fix that was wrong:
@@ -131,9 +131,11 @@ The fix replaced the list with a **rule**: `FR-2` — the primary cue may target
 
 DPC verification: read FR-2 at source, confirmed the "never break ties by Boolean order" clause, confirmed both tests are present and **unrun**, and spot-checked `WorkPlanView.cs:21` (`confirmingAdvance`) and `StandMapRackEditor.cs:58` (`ConsentPending`). That check is cross-family (DeepSeek vs Codex) but is **not** the independent re-review the spec still requires.
 
-### 4.3 #259 — Tree mark language — DRAFT (criterion being replaced)
+### 4.3 #259 — Tree mark language — DRAFT-COMPLETE (criterion corrected)
 
-Five review findings; four accepted. The fifth is a defect **the spec created for itself**, and two independent computations agree:
+Five review findings; four accepted immediately. The fifth is a defect **the spec created for itself**, and it took three computations to settle it properly.
+
+**The problem.** The first fix demanded **≥3:1 WCAG luminance separation between the rack mark and the Fell mark**, with a pink fallback. Two independent computations (DPC and reviewer) agreed:
 
 | Pair | WCAG contrast |
 |---|---|
@@ -141,11 +143,22 @@ Five review findings; four accepted. The fifth is a defect **the spec created fo
 | light pink `#FFD1E8` vs Fell | 2.32:1 |
 | pink `(1,0.60,0.80)` vs Fell | 1.60:1 |
 
-Against Fell (`L = 0.285`), 3:1 requires the other mark to be `L ≥ 0.954` (near-white) or `L ≤ 0.062` (very dark maroon). **No recognisably pink or orange colour can reach it**, so the orange pair fails, the pink fallback fails, the spec forbids weakening the threshold — the rule terminates in its own redesign stop every time.
+Against Fell (`L = 0.285`), 3:1 requires the other mark to be `L ≥ 0.954` (near-white) or `L ≤ 0.062` (very dark maroon). **No recognisably pink or orange colour reaches it** — the orange pair failed, the pink fallback failed, and the spec forbade weakening the threshold, so the rule terminated in its own redesign stop.
 
-**Diagnosis:** contrast ratio is a WCAG measure for a component against its *background*. It is the wrong tool for two hot hues told apart by **shape**. ΔE76 shows the real defect: the current pair is **6.0** (barely perceptible — which is exactly why the marks confuse the player), while pink candidates are **79–88** (decisive). The fix offered is to separate the concerns: perceptual-difference floor **between marks**, contrast floor **against bark/background**, recognition as the binding gate.
+**The diagnosis.** Contrast ratio is a WCAG measure for a component against its *background*. It is the wrong tool for two hot hues told apart by **shape**. ΔE76 shows the real defect: the current pair is **6.0** — barely perceptible, which is exactly why the marks confuse the player — while pink candidates are **79–88**, decisive.
 
-Forestry sourcing was independently verified: the Pro Silva Ireland 2026 guide exists with a **matching SHA-256**, and it does document diagonal removal slashes, four-sided rack stripes, white/blue quality rings, two lines on retained route-side trees, and hot=orange/pink vs cool=white/blue. The publisher's "widely applied" claim was correctly **not** adopted as a standard.
+**The fix (Option A, adopted).**
+
+| Requirement | Value | Measured |
+|---|---|---|
+| rack vs Fell | **ΔE76 ≥ 40** + mandatory shape redundancy | current **6.0042** (fails, correctly) |
+| exact pink fallback | sRGB **(1, 0.08, 0.58)** | ΔE76 **78.10**, contrast 1.158:1 recorded as **diagnostic only** |
+| mark vs background (bark/map/legend) | **≥3:1** — where contrast ratio is the right tool | — |
+| recognition (binding gate) | two non-author scorers, 5 s, 100% each; unsure/missing/late fails | unrun |
+
+**Three independent computations agree** on the arithmetic: DPC, the reviewer, and the author reproduce **6.0042** exactly and the pink contrast **1.1579:1** exactly; ΔE differs only by 0.03 from constant rounding. That is the standard this programme should hold every published number to.
+
+Forestry sourcing was independently verified: the Pro Silva Ireland 2026 guide exists with a **matching SHA-256**, and documents diagonal removal slashes, four-sided rack stripes, white/blue quality rings, two lines on retained route-side trees, and hot=orange/pink vs cool=white/blue. The publisher's "widely applied" claim was correctly **not** adopted as a standard.
 
 ---
 
@@ -208,7 +221,7 @@ The baseline record is preserved: pre/pre still gives the original 6 PASS / 4 FA
 ## 9. Not done
 
 - Unity compilation, input, rendered layout, manual playtest: **not performed** (admission refused on disk).
-- #258, #259 revisions and the #260 re-anchor: **in progress at publication**.
+- #258, #259 revisions and the #260 re-anchor: **completed; see §3.3, §4.2, §4.3**.
 - `active-tasks.md`: **not updated by DPC** (#200 sole writer).
 - Method B inventory command: **owed by the reviewer**.
 

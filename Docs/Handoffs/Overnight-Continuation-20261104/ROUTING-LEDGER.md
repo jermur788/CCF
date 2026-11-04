@@ -391,6 +391,19 @@
 - **Outcome:** #260 REVIEWED with a verified combined pass; #258 DRAFT-complete (needs the Manager's product decisions and its own final re-review).
 - **Next:** #259 criterion replacement → final report refresh → hand back.
 
+### EVENT 030 — 2026-11-04 04:05 UTC — #259 adopts a feasible criterion; three computations agree; all seven lanes closed
+
+- **Evidence class:** OBSERVED FACT (child return, my own recomputation of the published arithmetic).
+- **#259 (`e13b1c5f`) adopted Option A** — the one I recommended — separating colour difference from background legibility:
+  - rack vs Fell: **ΔE76 ≥ 40** plus mandatory shape redundancy; the current orange computes **6.0042**, so the baseline fails for the right reason;
+  - exact pink fallback **sRGB (1, 0.08, 0.58)**; ΔE76 **78.10**, with WCAG contrast **1.1579:1** recorded as **diagnostic only**, not a gate;
+  - mark-vs-background contrast **≥3:1** where contrast ratio is actually the correct instrument;
+  - recognition stays the **binding** gate: two non-author scorers, 5 s, 100% each, unsure/missing/late = fail; a pink failure forces documented redesign and a fresh complete matrix.
+- **DPC recomputed the published arithmetic independently:** rack-vs-Fell **6.0042** (exact match), pink contrast **1.1579:1** (exact match), pink ΔE **78.10** vs the author's **78.0777** (0.025 difference, consistent with constant rounding). **Three independent computations — DPC, reviewer, author — now agree.** That is the standard this programme should hold every published figure to, and it is the opposite of the transcription failures recorded earlier in the ledger.
+- **Lane closure:** #255, #256, #260 REVIEWED; #253, #257, #258, #259 DRAFT-COMPLETE/HANDED-OFF. **All seven authorised lanes are closed for the night.** Nothing is integrated or accepted.
+- **Outcome:** HANDED-OFF to the Overall Manager (#200).
+- **Next:** Manager approval/integration decisions; the user's playtest and explicit authorisation before any Windows build.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
