@@ -308,6 +308,26 @@
 - **Outcome:** #257 DRAFT + round 3.
 - **Next:** final verdict; if accepted, #257 enters the Manager decision list with Q1–Q13 plus the new precedence rules.
 
+### EVENT 025 — 2026-11-04 02:52 UTC — #253 returned (PARTIALLY QUALIFIED); DPC ran the two fix branches together and found a union-only defect
+
+- **Evidence class:** OBSERVED FACT (child return, PRs, commands run in a detached combined worktree).
+- **#253 result:** branch `docs/mfm-option-a-offline-20261104-v1`, commit `c7f2aafb`, PR **#267**. Verdict **PARTIALLY QUALIFIED**; Option A as drafted in #251 is **NEEDS CHANGES**, not NO-GO.
+  - **Reach:** the #251 lateral-distance owner rule can assign rack ground up to **69 m** away; a cap is required, and with 20–9 m caps **14–38%** of ground falls to Manual/NotCovered.
+  - **Sample:** the inherited anchor lands on the spine junction; **150.6 m² of 432 m²** sits in other racks' units, 143.0 m² of it in R4's Centre (≈66% of that area).
+  - **Grouping:** single-link chaining is real; a span guard is needed and a direction group of one rack is unspecified.
+  - **Validity:** a Confirm gate would change accepted Rack V2 behaviour; the worker says ≥13 verification files call `ConfirmRackPlan`.
+  - **Correction to #251:** R1/R2 corridor rectangles do **not** overlap (gap 0.214 m); #251's "overlap" was the editor's 2.4 m centreline-clearance rule. This contradicts published research, so it is flagged for the reviewer to verify hard.
+  - **Declared limits:** its model is the worker's own Python port (41 checks pass, no C# compiled); it did **not** read raw endpoint JSON and reused #251's table — so a raw-source recomputation is still owed; C was not modelled, so no A-vs-C comparison.
+  - **Review:** dispatched `codex`/`gpt-6.1-sol` medium, instructed to re-derive at least three headline numbers from **raw** source and to re-count the `ConfirmRackPlan` sites.
+  - **Programme ledger:** pointer event appended to `Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md` (commit `757138ff`) as the packet requires. #253's history stays authoritative there.
+- **DPC union test (the new finding).** I created a **detached** worktree at the object-level merge tree of #255 and #256 (`b9f4d047`, from `git merge-tree`) and ran both harnesses on the combined state. **No branch, ref, commit or push was created — this is verification, not integration.**
+  1. `run_offline.py` on the combined tree: `RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97`. Only the S10 scope guard fails, and correctly so — it is a *branch* scope check and #256's files are legitimately present.
+  2. `check_baseline.py --rotation-state post-fix` on the combined tree: checks 01–05 **PASS** (the baseline failures genuinely flipped once #255 landed), then it **ERRORS**: `source anchor missing: Assets/ForestPrototype/UI/StandMapView.cs: Hold Shift to turn snapping off.`
+  - **Root cause, verified at `check_baseline.py:204`:** the checker hard-codes the pre-#256 instruction sentence as an evidence anchor. #256 rewrote that sentence to "Hold Shift while drawing to turn snapping off." Each branch is green alone; **together they break the harness**.
+  - **This is a union-only defect of exactly the class the programme has hit before**, found only because the two were executed together. It is not a defect in either fix — it is a coupling neither lane could see, and it means **#260's checker must be re-anchored before #255+#256+#260 could all merge**. Recorded as an integration blocker for the Manager, not fixed here.
+- **Outcome:** #253 HANDED-OFF + UNDER REVIEW; #255/#256 remain REVIEWED; a real cross-lane coupling is now documented.
+- **Next:** #253 verdict; re-anchor the #260 checker; final report.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
