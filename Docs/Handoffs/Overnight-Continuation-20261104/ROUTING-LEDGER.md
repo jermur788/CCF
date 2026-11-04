@@ -244,6 +244,18 @@
 - **Outcome:** #260 REVIEWED (baseline), follow-up RUNNING.
 - **Next:** follow-up return → re-check the new check's honesty; then Manager queue.
 
+### EVENT 020 — 2026-11-04 01:47 UTC — #258 review NEEDS REVISION; returned to author
+
+- **Evidence class:** OBSERVED FACT (reviewer return, PR comment posted).
+- **Verdict:** NEEDS REVISION (reviewer is `codex`/`gpt-6.1-sol` medium — same vendor family as the implementing account, so this is the review with the weakest independence in the programme; recorded as such, and the DPC read the spec independently too).
+- **P1 (the material one):** `spec.md:40-47` first-match planning rows can **shadow consent/reset handling**, so the cue could nominate a background primary action while a consent or reset prompt is actually awaiting the player. A next-action cue that points behind a modal is worse than no cue; the precedence model has to put modal state above planning state.
+- **P2:** fallback cues not reconciled with the existing `RackV2Instruction()` imperatives (`Curriculum.cs:98-104`), and corrective-action selection is not deterministic — the same "second competing instruction source" risk I flagged in the review brief.
+- **P3:** symbol line-range citations are wrong; function/field names required alongside ranges so the citation survives edits.
+- **Independently checked and passing:** DRAFT authority, docs-only scope, illustration honesty (no implication that planned racks are cleared), testable accessibility rows, derived save-state intent. The reviewer verified four citations at source, including the `btn-primary` placement that matches the user's CTA complaint.
+- **Routing:** returned to the original author on the same branch and PR (design content changes, not small findings).
+- **Pool state:** `codex` 1 (#258 revision), `codex_c75d8114` 1 (#260 follow-up), `claudeAgent` 1 (#253, long), `claudeAgent_claude_b_pro` 1 (#257 fix). Five lanes open total, no lane double-booked beyond two.
+- **Outcome:** #258 DRAFT + NEEDS REVISION.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
