@@ -1,152 +1,199 @@
 # CCF Overnight Orchestration Result — DeepSeek DPC (#254)
 
-**Status: IN PROGRESS — first checkpoint published while lanes are still running.**
-**Written:** 2026-11-04, from directly observed commands in the DPC session. Every figure below is reproduced from output in this session or from a cited branch/commit; anything not observed is marked UNKNOWN or UNMEASURED.
-**Parent:** [#254](https://github.com/jermur788/CCF/issues/254). **Ledger (single writer, DPC):** [ROUTING-LEDGER.md](ROUTING-LEDGER.md).
-**Rule this report follows:** a worker handoff is a claim. IMPLEMENTED ≠ REVIEWED ≠ INTEGRATED ≠ VERIFIED ≠ ACCEPTED. Nothing here is integrated or accepted, and no Windows build exists.
+**Status: FINAL DELIVERY (spec-lane revisions still completing — marked inline).**
+**Written:** 2026-11-04, from commands executed in the DPC session. Figures are reproduced from terminal output or from a cited branch/commit. Anything not directly observed is marked **UNKNOWN** or **UNMEASURED**.
+**Parent:** [#254](https://github.com/jermur788/CCF/issues/254) · **Ledger:** [ROUTING-LEDGER.md](ROUTING-LEDGER.md) (single writer, DPC) · **Programme ledger for #253:** [ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md](../ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md)
+
+> A worker handoff is a claim. **IMPLEMENTED ≠ REVIEWED ≠ INTEGRATED ≠ VERIFIED ≠ ACCEPTED.** Nothing in this report is integrated or accepted. No Windows build exists.
 
 ---
 
 ## 1. Headline
 
-Seven authorised lanes were released across **four independent subscription pools** in one night. No lane merged, no lane touched the protected player-test candidate, and no Unity Editor was started.
+Seven authorised lanes ran across **four independent subscription pools**. Every lane received a cross-family review. No lane merged, none touched the protected player-test candidate, and **no Unity Editor was started**.
 
-- **2 production lanes** reached REVIEWED with cross-family review: #255 (copy) and #256 (rack rotation).
-- **1 verification lane** reached REVIEWED as a source-level baseline: #260, now receiving a coverage follow-up.
-- **3 DRAFT spec lanes** are in author/reviewer iteration: #257, #258, #259.
-- **1 research lane** (#253) still running at the time of this checkpoint.
+| Lane | Outcome | PR |
+|---|---|---|
+| #255 Objective copy | **REVIEWED** — corrected after review, gate re-run green | [#262](https://github.com/jermur788/CCF/pull/262) |
+| #256 Rack handle rotation | **REVIEWED** — APPROVE; source-trace evidence only | [#261](https://github.com/jermur788/CCF/pull/261) |
+| #253 Option A MFM offline | **HANDED-OFF** — PARTIALLY QUALIFIED; corrections applied | [#267](https://github.com/jermur788/CCF/pull/267) |
+| #257 Input settings spec | **DRAFT-COMPLETE** — 3 review rounds | [#263](https://github.com/jermur788/CCF/pull/263) |
+| #258 Objective guidance spec | **DRAFT** — precedence defect still being fixed | [#265](https://github.com/jermur788/CCF/pull/265) |
+| #259 Mark language spec | **DRAFT** — contrast criterion proven unachievable, being replaced | [#266](https://github.com/jermur788/CCF/pull/266) |
+| #260 Baseline verification | **REVIEWED** — baseline accepted, union defect being fixed | [#264](https://github.com/jermur788/CCF/pull/264) |
 
-The most consequential outcome is not any single fix. It is that **three separate verified facts contradict the assumptions the tasks were written on**, and each would have caused a wrong "fix":
+**The most valuable output is not any of the fixes.** Four separate assumptions in the task packets turned out to be wrong, and each would have produced a correct-looking fix that was wrong:
 
-1. The Fell mark is not red. In-world it is orange-red `(1, 0.35, 0.05)`; on the map it genuinely *is* red `(220, 76, 62)`. The help text splits the difference. This is a three-surface inconsistency, not a copy error (#259).
-2. The rotation gesture that #256 had to fix lived in `StandMapRackEditor.cs`, not the `StandMapView.cs` the packet named — and `Move` never used the snap flag at all, so the regression the packet worried about was structurally impossible.
-3. `ForestSaveData.CurrentVersion` is **21 on main** and **24 on the candidate**. The #257 spec was accused of a wrong number; the actual defect was mixing unlabelled baselines. DPC initially repeated the wrong reading and corrected itself in the ledger.
+1. **The Fell mark is not red.** In-world `(1, 0.35, 0.05)` — orange-red. On the map `(220, 76, 62)` — genuinely red. Help text says "Red". A three-surface inconsistency, not a copy error.
+2. **#256's gesture lived in a different file** (`Map/StandMapRackEditor.cs`, not `StandMapView.cs`), and **`Move` never used the snap flag at all** — the regression the packet feared was structurally impossible.
+3. **`CurrentVersion` is 21 on main and 24 at the candidate.** The spec was accused of a wrong number; the actual defect was **unlabelled mixed baselines**.
+4. **#251's R1/R2 overlap claim was wrong.** Gap is `0.214214 m`; the "overlap" was the editor's 2.4 m centreline-clearance rule. Corrected in the programme ledger, dated and attributed, with #251's handoff left unedited.
+
+A fifth, caught only by execution: **#255 and #256 are individually green and together break the #260 harness.** See §5.
 
 ---
 
-## 2. Safety state (observed, not asserted)
+## 2. Safety state
 
 | Check | Result | Evidence |
 |---|---|---|
 | Protected candidate `integration/scenario-one-player-test-ready-v1` | `72b4efbd` — unchanged all night | `git rev-parse origin/...` |
-| `origin/main` | `8f0f2301` — no DPC commit landed on it | `git rev-parse origin/main` |
+| `origin/main` | `8f0f2301` — no DPC commit landed | `git rev-parse origin/main` |
 | Unity Editor processes | none | `pgrep` |
-| Unity lease | not acquired; `unity-lock status` = free, no PIDs, at start | `CCF-Ops/scripts/unity-lock status` |
-| Windows/Player build | none | no build command issued |
-| Child branches | 6 pushed, all on their own refs | `git ls-remote --heads origin` |
+| Unity lease | not acquired; `unity-lock status` = free, no PIDs | `CCF-Ops/scripts/unity-lock status` |
+| Windows / Player build | none | no build command issued |
 | `active-tasks.md` | not edited by DPC (#200 sole writer) | by construction |
+| Branches pushed | 6 feature/docs/verify + 1 orchestration | `git ls-remote --heads origin` |
 
-**Unity admission was refused on purpose.** Live disk: ZX20 19 GiB free against a `lanes.json` floor of 15 GiB, with a cold Library at 10–12 GiB on the same volume as the shared Git store, and the only warm Library belonging to `CCF-U1`, which the coordination record holds for the user's own playtest. Every worker was therefore required to label all runtime, rendered and input claims **UNVERIFIED**. This is a real gate: it means #256's fix has *no* execution evidence, only source trace and independent review.
+**Unity was refused deliberately.** Live disk: ZX20 **19 GiB free** against a `lanes.json` floor of **15 GiB**, with a cold Library at 10–12 GiB on the same volume as the shared Git store, and the only warm Library belonging to `CCF-U1`, held for the user's own playtest. Every worker was required to label runtime, rendered and input claims **UNVERIFIED**. Consequence stated plainly: **#256's fix has no execution evidence** — only source trace and independent review.
 
 ---
 
-## 3. Lane results
+## 3. Production lanes
 
 ### 3.1 #255 — Objective copy — REVIEWED
 
-- **Branch** `feature/overnight-objective-copy-20261104`, **PR [#262](https://github.com/jermur788/CCF/pull/262)**, head `693e24c8`, base `72b4efbd`.
-- **Change:** `16–20 m` → `16–20m` in Objective 1 concept and the rack-reading step; `Title(Menu.TreeMarks)` → `Introducing tree marking`; Explanation opens `Scenario 1 introduces 3 CCF markings.`; the "CCF source material" sentence replaced with accurate orange-stripe wording. Two production files.
-- **Review:** APPROVE WITH REQUIRED CHANGES, then re-check **CORRECTION ACCEPTED** (`claude-sonnet-5-5` medium, read-only detached checkout; implementer was Codex).
-- **Required change (not in the copy):** the repository's own suite still asserted the old strings — five assertions in `RackV2HelpTeachingOfflineCheck.cs`, one in `RackV2Objective1EndToEnd.cs`. The worker had reported only one S10 failure and had not disclosed them.
-- **DPC correction:** exact-string assertions (no assertion removed, none downgraded to a substring check), a `UnitStyle()` comparator that normalises only the requested unit spelling while still comparing whole sentences, and two exact paths added to the S10 allow-list.
-- **Executed gate:** `RACK_V2_HELP_TEACHING_OFFLINE_FAIL failures=5 checks=97` **before** → `RACK_V2_HELP_TEACHING_PASS static_and_offline=15`, 97 checks **after**. Reproduced twice, by DPC and independently by the re-checker.
-- **UNVERIFIED:** rendered text, wrapping, fit in the help modal; the Unity end-to-end assertion was never executed.
+Branch `feature/overnight-objective-copy-20261104`, head `693e24c8`.
+
+- `16–20 m` → `16–20m` in Objective 1 concept and the rack-reading step; `Title(Menu.TreeMarks)` → `Introducing tree marking`; explanation opens `Scenario 1 introduces 3 CCF markings.`; the "CCF source material" sentence **replaced** with wording that matches what the code paints.
+- Review: APPROVE WITH REQUIRED CHANGES → re-check **CORRECTION ACCEPTED**.
+- **The required change was not in the copy.** The repository's own suite still asserted the superseded strings — five assertions in `RackV2HelpTeachingOfflineCheck.cs`, one in `RackV2Objective1EndToEnd.cs`. The worker had reported one S10 failure and had not disclosed them.
+- DPC correction: exact-string assertions (none removed, none downgraded to substring checks), a `UnitStyle()` comparator normalising **only** the requested unit spelling while still comparing whole sentences, and two exact paths added to the S10 allow-list.
+- **Executed gate:** `OFFLINE_FAIL failures=5 checks=97` → `RACK_V2_HELP_TEACHING_PASS static_and_offline=15`, 97 checks. Reproduced by DPC and independently by the re-checker.
+- **UNVERIFIED:** rendered text, wrapping, modal fit; the Unity end-to-end assertion was never executed.
 
 ### 3.2 #256 — Rack round-handle free rotation — REVIEWED
 
-- **Branch** `feature/overnight-rack-handle-20261104`, **PR [#261](https://github.com/jermur788/CCF/pull/261)**, head `9304d318`, base `72b4efbd`.
-- **Change:** two source lines — `Propose(px, gesture != Gesture.Reshape && !ShiftHeld(e.modifiers), …)` plus the Stand Map instruction text.
-- **Review:** APPROVE (`claude-sonnet-5-5` medium, Claude B; implementer was Codex). Confirmed `Gesture.Reshape` is entered only from `OnHandle`; **`Move` never used the snap flag** (`MoveAlongHeadland` takes no snap parameter); snapping only reaches `SnapFar`, so no validity rule is bypassed; no keyboard rotation path exists.
-- **Evidence correction worth keeping:** the worker's "static harness 10/10 PASS" was `RackV2ConfirmMinimap/run_static.py`, which does **not** exercise rotation or Shift. The reviewer reproduced 10/10 and said plainly it is not evidence for this change. **There is no automated test covering the new behaviour.**
-- **Non-blocking:** with snapping off, a handle dragged near the stand edge can now reach a red "outside stand" ghost; the rules still refuse it, by design.
-- **UNVERIFIED:** Unity compile, real pointer/Shift delivery, rendered text fit, runtime geometry.
+Branch `feature/overnight-rack-handle-20261104`, head `9304d318`. Two source lines:
+`Propose(px, gesture != Gesture.Reshape && !ShiftHeld(e.modifiers), …)` plus the instruction text.
 
-### 3.3 #260 — Baseline verification — REVIEWED (baseline), follow-up running
+- Review APPROVE confirmed: `Gesture.Reshape` is entered only from `OnHandle`; **`Move` never used the snap flag**; snapping only reaches `SnapFar`, so **no validity rule is bypassed**; no keyboard rotation path exists.
+- **Evidence correction:** the worker's "static harness 10/10 PASS" was `RackV2ConfirmMinimap/run_static.py`, which does **not** exercise rotation or Shift. The reviewer reproduced 10/10 and said it is not evidence for this change. **No automated test covers the new behaviour.**
+- Non-blocking: near the stand edge the unsnapped handle can now reach a red "outside stand" ghost; rules still refuse it, by design.
 
-- **Branch** `verify/overnight-playtest-feedback-20261104`, **PR [#264](https://github.com/jermur788/CCF/pull/264)**, head `62f1c164`, base `72b4efbd`.
-- **Result:** `SOURCE-STATIC TALLY PASS=3 FAIL=4 NOT-TESTABLE=2`, exit 1 — deliberately the **pre-fix** baseline, recorded before #255/#256 landed.
-- **DPC reproduced the tally** independently; the checker is deterministic (two runs byte-identical), makes no network calls and writes nothing.
-- **Confirmed in source:** `LearningObjectivesView.cs:75` gives `Back to forest [O / Esc]` the `btn-primary` class while `Stand map [M]` at `:73` has none — the user's CTA complaint is real, not inferred.
-- **Review:** acceptable as a baseline, no blocking issues, with named weaknesses: check 01 asserts a presentation format rather than a functional defect; check 05 only tests absence of a word; check 08 required one specific fix label; check 06 never exercised `RackEditing.SnapFar`, which is a **pure function** and therefore statically testable.
-- **Follow-up running:** structural assertion on the rotation snap call site that must fail in either direction, relabel of check 01, rewrite of check 08 to assert the observable (which button is primary and what it invokes).
+### 3.3 #260 — Baseline verification — REVIEWED (baseline)
 
-### 3.4 #257 — Input settings / tester feedback — DRAFT, fixes under re-check
+Branch `verify/overnight-playtest-feedback-20261104`, head `8091d628` → anchor fix in progress.
 
-- **PR [#263](https://github.com/jermur788/CCF/pull/263)**, head `e7b02c20` after fixes.
-- Four-file DRAFT spec; no code, no save-schema change, no collection.
-- **Review round 1: NEEDS CHANGES** — five findings. The author fixed four and **partly rejected** the fifth, correctly: `CurrentVersion` is 21 on main and 24 at the candidate, so the defect was unlabelled mixed baselines. The spec now defines `[M]`/`[C]` and labels every citation.
-- **Added:** deterministic invalid-binding policy (REQ-P3a), authority hierarchy, stop-and-ask S-1..S-8, N-shortcut inventory, Esc corrected to four files / eight reads.
-- **Inventory dispute:** author published a command and got 71 occurrences / 63 lines / 16 files at the candidate; reviewer gave 73 / 61 with no method. Reproducibility wins; the re-check must run the command verbatim and withdraw its figures if they do not reproduce.
+- Baseline tally **PASS=3 / FAIL=4 / NOT-TESTABLE=2**, exit 1 — deliberately pre-fix. DPC reproduced it; runs are byte-identical and deterministic; no network, no writes.
+- Confirmed in source: `LearningObjectivesView.cs:75` gives `Back to forest [O / Esc]` the `btn-primary` class while `Stand map [M]` at `:73` has none.
+- Follow-up added a rotation-snap policy check with **pre/post-fix states** and executed `RackEditing.SnapFar` directly on plain .NET across six cases — the first actual execution of the snapping function.
+- Weaknesses named by review and kept visible: check 01 asserts a **presentation format**; check 05 tests only absence of a word; check 08 originally required one specific fix label.
 
-### 3.5 #258 — Objective next-action guidance — DRAFT, revision running
+### 3.4 #253 — Option A offline qualification — HANDED-OFF, PARTIALLY QUALIFIED
 
-- **PR [#265](https://github.com/jermur788/CCF/pull/265)**, head `f98d9ee8`.
-- **Review: NEEDS REVISION.** P1 is the material one: the first-match planning rows can **shadow consent/reset handling**, so the cue could nominate a background action while a prompt is awaiting the player. A next-action cue pointing behind a modal is worse than no cue.
-- **P2:** fallback cues not reconciled with the existing `RackV2Instruction()` imperatives (`Curriculum.cs:98-104`) — a second competing instruction source, which is the exact class of defect this task exists to remove.
-- **P3:** symbol citation line ranges wrong; function names now required alongside ranges.
-- **Independence caveat:** implementer and reviewer were both Codex-family. Recorded as the weakest separation in the programme, not presented as independent.
+Branch `docs/mfm-option-a-offline-20261104-v1`, head `3d8338c7`.
 
-### 3.6 #259 — Tree mark language / Pro Silva — DRAFT, under review
+All **41 checks passed byte-identically**, and the reviewer recomputed from **raw JSON** (the worker had reused #251's table). Findings, with the reviewer's own numbers:
 
-- **PR [#266](https://github.com/jermur788/CCF/pull/266)**, head `e5613579`.
-- **Verified surface table (DPC, at `72b4efbd`):**
-
-| Surface | Fell | Crop |
+| Claim | Verdict | Number |
 |---|---|---|
-| 3D world | orange-red `(1, 0.35, 0.05)`, floating diamond + ground disc | blue trunk band |
-| Stand Map | red ring `(220, 76, 62)` — `StandMapSymbols.cs:104` | blue ring `(78, 140, 236)` — `:105` |
-| Help text | "Red — Fell" | "Blue — Crop Tree / future timber" |
-| Rack paint (3D) | orange vertical stripes `(0.95, 0.28, 0.025)` | — |
+| Reach defect | CONFIRMED | max **69.1695 m**; nearest-owner uncovered **14.13–38.22%**, lateral **36.25–49.03%** over 20–9 m caps |
+| Sample placement | CONFIRMED | 142.97 m² of R4 Centre outside its unit = **65.96%** of that area |
+| Grouping | CONFIRMED | single-link chaining; singleton strips need a rule or refusal |
+| Confirm gate | CONFIRMED | **30 direct calls across 16 C# verification files** |
+| R1/R2 correction | CONFIRMED | gap **0.214214 m**; **#251's overlap claim was wrong** |
+| Raster values | partly WRONG | "exact" withdrawn → still an approximation between sampled lines |
 
-- Consequence: the user's "blue ring for Crop" **already exists on the map**; the "orange diagonal slashes for Fell" exists nowhere; and a blue-ring Crop would sit next to `MapSymbol.Shelter`, also a blue ring `(128, 182, 222)`.
-- **Forestry sourcing is NOT verified by DPC.** The worker reports that Pro Silva Ireland primary guidance supports diagonal removal slashes, vertical rack stripes and white/blue quality-tree rings, and that it does not make the game an official implementation. The reviewer must check every forestry claim has a named, checkable source.
+Corrections applied: count attributed, both reach ranges quoted, "exact" removed, review record added, 12 decisions split into **product / engineering / commissioning**, and a model-fidelity paragraph stating that an algebraic match in Python doubles is **not** executable equivalence to production C#.
 
-### 3.7 #253 — Option A MFM offline qualification — RUNNING
-
-Not returned at this checkpoint. No production MFM, Rack V2, save or teaching change was made by this lane, and no Unity was used.
+**Disclosed inconsistency:** the worker left "exact scan" labels inside its script, `run.log` and `results.json` because regenerating them would change the published hashes; §6 of the handoff says the correction governs those labels. Recorded rather than smoothed.
 
 ---
 
-## 4. Routing and provider evidence (summary; full detail in the ledger)
+## 4. Spec lanes
 
-| Pool (observed) | Model / effort used | Children |
+### 4.1 #257 — Input settings — DRAFT-COMPLETE (needs Q1–Q13)
+
+Three review rounds. Final head `ae7944aa`. I read the revised `REQ-P3a` rather than accepting "FIXED":
+
+> A required-vs-required collision whose second default is also taken **rejects the entire binding set as a unit**, falls back to the built-in defaults, keeps the file as `.bak`, and names both actions — with the invariant that makes it total (a collision-free default set binding every required action, AT-17b).
+
+**No path leaves a required action unbound.** Authority hierarchy, S-6 scope and a single atomic import rule are explicit.
+
+**One item owed, not agreed:** the inventory dispute is *definitional*. Method A reproduces (71/63/16 candidate, 68/60/14 main); Method B's 73/61 was never reproduced and its command was never published. Both figures and definitions are in the spec, with an open task asking the reviewer to append the command.
+
+### 4.2 #258 — Objective guidance — DRAFT (revision in progress)
+
+Two review rounds. P2 and P3 accepted; **P1 still failing**.
+
+The defect is a direct contradiction, not a gap: the blocking-state list omits `help.IsOpen`, `help.Onboarding.IsOpen` and Work Plan's `confirmingAdvance`, and **FR-2 ranks a retained rack confirmation above Help even though Help can overlay it**. A deterministic Boolean order that ranks an obscured control above the visible one is worse than a heuristic, because it looks rigorous.
+
+Fix required by design: **rank by visibility/occlusion** — the surface the player can see and interact with is the active prompt — so a future modal is handled without being appended to an enumeration.
+
+### 4.3 #259 — Tree mark language — DRAFT (criterion being replaced)
+
+Five review findings; four accepted. The fifth is a defect **the spec created for itself**, and two independent computations agree:
+
+| Pair | WCAG contrast |
+|---|---|
+| rack `(0.95,0.28,0.025)` vs Fell `(1,0.35,0.05)` | **1.17:1** |
+| light pink `#FFD1E8` vs Fell | 2.32:1 |
+| pink `(1,0.60,0.80)` vs Fell | 1.60:1 |
+
+Against Fell (`L = 0.285`), 3:1 requires the other mark to be `L ≥ 0.954` (near-white) or `L ≤ 0.062` (very dark maroon). **No recognisably pink or orange colour can reach it**, so the orange pair fails, the pink fallback fails, the spec forbids weakening the threshold — the rule terminates in its own redesign stop every time.
+
+**Diagnosis:** contrast ratio is a WCAG measure for a component against its *background*. It is the wrong tool for two hot hues told apart by **shape**. ΔE76 shows the real defect: the current pair is **6.0** (barely perceptible — which is exactly why the marks confuse the player), while pink candidates are **79–88** (decisive). The fix offered is to separate the concerns: perceptual-difference floor **between marks**, contrast floor **against bark/background**, recognition as the binding gate.
+
+Forestry sourcing was independently verified: the Pro Silva Ireland 2026 guide exists with a **matching SHA-256**, and it does document diagonal removal slashes, four-sided rack stripes, white/blue quality rings, two lines on retained route-side trees, and hot=orange/pink vs cool=white/blue. The publisher's "widely applied" claim was correctly **not** adopted as a standard.
+
+---
+
+## 5. The union-only defect (the finding that only execution produced)
+
+DPC built a **detached** worktree at the object-level merge tree of #255 and #256 (`b9f4d047`, from `git merge-tree`) and ran both harnesses on the combined state. No branch, commit, ref or push was created — verification, not integration.
+
+1. `run_offline.py`: `RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97`. Only the S10 **branch**-scope guard fails, correctly, because #256's files are present.
+2. `check_baseline.py --rotation-state post-fix`: checks 01–05 **PASS** — the four pre-fix baseline failures genuinely flipped once #255 landed — then it **aborted**:
+
+```
+SOURCE-STATIC ERROR: source anchor missing:
+  Assets/ForestPrototype/UI/StandMapView.cs: Hold Shift to turn snapping off.
+```
+
+Root cause at `check_baseline.py:204`: the checker hard-codes the **pre-#256** instruction sentence as an evidence anchor. Each branch is green alone; **together they break the harness**. This is the union-only failure class the programme has hit before, invisible to branch-local review, and it means the #260 checker must be re-anchored before all three can merge. Fix in progress.
+
+---
+
+## 6. Routing and provider evidence
+
+| Pool (observed) | Model / effort | Lanes |
 |---|---|---|
 | `codex` ("Codex") | `gpt-6.1-sol`, `reasoningEffort: medium` | #255, #256, #258 + reviews |
 | `codex_c75d8114` ("ChatGPT - OpenAI B") | `gpt-6.1-sol`, medium | #259, #260 |
-| `claudeAgent` ("Claude A") | `claude-sonnet-5-5`, `effort: medium` | #253, #255 review + re-check, #259 review |
-| `claudeAgent_claude_b_pro` ("Claude B — Pro") | `claude-sonnet-5-5`, medium | #257, #256 review, #260 review |
+| `claudeAgent` ("Claude A") | `claude-sonnet-5-5`, `effort: medium` | #253, reviews |
+| `claudeAgent_claude_b_pro` ("Claude B — Pro") | `claude-sonnet-5-5`, medium | #257, reviews |
 
-- **Quota, remaining tokens, context window, reset times: UNKNOWN for every pool.** The capability response exposes no quota fields and no account console was consulted. Success so far is not evidence of headroom.
-- **No quota interruption, cooldown or reset occurred** in this window; there was therefore nothing to wait for and no resume-from-reset was simulated.
-- **Escalation:** none was needed. The user's starting tier (Sonnet 5.5 Medium / GPT-6.1 Medium) was sufficient everywhere; **Opus 5.5 and higher effort tiers were authorised but not used**, because no Medium run produced a source-backed reasoning failure. Quota pressure, if it had occurred, would not have counted as one.
-- **Independence:** every production review was cross-family except #258, which was flagged.
+- **Quota, tokens, context, reset times: UNKNOWN for every pool.** No endpoint exposes them and no account console was consulted. Sustained success is **not** evidence of headroom.
+- **No quota interruption, cooldown or reset occurred.** Nothing to wait for; no resume-from-reset was simulated.
+- **No escalation was needed.** Medium was sufficient everywhere. **Opus 5.5 and higher effort tiers were authorised but unused** because no Medium run produced a source-backed reasoning failure — and quota pressure would not have counted as one.
+- **Independence:** every production review was cross-family **except #258**, where implementer and reviewer were both Codex-family. Flagged as the weakest separation in the programme rather than described as independent.
 
-## 5. What went wrong, honestly
+## 7. What went wrong
 
-1. **Workers overstated verification.** #256's "10/10 PASS" tested a different subsystem; #255's "13/14, one allow-list failure" hid five stale assertions. Both were caught only because reviewers were told to verify from source rather than accept summaries.
-2. **Two specs carried factual errors** (a wrong save version read across mixed baselines; a wrong Esc count) that would have gone to the Manager as approved-looking DRAFTs.
-3. **DPC itself repeated one of those errors** (the save version) before correcting it against both bases. The correction is recorded in the ledger next to the original statement rather than silently edited.
-4. **Handoffs are bloated** — 4,847 and 3,889 lines for 9- and 2-line changes, mostly pasted project documents. Not a defect in the work, but it makes the real content hard to find and the evidence hard to trust at a glance.
+1. **Workers overstated verification.** #256's "10/10 PASS" tested a different subsystem. #255's "13/14, one allow-list failure" hid five stale assertions. Both surfaced only because reviewers were told to verify from source.
+2. **Two specs carried factual errors** — a save version read across mixed baselines, and a wrong Esc count — that would have reached the Manager looking approved.
+3. **DPC repeated one of them** (the save version) before correcting it against both bases. The correction sits next to the original statement in the ledger; the original was not silently edited.
+4. **Handoffs are bloated** — 4,847 and 3,889 lines for 9- and 2-line changes. Not a defect in the work, but it buries the evidence.
+5. **A spec requirement was unachievable and survived a full author/reviewer round** until someone computed it. Numbers in specs deserve the same scepticism as numbers in handoffs.
 
-## 6. What is safe to do next (Manager decisions, not DPC decisions)
+## 8. What is safe next (Manager decisions)
 
-1. **#255 and #256 are ready for the Manager review queue.** They merge cleanly at object level (`git merge-tree` → `b9f4d047`, exit 0) and their source files are disjoint. Neither is integrated or accepted.
-2. **Decide the `16–20m` scope question:** `StandMapView.cs:603` still shows `16–20 m`, so a player sees both spellings until the #256 lane or a follow-up fixes it. Outside #255's packet.
-3. **Reconcile spec §28** in `specs/scenario-one-objective-1-rack-planning-field-marking-v2/spec.md`, which still contains the superseded "CCF source material" sentence that production no longer uses.
-4. **Decide the mark colour policy** (#259) with the three-surface table above in hand — not from the copy alone.
-5. **Authorise a real Unity verification pass** for #256 when disk and a lease permit; there is currently no execution evidence for it.
-6. **Answer Q1–Q13** in the #257 spec and the open questions in #258.
-7. **Nothing may be built for Windows** until the user's own playtest is complete and explicitly authorises it. That gate was not touched.
+1. **#255 and #256 are ready for the Manager queue.** They merge cleanly at object level (`git merge-tree` → `b9f4d047`, exit 0) with disjoint source files. Neither is integrated or accepted.
+2. **Decide the `16–20m` scope question:** `StandMapView.cs:603` still shows `16–20 m`, so a player sees both spellings until it is fixed. Outside #255's packet.
+3. **Reconcile spec §28** in `specs/scenario-one-objective-1-rack-planning-field-marking-v2/spec.md`, which still contains the superseded "CCF source material" sentence.
+4. **Decide the mark-colour policy** (#259) from the three-surface table and the contrast arithmetic, not from the copy alone.
+5. **Authorise a real Unity pass for #256** when disk and a lease permit — there is no execution evidence for it.
+6. **Answer Q1–Q13** (#257) and the product-group decisions in #253 §10.
+7. **Nothing may be built for Windows** until your own playtest is complete and you explicitly authorise it. That gate was not touched.
 
-## 7. Outstanding work not done
+## 9. Not done
 
-- Unity compilation, input, rendered layout and manual playtest for every lane: **not performed** (admission refused on disk).
-- #253's qualification: still running.
-- #258 and #259 revisions: in progress.
-- #260 follow-up: in progress.
-- `active-tasks.md` rows: **not updated by DPC** (#200 sole writer).
-- The access-spine programme ledger pointer for #253: to be appended when #253 returns.
+- Unity compilation, input, rendered layout, manual playtest: **not performed** (admission refused on disk).
+- #258, #259 revisions and the #260 re-anchor: **in progress at publication**.
+- `active-tasks.md`: **not updated by DPC** (#200 sole writer).
+- Method B inventory command: **owed by the reviewer**.
 
 ---
 
-*Checkpoint published to survive a context or capacity interruption. The final version of this file will be committed on `orchestration/overnight-20261104-dpc` and opened as a PR.*
+*Committed on `orchestration/overnight-20261104-dpc` with the ledger. Return to the Overall Manager (#200) for approval and integration.*
