@@ -462,6 +462,22 @@
 - **Limits observed:** none — this was a harness provisioning failure, not a provider quota/context/reset event. Provider availability and remaining budget remain **UNKNOWN**.
 - **Outcome:** RUNNING (retry #1 for both). No escalation triggered; no model/effort change made.
 
+### EVENT 034 — 2026-11-04 — #270 / #257 independent review returns APPROVE-WITH-CHANGES; DPC re-extracted the counts
+
+- **Evidence class:** OBSERVED FACT (reviewer return) + OBSERVED FACT (DPC re-ran the counting commands in this session).
+- **Reviewer:** `codex` **`gpt-6.1-sol`**, `reasoningEffort=medium`, independent of the Claude-authored spec. Read-only: it changed no file, opened no branch and left `/media/jer/ZX20/CCF-Primary` clean (verified `git status --porcelain` empty; HEAD still `46247486` on `ops/workflow-foundation-v1`).
+- **Verdict: APPROVE-WITH-CHANGES** — a draft-stage verdict only, not defaults or implementation approval. Spec head unchanged at **`ae7944aa`**, PR **#263**, `5 files changed, 561 insertions(+)`, no production change.
+- **DPC re-extraction of the published counts (this session, not copied):**
+  - `git grep -o -h -E 'wasPressedThisFrame|wasReleasedThisFrame|isPressed|\.ReadValue\(' <ref> -- 'Assets/ForestPrototype/*.cs' | wc -l`
+  - `72b4efbd` → occurrences **71**, matching lines **63**, files **16**.
+  - `8f0f2301` → occurrences **68**, matching lines **60**, files **14**.
+  - **All three reviewer figures per base match the reviewer's and the author's numbers exactly.** The counting unit is unambiguous for Method A.
+  - **Method B (73/61): still OPEN.** The reviewer's own trial expressions produced `73` occurrences but `63` lines, and the `73/61` pair could not be reproduced. Neither figure is withdrawn; the missing artefact is the original command + definition (ref, path scope, expression, exclusions, control expansion, occurrence-vs-line dedup). This is the **third** independent party to fail to reproduce it, which strengthens the demand for the command rather than the number.
+- **Findings accepted for the consolidated handoff:** R1 (major) §8 defines *settings-source* precedence, not the project authority hierarchy, while the handoff claims the project-level finding fixed; R2 (major) per-device storage does not give shared-account tester isolation, and the spec leaves profiles undecided; R3 (minor) Method B provenance; R4 (minor) `UI/StandaloneSessionMenu.cs` at `72b4efbd` does state "Session actions are keyboard navigable while all forest input is paused" and sets `button.focusable = true`, so the spec's blanket "focus handling not found" is overstated.
+- **DPC spot-check of R1 and R4:** §8 of the spec read directly — it is a settings-source ranking (reserved controls → user setting → scene value → built-in default → never legacy save) and correctly contains no project-authority block; the `focusable = true` line was read in source at `72b4efbd`. Both findings stand.
+- **What the review does NOT establish:** no Unity compile/runtime, no rendered UI, no focus-ring or keyboard-completion run, no real persistence/import atomicity, no network silence, no gamepad/non-QWERTY behaviour, no proof that any default table is valid. `active-tasks.md` untouched; no dashboard write attempted (Manager #200).
+- **Outcome:** #257 review COMPLETE (APPROVE-WITH-CHANGES). Spec remains **DRAFT**; author owes R1/R2 fixes and Method B provenance. Two reviewer lanes (#259, #258) still running.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
