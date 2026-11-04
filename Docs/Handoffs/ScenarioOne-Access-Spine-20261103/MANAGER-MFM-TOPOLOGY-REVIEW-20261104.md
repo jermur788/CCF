@@ -30,7 +30,7 @@ The first #251 draft received **MATERIAL ERROR** in independent review: **40 cla
 
 **Group tolerance/limit and reach policy are OPEN, not arbitrary constants.** A two-family cap and deterministic tie-break are reasonable investigation bounds, but the exact angle tolerance, chaining behaviour, remainder ownership and non-overlap proofs need offline tests. **Do not approve unbounded reach**: cells/trees outside verified comparable-access range must conservatively remain NotCovered/Manual until a reach rule is approved. Neither 9 m teaching half-width nor the measured 41.18 m maximum is automatically a valid reach threshold.
 
-**Separate Rack V2 design blockers:** legal spine entrance trees, yard/workbench bypass, corridor overlaps, practical turning, complete layout and honest proposal-vs-cleared mask timing need independent specification/qualification. D-064/D-065 remain controlling. No automatic Fell marking; Work Plan approval remains the commitment gate.
+**Separate Rack V2 design blockers:** legal spine entrance trees, yard/workbench bypass, R1/R2 editor clearance despite non-overlapping physical corridors, practical turning, complete layout and honest proposal-vs-cleared mask timing need independent specification/qualification. D-064/D-065 remain controlling. No automatic Fell marking; Work Plan approval remains the commitment gate.
 
 ## Next work and stop conditions
 
