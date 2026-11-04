@@ -3830,3 +3830,60 @@ Assets/ForestPrototype/UI/StandMapView.cs
 $ git add Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs Assets/ForestPrototype/UI/StandMapView.cs Docs/Handoffs/Overnight-Continuation-20261104/RACK-HANDLE-HANDOFF.md
 [exit 0]
 ```
+
+## Publication receipts
+
+```text
+$ git add Docs/Handoffs/Overnight-Continuation-20261104/RACK-HANDLE-HANDOFF.md
+[exit 0; no output]
+$ git commit -m "fix(map): rotate rack handle freely without Shift (#256)"
+[feature/overnight-rack-handle-20261104 b9eaa54f] fix(map): rotate rack handle freely without Shift (#256)
+ 3 files changed, 3836 insertions(+), 3 deletions(-)
+ create mode 100644 Docs/Handoffs/Overnight-Continuation-20261104/RACK-HANDLE-HANDOFF.md
+[exit 0]
+$ git push -u origin feature/overnight-rack-handle-20261104
+To https://github.com/jermur788/CCF.git
+ * [new branch] feature/overnight-rack-handle-20261104 -> feature/overnight-rack-handle-20261104
+branch 'feature/overnight-rack-handle-20261104' set up to track 'origin/feature/overnight-rack-handle-20261104'.
+[exit 0; remote also printed its standard create-PR hint]
+$ gh pr create --base main --head feature/overnight-rack-handle-20261104 --title 'fix(map): free rack-handle rotation without Shift (#256)' --body <structured argument>
+https://github.com/jermur788/CCF/pull/261
+[exit 0]
+$ link_pull_request(url=https://github.com/jermur788/CCF/pull/261)
+alreadyLinked=false; isError=false
+```
+
+PR body links #256/#254, lists the three files, offline results and all missing Unity/runtime evidence. A final docs-only receipt commit follows this production commit; its exact SHA and push result are supplied in the final worker reply to avoid a self-referential handoff hash.
+
+```text
+$ python3 Tools/Verification/RackV2ConfirmMinimap/run_static.py --root . --base 72b4efbd1c653fa2231f632a79030a83ff76f833
+PASS 1 CanConfirmRackPlan reports target count and validates editable racks
+PASS 2 ConfirmRackPlanFromMap delegates only
+PASS 3 authoritative rack/save sources unchanged since base (14 files)
+PASS 4 no rack-counter mutation; V2CounterText is derived (1 const declaration skipped)
+PASS 5 ReadRacks reads the plan and suggestions; map/minimap sources are read-only
+PASS 6 legacy layouts are behind !v2; V2 objective text is behind RackPlanV2
+PASS 7 minimap teaching note is present, non-interactive and button-free
+PASS 8 suggested racks are dashed in the mini map; player racks are solid
+PASS 9 approved cancellation is never granted automatically
+PASS 10 no leftover RackV2 harness and no orphan .meta under ForestPrototype
+RACK_V2_CONFIRM_MINIMAP_STATIC_PASS checks=10
+[exit 0]
+```
+
+```text
+$ git diff --check
+[exit 0]
+```
+
+```text
+$ git rev-parse HEAD
+b9eaa54f2735aa53ed95c81e806047c3508807aa
+[exit 0]
+```
+
+```text
+$ gh pr view 261 --json url,state,reviewDecision,statusCheckRollup
+{"reviewDecision":"","state":"OPEN","statusCheckRollup":[],"url":"https://github.com/jermur788/CCF/pull/261"}
+[exit 0]
+```
