@@ -233,6 +233,17 @@
 - **Outcome:** #255 **REVIEWED** (copy + tests), integration and acceptance still Manager-only. Rendered text, wrapping and the E2E Unity assertion remain unexecuted.
 - **Next:** Manager queue; no further code change planned on this branch.
 
+### EVENT 019 — 2026-11-04 01:38 UTC — #260 accepted with named weaknesses; bounded follow-up; merge-readiness fact for #255+#256
+
+- **Evidence class:** OBSERVED FACT (reviewer return; my `git merge-tree` run; worktree removals).
+- **#260 review: acceptable as a source-level baseline, no blocking issues.** It reproduced `PASS=3 FAIL=4 NOT-TESTABLE=2` and confirmed determinism (two runs byte-identical to the committed `baseline-output.txt`), no network calls, no writes, and no production change.
+- **Weaknesses it named, kept rather than hidden:** check 01 enforces a *presentation* preference (no space before `m`) rather than a functional defect; check 05 only tests for the absence of a word; check 08 required the literal `Plan Racks` in the primary label, which fits only one possible fix; check 06 never examines the actual snapping logic.
+- **Real coverage gap worth one bounded round:** `RackEditing.SnapFar` is a **pure function** and the harness never exercises it, and the rotation snap argument is never structurally asserted. A follow-up was dispatched to the same author on the same branch (no new PR) to add a structural check on the `Propose` call site that must fail in *either* direction if the expression changes, to relabel check 01 as a format expectation, and to change check 08 to assert the observable (which button carries `btn-primary` and what it invokes) instead of one specific fix label. Existing checks are explicitly not to be removed or weakened.
+- **Integration-readiness fact (not integration):** `git merge-tree --write-tree 693e24c8 9304d318` returns tree `b9f4d047` with exit 0 — the #255 and #256 heads merge **cleanly at object level**, and their source file sets are disjoint (`LearningObjectivesView.Curriculum.cs`, `MenuHelpView.Text.cs`, two test files vs `Map/StandMapRackEditor.cs`, `StandMapView.cs`). Nothing was merged, nothing was pushed to a shared branch; this is a fact for the Manager queue, not a decision.
+- **Cleanup:** review worktrees `-261`, `-262`, `-263` removed; `-265` retained while its review runs, `-262c`/`-264` already removed.
+- **Outcome:** #260 REVIEWED (baseline), follow-up RUNNING.
+- **Next:** follow-up return → re-check the new check's honesty; then Manager queue.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
