@@ -542,6 +542,22 @@
 - **States:** REVIEWED (source), STAGED. **NOT** integrated, NOT Unity-qualified, NOT accepted, NOT CTA-fixed. The reviewer explicitly refuses to call the candidate runtime-qualified.
 - **Outcome:** #269 = REVIEWED and ready to hand to the Manager as a source-staging result. Only #271 and #259's independent review remain in flight.
 
+### EVENT 039 — 2026-11-04 — #259 independent Claude review: APPROVE-WITH-CHANGES; my own numeric "correction" corrected again
+
+- **Evidence class:** OBSERVED FACT (reviewer return, recomputation by DPC) + CORRECTION of EVENT 035.
+- **Reviewer:** `claudeAgent_claude_b_pro` **`claude-sonnet-5-5`** medium, the actual independent family (author = OpenAI Codex, confirmed from the handoff header by this reviewer too). Read-only, clean checkout, no PR.
+- **Verdict: APPROVE-WITH-CHANGES as a DRAFT.** All the author's numbers reproduce; every checked source claim about `72b4efbd` is correct; the Pro Silva attributions match the primaries; the spec makes **no** official/statutory-standard claim and never says "WCAG".
+- **CORRECTION TO MY EVENT 035 CORRECTION.** I told the record that the author's `78.10` "should read 78.077696". That was too strong. DPC recomputation this session:
+  - full-precision IEC sRGB→XYZ matrix → **78.0777**;
+  - truncated IEC matrix (`0.4124, 0.3576, 0.1805 …`) → **78.1025**;
+  - so the published `78.10` is a **constant-set difference, not an arithmetic error**, and across common matrices the value spans **78.0744–78.1025**. Correct record: quote the constant set, allow a **±0.05** tolerance, and stop calling either figure wrong. The ≥40 floor is insensitive to it.
+  - Likewise EVENT 027's "no recognisably pink colour reaches 3:1": DPC verified a dark rose `(0.45,0.02,0.2)` reaches **3.7287:1** and `(0.4,0,0.15)` **4.2020:1**. The universal claim is false; the spec's own correct phrasing ("3:1 requires L ≥ 0.954 or ≤ 0.0616") stands. Only *hot/light* pinks fail.
+- **DPC verified the two numbers that matter for the review's force:** truncated-matrix ΔE = 78.1025 exactly, dark-rose contrast = 3.7287 exactly.
+- **Findings accepted (9):** R1 region-median background sampling can hide an erasing bark patch (concrete local-window rule + negative-control fixture proposed); R2 recognition protocol has a **memorisation confound** (same captures shown in every mode to the same scorers) and no real CVD participant; R3 human accessibility feedback has **no disposition** — a barrier reported alongside a passing score can still be dismissed; R4 migration inventory is far shorter than reality (≈20 colour-dependent player-facing strings, with the full line-cited list now recorded); R5 paint alone cannot reach 3:1 on mid-light bark and Beech is in the fixture list, so the edge is effectively mandatory and a single edge cannot serve pale and dark bark; R6 **map colour collisions are ungated** (Crop ring vs Shelter ring ΔE 36.33; orange vs amber planned-route ΔE 48.96/52.42 at contrast 1.59/1.87; orange Fell vs red-dashed refused-rack line ΔE 30.39); R7 "sourced established practice"/"documented Irish CCF practice" overstates one NGO's published system; R8 "orange-first, pink fallback" is **nominal** because orange-vs-orange fails by construction, so the real choice is "pink rack or change Fell", and pink buys nothing for grayscale or tritan; R9 normative arithmetic duplicated across four files (drift risk).
+- **Cross-check of the earlier OpenAI review:** R1/R2/R3/R4 of this review confirm its F2/F3/F4, and it states F4 was itself incomplete (missed `ForestPlayer.cs:1213`, `StandMapView.cs:775`, `WalkingHudView.cs:284`, `WorkPlanView.cs:500`, Curriculum 34/36/37/56). It confirms F5 only as a constant-set note (see correction above).
+- **States:** #259 review COMPLETE (both families have now reviewed it). Spec stays **DRAFT**; no colour or shape change authorised.
+- **Outcome:** all three #270 spec reviews are complete. Consolidated `FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md` is now being written by DPC.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
