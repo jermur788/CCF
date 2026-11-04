@@ -303,7 +303,7 @@ public sealed class RackV2Objective1Runner : MonoBehaviour
         yield return Settle(10);
         string objective = Text();
         Check(objective.Contains("Extraction racks allow machinery to reach trees without creating access everywhere across the stand")
-            && objective.Contains("16–20 m") && objective.Contains("Plan Racks"), "Objective 1 details explain purpose, conditional spacing and map planning (§30 step 1, §31)");
+            && objective.Contains("16–20m") && objective.Contains("Plan Racks"), "Objective 1 details explain purpose, conditional spacing and map planning (§30 step 1, §31)");
         Check(!objective.Contains("18 m is the ideal") && !objective.Contains("always required"), "no universal 18 m or five-rack claim (§31)");
         yield return Shoot("c01-objective-1-before-planning");
         ui.CloseAll(); yield return Settle(6);

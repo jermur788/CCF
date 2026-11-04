@@ -85,7 +85,7 @@ public sealed partial class LearningObjectivesView
     // sentence. 16-20 m is the book's early-transformation example and this stand's calibrated band; five racks is calibration for this
     // stand. Neither is taught as a general rule.
     public const string RackV2Concept = "Extraction racks allow machinery to reach trees without creating access everywhere across the stand. "
-        + "In early CCF transformation, rack spacing may commonly be around 16–20 m, but appropriate spacing depends on the stand, machinery and site. "
+        + "In early CCF transformation, rack spacing may commonly be around 16–20m, but appropriate spacing depends on the stand, machinery and site. "
         + "Scenario One uses that range as a guide for this plantation. "
         + "This stand needs five extraction racks to create a workable first access layout. "
         + "Plan the racks on the map, then mark each rack entrance in the forest.";
@@ -111,8 +111,8 @@ public sealed partial class LearningObjectivesView
         switch (stepId)
         {
             case "rack.read": return "A rack is a straight corridor of removed trees that machinery drives along, so the rest of the stand can be reached without driving through it. It stays open for this and later thinnings. "
-                + "Spacing is conditional: around 16–20 m between racks may be common in early transformation, around 30 m or more may be viable in developed CCF, and there is no universal rule. "
-                + "Scenario One recommends 16–20 m and five racks for this plantation only.";
+                + "Spacing is conditional: around 16–20m between racks may be common in early transformation, around 30 m or more may be viable in developed CCF, and there is no universal rule. "
+                + "Scenario One recommends 16–20m and five racks for this plantation only.";
             case "rack.create": return "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.";
             case "rack.layout": return "Plan five racks on the Stand Map [M] and choose Confirm Rack Plan. Then return to the forest and mark each rack entrance tree in orange: [P] spray marker, aim within 3.5 m, left-click. Tree Marks help explains the paint.";
             case "rack.approve": return "Once the rack entrances are marked, open the Work Plan [Tab]. Check the rack removal work and its cost, then choose Approve Work Plan. Approval does not cut anything yet.";
