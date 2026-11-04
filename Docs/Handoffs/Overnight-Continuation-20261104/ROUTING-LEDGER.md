@@ -514,6 +514,20 @@
 - **Review:** independent **OpenAI GPT-6.1 Medium** review of the PR diff and a fresh run of all three gates dispatched immediately (EVENT 037 pending).
 - **Outcome:** #269 worker COMPLETE; review in flight.
 
+### EVENT 037 — 2026-11-04 — #270 / #258 independent review: NEEDS CHANGES (3 High); DPC verified the three Highs in source
+
+- **Evidence class:** OBSERVED FACT (reviewer return, PR head) + OBSERVED FACT (DPC read the cited source at `db43dbe5`).
+- **Reviewer:** `claudeAgent` **`claude-sonnet-5-5`** medium, independent of the Codex-authored spec. Read-only, no edits, no branch, primary checkout clean. Subject: PR **#265**, head **`a173192f`**, 5 docs files, no production change.
+- **Verdict: NEEDS CHANGES (minor-to-moderate)**; may stay DRAFT; **not ready for Manager approval**. It also confirms the FR-2 visibility/occlusion rewrite is the right fix for the earlier Boolean-ranking defect, and that AC-1a/AC-1b are genuinely unrun rather than faked.
+- **DPC verified the three High findings directly, not on report:**
+  - **R-01 — `UI/UiKit.cs` sets `button.focusable = false` for every `UiKit.Button`** ("Keyboard focus would let gameplay keys (Tab, M, N) act on the button"). The spec's FR-6 ("visible focus indicator", "Enter/Space activate", "keyboard reachable") is therefore **unachievable today**, and the spec never says so. Confirmed at source.
+  - **R-02 — the destructive choice is the primary one in every rack prompt:** `StandMapView.cs` "Cancel approved work" = `btn-primary`, "Keep approved work" = `btn-ghost`; same shape for "Reset layout" and "Reopen the plan". FR-2 requires restyling consent UX, which is a production visual change needing an owner. Confirmed at source.
+  - **R-03 — `ConsentPending` and `ResetPending` can be co-visible:** `RequestReset()` sets `ResetPending = true` without clearing `consentRetry`, and the Reset control stays enabled under the consent panel; both render in the same card. So FR-2 is **not total by occlusion alone** — its "ambiguous → no primary" backstop is what closes it, and the player gets no guidance in a reachable state. Confirmed at source.
+- **Notable medium findings:** R-04 "owns guidance" vs "owns input" conflated (inline cards are not barriers); R-05 any map pointer-down silently clears the prompts, so they are not "pending until answered"; R-06 first visit auto-opens Help, so AC-2's first cue is Help Continue; R-07 Help can be force-closed by navigation; R-08 `RackPlanProblem` and `RackPlanningAvailable` gate Approve/Advance and Plan Racks; R-09 `rackMode` is unsaved view state, so "derived from saved state" is overstated; R-10 the 16 physical-px target is below today's 1280×720 baseline; R-11 no screen-reader delivery mechanism exists anywhere in source; R-12 diagram acceptance is judgement-only.
+- **Citation quality:** F6 map-symbol table matches all 17 entries; six citation groups spot-checked; remaining drift is ≤3 lines per citation and changes no conclusion (R-15).
+- **States:** review COMPLETE; spec remains **DRAFT**; three High changes owed before the Manager decides anything.
+- **Outcome:** #258 review DONE (NEEDS CHANGES). #259's independent Claude review, #271 study and #269's GPT review still in flight.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
