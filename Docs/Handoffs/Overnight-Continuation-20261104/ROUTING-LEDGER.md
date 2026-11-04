@@ -587,6 +587,19 @@
 - **States:** #271 research REVIEWED. Still **NO-COMPARISON** for choosing a winner; no policy default, no Option A approval, no Rack V2 change.
 - **Outcome:** all three claims (#269, #270, #271) have returned and been independently reviewed. Consolidated return to the Overall Manager is the last step.
 
+### EVENT 042 — 2026-11-04 — continuation closed; consolidated return published to the Overall Manager
+
+- **Evidence class:** OBSERVED FACT (git state and PRs read back after publication).
+- **Published:** [POST-OVERNIGHT-CONTINUATION-RESULT.md](POST-OVERNIGHT-CONTINUATION-RESULT.md) — the return document covering all three claims, the routing record, the four self-corrections, the Manager decision list, the exact Git state and the non-proofs.
+- **Final claim states:**
+  - **#269** — STAGED / REVIEWED (source). PR #273 on the candidate lineage. Check 08 (Objective 1 CTA) remains a deliberate FAIL.
+  - **#270** — REVIEWED; all three specs remain DRAFT; consolidated handoff published with 19 Manager decisions.
+  - **#271** — RESEARCH; NO-COMPARISON; no policy default, no Option A approval.
+- **Routing totals for this continuation:** 5 worker/reviewer children + 3 post-return reviews (8 model runs) across 2 families; **0 escalations**; 1 sandbox-provisioning retry; quota/reset **UNKNOWN** throughout.
+- **Git hygiene:** `main` `db43dbe5` untouched by these claims; candidate `72b4efbd` unmoved; #261/#262/#264 open and untouched. Two lane worktrees retained for follow-up.
+- **No Unity, no Editor, no Library, no Player or Windows build at any point.**
+- **Outcome:** RETURNED TO MANAGER (#200). DPC work on this continuation is complete.
+
 ## Morning / terminal checkpoint
 
 DPC must publish `OVERNIGHT-ORCHESTRATION-RESULT.md` before ending a session or at a context/quota transition. Record each child claim status and handoff link, what passed/failed, unmerged branches, orphaned locks, pending reviews, actual wait/restart state and first next safe executable work. If provider truly cannot continue until reset, publish a **BLOCKED/COOLDOWN** checkpoint with observed reset evidence (or UNKNOWN), rather than promising an unconfigured timed delivery.
