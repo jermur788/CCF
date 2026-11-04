@@ -28,3 +28,15 @@ Read both refs with git show without checkout; inspected existing spec conventio
 - **Quota/reset/context/tokens/elapsed:** UNKNOWN (no provider telemetry receipt). No fabricated numeric capacity claims.
 - **Provenance:** main `8f0f230190830855112e3e7a1d7544db94a7f591`, candidate `72b4efbd1c653fa2231f632a79030a83ff76f833`; source ledger F1–F9 records exact paths/lines. Five-rack/16–20 m/seven-row statements retain their distinct site/legacy semantics; no new measured geometry or research coefficients reported.
 - **Outcome:** four-file DRAFT and handoff ready for external review, not production implementation or acceptance. Parent DPC alone appends ledger event outcome.
+
+## Review response
+
+- **P1 FIXED:** FR-2 now resolves `editor.ConsentPending`, `editor.ResetPending`, `reopenPending`, then other blocking modals before every background row; only the active scope has primary emphasis/activation. Safe decline/cancel wins, with no-primary fallback when no safe modal choice exists. AC-1 tests each prompt against competing planning/confirmed states and re-derivation after dismissal.
+- **P2 FIXED:** FR-3 makes candidate `RackV2Instruction()` authoritative for Objective 1 wording/stage after modal handling, projects its first unfinished step onto the screen, then applies validators. Corrections use a fixed first-eligible allowlist (map, planning, reason-matched undo, over-target selected unlocked delete); otherwise reveal the same instruction/reason. No arbitrary enabled-control selection or second instruction source. AC-6 tests helper branches, ties and ambiguous reasons.
+- **P3 FIXED:** F6 was re-derived with `git show` and numbered lines at main `8f0f230190830855112e3e7a1d7544db94a7f591`; every symbol citation now names `StandMapSymbols.Build()` and its `MapSymbol` entry. Racks :86–97, navigation/grid :99–104, tree marks :106–107; not candidate 72b4efbd.
+
+DRAFT remains unchanged. Planned canopy/no-clearing semantics, shape/pattern/text accessibility and saved-state derivation without schema changes remain required. Docs-only; no Unity or production verification claimed.
+
+Revision starts from clean `f98d9ee8948d54494c5cc882fdb332e2ede832f9` on the same assigned branch/worktree; PR #265 remains the review destination. Independent re-review remains pending. Dashboard synchronization remains unverified and belongs to DPC/Manager.
+
+Revision verification: `git diff --check` passed; programmatic exact-commit checks matched all 17 named symbol entries and the Build definition; all four spec statuses remain DRAFT; only the five owned paths changed. FR-5/FR-6 and the save-compatibility section were compared with the prior HEAD and remain byte-identical. No runtime gates run.
