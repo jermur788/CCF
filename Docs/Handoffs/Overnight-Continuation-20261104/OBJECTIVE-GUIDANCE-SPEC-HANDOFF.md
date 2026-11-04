@@ -42,3 +42,5 @@ Revision starts from clean `f98d9ee8948d54494c5cc882fdb332e2ede832f9` on the sam
 Revision verification: `git diff --check` passed; programmatic exact-commit checks matched all 17 named symbol entries and the Build definition; all four spec statuses remain DRAFT; only the five owned paths changed. FR-5/FR-6 and the save-compatibility section were compared with the prior HEAD and remain byte-identical. No runtime gates run.
 
 P1 re-check starts from clean `bb2ebc63d7db302a5846a4621342bed33dd4f035`. Complete file:line inventory is in the spec source audit. All five owned documents amended; P2/P3 responses and accepted requirements/citations preserved. DRAFT; no production or Unity changes. Independent review and dashboard synchronization remain pending for DPC/Manager.
+
+Re-check verification: `git diff --check` passed; programmatic comparison preserved P2/P3 response lines, FR-3, FR-5/FR-6 and save text byte-for-byte. Only the five owned Markdown files changed; acceptance tests remain NOT RUN.
