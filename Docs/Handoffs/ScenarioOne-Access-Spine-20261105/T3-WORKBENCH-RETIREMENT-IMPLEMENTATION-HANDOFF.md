@@ -69,7 +69,7 @@ The user approved the narrow **new-game-scoped retirement** contract before any 
 | `Tools/Verification/MfmCoverageWorld/MfmCoverageWorldUnityGate.cs` | Independent Site construction skips retired buildables | Keeps the gate's source-parity assertion true; no assertion removed or weakened. |
 | `Assets/ForestPrototype/Editor/ForestSceneBuilder.cs` | Set the flag when generating the workbench | A dev-regenerated scene cannot silently reintroduce the footprint. |
 
-`git diff --stat`: **7 files changed, 34 insertions(+), 9 deletions(-)**. The scene diff is **exactly one added line**. No `.meta`, asset, package, project-setting or other scene change.
+**Implementation commit `57f10ff0`:** **7 files changed, 34 insertions(+), 9 deletions(-)**. This handoff is the eighth branch file. The scene diff is **exactly one added line**. No `.meta`, asset, package, project-setting or other scene change.
 
 ---
 
