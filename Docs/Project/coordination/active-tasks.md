@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-04 by Overall Manager after user-reported, GitHub-confirmed main integration of the prior qualified UI stack and accepted onboarding artwork. PRs #273/#276/#278 are merged; `main` is the updated Unity personal-playtest target. The earlier published player-test branch stays separate. Local import and focused onboarding were reported; formal 288/289 gate remains FAIL with narrow #243 Search-indexer waiver; no full Rack/Tier-3 rerun on merged main, no personal playtest acceptance or Windows build.
+**Last reconciled:** 2026-11-05 by Overall Manager after user personal-playtest feedback: contextual Objective next-action highlights and the broader Stand Map/access-spine redesign are not implemented on the current main. Feedback #281 OPEN; separate docs-only #282 spec correction READY, no execution lock. Original #258 and access spine remain DRAFT/STOP as applicable. The user is using Unity; no competing Unity, production changes or Windows build authorised.
 
 ## Coordination rules
 
@@ -59,6 +59,9 @@ Because the integration is the exact already-qualified direct-child commit on it
 | Task | Lane | Ownership | Status |
 |---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
+| **Playtest feedback: missing next-action highlights and map changes** (#281) | browser/GitHub Manager intake; user playing latest main in Unity | User-visible Objective button emphasis absent and Stand Map appears largely unchanged; source audit confirms #258 and access-spine designs were not part of the merged UI release | **OPEN — EXPECTATION/SCOPE GAP, NOT FIXED.** [Feedback issue](https://github.com/jermur788/CCF/issues/281); no personal-playtest completion, code change, Unity lease or build. |
+| **Objective next-action guidance draft repair** (#282) | **READY, NOT RUNNING**, original #258 docs-only branch `docs/overnight-objective-guidance-spec-20261104` / conditional registered worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104`; one author only | DeepSeek High orchestrates V2 ledger/dispatch only, **GPT-6.1 Sol Medium** expected spec author after fresh lane/ownership check; Sonnet 5.5 Medium independent review later | **SPEC ONLY / READY — NO IMPLEMENTATION.** [Packet](../Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-PACKET.md). Preserve user playtest, no Unity or Windows build. |
+
 | **DeepSeek orchestrator-only template review** (#280) | browser/GitHub Overall Manager #200, docs-only, [draft PR #279](https://github.com/jermur788/CCF/pull/279) | User-proposed future policy: DeepSeek High coordinates/updates V2 ledger only; GPT-6.1 Sol Medium and Sonnet 5.5 Medium default workers; Opus 5.5 Medium justified escalation | **DRAFT / MANAGER REVIEW REQUESTED — NOT APPROVED.** Existing #91/#201/#203 execution policy not silently superseded, no local Unity/production writer, no candidate move, no Windows build. |
 | **Local Deep Orchestration Resume 02** (#203) | local orchestration | local routing + housekeeping | **RUNNING** |
 | **Scenario One final Tier-3 qualification** (#231) | #203 local | parent milestone qualification | **APPROVED / CLOSED** |
