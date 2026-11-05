@@ -1,6 +1,8 @@
 # Access Spine & Diagonal Rack Network — DRAFT Requirements and QA Checklist
 
-**Status: DRAFT / STOP IMPLEMENTATION. Initial #286 NEEDS CHANGES resolved in independent #288 APPROVED research-quality re-review, with six non-blocking editorial corrections applied, 5 November 2026.** Checked documentation items denote completed source audit/recording only; no Unity/feature qualification is implied. Decisions remain open until accepted by user/Manager and written into approved spec/Decision Log.
+**D-071 PRODUCT DISPOSITION (2026-11-05) — SUPERSEDED FOR SCENARIO ONE.** The user selected the **existing southern-headland five parallel racks** as sufficient for Scenario One (illustration Option A, equivalent to the current parallel/headland fallback in this research). No full northern spine, diagonal/herringbone 3+2 racks, new single-family spine-entry network, player-built northern extension, new two-family MFM derivation or modified rack-clearance rule is required or authorised for Scenario One. D-064 Rack V2 and D-065 MFM V1 remain controlling. This file preserves independently reviewed research and **is not an implementation licence**; later scenarios require their own product decisions and specs. D-070 hidden workbench retirement remains separate, source-reviewed but Unity-unverified. See [Decision Log D-071](../../../Docs/Project/decision-log.md).
+
+**Status: SUPERSEDED FOR SCENARIO ONE / HISTORICAL RESEARCH QA, NOT A CURRENT FEATURE ACCEPTANCE CHECKLIST. D-071, 5 November 2026.** Checked documentation items denote completed source audit/recording only; no Unity/feature qualification is implied. Decisions remain open until accepted by user/Manager and written into approved spec/Decision Log.
 
 ## A. Authority and research quality
 
@@ -56,4 +58,4 @@
 - [ ] **AS-R38** — Independent review and Manager integration verdict on exact candidate, GitHub Markdown handoff and dashboard sync. Keep IMPLEMENTED, INTEGRATED, VERIFIED and USER-ACCEPTED distinct.
 - [ ] **AS-R39** — User personally completes Scenario One playtest and separately explicitly authorises any Windows build; no Windows/Player build under this DRAFT.
 
-**Research boundary:** #283 documentation delivered, #286 original review NEEDS CHANGES, #288 B1–B7 re-review APPROVED FOR RESEARCH QUALITY with C1–C6 editorial fixes applied on docs branch. #284 is source-reviewed but not integrated/Unity qualified; #287 awaits user release/valid lease. Neither E/P/F nor T-A, Q4a, Q6 or any old-save migration has been approved.
+**Research boundary:** independently reviewed B1–B7, #288 APPROVED FOR RESEARCH QUALITY, C1–C6 applied; **D-071 now chooses the existing parallel Rack V2 arrangement for Scenario One**. Remaining rack/spine alternative checkboxes are not required for this demo and remain as historical future-scenario research; #284/#287 independent workbench qualification remains in force. #284 is source-reviewed but not integrated/Unity qualified; #287 awaits user release/valid lease. Neither E/P/F nor T-A, Q4a, Q6 or any old-save migration has been approved.
