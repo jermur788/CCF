@@ -1,3 +1,7 @@
+**LATEST MANAGER RECONCILIATION (5 Nov 2026, 22:40 UTC return):** A **Claude Sonnet 5.5 Medium** session (NOT DeepSeek High) produced an orchestration-only [safe-stop result](https://github.com/jermur788/CCF/blob/docs/deepseek-orchestration-20261105-v1/Docs/Handoffs/Orchestration-20261105/DEEPSEEK-ORCHESTRATION-RESULT.md). [Manager accepted safe stop and selected MANUAL #292 publication](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ProjectContext-20261105/MANAGER-MANUAL-INPLACE-PUBLICATION-DECISION-20261105.md). **#292 is now WAITING ON USER, NOT RUNNING**; no more content-upload worker preflight/dispatch until user confirms manual versions and attachments. Afterwards DeepSeek High may route a read-only Sonnet Medium SHA-256 verifier. **#282 docs-only spec repair is independently RELEASED for Sol Medium routing** subject to fresh lane ownership and one writer. The supplied [V2 appendix reference](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/PlayerTestReadiness-Overnight-01/ORCHESTRATION-EVIDENCE-APPENDIX-V2.md) has been restored; do not retroactively fill the Claude ledger. The older #292-first routing directive below is superseded. This does not demonstrate an actual DeepSeek High runtime.
+
+---
+
 # CCF — DeepSeek High orchestrator-only resume (5 November 2026)
 
 **Status:** MANAGER RELEASED FOR ORCHESTRATOR PRE-FLIGHT — NOT EVIDENCE THAT A NEW DEEPSEEK SESSION IS RUNNING.  
