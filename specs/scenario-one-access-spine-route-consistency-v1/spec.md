@@ -215,16 +215,25 @@ Four are direct dependants, and the latter two are indirect via Saw Pit. D-055 p
 
 The route's **initial status** does not determine its racks. The studied reach-policy costs attach to **two-family T-A** under an E-like feeder; they do not prove any E road automatically loses MFM coverage. For unapproved 20→9 m access caps in the **offline, unmasked study**, current parallel T-F has **0.00→3.11%** area beyond cap; A-nearest **14.13→38.22%**; A-lateral **36.25→49.03%**. Experimental #271/PR #274 counts show 14/14 legacy units covered at cap 20 m versus at most 9/14 in A-nearest, but these are fit-independent *coverage ceilings*, not actual completed treatment. Same PR's C-S45 spine single-family construction has 3.06% beyond 20 m (nearest) but conflicts with the 16–20 m spacing guidance and needs a spine entrance rule change; it is **not a verified alternative geometry**. Do not settle Q1 independently of the Q4/Q5 practical consequences or conflate non-covered ground and fully manual work.
 
+### 6.8 Candidate E north-infrastructure identity — design alternatives, not selected
+
+| Model | Rule and implementation cost | Must-prove negative and positive fixtures |
+|---|---|---|
+| **I-N: infer from northern corridor original-tree occupancy** | Adapt *principle* of `StandApproachRoute.WorldHasApproach`, which checks original plantation tree records in an approach corridor (including standing/dead/stumps, not the south approach's apparent track art). No new saved field, but a once-cleared old north corridor or one originally lacking tree IDs can produce false "existing" status and incorrectly add new track/masks. Do not reuse southern segment tests as north proof | Pre-feature Enlarged80 with original north trees; pre-feature saved world with north trees felled/cleared; naturally empty northern corridor; fresh E world; Legacy40; frozen Reference Future. Refuse if old save falsely gets new route |
+| **I-V: explicit saved initial-infrastructure state/version** | Unambiguous if well versioned; new save field is a schema and JSON WorldHash change even for otherwise identical trees, with legacy default, archive/preview and prescription-unit version implications. Must not convert old version to E merely from version number | Old v24 and earlier, current new-game E save/reload, absent-field migration, historical completed rack/work, Legacy40/reference, hash reproducibility and old/new version comparison |
+
+**Q6 OPEN**: select only after evidence-driven false-positive/false-negative assessment versus schema/hash compatibility. The actual #284 workbench save-ID runtime reconciliation is a different feature and does not answer E's initial infrastructure identity choice.
+
 ### 6.8 Qualification matrix for future approved code (not executed in #283)
 
 | Case | Required proof | Tier / evidence |
 |---|---|---|
-| New E world, with D-070 retirement | Real tree count/IDs, site/path masks, no phantom workbench, same route in scene/map/minimap, truthful Objective 1 | Tier 2 Unity scene + offline deterministic inventory baseline |
+| New E world, with D-070 retirement | Tree count **and exact ID set/positions/DBH**, other six hidden Site masks, path exclusion and model-specific status, Stand Map/minimap/scene parity, no hidden workbench effect after load | Tier 2 Unity scene + offline deterministic inventory baseline |
 | Old Enlarged80 saves and old approach inference | No retroactive north road/masks/tree deletion, expected previously existing route, saved rack/order history unchanged | Offline save round-trip + Tier 2 loaded-world render |
-| Legacy40 and Reference Future v1 | Original archive bytes/hash protected; no V2/spine curriculum insertion; old preview/continuation path viable | Protected deterministic/reference contract |
+| Legacy40 and Reference Future v1 | **D-056 central 336 ID set/locations**, protected Legacy40 start, frozen reference Y100 and continuation hashes preserved; no new road/curriculum; old preview/continuation viable | Protected deterministic/reference contract |
 | Invalid/disconnected draft; valid new spine entrances | Invalid draft remains sketchable but cannot Confirm or approve; valid legal entrances map to correct reachable trunks | Offline geometry edge fixtures + rendered 3D selection |
 | Five-branch 45° reference and alternative | Centreline clearance, physical corridor, trunk/terrain, headland/feeder connectivity and actual machine turn reviewed, not assumed | Offline geometry + Unity physical/routed capture |
-| A versus legacy MFM | Every old-valid plan remains legacy unchanged; each tree/area at most one owner, finite-segment reach bound, correctly shown Manual/NotCovered | Offline property tests and Tier 2 MFM fit |
+| A versus legacy MFM | Preserve current Confirm-PASS fixtures (or expressly amend D-064); prove stored selection identity, no 1 cm read-time switches, sample anchor, every tree ≤1 owner, finite reach and Manual/NotCovered truth | Offline property tests and Tier 2 MFM fit |
 | Saved invalid confirmed plan; edit after confirmation | Safe load, readable fail-closed work suspension, guarded repair; completed work/history unchanged | Negative save tests + Tier 2 work-order lifecycle |
 | Sample on both direction families | Source footprint disjoint from target units, accepted coverage comparability, Sitka-only calibration protected | Offline/forest gameplay tests, independent review |
 | Proposal→Confirm→Mark→Approve→Execute | No premature Fell or exclusion; unique pending orders, proper cost settlement and actual cleared presentation | Tier 2 end-to-end UI/3D/Work Plan |
