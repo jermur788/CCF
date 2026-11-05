@@ -1,5 +1,18 @@
 # ZX20 storage guard reconciliation — #290
 
+## Latest status — user-authorised repair blocked by read-only durable volume
+
+The user explicitly authorised the proposed guard-script repair after the diagnostic/revalidation above. The earlier scope-authorisation blocker is superseded. No repair was deployed: the required durable backup could not be created.
+
+Fresh checks: same Netac physical partition/by-id/UUID/exFAT and ZX20 target; no lock.json and no observed Unity Editor/Player. Live main coordination refreshed, unrelated Primary changes preserved. Planned files: deployed lanes.json, scripts/_ccf.py, scripts/lane-status, README.md. Plan: register persistent partition by-id, resolve registered/mounted paths as block devices, retain exact mount/UUID/filesystem/rw/space checks, reject duplicate visible UUIDs, stage negative fixtures, then serialize installation under the existing guard with idle recheck and atomic per-file replacement. No lease or game edits.
+
+At 2026-11-05T17:13:13Z, creation of `/media/jer/Files/CCF/Verification/StorageIdentityRepair-20261105T171313Z` failed with errno 30, Read-only file system. The staging script stopped at the initial mkdir, before copying, staging or modifying any ops files. Follow-up findmnt reports `/media/jer/Files`, `/dev/sdb4`, ext4 UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4`, options `ro,nosuid,nodev,relatime,errors=remount-ro`. About 88 GiB is available; this is not a capacity failure. Cause of read-only state is not established; recent kernel journal inspection did not establish a filesystem failure or its cause. No remount/fsck/privileged repair attempted.
+
+All four target hashes remain the pre-repair values (lane-status SHA-256 additionally recorded: `cc025be25c9a22dbcb9ff5d47ab467396aea201d9c694d76e24489670874de78`). No local repair, backup, patch or negative-test artifact was created. No end-to-end guard PASS claimed.
+
+Current verdict: **BLOCKED — DURABLE BACKUP VOLUME READ ONLY**. Guard repair authorisation is retained, but safe backup/deployment prerequisites are unmet. Required next step: authorised storage owner investigates/restores safe write access to Files; then recheck device/ownership/lease state, create exact backups and perform the already-authorised bounded repair. Do not substitute ZX20 evidence storage, silently remount, resume #289/#287, launch Unity or alter playtest. Manager dashboard ingestion/readback remains pending.
+
+
 Verdict: **BLOCKED — CONFIG CHANGE REQUIRES OWNER OR NEW DESIGN**. Phase A diagnosed; no local write. Phase B prerequisites are not met. Worker: T3 Code / OpenAI gpt-6.1-sol / medium, 2026-11-05 ~17:08–17:12 UTC. PACKET ONLY.
 
 ## Findings and physical identity
