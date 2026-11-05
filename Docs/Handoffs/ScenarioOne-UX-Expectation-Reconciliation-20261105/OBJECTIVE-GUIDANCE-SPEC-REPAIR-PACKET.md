@@ -1,0 +1,59 @@
+# CCF — Objective guidance specification repair after personal playtest feedback
+
+**Claim:** [#282](https://github.com/jermur788/CCF/issues/282), parent feedback [#281](https://github.com/jermur788/CCF/issues/281); original design [#258](https://github.com/jermur788/CCF/issues/258); reviewed draft PR [#265](https://github.com/jermur788/CCF/pull/265), cross-provider review [#270](https://github.com/jermur788/CCF/issues/270).  
+**Status:** READY — **SPEC ONLY; DO NOT IMPLEMENT.**  
+**Date:** 2026-11-05.  
+**Difficulty:** **Medium–High**, because this is state-driven cross-screen UX with modal safety, true keyboard focus, and accurate map-like guidance. Research/design documentation only; no Unity or runtime.
+**Overall Manager:** browser/GitHub #200, sole live coordination writer.  
+**Local orchestrator:** DeepSeek **High** — orchestration, provider selection, ledger and claims **only**; no implementation, test runs or code review.  
+**Best-suited spec author:** **GPT-6.1 Sol Medium**, preferably original #258 author if available; after return, **Claude Sonnet 5.5 Medium** for independent review (separate read-only claim). Availability and quota UNKNOWN before dispatch. Opus 5.5 Medium only for justified, Manager-approved escalation.
+
+## Purpose and authoritative product intent
+
+The user began a personal playtest of latest integrated `main` and found the next-action button highlighting absent, with no meaningful change to the Stand Map beyond editing/dragging interactions. The user had expected the larger UX/map improvements to have been implemented.
+
+**Actual inspected source facts:** `Assets/ForestPrototype/UI/LearningObjectivesView.cs` still makes **Back to forest** its `btn-primary` while **Stand map** and **Work Plan** remain ordinary buttons; `StandMapView.cs` still makes **Back to forest** primary. Main contains previously reviewed #255/#256/#260 and #243, **not** implementation of DRAFT #258. The [#270 final review](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/Overnight-Continuation-20261104/FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md) identifies unclosed High issues: normal `UiKit.Button` focusable policy, safe-vs-destructive primary styles, and simultaneous Consent/Reset visibility. The user complaint is therefore a **missing feature / scope communication gap**, not proven broken functionality.
+
+**User's accepted intent to preserve:** clear contextual, visually highlighted **next enabled action** as each objective progresses, starting Objective 1 with Objectives → Stand Map → Plan Racks → Confirm → physically mark entrances → Work Plan approval → annual review. The Objectives lesson needs a diagram that resembles the real Stand Map rather than abstract text rows. Guidance never automatically marks/fells/approves/advances and does not replace player judgement.
+
+**Separate project:** the connected central access spine and diagonal rack geometry is governed by D-067–D-069 and `specs/scenario-one-access-spine-route-consistency-v1/`, currently **DRAFT / STOP FOR IMPLEMENTATION**. It is **not** silently delivered by a map-shaped teaching diagram and is not in this task. Record any user wording that appears to request the physical/map layout, but do not change geometry or make unsupported commitments. The draft's geometry, MFM derivation, ownership, save/reference and Work Plan conflicts need their own resolution.
+
+## Exact starting materials and local lane
+
+- **Canonical inspected game base:** current `main`, initially the integrated production source reported in [4 November Manager reconciliation](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/MainIntegration-20261104/MANAGER-RECONCILIATION-20261104.md); pin its **current full Git commit** at actual start. Do not assume the old source citations at pre-merge revisions still match.
+- **Original draft branch:** `docs/overnight-objective-guidance-spec-20261104` (PR #265). Read its **actual full HEAD** and current dirty status at task start.
+- **Original conditional docs-only worktree:** `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104`. It may be used only if registered, clean and available for the original author. If absent, occupied or dirty, return BLOCKED with evidence and request a distinct registered docs lane/branch; never clean/stash/reset/overwrite.
+- **Local coordination anchor:** `/media/jer/Files/CCF-Primary`, NOT a Unity lane. Its existing user-owned edits are protected; do not touch them.
+- **Approved writer scope:** four original DRAFT files `specs/scenario-one-next-action-guidance-v1/{spec.md,plan.md,tasks.md,checklists/requirements.md}`, plus the new GitHub Markdown result handoff named below. Use the existing PR #265 branch if it is truly available.
+- **Live single writer:** only #200 updates `Docs/Project/coordination/active-tasks.md`; read it from GitHub at actual start and before asserting ownership is missing.
+- **Claim state:** post a genuine [RUNNING] on #282 only after checking branch/worktree/ownership and observing the actual model/provider; claim not a Unity lease.
+
+## Design work required (DRAFT only)
+
+1. **Reconcile the real post-merge source at current main:** `LearningObjectivesView`, `LearningObjectivesView.Curriculum`, `StandMapView`, `RackLayoutTracker`, `ScenarioOneUiRoot`, `UiKit.Button`, `TeachingDiagram`, current map symbols and validators. Cite current paths/lines and exact base commit. Distinguish actual runtime work from static source inspection; **no** Unity run or production edits.
+2. **Address all #270 High blockers explicitly:** (a) scoped focusable/navigation and Enter/Space policy with Work Plan's Tab shortcut preserved and no accidental world input; (b) safe action emphasis under Consent/Reset/Reopen/Advance confirmation, never elevating a destructive primary; (c) simultaneous Consent and Reset pending, including the explicit *no eligible primary* fallback and separate source-level/Unity acceptance. No state that is hidden or occluded may claim the highlighted action. Update any incomplete prior 'FIXED' claims; review cannot be considered finished by editing prose.
+3. **Produce an actionable Objectives → Map → Plan cue contract:** one visible, enabled, truthful next action; authoritative rack progress / existing validators; reason if disabled; no auto-activation, no progression engine or extra save keys; no misleading 'cleared route' claim; clear consistent visual emphasis plus text/border/non-colour cue. Specify exactly what players should **see** on Objectives, Stand Map, forest HUD (if in approved scope), Work Plan and confirmations. Preserve feedback distinction between an implementation not written versus an implemented feature failing.
+4. **Map-like Objective 1 teaching diagram:** base it on validated current parallel rack/reference geometry and actual Stand Map symbols. Show headland, five planned racks, retained trees/rows, scale/legend caveats, no false connected diagonal spine. Clarify that this is a *teaching illustration* and that changing the **actual map/3D/minimap access network** is a separate, unapproved design. Require measurable visual rubric at 720p and 1080p, colour/grayscale and distinguish plan/confirmed/executed.
+5. **Preserve the user's whole-objective intent:** Objective 1 may be the first bounded implementation slice **but not the final product claim**. Plan explicit later-lesson action/state mapping using currently available validators; unknown mappings are review-needed, not guessed. Work Plan approval remains commitment gate; existing successful playthrough/frozen Reference Future v1/Legacy40/save semantics unchanged.
+6. **Resolve or clearly mark Q1–Q4:** propose scoped keyboard policy; static reference versus read-only live inset; first Objective 1 slice plus later-lesson roadmap; exact integrated main implementation base and helper reuse. Present a concise **Manager decision table** with supported recommendations/risks and which genuinely require user choice. Do not self-approve policy changes.
+7. **Revise spec, plan, tasks, checklist** to reflect actual standalone tasks: (T1) Manager design decisions and approved source/geometry reference; (T2) cues and safe focus/prompt styles; (T3) faithful map-like teaching diagram; (T4) later-objective mapping if in scope; (T5) Tier-2 exact-head native-input and two-resolution visual qualification with independent cross-provider review. Every task requires independent claim and registered owned lane after approval.
+8. **Evidence integrity:** no weakening of existing gates, reinterpretation of static FAIL 08 as PASS, fabrication of screenshots, or acceptance claims. Keep any unresolved test limitation as UNKNOWN/NOT RUN.
+
+## Stop conditions
+
+Stop and return NEEDS DECISION if required UI focus or consent actions imply unapproved behavioural scope; if the diagram requires the blocked access-spine geometry; if user input is needed to choose a representation; if main source differs materially from the draft's proposed helper contract; or if the original docs-only lane is dirty/occupied. Do not request a Unity lease merely to do this spec pass.
+
+**Prohibited:** production C# or CSS, any live UI implementation, Unity/editor/process access, save schema, rack geometry, MFM policy, art asset creation, active player's checkout/save, manual editing of generated dashboard state, speculative #257/#259 implementation, merge, Windows build or personal-playtest acceptance.
+
+## Deliverables and handoff
+
+- Update the existing four-file DRAFT on PR #265's branch (if exact ownership verified), or return BLOCKED with an explicit safe replacement-lane request.
+- **Required durable GitHub return:** `Docs/Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-HANDOFF.md` on the author branch/PR. Include exact source/base commit, diff/file list, every #270 finding disposition, unresolved Manager/user Q1–Q4, evidence classes, known player expectations and next implementation gate. Stop at **DRAFT / HANDED-OFF**, not APPROVED or IMPLEMENTED.
+- Publish a clear [HANDED-OFF] claim comment and PR update; close execution claim when Manager reviews it. Independent Sonnet Medium spec review needs a separately authorised review claim, not self-review.
+- DeepSeek parent orchestrator logs child routing (available pool/effort, actual model, provider context/quota or UNKNOWN, alternatives, timing/retries and result) to the existing V2 ledger, without editing authored spec files.
+- **User action for this docs-only task:** none. Actual implementation must await Manager-approved spec and release while preserving the user's ongoing Unity playtest.
+- **Success marker:** `OBJECTIVE-GUIDANCE-SPEC-REVISED — MANAGER REVIEW REQUIRED`.
+
+## Paste-ready dispatch (for DeepSeek High orchestrator; delegate to Sol Medium, not DeepSeek implementation)
+
+> Coordinate [CCF #282](https://github.com/jermur788/CCF/issues/282) as a **docs-only SPEC REQUIRED repair** of draft objective guidance. Read **this exact task packet**: https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-PACKET.md . DeepSeek at High is **orchestrator only**: refresh live #200 ownership, available worker pools and V2 ledger, then delegate the actual four-file draft revision to **GPT-6.1 Sol Medium** on the existing PR #265 branch `docs/overnight-objective-guidance-spec-20261104` and conditional docs lane `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104` (only if clean/owned). Use current `main` as the source authority, preserve user dirty files and active Unity playtest; no production edits, no Unity or builds. Return a GitHub-tracked `OBJECTIVE-GUIDANCE-SPEC-REPAIR-HANDOFF.md` on the author branch, update #282 and request separate Sonnet 5.5 Medium independent review. Stop for Manager decisions before implementation or merge.
