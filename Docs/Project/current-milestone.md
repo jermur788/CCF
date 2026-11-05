@@ -4,7 +4,7 @@
 
 Define the current Scenario One milestone, its completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
 
-**Last reconciled:** 2026-10-30.
+**Last reconciled:** 2026-11-05 for D-071 Scenario One rack-layout scope; other implementation/qualification sequence status retains its own previously published evidence and may require fresh reconciliation.
 
 ## Milestone
 
@@ -29,6 +29,14 @@ The independent G4 review is published at `Docs/Handoffs/RACK-V2-14/FINAL-CONFOR
 That review disposes AC-1…AC-20 and D-064 OPEN-1…OPEN-3 as PASS from the accepted Rack evidence chain. Five rendered polish observations remain non-blocking for the later personal playtest. Rack V2 feature verification is distinct from whole-Scenario-One Tier-3 verification and from user acceptance.
 
 The D-065 production gate requiring Rack V2 persistence/integration has therefore been satisfied. This does not bypass later MFM prerequisites or live ownership/Unity serialization.
+
+### Scenario One access-network scope — D-071 current parallel layout retained
+
+**Accepted latest product choice (5 November 2026):** Scenario One uses the existing **headland-entry, five parallel extraction racks** (illustration “Option A”). The user's earlier spine/diagonal preference (D-067–D-069) is **superseded for Scenario One** and remains independently reviewed historical design research only. No new northern spine, herringbone 3+2, single-family spine entry, player-built northern extension or speculative access-construction gameplay is a Scenario One external-demo requirement. More complex layouts can be considered as **future separate scenarios**, under their own acceptance and specifications.
+
+The accepted Rack V2 map planning, field-marked orange first rack-removal-tree entrances, five-rack lesson, conditional 16–20 m site guidance, Work Plan commitment and MFM V1 parallel coverage remain unchanged. No new two-family MFM model, rack clearance-policy or northern save-identity change is authorised. **Do not treat the visual illustration “Option A” as the unrelated research nickname “MFM Option A” for an unapproved two-family algorithm.** The prior spec `specs/scenario-one-access-spine-route-consistency-v1/` is historical / **SUPERSEDED FOR SCENARIO ONE**; its approved research quality is not an approved product implementation.
+
+**Separate D-070:** hidden Forestry Workbench source-level new-game retirement is still an accepted cleanup goal independent of whether a northern spine is built. #284 candidate is source-reviewed but not integrated or Unity-qualified; #287 is WAITING for explicit release of the user's personal playtest and a safe exclusive Unity lease. Keep all old-save/Legacy40/Reference Future protections and the separate Windows build gate. No new spine implementation tasks should enter the pre-demo sequence.
 
 ### Sitka/Oak/Beech parity P0 — core slices accepted; final integrated parity still pending
 
