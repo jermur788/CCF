@@ -13,7 +13,7 @@ During personal playtest the user preferred the **existing central path extended
 
 ## 1a. D-070 — hidden workbench retired from playable starting layout (5 November user decision)
 
-**Confirmed D-070 direction; #284 SOURCE-IMPLEMENTED ON ISOLATED BRANCH / UNITY UNQUALIFIED / NOT MERGED.** The user's Forestry Workbench is intentionally hidden and will not be presented in Scenario One. Preserve its reusable C# code, assets and relevant legacy meaning, but **do not retain an unused scene placement or management-site footprint at the proposed track crossing in the future new-game Scenario One**. This is **not** a request to enable construction gameplay or silently relocate an authoritative invisible site. Decision authority: `Docs/Project/decision-log.md`, D-070.
+**Confirmed D-070 direction; #284 SOURCE-IMPLEMENTED ON ISOLATED BRANCH / UNITY UNQUALIFIED / NOT MERGED.** The user's Forestry Workbench is intentionally hidden and will not be presented in Scenario One. Preserve its reusable C# code, assets and relevant legacy meaning, but **do not retain an authoritative hidden Site or construction footprint in the future new-game Scenario One world** (the source-reviewed #284 solution keeps the original scene object and its historical references while suppressing its new-game world participation). This is **not** a request to enable construction gameplay or silently relocate an authoritative invisible site. Decision authority: `Docs/Project/decision-log.md`, D-070.
 
 Source audit on current `main`: `Assets/Scenes/ForestTest.unity` retains an active `Forestry Workbench` root and `ForestBuildable` at (−2.75, 0, 11); `ForestBuildable.SetVisuals()` disables colliders when construction is unavailable and the object is unbuilt, so **an actual active hidden collider has not been demonstrated**. Yet `ForestStartingStand.CollectClearancePoints()` and `ScenarioOneManager.PrescriptionApproval.ReadCoverageWorld` include all `ForestBuildable` components even if inactive, and MFM maps them to `Site` exclusions. Other buildables hold `requiredBuildable` references to the workbench; deleting the root can fail open (`requiredBuildable == null` counts as satisfied) and risks changing old generation. **The actual #284 candidate retains the root, dependencies and ID and uses a runtime retirement flag**, with Unity verification pending. A source-backed dependency/save check is mandatory.
 
@@ -60,7 +60,7 @@ Preserve Legacy40 and frozen Reference Future v1; old saves must not fabricate n
 
 **Historical status:** #250 reference-candidate measurement and independent review were completed as corrected research only, with implementation STOP. Current Rack V2/D-064 controls all production. The Manager has not approved A1/A2 implementation or any Windows build.
 
-## #250 evidence and explicit implementation STOP — latest controlling draft note
+## #250 historical evidence and continuing implementation STOP
 
 **Manager verdict:** [#250 Manager review](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-FIVE-RACK-REVIEW-20261103.md) accepts corrected measurements **as research**, but **STOPS production**. The 45° full-spine 3W+2E reference candidate has same-side centreline spacings 16.623 / 17.510 / 17.855 m and an estimated **120 distinct standing trees** inside its proposed corridors (not Fell marks, not authorisation). It also has R1/R2 centreline-clearance failure (physical corridor rectangles have a 0.214214 m gap), one endpoint in a trunk collider, insufficient proven turning clearance, a straight northern route running 0.035 m from the Forestry Workbench, five entrance points that are presently illegal under headland-only rack validation, and **no completed 3D/Stand Map/minimap rendered qualification**.
 
@@ -85,7 +85,7 @@ Preserve Legacy40 and frozen Reference Future v1; old saves must not fabricate n
 
 **Historical task #253 (returned, PARTIALLY QUALIFIED):** [offline qualification handoff](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OPTION-A-OFFLINE-QUALIFICATION-PACKET.md). Study standalone deterministic partition, reach/fit and lifecycle/save compatibility using read-only source and disposable nonproduction analysis. **No code change to the game, no Unity, no approved spec or tree removal.** Every material research claim requires raw-source/key reconciliation and independent cross-provider review.
 
-## 5a. Historical approval/stop note — superseded by current §6 research revision
+## 5a. Historical approval/stop note — superseded by current section 6 research revision
 
 **DRAFT only.** The #246 read-only reconnaissance has returned and is Manager-approved **as a source audit**, not as fit or MFM impact proof. #248 completed bounded Unity measurement as corrected research; future feature Unity qualification still requires fresh playtest release and a valid lease. The four DRAFT spec files were revised in #283; independent review #286 returned NEEDS CHANGES, and no production approval or dispatch follows. Stop if the suggested spine/diagonals cannot fit real geometry, introduce unplanned old-save/schema changes, conflict with an active writer/Unity lease, or threaten protected reference results.
 
@@ -224,7 +224,7 @@ The route's **initial status** does not determine its racks. The studied reach-p
 
 **Q6 OPEN**: select only after evidence-driven false-positive/false-negative assessment versus schema/hash compatibility. The actual #284 workbench save-ID runtime reconciliation is a different feature and does not answer E's initial infrastructure identity choice.
 
-### 6.8 Qualification matrix for future approved code (not executed in #283)
+### 6.9 Qualification matrix for future approved code (not executed in #283)
 
 | Case | Required proof | Tier / evidence |
 |---|---|---|
