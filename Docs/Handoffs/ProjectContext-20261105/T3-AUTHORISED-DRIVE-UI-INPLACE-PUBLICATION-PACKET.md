@@ -1,3 +1,7 @@
+**LATEST MANAGER GATE — 5 NOV 2026 T3 PREFLIGHT BLOCKED, NO DRIVE WRITES.** [Manager review](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ProjectContext-20261105/MANAGER-T3-BROWSER-ACCOUNT-ACCESS-REVIEW-20261105.md) accepted the T3 Claude Sonnet 5.5 Medium [blocked result](https://github.com/jermur788/CCF/blob/docs/context-final-publication-20261105-v1/Docs/Handoffs/ProjectContext-20261105/CONTEXT-PUBLICATION-FINAL-RESULT.md). T3's default browser profile is signed in to an account **without access** to the permanent Drive folder; the separate connected Drive account's access cannot substitute for browser authentication. The owner account must be selected/signed in **by the user in the SAME T3 browser profile**, without T3 handling credentials or sharing permissions. **#292 remains BLOCKED / NOT RUNNING** until that profile can open the folder. Do not attempt even the one-file write until auth/permission, live ownership and exact source validation PASS. Once unblocked, this packet's existing MIRROR_CLAUDE.md one-file SHA-256/unchanged-ID proof, 11 additional Markdown versions and JSON manifest-last sequence remain binding. ChatGPT/Claude platform attachments still PENDING. Older READY preflight instructions below are conditional, not a present execution release.
+
+---
+
 # T3 — AUTHORISED Drive browser UI in-place version update (D-071 context)
 
 **Status:** MANAGER AUTHORISED FOR BOUNDED T3 PREFLIGHT / NOT RUNNING.  
