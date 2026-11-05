@@ -6,7 +6,7 @@
 **Base:** `50042bbe97734b031210ddebb603b5ec00ff459d` (current `main`; 11 documentation-only commits ahead of production source head `9a6ed0007cc16469f3591f69bf0fd9b3c937ec61`; `Assets/Scenes/ForestTest.unity` bytes identical between the two).
 **Implementation commit:** `57f10ff09a5e1b4e1e776ed7be2b0d46d6f7c411`
 **Worker:** GPT-6.1 Sol Medium (Codex), delegated by the T3 orchestrator.
-**Status:** **IMPLEMENTED ON THE ISOLATED BRANCH — SOURCE/OFFLINE VERIFIED; UNITY QUALIFICATION NOT RUN; NOT MERGED; NO WINDOWS BUILD.**
+**Status:** **IMPLEMENTED ON THE ISOLATED BRANCH — SOURCE/OFFLINE VERIFIED; INDEPENDENT REVIEW APPROVED (source/offline); UNITY QUALIFICATION NOT RUN; NOT MERGED; NO WINDOWS BUILD.**
 
 ---
 
@@ -82,6 +82,7 @@ The user approved the narrow **new-game-scoped retirement** contract before any 
 | Old v24 / older save with `workbench-01` | Yes | `false` | Existing workbench state is restored exactly; no save-file migration. |
 | Legacy40 verification replay | Yes, if it names it | `false` | Unchanged behaviour and identity. |
 | Reference Future v1 preview/continuation | Yes in every archive milestone | `false` while loaded | Archive integrity, preview restore and continuation hashes are unchanged. Exiting the preview restores the player's retired new-game state. |
+| Pre-buildables or empty-`buildables` save | No | `true` | Treated as "absent means retired", consistent with the new-game rule. Harmless today because the site is hidden and not buildable; the Site mask/clearance recompute differs from the original pre-buildables world. |
 
 **Identity delta, explicitly accounted for:** a new-game capture loses exactly one `buildables` entry (`workbench-01`). It does **not** lose or move a tree. The Enlarged80 start/year-3 evidence labels must receive **new, labelled** values during Phase 3; the old values are not silently overwritten. Legacy40 and the frozen Reference Future anchors are untouched.
 
@@ -159,7 +160,15 @@ ALL_OFFLINE_CHECKS_PASS
 
 ## 7. Independent review
 
-**Claude Sonnet 5.5 Medium (read-only, opposite provider): PENDING — review dispatched after publication of this draft; verdict and findings will be appended as a follow-up commit, not edited into the evidence above.**
+**Claude Sonnet 5.5 Medium (read-only, opposite provider) — APPROVED for source and offline evidence.** The reviewer independently reproduced the one-line scene diff, the four prerequisite references, the 0.021994 m centre separation, the ~0.097 m² crescent, the unchanged archive `workbench-01` entries, the Awake-order argument, the capture/load/preview reconciliation, and the absence of buildable validation in the save loader. It found **no source defect**. Its findings:
+
+1. **Phase-3 test gap (real, not a source defect):** no in-repo test covers (a) new game omits `workbench-01` from `buildables`, (b) an old save keeps it, (c) enter→exit Reference preview ends retired, (d) a new-game save reloads retired. These must be added/extended in the Phase-3 Unity gate. The offline Python check is not a substitute.
+2. **MFM-08A independence (low):** the gate now filters with the same `IsRetiredFromStartingWorld` property production uses, so the edit is parity but slightly less independent. Add an explicit expected-site assertion in Phase 3 (for example, the Site set equals live buildables minus retired ones).
+3. **Older verifiers (low):** `Enlarged80Verification.cs:159/260` still include the workbench in their exclusion-zone model. That is a superset of the new rule, so they pass, but they no longer mirror production; align them in Phase 3 if the gate is retained.
+4. **Empty/pre-buildables saves (documented above):** absent `buildables` retires the workbench. Consistent with the contract, but now recorded.
+5. **`MoveToReferenceView` (no action):** using all buildables is correct because it only runs after a milestone load has un-retired the workbench.
+
+The reviewer explicitly marked Unity runtime, planting parity at float boundaries, stem counts and anchor movement as **UNVERIFIED** pending Phase 3.
 
 ---
 
@@ -171,9 +180,10 @@ ALL_OFFLINE_CHECKS_PASS
 
 1. **Unity Phase 3** requires the user to finish/stop the personal playtest and explicitly release occupancy, plus a corrected lease configuration (`lanes.json` device identity) and a fresh exclusive lease. Until then, compile/runtime/save/reference/MFM gates are **NOT RUN**.
 2. **Enlarged80 anchor re-baseline:** Phase 3 must record the new labelled start/year-3 `CurrentWorldHash` values and the exact `buildables` delta. The old `04A78188A6F8E6F9` / `081DB58CE3034648` labels must not be reused.
-3. **MFM-08A gate:** re-run after the retirement-filter edit. The expected result is the same assertions with `site.Count = 6`; any other difference is a finding, not a waiver.
-4. **Old-save/reference matrix:** load v24 and relevant older saves, Legacy40 and Reference Future v1, and confirm the workbench restores only for saves that name `workbench-01`.
-5. **Independent review:** complete and record the Claude Sonnet 5.5 Medium verdict.
+3. **MFM-08A gate:** re-run after the retirement-filter edit. The expected result is the same assertions with `site.Count = 6`; add an explicit expected-site assertion (live buildables minus retired) and treat any other difference as a finding, not a waiver.
+4. **Old-save/reference matrix:** load v24 and relevant older saves, Legacy40 and Reference Future v1, and confirm the workbench restores only for saves that name `workbench-01`. Include the empty/pre-buildables-save case.
+5. **Focused behaviour gate:** add/extend a Unity gate for the four assertions in §7 finding 1. Align `Enlarged80Verification`'s exclusion-zone model if that gate is retained. No test may be weakened to pass.
+6. **Independent review:** complete (Claude Sonnet 5.5 Medium, APPROVED; findings recorded in §7). No re-review is claimed for the Phase-3 runtime work.
 
 **Manager integration request:** review this branch and the Phase-3 plan; do not merge or build. The branch is isolated, the source diff is seven files, and the only production behaviour change is new-game retirement. After Phase 3 evidence and the labelled anchor update, the Manager alone decides integration.
 
