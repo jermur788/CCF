@@ -346,7 +346,7 @@ public sealed partial class ScenarioOneManager
             source.Clearing = new ScenarioOneCoverageWorld.Point("Forest Clearing", clearing.transform.position.x, clearing.transform.position.z);
         }
         foreach (ForestBuildable buildable in UnityEngine.Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            if (buildable != null)
+            if (buildable != null && !buildable.IsRetiredFromStartingWorld)
                 source.Sites.Add(new ScenarioOneCoverageWorld.Point(buildable.name, buildable.transform.position.x, buildable.transform.position.z));
         source.Sites.Sort((a, b) => CompareAt(a, b));
 

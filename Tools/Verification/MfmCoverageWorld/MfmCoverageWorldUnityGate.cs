@@ -229,7 +229,8 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         GameObject clearingObject = GameObject.Find("Forest Clearing");
         if (clearingObject != null) clearing.Add(Cov.Mask.Circle(Cov.MaskKind.Clearing, clearingObject.transform.position.x, clearingObject.transform.position.z, stand.ClearingRadiusMeters));
         foreach (ForestBuildable b in FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            site.Add(Cov.Mask.Circle(Cov.MaskKind.Site, b.transform.position.x, b.transform.position.z, stand.ClearingRadiusMeters));
+            if (!b.IsRetiredFromStartingWorld)
+                site.Add(Cov.Mask.Circle(Cov.MaskKind.Site, b.transform.position.x, b.transform.position.z, stand.ClearingRadiusMeters));
         // ContainsStemCentre's own radii (float arithmetic, guard included).
         float strip = ScenarioOneHeadlandGeometry.Width * 0.5f + ScenarioOneHeadlandGeometry.StemGuard, pad = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard;
         headland.Add(new Cov.Mask(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.SouthZ, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.NorthZ, strip));

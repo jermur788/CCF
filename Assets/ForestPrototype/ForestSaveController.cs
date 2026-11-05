@@ -162,7 +162,7 @@ public sealed class ForestSaveController : MonoBehaviour
 
         foreach (ForestBuildable buildable in buildables)
         {
-            if (buildable == null) continue;
+            if (buildable == null || buildable.IsRetiredFromStartingWorld) continue;
             data.buildables.Add(new BuildableSaveData
             {
                 buildId = buildable.BuildId,
@@ -460,6 +460,17 @@ public sealed class ForestSaveController : MonoBehaviour
             else
                 marking.RestoreMarks(data.markedTreeIds);
         }
+
+        var savedBuildableIds = new HashSet<string>();
+        if (data.buildables != null)
+        {
+            foreach (BuildableSaveData saved in data.buildables)
+                if (saved != null && !string.IsNullOrEmpty(saved.buildId))
+                    savedBuildableIds.Add(saved.buildId);
+        }
+        foreach (ForestBuildable buildable in buildables)
+            if (buildable != null && buildable.RetiresFromStartingWorld)
+                buildable.SetRetiredFromStartingWorld(!savedBuildableIds.Contains(buildable.BuildId));
 
         if (data.buildables != null)
         {

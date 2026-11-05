@@ -337,7 +337,7 @@ public sealed class ForestStartingStand : MonoBehaviour
         if (player != null)
             points.Add(new KeyValuePair<Vector3, float>(player.transform.position, clearingRadiusMeters));
         foreach (var buildable in UnityEngine.Object.FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            if (buildable != null)
+            if (buildable != null && !buildable.IsRetiredFromStartingWorld)
                 points.Add(new KeyValuePair<Vector3, float>(buildable.transform.position, clearingRadiusMeters));
         return points;
     }

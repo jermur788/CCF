@@ -359,6 +359,7 @@ public static class ForestSceneBuilder
         serialized.FindProperty("buildId").stringValue = "workbench-01";
         serialized.FindProperty("unbuiltVisual").objectReferenceValue = unbuilt;
         serialized.FindProperty("builtVisual").objectReferenceValue = built;
+        serialized.FindProperty("retiresFromStartingWorld").boolValue = true;
         serialized.ApplyModifiedPropertiesWithoutUndo();
         return workbench;
     }
