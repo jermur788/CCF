@@ -2,7 +2,7 @@
 
 This file is the **live single-writer ownership and execution-lock authority** outside the project context snapshot. Completed history belongs in Git history, handoffs, Manager reviews and `Docs/Project/unity-project-overview.md`.
 
-**Last reconciled:** 2026-11-05 by Overall Manager after user personal-playtest feedback: contextual Objective next-action highlights and the broader Stand Map/access-spine redesign are not implemented on the current main. Feedback #281 OPEN; separate docs-only #282 spec correction READY, no execution lock. Original #258 and access spine remain DRAFT/STOP as applicable. The user is using Unity; no competing Unity, production changes or Windows build authorised.
+**Last reconciled:** 2026-11-05 by Overall Manager for user D-070: remove the unused hidden Forestry Workbench from the future new-game Scenario One playable footprint while retaining reusable code/assets. Source confirms runtime hidden collider suppression but persistent tree-generation clearance and MFM Site exclusions. DRAFT access-spine spec amended; docs-only source-audit/reconciliation #283 READY. A pre-established full central track remains a promising separate design option, NOT YET APPROVED. Active personal playtest untouched; no Unity, game edits or Windows build.
 
 ## Coordination rules
 
@@ -59,6 +59,8 @@ Because the integration is the exact already-qualified direct-child commit on it
 | Task | Lane | Ownership | Status |
 |---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
+| **Hidden workbench retirement spec** (#283) | GitHub docs-only author branch `docs/access-spine-start-condition-20261105-v1` (no local Unity worktree); coordination #200 | DeepSeek High orchestrator ONLY; Claude Sonnet 5.5 Medium spec/source author preferred, GPT-6.1 Sol Medium independent reviewer later, actual pool availability UNKNOWN | **READY / NOT RUNNING — SPEC ONLY**. User D-070 confirmed retirement of hidden workbench's future world/site footprint (keep code). [Exact packet](../Handoffs/ScenarioOne-Access-Spine-20261105/WORKBENCH-RETIREMENT-START-TRACK-SPEC-PACKET.md). Full established spine still an option, no production/Unity/Windows build. |
+
 | **Playtest feedback: missing next-action highlights and map changes** (#281) | browser/GitHub Manager intake; user playing latest main in Unity | User-visible Objective button emphasis absent and Stand Map appears largely unchanged; source audit confirms #258 and access-spine designs were not part of the merged UI release | **OPEN — EXPECTATION/SCOPE GAP, NOT FIXED.** [Feedback issue](https://github.com/jermur788/CCF/issues/281); no personal-playtest completion, code change, Unity lease or build. |
 | **Objective next-action guidance draft repair** (#282) | **READY, NOT RUNNING**, original #258 docs-only branch `docs/overnight-objective-guidance-spec-20261104` / conditional registered worktree `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104`; one author only | DeepSeek High orchestrates V2 ledger/dispatch only, **GPT-6.1 Sol Medium** expected spec author after fresh lane/ownership check; Sonnet 5.5 Medium independent review later | **SPEC ONLY / READY — NO IMPLEMENTATION.** [Packet](../Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-PACKET.md). Preserve user playtest, no Unity or Windows build. |
 
