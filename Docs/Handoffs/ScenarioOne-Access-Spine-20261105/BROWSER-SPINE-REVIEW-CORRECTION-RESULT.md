@@ -5,7 +5,7 @@
 **Owner:** Overall Manager, GPT-6, browser/GitHub only; no local worktree.  
 **Returned independent review:** [#286 independent result](https://github.com/jermur788/CCF/blob/docs/access-spine-independent-review-20261105-v1/Docs/Handoffs/ScenarioOne-Access-Spine-20261105/BROWSER-SPINE-INDEPENDENT-REVIEW-RESULT.md).  
 **Draft PR:** [#285](https://github.com/jermur788/CCF/pull/285), isolated branch `docs/access-spine-start-condition-20261105-v1`.  
-**Four DRAFT files:** [spec.md](../../../../specs/scenario-one-access-spine-route-consistency-v1/spec.md), [plan.md](../../../../specs/scenario-one-access-spine-route-consistency-v1/plan.md), [tasks.md](../../../../specs/scenario-one-access-spine-route-consistency-v1/tasks.md), [requirements.md](../../../../specs/scenario-one-access-spine-route-consistency-v1/checklists/requirements.md).
+**Four DRAFT files:** [spec.md](../../../specs/scenario-one-access-spine-route-consistency-v1/spec.md), [plan.md](../../../specs/scenario-one-access-spine-route-consistency-v1/plan.md), [tasks.md](../../../specs/scenario-one-access-spine-route-consistency-v1/tasks.md), [requirements.md](../../../specs/scenario-one-access-spine-route-consistency-v1/checklists/requirements.md).
 
 ## 1. Manager disposition of returned #286 review
 
