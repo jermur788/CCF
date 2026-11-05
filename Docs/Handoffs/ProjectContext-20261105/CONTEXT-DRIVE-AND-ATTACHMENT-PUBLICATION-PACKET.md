@@ -1,3 +1,7 @@
+**LATEST MANAGER RELEASE (5 Nov 2026, 22:40 UTC handback): WAITING ON USER MANUAL IN-PLACE UPLOAD — NO WORKER START.** [Binding decision](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ProjectContext-20261105/MANAGER-MANUAL-INPLACE-PUBLICATION-DECISION-20261105.md). User will replace the **existing 13 Drive file versions** and ChatGPT/Claude attachments using the verified local output. Browser automation was **not authorised**. Do **not** dispatch a Drive content-writing worker or mark #292 RUNNING before user completion; after user confirms, route **read-only independent Sonnet Medium verification** of these exact ID/hash entries and platform attachment status. Older READY and content-writing-dispatch instructions below are historical options superseded by this decision.
+
+---
+
 # #292 — D-071 permanent context Drive and attachment publication
 
 **Prepared:** 2026-11-05. **Status:** READY / NOT RUNNING. **Classification:** PACKET ONLY, in-place publication of already-generated, independently checked files. **Difficulty:** MEDIUM–HIGH — existing Drive version identity/permissions and post-upload byte/hash validation, plus separate project-knowledge replacement.
