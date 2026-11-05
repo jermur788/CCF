@@ -1,5 +1,45 @@
 # ZX20 storage guard reconciliation — #290
 
+## Latest status — authorised guard repair DEPLOYED
+
+Files volume returned to rw; repair then executed as authorised. Durable backup (verified byte-identical before install): `/media/jer/Files/CCF/Verification/StorageIdentityRepair-20261105T171643Z/backup` with `backup.sha256`. Staged copy and negative-test output alongside it.
+
+Changes (4 files): lanes.json storage.device now the persistent by-id partition path `/dev/disk/by-id/ata-NetacPortableSSD_AA20260702512G231151-part2`; _ccf.py adds `same_device` (block-device number comparison), `visible_uuid_devices`/`require_unique_uuid` (lsblk), used in storage_check and storage_health (duplicate visible UUID => WRONG DEVICE/error); lane-status uses `same_device`; README documents it. Mount/UUID/fstype/rw/free-space checks unchanged.
+
+Install: under the existing Unity guard flock, no lease and no Unity process rechecked, pre-install hashes matched backup, atomic per-file replace.
+
+Pre-repair SHA-256:
+```
+1b02d106fe74462c2aa4979eefc37ff2ee35645c3866fc53b95b7e44a1385c2f  lanes.json
+02385d54a4ee6c82c2dc288a310686c1b3e44fb9c953435104a11caaefa4aed0  README.md
+a68293db1806cf8b9788b1d68400b2c55607176c0062a021480b4f2298247f24  scripts/_ccf.py
+cc025be25c9a22dbcb9ff5d47ab467396aea201d9c694d76e24489670874de78  scripts/lane-status
+```
+Installed SHA-256:
+```
+5ab2878595aecd30e6bc5fd8a807e5060a4d8684752e304d6d44c3d06ef5abc7  lanes.json
+ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001  scripts/_ccf.py
+e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f  scripts/lane-status
+249be391e172e9d80f7d3d3419af961850b84c40fb2f15ba7b1d0469649eb517  README.md
+```
+Negative tests (staged code, before install):
+```
+PASS rejects: duplicate UUID in storage_check -> filesystem UUID 18D6-896E must be visible on exactly one device, found: ['/dev/sdc2', '/de
+PASS duplicate UUID health -> WRONG DEVICE
+PASS rejects: wrong device -> ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype
+PASS same_device distinct
+PASS same_device missing path
+PASS by-id alias equals mounted source
+PASS read-only
+PASS low space
+```
+Live post-install: `lane-status --storage-only` READY/PASS (device /dev/sdc2, rw, 33.71 GiB free vs 15 GiB); `unity-lock status` free, no Editor; `source environment.sh` PASS. No lease acquired/released/reset; no Unity; playtest checkout untouched.
+
+Not verified: full `lane-status` lane inventory (slow `du` over Unity lanes, stopped); tests/self-test.py still hard-codes `/dev/sda2` fixtures and was not updated (outside the four authorised files). Manager dashboard ingestion pending.
+
+Verdict: **PASS — guard repaired for device-name drift (sda2→sdc2); #289/#287 may resume at Manager discretion.**
+
+
 ## Latest status — user-authorised repair blocked by read-only durable volume
 
 The user explicitly authorised the proposed guard-script repair after the diagnostic/revalidation above. The earlier scope-authorisation blocker is superseded. No repair was deployed: the required durable backup could not be created.
