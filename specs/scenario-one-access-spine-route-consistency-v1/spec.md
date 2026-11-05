@@ -1,8 +1,12 @@
 # Scenario One Access Spine & Diagonal Rack Network V1
 
-**Status: DRAFT — STOP FOR IMPLEMENTATION. Browser research revision 5 November 2026; no production approval.**  
+**D-071 PRODUCT DISPOSITION (2026-11-05) — SUPERSEDED FOR SCENARIO ONE.** The user selected the **existing southern-headland five parallel racks** as sufficient for Scenario One (illustration Option A, equivalent to the current parallel/headland fallback in this research). No full northern spine, diagonal/herringbone 3+2 racks, new single-family spine-entry network, player-built northern extension, new two-family MFM derivation or modified rack-clearance rule is required or authorised for Scenario One. D-064 Rack V2 and D-065 MFM V1 remain controlling. This file preserves independently reviewed research and **is not an implementation licence**; later scenarios require their own product decisions and specs. D-070 hidden workbench retirement remains separate, source-reviewed but Unity-unverified. See [Decision Log D-071](../../Docs/Project/decision-log.md).
+
+**Terminology:** The user's image **Option A** means existing parallel racks. Earlier research's **MFM Option A** means a proposed conditional *two-family* geometry/coverage algorithm, which is **not selected**.
+
+**Status: SUPERSEDED AS SCENARIO ONE FEATURE SPEC — HISTORICAL INDEPENDENTLY REVIEWED RESEARCH; NO IMPLEMENTATION AUTHORITY. Decision D-071, 5 November 2026.**  
 **Owner:** Overall Manager; **revised:** 2026-11-05.  
-**Authority:** latest user's personal playtest choice; Decision Log D-067 (confirmed design direction), subject to D-064 / approved Rack V2 until explicitly reconciled.  
+**Current authority:** latest direct user selection D-071 retains existing parallel Rack V2 for Scenario One; D-067–D-069 are superseded *for Scenario One direction*, while D-064/D-065 remain authoritative.  
 **Milestone:** complete-loop three-species Scenario One demo readiness; **scope:** Enlarged80 only.  
 **Evidence status:** #246 source reconnaissance accepted; #248 Unity geometry and MFM mask measurement accepted as corrected research; #250 full-spine reference evidence accepted with STOP for implementation; #251 source/topology options study independently reviewed and accepted as research. #253 offline Option A viability and lifecycle study returned PARTIALLY QUALIFIED; #271 A-vs-C comparison returned research only (PR #274 unmerged). No production A1/A2 work authorised. [Manager disposition](../../Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-REVIEW-20261103.md).
 **Evidence:** user-supplied Objective 1 / 3D rack screenshots, [#246](https://github.com/jermur788/CCF/issues/246) completed read-only reconnaissance, [Pro Silva Ireland access guidance](https://silviculture.org.uk/wp-content/uploads/2024/01/Pro-Silva-Ireland-Webinar-08-09-2020-Final.pdf), [Teagasc thinning guidance](https://teagasc.ie/crops/forestry/advice/timber-harvesting/tending-and-thinning-of-broadleaf-forests/). External evidence supports planned permanent access and connected extraction; the specific spine/diagonal layout is **GAME DESIGN / SITE-SPECIFIC PROPOSAL**, not a universal Irish standard.
@@ -198,7 +202,7 @@ Four are direct dependants, and the latter two are indirect via Saw Pit. D-055 p
 
 **Open Q2:** maintain the existing six hidden sites and their masks (current behaviour), or separately authorise and test whole-cluster/site-registration retirement to clear a truly machine-capable feeder terminus. Neither choice follows automatically from D-070 or #284.
 
-### 6.7 Explicit product decisions still OPEN
+### 6.7 HISTORICAL option decisions — no longer required for Scenario One after D-071
 
 | Decision | Design alternatives | Gate / authority |
 |---|---|---|
@@ -211,7 +215,7 @@ Four are direct dependants, and the latter two are indirect via Saw Pit. D-055 p
 | Q6 E infrastructure save identity | I-N original north-corridor tree-occupancy inference, or I-V explicit versioned infrastructure field | Adversarial save fixtures vs schema/hash migration cost; no E backfill to old worlds |
 | Q7 P fallback | Prefer honest F if E fails, or explicitly scope paid road-building with true Work Plan/execution | New product decision; never implement phantom approval |
 
-**Hard stop:** this is a revised DRAFT / NEEDS CHANGES response, not spec approval. No new E/P/F or T-A production, merge, save mutation, Unity release, or Windows build.
+**Historical stop (now reinforced by D-071):** this research is not an approved Scenario One feature spec. No new E/P/F or T-A production, merge, save mutation, Unity release, or Windows build.
 
 ### 6.7a Two-axis coverage comparison
 
