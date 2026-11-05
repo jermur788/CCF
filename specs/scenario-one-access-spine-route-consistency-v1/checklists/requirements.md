@@ -1,40 +1,57 @@
-# Access Spine & Diagonal Rack Network — Requirements / QA Checklist (DRAFT)
+# Access Spine & Diagonal Rack Network — Draft Requirements and QA Checklist
 
-Status: **NOT A PRODUCTION GATE UNTIL SPEC APPROVAL**.
+**Status: DRAFT; NOT YET AN IMPLEMENTATION/PRODUCTION ACCEPTANCE GATE. Revised 5 November 2026.** Checkboxes distinguish **source/research evidence** from **future product/Unity acceptance**. #283 browser research provides no runtime qualification.
 
-- [ ] AS-R1: Exact real central path/spine topology and any unmapped formal-looking trails traced from inspected scene/code evidence, with measured stand coordinates when obtainable.
-- [ ] AS-R2: Proposed spine extension and diagonal branch placements preserve geometry feasibility; five-rack target and 16–20 m range must be honestly reconciled rather than invented or distorted.
-- [ ] AS-R3: The feeder spine is separate from extraction-rack counts unless explicitly accepted otherwise.
-- [ ] AS-R4: Map, minimap, 3D forest, entrance cues, lesson graphics and status use one authoritative access/rack network and agree before/after confirmation.
-- [ ] AS-R5: Proposed geometry is visually distinct from entrance marks, approved work and physically cleared routes.
-- [ ] AS-R6: Player can sketch and learn from suboptimal/non-edge rack proposals; confirmation/Work Plan policy for disconnected/physically impossible plans explicitly decided.
-- [ ] AS-R7: Rack-plan creation, rotation, move, delete, undo, save/load and counters preserve approved D-064 behaviour except explicitly superseded rule.
-- [ ] AS-R8: Physically valid entrance-tree marking is reachable and consistent with planned route, including uppermost route; no unrelated tree accepted.
-- [ ] AS-R9: In-tree traversal is achievable where physically plausible, slower than open-path travel, and is not blocked by arbitrary invisible walls or exploitable clipping.
-- [ ] AS-R10: MFM coverage, Work Plan/pending/approved/executed orders, old saves, Legacy40 and frozen Reference Future v1 unaffected or compatibly qualified.
-- [ ] AS-R11: User personal playtest candidate remains unchanged until explicit Manager promotion; no Windows/Player build before personal playtest completion and explicit authorisation.
-- [ ] AS-R16: A1 route art must NOT silently change MFM treatment coverage: quantify `Track` vs `Headland` membership, excluded target/cell and prescription deltas from any `Dirt Path*` plank addition or other path representation, including loaded current saves. No A1 implementation until semantics are explicitly approved.
-- [ ] AS-R17: The actual local playtest candidate identity and live serialized Unity lease are verified before any #248 measurement; a reported public branch or old lock receipt is insufficient.
-- [ ] AS-R12: Independent read-only review plus proportionate affected Unity/rendered checks after implementation; never weaken a protected test to pass.
+## A. Authority, decisions and provenance
 
-- [ ] AS-R13: DPC records provider pool and real subscription/context capacity at dispatch; chooses Sonnet 5.5 Medium or GPT-6.1 Medium based on observed capacity and task fit, with cross-provider independent review when necessary.
-- [ ] AS-R14: All material routing, retries, interruptions, switches, outcomes and resource observations are appended contemporaneously to the GitHub V2 orchestration ledger, and the handoff includes a V2 decision appendix with explicit unknowns.
-- [ ] AS-R15: On quota/context/provider limits, DPC checkpoints and switches safely or continues with another approved non-overlapping task; never implements a DRAFT spec, bypasses an active Unity lock or product decision, weakens a gate or alters the current user playtest branch.
+- [x] AS-R01 — D-064/D-065 remain controlling; D-067–D-069 are direction/hypothesis; D-070 confirms hidden workbench retirement goal only. The new E entire-spine start option is **not approved**.
+- [x] AS-R02 — Inspect live ownership and branch before #283 docs-only authoring; isolated branch, no user worktree/Unity/Windows activity.
+- [x] AS-R03 — Source-map current authored route, south approach, fixed headland/feeder, map/minimap readers, rack authoring/entrance and MFM sample/mask source.
+- [x] AS-R04 — Preserve corrected evidence: #248 45° best sampled 18.274 m; #250 same-side 16.623/17.510/17.855 m; 0.214214 m R1/R2 rectangle gap despite failed 2.4 m editor centreline clearance; #253 ownership/reach evidence remains research, not production.
+- [ ] AS-R05 — Independent read-only review of browser spec result and #271 unmerged experimental comparison. Manager research verdict and user decisions recorded before spec approval.
+- [ ] AS-R06 — Approve E (established new-world full spine), P (paid/proposed extension) or F (constrained current fallback) explicitly. The 3+2 45° five branches and 16–20 m are reference/gameplay calibration only, not a universal forestry rule.
 
-- [ ] AS-R18: The spine is specified as the whole existing central in-stand route **plus northern continuation**; 45° off north / 3+2 is a provisional design target, not an implemented geometry. The 40° 16 mm tolerance is not accepted as the default.
-- [ ] AS-R19: A complete five-rack candidate is independently checked for each entrance target, branch length, width, turning, access, stand boundary, corridor tree-removal effects, 16–20 m per-stand guidance, MFM and Work Plan consequences, and player-visible map/3D/minimap concordance. No automatic Fell marks.
-- [x] AS-R20: #248 original formula failure preserved; PR #249's review tally reconciled against frozen output (9 PASS / 10 corrections / 1 FAIL = 20), six ledger events confirmed, and docs-only PR merged. This confirms documentation reconciliation, **not production verification**.
+## B. Initial infrastructure, starting trees and removed workbench
 
-- [ ] AS-R21: A proposed five-rack topology has a valid, deterministic and explainable representative MFM sample/coverage model without global parallel ordering assumptions or unqualified fallback; no tree/area receives duplicate prescription/work orders.
-- [ ] AS-R22: #250 45° reference candidate's yard/workbench conflict, headland-only entrance restriction, R1/R2 centreline-clearance failure (with 0.214214 m physical rectangle gap), R1 far-end trunk collider and turning/accessibility risks have explicit tested corrections before implementation.
-- [ ] AS-R23: Proposed unbuilt route overlays leave treatment masks, coverage signatures, save and world untouched until the approved commitment/real-clearing policy is specified. Track/Headland numerical rows are re-extracted, not paraphrased from memory.
-- [ ] AS-R24: Actual Stand Map, minimap and 3D captures (not just an SVG) qualify the exact candidate and show all formal trails/entrances/statuses consistently; no inference from a failed render.
-- [ ] AS-R25: #251 read-only topology options handoff independently reviewed and Manager-approved before changes to D-064/D-065, source model, persistence or player workflow are dispatched.
+- [ ] AS-R07 — For adopted E, one accurate existing feeder is present in world, Stand Map and minimap at new Enlarged80 start, continuous through the northern extension, with known status and real collision/terrain access. A decorative plank is not proof of machine clearance.
+- [ ] AS-R08 — For P, northern route is proposed-only (ghost/no ground/mask/removed trees/no work order before approved policy). If unavailable to build, disable construction approval rather than infer clearing.
+- [ ] AS-R09 — Under F, retain current headland-only Rack V2 flow, no fabricated north route or hidden changed treatment area.
+- [ ] AS-R10 — Remove new-game Forestry Workbench scene placement **and** Site/initial-tree-clearance footprint as approved by D-070, with code/assets preserved. Runtime disabled collider is not a demonstrated obstacle; check no phantom Site exclusion or construction affordance.
+- [ ] AS-R11 — Audit saved `workbench-01` and all serialized `requiredBuildable` references (Saw Pit, Timber Sledge, Basic Shelter, Log Rack). Preserve old-save/historical meaning or document tested compatible migration. Decide separately how other hidden buildables affect Site masks.
+- [ ] AS-R12 — Produce reproducible baseline tree count, stable ID/position distribution, origin and **separate** new-world `Site` / `Track` / `Headland` / `Clearing` mask and treatment-unit deltas. No silent rebaseline or automatic Fell state.
+- [ ] AS-R13 — A new northern spine has explicit new-world/save identity; old Enlarged80 saves do not gain it because they already contain a southern approach. Legacy40 and Reference Future v1 archive bytes/semantics unaffected.
 
-- [ ] AS-R26: For a new two-family derivation, every sample/coverage polygon and living tree is assigned once or conservatively Manual/NotCovered; overlap, side-family chaining, tie bands and input order prove deterministic area/identity conservation. Legacy `Derive` is byte-for-byte unchanged and used for all its existing valid plans.
-- [ ] AS-R27: Confirm **and all authoritative confirmed-plan mutations** validate the applicable sample derivation or require reopen/reconfirm. A pre-existing confirmed-invalid saved plan loads without loss, explains error, suspends unsafe *new* MFM/Work commitments and preserves executed locks/history. No blanket inability to load/save.
-- [ ] AS-R28: The single demonstrated 3D sample's transfer to a differently oriented group is explicitly identified and calibration-tested. Areas too far from actual rack access use a conservatively reviewed reach classification, never implicit unlimited coverage. The 9 m teaching half-width is not adopted as an access threshold without evidence.
-- [ ] AS-R29: No new serialized field does not imply unchanged hash or coverage semantics. Rule/calibration version values, unit references, old prescriptions, live save round-trips, Legacy40 and frozen Reference Future v1 are separately regression-qualified; nothing rewrites accepted history.
-- [ ] AS-R30: #253 offline independent review supplies source-key-reconciled raw evidence and a safe/no-go verdict before any approval of Option A production or cross-system Rack V2/MFM spec amendment.
+## C. Five-rack network and forestry decisions
 
-**Current evidence boundary:** user's two 3 Nov screenshots are UI/visual observations; topology, traverse behaviour, rack validity, save semantics and scene coordinates are not established from those images alone. #246 recon comes first.
+- [ ] AS-R14 — The feeder spine is not counted among **five separate** extraction racks. Study two-sided 3+2 / 45° *off north* as a candidate only; verify exact lengths and conditional 16–20 m spacing against real boundaries.
+- [ ] AS-R15 — Entrances on a spine are actually legal, connected and marked on the correct accessible *first* rack-removal trees. Present headland-only snapping/edit validation must be deliberately and safely amended; avoid accidental field acceptance of unrelated trunks.
+- [ ] AS-R16 — Resolve R1/R2 2.4 m editor centreline clearance, far-end R1 trunk, all physical/corridor intersections, north-end turning/yard and real player/forwarder access. Removing the workbench alone does not prove any other fix.
+- [ ] AS-R17 — Poor/disconnected sketches remain visibly proposed with reason, but Confirm and authoritative confirmed-plan mutation fail closed or require proper reopen/reconfirm. Executed geometry/history remains immutable.
+- [ ] AS-R18 — Rack proposal, Confirm, physical entrance Mark, Work Plan Approval, and Execution use one saved rack set, exactly one authorised order path and no speculative Fell marks or unexecuted ground exclusions. Existing reopening/approved-work warning and consent remain.
+- [ ] AS-R19 — Explicit Work Plan economics: E is pre-existing sunk infrastructure with **no new-work payment**; P requires genuine costs/orders/commitment and execution if ever selected; no duplicate tree charges.
+
+## D. Multi-scale forestry-management safety
+
+- [ ] AS-R20 — Preserve existing `ScenarioOneRackSampleGeometry.Derive` unchanged for every previously valid parallel plan, with no opportunistic better-fit switchover.
+- [ ] AS-R21 — Additive A derivation only for bounded two-family eligible plans; test group-span, singleton/third-family refusal, finite-segment assignment, stable tie/cell boundaries, all rack orders and endpoint inversions.
+- [ ] AS-R22 — At most one coverage owner for each cell/tree, or conservative Manual/NotCovered/Excluded. No double counting/duplicate prescription order; masks precede candidate building.
+- [ ] AS-R23 — Explicit verified finite access/reach bound and explanation; 9, 12, 15 and 20 m remain *experimental sensitivities*, not silently approved thresholds. Cross-side demonstrated-sample transfer/contamination requires accepted independent calibration.
+- [ ] AS-R24 — Confirm, every confirmed edit, prescription creation and new work approval revalidate selected geometry; old confirmed-invalid saved plan loads safely but suspends unsafe **new** work, preserves completed history and offers safe repair without destructive auto-normalisation.
+- [ ] AS-R25 — Coverage unit IDs/meaning, rule and calibration versions, source sample, old prescription links, hashes and safe save round-trips remain valid or explicitly compatibly guarded; absence of new fields does not prove identity.
+
+## E. Truthful status and three-view rendering
+
+- [ ] AS-R26 — Single status-bearing geometry truth shared in 3D, Stand Map, minimap, physical entrance markers, Objective 1 prompts and Work Plan: **Existing / Proposed / Confirmed / Marked / Approved / Executed**.
+- [ ] AS-R27 — Existing is visibly traversable; Proposed is ghost/no clearing; Confirmed is pending and not an existing route; Marked is orange entrance spray; Approved is a committed order; Executed alone changes authoritative ground/tree/order. All refresh after load, edit and year change.
+- [ ] AS-R28 — Headland/feeder mesh and route-plank depiction reconcile with map; no hard-coded duplicate PathX drift, no unshown formal trails; lesson diagram #258/#282 is not misconstrued as newly constructed track.
+- [ ] AS-R29 — Actually captured 3D/Stand Map/minimap at representative viewports and real keyboard/mouse input. A failed render or SVG study cannot qualify visual parity. Physical off-route movement slowdown is later gameplay calibration, not verified practice.
+
+## F. Verification, locks and release
+
+- [ ] AS-R30 — Exact candidate source, isolated worktree, file writer and Unity machine-wide lease preflight confirmed before any local work. No active personal-playtest interruption, unrelated dirty changes or unauthorised scene edit.
+- [ ] AS-R31 — Tier 1 during implementation, Tier 2 at feature handoff: real Unity import/compile, scenario new-start, save/load old/new, invalid confirmed plan, five-branch field marking, mask/coverage, Work Plan order transitions and rendered input. Do not weaken tests.
+- [ ] AS-R32 — Protected Legacy40 and frozen Reference Future v1 archive/continuation, exact deterministic anchors and saved executed history verified before integration. New-game baseline deviations require explicit acceptance.
+- [ ] AS-R33 — Independent code/design review, durable GitHub handoff, Manager integration verdict and dashboard sync. DRAFT spec never by itself authorises production.
+- [ ] AS-R34 — User personally playtests full Scenario One candidate, then explicitly authorises any Windows build; no earlier Windows/Player build.
+
+**Evidence boundary:** Checked research facts are not feature PASS. The historical corrected geometry/equivalence data come from #248/#250/#253/#271 and need repeatable original keys/provenance where reused. As of this browser revision no E/P/F selection, full-spine implementation, MFM Option A production, Unity rendered proof, acceptance or build exists.
