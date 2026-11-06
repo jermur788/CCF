@@ -20,9 +20,68 @@ PURE = [Path("Assets/ForestPrototype/Racks/RackGeometry.cs")] + [MAP / name for 
     "StandMapTransform.cs", "StandMapModel.cs", "StandMapSymbols.cs", "StandMapGridPlan.cs",
     "StandMapDrawPlan.cs", "StandMapCanopyRaster.cs", "StandMapOverlay.cs", "StandMapLegend.cs")]
 
+# Production files can change in later, separately approved stages. The inventory below accounts for
+# each stage exactly instead of assuming #297's four map files are the only change.
+# Stage 1 (#297): BASE (pre-map) -> ANCHOR_297 (#297 handoff) changed exactly these four map files.
+# Their accepted content is ANCHOR_297's.
+ANCHOR_297 = "1b68ddcd583ab2bddd43b5ce18365171c0bab3b4"
+STAGE1_MAP_FILES = tuple(str(MAP / name) for name in (
+    "StandMapSource.cs", "StandMapDrawPlan.cs", "StandMapModel.cs", "StandMapLegend.cs"))
+# Stage 2 (#296, Manager ruling D-072 Decision 3): since ANCHOR_297, exactly the two teaching-diagram files
+# (byte-identical to the accepted #296 bounded repair ANCHOR_296) plus one call-site line in LearningObjectivesView.cs.
+ANCHOR_296 = "316429dc5173e81e6d903ea86531a60952f2d36a"
+STAGE2_DIAGRAM_FILES = ("Assets/ForestPrototype/UI/TeachingDiagram.cs", "Assets/ForestPrototype/UI/TeachingDiagramPlan.cs")
+OBJECTIVES_VIEW = "Assets/ForestPrototype/UI/LearningObjectivesView.cs"
+# The only authorised change in OBJECTIVES_VIEW: the Objective 1 diagram constructor gains the rackV2Objective argument.
+OBJECTIVES_CALL_BEFORE = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts())"
+                          " ? 4 : CurrentTopicIndex, lesson.Caption));\n")
+OBJECTIVES_CALL_AFTER = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts())"
+                         " ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective));\n")
+PRODUCTION_ROOTS = ("Assets", "Packages", "ProjectSettings")
 
-def git(*arguments):
-    return subprocess.check_output(["git", "-C", str(ROOT), *arguments], text=True)
+
+def git(*arguments, root=ROOT):
+    return subprocess.check_output(["git", "-C", str(root), *arguments], text=True)
+
+
+def git_bytes(*arguments, root=ROOT):
+    return subprocess.check_output(["git", "-C", str(root), *arguments])
+
+
+def changed_production(anchor, root=ROOT):
+    """Tracked production paths whose working-tree bytes differ from anchor, plus untracked production files."""
+    tracked = git("diff", anchor, "--name-only", "--", *PRODUCTION_ROOTS, root=root).splitlines()
+    untracked = git("ls-files", "--others", "--exclude-standard", "--", *PRODUCTION_ROOTS, root=root).splitlines()
+    return set(tracked) | set(untracked)
+
+
+def matches_commit(path, commit, root=ROOT):
+    """True only when the working-tree file exists and its bytes equal the file at commit."""
+    on_disk = Path(root) / path
+    return on_disk.is_file() and on_disk.read_bytes() == git_bytes("show", f"{commit}:{path}", root=root)
+
+
+def check_stage_inventory(root=ROOT):
+    """Two-stage exact production-delta accounting. Raises AssertionError naming the first broken rule."""
+    require(set(git("diff", BASE, ANCHOR_297, "--name-only", "--", *PRODUCTION_ROOTS, root=root).splitlines())
+            == set(STAGE1_MAP_FILES), "stage 1: pre-map base to #297 anchor changed exactly the four map files")
+    for path in STAGE1_MAP_FILES:
+        require(matches_commit(path, ANCHOR_297, root), "stage 1: present and byte-identical to accepted #297 content " + path)
+    for path in STAGE2_DIAGRAM_FILES:
+        require(matches_commit(path, ANCHOR_296, root), "stage 2: present and byte-identical to accepted #296 content " + path)
+    anchored = git_bytes("show", f"{ANCHOR_297}:{OBJECTIVES_VIEW}", root=root).decode()
+    expected = anchored.replace(OBJECTIVES_CALL_BEFORE, OBJECTIVES_CALL_AFTER)
+    objectives = Path(root) / OBJECTIVES_VIEW
+    require(anchored.count(OBJECTIVES_CALL_BEFORE) == 1 and expected.count(OBJECTIVES_CALL_AFTER) == 1
+            and objectives.is_file() and objectives.read_bytes() == expected.encode()
+            and git_bytes("show", f"{ANCHOR_296}:{OBJECTIVES_VIEW}", root=root) == expected.encode(),
+            "stage 2: LearningObjectivesView.cs differs from #297 anchor only by the authorised Objective 1 diagram call-site argument")
+    stage2 = set(STAGE2_DIAGRAM_FILES) | {OBJECTIVES_VIEW}
+    require(changed_production(ANCHOR_297, root) == stage2,
+            "stage 2: since #297 anchor exactly the two #296 diagram files and the Objectives call site changed (tracked or untracked)")
+    require(changed_production(BASE, root) == set(STAGE1_MAP_FILES) | stage2,
+            "only four authorised display files changed by #297 and only the recorded #296 delta since; "
+            "world/save/racks/Reference/Mini consumers untouched")
 
 
 def method(text, signature):
@@ -87,13 +146,14 @@ def main():
     require(refresh.count("ReadExistingHeadland(eco);") == 1 and "nextHeadlandRead = now + RackRefreshSeconds;" in headland,
             "actual Refresh calls separately throttled source seam once")
     require(re.search(r"RackRefreshSeconds = 0\.25f;", source) is not None, "actual source cadence is 0.25 seconds")
-    production = set(git("diff", BASE, "--name-only", "--", "Assets", "Packages", "ProjectSettings").splitlines())
-    allowed = {str(MAP / name) for name in ("StandMapSource.cs", "StandMapDrawPlan.cs", "StandMapModel.cs", "StandMapLegend.cs")}
-    require(production == allowed, "only four authorised display files changed; world/save/racks/Reference/Mini consumers untouched")
+    check_stage_inventory()
+    # LearningObjectivesView.cs is no longer byte-frozen at BASE. check_stage_inventory has just pinned it to its BASE
+    # bytes (stage 1 shows #297 left it unchanged) plus the single authorised #296 call-site argument.
+    # Every other protected path stays byte-identical to BASE.
     protected = ["Tools/Verification/NextActionGuidance/check_sources.py", "Tools/Verification/StandMap/OfflineLogic",
                  "Tools/Verification/StandMap/StandMapParity.cs", "Tools/Verification/StandApproach",
                  "Assets/ForestPrototype/UI/StandMapView.cs", "Assets/ForestPrototype/UI/HudMinimapView.cs",
-                 "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs", "Assets/ForestPrototype/UI/LearningObjectivesView.cs",
+                 "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
                  "Assets/ForestPrototype/UI/WorkPlanView.cs", "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss"]
     require(not git("diff", BASE, "--name-only", "--", *protected).strip(),
             "original verification assertions and Stage T2 UI bytes preserved")
