@@ -76,7 +76,7 @@ public sealed partial class LearningObjectivesView
         Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
         work.name = "objective-work-plan";
         buttons.Add(work);
-        Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll());
+        Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "objective-back-to-forest";
         buttons.Add(forest);
         modal.Add(header);
@@ -125,7 +125,6 @@ public sealed partial class LearningObjectivesView
     public void Refresh(bool force)
     {
         if (force) sequenceFacts = null;
-        ui.RefreshNextActionGuidance();
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
         bool market = ui.Manager.BroadleafMarketActive;
         string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));
@@ -191,6 +190,7 @@ public sealed partial class LearningObjectivesView
             library.Add(foldout);
         }
         scroll.Add(library);
+        ui.RefreshNextActionGuidance();
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
     }
 

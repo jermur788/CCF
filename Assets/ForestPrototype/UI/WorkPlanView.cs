@@ -171,12 +171,12 @@ public sealed class WorkPlanView
         approve.name = "workplan-approve";
         footer.Add(approve);
         Button advance = UiKit.Button("Advance one year", OnAdvanceClicked,
-            m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem));
+            m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary");
         advance.name = "workplan-advance";
         footer.Add(advance);
         if (ui.NeedsAnnualReview)
         {
-            Button results = UiKit.Button("Read first annual results to continue", () => ui.ShowReview());
+            Button results = UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary");
             results.name = "workplan-read-results";
             footer.Add(results);
         }

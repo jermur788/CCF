@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -52,7 +53,18 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private float nextModalRefresh;
     private int helpClosedFrame = -1;
     private Button nextAction;
-    private float nextGuidanceRefresh;
+    private Button guidanceCandidate;
+    private VisualElement guidanceScope;
+    private readonly Label nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };
+    private readonly Dictionary<Button, bool> guidancePrimaries = new Dictionary<Button, bool>();
+    // Only T2-owned controls. Treatment review, waypoints and Legacy40 keep their original styling.
+    private static readonly string[] GuidanceButtonNames = {
+        "objective-primary-cta", "objective-work-plan", "objective-back-to-forest",
+        "map-work-plan", "map-back-to-forest", "map-plan-rack", "map-rack-plan-confirm", "map-rack-plan-reopen",
+        "map-consent-decline", "map-consent-accept", "map-edit-reset-cancel", "map-edit-reset-confirm",
+        "map-reopen-decline", "map-reopen-accept", "workplan-approve", "workplan-advance",
+        "workplan-read-results", "workplan-advance-return", "annual-review-acknowledge"
+    };
 
     public UiScreen CurrentScreen => screen;
     public ScenarioOneManager Manager => manager;
@@ -310,42 +322,30 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Match the existing modal fact refresh cadence; suspension is immediate, even between those ticks.
-        if (Time.unscaledTime >= nextGuidanceRefresh || manager != null && (manager.ReferencePreviewActive
-            || StandaloneSessionMenu.IsOpen || help != null && help.IsOpen || helpClosedFrame == Time.frameCount))
-            RefreshNextActionGuidance();
+        // No forest/quote/validator lookups here. Apply cached presentation after layout each frame,
+        // including the first frame after opening or dismissing Help.
+        ApplyNextActionGuidance();
         if (competitors == null || manager == null) return;
         bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
         competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
         indicator?.LateUpdate();
     }
 
-    // Presentation only. Re-read saved facts AND transient screen/editor state; never store progression.
-    // Called after card rebuilds and on the modal refresh cadence; Help suspension is checked every frame.
+    // Derive only after a genuine card rebuild/view entry, never on an unchanged timer tick.
     public void RefreshNextActionGuidance()
     {
         if (learning == null || map == null || workPlan == null || manager == null) return;
-        nextGuidanceRefresh = Time.unscaledTime + 0.25f;
-        if (nextAction != null)
-        {
-            if (nextAction.text.StartsWith("Next: ")) nextAction.text = nextAction.text.Substring(6);
-            nextAction.RemoveFromClassList("next-action");
-            nextAction = null;
-        }
-        // These screens used permanent primaries. Their next action is now selected once, below.
+        ClearNextAction();
+        guidanceCandidate = null;
+        guidanceScope = null;
+        foreach (var entry in guidancePrimaries)
+            entry.Key.EnableInClassList("btn-primary", entry.Value);
+        guidancePrimaries.Clear();
         foreach (VisualElement view in new[] { learning.Root, map.Root, workPlan.Root, review.Root })
         {
-            view.Query<Button>(className: "btn-primary").ForEach(b => b.RemoveFromClassList("btn-primary"));
             Label note = view.Q<Label>("next-action-reason");
-            if (note != null)
-            {
-                note.text = "";
-                note.style.display = DisplayStyle.None;
-            }
+            if (note != null) { note.text = ""; note.style.display = DisplayStyle.None; }
         }
-        if (manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
-            || helpClosedFrame == Time.frameCount) return;
-
         VisualElement scope = manager.WorkPlanOpen ? workPlan.Root
             : screen == UiScreen.Objectives ? learning.Root : screen == UiScreen.Map ? map.Root
             : screen == UiScreen.Review ? review.Root : null;
@@ -388,15 +388,16 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             else if (manager.MarkedRackEntranceCount < ScenarioOneManager.RackPlanTargetCount)
             {
                 bool markable = false;
+                string unavailableReason = "";
                 foreach (RackPlanRack rack in manager.RackPlan)
                 {
                     if (rack.EntranceMarked || rack.IsLocked) continue;
                     if (manager.TryGetRackEntranceTarget(rack.Id, out ForestTree tree, out string problem)
-                        && !tree.IsCropTree && !tree.IsMarkedForFell) markable = true;
-                    else if (!string.IsNullOrEmpty(problem)) reason = problem;
+                        && !tree.IsCropTree && !tree.IsMarkedForFell) { markable = true; break; }
+                    else if (!string.IsNullOrEmpty(problem)) unavailableReason = problem;
                 }
                 if (markable) target = objectives ? "objective-back-to-forest" : onMap ? "map-back-to-forest" : null;
-                else reason = "No unmarked rack entrance is currently available to mark. " + reason;
+                else reason = "No unmarked rack entrance is currently available to mark. " + unavailableReason;
             }
             else if (rackLayout != null)
             {
@@ -438,27 +439,53 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else return; // Later-objective mappings and Legacy40 are outside this first guidance slice.
 
-        Button candidate = target != null ? scope.Q<Button>(target) : null;
-        if (candidate != null && candidate.enabledInHierarchy && GuidanceVisible(candidate, scope))
+        // Restore original classes above before deciding whether this context belongs to T2.
+        // Later objectives and Legacy40 return before this allowlist is demoted.
+        foreach (string name in GuidanceButtonNames)
         {
-            nextAction = candidate;
-            candidate.text = "Next: " + candidate.text;
-            candidate.AddToClassList("btn-primary");
-            candidate.AddToClassList("next-action");
+            Button owned = scope.Q<Button>(name);
+            if (owned == null) continue;
+            guidancePrimaries[owned] = owned.ClassListContains("btn-primary");
+            owned.RemoveFromClassList("btn-primary");
         }
-        else if (candidate != null)
-        {
-            // Disabled controls retain their normal availability; the cue never makes an action enabled.
-            string problem = RackPlanProblem;
-            if (string.IsNullOrEmpty(problem)) problem = RackApprovalProblem;
-            reason = !string.IsNullOrEmpty(problem) ? problem : reason + " This action is currently unavailable. " + manager.Feedback;
-        }
+        guidanceScope = scope;
+        guidanceCandidate = target != null ? scope.Q<Button>(target) : null;
         Label explanation = scope.Q<Label>("next-action-reason");
         if (explanation != null)
         {
             explanation.text = reason;
             explanation.style.display = string.IsNullOrEmpty(reason) ? DisplayStyle.None : DisplayStyle.Flex;
         }
+        ApplyNextActionGuidance();
+    }
+
+    private void ClearNextAction()
+    {
+        if (nextAction != null)
+        {
+            nextAction.RemoveFromClassList("btn-primary");
+            nextAction.RemoveFromClassList("next-action");
+            nextAction = null;
+        }
+        nextBadge.RemoveFromHierarchy();
+    }
+
+    // Cheap visibility/suspension checks only; expensive facts are cached by the rebuild above.
+    private void ApplyNextActionGuidance()
+    {
+        bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen
+            || help == null || help.IsOpen || helpClosedFrame == Time.frameCount;
+        Button candidate = guidanceCandidate;
+        VisualElement scope = guidanceScope;
+        bool eligible = !suspended && candidate != null && candidate.enabledInHierarchy && GuidanceVisible(candidate, scope);
+        if (nextAction == candidate && eligible) return;
+        ClearNextAction();
+        if (!eligible) return;
+        nextAction = candidate;
+        nextBadge.AddToClassList("next-action-badge");
+        candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
+        candidate.AddToClassList("btn-primary");
+        candidate.AddToClassList("next-action");
     }
 
     private static bool GuidanceVisible(VisualElement element, VisualElement scope)
@@ -553,6 +580,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else if (screen == UiScreen.Objectives)
             learning.Refresh(true);
+        if (screen == UiScreen.Review) RefreshNextActionGuidance();
     }
 
     private MenuHelpView.Menu HelpContext()

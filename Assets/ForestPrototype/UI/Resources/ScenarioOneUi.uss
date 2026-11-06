@@ -588,3 +588,5 @@
 /* Objective 1 pointer guidance: words and a persistent heavy border, separate from keyboard focus. */
 .btn.next-action { font-size: 20px; border-width: 3px; -unity-font-style: bold; white-space: normal; }
 .next-action-reason { font-size: 20px; white-space: normal; flex-shrink: 0; margin-top: 4px; margin-bottom: 4px; }
+
+.next-action-badge { font-size: 20px; -unity-font-style: bold; white-space: normal; align-self: center; margin-right: 4px; }

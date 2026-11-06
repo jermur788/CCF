@@ -93,7 +93,7 @@ public sealed class StandMapView
         Button work = UiKit.Button("Work Plan", () => ui.ShowWorkPlan());
         work.name = "map-work-plan";
         buttons.Add(work);
-        Button forest = UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll());
+        Button forest = UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "map-back-to-forest";
         buttons.Add(forest);
         header.Add(buttons);
@@ -269,7 +269,7 @@ public sealed class StandMapView
                 ? (rackMode ? "Planning Racks — Active" : "Plan Racks")
                 : (rackMode ? "Plan rack: ON" : "Plan rack");
             Button plan = UiKit.Button(label, ToggleRackMode, true,
-                rackMode ? new[] { "btn-selected" } : new string[0]);
+                rackMode ? new[] { "btn-selected" } : new[] { "btn-primary" });
             plan.name = "map-plan-rack";
             toolButtons.Add(plan);
         }
@@ -648,7 +648,10 @@ public sealed class StandMapView
         {
             Button accept = card.Q<Button>("map-consent-accept");
             accept.RemoveFromHierarchy();
-            card.Add(accept);
+            VisualElement consentAction = UiKit.Box("card", "rack-panel");
+            UiKit.Add(consentAction, editor.ConsentMessage, "body");
+            consentAction.Add(accept);
+            card.Add(consentAction);
         }
         BuildConfirmControl(card);
         side.Add(card);
@@ -659,7 +662,7 @@ public sealed class StandMapView
     private void BuildConfirmControl(VisualElement card)
     {
         bool can = ui.Manager.CanConfirmRackPlan(out string reason);
-        Button confirm = UiKit.Button("Confirm Rack Plan", ConfirmRackPlanFromCard, can && !editor.ConsentPending && !editor.ResetPending);
+        Button confirm = UiKit.Button("Confirm Rack Plan", ConfirmRackPlanFromCard, can && !editor.ConsentPending && !editor.ResetPending, "btn-primary");
         confirm.name = "map-rack-plan-confirm";
         card.Add(confirm);
         if (!can)
@@ -739,7 +742,7 @@ public sealed class StandMapView
             return;
         }
 
-        Button reopen = UiKit.Button("Reopen Rack Plan", RequestReopenRackPlan, !summary.NothingEditable);
+        Button reopen = UiKit.Button("Reopen Rack Plan", RequestReopenRackPlan, !summary.NothingEditable, "btn-primary");
         reopen.name = "map-rack-plan-reopen";
         card.Add(reopen);
         if (summary.NothingEditable)
@@ -872,7 +875,7 @@ public sealed class StandMapView
         {
             if (waypointCell == index) ClearWaypoint(); else SetWaypoint(eco, index);
             Refresh(true);
-        }));
+        }, true, "btn-primary"));
         UiKit.Add(side, "A waypoint marks the square in the forest and in the status panel. Walk there yourself; the map does not move you.", "faint");
     }
 
