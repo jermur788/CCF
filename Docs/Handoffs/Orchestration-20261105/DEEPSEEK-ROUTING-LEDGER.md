@@ -144,3 +144,7 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 - OBSERVED FACT: reviewer `claudeAgent` / `claude-sonnet-5-5` / `medium`; completed. Commit `9aa72d645cff366e1d2e6cd738756c24b42327fb`; file `D072-INDEPENDENT-SPEC-REVIEW.md`.
 - OBSERVED FACT: verdict **NEEDS CHANGES**, 4 blocking: B1 mechanism (separate model collection, full-only draw, hash, Mini-unchanged test); B2 applicability gate/cache (`RackPlanningV2Active` + named surface proof, draw-nothing default); B3 junction/pads/draw order and three source segments; B4 offline testability (projection in StandMapSource, pure gate predicate, constants parity, read counter). 7 non-blocking, incl. FR-5 rubric only on diverged PR #265 and `StandMapView.cs` drift on the feature branch.
 - ORCHESTRATOR CLAIM: S0 is **not passed**. No #297 C# started. The spec is Manager-owned on main, so the orchestrator cannot amend or self-approve it; the chain pauses at the **Manager spec-amendment + release gate**.
+
+## E-029 — User disposition of the D-072 spec gate
+- OBSERVED FACT: the user chose **wait for Manager #200 amendment + release**, declining a user-authority substitute.
+- ORCHESTRATOR CLAIM: chain paused at S0. Resume trigger: (1) amended four-file spec commit, (2) independent re-check with zero blocking, (3) actual Manager release of #297 plus #200 live ownership update. No Stage B/C/D work started; no Unity lease held.
