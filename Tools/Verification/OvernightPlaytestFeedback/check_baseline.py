@@ -10,6 +10,7 @@ from xml.sax.saxutils import escape
 import subprocess
 from collections import Counter
 from pathlib import Path
+from objective_cta_source_check import ObjectiveCtaSourceError, verify_objective_cta
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = "72b4efbd1c653fa2231f632a79030a83ff76f833"
@@ -246,12 +247,18 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
            + evidence(CURRICULUM, "return counter + (workPending")
            + evidence(CURRICULUM, ': ". Open the Work Plan')
            + evidence(CURRICULUM, 'case "rack.create":'))
-    buttons = evidence(VIEW, "buttons.Add(UiKit.Button(")
-    primary = [r for r in buttons if '"btn-primary"' in r[2]]
-    primary_map = len(primary) == 1 and bool(re.search(r"\(\)\s*=>\s*ui\.ShowMap\(\)", primary[0][2]))
-    report("PASS" if primary_map else "FAIL", "08 objective-primary-cta",
-           "Require exactly one primary source button invoking ui.ShowMap(); labels are evidence only. "
-           "Baseline primary invokes ui.CloseAll(); visual prominence, focus and destination behaviour remain unmeasured.", buttons)
+    try:
+        rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"))
+        report("PASS", "08 objective-primary-cta",
+               "Bounded source-structure proof: one named Objectives map CTA invokes ui.ShowMap(), "
+               "is bound to the header row and selected only for unconfirmed Rack V2 Objective 1; "
+               "scoped primary-class restoration/demotion, Help/preview/visibility guards and "
+               "dynamic btn-primary/next-action application are checked. "
+               "Stateful Unity input, focus and rendered prominence remain NOT TESTED.", rows)
+    except ObjectiveCtaSourceError as error:
+        report("FAIL", "08 objective-primary-cta",
+               "Source-structure contract unmet: " + str(error)
+               + ". This is not a Unity runtime verdict.", [])
 
     report("NOT-TESTABLE", "09 map-minimap-trail-consistency",
            "NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly.",
