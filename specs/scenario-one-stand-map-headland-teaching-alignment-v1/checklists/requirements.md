@@ -1,6 +1,6 @@
 # D-072 requirements and verification checklist
 
-- **Status:** D-072 PRODUCT SCOPE APPROVED; #298 REVIEW 1 **NEEDS CHANGES — four blockers (B1–B4)**. Manager technical spec repairs recorded; **independent re-review and Manager production release PENDING**. All implementation/Unity evidence NOT RUN.
+- **Status:** D-072 source-only specification APPROVED by Manager after independent Review 2 PASS WITH NON-BLOCKING NOTES, zero blockers. #297 implementation READY for actual local preflight, not running. All code/Unity/integration checks NOT RUN.
 **Authority:** [D-072 user-confirmed Option B](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md), under D-071 five parallel Rack V2 family; [#297 map repair](https://github.com/jermur788/CCF/issues/297) precedes [#296 diagram](https://github.com/jermur788/CCF/issues/296) in [#294 overnight chain](https://github.com/jermur788/CCF/issues/294). [#295 T2 cues](https://github.com/jermur788/CCF/issues/295) already implemented and independently reviewed **SOURCE ONLY**; its code is preserved but not integrated or Unity verified. `Docs/Project/coordination/active-tasks.md` is live single-writer authority.
 
 ## Design and ownership
@@ -9,8 +9,8 @@
 - [x] Exact authoritative geometry and five authentic source-entrance identities documented; no invented rack-spacing calibration.
 - [x] #298 original independent review returned **NEEDS CHANGES (B1–B4)**; original evidence retained.
 - [x] Manager revised all four canonical specs, with B1–B4 mandatory mechanisms and no changed game design.
-- [ ] Targeted independent **RE-REVIEW** in a new `D072-INDEPENDENT-SPEC-REVIEW-2.md` returns **ZERO blocking findings** on amended four-file HEAD.
-- [ ] Manager #200 separately **APPROVES #297 source start** and updates live sole-writer ownership; review PASS alone does not permit code.
+- [x] Independent [Review 2](https://github.com/jermur788/CCF/blob/docs/d072-independent-spec-review-20261106-v1/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/D072-INDEPENDENT-SPEC-REVIEW-2.md) returned PASS WITH NON-BLOCKING NOTES, zero blockers, on amended four-file HEAD.
+- [x] Manager #200 APPROVED #297 source-only start after independent review; conditional single-writer reservation in live coordination, with actual branch/worktree/clean/HEAD preflight and claim start still mandatory.
 - [ ] #297 branch/worktree/one-writer/starting HEAD and protected local user checkout/disk preflight verified by actual worker.
 ## Map source (not yet implemented)
 - [ ] **B1 mandatory data mechanism:** new separate `StandMapModel.ExistingHeadlandSurfaces` pure collection **never** appended to `model.Paths`. Existing Paths count, indices, point sequences and widths unchanged in all states; historic path-count tests NOT weakened.
@@ -19,7 +19,7 @@
 - [ ] **B2 fail-closed gate:** pure static predicate `V2 && Enlarged80 && surfaceActive`; `RackPlanningV2Active` read from manager, positive proof cached `ScenarioOneHeadlandPresentation` reference and active named child `Scenario One V2 Headland`/renderer. Unknown, absent, hidden or disabled ⇒ **draw nothing**.
 - [ ] **B2 cache/load transitions:** 0.25s rack-read cadence or invalidation detects V2↔non-V2 load on unchanged scenery geometry key, no property, absent child and reappearance; no per-tick global scan/mesh read.
 - [ ] **B3 exact source geometry:** **two new** 2.6m-width centrelines only (western headland south→north and single south feeder west→existing approach `PathX`), plus **two 2.2m-radius pads** at authored junction points, no extra road or extension.
-- [ ] **B3 visual union/order:** new surface (casing, fill, pads) drawn **beneath existing `model.Paths`**, so existing approach casing/tan is on top, no dark junction bar, no false widened length. Approach is third **existing visual leg**, not an added headland segment.
+- [ ] **B3 visual union/order (NB-1/NB-2):** new surface immediately before existing Paths after rack corridor bands; first all new casing strokes and both separate pad-outline items, then all tan strokes and both separate pad-fill items, then existing Paths. Later rack centre lines/entrances visible; no junction ring cut-through, dark bar or false road widening.
 - [ ] Negative state/compat cases: HUD minimap and embedded Mini overview unchanged, Legacy40/frozen Reference Future v1/pre-V2 Enlarged80 unchanged; no phantom surface in missing-template case; original `Dirt Path`, existing rack plan and save state intact.
 - [ ] No scene/prefab/physics, collision, clearance, RackPlan/manager, MFM/Work Plan, new road, saved schema or actual rack topology changed.
 - [ ] **B4 Unity-free offline seam:** actual `ScenarioOneHeadlandGeometry` consts projected only in Unity-side `StandMapSource` to plain model data; pure `StandMapModel`, draw plan and eligibility predicate compile without UnityEngine.
