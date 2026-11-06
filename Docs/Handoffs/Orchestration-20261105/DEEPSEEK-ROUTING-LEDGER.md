@@ -130,3 +130,17 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 - OBSERVED FACT: no Unity lease was requested or acquired; lock last observed free with no Editor; no Windows/Player build; no merge to main.
 - OBSERVED FACT: durable result published at `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/OVERNIGHT-EXECUTION-RESULT.md` on this orchestrator branch.
 - ORCHESTRATOR CLAIM: Stages C/D/E remain unstarted because the binding sequence requires an accepted Stage B. Resume requires a T3 disposition, #200's formal T2 verdict/N1 ruling, and then fresh Stage C admission with a real exclusive lease.
+
+---
+
+# E-027.. — D-072 Option B resume (2026-11-06, run 4)
+
+## E-027 — D-072 authority and #298 preflight
+- OBSERVED FACT: main `5f62f1a7f7ab11cf50c776d6fd5b319e948a40da` (2026-11-06T10:30Z); D-072 Option B confirmed; four-file spec `scenario-one-stand-map-headland-teaching-alignment-v1` present on main; Manager decision `MANAGER-D072-OPTION-B-DECISION-AND-RESUME-20261106.md` read.
+- OBSERVED FACT: remote review branch `docs/d072-independent-spec-review-20261106-v1` = `b661611a`; proposed worktree `/media/jer/Files/CCF/Operations/CCF-D072-SpecReview-20261106` absent; created clean from that branch, HEAD == origin.
+- OBSERVED FACT: #298 READY/NOT RUNNING; #297 waiting; #295 remains accepted T2 source; #296 waiting.
+
+## E-028 — #298 independent spec review result
+- OBSERVED FACT: reviewer `claudeAgent` / `claude-sonnet-5-5` / `medium`; completed. Commit `9aa72d645cff366e1d2e6cd738756c24b42327fb`; file `D072-INDEPENDENT-SPEC-REVIEW.md`.
+- OBSERVED FACT: verdict **NEEDS CHANGES**, 4 blocking: B1 mechanism (separate model collection, full-only draw, hash, Mini-unchanged test); B2 applicability gate/cache (`RackPlanningV2Active` + named surface proof, draw-nothing default); B3 junction/pads/draw order and three source segments; B4 offline testability (projection in StandMapSource, pure gate predicate, constants parity, read counter). 7 non-blocking, incl. FR-5 rubric only on diverged PR #265 and `StandMapView.cs` drift on the feature branch.
+- ORCHESTRATOR CLAIM: S0 is **not passed**. No #297 C# started. The spec is Manager-owned on main, so the orchestrator cannot amend or self-approve it; the chain pauses at the **Manager spec-amendment + release gate**.
