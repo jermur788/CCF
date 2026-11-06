@@ -18,8 +18,17 @@
 6. Falsification: applies deliberate defects to temporary copies of the plan or the painter and requires a FAIL on each.
 
 Nothing is written inside the repository. --out must be new or empty (the default is a new timestamped folder), so a re-run never deletes
-earlier evidence. Prints FIVE_RACK_SUITE_PASS / FIVE_RACK_SUITE_FAIL (exit 0 / 1), or FIVE_RACK_SUITE_INCOMPLETE (exit 2) when the archived
-snapshot could not be re-read, so a run without the archive never reports a full pass.
+earlier evidence.
+
+Suite markers (#308, F-5). The marker depends on what actually ran, and only one of them means a full pass:
+  FIVE_RACK_SUITE_PASS        exit 0  the full suite ran, including all 29 mutations, every assertion passed and every identity matched
+  FIVE_RACK_SUITE_FAIL        exit 1  at least one assertion failed, or the checker stopped on an internal error
+  FIVE_RACK_SUITE_INCOMPLETE  exit 2  nothing failed but this was not a full run: --no-mutations, a non-default --base, or no archived snapshot
+  FIVE_RACK_SUITE_SCOPE_ONLY  exit 2  nothing failed but only the source and scope guards ran (--scope-only)
+
+Exact inventories (#308, F-1 to F-4). The diagram files, the Objective 1 call-site file, this folder's C# checks and the historical handoffs are
+pinned by commit, git blob and SHA-256. Every changed path must be named. The assertions that ran are compared by name and tally against
+expected_assertions.json. Ignored production files and git index flags fail closed. A sparse checkout fails by design: it needs skip-worktree.
 """
 import argparse, datetime, hashlib, json, math, os, re, subprocess, sys
 from pathlib import Path
@@ -62,9 +71,42 @@ CALL_SITE_OLD = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequen
 CALL_SITE_NEW = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, "
                  "lesson.Caption, rackV2Objective));")
 FLAG_LINE = "        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;"
-ALLOWED = {str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_HANDOFF, STAGE_306_HANDOFF} | set(STAGE_303)
+# #296 accepted code identity: the bounded repair commit is the last commit that touched each of these (checked in the #308 handoff).
+ANCHOR_296 = "316429dc5173e81e6d903ea86531a60952f2d36a"
+CHECKER_DIR = "Tools/Verification/ScenarioOneFiveRackDiagram/"
+CHECK_CS = CHECKER_DIR + "FiveRackDiagramCheck.cs"
+PROBE_CS = CHECKER_DIR + "PainterProbe/PainterProbe.cs"
+STUBS_CS = CHECKER_DIR + "PainterProbe/RecordingUnityStubs.cs"
+RUNNER = CHECKER_DIR + "run_five_rack_check.py"
+INTEGRITY_TEST = CHECKER_DIR + "test_stage_inventory_guard.py"
+ASSERTIONS_FILE = CHECKER_DIR + "expected_assertions.json"
+# (label, path, commit, git blob, SHA-256). Each is checked at the pinned commit, at HEAD and in the working tree, so the runner proves these bytes
+# on its own and does not rely on the #303 checker having been run as well (#308, F-1).
+PINS = [
+    ("#296 pin", str(PAINTER), ANCHOR_296, "65d4aba342332bcb41012a0c7b8867b05aa03164", "5062dd7dd1836cdb9663b257c0e4a4b74daf3b6f183923a27e6f86e35be83874"),
+    ("#296 pin", str(PLAN), ANCHOR_296, "6e73f9571f7f10a16b11c608fa34de10aab7d0a7", "967b21b8bfd1bedafa3fdb23e8bcda1c90bcbf3696882a918b62a33628514771"),
+    ("#296 pin", OBJECTIVES, ANCHOR_296, "6e5d84655346ee6f4355ce6229a94f5a5ba1a3c2", "fb97d3886fffef7285a908120ebea5939f3b61c6dc9ffaff8b2c60e038c5b139"),
+    ("#296 verifier pin", CHECK_CS, ANCHOR_296, "04f8a9f08de95670b2cf70a632321c3a1d1825f0", "5cb387f5029f6532c8ce969e54e1960467ee70851268ea636a5012a23094b21f"),
+    ("#296 verifier pin", PROBE_CS, ANCHOR_296, "14b87ecc43e57103601d036501b297271ff465f0", "8b1b90b6c7b8d5366985f568eaf12e8f0d4b83f7afe3cd7e2e1c2e7746d017de"),
+    ("#296 verifier pin", STUBS_CS, ANCHOR_296, "15d203c48677d7bf70fdc2f7a3f1cd82f270e384", "9241cd65d4d7d716b434a62e1c5504cfa489583303bf2b335c9b100a7acc46c3"),
+    ("handoff pin", IMPLEMENTATION_HANDOFF, REPAIR_START, "5ce93c9563d01053246a15a9ae0280d996db07db", "641a69d334c434cfacaa9ef773ba1c0f429256a00c16302f355c72b18cb6fe97"),
+    ("handoff pin", REPAIR_HANDOFF, "335ee6b3fde8b9e514cc914b0e5bd6a6e10d70a3", "4321956a89b9060ec4b52f8f0ec9f38bddb44a84", "f5c60afbbb606ecce078ef6b336488836d923fc6e4716da37836a30b8346f388"),
+    ("handoff pin", STAGE_306_HANDOFF, "d531f2308a103d022aca3128497b5c3a975228d5", "26e683f6b46287443edf459e118baeb6fe29352a", "09f6dd7c80715571e86bd0c6f60fc212a65e92798506104f92defc03c940aaf4"),
+]
+# #308's own report. It cannot pin itself, so it is allowed at this one exact path and must be text.
+STAGE_308_HANDOFF = HANDOFF_DIR + "D072-FIVE-RACK-CHECKER-F1-F3-REPAIR-HANDOFF.md"
+# The whole content of the five-rack folder, by exact name. No prefix and no wildcard: anything else in the folder fails (#308, F-3).
+FIVE_RACK_FILES = {CHECK_CS, PROBE_CS, STUBS_CS, RUNNER, INTEGRITY_TEST, ASSERTIONS_FILE}
+ALLOWED = ({str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_HANDOFF, STAGE_306_HANDOFF, STAGE_308_HANDOFF}
+           | set(STAGE_303) | FIVE_RACK_FILES)
 ALLOWED_ASSETS = {str(PLAN), str(PAINTER), OBJECTIVES}
-ALLOWED_PREFIX = "Tools/Verification/ScenarioOneFiveRackDiagram/"
+# A checker file cannot contain its own hash, so each pin line is blanked before hashing: this file's digest excludes the SELF_SHA256 value and
+# the integrity test's digest excludes its CHECKER_SHA256 value. That test holds this runner's full SHA-256, which closes the loop without a cycle.
+SELF_SHA256 = "dd88a10d63ed51fcd7a53fdf73fce2b517d1ad0f8ff68e54f7688ce009958acf"
+INTEGRITY_TEST_SHA256 = "41ee94e2bd1bfb4eafeb12020fa6fc91888cc76d9013486f7dab748806a73954"
+ASSERTIONS_SHA256 = "6515df087111ebda1c1832dcba72bf938648721cad6a7c5222c96b38055c4dbe"
+EXPECTED_STRUCTURAL, EXPECTED_PAINTER, EXPECTED_MUTATIONS, EXPECTED_ORIGINAL = 109, 165, 29, 131
+INTERNAL_ERROR_CHECK = "the checker ran to the end of its mode without an internal error"
 PROTECTED = ["Assets/ForestPrototype/UI/Map/StandMapSource.cs", "Assets/ForestPrototype/UI/Map/StandMapModel.cs",
              "Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs", "Assets/ForestPrototype/UI/Map/StandMapLegend.cs",
              "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs", "Assets/ForestPrototype/UI/UiKit.cs",
@@ -75,10 +117,15 @@ PROTECTED = ["Assets/ForestPrototype/UI/Map/StandMapSource.cs", "Assets/ForestPr
              "Tools/Verification/ScenarioOneUxPedagogy/OfflineLogic/TeachingDiagramPlanCheck.cs",
              "Tools/Verification/ScenarioOneUxPedagogy/OfflineLogic/run_diagram_check.py"]
 results = []
+names = []
+structural_names = []
+painter_names = []
+caught_mutations = []
 
 
 def record(ok, name, detail=""):
     results.append(ok)
+    names.append(name)
     print(("PASS " if ok else "FAIL ") + "SOURCE " + name + (" :: " + str(detail) if detail != "" else ""), flush=True)
 
 
@@ -88,6 +135,70 @@ def git(*args):
 
 def git_bytes(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args])
+
+
+def git_quiet(*args):
+    """Bytes of a git command, or None when it fails (a missing path or commit is a checked result here, not a crash)."""
+    result = subprocess.run(["git", "-C", str(ROOT), *args], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    return result.stdout if result.returncode == 0 else None
+
+
+def git_paths(*args):
+    """Paths from a git command run with -z, so a space or a quoted name cannot change what is compared."""
+    return [path for path in git(*args).split("\0") if path]
+
+
+def sealed_digest(data, constant):
+    """SHA-256 of a file with the value of its one `constant = "<hex>"` pin line blanked."""
+    blanked, count = re.subn(b"^" + constant + b' = "[0-9a-f]*"', constant + b' = ""', data, flags=re.M)
+    return hashlib.sha256(blanked).hexdigest() if count == 1 else "no single " + constant.decode() + " line"
+
+
+def regular_file_bytes(path):
+    """Bytes of a real file in the working tree, or None for a missing path or a symlink."""
+    target = ROOT / path
+    return target.read_bytes() if target.is_file() and not target.is_symlink() else None
+
+
+def load_inventory():
+    """The expected assertion identities, or None when the file is absent, altered or unreadable. A tampered inventory is never used."""
+    data = regular_file_bytes(ASSERTIONS_FILE)
+    if data is None or hashlib.sha256(data).hexdigest() != ASSERTIONS_SHA256:
+        return None
+    return json.loads(data)
+
+
+def pin_check(label, path, commit, blob, sha):
+    """One pinned file, three independent facts: the pinned commit holds it, HEAD holds it, and the working tree holds it."""
+    pinned = git_quiet("show", commit + ":" + path)
+    pinned_blob = git_quiet("rev-parse", commit + ":" + path)
+    record(pinned is not None and pinned_blob is not None and pinned_blob.decode().strip() == blob and hashlib.sha256(pinned).hexdigest() == sha,
+           label + ": " + path + " at " + commit[:8] + " has its recorded git blob and SHA-256")
+    head_blob = git_quiet("rev-parse", "HEAD:" + path)
+    record(head_blob is not None and head_blob.decode().strip() == blob, label + ": " + path + " at HEAD is the pinned git blob",
+           "missing" if head_blob is None else head_blob.decode().strip())
+    current = regular_file_bytes(path)
+    record(current is not None and hashlib.sha256(current).hexdigest() == sha and current == pinned,
+           label + ": " + path + " in the working tree has exactly the pinned bytes",
+           "missing or not a regular file" if current is None else hashlib.sha256(current).hexdigest())
+
+
+def stage_pins():
+    """Byte identity of the accepted #296 code, its verifier and the historical handoffs, plus the checker's own files (#308, F-1 and F-3)."""
+    for label, path, commit, blob, sha in PINS:
+        pin_check(label, path, commit, blob, sha)
+    record(sealed_digest(Path(__file__).read_bytes(), b"SELF_SHA256") == SELF_SHA256, "this runner matches its own recorded SHA-256 (pin line blanked)")
+    test = regular_file_bytes(INTEGRITY_TEST)
+    record(test is not None and sealed_digest(test, b"CHECKER_SHA256") == INTEGRITY_TEST_SHA256,
+           "the integrity test matches its recorded SHA-256 (its checker pin line blanked)")
+    data = regular_file_bytes(ASSERTIONS_FILE)
+    record(data is not None and hashlib.sha256(data).hexdigest() == ASSERTIONS_SHA256, "the expected assertion inventory matches its recorded SHA-256")
+    inventory = load_inventory()
+    table = json.dumps([list(entry) for entry in MUTATIONS + PAINTER_MUTATIONS], ensure_ascii=False, separators=(",", ":")).encode()
+    record(len(MUTATIONS) == 15 and len(PAINTER_MUTATIONS) == 14 and len(MUTATIONS) + len(PAINTER_MUTATIONS) == EXPECTED_MUTATIONS,
+           "the mutation table holds exactly the 15 plan and 14 painter mutations", "%d + %d" % (len(MUTATIONS), len(PAINTER_MUTATIONS)))
+    record(inventory is not None and hashlib.sha256(table).hexdigest() == inventory["mutation_table_sha256"],
+           "the mutation table keeps every original name, anchor, replacement and expected text", hashlib.sha256(table).hexdigest())
 
 
 def head_contains(commit):
@@ -245,12 +356,34 @@ def stage_inventory(changed):
 
 
 def scope_guards(base):
-    changed = set(git("diff", "--name-only", base).split()) | set(git("ls-files", "--others", "--exclude-standard").split())
-    stage_inventory(changed)
+    # --no-renames: a rename would report only the new name and hide the deleted path. The second diff keeps a committed change visible even
+    # when the working tree has been put back.
+    in_worktree = set(git_paths("diff", "-z", "--no-renames", "--name-only", base)) | set(git_paths("ls-files", "-z", "--others", "--exclude-standard"))
+    changed = in_worktree | set(git_paths("diff", "-z", "--no-renames", "--name-only", base, "HEAD"))
+    stage_inventory(in_worktree)
     packages = sorted(p for p in changed if p.startswith(("Packages/", "ProjectSettings/")))
     record(not packages, "no package or project-settings change", packages)
-    outside = sorted(p for p in changed if p not in ALLOWED and not p.startswith(ALLOWED_PREFIX))
+    outside = sorted(p for p in changed if p not in ALLOWED)
     record(not outside, "only allowed files changed since " + base[:8], outside)
+    folder = set(git_paths("ls-files", "-z", "--", CHECKER_DIR)) | set(git_paths("ls-files", "-z", "--others", "--", CHECKER_DIR))
+    missing = sorted(p for p in FIVE_RACK_FILES if regular_file_bytes(p) is None)
+    record(folder == FIVE_RACK_FILES and not missing,
+           "the five-rack folder holds exactly its six named files (tracked, untracked or ignored)", sorted(folder ^ FIVE_RACK_FILES) + missing)
+    handoff = regular_file_bytes(STAGE_308_HANDOFF)
+    if handoff is None:
+        record(not (ROOT / STAGE_308_HANDOFF).exists() and not (ROOT / STAGE_308_HANDOFF).is_symlink(),
+               "the #308 handoff, when present, is a regular UTF-8 text file at its one exact path")
+    else:
+        try:
+            text_ok = b"\0" not in handoff and bool(handoff.decode("utf-8"))
+        except UnicodeDecodeError:
+            text_ok = False
+        record(text_ok, "the #308 handoff, when present, is a regular UTF-8 text file at its one exact path")
+    # Plain inventories cannot see ignored files or entries the index has been told to stop checking, so both are looked at directly (#308, F-4).
+    ignored = git_paths("ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--", "Assets", "Packages", "ProjectSettings")
+    record(not ignored, "no ignored untracked path under Assets, Packages or ProjectSettings", ignored[:5])
+    flagged = [line for line in git("ls-files", "-v").splitlines() if not line.startswith("H ")]
+    record(not flagged, "the git index holds no assume-unchanged, skip-worktree or other non-normal entry (git ls-files -v)", flagged[:5])
     for path in PROTECTED:
         record(path not in changed, "unchanged: " + path)
     record(not any(p.endswith(".meta") or (p.startswith("Assets/") and p not in ALLOWED_ASSETS) for p in changed), "no new Assets file or .meta")
@@ -262,7 +395,7 @@ def scope_guards(base):
            "LearningObjectivesView.cs differs from base only at the Objective 1 diagram call, which now passes rackV2Objective",
            "removed=%d added=%d" % (len(removed), len(added)))
     objectives = read(OBJECTIVES)
-    record(objectives.count(FLAG_LINE) == 1 and objectives.index(FLAG_LINE) < objectives.index(CALL_SITE_NEW.strip()),
+    record(objectives.count(FLAG_LINE) == 1 and CALL_SITE_NEW.strip() in objectives and objectives.index(FLAG_LINE) < objectives.index(CALL_SITE_NEW.strip()),
            "the passed flag is the view's existing rackV2Objective, computed before the call and unchanged")
     record(git("diff", "--name-only", REPAIR_START, "--", IMPLEMENTATION_HANDOFF).strip() == "",
            "the original #296 implementation handoff is unchanged since the reviewed state " + REPAIR_START[:8])
@@ -316,12 +449,27 @@ def main():
         print("FIVE_RACK_SUITE_FAIL --out exists and is not empty; choose a new folder: " + str(out), flush=True)
         return 1
     out.mkdir(parents=True, exist_ok=True)
+    global RUN_MODE, CANONICAL_BASE
+    RUN_MODE = "scope-only" if a.scope_only else "no-mutations" if a.no_mutations else "full"
+    CANONICAL_BASE = a.base == BASE
+    head = git_quiet("rev-parse", "HEAD")
+    print("RUN_IDENTITY mode=%s head=%s dirty_paths=%d" % (RUN_MODE, head.decode().strip() if head else "unknown",
+                                                         len(git("status", "--porcelain=v1", "-uall").splitlines())), flush=True)
+    try:
+        return run_suite(a, out)
+    except Exception as error:
+        # Fail closed with a named assertion, not only a traceback (#308, F-6).
+        record(False, INTERNAL_ERROR_CHECK, repr(error))
+        return finish(completed=False)
 
+
+def run_suite(a, out):
+    global SNAPSHOT_NOT_RUN, FULL_SUITE_RAN
+    stage_pins()
     consts, size, width, ids = authority()
     print("AUTHORITY", json.dumps({**consts, "StandSizeEnlarged80": size, "DefaultWidthM": width, "EntranceTreeIds": ids}), flush=True)
     planks, yaw, clearing = scene()
     snap = snapshot()
-    global SNAPSHOT_NOT_RUN
     SNAPSHOT_NOT_RUN = snap == "NOT_RUN"
     source_guards()
     scope_guards(a.base)
@@ -340,10 +488,12 @@ def main():
     record(code == 0, "five-rack checker builds on .NET 10 with the real TeachingDiagramPlan.cs and StandApproachRoute.cs")
     if code:
         print((out / "five-rack" / "build.log").read_text()[-3000:])
-        return finish()
+        return finish(completed=False)
     print("BUILD WARNINGS", warnings, flush=True)
     result = run(dll, env, str(out / "inputs.txt"))
     print(result.stdout.rstrip(), flush=True)
+    structural_names[:] = assertion_names(result.stdout, "")
+    STRUCTURAL_TALLY_LINE[:] = [line for line in result.stdout.splitlines() if line.startswith("FIVE_RACK_")]
     (out / "five-rack-run.log").write_text(result.stdout + result.stderr)
     record(result.returncode == 0 and "FIVE_RACK_PASS" in result.stdout, "five-rack structural checks")
     dumps = [run(dll, env, str(out / "inputs.txt"), "dump").stdout for _ in range(2)]
@@ -372,6 +522,7 @@ def main():
 
     if not a.no_mutations:
         mutations(out, consts_for_stub)
+        FULL_SUITE_RAN = True
     return finish()
 
 
@@ -423,6 +574,8 @@ def painter_probe(out, base, consts_for_stub):
         return False
     result = run(dll, env, "check", str(PROBE_BASE_DUMP))
     print(result.stdout.rstrip(), flush=True)
+    painter_names[:] = assertion_names(result.stdout, "PAINTER ")
+    PAINTER_TALLY_LINE[:] = [line for line in result.stdout.splitlines() if line.startswith("FIVE_RACK_PAINTER_")]
     (out / "probe-current-run.log").write_text(result.stdout + result.stderr)
     record(result.returncode == 0 and "FIVE_RACK_PAINTER_PASS" in result.stdout, "painter probe: selection, legacy byte-identity and five-rack painter semantics")
     current = run(dll, env, "dumpall").stdout
@@ -537,20 +690,96 @@ def mutations(out, consts_for_stub):
             continue
         hit = [l for l in failed if expected in l]
         record(bool(hit), "mutation '" + name + "' is caught", "%d FAIL lines; e.g. %s" % (len(failed), (hit or failed or ["none"])[0][:160]))
+        if hit:
+            caught_mutations.append(name)
 
 
 SNAPSHOT_NOT_RUN = False
 PROBE_BASE_DUMP = None
+RUN_MODE = "full"
+CANONICAL_BASE = True
+FULL_SUITE_RAN = False
+STRUCTURAL_TALLY_LINE = []
+PAINTER_TALLY_LINE = []
 
 
-def finish():
-    ok = all(results)
-    tally = " source_checks=%d failed=%d" % (len(results), results.count(False))
-    if ok and SNAPSHOT_NOT_RUN:
-        print("FIVE_RACK_SUITE_INCOMPLETE" + tally + " (archived snapshot NOT RUN: the fixture was not re-derived)", flush=True)
-        return 2
-    print(("FIVE_RACK_SUITE_PASS" if ok else "FIVE_RACK_SUITE_FAIL") + tally, flush=True)
-    return 0 if ok else 1
+def assertion_names(stdout, tag):
+    """The ordered names of the PASS/FAIL lines a C# check printed, without their ' :: ' details."""
+    found = []
+    for line in stdout.splitlines():
+        match = re.match(r"(?:PASS|FAIL) " + tag + r"(.*)", line)
+        if match and not (tag == "" and match.group(1).startswith(("SOURCE ", "PAINTER "))):
+            found.append(match.group(1).split(" :: ")[0])
+    return found
+
+
+def difference(actual, expected):
+    """A short readable reason two name lists differ."""
+    if actual == expected:
+        return ""
+    lost, extra = [n for n in expected if n not in actual], [n for n in actual if n not in expected]
+    return "%d ran, %d expected; missing %s; unexpected %s" % (len(actual), len(expected), lost[:3], extra[:3])
+
+
+def identity_checks():
+    """Compare what ran with the pinned inventory by name, order and tally, so a weakened checker cannot claim the same pass (#308, F-2 and F-3)."""
+    emitted = list(names)
+    record(True, INTERNAL_ERROR_CHECK)
+    inventory = load_inventory()
+    if inventory is None:
+        record(False, "the source assertions match the pinned inventory for this mode by name and order", "inventory absent or altered")
+        return
+    expected = list(inventory["source_scope"])
+    if RUN_MODE != "scope-only":
+        expected += inventory["source_substantive"]
+    if RUN_MODE == "full":
+        expected += inventory["source_mutations"]
+    record(emitted == expected, "the source assertions match the pinned inventory for this mode by name and order", difference(emitted, expected))
+    if RUN_MODE == "scope-only":
+        return
+    record(structural_names == inventory["structural"] and len(structural_names) == EXPECTED_STRUCTURAL
+           and STRUCTURAL_TALLY_LINE == ["FIVE_RACK_PASS checks=%d" % EXPECTED_STRUCTURAL],
+           "exactly the 109 pinned structural assertions ran and passed", difference(structural_names, inventory["structural"]) or STRUCTURAL_TALLY_LINE)
+    record(painter_names == inventory["painter"] and len(painter_names) == EXPECTED_PAINTER
+           and PAINTER_TALLY_LINE == ["FIVE_RACK_PAINTER_PASS checks=%d" % EXPECTED_PAINTER],
+           "exactly the 165 pinned painter assertions ran and passed", difference(painter_names, inventory["painter"]) or PAINTER_TALLY_LINE)
+    if RUN_MODE != "full":
+        return
+    record(caught_mutations == inventory["mutation_names"] and len(caught_mutations) == EXPECTED_MUTATIONS,
+           "exactly the 29 original diagram mutations ran and each was caught", difference(caught_mutations, inventory["mutation_names"]))
+    superseded = inventory["original_131_superseded"]
+    original = inventory["original_131"]
+    lost = [n for n in original if n not in emitted and not (n in superseded and all(s in emitted for s in superseded[n]))]
+    record(len(original) == EXPECTED_ORIGINAL and not lost, "all 131 original source obligations are still asserted, by name or by their named stricter successors", lost[:3])
+
+
+def suite_verdict(all_passed, snapshot_not_run, mode, canonical_base, ran_to_end, identities_checked, full_suite_ran):
+    """The one place a suite marker is chosen. FIVE_RACK_SUITE_PASS needs positive proof that the whole suite ran."""
+    if not all_passed:
+        return "FIVE_RACK_SUITE_FAIL", 1, ""
+    if snapshot_not_run:
+        return "FIVE_RACK_SUITE_INCOMPLETE", 2, " (archived snapshot NOT RUN: the fixture was not re-derived; not a full pass)"
+    if mode == "scope-only":
+        return "FIVE_RACK_SUITE_SCOPE_ONLY", 2, " (source and scope guards only; not a full pass)"
+    if mode != "full":
+        return "FIVE_RACK_SUITE_INCOMPLETE", 2, " (--no-mutations: the 29 mutations did not run; not a full pass)"
+    if not canonical_base:
+        return "FIVE_RACK_SUITE_INCOMPLETE", 2, " (non-default --base: not a full pass)"
+    if not (ran_to_end and identities_checked and full_suite_ran):
+        return "FIVE_RACK_SUITE_INCOMPLETE", 2, " (the full suite did not run to the end; not a full pass)"
+    return "FIVE_RACK_SUITE_PASS", 0, ""
+
+
+def finish(completed=True):
+    # A non-default --base or a missing snapshot changes which names run, so those runs skip the comparison and can never be a pass.
+    identities = completed and CANONICAL_BASE and not SNAPSHOT_NOT_RUN
+    if identities:
+        identity_checks()
+    elif completed:
+        print("NOT RUN assertion identity comparison: this run cannot be a full pass", flush=True)
+    marker, code, reason = suite_verdict(all(results), SNAPSHOT_NOT_RUN, RUN_MODE, CANONICAL_BASE, completed, identities, FULL_SUITE_RAN)
+    print(marker + " source_checks=%d failed=%d" % (len(results), results.count(False)) + reason, flush=True)
+    return code
 
 
 if __name__ == "__main__":
