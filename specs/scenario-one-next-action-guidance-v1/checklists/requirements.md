@@ -1,22 +1,27 @@
 # Requirements and evidence checklist
 
+**MANAGER G4/G5 APPROVAL ADDENDUM — 2026-11-06.** [Formal exact-head approval](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/MANAGER-OBJECTIVE-GUIDANCE-SPEC-APPROVAL-20261106.md) after the independent review at `e5fe1761744d880798fd7cc685362f1e28b7c60b` returned **0 blocking findings**. Binding Q1: **mouse/pointer-only NEW Objective 1 guidance controls** for the first focused playtest. Do not implement F6/Shift+F6, globally change `UiKit.Button.focusable` or hijack existing Tab/O/M/Esc/F1; keyboard reach is DEFERRED, not falsely PASS. **No default/restored destructive prompt focus; safe-first if any traversal remains reachable; native safety checks mandatory.** D-08 safe-prompt primary styling, D-09 blocked/dual no-primary fallback, D-10 screen-reader deferral, D-12 measured new-text floor and Q3 Objective 1-only/no-new-HUD are APPROVED. Q2: static five-southern-headland-parallel-rack teaching diagram, **approved reference recipe** using actual `ScenarioOneSuggestedRackLayout.Get`, `ScenarioOneHeadlandGeometry` and `StandMapSymbols`; exact numeric fixture must be derived from genuine deterministic Enlarge80 Rack V2 tree identities before T3 art, no invented data. Q4: Stage B uses fresh current main/integration source in a separate owned lane, NOT this diverged docs branch. Approved Stage B requires separate T2 then T3 claims, handoffs/reviews and later exact-head Unity qualification. All previous DRAFT/"proposed" paragraphs below are retained as **historical design provenance** where they conflict with this overriding Manager decision. No production or Unity evidence was created by this status change.
+
+---
+
+
 - **Spec ID:** SPEC-SCENARIO-ONE-NEXT-ACTION-GUIDANCE-V1
-- **Status:** DRAFT — Manager review and independent review required.
+- **Status:** **APPROVED DESIGN / UNCHECKED IMPLEMENTATION ACCEPTANCE**, per independent 0-blocker review and Manager G4/G5 decision.
 - **Source base:** `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`; context `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
 - **Implementation under test:** none. Static document/source inspection only. No Unity/tests/runtime/build/captures produced.
 
-Unchecked means NOT VERIFIED / NOT RUN, not failure waived. Documentation response is not closure of #270; old FIXED claims are withdrawn. All implementation acceptance remains unchecked.
+Unchecked future implementation boxes mean NOT VERIFIED / NOT RUN, never waived. **Manager design decisions and independent spec review are approved only in the separate release record; all production/Unity acceptance remains unchecked.** Old FIXED claims withdrawn.
 
 ## Release decisions and ownership
 
-- [ ] Manager disposes Q1 focus/Tab policy, Q2 static reference/representation, Q3 O1/later/HUD release scope, Q4 implementation base.
-- [ ] D-07 scoped focus/filtering or explicit mouse-only limitation approved; no global UiKit reversal assumed.
-- [ ] D-08 safe prompt restyle assigned; destructive current btn-primary controls are never guidance.
-- [ ] D-09 load-bearing no-primary Consent ∥ Reset fallback approved; lifecycle fix separately claimed if requested.
-- [ ] D-10 screen-reader deferral explicit; visible text is not delivery mechanism/certification.
+- [x] Manager disposed Q1–Q4 for scoped first slice in G4/G5 review; exact source-derived numeric geometry fixture still pending before T3.
+- [x] D-07 approved **mouse-only new guidance controls**. No F6/Shift+F6 or global UiKit focus reversal; keyboard reach DEFERRED, no keyboard safety test waived.
+- [x] D-08 approved safe prompt restyle, T2 assigned under own forthcoming claim; actual behaviour NOT VERIFIED.
+- [x] D-09 no-primary Consent ∥ Reset and B1(b)/B2 safe focus approved; runtime NOT VERIFIED, lifecycle fix not authorised.
+- [x] D-10 screen-reader deferral explicit; NOT PROVIDED is not PASS.
 - [ ] D-11 approved geometry/source/capture reference and numerical/binary diagram rubric.
-- [ ] D-12 new-text-only measured floor with equivalent-role non-regression; D-13 no-new-HUD first slice disposition.
-- [ ] Independent opposite-provider spec review, then Manager approval; DRAFT itself grants no implementation authority.
+- [x] D-12 new-text floor and D-13 no-new-HUD first-slice design approved; actual pixel measurements NOT RUN.
+- [x] Independent opposite-provider spec re-review PASS (0 blockers), Manager G4/G5 **APPROVED**; production work still requires separate owned task claims and source/Unity gates.
 - [ ] T1, T2, T3, T4 if released, and T5 each have own claim, owner, registered lane/branch, exact HEAD and owned files; shared UI/style files single-writer.
 
 ## Behaviour / source and native-input gates (future)
@@ -59,4 +64,4 @@ Unchecked means NOT VERIFIED / NOT RUN, not failure waived. Documentation respon
 - [ ] Independent cross-provider review verdict and unresolved findings retained; Manager/user acceptance separate.
 - [ ] #281 remains open until player-facing implementation/qualification/acceptance; docs handoff does not close expectation gap.
 
-Current result: **DRAFT / HANDED-OFF — OBJECTIVE-GUIDANCE-SPEC-REVISED — MANAGER REVIEW REQUIRED**. Checklist presence does not satisfy any unchecked gate.
+Current design result: **APPROVED SCOPED OBJECTIVE 1 SPEC** by Manager G4/G5. **NOT IMPLEMENTED / NOT UNITY-VERIFIED / NOT INTEGRATED**; checklist presence does not satisfy any unchecked gate.
