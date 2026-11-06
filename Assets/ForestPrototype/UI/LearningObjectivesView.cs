@@ -70,11 +70,18 @@ public sealed partial class LearningObjectivesView
         VisualElement header = UiKit.Box("modal-header");
         UiKit.Add(header, "Scenario One · one objective at a time", "title");
         VisualElement buttons = UiKit.Row(header);
-        buttons.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
-        buttons.Add(UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());
+        map.name = "objective-primary-cta";
+        buttons.Add(map);
+        Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
+        work.name = "objective-work-plan";
+        buttons.Add(work);
+        Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll());
+        forest.name = "objective-back-to-forest";
+        buttons.Add(forest);
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
+        UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
@@ -118,6 +125,7 @@ public sealed partial class LearningObjectivesView
     public void Refresh(bool force)
     {
         if (force) sequenceFacts = null;
+        ui.RefreshNextActionGuidance();
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
         bool market = ui.Manager.BroadleafMarketActive;
         string objectiveText = string.Join("\n", ui.Manager.Objectives.Select(ScenarioOneUiFacts.ObjectiveLine));

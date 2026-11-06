@@ -19,6 +19,7 @@ public sealed class WorkPlanView
     private readonly VisualElement advanceWarning;
     private readonly Label advanceHeadline, advanceDetail;
     private bool confirmingAdvance;
+    public bool ConfirmingAdvance => confirmingAdvance;
     private int purchaseQuantity = 5;
     // Extraction racks whose trees are listed one by one (a rack is one line until opened).
     private readonly HashSet<int> expandedRacks = new HashSet<int>();
@@ -49,6 +50,7 @@ public sealed class WorkPlanView
 
         UiKit.Add(modal, "Your marks and planting spots join this plan when you open it. Review each job and its cost, then approve the plan; Advance one year carries out what you approved. Remove a job here, or add more in the forest.", "muted");
         summary = UiKit.Add(modal, "", "body");
+        UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.style.flexGrow = 1;
@@ -63,7 +65,9 @@ public sealed class WorkPlanView
         advanceHeadline = UiKit.Add(advanceWarning, "", "heading");
         advanceDetail = UiKit.Add(advanceWarning, "", "body");
         VisualElement choices = UiKit.Row(advanceWarning, "row-wrap");
-        choices.Add(UiKit.Button(AdvanceGuard.ReturnLabel, CancelAdvanceConfirmationAndRefresh, true, "btn-primary"));
+        Button safeReturn = UiKit.Button(AdvanceGuard.ReturnLabel, CancelAdvanceConfirmationAndRefresh, true, "btn-primary");
+        safeReturn.name = "workplan-advance-return";
+        choices.Add(safeReturn);
         choices.Add(UiKit.Button(AdvanceGuard.ApproveLabel, () => { ui.ApproveWorkPlan(); Refresh(true); }));
         choices.Add(UiKit.Button(AdvanceGuard.AdvanceAnywayLabel, () => { confirmingAdvance = false; AdvanceNow(); }));
         modal.Add(advanceWarning);
@@ -162,12 +166,23 @@ public sealed class WorkPlanView
         }
 
         footer.Clear();
-        footer.Add(UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); },
-            m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem) && string.IsNullOrEmpty(approvalProblem)));
-        footer.Add(UiKit.Button("Advance one year", OnAdvanceClicked, m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary"));
+        Button approve = UiKit.Button("Approve Work Plan", () => { ui.ApproveWorkPlan(); Refresh(true); },
+            m.CanEditWorkPlan && string.IsNullOrEmpty(rackProblem) && string.IsNullOrEmpty(approvalProblem));
+        approve.name = "workplan-approve";
+        footer.Add(approve);
+        Button advance = UiKit.Button("Advance one year", OnAdvanceClicked,
+            m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem));
+        advance.name = "workplan-advance";
+        footer.Add(advance);
         if (ui.NeedsAnnualReview)
-            footer.Add(UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary"));
+        {
+            Button results = UiKit.Button("Read first annual results to continue", () => ui.ShowReview());
+            results.name = "workplan-read-results";
+            footer.Add(results);
+        }
         footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));
+        if (confirmingAdvance) ScenarioOneUiRoot.ClearPromptFocus(Root);
+        ui.RefreshNextActionGuidance();
     }
 
     private static string Signature(ScenarioOneManager m)

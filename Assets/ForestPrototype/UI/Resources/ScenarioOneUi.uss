@@ -584,3 +584,7 @@
 .onboarding-info-icon { width: 40px; height: 40px; flex-shrink: 0; margin-right: 18px; }
 .onboarding-info-title { font-size: 26px; flex-grow: 1; flex-shrink: 0; min-width: 0; }
 .onboarding-info-body { font-size: 20px; flex-shrink: 0; }
+
+/* Objective 1 pointer guidance: words and a persistent heavy border, separate from keyboard focus. */
+.btn.next-action { font-size: 20px; border-width: 3px; -unity-font-style: bold; white-space: normal; }
+.next-action-reason { font-size: 20px; white-space: normal; flex-shrink: 0; margin-top: 4px; margin-bottom: 4px; }
