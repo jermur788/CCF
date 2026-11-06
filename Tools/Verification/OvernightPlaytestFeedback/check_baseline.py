@@ -252,13 +252,16 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
         report("PASS", "08 objective-primary-cta",
                "Bounded source-structure proof: one named Objectives map CTA invokes ui.ShowMap(), "
                "is bound to the header row and selected only for unconfirmed Rack V2 Objective 1; "
+               "every static btn-primary header source is uniquely named and in the scoped demotion set; "
                "scoped primary-class restoration/demotion, Help/preview/visibility guards and "
                "dynamic btn-primary/next-action application are checked. "
                "Stateful Unity input, focus and rendered prominence remain NOT TESTED.", rows)
     except ObjectiveCtaSourceError as error:
+        # Completed FAIL with the unmet predicate and any source evidence found (exit 1, never a crash).
         report("FAIL", "08 objective-primary-cta",
                "Source-structure contract unmet: " + str(error)
-               + ". This is not a Unity runtime verdict.", [])
+               + ("" if error.predicate == str(error) else ". Predicate: " + " ".join(error.predicate.split())[:240])
+               + ". This is not a Unity runtime verdict.", error.rows)
 
     report("NOT-TESTABLE", "09 map-minimap-trail-consistency",
            "NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly.",
