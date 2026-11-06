@@ -81,3 +81,18 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 - OBSERVED FACT: the user was given the three unblocking options and chose **"Wait for Manager #200 verdict"**, explicitly declining a user-authority substitute for the Manager G4/G5 verdict.
 - ORCHESTRATOR CLAIM: the chain is paused at the A2 Manager gate. No Stage B claim, lane, branch or code is created. Resume trigger is a Manager verdict on `e5fe1761` plus a Q1 decision and #200 registration of the Stage B lane; no user redispatch is needed once those exist.
 - OBSERVED FACT: Unity lock remained `free`/no Editor at the end of the run; no lease was acquired.
+
+---
+
+# E-018.. — overnight chain #294 Stage B resume (2026-11-06, run 3)
+
+## E-018 — Stage B authority and preflight
+- OBSERVED FACT: main `553a5901bf12aa293247f9fed1797812c148b755`; Manager G4/G5 approval `MANAGER-OBJECTIVE-GUIDANCE-SPEC-APPROVAL-20261106.md` resolves Q1 mouse/pointer-only (no F6/Shift+F6, no global `UiKit.Button.focusable`, no Tab change) and Q2 static source-derived five-parallel-rack diagram recipe.
+- OBSERVED FACT: approved spec branch head `c61bbdd9` (four docs carry APPROVED metadata); substantive reviewed head was `e5fe1761`. Not merging the diverged docs branch.
+- OBSERVED FACT: remote `feature/scenario-one-next-action-guidance-v1` = `e1be15c1`, ancestor of main; `git diff e1be15c1..main -- Assets/ForestPrototype Packages ProjectSettings Tools` empty (no material production drift).
+- OBSERVED FACT: `/media/jer/ZX20/CCF-NextActionGuidance-T3-20261106` absent, then created by orchestrator from the exact remote branch; clean; HEAD == origin `e1be15c1`. ZX20 32 GB free (>15 GiB). active-tasks reserves the lane for #295 and keeps #296 WAITING.
+- OBSERVED FACT: Unity lock untouched (`free` at E-017); no lease requested for Stage B source work.
+
+## E-019 — T2 #295 dispatch
+- OBSERVED FACT: worker provider `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb` (ChatGPT — OpenAI B), model `gpt-6.1-sol`, effort `medium`; delegated task started, status `running`. Default `codex` pool remains quota-blocked per the prior observed limit; not retried this run.
+- ORCHESTRATOR CLAIM: one writer on the branch/worktree; no Unity, no Windows build, no self-review. Deliverable `OBJECTIVE-GUIDANCE-CUES-IMPLEMENTATION-HANDOFF.md`, then independent Sonnet review and Manager T2 verdict before #296.
