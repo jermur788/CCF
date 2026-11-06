@@ -66,7 +66,7 @@ If the independent review and these defaults fully resolve Q1–Q4 with zero gen
 
 **Plain-English task:** design, implement, review, qualify and safely integrate the player's missing objective-next-action guidance, and qualify the existing Workbench retirement in sequence, stopping only at real safety/product/ownership gates; return the exact focused playtest candidate or an actionable partial result.
 
-**Difficulty:** High end-to-end (cross-screen safety + D-071 diagram fidelity + cross-branch integration + exact-head Unity/native input and saved-world constraints). **Best-suited provider:** DeepSeek **High** for orchestration only; GPT-6.1 Sol **Medium** primary workers; Claude Sonnet 5.5 **Medium** independent reviewer. **User action needed:** one initial dispatch in the actual DeepSeek High/T3 orchestrator and a **separate explicit personal playtest release** before Unity. No user action for each ordinary passed child gate.
+**Difficulty:** High end-to-end (cross-screen safety + D-071 diagram fidelity + cross-branch integration + exact-head Unity/native input and saved-world constraints). **Best-suited provider:** DeepSeek **High** for orchestration only; GPT-6.1 Sol **Medium** primary workers; Claude Sonnet 5.5 **Medium** independent reviewer. **User action needed:** initial dispatch in the actual DeepSeek High/T3 orchestrator if not already sent. **Personal playtest completion was confirmed at 00:24 UTC; no further release message is needed.** Actual Unity process/worktree/lease preflight remains mandatory. No user action for each ordinary passed child gate.
 
 ### One paste-ready dispatch line
 
