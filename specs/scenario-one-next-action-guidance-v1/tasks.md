@@ -1,7 +1,12 @@
 # Next-action guidance standalone task packets
 
+**MANAGER G4/G5 APPROVAL ADDENDUM — 2026-11-06.** [Formal exact-head approval](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/MANAGER-OBJECTIVE-GUIDANCE-SPEC-APPROVAL-20261106.md) after the independent review at `e5fe1761744d880798fd7cc685362f1e28b7c60b` returned **0 blocking findings**. Binding Q1: **mouse/pointer-only NEW Objective 1 guidance controls** for the first focused playtest. Do not implement F6/Shift+F6, globally change `UiKit.Button.focusable` or hijack existing Tab/O/M/Esc/F1; keyboard reach is DEFERRED, not falsely PASS. **No default/restored destructive prompt focus; safe-first if any traversal remains reachable; native safety checks mandatory.** D-08 safe-prompt primary styling, D-09 blocked/dual no-primary fallback, D-10 screen-reader deferral, D-12 measured new-text floor and Q3 Objective 1-only/no-new-HUD are APPROVED. Q2: static five-southern-headland-parallel-rack teaching diagram, **approved reference recipe** using actual `ScenarioOneSuggestedRackLayout.Get`, `ScenarioOneHeadlandGeometry` and `StandMapSymbols`; exact numeric fixture must be derived from genuine deterministic Enlarge80 Rack V2 tree identities before T3 art, no invented data. Q4: Stage B uses fresh current main/integration source in a separate owned lane, NOT this diverged docs branch. Approved Stage B requires separate T2 then T3 claims, handoffs/reviews and later exact-head Unity qualification. All previous DRAFT/"proposed" paragraphs below are retained as **historical design provenance** where they conflict with this overriding Manager decision. No production or Unity evidence was created by this status change.
+
+---
+
+
 - **Spec ID:** SPEC-SCENARIO-ONE-NEXT-ACTION-GUIDANCE-V1
-- **Status:** DRAFT — no task below authorises implementation or claims a lane.
+- **Status:** **APPROVED TASK DECOMPOSITION**, but only registered owned T2/T3 first-slice claims may implement; T4 later objectives DEFERRED, T5 still needs distinct Unity release.
 - **Source base:** `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`; context `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
 - Old FIXED claims are withdrawn. #282 revises docs only; #270 implementation findings remain open pending decisions and evidence.
 
@@ -11,11 +16,11 @@ After approval, Overall Manager must record a **separate claim ID, owner, regist
 
 | Task | Release state | Proposed role (not assignment) | Dependency / evidence |
 |---|---|---|---|
-| T1 — Manager decisions / reference | MANAGER REVIEW REQUIRED | Manager + design reviewer + geometry/source reviewer | Q1–Q4, D-07–D-13, independent spec review |
-| T2 — Cues / safe focus / prompts | BLOCKED | UI implementer in registered code lane | Approved T1; FR-1–3/6, AC-G/P/X/H/K/V/S |
-| T3 — Faithful teaching map | BLOCKED | UI/diagram implementer in registered asset/code lane | Approved T1 reference; FR-5, AC-D/V |
-| T4 — Later-objective mapping | BLOCKED / OPTIONAL SCOPE | Design/source mapper in registered docs lane | Approved Q3; FR-4, AC-L before any later implementation |
-| T5 — Exact-head qualification | BLOCKED | Unity qualifier + independent opposite-provider reviewer | T2/T3 and T4 if released; approved exclusive lease/base |
+| T1 — Manager decisions / reference | **MANAGER G4/G5 APPROVED; source-derived numeric fixture verification pending before T3** | Manager + design reviewer + geometry/source reviewer | Q1–Q4, D-07–D-13, independent spec review |
+| T2 — Cues / safe focus / prompts | **READY AFTER OWNED CLAIM / CLEAN LANE PREFLIGHT** | UI implementer in registered code lane | Approved T1; FR-1–3/6, AC-G/P/X/H/K/V/S |
+| T3 — Faithful teaching map | **WAITING T2 HANDOFF/REVIEW + APPROVED REFERENCE RECIPE CHECK** | UI/diagram implementer in registered asset/code lane | Approved T1 reference; FR-5, AC-D/V |
+| T4 — Later-objective mapping | **DEFERRED / NOT RELEASED** | Design/source mapper in registered docs lane | Approved Q3; FR-4, AC-L before any later implementation |
+| T5 — Exact-head qualification | **WAITING ACTUAL INTEGRATED CANDIDATE / FRESH UNITY LEASE** | Unity qualifier + independent opposite-provider reviewer | T2/T3 and T4 if released; approved exclusive lease/base |
 
 ## T1 — Decisions and approved source/geometry reference
 
@@ -23,7 +28,7 @@ After approval, Overall Manager must record a **separate claim ID, owner, regist
 
 **Deliver:** decision dispositions, approved spec revision, exact source reference and separate T2–T5 registrations/file lists. Acceptance: Manager records actual release and independent review verdict, not just author recommendation. Stop on genuine product choice/source conflict/unavailable lane. T1 does not produce gameplay code or player acceptance.
 
-Repair pass 2 records B1(b) in FR-1/D-09, not a new UI-control choice. Ratify blocked reason + no-primary and B2 safe ordering/no restored focus. Keep Q1 F6 vs mouse-only unresolved for Manager selection. Retain the pinned source ledger; Stage B and Stage D each re-audit their actual exact integration base, including Workbench-first integration.
+Repair pass 2 records B1(b) in FR-1/D-09, not a new UI-control choice. Ratify blocked reason + no-primary and B2 safe ordering/no restored focus. **Q1 resolved by Manager: mouse/pointer-only first slice, no F6/Shift+F6; keyboard reach deferred.** Retain the pinned source ledger; Stage B and Stage D each re-audit their actual exact integration base, including Workbench-first integration.
 
 ## T2 — Contextual cues and explicitly scoped focus/prompt styling
 
