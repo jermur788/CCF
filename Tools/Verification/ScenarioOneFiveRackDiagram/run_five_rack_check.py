@@ -102,8 +102,8 @@ ALLOWED = ({str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_
 ALLOWED_ASSETS = {str(PLAN), str(PAINTER), OBJECTIVES}
 # A checker file cannot contain its own hash, so each pin line is blanked before hashing: this file's digest excludes the SELF_SHA256 value and
 # the integrity test's digest excludes its CHECKER_SHA256 value. That test holds this runner's full SHA-256, which closes the loop without a cycle.
-SELF_SHA256 = "dd88a10d63ed51fcd7a53fdf73fce2b517d1ad0f8ff68e54f7688ce009958acf"
-INTEGRITY_TEST_SHA256 = "41ee94e2bd1bfb4eafeb12020fa6fc91888cc76d9013486f7dab748806a73954"
+SELF_SHA256 = "aec2d4761fe7163eb9f056e6d8f2b557be017107b0bfcebe1c9e90e68b64f688"
+INTEGRITY_TEST_SHA256 = "eaa9fc28dbd0b1a5bf99bba031f82669417b3d893e1139d89a3631318eae8fd7"
 ASSERTIONS_SHA256 = "6515df087111ebda1c1832dcba72bf938648721cad6a7c5222c96b38055c4dbe"
 EXPECTED_STRUCTURAL, EXPECTED_PAINTER, EXPECTED_MUTATIONS, EXPECTED_ORIGINAL = 109, 165, 29, 131
 INTERNAL_ERROR_CHECK = "the checker ran to the end of its mode without an internal error"

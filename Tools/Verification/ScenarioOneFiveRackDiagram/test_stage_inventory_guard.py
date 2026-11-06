@@ -39,7 +39,7 @@ TEST_IN_REPO = CHECKER_DIR + "test_stage_inventory_guard.py"
 INVENTORY_IN_REPO = CHECKER_DIR + "expected_assertions.json"
 EVIDENCE = Path("/media/jer/Files/CCF/Verification/D072-FiveRackCheckerF1F3-20261106")
 # Full SHA-256 of the pinned runner. The runner in turn pins this file with this one line blanked, so the two pins do not form a cycle.
-CHECKER_SHA256 = "0466c5521db0f7745f49b62c28d0004d20a2441e8f6d6708d90e7a538716a73f"
+CHECKER_SHA256 = "03d927cb4c733a61534ed6b6976b2cdd54d72ec82231b203f3fd1b8b5a48ec0e"
 ASSERTIONS_SHA256 = "6515df087111ebda1c1832dcba72bf938648721cad6a7c5222c96b38055c4dbe"
 TALLY_SOURCE_SCOPE, TALLY_SOURCE_NO_MUTATIONS, TALLY_SOURCE_FULL = 108, 122, 182
 TALLY_STRUCTURAL, TALLY_PAINTER, TALLY_MUTATIONS, TALLY_ORIGINAL = 109, 165, 29, 131
@@ -698,7 +698,10 @@ def verdict_table_problems(path):
     """Every combination of run facts through the checker's own verdict function: exactly one may be the full pass."""
     spec = importlib.util.spec_from_file_location("five_rack_under_test", path)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    except Exception as error:
+        return [f"the checker could not be loaded: {error}"]
     verdict = getattr(module, "suite_verdict", None)
     if verdict is None:
         return ["the checker has no suite_verdict function"]
@@ -845,7 +848,12 @@ def main():
     def judge_case(case):
         case_id, description, _, expected = case[:4]
         options = case[4] if len(case) > 4 else ""
-        observed, evaluation = evaluate_case(case_id, checker_bytes, "scope-only")
+        try:
+            observed, evaluation = evaluate_case(case_id, checker_bytes, "scope-only")
+        except Exception as error:  # a change that cannot be applied is a failure of this case, never a detection, and the other cases still run
+            print(f"FAIL SETUP {case_id} {description}: {error}", flush=True)
+            fail(case_id)
+            return
         fails_ok = expected <= observed.fails if options == "subset" else observed.fails == expected
         exit_ok = observed.exit == 1
         marker_ok = len(observed.markers) == 1 and observed.markers[0].startswith("FIVE_RACK_SUITE_FAIL ")
@@ -865,7 +873,12 @@ def main():
     def judge_benign(case):
         case_id, description, mutate, extra, marker = case
         lane.reset(checker_bytes)
-        mutate(clone)
+        try:
+            mutate(clone)
+        except Exception as error:
+            print(f"FAIL SETUP {case_id} {description}: {error}", flush=True)
+            fail(case_id)
+            return
         observed = lane.run(case_id, "scope-only", extra)
         ok = observed.exit == 2 and not observed.fails and len(observed.markers) == 1 and observed.markers[0].startswith(marker + " ")
         print(f"{'PASS' if ok else 'FAIL'} BENIGN {case_id} {description}: exit={observed.exit} markers={observed.markers} fails={sorted(observed.fails)[:3]}", flush=True)
@@ -890,7 +903,11 @@ def main():
                 problems = verdict_table_problems(clone / CHECKER_IN_REPO)
                 results.append((bool(problems), f"verdict-table: {proved} ({len(problems)} wrong combinations)"))
                 continue
-            _, evaluation = evaluate_case(target, weak, mode)
+            try:
+                _, evaluation = evaluate_case(target, weak, mode)
+            except Exception as error:
+                results.append((False, f"{target}/{mode}: setup failed: {error}"))
+                continue
             results.append((predicate(evaluation), f"{target}/{mode}: {proved} [exit={evaluation.exit} fails={len(evaluation.fails)} "
                                                     f"missing={sorted(evaluation.missing)[:1]} names_missing={evaluation.names_missing[:1]}]"))
         ok = pin_differs and all(detected for detected, _ in results)
