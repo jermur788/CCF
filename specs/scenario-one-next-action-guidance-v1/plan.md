@@ -1,7 +1,12 @@
 # Next-action guidance repair and conditional implementation plan
 
+**MANAGER G4/G5 APPROVAL ADDENDUM — 2026-11-06.** [Formal exact-head approval](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/MANAGER-OBJECTIVE-GUIDANCE-SPEC-APPROVAL-20261106.md) after the independent review at `e5fe1761744d880798fd7cc685362f1e28b7c60b` returned **0 blocking findings**. Binding Q1: **mouse/pointer-only NEW Objective 1 guidance controls** for the first focused playtest. Do not implement F6/Shift+F6, globally change `UiKit.Button.focusable` or hijack existing Tab/O/M/Esc/F1; keyboard reach is DEFERRED, not falsely PASS. **No default/restored destructive prompt focus; safe-first if any traversal remains reachable; native safety checks mandatory.** D-08 safe-prompt primary styling, D-09 blocked/dual no-primary fallback, D-10 screen-reader deferral, D-12 measured new-text floor and Q3 Objective 1-only/no-new-HUD are APPROVED. Q2: static five-southern-headland-parallel-rack teaching diagram, **approved reference recipe** using actual `ScenarioOneSuggestedRackLayout.Get`, `ScenarioOneHeadlandGeometry` and `StandMapSymbols`; exact numeric fixture must be derived from genuine deterministic Enlarge80 Rack V2 tree identities before T3 art, no invented data. Q4: Stage B uses fresh current main/integration source in a separate owned lane, NOT this diverged docs branch. Approved Stage B requires separate T2 then T3 claims, handoffs/reviews and later exact-head Unity qualification. All previous DRAFT/"proposed" paragraphs below are retained as **historical design provenance** where they conflict with this overriding Manager decision. No production or Unity evidence was created by this status change.
+
+---
+
+
 - **Spec ID:** SPEC-SCENARIO-ONE-NEXT-ACTION-GUIDANCE-V1
-- **Status:** DRAFT — all implementation planning below is conditional, not approved.
+- **Status:** **APPROVED PLAN for scoped Objective 1**, conditional on separate approved owned task claims, exact integration base, review and Unity gates.
 - **Source base:** main `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`.
 - **Context:** `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
 - **Authority/evidence:** spec S1–S14 and R disposition table. Static source only; no Unity/runtime/build/tests run by #282.
@@ -40,4 +45,4 @@ Future tasks run bounded Tier 1 compiler/source/offline gates, then T5's native-
 
 Use authorised disposable saves; protected Reference Future/Legacy40 gates remain unchanged. No tests run against user playtest state, no auto-start script left in Assets, no broad Tier-3 rerun without concrete reason. Durable evidence belongs under `/media/jer/Files/CCF/`, not new ZX20 storage.
 
-Stop for dirty/occupied lane, source/helper contract change affecting behaviour, new user representation choice, blocked access geometry, save/schema changes or focus/consent routing wider than approval. Return to Manager rather than silently extending scope. This plan ends DRAFT / HANDED-OFF, not implemented, verified or integrated.
+Stop for dirty/occupied lane, source/helper contract change affecting behaviour, new user representation choice, blocked access geometry, save/schema changes or focus/consent routing wider than approval. Return to Manager rather than silently extending scope. This plan is **APPROVED for separately claimed Objective 1 implementation**; no code, Unity or integration acceptance is inferred.
