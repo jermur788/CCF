@@ -4,7 +4,7 @@
 
 Define the current Scenario One milestone, its completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
 
-**Last reconciled:** 2026-11-05 for D-071 Scenario One rack-layout scope; other implementation/qualification sequence status retains its own previously published evidence and may require fresh reconciliation.
+**Last reconciled:** 2026-11-06 for **D-072 Option B Stand Map existing-headland presentation → Objective 1 diagram** and its focused playtest readiness sequence. Other parity/S1-C/S1-D/MFM milestone status retains historically published evidence and requires fresh live claim inspection before scheduling.
 
 ## Milestone
 
@@ -37,6 +37,14 @@ The D-065 production gate requiring Rack V2 persistence/integration has therefor
 The accepted Rack V2 map planning, field-marked orange first rack-removal-tree entrances, five-rack lesson, conditional 16–20 m site guidance, Work Plan commitment and MFM V1 parallel coverage remain unchanged. No new two-family MFM model, rack clearance-policy or northern save-identity change is authorised. **Do not treat the visual illustration “Option A” as the unrelated research nickname “MFM Option A” for an unapproved two-family algorithm.** The prior spec `specs/scenario-one-access-spine-route-consistency-v1/` is historical / **SUPERSEDED FOR SCENARIO ONE**; its approved research quality is not an approved product implementation.
 
 **Separate D-070:** hidden Forestry Workbench source-level new-game retirement is still an accepted cleanup goal independent of whether a northern spine is built. #284 candidate is source-reviewed but not integrated or Unity-qualified; #287 is WAITING for explicit release of the user's personal playtest and a safe exclusive Unity lease. Keep all old-save/Legacy40/Reference Future protections and the separate Windows build gate. No new spine implementation tasks should enter the pre-demo sequence.
+
+### D-072 — align full Stand Map to existing V2 headland before teaching diagram
+
+**Confirmed user Option B on 6 November 2026:** the full Stand Map must visibly represent the **already-existing** western headland and southern feeder that the 3D Scenario One Enlarged80 Rack V2 world contains; **then** complete the faithful five-parallel-rack Objective 1 teaching diagram. This supersedes the interim “defer T3” product decision, **without** authorising a new road, different rack layout, altered 3D geometry, saved path, minimap change, tree clearance or management approval. D-071's existing five-parallel-rack configuration remains controlling. [Decision D-072](decision-log.md), [approved bounded four-file spec](../../specs/scenario-one-stand-map-headland-teaching-alignment-v1/spec.md) and [binding Manager map-first packet](../Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/D072-STAND-MAP-HEADLAND-REPAIR-PACKET.md).
+
+**Current source status:** #295 Objective next-action cues and safe rack-prompt styling **IMPLEMENTED + INDEPENDENTLY SOURCE-REVIEWED + MANAGER APPROVED SOURCE ONLY**; not integrated or Unity verified. The previously blocked #296 authentic-five-rack source fixture is preserved as evidence; no diagram code exists. #298 independent D-072 spec review is the **first READY / NOT RUNNING** step; #297 full Stand Map existing-infrastructure display is **WAITING #298 zero-blocker/Manager gate**; #296 teaching diagram is **WAITING #297 source review/Manager gate**. #294 overnight chain is **RESUMED BY DIRECT USER D-072 CHOICE, not yet executing a new worker**. Follow live coordination for actual single writers/locks; do not predate [#287](https://github.com/jermur788/CCF/issues/287) Workbench Unity or the combined exact-head qualification.
+
+**Qualification remaining:** 1280×720 / 1920×1080 colour and grayscale map+diagram, actual native input and safe destructive focus, Stand Map versus 3D route correspondence, **minimap and Legacy40/frozen Reference Future v1 unchanged**, save/load and Work Plan/MFM boundaries, protected tests. Historical feedback checker source-anchor failure (exit 2) needs separately owned **non-weakening repair** before combined PASS; its prior failure is not a completed test. #287 user occupancy release is already recorded, but actual machine/process/storage checks and a fresh exclusive Unity lease are still mandatory when its sequence is reached. No Windows/Player build before the user's future personal playtest of an exact candidate and separate explicit authorisation.
 
 ### Sitka/Oak/Beech parity P0 — core slices accepted; final integrated parity still pending
 
@@ -160,6 +168,8 @@ Historical B06 and other pre-parity/pre-full-loop builds are engineering evidenc
 Player/native-Windows text, input and performance remain unqualified until their explicit gates run. Synthetic Editor input evidence does not substitute for native Windows smoke.
 
 ## Approved specs currently governing milestone work
+
+- `specs/scenario-one-stand-map-headland-teaching-alignment-v1/` — **D-072** approved bounded **full Stand Map** physical V2 headland display then teaching figure; **independent spec review and Manager source-start gate still pending**. The previously approved Objective guidance specification remains authoritative for cue/focus/diagram rubric except the overridden map-fix ordering.
 
 - `specs/scenario-one-objective-1-rack-planning-field-marking-v2/` — Rack V2 / D-064.
 - `specs/scenario-one-three-species-parity-p0/` — three-species parity / D-059, D-061, D-062.
