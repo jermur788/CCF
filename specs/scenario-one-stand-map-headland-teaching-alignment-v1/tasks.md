@@ -1,0 +1,22 @@
+# D-072 standalone tasks and handoffs
+
+- **Status:** APPROVED scope, sequencing subject to mandatory independent spec/source reviews, actual claims and Manager gates.
+**Authority:** [D-072 user-confirmed Option B](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md), under D-071 five parallel Rack V2 family; [#297 map repair](https://github.com/jermur788/CCF/issues/297) precedes [#296 diagram](https://github.com/jermur788/CCF/issues/296) in [#294 overnight chain](https://github.com/jermur788/CCF/issues/294). [#295 T2 cues](https://github.com/jermur788/CCF/issues/295) already implemented and independently reviewed **SOURCE ONLY**; its code is preserved but not integrated or Unity verified. `Docs/Project/coordination/active-tasks.md` is live single-writer authority.
+
+| Order | Task | Claim/role | Branch, worktree and output | Release gate |
+|---|---|---|---|---|
+| S0 | Independent four-file D-072 spec review | New just-in-time review claim, Claude Sonnet 5.5 Medium independent | Separate registered docs-only review branch; exact `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/D072-INDEPENDENT-SPEC-REVIEW.md` | Zero blocking + Manager approves production start |
+| S1 | **Correct full Stand Map presentation** for existing V2 western headland/feeder | [#297](https://github.com/jermur788/CCF/issues/297), actual GPT-6.1 Sol Medium | Existing feature `feature/scenario-one-next-action-guidance-v1`, conditional original isolated worktree `/media/jer/ZX20/CCF-NextActionGuidance-T3-20261106`; exact `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/D072-STAND-MAP-HEADLAND-REPAIR-HANDOFF.md` | Read current auth/source, real clean lane, actual claim RUNNING; narrow map only |
+| S2 | Independent #297 source review & Manager verdict | New just-in-time review claim, Claude Sonnet 5.5 Medium | Distinct owned docs-only branch and `D072-STAND-MAP-HEADLAND-INDEPENDENT-REVIEW.md` | Manager APPROVED source-only, no Unity claims |
+| S3 | **Resume five-rack teaching diagram** | [#296](https://github.com/jermur788/CCF/issues/296), actual Sol Medium | **Same original feature branch/worktree only after S2 owner release**; `OBJECTIVE-GUIDANCE-TEACHING-MAP-IMPLEMENTATION-HANDOFF.md` on feature branch (preserve old blocked handoff) | Verified authentic fixture; diagram only, no map geometry change |
+| S4 | Independent combined B source/spec review & Manager verdict | New just-in-time review claim, Claude Sonnet 5.5 Medium | Separate owned docs-only review branch, `D072-COMBINED-MAP-TEACHING-SOURCE-REVIEW.md` | Manager APPROVED before #287 |
+| S5 | Existing Workbench candidate Unity Tier-2 | [#287](https://github.com/jermur788/CCF/issues/287), local Sol Medium | Existing Workbench feature branch/clone and existing exact #287 result | Full machine/lock admission + exact legacy/new/reference tests |
+| S6 | Integrated focused candidate, old-checker repair and playtest handback | New just-in-time verification repair/integration claim(s), local integrator/independent reviewer | Separate Manager-owned integration branch/worktree assigned after S5; `FOCUSED-PLAYTEST-CANDIDATE-QUALIFICATION-HANDOFF.md` and `OVERNIGHT-EXECUTION-RESULT.md` | Real Unity/native-input/720p+1080p/Legacy40/frozen-reference, reviewed nonweakened checker, Manager approval; NO Windows build |
+
+## Per-task read and write boundaries
+
+Map S1: full Stand Map-only display of immutable **current V2** headland and feeder, using code constants and existing source state; never add editable map routes or save fields, never silently alter minimap. Suggested files: `Assets/ForestPrototype/UI/Map/StandMapSource.cs`, `StandMapDrawPlan.cs`, minimal `StandMapModel.cs` / draw symbol types if essential; bounded tests. STOP if broader physics, path creation, mesh, world or save changes required.
+
+Diagram S3: `Assets/ForestPrototype/UI/TeachingDiagram.cs`, `TeachingDiagramPlan.cs`, narrow label/legend style only when re-owned; old #295 implementation and source files become read-only. Exact saved-world reference from earlier #296 evidence, with five unique entrances and nonuniform gaps. Intro/other lessons unaffected.
+
+No simultaneous writers, no unrelated dirty cleanup, no source PR #265 whole-branch merge, no local Unity before its gate, no Windows/Player build. Worker reports should label IMPLEMENTED/REVIEWED/INTEGRATED/VERIFIED/ACCEPTED separately. The already completed #295 claim stays CLOSED and is not re-implemented.
