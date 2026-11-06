@@ -4,6 +4,8 @@
 
 ## Provenance, lane and exact diff
 
+This section's original base/preflight receipts describe repair pass 1. Repair pass 2's exact preflight and review provenance are recorded below; the historical design source-base ledger is intentionally retained.
+
 - Binding authority: top **LATEST OVERALL MANAGER RECONCILIATION — 5 NOV 2026** block in `OBJECTIVE-GUIDANCE-SPEC-REPAIR-PACKET.md` on live main; D-071 in `Docs/Project/decision-log.md:122` and current milestone govern the layout.
 - Exact source/base: main `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`, timestamp `2026-11-05T23:53:05Z`; context `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
 - Worktree: `/media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104`.
@@ -20,6 +22,22 @@ Only these five paths change in this repair commit (older PR #265 handoff remain
 5. `Docs/Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-HANDOFF.md` — this new return.
 
 The publication commit SHA is reported by the worker's final Git receipt rather than embedded self-referentially in this file. Normal commit/push updates PR #265; no issue/PR comment is authorised for this worker. Orchestrator handles claims, coordination, routing ledger, Manager and independent review. Dashboard/attachment publication not performed or verified here; no generated state edited.
+
+## Repair pass 2 — 2026-11-06
+
+- **Reviewed head:** `aade967d937623b51991a2fd65444bbde5cc03f9`. Stage A2 independent review at `9f6d4c97be48731aa37995a05fdbce0c303930c3`, branch `docs/overnight-guidance-review-20261106-v1`, `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/OBJECTIVE-GUIDANCE-INDEPENDENT-SPEC-REVIEW.md`: APPROVE WITH CHANGES, not Manager approval. No independent re-review of this pass is claimed.
+- **Lane:** fetched origin; exact assigned worktree/branch verified, HEAD = origin = reviewed head above, initial `git status --porcelain` empty. Primary's unrelated `AGENTS.md` / `Docs/Operations/StorageArchitecture.md` edits are untouched. Same five-file docs scope; no merge/rebase/reset/force-push.
+- **B1 — chosen (b):** FR-1, FR-3, D-09 and AC-G now require visible existing reason/instruction + **no eligible primary** when blocked/manual drawing. Only truthful existing Stand Map / Plan Racks entry / Back to forest navigation remains eligible. Removed the undefined read-only control dependency; no new UI. T2 and checklist carry the same contract. This author text choice follows the binding default; status stays DRAFT.
+- **B2:** FR-2, FR-6 and AC-X specify no default/restored focus, safe-first traversal (`map-consent-decline` then `map-edit-reset-cancel` before any reachable destructive control), and cleared focus after refresh/rebuild, never restored to destruction. Same rule for single consent/reset/reopen prompts and Advance warning. Native-input checks are explicit; safety is mandatory even if Q1 selects mouse-only, while unprovided keyboard traversal remains deferred/NOT RUN, not PASS.
+- **N1 fixed in text:** FR-1/T2 enumerate conditioning/demotion of Back to forest (Objectives/Map), Advance one year, Read first annual results, Confirm/Reopen Rack Plan and Plan Racks toggle; AC-G checks no competing static primary.
+- **N2 fixed in text:** R-02/FR-2/T2 preserve Advance warning's already-safe return primary; it does not need the three rack-prompt restyles.
+- **N3 fixed in text:** AC-K explicitly requires default UITK Tab/arrow navigation suppressed or harmless. Q1 F6 vs mouse-only remains a Manager choice, not author-decided; toolkit behaviour is a risk to test, not a runtime finding.
+- **N4 fixed in text:** FR-6/D-12/AC-V and tasks/checklist state ≥20 UI units at 720p (1 unit = 0.8 px), with ≥16 physical px and equivalent-role non-regression still measured.
+- **N5 fixed in text:** FR-5 rubric/T3 clarify topology/relative-geometry tolerance after the documented uniform transform, not survey accuracy.
+- **N6 fixed in text:** spec Authority section defines FAIL 08 `objective-primary-cta` (CloseAll instead of ShowMap), pointing to the original focused-qualification packet Phases B/C and `BASELINE-VERIFICATION-HANDOFF.md:133`; plan/tasks/checklist refer there. Historical FAIL is unchanged.
+- **N7 retained and strengthened:** source-base note remains pinned; Q4/plan/T1/checklist explicitly require Stage B and Stage D re-audits against their actual exact integration bases, respecting Workbench-first integration. No source-ledger repin or implementation-base selection is authorised here.
+- **Deferred:** none of N1–N7's documentation dispositions. Manager Q1 selection, actual B/D source re-audits, implementation and all native-input/render/runtime evidence remain future gates because this task is docs-only. No production, Unity, save, playtest or GitHub-comment work. Documentation integrity and normal commit/push receipt are reported separately; no self-approval.
+- **Documentation checks:** `git diff --check` passed; an in-memory Python 3 assertion check passed for exact five-file scope, DRAFT/unchecked gates, B1/B2 FR/AC traceability, all N1–N7 dispositions and absence of the undefined-control label. These are text checks, not production tests or independent approval. No verification script was written into the repository.
 
 ## D-071 correction and known player expectations
 
@@ -56,12 +74,12 @@ Prior P1/P2/P3 FIXED statements are withdrawn in all four artifacts. These dispo
 |---|---|---|---|
 | Q1 / D-07 | Scoped focusable controls; proposed conflict-checked F6/Shift+F6 traversal, Tab remains Work Plan. If not approved, explicitly mouse-only first slice. | Production input change, not already fixed. Manager must approve exact binding/filtering/scope after #257 conflict check. | Not needed to draft; escalate only if unresolved preference/conflict changes intended product. |
 | D-08 | Safe rack-prompt primary restyle in T2. | Consent UX changes; assign owner/files explicitly. | Manager scope decision. |
-| D-09 | Keep no-primary ambiguity fallback; separate lifecycle repair if wanted. | Reachable Consent ∥ Reset has no eligible primary by design. | Manager disposition. |
+| D-09 | B1(b): blocked reason/instruction + no-primary, existing truthful navigation only; B2 safe order/no restored focus, separate lifecycle repair if wanted. | Reachable Consent ∥ Reset has no eligible primary by design; no new guidance control. | Manager ratification. |
 | D-10 | Defer screen-reader delivery honestly. | No comprehensive accessibility claim. | Manager scope decision; user has not accepted a limitation by implication. |
 | Q2 / D-11 | Static teaching-map illustration of D-071 family; approve geometry/source/capture fixture and numerical rubric first. | Not live Stand Map or new route; no approved endpoint fixture/render yet. | No geometry choice remains open; user only if requesting different representation. |
-| D-12 | New-only physical-pixel floor plus role non-regression. | Measured scale required; source tokens not sufficient. | Manager decision. |
+| D-12 | New-only ≥20 UI units at pinned 720p scale (0.8 px/unit), ≥16 physical px plus role non-regression. | Measured scale required; source tokens not sufficient. | Manager decision. |
 | Q3 / D-13 | O1 first, no new HUD widget; later mapping T4 separately released. | Whole-objective intent not delivered by first slice; later handler mappings REVIEW NEEDED. | Manager release decision unless intent materially changes. |
-| Q4 | Pinned current main for design; Manager/integrator chooses fresh exact implementation base and registered lane after approval. | Do not implement from old docs branch; re-audit changed source contracts. | Manager/integrator, not user policy. |
+| Q4 | Pinned main ledger for design; Manager/integrator chooses fresh exact implementation base and registered lane after approval. | Stage B/D re-audit actual integration bases with Workbench-first integration; do not implement from old docs branch. | Manager/integrator, not user policy. |
 
 All Q1–Q4 are **MANAGER REVIEW REQUIRED**, supported recommendations only. No self-approved focus/consent policy or representation change. No user action required for this DRAFT handoff. If policy cannot remain bounded, source changes materially, geometry needs a blocked spine or a genuine new representation choice arises, return NEEDS DECISION rather than implementing.
 

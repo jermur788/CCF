@@ -25,12 +25,14 @@ Unchecked means NOT VERIFIED / NOT RUN, not failure waived. Documentation respon
 - [ ] FR-2 / AC-P: guidance scope distinct from input ownership; visible enabled safe target only, occluded/background primary suppressed.
 - [ ] R-01 / AC-K: approved keyboard reach/focus/traversal/Enter/Space actually implemented and native-input tested; Tab stays Work Plan; gameplay keys never activate buttons.
 - [ ] R-02 / AC-P: safe consent/reset/reopen/advance-warning emphasis; no destructive default cue/focus/activation.
-- [ ] R-03 / AC-X: real Consent ∥ Reset cross unconfirmed/invalid-five/valid-five/confirmed backgrounds → **no eligible primary**, visible reason, safe secondary recovery; source and Unity outcomes recorded separately.
+- [ ] R-03 / AC-X: real Consent ∥ Reset cross unconfirmed/invalid-five/valid-five/confirmed backgrounds → **no eligible primary**, visible reason, safe secondary recovery; source and Unity outcomes recorded separately. No default/restored focus; forward traversal map-consent-decline then map-edit-reset-cancel before any reachable destructive control; no destructive focus restored after refresh/rebuild. Repeat no-focus/safe-first native-input checks for single consent/reset/reopen prompts and Advance warning, even with Q1 mouse-only (keyboard reach remains deferred, not PASS).
 - [ ] AC-H: first-use Help/onboarding owns first cue; F1 over each rack/advance prompt; Esc/Continue/context/navigation close → fresh cue, no fall-through.
 - [ ] AC-P/X: eligible map editing pointer-down clears prompts as current source does; no false “until answered” lifecycle or stale target.
 - [ ] FR-3 / AC-G: Objectives → Stand Map → Plan Racks → explicit drawing → Confirm → forest entrances → Work Plan approval → annual review, all truthful and deliberate.
 - [ ] RackPlanningAvailable, CanConfirmRackPlan, RackPlanProblem, RackApprovalProblem, CanEditWorkPlan, CanAdvanceYearNow and NeedsAnnualReview actually gate cue/availability; disabled reason visible.
-- [ ] Corrective mapping explicitly approved; unknown/ambiguous reason reveals current instruction or safe no-primary exception, not arbitrary enabled/destructive action.
+- [ ] B1(b) / FR-1, FR-3, D-09, AC-G: blocked/manual-drawing state shows existing reason/instruction + no eligible primary; no new guidance control. Only truthful existing Stand Map / Plan Racks entry / Back to forest navigation may be cued; Undo/Delete secondary.
+- [ ] T2 conditions/demotes existing static btn-primary on Back to forest (Objectives/Map), Advance one year, Read first annual results, Confirm/Reopen Rack Plan and Plan Racks toggle; only eligible target primary, none in dual prompt.
+- [ ] R-02: preserve Advance warning's already-safe return primary; it is not the same restyle as the three rack prompts. AC-K: default UITK Tab/arrow focus navigation suppressed or harmless; Q1 F6 vs mouse-only remains Manager choice.
 - [ ] WorkPending=false not mistaken for approved/resolved; rack-owned work and failures determine state; no false “cleared route”.
 - [ ] Forest HUD consistent with shared instruction; no new highlighted widget claimed unless separately approved.
 - [ ] AC-S: load reconstructs cue from persisted facts plus transient view/session state; rackMode not assumed saved; marks, harvested locks, Step IDs, Legacy40 and frozen Reference Future unchanged.
@@ -41,16 +43,18 @@ Unchecked means NOT VERIFIED / NOT RUN, not failure waived. Documentation respon
 
 - [ ] D-071 exact family: existing southern entrance/headland, five parallel racks, five entrance squares, retained bands; D-067–D-069 not live alternatives.
 - [ ] Visual Option A distinguished from unrelated historical two-family MFM Option A; no northern/diagonal/herringbone/spine-extension network; D-070 excluded.
-- [ ] FR-5 reference endpoints/transform approved; direction within 1°, displacement ≤1% stand width, width ≤5% reference deviation, or Manager-approved stricter replacement documented before implementation.
+- [ ] FR-5 reference endpoints/transform approved; direction within 1°, displacement ≤1% stand width, width ≤5% reference deviation, or Manager-approved stricter replacement documented before implementation. Tolerances preserve topology/relative geometry after documented uniform transform, not survey accuracy.
 - [ ] Retained crowns in 4 inter-rack and 2 outer bands; no invented real row count/census.
 - [ ] Illustrative/not-live/not-cleared labels, scale/orientation caveat, site-specific 16–20 m explanation and planned/confirmed/executed/marked key visible.
 - [ ] Current StandMapSymbols meaning preserved; non-colour pattern/shape/text recognition and Next/focus distinction at both resolutions.
 - [ ] FR-5 every rubric row passes separately at 720p and 1080p, colour and grayscale; independent 4/4 recognition per reviewer/mode/size, no coaching or judgement-only waiver.
-- [ ] FR-6 / AC-V actual panel-scale new-text floor ≥16 physical pixels AND equivalent-role non-regression; no clipping/overlap, usable scroll/reflow; source USS values not substituted for measurements.
+- [ ] FR-6 / AC-V new-text target ≥20 UI units at pinned 720p scale (1 unit = 0.8 px); actual panel-scale floor ≥16 physical pixels AND equivalent-role non-regression; no clipping/overlap, usable scroll/reflow; source USS values not substituted for measurements.
 
 ## Evidence and handoff gates
 
 - [ ] Exact-head compiler/bounded offline and Tier-2 native-input/rendered results for all applicable AC rows; no existing FAIL reinterpreted as PASS.
+- [ ] FAIL 08 definition/provenance read from spec Authority section (objective-primary-cta: CloseAll instead of ShowMap; original qualification packet/baseline); historical FAIL retained.
+- [ ] Pinned design source-base note retained; Stage B and Stage D re-audit against actual exact integration bases, respecting amendment's Workbench-first integration order.
 - [ ] T5 exclusive lane/lease and disposable saves; no user playtest state touched; durable evidence on Files CCF tree.
 - [ ] Independent cross-provider review verdict and unresolved findings retained; Manager/user acceptance separate.
 - [ ] #281 remains open until player-facing implementation/qualification/acceptance; docs handoff does not close expectation gap.

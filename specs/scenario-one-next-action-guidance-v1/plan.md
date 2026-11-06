@@ -14,7 +14,13 @@ After approval, prefer a small transient presentation projection alongside exist
 
 Safety is not merely styling. Scoped focus/filtering (D-07) changes input behaviour and safe prompt emphasis (D-08) changes consent UX; approve and assign both explicitly. Guidance ownership does not prove input capture. Retain Consent ∥ Reset → no-primary fallback (D-09); separate lifecycle repair requires another claim. Do not quietly add modal locks or rewrite map-pointer dismissal.
 
+Repair pass 2 selects **B1(b)**: visible reason/instruction + no eligible primary when blocked, with only truthful existing Stand Map / Plan Racks entry / Back to forest navigation eligible. No additional guidance control or panel is introduced. T2 conditions/demotes the existing static primaries listed in FR-1 (Back to forest on both screens, Advance one year, Read first annual results, Confirm/Reopen Rack Plan, Plan Racks toggle), keeping at most the eligible cue primary. The Advance warning already has a safe return primary; preserve it, unlike the three rack-prompt restyles.
+
+**B2:** dual Consent ∥ Reset has no default/restored focus, safe-first forward order `map-consent-decline` then `map-edit-reset-cancel` before any reachable destructive control, and cleared focus after refresh/rebuild. Apply the same no-default/no-restored-focus and safe-first rules to single consent/reset/reopen prompts and the Advance warning. Destructive controls are not opted into guidance traversal. T2 owns this bounded focus safety; Q1's F6 vs mouse-only choice remains Manager-owned. AC-X native input must verify it; AC-K additionally checks default UITK Tab/arrow navigation is suppressed or harmless.
+
 A static teaching map is the smallest truthful diagram: approved five parallel racks, existing headland and southern entrance, retained stand, state/scale caveats. D-071 supersedes D-067–D-069 as Scenario One targets; no northern spine, diagonal 3+2 or MFM two-family algorithm. A live saved-plan inset has additional state/representation costs and is not the recommendation. Existing Stand Map/3D/minimap network and D-070 are outside scope.
+
+The FR-5 tolerances constrain topology/relative geometry after the documented uniform transform, not survey accuracy. FR-6's new-text floor is ≥20 UI units at pinned 720p scale (0.8 px/unit = 16 physical px); actual scale and role non-regression still need measurement. Retain the historical source-base ledger; Stage B and Stage D must re-audit their actual exact integration bases, respecting Workbench-first integration rather than using this docs branch's production files.
 
 ## Conditional sequence / standalone ownership
 
@@ -28,7 +34,7 @@ Each task must have its **own GitHub claim, named owner, registered owned lane/b
 
 ## Verification and stop rules
 
-For #282, review source citations and five-file diff, whitespace/scope/DRAFT consistency, normal commit/push only. These are documentation integrity checks, not production tests or acceptance. Preserve historical FAIL 08.
+For #282, review source citations and five-file diff, whitespace/scope/DRAFT consistency, normal commit/push only. These are documentation integrity checks, not production tests or acceptance. Preserve historical FAIL 08 (`objective-primary-cta`: CloseAll instead of ShowMap); spec's Authority section links the original qualification packet and baseline definition.
 
 Future tasks run bounded Tier 1 compiler/source/offline gates, then T5's native-input/rendered checks on the same exact implementation HEAD/configuration. Record AC-G/P/X/H/K/D/V/S and AC-L if released; no high gate waived by prose. In particular, reproduce Consent ∥ Reset and Help over retained prompts/advance warning; verify first-use Help, forced close, pointer dismissal, and Work Plan Tab behaviour. Measure actual panel scale, do not infer 720p/1080p appearance from USS. Screen-reader mechanism is deferred, not qualified.
 
