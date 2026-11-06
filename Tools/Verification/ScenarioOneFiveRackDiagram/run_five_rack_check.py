@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline (no Unity) source/fixture checks for the Objective 1 illustrative five-rack figure (D-072 FR-T, issue #296).
 
-  python3 -I -B Tools/Verification/ScenarioOneFiveRackDiagram/run_five_rack_check.py [--out NEW_DIR] [--base SHA] [--no-mutations]
+  python3 -I -B Tools/Verification/ScenarioOneFiveRackDiagram/run_five_rack_check.py [--out NEW_DIR] [--base SHA] [--no-mutations] [--scope-only]
 
 1. Parses the authority constants (ScenarioOneHeadlandGeometry, StandGeometryModel, RackGeometry, ScenarioOneSuggestedRackLayout ids),
    the ForestTest scene's "Dirt Path" planks and "Forest Clearing", and - when the archive is present - re-reads the five entrance trees from
@@ -39,6 +39,22 @@ HANDOFF_DIR = "Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/"
 OBJECTIVES = "Assets/ForestPrototype/UI/LearningObjectivesView.cs"
 IMPLEMENTATION_HANDOFF = HANDOFF_DIR + "OBJECTIVE-GUIDANCE-TEACHING-MAP-IMPLEMENTATION-HANDOFF.md"
 REPAIR_HANDOFF = HANDOFF_DIR + "D072-FIVE-RACK-DIAGRAM-BOUNDED-REPAIR-HANDOFF.md"
+# #306 is this repair's own durable report. It is the only new path this task adds outside the five-rack test folder.
+STAGE_306_HANDOFF = HANDOFF_DIR + "D072-FIVE-RACK-STAGE-INVENTORY-CHECKER-REPAIR-HANDOFF.md"
+# #303 already handed off exactly two StandMap verifier scripts and one historical handoff. They are authorised only as those
+# exact paths, pinned to the commit that introduced them and to their byte hashes. This is deliberately not a directory prefix:
+# any other StandMap path still fails the inventory.
+STAGE_303_SOURCE = "6a8b261fa950efe43f9f20a249fb8c318ded4213"
+STAGE_303_HANDOFF_COMMIT = "69b41605968f78e35a5361eec0562ab9f49e853f"
+STAGE_303 = {
+    "Tools/Verification/StandMap/HeadlandOffline/run_headland_check.py":
+        (STAGE_303_SOURCE, "73e111497927e478c89d90484e63ffba24e3dfb4ee984dce96d8c36d80f2eccd"),
+    "Tools/Verification/StandMap/HeadlandOffline/test_stage_inventory_guard.py":
+        (STAGE_303_SOURCE, "5ae498171f48d4801678de9a12bb53fcf3e261b5100e30279999d0f046220e8b"),
+    HANDOFF_DIR + "D072-HEADLAND-STAGE-INVENTORY-CHECKER-REPAIR-HANDOFF.md":
+        (STAGE_303_HANDOFF_COMMIT, "b146d2fbf6eacae8ed2f34ae4598d03a3605e879e84f7a3123fb611cf70d098c"),
+}
+STAGE_303_SCRIPTS = {path for path in STAGE_303 if path.startswith("Tools/Verification/StandMap/")}
 # The single LearningObjectivesView.cs statement the Manager #200 ruling allows to change: the Objective 1 diagram call passes the flag the
 # view already computes (rackV2Objective). Any other difference in that file fails the scope guard.
 CALL_SITE_OLD = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, "
@@ -46,7 +62,7 @@ CALL_SITE_OLD = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequen
 CALL_SITE_NEW = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, "
                  "lesson.Caption, rackV2Objective));")
 FLAG_LINE = "        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;"
-ALLOWED = {str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_HANDOFF}
+ALLOWED = {str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_HANDOFF, STAGE_306_HANDOFF} | set(STAGE_303)
 ALLOWED_ASSETS = {str(PLAN), str(PAINTER), OBJECTIVES}
 ALLOWED_PREFIX = "Tools/Verification/ScenarioOneFiveRackDiagram/"
 PROTECTED = ["Assets/ForestPrototype/UI/Map/StandMapSource.cs", "Assets/ForestPrototype/UI/Map/StandMapModel.cs",
@@ -68,6 +84,16 @@ def record(ok, name, detail=""):
 
 def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args], text=True)
+
+
+def git_bytes(*args):
+    return subprocess.check_output(["git", "-C", str(ROOT), *args])
+
+
+def head_contains(commit):
+    """True when the checked-out HEAD contains the commit (full history, not a shallow or unrelated checkout)."""
+    return subprocess.run(["git", "-C", str(ROOT), "merge-base", "--is-ancestor", commit, "HEAD"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 
 def read(path):
@@ -179,15 +205,55 @@ def source_guards():
     record(not re.search(r"^\s*using\s+Unity", plan, re.M), "TeachingDiagramPlan stays Unity-free (offline-checkable)")
 
 
+def commit_exists(commit):
+    return subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", commit + "^{commit}"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+
+def stage_inventory(changed):
+    """#303's two verifier scripts and its handoff are authorised only as those exact paths, pinned by commit and bytes.
+
+    The expected presence is decided by HEAD, not by the working tree: a checkout that contains the #303 commit must carry the
+    complete pinned stage, and a checkout that predates it must not carry any part of it. This stops a partial stage, a reverted
+    stage or a file with the same name but different content from being mistaken for the authorised one.
+    """
+    record(commit_exists(STAGE_303_SOURCE) and commit_exists(STAGE_303_HANDOFF_COMMIT),
+           "stage 3: both pinned #303 commits are present in history (full clone, not shallow)")
+    present = sorted(path for path in STAGE_303 if path in changed)
+    if head_contains(STAGE_303_SOURCE):
+        record(present == sorted(STAGE_303),
+               "stage 3: HEAD contains the #303 stage, so exactly its two verifier scripts and its handoff changed since " + BASE[:8], present)
+        for path, (commit, sha) in STAGE_303.items():
+            try:
+                pinned = git_bytes("show", commit + ":" + path)
+            except subprocess.CalledProcessError:
+                record(False, "stage 3: pinned #303 blob " + path + " is readable at " + commit[:8], "git show failed")
+                continue
+            record(hashlib.sha256(pinned).hexdigest() == sha,
+                   "stage 3: pinned #303 blob " + path + " at " + commit[:8] + " matches its recorded SHA-256",
+                   hashlib.sha256(pinned).hexdigest())
+            target = ROOT / path
+            current = target.read_bytes() if target.exists() else b""
+            record(target.exists() and current == pinned and hashlib.sha256(current).hexdigest() == sha,
+                   "stage 3: " + path + " is byte-identical to pinned #303 commit " + commit[:8],
+                   hashlib.sha256(current).hexdigest() if target.exists() else "missing")
+    else:
+        record(not present, "stage 3: HEAD predates #303, so no #303 verifier path may be changed", present)
+    standmap = sorted(path for path in changed if path.startswith("Tools/Verification/StandMap/"))
+    record(set(standmap) <= STAGE_303_SCRIPTS,
+           "stage 3: no Stand Map path outside the two pinned #303 verifier scripts changed", standmap)
+
+
 def scope_guards(base):
     changed = set(git("diff", "--name-only", base).split()) | set(git("ls-files", "--others", "--exclude-standard").split())
+    stage_inventory(changed)
+    packages = sorted(p for p in changed if p.startswith(("Packages/", "ProjectSettings/")))
+    record(not packages, "no package or project-settings change", packages)
     outside = sorted(p for p in changed if p not in ALLOWED and not p.startswith(ALLOWED_PREFIX))
     record(not outside, "only allowed files changed since " + base[:8], outside)
     for path in PROTECTED:
         record(path not in changed, "unchanged: " + path)
     record(not any(p.endswith(".meta") or (p.startswith("Assets/") and p not in ALLOWED_ASSETS) for p in changed), "no new Assets file or .meta")
-    record(not any(p.startswith(("Packages/", "ProjectSettings/", "Tools/Verification/StandMap/")) for p in changed),
-           "no package, project-settings or Stand Map checker change (the headland checker belongs to #303)")
     # LearningObjectivesView.cs: exactly the one authorised call-site line, nothing else (Manager #200 ruling, B-1).
     diff = git("diff", "-U0", base, "--", OBJECTIVES)
     removed = [l[1:] for l in diff.splitlines() if l.startswith("-") and not l.startswith("---")]
@@ -240,6 +306,8 @@ def main():
     parser.add_argument("--out", type=Path, default=ARCHIVE / ("Verification/D072-T3-FiveRackDiagram-Repair-20261106/run-" + stamp))
     parser.add_argument("--base", default=BASE)
     parser.add_argument("--no-mutations", action="store_true")
+    parser.add_argument("--scope-only", action="store_true",
+                        help="test-only: stop after the source and scope guards (the integrity test uses this for its negative controls)")
     a = parser.parse_args()
     out = a.out.resolve()
     record(not str(out).startswith(str(ROOT)), "all generated projects and logs are outside the repository", out)
@@ -257,6 +325,8 @@ def main():
     SNAPSHOT_NOT_RUN = snap == "NOT_RUN"
     source_guards()
     scope_guards(a.base)
+    if a.scope_only:
+        return finish()
     inputs = dict(consts)
     inputs.update({"StandSizeEnlarged80": size, "DefaultWidthM": width, "SourceEntranceIds": ids, "ExpectedSnapshotSha256": SNAPSHOT_SHA,
                    "SnapshotZ": snap, "ScenePlanksXZ": planks, "Plank00YawRadians": repr(yaw),
