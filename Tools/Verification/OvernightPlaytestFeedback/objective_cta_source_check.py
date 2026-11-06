@@ -173,7 +173,27 @@ def verify_objective_cta(view_source, root_source):
          "visibility and display suspension")
     _one(visible, r'\bif\s*\(\s*current\s*==\s*scope\s*\)\s*return\s+true\s*;',
          "candidate must belong to the active scope")
-    _one(visible, r'\breturn\s+false\s*;', "out-of-scope candidate rejected")
+    _one(visible, r'\breturn\s+false\s*;\s*
+
+    def line_at(source, fragment):
+        index = source.find(fragment)
+        return source.count("\n", 0, index) + 1 if index >= 0 else 0
+
+    return [
+        (VIEW, line_at(view_source, 'Button ' + map_var + ' = UiKit.Button'),
+         "Named Stand map [M] button -> ui.ShowMap(), added to Objectives header row"),
+        (ROOT, line_at(root_source, 'if (objectives) target = "objective-primary-cta";'),
+         "Conditional Rack V2 / unconfirmed Objective 1 target"),
+        (ROOT, line_at(root_source, 'foreach (string name in GuidanceButtonNames)'),
+         "Scoped class demotion with original primary restoration"),
+        (ROOT, line_at(root_source, 'bool suspended = manager == null'),
+         "Reference/menus/Help and help-close suspension"),
+        (ROOT, line_at(root_source, 'bool eligible = !suspended'),
+         "Enabled, visible, descendant-of-scope eligibility"),
+        (ROOT, line_at(root_source, 'candidate.AddToClassList("btn-primary");'),
+         "Dynamic primary and next-action class application"),
+    ]
+, "out-of-scope candidate rejected")
 
     def line_at(source, fragment):
         index = source.find(fragment)
