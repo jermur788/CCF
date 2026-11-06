@@ -1,6 +1,6 @@
 # #287 — T3 workbench retirement: exact-candidate Phase-3 Unity qualification packet
 
-**Status:** **WAITING — NOT RUNNING. No Unity until explicit user-playtest release and a valid exclusive lease.**  
+**Status (2026-11-06): USER PLAYTEST FINISHED / READY FOR GATED LOCAL PREFLIGHT — NOT RUNNING.** The user has confirmed their personal playtest ended. This clears the user-occupancy condition only; no Unity until actual machine/process/branch/storage checks and a valid exclusive lease, and not before the #294 sequential Stage C dependency.  
 **Parent:** [#284 D-070 workbench implementation](https://github.com/jermur788/CCF/issues/284), [source/offline Manager review](MANAGER-WORKBENCH-RETIREMENT-REVIEW-20261105.md), [worker source handoff](https://github.com/jermur788/CCF/blob/feature/scenario-one-workbench-retirement-20261105/Docs/Handoffs/ScenarioOne-Access-Spine-20261105/T3-WORKBENCH-RETIREMENT-IMPLEMENTATION-HANDOFF.md).  
 **Execution claim:** [#287](https://github.com/jermur788/CCF/issues/287).  
 **Classification:** PACKET ONLY — focused verification/test repair of a source-reviewed bounded implementation, not a new player feature or schema policy.  
