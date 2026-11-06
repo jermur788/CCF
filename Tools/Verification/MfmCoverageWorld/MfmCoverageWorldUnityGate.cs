@@ -229,7 +229,8 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         GameObject clearingObject = GameObject.Find("Forest Clearing");
         if (clearingObject != null) clearing.Add(Cov.Mask.Circle(Cov.MaskKind.Clearing, clearingObject.transform.position.x, clearingObject.transform.position.z, stand.ClearingRadiusMeters));
         foreach (ForestBuildable b in FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            if (!b.IsRetiredFromStartingWorld)
+            // Independent of production's IsRetiredFromStartingWorld filter (#287): the policy retires exactly one new-world site by id.
+            if (b.BuildId != "workbench-01")
                 site.Add(Cov.Mask.Circle(Cov.MaskKind.Site, b.transform.position.x, b.transform.position.z, stand.ClearingRadiusMeters));
         // ContainsStemCentre's own radii (float arithmetic, guard included).
         float strip = ScenarioOneHeadlandGeometry.Width * 0.5f + ScenarioOneHeadlandGeometry.StemGuard, pad = ScenarioOneHeadlandGeometry.PadRadius + ScenarioOneHeadlandGeometry.StemGuard;
@@ -237,6 +238,8 @@ public sealed class MfmCoverageWorldUnityGateRunner : MonoBehaviour
         headland.Add(new Cov.Mask(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.FeederZ, ScenarioOneHeadlandGeometry.PathX, ScenarioOneHeadlandGeometry.FeederZ, strip));
         headland.Add(Cov.Mask.Circle(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.FeederZ, pad));
         headland.Add(Cov.Mask.Circle(Cov.MaskKind.Headland, ScenarioOneHeadlandGeometry.PathX, ScenarioOneHeadlandGeometry.FeederZ, pad));
+        int liveBuildables = FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+        Check(liveBuildables == 7 && site.Count == 6, "new world: seven scene buildables, the independent inventory is six Site masks (historical seven minus the retired workbench)", "buildables=" + liveBuildables + " site=" + site.Count);
         Check(track.Count > 0 && clearing.Count == 1 && site.Count > 0, "every infrastructure source exists in the live world", "track=" + track.Count + " clearing=" + clearing.Count + " site=" + site.Count);
         Debug.Log("MFM08A_NOTE masks track=" + track.Count + " clearing=" + clearing.Count + " site=" + site.Count + " headland=" + headland.Count);
 

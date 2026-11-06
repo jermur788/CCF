@@ -157,7 +157,8 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         zones.Add((new Vector2(GameObject.Find("Forest Clearing").transform.position.x, GameObject.Find("Forest Clearing").transform.position.z), 2.2f));
         zones.Add((new Vector2(playerStart.x, playerStart.z), 2.2f));
         foreach (ForestBuildable b in FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            zones.Add((new Vector2(b.transform.position.x, b.transform.position.z), 2.2f));
+            if (b.BuildId != "workbench-01")   // policy-retired from the new-game world (#287); independent of the production flag
+                zones.Add((new Vector2(b.transform.position.x, b.transform.position.z), 2.2f));
         Check(trees.All(t => zones.All(z => Vector2.Distance(new Vector2(t.transform.position.x, t.transform.position.z), z.centre) > z.radius)), "no tree stands on the path, work clearing, player start or a (hidden) site footprint");
         float minGap = float.MaxValue;
         for (int i = 0; i < trees.Count; i++)
