@@ -56,6 +56,8 @@ Because the integration is the exact already-qualified direct-child commit on it
 
 ## Live / released tasks
 
+**#299 historical Objective CTA checker repair — CURRENT SOURCE-ONLY OWNER:** ChatGPT GPT-6 (GitHub verification writer) on distinct `verify/scenario-one-feedback-cta-anchor-20261106`, started from accepted Objective-guidance feature candidate at `7f5278bfd42997da055da63423b6b4c30c7bb8f3`. GitHub-only source/fixture lane; **no user-machine worktree, Unity lease, or .NET runtime certification**. Exclusive allowed write paths `Tools/Verification/OvernightPlaytestFeedback/check_baseline.py`, new bounded helper/mutation tests in that folder, and `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/BASELINE-CTA-CHECKER-REPAIR-HANDOFF.md`. No edits to Assets/ForestPrototype or #297/#296 branch. Status: **RUNNING SOURCE REPAIR / offline .NET and independent review still required**. #200 remains coordination writer. Direct user request to implement #299 selects this bounded GitHub-only route; separate model selection policy remains for future worker dispatches.
+
 | Task | Lane | Ownership | Status |
 |---|---|---|---|
 | **Browser / GitHub Manager Lane 03** (#200) | browser/GitHub | Manager review, releases, coordination | **RUNNING — UMBRELLA** |
