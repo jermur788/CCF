@@ -1,39 +1,58 @@
-# Requirements / acceptance checklist
+# Requirements and evidence checklist
 
 - **Spec ID:** SPEC-SCENARIO-ONE-NEXT-ACTION-GUIDANCE-V1
-- **Spec status:** DRAFT
-- **Owner / date:** Overall Manager / 2026-11-04
-- **Implementation under test:** none — docs-only draft
+- **Status:** DRAFT — Manager review and independent review required.
+- **Source base:** `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`; context `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
+- **Implementation under test:** none. Static document/source inspection only. No Unity/tests/runtime/build/captures produced.
 
-Unchecked means NOT VERIFIED; documentation inspection is not implementation evidence.
+Unchecked means NOT VERIFIED / NOT RUN, not failure waived. Documentation response is not closure of #270; old FIXED claims are withdrawn. All implementation acceptance remains unchecked.
 
-- [ ] FR-1 / AC-1: one enabled state-derived cue; counters/instruction agree; no second progression source.
-- [ ] FR-2 / AC-2: explicit map → plan → confirm → forest entrance marks → Work Plan flow; no automatic operations.
-- [ ] FR-3: helper instruction wins; corrections follow the first-eligible allowlist; ambiguous reasons reveal that same instruction.
-- [ ] FR-2: source-audited blocking/overlay inventory; foremost visible input owner wins without Boolean ranking; safe action or no-primary exception; re-derive after dismissal.
-- [ ] AC-1a/AC-1b: Help over retained rack/advance confirmation targets Help or nothing, never obscured controls; no fall-through or mutation.
-- [ ] F6: implementation-base symbol citations rechecked by function/entry name; draft cites main 8f0f230, not candidate.
-- [ ] FR-4: detailed Objective 1 and correct plan/approve/execute distinctions.
-- [ ] FR-5 / AC-3: five-rack map-like diagram, verified headland/spacing/retained rows, real symbol shapes, no false cleared routes.
-- [ ] FR-6 / AC-4: non-colour cues, text equivalent, visible focus and real keyboard reachability; Tab policy resolved.
-- [ ] AC-1–6: exact-HEAD evidence at 1280×720 and 1920×1080, with role/resolution recorded per spec matrix.
-- [ ] AC-5: save/load boundaries, old V2/Legacy40, stable practice IDs and frozen reference unchanged; no schema migration.
-- [ ] AC-6: later lesson mapping approved and checked without speculative actions.
-- [ ] Q1–Q4 resolved, independent review obtained, Manager approval recorded before implementation.
-- [ ] No backend/packages/new guidance engine/auto-navigation or unapproved world write introduced.
-- [ ] Approved deviations and failures recorded; no invented ecological claims or runtime evidence.
+## Release decisions and ownership
 
-## Verdict
+- [ ] Manager disposes Q1 focus/Tab policy, Q2 static reference/representation, Q3 O1/later/HUD release scope, Q4 implementation base.
+- [ ] D-07 scoped focus/filtering or explicit mouse-only limitation approved; no global UiKit reversal assumed.
+- [ ] D-08 safe prompt restyle assigned; destructive current btn-primary controls are never guidance.
+- [ ] D-09 load-bearing no-primary Consent ∥ Reset fallback approved; lifecycle fix separately claimed if requested.
+- [ ] D-10 screen-reader deferral explicit; visible text is not delivery mechanism/certification.
+- [ ] D-11 approved geometry/source/capture reference and numerical/binary diagram rubric.
+- [ ] D-12 new-text-only measured floor with equivalent-role non-regression; D-13 no-new-HUD first slice disposition.
+- [ ] Independent opposite-provider spec review, then Manager approval; DRAFT itself grants no implementation authority.
+- [ ] T1, T2, T3, T4 if released, and T5 each have own claim, owner, registered lane/branch, exact HEAD and owned files; shared UI/style files single-writer.
 
-- **Spec conformance:** NOT VERIFIED — no implementation
-- **Implementation correctness:** NOT VERIFIED — no implementation
-- **Security/write-back:** future existing-operation consent/validation checks pending; draft writes documents only
-- **Save compatibility:** proposed no schema impact; future regression evidence pending
+## Behaviour / source and native-input gates (future)
 
-## Review response
+- [ ] FR-1 / AC-G: current helper/counters/teaching facts reused; no second progression source, no new save/settings keys.
+- [ ] FR-2 / AC-P: guidance scope distinct from input ownership; visible enabled safe target only, occluded/background primary suppressed.
+- [ ] R-01 / AC-K: approved keyboard reach/focus/traversal/Enter/Space actually implemented and native-input tested; Tab stays Work Plan; gameplay keys never activate buttons.
+- [ ] R-02 / AC-P: safe consent/reset/reopen/advance-warning emphasis; no destructive default cue/focus/activation.
+- [ ] R-03 / AC-X: real Consent ∥ Reset cross unconfirmed/invalid-five/valid-five/confirmed backgrounds → **no eligible primary**, visible reason, safe secondary recovery; source and Unity outcomes recorded separately.
+- [ ] AC-H: first-use Help/onboarding owns first cue; F1 over each rack/advance prompt; Esc/Continue/context/navigation close → fresh cue, no fall-through.
+- [ ] AC-P/X: eligible map editing pointer-down clears prompts as current source does; no false “until answered” lifecycle or stale target.
+- [ ] FR-3 / AC-G: Objectives → Stand Map → Plan Racks → explicit drawing → Confirm → forest entrances → Work Plan approval → annual review, all truthful and deliberate.
+- [ ] RackPlanningAvailable, CanConfirmRackPlan, RackPlanProblem, RackApprovalProblem, CanEditWorkPlan, CanAdvanceYearNow and NeedsAnnualReview actually gate cue/availability; disabled reason visible.
+- [ ] Corrective mapping explicitly approved; unknown/ambiguous reason reveals current instruction or safe no-primary exception, not arbitrary enabled/destructive action.
+- [ ] WorkPending=false not mistaken for approved/resolved; rack-owned work and failures determine state; no false “cleared route”.
+- [ ] Forest HUD consistent with shared instruction; no new highlighted widget claimed unless separately approved.
+- [ ] AC-S: load reconstructs cue from persisted facts plus transient view/session state; rackMode not assumed saved; marks, harvested locks, Step IDs, Legacy40 and frozen Reference Future unchanged.
+- [ ] No automatic plan/confirm/mark/approve/advance, duplicated world actions or protected-test weakening; future regression checks match actual changed scope.
+- [ ] FR-4 / AC-L if released: later lessons mapped to actual validators/handlers, every unknown REVIEW NEEDED; no whole-product completion from O1 alone.
 
-- **P1 FIXED — re-check round (DRAFT; independent review pending):** Replaced unsafe fixed Boolean ranking with visibility/occlusion and input ownership. Added source-audited Help/onboarding, three inline rack prompts, Work Plan advance warning, session/startup and confirmation subviews, full-screen panels, reference preview and input/dismissal guards. AC-1a/AC-1b cover Help over retained rack/advance confirmations; hidden pending state cannot own the cue. The previous P1 fix claim was incomplete.
-- **P2 FIXED:** FR-3 makes candidate `RackV2Instruction()` authoritative for Objective 1 wording/stage after modal handling, projects its first unfinished step onto the screen, then applies validators. Corrections use a fixed first-eligible allowlist (map, planning, reason-matched undo, over-target selected unlocked delete); otherwise reveal the same instruction/reason. No arbitrary enabled-control selection or second instruction source. AC-6 tests helper branches, ties and ambiguous reasons.
-- **P3 FIXED:** F6 was re-derived with `git show` and numbered lines at main `8f0f230190830855112e3e7a1d7544db94a7f591`; every symbol citation now names `StandMapSymbols.Build()` and its `MapSymbol` entry. Racks :86–97, navigation/grid :99–104, tree marks :106–107; not candidate 72b4efbd.
+## Diagram / visual gates (future)
 
-DRAFT remains unchanged. Planned canopy/no-clearing semantics, shape/pattern/text accessibility and saved-state derivation without schema changes remain required. Docs-only; no Unity or production verification claimed.
+- [ ] D-071 exact family: existing southern entrance/headland, five parallel racks, five entrance squares, retained bands; D-067–D-069 not live alternatives.
+- [ ] Visual Option A distinguished from unrelated historical two-family MFM Option A; no northern/diagonal/herringbone/spine-extension network; D-070 excluded.
+- [ ] FR-5 reference endpoints/transform approved; direction within 1°, displacement ≤1% stand width, width ≤5% reference deviation, or Manager-approved stricter replacement documented before implementation.
+- [ ] Retained crowns in 4 inter-rack and 2 outer bands; no invented real row count/census.
+- [ ] Illustrative/not-live/not-cleared labels, scale/orientation caveat, site-specific 16–20 m explanation and planned/confirmed/executed/marked key visible.
+- [ ] Current StandMapSymbols meaning preserved; non-colour pattern/shape/text recognition and Next/focus distinction at both resolutions.
+- [ ] FR-5 every rubric row passes separately at 720p and 1080p, colour and grayscale; independent 4/4 recognition per reviewer/mode/size, no coaching or judgement-only waiver.
+- [ ] FR-6 / AC-V actual panel-scale new-text floor ≥16 physical pixels AND equivalent-role non-regression; no clipping/overlap, usable scroll/reflow; source USS values not substituted for measurements.
+
+## Evidence and handoff gates
+
+- [ ] Exact-head compiler/bounded offline and Tier-2 native-input/rendered results for all applicable AC rows; no existing FAIL reinterpreted as PASS.
+- [ ] T5 exclusive lane/lease and disposable saves; no user playtest state touched; durable evidence on Files CCF tree.
+- [ ] Independent cross-provider review verdict and unresolved findings retained; Manager/user acceptance separate.
+- [ ] #281 remains open until player-facing implementation/qualification/acceptance; docs handoff does not close expectation gap.
+
+Current result: **DRAFT / HANDED-OFF — OBJECTIVE-GUIDANCE-SPEC-REVISED — MANAGER REVIEW REQUIRED**. Checklist presence does not satisfy any unchecked gate.

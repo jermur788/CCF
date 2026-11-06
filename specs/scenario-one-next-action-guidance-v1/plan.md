@@ -1,38 +1,37 @@
-# Next-action guidance implementation plan
+# Next-action guidance repair and conditional implementation plan
 
 - **Spec ID:** SPEC-SCENARIO-ONE-NEXT-ACTION-GUIDANCE-V1
-- **Spec status:** DRAFT
-- **Owner:** Overall Manager; drafted EVENT 012, 2026-11-04
+- **Status:** DRAFT — all implementation planning below is conditional, not approved.
+- **Source base:** main `1e3e159b768dc4b0bfe6e410a7728a412d34e5db`.
+- **Context:** `81867c8940d7d07c952e8e49ca4a0cb93498e790`.
+- **Authority/evidence:** spec S1–S14 and R disposition table. Static source only; no Unity/runtime/build/tests run by #282.
 
-## Current-state findings
+## Smallest change and trade-offs
 
-See spec F1–F9 for revision-specific observed facts. Main and candidate differ materially. Candidate RackV2Instruction already supplies entrance-first wording; current screen highlights close. Keyboard completeness is unverified and Tab conflicts with focus traversal.
+This repair changes only the four DRAFT artifacts plus `Docs/Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-HANDOFF.md`. No production ownership is granted. Old P1/P2/P3 FIXED claims are withdrawn; revised prose does not close #270 findings.
 
-## Proposed approach and trade-offs
+After approval, prefer a small transient presentation projection alongside existing UI state: reuse CurrentInstruction/RackV2Instruction, rack-owned progress, current/presented lesson facts and actual validators. No new manager, progression engine, save field, package or geometry system. The helper is on current main, not a hypothetical candidate. Recompute after view rebuild/load and actual prompt lifecycle changes; rackMode/session facts are not saved guidance state.
 
-After approval, add a small transient presentation projection beside existing LearningObjectivesView state logic, consumed by Objectives and Stand Map. Keep existing teaching facts, instruction helper, counters and authoritative validators as the sources; no persistent guidance engine or manager. Refresh the cue with existing view refresh/state changes without moving focus every frame. A static, labelled teaching map avoids confusing an illustrative target with saved geometry; a live inset would require additional state/filtering and is a product decision Q2.
+Safety is not merely styling. Scoped focus/filtering (D-07) changes input behaviour and safe prompt emphasis (D-08) changes consent UX; approve and assign both explicitly. Guidance ownership does not prove input capture. Retain Consent ∥ Reset → no-primary fallback (D-09); separate lifecycle repair requires another claim. Do not quietly add modal locks or rewrite map-pointer dismissal.
 
-## Boundaries / affected files
+A static teaching map is the smallest truthful diagram: approved five parallel racks, existing headland and southern entrance, retained stand, state/scale caveats. D-071 supersedes D-067–D-069 as Scenario One targets; no northern spine, diagonal 3+2 or MFM two-family algorithm. A live saved-plan inset has additional state/representation costs and is not the recommendation. Existing Stand Map/3D/minimap network and D-070 are outside scope.
 
-Future candidate scope for separate ownership assignment: LearningObjectivesView.cs / .Sequence.cs, StandMapView.cs, TeachingDiagram/TeachingDiagramPlan and shared USS; Curriculum only for reuse/reconciliation with #255. Reuse UI/Map transform/symbols read-only where possible. Any map helper modification needs explicit owner. No production files changed here. No scenes, prefabs, packages, simulation, save schema, Reference Future or legacy geometry edits.
+## Conditional sequence / standalone ownership
 
-## Ownership and migration
+1. **T1:** Manager decides Q1–Q4/D-07–D-13, approves source/geometry fixture, gets independent spec review and registers source/base and task lanes. No implementation while DRAFT.
+2. **T2:** separately claimed cues, safe prompt styles and approved focus/filtering; source/offline mapping first. Candidate files only after registration: `Assets/ForestPrototype/UI/LearningObjectivesView.cs`, `.Curriculum.cs`, `.Sequence.cs`, `StandMapView.cs`, `WorkPlanView.cs`, `ScenarioOneUiRoot.cs`, `UiKit.cs`, `Resources/ScenarioOneUi.uss`. Minimise exact set after T1; shared USS/UiKit/Root single-writer. No consent lifecycle fix implied.
+3. **T3:** separately claimed faithful Objective 1 teaching picture and reference record; candidate `TeachingDiagram.cs`, `TeachingDiagramPlan.cs`, approved label/legend styles. Coordinate Curriculum/USS with T2; preserve introduction/later artwork. No binary asset family or geometry edits.
+4. **T4:** only if Manager includes later-objective scope, separately claim lesson→validator→action mapping before coding. Unknown targets remain REVIEW NEEDED; no guessed ecology/completion rules. Any later implementation needs explicitly approved file ownership.
+5. **T5:** independent exact-head Tier-2 qualification at 1280×720 and 1920×1080, native pointer/keyboard input, FR-5 colour/grayscale rubric and opposite-provider review. No build. Integration/user acceptance remain Manager gates.
 
-This worker owns only the four spec files and named handoff. #200 owns active-tasks; DPC owns routing ledger. #255/#256 production owners must be reconciled before future work. Unity qualification requires a new authorised lane/lease; this lane must not launch Unity. No migration: derive cue on load, preserve stable IDs.
+Each task must have its **own GitHub claim, named owner, registered owned lane/branch, exact starting HEAD, bounded file list and handoff after approval**. None is registered by this author. T2/T3 must serialize shared-file work; do not make competing writes. Docs repair lane is not an implementation or Unity lane. #200 alone edits live coordination; orchestrator alone publishes claim/ledger updates.
 
-## Sequence and verification
+## Verification and stop rules
 
-1. T-01 resolve Q1–Q4 and independent design review; Manager approves spec explicitly.
-2. T-02 implement visibility/occlusion and input-owner scope resolution against the spec source audit (including Help/onboarding over retained inline prompts; no Boolean ranking), authoritative RackV2Instruction reuse and FR-3 ordered fallback, then Objective 1 cue projection and cross-screen emphasis with focused state/negative tests.
-3. T-03 produce approved reference map-like figure; geometry and visual conformance review.
-4. T-04 run spec AC-1–6 matrix including AC-1a/AC-1b Help-over-confirmation regressions; independent review and user clarity decision before integration.
+For #282, review source citations and five-file diff, whitespace/scope/DRAFT consistency, normal commit/push only. These are documentation integrity checks, not production tests or acceptance. Preserve historical FAIL 08.
 
-Tier 1 offline/source checks first, then bounded Tier 2 UI qualification on exact HEAD at both resolutions. Do not rerun broad Tier 3 without concrete risk. Implementation correctness checks action dispatch/validators/no mutations; conformance checks user complaint, diagram semantics and accessibility. Risks: stale focus after rebuild, two primaries in nested consent, obsolete copy, false cleared-route art, Tab conflict. No runtime pass is claimed by this plan.
+Future tasks run bounded Tier 1 compiler/source/offline gates, then T5's native-input/rendered checks on the same exact implementation HEAD/configuration. Record AC-G/P/X/H/K/D/V/S and AC-L if released; no high gate waived by prose. In particular, reproduce Consent ∥ Reset and Help over retained prompts/advance warning; verify first-use Help, forced close, pointer dismissal, and Work Plan Tab behaviour. Measure actual panel scale, do not infer 720p/1080p appearance from USS. Screen-reader mechanism is deferred, not qualified.
 
-## Review response
+Use authorised disposable saves; protected Reference Future/Legacy40 gates remain unchanged. No tests run against user playtest state, no auto-start script left in Assets, no broad Tier-3 rerun without concrete reason. Durable evidence belongs under `/media/jer/Files/CCF/`, not new ZX20 storage.
 
-- **P1 FIXED — re-check round (DRAFT; independent review pending):** Replaced unsafe fixed Boolean ranking with visibility/occlusion and input ownership. Added source-audited Help/onboarding, three inline rack prompts, Work Plan advance warning, session/startup and confirmation subviews, full-screen panels, reference preview and input/dismissal guards. AC-1a/AC-1b cover Help over retained rack/advance confirmations; hidden pending state cannot own the cue. The previous P1 fix claim was incomplete.
-- **P2 FIXED:** FR-3 makes candidate `RackV2Instruction()` authoritative for Objective 1 wording/stage after modal handling, projects its first unfinished step onto the screen, then applies validators. Corrections use a fixed first-eligible allowlist (map, planning, reason-matched undo, over-target selected unlocked delete); otherwise reveal the same instruction/reason. No arbitrary enabled-control selection or second instruction source. AC-6 tests helper branches, ties and ambiguous reasons.
-- **P3 FIXED:** F6 was re-derived with `git show` and numbered lines at main `8f0f230190830855112e3e7a1d7544db94a7f591`; every symbol citation now names `StandMapSymbols.Build()` and its `MapSymbol` entry. Racks :86–97, navigation/grid :99–104, tree marks :106–107; not candidate 72b4efbd.
-
-DRAFT remains unchanged. Planned canopy/no-clearing semantics, shape/pattern/text accessibility and saved-state derivation without schema changes remain required. Docs-only; no Unity or production verification claimed.
+Stop for dirty/occupied lane, source/helper contract change affecting behaviour, new user representation choice, blocked access geometry, save/schema changes or focus/consent routing wider than approval. Return to Manager rather than silently extending scope. This plan ends DRAFT / HANDED-OFF, not implemented, verified or integrated.
