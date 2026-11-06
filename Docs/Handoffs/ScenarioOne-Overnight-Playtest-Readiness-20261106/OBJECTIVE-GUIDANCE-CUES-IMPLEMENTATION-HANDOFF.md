@@ -1,6 +1,8 @@
 # Stage B / T2 — Objective 1 contextual cues handoff (#295)
 
-**HANDED-OFF FOR INDEPENDENT SOURCE REVIEW; NOT ACCEPTED OR INTEGRATED.**
+**REPAIR PASS 2 READY FOR INDEPENDENT SOURCE RE-REVIEW; NOT ACCEPTED OR INTEGRATED.**
+
+The original implementation report below is historical evidence at `ffe7c21c` / `df6415c9`. The final **Repair pass 2** section supersedes its label-mutation, whole-root demotion, later-context styling and periodic-derivation descriptions and source line numbers. Its original 26 source PASS rows are not Unity evidence.
 
 Actual worker: OpenAI, `gpt-6.1-sol`, Medium reasoning, Codex harness in T3 Code. Implementation sub-agent; no children launched. Source-only authority: user dispatch, Manager G4/G5 approval and Stage B packet on main `553a5901bf12aa293247f9fed1797812c148b755`, approved four-file spec at `c61bbdd92b94ca07ad806bddfa0bb34123f9e89f`. Approval addendum controls historical draft wording. Spec status untouched.
 
@@ -106,3 +108,65 @@ Durable source/type-check/historical-check output: `/media/jer/Files/CCF/Verific
 - Independent **Claude Sonnet 5.5 Medium source review can start** at the delivered exact head, followed by **Manager T2 acceptance**. This worker has not launched or impersonated that review. #296/T3 must wait for both gates and a clean ownership transition; no simultaneous writer.
 - Subsequent Stage C/D integration remains Workbench-first and requires fresh owned candidate/Unity lease, native input/rendered O1 loop, disposable save/load and protected regression gates. Only Manager can accept/integrate/release playtest readiness. No Windows/Player build authority.
 - Manager/orchestrator must update #295/live coordination and dashboard/ledger from this actual handoff. Those external status writes and dashboard ingestion are **NOT VERIFIED**, and this worker did not post issue/PR comments or edit Manager-owned records.
+
+## Repair pass 2 — independent source review B1–B3 (#295)
+
+Actual worker remains OpenAI gpt-6.1-sol, Medium, Codex harness in T3 Code, implementation sub-agent; no children. Source-only; no Unity. Direct repair packet controls scope. Reviewed independent report from `8284fcb52e1bdb8b2bfe4b033fb6af9371b22ae3` and approved spec `c61bbdd92b94ca07ad806bddfa0bb34123f9e89f` plus actual Manager approval.
+
+- Start / remote HEAD: `df6415c9b4845f4f9567fb5cd297add5e8f797f4`, clean, same assigned worktree and branch.
+- Repaired production/checker HEAD: `065feb12800295155dca8bd76ae7ee300d6bd024`.
+- Delivery HEAD: subsequent handoff-only commit; resolve with `git log -1 --format=%H -- Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/OBJECTIVE-GUIDANCE-CUES-IMPLEMENTATION-HANDOFF.md`. Final worker report supplies its SHA.
+- Six source/checker paths above plus this handoff changed. No protected harness expectations changed. No merge/rebase/reset/force push, no GitHub comments. Primary's unrelated `AGENTS.md` / `Docs/Operations/StorageArchitecture.md` changes were observed and preserved. No live coordination writes; #200 remains sole writer.
+
+### Blocking repairs
+
+**B1:** No existing button `.text` is assigned or stripped by guidance. A separate `Label("Next:")`, with picking ignored, is inserted immediately before the selected button as a sibling. Its own USS class uses 20-unit bold text; the button keeps the heavy outline/weight. `Plan Racks`, `Advance one year`, annual acknowledgement and all other original labels remain unchanged. Exact-label protected harnesses were inspected, not edited. Badge placement/reflow and physical text size remain unverified in Unity.
+
+**B2:** Expensive cue derivation is now limited to `RefreshNextActionGuidance` after genuine Objectives/Map/Work Plan rebuilds and Review entry. The Objectives hook moved below its unchanged-content early return. Map and Work Plan already call below their signature/key early returns. Existing user plan/mark/approve/work/question operations rebuild these views; force-open refreshes reread the world after walking/marking, save/load or view re-entry. Quote/entrance queries can run there, with entrance search stopping at the first usable target. The existing 4 Hz view polling can detect changed content and rebuild, but an unchanged poll cannot invoke these cue queries.
+
+`LateUpdate` calls only `ApplyNextActionGuidance`: cached button/scope, modal booleans, enabled state, ancestor visibility and (only when selection changes) styling/badge updates. It has no forest scan, quote, teaching validator, four-root array allocation or primary query sweep, including while Help/session/reference is open. This is cached presentation, not saved progression. Rebuild invalidates the candidate/reason, restores prior owned classes and derives again; cached visibility is checked every frame. Normal open views prevent forest marking; marking happens on return to walking and view entry forces refresh. Thus supported player actions do not depend on a timer rerunning expensive facts to clear stale guidance. Arbitrary out-of-band mutation without a view rebuild is not claimed supported; actual action/load lifecycle and frame cost remain Stage D gates.
+
+**B3:** Demotion/restoration uses the exact 19-name `GuidanceButtonNames` allowlist checked by the source checker: the three named Objectives destinations; map Work Plan/Back to forest/Plan Racks/Confirm/Reopen; six consent/reset/reopen choices; Work Plan Approve/Advance/read-results/Return; Annual Review acknowledgement. It never queries a whole root for primary buttons. Original class membership is recorded and restored before rederivation. Non-O1/Legacy40 return before scoped demotion; original static forest/Plan/Confirm/Reopen/Advance/results constructor styles were restored. The previously removed unrelated waypoint primary was also restored. Treatment-review Inspect/Prepare/Approve source and primary classes remain untouched; other unnamed primaries remain untouched by design. Scoped prompt destructive controls stay secondary per approved D-08; no new later-objective guidance is invented.
+
+### #270 disposition and non-blocking notes
+
+| Finding | Disposition at repair HEAD |
+|---|---|
+| R-01 keyboard reach | DEFERRED / NOT PROVIDED under approved Q1 pointer-only first slice. No F6, focus opt-in or global UiKit change. Native stale Enter/Space/Tab/arrow/O/M/Esc/F1 safety remains Unity-only, never PASS by source. |
+| R-02 destructive primary | IMPLEMENTED in source: consent/reset/reopen consequences remain secondary; safe single choice or Advance Return is cued. Real routing/focus/activation remains Unity-only. |
+| R-03 overlapping questions | IMPLEMENTED in source: dual has no selected primary, scoped focus clearing and both safe choices before consequences. Reset remains reachable during consent; no mutual-exclusion/lifecycle rewrite. Actual interleaving/traversal remains Unity-only. |
+| Medium: dual question/action separation (N2) | FIXED in source: relocated Cancel approved work now has its own card repeating `editor.ConsentMessage`, after both safe choices and Reset layout. Label unchanged. Fit/scroll/visual clarity Unity-only. |
+| Medium: misleading rack reason (N3) | FIXED: failed-target reason is local to the no-markable-target fallback; a usable entrance stops the search and keeps the shared marking instruction. |
+| Medium: cue latency (N4) | Removed the 250 ms presentation timer. Cached candidate is checked every LateUpdate, allowing first eligible post-layout frame and respecting same-frame Help-close guard. Actual resolved-style timing is Unity-only; no measured zero-latency claim. |
+| Medium: suspension work (N5) | FIXED by cheap cached application; unchanged/suspended frames do not derive expensive facts or sweep roots. Profiling Unity-only. |
+| Medium: later objectives/Legacy40 (N6) | FIXED in source by original constructors, restore-before-return and scoped allowlist. No invented later mapping. Native/protected regression checks remain NOT RUN. |
+| Medium: baseline checker abort (N7) | Explicitly DEFERRED: repairing a protected historical checker is outside the same owned paths. Unchanged rerun exits 2 on old inline-constructor anchor; checks 01–07 including 06a/b/c execute before the error, 08–09 do not complete. Its old FAIL 08 is not cleared. Manager must assign an independent successor before relying on that aggregate gate at Stage D. |
+| New-text sizing/non-colour delivery; screen reader | Badge/reason 20-unit source floor plus word/border cue IMPLEMENTED in source. Measured 720p/1080p physical size, grayscale, contrast, clipping and equivalent-role checks remain Unity-only. Screen-reader delivery DEFERRED under D-10. |
+
+### Repair matrix and checks actually run
+
+The original 33-row matrix remains the state inventory: rows 1–26 are **PASS (source/static only)** after reinspection with these corrections: row 12 uses the first eligible entrance; row 25 rereads facts on rebuild/entry and applies cached visibility every frame; rows 21–22 suspend the cue without per-frame derivation. Rows 27–33 remain **NOT RUN**, including Q1/D-10 deferred delivery. None instantiate UITK or prove runtime behaviour.
+
+| Additional repair contract | Result |
+|---|---|
+| Existing button labels unchanged; sibling Next badge | PASS (source only) |
+| Unchanged 4 Hz refresh and suspension path cannot call guidance scene scans/quotes | PASS (source only) |
+| Exact allowlist; treatment review/waypoint excluded; non-O1 restore-before-return | PASS (source only) |
+| Dual destructive action retains question; both safe choices precede consequences | PASS (source only) |
+| Markable-target reason remains the shared instruction | PASS (source only) |
+| Cue post-layout timing, real layout/input/performance, save/load lifecycle | NOT RUN |
+
+| Command/check | Actual result |
+|---|---|
+| `python3 Tools/Verification/NextActionGuidance/check_sources.py` | **39 PASS, 0 FAIL — SOURCE ONLY.** Expanded for immutable labels, exact allowlist/restoration, no expensive application calls, hook below unchanged-content return, paired dual question and rack-reason isolation. |
+| `python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod --out /media/jer/Files/CCF/Verification/NextActionGuidance-T2-Repair2-20261106/typecheck` | `TYPECHECK_CLEAN`, six distinct existing baseline errors, zero new errors; approximate 2021.3/stub gate only, not Unity compilation. No baseline edit. |
+| Imported `RackV2HelpTeaching/run_offline.py` and invoked `offline(Path('/media/jer/Files/CCF/Verification/NextActionGuidance-T2-Repair2-20261106/help-offline'))` | `RACK_V2_HELP_TEACHING_OFFLINE_PASS checks=97`; no whole historical ownership-check claim. |
+| `python3 Tools/Verification/OvernightPlaytestFeedback/check_baseline.py --rotation-state post-fix --instruction-state post-fix` | Exit **2**, old `buttons.Add(UiKit.Button(` anchor absent in Objectives. Partial 01–07 and six SnapFar cases pass; aggregate NOT PASS. Protected checker unchanged. |
+| `git diff --check`; changed-path and temporary Assets inventory | PASS. Import-created Python `__pycache__` removed; no disposable Assets harness/meta. |
+| Unity/compiler/runtime/native input/rendering/profiling/save/reference gates | **NOT RUN**; source-only repair authority. |
+
+Durable evidence root: `/media/jer/Files/CCF/Verification/NextActionGuidance-T2-Repair2-20261106/` (source-check log, approximate typecheck outputs and Help offline project). Partial historical-check and Help stdout were observed in this worker's tool output; this record does not imply an archived raw stdout file for those two runs.
+
+For exact-candidate Unity follow-up: open Objectives then Map in fresh Enlarged80 Rack V2; expect unchanged Plan Racks label with adjacent Next badge; exercise valid/invalid-five, drawing, confirm and 0–5 marks; expect only truthful scoped guidance or reason. Trigger single/dual consent/reset/reopen and Advance warning; expect safe-first/no destructive primary, attached consent question and no stale focus/activation. Use Help/session/reference and reopen/load at each lifecycle boundary; expect prompt cue suspension/recovery and refreshed facts. Inspect treatment-review Inspect/Prepare/Approve and waypoint primaries, then later-objective and Legacy40 forest/Advance/results primaries; expect original styling retained. Repeat at 720p/1080p with native keys, disposable save and profiling, and run the unchanged exact-label/protected regression gates. These are instructions and expected observations, not executed results.
+
+Ready for independent source **re-review**, then Manager acceptance. #296/T3 remains gated on those outcomes. No integration, release, Unity lease or playtest readiness claimed. Manager/orchestrator coordination/dashboard ingestion and published-state readback remain **NOT VERIFIED / outstanding operational handoff**; no generated dashboard files or GitHub comments were written.
