@@ -76,3 +76,8 @@ No code, tests, Unity, Windows build, playtest checkout access, active-tasks edi
 
 ## E-016 — Not done (by role / by rule)
 No spec authoring, code, tests, Unity, Editor, Player, Windows build, save access, active-tasks edit, merge, approval or self-review. No Stage B implementation and no Stage C qualification were started. Ledger branch is append-only in this run.
+
+## E-017 — User disposition of the Manager gate
+- OBSERVED FACT: the user was given the three unblocking options and chose **"Wait for Manager #200 verdict"**, explicitly declining a user-authority substitute for the Manager G4/G5 verdict.
+- ORCHESTRATOR CLAIM: the chain is paused at the A2 Manager gate. No Stage B claim, lane, branch or code is created. Resume trigger is a Manager verdict on `e5fe1761` plus a Q1 decision and #200 registration of the Stage B lane; no user redispatch is needed once those exist.
+- OBSERVED FACT: Unity lock remained `free`/no Editor at the end of the run; no lease was acquired.
