@@ -114,3 +114,13 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 - OBSERVED FACT: T2 source is implemented and independently reviewed PASS; spec/Manager T2 acceptance does not yet exist on #295; #296 remains WAITING; no T3 file was touched.
 - OBSERVED FACT: no Unity lease held; lock not acquired; no Windows/Player build. Stage C/D not started.
 - ORCHESTRATOR CLAIM: chain pauses at the **Manager T2 acceptance gate** per the Stage B packet. Resume requires #200 acceptance of `8bd7416d` (including a ruling on N1) and release of the branch/worktree to #296.
+
+## E-024 — T2 user acceptance (product-owner authority)
+- OBSERVED FACT: the user, as product owner, explicitly accepted T2 **as delivered** at `8bd7416d`, including the delivered N1 styling. Recorded on #295/#294 as direct user authority, **not** a fabricated Manager verdict; #200 may still record a formal T2 verdict.
+- ORCHESTRATOR CLAIM: the shared USS and branch/worktree were released to #296 on that authority; one writer maintained.
+
+## E-025 — T3 #296 blocked before implementation
+- OBSERVED FACT: worker provider `codex_c75d8114…`, `gpt-6.1-sol`, `medium`; lane clean at `8bd7416d`; only the handoff committed at `7f5278bfd42997da055da63423b6b4c30c7bb8f3`.
+- OBSERVED FACT: authentic Enlarged80 Rack V2 save fixture derived and validated (sha256 `e8bb96f4…b10ac5`, seed `20260914`); five unique entrances with exact endpoints/widths, south→north ordering, parallel vectors, real gaps 18.85/16.66/15.56/19.44 m; headland/feeder geometry and six retention bands recorded; 33 source assertions PASS.
+- OBSERVED FACT: `StandMapSource.cs:45,342-365` builds map paths only from `"Dirt Path"` transforms; `ScenarioOneHeadlandPresentation.cs:48` creates the headland/feeder as a separate mesh; `StandMapDrawPlan.cs:116` draws only `model.Paths`. The actual Stand Map therefore omits the headland/feeder, so a source-faithful teaching diagram that shows them differs from the map. Orchestrator separately confirmed these source facts.
+- ORCHESTRATOR CLAIM: the packet's "actual map differs materially → STOP" condition is correctly triggered. Three options recorded on #296: (A) authorise the illustration with truthful caption and amend the comparison gate; (B) separate map-presentation repair then retry; (C) defer T3 / Stage B incomplete. No option self-selected. No Unity, lease or build.
