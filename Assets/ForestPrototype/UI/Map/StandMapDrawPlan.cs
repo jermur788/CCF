@@ -112,6 +112,22 @@ public static class StandMapDrawPlan
             for (int i = 0; i < model.MiniGuidance.Count; i++)
                 plan.Add(RackBand(model, t, model.MiniGuidance[i], -1, StandMapSymbols.Get(MapSymbol.RackSuggested), MapDrawLayer.Static));
 
+        if (full)
+            foreach (MapHeadlandSurface surface in model.ExistingHeadlandSurfaces)
+            {
+                MapSymbolStyle fill = StandMapSymbols.Get(MapSymbol.Path), casing = StandMapSymbols.Get(MapSymbol.PathCasing);
+                MapHeadlandSegment[] segments = { surface.Headland, surface.Feeder };
+                MapHeadlandPad[] pads = { surface.HeadlandJunction, surface.PathJunction };
+                foreach (MapHeadlandSegment segment in segments)
+                    plan.Add(HeadlandStroke(t, segment, casing, Math.Max(fill.MinPx, t.MetresToPixels(segment.WidthM)) + 2.6f));
+                foreach (MapHeadlandPad pad in pads)
+                    plan.Add(Ring(MapSymbol.PathCasing, MapDrawLayer.Static, t, pad.Centre, t.MetresToPixels(pad.RadiusM), casing.Colour, 2.6f, -1));
+                foreach (MapHeadlandSegment segment in segments)
+                    plan.Add(HeadlandStroke(t, segment, fill, Math.Max(fill.MinPx, t.MetresToPixels(segment.WidthM))));
+                foreach (MapHeadlandPad pad in pads)
+                    plan.Add(Disc(MapSymbol.Path, MapDrawLayer.Static, t, pad.Centre, t.MetresToPixels(pad.RadiusM), fill.Colour, default, 0f, -1));
+            }
+
         // The forest path: a dark edge, then the tan band at its real width.
         if (StandMapSymbols.IsDrawn(MapSymbol.Path, detail))
             for (int i = 0; i < model.Paths.Count; i++)
@@ -358,6 +374,14 @@ public static class StandMapDrawPlan
         item.Points.Add(t.WorldToPixels(rack.Start));
         item.Points.Add(t.WorldToPixels(rack.End));
         item.Anchor = t.WorldToPixels(item.World);
+        return item;
+    }
+
+    private static MapDrawItem HeadlandStroke(StandMapTransform transform, MapHeadlandSegment segment, MapSymbolStyle style, float widthPx)
+    {
+        var item = Line(style.Symbol, style, widthPx, transform.WorldToPixels(segment.Start), transform.WorldToPixels(segment.End));
+        item.World = segment.Start;
+        item.Anchor = transform.WorldToPixels(segment.Start);
         return item;
     }
 
