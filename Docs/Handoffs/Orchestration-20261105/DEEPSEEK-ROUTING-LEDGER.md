@@ -148,3 +148,18 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 ## E-029 — User disposition of the D-072 spec gate
 - OBSERVED FACT: the user chose **wait for Manager #200 amendment + release**, declining a user-authority substitute.
 - ORCHESTRATOR CLAIM: chain paused at S0. Resume trigger: (1) amended four-file spec commit, (2) independent re-check with zero blocking, (3) actual Manager release of #297 plus #200 live ownership update. No Stage B/C/D work started; no Unity lease held.
+
+---
+
+# E-030.. — D-072 S0 re-review (2026-11-06, run 5)
+
+## E-030 — Re-review preflight and dispatch
+- OBSERVED FACT: main `a8443ac8b629b84c8c6cafee99a011d41209e840`; Manager repair handoff `MANAGER-D072-SPEC-BLOCKER-REPAIR-20261106.md`; four spec files amended (diff +69/-23 vs the first-review base), covering B1 separate collection/full-only draw, B2 fail-closed gate/cache, B3 two segments+pads/draw order, B4 Unity-free seam/tests.
+- OBSERVED FACT: review worktree `/media/jer/Files/CCF/Operations/CCF-D072-SpecReview-20261106` clean at `9aa72d64` == origin; original review preserved.
+- OBSERVED FACT: re-reviewer provider `claudeAgent` / `claude-sonnet-5-5` / `medium`; [RUNNING] claim posted on #298 at real start.
+
+## E-031 — Re-review result
+- OBSERVED FACT: reviewer completed. Commit `7c41165184eb7708dbbf56017528c9b71172ce0b`; file `D072-INDEPENDENT-SPEC-REVIEW-2.md`; original review untouched; pushed to origin.
+- OBSERVED FACT: verdict **PASS WITH NON-BLOCKING NOTES, 0 blocking**; B1–B4 resolved with file:line evidence; N2 provenance pinned to `e5fe1761`; no regressions.
+- OBSERVED FACT: non-blocking NB-1 (casing/tan interleaving), NB-2 (layer position relative to rack bands), NB-7 (**packet allowed-files list omits `StandMapLegend.cs`**), plus minor NB-3…NB-6/NB-8.
+- ORCHESTRATOR CLAIM: S0 is complete. Returned to Manager #200 for the distinct APPROVED/NEEDS CHANGES/REJECTED verdict and live one-writer reservation. #297/#296/#287 and integration remain unstarted; no Unity lease or build.
