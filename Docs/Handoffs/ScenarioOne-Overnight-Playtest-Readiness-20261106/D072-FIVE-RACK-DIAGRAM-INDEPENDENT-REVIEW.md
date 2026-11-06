@@ -121,7 +121,7 @@ FR-T3 requires "Planned vs confirmed/pending vs executed/harvested" to be told a
 |---|---|---|
 | Snapshot hash | `sha256sum` on the archive | `e8bb96f4…0ac5` **matches** |
 | World identity | Parsed JSON | version 21, `standGeometryModel` 1, `rackPlanningModel` 1, seed 20260914, 1,344 trees; adjacent `result.json` PASS at `96d9abe2` |
-| Five entrance IDs | Against `ScenarioOneSuggestedRackLayout.cs:23`, then the archive | Identical, in order; each found exactly once |
+| Five entrance IDs | Against `ScenarioOneSuggestedRackLayout.cs:22`, then the archive | Identical, in order; each found exactly once |
 | Z values and rule | **Ran the real production `Get(1, 1, trees)` on all 1,344 archived trees**, compiled from source | 5 routes, every Z **float-exact** to `FixtureEntranceZ`; `REAL_GET_MATCHES_FIXTURE` |
 | Run-from-headland rule | Same run | Each route runs (−35.4, Z) to (40, Z). Drawn corridors differ from it by 0.00000 m, against the 0.8 m FR-5 limit |
 | Width 2.4 m | `RackGeometry.cs:53` and the run | 2.4; width deviation 0.000% |
