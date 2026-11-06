@@ -4,8 +4,9 @@
 //   FiveRackDiagramCheck <inputs.txt>        structural/source-fidelity checks; prints FIVE_RACK_PASS or FIVE_RACK_FAIL
 //   FiveRackDiagramCheck <inputs.txt> dump   canonical dump of the figure (determinism and review)
 //
-// This proves what the figure DRAWS and where its numbers come from. It does not prove that it renders, fits, reads well in grayscale or is
-// understood: those need Unity captures at 1280x720 and 1920x1080 and independent reviewers.
+// This proves what the figure's PLAN DATA contains and where its numbers come from. The painter's own commands are checked separately by
+// PainterProbe (real TeachingDiagram.cs on recording stubs). Neither proves that it renders, fits, reads well in grayscale or is understood:
+// those need Unity captures at 1280x720 and 1920x1080 and independent reviewers.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -29,6 +30,7 @@ public static class FiveRackDiagramCheck
         if (args.Length > 1 && args[1] == "dump") { foreach (string l in Dump(TeachingDiagramPlan.ObjectiveOneFigure(site))) Console.WriteLine(l); return 0; }
 
         var stage = TeachingDiagramPlan.ObjectiveOneFigure(site);
+        Selection();
         FixtureIdentity(site);
         Corridors(site, stage);
         Infrastructure(site, stage);
@@ -60,6 +62,17 @@ public static class FiveRackDiagramCheck
     private static float WorldZ(TeachingDiagramPlan.Site s, float y) => s.StandSizeM * 0.5f - (y - TeachingDiagramPlan.FigureMapTop) / TeachingDiagramPlan.FigurePxPerM;
     private static float WorldX(TeachingDiagramPlan.Site s, float x) => (x - TeachingDiagramPlan.FigureMapLeft) / TeachingDiagramPlan.FigurePxPerM - s.StandSizeM * 0.5f;
     private static bool OnMap(TeachingDiagramPlan.Item i) => !i.Id.StartsWith("key-", StringComparison.Ordinal);
+
+    // B-1: the pure seam the painter uses. Only Objective 1 in a Rack V2 world gets the figure; every other world keeps For(0).
+    private static void Selection()
+    {
+        Check(TeachingDiagramPlan.ShowsFiveRackFigure(0, true), "selection: Objective 1 in a Rack V2 world shows the five-rack figure");
+        Check(!TeachingDiagramPlan.ShowsFiveRackFigure(0, false), "selection: Objective 1 in Legacy40 / Reference Future v1 / pre-V2 worlds keeps the original picture");
+        Check(Enumerable.Range(-1, 9).Where(l => l != 0).All(l => !TeachingDiagramPlan.ShowsFiveRackFigure(l, true) && !TeachingDiagramPlan.ShowsFiveRackFigure(l, false)),
+            "selection: the introduction and lessons 2-8 never show the figure, whatever the flag");
+        Check(TeachingDiagramPlan.For(0).Id == "access" && TeachingDiagramPlan.For(0).Title.Length == 0 && TeachingDiagramPlan.For(0).Notes.Length == 0,
+            "the original Objective 1 stage has no five-rack title or notes");
+    }
 
     private static void FixtureIdentity(TeachingDiagramPlan.Site site)
     {
@@ -155,14 +168,31 @@ public static class FiveRackDiagramCheck
         Check(map.Count(i => i.Kind == TeachingDiagramPlan.Kind.Corridor) == 5 && map.Where(i => i.Kind == TeachingDiagramPlan.Kind.Corridor).All(c => c.Y == c.Y1), "no diagonal or branch corridor");
     }
 
-    private static void ApproachMatchesScene(TeachingDiagramPlan.Site site)
+    // Dense reference polyline, independent of the figure's fixture: the scene's authored planks (north to south) then
+    // StandApproachRoute.Build from "Dirt Path 00".
+    private static List<(float x, float z)> RealApproach()
     {
-        // Dense reference polyline: the scene's authored planks (north to south) then StandApproachRoute.Build from "Dirt Path 00".
         float[] planks = input["ScenePlanksXZ"].Split(',').Select(v => float.Parse(v, Inv)).ToArray();
         var dense = new List<(float x, float z)>();
         for (int i = planks.Length - 2; i >= 0; i -= 2) dense.Add((planks[i], planks[i + 1]));
         var route = StandApproachRoute.Build(planks[0], planks[1], F("Plank00YawRadians"));
         foreach (var p in route.Skip(1)) dense.Add((p.X, p.Z));
+        return dense;
+    }
+
+    private static double DistanceToPolyline(float x, float z, IReadOnlyList<(float x, float z)> line)
+    {
+        double best = double.MaxValue;
+        for (int j = 0; j + 1 < line.Count; j++)
+            best = Math.Min(best, TeachingDiagramPlan.SegmentDistance(x, z, line[j].x, line[j].z, line[j + 1].x, line[j + 1].z));
+        return best;
+    }
+
+    private static void ApproachMatchesScene(TeachingDiagramPlan.Site site)
+    {
+        float[] planks = input["ScenePlanksXZ"].Split(',').Select(v => float.Parse(v, Inv)).ToArray();
+        var dense = RealApproach();
+        var route = StandApproachRoute.Build(planks[0], planks[1], F("Plank00YawRadians"));
         float[] t = TeachingDiagramPlan.FixtureTrackXZ;
         double worst = 0;
         for (int k = 0; k + 1 < t.Length; k += 2)
@@ -173,6 +203,14 @@ public static class FiveRackDiagramCheck
             worst = Math.Max(worst, best);
         }
         Check(worst < 0.01, "every figure track point lies on the scene + StandApproachRoute track (within 1 cm)", worst.ToString("0.#####", Inv) + " m");
+        // And the reverse (review m-3): every real track point down to the figure's stub end lies on the figure's track, so a thinned
+        // fixture that skips the bend cannot pass.
+        var fixture = Enumerable.Range(0, t.Length / 2).Select(k => (t[2 * k], t[2 * k + 1])).ToList();
+        float stubEnd = t[t.Length - 1];
+        var covered = dense.Where(p => p.z >= stubEnd - 1e-3f).ToList();
+        double reverse = covered.Max(p => DistanceToPolyline(p.x, p.z, fixture));
+        Check(covered.Count >= 60 && reverse < 0.05, "reverse fidelity: every real track point (scene + route, to the stub end) lies within 5 cm of the figure's track",
+            covered.Count.ToString(Inv) + " points, worst " + reverse.ToString("0.#####", Inv) + " m");
         Check(t[0] == dense[0].x && t[1] == dense[0].z, "the figure track starts at the north plank \"Dirt Path 51\"");
         Check(t[t.Length - 1] < -site.StandSizeM * 0.5f && t[t.Length - 1] > StandApproachRoute.EndZ, "the figure track leaves the property and stops before the route's own end (a stub)");
         double join = double.MaxValue;
@@ -203,6 +241,22 @@ public static class FiveRackDiagramCheck
             Check(standing >= 10, "planned rack " + (i + 1) + " still has standing trees along it (planning does not clear)", standing.ToString(Inv));
         }
         Check(crowns.All(c => !TeachingDiagramPlan.OnExistingSurface(site, WorldX(site, c.X), WorldZ(site, c.Y))), "no tree disc on the existing feeder, pads, approach or clearing");
+        // The same rule measured independently (review m-2): the authority feeder and pads, the real scene + route track (not the fixture)
+        // and the scene clearing, without calling the production OnExistingSurface that placed the trees.
+        var real = RealApproach();
+        float pathReach = site.PathWidthM * 0.5f + r, padReach = site.PadRadiusM + r;
+        float clearingReach = F("ClearingScaleX") * 0.5f + r * 0.5f;   // the figure lets a disc overlap the clearing's rim by at most half a radius
+        var onSurface = crowns.Where(c =>
+        {
+            float x = WorldX(site, c.X), cz = WorldZ(site, c.Y);
+            return TeachingDiagramPlan.SegmentDistance(x, cz, site.HeadlandX, site.FeederZ, site.FeederEndX, site.FeederZ) < pathReach
+                || Math.Sqrt(Math.Pow(x - site.HeadlandX, 2) + Math.Pow(cz - site.FeederZ, 2)) < padReach
+                || Math.Sqrt(Math.Pow(x - site.FeederEndX, 2) + Math.Pow(cz - site.FeederZ, 2)) < padReach
+                || DistanceToPolyline(x, cz, real) < pathReach
+                || Math.Sqrt(Math.Pow(x - F("ClearingX"), 2) + Math.Pow(cz - F("ClearingZ"), 2)) < clearingReach;
+        }).ToList();
+        Check(onSurface.Count == 0, "independently: no tree disc overlaps the authority feeder/pads, the real scene track or the scene clearing",
+            onSurface.Count == 0 ? "" : string.Join(",", onSurface.Take(4).Select(c => c.Id)));
         Check(crowns.All(c => Math.Abs(WorldX(site, c.X)) + r <= half + 1e-3f && Math.Abs(WorldZ(site, c.Y)) + r <= half + 1e-3f
             && WorldX(site, c.X) - r >= site.HeadlandX + site.PathWidthM * 0.5f), "every tree disc is inside the property and east of the headland");
     }
@@ -228,7 +282,16 @@ public static class FiveRackDiagramCheck
             "harvested swatch carries stumps; draft and planned swatches keep standing trees");
         var mapSignatures = new HashSet<string>(all.Where(OnMap).Select(Signature));
         Check(mapSignatures.Contains(states["existing"]) && mapSignatures.Contains(states["planned"]) && mapSignatures.Contains(states["entrance"]) && mapSignatures.Contains(states["retained"]),
-            "every symbol on the map is explained in the key");
+            "the key's existing, planned, entrance and standing-tree shapes all appear on the map");
+        // The converse (review m-1): every shape on the map is a key shape, or one of the few the key covers by name: junction pads and the
+        // clearing are part of the existing surfaces (existing colour, named in the existing row), the boundary is the property edge and
+        // the arrow carries its own N.
+        string[] k0 = TeachingDiagramPlan.FigureKey;
+        var explainedByName = new HashSet<string> { "Pad", "Clearing", "Boundary", "NorthArrow" };
+        var unexplained = mapSignatures.Where(sig => !states.Values.Contains(sig) && !explainedByName.Contains(sig)).ToList();
+        Check(unexplained.Count == 0 && all.Where(OnMap).Where(i => i.Kind == TeachingDiagramPlan.Kind.Pad || i.Kind == TeachingDiagramPlan.Kind.Clearing)
+                .All(i => i.Role == TeachingDiagramPlan.Role.Track || i.Role == TeachingDiagramPlan.Role.TrackCasing) && k0[0].Contains("clearing"),
+            "every symbol on the map is explained: a key shape, or a pad/clearing in the existing colour named in the existing row", string.Join(",", unexplained));
         Check(!mapSignatures.Contains(states["harvested"]) && !mapSignatures.Contains("Stump") && !mapSignatures.Contains(states["draft"]) && !mapSignatures.Contains(states["field-marked"]),
             "no harvested, stump, draft or field-marked symbol on the map: nothing is shown cut or built");
         Check(!all.Any(i => i.Role == TeachingDiagramPlan.Role.Fell || (i.Marks & TeachingDiagramPlan.Marks.Slash) != 0), "no Fell colour or removal slash anywhere: a planned rack is not a Fell mark");
@@ -241,8 +304,15 @@ public static class FiveRackDiagramCheck
         Check(new[] { k[1], k[2], k[3] }.All(t => !cleared.Any(w => t.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)),
             "no draft/planned/entrance wording calls the route cleared, cut or open");
         string notes = string.Join(" ", stage.Notes);
-        Check(notes.Contains("not a Fell mark") && notes.Contains("only Work Plan approval commits the work") && notes.Contains("pending work only"),
-            "notes: confirming creates pending work only, field-marking is not a Fell mark, only Work Plan approval commits");
+        Check(k[4].Contains("not a Fell mark") && notes.StartsWith("Only Work Plan approval commits the work.", StringComparison.Ordinal)
+            && k[2].Contains("confirmed") && k[2].Contains("work pending"),
+            "key and note: planned = confirmed with work pending, field-marking is not a Fell mark, only Work Plan approval commits");
+        // M-3: the confirmed / pending state is named in the planned row and nowhere else, so it cannot be read as draft, field-marked or
+        // harvested.
+        string[] states3 = { "confirmed", "pending" };
+        Check(states3.All(w => k[2].IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)
+            && new[] { k[1], k[4], k[5] }.All(row => states3.All(w => row.IndexOf(w, StringComparison.OrdinalIgnoreCase) < 0)),
+            "key names confirmed / work pending in the planned row only, apart from draft, field-marked and harvested");
     }
 
     private static void WordsAndLayout(TeachingDiagramPlan.Site site, TeachingDiagramPlan.Stage stage)
@@ -250,10 +320,11 @@ public static class FiveRackDiagramCheck
         Check(stage.Title == "Illustrative five-rack plan — not your saved Stand Map. Planning or confirming does not clear the routes.", "title/caption is exactly the approved wording");
         string notes = string.Join(" ", stage.Notes);
         Check(notes.Contains("16–20 m") && notes.Contains("guidance for this plantation, not a hard rule"), "16-20 m is labelled as plantation guidance, not a hard rule");
-        Check(notes.Contains("(15.6–19.4 m)"), "the stated spread equals the fixture's own uneven gaps");
-        Check(notes.Contains("Approximate scale") && notes.Contains("north up") && notes.Contains("not a tree count"), "approximate-scale caveat, orientation and no-census statement");
-        Check(notes.Contains("between racks 1 and 2") && notes.Contains("existing western headland") && notes.Contains("existing southern feeder") && notes.Contains("existing approach track"),
-            "notes name A/B/C existing infrastructure and where the feeder joins");
+        Check(notes.Contains("(15.6–19.4 m"), "the stated spread equals the fixture's own uneven gaps");
+        string[] key = TeachingDiagramPlan.FigureKey;
+        Check(notes.Contains("Approximate scale") && notes.Contains("north up") && key[6].Contains("not a tree count"), "approximate-scale caveat, orientation and no-census statement");
+        Check(key[0].StartsWith("Existing: A headland,", StringComparison.Ordinal) && key[0].Contains("B feeder") && key[0].Contains("C track"),
+            "the key names A/B/C as the existing headland, feeder and track (where the feeder joins is checked geometrically above)");
         Check(stage.Items.Count(i => i.Kind == TeachingDiagramPlan.Kind.NorthArrow) == 1 && stage.Labels.Any(t => t.Value == "N"), "north arrow with its N label");
         Check(new[] { "A", "B", "C", "1", "2", "3", "4", "5" }.All(v => stage.Labels.Count(t => t.Value == v) == 1), "map tags A, B, C and rack numbers 1-5 each appear once");
         Check(stage.MinTextSize >= 20f && stage.Labels.All(t => t.FontSize >= 22f), "figure words have a 20 UI-unit floor and 22-unit design size (>= 20 units at the 900-unit frame)");
@@ -270,8 +341,18 @@ public static class FiveRackDiagramCheck
         foreach (var t in labels.Where(t => t.Backed))
             Check(TeachingDiagramPlan.FixtureEntranceZ.All(z => Math.Abs(TeachingDiagramPlan.FigureY(site, z) - (t.Y + t.Height * 0.5f)) > t.Height * 0.5f + site.RackWidthM * TeachingDiagramPlan.FigurePxPerM * 0.5f),
                 "map tag " + t.Value + " does not cover a rack corridor");
-        var key = TeachingDiagramPlan.FigureKey;
-        Check(key.All(t => t.Length <= 36), "key rows stay short (<= 36 characters, at most two lines in their boxes)", key.Max(t => t.Length).ToString(Inv));
+        // Each key row is two explicit short lines, so it cannot wrap to a third line and run into the next row (rows are 70 design units apart).
+        Check(TeachingDiagramPlan.FigureKeyLineMax <= 27 && key.All(t => t.Split('\n').Length <= 2 && t.Split('\n').All(line => line.Length <= TeachingDiagramPlan.FigureKeyLineMax)),
+            "every key row is at most two explicit lines of at most 27 characters", key.SelectMany(t => t.Split('\n')).Max(line => line.Length).ToString(Inv));
+        // M-1 fit budget. The pre-repair figure added a 105-character title and three notes (582 characters) to the Objective 1 card: about
+        // ten lines at 20 UI units. The review estimated that pushes the card past the screen at 1280x720 and 1920x1080 (an estimate, not a
+        // measurement). Budget: one note of at most 175 characters, title + note at most 300 characters, so at about 88 characters per line
+        // (the review's measured line length) the figure adds about four lines, not ten. Only Unity can measure the real fit.
+        int added = stage.Title.Length + stage.Notes.Sum(n => n.Length);
+        int estimatedLines = (int)Math.Ceiling(stage.Title.Length / 88.0) + stage.Notes.Sum(n => (int)Math.Ceiling(n.Length / 88.0));
+        Check(stage.Notes.Length == 1 && stage.Notes[0].Length <= 175 && added <= 300 && estimatedLines <= 4,
+            "M-1 fit budget: one note <= 175 characters, title + note <= 300 characters, about 4 added lines (estimate, not a Unity measurement)",
+            "title " + stage.Title.Length + " + notes " + string.Join("/", stage.Notes.Select(n => n.Length.ToString(Inv))) + " = " + added + " characters, ~" + estimatedLines + " lines");
     }
 
     private static void Determinism(TeachingDiagramPlan.Site site, TeachingDiagramPlan.Stage stage)

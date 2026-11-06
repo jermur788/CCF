@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
 """Offline (no Unity) source/fixture checks for the Objective 1 illustrative five-rack figure (D-072 FR-T, issue #296).
 
-  python3 -I -B Tools/Verification/ScenarioOneFiveRackDiagram/run_five_rack_check.py [--out DIR] [--base SHA] [--no-mutations]
+  python3 -I -B Tools/Verification/ScenarioOneFiveRackDiagram/run_five_rack_check.py [--out NEW_DIR] [--base SHA] [--no-mutations]
 
 1. Parses the authority constants (ScenarioOneHeadlandGeometry, StandGeometryModel, RackGeometry, ScenarioOneSuggestedRackLayout ids),
    the ForestTest scene's "Dirt Path" planks and "Forest Clearing", and - when the archive is present - re-reads the five entrance trees from
    the archived Enlarged80 Rack V2 snapshot (read-only, hash-checked).
-2. Source guards: the figure is built from the authority constants, reads no save and no live Stand Map, and only allowed files changed.
+2. Source guards: the figure is built from the authority constants, reads no save and no live Stand Map, the Objective 1 picture is chosen
+   only through the caller's Rack V2 flag, only allowed files changed, and LearningObjectivesView.cs differs from base by exactly the one
+   authorised call-site line (Manager #200 ruling, B-1).
 3. Builds TeachingDiagramPlan.cs + StandApproachRoute.cs + FiveRackDiagramCheck.cs on the plain .NET SDK and runs the structural checks.
 4. Proves the introduction and lessons 2-8 pictures are item-for-item unchanged against --base, via the existing check's dump.
-5. Falsification: applies deliberate defects to a temporary copy of the plan and requires the checker to FAIL on each.
+5. Painter probe: compiles the REAL TeachingDiagram.cs + TeachingDiagramPlan.cs against recording stand-ins for the UI Toolkit types it uses
+   (PainterProbe/), once at --base and once now. It checks the world selection, that every picture drawn without the Rack V2 flag is
+   byte-identical to the base painter's output (elements, inline styles, every Painter2D command), and the five-rack painter semantics. This
+   proves the painter's commands; it does not prove Unity's rendering, layout, fonts or fit.
+6. Falsification: applies deliberate defects to temporary copies of the plan or the painter and requires a FAIL on each.
 
-Nothing is written inside the repository. Prints FIVE_RACK_SUITE_PASS / FIVE_RACK_SUITE_FAIL and exits 0 / 1.
+Nothing is written inside the repository. --out must be new or empty (the default is a new timestamped folder), so a re-run never deletes
+earlier evidence. Prints FIVE_RACK_SUITE_PASS / FIVE_RACK_SUITE_FAIL (exit 0 / 1), or FIVE_RACK_SUITE_INCOMPLETE (exit 2) when the archived
+snapshot could not be re-read, so a run without the archive never reports a full pass.
 """
-import argparse, hashlib, json, math, os, re, shutil, subprocess, sys
+import argparse, datetime, hashlib, json, math, os, re, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 BASE = "1b68ddcd583ab2bddd43b5ce18365171c0bab3b4"
+REPAIR_START = "e7bda1f2eea4340a0d8eaae351abb43ffaff8202"   # reviewed #296 state; the original implementation handoff is frozen there
 PLAN = Path("Assets/ForestPrototype/UI/TeachingDiagramPlan.cs")
 PAINTER = Path("Assets/ForestPrototype/UI/TeachingDiagram.cs")
 USS = Path("Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss")
@@ -27,11 +36,22 @@ SCENE = Path("Assets/Scenes/ForestTest.unity")
 ARCHIVE = Path("/media/jer/Files/CCF")
 SNAPSHOT_SHA = "e8bb96f483e598e7449f370cf56f928503dc79ec7337307758eff23104b10ac5"
 HANDOFF_DIR = "Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/"
-ALLOWED = {str(PLAN), str(PAINTER), HANDOFF_DIR + "OBJECTIVE-GUIDANCE-TEACHING-MAP-IMPLEMENTATION-HANDOFF.md"}
+OBJECTIVES = "Assets/ForestPrototype/UI/LearningObjectivesView.cs"
+IMPLEMENTATION_HANDOFF = HANDOFF_DIR + "OBJECTIVE-GUIDANCE-TEACHING-MAP-IMPLEMENTATION-HANDOFF.md"
+REPAIR_HANDOFF = HANDOFF_DIR + "D072-FIVE-RACK-DIAGRAM-BOUNDED-REPAIR-HANDOFF.md"
+# The single LearningObjectivesView.cs statement the Manager #200 ruling allows to change: the Objective 1 diagram call passes the flag the
+# view already computes (rackV2Objective). Any other difference in that file fails the scope guard.
+CALL_SITE_OLD = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, "
+                 "lesson.Caption));")
+CALL_SITE_NEW = ("        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, "
+                 "lesson.Caption, rackV2Objective));")
+FLAG_LINE = "        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;"
+ALLOWED = {str(PLAN), str(PAINTER), OBJECTIVES, IMPLEMENTATION_HANDOFF, REPAIR_HANDOFF}
+ALLOWED_ASSETS = {str(PLAN), str(PAINTER), OBJECTIVES}
 ALLOWED_PREFIX = "Tools/Verification/ScenarioOneFiveRackDiagram/"
 PROTECTED = ["Assets/ForestPrototype/UI/Map/StandMapSource.cs", "Assets/ForestPrototype/UI/Map/StandMapModel.cs",
              "Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs", "Assets/ForestPrototype/UI/Map/StandMapLegend.cs",
-             "Assets/ForestPrototype/UI/LearningObjectivesView.cs", "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+             "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs", "Assets/ForestPrototype/UI/UiKit.cs",
              "Assets/ForestPrototype/UI/StandMapView.cs", "Assets/ForestPrototype/UI/WorkPlanView.cs",
              "Assets/ForestPrototype/ScenarioOne/ScenarioOneHeadlandGeometry.cs", "Assets/ForestPrototype/ScenarioOne/ScenarioOneSuggestedRackLayout.cs",
              "Assets/ForestPrototype/StandApproachRoute.cs", "Assets/Scenes/ForestTest.unity",
@@ -134,8 +154,15 @@ def source_guards():
               "RackWidthM": r"RackGeometry\.DefaultWidthM"}
     for field, expr in wanted.items():
         record(re.search(field + r"\s*=\s*" + expr + r",", site) is not None, "painter Site." + field + " comes from its C# authority")
-    record(re.search(r"stage = lesson == 0 \? Plan\.ObjectiveOneFigure\(SiteFromAuthority\(\)\) : Plan\.For\(lesson\);", painter) is not None,
-           "Objective 1 (lesson 0) draws the five-rack figure; every other picture is still Plan.For(lesson)")
+    record(re.search(r"stage = Plan\.ShowsFiveRackFigure\(lesson, rackV2World\) \? Plan\.ObjectiveOneFigure\(SiteFromAuthority\(\)\) : Plan\.For\(lesson\);", painter) is not None,
+           "the painter chooses the five-rack figure only through Plan.ShowsFiveRackFigure(lesson, rackV2World); otherwise Plan.For(lesson)")
+    record(len(re.findall(r"Plan\.ObjectiveOneFigure\(", painter)) == 1, "the painter builds the five-rack figure in exactly one place")
+    record("public TeachingDiagram(int lesson, string caption) : this(lesson, caption, false) { }" in painter,
+           "the old two-argument constructor fails closed to the original picture (flag false)")
+    record(re.search(r"public static bool ShowsFiveRackFigure\(int lesson, bool rackV2World\) => lesson == 0 && rackV2World;", plan) is not None,
+           "selection seam: only lesson 0 with the caller's Rack V2 flag shows the figure")
+    record("RackPlanningV2Active" not in painter and "RackPlanningV2Active" not in plan,
+           "the passive picture never looks up Rack V2 eligibility itself (no scene-wide lookup, no alternative eligibility logic)")
     record('name = lesson == 0 ? "rack-lesson-diagram"' in painter, "the Objective 1 picture keeps the element name rack onboarding checks look for")
     figure = plan[plan.index("// ======== Objective 1: illustrative five-rack plan"):]
     record(not re.search(r"(?<![\d.])(35\.4|37\.7|27\.4|2\.6|2\.2|2\.4)f?(?![\d])", figure.replace("2.436166f", "")),
@@ -158,7 +185,21 @@ def scope_guards(base):
     record(not outside, "only allowed files changed since " + base[:8], outside)
     for path in PROTECTED:
         record(path not in changed, "unchanged: " + path)
-    record(not any(p.endswith(".meta") or (p.startswith("Assets/") and p not in ALLOWED) for p in changed), "no new Assets file or .meta")
+    record(not any(p.endswith(".meta") or (p.startswith("Assets/") and p not in ALLOWED_ASSETS) for p in changed), "no new Assets file or .meta")
+    record(not any(p.startswith(("Packages/", "ProjectSettings/", "Tools/Verification/StandMap/")) for p in changed),
+           "no package, project-settings or Stand Map checker change (the headland checker belongs to #303)")
+    # LearningObjectivesView.cs: exactly the one authorised call-site line, nothing else (Manager #200 ruling, B-1).
+    diff = git("diff", "-U0", base, "--", OBJECTIVES)
+    removed = [l[1:] for l in diff.splitlines() if l.startswith("-") and not l.startswith("---")]
+    added = [l[1:] for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++")]
+    record(removed == [CALL_SITE_OLD] and added == [CALL_SITE_NEW],
+           "LearningObjectivesView.cs differs from base only at the Objective 1 diagram call, which now passes rackV2Objective",
+           "removed=%d added=%d" % (len(removed), len(added)))
+    objectives = read(OBJECTIVES)
+    record(objectives.count(FLAG_LINE) == 1 and objectives.index(FLAG_LINE) < objectives.index(CALL_SITE_NEW.strip()),
+           "the passed flag is the view's existing rackV2Objective, computed before the call and unchanged")
+    record(git("diff", "--name-only", REPAIR_START, "--", IMPLEMENTATION_HANDOFF).strip() == "",
+           "the original #296 implementation handoff is unchanged since the reviewed state " + REPAIR_START[:8])
     record(str(USS) not in changed, "shared stylesheet (T2-protected bytes) unchanged: the figure's title/notes reuse existing diagram classes")
     painter = read(str(PAINTER))
     record(re.search(r'UiKit\.Text\(value, title \? "diagram-label" : "diagram-caption"\)', painter) is not None
@@ -172,14 +213,15 @@ def scope_guards(base):
         record(method(old, sig) == method(new, sig), "painter method unchanged: " + sig.split("(")[0].split()[-1])
 
 
-def dotnet_project(directory, files, startup):
+def dotnet_project(directory, files, startup, defines=""):
     directory.mkdir(parents=True, exist_ok=True)
     items = "".join('<Compile Include="%s" />' % f for f in files)
     (directory / "check.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>'
         '<LangVersion>9.0</LangVersion><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings>'
         '<EnableDefaultCompileItems>false</EnableDefaultCompileItems><TreatWarningsAsErrors>false</TreatWarningsAsErrors>'
-        '<StartupObject>%s</StartupObject></PropertyGroup><ItemGroup>%s</ItemGroup></Project>' % (startup, items))
+        '<DefineConstants>%s</DefineConstants>'
+        '<StartupObject>%s</StartupObject></PropertyGroup><ItemGroup>%s</ItemGroup></Project>' % (defines, startup, items))
     env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
     build = subprocess.run(["dotnet", "build", "-nologo", "-v", "q", "-c", "Release", "-o", str(directory / "bin")], cwd=directory, env=env,
                            capture_output=True, text=True)
@@ -194,20 +236,25 @@ def run(dll, env, *args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", type=Path, default=ARCHIVE / "Verification/D072-T3-FiveRackDiagram-20261106/offline")
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    parser.add_argument("--out", type=Path, default=ARCHIVE / ("Verification/D072-T3-FiveRackDiagram-Repair-20261106/run-" + stamp))
     parser.add_argument("--base", default=BASE)
     parser.add_argument("--no-mutations", action="store_true")
     a = parser.parse_args()
     out = a.out.resolve()
     record(not str(out).startswith(str(ROOT)), "all generated projects and logs are outside the repository", out)
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
+    # Never delete earlier evidence: the output folder must be new or empty.
+    if out.exists() and any(out.iterdir()):
+        print("FIVE_RACK_SUITE_FAIL --out exists and is not empty; choose a new folder: " + str(out), flush=True)
+        return 1
+    out.mkdir(parents=True, exist_ok=True)
 
     consts, size, width, ids = authority()
     print("AUTHORITY", json.dumps({**consts, "StandSizeEnlarged80": size, "DefaultWidthM": width, "EntranceTreeIds": ids}), flush=True)
     planks, yaw, clearing = scene()
     snap = snapshot()
+    global SNAPSHOT_NOT_RUN
+    SNAPSHOT_NOT_RUN = snap == "NOT_RUN"
     source_guards()
     scope_guards(a.base)
     inputs = dict(consts)
@@ -250,9 +297,67 @@ def main():
     record(lesson_dumps[0] == lesson_dumps[1] and len(lesson_dumps[0]) > 1000, "introduction and all eight lesson stages dump byte-identically to base",
            "%d lines" % len(lesson_dumps[0].splitlines()))
 
+    consts_for_stub = (consts, size, width)
+    painter_probe(out, a.base, consts_for_stub)
+
     if not a.no_mutations:
-        mutations(out)
+        mutations(out, consts_for_stub)
     return finish()
+
+
+PROBE = HERE / "PainterProbe"
+
+
+def authority_stub(directory, consts_for_stub):
+    """The three authority types the painter reads, as plain constants parsed from their real sources (the real files pull in more Unity)."""
+    consts, size, width = consts_for_stub
+    names = ["HeadlandX", "SouthZ", "NorthZ", "FeederZ", "PathX", "Width", "PadRadius"]
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / "AuthorityFromSource.cs"
+    path.write_text(
+        "// Generated by run_five_rack_check.py from the parsed authority sources. Not a production file.\n"
+        "public static class StandGeometryModel { public const int Enlarged80 = 1; "
+        "public static float StandSizeMeters(int model) => model == Enlarged80 ? %sf : 40f; }\n"
+        "public static class ScenarioOneHeadlandGeometry { %s }\n"
+        "public static class RackGeometry { public const float DefaultWidthM = %sf; }\n"
+        % (size, " ".join("public const float %s = %sf;" % (n, consts[n]) for n in names), width))
+    return path
+
+
+def build_probe(directory, painter, plan, consts_for_stub, check):
+    files = [painter, plan, PROBE / "RecordingUnityStubs.cs", PROBE / "PainterProbe.cs", authority_stub(directory, consts_for_stub)]
+    return dotnet_project(directory / "build", files, "PainterProbe", "PAINTER_CHECK" if check else "")
+
+
+def painter_probe(out, base, consts_for_stub):
+    base_dir = out / "probe-base"
+    base_dir.mkdir()
+    base_painter, base_plan = base_dir / "TeachingDiagram.cs", base_dir / "TeachingDiagramPlan.cs"
+    base_painter.write_text(git("show", base + ":" + str(PAINTER)))
+    base_plan.write_text(git("show", base + ":" + str(PLAN)))
+    code, _, dll, env = build_probe(base_dir, base_painter, base_plan, consts_for_stub, False)
+    record(code == 0, "base painter (" + base[:8] + ") builds against the recording UI stubs")
+    if code:
+        print((base_dir / "build" / "build.log").read_text()[-2000:])
+        return False
+    dump = run(dll, env, "dumpall")
+    (out / "probe-base-dump.txt").write_text(dump.stdout)
+    record(dump.returncode == 0 and dump.stdout.count("SECTION ") == 81, "base painter dump: 9 pictures x 3 widths x 3 constructor forms",
+           "%d sections, sha256 %s" % (dump.stdout.count("SECTION "), hashlib.sha256(dump.stdout.encode()).hexdigest()))
+    global PROBE_BASE_DUMP
+    PROBE_BASE_DUMP = out / "probe-base-dump.txt"
+    code, warnings, dll, env = build_probe(out / "probe-current", ROOT / PAINTER, ROOT / PLAN, consts_for_stub, True)
+    record(code == 0, "current painter builds against the recording UI stubs")
+    if code:
+        print((out / "probe-current" / "build" / "build.log").read_text()[-2000:])
+        return False
+    result = run(dll, env, "check", str(PROBE_BASE_DUMP))
+    print(result.stdout.rstrip(), flush=True)
+    (out / "probe-current-run.log").write_text(result.stdout + result.stderr)
+    record(result.returncode == 0 and "FIVE_RACK_PAINTER_PASS" in result.stdout, "painter probe: selection, legacy byte-identity and five-rack painter semantics")
+    current = run(dll, env, "dumpall").stdout
+    (out / "probe-current-dump.txt").write_text(current)
+    return True
 
 
 MUTATIONS = [
@@ -276,29 +381,105 @@ MUTATIONS = [
 ]
 
 
-def mutations(out):
+# Painter mutations (#296 bounded repair, M-2 and B-1). Each is (name, old, new, expected FAIL text). Run through the painter probe only.
+PAINTER_MUTATIONS = [
+    ("P1 planned corridor edges dashed (draft and planned identical)",
+     "Line(p, edge, Plan.StrokeNormal, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);",
+     "DashedLine(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);", "two continuous solid edges"),
+    ("P2 planned corridor fill opaque (trees hidden: looks cleared; the pre-repair painter did this)",
+     "Polygon(p, Tint(item.Role, a * Plan.RackFillAlpha), ", "Polygon(p, Colour(item.Role, a * Plan.RackFillAlpha), ", "see-through fill"),
+    ("P3 title never added", "if (!string.IsNullOrEmpty(stage.Title)) Add(FigureText(stage.Title, true));", "", "title is the first element"),
+    ("P4 notes never added", "foreach (string note in stage.Notes) Add(FigureText(note, false));", "", "note(s) follow the frame"),
+    ("P5 figure in every world (the reviewed B-1 defect)", "stage = Plan.ShowsFiveRackFigure(lesson, rackV2World) ?", "stage = lesson == 0 ?",
+     "byte-identical to the pre-#296 painter"),
+    ("P6 Rack V2 flag ignored, figure never shown", "stage = Plan.ShowsFiveRackFigure(lesson, rackV2World) ?", "stage = Plan.ShowsFiveRackFigure(lesson, false) ?",
+     "positive:"),
+    ("P7 old constructor defaults to Rack V2", ": this(lesson, caption, false) { }", ": this(lesson, caption, true) { }", "fails closed"),
+    ("P8 existing track drawn as a thin line", "Line(p, Colour(item.Role, a), item.Width, item.Points);",
+     "Line(p, Colour(item.Role, a), Plan.StrokeNormal, item.Points);", "existing surface"),
+    ("P9 route tags and key words dropped", "foreach (Plan.Text text in stage.Labels) AddText(text, false);", "", "route tags A, B, C"),
+    ("P10 harvested drawn like planned", "case Plan.CorridorState.Harvested:", "case (Plan.CorridorState)99:", "harvested key swatch"),
+    ("P11 property boundary dashed like a draft",
+     "Line(p, Colour(item.Role, a), Plan.StrokeNormal * 0.6f, item.X, item.Y, item.X1, item.Y, item.X1, item.Y1, item.X, item.Y1, item.X, item.Y);",
+     "DashedLine(p, Colour(item.Role, a), item.X, item.Y, item.X1, item.Y); DashedLine(p, Colour(item.Role, a), item.X1, item.Y, item.X1, item.Y1);",
+     "property boundary"),
+    ("P12 draft edges drawn solid", "DashedLine(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);",
+     "Line(p, edge, Plan.StrokeNormal, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);", "draft key swatch: dashed"),
+    ("P13 field mark painted in the Fell colour", "Line(p, Colour(item.Role, a), Plan.StrokeMark, item.X - 3.5f, item.Y - r, item.X - 3.5f, item.Y + r);",
+     "Line(p, Colour(Plan.Role.Fell, a), Plan.StrokeMark, item.X - 3.5f, item.Y - r, item.X - 3.5f, item.Y + r);", "no Fell-coloured"),
+    ("P14 old-lesson painter regression (crown outline width)",
+     "Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(Plan.Role.CanopyEdge, a), Plan.StrokeNormal);",
+     "Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(Plan.Role.CanopyEdge, a), Plan.StrokeMark);", "byte-identical to the pre-#296 painter"),
+]
+
+# Further plan mutations added by the bounded repair (B-1, M-1, M-3 and the review's surviving R7, R8, R13).
+MUTATIONS += [
+    ("Q1 key loses confirmed / work pending (M-3)", '"Planned = confirmed: solid,\\nwork pending, trees stand"', '"Planned rack 1–5: solid,\\ntrees stand"',
+     "confirmed"),
+    ("Q2 long notes restored (M-1)", '" m here) is guidance for this plantation, not a hard rule. Approximate scale, north up.",',
+     '" m here) is guidance for this plantation, not a hard rule. Approximate scale, north up.", "Confirming the plan creates pending work only. '
+     'A field-marked entrance tree still stands and is not a Fell mark; only Work Plan approval commits the work.",', "M-1 fit budget"),
+    ("Q3 R7 OnExistingSurface disabled", "        float reach = site.PathWidthM * 0.5f + TreeRadiusM + TreeClearanceM;\n",
+     "        if (x == x) return false;\n        float reach = site.PathWidthM * 0.5f + TreeRadiusM + TreeClearanceM;\n", "independently: no tree disc"),
+    ("Q4 R8 approach thinned to three points", "public static readonly float[] FixtureTrackXZ =\n    {",
+     "public static readonly float[] FixtureTrackXZ = { -2.714831f, 10.75f, 2.996937f, -4.25f, -2.436166f, -43.5f }; private static readonly float[] UnusedTrack =\n    {",
+     "reverse fidelity"),
+    ("Q5 R13 one legacy palette byte changed", "new byte[] { 61, 100, 68 },     // Canopy", "new byte[] { 61, 100, 69 },     // Canopy",
+     "byte-identical to the pre-#296 painter"),
+    ("Q6 selection seam ignores the world", "=> lesson == 0 && rackV2World;", "=> lesson == 0;", "negative:"),
+    ("Q7 key row wraps to a third line", '"Draft rack: dashed,\\na proposal only"', '"Draft rack: dashed edges, a proposal only, not yet confirmed"',
+     "two explicit lines"),
+    ("Q8 title dropped from the plan", "        stage.Title = FigureTitle;\n", "", "title is the first element"),
+]
+
+
+def mutations(out, consts_for_stub):
     plan = read(str(PLAN))
-    for index, (name, old, new, expected) in enumerate(MUTATIONS):
-        record(plan.count(old) == 1, "mutation '" + name + "' applies to exactly one place")
-        if plan.count(old) != 1:
+    painter = read(str(PAINTER))
+    jobs = [("plan", m) for m in MUTATIONS] + [("painter", m) for m in PAINTER_MUTATIONS]
+    for index, (target, (name, old, new, expected)) in enumerate(jobs):
+        source = plan if target == "plan" else painter
+        record(source.count(old) == 1, "mutation '" + name + "' applies to exactly one place")
+        if source.count(old) != 1:
             continue
-        directory = out / ("mutation-%d" % index)
+        directory = out / ("mutation-%02d" % index)
         directory.mkdir()
-        mutated = directory / "TeachingDiagramPlan.cs"
-        mutated.write_text(plan.replace(old, new))
-        code, _, dll, env = dotnet_project(directory / "build", [mutated, ROOT / ROUTE, HERE / "FiveRackDiagramCheck.cs"], "FiveRackDiagramCheck")
-        if code:
-            record(False, "mutation '" + name + "' builds", (directory / "build" / "build.log").read_text()[-600:])
+        mutated = directory / ("TeachingDiagramPlan.cs" if target == "plan" else "TeachingDiagram.cs")
+        mutated.write_text(source.replace(old, new))
+        mutated_plan = mutated if target == "plan" else ROOT / PLAN
+        mutated_painter = mutated if target == "painter" else ROOT / PAINTER
+        failed, built = [], False
+        if target == "plan":
+            code, _, dll, env = dotnet_project(directory / "structural", [mutated_plan, ROOT / ROUTE, HERE / "FiveRackDiagramCheck.cs"], "FiveRackDiagramCheck")
+            if code == 0:
+                built = True
+                result = run(dll, env, str(out / "inputs.txt"))
+                (directory / "structural.log").write_text(result.stdout + result.stderr)
+                failed += [l for l in result.stdout.splitlines() if l.startswith("FAIL ")]
+        code, _, dll, env = build_probe(directory / "probe", mutated_painter, mutated_plan, consts_for_stub, True)
+        if code == 0 and PROBE_BASE_DUMP is not None:
+            built = True
+            result = run(dll, env, "check", str(PROBE_BASE_DUMP))
+            (directory / "probe.log").write_text(result.stdout + result.stderr)
+            failed += [l for l in result.stdout.splitlines() if l.startswith("FAIL ")]
+        if not built:
+            record(False, "mutation '" + name + "' builds", "see " + str(directory))
             continue
-        result = run(dll, env, str(out / "inputs.txt"))
-        (directory / "run.log").write_text(result.stdout + result.stderr)
-        failed = [l for l in result.stdout.splitlines() if l.startswith("FAIL ")]
-        record(result.returncode != 0 and any(expected in l for l in failed), "mutation '" + name + "' is caught", failed[:2])
+        hit = [l for l in failed if expected in l]
+        record(bool(hit), "mutation '" + name + "' is caught", "%d FAIL lines; e.g. %s" % (len(failed), (hit or failed or ["none"])[0][:160]))
+
+
+SNAPSHOT_NOT_RUN = False
+PROBE_BASE_DUMP = None
 
 
 def finish():
     ok = all(results)
-    print(("FIVE_RACK_SUITE_PASS" if ok else "FIVE_RACK_SUITE_FAIL") + " source_checks=%d failed=%d" % (len(results), results.count(False)), flush=True)
+    tally = " source_checks=%d failed=%d" % (len(results), results.count(False))
+    if ok and SNAPSHOT_NOT_RUN:
+        print("FIVE_RACK_SUITE_INCOMPLETE" + tally + " (archived snapshot NOT RUN: the fixture was not re-derived)", flush=True)
+        return 2
+    print(("FIVE_RACK_SUITE_PASS" if ok else "FIVE_RACK_SUITE_FAIL") + tally, flush=True)
     return 0 if ok else 1
 
 

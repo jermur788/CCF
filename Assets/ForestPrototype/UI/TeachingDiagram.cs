@@ -11,8 +11,10 @@ using Plan = TeachingDiagramPlan;
 // the UI instead of being baked into a picture. The picture is passive: it takes no clicks, and it is a teaching illustration, not a map of the
 // player's forest (the real maps are the Stand Map and the HUD minimap).
 //
-// Objective 1 (lesson 0) draws TeachingDiagramPlan.ObjectiveOneFigure: the illustrative five-rack plan, built from the authored headland/feeder
-// constants passed in below and a recorded source fixture. It reads no save and no live map, and it has its own title above and notes below.
+// In a Rack V2 world, Objective 1 (lesson 0) draws TeachingDiagramPlan.ObjectiveOneFigure: the illustrative five-rack plan, built from the
+// authored headland/feeder constants passed in below and a recorded source fixture. It reads no save and no live map, and it has its own title
+// above and a note below. Every other world (Legacy40, Reference Future v1, pre-V2 saves) keeps the original Objective 1 picture: the caller
+// says which world it is, and without that flag the original picture is drawn.
 public sealed class TeachingDiagram : VisualElement
 {
     // The widest the picture is drawn, in UI units. Wider than the old 660 so its words can be read at 1280 x 720, where one UI unit is 0.8 pixel.
@@ -30,9 +32,13 @@ public sealed class TeachingDiagram : VisualElement
     private float offsetX, offsetY, panelScale = 1f, scale = 1f;
 
     // lesson: -1 for the introduction, otherwise the teaching sequence's index (0 = Create access racks).
-    public TeachingDiagram(int lesson, string caption)
+    public TeachingDiagram(int lesson, string caption) : this(lesson, caption, false) { }
+
+    // rackV2World: the caller's existing Rack V2 eligibility for this objective. Only then does Objective 1 show the five-rack figure, because
+    // only a Rack V2 world has the western headland and southern feeder that the figure names.
+    public TeachingDiagram(int lesson, string caption, bool rackV2World)
     {
-        stage = lesson == 0 ? Plan.ObjectiveOneFigure(SiteFromAuthority()) : Plan.For(lesson);
+        stage = Plan.ShowsFiveRackFigure(lesson, rackV2World) ? Plan.ObjectiveOneFigure(SiteFromAuthority()) : Plan.For(lesson);
         preserveIntroIllustration = lesson < 0;
         name = "teaching-diagram";
         AddToClassList("teaching-diagram");
@@ -264,16 +270,17 @@ public sealed class TeachingDiagram : VisualElement
                 break;
             }
             case Plan.Kind.Boundary:
-                DashedLine(p, Colour(item.Role, a), item.X, item.Y, item.X1, item.Y);
-                DashedLine(p, Colour(item.Role, a), item.X1, item.Y, item.X1, item.Y1);
-                DashedLine(p, Colour(item.Role, a), item.X1, item.Y1, item.X, item.Y1);
-                DashedLine(p, Colour(item.Role, a), item.X, item.Y1, item.X, item.Y);
+                // A thin continuous outline: dashes mean "draft proposal" in this figure's key, so the property edge is never dashed.
+                Line(p, Colour(item.Role, a), Plan.StrokeNormal * 0.6f, item.X, item.Y, item.X1, item.Y, item.X1, item.Y1, item.X, item.Y1, item.X, item.Y);
                 break;
         }
     }
 
-    // A corridor of any direction. Planned: light fill with two solid edges, trees drawn beneath still show. Draft: fainter fill, dashed edges.
-    // Harvested: an opaque pale strip (nothing standing; stumps are separate items).
+    // A corridor of any direction. Planned: a see-through tint with two solid edges, so the trees drawn beneath still show. Draft: a fainter
+    // tint, dashed edges. Harvested: an opaque pale strip (nothing standing; stumps are separate items).
+    //
+    // The tints use real transparency, not Colour(): Colour() pre-blends against the dark panel and is opaque, which would paint over the
+    // standing trees and make a planned rack look already cleared.
     private void DrawCorridor(Painter2D p, Plan.Item item)
     {
         float a = item.Alpha;
@@ -287,16 +294,23 @@ public sealed class TeachingDiagram : VisualElement
                 Polygon(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
                 break;
             case Plan.CorridorState.Draft:
-                Polygon(p, Colour(item.Role, a * Plan.RackFillAlpha * 0.5f), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
+                Polygon(p, Tint(item.Role, a * Plan.RackFillAlpha * 0.5f), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
                 DashedLine(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);
                 DashedLine(p, edge, item.X - nx, item.Y - ny, item.X1 - nx, item.Y1 - ny);
                 break;
             default:
-                Polygon(p, Colour(item.Role, a * Plan.RackFillAlpha), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
+                Polygon(p, Tint(item.Role, a * Plan.RackFillAlpha), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
                 Line(p, edge, Plan.StrokeNormal, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);
                 Line(p, edge, Plan.StrokeNormal, item.X - nx, item.Y - ny, item.X1 - nx, item.Y1 - ny);
                 break;
         }
+    }
+
+    // The role's own colour at a real alpha, so what is drawn beneath shows through.
+    private static Color Tint(Plan.Role role, float alpha)
+    {
+        Plan.Blend(role, 1f, out byte r, out byte g, out byte b);
+        return new Color32(r, g, b, (byte)Mathf.RoundToInt(Mathf.Clamp01(alpha) * 255f));
     }
 
     // Dashes of 9 design units with gaps of 6, like the Stand Map's proposal lines.

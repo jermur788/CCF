@@ -13,7 +13,8 @@ using System.Linq;
 // continuous-cover book's stand diagrams (pp. 66-67); none of its artwork, dimensions, ages or species percentages is reproduced. The counts are
 // diagram counts, not a prescription or a prediction for the playable forest, and the geometry is in design units (not metres). No white is used.
 //
-// Exception (D-072 FR-T, #296): Objective 1 is drawn from ObjectiveOneFigure, not from the conceptual stand above. See the section at the end.
+// Exception (D-072 FR-T, #296): in a Rack V2 world only, Objective 1 is drawn from ObjectiveOneFigure instead of the conceptual stand above
+// (ShowsFiveRackFigure). Every other world keeps For(0). See the section at the end.
 public static class TeachingDiagramPlan
 {
     // Roles and kinds after Oak / Chevron belong to the Objective 1 five-rack figure only; the earlier values keep their order.
@@ -415,9 +416,14 @@ public static class TeachingDiagramPlan
 
     // ======== Objective 1: illustrative five-rack plan (D-072 FR-T1..FR-T4, issue #296) ========
     //
-    // Objective 1 shows the real Scenario One layout instead of the conceptual stand: five parallel planned racks entering from the existing
-    // western headland, the single existing southern feeder and approach track, and standing trees between, beside and inside the racks.
-    // It is static lesson art. It never reads a save or the live Stand Map, never changes either, and adds no road. Its title says so.
+    // In a Rack V2 world, Objective 1 shows the real Scenario One layout instead of the conceptual stand: five parallel planned racks entering
+    // from the existing western headland, the single existing southern feeder and approach track, and standing trees between, beside and
+    // inside the racks. It is static lesson art. It never reads a save or the live Stand Map, never changes either, and adds no road. Its title
+    // says so.
+    //
+    // The headland and feeder exist only in a Rack V2 world, so the figure is shown only there. Legacy40, Reference Future v1, pre-V2 saves and
+    // pre-V2 Enlarged80 continuations keep the original Objective 1 picture (For(0)) and its caption, which make no claim about a headland or
+    // feeder. The caller decides which world it is (LearningObjectivesView already computes that for the card's words) and passes it in.
     //
     // Where each number comes from:
     // - Headland, feeder, junction pads, stand size and rack width: the C# authorities (ScenarioOneHeadlandGeometry, StandGeometryModel,
@@ -432,6 +438,10 @@ public static class TeachingDiagramPlan
     //
     // Tree discs are schematic rows, not a census or the real planting pattern. The transform is uniform: FigurePxPerM design units per metre,
     // x east, north up (the Stand Map's orientation), no rotation.
+
+    // The one place that decides which Objective 1 picture is drawn. rackV2World is the caller's existing Rack V2 eligibility for this
+    // objective; nothing here looks it up.
+    public static bool ShowsFiveRackFigure(int lesson, bool rackV2World) => lesson == 0 && rackV2World;
 
     public sealed class Site
     {
@@ -470,15 +480,18 @@ public static class TeachingDiagramPlan
     public static float FigureY(Site site, float worldZ) => FigureMapTop + (site.StandSizeM * 0.5f - worldZ) * FigurePxPerM;
 
     // The key: one row per state, shape plus words. The map itself shows existing tracks, five planned racks, entrances and standing trees.
+    // Each row is two explicit short lines, so it never wraps to a third line and runs into the row below at 1280 x 720 (FigureKeyLineMax).
+    // A planned rack is the confirmed plan: work pending, nothing cut. Draft, field-marked and harvested are separate rows with their own shapes.
+    public const int FigureKeyLineMax = 27;
     public static readonly string[] FigureKey =
     {
-        "Existing headland, feeder, track",
-        "Draft rack: dashed, a proposal",
-        "Planned rack 1–5: solid, trees stand",
-        "Entrance: square on the headland",
-        "Field-marked: stripes, not felled",
-        "Harvested: open strip, stumps",
-        "Disc: standing tree, retained",
+        "Existing: A headland,\nB feeder, C track, clearing",
+        "Draft rack: dashed,\na proposal only",
+        "Planned = confirmed: solid,\nwork pending, trees stand",
+        "Entrance: square\non the headland",
+        "Field-marked: stripes,\nnot felled, not a Fell mark",
+        "Harvested: open strip\nwith stumps",
+        "Disc: standing tree,\nretained, not a tree count",
     };
 
     public static Stage ObjectiveOneFigure(Site site)
@@ -591,15 +604,12 @@ public static class TeachingDiagramPlan
             least = System.Math.Min(least, gap); most = System.Math.Max(most, gap);
         }
         var inv = System.Globalization.CultureInfo.InvariantCulture;
+        // One short note (about two lines at the reading size) so the Objective 1 card still fits the screen without scrolling. What the
+        // existing surfaces are, what planned/confirmed means and that trees are not counted is said in the key instead.
         return new[]
         {
-            "A: existing western headland. B: existing southern feeder, joining the headland between racks 1 and 2. C: existing approach track. "
-                + "Racks 1–5 start at entrance squares on the headland and run east.",
-            "Confirming the plan creates pending work only. A field-marked entrance tree still stands and is not a Fell mark; only Work Plan "
-                + "approval commits the work.",
-            "About 16–20 m between racks is guidance for this plantation, not a hard rule; the spacings shown are uneven ("
-                + least.ToString("0.0", inv) + "–" + most.ToString("0.0", inv) + " m). Approximate scale, north up: the stand is about "
-                + site.StandSizeM.ToString("0", inv) + " m across, and tree discs are simplified, not a tree count.",
+            "Only Work Plan approval commits the work. 16–20 m between racks (" + least.ToString("0.0", inv) + "–" + most.ToString("0.0", inv)
+                + " m here) is guidance for this plantation, not a hard rule. Approximate scale, north up.",
         };
     }
 
