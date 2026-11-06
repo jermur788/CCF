@@ -56,7 +56,7 @@ If the independent review and these defaults fully resolve Q1–Q4 with zero gen
 
 ## 3 — User release and stop conditions
 
-**At this moment no new Unity authorisation is inferred.** User must separately state **"My current personal playtest is finished; I release the Unity machine for exclusive overnight qualification."** Only after that statement is actually recorded may the local worker attempt fresh lock/process/storage preflight; user release does not itself grant a lock. This is **not** Windows build approval.
+**Latest user update, 2026-11-06 00:24 UTC: personal playtest finished.** The prior user-session occupancy gate is satisfied. The local worker may attempt fresh Unity machine/process/storage/branch/ownership preflight when Stage C is reached, but must still obtain a valid exclusive lease before launching Unity. User completion does not prove Editor idle or worktree clean. **No Windows or Player build approval.** Earlier statements that user release was outstanding are historical.
 
 **Mandatory STOP:** active user playtest not released; branch/worktree/coordination overlap; no valid Unity exclusive lease; source unexpectedly changed; spec DRAFT/unapproved; any #270 HIGH unresolved; missing independent review/Manager verdict; unforeseen destructive default focus behaviour; reference/Legacy40/save/pure-Sitka invariant break; old save historical Workbench loss; unapproved MFM coverage or rack topology change; hidden unrelated dirty files; no actual tool/provider capability; unexpected material game-design choice; or missing durable handoff.
 
