@@ -96,3 +96,21 @@ No spec authoring, code, tests, Unity, Editor, Player, Windows build, save acces
 ## E-019 — T2 #295 dispatch
 - OBSERVED FACT: worker provider `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb` (ChatGPT — OpenAI B), model `gpt-6.1-sol`, effort `medium`; delegated task started, status `running`. Default `codex` pool remains quota-blocked per the prior observed limit; not retried this run.
 - ORCHESTRATOR CLAIM: one writer on the branch/worktree; no Unity, no Windows build, no self-review. Deliverable `OBJECTIVE-GUIDANCE-CUES-IMPLEMENTATION-HANDOFF.md`, then independent Sonnet review and Manager T2 verdict before #296.
+
+## E-020 — T2 #295 implementation result
+- OBSERVED FACT: worker completed. Implementation `ffe7c21c19cead30d2d2bce1b6fb58fbabf04ef7`; handoff commit `df6415c9b4845f4f9567fb5cd297add5e8f797f4`; branch == origin; lane clean. Seven paths: five UI/UX files, new `Tools/Verification/NextActionGuidance/check_sources.py`, handoff.
+- OBSERVED FACT: worker reported matrix 26 PASS (source only), 0 FAIL, 7 NOT RUN; 32 source checks and 97 offline Help checks; approximate typecheck no new errors. No Unity/runtime claim.
+
+## E-021 — T2 independent source review 1
+- OBSERVED FACT: provider `claudeAgent` (Claude A), `claude-sonnet-5-5`, effort `medium`; completed. Commit `8284fcb52e1bdb8b2bfe4b033fb6af9371b22ae3`, file `OBJECTIVE-GUIDANCE-CUES-INDEPENDENT-SOURCE-REVIEW.md`.
+- OBSERVED FACT: verdict **NEEDS CHANGES**, 3 blocking: B1 cue mutated existing button `.text` (breaks exact-label harnesses); B2 scene-wide scans on the 4 Hz tick; B3 root-wide `btn-primary` demotion removed unrelated treatment-review primaries. Plus 6 non-blocking.
+
+## E-022 — T2 repair and re-review
+- OBSERVED FACT: repair provider same OpenAI instance `codex_c75d8114…`, `gpt-6.1-sol`, `medium`; completed. Repair commit `065feb12`; evidence commit `8bd7416dd71f5ed175a45ead14dd1114ee636ce9`; branch == origin; clean.
+- OBSERVED FACT: B1 fixed via separate "Next:" label (no button text mutation); B2 moved expensive queries to rebuild/entry only, tick does cheap visibility/enabled checks; B3 replaced with a 19-name allowlist and restores later-objective/Legacy40 primaries. Checker 39 PASS.
+- OBSERVED FACT: fresh reviewer session `claude-sonnet-5-5` medium; commit `bb5bfc1b8f76b72acfea4a80354bf7b33f569b16`, file `OBJECTIVE-GUIDANCE-CUES-INDEPENDENT-SOURCE-REVIEW-2.md`: **PASS WITH NON-BLOCKING NOTES, 0 blocking**. N1 asks Manager whether permanently demoting the three rack prompt primary/ghost styles in all contexts is within D-08.
+
+## E-023 — Gate state after T2
+- OBSERVED FACT: T2 source is implemented and independently reviewed PASS; spec/Manager T2 acceptance does not yet exist on #295; #296 remains WAITING; no T3 file was touched.
+- OBSERVED FACT: no Unity lease held; lock not acquired; no Windows/Player build. Stage C/D not started.
+- ORCHESTRATOR CLAIM: chain pauses at the **Manager T2 acceptance gate** per the Stage B packet. Resume requires #200 acceptance of `8bd7416d` (including a ruling on N1) and release of the branch/worktree to #296.
