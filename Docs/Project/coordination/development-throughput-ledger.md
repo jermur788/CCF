@@ -51,3 +51,41 @@
 **Manager action:** use this ledger to assess later delivery-duration improvements against actual time/defect data. No new feature/product or Unity permission issued. See full retrospective for recommendations and caveats.
 
 ---
+
+## Entry 002 — 2026-11-07 morning — proposal for a lightweight standard timing record (NOT YET AN EXECUTION MANDATE)
+
+**User question:** Would more consistent task timing data allow the Overall Manager to explain delivery bottlenecks and compare ways of doing similar work faster? **Yes.** [Entry 001](#entry-001--2026-11-07-0848-utc--post-playtest-rackobjectivemap-delivery-expansion-57-november) could reconstruct calendar windows but could not infer actual active model time, waiting for Manager/product decisions, or exclusive critical-path costs. This is an operational data-capture **proposal**, not a new Unity/feature authorisation and not a retroactive edit to [#313 overnight ledger](https://github.com/jermur788/CCF/blob/docs/mimo-scenario-one-overnight-20261107-v1/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/MIMO-OVERNIGHT-EXECUTION-LEDGER.md) or the current [#322 ledger](https://github.com/jermur788/CCF/blob/docs/mimo-scenario-one-morning-closure-20261107-v1/Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/MIMO-MORNING-CLOSURE-LEDGER.md).
+
+### Minimal row at each meaningful task status change
+
+| Field | Requirement / example | Why |
+|---|---|---|
+| `timestamp_utc` | ISO-8601 actual observed time, e.g. `2026-11-07T09:05:00Z` | Enables elapsed duration; avoid issue-comment publication timestamp as surrogate for actual work start unless explicitly labelled |
+| `claim`, `stage`, `attempt` | `#320`, `author`, `1` | Distinguishes loops, independent reviews, reroutes and child tasks |
+| `event` | `READY`, `RUNNING_START`, `RUNNING_END`, `WAITING_MANAGER_START`, `WAITING_PRODUCT_START`, `WAITING_PROVIDER_START`, `BLOCKED_START`, `RESUMED`, `REVIEW_START`, `REVIEW_END`, `HANDED_OFF`, `MANAGER_VERDICT`, `UNITY_LEASE_ACQUIRED`, `UNITY_LEASE_RELEASED` | Creates time windows instead of a static current status |
+| `actor`, `provider/model/effort` | Actual worker instance, observed model and effort or `UNKNOWN` | Allows fair routing comparisons; no fabricated quota/reset data |
+| `candidate`, `lane` | Exact Git ref, actual worktree and ownership where applicable | Prevents mixing work performed on different source versions |
+| `cause_code` | One primary blocker: `PRODUCT`, `MANAGER`, `SOURCE_DEFECT`, `VERIFIER_DEFECT`, `UNITY_ENV`, `STORAGE`, `LOCK_WORKTREE`, `PROVIDER_QUOTA`, `REVIEW`, `OTHER`; `NONE` if unblocked | Makes recurring delays comparable while preserving the detailed free-text reason |
+| `outcome`, `evidence_url` | `PASS/FAIL/NOT_RUN/BLOCKED`, GitHub result/log reference | Ensures no timing total is detached from proof |
+| `clock_source` | `worker_receipt`, `tool_log`, `issue_created_at`, or `estimate` | Distinguishes measured execution windows from elapsed GitHub issue lifetime |
+
+**Optional only when available:** actual subprocess command duration; `tool_wait_start/end`; token/cost measures when the provider exposes them; Unity cold-import duration and storage footprint; number of previously passing tests re-run; independent reviewer-new false greens; `scope_change` (initial approved scope, new approved task count, reason). Do not require a manual timesheet or per-token accounting from models without those measurements.
+
+### Derivations and reporting rules
+
+- **Wall-clock lead time:** first accepted request to exact accepted/qualified handoff (or report incomplete). This is not sum of issue lifetimes.
+- **Active session elapsed:** paired `RUNNING_START/END` minus explicit pauses, reported as *session elapsed*, not precise model CPU time. If a worker does not expose internal execution and tool wait, mark them **UNMEASURED**.
+- **Waiting per cause:** paired WAIT/BLOCK start and resume/end events, with overlapping events deduplicated when constructing the critical path. Unpaired time windows must be labelled incomplete rather than assumed continuous work.
+- **Review cycles:** count actual independent review → defect → repair → re-review loops, and classify source/UI defect vs checker/fixture defect separately.
+- **Unity:** calculate genuine lease-acquire to lease-release, Editor import command duration, actual test duration separately; never infer Unity runtime from open issue duration. Disk/lock safety unchanged.
+- **Delivery report:** show a timeline, critical-path phases, total active session time (may overlap across independent workers), waiting reasons, review-loop count, final status and unmeasured intervals. **Never add overlapping intervals** or assert a precise percentage when timestamps are absent.
+
+### Low-overhead adoption recommendation
+
+1. **Pilot on the next two new features**, using the existing GitHub task claim start/stop/handoff comments and Mimo ledger append-only entries. Orchestrator automatically writes an event row when it changes a claim; subworkers provide actual event times in their result. Avoid changing active Mimo #322 instructions mid-run or historical entries.
+2. Keep the canonical `active-tasks.md` as **single-writer ownership/lock authority**, not an event-history sink. Mimo owns its execution ledger; Manager owns this throughput/analysis ledger and the shared Overall-Dev summary. No competing writers.
+3. After two pilots, compare whether the record can actually explain waiting vs execution, and whether additional fields justified their overhead. If successful, formalise the event vocabulary in orchestration instructions; if not, simplify rather than increase process burden.
+
+**Status:** PROPOSED to Overall Manager, not yet mandated for current worker; no existing test, acceptance, ownership, lock or Unity policy is relaxed.
+
+---
