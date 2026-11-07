@@ -197,3 +197,32 @@ No change to Stage 3 closure or routing. **Status:** Stage 4 attempt 3 still RUN
 **Disclosures for the record:** not run — Unity, rendering, input, focus, saves, Player builds, integrated candidate. The Roslyn check read Unity/package DLLs read-only from `/media/jer/ZX20/CCF-MainIntegration-20261104/Library/ScriptAssemblies` (read-only, matching #305/#314 prior art — noted as a minor deviation from Mimo's strict no-other-lane wording; no mutation made).
 
 **Status:** repair loop 1 CLOSED (worker evidence) → dispatching the exact-head #314 re-review rerun (same reviewer). This was the ONLY authoring loop; whatever the rerun returns closes #309 for Manager #200's morning verdict.
+
+---
+
+## Entry 010 — 2026-11-07T07:10Z — [HANDED-OFF] exact-head #314 re-review: **NEEDS CHANGES (narrow)**; loop budget spent; + [HANDED-OFF] STAGE 5 #315 readiness dossier published
+
+### 10a — Exact-head #314 re-review after repair loop 1
+
+**Reviewer:** same instance as the first review (claudeAgent_claude_b_pro / `claude-sonnet-5-5`, XHIGH; disclosed same-provider-family fallback). Report section appended at `99117933` on `docs/mimo-cta-309-independent-review-20261107-v1` (first review unchanged); [#314 handoff comment](https://github.com/jermur788/CCF/issues/314#issuecomment-6703142986). Evidence: `…/CTA-314-IndependentReview-20261107/loop1-rerun/`. Final hashes of the five files + `baseline-output.txt` unchanged during review.
+
+**Verified closed (independently re-run):** all **25 in-scope survivors rejected end-to-end** through real `check_baseline.py` (S-1 10/10, S-2 11/11, S-3 4/4); `W-DEP-05` remains green as the documented out-of-scope probe (the only one of the reviewer's five S-3 cases still green — accounting reconciled); 3 lone-CR cases rejected **by rule**; 112 previously-rejected stay rejected; 21/21 reviewer benign stay accepted; diff = exactly five allowed paths; `baseline-output.txt` byte-preserved; suite `rejected=275/275 false_greens=0 wrong_cause=0`; candidate 10/0/2 exit 0; historical 6/4/2 exit 1; SnapFar on trace-proved cwd-pinned SDK 8.0.133 (control resolves 10.0.114); all author claims reproduced including **54/54 transcribed-case fidelity** and the real NBSP-`#endif` lexer desync (reviewer's own Roslyn differential: six indent characters leave hidden code active; old lexer accepted, new rejects); O-05…O-09 over-rejections disclosed, fail-closed only, no live source rejected.
+
+**Residual (new reviewer cases, 478 written; 57 accepted in two classes, valid C# 9; 21 representative pass real `check_baseline.py` 10/0/2):**
+- **N-1 (Medium):** S-1 closure does not cover **interpolation holes** — a tuple write of `help` inside `$"{…}"` passes (47 cases). Same effect as the original Z-RR2-T-help.
+- **N-2 (Medium accuracy / Low safety):** exact-text pins **not bound to the member they pin** — a decoy nested class/struct holding the reviewed text lets `help`/`screen`/`manager` become properties and forces `NeedsAnnualReview`/`TeachingRacks` true (10 cases). README "Each field declaration is pinned" is overstated.
+- **Not regressions** (`b4d47d3d` accepts both too; no accidental route). Info items N-3…N-5 logged.
+
+**Disposition menu given to Manager #200:** (a) accept the checker as an accidental-regression guard + reword the two README claims, or (b) hold until two small guards are written and re-reviewed (reviewer's post-hoc scratch closed all 57 with no benign rejection — **not approved code**). **One authoring loop budget is SPENT**; no further repair scheduled tonight regardless.
+
+### 10b — Stage 5 #315 readiness dossier (Mimo, read-only/docs-only)
+
+Published: `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-INTEGRATION-READINESS-DOSSIER.md` on the Mimo docs branch (this commit). Key forensics (all read-only `git merge-tree`/diff; nothing checked out):
+- Topology: guidance `9789369d` and cta `753143e6` diverge from old main `e1be15c1`; workbench `4d95e452` bases on `50042bbe` **inside** the guidance lineage. Trial merges guidance×workbench, guidance×cta, workbench×cta all textually clean.
+- **Critical hazard documented:** the cta verify branch carries **historical PR #300 Objective UI ancestors** (5 UI/USS files + `check_sources.py` overlap the approved guidance files). A naive branch merge would silently fuse unreviewed ancestors with approved UI. Mandated transfer: **4 checker files + handoff via file-level checkout only**, per the standing Manager rule.
+- Recommended assembly order: `9789369d` → merge workbench (only after #287 disposition) → file-level CTA checker delta → re-run checker at integrated HEAD → A–O.
+- Storage verdict **WAITING STORAGE**: 21.62 GiB free; second cold Library (~6.8 GiB) ⇒ ~14.8 GiB < 15 GiB floor ⇒ infeasible; #287 lane warm-Library reuse implies forbidden HEAD switch; #287 lane DIRTY so `unity-lock acquire` would refuse it.
+- A–O: all 15 gates NOT RUN on any integrated candidate; antecedent evidence mapped per gate (incl. #287's RackV2Objective1EndToEnd 173 checks/24 captures and MfmCoverageWorld 57 checks, explicitly non-transferable).
+- Seven Manager decision classes (D1–D7) enumerated, incl. push-provenance ratifications and the provider-quota policy question.
+
+**Status:** Stage 5 CLOSED → Stage 8 consolidated handback. Stages 6–7 remain **WAITING MANAGER / STORAGE** — NOT executed, per the hard gate.
