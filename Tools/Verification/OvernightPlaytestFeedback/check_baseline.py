@@ -10,6 +10,7 @@ from xml.sax.saxutils import escape
 import subprocess
 from collections import Counter
 from pathlib import Path
+from objective_cta_source_check import ObjectiveCtaSourceError, collect_companions, verify_objective_cta
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = "72b4efbd1c653fa2231f632a79030a83ff76f833"
@@ -246,12 +247,24 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
            + evidence(CURRICULUM, "return counter + (workPending")
            + evidence(CURRICULUM, ': ". Open the Work Plan')
            + evidence(CURRICULUM, 'case "rack.create":'))
-    buttons = evidence(VIEW, "buttons.Add(UiKit.Button(")
-    primary = [r for r in buttons if '"btn-primary"' in r[2]]
-    primary_map = len(primary) == 1 and bool(re.search(r"\(\)\s*=>\s*ui\.ShowMap\(\)", primary[0][2]))
-    report("PASS" if primary_map else "FAIL", "08 objective-primary-cta",
-           "Require exactly one primary source button invoking ui.ShowMap(); labels are evidence only. "
-           "Baseline primary invokes ui.CloseAll(); visual prominence, focus and destination behaviour remain unmeasured.", buttons)
+    try:
+        rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"), collect_companions(ROOT))
+        report("PASS", "08 objective-primary-cta",
+               "Static, lexical source-structure check (nothing compiled or run): one named Objectives map CTA "
+               "invokes ui.ShowMap(), is bound to the header row and, as far as the pinned routing text and its "
+               "pinned inputs (bound to their owning class) decide, selected only for unconfirmed Rack V2 Objective 1 "
+               "(reviewed root names include the base header; collected companion type collisions are guarded lexically); "
+               "(unpinned root members and callers and the game/teaching state are not checked); "
+               "Back to forest is the only static btn-primary source in the view class and is in the scoped "
+               "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "
+               "dynamic btn-primary/next-action application are checked. See README known limits. "
+               "Stateful Unity input, focus and rendered prominence remain NOT TESTED.", rows)
+    except ObjectiveCtaSourceError as error:
+        # Completed FAIL with the unmet predicate and any source evidence found (exit 1, never a crash).
+        report("FAIL", "08 objective-primary-cta",
+               "Source-structure contract unmet: " + str(error)
+               + ("" if error.predicate == str(error) else ". Predicate: " + " ".join(error.predicate.split())[:240])
+               + ". This is not a Unity runtime verdict.", error.rows)
 
     report("NOT-TESTABLE", "09 map-minimap-trail-consistency",
            "NOT STATICALLY TESTABLE: no demonstrated coordinate mismatch for the same confirmed rack/waypoint. Shared source/draw path is evidence, not rendered parity; unconfirmed racks are deliberately FullOnly.",
