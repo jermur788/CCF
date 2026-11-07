@@ -250,12 +250,13 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
     try:
         rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"), collect_companions(ROOT))
         report("PASS", "08 objective-primary-cta",
-               "Bounded source-structure proof: one named Objectives map CTA invokes ui.ShowMap(), "
-               "is bound to the header row and, as far as the pinned routing text and its pinned UI inputs decide, "
-               "selected only for unconfirmed Rack V2 Objective 1 (the game state they read is not checked); "
+               "Static, lexical source-structure check (nothing compiled or run): one named Objectives map CTA "
+               "invokes ui.ShowMap(), is bound to the header row and, as far as the pinned routing text and its "
+               "pinned inputs (bound to their owning class) decide, selected only for unconfirmed Rack V2 Objective 1 "
+               "(unpinned root members and callers and the game/teaching state are not checked); "
                "Back to forest is the only static btn-primary source in the view class and is in the scoped "
                "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "
-               "dynamic btn-primary/next-action application are checked. "
+               "dynamic btn-primary/next-action application are checked. See README known limits. "
                "Stateful Unity input, focus and rendered prominence remain NOT TESTED.", rows)
     except ObjectiveCtaSourceError as error:
         # Completed FAIL with the unmet predicate and any source evidence found (exit 1, never a crash).

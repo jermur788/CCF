@@ -12,7 +12,10 @@ Groups: the original 20, the #304 author's F1 (14) and F2/F3 (21) controls and
 R-IDs, 35 X-F1, 46 X-F2 and 15 benign), copied verbatim below; the #309
 RR-1/RR-2/RR-3/N-4 regression and benign controls; and the #309 repair loop 1
 groups (the #314 reviewer's cases and this loop's own, with benign edits and
-reported accepted-limit/over-rejection probes).
+reported accepted-limit/over-rejection probes); and the #320 two-guard groups: all
+654 cases of the #314 reviewer's 11 rounds (including the 47 N-1 and 10 N-2 false
+greens, which must now fail for that cause) and this repair's own N-1/N-2 variants,
+benign edits and probes.
 """
 import subprocess
 from pathlib import Path
@@ -1092,6 +1095,667 @@ def run_loop1(view, root, companions):
     return counts
 
 
+
+# =====================================================================================================
+# #320 two-guard closure (N-1 interpolation holes, N-2 owning class). First the #314 reviewer's case
+# modules my_mutations*.py, all 11 rounds: rounds 1-6 and 8-11 transcribed with ascii() (each source
+# file's sha256 is noted; evidence proves every transcribed case identical to the original), round 7 as
+# its generator. `expect` is the reviewer's: rej must be rejected, ben accepted; lim and unk probes, the
+# reviewer's 4 L-06 over-rejections and the out-of-scope W-DEP-05 are reported with their documented
+# outcome, not counted. The 47 N-1 and 10 N-2 cases must be rejected for that cause. Then this repair's
+# own variants, benign edits and probes. A counted rejection may never be a scanner crash.
+# =====================================================================================================
+CRASH = "scanner could not analyse"
+N1 = "inside an interpolation hole (N-1)"
+N2 = "(N-2"
+
+
+def r314(mid, round_name, expect, why, edits, intended=None, documented=None, transform=None):
+    return dict(id=mid, group=round_name, expect=expect, why=why, edits=list(edits), intended=intended,
+                documented=documented, transform=transform)
+
+
+r314_rounds = [
+    # my_mutations.py sha256 cba96390832b1bc76dc91c4bb9e0d5960f007e2f1cc84441917724f72b950584
+    r314('Y-RR1-01', 'my_mutations', 'rej', 'forest.name rewritten from itself (forest.name = forest.name + suffix)', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        forest.name = forest.name + "-x";')]),
+    r314('Y-RR1-02', 'my_mutations', 'rej', 'forest name built by Concat (statement not a plain literal binding)', [(VIEW, 'forest.name = "objective-back-to-forest";', 'forest.name = string.Concat("objective-", "back-to-forest");')]),
+    r314('Y-RR1-03', 'my_mutations', 'rej', 'names set through a tuple deconstruction', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        (forest.name, work.name) = ("objective-x", "objective-y");')]),
+    r314('Y-RR1-04', 'my_mutations', 'rej', 'unreviewed inline new Button appended to the header row', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        buttons.Add(new Button(() => ui.CloseAll()) { text = "Hidden" });')]),
+    r314('Y-RR1-05', 'my_mutations', 'rej', 'Back to forest disabled through the enabled argument', [(VIEW, 'Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");', 'Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), false, "btn-primary");')]),
+    r314('Y-RR1-06', 'my_mutations', 'rej', 'map made static primary via a const class argument', [(VIEW, 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());', 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap(), true, PrimaryName);'), (VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    private const string PrimaryName = "btn-primary";')]),
+    r314('Y-RR1-07', 'my_mutations', 'rej', 'second static primary in the Curriculum partial', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private Button Extra() => UiKit.Button("x", () => ui.CloseAll(), true, "btn-primary");')]),
+    r314('Y-RR1-08', 'my_mutations', 'rej', 'primary class through UiKit.Box in a partial', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private VisualElement Extra() => UiKit.Box("btn-primary");')]),
+    r314('Y-RR1-09', 'my_mutations', 'rej', 'primary class through UiKit.Add in a partial', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private Label Extra(VisualElement p) => UiKit.Add(p, "t", "btn-primary");')]),
+    r314('Y-RR1-10', 'my_mutations', 'rej', 'a second Back to forest primary placed in the scroll area', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));\n        scroll.Add(library);\n        ui.RefreshNextActionGuidance();')]),
+    r314('Y-RR1-11', 'my_mutations', 'rej', 'verbatim spelling of the class on Work Plan', [(VIEW, 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());', 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan(), true, @"btn-primary");')]),
+    r314('Y-RR1-12', 'my_mutations', 'rej', 'escaped spelling of the class on Work Plan', [(VIEW, 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());', 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan(), true, "btn\\u002dprimary");')]),
+    r314('Y-RR1-13', 'my_mutations', 'rej', 'interpolated class on Work Plan', [(VIEW, 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());', 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan(), true, $"btn-{"primary"}");')]),
+    r314('Y-RR1-14', 'my_mutations', 'rej', 'allowlist copied with Clone and edited', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        var names = (string[])GuidanceButtonNames.Clone(); names[2] = "x";')]),
+    r314('Y-RR1-15', 'my_mutations', 'rej', 'allowlist aliased by a second static field', [(ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private static readonly string[] Alias = GuidanceButtonNames;\n    private static readonly string[] GuidanceButtonNames = {')]),
+    r314('Y-RR1-16', 'my_mutations', 'rej', 'allowlist sorted in place at runtime', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        System.Array.Sort(GuidanceButtonNames);')]),
+    r314('Y-RR1-17', 'my_mutations', 'rej', 'Back to forest retargeted to ShowObjectives (still primary)', [(VIEW, 'Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");', 'Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.ShowObjectives(), true, "btn-primary");')]),
+    r314('Y-RR1-18', 'my_mutations', 'rej', 'header statement hidden behind #if', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n#if UNITY_EDITOR\n        forest.name = "objective-x";\n#endif')]),
+    r314('Y-RR1-19', 'my_mutations', 'rej', 'forest aliased by var', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        var f2 = forest; f2.name = "objective-x";')]),
+    r314('Y-RR1-20', 'my_mutations', 'rej', 'local function capturing forest', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        void Hide() => forest.SetEnabled(false);\n        Hide();')]),
+    r314('Y-RR1-21', 'my_mutations', 'rej', 'forest callback registered', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        forest.RegisterCallback<ClickEvent>(e => forest.SetEnabled(false));')]),
+    r314('Y-RR1-22', 'my_mutations', 'rej', 'this.Root used in a method', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        this.Root.SetEnabled(false);')]),
+    r314('Y-RR1-23', 'my_mutations', 'rej', 'Root restyled inside the constructor', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        Root.style.display = DisplayStyle.None;')]),
+    r314('Y-RR1-24', 'my_mutations', 'rej', 'second constructor overload', [(VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    public LearningObjectivesView() : this((ScenarioOneUiRoot)null) { }')]),
+    r314('Y-RR1-25', 'my_mutations', 'rej', 'static constructor', [(VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    static LearningObjectivesView() { }')]),
+    r314('Y-RR1-26', 'my_mutations', 'rej', 'a second class in the view file tints a button', [(VIEW, 'public sealed partial class LearningObjectivesView\n{', 'internal static class Tint { public static void Go(Button b) { b.AddToClassList("btn-primary"); } }\npublic sealed partial class LearningObjectivesView\n{')]),
+    r314('Y-RR1-27', 'my_mutations', 'rej', 'UiKit overload with default argument', [(UIKIT, 'public static VisualElement Row(VisualElement parent, params string[] classes)', 'public static Button Button(string text, Action onClick, bool enabled = true) => Button(text, onClick, enabled, "btn-" + "primary");\n\n    public static VisualElement Row(VisualElement parent, params string[] classes)')]),
+    r314('Y-RR1-28', 'my_mutations', 'rej', 'Stand map CTA primary via UiKit class param in the ctor (R02 variant, enabled false)', [(VIEW, 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());', 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap(), false, "btn-primary");')]),
+    r314('Y-RR1-29', 'my_mutations', 'rej', 'Work Plan renamed to a name outside the allowlist', [(VIEW, 'work.name = "objective-work-plan";', 'work.name = "objective-work";')]),
+    r314('Y-RR1-30', 'my_mutations', 'rej', 'extra header button given the Back to forest name', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        Button spare = UiKit.Button("Spare", () => ui.CloseAll()); spare.name = "objective-back-to-forest"; buttons.Add(spare);')]),
+    r314('Y-RR1-31', 'my_mutations', 'rej', 'header button class supplied through params array', [(VIEW, 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());', 'Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan(), true, new[] { "btn-primary" });')]),
+    r314('Y-RR1-32', 'my_mutations', 'rej', 'map CTA primary via named argument', [(VIEW, 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());', 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap(), classes: "btn-primary");')]),
+    r314('Y-RR1-33', 'my_mutations', 'rej', 'nameof(forest) used after attach', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        _ = nameof(forest);')]),
+    r314('Y-RR1-34', 'my_mutations', 'rej', 'foreach over the row children in the ctor', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        foreach (var child in buttons.Children()) child.SetEnabled(false);')]),
+    r314('Y-RR1-35', 'my_mutations', 'rej', 'ui field reassigned through this', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        this.ui = null;')]),
+    r314('Y-RR1-36', 'my_mutations', 'rej', 'map CTA primary restored from another view-class method via ui.RootElement', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        ui.RootElement.Q<Button>("objective-" + "primary-cta").AddToClassList("btn-" + "primary");')]),
+    r314('Y-RR2-01', 'my_mutations', 'rej', 'this.guidanceScope = null in ShowObjectives', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        this.guidanceScope = null;')]),
+    r314('Y-RR2-02', 'my_mutations', 'rej', 'guidanceCandidate property wrapper', [(ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private Button Cand { get => guidanceCandidate; set => guidanceCandidate = value; }\n    private static readonly string[] GuidanceButtonNames = {')]),
+    r314('Y-RR2-03', 'my_mutations', 'rej', 'Interlocked.Exchange(ref this.guidanceCandidate)', [(ROOT, 'public void CloseAll()\n    {\n        CloseHelp();', 'public void CloseAll()\n    {\n        CloseHelp();\n        System.Threading.Interlocked.Exchange(ref this.guidanceCandidate, null);')]),
+    r314('Y-RR2-04', 'my_mutations', 'rej', 'helpClosedFrame += 1 outside CloseHelp', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        helpClosedFrame += 1;')]),
+    r314('Y-RR2-05', 'my_mutations', 'rej', 'helpClosedFrame++ outside CloseHelp', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        helpClosedFrame++;')]),
+    r314('Y-RR2-06', 'my_mutations', 'rej', 'dead first guard: || true', [(ROOT, 'if (learning == null || map == null || workPlan == null || manager == null) return;', 'if (learning == null || map == null || workPlan == null || manager == null || true) return;')]),
+    r314('Y-RR2-07', 'my_mutations', 'rej', 'ClearNextAction also nulls the candidate', [(ROOT, 'nextBadge.RemoveFromHierarchy();', 'nextBadge.RemoveFromHierarchy();\n        guidanceCandidate = null;')]),
+    r314('Y-RR2-08', 'my_mutations', 'rej', 'screen retargeted inside TryShowReviewYear (count unchanged)', [(ROOT, 'screen = UiScreen.Review;\n        CloseHelp();', 'screen = UiScreen.None;\n        CloseHelp();')]),
+    r314('Y-RR2-09', 'my_mutations', 'rej', 'tuple swap of guidance fields in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (guidanceCandidate, nextAction) = (nextAction, guidanceCandidate);')]),
+    r314('Y-RR2-10', 'my_mutations', 'rej', 'guidanceScope declared again as a local in another method (shadow)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        VisualElement guidanceScope = null; _ = guidanceScope;')]),
+    r314('Y-RR2-11', 'my_mutations', 'rej', 'guidancePrimaries replaced by reflection-free new dictionary assignment', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        guidancePrimaries.Clear();\n        guidancePrimaries.Add(null, false);')]),
+    r314('Y-RR2-12', 'my_mutations', 'rej', 'ref local aliasing helpClosedFrame', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        ref int hf = ref helpClosedFrame; hf = 0;')]),
+    r314('Y-RR2-13', 'my_mutations', 'rej', 'out-style aliasing via local function writing helpClosedFrame', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        void Reset() { helpClosedFrame = -1; }\n        Reset();')]),
+    r314('Y-RR2-14', 'my_mutations', 'rej', 'nameof used as string key for guarded state (reflection prep)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        _ = nameof(guidanceCandidate);')]),
+    r314('Y-RR2-15', 'my_mutations', 'rej', 'target literal swapped between two pinned write sites (count unchanged)', [(ROOT, 'target = objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-approve";', 'target = objectives ? "objective-back-to-forest" : onMap ? "map-work-plan" : "workplan-approve";')]),
+    r314('Y-RR2-16', 'my_mutations', 'rej', 'scope condition flipped (screen == Objectives ? map.Root : learning.Root)', [(ROOT, 'screen == UiScreen.Objectives ? learning.Root : screen == UiScreen.Map ? map.Root', 'screen == UiScreen.Objectives ? map.Root : screen == UiScreen.Map ? learning.Root')]),
+    r314('Y-RR2-17', 'my_mutations', 'rej', 'ApplyNextActionGuidance suspended flag forced', [(ROOT, 'bool suspended = manager == null ||', 'bool suspended = true || manager == null ||')]),
+    r314('Y-RR3-01', 'my_mutations', 'rej', '[Conditional] on ClearNextAction', [(ROOT, 'private void ClearNextAction()', '[System.Diagnostics.Conditional("UNITY_EDITOR")]\n    private void ClearNextAction()')]),
+    r314('Y-RR3-02', 'my_mutations', 'rej', '[Conditional] on GuidanceVisible-like new helper called from Apply? (unpinned attr on LateUpdate)', [(ROOT, 'private void LateUpdate()', '[System.Diagnostics.Conditional("UNITY_EDITOR")]\n    private void LateUpdate()')]),
+    r314('Y-RR3-03', 'my_mutations', 'rej', 'local function shadows ApplyNextActionGuidance in Start', [(ROOT, 'private void Start()\n    {', 'private void Start()\n    {\n        void ApplyNextActionGuidance() { }')]),
+    r314('Y-RR3-04', 'my_mutations', 'rej', 'late removal of the CTA primary after Apply in LateUpdate', [(ROOT, 'ApplyNextActionGuidance();\n        if (competitors == null || manager == null) return;', 'ApplyNextActionGuidance();\n        nextAction?.RemoveFromClassList("btn-primary");\n        if (competitors == null || manager == null) return;')]),
+    r314('Y-RR3-05', 'my_mutations', 'rej', 'row cleared at the end of the ctor', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        buttons.Clear();')]),
+    r314('Y-RR3-06', 'my_mutations', 'rej', 'row disabled', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        buttons.SetEnabled(false);')]),
+    r314('Y-RR3-07', 'my_mutations', 'rej', 'row indexer rename', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        buttons[0].name = "objective-x";')]),
+    r314('Y-RR3-08', 'my_mutations', 'rej', 'caller moved to BuildTopic', [(VIEW, 'ui.RefreshNextActionGuidance();', ''), (VIEW, 'UiKit.Add(parent, topic.Steps[0].Id == "clear.read"', 'ui.RefreshNextActionGuidance();\n        UiKit.Add(parent, topic.Steps[0].Id == "clear.read"')]),
+    r314('Y-RR3-09', 'my_mutations', 'rej', 'caller inside zero-iteration foreach', [(VIEW, 'ui.RefreshNextActionGuidance();', 'foreach (var skipped in System.Array.Empty<int>()) ui.RefreshNextActionGuidance();')]),
+    r314('Y-RR3-10', 'my_mutations', 'rej', 'caller inside while(false)-like if on a constant', [(VIEW, 'ui.RefreshNextActionGuidance();', 'if (position < -1f) ui.RefreshNextActionGuidance();')]),
+    r314('Y-RR3-11', 'my_mutations', 'lim', 'caller preceded by infinite loop (disclosed L-03 class)', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(library);\n        for (;;) { if (force) break; }\n        ui.RefreshNextActionGuidance();')], documented='rejected'),
+    r314('Y-RR3-12', 'my_mutations', 'rej', 'duplicate Refresh(bool) under #if', [(VIEW, '    public void Refresh(bool force)\n    {', '#if UNITY_EDITOR\n    public void Refresh(bool force) { }\n#else\n    public void Refresh(bool force)\n    {'), (VIEW, 'scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));\n    }', 'scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));\n    }\n#endif')]),
+    r314('Y-RR3-13', 'my_mutations', 'rej', 'view Refresh early return before caller via expression', [(VIEW, 'float position = scroll.scrollOffset.y;', 'if (scroll == null) return;\n        float position = scroll.scrollOffset.y;')]),
+    r314('Y-RR3-14', 'my_mutations', 'rej', 'SetScreen no longer refreshes Objectives (pinned)', [(ROOT, 'else if (screen == UiScreen.Objectives)\n            learning.Refresh(true);', 'else if (screen == UiScreen.Objectives)\n            learning.Refresh(false);')]),
+    r314('Y-RR3-15', 'my_mutations', 'rej', 'LateUpdate apply wrapped in try/catch swallowing nothing but moved after return', [(ROOT, 'ApplyNextActionGuidance();\n        if (competitors == null || manager == null) return;', 'if (competitors == null || manager == null) return;\n        ApplyNextActionGuidance();')]),
+    r314('Y-RR3-16', 'my_mutations', 'rej', 'ShowMap pinned: SetScreen(None)', [(ROOT, 'manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Map);\n    }', 'manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.None);\n    }')]),
+    r314('Y-RR3-17', 'my_mutations', 'lim', 'ShowObjectives opens Map instead (unpinned routing; N-2 class)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Map);')], documented='accepted'),
+    r314('Y-RR3-18', 'my_mutations', 'lim', 'CloseAll no longer closes Objectives (unpinned routing; N-2 class)', [(ROOT, 'public void CloseAll()\n    {\n        CloseHelp();\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.None);', 'public void CloseAll()\n    {\n        CloseHelp();\n        manager.OpenWorkPlan(false);')], documented='accepted'),
+    r314('Y-RR4-01', 'my_mutations', 'rej', 'allowlist element is a non-literal expression', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-primary-cta", "objective-work-plan", SomeName(),'), (ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private static string SomeName() => "objective-back-to-forest";\n    private static readonly string[] GuidanceButtonNames = {')]),
+    r314('Y-RR4-02', 'my_mutations', 'rej', 'allowlist missing the map CTA', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-work-plan", "objective-back-to-forest",')]),
+    r314('Y-RR4-03', 'my_mutations', 'rej', 'allowlist declared twice', [(ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private static readonly string[] GuidanceButtonNames = { "x" };\n    private static readonly string[] GuidanceButtonNames = {')]),
+    r314('Y-RR4-04', 'my_mutations', 'rej', 'allowlist entry with interpolation', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-primary-cta", "objective-work-plan", $"objective-{"back"}-to-forest",')]),
+    r314('Y-RR4-05', 'my_mutations', 'rej', 'allowlist duplicate (ordinary + escaped spelling)', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest", "objective\\u002dback-to-forest",')]),
+    r314('Y-RR4-06', 'my_mutations', 'rej', 'allowlist missing forest AND forest has wrong name', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-primary-cta", "objective-work-plan",'), (VIEW, 'forest.name = "objective-back-to-forest";', 'forest.name = "objective-forest";')]),
+    r314('Y-RR4-07', 'my_mutations', 'rej', 'unterminated block comment in the root', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        /* oops')]),
+    r314('Y-RR4-08', 'my_mutations', 'rej', 'unbalanced brace in the view ctor', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        {')]),
+    r314('Y-RR4-09', 'my_mutations', 'rej', 'constructor missing entirely (renamed)', [(VIEW, 'public LearningObjectivesView(ScenarioOneUiRoot ui)', 'public LearningObjectivesViewX(ScenarioOneUiRoot ui)')]),
+    r314('Y-RR4-10', 'my_mutations', 'rej', 'empty-ish companion: UiKit.cs deleted from companions', [(UIKIT, None, '')]),
+    r314('Y-N-01', 'my_mutations', 'rej', 'interpolation: braces in nested string inside a hole, then class API', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        _ = $"{(done.Count > 0 ? "}" : "{")}"; Root.SetEnabled(false);')]),
+    r314('Y-N-02', 'my_mutations', 'rej', 'interpolation: escaped braces then hidden call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = $"{{}}{1}"; Root.SetEnabled(false); }')]),
+    r314('Y-N-03', 'my_mutations', 'rej', 'interpolation: nested interpolated string in a hole + trailing call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = $"a{$"b{1}c"}d"; Root.SetEnabled(false); }')]),
+    r314('Y-N-04', 'my_mutations', 'rej', 'verbatim interpolated with doubled quotes in hole then call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = $@"x{(true ? ""a"" : ""b"")}y"; Root.SetEnabled(false); }')]),
+    r314('Y-N-05', 'my_mutations', 'rej', 'format clause with colon then hidden call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = $"{1:D3}"; Root.SetEnabled(false); }')]),
+    r314('Y-N-06', 'my_mutations', 'rej', 'inactive #if region with unbalanced apostrophe prose then real call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', "private int teachingWorldVersion = -1;\n#if CCF_NEVER\n    // it's dead text\n    don't parse this\n#endif\n    private void Sneak() { Root.SetEnabled(false); }")]),
+    r314('Y-N-07', 'my_mutations', 'unk', 'inactive #if region containing a class-list call (conservative: treated as code)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n#if CCF_NEVER\n    private void Tint(Button b) { b.AddToClassList("x"); }\n#endif')], documented='rejected'),
+    r314('Y-N-08', 'my_mutations', 'ben', '#region text with quotes and slashes', [(L1_SEQ, 'private int teachingWorldVersion = -1;', '#region it\'s "quoted" // not a comment\n    private int teachingWorldVersion = -1;\n    #endregion')]),
+    r314('Y-N-09', 'my_mutations', 'rej', 'lone CR ends a // comment: hidden call after it', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\r Root.SetEnabled(false); }')]),
+    r314('Y-N-10', 'my_mutations', 'rej', 'U+2028 ends a // comment: hidden call after it', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\u2028 Root.SetEnabled(false); }')]),
+    r314('Y-N-11', 'my_mutations', 'rej', "zero-width joiner inside the 'forest' identifier (Cf ignored by the C# compiler)", [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        fo\u200drest.name += "-x";')]),
+    r314('Y-N-12', 'my_mutations', 'rej', 'zero-width joiner inside a partial class name hides the companion', [(UI + 'LearningObjectivesView.Cf.cs', None, 'public sealed partial class Learning\u200dObjectivesView\n{\n    private void Sneak() => Root.SetEnabled(false);\n}\n')]),
+    r314('Y-N-13', 'my_mutations', 'rej', 'NEL (U+0085) ends a // comment: hidden call after it', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\x85 Root.SetEnabled(false); }')]),
+    r314('Y-N-14', 'my_mutations', 'rej', 'Cf char inside GuidanceButtonNames reference outside the pins', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Guidance\u200dButtonNames[2] = "objective-none";')]),
+    r314('Y-N-15', 'my_mutations', 'rej', 'Cf char inside guarded helpClosedFrame write', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        helpClosed\u200dFrame = -1;')]),
+    r314('Y-N-16', 'my_mutations', 'ben', 'BOM / NBSP between tokens in the header (benign whitespace)', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\xa0')]),
+    r314('Y-N-17', 'my_mutations', 'ben', 'unicode letter identifiers elsewhere (benign)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int gr\xf6\xdfe = 1;')]),
+    r314('Y-N-18', 'my_mutations', 'rej', 'char literal containing a quote then code', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        char q = \'"\'; Root.SetEnabled(false);')]),
+    r314('Y-N-19', 'my_mutations', 'rej', 'string containing // then hidden call', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        _ = "http://x"; Root.SetEnabled(false);')]),
+    r314('Y-N-20', 'my_mutations', 'rej', 'attribute with string containing bracket on a pinned method', [(ROOT, 'private void ClearNextAction()', '[UnityEngine.Scripting.Preserve]\n    private void ClearNextAction()')]),
+    r314('Y-N-21', 'my_mutations', 'lim', 'global-namespace type hijacks Button in a new file that mentions no hint (documented not-claimed class)', [(UI + 'Hijack.cs', None, 'public sealed class Button : UnityEngine.UIElements.Button { }\n')], documented='accepted'),
+    r314('Y-N-22', 'my_mutations', 'lim', 'non-companion file disables the map CTA via constructed name (disclosed L-01)', [(UI + 'Sneaky.cs', None, 'using UnityEngine; using UnityEngine.UIElements;\npublic sealed class Sneaky : MonoBehaviour { private void Update() { var d = FindAnyObjectByType<UIDocument>(); d.rootVisualElement.Q<Button>("objective-" + "primary-cta")?.SetEnabled(false); } }\n')], documented='accepted'),
+    r314('Y-N-23', 'my_mutations', 'lim', 'non-companion file re-promotes Work Plan via constructed names (class re-add from outside)', [(UI + 'Sneaky.cs', None, 'using UnityEngine; using UnityEngine.UIElements;\npublic sealed class Sneaky : MonoBehaviour { private void Update() { var d = FindAnyObjectByType<UIDocument>(); d.rootVisualElement.Q<Button>("objective-" + "work-plan")?.AddToClassList("btn-" + "primary"); } }\n')], documented='accepted'),
+    r314('Y-N-24', 'my_mutations', 'lim', 'root unpinned method disables all buttons of its document (disclosed L-02)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        document.rootVisualElement.Query<Button>().ForEach(b => b.SetEnabled(false));')], documented='accepted'),
+    r314('Y-N-25', 'my_mutations', 'lim', 'root unpinned method hides the CTA by constructed name (disclosed L-01/L-02 class)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        document.rootVisualElement.Q<Button>("objective-" + "primary-cta").style.display = DisplayStyle.None;')], documented='accepted'),
+    r314('Y-B-01', 'my_mutations', 'ben', 'new unrelated root method querying another label', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public Label FindTitle() => RootElement?.Q<Label>("some-title");\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('Y-B-02', 'my_mutations', 'ben', 'new static readonly field in the view', [(VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    private static readonly string[] Spare = { "a", "b" };')]),
+    r314('Y-B-03', 'my_mutations', 'ben', 'long lesson text edit in Curriculum partial', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private const string ExtraNote = "Mark rack entrance trees with the spray marker; do not mark Crop Trees.";')]),
+    r314('Y-B-04', 'my_mutations', 'ben', 'extra using directive in root and view', [(ROOT, 'using UnityEngine.InputSystem;', 'using UnityEngine.InputSystem;\nusing System.Text;'), (VIEW, 'using UnityEngine.UIElements;\n\n// Optional learning progress', 'using UnityEngine.UIElements;\nusing System.Text;\n\n// Optional learning progress')]),
+    r314('Y-B-05', 'my_mutations', 'ben', 'whitespace/tab and trailing-space changes inside pinned ClearNextAction', [(ROOT, 'nextAction.RemoveFromClassList("next-action");', 'nextAction.RemoveFromClassList( "next-action" ) ;   ')]),
+    r314('Y-B-06', 'my_mutations', 'ben', 'XML doc comment with quotes before a root method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', '/// <summary>Opens the "objectives" screen; don\'t cache.</summary>\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('Y-B-07', 'my_mutations', 'ben', '[SerializeField] field in root', [(ROOT, 'public sealed class ScenarioOneUiRoot : MonoBehaviour\n{', 'public sealed class ScenarioOneUiRoot : MonoBehaviour\n{\n    [SerializeField] private float spareDelay = 0.25f;')]),
+    r314('Y-B-08', 'my_mutations', 'ben', 'expression-bodied root property reading learning', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public bool ObjectivesOpen => learning != null && screen == UiScreen.Objectives;\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('Y-B-09', 'my_mutations', 'unk', 'root method passing learning to a helper (README documents this as rejected)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Describe(learning);'), (ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private static void Describe(LearningObjectivesView v) { }\n    private static readonly string[] GuidanceButtonNames = {')], documented='rejected'),
+    r314('Y-B-10', 'my_mutations', 'unk', 'string with btn-primary text in a log call in the view (README: any btn-primary literal counts)', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        Debug.Log("btn-primary is only used by Back to forest");')], documented='rejected'),
+    r314('Y-B-11', 'my_mutations', 'unk', 'new added unrelated view-class method using Q<> (README documents Q as banned)', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private Label Find() => scroll.Q<Label>("x");')], documented='rejected'),
+    r314('Y-B-12', 'my_mutations', 'unk', 'new editor test mentioning header name (companion rule)', [(UI + 'Editor/ObjectiveTests.cs', None, 'public static class ObjectiveNames { public const string Cta = "objective-primary-cta"; }\n')], documented='rejected'),
+    r314('Y-B-13', 'my_mutations', 'ben', 'unrelated new MonoBehaviour that mentions UiKit', [(UI + 'NewPanelView.cs', None, 'using UnityEngine.UIElements;\npublic sealed class NewPanelView { public NewPanelView() { var b = UiKit.Button("Go", () => { }, true, "btn-primary"); } }\n')]),
+    r314('Y-B-14', 'my_mutations', 'ben', 'pinned Refresh: comment block inserted mid-body', [(ROOT, 'string target = null;', '/* choose a target */ string target = null; // none yet')]),
+    r314('Y-B-15', 'my_mutations', 'ben', 'header: region and extra comment lines', [(VIEW, 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());', '// the stand map\n        Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());')]),
+    r314('Y-B-16', 'my_mutations', 'ben', 'allowlist extended with an extra name and reordered', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-back-to-forest", "objective-primary-cta", "objective-work-plan", "objective-extra",')]),
+    r314('Y-B-17', 'my_mutations', 'ben', 'CRLF line endings in every checked file', [], transform='crlf'),
+    r314('Y-B-18', 'my_mutations', 'ben', 'new Objectives header extra button, non-primary, new caption', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        Button help2 = UiKit.Button("Help [F1]", () => ui.CloseAll()); help2.name = "objective-help"; buttons.Add(help2);')]),
+    # my_mutations2.py sha256 87a67615d7c5bbb6e809306e562af513c5b38eabf10c463f3445b5419ec75d94
+    r314('Z-RR1-07', 'my_mutations2', 'rej', 'second static primary in the Curriculum partial (qualified types)', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private UnityEngine.UIElements.Button Extra() => UiKit.Button("x", () => ui.CloseAll(), true, "btn-primary");')]),
+    r314('Z-RR1-08', 'my_mutations2', 'rej', 'primary class through UiKit.Box in a partial (qualified)', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private UnityEngine.UIElements.VisualElement Extra() => UiKit.Box("btn-primary");')]),
+    r314('Z-RR1-09', 'my_mutations2', 'rej', 'primary class through UiKit.Add in a partial (qualified)', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private UnityEngine.UIElements.Label Extra(UnityEngine.UIElements.VisualElement p) => UiKit.Add(p, "t", "btn-primary");')]),
+    r314('Z-N-04', 'my_mutations2', 'rej', 'verbatim interpolated with nested string in hole then call (valid C#)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = $@"x{(true ? "a" : "b")}y"; Root.SetEnabled(false); }')]),
+    r314('Z-B-11', 'my_mutations2', 'unk', 'new view-class method using Q<> (README documents Q as banned)', [(L1_CUR, 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private UnityEngine.UIElements.Label Find() => scroll.Q<UnityEngine.UIElements.Label>("x");')], documented='rejected'),
+    r314('Z-RR2-T-help', 'my_mutations2', 'rej', 'tuple deconstruction writes help in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (help, workPlanWasOpen) = (null, false);')]),
+    r314('Z-RR2-T-screen', 'my_mutations2', 'rej', 'tuple deconstruction writes screen in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (screen, workPlanWasOpen) = (UiScreen.None, false);')]),
+    r314('Z-RR2-T-rackLayout', 'my_mutations2', 'rej', 'tuple deconstruction writes rackLayout in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (rackLayout, workPlanWasOpen) = (null, false);')]),
+    r314('Z-RR2-T-map', 'my_mutations2', 'rej', 'tuple deconstruction writes map in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (map, workPlanWasOpen) = (null, false);')]),
+    r314('Z-RR2-T-workPlan', 'my_mutations2', 'rej', 'tuple deconstruction writes workPlan in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (workPlan, workPlanWasOpen) = (null, false);')]),
+    r314('Z-RR2-T-review', 'my_mutations2', 'rej', 'tuple deconstruction writes review in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (review, workPlanWasOpen) = (null, false);')]),
+    r314('Z-RR2-C-screen', 'my_mutations2', 'rej', 'count-compensated: TryShowReviewYear write removed, ShowObjectives retargets screen to Map', [(ROOT, 'screen = UiScreen.Review;\n        CloseHelp();', 'CloseHelp();'), (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);\n        screen = UiScreen.Map;')]),
+    r314('Z-RR2-C-help', 'my_mutations2', 'rej', "count-compensated: Start's help initialiser replaced by null (one write, value changed)", [(ROOT, 'help = new MenuHelpView(this);', 'help = null;')]),
+    r314('Z-RR2-P-help', 'my_mutations2', 'rej', 'help gets a property alias writer (property setter)', [(ROOT, 'private static readonly string[] GuidanceButtonNames = {', 'private MenuHelpView HelpAlias { set { help = value; } }\n    private static readonly string[] GuidanceButtonNames = {')]),
+    r314('Z-N-CR-region', 'my_mutations2', 'rej', 'lone CR ends a #region line: hidden call after it', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    #region x\r    private void Sneak() { Root.SetEnabled(false); }\n    #endregion')]),
+    r314('Z-N-PS', 'my_mutations2', 'rej', 'U+2029 ends a // comment: hidden call after it', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\u2029 Root.SetEnabled(false); }')]),
+    r314('Z-N-CR-root', 'my_mutations2', 'rej', 'lone CR hides a guarded-state write in the root', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        // reset\r guidanceCandidate = null;')]),
+    r314('Z-N-CF-buttons', 'my_mutations2', 'rej', 'ZWJ identifier clears the header row in the ctor', [(VIEW, 'modal.Add(header);', 'modal.Add(header);\n        bu\u200dttons.Clear();')]),
+    r314('Z-N-CF-secondprimary', 'my_mutations2', 'rej', 'second STATIC PRIMARY in the view via ZWJ-split UiKit and fragment class (N-1 break)', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(Ui\u200dKit.Button("Close", () => ui.CloseAll(), true, "btn-" + "primary"));\n        scroll.Add(library);\n        ui.RefreshNextActionGuidance();')]),
+    r314('Z-N-CF-secondprimary-ctl', 'my_mutations2', 'rej', 'control: same second primary WITHOUT the ZWJ', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(UiKit.Button("Close", () => ui.CloseAll(), true, "btn-" + "primary"));\n        scroll.Add(library);\n        ui.RefreshNextActionGuidance();')]),
+    r314('Z-N-CF-allowlist-clear', 'my_mutations2', 'rej', 'ZWJ-split Array.Clear of the allowlist', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        System.Array.Clear(Guidance\u200bButtonNames, 0, 3);')]),
+    r314('Z-N-CF-ctl-allowlist', 'my_mutations2', 'rej', 'control: Array.Clear of the allowlist WITHOUT ZWJ', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        System.Array.Clear(GuidanceButtonNames, 0, 3);')]),
+    r314('Z-N-SHY', 'my_mutations2', 'rej', 'soft hyphen (Cf) in forest identifier', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        for\xadest.name += "-x";')]),
+    r314('Z-N-CF-ctl-forest', 'my_mutations2', 'rej', 'control: forest.name += without Cf', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        forest.name += "-x";')]),
+    r314('Z-N-NBSP-ctl', 'my_mutations2', 'ben', 'control: NBSP inside identifier is a different (undeclared) identifier -> not valid; skip', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        _ = 1;')]),
+    r314('Z-N-else', 'my_mutations2', 'rej', '#if/#else with the hostile code only in the #else branch', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n#if UNITY_EDITOR\n    private void A() { }\n#else\n    private void A() { Root.SetEnabled(false); }\n#endif')]),
+    r314('Z-N-nested-interp-view', 'my_mutations2', 'unk', 'benign nested-literal interpolation in LearningObjectivesView.cs (documented O-01)', [(VIEW, 'public void ReloadProgress()\n    {', 'public void ReloadProgress()\n    {\n        _ = $"{(done.Count > 0 ? "yes" : "no")}";')], documented='rejected'),
+    r314('Z-N-nested-interp-seq', 'my_mutations2', 'ben', 'benign nested-literal interpolation in a partial (precise lexer)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private string Note() => $"{(done.Count > 0 ? "yes" : "no")} / {$"{done.Count}"}";')]),
+    r314('Z-N-verbatim-hash', 'my_mutations2', 'unk', 'verbatim string with a line starting # (preprocessor-like)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private string Note() => @"line1\n#not a directive";')], documented='rejected'),
+    r314('Z-N-cdata', 'my_mutations2', 'rej', 'string ending in backslash then code: "a\\\\" then call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { _ = "a\\\\"; Root.SetEnabled(false); }')]),
+    r314('Z-N-chars', 'my_mutations2', 'rej', 'char literals of quote/brace/backslash then hidden call', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { char a = \'"\', b = \'{\', c = \'\\\\\', d = \'\\\'\'; Root.SetEnabled(false); }')]),
+    r314('Z-RR4-12', 'my_mutations2', 'rej', 'allowlist contains null', [(ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest", null,')]),
+    r314('Z-RR4-13', 'my_mutations2', 'unk', 'allowlist behind #if with an unrelated static primary also present', [(ROOT, 'private static readonly string[] GuidanceButtonNames = {', '#if UNITY_EDITOR\n    private static readonly string[] Unused = { "z" };\n#endif\n    private static readonly string[] GuidanceButtonNames = {')], documented='accepted'),
+    r314('Z-B-20', 'my_mutations2', 'unk', 'Back to forest caption copy tweak (plausible product text edit)', [(VIEW, '"Back to forest [O / Esc]"', '"Back to the forest [O / Esc]"')], documented='rejected'),
+    r314('Z-B-21', 'my_mutations2', 'unk', 'Work Plan caption copy tweak', [(VIEW, '"Work Plan [Tab]"', '"Open Work Plan [Tab]"')], documented='rejected'),
+    r314('Z-B-22', 'my_mutations2', 'unk', 'an unrelated literal tweak inside pinned Refresh (reason text)', [(ROOT, 'reason = "Two rack questions are open; keep or dismiss them before continuing.";', 'reason = "Two rack questions are open; keep or dismiss both before continuing.";')], documented='rejected'),
+    r314('Z-B-23', 'my_mutations2', 'ben', 'unrelated new method in root using document.rootVisualElement and SetEnabled', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void Freeze(bool on) { if (document != null) document.rootVisualElement.SetEnabled(!on); }\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('Z-B-24', 'my_mutations2', 'ben', 'header extra button with enabled=false', [(VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        Button soon = UiKit.Button("Soon", () => ui.CloseAll(), false); soon.name = "objective-soon"; buttons.Add(soon);')]),
+    # my_mutations3.py sha256 368ae70c28d5d9a6852ca40f0936860d65b703f5258b1d7ed43e8b94dfeddf56
+    r314('W-DEP-01', 'my_mutations3', 'rej', 'NeedsAnnualReview forced true: pinned chain always diverts to the annual-review target (X-F2-12 effect)', [(ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => true;')]),
+    r314('W-DEP-02', 'my_mutations3', 'rej', 'TeachingRacks forced false: Objective 1 never offered a guidance target (X-F2-14 effect)', [(VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => false;')]),
+    r314('W-DEP-03', 'my_mutations3', 'rej', 'CurrentTopicIndex forced to 1', [(VIEW, 'public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());', 'public int CurrentTopicIndex => 1;')]),
+    r314('W-DEP-04', 'my_mutations3', 'rej', 'NeedsAnnualReview routed through a helper returning true', [(ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => Always();\n    private static bool Always() => true;')]),
+    r314('W-DEP-05', 'my_mutations3', 'lim', 'Objective guidance spot: ReloadProgress marks everything done (lesson stage jumps)', [(VIEW, 'foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);', 'foreach (string id in StepIds) done.Add(id);')], documented='accepted'),
+    # my_mutations4.py sha256 51468d76c3117e721e158b54872941a9d54fea182b0ee69d69d4cba42113cb93
+    r314('V-L06-1', 'my_mutations4', 'lim', 'companion aliases ui.Learning in a local then restyles every Objectives button (disclosed L-06)', [(UI + 'Alias.cs', None, 'using UnityEngine.UIElements;\npublic sealed class Alias { public void Go(ScenarioOneUiRoot ui) { var v = ui.Learning; v.Root.Query<Button>().ForEach(b => b.AddToClassList("btn-primary")); } }\n')], documented='rejected'),
+    r314('V-L06-2', 'my_mutations4', 'lim', 'existing companion (WalkingHudView) gets the same alias route', [(UI + 'WalkingHudView.cs', 'ObjectiveWidget.Apply(ui.Learning.HudModel());', 'ObjectiveWidget.Apply(ui.Learning.HudModel());\n            LearningObjectivesView lv = ui.Learning; lv.Root.Query<Button>().ForEach(b => b.SetEnabled(false));')], documented='rejected'),
+    r314('V-L01-1', 'my_mutations4', 'lim', 'companion re-primaries every button of the document (no header names, no Learning.Root)', [(UI + 'Alias2.cs', None, 'using UnityEngine.UIElements;\npublic sealed class Alias2 { public void Go(ScenarioOneUiRoot ui) { ui.RootElement.Query<Button>().ForEach(b => b.AddToClassList("btn-primary")); } }\n')], documented='accepted'),
+    # my_mutations5.py sha256 74aa34b0a0e96dd33c013085a693387060b16d23226d8a4228eb3684fded7bc0
+    r314('U-RR2-T-manager', 'my_mutations5', 'rej', 'tuple deconstruction writes manager (null) in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (manager, workPlanWasOpen) = (null, false);')]),
+    r314('U-RR2-T-learning-ctl', 'my_mutations5', 'rej', 'control: tuple deconstruction writes learning (caught by the alias rule)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (learning, workPlanWasOpen) = (null, false);')]),
+    r314('U-RR2-T-helpClosedFrame-ctl', 'my_mutations5', 'rej', 'control: tuple deconstruction writes helpClosedFrame (guarded name)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (helpClosedFrame, workPlanWasOpen) = (-1, false);')]),
+    # my_mutations6.py sha256 039fb2eb252aaa769b652c09dee7295131023e0c1cd6df75f697b446d1527922
+    r314('V-L03', 'my_mutations6', 'lim', 'non-terminating do/while before the Objectives caller (disclosed L-03)', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(library);\n        do { } while (force || !force);\n        ui.RefreshNextActionGuidance();')], documented='accepted'),
+    r314('V-L04', 'my_mutations6', 'lim', 'reflection writes guarded state by string name (disclosed L-04)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        typeof(ScenarioOneUiRoot).GetField("guidance" + "Candidate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(this, null);')], documented='accepted'),
+    r314('V-L07', 'my_mutations6', 'lim', 'exception thrown by an expression before the Objectives caller (disclosed L-07)', [(VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(library);\n        _ = Boom(force);\n        ui.RefreshNextActionGuidance();'), (VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    private static int Boom(bool f) { if (f) throw new System.InvalidOperationException(); return 0; }')], documented='accepted'),
+    # my_mutations8.py sha256 b043d308191191284333e3450922cfab3985acce73c24a7a88446503dd53becb
+    r314('A8-D1-help-prop-decoy', 'my_mutations8', 'rej', 'help becomes a property with a no-op setter (always null); the reviewed field text survives once in a nested decoy class', [(ROOT, 'private MenuHelpView help;', 'private MenuHelpView help { get => null; set { } }\n    private sealed class ZDecoyHelp { private MenuHelpView help; }')], intended='(N-2 owning class)'),
+    r314('A8-D2-screen-prop-decoy', 'my_mutations8', 'rej', 'screen becomes a property that always reads Map (no-op setter); the reviewed initialiser survives once in a nested decoy class', [(ROOT, 'private UiScreen screen = UiScreen.None;', 'private UiScreen screen { get => UiScreen.Map; set { } }\n    private sealed class ZDecoyScreen { private UiScreen screen = UiScreen.None; }')], intended='(N-2 owning class)'),
+    r314('A8-D3-manager-prop-decoy', 'my_mutations8', 'rej', 'manager becomes a property with a no-op setter; reviewed declaration survives once in a nested decoy', [(ROOT, 'private ScenarioOneManager manager;', 'private ScenarioOneManager manager { get => null; set { } }\n    private sealed class ZDecoyMgr { private ScenarioOneManager manager; }')], intended='(N-2 owning class)'),
+    r314('A8-D4-nar-decoy', 'my_mutations8', 'rej', 'NeedsAnnualReview forced true; the reviewed expression survives once in a nested decoy class with its own manager field', [(ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => true;\n    private sealed class ZDecoyNar { internal ScenarioOneManager manager; public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen; }')], intended='(N-2 owning class)'),
+    r314('A8-D5-teaching-decoy', 'my_mutations8', 'rej', 'TeachingRacks forced true; both reviewed members survive once in a nested decoy class of the view', [(VIEW, 'public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());', 'public int CurrentTopicIndex => 0;'), (VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => true;\n    private sealed class ZDecoyTeach { private static ScenarioOneTeachingSequence.Facts TeachingFacts() => null; public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts()); public bool TeachingRacks => CurrentTopicIndex == 0; }')], intended='(N-2 owning class)'),
+    r314('A8-D5b-teaching-decoy-simple', 'my_mutations8', 'rej', 'TeachingRacks forced true; only the TeachingRacks text survives in a nested decoy (CurrentTopicIndex stays real)', [(VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => true;\n    private sealed class ZDecoyTeach2 { public int CurrentTopicIndex => 0; public bool TeachingRacks => CurrentTopicIndex == 0; }')], intended='(N-2 owning class)'),
+    r314('A8-D5c-teaching-decoy-ctl', 'my_mutations8', 'rej', 'control for D5b: TeachingRacks forced true and NO decoy', [(VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => true;')]),
+    r314('A8-D6-ctor-count', 'my_mutations8', 'unk', 'decoy nested class declares a second LearningObjectivesView-like text (sanity: nested class with a field named Root)', [(VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => CurrentTopicIndex == 0;\n    private sealed class ZNest { public int Root; }')], documented='rejected'),
+    r314('A8-S-reorder', 'my_mutations8', 'lim', 'Start: map and workPlan constructions swapped (order of reviewed writes is not pinned; disclosed)', [(ROOT, 'workPlan = new WorkPlanView(this);\n        review = new AnnualReviewView(this);\n        map = new StandMapView(this);', 'map = new StandMapView(this);\n        review = new AnnualReviewView(this);\n        workPlan = new WorkPlanView(this);')], documented='accepted'),
+    r314('A8-S-deadwrite', 'my_mutations8', 'lim', 'Start: infinite loop before the help write (non-termination, disclosed L-03/L-08 class)', [(ROOT, 'help = new MenuHelpView(this);', 'while (document == null) { }\n        help = new MenuHelpView(this);')], documented='accepted'),
+    r314('A8-S-neverrun', 'my_mutations8', 'rej', 'Start: help write after an unbraced if-guard (conditional)', [(ROOT, 'help = new MenuHelpView(this);', 'if (document != null) help = new MenuHelpView(this);')]),
+    r314('A8-L06-isnull', 'my_mutations8', 'over', 'companion: ui.Learning is null (C# 9 idiom) - benign read', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private bool NoLessons => ui.Learning is null;')], documented='rejected'),
+    r314('A8-L06-isnotnull', 'my_mutations8', 'over', 'companion: ui.Learning is not null (C# 9 idiom) - benign read', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private bool HasLessons => ui.Learning is not null;')], documented='rejected'),
+    r314('A8-L06-localalias-read', 'my_mutations8', 'over', 'companion: local alias of ui.Learning used only for a read', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private int Idx() { var l = ui.Learning; return l == null ? -1 : l.CurrentTopicIndex; }')], documented='rejected'),
+    r314('A8-L06-coalesce', 'my_mutations8', 'over', 'companion: ui.Learning ?? x null-coalescing read', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private LearningObjectivesView Get(LearningObjectivesView fallback) => ui.Learning ?? fallback;')], documented='rejected'),
+    r314('A8-L06-elementtraversal', 'my_mutations8', 'lim', 'companion reaches Objectives elements only through a public member of the view (documented residual)', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Hide() { ui.Learning.Refresh(true); }')], documented='accepted'),
+    r314('A8-L06-separator', 'my_mutations8', 'rej', 'companion: ui . Learning with comments/newline before Root', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Sneak() { ui /*c*/ .\n Learning /*c*/ . /*c*/ Root.SetEnabled(false); }')]),
+    r314('A8-L06-verbatim', 'my_mutations8', 'rej', 'companion: ui.@Learning.@Root', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Sneak() { ui.@Learning.@Root.SetEnabled(false); }')]),
+    r314('A8-L06-nullcond', 'my_mutations8', 'rej', 'companion: ui?.Learning?.Root', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Sneak() { ui?.Learning?.Root.SetEnabled(false); }')]),
+    r314('A8-L06-tuple', 'my_mutations8', 'rej', 'companion: tuple deconstruction alias of ui.Learning', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Sneak() { var (v, n) = (ui.Learning, 0); v.Root.SetEnabled(false); }')]),
+    r314('A8-L06-arg', 'my_mutations8', 'rej', 'companion: ui.Learning passed to an Action<LearningObjectivesView> lambda', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private void Sneak() { System.Action<LearningObjectivesView> a = v => v.Root.SetEnabled(false); a(ui.Learning); }')]),
+    r314('A8-L06-generic', 'my_mutations8', 'rej', 'companion: generic helper receives ui.Learning (type inferred)', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private static void Z<T>(T v) { }\n    private void Sneak() { Z(ui.Learning); }')]),
+    r314('A8-L06-switch', 'my_mutations8', 'rej', 'companion: switch expression over ui.Learning', [(L1_STANDMAP, 'private readonly ScenarioOneUiRoot ui;', 'private readonly ScenarioOneUiRoot ui;\n    private int Sneak() => ui.Learning switch { null => 0, _ => 1 };')]),
+    r314('A8-B-interp-screen', 'my_mutations8', 'ben', 'root: Debug.Log($"screen={screen}") in an unpinned method (interpolation hole, not a whole argument)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Debug.Log($"screen={screen}");')]),
+    r314('A8-B-screen-tostring', 'my_mutations8', 'unk', 'root: screen.ToString() in an unpinned method (member receiver)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Debug.Log(screen.ToString());')], documented='rejected'),
+    r314('A8-B-screen-eq', 'my_mutations8', 'ben', 'root: screen comparisons and ternary only', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public bool IsMapOrReview() { return screen == UiScreen.Map || screen == UiScreen.Review ? true : screen != UiScreen.None; }\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('A8-B-screen-switchexpr', 'my_mutations8', 'ben', 'root: screen switch expression', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public int ScreenIndex() => screen switch { UiScreen.Map => 1, UiScreen.Review => 2, _ => 0 };\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('A8-B-help-reads', 'my_mutations8', 'ben', 'root: reads of help/manager/map with ?. and is-pattern in an unpinned method', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public bool ZReads() { manager?.OpenWorkPlan(false); return help != null && help.IsOpen || map is null || workPlan is not null; }\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')]),
+    r314('A8-B-start-swap-region', 'my_mutations8', 'ben', "root: #region wrapped around part of Start's constructions (no #if)", [(ROOT, 'learning = new LearningObjectivesView(this);', '#region views\n        learning = new LearningObjectivesView(this);'), (ROOT, 'root.Add(learning.Root);', 'root.Add(learning.Root);\n        #endregion')]),
+    r314('A8-B-start-try', 'my_mutations8', 'ben', 'root: try/catch around an unrelated Start statement before the reviewed writes', [(ROOT, 'root.AddToClassList("root");', 'try { root.AddToClassList("root"); } catch (System.Exception) { }')]),
+    r314('A8-B-nonascii-ident', 'my_mutations8', 'ben', 'partial: non-ASCII letters in a new identifier and in comments/strings (precomposed e-acute, sharp s)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int gr\xf6\xdfe = 1; // na\xefve caf\xe9 \u2014 ok\n    private const string Cafe = "caf\xe9 \u2014 \U0001f332";')]),
+    r314('A8-B-ctrlz-comment', 'my_mutations8', 'ben', 'partial: form feed and SUB inside a // comment (page-break artefact)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    // page break \x0c and eof marker \x1a inside a comment\n    private int zc = 1;')]),
+    r314('A8-B-ff-line', 'my_mutations8', 'unk', 'partial: a form-feed-only line between members (old GNU style page break) - control char in code', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n\x0c\n    private int zf = 1;')], documented='rejected'),
+    r314('A8-B-lone-bom-comment', 'my_mutations8', 'ben', 'partial: U+FEFF inside a comment and a string', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    // zero width no-break space: \ufeff here\n    private const string Zw = "a\ufeffb";')]),
+    r314('A8-B-crlf-all', 'my_mutations8', 'ben', 'CRLF endings in the new root and a new partial (CR followed by LF is fine)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\r\n        // crlf')]),
+    r314('A8-B-hash-in-string', 'my_mutations8', 'ben', "partial: '#' inside an ordinary string and a char literal", [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private const string Hash = "#if NEVER";\n    private const char H = \'#\';')]),
+    r314('A8-B-multiline-verbatim-indented-hash', 'my_mutations8', 'unk', "partial: verbatim string whose second line starts with whitespace and '#' (e.g. markdown heading) - documented fail-closed", [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private const string Md = @"title\n    # heading\ntext";')], documented='rejected'),
+    r314('A8-B-multiline-comment-hash', 'my_mutations8', 'unk', "partial: block comment with an indented '#' line (e.g. commented-out #if)", [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    /* old code:\n       #if UNITY_EDITOR\n       #endif */\n    private int zk = 1;')], documented='rejected'),
+    r314('A8-B-xml-doc-hash', 'my_mutations8', 'unk', "partial: XML doc comment (///) lines containing an indented '#'", [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    /// <summary>\n    ///   # not a directive\n    /// </summary>\n    private int zx = 1;')], documented='accepted'),
+    r314('A8-L-nul-code', 'my_mutations8', 'rej', 'NUL char (U+0000) inside code of the view partial hiding nothing but desyncing Python', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int z\x00y = 1;')]),
+    r314('A8-L-hangul-filler', 'my_mutations8', 'ben', 'partial: Hangul filler (Lo) in an identifier - a different identifier for Roslyn and for the checker', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int fo\u3164rest = 1;')]),
+    r314('A8-L-astral-cf', 'my_mutations8', 'rej', 'astral Cf (U+E0001 language tag) in code of the partial', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int z\U000e0001y = 1;')]),
+    r314('A8-L-bidi-comment', 'my_mutations8', 'ben', 'Bidi override U+202E inside a comment and string (display-only; not a parse change)', [(L1_SEQ, 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    // \u202e reversed\n    private const string Rev = "\u202eabc";')]),
+    # my_mutations9.py sha256 1037732761d8925d43bc98f1919aefbfa5610e1a7c95d6cfe9499cb65facc7a5
+    r314('A9-D7-toplevel-decoy-root', 'my_mutations9', 'rej', 'NeedsAnnualReview forced true; the reviewed expression survives once in a SEPARATE top-level class appended to the root file', [(ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => true;'), (ROOT, 'using UnityEngine.UIElements;', 'using UnityEngine.UIElements;\n\ninternal sealed class ZDecoyTop { internal ScenarioOneManager manager; public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen; }')], intended='(N-2 owning class)'),
+    r314('A9-D8-struct-decoy-view', 'my_mutations9', 'rej', 'TeachingRacks forced true; reviewed text survives once in a nested struct of the view', [(VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => true;\n    private struct ZDecoyStruct { public int CurrentTopicIndex => 0; public bool TeachingRacks => CurrentTopicIndex == 0; }')], intended='(N-2 owning class)'),
+    r314('A9-D9-help-decoy-struct', 'my_mutations9', 'rej', 'help becomes a getter-null property; reviewed field text survives once in a nested struct', [(ROOT, 'private MenuHelpView help;', 'private MenuHelpView help { get => null; set { } }\n    private struct ZDecoyH { private MenuHelpView help; }')], intended='(N-2 owning class)'),
+    r314('A9-D10-help-realistic', 'my_mutations9', 'rej', 'REALISTIC shape: help property that returns null only while the walking HUD is up (subtle guidance suppression), decoy nested class keeps the reviewed field', [(ROOT, 'private MenuHelpView help;', 'private MenuHelpView helpBacking;\n    private MenuHelpView help { get => screen == UiScreen.None ? null : helpBacking; set { helpBacking = value; } }\n    private sealed class ZDecoyH2 { private MenuHelpView help; }')], intended='(N-2 owning class)'),
+    r314('A9-D11-learning-decoy', 'my_mutations9', 'rej', 'the older snippet pin `private LearningObjectivesView learning;`: learning becomes a property with no-op setter; decoy keeps the text', [(ROOT, 'private LearningObjectivesView learning;', 'private LearningObjectivesView learning { get => null; set { } }\n    private sealed class ZDecoyL { private LearningObjectivesView learning; }')]),
+    r314('A9-D12-nested-enum-ctl', 'my_mutations9', 'ben', 'control: an extra nested enum in the root (no decoy) is accepted', [(ROOT, 'public enum UiScreen { None, Map, Review, Objectives }', 'public enum UiScreen { None, Map, Review, Objectives }\n    private enum ZColor { Red, Green }')]),
+    # my_mutations10.py sha256 da204312ed5fa08b3cd177a35f39b5cfe915f90668d250121dded4c55bcbae93
+    r314('A10-hole-tuple-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((help, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, help) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(help) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out help)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref help, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(help ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((help, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-help', 'my_mutations10', 'rej', 'write to help inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((help, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((manager, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, manager) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(manager) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out manager)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref manager, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(manager ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((manager, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-manager', 'my_mutations10', 'rej', 'write to manager inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((manager, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((map, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, map) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(map) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out map)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref map, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(map ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((map, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-map', 'my_mutations10', 'rej', 'write to map inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((map, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((workPlan, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, workPlan) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(workPlan) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out workPlan)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref workPlan, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(workPlan ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((workPlan, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-workPlan', 'my_mutations10', 'rej', 'write to workPlan inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((workPlan, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((review, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, review) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(review) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out review)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref review, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(review ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((review, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-review', 'my_mutations10', 'rej', 'write to review inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((review, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((rackLayout, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, rackLayout) = (0, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(rackLayout) = null}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out rackLayout)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref rackLayout, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(rackLayout ??= null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((rackLayout, _) = (null, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-rackLayout', 'my_mutations10', 'rej', 'write to rackLayout inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((rackLayout, _) = (null, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-tuple-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape tuple', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((screen, _) = (UiScreen.None, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-tuple2-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape tuple2', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(_, screen) = (0, UiScreen.None)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-paren-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape paren', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(screen) = UiScreen.None}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-out-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape out', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out screen)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-ref-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape ref', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref screen, UiScreen.None)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-coalesce-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape coalesce', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(screen ??= UiScreen.None)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    r314('A10-hole-verbatim-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape verbatim', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($@"{((screen, _) = (UiScreen.None, 0))}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A10-hole-nested-screen', 'my_mutations10', 'rej', 'write to screen inside an interpolation hole, shape nested', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"a{string.Concat($"{((screen, _) = (UiScreen.None, 0))}")}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')]),
+    # my_mutations11.py sha256 62d1b709da4e7c4510d88d04c05498831b026bddb6f9d4a6d9849ca1f53117a3
+    r314('A11-hole-outthis-help', 'my_mutations11', 'rej', 'hole: ZOut(out this.help)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.help)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-help', 'my_mutations11', 'rej', 'hole: ZRef(ref this.help, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.help, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-outthis-manager', 'my_mutations11', 'rej', 'hole: ZOut(out this.manager)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.manager)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-manager', 'my_mutations11', 'rej', 'hole: ZRef(ref this.manager, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.manager, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-outthis-map', 'my_mutations11', 'rej', 'hole: ZOut(out this.map)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.map)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-map', 'my_mutations11', 'rej', 'hole: ZRef(ref this.map, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.map, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-outthis-review', 'my_mutations11', 'rej', 'hole: ZOut(out this.review)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.review)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-review', 'my_mutations11', 'rej', 'hole: ZRef(ref this.review, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.review, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-outthis-rackLayout', 'my_mutations11', 'rej', 'hole: ZOut(out this.rackLayout)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.rackLayout)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-rackLayout', 'my_mutations11', 'rej', 'hole: ZRef(ref this.rackLayout, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.rackLayout, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-outthis-workPlan', 'my_mutations11', 'rej', 'hole: ZOut(out this.workPlan)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZOut(out this.workPlan)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-refthis-workPlan', 'my_mutations11', 'rej', 'hole: ZRef(ref this.workPlan, null)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{ZRef(ref this.workPlan, null)}");\n    }\n    private static int ZOut<T>(out T o) { o = default; return 0; }\n    private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    \n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-prefixinc-screen', 'my_mutations11', 'rej', 'hole: ++screen', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{++screen}");\n    }\n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-prefixdec-screen', 'my_mutations11', 'rej', 'hole: --screen', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{--screen}");\n    }\n    public void ShowObjectives()')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-called-hole-help', 'my_mutations11', 'rej', 'ShowObjectives ends with Debug.Log($"{((help, workPlanWasOpen) = (null, false))}") - the original Z-RR2-T-help effect, hidden in a hole', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Debug.Log($"{((help, workPlanWasOpen) = (null, false))}");')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-called-hole-screen', 'my_mutations11', 'rej', 'ShowObjectives: tuple write of screen in a hole after SetScreen(Objectives): Objectives screen resolves guidance against the map', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);\n        Debug.Log($"{((screen, workPlanWasOpen) = (UiScreen.Map, false))}");')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-called-hole-manager', 'my_mutations11', 'rej', 'ShowObjectives: tuple write of manager (null) in a hole', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Debug.Log($"{((manager, workPlanWasOpen) = (null, false))}");')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-called-hole-paren-help', 'my_mutations11', 'rej', 'ShowObjectives: parenthesised write of help in a hole', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Debug.Log($"{((help) = null)}");')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-called-stmt-ctl-help', 'my_mutations11', 'rej', 'CONTROL: the same tuple write as a plain statement (the original Z-RR2-T-help)', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (help, workPlanWasOpen) = (null, false);')]),
+    r314('A11-called-lambda-hole-help', 'my_mutations11', 'rej', 'ShowObjectives: tuple write of help in a hole inside a lambda that is invoked', [(ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        System.Func<string> zf = () => $"{((help, workPlanWasOpen) = (null, false))}"; zf();')], intended='inside an interpolation hole (N-1)'),
+    r314('A11-hole-tuple-guarded', 'my_mutations11', 'rej', 'hole: tuple write of the guarded field guidanceCandidate (existing #309 mechanism)', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((guidanceCandidate, workPlanWasOpen) = (null, false))}");\n    }\n    public void ShowObjectives()')]),
+    r314('A11-hole-tuple-helpClosedFrame', 'my_mutations11', 'rej', 'hole: tuple write of helpClosedFrame', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{((helpClosedFrame, workPlanWasOpen) = (0, false))}");\n    }\n    public void ShowObjectives()')]),
+    r314('A11-hole-this-assign-nextAction', 'my_mutations11', 'rej', 'hole: this.nextAction = null', [(ROOT, 'public void ShowObjectives()', 'private void ZProbe()\n    {\n        Debug.Log($"{(this.nextAction = null)}");\n    }\n    public void ShowObjectives()')]),
+]
+
+
+def _r314_round7():
+    """my_mutations7.py (sha256 72ff0cd3eb4da68e8de0b67fb5afa2bf36a18fc5452739ad733f935ccc81ce08) generator,
+    transcribed: the write-shape matrix against the related-state guard. All rej; 3 probes."""
+    anch_class, anch_start, anch_destroy = 'public void ShowObjectives()', 'root.Add(help.Root);', 'private void OnDestroy()\n    {'
+    fields = {"help": ("MenuHelpView", "null"), "manager": ("ScenarioOneManager", "null"),
+              "learning": ("LearningObjectivesView", "null"), "map": ("StandMapView", "null"),
+              "workPlan": ("WorkPlanView", "null"), "review": ("AnnualReviewView", "null"),
+              "rackLayout": ("RackLayoutTracker", "null"), "screen": ("UiScreen", "UiScreen.None")}
+    helpers = ("private static void ZSet<T>(ref T a, T b) { a = b; }\n    private static void ZOut<T>(out T o) { o = default; }\n    ")
+    shapes = {
+        "plain": "{F} = {V};", "this": "this.{F} = {V};", "paren": "({F}) = {V};", "tupl": "({F}, _) = ({V}, 0);",
+        "tupr": "(_, {F}) = (0, {V});", "thistup": "(this.{F}, _) = ({V}, 0);", "nesttup": "(({F}, _), _) = (({V}, 0), 0);",
+        "lambda": "System.Action za = () => {F} = {V}; za();", "refarg": "ZSet(ref {F}, {V});", "outarg": "ZOut(out {F});",
+        "outthis": "ZOut(out this.{F});", "reflocal": "ref {T} zr = ref {F}; zr = {V};",
+        "alias": "{ var zself = this; zself.{F} = {V}; }", "cast": "((ScenarioOneUiRoot)this).{F} = {V};",
+        "verb": "@{F} = {V};", "cmt": "{F} /*c*/ = {V};", "nl": "{F}\n        = {V};", "nbsp": "{F}\xa0= {V};",
+        "chain": "var zq = {F} = {V};", "forinit": "for ({F} = {V}; false; ) { }", "ifasg": "if (({F} = {V}) == null) { }",
+        "localfn": "ZLocal(); void ZLocal() { {F} = {V}; }", "interp": 'Debug.Log($"{({F} = {V})}");',
+        "unsafeas": "System.Runtime.CompilerServices.Unsafe.AsRef(in {F}) = {V};", "makeref": "var zm = __makeref({F});",
+        "nullcoal": "{F} ??= {V};",
+    }
+
+    def case(field, shape, place):
+        typ, val = fields[field]
+        if shape == "nullcoal" and field == "screen":
+            return None
+        text = shapes[shape].replace("{F}", field).replace("{V}", val).replace("{T}", typ)
+        if place == "m":
+            edits = [(ROOT, anch_class, f"private void ZProbe()\n    {{\n        {text}\n    }}\n    {helpers}" + "\n    " + anch_class)]
+        else:
+            edits = [(ROOT, anch_start if place == "s" else anch_destroy, (anch_start if place == "s" else anch_destroy) + "\n        " + text)]
+            if shape in ("refarg", "outarg", "outthis"):
+                edits.append((ROOT, anch_class, helpers + "\n    " + anch_class))
+        return r314(f"A7-{place}-{shape}-{field}", "my_mutations7", "rej", f"{place}: write shape '{shape}' to related state '{field}'", edits)
+
+    cases = [case(f, s, "m") for f in fields for s in shapes]
+    cases += [case(f, s, p) for f in fields for s in ("plain", "paren", "tupl", "lambda", "refarg", "this") for p in ("s", "d")]
+    for name, text in (("inc", "screen++;"), ("pre", "++screen;"), ("or", "screen |= UiScreen.None;"), ("plus", "screen += 0;"),
+                       ("minus", "screen -= 0;"), ("xor", "screen ^= UiScreen.None;"), ("and", "screen &= UiScreen.Objectives;")):
+        cases.append(r314(f"A7-m-screen-{name}", "my_mutations7", "rej", f"screen written by '{text}'",
+                          [(ROOT, anch_class, f"private void ZProbe()\n    {{\n        {text}\n    }}\n\n    " + anch_class)]))
+    for f in ("help", "screen", "manager"):
+        t, v = fields[f]
+        for name, body in (
+                ("setter", f"private {t} ZP {{ set {{ {f} = value; }} }}"),
+                ("init", f"private {t} ZI {{ get => {f}; init {{ {f} = value; }} }}"),
+                ("expr", f"private void ZE() => {f} = {v};"),
+                ("nested", f"private sealed class ZN {{ public void W(ScenarioOneUiRoot r) {{ r.{f} = {v}; }} }}"),
+                ("nestedref", f"private sealed class ZN2 {{ public void W(ScenarioOneUiRoot r) {{ ref {t} x = ref r.{f}; x = {v}; }} }}"),
+                ("static", f"private static void ZS(ScenarioOneUiRoot r) {{ r.{f} = {v}; }}"),
+                ("refret", f"private ref {t} ZR() => ref {f};")):
+            cases.append(r314(f"A7-c-{name}-{f}", "my_mutations7", "rej", f"class-scope shape '{name}' writes or exposes '{f}'",
+                              [(ROOT, anch_class, body + "\n\n    " + anch_class)]))
+    for g, v in {"helpClosedFrame": "0", "nextAction": "null", "guidanceCandidate": "null", "guidanceScope": "null"}.items():
+        for name, text in (("plain", f"{g} = {v};"), ("tup", f"({g}, _) = ({v}, 0);"),
+                           ("lambda", f"System.Action zg = () => {g} = {v}; zg();"), ("this", f"this.{g} = {v};")):
+            cases.append(r314(f"A7-g-{name}-{g}", "my_mutations7", "rej", f"guarded name {g}: {name}",
+                              [(ROOT, anch_class, f"private void ZProbe()\n    {{\n        {text}\n    }}\n\n    " + anch_class)]))
+    cases += [
+        r314("A7-x-update-setscreen", "my_mutations7", "lim",
+             "unpinned Update() sends Objectives to the Map every frame (unpinned screen routing; disclosed class?)",
+             [(ROOT, "private void Update()\n    {\n        if (manager == null || document == null)\n            return;",
+               "private void Update()\n    {\n        if (screen == UiScreen.Objectives) SetScreen(UiScreen.Map);\n"
+               "        if (manager == null || document == null)\n            return;")], documented="accepted"),
+        # Accepted at 753143e6 (reviewer: lim). #320 N-2 rejects it: a nested type of the view shadows a name its reviewed text reads.
+        r314("A7-x-teachinghijack", "my_mutations7", "lim",
+             "nested class in a view partial hijacks ScenarioOneTeachingSequence (Current always 0): TeachingRacks forever true",
+             [(L1_SEQ, "private int teachingWorldVersion = -1;", "private int teachingWorldVersion = -1;\n"
+               "    private static class ScenarioOneTeachingSequence { public static int Current(object facts) => 0; }")],
+             documented="rejected"),
+        r314("A7-x-enabled-false", "my_mutations7", "lim", "Awake sets enabled=false in the root (component state; disclosed)",
+             [(ROOT, anch_class, "private void Awake() { enabled = false; }\n\n    " + anch_class)], documented="accepted"),
+    ]
+    return [c for c in cases if c]
+
+
+# ---- this repair's own variants (derived independently of the reviewer's scratch guards) -------------
+N320_CLASS = 'public void ShowObjectives()'
+N320_START = 'root.Add(help.Root);'
+N320_USING = 'using UnityEngine.UIElements;'
+N320_HELPERS = ('private static int ZOut<T>(out T o) { o = default; return 0; }\n    '
+                'private static int ZRef<T>(ref T a, T b) { a = b; return 0; }\n    '
+                'private static int ZIn<T>(in T a) => 0;\n    ')
+
+
+def n320(mid, why, *edits, intended=None, documented=None):
+    return dict(id=mid, group="#320", why=why, edits=list(edits), intended=intended, documented=documented, transform=None)
+
+
+def _in_show_objectives(statement):
+    return (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + "\n        " + statement)
+
+
+def _probe_method(statement):
+    return (ROOT, N320_CLASS, "private void ZProbe()\n    {\n        " + statement + "\n    }\n    " + N320_HELPERS + "\n    " + N320_CLASS)
+
+
+n320_n1 = [
+    n320("N1-01", "parenthesised this-qualified write in a hole, called from ShowObjectives",
+         _in_show_objectives('Debug.Log($"{((this.help) = null)}");'), intended=N1),
+    n320("N1-02", "@$ prefix order: tuple write of help in a hole",
+         _in_show_objectives('Debug.Log(@$"{((help, workPlanWasOpen) = (null, false))}");'), intended=N1),
+    n320("N1-03", "multi-line verbatim hole: tuple write of map spread over lines",
+         _in_show_objectives('Debug.Log($@"x{\n            ((map, workPlanWasOpen) = (null, false))\n        }y");'), intended=N1),
+    n320("N1-04", "statement lambda inside a hole writes review",
+         _in_show_objectives('Debug.Log($"{((System.Func<int>)(() => { (review, workPlanWasOpen) = (null, false); return 0; }))()}");'),
+         intended=N1),
+    n320("N1-05", "nested class writes help through a receiver inside a hole",
+         (ROOT, N320_CLASS, 'private sealed class ZHoleWriter { public string W(ScenarioOneUiRoot r) => $"{(r.help = null)}"; }\n\n    '
+          + N320_CLASS), intended="receiver other than `this` inside an interpolation hole (N-1)"),
+    n320("N1-06", "compound assignment of screen in a hole", _probe_method('Debug.Log($"{(screen |= UiScreen.None)}");'), intended=N1),
+    n320("N1-07", "postfix increment of screen in a hole", _probe_method('Debug.Log($"{screen++}");'), intended=N1),
+    n320("N1-08", "null-coalescing assignment of manager in a hole", _probe_method('Debug.Log($"{(manager ??= null)}");'), intended=N1),
+    n320("N1-09", "screen as the receiver of a ref-this extension inside a hole",
+         (ROOT, N320_USING, N320_USING + '\n\ninternal static class ZScreenExt { public static int ZTouch(ref this '
+          'ScenarioOneUiRoot.UiScreen s) { s = ScenarioOneUiRoot.UiScreen.Map; return 0; } }'),
+         _in_show_objectives('Debug.Log($"{screen.ZTouch()}");'), intended="member receiver or passed whole as an argument inside an interpolation hole"),
+    n320("N1-10", "screen passed as an in-argument inside a hole", _probe_method('Debug.Log($"{ZIn(in screen)}");'), intended=N1),
+    n320("N1-11", "alignment after a tuple write of rackLayout in a hole",
+         _in_show_objectives('Debug.Log($"{((rackLayout, workPlanWasOpen) = (null, false)),8}");'), intended=N1),
+    n320("N1-12", "verbatim hole with an empty nested literal (both lexers agree), tuple write of help",
+         _in_show_objectives('Debug.Log($@"{"" + ((help, workPlanWasOpen) = (null, false))}");'), intended=N1),
+    n320("N1-13", "verbatim hole with an empty nested interpolated literal, tuple write of map",
+         _in_show_objectives('Debug.Log($@"{$"" + ((map, workPlanWasOpen) = (null, false))}");'), intended=N1),
+    n320("N1-14", "this-qualified write of workPlan in a hole at the end of Start", (ROOT, N320_START, N320_START
+         + '\n        Debug.Log($"{(this.workPlan = null)}");'), intended=N1),
+    n320("N1-15", "expression-bodied property whose hole writes help", (ROOT, N320_CLASS,
+         'private string ZDiag => $"{((help, workPlanWasOpen) = (null, false))}";\n\n    ' + N320_CLASS), intended=N1),
+    n320("N1-16", "local function whose hole writes review",
+         _in_show_objectives('string ZL() => $"{(review = null)}"; Debug.Log(ZL());'), intended=N1),
+    n320("N1-17", "comments inside a hole around a parenthesised write",
+         _in_show_objectives('Debug.Log($"{/* c */ ((help) /* c */ = null)}");'), intended=N1),
+    n320("N1-18", "this-qualified tuple write of screen in a hole after SetScreen",
+         (ROOT, L1_SHOW_OBJ_FULL, L1_SHOW_OBJ_FULL + '\n        Debug.Log($"{((this.screen, workPlanWasOpen) = (UiScreen.Map, false))}");'),
+         intended=N1),
+    n320("N1-19", "ref argument write of workPlan in a hole (also seen by the write count)",
+         _probe_method('Debug.Log($"{ZRef(ref workPlan, null)}");'), intended=N1),
+    n320("N1-20", "two-level nested interpolation: the lexers disagree on its boundaries, so it fails closed before the hole rule",
+         _in_show_objectives('Debug.Log($@"{$"" + $@"{"" + ((manager, workPlanWasOpen) = (null, false))}"}");'),
+         intended="fail closed (N-4)"),
+    n320("N1-21", "__makeref of help inside a hole (unsafe keyword; read for the hole rule)",
+         _probe_method('Debug.Log($"{__reftype(__makeref(help))}");'), intended="undocumented reference keyword"),
+]
+
+n320_n2 = [
+    n320("N2-01", "NeedsAnnualReview forced true; reviewed text kept in a nested interface",
+         (ROOT, L1_NAR, 'public bool NeedsAnnualReview => true;\n    private interface IZDecoy { ScenarioOneManager manager { get; } '
+          + L1_NAR + ' }'), intended=N2),
+    n320("N2-02", "NeedsAnnualReview forced true; reviewed text kept in a class inside a namespace appended to the root file",
+         (ROOT, L1_NAR, 'public bool NeedsAnnualReview => true;'),
+         (ROOT, N320_USING, N320_USING + '\n\nnamespace ZDecoyNs { internal sealed class ZD { internal ScenarioOneManager manager; '
+          + L1_NAR + ' } }'), intended=N2),
+    n320("N2-03", "help becomes a null property; reviewed field kept in a nested record",
+         (ROOT, L1_HELP_FIELD, 'private MenuHelpView help { get => null; set { } }\n    private sealed record ZDecoyRecord { private MenuHelpView help; }'),
+         intended=N2),
+    n320("N2-04", "#if-only braces make a nested decoy look like a class member",
+         (ROOT, L1_HELP_FIELD, 'private MenuHelpView help { get => null; set { } }\n    private sealed class ZDecoyIf\n    {\n'
+          '#if ZNEVER\n    }\n#endif\n    private MenuHelpView help;\n#if ZNEVER\n    {\n#endif\n    }'),
+         intended="fail closed (N-2)"),
+    n320("N2-05", "a static modifier in front of the reviewed help field",
+         (ROOT, L1_HELP_FIELD, 'static ' + L1_HELP_FIELD), intended="attribute or modifier in front of it (N-2 owning class)"),
+    n320("N2-06", "nested StandaloneSessionMenu stub makes the pinned guidance read IsOpen == true (suspended for good)",
+         (ROOT, N320_CLASS, 'private sealed class StandaloneSessionMenu : MonoBehaviour { public static bool IsOpen => true; }\n\n    '
+          + N320_CLASS),
+         intended="type 'StandaloneSessionMenu' shadows a name the reviewed text reads"),
+    n320("N2-07", "a Time member hides UnityEngine.Time for the pinned help-close frame test",
+         (ROOT, N320_CLASS, 'private ZFrame Time => default;\n    private struct ZFrame { public int frameCount => -2; '
+          'public float unscaledTime => 0f; }\n\n    ' + N320_CLASS), intended="member 'Time' of ScenarioOneUiRoot shadows"),
+    n320("N2-08", "a using alias redirects Time for the whole root file (the pinned help-close frame test reads a stub)",
+         (ROOT, N320_USING, N320_USING + '\nusing Time = ZTimeStub;\n\ninternal static class ZTimeStub { public static int frameCount => -2; '
+          'public static float unscaledTime => 0f; }'), intended="using alias 'Time'"),
+    n320("N2-09", "the root derives from a new base type whose nested Time hides UnityEngine.Time",
+         (ROOT, 'public sealed class ScenarioOneUiRoot : MonoBehaviour', 'public sealed class ScenarioOneUiRoot : ZRootBase'),
+         ("Assets/ForestPrototype/ZRootBase.cs", None, 'public abstract class ZRootBase : UnityEngine.MonoBehaviour\n{\n'
+          '    protected static class Time { public static int frameCount => -2; public static float unscaledTime => 0f; }\n}\n'),
+         intended="ScenarioOneUiRoot header"),
+    n320("N2-12", "TeachingRacks forced true; reviewed text kept in a nested class of another view partial",
+         (VIEW, L1_TEACHING, 'public bool TeachingRacks => true;'),
+         (L1_SEQ, L1_SEQ_MEMBER, L1_SEQ_MEMBER + '\n    private sealed class ZDecoyTeach { public int CurrentTopicIndex => 0; ' + L1_TEACHING + ' }'),
+         intended="RR-3 routing input 'TeachingRacks'"),
+    n320("N2-13", "screen initialiser kept only as a comment and inside a #region line",
+         (ROOT, 'private UiScreen screen = UiScreen.None;',
+          '// private UiScreen screen = UiScreen.None;\n    #region private UiScreen screen = UiScreen.None;\n'
+          '    private UiScreen screen { get => UiScreen.Map; set { } }\n    #endregion'), intended="(RR-2 related state)"),
+    n320("N2-14", "manager field kept only in a nested struct; real member is a null property",
+         (ROOT, 'private ScenarioOneManager manager;', 'private ScenarioOneManager manager { get => null; set { } }\n'
+          '    private struct ZDecoyStruct { private ScenarioOneManager manager; }'), intended=N2),
+]
+
+n320_benign = [
+    n320("NB320-01", "root: an unrelated nested class", (ROOT, N320_CLASS, 'private sealed class ZCache { public int Count; }\n\n    ' + N320_CLASS)),
+    n320("NB320-02", "root: an unrelated top-level class in the same file",
+         (ROOT, N320_USING, N320_USING + '\n\ninternal static class ZRootDiagnostics { internal static string Describe(int n) => $"n={n}"; }')),
+    n320("NB320-03", "view: an unrelated nested struct", (VIEW, L1_TEACHING, L1_TEACHING + '\n    private struct ZPair { public int A, B; }')),
+    n320("NB320-04", "view partial: a nested enum and a balanced #if block with a method",
+         (L1_SEQ, L1_SEQ_MEMBER, L1_SEQ_MEMBER + '\n    private enum ZStage { One, Two }\n#if UNITY_EDITOR\n'
+          '    private int ZEditorOnly() { if (teachingWorldVersion > 0) { return 1; } return 0; }\n#endif')),
+    n320("NB320-05", "root: comments quoting reviewed declarations",
+         (ROOT, N320_CLASS, '// private MenuHelpView help;\n    /* public bool NeedsAnnualReview => true; */\n    ' + N320_CLASS)),
+    n320("NB320-06", "root: reads of related state in interpolation holes with format, alignment, this and ?.",
+         _in_show_objectives('Debug.Log($"cash={manager.CashCents:N0} help={(help != null ? help.IsOpen : false),5} '
+                             'map={map.RackMode} {this.review} {rackLayout?.Harvested}");')),
+    n320("NB320-07", "root: @$ verbatim interpolation reading workPlan and screen across a line",
+         _in_show_objectives('Debug.Log(@$"plan={workPlan}\n{screen}");')),
+    n320("NB320-08", "root: lambda returning an interpolation that reads manager",
+         _in_show_objectives('System.Func<string> zf = () => $"{manager.CashCents}"; Debug.Log(zf());')),
+    n320("NB320-09", "root: tuple of state read in a hole and state deconstructed into locals",
+         _in_show_objectives('object za = null, zb = null; Debug.Log($"{(help, map)} {((za, zb) = (help, map))}");')),
+    n320("NB320-10", "root: verbatim hole with an empty nested literal reading manager",
+         _in_show_objectives('Debug.Log($@"{"" + manager.CashCents}");')),
+    n320("NB320-11", "root: an interpolation read at the end of Start", (ROOT, N320_START, N320_START
+         + '\n        Debug.Log($"views ready: {help != null && map != null}");')),
+    n320("NB320-12", "view: an unrelated top-level helper class in the view file",
+         (VIEW, 'using UnityEngine.UIElements;\n', 'using UnityEngine.UIElements;\n\ninternal static class ZViewHelpers\n{\n'
+          '    internal static int Twice(int x) => 2 * x;\n}\n')),
+    n320("NB320-13", "root: nested class with a field named like a member-access name of the reviewed text",
+         (ROOT, N320_CLASS, 'private sealed class ZRow { public string text; public int Count; }\n\n    ' + N320_CLASS)),
+]
+
+n320_over = [
+    n320("O-10", "an attribute in front of a reviewed field declaration",
+         (ROOT, L1_HELP_FIELD, '[System.NonSerialized] ' + L1_HELP_FIELD), documented="rejected"),
+    n320("O-11", "#if/#else branches that each open a method body (balanced overall)",
+         (ROOT, N320_CLASS, '#if UNITY_EDITOR\n    private int ZE() {\n#else\n    private int ZE() {\n#endif\n'
+          '        return 0;\n    }\n\n    ' + N320_CLASS), documented="rejected"),
+    n320("O-12", "a harmless nested type named like a local of the reviewed text",
+         (ROOT, N320_CLASS, 'private sealed class reason { }\n\n    ' + N320_CLASS), documented="rejected"),
+    n320("O-13", "a related-state name after a dot inside a hole (nameof of the field)",
+         _in_show_objectives('Debug.Log($"{nameof(ScenarioOneUiRoot.map)}");'), documented="rejected"),
+    n320("O-14", "screen as a member receiver inside a hole (ToString)", _in_show_objectives('Debug.Log($"{screen.ToString()}");'),
+         documented="rejected"),
+    n320("O-15", "`::` in a root interpolation hole (not valid C#: the compiler also starts the format clause at the first"
+         " colon; kept to show the shape fails closed)", _in_show_objectives('Debug.Log($"{global::System.Math.PI}");'),
+         documented="rejected"),
+    n320("O-16", "a new view partial adds an (empty) base type, which could hide names the reviewed view text reads",
+         (UI + "LearningObjectivesView.Base.cs", None, 'public sealed partial class LearningObjectivesView : ZViewBase\n{\n}\n'),
+         ("Assets/ForestPrototype/ZViewBase.cs", None, 'public abstract class ZViewBase\n{\n}\n'), documented="rejected"),
+]
+
+n320_limits = [
+    n320("L-09", "an unpinned root field the pinned routing reads becomes a null property (ecology)",
+         (ROOT, 'private ForestEcologyController ecology;', 'private ForestEcologyController ecology { get => null; set { } }'),
+         documented="accepted"),
+    n320("L-10", "an unpinned root member the pinned routing reads changes (RackApprovalProblem always empty)",
+         (ROOT, 'public string RackApprovalProblem => learning.RackMarkingProblem();', 'public string RackApprovalProblem => "";'),
+         documented="accepted"),
+]
+
+
+def _case_outcome(base, case):
+    """None when accepted, else the rejection reason (only is_companion_source files reach the scanner).
+    An edit with old text None creates a file; in the reviewer's rounds it may also replace one whole."""
+    files = dict(base)
+    for path, old, new in case["edits"]:
+        if old is None:
+            if case["group"] == "#320" and (path in files or (REPO / path).exists()):
+                raise RuntimeError(f"{case['id']}: {path} already exists")
+            files[path] = new
+        else:
+            if path not in files:
+                files[path] = (REPO / path).read_text(encoding="utf-8")
+            files[path] = replace_one(files[path], old, new, case["id"])
+    if case["transform"] == "crlf":
+        files = {path: text.replace("\n", "\r\n") for path, text in files.items()}
+    others = {path: text for path, text in files.items() if path not in (VIEW, ROOT) and is_companion_source(text)}
+    try:
+        verify_objective_cta(files[VIEW], files[ROOT], others)
+    except ObjectiveCtaSourceError as exc:
+        return str(exc)
+    return None
+
+
+def run_320(view, root, companions):
+    """#320 groups. Returns counts that run() folds into its totals."""
+    base = dict(companions)
+    base.update({VIEW: view, ROOT: root})
+    counts = dict(total=0, rejected=0, wrong_cause=0, benign=0, benign_failed=0, probe_failed=0)
+    reviewer = r314_rounds + _r314_round7()
+    groups = [(f"#314 reviewer {name}", [c for c in reviewer if c["group"] == name and c["expect"] == "rej"])
+              for name in dict.fromkeys(c["group"] for c in reviewer)]
+    groups += [("#320 N-1 author", n320_n1), ("#320 N-2 author", n320_n2)]
+    for group, cases in groups:
+        group_rejected = 0
+        for case in cases:
+            reason = _case_outcome(base, case)
+            if reason is None:
+                print(f"SOURCE-STATIC FAIL mutation-{case['id']}: FALSE GREEN")
+            elif reason.startswith(CRASH) or (case["intended"] and case["intended"] not in reason):
+                counts["wrong_cause"] += 1
+                print(f"SOURCE-STATIC FAIL mutation-{case['id']}: rejected for an unexpected cause ({reason}); "
+                      f"expected {case['intended'] or 'no scanner crash'!r}")
+            else:
+                group_rejected += 1
+                print(f"SOURCE-STATIC PASS mutation-{case['id']}: rejected ({reason})")
+        print(f"SOURCE-STATIC CTA MUTATION GROUP {group}: rejected={group_rejected}/{len(cases)}")
+        counts["total"] += len(cases)
+        counts["rejected"] += group_rejected
+    for case in [c for c in reviewer if c["expect"] == "ben"] + n320_benign:
+        reason = _case_outcome(base, case)
+        counts["benign"] += 1
+        if reason is None:
+            print(f"SOURCE-STATIC PASS benign-{case['id']}: accepted")
+        else:
+            counts["benign_failed"] += 1
+            print(f"SOURCE-STATIC FAIL benign-{case['id']}: WRONGLY REJECTED ({reason})")
+    print(f"SOURCE-STATIC CTA #320 BENIGN CONTROLS accepted={counts['benign'] - counts['benign_failed']}/{counts['benign']}")
+    probes = [c for c in reviewer if c["expect"] in ("lim", "unk", "over")] + n320_over + n320_limits
+    for case in probes:
+        reason = _case_outcome(base, case)
+        observed = "accepted" if reason is None else "rejected"
+        kind = {"lim": "accepted-limit", "unk": "exploratory", "over": "over-rejection"}.get(case.get("expect"), "")
+        kind = kind or ("over-rejection" if case["id"].startswith("O-") else "accepted-limit")
+        if observed == case["documented"]:
+            print(f"SOURCE-STATIC INFO {kind}-{case['id']}: {observed} as documented ({case['why']})"
+                  + (f" [{reason}]" if reason else ""))
+        else:
+            counts["probe_failed"] += 1
+            print(f"SOURCE-STATIC FAIL {kind}-{case['id']}: now {observed}, documented {case['documented']}; update the "
+                  f"README known limits ({reason or 'accepted'})")
+    print(f"SOURCE-STATIC CTA #320 PROBES {len(probes)} changed={counts['probe_failed']} (reported, not counted as mutations)")
+    return counts
+
+
 def run():
     live = {key: (REPO / path).read_text(encoding="utf-8") for key, path in FILES.items() if (REPO / path).exists()}
     companions = collect_companions(REPO)
@@ -1344,6 +2008,11 @@ def run():
     rejected += loop1["rejected"]
     wrong_cause += loop1["wrong_cause"]
     benign_failed += loop1["benign_failed"]
+    two_guard = run_320(live[V], live[R], companions)
+    total += two_guard["total"]
+    rejected += two_guard["rejected"]
+    wrong_cause += two_guard["wrong_cause"]
+    benign_failed += two_guard["benign_failed"]
 
     # F6: the historical pre-guidance source must be reported as a completed, evidenced FAIL, never a crash.
     historic_failed = 0
@@ -1367,7 +2036,8 @@ def run():
     false_greens = total - rejected - wrong_cause
     print(f"SOURCE-STATIC CTA MUTATIONS rejected={rejected}/{total} false_greens={false_greens} "
           f"wrong_cause={wrong_cause}")
-    return 1 if false_greens or wrong_cause or benign_failed or historic_failed or loop1["probe_failed"] else 0
+    return 1 if (false_greens or wrong_cause or benign_failed or historic_failed or loop1["probe_failed"]
+                 or two_guard["probe_failed"]) else 0
 
 
 if __name__ == "__main__":

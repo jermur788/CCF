@@ -7,7 +7,9 @@ an ambiguous or unsupported source shape raises ObjectiveCtaSourceError rather
 than being accepted. Comments and literal text are never treated as code; code in
 an interpolation hole is. The #309 section at the end adds class-wide guards
 (precise lexer, pinned reviewed methods, header grammar, occurrence inventories);
-README.md lists exactly what they cover and what they do not.
+README.md lists exactly what they cover and what they do not. The #320 guards read
+the code inside interpolation holes (N-1) and bind reviewed declarations to their
+owning class body (N-2). All of this is static and lexical: nothing is compiled or run.
 
 Copy this file, check_baseline.py and test_objective_cta_source_check.py
 together; check_baseline.py imports this module.
@@ -1046,10 +1048,13 @@ def _no_attribute(source, signature, path):
         _fail(source, path, found.start(), "an attribute on a checked method is unsupported (e.g. [Conditional])")
 
 
-def _pin(source, spans, path, signature, expected, label):
-    """The method body must equal the reviewed text token for token (comments/layout free)."""
+def _pin(source, spans, path, signature, expected, label, owner=None):
+    """The method body must equal the reviewed text token for token (comments/layout free).
+    With `owner` the method must be a direct member of that class (#320 N-2)."""
     start, end = _method_span(source, signature)
     _no_attribute(source, signature, path)
+    if owner:
+        _bind_signature(source, spans, path, signature, owner, f"pinned method {label}")
     got = _tokens(source, spans, start, end)
     want = _tokens_of(expected)
     texts = _texts(got)
@@ -1063,8 +1068,10 @@ def _pin(source, spans, path, signature, expected, label):
     return start, end
 
 
-def _snippet_spans(source, spans, snippet, path, label):
-    """Character span of the single exact occurrence of a reviewed token sequence."""
+def _snippet_spans(source, spans, snippet, path, label, owner=None, member=False):
+    """Character span of the single exact occurrence of a reviewed token sequence. With `owner` the
+    occurrence must lie in that class and no type nested in it; with `member` it must also be a direct
+    member of the class body, not merely text somewhere in the file (#320 N-2)."""
     want = _tokens_of(snippet)
     tokens, texts = _file_tokens(source, spans)
     hits = [k for k in range(len(texts) - len(want) + 1) if texts[k:k + len(want)] == want]
@@ -1082,6 +1089,8 @@ def _snippet_spans(source, spans, snippet, path, label):
     if depth > 0:
         _fail(source, path, start, f"{label}: reviewed text `{snippet}` lies inside conditional compilation "
                                    "(#if); fail closed (RR-2/RR-3)")
+    if owner:
+        _bind_to_owner(source, spans, path, hits[0], owner, f"{label}: reviewed text `{snippet}`", member)
     return start, tokens[hits[0] + len(want) - 1].end
 
 
@@ -1093,6 +1102,194 @@ def _positions(masked, name, start=0, end=None):
 
 def _inside(position, regions):
     return any(a <= position < b for a, b in regions)
+
+
+# ------------------------------------------------------------- class-body structure (#320 N-2)
+#
+# An "exactly once in the file" text pin says nothing about what the text belongs to: a nested or
+# additional type could carry the reviewed text while the real member changed. This bounded walk over
+# the tokens tracks which brace belongs to which namespace or type, so a pin can demand "direct member
+# of this class". Comments are not tokens and a preprocessor line is one opaque token, so neither can
+# prove a declaration. Conditional compilation that changes the brace depth would make the walk
+# describe a program the compiler may not see, so it fails closed.
+
+_TYPE_KEYWORDS = {"class", "struct", "interface", "enum", "record"}
+_CONDITIONAL_DIRECTIVE = re.compile(r'#\s*(if|elif|else|endif)\b')
+_Structure = namedtuple("_Structure", "tokens texts starts stacks types")
+_TypeDecl = namedtuple("_TypeDecl", "name token enclosing")
+_STRUCTURES = {}
+
+
+def _declared_name(tokens, texts, k):
+    """The type or namespace name declared by keyword token k, or None when the word does not declare one
+    (`where T : class`, an identifier called `record`). `@class` is an identifier, so its text differs."""
+    word = tokens[k].text
+    if word not in _TYPE_KEYWORDS and word != "namespace":
+        return None
+    if k and texts[k - 1] in (":", ",", ".", "?."):
+        return None
+    if k + 1 >= len(tokens) or tokens[k + 1].kind != "id":
+        return None
+    if word == "record" and (k + 2 >= len(texts) or texts[k + 2] not in ("(", "{", ":", "<", ";")):
+        return None
+    return tokens[k + 1].value
+
+
+def _body_brace(texts, k):
+    """Index of the `{` that opens the declaration whose keyword is token k, or None if it has no body."""
+    depth = 0
+    for at in range(k + 1, len(texts)):
+        text = texts[at]
+        if text in ("(", "["):
+            depth += 1
+        elif text in (")", "]"):
+            depth -= 1
+        elif depth == 0 and text == "{":
+            return at
+        elif depth == 0 and text == ";":
+            return None
+    return None
+
+
+def _structure(source, spans, path):
+    """Per-token stack of open braces, each frame (kind, name) with kind namespace/type/block, and every
+    type declared in the file. Unbalanced braces, or braces that #if/#else branches do not balance, fail closed."""
+    if source in _STRUCTURES:
+        return _STRUCTURES[source]
+    tokens, texts = _file_tokens(source, spans)
+    stacks, types, opening, conditionals, stack = [], [], {}, [], ()
+    for k, token in enumerate(tokens):
+        stacks.append(stack)
+        if token.kind == "dir":
+            found = _CONDITIONAL_DIRECTIVE.match(token.text)
+            if found and found.group(1) == "if":
+                conditionals.append(len(stack))
+            elif found:
+                if not conditionals or conditionals[-1] != len(stack):
+                    _fail(source, path, token.start, "conditional compilation changes the brace depth, so the owning "
+                                                     "class of later code is ambiguous; fail closed (N-2)")
+                if found.group(1) == "endif":
+                    conditionals.pop()
+        elif token.kind == "op" and token.text == "{":
+            stack += (opening.pop(k, ("block", None)),)
+        elif token.kind == "op" and token.text == "}":
+            if not stack or (conditionals and len(stack) <= conditionals[-1]):
+                _fail(source, path, token.start, "a closing brace leaves its block or #if branch, so the owning class "
+                                                 "of later code is ambiguous; fail closed (N-2)")
+            stack = stack[:-1]
+        elif token.kind == "id":
+            name = _declared_name(tokens, texts, k)
+            if name is None:
+                continue
+            brace = _body_brace(texts, k)
+            if token.text == "namespace":
+                if brace is None:
+                    _fail(source, path, token.start, "file-scoped namespace is an unsupported shape; fail closed (N-2)")
+                opening[brace] = ("namespace", name)
+            else:
+                types.append(_TypeDecl(name, k, tuple(frame[1] for frame in stack if frame[0] == "type")))
+                if brace is not None:
+                    opening[brace] = ("type", name)
+    if stack or conditionals:
+        _fail(source, path, len(source), "unbalanced braces or an unterminated #if; the owning class of the code "
+                                         "is ambiguous; fail closed (N-2)")
+    if len(_STRUCTURES) > 64:
+        _STRUCTURES.clear()
+    _STRUCTURES[source] = _Structure(tokens, texts, [token.start for token in tokens], stacks, types)
+    return _STRUCTURES[source]
+
+
+def _bind_to_owner(source, spans, path, k, owner, what, member):
+    """Token k must lie in the top-level type `owner` and no nested type; with `member`, it must also
+    start a declaration directly in the class body (no attribute or extra modifier in front of it)."""
+    shape = _structure(source, spans, path)
+    if [t.name for t in shape.types if t.name == owner and not t.enclosing][:2] != [owner]:
+        _fail(source, path, shape.starts[k], f"{what}: {owner} is not declared exactly once as a top-level type (N-2)")
+    stack = shape.stacks[k]
+    enclosing = [name for kind, name in stack if kind == "type"]
+    if enclosing != [owner]:
+        place = "outside any type" if not enclosing else "in type " + ".".join(enclosing)
+        _fail(source, path, shape.starts[k], f"{what} lies {place}, not in {owner}: a decoy type cannot satisfy this "
+                                             "pin (N-2 owning class)")
+    if member:
+        before = k - 1
+        while before >= 0 and shape.tokens[before].kind == "dir":
+            before -= 1
+        if stack[-1] != ("type", owner) or before < 0 or shape.texts[before] not in (";", "{", "}"):
+            _fail(source, path, shape.starts[k], f"{what} is not a direct member of the {owner} class body, or has an "
+                                                 "attribute or modifier in front of it (N-2 owning class)")
+
+
+def _bind_signature(source, spans, path, signature, owner, what):
+    """The method or constructor matching `signature` must be a direct member of `owner`."""
+    found = re.search(signature, _code(source, mask_literals=True))
+    shape = _structure(source, spans, path)
+    _bind_to_owner(source, spans, path, bisect.bisect_left(shape.starts, found.start()), owner, what, True)
+
+
+def _member_names(shape, owner):
+    """(token index, name) of each declarator directly in the body of top-level `owner`. Lexical: in a member
+    header, the identifier just before `(`, `=`, `=>`, `{`, `;` or a `,` outside <...>; initialisers, parameter
+    lists and bodies are skipped. Brackets are counted; braces come from the structure walk."""
+    found, state, paren, angle, after_body = [], "header", 0, 0, False
+    for k, stack in enumerate(shape.stacks):
+        if not stack or stack[-1] != ("type", owner):
+            continue
+        text = shape.texts[k]
+        if after_body:  # first class-depth token after a member body or property accessor block
+            after_body = False
+            state = "init" if text == "=" else "header"
+            if state == "init":
+                continue
+        if state == "header":
+            if text in ("<", ">"):
+                angle += 1 if text == "<" else -1
+                continue
+            if paren == 0 and (text in ("(", "=", "=>", "{", ";") or (text == "," and angle == 0)):
+                if k and shape.tokens[k - 1].kind == "id":
+                    found.append((k - 1, shape.tokens[k - 1].value))
+                state = {"(": "rest", "=": "init", "=>": "rest", "{": "body"}.get(text, "header")
+                angle = 0
+        elif paren == 0 and text == ";" or (state == "init" and paren == 0 and text == ","):
+            state = "header"
+        elif paren == 0 and text == "{" and state == "rest":
+            state = "body"
+        if text in ("(", "["):
+            paren += 1
+        elif text in (")", "]"):
+            paren -= 1
+        if state == "body" and text == "{":
+            after_body = True
+    return found
+
+
+def _guard_shadowing(source, spans, path, owner, reviewed, foreign, allowed_types=()):
+    """Reviewed text reads names such as `Time`; simple-name lookup prefers a nested type, a member or a
+    using alias of this file, so one named like that would change what the reviewed text means (#320 N-2).
+    Other nested and additional types stay allowed: nothing here bans unrelated classes."""
+    shape = _structure(source, spans, path)
+    for declared in shape.types:
+        if declared.name in reviewed and declared.name not in allowed_types \
+                and not (declared.name == owner and not declared.enclosing):
+            _fail(source, path, shape.starts[declared.token],
+                  f"type '{declared.name}' shadows a name the reviewed text reads; a decoy type cannot redefine it (N-2)")
+    for k, name in _member_names(shape, owner):
+        if name in foreign:
+            _fail(source, path, shape.starts[k], f"member '{name}' of {owner} shadows a type the reviewed text reads (N-2)")
+    masked = _precise_mask(source, spans, True)
+    for found in re.finditer(r'(?<![\w.])using\s+@?([A-Za-z_]\w*)\s*=', masked):
+        if found.group(1) in reviewed:
+            _fail(source, path, found.start(), f"using alias '{found.group(1)}' shadows a name the reviewed text reads (N-2)")
+
+
+def _identifiers(*fragments):
+    """Simple names the reviewed fragments look up (not member names after `.`, `?.` or `::`)."""
+    found = set()
+    for fragment in fragments:
+        texts = _tokens_of(fragment)
+        found.update(text for k, text in enumerate(texts)
+                     if re.match(r'[A-Za-z_]', text) and not (k and texts[k - 1] in (".", "?.", "::")))
+    return found
 
 
 # ------------------------------------------------------------- reviewed text
@@ -1288,26 +1485,34 @@ SetScreen(UiScreen.Map);
 '''),
 )
 
+ROOT_CLASS = "ScenarioOneUiRoot"
+VIEW_CLASS = "LearningObjectivesView"
+KIT_CLASS = "UiKit"
+_ROOT_HEADER = "public sealed class ScenarioOneUiRoot : MonoBehaviour"
+_ROOT_SCREEN_ENUM = "public enum UiScreen { None, Map, Review, Objectives }"
+
 # Outside the pinned bodies, these identifiers may appear only inside the reviewed snippets
 # below, each snippet exactly once: no qualified (this.x), tuple, ref/out, lambda, shadowing
 # or count-compensated reference can be added anywhere else in the root (RR-2/RR-3).
 _ROOT_GUARDED = ("helpClosedFrame", "nextAction", "guidanceCandidate", "guidanceScope", "guidancePrimaries",
                  "GuidanceButtonNames", "ApplyNextActionGuidance", "ClearNextAction", "GuidanceVisible")
-_ROOT_SNIPPETS = (
+_ROOT_MEMBER_SNIPPETS = (  # #320 N-2: each must be a direct member of the ScenarioOneUiRoot class body
     "private int helpClosedFrame = -1;",
     "private Button nextAction;",
     "private Button guidanceCandidate;",
     "private VisualElement guidanceScope;",
     "private readonly Dictionary<Button, bool> guidancePrimaries = new Dictionary<Button, bool>();",
     "private static readonly string[] GuidanceButtonNames = {",
-    "manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);",
     "private void LateUpdate() { ApplyNextActionGuidance();",
     "private void ClearNextAction()",
     "private void ApplyNextActionGuidance()",
     "private static bool GuidanceVisible(VisualElement element, VisualElement scope)",
-    "root.Add(learning.Root);",
     "private LearningObjectivesView learning;",
     "public LearningObjectivesView Learning => learning;",
+)
+_ROOT_STATEMENT_SNIPPETS = (  # inside ScenarioOneUiRoot itself, not a type nested in it
+    "manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);",
+    "root.Add(learning.Root);",
     "learning = new LearningObjectivesView(this);",
     "learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
 )
@@ -1315,7 +1520,8 @@ _ROOT_SNIPPETS = (
 # #314 S-1: root fields the pinned guidance reads ("related state"). A write count alone let a tuple
 # deconstruction or a compensated move through, so each field may be written only at its reviewed site:
 # the screen initialiser, one top-level statement of Start for each reference, and the pinned SetScreen
-# and TryShowReviewYear bodies. Their declarations are pinned so none can become a property.
+# and TryShowReviewYear bodies. Their declarations are pinned as direct members of the class (#320 N-2),
+# so none can become a property while a decoy type keeps the text.
 _STATE_FIELDS = ("help", "manager", "learning", "map", "workPlan", "review", "rackLayout", "screen")
 _STATE_DECLARATIONS = (
     "private ScenarioOneManager manager;", "private WorkPlanView workPlan;", "private AnnualReviewView review;",
@@ -1355,6 +1561,14 @@ _ROUTING_INPUT_ROOT = ("public bool NeedsAnnualReview => manager != null && mana
                        "&& !manager.AnnualReviewSeen;")
 _ROUTING_INPUTS_VIEW = ("public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());",
                         "public bool TeachingRacks => CurrentTopicIndex == 0;")
+
+# Names the reviewed ScenarioOneUiRoot text reads from outside the class, which a member of the class could
+# hide (`private FakeTime Time`); the root's own members read by that text are pinned or disclosed instead.
+_ROOT_FOREIGN_NAMES = {"Time", "StandaloneSessionMenu", "DisplayStyle", "Visibility", "UiKit", "ScenarioOneManager",
+                       "ScenarioHarvestJob", "ScenarioOneWorkOrder", "ScenarioWorkStatus", "RackPlanRack", "ForestTree",
+                       "LearningObjectivesView", "AnnualReviewView", "StandMapView", "WorkPlanView", "MenuHelpView",
+                       "RackLayoutTracker", "Button", "Label", "VisualElement", "Dictionary"}
+_VIEW_FOREIGN_NAMES = {"UiKit", "ScenarioOneUiRoot", "ScenarioOneTeachingSequence", "Button", "VisualElement"}
 
 _KIT_PINS = (
     ("UiKit.Button", r'\bpublic\s+static\s+Button\s+Button\s*\(\s*string\s+text\s*,\s*Action\s+onClick\s*,'
@@ -1540,7 +1754,9 @@ def _guard_view_class(view_source, view_spans, view_files, allowed):
     forest_call = _guard_header(view_source, view_spans, allowed)
     ctor_start, ctor_end = _method_span(view_source, _CTOR_SIGNATURE)
     _no_attribute(view_source, _CTOR_SIGNATURE, VIEW)
-    root_decl = _snippet_spans(view_source, view_spans, "public VisualElement Root { get; }", VIEW, "view Root")
+    _bind_signature(view_source, view_spans, VIEW, _CTOR_SIGNATURE, VIEW_CLASS, "the Objectives constructor")
+    root_decl = _snippet_spans(view_source, view_spans, "public VisualElement Root { get; }", VIEW, "view Root",
+                               owner=VIEW_CLASS, member=True)
     primary_literals, name_literals, caption_literals, constructors = [], [], [], 0
     for path, (source, spans) in sorted(view_files.items()):
         masked = _precise_mask(source, spans, True)
@@ -1574,7 +1790,20 @@ def _guard_view_class(view_source, view_spans, view_files, allowed):
     _guard_refresh_caller(view_source, view_spans, view_files)
     # #314 S-3: the pinned routing reads these view properties; their reviewed definitions are pinned too.
     for snippet in _ROUTING_INPUTS_VIEW:
-        _snippet_spans(view_source, view_spans, snippet, VIEW, f"RR-3 routing input '{snippet.split()[2]}'")
+        _snippet_spans(view_source, view_spans, snippet, VIEW, f"RR-3 routing input '{snippet.split()[2]}'",
+                       owner=VIEW_CLASS, member=True)
+    # #320 N-2: no decoy type in any part of the view may redefine a name its reviewed text reads, and no
+    # part may add a base class whose members would hide those names.
+    reviewed = _identifiers(*_ROUTING_INPUTS_VIEW, _VIEW_REFRESH_GUARD) | _VIEW_FOREIGN_NAMES | {"TeachingFacts"}
+    for path, (source, spans) in sorted(view_files.items()):
+        _guard_shadowing(source, spans, path, VIEW_CLASS, reviewed, _VIEW_FOREIGN_NAMES)
+        shape = _structure(source, spans, path)
+        for declared in shape.types:
+            if declared.name == VIEW_CLASS and not declared.enclosing \
+                    and shape.texts[declared.token + 2:declared.token + 3] != ["{"]:
+                _fail(source, path, shape.starts[declared.token], "a part of LearningObjectivesView declares a base type "
+                                                                  "or type parameters; its members could hide what the "
+                                                                  "reviewed text reads (N-2)")
 
 
 def _guard_header(source, spans, allowed):
@@ -1730,6 +1959,7 @@ def _guard_refresh_caller(view_source, view_spans, view_files):
     of LearningObjectivesView.Refresh(bool), after its one reviewed early return (RR-3)."""
     start, end = _method_span(view_source, _VIEW_REFRESH)
     _no_attribute(view_source, _VIEW_REFRESH, VIEW)
+    _bind_signature(view_source, view_spans, VIEW, _VIEW_REFRESH, VIEW_CLASS, "LearningObjectivesView.Refresh(bool)")
     calls = []
     for path, (source, spans) in view_files.items():
         masked = _precise_mask(source, spans, True)
@@ -1757,10 +1987,22 @@ def _guard_root(source, spans):
         found = re.search(pattern, masked)
         if found:
             _fail(source, ROOT, found.start(), f"{what} in ScenarioOneUiRoot is unsupported (RR-3)")
-    pinned = {label: _pin(source, spans, ROOT, signature, text, label) for label, signature, text in _ROOT_PINS}
+    pinned = {label: _pin(source, spans, ROOT, signature, text, label, owner=ROOT_CLASS)
+              for label, signature, text in _ROOT_PINS}
     _no_attribute(source, r'\bprivate\s+void\s+LateUpdate\s*\(\s*\)', ROOT)
     bodies = list(pinned.values())
-    snippets = [_snippet_spans(source, spans, snippet, ROOT, "ScenarioOneUiRoot") for snippet in _ROOT_SNIPPETS]
+    snippets = [_snippet_spans(source, spans, snippet, ROOT, "ScenarioOneUiRoot", owner=ROOT_CLASS, member=True)
+                for snippet in _ROOT_MEMBER_SNIPPETS]
+    snippets += [_snippet_spans(source, spans, snippet, ROOT, "ScenarioOneUiRoot", owner=ROOT_CLASS)
+                 for snippet in _ROOT_STATEMENT_SNIPPETS]
+    # #320 N-2: the class has its reviewed header, and no decoy type redefines a name the reviewed text reads.
+    _snippet_spans(source, spans, _ROOT_HEADER, ROOT, "ScenarioOneUiRoot header")
+    _snippet_spans(source, spans, _ROOT_SCREEN_ENUM, ROOT, "UiScreen", owner=ROOT_CLASS, member=True)
+    reviewed = _identifiers(*(text for _, _, text in _ROOT_PINS), *_ROOT_MEMBER_SNIPPETS, *_ROOT_STATEMENT_SNIPPETS,
+                            *_STATE_DECLARATIONS, _ROUTING_INPUT_ROOT) | _ROOT_FOREIGN_NAMES
+    _guard_shadowing(source, spans, ROOT, ROOT_CLASS, reviewed, _ROOT_FOREIGN_NAMES, allowed_types=("UiScreen",))
+    # #320 N-1 first, so that a write in a hole is reported as that rather than as a wrong write count below.
+    _guard_interpolation_holes(source, spans, bodies)
     for name in _ROOT_GUARDED:
         for at in _positions(masked, name):
             if not _inside(at, bodies) and not _inside(at, snippets):
@@ -1808,7 +2050,8 @@ def _guard_root(source, spans):
                                                "non-primary class literal (RR-1)")
     _check_uikit_calls(ROOT, source, spans, masked, skip=bodies)
     _guard_related_state(source, spans, masked, bodies)
-    _snippet_spans(source, spans, _ROUTING_INPUT_ROOT, ROOT, "RR-3 routing input 'NeedsAnnualReview'")
+    _snippet_spans(source, spans, _ROUTING_INPUT_ROOT, ROOT, "RR-3 routing input 'NeedsAnnualReview'",
+                   owner=ROOT_CLASS, member=True)
 
 
 def _bracket_map(texts):
@@ -1865,9 +2108,10 @@ def _guard_related_state(source, spans, masked, bodies):
         _fail(source, ROOT, found.start(), f"{_ROOT_UNSAFE[1]} in ScenarioOneUiRoot is unsupported "
                                            "(RR-2 related state)")
     for snippet in _STATE_DECLARATIONS:
-        _snippet_spans(source, spans, snippet, ROOT, "RR-2 related state declaration")
+        _snippet_spans(source, spans, snippet, ROOT, "RR-2 related state declaration", owner=ROOT_CLASS, member=True)
     sites = [_snippet_spans(source, spans, _STATE_DECLARATIONS[-1], ROOT, "RR-2 related state declaration")]
     start, end = _method_span(source, _START)
+    _bind_signature(source, spans, ROOT, _START, ROOT_CLASS, "Start")
     for snippet in _STATE_START_WRITES:
         a, b = _snippet_spans(source, spans, snippet, ROOT, f"RR-2 related state '{snippet.split()[0]}'")
         before = masked[start:a]
@@ -1882,33 +2126,105 @@ def _guard_related_state(source, spans, masked, bodies):
         _fail(source, ROOT, start + early.start(), "RR-2 related state: Start may not return, throw, goto or "
                                                    "yield before its last reviewed related-state write")
     sites += bodies + [_pin(source, spans, ROOT, _TRY_SHOW_REVIEW_YEAR[0], _TRY_SHOW_REVIEW_YEAR[1],
-                            "TryShowReviewYear (RR-2 related state 'screen')")]
+                            "TryShowReviewYear (RR-2 related state 'screen')", owner=ROOT_CLASS)]
     tokens, texts = _file_tokens(source, spans)
     match, parent = _bracket_map(texts)
     for k, token in enumerate(tokens):
-        if token.kind != "id" or token.value not in _STATE_FIELDS:
-            continue
-        name = token.value
-        if k and texts[k - 1] in (".", "?.", "->", "::") and not (texts[k - 1] == "." and k > 1 and texts[k - 2] == "this"):
-            _fail(source, ROOT, token.start, f"'{name}' is reached through a receiver other than `this` "
+        if token.kind == "id" and token.value in _STATE_FIELDS:
+            _check_state_token(source, tokens, texts, match, parent, k, sites, "")
+
+
+def _check_state_token(source, tokens, texts, match, parent, k, sites, where):
+    """One use of a related-state name: a receiver other than `this`, a write outside `sites`, or (for
+    `screen`) a use a ref/in helper could write through. `where` extends the message for interpolation holes."""
+    token = tokens[k]
+    name = token.value
+    if k and texts[k - 1] in (".", "?.", "->", "::") and not (texts[k - 1] == "." and k > 1 and texts[k - 2] == "this"):
+        _fail(source, ROOT, token.start, f"'{name}' is reached through a receiver other than `this`{where} "
+                                         "(RR-2 related state)")
+    how = _state_write(tokens, texts, match, parent, k)
+    if how and not _inside(token.start, sites):
+        _fail(source, ROOT, token.start, f"'{name}' is written outside its reviewed write site ({how}){where}: "
+                                         "tuple, ref/out, qualified, compound, moved or compensated writes "
+                                         "fail closed (RR-2 related state)")
+    if name == "screen":
+        # A value type: a `ref this`/`in this` extension or an `in` parameter could write it unseen.
+        first = k - 2 if k >= 2 and texts[k - 1] == "." and texts[k - 2] == "this" else k
+        opened = parent[first]
+        call = opened is not None and (texts[opened] == "[" or (texts[opened] == "(" and opened > 0 and (
+            texts[opened - 1] in (">", ")", "]")
+            or (tokens[opened - 1].kind == "id" and texts[opened - 1] not in _NOT_CALLEES))))
+        if (k + 1 < len(texts) and texts[k + 1] in (".", "?.")) or (
+                call and first > 0 and texts[first - 1] in ("(", "[", ",") and k + 1 < len(texts) and texts[k + 1] in (",", ")", "]")):
+            _fail(source, ROOT, token.start, f"'screen' is used as a member receiver or passed whole as an "
+                                             f"argument{where}; a ref/in extension or parameter could write it "
                                              "(RR-2 related state)")
-        how = _state_write(tokens, texts, match, parent, k)
-        if how and not _inside(token.start, sites):
-            _fail(source, ROOT, token.start, f"'{name}' is written outside its reviewed write site ({how}): "
-                                             "tuple, ref/out, qualified, compound, moved or compensated writes "
-                                             "fail closed (RR-2 related state)")
-        if name == "screen":
-            # A value type: a `ref this`/`in this` extension or an `in` parameter could write it unseen.
-            first = k - 2 if k >= 2 and texts[k - 1] == "." and texts[k - 2] == "this" else k
-            opened = parent[first]
-            call = opened is not None and (texts[opened] == "[" or (texts[opened] == "(" and opened > 0 and (
-                texts[opened - 1] in (">", ")", "]")
-                or (tokens[opened - 1].kind == "id" and texts[opened - 1] not in _NOT_CALLEES))))
-            if (k + 1 < len(texts) and texts[k + 1] in (".", "?.")) or (
-                    call and first > 0 and texts[first - 1] in ("(", "[", ",") and k + 1 < len(texts) and texts[k + 1] in (",", ")", "]")):
-                _fail(source, ROOT, token.start, "'screen' is used as a member receiver or passed whole as an "
-                                                 "argument; a ref/in extension or parameter could write it "
-                                                 "(RR-2 related state)")
+
+
+# ------------------------------------------------------------- interpolation holes (#320 N-1)
+#
+# `_tokens` keeps a whole interpolated string as one token, so reviewed text stays comparable. Here each
+# string is opened up instead: the code of every hole, at any nesting, becomes ordinary tokens between its
+# own braces, so the same write, receiver and `screen` rules as for statements read it.
+_HOLE_NOTE = " inside an interpolation hole (N-1)"
+
+
+def _deep_tokens(source, spans):
+    """All code tokens of a file, with hole code expanded, and a parallel list saying which lie in a hole.
+    Interpolated-string text and format clauses are dropped; a `::` format clause fails closed because the
+    compiler and this lexer could read it differently."""
+    out, in_hole = [], []
+
+    def emit(token, hole):
+        out.append(token)
+        in_hole.append(hole)
+
+    def code(a, b, hole):
+        for match in _TOKEN.finditer(source, a, b):
+            text = match.group()
+            kind = "id" if text[0].isalpha() or text[0] in "_@" else "num" if text[0].isdigit() else "op"
+            emit(_Tok(text, kind, match.start(), match.end(), text.lstrip("@") if kind == "id" else text), hole)
+
+    def walk(items, a, b, hole):
+        cursor = a
+        for item in items:
+            kind, start, end = item[:3]
+            code(cursor, start, hole)
+            cursor = end
+            if kind == "char":
+                emit(_Tok(source[start:end], "char", start, end, source[start:end]), hole)
+            elif kind == "directive":
+                emit(_Tok(" ".join(source[start:end].split()), "dir", start, end, None), hole)
+            elif kind == "format" and source.startswith("::", start):
+                _fail(source, ROOT, start, "`::` after an interpolation hole's expression is an unsupported shape; "
+                                           "fail closed (N-1)")
+            elif kind == "string":
+                emit(_Tok('$"' if item[4] else '"', "istr" if item[4] else "str", start, end, None), hole)
+                for opened, closed, inner in item[5]:
+                    emit(_Tok("{", "op", opened - 1, opened, "{"), True)
+                    walk(inner, opened, closed, True)
+                    emit(_Tok("}", "op", closed, closed + 1, "}"), True)
+                if item[4]:
+                    emit(_Tok('"', "istr", end - 1, end, None), hole)
+        code(cursor, b, hole)
+    walk(spans, 0, len(source), False)
+    return out, in_hole
+
+
+def _guard_interpolation_holes(source, spans, bodies):
+    """#320 N-1: the code of an interpolation hole in the root obeys the related-state rules. No write site
+    is ever inside a hole outside the pinned bodies, whose text is compared separately. A preprocessor-like
+    `#` in a hole is unsupported and fails closed. Read-only uses, including `this.help`, stay accepted."""
+    tokens, in_hole = _deep_tokens(source, spans)
+    texts = _texts(tokens)
+    match, parent = _bracket_map(texts)
+    for k, token in enumerate(tokens):
+        if not in_hole[k] or _inside(token.start, bodies):
+            continue
+        if token.kind == "op" and token.text == "#":
+            _fail(source, ROOT, token.start, "'#' inside an interpolation hole is an unsupported shape; fail closed (N-1)")
+        if token.kind == "id" and token.value in _STATE_FIELDS:
+            _check_state_token(source, tokens, texts, match, parent, k, [], _HOLE_NOTE)
 
 
 # ------------------------------------------------------------- UiKit (N-3)
@@ -1924,4 +2240,4 @@ def _guard_uikit(source, spans):
         raise ObjectiveCtaSourceError(
             f"UiKit must declare exactly one Button, Box, Row, Text, Add and MakeModal; found {sorted(builders)} (N-3)")
     for label, signature, text in _KIT_PINS:
-        _pin(source, spans, UIKIT, signature, text, label)
+        _pin(source, spans, UIKIT, signature, text, label, owner=KIT_CLASS)
