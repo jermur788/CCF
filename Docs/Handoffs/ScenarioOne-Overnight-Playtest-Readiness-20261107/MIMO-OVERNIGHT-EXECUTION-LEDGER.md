@@ -76,3 +76,17 @@
 **Advancement ruling (binding packet Stage 1 rule):** the report **contains reviewable evidence** → **Stage 2 #317 independent review proceeds** (verdict about reviewability does not imply qualification). #287 itself remains NOT QUALIFIED / NEEDS CHANGES awaiting a verifier-only repin decision by Manager #200. No unsafe retry performed; no source fix attempted by workers.
 
 **Status:** Stage 1 CLOSED at `4d95e452` → dispatching Stage 2 (cross-provider reviewer, distinct from author).
+
+---
+
+## Entry 003 — 2026-11-07T03:20Z — [HANDED-OFF] STAGE 2 #317 independent #287 review: **NEEDS CHANGES (4 blocking)** — review lane closed; downstream integration WAITING; Stage 3 proceeds
+
+**Reviewer:** T3 delegate, provider `codex_c75d8114` ("ChatGPT - OpenAI B"), model `gpt-6.1-sol`, reasoningEffort HIGH. Genuinely cross-provider from the #287 author (Claude Sonnet 5.5 / claudeAgent) and not Mimo. Docs-only; **no Unity run, no lease acquired** (verified by Mimo: lock remained free throughout).
+
+**Published evidence:** [review report](https://github.com/jermur788/CCF/blob/3b27f4258c1536e8ebd8a5b34f5ebbdb02c16a05/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/WORKBENCH-287-INDEPENDENT-REVIEW-RESULT.md) at `3b27f425` on `docs/mimo-workbench-287-independent-review-20261107-v1`; [#317 [HANDED-OFF] receipt](https://github.com/jermur788/CCF/issues/317#issuecomment-6700806216). Reviewer worktree clean (Mimo verified). This is **independent review opinion, NOT Manager acceptance**.
+
+**Findings: 4 blocking, 2 major, 1 minor, 2 notes.** Reported gate counts **match raw logs** (no fabricated counts). Blocking findings include: (1) package provenance — evidence ran on Editor-bumped SDK packages, not the pinned candidate's package state; (2) incomplete lifecycle/persistence qualification (sections C–G NOT RUN, `RackV2Persistence` legacy40/coldstart NOT RUN); (3) unresolved Enlarged80 tree-identity substitution (potential world-hash nondeterminism); (4) a runner false-green handling defect independently reproduced **without Unity**. Lease/storage audit passed within recorded evidence. Reviewer conclusion: **a version repin alone is insufficient** — i.e., a simple fixture-pin update would not clear the blockers.
+
+**Consequences per binding packet:** any blocking finding ⇒ **downstream integration (Stage 6) WAITING** on top of the already-required Manager gates; #287 remains NOT QUALIFIED; the #287→#317 review chain is now complete and both lanes are closed/released. Review verdict remains Manager #200's to assess; Mimo does not accept, repin, or retry.
+
+**Status:** Stage 2 CLOSED at `3b27f425` → dispatching Stage 3 #309 CTA verifier repair (new sole writer, independent lane).
