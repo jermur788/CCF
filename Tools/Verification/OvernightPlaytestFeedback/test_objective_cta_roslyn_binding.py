@@ -439,6 +439,7 @@ def e2e_section(cases):
             check(git(clone, "status", "--porcelain", "-uall") == pristine, f"D {cid}: clone restored")
         # historical source: still red, and the Roslyn stage is never reached
         git(clone, "checkout", "-f", "--detach", "-q", BASE)
+        (clone / "Tools/Verification/OvernightPlaytestFeedback").mkdir(parents=True, exist_ok=True)  # absent at BASE
         for name in TOOL_FILES:  # BASE has older tool files; run the tool under test against the old source
             shutil.copyfile(TOOLS / name, clone / "Tools/Verification/OvernightPlaytestFeedback" / name)
         r = run_checker(clone, tmp, "pre-fix")  # the recorded historical red uses the pre-fix states
