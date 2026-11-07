@@ -90,3 +90,19 @@
 **Consequences per binding packet:** any blocking finding ⇒ **downstream integration (Stage 6) WAITING** on top of the already-required Manager gates; #287 remains NOT QUALIFIED; the #287→#317 review chain is now complete and both lanes are closed/released. Review verdict remains Manager #200's to assess; Mimo does not accept, repin, or retry.
 
 **Status:** Stage 2 CLOSED at `3b27f425` → dispatching Stage 3 #309 CTA verifier repair (new sole writer, independent lane).
+
+---
+
+## Entry 004 — 2026-11-07T03:40Z — [HANDED-OFF] STAGE 3 #309 CTA verifier RR-1–RR-5 repair: **WORKER-COMPLETE (self-declared all-green; NOT reviewed, NOT approved)** → Stage 4 independent re-review
+
+**Worker:** T3 delegate, provider `claudeAgent` (Claude A), model `claude-opus-5-5`, effort XHIGH. Fresh session (not the #304 author, not the #305 reviewer). Sole writer on `/media/jer/Files/CCF/Operations/CCF-FeedbackCTARepair-20261106` / `verify/scenario-one-feedback-cta-anchor-20261106`, starting clean at reviewed candidate `1585ca20` (Mimo preflighted).
+
+**Published evidence:** [#309 [HANDED-OFF] receipt](https://github.com/jermur788/CCF/issues/309#issuecomment-6701275573) (03:18:48Z); [handoff doc](https://github.com/jermur788/CCF/blob/b4d47d3d45717be9da159f0368407b10c0c3e6fe/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/BASELINE-CTA-CHECKER-RR1-RR4-REPAIR-HANDOFF.md). Branch pushed fast-forward `1585ca20..b4d47d3d` (code commit `84d0ba92`, docs commit `b4d47d3d`); Mimo verified origin parity and a clean lane afterwards. Evidence dir `/media/jer/Files/CCF/Verification/CTA-RR1RR4-Repair-309-20261107/` (Files). **Worker evidence only — not independent review, not Manager acceptance.**
+
+**Declared scope:** exactly the four allowed checker files + new handoff (`objective_cta_source_check.py` +1120/−14, `test_objective_cta_source_check.py` +593/−20, `check_baseline.py` +4/−4 test-08-only with stated justification, `README.md` +10/−7). Assets/Packages/ProjectSettings 0 changes; `baseline-output.txt` blob `db6a8b85…` and `BASE` unchanged; checks 01–07/09/06a-c unchanged; no production C#, no Unity, no PR #300.
+
+**Declared tallies (to be independently re-run in Stage 4, not trusted):** suite exit 0 `rejected=219/219 false_greens=0 wrong_cause=0`; #305 corpus **81/81 rejected** (incl. all **50 true false greens** + the 2 N-1 cases X-F1-31/32, now rejected per the Manager N-1 ruling); 21 re-derived R-IDs + original 20 + #304 55 kept; 62 new RR-1/RR-2/RR-3/N-4 mutations rejected; benign 32/32 accepted (15 #305 + 4 author + 13 new); candidate **10/0/2 exit 0**; historical **6/4/2 exit 1** with `baseline-output.txt` byte-preserved; six real `RackEditing.SnapFar` on traced **cwd-pinned .NET SDK 8.0.133**; **no BLOCKED case**; bounded limits stated with accepted probes (lexer/partial/UiKit/interpolation/reachability). Implementation notes claim a new fail-closed N-4 lexer, header-grammar + class-wide inventories for RR-1/N-1/N-3, and normalised pinned root snippets for RR-2/RR-3 — all lexical, no C# parser, no reuse of the #305 scratch prototype.
+
+**Orchestration note:** the worker's turn briefly ended while its final Roslyn C# 9 compile check was still running; it resumed on background completion and finished matrix → handoff → commit → push → claim receipt on its own. Mimo performed only state verification (no content authoring, no grading).
+
+**Status:** Stage 3 CLOSED at `b4d47d3d` → dispatching Stage 4 #314 independent re-review (fresh cross-provider reviewer distinct from the Opus author; separate mutants + real SDK8 required).
