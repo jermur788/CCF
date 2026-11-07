@@ -105,3 +105,11 @@ See next entry for the full record; dispatch started after Entry 003 push. Owner
 **Status:** #323 [HANDED-OFF] — reviewable exact source result exists and the writer is released (clean, synced). Next: #324 independent cross-provider review (Codex `gpt-6.1-sol`, reasoningEffort high) on new docs lane `docs/workbench-runner-r1-r5-independent-20261107-v1`. Reviewer opinion ≠ Manager approval; source PASS ≠ Unity qualification.
 
 ---
+
+## Entry 006 — #324 first reviewer attempt FAILED (provider quota), safe reroute (2026-11-07)
+
+**First attempt:** delegated reviewer on provider instance `codex` (Codex), dispatched `gpt-6.1-sol` @ reasoningEffort `high`, task `…delegate-task:ada5d721e-e80a-4362-b153-a68bb5edbbc8` — **FAILED before doing any work**: provider usage-limit error ("You've hit your usage limit… try again at Nov 8th, 2026 9:15 PM"), i.e. a genuine quota exhaustion, not a review. Orchestrator read-only check: zero state created — no #324 comments, no branch on origin, no review worktree, no evidence dir. Per the #322-run precedent (first #321 reviewer quota failure was a correct safe reroute; no fake reviewer run counted), this attempt is recorded as a **provider failure, not a review**, and no review content is claimed from it.
+
+**Reroute (same review contract, replacement reviewer):** provider instance `codex_c75d8114…` (ChatGPT – OpenAI B), `gpt-6.1-sol`, reasoningEffort `high` — a different provisioned OpenAI instance (the one that successfully ran #325). Cross-provider independence from the #323 author (Anthropic `claude-opus-5-5` on `claudeAgent_claude_b_pro`) is preserved: the reviewer remains genuinely different-provider from the author. If this instance also fails quota, the documented fallback is Claude A (`claudeAgent`) as a disclosed distinct-instance same-family reviewer with strengthened independent negatives, recorded as such. No review verdict will be claimed until a real reviewer completes the full contract.
+
+---
