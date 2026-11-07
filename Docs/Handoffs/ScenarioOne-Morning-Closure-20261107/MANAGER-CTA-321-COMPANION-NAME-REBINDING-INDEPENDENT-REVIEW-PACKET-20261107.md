@@ -1,0 +1,18 @@
+# Manager #200 — #326 independent review after narrow CTA rebinding source closure
+
+**Status:** WAITING #325 HANDED-OFF / NOT RUNNING. [#326 claim](https://github.com/jermur788/CCF/issues/326). **Purpose/difficulty:** MEDIUM–HIGH independent source-falsification review, not game UI/Unity validation. Reviewer must not author the #325 fix, or be Mimo self-review of its code; different provider preferred where actually available. Record actual provider/model/effort, reviewer may not infer unavailable quota.
+
+**Binding prior evidence:** [#321 independent review](https://github.com/jermur788/CCF/blob/docs/cta-309-two-guard-independent-20261107-v1/Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/CTA-309-TWO-GUARD-INDEPENDENT-REVIEW-RESULT.md); [#325 exact author packet](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/MANAGER-CTA-321-COMPANION-NAME-REBINDING-REPAIR-PACKET-20261107.md). Exact tested #325 source candidate will be supplied by author handoff; do not assume a current branch head from this preparatory packet.
+
+**Separate proposed review docs lane:** `docs/cta-321-companion-name-independent-20261107-v1`, Files `/media/jer/Files/CCF/Operations/CCF-CTA321NameReview-20261107`, both conditional on real clean/store/owner/branch/disk preflight; source lane READ ONLY, all tests in reviewer-owned scratch clone. No Unity, Editor/lease or original UX/Assets/Packages changes.
+
+**Review contract:**
+1. Reconstruct exact **R321-S05/S06/S07** source mutations byte-for-byte from retained independent #321 evidence, compile under C#9 with the real same Unity player-like references, verify root base and `Time.frameCount` semantic lookup with Roslyn and assert actual `check_baseline.py` test-08 rejects each for intended alias/companion shadow cause, not incidental inventory.
+2. Examine bounded guard implementation/actual method and owning-type scope; add small distinct adversarial variants (alternate named aliases, foreign `UiKit.cs` type shadows, benign unrelated types/using aliases) sufficient to test claimed invariant, not a general parser proof. Keep documented limitations explicit. If valid in-scope false-green remains, return **NEEDS CHANGES** with exact minimal witness, do not waive.
+3. Re-run historical negative/benign suite: **884 original negatives**, **112 benign**, #305 81 known 50, #314 original 654/47+10, unchanged 9+9/52 limitations, original candidate **10/0/2 exit0**, old baseline **6/4/2 exit1**, byte-identical original `baseline-output.txt`; run six distinct SnapFar under proven cwd SDK8.0.133, Python compile. Do not credit synthetic echoes or an accidental FAIL.
+4. Check exact diff only allowed checker/tests/README/test08/handoff; no production UI, PR#300 whole ancestry, game saves/Reference, origin rewrite/force push, or test weakening. Record adverse or passing evidence with actual scripts/exits, count/validity distinctions and raw evidence URLs/paths.
+5. Report **APPROVED / NEEDS CHANGES / REJECTED** recommendation limited to source-checker scope. Reviewer cannot grant Manager approval, integrate or say native/Unity/visual/A–O passed. Distinguish remaining known semantic limits and whether Roslyn architecture is now the proportionate next step.
+
+**Deliverable:** `Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/CTA-321-COMPANION-NAME-INDEPENDENT-REVIEW-RESULT.md` committed on independent docs branch, [RUNNING] only with genuine review preflight, [HANDED-OFF] or [BLOCKED] with direct GitHub URL. Manager #200 then issues separate source-only approval or a tooling-design stop; no automatic endless repair loop, no Windows build.
+
+**User action:** none until #325 real handoff. 
