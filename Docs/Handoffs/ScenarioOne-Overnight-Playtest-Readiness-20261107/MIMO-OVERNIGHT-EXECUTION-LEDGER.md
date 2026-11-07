@@ -132,3 +132,19 @@
 **Provider lesson (consolidated-report material):** overnight budgets must account for three separately-exhaustible OpenAI quotas (ChatGPT account, Codex instance, OpenCode-delivered OpenAI) and prefer booking cross-provider reviews BEFORE large same-family authoring jobs consume quotas. Claude A/B capacity remained available through 04:00Z.
 
 **Status:** Stage 4 attempt 3 RUNNING; single active worker; no lease anywhere.
+
+---
+
+## Entry 007 — 2026-11-07T04:12Z — [ADDENDUM] STAGE 3 #309 worker final summary received (thread continuation) — compile-check results and cleanup now closed
+
+The #309 author's thread delivered its full final report after its background Roslyn check completed (same task as entry 004; no new work, no re-run). New detail beyond entry 004, recorded for the #314 reviewer and Manager #200:
+
+- **Roslyn C# 9 compile (vs real Unity 6000.6 DLLs):** all author controls and 26 extra probes compile; **248/251 control sets compile**. The 3 non-compiling sets are disclosed: one originally-invalid-C# control left unchanged for byte-identity, plus **X-F1-09 and X-F2-44, which #305 also recorded as not compiling** (i.e. inherited non-compiling cases, not new defects).
+- **Reproduction fidelity:** running the new checker at old `1585ca20` reproduces #305's outcome exactly (52 accepted; all 117 statuses match), evidencing the corpus was carried faithfully.
+- **New coverage counts:** #309 controls = 62 (RR-1 28, RR-2 15, RR-3 14, N-4 5); **55 of 62 were accepted by the old scanner** → genuinely new coverage. Benign total 32/32 accepted (15 + 4 + 13).
+- **Baseline nuance:** `baseline-output.txt` file is byte-preserved; the live historical run differs from it only at **line 48** and is byte-identical to #305's own rerun output (likely volatile line — #314 to verify, not Mimo).
+- **SDK proof chain:** cwd `global.json` pins 8.0.133; dotnet host trace selects it; traced process tree shows 281 file opens under `sdk/8.0.133`, **0 under 10.0.114**; a control run without `global.json` resolves 10.0.114 (the trace genuinely discriminates). All six SnapFar pass.
+- **Stated limits with accepted defective probes:** classes outside the scanned set / `ui.Learning` aliasing before Root; unpinned root code disabling buttons via its own document; infinite loop/exception before the guidance call; string-name reflection, USS, unpinned UiKit members. Directional caveats: edits to pinned methods fail closed (false-red direction); a harmless nested literal in an interpolation hole is rejected (over-rejection direction).
+- **Hygiene:** lane clean at `b4d47d3d`; the leftover Roslyn compiler server was stopped by the worker; **no dotnet/Unity processes remain** (Mimo had observed only the idle compiler server earlier).
+
+No change to Stage 3 closure or routing. **Status:** Stage 4 attempt 3 still RUNNING (single active worker).
