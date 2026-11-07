@@ -11,6 +11,7 @@ import subprocess
 from collections import Counter
 from pathlib import Path
 from objective_cta_source_check import ObjectiveCtaSourceError, collect_companions, verify_objective_cta
+from objective_cta_roslyn_binding import verify_objective_cta_binding
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = "72b4efbd1c653fa2231f632a79030a83ff76f833"
@@ -249,11 +250,15 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
            + evidence(CURRICULUM, 'case "rack.create":'))
     try:
         rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"), collect_companions(ROOT))
+        # Stage 2 (#328) runs only on source the lexical stage accepted: Roslyn must bind the reviewed names to the Unity types.
+        rows = rows + verify_objective_cta_binding(ROOT)
         report("PASS", "08 objective-primary-cta",
-               "Static, lexical source-structure check (nothing compiled or run): one named Objectives map CTA "
+               "Lexical source-structure check, then a Roslyn C# 9 symbol-binding check (offline compiler approximation, not Unity compilation): one named Objectives map CTA "
                "invokes ui.ShowMap(), is bound to the header row and, as far as the pinned routing text and its "
                "pinned inputs (bound to their owning class) decide, selected only for unconfirmed Rack V2 Objective 1 "
                "(reviewed root names include the base header; collected companion type collisions are guarded lexically); "
+               "ScenarioOneUiRoot derives from UnityEngine.MonoBehaviour and its pinned Time.frameCount / Time.unscaledTime / DisplayStyle.Flex / DisplayStyle.None "
+               "receivers bind to the Unity metadata types by Roslyn, with fail-closed tooling; "
                "(unpinned root members and callers and the game/teaching state are not checked); "
                "Back to forest is the only static btn-primary source in the view class and is in the scoped "
                "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "
