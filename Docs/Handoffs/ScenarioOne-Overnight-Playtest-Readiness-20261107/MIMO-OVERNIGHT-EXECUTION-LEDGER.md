@@ -148,3 +148,29 @@ The #309 author's thread delivered its full final report after its background Ro
 - **Hygiene:** lane clean at `b4d47d3d`; the leftover Roslyn compiler server was stopped by the worker; **no dotnet/Unity processes remain** (Mimo had observed only the idle compiler server earlier).
 
 No change to Stage 3 closure or routing. **Status:** Stage 4 attempt 3 still RUNNING (single active worker).
+
+---
+
+## Entry 008 — 2026-11-07T05:05Z — [HANDED-OFF] STAGE 4 #314 independent #309 re-review: **NEEDS CHANGES (source scope)** — 26 surviving mutants in 3 findings; ONE bounded repair loop authorised by packet and scheduled
+
+**Reviewer:** T3 delegate, provider `claudeAgent_claude_b_pro` (Claude B — Pro), model `claude-sonnet-5-5`, effort XHIGH — the disclosed same-provider-family fallback (cross-provider unobtainable tonight; see entries 005–006). Independent of the author (Opus 5.5 / Claude A): different model, different instance, fresh session; **Manager #200 to discount family independence accordingly**. No source edited, no Unity run.
+
+**Published evidence:** [review report](https://github.com/jermur788/CCF/blob/6f39262784f489e813c6eb3738173225a8bc223a/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/CTA-309-INDEPENDENT-REVIEW-RESULT.md) at `6f392627` on `docs/mimo-cta-309-independent-review-20261107-v1`; [#314 [HANDED-OFF]](https://github.com/jermur788/CCF/issues/314#issuecomment-6701996458). Evidence/scripts: `/media/jer/Files/CCF/Verification/CTA-314-IndependentReview-20261107/`. End-state integrity: checker/test/README/check_baseline.py/baseline-output.txt re-hashed identical to pinned blobs; author lane + remote still `b4d47d3d`.
+
+**Faithfully reproduced (author claims verified):** exactly-five-paths diff; Assets/Packages/ProjectSettings untouched; `baseline-output.txt` unchanged; old controls verbatim; 81/81 #305 mutants + 21 R-IDs + 55 controls rejected; 19 benign accepted; X-F1-31/32 rejected per N-1 ruling; candidate 10/0/2 exit 0; historical 6/4/2 exit 1; six SnapFar on trace-proved cwd-pinned SDK 8.0.133 (281 opens under 8.0.133 / 0 under 10.0.114; control without `global.json` reverses to 0/504).
+
+**Blocking findings (reviewer's own 176 cases; 26 valid C# 9 mutants still GREEN through real `check_baseline.py`, exit 0, 10/0/2):**
+- **S-1 (Medium/blocking)** — RR-2 related-state fields (`help, manager, map, workPlan, review, rackLayout, screen`) guarded only by write counts; tuple writes / compensated moves pass. `objective_cta_source_check.py:107-114`, `:1610-1616`. 10 cases.
+- **S-2 (Medium/blocking)** — lexer/compiler disagreement: Unicode format characters (ZWJ etc.) ignored inside identifiers by Roslyn; U+0085/U+2028/U+2029 terminate `//` for Roslyn but not the checker. Can hide a second static primary or allowlist clear. 11 cases. **No live file contains such characters today** (guard cannot falsely reject current source).
+- **S-3 (Medium accuracy / Low safety)** — pinned routing reads unpinned inputs (`NeedsAnnualReview`, `TeachingRacks`, `CurrentTopicIndex`); README "only for an unconfirmed Rack V2 Objective 1" overclaims. 5 cases.
+- **Low/info:** README-cited limit probes exist only in author off-repo evidence, not the suite; disclosed limit L-06 is an ordinary local-alias; lone-CR comment terminators accepted in memory but closed in practice by `read_text` newline handling (not counted).
+
+**Reviewer recommendation (binding on Mimo's routing decision):** ONE bounded repair under the same five paths, then an exact-head re-review. A scratch five-guard wrapper (NOT shipped code) closed **25/26** cases; the 26th is game-progress logic outside packet scope. Guards rejected none of 21+24 benign controls and reopened none of 164 mutation controls. If Manager prefers disclosure-only for S-2, S-1/S-3 still need guards or explicit README limits.
+
+**Not run/unproved (re-stated):** no Unity/render/native input/focus/consent/save; no USS; no Windows; not run on any integrated candidate; findings may not be the only gaps.
+
+**Disclosure:** the reviewer's only touch outside its lanes was one `git fetch origin` from `/media/jer/Files/CCF-Primary` at preflight (refs-only; harmless; no working-tree change).
+
+**Routing decision (packet Stage 4 rule: "ONE additional serial author repair + new exact-head independent rerun after ownership release"):** repair loop 1 → exact-head re-review rerun → then close #309/#314 for Manager verdict. No further loops overnight.
+
+**Status:** Stage 4 CLOSED at `6f392627` → dispatching #309 repair loop 1 (original author model, sole writer, same five paths).
