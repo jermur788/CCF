@@ -55,3 +55,19 @@ Provider/model/effort values are those actually dispatched and observed in `orch
 **Status:** #318 [HANDED-OFF] — a reviewable result exists and the writer lane is released. B3 remains an open blocker inside #287 (expected per packet: "prove source cause or declare BLOCKED unresolved"). Next: #319 independent source review.
 
 ---
+
+## Entry 003 — #319 independent review COMPLETE: NEEDS CHANGES (source scope) (2026-11-07)
+
+**Owner:** delegated reviewer, provider instance `claudeAgent` (**Claude A**), model `claude-opus-5-5`, effort UNKNOWN (not observable). **Cross-provider** vs #318 author (ChatGPT–OpenAI B / gpt-6.1-sol). Reviewer ≠ source author. Task id `node:delegated-task:…d6db0a0d-7cd7-4519-a398-688b18a18962`.
+
+**Deliverable (verified by orchestrator):** `WORKBENCH-287-VERIFIER-CLOSURE-INDEPENDENT-REVIEW-RESULT.md` on new docs-only branch `docs/workbench-287-verifier-closure-independent-20261107-v1`, head `8751d29dba326aee8fdbcdb5867f39519756a1c7` (exactly one new file vs origin/main, fast-forward push). Review target was the exact #318 diff `4d95e452…6b7d2d45`.
+
+**Reviewer verdict: NEEDS CHANGES (source-scope opinion only; not Manager acceptance).** Contract outcomes: (1) scope + dirty-file integrity PASS (7 files exact; 16/16 preserved checksums; no waiver). (2) B2 PASS at source level, runtime NOT RUN. (3) B3 PASS for honesty — independently recomputed the substitution (P0604 lost / P1209 gained / 1,343 identical), mechanism kept separate from causation, equality check intact, no rebaseline; **B3 itself stays BLOCKED**. (4) B4 PASS at source level with minor notes (independent audit of all 80 save classes matched projection boundaries; 28 C# controls re-run real; 13/14 extra reviewer controls passed, 14th documented as pre-existing rule). (5) **M1 FAIL — drives verdict**: author mocks pass and identity/lease fail closed, but reviewer probes found **R1 major** (mid-run tracked-package rewrite by the Editor is not re-checked after cleanup, so the runner can still exit 0 with clean receipts — the #317 B1 mask), R2 minor (markers-write failure leaves JSON receipt claiming exit 0), R3 minor (non-Workbench gates accept any pass token incl. intermediate), R4 minor (synthetic saves mislabelled "v20/v21/v19" in some log labels), R5 minor (two teaching-history controls cannot fail as written). (6) M2 classification PASS (correctly NOT RUN, nothing overclaimed).
+
+**Raw evidence:** `/media/jer/Files/CCF/Verification/Workbench287VerifierReview-20261107/` (35 adversarial probes, reruns of author mocks and 28 projection controls, schema audit, tree recomputation, C# type check with deliberate-error negative control, `git diff --check`). Untracked `.review-scratch/` disclosed in reviewer's own lane, not committed.
+
+**Orchestrator re-verification after review:** dirty lane 8/8 files still byte-identical to Phase 0 backups (reviewer's one disclosed read-only `git status` changed no file); #318 source lane clean and synced. No Unity/lease/PR/merge in the review.
+
+**Status:** #319 [HANDED-OFF]. No #318 fix loop is budgeted in the dispatch; R1–R5, B3 and the package/dirty resolution return to Manager #200 as open Workbench decisions. Queue proceeds to #320.
+
+---
