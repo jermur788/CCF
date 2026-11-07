@@ -2,10 +2,13 @@
 
 RunnerControls holds the 13 original #318 controls (N1-N3 included). The R1-R5 classes below add the
 #323 controls: post-run lane drift (mock status and a real temporary git repository), truthful receipts
-when a write fails, and exact terminal PASS markers per gate. Set CCF_TEST_SCRATCH to choose where the
+when a write fails, and exact terminal PASS markers per gate. R324 adds the receipt-finalisation controls:
+a surviving markers file must say PROVISIONAL / INCOMPLETE until the FINAL line is committed after the JSON.
+Set CCF_TEST_SCRATCH to choose where the
 temporary folders go; by default they go to the system temporary directory, never into retained evidence.
 """
 import contextlib
+import errno
 import hashlib
 import importlib.util
 import io
@@ -425,6 +428,130 @@ class R2TruthfulReceipts(RunnerHarness):
         self.assertEqual(names, ["WorkbenchRetirementVerification.log", "config"])
         self.assertFalse((self.root / "Assets/ForestPrototype" / self.source.name).exists())
         self.assertFalse((self.out / "config/unity3d/Unity/licenses").exists())
+
+
+class R324FinalReceipt(RunnerHarness):
+    """R324-01: a surviving markers receipt must never read as a runner PASS unless the FINAL line was committed.
+
+    Receipt order is PROVISIONAL markers -> JSON -> FINAL markers. The faults below are injected AFTER the real
+    provisional markers write, which is exactly where the #324 reviewer reproduced the defect."""
+    GATE = "WorkbenchRetirementVerification"
+
+    def markers(self):
+        return (self.out / (self.GATE + ".markers.txt")).read_text()
+
+    def assert_only_provisional(self, markers):
+        lines = markers.splitlines()
+        self.assertTrue(lines[0].startswith("RUNNER_RECEIPT_STATE PROVISIONAL INCOMPLETE - NOT A RUNNER VERDICT"))
+        self.assertFalse([l for l in lines if l.startswith("RUNNER_RECEIPT_STATE FINAL")])
+        # No raw Editor line and no git-status line may stand on its own where a reader could take it for a verdict.
+        for line in lines[1:]:
+            self.assertTrue(line.startswith(("PROVISIONAL> ", "RUNNER_RECEIPT_STATE PROVISIONAL END", "RUNNER_RECEIPT_STATE INCOMPLETE",
+                                             "RUNNER_RECEIPT_ERROR ")), line)
+        self.assertIn("PROVISIONAL> " + PASS + " checks=1", markers)
+        self.assertIn("PROVISIONAL> POSTRUN_LANE_STATUS clean entries=0", markers)
+
+    def full_after_first_write(self, fail_from=2):
+        """write_receipt that really writes the first fail_from-1 receipts, then reports ENOSPC; and append reports ENOSPC."""
+        real, calls = runner.write_receipt, []
+        def write(path, body):
+            calls.append(path.name)
+            if len(calls) >= fail_from:
+                raise OSError(errno.ENOSPC, "No space left on device")
+            return real(path, body)
+        real_open = runner.Path.open
+        def open_(path, mode="r", *args, **kwargs):
+            if "a" in mode and path.name.endswith(".markers.txt"):
+                raise OSError(errno.ENOSPC, "No space left on device")
+            return real_open(path, mode, *args, **kwargs)
+        return write, open_, calls
+
+    def test_R324_clean_run_ends_with_FINAL_markers_bound_to_the_JSON(self):
+        code, receipt = self.run_case()
+        self.assertEqual(code, 0)
+        markers = self.markers()
+        raw = (self.out / (self.GATE + ".json")).read_bytes()
+        self.assertEqual(markers.splitlines()[0], "RUNNER_RECEIPT_STATE FINAL runner_exit=0 json=%s.json json_sha256=%s"
+                         % (self.GATE, hashlib.sha256(raw).hexdigest()))
+        self.assertIn(PASS + " checks=1", markers.splitlines())  # final form keeps the raw Editor line, unquoted
+        self.assertNotIn("PROVISIONAL", markers)
+        self.assertIn("RUNNER_RECEIPT_STATE FINAL runner_exit=0", receipt["receipt_authority"])
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (True, "authoritative success"))
+
+    def test_R324_failed_gate_is_a_FINAL_failure_not_a_success(self):
+        code, receipt = self.run_case(text="WORKBENCH_PASS intermediate\n")
+        self.assertEqual(code, 1)
+        self.assertTrue(self.markers().splitlines()[0].startswith("RUNNER_RECEIPT_STATE FINAL runner_exit=1 json="))
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "JSON receipt records a failure"))
+
+    def test_R324_01_ENOSPC_json_and_fallback_append_both_fail(self):
+        """The #324 residual: JSON creation AND the fallback marker append both fail (simulated ENOSPC)."""
+        write, open_, calls = self.full_after_first_write()
+        with patch.object(runner, "write_receipt", write), patch.object(runner.Path, "open", open_):
+            code, printed = self.invoke()
+        self.assertEqual((code, printed["exit_code"]), (1, 1))
+        self.assertIn("receipt_write_error:json:OSError", printed["failures"])
+        self.assertEqual(calls, [self.GATE + ".markers.txt", self.GATE + ".json"])  # the FINAL write is never attempted
+        self.assertFalse((self.out / (self.GATE + ".json")).exists())  # no fabricated JSON
+        self.assertEqual(sorted(p.name for p in self.out.glob("*.partial")), [])  # no partial-success artifact
+        markers = self.markers()
+        self.assert_only_provisional(markers)
+        self.assertTrue(markers.endswith(runner.PROVISIONAL_LAST + "\n"))  # the append failed, so the file ends as provisional
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "receipt missing or unreadable"))
+        self.assertFalse((self.root / "Assets/ForestPrototype" / self.source.name).exists())
+        self.assertFalse((self.out / "config/unity3d/Unity/licenses").exists())
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores file permissions")
+    def test_R324_01_real_permission_failure_json_and_fallback_append_both_fail(self):
+        """Same residual with real filesystem permissions: no operation is mocked after the real markers write."""
+        real, written = runner.write_receipt, []
+        def write_then_lock(path, body):
+            real(path, body)
+            written.append(path.name)
+            if len(written) == 1:  # the real PROVISIONAL markers exist; now refuse every later write
+                os.chmod(path, 0o444)
+                os.chmod(path.parent, 0o555)
+        self.addCleanup(lambda: os.chmod(self.out, 0o755) if self.out.exists() else None)
+        with patch.object(runner, "write_receipt", write_then_lock):
+            code, printed = self.invoke()
+        self.assertEqual((code, printed["exit_code"]), (1, 1))
+        self.assertEqual(printed["failures"], ["receipt_write_error:json:PermissionError"])  # real error, not a mock
+        self.assertEqual(written, [self.GATE + ".markers.txt"])
+        self.assertFalse((self.out / (self.GATE + ".json")).exists())
+        self.assertEqual(sorted(p.name for p in self.out.glob("*.partial")), [])
+        self.assert_only_provisional(self.markers())
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "receipt missing or unreadable"))
+
+    def test_R324_final_markers_write_failure_exits_nonzero_and_stays_provisional(self):
+        """The new third write can fail too: JSON committed, FINAL markers not. Not a success; no cross-file atomicity is claimed."""
+        write, open_, calls = self.full_after_first_write(fail_from=3)
+        with patch.object(runner, "write_receipt", write):
+            code, printed = self.invoke()
+        self.assertEqual(code, 1)
+        self.assertIn("receipt_write_error:markers_final:OSError", printed["failures"])
+        self.assertEqual(printed["exit_code"], 1)
+        self.assertEqual(calls, [self.GATE + ".markers.txt", self.GATE + ".json", self.GATE + ".markers.txt"])
+        on_disk = json.loads((self.out / (self.GATE + ".json")).read_text())
+        self.assertEqual(on_disk["exit_code"], 0)  # committed before the failure and not amendable: the markers decide
+        markers = self.markers()
+        self.assertTrue(markers.startswith(runner.PROVISIONAL_FIRST))
+        self.assertTrue(markers.endswith("RUNNER_RECEIPT_ERROR markers_final:OSError runner_exit=1\n"))
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "markers are not FINAL for exactly this JSON"))
+
+    def test_R324_authoritative_success_needs_matching_JSON_and_FINAL_markers(self):
+        self.run_case()
+        json_path, markers_path = self.out / (self.GATE + ".json"), self.out / (self.GATE + ".markers.txt")
+        good_json, good_markers = json_path.read_bytes(), markers_path.read_text()
+        self.assertTrue(runner.authoritative_success(self.out, self.GATE)[0])
+        json_path.write_bytes(good_json + b" ")  # FINAL line for different JSON bytes
+        self.assertFalse(runner.authoritative_success(self.out, self.GATE)[0])
+        json_path.write_bytes(good_json)
+        markers_path.write_text(good_markers.replace("FINAL", "PROVISIONAL", 1))  # raw PASS and clean status alone
+        self.assertFalse(runner.authoritative_success(self.out, self.GATE)[0])
+        markers_path.write_text("\n".join(good_markers.splitlines()[1:]) + "\n")  # old-style file with no state line
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "markers are not FINAL for exactly this JSON"))
+        markers_path.unlink()
+        self.assertEqual(runner.authoritative_success(self.out, self.GATE), (False, "receipt missing or unreadable"))
 
 
 class R3ExactTerminalPass(RunnerHarness):

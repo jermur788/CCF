@@ -8,6 +8,21 @@ Only the three known gates run, each with its own exact terminal PASS marker (TE
 After the Editor exits and the staged harness/.meta are removed, the lane must be exactly clean again:
 any tracked or untracked drift (for example an Editor rewrite of Packages/manifest.json) is a FAIL,
 recorded with paths and integrity hashes in both receipts. Nothing is restored or cleaned automatically.
+
+Receipt protocol (R324-01). Three writes; each is atomic on its own (temporary file, then os.replace), and no
+atomicity across the two files is claimed because the filesystem cannot give it:
+  1. <gate>.markers.txt is written first as PROVISIONAL / INCOMPLETE. Its first and last lines say so and every
+     quoted line (raw Editor output, git status snapshot) is prefixed "PROVISIONAL> ", so a raw "..._PASS" line
+     and a clean status can never be read as a runner verdict.
+  2. <gate>.json is written. It is the committed verdict (exit_code, failures, drift).
+  3. <gate>.markers.txt is rewritten as FINAL: its first line is
+     "RUNNER_RECEIPT_STATE FINAL runner_exit=<n> json=<gate>.json json_sha256=<SHA-256 of the JSON file>".
+A runner SUCCESS is authoritative only if ALL hold: (a) the process exit status is 0; (b) <gate>.json exists with
+exit_code 0 and no failures; (c) the first line of <gate>.markers.txt is the FINAL line with runner_exit=0 and the
+SHA-256 of exactly that JSON. Anything else is INCOMPLETE or FAILED: a surviving PROVISIONAL markers file, a missing
+JSON, a FINAL line for different JSON bytes. If a write after step 1 fails, the process exits 1 and the markers file
+stays PROVISIONAL (a best-effort appended line may add RUNNER_RECEIPT_STATE INCOMPLETE). authoritative_success()
+implements (b) and (c); the exit status (a) is the caller's.
 """
 import argparse
 import hashlib
@@ -30,6 +45,50 @@ TERMINAL_PASS = {
     "Enlarged80Verification": "ENLARGED80_VERIFY_PASS",
     "RackV2PersistenceVerification": "RACKV2PERSIST_VERIFY_PASS",
 }
+
+
+RECEIPT_STATE = "RUNNER_RECEIPT_STATE"
+PROVISIONAL_FIRST = (RECEIPT_STATE + " PROVISIONAL INCOMPLETE - NOT A RUNNER VERDICT. Lines below are quoted, unverified evidence. "
+                     "The run succeeded only if this line is replaced by a " + RECEIPT_STATE + " FINAL runner_exit=0 line.")
+PROVISIONAL_LAST = RECEIPT_STATE + " PROVISIONAL END - no FINAL line was committed; treat this run as INCOMPLETE."
+RECEIPT_AUTHORITY = ("Success is authoritative only if the process exit status is 0, this exit_code is 0 with no failures, "
+                     "and the first line of the markers file is '" + RECEIPT_STATE + " FINAL runner_exit=0 json=<gate>.json "
+                     "json_sha256=<SHA-256 of this file>'. A PROVISIONAL markers file means INCOMPLETE. No atomicity across the two files is claimed.")
+
+
+def provisional_markers(lines):
+    return PROVISIONAL_FIRST + "\n" + "".join("PROVISIONAL> " + line + "\n" for line in lines) + PROVISIONAL_LAST + "\n"
+
+
+def final_markers(lines, runner_exit, json_name, json_sha256):
+    header = "%s FINAL runner_exit=%d json=%s json_sha256=%s" % (RECEIPT_STATE, runner_exit, json_name, json_sha256)
+    return header + "\n" + "\n".join(lines) + "\n"
+
+
+def authoritative_success(out, gate):
+    """(True, why) only for a complete successful receipt pair; the process exit status is the caller's own condition."""
+    out = Path(out)
+    try:
+        raw = (out / (gate + ".json")).read_bytes()
+        receipt = json.loads(raw)
+        first = (out / (gate + ".markers.txt")).read_text().split("\n", 1)[0]
+    except (OSError, ValueError):
+        return False, "receipt missing or unreadable"
+    if receipt.get("gate") != gate or receipt.get("exit_code") != 0 or receipt.get("failures"):
+        return False, "JSON receipt records a failure"
+    expected = "%s FINAL runner_exit=0 json=%s json_sha256=%s" % (RECEIPT_STATE, gate + ".json", hashlib.sha256(raw).hexdigest())
+    if first != expected:
+        return False, "markers are not FINAL for exactly this JSON"
+    return True, "authoritative success"
+
+
+def note_incomplete(markers, lines):
+    """Best effort only. If this fails too, the file is still the PROVISIONAL one, which already says INCOMPLETE."""
+    try:
+        with markers.open("a") as handle:
+            handle.write("\n".join(lines) + "\n")
+    except Exception:
+        pass
 
 
 def output(cmd, cwd=None):
@@ -247,27 +306,41 @@ def main(argv=None):
         result = dict(gate=args.gate, editor_exit_code=code, exit_code=1 if failures else 0,
                       seconds=round(time.monotonic() - started, 1), identity=identity,
                       failures=failures, licence_sha_prefixes=hashes,
-                      postrun_lane_status=drift_state, postrun_drift=drift)
-        # Attempt both receipts independently. The JSON is serialized only after the markers attempt,
-        # so it always states the final exit code and failures, including a markers write failure.
+                      postrun_lane_status=drift_state, postrun_drift=drift,
+                      receipt_authority=RECEIPT_AUTHORITY)
+        # Receipt protocol (see the module docstring): PROVISIONAL markers, then the JSON verdict, then FINAL markers.
+        # The JSON is serialized only after the first markers attempt, so it always states the final exit code and
+        # failures, including a markers write failure.
         markers = out / (args.gate + ".markers.txt")
+        provisional = False
         try:
-            write_receipt(markers, "\n".join(lines) + "\n")
+            write_receipt(markers, provisional_markers(lines))
+            provisional = True
         except Exception as error:
             failures.append("receipt_write_error:markers:" + type(error).__name__)
         result["exit_code"] = 1 if failures else 0
+        body = json.dumps(result, indent=2) + "\n"
+        committed = False
         try:
-            write_receipt(out / (args.gate + ".json"), json.dumps(result, indent=2) + "\n")
+            write_receipt(out / (args.gate + ".json"), body)
+            committed = True
         except Exception as error:
             failures.append("receipt_write_error:json:" + type(error).__name__)
             result["exit_code"] = 1
-            # Best effort only: if markers exist, say that the JSON receipt is missing. Invent nothing else.
+            # Invent nothing: no JSON exists. Say so in the markers if that can still be written.
+            if provisional:
+                note_incomplete(markers, [RECEIPT_STATE + " INCOMPLETE json_not_written runner_exit=1",
+                                          "RUNNER_RECEIPT_ERROR json:" + type(error).__name__ + " runner_exit=1"])
+        if provisional and committed:
             try:
-                if markers.is_file():
-                    with markers.open("a") as handle:
-                        handle.write("RUNNER_RECEIPT_ERROR json:" + type(error).__name__ + " runner_exit=1\n")
-            except Exception:
-                pass
+                write_receipt(markers, final_markers(lines, result["exit_code"], args.gate + ".json",
+                                                      hashlib.sha256(body.encode("utf-8")).hexdigest()))
+            except Exception as error:
+                # The JSON is already committed and cannot be amended; the markers stay PROVISIONAL, so this is not a success.
+                failures.append("receipt_write_error:markers_final:" + type(error).__name__)
+                result["exit_code"] = 1
+                note_incomplete(markers, [RECEIPT_STATE + " INCOMPLETE markers_not_finalised runner_exit=1",
+                                          "RUNNER_RECEIPT_ERROR markers_final:" + type(error).__name__ + " runner_exit=1"])
         print(json.dumps(result), flush=True)
     return result["exit_code"]
 
