@@ -106,3 +106,29 @@
 **Orchestration note:** the worker's turn briefly ended while its final Roslyn C# 9 compile check was still running; it resumed on background completion and finished matrix → handoff → commit → push → claim receipt on its own. Mimo performed only state verification (no content authoring, no grading).
 
 **Status:** Stage 3 CLOSED at `b4d47d3d` → dispatching Stage 4 #314 independent re-review (fresh cross-provider reviewer distinct from the Opus author; separate mutants + real SDK8 required).
+
+---
+
+## Entry 005 — 2026-11-07T03:52Z — [ROUTING] STAGE 4 provider failure and authorised re-route (no stage lost)
+
+**Attempt 1 (failed before any work):** #314 reviewer dispatched to provider `codex` (Codex), `gpt-6.1-sol`, reasoningEffort XHIGH. The delegate **failed immediately with a provider usage limit** ("You've hit your usage limit… try again at Nov 8th, 2026 9:15 PM" — ChatGPT account quota exhausted). No lane, evidence dir, claim comment or file write was created; nothing to clean up; no lease was ever involved.
+
+**Packet-conformant handling:** the binding master packet directs: on missing model access overnight, *select another capable worker or mark BLOCKED and proceed* — no questions to the sleeping user. **Attempt 2 (RUNNING):** same required independence preserved — the #309 author is Claude Opus 5.5 (`claudeAgent`), so the reviewer is now **`openai/gpt-6.1-sol` via the `opencode` provider instance** (variant MAX): different provider instance AND different model family from the author. Routing substitution recorded in the reviewer's own receipts. Historical fallback precedent (same-provider review accepted with explicit disclosure when cross-provider unavailable) was NOT needed.
+
+**Provider lesson for the consolidated report:** the ChatGPT/Codex account quota was exhausted by 03:50Z after the #317 review + #309 tooling; remaining OpenAI-family capacity tonight is only via OpenCode-delivered models. Future overnight routing should budget the ChatGPT account across stages or prefer OpenCode-delivered/capable alternates. If the re-route also fails, #314 becomes BLOCKED (no capable reviewer) per packet and Stage 5 proceeds independently.
+
+**Status:** Stage 4 re-dispatched; serial discipline unchanged (single active worker).
+
+---
+
+## Entry 006 — 2026-11-07T04:02Z — [ROUTING] STAGE 4 attempt 2 also quota-blocked → attempt 3 (Claude B — Pro / Sonnet 5.5) RUNNING with disclosed independence limitation
+
+**Attempt 2 (failed before any work):** `opencode` / `openai/gpt-6.1-sol` (variant MAX) failed immediately — "The usage limit has been reached" (OpenCode-delivered OpenAI quota). No lane/comment/file created; nothing to clean up.
+
+**Capacity conclusion at 04:02Z:** all OpenAI-family routes (native Codex, "ChatGPT - OpenAI B" account, OpenCode-delivered OpenAI) are quota-exhausted tonight. Cross-provider review for #314 is therefore **not obtainable**. Per the binding packet ("select another capable worker or mark one stage BLOCKED… no questions to sleeping user"), Mimo selected the strongest available fallback rather than blocking.
+
+**Attempt 3 (RUNNING):** provider `claudeAgent_claude_b_pro` (**Claude B — Pro**), model `claude-sonnet-5-5`, effort XHIGH. Independence assessment for Manager #200 to weigh: the #309 author was `claude-opus-5-5` on `claudeAgent` (Claude A). The reviewer is a **different model** (Sonnet vs Opus), a **different provider instance** (Claude B vs Claude A) and a fresh session — but the **same provider family (Anthropic)**. The reviewer is instructed to state this limitation prominently (the disclosed-fallback pattern used historically at #305) and to be adversarial. If attempt 3 fails, #314 becomes **BLOCKED — no capable reviewer**, documented as such, and Stage 5 proceeds.
+
+**Provider lesson (consolidated-report material):** overnight budgets must account for three separately-exhaustible OpenAI quotas (ChatGPT account, Codex instance, OpenCode-delivered OpenAI) and prefer booking cross-provider reviews BEFORE large same-family authoring jobs consume quotas. Claude A/B capacity remained available through 04:00Z.
+
+**Status:** Stage 4 attempt 3 RUNNING; single active worker; no lease anywhere.
