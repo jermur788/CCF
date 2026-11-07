@@ -253,6 +253,7 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
                "Static, lexical source-structure check (nothing compiled or run): one named Objectives map CTA "
                "invokes ui.ShowMap(), is bound to the header row and, as far as the pinned routing text and its "
                "pinned inputs (bound to their owning class) decide, selected only for unconfirmed Rack V2 Objective 1 "
+               "(reviewed root names include the base header; collected companion type collisions are guarded lexically); "
                "(unpinned root members and callers and the game/teaching state are not checked); "
                "Back to forest is the only static btn-primary source in the view class and is in the scoped "
                "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "

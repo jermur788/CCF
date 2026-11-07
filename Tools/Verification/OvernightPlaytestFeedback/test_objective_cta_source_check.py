@@ -15,7 +15,8 @@ groups (the #314 reviewer's cases and this loop's own, with benign edits and
 reported accepted-limit/over-rejection probes); and the #320 two-guard groups: all
 654 cases of the #314 reviewer's 11 rounds (including the 47 N-1 and 10 N-2 false
 greens, which must now fail for that cause) and this repair's own N-1/N-2 variants,
-benign edits and probes.
+benign edits and probes. #325 adds the three companion/base-name rebinding witnesses,
+five nearby negatives and five benign controls, reported separately from those prior counts.
 """
 import subprocess
 from pathlib import Path
@@ -1756,6 +1757,77 @@ def run_320(view, root, companions):
     return counts
 
 
+def rebinding_cases(kit_source):
+    """#325: verbatim #321 S05/S06/S07 source edits, then bounded nearby controls.
+
+    Original: CTA-309-TwoGuardReview-20261107/new_variants.py and new-mutants/.
+    The proof driver compares every resulting changed file byte-for-byte with that read-only evidence.
+    These tests assert the name-binding cause, so an inventory failure cannot count as a repair.
+    """
+    ui = "Assets/ForestPrototype/UI/"
+    time_stub = '\ninternal static class Time { public static int frameCount => -2; public static float unscaledTime => 0f; public static float deltaTime => 0f; public static float unscaledDeltaTime => 0f; public static float time => 0f; public static float realtimeSinceStartup => 0f; public static double realtimeSinceStartupAsDouble => 0d; public static float fixedDeltaTime => 0f; public static float timeScale { get; set; } }\n'
+    base = 'public abstract class ZHiddenBase : UnityEngine.MonoBehaviour { protected static class Time { public static int frameCount => -2; public static float unscaledTime => 0f; } }'
+    alias = (ROOT, 'using UnityEngine.InputSystem;', 'using UnityEngine.InputSystem;\nusing MonoBehaviour = ZHiddenBase;')
+    f1 = "using alias 'MonoBehaviour' shadows a name the reviewed text reads (N-2)"
+    f2 = "collected companion type 'Time' redefines a reviewed root identifier"
+
+    def case(cid, cause, *edits):
+        return dict(id=cid, group="#325", edits=list(edits), transform=None, intended=cause)
+
+    repaired = [
+        case('R321-S05', f2, (UIKIT, kit_source, kit_source + time_stub)),
+        case('R321-S06', f1, alias, (ui + 'ZHiddenBase.cs', None,
+             '// ScenarioOneUiRoot: all files in this test are included companions.\n' + base)),
+        case('R321-S07', f1, alias, (UIKIT, kit_source, kit_source + '\n' + base + '\n')),
+    ]
+    nearby = [
+        case('N325-F1-alternate-target', f1,
+             (ROOT, alias[1], alias[2].replace('ZHiddenBase', 'ZAlternateBase')),
+             (UIKIT, kit_source, kit_source + '\n' + base.replace('ZHiddenBase', 'ZAlternateBase') + '\n')),
+        case('N325-F1-escaped-alias-global-target', f1,
+             (ROOT, alias[1], alias[1] + '\nusing @MonoBehaviour = global::ZHiddenBase;'),
+             (UIKIT, kit_source, kit_source + '\n' + base + '\n')),
+        case('N325-F2-escaped-Time', f2, (UIKIT, kit_source, kit_source + time_stub.replace('class Time', 'class @Time'))),
+        case('N325-F2-hinted-companion', f2,
+             (ui + 'ZClock.cs', None, '// ScenarioOneUiRoot\n' + time_stub)),
+        case('N325-F2-global-base', "collected companion type 'MonoBehaviour' redefines a reviewed root identifier",
+             (UIKIT, kit_source, kit_source + '\n' + base.replace('ZHiddenBase', 'MonoBehaviour') + '\n')),
+    ]
+    benign = [
+        case('B325-root-unrelated-alias', None,
+             (ROOT, alias[1], alias[1] + '\nusing ZClockAlias = UnityEngine.Time;')),
+        case('B325-kit-unrelated-class', None,
+             (UIKIT, kit_source, kit_source + '\ninternal class ZUiNotes { public int Value; }\n')),
+        case('B325-kit-file-local-alias', None,
+             (UIKIT, 'using System;', 'using System;\nusing Time = System.Int32;')),
+        case('B325-hinted-unrelated-base', None,
+             (ui + 'ZHiddenBase.cs', None, '// ScenarioOneUiRoot\npublic abstract class ZHiddenBase : UnityEngine.MonoBehaviour { protected static class ZClock { public static int frameCount => -2; } }')),
+        case('B325-root-unrelated-class-and-alias', None,
+             (ROOT, alias[1], alias[1] + '\nusing ZCounter = System.Int32;'),
+             (ROOT, 'public sealed class ScenarioOneUiRoot', 'internal sealed class ZCounterNotes {}\npublic sealed class ScenarioOneUiRoot')),
+    ]
+    return repaired, nearby, benign
+
+
+def run_rebinding(view, root, companions):
+    base = {VIEW: view, ROOT: root, **companions}
+    repaired, nearby, benign = rebinding_cases(companions[UIKIT])
+    failures = 0
+    for label, cases in (("repaired", repaired), ("nearby", nearby), ("benign", benign)):
+        passed = 0
+        for case in cases:
+            reason = _case_outcome(base, case)
+            good = reason is None if label == "benign" else reason is not None and case["intended"] in reason
+            if good:
+                passed += 1
+            else:
+                failures += 1
+            print(f"SOURCE-STATIC {'PASS' if good else 'FAIL'} #325-{case['id']}: "
+                  f"{reason or 'accepted'}; expected={case['intended'] or 'accepted'}")
+        print(f"SOURCE-STATIC CTA #325 {label} passed={passed}/{len(cases)}")
+    return failures
+
+
 def run():
     live = {key: (REPO / path).read_text(encoding="utf-8") for key, path in FILES.items() if (REPO / path).exists()}
     companions = collect_companions(REPO)
@@ -2013,6 +2085,7 @@ def run():
     rejected += two_guard["rejected"]
     wrong_cause += two_guard["wrong_cause"]
     benign_failed += two_guard["benign_failed"]
+    rebinding_failed = run_rebinding(live[V], live[R], companions)
 
     # F6: the historical pre-guidance source must be reported as a completed, evidenced FAIL, never a crash.
     historic_failed = 0
@@ -2037,7 +2110,7 @@ def run():
     print(f"SOURCE-STATIC CTA MUTATIONS rejected={rejected}/{total} false_greens={false_greens} "
           f"wrong_cause={wrong_cause}")
     return 1 if (false_greens or wrong_cause or benign_failed or historic_failed or loop1["probe_failed"]
-                 or two_guard["probe_failed"]) else 0
+                 or two_guard["probe_failed"] or rebinding_failed) else 0
 
 
 if __name__ == "__main__":

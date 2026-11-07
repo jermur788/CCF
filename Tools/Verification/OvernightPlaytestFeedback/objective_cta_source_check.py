@@ -1649,6 +1649,45 @@ _LEARNING_USE = re.compile(r'\s*(?:\??\.\s*@?(?!Root(?!\w))[A-Za-z_]|[!=]=\s*nul
 _DECLARATION = re.compile(r'\b(?:class|struct|interface|record|enum)\s+@?(LearningObjectivesView|ScenarioOneUiRoot|UiKit)\b')
 
 
+# #325 F-1/F-2: one name inventory for the actual root pin contract, including its base header.
+# This is a lexical boundary, not proof of C# lookup. In particular the bodies of the legitimate
+# companion types below remain unpinned; aliases in another file do not affect the root's lookup.
+def _root_reviewed_names():
+    return _identifiers(_ROOT_HEADER, _ROOT_SCREEN_ENUM, *(text for _, _, text in _ROOT_PINS),
+                        *_ROOT_MEMBER_SNIPPETS, *_ROOT_STATEMENT_SNIPPETS, *_STATE_DECLARATIONS,
+                        *_STATE_START_WRITES, _TRY_SHOW_REVIEW_YEAR[1], _ROUTING_INPUT_ROOT) | _ROOT_FOREIGN_NAMES
+
+
+# These existing global types are the intended declarations, not collisions. Keep the exception
+# path-specific: appending one of their names to UiKit.cs must not inherit the exception.
+_ROOT_COMPANION_DECLARATIONS = {
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs": {"ScenarioOneManager"},
+    **{"Assets/ForestPrototype/UI/" + name + ".cs": {name} for name in
+       ("AnnualReviewView", "MenuHelpView", "RackLayoutTracker", "StandMapView", "UiKit", "WorkPlanView")},
+    "Assets/ForestPrototype/UI/StandaloneSessionMenu.cs": {"StandaloneSessionMenu"},
+    "Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs": {"StandaloneSessionMenu"},
+}
+
+
+def _guard_companion_rebinding(companions, view_files):
+    """Collected files cannot introduce types named like the root's reviewed simple names.
+    Like the existing root/view guard this conservatively includes nested/namespaced types; it does
+    not model namespace visibility, type arity, inheritance or arbitrary semantic lookup."""
+    reviewed = _root_reviewed_names()
+    for path, source in sorted(companions.items()):
+        shape = _structure(source, _lexed(source, path), path)
+        for declared in shape.types:
+            if declared.name not in reviewed:
+                continue
+            intended = (declared.name in _ROOT_COMPANION_DECLARATIONS.get(path, ())
+                        or (declared.name == VIEW_CLASS and path in view_files))
+            if intended and not shape.stacks[declared.token]:
+                continue
+            _fail(source, path, shape.starts[declared.token],
+                  f"collected companion type '{declared.name}' redefines a reviewed root identifier "
+                  "outside its permitted declaration path (F-2 name binding)")
+
+
 # ------------------------------------------------------------- scope (N-3)
 
 def _scope(view_source, root_source, view_spans, root_spans, companions):
@@ -1706,6 +1745,7 @@ def _class_wide_guards(view_source, root_source, view_spans, root_spans, compani
     allowed = _allowlist_values(_code(root_source))
     _guard_view_class(view_source, view_spans, view_files, allowed)
     _guard_root(root_source, root_spans)
+    _guard_companion_rebinding(companions, view_files)
     _guard_uikit(kit_source, kit_spans)
 
 
@@ -1998,8 +2038,7 @@ def _guard_root(source, spans):
     # #320 N-2: the class has its reviewed header, and no decoy type redefines a name the reviewed text reads.
     _snippet_spans(source, spans, _ROOT_HEADER, ROOT, "ScenarioOneUiRoot header")
     _snippet_spans(source, spans, _ROOT_SCREEN_ENUM, ROOT, "UiScreen", owner=ROOT_CLASS, member=True)
-    reviewed = _identifiers(*(text for _, _, text in _ROOT_PINS), *_ROOT_MEMBER_SNIPPETS, *_ROOT_STATEMENT_SNIPPETS,
-                            *_STATE_DECLARATIONS, _ROUTING_INPUT_ROOT) | _ROOT_FOREIGN_NAMES
+    reviewed = _root_reviewed_names()
     _guard_shadowing(source, spans, ROOT, ROOT_CLASS, reviewed, _ROOT_FOREIGN_NAMES, allowed_types=("UiScreen",))
     # #320 N-1 first, so that a write in a hole is reported as that rather than as a wrong write count below.
     _guard_interpolation_holes(source, spans, bodies)
