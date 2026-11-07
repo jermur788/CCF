@@ -82,6 +82,9 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
     {
         foreach (ForestTree tree in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             DestroyImmediate(tree.gameObject);
+        Debug.Log("ENLARGED80_RESET_INPUT model=" + model + " player=" + player().transform.position.ToString("R")
+            + " sites=" + string.Join(",", FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .OrderBy(b => b.BuildId).Select(b => b.BuildId + ":" + b.IsBuilt + ":" + b.IsRetiredFromStartingWorld)));
         e.ApplyStandGeometry(model);
         e.ResetForDeterministicRun();
         var clock = System.Diagnostics.Stopwatch.StartNew();
@@ -92,6 +95,61 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         e.InvalidateCompetition();
         // Editor timing only; the first call of a session also pays JIT cost, so read later calls for steady state.
         Debug.Log($"ENLARGED80_STARTUP_MS model={model} generate={generateMs:F1} initializeScenario={initializeMs:F1} trees={Living().Count}");
+    }
+
+    // Synthetic layout projection, NOT an archived historical capture. Field boundaries checked against
+    // save-schema commits b0246334 (v20), cf84d24c (v21), cd7b5183 (v22), 03790ab7 (v23), 129d0ace (v24).
+    // Reject meaningful newer state rather than erasing history to make an old-file test pass.
+    private static string HistoricalLayout(string currentJson, int version)
+    {
+        Check(version == 19 || version == 20 || version == 21, "only audited historical layout targets are supported");
+        JObject root = JObject.Parse(currentJson);
+        Check((int)root["version"] == 24, "projection input must be the audited v24 schema");
+        JObject scenario = (JObject)root["scenarioOne"];
+        Check(scenario != null && scenario["firstGuidedRackReviewComplete"]?.Type == JTokenType.Boolean
+            && !(bool)scenario["firstGuidedRackReviewComplete"], "historical projection requires no completed guided review");
+        Check(scenario["objectiveAchievements"] is JArray history && history.Count == 0,
+            "historical projection cannot discard objective history");
+        Check((int)scenario["nextPrescriptionId"] == 1 && scenario["prescriptions"] is JArray prescriptions && prescriptions.Count == 0,
+            "historical projection cannot discard prescriptions");
+        scenario.Remove("firstGuidedRackReviewComplete");
+        scenario.Remove("objectiveAchievements");
+        scenario.Remove("nextPrescriptionId");
+        scenario.Remove("prescriptions");
+        foreach (JObject order in ((JArray)scenario["workOrders"]).OfType<JObject>())
+        {
+            Check((int)order["prescriptionId"] == 0 && (string)order["prescriptionCoverageUnitId"] == ""
+                && (string)order["prescriptionCropTreeId"] == "" && (int)order["prescriptionReason"] == 0,
+                "historical projection cannot discard work-order provenance");
+            foreach (string name in new[] { "prescriptionId", "prescriptionCoverageUnitId", "prescriptionCropTreeId", "prescriptionReason" })
+                order.Remove(name);
+            if (version < 21)
+            {
+                Check((int)order["rackId"] == 0, "pre-v21 projection requires ordinary legacy orders");
+                order.Remove("rackId");
+            }
+        }
+        foreach (JObject item in ((JArray)scenario["managementEvents"]).OfType<JObject>())
+        {
+            Check((int)item["prescriptionId"] == 0, "historical projection cannot discard event provenance");
+            item.Remove("prescriptionId");
+        }
+        if (version < 21)
+        {
+            Check(!(bool)scenario["rackPlanConfirmed"] && (int)scenario["nextRackId"] == 1
+                && scenario["racks"] is JArray racks && racks.Count == 0, "pre-v21 projection requires an empty rack plan");
+            foreach (string name in new[] { "rackPlanningModel", "rackPlanConfirmed", "nextRackId", "racks" }) scenario.Remove(name);
+        }
+        if (version < 20)
+        {
+            Check((int)root["standGeometryModel"] == StandGeometryModel.Legacy40, "pre-v20 projection requires Legacy40");
+            root.Remove("standGeometryModel");
+        }
+        root["version"] = version;
+        string projected = root.ToString(Newtonsoft.Json.Formatting.None);
+        Check(!projected.Contains("firstGuidedRackReviewComplete") && !projected.Contains("objectiveAchievements")
+            && !projected.Contains("prescription"), "historical layout contains no v22/v23/v24 fields");
+        return projected;
     }
 
     private float Edge(Vector3 p)
@@ -271,7 +329,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         // ---- F. Save / load ---------------------------------------------------------------------------------------------
         ResetWorld(StandGeometryModel.Enlarged80);
         ForestSaveData saved = saves.CaptureData();
-        Check(saved.version == 23 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is v23 + geometry 1");
+        Check(saved.version == 24 && saved.standGeometryModel == StandGeometryModel.Enlarged80, "an Enlarged80 capture is current v24 + geometry 1");
         string savedJson = JsonUtility.ToJson(saved);
         ForestSaveData parsed = JsonUtility.FromJson<ForestSaveData>(savedJson);
         Check(ForestSaveValidation.ValidateGeometryJson(savedJson, parsed) == null && ForestSaveValidation.Validate(parsed, 1344, 256) == null, "the Enlarged80 save validates against 256 cells");
@@ -285,7 +343,16 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         Check(Mathf.Approximately(GameObject.Find("Ground").transform.localScale.x, 80f) && Mathf.Approximately(GameObject.Find("East Ridge").transform.position.x, 40f), "loading restored the 80 m ground and boundary");
         Check(Living().Count == 1344, "loading restored all 1,344 trees");
         Check(CurrentHash() == savedHash, "the loaded Enlarged80 world is exactly the saved world (CurrentWorldHash)");
-        Pass("v20 Enlarged80 save: validates, loads over a Legacy40 world, restores 80 m geometry, 256 cells, 1,344 trees and the exact world");
+        Pass("current v24 Enlarged80 save: validates, loads over a Legacy40 world, restores 80 m geometry, 256 cells, 1,344 trees and the exact world");
+
+        string v20Json = HistoricalLayout(savedJson, 20);
+        ForestSaveData v20 = JsonUtility.FromJson<ForestSaveData>(v20Json);
+        Check(v20.version == 20 && !v20Json.Contains("rackPlanningModel"), "synthetic v20 layout omits later fields");
+        Check(ForestSaveValidation.ValidateGeometryJson(v20Json, v20) == null, "synthetic v20 geometry validates");
+        ResetWorld(StandGeometryModel.Legacy40);
+        Check(saves.LoadData(v20, false), "synthetic v20 Enlarged80 layout loads over Legacy40");
+        yield return null;
+        Check(e.CellCount == 256 && Living().Count == 1344 && CurrentHash() == savedHash, "synthetic v20 load preserves the original world");
 
         // A v19 Legacy40 save loaded into the Enlarged80 world: Legacy40 geometry, 336 trees, cells at their original positions.
         ResetWorld(StandGeometryModel.Legacy40);
@@ -293,20 +360,19 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         e.RestoreCellState(marked, new List<ForestRegenerationCohortSaveData>(), 1.5f, 1f);
         ForestSaveData legacySave = saves.CaptureData();
         Check(legacySave.standGeometryModel == 0 && marked == 4, "a Legacy40 capture states geometry 0 (marked cell index 4 = world (2.5, -17.5))");
-        string withoutField = JsonUtility.ToJson(legacySave).Replace("\"standGeometryModel\":0,", "");
-        string v19Json = "{\"version\":19" + withoutField.Substring(withoutField.IndexOf(','));
+        string v19Json = HistoricalLayout(JsonUtility.ToJson(legacySave), 19);
         ForestSaveData v19 = JsonUtility.FromJson<ForestSaveData>(v19Json);
-        Check(v19.version == 19 && StandGeometryModel.ForSave(v19) == 0, "the v19-layout save is read as Legacy40");
+        Check(v19.version == 19 && StandGeometryModel.ForSave(v19) == 0, "the synthetic v19-layout save is read as Legacy40");
         ResetWorld(StandGeometryModel.Enlarged80);
         Check(e.CellCount == 256 && Living().Count == 1344, "scratch: the live world is a fresh Enlarged80 world");
-        Check(saves.LoadData(v19, false), "a v19 Legacy40 save loads into an Enlarged80 world");
+        Check(saves.LoadData(v19, false), "a synthetic v19-layout Legacy40 save loads into an Enlarged80 world");
         yield return null;
         Check(e.StandGeometryModelVersion == 0 && e.CellCount == 64 && Mathf.Approximately(e.StandBounds.width, 40f), "it applied Legacy40 geometry (64 cells, 40 m)");
         Check(Living().Count == 336 && Living().All(t => legacyId.IsMatch(t.TreeId)), "no outer forest: exactly the 336 saved trees");
         Check(Mathf.Approximately(e.Cells[4].RecentOpening, 1.5f) && Vector2.Distance(e.Cells[4].Center, new Vector2(2.5f, -17.5f)) < 0.01f, "the cell record is back at its original physical position");
         Check(Mathf.Approximately(GameObject.Find("Ground").transform.localScale.x, 40f) && Mathf.Approximately(GameObject.Find("East Ridge").transform.position.x, 20f), "ground and ridges returned to the authored 40 m property");
         Check(!GameObject.Find("Ground").GetComponent<Renderer>().HasPropertyBlock(), "ground texture override removed for Legacy40");
-        Check(saves.CaptureData().standGeometryModel == 0, "re-saving writes v20 + geometry 0");
+        Check(saves.CaptureData().standGeometryModel == 0, "re-saving writes current v24 + geometry 0");
         Pass("v19 Legacy40 save into an Enlarged80 world: Legacy40 grid and ground restored, 336 trees, cell 4 at (2.5, -17.5)");
 
         // Deterministic continuation through save/load.

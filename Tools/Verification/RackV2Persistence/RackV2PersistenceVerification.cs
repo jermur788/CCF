@@ -171,7 +171,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         saves = FindFirstObjectByType<ForestSaveController>();
         marks = FindFirstObjectByType<ForestTreeMarkingManager>();
         Check(ecology != null && manager != null && saves != null && marks != null, "not the Scenario One ForestTest scene");
-        Check(ForestSaveData.CurrentVersion == 23, "this gate qualifies save v23 (no schema change expected)");
+        Check(ForestSaveData.CurrentVersion == 24, "this gate qualifies save v24 (no schema change expected)");
     }
 
     private static IEnumerator Settle()
@@ -253,23 +253,63 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
     private static JObject Scenario(JObject root) => (JObject)root["scenarioOne"];
     private static JArray RackArray(JObject root) => (JArray)Scenario(root)["racks"];
 
-    // The literal bytes v21 adds while the plan is empty (plus the empty v22 objectiveAchievements list and the default v23 prescription fields), removed independently of production code (same rule as the
-    // 03B gate): the result is the byte layout a genuine v20 file has. Works on compact JsonUtility output.
-    private static string ToV20(string compactCapture)
+    // Synthetic layout projection, NOT an archived historical capture. Field boundaries checked against
+    // save-schema commits b0246334 (v20), cf84d24c (v21), cd7b5183 (v22), 03790ab7 (v23), 129d0ace (v24).
+    // Reject meaningful newer state rather than erasing history to make an old-file test pass.
+    private static string HistoricalLayout(string currentJson, int version)
     {
-        string v20 = compactCapture
-            .Replace(",\"rackPlanningModel\":0,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
-            .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
-            .Replace(",\"rackId\":0", "")
-            .Replace(",\"objectiveAchievements\":[]", "")
-            .Replace(",\"nextPrescriptionId\":1,\"prescriptions\":[]", "")
-            .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
-            .Replace(",\"prescriptionId\":0", "")
-            .Replace("\"version\":23,", "\"version\":20,");
-        Check(!v20.Contains("rackPlanningModel") && !v20.Contains("\"rackId\"") && v20.Contains("\"version\":20,"),
-            "the v20 projection carries no v21/v22/v23 bytes");
-        return v20;
+        Check(version == 19 || version == 20 || version == 21, "only audited historical layout targets are supported");
+        JObject root = JObject.Parse(currentJson);
+        Check((int)root["version"] == 24, "projection input must be the audited v24 schema");
+        JObject scenario = (JObject)root["scenarioOne"];
+        Check(scenario != null && scenario["firstGuidedRackReviewComplete"]?.Type == JTokenType.Boolean
+            && !(bool)scenario["firstGuidedRackReviewComplete"], "historical projection requires no completed guided review");
+        Check(scenario["objectiveAchievements"] is JArray history && history.Count == 0,
+            "historical projection cannot discard objective history");
+        Check((int)scenario["nextPrescriptionId"] == 1 && scenario["prescriptions"] is JArray prescriptions && prescriptions.Count == 0,
+            "historical projection cannot discard prescriptions");
+        scenario.Remove("firstGuidedRackReviewComplete");
+        scenario.Remove("objectiveAchievements");
+        scenario.Remove("nextPrescriptionId");
+        scenario.Remove("prescriptions");
+        foreach (JObject order in ((JArray)scenario["workOrders"]).OfType<JObject>())
+        {
+            Check((int)order["prescriptionId"] == 0 && (string)order["prescriptionCoverageUnitId"] == ""
+                && (string)order["prescriptionCropTreeId"] == "" && (int)order["prescriptionReason"] == 0,
+                "historical projection cannot discard work-order provenance");
+            foreach (string name in new[] { "prescriptionId", "prescriptionCoverageUnitId", "prescriptionCropTreeId", "prescriptionReason" })
+                order.Remove(name);
+            if (version < 21)
+            {
+                Check((int)order["rackId"] == 0, "pre-v21 projection requires ordinary legacy orders");
+                order.Remove("rackId");
+            }
+        }
+        foreach (JObject item in ((JArray)scenario["managementEvents"]).OfType<JObject>())
+        {
+            Check((int)item["prescriptionId"] == 0, "historical projection cannot discard event provenance");
+            item.Remove("prescriptionId");
+        }
+        if (version < 21)
+        {
+            Check(!(bool)scenario["rackPlanConfirmed"] && (int)scenario["nextRackId"] == 1
+                && scenario["racks"] is JArray racks && racks.Count == 0, "pre-v21 projection requires an empty rack plan");
+            foreach (string name in new[] { "rackPlanningModel", "rackPlanConfirmed", "nextRackId", "racks" }) scenario.Remove(name);
+        }
+        if (version < 20)
+        {
+            Check((int)root["standGeometryModel"] == StandGeometryModel.Legacy40, "pre-v20 projection requires Legacy40");
+            root.Remove("standGeometryModel");
+        }
+        root["version"] = version;
+        string projected = root.ToString(Newtonsoft.Json.Formatting.None);
+        Check(!projected.Contains("firstGuidedRackReviewComplete") && !projected.Contains("objectiveAchievements")
+            && !projected.Contains("prescription"), "historical layout contains no v22/v23/v24 fields");
+        return projected;
     }
+
+    private static string ToV20(string capture) => HistoricalLayout(capture, 20);
+    private static string ToV21(string capture) => HistoricalLayout(capture, 21);
 
     private string CompactCapture() => JsonUtility.ToJson(saves.CaptureData());
 
@@ -313,6 +353,24 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
 
     // ---- v2 mode ------------------------------------------------------------------------------------------
 
+    private IEnumerator TeachingHistoryPolicy(string original)
+    {
+        foreach (bool complete in new[] { false, true })
+        {
+            string fixture = Mutate(original, r => Scenario(r)["firstGuidedRackReviewComplete"] = complete);
+            yield return LoadInMemory(fixture, "synthetic v24 teaching-history round trip " + complete);
+            Check(manager.FirstGuidedRackReviewComplete == complete && saves.CaptureData().scenarioOne.firstGuidedRackReviewComplete == complete,
+                "v24 preserves the recorded teaching flag without inferring a review");
+        }
+        string oldWithFlag = Mutate(original, r => { r["version"] = 23; Scenario(r)["firstGuidedRackReviewComplete"] = true; });
+        yield return LoadInMemory(oldWithFlag, "synthetic v23 carrying an out-of-version teaching flag");
+        Check(!manager.FirstGuidedRackReviewComplete, "pre-v24 ignores a stray true flag and never backfills review history");
+        string absent = Mutate(original, r => Scenario(r).Remove("firstGuidedRackReviewComplete"));
+        yield return LoadInMemory(absent, "v24 with absent teaching flag");
+        Check(!manager.FirstGuidedRackReviewComplete, "absent teaching history stays false");
+        yield return LoadInMemory(original, "restore the original world after teaching-history controls");
+    }
+
     private IEnumerator RunV2()
     {
         FindScene();
@@ -326,16 +384,16 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         string freshHash = Hash(), freshSig = Signature();
         string freshFile = SaveToDisk("new game");
         JObject freshRoot = JObject.Parse(freshFile);
-        Check((int)freshRoot["version"] == 23 && (int)freshRoot["standGeometryModel"] == StandGeometryModel.Enlarged80
+        Check((int)freshRoot["version"] == 24 && (int)freshRoot["standGeometryModel"] == StandGeometryModel.Enlarged80
             && (int)Scenario(freshRoot)["rackPlanningModel"] == RackPlanningModel.RackPlanningFieldMarkingV2
             && (bool)Scenario(freshRoot)["rackPlanConfirmed"] == false && (int)Scenario(freshRoot)["nextRackId"] == 1
-            && RackArray(freshRoot).Count == 0, "the new-game file states v21, Enlarged80 and the empty V2 plan explicitly");
+            && RackArray(freshRoot).Count == 0, "the new-game file states current v24, Enlarged80 and the empty V2 plan explicitly");
         // Change the live world, then Continue must bring the saved new game back.
         Check(manager.ResetRacksToSuggestion(manager.GetSuggestedRackLayout()).Succeeded && manager.Racks.Count == 5, "draft the suggestion before reload");
         ContinueFromDisk("new game");
         yield return Settle();
         Check(Signature() == freshSig && Hash() == freshHash, "Continue restores the saved new game exactly (empty V2 plan, world hash)");
-        Pass("new game: v21 disk save, Continue offered, reload exact");
+        Pass("new game: v24 disk save, Continue offered, reload exact");
 
         // ---- 2. Draft before confirmation, with stable non-contiguous ids --------------------------------
         Check(manager.ResetRacksToSuggestion(manager.GetSuggestedRackLayout()).Succeeded && manager.Racks.Count == 5 && !manager.RackPlanConfirmed,
@@ -472,9 +530,9 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check(ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "the v20 save keeps its Enlarged80 geometry");
         CheckNeverV2("v20 Enlarged80 save");
         Check(Hash() == freshHash, "the pre-planning old save loads with its pre-v21 world identity (empty-plan hash)");
-        string legacyResave = SaveToDisk("v20 re-saved as v21");
-        Check((int)JObject.Parse(legacyResave)["version"] == 23 && (int)Scenario(JObject.Parse(legacyResave))["rackPlanningModel"] == RackPlanningModel.Legacy,
-            "re-saving an old world writes v21 with model 0 stated explicitly");
+        string legacyResave = SaveToDisk("v20 re-saved as current v24");
+        Check((int)JObject.Parse(legacyResave)["version"] == 24 && (int)Scenario(JObject.Parse(legacyResave))["rackPlanningModel"] == RackPlanningModel.Legacy,
+            "re-saving an old world writes v24 with model 0 stated explicitly");
         yield return LoadInMemory(freshCompact, "clear to the V2 new game");
         ContinueFromDisk("re-saved old world");
         yield return Settle();
@@ -491,7 +549,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check(manager.WorkOrders.Count(o => o.IsOpen && o.type == ScenarioWorkType.FellTree) >= legacyOrders && manager.WorkOrders.All(o => o.rackId == 0),
             "legacy rack felling is ordinary rackId-0 work");
         string progressHash = Hash(), progressSig = Signature();
-        string progressV21 = SaveToDisk("legacy rack progress (v21 model 0)");
+        SaveToDisk("legacy rack progress (current v24 model 0)");
+        string progressV21 = ToV21(CompactCapture());
         string progressV20 = ToV20(CompactCapture());
         foreach (var file in new[] { ("v21 model 0", progressV21), ("v20", progressV20) })
         {
@@ -504,6 +563,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         }
         Note("legacy RackGroups after reload: " + manager.RackGroups.Count + " (session-only, not persisted; recorded behaviour, no assertion)");
         Pass("old save with legacy rack progress (v20 and v21 model 0): orders and marks kept as ordinary work, never V2");
+
+        yield return TeachingHistoryPolicy(freshCompact);
 
         // ---- 9. Reference Future v1 -----------------------------------------------------------------------
         CheckArchiveUntouched();
@@ -522,9 +583,11 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         string freshHash = Hash(), freshSig = Signature();
 
         // ---- 1. A v21 Legacy40 save loads unchanged --------------------------------------------------------
-        string v21File = SaveToDisk("Legacy40 v21");
+        string currentFile = SaveToDisk("Legacy40 current v24");
+        string v21File = ToV21(currentFile);
+        File.WriteAllText(SavePath, v21File);
         JObject root = JObject.Parse(v21File);
-        Check((int)root["version"] == 23 && (int)root["standGeometryModel"] == StandGeometryModel.Legacy40
+        Check((int)root["version"] == 21 && (int)root["standGeometryModel"] == StandGeometryModel.Legacy40
             && (int)Scenario(root)["rackPlanningModel"] == RackPlanningModel.Legacy && RackArray(root).Count == 0,
             "the Legacy40 file states Legacy40 and model 0 with an empty V2 plan");
         ContinueFromDisk("Legacy40 v21");
@@ -533,8 +596,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
             "the Legacy40 v21 save loads unchanged");
         CheckNeverV2("Legacy40 v21 after load");
         string v21Again = SaveToDisk("Legacy40 v21 re-save");
-        Note("Legacy40 re-save byte-identical to first save: " + (v21Again == v21File));
-        Check(JToken.DeepEquals(Scenario(JObject.Parse(v21Again)), Scenario(root)) && (int)JObject.Parse(v21Again)["standGeometryModel"] == StandGeometryModel.Legacy40,
+        Note("Legacy40 upgraded re-save byte-identical to projected v21 (diagnostic): " + (v21Again == v21File));
+        Check(JToken.DeepEquals(Scenario(JObject.Parse(ToV21(v21Again))), Scenario(root)) && (int)JObject.Parse(v21Again)["standGeometryModel"] == StandGeometryModel.Legacy40,
             "re-saving the loaded Legacy40 world writes the same Scenario One state");
         Pass("Legacy40 v21 save: Continue loads it unchanged (geometry, signature, world hash) and it never enters V2");
 
@@ -555,7 +618,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         int added = PlanLegacyRack(planner, rows[rows.Count / 2].Centre);
         Check(added > 0 && manager.WorkOrders.All(o => o.rackId == 0), "Legacy40 plans legacy rack felling as ordinary work");
         string progressHash = Hash(), progressSig = Signature();
-        string progressV21 = SaveToDisk("Legacy40 legacy rack progress");
+        SaveToDisk("Legacy40 legacy rack progress current v24");
+        string progressV21 = ToV21(CompactCapture());
         string progressV20 = ToV20(CompactCapture());
         foreach (var file in new[] { ("v21", progressV21), ("v20", progressV20) })
         {
@@ -604,6 +668,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check(manager.RackPlanConfirmed && manager.MarkedRackEntranceCount == expected.markedCount, "the derived marked count is restored");
         Check(manager.Racks.Where(r => r.entranceMarked).Select(r => r.entranceTreeId).SequenceEqual(expected.markedEntranceTreeIds)
             && expected.markedEntranceTreeIds.All(id => Tree(id) is ForestTree t && marks.HasRackEntranceMark(t)), "the orange marks are projected after cold start");
+        Check(manager.FirstGuidedRackReviewComplete == JsonUtility.FromJson<ForestSaveData>(seeded).scenarioOne.firstGuidedRackReviewComplete,
+            "cold-start restores v24 teaching history exactly");
         Check(File.ReadAllText(SavePath) == seeded, "Continue does not rewrite the save file");
         Pass("cold-start Continue in a new Editor process restores the partial-mark V2 world exactly");
 

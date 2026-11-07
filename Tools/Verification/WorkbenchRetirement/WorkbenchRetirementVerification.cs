@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -45,6 +46,7 @@ public sealed class WorkbenchRetirementVerificationRunner : MonoBehaviour
     private static string SavePath => Path.Combine(Application.persistentDataPath, "forest-save.json");
     private void Check(bool ok, string what, string detail = "")
     {
+        detail = detail ?? "";
         if (!ok) { Debug.Log("WORKBENCH_FAIL " + what + " [" + detail + "]"); throw new InvalidOperationException(what + " [" + detail + "]"); }
         checks++;
         Debug.Log("WORKBENCH_PASS " + what + (detail.Length == 0 ? "" : " [" + detail + "]"));
@@ -81,8 +83,11 @@ public sealed class WorkbenchRetirementVerificationRunner : MonoBehaviour
         string.Join("|", trees.OrderBy(t => t.TreeId, StringComparer.Ordinal).Select(t =>
             t.TreeId + "@" + t.transform.position.x.ToString("R") + "," + t.transform.position.z.ToString("R") + ":" + t.Diameter.ToString("R")));
 
+    // A model-0 scratch fixture, NOT a new session: it deliberately retains scene/player state.
     private void ResetWorld(int model)
     {
+        Debug.Log("WORKBENCH_RESET_INPUT model=" + model + " player=" + FindFirstObjectByType<ForestPlayer>().transform.position.ToString("R")
+            + " workbenchBuilt=" + Workbench().IsBuilt + " retired=" + Workbench().IsRetiredFromStartingWorld);
         foreach (ForestTree tree in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             DestroyImmediate(tree.gameObject);
         e.ApplyStandGeometry(model);
@@ -90,6 +95,25 @@ public sealed class WorkbenchRetirementVerificationRunner : MonoBehaviour
         stand.Generate();
         m.InitializeNewScenario();
         e.InvalidateCompetition();
+    }
+
+    private IEnumerator ReloadFreshScene()
+    {
+        // Keep only this disposable runner; loading the authored scene runs real Awake methods again.
+        DontDestroyOnLoad(gameObject);
+        SceneManager.LoadScene("ForestTest", LoadSceneMode.Single);
+        for (int i = 0; i < 5; i++) yield return null;
+        e = FindFirstObjectByType<ForestEcologyController>();
+        m = FindFirstObjectByType<ScenarioOneManager>();
+        saves = FindFirstObjectByType<ForestSaveController>();
+        stand = FindFirstObjectByType<ForestStartingStand>();
+        ui = FindFirstObjectByType<ScenarioOneUiRoot>();
+        Check(e != null && m != null && saves != null && stand != null, "scene reload reacquires new scene components");
+        saves.enabled = false;
+        Check(Workbench().IsRetiredFromStartingWorld && !Workbench().IsBuilt,
+            "real scene Awake restores retired, unbuilt workbench after the historical built load");
+        Check(Presentation(Workbench()) == "activeRenderers=0 enabledColliders=0", "real scene reload has no workbench visual or collider");
+        Check(m.RackPlanningV2Active && Living().Count == 1344, "real fresh scene restores Enlarged80 V2 world identity");
     }
 
     // Visible presentation of the workbench: any enabled renderer on an active object, any enabled collider.
@@ -126,10 +150,10 @@ public sealed class WorkbenchRetirementVerificationRunner : MonoBehaviour
         Check(expectedNonRetired.Split(',').Length == 6, "independent expected inventory (every scene buildable except the literal id workbench-01) is six", expectedNonRetired);
         Debug.Log("WORKBENCH_INFO nonretired=" + expectedNonRetired);
 
-        // ---- A. fresh Enlarged80 new game ----
+        // ---- A. Enlarged80 model-0 comparison fixture (not the real V2 Awake world) ----
         m.InitializeNewScenario();
         ResetWorld(StandGeometryModel.Enlarged80);
-        Check(e.StandGeometryModelVersion == 1 && Living().Count == 1344, "fresh Enlarged80 new game has 1,344 trees");
+        Check(e.StandGeometryModelVersion == 1 && Living().Count == 1344, "Enlarged80 model-0 fixture has 1,344 trees");
         ForestBuildable wb = Workbench();
         Check(wb.IsRetiredFromStartingWorld && !wb.IsBuilt && !wb.ConstructionAvailable, "new game: workbench-01 is retired, unbuilt, unavailable");
         Check(Presentation(wb) == "activeRenderers=0 enabledColliders=0", "new game: no visible renderer and no enabled collider (no ghost, no prompt target)", Presentation(wb));
@@ -175,13 +199,28 @@ public sealed class WorkbenchRetirementVerificationRunner : MonoBehaviour
             Check(SiteMasks() == 7, "old save: seven Site masks (historical)");
             Check(Workbench().GetComponentsInChildren<Renderer>(false).Any(r => r.enabled && r.gameObject.activeInHierarchy) == built, "old save: workbench is visible exactly when built");
         }
-        // Old-save prerequisites: Saw Pit requires the workbench; its built state must still follow the saved list.
+        // Inspect the actual dependency references, then assert the exact two sets independently.
         ForestSaveData withDependent = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(newGame));
         withDependent.buildables.Add(new BuildableSaveData { buildId = WorkbenchId, built = true });
-        Check(saves.LoadData(withDependent, false) && Buildables().Where(b => b.HasPrerequisite).All(b => b.IsPrerequisiteMet), "old save: every buildable with a workbench prerequisite sees it met");
+        Check(saves.LoadData(withDependent, false), "load historical built workbench with every other site unbuilt");
+        FieldInfo required = typeof(ForestBuildable).GetField("requiredBuildable", BindingFlags.Instance | BindingFlags.NonPublic);
+        Check(required != null, "can inspect serialized prerequisite references");
+        var wbDependents = Buildables().Where(b => (ForestBuildable)required.GetValue(b) == Workbench()).OrderBy(b => b.BuildId, StringComparer.Ordinal).ToArray();
+        var saw = Buildables().Single(b => b.BuildId == "saw-pit-01");
+        var sawDependents = Buildables().Where(b => (ForestBuildable)required.GetValue(b) == saw).OrderBy(b => b.BuildId, StringComparer.Ordinal).ToArray();
+        Check(string.Join(",", wbDependents.Select(b => b.BuildId)) == "log-rack-build-01,saw-pit-01,shelter-01,timber-sledge-01",
+            "exactly four sites require the workbench");
+        Check(wbDependents.All(b => b.IsPrerequisiteMet), "all four workbench dependents have their prerequisite met");
+        Check(string.Join(",", sawDependents.Select(b => b.BuildId)) == "grinding-stone-01,log-rack-build-02",
+            "exactly two sites require Saw Pit");
+        Check(!saw.IsBuilt && sawDependents.All(b => !b.IsPrerequisiteMet), "unbuilt Saw Pit keeps its two dependents unmet");
 
         // ---- C. disk round trip of a fresh new-game save, via the real Save / CanLoad / LoadData path ----
+        yield return ReloadFreshScene();
+        // Compare disk parity against the explicit model-0 fixture above, after proving the real fresh scene.
+        m.InitializeNewScenario();
         ResetWorld(StandGeometryModel.Enlarged80);
+        Check(!Workbench().IsBuilt && Workbench().IsRetiredFromStartingWorld, "fresh disk fixture cannot inherit the historical built workbench");
         saves.Save();
         Check(File.Exists(SavePath), "new-game Save() wrote the isolated save file", SavePath);
         string disk = File.ReadAllText(SavePath);
