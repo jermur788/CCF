@@ -667,3 +667,473 @@ SOURCE-STATIC PASS SnapFar outside-boundary-window enabled=True input=(37.000,0.
 - Checker, test, README, `check_baseline.py` and `baseline-output.txt` re-hashed at the end: **identical** to the pinned blobs and to my pre-run hashes (`evidence/11-final-integrity.txt`). Remote branch tip and the author lane's `HEAD` still `b4d47d3d`. I edited nothing under review.
 - Evidence stays at `$E` (`source-clone` about 5 GiB, plus small clones); the clones may be deleted after the Manager rules, the evidence should stay. `SHA256SUMS.txt` there covers the scripts and evidence.
 - This report is the only file published from the docs lane. The hash of the commit that adds it is in the #314 `[HANDED-OFF]` comment, because a file cannot contain its own commit hash.
+
+---
+
+# Exact-head re-review after repair loop 1 (head `753143e6`, appended 2026-11-07)
+
+> **Everything above this line is my first review of `b4d47d3d` and is kept as written.** Where this section shows the first review was wrong or too cautious, the [corrections](#corrections-to-the-first-review-above) say so explicitly.
+
+**Reviewer verdict on the exact head `753143e62a5cf1d7436874e731766c4893a4c7c7` (code `e29e3e1b`): NEEDS CHANGES — source scope only, and narrowly.** This is reviewer evidence and opinion for Manager #200. It is **not** Manager acceptance and cannot approve the checker. I changed no source.
+
+> **The one authoring loop budget is now SPENT.** No further repair will be scheduled tonight, whatever this verdict says. Every residual defect below goes to Manager #200 for morning disposition. A precisely scoped future-fix note is in [Future-fix note](#future-fix-note-for-manager-200-not-a-repair).
+
+> **Independence status, restated.** Cross-provider review was unavailable tonight (OpenAI quota exhausted). This re-review is again the **same-provider-family fallback**: T3 delegate reviewer, provider `claudeAgent_claude_b_pro` (Claude B - Pro), model `claude-sonnet-5-5`, effort **XHIGH**, against an author on `claude-opus-5-5` (Claude A). I am the same reviewer as in the first review, so I am not independent of my own earlier cases (I reused them) and I wrote the new attacks below after reading the loop-1 diff. A reviewer from another model family might find more, or fewer, than I did.
+
+## Re-review summary
+
+**The repair does what it says for the thing I found, and my own earlier finding list is closed.** Observed, with my own drivers and fresh runs (not the author's tallies):
+
+- All **25** in-scope end-to-end survivors of the first review are now rejected through the real `check_baseline.py` (exit 1, `PASS=9 FAIL=1 NOT-TESTABLE=2`), each for its intended cause: **S-1 10/10, S-2 11/11, S-3 4/4**. The 26th, `W-DEP-05` (`ReloadProgress` marks every lesson done), stays accepted (`10/0/2`, exit 0) and is a documented out-of-scope limit. My 3 lone-CR cases are now rejected **by a rule** (U+000D not followed by LF), not by the file reader.
+- Of the 29 in-memory false greens of the first review, **28** are rejected; the 112 cases that were rejected before are still rejected; all 21 of my benign cases are still accepted.
+- The gates reproduce exactly: suite `rejected=275/275 false_greens=0 wrong_cause=0`, benign 32/32 + 32/32, candidate `10/0/2` exit 0, historical `6/4/2` exit 1, six SnapFar on a trace-proved SDK 8.0.133. The diff is exactly the five allowed paths.
+- The author's new claims hold on every point I could re-run: 26 new mutations all rejected (and 25 of them accepted by `b4d47d3d`), 54/54 transcriptions byte-identical, all 106 loop-1 suite cases give the expected exit through the real pipeline, the NBSP-indented `#endif` desync is real (Roslyn differential) and now closed.
+
+**It is still not a closed verifier.** I wrote **478 new cases** (rounds 7 to 11, below) after reading the new code. All compile at C# 9 against the real Unity 6000.6 DLLs unless stated. **57 of them are accepted by the repaired checker, in two classes the loop-1 text says are closed:**
+
+| ID | What gets through | Cases (valid C# 9, accepted in memory) | End to end (`10/0/2`, exit 0) | Severity (my view) |
+|---|---|---|---|---|
+| **N-1** | **S-1 is closed for statements, not for interpolation holes.** `_tokens` emits a whole interpolated string as one token, so the new write-site rule never sees code inside `{ … }`, and the older count rule only matches `x =`, `x op=`, `x++`, `ref|out x`. A **tuple, parenthesised or `out|ref this.x` write of any of the 7 related-state fields, or `++screen`, hidden in a hole, is accepted.** The original `Z-RR2-T-help` effect (`help` becomes null, guidance suspended for good) is reachable by wrapping it as `Debug.Log($"{((help, workPlanWasOpen) = (null, false))}");` | 47 (A10: 28, A11: 19) | 11 of 11 run | Medium (blocking by the packet's rule); needs a deliberately written hole, no accidental route |
+| **N-2** | **The new exact-text pins are not tied to the member they pin ("decoy").** The reviewed text is searched "exactly once anywhere in the file". A nested class, a nested struct or a separate top-level class holding the reviewed text lets the real member change. Defeats the new **S-1 declaration pins** (`help`, `screen`, `manager` become properties that read null or `Map`) and the new **S-3 routing-input pins** (`NeedsAnnualReview => true`, `TeachingRacks => true`) | 10 | 10 of 10 run | Medium for accuracy (README and handoff claim the opposite), Low for safety (needs a deliberately built unused type) |
+
+Both classes were also accepted by `b4d47d3d`, so neither is a regression from the repair. They are residuals the repair either did not reach (N-1) or claims to have closed (N-2: "A field cannot become a property that drops writes", handoff; "Each field declaration is pinned", README). **Neither has an accidental route**: each needs a hostile or at least deliberately odd edit. That is why I rank them Medium and not higher, and why I think the checker is already fit as a guard against *accidental* regressions. The packet's own rule ("any surviving covered mutation is blocking") and the README's explicit claims are why the verdict is still NEEDS CHANGES.
+
+Everything is **source and offline-tool evidence**. Not run, and not claimed: Unity compile or tests, rendering, native input, focus, Help-close timing, saves, Legacy40/Reference, Player builds, the integrated candidate, any merge.
+
+## Re-review identity, lanes and method
+
+| Item | Observed |
+|---|---|
+| Role / identity | T3 delegate reviewer for #314, same session family as the first review; provider `claudeAgent_claude_b_pro` (Claude B - Pro), `claude-sonnet-5-5`, effort XHIGH (set by the Mimo orchestrator). Authority: review only. No checker, test, fixture or production file was edited. No Unity lease, no Unity |
+| Candidate (verified at start and end) | `verify/scenario-one-feedback-cta-anchor-20261106` = `753143e62a5cf1d7436874e731766c4893a4c7c7` (docs commit, author `jermur788`), parent code commit `e29e3e1bfb943980a2fe7710449c0052ced90823`, grandparent `b4d47d3d45717be9da159f0368407b10c0c3e6fe`. `git ls-remote` on the bare store and a `rev-parse` of the author lane (the only command I ran there) both read `753143e6` at the end |
+| Re-review lanes (all mine, throwaway) | `$L = $E/loop1-rerun` with `src` (sparse shared clone, detached `753143e6`), `e2e` (same, overlaid and restored per run), `old` (sparse clone at `72b4efbd` plus the three amended scripts copied in untracked), `ovl` (overlay clone in which I edited the **test** file on purpose to prove the probe tripwire; never committed). The first review's `source-clone` (still `b4d47d3d`) served as the "before" scanner. `E=/media/jer/Files/CCF/Verification/CTA-314-IndependentReview-20261107` |
+| Read-only to me | `/media/jer/Files/CCF/Operations/CCF-FeedbackCTARepair-20261106` (one `rev-parse HEAD`), the author's loop-1 evidence dir (not opened; I read the handoff addendum from the pushed commit instead), `/media/jer/Files/CCF-Primary` (shell cwd only; I ran no git write there this time and no `git fetch` there) |
+| Writes outside my lanes | None. Stray `__pycache__/objective_cta_source_check.cpython-312.pyc` files created by a scratch import in two of my own clones were removed. The Roslyn build server my end-to-end runs started (pid 2158094, SDK 8.0.133, started at 05:04) was stopped; no `dotnet` server of mine was left (`ps` empty at the end) |
+| Toolchain | Python 3.12.3; .NET SDKs 8.0.133 (pinned by cwd `global.json`) and 10.0.114; Roslyn C# 9 tool built in the first review (`$E/roslyn-tool`) against the 320 real Unity 6000.6 and project DLLs, Player-like defines, baseline 189 files / 0 errors |
+| Cases | My six first-review case files were copied **unchanged** (`cmp` identical) and re-run at the new head, with the `b4d47d3d` scanner as the "before" column: 176/176. New rounds 7 to 11 are in `$L/scripts/my_mutations7..11.py` |
+| Claim receipts | #314 `[RUNNING — rerun]` posted at start; the `[HANDED-OFF — exact-head re-review]` comment carries the hash of the commit that adds this section |
+
+## Results by re-review area
+
+| # | Mandatory area | Result | Basis |
+|---|---|---|---|
+| 1 | Diff scope, earlier blocks, `baseline-output.txt` | **PASS** | [Diff scope](#1-diff-scope) |
+| 2 | My 176 cases, full re-run (26 e2e survivors, 3 lone CR, 112 stay rejected, 21 benign) | **PASS** | [Reconciliation](#2-reconciliation-of-the-first-reviews-survivors-with-the-authors-accounting) |
+| 3 | Author's new claims, fresh runs | **PASS** (every number reproduced) | [Author claims](#3-the-authors-new-claims-fresh-runs) |
+| 4 | Gates (suite, candidate, historical, SDK trace, `py_compile`, Roslyn) | **PASS** | [Gates](#4-gates) |
+| 5 | Over-rejection audit O-05 to O-09 and live Assets | **PASS** (disclosed, fail-closed only, no live source rejected) | [Audit](#5-over-rejection-audit) |
+| 6 | Limits honesty | **PARTIAL FAIL** (two overclaims: N-1, N-2) | [Limits](#6-limits-honesty) |
+| 7 | Integrity | **PASS** | [Integrity](#7-integrity) |
+| — | **My own new attacks on the repaired code (rounds 7 to 11)** | **FAIL**: 57 accepted | [New attacks](#new-attacks-written-after-reading-the-loop-1-diff-rounds-7-to-11) |
+
+## Findings after repair loop 1 (severity-ranked)
+
+Severities are my recommendation; the Manager rules. In this section `$L` is `$E/loop1-rerun`. Case sources are in `$L/scripts/my_mutations7..11.py`, per-case results in `$L/out/mine7..11/results.json`, compile results in `$L/evidence/04-roslyn-l1-mine*.txt`, end-to-end output in `$L/e2e-out/`.
+
+### N-1 — Medium, blocking by the packet's rule: S-1 is not closed for writes inside interpolation holes
+
+- **Where.** `objective_cta_source_check.py` `_tokens` (`:949-974`) turns an interpolated string into **one** token (`istr`); `_guard_related_state` (`:1861-1913`) runs only over those tokens, so a write inside `$"{ … }"` is invisible to the new site rule. The older count rule `_assignments` (`:110-117`) still runs first and sees holes, but only for `x =`, `x op=`, `x++` and `ref|out x`. Everything the loop-1 text promises beyond those shapes is therefore not enforced inside a hole.
+- **Cases (all valid C# 9, Roslyn 0 errors except the one invalid case, which is rejected anyway).** Seven related-state fields (`help`, `manager`, `map`, `workPlan`, `review`, `rackLayout`, `screen`) × four shapes in an interpolated string in an unpinned root method: tuple target `$"{((F, _) = (null, 0))}"`, tuple target in second position, parenthesised target `$"{((F) = null)}"`, and the same tuple inside `$@"…"` = **28 accepted** (`A10-hole-{tuple,tuple2,paren,verbatim}-{field}`). Plus `ZOut(out this.F)` and `ZRef(ref this.F, null)` in a hole for 6 fields (12), `++screen` and `--screen` in a hole (2), and five **called-site** variants appended to `ShowObjectives` exactly like the original `Z-RR2-T-*` survivors (`A11-called-hole-help`, `-screen`, `-manager`, `-paren-help`, `A11-called-lambda-hole-help`) = **19 accepted** in round 11. The control, the identical tuple as a plain statement (`A11-called-stmt-ctl-help`), is rejected for the intended cause.
+- **End to end.** 11 representative cases run through the real `check_baseline.py` from the SDK-8.0.133-pinned cwd: `A10-hole-tuple-help`, `A10-hole-paren-screen`, `A10-hole-verbatim-manager`, `A11-called-hole-help`, `-called-hole-screen`, `-called-hole-manager`, `-called-hole-paren-help`, `-called-lambda-hole-help`, `-hole-outthis-help`, `-hole-prefixinc-screen`, `-hole-refthis-rackLayout`: all `PASS=10 FAIL=0 NOT-TESTABLE=2`, exit 0, stderr empty (`$L/evidence/06-e2e-l1-round10-11.txt`).
+- **What it would do (code reasoning, not run).** `A11-called-hole-help` appends `Debug.Log($"{((help, workPlanWasOpen) = (null, false))}");` to `ShowObjectives`. Opening the Objectives screen then sets `help` to null, and the pinned `ApplyNextActionGuidance` reads `help == null` as "suspended" for good: the effect of the rejected `RR2-10`, and of the first review's `Z-RR2-T-help`. `A11-called-hole-screen` sets `screen = Map` right after `SetScreen(Objectives)`, so the Objectives screen resolves its guidance against `map.Root`.
+- **Why it matters / contract link.** It is the S-1 class the loop was meant to close ("tuple, parenthesised … `ref`/`out` … whatever the count", README) with the same effect, behind one more layer of syntax. Existing guarded names (`guidanceCandidate`, `helpClosedFrame`, `nextAction`) **are** protected in holes (position-based rules over the masked code: `A11-hole-tuple-guarded`, `-helpClosedFrame`, `-this-assign-nextAction` rejected), so the gap is specific to the new token rule.
+- **Not a regression.** `b4d47d3d` accepts all of them too (my driver, `b4d` column). It is a residual that the repair's own README sentence claims to have removed.
+- **How I found it.** I first neutralised the old count rule in memory (patching `_assignments` to return the reviewed counts for the 8 field names; `scripts/r7_site_rule_alone.py`) to test the new rule on its own: it rejected 340 of 347 round-7 attacks alone, and the **only seven it missed were the seven `interp` cases**, which is what pointed at holes. I report this because it also shows the new site rule itself is good: apart from holes, no other write shape in my 25-shape matrix gets past it.
+- **Suggested narrow fix (same file; scratch result below).** Apply `_state_write` to the tokens of each interpolation hole too (the lexer already keeps `(start, close, inner)` per hole), or ban related-state names inside holes outside the pinned bodies.
+
+### N-2 — Medium for accuracy, Low for safety: exact-text pins are not tied to the member they pin ("decoy")
+
+- **Where.** `_snippet_spans` (`:1066-1085`) requires the reviewed token sequence to occur **exactly once in the file**. It does not check what encloses it. The new S-1 declaration pins (`_STATE_DECLARATIONS`) and S-3 routing-input pins (`_ROUTING_INPUT_ROOT`, `_ROUTING_INPUTS_VIEW`) use it. A second type in the same file that carries the reviewed text satisfies the pin while the real member changes.
+- **Cases (all valid C# 9, all accepted in memory and end to end `10/0/2`, exit 0).**
+
+| ID | Mutation (real member) | Decoy that keeps the reviewed text once |
+|---|---|---|
+| `A8-D1-help-prop-decoy` | `private MenuHelpView help { get => null; set { } }` (guidance suspended permanently) | nested `class ZDecoyHelp { private MenuHelpView help; }` |
+| `A8-D2-screen-prop-decoy` | `private UiScreen screen { get => UiScreen.Map; set { } }` | nested class with `private UiScreen screen = UiScreen.None;` |
+| `A8-D3-manager-prop-decoy` | `private ScenarioOneManager manager { get => null; set { } }` | nested class with the declaration |
+| `A8-D4-nar-decoy` | `public bool NeedsAnnualReview => true;` | nested class with its own `manager` field and the reviewed expression |
+| `A8-D5-teaching-decoy` | `TeachingRacks => true; CurrentTopicIndex => 0` | nested class in the view with both reviewed members |
+| `A8-D5b-teaching-decoy-simple` | `public bool TeachingRacks => true;` | nested class with `TeachingRacks` text (control `A8-D5c`, no decoy: **rejected**, so the pin works against the plain edit) |
+| `A9-D7-toplevel-decoy-root` | `NeedsAnnualReview => true` | a **separate top-level class** in the root file |
+| `A9-D8-struct-decoy-view` | `TeachingRacks => true` | nested **struct** in the view |
+| `A9-D9-help-decoy-struct` | `help` property | nested struct |
+| `A9-D10-help-realistic` | `help` returns null only while `screen == None` (backing field `helpBacking`) | nested class |
+
+- **Contract link / overclaim.** README: "Each field declaration is pinned"; handoff: "A field cannot become a property that drops writes"; README and the check-08 PASS note: the routing is selected "as far as the pinned routing text and its pinned UI inputs decide". For a decoy, the pins hold while the input is not the reviewed one. The older snippet pin for `learning` is not affected (`A9-D11-learning-decoy` rejected by the alias rule).
+- **Extent.** Method pins (`_pin`) are not decoyable in a practical way (the decoy would have to replicate every field the body uses and not trip the "exactly one method with that signature" rule); I did not find a route. Only short declaration or one-line-member pins are affected.
+- **Not a regression**, as for N-1 (`b4d47d3d` accepts all of them; the control shows the repair's S-3 pin does close the plain edit).
+
+### N-3 — Info: the "unpinned screen entry points" limit names two methods; the class is every unpinned root method
+
+README: "The unpinned screen entry points `ShowObjectives` and `CloseAll` can route elsewhere (probes Y-RR3-17, Y-RR3-18)". `A7-x-update-setscreen` (an `if (screen == Objectives) SetScreen(Map);` at the top of `Update()`, valid C# 9) is accepted too. It is the same documented N-2 (#305) class, so the limit is real but under-described. Suggest "any unpinned root method that calls `SetScreen`, `ShowMap`, `ShowObjectives`, or `CloseAll`".
+
+### N-4 — Info: undisclosed-by-name over-rejections of the L-06 closure
+
+The README states the rule exactly (`.Learning` may only be followed by a member access other than `Root` or by `== null`/`!= null`), and O-08 names `null != ui.Learning`. Four idiomatic benign companion reads are rejected by that rule but are not in the O list: `ui.Learning is null`, `ui.Learning is not null` (the C# 9 forms), `ui.Learning ?? fallback`, and a local alias used only for reading (`var l = ui.Learning; … l.CurrentTopicIndex`) (`A8-L06-isnull`, `-isnotnull`, `-coalesce`, `-localalias-read`). All fail closed, none touches today's source, and the README sentence covers them. Cost: a future false red with a message that says "alias or pass-on". I rate it an accepted trade-off.
+
+### N-5 — Info: a non-UTF-8 `.cs` file under `Assets/` stops the whole script with `ERROR`, exit 2
+
+`LATIN1-comment` (a Latin-1 byte in a comment of a new file; Roslyn accepts it) gives `SOURCE-STATIC ERROR: 'utf-8' codec can't decode byte 0xe9 …`, exit 2. Pre-existing (`Path.read_text(encoding="utf-8")` in `collect_companions` and the other checks), fail-closed (never green), and the message does not name the file. No action needed for tonight.
+
+## Closure of the first review's findings
+
+| First-review finding | Status at `753143e6` | Evidence |
+|---|---|---|
+| **S-1** count-only RR-2 signature (10 e2e cases) | **Closed for statements, 10/10.** Open inside interpolation holes (**N-1**) | e2e table; rounds 7, 10, 11 |
+| **S-2** Cf identifiers and line-separator comment terminators (11 e2e cases + 3 lone CR) | **Closed, 11/11 and 3/3.** My differential probe shows the same hole existed for six more whitespace classes in directives (below); all are closed now | e2e table; [probe](#the-nbsp-indented-endif-desync-my-own-differential-probe) |
+| **S-3** routing inputs unpinned (`W-DEP-01` to `04`) | **Closed 4/4 against the plain edit.** Decoy-bypassable (**N-2**). `W-DEP-05` is a documented out-of-scope limit | e2e table; N-2 |
+| **S-4** limit probes not in the repo | **Closed.** 9 accepted-limit + 9 over-rejection probes are in the suite, reported and not counted; changing an outcome fails the run (I proved it with an overlay, below) | `evidence/13-probe-overlay.*` |
+| **S-5** L-06 (alias of `ui.Learning`) | **Closed for the alias and pass-on shapes.** I tried 7 new evasions (comment/newline separators, `@Learning`, `?.`, tuple deconstruction, lambda argument, generic argument, switch expression) on top of my 2 first-review probes and the author's 3; none passed. See correction below | `A8-L06-*` |
+| **S-6** maintenance cost / message quality | Unchanged by design; now more fail-closed rules (O-05 to O-09, N-4) | audit below |
+
+### Corrections to the first review above
+
+1. **Lone CR.** I wrote that the three lone-CR cases were "closed by accident, not as a false green". They are now closed by a rule (`_FOREIGN_LINE_BREAK`, `\r(?!\n)`), and the in-memory API rejects them with "U+000D is a line break for the C# compiler …". The first review's description of the pre-repair state stands.
+2. **S-5.** I wrote that I "could not find a lexical rule that closes [L-06] without banning legitimate `ui.Learning.X` uses". The author found one (a follow-set after `.Learning`), and I could not beat it with 7 new evasions plus my 2 earlier probes. My statement was too pessimistic. The rule does over-reject a few idiomatic reads (N-4).
+3. **"112 previously rejected."** The packet's figure is reproduced exactly: of my 176 cases, **112** were rejected by `b4d47d3d` (100 expected-rejected, 11 exploratory, 1 limit probe `Y-RR3-11`) and all 112 are still rejected.
+
+## 1. Diff scope
+
+| Check | Observed (`$L/evidence/01-diff-scope.txt`, `09-preserved-blocks.txt`) |
+|---|---|
+| Changed paths `b4d47d3d..753143e6` | Exactly five: `check_baseline.py` (+2/−1), `objective_cta_source_check.py` (+281/−13), `test_objective_cta_source_check.py` (+545/−4), `README.md` (+7/−6) and the handoff (+191, appended). By commit: code `e29e3e1b` touches the README and the three scripts; the docs commit `753143e6` touches the handoff and one README sentence |
+| Against `1585ca20` | The same five paths (handoff added). 0 merge commits. `Assets`, `Packages`, `ProjectSettings`: **0 files changed**. `git diff --check` exit 0 |
+| `baseline-output.txt` | Blob `db6a8b850dce7efadaac6fe1b87b1dbba469428f` at `1585ca20`, `b4d47d3d`, `e29e3e1b` and `753143e6`; sha256 `513cddd9babddaede82212f8e4891ecfcf9823c13a69474a3665f890a7f05dc1` in the tree. Byte-preserved |
+| `check_baseline.py` | One hunk: the test-08 PASS note, reworded from "selected only for unconfirmed Rack V2 Objective 1" to "as far as the pinned routing text and its pinned UI inputs decide (the game state they read is not checked)". Checks 01 to 07 and 09 untouched. The new wording is accurate except for N-2 |
+| Earlier test blocks | Lines 28 to 198 of the `1585ca20` test file (sha256 `6119b5fa…`) occur verbatim, once, in the new file. Lines 33 to 295 of the #305 reviewer's script (sha256 `9a7a8fd2…`) occur verbatim, once. The `rr1`, `rr2`, `rr3`, `n4` and `new_benign` tables are identical to `b4d47d3d`. A line diff shows exactly **4** removed lines in the test file: two docstring lines, one import line and the exit condition (now also fails on a changed probe outcome) |
+| README | Reworked for S-1, S-2, S-3, L-06 and the probe list; no unrelated section changed. Overclaims are listed in [Limits honesty](#6-limits-honesty) |
+
+## 2. Reconciliation of the first review's survivors with the author's accounting
+
+Author: "S-1 10/10, S-2 11/11, S-3 4/4, with `W-DEP-05` kept as a documented out-of-scope probe, plus 3 lone-CR cases rejected by a rule". Mine, from my own case list (first-review report, [end-to-end table](#end-to-end-through-the-real-check_baselinepy-pinned-sdk-8133-cwd)) re-run at `753143e6` through the real pipeline:
+
+| Family (first review) | In my list | Now rejected e2e (exit 1, `9/1/2`) | Still green | Agrees with author |
+|---|---|---|---|---|
+| S-1 (`Y-RR2-08`, `Z-RR2-T-{help,screen,rackLayout,map,workPlan,review}`, `U-RR2-T-manager`, `Z-RR2-C-{screen,help}`) | 10 | **10** | 0 | yes |
+| S-2 (`Y-N-10` to `15`, `Z-N-CF-{buttons,secondprimary,allowlist-clear}`, `Z-N-SHY`, `Z-N-PS`) | 11 | **11** | 0 | yes |
+| S-3 (`W-DEP-01` to `04`) | 4 | **4** | 0 | yes |
+| S-3 `W-DEP-05` | 1 | 0 | **1** (exit 0, `10/0/2`) | yes: documented out-of-scope, kept as an in-suite accepted-limit probe |
+| Lone CR (`Y-N-09`, `Z-N-CR-region`, `Z-N-CR-root`) | 3 | 3 (e2e: through the universal-newline read) and **3/3 in memory by rule** | 0 | yes |
+| **Total** | 29 | **28** (25 in scope + 3 lone CR) | **1** (`W-DEP-05`) | yes |
+
+Of my 29 in-memory false greens: **28 rejected**, **1 accepted (`W-DEP-05`)**; of my 5 S-3 cases, 4 are rejected and the one that is not is the documented one, so **no S-3 case other than the documented out-of-scope one is green**. All 29 compile with 0 errors (first review), and every other class is unchanged:
+
+| My 176 cases | At `b4d47d3d` (reproduced with my driver) | At `753143e6` |
+|---|---|---|
+| Expected rejected: 129 | 100 rejected, **29 accepted** (identical to the first review) | 128 rejected, **1 accepted** (`W-DEP-05`) |
+| Previously rejected, all classes: 112 (100 + 11 exploratory + `Y-RR3-11`) | 112 | **112 still rejected, 0 regressions** |
+| Expected benign: 21 | 21 accepted | **21 accepted**, 0 over-rejections |
+| Disclosed-limit probes: 14 | 13 accepted | 11 accepted, `V-L06-1` and `V-L06-2` now rejected (L-06 closed), `Y-RR3-11` as before |
+| Exploratory: 12 | 11 rejected, `Z-RR4-13` accepted | unchanged |
+
+Also re-run with my own drivers: the #305 corpus (102 broken: **102 rejected**, 15 benign: **15 accepted**) and the original/#304 set (55 rejected, 4 benign accepted). The columns labelled `old1585` in `evidence/02-corpus305.stdout` are, in this rerun, the `b4d47d3d` scanner.
+
+The 29 former in-memory false greens, with the cause at the new head:
+
+| ID | Family | b4d47d3d | 753143e6 | Rejection cause at 753143e6 (abridged) |
+|---|---|---|---|---|
+| Y-RR2-08 | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:681: pinned method TryShowReviewYear (RR-2 related state 'screen') changed (expected 'Review', found 'None'); a reviewed method m |
+| Y-N-09 | lone CR | accepted | **REJECTED** | LearningObjectivesView.Sequence.cs:9: U+000D is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor lin |
+| Y-N-10 | S-2 | accepted | **REJECTED** | LearningObjectivesView.Sequence.cs:9: U+2028 is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor lin |
+| Y-N-11 | S-2 | accepted | **REJECTED** | LearningObjectivesView.cs:82: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside  |
+| Y-N-12 | S-2 | accepted | **REJECTED** | LearningObjectivesView.Cf.cs:1: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character insid |
+| Y-N-13 | S-2 | accepted | **REJECTED** | LearningObjectivesView.Sequence.cs:9: U+0085 is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor lin |
+| Y-N-14 | S-2 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside an i |
+| Y-N-15 | S-2 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside an i |
+| Z-RR2-T-help | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'help' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound, mov |
+| Z-RR2-T-screen | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'screen' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound, m |
+| Z-RR2-T-rackLayout | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'rackLayout' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compoun |
+| Z-RR2-T-map | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'map' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound, move |
+| Z-RR2-T-workPlan | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'workPlan' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound, |
+| Z-RR2-T-review | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'review' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound, m |
+| Z-RR2-C-screen | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:681: pinned method TryShowReviewYear (RR-2 related state 'screen') changed (expected 'screen', found 'CloseHelp'); a reviewed met |
+| Z-RR2-C-help | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:1: RR-2 related state 'help': expected exactly one reviewed occurrence of `help = new MenuHelpView(this);` (missing, changed or d |
+| Z-N-CR-region | lone CR | accepted | **REJECTED** | LearningObjectivesView.Sequence.cs:9: U+000D is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor lin |
+| Z-N-PS | S-2 | accepted | **REJECTED** | LearningObjectivesView.Sequence.cs:9: U+2029 is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor lin |
+| Z-N-CR-root | lone CR | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: U+000D is a line break for the C# compiler but not for this lexer (it can end a // comment or a preprocessor line); fail clo |
+| Z-N-CF-buttons | S-2 | accepted | **REJECTED** | LearningObjectivesView.cs:83: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside  |
+| Z-N-CF-secondprimary | S-2 | accepted | **REJECTED** | LearningObjectivesView.cs:192: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside |
+| Z-N-CF-allowlist-clear | S-2 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: character U+200B (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside an i |
+| Z-N-SHY | S-2 | accepted | **REJECTED** | LearningObjectivesView.cs:82: character U+00AD (category Cf) in code: the C# compiler reads it differently from this lexer (a format character inside  |
+| W-DEP-01 | S-3 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:1: RR-3 routing input 'NeedsAnnualReview': expected exactly one reviewed occurrence of `public bool NeedsAnnualReview => manager  |
+| W-DEP-02 | S-3 | accepted | **REJECTED** | LearningObjectivesView.cs:1: RR-3 routing input 'TeachingRacks': expected exactly one reviewed occurrence of `public bool TeachingRacks => CurrentTopi |
+| W-DEP-03 | S-3 | accepted | **REJECTED** | LearningObjectivesView.cs:1: RR-3 routing input 'CurrentTopicIndex': expected exactly one reviewed occurrence of `public int CurrentTopicIndex => Scen |
+| W-DEP-04 | S-3 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:1: RR-3 routing input 'NeedsAnnualReview': expected exactly one reviewed occurrence of `public bool NeedsAnnualReview => manager  |
+| W-DEP-05 | S-3 (out of scope) | accepted | **ACCEPTED** | documented out-of-scope limit (game/teaching progress) |
+| U-RR2-T-manager | S-1 | accepted | **REJECTED** | ScenarioOneUiRoot.cs:696: 'manager' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qualified, compound,  |
+
+## 3. The author's new claims, fresh runs
+
+| Author claim (handoff, "Repair loop 1") | Observed (own run) | Verdict |
+|---|---|---|
+| Suite `rejected=275/275 false_greens=0 wrong_cause=0`, benign 32 + 32 = 64, 18 probes unchanged | Same, exit 0, stderr empty (`final/02-suite.stdout`). Group lines: original 20, F1 14, F2-F3 21, R-IDs 21, X-F1 35, X-F2 46, RR-1 28, RR-2 15, RR-3 14, N-4 5, reviewer S-1 10, S-2 14, S-3 4, L-06 2, loop-1 S-1 16, S-2 5, S-3 2, L-06 3 | **True** |
+| The 26 new loop-1 mutations are all rejected | 26/26 rejected in the suite, in my own memory driver and through the real pipeline (106-case e2e run below) | **True** |
+| "At `b4d47d3d`, all 30 transcribed reviewer mutations and 25 of the 26 new mutations were accepted; `L1-S2-06` was already rejected" | My driver on the exported suite cases: 30/30 accepted, 25/26 accepted, `L1-S2-06` rejected; 9 limits accepted; the 9 over-rejection probes: 5 already rejected (O-01 to O-04, O-07), 4 new (**O-05, O-06, O-08, O-09**) (`evidence/11-b4d-on-suite.txt`) | **True** |
+| 54/54 transcribed reviewer cases are identical to the originals | My own independent comparison builds the **whole mutated file map** from my original definition and from the suite's transcription and compares them byte for byte, plus group and description: 54/54 identical (25 survivors + 3 lone CR + 2 L-06 + 21 benign, and `W-DEP-05`, `Y-RR3-17`, `Y-RR3-18` as the 3 limit probes) (`evidence/07-fidelity-l1.txt`) | **True** |
+| End-to-end 40-run matrix: control and `W-DEP-05` `10/0/2` exit 0, the 38 mutated `9/1/2` exit 1 | I ran **all 106** loop-1 suite cases through the real `check_baseline.py` (SDK-pinned cwd): 56 mutations (30 transcribed reviewer + 26 new, including the 10 the author ran) → all exit 1 `9/1/2`; 32 benign + 9 limits → all exit 0 `10/0/2`; 9 over-rejections → all exit 1; **stderr empty in all 106**. With my 36 earlier runs, 137 distinct runs overall (`evidence/06-e2e-l1-suite106.txt`, `14-e2e-all.json`) | **True** (and wider) |
+| `L1-S2-04`: an NBSP-indented `#endif` in an inactive verbatim-string opener makes hidden code **active** for Roslyn while the old lexer saw a string | Reproduced with my own differential probe (below), and it is wider than one character | **True** |
+| All three scripts ASCII-only, apart from three pre-existing en dashes in `check_baseline.py`; invisible test characters written as escapes | `grep -P '[^\x00-\x7F]'` finds only `check_baseline.py` (3 lines); the test file writes every invisible character as an escape | **True** |
+| 198 live files lex; only two BOMs; companions 29 | My scan (`evidence/08-live-scan-l1.txt`): 198 OK, 0 rejected; BOM at offset 0 in `Assets/TutorialInfo/Readme.cs` and `Editor/ReadmeEditor.cs` only (neither a companion); no U+0085/2028/2029, no lone CR, no control character, no Cf character; 29 companions, the same set as `b4d47d3d` | **True** |
+| In-suite probes fail the run if an outcome changes | Overlay (`ovl`): I replaced the `L-03` limit probe by an edit the checker rejects; the suite then printed `FAIL accepted-limit-L-03: now rejected, documented accepted; update the README known limits`, `changed=1`, and exited **1** (`evidence/13-probe-overlay.*`) | **True** |
+
+### The NBSP-indented `#endif` desync: my own differential probe
+
+Setup (`$L/out/diffprobe2`, `evidence/05-diffprobe2-*.txt`): a type error (`int bad = nosuchname;`) sits after a `#endif` that follows an inactive `@"` opener. If Roslyn treats that line as a directive the code is **active** and compiles with `CS0103`; if not, it stays inside the string and compiles clean. The lexer verdicts are the old (`b4d47d3d`) and new (`753143e6`) `_lex_uncached`.
+
+| Indent before `#endif` and `#if` | Roslyn (C# 9, real Unity DLLs, SDK 8.0.133) | `b4d47d3d` lexer | `753143e6` lexer |
+|---|---|---|---|
+| none (control) | **active** (CS0103) | rejects ("spans a preprocessor line") | rejects |
+| two spaces, tab | active | rejects | rejects |
+| NBSP U+00A0 | **active** | **accepts (string hides it)** | rejects |
+| form feed U+000C | **active** | **accepts** | rejects |
+| vertical tab U+000B | **active** | **accepts** | rejects |
+| SUB U+001A | **active** | **accepts** | rejects |
+| BOM U+FEFF mid-file | **active** | **accepts** | rejects |
+| EM SPACE U+2003 | **active** | **accepts** | rejects |
+| `#` followed by NBSP, `# endif` | active | rejects | rejects |
+| block comment before the directive, `/* c */ #endif` | **not active** (clean) | accepts | accepts (correct) |
+| no directive at all (string control) | clean | accepts | accepts |
+
+So the author's case is real and the defect was wider than one character; the repair closes every row I could build. Roslyn does **not** honour a comment-prefixed directive, and the repaired lexer correctly keeps treating that as string text.
+
+## 4. Gates
+
+All from clean clones at `753143e6`, Python 3.12.3. `final/` and `evidence/` are under `$L`.
+
+| Gate | Result | Raw |
+|---|---|---|
+| `python3 -m py_compile` on the three scripts | exit 0, no output | `final/01-py_compile.out` |
+| Suite `python3 -B test_objective_cta_source_check.py` (cwd = clone) | **exit 0**; `rejected=275/275 false_greens=0 wrong_cause=0`; benign 32/32 and 32/32; `limits=9 over-rejections=9 changed=0`; historical baseline rejected ("unnamed primary", 3 evidence rows); stderr empty | `final/02-suite.*` |
+| Candidate `check_baseline.py --rotation-state post-fix --instruction-state post-fix`, cwd under `$E/sdk8` (`global.json` 8.0.133, `rollForward: disable`) | **`PASS=10 FAIL=0 NOT-TESTABLE=2`, exit 0**, stderr empty, six `SnapFar` `PASS` rows (values as in the first review). stdout sha256 `47fc3d40b1352085acf8fd57a36b6a431c1011481c5af80388b9e37ea8ee343d` | `final/05-candidate.*` |
+| Same, traced (`COREHOST_TRACE=1`, `strace -f -e execve,openat`, `UseSharedCompilation=false`) | Byte-identical stdout; hostfxr: `Found global.json […/sdk8/global.json]`, `Resolving SDKs with version = '8.0.133', rollForward = 'disable'`, `Using .NET SDK dll=[/usr/lib/dotnet/sdk/8.0.133/dotnet.dll]`. **281 successful opens under `sdk/8.0.133`, 0 under `sdk/10.0.114`**; one `Microsoft.CodeAnalysis.CSharp.dll` open, from 8.0.133 | `final/06-*`, `10-sdk-summary.txt` |
+| Control: cwd without `global.json` | `dotnet --version` **10.0.114**; `version = 'latest'`; **504 opens under `sdk/10.0.114`, 0 under `sdk/8.0.133`**; same stdout bytes. The trace discriminates | `final/07-*` |
+| Historical `72b4efbd` + the three amended scripts (untracked copies) | **`PASS=6 FAIL=4 NOT-TESTABLE=2`, exit 1**, `tracked-production-vs-baseline: MATCH`, stderr empty. Differs from `baseline-output.txt` at **line 48 only** (check 08's text). **Byte-identical** to my first-review historical output at `b4d47d3d` (`cmp`) | `final/08-*` |
+| Roslyn C# 9 compile, real Unity 6000.6 DLLs (320 refs), Player-like defines, SDK 8.0.133 | Baseline 189 files, 0 errors. The author's **106 loop-1 case folders: 106 compile with 0 errors** (I exported them from the suite's own tables with the suite's own `build` semantics). My 176 first-review cases: identical results to the first review (164 compile; the same 12 invalid). #305 corpus 117: identical (2 invalid, as #305 recorded). Original 59: identical | `evidence/04-roslyn-l1-*.txt` |
+| In-flight source (in memory only) | `753143e6`, `69b41605`, `9789369d` and `origin/feature/scenario-one-next-action-guidance-v1` (= `9789369d`) are all **accepted** by the repaired scanner (companions 29 → 30), so the new rules do not block the next integration's text | `evidence/07-tip-probe-l1.txt` |
+
+## 5. Over-rejection audit
+
+| Behaviour (README name) | Disclosed in the README? | Direction | Live `Assets` source | My verdict |
+|---|---|---|---|---|
+| **O-05** any `#if` inside `Start` | yes (known limits) | fail-closed only | live `Start` has none; live accepted | accepted false-red trade-off |
+| **O-06** U+2028 even inside a verbatim string | yes | fail-closed only | none of the 198 files contains U+0085/2028/2029 | accepted trade-off |
+| **O-07** a local or parameter named like a related-state field in the root | yes (pre-existing through the count rule) | fail-closed only | none | accepted |
+| **O-08** `null != ui.Learning` | yes | fail-closed only | all live `.Learning` uses pass | accepted |
+| **O-09** `screen` passed whole to any method (`Debug.Log(screen)`) and `screen` as a member receiver (`screen.ToString()`) | yes (receiver and whole-argument both named) | fail-closed only | live passes | accepted |
+| Form feed, vertical tab, other control or format character in code | yes ("documented, not probed") | fail-closed only | none | accepted |
+| Any `return`/`throw`/`goto`/`yield` in `Start` before the last reviewed write, even inside a lambda | yes | fail-closed only | none today | accepted |
+| `ui.Learning is null`, `is not null`, `??`, local alias read in a companion (**N-4**) | by rule only | fail-closed only | none | accepted, Info |
+| A line of a multi-line comment or verbatim string starting with whitespace and `#` | yes | fail-closed only | none in live files | accepted |
+| Non-ASCII letters, combining marks and `Zs` in code; BOM, CRLF; Cf/NBSP/`€` in strings and comments; `#` in strings and chars; bidi override in comments | n/a | accepted (benign) | — | no over-rejection |
+
+Evidence: the suite's own INFO lines (all nine over-rejections "rejected as documented"), my 21 first-review benign cases (21/21 accepted), my round-8 hunt (13 of 17 benign candidates accepted; the 4 rejected are N-4) and the 32 + 24 suite benign cases. The only defects in this area are **in the permissive direction** (N-1, N-2), not here.
+
+## 6. Limits honesty
+
+| Statement | Verdict | Basis |
+|---|---|---|
+| W-DEP-05 out-of-scope documentation | **Honest.** README names `ReloadProgress` marking every lesson done, and the case is an in-suite accepted-limit probe | suite INFO line; e2e `10/0/2` |
+| L-01 residual route (a view member returning the view or an element) | **Honest, and currently theoretical**: the only element-returning public member of the live view is `Root`, which is banned for companions | grep of the live view |
+| In-suite limit probes, reported not counted, run fails on change | **True**, proved with the overlay | `evidence/13-probe-overlay.*` |
+| Corrected README scope sentence ("as far as that text and its pinned UI inputs decide (the game state they read is not checked)") | **Better, still overstated by N-2** (a decoy defeats the "pinned UI inputs") | N-2 |
+| README: "Any other write fails, whatever the count: an assignment …, a parenthesised, tuple or nested-tuple target …" | **Overstated.** True for statements; false inside an interpolation hole | **N-1** |
+| README: "Each field declaration is pinned" / handoff: "A field cannot become a property that drops writes" | **Overstated** | **N-2** |
+| README: unpinned screen entry points are `ShowObjectives` and `CloseAll` | True but under-described | N-3 |
+| README: lexer separates comments, preprocessor lines and literals; Cf, line separators, directive whitespace fail closed | **True**, and stronger than the author's single probe (differential table above) | §3 |
+
+## 7. Integrity
+
+`evidence/16-final-integrity.txt`, taken at the end:
+
+- The five files in my `src` clone are byte-identical to the blobs in the bare store at `753143e6`: `check_baseline.py` sha256 `787497d8…bb587`, `objective_cta_source_check.py` `9654a974…c6b66`, `test_objective_cta_source_check.py` `925b9e8c…2f6c`, `README.md` `04fea8e7…3d` (blob `5861f56d`), `baseline-output.txt` `513cddd9…c1` (blob `db6a8b85`). The handoff blob sha256 is `994be7b1…0222`. The gates script's before and after hash lists (`final/00-` and `final/99-sha256-*`) are identical.
+- Remote tip and the author lane's `HEAD`: `753143e6` at start and at end. I never wrote to the author lane or the bare store.
+- I did not edit any checker, test or fixture in a clone either, except the **`ovl` overlay clone's test file**, on purpose, to prove the tripwire. It is uncommitted and separate from the clones used for results.
+
+## New attacks written after reading the loop-1 diff (rounds 7 to 11)
+
+These are **my own** cases, written after reading the new code (white-box), so they test the repair rather than reproduce my first list. Method: every case is an in-memory edit of the live files run against the repaired scanner by `run_my_l1.py` (the `b4d47d3d` scanner alongside as the "before" column), the whole set compiled with Roslyn C# 9 against the real Unity DLLs, and the accepted ones run through the real `check_baseline.py`.
+
+| Round | Content | Cases | Valid C# 9 | Rejected | Accepted | of which false greens |
+|---|---|---|---|---|---|---|
+| 7 | **Write-shape matrix** on the new S-1 rule: 26 shapes (plain, `this.`, parenthesised, tuple, second-position tuple, `this.` tuple, nested tuple, lambda, `ref`/`out` through helpers, `ref` local, alias, cast, `@`, comment/newline/NBSP between tokens, chained, `for`, `if`, local function, **interpolation hole**, `Unsafe.AsRef`, `__makeref`, `??=`) × 8 related-state fields in a new method; 6 shapes × 8 fields at the tail of `Start` and the head of `OnDestroy`; 7 `screen` compound and `++` forms; 21 class-scope shapes (setter, `init`, expression body, nested class, nested `ref`, static, `ref` return); 16 guarded-name shapes; 3 probes | 350 | 338 (invalid: 3 `init` accessors, 8 `Unsafe.AsRef`, 1 type-hijack case) | **347** (336 valid) | 3 (`A7-x-update-setscreen` and `A7-x-enabled-false`, valid, in a disclosed class; `A7-x-teachinghijack`, not valid C#) | 0 |
+| 8 | Decoy/shadow pins (8, incl. one no-decoy control), Start manipulations (3), L-06 evasions and reads (12), benign over-rejection hunt (16), lexer extras (4) | 43 | 41 | 20 | 23 (13 benign rightly accepted, 3 disclosed limits, 1 exploratory, **6 false greens**) | **6** |
+| 9 | Decoy placements (nested class, nested struct, separate top-level class), one control | 6 | 6 | 1 | 5 (1 benign control, **4 false greens**) | **4** |
+| 10 | Writes inside interpolation holes: 7 fields × 8 shapes | 56 | 55 | 28 | 28 | **28** |
+| 11 | More hole shapes (`out|ref this.x`, `++|--`), five **called-site** variants, controls | 23 | 23 | 4 | 19 | **19** |
+| **Total** | | **478** | | | | **57** (10 decoy + 47 hole), all valid C# 9 |
+
+Counts are from `out/mine7..11/results.json`; "accepted" includes cases that were rightly accepted (benign controls, disclosed limits). Per-case outcomes and rejection reasons are in `$L/out/mine*/results.json` and `$L/evidence/03-mine-round*.stdout`.
+
+**What the matrix says about the repaired rule.** Apart from interpolation holes, the new S-1 site rule withstood everything: with the old count rule neutralised in a scratch patch, the remaining rules (chiefly the new one) still reject 340 of the 347 round-7 attacks, each for its intended cause ("written outside its reviewed write site (assignment | tuple or deconstruction target | ref operand | out operand | in operand | ++ operand)", "reached through a receiver other than `this`", "`__makeref` … unsupported"). The `screen` receiver/argument rule, the top-level-statement rule for the reviewed `Start` writes, the early-`return` rule and the "reviewed text lies inside `#if`" rule rejected every variant I built. A random mutation fuzz (500 seeded truncations, deleted lines/characters/brackets, odd-character insertions in the root, the view and a partial) gave **0 crashes** (60 rejected of 91 truncations, 44 of 90 insertions; no traceback), so "never a parse crash" holds on that sample (`evidence/15-fuzz-crash.txt`).
+
+**Round 8 (decoys and benign hunt), per case.**
+
+| ID | Intent | Expect | b4d47d3d | 753143e6 | Result | Cause at head (abridged) |
+|---|---|---|---|---|---|---|
+| A8-D1-help-prop-decoy | help becomes a property with a no-op setter (always null); the reviewed field text survives once in a nes | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D2-screen-prop-decoy | screen becomes a property that always reads Map (no-op setter); the reviewed initialiser survives once in | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D3-manager-prop-decoy | manager becomes a property with a no-op setter; reviewed declaration survives once in a nested decoy | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D4-nar-decoy | NeedsAnnualReview forced true; the reviewed expression survives once in a nested decoy class with its own | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D5-teaching-decoy | TeachingRacks forced true; both reviewed members survive once in a nested decoy class of the view | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D5b-teaching-decoy-simple | TeachingRacks forced true; only the TeachingRacks text survives in a nested decoy (CurrentTopicIndex stay | must reject | accepted | accepted | **FALSE GREEN** |  |
+| A8-D5c-teaching-decoy-ctl | control for D5b: TeachingRacks forced true and NO decoy | must reject | accepted | rejected | ok | LearningObjectivesView.cs:1: RR-3 routing input 'TeachingRacks': expected exactly one reviewed occurrence |
+| A8-D6-ctor-count | decoy nested class declares a second LearningObjectivesView-like text (sanity: nested class with a field  | exploratory | rejected | rejected | info | LearningObjectivesView.cs:25: the Objectives Root may be used only by its declaration and the constructor |
+| A8-S-reorder | Start: map and workPlan constructions swapped (order of reviewed writes is not pinned; disclosed) | disclosed limit | accepted | accepted | limit as disclosed |  |
+| A8-S-deadwrite | Start: infinite loop before the help write (non-termination, disclosed L-03/L-08 class) | disclosed limit | accepted | accepted | limit as disclosed |  |
+| A8-S-neverrun | Start: help write after an unbraced if-guard (conditional) | must reject | accepted | rejected | ok | ScenarioOneUiRoot.cs:153: RR-2 related state: `help = new MenuHelpView(this);` must be a top-level statem |
+| A8-L06-isnull | companion: ui.Learning is null (C# 9 idiom) - benign read | benign | accepted | rejected | **over-rejected** | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-isnotnull | companion: ui.Learning is not null (C# 9 idiom) - benign read | benign | accepted | rejected | **over-rejected** | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-localalias-read | companion: local alias of ui.Learning used only for a read | benign | accepted | rejected | **over-rejected** | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-coalesce | companion: ui.Learning ?? x null-coalescing read | benign | accepted | rejected | **over-rejected** | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-elementtraversal | companion reaches Objectives elements only through a public member of the view (documented residual) | disclosed limit | accepted | accepted | limit as disclosed |  |
+| A8-L06-separator | companion: ui . Learning with comments/newline before Root | must reject | rejected | rejected | ok | StandMapView.cs:28: another class reaches the Objectives Root (RR-1) |
+| A8-L06-verbatim | companion: ui.@Learning.@Root | must reject | rejected | rejected | ok | StandMapView.cs:27: another class reaches the Objectives Root (RR-1) |
+| A8-L06-nullcond | companion: ui?.Learning?.Root | must reject | rejected | rejected | ok | StandMapView.cs:27: another class reaches the Objectives Root (RR-1) |
+| A8-L06-tuple | companion: tuple deconstruction alias of ui.Learning | must reject | accepted | rejected | ok | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-arg | companion: ui.Learning passed to an Action<LearningObjectivesView> lambda | must reject | accepted | rejected | ok | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-generic | companion: generic helper receives ui.Learning (type inferred) | must reject | accepted | rejected | ok | StandMapView.cs:28: another class reaches the Objectives view other than by a member access or null test  |
+| A8-L06-switch | companion: switch expression over ui.Learning | must reject | accepted | rejected | ok | StandMapView.cs:27: another class reaches the Objectives view other than by a member access or null test  |
+| A8-B-interp-screen | root: Debug.Log($"screen={screen}") in an unpinned method (interpolation hole, not a whole argument) | benign | accepted | accepted | ok |  |
+| A8-B-screen-tostring | root: screen.ToString() in an unpinned method (member receiver) | exploratory | accepted | rejected | info | ScenarioOneUiRoot.cs:696: 'screen' is used as a member receiver or passed whole as an argument; a ref/in  |
+| A8-B-screen-eq | root: screen comparisons and ternary only | benign | accepted | accepted | ok |  |
+| A8-B-screen-switchexpr | root: screen switch expression | benign | accepted | accepted | ok |  |
+| A8-B-help-reads | root: reads of help/manager/map with ?. and is-pattern in an unpinned method | benign | accepted | accepted | ok |  |
+| A8-B-start-swap-region | root: #region wrapped around part of Start's constructions (no #if) | benign | accepted | accepted | ok |  |
+| A8-B-start-try | root: try/catch around an unrelated Start statement before the reviewed writes | benign | accepted | accepted | ok |  |
+| A8-B-nonascii-ident | partial: non-ASCII letters in a new identifier and in comments/strings (precomposed e-acute, sharp s) | benign | accepted | accepted | ok |  |
+| A8-B-ctrlz-comment | partial: form feed and SUB inside a // comment (page-break artefact) | benign | accepted | accepted | ok |  |
+| A8-B-ff-line | partial: a form-feed-only line between members (old GNU style page break) - control char in code | exploratory | accepted | rejected | info | LearningObjectivesView.Sequence.cs:9: character U+000C (category Cc) in code: the C# compiler reads it di |
+| A8-B-lone-bom-comment | partial: U+FEFF inside a comment and a string | benign | accepted | accepted | ok |  |
+| A8-B-crlf-all | CRLF endings in the new root and a new partial (CR followed by LF is fine) | benign | accepted | accepted | ok |  |
+| A8-B-hash-in-string | partial: '#' inside an ordinary string and a char literal | benign | accepted | accepted | ok |  |
+| A8-B-multiline-verbatim-indented-hash | partial: verbatim string whose second line starts with whitespace and '#' (e.g. markdown heading) - docum | exploratory | rejected | rejected | info | LearningObjectivesView.Sequence.cs:9: a multi-line literal or comment spans a preprocessor line; fail clo |
+| A8-B-multiline-comment-hash | partial: block comment with an indented '#' line (e.g. commented-out #if) | exploratory | rejected | rejected | info | LearningObjectivesView.Sequence.cs:9: a multi-line literal or comment spans a preprocessor line; fail clo |
+| A8-B-xml-doc-hash | partial: XML doc comment (///) lines containing an indented '#' | exploratory | accepted | accepted | info |  |
+| A8-L-nul-code | NUL char (U+0000) inside code of the view partial hiding nothing but desyncing Python | must reject | accepted | rejected | ok | LearningObjectivesView.Sequence.cs:9: character U+0000 (category Cc) in code: the C# compiler reads it di |
+| A8-L-hangul-filler | partial: Hangul filler (Lo) in an identifier - a different identifier for Roslyn and for the checker | benign | accepted | accepted | ok |  |
+| A8-L-astral-cf | astral Cf (U+E0001 language tag) in code of the partial | must reject | accepted | rejected | ok | LearningObjectivesView.Sequence.cs:9: character U+E0001 (category Cf) in code: the C# compiler reads it d |
+| A8-L-bidi-comment | Bidi override U+202E inside a comment and string (display-only; not a parse change) | benign | accepted | accepted | ok |  |
+
+### End-to-end through the real `check_baseline.py` (SDK 8.0.133 cwd): my earlier cases
+
+| Case | Set | check_baseline exit | Tally | Test-08 cause (abridged) |
+|---|---|---|---|---|
+| CONTROL-live | control | 0 | `10 / 0 / 2` | PASS (accepted) |
+| Y-RR2-08 | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:681: pinned method TryShowReviewYear (RR-2 related state 'screen') changed (expected 'Review', found 'None'); |
+| Z-RR2-T-help | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'help' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qual |
+| Z-RR2-T-screen | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'screen' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qu |
+| Z-RR2-T-rackLayout | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'rackLayout' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out |
+| Z-RR2-T-map | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'map' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, quali |
+| Z-RR2-T-workPlan | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'workPlan' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out,  |
+| Z-RR2-T-review | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'review' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, qu |
+| U-RR2-T-manager | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'manager' is written outside its reviewed write site (tuple or deconstruction target): tuple, ref/out, q |
+| Z-RR2-C-screen | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:681: pinned method TryShowReviewYear (RR-2 related state 'screen') changed (expected 'screen', found 'CloseHe |
+| Z-RR2-C-help | S-1 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:1: RR-2 related state 'help': expected exactly one reviewed occurrence of `help = new MenuHelpView(this);` (m |
+| Y-N-10 | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.Sequence.cs:9: U+2028 is a line break for the C# compiler but not for this lexer (it can end a // comment o |
+| Y-N-11 | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:82: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a form |
+| Y-N-12 | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.Cf.cs:1: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a fo |
+| Y-N-13 | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.Sequence.cs:9: U+0085 is a line break for the C# compiler but not for this lexer (it can end a // comment o |
+| Y-N-14 | S-2 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format c |
+| Y-N-15 | S-2 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a format c |
+| Z-N-CF-buttons | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:83: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a form |
+| Z-N-CF-secondprimary | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:192: character U+200D (category Cf) in code: the C# compiler reads it differently from this lexer (a for |
+| Z-N-CF-allowlist-clear | S-2 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: character U+200B (category Cf) in code: the C# compiler reads it differently from this lexer (a format c |
+| Z-N-SHY | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:82: character U+00AD (category Cf) in code: the C# compiler reads it differently from this lexer (a form |
+| Z-N-PS | S-2 | 1 | `9 / 1 / 2` | LearningObjectivesView.Sequence.cs:9: U+2029 is a line break for the C# compiler but not for this lexer (it can end a // comment o |
+| W-DEP-01 | S-3 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:1: RR-3 routing input 'NeedsAnnualReview': expected exactly one reviewed occurrence of `public bool NeedsAnnu |
+| W-DEP-02 | S-3 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:1: RR-3 routing input 'TeachingRacks': expected exactly one reviewed occurrence of `public bool Teaching |
+| W-DEP-03 | S-3 | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:1: RR-3 routing input 'CurrentTopicIndex': expected exactly one reviewed occurrence of `public int Curre |
+| W-DEP-04 | S-3 | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:1: RR-3 routing input 'NeedsAnnualReview': expected exactly one reviewed occurrence of `public bool NeedsAnnu |
+| W-DEP-05 | S-3 | 0 | `10 / 0 / 2` | PASS (accepted) |
+| Y-N-09 | lone CR (3) | 1 | `9 / 1 / 2` | LearningObjectivesView.Sequence.cs:10: the Objectives Root may be used only by its declaration and the constructor (RR-1). Predica |
+| Z-N-CR-region | lone CR (3) | 1 | `9 / 1 / 2` | LearningObjectivesView.Sequence.cs:10: the Objectives Root may be used only by its declaration and the constructor (RR-1). Predica |
+| Z-N-CR-root | lone CR (3) | 1 | `9 / 1 / 2` | 'guidanceCandidate' must be written only by RefreshNextActionGuidance/ApplyNextActionGuidance/ClearNextAction. This is not a Unity |
+| R03 | rejected control | 1 | `9 / 1 / 2` | static primary button 'objective-back-to-forest' is not in the GuidanceButtonNames scoped demotion set. This is not a Unity runtim |
+| X-F1-24 | rejected control | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:81: header local 'forest' is used outside the reviewed straight-line header shapes (RR-1/RR-3). Predicat |
+| X-F2-16 | rejected control | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:451: pinned method RefreshNextActionGuidance changed (expected 'guidanceScope', found 'learning'); a reviewed |
+| Y-RR4-05 | rejected control | 1 | `9 / 1 / 2` | GuidanceButtonNames contains a duplicate name. This is not a Unity runtime verdict. |
+| Y-RR4-09 | rejected control | 1 | `9 / 1 / 2` | expected exactly one method matching '\\bpublic\\s+LearningObjectivesView\\s*\\(\\s*ScenarioOneUiRoot\\s+ui\\s*\\)'; found 0. Pred |
+| Z-N-CF-secondprimary-ctl | rejected control | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:192: UiKit.Button class argument is not a plain string literal. Predicate: UiKit.Button class argument i |
+
+All 36: stderr empty. Two exit 0 (`CONTROL-live`, `W-DEP-05`), 34 exit 1 with `9/1/2`. The three lone-CR cases are rejected here through the universal-newline read, as in the first review; the in-memory API now rejects them by rule.
+
+### End-to-end: the decoy and hole cases (new findings N-1 and N-2)
+
+| Case | check_baseline exit | Tally | Test-08 result |
+|---|---|---|---|
+| A8-D1-help-prop-decoy | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D2-screen-prop-decoy | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D3-manager-prop-decoy | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D4-nar-decoy | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D5-teaching-decoy | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D5b-teaching-decoy-simple | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A8-D5c-teaching-decoy-ctl | 1 | `9 / 1 / 2` | LearningObjectivesView.cs:1: RR-3 routing input 'TeachingRacks': expected exactly one reviewed occurrence of ` |
+| A9-D7-toplevel-decoy-root | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A9-D8-struct-decoy-view | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A9-D9-help-decoy-struct | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A9-D10-help-realistic | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A10-hole-tuple-help | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A10-hole-paren-screen | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A10-hole-verbatim-manager | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-hole-help | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-hole-screen | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-hole-manager | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-hole-paren-help | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-lambda-hole-help | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-hole-outthis-help | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-hole-prefixinc-screen | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-hole-refthis-rackLayout | 0 | `10 / 0 / 2` | PASS (accepted) |
+| A11-called-stmt-ctl-help | 1 | `9 / 1 / 2` | ScenarioOneUiRoot.cs:696: 'help' is written outside its reviewed write site (tuple or deconstruction target):  |
+
+### Future-fix note for Manager #200 (not a repair)
+
+Both new classes look cheap and local. I tested the idea with a **reviewer scratch wrapper** (`$L/scripts/fix_feasibility_l1c.py`, run after the unchanged scanner, **never shipped, not approved code**, fitted after seeing the cases):
+
+1. **Decoy guard.** In `LearningObjectivesView.cs` and `ScenarioOneUiRoot.cs`, the masked code may declare exactly one `class`/`struct`/`interface`/`record` (the class itself; the root's `enum UiScreen` is untouched). The live view and root each declare one. Equivalent: require each pinned snippet to lie at the class-body brace depth.
+2. **Hole guard.** Apply the checker's own `_state_write` to the tokens of every interpolation hole (the lexer already keeps `(start, close, inner)` per hole) and reject a write or a receiver other than `this` there.
+
+Scratch results (`evidence/12c-fix-feasibility-decoy-hole.txt`, `12-`, `12b-`): live source accepted; **all 57 accepted false greens of rounds 8 to 11 rejected** (10 decoy + 47 hole), the only expected-rejected case still accepted being `W-DEP-05`; **0 of my 35 accepted benign cases and 0 of the 56 suite benign cases newly rejected**, CRLF and BOM variants still accepted; the 9 suite accepted-limit probes keep their outcome; no verdict among the 575 cases of rounds 1 to 9 changed other than the ten decoys. Caveat: I fitted it after seeing the cases, so it shows they can be closed locally, not that nothing else exists. If the Manager prefers disclosure to code, the README sentences listed in the [limits table](#6-limits-honesty) would have to be reworded and the decoy and hole shapes named as accepted limits with in-suite probes (the suite already has the machinery).
+
+### Is anything further warranted tonight?
+
+**No repair.** The one authoring loop is spent. My recommendation to Manager #200 is a disposition choice, not a schedule:
+
+- **(a)** Accept the checker as a bounded guard against *accidental* regression of the Objectives CTA, record N-1 and N-2 as accepted limits (reword the two README claims and add two probes), and carry the two guards above as a future-fix note; or
+- **(b)** hold the checker as NEEDS CHANGES until the two guards are written and re-reviewed.
+
+Either way the first review's three findings are closed, which is the substantial part of the loop's value.
+
+## What remains unproved
+
+**Not run, and not claimed** (unchanged from the first review): Unity Editor compile or tests; rendering and screenshots; native pointer or keyboard input; player focus and consent; Help-close timing; save/load, Legacy40 and Reference scenarios; Windows or Player build; USS and other style sources; the exact integrated candidate (only an in-memory scan of the feature tips); any merge. Runtime effects described for mutants are code reasoning plus a Roslyn compile; nothing executed them.
+
+**Unproved by this re-review.** That N-1 and N-2 are the only remaining classes (I wrote the cases after reading the diff, am the same model family as the author, and found these only in rounds 8 and 10 after round 7 came out clean). That the lexer matches Roslyn on every input (I tested directive whitespace, line separators, format characters and the 198 live files, not every Unicode category; Python's Unicode database and the compiler's can differ for newly assigned code points, though the checker fails closed on any category outside its short allow list). That the scratch guards are complete. That the stored pinned texts are the right behaviour (they are the reviewed `1585ca20` source). Anything in the game state the routing reads (`ScenarioOneManager`, teaching state): disclosed out of scope.
+
+## Commands and raw tallies
+
+`E=/media/jer/Files/CCF/Verification/CTA-314-IndependentReview-20261107`, `L=$E/loop1-rerun`. Python ran with `PYTHONDONTWRITEBYTECODE=1`, `PYTHONPYCACHEPREFIX=$E/pycache`, `TMPDIR=$E/tmp`.
+
+| # | What | Result | Raw |
+|---|---|---|---|
+| 1 | Diff scope vs `b4d47d3d`, `1585ca20`; blobs; earlier blocks | five paths; blocks verbatim | `evidence/01-diff-scope.txt`, `09-preserved-blocks.txt` |
+| 2 | Gates (`scripts/gates_l1.sh`): py_compile, suite, pinned/traced/control candidate, historical, SDK summary | as in §4 | `final/` |
+| 3 | My six first-review case files unchanged (`cmp`), `run_my_l1.py` on the new head and on `b4d47d3d` | 176 cases: 28/29 former false greens rejected, 112/112 stay rejected, 21/21 benign accepted | `evidence/03-mine-round1..6.stdout`, `10-mine-tally-l1.txt` |
+| 4 | #305 corpus and original/#304 set | 102/102, 15/15; 55/55, 4/4 | `evidence/02-`, `05-` |
+| 5 | End-to-end: my 36 + the author's 106 suite cases (+ new) | 137 distinct runs, 0 stderr | `evidence/06-*`, `14-e2e-all.json`, `e2e-out/` |
+| 6 | Fidelity of the 54 transcribed cases (whole file maps) | 54/54 identical | `evidence/07-fidelity-l1.txt` |
+| 7 | `b4d47d3d` vs head on the 106 suite cases | author's claims reproduce | `evidence/11-b4d-on-suite.txt` |
+| 8 | Roslyn C# 9 of all case folders | see §4 | `evidence/04-roslyn-l1-*.txt` |
+| 9 | Differential directive probes | table in §3 | `evidence/05-diffprobe2-*.txt` |
+| 10 | Live scan, in-flight tips | 198 OK; tips accepted | `evidence/08-`, `07-tip-probe-l1.txt` |
+| 11 | New rounds 7 to 11 | 478 cases, 57 false greens | `evidence/03-mine-round7..11.stdout` |
+| 12 | Site rule alone (count rule neutralised) | 340/347; 7 missed = holes | `evidence/17-site-rule-alone.txt` |
+| 13 | Probe tripwire overlay | exit 1 on a changed probe | `evidence/13-probe-overlay.*` |
+| 14 | Crash fuzz, 500 seeded mutants | 0 crashes | `evidence/15-fuzz-crash.txt` |
+| 15 | Scratch guards | 57/57 closed, 0 benign lost | `evidence/12*-fix-feasibility*.txt` |
+| 16 | Final integrity re-hash | identical | `evidence/16-final-integrity.txt` |
+
+## Final state (re-review)
+
+- Checker, test, README, `check_baseline.py` and `baseline-output.txt` at `753143e6` re-hashed at the end: **identical** to the pinned blobs (above). Remote tip and the author lane's `HEAD` still `753143e6`. I edited nothing under review.
+- Evidence stays at `$L` (about 71 MiB; the first review's 5 GiB `source-clone` is beside it); `SHA256SUMS.txt` there covers the re-review scripts and evidence. Clones may be deleted after the Manager rules; the evidence should stay.
+- This section is appended to the same file as the first review and is the only file published from the docs lane. The hash of the commit that adds it is in the #314 `[HANDED-OFF — exact-head re-review]` comment, because a file cannot contain its own commit hash.
