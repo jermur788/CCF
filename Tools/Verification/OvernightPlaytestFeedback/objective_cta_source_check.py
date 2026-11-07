@@ -4,15 +4,21 @@
 This is intentionally not a Unity/UI behaviour test and not a C# parser. It checks
 the real constructor and guidance methods with lexical rules that fail closed:
 an ambiguous or unsupported source shape raises ObjectiveCtaSourceError rather
-than being accepted. Comments and string literals are never treated as code.
+than being accepted. Comments and literal text are never treated as code; code in
+an interpolation hole is. The #309 section at the end adds class-wide guards
+(precise lexer, pinned reviewed methods, header grammar, occurrence inventories);
+README.md lists exactly what they cover and what they do not.
 
 Copy this file, check_baseline.py and test_objective_cta_source_check.py
 together; check_baseline.py imports this module.
 """
 import re
+from collections import namedtuple
+from pathlib import Path
 
 VIEW = "Assets/ForestPrototype/UI/LearningObjectivesView.cs"
 ROOT = "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs"
+UIKIT = "Assets/ForestPrototype/UI/UiKit.cs"
 
 CTA_NAME = "objective-primary-cta"
 PRIMARY_CLASS = "btn-primary"
@@ -98,10 +104,12 @@ def _matches(source, regex, flags=re.S):
             if not any(a <= m.start() < b for a, b in spans)]
 
 
-def _assignments(masked, name):
-    """Count writes to a simple local/field: `x = `, `x += `, `x++`, `out x`, `ref x`."""
+def _assignments(masked, name, qualified=False):
+    """Count writes to a simple local/field: `x = `, `x += `, `x++`, `out x`, `ref x`.
+    With qualified=True a qualified write such as `this.x = ` is counted too (#309 RR-2)."""
     ident = re.escape(name)
-    write = re.compile(r'(?<![.\w])' + ident + r'\s*(?:(?:[-+*/%|&^]|<<|>>|\?\?)?=(?![=>])|\+\+|--)')
+    write = re.compile((r'(?<!\w)' if qualified else r'(?<![.\w])') + ident
+                       + r'\s*(?:(?:[-+*/%|&^]|<<|>>|\?\?)?=(?![=>])|\+\+|--)')
     byref = re.compile(r'\b(?:out|ref)\s+(?:[A-Za-z_][\w<>\[\]]*\s+)?' + ident + r'\b')
     return len(write.findall(masked)) + len(byref.findall(masked))
 
@@ -114,7 +122,7 @@ def _find_conditional(masked, start, end, label):
             depth -= match.group(1) == "endif"
         elif match.start() <= end:
             raise ObjectiveCtaSourceError(
-                f"{label}: conditional compilation (#{match.group(1)}) in a checked method is unsupported")
+                f"{label}: conditional compilation (#{match.group(1)}) in a checked method or declaration is unsupported")
     if depth > 0:
         raise ObjectiveCtaSourceError(f"{label}: declared inside conditional compilation (#if)")
 
@@ -188,7 +196,7 @@ def _args(masked, open_idx):
 # ------------------------------------------------------- F1: header primary sources
 
 def _allowlist_values(root_code):
-    match = _one(root_code, r'\bGuidanceButtonNames\s*=\s*\{(.*?)\}\s*;', "T2-owned allowlist")
+    match = _one(root_code, r'\bGuidanceButtonNames\s*=\s*\{(.*?)\}\s*;', "GuidanceButtonNames allowlist")
     _find_conditional(_code(root_code, mask_literals=True), match.start(), match.end(), "GuidanceButtonNames")
     body = match.group(1)
     literals = _literals(body)
@@ -200,7 +208,8 @@ def _allowlist_values(root_code):
         raise ObjectiveCtaSourceError("GuidanceButtonNames contains a duplicate name")
     if values.count(CTA_NAME) != 1:
         raise ObjectiveCtaSourceError("map CTA missing or duplicated in scoped allowlist")
-    uses = _count(_code(root_code, mask_literals=True), r'(?<![.\w])GuidanceButtonNames\b')
+    # Qualified references (e.g. ScenarioOneUiRoot.GuidanceButtonNames[2] = ...) count too (#309 RR-1).
+    uses = _count(_code(root_code, mask_literals=True), r'(?<!\w)GuidanceButtonNames\b')
     if uses != 2:
         raise ObjectiveCtaSourceError(
             f"GuidanceButtonNames must be used only by its declaration and the demotion loop; found {uses} references")
@@ -306,7 +315,9 @@ def _audit_header(ctor, allowed, map_var):
         if len(own) != 1:
             raise ObjectiveCtaSourceError(
                 f"static primary '{variable}' must have exactly one literal name; found {len(own)}")
-        if own[0] == CTA_NAME or own[0] not in allowed:
+        # allowed is None when the allowlist itself is invalid; that specific error is raised by the
+        # caller instead of being masked by a membership failure (#309 RR-5).
+        if own[0] == CTA_NAME or (allowed is not None and own[0] not in allowed):
             raise ObjectiveCtaSourceError(
                 f"static primary button '{own[0]}' is not in the GuidanceButtonNames scoped demotion set")
         primaries.append(own[0])
@@ -345,14 +356,18 @@ def _line_of(source, regex):
 
 # ----------------------------------------------------------------------- verifier
 
-def verify_objective_cta(view_source, root_source):
+def verify_objective_cta(view_source, root_source, companions=None):
     """Raise ObjectiveCtaSourceError on a missing/ambiguous CTA, otherwise return evidence rows.
 
     Accept source *text* so mutation tests can operate solely on temporary
     in-memory copies. No production files are modified by this function.
+    `companions` maps repository paths to the text of the other files that may
+    declare LearningObjectivesView partials, ScenarioOneUiRoot or UiKit (see
+    collect_companions). Without it the class-wide guards cannot run, so the
+    source is rejected rather than passed (#309 N-3).
     """
     try:
-        return _verify(view_source, root_source)
+        return _verify(view_source, root_source, companions)
     except ObjectiveCtaSourceError as error:
         if not error.rows:
             error.rows = _diagnostic_rows(view_source, root_source)
@@ -363,14 +378,17 @@ def verify_objective_cta(view_source, root_source):
             rows=_diagnostic_rows(view_source, root_source)) from error
 
 
-def _verify(view_source, root_source):
+def _verify(view_source, root_source, companions=None):
+    # N-4 first: every check below relies on the lexer telling code from comments and literals.
+    view_spans = _lexically_sound(view_source, VIEW)
+    root_spans = _lexically_sound(root_source, ROOT)
     view_code = _code(view_source)
     view = _method(view_source, _CTOR_SIGNATURE)
     root = _code(root_source)
     try:
         allowed, allowlist_error = _allowlist_values(root), None
     except ObjectiveCtaSourceError as error:
-        allowed, allowlist_error = set(), error
+        allowed, allowlist_error = None, error
     # Enumerate static primaries first so a competing/unnamed primary is reported as such,
     # even for historical sources that have no map button or allowlist at all.
     tolerant = re.search(r'\bButton\s+([A-Za-z_]\w*)\s*=\s*UiKit\.Button\s*\(\s*"Stand map \[M\]"',
@@ -463,7 +481,7 @@ def _verify(view_source, root_source):
     # Guidance state is written only by the reviewed methods, never by an unrelated handler.
     root_masked = _code(root, mask_literals=True)
     for name, expected in (("guidanceCandidate", 2), ("guidanceScope", 2), ("nextAction", 2)):
-        if _assignments(root_masked, name) != expected:
+        if _assignments(root_masked, name, qualified=True) != expected:
             raise ObjectiveCtaSourceError(
                 f"'{name}' must be written only by RefreshNextActionGuidance/ApplyNextActionGuidance/ClearNextAction")
 
@@ -526,8 +544,11 @@ def _verify(view_source, root_source):
                          _one(close_help, r'\bhelpClosedFrame\s*=\s*Time\.frameCount\s*;', "CloseHelp").start()]
     if re.search(r'\b(?:return|if|else|throw|goto)\b|[{}]', _code(between, mask_literals=True)):
         raise ObjectiveCtaSourceError("helpClosedFrame is set conditionally in CloseHelp")
-    if _assignments(_code(root, mask_literals=True), "helpClosedFrame") != 2:
+    if _assignments(_code(root, mask_literals=True), "helpClosedFrame", qualified=True) != 2:
         raise ObjectiveCtaSourceError("helpClosedFrame must be written only by its initialiser and CloseHelp")
+
+    # #309: class-wide RR-1/RR-2/RR-3 guards that the per-statement checks above cannot see.
+    _class_wide_guards(view_source, root_source, view_spans, root_spans, companions)
 
     def evidence(source, regex):
         return _line_of(source, regex)
@@ -550,4 +571,1089 @@ def _verify(view_source, root_source):
          "Enabled, visible, descendant-of-scope eligibility"),
         (ROOT, evidence(root_source, r'\bcandidate\.AddToClassList\s*\(\s*"btn-primary"\s*\)'),
          "Dynamic primary and next-action class application"),
+        (VIEW, evidence(view_source, r'\bUiKit\s*\.\s*Button\s*\(\s*"Back to forest'),
+         "Exactly one static primary (Back to forest, bound caption/click/name) in a straight-line header; "
+         "no other btn-primary source or class-list call in the view class or its partials"),
+        (ROOT, evidence(root_source, r'\bpublic\s+void\s+RefreshNextActionGuidance\s*\(\s*\)'),
+         "Pinned guidance/help/screen methods (comment- and whitespace-normalised) and guarded-state "
+         "occurrence inventory; the UiKit members the constructor calls are pinned"),
     ]
+
+
+# =====================================================================================
+# #309 third pass: bounded class-wide guards (RR-1..RR-5, N-1..N-4).
+#
+# Still not a C# parser or compiler. Three bounded techniques are added, each failing closed:
+#   * a precise lexer for comments, preprocessor lines and string/char literals, including
+#     interpolation holes; a shape it cannot follow is rejected rather than guessed (N-4);
+#   * comment- and whitespace-normalised token pins of the reviewed root and UiKit methods
+#     (a deliberate edit to one of them needs a matching checker update);
+#   * a straight-line statement grammar for the Objectives header plus occurrence inventories
+#     of the locals, fields, literals and APIs that can reach the CTA or its guidance state.
+# What remains outside these guards is listed in README.md ("Known limits").
+# =====================================================================================
+
+_COMPANION_HINT = re.compile(r'LearningObjectivesView|ScenarioOneUiRoot|UiKit|objective-primary-cta|'
+                             r'objective-work-plan|objective-back-to-forest|\\[uUx]')
+
+
+def collect_companions(repo_root):
+    """Read-only: every C# file under Assets/ (other than VIEW and ROOT) that could declare a
+    LearningObjectivesView partial, ScenarioOneUiRoot or UiKit, or name an Objectives header
+    button, including through a \\u or \\x escape. Pass the result to verify_objective_cta."""
+    repo = Path(repo_root)
+    found = {}
+    for path in sorted((repo / "Assets").rglob("*.cs")):
+        rel = path.relative_to(repo).as_posix()
+        if rel not in (VIEW, ROOT):
+            text = path.read_text(encoding="utf-8")
+            if _COMPANION_HINT.search(text):
+                found[rel] = text
+    return found
+
+
+# ------------------------------------------------------------- precise lexer (N-4)
+
+_CHAR_LITERAL = re.compile(
+    r"'(?:[^'\\\n]|\\(?:[\\'\"0abfnrtv]|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|x[0-9A-Fa-f]{1,4}))'")
+_LEX_STOP = re.compile(r'[/"\'@$\\\n#{}()\[\]:]')
+_STRING_START = re.compile(r'(\$@|@\$|\$|@)?"')
+
+
+class _Unlexable(Exception):
+    def __init__(self, at, reason):
+        super().__init__(reason)
+        self.at = at
+
+
+def _row(source, path, at):
+    line = source.count("\n", 0, at) + 1
+    lines = source.splitlines()
+    return line, [(path, line, lines[line - 1].strip() if line <= len(lines) else "")]
+
+
+def _fail(source, path, at, message):
+    line, rows = _row(source, path, at)
+    raise ObjectiveCtaSourceError(f"{path}:{line}: {message}", rows=rows, predicate=message)
+
+
+def _scan_code(src, i, out, hole):
+    """Append comment/directive/char/string/format spans found in code starting at i.
+    `hole` is None at top level, otherwise "regular"/"verbatim" inside an interpolation hole;
+    then the index of the hole's closing brace is returned."""
+    n, depth = len(src), 0
+    while True:
+        found = _LEX_STOP.search(src, i)
+        if not found:
+            if hole:
+                raise _Unlexable(i, "unterminated interpolation hole")
+            return n
+        i = found.start()
+        char = src[i]
+        if char == "\\":
+            raise _Unlexable(i, "backslash outside a literal (Unicode-escaped identifier)")
+        if char == "\n" and hole == "regular":
+            raise _Unlexable(i, "line break inside a regular interpolated string")
+        if char == "#" and hole is None and not src[src.rfind("\n", 0, i) + 1:i].strip(" \t\r\ufeff"):
+            end = src.find("\n", i)
+            end = n if end < 0 else end
+            # A conditional/define directive may end in a // comment; #region, #pragma etc. keep free text.
+            comment = src.find("//", i, end) if re.match(r'#\s*(?:if|elif|else|endif|define|undef|nullable)\b',
+                                                         src[i:end]) else -1
+            out.append(("directive", i, end if comment < 0 else comment))
+            if comment >= 0:
+                out.append(("comment", comment, end))
+            i = end
+            continue
+        if src.startswith("//", i):
+            end = src.find("\n", i)
+            end = n if end < 0 else end
+            out.append(("comment", i, end))
+            i = end
+            continue
+        if src.startswith("/*", i):
+            end = src.find("*/", i + 2)
+            if end < 0:
+                raise _Unlexable(i, "unterminated block comment")
+            out.append(("comment", i, end + 2))
+            i = end + 2
+            continue
+        if char == "'":
+            literal = _CHAR_LITERAL.match(src, i)
+            if not literal:
+                raise _Unlexable(i, "unsupported character literal")
+            out.append(("char", i, literal.end()))
+            i = literal.end()
+            continue
+        start = _STRING_START.match(src, i) if char in '"@$' else None
+        if start:
+            prefix = start.group(1) or ""
+            quote = start.end() - 1
+            if "@" not in prefix and src.startswith('"""', quote):
+                raise _Unlexable(i, "raw string literal (C# 11) is unsupported")
+            i = _scan_string(src, i, quote + 1, "@" in prefix, "$" in prefix, out)
+            continue
+        if hole is not None:
+            if char in "([{":
+                depth += 1
+            elif char in ")]":
+                depth -= 1
+            elif char == "}":
+                if depth == 0:
+                    return i
+                depth -= 1
+            elif char == ":" and depth == 0:
+                end = src.find("}", i)
+                if end < 0 or any(c in src[i:end] for c in '"\n{'):
+                    raise _Unlexable(i, "unsupported interpolation format clause")
+                out.append(("format", i, end))
+                return end
+        i += 1
+
+
+def _scan_string(src, start, i, verbatim, interpolated, out):
+    n, holes = len(src), []
+    while i < n:
+        char = src[i]
+        if char == '"':
+            if verbatim and src.startswith('""', i):
+                i += 2
+                continue
+            out.append(("string", start, i + 1, verbatim, interpolated, holes))
+            return i + 1
+        if char == "\n" and not verbatim:
+            raise _Unlexable(start, "line break inside a regular string literal")
+        if char == "\\" and not verbatim:
+            if src.startswith("\\\n", i):
+                raise _Unlexable(start, "line break inside a regular string literal")
+            i += 2
+            continue
+        if interpolated and char in "{}":
+            if src.startswith(char * 2, i):
+                i += 2
+                continue
+            if char == "}":
+                raise _Unlexable(i, "unbalanced '}' in an interpolated string")
+            inner = []
+            close = _scan_code(src, i + 1, inner, "verbatim" if verbatim else "regular")
+            holes.append((i + 1, close, inner))
+            i = close + 1
+            continue
+        i += 1
+    raise _Unlexable(start, "unterminated string literal")
+
+
+_LEXED = {}
+
+
+def _lexed(source, path):
+    """Precise top-level spans. Fails closed on any shape it cannot follow; no literal or
+    comment may run across a preprocessor line, so inactive #if text cannot desynchronise it."""
+    key = (path, source)
+    if key not in _LEXED:
+        if len(_LEXED) > 256:
+            _LEXED.clear()
+        _LEXED[key] = _lex_uncached(source, path)
+    return _LEXED[key]
+
+
+def _lex_uncached(source, path):
+    spans = []
+    try:
+        _scan_code(source, 0, spans, None)
+    except _Unlexable as problem:
+        _fail(source, path, problem.at, f"the lexer cannot follow this source ({problem}); "
+                                        "unsupported literal/comment shapes fail closed (N-4)")
+    for item in spans:
+        if item[0] in ("comment", "string") and re.search(r'\n[ \t]*#', source[item[1]:item[2]]):
+            _fail(source, path, item[1], "a multi-line literal or comment spans a preprocessor line; "
+                                         "fail closed (N-4)")
+    return spans
+
+
+def _lexically_sound(source, path):
+    """Precise spans for a file that the legacy regex checks also read: both lexers must agree
+    on every literal/comment boundary, otherwise a nested literal could hide code (N-4)."""
+    spans = _lexed(source, path)
+    legacy = {(m.start(), m.end()) for m in _LEX.finditer(source)}
+    precise = set()
+    for item in spans:
+        if item[0] == "directive":
+            continue
+        start = item[1]
+        if item[0] == "string":
+            prefix = source[start:source.index('"', start)]
+            start += {"": 0, "@": 0, "$": 1, "$@": 1}.get(prefix, len(prefix))
+        precise.add((start, item[2]))
+    if legacy != precise:
+        _fail(source, path, min(a for a, _ in legacy ^ precise),
+              "literal/comment boundaries are ambiguous (for example a literal nested in an "
+              "interpolation hole, or a quote in a preprocessor line); fail closed (N-4)")
+    return spans
+
+
+def _precise_mask(source, spans, mask_literals):
+    """Same-length text with comments blanked and, optionally, literal and preprocessor-line text
+    blanked. Code in interpolation holes always stays visible, so it is never mistaken for text."""
+    chars = list(source)
+
+    def blank(a, b):
+        for k in range(a, b):
+            if chars[k] != "\n":
+                chars[k] = " "
+
+    def walk(items):
+        for item in items:
+            kind, a, b = item[:3]
+            if kind == "comment" or (kind in ("char", "format", "directive") and mask_literals):
+                blank(a, b)
+            elif kind == "string":
+                cursor = a
+                for start, close, inner in item[5]:
+                    if mask_literals:
+                        blank(cursor, start - 1)  # the hole's braces stay visible, so commas inside nest
+                    walk(inner)
+                    cursor = close + 1
+                if mask_literals:
+                    blank(cursor, b)
+    walk(spans)
+    return "".join(chars)
+
+
+def _string_items(spans):
+    for item in spans:
+        if item[0] == "string":
+            yield item
+            for _, _, inner in item[5]:
+                yield from _string_items(inner)
+
+
+def _string_value(source, item):
+    """Decoded text of a string span; interpolation holes become NUL separators."""
+    _, a, b, verbatim, interpolated, holes = item
+    quote = source.index('"', a)
+    if not interpolated:
+        return _decode(source[a:b] if verbatim else source[quote:b])
+    parts, cursor = [], quote + 1
+    for start, close, _ in holes:
+        parts.append(source[cursor:start - 1])
+        cursor = close + 1
+    parts.append(source[cursor:b - 1])
+
+    def text(part):
+        part = part.replace("{{", "{").replace("}}", "}")
+        return part.replace('""', '"') if verbatim else _decode('"' + part + '"')
+    return "\0".join(text(part) for part in parts)
+
+
+def _string_values(source, spans):
+    """(start, decoded value, interpolated) for every string literal, nested ones included."""
+    return [(item[1], _string_value(source, item), item[4]) for item in _string_items(spans)]
+
+
+# ------------------------------------------------------------- tokens and pins
+
+_Tok = namedtuple("_Tok", "text kind start end value")
+_TOKEN = re.compile(r'@?[A-Za-z_]\w*|\d\w*(?:\.\d\w*)*|\?\?=|<<=|=>|==|!=|<=|>=|&&|\|\||\?\?|\?\.'
+                    r'|\+\+|--|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<|->|::|\S')
+
+
+def _tokens(source, spans, start=0, end=None):
+    """Tokens of source[start:end] with comments dropped. A whole literal is one token
+    (kind str/istr/char); a preprocessor line is one token (kind dir)."""
+    end = len(source) if end is None else end
+    out = []
+
+    def code(a, b):
+        for match in _TOKEN.finditer(source, a, b):
+            text = match.group()
+            kind = "id" if text[0].isalpha() or text[0] in "_@" else "num" if text[0].isdigit() else "op"
+            out.append(_Tok(text, kind, match.start(), match.end(), text.lstrip("@") if kind == "id" else text))
+    cursor = start
+    for item in spans:
+        kind, a, b = item[:3]
+        if b <= start or a >= end:
+            continue
+        if a < start or b > end:
+            _fail(source, "source", a, "a literal or comment straddles a checked region")
+        code(cursor, a)
+        if kind == "string":
+            out.append(_Tok(source[a:b], "istr" if item[4] else "str", a, b, _string_value(source, item)))
+        elif kind == "char":
+            out.append(_Tok(source[a:b], "char", a, b, source[a:b]))
+        elif kind == "directive":
+            out.append(_Tok(" ".join(source[a:b].split()), "dir", a, b, None))
+        cursor = b
+    code(cursor, end)
+    return out
+
+
+def _texts(tokens):
+    return [token.value if token.kind == "id" else token.text for token in tokens]
+
+
+_FRAGMENT_TOKENS = {}
+
+
+def _tokens_of(fragment):
+    """Normalised token texts of a reviewed C# fragment (comments and layout ignored)."""
+    if fragment not in _FRAGMENT_TOKENS:
+        _FRAGMENT_TOKENS[fragment] = _texts(_tokens(fragment, _lexed(fragment, "<pinned text>")))
+    return _FRAGMENT_TOKENS[fragment]
+
+
+def _statements(tokens):
+    """Split tokens at semicolons outside brackets. Not a statement parser: a block without a
+    trailing semicolon joins the next statement, which only makes the shape checks stricter."""
+    out, current, depth = [], [], 0
+    for token in tokens:
+        current.append(token)
+        if token.kind == "op" and token.text in ("(", "[", "{"):
+            depth += 1
+        elif token.kind == "op" and token.text in (")", "]", "}"):
+            depth -= 1
+        elif token.kind == "op" and token.text == ";" and depth == 0:
+            out.append(current)
+            current = []
+    if current:
+        out.append(current)
+    return out
+
+
+def _split_args(tokens):
+    args, current, depth = [], [], 0
+    for token in tokens:
+        if token.kind == "op" and token.text in ("(", "[", "{"):
+            depth += 1
+        elif token.kind == "op" and token.text in (")", "]", "}"):
+            depth -= 1
+        if token.kind == "op" and token.text == "," and depth == 0:
+            args.append(current)
+            current = []
+        else:
+            current.append(token)
+    if current or args:
+        args.append(current)
+    return args
+
+
+def _no_attribute(source, signature, path):
+    """A checked method may carry no attribute: [Conditional] would compile its calls away."""
+    masked = _code(source, mask_literals=True)
+    found = re.search(signature, masked)
+    if found and masked[:found.start()].rstrip().endswith("]"):
+        _fail(source, path, found.start(), "an attribute on a checked method is unsupported (e.g. [Conditional])")
+
+
+def _pin(source, spans, path, signature, expected, label):
+    """The method body must equal the reviewed text token for token (comments/layout free)."""
+    start, end = _method_span(source, signature)
+    _no_attribute(source, signature, path)
+    got = _tokens(source, spans, start, end)
+    want = _tokens_of(expected)
+    texts = _texts(got)
+    if texts != want:
+        at = next((k for k, (a, b) in enumerate(zip(texts, want)) if a != b), min(len(texts), len(want)))
+        where = got[at].start if at < len(got) else end
+        _fail(source, path, where,
+              f"pinned method {label} changed (expected {want[at] if at < len(want) else 'end of body'!r}, "
+              f"found {texts[at] if at < len(texts) else 'end of body'!r}); a reviewed method may change "
+              "only together with this checker (#309 RR-2/RR-3)")
+    return start, end
+
+
+def _snippet_spans(source, spans, snippet, path, label):
+    """Character span of the single exact occurrence of a reviewed token sequence."""
+    want = _tokens_of(snippet)
+    tokens = _tokens(source, spans)
+    texts = _texts(tokens)
+    hits = [k for k in range(len(texts) - len(want) + 1) if texts[k:k + len(want)] == want]
+    if len(hits) != 1:
+        _fail(source, path, tokens[hits[1]].start if len(hits) > 1 else 0,
+              f"{label}: expected exactly one reviewed occurrence of `{snippet}` (missing, changed or "
+              f"duplicated), found {len(hits)} (RR-2/RR-3)")
+    return tokens[hits[0]].start, tokens[hits[0] + len(want) - 1].end
+
+
+def _positions(masked, name, start=0, end=None):
+    end = len(masked) if end is None else end
+    return [m.start() for m in re.finditer(r'(?<!\w)@?' + re.escape(name) + r'(?!\w)', masked)
+            if start <= m.start() < end]
+
+
+def _inside(position, regions):
+    return any(a <= position < b for a, b in regions)
+
+
+# ------------------------------------------------------------- reviewed text
+
+# Bodies of the reviewed ScenarioOneUiRoot methods at 1585ca20 (comments removed; layout is
+# irrelevant). Any change, however small, must be reviewed and copied here deliberately.
+_ROOT_PINS = (
+    ("RefreshNextActionGuidance", r'\bpublic\s+void\s+RefreshNextActionGuidance\s*\(\s*\)', r'''
+if (learning == null || map == null || workPlan == null || manager == null) return;
+ClearNextAction();
+guidanceCandidate = null;
+guidanceScope = null;
+foreach (var entry in guidancePrimaries)
+    entry.Key.EnableInClassList("btn-primary", entry.Value);
+guidancePrimaries.Clear();
+foreach (VisualElement view in new[] { learning.Root, map.Root, workPlan.Root, review.Root })
+{
+    Label note = view.Q<Label>("next-action-reason");
+    if (note != null) { note.text = ""; note.style.display = DisplayStyle.None; }
+}
+VisualElement scope = manager.WorkPlanOpen ? workPlan.Root
+    : screen == UiScreen.Objectives ? learning.Root : screen == UiScreen.Map ? map.Root
+    : screen == UiScreen.Review ? review.Root : null;
+if (scope == null) return;
+string target = null;
+string reason = learning.CurrentInstruction;
+bool mapQuestions = scope == map.Root && map.RackMode;
+bool consent = mapQuestions && map.RackEditor.ConsentPending;
+bool reset = mapQuestions && map.RackEditor.ResetPending;
+if (consent && reset)
+    reason = "Two rack questions are open; keep or dismiss them before continuing.";
+else if (consent) target = "map-consent-decline";
+else if (reset) target = "map-edit-reset-cancel";
+else if (mapQuestions && map.ReopenPending) target = "map-reopen-decline";
+else if (scope == workPlan.Root && workPlan.ConfirmingAdvance) target = "workplan-advance-return";
+else if (manager.RackPlanningV2Active && (learning.TeachingRacks
+    || (NeedsAnnualReview && manager.AnnualReports.Count == 1 && rackLayout != null && rackLayout.Harvested)))
+{
+    bool objectives = scope == learning.Root;
+    bool onMap = scope == map.Root;
+    if (NeedsAnnualReview)
+        target = scope == review.Root ? "annual-review-acknowledge"
+            : objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-read-results";
+    else if (!manager.RackPlanConfirmed)
+    {
+        if (objectives) target = "objective-primary-cta";
+        else if (onMap)
+        {
+            if (!map.RackPlanningAvailable)
+                reason = !manager.CanEditWorkPlan ? manager.OutcomeReason + " Work Plan editing is unavailable."
+                    : "Rack planning requires the rack tool and forest data to be available.";
+            else if (!map.RackMode) target = "map-plan-rack";
+            else if (map.RackEditor.Dragging || map.RackEditor.Ghost.HasValue)
+                reason = string.IsNullOrEmpty(map.RackEditor.Status) ? learning.CurrentInstruction : map.RackEditor.Status;
+            else if (manager.CanConfirmRackPlan(out string problem)) target = "map-rack-plan-confirm";
+            else reason = problem;
+        }
+    }
+    else if (manager.MarkedRackEntranceCount < ScenarioOneManager.RackPlanTargetCount)
+    {
+        bool markable = false;
+        string unavailableReason = "";
+        foreach (RackPlanRack rack in manager.RackPlan)
+        {
+            if (rack.EntranceMarked || rack.IsLocked) continue;
+            if (manager.TryGetRackEntranceTarget(rack.Id, out ForestTree tree, out string problem)
+                && !tree.IsCropTree && !tree.IsMarkedForFell) { markable = true; break; }
+            else if (!string.IsNullOrEmpty(problem)) unavailableReason = problem;
+        }
+        if (markable) target = objectives ? "objective-back-to-forest" : onMap ? "map-back-to-forest" : null;
+        else reason = "No unmarked rack entrance is currently available to mark. " + unavailableReason;
+    }
+    else if (rackLayout != null)
+    {
+        string problem = RackPlanProblem;
+        if (string.IsNullOrEmpty(problem) && rackLayout.WorkPending) problem = RackApprovalProblem;
+        if (!string.IsNullOrEmpty(problem)) reason = problem;
+        else if (rackLayout.WorkPending)
+        {
+            target = objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-approve";
+            reason = "Review every pending job and its cost: Approve Work Plan commits all eligible pending work, including jobs outside the racks.";
+            if (scope == workPlan.Root)
+            {
+                ScenarioHarvestJob quote = manager.GetHarvestQuote(false);
+                long cost = manager.GetWorkPlanSummary().ExternalCostCents;
+                if (!quote.Eligible || cost > manager.CashCents)
+                {
+                    target = null;
+                    reason = !quote.Eligible ? quote.Problem : $"Approval needs {UiKit.Money(cost)} including approved work; available cash is {UiKit.Money(manager.CashCents)}.";
+                }
+                foreach (ScenarioOneWorkOrder order in manager.WorkOrders)
+                    if (order.rackId > 0 && order.status == ScenarioWorkStatus.Pending && !string.IsNullOrEmpty(order.validationMessage))
+                    { target = null; reason = order.validationMessage; break; }
+            }
+        }
+        else
+        {
+            bool approved = false, failed = false;
+            foreach (RackPlanRack rack in manager.RackPlan)
+            {
+                approved |= rack.Orders.Approved > 0;
+                failed |= rack.Orders.Failed > 0;
+            }
+            if (rackLayout.Complete && approved && !failed && manager.CanAdvanceYearNow && ecology != null)
+                target = objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-advance";
+            else reason = "Review the rack work and its results in the Work Plan. " + manager.Feedback;
+        }
+    }
+}
+else return;
+foreach (string name in GuidanceButtonNames)
+{
+    Button owned = scope.Q<Button>(name);
+    if (owned == null) continue;
+    guidancePrimaries[owned] = owned.ClassListContains("btn-primary");
+    owned.RemoveFromClassList("btn-primary");
+}
+guidanceScope = scope;
+guidanceCandidate = target != null ? scope.Q<Button>(target) : null;
+Label explanation = scope.Q<Label>("next-action-reason");
+if (explanation != null)
+{
+    explanation.text = reason;
+    explanation.style.display = string.IsNullOrEmpty(reason) ? DisplayStyle.None : DisplayStyle.Flex;
+}
+ApplyNextActionGuidance();
+'''),
+    ("ClearNextAction", r'\bprivate\s+void\s+ClearNextAction\s*\(\s*\)', r'''
+if (nextAction != null)
+{
+    nextAction.RemoveFromClassList("btn-primary");
+    nextAction.RemoveFromClassList("next-action");
+    nextAction = null;
+}
+nextBadge.RemoveFromHierarchy();
+'''),
+    ("ApplyNextActionGuidance", r'\bprivate\s+void\s+ApplyNextActionGuidance\s*\(\s*\)', r'''
+bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen
+    || help == null || help.IsOpen || helpClosedFrame == Time.frameCount;
+Button candidate = guidanceCandidate;
+VisualElement scope = guidanceScope;
+bool eligible = !suspended && candidate != null && candidate.enabledInHierarchy && GuidanceVisible(candidate, scope);
+if (nextAction == candidate && eligible) return;
+ClearNextAction();
+if (!eligible) return;
+nextAction = candidate;
+nextBadge.AddToClassList("next-action-badge");
+candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
+candidate.AddToClassList("btn-primary");
+candidate.AddToClassList("next-action");
+'''),
+    ("GuidanceVisible", r'\bprivate\s+static\s+bool\s+GuidanceVisible\s*\(\s*VisualElement\s+element\s*,'
+                        r'\s*VisualElement\s+scope\s*\)', r'''
+for (VisualElement current = element; current != null; current = current.parent)
+{
+    if (current.style.display == DisplayStyle.None || current.resolvedStyle.display == DisplayStyle.None
+        || current.resolvedStyle.visibility == Visibility.Hidden) return false;
+    if (current == scope) return true;
+}
+return false;
+'''),
+    ("CloseHelp", r'\bpublic\s+void\s+CloseHelp\s*\(\s*\)', r'''
+if (help == null || !help.IsOpen) return;
+help.Close();
+helpClosedFrame = Time.frameCount;
+manager.SetAuxiliaryPanelOpen(true);
+'''),
+    ("SetScreen", r'\bpublic\s+void\s+SetScreen\s*\(\s*UiScreen\s+next\s*\)', r'''
+if (screen == next)
+    return;
+if (screen == UiScreen.Map && next == UiScreen.None && map.HasWaypoint)
+    learning.Record("map.return");
+screen = next;
+CloseHelp();
+manager.SetAuxiliaryPanelOpen(screen != UiScreen.None);
+if (screen == UiScreen.Review)
+{
+    review.ShowLatest();
+    review.Refresh(true);
+}
+else if (screen == UiScreen.Map)
+{
+    learning.Record("map.open");
+    map.Refresh(true);
+}
+else if (screen == UiScreen.Objectives)
+    learning.Refresh(true);
+if (screen == UiScreen.Review) RefreshNextActionGuidance();
+'''),
+    ("ShowMap", r'\bpublic\s+void\s+ShowMap\s*\(\s*\)', r'''
+manager.OpenWorkPlan(false);
+SetScreen(UiScreen.Map);
+'''),
+)
+
+# Outside the pinned bodies, these identifiers may appear only inside the reviewed snippets
+# below, each snippet exactly once: no qualified (this.x), tuple, ref/out, lambda, shadowing
+# or count-compensated reference can be added anywhere else in the root (RR-2/RR-3).
+_ROOT_GUARDED = ("helpClosedFrame", "nextAction", "guidanceCandidate", "guidanceScope", "guidancePrimaries",
+                 "GuidanceButtonNames", "ApplyNextActionGuidance", "ClearNextAction", "GuidanceVisible")
+_ROOT_SNIPPETS = (
+    "private int helpClosedFrame = -1;",
+    "private Button nextAction;",
+    "private Button guidanceCandidate;",
+    "private VisualElement guidanceScope;",
+    "private readonly Dictionary<Button, bool> guidancePrimaries = new Dictionary<Button, bool>();",
+    "private static readonly string[] GuidanceButtonNames = {",
+    "manager.SetAuxiliaryPanelOpen(screen != UiScreen.None || help.IsOpen || helpClosedFrame == Time.frameCount);",
+    "private void LateUpdate() { ApplyNextActionGuidance();",
+    "private void ClearNextAction()",
+    "private void ApplyNextActionGuidance()",
+    "private static bool GuidanceVisible(VisualElement element, VisualElement scope)",
+    "root.Add(learning.Root);",
+    "private LearningObjectivesView learning;",
+    "public LearningObjectivesView Learning => learning;",
+    "learning = new LearningObjectivesView(this);",
+    "learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+)
+
+_KIT_PINS = (
+    ("UiKit.Button", r'\bpublic\s+static\s+Button\s+Button\s*\(\s*string\s+text\s*,\s*Action\s+onClick\s*,'
+                     r'\s*bool\s+enabled\s*=\s*true\s*,\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
+var button = new Button(onClick) { text = text };
+button.AddToClassList("btn");
+foreach (string c in classes) button.AddToClassList(c);
+button.SetEnabled(enabled);
+button.focusable = false;
+return button;
+'''),
+    ("UiKit.Box", r'\bpublic\s+static\s+VisualElement\s+Box\s*\(\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
+var element = new VisualElement();
+foreach (string c in classes) element.AddToClassList(c);
+return element;
+'''),
+    ("UiKit.MakeModal", r'\bpublic\s+static\s+void\s+MakeModal\s*\(\s*VisualElement\s+backdrop\s*\)', r'''
+backdrop.pickingMode = PickingMode.Position;
+backdrop.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
+backdrop.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+backdrop.RegisterCallback<WheelEvent>(e => e.StopPropagation());
+'''),
+    ("UiKit.Text", r'\bpublic\s+static\s+Label\s+Text\s*\(\s*string\s+text\s*,\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
+var label = new Label(text);
+foreach (string c in classes) label.AddToClassList(c);
+if (Array.IndexOf(classes, "title") >= 0 && Array.IndexOf(classes, "money") < 0)
+{
+    if (displayFont == null)
+        displayFont = UnityEngine.Resources.Load<UnityEngine.Font>("Fonts/LiberationSerif-Regular");
+    if (displayFont != null)
+        label.style.unityFontDefinition = FontDefinition.FromFont(displayFont);
+}
+return label;
+'''),
+    ("UiKit.Add", r'\bpublic\s+static\s+Label\s+Add\s*\(\s*VisualElement\s+parent\s*,\s*string\s+text\s*,'
+                  r'\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
+Label label = Text(text, classes);
+parent.Add(label);
+return label;
+'''),
+    ("UiKit.Row", r'\bpublic\s+static\s+VisualElement\s+Row\s*\(\s*VisualElement\s+parent\s*,'
+                  r'\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
+VisualElement row = Box(classes.Length > 0 ? classes : new[] { "row" });
+parent.Add(row);
+return row;
+'''),
+)
+
+# Index range of class-name arguments for each UiKit member that attaches classes; other
+# reviewed members attach none of their caller's classes. Unknown members fail closed.
+_UIKIT_CLASS_ARGS = {"Box": (0, None), "Row": (1, None), "Text": (1, None), "Add": (2, None),
+                     "Button": (3, None), "Chip": (2, 2), "Line": (3, 3)}
+_UIKIT_OTHER = {"MakeModal", "SetCompact", "Money", "SignedMoney", "F", "M3", "CellLabel", "Stat", "Inv",
+                "AccentColour", "WaypointColour", "SelectionColour", "WarningColour", "ForestryColour", "RackColour"}
+
+# The reviewed default Objectives header (N-1): caption, click method, enabled argument,
+# static primary, element name. Exactly these three, plus optional non-primary extras.
+_KNOWN_HEADER_BUTTONS = (
+    ("Stand map [M]", "ShowMap", None, False, CTA_NAME),
+    ("Work Plan [Tab]", "ShowWorkPlan", None, False, "objective-work-plan"),
+    ("Back to forest [O / Esc]", "CloseAll", "true", True, "objective-back-to-forest"),
+)
+_VIEW_REFRESH = r'\bpublic\s+void\s+Refresh\s*\(\s*bool\s+force\s*\)'
+_VIEW_REFRESH_GUARD = ("if (!force && shownGuidance == guidance && shownCount == done.Count && "
+                       "shownRegenerationModel == regenerationModel && shownMarket == (market ? 1 : 0) && "
+                       "shownObjectives == objectiveText) return;")
+_VIEW_BANS = (
+    (r'\w*ClassList\w*', "a class-list API (only the reviewed header may style a button)"),
+    (r'(?<!\w)@?Conditional\w*', "a [Conditional] attribute"),
+    (r'\busing\s+static\b', "a using-static directive"),
+    (r'\.\s*@?(?:parent|hierarchy|Children|ElementAt|panel|visualTree|contentContainer|Q|Query'
+     r'|RootElement|rootVisualElement|GetFirstAncestorOfType|GetFirstOfType|FindCommonAncestor)\b',
+     "element-tree traversal or query"),
+    (r'(?<![.\w])@?(?:Q|Query|UQueryExtensions|RootElement|rootVisualElement)\b', "element-tree traversal or query"),
+)
+_DECLARATION = re.compile(r'\b(?:class|struct|interface|record|enum)\s+@?(LearningObjectivesView|ScenarioOneUiRoot|UiKit)\b')
+
+
+# ------------------------------------------------------------- scope (N-3)
+
+def _scope(view_source, root_source, view_spans, root_spans, companions):
+    """Which files declare the view class, the root and UiKit. The root and UiKit must be single,
+    non-partial declarations in their reviewed files; every LearningObjectivesView partial is read."""
+    files = {VIEW: (view_source, view_spans), ROOT: (root_source, root_spans)}
+    for path in sorted(companions):
+        if path in files:
+            raise ObjectiveCtaSourceError(f"companion source duplicates {path}")
+        source = companions[path]
+        files[path] = (source, _lexically_sound(source, path) if path == UIKIT else _lexed(source, path))
+    declared = {}
+    for path, (source, spans) in files.items():
+        masked = _precise_mask(source, spans, True)
+        for match in _DECLARATION.finditer(masked):
+            head = masked[max(masked.rfind(c, 0, match.start()) for c in ";{}]") + 1:match.start()]
+            declared.setdefault(match.group(1), []).append((path, bool(re.search(r'\bpartial\b', head))))
+    for name, path in (("ScenarioOneUiRoot", ROOT), ("UiKit", UIKIT)):
+        if declared.get(name, []) != [(path, False)]:
+            raise ObjectiveCtaSourceError(
+                f"{name} must be declared exactly once, non-partial, in {path}; found {declared.get(name, [])} (N-3)")
+    views = declared.get("LearningObjectivesView", [])
+    paths = [path for path, _ in views]
+    if VIEW not in paths or len(paths) != len(set(paths)) or not all(partial for _, partial in views):
+        raise ObjectiveCtaSourceError(f"unexpected LearningObjectivesView declarations {views} (N-3)")
+    # Other files that mention these classes may not name an Objectives header button or reach the
+    # Objectives Root through ui.Learning (whole or escaped literals only; other classes are not
+    # otherwise analysed).
+    header_names = {name for *_, name in _KNOWN_HEADER_BUTTONS}
+    for path, (source, spans) in files.items():
+        if path in (VIEW, ROOT) or path in paths:
+            continue
+        found = re.search(r'(?<!\w)@?Learning\s*\??\.\s*@?Root\b', _precise_mask(source, spans, True))
+        if found:
+            _fail(source, path, found.start(), "another class reaches the Objectives Root (RR-1)")
+        for start, value, interpolated in _string_values(source, spans):
+            if any(name in value if interpolated else name == value for name in header_names):
+                _fail(source, path, start, "another class names an Objectives header button (RR-1)")
+    return {path: files[path] for path in paths}, files[UIKIT]
+
+
+def _class_wide_guards(view_source, root_source, view_spans, root_spans, companions):
+    if companions is None:
+        raise ObjectiveCtaSourceError(
+            "companion sources (LearningObjectivesView partials and UiKit.cs) were not supplied, so the "
+            "class-wide guards cannot run; pass collect_companions(repository root) (N-3)")
+    view_files, (kit_source, kit_spans) = _scope(view_source, root_source, view_spans, root_spans, companions)
+    allowed = _allowlist_values(_code(root_source))
+    _guard_view_class(view_source, view_spans, view_files, allowed)
+    _guard_root(root_source, root_spans)
+    _guard_uikit(kit_source, kit_spans)
+
+
+# ------------------------------------------------------------- UiKit calls
+
+def _check_uikit_calls(path, source, spans, masked, skip=(), primary_ok=()):
+    """UiKit is the only class-attaching helper a checked file may call. Every class-name
+    argument must be a plain literal; btn-primary only at the reviewed call sites."""
+    commented = _precise_mask(source, spans, False)
+    for use in re.finditer(r'(?<!\w)@?UiKit\b', masked):
+        if _inside(use.start(), skip):
+            continue
+        member = re.match(r'\s*\.\s*@?(\w+)', masked[use.end():])
+        if not member:
+            _fail(source, path, use.start(), "UiKit used other than as UiKit.Member (alias or method group)")
+        name = member.group(1)
+        if name in _UIKIT_OTHER:
+            continue
+        if name not in _UIKIT_CLASS_ARGS:
+            _fail(source, path, use.start(), f"UiKit.{name} is not a reviewed UiKit member; its class "
+                                             "arguments cannot be checked")
+        after = use.end() + member.end()
+        call = re.match(r'\s*\(', masked[after:])
+        if not call:
+            _fail(source, path, use.start(), f"UiKit.{name} used as a method group")
+        args, _ = _args(masked, after + call.end() - 1)
+        if len(args) == 1 and not masked[args[0][0]:args[0][1]].strip():
+            args = []
+        first, last = _UIKIT_CLASS_ARGS[name]
+        for index, (a, b) in enumerate(args):
+            text = commented[a:b]
+            if re.match(r'\s*@?\w+\s*:(?!:)', text):
+                _fail(source, path, a, f"named argument in UiKit.{name} is unsupported")
+            if index < first or (last is not None and index > last):
+                continue
+            value = _sole_literal(text)
+            if value is None:
+                _fail(source, path, a, f"UiKit.{name} class argument is not a plain string literal")
+            if PRIMARY_CLASS in value and use.start() not in primary_ok:
+                _fail(source, path, a, f"btn-primary attached by UiKit.{name} outside the reviewed site (RR-1)")
+
+
+# ------------------------------------------------------------- view class (RR-1, RR-3)
+
+def _guard_view_class(view_source, view_spans, view_files, allowed):
+    forest_call = _guard_header(view_source, view_spans, allowed)
+    ctor_start, ctor_end = _method_span(view_source, _CTOR_SIGNATURE)
+    _no_attribute(view_source, _CTOR_SIGNATURE, VIEW)
+    root_decl = _snippet_spans(view_source, view_spans, "public VisualElement Root { get; }", VIEW, "view Root")
+    primary_literals, name_literals, caption_literals, constructors = [], [], [], 0
+    for path, (source, spans) in sorted(view_files.items()):
+        masked = _precise_mask(source, spans, True)
+        for pattern, what in _VIEW_BANS:
+            found = re.search(pattern, masked)
+            if found:
+                _fail(source, path, found.start(), f"{what} in the Objectives view class is unsupported (RR-1/RR-3)")
+        constructors += len(re.findall(r'(?<![\w.])@?LearningObjectivesView\s*\(', masked))
+        for at in _positions(masked, "Root"):
+            if not (path == VIEW and (_inside(at, [root_decl]) or ctor_start <= at < ctor_end)):
+                _fail(source, path, at, "the Objectives Root may be used only by its declaration and the "
+                                        "constructor (RR-1)")
+        _check_uikit_calls(path, source, spans, masked, primary_ok=(forest_call,) if path == VIEW else ())
+        for start, value, interpolated in _string_values(source, spans):
+            if PRIMARY_CLASS in value:
+                primary_literals.append((path, start))
+            if any(name in value if interpolated else name == value for *_, name in _KNOWN_HEADER_BUTTONS):
+                name_literals.append((path, start))
+            if any(caption == value for caption, *_ in _KNOWN_HEADER_BUTTONS):
+                caption_literals.append((path, start))
+    if constructors != 1:
+        raise ObjectiveCtaSourceError(f"LearningObjectivesView must have exactly one constructor; found {constructors}")
+    if len(primary_literals) != 1:
+        path, at = (primary_literals + [(VIEW, 0)])[1 if primary_literals else 0]
+        _fail(view_files[path][0], path, at, f"the Objectives view class must contain exactly one btn-primary "
+                                             f"literal (Back to forest); found {len(primary_literals)} (RR-1, N-1)")
+    if len(name_literals) != 3 or len(caption_literals) != 3:
+        raise ObjectiveCtaSourceError(
+            "each Objectives header name and caption must appear exactly once in the view class; found "
+            f"{len(name_literals)} names and {len(caption_literals)} captions (RR-1)")
+    _guard_refresh_caller(view_source, view_spans, view_files)
+
+
+def _guard_header(source, spans, allowed):
+    """Straight-line grammar of the reviewed Objectives header (RR-1, N-1). Returns the start of
+    the Back to forest UiKit.Button call, the one reviewed static btn-primary site."""
+    start, end = _method_span(source, _CTOR_SIGNATURE)
+    tokens = [t for t in _tokens(source, spans, start, end)
+              if not (t.kind == "dir" and re.match(r'#\s*(?:region|endregion)\b', t.text))]
+    masked = _precise_mask(source, spans, True)
+    # `ui` is the constructor parameter captured by the click lambdas; reassigning it would retarget them.
+    allowed_at = {"header": set(), "buttons": set(), "modal": set(), "Root": set(), "ui": set()}
+    decls, bindings, adds, inline, counts = {}, {}, {}, [], {}
+
+    def note(role, statement, *names):
+        """Record a reviewed statement and the exact token positions of the locals it may use."""
+        counts[role] = counts.get(role, 0) + 1
+        for token in statement:
+            if token.kind == "id" and token.value in names:
+                allowed_at.setdefault(token.value, set()).add(token.start)
+
+    def plain_args(args):
+        return all(len(arg) == 1 and arg[0].kind == "str" for arg in args)
+
+    def button_args(at, args, what):
+        if len(args) < 2 or len(args[0]) != 1 or args[0][0].kind != "str":
+            _fail(source, VIEW, at, f"{what}: caption is not a plain string literal (RR-1)")
+        click = _texts(args[1])
+        if len(click) != 8 or click[:5] != ["(", ")", "=>", "ui", "."] or click[6:] != ["(", ")"] \
+                or args[1][5].kind != "id":
+            _fail(source, VIEW, at, f"{what}: click is not `() => ui.Method()` (RR-1)")
+        allowed_at["ui"].add(args[1][3].start)
+        enabled = None
+        if len(args) > 2:
+            if len(args[2]) != 1 or _texts(args[2])[0] not in ("true", "false"):
+                _fail(source, VIEW, at, f"{what}: enabled argument is not true/false (RR-1)")
+            enabled = _texts(args[2])[0]
+        if not plain_args(args[3:]):
+            _fail(source, VIEW, at, f"{what}: class argument is not a plain string literal (RR-1)")
+        return dict(caption=args[0][0].value, click=click[5], enabled=enabled,
+                    classes=[arg[0].value for arg in args[3:]], at=at)
+
+    statements = _statements(tokens)
+    for statement in statements:
+        t = _texts(statement)
+        if t == ["this", ".", "ui", "=", "ui", ";"]:
+            note("this ui", statement, "ui")
+        elif t == ["VisualElement", "header", "=", "UiKit", ".", "Box", "(", '"modal-header"', ")", ";"]:
+            note("header", statement, "header")
+        elif t == ["VisualElement", "buttons", "=", "UiKit", ".", "Row", "(", "header", ")", ";"]:
+            note("row", statement, "header", "buttons")
+        elif t == ["modal", ".", "Add", "(", "header", ")", ";"]:
+            note("attach", statement, "header", "modal")
+        elif t[:6] == ["UiKit", ".", "Add", "(", "header", ","] and t[-2:] == [")", ";"] \
+                and plain_args(_split_args(statement[6:-2])):
+            note("title", statement, "header")
+        elif t[:6] == ["Root", "=", "UiKit", ".", "Box", "("] and t[-2:] == [")", ";"] \
+                and plain_args(_split_args(statement[6:-2])):
+            note("root box", statement, "Root")
+        elif t == ["UiKit", ".", "MakeModal", "(", "Root", ")", ";"]:
+            note("make modal", statement, "Root")
+        elif t == ["Root", ".", "Add", "(", "modal", ")", ";"]:
+            note("root add", statement, "Root", "modal")
+        elif t[:7] == ["VisualElement", "modal", "=", "UiKit", ".", "Box", "("] and t[-2:] == [")", ";"] \
+                and plain_args(_split_args(statement[7:-2])):
+            note("modal", statement, "modal")
+        elif len(t) > 8 and t[0] in ("Button", "var") and statement[1].kind == "id" \
+                and t[2:7] == ["=", "UiKit", ".", "Button", "("] and t[-2:] == [")", ";"]:
+            local = t[1]
+            if local in decls or local in allowed_at:
+                _fail(source, VIEW, statement[0].start, f"header button local '{local}' is declared twice (RR-1)")
+            decls[local] = button_args(statement[3].start, _split_args(statement[7:-2]), f"header button '{local}'")
+            note("button", statement, local)
+    for statement in statements:
+        t = _texts(statement)
+        if len(t) == 6 and t[0] in decls and t[1:4] == [".", "name", "="] and statement[4].kind == "str" \
+                and t[5] == ";":
+            if t[0] in bindings:
+                _fail(source, VIEW, statement[0].start, f"header button '{t[0]}' is named twice (RR-1)")
+            bindings[t[0]] = statement[4].value
+            note("binding", statement, t[0])
+        elif t[:4] == ["buttons", ".", "Add", "("] and t[-2:] == [")", ";"]:
+            inner = statement[4:-2]
+            if len(inner) == 1 and t[4] in decls:
+                adds[t[4]] = adds.get(t[4], 0) + 1
+                note("row add", statement, "buttons", t[4])
+            elif _texts(inner[:4]) == ["UiKit", ".", "Button", "("] and _texts(inner[-1:]) == [")"]:
+                info = button_args(inner[0].start, _split_args(inner[4:-1]), "inline header button")
+                if info["classes"]:
+                    _fail(source, VIEW, statement[0].start, "an inline header button may not attach classes (RR-1)")
+                inline.append(info)
+                note("row add", statement, "buttons")
+            else:
+                _fail(source, VIEW, statement[0].start, "header row addition of a button that is not a reviewed "
+                                                           "UiKit.Button declaration (RR-1)")
+        elif t[:2] == ["modal", "."] and len(t) == 7 and t[2:4] == ["Add", "("] and statement[4].kind == "id" \
+                and t[5:] == [")", ";"]:
+            note("modal add", statement, "modal")
+    for k, token in enumerate(tokens):
+        # The modal may also parent plain labels: UiKit.Add(modal, text, classes...)
+        if token.kind == "id" and token.value == "modal" and _texts(tokens[max(0, k - 4):k]) == ["UiKit", ".", "Add", "("] \
+                and k + 1 < len(tokens) and tokens[k + 1].text == ",":
+            allowed_at["modal"].add(token.start)
+    for role in ("header", "row", "attach", "root box", "make modal", "root add", "modal"):
+        if counts.get(role, 0) != 1:
+            raise ObjectiveCtaSourceError(
+                f"Objectives header statement '{role}' must appear exactly once as a straight-line "
+                f"statement; found {counts.get(role, 0)} (RR-1/RR-3)")
+    # Every use of a header local, the modal and Root must be one of the token positions recorded
+    # above: no cast, alias, +=, lambda, if/goto wrapper, indexer, SetEnabled/Clear, hole or restyle.
+    for name, positions in allowed_at.items():
+        for at in _positions(masked, name, start, end):
+            if at not in positions:
+                _fail(source, VIEW, at, f"header local '{name}' is used outside the reviewed straight-line "
+                                        "header shapes (RR-1/RR-3)")
+    known_captions = {caption for caption, *_ in _KNOWN_HEADER_BUTTONS}
+    known_names = {name for *_, name in _KNOWN_HEADER_BUTTONS}
+    forest = None
+    for caption, click, enabled, primary, name in _KNOWN_HEADER_BUTTONS:
+        matches = [local for local, info in decls.items() if info["caption"] == caption]
+        if len(matches) != 1:
+            raise ObjectiveCtaSourceError(
+                f"header button '{caption}' must be declared exactly once; found {len(matches)} (RR-1)")
+        info = decls[matches[0]]
+        classes_ok = (PRIMARY_CLASS in info["classes"]
+                      and sum(PRIMARY_CLASS in value for value in info["classes"]) == 1) if primary else not info["classes"]
+        if info["click"] != click or info["enabled"] != enabled or not classes_ok \
+                or bindings.get(matches[0]) != name or adds.get(matches[0]) != 1:
+            _fail(source, VIEW, info["at"],
+                  f"header button '{caption}' must be ui.{click}(), "
+                  f"{'the one static primary' if primary else 'without classes'}, named '{name}' and added to "
+                  "the row once (RR-1, N-1)")
+        if primary:
+            if name not in allowed:
+                _fail(source, VIEW, info["at"], f"static primary '{name}' is not in GuidanceButtonNames (RR-1)")
+            forest = info["at"]
+    for local, info in decls.items():
+        if info["caption"] in known_captions:
+            continue
+        name = bindings.get(local)
+        if any(PRIMARY_CLASS in value for value in info["classes"]) or adds.get(local) != 1 \
+                or (name is not None and (name in allowed or name in known_names)):
+            _fail(source, VIEW, info["at"],
+                  f"extra header button '{local}' must be non-primary, added once and not use a guidance "
+                  "name; only Back to forest is statically primary (N-1)")
+    for info in inline:
+        if info["caption"] in known_captions:
+            _fail(source, VIEW, info["at"], "an extra header button reuses a reviewed caption (RR-1)")
+    return forest
+
+
+def _guard_refresh_caller(view_source, view_spans, view_files):
+    """The only Objectives caller of RefreshNextActionGuidance is a reachable top-level statement
+    of LearningObjectivesView.Refresh(bool), after its one reviewed early return (RR-3)."""
+    start, end = _method_span(view_source, _VIEW_REFRESH)
+    _no_attribute(view_source, _VIEW_REFRESH, VIEW)
+    calls = []
+    for path, (source, spans) in view_files.items():
+        masked = _precise_mask(source, spans, True)
+        calls += [(path, at) for at in _positions(masked, "RefreshNextActionGuidance")]
+    if len(calls) != 1 or calls[0][0] != VIEW or not start <= calls[0][1] < end:
+        raise ObjectiveCtaSourceError(
+            f"RefreshNextActionGuidance must be called exactly once by the view class, from Refresh(bool); "
+            f"found {len(calls)} (RR-3 missing/extra caller)")
+    texts = [_texts(statement) for statement in _statements(_tokens(view_source, view_spans, start, end))]
+    call, guard = ["ui", ".", "RefreshNextActionGuidance", "(", ")", ";"], _tokens_of(_VIEW_REFRESH_GUARD)
+    body = _precise_mask(view_source, view_spans, True)[start:end]
+    if texts.count(call) != 1 or texts.count(guard) != 1 or texts.index(guard) > texts.index(call) \
+            or len(re.findall(r'\breturn\b', body)) != 1 or re.search(r'\b(?:throw|goto|yield)\b', body):
+        _fail(view_source, VIEW, calls[0][1],
+              "the Objectives RefreshNextActionGuidance call must be an unconditional top-level statement "
+              "after the single reviewed early return, with no other return/throw/goto (RR-3)")
+
+
+# ------------------------------------------------------------- root (RR-1, RR-2, RR-3)
+
+def _guard_root(source, spans):
+    masked = _precise_mask(source, spans, True)
+    for pattern, what in ((r'(?<!\w)@?Conditional\w*', "a [Conditional] attribute"),
+                          (r'\busing\s+static\b', "a using-static directive")):
+        found = re.search(pattern, masked)
+        if found:
+            _fail(source, ROOT, found.start(), f"{what} in ScenarioOneUiRoot is unsupported (RR-3)")
+    pinned = {label: _pin(source, spans, ROOT, signature, text, label) for label, signature, text in _ROOT_PINS}
+    _no_attribute(source, r'\bprivate\s+void\s+LateUpdate\s*\(\s*\)', ROOT)
+    bodies = list(pinned.values())
+    snippets = [_snippet_spans(source, spans, snippet, ROOT, "ScenarioOneUiRoot") for snippet in _ROOT_SNIPPETS]
+    for name in _ROOT_GUARDED:
+        for at in _positions(masked, name):
+            if not _inside(at, bodies) and not _inside(at, snippets):
+                _fail(source, ROOT, at, f"'{name}' is referenced outside the reviewed methods (qualified, tuple, "
+                                        "ref, lambda, shadow or extra use) (RR-2/RR-3)")
+    for found in re.finditer(r'(?<!\w)@?[lL]earning\s*\??\.\s*@?Root\b', masked):
+        if not _inside(found.start(), bodies) and not _inside(found.start(), snippets):
+            _fail(source, ROOT, found.start(), "the Objectives Root is used outside the reviewed root code (RR-1)")
+    # The view field may not be reassigned, aliased or passed on (learning = null; var v = learning; Foo(learning)).
+    for found in re.finditer(r'(?<!\w)@?[lL]earning(?!\w)(?!\s*\??\.)(?!\s*[!=]=\s*null\b)', masked):
+        if not _inside(found.start(), bodies) and not _inside(found.start(), snippets):
+            _fail(source, ROOT, found.start(), "the Objectives view field is reassigned, aliased or passed on (RR-1/RR-2)")
+    # Fields read by the guidance guards keep their reviewed number of writes (the references once, in
+    # Start; screen by its initialiser, SetScreen and TryShowReviewYear); a later reset would silence it.
+    for name, expected in (("help", 1), ("manager", 1), ("learning", 1), ("map", 1), ("workPlan", 1),
+                           ("review", 1), ("rackLayout", 1), ("screen", 3)):
+        if _assignments(masked, name, qualified=True) != expected:
+            raise ObjectiveCtaSourceError(
+                f"ScenarioOneUiRoot must assign '{name}' exactly {expected} time(s) (RR-2 related state)")
+    allowlist = _one(_code(source), r'\bGuidanceButtonNames\s*=\s*\{(.*?)\}\s*;', "GuidanceButtonNames allowlist")
+    header_names = {name for *_, name in _KNOWN_HEADER_BUTTONS}
+    primaries = 0
+    for start, value, interpolated in _string_values(source, spans):
+        if PRIMARY_CLASS in value:
+            primaries += 1
+            if not _inside(start, bodies):
+                _fail(source, ROOT, start, "btn-primary literal outside the reviewed guidance methods (RR-1)")
+        if any(name in value if interpolated else name == value for name in header_names) \
+                and not _inside(start, bodies + [allowlist.span()]):
+            _fail(source, ROOT, start, "an Objectives header name is used outside the allowlist and the "
+                                       "reviewed routing (RR-1)")
+    if primaries != 5:
+        raise ObjectiveCtaSourceError(f"ScenarioOneUiRoot must contain the 5 reviewed btn-primary literals; found {primaries}")
+    commented = _precise_mask(source, spans, False)
+    for found in re.finditer(r'\w*ClassList\w*', masked):
+        if _inside(found.start(), bodies):
+            continue
+        call = re.match(r'\s*\(', masked[found.end():])
+        if not call or not masked[:found.start()].rstrip().endswith("."):
+            _fail(source, ROOT, found.start(), "class-list API used other than as a direct call (RR-1)")
+        args, _ = _args(masked, found.end() + call.end() - 1)
+        value = _sole_literal(commented[args[0][0]:args[0][1]])
+        if value is None or PRIMARY_CLASS in value:
+            _fail(source, ROOT, found.start(), "class-list call outside the reviewed methods must name a plain, "
+                                               "non-primary class literal (RR-1)")
+    _check_uikit_calls(ROOT, source, spans, masked, skip=bodies)
+
+
+# ------------------------------------------------------------- UiKit (N-3)
+
+def _guard_uikit(source, spans):
+    masked = _precise_mask(source, spans, True)
+    for start, value, _ in _string_values(source, spans):
+        if PRIMARY_CLASS in value:
+            _fail(source, UIKIT, start, "UiKit must not attach btn-primary itself (RR-1)")
+    # Every UiKit member the Objectives constructor calls is pinned below; an overload could replace one.
+    builders = re.findall(r'\bstatic\b[^;{}=()]*?\b(Button|Box|Row|Text|Add|MakeModal)\s*[(<]', masked)
+    if sorted(builders) != ["Add", "Box", "Button", "MakeModal", "Row", "Text"]:
+        raise ObjectiveCtaSourceError(
+            f"UiKit must declare exactly one Button, Box, Row, Text, Add and MakeModal; found {sorted(builders)} (N-3)")
+    for label, signature, text in _KIT_PINS:
+        _pin(source, spans, UIKIT, signature, text, label)

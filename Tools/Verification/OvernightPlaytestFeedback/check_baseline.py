@@ -10,7 +10,7 @@ from xml.sax.saxutils import escape
 import subprocess
 from collections import Counter
 from pathlib import Path
-from objective_cta_source_check import ObjectiveCtaSourceError, verify_objective_cta
+from objective_cta_source_check import ObjectiveCtaSourceError, collect_companions, verify_objective_cta
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = "72b4efbd1c653fa2231f632a79030a83ff76f833"
@@ -248,12 +248,12 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
            + evidence(CURRICULUM, ': ". Open the Work Plan')
            + evidence(CURRICULUM, 'case "rack.create":'))
     try:
-        rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"))
+        rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"), collect_companions(ROOT))
         report("PASS", "08 objective-primary-cta",
                "Bounded source-structure proof: one named Objectives map CTA invokes ui.ShowMap(), "
                "is bound to the header row and selected only for unconfirmed Rack V2 Objective 1; "
-               "every static btn-primary header source is uniquely named and in the scoped demotion set; "
-               "scoped primary-class restoration/demotion, Help/preview/visibility guards and "
+               "Back to forest is the only static btn-primary source in the view class and is in the scoped "
+               "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "
                "dynamic btn-primary/next-action application are checked. "
                "Stateful Unity input, focus and rendered prominence remain NOT TESTED.", rows)
     except ObjectiveCtaSourceError as error:
