@@ -354,7 +354,8 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         yield return null;
         Check(e.CellCount == 256 && Living().Count == 1344 && CurrentHash() == savedHash, "synthetic v20 load preserves the original world");
 
-        // A v19 Legacy40 save loaded into the Enlarged80 world: Legacy40 geometry, 336 trees, cells at their original positions.
+        // A synthetic v19-layout Legacy40 save (HistoricalLayout projection, not an archived save) loaded into the
+        // Enlarged80 world: Legacy40 geometry, 336 trees, cells at their original positions.
         ResetWorld(StandGeometryModel.Legacy40);
         int marked = CellAt(2.5f, -17.5f);   // Legacy40 cell index 4
         e.RestoreCellState(marked, new List<ForestRegenerationCohortSaveData>(), 1.5f, 1f);
@@ -373,7 +374,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         Check(Mathf.Approximately(GameObject.Find("Ground").transform.localScale.x, 40f) && Mathf.Approximately(GameObject.Find("East Ridge").transform.position.x, 20f), "ground and ridges returned to the authored 40 m property");
         Check(!GameObject.Find("Ground").GetComponent<Renderer>().HasPropertyBlock(), "ground texture override removed for Legacy40");
         Check(saves.CaptureData().standGeometryModel == 0, "re-saving writes current v24 + geometry 0");
-        Pass("v19 Legacy40 save into an Enlarged80 world: Legacy40 grid and ground restored, 336 trees, cell 4 at (2.5, -17.5)");
+        Pass("synthetic v19-layout Legacy40 save into an Enlarged80 world: Legacy40 grid and ground restored, 336 trees, cell 4 at (2.5, -17.5)");
 
         // Deterministic continuation through save/load.
         ResetWorld(StandGeometryModel.Enlarged80);

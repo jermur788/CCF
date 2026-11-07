@@ -24,6 +24,60 @@ def method(text):
     return text[start:end]
 
 
+def named_method(text, signature):
+    start = text.index(signature)
+    end = text.index(';', start) + 1  # expression-bodied helper
+    return text[start:end]
+
+
+# R4: every message literal naming v19/v20/v21 must say "synthetic" unless it states a projection rule, a
+# field requirement, a relabelled-header refusal, or an explicitly "projected" diagnostic.
+LABEL_ALLOWED = {
+    'pre-v21 projection requires ordinary legacy orders',
+    'pre-v21 projection requires an empty rack plan',
+    'pre-v20 projection requires Legacy40',
+    'current v24 file missing nextRackId (required since v21)',
+    'current v24 file missing racks (required since v21)',
+    'current v24 V2 file relabelled with a pre-v21 header',
+    'Legacy40 upgraded re-save byte-identical to projected v21 (diagnostic): ',
+}
+
+
+def misleading_labels(text):
+    code = '\n'.join(line for line in text.splitlines() if not line.lstrip().startswith('//'))
+    return [s for s in re.findall(r'"((?:[^"\\\n]|\\.)*)"', code)
+            if re.search(r'\bv(19|20|21)\b', s) and 'synthetic' not in s and s not in LABEL_ALLOWED]
+
+
+def label_and_teaching_source_checks():
+    rack, enlarged = (p.read_text() for p in FILES)
+    for path, text in zip(FILES, (rack, enlarged)):
+        assert misleading_labels(text) == [], (path.name, misleading_labels(text))
+    # Negative control: the same scan must find the misleading labels #319 R4 reported in the #318 bytes.
+    old = [subprocess.check_output(['git', 'show', '6b7d2d45:' + str(p.relative_to(ROOT))], cwd=ROOT, text=True) for p in FILES]
+    old_rack, old_enlarged = misleading_labels(old[0]), misleading_labels(old[1])
+    for label in ('the v20 save keeps its Enlarged80 geometry', 'the Legacy40 v21 save loads unchanged', 'v21 missing nextRackId',
+                  'Legacy40 v21 save: Continue loads it unchanged (geometry, signature, world hash) and it never enters V2',
+                  'old save with legacy rack progress (v20 and v21 model 0): orders and marks kept as ordinary work, never V2'):
+        assert label in old_rack, label
+    assert old_enlarged == ['v19 Legacy40 save into an Enlarged80 world: Legacy40 grid and ground restored, 336 trees, cell 4 at (2.5, -17.5)'], old_enlarged
+    assert 'Pass("synthetic v19-layout Legacy40 save into an Enlarged80 world' in enlarged
+    print('SYNTHETIC_LABELS_PASS rack=0 enlarged80=0 misleading; negative control #318 rack=%d enlarged80=%d found' % (len(old_rack), len(old_enlarged)))
+    # R5 wiring: the absent flag goes through the real disk path after the session held true, and cold start loads
+    # both flag values from disk; the in-memory-only absent check and its overclaiming label are gone.
+    policy = rack[rack.index('private IEnumerator TeachingHistoryPolicy('):rack.index('private IEnumerator RunV2(')]
+    cold = rack[rack.index('private IEnumerator RunColdStart('):]
+    assert 'LoadInMemory(absent' not in policy and 'absent teaching history stays false' not in rack
+    order = [policy.index(x) for x in ('"positive control: a v24 disk file recording true loads true through Continue"',
+                                       'bool sessionBefore = manager.FirstGuidedRackReviewComplete;',
+                                       'ContinueFromDisk("synthetic v24 disk file with an absent teaching flag")',
+                                       'TeachingLoadDiscriminates(sessionBefore, false, manager.FirstGuidedRackReviewComplete)')]
+    assert order == sorted(order), order
+    assert cold.count('TeachingLoadDiscriminates(sessionBefore, ') == 2 and '!seededValue' in cold
+    assert 'seededFlag.Type == JTokenType.Boolean' in cold
+    print('TEACHING_CONTROL_WIRING_PASS disk-absent-after-true and cold-start both-polarity controls present')
+
+
 def fields(commit, path, cls):
     text = subprocess.check_output(['git', 'show', commit + ':' + path], cwd=ROOT, text=True)
     body = text.split('class ' + cls + '\n', 1)[1].split('\n}', 1)[0]
@@ -35,7 +89,8 @@ def main():
     ap.add_argument('--out', type=Path, required=True)
     args = ap.parse_args()
     out = args.out.resolve()
-    assert out.is_relative_to(Path('/media/jer/Files/CCF/Verification/Workbench287MorningClosure-20261107/additions'))
+    assert any(out.is_relative_to(Path('/media/jer/Files/CCF/Verification') / allowed) for allowed in
+               ('Workbench287MorningClosure-20261107/additions', 'WorkbenchRunnerR1R5-20261107'))
     out.mkdir(parents=True, exist_ok=False)
     # Historical schema evidence: audit all relevant public field additions, not version headers alone.
     paths = [('Assets/ForestPrototype/ForestSaveData.cs', 'ScenarioOneSaveData'),
@@ -54,14 +109,17 @@ def main():
             evidence[str(version)][cls] = sorted(actual)
     (out / 'historical-schema-fields.json').write_text(json.dumps(evidence, indent=2) + '\n')
     print('HISTORICAL_SCHEMA_FIELD_BOUNDARIES_PASS v19/v20/v21 against pinned production schema')
+    label_and_teaching_source_checks()
     methods = [method(p.read_text()) for p in FILES]
+    teaching = named_method(FILES[0].read_text(), '    private static bool TeachingLoadDiscriminates(')
     assert methods[0] == methods[1], 'the two self-contained disposable gates must use the same audited projection'
     source = '''using System; using System.Linq; using Newtonsoft.Json.Linq;
 static class StandGeometryModel { public const int Legacy40 = 0; }
 static class Controls {
 static int checks;
+static int teachingChecks;
 static void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
-''' + methods[0] + '''
+''' + methods[0] + '\n' + teaching + '''
 static JObject Fixture() => JObject.Parse(@"{'version':24,'standGeometryModel':0,'trees':[{'treeId':'sentinel','diameterCm':17}],
  'scenarioOne':{'firstGuidedRackReviewComplete':false,'objectiveAchievements':[], 'nextPrescriptionId':1,'prescriptions':[],
  'rackPlanningModel':0,'rackPlanConfirmed':false,'nextRackId':1,'racks':[],
@@ -98,7 +156,16 @@ static void Main() {
  var v21=JObject.Parse(HistoricalLayout(v2.ToString(),21));
  Test(JToken.DeepEquals(Scenario(v2)["racks"],Scenario(v21)["racks"]) && (int)Scenario(v21)["workOrders"][0]["rackId"]==3,"v21 preserves V2 records and links");
  Console.WriteLine("HISTORICAL_PROJECTION_PASS checks="+checks);
+ // R5: the actual TeachingLoadDiscriminates helper. Positive controls must pass; trivial and ignored loads must not.
+ Teach(TeachingLoadDiscriminates(true,false,false),"absent flag on disk applied over a true session");
+ Teach(TeachingLoadDiscriminates(false,true,true),"cold start applies the opposite (true) flag");
+ Teach(!TeachingLoadDiscriminates(false,false,false),"false-seeded comparison with a false session is rejected as trivial");
+ Teach(!TeachingLoadDiscriminates(true,true,true),"true-seeded comparison with a true session is rejected as trivial");
+ Teach(!TeachingLoadDiscriminates(true,false,true),"a load that ignored the absent-flag file is caught");
+ Teach(!TeachingLoadDiscriminates(false,true,false),"a load that ignored the opposite-flag file is caught");
+ Console.WriteLine("TEACHING_CONTROLS_PASS checks="+teachingChecks);
 }
+static void Teach(bool ok, string name) { Check(ok, name); teachingChecks++; Console.WriteLine("TEACHING_CONTROL_PASS " + name); }
 }'''
     (out / 'Controls.cs').write_text(source)
     sdk = subprocess.check_output(['dotnet', '--list-sdks'], text=True).splitlines()[-1]

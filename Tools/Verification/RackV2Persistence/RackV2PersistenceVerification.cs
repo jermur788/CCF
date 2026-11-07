@@ -20,10 +20,15 @@ using UnityEditor.SceneManagement;
 //
 // Modes (CCF_RACKV2_11_MODE, set by run_gate.py):
 //   v2         fresh Enlarged80 game: new game, draft with stable non-contiguous ids, confirmation, partial and
-//              all entrance marks, pre-V2 (v20) save before planning, pre-V2 save with legacy rack progress,
-//              malformed V2 files, Reference Future v1 untouched. Exports the partial-mark save for coldstart.
-//   legacy40   fresh Legacy40 game (CCF_STAND_GEOMETRY=0): v21 and v20 Legacy40 saves load unchanged and never
-//              enter V2, with and without legacy rack progress; a Legacy40 file claiming V2 is refused.
+//              all entrance marks, synthetic pre-V2 (projected v20) save before planning, synthetic projected
+//              old saves with legacy rack progress, malformed V2 files, teaching-history controls, Reference
+//              Future v1 untouched. Exports the partial-mark save for coldstart.
+//   legacy40   fresh Legacy40 game (CCF_STAND_GEOMETRY=0): synthetic projected v21 and v20 Legacy40 saves load
+//              unchanged and never enter V2, with and without legacy rack progress; a Legacy40 file claiming V2
+//              is refused.
+//
+// "Synthetic" means the old-version files are projections of a live v24 capture by HistoricalLayout (field
+// boundaries audited against the save-schema commits); they are NOT archived genuine historical saves.
 //   coldstart  a NEW Editor process whose isolated save slot holds the v2 run's partial-mark save: Continue
 //              (CanLoad + Load) restores the exact rack plan, ids, marks and world hash.
 //
@@ -311,6 +316,20 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
     private static string ToV20(string capture) => HistoricalLayout(capture, 20);
     private static string ToV21(string capture) => HistoricalLayout(capture, 21);
 
+    // A teaching-history load check can only fail if the session held the opposite value before the load:
+    // comparing "false after load" with a session that was already false proves nothing. Exercised offline with
+    // positive and negative controls by test_historical_projection.py.
+    private static bool TeachingLoadDiscriminates(bool sessionBefore, bool expectedAfter, bool actualAfter)
+        => sessionBefore != expectedAfter && actualAfter == expectedAfter;
+
+    // Compact text, like JsonUtility's own compact capture (Newtonsoft "None" formatting), for files written to disk.
+    private static string MutateCompact(string json, Action<JObject> change)
+    {
+        JObject root = JObject.Parse(json);
+        change(root);
+        return root.ToString(Newtonsoft.Json.Formatting.None);
+    }
+
     private string CompactCapture() => JsonUtility.ToJson(saves.CaptureData());
 
     private IEnumerator LoadInMemory(string json, string label)
@@ -365,9 +384,24 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         string oldWithFlag = Mutate(original, r => { r["version"] = 23; Scenario(r)["firstGuidedRackReviewComplete"] = true; });
         yield return LoadInMemory(oldWithFlag, "synthetic v23 carrying an out-of-version teaching flag");
         Check(!manager.FirstGuidedRackReviewComplete, "pre-v24 ignores a stray true flag and never backfills review history");
-        string absent = Mutate(original, r => Scenario(r).Remove("firstGuidedRackReviewComplete"));
-        yield return LoadInMemory(absent, "v24 with absent teaching flag");
-        Check(!manager.FirstGuidedRackReviewComplete, "absent teaching history stays false");
+        // Absent flag, through the REAL disk path (Continue: CanLoad + Load). Production has no JSON-presence check for
+        // this key: a missing v24 flag means false by schema policy (ForestSaveData v24 comment). So this proves "an
+        // absent flag on disk loads as false and is never inferred", not that a validator inspected the key. The
+        // session is made to hold true first, so a load that ignored the file or kept session state would fail.
+        string recordedTrue = MutateCompact(original, r => Scenario(r)["firstGuidedRackReviewComplete"] = true);
+        File.WriteAllText(SavePath, recordedTrue);
+        ContinueFromDisk("synthetic v24 disk file recording a completed review (positive control)");
+        yield return Settle();
+        Check(manager.FirstGuidedRackReviewComplete, "positive control: a v24 disk file recording true loads true through Continue");
+        bool sessionBefore = manager.FirstGuidedRackReviewComplete;
+        string absent = MutateCompact(original, r => Scenario(r).Remove("firstGuidedRackReviewComplete"));
+        Check(!absent.Contains("firstGuidedRackReviewComplete"), "the absent-flag disk fixture really omits the key");
+        File.WriteAllText(SavePath, absent);
+        ContinueFromDisk("synthetic v24 disk file with an absent teaching flag");
+        yield return Settle();
+        Check(TeachingLoadDiscriminates(sessionBefore, false, manager.FirstGuidedRackReviewComplete),
+            "an absent teaching flag on disk loads false over a session that held true (missing means false; never inferred)");
+        Pass("synthetic v24 teaching history: in-memory true/false round trip, stray pre-v24 flag ignored, disk true loads true, disk absent loads false over true");
         yield return LoadInMemory(original, "restore the original world after teaching-history controls");
     }
 
@@ -489,8 +523,8 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         int next = (int)Scenario(JObject.Parse(valid))["nextRackId"];
         ExpectDiskRefusal("truncated file", valid.Substring(0, valid.Length / 2));
         ExpectDiskRefusal("not JSON", "{ this is not a forest save");
-        ExpectDiskRefusal("v21 missing nextRackId", Mutate(valid, r => Scenario(r).Property("nextRackId").Remove()));
-        ExpectDiskRefusal("v21 missing racks", Mutate(valid, r => Scenario(r).Property("racks").Remove()));
+        ExpectDiskRefusal("current v24 file missing nextRackId (required since v21)", Mutate(valid, r => Scenario(r).Property("nextRackId").Remove()));
+        ExpectDiskRefusal("current v24 file missing racks (required since v21)", Mutate(valid, r => Scenario(r).Property("racks").Remove()));
         ExpectDiskRefusal("racks of the wrong type", Mutate(valid, r => Scenario(r)["racks"] = "five racks"));
         ExpectDiskRefusal("rack record missing entranceMarked", Mutate(valid, r => ((JObject)RackArray(r)[0]).Property("entranceMarked").Remove()));
         ExpectDiskRefusal("rack record missing rackId", Mutate(valid, r => ((JObject)RackArray(r)[0]).Property("rackId").Remove()));
@@ -514,7 +548,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
                 if ((int)order["rackId"] > 0) { order["rackId"] = ids.Max() + 50; break; }
         }));
         ExpectDiskRefusal("model-0 world carrying V2 racks", Mutate(valid, r => Scenario(r)["rackPlanningModel"] = 0));
-        ExpectDiskRefusal("pre-v21 header claiming V2", Mutate(valid, r => r["version"] = 20));
+        ExpectDiskRefusal("current v24 V2 file relabelled with a pre-v21 header", Mutate(valid, r => r["version"] = 20));
         Check(log.Count(l => l.StartsWith("refused on disk:")) == 21, "all 21 malformed disk cases ran");
         File.WriteAllText(SavePath, valid);
         ContinueFromDisk("valid file restored after the malformed cases");
@@ -522,15 +556,15 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check(Signature() == fullSig && Hash() == fullHash, "the valid file still loads exactly after the malformed cases");
         Pass("malformed V2 disk data: 21 cases refused by Continue and Load without a crash or any world change");
 
-        // ---- 7. Old save before rack planning (v20 Enlarged80) ------------------------------------------
+        // ---- 7. Synthetic old save before rack planning (projected v20 Enlarged80) -----------------------
         string v20Fresh = ToV20(freshCompact);
         File.WriteAllText(SavePath, v20Fresh);
-        ContinueFromDisk("v20 Enlarged80 before rack planning");
+        ContinueFromDisk("synthetic projected v20 Enlarged80 before rack planning");
         yield return Settle();
-        Check(ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "the v20 save keeps its Enlarged80 geometry");
-        CheckNeverV2("v20 Enlarged80 save");
-        Check(Hash() == freshHash, "the pre-planning old save loads with its pre-v21 world identity (empty-plan hash)");
-        string legacyResave = SaveToDisk("v20 re-saved as current v24");
+        Check(ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80, "the synthetic projected v20 save keeps its Enlarged80 geometry");
+        CheckNeverV2("synthetic projected v20 Enlarged80 save");
+        Check(Hash() == freshHash, "the synthetic pre-planning v20 projection loads with its pre-v21 world identity (empty-plan hash)");
+        string legacyResave = SaveToDisk("synthetic projected v20 re-saved as current v24");
         Check((int)JObject.Parse(legacyResave)["version"] == 24 && (int)Scenario(JObject.Parse(legacyResave))["rackPlanningModel"] == RackPlanningModel.Legacy,
             "re-saving an old world writes v24 with model 0 stated explicitly");
         yield return LoadInMemory(freshCompact, "clear to the V2 new game");
@@ -538,9 +572,9 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         yield return Settle();
         CheckNeverV2("re-saved old world on its second load");
         Check(Hash() == freshHash, "the re-saved old world keeps its world hash");
-        Pass("old save before rack planning: v20 loads model 0, re-saves as explicit model 0, never becomes V2");
+        Pass("synthetic old save before rack planning: projected v20 loads model 0, re-saves as explicit model 0, never becomes V2");
 
-        // ---- 8. Old save with existing (legacy) rack progress -------------------------------------------
+        // ---- 8. Synthetic old saves with existing (legacy) rack progress ----------------------------------
         var planner = new RackPlanner(manager, ecology);
         planner.Refresh();
         Check(planner.LayoutLines.Count == 5, "the Enlarged80 stand has five authored layout lines");
@@ -552,7 +586,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         SaveToDisk("legacy rack progress (current v24 model 0)");
         string progressV21 = ToV21(CompactCapture());
         string progressV20 = ToV20(CompactCapture());
-        foreach (var file in new[] { ("v21 model 0", progressV21), ("v20", progressV20) })
+        foreach (var file in new[] { ("synthetic projected v21 model 0", progressV21), ("synthetic projected v20", progressV20) })
         {
             yield return LoadInMemory(freshCompact, "clear to the V2 new game before " + file.Item1);
             File.WriteAllText(SavePath, file.Item2);
@@ -562,7 +596,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
             CheckNeverV2("legacy rack progress " + file.Item1);
         }
         Note("legacy RackGroups after reload: " + manager.RackGroups.Count + " (session-only, not persisted; recorded behaviour, no assertion)");
-        Pass("old save with legacy rack progress (v20 and v21 model 0): orders and marks kept as ordinary work, never V2");
+        Pass("synthetic projected old saves with legacy rack progress (v20 and v21 model 0): orders and marks kept as ordinary work, never V2");
 
         yield return TeachingHistoryPolicy(freshCompact);
 
@@ -582,7 +616,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         string freshCompact = CompactCapture();
         string freshHash = Hash(), freshSig = Signature();
 
-        // ---- 1. A v21 Legacy40 save loads unchanged --------------------------------------------------------
+        // ---- 1. A synthetic projected v21 Legacy40 save loads unchanged -------------------------------------
         string currentFile = SaveToDisk("Legacy40 current v24");
         string v21File = ToV21(currentFile);
         File.WriteAllText(SavePath, v21File);
@@ -590,25 +624,25 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check((int)root["version"] == 21 && (int)root["standGeometryModel"] == StandGeometryModel.Legacy40
             && (int)Scenario(root)["rackPlanningModel"] == RackPlanningModel.Legacy && RackArray(root).Count == 0,
             "the Legacy40 file states Legacy40 and model 0 with an empty V2 plan");
-        ContinueFromDisk("Legacy40 v21");
+        ContinueFromDisk("synthetic projected Legacy40 v21");
         yield return Settle();
         Check(ecology.StandGeometryModelVersion == StandGeometryModel.Legacy40 && Signature() == freshSig && Hash() == freshHash,
-            "the Legacy40 v21 save loads unchanged");
-        CheckNeverV2("Legacy40 v21 after load");
-        string v21Again = SaveToDisk("Legacy40 v21 re-save");
+            "the synthetic projected Legacy40 v21 save loads unchanged");
+        CheckNeverV2("synthetic projected Legacy40 v21 after load");
+        string v21Again = SaveToDisk("synthetic projected Legacy40 v21 re-save");
         Note("Legacy40 upgraded re-save byte-identical to projected v21 (diagnostic): " + (v21Again == v21File));
         Check(JToken.DeepEquals(Scenario(JObject.Parse(ToV21(v21Again))), Scenario(root)) && (int)JObject.Parse(v21Again)["standGeometryModel"] == StandGeometryModel.Legacy40,
             "re-saving the loaded Legacy40 world writes the same Scenario One state");
-        Pass("Legacy40 v21 save: Continue loads it unchanged (geometry, signature, world hash) and it never enters V2");
+        Pass("synthetic projected Legacy40 v21 save: Continue loads it unchanged (geometry, signature, world hash) and it never enters V2");
 
-        // ---- 2. A v20 Legacy40 save loads unchanged ------------------------------------------------------
+        // ---- 2. A synthetic projected v20 Legacy40 save loads unchanged -----------------------------------
         File.WriteAllText(SavePath, ToV20(freshCompact));
-        ContinueFromDisk("Legacy40 v20");
+        ContinueFromDisk("synthetic projected Legacy40 v20");
         yield return Settle();
         Check(ecology.StandGeometryModelVersion == StandGeometryModel.Legacy40 && Signature() == freshSig && Hash() == freshHash,
-            "the Legacy40 v20 save loads unchanged");
-        CheckNeverV2("Legacy40 v20 after load");
-        Pass("Legacy40 v20 save loads unchanged and never enters V2");
+            "the synthetic projected Legacy40 v20 save loads unchanged");
+        CheckNeverV2("synthetic projected Legacy40 v20 after load");
+        Pass("synthetic projected Legacy40 v20 save loads unchanged and never enters V2");
 
         // ---- 3. Legacy40 with legacy rack progress ---------------------------------------------------------
         var planner = new RackPlanner(manager, ecology);
@@ -621,7 +655,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         SaveToDisk("Legacy40 legacy rack progress current v24");
         string progressV21 = ToV21(CompactCapture());
         string progressV20 = ToV20(CompactCapture());
-        foreach (var file in new[] { ("v21", progressV21), ("v20", progressV20) })
+        foreach (var file in new[] { ("synthetic projected v21", progressV21), ("synthetic projected v20", progressV20) })
         {
             yield return LoadInMemory(freshCompact, "clear to the fresh Legacy40 game before " + file.Item1);
             File.WriteAllText(SavePath, file.Item2);
@@ -630,7 +664,7 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
             Check(Signature() == progressSig && Hash() == progressHash, "Legacy40 rack progress (" + file.Item1 + ") reloads unchanged");
             CheckNeverV2("Legacy40 rack progress " + file.Item1);
         }
-        Pass("Legacy40 with legacy rack progress (v20 and v21): unchanged, never V2");
+        Pass("Legacy40 with legacy rack progress (synthetic projected v20 and v21): unchanged, never V2");
 
         // ---- 4. A Legacy40 file that claims V2 is refused ---------------------------------------------------
         ExpectDiskRefusal("Legacy40 claiming model 1", Mutate(progressV21, r => Scenario(r)["rackPlanningModel"] = RackPlanningModel.RackPlanningFieldMarkingV2));
@@ -668,10 +702,31 @@ public sealed class RackV2PersistenceVerificationRunner : MonoBehaviour
         Check(manager.RackPlanConfirmed && manager.MarkedRackEntranceCount == expected.markedCount, "the derived marked count is restored");
         Check(manager.Racks.Where(r => r.entranceMarked).Select(r => r.entranceTreeId).SequenceEqual(expected.markedEntranceTreeIds)
             && expected.markedEntranceTreeIds.All(id => Tree(id) is ForestTree t && marks.HasRackEntranceMark(t)), "the orange marks are projected after cold start");
-        Check(manager.FirstGuidedRackReviewComplete == JsonUtility.FromJson<ForestSaveData>(seeded).scenarioOne.firstGuidedRackReviewComplete,
-            "cold-start restores v24 teaching history exactly");
+        // Narrowed claim: this equality only shows the session matches the seeded file's explicit flag. With the
+        // normal seeded value (false) it cannot tell a restore from the default; the control below can.
+        JToken seededFlag = Scenario(JObject.Parse(seeded))["firstGuidedRackReviewComplete"];
+        Check(seededFlag != null && seededFlag.Type == JTokenType.Boolean, "the seeded v24 file states its teaching flag explicitly on disk");
+        bool seededValue = (bool)seededFlag;
+        Check(manager.FirstGuidedRackReviewComplete == seededValue, "cold-start session matches the seeded file's teaching flag (" + seededValue + ")");
         Check(File.ReadAllText(SavePath) == seeded, "Continue does not rewrite the save file");
         Pass("cold-start Continue in a new Editor process restores the partial-mark V2 world exactly");
+
+        // Falsifiable cold-start teaching control: load the opposite flag from disk, then the seeded file again.
+        // Each load must change the session to the file's value, so neither can pass by leaving state untouched.
+        bool sessionBefore = manager.FirstGuidedRackReviewComplete;
+        File.WriteAllText(SavePath, MutateCompact(seeded, r => Scenario(r)["firstGuidedRackReviewComplete"] = !seededValue));
+        ContinueFromDisk("cold-start control: seeded save with the opposite teaching flag");
+        yield return Settle();
+        Check(TeachingLoadDiscriminates(sessionBefore, !seededValue, manager.FirstGuidedRackReviewComplete),
+            "cold-start Continue applies the opposite teaching flag from disk");
+        sessionBefore = manager.FirstGuidedRackReviewComplete;
+        File.WriteAllText(SavePath, seeded);
+        ContinueFromDisk("cold-start control: the seeded save again");
+        yield return Settle();
+        Check(TeachingLoadDiscriminates(sessionBefore, seededValue, manager.FirstGuidedRackReviewComplete),
+            "cold-start Continue applies the seeded teaching flag from disk again");
+        Check(Signature() == expected.signature && Hash() == expected.worldHash, "the seeded world is exact again after the teaching control");
+        Pass("synthetic cold-start teaching control: Continue applies both flag values from disk in a new Editor process");
 
         CheckArchiveUntouched();
     }
