@@ -174,3 +174,26 @@ No change to Stage 3 closure or routing. **Status:** Stage 4 attempt 3 still RUN
 **Routing decision (packet Stage 4 rule: "ONE additional serial author repair + new exact-head independent rerun after ownership release"):** repair loop 1 → exact-head re-review rerun → then close #309/#314 for Manager verdict. No further loops overnight.
 
 **Status:** Stage 4 CLOSED at `6f392627` → dispatching #309 repair loop 1 (original author model, sole writer, same five paths).
+
+---
+
+## Entry 009 — 2026-11-07T06:20Z — [HANDED-OFF] #309 REPAIR LOOP 1: **WORKER-COMPLETE at `753143e6`** — 26/26 reviewer cases closed, +26 new false greens found and closed; exact-head re-review dispatched
+
+**Worker:** original #309 author (claudeAgent / `claude-opus-5-5`, XHIGH) on the one packet-authorised loop. [RUNNING](https://github.com/jermur788/CCF/issues/309#issuecomment-6702030959) / [HANDED-OFF](https://github.com/jermur788/CCF/issues/309#issuecomment-6702527898) receipts on #309. Pushed fast-forward `b4d47d3d..753143e6` (code `e29e3e1b` + docs). Mimo to verify lane/origin state. Addendum: [Repair loop 1 (post-#314)](https://github.com/jermur788/CCF/blob/753143e62a5cf1d7436874e731766c4893a4c7c7/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261106/BASELINE-CTA-CHECKER-RR1-RR4-REPAIR-HANDOFF.md#repair-loop-1-post-314). Evidence: `/media/jer/Files/CCF/Verification/CTA-RR1RR4-Repair-309-20261107/loop1/` (original evidence untouched).
+
+**Declared closure of #314 findings (to be re-verified at exact head):**
+- **S-1 10/10 rejected** — related-state fields pinned to fixed write sites (declarations pinned; single reviewed top-level write per field in `Start`; `screen` only via initialiser + pinned `SetScreen`/`TryShowReviewYear`); tuple/nested/parenthesised/`ref`/`out`/`in`/`++`/`__makeref`/other-receiver writes fail closed.
+- **S-2 11/11 rejected** — lexer aligned to Roslyn: U+0085/U+2028/U+2029 + lone CR rejected anywhere; invisible format chars rejected in code; `#` must start plain directive lines; companion matching strips format chars; the 3 lone-CR cases now rejected by rule (not reader artifact). Live-source safety re-verified: 198 Assets files trip nothing (only 2 BOMs).
+- **S-3 4/4 rejected** — `NeedsAnnualReview`/`CurrentTopicIndex`/`TeachingRacks` pinned; README + test-08 PASS-note overclaim corrected. **Case accounting note for the re-reviewer:** #314 counted S-3 as 5 cases; author reports 4/4 plus `W-DEP-05` kept as the documented out-of-scope probe — reconcile precisely at rerun.
+- **26th case `W-DEP-05`** (game-progress logic): still green by design; documented out-of-scope limit + kept in-suite as probe. "No case left open for lack of a parser" otherwise.
+- **Smaller findings:** limit/over-rejection probes moved into the suite (reported, not counted; changed outcome fails the run); L-06 alias/pass-on closed (residual view-member route disclosed under L-01); lone-CR noted in README.
+
+**Author's own new falsification (not required by #314):** 26 new mutations, **25 accepted by `b4d47d3d`** — including a genuine lexer desync (no-break-space-indented `#endif` inside an inactive verbatim string activating hidden code; differential Roslyn probe). All 26 rejected at the new head.
+
+**Declared non-regression (rerun at `753143e6`):** suite exit 0 `rejected=275/275 false_greens=0 wrong_cause=0`; benign **64/64** accepted (32 + 21 reviewer + 11 new); #305 corpus 81/81 + 21 R-IDs + 20 + 55 rejected with blocks byte-identical; #314 176-case corpus: 112 stay rejected, 28/29 in-memory false greens now rejected (1 = W-DEP-05), 21/21 benign accepted; 54/54 transcribed reviewer cases identical; end-to-end 40 runs (control + W-DEP-05 → 10/0/2 exit 0; other 38 → 9/1/2 exit 1); candidate 10/0/2; historical 6/4/2 exit 1, `baseline-output.txt` unchanged (candidate output delta only line 48 via the justified test-08 PASS-note edit); SDK trace 281/0 with discriminating control; Roslyn C# 9: 106 loop-1 case folders compile 0 errors (one non-compiling draft dropped).
+
+**New fail-closed over-rejection disclosed (O-05…O-09):** `#if` inside `Start`, U+2028 even in verbatim strings, `null != ui.Learning` in companions, passing `screen` whole to any method incl. `Debug.Log(screen)` now rejected; O-07 documented. README lists all.
+
+**Disclosures for the record:** not run — Unity, rendering, input, focus, saves, Player builds, integrated candidate. The Roslyn check read Unity/package DLLs read-only from `/media/jer/ZX20/CCF-MainIntegration-20261104/Library/ScriptAssemblies` (read-only, matching #305/#314 prior art — noted as a minor deviation from Mimo's strict no-other-lane wording; no mutation made).
+
+**Status:** repair loop 1 CLOSED (worker evidence) → dispatching the exact-head #314 re-review rerun (same reviewer). This was the ONLY authoring loop; whatever the rerun returns closes #309 for Manager #200's morning verdict.
