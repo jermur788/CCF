@@ -93,3 +93,28 @@ Provider/model/effort values are those actually dispatched and observed in `orch
 **Status:** #320 [HANDED-OFF] — reviewable at exact head `3033dd12` (tested code `8ff6352b`). Next: #321 cross-provider independent re-review.
 
 ---
+
+## Entry 005 — #321 independent review COMPLETE: NEEDS CHANGES (source scope) + run closure (2026-11-07)
+
+**Capacity event (disclosed):** attempt 1 on provider instance `codex` (Codex) **failed on OpenAI usage limits** (reset reportedly 2026-11-08 21:15), zero work produced, zero files touched. No PASS invented; recorded on #321. Attempt 2 dispatched to the other provisioned OpenAI account.
+
+**Owner (attempt 2):** delegated reviewer, provider instance `codex_c75d8114…` (**ChatGPT – OpenAI B**), dispatched `gpt-6.1-sol` @ reasoningEffort `high`; child self-report: "OpenAI gpt-6.1-sol, high, Codex harness in T3 Code; account/subscription/quota identity UNKNOWN". **Cross-provider** vs #320 author (Claude B–Pro / claude-opus-5-5). Reviewer ≠ source author. Task id `…delegate-task:97217171-4adc-4408-afd2-8fe7fe671b09`.
+
+**Deliverable (verified by orchestrator):** `CTA-309-TWO-GUARD-INDEPENDENT-REVIEW-RESULT.md` on new docs-only branch `docs/cta-309-two-guard-independent-20261107-v1`, head `28ee3857e3144df1a20f1727711bd20c0e272672` (exactly one new file vs origin/main). Review target: exact #320 head `3033dd12` (tested code `8ff6352b`), base `753143e6`, historical red source `72b4efbd`. Evidence root `/media/jer/Files/CCF/Verification/CTA-309-TwoGuardReview-20261107/`. Reviewer posted its own [RUNNING]/[HANDED-OFF] on #321 (verified via API).
+
+**Reviewer verdict: NEEDS CHANGES (source-scope opinion only; not Manager acceptance; cannot release integrated A–O).** Contract outcomes:
+- (1) Original closure **PASS**: all 47 N-1 + 10 N-2 reproduce from the original #314 artifact (59 exported files byte-identical to the artifact; 654/654 definitions reconciled with only the five disclosed expectation changes) and fail real check-08 for the intended cause.
+- (2) Regression **PASS**: 884/884 negatives rejected, wrong-cause 0; 35+56 requested benign all accepted (112 benign total accepted); #305 81/known-50 (102/102 incl. later-forbidden primaries), #314 176/654, 9+9 original probes and the new 52 probes (O-10..O-16, L-09/L-10) unchanged; positive 10/0/2 exit 0; historical 6/4/2 exit 1; baseline blob `db6a8b85` identical.
+- (3) Toolchain **PASS**: six real SnapFar under trace-proved cwd-pinned SDK 8.0.133 (reviewer independently reproduced 281 trace lines = 280 opens + 1 execve; zero SDK10 opens; unpinned control picks SDK10 — F-3 informational note on the author's counting label); Python compile + independent Roslyn C# 9 checks.
+- (4) Adversarial review **FAIL (findings F-1/F-2, medium, blocking reviewer opinion); scope PASS** — three compile-clean false greens survive end-to-end (real checker 10/0/2 exit 0, no FAIL/stderr):
+  - **F-1 / R321-S06+S07:** `using MonoBehaviour = ZHiddenBase;` + a companion `ZHiddenBase` class with nested `Time` rebinds the root's base and its `Time.frameCount` reads while the pinned root header text stays unchanged. Root cause: `_ROOT_HEADER` pinned at `objective_cta_source_check.py:2000` but `reviewed` set (:2001) omits the header, so `_guard_shadowing` (:1281) does not reject the `MonoBehaviour` alias — the advertised new-base-class protection does not bind the base type.
+  - **F-2 / R321-S05:** a global static `Time` appended to the collected companion `UiKit.cs` redefines simple-name lookup for the pins. Root cause: `_guard_shadowing` covers root+view partials only; `_class_wide_guards` (:1700) routes `UiKit.cs` only through `_guard_uikit`, which does not audit additional types in that file.
+  - Both reproduce the help-close-frame semantics defect (constant `-2` frameCount) at source level; reviewer explicitly did not claim Unity execution.
+- (5) Verdict/evidence **PASS**: itemised logs/exits, independence and limitations disclosed; **NEEDS CHANGES**, source scope only. Unity/native/integrated A–O/saves/renders **NOT RUN** (prohibited); dashboard synchronisation NOT RUN.
+- Author's disclosed deviations sanity-checked (Y-B-17 in-memory CRLF, A7-x-teachinghijack rejected as invalid C#, suite runtime ~5 min): consistent. 75/75 real end-to-end invocations audited (exit 0), scratch clone ended clean.
+
+**Orchestrator re-verification after review:** dirty lane 8/8 byte-unchanged; original standalone clone `/media/jer/ZX20/CCF-WorkbenchRetirement-T3-20261105` untouched (0 changes); no Unity processes; all writer lanes clean. Untracked `scratch/` disclosed in the reviewer's own lane (not committed).
+
+**Run closure:** the strict serial queue #318→#319→#320→#321 is complete; consolidated result `MIMO-MORNING-CLOSURE-RESULT.md` published on this docs branch and [HANDED-OFF] posted on #322 for Manager #200. No fix loop is budgeted for either NEEDS CHANGES verdict; all residuals return to Manager. This ledger remains append-only.
+
+---
