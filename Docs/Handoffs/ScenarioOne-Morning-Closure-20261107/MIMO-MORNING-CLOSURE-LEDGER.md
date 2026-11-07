@@ -71,3 +71,25 @@ Provider/model/effort values are those actually dispatched and observed in `orch
 **Status:** #319 [HANDED-OFF]. No #318 fix loop is budgeted in the dispatch; R1–R5, B3 and the package/dirty resolution return to Manager #200 as open Workbench decisions. Queue proceeds to #320.
 
 ---
+
+## Entry 004 — #320 author run COMPLETE, publication verified (2026-11-07)
+
+**Owner:** delegated author, provider instance `claudeAgent_claude_b_pro` (**Claude B — Pro**), dispatched model `claude-opus-5-5`; child self-report: "Claude Opus 5.5 via T3 Code; effort and account instance UNKNOWN (not visible from inside the session)". Same-family with the #319 reviewer (Claude A) as disclosed in entry 001; the #321 reviewer is cross-provider (OpenAI/Codex). Task ids `…delegate-task:500a268e…` and its continuation `…thread-send:d91e92a5…`. No subagents used.
+
+**Deliverables (verified by orchestrator read-only):**
+- Branch `verify/scenario-one-feedback-cta-anchor-20261106` fast-forwarded `753143e6` → `3033dd12fed73136c8f94c82d58bf0d7cacd5380` on origin. Code commit (tested) `8ff6352b34a0fcbff7d0606b1d9ab28c6dd67a4c`; report commit `3033dd12` (report only). No force-push, no merge, PR #300 untouched.
+- Changed paths verified exactly: `objective_cta_source_check.py`, `test_objective_cta_source_check.py`, `check_baseline.py`, `README.md` + new `T3-CTA-309-TWO-GUARD-CLOSURE-RESULT.md`. **`baseline-output.txt` unchanged (blob `db6a8b85`)**. No Assets/Packages/scene/save/Reference/other-checker edits.
+- Result doc: https://github.com/jermur788/CCF/blob/verify/scenario-one-feedback-cta-anchor-20261106/Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/T3-CTA-309-TWO-GUARD-CLOSURE-RESULT.md (header: UNQUALIFIED SOURCE PUBLICATION pending #321). Author posted [HANDED-OFF] on #320 and linked #309 (both verified via API).
+- Evidence: `/media/jer/Files/CCF/Verification/CTA-320-TwoGuard-20261107/`.
+
+**Outcomes recorded (author-reported; orchestrator verified scope/integrity, #321 re-verification pending):** N-1 47/47 rejected end-to-end through real `check_baseline.py` (exit 1, tally 9/1/2, sole failure = check 08 with the hole cause); N-2 10/10 rejected with owning-class cause; in-repo suite 884/884 mutations rejected (existing 275 incl. #305 81/known-50 + 576 counted from #314's 654 cases incl. the 176, now committed in-repo and proven identical + 33 new variants); benign 112/112 accepted (**0 benign regression**; 35 reviewer + 56 suite + 13 new); 52 probes keep documented outcomes; positive checker 10/0/2 exit 0; historical old baseline 6/4/2 exit 1; six SnapFar on cwd-pinned .NET SDK 8.0.133 proven by strace/hostfxr trace (281 opens under 8.0.133, 0 under 10.0.114; unpinned control picks SDK 10); `py_compile` OK; e2e 146/146 as expected. Docs claims narrowed truthfully (static/lexical only; new limits L-09/L-10 unpinned root callers/members, W-DEP-05, L-01 aliases, over-rejections O-10..O-16). Scratch-fix independence kept (ownner-class binding instead of the scratch one-type-per-file idea).
+
+**New false-green classes discovered at `753143e6` and closed:** 12 further N-1 shapes (e.g. `((this.help) = null)`, multi-line verbatim holes, empty nested literals), 5 further decoy shapes (interface/namespace/record/`#if` brace trick/`static` modifier), and a new **name-shadowing** kind (nested `StandaloneSessionMenu` stub, `Time` member, `using Time` alias, new base class can repoint pinned text without editing it).
+
+**Disclosed deviations (accepted as recorded):** Y-B-17 CRLF benign case runs in-memory only (disk read normalises CRLF→LF); reviewer limit probe `A7-x-teachinghijack` now rejected (it is not valid C#); in-repo suite runtime grew ~1→5 min. Nothing NOT RUN; no control regressed; no expected corpus missing.
+
+**Orchestrator verification:** dirty lane 8/8 byte-unchanged after the run; #320 lane clean and synced with origin (writer released). No Unity/lease/PR/merge.
+
+**Status:** #320 [HANDED-OFF] — reviewable at exact head `3033dd12` (tested code `8ff6352b`). Next: #321 cross-provider independent re-review.
+
+---
