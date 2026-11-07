@@ -226,3 +226,15 @@ Published: `Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCU
 - Seven Manager decision classes (D1–D7) enumerated, incl. push-provenance ratifications and the provider-quota policy question.
 
 **Status:** Stage 5 CLOSED → Stage 8 consolidated handback. Stages 6–7 remain **WAITING MANAGER / STORAGE** — NOT executed, per the hard gate.
+
+---
+
+## Entry 011 — 2026-11-07T07:45Z — [CLARIFICATION] #314 rerun late notification = stale wait-command artifact; no work outstanding; published results unchanged
+
+The exact-head re-reviewer's thread emitted a late completion notification for a **leftover wait command** (a harness wait on two auxiliary checks — the scratch decoy-guard fix-feasibility run and the checker crash-fuzz — that hit its own time limit). Per the reviewer: both auxiliary jobs **had already completed**, their results were read from their output files before publication, and **no verdict, tally or the pushed report changes**.
+
+**Mimo verification (07:45Z):** the named outputs exist in `/media/jer/Files/CCF/Verification/CTA-314-IndependentReview-20261107/loop1-rerun/` — `evidence/12-fix-feasibility-decoy.txt`, `12b-…-decoy-benign.txt`, `12c-…-decoy-hole.txt` (the post-hoc two-guard feasibility scratch behind the N-2 disposition menu) and `evidence/15-fuzz-crash.txt` with `scripts/fuzz_crash_l1.py` (crash robustness, feeding the Info items). The reviewer's docs worktree is clean at the published report commit `99117933`. Nothing needs restarting; the overnight handback stands unchanged.
+
+**Stage 8 publication record (for completeness):** consolidated result `MIMO-OVERNIGHT-EXECUTION-RESULT.md` published at `2cabe1e8` on the Mimo docs branch; final [#313 [HANDED-OFF] comment](https://github.com/jermur788/CCF/issues/313#issuecomment-6703206703) posted 07:3xZ with direct URLs; post-handback machine re-verification (lock free, 0 Editor/dotnet processes, 0 open writers) recorded in the result doc §5.
+
+**Status:** run remains CLOSED as handed off in the #313 consolidated result.
