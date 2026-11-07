@@ -1791,7 +1791,8 @@ def rebinding_cases(kit_source):
         case('N325-F2-hinted-companion', f2,
              (ui + 'ZClock.cs', None, '// ScenarioOneUiRoot\n' + time_stub)),
         case('N325-F2-global-base', "collected companion type 'MonoBehaviour' redefines a reviewed root identifier",
-             (UIKIT, kit_source, kit_source + '\n' + base.replace('ZHiddenBase', 'MonoBehaviour') + '\n')),
+             (UIKIT, kit_source, kit_source + '\npublic abstract class MonoBehaviour : UnityEngine.MonoBehaviour {'
+              + time_stub.replace('internal static class Time', 'protected static class Time') + '}\n')),
     ]
     benign = [
         case('B325-root-unrelated-alias', None,
