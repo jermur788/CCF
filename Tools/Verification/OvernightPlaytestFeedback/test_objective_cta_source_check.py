@@ -9,13 +9,15 @@ checks live in check_baseline.py.
 
 Groups: the original 20, the #304 author's F1 (14) and F2/F3 (21) controls and
 4 benign edits, unchanged; the #305 independent reviewer's corpus (21 re-derived
-R-IDs, 35 X-F1, 46 X-F2 and 15 benign), copied verbatim below; and the #309
-RR-1/RR-2/RR-3/N-4 regression and benign controls.
+R-IDs, 35 X-F1, 46 X-F2 and 15 benign), copied verbatim below; the #309
+RR-1/RR-2/RR-3/N-4 regression and benign controls; and the #309 repair loop 1
+groups (the #314 reviewer's cases and this loop's own, with benign edits and
+reported accepted-limit/over-rejection probes).
 """
 import subprocess
 from pathlib import Path
 from objective_cta_source_check import (
-    ROOT, UIKIT, VIEW, ObjectiveCtaSourceError, collect_companions, verify_objective_cta
+    ROOT, UIKIT, VIEW, ObjectiveCtaSourceError, collect_companions, is_companion_source, verify_objective_cta
 )
 
 REPO = Path(__file__).resolve().parents[3]
@@ -522,6 +524,463 @@ new_benign = [
       (R, SHOW_MAP, 'public void ShowMap()\n    {\n        manager.OpenWorkPlan( false );\n        SetScreen( UiScreen.Map ); // open the stand map')),
 ]
 
+
+# =====================================================================================================
+# #309 repair loop 1 (post-#314). The #314 reviewer's 25 in-scope survivors (S-1, S-2, S-3), its 3
+# lone-CR cases, its 2 L-06 probes, 21 benign edits and 3 limit probes, transcribed from its
+# my_mutations*.py with ascii() (invisible characters appear as escapes; the loop-1 evidence proves each
+# transcribed edit identical), then this loop's own attacks, benign edits and probes. Edits name
+# repository paths; as in check_baseline.py, a file other than the view and the root reaches the scanner
+# only if is_companion_source() selects it. `intended` must appear in the rejection reason. Accepted-limit
+# and over-rejection probes are reported, not counted as mutations; one whose documented outcome changes
+# fails the run, so the README known limits stay true.
+# =====================================================================================================
+UI = "Assets/ForestPrototype/UI/"
+
+
+def lc(mid, group, why, *edits, intended=None, transform=None):
+    """A loop-1 case: edits are (repository path, old text or None for a new file, new text)."""
+    return dict(id=mid, group=group, why=why, edits=list(edits), intended=intended, transform=transform)
+
+
+loop1_reviewer_s1 = [
+    lc('Z-RR2-T-help',
+      'RR-2',
+      'tuple deconstruction writes help in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (help, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-T-screen',
+      'RR-2',
+      'tuple deconstruction writes screen in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (screen, workPlanWasOpen) = (UiScreen.None, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-T-rackLayout',
+      'RR-2',
+      'tuple deconstruction writes rackLayout in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (rackLayout, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-T-map',
+      'RR-2',
+      'tuple deconstruction writes map in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (map, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-T-workPlan',
+      'RR-2',
+      'tuple deconstruction writes workPlan in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (workPlan, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-T-review',
+      'RR-2',
+      'tuple deconstruction writes review in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (review, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('U-RR2-T-manager',
+      'RR-2',
+      'tuple deconstruction writes manager (null) in an unpinned method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        (manager, workPlanWasOpen) = (null, false);'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-C-screen',
+      'RR-2',
+      'count-compensated: TryShowReviewYear write removed, ShowObjectives retargets screen to Map',
+      (ROOT, 'screen = UiScreen.Review;\n        CloseHelp();', 'CloseHelp();'),
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);\n        screen = UiScreen.Map;'),
+      intended='RR-2 related state'),
+    lc('Z-RR2-C-help',
+      'RR-2',
+      "count-compensated: Start's help initialiser replaced by null (one write, value changed)",
+      (ROOT, 'help = new MenuHelpView(this);', 'help = null;'),
+      intended='RR-2 related state'),
+    lc('Y-RR2-08',
+      'RR-2',
+      'screen retargeted inside TryShowReviewYear (count unchanged)',
+      (ROOT, 'screen = UiScreen.Review;\n        CloseHelp();', 'screen = UiScreen.None;\n        CloseHelp();'),
+      intended='RR-2 related state'),
+]
+loop1_reviewer_s2 = [
+    lc('Y-N-10',
+      'novel',
+      'U+2028 ends a // comment: hidden call after it',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\u2028 Root.SetEnabled(false); }'),
+      intended='(N-4)'),
+    lc('Y-N-11',
+      'novel',
+      "zero-width joiner inside the 'forest' identifier (Cf ignored by the C# compiler)",
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        fo\u200drest.name += "-x";'),
+      intended='(N-4)'),
+    lc('Y-N-12',
+      'novel',
+      'zero-width joiner inside a partial class name hides the companion',
+      (UI + 'LearningObjectivesView.Cf.cs', None, 'public sealed partial class Learning\u200dObjectivesView\n{\n    private void Sneak() => Root.SetEnabled(false);\n}\n'),
+      intended='(N-4)'),
+    lc('Y-N-13',
+      'novel',
+      'NEL (U+0085) ends a // comment: hidden call after it',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\x85 Root.SetEnabled(false); }'),
+      intended='(N-4)'),
+    lc('Y-N-14',
+      'novel',
+      'Cf char inside GuidanceButtonNames reference outside the pins',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        Guidance\u200dButtonNames[2] = "objective-none";'),
+      intended='(N-4)'),
+    lc('Y-N-15',
+      'novel',
+      'Cf char inside guarded helpClosedFrame write',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        helpClosed\u200dFrame = -1;'),
+      intended='(N-4)'),
+    lc('Z-N-PS',
+      'novel',
+      'U+2029 ends a // comment: hidden call after it',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\u2029 Root.SetEnabled(false); }'),
+      intended='(N-4)'),
+    lc('Z-N-CF-buttons',
+      'novel',
+      'ZWJ identifier clears the header row in the ctor',
+      (VIEW, 'modal.Add(header);', 'modal.Add(header);\n        bu\u200dttons.Clear();'),
+      intended='(N-4)'),
+    lc('Z-N-CF-secondprimary',
+      'novel',
+      'second STATIC PRIMARY in the view via ZWJ-split UiKit and fragment class (N-1 break)',
+      (VIEW, 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();', 'scroll.Add(Ui\u200dKit.Button("Close", () => ui.CloseAll(), true, "btn-" + "primary"));\n        scroll.Add(library);\n        ui.RefreshNextActionGuidance();'),
+      intended='(N-4)'),
+    lc('Z-N-CF-allowlist-clear',
+      'novel',
+      'ZWJ-split Array.Clear of the allowlist',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        System.Array.Clear(Guidance\u200bButtonNames, 0, 3);'),
+      intended='(N-4)'),
+    lc('Z-N-SHY',
+      'novel',
+      'soft hyphen (Cf) in forest identifier',
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        for\xadest.name += "-x";'),
+      intended='(N-4)'),
+    lc('Y-N-09',
+      'novel',
+      'lone CR ends a // comment: hidden call after it',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private void Sneak() { // harmless\r Root.SetEnabled(false); }'),
+      intended='(N-4)'),
+    lc('Z-N-CR-region',
+      'novel',
+      'lone CR ends a #region line: hidden call after it',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    #region x\r    private void Sneak() { Root.SetEnabled(false); }\n    #endregion'),
+      intended='(N-4)'),
+    lc('Z-N-CR-root',
+      'novel',
+      'lone CR hides a guarded-state write in the root',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        // reset\r guidanceCandidate = null;'),
+      intended='(N-4)'),
+]
+loop1_reviewer_s3 = [
+    lc('W-DEP-01',
+      'dep',
+      'NeedsAnnualReview forced true: pinned chain always diverts to the annual-review target (X-F2-12 effect)',
+      (ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => true;'),
+      intended='RR-3 routing input'),
+    lc('W-DEP-02',
+      'dep',
+      'TeachingRacks forced false: Objective 1 never offered a guidance target (X-F2-14 effect)',
+      (VIEW, 'public bool TeachingRacks => CurrentTopicIndex == 0;', 'public bool TeachingRacks => false;'),
+      intended='RR-3 routing input'),
+    lc('W-DEP-03',
+      'dep',
+      'CurrentTopicIndex forced to 1',
+      (VIEW, 'public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());', 'public int CurrentTopicIndex => 1;'),
+      intended='RR-3 routing input'),
+    lc('W-DEP-04',
+      'dep',
+      'NeedsAnnualReview routed through a helper returning true',
+      (ROOT, 'public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;', 'public bool NeedsAnnualReview => Always();\n    private static bool Always() => true;'),
+      intended='RR-3 routing input'),
+]
+loop1_reviewer_l06 = [
+    lc('V-L06-1',
+      'limit',
+      'companion aliases ui.Learning in a local then restyles every Objectives button (disclosed L-06)',
+      (UI + 'Alias.cs', None, 'using UnityEngine.UIElements;\npublic sealed class Alias { public void Go(ScenarioOneUiRoot ui) { var v = ui.Learning; v.Root.Query<Button>().ForEach(b => b.AddToClassList("btn-primary")); } }\n'),
+      intended='L-06'),
+    lc('V-L06-2',
+      'limit',
+      'existing companion (WalkingHudView) gets the same alias route',
+      (UI + 'WalkingHudView.cs', 'ObjectiveWidget.Apply(ui.Learning.HudModel());', 'ObjectiveWidget.Apply(ui.Learning.HudModel());\n            LearningObjectivesView lv = ui.Learning; lv.Root.Query<Button>().ForEach(b => b.SetEnabled(false));'),
+      intended='L-06'),
+]
+loop1_reviewer_benign = [
+    lc('Y-N-08',
+      'novel',
+      '#region text with quotes and slashes',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', '#region it\'s "quoted" // not a comment\n    private int teachingWorldVersion = -1;\n    #endregion')),
+    lc('Y-N-16',
+      'novel',
+      'BOM / NBSP between tokens in the header (benign whitespace)',
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\xa0')),
+    lc('Y-N-17',
+      'novel',
+      'unicode letter identifiers elsewhere (benign)',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private int gr\xf6\xdfe = 1;')),
+    lc('Y-B-01',
+      'benign',
+      'new unrelated root method querying another label',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public Label FindTitle() => RootElement?.Q<Label>("some-title");\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')),
+    lc('Y-B-02',
+      'benign',
+      'new static readonly field in the view',
+      (VIEW, 'private readonly ScrollView scroll;', 'private readonly ScrollView scroll;\n    private static readonly string[] Spare = { "a", "b" };')),
+    lc('Y-B-03',
+      'benign',
+      'long lesson text edit in Curriculum partial',
+      (UI + 'LearningObjectivesView.Curriculum.cs', 'public const string PreferencePrefix = "CCF.Learning.v1.";', 'public const string PreferencePrefix = "CCF.Learning.v1.";\n    private const string ExtraNote = "Mark rack entrance trees with the spray marker; do not mark Crop Trees.";')),
+    lc('Y-B-04',
+      'benign',
+      'extra using directive in root and view',
+      (ROOT, 'using UnityEngine.InputSystem;', 'using UnityEngine.InputSystem;\nusing System.Text;'),
+      (VIEW, 'using UnityEngine.UIElements;\n\n// Optional learning progress', 'using UnityEngine.UIElements;\nusing System.Text;\n\n// Optional learning progress')),
+    lc('Y-B-05',
+      'benign',
+      'whitespace/tab and trailing-space changes inside pinned ClearNextAction',
+      (ROOT, 'nextAction.RemoveFromClassList("next-action");', 'nextAction.RemoveFromClassList( "next-action" ) ;   ')),
+    lc('Y-B-06',
+      'benign',
+      'XML doc comment with quotes before a root method',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', '/// <summary>Opens the "objectives" screen; don\'t cache.</summary>\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')),
+    lc('Y-B-07',
+      'benign',
+      '[SerializeField] field in root',
+      (ROOT, 'public sealed class ScenarioOneUiRoot : MonoBehaviour\n{', 'public sealed class ScenarioOneUiRoot : MonoBehaviour\n{\n    [SerializeField] private float spareDelay = 0.25f;')),
+    lc('Y-B-08',
+      'benign',
+      'expression-bodied root property reading learning',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public bool ObjectivesOpen => learning != null && screen == UiScreen.Objectives;\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')),
+    lc('Y-B-13',
+      'benign',
+      'unrelated new MonoBehaviour that mentions UiKit',
+      (UI + 'NewPanelView.cs', None, 'using UnityEngine.UIElements;\npublic sealed class NewPanelView { public NewPanelView() { var b = UiKit.Button("Go", () => { }, true, "btn-primary"); } }\n')),
+    lc('Y-B-14',
+      'benign',
+      'pinned Refresh: comment block inserted mid-body',
+      (ROOT, 'string target = null;', '/* choose a target */ string target = null; // none yet')),
+    lc('Y-B-15',
+      'benign',
+      'header: region and extra comment lines',
+      (VIEW, 'Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());', '// the stand map\n        Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());')),
+    lc('Y-B-16',
+      'benign',
+      'allowlist extended with an extra name and reordered',
+      (ROOT, '"objective-primary-cta", "objective-work-plan", "objective-back-to-forest",', '"objective-back-to-forest", "objective-primary-cta", "objective-work-plan", "objective-extra",')),
+    lc('Y-B-17',
+      'benign',
+      'CRLF line endings in every checked file',
+      transform="crlf"),
+    lc('Y-B-18',
+      'benign',
+      'new Objectives header extra button, non-primary, new caption',
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        Button help2 = UiKit.Button("Help [F1]", () => ui.CloseAll()); help2.name = "objective-help"; buttons.Add(help2);')),
+    lc('Z-N-NBSP-ctl',
+      'novel',
+      'control: NBSP inside identifier is a different (undeclared) identifier -> not valid; skip',
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        _ = 1;')),
+    lc('Z-N-nested-interp-seq',
+      'novel',
+      'benign nested-literal interpolation in a partial (precise lexer)',
+      (UI + 'LearningObjectivesView.Sequence.cs', 'private int teachingWorldVersion = -1;', 'private int teachingWorldVersion = -1;\n    private string Note() => $"{(done.Count > 0 ? "yes" : "no")} / {$"{done.Count}"}";')),
+    lc('Z-B-23',
+      'benign',
+      'unrelated new method in root using document.rootVisualElement and SetEnabled',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);', 'public void Freeze(bool on) { if (document != null) document.rootVisualElement.SetEnabled(!on); }\n\n    public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);')),
+    lc('Z-B-24',
+      'benign',
+      'header extra button with enabled=false',
+      (VIEW, 'buttons.Add(forest);', 'buttons.Add(forest);\n        Button soon = UiKit.Button("Soon", () => ui.CloseAll(), false); soon.name = "objective-soon"; buttons.Add(soon);')),
+]
+loop1_reviewer_limits = [
+    lc('W-DEP-05',
+      'dep',
+      'Objective guidance spot: ReloadProgress marks everything done (lesson stage jumps)',
+      (VIEW, 'foreach (string id in StepIds) if (PlayerPrefs.GetInt(PreferencePrefix + id, 0) == 1) done.Add(id);', 'foreach (string id in StepIds) done.Add(id);')),
+    lc('Y-RR3-17',
+      'RR-3',
+      'ShowObjectives opens Map instead (unpinned routing; N-2 class)',
+      (ROOT, 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Objectives);', 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.Map);')),
+    lc('Y-RR3-18',
+      'RR-3',
+      'CloseAll no longer closes Objectives (unpinned routing; N-2 class)',
+      (ROOT, 'public void CloseAll()\n    {\n        CloseHelp();\n        manager.OpenWorkPlan(false);\n        SetScreen(UiScreen.None);', 'public void CloseAll()\n    {\n        CloseHelp();\n        manager.OpenWorkPlan(false);')),
+]
+
+L1_SHOW_OBJ = 'public void ShowObjectives()\n    {\n        manager.OpenWorkPlan(false);'
+L1_SHOW_OBJ_FULL = L1_SHOW_OBJ + '\n        SetScreen(UiScreen.Objectives);'
+L1_CLOSE_ALL = 'public void CloseAll()\n    {\n        CloseHelp();'
+L1_HELP_NEW = 'help = new MenuHelpView(this);'
+L1_REVIEW_NEW = 'review = new AnnualReviewView(this);'
+L1_MAP_NEW = 'map = new StandMapView(this);'
+L1_LEARNING_NEW = 'learning = new LearningObjectivesView(this);'
+L1_LEARNING_BLOCK = 'manager.RackConfirmed += OnRackConfirmed;\n        }\n        ' + L1_LEARNING_NEW
+L1_HELP_FIELD = 'private MenuHelpView help;'
+L1_TRY_WRITE = 'manager.OpenWorkPlan(false);\n        screen = UiScreen.Review;'
+L1_NAR = ('public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 '
+          '&& !manager.AnnualReviewSeen;')
+L1_TEACHING = 'public bool TeachingRacks => CurrentTopicIndex == 0;'
+L1_STANDMAP = UI + "StandMapView.cs"
+L1_STANDMAP_FIELD = 'private readonly ScenarioOneUiRoot ui;'
+L1_SEQ = UI + "LearningObjectivesView.Sequence.cs"
+L1_SEQ_MEMBER = 'private int teachingWorldVersion = -1;'
+L1_CUR = UI + "LearningObjectivesView.Curriculum.cs"
+L1_CUR_MEMBER = 'public const string PreferencePrefix = "CCF.Learning.v1.";'
+L1_RELOAD = 'public void ReloadProgress()\n    {'
+L1_FOREST_ADD = 'buttons.Add(forest);'
+L1_LIB_CALL = 'scroll.Add(library);\n        ui.RefreshNextActionGuidance();'
+L1_SHOWN = 'shownGuidance = guidance;'
+L1_PROGRESS = 'progress.text = "Learn the management process one step at a time. [O] returns to this objective.";'
+
+loop1_s1 = [
+    lc("L1-S1-01", "RR-2", "parenthesised assignment target: (help) = null in an unpinned method",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        (help) = null;'), intended="RR-2 related state"),
+    lc("L1-S1-02", "RR-2", "nested tuple deconstruction writes help",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        ((help, workPlanWasOpen), nextModalRefresh) = ((null, false), 0f);'),
+       intended="RR-2 related state"),
+    lc("L1-S1-03", "RR-2", "tuple writes help through another receiver (GetComponent)",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        (GetComponent<ScenarioOneUiRoot>().help, workPlanWasOpen) = (null, false);'),
+       intended="receiver other than `this`"),
+    lc("L1-S1-04", "RR-2", "tuple writes this.help",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        (this.help, workPlanWasOpen) = (null, false);'), intended="RR-2 related state"),
+    lc("L1-S1-05", "RR-2", "prefix increment moves screen off its routed value (write count unchanged)",
+       (ROOT, L1_SHOW_OBJ_FULL, L1_SHOW_OBJ_FULL + '\n        ++screen;'), intended="RR-2 related state"),
+    lc("L1-S1-06", "RR-2", "help field turned into a property that drops every write",
+       (ROOT, L1_HELP_FIELD, 'private MenuHelpView help { get => null; set { } }'),
+       intended="RR-2 related state declaration"),
+    lc("L1-S1-07", "RR-2", "Start help write made conditional (text and count unchanged)",
+       (ROOT, L1_HELP_NEW, 'if (ecology == null) ' + L1_HELP_NEW), intended="top-level statement of Start"),
+    lc("L1-S1-08", "RR-2", "Start returns before its help write when a session menu exists",
+       (ROOT, L1_HELP_NEW, 'if (FindFirstObjectByType<StandaloneSessionMenu>() != null) return;\n        ' + L1_HELP_NEW),
+       intended="may not return"),
+    lc("L1-S1-09", "RR-2", "Start help write deferred into a lambda that never runs",
+       (ROOT, L1_HELP_NEW, 'System.Action init = () => ' + L1_HELP_NEW), intended="top-level statement of Start"),
+    lc("L1-S1-10", "RR-2", "review write moved from Start to ShowObjectives (text and count unchanged)",
+       (ROOT, L1_REVIEW_NEW + '\n', ''), (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        ' + L1_REVIEW_NEW),
+       intended="top-level statement of Start"),
+    lc("L1-S1-11", "RR-2", "learning write moved inside Start's manager != null block",
+       (ROOT, L1_LEARNING_BLOCK, 'manager.RackConfirmed += OnRackConfirmed;\n            ' + L1_LEARNING_NEW + '\n        }'),
+       intended="top-level statement of Start"),
+    lc("L1-S1-12", "RR-2", "TryShowReviewYear returns before its screen write",
+       (ROOT, L1_TRY_WRITE, 'manager.OpenWorkPlan(false);\n        if (year > 0) return true;\n        screen = UiScreen.Review;'),
+       intended="RR-2 related state 'screen'"),
+    lc("L1-S1-13", "RR-2", "help nulled through __makeref/__refvalue (no assignment to the name)",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        System.TypedReference slot = __makeref(help); __refvalue(slot, MenuHelpView) = null;'),
+       intended="__makeref"),
+    lc("L1-S1-14", "RR-2", "screen reset by a ref-this extension method declared in a new file",
+       (UI + "ScreenReset.cs", None, 'public static class ScreenReset\n{\n    public static void Reset(ref this ScenarioOneUiRoot.UiScreen s) '
+        '=> s = ScenarioOneUiRoot.UiScreen.None;\n}\n'),
+       (ROOT, L1_SHOW_OBJ_FULL, L1_SHOW_OBJ_FULL + '\n        screen.Reset();'), intended="'screen' is used as a member receiver"),
+    lc("L1-S1-15", "RR-2", "screen passed whole to an in-parameter helper that writes it through UnsafeUtilityExtensions.AsRef",
+       (UI + "ScreenWriter.cs", None, 'public static class ScreenWriter\n{\n    public static void Clear(in ScenarioOneUiRoot.UiScreen s) '
+        '=> Unity.Collections.LowLevel.Unsafe.UnsafeUtilityExtensions.AsRef(s) = ScenarioOneUiRoot.UiScreen.None;\n}\n'),
+       (ROOT, L1_SHOW_OBJ_FULL, L1_SHOW_OBJ_FULL + '\n        ScreenWriter.Clear(screen);'), intended="passed whole as an argument"),
+    lc("L1-S1-16", "RR-2", "Start help write compiled out of Player builds by #if",
+       (ROOT, L1_HELP_NEW, '\n#if UNITY_EDITOR\n        ' + L1_HELP_NEW + '\n#endif'), intended="conditional compilation"),
+]
+
+loop1_s2 = [
+    lc("L1-S2-01", "N-4", "form-feed-indented #if/#endif compile the learning write out",
+       (ROOT, L1_LEARNING_NEW, '\n\x0c#if CCF_NEVER_DEFINED\n        ' + L1_LEARNING_NEW + '\n\x0c#endif'), intended="(N-4)"),
+    lc("L1-S2-02", "N-4", "no-break space after '#' in #if/#endif around the help write",
+       (ROOT, L1_HELP_NEW, '\n#\xa0if CCF_NEVER_DEFINED\n        ' + L1_HELP_NEW + '\n#\xa0endif'), intended="(N-4)"),
+    lc("L1-S2-04", "N-4", "no-break-space-indented directives inside an inactive verbatim string make hidden code active",
+       (L1_SEQ, L1_SEQ_MEMBER, L1_SEQ_MEMBER + '\n#if CCF_NEVER_DEFINED\n    private string hidden = @"\n\xa0#endif\n'
+        '    private void Sneak() { Root.SetEnabled(false); }\n\xa0#if CCF_NEVER_DEFINED\n    ";\n#endif'), intended="(N-4)"),
+    lc("L1-S2-05", "N-4", "BOM character (U+FEFF) inside an identifier mid-file",
+       (VIEW, L1_FOREST_ADD, L1_FOREST_ADD + '\n        fo\ufeffrest.name += "-x";'), intended="(N-4)"),
+    lc("L1-S2-06", "N-4", "vertical-tab-indented #if/#endif around the Objectives caller",
+       (VIEW, L1_LIB_CALL, 'scroll.Add(library);\n\x0b#if CCF_NEVER_DEFINED\n        ui.RefreshNextActionGuidance();\n\x0b#endif'),
+       intended="(N-4)"),
+]
+
+loop1_s3 = [
+    lc("L1-S3-01", "RR-3", "NeedsAnnualReview keeps its reviewed text only in the editor; #else forces it",
+       (ROOT, L1_NAR, '\n#if UNITY_EDITOR\n    ' + L1_NAR + '\n#else\n    public bool NeedsAnnualReview => true;\n#endif'),
+       intended="conditional compilation (#if)"),
+    lc("L1-S3-02", "RR-3", "TeachingRacks widened to the first two topics",
+       (VIEW, L1_TEACHING, 'public bool TeachingRacks => CurrentTopicIndex <= 1;'), intended="RR-3 routing input"),
+]
+
+loop1_l06 = [
+    lc("L1-L06-01", "RR-1", "a companion passes ui.Learning to a helper that disables the Objectives Root",
+       (L1_STANDMAP, L1_STANDMAP_FIELD, L1_STANDMAP_FIELD + '\n    private static void Keep(LearningObjectivesView v) => '
+        'v.Root.SetEnabled(false);\n    private void Sneak() => Keep(ui.Learning);'), intended="L-06"),
+    lc("L1-L06-02", "RR-1", "a companion pattern-matches ui.Learning, then disables its Root",
+       (L1_STANDMAP, L1_STANDMAP_FIELD, L1_STANDMAP_FIELD + '\n    private void Sneak() { if (ui.Learning is '
+        'LearningObjectivesView v) v.Root.SetEnabled(false); }'), intended="L-06"),
+    lc("L1-L06-03", "RR-1", "the #309 L-06 probe, now closed: a companion aliases ui.Learning before reaching Root",
+       (L1_STANDMAP, L1_STANDMAP_FIELD, L1_STANDMAP_FIELD + '\n    private void Sneak() { var view = ui.Learning; '
+        'view.Root.SetEnabled(false); }'), intended="L-06"),
+]
+
+loop1_benign = [
+    lc("L1-B-01", "benign", "unrelated statement added between Start's reviewed writes",
+       (ROOT, L1_MAP_NEW, L1_MAP_NEW + '\n        Debug.Log("Scenario One UI views created");')),
+    lc("L1-B-02", "benign", "new root property reading screen",
+       (ROOT, L1_SHOW_OBJ, 'public bool OnMap => screen == UiScreen.Map;\n\n    ' + L1_SHOW_OBJ)),
+    lc("L1-B-03", "benign", "this.manager read and manager passed as an argument in an unpinned method",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        if (this.manager != null) Debug.Log(manager);')),
+    lc("L1-B-04", "benign", "companion reads ui.Learning through a null test and a member access",
+       (L1_STANDMAP, L1_STANDMAP_FIELD, L1_STANDMAP_FIELD + '\n    private bool LessonActive => ui.Learning != null '
+        '&& ui.Learning.TeachingRacks;')),
+    lc("L1-B-05", "benign", "format characters and a no-break space inside string literals (view, partial, root)",
+       (VIEW, L1_RELOAD, L1_RELOAD + '\n        _ = "soft\xadhyphen\xa0joined\u200dtext";'),
+       (L1_CUR, L1_CUR_MEMBER, L1_CUR_MEMBER + '\n    private const string Joined = "a\u200db\ufeffc";'),
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        Debug.Log("zero\u200bwidth");')),
+    lc("L1-B-06", "benign", "combining mark inside a new identifier in a partial",
+       (L1_SEQ, L1_SEQ_MEMBER, L1_SEQ_MEMBER + '\n    private int cafe\u0301 = 1;')),
+    lc("L1-B-07", "benign", "tab-indented #if/#endif in an unpinned root method",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n\t#if UNITY_EDITOR\n\t\tDebug.Log("objectives");\n\t#endif')),
+    lc("L1-B-08", "benign", "switch on screen in a new root method",
+       (ROOT, L1_SHOW_OBJ, 'public string ScreenName() { switch (screen) { case UiScreen.Map: return "map"; '
+        'default: return "other"; } }\n\n    ' + L1_SHOW_OBJ)),
+    lc("L1-B-09", "benign", "tuple deconstruction of unrelated root fields",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        (workPlanWasOpen, nextModalRefresh) = (false, 0f);')),
+    lc("L1-B-10", "benign", "no-break space between tokens of a reviewed Start write",
+       (ROOT, L1_HELP_NEW, 'help\xa0= new MenuHelpView(this);')),
+    lc("L1-B-11", "benign", "em dash and a format character in a #region name in a partial",
+       (L1_SEQ, L1_SEQ_MEMBER, '#region Racks \u2014 V2\u200d\n    ' + L1_SEQ_MEMBER + '\n    #endregion')),
+]
+
+# Accepted limits: defective, compilable edits this checker does NOT reject (README "Known limits").
+loop1_limits = loop1_reviewer_limits + [
+    lc("L-01", "limit", "a class outside the companion set disables the Work Plan button by a constructed name",
+       ("Assets/ForestPrototype/CtaProbeL01.cs", None, 'internal static class CtaProbeL01\n{\n    internal static void Hide()\n    {\n'
+        '        var document = UnityEngine.Object.FindAnyObjectByType<UnityEngine.UIElements.UIDocument>();\n'
+        '        if (document != null) UnityEngine.UIElements.UQueryExtensions.Q<UnityEngine.UIElements.Button>('
+        'document.rootVisualElement, "objective-" + "work-plan")?.SetEnabled(false);\n    }\n}\n')),
+    lc("L-02", "limit", "root disables every button of its own document from an unpinned method (no class change)",
+       (ROOT, L1_CLOSE_ALL, L1_CLOSE_ALL + '\n        document.rootVisualElement.Query<Button>().ForEach(b => b.SetEnabled(false));')),
+    lc("L-03", "limit", "non-terminating loop before the Objectives caller", (VIEW, L1_SHOWN, 'while (force) { }\n        ' + L1_SHOWN)),
+    lc("L-04", "limit", "reflection writes guarded state by a string name",
+       (ROOT, L1_CLOSE_ALL, L1_CLOSE_ALL + '\n        typeof(ScenarioOneUiRoot).GetField("guidanceCandidate", '
+        'System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(this, null);')),
+    lc("L-07", "limit", "exception thrown by an expression before the Objectives caller",
+       (VIEW, L1_SHOWN, 'int unused = int.Parse(guidance);\n        ' + L1_SHOWN)),
+    lc("L-08", "limit", "exception thrown by an expression in Start before its help write",
+       (ROOT, L1_HELP_NEW, 'int unused = int.Parse(gameObject.name);\n        ' + L1_HELP_NEW)),
+]
+
+# Documented over-rejections: benign edits that fail closed until the checker is updated deliberately.
+loop1_over = [
+    lc("O-01", "over", "literal nested in an interpolation hole in LearningObjectivesView.cs (legacy-lexer files)",
+       (VIEW, L1_PROGRESS, 'progress.text = $"Step {(force ? "a" : "b")}";')),
+    lc("O-02", "over", "apostrophes in two preprocessor lines of ScenarioOneUiRoot.cs (legacy regex pairs them)",
+       (ROOT, 'public void ShowObjectives()', "#region Don't panic\n    public void ShowObjectives()"),
+       (ROOT, L1_CLOSE_ALL, "#endregion // it's done\n    " + L1_CLOSE_ALL)),
+    lc("O-03", "over", "spaces added inside a pinned interpolation hole", (ROOT, '{UiKit.Money(cost)}', '{ UiKit.Money(cost) }')),
+    lc("O-04", "over", "null-conditional call of the Objectives guidance refresh",
+       (VIEW, L1_LIB_CALL, L1_LIB_CALL.replace('ui.Refresh', 'ui?.Refresh'))),
+    lc("O-05", "over", "#if/#endif logging inside Start, which now holds reviewed writes",
+       (ROOT, L1_MAP_NEW, L1_MAP_NEW + '\n#if UNITY_EDITOR\n        Debug.Log("views created");\n#endif')),
+    lc("O-06", "over", "U+2028 inside a verbatim string (valid C#; Unicode line separators fail closed anywhere)",
+       (L1_CUR, L1_CUR_MEMBER, L1_CUR_MEMBER + '\n    private const string Para = @"one\u2028two";')),
+    lc("O-07", "over", "a local named like a related-state field in an unrelated root method",
+       (ROOT, L1_SHOW_OBJ, L1_SHOW_OBJ + '\n        int review = 0; Debug.Log(review);')),
+    lc("O-08", "over", "a companion tests null on the left: null != ui.Learning",
+       (L1_STANDMAP, L1_STANDMAP_FIELD, L1_STANDMAP_FIELD + '\n    private bool HasLessons => null != ui.Learning;')),
+    lc("O-09", "over", "screen passed whole to a method in an unpinned root method (an in-parameter could write it)",
+       (ROOT, L1_SHOW_OBJ_FULL, L1_SHOW_OBJ_FULL + '\n        Debug.Log(screen);')),
+]
+
 # Reviewer cases that carry no `intended` field: the cause their #309 rejection must name.
 REVIEWER_CAUSES = {
     "X-F1-01": "header row addition", "X-F1-02": "header local 'close'", "X-F1-03": "class-list API",
@@ -554,6 +1013,83 @@ REVIEWER_CAUSES = {
     "X-F2-32": "pinned method GuidanceVisible", "X-F2-33": "must be called exactly once by the view class",
     "X-F2-34": "conditional compilation", "X-F2-35": "pinned method ShowMap",
 }
+
+
+def run_loop1(view, root, companions):
+    """#309 repair loop 1 groups. Returns the counts that run() folds into its totals."""
+    base = dict(companions)
+    base.update({VIEW: view, ROOT: root})
+
+    def build(case):
+        files = dict(base)
+        for path, old, new in case["edits"]:
+            if old is None:  # a new, in-memory-only file
+                if path in files or (REPO / path).exists():
+                    raise RuntimeError(f"{case['id']}: {path} already exists")
+                files[path] = new
+            else:
+                if path not in files:
+                    files[path] = (REPO / path).read_text(encoding="utf-8")
+                files[path] = replace_one(files[path], old, new, case["id"])
+        if case["transform"] == "crlf":
+            files = {path: text.replace("\n", "\r\n") for path, text in files.items()}
+        return files
+
+    def outcome(case):
+        """None when accepted, else the rejection reason. As in check_baseline.py, a file other than the
+        view and the root reaches the scanner only if is_companion_source() selects it."""
+        files = build(case)
+        others = {path: text for path, text in files.items() if path not in (VIEW, ROOT) and is_companion_source(text)}
+        try:
+            verify_objective_cta(files[VIEW], files[ROOT], others)
+        except ObjectiveCtaSourceError as exc:
+            return str(exc)
+        return None
+
+    counts = dict(total=0, rejected=0, wrong_cause=0, benign=0, benign_failed=0, probe_failed=0)
+    for group, cases in (("#314 reviewer S-1", loop1_reviewer_s1), ("#314 reviewer S-2", loop1_reviewer_s2),
+                         ("#314 reviewer S-3", loop1_reviewer_s3), ("#314 reviewer L-06", loop1_reviewer_l06),
+                         ("#309 loop-1 S-1", loop1_s1), ("#309 loop-1 S-2", loop1_s2),
+                         ("#309 loop-1 S-3", loop1_s3), ("#309 loop-1 L-06", loop1_l06)):
+        group_rejected = 0
+        for case in cases:
+            reason = outcome(case)
+            if reason is None:
+                print(f"SOURCE-STATIC FAIL mutation-{case['id']}: FALSE GREEN")
+            elif case["intended"] in reason:
+                group_rejected += 1
+                print(f"SOURCE-STATIC PASS mutation-{case['id']}: rejected ({reason})")
+            else:
+                counts["wrong_cause"] += 1
+                print(f"SOURCE-STATIC FAIL mutation-{case['id']}: rejected for an unexpected cause ({reason}); "
+                      f"expected {case['intended']!r}")
+        print(f"SOURCE-STATIC CTA MUTATION GROUP {group}: rejected={group_rejected}/{len(cases)}")
+        counts["total"] += len(cases)
+        counts["rejected"] += group_rejected
+    for case in loop1_reviewer_benign + loop1_benign:
+        reason = outcome(case)
+        counts["benign"] += 1
+        if reason is None:
+            print(f"SOURCE-STATIC PASS benign-{case['id']}: accepted")
+        else:
+            counts["benign_failed"] += 1
+            print(f"SOURCE-STATIC FAIL benign-{case['id']}: WRONGLY REJECTED ({reason})")
+    print(f"SOURCE-STATIC CTA LOOP-1 BENIGN CONTROLS accepted={counts['benign'] - counts['benign_failed']}/{counts['benign']}")
+    # Not mutations and not passes: each probe must keep its documented outcome, or README is out of date.
+    for case, documented in [(case, "accepted") for case in loop1_limits] + [(case, "rejected") for case in loop1_over]:
+        reason = outcome(case)
+        observed = "accepted" if reason is None else "rejected"
+        kind = "accepted-limit" if documented == "accepted" else "over-rejection"
+        if observed == documented:
+            print(f"SOURCE-STATIC INFO {kind}-{case['id']}: {observed} as documented ({case['why']})"
+                  + (f" [{reason}]" if reason else ""))
+        else:
+            counts["probe_failed"] += 1
+            print(f"SOURCE-STATIC FAIL {kind}-{case['id']}: now {observed}, documented {documented}; update the "
+                  f"README known limits ({reason or 'accepted'})")
+    print(f"SOURCE-STATIC CTA LOOP-1 PROBES limits={len(loop1_limits)} over-rejections={len(loop1_over)} "
+          f"changed={counts['probe_failed']} (reported, not counted as mutations)")
+    return counts
 
 
 def run():
@@ -803,6 +1339,11 @@ def run():
         else:
             print(f"SOURCE-STATIC PASS benign-{label}: accepted")
     print(f"SOURCE-STATIC CTA BENIGN CONTROLS accepted={len(benign_runs)-benign_failed}/{len(benign_runs)}")
+    loop1 = run_loop1(live[V], live[R], companions)
+    total += loop1["total"]
+    rejected += loop1["rejected"]
+    wrong_cause += loop1["wrong_cause"]
+    benign_failed += loop1["benign_failed"]
 
     # F6: the historical pre-guidance source must be reported as a completed, evidenced FAIL, never a crash.
     historic_failed = 0
@@ -826,7 +1367,7 @@ def run():
     false_greens = total - rejected - wrong_cause
     print(f"SOURCE-STATIC CTA MUTATIONS rejected={rejected}/{total} false_greens={false_greens} "
           f"wrong_cause={wrong_cause}")
-    return 1 if false_greens or wrong_cause or benign_failed or historic_failed else 0
+    return 1 if false_greens or wrong_cause or benign_failed or historic_failed or loop1["probe_failed"] else 0
 
 
 if __name__ == "__main__":

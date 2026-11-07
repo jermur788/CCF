@@ -12,7 +12,9 @@ README.md lists exactly what they cover and what they do not.
 Copy this file, check_baseline.py and test_objective_cta_source_check.py
 together; check_baseline.py imports this module.
 """
+import bisect
 import re
+import unicodedata
 from collections import namedtuple
 from pathlib import Path
 
@@ -35,7 +37,8 @@ _LEX = re.compile(
     r"'(?:[^'\\]|\\.)*'"
 )
 _SOLE_LITERAL = re.compile(r'\s*(@"(?:[^"]|"")*"|"(?:[^"\\]|\\.)*")\s*\Z')
-_COND = re.compile(r'^[ \t]*#[ \t]*(if|elif|else|endif|define|undef)\b', re.M)
+# A leading BOM may precede a directive on the first line (#314 S-2: the precise lexer accepts it too).
+_COND = re.compile(r'^\ufeff?[ \t]*#[ \t]*(if|elif|else|endif|define|undef)\b', re.M)
 _CTOR_SIGNATURE = r"\bpublic\s+LearningObjectivesView\s*\(\s*ScenarioOneUiRoot\s+ui\s*\)"
 
 
@@ -594,20 +597,32 @@ def _verify(view_source, root_source, companions=None):
 # =====================================================================================
 
 _COMPANION_HINT = re.compile(r'LearningObjectivesView|ScenarioOneUiRoot|UiKit|objective-primary-cta|'
-                             r'objective-work-plan|objective-back-to-forest|\\[uUx]')
+                             r'objective-work-plan|objective-back-to-forest|\\[uUx]|\.\s*Learning\b')
+
+
+def _without_format_characters(text):
+    """The text as the C# compiler reads identifiers: Unicode format characters (category Cf)
+    removed, so `Learning<U+200D>ObjectivesView` still names the class (#314 S-2)."""
+    return re.sub(r'[^\x00-\x7f]', lambda m: "" if unicodedata.category(m.group()) == "Cf" else m.group(), text)
+
+
+def is_companion_source(text):
+    """True when a C# file could declare a LearningObjectivesView partial, ScenarioOneUiRoot or UiKit,
+    name an Objectives header button or reach `.Learning`, including through a \\u or \\x escape or a
+    format character inside a name."""
+    return bool(_COMPANION_HINT.search(text) or _COMPANION_HINT.search(_without_format_characters(text)))
 
 
 def collect_companions(repo_root):
-    """Read-only: every C# file under Assets/ (other than VIEW and ROOT) that could declare a
-    LearningObjectivesView partial, ScenarioOneUiRoot or UiKit, or name an Objectives header
-    button, including through a \\u or \\x escape. Pass the result to verify_objective_cta."""
+    """Read-only: every C# file under Assets/ (other than VIEW and ROOT) for which
+    is_companion_source holds. Pass the result to verify_objective_cta."""
     repo = Path(repo_root)
     found = {}
     for path in sorted((repo / "Assets").rglob("*.cs")):
         rel = path.relative_to(repo).as_posix()
         if rel not in (VIEW, ROOT):
             text = path.read_text(encoding="utf-8")
-            if _COMPANION_HINT.search(text):
+            if is_companion_source(text):
                 found[rel] = text
     return found
 
@@ -628,7 +643,7 @@ class _Unlexable(Exception):
 
 def _row(source, path, at):
     line = source.count("\n", 0, at) + 1
-    lines = source.splitlines()
+    lines = source.split("\n")  # not splitlines(): it also splits at characters C# does not treat as line ends
     return line, [(path, line, lines[line - 1].strip() if line <= len(lines) else "")]
 
 
@@ -654,9 +669,18 @@ def _scan_code(src, i, out, hole):
             raise _Unlexable(i, "backslash outside a literal (Unicode-escaped identifier)")
         if char == "\n" and hole == "regular":
             raise _Unlexable(i, "line break inside a regular interpolated string")
-        if char == "#" and hole is None and not src[src.rfind("\n", 0, i) + 1:i].strip(" \t\r\ufeff"):
+        if char == "#" and hole is None:
+            # C# allows '#' only at the start of a preprocessor line. Roslyn also accepts other whitespace
+            # (form feed, no-break space, ...) before or after it, which the older regex checks do not, so
+            # anything but spaces and tabs (and a BOM at the very start) fails closed (#314 S-2).
+            line_start = src.rfind("\n", 0, i) + 1
+            if not re.fullmatch(r'\ufeff?[ \t]*' if line_start == 0 else r'[ \t]*', src[line_start:i]):
+                raise _Unlexable(i, "'#' that does not start a plain preprocessor line (other whitespace "
+                                    "before it, or not a directive)")
             end = src.find("\n", i)
             end = n if end < 0 else end
+            if not re.match(r'#[ \t]*(?:[A-Za-z]|\r?$)', src[i:end]):
+                raise _Unlexable(i, "whitespace other than spaces and tabs after '#' in a preprocessor line")
             # A conditional/define directive may end in a // comment; #region, #pragma etc. keep free text.
             comment = src.find("//", i, end) if re.match(r'#\s*(?:if|elif|else|endif|define|undef|nullable)\b',
                                                          src[i:end]) else -1
@@ -758,17 +782,81 @@ def _lexed(source, path):
 
 
 def _lex_uncached(source, path):
+    # #314 S-2: Roslyn ends a line (so a // comment or a preprocessor line) at U+0085, U+2028, U+2029
+    # and a lone CR; this lexer ends one only at LF. Reject them anywhere rather than model them.
+    found = _FOREIGN_LINE_BREAK.search(source)
+    if found:
+        _fail(source, path, found.start(), f"U+{ord(found.group()):04X} is a line break for the C# compiler but "
+                                           "not for this lexer (it can end a // comment or a preprocessor "
+                                           "line); fail closed (N-4)")
     spans = []
     try:
         _scan_code(source, 0, spans, None)
     except _Unlexable as problem:
         _fail(source, path, problem.at, f"the lexer cannot follow this source ({problem}); "
                                         "unsupported literal/comment shapes fail closed (N-4)")
+    # Roslyn also treats a line indented with other whitespace (form feed, no-break space, BOM ...) as a
+    # directive, which matters when the literal or comment opener sits in inactive #if text (#314 loop 1).
     for item in spans:
-        if item[0] in ("comment", "string") and re.search(r'\n[ \t]*#', source[item[1]:item[2]]):
+        if item[0] in ("comment", "string") and re.search(r'\n[\s\ufeff\x1a]*#', source[item[1]:item[2]]):
             _fail(source, path, item[1], "a multi-line literal or comment spans a preprocessor line; "
                                          "fail closed (N-4)")
+    _check_code_characters(source, path, spans)
     return spans
+
+
+# Outside comments and literals, the C# compiler ignores Unicode format characters (category Cf, for
+# example U+200D and U+00AD) inside an identifier, so `fo<U+200D>rest` is `forest`; this lexer would see
+# two tokens. Code may therefore hold only printable ASCII, tab, LF, CR (as CRLF), a leading BOM and
+# non-ASCII letters, digits, combining/connecting marks and space separators (#314 S-2).
+_FOREIGN_LINE_BREAK = re.compile('[\x85\u2028\u2029]|\r(?!\n)')
+_NOT_PLAIN_ASCII = re.compile(r'[^\t\n\r\x20-\x7e]')
+_CODE_CATEGORIES = {"Lu", "Ll", "Lt", "Lm", "Lo", "Nl", "Mn", "Mc", "Nd", "Pc", "Zs"}
+
+
+def _text_regions(source, spans):
+    """Sorted (start, end) spans of comment and literal text, and the free-text message of #region,
+    #endregion, #warning and #error lines; interpolation-hole code is excluded."""
+    regions = []
+
+    def walk(items):
+        for item in items:
+            kind, a, b = item[:3]
+            if kind in ("comment", "char", "format"):
+                regions.append((a, b))
+            elif kind == "directive":
+                message = re.match(r'#[ \t]*(?:region|endregion|warning|error)\b', source[a:b])
+                if message:
+                    regions.append((a + message.end(), b))
+            elif kind == "string":
+                cursor = a
+                for start, close, inner in item[5]:
+                    regions.append((cursor, start))
+                    walk(inner)
+                    cursor = close
+                regions.append((cursor, b))
+    walk(spans)
+    return sorted(regions)
+
+
+def _check_code_characters(source, path, spans):
+    regions = None
+    for found in _NOT_PLAIN_ASCII.finditer(source):
+        at, char = found.start(), found.group()
+        if at == 0 and char == "\ufeff":
+            continue
+        if regions is None:
+            regions = _text_regions(source, spans)
+            starts = [a for a, _ in regions]
+        k = bisect.bisect_right(starts, at) - 1
+        if k >= 0 and regions[k][0] <= at < regions[k][1]:
+            continue
+        category = unicodedata.category(char)
+        if char > "\x7f" and category in _CODE_CATEGORIES:
+            continue
+        _fail(source, path, at, f"character U+{ord(char):04X} (category {category}) in code: the C# compiler "
+                                "reads it differently from this lexer (a format character inside an identifier "
+                                "is ignored); fail closed (N-4)")
 
 
 def _lexically_sound(source, path):
@@ -892,6 +980,19 @@ def _texts(tokens):
     return [token.value if token.kind == "id" else token.text for token in tokens]
 
 
+_FULL_TOKENS = {}
+
+
+def _file_tokens(source, spans):
+    """Tokens and their texts for a whole file, cached by text (performance only)."""
+    if source not in _FULL_TOKENS:
+        if len(_FULL_TOKENS) > 64:
+            _FULL_TOKENS.clear()
+        tokens = _tokens(source, spans)
+        _FULL_TOKENS[source] = (tokens, _texts(tokens))
+    return _FULL_TOKENS[source]
+
+
 _FRAGMENT_TOKENS = {}
 
 
@@ -965,14 +1066,23 @@ def _pin(source, spans, path, signature, expected, label):
 def _snippet_spans(source, spans, snippet, path, label):
     """Character span of the single exact occurrence of a reviewed token sequence."""
     want = _tokens_of(snippet)
-    tokens = _tokens(source, spans)
-    texts = _texts(tokens)
+    tokens, texts = _file_tokens(source, spans)
     hits = [k for k in range(len(texts) - len(want) + 1) if texts[k:k + len(want)] == want]
     if len(hits) != 1:
         _fail(source, path, tokens[hits[1]].start if len(hits) > 1 else 0,
               f"{label}: expected exactly one reviewed occurrence of `{snippet}` (missing, changed or "
               f"duplicated), found {len(hits)} (RR-2/RR-3)")
-    return tokens[hits[0]].start, tokens[hits[0] + len(want) - 1].end
+    start = tokens[hits[0]].start
+    # #314 loop 1: reviewed text inside #if could be compiled out while still being found here.
+    depth = 0
+    for item in spans:
+        if item[0] == "directive" and item[1] < start:
+            word = re.match(r'#[ \t]*(\w+)', source[item[1]:item[2]])
+            depth += {"if": 1, "endif": -1}.get(word.group(1) if word else "", 0)
+    if depth > 0:
+        _fail(source, path, start, f"{label}: reviewed text `{snippet}` lies inside conditional compilation "
+                                   "(#if); fail closed (RR-2/RR-3)")
+    return start, tokens[hits[0] + len(want) - 1].end
 
 
 def _positions(masked, name, start=0, end=None):
@@ -1202,6 +1312,50 @@ _ROOT_SNIPPETS = (
     "learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
 )
 
+# #314 S-1: root fields the pinned guidance reads ("related state"). A write count alone let a tuple
+# deconstruction or a compensated move through, so each field may be written only at its reviewed site:
+# the screen initialiser, one top-level statement of Start for each reference, and the pinned SetScreen
+# and TryShowReviewYear bodies. Their declarations are pinned so none can become a property.
+_STATE_FIELDS = ("help", "manager", "learning", "map", "workPlan", "review", "rackLayout", "screen")
+_STATE_DECLARATIONS = (
+    "private ScenarioOneManager manager;", "private WorkPlanView workPlan;", "private AnnualReviewView review;",
+    "private StandMapView map;", "private RackLayoutTracker rackLayout;", "private MenuHelpView help;",
+    "private UiScreen screen = UiScreen.None;",
+)
+_START = r'\bprivate\s+void\s+Start\s*\(\s*\)'
+_STATE_START_WRITES = (
+    "manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();",
+    "rackLayout = new RackLayoutTracker(this);",
+    "learning = new LearningObjectivesView(this);",
+    "workPlan = new WorkPlanView(this);",
+    "review = new AnnualReviewView(this);",
+    "map = new StandMapView(this);",
+    "help = new MenuHelpView(this);",
+)
+_TRY_SHOW_REVIEW_YEAR = (r'\bpublic\s+bool\s+TryShowReviewYear\s*\(\s*int\s+year\s*\)', r'''
+if (!review.TryShowYear(year)) return false;
+manager.OpenWorkPlan(false);
+screen = UiScreen.Review;
+CloseHelp();
+manager.SetAuxiliaryPanelOpen(true);
+return true;
+''')
+_ASSIGNMENT_OPERATORS = {"=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", "??="}
+# Keywords that may precede '(' without making it a call.
+_NOT_CALLEES = {"if", "while", "for", "foreach", "switch", "using", "lock", "catch", "return", "typeof", "sizeof",
+                "nameof", "default", "checked", "unchecked", "when", "case", "in", "is", "as", "else", "do",
+                "throw", "yield", "await", "fixed"}
+_ROOT_UNSAFE = (r'\b(?:unsafe|__makeref|__refvalue|__reftype|__arglist)\b',
+                "unsafe code or an undocumented reference keyword (__makeref)")
+
+# #314 S-3: inputs that the pinned routing reads, pinned to their reviewed definitions. The game and
+# teaching state they read in turn (ScenarioOneManager, ScenarioOneTeachingSequence, TeachingFacts and
+# the lesson progress) is not checked; README "Known limits".
+_ROUTING_INPUT_ROOT = ("public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 "
+                       "&& !manager.AnnualReviewSeen;")
+_ROUTING_INPUTS_VIEW = ("public int CurrentTopicIndex => ScenarioOneTeachingSequence.Current(TeachingFacts());",
+                        "public bool TeachingRacks => CurrentTopicIndex == 0;")
+
 _KIT_PINS = (
     ("UiKit.Button", r'\bpublic\s+static\s+Button\s+Button\s*\(\s*string\s+text\s*,\s*Action\s+onClick\s*,'
                      r'\s*bool\s+enabled\s*=\s*true\s*,\s*params\s+string\s*\[\s*\]\s+classes\s*\)', r'''
@@ -1276,6 +1430,8 @@ _VIEW_BANS = (
      "element-tree traversal or query"),
     (r'(?<![.\w])@?(?:Q|Query|UQueryExtensions|RootElement|rootVisualElement)\b', "element-tree traversal or query"),
 )
+# After `.Learning` in another class: a member other than Root, or a null test (L-06).
+_LEARNING_USE = re.compile(r'\s*(?:\??\.\s*@?(?!Root(?!\w))[A-Za-z_]|[!=]=\s*null(?!\w))')
 _DECLARATION = re.compile(r'\b(?:class|struct|interface|record|enum)\s+@?(LearningObjectivesView|ScenarioOneUiRoot|UiKit)\b')
 
 
@@ -1311,12 +1467,19 @@ def _scope(view_source, root_source, view_spans, root_spans, companions):
     for path, (source, spans) in files.items():
         if path in (VIEW, ROOT) or path in paths:
             continue
-        found = re.search(r'(?<!\w)@?Learning\s*\??\.\s*@?Root\b', _precise_mask(source, spans, True))
+        masked = _precise_mask(source, spans, True)
+        found = re.search(r'(?<!\w)@?Learning\s*\??\.\s*@?Root\b', masked)
         if found:
             _fail(source, path, found.start(), "another class reaches the Objectives Root (RR-1)")
         for start, value, interpolated in _string_values(source, spans):
             if any(name in value if interpolated else name == value for name in header_names):
                 _fail(source, path, start, "another class names an Objectives header button (RR-1)")
+        # #314 loop 1 (L-06): `.Learning` may only be followed by a member access (not Root) or a null
+        # comparison, so the view object cannot be aliased (`var v = ui.Learning;`) or passed on first.
+        for found in re.finditer(r'(?:\?\.|\.)\s*@?Learning(?!\w)', masked):
+            if not _LEARNING_USE.match(masked, found.end()):
+                _fail(source, path, found.start(), "another class reaches the Objectives view other than by a member "
+                                                   "access or null test on .Learning (alias or pass-on, L-06) (RR-1)")
     return {path: files[path] for path in paths}, files[UIKIT]
 
 
@@ -1409,6 +1572,9 @@ def _guard_view_class(view_source, view_spans, view_files, allowed):
             "each Objectives header name and caption must appear exactly once in the view class; found "
             f"{len(name_literals)} names and {len(caption_literals)} captions (RR-1)")
     _guard_refresh_caller(view_source, view_spans, view_files)
+    # #314 S-3: the pinned routing reads these view properties; their reviewed definitions are pinned too.
+    for snippet in _ROUTING_INPUTS_VIEW:
+        _snippet_spans(view_source, view_spans, snippet, VIEW, f"RR-3 routing input '{snippet.split()[2]}'")
 
 
 def _guard_header(source, spans, allowed):
@@ -1641,6 +1807,108 @@ def _guard_root(source, spans):
             _fail(source, ROOT, found.start(), "class-list call outside the reviewed methods must name a plain, "
                                                "non-primary class literal (RR-1)")
     _check_uikit_calls(ROOT, source, spans, masked, skip=bodies)
+    _guard_related_state(source, spans, masked, bodies)
+    _snippet_spans(source, spans, _ROUTING_INPUT_ROOT, ROOT, "RR-3 routing input 'NeedsAnnualReview'")
+
+
+def _bracket_map(texts):
+    """Matching index of every bracket token, and the innermost open bracket enclosing each token."""
+    match, parent, stack = {}, [], []
+    for k, text in enumerate(texts):
+        parent.append(stack[-1] if stack else None)
+        if text in ("(", "[", "{"):
+            stack.append(k)
+        elif text in (")", "]", "}") and stack:
+            opened = stack.pop()
+            match[opened], match[k] = k, opened
+    return match, parent
+
+
+def _state_write(tokens, texts, match, parent, k):
+    """How token k, a related-state name, is written; None for a read (#314 S-1). Written means: the
+    target of any assignment operator, ++ or --, a ref/out/in argument, or an element of a parenthesised,
+    tuple or foreach-deconstruction target. A shadowing declaration (`var help = ...`) also counts."""
+    start = end = k
+    if k >= 2 and texts[k - 1] == "." and texts[k - 2] == "this":
+        start = k - 2
+    while True:
+        after = end + 1
+        while after < len(texts) and texts[after] == "!":
+            after += 1
+        nxt = texts[after] if after < len(texts) else ""
+        if nxt in _ASSIGNMENT_OPERATORS or nxt in ("++", "--") or (
+                nxt == ">" and after + 1 < len(texts) and texts[after + 1] == ">="
+                and tokens[after + 1].start == tokens[after].end):  # `>>=`
+            return "assignment"
+        before = texts[start - 1] if start > 0 else ""
+        if before in ("ref", "out", "++", "--") or (before == "in" and start > 1 and texts[start - 2] in ("(", ",", ":")):
+            return f"{before} operand"
+        if before == "(" and match.get(start - 1) == after:  # `(help) = x`, `ref (help)`
+            start, end = start - 1, after
+            continue
+        break
+    if nxt in (",", ")"):
+        opened = parent[start]
+        while opened is not None and texts[opened] == "(":
+            close = match.get(opened)
+            follow = texts[close + 1] if close is not None and close + 1 < len(texts) else ""
+            if follow in _ASSIGNMENT_OPERATORS or follow == "in":
+                return "tuple or deconstruction target"
+            opened = parent[opened]
+    return None
+
+
+def _guard_related_state(source, spans, masked, bodies):
+    """#314 S-1: write-site discipline for the root fields the pinned guidance reads."""
+    found = re.search(_ROOT_UNSAFE[0], masked)
+    if found:
+        _fail(source, ROOT, found.start(), f"{_ROOT_UNSAFE[1]} in ScenarioOneUiRoot is unsupported "
+                                           "(RR-2 related state)")
+    for snippet in _STATE_DECLARATIONS:
+        _snippet_spans(source, spans, snippet, ROOT, "RR-2 related state declaration")
+    sites = [_snippet_spans(source, spans, _STATE_DECLARATIONS[-1], ROOT, "RR-2 related state declaration")]
+    start, end = _method_span(source, _START)
+    for snippet in _STATE_START_WRITES:
+        a, b = _snippet_spans(source, spans, snippet, ROOT, f"RR-2 related state '{snippet.split()[0]}'")
+        before = masked[start:a]
+        if not (start <= a and b <= end) or before.count("{") != before.count("}") \
+                or before.count("(") != before.count(")") or masked[:a].rstrip()[-1:] not in (";", "{", "}"):
+            _fail(source, ROOT, a, f"RR-2 related state: `{snippet}` must be a top-level statement of Start "
+                                   "(not moved, wrapped, conditional or deferred)")
+        sites.append((a, b))
+    last = max(b for _, b in sites[1:])
+    early = re.search(r'\b(?:return|throw|goto|yield)\b', masked[start:last])
+    if early:
+        _fail(source, ROOT, start + early.start(), "RR-2 related state: Start may not return, throw, goto or "
+                                                   "yield before its last reviewed related-state write")
+    sites += bodies + [_pin(source, spans, ROOT, _TRY_SHOW_REVIEW_YEAR[0], _TRY_SHOW_REVIEW_YEAR[1],
+                            "TryShowReviewYear (RR-2 related state 'screen')")]
+    tokens, texts = _file_tokens(source, spans)
+    match, parent = _bracket_map(texts)
+    for k, token in enumerate(tokens):
+        if token.kind != "id" or token.value not in _STATE_FIELDS:
+            continue
+        name = token.value
+        if k and texts[k - 1] in (".", "?.", "->", "::") and not (texts[k - 1] == "." and k > 1 and texts[k - 2] == "this"):
+            _fail(source, ROOT, token.start, f"'{name}' is reached through a receiver other than `this` "
+                                             "(RR-2 related state)")
+        how = _state_write(tokens, texts, match, parent, k)
+        if how and not _inside(token.start, sites):
+            _fail(source, ROOT, token.start, f"'{name}' is written outside its reviewed write site ({how}): "
+                                             "tuple, ref/out, qualified, compound, moved or compensated writes "
+                                             "fail closed (RR-2 related state)")
+        if name == "screen":
+            # A value type: a `ref this`/`in this` extension or an `in` parameter could write it unseen.
+            first = k - 2 if k >= 2 and texts[k - 1] == "." and texts[k - 2] == "this" else k
+            opened = parent[first]
+            call = opened is not None and (texts[opened] == "[" or (texts[opened] == "(" and opened > 0 and (
+                texts[opened - 1] in (">", ")", "]")
+                or (tokens[opened - 1].kind == "id" and texts[opened - 1] not in _NOT_CALLEES))))
+            if (k + 1 < len(texts) and texts[k + 1] in (".", "?.")) or (
+                    call and first > 0 and texts[first - 1] in ("(", "[", ",") and k + 1 < len(texts) and texts[k + 1] in (",", ")", "]")):
+                _fail(source, ROOT, token.start, "'screen' is used as a member receiver or passed whole as an "
+                                                 "argument; a ref/in extension or parameter could write it "
+                                                 "(RR-2 related state)")
 
 
 # ------------------------------------------------------------- UiKit (N-3)

@@ -251,7 +251,8 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
         rows = verify_objective_cta(read(VIEW), read(UI + "ScenarioOneUiRoot.cs"), collect_companions(ROOT))
         report("PASS", "08 objective-primary-cta",
                "Bounded source-structure proof: one named Objectives map CTA invokes ui.ShowMap(), "
-               "is bound to the header row and selected only for unconfirmed Rack V2 Objective 1; "
+               "is bound to the header row and, as far as the pinned routing text and its pinned UI inputs decide, "
+               "selected only for unconfirmed Rack V2 Objective 1 (the game state they read is not checked); "
                "Back to forest is the only static btn-primary source in the view class and is in the scoped "
                "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "
                "dynamic btn-primary/next-action application are checked. "
