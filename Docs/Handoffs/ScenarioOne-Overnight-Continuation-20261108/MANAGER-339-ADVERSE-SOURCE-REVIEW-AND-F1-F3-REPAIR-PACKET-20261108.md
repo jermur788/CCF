@@ -63,3 +63,13 @@ CCF #340 author then #341 independent review — follow the full binding Manager
 ```
 
 **Required user action:** paste the dispatch above into a new local T3 Code orchestrator session. GitHub claim publication does not itself start any worker.
+
+## Manager clarification — stale #338 launch and incorrect T3 home workspace (2026-11-08)
+
+A later local worker reported a **read-only STOP** while looking at the **obsolete #338 packet**, on an automatically created T3 home worktree `/home/jer/.t3/worktrees/CCF-Primary/fix-unity-lease-exact-d-aa0679fb626b3680`. It showed the **old** `fix/unity-lease-exact-dirty-guard-20261108-v1` branch at former main base `7b9aedd14c04dc28cad061bdef24b2d590b21c61`, not this #340 branch or tested-source base. The worker reported clean tree/no edits/claims; these are *worker-reported read-only observations*, not a Manager inspection of the user's local filesystem. Do not infer that this worktree can be overwritten, moved, cleaned or adopted.
+
+**Binding clarification:** #338 and #339 are closed. Neither rebuilding the obsolete #338 Files lane nor approving the old T3 home path is authorised. **#340 remains READY / NOT RUNNING, unclaimed**. A new local orchestrator must first preflight actual live Git, registered worktrees, coordination/claims and available disk, then **create and bind the new task workspace at the exact #340 Files path** `/media/jer/Files/CCF/Operations/CCF-UnityLeaseRawByteRepair-20261108` with new task branch `fix/unity-lease-f1-f3-raw-byte-guard-20261108-v1` based on **the exact old tested source** `949cc0c19bed09ba3fad4c319e235575ac75f6a8`. It must launch the *worker's own session in that worktree*, not merely create a second unused worktree while a worker remains bound to the wrong location. No #340 RUNNING until real lane and ownership evidence is confirmed.
+
+If T3 by default opens a new home worktree, the **orchestrator** must arrange safe launch-time binding to the required Files worktree; it may register/move **only its own newly created clean, unclaimed #340 task worktree** after proving ownership/absence of conflicting branch/path and before any work or claim. Use normal Git worktree registration commands, never filesystem force-move, reset, manual shared Git metadata repair or mutation of another lane. If the launcher cannot bind correctly, **STOP and report BLOCKED**, rather than accepting the default home path or editing in it. Do not touch the reported old #338 home worktree or the historical #338 source/review lanes. #341 remains conditional until #340 legitimately hands off.
+
+All original source-only restrictions remain unchanged.
