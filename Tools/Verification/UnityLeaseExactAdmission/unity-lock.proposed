@@ -33,6 +33,7 @@ def now(): return datetime.now(timezone.utc).isoformat()
 # What an admission proves (F1-F3 repair, #340). Git's own view of cleanliness (status, diff, index, stat cache, clean filters,
 # replace refs) can be made to lie, so it is only a cheap pre-filter. The authoritative proof is independent of all of it:
 #   1. the object graph is canonical: Git is told to ignore replacement objects, and replace refs, grafts and shallow history are refused;
+#      the pinned HEAD commit and every tree under it are re-hashed from raw bytes (N-1, #343), so a forged loose or packed object is refused;
 #   2. every tracked path outside the pinned dirty set has working-tree bytes whose Git object id equals the id in the canonical
 #      HEAD tree (read from tree objects only, never through the index, stat data or any filter), and the working tree holds no
 #      other file, symlink or special file except inside the allowed ignored entries;
@@ -112,13 +113,19 @@ def hash_regular_file(path, keep=False):
             if keep: data += chunk
     return (digest.hexdigest(), info.st_size, info.st_mode) + ((data,) if keep else ())
 
+def exact_git_invocation(lane, *args):
+    """(argv, env) shared by every admission Git process. core.commitGraph=false: a commit-graph file is derived data that
+    could disagree with the commit objects, so Git is never allowed to answer ancestry or tree questions from it."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    env.update(GIT_OPTIONAL_LOCKS='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0', GIT_NO_REPLACE_OBJECTS='1')
+    return ['git', '-C', str(lane), '-c', 'core.fsmonitor=false', '-c', 'core.useReplaceRefs=false', '-c', 'core.commitGraph=false', *args], env
+
 def git_exact(lane, *args, ok=(0,)):
     """Admission-only Git call: no inherited GIT_* redirection, no user/system config, no index refresh, no replacement
     objects (F1: HEAD and every blob/tree is the real object, never a `git replace` substitute), bytes out.
     Any exit status outside `ok` or any spawn error is a refusal."""
-    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
-    env.update(GIT_OPTIONAL_LOCKS='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0', GIT_NO_REPLACE_OBJECTS='1')
-    try: p = subprocess.run(['git', '-C', str(lane), '-c', 'core.fsmonitor=false', '-c', 'core.useReplaceRefs=false', *args], env=env, capture_output=True)
+    argv, env = exact_git_invocation(lane, *args)
+    try: p = subprocess.run(argv, env=env, capture_output=True)
     except OSError as e: raise ValueError(f'git could not run: {e}')
     if p.returncode not in ok: raise ValueError(f'git {args[0]} failed ({p.returncode}): {p.stderr.decode(errors="replace").strip()}')
     return p.returncode, p.stdout
@@ -163,6 +170,86 @@ def parse_ls_tree(raw):
         entries[path] = (mode, oid.decode(), int(size))
     return entries
 
+# N-1 (#343). Git never re-hashes an object when it reads it: a loose or packed object whose bytes were replaced still answers to
+# its old id, so `ls-tree` over such a tree is only as honest as the object store. Admission therefore reads the pinned HEAD commit
+# and every tree reachable from it as raw bytes, re-computes each id (hash of "<type> <size>\0<payload>" under the repository's
+# object format) and only trusts a listing that matches this verified walk. Blob ids need no separate check: they are only ever
+# compared with the hash of the working-tree bytes, and a verified tree names them.
+MAX_GRAPH_OBJECTS = 2_000_000    # distinct commit/tree objects verified; far above CCF's (hundreds), a refusal beyond it
+MAX_GRAPH_ENTRIES = 5_000_000    # inventory size; stops a tiny hash-valid tree DAG from expanding into an enormous listing
+MAX_GRAPH_OBJECT_BYTES = 64 << 20  # one commit or tree payload
+_TREE_BLOB_MODES = (b'100644', b'100755', b'120000')
+
+class _BatchObjectReader:
+    """`git cat-file --batch` driven one object at a time; yields (type, payload) for a FULL object id after checking the hash."""
+    def __init__(self, lane, algo):
+        argv, env = exact_git_invocation(lane, 'cat-file', '--batch')
+        self.algo = algo; self.hexlen = hashlib.new(algo).digest_size * 2
+        try: self.proc = subprocess.Popen(argv, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        except OSError as e: raise ValueError(f'git could not run: {e}')
+    def close(self):
+        self.proc.kill(); self.proc.wait()
+        for pipe in (self.proc.stdin, self.proc.stdout):
+            try: pipe.close()
+            except OSError: pass
+    def read(self, oid, want_type):
+        if not re.fullmatch('[0-9a-f]{%d}' % self.hexlen, oid): raise ValueError('malformed object id in the Git graph: '+oid)
+        try:
+            self.proc.stdin.write(oid.encode()+b'\n'); self.proc.stdin.flush()
+            header = self.proc.stdout.readline().split()
+            if len(header) == 2 and header[1] == b'missing': raise ValueError('Git object is missing: '+oid)
+            if len(header) != 3 or header[0].decode(errors='replace') != oid or not header[2].isdigit(): raise ValueError('unparseable cat-file header for '+oid)
+            kind, size = header[1], int(header[2])
+            if kind.decode(errors='replace') != want_type: raise ValueError(f'object {oid} is a {kind.decode(errors="replace")}, expected a {want_type}')
+            if size > MAX_GRAPH_OBJECT_BYTES: raise ValueError(f'object {oid} is unreasonably large ({size} bytes)')
+            payload = self.proc.stdout.read(size)
+            if len(payload) != size or self.proc.stdout.read(1) != b'\n': raise ValueError('truncated cat-file output for '+oid)
+        except OSError as e: raise ValueError(f'cat-file failed: {e}')
+        if hashlib.new(self.algo, kind+b' %d\0' % size + payload).hexdigest() != oid:
+            raise ValueError(f'Git object {oid} content does not match its object id (corrupt or forged {want_type})')
+        return payload
+
+def parse_tree_payload(payload, hexlen):
+    """[(mode, name bytes, oid hex)] from raw tree bytes. Modes other than plain files, symlinks and directories (submodules, odd modes)
+    and names that could escape or alias the working tree are refused, as is a repeated name."""
+    rawlen = hexlen // 2; entries = []; names = set(); i = 0
+    while i < len(payload):
+        sp = payload.find(b' ', i); nul = payload.find(b'\0', sp+1) if sp >= 0 else -1
+        if sp < 0 or nul < 0 or nul+1+rawlen > len(payload): raise ValueError('malformed tree object')
+        mode, name, oid = payload[i:sp], payload[sp+1:nul], payload[nul+1:nul+1+rawlen].hex(); i = nul+1+rawlen
+        if mode not in _TREE_BLOB_MODES and mode != b'40000': raise ValueError('unsupported tree entry mode (submodule or unusual mode): '+name.decode(errors='replace'))
+        if not name or name in (b'.', b'..') or b'/' in name or name.lower() == b'.git': raise ValueError('unsafe tree entry name: '+name.decode(errors='replace'))
+        try: name.decode()
+        except UnicodeDecodeError: raise ValueError('git reported a non-UTF-8 path')
+        if name in names: raise ValueError('repeated tree entry name: '+name.decode())
+        names.add(name); entries.append((mode, name, oid))
+    return entries
+
+def verified_head_inventory(lane, head, algo):
+    """{path bytes: (mode, blob oid)} for every tracked file, derived only from hash-verified commit and tree objects.
+    Deterministic, bounded and iterative (no recursion limit, each distinct tree verified once, cycles impossible after hashing but
+    guarded by the object and entry limits). Raises ValueError for any object that is missing, mistyped, mis-hashed or malformed."""
+    reader = _BatchObjectReader(lane, algo)
+    try:
+        commit = reader.read(head, 'commit')
+        first = commit.split(b'\n', 1)[0].split(b' ')
+        if len(first) != 2 or first[0] != b'tree': raise ValueError('commit object does not start with a tree line')
+        root = first[1].decode(errors='replace')
+        parsed = {}; inventory = {}; stack = [(b'', root)]; tree_bytes = 0
+        while stack:
+            prefix, oid = stack.pop()
+            if oid not in parsed:
+                if len(parsed) >= MAX_GRAPH_OBJECTS: raise ValueError('Git graph has too many tree objects to verify')
+                payload = reader.read(oid, 'tree'); tree_bytes += len(payload)
+                parsed[oid] = parse_tree_payload(payload, reader.hexlen)
+            for mode, name, child in parsed[oid]:
+                path = prefix+name
+                if mode == b'40000': stack.append((path+b'/', child))
+                else: inventory[path] = (mode, child)
+                if len(inventory)+len(stack) > MAX_GRAPH_ENTRIES: raise ValueError('Git graph lists too many entries to verify')
+    finally: reader.close()
+    return root, inventory, {'verified_commit': head, 'verified_trees': len(parsed), 'verified_tree_bytes': tree_bytes}
+
 def blob_object_id(fh, size, algo):
     """Object id Git would give these raw bytes (`git hash-object --no-filters`). Streams; refuses if the byte count is not `size`."""
     digest = hashlib.new(algo, b'blob %d\0' % size); count = 0
@@ -178,14 +265,18 @@ def prove_raw_working_tree(lane, pinned_dirty, allowed_ignored):
     descriptors. A size difference is used only to refuse sooner; equality is never inferred from size, mtime or the index.
     Empty untracked directories are tolerated (Git cannot see them and they hold no bytes)."""
     started = time.monotonic(); algo = object_format(lane)
-    entries = parse_ls_tree(git_exact(lane, 'ls-tree', '-r', '-l', '-z', '--full-tree', 'HEAD')[1])
+    head = git_exact(lane, 'rev-parse', '--verify', 'HEAD^{commit}')[1].strip().decode(errors='replace')
+    root_tree, verified, graph_stats = verified_head_inventory(lane, head, algo)  # N-1: ids re-hashed before any listing is believed
+    entries = parse_ls_tree(git_exact(lane, 'ls-tree', '-r', '-l', '-z', '--full-tree', head)[1])
+    if {p: (m, o) for p, (m, o, n) in entries.items()} != verified:
+        raise ValueError('Git tree listing disagrees with the hash-verified object graph')
     ignored_dirs = {x[:-1].encode() for x in allowed_ignored if x.endswith('/')}
     ignored_files = {x.encode() for x in allowed_ignored if not x.endswith('/')}
     for path in entries:  # a tracked path inside an ignored entry would never be proved (the entry is not walked): ambiguous, refuse
         if any(path == ig or path.startswith(ig+b'/') for ig in ignored_dirs | ignored_files):
             raise ValueError('tracked path lies inside an allowed ignored entry: '+path.decode())
     pinned = {x.encode() for x in pinned_dirty}
-    stats = {'object_format': algo, 'tracked_files': len(entries), 'hashed_files': 0, 'hashed_bytes': 0, 'pinned_skipped': 0}
+    stats = {'object_format': algo, 'head_tree': root_tree, **graph_stats, 'tracked_files': len(entries), 'hashed_files': 0, 'hashed_bytes': 0, 'pinned_skipped': 0}
     seen = set(); name_of = lambda rel: rel.decode(errors='replace')
 
     def walk(dirfd, prefix):
