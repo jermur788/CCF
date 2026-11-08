@@ -7,12 +7,14 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 import fcntl
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
 import re
 import stat
 import subprocess
+import time
 import uuid
 from _ccf import ROOT, on_storage, config_read, resolve_lane, require_storage, command, store_checkouts, branch_conflicts
 
@@ -27,6 +29,15 @@ def now(): return datetime.now(timezone.utc).isoformat()
 # hashes, HEADs or lanes. To deactivate: redeploy the previous unity-lock, or let
 # valid_until pass. Reviewed proposal: Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/
 # UNITY-LOCK-EXACT-ADMISSION-SOURCE-PROPOSAL.md
+#
+# What an admission proves (F1-F3 repair, #340). Git's own view of cleanliness (status, diff, index, stat cache, clean filters,
+# replace refs) can be made to lie, so it is only a cheap pre-filter. The authoritative proof is independent of all of it:
+#   1. the object graph is canonical: Git is told to ignore replacement objects, and replace refs, grafts and shallow history are refused;
+#   2. every tracked path outside the pinned dirty set has working-tree bytes whose Git object id equals the id in the canonical
+#      HEAD tree (read from tree objects only, never through the index, stat data or any filter), and the working tree holds no
+#      other file, symlink or special file except inside the allowed ignored entries;
+#   3. the pinned dirty paths keep their exact sha256 / size / mode checks.
+# Anything that cannot be proved (Git error, unreadable file, symlink, submodule, odd mode, unknown object format) refuses.
 # ---------------------------------------------------------------------------
 _MAT = 'Assets/ForestPrototype/Art/SectionFive/'
 # path: (working sha256 protected before-image, sha256 of the blob at the historical HEAD, size in bytes)
@@ -102,11 +113,12 @@ def hash_regular_file(path, keep=False):
     return (digest.hexdigest(), info.st_size, info.st_mode) + ((data,) if keep else ())
 
 def git_exact(lane, *args, ok=(0,)):
-    """Admission-only Git call: no inherited GIT_* redirection, no user/system config, no index refresh, bytes out.
+    """Admission-only Git call: no inherited GIT_* redirection, no user/system config, no index refresh, no replacement
+    objects (F1: HEAD and every blob/tree is the real object, never a `git replace` substitute), bytes out.
     Any exit status outside `ok` or any spawn error is a refusal."""
     env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
-    env.update(GIT_OPTIONAL_LOCKS='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0')
-    try: p = subprocess.run(['git', '-C', str(lane), '-c', 'core.fsmonitor=false', *args], env=env, capture_output=True)
+    env.update(GIT_OPTIONAL_LOCKS='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0', GIT_NO_REPLACE_OBJECTS='1')
+    try: p = subprocess.run(['git', '-C', str(lane), '-c', 'core.fsmonitor=false', '-c', 'core.useReplaceRefs=false', *args], env=env, capture_output=True)
     except OSError as e: raise ValueError(f'git could not run: {e}')
     if p.returncode not in ok: raise ValueError(f'git {args[0]} failed ({p.returncode}): {p.stderr.decode(errors="replace").strip()}')
     return p.returncode, p.stdout
@@ -114,6 +126,116 @@ def git_exact(lane, *args, ok=(0,)):
 def git_paths(raw):
     try: return [x.decode() for x in raw.split(b'\0') if x]
     except UnicodeDecodeError: raise ValueError('git reported a non-UTF-8 path')
+
+OBJECT_FORMATS = ('sha1', 'sha256')  # names double as hashlib algorithms
+_TRACKED_MODES = (b'100644', b'100755', b'120000')
+
+def object_format(lane):
+    fmt = git_exact(lane, 'rev-parse', '--show-object-format')[1].strip().decode(errors='replace')
+    if fmt not in OBJECT_FORMATS: raise ValueError('unsupported Git object format: '+fmt)
+    return fmt
+
+def require_canonical_object_graph(lane, common, want_head):
+    """F1. Replacement refs, grafts and shallow history make `HEAD` mean something other than the commit the pin names.
+    git_exact already reads the real objects; refusing these mechanisms as well keeps every other Git consumer of the lane honest."""
+    if git_exact(lane, 'for-each-ref', '--format=%(refname)', 'refs/replace/')[1].strip():
+        raise ValueError('Git replacement refs (refs/replace/) exist; object identity is not canonical')
+    if os.path.lexists(common/'info'/'grafts'): raise ValueError('Git graft file exists; commit ancestry is not canonical')
+    if git_exact(lane, 'rev-parse', '--is-shallow-repository')[1].strip() != b'false': raise ValueError('shallow Git repository; commit ancestry is not canonical')
+    object_format(lane)
+    if git_exact(lane, 'rev-parse', '--verify', 'HEAD^{commit}')[1].strip().decode(errors='replace') != want_head:
+        raise ValueError('canonical HEAD is not the pinned commit')
+
+def parse_ls_tree(raw):
+    """{path bytes: (mode, object id, size)} from `ls-tree -r -l -z`. Whatever the raw proof cannot judge (submodules, unusual modes,
+    non-UTF-8 or repeated paths, unparseable records) is a refusal rather than a skip."""
+    entries = {}
+    for rec in raw.split(b'\0'):
+        if not rec: continue
+        meta, tab, path = rec.partition(b'\t'); parts = meta.split()
+        if not tab or len(parts) != 4: raise ValueError('unparseable ls-tree record')
+        mode, kind, oid, size = parts
+        if kind != b'blob' or mode not in _TRACKED_MODES: raise ValueError('unsupported tracked entry (submodule or unusual mode): '+path.decode(errors='replace'))
+        if not re.fullmatch(rb'[0-9a-f]{40}|[0-9a-f]{64}', oid) or not size.isdigit(): raise ValueError('unparseable ls-tree record')
+        try: path.decode()
+        except UnicodeDecodeError: raise ValueError('git reported a non-UTF-8 path')
+        if path in entries: raise ValueError('repeated ls-tree path')
+        entries[path] = (mode, oid.decode(), int(size))
+    return entries
+
+def blob_object_id(fh, size, algo):
+    """Object id Git would give these raw bytes (`git hash-object --no-filters`). Streams; refuses if the byte count is not `size`."""
+    digest = hashlib.new(algo, b'blob %d\0' % size); count = 0
+    for chunk in iter(lambda: fh.read(1 << 20), b''):
+        count += len(chunk); digest.update(chunk)
+        if count > size: break
+    if count != size: raise ValueError('file changed while it was being read')
+    return digest.hexdigest()
+
+def prove_raw_working_tree(lane, pinned_dirty, allowed_ignored):
+    """F2/F3. Prove from raw bytes alone that the working tree is the canonical HEAD except the pinned dirty paths (checked separately).
+    Reads tree objects with ls-tree (no index, stat data, status or filter), then walks the directory tree through O_NOFOLLOW
+    descriptors. A size difference is used only to refuse sooner; equality is never inferred from size, mtime or the index.
+    Empty untracked directories are tolerated (Git cannot see them and they hold no bytes)."""
+    started = time.monotonic(); algo = object_format(lane)
+    entries = parse_ls_tree(git_exact(lane, 'ls-tree', '-r', '-l', '-z', '--full-tree', 'HEAD')[1])
+    ignored_dirs = {x[:-1].encode() for x in allowed_ignored if x.endswith('/')}
+    ignored_files = {x.encode() for x in allowed_ignored if not x.endswith('/')}
+    for path in entries:  # a tracked path inside an ignored entry would never be proved (the entry is not walked): ambiguous, refuse
+        if any(path == ig or path.startswith(ig+b'/') for ig in ignored_dirs | ignored_files):
+            raise ValueError('tracked path lies inside an allowed ignored entry: '+path.decode())
+    pinned = {x.encode() for x in pinned_dirty}
+    stats = {'object_format': algo, 'tracked_files': len(entries), 'hashed_files': 0, 'hashed_bytes': 0, 'pinned_skipped': 0}
+    seen = set(); name_of = lambda rel: rel.decode(errors='replace')
+
+    def walk(dirfd, prefix):
+        with os.scandir(dirfd) as it: items = sorted(it, key=lambda e: e.name)
+        for e in items:
+            name = os.fsencode(e.name); rel = prefix+name
+            if e.is_symlink(): kind = 'symlink'
+            elif e.is_dir(follow_symlinks=False): kind = 'dir'
+            elif e.is_file(follow_symlinks=False): kind = 'file'
+            else: kind = 'special file'
+            if kind == 'dir':
+                if rel in ignored_dirs: continue
+                sub = os.open(e.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=dirfd)
+                try: walk(sub, rel+b'/')
+                finally: os.close(sub)
+                continue
+            if rel == b'.git':  # the worktree's own pointer file
+                if kind != 'file': raise ValueError('lane .git entry is not a regular file')
+                continue
+            if rel in ignored_files and kind == 'file': continue
+            want = entries.get(rel)
+            if want is None: raise ValueError(f'untracked {kind} in the working tree: {name_of(rel)}')
+            mode, oid, size = want
+            if kind == 'special file': raise ValueError(f'tracked path is a special file in the working tree: {name_of(rel)}')
+            if kind == 'symlink':
+                if mode != b'120000': raise ValueError(f'tracked regular file was replaced by a symlink: {name_of(rel)}')
+                target = os.fsencode(os.readlink(e.name, dir_fd=dirfd))
+                if blob_object_id(io.BytesIO(target), len(target), algo) != oid: raise ValueError(f'tracked symlink target differs from the canonical HEAD blob: {name_of(rel)}')
+            else:
+                if mode == b'120000': raise ValueError(f'tracked symlink was replaced by a regular file: {name_of(rel)}')
+                if rel in pinned: stats['pinned_skipped'] += 1
+                else:
+                    fd = os.open(e.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=dirfd)
+                    with os.fdopen(fd, 'rb') as f:
+                        info = os.fstat(f.fileno())
+                        if not stat.S_ISREG(info.st_mode): raise ValueError(f'tracked path is a special file in the working tree: {name_of(rel)}')
+                        if info.st_size != size or blob_object_id(f, info.st_size, algo) != oid:
+                            raise ValueError(f'working file differs from the canonical HEAD blob (raw bytes): {name_of(rel)}')
+                    stats['hashed_files'] += 1; stats['hashed_bytes'] += size
+            seen.add(rel)
+
+    try:
+        root = os.open(lane, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+        try: walk(root, b'')
+        finally: os.close(root)
+    except OSError as e: raise ValueError(f'raw tracked-byte proof could not read the working tree: {e}')
+    missing = sorted(set(entries)-seen)
+    if missing: raise ValueError(f'tracked path missing from the working tree ({len(missing)}): {name_of(missing[0])}')
+    stats['seconds'] = round(time.monotonic()-started, 3)
+    return stats
 
 def verify_exact_evidence(prof):
     """The preserved #318 copies must exist unmodified and agree with the pinned table above."""
@@ -152,7 +274,8 @@ def admit_exact_dirty(a, lane, configured, common, branch, head):
         raise ValueError('exact admission is limited to the profile lane, path and Git store')
     if branch != prof['branch'] or head != st['head']: raise ValueError('lane branch/HEAD is not the pinned exact-admission state')
     verify_exact_evidence(prof)
-    # Git view: status must show only the pinned modified paths (unstaged), no untracked, only allowed ignored.
+    require_canonical_object_graph(lane, common, st['head'])
+    # Git view (a cheap pre-filter only: the raw-byte proof below is what admission rests on): status must show only the pinned modified paths (unstaged), no untracked, only allowed ignored.
     _, out = git_exact(lane, 'status', '--porcelain=v1', '-z', '--untracked-files=normal', '--ignored=traditional', '--no-renames')
     modified = set()
     for entry in git_paths(out):
@@ -183,10 +306,14 @@ def admit_exact_dirty(a, lane, configured, common, branch, head):
         if (work, size, mode) != (want_work, want_size, prof['file_mode']) or blob != want_head:
             raise ValueError('protected bytes/size/mode/HEAD-blob mismatch: '+path)
         before[path] = {'sha256': work, 'head_blob_sha256': blob, 'size': size, 'mode': oct(mode)}
+    # Every other tracked byte, and the absence of anything else, from raw bytes (F2/F3).
+    raw_proof = prove_raw_working_tree(lane, set(st['dirty']), prof['allowed_ignored'])
+    head_tree = git_exact(lane, 'rev-parse', 'HEAD^{tree}')[1].decode().strip()
     return {'profile': a.exact_admission, 'state': a.exact_admission_state, 'digest': a.exact_admission_digest,
             'lane': str(lane), 'branch': branch, 'head': head, 'owner': a.owner, 'task_id': a.task_id,
             'reason': a.exact_admission_reason, 'receipt': a.exact_admission_receipt,
-            'evidence_manifest_sha256': prof['evidence_manifest_sha256'], 'before': before, 'checked_at': now()}
+            'evidence_manifest_sha256': prof['evidence_manifest_sha256'], 'before': before,
+            'head_tree': head_tree, 'raw_proof': raw_proof, 'checked_at': now()}
 
 def process_identity(pid):
     try:
