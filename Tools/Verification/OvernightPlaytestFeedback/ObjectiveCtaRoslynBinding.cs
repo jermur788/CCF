@@ -5,7 +5,10 @@
 //   * the compile errors (a source set that does not compile is never accepted by the Python rules),
 //   * every type named ScenarioOneUiRoot with its declaring files and resolved base type, and
 //   * every member access in the root's declaring files whose receiver is spelled `Time` or `DisplayStyle`,
-//     with the semantic symbol of the receiver and of the member, and any identifier use outside such a receiver.
+//     with the semantic symbol of the receiver and of the member, and any identifier use outside such a receiver,
+//   * every candidate Objectives visibility assignment with its enclosing callable and method (#330/A329-01:
+//     the Python rules require the real `Update()` method site, not a same-string statement elsewhere), and
+//   * the root's members named `Update`, so their shape can be required fail-closed.
 // objective_cta_roslyn_binding.py owns the pass/fail rules and the build/run plumbing.
 //
 // Usage: dotnet ObjectiveCtaRoslynBinding.dll <sourceRoot> <referenceListFile> <definesSemicolonList> <outJson> [overlayRoot]
@@ -25,6 +28,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 static class ObjectiveCtaRoslynBinding
 {
     const string RootTypeName = "ScenarioOneUiRoot";
+    const string UpdateMethodName = "Update";
+    // The reviewed Objectives panel visibility assignment (#330/A329-01). The text is normalised before
+    // comparison so layout and a harmless `this.`/`global::` qualification do not change the shape.
+    const string UpdateSiteLeft = "learning.Root.style.display";
     static readonly HashSet<string> ReviewedReceivers = new HashSet<string> { "Time", "DisplayStyle" };
 
     static int Main(string[] args)
@@ -159,6 +166,37 @@ static class ObjectiveCtaRoslynBinding
             }
         }
 
+        // #330 (A329-01): report every candidate Objectives visibility assignment with the callable that
+        // encloses it and the enclosing method, so the Python rules can bind the statement to the actual
+        // Update() member instead of accepting a same-string statement in an uncalled method.
+        var updateSites = new List<object>();
+        foreach (string file in siteFiles)
+        {
+            SyntaxTree tree = trees[file];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            foreach (var assignment in tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                         .Where(a => a.IsKind(SyntaxKind.SimpleAssignmentExpression) && IsObjectivesVisibilityUpdate(a)))
+            {
+                var conditional = assignment.Right as ConditionalExpressionSyntax;
+                updateSites.Add(new
+                {
+                    file,
+                    line = assignment.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
+                    text = assignment.ToString(),
+                    leftText = NormalizedLeft(assignment.Left),
+                    leftReceiver = Describe(model.GetSymbolInfo(LeftmostIdentifier(assignment.Left))),
+                    whenTrue = conditional == null ? null : ArmFact(model, conditional.WhenTrue),
+                    whenFalse = conditional == null ? null : ArmFact(model, conditional.WhenFalse),
+                    objectives = conditional == null
+                        ? new List<object>()
+                        : conditional.Condition.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>()
+                            .Where(m => IsSpelled(m, "UiScreen", "Objectives")).Select(m => ArmFact(model, m)).ToList(),
+                    callable = EnclosingCallable(model, assignment),
+                    method = EnclosingMethod(model, assignment)
+                });
+            }
+        }
+
         return new
         {
             label,
@@ -179,9 +217,11 @@ static class ObjectiveCtaRoslynBinding
                 declaringFiles = t.DeclaringSyntaxReferences.Select(r => r.SyntaxTree.FilePath)
                     .Distinct(StringComparer.Ordinal).OrderBy(p => p, StringComparer.Ordinal).ToList(),
                 baseType = t.BaseType == null ? null : Symbol(t.BaseType),
-                baseChain = BaseChain(t)
+                baseChain = BaseChain(t),
+                updateMembers = t.GetMembers(UpdateMethodName).Select(MemberFact).ToList()
             }).ToList(),
             sites,
+            updateSites,
             otherOccurrences = others
         };
     }
@@ -205,6 +245,122 @@ static class ObjectiveCtaRoslynBinding
         if (id.Parent is MemberAccessExpressionSyntax direct && direct.Expression == id) return true;
         return id.Parent is MemberAccessExpressionSyntax named && named.Name == id
             && named.Parent is MemberAccessExpressionSyntax outer && outer.Expression == named;
+    }
+
+    // ---- #330 (A329-01): Objectives visibility update and its enclosing method --------------------------
+
+    // Whitespace/`@`-insensitive text of an assignment target, with a leading `this.` or `global::`
+    // qualifier stripped: layout and harmless qualification must not change the reviewed shape.
+    static string NormalizedLeft(ExpressionSyntax expression)
+    {
+        string text = System.Text.RegularExpressions.Regex.Replace(expression.ToString(), @"[\s@]", "");
+        if (text.StartsWith("this.")) text = text.Substring("this.".Length);
+        if (text.StartsWith("global::")) text = text.Substring("global::".Length);
+        return text;
+    }
+
+    // The receiver identifier of a member-access chain (`learning` in learning.Root.style.display).
+    static IdentifierNameSyntax LeftmostIdentifier(ExpressionSyntax expression)
+    {
+        ExpressionSyntax current = expression;
+        while (true)
+        {
+            if (current is MemberAccessExpressionSyntax access)
+            {
+                if (access.Expression is ThisExpressionSyntax) return access.Name as IdentifierNameSyntax;
+                current = access.Expression;
+            }
+            else if (current is AliasQualifiedNameSyntax qualified) return qualified.Name as IdentifierNameSyntax;
+            else return current as IdentifierNameSyntax;
+        }
+    }
+
+    static bool IsSpelled(MemberAccessExpressionSyntax access, string receiver, string member) =>
+        access.IsKind(SyntaxKind.SimpleMemberAccessExpression)
+        && RightmostName(access.Expression) == receiver && access.Name.Identifier.ValueText == member;
+
+    static bool IsArm(ExpressionSyntax expression, string member) =>
+        expression is MemberAccessExpressionSyntax access && IsSpelled(access, "DisplayStyle", member);
+
+    // A candidate for the Objectives visibility update: the reviewed assignment target, or the reviewed
+    // Objectives conditional (`? DisplayStyle.Flex : DisplayStyle.None` with an `UiScreen.Objectives` test).
+    static bool IsObjectivesVisibilityUpdate(AssignmentExpressionSyntax assignment)
+    {
+        if (NormalizedLeft(assignment.Left) == UpdateSiteLeft) return true;
+        if (!(assignment.Right is ConditionalExpressionSyntax conditional)) return false;
+        return IsArm(conditional.WhenTrue, "Flex") && IsArm(conditional.WhenFalse, "None")
+            && conditional.Condition.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>()
+                .Any(m => IsSpelled(m, "UiScreen", "Objectives"));
+    }
+
+    // One `Receiver.Member` occurrence (an arm of the conditional, or the UiScreen.Objectives test).
+    // A shape that is not such an access reports null and is rejected fail-closed by the Python rules.
+    static object ArmFact(SemanticModel model, ExpressionSyntax expression)
+    {
+        if (!(expression is MemberAccessExpressionSyntax access)) return null;
+        return new
+        {
+            text = access.ToString(),
+            member = access.Name.Identifier.ValueText,
+            receiver = Describe(model.GetSymbolInfo(access.Expression)),
+            memberSymbol = Describe(model.GetSymbolInfo(access))
+        };
+    }
+
+    // Shape of a callable/member: kind, name and the symbol facts the Python rules require fail-closed.
+    static object CallableFact(string kind, string name, IMethodSymbol symbol) => new
+    {
+        kind,
+        name,
+        display = symbol == null ? null : symbol.ToDisplayString(),
+        containingType = symbol == null ? null : symbol.ContainingType?.ToDisplayString(),
+        parameterCount = symbol == null ? 0 : symbol.Parameters.Length,
+        returnType = symbol == null ? null : (symbol.ReturnsVoid ? "void" : symbol.ReturnType.ToDisplayString()),
+        isGeneric = symbol != null && symbol.IsGenericMethod
+    };
+
+    // The nearest enclosing callable: a local function or lambda boundary is NOT the Update() method,
+    // even when its text lies inside Update's body.
+    static object EnclosingCallable(SemanticModel model, SyntaxNode node)
+    {
+        foreach (SyntaxNode ancestor in node.Ancestors())
+        {
+            if (ancestor is MethodDeclarationSyntax method)
+                return CallableFact("MethodDeclaration", method.Identifier.ValueText, model.GetDeclaredSymbol(method) as IMethodSymbol);
+            if (ancestor is LocalFunctionStatementSyntax local)
+                return CallableFact("LocalFunction", local.Identifier.ValueText, model.GetDeclaredSymbol(local) as IMethodSymbol);
+            if (ancestor is AnonymousFunctionExpressionSyntax)
+                return CallableFact("AnonymousFunction", null, null);
+            if (ancestor is ConstructorDeclarationSyntax constructor)
+                return CallableFact("Constructor", constructor.Identifier.ValueText, model.GetDeclaredSymbol(constructor) as IMethodSymbol);
+            if (ancestor is BaseMethodDeclarationSyntax || ancestor is BasePropertyDeclarationSyntax)
+                return CallableFact("OtherMember", null, null);
+        }
+        return null;
+    }
+
+    static object EnclosingMethod(SemanticModel model, SyntaxNode node)
+    {
+        var method = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+        return method == null
+            ? null
+            : CallableFact("MethodDeclaration", method.Identifier.ValueText, model.GetDeclaredSymbol(method) as IMethodSymbol);
+    }
+
+    // A root member named `Update`: any kind, so a property/field/generic shape fails closed in the rules.
+    static object MemberFact(ISymbol symbol)
+    {
+        var method = symbol as IMethodSymbol;
+        return new
+        {
+            kind = symbol.Kind.ToString(),
+            name = symbol.Name,
+            display = symbol.ToDisplayString(),
+            containingType = symbol.ContainingType?.ToDisplayString(),
+            parameterCount = method == null ? 0 : method.Parameters.Length,
+            returnType = method == null ? null : (method.ReturnsVoid ? "void" : method.ReturnType.ToDisplayString()),
+            isGeneric = method != null && method.IsGenericMethod
+        };
     }
 
     static List<string> BaseChain(INamedTypeSymbol type)

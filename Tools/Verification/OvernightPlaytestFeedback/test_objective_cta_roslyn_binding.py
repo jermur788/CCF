@@ -5,7 +5,8 @@ Sections (each prints its own tally; the exit code is 0 only when every section 
   A  rules       evaluate() on synthetic reporter output: every rule has a failing and a passing input (no .NET).
   B  semantic    real Roslyn over the checkout with source overlays: the #321 witnesses S05/S06/S07, the #326 tuple
                  and uncollected-file false greens, further rebinding negatives that must fail for their intended
-                 semantic cause, and benign overlays that must stay accepted.
+                 semantic cause, the #330/A329-01 method-site negatives (the Objectives visibility update must sit
+                 in the actual Update() method), and benign overlays that must stay accepted.
   C  fail-closed missing/corrupt references, wrong SDK, wrong compiler, no dotnet, bad topology, compile error,
                  tool crash, unreadable output. Each must be a completed ObjectiveCtaBindingError.
   D  end-to-end  the REAL check_baseline.py in a disposable clone: negatives exit 1 as 9 PASS/1 FAIL/2 NOT-TESTABLE
@@ -65,12 +66,55 @@ def _site(name, member, line=10):
                              "candidateReason": "None", "candidates": []}}
 
 
+def _call(kind="MethodDeclaration", name="Update", display="void ScenarioOneUiRoot.Update()",
+          containing=binding.ROOT_TYPE, parameter_count=0, return_type="void", generic=False):
+    return {"kind": kind, "name": name, "display": display, "containingType": containing,
+            "parameterCount": parameter_count, "returnType": return_type, "isGeneric": generic}
+
+
+def _update_member(kind="Method", name="Update", display="void ScenarioOneUiRoot.Update()",
+                   parameter_count=0, return_type="void", generic=False, containing=binding.ROOT_TYPE):
+    return _call(kind, name, display, containing, parameter_count, return_type, generic)
+
+
+def _arm(member):
+    type_name, assembly, member_kind = binding.RECEIVERS["DisplayStyle"]
+    return {"text": f"DisplayStyle.{member}", "member": member,
+            "receiver": {"symbol": _symbol("NamedType", type_name, assembly), "candidateReason": "None", "candidates": []},
+            "memberSymbol": {"symbol": _symbol(member_kind, type_name + "." + member, assembly, containing=type_name),
+                             "candidateReason": "None", "candidates": []}}
+
+
+def _objectives():
+    enum = binding.SCREEN_ENUM_TYPE
+    return {"text": "UiScreen.Objectives", "member": "Objectives",
+            "receiver": {"symbol": _symbol("NamedType", enum, "Assembly-CSharp", metadata=False),
+                         "candidateReason": "None", "candidates": []},
+            "memberSymbol": {"symbol": _symbol("Field", enum + ".Objectives", "Assembly-CSharp", metadata=False,
+                                               containing=enum),
+                             "candidateReason": "None", "candidates": []}}
+
+
+def _update_site():
+    root = binding.ROOT_TYPE
+    return {"file": ROOT_FILE, "line": 235,
+            "text": ("learning.Root.style.display = !preview && screen == UiScreen.Objectives "
+                     "? DisplayStyle.Flex : DisplayStyle.None;"),
+            "leftText": binding.UPDATE_SITE_LEFT,
+            "leftReceiver": {"symbol": _symbol("Field", binding.UPDATE_SITE_FIELD, "Assembly-CSharp",
+                                               metadata=False, containing=root),
+                             "candidateReason": "None", "candidates": []},
+            "whenTrue": _arm("Flex"), "whenFalse": _arm("None"), "objectives": [_objectives()],
+            "callable": _call(), "method": _call()}
+
+
 def good_result():
     sites = [_site(n, m) for (n, m), count in binding.EXPECTED_SITES.items() for _ in range(count)]
     return {"label": "BASELINE", "fileCount": 3, "sourceSetSha256": "0" * 64, "errorCount": 0, "errors": [],
             "rootTypes": [{"display": binding.ROOT_TYPE, "kind": "Class", "declaringFiles": [ROOT_FILE],
-                           "baseType": _symbol("NamedType", *binding.BASE_TYPE[:1], binding.BASE_TYPE[1]), "baseChain": []}],
-            "sites": sites, "otherOccurrences": []}
+                           "baseType": _symbol("NamedType", *binding.BASE_TYPE[:1], binding.BASE_TYPE[1]), "baseChain": [],
+                           "updateMembers": [_update_member()]}],
+            "sites": sites, "updateSites": [_update_site()], "otherOccurrences": []}
 
 
 def rules_section():
@@ -105,9 +149,41 @@ def rules_section():
     case("A-19 an unpinned member on a reviewed receiver", "[site count]", lambda r: r["sites"].append(_site("Time", "frameCount") | {"member": "deltaTime"}))
     case("A-20 identifier used outside a member access", "[site]", lambda r: r["otherOccurrences"].append(
         {"file": ROOT_FILE, "line": 1, "name": "Time", "parentKind": "Argument", "text": "f(Time)"}))
+    # #330 (A329-01): the Objectives visibility assignment must be bound to the actual Update() method
+    case("A-21 the update site is missing", "[update site]", lambda r: r.update(updateSites=[]), "found 0")
+    case("A-22 the update site is duplicated", "[update site]", lambda r: r["updateSites"].append(_update_site()), "found 2")
+    case("A-23 the update site is in an uncalled method", "[update site]",
+         lambda r: r["updateSites"][0]["callable"].update(name="ReviewUnusedPanel",
+                                                          display="void ScenarioOneUiRoot.ReviewUnusedPanel(bool)"),
+         "must be inside the actual ScenarioOneUiRoot.Update() method")
+    case("A-24 the update site is in a local function inside Update", "[update site]",
+         lambda r: r["updateSites"][0]["callable"].update(kind="LocalFunction", name="ZHidePanel",
+                                                          display="void ScenarioOneUiRoot.Update.ZHidePanel()"),
+         "LocalFunction ZHidePanel")
+    case("A-25 the update site has a different assignment target", "[update site]",
+         lambda r: r["updateSites"][0].update(leftText="hud.Root.style.display"), "not the reviewed receiver")
+    case("A-26 the receiver `learning` binds to a local", "[update site]",
+         lambda r: r["updateSites"][0]["leftReceiver"].update(
+             symbol=_symbol("Local", "learning", "Assembly-CSharp", metadata=False)),
+         "receiver `learning` binds to")
+    case("A-27 the Flex arm binds to a source property", "[update site]",
+         lambda r: r["updateSites"][0]["whenTrue"]["memberSymbol"].update(
+             symbol=_symbol("Property", "ZStyle.Flex", "Assembly-CSharp", metadata=False, containing="ZStyle")),
+         "not a field of the metadata enum")
+    case("A-28 the condition does not test UiScreen.Objectives", "[update site]",
+         lambda r: r["updateSites"][0].update(objectives=[]), "must test `UiScreen.Objectives`")
+    case("A-29 Update takes a parameter", "[update site]",
+         lambda r: r["rootTypes"][0].update(updateMembers=[_update_member(parameter_count=1, display="void ScenarioOneUiRoot.Update(int)")]),
+         "expected exactly one instance method")
+    case("A-30 two members named Update", "[update site]",
+         lambda r: r["rootTypes"][0]["updateMembers"].append(
+             _update_member(parameter_count=1, display="void ScenarioOneUiRoot.Update(int)")),
+         "expected exactly one instance method")
     for label, tag, text, result in cases:
         problems = binding.evaluate(result)
-        check(problems and any(tag in p for p in problems), f"{label}: expected a {tag} problem, got {problems[:2]}")
+        joined = " | ".join(problems)
+        check(problems and any(tag in p for p in problems) and (text is None or text in joined),
+              f"{label}: expected a {tag} problem containing {text!r}, got {problems[:2]}")
     print(f"   rules: {len(cases)} negatives each rejected for its tag; the expected report accepted")
 
 
@@ -197,6 +273,43 @@ def semantic_cases():
     add("X328-N12", "neg", "a new Time.deltaTime site appears", (ROOT_FILE, SHOW, "private float ZDelta() { return Time.deltaTime; }\n    " + SHOW),
         expect=["[site count]", "Time.deltaTime: Roslyn found 1", "expected 0"])
     add("X328-N13", "neg", "the source set stops compiling", (ROOT_FILE, SHOW, "private int ZBad = \"x\";\n    " + SHOW), expect=["[compile]", "CS0029"])
+    # #330 (A329-01): the Objectives visibility update must sit in the actual Update() method
+    add("X330-N01", "neg", "A329-01 verbatim: the update is moved into an uncalled method before ShowObjectives",
+        (ROOT_FILE, "        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+                    "        // reviewer: visibility update moved into an uncalled method"),
+        (ROOT_FILE, SHOW,
+            "private void ReviewUnusedPanel(bool preview) { learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None; }\n    " + SHOW),
+        expect=["[update site]", "must be inside the actual ScenarioOneUiRoot.Update() method", "ReviewUnusedPanel"],
+        e2e=("semantic", "must be inside the actual ScenarioOneUiRoot.Update() method"))
+    add("X330-N02", "neg", "the identical assignment is duplicated into an uncalled method (Update keeps its copy)",
+        (ROOT_FILE, SHOW,
+            "private void ReviewUnusedPanel(bool preview) { learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None; }\n    " + SHOW),
+        expect=["[update site]", "Roslyn found 2"],
+        e2e=("lexical", "expected exactly one reviewed occurrence"))
+    add("X330-N03", "neg", "the update hides in an uncalled local function inside Update",
+        (ROOT_FILE, "        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+                    "        void ZHidePanel()\n        {\n"
+                    "            learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;\n"
+                    "        }"),
+        expect=["[update site]", "must be inside the actual ScenarioOneUiRoot.Update() method", "LocalFunction ZHidePanel"],
+        e2e=("semantic", "must be inside the actual ScenarioOneUiRoot.Update() method"))
+    add("X330-N04", "neg", "the update lives in a decoy type's own Update() in the same file",
+        (ROOT_FILE, "        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+                    "        // visibility update moved into a decoy type below"),
+        (ROOT_FILE, SHOW,
+            "private class ZDecoyPanel\n    {\n        private LearningObjectivesView learning;\n        private void Update()\n        {\n"
+            "            bool preview = false;\n            UiScreen screen = UiScreen.Objectives;\n"
+            "            learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;\n"
+            "        }\n    }\n\n    " + SHOW),
+        expect=["[update site]", "not the reviewed field ScenarioOneUiRoot.learning",
+                "MethodDeclaration Update of ScenarioOneUiRoot.ZDecoyPanel"])
+    add("X330-N05", "neg", "the assignment is removed from Update while its symbols stay in another method",
+        (ROOT_FILE, "        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+                    "        // reviewer: assignment removed; the symbols stay in a method below"),
+        (ROOT_FILE, SHOW,
+            "private void ReviewUnusedPanel(bool preview) { var visible = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None; }\n    " + SHOW),
+        expect=["[update site]", "expected exactly one Objectives visibility assignment", "found 0"],
+        e2e=("lexical", "expected exactly one reviewed occurrence"))
     # benign overlays: valid C# that must not be rejected
     add("A326-B01", "benign", "UiKit-local alias to the real Time", (UIKIT, "using System;", "using System;\nusing Z = UnityEngine.Time;"), e2e=("accept", None))
     add("A326-B03", "benign", "unrelated global types in UiKit", (UIKIT, kit, kit + clock_host), e2e=("accept", None))
@@ -210,6 +323,16 @@ def semantic_cases():
         (ROOT_FILE, "helpClosedFrame = Time.frameCount;", "helpClosedFrame = UnityEngine.Time.frameCount;"))
     add("X328-B08", "benign", "root alias Time to the real UnityEngine.Time", (ROOT_FILE, ANCHOR_USING, ANCHOR_USING + "\nusing Time = UnityEngine.Time;"))
     add("X328-B09", "benign", "root using static UnityEngine.Mathf", (ROOT_FILE, ANCHOR_USING, ANCHOR_USING + "\nusing static UnityEngine.Mathf;"))
+    add("X330-B10", "benign", "the same assignment inside a nested block of Update (legitimate syntax)",
+        (ROOT_FILE, "        learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;",
+                    "        {\n            // panel visibility refreshed every frame from Update\n"
+                    "            learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;\n        }"),
+        e2e=("accept", None))
+    add("X330-B11", "benign", "a comment quoting the statement and Update, plus an unrelated uncalled method",
+        (ROOT_FILE, SHOW,
+            "// Update() owns the panel refresh: learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;\n"
+            "    private void ReviewUnusedPanel() { }\n    " + SHOW),
+        e2e=("accept", None))
     return cases
 
 

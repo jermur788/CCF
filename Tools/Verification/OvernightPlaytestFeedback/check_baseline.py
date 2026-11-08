@@ -259,6 +259,8 @@ def check(rotation_state="pre-fix", instruction_state="pre-fix"):
                "(reviewed root names include the base header; collected companion type collisions are guarded lexically); "
                "ScenarioOneUiRoot derives from UnityEngine.MonoBehaviour and its pinned Time.frameCount / Time.unscaledTime / DisplayStyle.Flex / DisplayStyle.None "
                "receivers bind to the Unity metadata types by Roslyn, with fail-closed tooling; "
+               "the Objectives panel visibility update must be a statement of the actual ScenarioOneUiRoot.Update() method "
+               "(an identical statement in an uncalled method, local function, lambda or other type is rejected); "
                "(unpinned root members and callers and the game/teaching state are not checked); "
                "Back to forest is the only static btn-primary source in the view class and is in the scoped "
                "demotion set; pinned scoped primary-class restoration/demotion, Help/preview/visibility guards and "

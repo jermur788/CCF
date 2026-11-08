@@ -13,9 +13,14 @@ ObjectiveCtaRoslynBinding.cs reports for ScenarioOneUiRoot:
   2. every `Time.<member>` receiver in it is the metadata type UnityEngine.Time and every member is a
      property of that type, with the pinned counts (frameCount 3, unscaledTime 2);
   3. every `DisplayStyle.<member>` receiver is the metadata enum UnityEngine.UIElements.DisplayStyle
-     and every member is an enum field of it, with the pinned counts (Flex 9, None 13).
+     and every member is an enum field of it, with the pinned counts (Flex 9, None 13);
+  4. the Objectives panel visibility assignment (`learning.Root.style.display = ... ? DisplayStyle.Flex :
+     DisplayStyle.None`, condition testing UiScreen.Objectives) is a statement of the actual `Update()`
+     method of ScenarioOneUiRoot (#330 / A329-01: an identical statement in an uncalled method, a local
+     function or a lambda, or in another type, is NOT accepted), with exactly one `void Update()` member.
 Everything else FAILS CLOSED: wrong or missing SDK, Roslyn or reference file, compile errors, an unexpected
-source topology, a missing, extra, unresolved or ambiguous site, or tool output that cannot be read.
+source topology, a missing, extra, unresolved or ambiguous site or update assignment, a moved/duplicated
+update site, a wrong receiver or an unknown Update method shape, or tool output that cannot be read.
 
 This is an offline source approximation. It is NOT Unity compilation and proves nothing about the native
 UI. Roslyn here is the .NET 8.0.133 SDK compiler at C# 9; Unity's own compiler, analyzers and generators
@@ -65,6 +70,17 @@ RECEIVERS = {
 # number, or any other member on these receivers, is a changed or hidden site and must be reviewed.
 EXPECTED_SITES = {("Time", "frameCount"): 3, ("Time", "unscaledTime"): 2,
                   ("DisplayStyle", "Flex"): 9, ("DisplayStyle", "None"): 13}
+# #330 (A329-01): the Objectives panel visibility update must run every frame from the actual `Update()`
+# member of ScenarioOneUiRoot, not merely exist somewhere in the class: an identical statement in an
+# uncalled method preserves all 27 site identities above while the per-frame panel update stops running.
+# The reporter lists candidate assignments with their enclosing callable/method; these pins define the
+# reviewed shape and the rules below bind it fail-closed (reporter candidates match either the reviewed
+# assignment target or the reviewed Objectives conditional, so a reshaped statement cannot escape quietly).
+UPDATE_SITE_LEFT = "learning.Root.style.display"
+UPDATE_SITE_METHOD = "Update"
+UPDATE_SITE_FIELD = ROOT_TYPE + ".learning"          # the reviewed receiver the left side must bind to
+SCREEN_ENUM_TYPE = ROOT_TYPE + ".UiScreen"           # the nested enum holding the Objectives member
+DISPLAY_STYLE_TYPE, DISPLAY_STYLE_ASSEMBLY = "UnityEngine.UIElements.DisplayStyle", "UnityEngine.UIElementsModule"
 # Unity compiles these folders into other assemblies, and an assembly definition splits Assembly-CSharp:
 # the single-assembly model below would then be wrong, so such a tree is refused rather than approximated.
 _SPLIT_FILES = re.compile(r"\.(asmdef|asmref|rsp)$", re.I)
@@ -213,6 +229,14 @@ def _is_symbol(info, kind=None, display=None, assembly=None, containing=None):
                 and not symbol["isTupleElement"])
 
 
+def _is_source_symbol(info, kind, display, containing=None):
+    """Like _is_symbol, but for a symbol declared in this source set (the learning field, the UiScreen enum)."""
+    symbol = (info or {}).get("symbol")
+    return bool(symbol and not symbol["isMetadata"] and symbol["kind"] == kind and symbol["display"] == display
+                and (containing is None or symbol["containingType"] == containing)
+                and not symbol["isTupleElement"])
+
+
 def _describe(info):
     symbol = info.get("symbol")
     if not symbol:
@@ -221,6 +245,69 @@ def _describe(info):
     place = f"metadata {symbol['containingAssembly']}" if symbol["isMetadata"] else "source in this project"
     tuple_note = ", tuple element" if symbol["isTupleElement"] else ""
     return f"{symbol['kind']} {symbol['display']} ({place}{tuple_note})"
+
+
+def _update_site_problems(result, root):
+    """#330 (A329-01): the Objectives visibility assignment must sit in the actual `Update()` member.
+
+    The site counts above cannot see this: moving the unchanged statement into an uncalled method keeps
+    every symbol identity intact while the per-frame panel update stops running. These rules bind the
+    assignment to the reviewed receiver, the metadata DisplayStyle fields, the UiScreen.Objectives test
+    and the enclosing Update() method (shape fail-closed: exactly one plain `void Update()` member, and
+    no local function, lambda or other callable between the statement and that method)."""
+    problems = []
+    members = root.get("updateMembers", [])
+    shape_ok = (len(members) == 1 and members[0].get("kind") == "Method"
+                and members[0].get("name") == UPDATE_SITE_METHOD and members[0].get("parameterCount") == 0
+                and members[0].get("returnType") == "void" and not members[0].get("isGeneric")
+                and members[0].get("containingType") == ROOT_TYPE)
+    if not shape_ok:
+        found = ", ".join(m.get("display") or m.get("name") or "?" for m in members) or "none"
+        problems.append(f"[update site] {ROOT_TYPE} declares {len(members)} member(s) named {UPDATE_SITE_METHOD}, "
+                        f"expected exactly one instance method `void Update()` for Unity to call (found: {found})")
+    sites = result.get("updateSites", [])
+    if len(sites) != 1:
+        problems.append(f"[update site] expected exactly one Objectives visibility assignment to "
+                        f"`{UPDATE_SITE_LEFT}` in {ROOT_FILE}, Roslyn found {len(sites)} (missing, duplicated or reshaped)")
+        return problems
+    site = sites[0]
+    where = f"{site.get('file')}:{site.get('line')}"
+    text = site.get("text", "?")
+    if site.get("leftText") != UPDATE_SITE_LEFT:
+        problems.append(f"[update site] `{text}` at {where}: assignment target is `{site.get('leftText')}`, "
+                        f"not the reviewed receiver `{UPDATE_SITE_LEFT}`")
+    elif not _is_source_symbol(site.get("leftReceiver"), "Field", UPDATE_SITE_FIELD, ROOT_TYPE):
+        problems.append(f"[update site] `{text}` at {where}: receiver `learning` binds to "
+                        f"{_describe(site.get('leftReceiver') or {})}, not the reviewed field {UPDATE_SITE_FIELD}")
+    for arm, member in ((site.get("whenTrue"), "Flex"), (site.get("whenFalse"), "None")):
+        arm = arm or {}
+        if (arm.get("member") != member
+                or not _is_symbol(arm.get("receiver") or {}, "NamedType", DISPLAY_STYLE_TYPE, DISPLAY_STYLE_ASSEMBLY)
+                or not _is_symbol(arm.get("memberSymbol") or {}, "Field", containing=DISPLAY_STYLE_TYPE)):
+            problems.append(f"[update site] `{text}` at {where}: the `DisplayStyle.{member}` arm binds to "
+                            f"{_describe(arm.get('memberSymbol') or arm.get('receiver') or {})}, "
+                            f"not a field of the metadata enum {DISPLAY_STYLE_TYPE}")
+    objectives = site.get("objectives") or []
+    if len(objectives) != 1:
+        problems.append(f"[update site] `{text}` at {where}: the assignment condition must test `UiScreen.Objectives` "
+                        f"exactly once, Roslyn found {len(objectives)} such test(s)")
+    elif not (_is_source_symbol(objectives[0].get("receiver"), "NamedType", SCREEN_ENUM_TYPE)
+              and _is_source_symbol(objectives[0].get("memberSymbol"), "Field",
+                                    SCREEN_ENUM_TYPE + ".Objectives", SCREEN_ENUM_TYPE)):
+        problems.append(f"[update site] `{text}` at {where}: `UiScreen.Objectives` binds to "
+                        f"{_describe(objectives[0].get('memberSymbol') or objectives[0].get('receiver') or {})}, "
+                        f"not the field {SCREEN_ENUM_TYPE}.Objectives")
+    call, method = site.get("callable") or {}, site.get("method") or {}
+    in_update = (shape_ok and call.get("kind") == "MethodDeclaration" and call.get("name") == UPDATE_SITE_METHOD
+                 and call.get("containingType") == ROOT_TYPE and call.get("parameterCount") == 0
+                 and call.get("returnType") == "void" and not call.get("isGeneric")
+                 and method.get("display") == call.get("display") == members[0].get("display"))
+    if not in_update:
+        desc = (f"{call.get('kind')} {call.get('name') or '<anonymous>'} of {call.get('containingType') or 'no type'}"
+                if call else "no enclosing callable")
+        problems.append(f"[update site] `{text}` at {where}: the Objectives visibility update must be inside the actual "
+                        f"{ROOT_TYPE}.{UPDATE_SITE_METHOD}() method, but it sits in {desc}")
+    return problems
 
 
 def evaluate(result):
@@ -264,6 +351,8 @@ def evaluate(result):
     for other in result["otherOccurrences"]:
         problems.append(f"[site] `{other['name']}` at {other['file']}:{other['line']} is used outside a pinned member access "
                         f"({other['parentKind']}: {other['text']})")
+    if len(roots) == 1:
+        problems.extend(_update_site_problems(result, roots[0]))
     return problems
 
 
@@ -286,6 +375,12 @@ def evidence_rows(result, facts):
         symbol = sites[0]["receiver"]["symbol"]
         rows.append((ROOT_FILE, sites[0]["line"], f"{name}.{member} x{len(sites)} -> {symbol['display']} "
                                                   f"[{symbol['containingAssembly']}, metadata]"))
+    update = result.get("updateSites", [])
+    if len(update) == 1:
+        call = update[0].get("callable") or {}
+        rows.append((ROOT_FILE, update[0].get("line", 0),
+                     f"Objectives visibility update x1 -> {call.get('display')} "
+                     f"[the actual {ROOT_TYPE}.{UPDATE_SITE_METHOD}() method site]"))
     return rows
 
 
