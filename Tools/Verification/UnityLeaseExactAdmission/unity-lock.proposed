@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""One persistent machine-wide ownership record, not a process supervisor."""
+import sys
+sys.dont_write_bytecode = True
+import argparse
+from contextlib import contextmanager
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+import uuid
+from _ccf import ROOT, on_storage, config_read, resolve_lane, require_storage, command, store_checkouts, branch_conflicts
+
+DEFAULT = ROOT/'CCF-Ops/state/unity'
+
+def now(): return datetime.now(timezone.utc).isoformat()
+
+# ---------------------------------------------------------------------------
+# Exact-dirty admission (OPT-IN, one lane, pinned bytes). Default acquire is unchanged:
+# any `git status --porcelain` output is refused. This table is code, not input: callers
+# can only select an entry by name and must restate its digest; they cannot supply paths,
+# hashes, HEADs or lanes. To deactivate: redeploy the previous unity-lock, or let
+# valid_until pass. Reviewed proposal: Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/
+# UNITY-LOCK-EXACT-ADMISSION-SOURCE-PROPOSAL.md
+# ---------------------------------------------------------------------------
+_MAT = 'Assets/ForestPrototype/Art/SectionFive/'
+# path: (working sha256 protected before-image, sha256 of the blob at the historical HEAD, size in bytes)
+PROTECTED_DIRTY = {
+    '.vscode/settings.json': ('61d36e47afacc0f0bde6987fcf5a49ac6ce18bd514085c8754ce0ba72c29e4a6', '04d629e484c9278cf6b52e6051790e93278c0c6a08b5f3dc93dfedbe67cd8b5a', 1859),
+    _MAT+'Bilberry_Type_Cover_01/Materials/Bilberry_Leaves.mat': ('106f237bf5d8bcbb3d05cfc4c3eae57e6e90eaee729114bde15485a4cc81d3fd', '8ed7a9fca4756ce27d6d5ea6054021d95b725bf39ae2d8c5b1c50e1dec087d2b', 4189),
+    _MAT+'Bilberry_Type_Cover_01/Materials/Bilberry_Stems.mat': ('1fd084251b82cc78b44e9458aed2d031c91e97ccc6df7d069b5c317f6554906f', 'ad636ff1c5bf8e4a8838d2e10ff70be01b4b26403d75ce5af07eb65e7b0a6976', 3935),
+    _MAT+'Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat': ('39385672532b45322cee228e43886fc6006814e44f466ca228e1d4f6c8483774', 'c5415205a3fe1ce6b6b2aa9f8b62eef84798f0d21687e895f9ed6b9d268e8d84', 3938),
+    _MAT+'Woodland_Forbs_01/Materials/Forb_Leaves.mat': ('e2d8889265191156241a16516c28d30255be9ffaa127dbcfc4f2da920fb17a41', '67467f78e289d2e4c762ce719909cecd370b7796bc0690e2d016d52fd5dfce15', 4185),
+    _MAT+'Woodland_Forbs_01/Materials/Forb_Stems.mat': ('b32b7b5f507c4f1dc049a08d97ca48beea36e7027eed0eeb6afdb41f2eb4dcd3', '7e7d2207d8628c5a299748ae6abdfe144aae0fd45d06d7a8b5abf1a9944e2471', 3930),
+    'Packages/manifest.json': ('f2ff5f95f9e93716947391a8818dbe642d81f0b49068516441a58def966c2c1c', 'c533b915d47d0dc1a5797c9b7e63197bfd3cb552639a60c8c0115f02abb00215', 2297),
+    'Packages/packages-lock.json': ('f43d9894af3c6dc054e86e98335dbd248a9fb97527b49c7b5952d96e037e52b1', '013b9f990eb8b9c58b8f40099cb4fd9df92a01dcf5e1d6e09155bb67ddb60d9f', 14223),
+}
+_PACKAGE_JSON = ('Packages/manifest.json', 'Packages/packages-lock.json')
+EXACT_ADMISSION_PROFILES = {
+    'WorkbenchTier2Reg287-exact-dirty-v1': {
+        'lane_name': 'WorkbenchTier2Reg287',
+        'lane_path': '/media/jer/ZX20/CCF-WorkbenchTier2-Registered-20261106',
+        'repository': '/media/jer/Files/CCF/Repository.git',
+        'branch': 'feature/scenario-one-workbench-retirement-20261105',
+        'file_mode': 0o100755,  # exFAT reports 755 for every regular file; a different mode is refused, not waived
+        'valid_until': '2026-11-11T00:00:00+00:00',  # proposed expiry; Manager may tighten before deployment
+        'evidence_root': '/media/jer/Files/CCF/Verification/Workbench287MorningClosure-20261107',
+        'evidence_manifest_sha256': '9fb805968899cb6cd369a6d627ef1c01a7afece2368ff9d2093db1bfa9961f74',
+        # Ignored paths that may exist beside the pinned dirty bytes; any other ignored path is refused.
+        'allowed_ignored': ['Assembly-CSharp-Editor.csproj', 'Assembly-CSharp.csproj',
+                            'CCF-WorkbenchTier2-Registered-20261106.slnx', 'Library/', 'Logs/', 'UserSettings/'],
+        'states': {
+            # Original, unmodified registered-lane state: eight modified working files.
+            'pre-transition': {
+                'head': '4d95e45245d660e24b91e26754d9c57949bf3384',
+                'dirty': PROTECTED_DIRTY,
+                'clean_pinned': {},
+                'must_descend_from': [],
+                'allowed_changed_paths': None,
+            },
+            # After a separately rehearsed, non-forced fast-forward to a candidate. UNSUPPORTED until the
+            # Manager freezes the exact candidate: head, the two tracked package JSON blob hashes/sizes
+            # (the working package bytes must equal them) and the exact changed-path list vs the old HEAD.
+            # While head is None every request for this state is refused.
+            'post-transition': {
+                'head': None,
+                'dirty': {p: v for p, v in PROTECTED_DIRTY.items() if p not in _PACKAGE_JSON},
+                'clean_pinned': {},  # FROZEN-BY-MANAGER: {'Packages/manifest.json': (sha256, size), ...}
+                'must_descend_from': ['46bc1fd618ae5b214d7de296a03ac7efec27cb7c'],
+                'allowed_changed_paths': None,  # FROZEN-BY-MANAGER: list of repo paths changed since the pre-transition HEAD
+            },
+        },
+    },
+}
+
+def admission_digest(profile_id, state_name):
+    """Digest an operator must restate: names the profile, lane, branch, HEAD and exact approved bytes."""
+    prof = EXACT_ADMISSION_PROFILES[profile_id]; st = prof['states'][state_name]
+    lines = [profile_id, state_name, prof['lane_name'], prof['lane_path'], prof['branch'], str(st['head'])]
+    lines += sorted(f'dirty\0{p}\0{w}\0{h}\0{n}' for p, (w, h, n) in st['dirty'].items())
+    lines += sorted(f'clean\0{p}\0{s}\0{n}' for p, (s, n) in st['clean_pinned'].items())
+    return hashlib.sha256('\n'.join(lines).encode()).hexdigest()
+
+def hash_regular_file(path, keep=False):
+    """(sha256, size, mode[, bytes]) of a regular file; symlinks/non-regular files are refused (O_NOFOLLOW + fstat).
+    Streams, so an oversized replacement file cannot exhaust memory; keep=True also returns the bytes (small files only)."""
+    try: fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except OSError as e: raise ValueError(f'cannot safely open {path}: {e}')
+    with os.fdopen(fd, 'rb') as f:
+        info = os.fstat(f.fileno())
+        if not stat.S_ISREG(info.st_mode): raise ValueError(f'not a regular file: {path}')
+        if keep and info.st_size > 1 << 20: raise ValueError(f'unexpectedly large manifest: {path}')
+        digest = hashlib.sha256(); data = b''
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            digest.update(chunk)
+            if keep: data += chunk
+    return (digest.hexdigest(), info.st_size, info.st_mode) + ((data,) if keep else ())
+
+def git_exact(lane, *args, ok=(0,)):
+    """Admission-only Git call: no inherited GIT_* redirection, no user/system config, no index refresh, bytes out.
+    Any exit status outside `ok` or any spawn error is a refusal."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    env.update(GIT_OPTIONAL_LOCKS='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0')
+    try: p = subprocess.run(['git', '-C', str(lane), '-c', 'core.fsmonitor=false', *args], env=env, capture_output=True)
+    except OSError as e: raise ValueError(f'git could not run: {e}')
+    if p.returncode not in ok: raise ValueError(f'git {args[0]} failed ({p.returncode}): {p.stderr.decode(errors="replace").strip()}')
+    return p.returncode, p.stdout
+
+def git_paths(raw):
+    try: return [x.decode() for x in raw.split(b'\0') if x]
+    except UnicodeDecodeError: raise ValueError('git reported a non-UTF-8 path')
+
+def verify_exact_evidence(prof):
+    """The preserved #318 copies must exist unmodified and agree with the pinned table above."""
+    root = Path(prof['evidence_root'])
+    if root.is_symlink() or root.resolve() != root: raise ValueError('evidence root is not a canonical real directory')
+    manifest, _, _, raw = hash_regular_file(root/'SHA256SUMS.txt', keep=True)
+    if manifest != prof['evidence_manifest_sha256']: raise ValueError('evidence manifest is missing or edited')
+    entries = {}
+    try: lines = raw.decode().splitlines()
+    except UnicodeDecodeError: raise ValueError('evidence manifest is not UTF-8')
+    for line in lines:
+        m = re.fullmatch(r'([0-9a-f]{64})  ((?:dirty-backup|head-versions)/[^\0]+)', line)
+        if not m or m.group(2) in entries: raise ValueError('malformed or duplicate evidence manifest line')
+        entries[m.group(2)] = m.group(1)
+    approved = prof['states']['pre-transition']['dirty']  # the original eight; post-transition reuses the same preserved copies
+    expected = {'dirty-backup/'+p: w for p, (w, h, n) in approved.items()}
+    expected.update({'head-versions/'+p: h for p, (w, h, n) in approved.items()})
+    if entries != expected: raise ValueError('evidence manifest does not list exactly the approved 16 files and hashes')
+    for rel, want in entries.items():
+        got, _, _ = hash_regular_file(root/rel)
+        if got != want: raise ValueError('preserved evidence file edited: '+rel)
+
+def admit_exact_dirty(a, lane, configured, common, branch, head):
+    """Refuse unless the lane is exactly one pinned state of one profile. Read-only; returns the audit record."""
+    prof = EXACT_ADMISSION_PROFILES.get(a.exact_admission)
+    if prof is None: raise ValueError('unknown exact-admission profile')
+    st = prof['states'].get(a.exact_admission_state)
+    if st is None: raise ValueError('unknown exact-admission state')
+    # A transition state is usable only once the Manager froze its head, package blob hashes and changed-path list.
+    frozen = st['head'] is not None and (not st['must_descend_from'] or (st['clean_pinned'] and st['allowed_changed_paths'] is not None))
+    if not frozen: raise ValueError('exact-admission state is not frozen by the Manager; unsupported')
+    if datetime.now(timezone.utc) > datetime.fromisoformat(prof['valid_until']): raise ValueError('exact-admission profile has expired')
+    if a.exact_admission_digest != admission_digest(a.exact_admission, a.exact_admission_state):
+        raise ValueError('--exact-admission-digest does not name the approved lane/HEAD/bytes')
+    if configured['lane'] != prof['lane_name'] or lane != Path(prof['lane_path']).resolve() or common != Path(prof['repository']).resolve():
+        raise ValueError('exact admission is limited to the profile lane, path and Git store')
+    if branch != prof['branch'] or head != st['head']: raise ValueError('lane branch/HEAD is not the pinned exact-admission state')
+    verify_exact_evidence(prof)
+    # Git view: status must show only the pinned modified paths (unstaged), no untracked, only allowed ignored.
+    _, out = git_exact(lane, 'status', '--porcelain=v1', '-z', '--untracked-files=normal', '--ignored=traditional', '--no-renames')
+    modified = set()
+    for entry in git_paths(out):
+        code, path = entry[:2], entry[3:]
+        if code == ' M': modified.add(path)
+        elif code == '!!' and path in prof['allowed_ignored']: continue
+        else: raise ValueError(f'unexpected Git status entry: {entry!r}')
+    if modified != set(st['dirty']): raise ValueError('modified path set is not exactly the approved set: '+json.dumps(sorted(modified ^ set(st['dirty']))))
+    if git_paths(git_exact(lane, 'diff-index', '--cached', '--name-only', '-z', 'HEAD', '--')[1]): raise ValueError('index differs from HEAD')
+    if set(git_paths(git_exact(lane, 'diff', '--name-only', '-z')[1])) != modified: raise ValueError('worktree diff disagrees with status')
+    # Hidden-change flags (assume-unchanged, skip-worktree, unmerged, ...) would let Git status lie.
+    for entry in git_exact(lane, 'ls-files', '-v', '-z')[1].split(b'\0'):
+        if entry and entry[:2] != b'H ': raise ValueError('index entry carries a hidden-change flag: '+entry.decode(errors='replace'))
+    for ancestor in st['must_descend_from']:
+        if git_exact(lane, 'merge-base', '--is-ancestor', ancestor, 'HEAD', ok=(0, 1))[0] != 0: raise ValueError('HEAD does not descend from '+ancestor)
+    if st['allowed_changed_paths'] is not None:
+        old = prof['states']['pre-transition']['head']
+        changed = set(git_paths(git_exact(lane, 'diff', '--name-only', '-z', old, 'HEAD')[1]))
+        if not changed <= set(st['allowed_changed_paths']): raise ValueError('HEAD changes paths outside the frozen candidate list')
+    # Bytes: working file, blob at HEAD, size, type and mode, per path.
+    before = {}
+    pinned = [(p, w, h, n) for p, (w, h, n) in st['dirty'].items()] + [(p, s, s, n) for p, (s, n) in st['clean_pinned'].items()]
+    for path, want_work, want_head, want_size in pinned:
+        real = lane/path
+        if real.resolve() != real: raise ValueError('path is not canonical inside the lane (symlinked component): '+path)
+        work, size, mode = hash_regular_file(real)
+        blob = hashlib.sha256(git_exact(lane, 'cat-file', 'blob', 'HEAD:'+path)[1]).hexdigest()
+        if (work, size, mode) != (want_work, want_size, prof['file_mode']) or blob != want_head:
+            raise ValueError('protected bytes/size/mode/HEAD-blob mismatch: '+path)
+        before[path] = {'sha256': work, 'head_blob_sha256': blob, 'size': size, 'mode': oct(mode)}
+    return {'profile': a.exact_admission, 'state': a.exact_admission_state, 'digest': a.exact_admission_digest,
+            'lane': str(lane), 'branch': branch, 'head': head, 'owner': a.owner, 'task_id': a.task_id,
+            'reason': a.exact_admission_reason, 'receipt': a.exact_admission_receipt,
+            'evidence_manifest_sha256': prof['evidence_manifest_sha256'], 'before': before, 'checked_at': now()}
+
+def process_identity(pid):
+    try:
+        raw=Path(f'/proc/{pid}/stat').read_text()
+        return {'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                'start_ticks':raw[raw.rfind(')')+2:].split()[19]}
+    except (FileNotFoundError, ProcessLookupError): return None
+
+def editors():
+    result=[]
+    for proc in Path('/proc').iterdir():
+        if not proc.name.isdigit(): continue
+        try:
+            argv=(proc/'cmdline').read_bytes().split(b'\0')
+            if argv and Path(os.fsdecode(argv[0])).name == 'Unity': result.append(int(proc.name))
+        except (OSError,ValueError): continue
+    return result
+
+@contextmanager
+def guarded(state):
+    state.mkdir(parents=True,exist_ok=True)
+    # Permanent guard inode; never unlink it. Metadata operations serialize here.
+    with (state/'guard').open('a+') as guard:
+        fcntl.flock(guard,fcntl.LOCK_EX)
+        try: yield
+        finally: fcntl.flock(guard,fcntl.LOCK_UN)
+
+def read_state(state):
+    path=state/'lock.json'
+    if not path.exists(): return None,None
+    raw=path.read_text()
+    try:
+        data=json.loads(raw)
+        required={'lock_id','owner','task_id','lane','branch','head','pid','process_identity','start_timestamp','eta','notes'}
+        if not isinstance(data,dict) or not required.issubset(data): raise ValueError('missing metadata fields')
+        if not all(isinstance(data[k],str) and data[k] for k in required-{'pid','process_identity'}): raise ValueError('invalid string metadata')
+        if not re.fullmatch('[0-9a-fA-F]{40}',data['head']): raise ValueError('invalid HEAD')
+        if data['pid'] is not None and (type(data['pid']) is not int or data['pid']<=0): raise ValueError('invalid PID')
+        if data['pid'] is not None and (not isinstance(data['process_identity'],dict) or set(data['process_identity'])!={'boot_id','start_ticks'}): raise ValueError('invalid process identity')
+        datetime.fromisoformat(data['start_timestamp'])
+        if datetime.fromisoformat(data['eta']).tzinfo is None: raise ValueError('ETA needs timezone')
+        return data,None
+    except (ValueError,TypeError,KeyError) as e: return None,{'error':str(e),'raw':raw}
+
+def inspect(data,malformed):
+    if malformed: return {'status':'malformed','previous':malformed,'unity_editor_pids':editors()}
+    if not data: return {'status':'free','metadata':None,'unity_editor_pids':editors()}
+    state='held'; reason='PID unknown; inspect manually' if data['pid'] is None else 'recorded process is alive'
+    if data['pid'] is not None:
+        identity=process_identity(data['pid'])
+        if identity is None: state='stale'; reason='recorded PID is absent'
+        elif identity!=data['process_identity']: state='stale'; reason='PID reused or machine rebooted'
+    return {'status':state,'metadata':data,'inspection':reason,
+            'eta_overdue':datetime.fromisoformat(data['eta']) < datetime.now(timezone.utc),
+            'unity_editor_pids':editors()}
+
+def event(state,kind,actor,reason,previous,inspection=None,manager_approval=None):
+    with (state/'history.jsonl').open('a') as f:
+        f.write(json.dumps({'timestamp':now(),'event':kind,'actor':actor,'reason':reason,'previous':previous,'inspection':inspection,'manager_approval':manager_approval})+'\n')
+        f.flush(); os.fsync(f.fileno())
+
+def emit(value,machine):
+    if machine: print(json.dumps(value,indent=2))
+    else:
+        print('Unity lock: '+value['status'])
+        for k,v in value.items():
+            if k!='status': print(f'  {k}: {json.dumps(v,sort_keys=True) if isinstance(v,(dict,list)) else v}')
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('operation',choices=['status','acquire','release'])
+    p.add_argument('--json',action='store_true')
+    p.add_argument('--config',type=Path,default=Path(__file__).resolve().parent.parent/'lanes.json')
+    p.add_argument('--manager-approval',help='Reference to explicit Overall Manager force-release approval; not self-authorisation')
+    p.add_argument('--test-state-dir',type=Path,help='Isolated tests ONLY; must be under ZX20/CCF-Temp')
+    for key in ['owner','task-id','lane','branch','head','eta','notes','lock-id','reason']: p.add_argument('--'+key)
+    p.add_argument('--pid',type=int); p.add_argument('--force',action='store_true')
+    # Opt-in, acquire only, all five together; see EXACT_ADMISSION_PROFILES. Absent => strict clean-lane rule.
+    exact_flags=['exact-admission','exact-admission-state','exact-admission-digest','exact-admission-reason','exact-admission-receipt']
+    for key in exact_flags: p.add_argument('--'+key)
+    a=p.parse_args()
+    exact_values=[getattr(a,k.replace('-','_')) for k in exact_flags]
+    if any(v is not None for v in exact_values):
+        if a.operation!='acquire': p.error('--exact-admission-* only applies to acquire')
+        if any(not (v or '').strip() for v in exact_values): p.error('all --exact-admission-* options are required together')
+        if a.exact_admission_receipt.strip().lower() in {'none','n/a','-'}: p.error('--exact-admission-receipt must reference the Manager approval')
+    if a.config.resolve()!=Path(__file__).resolve().parent.parent/'lanes.json':
+        if not a.test_state_dir or not a.config.resolve().is_relative_to(ROOT/'CCF-Temp'):
+            p.error('alternate config is restricted to isolated ZX20 scratch tests')
+    cfg,_=config_read(a.config)
+    state=on_storage(a.test_state_dir or DEFAULT)
+    if a.test_state_dir and not state.is_relative_to(ROOT/'CCF-Temp'):
+        p.error('test state must be beneath ZX20/CCF-Temp')
+    if a.operation!='release' and a.force: p.error('--force only applies to release')
+    if a.operation=='status' and not state.exists():
+        emit(inspect(None,None),a.json); return 0
+    with guarded(state):
+        data,malformed=read_state(state)
+        if a.operation=='status': emit(inspect(data,malformed),a.json); return 0
+        if a.operation=='acquire':
+            for k in ['owner','task_id','lane','branch','head','eta','notes']:
+                if not (getattr(a,k) or '').strip(): p.error('--'+k.replace('_','-')+' is required')
+            if data or malformed: raise ValueError('lock exists; inspect status; stale/malformed records also require explicit release')
+            if not re.fullmatch('[0-9a-fA-F]{40}',a.head): p.error('--head must be a full SHA')
+            eta=datetime.fromisoformat(a.eta)
+            if eta.tzinfo is None or eta<=datetime.now(timezone.utc): p.error('--eta must be a future ISO timestamp with timezone')
+            require_storage(cfg)
+            configured=resolve_lane(cfg,a.lane)
+            if not configured['unity']: raise ValueError('configured lane is not Unity-capable')
+            lane=on_storage(configured['path'])
+            if not lane.is_dir(): raise ValueError('configured Unity lane does not exist')
+            top=Path(command(['git','-C',str(lane),'rev-parse','--show-toplevel'])).resolve()
+            common=Path(command(['git','-C',str(lane),'rev-parse','--path-format=absolute','--git-common-dir'])).resolve()
+            if top!=lane or common!=Path(cfg['repository']).resolve(): raise ValueError('unexpected lane Git store')
+            actual_branch=command(['git','-C',str(lane),'rev-parse','--abbrev-ref','HEAD'])
+            actual_head=command(['git','-C',str(lane),'rev-parse','HEAD'])
+            if actual_branch!=a.branch or actual_head!=a.head: raise ValueError('lane branch/HEAD mismatch; worktree was not changed')
+            admission=None
+            if a.exact_admission is None:
+                if command(['git','-C',str(lane),'status','--porcelain']): raise ValueError('Unity lane is dirty; inspect before execution')
+            else: admission=admit_exact_dirty(a,lane,configured,common,actual_branch,actual_head)
+            checkouts=store_checkouts(cfg)
+            if not any(Path(c['path']).resolve()==lane for c in checkouts): raise ValueError('Unity lane is not registered')
+            if branch_conflicts(checkouts,actual_branch,lane): raise ValueError('branch has another writable checkout; dual-store/lane conflict')
+            identity=process_identity(a.pid) if a.pid else None
+            if a.pid is not None and (a.pid<=0 or identity is None): p.error('--pid must identify a live process; omit if unknown')
+            running=editors()
+            if running and running != [a.pid]: raise ValueError('Unity Editor already running with unclaimed/different PID(s): '+str(running))
+            data={'lock_id':uuid.uuid4().hex,'owner':a.owner,'task_id':a.task_id,'lane':str(lane),
+                  'branch':a.branch,'head':a.head,'pid':a.pid,'process_identity':identity,
+                  'start_timestamp':now(),'eta':a.eta,'notes':a.notes}
+            if admission:
+                data['exact_admission']=admission
+                event(state,'exact-admission',a.owner,a.exact_admission_reason,None,admission,a.exact_admission_receipt)
+            # Same-directory exclusive temporary file + rename, inside guard.
+            tmp=state/('metadata-'+data['lock_id']+'.tmp')
+            try:
+                with tmp.open('x') as f:
+                    json.dump(data,f,indent=2); f.write('\n'); f.flush(); os.fsync(f.fileno())
+                os.replace(tmp,state/'lock.json')
+            finally:
+                if tmp.exists(): tmp.unlink()
+            emit(inspect(data,None),a.json); return 0
+        if not data and not malformed: raise ValueError('no lock to release')
+        if a.force:
+            if not (a.owner or '').strip() or not (a.reason or '').strip(): p.error('force release requires --owner (actor) and --reason')
+            if (a.manager_approval or '').strip().lower() in {'','none','n/a','-'}:
+                p.error('force release requires --manager-approval referencing explicit Overall Manager authorisation')
+            event(state,'force-release',a.owner,a.reason,data or malformed,inspect(data,malformed),a.manager_approval)
+        else:
+            if malformed: raise ValueError('malformed record requires explicit --force --owner --reason')
+            if (a.owner,a.task_id,a.lock_id)!=(data['owner'],data['task_id'],data['lock_id']): raise ValueError('release requires matching --owner --task-id --lock-id')
+            event(state,'release',a.owner,a.reason or 'owner release',data)
+        (state/'lock.json').unlink()
+        emit({'status':'released','forced':a.force,'previous':data or malformed,'unity_editor_pids':editors()},a.json)
+        return 0
+if __name__=='__main__':
+    try: sys.exit(main())
+    except (ValueError,OSError,KeyError,TypeError) as e: print('ERROR: '+str(e),file=sys.stderr); sys.exit(2)
