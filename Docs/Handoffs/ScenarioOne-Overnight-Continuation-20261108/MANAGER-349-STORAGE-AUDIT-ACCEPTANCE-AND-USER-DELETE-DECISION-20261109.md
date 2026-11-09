@@ -1,0 +1,32 @@
+# Manager #200 — #349 storage audit accepted; seek user selection before any deletion
+
+**Date:** 2026-11-09. **Verdict:** #349 read-only ZX20 inventory **ACCEPTED AS PARTIAL, WELL-DISCLOSED EVIDENCE; HANDOFF/CLOSED**. No data deletion/move, Unity, lease or production change was performed by #349. **No cleanup authorised yet**. User chose preparation for one attended Unity test, not permission for removal. After source review, #345 global lock deployment NO-GO remains.
+
+## Evidence reviewed
+
+- [#349 source report](https://github.com/jermur788/CCF/blob/ae0a4a7ecb080135809e80cde235ffeba5e79f81/Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/ZX20-READONLY-STORAGE-RECOVERY-OPTIONS-20261109.md), [RUNNING](https://github.com/jermur788/CCF/issues/349#issuecomment-6736762231) and [HANDOFF](https://github.com/jermur788/CCF/issues/349#issuecomment-6736958835) receipts. GitHub compare confirms a **single 116-line Markdown report added**, no production/source or tool edit. Worker Claude Sonnet 5.5, effort Medium; report/evidence created on the separate sparse Files docs lane and released. Exact local evidence is on Files, not independently re-executed by Manager.
+- Current-at-audit (09:31–09:43Z) device ZX20 exFAT 21.64 GiB free / 466,193 MiB used before AND after; Files ext4 11.8 GiB free at 98% used; Videos ext4 57.8 GiB free on **the same physical HDD** as Files. No lease or Unity held. Scope is metadata inventory and selective status; not complete ignored inventory, giant-content hashes, recovery acceptance or current filesystem guarantee.
+- User separately reports personally moving approximately **25–30 GB of video from the Kinsale folder to Videos** shortly before the report; report detected modifications at 09:23–09:26, so the current free figure may reflect them. **Do not add this reported move to the 21.64 GiB measured free or to future recovery estimates.** Whether the two identified files were among those moved remains UNKNOWN.
+- Worker disclosed deviations: accidental recursive read-only `lsof +D` stopped in two minutes; `git status` on 12 nonprotected lanes caused transient I/O pressure ~38%; bounded `du` walked four Libraries/Editor; 1.8 GiB filesystem-use residual unexplained; no full bytes hashes. These breaches of requested scan restraint are **accepted as historical evidence only**, not permission for repeated heavy scans. Worker reports 0 bytes intentionally changed ZX20.
+- Protected original warm Workbench Tier2 Library and eight dirty working files/index, standalone rescue clone, Integration, Q10 dirty edits, CCF-Ops, Unity binaries and licence, frozen Reference Future v1/Legacy40, and other owners **remain protected**.
+
+## Decision options (plain English, no action until user approves)
+
+| Choice | Exact paths | Potential recovery | Benefit | Caution |
+|---|---|---:|---|---|
+| **A recommended first** | `/media/jer/ZX20/Kinsale/KinsaleBay.mov` (~16.75 GiB) and `/media/jer/ZX20/Kinsale/KinsaleBay_youtube.mp4` (~4.25 GiB) | **21.0 GiB** | Only personal media, no CCF change; if both copies truly match, projected free ~42.6 GiB | Same size+mtime on `/media/jer/Videos/KinsaleMoved/` **does not prove content identity**; check matching full cryptographic checksums, destination readable and stable, explicit personal user approval for deleting these **named ZX20 originals**. Videos shares physical disk with Files, so not independent backup against HDD failure. Do not delete if any discrepancy, interrupted user move, unstable mount or I/O pressure |
+| B optional | Six clean, merged, unused Git worktrees: `CCF-AccessSpine-Measure-20261103`, `CCF-Intro-Astra-20261103`, `CCF-RackV2-05`, `CCF-RackV2-09`, `CCF-S1ObjOverflow`, `CCF-U3` | 10.5 GiB | Re-creatable from remote Git if need more room | 5 registered with CCF-Ops; must secure Manager registry/worktree removal policy, recheck no owner, clean tracking and ignored/untracked content before even seeking deletion. Does not need doing if A provides enough |
+| C optional | `CCF-ContextRefresh-D071-20261105` and desktop `.Trash-1000/files/*` | 1.8 + 0.24 = 2.04 GiB | Small additional recovery | Verify context outputs and Trash contents; personal Trash needs explicit user approval |
+| D conservative | No cleanup now | 0 GiB | No deletion risk | Remains only ~1.6 GiB above 20-GiB Unity STOP; no Unity authorisation |
+
+**Not candidates now:** all Unity Libraries (~20 GiB), original warm Workbench/8 files, standalone recovery clone, Unity Editor, B08 Windows candidate build absent verified second copy, U2 local-only commits, other Kinsale videos and `test_folder` without verified copies. Do not combine speculative capacities into promises. Even a completed A doesn't solve the global lease's long unbounded scan, exFAT transition, safety monitor, operator or licence. #345 NO-GO remains until separately reconsidered.
+
+## Pending user decision and next execution policy
+
+Ask: **"Do you approve verifying the full contents of the two named KinsaleBay files on ZX20 against `/media/jer/Videos/KinsaleMoved/`, and—only if both are byte-for-byte identical, the destination is readable, and the machine is idle—deleting those TWO named ZX20 originals to recover about 21 GiB?"** No other directory, personal media or Git workspace may be touched. If YES, Manager will publish **one new, separately claimed bounded local cleanup packet** with fresh owner/disk/mount preflight, safe read-only checksums (on low I/O), independently verified matches, explicit stop on discrepancy, no automatic removal of Trash/CCF lanes and post-deletion `df`/receipts. Use owner-safe operations, no process killing or forced cleanup. No new cleanup claim is started merely by #349 handing off.
+
+If user chooses B or C instead, publish an equally specific targeted packet and require actual conditions, names and proof. If user declines, leave ZX20 untouched and defer Unity.
+
+**User consent for Option 1 to prepare does not imply deletion consent.** Manager must ask for the explicit named-file permission. After any user-approved cleanup is verified and capacity remeasured, separately decide safe one-window Unity lease installation, expiry, operator/monitor and exact candidate/transition. No actual Unity/lease, migration, global lock overwrite, PR/main integration, player build or Windows build presently authorised.
+
+**Dashboard:** GitHub coordination and dashboard source to update; actual automatic ingestion remains unverified.
