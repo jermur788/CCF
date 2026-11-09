@@ -28,6 +28,16 @@ public sealed class ScenarioOneOnboardingView
         canvas.style.transformOrigin = new TransformOrigin(Length.Percent(0), Length.Percent(0), 0);
         Root.Add(canvas);
         Root.RegisterCallback<GeometryChangedEvent>(e => Fit(e.newRect.size));
+        Root.RegisterCallback<NavigationMoveEvent>(KeepArrowKeysForPageChanges, TrickleDown.TrickleDown);
+    }
+
+    // The root turns Left/Right into page changes. UI Toolkit also reads the same press as spatial navigation, which would
+    // then move focus from the new page's Next button to "← Back" (nothing lies further right, so it wraps), and Enter would
+    // go back. Cancelling only the arrow moves keeps focus on Next/Begin; Tab and Shift+Tab (Next/Previous) are untouched.
+    private static void KeepArrowKeysForPageChanges(NavigationMoveEvent e)
+    {
+        if (e.direction == NavigationMoveEvent.Direction.Left || e.direction == NavigationMoveEvent.Direction.Right)
+            e.PreventDefault();
     }
 
     public void Show()

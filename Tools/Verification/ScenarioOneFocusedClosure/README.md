@@ -28,6 +28,27 @@ The author of these probes also ran them, so they are **author evidence**, not i
 | `Ccf359OldWorld.cs` | graphical Editor, `CCF_STAND_GEOMETRY=0` | **H**: in a fresh Legacy40 game and inside a frozen Reference Future v1 preview: no V2 surface, Stand Map headland, guidance, five-rack figure or V2 wording |
 | `Ccf359V24SaveContract.cs` | batch is enough | The save03b assertions with no current-version counterpart: hash compatibility at v24 against an **independent** strip that includes `firstGuidedRackReviewComplete`, plus a **provenance witness** showing that the historic save03b strip does not match (this reproduces the #358 diagnostic failure); the latch never moves an identity; the nine semantic rejections that `RackV2Persistence` does not cover; `RestoreSaveData(null)` stays model 0; V2 is never active on Legacy40 |
 
+## #360 correction (read this before reusing `Ccf359V2Closure.cs`)
+
+CCF #360 changed **only** `Ccf359V2Closure.cs` in this folder (and this README). `Ccf359OldWorld.cs` and `Ccf359V24SaveContract.cs` are byte-identical to
+the #359 commit `81818e7f`. The #359 bytes of `Ccf359V2Closure.cs` (SHA-256 `ac6b19fbdbd17586a41a3fe972c9316012232c1825be4131d9449373a5975655`, run once in #359,
+`CCF359_V2_CLOSURE_FAIL checks=135`) stay in Git history at `81818e7f` and their raw FAIL receipt is unchanged and not relabelled. The #360 bytes
+(SHA-256 `39feddbea50e6aaabfd4ed0f9bfa05a5f032d4b632ac623241b9bc38acdb80bc`) are **new, not yet run** until the #360 result says so. They correct exactly the three disclosed probe defects:
+
+1. `ForceStage` now reads `ui.Learning.CurrentTopicIndex` first so the view adopts the current `TeachingWorldVersion`; each forced stage must really become that
+   lesson index (0, 5, 7) or its lock counts are reported **NOT VERIFIED** (fail closed). The result is labelled **SYNTHETIC UI lock presentation**, never real progression.
+2. The figure font floor measures only the labels the `TeachingDiagram` owns, selected by structure (title before the frame, every label inside the frame, the stage's own
+   notes after it); the shared lesson caption (`.diagram-caption`, 18) is the one extra direct label and is excluded, with a check that exactly one is excluded and a
+   negative control showing the same threshold rejects the caption's size.
+3. The Stand Map headland-stroke assertion needs the map to be the open screen, shown, with `PaintedVersion == Model.Version`. During a Reference Preview, where the
+   map cannot open, it records **NOT VERIFIED** (model and 3D surface are still asserted) instead of counting a stale `LastPlan`.
+
+It also adds the onboarding keyboard regression the #360 repair needs (`NavigationSuite`, run at every size): Right then Enter must go **forward** and focus must be on
+Next/Begin (never Back), Left/Esc go back, mouse Next/Back, Tab/Shift+Tab, Enter advancing exactly one page, in two forms: **OS-injected** (xdotool key events on the private
+Xephyr display via `native_input.py`; needs `CCF_DRIVER_DIR`, otherwise **NOT RUN**) and **synthetic** New Input System state. Neither is a physical keyboard.
+
+Still unrun at the time of this commit: `Ccf359V2Closure.cs` (#360 bytes), `Ccf359OldWorld.cs`, `Ccf359V24SaveContract.cs`.
+
 ## Run (clean registered lane, machine-wide Unity lock held, evidence outside the repository)
 
 Stage one file into `Assets/ForestPrototype/`, run, and remove it with its generated `.meta` (the #357/#358 `run_gate.py` driver does
@@ -35,7 +56,7 @@ this with `--ext-files`):
 
 ```bash
 # session 1
-CCF_TEST_DIRECT_ENTRY=1 CCF_DIAG_DIR=<files dir> CCF_UI_SIZES=1920x1080,1280x720 Unity -projectPath . -executeMethod Ccf359V2Closure.Begin       # CCF359_V2_CLOSURE_PASS
+CCF_TEST_DIRECT_ENTRY=1 CCF_DRIVER_DIR=<native-input dir> CCF_DIAG_DIR=<files dir> CCF_UI_SIZES=1920x1080,1280x720 Unity -projectPath . -executeMethod Ccf359V2Closure.Begin       # CCF359_V2_CLOSURE_PASS
 # session 2
 CCF_TEST_DIRECT_ENTRY=1 CCF_STAND_GEOMETRY=0 CCF_DIAG_DIR=<files dir> Unity -projectPath . -executeMethod Ccf359OldWorld.Begin                 # CCF359_OLDWORLD_PASS
 # session 3

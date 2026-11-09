@@ -193,6 +193,36 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
         InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null; yield return null;
     }
 
+    // #360: one chord (modifier + key) as queued New Input System state.
+    private static IEnumerator PressChord(Key modifier, Key key)
+    {
+        Keyboard keyboard = Kb();
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(modifier, key)); yield return null; yield return null;
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null; yield return null;
+    }
+
+    // #360: a REAL OS key event. The runner's native_input.py runs xdotool on the private Xephyr display (CCF_DRIVER_DIR holds the
+    // request files), so the key travels X server -> Unity Linux input backend -> New Input System like a physical key would; it is
+    // still an X11 test event on a private display, not a physical keyboard. keydown + keyup are separate ops (the driver pauses
+    // 0.4 s after each) so the press is held across several frames. Without CCF_DRIVER_DIR these checks are NOT RUN, never failed.
+    private string driverDir;
+    private int osSeq;
+    private IEnumerator OsKey(string xdotoolKey)
+    {
+        int id = ++osSeq;
+        string name = "request-" + id.ToString("D4") + ".json", temp = Path.Combine(driverDir, name + ".tmp");
+        File.WriteAllText(temp, "{\"seq\":" + id + ",\"ops\":[{\"op\":\"keydown\",\"key\":\"" + xdotoolKey + "\"},{\"op\":\"keyup\",\"key\":\"" + xdotoolKey + "\"}]}");
+        File.Move(temp, Path.Combine(driverDir, name));
+        string done = Path.Combine(driverDir, "done-" + id.ToString("D4"));
+        double until = Time.realtimeSinceStartupAsDouble + 30;
+        while (!File.Exists(done))
+        {
+            if (Time.realtimeSinceStartupAsDouble > until) throw new InvalidOperationException("the OS key driver did not finish request " + id + " (is native_input.py running?)");
+            yield return null;
+        }
+        yield return Frames(8);
+    }
+
     private Focusable Focused() => ui.RootElement?.panel?.focusController?.focusedElement;
     private static string Describe(Focusable f) => f == null ? "none" : (f is VisualElement v ? v.GetType().Name + "#" + v.name + (f is Button b ? "'" + b.text.Trim() + "'" : "") : f.GetType().Name);
     private static bool Shown(VisualElement e)
@@ -216,6 +246,24 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
         diagram = ui.Learning.Root.Query<TeachingDiagram>().ToList().FirstOrDefault(Shown);
         if (diagram == null) return null;
         return (TeachingDiagramPlan.Stage)typeof(TeachingDiagram).GetField("stage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(diagram);
+    }
+
+    // The words a TeachingDiagram owns, by structure: title labels before the frame, every label inside the frame, then the stage's own
+    // notes after it. Any further direct Label is the lesson caption the card passes in (it is returned separately and not counted).
+    private static List<Label> FigureOwnedLabels(TeachingDiagram diagram, TeachingDiagramPlan.Stage stage, out Label lessonCaption)
+    {
+        var owned = new List<Label>();
+        lessonCaption = null;
+        VisualElement frame = diagram.Q("teaching-diagram-frame");
+        bool afterFrame = false; int notes = 0;
+        foreach (VisualElement child in diagram.Children())
+        {
+            if (child == frame) { afterFrame = true; owned.AddRange(frame.Query<Label>().ToList()); continue; }
+            if (!(child is Label label)) continue;
+            if (!afterFrame || notes < stage.Notes.Length) { owned.Add(label); if (afterFrame) notes++; }
+            else lessonCaption = label;
+        }
+        return owned;
     }
 
     private static string Texts(VisualElement root) => string.Join("\n", root.Query<TextElement>().ToList().Where(t => Shown(t) && !string.IsNullOrEmpty(t.text)).Select(t => t.text));
@@ -244,6 +292,14 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
         Check("F1_CANNOT_REPLACE_OR_SKIP_THE_ONBOARDING", ob.IsOpen && ob.PageIndex == 0, $"page={ob.PageIndex}");
         yield return Press(Key.Escape); yield return Frames(4);
         Check("ESC_ON_PAGE_1_DOES_NOT_SKIP", ob.IsOpen && ob.PageIndex == 0, $"page={ob.PageIndex}");
+        // ---- #360: the focus/keys suite at every size (it starts and ends on page 1 with the modal still open)
+        int sizeNo = 0; Vector2Int firstSize = size;
+        foreach (Vector2Int s2 in Sizes())
+        {
+            if (sizeNo++ > 0) { SetGameSize(s2.x, s2.y); yield return Wait(1.5f); yield return Frames(10); size = new Vector2Int(Screen.width, Screen.height); }
+            yield return NavigationSuite();
+        }
+        if (size != firstSize) { SetGameSize(firstSize.x, firstSize.y); yield return Wait(1.5f); yield return Frames(10); size = new Vector2Int(Screen.width, Screen.height); }
         yield return Press(Key.RightArrow); yield return Frames(6);
         Check("RIGHT_ARROW_ADVANCES_TO_PAGE_2", ob.IsOpen && ob.PageIndex == 1 && Texts(ob.Root).Contains(ScenarioOneOnboardingCopy.Titles[1]), $"page={ob.PageIndex}");
         f = Focused();
@@ -273,6 +329,64 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
         float moved = Vector3.Distance(new Vector3(before.x, 0, before.z), new Vector3(after.x, 0, after.z));
         Check("AFTER_BEGIN_W_MOVES_THE_PLAYER", moved > 0.2f, $"moved={F(moved)}m");
         ui.Player.transform.position = before; yield return Frames(4);
+    }
+
+    // ---------------------------------------------------------------- J: #360 onboarding focus and key suite
+    // Pass needs BOTH the focus target and the observable page: Right then Enter must go FORWARD, never back. Starts and ends on page 1.
+    private IEnumerator NavigationSuite()
+    {
+        ScenarioOneOnboardingView ob = ui.Help.Onboarding;
+        Focusable f;
+        bool IsNext(Focusable x) => x is Button b && b.name == "onboarding-next" && Shown(b);
+        if (!ob.IsOpen || ob.PageIndex != 0) { Check("SUITE_STARTS_ON_PAGE_1", false, $"open={ob.IsOpen} page={ob.PageIndex}"); yield break; }
+        // 1. Real OS key events (xdotool on the private Xephyr display).
+        driverDir = Environment.GetEnvironmentVariable("CCF_DRIVER_DIR");
+        if (string.IsNullOrEmpty(driverDir)) Measure("OS_INJECTED_KEYS", "NOT RUN: CCF_DRIVER_DIR is not set, so there is no OS-level key driver");
+        else
+        {
+            yield return OsKey("Right");
+            f = Focused();
+            Check("OS_RIGHT_ARROW_ADVANCES_TO_PAGE_2_AND_FOCUS_STAYS_ON_NEXT", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+            yield return OsKey("Return");
+            f = Focused();
+            Check("OS_ENTER_AFTER_RIGHT_GOES_FORWARD_TO_PAGE_3_NOT_BACK", ob.IsOpen && ob.PageIndex == 2, $"page={ob.PageIndex} focus={Describe(f)}");
+            Check("OS_FOCUS_IS_BEGIN_ON_PAGE_3", IsNext(f) && ((Button)f).text.Contains("Begin"), Describe(f));
+            yield return OsKey("Left");
+            f = Focused();
+            Check("OS_LEFT_ARROW_GOES_BACK_TO_PAGE_2_AND_FOCUS_STAYS_ON_NEXT", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+            yield return OsKey("Escape"); yield return OsKey("Escape");
+            f = Focused();
+            Check("OS_ESC_GOES_BACK_TO_PAGE_1_AND_FOCUS_IS_NEXT", ob.PageIndex == 0 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        }
+        // 2. Synthetic mouse path: a Clickable invocation (not a real pointer), the same code the button's click runs.
+        yield return Click(ob.Root.Q<Button>("onboarding-next")); yield return Frames(6);
+        f = Focused();
+        Check("MOUSE_NEXT_GOES_TO_PAGE_2_AND_FOCUS_IS_NEXT", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Click(ob.Root.Q<Button>("onboarding-back")); yield return Frames(6);
+        f = Focused();
+        Check("MOUSE_BACK_GOES_TO_PAGE_1_AND_FOCUS_IS_NEXT", ob.PageIndex == 0 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        // 3. Synthetic New Input System keys.
+        yield return Press(Key.RightArrow); yield return Frames(6);
+        f = Focused();
+        Check("SYN_RIGHT_ARROW_ADVANCES_TO_PAGE_2_AND_FOCUS_STAYS_ON_NEXT", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Press(Key.Enter); yield return Frames(8);
+        f = Focused();
+        Check("SYN_ENTER_AFTER_RIGHT_GOES_FORWARD_TO_PAGE_3_NOT_BACK", ob.IsOpen && ob.PageIndex == 2, $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Press(Key.LeftArrow); yield return Frames(6);
+        f = Focused();
+        Check("SYN_LEFT_ARROW_GOES_BACK_TO_PAGE_2_AND_FOCUS_STAYS_ON_NEXT", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Press(Key.Tab); yield return Frames(6);
+        f = Focused();
+        Check("SYN_TAB_MOVES_KEYBOARD_FOCUS_TO_THE_BACK_BUTTON_AND_DOES_NOT_CHANGE_PAGE", ob.PageIndex == 1 && f is Button t1 && t1.name == "onboarding-back" && Shown(t1), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return PressChord(Key.LeftShift, Key.Tab); yield return Frames(6);
+        f = Focused();
+        Check("SYN_SHIFT_TAB_RETURNS_KEYBOARD_FOCUS_TO_NEXT_AND_DOES_NOT_CHANGE_PAGE", ob.PageIndex == 1 && IsNext(f), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Press(Key.Enter); yield return Frames(8);
+        f = Focused();
+        Check("SYN_ENTER_AFTER_TAB_AND_SHIFT_TAB_ADVANCES_EXACTLY_ONE_PAGE_TO_BEGIN", ob.IsOpen && ob.PageIndex == 2 && IsNext(f) && ((Button)f).text.Contains("Begin"), $"page={ob.PageIndex} focus={Describe(f)}");
+        yield return Press(Key.Escape); yield return Press(Key.Escape); yield return Frames(6);
+        f = Focused();
+        Check("SYN_ESC_TWICE_RETURNS_TO_PAGE_1_WITH_NEXT_FOCUSED_AND_THE_MODAL_STILL_OPEN", ob.IsOpen && ob.PageIndex == 0 && IsNext(f) && manager.ModalOpen, $"page={ob.PageIndex} focus={Describe(f)}");
     }
 
     private IEnumerator CaptureFresh()
@@ -502,8 +616,21 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
                 if (a.xMin < b.xMax - 1f && b.xMin < a.xMax - 1f && a.yMin < b.yMax - 1f && b.yMin < a.yMax - 1f) overlaps++;
             }
             Check("FIGURE_WORDS_DO_NOT_OVERLAP", overlaps == 0, "overlaps=" + overlaps);
-            float smallest = diagram.Query<Label>().ToList().Where(Shown).Select(l => l.resolvedStyle.fontSize).DefaultIfEmpty(0f).Min();
-            Check("FIGURE_WORDS_ARE_AT_LEAST_THE_FIGURE_FLOOR", smallest >= TeachingDiagramPlan.FigureMinTextSize - 0.01f, "smallestUiUnits=" + F(smallest));
+            // #360: only words the FIGURE owns count toward the 20-unit floor: its title (above the frame), the labels/legend inside the
+            // frame and its notes (below it). The lesson caption is the shared card text after them (--fs-body 18), so it is excluded by position.
+            List<Label> figureOwned = FigureOwnedLabels(diagram, stage, out Label lessonCaption);
+            float smallest = figureOwned.Where(Shown).Select(l => l.resolvedStyle.fontSize).DefaultIfEmpty(0f).Min();
+            Check("FIGURE_OWNED_WORDS_ARE_AT_LEAST_THE_FIGURE_FLOOR", figureOwned.Count > 0 && smallest >= TeachingDiagramPlan.FigureMinTextSize - 0.01f, $"figureLabels={figureOwned.Count} smallestUiUnits={F(smallest)}");
+            int directLabels = diagram.Children().OfType<Label>().Count(), expectedFigureDirect = (string.IsNullOrEmpty(stage.Title) ? 0 : 1) + stage.Notes.Length;
+            Check("EXCLUDED_LABEL_IS_ONLY_THE_ONE_SHARED_LESSON_CAPTION_AFTER_THE_FIGURE_NOTES", lessonCaption == null ? directLabels == expectedFigureDirect
+                : (lessonCaption.ClassListContains("diagram-caption") && !figureOwned.Contains(lessonCaption) && directLabels == expectedFigureDirect + 1),
+                $"directLabels={directLabels} figureDirect={expectedFigureDirect} caption={(lessonCaption == null ? "none" : "'" + lessonCaption.text + "'")}");
+            Measure("LESSON_CAPTION_SIZE_EXCLUDED_FROM_THE_FIGURE_FLOOR", lessonCaption == null ? "none" : "uiUnits=" + F(lessonCaption.resolvedStyle.fontSize));
+            // Negative control: the same floor predicate over the figure's words PLUS the caption must fail, so the exclusion is a
+            // structural scope and the threshold itself is not relaxed (this is exactly what the over-scoped #359 check measured).
+            bool MeetsFloor(IEnumerable<Label> labels) => labels.Where(Shown).Select(l => l.resolvedStyle.fontSize).DefaultIfEmpty(0f).Min() >= TeachingDiagramPlan.FigureMinTextSize - 0.01f;
+            if (lessonCaption != null && Shown(lessonCaption))
+                Check("NEGATIVE_CONTROL_THE_FLOOR_PREDICATE_REJECTS_THE_CAPTION_SIZE", !MeetsFloor(figureOwned.Concat(new[] { lessonCaption })), "captionUiUnits=" + F(lessonCaption.resolvedStyle.fontSize));
             Check("CARD_USES_THE_V2_WORDING", Texts(ui.Learning.Root).Contains(LearningObjectivesView.RackV2Concept.Substring(0, 40)));
             yield return Shot("g-objective1-five-rack");
         }
@@ -515,6 +642,9 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
     private void ForceStage(int stage)
     {
         var learning = ui.Learning;
+        // #360: reading the topic index first lets TeachingFacts() adopt the manager's current TeachingWorldVersion; without it the
+        // next read discarded the injected facts as "a different world" (the #359 defect). Injected facts are SYNTHETIC UI input only.
+        _ = learning.CurrentTopicIndex;
         BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
         FieldInfo facts = typeof(LearningObjectivesView).GetField("sequenceFacts", flags), next = typeof(LearningObjectivesView).GetField("nextSequenceRefresh", flags);
         if (stage <= 0) { facts.SetValue(learning, null); next.SetValue(learning, 0f); learning.Refresh(false); return; }
@@ -541,7 +671,11 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
             ui.CloseAll(); ui.ShowWorkPlan(); yield return Frames(18);
             var locked = ui.RootElement.Query(className: "card-locked").ToList().Where(Shown).ToList();
             int expected = stage == 0 ? 3 : stage == 5 ? 1 : 0;
-            Check($"FORCED_LESSON_{stage}_INDEX_TAKES", ui.Learning.CurrentTopicIndex == stage, "topic=" + ui.Learning.CurrentTopicIndex);
+            // Fail closed: the injected stage must really be the lesson index (5 and 7 included) before any lock count is believed.
+            bool took = ui.Learning.CurrentTopicIndex == stage;
+            Check($"FORCED_LESSON_{stage}_INDEX_TAKES", took, "topic=" + ui.Learning.CurrentTopicIndex);
+            Measure($"SYNTHETIC_STAGE_{stage}", "forced facts for the Work Plan lock PRESENTATION only; this is not real play to stage " + stage + " and no V2 save is claimed");
+            if (!took) { Measure($"LOCK_COUNTS_{stage}", "NOT VERIFIED: the forced stage did not take, so no lock count is asserted"); continue; }
             Check($"WORKPLAN_LOCKED_SECTIONS_AT_FORCED_LESSON_{stage}", locked.Count == expected,
                 $"locked={locked.Count} expected={expected} [{string.Join(" | ", locked.Select(l => l.Q<Label>(className: "heading")?.text))}]");
             Check($"LOCKED_SECTIONS_ARE_DISABLED_AND_EXPLAIN_{stage}", locked.All(l => !l.enabledInHierarchy && Texts(l).Contains(ScenarioOneWorkPlanFocus.LaterObjectiveNote)));
@@ -707,8 +841,19 @@ public sealed class Ccf359V2ClosureRunner : MonoBehaviour
         Check(label + "_SURFACE_OBJECTS_AT_MOST_ONE_ACTIVE_ONLY_IF_V2", surfaces.Count <= 1 && surfaces.Count(g => g.activeInHierarchy) == (expectV2 ? 1 : 0), $"objects={surfaces.Count} active={surfaces.Count(g => g.activeInHierarchy)}");
         Check(label + "_STAND_MAP_MODEL_HEADLAND_ONLY_IF_V2", ui.MapSource.Model.ExistingHeadlandSurfaces.Count == (expectV2 ? 1 : 0), "model=" + ui.MapSource.Model.ExistingHeadlandSurfaces.Count);
         ui.ShowMap(); yield return MapRefreshed();
-        int strokes = ui.Map.Canvas.LastPlan.Count(i => (i.Symbol == MapSymbol.Path || i.Symbol == MapSymbol.PathCasing) && i.SourceIndex == -1);
-        Check(label + "_STAND_MAP_HEADLAND_STROKES_ONLY_IF_V2", expectV2 ? strokes == 8 : strokes == 0, "strokes=" + strokes);
+        // #360: LastPlan is only evidence about the CURRENT world when the Stand Map is the open screen, is shown, and has painted the
+        // current model version. During a Reference Preview the map cannot open, so LastPlan there is a stale paint and must not count.
+        bool mapDisplayed = ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map && Shown(ui.Map.Root) && ui.Map.Canvas.PaintedVersion == ui.MapSource.Model.Version;
+        string mapState = $"screen={ui.CurrentScreen} shown={Shown(ui.Map.Root)} painted={ui.Map.Canvas.PaintedVersion} model={ui.MapSource.Model.Version} preview={manager.ReferencePreviewActive}";
+        if (mapDisplayed)
+        {
+            int strokes = ui.Map.Canvas.LastPlan.Count(i => (i.Symbol == MapSymbol.Path || i.Symbol == MapSymbol.PathCasing) && i.SourceIndex == -1);
+            Check(label + "_STAND_MAP_HEADLAND_STROKES_ONLY_IF_V2", expectV2 ? strokes == 8 : strokes == 0, "strokes=" + strokes + " " + mapState);
+        }
+        else if (manager.ReferencePreviewActive)
+            Measure(label + "_STAND_MAP_HEADLAND_STROKES", "NOT VERIFIED: the Stand Map is not displayed during a Reference Preview, so no stale paint is counted. The model and the 3D surface were asserted instead. " + mapState);
+        else
+            Check(label + "_STAND_MAP_IS_DISPLAYED_AND_PAINTED_AT_THE_CURRENT_MODEL", false, mapState);
         yield return Shot("bh-" + label.ToLowerInvariant() + "-stand-map");
         ui.CloseAll(); ui.ShowObjectives(); yield return Frames(20);
         TeachingDiagramPlan.Stage stage = DiagramStage(out _);
