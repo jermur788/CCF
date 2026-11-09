@@ -248,7 +248,7 @@ class SourceStructure(unittest.TestCase):
         self.assertEqual(pr['branch'], 'feature/scenario-one-workbench-retirement-20261105')
         self.assertEqual(pr['states']['pre-transition']['head'], '4d95e45245d660e24b91e26754d9c57949bf3384')
         # #347 Phase B: the post-transition pins are now filled from candidate C (PROVISIONAL, not accepted/deployed; see test_post_transition_profile.py)
-        self.assertEqual(pr['states']['post-transition']['head'], '34e6db134b50f0a393733145962ca7c9c69a9e36')
+        self.assertEqual(pr['states']['post-transition']['head'], '69c52906e973f6afa926c941cefa2bbc7b2a2412')
         self.assertEqual(set(pr['states']['post-transition']['clean_pinned']), set(PACKAGES)); self.assertEqual(len(pr['states']['post-transition']['allowed_changed_paths']), 13)
         self.assertEqual(len(pr['states']['pre-transition']['dirty']), 8); self.assertEqual(len(pr['states']['post-transition']['dirty']), 6)
         self.assertEqual(pr['states']['post-transition']['must_descend_from'], ['46bc1fd618ae5b214d7de296a03ac7efec27cb7c'])

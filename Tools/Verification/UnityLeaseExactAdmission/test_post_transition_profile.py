@@ -20,11 +20,11 @@ tea = importlib.util.module_from_spec(spec); spec.loader.exec_module(tea)
 PID = 'WorkbenchTier2Reg287-exact-dirty-v1'
 OLD = '4d95e45245d660e24b91e26754d9c57949bf3384'
 OPTION_B = '46bc1fd618ae5b214d7de296a03ac7efec27cb7c'
-CANDIDATE_C = '34e6db134b50f0a393733145962ca7c9c69a9e36'
+CANDIDATE_C = '69c52906e973f6afa926c941cefa2bbc7b2a2412'
 REVIEWED_SOURCE = '11cee0c26c81b916c77a5310370d7ce42f2a203b'
 PROPOSED_REL = 'Tools/Verification/UnityLeaseExactAdmission/unity-lock.proposed'
 # PROVISIONAL, NOT ACCEPTED: recorded so a drift in any pinned value is visible; the Manager decides whether it is adopted.
-POST_DIGEST_PROVISIONAL = '75b2998bca18c6cb8f932c8fca9b8baee9bd18c5d48c904da9d96a9e5dbb1113'
+POST_DIGEST_PROVISIONAL = 'eda2bfe31b870f92c3760a654d620d76bbdf6d915dff6b79123240a2ad28d7cd'
 # Independent literals from the #337 protected-before table (the working package bytes; they equal the C blobs).
 PACKAGE_PINS = {'Packages/manifest.json': ('f2ff5f95f9e93716947391a8818dbe642d81f0b49068516441a58def966c2c1c', 2297),
                 'Packages/packages-lock.json': ('f43d9894af3c6dc054e86e98335dbd248a9fb97527b49c7b5952d96e037e52b1', 14223)}
@@ -55,7 +55,7 @@ class PinsDerivedFromGit(unittest.TestCase):
         self.assertEqual(post['must_descend_from'], [OPTION_B])
         for ancestor in (OPTION_B, OLD):
             self.assertEqual(git('merge-base', '--is-ancestor', ancestor, CANDIDATE_C, check=False).returncode, 0, ancestor)
-        self.assertEqual(git('rev-list', '--count', OPTION_B + '..' + CANDIDATE_C).stdout.strip(), b'1')  # exactly one commit past Option B
+        self.assertEqual(git('rev-list', '--count', OPTION_B + '..' + CANDIDATE_C).stdout.strip(), b'2')  # exactly two commits past Option B (Phase A witness + per-record hashes)
 
     def test_two_clean_package_pins_equal_the_c_blobs_and_the_337_working_bytes(self):
         _, _, post = post_state()

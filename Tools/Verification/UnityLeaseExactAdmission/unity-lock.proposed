@@ -80,7 +80,7 @@ EXACT_ADMISSION_PROFILES = {
             # The two package JSONs stop being dirty (working bytes == the tracked C blobs); the six Material/.vscode files stay
             # dirty with their original pins. A different HEAD, hash or extra changed path is refused.
             'post-transition': {
-                'head': '34e6db134b50f0a393733145962ca7c9c69a9e36',  # candidate C, branch feat/workbench-111-b3-evidence-candidate-20261108-v1
+                'head': '69c52906e973f6afa926c941cefa2bbc7b2a2412',  # candidate C (69c52906), branch feat/workbench-111-b3-evidence-candidate-20261108-v1
                 'dirty': {p: v for p, v in PROTECTED_DIRTY.items() if p not in _PACKAGE_JSON},
                 'clean_pinned': {  # (sha256 of the C blob == working file, size): the inspected 1.1.1 package bytes
                     'Packages/manifest.json': ('f2ff5f95f9e93716947391a8818dbe642d81f0b49068516441a58def966c2c1c', 2297),
