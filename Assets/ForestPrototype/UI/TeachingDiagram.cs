@@ -10,6 +10,11 @@ using Plan = TeachingDiagramPlan;
 // it is given. Its words are ordinary UI Labels laid over the empty top and bottom bands, so they follow the same fonts and sizes as the rest of
 // the UI instead of being baked into a picture. The picture is passive: it takes no clicks, and it is a teaching illustration, not a map of the
 // player's forest (the real maps are the Stand Map and the HUD minimap).
+//
+// In a Rack V2 world, Objective 1 (lesson 0) draws TeachingDiagramPlan.ObjectiveOneFigure: the illustrative five-rack plan, built from the
+// authored headland/feeder constants passed in below and a recorded source fixture. It reads no save and no live map, and it has its own title
+// above and a note below. Every other world (Legacy40, Reference Future v1, pre-V2 saves) keeps the original Objective 1 picture: the caller
+// says which world it is, and without that flag the original picture is drawn.
 public sealed class TeachingDiagram : VisualElement
 {
     // The widest the picture is drawn, in UI units. Wider than the old 660 so its words can be read at 1280 x 720, where one UI unit is 0.8 pixel.
@@ -27,14 +32,19 @@ public sealed class TeachingDiagram : VisualElement
     private float offsetX, offsetY, panelScale = 1f, scale = 1f;
 
     // lesson: -1 for the introduction, otherwise the teaching sequence's index (0 = Create access racks).
-    public TeachingDiagram(int lesson, string caption)
+    public TeachingDiagram(int lesson, string caption) : this(lesson, caption, false) { }
+
+    // rackV2World: the caller's existing Rack V2 eligibility for this objective. Only then does Objective 1 show the five-rack figure, because
+    // only a Rack V2 world has the western headland and southern feeder that the figure names.
+    public TeachingDiagram(int lesson, string caption, bool rackV2World)
     {
-        stage = Plan.For(lesson);
+        stage = Plan.ShowsFiveRackFigure(lesson, rackV2World) ? Plan.ObjectiveOneFigure(SiteFromAuthority()) : Plan.For(lesson);
         preserveIntroIllustration = lesson < 0;
         name = "teaching-diagram";
         AddToClassList("teaching-diagram");
         pickingMode = PickingMode.Ignore;
         style.flexShrink = 0;
+        if (!string.IsNullOrEmpty(stage.Title)) Add(FigureText(stage.Title, true));
 
         frame = new VisualElement { name = "teaching-diagram-frame", pickingMode = PickingMode.Ignore };
         frame.AddToClassList("teaching-diagram-frame");
@@ -49,8 +59,38 @@ public sealed class TeachingDiagram : VisualElement
         foreach (Plan.Text text in stage.Legend) AddText(text, true);
         frame.RegisterCallback<GeometryChangedEvent>(OnFrameGeometry);
         Add(frame);
+        foreach (string note in stage.Notes) Add(FigureText(note, false));
 
         if (!string.IsNullOrEmpty(caption)) Add(UiKit.Text(caption, "diagram-caption"));
+    }
+
+    // The five-rack figure's geometry comes from the C# authorities, never from a save or the live Stand Map.
+    private static Plan.Site SiteFromAuthority() => new Plan.Site
+    {
+        StandSizeM = StandGeometryModel.StandSizeMeters(StandGeometryModel.Enlarged80),
+        HeadlandX = ScenarioOneHeadlandGeometry.HeadlandX,
+        HeadlandSouthZ = ScenarioOneHeadlandGeometry.SouthZ,
+        HeadlandNorthZ = ScenarioOneHeadlandGeometry.NorthZ,
+        FeederZ = ScenarioOneHeadlandGeometry.FeederZ,
+        FeederEndX = ScenarioOneHeadlandGeometry.PathX,
+        PathWidthM = ScenarioOneHeadlandGeometry.Width,
+        PadRadiusM = ScenarioOneHeadlandGeometry.PadRadius,
+        RackWidthM = RackGeometry.DefaultWidthM,
+    };
+
+    // The five-rack figure's title (above) and notes (below) flow and wrap like the caption, never clip. They reuse the existing diagram
+    // classes and only set their size and placement here, so the shared stylesheet is untouched: the title takes the bold ink of the
+    // picture's labels, the notes the muted caption ink. 20 UI units is the reading size (--fs-reading), the floor for new words.
+    private const float FigureTextSize = 20f;
+
+    private static Label FigureText(string value, bool title)
+    {
+        Label label = UiKit.Text(value, title ? "diagram-label" : "diagram-caption");
+        label.pickingMode = PickingMode.Ignore;
+        label.style.position = Position.Relative;     // diagram-label is laid over the picture; the title flows above it instead
+        label.style.fontSize = FigureTextSize;
+        if (title) label.style.marginBottom = 6f;
+        return label;
     }
 
     private void AddText(Plan.Text text, bool legend)
@@ -63,6 +103,12 @@ public sealed class TeachingDiagram : VisualElement
             label.style.color = Colour(text.Role, 1f);
         else if (text.Role == Plan.Role.Muted)
             label.AddToClassList("diagram-muted");
+        if (text.Backed)
+        {
+            // A tag over tree symbols: the picture's own dark surface behind it, so the letter does not sit on a busy pattern.
+            label.style.backgroundColor = Colour(Plan.Role.Panel, 1f);
+            label.style.unityTextAlign = TextAnchor.MiddleCenter;
+        }
         frame.Add(label);
         texts.Add(new KeyValuePair<Label, Plan.Text>(label, text));
         isLegend.Add(legend);
@@ -90,7 +136,7 @@ public sealed class TeachingDiagram : VisualElement
             }
             else label.style.top = text.Y * s;
             label.style.width = text.Width * s;
-            label.style.fontSize = Mathf.Max(isLegend[i] ? MinLegendSize : MinLabelSize, text.FontSize * s);
+            label.style.fontSize = Mathf.Max(Mathf.Max(isLegend[i] ? MinLegendSize : MinLabelSize, stage.MinTextSize), text.FontSize * s);
         }
         art.MarkDirtyRepaint();
     }
@@ -166,8 +212,117 @@ public sealed class TeachingDiagram : VisualElement
             case Plan.Kind.Repeat:
                 DrawCycle(p, item);
                 break;
+            default:
+                DrawFigureItem(p, item);
+                break;
         }
         DrawMarks(p, item);
+    }
+
+    // ---- Objective 1 five-rack figure symbols. States differ by shape and pattern, not only by colour. ----
+    private void DrawFigureItem(Painter2D p, Plan.Item item)
+    {
+        float a = item.Alpha;
+        switch (item.Kind)
+        {
+            case Plan.Kind.Corridor:
+                DrawCorridor(p, item);
+                break;
+            case Plan.Kind.Track:
+                // Existing open ground: an opaque band with round ends (casing and fill are separate items, casings drawn first).
+                p.lineCap = LineCap.Round;
+                Line(p, Colour(item.Role, a), item.Width, item.Points);
+                p.lineCap = LineCap.Butt;
+                break;
+            case Plan.Kind.Pad:
+                Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(item.Role, a), 0f);
+                break;
+            case Plan.Kind.Clearing:
+                Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(item.Role, a * 0.35f), 0f);
+                Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(item.Role, a), Plan.StrokeNormal);
+                break;
+            case Plan.Kind.Entrance:
+            {
+                float h = item.Width * 0.5f;
+                Polygon(p, Colour(item.Role, a), item.X - h, item.Y - h, item.X + h, item.Y - h, item.X + h, item.Y + h, item.X - h, item.Y + h);
+                Line(p, Colour(Plan.Role.TrackCasing, a), Plan.StrokeNormal * 0.6f, item.X - h, item.Y - h, item.X + h, item.Y - h,
+                    item.X + h, item.Y + h, item.X - h, item.Y + h, item.X - h, item.Y - h);
+                break;
+            }
+            case Plan.Kind.FieldMark:
+            {
+                // Two vertical spray stripes across the trunk position: a marked tree that still stands, not a red Fell ring.
+                float r = item.Radius * 0.75f;
+                Line(p, Colour(item.Role, a), Plan.StrokeMark, item.X - 3.5f, item.Y - r, item.X - 3.5f, item.Y + r);
+                Line(p, Colour(item.Role, a), Plan.StrokeMark, item.X + 3.5f, item.Y - r, item.X + 3.5f, item.Y + r);
+                break;
+            }
+            case Plan.Kind.Stump:
+                Ellipse(p, item.X, item.Y, item.Radius, item.Radius, Colour(item.Role, a), 0f);
+                Ellipse(p, item.X, item.Y, item.Radius + 2f, item.Radius + 2f, Colour(Plan.Role.TrackCasing, a), Plan.StrokeNormal * 0.6f);
+                break;
+            case Plan.Kind.NorthArrow:
+            {
+                Color c = Colour(item.Role, a);
+                float r = item.Radius;
+                Line(p, c, Plan.StrokeNormal, item.X, item.Y + r, item.X, item.Y - r * 0.4f);
+                Polygon(p, c, item.X, item.Y - r, item.X + 9f, item.Y - r * 0.3f, item.X - 9f, item.Y - r * 0.3f);
+                break;
+            }
+            case Plan.Kind.Boundary:
+                // A thin continuous outline: dashes mean "draft proposal" in this figure's key, so the property edge is never dashed.
+                Line(p, Colour(item.Role, a), Plan.StrokeNormal * 0.6f, item.X, item.Y, item.X1, item.Y, item.X1, item.Y1, item.X, item.Y1, item.X, item.Y);
+                break;
+        }
+    }
+
+    // A corridor of any direction. Planned: a see-through tint with two solid edges, so the trees drawn beneath still show. Draft: a fainter
+    // tint, dashed edges. Harvested: an opaque pale strip (nothing standing; stumps are separate items).
+    //
+    // The tints use real transparency, not Colour(): Colour() pre-blends against the dark panel and is opaque, which would paint over the
+    // standing trees and make a planned rack look already cleared.
+    private void DrawCorridor(Painter2D p, Plan.Item item)
+    {
+        float a = item.Alpha;
+        float dx = item.X1 - item.X, dy = item.Y1 - item.Y, length = Mathf.Sqrt(dx * dx + dy * dy);
+        if (length < 0.001f) return;
+        float nx = -dy / length * item.Width * 0.5f, ny = dx / length * item.Width * 0.5f;
+        Color edge = Colour(item.Role, a);
+        switch (item.State)
+        {
+            case Plan.CorridorState.Harvested:
+                Polygon(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
+                break;
+            case Plan.CorridorState.Draft:
+                Polygon(p, Tint(item.Role, a * Plan.RackFillAlpha * 0.5f), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
+                DashedLine(p, edge, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);
+                DashedLine(p, edge, item.X - nx, item.Y - ny, item.X1 - nx, item.Y1 - ny);
+                break;
+            default:
+                Polygon(p, Tint(item.Role, a * Plan.RackFillAlpha), item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny, item.X1 - nx, item.Y1 - ny, item.X - nx, item.Y - ny);
+                Line(p, edge, Plan.StrokeNormal, item.X + nx, item.Y + ny, item.X1 + nx, item.Y1 + ny);
+                Line(p, edge, Plan.StrokeNormal, item.X - nx, item.Y - ny, item.X1 - nx, item.Y1 - ny);
+                break;
+        }
+    }
+
+    // The role's own colour at a real alpha, so what is drawn beneath shows through.
+    private static Color Tint(Plan.Role role, float alpha)
+    {
+        Plan.Blend(role, 1f, out byte r, out byte g, out byte b);
+        return new Color32(r, g, b, (byte)Mathf.RoundToInt(Mathf.Clamp01(alpha) * 255f));
+    }
+
+    // Dashes of 9 design units with gaps of 6, like the Stand Map's proposal lines.
+    private void DashedLine(Painter2D p, Color colour, float x0, float y0, float x1, float y1)
+    {
+        float dx = x1 - x0, dy = y1 - y0, length = Mathf.Sqrt(dx * dx + dy * dy);
+        if (length < 0.001f) return;
+        for (float start = 0f; start < length; start += 15f)
+        {
+            float end = Mathf.Min(length, start + 9f);
+            Line(p, colour, Plan.StrokeNormal, x0 + dx * start / length, y0 + dy * start / length, x0 + dx * end / length, y0 + dy * end / length);
+        }
     }
 
     private void DrawYoung(Painter2D p, Plan.Item item)

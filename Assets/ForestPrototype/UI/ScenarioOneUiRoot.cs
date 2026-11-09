@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -51,6 +52,19 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private bool workPlanWasOpen;
     private float nextModalRefresh;
     private int helpClosedFrame = -1;
+    private Button nextAction;
+    private Button guidanceCandidate;
+    private VisualElement guidanceScope;
+    private readonly Label nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };
+    private readonly Dictionary<Button, bool> guidancePrimaries = new Dictionary<Button, bool>();
+    // Only T2-owned controls. Treatment review, waypoints and Legacy40 keep their original styling.
+    private static readonly string[] GuidanceButtonNames = {
+        "objective-primary-cta", "objective-work-plan", "objective-back-to-forest",
+        "map-work-plan", "map-back-to-forest", "map-plan-rack", "map-rack-plan-confirm", "map-rack-plan-reopen",
+        "map-consent-decline", "map-consent-accept", "map-edit-reset-cancel", "map-edit-reset-confirm",
+        "map-reopen-decline", "map-reopen-accept", "workplan-approve", "workplan-advance",
+        "workplan-read-results", "workplan-advance-return", "annual-review-acknowledge"
+    };
 
     public UiScreen CurrentScreen => screen;
     public ScenarioOneManager Manager => manager;
@@ -308,10 +322,188 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void LateUpdate()
     {
+        // No forest/quote/validator lookups here. Apply cached presentation after layout each frame,
+        // including the first frame after opening or dismissing Help.
+        ApplyNextActionGuidance();
         if (competitors == null || manager == null) return;
         bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
         competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
         indicator?.LateUpdate();
+    }
+
+    // Derive only after a genuine card rebuild/view entry, never on an unchanged timer tick.
+    public void RefreshNextActionGuidance()
+    {
+        if (learning == null || map == null || workPlan == null || manager == null) return;
+        ClearNextAction();
+        guidanceCandidate = null;
+        guidanceScope = null;
+        foreach (var entry in guidancePrimaries)
+            entry.Key.EnableInClassList("btn-primary", entry.Value);
+        guidancePrimaries.Clear();
+        foreach (VisualElement view in new[] { learning.Root, map.Root, workPlan.Root, review.Root })
+        {
+            Label note = view.Q<Label>("next-action-reason");
+            if (note != null) { note.text = ""; note.style.display = DisplayStyle.None; }
+        }
+        VisualElement scope = manager.WorkPlanOpen ? workPlan.Root
+            : screen == UiScreen.Objectives ? learning.Root : screen == UiScreen.Map ? map.Root
+            : screen == UiScreen.Review ? review.Root : null;
+        if (scope == null) return;
+        string target = null;
+        string reason = learning.CurrentInstruction;
+        bool mapQuestions = scope == map.Root && map.RackMode;
+        bool consent = mapQuestions && map.RackEditor.ConsentPending;
+        bool reset = mapQuestions && map.RackEditor.ResetPending;
+        if (consent && reset)
+            reason = "Two rack questions are open; keep or dismiss them before continuing.";
+        else if (consent) target = "map-consent-decline";
+        else if (reset) target = "map-edit-reset-cancel";
+        else if (mapQuestions && map.ReopenPending) target = "map-reopen-decline";
+        else if (scope == workPlan.Root && workPlan.ConfirmingAdvance) target = "workplan-advance-return";
+        else if (manager.RackPlanningV2Active && (learning.TeachingRacks
+            // The teaching topic advances when rack work resolves, before the first annual acknowledgement.
+            || (NeedsAnnualReview && manager.AnnualReports.Count == 1 && rackLayout != null && rackLayout.Harvested)))
+        {
+            bool objectives = scope == learning.Root;
+            bool onMap = scope == map.Root;
+            if (NeedsAnnualReview)
+                target = scope == review.Root ? "annual-review-acknowledge"
+                    : objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-read-results";
+            else if (!manager.RackPlanConfirmed)
+            {
+                if (objectives) target = "objective-primary-cta";
+                else if (onMap)
+                {
+                    if (!map.RackPlanningAvailable)
+                        reason = !manager.CanEditWorkPlan ? manager.OutcomeReason + " Work Plan editing is unavailable."
+                            : "Rack planning requires the rack tool and forest data to be available.";
+                    else if (!map.RackMode) target = "map-plan-rack";
+                    else if (map.RackEditor.Dragging || map.RackEditor.Ghost.HasValue)
+                        reason = string.IsNullOrEmpty(map.RackEditor.Status) ? learning.CurrentInstruction : map.RackEditor.Status;
+                    else if (manager.CanConfirmRackPlan(out string problem)) target = "map-rack-plan-confirm";
+                    else reason = problem;
+                }
+            }
+            else if (manager.MarkedRackEntranceCount < ScenarioOneManager.RackPlanTargetCount)
+            {
+                bool markable = false;
+                string unavailableReason = "";
+                foreach (RackPlanRack rack in manager.RackPlan)
+                {
+                    if (rack.EntranceMarked || rack.IsLocked) continue;
+                    if (manager.TryGetRackEntranceTarget(rack.Id, out ForestTree tree, out string problem)
+                        && !tree.IsCropTree && !tree.IsMarkedForFell) { markable = true; break; }
+                    else if (!string.IsNullOrEmpty(problem)) unavailableReason = problem;
+                }
+                if (markable) target = objectives ? "objective-back-to-forest" : onMap ? "map-back-to-forest" : null;
+                else reason = "No unmarked rack entrance is currently available to mark. " + unavailableReason;
+            }
+            else if (rackLayout != null)
+            {
+                string problem = RackPlanProblem;
+                if (string.IsNullOrEmpty(problem) && rackLayout.WorkPending) problem = RackApprovalProblem;
+                if (!string.IsNullOrEmpty(problem)) reason = problem;
+                else if (rackLayout.WorkPending)
+                {
+                    target = objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-approve";
+                    reason = "Review every pending job and its cost: Approve Work Plan commits all eligible pending work, including jobs outside the racks.";
+                    if (scope == workPlan.Root)
+                    {
+                        ScenarioHarvestJob quote = manager.GetHarvestQuote(false);
+                        long cost = manager.GetWorkPlanSummary().ExternalCostCents;
+                        if (!quote.Eligible || cost > manager.CashCents)
+                        {
+                            target = null;
+                            reason = !quote.Eligible ? quote.Problem : $"Approval needs {UiKit.Money(cost)} including approved work; available cash is {UiKit.Money(manager.CashCents)}.";
+                        }
+                        foreach (ScenarioOneWorkOrder order in manager.WorkOrders)
+                            if (order.rackId > 0 && order.status == ScenarioWorkStatus.Pending && !string.IsNullOrEmpty(order.validationMessage))
+                            { target = null; reason = order.validationMessage; break; }
+                    }
+                }
+                else
+                {
+                    // Completed or failed work alone is not evidence that there is work ready for annual execution.
+                    bool approved = false, failed = false;
+                    foreach (RackPlanRack rack in manager.RackPlan)
+                    {
+                        approved |= rack.Orders.Approved > 0;
+                        failed |= rack.Orders.Failed > 0;
+                    }
+                    if (rackLayout.Complete && approved && !failed && manager.CanAdvanceYearNow && ecology != null)
+                        target = objectives ? "objective-work-plan" : onMap ? "map-work-plan" : "workplan-advance";
+                    else reason = "Review the rack work and its results in the Work Plan. " + manager.Feedback;
+                }
+            }
+        }
+        else return; // Later-objective mappings and Legacy40 are outside this first guidance slice.
+
+        // Restore original classes above before deciding whether this context belongs to T2.
+        // Later objectives and Legacy40 return before this allowlist is demoted.
+        foreach (string name in GuidanceButtonNames)
+        {
+            Button owned = scope.Q<Button>(name);
+            if (owned == null) continue;
+            guidancePrimaries[owned] = owned.ClassListContains("btn-primary");
+            owned.RemoveFromClassList("btn-primary");
+        }
+        guidanceScope = scope;
+        guidanceCandidate = target != null ? scope.Q<Button>(target) : null;
+        Label explanation = scope.Q<Label>("next-action-reason");
+        if (explanation != null)
+        {
+            explanation.text = reason;
+            explanation.style.display = string.IsNullOrEmpty(reason) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+        ApplyNextActionGuidance();
+    }
+
+    private void ClearNextAction()
+    {
+        if (nextAction != null)
+        {
+            nextAction.RemoveFromClassList("btn-primary");
+            nextAction.RemoveFromClassList("next-action");
+            nextAction = null;
+        }
+        nextBadge.RemoveFromHierarchy();
+    }
+
+    // Cheap visibility/suspension checks only; expensive facts are cached by the rebuild above.
+    private void ApplyNextActionGuidance()
+    {
+        bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen
+            || help == null || help.IsOpen || helpClosedFrame == Time.frameCount;
+        Button candidate = guidanceCandidate;
+        VisualElement scope = guidanceScope;
+        bool eligible = !suspended && candidate != null && candidate.enabledInHierarchy && GuidanceVisible(candidate, scope);
+        if (nextAction == candidate && eligible) return;
+        ClearNextAction();
+        if (!eligible) return;
+        nextAction = candidate;
+        nextBadge.AddToClassList("next-action-badge");
+        candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
+        candidate.AddToClassList("btn-primary");
+        candidate.AddToClassList("next-action");
+    }
+
+    private static bool GuidanceVisible(VisualElement element, VisualElement scope)
+    {
+        for (VisualElement current = element; current != null; current = current.parent)
+        {
+            if (current.style.display == DisplayStyle.None || current.resolvedStyle.display == DisplayStyle.None
+                || current.resolvedStyle.visibility == Visibility.Hidden) return false;
+            if (current == scope) return true;
+        }
+        return false;
+    }
+
+    // Inline questions do not get default/restored focus. This does not opt any button into navigation.
+    public static void ClearPromptFocus(VisualElement scope)
+    {
+        VisualElement focused = scope.panel?.focusController?.focusedElement as VisualElement;
+        if (focused != null && scope.Contains(focused)) focused.Blur();
     }
 
     private void HandleKeys()
@@ -388,6 +580,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else if (screen == UiScreen.Objectives)
             learning.Refresh(true);
+        if (screen == UiScreen.Review) RefreshNextActionGuidance();
     }
 
     private MenuHelpView.Menu HelpContext()

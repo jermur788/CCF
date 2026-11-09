@@ -51,6 +51,16 @@ public sealed class StandMapSource
     private bool racksDirty = true, sceneryRead, treesDirty = true;
     private long sceneryGeometry = -1;
     private int scannedYear = int.MinValue, scannedMarked = -1, scannedCrop = -1;
+    private ForestEcologyController headlandEcology;
+    private ScenarioOneManager headlandManager;
+    private ScenarioOneHeadlandPresentation headlandPresentation;
+    private Transform headlandSurface;
+    private int headlandScene = -1, headlandLookupAttempts;
+    private bool headlandEligible;
+    private float nextHeadlandRead, nextHeadlandLookup;
+    private const int HeadlandLookupLimit = 6;
+
+    public int HeadlandProjectionReads { get; private set; }
 
     // How many times the trees were read and how many of those changed the canopy. A verification reads these to show a walk reads nothing.
     public int TreeScans { get; private set; }
@@ -126,6 +136,14 @@ public sealed class StandMapSource
         model.HasProperty = eco != null && eco.Cells != null && eco.CellCount > 0;
         if (!model.HasProperty)
         {
+            ClearExistingHeadland();
+            headlandEcology = null;
+            headlandManager = null;
+            headlandPresentation = null;
+            headlandScene = -1;
+            headlandEligible = false;
+            headlandLookupAttempts = 0;
+            nextHeadlandRead = nextHeadlandLookup = 0f;
             model.Racks.Clear();
             model.Trees.Clear();
             model.Juveniles.Clear();
@@ -150,6 +168,8 @@ public sealed class StandMapSource
             sceneryGeometry = sceneryKey;
             ReadScenery();
         }
+
+        ReadExistingHeadland(eco);
 
         int marked = ui.Marking != null ? ui.Marking.LivingMarkedCount : -1, crop = ui.Marking != null ? ui.Marking.LivingCropTreeCount : -1;
         if (treesDirty || eco.EcologicalYear != scannedYear || marked != scannedMarked || crop != scannedCrop || Time.unscaledTime >= nextTreeScan)
@@ -185,6 +205,84 @@ public sealed class StandMapSource
         if (model.HasWaypoint)
             model.Waypoint = new RackPoint(target.x, target.y);
         model.Restamp();
+    }
+
+    private void ClearExistingHeadland()
+    {
+        model.ExistingHeadlandSurfaces.Clear();
+        headlandSurface = null;
+    }
+
+    private void ReadExistingHeadland(ForestEcologyController eco)
+    {
+        ScenarioOneManager manager = ui.Manager;
+        int scene = eco.gameObject.scene.handle;
+        bool lostPresentation = !ReferenceEquals(headlandPresentation, null) && headlandPresentation == null;
+        if (headlandEcology != eco || headlandManager != manager || headlandScene != scene || lostPresentation)
+        {
+            ClearExistingHeadland();
+            headlandEcology = eco;
+            headlandManager = manager;
+            headlandScene = scene;
+            headlandPresentation = null;
+            headlandLookupAttempts = 0;
+            nextHeadlandRead = nextHeadlandLookup = 0f;
+        }
+        float now = Time.unscaledTime;
+        if (now < nextHeadlandRead) return;
+        nextHeadlandRead = now + RackRefreshSeconds;
+
+        bool v2 = manager != null && manager.RackPlanningV2Active && !manager.ReferencePreviewActive;
+        bool enlarged80 = eco.StandGeometryModelVersion == StandGeometryModel.Enlarged80;
+        bool eligible = v2 && enlarged80;
+        if (eligible != headlandEligible)
+        {
+            ClearExistingHeadland();
+            headlandEligible = eligible;
+            headlandLookupAttempts = 0;
+            nextHeadlandLookup = 0f;
+        }
+        Transform surface = null;
+        if (v2 && enlarged80 && manager.GetComponent<ForestEcologyController>() == eco)
+        {
+            if (headlandPresentation == null && headlandLookupAttempts < HeadlandLookupLimit && now >= nextHeadlandLookup)
+            {
+                headlandLookupAttempts++;
+                nextHeadlandLookup = now + RackRefreshSeconds * (1 << headlandLookupAttempts);
+                ScenarioOneHeadlandPresentation[] attached = eco.GetComponents<ScenarioOneHeadlandPresentation>();
+                if (attached.Length == 1 && eco.GetComponent<ForestStartingStand>() != null)
+                    headlandPresentation = attached[0];
+            }
+            if (headlandPresentation != null && headlandPresentation.isActiveAndEnabled)
+            {
+                int matches = 0;
+                foreach (Transform child in headlandPresentation.transform)
+                    if (child.name == "Scenario One V2 Headland") { surface = child; matches++; }
+                if (matches != 1 || !surface.gameObject.activeSelf || !surface.gameObject.activeInHierarchy)
+                    surface = null;
+                if (surface != null)
+                {
+                    MeshRenderer renderer = surface.GetComponent<MeshRenderer>();
+                    if (renderer == null || !renderer.enabled) surface = null;
+                }
+            }
+        }
+        if (!MapHeadlandSurface.ShouldShowExistingHeadland(v2, enlarged80, surface != null))
+        {
+            ClearExistingHeadland();
+            return;
+        }
+        if (headlandSurface == surface && model.ExistingHeadlandSurfaces.Count == 1) return;
+
+        ClearExistingHeadland();
+        model.ExistingHeadlandSurfaces.Add(new MapHeadlandSurface(
+            new RackPoint(ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.SouthZ),
+            new RackPoint(ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.NorthZ),
+            new RackPoint(ScenarioOneHeadlandGeometry.HeadlandX, ScenarioOneHeadlandGeometry.FeederZ),
+            new RackPoint(ScenarioOneHeadlandGeometry.PathX, ScenarioOneHeadlandGeometry.FeederZ),
+            ScenarioOneHeadlandGeometry.Width, ScenarioOneHeadlandGeometry.PadRadius));
+        headlandSurface = surface;
+        HeadlandProjectionReads++;
     }
 
     private static readonly System.Comparison<MapTree> ByHeight = (a, b) =>

@@ -80,6 +80,48 @@ public sealed class MapPath
     public float WidthM = 2.6f;
 }
 
+public readonly struct MapHeadlandSegment
+{
+    public readonly RackPoint Start, End;
+    public readonly float WidthM;
+
+    public MapHeadlandSegment(RackPoint start, RackPoint end, float widthM)
+    {
+        Start = start;
+        End = end;
+        WidthM = widthM;
+    }
+}
+
+public readonly struct MapHeadlandPad
+{
+    public readonly RackPoint Centre;
+    public readonly float RadiusM;
+
+    public MapHeadlandPad(RackPoint centre, float radiusM)
+    {
+        Centre = centre;
+        RadiusM = radiusM;
+    }
+}
+
+public sealed class MapHeadlandSurface
+{
+    public readonly MapHeadlandSegment Headland, Feeder;
+    public readonly MapHeadlandPad HeadlandJunction, PathJunction;
+
+    public MapHeadlandSurface(RackPoint south, RackPoint north, RackPoint feederStart, RackPoint feederEnd, float widthM, float padRadiusM)
+    {
+        Headland = new MapHeadlandSegment(south, north, widthM);
+        Feeder = new MapHeadlandSegment(feederStart, feederEnd, widthM);
+        HeadlandJunction = new MapHeadlandPad(feederStart, padRadiusM);
+        PathJunction = new MapHeadlandPad(feederEnd, padRadiusM);
+    }
+
+    public static bool ShouldShowExistingHeadland(bool rackPlanningV2Active, bool enlarged80, bool surfaceActive)
+        => rackPlanningV2Active && enlarged80 && surfaceActive;
+}
+
 public sealed class MapRack
 {
     public RackPoint Start, End;
@@ -123,6 +165,7 @@ public sealed class StandMapModel
     public float AreaHectares => SizeM * SizeM / 10000f;
 
     public readonly List<MapPath> Paths = new List<MapPath>();
+    public readonly List<MapHeadlandSurface> ExistingHeadlandSurfaces = new List<MapHeadlandSurface>();
     public readonly List<MapRack> Racks = new List<MapRack>();
     // The foundation's suggested routes while the Stand Map is NOT planning (RACK-V2-07): guidance the minimap draws dashed but the Stand
     // Map does not, so Racks still holds no suggestion outside planning mode. While planning, the same routes are in Racks and this is empty.
@@ -208,6 +251,17 @@ public sealed class StandMapModel
                 h = Mix(h, path.Points.Count); h = Mix(h, path.WidthM);
                 foreach (RackPoint p in path.Points) { h = Mix(h, p.X); h = Mix(h, p.Z); }
             }
+            if (ExistingHeadlandSurfaces.Count > 0)
+            {
+                h = Mix(h, ExistingHeadlandSurfaces.Count);
+                foreach (MapHeadlandSurface surface in ExistingHeadlandSurfaces)
+                {
+                    h = HashHeadlandSegment(h, surface.Headland);
+                    h = HashHeadlandSegment(h, surface.Feeder);
+                    h = HashHeadlandPad(h, surface.HeadlandJunction);
+                    h = HashHeadlandPad(h, surface.PathJunction);
+                }
+            }
             foreach (MapLandmark l in Landmarks) { h = Mix(h, l.At.X); h = Mix(h, l.At.Z); h = Mix(h, l.RadiusM); }
             foreach (MapRack r in Racks)
             {
@@ -269,6 +323,19 @@ public sealed class StandMapModel
     // The racks drawn in the dynamic layer: the Stand Map's own proposal and the edit ghosts. Everything else is static.
     public static bool IsDynamicRack(MapSymbol symbol)
         => symbol == MapSymbol.RackPreview || symbol == MapSymbol.RackDraft || symbol == MapSymbol.RackRefused;
+
+    private static int HashHeadlandSegment(int hash, MapHeadlandSegment segment)
+    {
+        hash = Mix(hash, segment.Start.X.GetHashCode()); hash = Mix(hash, segment.Start.Z.GetHashCode());
+        hash = Mix(hash, segment.End.X.GetHashCode()); hash = Mix(hash, segment.End.Z.GetHashCode());
+        return Mix(hash, segment.WidthM.GetHashCode());
+    }
+
+    private static int HashHeadlandPad(int hash, MapHeadlandPad pad)
+    {
+        hash = Mix(hash, pad.Centre.X.GetHashCode()); hash = Mix(hash, pad.Centre.Z.GetHashCode());
+        return Mix(hash, pad.RadiusM.GetHashCode());
+    }
 
     private static int Mix(int h, int value) { unchecked { return h * 31 + value; } }
     private static int Mix(int h, float value) { unchecked { return h * 31 + (int)Math.Round(value * 10.0); } }

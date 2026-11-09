@@ -70,6 +70,8 @@ public static class StandMapLegend
         if (open) Symbol(LegendKind.Band, MapSymbol.RackOpen, "Rack harvested, corridor open");
         if (other) Symbol(LegendKind.Band, MapSymbol.RackOther, "Your rack, off the planned layout");
         if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, Meaning(MapSymbol.Path));
+        if (model.ExistingHeadlandSurfaces.Count > 0)
+            Symbol(LegendKind.Line, MapSymbol.Path, "Existing V2 headland / feeder — not a planned rack");
         if (model.Landmarks.Count > 0) Symbol(LegendKind.Patch, MapSymbol.Landmark, "Clearing (work area)");
         Symbol(LegendKind.Line, MapSymbol.Property, "Property boundary");
         Symbol(LegendKind.Line, MapSymbol.GridLine, "Local grid, " + StandMapGridPlan.StepM(model.SizeM) + " m (east, north)");

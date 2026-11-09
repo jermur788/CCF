@@ -70,11 +70,18 @@ public sealed partial class LearningObjectivesView
         VisualElement header = UiKit.Box("modal-header");
         UiKit.Add(header, "Scenario One · one objective at a time", "title");
         VisualElement buttons = UiKit.Row(header);
-        buttons.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
-        buttons.Add(UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());
+        map.name = "objective-primary-cta";
+        buttons.Add(map);
+        Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
+        work.name = "objective-work-plan";
+        buttons.Add(work);
+        Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");
+        forest.name = "objective-back-to-forest";
+        buttons.Add(forest);
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
+        UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
@@ -151,7 +158,7 @@ public sealed partial class LearningObjectivesView
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.
-        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption));
+        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective));
         current.Add(body);
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
@@ -183,6 +190,7 @@ public sealed partial class LearningObjectivesView
             library.Add(foldout);
         }
         scroll.Add(library);
+        ui.RefreshNextActionGuidance();
         scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
     }
 

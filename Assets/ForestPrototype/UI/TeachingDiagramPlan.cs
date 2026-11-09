@@ -12,10 +12,18 @@ using System.Linq;
 // The pictures are original teaching diagrams in the top-down style of a stand plan, inspired by the useful visual language of the Pro Silva
 // continuous-cover book's stand diagrams (pp. 66-67); none of its artwork, dimensions, ages or species percentages is reproduced. The counts are
 // diagram counts, not a prescription or a prediction for the playable forest, and the geometry is in design units (not metres). No white is used.
+//
+// Exception (D-072 FR-T, #296): in a Rack V2 world only, Objective 1 is drawn from ObjectiveOneFigure instead of the conceptual stand above
+// (ShowsFiveRackFigure). Every other world keeps For(0). See the section at the end.
 public static class TeachingDiagramPlan
 {
-    public enum Role { Panel, Canopy, CanopyEdge, Muted, Accent, Inspect, Rack, Crop, Fell, Good, Warn, Wood, Opening, Beech, Oak }
-    public enum Kind { Crown, Rack, Opening, Log, Young, Shelter, Clock, Repeat, BroadleafCrown, Chevron }
+    // Roles and kinds after Oak / Chevron belong to the Objective 1 five-rack figure only; the earlier values keep their order.
+    public enum Role { Panel, Canopy, CanopyEdge, Muted, Accent, Inspect, Rack, Crop, Fell, Good, Warn, Wood, Opening, Beech, Oak,
+        Track, TrackCasing, Entrance, FieldMark, Harvested }
+    public enum Kind { Crown, Rack, Opening, Log, Young, Shelter, Clock, Repeat, BroadleafCrown, Chevron,
+        Corridor, Track, Pad, Entrance, FieldMark, Stump, NorthArrow, Boundary, Clearing }
+    // A five-rack figure corridor: a proposal (dashed edges), a plan (solid edges, trees still inside) or a harvested, open strip.
+    public enum CorridorState { Draft, Planned, Harvested }
     public enum YoungShape { Circle, Oval, Diamond }
     [System.Flags] public enum Marks { None = 0, Band = 1, Ring = 2, Slash = 4 }
 
@@ -65,6 +73,10 @@ public static class TeachingDiagramPlan
         public bool Quiet, Failed;
         public Marks Marks;
         public int Z;
+        // Five-rack figure only: a track's centreline as x,y pairs; a corridor's state; the source identity a rack or entrance comes from.
+        public float[] Points;
+        public CorridorState State;
+        public string SourceId = "";
         public float Alpha => Quiet ? QuietAlpha : 1f;
     }
 
@@ -79,8 +91,12 @@ public static class TeachingDiagramPlan
         public readonly string Value;
         public readonly float X, Y, Width, Height, FontSize;
         public readonly Role Role;
+        // A short tag drawn over the map gets a dark backing so it stays readable over tree symbols (five-rack figure only).
+        public readonly bool Backed;
         public Text(string value, float x, float y, float width, float height, float fontSize, Role role)
-        { Value = value; X = x; Y = y; Width = width; Height = height; FontSize = fontSize; Role = role; }
+            : this(value, x, y, width, height, fontSize, role, false) { }
+        public Text(string value, float x, float y, float width, float height, float fontSize, Role role, bool backed)
+        { Value = value; X = x; Y = y; Width = width; Height = height; FontSize = fontSize; Role = role; Backed = backed; }
     }
 
     public sealed class Stage
@@ -91,6 +107,10 @@ public static class TeachingDiagramPlan
         public List<Item> Items = new List<Item>();      // lessons
         public List<Panel> Panels = new List<Panel>();   // introduction: the same plantation at a different scale, and the time cycle
         public Text[] Labels = new Text[0], Legend = new Text[0];
+        // Five-rack figure only: a title shown above the picture, notes shown below it, and a larger text floor (UI units) for its words.
+        public string Title = "";
+        public string[] Notes = new string[0];
+        public float MinTextSize;
     }
 
     private static readonly string[] Ids =
@@ -123,6 +143,11 @@ public static class TeachingDiagramPlan
         new byte[] { 181, 159, 89 },    // Opening
         new byte[] { 169, 191, 116 },   // Beech
         new byte[] { 114, 182, 145 },   // Oak
+        new byte[] { 190, 158, 110 },   // Track: existing headland, feeder and approach (the Stand Map's tan path band)
+        new byte[] { 58, 46, 30 },      // TrackCasing: the dark edge of an existing track
+        new byte[] { 150, 214, 255 },   // Entrance: rack entrance square on the headland (the Stand Map's entrance blue)
+        new byte[] { 236, 140, 44 },    // FieldMark: orange entrance-tree spray stripes
+        new byte[] { 214, 206, 178 },   // Harvested: pale open corridor
     };
 
     public static void Blend(Role role, float alpha, out byte r, out byte g, out byte b)
@@ -387,5 +412,242 @@ public static class TeachingDiagramPlan
             };
             default: return new Text[0];
         }
+    }
+
+    // ======== Objective 1: illustrative five-rack plan (D-072 FR-T1..FR-T4, issue #296) ========
+    //
+    // In a Rack V2 world, Objective 1 shows the real Scenario One layout instead of the conceptual stand: five parallel planned racks entering
+    // from the existing western headland, the single existing southern feeder and approach track, and standing trees between, beside and
+    // inside the racks. It is static lesson art. It never reads a save or the live Stand Map, never changes either, and adds no road. Its title
+    // says so.
+    //
+    // The headland and feeder exist only in a Rack V2 world, so the figure is shown only there. Legacy40, Reference Future v1, pre-V2 saves and
+    // pre-V2 Enlarged80 continuations keep the original Objective 1 picture (For(0)) and its caption, which make no claim about a headland or
+    // feeder. The caller decides which world it is (LearningObjectivesView already computes that for the card's words) and passes it in.
+    //
+    // Where each number comes from:
+    // - Headland, feeder, junction pads, stand size and rack width: the C# authorities (ScenarioOneHeadlandGeometry, StandGeometryModel,
+    //   RackGeometry). TeachingDiagram passes them in as a Site, so this file holds no second copy of that geometry.
+    // - Rack entrance identities and Z: the five ScenarioOneSuggestedRackLayout entrance trees, read from an archived Enlarged80 Rack V2 world
+    //   (Files/CCF/<FixtureSnapshotPath>, SHA-256 FixtureSnapshotSha256: save model 1/1, seed 20260914, 1,344 trees). The layout uses each
+    //   entrance tree's own Z, so the gaps are uneven (about 18.85, 16.66, 15.56 and 19.44 m) and are kept that way. They describe that world,
+    //   not every world: tree positions are seeded per world.
+    // - Approach track and clearing: the ForestTest scene's "Dirt Path 51".."00" planks and "Forest Clearing", then StandApproachRoute.Build from
+    //   "Dirt Path 00" (it meets the feeder at ScenarioOneHeadlandGeometry.PathX). Every other plank and the bend; cut off just past the edge.
+    // Tools/Verification/ScenarioOneFiveRackDiagram re-derives all of these and checks the figure against them.
+    //
+    // Tree discs are schematic rows, not a census or the real planting pattern. The transform is uniform: FigurePxPerM design units per metre,
+    // x east, north up (the Stand Map's orientation), no rotation.
+
+    // The one place that decides which Objective 1 picture is drawn. rackV2World is the caller's existing Rack V2 eligibility for this
+    // objective; nothing here looks it up.
+    public static bool ShowsFiveRackFigure(int lesson, bool rackV2World) => lesson == 0 && rackV2World;
+
+    public sealed class Site
+    {
+        public float StandSizeM, HeadlandX, HeadlandSouthZ, HeadlandNorthZ, FeederZ, FeederEndX, PathWidthM, PadRadiusM, RackWidthM;
+    }
+
+    public const string FigureTitle = "Illustrative five-rack plan — not your saved Stand Map. Planning or confirming does not clear the routes.";
+    public const string FixtureSnapshotPath = "Verification/RackV2-Combined-20261027T1334Z/unity-combined-write/config/unity3d/DefaultCompany/CCF/forest-save.json";
+    public const string FixtureSnapshotSha256 = "e8bb96f483e598e7449f370cf56f928503dc79ec7337307758eff23104b10ac5";
+    // South to north, as ScenarioOneSuggestedRackLayout orders them.
+    public static readonly string[] FixtureEntranceIds = { "PO0203", "PO1204", "PO2003", "PO2803", "PO3803" };
+    public static readonly float[] FixtureEntranceZ = { -35.271175384521484f, -16.421764373779297f, 0.23823529481887817f, 15.793529510498047f, 35.23235321044922f };
+    // Approach track centreline in metres (x, z pairs), north end at the clearing to the stub just past the south edge.
+    public static readonly float[] FixtureTrackXZ =
+    {
+        -2.714831f, 10.75f, -2.443702f, 9.75f, -2.093611f, 8.75f, -1.675869f, 7.75f, -1.203976f, 6.75f, -0.693179f, 5.75f,
+        -0.159984f, 4.75f, 0.378381f, 3.75f, 0.904519f, 2.75f, 1.40143f, 1.75f, 1.853057f, 0.75f, 2.244807f, -0.25f,
+        2.564021f, -1.25f, 2.800385f, -2.25f, 2.946262f, -3.25f, 2.996937f, -4.25f, 2.950773f, -5.25f, 2.809261f, -6.25f,
+        2.576976f, -7.25f, 2.261421f, -8.25f, 1.872794f, -9.25f, 1.423652f, -10.25f, 0.928509f, -11.25f, 0.403362f, -12.25f,
+        -0.134818f, -13.25f, -0.668642f, -14.25f, -0.928509f, -14.75f, -1.3702906f, -15.647071f, -1.7588983f, -16.56828f,
+        -2.0655363f, -17.519798f, -2.2757556f, -18.497128f, -2.3915963f, -19.490149f, -2.4327097f, -20.489193f, -2.436166f, -20.989182f,
+        -2.436166f, -43.5f,
+    };
+    public const float FixtureClearingX = -2.771994f, FixtureClearingZ = 11f, FixtureClearingRadiusM = 4.5f;
+
+    // Layout in design units (the same 1000 x 520 picture as the lessons): the map on the left, the state key on the right.
+    public const float FigurePxPerM = 5.2f, FigureMapLeft = 64f, FigureMapTop = 40f;
+    public const float FigureKeyX = 518f, FigureKeyTextX = 590f, FigureKeyTop = 14f, FigureKeyStep = 70f;
+    // New words are never drawn below this many UI units (at 1280 x 720 one UI unit is 0.8 pixel, so 20 units is 16 pixels).
+    public const float FigureMinTextSize = 20f, FigureFontSize = 22f;
+    // Schematic tree discs: radius and spacing in metres, and the clearance kept from an existing track or a corridor edge.
+    public const float TreeRadiusM = 1.5f, TreeColumnStepM = 4.2f, TreeRowStepM = 3.2f, TreeClearanceM = 0.2f;
+    public const float EntranceSide = 11f, CasingExtra = 3f;
+
+    public static float FigureX(Site site, float worldX) => FigureMapLeft + (worldX + site.StandSizeM * 0.5f) * FigurePxPerM;
+    public static float FigureY(Site site, float worldZ) => FigureMapTop + (site.StandSizeM * 0.5f - worldZ) * FigurePxPerM;
+
+    // The key: one row per state, shape plus words. The map itself shows existing tracks, five planned racks, entrances and standing trees.
+    // Each row is two explicit short lines, so it never wraps to a third line and runs into the row below at 1280 x 720 (FigureKeyLineMax).
+    // A planned rack is the confirmed plan: work pending, nothing cut. Draft, field-marked and harvested are separate rows with their own shapes.
+    public const int FigureKeyLineMax = 27;
+    public static readonly string[] FigureKey =
+    {
+        "Existing: A headland,\nB feeder, C track, clearing",
+        "Draft rack: dashed,\na proposal only",
+        "Planned = confirmed: solid,\nwork pending, trees stand",
+        "Entrance: square\non the headland",
+        "Field-marked: stripes,\nnot felled, not a Fell mark",
+        "Harvested: open strip\nwith stumps",
+        "Disc: standing tree,\nretained, not a tree count",
+    };
+
+    public static Stage ObjectiveOneFigure(Site site)
+    {
+        var stage = new Stage { Number = 1, Id = "access-five-rack", Width = LessonWidth, Height = LessonHeight, MinTextSize = FigureMinTextSize };
+        var items = stage.Items;
+        float half = site.StandSizeM * 0.5f, rackHalf = site.RackWidthM * 0.5f;
+        float[] rackZ = FixtureEntranceZ;
+
+        items.Add(new Item { Id = "property-boundary", Kind = Kind.Boundary, Role = Role.Muted, X = FigureX(site, -half), Y = FigureY(site, half),
+            X1 = FigureX(site, half), Y1 = FigureY(site, -half), Z = 1 });
+        items.Add(new Item { Id = "existing-clearing", Kind = Kind.Clearing, Role = Role.Track, X = FigureX(site, FixtureClearingX),
+            Y = FigureY(site, FixtureClearingZ), Radius = FixtureClearingRadiusM * FigurePxPerM, Z = 2 });
+
+        // Standing trees: rows in each of the six bands between and beside the corridors, and one row along each corridor (those trees
+        // stand until approved work removes them).
+        for (int band = 0; band <= rackZ.Length; band++)
+        {
+            float lo = band == 0 ? -half : rackZ[band - 1] + rackHalf;
+            float hi = band == rackZ.Length ? half : rackZ[band] - rackHalf;
+            float first = lo + TreeRadiusM + TreeClearanceM, last = hi - TreeRadiusM - TreeClearanceM;
+            int rows = last <= first ? 1 : 1 + (int)System.Math.Floor((last - first) / TreeRowStepM);
+            for (int row = 0; row < rows; row++)
+            {
+                float z = rows == 1 ? (lo + hi) * 0.5f : first + (last - first) * row / (rows - 1);
+                AddTreeRow(site, items, "band" + band + "-r" + row, z, row % 2 == 1);
+            }
+        }
+        for (int rack = 0; rack < rackZ.Length; rack++)
+            AddTreeRow(site, items, "rack" + (rack + 1) + "-tree", rackZ[rack], false);
+
+        // Five planned corridors from the headland entrance to the east edge, the layout's own endpoints and width.
+        for (int rack = 0; rack < rackZ.Length; rack++)
+            items.Add(new Item { Id = "rack" + (rack + 1), SourceId = FixtureEntranceIds[rack], Kind = Kind.Corridor, Role = Role.Rack,
+                State = CorridorState.Planned, X = FigureX(site, site.HeadlandX), Y = FigureY(site, rackZ[rack]), X1 = FigureX(site, half),
+                Y1 = FigureY(site, rackZ[rack]), Width = site.RackWidthM * FigurePxPerM, Z = 30 });
+
+        // Existing infrastructure: every casing first, then every fill, so no dark edge cuts through where the surfaces join.
+        float[] headland = { FigureX(site, site.HeadlandX), FigureY(site, site.HeadlandSouthZ), FigureX(site, site.HeadlandX), FigureY(site, site.HeadlandNorthZ) };
+        float[] feeder = { FigureX(site, site.HeadlandX), FigureY(site, site.FeederZ), FigureX(site, site.FeederEndX), FigureY(site, site.FeederZ) };
+        var approach = new float[FixtureTrackXZ.Length];
+        for (int i = 0; i + 1 < FixtureTrackXZ.Length; i += 2)
+        { approach[i] = FigureX(site, FixtureTrackXZ[i]); approach[i + 1] = FigureY(site, FixtureTrackXZ[i + 1]); }
+        var surfaces = new[] { ("headland", headland), ("feeder", feeder), ("approach", approach) };
+        float trackWidth = site.PathWidthM * FigurePxPerM;
+        foreach (bool casing in new[] { true, false })
+        {
+            foreach (var (name, points) in surfaces)
+                items.Add(new Item { Id = "existing-" + name + (casing ? "-casing" : ""), Kind = Kind.Track, Role = casing ? Role.TrackCasing : Role.Track,
+                    Points = points, Width = trackWidth + (casing ? CasingExtra : 0f), Z = casing ? 40 : 41 });
+            foreach (float padX in new[] { site.HeadlandX, site.FeederEndX })
+                items.Add(new Item { Id = "existing-pad" + (padX == site.HeadlandX ? "-headland" : "-approach") + (casing ? "-casing" : ""), Kind = Kind.Pad,
+                    Role = casing ? Role.TrackCasing : Role.Track, X = FigureX(site, padX), Y = FigureY(site, site.FeederZ),
+                    Radius = site.PadRadiusM * FigurePxPerM + (casing ? CasingExtra * 0.5f : 0f), Z = casing ? 40 : 41 });
+        }
+
+        for (int rack = 0; rack < rackZ.Length; rack++)
+            items.Add(new Item { Id = "entrance" + (rack + 1), SourceId = FixtureEntranceIds[rack], Kind = Kind.Entrance, Role = Role.Entrance,
+                X = FigureX(site, site.HeadlandX), Y = FigureY(site, rackZ[rack]), Width = EntranceSide, Z = 50 });
+        items.Add(new Item { Id = "north", Kind = Kind.NorthArrow, Role = Role.Accent, X = 32f, Y = 64f, Radius = 20f, Z = 60 });
+
+        // The state key's shapes, one per row, beside its words.
+        float x0 = FigureKeyX, x1 = FigureKeyX + 60f, xm = FigureKeyX + 30f;
+        float KeyY(int row) => FigureKeyTop + row * FigureKeyStep + 25f;
+        items.Add(new Item { Id = "key-existing-casing", Kind = Kind.Track, Role = Role.TrackCasing, Points = new[] { x0, KeyY(0), x1, KeyY(0) }, Width = trackWidth + CasingExtra, Z = 70 });
+        items.Add(new Item { Id = "key-existing", Kind = Kind.Track, Role = Role.Track, Points = new[] { x0, KeyY(0), x1, KeyY(0) }, Width = trackWidth, Z = 71 });
+        foreach (int row in new[] { 1, 2 })
+        {
+            items.Add(KeyTree("key-tree-" + row + "a", x0 + 15f, KeyY(row)));
+            items.Add(KeyTree("key-tree-" + row + "b", x1 - 15f, KeyY(row)));
+            items.Add(new Item { Id = row == 1 ? "key-draft" : "key-planned", Kind = Kind.Corridor, Role = Role.Rack,
+                State = row == 1 ? CorridorState.Draft : CorridorState.Planned, X = x0, Y = KeyY(row), X1 = x1, Y1 = KeyY(row),
+                Width = site.RackWidthM * FigurePxPerM, Z = 72 });
+        }
+        items.Add(new Item { Id = "key-entrance", Kind = Kind.Entrance, Role = Role.Entrance, X = xm, Y = KeyY(3), Width = EntranceSide, Z = 72 });
+        items.Add(KeyTree("key-field-marked-tree", xm, KeyY(4)));
+        items.Add(new Item { Id = "key-field-mark", Kind = Kind.FieldMark, Role = Role.FieldMark, X = xm, Y = KeyY(4), Radius = TreeRadiusM * FigurePxPerM, Z = 73 });
+        items.Add(new Item { Id = "key-harvested", Kind = Kind.Corridor, Role = Role.Harvested, State = CorridorState.Harvested, X = x0, Y = KeyY(5),
+            X1 = x1, Y1 = KeyY(5), Width = site.RackWidthM * FigurePxPerM, Z = 72 });
+        items.Add(new Item { Id = "key-stump-a", Kind = Kind.Stump, Role = Role.Wood, X = x0 + 15f, Y = KeyY(5), Radius = 3.5f, Z = 73 });
+        items.Add(new Item { Id = "key-stump-b", Kind = Kind.Stump, Role = Role.Wood, X = x1 - 15f, Y = KeyY(5), Radius = 3.5f, Z = 73 });
+        items.Add(KeyTree("key-retained-tree", xm, KeyY(6)));
+
+        stage.Items = items.OrderBy(i => i.Z).ToList();     // stable: equal depths keep their order
+
+        var labels = new List<Text>();
+        for (int row = 0; row < FigureKey.Length; row++)
+            labels.Add(new Text(FigureKey[row], FigureKeyTextX, FigureKeyTop + row * FigureKeyStep + 8f, 1000f - FigureKeyTextX - 8f, 54f, FigureFontSize, Role.Muted));
+        labels.Add(new Text("N", 21f, 88f, 24f, 28f, FigureFontSize, Role.Accent));
+        for (int rack = 0; rack < rackZ.Length; rack++)
+            labels.Add(new Text((rack + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), FigureX(site, half) + 6f,
+                FigureY(site, rackZ[rack]) - 14f, 24f, 28f, FigureFontSize, Role.Accent));
+        float midNorthBand = (FigureY(site, rackZ[2]) + FigureY(site, rackZ[3])) * 0.5f;
+        labels.Add(new Text("A", 38f, midNorthBand - 14f, 24f, 28f, FigureFontSize, Role.Accent));
+        labels.Add(new Text("B", FigureX(site, -22f), FigureY(site, site.FeederZ) - 38f, 24f, 28f, FigureFontSize, Role.Accent, true));
+        labels.Add(new Text("C", FigureX(site, site.FeederEndX) + 9f, FigureY(site, -half) + 2f, 24f, 28f, FigureFontSize, Role.Accent));
+        stage.Labels = labels.ToArray();
+
+        stage.Title = FigureTitle;
+        stage.Notes = FigureNotes(site);
+        return stage;
+    }
+
+    public static string[] FigureNotes(Site site)
+    {
+        float least = float.MaxValue, most = 0f;
+        for (int i = 1; i < FixtureEntranceZ.Length; i++)
+        {
+            float gap = FixtureEntranceZ[i] - FixtureEntranceZ[i - 1];
+            least = System.Math.Min(least, gap); most = System.Math.Max(most, gap);
+        }
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        // One short note (about two lines at the reading size) so the Objective 1 card still fits the screen without scrolling. What the
+        // existing surfaces are, what planned/confirmed means and that trees are not counted is said in the key instead.
+        return new[]
+        {
+            "Only Work Plan approval commits the work. 16–20 m between racks (" + least.ToString("0.0", inv) + "–" + most.ToString("0.0", inv)
+                + " m here) is guidance for this plantation, not a hard rule. Approximate scale, north up.",
+        };
+    }
+
+    private static Item KeyTree(string id, float x, float y) =>
+        new Item { Id = id, Kind = Kind.Crown, Role = Role.Canopy, X = x, Y = y, Radius = TreeRadiusM * FigurePxPerM, Z = 70 };
+
+    // One row of schematic trees at world z, from the headland's east side to the east edge, skipping existing tracks, pads and the clearing.
+    private static void AddTreeRow(Site site, List<Item> items, string id, float z, bool offset)
+    {
+        float half = site.StandSizeM * 0.5f, pathHalf = site.PathWidthM * 0.5f;
+        float west = site.HeadlandX + pathHalf + TreeRadiusM + TreeClearanceM, east = half - TreeRadiusM - TreeClearanceM;
+        int column = 0;
+        for (float x = west + (offset ? TreeColumnStepM * 0.5f : 0f); x <= east + 1e-3f; x += TreeColumnStepM, column++)
+        {
+            if (OnExistingSurface(site, x, z)) continue;
+            items.Add(new Item { Id = id + column.ToString("00", System.Globalization.CultureInfo.InvariantCulture), Kind = Kind.Crown, Role = Role.Canopy,
+                X = FigureX(site, x), Y = FigureY(site, z), Radius = TreeRadiusM * FigurePxPerM, Z = 20 });
+        }
+    }
+
+    // True where a tree disc would touch the existing feeder, pads, approach track or clearing (metres).
+    public static bool OnExistingSurface(Site site, float x, float z)
+    {
+        float reach = site.PathWidthM * 0.5f + TreeRadiusM + TreeClearanceM;
+        if (SegmentDistance(x, z, site.HeadlandX, site.FeederZ, site.FeederEndX, site.FeederZ) < reach) return true;
+        float padReach = site.PadRadiusM + TreeRadiusM + TreeClearanceM;
+        if (SegmentDistance(x, z, site.HeadlandX, site.FeederZ, site.HeadlandX, site.FeederZ) < padReach
+            || SegmentDistance(x, z, site.FeederEndX, site.FeederZ, site.FeederEndX, site.FeederZ) < padReach) return true;
+        for (int i = 0; i + 3 < FixtureTrackXZ.Length; i += 2)
+            if (SegmentDistance(x, z, FixtureTrackXZ[i], FixtureTrackXZ[i + 1], FixtureTrackXZ[i + 2], FixtureTrackXZ[i + 3]) < reach) return true;
+        return SegmentDistance(x, z, FixtureClearingX, FixtureClearingZ, FixtureClearingX, FixtureClearingZ) < FixtureClearingRadiusM + TreeRadiusM * 0.5f;
+    }
+
+    public static float SegmentDistance(float x, float z, float ax, float az, float bx, float bz)
+    {
+        float dx = bx - ax, dz = bz - az, lengthSquared = dx * dx + dz * dz;
+        float t = lengthSquared > 0f ? System.Math.Max(0f, System.Math.Min(1f, ((x - ax) * dx + (z - az) * dz) / lengthSquared)) : 0f;
+        float ex = x - (ax + t * dx), ez = z - (az + t * dz);
+        return (float)System.Math.Sqrt(ex * ex + ez * ez);
     }
 }

@@ -70,6 +70,7 @@ public sealed class StandMapView
     public StandMapRackEditor RackEditor => editor;
     // Reopen Rack Plan asks first when approved work is linked to the plan (RACK-V2-07). Presentation state only.
     private bool reopenPending;
+    public bool ReopenPending => reopenPending;
     public VisualElement EditLayer => editLayer;
     // V2 planning is available immediately; the legacy tool retains its original teaching gate.
     public bool RackPlanningAvailable => ui.Manager != null && ui.RackTool != null && ui.Ecology != null && ui.Manager.CanEditWorkPlan
@@ -89,10 +90,15 @@ public sealed class StandMapView
         VisualElement buttons = UiKit.Box("row");
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
         buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
-        buttons.Add(UiKit.Button("Work Plan", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        Button work = UiKit.Button("Work Plan", () => ui.ShowWorkPlan());
+        work.name = "map-work-plan";
+        buttons.Add(work);
+        Button forest = UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary");
+        forest.name = "map-back-to-forest";
+        buttons.Add(forest);
         header.Add(buttons);
         modal.Add(header);
+        UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 
         layerButtons = UiKit.Box("map-tabs");
         layerButtons.name = "map-tabs";
@@ -242,6 +248,9 @@ public sealed class StandMapView
         // The dashed guidance is gone once the plan is confirmed, so its legend row goes too.
         legendView.Show(model, Overlay, key, rackMode && ui.Manager.RackPlanningV2Active && !ui.Manager.RackPlanConfirmed);
         BuildSide(eco, model);
+        if (editor.ConsentPending || editor.ResetPending || reopenPending)
+            ScenarioOneUiRoot.ClearPromptFocus(Root);
+        ui.RefreshNextActionGuidance();
     }
 
     private void BuildLayerButtons()
@@ -626,13 +635,23 @@ public sealed class StandMapView
             confirm.name = "map-edit-reset-panel";
             UiKit.Add(confirm, $"Discard your {manager.PlannedRackCount} planned rack{(manager.PlannedRackCount == 1 ? "" : "s")} and restore the suggested layout?", "body");
             VisualElement choices = UiKit.Row(confirm, "row-wrap");
-            Button yes = UiKit.Button("Reset layout", editor.ConfirmReset, true, "btn-primary");
+            Button yes = UiKit.Button("Reset layout", editor.ConfirmReset);
             yes.name = "map-edit-reset-confirm";
-            choices.Add(yes);
-            Button no = UiKit.Button("Keep my racks", editor.CancelReset, true, "btn-ghost");
+            Button no = UiKit.Button("Keep my racks", editor.CancelReset);
             no.name = "map-edit-reset-cancel";
             choices.Add(no);
+            choices.Add(yes);
             card.Add(confirm);
+        }
+        // Both safe choices precede either consequential choice when the inline questions overlap.
+        if (editor.ConsentPending && editor.ResetPending)
+        {
+            Button accept = card.Q<Button>("map-consent-accept");
+            accept.RemoveFromHierarchy();
+            VisualElement consentAction = UiKit.Box("card", "rack-panel");
+            UiKit.Add(consentAction, editor.ConsentMessage, "body");
+            consentAction.Add(accept);
+            card.Add(consentAction);
         }
         BuildConfirmControl(card);
         side.Add(card);
@@ -643,7 +662,7 @@ public sealed class StandMapView
     private void BuildConfirmControl(VisualElement card)
     {
         bool can = ui.Manager.CanConfirmRackPlan(out string reason);
-        Button confirm = UiKit.Button("Confirm Rack Plan", ConfirmRackPlanFromCard, can && !editor.ConsentPending, "btn-primary");
+        Button confirm = UiKit.Button("Confirm Rack Plan", ConfirmRackPlanFromCard, can && !editor.ConsentPending && !editor.ResetPending, "btn-primary");
         confirm.name = "map-rack-plan-confirm";
         card.Add(confirm);
         if (!can)
@@ -682,12 +701,12 @@ public sealed class StandMapView
         panel.name = "map-consent-panel";
         UiKit.Add(panel, editor.ConsentMessage, "body");
         VisualElement choices = UiKit.Row(panel, "row-wrap");
-        Button yes = UiKit.Button("Cancel approved work", editor.AcceptConsent, true, "btn-primary");
+        Button yes = UiKit.Button("Cancel approved work", editor.AcceptConsent);
         yes.name = "map-consent-accept";
-        choices.Add(yes);
-        Button no = UiKit.Button("Keep approved work", editor.DeclineConsent, true, "btn-ghost");
+        Button no = UiKit.Button("Keep approved work", editor.DeclineConsent);
         no.name = "map-consent-decline";
         choices.Add(no);
+        choices.Add(yes);
         card.Add(panel);
     }
 
@@ -713,12 +732,12 @@ public sealed class StandMapView
             UiKit.Add(panel, $"{summary.RacksWithApprovedWork} rack{(summary.RacksWithApprovedWork == 1 ? " has" : "s have")} approved removal work that has not been carried out. "
                 + "Reopening cancels nothing. If you then change one of those racks, you will be asked again before its approved work is cancelled and set up again as pending.", "body");
             VisualElement choices = UiKit.Row(panel, "row-wrap");
-            Button yes = UiKit.Button("Reopen the plan", ReopenRackPlanFromCard, true, "btn-primary");
+            Button yes = UiKit.Button("Reopen the plan", ReopenRackPlanFromCard);
             yes.name = "map-reopen-accept";
-            choices.Add(yes);
-            Button no = UiKit.Button("Keep the plan confirmed", () => { reopenPending = false; Refresh(true); }, true, "btn-ghost");
+            Button no = UiKit.Button("Keep the plan confirmed", () => { reopenPending = false; Refresh(true); });
             no.name = "map-reopen-decline";
             choices.Add(no);
+            choices.Add(yes);
             card.Add(panel);
             return;
         }
