@@ -41,7 +41,7 @@ namespace UnityEngine
         public string name;
         public bool activeSelf = true;
         public bool activeInHierarchy => activeSelf && (transform.Parent == null || transform.Parent.gameObject.activeInHierarchy);
-        public Scene scene = new Scene { handle = 1 };
+        public Scene scene = new Scene { handle = new SceneHandle(1) };
         public int AttachedLookups;
         public readonly List<float> LookupTimes = new List<float>();
 
@@ -59,7 +59,22 @@ namespace UnityEngine
         }
     }
 
-    public struct Scene { public int handle; }
+    // Stand-in for UnityEngine.SceneManagement.SceneHandle. Unity 6000.6 deprecates its implicit conversion to int, so the stub
+    // has none: source that converts it fails to compile here, as it does against the real DLLs. Equality compares the raw value.
+    // (Like the other stubs it lives in the UnityEngine namespace; the real namespace is covered by the real-DLL compile.)
+    public readonly struct SceneHandle : System.IEquatable<SceneHandle>
+    {
+        private readonly ulong raw;
+        public SceneHandle(ulong raw) { this.raw = raw; }
+        public ulong GetRawData() => raw;
+        public bool Equals(SceneHandle other) => raw == other.raw;
+        public override bool Equals(object other) => other is SceneHandle handle && Equals(handle);
+        public override int GetHashCode() => raw.GetHashCode();
+        public static bool operator ==(SceneHandle left, SceneHandle right) => left.Equals(right);
+        public static bool operator !=(SceneHandle left, SceneHandle right) => !left.Equals(right);
+    }
+
+    public struct Scene { public SceneHandle handle; }
 
     public class Transform : Component, IEnumerable<Transform>
     {

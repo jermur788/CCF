@@ -147,7 +147,7 @@ public static class HeadlandOfflineCheck
         Check(timed.Source.Read(true, 11.6f).ExistingHeadlandSurfaces.Count == 0, "Unity-style destroyed presentation invalidates cached reference");
         timed.Presentation = timed.Root.Attach(new ScenarioOneHeadlandPresentation());
         Check(timed.Source.Read(true, 12.1f).ExistingHeadlandSurfaces.Count == 1, "destroyed presentation replacement acquired after backoff");
-        timed.Root.scene = new Scene { handle = 2 };
+        timed.Root.scene = new Scene { handle = new SceneHandle(2) };
         int reads = timed.Source.HeadlandProjectionReads;
         Check(timed.Source.Read(true, 12.11f).ExistingHeadlandSurfaces.Count == 1 && timed.Source.HeadlandProjectionReads == reads + 1, "scene identity invalidates cache immediately");
         Check(livePaths == HeadlandFixture.Bytes(live.Paths) && liveRacks == HeadlandFixture.Bytes(live.Racks),

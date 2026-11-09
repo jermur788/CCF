@@ -84,6 +84,74 @@ def check_stage_inventory(root=ROOT):
             "world/save/racks/Reference/Mini consumers untouched")
 
 
+# ---- Integrated-candidate identity (#355). A separate, explicitly selected mode: `--integrated`. -------------------------------
+# check_stage_inventory above is the historical #297/#296 stage guard and is unchanged. It is still true for the tree it was written for
+# and it fails by design on the combined Scenario One candidate, so that failure is an EXPECTED STAGE-SCOPE MISMATCH, not a pass and
+# not a waiver. This mode does not replace it. It pins the combined candidate's own production identity with explicit constants.
+INTEGRATED_MERGE_BASE = "50042bbe97734b031210ddebb603b5ec00ff459d"   # last common ancestor of the C2 and D-072 lineages
+C2_COMMIT = "b82cb2405fa245ed49e48eb363b4b664b1d85d5e"                # Unity-tested Reference Preview fix (#353)
+D072_TIP = "9789369d02963b4444f8530b071413d066bf1ddf"                 # approved D-072 source (#308)
+STAND_MAP_SOURCE = "Assets/ForestPrototype/UI/Map/StandMapSource.cs"
+STAND_MAP_SOURCE_ACCEPTED_BLOB = "70f38210d6f7e3417c8483054bb2985d420888fd"  # accepted #297 content, also the #354 source tip
+STAND_MAP_SOURCE_INTEGRATED_BLOB = "e1be7d1edfe252be1e536a1d6896251874bf468b"
+STAND_MAP_SOURCE_INTEGRATED_SHA256 = "423985588083bba5b901254b0019fc2f6ade49c2b7ea9a02c12bd8ddeb0c0093"
+# The only change allowed inside StandMapSource.cs: store the scene identity as a SceneHandle? (Unity 6000.6 deprecates SceneHandle -> int).
+SCENE_HANDLE_EDITS = (
+    ("using UnityEngine;\n", "using UnityEngine;\nusing UnityEngine.SceneManagement;\n"),
+    ("    private int headlandScene = -1, headlandLookupAttempts;\n",
+     "    // The scene the cached headland belongs to. A SceneHandle is stored as-is (Unity 6000.6 deprecates converting it to int);\n"
+     "    // null means no scene has been cached yet, which is what the old -1 meant.\n"
+     "    private SceneHandle? headlandScene;\n    private int headlandLookupAttempts;\n"),
+    ("            headlandScene = -1;\n", "            headlandScene = null;\n"),
+    ("        int scene = eco.gameObject.scene.handle;\n", "        SceneHandle scene = eco.gameObject.scene.handle;\n"),
+)
+# Production paths recorded by #354: nine Workbench/C2 paths, and the eleven D-072 Assets paths (StandMapSource.cs is one of them).
+INTEGRATED_C2_PATHS = (
+    "Assets/ForestPrototype/Editor/ForestSceneBuilder.cs", "Assets/ForestPrototype/ForestBuildable.cs",
+    "Assets/ForestPrototype/ForestSaveController.cs", "Assets/ForestPrototype/ForestStartingStand.cs",
+    "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs", "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.PrescriptionApproval.cs",
+    "Assets/Scenes/ForestTest.unity", "Packages/manifest.json", "Packages/packages-lock.json")
+INTEGRATED_D072_PATHS = (
+    "Assets/ForestPrototype/UI/LearningObjectivesView.cs", "Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs",
+    "Assets/ForestPrototype/UI/Map/StandMapLegend.cs", "Assets/ForestPrototype/UI/Map/StandMapModel.cs", STAND_MAP_SOURCE,
+    "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss", "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+    "Assets/ForestPrototype/UI/StandMapView.cs", "Assets/ForestPrototype/UI/TeachingDiagram.cs",
+    "Assets/ForestPrototype/UI/TeachingDiagramPlan.cs", "Assets/ForestPrototype/UI/WorkPlanView.cs")
+
+
+def check_integrated_identity(root=ROOT):
+    """Exact production identity of the combined candidate. Raises AssertionError naming the first broken rule."""
+    # 1. The accepted #297 StandMapSource.cs stays recoverable and independently pinned, at the anchor and at the approved D-072 tip.
+    for commit in (ANCHOR_297, D072_TIP):
+        require(git("rev-parse", f"{commit}:{STAND_MAP_SOURCE}", root=root).strip() == STAND_MAP_SOURCE_ACCEPTED_BLOB,
+                f"integrated: accepted StandMapSource.cs is recoverable at {commit[:8]} as pinned blob {STAND_MAP_SOURCE_ACCEPTED_BLOB[:8]}")
+    # 2. Today's file is that accepted content plus exactly the four SceneHandle edits, and nothing else.
+    accepted = git_bytes("show", f"{ANCHOR_297}:{STAND_MAP_SOURCE}", root=root).decode()
+    expected = accepted
+    for old, new in SCENE_HANDLE_EDITS:
+        require(expected.count(old) == 1, "integrated: SceneHandle edit applies to exactly one place: " + old.strip().splitlines()[0][:60])
+        expected = expected.replace(old, new)
+    current = (Path(root) / STAND_MAP_SOURCE).read_bytes()
+    require(current == expected.encode(), "integrated: StandMapSource.cs is the accepted #297 content plus only the approved SceneHandle edits")
+    # 3. The same bytes pinned by explicit hash and blob id, so the rule above cannot drift together with its own edit table.
+    require(hashlib.sha256(current).hexdigest() == STAND_MAP_SOURCE_INTEGRATED_SHA256,
+            "integrated: StandMapSource.cs SHA-256 equals the pinned integrated value")
+    require(hashlib.sha1(b"blob %d\0" % len(current) + current).hexdigest() == STAND_MAP_SOURCE_INTEGRATED_BLOB,
+            "integrated: StandMapSource.cs git blob id equals the pinned integrated value")
+    # 4. Exactly the recorded production paths differ from the common ancestor, tracked or untracked. No new path, no .meta.
+    allowed = set(INTEGRATED_C2_PATHS) | set(INTEGRATED_D072_PATHS)
+    require(len(allowed) == 20 and changed_production(INTEGRATED_MERGE_BASE, root) == allowed,
+            "integrated: production changes since the common ancestor are exactly the 9 Workbench/C2 and 11 D-072 Assets paths")
+    # 5. Each recorded path holds its approved bytes: C2 paths equal C2, the other ten D-072 paths equal the approved D-072 tip.
+    require(not git("diff", C2_COMMIT, "--name-only", "--", *INTEGRATED_C2_PATHS, root=root).strip(),
+            "integrated: the 9 Workbench/C2 paths (incl. scene and Packages) are byte-identical to C2")
+    other_d072 = [path for path in INTEGRATED_D072_PATHS if path != STAND_MAP_SOURCE]
+    require(not git("diff", D072_TIP, "--name-only", "--", *other_d072, root=root).strip(),
+            "integrated: the other 10 D-072 Assets paths are byte-identical to the approved D-072 tip")
+    require(not git("diff", C2_COMMIT, "--name-only", "--", "ProjectSettings", root=root).strip(),
+            "integrated: ProjectSettings is byte-identical to C2")
+
+
 def method(text, signature):
     start = text.index(signature)
     opening = text.index("{", start)
@@ -127,6 +195,8 @@ def run_project(directory, files, startup):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("/media/jer/Files/CCF/Verification/D072-StandMapHeadland-20261106/headland-dotnet"))
+    parser.add_argument("--integrated", action="store_true",
+                        help="check the combined candidate's pinned identity instead of the historical #297/#296 stage inventory")
     arguments = parser.parse_args()
     output = arguments.out.resolve()
     require(not output.is_relative_to(ROOT), "all generated projects/output outside repository")
@@ -146,7 +216,7 @@ def main():
     require(refresh.count("ReadExistingHeadland(eco);") == 1 and "nextHeadlandRead = now + RackRefreshSeconds;" in headland,
             "actual Refresh calls separately throttled source seam once")
     require(re.search(r"RackRefreshSeconds = 0\.25f;", source) is not None, "actual source cadence is 0.25 seconds")
-    check_stage_inventory()
+    check_integrated_identity() if arguments.integrated else check_stage_inventory()
     # LearningObjectivesView.cs is no longer byte-frozen at BASE. check_stage_inventory has just pinned it to its BASE
     # bytes (stage 1 shows #297 left it unchanged) plus the single authorised #296 call-site argument.
     # Every other protected path stays byte-identical to BASE.
@@ -234,6 +304,10 @@ def main():
     result = run_project(output / "headland-check", [ROOT / path for path in PURE] + [fixture, constant_file, seam,
         HERE / "HeadlandSourceStubs.cs", HERE / "HeadlandOfflineCheck.cs"], "HeadlandOfflineCheck")
     print(result, end="")
+    if arguments.integrated:
+        print("NOTE stage-scope #297/#296 inventory NOT RUN in this mode: EXPECTED STAGE-SCOPE MISMATCH on a combined tree, NOT A PASS")
+        print("HEADLAND_INTEGRATED_IDENTITY_AND_OFFLINE_PASS; Unity compile/live linkage/render/input/build NOT RUN")
+        return 0
     print("HEADLAND_SOURCE_AND_OFFLINE_PASS; Unity compile/live linkage/render/input/build NOT RUN")
     return 0
 

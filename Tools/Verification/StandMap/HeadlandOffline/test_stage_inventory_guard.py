@@ -94,12 +94,35 @@ MUTATIONS = [
 ]
 
 
+# Integrated-candidate identity (#355), selected with --integrated. The historical MUTATIONS above are untouched and still describe
+# the stage guard; they are meant for the stage fixture, not the combined tree.
+INTEGRATED_PASS = "HEADLAND_INTEGRATED_IDENTITY_AND_OFFLINE_PASS"
+SOURCE_ASSERTION = "integrated: StandMapSource.cs is the accepted #297 content plus only the approved SceneHandle edits"
+PATH_SET = "integrated: production changes since the common ancestor are exactly the 9 Workbench/C2 and 11 D-072 Assets paths"
+C2_BYTES = "integrated: the 9 Workbench/C2 paths (incl. scene and Packages) are byte-identical to C2"
+D072_BYTES = "integrated: the other 10 D-072 Assets paths are byte-identical to the approved D-072 tip"
+STAND_MAP_SOURCE = UI / "Map/StandMapSource.cs"
+INTEGRATED_MUTATIONS = [
+    ("i1 StandMapSource.cs altered by one space", lambda r: nudge(r / STAND_MAP_SOURCE), SOURCE_ASSERTION),
+    ("i2 StandMapSource.cs back to the CS0619 int cache", lambda r: restore_from(r, ANCHOR_297, str(STAND_MAP_SOURCE)), SOURCE_ASSERTION),
+    ("i3 scene-change comparison disabled", lambda r: replace_once(r / STAND_MAP_SOURCE, "headlandScene != scene ||",
+     "false && headlandScene != scene ||"), SOURCE_ASSERTION),
+    ("i4 extra file committed under Assets", lambda r: commit_new_file(r, "Assets/ForestPrototype/Racks/Unapproved.cs"), PATH_SET),
+    ("i5 extra untracked .meta under Assets", lambda r: (r / UI / "Unapproved.cs.meta").write_text("fileFormatVersion: 2\n"), PATH_SET),
+    ("i6 C2 Packages manifest altered", lambda r: append(r / "Packages/manifest.json", "\n"), C2_BYTES),
+    ("i7 C2 scene altered", lambda r: append(r / "Assets/Scenes/ForestTest.unity", "\n"), C2_BYTES),
+    ("i8 another D-072 file altered", lambda r: nudge(r / UI / "WorkPlanView.cs"), D072_BYTES),
+]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checker", type=Path, default=HERE / "run_headland_check.py", help="checker file under test")
     parser.add_argument("--work", type=Path,
                         default=Path("/media/jer/Files/CCF/Verification/D072-HeadlandStageInventory-20261106/integrity-work"))
     parser.add_argument("--commit", default=None, help="commit to clone (default: HEAD of this checkout)")
+    parser.add_argument("--integrated", action="store_true",
+                        help="test the integrated-candidate identity mode (clean run + INTEGRATED_MUTATIONS) instead of the stage guard")
     arguments = parser.parse_args()
     work = arguments.work.resolve()
     if work.is_relative_to(ROOT) or ROOT.is_relative_to(work):
@@ -123,26 +146,30 @@ def main():
         (clone / CHECKER_IN_REPO).write_bytes(checker)
 
     def run(name):
-        result = subprocess.run([sys.executable, "-I", "-B", str(clone / CHECKER_IN_REPO), "--out", str(work / "dotnet" / name)],
+        result = subprocess.run([sys.executable, "-I", "-B", str(clone / CHECKER_IN_REPO), *extra, "--out", str(work / "dotnet" / name)],
                                 capture_output=True, text=True)
         (logs / (name + ".log")).write_text(f"exit={result.returncode}\n--- stdout\n{result.stdout}--- stderr\n{result.stderr}")
         return result
 
     failures = []
+    extra = ["--integrated"] if arguments.integrated else []
+    mutations = INTEGRATED_MUTATIONS if arguments.integrated else MUTATIONS
+    pass_marker = INTEGRATED_PASS if arguments.integrated else "HEADLAND_SOURCE_AND_OFFLINE_PASS"
+    expected_source = 42 if arguments.integrated else 39
 
     def clean_run(label):
         reset()
         result = run(label)
         source = sum(line.startswith("PASS SOURCE ") for line in result.stdout.splitlines())
-        ok = (result.returncode == 0 and source == 39 and "HEADLAND_OFFLINE_TALLY PASS=92 FAIL=0" in result.stdout
-              and "HEADLAND_SOURCE_AND_OFFLINE_PASS" in result.stdout)
+        ok = (result.returncode == 0 and source == expected_source and "HEADLAND_OFFLINE_TALLY PASS=92 FAIL=0" in result.stdout
+              and pass_marker in result.stdout)
         print(f"{'PASS' if ok else 'FAIL'} CLEAN {label}: exit={result.returncode} PASS_SOURCE={source} "
               f"{'C#=92/92' if 'PASS=92 FAIL=0' in result.stdout else 'C# tally missing'}", flush=True)
         if not ok:
             failures.append(label)
 
     clean_run("clean-before")
-    for case, mutate, expected in MUTATIONS:
+    for case, mutate, expected in mutations:
         reset()
         mutate(clone)
         name = "mutation-" + case.split()[0]
@@ -156,11 +183,12 @@ def main():
             failures.append(case)
     clean_run("clean-after")
     shutil.rmtree(clone)
-    print(f"STAGE_INVENTORY_INTEGRITY_TALLY MUTATIONS={len(MUTATIONS)} CLEAN_RUNS=2 FAIL={len(failures)}")
+    label = "INTEGRATED_IDENTITY_INTEGRITY" if arguments.integrated else "STAGE_INVENTORY_INTEGRITY"
+    print(f"{label}_TALLY MUTATIONS={len(mutations)} CLEAN_RUNS=2 FAIL={len(failures)}")
     if failures:
-        print("STAGE_INVENTORY_INTEGRITY_FAIL: " + "; ".join(failures), file=sys.stderr)
+        print(f"{label}_FAIL: " + "; ".join(failures), file=sys.stderr)
         return 1
-    print("STAGE_INVENTORY_INTEGRITY_PASS; logs " + str(logs))
+    print(f"{label}_PASS; logs " + str(logs))
     return 0
 
 

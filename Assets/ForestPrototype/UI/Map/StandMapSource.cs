@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // Builds the ONE StandMapModel from the live game, for both the full Stand Map and the HUD minimap. It reads; it never writes to
 // the forest, the Work Plan or a save, so map presentation cannot change the simulation.
@@ -55,7 +56,10 @@ public sealed class StandMapSource
     private ScenarioOneManager headlandManager;
     private ScenarioOneHeadlandPresentation headlandPresentation;
     private Transform headlandSurface;
-    private int headlandScene = -1, headlandLookupAttempts;
+    // The scene the cached headland belongs to. A SceneHandle is stored as-is (Unity 6000.6 deprecates converting it to int);
+    // null means no scene has been cached yet, which is what the old -1 meant.
+    private SceneHandle? headlandScene;
+    private int headlandLookupAttempts;
     private bool headlandEligible;
     private float nextHeadlandRead, nextHeadlandLookup;
     private const int HeadlandLookupLimit = 6;
@@ -140,7 +144,7 @@ public sealed class StandMapSource
             headlandEcology = null;
             headlandManager = null;
             headlandPresentation = null;
-            headlandScene = -1;
+            headlandScene = null;
             headlandEligible = false;
             headlandLookupAttempts = 0;
             nextHeadlandRead = nextHeadlandLookup = 0f;
@@ -216,7 +220,7 @@ public sealed class StandMapSource
     private void ReadExistingHeadland(ForestEcologyController eco)
     {
         ScenarioOneManager manager = ui.Manager;
-        int scene = eco.gameObject.scene.handle;
+        SceneHandle scene = eco.gameObject.scene.handle;
         bool lostPresentation = !ReferenceEquals(headlandPresentation, null) && headlandPresentation == null;
         if (headlandEcology != eco || headlandManager != manager || headlandScene != scene || lostPresentation)
         {
