@@ -16,7 +16,7 @@
  import uuid
  from _ccf import ROOT, on_storage, config_read, resolve_lane, require_storage, command, store_checkouts, branch_conflicts
  
-@@ -17,6 +22,390 @@
+@@ -17,6 +22,407 @@
  
  def now(): return datetime.now(timezone.utc).isoformat()
  
@@ -58,7 +58,7 @@
 +        'repository': '/media/jer/Files/CCF/Repository.git',
 +        'branch': 'feature/scenario-one-workbench-retirement-20261105',
 +        'file_mode': 0o100755,  # exFAT reports 755 for every regular file; a different mode is refused, not waived
-+        'valid_until': '2026-11-11T00:00:00+00:00',  # proposed expiry; Manager may tighten before deployment
++        'valid_until': '2026-11-11T00:00:00+00:00',  # AUTHOR PLACEHOLDER, NOT APPROVED, NOT ADOPTED (Manager #345 ruling); unchanged by #347
 +        'evidence_root': '/media/jer/Files/CCF/Verification/Workbench287MorningClosure-20261107',
 +        'evidence_manifest_sha256': '9fb805968899cb6cd369a6d627ef1c01a7afece2368ff9d2093db1bfa9961f74',
 +        # Ignored paths that may exist beside the pinned dirty bytes; any other ignored path is refused.
@@ -73,16 +73,33 @@
 +                'must_descend_from': [],
 +                'allowed_changed_paths': None,
 +            },
-+            # After a separately rehearsed, non-forced fast-forward to a candidate. UNSUPPORTED until the
-+            # Manager freezes the exact candidate: head, the two tracked package JSON blob hashes/sizes
-+            # (the working package bytes must equal them) and the exact changed-path list vs the old HEAD.
-+            # While head is None every request for this state is refused.
++            # After a separately rehearsed, non-forced fast-forward to the candidate below. PROVISIONAL (#347 Phase B): every
++            # value is derived from candidate C and the preserved evidence; NOT ACCEPTED and NOT DEPLOYED until the Manager approves.
++            # The two package JSONs stop being dirty (working bytes == the tracked C blobs); the six Material/.vscode files stay
++            # dirty with their original pins. A different HEAD, hash or extra changed path is refused.
 +            'post-transition': {
-+                'head': None,
++                'head': '34e6db134b50f0a393733145962ca7c9c69a9e36',  # candidate C, branch feat/workbench-111-b3-evidence-candidate-20261108-v1
 +                'dirty': {p: v for p, v in PROTECTED_DIRTY.items() if p not in _PACKAGE_JSON},
-+                'clean_pinned': {},  # FROZEN-BY-MANAGER: {'Packages/manifest.json': (sha256, size), ...}
++                'clean_pinned': {  # (sha256 of the C blob == working file, size): the inspected 1.1.1 package bytes
++                    'Packages/manifest.json': ('f2ff5f95f9e93716947391a8818dbe642d81f0b49068516441a58def966c2c1c', 2297),
++                    'Packages/packages-lock.json': ('f43d9894af3c6dc054e86e98335dbd248a9fb97527b49c7b5952d96e037e52b1', 14223),
++                },
 +                'must_descend_from': ['46bc1fd618ae5b214d7de296a03ac7efec27cb7c'],
-+                'allowed_changed_paths': None,  # FROZEN-BY-MANAGER: list of repo paths changed since the pre-transition HEAD
++                'allowed_changed_paths': [  # exactly `git diff --name-only 4d95e452 C`
++                    'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/T3-WORKBENCH-287-VERIFIER-CLOSURE-RESULT.md',
++                    'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/WORKBENCH-RECEIPT-R2-FINALIZATION-RESULT.md',
++                    'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/WORKBENCH-RUNNER-R1-R5-CORRECTION-RESULT.md',
++                    'Packages/manifest.json',
++                    'Packages/packages-lock.json',
++                    'Tools/Verification/RackV2Persistence/RackV2PersistenceVerification.cs',
++                    'Tools/Verification/RackV2Persistence/test_historical_projection.py',
++                    'Tools/Verification/StandGeometry/Enlarged80Verification.cs',
++                    'Tools/Verification/StandGeometry/run_enlarged80.py',
++                    'Tools/Verification/StandGeometry/test_b3_witness.py',
++                    'Tools/Verification/WorkbenchRetirement/WorkbenchRetirementVerification.cs',
++                    'Tools/Verification/WorkbenchRetirement/run_workbench_retirement.py',
++                    'Tools/Verification/WorkbenchRetirement/test_runner.py',
++                ],
 +            },
 +        },
 +    },
@@ -407,7 +424,7 @@
  def process_identity(pid):
      try:
          raw=Path(f'/proc/{pid}/stat').read_text()
-@@ -93,7 +482,15 @@
+@@ -93,7 +499,15 @@
      p.add_argument('--test-state-dir',type=Path,help='Isolated tests ONLY; must be under ZX20/CCF-Temp')
      for key in ['owner','task-id','lane','branch','head','eta','notes','lock-id','reason']: p.add_argument('--'+key)
      p.add_argument('--pid',type=int); p.add_argument('--force',action='store_true')
@@ -423,7 +440,7 @@
      if a.config.resolve()!=Path(__file__).resolve().parent.parent/'lanes.json':
          if not a.test_state_dir or not a.config.resolve().is_relative_to(ROOT/'CCF-Temp'):
              p.error('alternate config is restricted to isolated ZX20 scratch tests')
-@@ -125,7 +522,10 @@
+@@ -125,7 +539,10 @@
              actual_branch=command(['git','-C',str(lane),'rev-parse','--abbrev-ref','HEAD'])
              actual_head=command(['git','-C',str(lane),'rev-parse','HEAD'])
              if actual_branch!=a.branch or actual_head!=a.head: raise ValueError('lane branch/HEAD mismatch; worktree was not changed')
@@ -435,7 +452,7 @@
              checkouts=store_checkouts(cfg)
              if not any(Path(c['path']).resolve()==lane for c in checkouts): raise ValueError('Unity lane is not registered')
              if branch_conflicts(checkouts,actual_branch,lane): raise ValueError('branch has another writable checkout; dual-store/lane conflict')
-@@ -136,6 +536,9 @@
+@@ -136,6 +553,9 @@
              data={'lock_id':uuid.uuid4().hex,'owner':a.owner,'task_id':a.task_id,'lane':str(lane),
                    'branch':a.branch,'head':a.head,'pid':a.pid,'process_identity':identity,
                    'start_timestamp':now(),'eta':a.eta,'notes':a.notes}

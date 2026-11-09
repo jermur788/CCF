@@ -239,7 +239,7 @@ class SourceStructure(unittest.TestCase):
         self.assertEqual(p.count("raise ValueError('Unity lane is dirty; inspect before execution')"), 1)
         self.assertEqual(p.count("if a.exact_admission is None:"), 1)
 
-    def test_production_profile_is_one_lane_and_post_state_unfrozen(self):
+    def test_production_profile_is_one_lane_and_post_state_frozen_to_candidate_c(self):
         mod = load_script(PROPOSED, scratch_dir(), 'ulp_prod')
         profs = mod.EXACT_ADMISSION_PROFILES
         self.assertEqual(list(profs), ['WorkbenchTier2Reg287-exact-dirty-v1'])
@@ -247,7 +247,9 @@ class SourceStructure(unittest.TestCase):
         self.assertEqual((pr['lane_name'], pr['lane_path'], pr['repository']), ('WorkbenchTier2Reg287', '/media/jer/ZX20/CCF-WorkbenchTier2-Registered-20261106', '/media/jer/Files/CCF/Repository.git'))
         self.assertEqual(pr['branch'], 'feature/scenario-one-workbench-retirement-20261105')
         self.assertEqual(pr['states']['pre-transition']['head'], '4d95e45245d660e24b91e26754d9c57949bf3384')
-        self.assertIsNone(pr['states']['post-transition']['head'], 'post-transition candidate must stay unfrozen until the Manager pins it')
+        # #347 Phase B: the post-transition pins are now filled from candidate C (PROVISIONAL, not accepted/deployed; see test_post_transition_profile.py)
+        self.assertEqual(pr['states']['post-transition']['head'], '34e6db134b50f0a393733145962ca7c9c69a9e36')
+        self.assertEqual(set(pr['states']['post-transition']['clean_pinned']), set(PACKAGES)); self.assertEqual(len(pr['states']['post-transition']['allowed_changed_paths']), 13)
         self.assertEqual(len(pr['states']['pre-transition']['dirty']), 8); self.assertEqual(len(pr['states']['post-transition']['dirty']), 6)
         self.assertEqual(pr['states']['post-transition']['must_descend_from'], ['46bc1fd618ae5b214d7de296a03ac7efec27cb7c'])
 
@@ -269,7 +271,7 @@ class SourceStructure(unittest.TestCase):
         if PROD_DIGEST_PRE: self.assertEqual(d1, PROD_DIGEST_PRE)
         print('\nPRODUCTION pre-transition digest:', d1)
 
-    def test_production_profile_refused_on_any_other_lane_and_post_state_unsupported(self):
+    def test_production_profile_refused_on_any_other_lane_in_both_states(self):
         fx = Fixture('pre'); self.addCleanup(fx.cleanup)
         mod = fx.wire(load_script(PROPOSED, scratch_dir(), 'ulp_prod4'), 'prop')
         mod.EXACT_ADMISSION_PROFILES = load_script(PROPOSED, scratch_dir(), 'ulp_prod5').EXACT_ADMISSION_PROFILES
@@ -277,8 +279,9 @@ class SourceStructure(unittest.TestCase):
         digest = mod.admission_digest(pid, 'pre-transition')
         r = run(mod, fx.acquire_args(mod, **{'--exact-admission': pid, '--exact-admission-digest': digest, '--exact-admission-state': 'pre-transition'}))
         self.assertEqual(r[0], 2); self.assertIn('limited to the profile lane', r[2])
-        r = run(mod, fx.acquire_args(mod, **{'--exact-admission': pid, '--exact-admission-digest': 'x' * 64, '--exact-admission-state': 'post-transition'}))
-        self.assertEqual(r[0], 2); self.assertIn('not frozen by the Manager; unsupported', r[2])
+        digest = mod.admission_digest(pid, 'post-transition')   # frozen now, so the lane check (not 'unsupported') is what refuses it
+        r = run(mod, fx.acquire_args(mod, **{'--exact-admission': pid, '--exact-admission-digest': digest, '--exact-admission-state': 'post-transition'}))
+        self.assertEqual(r[0], 2); self.assertIn('limited to the profile lane', r[2])
         self.assertFalse(fx.lock_json('prop').exists())
 
 
