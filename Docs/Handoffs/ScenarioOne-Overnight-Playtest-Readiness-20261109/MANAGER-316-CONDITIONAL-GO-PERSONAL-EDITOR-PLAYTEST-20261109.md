@@ -1,0 +1,74 @@
+# Manager #200 — CONDITIONAL GO: First personal Scenario One test in Unity Editor
+
+**Decision date:** 9 November 2026. **User playtest claim:** [#361](https://github.com/jermur788/CCF/issues/361), USER ACTION / NOT STARTED until both hard safeguards. **Manager verdict:** **APPROVED FOR LIMITED PERSONAL UNITY EDITOR TEST, CONDITIONAL GO**, *not* code integration ACCEPTED, whole Scenario One complete-loop verified, external demo, main merge, user acceptance, Windows/Player build permission, or a release of machine ownership to an agent.
+
+**Independent cross-provider review:** [#316 APPROVED FOR LIMITED INTERNAL EDITOR TEST — recommendation only](https://github.com/jermur788/CCF/blob/b1daefdea9e9e35767da4068d9838929e9f376a8/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-SCENARIO-ONE-INDEPENDENT-REVIEW-RESULT.md) by OpenAI GPT-6.1 Sol High, published by a separate clerical dispatcher. Manager accepts the recommendation with exact safeguards below.  
+**Exact Unity-tested source candidate:** `fb599eecde983552dec4f06fb9efcf8e38397aed` on `integration/scenario-one-focused-playtest-20261109-v1`, qualified in Unity 6000.6.0f1 using registered warm U3 lane `/media/jer/ZX20/CCF-U3`, **local branch `qualify/scenario-one-onboarding-focus-20261109-v3`**. The separate published report-only tip `8c49460d0a327a21e57b2dfc661d3e5779dd13d1` has the same gameplay content but is **not the tested source commit**; use the actual tested branch/HEAD. There has been **NO main merge or Player build**. Prior `045966d2` source is an ancestor and not the patched candidate.
+
+## Hard gate A — prevent valuable save or preference loss BEFORE Unity Play
+
+This is the only #316 grade-(a) blocker and **cannot be overridden by a general GO**.
+
+1. Verify the actual Game/Editor process will use **an isolated disposable save-and-preferences location** (preferred), or make and verify a complete byte-for-byte backup of **the entire** user's current CCF save/preferences directory outside the game-write area before opening a game. Preserve the whole directory and file metadata if possible: active `forest-save.json`, `forest-save.json.bak`, all older saved-world backups and game/Unity preferences. Do not rely on the game's `.bak` alone: **F5 writes the ordinary `forest-save.json` and rotates `.bak`**.
+2. On Linux a dedicated `XDG_CONFIG_HOME` set in the **actual Unity Editor process environment** is a practical *candidate* isolation mechanism, but not a guaranteed protection. **Verify the actual `Application.persistentDataPath` and the real F5/F9 read/write destination** from the candidate's own save path/code and an appropriately safe test trace in the disposable location before granting save key use. If launching Unity Hub fails to propagate this variable, do NOT proceed on the assumption that the profile is isolated. A local T3 operator may prepare a shell wrapper under Files, but only if user-owned data, warm Unity and licence state remain protected and it is actually verified; a wrapper cannot itself constitute the owner's personal gameplay test.
+3. Record a before-state inventory/hash of the normal valuable save/preferences directory (or verified full backup) and confirm unchanged afterward. The **first route may be played without ever pressing F5/F9**, but even then the save isolation/backup gate must be satisfied before starting. If isolation/backup cannot be proven, status is **NO START — BLOCKED BY SAVES**; do not try Continue or an existing save.
+4. Do not edit, clean, reset, stash or restore the **protected original eight-dirty Workbench worktree**, frozen Reference Future v1, 27 licensed ignored Innerverse files, user saves, primary checkout or shared Unity project components.
+
+## Hard gate B — visible rendering check as soon as Play starts
+
+The independent reviewer **decoded all 26 PNG captures from #360 Session 1 and found RGB exactly black**, despite reported UI/model checks; the 12 #360 old-world images and prior #359 screenshots were nonblack. It is **unknown** whether that means a capture pipeline failure or a real black Game view on the latest candidate. No definitive render conclusion is accepted.
+
+1. Start the exact warm U3 candidate's normal Unity Editor `Assets/Scenes/ForestTest.unity` in a legitimate exclusive ownership window (see admission below), create a disposable **new** Scenario One game and inspect the Game view **before any save, advance, marking, confirmation or Work Plan action**. Introduction page 1 and subsequently the forest view must be visibly rendered and comprehensible.
+2. If the normal Game view or onboarding appears fully black, blank or unusably invisible, **STOP Play Mode IMMEDIATELY WITHOUT SAVING**. Preserve the Console output and viewport context and send to Manager #200. No worker is authorised to change code/rebaseline visuals or initiate another qualification campaign automatically.
+3. A usable visible Game view satisfies only **entry to personal observation**. It does not retroactively make black automated screenshots PASS, nor qualify all final renders. Record a simple user's observation and, if feasible, a normal screenshot for return feedback.
+
+## Live Unity admission and ownership (human test, NOT an agent test loop)
+
+Immediately before Editor use, confirm the warm U3 path, unique branch and exact tested commit; tracked/index/untracked status and unexpected changes; project scenes/packages/Unity version, real working licence, ignored licensed 27-file pack, user-save/profile backup gate, frozen archive, free ZX20 headroom and no other Editor process or claimed Unity lock owner. Check the **live** Docs/Project/coordination/active-tasks.md and machine-wide unity-lock rather than relying on earlier #360/#316 old observations. Take/reserve the machine-wide exclusive Unity slot in a supported owner-registered manner for the **human owner**, and release it by the actual owner identity afterward; do not force/steal another owner lease, close someone else's Editor, change worktree HEAD or cold-import a new Library. The tool paths used by local agents may differ from this handoff; use the established local runner/Unity Hub safe owner workflow and do not invent a lock ID.
+
+Do not run an automated full suite or another independent reviewer merely to start the human test. A local helper can perform **read-only** safe preflight/isolation verification, but **the user personally plays**.
+
+## Focused route — first personal Editor observation
+
+Only after hard gates A and B:
+
+1. **Three-page intro:** new game; page1→2→3 using **physical keyboard Right then Enter** with Next/Begin focus; Left/Esc Back; Esc on page1 must not skip; Tab/ShiftTab and Up/Down change visible focus without accidental page advancement; click Next/Back with real mouse. Press Begin, see forest, walk, open Help [F1] and close. If trapped or no visible UI/forest, stop and report. At 1280×720 check Begin readability/activation if convenient; main 1920×1080 route first.
+2. **Learn map and objective:** Objectives [O], inspect actual five parallel nonuniform racks and six retained bands, five entrance targets; compare the **existing western headland plus single southern feeder** on Full Stand Map [M] with actual 3D forest and HUD/embedded Mini. Distinguish existing infrastructure from suggested dashed racks and from confirmed pending work. Report confusing legend/path swatches and grayscale/colour interpretation; do not infer identical path swatches mean identical authority.
+3. **Plan the five racks deliberately:** Plan Racks on Stand Map, edit/confirm five parallel extraction racks with appropriate spacing. This is a proposed/confirmed rack plan, **not Fell marks and not automatically executed**. Check counters and ability to back/cancel safely.
+4. **Mark entrance trees physically:** exit Map; equip spray [P], find each first rack-removal tree near the confirmed entrance, aim in range (~3.5 m) and left-click to produce a marked entrance stripe; observe 0/5→5/5, use **entrance marks**, not ordinary Fell marks. Work Plan should block premature rack approval until marking completed.
+5. **Work Plan and review:** open Work Plan [Tab], read all pending jobs, costs and scope (approval commits **all eligible pending work**, not only the visible rack task). Deliberately approve if correct, advance one year and review/acknowledge the Annual Review. Confirm normal forest, no unexpected broad felling, correct cues, counters, manageable latency and visibility.
+6. **Optional persistence, only after verified isolation:** F5 save; F9/reload/Continue; check proposed/marked/approved rack identities, five entrances, and expected world changes. Never save a valuable old normal world. Optional old-world/Reference spot checks only via disposable test copy; no frozen archive edits.
+
+**STOP immediately** if unexpectedly black/invisible Game view, valuable save path exposure, wrong-world save, unexpected irreversible clear-felling or Work Plan commitment, frozen Reference mismatch, unresponsive critical input, new critical Console error, Unity ownership conflict, or system storage/license concern. A first failure should be reported to Manager, not fixed in-session by random code edits.
+
+## Explicit Manager acceptance — independent review grade-(b) residuals for THIS limited test only
+
+Each residual is accepted **as a disclosed first-personal-test observation risk**; NOT waived or reclassified:
+- **R316-01:** black #360 Session1 automated images with unknown cause. Entry visual stop gate mandatory; no claim of verified final-candidate visual appearance.
+- **R316-02:** Xephyr/Editor latency and allocations measured without a comparable baseline; current-source black captures invalidate a rendered-performance comparison. Actual owner reports stalls/lag; **performance NOT VERIFIED**.
+- **E/G:** legend forest path and existing headland share one swatch, confusing grayscale/colour or five-rack diagram readability possible; **observer comprehension NOT VERIFIED**. Target of personal test, no pre-acceptance.
+- **J:** physical keyboard, Up/Down runtime, real pointer and 720p Begin were not all qualified by synthetic/X11 evidence. User tries them physically; no trap was established in source review.
+- **L/#287:** 107/107 Workbench behavioural checks in Editor but original strict Workbench runner **FINAL exit1 FAIL** due bounded generated U3 settings drift, not waived. Workbench overall not fully qualified.
+- Historic **StandMapParity FAIL×2, save03b FAIL, UxPedagogyShots 778 PASS/38 FAIL**, and **#360 session1 CCF359_V2_CLOSURE_FAIL 171 PASS/2 FAIL** remain original raw FAILs. Current V2 map witness/current v24 save and newer three-page intro cover *specific* requirements only; synthetic forced Stage5/7 facts failed to advance lesson from 0, stage5/7 lock presentation NOT VERIFIED; real V2 Stage5/7 NOT RUN. Do not assert PASS to later-stage gameplay.
+- **M:** full CTA numbered checker NOT rerun on exact fb599eec, and prior #331 independent NEEDS CHANGES on a known benign inline-comment false-red accepted narrowly by Manager; current candidate root/checker source form is unchanged from earlier passing 10/0/2, but exact new run remains NOT VERIFIED.
+- **Materials:** static/current-MSAA-off URP Lit and limited Section Five flora 0-pixel comparison, with four Deadwood_Fungi materials not rendered, no positive visual perturbation control, no MSAA-on/platform/general pipeline equivalence. Keep finite exact eleven historical material byte hashes and separate U3 settings-drift policy only for authorised guarded worktree hygiene; no user cleanup or blanket visual PASS.
+
+**Pre-external-demo only:** genuine real/independently-audited V2 later Stage5/7 progression, complete Scenario One history/repeated interventions and species parity, full Tier3 strict integrated candidate with usable final images and representative performance, fix verifier reproducibility/evidence gaps, actual product presentation acceptance. **No Player/Windows build** before user personally tests this exact candidate and later separately gives explicit build authorisation. This first internal observation is not external beta release.
+
+## Feedback / completion contract
+
+Please report:
+- whether the full normal introduction and actual forest rendered visibly at entry (if black, stop without saving);
+- confirmed isolated profile/backup **without sharing sensitive paths or private saves**;
+- physical keyboard Right→Enter, Left/Esc/Tab/Up/Down, mouse click and Begin outcomes;
+- what was confusing on Objective 1, map/3D headland vs racks, legends, orange entrance marks, Work Plan and annual review;
+- any serious lag, unexpected save/commit/clearing, precise step and screen state (redacted screenshot if useful);
+- whether optional save/reload used the disposable location successfully.
+
+Keep [#361](https://github.com/jermur788/CCF/issues/361) **USER ACTION / NOT STARTED** until the owner actually begins. The human or an authorised clerical helper can update it as [RUNNING PERSONAL PLAYTEST] with exact candidate and user confirmation, never based only on this GO packet. At completion Manager inspects actual user feedback and separately marks **USER ACCEPTED / NEEDS CHANGES**, opens one specific targeted fix if needed, then addresses external-demo programme. Do not preemptively record any personal acceptance or begin a Windows build.
+
+**No additional chat-agent task is necessary** to repeat already completed qualifications. If you need local assistance solely to establish save isolation or obtain the human Unity ownership slot, one T3 Code helper may use this entire binding packet **preflight/read-only only**, then hand control to the user.
+
+**Paste-ready local setup-only helper instruction (optional):**
+
+> T3 Code: Please prepare the user-operated CCF [#361 conditional-go Unity Editor test](https://github.com/jermur788/CCF/issues/361) using [Manager binding handback](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261109/MANAGER-316-CONDITIONAL-GO-PERSONAL-EDITOR-PLAYTEST-20261109.md). Verify exact registered warm U3 tested source, live ownership/Unity global lock, healthy storage/licence, protect original eight-dirty Workbench, 27 licensed assets, frozen Reference v1 and all valuable user saves; establish/verify isolated disposable Editor persistentDataPath and prefs or a complete independently verified backup, including F5/F9 target safety. Do NOT open gameplay or press Play, perform automated tests, change source, clean user files, merge or build. Report precise safe human launch procedure and confirm only that the isolation/ownership preflight is ready; then let the user personally run the Editor and stop immediately if either intro or forest view is black. No Player/Windows build.
