@@ -64,6 +64,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
             if (current is IEnumerator nested) { stack.Push(nested); continue; }
             yield return current;
         }
+        failure = B3Finish(failure);
         Debug.Log(failure == null ? "ENLARGED80_VERIFY_PASS checks=" + log.Count : "ENLARGED80_VERIFY_FAIL: " + failure);
 #if UNITY_EDITOR
         EditorApplication.ExitPlaymode();
@@ -80,17 +81,25 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
     // A fresh game in the given geometry through the same production path a new game uses.
     private void ResetWorld(int model)
     {
+        int b3Reset = B3BeginReset(model);
         foreach (ForestTree tree in FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             DestroyImmediate(tree.gameObject);
+        B3Step(b3Reset, 1, "destroy trees");
         Debug.Log("ENLARGED80_RESET_INPUT model=" + model + " player=" + player().transform.position.ToString("R")
             + " sites=" + string.Join(",", FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None)
                 .OrderBy(b => b.BuildId).Select(b => b.BuildId + ":" + b.IsBuilt + ":" + b.IsRetiredFromStartingWorld)));
         e.ApplyStandGeometry(model);
+        B3Step(b3Reset, 2, "ApplyStandGeometry");
         e.ResetForDeterministicRun();
+        B3Step(b3Reset, 3, "ResetForDeterministicRun");
+        B3PreGenerate(b3Reset, model);
         var clock = System.Diagnostics.Stopwatch.StartNew();
         stand.Generate();
+        B3Step(b3Reset, 4, "Generate");
+        B3PostGenerate(b3Reset, model);
         double generateMs = clock.Elapsed.TotalMilliseconds;
         m.InitializeNewScenario();
+        B3Step(b3Reset, 5, "InitializeNewScenario");
         double initializeMs = clock.Elapsed.TotalMilliseconds - generateMs;
         e.InvalidateCompetition();
         // Editor timing only; the first call of a session also pays JIT cost, so read later calls for steady state.
@@ -171,6 +180,7 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         stand = FindFirstObjectByType<ForestStartingStand>();
         marking = FindFirstObjectByType<ForestTreeMarkingManager>();
         Check(e != null && m != null && saves != null && stand != null && marking != null, "not the Scenario One ForestTest scene");
+        B3Start();
         // This unchanged historical test compares initial and regenerated worlds. The new-game default is now V2;
         // explicitly generate model 0 before taking the original historical snapshot and its pinned hashes.
         m.InitializeNewScenario();
@@ -399,13 +409,18 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         int archivedCell = y100.world.cells.OrderByDescending(c => c.cohorts?.Sum(h => h.density) ?? 0f).First().index;
         Vector2 archivedCentre = new Vector2(-17.5f + 5f * (archivedCell % 8), -17.5f + 5f * (archivedCell / 8));
         Check(!archive.Matches(m.Definition, e) && archive.IdentityMatches(m.Definition, e), "in Enlarged80 the archive 'matches' only by identity, never by geometry");
-        Check(m.TryBeginReferencePreview(100), "Reference preview opens from the 80 m world");
+        B3Pose("pre-TryBeginReferencePreview year=100");
+        bool b3Opened = m.TryBeginReferencePreview(100);
+        B3Pose("post-TryBeginReferencePreview year=100 opened=" + b3Opened);
+        Check(b3Opened, "Reference preview opens from the 80 m world");
         yield return null; yield return null;
         Check(e.StandGeometryModelVersion == 0 && e.CellCount == 64 && Vector2.Distance(e.Cells[archivedCell].Center, archivedCentre) < 0.01f, "preview applied Legacy40: archived ecology at its original positions");
         Check(Living().Count == y100.world.trees.Count(t => t.stage != (int)ForestTreeStage.Stump && !t.biologicallyDead), "preview shows exactly the archive's living trees (no outer forest)");
         Check(Mathf.Approximately(GameObject.Find("Ground").transform.localScale.x, 40f), "preview shows the 40 m ground");
         m.EndReferencePreview();
-        yield return null; yield return null;
+        B3Pose("post-EndReferencePreview+0");
+        yield return null; B3Pose("post-EndReferencePreview+1");
+        yield return null; B3Pose("post-EndReferencePreview+2");
         Check(e.StandGeometryModelVersion == 1 && e.CellCount == 256 && Living().Count == 1344, "leaving the preview restored the 80 m world and all 1,344 trees");
         Check(CurrentHash() == beforePreview, "the player's exact Enlarged80 world state is restored");
         Check(Enumerable.Range(0, 256).All(i => Mathf.Abs(e.Cells[i].Light - lightBefore[i]) < 1e-5f), "derived light is rebuilt identically");
@@ -462,6 +477,337 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
         ResetWorld(StandGeometryModel.Enlarged80);
         Check(CurrentHash() == startAnchor, "scratch world returned to the deterministic Enlarged80 start");
         yield return null;
+    }
+
+
+    // =====================================================================================================
+    // B3 evidence-only witness (CCF #347; protocol: #333 section 4d). This block only OBSERVES and logs lines that start with
+    // ENLARGED80_B3W. It writes no file, changes no production state and gives no verdict about B3: the Manager decides that.
+    // The single harness-side action is the optional authored-start player pin, selected with CCF_B3_MODE=authored-pin
+    // (default plain), which is the control run of section 4d item 8. Anything that cannot be read is logged as UNAVAILABLE
+    // with its reason; it is never guessed. The runner turns the log into EVIDENCE COMPLETE / INCOMPLETE; never "B3 passed".
+    // =====================================================================================================
+    private const string B3Tag = "ENLARGED80_B3W ";
+    private string b3Mode = "plain";
+    private string b3Label = "UNAVAILABLE";
+    private int b3Seq, b3Unavailable, b3Resets, b3SlotModelFailures, b3PoseRecords;
+    private bool b3Started, b3PinApplied, b3SawPreviewEnd;
+    private Vector3 b3AuthoredStart;
+    private string b3ArchiveBefore = "UNAVAILABLE";
+    private List<(string id, Vector2 pos)> b3Slots;
+    private HashSet<string> b3ClearanceOmittedCore = new HashSet<string>();
+
+    private static string B3R(float v) => v.ToString("R", CultureInfo.InvariantCulture);
+    private static string B3V(Vector3 v) => B3R(v.x) + "," + B3R(v.y) + "," + B3R(v.z);
+    private static string B3Hex(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+    private static string B3Sha256(byte[] bytes) { using (var h = System.Security.Cryptography.SHA256.Create()) return B3Hex(h.ComputeHash(bytes)); }
+    private static string B3Sha256Text(string text) => B3Sha256(System.Text.Encoding.UTF8.GetBytes(text));
+    // The id Git would give this content as a blob, so a file can be compared with `git ls-tree` output.
+    private static string B3GitBlobId(byte[] bytes)
+    {
+        byte[] header = System.Text.Encoding.ASCII.GetBytes("blob " + bytes.Length + "\0");
+        using (var h = System.Security.Cryptography.SHA1.Create())
+        {
+            h.TransformBlock(header, 0, header.Length, null, 0);
+            h.TransformFinalBlock(bytes, 0, bytes.Length);
+            return B3Hex(h.Hash);
+        }
+    }
+    private static string B3Env(string name)
+    {
+        string value = Environment.GetEnvironmentVariable(name);
+        return string.IsNullOrWhiteSpace(value) ? "UNAVAILABLE" : value.Trim();
+    }
+    private static string B3Clean(string text) => (text ?? "").Replace("\r", " ").Replace("\n", " ");
+
+    private void B3(string kind, string fields)
+    {
+        b3Seq++;
+        Debug.Log(B3Tag + "seq=" + b3Seq + " frame=" + Time.frameCount + " mode=" + b3Mode + " label=" + b3Label + " kind=" + kind + " " + fields);
+    }
+
+    private void B3Missing(string what, Exception error)
+    {
+        b3Unavailable++;
+        B3("UNAVAILABLE", "what=" + what + " reason=" + B3Clean(error == null ? "not available" : error.GetType().Name + ": " + error.Message));
+    }
+
+    private static string B3Root() => System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, ".."));
+
+    // Section 4d item 1: identity. Called at the start and again at the end of the run ("pre" / "post").
+    private void B3Identity(string phase)
+    {
+        B3("IDENTITY", "phase=" + phase + " utc=" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
+            + " repoHead=" + B3Env("CCF_B3_HEAD") + " candidate=" + B3Env("CCF_B3_CANDIDATE_SHA") + " editor=" + Application.unityVersion);
+        try
+        {
+            string root = B3Root();
+            string scenePath = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
+            byte[] scene = System.IO.File.ReadAllBytes(System.IO.Path.Combine(root, scenePath));
+            B3("IDENTITY_SCENE", "phase=" + phase + " path=" + scenePath + " gitBlob=" + B3GitBlobId(scene) + " sha256=" + B3Sha256(scene) + " bytes=" + scene.Length);
+        }
+        catch (Exception error) { B3Missing("scene file identity", error); }
+        foreach (string rel in new[] { "Packages/manifest.json", "Packages/packages-lock.json" })
+        {
+            try
+            {
+                byte[] bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(B3Root(), rel));
+                B3("IDENTITY_PACKAGE_FILE", "phase=" + phase + " path=" + rel + " sha256=" + B3Sha256(bytes) + " bytes=" + bytes.Length);
+            }
+            catch (Exception error) { B3Missing("package file " + rel, error); }
+        }
+        try
+        {
+            // Unity names each PackageCache folder <package>@<its own content id>. The listing hash covers every relative path and size,
+            // not file contents (a content hash of the roughly 0.37 GiB of SDK data is deliberately not taken).
+            string cache = System.IO.Path.Combine(B3Root(), "Library", "PackageCache");
+            string[] prefixes = { "com.unity.sdk.linux-arm64@", "com.unity.sdk.linux-x86_64@", "com.unity.sysroot.base@", "com.unity.toolchain.linux-x86_64-linux@" };
+            foreach (string prefix in prefixes)
+            {
+                string[] dirs = System.IO.Directory.Exists(cache)
+                    ? System.IO.Directory.GetDirectories(cache).Where(d => System.IO.Path.GetFileName(d).StartsWith(prefix, StringComparison.Ordinal)).OrderBy(d => d, StringComparer.Ordinal).ToArray()
+                    : new string[0];
+                if (dirs.Length == 0) { B3Missing("PackageCache folder " + prefix, null); continue; }
+                foreach (string dir in dirs)
+                {
+                    var files = System.IO.Directory.GetFiles(dir, "*", System.IO.SearchOption.AllDirectories)
+                        .Select(f => f.Substring(dir.Length).Replace('\\', '/') + ":" + new System.IO.FileInfo(f).Length).OrderBy(x => x, StringComparer.Ordinal).ToList();
+                    B3("IDENTITY_PACKAGE_CACHE", "phase=" + phase + " folder=" + System.IO.Path.GetFileName(dir) + " files=" + files.Count + " listingSha256=" + B3Sha256Text(string.Join("\n", files)));
+                }
+            }
+        }
+        catch (Exception error) { B3Missing("PackageCache listing", error); }
+    }
+
+    // Section 4d item 2: player pose and CharacterController state.
+    private static string B3AutoSync()
+    {
+        System.Reflection.PropertyInfo property = typeof(Physics).GetProperty("autoSyncTransforms", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        return property == null ? "UNAVAILABLE" : Convert.ToString(property.GetValue(null, null), CultureInfo.InvariantCulture);
+    }
+
+    private void B3Pose(string label)
+    {
+        b3PoseRecords++;
+        if (label.StartsWith("post-EndReferencePreview+2", StringComparison.Ordinal)) b3SawPreviewEnd = true;
+        try
+        {
+            ForestPlayer p = player();
+            if (p == null) { B3Missing("player for pose '" + label + "'", null); return; }
+            CharacterController cc = p.GetComponent<CharacterController>();
+            string controller = cc == null ? "controller=NONE"
+                : "ccEnabled=" + cc.enabled + " ccCenter=" + B3V(cc.center) + " ccBoundsCenter=" + B3V(cc.bounds.center) + " ccBoundsSize=" + B3V(cc.bounds.size);
+            B3("POSE", "label=" + label.Replace(' ', '_') + " position=" + B3V(p.transform.position) + " " + controller + " autoSyncTransforms=" + B3AutoSync());
+        }
+        catch (Exception error) { B3Missing("pose '" + label + "'", error); }
+    }
+
+    // Harness-only control (section 4d item 8): put the player back on the authored start before a reset, then log the result.
+    private void B3PinPlayer()
+    {
+        ForestPlayer p = player();
+        if (p == null) { B3Missing("player to pin", null); return; }
+        CharacterController cc = p.GetComponent<CharacterController>();
+        bool wasEnabled = cc != null && cc.enabled;
+        if (cc != null) cc.enabled = false;
+        p.transform.position = b3AuthoredStart;
+        if (cc != null) cc.enabled = wasEnabled;
+        Physics.SyncTransforms();
+        b3PinApplied = true;
+    }
+
+    // Section 4d item 3: the clearance anchors CollectClearancePoints() will see, recomputed read-only with the same Find calls.
+    private List<(string kind, string name, float x, float z, float radius)> B3Anchors()
+    {
+        var anchors = new List<(string kind, string name, float x, float z, float radius)>();
+        float pathRadius = stand.PathCorridorRadiusMeters, clearingRadius = stand.ClearingRadiusMeters;
+        foreach (Transform t in FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (t.name.StartsWith("Dirt Path")) anchors.Add(("path", t.name, t.position.x, t.position.z, pathRadius));
+        GameObject clearing = GameObject.Find("Forest Clearing");
+        if (clearing != null) anchors.Add(("clearing", clearing.name, clearing.transform.position.x, clearing.transform.position.z, clearingRadius));
+        ForestPlayer p = player();
+        if (p != null) anchors.Add(("player", p.name, p.transform.position.x, p.transform.position.z, clearingRadius));
+        foreach (ForestBuildable b in FindObjectsByType<ForestBuildable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (b != null && !b.IsRetiredFromStartingWorld) anchors.Add(("buildable", b.BuildId, b.transform.position.x, b.transform.position.z, clearingRadius));
+        return anchors.OrderBy(a => a.kind, StringComparer.Ordinal).ThenBy(a => a.name, StringComparer.Ordinal).ThenBy(a => a.x).ThenBy(a => a.z).ToList();
+    }
+
+    // The core lattice slot positions, read through the generator's own private settings and its private FnvJitter (reflection, read only),
+    // using the same arithmetic as GenerateEnlarged80/Generate for the core. It is checked against the real trees after every Generate.
+    private bool B3BuildSlotModel()
+    {
+        if (b3Slots != null) return true;
+        try
+        {
+            const System.Reflection.BindingFlags instance = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            Type type = typeof(ForestStartingStand);
+            int lattice = Mathf.Max(2, (int)type.GetField("latticePerAxis", instance).GetValue(stand));
+            float spacing = (float)type.GetField("latticeSpacingMeters", instance).GetValue(stand);
+            float width = (float)type.GetField("standWidthMeters", instance).GetValue(stand);
+            float depth = (float)type.GetField("standDepthMeters", instance).GetValue(stand);
+            System.Reflection.MethodInfo jitterMethod = type.GetMethod("FnvJitter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            float span = (lattice - 1) * spacing, originX = -span * 0.5f, originZ = -span * 0.5f;
+            var slots = new List<(string id, Vector2 pos)>();
+            for (int r = 0; r < lattice; r++)
+            for (int c = 0; c < lattice; c++)
+            {
+                string id = "P" + r.ToString("D2", CultureInfo.InvariantCulture) + c.ToString("D2", CultureInfo.InvariantCulture);
+                Vector2 jitter = (Vector2)jitterMethod.Invoke(null, new object[] { id });
+                slots.Add((id, new Vector2(
+                    Mathf.Clamp(originX + c * spacing + jitter.x, -(width * 0.5f - 0.6f), width * 0.5f - 0.6f),
+                    Mathf.Clamp(originZ + r * spacing + jitter.y, -(depth * 0.5f - 0.6f), depth * 0.5f - 0.6f))));
+            }
+            b3Slots = slots;
+            B3("SLOT_MODEL", "coreSlots=" + slots.Count + " latticePerAxis=" + lattice + " spacing=" + B3R(spacing) + " standWidth=" + B3R(width) + " standDepth=" + B3R(depth));
+            return true;
+        }
+        catch (Exception error) { B3Missing("core slot model (reflection on ForestStartingStand)", error); return false; }
+    }
+
+    private int B3BeginReset(int model)
+    {
+        b3Resets++;
+        int reset = b3Resets;
+        B3Pose("reset" + reset + "-entry model=" + model);
+        if (b3Mode == "authored-pin")
+        {
+            try { B3PinPlayer(); B3Pose("reset" + reset + "-after-authored-pin"); }
+            catch (Exception error) { B3Missing("authored-start pin", error); }
+        }
+        B3("RESET_BEGIN", "reset=" + reset + " model=" + model);
+        return reset;
+    }
+
+    // Section 4d item 6: one numbered line per step, with the frame count in the common prefix.
+    private void B3Step(int reset, int step, string name) => B3("STEP", "reset=" + reset + " step=" + step + " name=" + name.Replace(' ', '_'));
+
+    // Items 2, 3, 5 immediately before stand.Generate().
+    private void B3PreGenerate(int reset, int model)
+    {
+        B3Pose("reset" + reset + "-pre-Generate model=" + model);
+        b3ClearanceOmittedCore = new HashSet<string>();
+        try
+        {
+            var anchors = B3Anchors();
+            var lines = anchors.Select(a => a.kind + "|" + a.name + "|" + B3R(a.x) + "|" + B3R(a.z) + "|" + B3R(a.radius)).ToList();
+            bool haveSlots = B3BuildSlotModel();
+            B3("ANCHORS", "reset=" + reset + " model=" + model + " count=" + anchors.Count + " listSha256=" + B3Sha256Text(string.Join("\n", lines)));
+            for (int i = 0; i < anchors.Count; i++)
+            {
+                var a = anchors[i];
+                string inside = "UNAVAILABLE";
+                if (haveSlots)
+                {
+                    var ids = b3Slots.Where(s => Vector2.Distance(s.pos, new Vector2(a.x, a.z)) <= a.radius).Select(s => s.id).ToList();
+                    foreach (string id in ids) b3ClearanceOmittedCore.Add(id);
+                    inside = ids.Count + (ids.Count == 0 ? "" : ":" + string.Join(",", ids));
+                }
+                B3("ANCHOR", "reset=" + reset + " index=" + i + " anchor=" + lines[i] + " coreSlotsInside=" + inside);
+            }
+            B3("CLEARANCE_OMITTED_CORE", "reset=" + reset + " count=" + (haveSlots ? b3ClearanceOmittedCore.Count.ToString(CultureInfo.InvariantCulture) : "UNAVAILABLE")
+                + " ids=" + (haveSlots ? string.Join(",", b3ClearanceOmittedCore.OrderBy(x => x, StringComparer.Ordinal)) : "UNAVAILABLE"));
+        }
+        catch (Exception error) { B3Missing("clearance anchors", error); }
+        try
+        {
+            string randomState;
+            try { randomState = B3Sha256Text(JsonUtility.ToJson(UnityEngine.Random.state)); } catch (Exception) { randomState = "UNAVAILABLE"; }
+            B3("SEED", "reset=" + reset + " simulationSeed=" + e.SimulationSeed + " rngModelVersion=" + e.RngModelVersion + " unityRandomStateSha256=" + randomState);
+        }
+        catch (Exception error) { B3Missing("simulation seed / RNG state", error); }
+    }
+
+    // Item 4 immediately after stand.Generate(): tree identity, plus the omitted-slot split computed from the live tree set.
+    private void B3PostGenerate(int reset, int model)
+    {
+        try
+        {
+            var living = Living();
+            var ids = living.Select(t => t.TreeId).ToList();
+            var coreIds = ids.Where(id => Regex.IsMatch(id, "^P[0-9]{4}$")).ToList();
+            B3("TREES", "reset=" + reset + " model=" + model + " count=" + ids.Count + " idsSha256=" + B3Sha256Text(string.Join("\n", ids)) + " coreLiving=" + coreIds.Count
+                + " outerLiving=" + (ids.Count - coreIds.Count) + " worldHash=" + CurrentHash());
+            if (b3Slots == null) { B3Missing("omitted-slot split (no slot model)", null); b3SlotModelFailures++; return; }
+            var livingCore = new HashSet<string>(coreIds);
+            var tolerance = 0.01f;
+            int mismatches = 0;
+            foreach (ForestTree t in living)
+            {
+                if (!livingCore.Contains(t.TreeId)) continue;
+                var slot = b3Slots.FirstOrDefault(s => s.id == t.TreeId);
+                if (slot.id == null || Vector2.Distance(slot.pos, new Vector2(t.transform.position.x, t.transform.position.z)) > tolerance) mismatches++;
+            }
+            if (mismatches > 0) b3SlotModelFailures++;
+            var absent = b3Slots.Select(s => s.id).Where(id => !livingCore.Contains(id)).OrderBy(x => x, StringComparer.Ordinal).ToList();
+            var byClearance = absent.Where(id => b3ClearanceOmittedCore.Contains(id)).ToList();
+            var byHashBudget = absent.Where(id => !b3ClearanceOmittedCore.Contains(id)).ToList();
+            var clearanceButLiving = b3ClearanceOmittedCore.Where(id => livingCore.Contains(id)).OrderBy(x => x, StringComparer.Ordinal).ToList();
+            B3("SLOT_MODEL_CHECK", "reset=" + reset + " model=" + model + " positionMismatches=" + mismatches + " slotModelValid=" + (mismatches == 0));
+            B3("OMITTED_CORE", "reset=" + reset + " model=" + model + " absentCoreSlots=" + absent.Count + " absentSha256=" + B3Sha256Text(string.Join(",", absent))
+                + " clearanceOmitted=" + byClearance.Count + ":" + string.Join(",", byClearance)
+                + " hashBudgetOmitted=" + byHashBudget.Count + ":" + string.Join(",", byHashBudget)
+                + " clearanceZoneButStillLiving=" + clearanceButLiving.Count + ":" + string.Join(",", clearanceButLiving));
+        }
+        catch (Exception error) { B3Missing("tree identity / omitted core slots", error); }
+    }
+
+    // Item 7: the frozen Reference Future v1 (permanently Legacy40) and its Legacy40 anchors. The tracked tree holds no separate
+    // Legacy40 fixture files; the Legacy40 anchors are the archive's own startingStandHash and per-milestone worldHash strings.
+    private string B3ArchiveState(string phase)
+    {
+        try
+        {
+            byte[] disk = System.IO.File.ReadAllBytes(System.IO.Path.Combine(Application.dataPath, "ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceFutureV1.bytes"));
+            TextAsset asset = Resources.Load<TextAsset>(ScenarioReferenceArchive.ResourceName);
+            ScenarioReferenceArchive archive = ScenarioReferenceArchive.Load();
+            string resourceSha = asset == null ? "UNAVAILABLE" : B3Sha256(asset.bytes);
+            string anchors = archive == null ? "UNAVAILABLE"
+                : "startingStand=" + archive.startingStandHash + ";" + string.Join(";", archive.milestones.OrderBy(x => x.year).Select(x => x.year + "=" + x.worldHash));
+            string state = "diskSha256=" + B3Sha256(disk) + " diskGitBlob=" + B3GitBlobId(disk) + " resourceBytesSha256=" + resourceSha
+                + " legacy40AnchorsSha256=" + (archive == null ? "UNAVAILABLE" : B3Sha256Text(anchors)) + " milestones=" + (archive == null ? -1 : archive.milestones.Count);
+            B3("ARCHIVE", "phase=" + phase + " " + state);
+            if (archive != null) B3("LEGACY40_ANCHORS", "phase=" + phase + " " + anchors);
+            return state;
+        }
+        catch (Exception error) { B3Missing("archive state (" + phase + ")", error); return "UNAVAILABLE"; }
+    }
+
+    private void B3Start()
+    {
+        string requested = B3Env("CCF_B3_MODE");
+        if (requested != "UNAVAILABLE" && requested != "plain" && requested != "authored-pin")
+            throw new InvalidOperationException("CCF_B3_MODE must be plain or authored-pin, not '" + requested + "'");
+        b3Mode = requested == "authored-pin" ? "authored-pin" : "plain";
+        b3Label = B3Env("CCF_B3_LABEL");
+        b3Started = true;
+        ForestPlayer p = player();
+        if (p != null) b3AuthoredStart = p.transform.position;
+        B3("START", "authoredStart=" + (p == null ? "UNAVAILABLE" : B3V(b3AuthoredStart)));
+        B3Pose("harness-start");
+        B3Identity("pre");
+        b3ArchiveBefore = B3ArchiveState("before");
+    }
+
+    // Called once at the end, whether or not the harness failed. Returns the failure to report: an archive change is a failure.
+    private Exception B3Finish(Exception failure)
+    {
+        if (!b3Started) return failure;
+        try
+        {
+            B3Pose("harness-end");
+            B3Identity("post");
+            string after = B3ArchiveState("after");
+            bool archiveSame = b3ArchiveBefore != "UNAVAILABLE" && after != "UNAVAILABLE" && b3ArchiveBefore == after;
+            // Complete means every observation was captured through the end of the first Reference preview, whatever the harness's own checks did.
+            bool complete = b3Resets > 0 && b3SawPreviewEnd && b3Unavailable == 0 && b3SlotModelFailures == 0 && archiveSame;
+            B3("SUMMARY", "resets=" + b3Resets + " poseRecords=" + b3PoseRecords + " unavailable=" + b3Unavailable + " slotModelFailures=" + b3SlotModelFailures
+                + " authoredPinApplied=" + b3PinApplied + " archiveUnchanged=" + archiveSame + " harnessFailed=" + (failure != null)
+                + " witness=" + (complete ? "EVIDENCE_COMPLETE" : "EVIDENCE_INCOMPLETE") + " b3Verdict=NOT_DECIDED_BY_HARNESS");
+            if (b3ArchiveBefore != "UNAVAILABLE" && after != "UNAVAILABLE" && b3ArchiveBefore != after && failure == null)
+                return new InvalidOperationException("Reference Future v1 / Legacy40 anchors changed during the run");
+        }
+        catch (Exception error) { Debug.Log(B3Tag + "kind=FINISH_ERROR reason=" + B3Clean(error.Message)); }
+        return failure;
     }
 
     private ForestPlayer player() => FindFirstObjectByType<ForestPlayer>();
