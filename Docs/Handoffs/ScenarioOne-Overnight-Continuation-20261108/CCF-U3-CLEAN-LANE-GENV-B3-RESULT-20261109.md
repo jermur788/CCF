@@ -1,5 +1,25 @@
 # CCF-U3 clean-lane G-env / Tree B3 result (#351)
 
+**Outcome (final, after retry): BLOCKED at S4 after a successful cold import/compile — Unity rewrote tracked `.vscode/settings.json`. Compile: PASS (exit 0, no `error CS`). B3 diagnosis: UNKNOWN — 0 of 3 witness runs executed.**
+
+## 0. Retry (user supplied a new licence; ~10:48–11:00 UTC) — supersedes §1 S4–S5 and §3
+
+- **Licence cause:** Unity Hub is a Flatpak and wrote the new licence to `~/.var/app/com.unity.UnityHub/config/unity3d/Unity/licenses/UnityEntitlementLicense.xml` (10:47Z, sha256 `9f359ae8…`). The runner and my scripts copy from the old `~/.config/unity3d/Unity/licenses` (unchanged since 15 Sep, `24ebbb7a…`) and only if absent. I copied the new file **only into the lane's isolated scratch config** (`Build/Enlarged80/config/...`), replacing my own stale copy; the user's home licence was not touched. **The B3 runner `run_enlarged80.py` will still reuse whatever is in that scratch config, but any fresh lane would copy the stale `~/.config` file** — worth fixing before a re-run elsewhere.
+- Re-claimed #351 RUNNING (`issuecomment-6738133217`); S1 repeated: UUID `18D6-896E`, ZX20 42.73 GiB, I/O avg60 4.1 %, new monitor started first (`run2/disk-monitor.log`, now observed a **real Editor PID** 91669, 20 s samples, min free 36.16 GiB), then lease `c5fb94fc36aa496d8d2aec8a5ac6d00b` via the unchanged `unity-lock` (HEAD already C, tracked clean).
+- **Cold import + compile (10:50:34–10:59:45Z, ~9 min): licence valid, exit 0, "Exiting batchmode successfully", no `error CS`, 65 packages registered, ~6,090 assets imported.** Library = **6.6 GiB** (matches the 6–7 GiB estimate); ZX20 36.18 GiB free after.
+- `Packages/manifest.json` (`f2ff5f95…`) and `packages-lock.json` (`f43d9894…`) **unchanged**. Staged harness: none (compile-only; no `-executeMethod`).
+- **STOP condition hit:** tracked `.vscode/settings.json` modified by Unity's editor integration (`run2/vscode-settings-drift.diff`): trailing comma removed after `"*.unity": "yaml"` and `dotnet.defaultSolution` `CCF.slnx` → `CCF-U3.slnx`. `AGENTS.md` lists that file as tracked shared config. It looks benign (Unity's VS Code integration regenerates it per lane), but it is an unexpected tracked mutation outside the packet's expected set, so I stopped rather than endorse or revert it. It also makes the lane non-strict-clean, so a fresh lease would be refused until Manager decides (revert via `git checkout -- .vscode/settings.json` is Manager's call; I did not).
+- **B3 witness: not run** (0 plain, 0 authored-pin). Candidate/scene/archive/Legacy40 anchors, tree identity, pose and CharacterController observations: none exist.
+- Lease released (owner-matched, not forced), lock `free`, monitor stopped, no Editor left.
+- **CCF-U3 now:** detached at C; tracked dirty = `.vscode/settings.json` only; new ignored `Library/` (6.6 GiB), plus earlier `Build/`, `Temp/`. Not cleaned.
+- Evidence: `run2/` and `SHA256SUMS-run2.txt` in the evidence directory.
+
+**Next action (one):** Manager rules on `.vscode/settings.json` — accept as a known benign Unity side effect and re-release a B3-only run (lease needs the file reverted or the lane's strict-clean check satisfied; the 6.6 GiB Library is already warm, so no second cold import), or decline.
+
+---
+
+## Earlier first attempt (superseded by §0 above)
+
 **Outcome: BLOCKED at the Unity licence check (S4). B3 diagnosis: UNKNOWN — not attempted. Compilation: UNKNOWN — Unity never reached import.**
 
 Worker: Claude Code (Sonnet 5.5, `claude-sonnet-5-5`) via T3 Code, local machine, 9 Nov 2026, 10:23–10:27 UTC.
