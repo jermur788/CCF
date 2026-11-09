@@ -56,7 +56,7 @@ class HarnessSource(unittest.TestCase):
         2: ["ccEnabled=", "ccCenter=", "ccBoundsCenter=", "autoSyncTransforms", "harness-start", "-entry model=", "-pre-Generate model=", "pre-TryBeginReferencePreview",
             "post-TryBeginReferencePreview", "post-EndReferencePreview+0", "post-EndReferencePreview+1", "post-EndReferencePreview+2"],
         3: ["B3Anchors()", "\"Dirt Path\"", "Forest Clearing", "coreSlotsInside=", "CLEARANCE_OMITTED_CORE", "listSha256="],
-        4: ["B3(\"TREES\"", "idsSha256=", "worldHash=", "clearanceOmitted=", "hashBudgetOmitted="],
+        4: ["B3(\"TREES\"", "B3(\"TREE_RECORDS\"", "recordsSha256=", "ScenarioReferenceArchive.Hash(JsonUtility.ToJson(t))", "idsSha256=", "worldHash=", "clearanceOmitted=", "hashBudgetOmitted="],
         5: ["e.SimulationSeed", "e.RngModelVersion", "UnityEngine.Random.state", "UNAVAILABLE"],
         6: ["B3Step(b3Reset, 1, \"destroy trees\")", "B3Step(b3Reset, 2, \"ApplyStandGeometry\")", "B3Step(b3Reset, 3, \"ResetForDeterministicRun\")",
             "B3Step(b3Reset, 4, \"Generate\")", "B3Step(b3Reset, 5, \"InitializeNewScenario\")"],
@@ -78,7 +78,7 @@ class HarnessSource(unittest.TestCase):
     def test_witness_block_only_observes(self):
         block = HARNESS[HARNESS.index("B3 evidence-only witness"):HARNESS.index("private ForestPlayer player()")]
         block = re.sub(r"//[^\n]*", "", block)   # comments may name the production calls they describe
-        for forbidden in ("File.Write", "WriteAllText", "WriteAllBytes", "File.Delete", "SaveData", ".Save(", "LoadData(", "SetRetiredFromStartingWorld", "ApplyStandGeometry(", "Generate()"):
+        for forbidden in ("File.Write", "WriteAllText", "WriteAllBytes", "File.Delete", "saves.Save", ".Save(", "AutoSave", "LoadData(", "SetRetiredFromStartingWorld", "ApplyStandGeometry(", "Generate()"):
             self.assertTrue(forbidden not in block, "witness block contains " + forbidden)
         # the only transform write in the witness is the authored-start pin
         self.assertEqual(len(re.findall(r"transform\.position\s*=[^=]", block)), 1)

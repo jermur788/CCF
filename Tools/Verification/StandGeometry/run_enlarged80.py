@@ -30,7 +30,7 @@ B3_REQUIRED = [
     "kind=IDENTITY_PACKAGE_CACHE phase=pre", "kind=POSE label=harness-start", "kind=POSE label=reset1-entry", "kind=POSE label=reset1-pre-Generate",
     "kind=POSE label=pre-TryBeginReferencePreview", "kind=POSE label=post-TryBeginReferencePreview", "kind=POSE label=post-EndReferencePreview+0",
     "kind=POSE label=post-EndReferencePreview+1", "kind=POSE label=post-EndReferencePreview+2", "kind=ANCHORS reset=1", "kind=ANCHOR reset=1",
-    "kind=CLEARANCE_OMITTED_CORE reset=1", "kind=SEED reset=1", "kind=TREES reset=1", "kind=OMITTED_CORE reset=1",
+    "kind=CLEARANCE_OMITTED_CORE reset=1", "kind=SEED reset=1", "kind=TREES reset=1", "kind=TREE_RECORDS reset=1", "kind=OMITTED_CORE reset=1",
     "kind=STEP reset=1 step=1", "kind=STEP reset=1 step=2", "kind=STEP reset=1 step=3", "kind=STEP reset=1 step=4", "kind=STEP reset=1 step=5",
     "kind=ARCHIVE phase=before", "kind=ARCHIVE phase=after", "kind=LEGACY40_ANCHORS phase=before", "kind=LEGACY40_ANCHORS phase=after",
     "kind=SUMMARY",

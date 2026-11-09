@@ -727,6 +727,17 @@ public sealed class Enlarged80VerificationRunner : MonoBehaviour
             var coreIds = ids.Where(id => Regex.IsMatch(id, "^P[0-9]{4}$")).ToList();
             B3("TREES", "reset=" + reset + " model=" + model + " count=" + ids.Count + " idsSha256=" + B3Sha256Text(string.Join("\n", ids)) + " coreLiving=" + coreIds.Count
                 + " outerLiving=" + (ids.Count - coreIds.Count) + " worldHash=" + CurrentHash());
+            try
+            {
+                // Per-tree record hash: the same FNV-64 function CurrentWorldHash applies to the whole canonical JSON, applied to each tree record.
+                ForestSaveData data = saves.CaptureData();
+                ScenarioReferenceArchive.Canonicalize(data);
+                var records = data.trees.Select(t => t.treeId + "=" + ScenarioReferenceArchive.Hash(JsonUtility.ToJson(t))).ToList();
+                Func<string, string> record = id => { var t = data.trees.FirstOrDefault(x => x.treeId == id); return t == null ? "ABSENT" : ScenarioReferenceArchive.Hash(JsonUtility.ToJson(t)); };
+                B3("TREE_RECORDS", "reset=" + reset + " model=" + model + " records=" + records.Count + " recordsSha256=" + B3Sha256Text(string.Join("\n", records))
+                    + " P0604=" + record("P0604") + " P1209=" + record("P1209") + " P0600=" + record("P0600") + " P0009=" + record("P0009"));
+            }
+            catch (Exception error) { B3Missing("per-tree record hashes", error); }
             if (b3Slots == null) { B3Missing("omitted-slot split (no slot model)", null); b3SlotModelFailures++; return; }
             var livingCore = new HashSet<string>(coreIds);
             var tolerance = 0.01f;
