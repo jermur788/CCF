@@ -730,8 +730,19 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)
         {
+            // Move a CharacterController the same way MoveToReferenceView does:
+            // with it disabled, then re-enabled. Writing transform.position while
+            // it is enabled can leave its internal position at the preview
+            // viewpoint, and the next controller.Move would snap the player back.
+            CharacterController controller = player.GetComponent<CharacterController>();
+            bool controllerWasEnabled = controller != null && controller.enabled;
+            if (controllerWasEnabled)
+                controller.enabled = false;
             player.transform.position = previewPlayerPosition;
             player.RestoreLook(previewPlayerRotation, previewPlayerPitch);
+            if (controllerWasEnabled)
+                controller.enabled = true;
+            Physics.SyncTransforms();
         }
         Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
         if (camera != null)
