@@ -100,7 +100,11 @@ INTEGRATED_PASS = "HEADLAND_INTEGRATED_IDENTITY_AND_OFFLINE_PASS"
 SOURCE_ASSERTION = "integrated: StandMapSource.cs is the accepted #297 content plus only the approved SceneHandle edits"
 PATH_SET = "integrated: production changes since the common ancestor are exactly the 9 Workbench/C2 and 11 D-072 Assets paths"
 C2_BYTES = "integrated: the 9 Workbench/C2 paths (incl. scene and Packages) are byte-identical to C2"
-D072_BYTES = "integrated: the other 10 D-072 Assets paths are byte-identical to the approved D-072 tip"
+D072_BYTES = "integrated: the other 9 D-072 Assets paths are byte-identical to the approved D-072 tip"
+UI_ROOT = UI / "ScenarioOneUiRoot.cs"
+BADGE_INITIALIZER = "integrated: ScenarioOneUiRoot.cs does not create the next-action badge in a field initializer"
+UI_ROOT_BYTES = "integrated: ScenarioOneUiRoot.cs is the approved D-072 content plus only the two next-action badge edits"
+D072_TIP = "9789369d02963b4444f8530b071413d066bf1ddf"
 STAND_MAP_SOURCE = UI / "Map/StandMapSource.cs"
 INTEGRATED_MUTATIONS = [
     ("i1 StandMapSource.cs altered by one space", lambda r: nudge(r / STAND_MAP_SOURCE), SOURCE_ASSERTION),
@@ -112,6 +116,8 @@ INTEGRATED_MUTATIONS = [
     ("i6 C2 Packages manifest altered", lambda r: append(r / "Packages/manifest.json", "\n"), C2_BYTES),
     ("i7 C2 scene altered", lambda r: append(r / "Assets/Scenes/ForestTest.unity", "\n"), C2_BYTES),
     ("i8 another D-072 file altered", lambda r: nudge(r / UI / "WorkPlanView.cs"), D072_BYTES),
+    ("i9 ScenarioOneUiRoot.cs altered by one space (#356)", lambda r: nudge(r / UI_ROOT), UI_ROOT_BYTES),
+    ("i10 badge back to the illegal field initializer (#356)", lambda r: restore_from(r, D072_TIP, str(UI_ROOT)), BADGE_INITIALIZER),
 ]
 
 
@@ -155,7 +161,7 @@ def main():
     extra = ["--integrated"] if arguments.integrated else []
     mutations = INTEGRATED_MUTATIONS if arguments.integrated else MUTATIONS
     pass_marker = INTEGRATED_PASS if arguments.integrated else "HEADLAND_SOURCE_AND_OFFLINE_PASS"
-    expected_source = 42 if arguments.integrated else 39
+    expected_source = 49 if arguments.integrated else 39
 
     def clean_run(label):
         reset()

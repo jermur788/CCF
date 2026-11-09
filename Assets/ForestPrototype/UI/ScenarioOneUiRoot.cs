@@ -55,7 +55,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private Button nextAction;
     private Button guidanceCandidate;
     private VisualElement guidanceScope;
-    private readonly Label nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };
+    private Label nextBadge;
     private readonly Dictionary<Button, bool> guidancePrimaries = new Dictionary<Button, bool>();
     // Only T2-owned controls. Treatment review, waypoints and Legacy40 keep their original styling.
     private static readonly string[] GuidanceButtonNames = {
@@ -89,6 +89,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void Start()
     {
+        nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };
         manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
         ecology = FindFirstObjectByType<ForestEcologyController>();
         if (ecology != null)

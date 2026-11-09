@@ -105,6 +105,18 @@ SCENE_HANDLE_EDITS = (
     ("            headlandScene = -1;\n", "            headlandScene = null;\n"),
     ("        int scene = eco.gameObject.scene.handle;\n", "        SceneHandle scene = eco.gameObject.scene.handle;\n"),
 )
+# The only change allowed inside ScenarioOneUiRoot.cs (#356, Manager ruling after the #315 Unity run): Unity 6000.6 forbids creating a
+# VisualElement in a MonoBehaviour field initializer, so the badge moves into Start(). One declaration replaced, one statement added.
+UI_ROOT = "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs"
+UI_ROOT_APPROVED_BLOB = "cf5707e3360a0ef26864caf40a11ac9b7cb8b652"   # approved D-072 content, also the #315 Unity-tested content
+UI_ROOT_INTEGRATED_BLOB = "3d3b79c442d2295b3938389aad1fb9a7d4605b6f"
+UI_ROOT_INTEGRATED_SHA256 = "cf5c4c36040645b84bc4b633d7b82453a364ebcc54571c1df6ee48e18376adfc"
+NEXT_BADGE_EDITS = (
+    ('    private readonly Label nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };\n',
+     "    private Label nextBadge;\n"),
+    ("    private void Start()\n    {\n",
+     '    private void Start()\n    {\n        nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };\n'),
+)
 # Production paths recorded by #354: nine Workbench/C2 paths, and the eleven D-072 Assets paths (StandMapSource.cs is one of them).
 INTEGRATED_C2_PATHS = (
     "Assets/ForestPrototype/Editor/ForestSceneBuilder.cs", "Assets/ForestPrototype/ForestBuildable.cs",
@@ -145,11 +157,28 @@ def check_integrated_identity(root=ROOT):
     # 5. Each recorded path holds its approved bytes: C2 paths equal C2, the other ten D-072 paths equal the approved D-072 tip.
     require(not git("diff", C2_COMMIT, "--name-only", "--", *INTEGRATED_C2_PATHS, root=root).strip(),
             "integrated: the 9 Workbench/C2 paths (incl. scene and Packages) are byte-identical to C2")
-    other_d072 = [path for path in INTEGRATED_D072_PATHS if path != STAND_MAP_SOURCE]
+    other_d072 = [path for path in INTEGRATED_D072_PATHS if path not in (STAND_MAP_SOURCE, UI_ROOT)]
     require(not git("diff", D072_TIP, "--name-only", "--", *other_d072, root=root).strip(),
-            "integrated: the other 10 D-072 Assets paths are byte-identical to the approved D-072 tip")
+            "integrated: the other 9 D-072 Assets paths are byte-identical to the approved D-072 tip")
     require(not git("diff", C2_COMMIT, "--name-only", "--", "ProjectSettings", root=root).strip(),
             "integrated: ProjectSettings is byte-identical to C2")
+    # 6. ScenarioOneUiRoot.cs (#356): the approved D-072 content stays recoverable, and today's file is it plus exactly the two badge edits.
+    require(git("rev-parse", f"{D072_TIP}:{UI_ROOT}", root=root).strip() == UI_ROOT_APPROVED_BLOB,
+            f"integrated: approved ScenarioOneUiRoot.cs is recoverable at {D072_TIP[:8]} as pinned blob {UI_ROOT_APPROVED_BLOB[:8]}")
+    root_text = (Path(root) / UI_ROOT).read_text() if (Path(root) / UI_ROOT).is_file() else ""
+    require("readonly Label nextBadge" not in root_text and not re.search(r"Label nextBadge\s*=", root_text),
+            "integrated: ScenarioOneUiRoot.cs does not create the next-action badge in a field initializer")
+    expected_root = git_bytes("show", f"{D072_TIP}:{UI_ROOT}", root=root).decode()
+    for old, new in NEXT_BADGE_EDITS:
+        require(expected_root.count(old) == 1, "integrated: badge edit applies to exactly one place: " + old.strip().splitlines()[0][:60])
+        expected_root = expected_root.replace(old, new)
+    current_root = (Path(root) / UI_ROOT).read_bytes()
+    require(current_root == expected_root.encode(),
+            "integrated: ScenarioOneUiRoot.cs is the approved D-072 content plus only the two next-action badge edits")
+    require(hashlib.sha256(current_root).hexdigest() == UI_ROOT_INTEGRATED_SHA256,
+            "integrated: ScenarioOneUiRoot.cs SHA-256 equals the pinned integrated value")
+    require(hashlib.sha1(b"blob %d\0" % len(current_root) + current_root).hexdigest() == UI_ROOT_INTEGRATED_BLOB,
+            "integrated: ScenarioOneUiRoot.cs git blob id equals the pinned integrated value")
 
 
 def method(text, signature):
@@ -225,6 +254,8 @@ def main():
                  "Assets/ForestPrototype/UI/StandMapView.cs", "Assets/ForestPrototype/UI/HudMinimapView.cs",
                  "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
                  "Assets/ForestPrototype/UI/WorkPlanView.cs", "Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss"]
+    if arguments.integrated:
+        protected.remove(UI_ROOT)   # pinned byte-for-byte by check_integrated_identity instead (#356); the stage guard keeps it
     require(not git("diff", BASE, "--name-only", "--", *protected).strip(),
             "original verification assertions and Stage T2 UI bytes preserved")
     require(not git("ls-files", "--others", "--exclude-standard", "--", "Assets").strip(),
