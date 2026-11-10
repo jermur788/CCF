@@ -590,3 +590,6 @@
 .next-action-reason { font-size: 20px; white-space: normal; flex-shrink: 0; margin-top: 4px; margin-bottom: 4px; }
 
 .next-action-badge { font-size: 20px; -unity-font-style: bold; white-space: normal; align-self: center; margin-right: 4px; }
+
+/* #363: disclosure affects chips only; plain uncertainty remains visible. */
+.hide-data-sources .prov { display: none; }

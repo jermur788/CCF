@@ -28,6 +28,10 @@ class Checks {
   foreach(var n in new[]{"workplan-approve","workplan-advance","map-rack-plan-confirm","approve-prescription","Fell","map-consent-decline","Help",""}) Check(!ScenarioOneTeachingSequence.SafePulseTarget(n),"commitment/modal never pulses "+n);
   Check(ScenarioOneTeachingSequence.SafePulseTarget("map-teaching-waypoint"),"safe waypoint");
   Check(ScenarioOneTeachingSequence.SafePulseTarget("annual-review-acknowledge"),"safe ack");
+  Check(ScenarioOneTeachingSequence.SourceQualifier(HistoryProvenance.Reconstructed).Contains("reconstructed"),"reconstructed visible without chips");
+  Check(ScenarioOneTeachingSequence.SourceQualifier(HistoryProvenance.Current)=="now","current never past fact");
+  Check(ScenarioOneTeachingSequence.SourceQualifier(HistoryProvenance.NotRecorded)=="not recorded","absence explicit");
+  Check(ScenarioOneTeachingSequence.SourceQualifier(HistoryProvenance.Recorded)=="","recorded no uncertainty invented");
   Console.WriteLine("Focused checks PASS "+count);
  }
 }

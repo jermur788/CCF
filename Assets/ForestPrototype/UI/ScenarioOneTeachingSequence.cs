@@ -8,6 +8,18 @@ public static class ScenarioOneTeachingSequence
         || name == "map-teaching-waypoint" || name == "map-treatment-review" || name == "map-plan-rack"
         || name == "workplan-read-results" || name == "annual-review-acknowledge";
 
+    public static string SourceQualifier(HistoryProvenance kind)
+    {
+        switch(kind) {
+            case HistoryProvenance.Derived: return "calculated from records";
+            case HistoryProvenance.Reconstructed: return "estimated / reconstructed from records";
+            case HistoryProvenance.SessionOnly: return "this session only";
+            case HistoryProvenance.NotRecorded: return "not recorded";
+            case HistoryProvenance.Current: return "now";
+            default: return "";
+        }
+    }
+
     public sealed class Facts
     {
         public bool AccessOpen, AccessReviewed, ReleasePlanned, ReleaseExecuted, DeadwoodExecuted;

@@ -25,7 +25,8 @@ public sealed class AnnualReviewView
     private readonly Label title;
     private readonly ScrollView scroll;
     private readonly VisualElement acknowledgement;
-    private readonly Button earlierYear, laterYear;
+    private readonly Button earlierYear, laterYear, walk;
+    private bool showDataSources;
     private string shownKey = "";
     // The footer's first-review wording, captured once so the completion guidance can replace it and then give it back.
     private string defaultAcknowledgementPrompt;
@@ -54,7 +55,13 @@ public sealed class AnnualReviewView
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.AnnualReview)));
         buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Open Work Plan", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        walk = UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary");
+        walk.name = "annual-review-walk";
+        buttons.Add(walk);
+        var sources = new Toggle("Show data sources") { value = false, name = "annual-show-data-sources" };
+        sources.RegisterValueChangedCallback(e => { showDataSources = e.newValue; Refresh(true); });
+        buttons.Add(sources);
+        Root.AddToClassList("hide-data-sources");
         header.Add(buttons);
         modal.Add(header);
         scroll = new ScrollView(ScrollViewMode.Vertical);
@@ -108,7 +115,9 @@ public sealed class AnnualReviewView
         showingEarlierYear = historical;
         shownKey = ChangeKey(m, teachingReview);
         scroll.Clear();
+        Root.EnableInClassList("hide-data-sources", !showDataSources);
         acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement || teachingReview) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
+        walk.EnableInClassList("btn-primary", acknowledgement.style.display == DisplayStyle.None);
         // Completion guidance only: after the first review the footer says why this acknowledgement matters. The first review keeps its wording.
         Label acknowledgementPrompt = acknowledgement.Q<Label>();
         if (acknowledgementPrompt != null)
@@ -129,8 +138,10 @@ public sealed class AnnualReviewView
             return;
         }
 
-        VisualElement legend = UiKit.Add(scroll, HistoryProvenanceText.Legend, "faint");
-        legend.name = "provenance-legend";
+        if (showDataSources) {
+            VisualElement legend = UiKit.Add(scroll, HistoryProvenanceText.Legend, "faint");
+            legend.name = "provenance-legend";
+        }
 
         IReadOnlyList<InterventionSummary> interventions = m.Interventions;
         // The completion summary opens the review of the year the objectives were met (not year 100).
@@ -144,8 +155,8 @@ public sealed class AnnualReviewView
         VisualElement columns = UiKit.Box("columns");
         scroll.Add(columns);
         BuildWork(m, year, Column(columns, "Work done"));
-        BuildMoney(m, year, Column(columns, "Money"));
-        BuildForest(m, year, Column(columns, "Forest"), historical);
+        BuildMoney(m, year, Column(columns, "Cash"));
+        BuildForest(m, year, Column(columns, "Forest changes"), historical);
         BuildPriorTreatmentGuidance(year);
         BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);
@@ -245,6 +256,8 @@ public sealed class AnnualReviewView
     // The label is words, not colour alone. Its class name ("prov-recorded", ...) lets the checks find every label.
     private static Label Tag(VisualElement parent, HistoryProvenance kind)
     {
+        string qualifier = ScenarioOneTeachingSequence.SourceQualifier(kind);
+        if (!string.IsNullOrEmpty(qualifier)) UiKit.Add(parent, qualifier, "faint");
         Label chip = UiKit.Chip(parent, HistoryProvenanceText.Label(kind), ChipStyle(kind));
         chip.AddToClassList("prov");
         chip.AddToClassList("prov-" + kind.ToString().ToLowerInvariant());

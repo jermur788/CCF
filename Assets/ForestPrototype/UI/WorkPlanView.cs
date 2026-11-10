@@ -351,6 +351,8 @@ public sealed class WorkPlanView
             if (costs.MinimumJobAdjustmentCents > 0)
                 UiKit.Line(card, $"Small-job minimum (visit minimum {UiKit.Money(m.Definition.MinimumHarvestJobCents)})",
                     UiKit.SignedMoney(-costs.MinimumJobAdjustmentCents), "money-negative");
+            UiKit.Line(card, "Total quoted contractor charge before approval", UiKit.Money(job.CostCents));
+            UiKit.Add(card, "Quote covers all eligible harvest and salvage stems above, including their timber dispositions. Approving the Work Plan commits every eligible pending job, not only this visit. The year settlement re-quotes actual work.", "muted");
             long net = job.RevenueCents - job.CostCents;
             UiKit.Line(card, "Net for this job", UiKit.SignedMoney(net), net >= 0 ? "money" : "money-negative");
             if (costs.MinimumJobAdjustmentCents > 0)

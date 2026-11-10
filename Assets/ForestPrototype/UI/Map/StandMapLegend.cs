@@ -72,7 +72,7 @@ public static class StandMapLegend
         if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, Meaning(MapSymbol.Path));
         if (model.ExistingHeadlandSurfaces.Count > 0)
             Symbol(LegendKind.Line, MapSymbol.Path, "Existing V2 headland / feeder — not a planned rack");
-        if (model.Landmarks.Count > 0) Symbol(LegendKind.Patch, MapSymbol.Landmark, "Clearing (work area)");
+        if (model.Landmarks.Count > 0) Symbol(LegendKind.Patch, MapSymbol.Landmark, "Existing clearing");
         Symbol(LegendKind.Line, MapSymbol.Property, "Property boundary");
         Symbol(LegendKind.Line, MapSymbol.GridLine, "Local grid, " + StandMapGridPlan.StepM(model.SizeM) + " m (east, north)");
 
