@@ -1,5 +1,7 @@
 # Manager #200 — Independent Fable #373 review disposition and bounded repair scope
 
+> **SUPERCEDING USER DECISION, 10 November 2026:** The user explicitly cancelled the second Fable review because of cost. **#375 will not run.** Sol #374 is one bounded source repair, then Manager #200 directly checks the repair diff/targeted test receipts; this is **not an independent re-review**. The original #373 independent review remains valid for the original candidate only. The unreviewed repair delta, actual Unity render/native input, and integration must remain explicitly unverified until their applicable gates. Read the [updated one-worker repair packet](MANAGER-373-TO-374-BOUNDED-UI-SOURCE-REPAIR-AND-DELTA-REVIEW-PACKET.md) for current execution instructions; all older Fable auto-launch language below is historical and **superseded**.
+
 **Date:** 10 November 2026. **Manager verdict: NEEDS CHANGES (G2 source and evidence), not REJECTED.** No source acceptance, G4 integration, player acceptance or Windows build authorised. This is a Manager ruling separate from the reviewer's verdict.
 
 ## Evidence inspected
@@ -36,15 +38,15 @@ Sol's offline typed compile and focused tests reproduced in independent source r
 
 ## Verification and integration policy
 
-**One bounded source repair**, one **short independent delta review**, then **one guarded focused Unity Tier-2** only when user Editor ownership and machine access are safe. No repeated full end-to-end programme and no test weakening to attain green. Type compile and focus tests must show actual callsite guards, meaningful mutation kills, and byte-stable gameplay/ecology/marking/economy/save/scene/reference files. Existing 160+219+18 focused suite preserved.
+**One bounded source repair**, **Manager source/evidence check without a second independent Fable review** (user-deferred due to cost), then **one guarded focused Unity Tier-2** only when user Editor ownership and machine access are safe. No repeated full end-to-end programme and no test weakening to attain green. Type compile and focus tests must show actual callsite guards, meaningful mutation kills, and byte-stable gameplay/ecology/marking/economy/save/scene/reference files. Existing 160+219+18 focused suite preserved.
 
 Sol's previously reported source PASS does not substitute for real 720p/1080p colour/grayscale display, native keyboard/cursor and save isolation. Fable source failure on acceptance UI-AC07 and UI-AC11 must be repaired; UI-AC19 and UI-AC20 remain NOT VERIFIED; user source/playtest #361 is distinct. ZX20 was unmounted and Editor handback unverified at review: no Unity, no machine-lease acquisition, no Windows.
 
 ## Sequencing and ownership
 
 1. [#374 Sol bounded UI source repair](https://github.com/jermur788/CCF/issues/374) — READY / NOT RUNNING, dedicated branch **fix/scenario-one-ui-presentation-fable-review-20261110-v1** at reviewed source, proposed worktree **/media/jer/Files/CCF/Operations/CCF-S1-UI-Presentation-V1-Repair**, not yet created/owned. Worker refreshes live active-tasks.md, confirms no overlapping UI writer, registers single writer and RUNNING claim before source edits.
-2. [#375 Fable focused independent delta](https://github.com/jermur788/CCF/issues/375) — WAITING until Sol source/report handed off and writer released, new docs-only reviewer branch/worktree at exact repaired candidate.
-3. Manager inspects the delta result and decides next guarded Unity Tier-2 task; no integration until G2/G3/Unity evidence and G4 Manager approval.
+2. [#375 Fable focused independent delta](https://github.com/jermur788/CCF/issues/375) — **CANCELLED / USER-DEFERRED, CLOSED WITHOUT EXECUTION**. No Fable launch, reviewer lane, or review report to commission.
+3. Manager inspects the actual Sol repair diff and targeted source checks directly, records what is source-supported and what is **NOT independently re-reviewed**, then decides whether the next guarded Unity Tier-2 is feasible. No integration until G2/G3/Unity evidence and G4 Manager approval.
 
 **Final integration verdict: NEEDS CHANGES — DO NOT INTEGRATE.**
 
@@ -52,4 +54,4 @@ Sol's previously reported source PASS does not substitute for real 720p/1080p co
 
 **Dashboard:** GitHub source records updated, downstream ingestion/readback NOT VERIFIED.
 
-**User action:** paste one GitHub-backed dispatch message into a capable Sol local T3 Code session. Sol attempts to launch a separate Anthropic Fable peer after its own source handoff; if unavailable, report BLOCKED and provide a follow-up handoff rather than claiming review completed.
+**User action:** paste one GitHub-backed dispatch message into a capable Sol local T3 Code session. Sol **does not dispatch Fable**. Manager checks Sol's repaired source and evidence directly after handoff; no claim of independent re-review.
