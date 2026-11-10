@@ -57,3 +57,13 @@ python3 -B Tools/Verification/PlayerFeedbackOvernight/consumer_paths.py "$receip
 Expected baseline exit 134 with the named R367 current-short failure; corrected consumers exit 0. The baseline mode
 uses actual original UI bodies with compatibility properties only for new probe APIs, not to inject a passing priority.
 No Unity, lock, scenery, save, preference, licensed asset, frozen Reference, main merge or Player build action authorised.
+
+## #370 annual-review unread reset (10 November 2026)
+
+Owner Anthropic Claude Sonnet 5.5 (Claude Code harness in T3 Code), continuing after a Codex usage-limit stop. Same lane; starting HEAD `ebff8e70`, source `85568c4f`.
+Production change: one statement in `ScenarioOneManager.AdvanceYear()` (`annualReviewSeen = false;` immediately after `annualReports.Add(report)`). No schema, event, stage, score or economy change.
+Verification (new, offline, no Unity): `ReviewReset.cs` + `review_reset.py` (18 assertions, exact production slices + #367 consumers) and `mutations_370.py` (named mutant `advance-year-omits-unread-reset` must die on `R370_YEAR2_NO_WORK_REPORT_UNREAD`).
+```sh
+python3 -B Tools/Verification/PlayerFeedbackOvernight/review_reset.py <check.dll> <out> "$PWD"
+python3 -B Tools/Verification/PlayerFeedbackOvernight/mutations_370.py <check.dll> <out> "$PWD"
+```

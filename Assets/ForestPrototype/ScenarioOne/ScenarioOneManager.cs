@@ -1370,6 +1370,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         report.closingCashCents = cashCents;
         report.ownerMinutes = ownerMinutesUsedThisYear;
         annualReports.Add(report);
+        // Each generated report (a no-work year included) is unread until explicitly acknowledged; reuses the saved flag.
+        annualReviewSeen = false;
         RecordEvent(new ScenarioManagementEvent
         {
             year = report.year,
