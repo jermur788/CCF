@@ -2,6 +2,12 @@
 
 **Status:** APPROVED AS **VISUAL STYLE / COMPOSITION REFERENCE ONLY**. This document records the three 2× PNGs uploaded to the Manager chat following publication of the integrated UI spec. **Not Unity renders, not an implementation report, not source data, not game controls.**
 
+## Latest visual preference — user-selected image at 19:40 UTC
+
+The user supplied a **new image in chat** at approximately 19:40 UTC on 10 November 2026 and said **“this is even better.”** This is the **preferred visual-composition direction** over the three earlier posters **where their aesthetics/layout differ**, provided Sol can inspect the actual image. It does **not** override the accepted requirements, authoritative Unity controls, valid state handling, or the 11 content errata in this document.
+
+**Asset-custody limitation:** This newly preferred inline image was visible in the conversation but has **not been committed as a file in this Git branch**, and the Manager could not verify a named local/transferable backing file for it. Its pixel dimensions, hash and filename are **not established**. Do not imply Sol/Fable can open it from Git. If an exact user-provided copy becomes available in the local verification folder or worker input, record its observed filename/hash/dimensions in the worker handoff and use it as the foremost *visual style* reference. If not available, proceed from the four committed SVGs and three verified poster references; mark exact-new-image comparison **NOT INSPECTED** rather than inventing fidelity. No delay to source work is required.
+
 ## Access and custody
 
 The user reports the original PNG files are locally available under:
