@@ -58,8 +58,10 @@ public static class ScenarioOneRackBayText
     public static string Walking(ScenarioOneRackBay.Analysis a, float x, float z, ForestTree aimed)
     {
         string[] zones = { "Near", "Middle", "Far" };
-        string location = a.Contains(x, z) ? "Inside teaching area · " + zones[a.Geometry.Zone(x, z)]
+        bool inFootprint = Math.Abs(a.Geometry.Along(x,z)) <= ScenarioOneRackBay.HalfLengthM && Math.Abs(a.Geometry.Across(x,z)) <= a.Geometry.HalfWidth;
+        string location = inFootprint ? "Inside teaching area · " + zones[a.Geometry.Zone(x, z)]
             + " · " + (a.Geometry.Across(x, z) > 0 ? "left" : "right") + " looking from headland into rack" : "Outside teaching area · [M] Set waypoint";
+        if (inFootprint && !a.Contains(x,z)) location += " · rack corridor (no Crop credit)";
         string feedback = a.AreaCropCount > 3 ? "Extra fourth Crop Tree: keep exactly three. " : "";
         if (a.TooClose.Count > 0) feedback += "Less than 8m from another selected stem: " + string.Join(", ", a.TooClose) + ". ";
         if (a.Future.GroupBy(t => a.Geometry.Zone(t.X, t.Z)).Any(g => g.Count() > 1)) feedback += "Duplicate third: select one tree per third. ";

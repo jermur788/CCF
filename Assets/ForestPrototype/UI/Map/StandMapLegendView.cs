@@ -58,6 +58,12 @@ public sealed class StandMapSwatch : VisualElement
                 p.fillColor = ToColor(s.Fill); p.BeginPath(); p.MoveTo(new Vector2(4, 3)); p.LineTo(new Vector2(w - 4, 3)); p.LineTo(new Vector2(w - 4, h - 3)); p.LineTo(new Vector2(4, h - 3)); p.ClosePath(); p.Fill();
                 p.strokeColor = ToColor(s.Colour); p.lineWidth = 1.2f; p.Stroke();
                 break;
+            case LegendKind.Square:
+            case LegendKind.FilledSquare:
+                p.BeginPath(); p.MoveTo(new Vector2(w/2-6,mid-6)); p.LineTo(new Vector2(w/2+6,mid-6)); p.LineTo(new Vector2(w/2+6,mid+6)); p.LineTo(new Vector2(w/2-6,mid+6)); p.ClosePath();
+                if(entry.Kind==LegendKind.FilledSquare) { p.fillColor=ToColor(s.Colour); p.Fill(); }
+                p.strokeColor=ToColor(s.Colour);p.lineWidth=2;p.Stroke();
+                break;
             case LegendKind.Dot:
                 Circle(p, w * 0.5f, mid, 3.6f); p.fillColor = ToColor(s.Colour); p.Fill(); p.strokeColor = new Color(0.07f, 0.11f, 0.055f, 0.86f); p.lineWidth = 1.1f; p.Stroke();
                 break;

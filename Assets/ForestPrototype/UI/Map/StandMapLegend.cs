@@ -15,7 +15,7 @@ public enum LegendKind
     Wedge,     // you: dot and facing wedge
     Crown,     // a tree crown of one kind
     Ramp,      // a colour ramp for a layer (the ends are named in Text and RampNote)
-    Stump
+    Stump, Square, FilledSquare
 }
 
 public sealed class LegendEntry
@@ -71,8 +71,8 @@ public static class StandMapLegend
         if (open) Symbol(LegendKind.Band, MapSymbol.RackOpen, "Rack harvested, corridor open");
         if (other) Symbol(LegendKind.Band, MapSymbol.RackOther, "Your rack, off the planned layout");
         if (model.Racks.Exists(r => r.RackId > 0)) {
-            Symbol(LegendKind.Ring,MapSymbol.RackEntrance,"Hollow entrance target · not field marked");
-            if (model.Racks.Exists(r => r.EntranceMarked)) Symbol(LegendKind.Dot,MapSymbol.RackEntrance,"Filled entrance · actually field marked, not felled");
+            Symbol(LegendKind.Square,MapSymbol.RackEntrance,"Hollow entrance target · not field marked");
+            if (model.Racks.Exists(r => r.EntranceMarked)) Symbol(LegendKind.FilledSquare,MapSymbol.RackEntrance,"Filled entrance · actually field marked, not felled");
         }
         if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, model.ExistingHeadlandSurfaces.Count > 0 ? "Forest track · south gate to junction" : Meaning(MapSymbol.Path));
         if (model.ExistingHeadlandSurfaces.Count > 0) {

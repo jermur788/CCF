@@ -168,6 +168,18 @@ public static class StandMapDrawPlan
             for (int i = 0; i < model.MiniGuidance.Count; i++)
                 plan.Add(RackLine(t, model.MiniGuidance[i], -1, StandMapSymbols.Get(MapSymbol.RackSuggested), MapDrawLayer.Static));
 
+        // Potential entrances on source suggestions are hollow; only an actual field mark gets a fill.
+        foreach (var rack in model.Racks) if (rack.Symbol == MapSymbol.RackSuggested && !(rack.FullOnly && !full)) {
+            var ink=StandMapSymbols.Get(MapSymbol.RackEntrance).Colour;
+            var square=Square(t,rack.Start,EntranceHalfPx(sidePx),new MapColour(0,0,0,0),ink,1.6f,-1);
+            square.Layer=MapDrawLayer.Static; plan.Add(square);
+        }
+        if (!full) foreach (var rack in model.MiniGuidance) {
+            var ink=StandMapSymbols.Get(MapSymbol.RackEntrance).Colour;
+            var square=Square(t,rack.Start,EntranceHalfPx(sidePx),new MapColour(0,0,0,0),ink,1.6f,-1);
+            square.Layer=MapDrawLayer.Static; plan.Add(square);
+        }
+
         // Planted juveniles at their exact places (full map).
         if (StandMapSymbols.IsDrawn(MapSymbol.Juvenile, detail))
         {
