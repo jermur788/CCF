@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="CCF UI implementation reference diagram">
+<defs><linearGradient id="forest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#244637"/><stop offset="1" stop-color="#071e19"/></linearGradient><linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#163b30"/><stop offset="1" stop-color="#081e18"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#forest)"/>
+<line x1="30" y1="100" x2="48" y2="530" stroke="#25392b" stroke-width="19"/>
+<path d="M -20 385 L 38 250 L 99 385 Z" fill="#244934" opacity=".6"/>
+<line x1="143" y1="100" x2="161" y2="595" stroke="#25392b" stroke-width="29"/>
+<path d="M 93 450 L 151 315 L 212 450 Z" fill="#244934" opacity=".6"/>
+<line x1="256" y1="100" x2="274" y2="660" stroke="#25392b" stroke-width="39"/>
+<path d="M 206 515 L 264 380 L 325 515 Z" fill="#244934" opacity=".6"/>
+<line x1="369" y1="100" x2="387" y2="725" stroke="#25392b" stroke-width="19"/>
+<path d="M 319 580 L 377 445 L 438 580 Z" fill="#244934" opacity=".6"/>
+<line x1="482" y1="100" x2="500" y2="530" stroke="#25392b" stroke-width="29"/>
+<path d="M 432 385 L 490 250 L 551 385 Z" fill="#244934" opacity=".6"/>
+<line x1="595" y1="100" x2="613" y2="595" stroke="#25392b" stroke-width="39"/>
+<path d="M 545 450 L 603 315 L 664 450 Z" fill="#244934" opacity=".6"/>
+<line x1="708" y1="100" x2="726" y2="660" stroke="#25392b" stroke-width="19"/>
+<path d="M 658 515 L 716 380 L 777 515 Z" fill="#244934" opacity=".6"/>
+<line x1="821" y1="100" x2="839" y2="725" stroke="#25392b" stroke-width="29"/>
+<path d="M 771 580 L 829 445 L 890 580 Z" fill="#244934" opacity=".6"/>
+<line x1="934" y1="100" x2="952" y2="530" stroke="#25392b" stroke-width="39"/>
+<path d="M 884 385 L 942 250 L 1003 385 Z" fill="#244934" opacity=".6"/>
+<line x1="1047" y1="100" x2="1065" y2="595" stroke="#25392b" stroke-width="19"/>
+<path d="M 997 450 L 1055 315 L 1116 450 Z" fill="#244934" opacity=".6"/>
+<line x1="1160" y1="100" x2="1178" y2="660" stroke="#25392b" stroke-width="29"/>
+<path d="M 1110 515 L 1168 380 L 1229 515 Z" fill="#244934" opacity=".6"/>
+<line x1="1273" y1="100" x2="1291" y2="725" stroke="#25392b" stroke-width="39"/>
+<path d="M 1223 580 L 1281 445 L 1342 580 Z" fill="#244934" opacity=".6"/>
+<line x1="1386" y1="100" x2="1404" y2="530" stroke="#25392b" stroke-width="19"/>
+<path d="M 1336 385 L 1394 250 L 1455 385 Z" fill="#244934" opacity=".6"/>
+<line x1="1499" y1="100" x2="1517" y2="595" stroke="#25392b" stroke-width="29"/>
+<path d="M 1449 450 L 1507 315 L 1568 450 Z" fill="#244934" opacity=".6"/>
+<line x1="1612" y1="100" x2="1630" y2="660" stroke="#25392b" stroke-width="39"/>
+<path d="M 1562 515 L 1620 380 L 1681 515 Z" fill="#244934" opacity=".6"/>
+<rect y="680" width="1600" height="220" fill="#102a20" opacity=".6"/>
+<rect x="0" y="0" width="1600" height="105" rx="0" fill="#0a201b" stroke="none" stroke-width="1"/>
+<text x="30" y="43" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="29" font-weight="800">A · Walking / inspection HUD</text>
+<text x="30" y="75" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="450">The current objective leads; forest stays visible; global status is Year + Cash only</text>
+<line x1="30" y1="90" x2="1570" y2="90" stroke="#47705f" stroke-width="2"/>
+<rect x="29" y="123" width="535" height="103" rx="12" fill="#0a201b" stroke="#47705f" stroke-width="2"/>
+<text x="48" y="156" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="25" font-weight="750">NOW  ·  Choose Crop Trees</text>
+<text x="48" y="193" fill="#afdec3" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Progress: 2 of 3 zones   ·   [O] Objectives</text>
+<rect x="1230" y="123" width="339" height="64" rx="12" fill="#0a201b" stroke="#47705f" stroke-width="2"/>
+<text x="1250" y="164" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="23" font-weight="700">Year 2   |   Cash €12,000</text>
+<rect x="1184" y="216" width="386" height="558" rx="13" fill="#f5f0e0" stroke="#47705f" stroke-width="2"/>
+<rect x="1184" y="216" width="386" height="72" rx="12" fill="#14382f" stroke="none" stroke-width="1"/>
+<text x="1206" y="247" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="23" font-weight="740">Selected tree  ·  Sitka spruce</text>
+<text x="1206" y="275" fill="#afdec3" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="650">CROP TREE  |  17.8 cm DBH</text>
+<text x="1207" y="325" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="24" font-weight="760">Local competition</text>
+<text x="1207" y="355" fill="#455548" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="500">Potential diameter growth withheld:</text>
+<text x="1207" y="381" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="700">54% (only if the live model reports it)</text>
+<line x1="1207" y1="400" x2="1549" y2="400" stroke="#a7ad9a" stroke-width="2"/>
+<text x="1207" y="433" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="720">Neighbours (share of competition)</text>
+<text x="1207" y="466" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">1   P1009     1.2 m                13%</text>
+<text x="1207" y="498" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">2   P0910     1.6 m                  9%</text>
+<text x="1207" y="530" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">3   P1109     2.7 m                  6%</text>
+<text x="1207" y="562" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Others: computed remainder</text>
+<line x1="1207" y1="592" x2="1549" y2="592" stroke="#a7ad9a" stroke-width="2"/>
+<text x="1207" y="624" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="20" font-weight="720">Your draft plan</text>
+<text x="1207" y="654" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">Marks: Fell 1   |   Crop 2</text>
+<text x="1207" y="682" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">Predicted effect: no displayed change</text>
+<text x="1207" y="710" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">Warnings shown here if applicable</text>
+<rect x="1205" y="728" width="343" height="32" rx="5" fill="#dfe8d8" stroke="none" stroke-width="1"/>
+<text x="1220" y="750" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="760">[V] Full model details</text>
+<rect x="400" y="310" width="124" height="46" rx="9" fill="#0a201b" stroke="#dfac4b" stroke-width="2"/>
+<text x="414" y="340" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">2    9% share</text>
+<rect x="720" y="248" width="141" height="46" rx="9" fill="#0a201b" stroke="#dfac4b" stroke-width="2"/>
+<text x="734" y="278" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">1    13% share</text>
+<rect x="929" y="351" width="125" height="46" rx="9" fill="#0a201b" stroke="#dfac4b" stroke-width="2"/>
+<text x="940" y="381" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">3    6% share</text>
+<text x="615" y="545" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="36" font-weight="500">+</text>
+<text x="34" y="698" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">RANK / SHARE LABELS are conditional on a real 3D readability test.</text>
+<rect x="28" y="798" width="1541" height="72" rx="13" fill="#0a201b" stroke="#47705f" stroke-width="2"/>
+<rect x="42" y="812" width="238" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="49" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="56" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">1–5</text>
+<text x="110" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Neighbours</text>
+<rect x="299" y="812" width="221" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="306" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="313" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">V</text>
+<text x="367" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">More detail</text>
+<rect x="539" y="812" width="173" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="546" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="553" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">E</text>
+<text x="607" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Close</text>
+<rect x="731" y="812" width="211" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="738" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="745" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">Tab</text>
+<text x="799" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Work Plan</text>
+<rect x="961" y="812" width="207" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="968" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="975" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">M</text>
+<text x="1029" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Stand Map</text>
+<rect x="1186" y="812" width="201" height="42" rx="7" fill="#0a201b" stroke="#47705f" stroke-width="1"/>
+<rect x="1193" y="819" width="53" height="28" rx="5" fill="#e9e2ce" stroke="none" stroke-width="1"/>
+<text x="1200" y="840" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="750">O</text>
+<text x="1254" y="841" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Objectives</text>
+<text x="30" y="887" fill="#d6ccb5" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">SCHEMATIC ONLY · example values/labels · bind every value/action to the current game · not a Unity screenshot</text>
+</svg>
