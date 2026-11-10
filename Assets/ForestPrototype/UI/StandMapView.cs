@@ -96,6 +96,12 @@ public sealed class StandMapView
         Button forest = UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "map-back-to-forest";
         buttons.Add(forest);
+        var teachingWaypoint = UiKit.Button("Set waypoint to teaching area", () => {
+            var bay = ui.Learning.TeachingBay;
+            if (bay != null) SetWaypointAtWorld(bay.Geometry.X, bay.Geometry.Z);
+        });
+        teachingWaypoint.name = "map-teaching-waypoint";
+        buttons.Add(teachingWaypoint);
         header.Add(buttons);
         modal.Add(header);
         UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
@@ -239,6 +245,7 @@ public sealed class StandMapView
             return;
         shownKey = key;
 
+        Root.Q<Button>("map-teaching-waypoint").style.display = model.TeachingFrame.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
         BuildLayerButtons();
         EnsureCells(eco, model);
         UpdateCells(playerCell);

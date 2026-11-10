@@ -8,6 +8,7 @@ public enum MapDrawLayer { Static, Dynamic }
 // One thing to paint: a stroked line (open or closed) or a filled shape, already placed in pixels.
 public sealed class MapDrawItem
 {
+    public string Text;
     public MapSymbol Symbol;
     public MapDrawLayer Layer;
     public List<MapPosition> Points = new List<MapPosition>();
@@ -230,6 +231,20 @@ public static class StandMapDrawPlan
             bar.Points.Add(new MapPosition(furniture.BarX1, furniture.BarY - 6f));
             bar.Anchor = new MapPosition(furniture.BarX0, furniture.BarY);
             plan.Add(bar);
+        }
+        if (model.TeachingFrame.HasValue && (!full || overlay == MapOverlay.None || overlay == MapOverlay.Marks))
+        {
+            var f = model.TeachingFrame.Value;
+            var style = StandMapSymbols.Get(MapSymbol.TeachingArea);
+            var polygon = new MapDrawItem { Symbol = MapSymbol.TeachingArea, Layer = MapDrawLayer.Static, Closed = true, WidthPx = 2f, Colour = style.Colour, DashPx = 4f, GapPx = 3f };
+            foreach (var p in StandMapAreaFootprints.TeachingPolygon(f)) polygon.Points.Add(t.WorldToPixels(p));
+            plan.Add(polygon);
+            for (int j = 0; j < 3; j++) {
+                float along = -8f + j * 8f;
+                RackPoint At(float a, float b) => new RackPoint(f.X + f.AlongX*a - f.AlongZ*b, f.Z + f.AlongZ*a + f.AlongX*b);
+                if (j > 0) plan.Add(Line(MapSymbol.TeachingArea, style, 1.5f, t.WorldToPixels(At(along-4f, -f.HalfWidth)), t.WorldToPixels(At(along-4f, f.HalfWidth))));
+                if (full) plan.Add(new MapDrawItem { Symbol = MapSymbol.TeachingArea, Text = new[] { "Near · headland side", "Middle", "Far · into stand" }[j], Anchor = t.WorldToPixels(At(along, f.HalfWidth + 1f)) });
+            }
         }
         return plan;
     }

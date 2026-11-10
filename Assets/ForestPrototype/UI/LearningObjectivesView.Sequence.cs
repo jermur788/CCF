@@ -107,6 +107,16 @@ public sealed partial class LearningObjectivesView
         };
     }
 
+    // Shared read-only frame; cached facts are sampled at 4 Hz, never a second geometry definition.
+    public ScenarioOneRackBay.Analysis TeachingBay
+    {
+        get {
+            if (!ui.Manager.RackPlanningV2Active || ui.Manager.ReferencePreviewActive || !ui.Manager.RackPlanConfirmed) return null;
+            var f = TeachingFacts(); int lesson = ScenarioOneTeachingSequence.Current(f);
+            return lesson >= 1 && lesson <= 4 && f.AccessOpen ? f.Bay : null;
+        }
+    }
+
     // Called only while the real inspection panel is visible in the walked world, never from Annual Review or a map.
     public void ObserveRackInspection(ForestTree tree)
     {
@@ -242,9 +252,11 @@ public sealed partial class LearningObjectivesView
         {
             Number = ScenarioOneTeachingSequence.Number(lesson, f),
             Total = ScenarioOneTeachingSequence.Total(f),
-            Title = lesson.Heading,
+            Title = NeedsReviewAcknowledgement ? "Review the year" : lesson.Heading,
             Instruction = HudInstruction(f, index, lesson),
-            Progress = TeachingProgress(f),
+            Progress = TeachingBay != null && ui.Player != null
+                ? ScenarioOneRackBayText.Walking(TeachingBay, ui.Player.transform.position.x, ui.Player.transform.position.z, ui.Marking != null ? ui.Marking.AimedTree : null)
+                : TeachingProgress(f),
             Complete = index == ScenarioOneTeachingSequence.Lessons.Length - 1 && ui.Manager.Outcome == ScenarioOneOutcome.Completed
         };
     }

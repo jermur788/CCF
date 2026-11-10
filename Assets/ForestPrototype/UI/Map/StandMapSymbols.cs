@@ -73,6 +73,7 @@ public static class StandMapSymbols
         }
         void Fill(MapSymbolStyle style, MapColour fill) { style.HasFill = true; style.Fill = fill; }
 
+        Add(MapSymbol.TeachingArea, new MapColour(245, 242, 200), 0f, 2f, true, "short dashed outline", "teaching area", 4f, 3f);
         Add(MapSymbol.Property, PropertyOutline, 0f, 2.2f, true, "white dashed line", "property boundary", 9f, 6f);
         Add(MapSymbol.Path, new MapColour(190, 158, 110, 240), 2.6f, 2f, true, "tan band", "forest path");
         Add(MapSymbol.PathCasing, new MapColour(26, 22, 14, 185), 2.6f, 3.4f, true, "dark edge", "edge of the forest path");

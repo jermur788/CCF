@@ -153,6 +153,7 @@ public sealed class StandMapSource
             model.Juveniles.Clear();
             model.Shelters.Clear();
             model.HasPlayer = model.HasWaypoint = false;
+            model.TeachingFrame = null;
             model.StampTrees();
             model.Restamp();
             return;
@@ -174,6 +175,7 @@ public sealed class StandMapSource
         }
 
         ReadExistingHeadland(eco);
+        model.TeachingFrame = ui.Learning != null ? ui.Learning.TeachingBay?.Geometry : null;
 
         int marked = ui.Marking != null ? ui.Marking.LivingMarkedCount : -1, crop = ui.Marking != null ? ui.Marking.LivingCropTreeCount : -1;
         if (treesDirty || eco.EcologicalYear != scannedYear || marked != scannedMarked || crop != scannedCrop || Time.unscaledTime >= nextTreeScan)

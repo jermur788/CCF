@@ -94,7 +94,7 @@ public sealed partial class MenuHelpView
                     + string.Join("\n", System.Array.ConvertAll(TreeMarkEntries, entry => "• " + entry[0] + " — " + entry[1])) + "\n\n"
                     + TreeMarksOrangeText + " One spray paints vertical stripes on four sides of the entrance tree.\n\n"
                     + TreeMarksSimplificationText + "\n\n"
-                    + "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. "
+                    + "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first designated rack-removal tree at the headland-side rack entrance, within 3.5 m, and left-click; P stows the marker. "
                     + "A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. "
                     + "Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].";
             case Menu.Rack:

@@ -36,7 +36,7 @@ public static class ScenarioOneRackBayText
                 return "Review the retained stand and the work across the rack, approve the Work Plan [Tab], then advance one year.";
             case 4:
                 if (!f.ReleaseReviewed) return "Read and acknowledge the Annual Review, then return to inspect all three retained trees and the surrounding stand.";
-                return "Did your intervention create enough growing space? Reopen each retained tree's inspection [E]. [J] Retain here; [K] Release further after marking justified competitors. "
+                return "Session-only until first review completion: the three tree decisions and six stand-portion checks need fresh inspection after reload. Did your intervention create enough growing space? Reopen each retained tree's inspection [E]. [J] Retain here; [K] Release further after marking justified competitors. "
                     + "Inspect and confirm retained stand in the near, middle and far zones on both sides. Good CCF management includes deciding not to cut. No second release percentage is required.";
             default: return null;
         }
@@ -55,6 +55,22 @@ public static class ScenarioOneRackBayText
             default: return null;
         }
     }
+    public static string Walking(ScenarioOneRackBay.Analysis a, float x, float z, ForestTree aimed)
+    {
+        string[] zones = { "Near", "Middle", "Far" };
+        string location = a.Contains(x, z) ? "Inside teaching area · " + zones[a.Geometry.Zone(x, z)]
+            + " · " + (a.Geometry.Across(x, z) > 0 ? "left" : "right") + " looking from headland into rack" : "Outside teaching area · [M] Set waypoint";
+        string feedback = a.AreaCropCount > 3 ? "Extra fourth Crop Tree: keep exactly three. " : "";
+        if (a.TooClose.Count > 0) feedback += "Less than 8m from another selected stem: " + string.Join(", ", a.TooClose) + ". ";
+        if (a.Future.GroupBy(t => a.Geometry.Zone(t.X, t.Z)).Any(g => g.Count() > 1)) feedback += "Duplicate third: select one tree per third. ";
+        if (!a.BothSides) feedback += "One rack side absent. ";
+        if (aimed != null && aimed.IsCropTree && !a.Contains(aimed.transform.position.x, aimed.transform.position.z)) feedback += "This mark is outside the teaching sample and does not count. ";
+        if (aimed != null && aimed.IsMarkedForFell) feedback += "Fell marks do not count as Crop Trees. ";
+        return location + "\n" + (a.NearSelected ? "☑" : "☐") + " Near  " + (a.MiddleSelected ? "☑" : "☐") + " Middle  " + (a.FarSelected ? "☑" : "☐") + " Far · " + a.AreaCropCount + "/3"
+            + "\n" + (a.BothSides ? "Both sides ✓" : "Both sides needed") + " · " + (a.TooClose.Count == 0 ? "8m spacing ✓" : "8m spacing needs attention")
+            + "\n" + feedback + "[E] Inspect / [C] Mark Crop Tree";
+    }
+
     public static string Progress(int lesson, ScenarioOneTeachingSequence.Facts f)
     {
         var a = Of(f); if (a == null) return null;

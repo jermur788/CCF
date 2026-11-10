@@ -33,6 +33,13 @@ public sealed class StandMapCanvas : VisualElement
         public void Show(List<MapDrawItem> next)
         {
             plan = next;
+            Clear();
+            foreach (var item in next) if (!string.IsNullOrEmpty(item.Text)) {
+                var label = new Label(item.Text) { pickingMode = PickingMode.Ignore };
+                label.style.position = Position.Absolute; label.style.left = item.Anchor.X - 48; label.style.top = item.Anchor.Y - 20;
+                label.style.fontSize = 12; label.style.color = new Color(1f, 1f, .85f); label.style.backgroundColor = new Color(.04f,.06f,.05f,.94f);
+                Add(label);
+            }
             MarkDirtyRepaint();
         }
 

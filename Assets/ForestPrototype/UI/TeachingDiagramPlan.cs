@@ -161,6 +161,27 @@ public static class TeachingDiagramPlan
     private static bool Drawn(string layer, int stage) => layer[stage] != 'A';
     private static bool IsQuiet(string layer, int stage) => layer[stage] == 'Q';
 
+    public static Stage TeachingAreaFigure(ScenarioOneRackBay.Frame f)
+    {
+        var s = new Stage { Width = 1000f, Height = 520f, Title = "Teaching area — third confirmed rack (illustrative trees)", MinTextSize = 18f };
+        float nx = -f.AlongZ, nz = f.AlongX;
+        float X(float along, float across) => 500f + (along*f.AlongX + across*nx)*14f;
+        float Y(float along, float across) => 240f - (along*f.AlongZ + across*nz)*14f;
+        s.Items.Add(new Item { Kind = Kind.Corridor, Role = Role.Rack, State = CorridorState.Harvested, X = X(-12,0), Y = Y(-12,0), X1 = X(12,0), Y1 = Y(12,0), Width = 32, Z = 1 });
+        var labels = new List<Text>();
+        for (int i=0; i<3; i++) {
+            float a = -8 + i*8;
+            s.Items.Add(new Item { Kind = Kind.Crown, Role = Role.Canopy, X = X(a,i==1 ? -5 : 5), Y = Y(a,i==1 ? -5 : 5), Radius = 20, Z = 2 });
+            s.Items.Add(new Item { Kind = Kind.Opening, Role = Role.Crop, X = X(a,i==1 ? -5 : 5), Y = Y(a,i==1 ? -5 : 5), RadiusX = 25, RadiusY = 25, Z = 3 });
+            labels.Add(new Text(new[]{"Near", "Middle", "Far"}[i], X(a,-9)-60,Y(a,-9)+15,120,30,22,Role.Accent,true));
+            if(i>0) s.Items.Add(new Item { Kind=Kind.Track, Role=Role.Muted, Points=new[]{X(a-4,-9),Y(a-4,-9),X(a-4,9),Y(a-4,9)}, Width=2, Z=1 });
+        }
+        labels.Add(new Text("Headland side → into rack · north up",30,20,900,36,24,Role.Accent));
+        s.Labels=labels.ToArray();
+        s.Notes = new[]{"Three consecutive 8m thirds across a 24m × 18m sample. Choose exactly three trees, one per third, at least 8m between stems; include both sides. These example positions are not prescribed trees."};
+        return s;
+    }
+
     private static Item Crown(int row, int column, int stage, string layer)
     {
         return new Item

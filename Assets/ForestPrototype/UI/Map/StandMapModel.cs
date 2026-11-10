@@ -40,6 +40,7 @@ public enum MapSymbol
     RackSelection, // the outline round the selected player rack
     RackHandle,    // the round handle at the selected rack's far end: drag it to rotate
     RackEntrance,  // the selected rack's entrance on the headland
+    TeachingArea,
     RackHarvested  // a player rack with executed removals: its geometry is locked
 }
 
@@ -189,6 +190,7 @@ public sealed class StandMapModel
     // Compass heading, 0 = north, 90 = east, clockwise.
     public float PlayerHeadingDegrees;
 
+    public ScenarioOneRackBay.Frame? TeachingFrame;
     public bool HasWaypoint;
     public RackPoint Waypoint;
 
@@ -246,6 +248,11 @@ public sealed class StandMapModel
             int h = 17;
             h = Mix(h, HasProperty ? 1 : 0); h = Mix(h, MinX); h = Mix(h, MinZ); h = Mix(h, SizeM); h = Mix(h, CellsPerAxis);
             h = Mix(h, GroundIsLevel ? 1 : 0);
+            if (TeachingFrame.HasValue) {
+                var f = TeachingFrame.Value;
+                h = Mix(h, f.X); h = Mix(h, f.Z); h = Mix(h, f.AlongX); h = Mix(h, f.AlongZ); h = Mix(h, f.HalfWidth);
+            }
+            h = Mix(h, TeachingFrame.HasValue ? 1 : 0);
             foreach (MapPath path in Paths)
             {
                 h = Mix(h, path.Points.Count); h = Mix(h, path.WidthM);

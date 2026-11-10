@@ -151,6 +151,7 @@ public sealed partial class LearningObjectivesView
         // A V2 world's Objective 1 explains the map-planned, field-marked racks (spec §30, §31) instead of the legacy authored layout.
         bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;
         AddObjectivePart(words, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
+        if (NeedsReviewAcknowledgement) UiKit.Add(words, "Review the year — First: read and acknowledge the annual results.", "heading");
         AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
         if (!string.IsNullOrEmpty(practice)) AddObjectivePart(words, "What good practice looks like", practice, "current-objective-practice");
@@ -158,7 +159,7 @@ public sealed partial class LearningObjectivesView
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.
-        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective));
+        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective, TeachingBay?.Geometry));
         current.Add(body);
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };

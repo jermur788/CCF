@@ -36,9 +36,9 @@ public sealed class TeachingDiagram : VisualElement
 
     // rackV2World: the caller's existing Rack V2 eligibility for this objective. Only then does Objective 1 show the five-rack figure, because
     // only a Rack V2 world has the western headland and southern feeder that the figure names.
-    public TeachingDiagram(int lesson, string caption, bool rackV2World)
+    public TeachingDiagram(int lesson, string caption, bool rackV2World, ScenarioOneRackBay.Frame? teachingFrame = null)
     {
-        stage = Plan.ShowsFiveRackFigure(lesson, rackV2World) ? Plan.ObjectiveOneFigure(SiteFromAuthority()) : Plan.For(lesson);
+        stage = lesson == 1 && teachingFrame.HasValue ? Plan.TeachingAreaFigure(teachingFrame.Value) : Plan.ShowsFiveRackFigure(lesson, rackV2World) ? Plan.ObjectiveOneFigure(SiteFromAuthority()) : Plan.For(lesson);
         preserveIntroIllustration = lesson < 0;
         name = "teaching-diagram";
         AddToClassList("teaching-diagram");
