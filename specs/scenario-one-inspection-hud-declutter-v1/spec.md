@@ -1,6 +1,6 @@
 # Scenario One Inspection HUD Declutter V1
 
-**Status: DRAFT — not approved for implementation.**  
+**Status: SUPERSEDED for new work by the APPROVED integrated spec at [Scenario One UI Presentation V1](../scenario-one-ui-presentation-v1/spec.md).** This historical HUD-only draft is retained as design background; its science and safety rules are carried forward.  
 **Owner:** Overall Manager #200 (design/specification lane).  
 **Date:** 10 November 2026.
 
