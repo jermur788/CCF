@@ -1,0 +1,1 @@
+year=0 objectiveIndex=0 title=1. Create access racks instruction=Rack entrances marked: 5 / 5. Next, review and approve the rack removal work in the Work Plan [Tab], then advance one year. progress=Rack entrances marked: 5 / 5 unread=False seen=False reports=0 latestReportYear=-1 ackEventYears= racks=5 entrances=5 player=(-33.78, 0.03, 32.73) aimed=PO3803 help=False transient=

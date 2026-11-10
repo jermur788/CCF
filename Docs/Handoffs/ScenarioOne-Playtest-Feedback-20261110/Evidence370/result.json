@@ -1,0 +1,17 @@
+{
+  "name": "Ccf370",
+  "status": "PASS",
+  "exit": 0,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "C370_SESSION_ENDED"
+  ],
+  "tokens_present": {
+    "C370_SESSION_ENDED": true
+  },
+  "fail_lines": 0,
+  "seconds": 482.6,
+  "head": "4db486db7a132bd01725442ef33e00f702c4dff9",
+  "lane": "/media/jer/ZX20/CCF-U3",
+  "leftover": []
+}

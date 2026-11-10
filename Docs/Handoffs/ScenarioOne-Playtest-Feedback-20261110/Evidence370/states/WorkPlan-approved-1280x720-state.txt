@@ -1,0 +1,1 @@
+year=0 objectiveIndex=0 title=1. Create access racks instruction=Rack entrances marked: 5 / 5. Open the Work Plan [Tab] and advance one year. progress=Rack entrances marked: 5 / 5 unread=False seen=False reports=0 latestReportYear=-1 ackEventYears= racks=5 entrances=5 player=(-33.78, 0.03, 32.73) aimed=none help=False transient=

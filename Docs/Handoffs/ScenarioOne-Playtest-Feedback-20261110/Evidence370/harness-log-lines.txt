@@ -1,0 +1,128 @@
+C370_PATHS_PROVEN /media/jer/Files/CCF/Verification/CCF-370-ReviewResetUnity-20261110/run/config/unity3d/DefaultCompany/CCF
+C370_INPUT {"action":"show","arg":"map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"map-plan-rack","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"map-edit-reset","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"map-rack-plan-confirm","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"trees","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"WorkPlan-rack-jobs-before-approval","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE WorkPlan-rack-jobs-before-approval-1280x720 positive=921600/921600
+C370_INPUT {"action":"aim","arg":"PO0203","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Rack1-aimed","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Rack1-aimed-1280x720 positive=921257/921600
+C370_INPUT {"action":"dump","arg":"after-rack1-click","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"aim","arg":"PO1204","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"aim","arg":"PO2003","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"aim","arg":"PO2803","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"aim","arg":"PO3803","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"All-five-entrances-marked","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE All-five-entrances-marked-1280x720 positive=921535/921600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"workplan-approve","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"WorkPlan-approved","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE WorkPlan-approved-1280x720 positive=921600/921600
+C370_INPUT {"action":"click","arg":"workplan-advance","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year1-unread-AnnualReview","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year1-unread-AnnualReview-1280x720 positive=921600/921600
+C370_INPUT {"action":"trees","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"annual-review-acknowledge","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"scroll","arg":"current-objective","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year1-after-ACK-Objective2-Crop","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year1-after-ACK-Objective2-Crop-1280x720 positive=921600/921600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"workplan-advance","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"size","arg":"","width":1280,"height":720,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-forest-1280x720 positive=921049/921600
+C370_INPUT {"action":"show","arg":"objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-objectives-1280x720 positive=921600/921600
+C370_INPUT {"action":"show","arg":"map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-map-1280x720 positive=921572/921600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-workplan-1280x720 positive=921600/921600
+C370_INPUT {"action":"show","arg":"review","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-review","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-review-1280x720 positive=921600/921600
+C370_INPUT {"action":"size","arg":"","width":1920,"height":1080,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-forest-1920x1080 positive=2072164/2073600
+C370_INPUT {"action":"show","arg":"objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-objectives-1920x1080 positive=2073600/2073600
+C370_INPUT {"action":"show","arg":"map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-map-1920x1080 positive=2073524/2073600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-workplan-1920x1080 positive=2073600/2073600
+C370_INPUT {"action":"show","arg":"review","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-unread-review","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-unread-review-1920x1080 positive=2073600/2073600
+C370_INPUT {"action":"size","arg":"","width":1280,"height":720,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-F9-reload-unread","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-F9-reload-unread-1280x720 positive=921324/921600
+C370_INPUT {"action":"show","arg":"review","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"click","arg":"annual-review-acknowledge","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"size","arg":"","width":1280,"height":720,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-forest-1280x720 positive=921053/921600
+C370_INPUT {"action":"show","arg":"objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"scroll","arg":"current-objective","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-objectives-1280x720 positive=921600/921600
+C370_INPUT {"action":"show","arg":"map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-map-1280x720 positive=921572/921600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-workplan-1280x720 positive=921600/921600
+C370_INPUT {"action":"size","arg":"","width":1920,"height":1080,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"show","arg":"forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-forest","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-forest-1920x1080 positive=2072164/2073600
+C370_INPUT {"action":"show","arg":"objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"scroll","arg":"current-objective","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-objectives","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-objectives-1920x1080 positive=2073600/2073600
+C370_INPUT {"action":"show","arg":"map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-map","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-map-1920x1080 positive=2073524/2073600
+C370_INPUT {"action":"show","arg":"workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"dismiss","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"capture","arg":"Year2-after-ACK-workplan","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_CAPTURE Year2-after-ACK-workplan-1920x1080 positive=2073600/2073600
+C370_INPUT {"action":"trees","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_INPUT {"action":"exit","arg":"","width":0,"height":0,"x":0.0,"y":0.0,"z":0.0}
+C370_SESSION_ENDED coverage evaluated by operator, not automatic PASS

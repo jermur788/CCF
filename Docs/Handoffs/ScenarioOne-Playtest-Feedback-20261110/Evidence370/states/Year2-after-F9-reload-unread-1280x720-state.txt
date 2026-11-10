@@ -1,0 +1,1 @@
+year=2 objectiveIndex=1 title=2. Choose promising trees to retain along the rack instruction=Read and acknowledge the Annual Review: open the Work Plan [Tab]. progress=Read and acknowledge the annual results before continuing. unread=True seen=False reports=2 latestReportYear=2 ackEventYears=1 racks=5 entrances=5 player=(-33.78, 0.03, 32.73) aimed=none help=False transient=
