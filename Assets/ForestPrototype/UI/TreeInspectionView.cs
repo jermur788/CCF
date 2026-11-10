@@ -91,7 +91,7 @@ public sealed class TreeInspectionView
             timber = !tree.IsStump && tree.CanChop
                 ? TimberEstimate(tree, ui.Manager != null && ui.Manager.BroadleafMarketActive).ToList() : new List<string>();
             int timberPages = (timber.Count + 1) / 2;
-            PageCount = 4 + neighbourPages + timberPages;
+            PageCount = 6 + neighbourPages + timberPages;
             page = Mathf.Clamp(page, 0, PageCount - 1);
             shownKey = key;
         }
@@ -123,12 +123,8 @@ public sealed class TreeInspectionView
             UiKit.Add(body, $"Age {tree.AgeYears} yr · DBH {UiKit.F(tree.Diameter, "0.0")} cm · {UiKit.F(tree.Height, "0.0")} m tall", "body");
             if (!tree.IsStump && eco != null) UiKit.Add(body, Diagnosis(tree, eco), "body");
             if (!string.IsNullOrEmpty(rackPrompt)) UiKit.Add(body, rackPrompt, "body");
-            if (assessing) BuildNeighbours(report, competitors, 0, 3, false);
-            UiKit.Add(body, "Your draft plan", "heading");
-            if (assessing && report.HasPlannedRemovals)
-                UiKit.Add(body, $"Competition index {UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")} if valid open felling jobs are carried out. This is an estimate before execution.", "body");
-            else UiKit.Add(body, "No valid open neighbour-felling jobs in this estimate. Open Work Plan to review unqueued marks; [V] shows draft effects.", "muted");
-            if (!string.IsNullOrEmpty(treatment)) UiKit.Add(body, "Fell marks have forecast effects; [V] draft effects includes warnings and model limits.", "draft-warning");
+            if (assessing) BuildNeighbours(report, competitors, 0, 2, false);
+            UiKit.Add(body, DraftOverview(4 + neighbourPages), "draft-warning");
             if (reviewContext != null && !string.IsNullOrEmpty(reviewContext.Hint)) UiKit.Add(body, reviewContext.Hint, "inspect-hint");
             if (!tree.IsStump && !tree.IsCropTree) UiKit.Add(body, "Mark an eligible tree as a Crop Tree to inspect its neighbours.", "muted");
             if (reviewContext != null && !string.IsNullOrEmpty(reviewContext.Line)) UiKit.Add(body, reviewContext.Line, "muted");
@@ -137,12 +133,12 @@ public sealed class TreeInspectionView
         else if (page == 2) BuildCondition(tree, eco, report, reviewContext);
         else if (page < 3 + neighbourPages)
             BuildNeighbours(report, competitors, (page - 3) * 3, 3, true);
-        else if (page == 3 + neighbourPages) BuildDraft(report, competitors, assessing, treatment);
+        else if (page < 6 + neighbourPages) BuildDraft(report, competitors, assessing, treatment, page - 3 - neighbourPages);
         else
         {
             body.Add(EstimatePanel);
             UiKit.Add(EstimatePanel, "If felled now · timber estimate", "heading");
-            int start = (page - 4 - neighbourPages) * 2;
+            int start = (page - 6 - neighbourPages) * 2;
             foreach (string line in timber.Skip(start).Take(2)) UiKit.Add(EstimatePanel, line, "body");
             UiKit.Add(EstimatePanel, "Approximate stem-shape model; final grading happens when the job is resolved. This is no instruction to fell.", "faint");
         }
@@ -218,20 +214,32 @@ public sealed class TreeInspectionView
         UiKit.Add(CompetitorPanel, "Shares of the local competition index, not percentages of diameter growth. Rounded independently.", "faint");
     }
 
-    private void BuildDraft(CropTreeCompetitionReport report, CompetitorAssessment competitors, bool assessing, string treatment)
+    // The overview gives a real route, rather than implying the next V press reaches the draft.
+    public static string DraftOverview(int firstDraftPage)
+        => $"Draft only — not executed. Warnings and model limits: pages {firstDraftPage}–{firstDraftPage + 2} [V / Shift+V].";
+
+    private void BuildDraft(CropTreeCompetitionReport report, CompetitorAssessment competitors, bool assessing, string treatment, int section)
     {
         UiKit.Add(body, "Your draft plan · before execution", "heading");
-        if (assessing)
+        if (section == 0)
         {
-            if (report.CompetitionNow > 0f) UiKit.Add(body, $"Index change {report.ChangeFraction * 100f:+0.0;-0.0;0.0} %", "body");
-            UiKit.Line(body, "Competition index now → with open felling jobs", $"{UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")}");
-            UiKit.Add(body, $"{report.PlannedNeighbourCount} neighbours with valid open felling jobs contribute {Percent(report.PlannedShare)} of the index. Potential diameter growth withheld: about {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionNow, competitors.TargetCi50))} now → {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionAfterPlanned, competitors.TargetCi50))} with those jobs. Estimate if nothing else changes; values are rounded, so small changes may not be visible.", "body");
+            if (assessing)
+            {
+                if (report.CompetitionNow > 0f) UiKit.Add(body, $"Index change {report.ChangeFraction * 100f:+0.0;-0.0;0.0} %", "body");
+                UiKit.Line(body, "Competition index now → with open felling jobs", $"{UiKit.F(report.CompetitionNow, "0.00")} → {UiKit.F(report.CompetitionAfterPlanned, "0.00")}");
+                UiKit.Add(body, $"{report.PlannedNeighbourCount} neighbours with valid open felling jobs contribute {Percent(report.PlannedShare)} of the index. Potential diameter growth withheld: about {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionNow, competitors.TargetCi50))} now → {Percent(CropTreeCompetition.GrowthWithheld(report.CompetitionAfterPlanned, competitors.TargetCi50))} with those jobs. Estimate if nothing else changes; values are rounded, so small changes may not be visible.", "body");
+                if (!report.HasPlannedRemovals) UiKit.Add(body, "No valid open neighbour-felling jobs in this estimate. Open Work Plan to review unqueued marks.", "muted");
+            }
+            else UiKit.Add(body, "No local Crop Tree release estimate is available for this selection.", "muted");
         }
-        else UiKit.Add(body, "No local Crop Tree release estimate is available for this selection.", "muted");
-        UiKit.Add(body, string.IsNullOrEmpty(treatment) ? "No stand-wide Fell-mark forecast is currently available." : "Fell-mark forecast: " + treatment, "body");
-        if (ui.Ecology != null && ui.Ecology.StormModelVersion == StormModel.None && !string.IsNullOrEmpty(treatment))
-            UiKit.Add(body, "Storm events are off; exposure does not establish wind safety.", "faint");
-        UiKit.Add(body, "The competition estimate uses valid open felling jobs (pending or approved). An unqueued Fell mark or MFM proposal adds no removal to that estimate. Open Work Plan to review and approve jobs; year advance executes approved work. Forecasts compare with the current forest, not a saved pre-mark baseline.", "muted");
+        else if (section == 1)
+        {
+            UiKit.Add(body, string.IsNullOrEmpty(treatment) ? "No stand-wide Fell-mark forecast is currently available." : "Fell-mark forecast: " + treatment, "body");
+            if (ui.Ecology != null && ui.Ecology.StormModelVersion == StormModel.None && !string.IsNullOrEmpty(treatment))
+                UiKit.Add(body, "Storm events are off; exposure does not establish wind safety.", "faint");
+        }
+        else
+            UiKit.Add(body, "The competition estimate uses valid open felling jobs (pending or approved). An unqueued Fell mark or MFM proposal adds no removal to that estimate. Open Work Plan to review and approve jobs; year advance executes approved work. Forecasts compare with the current forest, not a saved pre-mark baseline.", "muted");
     }
 
     private static string Percent(float fraction) => Mathf.RoundToInt(fraction * 100f).ToString(UiKit.Inv) + " %";
