@@ -75,6 +75,10 @@ Use the vector references as **composition/typography targets** rather than pixe
 4. Preserve no-Windows-build-before-user-playtest + explicit permission policy.
 5. Preserve source-handoff and Unity-lease/saves/dirty-worktree discipline; Sol and Fable may **not** write the same UI files concurrently.
 
+## Latest user visual selection
+
+The latest image supplied by the user at **19:40 UTC on 10 November 2026** is explicitly preferred to the preceding posters for its visual design. When its exact pixels are available in the local worker lane, treat it as the **first look-and-feel target**, above older moodboards/posters, but **below this spec's behavior, data truth and guards**. The user-uploaded inline image is not yet a verified Git asset or named local file; therefore do not falsely claim an exact-image visual review. The task remains implementable against the four committed SVGs and the three archived user posters if that image cannot be accessed. The final user-visible HUD/Work Plan/Annual Review still require actual Unity screenshot verification.
+
 ## User-supplied three-poster visual style supplement
 
 The user supplied three high-resolution rebuilt PNG posters after this spec was approved. They are **adopted as supplementary visual references for look-and-feel, not game/UI source authority**. See the [poster access manifest and mandatory errata](visuals/POSTER-SUPPLEMENT-AND-ERRATA.md). In Sol and Fable's local work, check the user-reported `/media/jer/Files/CCF/Verification/CCF-362-FableUXReview-20261110/spec-posters/` files and their SHA-256 hashes; these PNG binaries are not committed to Git. All four committed SVGs and the requirements above remain the binding behavior/layout references. If unavailable locally, the SVG/spec implementation can proceed, but the actual three-poster match must be listed **NOT INSPECTED**.
