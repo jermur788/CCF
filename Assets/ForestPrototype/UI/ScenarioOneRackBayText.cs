@@ -55,13 +55,49 @@ public static class ScenarioOneRackBayText
             default: return null;
         }
     }
-    public static string Walking(ScenarioOneRackBay.Analysis a, float x, float z, ForestTree aimed)
+    public const string ReviewTitle = "Review the year";
+    public const string ReviewInstruction = "Read and acknowledge the Annual Review: open the Work Plan [Tab].";
+
+    // The words on the walking objective panel. Plain data in, plain words out, so the offline checks can drive every lesson and
+    // review state (#365). Only a Rack V2 world gets the review title, the "Next:" cue and the teaching-area lines; any other world
+    // keeps exactly the heading, instruction and progress it was given.
+    //   lessonReviewPending: this lesson's own Annual Review acknowledgement is missing (the lesson instruction already says so).
+    //   annualReviewUnread:  the newest Annual Review has not been read.
+    // The Crop Tree checklist and its [C] prompt belong to Objective 2 (lesson index 1) alone, and only once no review is waiting.
+    public static void HudWords(bool rackV2, int lesson, bool lessonReviewPending, bool annualReviewUnread, bool complete,
+        ScenarioOneRackBay.Analysis bay, bool hasPlayer, float x, float z, ForestTree aimed,
+        string heading, string instruction, string lessonProgress,
+        out string title, out string shownInstruction, out string progress)
+    {
+        title = heading; shownInstruction = instruction; progress = lessonProgress;
+        if (!rackV2) return;
+        bool review = lessonReviewPending || annualReviewUnread;
+        if (review) title = ReviewTitle;
+        if (!complete) shownInstruction = "Next: " + (review && !lessonReviewPending ? ReviewInstruction : instruction);
+        // A later lesson whose own acknowledgement is missing but whose newest review is read keeps its lesson progress.
+        if (review)
+            progress = lessonReviewPending && lesson == 1 ? "Rack work done · read the annual results"
+                : lessonReviewPending && lesson == 4 ? "Release work done · read the annual results"
+                : annualReviewUnread ? "Annual results unread · read and acknowledge them" : lessonProgress;
+        else if (bay != null && hasPlayer && lesson == 1) progress = Walking(bay, x, z, aimed);
+        else if (bay != null && hasPlayer && lesson >= 2 && lesson <= 4) progress = Location(bay, x, z) + "\n" + lessonProgress;
+    }
+
+    // Where the player stands relative to the teaching area. No action and no tree is named.
+    public static string Location(ScenarioOneRackBay.Analysis a, float x, float z)
     {
         string[] zones = { "Near", "Middle", "Far" };
         bool inFootprint = Math.Abs(a.Geometry.Along(x,z)) <= ScenarioOneRackBay.HalfLengthM && Math.Abs(a.Geometry.Across(x,z)) <= a.Geometry.HalfWidth;
         string location = inFootprint ? "Inside teaching area · " + zones[a.Geometry.Zone(x, z)]
             + " · " + (a.Geometry.Across(x, z) > 0 ? "left" : "right") + " looking from headland into rack" : "Outside teaching area · [M] Set waypoint";
         if (inFootprint && !a.Contains(x,z)) location += " · rack corridor (no Crop credit)";
+        return location;
+    }
+
+    // Objective 2 only (see HudWords): the three-third Crop Tree checklist with its [C] prompt.
+    public static string Walking(ScenarioOneRackBay.Analysis a, float x, float z, ForestTree aimed)
+    {
+        string location = Location(a, x, z);
         string feedback = a.AreaCropCount > 3 ? "Extra fourth Crop Tree: keep exactly three. " : "";
         if (a.TooClose.Count > 0) feedback += "Less than 8m from another selected stem: " + string.Join(", ", a.TooClose) + ". ";
         if (a.Future.GroupBy(t => a.Geometry.Zone(t.X, t.Z)).Any(g => g.Count() > 1)) feedback += "Duplicate third: select one tree per third. ";

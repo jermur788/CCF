@@ -311,6 +311,14 @@ public sealed class WorkPlanView
             BuildRack(card, m, rack, fell, job);
     }
 
+    // The contractor total and what it covers. The amount is the same current quote in both states; only the words change.
+    public static string QuoteTotalLabel(bool awaitingApproval)
+        => awaitingApproval ? "Total quoted contractor charge before approval" : "Total quoted contractor charge (approved work)";
+    public static string QuoteScopeNote(bool awaitingApproval)
+        => "Quote covers all eligible harvest and salvage stems above, including their timber dispositions. "
+            + (awaitingApproval ? "Approving the Work Plan commits every eligible pending job, not only this visit. " : "This work is approved. ")
+            + "The year settlement re-quotes actual work.";
+
     private void BuildHarvest(ScenarioOneManager m)
     {
         ScenarioHarvestJob job = m.GetHarvestQuote(false);
@@ -351,8 +359,10 @@ public sealed class WorkPlanView
             if (costs.MinimumJobAdjustmentCents > 0)
                 UiKit.Line(card, $"Small-job minimum (visit minimum {UiKit.Money(m.Definition.MinimumHarvestJobCents)})",
                     UiKit.SignedMoney(-costs.MinimumJobAdjustmentCents), "money-negative");
-            UiKit.Line(card, "Total quoted contractor charge before approval", UiKit.Money(job.CostCents));
-            UiKit.Add(card, "Quote covers all eligible harvest and salvage stems above, including their timber dispositions. Approving the Work Plan commits every eligible pending job, not only this visit. The year settlement re-quotes actual work.", "muted");
+            // "Before approval" is only true while some of this visit's work is still Pending.
+            bool awaitingApproval = fell.Any(order => order.status == ScenarioWorkStatus.Pending);
+            UiKit.Line(card, QuoteTotalLabel(awaitingApproval), UiKit.Money(job.CostCents));
+            UiKit.Add(card, QuoteScopeNote(awaitingApproval), "muted");
             long net = job.RevenueCents - job.CostCents;
             UiKit.Line(card, "Net for this job", UiKit.SignedMoney(net), net >= 0 ? "money" : "money-negative");
             if (costs.MinimumJobAdjustmentCents > 0)

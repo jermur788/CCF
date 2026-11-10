@@ -496,6 +496,9 @@ public static class TeachingDiagramPlan
     // Schematic tree discs: radius and spacing in metres, and the clearance kept from an existing track or a corridor edge.
     public const float TreeRadiusM = 1.5f, TreeColumnStepM = 4.2f, TreeRowStepM = 3.2f, TreeClearanceM = 0.2f;
     public const float EntranceSide = 11f, CasingExtra = 3f;
+    // The "What happens to a rack" strip: a row of the key's shapes, then the words under them.
+    public const float FigureHeight = 770f, LifecycleShapeY = 628f, LifecycleTextY = 652f;
+    public static readonly string[] LifecycleIds = { "suggested", "planned", "entrance-marked", "harvested" };
 
     public static float FigureX(Site site, float worldX) => FigureMapLeft + (worldX + site.StandSizeM * 0.5f) * FigurePxPerM;
     public static float FigureY(Site site, float worldZ) => FigureMapTop + (site.StandSizeM * 0.5f - worldZ) * FigurePxPerM;
@@ -517,7 +520,7 @@ public static class TeachingDiagramPlan
 
     public static Stage ObjectiveOneFigure(Site site)
     {
-        var stage = new Stage { Number = 1, Id = "access-five-rack", Width = LessonWidth, Height = 740f, MinTextSize = FigureMinTextSize };
+        var stage = new Stage { Number = 1, Id = "access-five-rack", Width = LessonWidth, Height = FigureHeight, MinTextSize = FigureMinTextSize };
         var items = stage.Items;
         float half = site.StandSizeM * 0.5f, rackHalf = site.RackWidthM * 0.5f;
         float[] rackZ = FixtureEntranceZ;
@@ -605,16 +608,35 @@ public static class TeachingDiagramPlan
         for (int rack = 0; rack < rackZ.Length; rack++)
             labels.Add(new Text((rack + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), FigureX(site, half) + 6f,
                 FigureY(site, rackZ[rack]) - 14f, 24f, 28f, FigureFontSize, Role.Accent));
-        labels.Add(new Text("Headland", 0f, 180f, 80f, 70f, FigureFontSize, Role.Accent, true));
-        labels.Add(new Text("Link track", 170f, FigureY(site,site.FeederZ)-34f, 145f, 30f, FigureFontSize, Role.Accent, true));
+        // #365: each backed label is an opaque box, so it sits on tree land clear of every rack band, rack number, the headland, the
+        // link track and their pads (Checks.cs measures this). Widths leave room for the words at the figure font.
+        labels.Add(new Text("Headland", 104f, 100f, 120f, 30f, FigureFontSize, Role.Accent, true));
+        labels.Add(new Text("Link track", 104f, FigureY(site,site.FeederZ)-46.5f, 140f, 30f, FigureFontSize, Role.Accent, true));
         labels.Add(new Text("Forest track", 320f, 470f, 175f, 30f, FigureFontSize, Role.Track, true));
         labels.Add(new Text("Old path", 350f, 260f, 130f, 30f, FigureFontSize, Role.Track, true));
-        labels.Add(new Text("Existing clearing", 290f, 145f, 205f, 30f, FigureFontSize, Role.Accent, true));
+        labels.Add(new Text("Existing\nclearing", 300f, 176f, 120f, 60f, FigureFontSize, Role.Accent, true));
         stage.Items.Add(new Item { Id="scale20m", Kind=Kind.Track,Role=Role.Accent, Points=new[]{64f,520f,64f+20f*FigurePxPerM,520f},Width=3f,Z=80 });
         labels.Add(new Text("20m · north up", 64f,530f,220f,30f,FigureFontSize,Role.Accent));
         labels.Add(new Text("What happens to a rack",40f,575f,920f,30f,24f,Role.Accent));
         string[] lifecycle = {"Suggested\nDashed potential route", "Planned\nConfirmed; trees stand", "Entrance marked\nSpray; not felled", "Harvested\nAfter approved work + year"};
-        for(int i=0;i<4;i++) labels.Add(new Text((i>0 ? "→ " : "")+lifecycle[i], 30f+i*240f,625f,225f,90f,22f,Role.Muted));
+        for(int i=0;i<4;i++) labels.Add(new Text((i>0 ? "→ " : "")+lifecycle[i], 30f+i*240f,LifecycleTextY,225f,90f,22f,Role.Muted));
+        // #365: each state also gets the key's own shape above its words, so the strip does not rely on words or colour alone.
+        for (int i = 0; i < 4; i++)
+        {
+            float sx0 = 60f + i * 240f, sx1 = sx0 + 60f, sxm = sx0 + 30f;
+            string id = "lifecycle-" + LifecycleIds[i];
+            if (i != 3) stage.Items.Add(KeyTree(id + "-tree-a", i == 2 ? sxm : sx0 + 15f, LifecycleShapeY));
+            if (i < 2) stage.Items.Add(KeyTree(id + "-tree-b", sx1 - 15f, LifecycleShapeY));
+            if (i == 2) stage.Items.Add(new Item { Id = id, Kind = Kind.FieldMark, Role = Role.FieldMark, X = sxm, Y = LifecycleShapeY, Radius = TreeRadiusM * FigurePxPerM, Z = 83 });
+            else stage.Items.Add(new Item { Id = id, Kind = Kind.Corridor, Role = i == 3 ? Role.Harvested : Role.Rack,
+                State = i == 0 ? CorridorState.Draft : i == 1 ? CorridorState.Planned : CorridorState.Harvested,
+                X = sx0, Y = LifecycleShapeY, X1 = sx1, Y1 = LifecycleShapeY, Width = site.RackWidthM * FigurePxPerM, Z = 82 });
+            if (i == 3)
+            {
+                stage.Items.Add(new Item { Id = id + "-stump-a", Kind = Kind.Stump, Role = Role.Wood, X = sx0 + 15f, Y = LifecycleShapeY, Radius = 3.5f, Z = 83 });
+                stage.Items.Add(new Item { Id = id + "-stump-b", Kind = Kind.Stump, Role = Role.Wood, X = sx1 - 15f, Y = LifecycleShapeY, Radius = 3.5f, Z = 83 });
+            }
+        }
         stage.Labels = labels.ToArray();
 
         stage.Title = FigureTitle;

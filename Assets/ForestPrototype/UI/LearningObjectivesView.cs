@@ -51,6 +51,10 @@ public sealed partial class LearningObjectivesView
                 : "Press B, click the tree or ground point where a rack should start, aim along the rows and click again to add it to the Work Plan. Then finish the marked routes on the Stand Map [M].";
         }
     }
+    // The one short line for the current step: the review step first when its acknowledgement is missing, otherwise the HUD's words.
+    public const string ReviewFirstInstruction = "First: read and acknowledge the annual results in Work Plan [Tab].";
+    public string CurrentShortInstruction => NeedsReviewAcknowledgement ? ReviewFirstInstruction
+        : HudInstruction(TeachingFacts(), CurrentTopicIndex, CurrentLesson);
     public string Summary => TeachingRacks
         ? (ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText + " · [O] Details"
             : ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
@@ -158,12 +162,14 @@ public sealed partial class LearningObjectivesView
         AddObjectivePart(detail, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
         if (NeedsReviewAcknowledgement) UiKit.Add(words, "Review the year — First: read and acknowledge the annual results.", "heading");
         string instruction = CurrentInstruction;
-        string shortInstruction = NeedsReviewAcknowledgement ? "First: read and acknowledge the annual results in Work Plan [Tab]." : HudInstruction(TeachingFacts(), CurrentTopicIndex, lesson);
+        string shortInstruction = CurrentShortInstruction;
+        // The extension checklist is shown once, on the card; it is not repeated under More detail.
+        string extension = ExtensionActive ? ExtensionInstruction() : null;
         AddObjectivePart(words, "What to do", shortInstruction, "current-objective-instruction");
-        if (instruction != shortInstruction) AddObjectivePart(detail, "Full instructions", instruction, "objective-full-instruction");
+        if (instruction != shortInstruction && instruction != extension) AddObjectivePart(detail, "Full instructions", instruction, "objective-full-instruction");
         if (CurrentTopicIndex == 4) UiKit.Add(words, "The three tree decisions and six stand checks are session-only until first review completion. Reloading needs fresh inspection.", "body");
         if (instruction.Contains("safeguard")) UiKit.Add(words, instruction, "body");
-        if (ExtensionActive) UiKit.Add(words, ExtensionInstruction(), "body");
+        if (extension != null) UiKit.Add(words, extension, "body");
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
         if (!string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";

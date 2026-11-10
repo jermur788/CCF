@@ -447,6 +447,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
         else if (manager.RackPlanningV2Active)
         {
+            // The long instruction lives on the Objectives card (under More detail). Other windows get the one short line.
+            reason = scope == learning.Root ? "" : learning.CurrentShortInstruction;
             if (NeedsAnnualReview || learning.NeedsReviewAcknowledgement)
                 target = scope == review.Root ? "annual-review-acknowledge" : scope == learning.Root ? "objective-work-plan" : scope == map.Root ? "map-work-plan" : "workplan-read-results";
             else if (learning.ExtensionActive)
@@ -512,7 +514,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         bool suspended = Time.timeScale <= 0f || manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
             || helpClosedFrame == Time.frameCount || map.RackEditor.ConsentPending || map.RackEditor.ResetPending || map.ReopenPending || workPlan.ConfirmingAdvance;
         if (!suspended && nextAction != null && ScenarioOneTeachingSequence.SafePulseTarget(nextAction.name)) target = nextAction;
-        else if (!suspended && screen == UiScreen.None && !manager.WorkPlanOpen && learning.CurrentTopicIndex > 0
+        else if (!suspended && manager.RackPlanningV2Active && screen == UiScreen.None && !manager.WorkPlanOpen && learning.CurrentTopicIndex > 0
             && learning.CurrentTopicIndex < 8 && !NeedsAnnualReview && !learning.NeedsReviewAcknowledgement)
             target = hud.ObjectiveWidget.Root;
         if (animatedGuidance != null && animatedGuidance != target) ResetGuidanceBorder(animatedGuidance);

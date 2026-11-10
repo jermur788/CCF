@@ -99,7 +99,7 @@ public sealed partial class LearningObjectivesView
     {
         if (!confirmed) return counter + ". Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.";
         if (marked < target)
-            return counter + ". Return to the forest and mark the first designated rack-removal tree at the headland-side rack entrance at each rack entrance: [P] spray marker, aim within 3.5 m, left-click.";
+            return counter + ". Return to the forest and mark the first designated rack-removal tree at the headland-side entrance of each rack: [P] spray marker, aim within 3.5 m, left-click.";
         return counter + (workPending ? ". Next, review and approve the rack removal work in the Work Plan [Tab], then advance one year."
             : ". Open the Work Plan [Tab] and advance one year.");
     }

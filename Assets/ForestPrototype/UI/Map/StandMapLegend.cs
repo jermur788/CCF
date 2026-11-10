@@ -70,10 +70,11 @@ public static class StandMapLegend
         if (planned) Symbol(LegendKind.Band, MapSymbol.RackPlanned, "Rack in the Work Plan");
         if (open) Symbol(LegendKind.Band, MapSymbol.RackOpen, "Rack harvested, corridor open");
         if (other) Symbol(LegendKind.Band, MapSymbol.RackOther, "Your rack, off the planned layout");
-        if (model.Racks.Exists(r => r.RackId > 0)) {
+        // A hollow square is drawn on every suggested rack and on every player rack whose entrance is not yet sprayed, so the row
+        // appears whenever one of those is on the map (also at 0 of 5, when there are only suggestions).
+        if (model.Racks.Exists(r => !r.MiniOnly && (r.Symbol == MapSymbol.RackSuggested || (r.RackId > 0 && !r.EntranceMarked))))
             Symbol(LegendKind.Square,MapSymbol.RackEntrance,"Hollow entrance target · not field marked");
-            if (model.Racks.Exists(r => r.EntranceMarked)) Symbol(LegendKind.FilledSquare,MapSymbol.RackEntrance,"Filled entrance · actually field marked, not felled");
-        }
+        if (model.Racks.Exists(r => r.RackId > 0 && r.EntranceMarked)) Symbol(LegendKind.FilledSquare,MapSymbol.RackEntrance,"Filled entrance · actually field marked, not felled");
         if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, model.ExistingHeadlandSurfaces.Count > 0 ? "Forest track · south gate to junction" : Meaning(MapSymbol.Path));
         if (model.ExistingHeadlandSurfaces.Count > 0) {
             Symbol(LegendKind.Line, MapSymbol.OldPath, "Old path · junction to clearing (same original route)");
@@ -131,10 +132,13 @@ public static class StandMapLegend
         }
         foreach (var e in list) {
             if(e.Symbol == MapSymbol.RackHarvested || e.Symbol == MapSymbol.RackOpen || e.Kind == LegendKind.Stump) e.Group="Done";
-            else if (e.Kind == LegendKind.Band || e.Symbol == MapSymbol.TreeMarkFell || e.Symbol == MapSymbol.TreeMarkCrop || e.Symbol == MapSymbol.Waypoint) e.Group="Your plan";
+            else if (e.Kind == LegendKind.Band || e.Symbol == MapSymbol.RackEntrance || e.Symbol == MapSymbol.TreeMarkFell || e.Symbol == MapSymbol.TreeMarkCrop || e.Symbol == MapSymbol.Waypoint) e.Group="Your plan";
         }
-        list.Sort((a,b) => GroupOrder(a.Group).CompareTo(GroupOrder(b.Group)));
-        return list;
+        // Group order only; rows keep the order they were added in within a group (List.Sort does not promise that).
+        var grouped = new List<LegendEntry>(list.Count);
+        for (int order = 0; order <= 2; order++)
+            foreach (var e in list) if (GroupOrder(e.Group) == order) grouped.Add(e);
+        return grouped;
     }
 
     // "Sitka spruce" or "Beech" for a kind, from the species actually standing; a generic class name only when the source gave none.

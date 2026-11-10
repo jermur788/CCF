@@ -2,9 +2,10 @@
 """Offline draw-plan raster witness ONLY: synthetic source-backed fixture, not a Unity screenshot.
 Both positive and removed-feeder mutation must be distinguishable. No scene/save access.
 """
-import json, math, pathlib
+import json, math, os, pathlib
 from PIL import Image,ImageDraw
-out=pathlib.Path('/tmp/ccf363-preflight')
+# The #363 default is kept; CCF_FEEDBACK_SCRATCH lets a rerun use its own folder (the same one Checks.cs wrote the plans to).
+out=pathlib.Path(os.environ.get('CCF_FEEDBACK_SCRATCH') or '/tmp/ccf363-preflight')
 def draw(side,items,omit=False):
  im=Image.new('RGB',(side,side),(26,45,31)); d=ImageDraw.Draw(im)
  for a in items:

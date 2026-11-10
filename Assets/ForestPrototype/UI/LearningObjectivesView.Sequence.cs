@@ -258,16 +258,22 @@ public sealed partial class LearningObjectivesView
         var f = TeachingFacts();
         int index = ScenarioOneTeachingSequence.Current(f);
         var lesson = CurrentLesson;
+        bool complete = index == ScenarioOneTeachingSequence.Lessons.Length - 1 && ui.Manager.Outcome == ScenarioOneOutcome.Completed;
+        bool rackV2 = ui.Manager.RackPlanningV2Active && !ui.Manager.ReferencePreviewActive;
+        Vector3 at = ui.Player != null ? ui.Player.transform.position : Vector3.zero;
+        // #365: which words show is decided in one pure place (ScenarioOneRackBayText.HudWords) from the lesson and review state.
+        ScenarioOneRackBayText.HudWords(rackV2, index, NeedsReviewAcknowledgement, ui.NeedsAnnualReview, complete,
+            TeachingBay, ui.Player != null, at.x, at.z, ui.Marking != null ? ui.Marking.AimedTree : null,
+            lesson.Heading, HudInstruction(f, index, lesson), TeachingProgress(f),
+            out string title, out string instruction, out string progress);
         return new ActiveObjectiveHudWidget.Model
         {
             Number = ScenarioOneTeachingSequence.Number(lesson, f),
             Total = ScenarioOneTeachingSequence.Total(f),
-            Title = NeedsReviewAcknowledgement ? "Review the year" : lesson.Heading,
-            Instruction = "Next: " + HudInstruction(f, index, lesson),
-            Progress = TeachingBay != null && ui.Player != null
-                ? ScenarioOneRackBayText.Walking(TeachingBay, ui.Player.transform.position.x, ui.Player.transform.position.z, ui.Marking != null ? ui.Marking.AimedTree : null)
-                : TeachingProgress(f),
-            Complete = index == ScenarioOneTeachingSequence.Lessons.Length - 1 && ui.Manager.Outcome == ScenarioOneOutcome.Completed
+            Title = title,
+            Instruction = instruction,
+            Progress = progress,
+            Complete = complete
         };
     }
 

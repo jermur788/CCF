@@ -16,6 +16,12 @@ using UnityEngine.UIElements;
 // presentation around it (the full map's square buttons).
 public sealed class StandMapCanvas : VisualElement
 {
+    // Words drawn on the map (the teaching-area thirds). 17 UI units is the small reading size used by the lesson pictures; the
+    // label sits just above its anchor. TextSide: -1 the label ends TextEdgePx right of its anchor, +1 it starts TextEdgePx left
+    // of it, 0 it is centred. Whether they fit a real 1280 x 720 screen is a rendered check, not something this file can prove.
+    public const float TextSizePx = 17f, TextRisePx = 26f, TextEdgePx = 26f;
+    public static int TextSide(int index, int count) => count < 2 ? 0 : index == 0 ? -1 : index == count - 1 ? 1 : 0;
+
     // Cuts one layer's shapes into pixels. It owns nothing but the list it was last given.
     private sealed class LayerPainter : VisualElement
     {
@@ -34,10 +40,19 @@ public sealed class StandMapCanvas : VisualElement
         {
             plan = next;
             Clear();
-            foreach (var item in next) if (!string.IsNullOrEmpty(item.Text)) {
+            var texts = new List<MapDrawItem>();
+            foreach (var item in next) if (!string.IsNullOrEmpty(item.Text)) texts.Add(item);
+            for (int i = 0; i < texts.Count; i++) {
+                MapDrawItem item = texts[i];
                 var label = new Label(item.Text) { pickingMode = PickingMode.Ignore };
-                label.style.position = Position.Absolute; label.style.left = item.Anchor.X - 48; label.style.top = item.Anchor.Y - 20;
-                label.style.fontSize = 12; label.style.color = new Color(1f, 1f, .85f); label.style.backgroundColor = new Color(.04f,.06f,.05f,.94f);
+                label.style.position = Position.Absolute; label.style.top = item.Anchor.Y - TextRisePx;
+                label.style.whiteSpace = WhiteSpace.NoWrap;
+                // #365: the words are read at the small reading size, and the labels of one row no longer sit on each other: the first
+                // grows away to the left of its anchor, the last to the right, and any between are centred on theirs.
+                int side = TextSide(i, texts.Count);
+                label.style.left = item.Anchor.X - side * TextEdgePx;
+                label.style.translate = new Translate(Length.Percent(side < 0 ? -100f : side == 0 ? -50f : 0f), 0f);
+                label.style.fontSize = TextSizePx; label.style.color = new Color(1f, 1f, .85f); label.style.backgroundColor = new Color(.04f,.06f,.05f,.94f);
                 Add(label);
             }
             MarkDirtyRepaint();
