@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "d8d631db7ffc46839ab6b64fa01c461b",
+    "owner": "Codex-Sol-CCF377",
+    "task_id": "CCF-377-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-ui-inspection-overflow-20261110-v1",
+    "head": "c9c7d0100c7b8011b69686cdbfce5f2ecc5f0f86",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-10T22:54:57.263103+00:00",
+    "eta": "2026-11-10T23:54:55.731744+00:00",
+    "notes": "Phase B; source writer released; existing isolated warm lane; 36 valued hashes reverified; no personal environment changes"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

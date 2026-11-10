@@ -1,0 +1,41 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:13.75, y:13.75, width:620.00, height:196.25)	True	hud-objective	
+VisualElement	active-objective-widget	(x:13.75, y:13.75, width:620.00, height:196.25)	True	panel,objective-widget	
+VisualElement		(x:33.75, y:28.75, width:580.00, height:32.50)	True	objective-header	
+Label	active-objective-now	(x:36.25, y:37.50, width:57.50, height:17.50)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:106.25, y:33.75, width:118.75, height:25.00)	True	unity-label,unity-text-element,objective-step	Objective 3 of 9
+Button	active-objective-details	(x:513.75, y:28.75, width:100.00, height:32.50)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:36.25, y:65.00, width:573.75, height:27.50)	True	unity-label,unity-text-element,objective-title	Identify the competitors that matter
+Label	active-objective-instruction	(x:36.25, y:97.50, width:573.75, height:46.25)	True	unity-label,unity-text-element,objective-instruction	Next: Compare Share and position; mark meaningful in-footprint competitors, then open Work Plan [Tab].
+Label	active-objective-progress	(x:36.25, y:150.00, width:573.75, height:42.50)	True	unity-label,unity-text-element,objective-progress	Inside teaching area · Middle · right looking from headland into rack | Initial release: 0% minimum / about 30% each · trunk area 1%/40%
+VisualElement	hud-right-column	(x:1256.25, y:13.75, width:330.00, height:56.25)	True	hud-right	
+VisualElement		(x:1256.25, y:13.75, width:330.00, height:56.25)	True	panel,spread,hud-status	
+Label		(x:1273.75, y:30.00, width:52.50, height:25.00)	True	unity-label,unity-text-element,body	Year 3
+Label		(x:1411.25, y:28.75, width:156.25, height:27.50)	True	unity-label,unity-text-element,money	Cash €7729.15
+VisualElement	hud-context-actions	(x:13.75, y:831.25, width:1353.75, height:56.25)	True	panel,row-wrap,context-actions	
+VisualElement		(x:25.00, y:842.50, width:216.25, height:33.75)	True	row,key-control	
+Label		(x:27.50, y:847.50, width:65.00, height:25.00)	True	unity-label,unity-text-element,keycap	Click
+Label		(x:102.50, y:846.25, width:135.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Resume looking
+VisualElement		(x:257.50, y:842.50, width:141.25, height:33.75)	True	row,key-control	
+Label		(x:260.00, y:847.50, width:33.75, height:25.00)	True	unity-label,unity-text-element,keycap	O
+Label		(x:303.75, y:846.25, width:91.25, height:27.50)	True	unity-label,unity-text-element,key-verb	Objectives
+VisualElement		(x:415.00, y:842.50, width:146.25, height:33.75)	True	row,key-control	
+Label		(x:417.50, y:847.50, width:35.00, height:25.00)	True	unity-label,unity-text-element,keycap	M
+Label		(x:462.50, y:846.25, width:95.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Stand Map
+VisualElement		(x:577.50, y:842.50, width:160.00, height:33.75)	True	row,key-control	
+Label		(x:580.00, y:847.50, width:55.00, height:25.00)	True	unity-label,unity-text-element,keycap	Tab
+Label		(x:645.00, y:846.25, width:88.75, height:27.50)	True	unity-label,unity-text-element,key-verb	Work Plan
+VisualElement		(x:753.75, y:842.50, width:101.25, height:33.75)	True	row,key-control	
+Label		(x:756.25, y:847.50, width:42.50, height:25.00)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:808.75, y:846.25, width:42.50, height:27.50)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:13.75, y:723.75, width:1086.25, height:52.50)	True	hud-bottom	
+Label		(x:16.25, y:727.50, width:533.75, height:46.25)	True	unity-label,unity-text-element,panel,body	Marked: FELL 0 (red)  ·  CROP TREE 3 (blue)  ·  fell volume 0.0 m³
+VisualElement	hud-minimap	(x:1380.00, y:682.50, width:206.25, height:205.00)	True	panel,hud-minimap	
+StandMapSurface	hud-minimap-canvas	(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+StandMapCanopyLayer		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+StandMapCanvas		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+Label		(x:1567.50, y:717.50, width:12.50, height:21.25)	True	unity-label,unity-text-element,hud-minimap-north	N
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	

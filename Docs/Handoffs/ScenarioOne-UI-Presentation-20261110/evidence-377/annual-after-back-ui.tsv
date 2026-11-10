@@ -1,0 +1,49 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement		(x:0.00, y:0.00, width:0.00, height:0.00)	True	layer	
+VisualElement		(x:13.75, y:13.75, width:0.00, height:0.00)	True	hud-objective	
+VisualElement	active-objective-widget	(x:13.75, y:13.75, width:0.00, height:0.00)	True	panel,objective-widget	
+VisualElement		(x:33.75, y:28.75, width:0.00, height:0.00)	True	objective-header	
+Label	active-objective-now	(x:36.25, y:37.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:106.25, y:33.75, width:0.00, height:0.00)	True	unity-label,unity-text-element,objective-step	Objective 3 of 9
+Button	active-objective-details	(x:513.75, y:28.75, width:0.00, height:0.00)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:36.25, y:65.00, width:0.00, height:0.00)	True	unity-label,unity-text-element,objective-title	Review the year
+Label	active-objective-instruction	(x:36.25, y:97.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,objective-instruction	Next: Read and acknowledge the Annual Review: open the Work Plan [Tab].
+Label	active-objective-progress	(x:36.25, y:150.00, width:0.00, height:0.00)	True	unity-label,unity-text-element,objective-progress	Annual results unread · read and acknowledge them
+VisualElement	hud-right-column	(x:1256.25, y:13.75, width:0.00, height:0.00)	True	hud-right	
+VisualElement		(x:1256.25, y:13.75, width:0.00, height:0.00)	True	panel,spread,hud-status	
+Label		(x:1273.75, y:30.00, width:0.00, height:0.00)	True	unity-label,unity-text-element,body	Year 3
+Label		(x:1398.75, y:28.75, width:0.00, height:0.00)	True	unity-label,unity-text-element,money	Cash €7729.15
+VisualElement	hud-context-actions	(x:13.75, y:831.25, width:0.00, height:0.00)	True	panel,row-wrap,context-actions	
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	E
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Inspect
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	X
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Fell
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	C
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Crop Tree
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	Tab
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Plan
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	O
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Objectives
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	M
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Stand Map
+VisualElement		(x:13.75, y:831.25, width:NaN, height:NaN)	True	row,key-control	
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:13.75, y:831.25, width:NaN, height:NaN)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:13.75, y:585.00, width:0.00, height:0.00)	True	hud-bottom	
+Label		(x:16.25, y:727.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,panel,body	Marked: FELL 0 (red)  ·  CROP TREE 3 (blue)  ·  fell volume 0.0 m³
+VisualElement		(x:0.00, y:503.75, width:0.00, height:0.00)	True	hud-prompt	
+VisualElement		(x:797.50, y:447.50, width:0.00, height:0.00)	True	reticle	
+VisualElement	hud-minimap	(x:1380.00, y:682.50, width:0.00, height:0.00)	True	panel,hud-minimap	
+StandMapSurface	hud-minimap-canvas	(x:1385.00, y:687.50, width:0.00, height:0.00)	True		
+StandMapCanopyLayer		(x:1385.00, y:687.50, width:0.00, height:0.00)	True		
+StandMapCanvas		(x:1385.00, y:687.50, width:0.00, height:0.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:0.00, height:0.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:0.00, height:0.00)	True		
+Label		(x:1567.50, y:717.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,hud-minimap-north	N
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	

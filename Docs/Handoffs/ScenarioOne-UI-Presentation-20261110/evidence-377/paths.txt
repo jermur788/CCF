@@ -1,0 +1,3 @@
+persistent=/media/jer/Files/CCF/Verification/CCF-377-InspectionFit-20261110/run/config/unity3d/DefaultCompany/CCF
+F5/F9=/media/jer/Files/CCF/Verification/CCF-377-InspectionFit-20261110/run/config/unity3d/DefaultCompany/CCF/forest-save.json
+prefs=/media/jer/Files/CCF/Verification/CCF-377-InspectionFit-20261110/run/config/unity3d/DefaultCompany/CCF/prefs

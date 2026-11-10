@@ -1,0 +1,217 @@
+{
+  "1280x720": {
+    "distinct_pages": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "captures": [
+      {
+        "file": "01-repaired-overview-1280x720-ui.tsv",
+        "page": 1,
+        "count": 17
+      },
+      {
+        "file": "detail-page-02-1280x720-ui.tsv",
+        "page": 4,
+        "count": 17
+      },
+      {
+        "file": "detail-page-03-1280x720-ui.tsv",
+        "page": 5,
+        "count": 17
+      },
+      {
+        "file": "detail-page-04-1280x720-ui.tsv",
+        "page": 6,
+        "count": 17
+      },
+      {
+        "file": "detail-page-05-1280x720-ui.tsv",
+        "page": 7,
+        "count": 17
+      },
+      {
+        "file": "detail-page-06-1280x720-ui.tsv",
+        "page": 8,
+        "count": 17
+      },
+      {
+        "file": "detail-page-07-1280x720-ui.tsv",
+        "page": 9,
+        "count": 17
+      },
+      {
+        "file": "detail-page-08-1280x720-ui.tsv",
+        "page": 10,
+        "count": 17
+      },
+      {
+        "file": "detail-page-09-1280x720-ui.tsv",
+        "page": 11,
+        "count": 17
+      },
+      {
+        "file": "detail-page-10-1280x720-ui.tsv",
+        "page": 12,
+        "count": 17
+      },
+      {
+        "file": "detail-page-11-1280x720-ui.tsv",
+        "page": 13,
+        "count": 17
+      },
+      {
+        "file": "detail-page-12-1280x720-ui.tsv",
+        "page": 14,
+        "count": 17
+      },
+      {
+        "file": "detail-page-13-1280x720-ui.tsv",
+        "page": 15,
+        "count": 17
+      },
+      {
+        "file": "detail-page-14-1280x720-ui.tsv",
+        "page": 16,
+        "count": 17
+      },
+      {
+        "file": "detail-page-15-1280x720-ui.tsv",
+        "page": 17,
+        "count": 17
+      },
+      {
+        "file": "detail-page-16-1280x720-ui.tsv",
+        "page": 1,
+        "count": 17
+      },
+      {
+        "file": "detail-page-17-1280x720-ui.tsv",
+        "page": 2,
+        "count": 17
+      }
+    ]
+  },
+  "1920x1080": {
+    "distinct_pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "captures": [
+      {
+        "file": "02-repaired-overview-1920x1080-ui.tsv",
+        "page": 1,
+        "count": 17
+      },
+      {
+        "file": "detail-page-02-1920x1080-ui.tsv",
+        "page": 2,
+        "count": 17
+      },
+      {
+        "file": "detail-page-03-1920x1080-ui.tsv",
+        "page": 3,
+        "count": 17
+      },
+      {
+        "file": "detail-page-04-1920x1080-ui.tsv",
+        "page": 4,
+        "count": 17
+      },
+      {
+        "file": "detail-page-05-1920x1080-ui.tsv",
+        "page": 5,
+        "count": 17
+      },
+      {
+        "file": "detail-page-06-1920x1080-ui.tsv",
+        "page": 6,
+        "count": 17
+      },
+      {
+        "file": "detail-page-07-1920x1080-ui.tsv",
+        "page": 7,
+        "count": 17
+      },
+      {
+        "file": "detail-page-08-1920x1080-ui.tsv",
+        "page": 8,
+        "count": 17
+      },
+      {
+        "file": "detail-page-09-1920x1080-ui.tsv",
+        "page": 9,
+        "count": 17
+      },
+      {
+        "file": "detail-page-10-1920x1080-ui.tsv",
+        "page": 10,
+        "count": 17
+      },
+      {
+        "file": "detail-page-11-1920x1080-ui.tsv",
+        "page": 11,
+        "count": 17
+      },
+      {
+        "file": "detail-page-12-1920x1080-ui.tsv",
+        "page": 12,
+        "count": 17
+      },
+      {
+        "file": "detail-page-13-1920x1080-ui.tsv",
+        "page": 13,
+        "count": 17
+      },
+      {
+        "file": "detail-page-14-1920x1080-ui.tsv",
+        "page": 14,
+        "count": 17
+      },
+      {
+        "file": "detail-page-15-1920x1080-ui.tsv",
+        "page": 15,
+        "count": 17
+      },
+      {
+        "file": "detail-page-16-1920x1080-ui.tsv",
+        "page": 16,
+        "count": 17
+      },
+      {
+        "file": "detail-page-17-1920x1080-ui.tsv",
+        "page": 17,
+        "count": 17
+      }
+    ]
+  }
+}
