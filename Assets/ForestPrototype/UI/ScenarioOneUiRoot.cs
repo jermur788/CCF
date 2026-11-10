@@ -52,6 +52,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private bool workPlanWasOpen;
     private float nextModalRefresh;
     private int helpClosedFrame = -1;
+    private VisualElement animatedGuidance;
+    public bool ReduceMotion { get; private set; } = true;
+    public void SetReduceMotion(bool reduce) {
+        ReduceMotion = reduce; PlayerPrefs.SetInt("CCF.UI.ReduceMotion", reduce ? 1 : 0); PlayerPrefs.Save();
+    }
     private Button nextAction;
     private Button guidanceCandidate;
     private VisualElement guidanceScope;
@@ -89,6 +94,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void Start()
     {
+        ReduceMotion = PlayerPrefs.GetInt("CCF.UI.ReduceMotion", 1) != 0;
         nextBadge = new Label("Next:") { pickingMode = PickingMode.Ignore };
         manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
         ecology = FindFirstObjectByType<ForestEcologyController>();
@@ -326,6 +332,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         // No forest/quote/validator lookups here. Apply cached presentation after layout each frame,
         // including the first frame after opening or dismissing Help.
         ApplyNextActionGuidance();
+        AnimateGuidance();
         if (competitors == null || manager == null) return;
         bool walking = !manager.ReferencePreviewActive && !manager.WorkPlanOpen && screen == UiScreen.None;
         competitors.LateUpdate(walking && player != null ? player.InspectedTree : null);
@@ -438,7 +445,17 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
                 }
             }
         }
-        else return; // Later-objective mappings and Legacy40 are outside this first guidance slice.
+        else if (manager.RackPlanningV2Active)
+        {
+            if (NeedsAnnualReview || learning.NeedsReviewAcknowledgement)
+                target = scope == review.Root ? "annual-review-acknowledge" : scope == learning.Root ? "objective-work-plan" : scope == map.Root ? "map-work-plan" : "workplan-read-results";
+            else if (learning.ExtensionActive)
+                target = scope == learning.Root ? "objective-primary-cta" : scope == map.Root ? (map.TreatmentReviewOpen ? "map-back-to-forest" : "map-treatment-review") : null;
+            else if (scope == learning.Root) target = "objective-back-to-forest";
+            else if (scope == map.Root) target = learning.TeachingBay != null && !map.HasWaypoint ? "map-teaching-waypoint" : "map-back-to-forest";
+            // Work Plan approvals and year advances keep their deliberate static gates.
+        }
+        else return;
 
         // Restore original classes above before deciding whether this context belongs to T2.
         // Later objectives and Legacy40 return before this allowlist is demoted.
@@ -487,6 +504,29 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
         candidate.AddToClassList("btn-primary");
         candidate.AddToClassList("next-action");
+    }
+
+    private void AnimateGuidance()
+    {
+        VisualElement target = null;
+        bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
+            || helpClosedFrame == Time.frameCount || map.RackEditor.ConsentPending || map.RackEditor.ResetPending || map.ReopenPending || workPlan.ConfirmingAdvance;
+        if (!suspended && nextAction != null && ScenarioOneTeachingSequence.SafePulseTarget(nextAction.name)) target = nextAction;
+        else if (!suspended && screen == UiScreen.None && !manager.WorkPlanOpen && learning.CurrentTopicIndex > 0
+            && learning.CurrentTopicIndex < 8 && !NeedsAnnualReview && !learning.NeedsReviewAcknowledgement)
+            target = hud.ObjectiveWidget.Root;
+        if (animatedGuidance != null && animatedGuidance != target) ResetGuidanceBorder(animatedGuidance);
+        animatedGuidance = target;
+        if (target == null) return;
+        // Constant visibility, gentle 1.2s border tint; no focus movement, opacity flashing or enabled-state changes.
+        float wave = ReduceMotion ? 0f : .5f + .5f * Mathf.Sin(Time.unscaledTime * (2f * Mathf.PI / 1.2f));
+        Color c = Color.Lerp(new Color(.72f,.69f,.43f), new Color(1f,.94f,.63f), wave);
+        target.style.borderTopColor = target.style.borderBottomColor = target.style.borderLeftColor = target.style.borderRightColor = c;
+        target.style.borderTopWidth = target.style.borderBottomWidth = target.style.borderLeftWidth = target.style.borderRightWidth = 2f;
+    }
+    private static void ResetGuidanceBorder(VisualElement e) {
+        e.style.borderTopColor = e.style.borderBottomColor = e.style.borderLeftColor = e.style.borderRightColor = StyleKeyword.Null;
+        e.style.borderTopWidth = e.style.borderBottomWidth = e.style.borderLeftWidth = e.style.borderRightWidth = StyleKeyword.Null;
     }
 
     private static bool GuidanceVisible(VisualElement element, VisualElement scope)

@@ -282,15 +282,19 @@ public sealed class StandMapView
         }
     }
 
+    public bool TreatmentReviewOpen => layer == Layer.Review;
+
     private void AddLayerButton(string text, Layer value)
     {
-        layerButtons.Add(UiKit.Button(text, () =>
+        var layerButton = UiKit.Button(text, () =>
         {
             layer = value;
             if (value != Layer.Access && value != Layer.Review) ui.Learning.Record(value == Layer.Light ? "map.light" : value == Layer.Regeneration ? "map.regeneration"
                 : value == Layer.Browse ? "map.browse" : "map.marks");
             Refresh(true);
-        }, true, layer == value ? new[] { "btn-selected" } : new string[0]));
+        }, true, layer == value ? new[] { "btn-selected" } : new string[0]);
+        if (value == Layer.Review) layerButton.name = "map-treatment-review";
+        layerButtons.Add(layerButton);
     }
 
     // The 5 m squares: one invisible button each, made once per geometry and placed by the shared map transform, so a square sits exactly

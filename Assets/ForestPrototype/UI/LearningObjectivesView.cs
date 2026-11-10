@@ -79,6 +79,9 @@ public sealed partial class LearningObjectivesView
         Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "objective-back-to-forest";
         buttons.Add(forest);
+        var reduceMotion = new Toggle("Reduce motion") { value = ui.ReduceMotion, name = "reduce-motion" };
+        reduceMotion.RegisterValueChangedCallback(e => ui.SetReduceMotion(e.newValue));
+        buttons.Add(reduceMotion);
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
         UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
@@ -150,12 +153,14 @@ public sealed partial class LearningObjectivesView
         // Why it matters, what to do and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
         // A V2 world's Objective 1 explains the map-planned, field-marked racks (spec §30, §31) instead of the legacy authored layout.
         bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;
-        AddObjectivePart(words, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
+        var detail = new Foldout { text = "More detail", value = false, name = "objective-more-detail" };
+        AddObjectivePart(detail, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
         if (NeedsReviewAcknowledgement) UiKit.Add(words, "Review the year — First: read and acknowledge the annual results.", "heading");
         AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
-        if (!string.IsNullOrEmpty(practice)) AddObjectivePart(words, "What good practice looks like", practice, "current-objective-practice");
+        if (!string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
+        words.Add(detail);
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.

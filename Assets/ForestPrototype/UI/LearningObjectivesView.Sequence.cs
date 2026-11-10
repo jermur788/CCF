@@ -234,11 +234,21 @@ public sealed partial class LearningObjectivesView
     }
 
     // What the extension asks next, from the stored prescription only. Reading this never creates, approves or changes anything.
+    public bool ExtensionActive => ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts());
+
     private string ExtensionInstruction()
     {
         var accepted = ui.Manager.Prescriptions.LastOrDefault(p => p != null && p.approvalState == PrescriptionApprovalState.Accepted);
-        if (accepted == null) return ScenarioOneTeachingSequence.Extension.Action;
-        return $"Prescription {accepted.prescriptionId} is accepted but not yet approved. In Treatment review on the Stand Map [M], confirm or reject each candidate, check the proposed release, spot-check an extrapolated tree in 3D, then choose Approve prescription. It only adds Pending tasks; approve them in the Work Plan [Tab] to commit the work.";
+        string checklist = "□ Open Map [M] → Treatment review (player action)\n"
+            + "□ Read sample and comparable areas (player action)\n"
+            + "□ Select covered areas or leave manual (player action)\n"
+            + "□ Inspect each candidate in 3D; confirm or reject (player action)\n"
+            + "□ Review proposals and spot-check in the forest (player action)\n"
+            + (accepted != null ? "✓ Prescription accepted for review\n" : "□ Accept a prescription for review\n")
+            + "□ Approve prescription deliberately: adds Pending work only\n"
+            + "□ Review and approve Work Plan separately to commit work\n";
+        if (accepted == null) return checklist + "Proposals are not Fell marks. Manual management stays available.";
+        return checklist + $"Prescription {accepted.prescriptionId} is accepted but not yet approved. In Treatment review on the Stand Map [M], confirm or reject each candidate, check the proposed release, spot-check an extrapolated tree in 3D, then choose Approve prescription. It only adds Pending tasks; approve them in the Work Plan [Tab] to commit the work.";
     }
 
     // The same lesson as CurrentInstruction but short enough for the always-visible HUD panel (ActiveObjectiveHudWidget). It follows the same
@@ -253,7 +263,7 @@ public sealed partial class LearningObjectivesView
             Number = ScenarioOneTeachingSequence.Number(lesson, f),
             Total = ScenarioOneTeachingSequence.Total(f),
             Title = NeedsReviewAcknowledgement ? "Review the year" : lesson.Heading,
-            Instruction = HudInstruction(f, index, lesson),
+            Instruction = "Next: " + HudInstruction(f, index, lesson),
             Progress = TeachingBay != null && ui.Player != null
                 ? ScenarioOneRackBayText.Walking(TeachingBay, ui.Player.transform.position.x, ui.Player.transform.position.z, ui.Marking != null ? ui.Marking.AimedTree : null)
                 : TeachingProgress(f),

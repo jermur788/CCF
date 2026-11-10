@@ -25,6 +25,9 @@ class Checks {
    Check(!ScenarioOneRackBay.AnalyseTeachingRack(trees,new ScenarioOneRackBay.Order[0],f,3,5,2).HasEnoughFuture,"Fell never Crop");
    m.TeachingFrame=null;Check(!StandMapDrawPlan.Build(m,600,MapDetail.Full).Any(p=>p.Symbol==MapSymbol.TeachingArea),"no invented sample");
   }
+  foreach(var n in new[]{"workplan-approve","workplan-advance","map-rack-plan-confirm","approve-prescription","Fell","map-consent-decline","Help",""}) Check(!ScenarioOneTeachingSequence.SafePulseTarget(n),"commitment/modal never pulses "+n);
+  Check(ScenarioOneTeachingSequence.SafePulseTarget("map-teaching-waypoint"),"safe waypoint");
+  Check(ScenarioOneTeachingSequence.SafePulseTarget("annual-review-acknowledge"),"safe ack");
   Console.WriteLine("Focused checks PASS "+count);
  }
 }

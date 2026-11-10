@@ -2,6 +2,12 @@
 // These lesson IDs are presentation identifiers, not the eight scenario success goals.
 public static class ScenarioOneTeachingSequence
 {
+    // Explicit navigation allowlist: commitments, destructive controls and modal choices are never animated.
+    public static bool SafePulseTarget(string name) => name == "objective-primary-cta" || name == "objective-work-plan"
+        || name == "objective-back-to-forest" || name == "map-work-plan" || name == "map-back-to-forest"
+        || name == "map-teaching-waypoint" || name == "map-treatment-review" || name == "map-plan-rack"
+        || name == "workplan-read-results" || name == "annual-review-acknowledge";
+
     public sealed class Facts
     {
         public bool AccessOpen, AccessReviewed, ReleasePlanned, ReleaseExecuted, DeadwoodExecuted;
