@@ -6,6 +6,14 @@
 
 Purpose: remove clutter and provide consistent decisions across (1) walking/tree inspection HUD, (2) compact Year/Cash header and contextual bottom keycaps, (3) Objectives/Stand Map/Work Plan/Annual Review menu navigation, (4) Work Plan cost/approval presentation and (5) end-of-year Annual Review summary. **HIGH** — crosses stateful UI classes, source-only model truth, locked keyboard input, annual historical data and safe commitment gates. **Best suited: OpenAI Sol / Codex High using T3 local code lane**. Single primary UI writer; do not delegate overlapping UI files.
 
+## Supplemental poster style references
+
+**Additional user-supplied three-poster set:** https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/visuals/POSTER-SUPPLEMENT-AND-ERRATA.md
+
+These are uploaded 2× PNG **visual style references**, not game truth or current Unity renders. The user reports all three local files in `/media/jer/Files/CCF/Verification/CCF-362-FableUXReview-20261110/spec-posters/`. Verify existence and hashes exactly as recorded in the addendum before using them. If absent, follow the four Git-backed SVGs and report poster comparison NOT INSPECTED; do not invent image inspection. The Manager chat also has a downloadable 3-PNG ZIP which the user can pass to Sol.
+
+Adopt styling: unified woodland green/cream, consistent readable typography, aligned financial amounts, clear active states, concise selected-tree card, discrete Year/Cash header, contextual bottom keycaps, descriptive Annual Review cards. **Do not copy content errors** listed in the addendum: `[F]` Fell (actual `[X]`), copied 54%/competitor shares or net/canopy/synthetic outcomes, premature “Continue to Year 6” Review control, nor made-up operations. Fable will audit actual source behavior and real screenshots against these precise constraints.
+
 ## Exact inputs
 
 - **Binding approved four-file spec:** https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/spec.md
