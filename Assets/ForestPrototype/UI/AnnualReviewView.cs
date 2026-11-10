@@ -304,17 +304,15 @@ public sealed class AnnualReviewView
         return chip;
     }
 
-    // A line of text with its provenance label in front. The text wraps beside the label instead of pushing past the card.
+    // Metadata gets its own line so provenance never squeezes the report text.
     private static Label AddTagged(VisualElement parent, HistoryProvenance kind, string text, string textClass = "body")
     {
-        VisualElement row = UiKit.Box("row");
-        row.style.alignItems = Align.FlexStart;
-        Tag(row, kind);
-        Label label = UiKit.Add(row, text, textClass);
-        label.style.flexShrink = 1;
-        label.style.flexGrow = 1;
-        label.style.flexBasis = 0;
-        parent.Add(row);
+        VisualElement entry = UiKit.Box("annual-text-entry");
+        VisualElement source = UiKit.Box("annual-text-source");
+        Tag(source, kind);
+        entry.Add(source);
+        Label label = UiKit.Add(entry, text, textClass, "annual-text-body");
+        parent.Add(entry);
         return label;
     }
 
