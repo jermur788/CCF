@@ -1,0 +1,17 @@
+{
+  "name": "Ccf376",
+  "status": "PASS",
+  "exit": 0,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "C376_SESSION_ENDED"
+  ],
+  "tokens_present": {
+    "C376_SESSION_ENDED": true
+  },
+  "fail_lines": 0,
+  "seconds": 860.9,
+  "head": "c683e9eecdbf87960b591c8acabec3139a8cca57",
+  "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+  "leftover": []
+}

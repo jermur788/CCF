@@ -1,0 +1,1 @@
+year=0 objectiveIndex=0 title=1. Create access racks instruction=Racks planned: 0 / 5. Plan Racks on the Stand Map [M], then choose Confirm Rack Plan. progress=Racks planned: 0 / 5 unread=False racks=0 entrances=0 player=(-0.43, 0.03, 7.30) aimed=none help=False transient=

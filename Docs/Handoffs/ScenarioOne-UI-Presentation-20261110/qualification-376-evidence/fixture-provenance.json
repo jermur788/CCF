@@ -1,0 +1,6 @@
+{
+  "source": "/media/jer/Files/CCF/Verification/CCF-369-RuntimeCoverage-20261110/year2-genuine-three-crop-trees.json",
+  "sha256": "c715ea5bfada226ec737386df4f089817eaddec531e84f2cf84f96099ff15ae2",
+  "destination": "/media/jer/Files/CCF/Verification/CCF-376-UIQualification-Retry-20261110/run/config/unity3d/DefaultCompany/CCF/forest-save.json",
+  "origin": "earlier genuine #369 playthrough; no synthetic stage mutation"
+}

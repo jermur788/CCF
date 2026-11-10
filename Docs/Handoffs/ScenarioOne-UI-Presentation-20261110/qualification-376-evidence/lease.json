@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "1400e94f815045fa9287381106da7bfb",
+    "owner": "Codex-Sol-CCF376",
+    "task_id": "CCF-376-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-ui-presentation-v1-20261110-v1",
+    "head": "c683e9eecdbf87960b591c8acabec3139a8cca57",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-10T21:56:45.736108+00:00",
+    "eta": "2026-11-10T22:56:35.554837+00:00",
+    "notes": "User retry; separate fresh Library; full 36-file save/prefs backup verified; original U3 untouched"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}
