@@ -318,20 +318,17 @@ public sealed class AnnualReviewView
         return label;
     }
 
-    // Name/value line (as UiKit.Line) with a provenance label in front. A long value goes under its name, so the name keeps room
-    // to read beside the label in a narrow column.
+    // Keep provenance, the full name and its value on separate lines: three-column
+    // annual cards cannot safely share their narrow width between all three.
     private static void TaggedLine(VisualElement parent, HistoryProvenance kind, string name, string value, string valueClass = "value")
     {
-        VisualElement row = UiKit.Box("row");
-        row.style.alignItems = Align.FlexStart;
-        Tag(row, kind);
-        VisualElement line = UiKit.Box();
-        line.style.flexGrow = 1;
-        line.style.flexShrink = 1;
-        line.style.flexBasis = 0;
-        UiKit.Line(line, name, value, valueClass, value.Length > 12);
-        row.Add(line);
-        parent.Add(row);
+        VisualElement entry = UiKit.Box("annual-value-entry");
+        VisualElement source = UiKit.Box("annual-value-source");
+        Tag(source, kind);
+        entry.Add(source);
+        UiKit.Add(entry, name, "body", "annual-value-name");
+        UiKit.Add(entry, value, valueClass, "annual-value-amount");
+        parent.Add(entry);
     }
 
     private static VisualElement Column(VisualElement parent, string heading)

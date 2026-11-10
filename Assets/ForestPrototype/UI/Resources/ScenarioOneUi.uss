@@ -643,3 +643,11 @@
 .compact .key-verb, .compact .keycap { font-size: 19px; }
 .compact .inspect .panel { padding: 0; }
 .compact .annual-headlines .body { font-size: 19px; }
+
+/* Annual Review tagged values: give source, label and amount independent width. */
+.annual-value-entry { flex-direction: column; flex-shrink: 0; margin-bottom: 6px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); padding-bottom: 4px; }
+.annual-value-source { flex-direction: column; align-items: flex-start; }
+.annual-value-source > .faint { white-space: normal; max-width: 100%; }
+.annual-value-source > .prov { max-width: 100%; white-space: normal; }
+.annual-value-name { align-self: stretch; white-space: normal; flex-shrink: 0; }
+.annual-value-amount { align-self: stretch; white-space: nowrap; -unity-text-align: middle-right; flex-shrink: 0; }
