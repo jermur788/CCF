@@ -155,8 +155,8 @@ public sealed class AnnualReviewView
         VisualElement columns = UiKit.Box("columns");
         scroll.Add(columns);
         BuildWork(m, year, Column(columns, "Work done"));
-        BuildMoney(m, year, Column(columns, "Cash"));
         BuildForest(m, year, Column(columns, "Forest changes"), historical);
+        BuildMoney(m, year, Column(columns, "Cash"));
         BuildPriorTreatmentGuidance(year);
         BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);

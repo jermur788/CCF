@@ -73,6 +73,10 @@ public static class StandMapSymbols
         }
         void Fill(MapSymbolStyle style, MapColour fill) { style.HasFill = true; style.Fill = fill; }
 
+        Add(MapSymbol.Headland, new MapColour(214, 232, 229), 2.6f, 3f, true, "pale solid band", "existing headland");
+        Add(MapSymbol.LinkTrack, new MapColour(70, 110, 120), 0f, 2f, true, "short dashed centre on pale band", "existing link track", 5f, 3f);
+        Add(MapSymbol.AccessCasing, new MapColour(10, 29, 34), 0f, 2f, true, "dark casing", "existing access edge");
+        Add(MapSymbol.OldPath, new MapColour(83, 58, 28), 0f, 1.8f, true, "dotted tan band", "old path to existing clearing", 2f, 4f);
         Add(MapSymbol.TeachingArea, new MapColour(245, 242, 200), 0f, 2f, true, "short dashed outline", "teaching area", 4f, 3f);
         Add(MapSymbol.Property, PropertyOutline, 0f, 2.2f, true, "white dashed line", "property boundary", 9f, 6f);
         Add(MapSymbol.Path, new MapColour(190, 158, 110, 240), 2.6f, 2f, true, "tan band", "forest path");

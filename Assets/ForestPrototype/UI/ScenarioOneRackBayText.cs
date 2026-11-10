@@ -66,6 +66,12 @@ public static class ScenarioOneRackBayText
         if (!a.BothSides) feedback += "One rack side absent. ";
         if (aimed != null && aimed.IsCropTree && !a.Contains(aimed.transform.position.x, aimed.transform.position.z)) feedback += "This mark is outside the teaching sample and does not count. ";
         if (aimed != null && aimed.IsMarkedForFell) feedback += "Fell marks do not count as Crop Trees. ";
+        if (aimed != null && aimed.IsCropTree) foreach (var other in a.Future) {
+            if (other.Id == aimed.TreeId) continue;
+            float dx=other.X-aimed.transform.position.x, dz=other.Z-aimed.transform.position.z;
+            float distance=(float)Math.Sqrt(dx*dx+dz*dz);
+            if (distance < ScenarioOneRackBay.FutureTreeSpacingM) feedback += aimed.TreeId + " ↔ " + other.Id + ": " + distance.ToString("0.0", CultureInfo.InvariantCulture) + "m (<8m). ";
+        }
         return location + "\n" + (a.NearSelected ? "☑" : "☐") + " Near  " + (a.MiddleSelected ? "☑" : "☐") + " Middle  " + (a.FarSelected ? "☑" : "☐") + " Far · " + a.AreaCropCount + "/3"
             + "\n" + (a.BothSides ? "Both sides ✓" : "Both sides needed") + " · " + (a.TooClose.Count == 0 ? "8m spacing ✓" : "8m spacing needs attention")
             + "\n" + feedback + "[E] Inspect / [C] Mark Crop Tree";

@@ -40,6 +40,7 @@ public enum MapSymbol
     RackSelection, // the outline round the selected player rack
     RackHandle,    // the round handle at the selected rack's far end: drag it to rotate
     RackEntrance,  // the selected rack's entrance on the headland
+    Headland, LinkTrack, AccessCasing, OldPath,
     TeachingArea,
     RackHarvested  // a player rack with executed removals: its geometry is locked
 }
@@ -139,7 +140,7 @@ public sealed class MapRack
     public int RackId;
     // Selected for editing, and locked by executed removals. Selection is drawn in the dynamic layer only, so choosing a rack
     // does not repaint the static map.
-    public bool Selected, Locked;
+    public bool Selected, Locked, EntranceMarked;
 }
 
 public sealed class MapLandmark
@@ -273,7 +274,7 @@ public sealed class StandMapModel
             foreach (MapRack r in Racks)
             {
                 if (IsDynamicRack(r.Symbol)) continue;
-                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.MiniOnly ? 1 : 0); h = Mix(h, r.FullOnly ? 1 : 0);
+                h = Mix(h, (int)r.Symbol); h = Mix(h, r.LayoutIndex); h = Mix(h, r.EntranceMarked ? 1 : 0); h = Mix(h, r.MiniOnly ? 1 : 0); h = Mix(h, r.FullOnly ? 1 : 0);
                 h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z); h = Mix(h, r.WidthM);
             }
             foreach (MapRack g in MiniGuidance)
@@ -292,9 +293,9 @@ public sealed class StandMapModel
             int h = 23;
             foreach (MapRack r in Racks)
             {
-                if (!IsDynamicRack(r.Symbol) && !r.Selected) continue;
+                if (!IsDynamicRack(r.Symbol) && !r.Selected && r.RackId <= 0) continue;
                 h = Mix(h, (int)r.Symbol); h = Mix(h, r.RackId); h = Mix(h, r.Selected ? 1 : 0); h = Mix(h, r.Locked ? 1 : 0);
-                h = Mix(h, r.LayoutIndex);
+                h = Mix(h, r.LayoutIndex); h = Mix(h, r.EntranceMarked ? 1 : 0);
                 h = Mix(h, r.Start.X); h = Mix(h, r.Start.Z); h = Mix(h, r.End.X); h = Mix(h, r.End.Z);
             }
             h = Mix(h, HasWaypoint ? 1 : 0);

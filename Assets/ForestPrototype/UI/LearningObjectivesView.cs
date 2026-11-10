@@ -152,11 +152,18 @@ public sealed partial class LearningObjectivesView
         VisualElement words = UiKit.Box("objective-words");
         // Why it matters, what to do and, where the lesson teaches it, what good practice looks like: the reasoning, not only the controls.
         // A V2 world's Objective 1 explains the map-planned, field-marked racks (spec §30, §31) instead of the legacy authored layout.
-        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active;
+        bool rackV2Objective = TeachingRacks && ui.Manager.RackPlanningV2Active && !ui.Manager.ReferencePreviewActive
+            && ui.Ecology != null && ui.Ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80;
         var detail = new Foldout { text = "More detail", value = false, name = "objective-more-detail" };
         AddObjectivePart(detail, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
         if (NeedsReviewAcknowledgement) UiKit.Add(words, "Review the year — First: read and acknowledge the annual results.", "heading");
-        AddObjectivePart(words, "What to do", CurrentInstruction, "current-objective-instruction");
+        string instruction = CurrentInstruction;
+        string shortInstruction = NeedsReviewAcknowledgement ? "First: read and acknowledge the annual results in Work Plan [Tab]." : HudInstruction(TeachingFacts(), CurrentTopicIndex, lesson);
+        AddObjectivePart(words, "What to do", shortInstruction, "current-objective-instruction");
+        if (instruction != shortInstruction) AddObjectivePart(detail, "Full instructions", instruction, "objective-full-instruction");
+        if (CurrentTopicIndex == 4) UiKit.Add(words, "The three tree decisions and six stand checks are session-only until first review completion. Reloading needs fresh inspection.", "body");
+        if (instruction.Contains("safeguard")) UiKit.Add(words, instruction, "body");
+        if (ExtensionActive) UiKit.Add(words, ExtensionInstruction(), "body");
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
         if (!string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
@@ -164,6 +171,7 @@ public sealed partial class LearningObjectivesView
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.
+        if (rackV2Objective) body.style.flexDirection = FlexDirection.Column;
         body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective, TeachingBay?.Geometry));
         current.Add(body);
         scroll.Add(current);

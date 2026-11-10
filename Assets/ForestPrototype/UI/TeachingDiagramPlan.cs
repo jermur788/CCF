@@ -469,7 +469,7 @@ public static class TeachingDiagramPlan
         public float StandSizeM, HeadlandX, HeadlandSouthZ, HeadlandNorthZ, FeederZ, FeederEndX, PathWidthM, PadRadiusM, RackWidthM;
     }
 
-    public const string FigureTitle = "Illustrative five-rack plan — not your saved Stand Map. Planning or confirming does not clear the routes.";
+    public const string FigureTitle = "Suggested rack locations";
     public const string FixtureSnapshotPath = "Verification/RackV2-Combined-20261027T1334Z/unity-combined-write/config/unity3d/DefaultCompany/CCF/forest-save.json";
     public const string FixtureSnapshotSha256 = "e8bb96f483e598e7449f370cf56f928503dc79ec7337307758eff23104b10ac5";
     // South to north, as ScenarioOneSuggestedRackLayout orders them.
@@ -506,18 +506,18 @@ public static class TeachingDiagramPlan
     public const int FigureKeyLineMax = 27;
     public static readonly string[] FigureKey =
     {
-        "Existing: A headland,\nB feeder, C track, clearing",
-        "Draft rack: dashed,\na proposal only",
+        "Already on the ground\nTrack, old path, headland",
+        "Your plan: suggested\nDashed, potential route",
         "Planned = confirmed: solid,\nwork pending, trees stand",
-        "Entrance: square\non the headland",
+        "Potential entrance: hollow\nNot yet field marked",
         "Field-marked: stripes,\nnot felled, not a Fell mark",
-        "Harvested: open strip\nwith stumps",
+        "Done: harvested strip\nwith stumps",
         "Disc: standing tree,\nretained, not a tree count",
     };
 
     public static Stage ObjectiveOneFigure(Site site)
     {
-        var stage = new Stage { Number = 1, Id = "access-five-rack", Width = LessonWidth, Height = LessonHeight, MinTextSize = FigureMinTextSize };
+        var stage = new Stage { Number = 1, Id = "access-five-rack", Width = LessonWidth, Height = 740f, MinTextSize = FigureMinTextSize };
         var items = stage.Items;
         float half = site.StandSizeM * 0.5f, rackHalf = site.RackWidthM * 0.5f;
         float[] rackZ = FixtureEntranceZ;
@@ -547,7 +547,7 @@ public static class TeachingDiagramPlan
         // Five planned corridors from the headland entrance to the east edge, the layout's own endpoints and width.
         for (int rack = 0; rack < rackZ.Length; rack++)
             items.Add(new Item { Id = "rack" + (rack + 1), SourceId = FixtureEntranceIds[rack], Kind = Kind.Corridor, Role = Role.Rack,
-                State = CorridorState.Planned, X = FigureX(site, site.HeadlandX), Y = FigureY(site, rackZ[rack]), X1 = FigureX(site, half),
+                State = CorridorState.Draft, X = FigureX(site, site.HeadlandX), Y = FigureY(site, rackZ[rack]), X1 = FigureX(site, half),
                 Y1 = FigureY(site, rackZ[rack]), Width = site.RackWidthM * FigurePxPerM, Z = 30 });
 
         // Existing infrastructure: every casing first, then every fill, so no dark edge cuts through where the surfaces join.
@@ -605,10 +605,16 @@ public static class TeachingDiagramPlan
         for (int rack = 0; rack < rackZ.Length; rack++)
             labels.Add(new Text((rack + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), FigureX(site, half) + 6f,
                 FigureY(site, rackZ[rack]) - 14f, 24f, 28f, FigureFontSize, Role.Accent));
-        float midNorthBand = (FigureY(site, rackZ[2]) + FigureY(site, rackZ[3])) * 0.5f;
-        labels.Add(new Text("A", 38f, midNorthBand - 14f, 24f, 28f, FigureFontSize, Role.Accent));
-        labels.Add(new Text("B", FigureX(site, -22f), FigureY(site, site.FeederZ) - 38f, 24f, 28f, FigureFontSize, Role.Accent, true));
-        labels.Add(new Text("C", FigureX(site, site.FeederEndX) + 9f, FigureY(site, -half) + 2f, 24f, 28f, FigureFontSize, Role.Accent));
+        labels.Add(new Text("Headland", 0f, 180f, 80f, 70f, FigureFontSize, Role.Accent, true));
+        labels.Add(new Text("Link track", 170f, FigureY(site,site.FeederZ)-34f, 145f, 30f, FigureFontSize, Role.Accent, true));
+        labels.Add(new Text("Forest track", 320f, 470f, 175f, 30f, FigureFontSize, Role.Track, true));
+        labels.Add(new Text("Old path", 350f, 260f, 130f, 30f, FigureFontSize, Role.Track, true));
+        labels.Add(new Text("Existing clearing", 290f, 145f, 205f, 30f, FigureFontSize, Role.Accent, true));
+        stage.Items.Add(new Item { Id="scale20m", Kind=Kind.Track,Role=Role.Accent, Points=new[]{64f,520f,64f+20f*FigurePxPerM,520f},Width=3f,Z=80 });
+        labels.Add(new Text("20m · north up", 64f,530f,220f,30f,FigureFontSize,Role.Accent));
+        labels.Add(new Text("What happens to a rack",40f,575f,920f,30f,24f,Role.Accent));
+        string[] lifecycle = {"Suggested\nDashed potential route", "Planned\nConfirmed; trees stand", "Entrance marked\nSpray; not felled", "Harvested\nAfter approved work + year"};
+        for(int i=0;i<4;i++) labels.Add(new Text((i>0 ? "→ " : "")+lifecycle[i], 30f+i*240f,625f,225f,90f,22f,Role.Muted));
         stage.Labels = labels.ToArray();
 
         stage.Title = FigureTitle;
@@ -629,7 +635,8 @@ public static class TeachingDiagramPlan
         // existing surfaces are, what planned/confirmed means and that trees are not counted is said in the key instead.
         return new[]
         {
-            "Only Work Plan approval commits the work. 16–20 m between racks (" + least.ToString("0.0", inv) + "–" + most.ToString("0.0", inv)
+            "Headland and link track were already here when you took over the forest.",
+            "Illustrative source fixture, not your saved Stand Map. Only Work Plan approval commits the work; execution follows a year advance. 16–20 m between racks (" + least.ToString("0.0", inv) + "–" + most.ToString("0.0", inv)
                 + " m here) is guidance for this plantation, not a hard rule. Approximate scale, north up.",
         };
     }

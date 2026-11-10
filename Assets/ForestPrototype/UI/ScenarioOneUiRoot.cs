@@ -491,7 +491,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     // Cheap visibility/suspension checks only; expensive facts are cached by the rebuild above.
     private void ApplyNextActionGuidance()
     {
-        bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen
+        bool suspended = Time.timeScale <= 0f || manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen
             || help == null || help.IsOpen || helpClosedFrame == Time.frameCount;
         Button candidate = guidanceCandidate;
         VisualElement scope = guidanceScope;
@@ -509,7 +509,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private void AnimateGuidance()
     {
         VisualElement target = null;
-        bool suspended = manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
+        bool suspended = Time.timeScale <= 0f || manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
             || helpClosedFrame == Time.frameCount || map.RackEditor.ConsentPending || map.RackEditor.ResetPending || map.ReopenPending || workPlan.ConfirmingAdvance;
         if (!suspended && nextAction != null && ScenarioOneTeachingSequence.SafePulseTarget(nextAction.name)) target = nextAction;
         else if (!suspended && screen == UiScreen.None && !manager.WorkPlanOpen && learning.CurrentTopicIndex > 0

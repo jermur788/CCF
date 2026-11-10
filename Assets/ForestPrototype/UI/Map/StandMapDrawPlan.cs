@@ -113,22 +113,6 @@ public static class StandMapDrawPlan
             for (int i = 0; i < model.MiniGuidance.Count; i++)
                 plan.Add(RackBand(model, t, model.MiniGuidance[i], -1, StandMapSymbols.Get(MapSymbol.RackSuggested), MapDrawLayer.Static));
 
-        if (full)
-            foreach (MapHeadlandSurface surface in model.ExistingHeadlandSurfaces)
-            {
-                MapSymbolStyle fill = StandMapSymbols.Get(MapSymbol.Path), casing = StandMapSymbols.Get(MapSymbol.PathCasing);
-                MapHeadlandSegment[] segments = { surface.Headland, surface.Feeder };
-                MapHeadlandPad[] pads = { surface.HeadlandJunction, surface.PathJunction };
-                foreach (MapHeadlandSegment segment in segments)
-                    plan.Add(HeadlandStroke(t, segment, casing, Math.Max(fill.MinPx, t.MetresToPixels(segment.WidthM)) + 2.6f));
-                foreach (MapHeadlandPad pad in pads)
-                    plan.Add(Ring(MapSymbol.PathCasing, MapDrawLayer.Static, t, pad.Centre, t.MetresToPixels(pad.RadiusM), casing.Colour, 2.6f, -1));
-                foreach (MapHeadlandSegment segment in segments)
-                    plan.Add(HeadlandStroke(t, segment, fill, Math.Max(fill.MinPx, t.MetresToPixels(segment.WidthM))));
-                foreach (MapHeadlandPad pad in pads)
-                    plan.Add(Disc(MapSymbol.Path, MapDrawLayer.Static, t, pad.Centre, t.MetresToPixels(pad.RadiusM), fill.Colour, default, 0f, -1));
-            }
-
         // The forest path: a dark edge, then the tan band at its real width.
         if (StandMapSymbols.IsDrawn(MapSymbol.Path, detail))
             for (int i = 0; i < model.Paths.Count; i++)
@@ -145,6 +129,32 @@ public static class StandMapDrawPlan
                     plan.Add(item);
                 }
             }
+
+        // Existing access above the original path: separate casing/fill and a dashed link centre.
+        // Endpoints/widths/pads are the source objects, shared with the physical mesh; no replacement geometry.
+        foreach (MapHeadlandSurface surface in model.ExistingHeadlandSurfaces)
+        {
+            var fill = StandMapSymbols.Get(MapSymbol.Headland);
+            var edge = StandMapSymbols.Get(MapSymbol.AccessCasing);
+            foreach (var segment in new[] { surface.Headland, surface.Feeder })
+                plan.Add(HeadlandStroke(t, segment, edge, Math.Max(3f,t.MetresToPixels(segment.WidthM))+3f));
+            foreach (var pad in new[] { surface.HeadlandJunction, surface.PathJunction })
+                plan.Add(Disc(MapSymbol.AccessCasing,MapDrawLayer.Static,t,pad.Centre,t.MetresToPixels(pad.RadiusM)+1.5f,edge.Colour,default,0,-1));
+            foreach (var segment in new[] { surface.Headland, surface.Feeder })
+                plan.Add(HeadlandStroke(t,segment,fill,Math.Max(3f,t.MetresToPixels(segment.WidthM))));
+            foreach (var pad in new[] { surface.HeadlandJunction, surface.PathJunction })
+                plan.Add(Disc(MapSymbol.Headland,MapDrawLayer.Static,t,pad.Centre,t.MetresToPixels(pad.RadiusM),fill.Colour,default,0,-1));
+            plan.Add(HeadlandStroke(t,surface.Feeder,StandMapSymbols.Get(MapSymbol.LinkTrack),Math.Max(1.5f,t.MetresToPixels(surface.Feeder.WidthM)*.3f)));
+            // Name sections of the same source path, splitting only the paint at the real junction.
+            var old = StandMapSymbols.Get(MapSymbol.OldPath);
+            foreach (var path in model.Paths) for(int i=1;i<path.Points.Count;i++) {
+                var a=path.Points[i-1]; var b=path.Points[i]; float z=surface.Feeder.End.Z;
+                if(a.Z<=z && b.Z<=z) continue;
+                if(a.Z<z) { float u=(z-a.Z)/(b.Z-a.Z); a=new RackPoint(a.X+(b.X-a.X)*u,z); }
+                if(b.Z<z) { float u=(z-b.Z)/(a.Z-b.Z); b=new RackPoint(b.X+(a.X-b.X)*u,z); }
+                plan.Add(Line(MapSymbol.OldPath,old,Math.Max(1.8f,t.MetresToPixels(path.WidthM)*.3f),t.WorldToPixels(a),t.WorldToPixels(b)));
+            }
+        }
 
         // Rack centre lines, by state: dashed to plan, solid in the Work Plan, thin pale once harvested, dotted off the layout.
         for (int i = 0; i < model.Racks.Count; i++)
@@ -265,6 +275,14 @@ public static class StandMapDrawPlan
             plan.Add(RackLine(t, rack, i, style, MapDrawLayer.Dynamic));
         }
 
+        for (int i=0; i<model.Racks.Count; i++) {
+            var rack=model.Racks[i];
+            if (rack.RackId <= 0 || (rack.FullOnly && detail != MapDetail.Full)) continue;
+            var ink=StandMapSymbols.Get(MapSymbol.RackEntrance).Colour;
+            var square=Square(t,rack.Start,EntranceHalfPx(sidePx),rack.EntranceMarked ? ink : new MapColour(0,0,0,0),ink,2f,i);
+            plan.Add(square);
+        }
+
         // The selected player rack (full map only): a bright outline round its corridor, a square where it meets the headland, and
         // - unless its removals have been executed and its geometry is locked - a round handle at the far end to drag and rotate.
         for (int i = 0; i < model.Racks.Count; i++)
@@ -272,8 +290,7 @@ public static class StandMapDrawPlan
             MapRack rack = model.Racks[i];
             if (!rack.Selected || !StandMapSymbols.IsDrawn(MapSymbol.RackSelection, detail)) continue;
             plan.Add(RackOutline(t, rack, i, StandMapSymbols.Get(MapSymbol.RackSelection)));
-            MapSymbolStyle entrance = StandMapSymbols.Get(MapSymbol.RackEntrance);
-            plan.Add(Square(t, rack.Start, EntranceHalfPx(sidePx), entrance.Colour, new MapColour(14, 24, 32, 245), 1.6f, i));
+
             if (rack.Locked) continue;
             MapSymbolStyle handle = StandMapSymbols.Get(MapSymbol.RackHandle);
             var disc = Disc(MapSymbol.RackHandle, MapDrawLayer.Dynamic, t, rack.End, HandleRadiusPx(sidePx), handle.Colour, new MapColour(18, 22, 20, 245), 2f, i);
@@ -329,7 +346,7 @@ public static class StandMapDrawPlan
 
     private static MapDrawItem Line(MapSymbol symbol, MapSymbolStyle style, float widthPx, MapPosition a, MapPosition b)
     {
-        var item = new MapDrawItem { Symbol = symbol, Layer = MapDrawLayer.Static, WidthPx = widthPx, Colour = style.Colour, Anchor = a };
+        var item = new MapDrawItem { Symbol = symbol, Layer = MapDrawLayer.Static, WidthPx = widthPx, Colour = style.Colour, DashPx = style.DashPx, GapPx = style.GapPx, Anchor = a };
         item.Points.Add(a);
         item.Points.Add(b);
         return item;

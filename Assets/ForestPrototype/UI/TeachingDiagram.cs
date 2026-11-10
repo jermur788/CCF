@@ -18,7 +18,7 @@ using Plan = TeachingDiagramPlan;
 public sealed class TeachingDiagram : VisualElement
 {
     // The widest the picture is drawn, in UI units. Wider than the old 660 so its words can be read at 1280 x 720, where one UI unit is 0.8 pixel.
-    private const float MaxWidth = 900f;
+    private const float MaxWidth = 1100f;
     // Text never gets smaller than this however far the picture is scaled down (UI units; the type scale's small and body sizes).
     private const float MinLabelSize = 17f, MinLegendSize = 15f;
 
@@ -44,6 +44,7 @@ public sealed class TeachingDiagram : VisualElement
         AddToClassList("teaching-diagram");
         pickingMode = PickingMode.Ignore;
         style.flexShrink = 0;
+        if (rackV2World) { style.width = Length.Percent(100); style.flexBasis = StyleKeyword.Auto; }
         if (!string.IsNullOrEmpty(stage.Title)) Add(FigureText(stage.Title, true));
 
         frame = new VisualElement { name = "teaching-diagram-frame", pickingMode = PickingMode.Ignore };
@@ -244,8 +245,9 @@ public sealed class TeachingDiagram : VisualElement
             case Plan.Kind.Entrance:
             {
                 float h = item.Width * 0.5f;
-                Polygon(p, Colour(item.Role, a), item.X - h, item.Y - h, item.X + h, item.Y - h, item.X + h, item.Y + h, item.X - h, item.Y + h);
-                Line(p, Colour(Plan.Role.TrackCasing, a), Plan.StrokeNormal * 0.6f, item.X - h, item.Y - h, item.X + h, item.Y - h,
+                // Suggested entrance targets are hollow; spray stripes are a separate lifecycle state.
+                if (item.Marks != Plan.Marks.None) Polygon(p, Colour(item.Role, a), item.X - h, item.Y - h, item.X + h, item.Y - h, item.X + h, item.Y + h, item.X - h, item.Y + h);
+                Line(p, Colour(item.Role, a), Plan.StrokeNormal * 0.6f, item.X - h, item.Y - h, item.X + h, item.Y - h,
                     item.X + h, item.Y + h, item.X - h, item.Y + h, item.X - h, item.Y - h);
                 break;
             }

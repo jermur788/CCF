@@ -20,6 +20,7 @@ public enum LegendKind
 
 public sealed class LegendEntry
 {
+    public string Group = "Already on the ground";
     public LegendKind Kind;
     public string Text;
     public MapSymbol Symbol;
@@ -69,9 +70,17 @@ public static class StandMapLegend
         if (planned) Symbol(LegendKind.Band, MapSymbol.RackPlanned, "Rack in the Work Plan");
         if (open) Symbol(LegendKind.Band, MapSymbol.RackOpen, "Rack harvested, corridor open");
         if (other) Symbol(LegendKind.Band, MapSymbol.RackOther, "Your rack, off the planned layout");
-        if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, Meaning(MapSymbol.Path));
-        if (model.ExistingHeadlandSurfaces.Count > 0)
-            Symbol(LegendKind.Line, MapSymbol.Path, "Existing V2 headland / feeder — not a planned rack");
+        if (model.Racks.Exists(r => r.RackId > 0)) {
+            Symbol(LegendKind.Ring,MapSymbol.RackEntrance,"Hollow entrance target · not field marked");
+            if (model.Racks.Exists(r => r.EntranceMarked)) Symbol(LegendKind.Dot,MapSymbol.RackEntrance,"Filled entrance · actually field marked, not felled");
+        }
+        if (model.Paths.Count > 0) Symbol(LegendKind.Line, MapSymbol.Path, model.ExistingHeadlandSurfaces.Count > 0 ? "Forest track · south gate to junction" : Meaning(MapSymbol.Path));
+        if (model.ExistingHeadlandSurfaces.Count > 0) {
+            Symbol(LegendKind.Line, MapSymbol.OldPath, "Old path · junction to clearing (same original route)");
+            Symbol(LegendKind.Line, MapSymbol.Headland, "Existing headland · pale solid band");
+            Symbol(LegendKind.Line, MapSymbol.LinkTrack, "Link track · dashed centre; already here when you took over");
+        }
+        if (model.TeachingFrame.HasValue) Symbol(LegendKind.Line, MapSymbol.TeachingArea, "Teaching area for Objectives 2–5 · Near at headland / Middle / Far into stand; left/right looking into rack");
         if (model.Landmarks.Count > 0) Symbol(LegendKind.Patch, MapSymbol.Landmark, "Existing clearing");
         Symbol(LegendKind.Line, MapSymbol.Property, "Property boundary");
         Symbol(LegendKind.Line, MapSymbol.GridLine, "Local grid, " + StandMapGridPlan.StepM(model.SizeM) + " m (east, north)");
@@ -120,6 +129,11 @@ public static class StandMapLegend
                 if (crop) Symbol(LegendKind.Ring, MapSymbol.TreeMarkCrop, Meaning(MapSymbol.TreeMarkCrop));
                 break;
         }
+        foreach (var e in list) {
+            if(e.Symbol == MapSymbol.RackHarvested || e.Symbol == MapSymbol.RackOpen || e.Kind == LegendKind.Stump) e.Group="Done";
+            else if (e.Kind == LegendKind.Band || e.Symbol == MapSymbol.TreeMarkFell || e.Symbol == MapSymbol.TreeMarkCrop || e.Symbol == MapSymbol.Waypoint) e.Group="Your plan";
+        }
+        list.Sort((a,b) => GroupOrder(a.Group).CompareTo(GroupOrder(b.Group)));
         return list;
     }
 
@@ -136,6 +150,8 @@ public static class StandMapLegend
             default: return "Other broadleaf";
         }
     }
+
+    private static int GroupOrder(string group) => group == "Already on the ground" ? 0 : group == "Your plan" ? 1 : 2;
 
     private static string Capitalise(string text) => string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
 }

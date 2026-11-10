@@ -389,6 +389,7 @@ public sealed class StandMapSource
                     // A rack with executed removals is locked and shown as harvested; every other player rack is the solid amber one.
                     Symbol = rack.IsLocked ? MapSymbol.RackHarvested : MapSymbol.RackPlayer,
                     RackId = rack.Id,
+                    EntranceMarked = rack.EntranceMarked,
                     Locked = rack.IsLocked,
                     // The minimap's solid lines are the confirmed plan, and executed work is always real; a draft rack is planning only.
                     FullOnly = !confirmed && !rack.IsLocked,

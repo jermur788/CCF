@@ -46,7 +46,13 @@ public sealed class StandMapSwatch : VisualElement
                     p.strokeColor = ToColor(edge.Colour); p.lineWidth = 7.4f; p.lineCap = LineCap.Butt; p.BeginPath(); p.MoveTo(new Vector2(0, mid)); p.LineTo(new Vector2(w, mid)); p.Stroke();
                     p.strokeColor = ToColor(s.Colour); p.lineWidth = 4.8f; p.BeginPath(); p.MoveTo(new Vector2(0, mid)); p.LineTo(new Vector2(w, mid)); p.Stroke();
                 }
-                else Stroke(p, s, mid, w, Mathf.Max(s.MinPx, 1.6f));
+                else {
+                    if (entry.Symbol == MapSymbol.LinkTrack || entry.Symbol == MapSymbol.OldPath) {
+                        var backing = StandMapSymbols.Get(entry.Symbol == MapSymbol.LinkTrack ? MapSymbol.Headland : MapSymbol.Path);
+                        Stroke(p,backing,mid,w,6f);
+                    }
+                    Stroke(p, s, mid, w, Mathf.Max(s.MinPx, 1.6f));
+                }
                 break;
             case LegendKind.Patch:
                 p.fillColor = ToColor(s.Fill); p.BeginPath(); p.MoveTo(new Vector2(4, 3)); p.LineTo(new Vector2(w - 4, 3)); p.LineTo(new Vector2(w - 4, h - 3)); p.LineTo(new Vector2(4, h - 3)); p.ClosePath(); p.Fill();
@@ -152,8 +158,10 @@ public sealed class StandMapLegendView
         body.Clear();
         List<LegendEntry> entries = StandMapLegend.Entries(model, overlay, rackPlanningV2);
         RowCount = entries.Count;
+        string group = null;
         foreach (LegendEntry entry in entries)
         {
+            if (group != entry.Group) { group = entry.Group; UiKit.Add(body, group, "heading"); }
             VisualElement row = UiKit.Box("map-legend-row");
             if (entry.Kind == LegendKind.Ramp) row.AddToClassList("map-legend-row-wide");
             row.Add(new StandMapSwatch(entry, CrownFor(entry)));
