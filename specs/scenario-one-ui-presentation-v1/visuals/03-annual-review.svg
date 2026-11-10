@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="CCF UI implementation reference diagram">
+<defs><linearGradient id="forest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#244637"/><stop offset="1" stop-color="#071e19"/></linearGradient><linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#163b30"/><stop offset="1" stop-color="#081e18"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#canvas)"/>
+<rect x="0" y="0" width="1600" height="105" rx="0" fill="#0a201b" stroke="none" stroke-width="1"/>
+<text x="30" y="43" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="29" font-weight="800">C · Annual Review / completed year</text>
+<text x="30" y="75" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="450">Descriptive headings only; recorded results first, details and history below</text>
+<line x1="30" y1="90" x2="1570" y2="90" stroke="#47705f" stroke-width="2"/>
+<rect x="30" y="113" width="1540" height="65" rx="12" fill="#14382f" stroke="#47705f" stroke-width="2"/>
+<rect x="47" y="124" width="210" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="61" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Objectives</text>
+<rect x="268" y="124" width="215" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="282" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Stand Map</text>
+<rect x="494" y="124" width="219" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="508" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Work Plan</text>
+<rect x="725" y="124" width="327" height="43" rx="8" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<text x="739" y="153" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="760">Annual Review · current</text>
+<text x="1270" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="700">Year 2  |  Cash €12,000</text>
+<rect x="30" y="197" width="1540" height="80" rx="10" fill="#194b3e" stroke="#47705f" stroke-width="2"/>
+<text x="53" y="231" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="27" font-weight="760">Annual Review · Year 2 complete</text>
+<text x="53" y="259" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">Earlier year  ◀     Latest year  ▶     Show data sources: OFF</text>
+<rect x="30" y="301" width="500" height="230" rx="11" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<rect x="30" y="301" width="500" height="57" rx="11" fill="#14382f" stroke="none" stroke-width="1"/>
+<text x="50" y="337" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="25" font-weight="750">Work done</text>
+<text x="50" y="393" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Completed operations: {recorded}</text>
+<text x="50" y="437" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Trees felled / retained: {recorded}</text>
+<text x="50" y="481" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Work that did not happen: {status}</text>
+<rect x="545" y="301" width="500" height="230" rx="11" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<rect x="545" y="301" width="500" height="57" rx="11" fill="#14382f" stroke="none" stroke-width="1"/>
+<text x="565" y="337" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="25" font-weight="750">Money</text>
+<text x="565" y="393" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Timber income: {annual report}</text>
+<text x="565" y="437" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Work + material costs: {annual report}</text>
+<text x="565" y="481" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Net for the year: {derived from report}</text>
+<rect x="1060" y="301" width="510" height="230" rx="11" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<rect x="1060" y="301" width="510" height="57" rx="11" fill="#14382f" stroke="none" stroke-width="1"/>
+<text x="1080" y="337" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="25" font-weight="750">Forest changes</text>
+<text x="1080" y="393" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Regeneration: {recorded snapshot}</text>
+<text x="1080" y="437" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Deadwood: {recorded snapshot}</text>
+<text x="1080" y="481" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="500">Canopy / growing stock: {if recorded}</text>
+<rect x="30" y="548" width="1540" height="186" rx="11" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<text x="50" y="583" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="23" font-weight="760">Detailed record for this year</text>
+<text x="50" y="615" fill="#355644" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Operations   •   Money details   •   Forest record   •   History   •   Trends</text>
+<text x="50" y="650" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Only render supported metrics and correct historical-year values.</text>
+<text x="50" y="680" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">If an ecological snapshot is missing, say “Not recorded”; never borrow a current value.</text>
+<rect x="30" y="752" width="1540" height="109" rx="11" fill="#14382f" stroke="#47705f" stroke-width="2"/>
+<text x="48" y="790" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Back to forest [Esc] remains available, even before acknowledgement.</text>
+<rect x="1165" y="772" width="380" height="65" rx="8" fill="#d5dec5" stroke="none" stroke-width="1"/>
+<text x="1185" y="812" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="20" font-weight="760">I've read the annual results</text>
+<text x="52" y="831" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">For earlier years: read-only, no acknowledgement; choose latest year to acknowledge.</text>
+<text x="30" y="887" fill="#d6ccb5" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">SCHEMATIC ONLY · example values/labels · bind every value/action to the current game · not a Unity screenshot</text>
+</svg>
