@@ -15,7 +15,7 @@
 - [ ] R11 Optional on-tree share overlay evaluated in live 3D, recorded included/omitted verdict.
 - [ ] R12 1280×720 and 1920×1080 real Unity colour/grayscale evidence readable, including long text and busy forest.
 - [ ] R13 Legacy40/frozen Reference Future v1 remain protected; no save/schema/ecology/marking/economy changes.
-- [ ] R15 Small top-right global status strip shows accurate current Year/cash/general context without duplicating another bulky status panel.
-- [ ] R16 Any numeric ecological proxy is explicitly defined, sourced and explained; no unapproved whole-biodiversity score or invented pseudo-precision is displayed.
-- [ ] R17 720p status strip coexists with default inspector card, objective cue and bottom action bar without collision.
-- [ ] R14 Focused Tier 2 handoff- [ ] R14 Focused Tier 2 handoff + independent/Manager disposition is published; full-programme Tier 3 not represented as done.
+- [ ] R14 Focused Tier 2 handoff + independent/Manager disposition is published; full-programme Tier 3 not represented as done.
+- [ ] R15 Small top-right status strip uses existing current Year/cash data; optional browsing band/phase is accurate and useful; no new simulation metrics.
+- [ ] R16 No numerical biodiversity, habitat, ecological-health, unapproved composite or placeholder score appears. Existing ecological facts retain their units/meanings in appropriate views.
+- [ ] R17 The strip fits at 720p with inspection card, objective and bottom keycap bar without overlap.
