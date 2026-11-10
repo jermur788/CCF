@@ -14,6 +14,10 @@ Independently determine whether the finished integrated HUD, menu shell, Work Pl
 - Spec: https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/spec.md
 - Checklist: https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/checklists/requirements.md
 
+## User's latest preferred visual reference
+
+The user supplied an additional image at 19:40 UTC and explicitly prefers it to the earlier posters. **When an exact copy is available**, compare the implemented UI's visual coherence to it as the foremost style reference, while judging controls and gameplay semantics against the approved four-file specification and true Unity/source state. The new inline image has **no verified Git/local asset path** in this packet, so source-only and earlier-poster review remain meaningful if it cannot be obtained; mark this comparison **NOT INSPECTED** rather than PASS. Do not fail Sol solely for lack of an inaccessible image, and do not allow illustrative controls/numbers to outrank the game.
+
 ## Supplemental three-poster style review
 
 **Reference addendum:** https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/visuals/POSTER-SUPPLEMENT-AND-ERRATA.md. The three user-supplied 2× PNGs are visual-finish references, not Unity proof. User-reported directory: `/media/jer/Files/CCF/Verification/CCF-362-FableUXReview-20261110/spec-posters/`; verify actual existence and file hashes or mark NOT INSPECTED. Review the added visual consistency but **reject mockup content inconsistencies**: `[F]` vs real `[X]`, impossible competition arithmetic, Fell mark plus ungrounded “No change yet,” fabricated Year/Cash/net/canopy/regeneration, unverified ring-bark jobs, Work Plan commitment/advance changes and Annual Review “Continue to Year 6” button. A cleanly implemented source-first correction is not a failure to follow the poster.
