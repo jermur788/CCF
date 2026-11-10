@@ -103,6 +103,56 @@ public static class UiKit
         return chip;
     }
 
+    // Existing menu routes in one order. Named guidance controls are passed through unchanged.
+    public static VisualElement MenuNavigation(ScenarioOneUiRoot ui, string current,
+        Button map = null, Button work = null, Button forest = null)
+    {
+        VisualElement nav = Box("menu-navigation", "row-wrap");
+        nav.name = "menu-navigation";
+        var objectives = Button("Objectives [O]", () => ui.ShowObjectives());
+        map = map ?? Button("Stand Map [M]", () => ui.ShowMap());
+        work = work ?? Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
+        var review = Button("Annual Review", () => ui.ShowReview());
+        map.text = "Stand Map [M]";
+        work.text = "Work Plan [Tab]";
+        var destinations = new[] { objectives, map, work, review };
+        var names = new[] { "Objectives", "Stand Map", "Work Plan", "Annual Review" };
+        for (int i = 0; i < destinations.Length; i++)
+        {
+            if (names[i] == current) { destinations[i].AddToClassList("btn-selected"); destinations[i].SetEnabled(false); }
+            nav.Add(destinations[i]);
+        }
+        nav.Add(Button("Help [F1]", () => ui.ShowCurrentHelp()));
+        forest = forest ?? Button("Back to forest [Esc]", () => ui.CloseAll());
+        forest.text = "Back to forest [Esc]";
+        nav.Add(forest);
+        return nav;
+    }
+
+    // Prompts remain labels: a locked-cursor player cannot click them. Keys are taken from
+    // the live handlers' existing prompt strings; duplicate menu keys occupy only one slot.
+    public static void KeyPrompts(VisualElement parent, string text, bool suppressMarking = false)
+    {
+        parent.Clear();
+        var seen = new System.Collections.Generic.HashSet<string>();
+        var matches = System.Text.RegularExpressions.Regex.Matches(text ?? "", @"\[([^\]]+)\]");
+        if (matches.Count == 0) { Add(parent, text ?? "", "muted"); return; }
+        if (matches[0].Index > 0) Add(parent, text.Substring(0, matches[0].Index).Trim(' ', '·', '|'), "context-note");
+        for (int i = 0; i < matches.Count; i++)
+        {
+            string key = matches[i].Groups[1].Value;
+            if (suppressMarking && (key == "X" || key == "C")) continue;
+            if (!seen.Add(key)) continue;
+            int start = matches[i].Index + matches[i].Length;
+            int end = i + 1 < matches.Count ? matches[i + 1].Index : text.Length;
+            VisualElement item = Box("key-control", "row");
+            Add(item, key, "keycap");
+            Add(item, text.Substring(start, end - start).Trim(' ', '·', '|', '\n'), "key-verb");
+            parent.Add(item);
+        }
+        foreach (VisualElement child in parent.Query<VisualElement>().ToList()) child.pickingMode = PickingMode.Ignore;
+    }
+
     public static string Money(long cents) => ScenarioOneManager.FormatMoney(cents);
     public static string SignedMoney(long cents) => (cents > 0 ? "+" : cents < 0 ? "−" : "") + ScenarioOneManager.FormatMoney(Math.Abs(cents));
     public static string F(float value, string format) => value.ToString(format, Inv);

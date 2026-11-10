@@ -22,6 +22,7 @@ public sealed class WorkPlanView
     public bool ConfirmingAdvance => confirmingAdvance;
     private int purchaseQuantity = 5;
     // Extraction racks whose trees are listed one by one (a rack is one line until opened).
+    private readonly HashSet<string> expandedSections = new HashSet<string>();
     private readonly HashSet<int> expandedRacks = new HashSet<int>();
     private string shownSignature = "";
 
@@ -39,16 +40,14 @@ public sealed class WorkPlanView
         owner = UiKit.Add(left, "", "subtitle");
         header.Add(left);
         VisualElement right = UiKit.Box("row", "screen-actions");
-        cash = UiKit.Add(right, "", "money", "title");
-        right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
-        right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
-        right.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
-        right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
-        right.Add(UiKit.Button("Back to forest", () => ui.CloseAll()));
+        cash = UiKit.Add(right, "", "money", "menu-current-status");
+        cash.name = "menu-current-status";
         header.Add(right);
         modal.Add(header);
+        modal.Add(UiKit.MenuNavigation(ui, "Work Plan"));
+        UiKit.Add(modal, "1  Review proposed work    →    2  Approve Work Plan    →    3  Advance one year", "plan-steps");
 
-        UiKit.Add(modal, "Your marks and planting spots join this plan when you open it. Review each job and its cost, then approve the plan; Advance one year carries out what you approved. Remove a job here, or add more in the forest.", "muted");
+        UiKit.Add(modal, "Marks and planting spots join this draft when you open it. Review the quote and job groups; approval commits eligible pending work. The separate year advance executes approved work.", "muted");
         summary = UiKit.Add(modal, "", "body");
         UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 
@@ -129,18 +128,16 @@ public sealed class WorkPlanView
         float scrollY = scroll.scrollOffset.y;
 
         ScenarioOneManager.WorkPlanSummary totals = m.GetWorkPlanSummary();
-        title.text = $"Work Plan · Year {m.CurrentEcologicalYear}";
-        cash.text = UiKit.Money(m.CashCents);
+        title.text = "Work Plan";
+        cash.text = $"Current Year {m.CurrentEcologicalYear} · Cash {UiKit.Money(m.CashCents)}";
         owner.text = $"Your time next year: {ScenarioOneManager.FormatMinutes(m.PlannedOwnerMinutes)} planned of "
             + $"{ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}";
-        summary.text = $"{totals.OpenCount} open task(s), {totals.ApprovedCount} approved · external cost {UiKit.Money(totals.ExternalCostCents)} · "
-            + $"expected timber {UiKit.Money(totals.ExpectedRevenueCents)} · net {UiKit.SignedMoney(totals.ExpectedRevenueCents - totals.ExternalCostCents)} · "
-            + $"cash after approved work {UiKit.Money(m.CashCents - m.ReservedContractorCashCents)}";
+        summary.text = $"Proposed work · {totals.OpenCount - totals.ApprovedCount} pending · {totals.ApprovedCount} approved. Open a group to edit or remove jobs.";
 
         scroll.Clear();
+        WorkPlanOverview.Build(scroll, ui);
         BuildOrderGroups(m);
         BuildRacks(m);
-        WorkPlanOverview.Build(scroll, ui);
         BuildAttention(m);
         BuildHarvest(m);
         BuildPlanting(m);
@@ -176,11 +173,11 @@ public sealed class WorkPlanView
         footer.Add(advance);
         if (ui.NeedsAnnualReview)
         {
-            Button results = UiKit.Button("Read first annual results to continue", () => ui.ShowReview(), true, "btn-primary");
+            Button results = UiKit.Button("Read annual results to continue", () => ui.ShowReview(), true, "btn-primary");
             results.name = "workplan-read-results";
             footer.Add(results);
         }
-        footer.Add(UiKit.Button("Close [Tab]", () => ui.CloseAll()));
+        footer.Add(UiKit.Button("Back to forest [Esc]", () => ui.CloseAll()));
         if (confirmingAdvance) ScenarioOneUiRoot.ClearPromptFocus(Root);
         ui.RefreshNextActionGuidance();
     }
@@ -203,10 +200,12 @@ public sealed class WorkPlanView
 
     private VisualElement Card(string heading, string sub = null)
     {
-        VisualElement card = UiKit.Box("card");
-        UiKit.Add(card, heading, "heading");
+        VisualElement shell = UiKit.Box("card", "work-section");
+        var card = new Foldout { text = heading, value = expandedSections.Contains(heading) };
+        card.RegisterValueChangedCallback(e => { if (e.newValue) expandedSections.Add(heading); else expandedSections.Remove(heading); });
+        shell.Add(card);
         if (!string.IsNullOrEmpty(sub)) UiKit.Add(card, sub, "muted");
-        scroll.Add(card);
+        scroll.Add(shell);
         return card;
     }
 

@@ -25,7 +25,7 @@ public static class ControlsReference
     {
         new[] { "W A S D", "Walk. Hold Shift to run, Space to jump" },
         new[] { "Mouse", "Look around. Esc frees the mouse; click to take it back" },
-        new[] { "E", "Inspect the tree or object you are looking at. V on the card shows more detail" },
+        new[] { "E", "Inspect the tree or object you are looking at. V cycles detail pages; Shift+V returns to the previous page" },
         new[] { "Left-click", "Also inspects the tree you look at; after Esc the first click only retakes the mouse" },
         new[] { "B", "Access rack: click a start, aim forward, click to add; right-click reselects, Esc cancels" },
         new[] { "X", "Mark the tree for felling: a proposal only. X again removes the mark" },
@@ -44,6 +44,6 @@ public static class ControlsReference
 
     // The same controls as one line, for the full Walking HUD help.
     public const string KeysLine =
-        "Keys: B extraction rack · E or left-click inspect a tree · V more detail · X mark for felling · C mark a Crop Tree · 1–5 show a Crop Tree's competitors · "
+        "Keys: B extraction rack · E or left-click inspect a tree · V next detail page · Shift+V previous page · X mark for felling · C mark a Crop Tree · 1–5 show a Crop Tree's competitors · "
         + "G planting mode · U plan clearance · M Stand Map · Tab Work Plan · O Learning objectives · F1 Help · F5 / F9 Save / Load · F10 Session menu.";
 }

@@ -14,9 +14,10 @@ public sealed class WalkingHudView
     public ActiveObjectiveHudWidget ObjectiveWidget { get; }
     private float nextObjectiveRefresh;
     // The key hint for planting appears when the Work Plan offers planting (the G key itself always works).
-    private bool plantingOffered;
 
-    private readonly Label statusTitle, cash, browse, access, waypoint;
+    private readonly Label statusTitle, cash, waypoint;
+    private readonly VisualElement contextActions;
+    private string shownControls = "";
     private readonly VisualElement waypointPanel;
     private readonly Label waypointDirection;
     private readonly WaypointArrow waypointArrow;
@@ -47,23 +48,17 @@ public sealed class WalkingHudView
         RightColumn = UiKit.Box("hud-right");
         RightColumn.name = "hud-right-column";
         ObjectiveWidget = new ActiveObjectiveHudWidget(() => ui.ShowObjectives());
-        RightColumn.Add(ObjectiveWidget.Root);
-        VisualElement status = statusPanel = UiKit.Box("panel", "hud-status");
-        statusTitle = UiKit.Add(status, "", "heading");
-        VisualElement cashRow = UiKit.Row(status, "spread");
-        cashRow.Add(UiKit.Text("Cash", "body"));
-        cash = UiKit.Add(cashRow, "", "money");
-        browse = UiKit.Add(status, "", "body");
-        access = UiKit.Add(status, "", "muted");
-        VisualElement menuButtons = UiKit.Row(status, "row-wrap");
-        Button mapButton = UiKit.Button("Map [M]", () => ui.ShowMap());
-        Button objectivesButton = UiKit.Button("Objectives [O]", () => ui.ShowObjectives());
-        Button helpButton = UiKit.Button("Help [F1]", () => ui.ShowCurrentHelp());
-        menuButtons.Add(mapButton);
-        menuButtons.Add(objectivesButton);
-        menuButtons.Add(helpButton);
+        VisualElement objective = UiKit.Box("hud-objective");
+        objective.Add(ObjectiveWidget.Root);
+        Root.Add(objective);
+        VisualElement status = statusPanel = UiKit.Box("panel", "hud-status", "spread");
+        statusTitle = UiKit.Add(status, "", "body");
+        cash = UiKit.Add(status, "", "money");
         RightColumn.Add(status);
         Root.Add(RightColumn);
+        contextActions = UiKit.Box("panel", "context-actions", "row-wrap");
+        contextActions.name = "hud-context-actions";
+        Root.Add(contextActions);
 
         waypointPanel = UiKit.Box("panel", "hud-waypoint", "row");
         waypointPanel.name = "hud-waypoint-panel";
@@ -122,7 +117,7 @@ public sealed class WalkingHudView
         rackPanel.name = "hud-rack-panel";
         rackPanel.style.position = Position.Absolute;
         rackPanel.style.left = 14;
-        rackPanel.style.top = 14;
+        rackPanel.style.top = 210;
         rackPanel.style.width = TreeInspectionView.ColumnWidth;
         rackPanel.style.display = DisplayStyle.None;
         rackHeading = UiKit.Add(rackPanel, "Extraction rack", "rack-heading");
@@ -137,16 +132,12 @@ public sealed class WalkingHudView
         Root.Add(minimap.Root);
 
         foreach (VisualElement e in Root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
-        helpButton.pickingMode = PickingMode.Position;
-        mapButton.pickingMode = PickingMode.Position;
-        objectivesButton.pickingMode = PickingMode.Position;
+
     }
 
     // The action prompt under the reticle is centred and can be wide; while a tree is inspected the side columns are open, so the
     // UI root narrows it to the space between them (it wraps instead of running under a column).
     public void SetPromptMaxWidth(float width) => prompt.style.maxWidth = width;
-
-    private int hudEventCount = -1, hudInterventions;
 
     // The status panel (year, cash, browsing, key hints) steps aside while the competitor list is open: that list is the tallest thing in the right
     // column and needs the room, the objective widget above stays, and the bottom bar repeats the key hints. Presentation only.
@@ -164,35 +155,15 @@ public sealed class WalkingHudView
         ForestTreeMarkingManager marks = ui.Marking;
 
         minimap.Refresh();
-        string phase = m.Outcome == ScenarioOneOutcome.Completed ? "objectives met"
-            : m.Outcome == ScenarioOneOutcome.Failed ? "failed" : "planning";
-        // The intervention count is derived from the recorded events; recompute it only when they change.
-        if (m.ManagementEvents.Count != hudEventCount)
-        {
-            hudEventCount = m.ManagementEvents.Count;
-            hudInterventions = m.Interventions.Count;
-        }
-        statusTitle.text = $"Scenario One · Year {m.CurrentEcologicalYear} · {phase}"
-            + (hudInterventions > 0 ? $" · {hudInterventions} intervention{(hudInterventions == 1 ? "" : "s")}" : "");
-        cash.text = UiKit.Money(m.CashCents);
+        statusTitle.text = $"Year {m.CurrentEcologicalYear}";
+        cash.text = "Cash " + UiKit.Money(m.CashCents);
         // The objective only changes when the teaching facts do (they are read about four times a second), so the panel is not rebuilt every frame.
         if (Time.unscaledTime >= nextObjectiveRefresh)
         {
             nextObjectiveRefresh = Time.unscaledTime + 0.25f;
             ObjectiveWidget.Apply(ui.Learning.HudModel());
-            plantingOffered = WorkPlanView.PlantingOffered(ui);
         }
-        int effective = 0, expired = 0;
-        if (eco != null)
-            foreach (BrowseShelter shelter in eco.Browsing.Shelters)
-            {
-                if (shelter == null) continue;
-                if (shelter.IsEffective(eco.EcologicalYear + 1)) effective++; else expired++;
-            }
         string band = eco != null ? BrowsingConditions.PressureBand(eco.Browsing.BackgroundPressure) : "none";
-        browse.text = $"Deer browsing: {band} · shelters {effective} effective" + (expired > 0 ? $", {expired} expired/failed" : "");
-        int open = m.WorkOrders.Count(o => o.IsOpen);
-        access.text = $"[M] Stand map   ·   [Tab] Work Plan ({open} task{(open == 1 ? "" : "s")})";
         waypoint.text = ui.Map.WaypointDescription(player != null ? player.transform.position : Vector3.zero);
         Vector2 target = default;
         bool rackDestination = false;
@@ -204,8 +175,7 @@ public sealed class WalkingHudView
             float distance = Vector2.Distance(target, new Vector2(player.transform.position.x, player.transform.position.z));
             waypoint.text = $"Rack {fieldRack.Id} entrance · {distance:0} m";
         }
-        else if (marks != null && !string.IsNullOrEmpty(marks.RackFieldStatus))
-            access.text += "\n" + marks.RackFieldStatus;
+
         waypointPanel.style.display = hasWaypoint ? DisplayStyle.Flex : DisplayStyle.None;
         if (hasWaypoint)
         {
@@ -223,7 +193,12 @@ public sealed class WalkingHudView
                     : bearing < 0f ? "Turn left" : "Turn right") + " · [M] Change destination";
         }
         // Transient messages get their own row below the navigation panel.
-        messageBox.style.top = hasWaypoint ? 100f : 14f;
+        VisualElement objectivePanel = ObjectiveWidget.Root;
+        float objectiveBottom = objectivePanel.worldBound.yMax - Root.worldBound.yMin;
+        float scale = Root.worldBound.width > 0 ? Root.layout.width / Root.worldBound.width : 1f;
+        waypointPanel.style.top = (objectiveBottom + 10f) * scale;
+        rackPanel.style.top = (objectiveBottom + 10f) * scale;
+        if (hasWaypoint && ui.RackTool != null && ui.RackTool.Active) rackPanel.style.top = (objectiveBottom + 100f) * scale;
 
         bool locked = UnityEngine.Cursor.lockState == CursorLockMode.Locked;
         reticle.style.display = locked ? DisplayStyle.Flex : DisplayStyle.None;
@@ -250,11 +225,14 @@ public sealed class WalkingHudView
         // One prompt: the player's action line, refined by the mark prompt.
         string action = player != null && locked ? player.InteractionPromptText() : "";
         // During the opening rack stage the prompt points at racks; selective marking is introduced once the racks are open.
-        bool rackStage = ui.Learning.TeachingRacks;
+        bool rackStage = m.RackFirstStageActive || ui.Learning.TeachingRacks;
         RackTool rackTool = ui.RackTool;
         bool racking = rackTool != null && rackTool.Active;
         if (racking)
+        {
+            FillRackPanel(rackTool);
             action = "";
+        }
         else if (marks != null && marks.AimedTree != null && player != null && player.AimedTree != null && player.AimedTree.CanChop)
             action = rackStage ? ui.Manager.RackPlanningV2Active
                 ? "[E] Inspect   ·   [M] Stand Map · Plan Racks   ·   [Tab] Plan"
@@ -262,8 +240,16 @@ public sealed class WalkingHudView
                 : "[E] Inspect   ·   " + marks.MarkPromptText() + "   ·   [Tab] Plan";
         if (marks != null && marks.RackSprayEquipped && locked)
             action = marks.RackSprayFeedbackActive ? "Sprayed orange · four sides marked" : marks.RackSprayPrompt();
-        prompt.text = action;
-        prompt.style.display = string.IsNullOrEmpty(action) ? DisplayStyle.None : DisplayStyle.Flex;
+        // The contextual controls now occupy one bottom bar, leaving the reticle clear.
+        bool inspecting = player != null && player.InspectedTree != null;
+        string controls = inspecting ? ui.Inspection.ControlHints : racking ? rackKeys.text
+            : action + (string.IsNullOrEmpty(action) ? "" : " · ")
+                + "[O] Objectives · [M] Stand Map · [Tab] Work Plan";
+        if (!locked) controls = "[Click] Resume looking · [O] Objectives · [M] Stand Map · [Tab] Work Plan";
+        controls += m.RackFirstStageActive ? " " : "";
+        if (controls != shownControls) { shownControls = controls; UiKit.KeyPrompts(contextActions, controls, m.RackFirstStageActive); }
+        prompt.text = "";
+        prompt.style.display = DisplayStyle.None;
 
         string note = rackTool != null && !string.IsNullOrEmpty(rackTool.Notice) ? rackTool.Notice
             : marks != null && !string.IsNullOrEmpty(marks.TransientMessage) ? marks.TransientMessage
@@ -277,17 +263,16 @@ public sealed class WalkingHudView
         promptBox.style.display = string.IsNullOrEmpty(action) && string.IsNullOrEmpty(bar) ? DisplayStyle.None : DisplayStyle.Flex;
 
         rackPanel.style.display = racking ? DisplayStyle.Flex : DisplayStyle.None;
-        if (racking) FillRackPanel(rackTool);
         if (marks != null)
         {
             markSummary.text = rackStage ? RackStageSummary(marks)
                 : $"Marked: FELL {marks.LivingMarkedCount} (red)  ·  CROP TREE {marks.LivingCropTreeCount} (blue)  ·  "
-                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³      [X] Fell  [C] Crop" + (plantingOffered ? "  [G] Plant" : "");
+                + $"fell volume {UiKit.F(marks.MarkedVolumeM3, "0.0")} m³";
             treatment.text = marks.TreatmentOutcome ?? "";
             treatment.style.display = string.IsNullOrEmpty(treatment.text) ? DisplayStyle.None : DisplayStyle.Flex;
             cropForecast.text = CropForecast(ui.Competitors != null ? ui.Competitors.Summary : null);
             cropForecast.style.display = string.IsNullOrEmpty(cropForecast.text) ? DisplayStyle.None : DisplayStyle.Flex;
-            forecastPanel.style.display = treatment.style.display == DisplayStyle.Flex || cropForecast.style.display == DisplayStyle.Flex
+            forecastPanel.style.display = !inspecting && (treatment.style.display == DisplayStyle.Flex || cropForecast.style.display == DisplayStyle.Flex)
                 ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
@@ -296,11 +281,9 @@ public sealed class WalkingHudView
     private string RackStageSummary(ForestTreeMarkingManager marks)
     {
         RackLayoutTracker layout = ui.RackLayout;
-        string text = ui.Manager.RackPlanningV2Active
-            ? layout.V2CounterText + "  ·  [M] Stand Map · Plan Racks  ·  [Tab] Work Plan"
-            : layout != null && layout.Total > 0
-            ? $"Extraction racks: {layout.Done} of {layout.Total} in the Work Plan  ·  [B] Create rack  ·  [M] Plan on the Stand Map  ·  [Tab] Work Plan"
-            : "[B] Create an extraction rack  ·  [Tab] Work Plan";
+        string text = ui.Manager.RackPlanningV2Active ? layout.V2CounterText
+            : layout != null && layout.Total > 0 ? $"Extraction racks: {layout.Done} of {layout.Total} in the Work Plan"
+            : "Create extraction racks before selective marking.";
         if (marks.LivingMarkedCount > 0 || marks.LivingCropTreeCount > 0)
             text += $"  ·  marks: FELL {marks.LivingMarkedCount}, CROP {marks.LivingCropTreeCount}";
         return text;
@@ -341,6 +324,7 @@ public sealed class WalkingHudView
         }
         rackNote.text = notes;
         rackNote.style.display = string.IsNullOrEmpty(notes) ? DisplayStyle.None : DisplayStyle.Flex;
+        rackKeys.style.display = DisplayStyle.None;
         rackKeys.text = tool.HasOrigin ? "[Aim / wheel] Pivot from start   [Click / Enter] Add rack   [Right-click] New start   [Esc / B] Cancel"
             : "[Click / Enter] Fix this start   [Esc / B] Cancel";
     }
@@ -355,7 +339,7 @@ public sealed class WalkingHudView
             return "Crop Trees: none chosen yet. Keep trees with [C] to see how your Fell marks affect them.";
         int change = Mathf.RoundToInt(summary.ChangeFraction * 100f);
         string signed = (change > 0 ? "+" : change < 0 ? "−" : "") + Mathf.Abs(change).ToString(UiKit.Inv) + " %";
-        return $"Crop Trees {summary.CropTrees}: competition around them {UiKit.F(summary.MeanCompetitionNow, "0.00")} → "
+        return $"Open felling-job estimate · Crop Trees {summary.CropTrees}: competition around them {UiKit.F(summary.MeanCompetitionNow, "0.00")} → "
             + $"{UiKit.F(summary.MeanCompetitionAfter, "0.00")} ({signed}) · {summary.CropTreesReleased} lose at least a tenth · "
             + $"Fell marks within 8 m of a Crop Tree: {summary.PlannedNearACropTree} of {summary.PlannedFells}"
             + (summary.PlannedNearSeveralCropTrees > 0 ? $" ({summary.PlannedNearSeveralCropTrees} near more than one)" : "");

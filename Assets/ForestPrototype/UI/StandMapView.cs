@@ -86,22 +86,19 @@ public sealed class StandMapView
         VisualElement modal = UiKit.Box("panel", "modal", "modal-map");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Stand map", "title");
-        VisualElement buttons = UiKit.Box("row");
-        buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
-        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
-        Button work = UiKit.Button("Work Plan", () => ui.ShowWorkPlan());
+        UiKit.Add(header, "Stand Map", "title");
+        VisualElement buttons = UiKit.Box("row", "screen-actions");
+        UiKit.Add(buttons, "", "menu-current-status").name = "menu-current-status";
+        Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
         work.name = "map-work-plan";
-        buttons.Add(work);
-        Button forest = UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary");
+        Button forest = UiKit.Button("Back to forest [Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "map-back-to-forest";
-        buttons.Add(forest);
         var teachingWaypoint = UiKit.Button("Set waypoint to teaching area", () => {
             var bay = ui.Learning.TeachingBay;
             if (bay != null) SetWaypointAtWorld(bay.Geometry.X, bay.Geometry.Z);
         });
         teachingWaypoint.name = "map-teaching-waypoint";
-        buttons.Add(teachingWaypoint);
+        header.Add(UiKit.MenuNavigation(ui, "Stand Map", work: work, forest: forest));
         header.Add(buttons);
         modal.Add(header);
         UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
@@ -196,6 +193,7 @@ public sealed class StandMapView
         body.Add(columnA);
         side = UiKit.Box("card", "map-side");
         VisualElement columnB = UiKit.Box("map-col-b");
+        columnB.Add(teachingWaypoint);
         columnB.Add(side);
         body.Add(columnB);
         modal.Add(body);

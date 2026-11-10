@@ -121,7 +121,6 @@ public static class WorkPlanOverview
             UiKit.Line(card, "Planting, pruning and clearance", UiKit.SignedMoney(-other), "money-negative");
         long net = all.RevenueCents - all.CostCents - other;
         UiKit.Line(card, "Net for planned work", UiKit.SignedMoney(net), net >= 0 ? "money" : "money-negative");
-        UiKit.Line(card, "Cash now", UiKit.Money(m.CashCents));
         UiKit.Line(card, "Expected cash after approved work", UiKit.Money(outlook.ExpectedAfterApproved));
         if (outlook.HasPendingWork)
             UiKit.Line(card, "… if all pending work is approved", UiKit.Money(outlook.ExpectedIfAllApproved));

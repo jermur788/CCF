@@ -141,8 +141,6 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         competitors = new CompetitorAssessment(this, root);
         indicator = new InspectedTreeIndicator();
         root.Add(inspection.Root);
-        root.Add(inspection.CompetitorPanel);
-        root.Add(inspection.EstimatePanel);
         competitors.OccludingPanels.Add(inspection.Root);
         competitors.OccludingPanels.Add(inspection.CompetitorPanel);
         // The objective widget and status panel sit in this column: a numbered tag drawn over their text is unreadable, so it waits behind them too.
@@ -222,7 +220,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         {
             // [V] shows or hides the detail card; the cursor is locked while inspecting, so it is a key, not a button.
             Keyboard keys = Keyboard.current;
-            if (keys != null && keys.vKey.wasPressedThisFrame && !help.IsOpen) inspection.ToggleDetail();
+            if (keys != null && keys.vKey.wasPressedThisFrame && !help.IsOpen)
+                inspection.StepDetail(keys.leftShiftKey.isPressed || keys.rightShiftKey.isPressed ? -1 : 1);
             indicator.Update(player.InspectedTree);
             if (!help.IsOpen)
             {
@@ -247,20 +246,17 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (walking)
         {
             competitors.Update(player != null ? player.InspectedTree : null);
-            hud.Refresh();
             if (player != null && player.InspectedTree != null)
             {
                 inspection.Refresh(player.InspectedTree);
                 PlaceInspectionColumn();
             }
+            hud.Refresh();
         }
         else
             competitors.Clear();
-        hud.ShowStatus(!(inspecting && inspection.ShowsCompetitors));
-        // The minimap steps aside only for the competitor list; the estimate panel clears it horizontally instead.
-        hud.ShowMinimap(!(inspecting && inspection.ShowsCompetitors));
-        PlaceSidePanel(inspection.CompetitorPanel, inspecting && inspection.ShowsCompetitors);
-        PlaceSidePanel(inspection.EstimatePanel, inspecting && inspection.ShowsEstimate, clearsMinimapHorizontally: true);
+        hud.ShowStatus(true);
+        hud.ShowMinimap(!inspecting);
         if (!preview)
         {
             MenuHelpView.Menu context = HelpContext();
@@ -278,6 +274,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (Time.unscaledTime >= nextModalRefresh)
         {
             nextModalRefresh = Time.unscaledTime + 0.25f;
+            foreach (Label status in document.rootVisualElement.Query<Label>("menu-current-status").ToList())
+                status.text = $"Current Year {manager.CurrentEcologicalYear} · Cash {UiKit.Money(manager.CashCents)}";
             if (!preview) learning.Observe();
             if (planOpen) workPlan.Refresh(false);
             if (screen == UiScreen.Review) review.Refresh(false);
@@ -286,45 +284,13 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         }
     }
 
-    // The inspection card and its detail sit top-left. Their height is capped just above the highest panel of the bottom-left
-    // stack (ground report, forecast, marking summary), so the card can never cover those panels whatever the screen size.
+    // One right-hand card below the persistent Year/Cash strip. The bottom bar has its own reserved space.
     private void PlaceInspectionColumn()
     {
-        float limit = document.rootVisualElement.layout.height - 12f;
-        VisualElement bottom = hud.Root.Q(className: "hud-bottom");
-        if (bottom != null)
-            foreach (VisualElement child in bottom.Children())
-                if (child.resolvedStyle.display != DisplayStyle.None && child.layout.height > 0f)
-                    limit = Mathf.Min(limit, child.worldBound.yMin - 10f);
-        inspection.Root.style.maxHeight = Mathf.Max(160f, limit - 14f);
-        // The optional detail column is wider; keep the central aiming prompt clear of its actual bounds too.
-        float columnWidth = Mathf.Max(TreeInspectionView.ColumnWidth, inspection.Root.layout.width);
-        // The prompt is centred. It must clear the inspection card on the left and whichever side panel is on the right.
-        // The estimate panel sits at right 220 (clearing the minimap horizontally); the competitor panel at right 14.
-        float screenWidth = document.rootVisualElement.layout.width;
-        float leftBoundary = 14f + columnWidth;
-        float rightBoundary = inspection.ShowsEstimate
-            ? screenWidth - 220f - TreeInspectionView.EstimateWidth
-            : screenWidth - 14f - TreeInspectionView.ColumnWidth;
-        float maxWidth = 2f * Mathf.Min(screenWidth * 0.5f - leftBoundary, rightBoundary - screenWidth * 0.5f) - 56f;
-        hud.SetPromptMaxWidth(Mathf.Clamp(maxWidth, 280f, 900f));
-    }
-
-    // The competitor and estimate panels sit on the right, just under the HUD status panel and objective widget,
-    // and never extend past the bottom of the screen.
-    private void PlaceSidePanel(VisualElement panel, bool show, bool clearsMinimapHorizontally = false)
-    {
-        panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-        if (!show) return;
-        // Under the top-right column (the objective widget and the status panel), whatever height they have.
-        VisualElement column = hud.RightColumn;
-        float top = column != null && column.layout.height > 0f ? column.layout.yMax + 2f : 250f;
-        // The minimap sits at the bottom right of this same column. A panel that clears it horizontally (the estimate,
-        // at right 220) needs no vertical reservation; the competitor list steps the minimap aside instead.
-        float minimapReserved = (!clearsMinimapHorizontally && Minimap != null) ? Minimap.ReservedHeightPx : 0f;
-        float available = document.rootVisualElement.layout.height - top - 4f - minimapReserved;
-        panel.style.top = top;
-        if (available > 0f) panel.style.maxHeight = available;
+        float top = hud.RightColumn.layout.yMax + 10f;
+        inspection.Root.style.top = top;
+        inspection.Root.style.maxHeight = Mathf.Max(160f, document.rootVisualElement.layout.height - top - 108f);
+        hud.SetPromptMaxWidth(700f);
     }
 
     private void LateUpdate()

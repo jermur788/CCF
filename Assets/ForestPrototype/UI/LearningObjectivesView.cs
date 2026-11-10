@@ -78,21 +78,21 @@ public sealed partial class LearningObjectivesView
         VisualElement modal = UiKit.Box("panel", "modal", "modal-objectives");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Scenario One · one objective at a time", "title");
-        VisualElement buttons = UiKit.Row(header);
-        Button map = UiKit.Button("Stand map [M]", () => ui.ShowMap());
+        UiKit.Add(header, "Objectives", "title");
+        VisualElement buttons = UiKit.Box("row", "screen-actions");
+        UiKit.Add(buttons, "", "menu-current-status").name = "menu-current-status";
+        Button map = UiKit.Button("Stand Map [M]", () => ui.ShowMap());
         map.name = "objective-primary-cta";
-        buttons.Add(map);
         Button work = UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan());
         work.name = "objective-work-plan";
-        buttons.Add(work);
-        Button forest = UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary");
+        Button forest = UiKit.Button("Back to forest [Esc]", () => ui.CloseAll(), true, "btn-primary");
         forest.name = "objective-back-to-forest";
-        buttons.Add(forest);
         var reduceMotion = new Toggle("Reduce motion") { value = ui.ReduceMotion, name = "reduce-motion" };
         reduceMotion.RegisterValueChangedCallback(e => ui.SetReduceMotion(e.newValue));
         buttons.Add(reduceMotion);
+        header.Add(buttons);
         modal.Add(header);
+        modal.Add(UiKit.MenuNavigation(ui, "Objectives", map, work, forest));
         progress = UiKit.Add(modal, "", "body");
         UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
 

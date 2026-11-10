@@ -593,3 +593,53 @@
 
 /* #363: disclosure affects chips only; plain uncertainty remains visible. */
 .hide-data-sources .prov { display: none; }
+
+/* Approved Scenario One presentation: the user-selected charcoal/teal poster supplies
+   composition; the source supplies numbers, commands and commitment states. */
+.hud-objective { position: absolute; left: 14px; top: 14px; width: 620px; }
+.hud-objective .objective-widget { margin-bottom: 0; }
+.hud-right { width: 330px; background-color: transparent; border-width: 0; }
+.hud-right .hud-status { background-color: var(--panel-bg); border-width: 1px; padding: 10px 14px; }
+.hud-status Label { font-size: 20px; white-space: nowrap; }
+.hud-bottom { bottom: 124px; right: 500px; }
+.hud-ground { max-width: 560px; }
+.hud-forecast { max-width: 700px; }
+.hud-waypoint { left: 14px; margin-left: 0; width: 500px; }
+.hud-message { top: 38%; left: 640px; right: 460px; }
+.hud-message Label { font-size: 18px; }
+.context-actions { position: absolute; bottom: 12px; left: 14px; right: 232px; padding: 8px 12px; align-items: center; }
+.key-control { margin-right: 16px; margin-top: 3px; margin-bottom: 3px; flex-shrink: 0; max-width: 720px; }
+.keycap { border-width: 1px; border-color: var(--ink-faint); border-radius: 2px; padding: 1px 7px; margin-right: 8px; color: var(--ink); font-size: 18px; -unity-font-style: bold; white-space: nowrap; }
+.key-verb { color: var(--ink); font-size: 18px; white-space: normal; flex-shrink: 1; }
+.context-note { width: 100%; color: var(--ink-muted); white-space: normal; }
+.inspect { left: auto; right: 14px; width: 440px; padding: 12px 16px; }
+.inspect .body, .inspect .muted { font-size: 18px; margin-top: 4px; }
+.inspect .title { font-size: 28px; margin-top: 3px; margin-bottom: 3px; }
+.inspect .heading { font-size: 18px; margin-top: 10px; margin-bottom: 4px; }
+.inspect .line-value { margin-left: 8px; }
+.inspect .faint { font-size: 16px; margin-top: 5px; }
+.inspect .inspect-hint { font-size: 16px; margin-top: 10px; border-top-width: 1px; border-top-color: var(--frame-rule); padding-top: 7px; }
+.eyebrow { font-size: 15px; color: var(--ink-muted); letter-spacing: 1px; }
+.competition-line { border-bottom-width: 1px; border-bottom-color: var(--frame-rule); padding: 3px 0; }
+.draft-warning { color: var(--warn); font-size: 17px; white-space: normal; margin-top: 5px; }
+.chip-proposal { border-width: 1px; border-color: var(--rack); color: var(--ink); }
+.menu-navigation { padding-bottom: 8px; margin-bottom: 4px; border-bottom-width: 1px; border-bottom-color: var(--frame-rule); }
+.menu-navigation .btn { margin-right: 8px; }
+.menu-current-status { font-size: 18px; color: var(--ink-muted); white-space: normal; }
+.plan-steps { color: var(--accent); font-size: 18px; white-space: normal; margin-bottom: 5px; }
+.work-section .unity-foldout__text { font-size: 20px; color: var(--ink); white-space: normal; -unity-font-style: bold; }
+.work-section .unity-foldout__content { margin-left: 0; padding-top: 6px; }
+.annual-headlines { margin-top: 8px; align-items: stretch; }
+.annual-headlines .column { flex-basis: 0; min-width: 280px; }
+.annual-headlines .heading { color: var(--accent); margin-top: 0; }
+.annual-headlines .body { font-size: 19px; }
+.annual-headlines .table-row-stacked .line-value { margin-bottom: 4px; }
+.modal-review > .unity-scroll-view { min-height: 0; }
+.modal-map .modal-header { flex-wrap: nowrap; }
+.modal-map .menu-navigation { flex-grow: 1; flex-shrink: 1; margin: 0 10px; padding-bottom: 0; border-bottom-width: 0; }
+.modal-map .menu-navigation .btn { font-size: 16px; padding: 4px 7px; margin-right: 4px; }
+.modal-map .menu-current-status { font-size: 16px; max-width: 230px; }
+.compact .context-actions { padding: 7px 10px; }
+.compact .key-verb, .compact .keycap { font-size: 19px; }
+.compact .inspect .panel { padding: 0; }
+.compact .annual-headlines .body { font-size: 19px; }

@@ -52,18 +52,17 @@ public sealed class AnnualReviewView
         laterYear = UiKit.Button("Later year ▶", () => StepYear(1));
         buttons.Add(earlierYear);
         buttons.Add(laterYear);
-        buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.AnnualReview)));
-        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
-        buttons.Add(UiKit.Button("Open Work Plan", () => ui.ShowWorkPlan()));
-        walk = UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary");
+        UiKit.Add(buttons, "", "menu-current-status").name = "menu-current-status";
+        walk = UiKit.Button("Back to forest [Esc]", () => ui.CloseAll());
         walk.name = "annual-review-walk";
-        buttons.Add(walk);
         var sources = new Toggle("Show data sources") { value = false, name = "annual-show-data-sources" };
         sources.RegisterValueChangedCallback(e => { showDataSources = e.newValue; Refresh(true); });
         buttons.Add(sources);
         Root.AddToClassList("hide-data-sources");
         header.Add(buttons);
         modal.Add(header);
+        modal.Add(UiKit.MenuNavigation(ui, "Annual Review", forest: walk));
+        UiKit.Add(modal, "", "next-action-reason").name = "next-action-reason";
         scroll = new ScrollView(ScrollViewMode.Vertical);
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
@@ -117,7 +116,7 @@ public sealed class AnnualReviewView
         scroll.Clear();
         Root.EnableInClassList("hide-data-sources", !showDataSources);
         acknowledgement.style.display = (ui.NeedsAnnualReview || m.NeedsCompletionReviewAcknowledgement || teachingReview) && !historical ? DisplayStyle.Flex : DisplayStyle.None;
-        walk.EnableInClassList("btn-primary", acknowledgement.style.display == DisplayStyle.None);
+        walk.RemoveFromClassList("btn-primary");
         // Completion guidance only: after the first review the footer says why this acknowledgement matters. The first review keeps its wording.
         Label acknowledgementPrompt = acknowledgement.Q<Label>();
         if (acknowledgementPrompt != null)
@@ -128,9 +127,9 @@ public sealed class AnnualReviewView
         }
         earlierYear.SetEnabled(year != null && years.Count > 0 && year != years[0]);
         laterYear.SetEnabled(historical);
-        title.text = year == null ? "Annual review"
-            : historical ? $"Annual review · Year {year.Year} (earlier year; latest is Year {latest.Year})"
-            : $"Annual review · Year {year.Year} complete";
+        title.text = year == null ? "Annual Review"
+            : historical ? $"Annual Review · Year {year.Year} (earlier year; latest is Year {latest.Year})"
+            : $"Annual Review · Year {year.Year} complete";
         if (year == null)
         {
             UiKit.Add(scroll, "Advance a year from the Work Plan to see the first annual results.", "body");
@@ -143,20 +142,19 @@ public sealed class AnnualReviewView
             legend.name = "provenance-legend";
         }
 
+        BuildHeadlines(year);
+        // Complete detailed records stay below the three short selected-year summaries.
         IReadOnlyList<InterventionSummary> interventions = m.Interventions;
-        // The completion summary opens the review of the year the objectives were met (not year 100).
         CompletionSummary completion = m.CompletionReview;
-        if (completion != null && year.Year == m.OutcomeYear)
-            BuildCompletion(m, completion);
-        // After the first intervention, say what to look for. A prompt, not a gate: Advance is never blocked by it.
-        if (interventions.Count == 1 && year.Year == interventions[0].Year)
-            BuildFirstInterventionPrompt(interventions[0]);
-
+        if (completion != null && year.Year == m.OutcomeYear) BuildCompletion(m, completion);
+        if (interventions.Count == 1 && year.Year == interventions[0].Year) BuildFirstInterventionPrompt(interventions[0]);
+        var details = new Foldout { text = "Detailed annual records · work, money and forest", value = false };
         VisualElement columns = UiKit.Box("columns");
-        scroll.Add(columns);
+        details.Add(columns);
+        scroll.Add(details);
         BuildWork(m, year, Column(columns, "Work done"));
+        BuildMoney(m, year, Column(columns, "Money"));
         BuildForest(m, year, Column(columns, "Forest changes"), historical);
-        BuildMoney(m, year, Column(columns, "Cash"));
         BuildPriorTreatmentGuidance(year);
         BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);
@@ -164,6 +162,44 @@ public sealed class AnnualReviewView
         BuildObjectives(m, historical);
         if (m.CenturyReview != null)
             BuildCentury(m);
+    }
+
+    private void BuildHeadlines(YearHistoryView year)
+    {
+        VisualElement row = UiKit.Box("columns", "annual-headlines");
+        row.name = "annual-headlines";
+        scroll.Add(row);
+        VisualElement work = Column(row, "Work done");
+        if (year.Report == null) AddTagged(work, HistoryProvenance.NotRecorded, "Annual work totals not recorded.");
+        else
+        {
+            AddTagged(work, HistoryProvenance.Recorded, $"{year.Report.completedTasks} task(s) completed · {year.Report.failedTasks} failed");
+            AddTagged(work, HistoryProvenance.Recorded, $"Harvested stem volume {UiKit.F(year.Report.harvestedVolumeM3, "0.00")} m³");
+        }
+        VisualElement money = Column(row, "Money");
+        YearMoneySummary totals = year.Money;
+        if (totals.Authority == null) AddTagged(money, HistoryProvenance.NotRecorded, "Annual money totals not recorded.");
+        else
+        {
+            TaggedLine(money, HistoryProvenance.Recorded, "Timber income", UiKit.Money(totals.TimberRevenueCents), "money");
+            TaggedLine(money, HistoryProvenance.Recorded, "Contractor work", UiKit.Money(totals.ContractorCostCents));
+            TaggedLine(money, HistoryProvenance.Derived, "Recorded work materials", UiKit.Money(totals.StockCostCents));
+            TaggedLine(money, HistoryProvenance.Derived, "Income less contractor work", UiKit.SignedMoney(totals.TimberRevenueCents - totals.ContractorCostCents), "money");
+            UiKit.Add(money, "Before materials and nursery purchases. A complete net cash result is not recorded as an annual total.", "faint");
+        }
+        VisualElement forest = Column(row, "Forest changes");
+        ScenarioEcologicalSnapshot snapshot = year.Snapshot;
+        ScenarioEcologicalSnapshot before = year.PreviousSnapshot;
+        if (snapshot == null) AddTagged(forest, HistoryProvenance.NotRecorded, "No ecological snapshot recorded for this year.");
+        else
+        {
+            AddTagged(forest, HistoryProvenance.Recorded, $"Mean canopy cover {UiKit.F(snapshot.meanCanopy * 100f, "0")} %");
+            AddTagged(forest, HistoryProvenance.Recorded, $"Regeneration in {snapshot.occupiedRegenerationCells} map square(s)");
+            AddTagged(forest, HistoryProvenance.Recorded, $"Fallen deadwood {UiKit.F(snapshot.deadwoodVolumeM3, "0.00")} m³");
+            if (before != null)
+                AddTagged(forest, HistoryProvenance.Derived, $"Standing trees {before.livingTrees} → {snapshot.livingTrees}");
+            else AddTagged(forest, HistoryProvenance.NotRecorded, "No earlier snapshot for comparison.", "faint");
+        }
     }
 
     // Cheap change detector for the early-out in Refresh. It is not a source of review content or navigation.
