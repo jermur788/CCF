@@ -57,6 +57,14 @@ Preserve current Annual Review-first/highest-priority navigation and teaching ch
 
 No changes to underlying ecological calculations, tree marks or IDs, rack planning, prescribed MFM coverage, historical saved data, Legacy40, frozen Reference Future v1 or ordinary Work Plan acceptance. Existing annual review source toggle, first-review acknowledgement semantics and computed preapproval contractor quote are **already implemented** in the inspected candidate; do not redo or replace them under this spec.
 
+### FR-8. Compact top-right global status strip — new user direction
+
+The user requests a **small top-right status display** with current Year, cash and possibly other general state; they subsequently suggested a numeric biodiversity-related indicator. Reconcile/relocate existing HUD Year, cash and browsing displays to a compact status strip rather than duplicating them in a new permanent panel. Prioritise quiet, non-animated data and preserve the current-action/objective hierarchy.
+
+A numeric ecology indicator is **a candidate, not an approved metric**. The draft must evaluate: (a) an honest count of established tree species, with explicit eligibility so merely buying/planting stock does not establish it, versus (b) a transparent game-defined count of habitat features present (e.g. evidence-backed/accepted indicators for established regeneration, deadwood and structural variation). A whole-ecosystem “biodiversity score” or scientifically presented 0–100 index is **out of scope without its own accepted definition and evidence limits**. Any eventual composite must be plainly described as a gameplay indicator, not a measured ecological biodiversity index, with inspectable component explanations. Never create synthetic source data, change ecology, or add persisted state just for this status strip.
+
+Scope guard: the basic Year/cash/phase strip is within this UI design direction; **the final ecological metric and its scoring rules remain an OPEN design decision**. If no honest metric is ready, show the trusted existing information and leave the ecological slot blank or omitted. Test at 720p and while the inspection card is open; no overlap with key prompts, minimap or review-first guidance.
+
 ## Accessibility, layout and verification requirements
 
 - Test real Unity renders at **1280×720 and 1920×1080**, colour and grayscale; no hard-coded or stitched screenshot counts as a rendered pass.
