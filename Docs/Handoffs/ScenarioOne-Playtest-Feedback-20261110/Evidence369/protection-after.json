@@ -1,0 +1,20 @@
+{
+  "valued-backup.json": {
+    "total": 36,
+    "mismatches": []
+  },
+  "workbench-before.json": {
+    "total": 5732,
+    "mismatches": []
+  },
+  "protected-sha256.txt": {
+    "total": 6,
+    "mismatches": []
+  },
+  "pack-baseline.sha256": {
+    "total": 27,
+    "mismatches": []
+  },
+  "u3-original-eight": "restored byte-exact; initial status reproduced",
+  "disk_free_gib": 35.9342041015625
+}

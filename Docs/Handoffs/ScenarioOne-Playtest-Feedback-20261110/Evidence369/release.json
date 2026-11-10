@@ -1,0 +1,18 @@
+{
+  "status": "released",
+  "forced": false,
+  "previous": {
+    "lock_id": "eb68152c760b4c03b786cc0aea440e03",
+    "owner": "Codex-Sol-CCF369",
+    "task_id": "CCF-369-RUNTIME-COVERAGE",
+    "lane": "/media/jer/ZX20/CCF-U3",
+    "branch": "qualify/scenario-one-player-feedback-368-20261110",
+    "head": "85568c4f60b09279a2e1692bd0e7f8593e1b9a0d",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-10T11:34:48.379893+00:00",
+    "eta": "2026-11-10T12:29:47Z",
+    "notes": "User binding Manager369 one finite targeted warm runtime completion, fresh disposable profile; no production edits"
+  },
+  "unity_editor_pids": []
+}
