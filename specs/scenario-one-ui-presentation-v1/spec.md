@@ -75,6 +75,12 @@ Use the vector references as **composition/typography targets** rather than pixe
 4. Preserve no-Windows-build-before-user-playtest + explicit permission policy.
 5. Preserve source-handoff and Unity-lease/saves/dirty-worktree discipline; Sol and Fable may **not** write the same UI files concurrently.
 
+## User-supplied three-poster visual style supplement
+
+The user supplied three high-resolution rebuilt PNG posters after this spec was approved. They are **adopted as supplementary visual references for look-and-feel, not game/UI source authority**. See the [poster access manifest and mandatory errata](visuals/POSTER-SUPPLEMENT-AND-ERRATA.md). In Sol and Fable's local work, check the user-reported `/media/jer/Files/CCF/Verification/CCF-362-FableUXReview-20261110/spec-posters/` files and their SHA-256 hashes; these PNG binaries are not committed to Git. All four committed SVGs and the requirements above remain the binding behavior/layout references. If unavailable locally, the SVG/spec implementation can proceed, but the actual three-poster match must be listed **NOT INSPECTED**.
+
+Do **not** copy mock-only `[F]` Fell or novel shortcut keys; invented money/canopy/competition percentages; unsupported ring-barking/area rates; or the `Continue to Year 6` Annual Review action. The latest unread review still acknowledges and allows Back, and Work Plan remains the year-advance gate. In-world share labels remain conditional, and the upper-right HUD remains Year + Cash only. Preserve the posters' useful visual clarity and alignment without importing their example errors.
+
 ## Approval and acceptance boundary
 
 This spec authorises **Sol source implementation** after live single-writer preflight and issue claim RUNNING, followed by one focused, exclusive Unity Tier-2 when safely permitted; **Fable performs independent source/visual-evidence review after Sol handoff, not parallel edits**. No production source, Unity or Fable review is claimed complete by writing this spec. Manager integrates only after evidence and a separate APPROVED verdict, then requests player visual acceptance. See [plan](plan.md), [tasks](tasks.md), [requirements](checklists/requirements.md) and the binding Sol/Fable packets.
