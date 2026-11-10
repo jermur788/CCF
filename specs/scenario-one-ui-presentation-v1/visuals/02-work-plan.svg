@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="CCF UI implementation reference diagram">
+<defs><linearGradient id="forest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#244637"/><stop offset="1" stop-color="#071e19"/></linearGradient><linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#163b30"/><stop offset="1" stop-color="#081e18"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#canvas)"/>
+<rect x="0" y="0" width="1600" height="105" rx="0" fill="#0a201b" stroke="none" stroke-width="1"/>
+<text x="30" y="43" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="29" font-weight="800">B · Work Plan / management commitment</text>
+<text x="30" y="75" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="450">Review what is proposed, see the real quote, then choose a deliberate commitment</text>
+<line x1="30" y1="90" x2="1570" y2="90" stroke="#47705f" stroke-width="2"/>
+<rect x="30" y="113" width="1540" height="65" rx="12" fill="#14382f" stroke="#47705f" stroke-width="2"/>
+<rect x="47" y="124" width="210" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="61" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Objectives</text>
+<rect x="268" y="124" width="215" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="282" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Stand Map</text>
+<rect x="494" y="124" width="290" height="43" rx="8" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<text x="508" y="153" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="760">Work Plan · current</text>
+<rect x="795" y="124" width="241" height="43" rx="8" fill="#194b3e" stroke="none" stroke-width="1"/>
+<text x="809" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="560">Annual Review</text>
+<text x="1270" y="153" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="700">Year 2  |  Cash €12,000</text>
+<rect x="30" y="194" width="1540" height="65" rx="9" fill="#263c32" stroke="#dfac4b" stroke-width="2"/>
+<text x="48" y="232" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="20" font-weight="650">NEXT · Review job costs and restrictions before approving any pending work</text>
+<rect x="30" y="278" width="990" height="455" rx="12" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<text x="55" y="315" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="26" font-weight="760">Proposed operations</text>
+<text x="55" y="345" fill="#33463a" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">Rows come from actual Work Orders; groups can expand for full detail.</text>
+<line x1="55" y1="363" x2="991" y2="363" stroke="#bec8b4" stroke-width="2"/>
+<rect x="52" y="375" width="948" height="65" rx="7" fill="#f1f0e2" stroke="none" stroke-width="1"/>
+<text x="72" y="400" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="740">Racks / extraction</text>
+<text x="72" y="427" fill="#3d5749" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="500">Existing planned operations</text>
+<text x="838" y="411" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="650">Open</text>
+<rect x="52" y="452" width="948" height="65" rx="7" fill="#e6e5d6" stroke="none" stroke-width="1"/>
+<text x="72" y="477" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="740">Tree felling</text>
+<text x="72" y="504" fill="#3d5749" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="500">Fell marks awaiting plan approval</text>
+<text x="838" y="488" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="650">Pending</text>
+<rect x="52" y="529" width="948" height="65" rx="7" fill="#f1f0e2" stroke="none" stroke-width="1"/>
+<text x="72" y="554" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="740">Planting / shelters</text>
+<text x="72" y="581" fill="#3d5749" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="500">Current plan choices</text>
+<text x="838" y="565" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="650">Pending</text>
+<rect x="52" y="606" width="948" height="65" rx="7" fill="#e6e5d6" stroke="none" stroke-width="1"/>
+<text x="72" y="631" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="740">Other work</text>
+<text x="72" y="658" fill="#3d5749" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="15" font-weight="500">Pruning, regeneration and salvage</text>
+<text x="838" y="642" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="650">As applicable</text>
+<rect x="1036" y="278" width="533" height="455" rx="12" fill="#f5f0e0" stroke="none" stroke-width="1"/>
+<text x="1061" y="315" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="25" font-weight="760">Quote &amp; plan effects</text>
+<text x="1062" y="363" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">External cost:       {source quote}</text>
+<text x="1062" y="411" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Expected timber:   {source estimate}</text>
+<text x="1062" y="459" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Expected net:        {derived outlook}</text>
+<text x="1062" y="507" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="500">Cash after approved work: {actual}</text>
+<line x1="1062" y1="535" x2="1544" y2="535" stroke="#b0b9ac" stroke-width="2"/>
+<text x="1062" y="572" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="720">Must preserve:</text>
+<text x="1062" y="606" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">• Small-job minimum and eligibility</text>
+<text x="1062" y="636" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">• Pending vs approved vs executed</text>
+<text x="1062" y="666" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">• Warning / failed estimate cases</text>
+<text x="1062" y="696" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="17" font-weight="500">• Owner-time and material costs</text>
+<rect x="30" y="750" width="1540" height="109" rx="12" fill="#14382f" stroke="#47705f" stroke-width="2"/>
+<text x="51" y="786" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="700">Review and commitment are separate actions.</text>
+<rect x="844" y="779" width="310" height="55" rx="8" fill="#dbcfaa" stroke="none" stroke-width="1"/>
+<text x="863" y="814" fill="#0a201b" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="740">Approve Work Plan</text>
+<rect x="1173" y="779" width="372" height="55" rx="8" fill="#194b3e" stroke="#afdec3" stroke-width="1"/>
+<text x="1194" y="814" fill="#f7f5ed" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700">Advance one year</text>
+<text x="49" y="828" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">[Esc] Back to forest  ·  [Tab] Close</text>
+<text x="1220" y="849" fill="#cad4cd" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="13" font-weight="500">Subject to existing guards</text>
+<text x="30" y="887" fill="#d6ccb5" font-family="Inter,DejaVu Sans,Arial,sans-serif" font-size="16" font-weight="500">SCHEMATIC ONLY · example values/labels · bind every value/action to the current game · not a Unity screenshot</text>
+</svg>
