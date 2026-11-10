@@ -32,3 +32,4 @@
 - [ ] UI-AC21 Legacy40/frozen Reference, Rack V2, MFM, Objective 2–5 and save schema/review gates unchanged; proportionate regression PASS or exclusions named.
 - [ ] UI-AC22 Sol local preflight/ownership/source claim valid; safe Unity lease and user save isolation if Unity attempted; **no Windows build**.
 - [ ] UI-AC23 Sol result and **separate Fable independent review** in GitHub, exact source and evidence; Manager disposition issued; dashboard sync reported accurately.
+- [ ] UI-AC24 User-supplied three 2× poster references checked for access/integrity or explicitly NOT INSPECTED; styling used where helpful but all mock-only control/percentage/money/operation/annual-progression errors identified in [poster errata](../visuals/POSTER-SUPPLEMENT-AND-ERRATA.md) are not copied.
