@@ -17,6 +17,7 @@ public sealed class WalkingHudView
 
     private readonly Label statusTitle, cash, waypoint;
     private readonly VisualElement contextActions;
+    public VisualElement ContextActions => contextActions;
     private string shownControls = "";
     private readonly VisualElement waypointPanel;
     private readonly Label waypointDirection;
@@ -238,15 +239,19 @@ public sealed class WalkingHudView
                 ? "[E] Inspect   ·   [M] Stand Map · Plan Racks   ·   [Tab] Plan"
                 : "[E] Inspect   ·   [B] Create rack   ·   [Tab] Plan"
                 : "[E] Inspect   ·   " + marks.MarkPromptText() + "   ·   [Tab] Plan";
+        // The handler refuses Crop marking on rack-removal trees. Do not advertise it on the walking bar.
+        ForestTree aimedMarkTree = marks != null ? marks.AimedTree : null;
+        if (aimedMarkTree != null && m.RackPlanningV2Active && m.Racks.Any(r => r != null && r.removalTreeIds != null && r.removalTreeIds.Contains(aimedMarkTree.TreeId)))
+            action = action.Replace("[C] Retain as Crop Tree", "").Replace("[C] Remove Crop Tree", "");
         if (marks != null && marks.RackSprayEquipped && locked)
             action = marks.RackSprayFeedbackActive ? "Sprayed orange · four sides marked" : marks.RackSprayPrompt();
         // The contextual controls now occupy one bottom bar, leaving the reticle clear.
         bool inspecting = player != null && player.InspectedTree != null;
         string controls = inspecting ? ui.Inspection.ControlHints : racking ? rackKeys.text
             : action + (string.IsNullOrEmpty(action) ? "" : " · ")
-                + "[O] Objectives · [M] Stand Map · [Tab] Work Plan";
+                + "[O] Objectives · [M] Stand Map · [Tab] Work Plan · [F1] Help";
         if (!locked) controls = "[Click] Resume looking · [O] Objectives · [M] Stand Map · [Tab] Work Plan";
-        controls += m.RackFirstStageActive ? " " : "";
+        controls += " · [F1] Help";
         if (controls != shownControls) { shownControls = controls; UiKit.KeyPrompts(contextActions, controls, m.RackFirstStageActive); }
         prompt.text = "";
         prompt.style.display = DisplayStyle.None;
@@ -254,6 +259,7 @@ public sealed class WalkingHudView
         string note = rackTool != null && !string.IsNullOrEmpty(rackTool.Notice) ? rackTool.Notice
             : marks != null && !string.IsNullOrEmpty(marks.TransientMessage) ? marks.TransientMessage
             : player != null ? player.TransientMessage : "";
+        if (m.Outcome == ScenarioOneOutcome.Failed && string.IsNullOrEmpty(note)) note = "Scenario failed — see Work Plan for the reason";
         message.text = note;
         messageBox.style.display = string.IsNullOrEmpty(note) ? DisplayStyle.None : DisplayStyle.Flex;
 

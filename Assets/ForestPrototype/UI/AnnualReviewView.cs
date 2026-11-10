@@ -148,7 +148,8 @@ public sealed class AnnualReviewView
         CompletionSummary completion = m.CompletionReview;
         if (completion != null && year.Year == m.OutcomeYear) BuildCompletion(m, completion);
         if (interventions.Count == 1 && year.Year == interventions[0].Year) BuildFirstInterventionPrompt(interventions[0]);
-        var details = new Foldout { text = "Detailed annual records · work, money and forest", value = false };
+        var details = new Foldout { text = "Detailed annual records · work, money and forest", value = openDetails.Contains("annual-records") };
+        details.RegisterValueChangedCallback(e => { if (e.newValue) openDetails.Add("annual-records"); else openDetails.Remove("annual-records"); });
         VisualElement columns = UiKit.Box("columns");
         details.Add(columns);
         scroll.Add(details);
@@ -183,8 +184,9 @@ public sealed class AnnualReviewView
         {
             TaggedLine(money, HistoryProvenance.Recorded, "Timber income", UiKit.Money(totals.TimberRevenueCents), "money");
             TaggedLine(money, HistoryProvenance.Recorded, "Contractor work", UiKit.Money(totals.ContractorCostCents));
-            TaggedLine(money, HistoryProvenance.Derived, "Recorded work materials", UiKit.Money(totals.StockCostCents));
+            TaggedLine(money, HistoryProvenance.Recorded, "Recorded work materials", UiKit.Money(totals.StockCostCents));
             TaggedLine(money, HistoryProvenance.Derived, "Income less contractor work", UiKit.SignedMoney(totals.TimberRevenueCents - totals.ContractorCostCents), "money");
+            UiKit.Add(money, "Work materials here are tree shelters; nursery purchases are separate.", "faint");
             UiKit.Add(money, "Before materials and nursery purchases. A complete net cash result is not recorded as an annual total.", "faint");
         }
         VisualElement forest = Column(row, "Forest changes");
@@ -621,8 +623,16 @@ public sealed class AnnualReviewView
                 // probabilities or unimplemented fencing.
                 if (line.StartsWith("Browsing pressure") || line.StartsWith("Protected juveniles")) continue;
                 HistoryProvenance? kind = HistoryProvenanceText.EcologyLine(line, previous != null);
-                if (kind.HasValue) AddTagged(c, kind.Value, line);
-                else UiKit.Add(c, line, "body");
+                string displayedLine = line;
+                if (line.StartsWith("Canopy "))
+                {
+                    string canopy = previous == null ? $"Canopy {UiKit.F(current.meanCanopy * 100f, "0")} %"
+                        : $"Canopy {UiKit.F(previous.meanCanopy * 100f, "0")} % → {UiKit.F(current.meanCanopy * 100f, "0")} % ({(current.meanCanopy - previous.meanCanopy) * 100f:+0.0;-0.0;0.0} percentage points)";
+                    int separator = line.IndexOf(';');
+                    displayedLine = canopy + (separator >= 0 ? line.Substring(separator) : ".");
+                }
+                if (kind.HasValue) AddTagged(c, kind.Value, displayedLine);
+                else UiKit.Add(c, displayedLine, "body");
             }
         if (eco != null && eco.Browsing.BackgroundPressure > 0f)
         {
@@ -668,7 +678,7 @@ public sealed class AnnualReviewView
         row.Add(Bars("Cash at year end", reports.Select(r => ((float)r.closingCashCents, $"Y{r.year}")).ToList(),
             v => UiKit.Money((long)v)));
         var snaps = m.EcologicalSnapshots.Skip(System.Math.Max(0, m.EcologicalSnapshots.Count - 12)).ToList();
-        row.Add(Bars($"Canopy cover (objective ≥ {UiKit.F(m.Definition.MinimumMeanCanopy, "0.00")})", snaps.Select(s => (s.meanCanopy, $"Y{s.year}")).ToList(),
+        row.Add(Bars($"Canopy cover % (objective ≥ {UiKit.F(m.Definition.MinimumMeanCanopy * 100f, "0")})", snaps.Select(s => (s.meanCanopy * 100f, $"Y{s.year}")).ToList(),
             v => UiKit.F(v, "0.00")));
         scroll.Add(card);
     }

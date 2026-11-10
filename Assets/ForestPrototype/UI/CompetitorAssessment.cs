@@ -84,6 +84,14 @@ public sealed class CompetitorAssessment
         }
     }
 
+    // A mark and a valid queued order are different presentation facts.
+    public bool HasFellMark(CompetitorEntry entry)
+    {
+        int index = entry.TreeIndex;
+        ForestTree tree = index >= 0 && index < sceneTrees.Count ? sceneTrees[index] : null;
+        return tree != null && tree.TreeId == entry.Id && tree.IsMarkedForFell;
+    }
+
     private List<string> ListedIds()
     {
         var ids = new List<string>();

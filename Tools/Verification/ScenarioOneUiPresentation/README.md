@@ -33,3 +33,11 @@ mounted/healthy ZX20, registered exclusive machine lease, exact warm-lane
 candidate, protected licensed assets/Workbench/reference and independently
 verified disposable persistent data/preferences/F5-F9 destinations. No Windows
 build. Follow the full Manager packet; these instructions do not grant a lease.
+
+#374 repair consumer checks (additive; earlier checks unchanged):
+
+```bash
+python3 -B Tools/Verification/ScenarioOneUiPresentation/repair_consumers.py --src "$PWD" --out /media/jer/Files/CCF/Verification/ScenarioOneUiPresentationRepair374-20261110/consumers
+```
+
+Runs the actual `LockedCard` and inspection `ControlHints` consumer statements in a plain C# element sink, including disabled-note visibility and eight candidate/cursor/Rack-first combinations. Twelve additional source contracts pin caller wiring, selected-year/history guards, Year/Cash strip, nonmarkable predicates, separate Approve/Advance, section identity, warnings and occlusion. Ten negative controls (three executed consumer mutations, seven source-contract mutations) must fail for their named reason. These are deliberately distinguished: source contracts do not execute AnnualReviewView.Refresh, marking eligibility, HUD refresh or approval. No Unity layout, input, scrolling, save/load or forest behavior is proved. The older 157 checks remain unchanged, including their repeated page-wrap checks.

@@ -132,7 +132,7 @@ public sealed class WorkPlanView
         cash.text = $"Current Year {m.CurrentEcologicalYear} · Cash {UiKit.Money(m.CashCents)}";
         owner.text = $"Your time next year: {ScenarioOneManager.FormatMinutes(m.PlannedOwnerMinutes)} planned of "
             + $"{ScenarioOneManager.FormatMinutes(m.OwnerMinutesPerYear)}";
-        summary.text = $"Proposed work · {totals.OpenCount - totals.ApprovedCount} pending · {totals.ApprovedCount} approved. Open a group to edit or remove jobs.";
+        summary.text = $"Proposed work · {m.WorkOrders.Count(o => o.IsOpen && o.status == ScenarioWorkStatus.Pending)} pending · {totals.ApprovedCount} approved. Open a group to edit or remove jobs.";
 
         scroll.Clear();
         WorkPlanOverview.Build(scroll, ui);
@@ -198,11 +198,13 @@ public sealed class WorkPlanView
         return sb.ToString();
     }
 
-    private VisualElement Card(string heading, string sub = null)
+    private VisualElement Card(string heading, string sub = null, bool alwaysOpen = false)
     {
         VisualElement shell = UiKit.Box("card", "work-section");
-        var card = new Foldout { text = heading, value = expandedSections.Contains(heading) };
-        card.RegisterValueChangedCallback(e => { if (e.newValue) expandedSections.Add(heading); else expandedSections.Remove(heading); });
+        // Counts and species labels can change while editing; only the fixed section title identifies the foldout.
+        string sectionId = heading.Split('·')[0].Trim();
+        var card = new Foldout { text = heading, value = alwaysOpen || expandedSections.Contains(sectionId) };
+        card.RegisterValueChangedCallback(e => { if (e.newValue) expandedSections.Add(sectionId); else expandedSections.Remove(sectionId); });
         shell.Add(card);
         if (!string.IsNullOrEmpty(sub)) UiKit.Add(card, sub, "muted");
         scroll.Add(shell);
@@ -283,7 +285,7 @@ public sealed class WorkPlanView
         System.Collections.Generic.IReadOnlyList<StaleOrderNote> notes = m.StaleOrders;
         if (notes.Count == 0)
             return;
-        VisualElement card = Card($"Orders needing attention · {notes.Count}", "Nothing is removed automatically. Change, cancel or approve each one, then check the quote.");
+        VisualElement card = Card($"Orders needing attention · {notes.Count}", "Nothing is removed automatically. Change, cancel or approve each one, then check the quote.", alwaysOpen: true);
         card.name = "orders-attention";
         foreach (StaleOrderNote note in notes)
         {
@@ -325,7 +327,7 @@ public sealed class WorkPlanView
             .OrderBy(o => o.workOrderId).ToList();
         if (fell.Count == 0)
             return;
-        VisualElement card = Card($"Harvest and salvage job · {fell.Count} stem(s)", "One commissioned contractor visit · Contractor only — specialist harvesting work");
+        VisualElement card = Card($"Harvest and salvage job · {fell.Count} stem(s)", "One commissioned contractor visit · Contractor only — specialist harvesting work", alwaysOpen: true);
         if (job.Resolution != null)
         {
             var revenueByProduct = job.Resolution.Quote.Timber.GroupBy(v => v.Batch.Assortment)
@@ -446,7 +448,10 @@ public sealed class WorkPlanView
     // A section the current objective does not use: greyed and disabled with one short explanation, never hidden.
     private void LockedCard(string heading)
     {
-        VisualElement card = Card(heading, ScenarioOneWorkPlanFocus.LaterObjectiveNote);
+        VisualElement card = UiKit.Box("card", "work-section");
+        UiKit.Add(card, heading, "heading");
+        UiKit.Add(card, ScenarioOneWorkPlanFocus.LaterObjectiveNote, "muted");
+        scroll.Add(card);
         card.AddToClassList("card-locked");
         card.SetEnabled(false);
     }

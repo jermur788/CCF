@@ -145,6 +145,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         competitors.OccludingPanels.Add(inspection.CompetitorPanel);
         // The objective widget and status panel sit in this column: a numbered tag drawn over their text is unreadable, so it waits behind them too.
         competitors.OccludingPanels.Add(hud.RightColumn);
+        competitors.OccludingPanels.Add(hud.ObjectiveWidget.Root);
+        competitors.OccludingPanels.Add(hud.ContextActions);
         root.Add(workPlan.Root);
         root.Add(review.Root);
         root.Add(map.Root);
