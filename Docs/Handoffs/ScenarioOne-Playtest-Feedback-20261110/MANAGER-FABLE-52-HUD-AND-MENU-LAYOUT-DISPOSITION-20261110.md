@@ -1,0 +1,50 @@
+# Manager #200 — Fable 5.2 HUD/menu layout proposal disposition
+
+**Date:** 2026-11-10. **Verdict: APPROVED FOR BOUNDED DRAFT SPECIFICATION, NOT IMPLEMENTATION.** This is a design ruling, not a Unity/rendered test, a main-branch merge, feature qualification, player acceptance, or approval of all image details.
+
+## Evidence and authority
+
+- Fable's unmerged source+older-capture proposal: [FABLE-52-HUD-MENU-REVIEW-LAYOUT-PROPOSAL](https://github.com/jermur788/CCF/blob/728902bb0938065f6dbdcf841146c5472e210a8f/Docs/Handoffs/ScenarioOne-Playtest-Feedback-20261110/FABLE-52-HUD-MENU-REVIEW-LAYOUT-PROPOSAL.md), branch docs/scenario-one-fable-ui-layout-proposal-20261110-v1. Ten image names and external Files locations are catalogued in its section 8. The user also supplied ten image mock-ups directly to Manager chat on November 10. The images remain proposals, not in-game rendered evidence, and are not copied into Git.
+- Controlling prior design ruling: [MANAGER-362-DESIGN-RULING-AND-SOURCE-POSTSCRIPT](https://github.com/jermur788/CCF/blob/main/Docs/Handoffs/ScenarioOne-Playtest-Feedback-20261110/MANAGER-362-DESIGN-RULING-AND-SOURCE-POSTSCRIPT-20261110.md), issue [#362](https://github.com/jermur788/CCF/issues/362). Latest accepted product intent and approved specifications outrank this design proposal.
+- Inspected GitHub source at the current #371 player-test candidate identified in issue [#371](https://github.com/jermur788/CCF/issues/371): TreeInspectionView, WalkingHudView, ForestTreeMarkingManager, AnnualReviewView, WorkPlanView, LearningObjectivesView, ScenarioOneUiRoot and ScenarioOneUi.uss. This is repository-source inspection only, not a current Unity visual inspection. #371 reported READY FOR LIMITED PERSONAL EDITOR CONTINUATION; user test [#361](https://github.com/jermur788/CCF/issues/361) remains feedback-received/not accepted. No Windows/Player build authorised.
+
+## Reconciliation with work after the mock-ups
+
+- Inspection HUD remains substantially unchanged: the tree card, competitor panel and plan-effect/status strips are still separate; the plan's 'lose at least a tenth' raw phrase is still emitted. The proposed declutter work is genuinely remaining.
+- The current Annual Review code already defaults 'Show data sources' to off, hides provenance chips/legend, keeps provenance, gives pending acknowledgement the only primary button and keeps Walk to forest enabled as a secondary button. Do not repeat these changes.
+- The current Work Plan code already shows a computed preapproval contractor quote, small-job minimum adjustment, total and scope caveat. Do not implement obsolete illustrative money/approval states from the old image.
+- Recent candidate guidance changes already include Review-first instructions and Objective2 visibility/wayfinding work. Do not replace those current-state routes with older placeholder HUD cards without inspection.
+
+## Six new proposals — Manager disposition
+
+| Proposal | Disposition | Binding boundary for draft design |
+|---|---|---|
+| 1. Merge inspected-tree and competitor displays into one decision card | **APPROVED IN DIRECTION for the HUD draft spec** | One contextual card should consolidate tree identity/condition, ranked local competition, and effect of the player's own proposed marks. Preserve inspected-state variants: ordinary live tree, Crop Tree, Fell-marked tree, harvested stump and MFM candidate/proposal. Fit 1280×720, do not block the forest view or rely on scroll while cursor locked. A responsive or paged layout is allowed if a single fixed card cannot fit. |
+| 2. Display competition shares beside numbered in-world neighbour markers | **CONDITIONAL EXPERIMENT ONLY; not an always-on feature** | Shares describe percentage contribution to the local competition index, NOT percentage of growth withheld and NOT advice to fell. Limit overlays to the active inspected Crop Tree and selectable ranked markers; prevent distant clutter/occlusion; have accessible text fallback. Preserve existing 1–5 marker semantics and any overlay ownership/visibility conflicts. Drop the new overlay if legibility is worse, without blocking the core card. |
+| 3. Move raw model indices off default HUD into [V] | **APPROVED IN DIRECTION** | Default uses plain-language condition and meaningful changes. [V] retains raw competition index, neighbour data, growth/light, exposure and model limitations. The current source computes overall local competition suppression as a fraction of **potential diameter growth**; phrase it that way. Do not confuse this with the separate competitor share percentage. No data or material caveat becomes unreachable. |
+| 4. Show plan changes and material warnings rather than two always-dense strips | **APPROVED WITH GUARDS** | Keep one consistent place for Fell/Crop counts and real Work Plan status; show meaningful change in crop release, local opening or wind warnings when relevant. Avoid rounded zero becoming 'no change' if the underlying value changed materially. If storm events are off, do not present 'Stable' as empirical wind safety; distinguish the inactive model. Never hide a blocking approval or limit warning. |
+| 5. Shared four-tab menu shell across Objectives, Stand Map, Work Plan and Annual Review | **DEFER EXACT REDESIGN; ALLOW LOW-RISK CONSISTENCY AUDIT in a separate P1/P2 spec** | Existing menu/navigation, focus, Esc behaviour and current per-view actions changed in #363–#370. Do not replace all screens, add global steps, or refactor shared root in the HUD task. A later source/current-Unity audit may standardise names, tab order and Back-to-forest affordance without changing commitment and review gates. |
+| 6. Annual Review headline tiles and yearly net-result line | **APPROVE COMPACT YEAR SUMMARY AS DESIGN CANDIDATE; DEFER EXACT THREE-TILE LAYOUT** | A concise work/money/forest summary may precede detail, but each value must be derived from that selected year's authoritative recorded history or explicitly labelled reconstruction/current data. 'Net' must follow actual settlement accounting; never manufacture a net from incomplete categories. Verify 720p, older-year navigation, zero-work year, completion and source disclosure. Current toggle/acknowledgement behaviour must remain. |
+
+## Explicit corrections to the visual sketches
+
+1. The Objective1 screenshots' [X] and [C] key hints must not appear when the real rack-first stage suppresses those actions. Show only keys the code actually allows; current TreeInspectionView already guards marking during RackFirstStageActive.
+2. The image's highlighted Approve Work Plan control cannot pulse: it commits work. A static selected/default style may be used. Advance Year/Confirm Rack Plan and other destructive/commitment actions also never pulse under the prior ruling.
+3. Back to forest is never disabled merely because the Annual Review has not been acknowledged; acknowledgement remains a separate explicit safe action.
+4. 'Growth held back 54%' needs the technical qualifier 'of potential diameter growth' in visible text or immediate explanatory detail. An adjacent '13% share' label is a relative local-competition contribution. These percentages have different denominators.
+5. The target tree card must not pretend qualitative health, ecological desirability or recommended felling is known from a competition index. Fable's example 'No single neighbour dominates' is a description of calculated shares only.
+6. Sample values in the mock-ups and stitched forest backgrounds are illustrative, not current rendered state. Copy/source values must be bound to current authoritative data, not hard-coded.
+
+## Scope and priority
+
+**P1 design improvement, SPEC REQUIRED.** The HUD/inspection declutter is substantive UI/UX and should have one bounded four-file draft spec; it is NOT a blocker to the existing limited personal test. A separate optional menu/review layout proposal should not cause broad overlapping edits while #361 feedback and #371 handback remain active. Do not reopen completed #363–#370 repairs or force repeat qualification of already-tested unrelated gameplay.
+
+**HUD draft spec work:** preserve actual player action and warnings, deterministic source data, MFM proposal-vs-Fell distinction, current rack-stage key guards, [V] cursor-locked detail, normal/current/old-world paths and no persistence change. On-tree label experiments are optional and require an explicit go/no-go at the feature's real rendered qualification. Exact responsive layout is proposed, not accepted at pixel level.
+
+**Acceptance plan only (not executed):** targeted source/static behavior checks; 1280×720 and 1920×1080 colour/grayscale real Unity captures; normal selected tree, Crop Tree with many neighbours, changed/unaffected Fell marks, storms off/on, rack stage, MFM context, short and long species names, old saved worlds/Reference; key hints and [V] access; check in-world labels at actual distances/depth; one feature-scope Tier 2 gate when implementation is ready, not whole-programme Tier 3.
+
+**No integration or implementation authority:** The companion spec draft, if published, must retain DRAFT until separately approved. Do not claim accepted UI/rendering from text or mock-ups. No repo production edits, live-lock changes, save changes or Unity actions were made in this review.
+
+## Next step
+
+Complete/review the four-file HUD draft specification on a docs-only lane and choose final scope before implementing. The full menu shell and exact Annual Review tile layout remain separate, lower priority; obtain fresh current-Unity comparison if pursuing them. Before any T3 Code implementation, create a substantive worker claim and bind current source candidate, exclusive UI file ownership and single writer; deliver a paste-ready GitHub handoff. No user action is required to continue drafting; player approval of final visuals remains a later user-test decision. Dashboard downstream synchronization is NOT VERIFIED by this docs-only review.
