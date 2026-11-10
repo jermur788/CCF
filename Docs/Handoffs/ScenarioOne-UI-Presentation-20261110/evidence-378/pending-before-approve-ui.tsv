@@ -1,0 +1,159 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer,modal-backdrop	
+VisualElement		(x:210.00, y:27.50, width:1180.00, height:845.00)	True	panel,modal,modal-workplan	
+VisualElement		(x:225.00, y:38.75, width:1150.00, height:121.25)	True	modal-header	
+VisualElement		(x:225.00, y:38.75, width:331.25, height:75.00)	True		
+Label		(x:227.50, y:42.50, width:325.00, height:37.50)	True	unity-label,unity-text-element,title	Work Plan
+Label		(x:227.50, y:86.25, width:325.00, height:25.00)	True	unity-label,unity-text-element,subtitle	Your time next year: 0 min planned of 40.0 h
+VisualElement		(x:225.00, y:120.00, width:1150.00, height:32.50)	True	row,screen-actions	
+Label	menu-current-status	(x:227.50, y:123.75, width:296.25, height:26.25)	True	unity-label,unity-text-element,money,menu-current-status	Current Year 2 · Cash €10225.54
+VisualElement	menu-navigation	(x:225.00, y:166.25, width:1150.00, height:46.25)	True	row-wrap,menu-navigation	
+Button		(x:225.00, y:168.75, width:138.75, height:32.50)	True	unity-button,unity-text-element,btn	Objectives [O]
+Button		(x:371.25, y:168.75, width:143.75, height:32.50)	True	unity-button,unity-text-element,btn	Stand Map [M]
+Button		(x:522.50, y:168.75, width:170.00, height:32.50)	False	unity-button,unity-disabled,unity-text-element,btn,btn-selected	Work Plan [Tab]
+Button		(x:700.00, y:168.75, width:143.75, height:32.50)	True	unity-button,unity-text-element,btn	Annual Review
+Button		(x:851.25, y:168.75, width:100.00, height:32.50)	True	unity-button,unity-text-element,btn	Help [F1]
+Button		(x:958.75, y:168.75, width:178.75, height:32.50)	True	unity-button,unity-text-element,btn	Back to forest [Esc]
+Label		(x:227.50, y:220.00, width:1143.75, height:26.25)	True	unity-label,unity-text-element,plan-steps	1  Review proposed work    →    2  Approve Work Plan    →    3  Advance one year
+Label		(x:227.50, y:255.00, width:1143.75, height:46.25)	True	unity-label,unity-text-element,muted	Marks and planting spots join this draft when you open it. Review the quote and job groups; approval commits eligible pending work. The separate year advance executes approved work.
+Label		(x:227.50, y:307.50, width:1143.75, height:26.25)	True	unity-label,unity-text-element,body	Proposed work · 1 pending · 0 approved. Open a group to edit or remove jobs.
+Label	next-action-reason	(x:227.50, y:340.00, width:1143.75, height:27.50)	True	unity-label,unity-text-element,next-action-reason	Compare Share and position; mark meaningful in-footprint competitors, then open Work Plan [Tab].
+ScrollView		(x:225.00, y:371.25, width:1150.00, height:365.00)	True	unity-scroll-view,unity-scroll-view--vertical,unity-scroll-view--scroll	
+VisualElement	unity-content-and-vertical-scroll-container	(x:225.00, y:371.25, width:1150.00, height:365.00)	True	unity-scroll-view__content-and-vertical-scroll-container	
+VisualElement	unity-content-viewport	(x:225.00, y:371.25, width:1131.25, height:365.00)	True	unity-scroll-view__content-viewport,unity-scroll-view__content-viewport--vertical	
+VisualElement	unity-content-container	(x:225.00, y:371.25, width:1131.25, height:1607.50)	True	unity-scroll-view__content-container,unity-scroll-view__content-container--vertical	
+VisualElement		(x:225.00, y:371.25, width:1131.25, height:597.50)	True	columns	
+VisualElement	workplan-money	(x:225.00, y:371.25, width:556.25, height:473.75)	True	card,column,workplan-overview	
+Label		(x:242.50, y:392.50, width:520.00, height:27.50)	True	unity-label,unity-text-element,heading	MONEY
+Label		(x:242.50, y:430.00, width:520.00, height:26.25)	True	unity-label,unity-text-element,muted	Expected for all open jobs; re-quoted when the year is resolved.
+VisualElement		(x:240.00, y:458.75, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:465.00, width:437.50, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Timber sales
+Label		(x:693.75, y:465.00, width:68.75, height:26.25)	True	unity-label,unity-text-element,money,line-value	+€3.61
+VisualElement		(x:240.00, y:497.50, width:526.25, height:56.25)	True	table-row	
+Label		(x:242.50, y:503.75, width:403.75, height:43.75)	True	unity-label,unity-text-element,body,cell-name	Harvesting work (incl. small-job minimum €2497.81)
+Label		(x:660.00, y:503.75, width:102.50, height:43.75)	True	unity-label,unity-text-element,money-negative,line-value	−€2500.00
+VisualElement		(x:240.00, y:553.75, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:560.00, width:403.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Net for planned work
+Label		(x:660.00, y:560.00, width:102.50, height:26.25)	True	unity-label,unity-text-element,money-negative,line-value	−€2496.39
+VisualElement		(x:240.00, y:592.50, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:598.75, width:403.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Expected cash after approved work
+Label		(x:660.00, y:598.75, width:102.50, height:26.25)	True	unity-label,unity-text-element,value,line-value	€10225.54
+VisualElement		(x:240.00, y:631.25, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:637.50, width:415.00, height:26.25)	True	unity-label,unity-text-element,body,cell-name	… if all pending work is approved
+Label		(x:671.25, y:637.50, width:91.25, height:26.25)	True	unity-label,unity-text-element,value,line-value	€7729.15
+Label		(x:242.50, y:673.75, width:520.00, height:105.00)	True	unity-label,unity-text-element,muted	Harvesting has a minimum charge per contractor visit (€2500.00 in this scenario). All felling approved for the same year shares one visit, so one visit costs less per tree than several small visits in different years. Planting, pruning and clearance are charged by time, with no minimum.
+Label		(x:242.50, y:785.00, width:520.00, height:43.75)	True	unity-label,unity-text-element,faint	You could spend €5229.15 more before expected cash falls below one harvesting visit.
+VisualElement	workplan-leaving	(x:791.25, y:371.25, width:555.00, height:590.00)	True	card,column,workplan-overview	
+Label		(x:808.75, y:392.50, width:518.75, height:27.50)	True	unity-label,unity-text-element,heading	WHAT YOU ARE LEAVING
+Label		(x:808.75, y:430.00, width:518.75, height:105.00)	True	unity-label,unity-text-element,muted	The residual stand: the trees left standing if all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened. Basal area is the cross-section area of the trunks per hectare, a standard measure of how much stand there is.
+VisualElement		(x:806.25, y:537.50, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:543.75, width:343.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Trees standing
+Label		(x:1166.25, y:543.75, width:161.25, height:26.25)	True	unity-label,unity-text-element,value,line-value	1195 → 1194 (−1)
+VisualElement		(x:806.25, y:576.25, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:582.50, width:341.25, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Basal area
+Label		(x:1163.75, y:582.50, width:163.75, height:26.25)	True	unity-label,unity-text-element,value,line-value	40.2 → 40.2 m²/ha
+VisualElement		(x:806.25, y:615.00, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:621.25, width:346.25, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Standing stem volume
+Label		(x:1168.75, y:621.25, width:158.75, height:26.25)	True	unity-label,unity-text-element,value,line-value	171.4 → 171.3 m³
+VisualElement		(x:806.25, y:653.75, width:525.00, height:58.75)	True	table-row	
+Label		(x:808.75, y:660.00, width:186.25, height:46.25)	True	unity-label,unity-text-element,body,cell-name	Removal across the stand
+Label		(x:1008.75, y:660.00, width:318.75, height:46.25)	True	unity-label,unity-text-element,value,line-value	1 map square · largest opening 0 m²
+Label		(x:808.75, y:716.25, width:518.75, height:26.25)	True	unity-label,unity-text-element,muted	Spread out: no part of the stand is heavily opened.
+VisualElement		(x:806.25, y:745.00, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:751.25, width:452.50, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Crop Trees kept
+Label		(x:1275.00, y:751.25, width:52.50, height:26.25)	True	unity-label,unity-text-element,value,line-value	3 of 3
+VisualElement		(x:806.25, y:783.75, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:790.00, width:386.25, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Trees producing seed
+Label		(x:1208.75, y:790.00, width:118.75, height:26.25)	True	unity-label,unity-text-element,value,line-value	1195 → 1194
+Label		(x:808.75, y:826.25, width:518.75, height:66.25)	True	unity-label,unity-text-element,body	Crop Tree competition: for 3 trees, mean index 9.68 → 9.48; 0 would have at least 10% less competition if only these planned trees were removed.
+Label		(x:808.75, y:898.75, width:518.75, height:46.25)	True	unity-label,unity-text-element,muted	A same-year estimate from the competition model. It is not a promised growth response.
+VisualElement		(x:225.00, y:968.75, width:1131.25, height:62.50)	True	card,work-section	
+Foldout	workplan-order-groups	(x:240.00, y:982.50, width:1101.25, height:35.00)	True	unity-foldout,unity-foldout--depth-0	
+Toggle		(x:243.75, y:985.00, width:1093.75, height:30.00)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:243.75, y:985.00, width:1093.75, height:30.00)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:247.50, y:988.75, width:22.50, height:21.25)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:275.00, y:985.00, width:335.00, height:27.50)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Current work · approval and origin
+Label		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,muted	Pending work is uncommitted until you approve the Work Plan. Open a group to read its orders; quotes and controls are below. Previous results remain in Annual review.
+Foldout	workplan-approved	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-foldout,unity-foldout--depth-1	
+Toggle		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Approved · 0
+Foldout	workplan-pending-new	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-foldout,unity-foldout--depth-1	
+Toggle		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Pending new · 1
+VisualElement		(x:240.00, y:982.50, width:0.00, height:0.00)	True	row-wrap	
+Label		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-label,unity-text-element,body,gap	#150 · Fell P0709 · created in year 2
+Foldout	workplan-pending-carried-over	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-foldout,unity-foldout--depth-1	
+Toggle		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:240.00, y:982.50, width:0.00, height:0.00)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Pending carried over · 0
+VisualElement		(x:225.00, y:1038.75, width:1131.25, height:636.25)	True	card,work-section	
+Foldout		(x:240.00, y:1052.50, width:1101.25, height:608.75)	True	unity-foldout,unity-foldout--depth-0	
+Toggle		(x:243.75, y:1055.00, width:1093.75, height:30.00)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:243.75, y:1055.00, width:1093.75, height:30.00)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:247.50, y:1058.75, width:22.50, height:21.25)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:275.00, y:1055.00, width:348.75, height:27.50)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Harvest and salvage job · 1 stem(s)
+VisualElement	unity-content	(x:240.00, y:1087.50, width:1101.25, height:573.75)	True	unity-foldout__content	
+Label		(x:242.50, y:1097.50, width:1095.00, height:26.25)	True	unity-label,unity-text-element,muted	One commissioned contractor visit · Contractor only — specialist harvesting work
+VisualElement		(x:240.00, y:1126.25, width:1101.25, height:37.50)	True	table-row	
+Label		(x:242.50, y:1132.50, width:646.25, height:25.00)	True	unity-label,unity-text-element,faint,cell-name	Product
+Label		(x:895.00, y:1132.50, width:218.75, height:25.00)	True	unity-label,unity-text-element,faint,cell-num	Volume
+Label		(x:1120.00, y:1132.50, width:217.50, height:25.00)	True	unity-label,unity-text-element,faint,cell-num	Roadside value
+VisualElement		(x:240.00, y:1163.75, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1170.00, width:646.25, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Stake
+Label		(x:895.00, y:1170.00, width:218.75, height:26.25)	True	unity-label,unity-text-element,body,cell-num	0.086 m³
+Label		(x:1120.00, y:1170.00, width:217.50, height:26.25)	True	unity-label,unity-text-element,body,cell-num	€3.61
+VisualElement		(x:240.00, y:1202.50, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1208.75, width:998.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Tops and residue (left on site)
+Label		(x:1255.00, y:1208.75, width:82.50, height:26.25)	True	unity-label,unity-text-element,value,line-value	0.021 m³
+VisualElement		(x:240.00, y:1241.25, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1247.50, width:1012.50, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Timber sales
+Label		(x:1268.75, y:1247.50, width:68.75, height:26.25)	True	unity-label,unity-text-element,money,line-value	+€3.61
+VisualElement		(x:240.00, y:1280.00, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1286.25, width:1012.50, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Harvesting work
+Label		(x:1268.75, y:1286.25, width:68.75, height:26.25)	True	unity-label,unity-text-element,money-negative,line-value	−€2.19
+VisualElement		(x:240.00, y:1318.75, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1325.00, width:978.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Small-job minimum (visit minimum €2500.00)
+Label		(x:1235.00, y:1325.00, width:102.50, height:26.25)	True	unity-label,unity-text-element,money-negative,line-value	−€2497.81
+VisualElement		(x:240.00, y:1357.50, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1363.75, width:990.00, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Total quoted contractor charge before approval
+Label		(x:1246.25, y:1363.75, width:91.25, height:26.25)	True	unity-label,unity-text-element,value,line-value	€2500.00
+Label		(x:242.50, y:1400.00, width:1095.00, height:46.25)	True	unity-label,unity-text-element,muted	Quote covers all eligible harvest and salvage stems above, including their timber dispositions. Approving the Work Plan commits every eligible pending job, not only this visit. The year settlement re-quotes actual work.
+VisualElement		(x:240.00, y:1448.75, width:1101.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:1455.00, width:978.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Net for this job
+Label		(x:1235.00, y:1455.00, width:102.50, height:26.25)	True	unity-label,unity-text-element,money-negative,line-value	−€2496.39
+Label		(x:242.50, y:1491.25, width:1095.00, height:26.25)	True	unity-label,unity-text-element,muted	This visit is small, so the contractor's minimum charge dominates. Combining more trees into one visit spreads that cost.
+Label		(x:242.50, y:1523.75, width:1095.00, height:25.00)	True	unity-label,unity-text-element,faint	Re-quoted and settled when the year is resolved.
+Label		(x:242.50, y:1555.00, width:1095.00, height:66.25)	True	unity-label,unity-text-element,muted	If this visit includes Oak or Beech: Oak and Beech grade here depends on size and pruning history in this version; fork and defect shape is not modelled. Premium Oak is only a possible late outcome: it needs a large, pruned, favourably grown tree with little competition, and it is not promised or required.
+VisualElement		(x:240.00, y:1623.75, width:1101.25, height:37.50)	True	row-wrap	
+Label		(x:242.50, y:1627.50, width:71.25, height:31.25)	True	unity-label,unity-text-element,chip,chip-fell	■ FELL
+Label		(x:322.50, y:1627.50, width:243.75, height:31.25)	True	unity-label,unity-text-element,body,gap	P0709 · 0.11 m³ · Pending new
+Button		(x:576.25, y:1626.25, width:62.50, height:32.50)	True	unity-button,unity-text-element,btn,btn-selected	Sell
+Button		(x:645.00, y:1626.25, width:126.25, height:32.50)	True	unity-button,unity-text-element,btn	Keep for use
+Button		(x:777.50, y:1626.25, width:183.75, height:32.50)	True	unity-button,unity-text-element,btn	Leave as deadwood
+Button		(x:967.50, y:1626.25, width:92.50, height:32.50)	True	unity-button,unity-text-element,btn	Remove
+VisualElement		(x:225.00, y:1682.50, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:1698.75, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Planting
+Label		(x:242.50, y:1736.25, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+VisualElement		(x:225.00, y:1781.25, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:1797.50, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Pruning
+Label		(x:242.50, y:1835.00, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+VisualElement		(x:225.00, y:1880.00, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:1896.25, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Nursery — planting stock
+Label		(x:242.50, y:1933.75, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+Scroller		(x:1362.50, y:371.25, width:12.50, height:365.00)	True	unity-scroller,unity-scroller--vertical,unity-scroll-view__vertical-scroller	
+ScrollerSlider	unity-slider	(x:1362.50, y:371.25, width:25.00, height:365.00)	True	unity-base-field,unity-base-slider--vertical,unity-base-slider,unity-scroller__slider,unity-base-field--no-label,unity-slider	
+VisualElement		(x:1362.50, y:371.25, width:25.00, height:365.00)	True	unity-base-field__input,unity-base-slider__input,unity-slider__input	
+VisualElement	unity-drag-container	(x:1362.50, y:371.25, width:25.00, height:365.00)	True	unity-base-slider__drag-container	
+VisualElement	unity-tracker	(x:1365.00, y:371.25, width:8.75, height:365.00)	True	unity-base-slider__tracker	
+VisualElement	unity-dragger	(x:1368.75, y:371.25, width:7.50, height:82.50)	True	unity-base-slider__dragger	
+Label		(x:227.50, y:740.00, width:1143.75, height:66.25)	True	unity-label,unity-text-element,muted	Added 1 marked tree to the Work Plan.   ·   You have reviewed your intervention. Return to the forest and carry out another intervention when you judge the forest needs it; Scenario One completes once the eight objectives are met and that second intervention is resolved in a different simulation year. · Current objective: 3. Identify the competitors that matter · [O] Details
+VisualElement		(x:225.00, y:816.25, width:1150.00, height:45.00)	True	modal-footer	
+Button	workplan-approve	(x:225.00, y:827.50, width:178.75, height:31.25)	True	unity-button,unity-text-element,btn	Approve Work Plan
+Button	workplan-advance	(x:410.00, y:827.50, width:167.50, height:31.25)	True	unity-button,unity-text-element,btn	Advance one year
+Button		(x:583.75, y:827.50, width:178.75, height:31.25)	True	unity-button,unity-text-element,btn	Back to forest [Esc]

@@ -1,0 +1,12 @@
+{
+  "valued_origin_files_unchanged": 36,
+  "u3_status_and_binary_diff_unchanged": true,
+  "workbench_status_and_binary_diff_unchanged": true,
+  "primary_status_and_binary_diff_unchanged": true,
+  "pack-baseline.sha256_entries_unchanged_both_lanes": 27,
+  "protected-sha256.txt_entries_unchanged_both_lanes": 6,
+  "qualification_lane_clean": true,
+  "harness_and_meta_removed": true,
+  "disk_free_gib": 27.55615234375,
+  "crop_inspection_and_shared_uikit_unchanged": true
+}

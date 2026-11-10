@@ -1,0 +1,4 @@
+Timber income	(x:620.00, y:277.50, width:331.25, height:27.50)	(327.50, 20.00)	€3.61	(x:620.00, y:311.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Contractor work	(x:620.00, y:355.00, width:331.25, height:27.50)	(327.50, 20.00)	€2500.00	(x:620.00, y:388.75, width:331.25, height:26.25)	(87.50, 18.75)	MiddleRight	fit=True
+Recorded work materials	(x:620.00, y:432.50, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:466.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Income less contractor work	(x:620.00, y:541.25, width:331.25, height:27.50)	(327.50, 20.00)	−€2496.39	(x:620.00, y:575.00, width:331.25, height:26.25)	(98.75, 18.75)	MiddleRight	fit=True

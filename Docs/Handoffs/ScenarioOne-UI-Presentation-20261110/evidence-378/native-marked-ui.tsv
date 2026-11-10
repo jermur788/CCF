@@ -1,0 +1,54 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:13.75, y:13.75, width:620.00, height:196.25)	True	hud-objective	
+VisualElement	active-objective-widget	(x:13.75, y:13.75, width:620.00, height:196.25)	True	panel,objective-widget	
+VisualElement		(x:33.75, y:28.75, width:580.00, height:32.50)	True	objective-header	
+Label	active-objective-now	(x:36.25, y:37.50, width:57.50, height:17.50)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:106.25, y:33.75, width:118.75, height:25.00)	True	unity-label,unity-text-element,objective-step	Objective 3 of 9
+Button	active-objective-details	(x:513.75, y:28.75, width:100.00, height:32.50)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:36.25, y:65.00, width:573.75, height:27.50)	True	unity-label,unity-text-element,objective-title	Identify the competitors that matter
+Label	active-objective-instruction	(x:36.25, y:97.50, width:573.75, height:46.25)	True	unity-label,unity-text-element,objective-instruction	Next: Compare Share and position; mark meaningful in-footprint competitors, then open Work Plan [Tab].
+Label	active-objective-progress	(x:36.25, y:150.00, width:573.75, height:42.50)	True	unity-label,unity-text-element,objective-progress	Inside teaching area · Middle · right looking from headland into rack | Initial release: 0% minimum / about 30% each · trunk area 1%/40%
+VisualElement	hud-right-column	(x:1256.25, y:13.75, width:330.00, height:56.25)	True	hud-right	
+VisualElement		(x:1256.25, y:13.75, width:330.00, height:56.25)	True	panel,spread,hud-status	
+Label		(x:1273.75, y:30.00, width:52.50, height:25.00)	True	unity-label,unity-text-element,body	Year 2
+Label		(x:1398.75, y:28.75, width:168.75, height:27.50)	True	unity-label,unity-text-element,money	Cash €10225.54
+VisualElement	hud-context-actions	(x:13.75, y:831.25, width:1353.75, height:56.25)	True	panel,row-wrap,context-actions	
+VisualElement		(x:25.00, y:842.50, width:111.25, height:33.75)	True	row,key-control	
+Label		(x:27.50, y:847.50, width:31.25, height:25.00)	True	unity-label,unity-text-element,keycap	E
+Label		(x:68.75, y:846.25, width:63.75, height:27.50)	True	unity-label,unity-text-element,key-verb	Inspect
+VisualElement		(x:152.50, y:842.50, width:152.50, height:33.75)	True	row,key-control	
+Label		(x:155.00, y:847.50, width:32.50, height:25.00)	True	unity-label,unity-text-element,keycap	X
+Label		(x:197.50, y:846.25, width:103.75, height:27.50)	True	unity-label,unity-text-element,key-verb	Unmark Fell
+VisualElement		(x:321.25, y:842.50, width:218.75, height:33.75)	True	row,key-control	
+Label		(x:323.75, y:847.50, width:32.50, height:25.00)	True	unity-label,unity-text-element,keycap	C
+Label		(x:366.25, y:846.25, width:170.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Retain as Crop Tree
+VisualElement		(x:556.25, y:842.50, width:112.50, height:33.75)	True	row,key-control	
+Label		(x:558.75, y:847.50, width:55.00, height:25.00)	True	unity-label,unity-text-element,keycap	Tab
+Label		(x:623.75, y:846.25, width:41.25, height:27.50)	True	unity-label,unity-text-element,key-verb	Plan
+VisualElement		(x:685.00, y:842.50, width:141.25, height:33.75)	True	row,key-control	
+Label		(x:687.50, y:847.50, width:33.75, height:25.00)	True	unity-label,unity-text-element,keycap	O
+Label		(x:731.25, y:846.25, width:91.25, height:27.50)	True	unity-label,unity-text-element,key-verb	Objectives
+VisualElement		(x:842.50, y:842.50, width:146.25, height:33.75)	True	row,key-control	
+Label		(x:845.00, y:847.50, width:35.00, height:25.00)	True	unity-label,unity-text-element,keycap	M
+Label		(x:890.00, y:846.25, width:95.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Stand Map
+VisualElement		(x:1005.00, y:842.50, width:101.25, height:33.75)	True	row,key-control	
+Label		(x:1007.50, y:847.50, width:42.50, height:25.00)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:1060.00, y:846.25, width:42.50, height:27.50)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:13.75, y:585.00, width:1086.25, height:191.25)	True	hud-bottom	
+VisualElement		(x:13.75, y:585.00, width:700.00, height:132.50)	True	panel,hud-forecast	
+Label	hud-crop-forecast	(x:35.00, y:602.50, width:656.25, height:46.25)	True	unity-label,unity-text-element,body	Open felling-job estimate · Crop Trees 3: competition around them 9.68 → 9.68 (0 %) · 0 lose at least a tenth · Fell marks within 8 m of a Crop Tree: 1 of 1
+Label		(x:35.00, y:655.00, width:656.25, height:46.25)	True	unity-label,unity-text-element,body	If felled now: keep 171.3 m3 · growth +0% · gap light 0.00 → 0.00 · wind exposure Watch (storms off) · opening 1.0 of 2
+Label		(x:16.25, y:727.50, width:533.75, height:46.25)	True	unity-label,unity-text-element,panel,body	Marked: FELL 1 (red)  ·  CROP TREE 3 (blue)  ·  fell volume 0.1 m³
+VisualElement		(x:0.00, y:503.75, width:1600.00, height:0.00)	True	hud-prompt	
+VisualElement		(x:640.00, y:342.50, width:500.00, height:52.50)	True	hud-message	
+Label		(x:707.50, y:346.25, width:365.00, height:46.25)	True	unity-label,unity-text-element,panel	Marked P0709 as harvest (1 marked)
+VisualElement		(x:797.50, y:447.50, width:3.75, height:3.75)	True	reticle	
+VisualElement	hud-minimap	(x:1380.00, y:682.50, width:206.25, height:205.00)	True	panel,hud-minimap	
+StandMapSurface	hud-minimap-canvas	(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+StandMapCanopyLayer		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+StandMapCanvas		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+LayerPainter		(x:1385.00, y:687.50, width:196.25, height:195.00)	True		
+Label		(x:1567.50, y:717.50, width:12.50, height:21.25)	True	unity-label,unity-text-element,hud-minimap-north	N
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	

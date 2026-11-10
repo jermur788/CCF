@@ -1,0 +1,1 @@
+year=3 objectiveIndex=2 title=3. Identify the competitors that matter instruction=Read and acknowledge the Annual Review: open the Work Plan [Tab]. progress=Read and acknowledge the annual results before continuing. unread=True racks=5 entrances=5 player=(-2.33, 0.03, -8.49) aimed=P0809 help=False transient=

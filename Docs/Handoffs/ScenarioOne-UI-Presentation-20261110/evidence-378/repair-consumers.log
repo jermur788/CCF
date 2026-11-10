@@ -1,0 +1,14 @@
+/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/repair-consumers/positive/Probe.cs(6,41): warning CS0649: Field 'Tree.IsCropTree' is never assigned to, and will always have its default value false [/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/repair-consumers/positive/probe.csproj]
+/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/repair-consumers/positive/Probe.cs(6,25): warning CS0649: Field 'Tree.IsMarkedForFell' is never assigned to, and will always have its default value false [/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/repair-consumers/positive/probe.csproj]
+PASS consumer sink: locked note and 8 actual hint states
+KILLED source consumer mutation: SELECTED_YEAR_HEADLINES
+KILLED source consumer mutation: HISTORY_ACK_GUARD
+KILLED source consumer mutation: BACK_ENABLED
+KILLED source consumer mutation: RACK_FIRST_CALLERS
+KILLED source consumer mutation: NONMARKABLE
+KILLED source consumer mutation: STATIC_APPROVE_SEPARATE_ADVANCE
+KILLED source consumer mutation: YEAR_CASH_ONLY
+KILLED executable consumer mutation: MFM_ACTUAL_KEYS
+KILLED executable consumer mutation: CLEAN_E
+KILLED executable consumer mutation: LOCKED_NOTE_VISIBLE
+PASS 12 source contracts, 10 negative controls

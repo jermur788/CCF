@@ -1,0 +1,20 @@
+PATHS_PROVEN persistent=/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/run/config/unity3d/DefaultCompany/CCF
+F5/F9=/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/run/config/unity3d/DefaultCompany/CCF/forest-save.json
+prefs=/media/jer/Files/CCF/Verification/CCF-378-AnnualRow-20261110/run/config/unity3d/DefaultCompany/CCF/prefs
+1794353480965833694.json .done {'action': 'focus'}
+1794353484899116094.json .done {'action': 'show', 'arg': 'forest'}
+1794353490070174926.json .done {'action': 'aim', 'arg': 'P0709'}
+1794353494419839435.json .done {'action': 'focus'}
+1794353498324170403.json .done {'action': 'dump', 'arg': 'native-marked'}
+1794353502606523156.json .done {'action': 'dismiss'}
+1794353505340417785.json .done {'action': 'dump', 'arg': 'pending-before-approve'}
+1794353508118866896.json .done {'action': 'click', 'arg': 'workplan-approve'}
+1794353510861242461.json .done {'action': 'dump', 'arg': 'approved-before-advance'}
+1794353513608222921.json .done {'action': 'click', 'arg': 'workplan-advance'}
+1794353518772543568.json .done {'action': 'show', 'arg': 'review'}
+1794353521516037586.json .done {'action': 'dismiss'}
+1794353524268156080.json .done {'action': 'size', 'width': 1280, 'height': 720}
+1794353527015950504.json .done {'action': 'annualfit', 'arg': '01-annual-year3-repaired-1280'}
+1794353532553269770.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794353535738971917.json .done {'action': 'annualfit', 'arg': '01-annual-year3-repaired-1920'}
+FIRST_GATE_ACTIONS_COMPLETE

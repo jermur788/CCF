@@ -1,0 +1,18 @@
+{
+  "status": "released",
+  "forced": false,
+  "previous": {
+    "lock_id": "0844eb93a17a4cd29a83295beda7bcd0",
+    "owner": "Codex-Sol-CCF378",
+    "task_id": "CCF-378-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-ui-annual-row-20261110-v1",
+    "head": "ebe061bae8d3f9da1e810b4c49f49199db8b3d61",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-10T23:28:08.854101+00:00",
+    "eta": "2026-11-11T00:30:00Z",
+    "notes": "378 Phase B: source writer released; isolated warm lane clean; 36 valued origins,27 licensed,6 frozen verified; no personal lane changes"
+  },
+  "unity_editor_pids": []
+}

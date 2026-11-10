@@ -1,0 +1,24 @@
+1794353595986000084.json .done {'action': 'click', 'arg': '◀ Earlier year'}
+1794353599352782106.json .done {'action': 'dump', 'arg': 'historical-before-sources'}
+1794353602496223393.json .done {'action': 'toggle', 'arg': 'annual-show-data-sources', 'width': 1}
+1794353605642387978.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794353608833696223.json .done {'action': 'annualfit', 'arg': '02-historical-sources-1920'}
+1794353614979799789.json .done {'action': 'size', 'width': 1280, 'height': 720}
+1794353617929555269.json .done {'action': 'annualfit', 'arg': '02-historical-sources-1280'}
+1794353623488447081.json .done {'action': 'click', 'arg': 'Later year ▶'}
+1794353626243217513.json .done {'action': 'dump', 'arg': 'latest-sources'}
+1794353629009104009.json .done {'action': 'foldout', 'arg': 'Detailed annual records', 'width': 1}
+1794353631967758926.json .done {'action': 'scroll', 'arg': 'work-detail-toggle-done-FellTree'}
+1794353634915658240.json .done {'action': 'size', 'width': 1280, 'height': 720}
+1794353637655385181.json .done {'action': 'annualfit', 'arg': '03-expanded-records-1280'}
+1794353643222649352.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794353646359533258.json .done {'action': 'annualfit', 'arg': '03-expanded-records-1920'}
+1794353652708881846.json .done {'action': 'show', 'arg': 'review'}
+1794353656985040692.json .done {'action': 'dump', 'arg': 'back-before-ack'}
+1794353660443954233.json .done {'action': 'show', 'arg': 'review'}
+1794353663799553867.json .done {'action': 'click', 'arg': 'annual-review-acknowledge'}
+1794353667145777697.json .done {'action': 'dump', 'arg': 'after-explicit-ack'}
+1794353670298705197.json .done {'action': 'show', 'arg': 'forest'}
+1794353673443726546.json .done {'action': 'focus'}
+1794353677946769854.json .done {'action': 'trees'}
+REVIEW_CONTINUATION_COMPLETE
