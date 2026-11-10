@@ -6,6 +6,10 @@
 
 Purpose: remove clutter and provide consistent decisions across (1) walking/tree inspection HUD, (2) compact Year/Cash header and contextual bottom keycaps, (3) Objectives/Stand Map/Work Plan/Annual Review menu navigation, (4) Work Plan cost/approval presentation and (5) end-of-year Annual Review summary. **HIGH** — crosses stateful UI classes, source-only model truth, locked keyboard input, annual historical data and safe commitment gates. **Best suited: OpenAI Sol / Codex High using T3 local code lane**. Single primary UI writer; do not delegate overlapping UI files.
 
+## User's newer preferred image — visual priority update
+
+At 19:40 UTC, the user supplied another image and confirmed **“this is even better”**. If you can access an exact local copy of that specific image, **prioritise its composition/visual finish** over the three earlier posters. Record its real file path, dimensions, checksum and where it was actually found; the GitHub Manager has **not** committed or verified an asset path for this newer inline image. **Do not invent a path, image hash, Unity render or claim to have inspected it if absent**. The three older 2× PNGs and four Git-controlled SVGs still make this work executable in its absence; report the newer image as NOT INSPECTED and proceed. Preserve the approved spec, correct real [X]/[C] bindings, Year/Cash-only HUD and Annual Review/Work Plan state authority over any illustrative UI depiction.
+
 ## Supplemental poster style references
 
 **Additional user-supplied three-poster set:** https://github.com/jermur788/CCF/blob/spec/scenario-one-ui-presentation-20261110-v1/specs/scenario-one-ui-presentation-v1/visuals/POSTER-SUPPLEMENT-AND-ERRATA.md
