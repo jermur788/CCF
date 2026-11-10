@@ -59,7 +59,7 @@ No changes to underlying ecological calculations, tree marks or IDs, rack planni
 
 ### FR-8. Compact top-right global status strip — explicit current-state constraint
 
-The player requests a **small top-right status display** using information already supported by the simulation: **current Year and cash**, with an optional compact **current browsing-pressure band** or game phase if they fit and help. Reconcile existing HUD values rather than creating a second bulky panel. The status strip must be quiet, accurate to current game state, non-duplicative and legible at 720p alongside the objective cue, inspection card and bottom action keycaps.
+The player requests a **small top-right status display** using information already supported by the simulation: **current Year and cash**. **Do not include browsing pressure**: the player does not want a permanent display of background pressure they cannot directly control. Any later additional item requires a specific demonstrated player decision benefit, not merely available source data. Reconcile existing HUD values rather than creating a second bulky panel. The status strip must be quiet, accurate to current game state, non-duplicative and legible at 720p alongside the objective cue, inspection card and bottom action keycaps.
 
 The player considered a numerical biodiversity-related indicator but explicitly ruled that **nothing speculative or dependent on future modelling belongs in the HUD**. The current game tracks particular ecological facts, not an endorsed all-purpose numerical biodiversity metric. Therefore **do not add biodiversity, habitat, ecological-health or fabricated composite scores or substitute a token numeric proxy**. No blank placeholder is needed: omit the item entirely.
 
