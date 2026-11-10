@@ -16,6 +16,6 @@
 - [ ] R12 1280×720 and 1920×1080 real Unity colour/grayscale evidence readable, including long text and busy forest.
 - [ ] R13 Legacy40/frozen Reference Future v1 remain protected; no save/schema/ecology/marking/economy changes.
 - [ ] R14 Focused Tier 2 handoff + independent/Manager disposition is published; full-programme Tier 3 not represented as done.
-- [ ] R15 Small top-right status strip uses existing current Year/cash data; optional browsing band/phase is accurate and useful; no new simulation metrics.
+- [ ] R15 Small top-right status strip shows current Year and cash accurately; no permanent browsing-pressure readout or unneeded status numbers; no new simulation metrics.
 - [ ] R16 No numerical biodiversity, habitat, ecological-health, unapproved composite or placeholder score appears. Existing ecological facts retain their units/meanings in appropriate views.
 - [ ] R17 The strip fits at 720p with inspection card, objective and bottom keycap bar without overlap.
