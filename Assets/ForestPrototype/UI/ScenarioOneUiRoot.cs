@@ -449,7 +449,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         {
             // The long instruction lives on the Objectives card (under More detail). Other windows get the one short line.
             reason = scope == learning.Root ? "" : learning.CurrentShortInstruction;
-            if (NeedsAnnualReview || learning.NeedsReviewAcknowledgement)
+            if (learning.ReviewFirst)
                 target = scope == review.Root ? "annual-review-acknowledge" : scope == learning.Root ? "objective-work-plan" : scope == map.Root ? "map-work-plan" : "workplan-read-results";
             else if (learning.ExtensionActive)
                 target = scope == learning.Root ? "objective-primary-cta" : scope == map.Root ? (map.TreatmentReviewOpen ? "map-back-to-forest" : "map-treatment-review") : null;

@@ -16,3 +16,4 @@ print('HUD source contract PASS (source text only, not a rendered HUD)')
 src=here/'Checks.cs'
 (out/'checks.csproj').write_text(f"""<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup><Compile Include="{src}"/><Reference Include="{assembly}"/></ItemGroup></Project>""")
 subprocess.run(['dotnet','run','--project',str(out/'checks.csproj'),'-v','q'],check=True)
+subprocess.run([sys.executable,'-B',str(here/'consumer_paths.py'),str(assembly),str(out/'consumer-paths'),str(source)],check=True)

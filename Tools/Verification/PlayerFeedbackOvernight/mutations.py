@@ -17,7 +17,7 @@ mutants=[('unsafe-pulse','UI/ScenarioOneTeachingSequence.cs','public static bool
  # #365 B-1: the #363 behaviour, the Crop Tree checklist for every teaching-area lesson
  ('hud-crop-prompt-in-objectives-3-5','UI/ScenarioOneRackBayText.cs','else if (bay != null && hasPlayer && lesson == 1) progress = Walking(bay, x, z, aimed);','else if (bay != null && hasPlayer && lesson >= 1 && lesson <= 4) progress = Walking(bay, x, z, aimed);','Objective 3: no Objective 2 Crop Tree prompt or tick boxes'),
  # #365 B-2: the review state ignored
- ('hud-crop-prompt-during-unread-review','UI/ScenarioOneRackBayText.cs','bool review = lessonReviewPending || annualReviewUnread;','bool review = false;','unread first-access review: review title'),
+ ('hud-crop-prompt-during-unread-review','UI/ScenarioOneRackBayText.cs','bool review = ReviewFirst(rackV2, lessonReviewPending, annualReviewUnread);','bool review = false;','unread first-access review: review title'),
  # #365 B-3: the #363 box that hid rack 4
  ('old-existing-clearing-box','UI/TeachingDiagramPlan.cs','new Text("Existing\\nclearing", 300f, 176f, 120f, 60f,','new Text("Existing clearing", 290f, 145f, 205f, 30f,',"figure label clear by 3 units: 'Existing clearing' touches rack4 band, rack number 4"),
  # #365 N-1
@@ -45,3 +45,31 @@ ui['LearningObjectivesView.Sequence.cs']=ui['LearningObjectivesView.Sequence.cs'
 found=hud_contract.problems(ui)
 assert found, 'SURVIVED: hud-model-bypasses-selector'
 print('hud-model-bypasses-selector: REFUSED by HUD source contract ('+str(len(found))+' findings; source text, not compiled)')
+
+# #367: remove ONLY newest-unread from the shared selector. Execute the actual card/window consumers first,
+# so rejection proves the newly covered consumer path, independent of the older HudWords assertions.
+name='review-first-omits-newest-unread'
+src=root/'Assets/ForestPrototype/UI/ScenarioOneRackBayText.cs'
+before='=> rackV2 && (lessonReviewPending || annualReviewUnread);'
+after='=> rackV2 && lessonReviewPending;'
+text=src.read_text();assert text.count(before)==1, 'R367_MUTATION_SITE_MISSING'
+d=out/name;d.mkdir(exist_ok=True);m=d/src.name;m.write_text(text.replace(before,after))
+(d/'check.csproj').write_text(base.replace(str(src),str(m)))
+b=subprocess.run(['dotnet','build',str(d/'check.csproj'),'-v','q'],capture_output=True,text=True)
+(d/'compile.txt').write_text(b.stdout+b.stderr)
+assert b.returncode==0, (name,'mutant did not compile')
+check=subprocess.run([sys.executable,'-B',str(here/'consumer_paths.py'),str(d/'bin/Debug/netstandard2.1/check.dll'),str(d/'consumer-paths'),str(root)],capture_output=True,text=True)
+log=check.stdout+check.stderr;(d/'assertions.txt').write_text(log)
+expected='R367_LATEST_UNREAD_EARLIER_ACK_CURRENT_SHORT_REVIEW_FIRST'
+assert check.returncode!=0 and 'Unhandled exception.' in log and expected in log, 'R367_MUTANT_SURVIVED_OR_WRONG_FAILURE: '+name
+print(name+': KILLED by "'+expected+'" (typed mutant compiled; actual source-slice consumers)')
+
+# Independently mutate the real callsite (not the pure helper). The fail-closed contract must name it.
+for name,before,after,expected in [
+ ('current-view-omits-ui-newest-unread','NeedsReviewAcknowledgement, ui.NeedsAnnualReview);','NeedsReviewAcknowledgement, false);','R367_REVIEW_FIRST_BOTH_PREDICATES'),
+ ('short-instruction-bypasses-review-priority','public string CurrentShortInstruction => ReviewFirst ?','public string CurrentShortInstruction => NeedsReviewAcknowledgement ?','R367_SHORT_SHARED_PRIORITY'),
+ ('card-bypasses-short-consumer','AddObjectivePart(words, "What to do", shortInstruction,','AddObjectivePart(words, "What to do", "Choose Crop Trees",','R367_CARD_SHORT_CONSUMER')]:
+ ui=hud_contract.read(root);v=ui['LearningObjectivesView.cs'];assert v.count(before)==1, (name,'site missing')
+ ui['LearningObjectivesView.cs']=v.replace(before,after)
+ found=hud_contract.problems(ui);assert expected in found,(name,found)
+ print(name+': REFUSED by named source contract '+expected)

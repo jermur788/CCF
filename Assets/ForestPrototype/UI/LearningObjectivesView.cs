@@ -29,10 +29,15 @@ public sealed partial class LearningObjectivesView
         get { var f = TeachingFacts(); return ScenarioOneTeachingSequence.PresentedLessons[ScenarioOneTeachingSequence.Presented(f)]; }
     }
     public string CurrentTitle => ScenarioOneTeachingSequence.DisplayTitle(CurrentLesson, TeachingFacts());
+    // Presentation priority only: the saved lesson and its scoring remain unchanged while a newer report is unread.
+    public bool ReviewFirst => ScenarioOneRackBayText.ReviewFirst(ui.Manager.RackPlanningV2Active && !ui.Manager.ReferencePreviewActive,
+        NeedsReviewAcknowledgement, ui.NeedsAnnualReview);
+    public string CurrentProgress => ReviewFirst ? ScenarioOneRackBayText.ReviewProgress : TeachingProgress(TeachingFacts());
     public string CurrentInstruction
     {
         get
         {
+            if (ReviewFirst) return ScenarioOneRackBayText.ReviewInstruction;
             if (!TeachingRacks)
             {
                 return TeachingInstruction(TeachingFacts());
@@ -53,9 +58,10 @@ public sealed partial class LearningObjectivesView
     }
     // The one short line for the current step: the review step first when its acknowledgement is missing, otherwise the HUD's words.
     public const string ReviewFirstInstruction = "First: read and acknowledge the annual results in Work Plan [Tab].";
-    public string CurrentShortInstruction => NeedsReviewAcknowledgement ? ReviewFirstInstruction
+    public string CurrentShortInstruction => ReviewFirst ? ScenarioOneRackBayText.ReviewInstruction
+        : NeedsReviewAcknowledgement ? ReviewFirstInstruction
         : HudInstruction(TeachingFacts(), CurrentTopicIndex, CurrentLesson);
-    public string Summary => TeachingRacks
+    public string Summary => ReviewFirst ? "Current objective: " + ScenarioOneRackBayText.ReviewTitle + " · [O] Details" : TeachingRacks
         ? (ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText + " · [O] Details"
             : ui.RackLayout != null && ui.RackLayout.Complete ? "Current objective: approve rack work, then advance one year · [O] Details"
             : ui.RackLayout != null && ui.RackLayout.HasProgress
@@ -160,19 +166,19 @@ public sealed partial class LearningObjectivesView
             && ui.Ecology != null && ui.Ecology.StandGeometryModelVersion == StandGeometryModel.Enlarged80;
         var detail = new Foldout { text = "More detail", value = false, name = "objective-more-detail" };
         AddObjectivePart(detail, "Why it matters", rackV2Objective ? RackV2Concept : lesson.Concept, "current-objective-concept");
-        if (NeedsReviewAcknowledgement) UiKit.Add(words, "Review the year — First: read and acknowledge the annual results.", "heading");
+        if (ReviewFirst) UiKit.Add(words, "First: Review the year — read and acknowledge the annual results.", "heading").name = "current-objective-review-first";
         string instruction = CurrentInstruction;
         string shortInstruction = CurrentShortInstruction;
         // The extension checklist is shown once, on the card; it is not repeated under More detail.
-        string extension = ExtensionActive ? ExtensionInstruction() : null;
+        string extension = !ReviewFirst && ExtensionActive ? ExtensionInstruction() : null;
         AddObjectivePart(words, "What to do", shortInstruction, "current-objective-instruction");
         if (instruction != shortInstruction && instruction != extension) AddObjectivePart(detail, "Full instructions", instruction, "objective-full-instruction");
-        if (CurrentTopicIndex == 4) UiKit.Add(words, "The three tree decisions and six stand checks are session-only until first review completion. Reloading needs fresh inspection.", "body");
+        if (!ReviewFirst && CurrentTopicIndex == 4) UiKit.Add(words, "The three tree decisions and six stand checks are session-only until first review completion. Reloading needs fresh inspection.", "body");
         if (instruction.Contains("safeguard")) UiKit.Add(words, instruction, "body");
         if (extension != null) UiKit.Add(words, extension, "body");
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
-        if (!string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
-        UiKit.Add(words, TeachingProgress(TeachingFacts()), "heading").name = "current-objective-progress";
+        if (!ReviewFirst && !string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
+        UiKit.Add(words, CurrentProgress, "heading").name = "current-objective-progress";
         words.Add(detail);
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.

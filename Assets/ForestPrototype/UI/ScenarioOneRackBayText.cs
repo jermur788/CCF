@@ -57,6 +57,9 @@ public static class ScenarioOneRackBayText
     }
     public const string ReviewTitle = "Review the year";
     public const string ReviewInstruction = "Read and acknowledge the Annual Review: open the Work Plan [Tab].";
+    public const string ReviewProgress = "Read and acknowledge the annual results before continuing.";
+    public static bool ReviewFirst(bool rackV2, bool lessonReviewPending, bool annualReviewUnread)
+        => rackV2 && (lessonReviewPending || annualReviewUnread);
 
     // The words on the walking objective panel. Plain data in, plain words out, so the offline checks can drive every lesson and
     // review state (#365). Only a Rack V2 world gets the review title, the "Next:" cue and the teaching-area lines; any other world
@@ -71,7 +74,7 @@ public static class ScenarioOneRackBayText
     {
         title = heading; shownInstruction = instruction; progress = lessonProgress;
         if (!rackV2) return;
-        bool review = lessonReviewPending || annualReviewUnread;
+        bool review = ReviewFirst(rackV2, lessonReviewPending, annualReviewUnread);
         if (review) title = ReviewTitle;
         if (!complete) shownInstruction = "Next: " + (review && !lessonReviewPending ? ReviewInstruction : instruction);
         // A later lesson whose own acknowledgement is missing but whose newest review is read keeps its lesson progress.

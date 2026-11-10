@@ -2,7 +2,7 @@
 """#365 source contract (NOT a HUD screenshot): the walking objective panel must take its words from the one pure selector
 that Checks.cs drives (ScenarioOneRackBayText.HudWords), and nothing else may call the Objective 2 Crop Tree checklist.
 Fail-closed: a missing file or pattern is a failure. Used by run_checks.py and, with a deliberate regression, by mutations.py."""
-import pathlib, re, sys
+import hashlib, pathlib, re, sys
 
 def problems(ui: dict) -> list:
     """ui maps a path relative to Assets/ForestPrototype/UI (posix) to that file's text."""
@@ -30,6 +30,30 @@ def problems(ui: dict) -> list:
     if 'reason = scope == learning.Root ? "" : learning.CurrentShortInstruction;' not in root: out.append('later objectives must show the short instruction, once')
     view = ui.get('LearningObjectivesView.cs', '')
     if 'instruction != extension' not in view or view.count('ExtensionInstruction()') != 1: out.append('the extension checklist must be added to the card once')
+    # #367: pin the actual consumers, not just HudWords. Exact signatures fail closed on missing/rewired paths.
+    contracts = (
+        ('R367_REVIEW_FIRST_BOTH_PREDICATES', 'public bool ReviewFirst => ScenarioOneRackBayText.ReviewFirst(ui.Manager.RackPlanningV2Active && !ui.Manager.ReferencePreviewActive,\n        NeedsReviewAcknowledgement, ui.NeedsAnnualReview);'),
+        ('R367_SHORT_SHARED_PRIORITY', 'public string CurrentShortInstruction => ReviewFirst ? ScenarioOneRackBayText.ReviewInstruction'),
+        ('R367_FULL_SHARED_PRIORITY', 'if (ReviewFirst) return ScenarioOneRackBayText.ReviewInstruction;'),
+        ('R367_PROGRESS_SHARED_PRIORITY', 'public string CurrentProgress => ReviewFirst ? ScenarioOneRackBayText.ReviewProgress : TeachingProgress(TeachingFacts());'),
+        ('R367_CARD_SHORT_CONSUMER', 'AddObjectivePart(words, "What to do", shortInstruction, "current-objective-instruction");'),
+        ('R367_CARD_FULL_CONSUMER', 'if (instruction != shortInstruction && instruction != extension) AddObjectivePart(detail, "Full instructions", instruction, "objective-full-instruction");'),
+        ('R367_CARD_REVIEW_BANNER', 'if (ReviewFirst) UiKit.Add(words, "First: Review the year — read and acknowledge the annual results.", "heading").name = "current-objective-review-first";'),
+        ('R367_CARD_PROGRESS_CONSUMER', 'UiKit.Add(words, CurrentProgress, "heading").name = "current-objective-progress";'),
+        ('R367_CARD_NO_PARALLEL_EXTENSION', 'string extension = !ReviewFirst && ExtensionActive ? ExtensionInstruction() : null;'),
+        ('R367_CARD_NO_PARALLEL_PRACTICE', 'if (!ReviewFirst && !string.IsNullOrEmpty(practice))'),
+    )
+    for name, pattern in contracts:
+        if view.count(pattern) != 1: out.append(name)
+    if root.count('if (learning.ReviewFirst)') != 1: out.append('R367_WINDOW_TARGET_SHARED_PRIORITY')
+    if root.count('reason = scope == learning.Root ? "" : learning.CurrentShortInstruction;') != 1: out.append('R367_WINDOW_REASON_SHORT_CONSUMER')
+    if '=> rackV2 && (lessonReviewPending || annualReviewUnread);' not in text: out.append('R367_SELECTOR_NEWEST_UNREAD')
+    if 'bool review = ReviewFirst(rackV2, lessonReviewPending, annualReviewUnread);' not in text: out.append('R367_HUD_SHARED_PRIORITY')
+    # Objective1's confirmation/marking/approval navigation is outside this repair; pin its exact existing branch.
+    start = root.find('        else if (manager.RackPlanningV2Active && (learning.TeachingRacks')
+    end = root.find('        else if (manager.RackPlanningV2Active)\n', start)
+    if start < 0 or end < start or hashlib.sha256(root[start:end].encode()).hexdigest() != '5fd30222c998e60fceca03d19b7f1450265d257497896916e4b9dbd72999a7f9':
+        out.append('R367_OBJECTIVE1_NAVIGATION_UNCHANGED')
     return out
 
 def read(src_root) -> dict:
